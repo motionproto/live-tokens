@@ -1,0 +1,18 @@
+/* MP Design System - Font Declarations */
+/* This file is copied directly to dist without processing to avoid font inlining */
+/* Both fonts.css and fonts/ are in dist/, so use relative paths */
+
+/* Astounder Squared BB, Astounder Squared LC BB, Gravita Hum Variable, Fira Code */
+@import url('https://use.typekit.net/jes8oow.css');
+
+/* Faculty Glyphic, Montserrat */
+@import url('https://fonts.googleapis.com/css2?family=Faculty+Glyphic&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* Domine - Variable Font */
+@font-face {
+  font-family: "Domine";
+  src: url('./fonts/Domine/Domine-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}

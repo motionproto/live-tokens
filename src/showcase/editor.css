@@ -1,0 +1,93 @@
+/*
+ * Design System Editor — UI Chrome
+ *
+ * Opaque grayscale palette for the editor itself.
+ * Protected from the design-token system — these never change.
+ *
+ * Every showcase/editor component references these via var(--ui-*).
+ * The --ui-gray-* ramp is the source of truth; semantic aliases
+ * (--ui-surface-*, --ui-text-*, --ui-border-*) point into it.
+ */
+
+.admin-page {
+
+  /* ── Fonts ────────────────────────────────────────────── */
+
+  /* System sans for all editor chrome — no app custom fonts */
+  --ui-font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* System monospace for variable names, hex values, code */
+  --ui-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  font-family: var(--ui-font-sans);
+}
+
+/* Override the global :where(*) { font-family: var(--font-sans) }
+   from variables.css which applies directly to every element */
+.admin-page *:not([class*="fa-"]) {
+  font-family: inherit;
+}
+
+.admin-page {
+
+  /* ═══════════════════════════════════════════════════════
+     GRAYSCALE PALETTE — opaque, protected from token system
+     Lower number = darker.  Derived from the old alpha-on-black
+     values so every existing reference resolves identically.
+     ═══════════════════════════════════════════════════════ */
+
+  --ui-gray-50:  #050505;
+  --ui-gray-100: #0a0a0a;
+  --ui-gray-150: #0f0f0f;
+  --ui-gray-200: #141414;
+  --ui-gray-250: #1a1a1a;
+  --ui-gray-300: #212121;
+  --ui-gray-350: #292929;
+  --ui-gray-400: #333333;
+  --ui-gray-500: #4d4d4d;
+  --ui-gray-600: #666666;
+  --ui-gray-700: #808080;
+  --ui-gray-750: #999999;
+  --ui-gray-800: #bfbfbf;
+  --ui-gray-850: #c7c7c7;
+  --ui-gray-950: #f2f2f2;
+
+
+  /* ── Text ────────────────────────────────────────────── */
+
+  --ui-text-primary:    #ffffff;
+  --ui-text-secondary:  var(--ui-gray-800);
+  --ui-text-tertiary:   var(--ui-gray-700);
+  --ui-text-muted:      var(--ui-gray-500);
+  --ui-text-disabled:   var(--ui-gray-400);
+  --ui-text-accent:     var(--ui-gray-950);
+  --ui-text-success:    var(--ui-gray-850);
+
+
+  /* ── Borders ─────────────────────────────────────────── */
+
+  --ui-border-faint:    var(--ui-gray-400);
+  --ui-border-subtle:   var(--ui-gray-500);
+  --ui-border-default:  var(--ui-gray-600);
+  --ui-border-medium:   var(--ui-gray-700);
+  --ui-border-strong:   var(--ui-gray-800);
+
+
+  /* ── Surfaces ────────────────────────────────────────── */
+
+  --ui-surface-lowest:  var(--ui-gray-50);
+  --ui-surface-lower:   var(--ui-gray-100);
+  --ui-surface-low:     var(--ui-gray-150);
+  --ui-surface:         var(--ui-gray-200);
+  --ui-surface-high:    var(--ui-gray-250);
+  --ui-surface-higher:  var(--ui-gray-300);
+  --ui-surface-highest: var(--ui-gray-350);
+
+  --ui-toggle:          var(--ui-gray-750);
+
+
+  /* ── Hover ───────────────────────────────────────────── */
+
+  --ui-hover:           var(--ui-gray-150);
+  --ui-hover-high:      var(--ui-gray-250);
+}

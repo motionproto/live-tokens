@@ -1,0 +1,26 @@
+{
+  "name": "live-tokens",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.json"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^3.1.2",
+    "@tsconfig/svelte": "^5.0.8",
+    "@types/node": "^24.12.0",
+    "svelte": "^4.2.20",
+    "svelte-check": "^3.8.6",
+    "typescript": "~5.9.3",
+    "vite": "^5.4.21"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.2.0",
+    "sass": "^1.98.0",
+    "svelte-preprocess": "^6.0.3"
+  }
+}

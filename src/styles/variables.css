@@ -1,0 +1,584 @@
+/* RuneGoblin - Design System Variables */
+/* Simple CSS variables for consistent theming */
+/* Note: Font declarations moved to fonts.css which is copied directly without processing */
+
+/* Global font fallback for all module content (excludes Font Awesome icons) */
+/* Using :where() for 0 specificity - component styles can override naturally */
+:where(*:not([class*="fa-"])) {
+  font-family: var(--font-sans);
+}
+
+:root {
+  /* ═══════════════════════════════════════════════════════
+     COLOR RAMPS — Base palette swatches (100–950)
+     Each ramp is driven by its PaletteEditor in the admin.
+     Values here are static defaults; runtime overrides via JS.
+     ═══════════════════════════════════════════════════════ */
+
+  /* Neutral (gray mode) */
+  --color-neutral-100: #ece3dd;
+  --color-neutral-200: #d3cac4;
+  --color-neutral-300: #b6ada8;
+  --color-neutral-400: #99918c;
+  --color-neutral-500: #7d7570;
+  --color-neutral-600: #625a56;
+  --color-neutral-700: #48413d;
+  --color-neutral-800: #302925;
+  --color-neutral-850: #1a1410;
+  --color-neutral-900: #070302;
+  --color-neutral-950: #000000;
+
+  /* Alternate (gray mode) */
+  --color-alternate-100: #e3e5e4;
+  --color-alternate-200: #cccdcd;
+  --color-alternate-300: #b1b2b2;
+  --color-alternate-400: #969797;
+  --color-alternate-500: #7c7d7d;
+  --color-alternate-600: #626363;
+  --color-alternate-700: #4a4b4b;
+  --color-alternate-800: #333434;
+  --color-alternate-850: #1e1f1e;
+  --color-alternate-900: #0b0c0c;
+  --color-alternate-950: #010202;
+
+  /* Background */
+  --color-bg-100: #fbebdf;
+  --color-bg-200: #dacbbf;
+  --color-bg-300: #b5a79b;
+  --color-bg-400: #998b80;
+  --color-bg-500: #8d7f74;
+  --color-bg-600: #807267;
+  --color-bg-700: #685b50;
+  --color-bg-800: #4d4036;
+  --color-bg-850: #31251c;
+  --color-bg-900: #170d05;
+  --color-bg-950: #050100;
+
+  /* Primary */
+  --color-primary-100: #ffeada;
+  --color-primary-200: #ffbf8b;
+  --color-primary-300: #e99243;
+  --color-primary-400: #ca7620;
+  --color-primary-500: #bd6a08;
+  --color-primary-600: #ac5f00;
+  --color-primary-700: #8a4b00;
+  --color-primary-800: #653500;
+  --color-primary-850: #3f1f00;
+  --color-primary-900: #1c0a00;
+  --color-primary-950: #050100;
+
+  /* Accent */
+  --color-accent-100: #ffeaab;
+  --color-accent-200: #f1d479;
+  --color-accent-300: #d6b95c;
+  --color-accent-400: #bb9d38;
+  --color-accent-500: #9d7f00;
+  --color-accent-600: #685300;
+  --color-accent-700: #4b3c00;
+  --color-accent-800: #382c00;
+  --color-accent-850: #2b2100;
+  --color-accent-900: #221900;
+  --color-accent-950: #1d1500;
+
+  /* Special */
+  --color-special-100: #efecff;
+  --color-special-200: #cfc5ff;
+  --color-special-300: #ae96ff;
+  --color-special-400: #966cff;
+  --color-special-500: #8b5cf6;
+  --color-special-600: #7f4de7;
+  --color-special-700: #6830ca;
+  --color-special-800: #4f00a6;
+  --color-special-850: #30006a;
+  --color-special-900: #130033;
+  --color-special-950: #03000d;
+
+  /* Success */
+  --color-success-100: #c7ffd1;
+  --color-success-200: #73ec91;
+  --color-success-300: #49c66d;
+  --color-success-400: #21a951;
+  --color-success-500: #009c45;
+  --color-success-600: #008d3e;
+  --color-success-700: #007130;
+  --color-success-800: #005221;
+  --color-success-850: #003211;
+  --color-success-900: #001404;
+  --color-success-950: #000300;
+
+  /* Warning */
+  --color-warning-100: #ffeadf;
+  --color-warning-200: #ffbe9c;
+  --color-warning-300: #fa8640;
+  --color-warning-400: #db691c;
+  --color-warning-500: #cd5d00;
+  --color-warning-600: #b95300;
+  --color-warning-700: #964200;
+  --color-warning-800: #6d2e00;
+  --color-warning-850: #441a00;
+  --color-warning-900: #1f0700;
+  --color-warning-950: #060000;
+
+  /* Info */
+  --color-info-100: #e5efff;
+  --color-info-200: #95beff;
+  --color-info-300: #5f86c3;
+  --color-info-400: #385c95;
+  --color-info-500: #274a82;
+  --color-info-600: #20427a;
+  --color-info-700: #12346a;
+  --color-info-800: #022357;
+  --color-info-850: #00143b;
+  --color-info-900: #00061f;
+  --color-info-950: #00010d;
+
+  /* Danger */
+  --color-danger-100: #ffe8e8;
+  --color-danger-200: #ffbabb;
+  --color-danger-300: #ff7a83;
+  --color-danger-400: #f63f59;
+  --color-danger-500: #e72e4e;
+  --color-danger-600: #d71641;
+  --color-danger-700: #b00031;
+  --color-danger-800: #810021;
+  --color-danger-850: #520012;
+  --color-danger-900: #260004;
+  --color-danger-950: #080000;
+
+  /* ═══════════════════════════════════════════════════════
+     APPLICATION BACKGROUND
+     ═══════════════════════════════════════════════════════ */
+
+  --empty: #31251c;
+  --empty-attachment: scroll;
+  --text-glow-stroke: 12px color-mix(in srgb, var(--empty) 80%, transparent);
+
+  /* ═══════════════════════════════════════════════════════
+     SURFACES — 7-point scales (lowest → highest)
+     ═══════════════════════════════════════════════════════ */
+
+  /* Neutral surfaces (base UI panels) */
+  --surface-neutral-lowest: #0f0a07;
+  --surface-neutral-lower: #1a1410;
+  --surface-neutral-low: #28211d;
+  --surface-neutral: #362f2a;
+  --surface-neutral-high: #443d39;
+  --surface-neutral-higher: #534c47;
+  --surface-neutral-highest: #615954;
+
+  /* Alternate surfaces */
+  --surface-alternate-lowest: #0b0b0b;
+  --surface-alternate-lower: #151616;
+  --surface-alternate-low: #222323;
+  --surface-alternate: #303030;
+  --surface-alternate-high: #3e3f3f;
+  --surface-alternate-higher: #4d4d4d;
+  --surface-alternate-highest: #5a5b5b;
+
+  /* Background */
+  --surface-bg-lowest: #120903;
+  --surface-bg-lower: #1e130b;
+  --surface-bg-low: #2b2017;
+  --surface-bg: #392e24;
+  --surface-bg-high: #483c32;
+  --surface-bg-higher: #574b41;
+  --surface-bg-highest: #65584e;
+
+  /* Primary */
+  --surface-primary-lowest: #160700;
+  --surface-primary-lower: #250f00;
+  --surface-primary-low: #371a00;
+  --surface-primary: #4a2600;
+  --surface-primary-high: #5f3200;
+  --surface-primary-higher: #733e00;
+  --surface-primary-highest: #864900;
+
+  /* Accent */
+  --surface-accent-lowest: #100a00;
+  --surface-accent-lower: #1c1500;
+  --surface-accent-low: #2c2100;
+  --surface-accent: #3c2f00;
+  --surface-accent-high: #4d3d00;
+  --surface-accent-higher: #5e4b00;
+  --surface-accent-highest: #6e5800;
+
+  /* Special */
+  --surface-special-lowest: #0f002b;
+  --surface-special-lower: #1b0042;
+  --surface-special-low: #2a005e;
+  --surface-special: #39007d;
+  --surface-special-high: #4a009d;
+  --surface-special-higher: #5915b6;
+  --surface-special-highest: #662cc7;
+
+  /* Success */
+  --surface-success-lowest: #001003;
+  --surface-success-lower: #001c07;
+  --surface-success-low: #002b0e;
+  --surface-success: #003c16;
+  --surface-success-high: #004d1e;
+  --surface-success-higher: #005e27;
+  --surface-success-highest: #006e2e;
+
+  /* Warning */
+  --surface-warning-lowest: #190500;
+  --surface-warning-lower: #280c00;
+  --surface-warning-low: #3c1600;
+  --surface-warning: #512000;
+  --surface-warning-high: #662b00;
+  --surface-warning-higher: #7d3600;
+  --surface-warning-highest: #914000;
+
+  /* Info */
+  --surface-info-lowest: #000923;
+  --surface-info-lower: #05152f;
+  --surface-info-low: #11223e;
+  --surface-info: #1e304d;
+  --surface-info-high: #2c3f5d;
+  --surface-info-higher: #3a4e6d;
+  --surface-info-highest: #475c7b;
+
+  /* Danger */
+  --surface-danger-lowest: #1f0003;
+  --surface-danger-lower: #310007;
+  --surface-danger-low: #48000e;
+  --surface-danger: #600016;
+  --surface-danger-high: #7a001f;
+  --surface-danger-higher: #930028;
+  --surface-danger-highest: #ab002f;
+
+  /* Semi-Transparent Overlays - 7-point scale */
+  --overlay-lowest: rgba(20, 3, 0, 0.12);
+  --overlay-lower: rgba(20, 3, 0, 0.25);
+  --overlay-low: rgba(20, 3, 0, 0.38);
+  --overlay: rgba(20, 3, 0, 0.51);
+  --overlay-high: rgba(20, 3, 0, 0.64);
+  --overlay-higher: rgba(20, 3, 0, 0.77);
+  --overlay-highest: rgba(20, 3, 0, 0.9);
+
+  /* Interactive Hover States - 3-point scale */
+  --hover-low: rgba(255, 255, 255, 0.05);
+  --hover: rgba(255, 255, 255, 0.1);
+  --hover-high: rgba(255, 255, 255, 0.15);
+
+  /* ═══════════════════════════════════════════════════════
+     BORDERS — 5-point scales (faint → strong)
+     ═══════════════════════════════════════════════════════ */
+
+  /* Neutral borders */
+  --border-neutral-faint: #27201c;
+  --border-neutral-subtle: #48413c;
+  --border-neutral-default: hsla(240, 5%, 32%, 1);
+  --border-neutral-medium: #9b938e;
+  --border-neutral-strong: #c4bcb6;
+
+  /* Alternate borders */
+  --border-alternate-faint: #212222;
+  --border-alternate-subtle: #424343;
+  --border-alternate: #696a6a;
+  --border-alternate-medium: #949595;
+  --border-alternate-strong: #bdbebe;
+
+  /* Background */
+  --border-bg-faint: #2a1f16;
+  --border-bg-subtle: #4c4036;
+  --border-bg: #75675d;
+  --border-bg-medium: #a09287;
+  --border-bg-strong: #cabbaf;
+
+  /* Primary */
+  --border-primary-faint: #361900;
+  --border-primary-subtle: #643500;
+  --border-primary: #9c5600;
+  --border-primary-medium: #d27d2a;
+  --border-primary-strong: #ffa659;
+
+  /* Accent */
+  --border-accent-faint: #2a2000;
+  --border-accent-subtle: #514100;
+  --border-accent: #816800;
+  --border-accent-medium: #b09227;
+  --border-accent-strong: #dabb57;
+
+  /* Special */
+  --border-special-faint: #29005c;
+  --border-special-subtle: #4e00a6;
+  --border-special: #7441da;
+  --border-special-medium: #9c77ff;
+  --border-special-strong: #c0b0ff;
+
+  /* Success */
+  --border-success-faint: #002a0d;
+  --border-success-subtle: #005120;
+  --border-success: #008037;
+  --border-success-medium: #2eb058;
+  --border-success-strong: #61db80;
+
+  /* Warning */
+  --border-warning-faint: #3a1500;
+  --border-warning-subtle: #6c2e00;
+  --border-warning: #a84b00;
+  --border-warning-medium: #e27026;
+  --border-warning-strong: #ffa473;
+
+  /* Info */
+  --border-info-faint: #001e50;
+  --border-info-subtle: #1e4178;
+  --border-info: #456aa5;
+  --border-info-medium: #6f96d4;
+  --border-info-strong: #97bfff;
+
+  /* Danger */
+  --border-danger-faint: #46000e;
+  --border-danger-subtle: #800021;
+  --border-danger: #c70039;
+  --border-danger-medium: #fe4860;
+  --border-danger-strong: #ff9fa2;
+
+  /* ═══════════════════════════════════════════════════════
+     TEXT — 5-point hierarchy (primary → disabled)
+     ═══════════════════════════════════════════════════════ */
+
+  /* Base text (uses neutral ramp) */
+  --text-primary: #fff5f0;
+  --text-secondary: #b0a9a4;
+  --text-tertiary: #86817e;
+  --text-muted: #5e5c5b;
+  --text-disabled: #3a3939;
+  --text-inverted: var(--color-neutral-900);
+
+  /* Background */
+  --text-bg: #b2a498;
+  --text-bg-secondary: #9c9086;
+  --text-bg-tertiary: #726a64;
+  --text-bg-muted: #4a4744;
+  --text-bg-disabled: #383634;
+
+  /* Primary */
+  --text-primary-color: #ec9546;
+  --text-primary-secondary: #cf8746;
+  --text-primary-tertiary: #966841;
+  --text-primary-muted: #66503e;
+  --text-primary-disabled: #4d4239;
+
+  /* Accent */
+  --text-accent: #c3a43e;
+  --text-accent-secondary: #aa913e;
+  --text-accent-tertiary: #7b6b39;
+  --text-accent-muted: #4f4731;
+  --text-accent-disabled: #3a362c;
+
+  /* Special */
+  --text-special: #ab92ff;
+  --text-special-secondary: #9976f9;
+  --text-special-tertiary: #6f5bad;
+  --text-special-muted: #484167;
+  --text-special-disabled: #363346;
+
+  /* Success */
+  --text-success: #46c36a;
+  --text-success-secondary: #44aa60;
+  --text-success-tertiary: #3e7b4c;
+  --text-success-muted: #344f39;
+  --text-success-disabled: #2d3a2f;
+
+  /* Warning */
+  --text-warning: #f7833d;
+  --text-warning-secondary: #d7763d;
+  --text-warning-tertiary: #985b39;
+  --text-warning-muted: #5d4031;
+  --text-warning-disabled: #41332b;
+
+  /* Info */
+  --text-info: #78acff;
+  --text-info-secondary: #5385d6;
+  --text-info-tertiary: #406298;
+  --text-info-muted: #2e415e;
+  --text-info-disabled: #172132;
+
+  /* Danger */
+  --text-danger: #ff757e;
+  --text-danger-secondary: #ef5766;
+  --text-danger-tertiary: #a84950;
+  --text-danger-muted: #65393b;
+  --text-danger-disabled: #463030;
+
+  /* ═══════════════════════════════════════════════════════
+     BUTTONS
+     ═══════════════════════════════════════════════════════ */
+
+  /* Button Colors */
+  --btn-primary-bg: hsla(0, 63%, 31%, 1);
+  --btn-primary-hover: hsla(0, 70%, 35%, 1);
+  --btn-secondary-bg: hsla(215, 19%, 27%, 1);
+  --btn-secondary-hover: hsla(215, 14%, 34%, 1);
+
+  /* Border Radius */
+  --radius-sm: 0.125rem;    /* 2px */
+  --radius-md: 0.25rem;     /* 4px */
+  --radius-lg: 0.375rem;    /* 6px */
+  --radius-xl: 0.5rem;      /* 8px */
+  --radius-2xl: 0.625rem;   /* 10px */
+  --radius-3xl: 0.75rem;    /* 12px */
+  --radius-full: 1.25rem;   /* 20px */
+
+  /* Spacing */
+  --space-2: 0.125rem;    /* 2px */
+  --space-4: 0.25rem;     /* 4px */
+  --space-6: 0.375rem;    /* 6px */
+  --space-8: 0.5rem;      /* 8px */
+  --space-10: 0.625rem;   /* 10px */
+  --space-12: 0.75rem;    /* 12px */
+  --space-16: 1rem;       /* 16px */
+  --space-20: 1.25rem;    /* 20px */
+  --space-24: 1.5rem;     /* 24px */
+  --space-32: 2rem;       /* 32px */
+  --space-48: 3rem;       /* 48px */
+
+  /* ═══════════════════════════════════════════════════════
+     COLUMN LAYOUT
+     12-column layout tokens. Drive the dev columns overlay
+     (toggled from the admin bar) and can be consumed by any
+     component via:
+       grid-template-columns: repeat(var(--columns-count), 1fr);
+       gap: var(--columns-gutter);
+       padding-inline: var(--columns-margin);
+       max-width: var(--columns-max-width);
+     --columns-gutter is the space between columns;
+     --columns-margin is the optional outer page padding
+     outside the N cols (a.k.a. side gutters) — defaults to 0
+     so layouts are flush to the container edge; dial it up
+     to add side gutters.
+     ═══════════════════════════════════════════════════════ */
+  --columns-count: 12;
+  --columns-max-width: 1440px;
+  --columns-gutter: clamp(0.5rem, 1.5vw, 1.5rem);
+  --columns-margin: 0;
+
+  /* Font Families */
+  --font-display: "astounder-squared-bb", "astounder-squared-lc-bb", "Signika", sans-serif;
+  --font-sans: "Montserrat", 'Segoe UI', 'Open Sans', 'Helvetica Neue', sans-serif;
+  --font-serif: "Faculty Glyphic","Domine", serif;
+  --font-mono: "fira-code", "Source Code Pro", "Courier New", monospace;
+
+  /* Font Sizes */
+  --font-xs: 0.875rem;    /* 14px */
+  --font-sm: 1rem;        /* 16px */
+  --font-md: 1.125rem;    /* 18px */
+  --font-lg: 1.25rem;     /* 20px */
+  --font-xl: 1.375rem;    /* 22px */
+  --font-2xl: 1.625rem;   /* 26px */
+  --font-3xl: 2rem;       /* 32px */
+  --font-4xl: 2.5rem;     /* 40px */
+  --font-5xl: 3rem;       /* 48px */
+  --font-6xl: 3.5rem;     /* 56px */
+
+  /* Font Weights */
+  --font-weight-thin: 100;
+  --font-weight-light: 200;
+  --font-weight-medium: 300;
+  --font-weight-semibold: 400;
+  --font-weight-bold: 600;
+
+  /* Gradients */
+  --gradient-progress: linear-gradient(90deg, var(--color-primary-500), var(--color-accent-500));
+
+  /* Shadows */
+  --shadow-sm: 1px 1px 2px 0px hsla(237, 18%, 3%, 0.9);
+  --shadow-md: 3px 3px 6px 0px hsla(237, 18%, 3%, 0.9);
+  --shadow-lg: 5px 5px 9px 0px hsla(237, 18%, 3%, 0.9);
+  --shadow-xl: 6px 7px 13px 0px hsla(237, 18%, 3%, 0.9);
+  --shadow-2xl: 8px 9px 16px 0px hsla(237, 18%, 3%, 0.9);
+  --shadow-card: 0px 4px 8px 0px hsla(0, 0%, 0%, 0.2);
+  --shadow-overlay: 0px 10px 40px 0px hsla(0, 0%, 0%, 0.5);
+  --shadow-app: 0px 0px 20px 0px hsla(0, 0%, 0%, 0.8);
+  --shadow-focus: 0px 0px 0px 3px hsla(0, 78%, 60%, 0.1);
+  --shadow-glow-green: 0px 0px 5px 0px hsla(123, 25%, 70%, 0.3);
+
+  /* Text Shadows */
+  --text-shadow-sm: 1px 1px 2px hsla(0, 0%, 0%, 0.5);
+  --text-shadow-md: 2px 2px 4px hsla(0, 0%, 0%, 0.3);
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* Z-Index Layers */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 1000;
+  --z-modal: 1100;
+  --z-popover: 1200;
+  --z-tooltip: 1300;
+
+  /* Opacity */
+  --opacity-disabled: 0.6;
+  --opacity-hover: 0.8;
+  --opacity-muted: 0.5;
+
+  /* Line Heights */
+  --line-height-tight: .9;
+  --line-height-snug: 1;
+  --line-height-normal: 1.25;
+  --line-height-relaxed: 1.5;
+  --line-height-loose: 1.5;
+
+  /* Exported token additions */
+  --border: #686b69;
+
+  /* Exported token additions */
+  --surface-lowest: #090c0a;
+  --surface-lower: #0f1210;
+  --surface-low: #161a17;
+  --surface: #1e211f;
+  --surface-high: #262927;
+  --surface-higher: #2e322f;
+  --surface-highest: #353936;
+  --border-faint: #1f2320;
+  --border-subtle: #404441;
+  --border-medium: #929693;
+  --border-strong: #bbbfbc;
+  --border-neutral: #706964;
+
+  /* Exported token additions */
+  --text-alternate: #9fa1a1;
+  --text-alternate-secondary: #8c8d8d;
+  --text-alternate-tertiary: #676868;
+  --text-alternate-muted: #444444;
+  --text-alternate-disabled: #343434;
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE TYPE SCALE
+   Font size variables ramp down on smaller viewports so
+   every heading + body style that references them adapts
+   automatically. Body text (--font-md) collapses to 16px
+   on mobile for improved readability.
+   ═══════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  :root {
+    --font-xs: 0.8125rem;   /* 13px */
+    --font-sm: 0.9375rem;   /* 15px */
+    --font-md: 1rem;        /* 16px */
+    --font-lg: 1.125rem;    /* 18px */
+    --font-xl: 1.25rem;     /* 20px */
+    --font-2xl: 1.4375rem;  /* 23px */
+    --font-3xl: 1.625rem;   /* 26px */
+    --font-4xl: 1.875rem;   /* 30px */
+    --font-5xl: 2.25rem;    /* 36px */
+    --font-6xl: 2.5rem;     /* 40px */
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --font-2xl: 1.3125rem;  /* 21px */
+    --font-3xl: 1.5rem;     /* 24px */
+    --font-4xl: 1.625rem;   /* 26px */
+    --font-5xl: 1.875rem;   /* 30px */
+    --font-6xl: 2.125rem;   /* 34px */
+  }
+}

@@ -1,0 +1,190 @@
+/* Form Controls - Global Styling for Dropdowns, Selects, Inputs */
+/* Ensures consistent, legible styling across the application */
+
+/* ========================================
+   Form Field Layouts
+   ======================================== */
+
+/* Vertical Layout - Label Above Input/Select */
+/* Usage: Add .form-field-vertical to container div wrapping label + input/select */
+.form-field-vertical {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-4);
+}
+
+.form-label {
+  margin-bottom: 0;
+  font-size: var(--font-md);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Horizontal Layout - Label Beside Input/Select */
+/* Usage: Add .form-field-horizontal to container div wrapping label + input/select */
+.form-field-horizontal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.form-field-horizontal .form-label {
+  white-space: nowrap;
+}
+
+/* Inline Layout - Label and Input/Select Close Together */
+/* Usage: Add .form-field-inline to container div wrapping label + input/select */
+.form-field-inline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.form-field-inline .form-label {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.form-field-inline .form-select,
+.form-field-inline .form-input {
+  flex-shrink: 0;
+}
+
+/* ========================================
+   Form Control Styling
+   ======================================== */
+
+/* Select/Dropdown Styling - Design System Compliant */
+.form-select {
+  /* Base styling using design system colors */
+  /* No vertical padding - let min-height and line-height center text naturally */
+  padding: 0 var(--space-16);
+  min-height: 2.375rem;  /* ~38px to match button height */
+  background: var(--surface-neutral-lowest) !important;
+  border: 1px solid var(--border-neutral-default) !important;
+  border-radius: var(--radius-md);
+  color: var(--text-primary) !important;
+  font-family: var(--font-sans);
+  font-size: var(--font-md);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-relaxed);
+  vertical-align: middle;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  /* Prevent clipping */
+  overflow: visible !important;
+  box-sizing: border-box !important;
+  /* Reset browser defaults */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  /* Custom dropdown arrow */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right var(--space-12) center !important;
+  padding-right: var(--space-32) !important;
+}
+
+.form-select:hover:not(:disabled) {
+  background-color: var(--surface-neutral-low) !important;
+  border-color: var(--border-neutral-medium) !important;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: var(--border-neutral-strong) !important;
+  box-shadow: 0 0 0 2px hsla(0, 58%, 50%, 0.2);
+}
+
+.form-select:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+.form-select:active:not(:disabled) {
+  background-color: var(--surface-neutral) !important;
+}
+
+.form-select:disabled {
+  background-color: var(--surface-neutral-lowest) !important;
+  border-color: var(--border-neutral-faint) !important;
+  color: var(--text-disabled) !important;
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+/* Option Styling - Critical for Legibility */
+/* Note: Most option styling is controlled by browser/OS and cannot be fully overridden */
+/* These styles apply where browsers allow (limited support in Chrome/Firefox) */
+.form-select option {
+  background-color: var(--surface-neutral-lowest) !important;
+  color: var(--text-primary) !important;
+  padding: var(--space-8) var(--space-12);
+  min-height: 2rem;
+  font-size: var(--font-md);
+  font-family: var(--font-sans);
+  line-height: var(--line-height-relaxed);
+}
+
+/* Disabled options */
+.form-select option:disabled {
+  color: var(--text-disabled) !important;
+  opacity: var(--opacity-disabled);
+}
+
+/* Input Field Styling */
+.form-input {
+  padding: var(--space-8);
+  background: var(--surface-neutral-lowest);
+  border: 1px solid var(--border-neutral-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--font-md);
+  transition: border-color var(--transition-fast);
+}
+
+.form-input:hover:not(:disabled) {
+  border-color: var(--border-neutral-strong);
+  background: var(--surface-neutral-low);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--border-neutral-strong);
+  box-shadow: 0 0 0 3px hsla(240, 5%, 38%, 0.2);
+}
+
+.form-input:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+/* Placeholder text styling */
+.form-input::placeholder {
+  color: var(--text-muted);
+  opacity: var(--opacity-muted);
+}
+
+/* Number input spinner buttons */
+.form-input[type="number"]::-webkit-inner-spin-button,
+.form-input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+/* Checkbox and Radio Styling */
+.form-checkbox,
+.form-radio {
+  cursor: pointer;
+  width: var(--space-16);
+  height: var(--space-16);
+  accent-color: var(--color-neutral-400);
+}
+
+.form-checkbox:disabled,
+.form-radio:disabled {
+  cursor: not-allowed;
+  opacity: var(--opacity-disabled);
+}
