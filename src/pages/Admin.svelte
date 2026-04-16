@@ -5,7 +5,7 @@
 
   function closeOverlay() {
     try {
-      window.parent.postMessage({ type: 'rg-overlay-close' }, window.location.origin);
+      window.parent.postMessage({ type: 'lt-overlay-close' }, window.location.origin);
     } catch {
       // cross-origin parent — shouldn't happen, but fall back to a noop
     }

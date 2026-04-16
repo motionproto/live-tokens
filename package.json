@@ -1,13 +1,72 @@
 {
-  "name": "live-tokens",
-  "private": true,
+  "name": "@motionproto/live-tokens",
   "version": "0.1.0",
   "type": "module",
+  "description": "Design token editor with live CSS variable editing. Svelte 4 + Vite.",
+  "keywords": ["svelte", "vite", "design-tokens", "css-variables", "editor"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/motionproto/live-tokens.git"
+  },
+  "homepage": "https://github.com/motionproto/live-tokens",
+  "bugs": "https://github.com/motionproto/live-tokens/issues",
+  "files": [
+    "src/lib",
+    "src/showcase",
+    "src/components",
+    "src/pages/Admin.svelte",
+    "src/pages/ShowcasePage.svelte",
+    "src/styles/editor.css",
+    "src/styles/form-controls.css",
+    "src/styles/fonts.css",
+    "src/styles/fonts",
+    "dist-plugin"
+  ],
+  "exports": {
+    ".": {
+      "svelte": "./src/lib/index.ts",
+      "types": "./src/lib/index.ts",
+      "default": "./src/lib/index.ts"
+    },
+    "./components": {
+      "svelte": "./src/showcase/index.ts",
+      "types": "./src/showcase/index.ts",
+      "default": "./src/showcase/index.ts"
+    },
+    "./admin": {
+      "svelte": "./src/pages/Admin.svelte"
+    },
+    "./showcase-page": {
+      "svelte": "./src/pages/ShowcasePage.svelte"
+    },
+    "./overlay": {
+      "svelte": "./src/lib/LiveEditorOverlay.svelte"
+    },
+    "./columns-overlay": {
+      "svelte": "./src/lib/ColumnsOverlay.svelte"
+    },
+    "./vite-plugin": {
+      "types": "./dist-plugin/index.d.ts",
+      "import": "./dist-plugin/index.js",
+      "require": "./dist-plugin/index.cjs"
+    },
+    "./styles/editor.css": "./src/styles/editor.css",
+    "./styles/form-controls.css": "./src/styles/form-controls.css",
+    "./styles/fonts.css": "./src/styles/fonts.css"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "build:plugin": "tsup src/vite-plugin/index.ts --out-dir dist-plugin --format esm,cjs --dts --external vite --platform node --clean",
+    "build:lib": "npm run build:plugin",
+    "prepublishOnly": "npm run build:lib"
+  },
+  "peerDependencies": {
+    "svelte": "^4.2",
+    "vite": "^5.0"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
@@ -15,6 +74,7 @@
     "@types/node": "^24.12.0",
     "svelte": "^4.2.20",
     "svelte-check": "^3.8.6",
+    "tsup": "^8.5.1",
     "typescript": "~5.9.3",
     "vite": "^5.4.21"
   },

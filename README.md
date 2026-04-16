@@ -23,7 +23,7 @@ Open http://localhost:5173. The editor overlay sits in the top-right corner. Cli
 
 - `src/pages/Landing.svelte` — the welcome page (replace this with your site)
 - `src/pages/Admin.svelte` — design-system editor
-- `src/pages/ComponentsPage.svelte` — component showcase
+- `src/pages/ShowcasePage.svelte` — component showcase
 - `src/components/` — the reusable components
 - `src/showcase/` — the editor UI (tabs, palette editors, curve editor, backup browser)
 - `src/lib/` — the overlay, router glue, token persistence, and color helpers

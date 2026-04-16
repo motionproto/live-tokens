@@ -1,9 +1,10 @@
 <script lang="ts">
   import Landing from './pages/Landing.svelte';
   import Admin from './pages/Admin.svelte';
-  import ComponentsPage from './pages/ComponentsPage.svelte';
+  import ShowcasePage from './pages/ShowcasePage.svelte';
   import LiveEditorOverlay from './lib/LiveEditorOverlay.svelte';
   import ColumnsOverlay from './lib/ColumnsOverlay.svelte';
+  import { storageKey } from './lib/editorConfig';
   import { route, navigate } from './router';
 
   function handleClick(e: MouseEvent) {
@@ -19,20 +20,20 @@
   const isDev = import.meta.env.DEV;
   const isInIframe = typeof window !== 'undefined' && window.parent !== window;
   $: isAdmin = isDev && $route === '/admin';
-  $: isComponents = isDev && $route === '/components';
+  $: isShowcase = isDev && $route === '/components';
 
   let overlayOpen = isDev && !isInIframe && loadOverlayOpen();
 
   function loadOverlayOpen(): boolean {
     try {
-      return localStorage.getItem('lt-overlay-open') === '1';
+      return localStorage.getItem(storageKey('overlay-open')) === '1';
     } catch {
       return false;
     }
   }
 
   $: if (typeof window !== 'undefined') {
-    try { localStorage.setItem('lt-overlay-open', overlayOpen ? '1' : '0'); } catch {}
+    try { localStorage.setItem(storageKey('overlay-open'), overlayOpen ? '1' : '0'); } catch {}
   }
 </script>
 
@@ -45,8 +46,8 @@
 
   {#if isAdmin}
     <Admin />
-  {:else if isComponents}
-    <ComponentsPage />
+  {:else if isShowcase}
+    <ShowcasePage />
   {:else}
     <Landing />
   {/if}

@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import PaletteEditor from './PaletteEditor.svelte';
   import { setCssVar, removeCssVar } from '../lib/cssVarSync';
+  import { storageKey } from '../lib/editorConfig';
   import type { PaletteConfig } from '../lib/tokenTypes';
 
   export let saveSignal: number = 0;
@@ -235,7 +236,7 @@
   const scaleVariables = new Set(['--shadow-sm', '--shadow-md', '--shadow-lg', '--shadow-xl', '--shadow-2xl']);
 
   // Global shadow settings — persisted to localStorage so HMR / remounts don't reset
-  const SHADOW_STORAGE_KEY = 'rg-shadow-globals';
+  const SHADOW_STORAGE_KEY = storageKey('shadow-globals');
 
   interface ShadowGlobals {
     globalAngle: number;

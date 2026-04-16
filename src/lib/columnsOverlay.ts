@@ -1,6 +1,7 @@
 import { writable } from 'svelte/store';
+import { storageKey } from './editorConfig';
 
-const STORAGE_KEY = 'lt-columns-visible';
+const STORAGE_KEY = storageKey('columns-visible');
 
 function load(): boolean {
   try {

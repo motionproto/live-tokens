@@ -3,6 +3,7 @@
   import { route, navigate } from '../router';
   import { resolvePageSource } from './pageSource';
   import { columnsVisible, toggleColumns } from './columnsOverlay';
+  import { storageKey } from './editorConfig';
 
   const projectRoot = __PROJECT_ROOT__;
 
@@ -22,7 +23,7 @@
 
   type Mode = 'docked' | 'floating';
 
-  const STORAGE_KEY = 'rg-overlay-state';
+  const STORAGE_KEY = storageKey('overlay-state');
   const MIN_WIDTH = 360;
   const MIN_HEIGHT = 480;
   const DEFAULT_DOCKED_WIDTH = Math.min(960, Math.floor(window.innerWidth * 0.55));
@@ -183,12 +184,12 @@
   }
 
   // Messages from the editor iframe:
-  //   rg-overlay-close — iframe's Close button (hides the editor)
+  //   lt-overlay-close — iframe's Close button (hides the editor)
   function handleMessage(ev: MessageEvent) {
     if (ev.origin !== window.location.origin) return;
     const data = ev.data;
     if (!data || typeof data !== 'object') return;
-    if (data.type === 'rg-overlay-close') {
+    if (data.type === 'lt-overlay-close') {
       open = false;
     }
   }
@@ -209,7 +210,7 @@
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-  class="rg-overlay"
+  class="lt-overlay"
   style={panelStyle}
   class:shown={open}
   class:hidden={!open}
@@ -292,7 +293,7 @@
 </div>
 
 <style>
-  .rg-overlay {
+  .lt-overlay {
     display: flex;
     flex-direction: column;
     background: #0a0a0a;
@@ -304,26 +305,26 @@
     color: #fff;
   }
 
-  .rg-overlay.docked {
+  .lt-overlay.docked {
     border-right: none;
     border-radius: 0;
   }
 
-  .rg-overlay.floating {
+  .lt-overlay.floating {
     border-radius: 8px;
   }
 
   /* Hidden state: the editor panel is collapsed to just the header bar,
      pinned to the top-right. The iframe stays mounted (for instant show)
      but its container is display:none. */
-  .rg-overlay.hidden {
+  .lt-overlay.hidden {
     border-radius: 6px;
     width: auto;
   }
 
-  .rg-overlay.hidden .frame-wrap,
-  .rg-overlay.hidden .resize-left,
-  .rg-overlay.hidden .resize-se {
+  .lt-overlay.hidden .frame-wrap,
+  .lt-overlay.hidden .resize-left,
+  .lt-overlay.hidden .resize-se {
     display: none;
   }
 
@@ -339,12 +340,12 @@
     user-select: none;
   }
 
-  .rg-overlay.hidden .header {
+  .lt-overlay.hidden .header {
     border-bottom: none;
     padding: 5px 8px;
   }
 
-  .rg-overlay.floating .header {
+  .lt-overlay.floating .header {
     cursor: move;
   }
 
