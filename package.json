@@ -17,7 +17,7 @@
     "src/components",
     "src/pages/Admin.svelte",
     "src/pages/ShowcasePage.svelte",
-    "src/styles/editor.css",
+    "src/showcase/editor.css",
     "src/styles/form-controls.css",
     "src/styles/fonts.css",
     "src/styles/fonts",
@@ -51,7 +51,7 @@
       "import": "./dist-plugin/index.js",
       "require": "./dist-plugin/index.cjs"
     },
-    "./styles/editor.css": "./src/styles/editor.css",
+    "./styles/editor.css": "./src/showcase/editor.css",
     "./styles/form-controls.css": "./src/styles/form-controls.css",
     "./styles/fonts.css": "./src/styles/fonts.css"
   },
