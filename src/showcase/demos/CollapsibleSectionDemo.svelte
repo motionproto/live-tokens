@@ -1,8 +1,36 @@
 <script lang="ts">
   import CollapsibleSection from '../../components/CollapsibleSection.svelte';
-  import TokenMap from '../TokenMap.svelte';
+  import VariantGroup from '../VariantGroup.svelte';
+
+  const targetFile = 'src/components/CollapsibleSection.svelte';
 
   let demoExpanded = false;
+
+  type Token = { label: string; variable: string };
+
+  const states: Record<string, Token[]> = {
+    default: [
+      { label: 'BG', variable: '--collapsible-default-surface' },
+      { label: 'Label', variable: '--collapsible-default-label' },
+      { label: 'Toggle Icon', variable: '--collapsible-default-icon' },
+      { label: 'Border', variable: '--collapsible-default-border' },
+      { label: 'Radius', variable: '--collapsible-default-radius' },
+    ],
+    hover: [
+      { label: 'BG', variable: '--collapsible-hover-surface' },
+      { label: 'Label', variable: '--collapsible-hover-label' },
+      { label: 'Toggle Icon', variable: '--collapsible-hover-icon' },
+      { label: 'Border', variable: '--collapsible-hover-border' },
+      { label: 'Radius', variable: '--collapsible-hover-radius' },
+    ],
+    active: [
+      { label: 'BG', variable: '--collapsible-active-surface' },
+      { label: 'Label', variable: '--collapsible-active-label' },
+      { label: 'Toggle Icon', variable: '--collapsible-active-icon' },
+      { label: 'Border', variable: '--collapsible-active-border' },
+      { label: 'Radius', variable: '--collapsible-active-radius' },
+    ],
+  };
 </script>
 
 <div class="demo-block">
@@ -11,12 +39,16 @@
     Expandable section with chevron toggle. Import from <code>components/CollapsibleSection.svelte</code>
   </p>
 
-  <div class="demo-section">
+  <VariantGroup name="collapsible" title="Collapsible Section" {states} {targetFile} let:activeState>
+    {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
+    {@const forceActive = activeState === 'active'}
     <div class="collapsible-demo-wrapper">
       <CollapsibleSection
         label="Click to expand"
         expanded={demoExpanded}
-        on:toggle={() => demoExpanded = !demoExpanded}
+        active={forceActive}
+        class={forceClass}
+        on:toggle={() => (demoExpanded = !demoExpanded)}
       />
       {#if demoExpanded}
         <div class="collapsible-demo-content">
@@ -26,17 +58,7 @@
         </div>
       {/if}
     </div>
-  </div>
-
-  <div class="demo-section">
-    <h3 class="demo-subtitle">Tokens</h3>
-    <TokenMap tokens={[
-      { label: 'Active BG', variable: '--surface-primary-lowest' },
-      { label: 'Active Border', variable: '--color-primary-400' },
-      { label: 'Label', variable: '--text-primary' },
-      { label: 'Toggle Icon', variable: '--text-muted' },
-    ]} />
-  </div>
+  </VariantGroup>
 </div>
 
 <style>

@@ -6,6 +6,8 @@
    export let expanded: boolean = false;
    export let href: string | undefined = undefined;
    export let active: boolean = false;
+   let className: string = '';
+   export { className as class };
 
    const dispatch = createEventDispatcher<{
       toggle: void;
@@ -20,7 +22,7 @@
 </script>
 
 {#if href}
-   <a {href} class="section-header" class:expanded class:active on:click={handleHeaderClick}>
+   <a {href} class="section-header {className}" class:expanded class:active on:click={handleHeaderClick}>
       <div class="section-toggle">
          <i class="fas fa-chevron-right toggle-icon"></i>
          <span class="section-label">{label}</span>
@@ -29,7 +31,7 @@
    </a>
 {:else}
    <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-noninteractive-element-interactions -->
-   <div class="section-header" class:expanded on:click={() => dispatch('toggle')}>
+   <div class="section-header {className}" class:expanded on:click={() => dispatch('toggle')}>
       <div class="section-toggle">
          <i class="fas fa-chevron-right toggle-icon"></i>
          <span class="section-label">{label}</span>
@@ -50,8 +52,17 @@
       color: inherit;
       transition: all var(--transition-fast);
 
-      &:hover {
-         background: var(--surface-bg);
+      &:hover,
+      &.force-hover {
+         background: var(--collapsible-hover-surface);
+
+         .section-label {
+            color: var(--collapsible-hover-label);
+         }
+
+         .toggle-icon {
+            color: var(--collapsible-hover-icon);
+         }
       }
 
       &.expanded .toggle-icon {
@@ -59,8 +70,16 @@
       }
 
       &.active {
-         background: var(--surface-bg-low);
-         border-left-color: var(--color-primary-400);
+         background: var(--collapsible-active-surface);
+         border-left-color: var(--collapsible-active-border);
+
+         .section-label {
+            color: var(--collapsible-active-label);
+         }
+
+         .toggle-icon {
+            color: var(--collapsible-active-icon);
+         }
       }
    }
 
@@ -69,13 +88,16 @@
       align-items: center;
       gap: var(--space-8);
       flex-shrink: 0;
-      color: var(--text-primary);
       font-size: var(--font-md);
       font-weight: var(--font-weight-semibold);
 
+      .section-label {
+         color: var(--collapsible-default-label);
+      }
+
       .toggle-icon {
          font-size: var(--font-xs);
-         color: var(--text-muted);
+         color: var(--collapsible-default-icon);
          transition: transform 0.15s ease;
       }
    }

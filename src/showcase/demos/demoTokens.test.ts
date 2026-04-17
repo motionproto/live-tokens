@@ -72,6 +72,7 @@ describe('design-token architecture', () => {
     'BadgeDemo.svelte',
     'CardDemo.svelte',
     'ChoiceButtonsDemo.svelte',
+    'CollapsibleSectionDemo.svelte',
   ];
 
   describe('migrated demos follow the component-token pattern', () => {
