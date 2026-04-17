@@ -141,9 +141,9 @@
   }
 
   .dialog {
-    background: var(--surface-neutral-lowest);
-    border: 2px solid var(--border-neutral-strong);
-    border-radius: var(--radius-lg);
+    background: var(--dialog-surface);
+    border: 2px solid var(--dialog-border);
+    border-radius: var(--dialog-radius);
     box-shadow: var(--shadow-overlay);
     animation: dialogSlideIn var(--transition-base);
     pointer-events: auto;
@@ -166,7 +166,7 @@
 
   .dialog-header {
     padding: .5rem var(--space-24);
-    border-bottom: 1px solid var(--border-neutral-subtle);
+    border-bottom: 1px solid var(--dialog-header-border);
     background: var(--empty);
     display: flex;
     justify-content: space-between;
@@ -177,13 +177,13 @@
     margin: 0;
     font-size: var(--font-2xl);
     font-weight: var(--font-weight-semibold);
-    color: var(--text-primary);
+    color: var(--dialog-title);
   }
 
   .dialog-close {
     background: none;
     border: none;
-    color: var(--text-secondary);
+    color: var(--dialog-close-icon);
     font-size: var(--font-xl);
     cursor: pointer;
     margin-right: -var(--space-16);
