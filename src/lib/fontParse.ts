@@ -1,4 +1,4 @@
-import type { FontFamily, FontSource, FontSourceKind } from './tokenTypes';
+import type { FontFamily, FontSource, FontSourceKind } from './themeTypes';
 
 export interface ParsedFamily {
   name: string;

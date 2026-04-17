@@ -5,7 +5,7 @@ import type {
   FontStackSlot,
   FontStackVariable,
   SystemCascadePreset,
-} from './tokenTypes';
+} from './themeTypes';
 import { setCssVar, getSyncedDocuments } from './cssVarSync';
 
 export const SYSTEM_CASCADES: Record<SystemCascadePreset, string> = {

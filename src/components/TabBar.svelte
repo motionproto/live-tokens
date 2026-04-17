@@ -45,6 +45,24 @@
 </div>
 
 <style>
+  :global(:root) {
+    /* Shared */
+    --tabbar-divider: var(--border-neutral-subtle);
+    --tabbar-radius: var(--radius-md);
+
+    /* Default state */
+    --tabbar-default-text: var(--text-tertiary);
+
+    /* Hover state */
+    --tabbar-hover-text: var(--text-secondary);
+    --tabbar-hover-bg: var(--hover-low);
+
+    /* Active state */
+    --tabbar-active-text: var(--text-primary);
+    --tabbar-active-border: var(--color-primary-500);
+    --tabbar-active-bg-gradient: var(--overlay-lowest);
+  }
+
   .tab-bar {
     display: flex;
     gap: var(--space-2);

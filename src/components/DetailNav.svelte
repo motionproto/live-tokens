@@ -19,6 +19,10 @@
 </nav>
 
 <style lang="scss">
+  :global(:root) {
+    --detail-nav-bg: var(--empty);
+  }
+
   .detail-nav {
     display: flex;
     align-items: center;
@@ -29,7 +33,7 @@
     position: sticky;
     top: 96px;
     z-index: 50;
-    background: var(--empty);
+    background: var(--detail-nav-bg);
     padding: 12px 0;
   }
 

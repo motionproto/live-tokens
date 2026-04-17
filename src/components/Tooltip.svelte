@@ -13,6 +13,12 @@
 </div>
 
 <style>
+  :global(:root) {
+    --tooltip-surface: var(--surface-neutral-highest);
+    --tooltip-text: var(--text-primary);
+    --tooltip-radius: var(--radius-md);
+  }
+
   .tooltip-wrapper {
     position: relative;
     display: inline-block;

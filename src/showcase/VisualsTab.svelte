@@ -1,22 +1,22 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import VariablesTab from './VariablesTab.svelte';
-  import TokenFileManager from './TokenFileManager.svelte';
+  import ThemeFileManager from './ThemeFileManager.svelte';
   import {
-    saveTokenFile,
-    loadTokenFile,
+    saveTheme,
+    loadTheme,
     setActiveFile,
     scrapeCssVariables,
     clearAllCssVarOverrides,
     applyCssVariables,
-  } from '../lib/tokenService';
+  } from '../lib/themeService';
   import { activeFileName } from '../lib/editorConfigStore';
   import { applyFontSources, applyFontStacks } from '../lib/fontLoader';
-  import { migrateTokenFileFonts } from '../lib/fontMigration';
+  import { migrateThemeFonts } from '../lib/fontMigration';
   import {
     editorState,
     loadFromFile as loadEditorState,
-    toTokenFile,
+    toTheme,
     markSaved,
     DOMAIN_VAR_NAMES,
   } from '../lib/editorStore';
@@ -50,7 +50,7 @@
       // Flush pending Svelte reactive updates so inline CSS vars are current
       await tick();
       const state = get(editorState);
-      const tokenFile = toTokenFile(state, { name: displayName });
+      const theme = toTheme(state, { name: displayName });
       // PaletteEditor still writes its ramp/semantic vars directly to the DOM
       // (derivation has not yet moved into the store). Fold those in by
       // scraping inline overrides, dropping font vars (owned by fontStacks)
@@ -58,8 +58,8 @@
       const scraped = scrapeCssVariables();
       for (const k of ['--font-display', '--font-sans', '--font-serif', '--font-mono']) delete scraped[k];
       for (const k of DOMAIN_VAR_NAMES) delete scraped[k];
-      tokenFile.cssVariables = { ...scraped, ...tokenFile.cssVariables };
-      await saveTokenFile(fileName, tokenFile);
+      theme.cssVariables = { ...scraped, ...theme.cssVariables };
+      await saveTheme(fileName, theme);
       await setActiveFile(fileName);
       $activeFileName = fileName;
       markSaved();
@@ -74,26 +74,26 @@
   async function handleLoad(e: CustomEvent<{ fileName: string }>) {
     const { fileName } = e.detail;
     try {
-      const tokenFile = await loadTokenFile(fileName);
-      migrateTokenFileFonts(tokenFile);
+      const theme = await loadTheme(fileName);
+      migrateThemeFonts(theme);
       // Clear current inline CSS vars so stale values don't linger
       clearAllCssVarOverrides();
       // Seed the editor state first so its subscriber-driven derivation is
       // the authoritative writer for anything it already owns (columns +
       // catch-all cssVars). applyCssVariables then fills in the rest until
       // the remaining domains move into the store in later phases.
-      loadEditorState(tokenFile);
-      if (tokenFile.cssVariables && Object.keys(tokenFile.cssVariables).length > 0) {
-        applyCssVariables(tokenFile.cssVariables);
+      loadEditorState(theme);
+      if (theme.cssVariables && Object.keys(theme.cssVariables).length > 0) {
+        applyCssVariables(theme.cssVariables);
       }
       // Font data is already populated into state.fonts by loadEditorState;
       // we still need to run the DOM-side-effect helpers so @font-face rules
       // and --font-* CSS vars land on :root.
-      if (tokenFile.fontSources && tokenFile.fontSources.length > 0) {
-        applyFontSources(tokenFile.fontSources);
+      if (theme.fontSources && theme.fontSources.length > 0) {
+        applyFontSources(theme.fontSources);
       }
-      if (tokenFile.fontStacks && tokenFile.fontStacks.length > 0) {
-        applyFontStacks(tokenFile.fontStacks, tokenFile.fontSources ?? []);
+      if (theme.fontStacks && theme.fontStacks.length > 0) {
+        applyFontStacks(theme.fontStacks, theme.fontSources ?? []);
       }
       // PaletteEditor instances observe `state.palettes` via their store-
       // watching reactive, so loadEditorState() above is enough — no direct
@@ -121,7 +121,7 @@
     </div>
 
     <div class="sidebar-footer">
-      <TokenFileManager {saveStatus} on:save={handleSave} on:load={handleLoad} />
+      <ThemeFileManager {saveStatus} on:save={handleSave} on:load={handleLoad} />
     </div>
   </nav>
 

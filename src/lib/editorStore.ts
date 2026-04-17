@@ -15,7 +15,7 @@
 
 import { writable, derived, get, type Readable } from 'svelte/store';
 import type { EditorState, ColumnsState, OverlayToken, ShadowToken } from './editorTypes';
-import type { TokenFile, FontSource, FontStack, PaletteConfig } from './tokenTypes';
+import type { Theme, FontSource, FontStack, PaletteConfig } from './themeTypes';
 import { setCssVar, removeCssVar } from './cssVarSync';
 import { storageKey } from './editorConfig';
 
@@ -28,8 +28,8 @@ const DEFAULT_COLUMNS: ColumnsState = { count: 12, maxWidth: 1440, gutter: 16, m
 // Editor-defined overlay/hover token schema. The token *names* and positional
 // order are load-bearing (template binds by index); rgba values mirror what
 // VariablesTab historically initialised into local let state — which diverges
-// from variables.css (rgba(20,3,0,…)) by design: the editor starts with a
-// neutral palette and variables.css continues to win until first edit.
+// from tokens.css (rgba(20,3,0,…)) by design: the editor starts with a
+// neutral palette and tokens.css continues to win until first edit.
 function makeDefaultOverlayTokens(): OverlayToken[] {
   return [
     { variable: '--overlay-lowest', label: 'Lowest', r: 0, g: 0, b: 0, opacity: 0.05 },
@@ -92,7 +92,7 @@ function columnsToVars(c: ColumnsState): Record<string, string> {
 
 /**
  * Only emit column CSS vars once the user has actually modified columns.
- * While columns match the default, we leave variables.css in charge — which
+ * While columns match the default, we leave tokens.css in charge — which
  * preserves the `clamp()` in `--columns-gutter` until the editor overrides it.
  */
 function columnsEqualsDefault(c: ColumnsState): boolean {
@@ -139,8 +139,8 @@ function tokensEqualDefault(tokens: OverlayToken[], defaults: OverlayToken[]): b
 
 /**
  * Same pattern as columns: only emit overlay CSS vars once state diverges
- * from the editor defaults. variables.css owns the rgba values until the
- * user touches any overlay control (or loads a token file that already
+ * from the editor defaults. tokens.css owns the rgba values until the
+ * user touches any overlay control (or loads a theme that already
  * contains overrides).
  */
 function overlaysEqualsDefault(o: EditorState['overlays']): boolean {
@@ -154,7 +154,7 @@ const OVERLAY_VAR_NAMES = [
   '--hover-low', '--hover', '--hover-high',
 ] as const;
 
-// Accepts rgb(), rgba(), and #rrggbb[aa] — token files saved by the editor
+// Accepts rgb(), rgba(), and #rrggbb[aa] — themes saved by the editor
 // always use rgba(), but loading hand-written files shouldn't break.
 const RGBA_RE = /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)/i;
 const HEX_RE = /^#([0-9a-f]{6})([0-9a-f]{2})?$/i;
@@ -186,7 +186,7 @@ function parseRgba(raw: string): { r: number; g: number; b: number; opacity: num
 
 // ── Shadows ────────────────────────────────────────────────────────────────
 //
-// Shadow defaults come from variables.css (not the editor), so state.shadows
+// Shadow defaults come from tokens.css (not the editor), so state.shadows
 // starts with `tokens: []` and we do not emit any shadow CSS vars until the
 // editor has populated tokens (via seedShadowsFromDom on mount, or via
 // loadFromFile). Once tokens exist, the subscriber writes one CSS var per
@@ -198,7 +198,7 @@ const SHADOW_VAR_NAMES = [
 
 /**
  * Every CSS var owned by a store domain (emitted by `deriveCssVars` /
- * `toTokenFile` from typed state, not the catch-all `cssVars` bag).
+ * `toTheme` from typed state, not the catch-all `cssVars` bag).
  * Consumers that scrape the DOM (e.g. the save flow still pulling palette
  * ramps emitted by PaletteEditor) use this to drop domain-owned keys from
  * their scraped bag so the store stays the single source of truth.
@@ -272,7 +272,7 @@ function applyShadowVarsToState(shadows: EditorState['shadows'], vars: Record<st
 /**
  * Seed state.shadows.tokens from computed styles on the document element.
  * Called once from the shadows UI when state has no tokens yet — captures the
- * variables.css baseline so the editor can mutate it. Does NOT push a history
+ * tokens.css baseline so the editor can mutate it. Does NOT push a history
  * entry; the seed is treated as an initial snapshot, not a user edit.
  */
 export function seedShadowsFromDom(): void {
@@ -594,10 +594,10 @@ export function setFontStacks(stacks: FontStack[]): void {
 }
 
 /**
- * Populate fonts from the server's active token file at boot. Does not push
+ * Populate fonts from the server's active theme at boot. Does not push
  * a history entry — the boot load is a starting point, not an edit.
  */
-export function seedFontsFromTokens(sources: FontSource[], stacks: FontStack[]): void {
+export function seedFontsFromTheme(sources: FontSource[], stacks: FontStack[]): void {
   store.update((s) => {
     s.fonts.sources = structuredClone(sources);
     s.fonts.stacks = structuredClone(stacks);
@@ -622,9 +622,9 @@ export function setPaletteConfig(label: string, config: PaletteConfig): void {
 
 /**
  * Server-boot path: populate all palettes at once without a history entry.
- * Mirrors `seedFontsFromTokens`.
+ * Mirrors `seedFontsFromTheme`.
  */
-export function seedPalettesFromTokens(palettes: Record<string, PaletteConfig>): void {
+export function seedPalettesFromTheme(palettes: Record<string, PaletteConfig>): void {
   store.update((s) => {
     s.palettes = structuredClone(palettes);
     return s;
@@ -633,15 +633,15 @@ export function seedPalettesFromTokens(palettes: Record<string, PaletteConfig>):
 }
 
 /**
- * Replace state with a loaded token file. Clears history and marks saved —
- * "open a different document" semantics. Undo cannot cross a file load.
+ * Replace state with a loaded theme. Clears history and marks saved —
+ * "open a different document" semantics. Undo cannot cross a theme load.
  */
-export function loadFromFile(tokenFile: TokenFile): void {
+export function loadFromFile(theme: Theme): void {
   const next = emptyState();
-  next.palettes = structuredClone(tokenFile.editorConfigs ?? {});
-  next.fonts.sources = structuredClone(tokenFile.fontSources ?? []);
-  next.fonts.stacks  = structuredClone(tokenFile.fontStacks  ?? []);
-  const rawVars = { ...(tokenFile.cssVariables ?? {}) };
+  next.palettes = structuredClone(theme.editorConfigs ?? {});
+  next.fonts.sources = structuredClone(theme.fontSources ?? []);
+  next.fonts.stacks  = structuredClone(theme.fontStacks  ?? []);
+  const rawVars = { ...(theme.cssVariables ?? {}) };
   // Column vars live in state.columns; strip them out of the catch-all bag
   // so derivation stays single-source.
   const colOverrides = parseColumnVars(rawVars);
@@ -652,11 +652,11 @@ export function loadFromFile(tokenFile: TokenFile): void {
   applyOverlayVarsToState(next.overlays, rawVars);
   for (const name of OVERLAY_VAR_NAMES) delete rawVars[name];
   // Shadow vars populate state.shadows.tokens; globals/overrides stay at
-  // whatever the user has accumulated in this session (token files don't
+  // whatever the user has accumulated in this session (themes don't
   // carry them — they persist via this store's own localStorage).
   applyShadowVarsToState(next.shadows, rawVars);
   for (const name of SHADOW_VAR_NAMES) delete rawVars[name];
-  // Preserve shadow globals/overrides across file loads so the editor UI
+  // Preserve shadow globals/overrides across theme loads so the editor UI
   // reopens with the same controls the user was working with.
   next.shadows.globals = structuredClone(get(store).shadows.globals);
   next.shadows.overrides = structuredClone(get(store).shadows.overrides);
@@ -675,7 +675,7 @@ export function loadFromFile(tokenFile: TokenFile): void {
  * `cssVars` bag as-is; domain-derived vars fold in during later phases when
  * `deriveCssVars` grows beyond the bag.
  */
-export function toTokenFile(state: EditorState, meta: { name: string }): TokenFile {
+export function toTheme(state: EditorState, meta: { name: string }): Theme {
   const now = new Date().toISOString();
   const cssVariables: Record<string, string> = { ...state.cssVars };
   if (!columnsEqualsDefault(state.columns)) {

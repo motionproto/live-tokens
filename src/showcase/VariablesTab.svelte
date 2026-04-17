@@ -109,7 +109,7 @@
   ];
 
   // Shadows live in $editorState.shadows. The parent onMount calls
-  // seedShadowsFromDom() to capture the variables.css baseline when the
+  // seedShadowsFromDom() to capture the tokens.css baseline when the
   // store has no tokens yet. From there every mutation flows through one of
   // the setShadow* helpers below, which route into mutate()/transaction()
   // so history captures coherent edits.

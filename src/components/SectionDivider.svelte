@@ -12,6 +12,56 @@
 </div>
 
 <style>
+  :global(:root) {
+    /* Background */
+    --section-divider-bg-gradient-stop-1: var(--surface-bg-highest);
+    --section-divider-bg-gradient-stop-2: var(--surface-bg-higher);
+    --section-divider-bg-gradient-stop-3: var(--surface-bg-high);
+    --section-divider-bg-gradient-stop-4: var(--surface-bg);
+    --section-divider-bg-text-stroke: var(--surface-bg-lowest);
+    --section-divider-bg-radius: var(--radius-lg);
+
+    /* Neutral */
+    --section-divider-neutral-gradient-stop-1: var(--surface-neutral-highest);
+    --section-divider-neutral-gradient-stop-2: var(--surface-neutral-higher);
+    --section-divider-neutral-gradient-stop-3: var(--surface-neutral-high);
+    --section-divider-neutral-gradient-stop-4: var(--surface-neutral);
+    --section-divider-neutral-text-stroke: var(--surface-neutral-lowest);
+    --section-divider-neutral-radius: var(--radius-lg);
+
+    /* Alternate */
+    --section-divider-alternate-gradient-stop-1: var(--surface-alternate-highest);
+    --section-divider-alternate-gradient-stop-2: var(--surface-alternate-higher);
+    --section-divider-alternate-gradient-stop-3: var(--surface-alternate-high);
+    --section-divider-alternate-gradient-stop-4: var(--surface-alternate);
+    --section-divider-alternate-text-stroke: var(--surface-alternate-lowest);
+    --section-divider-alternate-radius: var(--radius-lg);
+
+    /* Primary */
+    --section-divider-primary-gradient-stop-1: var(--surface-primary-highest);
+    --section-divider-primary-gradient-stop-2: var(--surface-primary-higher);
+    --section-divider-primary-gradient-stop-3: var(--surface-primary-high);
+    --section-divider-primary-gradient-stop-4: var(--surface-primary);
+    --section-divider-primary-text-stroke: var(--surface-primary-lowest);
+    --section-divider-primary-radius: var(--radius-lg);
+
+    /* Accent */
+    --section-divider-accent-gradient-stop-1: var(--surface-accent-highest);
+    --section-divider-accent-gradient-stop-2: var(--surface-accent-higher);
+    --section-divider-accent-gradient-stop-3: var(--surface-accent-high);
+    --section-divider-accent-gradient-stop-4: var(--surface-accent);
+    --section-divider-accent-text-stroke: var(--surface-accent-lowest);
+    --section-divider-accent-radius: var(--radius-lg);
+
+    /* Special */
+    --section-divider-special-gradient-stop-1: var(--surface-special-highest);
+    --section-divider-special-gradient-stop-2: var(--surface-special-higher);
+    --section-divider-special-gradient-stop-3: var(--surface-special-high);
+    --section-divider-special-gradient-stop-4: var(--surface-special);
+    --section-divider-special-text-stroke: var(--surface-special-lowest);
+    --section-divider-special-radius: var(--radius-lg);
+  }
+
   .section-divider {
     margin: var(--space-24) 0;
     padding: var(--space-16) var(--space-24);

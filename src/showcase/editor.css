@@ -23,7 +23,7 @@
 }
 
 /* Override the global :where(*) { font-family: var(--font-sans) }
-   from variables.css which applies directly to every element */
+   from tokens.css which applies directly to every element */
 .admin-page *:not([class*="fa-"]) {
   font-family: inherit;
 }

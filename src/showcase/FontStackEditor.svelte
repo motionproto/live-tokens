@@ -7,7 +7,7 @@
     FontStackVariable,
     GenericFamily,
     SystemCascadePreset,
-  } from '../lib/tokenTypes';
+  } from '../lib/themeTypes';
   import { editorState, setFontStacks } from '../lib/editorStore';
   import { applyFontStacks, SYSTEM_CASCADES } from '../lib/fontLoader';
 

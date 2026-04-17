@@ -3,7 +3,7 @@
 
    export let disabled: boolean = false;
    export let type: 'button' | 'submit' | 'reset' = 'button';
-   export let variant: 'primary' | 'secondary' | 'outline' | 'small_secondary' | 'success' | 'danger' | 'warning' = 'primary';
+   export let variant: 'primary' | 'secondary' | 'outline' | 'success' | 'danger' | 'warning' = 'primary';
    export let size: 'default' | 'small' = 'default';
    export let ariaLabel: string | undefined = undefined;
    export let tooltip: string | undefined = undefined;
@@ -42,6 +42,78 @@
 </button>
 
 <style lang="scss">
+   :global(:root) {
+      /* Primary */
+      --button-primary-surface: var(--surface-primary-high);
+      --button-primary-text: var(--text-primary);
+      --button-primary-border: var(--border-primary);
+      --button-primary-radius: var(--radius-md);
+      --button-primary-hover-surface: var(--surface-primary-higher);
+      --button-primary-hover-text: var(--text-primary);
+      --button-primary-hover-border: var(--border-primary-strong);
+      --button-primary-disabled-surface: var(--color-neutral-700);
+      --button-primary-disabled-text: var(--text-tertiary);
+      --button-primary-disabled-border: var(--border-neutral-faint);
+
+      /* Secondary */
+      --button-secondary-surface: var(--surface-neutral-high);
+      --button-secondary-text: var(--text-primary);
+      --button-secondary-border: var(--border-neutral-default);
+      --button-secondary-radius: var(--radius-md);
+      --button-secondary-hover-surface: var(--surface-neutral-higher);
+      --button-secondary-hover-text: var(--text-primary);
+      --button-secondary-hover-border: var(--border-neutral-strong);
+      --button-secondary-disabled-surface: var(--color-neutral-700);
+      --button-secondary-disabled-text: var(--text-tertiary);
+      --button-secondary-disabled-border: var(--border-neutral-faint);
+
+      /* Outline */
+      --button-outline-text: var(--text-primary);
+      --button-outline-border: var(--border-neutral-default);
+      --button-outline-radius: var(--radius-md);
+      --button-outline-hover-surface: var(--hover-low);
+      --button-outline-hover-text: var(--text-primary);
+      --button-outline-hover-border: var(--border-neutral-strong);
+      --button-outline-disabled-text: var(--text-tertiary);
+      --button-outline-disabled-border: var(--border-neutral-faint);
+
+      /* Success */
+      --button-success-surface: var(--surface-success-low);
+      --button-success-text: var(--text-success);
+      --button-success-border: var(--border-success);
+      --button-success-radius: var(--radius-md);
+      --button-success-hover-surface: var(--surface-success-higher);
+      --button-success-hover-text: var(--text-primary);
+      --button-success-hover-border: var(--border-success-strong);
+      --button-success-disabled-surface: var(--color-neutral-700);
+      --button-success-disabled-text: var(--text-tertiary);
+      --button-success-disabled-border: var(--border-neutral-faint);
+
+      /* Danger */
+      --button-danger-surface: var(--surface-danger-low);
+      --button-danger-text: var(--text-danger);
+      --button-danger-border: var(--border-danger);
+      --button-danger-radius: var(--radius-md);
+      --button-danger-hover-surface: var(--surface-danger-high);
+      --button-danger-hover-text: var(--text-primary);
+      --button-danger-hover-border: var(--border-danger-medium);
+      --button-danger-disabled-surface: var(--color-neutral-700);
+      --button-danger-disabled-text: var(--text-tertiary);
+      --button-danger-disabled-border: var(--border-neutral-faint);
+
+      /* Warning */
+      --button-warning-surface: var(--surface-warning-low);
+      --button-warning-text: var(--text-warning);
+      --button-warning-border: var(--border-warning);
+      --button-warning-radius: var(--radius-md);
+      --button-warning-hover-surface: var(--surface-warning-high);
+      --button-warning-hover-text: var(--text-primary);
+      --button-warning-hover-border: var(--border-warning-medium);
+      --button-warning-disabled-surface: var(--color-neutral-700);
+      --button-warning-disabled-text: var(--text-tertiary);
+      --button-warning-disabled-border: var(--border-neutral-faint);
+   }
+
    .button {
       padding: var(--space-8) var(--space-16);
       border-radius: var(--radius-md);
@@ -200,48 +272,6 @@
             background: transparent;
             border-color: var(--button-outline-disabled-border);
             color: var(--button-outline-disabled-text);
-         }
-      }
-
-      // Small Secondary variant (matches add-structure-button)
-      &.small_secondary {
-         padding: var(--space-8) var(--space-16);
-         background: var(--button-small_secondary-surface);
-         color: var(--button-small_secondary-text);
-         border: 1px solid var(--button-small_secondary-border);
-         border-radius: var(--button-small_secondary-radius);
-         font-size: var(--font-sm);
-         font-weight: var(--font-weight-semibold);
-         line-height: 1.2;
-
-         &::before {
-            background: linear-gradient(90deg,
-               transparent,
-               var(--hover),
-               transparent);
-         }
-
-         &:hover:not(:disabled),
-         &.force-hover:not(:disabled) {
-            background: var(--button-small_secondary-hover-surface);
-            border-color: var(--button-small_secondary-hover-border);
-            color: var(--button-small_secondary-hover-text);
-         }
-
-         &:active:not(:disabled) {
-            background: rgba(255, 255, 255, 0.18);
-         }
-
-         &:disabled {
-            background: transparent;
-            border-color: var(--button-small_secondary-disabled-border);
-            color: var(--button-small_secondary-disabled-text);
-         }
-
-         :global(i) {
-               font-size: var(--font-sm);
-               font-weight: var(--font-weight-bold);
-
          }
       }
 

@@ -1,41 +1,41 @@
-import { getActiveTokens, applyCssVariables } from './tokenService';
+import { getActiveTheme, applyCssVariables } from './themeService';
 import { activeFileName } from './editorConfigStore';
-import { migrateTokenFileFonts } from './fontMigration';
+import { migrateThemeFonts } from './fontMigration';
 import { applyFontSources, applyFontStacks } from './fontLoader';
-import { seedFontsFromTokens, seedPalettesFromTokens } from './editorStore';
+import { seedFontsFromTheme, seedPalettesFromTheme } from './editorStore';
 
 /**
- * Fetch the active token file from the server and apply its CSS variables
+ * Fetch the active theme from the server and apply its CSS variables
  * to :root before the app mounts. Seeds the editor store so PaletteEditors
- * initialize from the token file instead of stale localStorage.
+ * initialize from the theme instead of stale localStorage.
  */
-export async function initializeTokens(): Promise<void> {
+export async function initializeTheme(): Promise<void> {
   try {
-    const tokens = await getActiveTokens();
-    if (tokens) {
-      migrateTokenFileFonts(tokens);
-      if (tokens.cssVariables && Object.keys(tokens.cssVariables).length > 0) {
-        applyCssVariables(tokens.cssVariables);
+    const theme = await getActiveTheme();
+    if (theme) {
+      migrateThemeFonts(theme);
+      if (theme.cssVariables && Object.keys(theme.cssVariables).length > 0) {
+        applyCssVariables(theme.cssVariables);
       }
       const hasFonts =
-        (tokens.fontSources && tokens.fontSources.length > 0) ||
-        (tokens.fontStacks && tokens.fontStacks.length > 0);
+        (theme.fontSources && theme.fontSources.length > 0) ||
+        (theme.fontStacks && theme.fontStacks.length > 0);
       if (hasFonts) {
-        seedFontsFromTokens(tokens.fontSources ?? [], tokens.fontStacks ?? []);
+        seedFontsFromTheme(theme.fontSources ?? [], theme.fontStacks ?? []);
       }
-      if (tokens.fontSources && tokens.fontSources.length > 0) {
-        applyFontSources(tokens.fontSources);
+      if (theme.fontSources && theme.fontSources.length > 0) {
+        applyFontSources(theme.fontSources);
       }
-      if (tokens.fontStacks && tokens.fontStacks.length > 0) {
-        applyFontStacks(tokens.fontStacks, tokens.fontSources ?? []);
+      if (theme.fontStacks && theme.fontStacks.length > 0) {
+        applyFontStacks(theme.fontStacks, theme.fontSources ?? []);
       }
-      const fileName = (tokens as any)._fileName || 'default';
+      const fileName = (theme as any)._fileName || 'default';
       activeFileName.set(fileName);
-      if (tokens.editorConfigs && Object.keys(tokens.editorConfigs).length > 0) {
-        seedPalettesFromTokens(tokens.editorConfigs);
+      if (theme.editorConfigs && Object.keys(theme.editorConfigs).length > 0) {
+        seedPalettesFromTheme(theme.editorConfigs);
       }
     }
   } catch {
-    // Silent fallback — variables.css provides defaults
+    // Silent fallback — tokens.css provides defaults
   }
 }

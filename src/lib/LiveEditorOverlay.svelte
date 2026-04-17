@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-  // __PROJECT_ROOT__ is injected by the tokenFileApi Vite plugin as a `define`.
+  // __PROJECT_ROOT__ is injected by the themeFileApi Vite plugin as a `define`.
   // Consumers don't need to configure it themselves. We declare it locally so
   // this component's type-check passes in consumer projects that haven't added
   // the ambient global to their tsconfig.

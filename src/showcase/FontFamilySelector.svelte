@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import { setCssVar, removeCssVar, CSS_VAR_CHANGE_EVENT } from '../lib/cssVarSync';
+  import { resolveAliasChain } from '../lib/tokenRegistry';
 
   const dispatch = createEventDispatcher();
 
@@ -39,9 +40,21 @@
   function initFromCurrent() {
     readResolved();
     const raw = document.documentElement.style.getPropertyValue(variable).trim();
-    if (!raw) return;
-    const key = parseRef(raw);
-    if (key) chosenKey = key;
+    if (raw) {
+      const key = parseRef(raw);
+      if (key) {
+        chosenKey = key;
+        return;
+      }
+    }
+    for (const alias of resolveAliasChain(variable)) {
+      const key = parseRef(`var(${alias})`);
+      if (key) {
+        chosenKey = key;
+        return;
+      }
+    }
+    chosenKey = null;
   }
 
   function toggle() {
@@ -76,11 +89,7 @@
 
   function handleVarChange(e: Event) {
     const detail = (e as CustomEvent<{ name: string }>).detail;
-    if (detail?.name === variable) {
-      readResolved();
-      const raw = document.documentElement.style.getPropertyValue(variable).trim();
-      chosenKey = raw ? parseRef(raw) : null;
-    }
+    if (detail?.name === variable) initFromCurrent();
   }
 
   onMount(() => {

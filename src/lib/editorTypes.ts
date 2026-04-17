@@ -1,4 +1,4 @@
-import type { PaletteConfig, FontSource, FontStack } from './tokenTypes';
+import type { PaletteConfig, FontSource, FontStack } from './themeTypes';
 
 export interface ShadowGlobals {
   angle: number;

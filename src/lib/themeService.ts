@@ -1,4 +1,4 @@
-import type { TokenFile, TokenFileMeta } from './tokenTypes';
+import type { Theme, ThemeMeta } from './themeTypes';
 import {
   applyCssVariables as applyCssVariablesSync,
   clearAllCssVarOverrides as clearAllCssVarOverridesSync,
@@ -7,20 +7,20 @@ import {
 
 // ── API helpers ──────────────────────────────────────────────
 
-export async function listTokenFiles(): Promise<TokenFileMeta[]> {
-  const res = await fetch('/api/tokens');
+export async function listThemes(): Promise<ThemeMeta[]> {
+  const res = await fetch('/api/themes');
   const data = await res.json();
   return data.files;
 }
 
-export async function loadTokenFile(fileName: string): Promise<TokenFile> {
-  const res = await fetch(`/api/tokens/${encodeURIComponent(fileName)}`);
-  if (!res.ok) throw new Error(`Failed to load token file: ${fileName}`);
+export async function loadTheme(fileName: string): Promise<Theme> {
+  const res = await fetch(`/api/themes/${encodeURIComponent(fileName)}`);
+  if (!res.ok) throw new Error(`Failed to load theme: ${fileName}`);
   return res.json();
 }
 
-export async function saveTokenFile(fileName: string, data: TokenFile): Promise<void> {
-  const res = await fetch(`/api/tokens/${encodeURIComponent(fileName)}`, {
+export async function saveTheme(fileName: string, data: Theme): Promise<void> {
+  const res = await fetch(`/api/themes/${encodeURIComponent(fileName)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -31,8 +31,8 @@ export async function saveTokenFile(fileName: string, data: TokenFile): Promise<
   }
 }
 
-export async function deleteTokenFile(fileName: string): Promise<void> {
-  const res = await fetch(`/api/tokens/${encodeURIComponent(fileName)}`, {
+export async function deleteTheme(fileName: string): Promise<void> {
+  const res = await fetch(`/api/themes/${encodeURIComponent(fileName)}`, {
     method: 'DELETE',
   });
   if (!res.ok) {
@@ -41,9 +41,9 @@ export async function deleteTokenFile(fileName: string): Promise<void> {
   }
 }
 
-export async function getActiveTokens(): Promise<TokenFile | null> {
+export async function getActiveTheme(): Promise<Theme | null> {
   try {
-    const res = await fetch('/api/tokens/active');
+    const res = await fetch('/api/themes/active');
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -52,7 +52,7 @@ export async function getActiveTokens(): Promise<TokenFile | null> {
 }
 
 export async function setActiveFile(fileName: string): Promise<void> {
-  await fetch('/api/tokens/active', {
+  await fetch('/api/themes/active', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name: fileName }),
@@ -69,12 +69,12 @@ export interface ProductionInfo {
 }
 
 export async function getProductionInfo(): Promise<ProductionInfo> {
-  const res = await fetch('/api/tokens/production');
+  const res = await fetch('/api/themes/production');
   return res.json();
 }
 
 export async function setProductionFile(fileName: string): Promise<{ ok: boolean; fileName: string; name: string }> {
-  const res = await fetch('/api/tokens/production', {
+  const res = await fetch('/api/themes/production', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name: fileName }),
@@ -89,7 +89,7 @@ export async function setProductionFile(fileName: string): Promise<{ ok: boolean
 // ── Backup API helpers ──────────────────────────────────────
 
 export interface BackupEntry {
-  type: 'tokens' | 'css';
+  type: 'themes' | 'css';
   file: string;
   name: string;
   timestamp: string;

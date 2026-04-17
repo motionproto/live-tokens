@@ -9,7 +9,7 @@ export { default as PaletteSelector } from './PaletteSelector.svelte';
 export { default as ColorEditPanel } from './ColorEditPanel.svelte';
 export { default as BezierCurveEditor } from './BezierCurveEditor.svelte';
 
-export { default as TokenFileManager } from './TokenFileManager.svelte';
+export { default as ThemeFileManager } from './ThemeFileManager.svelte';
 export { default as BackupBrowser } from './BackupBrowser.svelte';
 export { default as EditorDialog } from './EditorDialog.svelte';
 export { default as TokenMap } from './TokenMap.svelte';

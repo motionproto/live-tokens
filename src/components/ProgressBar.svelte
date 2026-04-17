@@ -30,6 +30,48 @@
 </div>
 
 <style>
+  :global(:root) {
+    /* Primary */
+    --progress-primary-track-bg: var(--surface-neutral-low);
+    --progress-primary-track-border: var(--border-neutral-faint);
+    --progress-primary-label: var(--text-secondary);
+    --progress-primary-value: var(--text-tertiary);
+    --progress-primary-radius: var(--radius-full);
+    --progress-primary-fill: var(--gradient-progress);
+
+    /* Success */
+    --progress-success-track-bg: var(--surface-neutral-low);
+    --progress-success-track-border: var(--border-neutral-faint);
+    --progress-success-label: var(--text-secondary);
+    --progress-success-value: var(--text-tertiary);
+    --progress-success-radius: var(--radius-full);
+    --progress-success-fill: var(--border-success);
+
+    /* Warning */
+    --progress-warning-track-bg: var(--surface-neutral-low);
+    --progress-warning-track-border: var(--border-neutral-faint);
+    --progress-warning-label: var(--text-secondary);
+    --progress-warning-value: var(--text-tertiary);
+    --progress-warning-radius: var(--radius-full);
+    --progress-warning-fill: var(--border-warning);
+
+    /* Danger */
+    --progress-danger-track-bg: var(--surface-neutral-low);
+    --progress-danger-track-border: var(--border-neutral-faint);
+    --progress-danger-label: var(--text-secondary);
+    --progress-danger-value: var(--text-tertiary);
+    --progress-danger-radius: var(--radius-full);
+    --progress-danger-fill: var(--border-danger);
+
+    /* Info */
+    --progress-info-track-bg: var(--surface-neutral-low);
+    --progress-info-track-border: var(--border-neutral-faint);
+    --progress-info-label: var(--text-secondary);
+    --progress-info-value: var(--text-tertiary);
+    --progress-info-radius: var(--radius-full);
+    --progress-info-fill: var(--border-info);
+  }
+
   .progress {
     display: flex;
     flex-direction: column;

@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
 import { get } from 'svelte/store';
-import type { PaletteConfig } from './tokenTypes';
+import type { PaletteConfig } from './themeTypes';
 import {
   editorState,
   mutate,

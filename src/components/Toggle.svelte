@@ -50,20 +50,20 @@
     width: 2.25rem;
     height: 1.25rem;
     border-radius: 0.625rem;
-    border: 1px solid var(--ui-border-default);
-    background: var(--ui-surface-low);
+    border: 1px solid var(--border-neutral-default);
+    background: var(--surface-neutral-low);
     padding: 0;
     cursor: inherit;
     transition: background var(--transition-fast), border-color var(--transition-fast);
     flex-shrink: 0;
 
     &.on {
-      background: var(--ui-toggle);
-      border-color: var(--ui-border-medium);
+      background: var(--surface-primary-high);
+      border-color: var(--border-neutral-medium);
     }
 
     &:hover:not(:disabled) {
-      border-color: var(--ui-border-medium);
+      border-color: var(--border-neutral-medium);
     }
 
     &:focus-visible {
@@ -79,7 +79,7 @@
     width: 0.875rem;
     height: 0.875rem;
     border-radius: 50%;
-    background: var(--ui-text-secondary);
+    background: var(--text-secondary);
     transition: transform var(--transition-fast), background var(--transition-fast);
 
     .on & {
@@ -90,7 +90,7 @@
 
   .toggle-label {
     font-size: var(--font-md);
-    color: var(--ui-text-secondary);
+    color: var(--text-secondary);
     line-height: 1;
   }
 </style>

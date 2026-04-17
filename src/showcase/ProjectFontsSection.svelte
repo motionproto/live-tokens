@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { FontSource } from '../lib/tokenTypes';
+  import type { FontSource } from '../lib/themeTypes';
   import { editorState, setFontSources, transaction } from '../lib/editorStore';
   import { applyFontSources, applyFontStacks } from '../lib/fontLoader';
   import {

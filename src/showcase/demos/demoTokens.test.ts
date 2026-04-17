@@ -3,16 +3,24 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildTokenRegistry } from '../../lib/tokenRegistry';
+import { buildTokenRegistry, extractGlobalRootBody } from '../../lib/tokenRegistry';
 
 const TEST_DIR = dirname(fileURLToPath(import.meta.url));
 const DEMOS_DIR = TEST_DIR;
-const VARIABLES_CSS = join(TEST_DIR, '..', '..', 'styles', 'variables.css');
+const TOKENS_CSS = join(TEST_DIR, '..', '..', 'styles', 'tokens.css');
+const COMPONENTS_DIR = join(TEST_DIR, '..', '..', 'components');
 
 // Vitest's CSS plugin swallows `?raw` imports for .css files, so we build the
 // registry from an fs-loaded snapshot rather than going through the default
-// module export.
-const registry = buildTokenRegistry(readFileSync(VARIABLES_CSS, 'utf8'));
+// module export. Layer-2 tokens now live in each component's <style> block
+// under `:global(:root)`; merge those bodies with tokens.css to match the
+// runtime registry.
+const tokensSource = readFileSync(TOKENS_CSS, 'utf8');
+const componentTokenCss = readdirSync(COMPONENTS_DIR)
+  .filter((f) => f.endsWith('.svelte'))
+  .map((f) => extractGlobalRootBody(readFileSync(join(COMPONENTS_DIR, f), 'utf8')))
+  .join('\n');
+const registry = buildTokenRegistry(tokensSource + '\n' + componentTokenCss);
 
 /** Scrape `variable: '--foo'` entries from a demo's <script> block. */
 function extractDemoVariables(file: string): string[] {
@@ -55,7 +63,7 @@ describe('design-token architecture', () => {
           expect(
             isLayer1TokenName(terminal),
             `${v} → [${chain.join(' → ')}]; terminal "${terminal}" is not a design-token name. ` +
-              `Either rename the target or add a var() alias declaration in variables.css.`,
+              `Either rename the target or add a var() alias declaration in tokens.css.`,
           ).toBe(true);
         });
       }
@@ -63,7 +71,7 @@ describe('design-token architecture', () => {
   });
 
   // Every editor-exposed variable across every demo must be declared in
-  // variables.css as a var() alias (not a literal, not a raw primitive).
+  // tokens.css as a var() alias (not a literal, not a raw primitive).
   // Component properties must bind to component-scoped Layer-2 aliases so
   // editing one component never rebinds a shared primitive used elsewhere.
   describe('every demo follows the component-token pattern', () => {
@@ -75,7 +83,7 @@ describe('design-token architecture', () => {
           const declared = registry.getDeclaredValue(v);
           expect(
             declared,
-            `${v} is referenced by ${demoName} but not declared in variables.css`,
+            `${v} is referenced by ${demoName} but not declared in tokens.css`,
           ).not.toBeNull();
           expect(
             declared!.startsWith('var('),

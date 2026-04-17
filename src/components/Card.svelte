@@ -28,6 +28,22 @@
 </div>
 
 <style>
+  :global(:root) {
+    /* Default */
+    --card-default-surface: var(--surface-neutral-high);
+    --card-default-border: var(--border-neutral-default);
+    --card-default-title: var(--text-primary);
+    --card-default-body: var(--text-secondary);
+    --card-default-radius: var(--radius-lg);
+
+    /* Hover */
+    --card-hover-surface: var(--surface-neutral-high);
+    --card-hover-border: var(--border-neutral-strong);
+    --card-hover-title: var(--text-primary);
+    --card-hover-body: var(--text-secondary);
+    --card-hover-radius: var(--radius-lg);
+  }
+
   .card {
     background: var(--card-default-surface);
     border: 1px solid var(--card-default-border);

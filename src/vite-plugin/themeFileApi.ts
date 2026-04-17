@@ -2,44 +2,44 @@ import type { Plugin } from 'vite';
 import fs from 'fs';
 import path from 'path';
 
-export interface TokenFileApiOptions {
-  tokensDir: string;           // required, e.g. 'tokens' (relative to cwd, resolved with path.resolve)
-  variablesCssPath: string;    // required, e.g. 'src/styles/variables.css'
-  fontsCssPath?: string;       // default: sibling of variablesCssPath named 'fonts.css'
-  tokensBackupDir?: string;    // default: `${tokensDir}/_backups`
-  cssBackupDir?: string;       // default: path.join(path.dirname(variablesCssPath), '_backups')
+export interface ThemeFileApiOptions {
+  themesDir: string;           // required, e.g. 'themes' (relative to cwd, resolved with path.resolve)
+  tokensCssPath: string;       // required, e.g. 'src/styles/tokens.css'
+  fontsCssPath?: string;       // default: sibling of tokensCssPath named 'fonts.css'
+  themesBackupDir?: string;    // default: `${themesDir}/_backups`
+  cssBackupDir?: string;       // default: path.join(path.dirname(tokensCssPath), '_backups')
   apiBase?: string;            // default: '/api'. Must be a simple '/path' without regex metacharacters.
 }
 
-export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
-  const TOKENS_DIR = path.resolve(opts.tokensDir);
-  const CSS_PATH = path.resolve(opts.variablesCssPath);
+export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
+  const THEMES_DIR = path.resolve(opts.themesDir);
+  const CSS_PATH = path.resolve(opts.tokensCssPath);
   const FONTS_CSS_PATH = opts.fontsCssPath
     ? path.resolve(opts.fontsCssPath)
     : path.join(path.dirname(CSS_PATH), 'fonts.css');
-  const TOKENS_BACKUP_DIR = opts.tokensBackupDir
-    ? path.resolve(opts.tokensBackupDir)
-    : path.join(TOKENS_DIR, '_backups');
+  const THEMES_BACKUP_DIR = opts.themesBackupDir
+    ? path.resolve(opts.themesBackupDir)
+    : path.join(THEMES_DIR, '_backups');
   const CSS_BACKUP_DIR = opts.cssBackupDir
     ? path.resolve(opts.cssBackupDir)
     : path.join(path.dirname(CSS_PATH), '_backups');
   const API_BASE = opts.apiBase ?? '/api';
-  const ACTIVE_FILE = path.join(TOKENS_DIR, '_active.json');
-  const PRODUCTION_FILE = path.join(TOKENS_DIR, '_production.json');
+  const ACTIVE_FILE = path.join(THEMES_DIR, '_active.json');
+  const PRODUCTION_FILE = path.join(THEMES_DIR, '_production.json');
 
-  function ensureTokensDir() {
-    if (!fs.existsSync(TOKENS_DIR)) {
-      fs.mkdirSync(TOKENS_DIR, { recursive: true });
+  function ensureThemesDir() {
+    if (!fs.existsSync(THEMES_DIR)) {
+      fs.mkdirSync(THEMES_DIR, { recursive: true });
     }
-    if (!fs.existsSync(path.join(TOKENS_DIR, 'default.json'))) {
-      const defaultTokens = {
+    if (!fs.existsSync(path.join(THEMES_DIR, 'default.json'))) {
+      const defaultTheme = {
         name: 'Default',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         editorConfigs: {},
         cssVariables: {},
       };
-      fs.writeFileSync(path.join(TOKENS_DIR, 'default.json'), JSON.stringify(defaultTokens, null, 2));
+      fs.writeFileSync(path.join(THEMES_DIR, 'default.json'), JSON.stringify(defaultTheme, null, 2));
     }
     if (!fs.existsSync(ACTIVE_FILE)) {
       fs.writeFileSync(ACTIVE_FILE, JSON.stringify({ activeFile: 'default' }));
@@ -50,22 +50,22 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
     }
   }
 
-  function backupTokenFile(filePath: string, fileName: string) {
+  function backupThemeFile(filePath: string, fileName: string) {
     if (!fs.existsSync(filePath)) return;
-    if (!fs.existsSync(TOKENS_BACKUP_DIR)) {
-      fs.mkdirSync(TOKENS_BACKUP_DIR, { recursive: true });
+    if (!fs.existsSync(THEMES_BACKUP_DIR)) {
+      fs.mkdirSync(THEMES_BACKUP_DIR, { recursive: true });
     }
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupPath = path.join(TOKENS_BACKUP_DIR, `${fileName}_${timestamp}.json`);
+    const backupPath = path.join(THEMES_BACKUP_DIR, `${fileName}_${timestamp}.json`);
     fs.copyFileSync(filePath, backupPath);
 
     // Keep only the 10 most recent backups per file
-    const allBackups = fs.readdirSync(TOKENS_BACKUP_DIR)
+    const allBackups = fs.readdirSync(THEMES_BACKUP_DIR)
       .filter(f => f.startsWith(`${fileName}_`) && f.endsWith('.json'))
       .sort()
       .reverse();
     for (const old of allBackups.slice(10)) {
-      fs.unlinkSync(path.join(TOKENS_BACKUP_DIR, old));
+      fs.unlinkSync(path.join(THEMES_BACKUP_DIR, old));
     }
   }
 
@@ -75,12 +75,12 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
       fs.mkdirSync(CSS_BACKUP_DIR, { recursive: true });
     }
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupPath = path.join(CSS_BACKUP_DIR, `variables_${timestamp}.css`);
+    const backupPath = path.join(CSS_BACKUP_DIR, `tokens_${timestamp}.css`);
     fs.copyFileSync(CSS_PATH, backupPath);
 
     // Keep only the 10 most recent CSS backups
     const allBackups = fs.readdirSync(CSS_BACKUP_DIR)
-      .filter(f => f.startsWith('variables_') && f.endsWith('.css'))
+      .filter(f => f.startsWith('tokens_') && f.endsWith('.css'))
       .sort()
       .reverse();
     for (const old of allBackups.slice(10)) {
@@ -139,9 +139,9 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
     'system-ui-mono': 'ui-monospace, "SF Mono", Menlo, Consolas, monospace',
   };
 
-  function resolveFontStacks(tokenData: any): Record<string, string> {
-    const stacks = tokenData.fontStacks as Array<{ variable: string; slots: any[] }> | undefined;
-    const sources = tokenData.fontSources as Array<{ id: string; families: Array<{ id: string; cssName: string }> }> | undefined;
+  function resolveFontStacks(themeData: any): Record<string, string> {
+    const stacks = themeData.fontStacks as Array<{ variable: string; slots: any[] }> | undefined;
+    const sources = themeData.fontSources as Array<{ id: string; families: Array<{ id: string; cssName: string }> }> | undefined;
     if (!stacks || stacks.length === 0) return {};
     const familyById = new Map<string, string>();
     for (const src of sources ?? []) {
@@ -167,18 +167,18 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
   }
 
   /**
-   * Write a token file's CSS variables (plus resolved font stack values)
-   * into variables.css. Called when the production file is set or when the
-   * current production token file is saved, so variables.css is always
+   * Write a theme's CSS variables (plus resolved font stack values)
+   * into tokens.css. Called when the production theme is set or when the
+   * current production theme is saved, so tokens.css is always
    * production-ready and the build can bundle it as-is.
    */
   function syncTokensToCss(fileName: string): void {
-    const tokenPath = path.join(TOKENS_DIR, `${fileName}.json`);
-    if (!fs.existsSync(tokenPath)) return;
+    const themePath = path.join(THEMES_DIR, `${fileName}.json`);
+    if (!fs.existsSync(themePath)) return;
 
-    const tokenData = JSON.parse(fs.readFileSync(tokenPath, 'utf-8'));
-    const cssVars: Record<string, string> = { ...(tokenData.cssVariables || {}) };
-    const resolvedFontVars = resolveFontStacks(tokenData);
+    const themeData = JSON.parse(fs.readFileSync(themePath, 'utf-8'));
+    const cssVars: Record<string, string> = { ...(themeData.cssVariables || {}) };
+    const resolvedFontVars = resolveFontStacks(themeData);
     for (const [name, value] of Object.entries(resolvedFontVars)) {
       cssVars[name] = value;
     }
@@ -211,19 +211,19 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
 
     backupCssFile();
     fs.writeFileSync(CSS_PATH, finalContent);
-    console.log(`[syncTokensToCss] Wrote ${Object.keys(cssVars).length} variables from "${fileName}" into variables.css`);
+    console.log(`[syncTokensToCss] Wrote ${Object.keys(cssVars).length} variables from "${fileName}" into tokens.css`);
   }
 
   /**
-   * Regenerate fonts.css from a token file's fontSources. Called alongside
+   * Regenerate fonts.css from a theme's fontSources. Called alongside
    * syncTokensToCss so the production build's static font-loading layer
    * matches the registry the editor last promoted.
    */
   function syncFontsToCss(fileName: string): void {
-    const tokenPath = path.join(TOKENS_DIR, `${fileName}.json`);
-    if (!fs.existsSync(tokenPath)) return;
-    const tokenData = JSON.parse(fs.readFileSync(tokenPath, 'utf-8'));
-    const sources = tokenData.fontSources as Array<{
+    const themePath = path.join(THEMES_DIR, `${fileName}.json`);
+    if (!fs.existsSync(themePath)) return;
+    const themeData = JSON.parse(fs.readFileSync(themePath, 'utf-8'));
+    const sources = themeData.fontSources as Array<{
       id: string;
       kind: string;
       url?: string;
@@ -234,7 +234,7 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
     if (!sources) return;
 
     const lines: string[] = [];
-    lines.push('/* Generated from the production token file by syncFontsToCss. Do not edit. */');
+    lines.push('/* Generated from the production theme by syncFontsToCss. Do not edit. */');
     lines.push('/* Both fonts.css and fonts/ are in dist/, so relative paths work at runtime. */');
     lines.push('');
 
@@ -261,17 +261,17 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
   // Build parameterized routes/regexes from API_BASE.
   // Escape regex metacharacters so custom apiBase values still work.
   const escapedBase = API_BASE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const TOKENS_ROUTE = `${API_BASE}/tokens`;
-  const TOKENS_ACTIVE_ROUTE = `${API_BASE}/tokens/active`;
-  const TOKENS_PRODUCTION_ROUTE = `${API_BASE}/tokens/production`;
+  const THEMES_ROUTE = `${API_BASE}/themes`;
+  const THEMES_ACTIVE_ROUTE = `${API_BASE}/themes/active`;
+  const THEMES_PRODUCTION_ROUTE = `${API_BASE}/themes/production`;
   const BACKUPS_ROUTE = `${API_BASE}/backups`;
   const CURRENT_CSS_ROUTE = `${API_BASE}/current-css`;
-  const TOKEN_BY_NAME_REGEX = new RegExp(`^${escapedBase}/tokens/([a-z0-9\\-_]+)$`);
-  const BACKUP_GET_REGEX = new RegExp(`^${escapedBase}/backups/(tokens|css)/(.+)$`);
-  const BACKUP_RESTORE_REGEX = new RegExp(`^${escapedBase}/backups/(tokens|css)/(.+)/restore$`);
+  const THEME_BY_NAME_REGEX = new RegExp(`^${escapedBase}/themes/([a-z0-9\\-_]+)$`);
+  const BACKUP_GET_REGEX = new RegExp(`^${escapedBase}/backups/(themes|css)/(.+)$`);
+  const BACKUP_RESTORE_REGEX = new RegExp(`^${escapedBase}/backups/(themes|css)/(.+)/restore$`);
 
   return {
-    name: 'token-file-api',
+    name: 'theme-file-api',
     config() {
       // Inject __PROJECT_ROOT__ so the editor overlay's "Page Source" link
       // can build `vscode://file/<root>/<path>` URLs without each consumer
@@ -283,20 +283,20 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
       };
     },
     configureServer(server) {
-      ensureTokensDir();
+      ensureThemesDir();
 
       server.middlewares.use(async (req, res, next) => {
         const url = req.url || '';
 
-        // ── GET /api/tokens — list all token files ──
-        if (url === TOKENS_ROUTE && req.method === 'GET') {
+        // ── GET /api/themes — list all themes ──
+        if (url === THEMES_ROUTE && req.method === 'GET') {
           try {
             const activeFile = getActiveFileName();
             const files = fs
-              .readdirSync(TOKENS_DIR)
+              .readdirSync(THEMES_DIR)
               .filter((f) => f.endsWith('.json') && !f.startsWith('_'))
               .map((f) => {
-                const filePath = path.join(TOKENS_DIR, f);
+                const filePath = path.join(THEMES_DIR, f);
                 const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
                 const fileName = f.replace('.json', '');
                 return {
@@ -313,13 +313,13 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
           return;
         }
 
-        // ── GET /api/tokens/active — return the active token file ──
-        if (url === TOKENS_ACTIVE_ROUTE && req.method === 'GET') {
+        // ── GET /api/themes/active — return the active theme ──
+        if (url === THEMES_ACTIVE_ROUTE && req.method === 'GET') {
           try {
             const activeFile = getActiveFileName();
-            const filePath = path.join(TOKENS_DIR, `${activeFile}.json`);
+            const filePath = path.join(THEMES_DIR, `${activeFile}.json`);
             if (!fs.existsSync(filePath)) {
-              jsonResponse(res, 404, { error: 'Active token file not found' });
+              jsonResponse(res, 404, { error: 'Active theme not found' });
               return;
             }
             const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
@@ -331,13 +331,13 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
           return;
         }
 
-        // ── PUT /api/tokens/active — set the active file ──
-        if (url === TOKENS_ACTIVE_ROUTE && req.method === 'PUT') {
+        // ── PUT /api/themes/active — set the active theme ──
+        if (url === THEMES_ACTIVE_ROUTE && req.method === 'PUT') {
           try {
             const body = JSON.parse(await readBody(req));
             const fileName = sanitize(body.name || 'default');
-            if (!fs.existsSync(path.join(TOKENS_DIR, `${fileName}.json`))) {
-              jsonResponse(res, 404, { error: 'Token file not found' });
+            if (!fs.existsSync(path.join(THEMES_DIR, `${fileName}.json`))) {
+              jsonResponse(res, 404, { error: 'Theme not found' });
               return;
             }
             fs.writeFileSync(ACTIVE_FILE, JSON.stringify({ activeFile: fileName }));
@@ -348,11 +348,11 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
           return;
         }
 
-        // ── GET /api/tokens/production — return production info + config ──
-        if (url === TOKENS_PRODUCTION_ROUTE && req.method === 'GET') {
+        // ── GET /api/themes/production — return production info + config ──
+        if (url === THEMES_PRODUCTION_ROUTE && req.method === 'GET') {
           try {
             const prodFile = getProductionFileName();
-            const filePath = path.join(TOKENS_DIR, `${prodFile}.json`);
+            const filePath = path.join(THEMES_DIR, `${prodFile}.json`);
             if (!fs.existsSync(filePath)) {
               jsonResponse(res, 200, { fileName: prodFile, name: prodFile, cssVariables: {} });
               return;
@@ -370,19 +370,19 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
           return;
         }
 
-        // ── PUT /api/tokens/production — update the production file ──
-        if (url === TOKENS_PRODUCTION_ROUTE && req.method === 'PUT') {
+        // ── PUT /api/themes/production — update the production theme ──
+        if (url === THEMES_PRODUCTION_ROUTE && req.method === 'PUT') {
           try {
             const body = JSON.parse(await readBody(req));
             const fileName = sanitize(body.name || 'default');
-            if (!fs.existsSync(path.join(TOKENS_DIR, `${fileName}.json`))) {
-              jsonResponse(res, 404, { error: 'Token file not found' });
+            if (!fs.existsSync(path.join(THEMES_DIR, `${fileName}.json`))) {
+              jsonResponse(res, 404, { error: 'Theme not found' });
               return;
             }
             fs.writeFileSync(PRODUCTION_FILE, JSON.stringify({ productionFile: fileName }));
             syncTokensToCss(fileName);
             syncFontsToCss(fileName);
-            const data = JSON.parse(fs.readFileSync(path.join(TOKENS_DIR, `${fileName}.json`), 'utf-8'));
+            const data = JSON.parse(fs.readFileSync(path.join(THEMES_DIR, `${fileName}.json`), 'utf-8'));
             jsonResponse(res, 200, {
               ok: true,
               fileName,
@@ -395,7 +395,7 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
           return;
         }
 
-        // ── GET /api/backups — list all backups (tokens + CSS) ──
+        // ── GET /api/backups — list all backups (themes + CSS) ──
         if (url === BACKUPS_ROUTE && req.method === 'GET') {
           try {
             const backups: { type: string; file: string; name: string; timestamp: string; size: number }[] = [];
@@ -404,15 +404,15 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
               return ts.replace(/T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z/, 'T$1:$2:$3.$4Z');
             }
 
-            // Token backups
-            if (fs.existsSync(TOKENS_BACKUP_DIR)) {
-              for (const f of fs.readdirSync(TOKENS_BACKUP_DIR)) {
+            // Theme backups
+            if (fs.existsSync(THEMES_BACKUP_DIR)) {
+              for (const f of fs.readdirSync(THEMES_BACKUP_DIR)) {
                 if (!f.endsWith('.json')) continue;
                 const match = f.match(/^(.+)_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z)\.json$/);
                 if (!match) continue;
-                const stat = fs.statSync(path.join(TOKENS_BACKUP_DIR, f));
+                const stat = fs.statSync(path.join(THEMES_BACKUP_DIR, f));
                 backups.push({
-                  type: 'tokens',
+                  type: 'themes',
                   file: f,
                   name: match[1],
                   timestamp: fileTimestampToISO(match[2]),
@@ -465,21 +465,21 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
                 fs.copyFileSync(backupPath, CSS_PATH);
                 jsonResponse(res, 200, { ok: true, restored: file });
               } else {
-                const backupPath = path.join(TOKENS_BACKUP_DIR, decodeURIComponent(file));
-                if (!backupPath.startsWith(TOKENS_BACKUP_DIR) || !fs.existsSync(backupPath)) {
+                const backupPath = path.join(THEMES_BACKUP_DIR, decodeURIComponent(file));
+                if (!backupPath.startsWith(THEMES_BACKUP_DIR) || !fs.existsSync(backupPath)) {
                   jsonResponse(res, 404, { error: 'Backup not found' });
                   return;
                 }
-                // Determine which token file this backup belongs to
+                // Determine which theme this backup belongs to
                 const nameMatch = decodeURIComponent(file).match(/^(.+)_\d{4}-/);
                 if (!nameMatch) {
-                  jsonResponse(res, 400, { error: 'Cannot determine token file name from backup' });
+                  jsonResponse(res, 400, { error: 'Cannot determine theme name from backup' });
                   return;
                 }
-                const tokenFilePath = path.join(TOKENS_DIR, `${nameMatch[1]}.json`);
+                const themeFilePath = path.join(THEMES_DIR, `${nameMatch[1]}.json`);
                 // Backup current before restoring
-                backupTokenFile(tokenFilePath, nameMatch[1]);
-                fs.copyFileSync(backupPath, tokenFilePath);
+                backupThemeFile(themeFilePath, nameMatch[1]);
+                fs.copyFileSync(backupPath, themeFilePath);
                 jsonResponse(res, 200, { ok: true, restored: file });
               }
             } catch (err: any) {
@@ -494,7 +494,7 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
           const backupMatch = url.match(BACKUP_GET_REGEX);
           if (backupMatch && req.method === 'GET') {
             const [, type, file] = backupMatch;
-            const dir = type === 'css' ? CSS_BACKUP_DIR : TOKENS_BACKUP_DIR;
+            const dir = type === 'css' ? CSS_BACKUP_DIR : THEMES_BACKUP_DIR;
             const filePath = path.join(dir, decodeURIComponent(file));
             if (!filePath.startsWith(dir) || !fs.existsSync(filePath)) {
               jsonResponse(res, 404, { error: 'Backup not found' });
@@ -506,7 +506,7 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
           }
         }
 
-        // ── GET /api/current-css — read current variables.css ──
+        // ── GET /api/current-css — read current tokens.css ──
         if (url === CURRENT_CSS_ROUTE && req.method === 'GET') {
           try {
             const content = fs.readFileSync(CSS_PATH, 'utf-8');
@@ -517,11 +517,11 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
           return;
         }
 
-        // ── /api/tokens/:name — CRUD for individual token files ──
-        const match = url.match(TOKEN_BY_NAME_REGEX);
+        // ── /api/themes/:name — CRUD for individual themes ──
+        const match = url.match(THEME_BY_NAME_REGEX);
         if (match) {
           const fileName = match[1];
-          const filePath = path.join(TOKENS_DIR, `${fileName}.json`);
+          const filePath = path.join(THEMES_DIR, `${fileName}.json`);
 
           if (req.method === 'GET') {
             try {
@@ -551,9 +551,9 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
               }
               if (!body.createdAt) body.createdAt = body.updatedAt;
               // Backup existing file before overwriting
-              backupTokenFile(filePath, fileName);
+              backupThemeFile(filePath, fileName);
               fs.writeFileSync(filePath, JSON.stringify(body, null, 2));
-              // Keep variables.css and fonts.css in sync when the production token file is saved
+              // Keep tokens.css and fonts.css in sync when the production theme is saved
               if (fileName === getProductionFileName()) {
                 syncTokensToCss(fileName);
                 syncFontsToCss(fileName);
@@ -567,13 +567,13 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
 
           if (req.method === 'DELETE') {
             if (fileName === 'default') {
-              jsonResponse(res, 403, { error: 'Cannot delete the default token file' });
+              jsonResponse(res, 403, { error: 'Cannot delete the default theme' });
               return;
             }
             try {
               if (fs.existsSync(filePath)) {
                 fs.unlinkSync(filePath);
-                // If this was the active file, revert to default
+                // If this was the active theme, revert to default
                 if (getActiveFileName() === fileName) {
                   fs.writeFileSync(ACTIVE_FILE, JSON.stringify({ activeFile: 'default' }));
                 }
@@ -589,7 +589,7 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
           return;
         }
 
-        // Not a token API request — pass through
+        // Not a theme API request — pass through
         next();
       });
     },

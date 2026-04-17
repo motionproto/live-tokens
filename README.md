@@ -13,7 +13,7 @@ Both modes are supported and maintained together.
 - **Live editor overlay** pinned to the top-right in dev. Opens the editor in a side panel or floating window without leaving the page you're styling.
 - **Page Source** button — jumps straight to the current page's Svelte file in VS Code (`vscode://` link).
 - **Component library** at `/components`: Button, Card, Dialog, Badge, Tabs, Tooltip, Toggle, and more. Extendable with your own sections.
-- **Token persistence**: each saved palette is a JSON file in `tokens/`. The active palette syncs into `src/styles/variables.css` on save, so production builds ship pure CSS — no editor code or JSON lookups in the prod bundle.
+- **Theme persistence**: each saved palette is a JSON file in `themes/`. The active palette syncs into `src/styles/tokens.css` on save, so production builds ship pure CSS — no editor code or JSON lookups in the prod bundle.
 
 ## Use as a starter
 
@@ -36,13 +36,13 @@ Open http://localhost:5173. Replace `src/pages/Home.svelte` with your own landin
 - `src/components/` — reusable components.
 - `src/showcase/` — editor UI (tabs, palette editors, curve editor, backup browser).
 - `src/lib/` — overlay, router, token persistence, color helpers.
-- `src/styles/variables.css` — the generated CSS variables (source of truth at runtime).
-- `tokens/` — persisted palette files. `_active.json` = palette loaded on dev. `_production.json` = palette synced to CSS on "promote."
+- `src/styles/tokens.css` — the generated CSS variables (source of truth at runtime).
+- `themes/` — persisted theme files. `_active.json` = theme loaded on dev. `_production.json` = theme synced to CSS on "promote."
 
 ### How the editor ships changes to prod (starter)
 
-1. Edit in `/admin` → the overlay writes to the active JSON file in `tokens/`.
-2. Promote a palette to "production" → its variables are written into `src/styles/variables.css` and backed up under `src/styles/_backups/`.
+1. Edit in `/admin` → the overlay writes to the active theme file in `themes/`.
+2. Promote a theme to "production" → its variables are written into `src/styles/tokens.css` and backed up under `src/styles/_backups/`.
 3. `npm run build` bundles that CSS file as-is.
 
 ## Use as a library
@@ -59,14 +59,14 @@ npm install @motion-proto/live-tokens
 // vite.config.ts
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
-import { tokenFileApi } from '@motion-proto/live-tokens/vite-plugin';
+import { themeFileApi } from '@motion-proto/live-tokens/vite-plugin';
 
 export default defineConfig({
   plugins: [
     svelte(),
-    tokenFileApi({
-      tokensDir: 'tokens',
-      variablesCssPath: 'src/styles/variables.css',
+    themeFileApi({
+      themesDir: 'themes',
+      tokensCssPath: 'src/styles/tokens.css',
     }),
   ],
   optimizeDeps: {
@@ -75,22 +75,22 @@ export default defineConfig({
 });
 ```
 
-The `tokenFileApi` plugin:
-- Seeds `tokens/` with a default palette on first dev-server start.
-- Hosts the `/api/*` routes the editor uses to save/load palettes.
+The `themeFileApi` plugin:
+- Seeds `themes/` with a default theme on first dev-server start.
+- Hosts the `/api/*` routes the editor uses to save/load themes.
 - Auto-injects `__PROJECT_ROOT__` so the overlay's "Page Source" link can open files in VS Code. You don't need a `define` entry for this.
 
 ### Bootstrap in `main.ts`
 
 ```ts
-import { configureEditor, initializeTokens } from '@motion-proto/live-tokens';
+import { configureEditor, initializeTheme } from '@motion-proto/live-tokens';
 import App from './App.svelte';
 
 configureEditor({ storagePrefix: 'my-app-' });
 
 async function boot() {
   if (import.meta.env.DEV) {
-    await initializeTokens();
+    await initializeTheme();
   }
   new App({ target: document.getElementById('app')! });
 }
@@ -172,7 +172,7 @@ The package is published to npm as `@motion-proto/live-tokens`.
 - `src/showcase/editor.css`, `src/styles/form-controls.css`, `src/styles/fonts.css`, `src/styles/fonts/`
 - `dist-plugin/` — compiled Vite plugin
 
-**What doesn't ship** (starter-only): `src/App.svelte`, `src/main.ts`, `src/pages/Home.svelte`, `src/pages/KitDemo.svelte`, `src/pages/ShowcasePage.svelte`, `index.html`, `tokens/`.
+**What doesn't ship** (starter-only): `src/App.svelte`, `src/main.ts`, `src/pages/Home.svelte`, `src/pages/KitDemo.svelte`, `src/pages/ShowcasePage.svelte`, `index.html`, `themes/`.
 
 ## License
 

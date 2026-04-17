@@ -35,6 +35,21 @@
 </div>
 
 <style lang="scss">
+   :global(:root) {
+      /* Save (confirm) */
+      --inline-edit-save-bg: var(--surface-success-low);
+      --inline-edit-save-bg-hover: var(--surface-success-high);
+      --inline-edit-save-text: var(--text-success);
+
+      /* Cancel */
+      --inline-edit-cancel-bg: var(--surface-danger-low);
+      --inline-edit-cancel-bg-hover: var(--surface-danger-high);
+      --inline-edit-cancel-text: var(--text-danger);
+
+      /* Shared */
+      --inline-edit-radius: var(--radius-md);
+   }
+
    .inline-actions {
       display: flex;
       gap: var(--space-8);

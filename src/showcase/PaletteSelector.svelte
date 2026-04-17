@@ -173,10 +173,10 @@
 
   function initFromCurrent() {
     // Real user overrides are always var(...) references (written by selectSwatch).
-    // Inline hex values come from tokenInit's bulk-apply of the token JSON file
+    // Inline hex values come from themeInit's bulk-apply of the active theme
     // and represent the semantic default, not a custom override — so we treat
     // them the same as "no inline override" and derive semantics from the
-    // variable's own name, or from the alias chain declared in variables.css
+    // variable's own name, or from the alias chain declared in tokens.css
     // (e.g. `--notification-info-title: var(--text-info);`).
     const raw = document.documentElement.style.getPropertyValue(variable).trim();
     const parsed = raw ? parseRef(raw) : null;

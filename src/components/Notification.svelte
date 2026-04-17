@@ -80,6 +80,48 @@
 </div>
 
 <style lang="scss">
+   :global(:root) {
+      /* Info */
+      --notification-info-surface: var(--surface-info);
+      --notification-info-border: var(--border-info);
+      --notification-info-icon: var(--text-info);
+      --notification-info-title: var(--text-info);
+      --notification-info-title-font-family: var(--font-sans);
+      --notification-info-title-font-weight: var(--font-weight-semibold);
+      --notification-info-text: var(--text-primary);
+      --notification-info-radius: var(--radius-md);
+
+      /* Success */
+      --notification-success-surface: var(--surface-success);
+      --notification-success-border: var(--border-success);
+      --notification-success-icon: var(--text-success);
+      --notification-success-title: var(--text-success);
+      --notification-success-title-font-family: var(--font-sans);
+      --notification-success-title-font-weight: var(--font-weight-semibold);
+      --notification-success-text: var(--text-primary);
+      --notification-success-radius: var(--radius-md);
+
+      /* Warning */
+      --notification-warning-surface: var(--surface-warning);
+      --notification-warning-border: var(--border-warning);
+      --notification-warning-icon: var(--text-warning);
+      --notification-warning-title: var(--text-warning);
+      --notification-warning-title-font-family: var(--font-sans);
+      --notification-warning-title-font-weight: var(--font-weight-semibold);
+      --notification-warning-text: var(--text-primary);
+      --notification-warning-radius: var(--radius-md);
+
+      /* Danger */
+      --notification-danger-surface: var(--surface-danger);
+      --notification-danger-border: var(--border-danger);
+      --notification-danger-icon: var(--text-danger);
+      --notification-danger-title: var(--text-danger);
+      --notification-danger-title-font-family: var(--font-sans);
+      --notification-danger-title-font-weight: var(--font-weight-semibold);
+      --notification-danger-text: var(--text-primary);
+      --notification-danger-radius: var(--radius-md);
+   }
+
    .notification {
       display: flex;
       flex-direction: column;

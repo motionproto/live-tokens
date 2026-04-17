@@ -41,6 +41,29 @@
 {/if}
 
 <style lang="scss">
+   :global(:root) {
+      /* Default */
+      --collapsible-default-surface: var(--surface-bg);
+      --collapsible-default-label: var(--text-primary);
+      --collapsible-default-icon: var(--text-muted);
+      --collapsible-default-border: var(--color-primary-400);
+      --collapsible-default-radius: var(--radius-md);
+
+      /* Hover */
+      --collapsible-hover-surface: var(--surface-bg);
+      --collapsible-hover-label: var(--text-primary);
+      --collapsible-hover-icon: var(--text-muted);
+      --collapsible-hover-border: var(--color-primary-400);
+      --collapsible-hover-radius: var(--radius-md);
+
+      /* Active */
+      --collapsible-active-surface: var(--surface-bg-low);
+      --collapsible-active-label: var(--text-primary);
+      --collapsible-active-icon: var(--text-muted);
+      --collapsible-active-border: var(--color-primary-400);
+      --collapsible-active-radius: var(--radius-md);
+   }
+
    .section-header {
       display: flex;
       align-items: center;

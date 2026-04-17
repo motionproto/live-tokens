@@ -15,11 +15,11 @@ export {
 } from './cssVarSync';
 
 export {
-  listTokenFiles,
-  loadTokenFile,
-  saveTokenFile,
-  deleteTokenFile,
-  getActiveTokens,
+  listThemes,
+  loadTheme,
+  saveTheme,
+  deleteTheme,
+  getActiveTheme,
   setActiveFile,
   getProductionInfo,
   setProductionFile,
@@ -28,13 +28,13 @@ export {
   restoreBackup,
   getCurrentCss,
   sanitizeFileName,
-} from './tokenService';
-export type { ProductionInfo, BackupEntry } from './tokenService';
+} from './themeService';
+export type { ProductionInfo, BackupEntry } from './themeService';
 
 export type {
   PaletteConfig,
-  TokenFile,
-  TokenFileMeta,
+  Theme,
+  ThemeMeta,
   GradientStyle,
   GradientStop,
   FontSource,
@@ -45,7 +45,7 @@ export type {
   FontStackVariable,
   SystemCascadePreset,
   GenericFamily,
-} from './tokenTypes';
+} from './themeTypes';
 
 export {
   applyFontSources,
@@ -53,9 +53,9 @@ export {
   resolveFontStackValues,
   SYSTEM_CASCADES,
 } from './fontLoader';
-export { migrateTokenFileFonts, defaultFontSources, defaultFontStacks } from './fontMigration';
+export { migrateThemeFonts, defaultFontSources, defaultFontStacks } from './fontMigration';
 
 export { hexToOklch, oklchToHex, gamutClamp } from './oklch';
 export type { Oklch } from './oklch';
 
-export { initializeTokens } from './tokenInit';
+export { initializeTheme } from './themeInit';

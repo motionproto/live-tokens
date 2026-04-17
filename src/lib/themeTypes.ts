@@ -62,7 +62,7 @@ export interface FontStack {
   slots: FontStackSlot[];
 }
 
-export interface TokenFile {
+export interface Theme {
   name: string;
   createdAt: string;
   updatedAt: string;
@@ -72,7 +72,7 @@ export interface TokenFile {
   fontStacks?: FontStack[];
 }
 
-export interface TokenFileMeta {
+export interface ThemeMeta {
   name: string;
   fileName: string;
   updatedAt: string;

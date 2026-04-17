@@ -13,7 +13,7 @@ import {
   undo,
   __resetForTests,
 } from '../lib/editorStore';
-import type { PaletteConfig } from '../lib/tokenTypes';
+import type { PaletteConfig } from '../lib/themeTypes';
 
 function makePaletteConfig(baseColor: string): PaletteConfig {
   return {

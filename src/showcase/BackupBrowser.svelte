@@ -5,10 +5,10 @@
     listBackups,
     getBackupContent,
     getCurrentCss,
-    loadTokenFile,
+    loadTheme,
     restoreBackup,
     type BackupEntry,
-  } from '../lib/tokenService';
+  } from '../lib/themeService';
   import { activeFileName } from '../lib/editorConfigStore';
 
   export let open = false;
@@ -23,7 +23,7 @@
   let loading = false;
   let restoring = false;
   let restoreConfirm = false;
-  let filterType: 'all' | 'css' | 'tokens' = 'all';
+  let filterType: 'all' | 'css' | 'themes' = 'all';
 
   interface DiffLine {
     type: 'same' | 'add' | 'remove' | 'context';
@@ -57,8 +57,8 @@
       if (backup.type === 'css') {
         currentContent = await getCurrentCss();
       } else {
-        const tokenData = await loadTokenFile(backup.name);
-        currentContent = JSON.stringify(tokenData, null, 2);
+        const themeData = await loadTheme(backup.name);
+        currentContent = JSON.stringify(themeData, null, 2);
         try {
           backupContent = JSON.stringify(JSON.parse(backupContent), null, 2);
         } catch { /* keep as-is */ }
@@ -245,7 +245,7 @@
     <div class="filter-tabs">
       <button class:active={filterType === 'all'} on:click={() => filterType = 'all'}>All</button>
       <button class:active={filterType === 'css'} on:click={() => filterType = 'css'}>CSS</button>
-      <button class:active={filterType === 'tokens'} on:click={() => filterType = 'tokens'}>Tokens</button>
+      <button class:active={filterType === 'themes'} on:click={() => filterType = 'themes'}>Themes</button>
     </div>
     {#if selected}
       <div class="diff-actions">
@@ -277,8 +277,8 @@
             class:selected={selected?.file === backup.file}
             on:click={() => selectBackup(backup)}
           >
-            <span class="backup-badge" class:css={backup.type === 'css'} class:token={backup.type === 'tokens'}>
-              {backup.type === 'css' ? 'CSS' : 'TOK'}
+            <span class="backup-badge" class:css={backup.type === 'css'} class:theme={backup.type === 'themes'}>
+              {backup.type === 'css' ? 'CSS' : 'THM'}
             </span>
             <div class="backup-info">
               <span class="backup-name">{backup.name}</span>
@@ -296,8 +296,8 @@
         <div class="empty-state">Loading diff...</div>
       {:else}
         <div class="diff-meta">
-          <span class="backup-badge" class:css={selected.type === 'css'} class:token={selected.type === 'tokens'}>
-            {selected.type === 'css' ? 'CSS' : 'TOK'}
+          <span class="backup-badge" class:css={selected.type === 'css'} class:theme={selected.type === 'themes'}>
+            {selected.type === 'css' ? 'CSS' : 'THM'}
           </span>
           <strong>{selected.name}</strong>
           <span class="diff-timestamp">{formatTimestamp(selected.timestamp)}</span>
@@ -481,7 +481,7 @@
     flex-shrink: 0;
   }
   .backup-badge.css { background: var(--surface-success-low, #1a3a2a); color: var(--text-success, #6dcf97); }
-  .backup-badge.token { background: var(--surface-warning-low, #2a2a1a); color: var(--text-warning, #cfb86d); }
+  .backup-badge.theme { background: var(--surface-warning-low, #2a2a1a); color: var(--text-warning, #cfb86d); }
 
   .backup-info {
     display: flex;

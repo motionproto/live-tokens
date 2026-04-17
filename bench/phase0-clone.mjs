@@ -2,7 +2,7 @@
  * Phase 0 benchmark — state clone + stringify cost.
  *
  * Builds an EditorState roughly the shape the refactor will use: loaded
- * TokenFile (palettes + cssVars + fonts) plus the shadow/overlay/column
+ * Theme (palettes + cssVars + fonts) plus the shadow/overlay/column
  * domain state that currently lives in VariablesTab.svelte local `let`s.
  *
  * Measures:
@@ -22,11 +22,11 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(__dirname, '..');
 
-function loadTokenFile(name) {
-  return JSON.parse(fs.readFileSync(path.join(REPO, 'tokens', `${name}.json`), 'utf-8'));
+function loadTheme(name) {
+  return JSON.parse(fs.readFileSync(path.join(REPO, 'themes', `${name}.json`), 'utf-8'));
 }
 
-// Simulate the additional domain state that doesn't exist in TokenFile today
+// Simulate the additional domain state that doesn't exist in Theme today
 // but will live in EditorState after the refactor.
 function synthesiseExtras() {
   const shadowVariables = [
@@ -67,8 +67,8 @@ function synthesiseExtras() {
   };
 }
 
-function buildEditorState(tokenFileName) {
-  const f = loadTokenFile(tokenFileName);
+function buildEditorState(themeName) {
+  const f = loadTheme(themeName);
   return {
     palettes: f.editorConfigs ?? {},
     fonts: { sources: f.fontSources ?? [], stacks: f.fontStacks ?? [] },

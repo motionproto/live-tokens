@@ -6,7 +6,7 @@
   import BezierCurveEditor from './BezierCurveEditor.svelte';
   import ColorEditPanel from './ColorEditPanel.svelte';
   import Toggle from '../components/Toggle.svelte';
-  import type { PaletteConfig, GradientStyle, GradientStop } from '../lib/tokenTypes';
+  import type { PaletteConfig, GradientStyle, GradientStop } from '../lib/themeTypes';
   import { editorState, mutate, setPaletteConfig, beginSliderGesture, beginPaletteEditSession, commitPaletteEditSession, cancelPaletteEditSession } from '../lib/editorStore';
   import { setCssVar as setCssVarSync } from '../lib/cssVarSync';
   import { get } from 'svelte/store';
@@ -25,7 +25,7 @@
   // writer. No `let` mirrors, no round-trip sync reactives.
   //
   // The defaults fall back only when palettes[label] is undefined (brand-new
-  // install, never seeded). Production seeds via tokenInit → seedPalettesFromTokens.
+  // install, never seeded). Production seeds via themeInit → seedPalettesFromTheme.
   $: paletteConfig = $editorState.palettes[label];
   $: baseColor = paletteConfig?.baseColor ?? initialColor;
   $: tintHue = paletteConfig?.tintHue ?? 240;
@@ -992,7 +992,7 @@
   // Chromatic mode: set --color-{namespace}-* palette ramp + semantic surface/border/text CSS variables
   // Gated on mountComplete so the initial reactive flush — which runs with hardcoded
   // component defaults, before the onMount `state.palettes[label]` / localStorage seed —
-  // does not stomp the host :root that variables.css / tokenInit already populated.
+  // does not stomp the host :root that tokens.css / themeInit already populated.
   $: if (mountComplete && cssNamespace !== null && mode === 'chromatic') {
     const _cv = curveVersion;
     const _ov = overrides;

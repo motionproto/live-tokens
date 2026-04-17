@@ -1,4 +1,4 @@
-import type { FontFamily, FontSource, FontStack, TokenFile } from './tokenTypes';
+import type { FontFamily, FontSource, FontStack, Theme } from './themeTypes';
 
 function makeId(prefix: string): string {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
@@ -20,7 +20,7 @@ function fam(sourceId: string, name: string, cssName?: string, weights?: number[
 
 /**
  * Build the default fontSources that match the hand-written src/styles/fonts.css.
- * Used when a token file has no fontSources yet.
+ * Used when a theme has no fontSources yet.
  */
 export function defaultFontSources(): FontSource[] {
   const typekitId = 'src_typekit_jes8oow';
@@ -64,7 +64,7 @@ export function defaultFontSources(): FontSource[] {
 
 /**
  * Build the default fontStacks matching the previous hard-coded display in
- * VariablesTab.svelte plus variables.css. Each stack references families from
+ * VariablesTab.svelte plus tokens.css. Each stack references families from
  * defaultFontSources() by id.
  */
 export function defaultFontStacks(sources: FontSource[]): FontStack[] {
@@ -113,24 +113,24 @@ export function defaultFontStacks(sources: FontSource[]): FontStack[] {
 }
 
 /**
- * Ensure the loaded TokenFile has fontSources and fontStacks. Mutates in place
- * only when missing; safe to call on already-migrated files. Also strips any
+ * Ensure the loaded Theme has fontSources and fontStacks. Mutates in place
+ * only when missing; safe to call on already-migrated themes. Also strips any
  * stale --font-* entries from cssVariables since those are now derived.
  */
-export function migrateTokenFileFonts(tokens: TokenFile): { migrated: boolean } {
+export function migrateThemeFonts(theme: Theme): { migrated: boolean } {
   let migrated = false;
-  if (!tokens.fontSources || tokens.fontSources.length === 0) {
-    tokens.fontSources = defaultFontSources();
+  if (!theme.fontSources || theme.fontSources.length === 0) {
+    theme.fontSources = defaultFontSources();
     migrated = true;
   }
-  if (!tokens.fontStacks || tokens.fontStacks.length === 0) {
-    tokens.fontStacks = defaultFontStacks(tokens.fontSources);
+  if (!theme.fontStacks || theme.fontStacks.length === 0) {
+    theme.fontStacks = defaultFontStacks(theme.fontSources);
     migrated = true;
   }
-  if (tokens.cssVariables) {
+  if (theme.cssVariables) {
     for (const key of ['--font-display', '--font-sans', '--font-serif', '--font-mono']) {
-      if (key in tokens.cssVariables) {
-        delete tokens.cssVariables[key];
+      if (key in theme.cssVariables) {
+        delete theme.cssVariables[key];
         migrated = true;
       }
     }

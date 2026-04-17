@@ -14,6 +14,26 @@
 </span>
 
 <style>
+  :global(:root) {
+    /* Info */
+    --badge-info-surface: var(--surface-neutral-higher);
+    --badge-info-text: var(--text-primary);
+    --badge-info-border: var(--border-neutral-default);
+    --badge-info-radius: var(--radius-full);
+
+    /* Accent */
+    --badge-accent-surface: var(--surface-neutral-higher);
+    --badge-accent-text: var(--color-accent-300);
+    --badge-accent-border: var(--border-accent);
+    --badge-accent-radius: var(--radius-full);
+
+    /* Trait */
+    --badge-trait-surface: var(--surface-primary-high);
+    --badge-trait-text: var(--text-primary);
+    --badge-trait-border: var(--border-primary-strong);
+    --badge-trait-radius: var(--radius-full);
+  }
+
   .badge {
     display: inline-flex;
     align-items: center;

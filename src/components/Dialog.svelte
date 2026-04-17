@@ -126,6 +126,18 @@
 {/if}
 
 <style>
+  :global(:root) {
+    --dialog-surface: var(--surface-neutral-lowest);
+    --dialog-border: var(--border-neutral-strong);
+    --dialog-header-surface: var(--empty);
+    --dialog-header-border: var(--border-neutral-subtle);
+    --dialog-title: var(--text-primary);
+    --dialog-close-icon: var(--text-secondary);
+    --dialog-radius: var(--radius-lg);
+    --dialog-button-primary-bg: var(--surface-neutral-high);
+    --dialog-button-primary-hover-bg: var(--surface-neutral-higher);
+  }
+
   .dialog-backdrop {
     position: fixed;
     top: 0;
@@ -241,13 +253,13 @@
   }
 
   .dialog-button-primary {
-    background: var(--btn-secondary-bg);
+    background: var(--dialog-button-primary-bg);
     color: var(--text-primary);
     border-color: var(--border-neutral-medium);
   }
 
   .dialog-button-primary:hover:not(:disabled) {
-    background: var(--btn-secondary-hover);
+    background: var(--dialog-button-primary-hover-bg);
     border-color: var(--border-neutral-strong);
   }
 

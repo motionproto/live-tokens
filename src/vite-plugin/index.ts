@@ -1,2 +1,2 @@
-export { tokenFileApi } from './tokenFileApi';
-export type { TokenFileApiOptions } from './tokenFileApi';
+export { themeFileApi } from './themeFileApi';
+export type { ThemeFileApiOptions } from './themeFileApi';

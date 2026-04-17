@@ -13,8 +13,8 @@ dist-plugin
 dist-ssr
 *.local
 
-# Token + CSS backups (local-only working state)
-tokens/_backups/
+# Theme + CSS backups (local-only working state)
+themes/_backups/
 src/styles/_backups/
 
 .env*

@@ -23,6 +23,21 @@
 </button>
 
 <style lang="scss">
+  :global(:root) {
+    --radio-dot-border: var(--border-neutral-default);
+    --radio-label: var(--text-primary);
+    --radio-surface: var(--surface-neutral-lowest);
+    --radio-radius: var(--radius-lg);
+
+    --radio-hover-dot-border: var(--radio-dot-border);
+    --radio-hover-label: var(--radio-label);
+    --radio-hover-surface: var(--radio-surface);
+
+    --radio-active-dot-border: var(--radio-dot-border);
+    --radio-active-label: var(--radio-label);
+    --radio-active-surface: var(--radio-surface);
+  }
+
   .radio-button {
     display: inline-flex;
     align-items: center;

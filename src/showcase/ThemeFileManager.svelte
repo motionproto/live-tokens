@@ -1,8 +1,8 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
-  import type { TokenFileMeta } from '../lib/tokenTypes';
-  import { listTokenFiles, deleteTokenFile, setActiveFile, sanitizeFileName, getProductionInfo, setProductionFile } from '../lib/tokenService';
-  import type { ProductionInfo } from '../lib/tokenService';
+  import type { ThemeMeta } from '../lib/themeTypes';
+  import { listThemes, deleteTheme, setActiveFile, sanitizeFileName, getProductionInfo, setProductionFile } from '../lib/themeService';
+  import type { ProductionInfo } from '../lib/themeService';
   import { activeFileName } from '../lib/editorConfigStore';
   import { dirty } from '../lib/editorStore';
   import BackupBrowser from './BackupBrowser.svelte';
@@ -15,7 +15,7 @@
 
   export let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
 
-  let files: TokenFileMeta[] = [];
+  let files: ThemeMeta[] = [];
   let showFileList = false;
   let saveAsEditing = false;
   let saveAsName = '';
@@ -29,7 +29,7 @@
 
   async function refreshFiles() {
     try {
-      files = await listTokenFiles();
+      files = await listThemes();
       const active = files.find(f => f.isActive);
       if (active) {
         $activeFileName = active.fileName;
@@ -119,7 +119,7 @@
     saveAsName = '';
   }
 
-  async function handleLoad(file: TokenFileMeta) {
+  async function handleLoad(file: ThemeMeta) {
     showFileList = false;
     await setActiveFile(file.fileName);
     $activeFileName = file.fileName;
@@ -128,10 +128,10 @@
     // editorStore.loadFromFile clears history and resets dirty — no snapshot needed here.
   }
 
-  async function handleDelete(file: TokenFileMeta) {
+  async function handleDelete(file: ThemeMeta) {
     if (file.fileName === 'default') return;
     try {
-      await deleteTokenFile(file.fileName);
+      await deleteTheme(file.fileName);
       await refreshFiles();
       // If we deleted the active file, it reverts to default on the server
       if (file.fileName === $activeFileName) {
@@ -157,7 +157,7 @@
 
 </script>
 
-<div class="token-file-manager">
+<div class="theme-file-manager">
   <div class="active-file">
     <span class="active-label">Theme</span>
     <span class="active-name">{currentDisplayName}</span>
@@ -224,7 +224,7 @@
       class="tfm-btn"
       class:active={showFileList}
       on:click={toggleFileList}
-      title="Load a token file"
+      title="Load a theme"
     >
       <i class="fas fa-folder-open"></i>
       <span>Load</span>
@@ -314,7 +314,7 @@
 <BackupBrowser
   bind:open={showBackups}
   on:restored={(e) => {
-    if (e.detail.type === 'tokens') {
+    if (e.detail.type === 'themes') {
       dispatch('load', { fileName: $activeFileName });
     }
     refreshFiles();
@@ -323,7 +323,7 @@
 
 
 <style>
-  .token-file-manager {
+  .theme-file-manager {
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-8);
