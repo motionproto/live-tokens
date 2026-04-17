@@ -9,9 +9,11 @@
    export let disabled = false;
    export let saveTitle = "Save";
    export let cancelTitle = "Cancel";
+   let className: string = '';
+   export { className as class };
 </script>
 
-<div class="inline-actions">
+<div class="inline-actions {className}">
    <button
       class="save-btn"
       type="button"
@@ -42,7 +44,7 @@
    .cancel-btn {
       padding: var(--space-4) var(--space-8);
       border: none;
-      border-radius: var(--radius-md);
+      border-radius: var(--inline-edit-radius);
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
@@ -56,20 +58,22 @@
    }
 
    .save-btn {
-      background: rgba(144, 238, 144, 0.2);
-      color: #90ee90;
+      background: var(--inline-edit-save-bg);
+      color: var(--inline-edit-save-text);
 
-      &:hover:not(:disabled) {
-         background: rgba(144, 238, 144, 0.3);
+      &:hover:not(:disabled),
+      .inline-actions.force-hover &:not(:disabled) {
+         background: var(--inline-edit-save-bg-hover);
       }
    }
 
    .cancel-btn {
-      background: rgba(255, 107, 107, 0.2);
-      color: #ff6b6b;
+      background: var(--inline-edit-cancel-bg);
+      color: var(--inline-edit-cancel-text);
 
-      &:hover:not(:disabled) {
-         background: rgba(255, 107, 107, 0.3);
+      &:hover:not(:disabled),
+      .inline-actions.force-hover &:not(:disabled) {
+         background: var(--inline-edit-cancel-bg-hover);
       }
    }
 </style>
