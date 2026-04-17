@@ -54,8 +54,6 @@
 </div>
 
 <style>
-  @import '../../styles/variables.css';
-
   .divider-showcase {
     display: flex;
     flex-direction: column;

@@ -5,7 +5,7 @@
   import LiveEditorOverlay from './lib/LiveEditorOverlay.svelte';
   import ColumnsOverlay from './lib/ColumnsOverlay.svelte';
   import { storageKey } from './lib/editorConfig';
-  import { route, navigate } from './router';
+  import { route, navigate } from './lib/router';
 
   function handleClick(e: MouseEvent) {
     const anchor = (e.target as HTMLElement).closest('a[href]');
@@ -40,7 +40,18 @@
 <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-noninteractive-element-interactions -->
 <div class="lt-app" class:is-admin={isAdmin} on:click={handleClick}>
   {#if isDev && !isAdmin && !isInIframe}
-    <LiveEditorOverlay bind:open={overlayOpen} />
+    <LiveEditorOverlay
+      bind:open={overlayOpen}
+      navLinks={[
+        { path: '/', label: 'Site', icon: 'fa-home' },
+        { path: '/components', label: 'Components', icon: 'fa-puzzle-piece' },
+      ]}
+      pageSources={{
+        '/': 'src/pages/Landing.svelte',
+        '/components': 'src/pages/ShowcasePage.svelte',
+        '/admin': 'src/pages/Admin.svelte',
+      }}
+    />
     <ColumnsOverlay />
   {/if}
 

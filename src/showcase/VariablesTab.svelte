@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import PaletteEditor from './PaletteEditor.svelte';
+  import FontStackEditor from './FontStackEditor.svelte';
+  import ProjectFontsSection from './ProjectFontsSection.svelte';
   import { setCssVar, removeCssVar } from '../lib/cssVarSync';
   import { storageKey } from '../lib/editorConfig';
   import type { PaletteConfig } from '../lib/tokenTypes';
@@ -823,48 +825,6 @@
     setTimeout(() => { copiedVar = null; }, 1000);
   }
 
-  interface FontStack {
-    variable: string;
-    fonts: Array<{ name: string; family: string }>;
-  }
-
-  const fontStacks: FontStack[] = [
-    {
-      variable: '--font-display',
-      fonts: [
-        { name: 'Astounder Squared BB', family: '"astounder-squared-bb", sans-serif' },
-        { name: 'Astounder Squared LC BB', family: '"astounder-squared-lc-bb", sans-serif' },
-        { name: 'Signika', family: '"Signika", sans-serif' },
-        { name: 'sans-serif', family: 'sans-serif' }
-      ]
-    },
-    {
-      variable: '--font-sans',
-      fonts: [
-        { name: 'Montserrat', family: '"Montserrat", sans-serif' },
-        { name: 'Segoe UI', family: '"Segoe UI", sans-serif' },
-        { name: 'Open Sans', family: '"Open Sans", sans-serif' },
-        { name: 'Helvetica Neue', family: '"Helvetica Neue", sans-serif' },
-        { name: 'sans-serif', family: 'sans-serif' }
-      ]
-    },
-    {
-      variable: '--font-serif',
-      fonts: [
-        { name: 'Domine', family: '"Domine", serif' },
-        { name: 'serif', family: 'serif' }
-      ]
-    },
-    {
-      variable: '--font-mono',
-      fonts: [
-        { name: 'Fira Code', family: '"fira-code", monospace' },
-        { name: 'Source Code Pro', family: '"Source Code Pro", monospace' },
-        { name: 'Courier New', family: '"Courier New", monospace' },
-        { name: 'monospace', family: 'monospace' }
-      ]
-    }
-  ];
 
 </script>
 
@@ -991,25 +951,9 @@
 
     <div class="typography-columns">
       <div class="typography-group font-families-group">
+        <ProjectFontsSection />
         <h3 class="group-title">Font Families</h3>
-        <div class="font-stacks-columns">
-          {#each fontStacks as stack}
-            <div class="font-stack">
-              <button class="token-variable copyable" class:copied={copiedVar === stack.variable} on:click={() => copyVariable(stack.variable)}>{copiedVar === stack.variable ? 'copied!' : stack.variable}</button>
-              <div class="font-stack-list">
-                {#each stack.fonts as font, i}
-                  <div class="font-stack-item">
-                    <span class="font-stack-position">{i + 1}.</span>
-                    <div class="font-stack-preview-block">
-                      <span class="font-stack-preview" style="font-family: {font.family};{stack.variable === '--font-display' ? ' font-size: var(--font-2xl);' : ''}">The quick brown fox jumps over the lazy dog</span>
-                      <span class="font-stack-name">{font.name}</span>
-                    </div>
-                  </div>
-                {/each}
-              </div>
-            </div>
-          {/each}
-        </div>
+        <FontStackEditor />
       </div>
 
       <div class="typography-group">
@@ -1705,8 +1649,6 @@
 </div>
 
 <style>
-  @import '../styles/variables.css';
-
   .variables-container {
     display: flex;
     flex-direction: column;
@@ -1927,65 +1869,6 @@
 
   .font-families-group {
     grid-column: 1 / -1;
-  }
-
-  .font-stacks-columns {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
-    gap: var(--space-8);
-  }
-
-  .font-stack {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-    padding: var(--space-12);
-    background: none;
-    border: 1px solid var(--ui-border-faint);
-    border-radius: var(--radius-md);
-  }
-
-  .font-stack-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .font-stack-item {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-8);
-    padding: var(--space-4) 0;
-    border-bottom: 1px solid var(--ui-border-faint);
-  }
-
-  .font-stack-item:last-child {
-    border-bottom: none;
-  }
-
-  .font-stack-position {
-    font-size: var(--font-md);
-    color: var(--ui-text-muted);
-    min-width: 1.25rem;
-    text-align: right;
-  }
-
-  .font-stack-preview-block {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .font-stack-preview {
-    font-size: var(--font-md);
-    color: var(--ui-text-primary);
-    line-height: var(--line-height-normal);
-  }
-
-  .font-stack-name {
-    font-size: var(--font-md);
-    color: var(--ui-text-tertiary);
-    font-family: var(--ui-font-mono);
   }
 
   .font-size-demos {

@@ -90,8 +90,6 @@
 </div>
 
 <style>
-  @import '../../styles/variables.css';
-
   .choice-buttons-container {
     display: flex;
     flex-wrap: wrap;

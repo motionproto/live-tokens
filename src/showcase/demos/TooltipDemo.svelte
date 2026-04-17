@@ -36,8 +36,6 @@
 </div>
 
 <style>
-  @import '../../styles/variables.css';
-
   .tooltip-demo-row {
     display: flex;
     gap: var(--space-24);

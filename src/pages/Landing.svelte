@@ -1,7 +1,7 @@
 <script lang="ts">
   import Button from '../components/Button.svelte';
   import Card from '../components/Card.svelte';
-  import { navigate } from '../router';
+  import { navigate } from '../lib/router';
 
   const isDev = import.meta.env.DEV;
 </script>

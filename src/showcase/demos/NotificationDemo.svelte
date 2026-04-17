@@ -133,8 +133,6 @@
 </div>
 
 <style>
-  @import '../../styles/variables.css';
-
   .notification-showcase {
     display: flex;
     flex-direction: column;

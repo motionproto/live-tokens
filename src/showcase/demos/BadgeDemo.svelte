@@ -42,8 +42,6 @@
 </div>
 
 <style>
-  @import '../../styles/variables.css';
-
   .trait-demo-row {
     display: flex;
     gap: var(--space-8);

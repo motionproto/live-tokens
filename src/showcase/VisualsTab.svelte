@@ -12,6 +12,9 @@
     applyCssVariables,
   } from '../lib/tokenService';
   import { editorConfigs, activeFileName, configsLoadedFromFile } from '../lib/editorConfigStore';
+  import { fontSources, fontStacks } from '../lib/fontStore';
+  import { applyFontSources, applyFontStacks } from '../lib/fontLoader';
+  import { migrateTokenFileFonts } from '../lib/fontMigration';
   import { get } from 'svelte/store';
 
   const tokenNavItems = [
@@ -49,6 +52,9 @@
       // Flush pending Svelte reactive updates so inline CSS vars are current
       await tick();
       const cssVariables = scrapeCssVariables();
+      for (const key of ['--font-display', '--font-sans', '--font-serif', '--font-mono']) {
+        delete cssVariables[key];
+      }
       const configs = get(editorConfigs);
       const now = new Date().toISOString();
       const tokenFile: TokenFile = {
@@ -57,6 +63,8 @@
         updatedAt: now,
         editorConfigs: configs,
         cssVariables,
+        fontSources: get(fontSources),
+        fontStacks: get(fontStacks),
       };
       await saveTokenFile(fileName, tokenFile);
       await setActiveFile(fileName);
@@ -77,12 +85,21 @@
     const { fileName } = e.detail;
     try {
       const tokenFile = await loadTokenFile(fileName);
+      migrateTokenFileFonts(tokenFile);
       // Clear current inline CSS vars so stale values don't linger
       clearAllCssVarOverrides();
       // Immediately apply the file's pre-computed CSS variables so the site
       // updates in one shot (shadows, overlays, and all palette vars).
       if (tokenFile.cssVariables && Object.keys(tokenFile.cssVariables).length > 0) {
         applyCssVariables(tokenFile.cssVariables);
+      }
+      if (tokenFile.fontSources && tokenFile.fontSources.length > 0) {
+        applyFontSources(tokenFile.fontSources);
+        fontSources.set(tokenFile.fontSources);
+      }
+      if (tokenFile.fontStacks && tokenFile.fontStacks.length > 0) {
+        applyFontStacks(tokenFile.fontStacks, tokenFile.fontSources ?? []);
+        fontStacks.set(tokenFile.fontStacks);
       }
       // Directly push configs to each PaletteEditor via method call
       if (tokenFile.editorConfigs && Object.keys(tokenFile.editorConfigs).length > 0) {
@@ -122,8 +139,6 @@
 </div>
 
 <style>
-  @import '../styles/variables.css';
-
   .layout {
     display: grid;
     grid-template-columns: 240px minmax(0, 1fr);

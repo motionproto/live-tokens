@@ -55,8 +55,6 @@
 
 <style>
   @import '../showcase/editor.css';
-  @import '../styles/variables.css';
-
   .components-shell {
     display: grid;
     grid-template-columns: 240px minmax(0, 1fr);

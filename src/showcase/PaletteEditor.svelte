@@ -893,7 +893,10 @@
   }
 
   // Chromatic mode: set --color-{namespace}-* palette ramp + semantic surface/border/text CSS variables
-  $: if (cssNamespace !== null && mode === 'chromatic') {
+  // Gated on mountComplete so the initial reactive flush — which runs with hardcoded
+  // component defaults, before loadFromLocalStorage / loadedConfigs has seeded state —
+  // does not stomp the host :root that variables.css / tokenInit already populated.
+  $: if (mountComplete && cssNamespace !== null && mode === 'chromatic') {
     const _cv = curveVersion;
     const _ov = overrides;
     const _bc = baseColor;
@@ -914,7 +917,7 @@
   }
 
   // Gray mode: set --color-{namespace}-* variables + semantic scales (surfaces, borders, text)
-  $: if (cssNamespace !== null && mode === 'gray') {
+  $: if (mountComplete && cssNamespace !== null && mode === 'gray') {
     const _ge = grayEffective;
     const _cv = curveVersion;
     const _ov = overrides;
@@ -934,7 +937,7 @@
   }
 
   // Empty selector: set --empty to the selected palette step color or gradient
-  $: if (emptySelector) {
+  $: if (mountComplete && emptySelector) {
     if (emptyMode === 'solid') {
       const _pc = paletteComputed;
       const selected = _pc.find(ps => ps.label === emptyStep);

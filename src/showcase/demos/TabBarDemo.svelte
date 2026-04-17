@@ -47,8 +47,6 @@
 </div>
 
 <style>
-  @import '../../styles/variables.css';
-
   .tab-content-demo {
     padding: var(--space-16);
     color: var(--ui-text-secondary);

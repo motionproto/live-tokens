@@ -1,19 +1,21 @@
+<script lang="ts" context="module">
+  export type NavLink = { path: string; label: string; icon?: string };
+</script>
+
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { route, navigate } from '../router';
-  import { resolvePageSource } from './pageSource';
+  import { route, navigate } from './router';
   import { columnsVisible, toggleColumns } from './columnsOverlay';
   import { storageKey } from './editorConfig';
 
-  const projectRoot = __PROJECT_ROOT__;
-
-  $: sourceFile = resolvePageSource($route);
-
-  // `open` controls the editor's visible state. The overlay chrome itself
-  // is always rendered (in dev, on non-admin pages):
-  //   open === true   → full panel (docked or floating) with the iframe
-  //   open === false  → just the header bar pinned to top-right
   export let open: boolean = false;
+  export let editorPath: string = '/admin';
+  export let navLinks: NavLink[] = [];
+  export let pageSources: Record<string, string> = {};
+  export let projectRoot: string =
+    typeof __PROJECT_ROOT__ !== 'undefined' ? __PROJECT_ROOT__ : '';
+
+  $: sourceFile = pageSources[$route];
 
   // Mount the iframe the first time the editor is shown, then keep it mounted
   // across hide/show cycles so editor state (unsaved slider values, scroll
@@ -228,16 +230,18 @@
       <div class="spacer"></div>
     {/if}
 
-    {#if open}
+    {#if open && navLinks.length > 0}
       <div class="preview-nav">
-        <button class="hdr-btn nav" class:active={$route === '/'} on:click={() => navigate('/')}>
-          <i class="fas fa-home"></i>
-          <span>Site</span>
-        </button>
-        <button class="hdr-btn nav" class:active={$route === '/components'} on:click={() => navigate('/components')}>
-          <i class="fas fa-puzzle-piece"></i>
-          <span>Components</span>
-        </button>
+        {#each navLinks as link (link.path)}
+          <button
+            class="hdr-btn nav"
+            class:active={$route === link.path}
+            on:click={() => navigate(link.path)}
+          >
+            {#if link.icon}<i class="fas {link.icon}"></i>{/if}
+            <span>{link.label}</span>
+          </button>
+        {/each}
       </div>
     {/if}
 
@@ -260,7 +264,7 @@
       </button>
     {/if}
 
-    {#if sourceFile}
+    {#if sourceFile && projectRoot}
       <a
         class="hdr-btn text source"
         href="vscode://file/{projectRoot}/{sourceFile}"
@@ -275,7 +279,7 @@
   {#if hasBeenOpen}
     <div class="frame-wrap">
       <iframe
-        src="/admin"
+        src={editorPath}
         title="Design editor"
         class="editor-frame"
       ></iframe>

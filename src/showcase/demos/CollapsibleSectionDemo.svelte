@@ -40,8 +40,6 @@
 </div>
 
 <style>
-  @import '../../styles/variables.css';
-
   .collapsible-demo-wrapper {
     border: 1px solid var(--ui-border-subtle);
     border-radius: var(--radius-md);

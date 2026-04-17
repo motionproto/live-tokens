@@ -112,8 +112,6 @@
 </div>
 
 <style>
-  @import '../styles/variables.css';
-
   .text-container {
     display: flex;
     flex-direction: column;

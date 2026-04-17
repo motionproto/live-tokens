@@ -17,8 +17,6 @@
 </div>
 
 <style>
-  @import '../../styles/variables.css';
-
   .inline-edit-demo-row {
     display: flex;
     align-items: center;

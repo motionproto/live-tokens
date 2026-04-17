@@ -39,8 +39,6 @@
 </div>
 
 <style>
-  @import '../../styles/variables.css';
-
   .progress-demo-stack {
     display: flex;
     flex-direction: column;

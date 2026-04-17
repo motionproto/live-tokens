@@ -1,5 +1,8 @@
 import { getActiveTokens, applyCssVariables } from './tokenService';
 import { activeFileName, loadedConfigs, configsLoadedFromFile } from './editorConfigStore';
+import { migrateTokenFileFonts } from './fontMigration';
+import { applyFontSources, applyFontStacks } from './fontLoader';
+import { fontSources as fontSourcesStore, fontStacks as fontStacksStore } from './fontStore';
 
 /**
  * Fetch the active token file from the server and apply its CSS variables
@@ -10,8 +13,17 @@ export async function initializeTokens(): Promise<void> {
   try {
     const tokens = await getActiveTokens();
     if (tokens) {
+      migrateTokenFileFonts(tokens);
       if (tokens.cssVariables && Object.keys(tokens.cssVariables).length > 0) {
         applyCssVariables(tokens.cssVariables);
+      }
+      if (tokens.fontSources && tokens.fontSources.length > 0) {
+        applyFontSources(tokens.fontSources);
+        fontSourcesStore.set(tokens.fontSources);
+      }
+      if (tokens.fontStacks && tokens.fontStacks.length > 0) {
+        applyFontStacks(tokens.fontStacks, tokens.fontSources ?? []);
+        fontStacksStore.set(tokens.fontStacks);
       }
       const fileName = (tokens as any)._fileName || 'default';
       activeFileName.set(fileName);

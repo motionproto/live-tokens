@@ -25,6 +25,19 @@ function resolveParentRoot(): HTMLElement | null {
 const selfRoot: HTMLElement = document.documentElement;
 const parentRoot: HTMLElement | null = resolveParentRoot();
 
+/**
+ * Return the self and parent document heads as a tuple, with parent omitted
+ * when not in an iframe. Consumers that need to mirror node injection (not
+ * just style properties) can iterate this list.
+ */
+export function getSyncedDocuments(): Document[] {
+  const docs: Document[] = [document];
+  if (parentRoot && parentRoot.ownerDocument && parentRoot.ownerDocument !== document) {
+    docs.push(parentRoot.ownerDocument);
+  }
+  return docs;
+}
+
 export function setCssVar(name: string, value: string): void {
   selfRoot.style.setProperty(name, value);
   parentRoot?.style.setProperty(name, value);

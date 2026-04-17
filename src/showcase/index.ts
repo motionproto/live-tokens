@@ -15,3 +15,6 @@ export { default as TokenMap } from './TokenMap.svelte';
 
 export { default as TextTab } from './TextTab.svelte';
 export { default as SurfacesTab } from './SurfacesTab.svelte';
+
+export { default as FontStackEditor } from './FontStackEditor.svelte';
+export { default as ProjectFontsSection } from './ProjectFontsSection.svelte';

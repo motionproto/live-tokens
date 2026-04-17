@@ -259,8 +259,6 @@
 </div>
 
 <style>
-  @import '../styles/variables.css';
-
   .surfaces-container {
     display: flex;
     flex-direction: column;

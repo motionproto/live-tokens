@@ -339,8 +339,6 @@
 </div>
 
 <style>
-  @import '../../styles/variables.css';
-
   .variant-group {
     padding: var(--space-16);
     background: var(--ui-surface-low);

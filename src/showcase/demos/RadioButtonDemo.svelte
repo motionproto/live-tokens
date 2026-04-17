@@ -48,8 +48,6 @@
 </div>
 
 <style>
-  @import '../../styles/variables.css';
-
   .radio-demo-row {
     display: flex;
     gap: var(--space-16);

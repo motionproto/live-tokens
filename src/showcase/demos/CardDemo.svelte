@@ -42,8 +42,6 @@
 </div>
 
 <style>
-  @import '../../styles/variables.css';
-
   .card-demo-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
