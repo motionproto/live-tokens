@@ -1,8 +1,42 @@
 <script lang="ts">
+  import VariantGroup from '../VariantGroup.svelte';
+
+  const targetFile = 'src/showcase/demos/ChoiceButtonsDemo.svelte';
+
   let selectedChoice = 'option-2';
-  function handleChoiceClick(choice: string) {
-    selectedChoice = choice;
-  }
+
+  type Token = { label: string; variable: string };
+
+  const choiceStates: Record<string, Token[]> = {
+    default: [
+      { label: 'BG', variable: '--choice-default-bg' },
+      { label: 'Text', variable: '--choice-default-text' },
+      { label: 'Icon', variable: '--choice-default-icon' },
+      { label: 'Border', variable: '--choice-default-border' },
+      { label: 'Radius', variable: '--choice-default-radius' },
+    ],
+    hover: [
+      { label: 'BG', variable: '--choice-hover-bg' },
+      { label: 'Text', variable: '--choice-hover-text' },
+      { label: 'Icon', variable: '--choice-hover-icon' },
+      { label: 'Border', variable: '--choice-hover-border' },
+      { label: 'Radius', variable: '--choice-hover-radius' },
+    ],
+    selected: [
+      { label: 'BG', variable: '--choice-selected-bg' },
+      { label: 'Text', variable: '--choice-selected-text' },
+      { label: 'Icon', variable: '--choice-selected-icon' },
+      { label: 'Border', variable: '--choice-selected-border' },
+      { label: 'Radius', variable: '--choice-selected-radius' },
+    ],
+    disabled: [
+      { label: 'BG', variable: '--choice-disabled-bg' },
+      { label: 'Text', variable: '--choice-disabled-text' },
+      { label: 'Icon', variable: '--choice-disabled-icon' },
+      { label: 'Border', variable: '--choice-disabled-border' },
+      { label: 'Radius', variable: '--choice-disabled-radius' },
+    ],
+  };
 </script>
 
 <div class="demo-block">
@@ -11,82 +45,42 @@
     Interactive example showing all 4 visual states. Click buttons to see selection state.
   </p>
 
-  <div class="demo-section">
-    <h3 class="demo-subtitle">Interactive Example</h3>
+  <VariantGroup name="choice" title="Choice Button" states={choiceStates} {targetFile} let:activeState>
+    {@const forceClass = activeState}
     <div class="choice-buttons-container">
       <button
-        class="choice-button"
+        class="choice-button {forceClass === 'hover' ? 'force-hover' : ''}"
         class:selected={selectedChoice === 'option-1'}
-        on:click={() => handleChoiceClick('option-1')}
+        on:click={() => (selectedChoice = 'option-1')}
       >
         <i class="fas fa-star"></i>
-        <span>Default/Hover</span>
+        <span>Option 1</span>
       </button>
 
       <button
-        class="choice-button"
-        class:selected={selectedChoice === 'option-2'}
-        on:click={() => handleChoiceClick('option-2')}
+        class="choice-button {forceClass === 'hover' ? 'force-hover' : ''}"
+        class:selected={selectedChoice === 'option-2' || forceClass === 'selected'}
+        on:click={() => (selectedChoice = 'option-2')}
       >
         <i class="fas fa-check"></i>
-        <span>Selected</span>
+        <span>Option 2</span>
       </button>
 
       <button
-        class="choice-button"
+        class="choice-button {forceClass === 'hover' ? 'force-hover' : ''}"
         class:selected={selectedChoice === 'option-3'}
-        on:click={() => handleChoiceClick('option-3')}
+        on:click={() => (selectedChoice = 'option-3')}
       >
         <i class="fas fa-heart"></i>
-        <span>Clickable</span>
+        <span>Option 3</span>
       </button>
 
-      <button
-        class="choice-button"
-        disabled
-      >
+      <button class="choice-button" disabled={forceClass === 'disabled' || true}>
         <i class="fas fa-ban"></i>
         <span>Disabled</span>
       </button>
     </div>
-  </div>
-
-  <div class="demo-section">
-    <h3 class="demo-subtitle">State Reference</h3>
-    <div class="state-reference">
-      <div class="state-item">
-        <div class="state-label">Default</div>
-        <div class="state-details">
-          <code>background: --surface-neutral-high</code>
-          <code>border: 1px --border-neutral-default</code>
-        </div>
-      </div>
-
-      <div class="state-item">
-        <div class="state-label">Hover</div>
-        <div class="state-details">
-          <code>background: --surface-neutral-higher</code>
-          <code>border-color: --border-neutral-strong</code>
-        </div>
-      </div>
-
-      <div class="state-item">
-        <div class="state-label">Selected</div>
-        <div class="state-details">
-          <code>background: --surface-success-high</code>
-          <code>outline: 2px --border-success</code>
-        </div>
-      </div>
-
-      <div class="state-item">
-        <div class="state-label">Disabled</div>
-        <div class="state-details">
-          <code>opacity: 0.4</code>
-          <code>cursor: not-allowed</code>
-        </div>
-      </div>
-    </div>
-  </div>
+  </VariantGroup>
 </div>
 
 <style>
@@ -101,92 +95,63 @@
     align-items: center;
     gap: var(--space-8);
     padding: var(--space-10) var(--space-16);
-    background: var(--ui-surface-high);
-    border: 1px solid var(--ui-border-default);
-    border-radius: var(--radius-lg);
+    background: var(--choice-default-bg);
+    border: 1px solid var(--choice-default-border);
+    border-radius: var(--choice-default-radius);
     outline: 2px solid transparent;
     outline-offset: -1px;
     font-size: var(--font-md);
     font-weight: 500;
-    color: var(--ui-text-primary);
+    color: var(--choice-default-text);
     cursor: pointer;
     transition: all 0.2s;
     position: relative;
     overflow: hidden;
   }
 
-  .choice-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, var(--ui-hover), transparent);
-    transition: left 0.5s ease;
-  }
-
-  .choice-button:hover::before {
-    left: 100%;
-  }
-
   .choice-button i {
     font-size: var(--font-lg);
-    color: var(--ui-text-secondary);
+    color: var(--choice-default-icon);
     transition: color 0.2s;
   }
 
-  .choice-button:hover:not(:disabled):not(.selected) {
-    background: var(--ui-surface-higher);
-    border-color: var(--ui-border-strong);
+  .choice-button:hover:not(:disabled):not(.selected),
+  .choice-button.force-hover:not(:disabled):not(.selected) {
+    background: var(--choice-hover-bg);
+    border-color: var(--choice-hover-border);
+    border-radius: var(--choice-hover-radius);
+    color: var(--choice-hover-text);
     transform: translateY(-0.0625rem);
     box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.3);
   }
 
+  .choice-button:hover:not(:disabled):not(.selected) i,
+  .choice-button.force-hover:not(:disabled):not(.selected) i {
+    color: var(--choice-hover-icon);
+  }
+
   .choice-button.selected {
-    background: var(--ui-surface-highest);
-    outline-color: var(--ui-border-strong);
+    background: var(--choice-selected-bg);
+    border-color: var(--choice-selected-border);
+    border-radius: var(--choice-selected-radius);
+    outline-color: var(--choice-selected-border);
+    color: var(--choice-selected-text);
+  }
+
+  .choice-button.selected i {
+    color: var(--choice-selected-icon);
   }
 
   .choice-button:disabled {
+    background: var(--choice-disabled-bg);
+    border-color: var(--choice-disabled-border);
+    border-radius: var(--choice-disabled-radius);
+    color: var(--choice-disabled-text);
     opacity: 0.4;
     cursor: not-allowed;
   }
 
-  .state-reference {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--space-12);
-  }
-
-  .state-item {
-    background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--radius-md);
-    padding: var(--space-12);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
-  }
-
-  .state-label {
-    font-size: var(--font-sm);
-    font-weight: var(--font-weight-semibold);
-    color: var(--ui-text-primary);
-  }
-
-  .state-details {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .state-details code {
-    font-size: var(--font-xs);
-    color: var(--ui-text-tertiary);
-    background: var(--ui-surface-lowest);
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-sm);
-    font-family: var(--ui-font-mono);
+  .choice-button:disabled i {
+    color: var(--choice-disabled-icon);
   }
 </style>

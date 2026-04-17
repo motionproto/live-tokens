@@ -67,7 +67,12 @@ describe('design-token architecture', () => {
   // alias (not a literal, not a primitive). Grows as components are migrated;
   // when every demo is listed, delete the allowlist and make the check
   // unconditional.
-  const MIGRATED_DEMOS: string[] = ['NotificationDemo.svelte', 'BadgeDemo.svelte', 'CardDemo.svelte'];
+  const MIGRATED_DEMOS: string[] = [
+    'NotificationDemo.svelte',
+    'BadgeDemo.svelte',
+    'CardDemo.svelte',
+    'ChoiceButtonsDemo.svelte',
+  ];
 
   describe('migrated demos follow the component-token pattern', () => {
     for (const file of demoFiles) {
