@@ -6,20 +6,47 @@
 
   type Token = { label: string; variable: string };
 
-  const trackTokensFor = (variant: string): Token[] => [
-    { label: 'track surface color', variable: `--progress-${variant}-track-bg` },
-    { label: 'track border color', variable: `--progress-${variant}-track-border` },
-    { label: 'label color', variable: `--progress-${variant}-label` },
-    { label: 'value color', variable: `--progress-${variant}-value` },
-    { label: 'radius', variable: `--progress-${variant}-radius` },
-  ];
-
   const variantTokens: Record<string, Token[]> = {
-    primary: [{ label: 'fill color', variable: '--progress-primary-fill' }, ...trackTokensFor('primary')],
-    success: [{ label: 'fill color', variable: '--progress-success-fill' }, ...trackTokensFor('success')],
-    warning: [{ label: 'fill color', variable: '--progress-warning-fill' }, ...trackTokensFor('warning')],
-    danger: [{ label: 'fill color', variable: '--progress-danger-fill' }, ...trackTokensFor('danger')],
-    info: [{ label: 'fill color', variable: '--progress-info-fill' }, ...trackTokensFor('info')],
+    primary: [
+      { label: 'fill color', variable: '--progress-primary-fill' },
+      { label: 'track surface color', variable: '--progress-primary-track-bg' },
+      { label: 'track border color', variable: '--progress-primary-track-border' },
+      { label: 'label color', variable: '--progress-primary-label' },
+      { label: 'value color', variable: '--progress-primary-value' },
+      { label: 'radius', variable: '--progress-primary-radius' },
+    ],
+    success: [
+      { label: 'fill color', variable: '--progress-success-fill' },
+      { label: 'track surface color', variable: '--progress-success-track-bg' },
+      { label: 'track border color', variable: '--progress-success-track-border' },
+      { label: 'label color', variable: '--progress-success-label' },
+      { label: 'value color', variable: '--progress-success-value' },
+      { label: 'radius', variable: '--progress-success-radius' },
+    ],
+    warning: [
+      { label: 'fill color', variable: '--progress-warning-fill' },
+      { label: 'track surface color', variable: '--progress-warning-track-bg' },
+      { label: 'track border color', variable: '--progress-warning-track-border' },
+      { label: 'label color', variable: '--progress-warning-label' },
+      { label: 'value color', variable: '--progress-warning-value' },
+      { label: 'radius', variable: '--progress-warning-radius' },
+    ],
+    danger: [
+      { label: 'fill color', variable: '--progress-danger-fill' },
+      { label: 'track surface color', variable: '--progress-danger-track-bg' },
+      { label: 'track border color', variable: '--progress-danger-track-border' },
+      { label: 'label color', variable: '--progress-danger-label' },
+      { label: 'value color', variable: '--progress-danger-value' },
+      { label: 'radius', variable: '--progress-danger-radius' },
+    ],
+    info: [
+      { label: 'fill color', variable: '--progress-info-fill' },
+      { label: 'track surface color', variable: '--progress-info-track-bg' },
+      { label: 'track border color', variable: '--progress-info-track-border' },
+      { label: 'label color', variable: '--progress-info-label' },
+      { label: 'value color', variable: '--progress-info-value' },
+      { label: 'radius', variable: '--progress-info-radius' },
+    ],
   };
 </script>
 
