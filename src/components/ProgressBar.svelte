@@ -9,7 +9,7 @@
   $: isComplete = clampedValue >= 100;
 </script>
 
-<div class="progress" class:compact={size === 'compact'}>
+<div class="progress {variant}" class:compact={size === 'compact'}>
   {#if label}
     <div class="progress-label">
       <span>{label}</span>
@@ -42,23 +42,20 @@
     justify-content: space-between;
     align-items: center;
     font-size: var(--font-sm);
-    color: var(--text-secondary);
     font-weight: var(--font-weight-medium);
   }
 
   .progress-value {
     font-size: var(--font-xs);
-    color: var(--text-tertiary);
     font-family: 'Courier New', monospace;
   }
 
   .progress-track {
     width: 100%;
     height: 8px;
-    background: var(--surface-neutral-low);
-    border-radius: var(--radius-full);
     overflow: hidden;
-    border: 1px solid var(--border-neutral-faint);
+    border-style: solid;
+    border-width: 1px;
   }
 
   .compact .progress-track {
@@ -67,28 +64,72 @@
 
   .progress-fill {
     height: 100%;
-    border-radius: var(--radius-full);
     transition: width 0.4s ease;
   }
 
+  /* Primary */
+  .progress.primary .progress-label { color: var(--progress-primary-label); }
+  .progress.primary .progress-value { color: var(--progress-primary-value); }
+  .progress.primary .progress-track {
+    background: var(--progress-primary-track-bg);
+    border-color: var(--progress-primary-track-border);
+    border-radius: var(--progress-primary-radius);
+  }
   .progress-fill.primary {
-    background: var(--gradient-progress);
+    background: var(--progress-primary-fill);
+    border-radius: var(--progress-primary-radius);
   }
 
+  /* Success */
+  .progress.success .progress-label { color: var(--progress-success-label); }
+  .progress.success .progress-value { color: var(--progress-success-value); }
+  .progress.success .progress-track {
+    background: var(--progress-success-track-bg);
+    border-color: var(--progress-success-track-border);
+    border-radius: var(--progress-success-radius);
+  }
   .progress-fill.success {
-    background: var(--border-success);
+    background: var(--progress-success-fill);
+    border-radius: var(--progress-success-radius);
   }
 
+  /* Warning */
+  .progress.warning .progress-label { color: var(--progress-warning-label); }
+  .progress.warning .progress-value { color: var(--progress-warning-value); }
+  .progress.warning .progress-track {
+    background: var(--progress-warning-track-bg);
+    border-color: var(--progress-warning-track-border);
+    border-radius: var(--progress-warning-radius);
+  }
   .progress-fill.warning {
-    background: var(--border-warning);
+    background: var(--progress-warning-fill);
+    border-radius: var(--progress-warning-radius);
   }
 
+  /* Danger */
+  .progress.danger .progress-label { color: var(--progress-danger-label); }
+  .progress.danger .progress-value { color: var(--progress-danger-value); }
+  .progress.danger .progress-track {
+    background: var(--progress-danger-track-bg);
+    border-color: var(--progress-danger-track-border);
+    border-radius: var(--progress-danger-radius);
+  }
   .progress-fill.danger {
-    background: var(--border-danger);
+    background: var(--progress-danger-fill);
+    border-radius: var(--progress-danger-radius);
   }
 
+  /* Info */
+  .progress.info .progress-label { color: var(--progress-info-label); }
+  .progress.info .progress-value { color: var(--progress-info-value); }
+  .progress.info .progress-track {
+    background: var(--progress-info-track-bg);
+    border-color: var(--progress-info-track-border);
+    border-radius: var(--progress-info-radius);
+  }
   .progress-fill.info {
-    background: var(--border-info);
+    background: var(--progress-info-fill);
+    border-radius: var(--progress-info-radius);
   }
 
   .progress-icon {

@@ -75,6 +75,7 @@ describe('design-token architecture', () => {
     'CollapsibleSectionDemo.svelte',
     'DialogDemo.svelte',
     'InlineEditActionsDemo.svelte',
+    'ProgressBarDemo.svelte',
   ];
 
   describe('migrated demos follow the component-token pattern', () => {

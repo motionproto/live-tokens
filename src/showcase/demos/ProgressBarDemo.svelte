@@ -1,6 +1,26 @@
 <script lang="ts">
   import ProgressBar from '../../components/ProgressBar.svelte';
-  import TokenMap from '../TokenMap.svelte';
+  import VariantGroup from '../VariantGroup.svelte';
+
+  const targetFile = 'src/components/ProgressBar.svelte';
+
+  type Token = { label: string; variable: string };
+
+  const trackTokensFor = (variant: string): Token[] => [
+    { label: 'Track BG', variable: `--progress-${variant}-track-bg` },
+    { label: 'Track Border', variable: `--progress-${variant}-track-border` },
+    { label: 'Label', variable: `--progress-${variant}-label` },
+    { label: 'Value', variable: `--progress-${variant}-value` },
+    { label: 'Radius', variable: `--progress-${variant}-radius` },
+  ];
+
+  const variantTokens: Record<string, Token[]> = {
+    primary: [...trackTokensFor('primary')],
+    success: [{ label: 'Fill', variable: '--progress-success-fill' }, ...trackTokensFor('success')],
+    warning: [{ label: 'Fill', variable: '--progress-warning-fill' }, ...trackTokensFor('warning')],
+    danger: [{ label: 'Fill', variable: '--progress-danger-fill' }, ...trackTokensFor('danger')],
+    info: [{ label: 'Fill', variable: '--progress-info-fill' }, ...trackTokensFor('info')],
+  };
 </script>
 
 <div class="demo-block">
@@ -9,33 +29,36 @@
     Animated progress bar with variants. Import from <code>components/ProgressBar.svelte</code>
   </p>
 
-  <div class="demo-section">
+  <VariantGroup name="primary" title="Primary" tokens={variantTokens.primary} {targetFile}>
     <div class="progress-demo-stack">
       <ProgressBar value={25} label="Getting Started" variant="primary" />
-      <ProgressBar value={50} label="Halfway There" variant="info" />
-      <ProgressBar value={75} label="Almost Done" variant="warning" />
-      <ProgressBar value={100} label="Complete" variant="success" />
-      <ProgressBar value={33} label="Danger Zone" variant="danger" />
       <ProgressBar value={60} variant="primary" size="compact" />
     </div>
-  </div>
+  </VariantGroup>
 
-  <div class="demo-section">
-    <h3 class="demo-subtitle">Tokens</h3>
-    <div class="token-sections">
-      <TokenMap title="track" tokens={[
-        { label: 'Background', variable: '--surface-neutral-low' },
-        { label: 'Border', variable: '--border-neutral-faint' },
-        { label: 'Label', variable: '--text-secondary' },
-      ]} />
-      <TokenMap title="fill colors" tokens={[
-        { label: 'Success', variable: '--border-success' },
-        { label: 'Warning', variable: '--border-warning' },
-        { label: 'Danger', variable: '--border-danger' },
-        { label: 'Info', variable: '--border-info' },
-      ]} />
+  <VariantGroup name="success" title="Success" tokens={variantTokens.success} {targetFile}>
+    <div class="progress-demo-stack">
+      <ProgressBar value={100} label="Complete" variant="success" />
     </div>
-  </div>
+  </VariantGroup>
+
+  <VariantGroup name="warning" title="Warning" tokens={variantTokens.warning} {targetFile}>
+    <div class="progress-demo-stack">
+      <ProgressBar value={75} label="Almost Done" variant="warning" />
+    </div>
+  </VariantGroup>
+
+  <VariantGroup name="danger" title="Danger" tokens={variantTokens.danger} {targetFile}>
+    <div class="progress-demo-stack">
+      <ProgressBar value={33} label="Danger Zone" variant="danger" />
+    </div>
+  </VariantGroup>
+
+  <VariantGroup name="info" title="Info" tokens={variantTokens.info} {targetFile}>
+    <div class="progress-demo-stack">
+      <ProgressBar value={50} label="Halfway There" variant="info" />
+    </div>
+  </VariantGroup>
 </div>
 
 <style>
@@ -44,11 +67,5 @@
     flex-direction: column;
     gap: var(--space-16);
     max-width: 400px;
-  }
-
-  .token-sections {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-16);
   }
 </style>
