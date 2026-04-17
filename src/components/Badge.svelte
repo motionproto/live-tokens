@@ -45,18 +45,20 @@
 
   /* Info (default) */
   .badge-info {
-    color: var(--text-primary);
-    background: var(--surface-neutral-higher);
-    border: 1px solid var(--border-neutral-default);
+    color: var(--badge-info-text);
+    background: var(--badge-info-surface);
+    border: 1px solid var(--badge-info-border);
+    border-radius: var(--badge-info-radius);
     box-shadow: var(--shadow-sm);
   }
 
 
   /* Accent */
   .badge-accent {
-    color: var(--color-accent-300);
-    background: var(--surface-neutral-higher);
-    border: 1px solid var(--border-accent);
+    color: var(--badge-accent-text);
+    background: var(--badge-accent-surface);
+    border: 1px solid var(--badge-accent-border);
+    border-radius: var(--badge-accent-radius);
     box-shadow: var(--shadow-sm);
     text-transform: capitalize;
   }
@@ -74,9 +76,10 @@
 
   /* Trait */
   .badge-trait {
-    color: var(--text-primary);
-    background: var(--surface-primary-high);
-    border: 1px solid var(--border-primary-strong);
+    color: var(--badge-trait-text);
+    background: var(--badge-trait-surface);
+    border: 1px solid var(--badge-trait-border);
+    border-radius: var(--badge-trait-radius);
     text-transform: capitalize;
   }
 </style>

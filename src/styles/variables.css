@@ -404,6 +404,439 @@
   --text-danger-disabled: #463030;
 
   /* ═══════════════════════════════════════════════════════
+     COMPONENT TOKENS — Notification
+     Component-scoped aliases. Each notification property is its
+     own variable pointing at a design token; editing a property
+     reassigns which token it references without affecting the
+     shared primitive or any other component.
+     ═══════════════════════════════════════════════════════ */
+
+  /* Info */
+  --notification-info-surface: var(--surface-info-low);
+  --notification-info-border: var(--border-info);
+  --notification-info-icon: var(--text-info);
+  --notification-info-title: var(--text-info);
+  --notification-info-text: var(--text-primary);
+  --notification-info-radius: var(--radius-md);
+
+  /* Success */
+  --notification-success-surface: var(--surface-success);
+  --notification-success-border: var(--border-success);
+  --notification-success-icon: var(--text-success);
+  --notification-success-title: var(--text-success);
+  --notification-success-text: var(--text-primary);
+  --notification-success-radius: var(--radius-md);
+
+  /* Warning */
+  --notification-warning-surface: var(--surface-warning);
+  --notification-warning-border: var(--border-warning);
+  --notification-warning-icon: var(--text-warning);
+  --notification-warning-title: var(--text-warning);
+  --notification-warning-text: var(--text-primary);
+  --notification-warning-radius: var(--radius-md);
+
+  /* Danger */
+  --notification-danger-surface: var(--surface-primary);
+  --notification-danger-border: var(--border-danger);
+  --notification-danger-icon: var(--text-danger);
+  --notification-danger-title: var(--text-danger);
+  --notification-danger-text: var(--text-primary);
+  --notification-danger-radius: var(--radius-md);
+
+  /* ═══════════════════════════════════════════════════════
+     COMPONENT TOKENS — Badge
+     Component-scoped aliases. Each badge property is its
+     own variable pointing at a design token; editing a property
+     reassigns which token it references without affecting the
+     shared primitive or any other component.
+     ═══════════════════════════════════════════════════════ */
+
+  /* Info */
+  --badge-info-surface: var(--surface-neutral-higher);
+  --badge-info-text: var(--text-primary);
+  --badge-info-border: var(--border-neutral-default);
+  --badge-info-radius: var(--radius-full);
+
+  /* Accent */
+  --badge-accent-surface: var(--surface-neutral-higher);
+  --badge-accent-text: var(--color-accent-300);
+  --badge-accent-border: var(--border-accent);
+  --badge-accent-radius: var(--radius-full);
+
+  /* Trait */
+  --badge-trait-surface: var(--surface-primary-high);
+  --badge-trait-text: var(--text-primary);
+  --badge-trait-border: var(--border-primary-strong);
+  --badge-trait-radius: var(--radius-full);
+
+  /* ═══════════════════════════════════════════════════════
+     COMPONENT TOKENS — Card
+     Component-scoped aliases. Each card property is its
+     own variable pointing at a design token; editing a property
+     reassigns which token it references without affecting the
+     shared primitive or any other component.
+     ═══════════════════════════════════════════════════════ */
+
+  /* Default */
+  --card-default-surface: var(--surface-neutral-high);
+  --card-default-border: var(--border-neutral-default);
+  --card-default-title: var(--text-primary);
+  --card-default-body: var(--text-secondary);
+  --card-default-radius: var(--radius-lg);
+
+  /* Hover */
+  --card-hover-surface: var(--surface-neutral-high);
+  --card-hover-border: var(--border-neutral-strong);
+  --card-hover-title: var(--text-primary);
+  --card-hover-body: var(--text-secondary);
+  --card-hover-radius: var(--radius-lg);
+
+  /* ═══════════════════════════════════════════════════════
+     COMPONENT TOKENS — Dialog
+     Component-scoped aliases. Each dialog property is its
+     own variable pointing at a design token; editing a property
+     reassigns which token it references without affecting the
+     shared primitive or any other component.
+     ═══════════════════════════════════════════════════════ */
+
+  --dialog-surface: var(--surface-neutral-lowest);
+  --dialog-border: var(--border-neutral-strong);
+  --dialog-header-border: var(--border-neutral-subtle);
+  --dialog-title: var(--text-primary);
+  --dialog-close-icon: var(--text-secondary);
+  --dialog-radius: var(--radius-lg);
+
+  /* ═══════════════════════════════════════════════════════
+     COMPONENT TOKENS — ChoiceButtons
+     Component-scoped aliases for the ChoiceButtons demo. Each
+     state/property is its own variable pointing at a design
+     token; editing a property reassigns which token it
+     references without affecting the shared primitive or any
+     other component.
+     ═══════════════════════════════════════════════════════ */
+
+  /* Default */
+  --choice-default-bg: var(--surface-neutral-high);
+  --choice-default-text: var(--text-primary);
+  --choice-default-icon: var(--text-secondary);
+  --choice-default-border: var(--border-neutral-default);
+  --choice-default-radius: var(--radius-lg);
+
+  /* Hover */
+  --choice-hover-bg: var(--surface-neutral-higher);
+  --choice-hover-text: var(--text-primary);
+  --choice-hover-icon: var(--text-secondary);
+  --choice-hover-border: var(--border-neutral-strong);
+  --choice-hover-radius: var(--radius-lg);
+
+  /* Selected */
+  --choice-selected-bg: var(--surface-success-high);
+  --choice-selected-text: var(--text-primary);
+  --choice-selected-icon: var(--text-secondary);
+  --choice-selected-border: var(--border-success);
+  --choice-selected-radius: var(--radius-lg);
+
+  /* Disabled */
+  --choice-disabled-bg: var(--surface-neutral-high);
+  --choice-disabled-text: var(--text-tertiary);
+  --choice-disabled-icon: var(--text-tertiary);
+  --choice-disabled-border: var(--border-neutral-faint);
+  --choice-disabled-radius: var(--radius-lg);
+
+  /* ═══════════════════════════════════════════════════════
+     COMPONENT TOKENS — RadioButton
+     Component-scoped aliases. Each radio button property is its
+     own variable pointing at a design token; editing a property
+     reassigns which token it references without affecting the
+     shared primitive or any other component.
+     ═══════════════════════════════════════════════════════ */
+
+  --radio-dot-border: var(--border-neutral-default);
+  --radio-label: var(--text-primary);
+  --radio-surface: var(--surface-neutral-lowest);
+  --radio-radius: var(--radius-lg);
+
+  /* ═══════════════════════════════════════════════════════
+     COMPONENT TOKENS — ProgressBar
+     Component-scoped aliases. Each progress bar property is its
+     own variable pointing at a design token; editing a property
+     reassigns which token it references without affecting the
+     shared primitive or any other component.
+     ═══════════════════════════════════════════════════════ */
+
+  /* Primary */
+  --progress-primary-track-bg: var(--surface-neutral-low);
+  --progress-primary-track-border: var(--border-neutral-faint);
+  --progress-primary-label: var(--text-secondary);
+  --progress-primary-value: var(--text-tertiary);
+  --progress-primary-radius: var(--radius-full);
+  --progress-primary-fill: var(--gradient-progress);
+
+  /* Success */
+  --progress-success-track-bg: var(--surface-neutral-low);
+  --progress-success-track-border: var(--border-neutral-faint);
+  --progress-success-label: var(--text-secondary);
+  --progress-success-value: var(--text-tertiary);
+  --progress-success-radius: var(--radius-full);
+  --progress-success-fill: var(--border-success);
+
+  /* Warning */
+  --progress-warning-track-bg: var(--surface-neutral-low);
+  --progress-warning-track-border: var(--border-neutral-faint);
+  --progress-warning-label: var(--text-secondary);
+  --progress-warning-value: var(--text-tertiary);
+  --progress-warning-radius: var(--radius-full);
+  --progress-warning-fill: var(--border-warning);
+
+  /* Danger */
+  --progress-danger-track-bg: var(--surface-neutral-low);
+  --progress-danger-track-border: var(--border-neutral-faint);
+  --progress-danger-label: var(--text-secondary);
+  --progress-danger-value: var(--text-tertiary);
+  --progress-danger-radius: var(--radius-full);
+  --progress-danger-fill: var(--border-danger);
+
+  /* Info */
+  --progress-info-track-bg: var(--surface-neutral-low);
+  --progress-info-track-border: var(--border-neutral-faint);
+  --progress-info-label: var(--text-secondary);
+  --progress-info-value: var(--text-tertiary);
+  --progress-info-radius: var(--radius-full);
+  --progress-info-fill: var(--border-info);
+
+  /* ═══════════════════════════════════════════════════════
+     COMPONENT TOKENS — Tooltip
+     Component-scoped aliases. Each tooltip property is its
+     own variable pointing at a design token; editing a property
+     reassigns which token it references without affecting the
+     shared primitive or any other component.
+     ═══════════════════════════════════════════════════════ */
+
+  --tooltip-surface: var(--surface-neutral-highest);
+  --tooltip-text: var(--text-primary);
+  --tooltip-radius: var(--radius-md);
+
+  /* ═══════════════════════════════════════════════════════
+     COMPONENT TOKENS — InlineEditActions
+     Component-scoped aliases. Each inline-edit property is its
+     own variable pointing at a design token; editing a property
+     reassigns which token it references without affecting the
+     shared primitive or any other component.
+     ═══════════════════════════════════════════════════════ */
+
+  /* Save (confirm) */
+  --inline-edit-save-bg: var(--surface-success-low);
+  --inline-edit-save-bg-hover: var(--surface-success-high);
+  --inline-edit-save-text: var(--text-success);
+
+  /* Cancel */
+  --inline-edit-cancel-bg: var(--surface-danger-low);
+  --inline-edit-cancel-bg-hover: var(--surface-danger-high);
+  --inline-edit-cancel-text: var(--text-danger);
+
+  /* Shared */
+  --inline-edit-radius: var(--radius-md);
+
+  /* ═══════════════════════════════════════════════════════
+     COMPONENT TOKENS — SectionDivider
+     Component-scoped aliases. Each section-divider property is its
+     own variable pointing at a design token; editing a property
+     reassigns which token it references without affecting the
+     shared primitive or any other component.
+     ═══════════════════════════════════════════════════════ */
+
+  /* Background */
+  --section-divider-bg-gradient-high: var(--surface-bg-highest);
+  --section-divider-bg-gradient-mid: var(--surface-bg-higher);
+  --section-divider-bg-gradient-low: var(--surface-bg-high);
+  --section-divider-bg-gradient-base: var(--surface-bg);
+  --section-divider-bg-text-stroke: var(--surface-bg-lowest);
+  --section-divider-bg-radius: var(--radius-lg);
+
+  /* Neutral */
+  --section-divider-neutral-gradient-high: var(--surface-neutral-highest);
+  --section-divider-neutral-gradient-mid: var(--surface-neutral-higher);
+  --section-divider-neutral-gradient-low: var(--surface-neutral-high);
+  --section-divider-neutral-gradient-base: var(--surface-neutral);
+  --section-divider-neutral-text-stroke: var(--surface-neutral-lowest);
+  --section-divider-neutral-radius: var(--radius-lg);
+
+  /* Alternate */
+  --section-divider-alternate-gradient-high: var(--surface-alternate-highest);
+  --section-divider-alternate-gradient-mid: var(--surface-alternate-higher);
+  --section-divider-alternate-gradient-low: var(--surface-alternate-high);
+  --section-divider-alternate-gradient-base: var(--surface-alternate);
+  --section-divider-alternate-text-stroke: var(--surface-alternate-lowest);
+  --section-divider-alternate-radius: var(--radius-lg);
+
+  /* Primary */
+  --section-divider-primary-gradient-high: var(--surface-primary-highest);
+  --section-divider-primary-gradient-mid: var(--surface-primary-higher);
+  --section-divider-primary-gradient-low: var(--surface-primary-high);
+  --section-divider-primary-gradient-base: var(--surface-primary);
+  --section-divider-primary-text-stroke: var(--surface-primary-lowest);
+  --section-divider-primary-radius: var(--radius-lg);
+
+  /* Accent */
+  --section-divider-accent-gradient-high: var(--surface-accent-highest);
+  --section-divider-accent-gradient-mid: var(--surface-accent-higher);
+  --section-divider-accent-gradient-low: var(--surface-accent-high);
+  --section-divider-accent-gradient-base: var(--surface-accent);
+  --section-divider-accent-text-stroke: var(--surface-accent-lowest);
+  --section-divider-accent-radius: var(--radius-lg);
+
+  /* Special */
+  --section-divider-special-gradient-high: var(--surface-special-highest);
+  --section-divider-special-gradient-mid: var(--surface-special-higher);
+  --section-divider-special-gradient-low: var(--surface-special-high);
+  --section-divider-special-gradient-base: var(--surface-special);
+  --section-divider-special-text-stroke: var(--surface-special-lowest);
+  --section-divider-special-radius: var(--radius-lg);
+
+  /* ═══════════════════════════════════════════════════════
+     COMPONENT TOKENS — CollapsibleSection
+     Component-scoped aliases. Each collapsible section property
+     is its own variable pointing at a design token; editing a
+     property reassigns which token it references without
+     affecting the shared primitive or any other component.
+     ═══════════════════════════════════════════════════════ */
+
+  /* Default */
+  --collapsible-default-surface: var(--surface-bg);
+  --collapsible-default-label: var(--text-primary);
+  --collapsible-default-icon: var(--text-muted);
+  --collapsible-default-border: var(--color-primary-400);
+  --collapsible-default-radius: var(--radius-md);
+
+  /* Hover */
+  --collapsible-hover-surface: var(--surface-bg);
+  --collapsible-hover-label: var(--text-primary);
+  --collapsible-hover-icon: var(--text-muted);
+  --collapsible-hover-border: var(--color-primary-400);
+  --collapsible-hover-radius: var(--radius-md);
+
+  /* Active */
+  --collapsible-active-surface: var(--surface-bg-low);
+  --collapsible-active-label: var(--text-primary);
+  --collapsible-active-icon: var(--text-muted);
+  --collapsible-active-border: var(--color-primary-400);
+  --collapsible-active-radius: var(--radius-md);
+
+  /* ═══════════════════════════════════════════════════════
+     COMPONENT TOKENS — TabBar
+     Component-scoped aliases. Each tab bar property is its
+     own variable pointing at a design token; editing a property
+     reassigns which token it references without affecting the
+     shared primitive or any other component.
+     ═══════════════════════════════════════════════════════ */
+
+  /* Shared */
+  --tabbar-divider: var(--border-neutral-subtle);
+  --tabbar-radius: var(--radius-md);
+
+  /* Default state */
+  --tabbar-default-text: var(--text-tertiary);
+
+  /* Hover state */
+  --tabbar-hover-text: var(--text-secondary);
+  --tabbar-hover-bg: var(--hover-low);
+
+  /* Active state */
+  --tabbar-active-text: var(--text-primary);
+  --tabbar-active-border: var(--color-primary-500);
+  --tabbar-active-bg-gradient: var(--overlay-lowest);
+
+  /* ═══════════════════════════════════════════════════════
+     COMPONENT TOKENS — StandardButtons
+     Component-scoped aliases for the StandardButtons demo. Each
+     state/property is its own variable pointing at a design
+     token; editing a property reassigns which token it
+     references without affecting the shared primitive or any
+     other component.
+     ═══════════════════════════════════════════════════════ */
+
+  /* Primary */
+  --button-primary-surface: var(--surface-primary-high);
+  --button-primary-text: var(--text-primary);
+  --button-primary-border: var(--border-primary);
+  --button-primary-radius: var(--radius-md);
+  --button-primary-hover-surface: var(--surface-primary-higher);
+  --button-primary-hover-text: var(--text-primary);
+  --button-primary-hover-border: var(--border-primary-strong);
+  --button-primary-disabled-surface: var(--color-neutral-700);
+  --button-primary-disabled-text: var(--text-tertiary);
+  --button-primary-disabled-border: var(--border-neutral-faint);
+
+  /* Secondary */
+  --button-secondary-surface: var(--surface-neutral-high);
+  --button-secondary-text: var(--text-primary);
+  --button-secondary-border: var(--border-neutral-default);
+  --button-secondary-radius: var(--radius-md);
+  --button-secondary-hover-surface: var(--surface-neutral-higher);
+  --button-secondary-hover-text: var(--text-primary);
+  --button-secondary-hover-border: var(--border-neutral-strong);
+  --button-secondary-disabled-surface: var(--color-neutral-700);
+  --button-secondary-disabled-text: var(--text-tertiary);
+  --button-secondary-disabled-border: var(--border-neutral-faint);
+
+  /* Outline */
+  --button-outline-text: var(--text-primary);
+  --button-outline-border: var(--border-neutral-default);
+  --button-outline-radius: var(--radius-md);
+  --button-outline-hover-surface: var(--hover-low);
+  --button-outline-hover-text: var(--text-primary);
+  --button-outline-hover-border: var(--border-neutral-strong);
+  --button-outline-disabled-text: var(--text-tertiary);
+  --button-outline-disabled-border: var(--border-neutral-faint);
+
+  /* Small Secondary */
+  --button-small_secondary-surface: var(--hover);
+  --button-small_secondary-text: var(--text-primary);
+  --button-small_secondary-border: var(--border-neutral-default);
+  --button-small_secondary-radius: var(--radius-md);
+  --button-small_secondary-hover-surface: var(--hover-high);
+  --button-small_secondary-hover-text: var(--text-primary);
+  --button-small_secondary-hover-border: var(--border-neutral-strong);
+  --button-small_secondary-disabled-text: var(--text-tertiary);
+  --button-small_secondary-disabled-border: var(--border-neutral-faint);
+
+  /* Success */
+  --button-success-surface: var(--surface-success-low);
+  --button-success-text: var(--text-success);
+  --button-success-border: var(--border-success);
+  --button-success-radius: var(--radius-md);
+  --button-success-hover-surface: var(--surface-success-higher);
+  --button-success-hover-text: var(--text-primary);
+  --button-success-hover-border: var(--border-success-strong);
+  --button-success-disabled-surface: var(--color-neutral-700);
+  --button-success-disabled-text: var(--text-tertiary);
+  --button-success-disabled-border: var(--border-neutral-faint);
+
+  /* Danger */
+  --button-danger-surface: var(--surface-danger-low);
+  --button-danger-text: var(--text-danger);
+  --button-danger-border: var(--border-danger);
+  --button-danger-radius: var(--radius-md);
+  --button-danger-hover-surface: var(--surface-danger-high);
+  --button-danger-hover-text: var(--text-primary);
+  --button-danger-hover-border: var(--border-danger-medium);
+  --button-danger-disabled-surface: var(--color-neutral-700);
+  --button-danger-disabled-text: var(--text-tertiary);
+  --button-danger-disabled-border: var(--border-neutral-faint);
+
+  /* Warning */
+  --button-warning-surface: var(--surface-warning-low);
+  --button-warning-text: var(--text-warning);
+  --button-warning-border: var(--border-warning);
+  --button-warning-radius: var(--radius-md);
+  --button-warning-hover-surface: var(--surface-warning-high);
+  --button-warning-hover-text: var(--text-primary);
+  --button-warning-hover-border: var(--border-warning-medium);
+  --button-warning-disabled-surface: var(--color-neutral-700);
+  --button-warning-disabled-text: var(--text-tertiary);
+  --button-warning-disabled-border: var(--border-neutral-faint);
+
+  /* ═══════════════════════════════════════════════════════
      BUTTONS
      ═══════════════════════════════════════════════════════ */
 
@@ -414,13 +847,15 @@
   --btn-secondary-hover: hsla(215, 14%, 34%, 1);
 
   /* Border Radius */
+  --radius-none: 0;
   --radius-sm: 0.125rem;    /* 2px */
   --radius-md: 0.25rem;     /* 4px */
   --radius-lg: 0.375rem;    /* 6px */
   --radius-xl: 0.5rem;      /* 8px */
   --radius-2xl: 0.625rem;   /* 10px */
   --radius-3xl: 0.75rem;    /* 12px */
-  --radius-full: 1.25rem;   /* 20px */
+  --radius-4xl: 1.25rem;    /* 20px */
+  --radius-full: 9999px;
 
   /* Spacing */
   --space-2: 0.125rem;    /* 2px */
