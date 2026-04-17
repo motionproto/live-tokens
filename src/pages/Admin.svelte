@@ -6,6 +6,20 @@
 
   const inOverlay = typeof window !== 'undefined' && window.parent !== window;
 
+  // Where "Back to site" sends the user. Prefer the previous non-admin entry
+  // from session history; fall back to /kit (the starter demo) and finally /.
+  const backHref = pickBackHref();
+
+  function pickBackHref(): string {
+    try {
+      const prev = sessionStorage.getItem('lt-prev-route');
+      if (prev && prev !== '/admin') return prev;
+    } catch {
+      // ignore
+    }
+    return '/kit';
+  }
+
   onMount(() => {
     initializeEditorStore();
     return installEditorKeybindings();
@@ -29,7 +43,7 @@
           <span>Close</span>
         </button>
       {:else}
-        <a href="/" class="back-link">
+        <a href={backHref} class="back-link">
           <i class="fas fa-arrow-left"></i>
           <span>Back to site</span>
         </a>
@@ -54,8 +68,8 @@
   .admin-bar {
     display: flex;
     align-items: center;
-    gap: var(--space-16);
-    padding: var(--space-10) var(--space-16);
+    gap: var(--ui-space-16);
+    padding: var(--ui-space-10) var(--ui-space-16);
     background: black;
     border-bottom: 1px solid var(--ui-border-faint);
     min-height: 52px;
@@ -64,7 +78,7 @@
   .bar-left {
     display: flex;
     align-items: center;
-    gap: var(--space-16);
+    gap: var(--ui-space-16);
     min-width: 0;
   }
 
@@ -75,11 +89,11 @@
   .back-link {
     display: flex;
     align-items: center;
-    gap: var(--space-6);
+    gap: var(--ui-space-6);
     color: var(--ui-text-tertiary);
     text-decoration: none;
-    font-size: var(--font-md);
-    transition: color var(--transition-fast);
+    font-size: var(--ui-font-md);
+    transition: color var(--ui-transition-fast);
   }
 
   .back-link:hover {
@@ -95,8 +109,8 @@
   }
 
   .admin-label {
-    font-size: var(--font-md);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--ui-font-md);
+    font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-secondary);
   }
 

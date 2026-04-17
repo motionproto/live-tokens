@@ -154,34 +154,34 @@
   }
 
   .sidebar-header {
-    padding: var(--space-16) var(--space-16) var(--space-12);
-    font-size: var(--font-lg);
-    font-weight: var(--font-weight-bold);
+    padding: var(--ui-space-16) var(--ui-space-16) var(--ui-space-12);
+    font-size: var(--ui-font-lg);
+    font-weight: var(--ui-font-weight-bold);
     color: var(--ui-text-primary);
   }
 
   .nav-items {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
-    padding: 0 var(--space-8);
+    gap: var(--ui-space-2);
+    padding: 0 var(--ui-space-8);
     flex-shrink: 0;
   }
 
   .nav-item {
     display: flex;
     align-items: center;
-    gap: var(--space-8);
+    gap: var(--ui-space-8);
     width: 100%;
-    padding: var(--space-6) var(--space-12) var(--space-6) var(--space-24);
+    padding: var(--ui-space-6) var(--ui-space-12) var(--ui-space-6) var(--ui-space-24);
     background: none;
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
     color: var(--ui-text-tertiary);
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     cursor: pointer;
     text-align: left;
-    transition: all var(--transition-fast);
+    transition: all var(--ui-transition-fast);
   }
 
   .nav-item:hover {
@@ -195,7 +195,7 @@
   }
 
   .content {
-    padding: var(--space-24) var(--space-32);
+    padding: var(--ui-space-24) var(--ui-space-32);
     overflow-y: auto;
     background: black;
     min-width: 0;
@@ -208,13 +208,13 @@
       grid-template-columns: 200px minmax(0, 1fr);
     }
     .content {
-      padding: var(--space-20) var(--space-20);
+      padding: var(--ui-space-20) var(--ui-space-20);
     }
     .nav-item {
-      padding: var(--space-6) var(--space-8) var(--space-6) var(--space-16);
+      padding: var(--ui-space-6) var(--ui-space-8) var(--ui-space-6) var(--ui-space-16);
     }
     .sidebar-header {
-      padding: var(--space-12) var(--space-12) var(--space-8);
+      padding: var(--ui-space-12) var(--ui-space-12) var(--ui-space-8);
     }
   }
 
@@ -224,17 +224,17 @@
       grid-template-columns: 180px minmax(0, 1fr);
     }
     .content {
-      padding: var(--space-16) var(--space-12);
+      padding: var(--ui-space-16) var(--ui-space-12);
     }
     .nav-item span {
-      font-size: var(--font-sm);
+      font-size: var(--ui-font-sm);
     }
   }
 
   .sidebar-footer {
     flex-shrink: 0;
     margin-top: auto;
-    padding: var(--space-12) var(--space-8) var(--space-16);
+    padding: var(--ui-space-12) var(--ui-space-8) var(--ui-space-16);
     border-top: 1px solid var(--ui-border-faint);
   }
 </style>

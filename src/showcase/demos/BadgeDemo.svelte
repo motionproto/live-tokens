@@ -8,22 +8,22 @@
 
   const variantTokens: Record<string, Token[]> = {
     info: [
-      { label: 'BG', variable: '--badge-info-surface' },
-      { label: 'Text', variable: '--badge-info-text' },
-      { label: 'Border', variable: '--badge-info-border' },
-      { label: 'Radius', variable: '--badge-info-radius' },
+      { label: 'surface color', variable: '--badge-info-surface' },
+      { label: 'text color', variable: '--badge-info-text' },
+      { label: 'border color', variable: '--badge-info-border' },
+      { label: 'radius', variable: '--badge-info-radius' },
     ],
     accent: [
-      { label: 'BG', variable: '--badge-accent-surface' },
-      { label: 'Text', variable: '--badge-accent-text' },
-      { label: 'Border', variable: '--badge-accent-border' },
-      { label: 'Radius', variable: '--badge-accent-radius' },
+      { label: 'surface color', variable: '--badge-accent-surface' },
+      { label: 'text color', variable: '--badge-accent-text' },
+      { label: 'border color', variable: '--badge-accent-border' },
+      { label: 'radius', variable: '--badge-accent-radius' },
     ],
     trait: [
-      { label: 'BG', variable: '--badge-trait-surface' },
-      { label: 'Text', variable: '--badge-trait-text' },
-      { label: 'Border', variable: '--badge-trait-border' },
-      { label: 'Radius', variable: '--badge-trait-radius' },
+      { label: 'surface color', variable: '--badge-trait-surface' },
+      { label: 'text color', variable: '--badge-trait-text' },
+      { label: 'border color', variable: '--badge-trait-border' },
+      { label: 'radius', variable: '--badge-trait-radius' },
     ],
   };
 </script>

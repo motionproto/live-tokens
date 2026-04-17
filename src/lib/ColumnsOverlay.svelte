@@ -2,6 +2,10 @@
   import { onMount } from 'svelte';
   import { columnsVisible } from './columnsOverlay';
 
+  const isDev = import.meta.env.DEV;
+  const isInIframe = typeof window !== 'undefined' && window.parent !== window;
+  const enabled = isDev && !isInIframe;
+
   let count = 12;
   let gutter = '';
   let margin = '';
@@ -33,7 +37,7 @@
   });
 </script>
 
-{#if $columnsVisible}
+{#if enabled && $columnsVisible}
   <div class="columns-overlay" aria-hidden="true">
     <div class="columns-overlay__inner">
       {#each Array(count) as _, i}
@@ -81,7 +85,7 @@
 
   .columns-overlay__num {
     display: block;
-    font-family: var(--font-mono);
+    font-family: var(--ui-font-mono);
     font-size: 9px;
     line-height: 1;
     color: rgba(255, 255, 255, 0.4);
@@ -102,7 +106,7 @@
     -webkit-backdrop-filter: blur(6px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 4px;
-    font-family: var(--font-mono);
+    font-family: var(--ui-font-mono);
     font-size: 10px;
     color: rgba(255, 255, 255, 0.75);
     letter-spacing: 0.02em;

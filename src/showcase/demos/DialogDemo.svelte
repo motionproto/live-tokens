@@ -8,12 +8,13 @@
   let showDialog = false;
 
   const tokens = [
-    { label: 'Surface', variable: '--dialog-surface' },
-    { label: 'Border', variable: '--dialog-border' },
-    { label: 'Header Border', variable: '--dialog-header-border' },
-    { label: 'Title', variable: '--dialog-title' },
-    { label: 'Close Icon', variable: '--dialog-close-icon' },
-    { label: 'Radius', variable: '--dialog-radius' },
+    { label: 'surface color', variable: '--dialog-surface' },
+    { label: 'border color', variable: '--dialog-border' },
+    { label: 'header surface color', variable: '--dialog-header-surface' },
+    { label: 'header border color', variable: '--dialog-header-border' },
+    { label: 'title color', variable: '--dialog-title' },
+    { label: 'close icon color', variable: '--dialog-close-icon' },
+    { label: 'radius', variable: '--dialog-radius' },
   ];
 </script>
 

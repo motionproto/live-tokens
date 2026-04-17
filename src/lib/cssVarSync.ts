@@ -38,14 +38,22 @@ export function getSyncedDocuments(): Document[] {
   return docs;
 }
 
+export const CSS_VAR_CHANGE_EVENT = 'cssvar:change';
+
+function notifyChange(name: string): void {
+  document.dispatchEvent(new CustomEvent(CSS_VAR_CHANGE_EVENT, { detail: { name } }));
+}
+
 export function setCssVar(name: string, value: string): void {
   selfRoot.style.setProperty(name, value);
   parentRoot?.style.setProperty(name, value);
+  notifyChange(name);
 }
 
 export function removeCssVar(name: string): void {
   selfRoot.style.removeProperty(name);
   parentRoot?.style.removeProperty(name);
+  notifyChange(name);
 }
 
 /** Apply a map of CSS variables to :root (and the parent :root when in an iframe). */

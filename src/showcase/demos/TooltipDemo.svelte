@@ -6,9 +6,9 @@
   const targetFile = 'src/components/Tooltip.svelte';
 
   const tokens = [
-    { label: 'BG', variable: '--tooltip-surface' },
-    { label: 'Text', variable: '--tooltip-text' },
-    { label: 'Radius', variable: '--tooltip-radius' },
+    { label: 'surface color', variable: '--tooltip-surface' },
+    { label: 'text color', variable: '--tooltip-text' },
+    { label: 'radius', variable: '--tooltip-radius' },
   ];
 </script>
 

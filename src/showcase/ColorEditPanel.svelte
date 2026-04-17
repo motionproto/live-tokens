@@ -294,24 +294,24 @@
   .hsl-panel {
     display: flex;
     flex-direction: column;
-    gap: var(--space-12);
-    padding: var(--space-12);
+    gap: var(--ui-space-12);
+    padding: var(--ui-space-12);
     background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
   }
 
   .hsl-panel-header {
     display: flex;
     align-items: center;
-    gap: var(--space-8);
+    gap: var(--ui-space-8);
     flex-wrap: wrap;
   }
 
   .hsl-preview {
     width: 1.5rem;
     height: 1.5rem;
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     border: 1px solid var(--ui-border-faint);
     flex-shrink: 0;
   }
@@ -324,11 +324,11 @@
     height: 1.5rem;
     padding: 0;
     border: 1px solid var(--ui-border-default);
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     background: var(--ui-hover);
     color: var(--ui-text-secondary);
     cursor: pointer;
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     flex-shrink: 0;
 
     &:hover {
@@ -339,21 +339,21 @@
   }
 
   .hsl-panel-title {
-    font-size: var(--font-md);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--ui-font-md);
+    font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-secondary);
   }
 
   .hsl-hex {
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     color: var(--ui-text-accent);
     font-family: var(--ui-font-mono);
     background: none;
     border: 1px solid transparent;
-    border-radius: var(--radius-sm);
-    padding: var(--space-2) var(--space-4);
+    border-radius: var(--ui-radius-sm);
+    padding: var(--ui-space-2) var(--ui-space-4);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all var(--ui-transition-fast);
   }
 
   .hsl-hex:hover {
@@ -362,19 +362,19 @@
   }
 
   .hsl-hex-input {
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     color: var(--ui-text-accent);
     font-family: var(--ui-font-mono);
     background: var(--ui-surface-low);
     border: 1px solid var(--ui-border-strong);
-    border-radius: var(--radius-sm);
-    padding: var(--space-2) var(--space-4);
+    border-radius: var(--ui-radius-sm);
+    padding: var(--ui-space-2) var(--ui-space-4);
     width: 5.5rem;
     outline: none;
   }
 
   .hsl-values {
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     color: var(--ui-text-tertiary);
     font-family: var(--ui-font-mono);
   }
@@ -382,7 +382,7 @@
   .hsl-panel-actions {
     display: flex;
     align-items: center;
-    gap: var(--space-6);
+    gap: var(--ui-space-6);
     margin-left: auto;
     flex-wrap: wrap;
   }
@@ -390,18 +390,18 @@
   .hsl-sliders {
     display: flex;
     flex-direction: column;
-    gap: var(--space-6);
+    gap: var(--ui-space-6);
   }
 
   .hsl-slider-row {
     display: flex;
     align-items: center;
-    gap: var(--space-8);
+    gap: var(--ui-space-8);
   }
 
   .hsl-slider-label {
-    font-size: var(--font-md);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--ui-font-md);
+    font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
     width: 2.5rem;
     text-align: right;
@@ -411,7 +411,7 @@
   .slider-track {
     position: relative;
     height: 1.25rem;
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
     border: 1px solid var(--ui-border-faint);
     flex: 1;
     min-width: 6rem;
@@ -427,14 +427,14 @@
     margin: 0;
     background: transparent;
     cursor: pointer;
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
   }
 
   .slider-track input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 0.5rem;
     height: 1.25rem;
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     background: white;
     border: 2px solid rgba(0, 0, 0, 0.3);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
@@ -444,7 +444,7 @@
   .slider-track input[type="range"]::-moz-range-thumb {
     width: 0.5rem;
     height: 1.25rem;
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     background: white;
     border: 2px solid rgba(0, 0, 0, 0.3);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
@@ -466,7 +466,7 @@
   }
 
   .hsl-slider-input {
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     color: var(--ui-text-primary);
     font-family: var(--ui-font-mono);
     width: 2.5rem;
@@ -474,8 +474,8 @@
     flex-shrink: 0;
     background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--radius-sm);
-    padding: var(--space-2) var(--space-4);
+    border-radius: var(--ui-radius-sm);
+    padding: var(--ui-space-2) var(--ui-space-4);
     -moz-appearance: textfield;
   }
 
@@ -495,7 +495,7 @@
   }
 
   .hsl-slider-unit {
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     color: var(--ui-text-muted);
     font-family: var(--ui-font-mono);
     width: 0.75rem;

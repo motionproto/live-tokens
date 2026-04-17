@@ -185,7 +185,7 @@
             <div class="slot-main">
               <span
                 class="slot-preview"
-                style="font-family: {slotCssValue(slot)};{stack.variable === '--font-display' ? ' font-size: var(--font-2xl);' : ''}"
+                style="font-family: {slotCssValue(slot)};{stack.variable === '--font-display' ? ' font-size: var(--ui-font-2xl);' : ''}"
               >The quick brown fox jumps over the lazy dog</span>
               <select
                 class="form-select slot-select"
@@ -233,17 +233,17 @@
   .font-stacks-columns {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
-    gap: var(--space-8);
+    gap: var(--ui-space-8);
   }
 
   .font-stack {
     display: flex;
     flex-direction: column;
-    gap: var(--space-6);
-    padding: var(--space-12);
+    gap: var(--ui-space-6);
+    padding: var(--ui-space-12);
     background: none;
     border: 1px solid var(--ui-border-faint);
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
   }
 
   .stack-header {
@@ -253,22 +253,22 @@
 
   .stack-variable {
     font-family: var(--ui-font-mono);
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     color: var(--ui-text-primary);
   }
 
   .font-stack-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--ui-space-4);
   }
 
   .slot-row {
     display: grid;
     grid-template-columns: auto auto 1fr auto;
     align-items: center;
-    gap: var(--space-6);
-    padding: var(--space-4) 0;
+    gap: var(--ui-space-6);
+    padding: var(--ui-space-4) 0;
     border-bottom: 1px solid var(--ui-border-faint);
     position: relative;
   }
@@ -278,7 +278,7 @@
     cursor: grab;
     user-select: none;
     color: var(--ui-text-muted);
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     line-height: 1;
     letter-spacing: -2px;
   }
@@ -298,7 +298,7 @@
   .slot-row.drop-after::after { bottom: -1px; }
 
   .slot-position {
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     color: var(--ui-text-muted);
     min-width: 1.25rem;
     text-align: right;
@@ -307,14 +307,14 @@
   .slot-main {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    gap: var(--ui-space-2);
     min-width: 0;
   }
 
   .slot-preview {
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     color: var(--ui-text-primary);
-    line-height: var(--line-height-normal);
+    line-height: var(--ui-line-height-normal);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -323,18 +323,18 @@
   .slot-select {
     width: 100%;
     font-family: var(--ui-font-mono);
-    font-size: var(--font-sm);
+    font-size: var(--ui-font-sm);
   }
 
   .slot-remove {
     background: none;
     border: 1px solid var(--ui-border-faint);
     color: var(--ui-text-muted);
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     line-height: 1;
     width: 1.5rem;
     height: 1.5rem;
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     cursor: pointer;
   }
   .slot-remove:hover:not(:disabled) {
@@ -348,9 +348,9 @@
     background: none;
     border: 1px dashed var(--ui-border-faint);
     color: var(--ui-text-muted);
-    font-size: var(--font-sm);
-    padding: var(--space-4) var(--space-8);
-    border-radius: var(--radius-sm);
+    font-size: var(--ui-font-sm);
+    padding: var(--ui-space-4) var(--ui-space-8);
+    border-radius: var(--ui-radius-sm);
     cursor: pointer;
   }
   .add-fallback:hover {

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-  import { setCssVar, removeCssVar } from '../lib/cssVarSync';
+  import { setCssVar, removeCssVar, CSS_VAR_CHANGE_EVENT } from '../lib/cssVarSync';
+  import { resolveAliasChain } from '../lib/tokenRegistry';
 
   const dispatch = createEventDispatcher();
 
@@ -73,7 +74,28 @@
   let chosenCategory: Category | null = null;
   let chosenFamily: string | null = null;
   let chosenStep: string | null = null;
-  let chosenHex: string | null = null;
+  let selfDefaultHex: string = '';
+
+  function captureSelfDefault() {
+    const root = document.documentElement;
+    const inline = root.style.getPropertyValue(variable);
+    if (inline) root.style.removeProperty(variable);
+    selfDefaultHex = rgbToHex(getComputedStyle(root).getPropertyValue(variable).trim());
+    if (inline) root.style.setProperty(variable, inline);
+  }
+
+  function previewBg(category: Category, family: string, step: string): string {
+    const varName = getVarName(category, family, step);
+    if (varName === variable) return selfDefaultHex || `var(${varName})`;
+    return `var(${varName})`;
+  }
+
+  function rgbToHex(value: string): string {
+    const m = value.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+    if (!m) return value;
+    const toHex = (n: number) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, '0');
+    return `#${toHex(parseInt(m[1]))}${toHex(parseInt(m[2]))}${toHex(parseInt(m[3]))}`;
+  }
 
   /** Get the CSS variable name for a category/family/step combination */
   function getVarName(category: Category, family: string, stepKey: string): string {
@@ -150,28 +172,37 @@
   }
 
   function initFromCurrent() {
+    // Real user overrides are always var(...) references (written by selectSwatch).
+    // Inline hex values come from tokenInit's bulk-apply of the token JSON file
+    // and represent the semantic default, not a custom override — so we treat
+    // them the same as "no inline override" and derive semantics from the
+    // variable's own name, or from the alias chain declared in variables.css
+    // (e.g. `--notification-info-title: var(--text-info);`).
     const raw = document.documentElement.style.getPropertyValue(variable).trim();
-    if (!raw) return;
-    const parsed = parseRef(raw);
+    const parsed = raw ? parseRef(raw) : null;
     if (parsed) {
       chosenCategory = parsed.category;
       chosenFamily = parsed.family;
       chosenStep = parsed.step;
-      chosenHex = null;
-    } else if (/^#[0-9a-f]{3,8}$/i.test(raw)) {
-      chosenHex = raw;
-      chosenCategory = null;
-      chosenFamily = null;
-      chosenStep = null;
+      return;
     }
+    for (const alias of resolveAliasChain(variable)) {
+      const aliasParsed = parseRef(`var(${alias})`);
+      if (aliasParsed) {
+        chosenCategory = aliasParsed.category;
+        chosenFamily = aliasParsed.family;
+        chosenStep = aliasParsed.step;
+        return;
+      }
+    }
+    chosenCategory = null;
+    chosenFamily = null;
+    chosenStep = null;
   }
 
   function resetVariable() {
     removeCssVar(variable);
-    chosenCategory = null;
-    chosenFamily = null;
-    chosenStep = null;
-    chosenHex = null;
+    initFromCurrent();
     open = false;
     selectedFamily = null;
     dispatch('change');
@@ -203,7 +234,6 @@
     chosenCategory = category;
     chosenFamily = selectedFamily;
     chosenStep = step;
-    chosenHex = null;
     open = false;
     selectedFamily = null;
     dispatch('change');
@@ -216,22 +246,32 @@
     }
   }
 
+  function handleVarChange(e: Event) {
+    const detail = (e as CustomEvent<{ name: string }>).detail;
+    if (detail?.name === variable) {
+      initFromCurrent();
+    }
+  }
+
   onMount(() => {
     initFromCurrent();
+    captureSelfDefault();
     document.addEventListener('click', handleClickOutside, true);
+    document.addEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
   });
 
   onDestroy(() => {
     document.removeEventListener('click', handleClickOutside, true);
+    document.removeEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
   });
 
-  $: displayValue = chosenHex
-    ? chosenHex
-    : (chosenCategory === 'palette' && chosenFamily && chosenStep)
-      ? `${chosenFamily}-${chosenStep}`
-      : (chosenCategory && chosenFamily)
-        ? getVarName(chosenCategory, chosenFamily, chosenStep || '').replace(/^--/, '')
-        : '';
+  $: displayCategory = chosenCategory && chosenFamily
+    ? `${chosenFamily} ${chosenCategory}`
+    : '';
+
+  $: displaySubtype = chosenCategory && chosenFamily
+    ? (chosenStep || 'default')
+    : '';
 
   $: availableTabs = selectedFamily
     ? allCategories.filter(c => c.id !== 'text' || familiesWithText.includes(selectedFamily!))
@@ -246,9 +286,11 @@
   <button class="selector-trigger" on:click={toggle}>
     <div class="trigger-swatch" style="background: var({variable});"></div>
     <div class="trigger-text">
-      <span class="trigger-label">{label}</span>
-      {#if displayValue}
-        <span class="trigger-value">{displayValue}</span>
+      {#if displayCategory}
+        <span class="trigger-category">{displayCategory}</span>
+      {/if}
+      {#if displaySubtype}
+        <span class="trigger-subtype">{displaySubtype}</span>
       {/if}
     </div>
     <i class="fas fa-chevron-down trigger-chevron" class:open></i>
@@ -314,7 +356,7 @@
                 class:active={chosenCategory === 'surface' && chosenFamily === selectedFamily && chosenStep === step.key}
                 on:click={() => selectSwatch('surface', step.key)}
               >
-                <div class="step-swatch" style="background: var({getVarName('surface', selectedFamily, step.key)});"></div>
+                <div class="step-swatch" style="background: {previewBg('surface', selectedFamily, step.key)};"></div>
                 <span class="step-label">{step.label}</span>
               </button>
             {/each}
@@ -327,7 +369,7 @@
                 class:active={chosenCategory === 'border' && chosenFamily === selectedFamily && chosenStep === step.key}
                 on:click={() => selectSwatch('border', step.key)}
               >
-                <div class="step-swatch" style="background: var({getVarName('border', selectedFamily, step.key)});"></div>
+                <div class="step-swatch" style="background: {previewBg('border', selectedFamily, step.key)};"></div>
                 <span class="step-label">{step.label}</span>
               </button>
             {/each}
@@ -340,7 +382,7 @@
                 class:active={chosenCategory === 'text' && chosenFamily === selectedFamily && chosenStep === step.key}
                 on:click={() => selectSwatch('text', step.key)}
               >
-                <div class="step-swatch" style="background: var({getVarName('text', selectedFamily, step.key)});"></div>
+                <div class="step-swatch" style="background: {previewBg('text', selectedFamily, step.key)};"></div>
                 <span class="step-label">{step.label}</span>
               </button>
             {/each}
@@ -359,13 +401,13 @@
   .selector-trigger {
     display: flex;
     align-items: center;
-    gap: var(--space-8);
-    padding: var(--space-6) var(--space-10);
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-6) var(--ui-space-10);
     background: var(--ui-surface-low);
     border: 1px solid var(--ui-border-default);
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all var(--ui-transition-fast);
     min-width: 10rem;
   }
 
@@ -377,7 +419,7 @@
   .trigger-swatch {
     width: 1.5rem;
     height: 1.5rem;
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     border: 1px solid var(--ui-border-faint);
     flex-shrink: 0;
   }
@@ -390,22 +432,22 @@
     text-align: left;
   }
 
-  .trigger-label {
-    font-size: var(--font-xs);
-    color: var(--ui-text-secondary);
-    font-weight: var(--font-weight-medium);
+  .trigger-category {
+    font-size: var(--ui-font-sm);
+    color: var(--ui-text-primary);
+    font-weight: var(--ui-font-weight-medium);
   }
 
-  .trigger-value {
-    font-size: 0.625rem;
-    color: var(--ui-text-muted);
+  .trigger-subtype {
+    font-size: var(--ui-font-xs);
+    color: var(--ui-text-secondary);
     font-family: var(--ui-font-mono);
   }
 
   .trigger-chevron {
     font-size: 0.5rem;
     color: var(--ui-text-muted);
-    transition: transform var(--transition-fast);
+    transition: transform var(--ui-transition-fast);
   }
 
   .trigger-chevron.open {
@@ -414,14 +456,14 @@
 
   .selector-dropdown {
     position: absolute;
-    top: calc(100% + var(--space-4));
+    top: calc(100% + var(--ui-space-4));
     left: 0;
     min-width: 14rem;
     max-width: calc(100vw - 2rem);
     background: var(--ui-surface-higher);
     border: 1px solid var(--ui-border-medium);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
+    border-radius: var(--ui-radius-md);
+    box-shadow: var(--ui-shadow-lg);
     z-index: 10;
     overflow: hidden;
   }
@@ -429,15 +471,15 @@
   .dropdown-header {
     display: flex;
     align-items: center;
-    gap: var(--space-6);
-    padding: var(--space-6) var(--space-8);
+    gap: var(--ui-space-6);
+    padding: var(--ui-space-6) var(--ui-space-8);
     border-bottom: 1px solid var(--ui-border-faint);
   }
 
   .variable-name {
     flex: 1;
-    font-size: 0.625rem;
-    color: var(--ui-text-muted);
+    font-size: var(--ui-font-xs);
+    color: var(--ui-text-secondary);
     font-family: var(--ui-font-mono);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -453,12 +495,12 @@
     padding: 0;
     background: none;
     border: 1px solid var(--ui-border-default);
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     color: var(--ui-text-secondary);
     font-size: 0.625rem;
     cursor: pointer;
     flex-shrink: 0;
-    transition: all var(--transition-fast);
+    transition: all var(--ui-transition-fast);
   }
 
   .reset-btn:hover {
@@ -470,17 +512,17 @@
   .dropdown-back {
     display: flex;
     align-items: center;
-    gap: var(--space-6);
+    gap: var(--ui-space-6);
     width: 100%;
-    padding: var(--space-8) var(--space-10);
+    padding: var(--ui-space-8) var(--ui-space-10);
     background: none;
     border: none;
     border-bottom: 1px solid var(--ui-border-faint);
     color: var(--ui-text-secondary);
-    font-size: var(--font-sm);
-    font-weight: var(--font-weight-medium);
+    font-size: var(--ui-font-sm);
+    font-weight: var(--ui-font-weight-medium);
     cursor: pointer;
-    transition: background var(--transition-fast);
+    transition: background var(--ui-transition-fast);
   }
 
   .dropdown-back:hover {
@@ -498,15 +540,15 @@
 
   .tab-btn {
     flex: 1;
-    padding: var(--space-4) var(--space-4);
+    padding: var(--ui-space-4) var(--ui-space-4);
     background: none;
     border: 1px solid transparent;
     border-radius: 0;
     color: var(--ui-text-muted);
-    font-size: 0.625rem;
-    font-weight: var(--font-weight-medium);
+    font-size: var(--ui-font-xs);
+    font-weight: var(--ui-font-weight-medium);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all var(--ui-transition-fast);
     text-align: center;
   }
 
@@ -535,13 +577,13 @@
   .family-item {
     display: flex;
     align-items: center;
-    gap: var(--space-8);
+    gap: var(--ui-space-8);
     width: 100%;
-    padding: var(--space-6) var(--space-10);
+    padding: var(--ui-space-6) var(--ui-space-10);
     background: none;
     border: none;
     cursor: pointer;
-    transition: background var(--transition-fast);
+    transition: background var(--ui-transition-fast);
   }
 
   .family-item:hover {
@@ -570,7 +612,7 @@
 
   .family-label {
     flex: 1;
-    font-size: var(--font-sm);
+    font-size: var(--ui-font-sm);
     color: var(--ui-text-primary);
     text-align: left;
   }
@@ -583,21 +625,21 @@
   .step-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-4);
-    padding: var(--space-8);
+    gap: var(--ui-space-4);
+    padding: var(--ui-space-8);
   }
 
   .step-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-4);
+    gap: var(--ui-space-2);
+    padding: var(--ui-space-4);
     background: none;
     border: 1px solid transparent;
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all var(--ui-transition-fast);
   }
 
   .step-item:hover {
@@ -612,16 +654,21 @@
     padding: 3px;
   }
 
+  .step-item.active .step-label {
+    color: var(--ui-text-accent);
+    font-weight: var(--ui-font-weight-semibold);
+  }
+
   .step-swatch {
     width: 2rem;
     height: 1.5rem;
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     border: 1px solid var(--ui-border-faint);
   }
 
   .step-label {
-    font-size: 0.5625rem;
-    color: var(--ui-text-tertiary);
+    font-size: var(--ui-font-xs);
+    color: var(--ui-text-secondary);
     font-family: var(--ui-font-mono);
   }
 </style>

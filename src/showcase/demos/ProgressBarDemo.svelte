@@ -7,19 +7,19 @@
   type Token = { label: string; variable: string };
 
   const trackTokensFor = (variant: string): Token[] => [
-    { label: 'Track BG', variable: `--progress-${variant}-track-bg` },
-    { label: 'Track Border', variable: `--progress-${variant}-track-border` },
-    { label: 'Label', variable: `--progress-${variant}-label` },
-    { label: 'Value', variable: `--progress-${variant}-value` },
-    { label: 'Radius', variable: `--progress-${variant}-radius` },
+    { label: 'track surface color', variable: `--progress-${variant}-track-bg` },
+    { label: 'track border color', variable: `--progress-${variant}-track-border` },
+    { label: 'label color', variable: `--progress-${variant}-label` },
+    { label: 'value color', variable: `--progress-${variant}-value` },
+    { label: 'radius', variable: `--progress-${variant}-radius` },
   ];
 
   const variantTokens: Record<string, Token[]> = {
-    primary: [...trackTokensFor('primary')],
-    success: [{ label: 'Fill', variable: '--progress-success-fill' }, ...trackTokensFor('success')],
-    warning: [{ label: 'Fill', variable: '--progress-warning-fill' }, ...trackTokensFor('warning')],
-    danger: [{ label: 'Fill', variable: '--progress-danger-fill' }, ...trackTokensFor('danger')],
-    info: [{ label: 'Fill', variable: '--progress-info-fill' }, ...trackTokensFor('info')],
+    primary: [{ label: 'fill color', variable: '--progress-primary-fill' }, ...trackTokensFor('primary')],
+    success: [{ label: 'fill color', variable: '--progress-success-fill' }, ...trackTokensFor('success')],
+    warning: [{ label: 'fill color', variable: '--progress-warning-fill' }, ...trackTokensFor('warning')],
+    danger: [{ label: 'fill color', variable: '--progress-danger-fill' }, ...trackTokensFor('danger')],
+    info: [{ label: 'fill color', variable: '--progress-info-fill' }, ...trackTokensFor('info')],
   };
 </script>
 

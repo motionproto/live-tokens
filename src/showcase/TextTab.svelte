@@ -115,68 +115,68 @@
   .text-container {
     display: flex;
     flex-direction: column;
-    gap: var(--space-24);
+    gap: var(--ui-space-24);
   }
 
   .color-group {
     display: flex;
     flex-direction: column;
-    gap: var(--space-12);
+    gap: var(--ui-space-12);
   }
 
   .group-title {
-    font-size: var(--font-sm);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--ui-font-sm);
+    font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-secondary);
     margin: 0;
-    padding-bottom: var(--space-4);
+    padding-bottom: var(--ui-space-4);
     border-bottom: 1px solid var(--ui-border-faint);
   }
 
   .text-colors-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
-    gap: var(--space-12);
+    gap: var(--ui-space-12);
   }
 
   .text-color-card {
     background: var(--ui-surface-low);
     border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--radius-md);
-    padding: var(--space-12);
+    border-radius: var(--ui-radius-md);
+    padding: var(--ui-space-12);
     display: flex;
     flex-direction: column;
-    gap: var(--space-8);
+    gap: var(--ui-space-8);
     align-items: center;
   }
 
   .text-color-preview {
     font-size: var(--font-4xl);
-    font-weight: var(--font-weight-bold);
+    font-weight: var(--ui-font-weight-bold);
     line-height: 1;
   }
 
   .text-color-info {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    gap: var(--ui-space-2);
     align-items: center;
     text-align: center;
   }
 
   .text-color-name {
-    font-size: var(--font-sm);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--ui-font-sm);
+    font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
   }
 
   .text-color-name.copyable {
     all: unset;
-    font-size: var(--font-sm);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--ui-font-sm);
+    font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
     cursor: pointer;
-    transition: color var(--transition-fast);
+    transition: color var(--ui-transition-fast);
   }
 
   .text-color-name.copyable:hover {
@@ -188,16 +188,16 @@
   }
 
   .text-color-variable {
-    font-size: var(--font-xs);
+    font-size: var(--ui-font-xs);
     color: var(--ui-text-tertiary);
     font-family: var(--ui-font-mono);
     background: var(--ui-surface-lowest);
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-sm);
+    padding: var(--ui-space-2) var(--ui-space-4);
+    border-radius: var(--ui-radius-sm);
   }
 
   .text-color-description {
-    font-size: var(--font-xs);
+    font-size: var(--ui-font-xs);
     color: var(--ui-text-muted);
   }
 </style>

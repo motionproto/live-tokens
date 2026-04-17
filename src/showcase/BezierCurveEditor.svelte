@@ -413,7 +413,7 @@
   .curve-panel {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--ui-space-4);
   }
 
   .curve-panel-header {
@@ -423,8 +423,8 @@
   }
 
   .curve-panel-label {
-    font-size: var(--font-md);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--ui-font-md);
+    font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
   }
 
@@ -439,7 +439,7 @@
     height: 100%;
     background: transparent;
     border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     cursor: crosshair;
     display: block;
   }
@@ -549,28 +549,28 @@
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: var(--space-2);
-    padding-top: var(--space-2);
+    gap: var(--ui-space-2);
+    padding-top: var(--ui-space-2);
   }
 
   .curve-toolbar-left {
     display: flex;
     align-items: center;
-    gap: var(--space-4);
+    gap: var(--ui-space-4);
     flex-wrap: wrap;
   }
 
   .curve-tool-btn {
     display: flex;
     align-items: center;
-    gap: var(--space-4);
-    padding: var(--space-2) var(--space-6);
+    gap: var(--ui-space-4);
+    padding: var(--ui-space-2) var(--ui-space-6);
     border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     background: var(--ui-surface-lowest);
     cursor: pointer;
     color: var(--ui-text-muted);
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
   }
 
   .curve-tool-btn:hover {
@@ -601,14 +601,14 @@
   }
 
   .curve-hint {
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     color: var(--ui-text-muted);
     opacity: 0.6;
   }
 
   .curve-templates {
     display: flex;
-    gap: var(--space-2);
+    gap: var(--ui-space-2);
   }
 
   .curve-template-btn {
@@ -619,7 +619,7 @@
     height: 1rem;
     padding: 0;
     border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     background: var(--ui-surface-lowest);
     cursor: pointer;
   }

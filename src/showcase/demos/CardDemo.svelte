@@ -8,18 +8,18 @@
 
   const cardStates: Record<string, Token[]> = {
     default: [
-      { label: 'BG', variable: '--card-default-surface' },
-      { label: 'Border', variable: '--card-default-border' },
-      { label: 'Title', variable: '--card-default-title' },
-      { label: 'Body', variable: '--card-default-body' },
-      { label: 'Radius', variable: '--card-default-radius' },
+      { label: 'surface color', variable: '--card-default-surface' },
+      { label: 'border color', variable: '--card-default-border' },
+      { label: 'title color', variable: '--card-default-title' },
+      { label: 'body color', variable: '--card-default-body' },
+      { label: 'radius', variable: '--card-default-radius' },
     ],
     hover: [
-      { label: 'BG', variable: '--card-hover-surface' },
-      { label: 'Border', variable: '--card-hover-border' },
-      { label: 'Title', variable: '--card-hover-title' },
-      { label: 'Body', variable: '--card-hover-body' },
-      { label: 'Radius', variable: '--card-hover-radius' },
+      { label: 'surface color', variable: '--card-hover-surface' },
+      { label: 'border color', variable: '--card-hover-border' },
+      { label: 'title color', variable: '--card-hover-title' },
+      { label: 'body color', variable: '--card-hover-body' },
+      { label: 'radius', variable: '--card-hover-radius' },
     ],
   };
 </script>

@@ -8,25 +8,25 @@
 
   const saveStates: Record<string, Token[]> = {
     default: [
-      { label: 'Save BG', variable: '--inline-edit-save-bg' },
-      { label: 'Save Text', variable: '--inline-edit-save-text' },
-      { label: 'Cancel BG', variable: '--inline-edit-cancel-bg' },
-      { label: 'Cancel Text', variable: '--inline-edit-cancel-text' },
-      { label: 'Radius', variable: '--inline-edit-radius' },
+      { label: 'save surface color', variable: '--inline-edit-save-bg' },
+      { label: 'save text color', variable: '--inline-edit-save-text' },
+      { label: 'cancel surface color', variable: '--inline-edit-cancel-bg' },
+      { label: 'cancel text color', variable: '--inline-edit-cancel-text' },
+      { label: 'radius', variable: '--inline-edit-radius' },
     ],
     hover: [
-      { label: 'Save BG', variable: '--inline-edit-save-bg-hover' },
-      { label: 'Save Text', variable: '--inline-edit-save-text' },
-      { label: 'Cancel BG', variable: '--inline-edit-cancel-bg-hover' },
-      { label: 'Cancel Text', variable: '--inline-edit-cancel-text' },
-      { label: 'Radius', variable: '--inline-edit-radius' },
+      { label: 'save surface color', variable: '--inline-edit-save-bg-hover' },
+      { label: 'save text color', variable: '--inline-edit-save-text' },
+      { label: 'cancel surface color', variable: '--inline-edit-cancel-bg-hover' },
+      { label: 'cancel text color', variable: '--inline-edit-cancel-text' },
+      { label: 'radius', variable: '--inline-edit-radius' },
     ],
     disabled: [
-      { label: 'Save BG', variable: '--inline-edit-save-bg' },
-      { label: 'Save Text', variable: '--inline-edit-save-text' },
-      { label: 'Cancel BG', variable: '--inline-edit-cancel-bg' },
-      { label: 'Cancel Text', variable: '--inline-edit-cancel-text' },
-      { label: 'Radius', variable: '--inline-edit-radius' },
+      { label: 'save surface color', variable: '--inline-edit-save-bg' },
+      { label: 'save text color', variable: '--inline-edit-save-text' },
+      { label: 'cancel surface color', variable: '--inline-edit-cancel-bg' },
+      { label: 'cancel text color', variable: '--inline-edit-cancel-text' },
+      { label: 'radius', variable: '--inline-edit-radius' },
     ],
   };
 </script>

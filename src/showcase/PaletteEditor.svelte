@@ -1395,7 +1395,7 @@
             on:click={() => { scaleEditorOpen[scale.title] = !scaleEditorOpen[scale.title]; scaleEditorOpen = scaleEditorOpen; }}
           >{textEditorOpen ? 'Close' : 'Edit'}</button>
         </div>
-        <div class="swatch-grid" style="--swatch-cols: {scale.steps.length}; --swatch-gap: var(--space-8)">
+        <div class="swatch-grid" style="--swatch-cols: {scale.steps.length}; --swatch-gap: var(--ui-space-8)">
           {#each scale.steps as step}
             {@const k = stepKey(scale.title, step.name)}
             {@const hex = effectiveColor(k, step, scale.title, curveVersion)}
@@ -1481,7 +1481,7 @@
             on:click={() => { scaleEditorOpen[scale.title] = !scaleEditorOpen[scale.title]; scaleEditorOpen = scaleEditorOpen; }}
           >{editorOpen ? 'Close' : 'Edit'}</button>
         </div>
-        <div class="swatch-grid" style="--swatch-cols: {scale.steps.length}; --swatch-gap: var(--space-8)">
+        <div class="swatch-grid" style="--swatch-cols: {scale.steps.length}; --swatch-gap: var(--ui-space-8)">
           {#each scale.steps as step}
             {@const k = stepKey(scale.title, step.name)}
             {@const hex = effectiveColor(k, step, scale.title, curveVersion)}
@@ -1678,7 +1678,7 @@
           on:click={() => { scaleEditorOpen[scale.title] = !scaleEditorOpen[scale.title]; scaleEditorOpen = scaleEditorOpen; }}
         >{textEditorOpen ? 'Close' : 'Edit'}</button>
       </div>
-      <div class="swatch-grid" style="--swatch-cols: {scale.steps.length}; --swatch-gap: var(--space-8)">
+      <div class="swatch-grid" style="--swatch-cols: {scale.steps.length}; --swatch-gap: var(--ui-space-8)">
         {#each scale.steps as step}
           {@const k = stepKey(scale.title, step.name)}
           {@const hex = effectiveColor(k, step, scale.title, curveVersion)}
@@ -1756,7 +1756,7 @@
             on:click={() => { scaleEditorOpen[scale.title] = !scaleEditorOpen[scale.title]; scaleEditorOpen = scaleEditorOpen; }}
           >{editorOpen ? 'Close' : 'Edit'}</button>
         </div>
-        <div class="swatch-grid" style="--swatch-cols: {scale.steps.length}; --swatch-gap: var(--space-8)">
+        <div class="swatch-grid" style="--swatch-cols: {scale.steps.length}; --swatch-gap: var(--ui-space-8)">
           {#each scale.steps as step}
             {@const k = stepKey(scale.title, step.name)}
             {@const hex = effectiveColor(k, step, scale.title, curveVersion)}
@@ -1855,8 +1855,8 @@
   .palette-editor {
     display: flex;
     flex-direction: column;
-    gap: var(--space-20);
-    padding: var(--space-16) var(--space-16) var(--space-24);
+    gap: var(--ui-space-20);
+    padding: var(--ui-space-16) var(--ui-space-16) var(--ui-space-24);
     background: none;
     border: none;
     border-bottom: 1px solid var(--ui-border-faint);
@@ -1871,27 +1871,27 @@
   .editor-top {
     display: flex;
     align-items: flex-start;
-    gap: var(--space-16);
+    gap: var(--ui-space-16);
     flex-wrap: wrap;
   }
 
   .editor-primary {
     display: flex;
     align-items: center;
-    gap: var(--space-8);
+    gap: var(--ui-space-8);
     flex-shrink: 0;
   }
 
   .primary-info {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    gap: var(--ui-space-2);
   }
 
   .header-swatch {
     width: 4rem;
     height: 4rem;
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
     border: 2px solid var(--ui-border-default);
     flex-shrink: 0;
     cursor: pointer;
@@ -1909,13 +1909,13 @@
 
 
   .editor-label {
-    font-size: var(--font-lg);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--ui-font-lg);
+    font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
   }
 
   .base-hex {
-    font-size: var(--font-xs);
+    font-size: var(--ui-font-xs);
     color: var(--ui-text-secondary);
     font-family: var(--ui-font-mono);
   }
@@ -1924,9 +1924,9 @@
     background: none;
     border: none;
     cursor: pointer;
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-sm);
-    font-size: var(--font-xs);
+    padding: var(--ui-space-2) var(--ui-space-4);
+    border-radius: var(--ui-radius-sm);
+    font-size: var(--ui-font-xs);
     color: var(--ui-text-secondary);
     font-family: var(--ui-font-mono);
   }
@@ -1941,16 +1941,16 @@
   .scale-header {
     display: flex;
     align-items: center;
-    gap: var(--space-8);
+    gap: var(--ui-space-8);
   }
 
   .edit-toggle {
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     color: var(--ui-text-tertiary);
     background: none;
     border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--radius-sm);
-    padding: var(--space-2) var(--space-6);
+    border-radius: var(--ui-radius-sm);
+    padding: var(--ui-space-2) var(--ui-space-6);
     cursor: pointer;
   }
 
@@ -1972,15 +1972,15 @@
   .derived-toggle {
     display: flex;
     align-items: center;
-    gap: var(--space-8);
-    padding: var(--space-6) var(--space-4);
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-6) var(--ui-space-4);
     background: none;
     border: none;
     color: var(--ui-text-tertiary);
-    font-size: var(--font-sm);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--ui-font-sm);
+    font-weight: var(--ui-font-weight-semibold);
     cursor: pointer;
-    transition: color var(--transition-fast);
+    transition: color var(--ui-transition-fast);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -1990,7 +1990,7 @@
   }
 
   .derived-toggle i {
-    font-size: var(--font-xs);
+    font-size: var(--ui-font-xs);
     width: 0.75rem;
     text-align: center;
   }
@@ -2007,14 +2007,14 @@
   .scale-section {
     display: flex;
     flex-direction: column;
-    gap: var(--space-6);
+    gap: var(--ui-space-6);
     min-width: 0;
     max-width: 100%;
   }
 
   .scale-title {
-    font-size: var(--font-md);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--ui-font-md);
+    font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
     margin: 0;
     text-transform: uppercase;
@@ -2028,18 +2028,18 @@
     flex-direction: column;
     align-items: stretch;
     justify-self: stretch;
-    gap: var(--space-2);
+    gap: var(--ui-space-2);
     width: auto;
     min-width: 0;
     overflow: visible;
   }
 
   .step-label {
-    font-size: var(--font-sm);
+    font-size: var(--ui-font-sm);
     color: var(--ui-text-secondary);
     text-align: center;
     line-height: 1;
-    height: var(--font-xs);
+    height: var(--ui-font-xs);
     display: flex;
     align-items: flex-end;
   }
@@ -2050,9 +2050,9 @@
     padding: 0;
     cursor: pointer;
     font: inherit;
-    font-size: var(--font-sm);
+    font-size: var(--ui-font-sm);
     justify-content: center;
-    transition: color var(--transition-fast);
+    transition: color var(--ui-transition-fast);
   }
 
   .step-label.copyable-label:hover {
@@ -2068,7 +2068,7 @@
   .swatch {
     width: 100%;
     height: 2rem;
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     border: 1px solid var(--ui-border-faint);
   }
 
@@ -2077,18 +2077,18 @@
     align-items: center;
     justify-content: center;
     background: none;
-    font-size: var(--font-md);
-    font-weight: var(--font-weight-bold);
+    font-size: var(--ui-font-md);
+    font-weight: var(--ui-font-weight-bold);
   }
 
   .swatch.border-preview {
     background: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
   }
 
   .override-fill.border-fill {
     background: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
   }
 
   .swatch.derived.clickable {
@@ -2168,8 +2168,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: var(--font-md);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--ui-font-md);
+    font-weight: var(--ui-font-weight-semibold);
     color: white;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
     pointer-events: none;
@@ -2186,11 +2186,11 @@
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
-    margin-top: var(--space-4);
+    margin-top: var(--ui-space-4);
     background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-medium);
-    border-radius: var(--radius-md);
-    padding: var(--space-4);
+    border-radius: var(--ui-radius-md);
+    padding: var(--ui-space-4);
     display: flex;
     flex-direction: column;
     gap: 1px;
@@ -2201,14 +2201,14 @@
   .snap-picker-item {
     display: flex;
     align-items: center;
-    gap: var(--space-6);
-    padding: var(--space-2) var(--space-6);
+    gap: var(--ui-space-6);
+    padding: var(--ui-space-2) var(--ui-space-6);
     border: none;
     background: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     cursor: pointer;
     color: var(--ui-text-secondary);
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     font-family: var(--ui-font-mono);
     white-space: nowrap;
   }
@@ -2221,14 +2221,14 @@
   .snap-picker-item.selected {
     background: var(--ui-surface-highest);
     color: var(--ui-text-primary);
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--ui-font-weight-semibold);
   }
 
   .snap-picker-swatch {
     display: inline-block;
     width: 1rem;
     height: 1rem;
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     border: 1px solid var(--ui-border-faint);
     flex-shrink: 0;
   }
@@ -2240,12 +2240,12 @@
   /* Step hex values */
 
   .step-hex {
-    font-size: var(--font-xs);
+    font-size: var(--ui-font-xs);
     color: var(--ui-text-secondary);
     font-family: var(--ui-font-mono);
     cursor: pointer;
-    padding: 1px var(--space-2);
-    border-radius: var(--radius-sm);
+    padding: 1px var(--ui-space-2);
+    border-radius: var(--ui-radius-sm);
     white-space: nowrap;
     background: none;
     border: none;
@@ -2269,22 +2269,22 @@
   .swatch-grid {
     display: grid;
     grid-template-columns: repeat(var(--swatch-cols), minmax(0, 1fr));
-    gap: var(--space-4) var(--swatch-gap, var(--space-4));
+    gap: var(--ui-space-4) var(--swatch-gap, var(--ui-space-4));
     align-items: start;
     justify-content: start;
     min-width: 0;
-    max-width: calc(var(--swatch-cols) * 4rem + (var(--swatch-cols) - 1) * var(--swatch-gap, var(--space-4)));
+    max-width: calc(var(--swatch-cols) * 4rem + (var(--swatch-cols) - 1) * var(--swatch-gap, var(--ui-space-4)));
   }
 
   .curve-grid-span {
     display: flex;
     flex-direction: column;
-    gap: var(--space-8);
+    gap: var(--ui-space-8);
   }
 
   .swatch.gray-swatch {
     width: 100%;
-    height: calc(4rem + var(--space-2));
+    height: calc(4rem + var(--ui-space-2));
     cursor: pointer;
     position: relative;
   }
@@ -2313,8 +2313,8 @@
   .empty-mode-toggle {
     display: flex;
     align-items: center;
-    gap: var(--space-6);
-    font-size: var(--font-md);
+    gap: var(--ui-space-6);
+    font-size: var(--ui-font-md);
     color: var(--ui-text-secondary);
     cursor: pointer;
     user-select: none;
@@ -2352,7 +2352,7 @@
     justify-content: center;
     width: 100%;
     height: 100%;
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     font-weight: bold;
     color: black;
     line-height: 1;
@@ -2360,24 +2360,24 @@
 
   /* Gradient controls */
   .gradient-controls {
-    margin-top: var(--space-8);
-    padding: var(--space-12);
+    margin-top: var(--ui-space-8);
+    padding: var(--ui-space-12);
     background: var(--ui-surface-low);
     border: 1px solid var(--ui-border-faint);
-    border-radius: var(--radius-lg);
+    border-radius: var(--ui-radius-lg);
     display: flex;
     flex-direction: column;
-    gap: var(--space-8);
+    gap: var(--ui-space-8);
   }
 
   .gradient-row {
     display: flex;
     align-items: center;
-    gap: var(--space-8);
+    gap: var(--ui-space-8);
   }
 
   .gradient-label {
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     color: var(--ui-text-secondary);
     min-width: 36px;
     flex-shrink: 0;
@@ -2385,18 +2385,18 @@
 
   .gradient-style-buttons {
     display: flex;
-    gap: var(--space-2);
+    gap: var(--ui-space-2);
   }
 
   .style-btn {
     width: 28px;
     height: 28px;
     border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
     background: var(--ui-surface-lowest);
     color: var(--ui-text-secondary);
     cursor: pointer;
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2422,10 +2422,10 @@
   .gradient-pos-input {
     width: 52px;
     padding: 2px 6px;
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
     color: var(--ui-text-primary);
     text-align: center;
   }
@@ -2438,15 +2438,15 @@
   }
 
   .gradient-unit {
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     color: var(--ui-text-tertiary);
   }
 
   .gradient-checkbox-label {
     display: flex;
     align-items: center;
-    gap: var(--space-6);
-    font-size: var(--font-md);
+    gap: var(--ui-space-6);
+    font-size: var(--ui-font-md);
     color: var(--ui-text-secondary);
     cursor: pointer;
     user-select: none;
@@ -2459,17 +2459,17 @@
 
   .gradient-select {
     padding: 2px 6px;
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
     color: var(--ui-text-primary);
   }
 
   .stop-color-preview {
     width: 20px;
     height: 20px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     border: 1px solid var(--ui-border-subtle);
     flex-shrink: 0;
   }
@@ -2489,7 +2489,7 @@
   .gradient-stop-bar {
     position: relative;
     height: 24px;
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
     border: 1px solid var(--ui-border-subtle);
     cursor: crosshair;
   }
@@ -2512,7 +2512,7 @@
   .stop-swatch {
     width: 16px;
     height: 16px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--ui-radius-sm);
     border: 2px solid var(--ui-border-medium);
     flex-shrink: 0;
   }
@@ -2549,11 +2549,11 @@
     width: 20px;
     height: 20px;
     border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
     background: var(--ui-surface-lowest);
     color: var(--ui-text-tertiary);
     cursor: pointer;
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2569,10 +2569,10 @@
   /* Narrow desktop: tighten palette editor spacing */
   @media (max-width: 1280px) {
     .palette-editor {
-      padding: var(--space-12) var(--space-12) var(--space-20);
+      padding: var(--ui-space-12) var(--ui-space-12) var(--ui-space-20);
     }
     .scales-row {
-      gap: var(--space-24);
+      gap: var(--ui-space-24);
     }
     .header-swatch {
       width: 3rem;
@@ -2582,7 +2582,7 @@
 
   @media (max-width: 1024px) {
     .scales-row {
-      gap: var(--space-16);
+      gap: var(--ui-space-16);
     }
   }
 </style>

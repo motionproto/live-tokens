@@ -2,6 +2,7 @@ export { default as VisualsTab } from './VisualsTab.svelte';
 export { default as VariablesTab } from './VariablesTab.svelte';
 export { default as ComponentsTab } from './ComponentsTab.svelte';
 export type { ComponentSection } from './componentSectionType';
+export { defaultSections } from './defaultSections';
 
 export { default as PaletteEditor } from './PaletteEditor.svelte';
 export { default as PaletteSelector } from './PaletteSelector.svelte';

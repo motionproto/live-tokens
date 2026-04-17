@@ -262,40 +262,40 @@
   .surfaces-container {
     display: flex;
     flex-direction: column;
-    gap: var(--space-32);
+    gap: var(--ui-space-32);
   }
 
   .section {
     display: flex;
     flex-direction: column;
-    gap: var(--space-16);
+    gap: var(--ui-space-16);
   }
 
   .section-title {
-    font-size: var(--font-lg);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--ui-font-lg);
+    font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
     margin: 0;
-    padding-bottom: var(--space-8);
+    padding-bottom: var(--ui-space-8);
     border-bottom: 1px solid var(--ui-border-subtle);
   }
 
   .swatch-groups-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(28rem, 100%), 1fr));
-    gap: var(--space-24);
+    gap: var(--ui-space-24);
   }
 
   .swatch-group {
     display: flex;
     flex-direction: column;
-    gap: var(--space-8);
+    gap: var(--ui-space-8);
     min-width: 0;
   }
 
   .group-title {
-    font-size: var(--font-sm);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--ui-font-sm);
+    font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-secondary);
     margin: 0;
   }
@@ -303,21 +303,21 @@
   .swatches-row {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(3.5rem, 1fr));
-    gap: var(--space-8);
-    max-width: calc(7 * 3.5rem + 6 * var(--space-8));
+    gap: var(--ui-space-8);
+    max-width: calc(7 * 3.5rem + 6 * var(--ui-space-8));
   }
 
   .swatch-card {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--ui-space-4);
     align-items: center;
   }
 
   .swatch-box {
     width: 3.5rem;
     height: 3.5rem;
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
     flex-shrink: 0;
   }
 
@@ -326,18 +326,18 @@
   }
 
   .swatch-name {
-    font-size: var(--font-xs);
+    font-size: var(--ui-font-xs);
     color: var(--ui-text-tertiary);
     text-align: center;
   }
 
   .swatch-name.copyable {
     all: unset;
-    font-size: var(--font-xs);
+    font-size: var(--ui-font-xs);
     color: var(--ui-text-tertiary);
     text-align: center;
     cursor: pointer;
-    transition: color var(--transition-fast);
+    transition: color var(--ui-transition-fast);
   }
 
   .swatch-name.copyable:hover {
@@ -351,26 +351,26 @@
   .border-groups-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(22rem, 100%), 1fr));
-    gap: var(--space-24);
+    gap: var(--ui-space-24);
   }
 
   .border-group {
     display: flex;
     flex-direction: column;
-    gap: var(--space-8);
+    gap: var(--ui-space-8);
     min-width: 0;
   }
 
   .borders-row {
     display: flex;
-    gap: var(--space-8);
+    gap: var(--ui-space-8);
     flex-wrap: wrap;
   }
 
   .border-card {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--ui-space-4);
     align-items: center;
   }
 
@@ -378,23 +378,23 @@
     width: 3.5rem;
     height: 3.5rem;
     background: var(--ui-surface-low);
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
     flex-shrink: 0;
   }
 
   .border-name {
-    font-size: var(--font-xs);
+    font-size: var(--ui-font-xs);
     color: var(--ui-text-tertiary);
     text-align: center;
   }
 
   .border-name.copyable {
     all: unset;
-    font-size: var(--font-xs);
+    font-size: var(--ui-font-xs);
     color: var(--ui-text-tertiary);
     text-align: center;
     cursor: pointer;
-    transition: color var(--transition-fast);
+    transition: color var(--ui-transition-fast);
   }
 
   .border-name.copyable:hover {

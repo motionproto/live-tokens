@@ -10,25 +10,25 @@
 
   const states: Record<string, Token[]> = {
     default: [
-      { label: 'BG', variable: '--collapsible-default-surface' },
-      { label: 'Label', variable: '--collapsible-default-label' },
-      { label: 'Toggle Icon', variable: '--collapsible-default-icon' },
-      { label: 'Border', variable: '--collapsible-default-border' },
-      { label: 'Radius', variable: '--collapsible-default-radius' },
+      { label: 'surface color', variable: '--collapsible-default-surface' },
+      { label: 'label color', variable: '--collapsible-default-label' },
+      { label: 'toggle icon color', variable: '--collapsible-default-icon' },
+      { label: 'border color', variable: '--collapsible-default-border' },
+      { label: 'radius', variable: '--collapsible-default-radius' },
     ],
     hover: [
-      { label: 'BG', variable: '--collapsible-hover-surface' },
-      { label: 'Label', variable: '--collapsible-hover-label' },
-      { label: 'Toggle Icon', variable: '--collapsible-hover-icon' },
-      { label: 'Border', variable: '--collapsible-hover-border' },
-      { label: 'Radius', variable: '--collapsible-hover-radius' },
+      { label: 'surface color', variable: '--collapsible-hover-surface' },
+      { label: 'label color', variable: '--collapsible-hover-label' },
+      { label: 'toggle icon color', variable: '--collapsible-hover-icon' },
+      { label: 'border color', variable: '--collapsible-hover-border' },
+      { label: 'radius', variable: '--collapsible-hover-radius' },
     ],
     active: [
-      { label: 'BG', variable: '--collapsible-active-surface' },
-      { label: 'Label', variable: '--collapsible-active-label' },
-      { label: 'Toggle Icon', variable: '--collapsible-active-icon' },
-      { label: 'Border', variable: '--collapsible-active-border' },
-      { label: 'Radius', variable: '--collapsible-active-radius' },
+      { label: 'surface color', variable: '--collapsible-active-surface' },
+      { label: 'label color', variable: '--collapsible-active-label' },
+      { label: 'toggle icon color', variable: '--collapsible-active-icon' },
+      { label: 'border color', variable: '--collapsible-active-border' },
+      { label: 'radius', variable: '--collapsible-active-radius' },
     ],
   };
 </script>

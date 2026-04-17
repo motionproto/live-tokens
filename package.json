@@ -1,6 +1,6 @@
 {
   "name": "@motion-proto/live-tokens",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "type": "module",
   "description": "Design token editor with live CSS variable editing. Svelte 4 + Vite.",
   "keywords": [
@@ -22,7 +22,7 @@
     "src/showcase",
     "src/components",
     "src/pages/Admin.svelte",
-    "src/pages/ShowcasePage.svelte",
+    "src/pages/Admin.svelte.d.ts",
     "src/showcase/editor.css",
     "src/styles/form-controls.css",
     "src/styles/fonts.css",
@@ -41,16 +41,9 @@
       "default": "./src/showcase/index.ts"
     },
     "./admin": {
-      "svelte": "./src/pages/Admin.svelte"
-    },
-    "./showcase-page": {
-      "svelte": "./src/pages/ShowcasePage.svelte"
-    },
-    "./overlay": {
-      "svelte": "./src/lib/LiveEditorOverlay.svelte"
-    },
-    "./columns-overlay": {
-      "svelte": "./src/lib/ColumnsOverlay.svelte"
+      "types": "./src/pages/Admin.svelte.d.ts",
+      "svelte": "./src/pages/Admin.svelte",
+      "default": "./src/pages/Admin.svelte"
     },
     "./vite-plugin": {
       "types": "./dist-plugin/index.d.ts",

@@ -7,12 +7,12 @@
   type Token = { label: string; variable: string };
 
   const paletteFor = (palette: string): Token[] => [
-    { label: 'Gradient High', variable: `--section-divider-${palette}-gradient-high` },
-    { label: 'Gradient Mid', variable: `--section-divider-${palette}-gradient-mid` },
-    { label: 'Gradient Low', variable: `--section-divider-${palette}-gradient-low` },
-    { label: 'Gradient Base', variable: `--section-divider-${palette}-gradient-base` },
-    { label: 'Text Stroke', variable: `--section-divider-${palette}-text-stroke` },
-    { label: 'Radius', variable: `--section-divider-${palette}-radius` },
+    { label: 'gradient high color', variable: `--section-divider-${palette}-gradient-high` },
+    { label: 'gradient mid color', variable: `--section-divider-${palette}-gradient-mid` },
+    { label: 'gradient low color', variable: `--section-divider-${palette}-gradient-low` },
+    { label: 'gradient base color', variable: `--section-divider-${palette}-gradient-base` },
+    { label: 'text stroke color', variable: `--section-divider-${palette}-text-stroke` },
+    { label: 'radius', variable: `--section-divider-${palette}-radius` },
   ];
 
   const variants: { key: 'bg' | 'neutral' | 'alternate' | 'primary' | 'accent' | 'special'; title: string }[] = [

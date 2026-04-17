@@ -6,11 +6,13 @@
   const isDev = import.meta.env.DEV;
 </script>
 
-<div class="landing">
+<div class="kit-demo">
   <header class="hero">
-    <h1>Live Tokens</h1>
+    <span class="eyebrow">Live Tokens Kit</span>
+    <h1>The starter you cloned</h1>
     <p class="tagline">
-      A starter Svelte site with a full design-token system and a live in-browser editor.
+      A Svelte + Vite foundation with a full design-token system and an in-browser editor.
+      Tune the tokens, then build your app on top.
     </p>
   </header>
 
@@ -52,7 +54,7 @@
 </div>
 
 <style>
-  .landing {
+  .kit-demo {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -66,6 +68,16 @@
   .hero {
     text-align: center;
     padding: var(--space-24) 0;
+  }
+
+  .eyebrow {
+    display: block;
+    font-size: var(--font-sm);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-8);
   }
 
   .hero h1 {
@@ -115,7 +127,7 @@
   }
 
   @media (max-width: 600px) {
-    .landing {
+    .kit-demo {
       padding: var(--space-24) var(--space-16) var(--space-32);
       gap: var(--space-24);
     }

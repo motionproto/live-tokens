@@ -1,3 +1,13 @@
+<script context="module" lang="ts">
+  // __PROJECT_ROOT__ is injected by the tokenFileApi Vite plugin as a `define`.
+  // Consumers don't need to configure it themselves. We declare it locally so
+  // this component's type-check passes in consumer projects that haven't added
+  // the ambient global to their tsconfig.
+  declare const __PROJECT_ROOT__: string | undefined;
+  const INJECTED_PROJECT_ROOT: string =
+    typeof __PROJECT_ROOT__ !== 'undefined' ? (__PROJECT_ROOT__ ?? '') : '';
+</script>
+
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { route, navigate } from './router';
@@ -5,19 +15,43 @@
   import { storageKey } from './editorConfig';
   import type { NavLink } from './navLinkTypes';
 
-  export let open: boolean = false;
+  export let open: boolean | undefined = undefined;
   export let editorPath: string = '/admin';
   export let navLinks: NavLink[] = [];
   export let pageSources: Record<string, string> = {};
-  export let projectRoot: string =
-    typeof __PROJECT_ROOT__ !== 'undefined' ? __PROJECT_ROOT__ : '';
+  export let projectRoot: string = INJECTED_PROJECT_ROOT;
 
+  // Self-gate: only render in dev, and never inside an iframe (the /admin
+  // page embeds this same app in an iframe and would otherwise recursively
+  // mount another overlay).
+  const isDev = import.meta.env.DEV;
+  const isInIframe = typeof window !== 'undefined' && window.parent !== window;
+  const enabled = isDev && !isInIframe;
+
+  // Self-manage `open` when the consumer doesn't bind it. When they do, their
+  // binding wins and we skip our own persistence.
+  const OPEN_KEY = storageKey('overlay-open');
+  const consumerControlsOpen = open !== undefined;
+  if (!consumerControlsOpen) {
+    try {
+      open = enabled && localStorage.getItem(OPEN_KEY) === '1';
+    } catch {
+      open = false;
+    }
+  }
+  $: if (!consumerControlsOpen && typeof window !== 'undefined') {
+    try { localStorage.setItem(OPEN_KEY, open ? '1' : '0'); } catch {}
+  }
+
+  // Hide the overlay entirely when the user is already on the editor route
+  // (the editor page has its own chrome).
+  $: onEditorPath = $route === editorPath;
   $: sourceFile = pageSources[$route];
 
   // Mount the iframe the first time the editor is shown, then keep it mounted
   // across hide/show cycles so editor state (unsaved slider values, scroll
   // position, expanded sections) survives.
-  let hasBeenOpen: boolean = open;
+  let hasBeenOpen: boolean = !!open;
   $: if (open) hasBeenOpen = true;
 
   type Mode = 'docked' | 'floating';
@@ -207,6 +241,7 @@
       : `position: fixed; top: ${floating.y}px; left: ${floating.x}px; width: ${floating.width}px; height: ${floating.height}px;`;
 </script>
 
+{#if enabled && !onEditorPath}
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
   class="lt-overlay"
@@ -292,6 +327,7 @@
     {/if}
   {/if}
 </div>
+{/if}
 
 <style>
   .lt-overlay {

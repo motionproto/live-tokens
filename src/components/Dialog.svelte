@@ -167,7 +167,7 @@
   .dialog-header {
     padding: .5rem var(--space-24);
     border-bottom: 1px solid var(--dialog-header-border);
-    background: var(--empty);
+    background: var(--dialog-header-surface);
     display: flex;
     justify-content: space-between;
     align-items: center;

@@ -326,48 +326,48 @@
   .token-file-manager {
     display: flex;
     flex-direction: column;
-    gap: var(--space-8);
+    gap: var(--ui-space-8);
   }
 
   .active-file {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
-    padding: 0 var(--space-4);
+    gap: var(--ui-space-2);
+    padding: 0 var(--ui-space-4);
   }
 
   .active-label {
-    font-size: var(--font-xs);
+    font-size: var(--ui-font-xs);
     color: var(--ui-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
   .active-name {
-    font-size: var(--font-md);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--ui-font-md);
+    font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
   }
 
   .button-grid {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--ui-space-4);
   }
 
   .tfm-btn {
     display: flex;
     align-items: center;
-    gap: var(--space-4);
+    gap: var(--ui-space-4);
     width: 100%;
-    padding: var(--space-6) var(--space-8);
+    padding: var(--ui-space-6) var(--ui-space-8);
     background: var(--ui-surface-low);
     border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
     color: var(--ui-text-secondary);
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all var(--ui-transition-fast);
     white-space: nowrap;
   }
 
@@ -395,7 +395,7 @@
 
   .save-row {
     display: flex;
-    gap: var(--space-4);
+    gap: var(--ui-space-4);
   }
 
   .save-row .save-btn {
@@ -430,24 +430,24 @@
   .save-as-inline {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--ui-space-4);
   }
 
   .save-as-actions {
     display: flex;
-    gap: var(--space-4);
+    gap: var(--ui-space-4);
     justify-content: flex-end;
   }
 
   .save-as-input {
     flex: 1;
     min-width: 0;
-    padding: var(--space-6) var(--space-8);
+    padding: var(--ui-space-6) var(--ui-space-8);
     background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
     color: var(--ui-text-primary);
-    font-size: var(--font-md);
+    font-size: var(--ui-font-md);
     outline: none;
   }
 
@@ -469,11 +469,11 @@
     padding: 0;
     background: var(--ui-surface-low);
     border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--radius-md);
+    border-radius: var(--ui-radius-md);
     color: var(--ui-text-secondary);
-    font-size: var(--font-sm);
+    font-size: var(--ui-font-sm);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all var(--ui-transition-fast);
   }
 
   .inline-btn:hover:not(:disabled) {
@@ -579,12 +579,12 @@
 
   .status-labels {
     display: flex;
-    gap: var(--space-8);
-    padding: 0 var(--space-4);
+    gap: var(--ui-space-8);
+    padding: 0 var(--ui-space-4);
   }
 
   .status-label {
-    font-size: var(--font-xs);
+    font-size: var(--ui-font-xs);
     letter-spacing: 0.02em;
   }
 
@@ -601,28 +601,28 @@
   .production-section {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
-    padding-top: var(--space-8);
+    gap: var(--ui-space-4);
+    padding-top: var(--ui-space-8);
     border-top: 1px solid var(--ui-border-subtle);
   }
 
   .production-header {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
-    padding: 0 var(--space-4);
+    gap: var(--ui-space-2);
+    padding: 0 var(--ui-space-4);
   }
 
   .production-label {
-    font-size: var(--font-xs);
+    font-size: var(--ui-font-xs);
     color: var(--ui-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
   .production-name {
-    font-size: var(--font-md);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--ui-font-md);
+    font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
   }
 
@@ -642,16 +642,16 @@
   .production-update-btn.error { color: var(--ui-text-muted); }
 
   .production-match {
-    font-size: var(--font-xs);
+    font-size: var(--ui-font-xs);
     color: var(--ui-text-muted);
-    padding: 0 var(--space-4);
+    padding: 0 var(--ui-space-4);
     letter-spacing: 0.02em;
   }
 
   .production-diff {
-    font-size: var(--font-xs);
+    font-size: var(--ui-font-xs);
     color: var(--ui-text-warning, #e6a030);
-    padding: 0 var(--space-4);
+    padding: 0 var(--ui-space-4);
     letter-spacing: 0.02em;
   }
 

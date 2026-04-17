@@ -16,23 +16,24 @@
 
   const tabStates: Record<string, Token[]> = {
     default: [
-      { label: 'Text', variable: '--tabbar-default-text' },
-      { label: 'Divider', variable: '--tabbar-divider' },
-      { label: 'Active Border', variable: '--tabbar-active-border' },
-      { label: 'Radius', variable: '--tabbar-radius' },
+      { label: 'text color', variable: '--tabbar-default-text' },
+      { label: 'divider color', variable: '--tabbar-divider' },
+      { label: 'active border color', variable: '--tabbar-active-border' },
+      { label: 'radius', variable: '--tabbar-radius' },
     ],
     hover: [
-      { label: 'Text', variable: '--tabbar-hover-text' },
-      { label: 'BG', variable: '--tabbar-hover-bg' },
-      { label: 'Divider', variable: '--tabbar-divider' },
-      { label: 'Active Border', variable: '--tabbar-active-border' },
-      { label: 'Radius', variable: '--tabbar-radius' },
+      { label: 'text color', variable: '--tabbar-hover-text' },
+      { label: 'surface color', variable: '--tabbar-hover-bg' },
+      { label: 'divider color', variable: '--tabbar-divider' },
+      { label: 'active border color', variable: '--tabbar-active-border' },
+      { label: 'radius', variable: '--tabbar-radius' },
     ],
     active: [
-      { label: 'Text', variable: '--tabbar-active-text' },
-      { label: 'Active Border', variable: '--tabbar-active-border' },
-      { label: 'Divider', variable: '--tabbar-divider' },
-      { label: 'Radius', variable: '--tabbar-radius' },
+      { label: 'text color', variable: '--tabbar-active-text' },
+      { label: 'active border color', variable: '--tabbar-active-border' },
+      { label: 'gradient surface color', variable: '--tabbar-active-bg-gradient' },
+      { label: 'divider color', variable: '--tabbar-divider' },
+      { label: 'radius', variable: '--tabbar-radius' },
     ],
   };
 </script>

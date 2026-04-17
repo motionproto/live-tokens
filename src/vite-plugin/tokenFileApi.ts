@@ -272,6 +272,16 @@ export function tokenFileApi(opts: TokenFileApiOptions): Plugin {
 
   return {
     name: 'token-file-api',
+    config() {
+      // Inject __PROJECT_ROOT__ so the editor overlay's "Page Source" link
+      // can build `vscode://file/<root>/<path>` URLs without each consumer
+      // having to wire their own `define` entry.
+      return {
+        define: {
+          __PROJECT_ROOT__: JSON.stringify(process.cwd()),
+        },
+      };
+    },
     configureServer(server) {
       ensureTokensDir();
 

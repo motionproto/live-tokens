@@ -42,17 +42,29 @@
     &.force-hover {
       background: linear-gradient(
         135deg,
-        color-mix(in srgb, var(--radio-color) 12%, var(--radio-surface)),
-        var(--radio-surface)
+        color-mix(in srgb, var(--radio-color) 12%, var(--radio-hover-surface)),
+        var(--radio-hover-surface)
       );
+
+      .radio-label {
+        color: var(--radio-hover-label);
+      }
     }
 
     &.active {
       background: linear-gradient(
         135deg,
-        color-mix(in srgb, var(--radio-color) 15%, var(--radio-surface)),
-        color-mix(in srgb, var(--radio-color) 5%, var(--radio-surface))
+        color-mix(in srgb, var(--radio-color) 15%, var(--radio-active-surface)),
+        color-mix(in srgb, var(--radio-color) 5%, var(--radio-active-surface))
       );
+
+      .radio-label {
+        color: var(--radio-active-label);
+      }
+
+      .radio-dot:not(.filled) {
+        border-color: var(--radio-active-dot-border, var(--radio-color));
+      }
     }
   }
 
@@ -66,7 +78,7 @@
 
     .radio-button:hover &,
     .radio-button.force-hover & {
-      border-color: var(--radio-color);
+      border-color: var(--radio-hover-dot-border, var(--radio-color));
     }
 
     &.filled {
