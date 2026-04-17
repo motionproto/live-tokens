@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { FontSource } from '../lib/tokenTypes';
-  import { fontSources, fontStacks } from '../lib/fontStore';
+  import { editorState, setFontSources, transaction } from '../lib/editorStore';
   import { applyFontSources, applyFontStacks } from '../lib/fontLoader';
   import {
     buildSourceFromFontFaceText,
@@ -52,10 +52,13 @@
     fontFaceParsed = [];
   }
 
+  $: fontSourcesList = $editorState.fonts.sources;
+  $: fontStacksList = $editorState.fonts.stacks;
+
   function commitSources(next: FontSource[]) {
-    $fontSources = next;
+    setFontSources(next);
     applyFontSources(next);
-    applyFontStacks($fontStacks, next);
+    applyFontStacks(fontStacksList, next);
   }
 
   function addGoogleFont(entry: GoogleFontEntry) {
@@ -65,7 +68,7 @@
       : `wght@${weightList[0]}`;
     const url = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(entry.family).replace(/%20/g, '+')}:${weightSpec}&display=swap`;
     const source = buildSourceFromUrl(url, [{ name: entry.family, weights: weightList }]);
-    commitSources([...$fontSources, source]);
+    commitSources([...fontSourcesList, source]);
     reset();
   }
 
@@ -109,7 +112,7 @@
       return;
     }
     const source = buildSourceFromUrl(url, families);
-    commitSources([...$fontSources, source]);
+    commitSources([...fontSourcesList, source]);
     reset();
   }
 
@@ -125,20 +128,23 @@
       if (fontFaceParsed.length === 0) return;
     }
     const source = buildSourceFromFontFaceText(fontFaceText, families.length > 0 ? families : fontFaceParsed);
-    commitSources([...$fontSources, source]);
+    commitSources([...fontSourcesList, source]);
     reset();
   }
 
   function removeFamily(sourceId: string, familyId: string) {
-    const next = $fontSources
+    const next = fontSourcesList
       .map((s) => (s.id === sourceId ? { ...s, families: s.families.filter((f) => f.id !== familyId) } : s))
       .filter((s) => s.families.length > 0);
-    const updatedStacks = $fontStacks.map((stack) => ({
+    const updatedStacks = fontStacksList.map((stack) => ({
       ...stack,
       slots: stack.slots.filter((slot) => !(slot.kind === 'project' && slot.familyId === familyId)),
     }));
-    $fontStacks = updatedStacks;
-    commitSources(next);
+    transaction('remove font family', (s) => {
+      s.fonts.sources = next;
+      s.fonts.stacks = updatedStacks;
+    });
+    applyFontSources(next);
     applyFontStacks(updatedStacks, next);
   }
 
@@ -150,7 +156,7 @@
   }
 
   function stacksReferencing(familyId: string): string[] {
-    return $fontStacks
+    return fontStacksList
       .filter((s) => s.slots.some((slot) => slot.kind === 'project' && slot.familyId === familyId))
       .map((s) => s.variable);
   }
@@ -168,12 +174,12 @@
     <h3 class="group-title">Project Fonts</h3>
   </header>
 
-  {#if $fontSources.length === 0}
+  {#if fontSourcesList.length === 0}
     <p class="pf-empty">No fonts loaded yet. Use the add button below.</p>
   {/if}
 
   <div class="pf-sources">
-    {#each $fontSources as source (source.id)}
+    {#each fontSourcesList as source (source.id)}
       <div class="pf-source">
         <div class="pf-source-head">
           <span class="pf-kind-badge">{sourceKindLabel(source)}</span>

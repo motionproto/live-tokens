@@ -8,7 +8,7 @@
     GenericFamily,
     SystemCascadePreset,
   } from '../lib/tokenTypes';
-  import { fontSources, fontStacks } from '../lib/fontStore';
+  import { editorState, setFontStacks } from '../lib/editorStore';
   import { applyFontStacks, SYSTEM_CASCADES } from '../lib/fontLoader';
 
   const SYSTEM_PRESETS: SystemCascadePreset[] = ['system-ui-sans', 'system-ui-serif', 'system-ui-mono'];
@@ -21,7 +21,9 @@
     '--font-mono',
   ];
 
-  $: allFamilies = ($fontSources as FontSource[]).flatMap((s) => s.families.map((f) => ({ ...f, sourceLabel: s.label ?? s.kind })));
+  $: fontSourcesList = $editorState.fonts.sources;
+  $: fontStacksList = $editorState.fonts.stacks;
+  $: allFamilies = (fontSourcesList as FontSource[]).flatMap((s) => s.families.map((f) => ({ ...f, sourceLabel: s.label ?? s.kind })));
   $: familyById = new Map<string, FontFamily>(allFamilies.map((f) => [f.id, f]));
 
   function ensureAllStacksPresent(current: FontStack[]): FontStack[] {
@@ -29,7 +31,7 @@
     return STACK_VARIABLES.map((v) => byVar.get(v) ?? { variable: v, slots: [{ kind: 'generic', value: 'sans-serif' } as FontStackSlot] });
   }
 
-  $: stacks = ensureAllStacksPresent($fontStacks);
+  $: stacks = ensureAllStacksPresent(fontStacksList);
 
   function slotKey(slot: FontStackSlot): string {
     if (slot.kind === 'project') return `project:${slot.familyId}`;
@@ -64,8 +66,8 @@
 
   function updateStack(variable: FontStackVariable, updater: (slots: FontStackSlot[]) => FontStackSlot[]) {
     const next = stacks.map((s) => (s.variable === variable ? { ...s, slots: updater([...s.slots]) } : s));
-    $fontStacks = next;
-    applyFontStacks(next, $fontSources);
+    setFontStacks(next);
+    applyFontStacks(next, fontSourcesList);
   }
 
   function handleSelectChange(variable: FontStackVariable, index: number, value: string) {

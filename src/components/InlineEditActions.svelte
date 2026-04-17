@@ -14,6 +14,7 @@
 <div class="inline-actions">
    <button
       class="save-btn"
+      type="button"
       on:click={onSave}
       {disabled}
       title={saveTitle}
@@ -22,6 +23,7 @@
    </button>
    <button
       class="cancel-btn"
+      type="button"
       on:click={onCancel}
       disabled={disabled}
       title={cancelTitle}

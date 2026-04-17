@@ -1,12 +1,9 @@
-<script lang="ts" context="module">
-  export type NavLink = { path: string; label: string; icon?: string };
-</script>
-
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { route, navigate } from './router';
   import { columnsVisible, toggleColumns } from './columnsOverlay';
   import { storageKey } from './editorConfig';
+  import type { NavLink } from './navLinkTypes';
 
   export let open: boolean = false;
   export let editorPath: string = '/admin';

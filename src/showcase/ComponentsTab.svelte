@@ -1,5 +1,4 @@
-<script lang="ts" context="module">
-  import type { ComponentType } from 'svelte';
+<script lang="ts">
   import ChoiceButtonsDemo from './demos/ChoiceButtonsDemo.svelte';
   import StandardButtonsDemo from './demos/StandardButtonsDemo.svelte';
   import NotificationDemo from './demos/NotificationDemo.svelte';
@@ -13,15 +12,9 @@
   import TabBarDemo from './demos/TabBarDemo.svelte';
   import TooltipDemo from './demos/TooltipDemo.svelte';
   import ProgressBarDemo from './demos/ProgressBarDemo.svelte';
+  import type { ComponentSection } from './componentSectionType';
 
-  export type ComponentSection = {
-    id: string;
-    label: string;
-    component: ComponentType;
-    props?: Record<string, unknown>;
-  };
-
-  export const defaultSections: ComponentSection[] = [
+  const defaultSections: ComponentSection[] = [
     { id: 'choiceButtons', label: 'Choice Sets', component: ChoiceButtonsDemo },
     { id: 'standardButtons', label: 'Button', component: StandardButtonsDemo },
     { id: 'notifications', label: 'Notification', component: NotificationDemo },
@@ -36,9 +29,7 @@
     { id: 'tooltip', label: 'Tooltip', component: TooltipDemo },
     { id: 'progressBar', label: 'Progress Bar', component: ProgressBarDemo },
   ];
-</script>
 
-<script lang="ts">
   export let sections: ComponentSection[] = defaultSections;
   export let selectedComponent: string = sections[0]?.id ?? '';
 </script>

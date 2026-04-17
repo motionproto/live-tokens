@@ -1,7 +1,17 @@
 <script lang="ts">
+  import { createEventDispatcher } from 'svelte';
+
   export let checked: boolean = false;
   export let disabled: boolean = false;
   export let label: string = '';
+
+  const dispatch = createEventDispatcher<{ change: boolean }>();
+
+  function toggle() {
+    if (disabled) return;
+    checked = !checked;
+    dispatch('change', checked);
+  }
 </script>
 
 <label class="toggle" class:disabled>
@@ -12,7 +22,7 @@
     {disabled}
     class="toggle-track"
     class:on={checked}
-    on:click={() => { if (!disabled) checked = !checked; }}
+    on:click={toggle}
   >
     <span class="toggle-thumb" />
   </button>

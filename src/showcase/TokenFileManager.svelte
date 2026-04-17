@@ -3,7 +3,8 @@
   import type { TokenFileMeta } from '../lib/tokenTypes';
   import { listTokenFiles, deleteTokenFile, setActiveFile, sanitizeFileName, getProductionInfo, setProductionFile } from '../lib/tokenService';
   import type { ProductionInfo } from '../lib/tokenService';
-  import { activeFileName, editorConfigs, configsLoadedFromFile } from '../lib/editorConfigStore';
+  import { activeFileName } from '../lib/editorConfigStore';
+  import { dirty } from '../lib/editorStore';
   import BackupBrowser from './BackupBrowser.svelte';
   import EditorDialog from './EditorDialog.svelte';
 
@@ -25,13 +26,6 @@
   // --- Production state ---
   let productionInfo: ProductionInfo | null = null;
   let productionUpdateStatus: 'idle' | 'updating' | 'done' | 'error' = 'idle';
-
-  // --- Dirty state tracking ---
-  let savedConfigHash = '';
-  let initialized = false;
-
-  $: configHash = JSON.stringify($editorConfigs);
-  $: unsaved = initialized && configHash !== savedConfigHash;
 
   async function refreshFiles() {
     try {
@@ -70,16 +64,10 @@
   onMount(async () => {
     await refreshFiles();
     await refreshProduction();
-    // Delay snapshot until editors have initialized
-    setTimeout(() => {
-      savedConfigHash = JSON.stringify($editorConfigs);
-      initialized = true;
-    }, 500);
   });
 
   function handleSave() {
     dispatch('save', { fileName: $activeFileName, displayName: currentDisplayName });
-    setTimeout(() => { savedConfigHash = JSON.stringify($editorConfigs); }, 300);
   }
 
   function handleSaveIncrement() {
@@ -100,10 +88,7 @@
     dispatch('save', { fileName, displayName });
     $activeFileName = fileName;
     currentDisplayName = displayName;
-    setTimeout(() => {
-      refreshFiles();
-      savedConfigHash = JSON.stringify($editorConfigs);
-    }, 500);
+    setTimeout(() => refreshFiles(), 500);
   }
 
   function openSaveAs() {
@@ -126,10 +111,7 @@
     dispatch('save', { fileName, displayName });
     $activeFileName = fileName;
     currentDisplayName = displayName;
-    setTimeout(() => {
-      refreshFiles();
-      savedConfigHash = JSON.stringify($editorConfigs);
-    }, 500);
+    setTimeout(() => refreshFiles(), 500);
   }
 
   function cancelSaveAs() {
@@ -143,10 +125,7 @@
     $activeFileName = file.fileName;
     currentDisplayName = file.name;
     dispatch('load', { fileName: file.fileName });
-    // Snapshot after load completes
-    setTimeout(() => {
-      savedConfigHash = JSON.stringify($editorConfigs);
-    }, 500);
+    // editorStore.loadFromFile clears history and resets dirty — no snapshot needed here.
   }
 
   async function handleDelete(file: TokenFileMeta) {
@@ -193,8 +172,8 @@
         class:saved={saveStatus === 'saved'}
         class:error={saveStatus === 'error'}
         on:click={handleSave}
-        disabled={saveStatus === 'saving' || !$configsLoadedFromFile}
-        title={$configsLoadedFromFile ? "Save to current file" : "Load a token file first"}
+        disabled={saveStatus === 'saving'}
+        title="Save to current file"
       >
         <i class="fas" class:fa-save={saveStatus === 'idle'} class:fa-spinner={saveStatus === 'saving'} class:fa-check={saveStatus === 'saved'} class:fa-times={saveStatus === 'error'}></i>
         <span>
@@ -204,7 +183,7 @@
       <button
         class="tfm-btn increment-btn"
         on:click={handleSaveIncrement}
-        disabled={saveStatus === 'saving' || !$configsLoadedFromFile}
+        disabled={saveStatus === 'saving'}
         title="Save as incremented copy"
       >
         <i class="fas fa-plus"></i>
@@ -263,8 +242,8 @@
   </div>
 
   <div class="status-labels">
-    <span class="status-label" class:dirty={unsaved} class:clean={!unsaved}>
-      {unsaved ? 'Unsaved changes' : 'Saved'}
+    <span class="status-label" class:dirty={$dirty} class:clean={!$dirty}>
+      {$dirty ? 'Unsaved changes' : 'Saved'}
     </span>
   </div>
 
@@ -282,7 +261,7 @@
       class:done={productionUpdateStatus === 'done'}
       class:error={productionUpdateStatus === 'error'}
       on:click={handleUpdateProduction}
-      disabled={productionUpdateStatus === 'updating' || !$configsLoadedFromFile || (productionInfo?.fileName === $activeFileName)}
+      disabled={productionUpdateStatus === 'updating' || (productionInfo?.fileName === $activeFileName)}
       title={productionInfo?.fileName === $activeFileName ? 'Already in production' : `Set "${currentDisplayName}" as production`}
     >
       <i class="fas" class:fa-sync-alt={productionUpdateStatus === 'idle'} class:fa-spinner={productionUpdateStatus === 'updating'} class:fa-check={productionUpdateStatus === 'done'} class:fa-times={productionUpdateStatus === 'error'}></i>

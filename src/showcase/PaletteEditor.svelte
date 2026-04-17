@@ -7,33 +7,91 @@
   import ColorEditPanel from './ColorEditPanel.svelte';
   import Toggle from '../components/Toggle.svelte';
   import type { PaletteConfig, GradientStyle, GradientStop } from '../lib/tokenTypes';
-  import { editorConfigs, loadedConfigs, configsLoadedFromFile } from '../lib/editorConfigStore';
+  import { editorState, mutate, setPaletteConfig, beginSliderGesture, beginPaletteEditSession, commitPaletteEditSession, cancelPaletteEditSession } from '../lib/editorStore';
   import { setCssVar as setCssVarSync } from '../lib/cssVarSync';
+  import { get } from 'svelte/store';
 
   export let label: string;
   export let initialColor: string = '#808080';
   export let mode: 'chromatic' | 'gray' = 'chromatic';
   export let cssNamespace: string | null = null;
-  export let saveSignal: number = 0;
   export let emptySelector: boolean = false;
 
-  // --- Empty selector state ---
-  let emptyMode: 'solid' | 'gradient' = 'solid';
-  let emptyStep: string = '850';
-
-  // --- Gradient state ---
-  let gradientStyle: GradientStyle = 'linear';
-  let gradientAngle: number = 180;
-  let gradientReverse: boolean = false;
-  let anchorToBase: boolean = true;
-  let lockedLightnessIdx: number | null = null;
-  let lockedSaturationIdx: number | null = null;
-  let lastAnchorToBase: boolean = false;
-  let gradientSize: 'page' | 'window' = 'page';
-  let gradientStops: GradientStop[] = [
+  // --- Store-sourced config (single source of truth) ---
+  //
+  // All persistent palette state lives in `$editorState.palettes[label]`.
+  // Local `$:` derivations below pull named fields with defaults; every
+  // handler writes via `edit()` / `patchPalette()` so the store is the only
+  // writer. No `let` mirrors, no round-trip sync reactives.
+  //
+  // The defaults fall back only when palettes[label] is undefined (brand-new
+  // install, never seeded). Production seeds via tokenInit → seedPalettesFromTokens.
+  $: paletteConfig = $editorState.palettes[label];
+  $: baseColor = paletteConfig?.baseColor ?? initialColor;
+  $: tintHue = paletteConfig?.tintHue ?? 240;
+  $: tintChroma = paletteConfig?.tintChroma ?? DEFAULT_TINT_CHROMA;
+  $: lightnessCurve = paletteConfig?.lightnessCurve ?? DEFAULT_PALETTE_LIGHTNESS();
+  $: saturationCurve = paletteConfig?.saturationCurve ?? DEFAULT_PALETTE_SATURATION();
+  $: grayLightnessCurve = paletteConfig?.grayLightnessCurve ?? DEFAULT_GRAY_LIGHTNESS();
+  $: graySaturationCurve = paletteConfig?.graySaturationCurve ?? DEFAULT_GRAY_SATURATION();
+  $: scaleCurves = paletteConfig?.scaleCurves ?? defaultScaleCurvesObject();
+  $: curveOffset = paletteConfig?.curveOffset ?? { lightness: 0, saturation: 0 };
+  $: overrides = paletteConfig?.overrides ?? {};
+  $: snappedScales = new Set(paletteConfig?.snappedScales ?? []);
+  $: anchorToBase = paletteConfig?.anchorToBase ?? true;
+  $: emptyMode = paletteConfig?.emptyMode ?? 'solid';
+  $: emptyStep = paletteConfig?.emptyStep ?? '850';
+  $: gradientStyle = paletteConfig?.gradientStyle ?? 'linear';
+  $: gradientAngle = paletteConfig?.gradientAngle ?? 180;
+  $: gradientReverse = paletteConfig?.gradientReverse ?? false;
+  $: gradientStops = paletteConfig?.gradientStops ?? [
     { position: 0, paletteLabel: '800' },
     { position: 100, paletteLabel: '950' },
   ];
+  $: gradientSize = paletteConfig?.gradientSize ?? 'page';
+
+  function defaultPaletteConfig(): PaletteConfig {
+    return {
+      baseColor: initialColor,
+      tintHue: 240,
+      tintChroma: DEFAULT_TINT_CHROMA,
+      lightnessCurve: DEFAULT_PALETTE_LIGHTNESS(),
+      saturationCurve: DEFAULT_PALETTE_SATURATION(),
+      grayLightnessCurve: DEFAULT_GRAY_LIGHTNESS(),
+      graySaturationCurve: DEFAULT_GRAY_SATURATION(),
+      scaleCurves: defaultScaleCurvesObject(),
+      curveOffset: { lightness: 0, saturation: 0 },
+      overrides: {},
+      snappedScales: [],
+      anchorToBase: true,
+    };
+  }
+
+  function defaultScaleCurvesObject() {
+    return {
+      Surfaces: { lightness: defaultScaleCurves.Surfaces.lightness(), saturation: defaultScaleCurves.Surfaces.saturation() },
+      Borders: { lightness: defaultScaleCurves.Borders.lightness(), saturation: defaultScaleCurves.Borders.saturation() },
+      Text: { lightness: defaultScaleCurves.Text.lightness(), saturation: defaultScaleCurves.Text.saturation() },
+    };
+  }
+
+  function edit<K extends keyof PaletteConfig>(field: K, value: PaletteConfig[K]): void {
+    mutate(`${label}: ${String(field)}`, (s) => {
+      if (!s.palettes[label]) s.palettes[label] = defaultPaletteConfig();
+      (s.palettes[label] as any)[field] = value;
+    });
+  }
+
+  function patchPalette(patch: Partial<PaletteConfig>, historyLabel: string): void {
+    mutate(`${label}: ${historyLabel}`, (s) => {
+      if (!s.palettes[label]) s.palettes[label] = defaultPaletteConfig();
+      Object.assign(s.palettes[label], patch);
+    });
+  }
+
+  // --- Transient UI state (not persisted; not in PaletteConfig) ---
+  let lockedLightnessIdx: number | null = null;
+  let lockedSaturationIdx: number | null = null;
   let draggingStopIndex: number | null = null;
   let selectedStopIndex: number = 0;
 
@@ -48,6 +106,32 @@
 
   // Must run after paletteComputed is defined — see reactive block below
 
+  function onAngleInput(e: Event) {
+    const v = parseInt((e.currentTarget as HTMLInputElement).value) || 0;
+    edit('gradientAngle', v);
+  }
+
+  function onReverseChange(e: Event) {
+    edit('gradientReverse', (e.currentTarget as HTMLInputElement).checked);
+  }
+
+  function onEmptyModeChange(e: Event) {
+    edit('emptyMode', (e.currentTarget as HTMLInputElement).checked ? 'gradient' : 'solid');
+  }
+
+  function onStopColorChange(e: Event) {
+    const v = (e.currentTarget as HTMLSelectElement).value;
+    const next = gradientStops.map((s, idx) => idx === selectedStopIndex ? { ...s, paletteLabel: v } : s);
+    edit('gradientStops', next);
+  }
+
+  function onStopPositionChange(e: Event) {
+    const raw = parseInt((e.currentTarget as HTMLInputElement).value) || 0;
+    const v = Math.max(0, Math.min(100, raw));
+    const next = gradientStops.map((s, idx) => idx === selectedStopIndex ? { ...s, position: v } : s);
+    edit('gradientStops', next);
+  }
+
   function addGradientStop(position: number) {
     // Find nearest palette color by interpolating between surrounding stops
     const nearest = paletteComputed.reduce((prev, curr) => {
@@ -55,14 +139,16 @@
       const currDist = Math.abs(parseInt(curr.label) - 500);
       return currDist < prevDist ? curr : prev;
     });
-    gradientStops = [...gradientStops, { position, paletteLabel: nearest.label }];
-    selectedStopIndex = gradientStops.length - 1;
+    const next = [...gradientStops, { position, paletteLabel: nearest.label }];
+    edit('gradientStops', next);
+    selectedStopIndex = next.length - 1;
   }
 
   function removeGradientStop(index: number) {
     if (gradientStops.length <= 2) return;
-    gradientStops = gradientStops.filter((_, i) => i !== index);
-    if (selectedStopIndex >= gradientStops.length) selectedStopIndex = gradientStops.length - 1;
+    const next = gradientStops.filter((_, i) => i !== index);
+    edit('gradientStops', next);
+    if (selectedStopIndex >= next.length) selectedStopIndex = next.length - 1;
   }
 
   function handleStopHandleMouseDown(e: MouseEvent, i: number) {
@@ -70,11 +156,12 @@
     draggingStopIndex = i;
     const bar = (e.currentTarget as HTMLElement).parentElement!;
     const rect = bar.getBoundingClientRect();
+    beginSliderGesture('drag gradient stop');
     function onMove(me: MouseEvent) {
       if (draggingStopIndex === null) return;
       const newPos = Math.round(Math.max(0, Math.min(100, ((me.clientX - rect.left) / rect.width) * 100)));
-      gradientStops[draggingStopIndex].position = newPos;
-      gradientStops = gradientStops;
+      const next = gradientStops.map((s, idx) => idx === draggingStopIndex ? { ...s, position: newPos } : s);
+      edit('gradientStops', next);
     }
     function onUp() {
       draggingStopIndex = null;
@@ -90,21 +177,22 @@
     const rect = bar.getBoundingClientRect();
     const pos = Math.round(((e.clientX - rect.left) / rect.width) * 100);
 
-    // Check if clicking near an existing stop
     const nearIdx = gradientStops.findIndex(s => Math.abs(s.position - pos) < 4);
     if (nearIdx >= 0) {
       selectedStopIndex = nearIdx;
       draggingStopIndex = nearIdx;
+      beginSliderGesture('drag gradient stop');
     } else {
       addGradientStop(Math.max(0, Math.min(100, pos)));
       draggingStopIndex = gradientStops.length - 1;
+      beginSliderGesture('drag gradient stop');
     }
 
     function onMove(me: MouseEvent) {
       if (draggingStopIndex === null) return;
       const newPos = Math.round(Math.max(0, Math.min(100, ((me.clientX - rect.left) / rect.width) * 100)));
-      gradientStops[draggingStopIndex].position = newPos;
-      gradientStops = gradientStops;
+      const next = gradientStops.map((s, idx) => idx === draggingStopIndex ? { ...s, position: newPos } : s);
+      edit('gradientStops', next);
     }
     function onUp() {
       draggingStopIndex = null;
@@ -114,10 +202,6 @@
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
   }
-
-  const STORAGE_KEY = `palette-editor-${label}`;
-
-  let baseColor = initialColor;
 
   // --- Gray mode ---
 
@@ -142,7 +226,6 @@
     { label: '950', hue: 229, saturation: 34, lightness: 3 },
   ];
 
-  let tintHue = 240;
   let grayEditorOpen = false;
   let showDerived = false;
 
@@ -155,15 +238,10 @@
   const DEFAULT_GRAY_LIGHTNESS = () => [makeAnchor(0, 92, 5), makeAnchor(100, 3, 5)];
   const DEFAULT_GRAY_SATURATION = () => [makeAnchor(0, 20, 30), makeAnchor(100, 20, 30)];
 
-  let lightnessCurve: CurveAnchor[] = DEFAULT_PALETTE_LIGHTNESS();
-  let saturationCurve: CurveAnchor[] = DEFAULT_PALETTE_SATURATION();
-  let grayLightnessCurve: CurveAnchor[] = DEFAULT_GRAY_LIGHTNESS();
-  let graySaturationCurve: CurveAnchor[] = DEFAULT_GRAY_SATURATION();
-
-  function setLightnessCurve(a: CurveAnchor[]) { lightnessCurve = a; }
-  function setSaturationCurve(a: CurveAnchor[]) { saturationCurve = a; }
-  function setGrayLightnessCurve(a: CurveAnchor[]) { grayLightnessCurve = a; }
-  function setGraySaturationCurve(a: CurveAnchor[]) { graySaturationCurve = a; }
+  function setLightnessCurve(a: CurveAnchor[]) { edit('lightnessCurve', a); }
+  function setSaturationCurve(a: CurveAnchor[]) { edit('saturationCurve', a); }
+  function setGrayLightnessCurve(a: CurveAnchor[]) { edit('grayLightnessCurve', a); }
+  function setGraySaturationCurve(a: CurveAnchor[]) { edit('graySaturationCurve', a); }
 
   const gradientStyleOptions: { value: GradientStyle; icon: string; title: string }[] = [
     { value: 'linear', icon: '/', title: 'Linear' },
@@ -178,11 +256,8 @@
 
   // --- Curve offset + clipboard (shared across all curve editors) ---
 
-  let curveOffset: Record<string, number> = { lightness: 0, saturation: 0 };
-
   function handleOffset(key: string, value: number) {
-    curveOffset[key] = value;
-    curveOffset = curveOffset;
+    edit('curveOffset', { ...curveOffset, [key]: value });
   }
 
   // Gray step index to curve x-position
@@ -192,7 +267,6 @@
 
   // Base chroma for gray tinting (editable via the color panel's chroma slider)
   const DEFAULT_TINT_CHROMA = 0.04;
-  let tintChroma = DEFAULT_TINT_CHROMA;
 
   // Snapshots for cancel in gray base editing (avoids lossy hex round-trip)
   let snapshotTintHue: number | null = null;
@@ -286,33 +360,68 @@
     return curve.filter((_, i) => i !== idx);
   }
 
-  $: if (anchorToBase !== lastAnchorToBase) {
-    lastAnchorToBase = anchorToBase;
-    if (anchorToBase) {
+  /**
+   * Toggle anchorToBase: inject (or remove) the locked 500 anchor in both
+   * curves atomically with the flag flip, so one undo reverses the whole
+   * thing. Transient `injectedLightness` / `injectedSaturation` remember
+   * whether we created the anchor (vs it already existed) so toggle-off
+   * doesn't destroy a user-authored anchor. Not persisted — acceptable drift
+   * on reload is that a pre-existing anchor would be preserved on toggle-off.
+   */
+  function setAnchorToBase(next: boolean) {
+    if (next === anchorToBase) return;
+    if (next) {
       const x500 = stepIndexToX(4);
       const lResult = injectLockedAnchor(lightnessCurve, x500, hexToOklch(baseColor).l * 100);
-      if (lResult.curve !== lightnessCurve) lightnessCurve = lResult.curve;
-      lockedLightnessIdx = lResult.idx;
-      injectedLightness = lResult.injected;
       const sResult = injectLockedAnchor(saturationCurve, x500, 100);
-      if (sResult.curve !== saturationCurve) saturationCurve = sResult.curve;
-      lockedSaturationIdx = sResult.idx;
+      injectedLightness = lResult.injected;
       injectedSaturation = sResult.injected;
+      patchPalette({
+        anchorToBase: true,
+        lightnessCurve: lResult.curve,
+        saturationCurve: sResult.curve,
+      }, 'anchor on');
     } else {
-      if (injectedLightness) lightnessCurve = removeLockedAnchor(lightnessCurve, lockedLightnessIdx);
-      if (injectedSaturation) saturationCurve = removeLockedAnchor(saturationCurve, lockedSaturationIdx);
-      lockedLightnessIdx = null;
-      lockedSaturationIdx = null;
+      const lCurr = lightnessCurve;
+      const sCurr = saturationCurve;
+      const nextL = injectedLightness ? removeLockedAnchor(lCurr, lockedLightnessIdx) : lCurr;
+      const nextS = injectedSaturation ? removeLockedAnchor(sCurr, lockedSaturationIdx) : sCurr;
       injectedLightness = false;
       injectedSaturation = false;
+      patchPalette({
+        anchorToBase: false,
+        lightnessCurve: nextL,
+        saturationCurve: nextS,
+      }, 'anchor off');
     }
   }
 
-  // Keep locked lightness anchor y in sync with base color
+  // Derive locked anchor indices from curve shape — no writes to state.
+  $: {
+    if (anchorToBase) {
+      const x500 = stepIndexToX(4);
+      const lIdx = lightnessCurve.findIndex(a => Math.abs(a.x - x500) < 0.5);
+      lockedLightnessIdx = lIdx >= 0 ? lIdx : null;
+      const sIdx = saturationCurve.findIndex(a => Math.abs(a.x - x500) < 0.5);
+      lockedSaturationIdx = sIdx >= 0 ? sIdx : null;
+    } else {
+      lockedLightnessIdx = null;
+      lockedSaturationIdx = null;
+    }
+  }
+
+  /**
+   * Keep the locked lightness anchor y in sync with baseColor. Idempotent —
+   * only writes when the curve's anchor y differs from the baseColor-derived
+   * target. During a baseColor drag (inside a slider transaction) this
+   * additional curve edit merges into the same history entry. On undo/redo
+   * the curve already has the correct y (they're saved together), so this
+   * is a no-op.
+   */
   $: if (anchorToBase && lockedLightnessIdx !== null && baseColor) {
     const targetY = hexToOklch(baseColor).l * 100;
     if (lightnessCurve[lockedLightnessIdx] && Math.abs(lightnessCurve[lockedLightnessIdx].y - targetY) > 0.01) {
-      lightnessCurve = lightnessCurve.map((a, i) => i === lockedLightnessIdx ? { ...a, y: targetY } : a);
+      edit('lightnessCurve', lightnessCurve.map((a, i) => i === lockedLightnessIdx ? { ...a, y: targetY } : a));
     }
   }
 
@@ -329,7 +438,7 @@
   }
 
   $: paletteComputed = (() => {
-    const _lc = lightnessCurve, _sc = saturationCurve, _co = curveOffset, _ed = editingDraft, _ek = editingKey, _ov = overrides, _ab = anchorToBase;
+    const _bc = baseColor, _lc = lightnessCurve, _sc = saturationCurve, _co = curveOffset, _ed = editingDraft, _ek = editingKey, _ov = overrides, _ab = anchorToBase;
     return paletteStepLightness.map((ps, index) => {
       const k = paletteStepKey(ps.label);
       const hex = computePaletteColor(index, baseColor);
@@ -372,6 +481,7 @@
     editingDraft = current;
     editingSnapshot = current;
     editingKey = k;
+    beginPaletteEditSession();
   }
 
   // --- Scale types ---
@@ -452,17 +562,11 @@
     },
   };
 
-  let scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }> = {
-    Surfaces: { lightness: defaultScaleCurves.Surfaces.lightness(), saturation: defaultScaleCurves.Surfaces.saturation() },
-    Borders: { lightness: defaultScaleCurves.Borders.lightness(), saturation: defaultScaleCurves.Borders.saturation() },
-    Text: { lightness: defaultScaleCurves.Text.lightness(), saturation: defaultScaleCurves.Text.saturation() },
-  };
-
   let scaleEditorOpen: Record<string, boolean> = { Surfaces: false, Borders: false, Text: false };
 
   function setScaleCurve(title: string, channel: 'lightness' | 'saturation', a: CurveAnchor[]) {
-    scaleCurves[title] = { ...scaleCurves[title], [channel]: a };
-    scaleCurves = scaleCurves;
+    const cur = scaleCurves[title] ?? { lightness: defaultScaleCurves[title].lightness(), saturation: defaultScaleCurves[title].saturation() };
+    edit('scaleCurves', { ...scaleCurves, [title]: { ...cur, [channel]: a } });
   }
 
   function getScaleCurveKey(scaleTitle: string, channel: 'lightness' | 'saturation'): string {
@@ -479,7 +583,6 @@
     return { lightnessLow: 0, lightnessHigh: 100, saturation: 100 };
   }
 
-  let overrides: Record<string, string> = {};
   let editingKey: string | null = null;
   let editingSnapshot: string | null = null;
   let editingDraft: string | null = null;
@@ -569,12 +672,15 @@
 
   function handleColorChange(hex: string) {
     if (isEditingBase) {
-      baseColor = hex;
-    } else if (editingKey) {
+      // Gray mode's base is derived from tintHue/tintChroma (onHueChromaChange
+      // writes those). The raw hex path only applies to chromatic palettes.
+      if (mode === 'chromatic') edit('baseColor', hex);
+      return;
+    }
+    if (editingKey) {
       editingDraft = hex;
       if (editingKey in overrides) {
-        overrides[editingKey] = hex;
-        overrides = overrides;
+        edit('overrides', { ...overrides, [editingKey]: hex });
       }
     }
   }
@@ -582,7 +688,7 @@
   function resetOverride(k: string) {
     if (!(k in overrides)) return;
     const { [k]: _, ...rest } = overrides;
-    overrides = rest;
+    edit('overrides', rest);
   }
 
   function handleOverrideClick(k: string, step: Step, scaleTitle: string) {
@@ -594,6 +700,7 @@
     editingDraft = current;
     editingSnapshot = current;
     editingKey = k;
+    beginPaletteEditSession();
   }
 
   function handleGrayClick(gStep: GrayStep, index: number) {
@@ -606,49 +713,31 @@
     editingDraft = current;
     editingSnapshot = current;
     editingKey = k;
+    beginPaletteEditSession();
   }
 
-  function confirmEdit() {
+  async function confirmEdit() {
     if (editingKey) {
-      // Promote draft to override only if it differs from computed
+      // Accumulate all override changes into one patch so the session commit
+      // sees a single final state (no intermediate reactive round-trips).
+      let nextOverrides = { ...overrides };
       if (editingDraft !== null) {
         const computed = computedValueForKey(editingKey);
         if (computed !== null && editingDraft !== computed) {
-          overrides = { ...overrides, [editingKey]: editingDraft };
-        } else if (computed !== null && editingKey in overrides && editingDraft === computed) {
-          // Was an override but now matches computed — remove it
-          const { [editingKey]: _, ...rest } = overrides;
-          overrides = rest;
+          nextOverrides[editingKey] = editingDraft;
+        } else if (computed !== null && editingKey in nextOverrides && editingDraft === computed) {
+          delete nextOverrides[editingKey];
         }
       }
-
       for (const scale of scales.filter(s => !s.isText)) {
         if (snappedScales.has(scale.title) && scale.steps.some(s => stepKey(scale.title, s.name) === editingKey)) {
           const assigned = snapScaleToPalette(scale);
-          overrides = { ...overrides, ...assigned };
+          nextOverrides = { ...nextOverrides, ...assigned };
           break;
         }
       }
-    }
-    editingKey = null;
-    editingSnapshot = null;
-    editingDraft = null;
-    snapshotTintHue = null;
-    snapshotTintChroma = null;
-  }
-
-  function cancelEdit() {
-    if (editingSnapshot !== null && editingKey) {
-      if (isEditingBase) {
-        if (mode === 'gray' && snapshotTintHue !== null && snapshotTintChroma !== null) {
-          tintHue = snapshotTintHue;
-          tintChroma = snapshotTintChroma;
-        } else {
-          baseColor = editingSnapshot;
-        }
-      } else if (editingKey in overrides) {
-        overrides[editingKey] = editingSnapshot;
-        overrides = overrides;
+      if (JSON.stringify(nextOverrides) !== JSON.stringify(overrides)) {
+        edit('overrides', nextOverrides);
       }
     }
     editingKey = null;
@@ -656,11 +745,25 @@
     editingDraft = null;
     snapshotTintHue = null;
     snapshotTintChroma = null;
+    // tick() lets the store-derived reactives flush before session commit
+    await tick();
+    commitPaletteEditSession();
+  }
+
+  function cancelEdit() {
+    editingKey = null;
+    editingSnapshot = null;
+    editingDraft = null;
+    snapshotTintHue = null;
+    snapshotTintChroma = null;
+    // Restoring the session snapshot in the store fires the sync reactive,
+    // which pulls baseColor/tintHue/tintChroma/overrides/… back to pre-open.
+    cancelPaletteEditSession();
   }
 
   function removeOverride(k: string) {
     const { [k]: _, ...rest } = overrides;
-    overrides = rest;
+    edit('overrides', rest);
     if (editingKey === k) { editingKey = null; editingDraft = null; }
     editingSnapshot = null;
   }
@@ -730,8 +833,6 @@
 
   // --- Snap-all: constrain an entire scale to unique palette steps ---
 
-  let snappedScales: Set<string> = new Set();
-
   function snapScaleToPalette(scale: Scale): Record<string, string> {
     const cfg = configForScale(scale.title);
     const n = scale.steps.length;
@@ -770,23 +871,21 @@
 
   function toggleSnapAll(scale: Scale) {
     if (snappedScales.has(scale.title)) {
-      snappedScales.delete(scale.title);
-      snappedScales = snappedScales;
       snapPickerKey = null;
-      const next = { ...overrides };
+      const nextOverrides = { ...overrides };
       for (const step of scale.steps) {
-        delete next[stepKey(scale.title, step.name)];
+        delete nextOverrides[stepKey(scale.title, step.name)];
       }
-      overrides = next;
+      const nextSnapped = [...snappedScales].filter(s => s !== scale.title);
+      patchPalette({ snappedScales: nextSnapped, overrides: nextOverrides }, 'unsnap scale');
       if (editingKey && scale.steps.some(s => stepKey(scale.title, s.name) === editingKey)) {
         editingKey = null;
         editingSnapshot = null;
       }
     } else {
-      snappedScales.add(scale.title);
-      snappedScales = snappedScales;
       const assigned = snapScaleToPalette(scale);
-      overrides = { ...overrides, ...assigned };
+      const nextSnapped = [...snappedScales, scale.title];
+      patchPalette({ snappedScales: nextSnapped, overrides: { ...overrides, ...assigned } }, 'snap scale');
     }
   }
 
@@ -797,7 +896,7 @@
     } else {
       for (const ps of paletteStepLightness) delete next[paletteStepKey(ps.label)];
     }
-    overrides = next;
+    edit('overrides', next);
   }
 
   function scaleHasOverrides(scale: Scale): boolean {
@@ -805,15 +904,13 @@
   }
 
   function clearScaleOverrides(scale: Scale) {
-    // Also unsnap the scale so resnapScales() won't re-add overrides
-    snappedScales.delete(scale.title);
-    snappedScales = snappedScales;
     snapPickerKey = null;
-    const next = { ...overrides };
+    const nextOverrides = { ...overrides };
     for (const step of scale.steps) {
-      delete next[stepKey(scale.title, step.name)];
+      delete nextOverrides[stepKey(scale.title, step.name)];
     }
-    overrides = next;
+    const nextSnapped = [...snappedScales].filter(s => s !== scale.title);
+    patchPalette({ snappedScales: nextSnapped, overrides: nextOverrides }, 'clear scale overrides');
     if (editingKey && scale.steps.some(s => stepKey(scale.title, s.name) === editingKey)) {
       editingKey = null;
       editingSnapshot = null;
@@ -831,8 +928,8 @@
   onMount(() => document.addEventListener('click', handleDocClick, true));
   onDestroy(() => document.removeEventListener('click', handleDocClick, true));
 
-  function selectSnapValue(k: string, paletteHex: string, scaleTitle: string) {
-    overrides = { ...overrides, [k]: paletteHex };
+  function selectSnapValue(k: string, paletteHex: string, _scaleTitle: string) {
+    edit('overrides', { ...overrides, [k]: paletteHex });
     snapPickerKey = null;
   }
 
@@ -858,7 +955,7 @@
         }
       }
     }
-    if (changed) overrides = next;
+    if (changed) edit('overrides', next);
   }
 
   $: baseColor, scaleCurves, lightnessCurve, saturationCurve, curveOffset, snappedScales, resnapScales();
@@ -894,7 +991,7 @@
 
   // Chromatic mode: set --color-{namespace}-* palette ramp + semantic surface/border/text CSS variables
   // Gated on mountComplete so the initial reactive flush — which runs with hardcoded
-  // component defaults, before loadFromLocalStorage / loadedConfigs has seeded state —
+  // component defaults, before the onMount `state.palettes[label]` / localStorage seed —
   // does not stomp the host :root that variables.css / tokenInit already populated.
   $: if (mountComplete && cssNamespace !== null && mode === 'chromatic') {
     const _cv = curveVersion;
@@ -902,8 +999,10 @@
     const _bc = baseColor;
     // Palette color ramp (100–950)
     const _pc = paletteComputed;
+    let _emitted = 0;
     for (const ps of _pc) {
       setCssVar(`--color-${cssNamespace}-${ps.label}`, ps.effective);
+      _emitted++;
     }
     // Semantic scales (surfaces, borders, text)
     for (const scale of scales) {
@@ -911,9 +1010,10 @@
         const k = stepKey(scale.title, step.name);
         const hex = (k in _ov) ? _ov[k] : computeDerivedColor(step, _bc, configForScale(scale.title), scale.title);
         const varName = scaleToCssVar(scale.title, step.name);
-        if (varName) setCssVar(varName, hex);
+        if (varName) { setCssVar(varName, hex); _emitted++; }
       }
     }
+    void _emitted;
   }
 
   // Gray mode: set --color-{namespace}-* variables + semantic scales (surfaces, borders, text)
@@ -954,122 +1054,24 @@
     }
   }
 
-  // --- Save / Load configuration ---
-
-  function buildConfig(): PaletteConfig {
-    return {
-      baseColor,
-      tintHue,
-      tintChroma,
-      lightnessCurve,
-      saturationCurve,
-      grayLightnessCurve,
-      graySaturationCurve,
-      scaleCurves,
-      curveOffset,
-      overrides,
-      snappedScales: [...snappedScales],
-      anchorToBase,
-      ...(emptySelector ? { emptyMode, emptyStep, gradientStyle, gradientAngle, gradientReverse, gradientStops, gradientSize } : {}),
-    };
-  }
-
-  function saveConfig() {
-    const config = buildConfig();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-    // Also push to the shared store so save/load flows can collect all configs
-    editorConfigs.update(m => ({ ...m, [label]: config }));
-  }
-
-  function applyConfig(config: PaletteConfig) {
-    // Clear any in-progress editing
-    editingKey = null;
-    editingSnapshot = null;
-    editingDraft = null;
-
-    baseColor = config.baseColor;
-    tintHue = config.tintHue;
-    tintChroma = config.tintChroma ?? DEFAULT_TINT_CHROMA;
-    lightnessCurve = config.lightnessCurve;
-    saturationCurve = config.saturationCurve;
-    grayLightnessCurve = config.grayLightnessCurve;
-    graySaturationCurve = config.graySaturationCurve;
-    scaleCurves = config.scaleCurves;
-    curveOffset = config.curveOffset;
-    overrides = config.overrides;
-    snappedScales = new Set(config.snappedScales);
-    lastAnchorToBase = false; // reset so reactive re-fires
-    anchorToBase = config.anchorToBase ?? true;
-    if (config.emptyMode) emptyMode = config.emptyMode;
-    if (config.emptyStep) emptyStep = config.emptyStep;
-    if (config.gradientStyle) gradientStyle = config.gradientStyle;
-    if (config.gradientAngle !== undefined) gradientAngle = config.gradientAngle;
-    if (config.gradientReverse !== undefined) gradientReverse = config.gradientReverse;
-    if (config.gradientStops) gradientStops = config.gradientStops;
-    if (config.gradientSize) gradientSize = config.gradientSize;
-  }
-
-  function loadFromLocalStorage(): boolean {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return false;
-    try {
-      applyConfig(JSON.parse(raw));
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Fetch variables.css from disk (cache-busted), parse :root variables,
-   * and set the base color to match the CSS 500 step. Curves generate
-   * the full palette and derived scales — no overrides are created.
-   */
-  // Called directly by VariablesTab when a token file is loaded.
+  // --- Load external config ---
+  //
+  // External file loads come through editorStore.loadFromFile, which
+  // overwrites $editorState.palettes — no component-side mirroring needed.
+  // This export is kept only for callers that want to push a config in
+  // directly.
   export function loadConfig(config: PaletteConfig) {
-    applyConfig(config);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-    editorConfigs.update(m => ({ ...m, [label]: config }));
+    setPaletteConfig(label, config);
   }
 
-  // Initial load from token file on mount (set by tokenInit before mount)
-  $: if ($loadedConfigs && $loadedConfigs[label]) {
-    loadConfig($loadedConfigs[label]);
-  }
-
-  let initialized = false;
   let mountComplete = false;
-
   onMount(async () => {
-    loadFromLocalStorage();
-    // Push initial config to the shared store
-    editorConfigs.update(m => ({ ...m, [label]: buildConfig() }));
-    initialized = true;
-    // Wait for the initial reactive flush to complete before marking mount done.
-    // Any auto-persist run after this point is from a deliberate user edit.
+    // Store is already hydrated at module load; component defaults in $:
+    // derivations handle brand-new installs where palettes[label] is undefined.
     await tick();
     mountComplete = true;
   });
 
-  // Auto-persist to localStorage so state survives HMR / remounts
-  $: if (initialized) {
-    // Explicit dep references for Svelte reactivity tracking
-    const _deps = [baseColor, tintHue, tintChroma, lightnessCurve, saturationCurve,
-      grayLightnessCurve, graySaturationCurve, scaleCurves,
-      curveOffset, overrides, snappedScales,
-      emptyMode, emptyStep, gradientStyle, gradientAngle, gradientReverse, gradientStops, gradientSize, anchorToBase];
-    const config = buildConfig();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-    editorConfigs.update(m => ({ ...m, [label]: config }));
-    // After mount completes, any reactive run means the user deliberately edited
-    if (mountComplete) {
-      configsLoadedFromFile.set(true);
-    }
-  }
-
-  $: if (saveSignal > 0) {
-    saveConfig();
-  }
 </script>
 
 <div class="palette-editor" style="--editor-base: {mode === 'gray' ? gray500Hex : baseColor}">
@@ -1081,10 +1083,10 @@
           class="header-swatch"
           class:active={isEditingBase}
           style="background: {baseColor}"
-          on:click={() => { if (editingKey === BASE_KEY) { confirmEdit(); } else { editingSnapshot = baseColor; editingKey = BASE_KEY; } }}
+          on:click={() => { if (editingKey === BASE_KEY) { confirmEdit(); } else { editingSnapshot = baseColor; editingKey = BASE_KEY; beginPaletteEditSession(); } }}
           role="button"
           tabindex="0"
-          on:keydown={(e) => e.key === 'Enter' && (editingKey === BASE_KEY ? confirmEdit() : (editingSnapshot = baseColor, editingKey = BASE_KEY))}
+          on:keydown={(e) => e.key === 'Enter' && (editingKey === BASE_KEY ? confirmEdit() : (editingSnapshot = baseColor, editingKey = BASE_KEY, beginPaletteEditSession()))}
         ></div>
       {:else}
         <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
@@ -1092,10 +1094,10 @@
           class="header-swatch"
           class:active={isEditingBase}
           style="background: {gray500Hex}"
-          on:click={() => { if (editingKey === BASE_KEY) { confirmEdit(); } else { editingSnapshot = gray500Hex; snapshotTintHue = tintHue; snapshotTintChroma = tintChroma; editingKey = BASE_KEY; } }}
+          on:click={() => { if (editingKey === BASE_KEY) { confirmEdit(); } else { editingSnapshot = gray500Hex; snapshotTintHue = tintHue; snapshotTintChroma = tintChroma; editingKey = BASE_KEY; beginPaletteEditSession(); } }}
           role="button"
           tabindex="0"
-          on:keydown={(e) => e.key === 'Enter' && (editingKey === BASE_KEY ? confirmEdit() : (editingSnapshot = gray500Hex, snapshotTintHue = tintHue, snapshotTintChroma = tintChroma, editingKey = BASE_KEY))}
+          on:keydown={(e) => e.key === 'Enter' && (editingKey === BASE_KEY ? confirmEdit() : (editingSnapshot = gray500Hex, snapshotTintHue = tintHue, snapshotTintChroma = tintChroma, editingKey = BASE_KEY, beginPaletteEditSession()))}
         ></div>
       {/if}
       <div class="primary-info">
@@ -1125,14 +1127,15 @@
       mode={mode === 'gray' ? 'hue-chroma' : 'hsl'}
       hue={tintHue}
       chroma={tintChroma}
-      onHueChromaChange={(h, c) => { tintHue = h; tintChroma = c; }}
+      onHueChromaChange={(h, c) => patchPalette({ tintHue: h, tintChroma: c }, 'tint hue/chroma')}
       onColorChange={handleColorChange}
       onConfirm={confirmEdit}
       onCancel={cancelEdit}
       onRemoveOverride={() => {}}
+      onSliderStart={() => beginSliderGesture(`edit ${label} base`)}
     >
       <span slot="actions" class:hidden={mode !== 'chromatic'}>
-        <Toggle bind:checked={anchorToBase} label="Lock base color to position 500" />
+        <Toggle checked={anchorToBase} on:change={(e) => setAnchorToBase(e.detail ?? !anchorToBase)} label="Lock base color to position 500" />
       </span>
     </ColorEditPanel>
   {/if}
@@ -1148,7 +1151,7 @@
             <input
               type="checkbox"
               checked={emptyMode === 'gradient'}
-              on:change={(e) => { emptyMode = e.currentTarget.checked ? 'gradient' : 'solid'; }}
+              on:change={onEmptyModeChange}
             />
             <span>Gradient</span>
           </label>
@@ -1191,7 +1194,7 @@
                   type="checkbox"
                   class="empty-check"
                   checked={emptyStep === ps.label}
-                  on:click|stopPropagation={() => { emptyStep = ps.label; }}
+                  on:click|stopPropagation={() => edit('emptyStep', ps.label)}
                   on:keydown|stopPropagation
                   title="Page background"
                 />
@@ -1243,7 +1246,7 @@
                   class:active={gradientStyle === opt.value}
                   type="button"
                   title={opt.title}
-                  on:click={() => { gradientStyle = opt.value; }}
+                  on:click={() => edit('gradientStyle', opt.value)}
                 >{opt.icon}</button>
               {/each}
             </div>
@@ -1256,7 +1259,8 @@
               type="number"
               min="0"
               max="360"
-              bind:value={gradientAngle}
+              value={gradientAngle}
+              on:input={onAngleInput}
             />
             <span class="gradient-unit">deg</span>
             <input
@@ -1264,7 +1268,8 @@
               type="range"
               min="0"
               max="360"
-              bind:value={gradientAngle}
+              value={gradientAngle}
+              on:input={onAngleInput}
             />
           </div>
 
@@ -1277,7 +1282,7 @@
                   class:active={gradientSize === opt.value}
                   type="button"
                   title={opt.title}
-                  on:click={() => { gradientSize = opt.value; }}
+                  on:click={() => edit('gradientSize', opt.value)}
                 >{opt.label}</button>
               {/each}
             </div>
@@ -1285,7 +1290,7 @@
 
           <div class="gradient-row">
             <label class="gradient-checkbox-label">
-              <input type="checkbox" bind:checked={gradientReverse} />
+              <input type="checkbox" checked={gradientReverse} on:change={onReverseChange} />
               Reverse
             </label>
           </div>
@@ -1331,8 +1336,8 @@
               <span class="gradient-label">Color:</span>
               <select
                 class="gradient-select"
-                bind:value={gradientStops[selectedStopIndex].paletteLabel}
-                on:change={() => { gradientStops = gradientStops; }}
+                value={gradientStops[selectedStopIndex].paletteLabel}
+                on:change={onStopColorChange}
               >
                 {#each paletteComputed as ps}
                   <option value={ps.label}>{ps.label}</option>
@@ -1345,8 +1350,8 @@
                 type="number"
                 min="0"
                 max="100"
-                bind:value={gradientStops[selectedStopIndex].position}
-                on:change={() => { gradientStops = gradientStops; }}
+                value={gradientStops[selectedStopIndex].position}
+                on:change={onStopPositionChange}
               />
               <span class="gradient-unit">%</span>
               {#if gradientStops.length > 2}
@@ -1836,11 +1841,12 @@
       mode={'hsl'}
       hue={tintHue}
       chroma={tintChroma}
-      onHueChromaChange={(h, c) => { tintHue = h; tintChroma = c; }}
+      onHueChromaChange={(h, c) => patchPalette({ tintHue: h, tintChroma: c }, 'tint hue/chroma')}
       onColorChange={handleColorChange}
       onConfirm={confirmEdit}
       onCancel={cancelEdit}
       onRemoveOverride={() => editingKey && removeOverride(editingKey)}
+      onSliderStart={() => beginSliderGesture(`edit ${label} ${editingKey ?? 'color'}`)}
     />
   {/if}
 </div>

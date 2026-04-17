@@ -10,6 +10,12 @@
   export let onConfirm: () => void = () => {};
   export let onCancel: () => void = () => {};
   export let onRemoveOverride: () => void = () => {};
+  /**
+   * Optional pointerdown hook for slider drags — lets parents open a store
+   * transaction so the whole drag collapses to one undo step. If the parent
+   * doesn't route slider writes through the editor store, leave this unset.
+   */
+  export let onSliderStart: () => void = () => {};
 
   // Hue-chroma mode props (for neutral/gray base editing)
   export let mode: 'hsl' | 'hue-chroma' = 'hsl';
@@ -179,7 +185,7 @@
       <button class="hsl-hex" on:click={startHexEdit} title="Click to edit hex">{previewHex}</button>
     {/if}
     {#if mode === 'hue-chroma'}
-      <code class="hsl-values">oklch({PREVIEW_LIGHTNESS}, {chroma.toFixed(3)}, {hue})</code>
+      <code class="hsl-values">oklch({PREVIEW_LIGHTNESS}, {chroma.toFixed(3)}, {Math.round(hue)})</code>
     {:else}
       <code class="hsl-values">hsl({hsl[0]}, {hsl[1]}%, {hsl[2]}%)</code>
     {/if}
@@ -205,7 +211,7 @@
     {#if mode === 'hue-chroma'}
       <div class="hsl-slider-row">
         <span class="hsl-slider-label">H</span>
-        <div class="slider-track" style="background: {hueGradient}">
+        <div class="slider-track" style="background: {hueGradient}" on:pointerdown={onSliderStart}>
           <input type="range" min="0" max="360" value={hue}
             on:input={(e) => onHueChromaChange(+e.currentTarget.value, chroma)} />
         </div>
@@ -220,7 +226,7 @@
       </div>
       <div class="hsl-slider-row">
         <span class="hsl-slider-label">C</span>
-        <div class="slider-track" style="background: {chromaGradient}">
+        <div class="slider-track" style="background: {chromaGradient}" on:pointerdown={onSliderStart}>
           <input type="range" min="0" max={CHROMA_MAX} step="0.001" value={chroma}
             on:input={(e) => onHueChromaChange(hue, +e.currentTarget.value)} />
         </div>
@@ -237,7 +243,7 @@
     {:else}
       <div class="hsl-slider-row">
         <span class="hsl-slider-label">H</span>
-        <div class="slider-track" style="background: {hueGrad(hsl[1], hsl[2])}">
+        <div class="slider-track" style="background: {hueGrad(hsl[1], hsl[2])}" on:pointerdown={onSliderStart}>
           <input type="range" min="0" max="360" value={hsl[0]}
             on:input={(e) => updateHsl(0, +e.currentTarget.value)} />
         </div>
@@ -252,7 +258,7 @@
       </div>
       <div class="hsl-slider-row">
         <span class="hsl-slider-label">S</span>
-        <div class="slider-track" style="background: {satGrad(hsl[0], hsl[2])}">
+        <div class="slider-track" style="background: {satGrad(hsl[0], hsl[2])}" on:pointerdown={onSliderStart}>
           <input type="range" min="0" max="100" value={hsl[1]}
             on:input={(e) => updateHsl(1, +e.currentTarget.value)} />
         </div>
@@ -267,7 +273,7 @@
       </div>
       <div class="hsl-slider-row">
         <span class="hsl-slider-label">L</span>
-        <div class="slider-track" style="background: {lightGrad(hsl[0], hsl[1])}">
+        <div class="slider-track" style="background: {lightGrad(hsl[0], hsl[1])}" on:pointerdown={onSliderStart}>
           <input type="range" min="0" max="100" value={hsl[2]}
             on:input={(e) => updateHsl(2, +e.currentTarget.value)} />
         </div>

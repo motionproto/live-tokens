@@ -1,113 +1,47 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
   import PaletteEditor from './PaletteEditor.svelte';
   import FontStackEditor from './FontStackEditor.svelte';
   import ProjectFontsSection from './ProjectFontsSection.svelte';
-  import { setCssVar, removeCssVar } from '../lib/cssVarSync';
-  import { storageKey } from '../lib/editorConfig';
-  import type { PaletteConfig } from '../lib/tokenTypes';
-
-  export let saveSignal: number = 0;
-
-  // Column-layout tokens. Values are kept as plain numbers for the editor
-  // controls; the corresponding CSS vars (--columns-*) are written back on
-  // every change so the live overlay (see ColumnsOverlay.svelte) updates
-  // immediately.
-  let columnsCount = 12;
-  let columnsMaxWidth = 1440;
-  let columnsGutter = 16;
-  let columnsMargin = 0;
-
-  function readColumnsTokens() {
-    const cs = getComputedStyle(document.documentElement);
-    const cols = parseInt(cs.getPropertyValue('--columns-count').trim(), 10);
-    if (!Number.isNaN(cols) && cols > 0) columnsCount = cols;
-    const maxW = parseFloat(cs.getPropertyValue('--columns-max-width'));
-    if (!Number.isNaN(maxW)) columnsMaxWidth = Math.round(maxW);
-    const gutter = parseFloat(cs.getPropertyValue('--columns-gutter'));
-    if (!Number.isNaN(gutter)) columnsGutter = Math.round(gutter);
-    const margin = parseFloat(cs.getPropertyValue('--columns-margin'));
-    if (!Number.isNaN(margin)) columnsMargin = Math.round(margin);
-  }
+  import {
+    editorState, mutate, beginTransaction, commitTransaction, beginSliderGesture,
+    seedShadowsFromDom, shadowTokenCss, computeShadowXY,
+    SCALE_SHADOW_VARIABLES, defaultShadowOverride,
+  } from '../lib/editorStore';
+  import type {
+    ColumnsState, OverlayToken, OverlayChannelGlobals,
+    ShadowToken, ShadowOverrideFlags, EditorState,
+  } from '../lib/editorTypes';
 
   function clampNum(v: number, lo: number, hi: number): number {
     return Math.max(lo, Math.min(hi, Math.round(v)));
   }
 
   function setColumnsCount(n: number) {
-    columnsCount = clampNum(n, 1, 24);
-    setCssVar('--columns-count', String(columnsCount));
+    mutate('set columns count', (s) => { s.columns.count = clampNum(n, 1, 24); });
   }
   function setColumnsMaxWidth(px: number) {
-    columnsMaxWidth = clampNum(px, 320, 2560);
-    setCssVar('--columns-max-width', `${columnsMaxWidth}px`);
+    mutate('set columns max-width', (s) => { s.columns.maxWidth = clampNum(px, 320, 2560); });
   }
   function setColumnsGutter(px: number) {
-    columnsGutter = clampNum(px, 0, 200);
-    setCssVar('--columns-gutter', `${columnsGutter}px`);
+    mutate('set columns gutter', (s) => { s.columns.gutter = clampNum(px, 0, 200); });
   }
   function setColumnsMargin(px: number) {
-    columnsMargin = clampNum(px, 0, 400);
-    setCssVar('--columns-margin', `${columnsMargin}px`);
+    mutate('set columns margin', (s) => { s.columns.margin = clampNum(px, 0, 400); });
   }
 
-  let columnsObserver: MutationObserver | null = null;
-
-  // Snapshot of the inline --columns-* values at mount time. A null entry
-  // means the property was *not* inline on :root when the editor opened, so
-  // reset should remove the inline override (letting variables.css win).
-  const COLUMNS_TOKENS = [
-    '--columns-count',
-    '--columns-max-width',
-    '--columns-gutter',
-    '--columns-margin',
-  ] as const;
-  let columnsInitialSnapshot: Record<string, string | null> = {};
+  let initialColumns: ColumnsState | null = null;
 
   function resetColumns() {
-    for (const name of COLUMNS_TOKENS) {
-      const initial = columnsInitialSnapshot[name];
-      if (initial) {
-        setCssVar(name, initial);
-      } else {
-        removeCssVar(name);
-      }
-    }
-    // MutationObserver will pick up the style change and re-sync the numeric
-    // state via readColumnsTokens().
+    if (!initialColumns) return;
+    const snapshot = initialColumns;
+    mutate('reset columns', (s) => { s.columns = { ...snapshot }; });
   }
 
   onMount(() => {
-    const style = document.documentElement.style;
-    for (const name of COLUMNS_TOKENS) {
-      columnsInitialSnapshot[name] = style.getPropertyValue(name) || null;
-    }
-    readColumnsTokens();
-    columnsObserver = new MutationObserver(readColumnsTokens);
-    columnsObserver.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style'],
-    });
+    initialColumns = { ...$editorState.columns };
+    seedShadowsFromDom();
   });
-
-  onDestroy(() => {
-    columnsObserver?.disconnect();
-  });
-
-  let editors: PaletteEditor[] = [];
-
-  // Map of editor label → array index (matches template order)
-  const EDITOR_LABELS = ['Neutral', 'Alternate', 'Background', 'Primary', 'Accent', 'Special', 'Success', 'Warning', 'Info', 'Danger'];
-
-  /** Called by VisualsTab when a token file is loaded. */
-  export function loadAllConfigs(configs: Record<string, PaletteConfig>) {
-    for (let i = 0; i < EDITOR_LABELS.length; i++) {
-      const config = configs[EDITOR_LABELS[i]];
-      if (config && editors[i]) {
-        editors[i].loadConfig(config);
-      }
-    }
-  }
 
   interface TokenItem {
     variable: string;
@@ -172,308 +106,212 @@
     { variable: '--line-height-loose', value: '2' }
   ];
 
-  interface ShadowToken {
-    variable: string;
-    value: string;
-    x: number;
-    y: number;
-    blur: number;
-    spread: number;
-    opacity: number;
-    hue: number;
-    saturation: number;
-    lightness: number;
-    angle: number;
-    distance: number;
-  }
+  // Shadows live in $editorState.shadows. The parent onMount calls
+  // seedShadowsFromDom() to capture the variables.css baseline when the
+  // store has no tokens yet. From there every mutation flows through one of
+  // the setShadow* helpers below, which route into mutate()/transaction()
+  // so history captures coherent edits.
 
-  function computeXY(angle: number, distance: number): { x: number; y: number } {
-    const rad = angle * (Math.PI / 180);
-    return {
-      x: Math.round(-distance * Math.cos(rad)),
-      y: Math.round(distance * Math.sin(rad))
-    };
-  }
-
-  function computeAngleDistance(x: number, y: number): { angle: number; distance: number } {
-    const distance = Math.round(Math.sqrt(x * x + y * y));
-    if (distance === 0) return { angle: 135, distance: 0 };
-    let angle = Math.atan2(y, -x) * (180 / Math.PI);
-    if (angle < 0) angle += 360;
-    return { angle: Math.round(angle), distance };
-  }
-
-  function initShadow(variable: string, value: string, x: number, y: number, blur: number, spread: number, opacity: number, hue: number, saturation: number, lightness: number): ShadowToken {
-    const { angle, distance } = computeAngleDistance(x, y);
-    return { variable, value, x, y, blur, spread, opacity, hue, saturation, lightness, angle, distance };
-  }
-
-  function parseShadowFromCss(variable: string): ShadowToken | null {
-    const raw = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
-    if (!raw) return null;
-    const m = raw.match(/^(-?\d+)px\s+(-?\d+)px\s+(\d+)px\s+(-?\d+)px\s+hsla\(([\d.]+),\s*([\d.]+)%,\s*([\d.]+)%,\s*([\d.]+)\)$/);
-    if (!m) return null;
-    const x = parseInt(m[1], 10);
-    const y = parseInt(m[2], 10);
-    const blur = parseInt(m[3], 10);
-    const spread = parseInt(m[4], 10);
-    const hue = Math.round(parseFloat(m[5]));
-    const saturation = Math.round(parseFloat(m[6]));
-    const lightness = Math.round(parseFloat(m[7]));
-    const opacity = parseFloat(m[8]);
-    const { angle, distance } = computeAngleDistance(x, y);
-    return { variable, value: `${x} ${y} ${blur}px`, x, y, blur, spread, opacity, hue, saturation, lightness, angle, distance };
-  }
-
-  const shadowVariableNames = [
-    '--shadow-sm', '--shadow-md', '--shadow-lg', '--shadow-xl', '--shadow-2xl',
-    '--shadow-app', '--shadow-focus', '--shadow-glow-green', '--shadow-card', '--shadow-overlay'
-  ];
-
-  let shadowTokens: ShadowToken[] = shadowVariableNames.map(v =>
-    parseShadowFromCss(v) ?? initShadow(v, '0 0 0', 0, 0, 0, 0, 0.1, 0, 0, 0)
-  );
-
-  // Scale tokens that interpolate between global min/max
-  const scaleVariables = new Set(['--shadow-sm', '--shadow-md', '--shadow-lg', '--shadow-xl', '--shadow-2xl']);
-
-  // Global shadow settings — persisted to localStorage so HMR / remounts don't reset
-  const SHADOW_STORAGE_KEY = storageKey('shadow-globals');
-
-  interface ShadowGlobals {
-    globalAngle: number;
-    globalOpacityMin: number;
-    globalOpacityMax: number;
-    opacityLocked: boolean;
-    globalDistanceMin: number;
-    globalDistanceMax: number;
-    globalBlurMin: number;
-    globalBlurMax: number;
-    blurLocked: boolean;
-    globalSizeMin: number;
-    globalSizeMax: number;
-    sizeLocked: boolean;
-    globalHue: number;
-    globalSaturation: number;
-    globalLightness: number;
-    overrides: Record<string, { angle: boolean; opacity: boolean; color: boolean; distance: boolean; blur: boolean; size: boolean }>;
-    tokens: Array<{ variable: string; x: number; y: number; blur: number; spread: number; opacity: number; hue: number; saturation: number; lightness: number; angle: number; distance: number }>;
-  }
-
-  function loadShadowGlobals(): Partial<ShadowGlobals> {
-    try {
-      const raw = localStorage.getItem(SHADOW_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
-    } catch { return {}; }
-  }
-
-  const saved = loadShadowGlobals();
-
-  let globalAngle = saved.globalAngle ?? 90;
-  let globalOpacityMin = saved.globalOpacityMin ?? 0.15;
-  let globalOpacityMax = saved.globalOpacityMax ?? 0.15;
-  let opacityLocked = saved.opacityLocked ?? true;
-  let globalDistanceMin = saved.globalDistanceMin ?? 1;
-  let globalDistanceMax = saved.globalDistanceMax ?? 25;
-  let globalBlurMin = saved.globalBlurMin ?? 2;
-  let globalBlurMax = saved.globalBlurMax ?? 50;
-  let blurLocked = saved.blurLocked ?? false;
-  let globalSizeMin = saved.globalSizeMin ?? 0;
-  let globalSizeMax = saved.globalSizeMax ?? 0;
-  let sizeLocked = saved.sizeLocked ?? true;
-  let globalHue = saved.globalHue ?? 0;
-  let globalSaturation = saved.globalSaturation ?? 0;
-  let globalLightness = saved.globalLightness ?? 0;
-  let globalDialDrag = false;
-
-  // Per-token overrides: when true, the token ignores global values
-  let overrides: Record<string, { angle: boolean; opacity: boolean; color: boolean; distance: boolean; blur: boolean; size: boolean }> = saved.overrides ?? {};
-
-  // Restore per-token values from localStorage
-  if (saved.tokens) {
-    for (const st of saved.tokens) {
-      const token = shadowTokens.find(t => t.variable === st.variable);
-      if (token) {
-        token.x = st.x; token.y = st.y; token.blur = st.blur; token.spread = st.spread;
-        token.opacity = st.opacity; token.hue = st.hue; token.saturation = st.saturation;
-        token.lightness = st.lightness; token.angle = st.angle; token.distance = st.distance;
-        token.value = `${st.x} ${st.y} ${st.blur}px`;
-      }
+  function getShadowOverride(s: EditorState, variable: string): ShadowOverrideFlags {
+    let ov = s.shadows.overrides[variable];
+    if (!ov) {
+      ov = defaultShadowOverride();
+      s.shadows.overrides[variable] = ov;
     }
+    return ov;
   }
 
-  function saveShadowGlobals() {
-    const data: ShadowGlobals = {
-      globalAngle, globalOpacityMin, globalOpacityMax, opacityLocked,
-      globalDistanceMin, globalDistanceMax,
-      globalBlurMin, globalBlurMax, blurLocked,
-      globalSizeMin, globalSizeMax, sizeLocked,
-      globalHue, globalSaturation, globalLightness, overrides,
-      tokens: shadowTokens.map(t => ({
-        variable: t.variable, x: t.x, y: t.y, blur: t.blur, spread: t.spread,
-        opacity: t.opacity, hue: t.hue, saturation: t.saturation, lightness: t.lightness,
-        angle: t.angle, distance: t.distance,
-      })),
-    };
-    localStorage.setItem(SHADOW_STORAGE_KEY, JSON.stringify(data));
+  function shadowTokenValueLabel(t: ShadowToken): string {
+    return `${t.x} ${t.y} ${t.blur}px`;
   }
 
-  function getOverride(variable: string) {
-    if (!overrides[variable]) overrides[variable] = { angle: false, opacity: false, color: false, distance: false, blur: false, size: false };
-    return overrides[variable];
+  function interpolateScale<T extends ShadowToken>(
+    tokens: T[],
+    overrides: Record<string, ShadowOverrideFlags>,
+    flag: keyof ShadowOverrideFlags,
+    mutateFn: (t: T, frac: number) => void,
+  ) {
+    const eligible = tokens.filter((t) => SCALE_SHADOW_VARIABLES.has(t.variable) && !(overrides[t.variable]?.[flag]));
+    const last = eligible.length - 1;
+    eligible.forEach((t, i) => mutateFn(t, last > 0 ? i / last : 0.5));
   }
 
-  function applyGlobalAngle() {
-    for (const t of shadowTokens) {
-      if (scaleVariables.has(t.variable) && !getOverride(t.variable).angle) {
-        t.angle = globalAngle;
-        const { x, y } = computeXY(t.angle, t.distance);
-        t.x = x;
-        t.y = y;
-        applyShadow(t);
+  function setGlobalAngle(value: number) {
+    mutate('set shadow angle', (s) => {
+      s.shadows.globals.angle = ((Math.round(value) % 360) + 360) % 360;
+      for (const t of s.shadows.tokens) {
+        if (!SCALE_SHADOW_VARIABLES.has(t.variable)) continue;
+        if (getShadowOverride(s, t.variable).angle) continue;
+        t.angle = s.shadows.globals.angle;
+        const { x, y } = computeShadowXY(t.angle, t.distance);
+        t.x = x; t.y = y;
       }
-    }
-    shadowTokens = shadowTokens;
-    saveShadowGlobals();
-  }
-
-  function applyGlobalOpacity() {
-    const eligible = shadowTokens.filter(t => scaleVariables.has(t.variable) && !getOverride(t.variable).opacity);
-    if (eligible.length === 0) return;
-    const last = eligible.length - 1;
-    eligible.forEach((t, i) => {
-      const frac = last > 0 ? i / last : 0.5;
-      t.opacity = Math.round((globalOpacityMin + frac * (globalOpacityMax - globalOpacityMin)) * 100) / 100;
-      applyShadow(t);
     });
-    shadowTokens = shadowTokens;
-    saveShadowGlobals();
   }
 
-  function applyGlobalDistance() {
-    const eligible = shadowTokens.filter(t => scaleVariables.has(t.variable) && !getOverride(t.variable).distance);
-    if (eligible.length === 0) return;
-    const last = eligible.length - 1;
-    eligible.forEach((t, i) => {
-      const frac = last > 0 ? i / last : 0.5;
-      t.distance = Math.round(globalDistanceMin + frac * (globalDistanceMax - globalDistanceMin));
-      const { x, y } = computeXY(t.angle, t.distance);
-      t.x = x;
-      t.y = y;
-      applyShadow(t);
+  function setGlobalOpacity(field: 'opacityMin' | 'opacityMax', value01: number) {
+    mutate(`set shadow ${field}`, (s) => {
+      const v = Math.max(0, Math.min(1, Math.round(value01 * 100) / 100));
+      const g = s.shadows.globals;
+      g[field] = v;
+      if (g.opacityLocked) g[field === 'opacityMin' ? 'opacityMax' : 'opacityMin'] = v;
+      interpolateScale(s.shadows.tokens, s.shadows.overrides, 'opacity', (t, frac) => {
+        t.opacity = Math.round((g.opacityMin + frac * (g.opacityMax - g.opacityMin)) * 100) / 100;
+      });
     });
-    shadowTokens = shadowTokens;
-    saveShadowGlobals();
   }
 
-  function applyGlobalBlur() {
-    const eligible = shadowTokens.filter(t => scaleVariables.has(t.variable) && !getOverride(t.variable).blur);
-    if (eligible.length === 0) return;
-    const last = eligible.length - 1;
-    eligible.forEach((t, i) => {
-      const frac = last > 0 ? i / last : 0.5;
-      t.blur = Math.round(globalBlurMin + frac * (globalBlurMax - globalBlurMin));
-      applyShadow(t);
+  function setGlobalDistance(field: 'distanceMin' | 'distanceMax', value: number) {
+    mutate(`set shadow ${field}`, (s) => {
+      const g = s.shadows.globals;
+      g[field] = Math.max(0, Math.round(value));
+      interpolateScale(s.shadows.tokens, s.shadows.overrides, 'distance', (t, frac) => {
+        t.distance = Math.round(g.distanceMin + frac * (g.distanceMax - g.distanceMin));
+        const { x, y } = computeShadowXY(t.angle, t.distance);
+        t.x = x; t.y = y;
+      });
     });
-    shadowTokens = shadowTokens;
-    saveShadowGlobals();
   }
 
-  function applyGlobalSize() {
-    const eligible = shadowTokens.filter(t => scaleVariables.has(t.variable) && !getOverride(t.variable).size);
-    if (eligible.length === 0) return;
-    const last = eligible.length - 1;
-    eligible.forEach((t, i) => {
-      const frac = last > 0 ? i / last : 0.5;
-      t.spread = Math.round(globalSizeMin + frac * (globalSizeMax - globalSizeMin));
-      applyShadow(t);
+  function setGlobalBlur(field: 'blurMin' | 'blurMax', value: number) {
+    mutate(`set shadow ${field}`, (s) => {
+      const g = s.shadows.globals;
+      g[field] = Math.max(0, Math.round(value));
+      if (g.blurLocked) g[field === 'blurMin' ? 'blurMax' : 'blurMin'] = g[field];
+      interpolateScale(s.shadows.tokens, s.shadows.overrides, 'blur', (t, frac) => {
+        t.blur = Math.round(g.blurMin + frac * (g.blurMax - g.blurMin));
+      });
     });
-    shadowTokens = shadowTokens;
-    saveShadowGlobals();
   }
 
-  function applyGlobalColor() {
-    for (const t of shadowTokens) {
-      if (scaleVariables.has(t.variable) && !getOverride(t.variable).color) {
-        t.hue = globalHue;
-        t.saturation = globalSaturation;
-        t.lightness = globalLightness;
-        applyShadow(t);
+  function setGlobalSize(field: 'sizeMin' | 'sizeMax', value: number) {
+    mutate(`set shadow ${field}`, (s) => {
+      const g = s.shadows.globals;
+      g[field] = Math.max(-50, Math.min(50, Math.round(value)));
+      if (g.sizeLocked) g[field === 'sizeMin' ? 'sizeMax' : 'sizeMin'] = g[field];
+      interpolateScale(s.shadows.tokens, s.shadows.overrides, 'size', (t, frac) => {
+        t.spread = Math.round(g.sizeMin + frac * (g.sizeMax - g.sizeMin));
+      });
+    });
+  }
+
+  function setGlobalColor(field: 'hue' | 'saturation' | 'lightness', value: number) {
+    mutate(`set shadow ${field}`, (s) => {
+      const g = s.shadows.globals;
+      const hi = field === 'hue' ? 360 : 100;
+      g[field] = Math.max(0, Math.min(hi, Math.round(value)));
+      for (const t of s.shadows.tokens) {
+        if (!SCALE_SHADOW_VARIABLES.has(t.variable)) continue;
+        if (getShadowOverride(s, t.variable).color) continue;
+        t.hue = g.hue; t.saturation = g.saturation; t.lightness = g.lightness;
       }
-    }
-    shadowTokens = shadowTokens;
-    saveShadowGlobals();
+    });
   }
 
-  function handleGlobalDialDown(event: PointerEvent) {
-    globalDialDrag = true;
-    const svg = event.currentTarget as SVGSVGElement;
-    svg.setPointerCapture(event.pointerId);
-    globalAngle = angleFromPointer(event, svg);
-    applyGlobalAngle();
+  function toggleLock(field: 'opacityLocked' | 'blurLocked' | 'sizeLocked') {
+    mutate(`toggle shadow ${field}`, (s) => {
+      const g = s.shadows.globals;
+      const next = !g[field];
+      g[field] = next;
+      if (next) {
+        // Clamp max to min when re-locking and re-broadcast the scale edit.
+        if (field === 'opacityLocked') {
+          g.opacityMax = g.opacityMin;
+          interpolateScale(s.shadows.tokens, s.shadows.overrides, 'opacity', (t, frac) => {
+            t.opacity = Math.round((g.opacityMin + frac * (g.opacityMax - g.opacityMin)) * 100) / 100;
+          });
+        } else if (field === 'blurLocked') {
+          g.blurMax = g.blurMin;
+          interpolateScale(s.shadows.tokens, s.shadows.overrides, 'blur', (t, frac) => {
+            t.blur = Math.round(g.blurMin + frac * (g.blurMax - g.blurMin));
+          });
+        } else {
+          g.sizeMax = g.sizeMin;
+          interpolateScale(s.shadows.tokens, s.shadows.overrides, 'size', (t, frac) => {
+            t.spread = Math.round(g.sizeMin + frac * (g.sizeMax - g.sizeMin));
+          });
+        }
+      }
+    });
   }
 
-  function handleGlobalDialMove(event: PointerEvent) {
-    if (!globalDialDrag) return;
-    const svg = event.currentTarget as SVGSVGElement;
-    globalAngle = angleFromPointer(event, svg);
-    applyGlobalAngle();
+  // Per-token edits set the override flag for the edited field so future
+  // global broadcasts skip this token, preserving the user's manual value.
+  function setTokenField(idx: number, field: 'angle' | 'distance' | 'spread' | 'blur' | 'opacity', value: number) {
+    mutate(`set shadow token ${field}`, (s) => {
+      const t = s.shadows.tokens[idx];
+      if (!t) return;
+      const ov = getShadowOverride(s, t.variable);
+      if (field === 'angle') {
+        t.angle = ((Math.round(value) % 360) + 360) % 360;
+        const { x, y } = computeShadowXY(t.angle, t.distance);
+        t.x = x; t.y = y;
+        ov.angle = true;
+      } else if (field === 'distance') {
+        t.distance = Math.max(0, Math.round(value));
+        const { x, y } = computeShadowXY(t.angle, t.distance);
+        t.x = x; t.y = y;
+        ov.distance = true;
+      } else if (field === 'spread') {
+        t.spread = Math.max(-50, Math.min(50, Math.round(value)));
+        ov.size = true;
+      } else if (field === 'blur') {
+        t.blur = Math.max(0, Math.round(value));
+        ov.blur = true;
+      } else {
+        t.opacity = Math.max(0, Math.min(1, Math.round(value * 100) / 100));
+        ov.opacity = true;
+      }
+    });
   }
 
-  function handleGlobalDialUp() {
-    globalDialDrag = false;
+  function setTokenColor(idx: number, field: 'hue' | 'saturation' | 'lightness', value: number) {
+    mutate(`set shadow token ${field}`, (s) => {
+      const t = s.shadows.tokens[idx];
+      if (!t) return;
+      const hi = field === 'hue' ? 360 : 100;
+      t[field] = Math.max(0, Math.min(hi, Math.round(value)));
+      getShadowOverride(s, t.variable).color = true;
+    });
   }
 
-  // HSL gradient helpers for shadow color picker
-  function shadowHueGrad(): string {
-    return `linear-gradient(to right, ${
-      [0, 60, 120, 180, 240, 300, 360].map(h => `hsl(${h},${globalSaturation}%,${globalLightness}%)`).join(',')
-    })`;
+  function resetToGlobal() {
+    if (!editingToken || !editingIsScale) return;
+    const variable = editingToken.variable;
+    mutate('reset shadow token to global', (s) => {
+      const scale = s.shadows.tokens.filter((t) => SCALE_SHADOW_VARIABLES.has(t.variable));
+      const t = scale.find((x) => x.variable === variable);
+      if (!t) return;
+      const pos = scale.indexOf(t);
+      const last = scale.length - 1;
+      const frac = last > 0 ? pos / last : 0.5;
+      const g = s.shadows.globals;
+      t.hue = g.hue; t.saturation = g.saturation; t.lightness = g.lightness;
+      t.angle = g.angle;
+      t.distance = Math.round(g.distanceMin + frac * (g.distanceMax - g.distanceMin));
+      t.blur = Math.round(g.blurMin + frac * (g.blurMax - g.blurMin));
+      t.spread = Math.round(g.sizeMin + frac * (g.sizeMax - g.sizeMin));
+      t.opacity = Math.round((g.opacityMin + frac * (g.opacityMax - g.opacityMin)) * 100) / 100;
+      const { x, y } = computeShadowXY(t.angle, t.distance);
+      t.x = x; t.y = y;
+      s.shadows.overrides[variable] = defaultShadowOverride();
+    });
   }
-  function shadowSatGrad(): string {
-    return `linear-gradient(to right, hsl(${globalHue},0%,${globalLightness}%), hsl(${globalHue},100%,${globalLightness}%))`;
-  }
-  function shadowLightGrad(): string {
-    return `linear-gradient(to right, hsl(${globalHue},${globalSaturation}%,0%), hsl(${globalHue},${globalSaturation}%,50%), hsl(${globalHue},${globalSaturation}%,100%))`;
-  }
+
+  // HSL gradient helpers (read from globals for their background-color cues).
+  $: sg = $editorState.shadows.globals;
+  $: shadowHueGrad = `linear-gradient(to right, ${
+    [0, 60, 120, 180, 240, 300, 360].map(h => `hsl(${h},${sg.saturation}%,${sg.lightness}%)`).join(',')
+  })`;
+  $: shadowSatGrad = `linear-gradient(to right, hsl(${sg.hue},0%,${sg.lightness}%), hsl(${sg.hue},100%,${sg.lightness}%))`;
+  $: shadowLightGrad = `linear-gradient(to right, hsl(${sg.hue},${sg.saturation}%,0%), hsl(${sg.hue},${sg.saturation}%,50%), hsl(${sg.hue},${sg.saturation}%,100%))`;
 
   let editingShadow: string | null = null;
-  let dialDragIdx: number | null = null;
 
-  function getShadowCss(t: ShadowToken): string {
-    return `${t.x}px ${t.y}px ${t.blur}px ${t.spread}px hsla(${t.hue}, ${t.saturation}%, ${t.lightness}%, ${t.opacity})`;
-  }
-
-  function applyShadow(t: ShadowToken, persist = false) {
-    t.value = `${t.x} ${t.y} ${t.blur}px`;
-    setCssVar(t.variable, getShadowCss(t));
-    if (persist) saveShadowGlobals();
-  }
-
-  // Apply restored CSS vars on init
-  for (const t of shadowTokens) applyShadow(t);
-
-  function handleAngleChange(idx: number, newAngle: number) {
-    const t = shadowTokens[idx];
-    t.angle = ((Math.round(newAngle) % 360) + 360) % 360;
-    const { x, y } = computeXY(t.angle, t.distance);
-    t.x = x;
-    t.y = y;
-    applyShadow(t);
-    shadowTokens = shadowTokens;
-    saveShadowGlobals();
-  }
-
-  function handleDistanceChange(idx: number, newDist: number) {
-    const t = shadowTokens[idx];
-    t.distance = Math.max(0, Math.round(newDist));
-    const { x, y } = computeXY(t.angle, t.distance);
-    t.x = x;
-    t.y = y;
-    applyShadow(t);
-    shadowTokens = shadowTokens;
-    saveShadowGlobals();
-  }
+  $: shadowTokens = $editorState.shadows.tokens;
+  $: editingToken = editingShadow ? shadowTokens.find(t => t.variable === editingShadow) ?? null : null;
+  $: editingIdx = editingToken ? shadowTokens.indexOf(editingToken) : -1;
+  $: editingIsScale = editingToken ? SCALE_SHADOW_VARIABLES.has(editingToken.variable) : false;
 
   function angleFromPointer(event: PointerEvent, dialEl: SVGSVGElement): number {
     const rect = dialEl.getBoundingClientRect();
@@ -486,61 +324,44 @@
     return Math.round(angle);
   }
 
+  // Dial drag: open a transaction, stream angle edits into it, commit on
+  // pointerup (observed on window so an off-dial release still commits).
+  let dialDragIdx: number | null = null;
   function handleDialDown(event: PointerEvent, idx: number) {
     dialDragIdx = idx;
     const svg = event.currentTarget as SVGSVGElement;
     svg.setPointerCapture(event.pointerId);
-    handleAngleChange(idx, angleFromPointer(event, svg));
+    beginTransaction('drag shadow angle');
+    setTokenField(idx, 'angle', angleFromPointer(event, svg));
   }
-
   function handleDialMove(event: PointerEvent, idx: number) {
     if (dialDragIdx !== idx) return;
     const svg = event.currentTarget as SVGSVGElement;
-    handleAngleChange(idx, angleFromPointer(event, svg));
+    setTokenField(idx, 'angle', angleFromPointer(event, svg));
   }
-
   function handleDialUp() {
+    if (dialDragIdx === null) return;
     dialDragIdx = null;
+    commitTransaction();
   }
 
-  $: editingToken = editingShadow ? shadowTokens.find(t => t.variable === editingShadow) ?? null : null;
-  $: editingIdx = editingToken ? shadowTokens.indexOf(editingToken) : -1;
-  $: editingIsScale = editingToken ? scaleVariables.has(editingToken.variable) : false;
-
-  function resetToGlobal() {
-    if (!editingToken || !editingIsScale) return;
-    const eligible = shadowTokens.filter(t => scaleVariables.has(t.variable));
-    const pos = eligible.indexOf(editingToken);
-    const last = eligible.length - 1;
-    const frac = last > 0 ? pos / last : 0.5;
-    const ov = getOverride(editingToken.variable);
-    // Reset color
-    editingToken.hue = globalHue;
-    editingToken.saturation = globalSaturation;
-    editingToken.lightness = globalLightness;
-    ov.color = false;
-    // Reset angle
-    editingToken.angle = globalAngle;
-    ov.angle = false;
-    // Reset distance (interpolated)
-    editingToken.distance = Math.round(globalDistanceMin + frac * (globalDistanceMax - globalDistanceMin));
-    ov.distance = false;
-    // Reset blur (interpolated)
-    editingToken.blur = Math.round(globalBlurMin + frac * (globalBlurMax - globalBlurMin));
-    ov.blur = false;
-    // Reset spread (interpolated)
-    editingToken.spread = Math.round(globalSizeMin + frac * (globalSizeMax - globalSizeMin));
-    ov.size = false;
-    // Reset opacity (interpolated)
-    editingToken.opacity = Math.round((globalOpacityMin + frac * (globalOpacityMax - globalOpacityMin)) * 100) / 100;
-    ov.opacity = false;
-    const { x, y } = computeXY(editingToken.angle, editingToken.distance);
-    editingToken.x = x;
-    editingToken.y = y;
-    applyShadow(editingToken);
-    overrides = overrides;
-    shadowTokens = shadowTokens;
-    saveShadowGlobals();
+  let globalDialDrag = false;
+  function handleGlobalDialDown(event: PointerEvent) {
+    globalDialDrag = true;
+    const svg = event.currentTarget as SVGSVGElement;
+    svg.setPointerCapture(event.pointerId);
+    beginTransaction('drag global shadow angle');
+    setGlobalAngle(angleFromPointer(event, svg));
+  }
+  function handleGlobalDialMove(event: PointerEvent) {
+    if (!globalDialDrag) return;
+    const svg = event.currentTarget as SVGSVGElement;
+    setGlobalAngle(angleFromPointer(event, svg));
+  }
+  function handleGlobalDialUp() {
+    if (!globalDialDrag) return;
+    globalDialDrag = false;
+    commitTransaction();
   }
 
   // Background picker for shadows section
@@ -654,56 +475,15 @@
   }
 
   // ── Overlay tokens ──
-  interface OverlayToken {
-    variable: string;
-    label: string;
-    r: number;
-    g: number;
-    b: number;
-    opacity: number;
-  }
-
-  function initOverlay(variable: string, label: string, r: number, g: number, b: number, opacity: number): OverlayToken {
-    return { variable, label, r, g, b, opacity };
-  }
-
-  let overlayTokens: OverlayToken[] = [
-    initOverlay('--overlay-lowest', 'Lowest', 0, 0, 0, 0.05),
-    initOverlay('--overlay-lower', 'Lower', 0, 0, 0, 0.1),
-    initOverlay('--overlay-low', 'Low', 0, 0, 0, 0.2),
-    initOverlay('--overlay', 'Base', 0, 0, 0, 0.3),
-    initOverlay('--overlay-high', 'High', 0, 0, 0, 0.5),
-    initOverlay('--overlay-higher', 'Higher', 0, 0, 0, 0.7),
-    initOverlay('--overlay-highest', 'Highest', 0, 0, 0, 0.95),
-  ];
-
-  let hoverTokens: OverlayToken[] = [
-    initOverlay('--hover-low', 'Low', 255, 255, 255, 0.05),
-    initOverlay('--hover', 'Base', 255, 255, 255, 0.1),
-    initOverlay('--hover-high', 'High', 255, 255, 255, 0.15),
-  ];
-
-  // Global overlay settings
-  let overlayHue = 0;
-  let overlaySaturation = 0;
-  let overlayLightness = 0;
-  let overlayOpacityMin = 0.05;
-  let overlayOpacityMax = 0.95;
-
-  let hoverHue = 0;
-  let hoverSaturation = 0;
-  let hoverLightness = 100;
-  let hoverOpacityMin = 0.05;
-  let hoverOpacityMax = 0.15;
+  // Overlay + hover token arrays and their global hue/sat/light/opacity
+  // controls live in $editorState.overlays. The store's subscriber fans the
+  // rgba values out to :root, so this file only orchestrates mutations and
+  // reads derived display state.
 
   let editingOverlay: string | null = null;
 
   function getOverlayCss(t: OverlayToken): string {
     return `rgba(${t.r}, ${t.g}, ${t.b}, ${t.opacity})`;
-  }
-
-  function applyOverlay(t: OverlayToken) {
-    setCssVar(t.variable, getOverlayCss(t));
   }
 
   function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: number } {
@@ -725,66 +505,69 @@
     };
   }
 
-  function applyGlobalOverlayColor() {
-    const { r, g, b } = hslToRgb(overlayHue, overlaySaturation, overlayLightness);
-    for (const t of overlayTokens) {
-      t.r = r; t.g = g; t.b = b;
-      applyOverlay(t);
-    }
-    overlayTokens = overlayTokens;
+  // The global-color / global-opacity derivations touch *every* token in a
+  // channel. Keeping them as functions that take the draft lets a single
+  // mutate() call update the global setting and the derived tokens in one
+  // history entry.
+  function applyChannelColor(tokens: OverlayToken[], g: OverlayChannelGlobals): void {
+    const rgb = hslToRgb(g.hue, g.saturation, g.lightness);
+    for (const t of tokens) { t.r = rgb.r; t.g = rgb.g; t.b = rgb.b; }
   }
-
-  function applyGlobalOverlayOpacity() {
-    const last = overlayTokens.length - 1;
-    overlayTokens.forEach((t, i) => {
+  function applyChannelOpacity(tokens: OverlayToken[], g: OverlayChannelGlobals): void {
+    const last = tokens.length - 1;
+    tokens.forEach((t, i) => {
       const frac = last > 0 ? i / last : 0.5;
-      t.opacity = Math.round((overlayOpacityMin + frac * (overlayOpacityMax - overlayOpacityMin)) * 100) / 100;
-      applyOverlay(t);
+      t.opacity = Math.round((g.opacityMin + frac * (g.opacityMax - g.opacityMin)) * 100) / 100;
     });
-    overlayTokens = overlayTokens;
   }
 
-  function applyGlobalHoverColor() {
-    const { r, g, b } = hslToRgb(hoverHue, hoverSaturation, hoverLightness);
-    for (const t of hoverTokens) {
-      t.r = r; t.g = g; t.b = b;
-      applyOverlay(t);
-    }
-    hoverTokens = hoverTokens;
+  type OverlayChannel = 'overlay' | 'hover';
+  type ColorField = 'hue' | 'saturation' | 'lightness';
+  type OpacityField = 'opacityMin' | 'opacityMax';
+
+  function pickChannelTokens(s: import('../lib/editorTypes').EditorState, ch: OverlayChannel): OverlayToken[] {
+    return ch === 'overlay' ? s.overlays.tokens : s.overlays.hoverTokens;
   }
 
-  function applyGlobalHoverOpacity() {
-    const last = hoverTokens.length - 1;
-    hoverTokens.forEach((t, i) => {
-      const frac = last > 0 ? i / last : 0.5;
-      t.opacity = Math.round((hoverOpacityMin + frac * (hoverOpacityMax - hoverOpacityMin)) * 100) / 100;
-      applyOverlay(t);
+  function setOverlayColor(ch: OverlayChannel, field: ColorField, value: number) {
+    mutate(`${ch} ${field}`, (s) => {
+      const g = s.overlays.globals[ch];
+      if (field === 'hue') g.hue = clampNum(value, 0, 360);
+      else if (field === 'saturation') g.saturation = clampNum(value, 0, 100);
+      else g.lightness = clampNum(value, 0, 100);
+      applyChannelColor(pickChannelTokens(s, ch), g);
     });
-    hoverTokens = hoverTokens;
   }
 
-  function overlayHueGrad(): string {
+  function setOverlayOpacity(ch: OverlayChannel, field: OpacityField, value01: number) {
+    mutate(`${ch} ${field}`, (s) => {
+      const g = s.overlays.globals[ch];
+      const clamped = Math.max(0, Math.min(1, value01));
+      if (field === 'opacityMin') g.opacityMin = clamped;
+      else g.opacityMax = clamped;
+      applyChannelOpacity(pickChannelTokens(s, ch), g);
+    });
+  }
+
+  function setOverlayTokenOpacity(ch: OverlayChannel, idx: number, value01: number) {
+    mutate(`${ch} token opacity`, (s) => {
+      const arr = pickChannelTokens(s, ch);
+      const t = arr[idx];
+      if (!t) return;
+      t.opacity = Math.max(0, Math.min(1, value01));
+    });
+  }
+
+  function overlayHueGrad(g: OverlayChannelGlobals): string {
     return `linear-gradient(to right, ${
-      [0, 60, 120, 180, 240, 300, 360].map(h => `hsl(${h},${overlaySaturation}%,${overlayLightness}%)`).join(',')
+      [0, 60, 120, 180, 240, 300, 360].map(h => `hsl(${h},${g.saturation}%,${g.lightness}%)`).join(',')
     })`;
   }
-  function overlaySatGrad(): string {
-    return `linear-gradient(to right, hsl(${overlayHue},0%,${overlayLightness}%), hsl(${overlayHue},100%,${overlayLightness}%))`;
+  function overlaySatGrad(g: OverlayChannelGlobals): string {
+    return `linear-gradient(to right, hsl(${g.hue},0%,${g.lightness}%), hsl(${g.hue},100%,${g.lightness}%))`;
   }
-  function overlayLightGrad(): string {
-    return `linear-gradient(to right, hsl(${overlayHue},${overlaySaturation}%,0%), hsl(${overlayHue},${overlaySaturation}%,50%), hsl(${overlayHue},${overlaySaturation}%,100%))`;
-  }
-
-  function hoverHueGrad(): string {
-    return `linear-gradient(to right, ${
-      [0, 60, 120, 180, 240, 300, 360].map(h => `hsl(${h},${hoverSaturation}%,${hoverLightness}%)`).join(',')
-    })`;
-  }
-  function hoverSatGrad(): string {
-    return `linear-gradient(to right, hsl(${hoverHue},0%,${hoverLightness}%), hsl(${hoverHue},100%,${hoverLightness}%))`;
-  }
-  function hoverLightGrad(): string {
-    return `linear-gradient(to right, hsl(${hoverHue},${hoverSaturation}%,0%), hsl(${hoverHue},${hoverSaturation}%,50%), hsl(${hoverHue},${hoverSaturation}%,100%))`;
+  function overlayLightGrad(g: OverlayChannelGlobals): string {
+    return `linear-gradient(to right, hsl(${g.hue},${g.saturation}%,0%), hsl(${g.hue},${g.saturation}%,50%), hsl(${g.hue},${g.saturation}%,100%))`;
   }
 
   const textShadowTokens: TokenItem[] = [
@@ -834,16 +617,16 @@
     <h2 class="section-title">Palette Editor</h2>
     <p class="editor-intro">Derived palettes via <code>color-mix(in oklch)</code>. Change a base color to update all derived steps. Click any derived swatch to add a manual override.</p>
     <div class="palette-editors">
-      <PaletteEditor bind:this={editors[0]} mode="gray" label="Neutral" cssNamespace="neutral" {saveSignal} />
-      <PaletteEditor bind:this={editors[1]} mode="gray" label="Alternate" cssNamespace="alternate" {saveSignal} />
-      <PaletteEditor bind:this={editors[2]} label="Background" initialColor="#1a1a2e" cssNamespace="bg" emptySelector {saveSignal} />
-      <PaletteEditor bind:this={editors[3]} label="Primary" initialColor="#c93636" cssNamespace="primary" {saveSignal} />
-      <PaletteEditor bind:this={editors[4]} label="Accent" initialColor="#f49e0b" cssNamespace="accent" {saveSignal} />
-      <PaletteEditor bind:this={editors[5]} label="Special" initialColor="#8b5cf6" cssNamespace="special" {saveSignal} />
-      <PaletteEditor bind:this={editors[6]} label="Success" initialColor="#21c45d" cssNamespace="success" {saveSignal} />
-      <PaletteEditor bind:this={editors[7]} label="Warning" initialColor="#e66e1a" cssNamespace="warning" {saveSignal} />
-      <PaletteEditor bind:this={editors[8]} label="Info" initialColor="#3077e8" cssNamespace="info" {saveSignal} />
-      <PaletteEditor bind:this={editors[9]} label="Danger" initialColor="#e8304f" cssNamespace="danger" {saveSignal} />
+      <PaletteEditor mode="gray" label="Neutral" cssNamespace="neutral"/>
+      <PaletteEditor mode="gray" label="Alternate" cssNamespace="alternate" />
+      <PaletteEditor label="Background" initialColor="#1a1a2e" cssNamespace="bg" emptySelector />
+      <PaletteEditor label="Primary" initialColor="#c93636" cssNamespace="primary" />
+      <PaletteEditor label="Accent" initialColor="#f49e0b" cssNamespace="accent" />
+      <PaletteEditor label="Special" initialColor="#8b5cf6" cssNamespace="special" />
+      <PaletteEditor label="Success" initialColor="#21c45d" cssNamespace="success" />
+      <PaletteEditor label="Warning" initialColor="#e66e1a" cssNamespace="warning" />
+      <PaletteEditor label="Info" initialColor="#3077e8" cssNamespace="info" />
+      <PaletteEditor label="Danger" initialColor="#e8304f" cssNamespace="danger" />
     </div>
   </section>
 
@@ -874,37 +657,41 @@
     <div class="columns-controls">
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="Number of columns">Cols</span>
-        <input type="range" min="1" max="24" value={columnsCount}
+        <input type="range" min="1" max="24" value={$editorState.columns.count}
+          on:pointerdown={() => beginSliderGesture('drag columns count')}
           on:input={(e) => setColumnsCount(+e.currentTarget.value)} />
         <input class="shadow-slider-input" type="number" min="1" max="24"
-          value={columnsCount}
+          value={$editorState.columns.count}
           on:change={(e) => setColumnsCount(+e.currentTarget.value)} />
         <span class="shadow-slider-unit"></span>
       </div>
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="Maximum content width">Max-Width</span>
-        <input type="range" min="480" max="2560" step="10" value={columnsMaxWidth}
+        <input type="range" min="480" max="2560" step="10" value={$editorState.columns.maxWidth}
+          on:pointerdown={() => beginSliderGesture('drag columns max-width')}
           on:input={(e) => setColumnsMaxWidth(+e.currentTarget.value)} />
         <input class="shadow-slider-input columns-input-wide" type="number" min="320" max="2560"
-          value={columnsMaxWidth}
+          value={$editorState.columns.maxWidth}
           on:change={(e) => setColumnsMaxWidth(+e.currentTarget.value)} />
         <span class="shadow-slider-unit">px</span>
       </div>
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="Space between columns">Gutter</span>
-        <input type="range" min="0" max="80" value={columnsGutter}
+        <input type="range" min="0" max="80" value={$editorState.columns.gutter}
+          on:pointerdown={() => beginSliderGesture('drag columns gutter')}
           on:input={(e) => setColumnsGutter(+e.currentTarget.value)} />
         <input class="shadow-slider-input" type="number" min="0" max="200"
-          value={columnsGutter}
+          value={$editorState.columns.gutter}
           on:change={(e) => setColumnsGutter(+e.currentTarget.value)} />
         <span class="shadow-slider-unit">px</span>
       </div>
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="Outer page margin (side gutters)">Margin</span>
-        <input type="range" min="0" max="200" value={columnsMargin}
+        <input type="range" min="0" max="200" value={$editorState.columns.margin}
+          on:pointerdown={() => beginSliderGesture('drag columns margin')}
           on:input={(e) => setColumnsMargin(+e.currentTarget.value)} />
         <input class="shadow-slider-input columns-input-wide" type="number" min="0" max="400"
-          value={columnsMargin}
+          value={$editorState.columns.margin}
           on:change={(e) => setColumnsMargin(+e.currentTarget.value)} />
         <span class="shadow-slider-unit">px</span>
       </div>
@@ -920,9 +707,9 @@
     <div class="columns-preview">
       <div
         class="columns-preview-inner"
-        style="gap: {columnsGutter}px; padding-inline: {columnsMargin}px; grid-template-columns: repeat({columnsCount}, 1fr);"
+        style="gap: {$editorState.columns.gutter}px; padding-inline: {$editorState.columns.margin}px; grid-template-columns: repeat({$editorState.columns.count}, 1fr);"
       >
-        {#each Array(columnsCount) as _, i}
+        {#each Array($editorState.columns.count) as _, i}
           <div class="columns-preview-col"><span>{i + 1}</span></div>
         {/each}
       </div>
@@ -1007,12 +794,12 @@
     <div class="shadows-layout">
     <div class="shadows-main">
     <div class="shadows-grid">
-      {#each shadowTokens.filter(t => scaleVariables.has(t.variable)) as token}
+      {#each shadowTokens.filter(t => SCALE_SHADOW_VARIABLES.has(t.variable)) as token}
         <div class="shadow-item" class:active={editingShadow === token.variable}>
-          <div class="shadow-box" style="box-shadow: {getShadowCss(token)};"></div>
+          <div class="shadow-box" style="box-shadow: {shadowTokenCss(token)};"></div>
           <div class="token-info">
             <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-            <span class="token-value">{token.value}</span>
+            <span class="token-value">{shadowTokenValueLabel(token)}</span>
           </div>
           <button class="shadow-edit-btn" on:click={() => editingShadow = editingShadow === token.variable ? null : token.variable}>
             {editingShadow === token.variable ? 'Close' : 'Edit'}
@@ -1022,12 +809,12 @@
     </div>
 
     <div class="shadows-grid">
-      {#each shadowTokens.filter(t => !scaleVariables.has(t.variable)) as token}
+      {#each shadowTokens.filter(t => !SCALE_SHADOW_VARIABLES.has(t.variable)) as token}
         <div class="shadow-item" class:active={editingShadow === token.variable}>
-          <div class="shadow-box" style="box-shadow: {getShadowCss(token)};"></div>
+          <div class="shadow-box" style="box-shadow: {shadowTokenCss(token)};"></div>
           <div class="token-info">
             <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-            <span class="token-value">{token.value}</span>
+            <span class="token-value">{shadowTokenValueLabel(token)}</span>
           </div>
           <button class="shadow-edit-btn" on:click={() => editingShadow = editingShadow === token.variable ? null : token.variable}>
             {editingShadow === token.variable ? 'Close' : 'Edit'}
@@ -1079,43 +866,47 @@
         </svg>
         <input class="shadow-slider-input" type="number" min="0" max="360"
           value={editingToken.angle}
-          on:change={(e) => handleAngleChange(editingIdx, +e.currentTarget.value)} />
+          on:change={(e) => setTokenField(editingIdx, 'angle', +e.currentTarget.value)} />
         <span class="shadow-slider-unit">&deg;</span>
       </div>
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="How far the shadow is cast from the element — simulates height off the surface">Dist</span>
         <input type="range" min="0" max="60" value={editingToken.distance}
-          on:input={(e) => handleDistanceChange(editingIdx, +e.currentTarget.value)} />
+          on:pointerdown={() => beginSliderGesture('edit shadow distance')}
+          on:input={(e) => setTokenField(editingIdx, 'distance', +e.currentTarget.value)} />
         <input class="shadow-slider-input" type="number" min="0" max="100"
           value={editingToken.distance}
-          on:change={(e) => handleDistanceChange(editingIdx, +e.currentTarget.value)} />
+          on:change={(e) => setTokenField(editingIdx, 'distance', +e.currentTarget.value)} />
         <span class="shadow-slider-unit">px</span>
       </div>
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="Grows or shrinks the shadow before blurring — positive makes it larger than the element, negative makes it smaller">Spread</span>
         <input type="range" min="-50" max="50" value={editingToken.spread}
-          on:input={(e) => { editingToken.spread = +e.currentTarget.value; applyShadow(editingToken); shadowTokens = shadowTokens; }} />
+          on:pointerdown={() => beginSliderGesture('edit shadow spread')}
+          on:input={(e) => setTokenField(editingIdx, 'spread', +e.currentTarget.value)} />
         <input class="shadow-slider-input" type="number" min="-50" max="50"
           value={editingToken.spread}
-          on:change={(e) => { editingToken.spread = Math.max(-50, Math.min(50, +e.currentTarget.value)); applyShadow(editingToken, true); shadowTokens = shadowTokens; }} />
+          on:change={(e) => setTokenField(editingIdx, 'spread', +e.currentTarget.value)} />
         <span class="shadow-slider-unit">px</span>
       </div>
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="How soft the shadow edge is — higher values make a wider, more diffused shadow">Blur</span>
         <input type="range" min="0" max="100" value={editingToken.blur}
-          on:input={(e) => { editingToken.blur = +e.currentTarget.value; applyShadow(editingToken); shadowTokens = shadowTokens; }} />
+          on:pointerdown={() => beginSliderGesture('edit shadow blur')}
+          on:input={(e) => setTokenField(editingIdx, 'blur', +e.currentTarget.value)} />
         <input class="shadow-slider-input" type="number" min="0" max="100"
           value={editingToken.blur}
-          on:change={(e) => { editingToken.blur = Math.max(0, +e.currentTarget.value); applyShadow(editingToken, true); shadowTokens = shadowTokens; }} />
+          on:change={(e) => setTokenField(editingIdx, 'blur', +e.currentTarget.value)} />
         <span class="shadow-slider-unit">px</span>
       </div>
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="How visible the shadow is — 0% is invisible, 100% is fully opaque">Op.</span>
         <input type="range" min="0" max="100" value={Math.round(editingToken.opacity * 100)}
-          on:input={(e) => { editingToken.opacity = +e.currentTarget.value / 100; applyShadow(editingToken); shadowTokens = shadowTokens; }} />
+          on:pointerdown={() => beginSliderGesture('edit shadow opacity')}
+          on:input={(e) => setTokenField(editingIdx, 'opacity', +e.currentTarget.value / 100)} />
         <input class="shadow-slider-input" type="number" min="0" max="100"
           value={Math.round(editingToken.opacity * 100)}
-          on:change={(e) => { editingToken.opacity = Math.min(100, Math.max(0, +e.currentTarget.value)) / 100; applyShadow(editingToken, true); shadowTokens = shadowTokens; }} />
+          on:change={(e) => setTokenField(editingIdx, 'opacity', +e.currentTarget.value / 100)} />
         <span class="shadow-slider-unit">%</span>
       </div>
       <div class="global-color-group">
@@ -1123,43 +914,46 @@
         <div class="global-color-sliders">
           <div class="global-shadow-row">
             <span class="shadow-slider-label" title="Hue — the base color of the shadow (0°=red, 120°=green, 240°=blue)">H</span>
-            <div class="slider-track" style="background: {shadowHueGrad()}">
+            <div class="slider-track" style="background: {shadowHueGrad}">
               <input type="range" min="0" max="360" value={editingToken.hue}
-                on:input={(e) => { editingToken.hue = +e.currentTarget.value; applyShadow(editingToken); shadowTokens = shadowTokens; }} />
+                on:pointerdown={() => beginSliderGesture('edit shadow hue')}
+                on:input={(e) => setTokenColor(editingIdx, 'hue', +e.currentTarget.value)} />
             </div>
             <input class="shadow-slider-input" type="number" min="0" max="360"
               value={editingToken.hue}
-              on:change={(e) => { editingToken.hue = Math.min(360, Math.max(0, +e.currentTarget.value)); applyShadow(editingToken, true); shadowTokens = shadowTokens; }} />
+              on:change={(e) => setTokenColor(editingIdx, 'hue', +e.currentTarget.value)} />
             <span class="shadow-slider-unit">&deg;</span>
           </div>
           <div class="global-shadow-row">
             <span class="shadow-slider-label" title="Saturation — 0% is gray, 100% is full color intensity">S</span>
             <div class="slider-track" style="background: linear-gradient(to right, hsl({editingToken.hue},0%,{editingToken.lightness}%), hsl({editingToken.hue},100%,{editingToken.lightness}%))">
               <input type="range" min="0" max="100" value={editingToken.saturation}
-                on:input={(e) => { editingToken.saturation = +e.currentTarget.value; applyShadow(editingToken); shadowTokens = shadowTokens; }} />
+                on:pointerdown={() => beginSliderGesture('edit shadow saturation')}
+                on:input={(e) => setTokenColor(editingIdx, 'saturation', +e.currentTarget.value)} />
             </div>
             <input class="shadow-slider-input" type="number" min="0" max="100"
               value={editingToken.saturation}
-              on:change={(e) => { editingToken.saturation = Math.min(100, Math.max(0, +e.currentTarget.value)); applyShadow(editingToken, true); shadowTokens = shadowTokens; }} />
+              on:change={(e) => setTokenColor(editingIdx, 'saturation', +e.currentTarget.value)} />
             <span class="shadow-slider-unit">%</span>
           </div>
           <div class="global-shadow-row">
             <span class="shadow-slider-label" title="Lightness — 0% is black, 100% is white">L</span>
             <div class="slider-track" style="background: linear-gradient(to right, hsl({editingToken.hue},{editingToken.saturation}%,0%), hsl({editingToken.hue},{editingToken.saturation}%,50%), hsl({editingToken.hue},{editingToken.saturation}%,100%))">
               <input type="range" min="0" max="100" value={editingToken.lightness}
-                on:input={(e) => { editingToken.lightness = +e.currentTarget.value; applyShadow(editingToken); shadowTokens = shadowTokens; }} />
+                on:pointerdown={() => beginSliderGesture('edit shadow lightness')}
+                on:input={(e) => setTokenColor(editingIdx, 'lightness', +e.currentTarget.value)} />
             </div>
             <input class="shadow-slider-input" type="number" min="0" max="100"
               value={editingToken.lightness}
-              on:change={(e) => { editingToken.lightness = Math.min(100, Math.max(0, +e.currentTarget.value)); applyShadow(editingToken, true); shadowTokens = shadowTokens; }} />
+              on:change={(e) => setTokenColor(editingIdx, 'lightness', +e.currentTarget.value)} />
             <span class="shadow-slider-unit">%</span>
           </div>
         </div>
       </div>
       <div class="shadow-css-output">
-        <code>{getShadowCss(editingToken)}</code>
-        <button class="shadow-copy-btn" on:click={() => copyVariable(getShadowCss(editingToken))}>
-          {copiedVar === getShadowCss(editingToken) ? 'Copied!' : 'Copy CSS'}
+        <code>{shadowTokenCss(editingToken)}</code>
+        <button class="shadow-copy-btn" on:click={() => copyVariable(shadowTokenCss(editingToken))}>
+          {copiedVar === shadowTokenCss(editingToken) ? 'Copied!' : 'Copy CSS'}
         </button>
       </div>
     {:else}
@@ -1173,179 +967,193 @@
         >
           <circle cx="24" cy="24" r="20" class="dial-ring" />
           <line x1="24" y1="24"
-            x2={24 + 18 * Math.cos(globalAngle * Math.PI / 180)}
-            y2={24 - 18 * Math.sin(globalAngle * Math.PI / 180)}
+            x2={24 + 18 * Math.cos(sg.angle * Math.PI / 180)}
+            y2={24 - 18 * Math.sin(sg.angle * Math.PI / 180)}
             class="dial-line" />
           <circle
-            cx={24 + 18 * Math.cos(globalAngle * Math.PI / 180)}
-            cy={24 - 18 * Math.sin(globalAngle * Math.PI / 180)}
+            cx={24 + 18 * Math.cos(sg.angle * Math.PI / 180)}
+            cy={24 - 18 * Math.sin(sg.angle * Math.PI / 180)}
             r="3" class="dial-handle" />
         </svg>
         <input class="shadow-slider-input" type="number" min="0" max="360"
-          value={globalAngle}
-          on:change={(e) => { globalAngle = ((+e.currentTarget.value % 360) + 360) % 360; applyGlobalAngle(); }} />
+          value={sg.angle}
+          on:change={(e) => setGlobalAngle(+e.currentTarget.value)} />
         <span class="shadow-slider-unit">&deg;</span>
       </div>
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="How far the shadow is cast — simulates height off the surface">Dist Min</span>
-        <input type="range" min="0" max="60" value={globalDistanceMin}
-          on:input={(e) => { globalDistanceMin = +e.currentTarget.value; applyGlobalDistance(); }} />
+        <input type="range" min="0" max="60" value={sg.distanceMin}
+          on:pointerdown={() => beginSliderGesture('drag global dist min')}
+          on:input={(e) => setGlobalDistance('distanceMin', +e.currentTarget.value)} />
         <input class="shadow-slider-input" type="number" min="0" max="100"
-          value={globalDistanceMin}
-          on:change={(e) => { globalDistanceMin = Math.max(0, +e.currentTarget.value); applyGlobalDistance(); }} />
+          value={sg.distanceMin}
+          on:change={(e) => setGlobalDistance('distanceMin', +e.currentTarget.value)} />
         <span class="shadow-slider-unit">px</span>
       </div>
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="How far the shadow is cast — simulates height off the surface">Dist Max</span>
-        <input type="range" min="0" max="60" value={globalDistanceMax}
-          on:input={(e) => { globalDistanceMax = +e.currentTarget.value; applyGlobalDistance(); }} />
+        <input type="range" min="0" max="60" value={sg.distanceMax}
+          on:pointerdown={() => beginSliderGesture('drag global dist max')}
+          on:input={(e) => setGlobalDistance('distanceMax', +e.currentTarget.value)} />
         <input class="shadow-slider-input" type="number" min="0" max="100"
-          value={globalDistanceMax}
-          on:change={(e) => { globalDistanceMax = Math.max(0, +e.currentTarget.value); applyGlobalDistance(); }} />
+          value={sg.distanceMax}
+          on:change={(e) => setGlobalDistance('distanceMax', +e.currentTarget.value)} />
         <span class="shadow-slider-unit">px</span>
       </div>
-      {#if sizeLocked}
+      {#if sg.sizeLocked}
         <div class="global-shadow-row">
           <span class="shadow-slider-label" title="Grows or shrinks the shadow before blurring — positive makes it larger than the element, negative makes it smaller">Spread</span>
-          <input type="range" min="-50" max="50" value={globalSizeMin}
-            on:input={(e) => { globalSizeMin = globalSizeMax = +e.currentTarget.value; applyGlobalSize(); }} />
+          <input type="range" min="-50" max="50" value={sg.sizeMin}
+            on:pointerdown={() => beginSliderGesture('drag global spread')}
+            on:input={(e) => setGlobalSize('sizeMin', +e.currentTarget.value)} />
           <input class="shadow-slider-input" type="number" min="-50" max="50"
-            value={globalSizeMin}
-            on:change={(e) => { globalSizeMin = globalSizeMax = Math.max(-50, Math.min(50, +e.currentTarget.value)); applyGlobalSize(); }} />
+            value={sg.sizeMin}
+            on:change={(e) => setGlobalSize('sizeMin', +e.currentTarget.value)} />
           <span class="shadow-slider-unit">px</span>
-          <button class="lock-btn" title="Unlock min/max" on:click={() => { sizeLocked = false; }}>
+          <button class="lock-btn" title="Unlock min/max" on:click={() => toggleLock('sizeLocked')}>
             <svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 7V5a4 4 0 118 0v2h1a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1h1zm2 0h4V5a2 2 0 10-4 0v2z" fill="currentColor"/></svg>
           </button>
         </div>
       {:else}
         <div class="global-shadow-row">
           <span class="shadow-slider-label" title="Grows or shrinks the shadow before blurring — positive makes it larger than the element, negative makes it smaller">Spread Min</span>
-          <input type="range" min="-50" max="50" value={globalSizeMin}
-            on:input={(e) => { globalSizeMin = +e.currentTarget.value; applyGlobalSize(); }} />
+          <input type="range" min="-50" max="50" value={sg.sizeMin}
+            on:pointerdown={() => beginSliderGesture('drag global spread min')}
+            on:input={(e) => setGlobalSize('sizeMin', +e.currentTarget.value)} />
           <input class="shadow-slider-input" type="number" min="-50" max="50"
-            value={globalSizeMin}
-            on:change={(e) => { globalSizeMin = Math.max(-50, Math.min(50, +e.currentTarget.value)); applyGlobalSize(); }} />
+            value={sg.sizeMin}
+            on:change={(e) => setGlobalSize('sizeMin', +e.currentTarget.value)} />
           <span class="shadow-slider-unit">px</span>
-          <button class="lock-btn unlocked" title="Lock to single value" on:click={() => { sizeLocked = true; globalSizeMax = globalSizeMin; applyGlobalSize(); }}>
+          <button class="lock-btn unlocked" title="Lock to single value" on:click={() => toggleLock('sizeLocked')}>
             <svg viewBox="0 0 16 16" width="14" height="14"><path d="M10 7V5a2 2 0 10-4 0v.5H4V5a4 4 0 118 0v2h1a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1h7z" fill="currentColor"/></svg>
           </button>
         </div>
         <div class="global-shadow-row">
           <span class="shadow-slider-label" title="Grows or shrinks the shadow before blurring — positive makes it larger than the element, negative makes it smaller">Spread Max</span>
-          <input type="range" min="-50" max="50" value={globalSizeMax}
-            on:input={(e) => { globalSizeMax = +e.currentTarget.value; applyGlobalSize(); }} />
+          <input type="range" min="-50" max="50" value={sg.sizeMax}
+            on:pointerdown={() => beginSliderGesture('drag global spread max')}
+            on:input={(e) => setGlobalSize('sizeMax', +e.currentTarget.value)} />
           <input class="shadow-slider-input" type="number" min="-50" max="50"
-            value={globalSizeMax}
-            on:change={(e) => { globalSizeMax = Math.max(-50, Math.min(50, +e.currentTarget.value)); applyGlobalSize(); }} />
+            value={sg.sizeMax}
+            on:change={(e) => setGlobalSize('sizeMax', +e.currentTarget.value)} />
           <span class="shadow-slider-unit">px</span>
         </div>
       {/if}
-      {#if blurLocked}
+      {#if sg.blurLocked}
         <div class="global-shadow-row">
           <span class="shadow-slider-label" title="How soft the shadow edge is — higher values make a wider, more diffused shadow">Blur</span>
-          <input type="range" min="0" max="100" value={globalBlurMin}
-            on:input={(e) => { globalBlurMin = globalBlurMax = +e.currentTarget.value; applyGlobalBlur(); }} />
+          <input type="range" min="0" max="100" value={sg.blurMin}
+            on:pointerdown={() => beginSliderGesture('drag global blur')}
+            on:input={(e) => setGlobalBlur('blurMin', +e.currentTarget.value)} />
           <input class="shadow-slider-input" type="number" min="0" max="100"
-            value={globalBlurMin}
-            on:change={(e) => { globalBlurMin = globalBlurMax = Math.max(0, +e.currentTarget.value); applyGlobalBlur(); }} />
+            value={sg.blurMin}
+            on:change={(e) => setGlobalBlur('blurMin', +e.currentTarget.value)} />
           <span class="shadow-slider-unit">px</span>
-          <button class="lock-btn" title="Unlock min/max" on:click={() => { blurLocked = false; }}>
+          <button class="lock-btn" title="Unlock min/max" on:click={() => toggleLock('blurLocked')}>
             <svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 7V5a4 4 0 118 0v2h1a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1h1zm2 0h4V5a2 2 0 10-4 0v2z" fill="currentColor"/></svg>
           </button>
         </div>
       {:else}
         <div class="global-shadow-row">
           <span class="shadow-slider-label" title="How soft the shadow edge is — higher values make a wider, more diffused shadow">Blur Min</span>
-          <input type="range" min="0" max="100" value={globalBlurMin}
-            on:input={(e) => { globalBlurMin = +e.currentTarget.value; applyGlobalBlur(); }} />
+          <input type="range" min="0" max="100" value={sg.blurMin}
+            on:pointerdown={() => beginSliderGesture('drag global blur min')}
+            on:input={(e) => setGlobalBlur('blurMin', +e.currentTarget.value)} />
           <input class="shadow-slider-input" type="number" min="0" max="100"
-            value={globalBlurMin}
-            on:change={(e) => { globalBlurMin = Math.max(0, +e.currentTarget.value); applyGlobalBlur(); }} />
+            value={sg.blurMin}
+            on:change={(e) => setGlobalBlur('blurMin', +e.currentTarget.value)} />
           <span class="shadow-slider-unit">px</span>
-          <button class="lock-btn unlocked" title="Lock to single value" on:click={() => { blurLocked = true; globalBlurMax = globalBlurMin; applyGlobalBlur(); }}>
+          <button class="lock-btn unlocked" title="Lock to single value" on:click={() => toggleLock('blurLocked')}>
             <svg viewBox="0 0 16 16" width="14" height="14"><path d="M10 7V5a2 2 0 10-4 0v.5H4V5a4 4 0 118 0v2h1a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1h7z" fill="currentColor"/></svg>
           </button>
         </div>
         <div class="global-shadow-row">
           <span class="shadow-slider-label" title="How soft the shadow edge is — higher values make a wider, more diffused shadow">Blur Max</span>
-          <input type="range" min="0" max="100" value={globalBlurMax}
-            on:input={(e) => { globalBlurMax = +e.currentTarget.value; applyGlobalBlur(); }} />
+          <input type="range" min="0" max="100" value={sg.blurMax}
+            on:pointerdown={() => beginSliderGesture('drag global blur max')}
+            on:input={(e) => setGlobalBlur('blurMax', +e.currentTarget.value)} />
           <input class="shadow-slider-input" type="number" min="0" max="100"
-            value={globalBlurMax}
-            on:change={(e) => { globalBlurMax = Math.max(0, +e.currentTarget.value); applyGlobalBlur(); }} />
+            value={sg.blurMax}
+            on:change={(e) => setGlobalBlur('blurMax', +e.currentTarget.value)} />
           <span class="shadow-slider-unit">px</span>
         </div>
       {/if}
-      {#if opacityLocked}
+      {#if sg.opacityLocked}
         <div class="global-shadow-row">
           <span class="shadow-slider-label" title="How visible the shadow is — 0% is invisible, 100% is fully opaque">Op.</span>
-          <input type="range" min="0" max="100" value={Math.round(globalOpacityMin * 100)}
-            on:input={(e) => { globalOpacityMin = globalOpacityMax = +e.currentTarget.value / 100; applyGlobalOpacity(); }} />
+          <input type="range" min="0" max="100" value={Math.round(sg.opacityMin * 100)}
+            on:pointerdown={() => beginSliderGesture('drag global opacity')}
+            on:input={(e) => setGlobalOpacity('opacityMin', +e.currentTarget.value / 100)} />
           <input class="shadow-slider-input" type="number" min="0" max="100"
-            value={Math.round(globalOpacityMin * 100)}
-            on:change={(e) => { globalOpacityMin = globalOpacityMax = Math.min(100, Math.max(0, +e.currentTarget.value)) / 100; applyGlobalOpacity(); }} />
+            value={Math.round(sg.opacityMin * 100)}
+            on:change={(e) => setGlobalOpacity('opacityMin', +e.currentTarget.value / 100)} />
           <span class="shadow-slider-unit">%</span>
-          <button class="lock-btn" title="Unlock min/max" on:click={() => { opacityLocked = false; }}>
+          <button class="lock-btn" title="Unlock min/max" on:click={() => toggleLock('opacityLocked')}>
             <svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 7V5a4 4 0 118 0v2h1a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1h1zm2 0h4V5a2 2 0 10-4 0v2z" fill="currentColor"/></svg>
           </button>
         </div>
       {:else}
         <div class="global-shadow-row">
           <span class="shadow-slider-label" title="How visible the shadow is — 0% is invisible, 100% is fully opaque">Op. Min</span>
-          <input type="range" min="0" max="100" value={Math.round(globalOpacityMin * 100)}
-            on:input={(e) => { globalOpacityMin = +e.currentTarget.value / 100; applyGlobalOpacity(); }} />
+          <input type="range" min="0" max="100" value={Math.round(sg.opacityMin * 100)}
+            on:pointerdown={() => beginSliderGesture('drag global opacity min')}
+            on:input={(e) => setGlobalOpacity('opacityMin', +e.currentTarget.value / 100)} />
           <input class="shadow-slider-input" type="number" min="0" max="100"
-            value={Math.round(globalOpacityMin * 100)}
-            on:change={(e) => { globalOpacityMin = Math.min(100, Math.max(0, +e.currentTarget.value)) / 100; applyGlobalOpacity(); }} />
+            value={Math.round(sg.opacityMin * 100)}
+            on:change={(e) => setGlobalOpacity('opacityMin', +e.currentTarget.value / 100)} />
           <span class="shadow-slider-unit">%</span>
-          <button class="lock-btn unlocked" title="Lock to single value" on:click={() => { opacityLocked = true; globalOpacityMax = globalOpacityMin; applyGlobalOpacity(); }}>
+          <button class="lock-btn unlocked" title="Lock to single value" on:click={() => toggleLock('opacityLocked')}>
             <svg viewBox="0 0 16 16" width="14" height="14"><path d="M10 7V5a2 2 0 10-4 0v.5H4V5a4 4 0 118 0v2h1a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1h7z" fill="currentColor"/></svg>
           </button>
         </div>
         <div class="global-shadow-row">
           <span class="shadow-slider-label" title="How visible the shadow is — 0% is invisible, 100% is fully opaque">Op. Max</span>
-          <input type="range" min="0" max="100" value={Math.round(globalOpacityMax * 100)}
-            on:input={(e) => { globalOpacityMax = +e.currentTarget.value / 100; applyGlobalOpacity(); }} />
+          <input type="range" min="0" max="100" value={Math.round(sg.opacityMax * 100)}
+            on:pointerdown={() => beginSliderGesture('drag global opacity max')}
+            on:input={(e) => setGlobalOpacity('opacityMax', +e.currentTarget.value / 100)} />
           <input class="shadow-slider-input" type="number" min="0" max="100"
-            value={Math.round(globalOpacityMax * 100)}
-            on:change={(e) => { globalOpacityMax = Math.min(100, Math.max(0, +e.currentTarget.value)) / 100; applyGlobalOpacity(); }} />
+            value={Math.round(sg.opacityMax * 100)}
+            on:change={(e) => setGlobalOpacity('opacityMax', +e.currentTarget.value / 100)} />
           <span class="shadow-slider-unit">%</span>
         </div>
       {/if}
       <div class="global-color-group">
-        <div class="global-color-swatch" style="background: hsl({globalHue}, {globalSaturation}%, {globalLightness}%);"></div>
+        <div class="global-color-swatch" style="background: hsl({sg.hue}, {sg.saturation}%, {sg.lightness}%);"></div>
         <div class="global-color-sliders">
           <div class="global-shadow-row">
             <span class="shadow-slider-label" title="Hue — the base color of the shadow (0°=red, 120°=green, 240°=blue)">H</span>
-            <div class="slider-track" style="background: {shadowHueGrad()}">
-              <input type="range" min="0" max="360" value={globalHue}
-                on:input={(e) => { globalHue = +e.currentTarget.value; applyGlobalColor(); }} />
+            <div class="slider-track" style="background: {shadowHueGrad}">
+              <input type="range" min="0" max="360" value={sg.hue}
+                on:pointerdown={() => beginSliderGesture('drag global hue')}
+                on:input={(e) => setGlobalColor('hue', +e.currentTarget.value)} />
             </div>
             <input class="shadow-slider-input" type="number" min="0" max="360"
-              value={globalHue}
-              on:change={(e) => { globalHue = Math.min(360, Math.max(0, +e.currentTarget.value)); applyGlobalColor(); }} />
+              value={sg.hue}
+              on:change={(e) => setGlobalColor('hue', +e.currentTarget.value)} />
             <span class="shadow-slider-unit">&deg;</span>
           </div>
           <div class="global-shadow-row">
             <span class="shadow-slider-label" title="Saturation — 0% is gray, 100% is full color intensity">S</span>
-            <div class="slider-track" style="background: {shadowSatGrad()}">
-              <input type="range" min="0" max="100" value={globalSaturation}
-                on:input={(e) => { globalSaturation = +e.currentTarget.value; applyGlobalColor(); }} />
+            <div class="slider-track" style="background: {shadowSatGrad}">
+              <input type="range" min="0" max="100" value={sg.saturation}
+                on:pointerdown={() => beginSliderGesture('drag global saturation')}
+                on:input={(e) => setGlobalColor('saturation', +e.currentTarget.value)} />
             </div>
             <input class="shadow-slider-input" type="number" min="0" max="100"
-              value={globalSaturation}
-              on:change={(e) => { globalSaturation = Math.min(100, Math.max(0, +e.currentTarget.value)); applyGlobalColor(); }} />
+              value={sg.saturation}
+              on:change={(e) => setGlobalColor('saturation', +e.currentTarget.value)} />
             <span class="shadow-slider-unit">%</span>
           </div>
           <div class="global-shadow-row">
             <span class="shadow-slider-label" title="Lightness — 0% is black, 100% is white">L</span>
-            <div class="slider-track" style="background: {shadowLightGrad()}">
-              <input type="range" min="0" max="100" value={globalLightness}
-                on:input={(e) => { globalLightness = +e.currentTarget.value; applyGlobalColor(); }} />
+            <div class="slider-track" style="background: {shadowLightGrad}">
+              <input type="range" min="0" max="100" value={sg.lightness}
+                on:pointerdown={() => beginSliderGesture('drag global lightness')}
+                on:input={(e) => setGlobalColor('lightness', +e.currentTarget.value)} />
             </div>
             <input class="shadow-slider-input" type="number" min="0" max="100"
-              value={globalLightness}
-              on:change={(e) => { globalLightness = Math.min(100, Math.max(0, +e.currentTarget.value)); applyGlobalColor(); }} />
+              value={sg.lightness}
+              on:change={(e) => setGlobalColor('lightness', +e.currentTarget.value)} />
             <span class="shadow-slider-unit">%</span>
           </div>
         </div>
@@ -1382,7 +1190,7 @@
 
     <h3 class="group-title">Dark Overlays</h3>
     <div class="overlays-grid">
-      {#each overlayTokens as token, i}
+      {#each $editorState.overlays.tokens as token, i}
         <div class="overlay-item">
           <div class="overlay-swatch-wrap">
             <div class="overlay-swatch" style="background: {getOverlayCss(token)};"></div>
@@ -1399,10 +1207,11 @@
               <div class="shadow-slider-row">
                 <span class="shadow-slider-label">Opacity</span>
                 <input type="range" min="0" max="100" value={Math.round(token.opacity * 100)}
-                  on:input={(e) => { token.opacity = +e.currentTarget.value / 100; applyOverlay(token); overlayTokens = overlayTokens; }} />
+                  on:pointerdown={() => beginSliderGesture(`edit ${token.variable} opacity`)}
+                  on:input={(e) => setOverlayTokenOpacity('overlay', i, +e.currentTarget.value / 100)} />
                 <input class="shadow-slider-input" type="number" min="0" max="100"
                   value={Math.round(token.opacity * 100)}
-                  on:change={(e) => { token.opacity = Math.min(100, Math.max(0, +e.currentTarget.value)) / 100; applyOverlay(token); overlayTokens = overlayTokens; }} />
+                  on:change={(e) => setOverlayTokenOpacity('overlay', i, Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
                 <span class="shadow-slider-unit">%</span>
               </div>
               <div class="shadow-css-output">
@@ -1423,39 +1232,42 @@
       <div class="overlay-global-columns">
         <div class="overlay-global-col">
           <div class="global-color-group">
-            <div class="global-color-swatch" style="background: hsl({overlayHue}, {overlaySaturation}%, {overlayLightness}%);"></div>
+            <div class="global-color-swatch" style="background: hsl({$editorState.overlays.globals.overlay.hue}, {$editorState.overlays.globals.overlay.saturation}%, {$editorState.overlays.globals.overlay.lightness}%);"></div>
             <div class="global-color-sliders">
               <div class="global-shadow-row">
                 <span class="shadow-slider-label">H</span>
-                <div class="slider-track" style="background: {overlayHueGrad()}">
-                  <input type="range" min="0" max="360" value={overlayHue}
-                    on:input={(e) => { overlayHue = +e.currentTarget.value; applyGlobalOverlayColor(); }} />
+                <div class="slider-track" style="background: {overlayHueGrad($editorState.overlays.globals.overlay)}">
+                  <input type="range" min="0" max="360" value={$editorState.overlays.globals.overlay.hue}
+                    on:pointerdown={() => beginSliderGesture('overlay hue')}
+                    on:input={(e) => setOverlayColor('overlay', 'hue', +e.currentTarget.value)} />
                 </div>
                 <input class="shadow-slider-input" type="number" min="0" max="360"
-                  value={overlayHue}
-                  on:change={(e) => { overlayHue = Math.min(360, Math.max(0, +e.currentTarget.value)); applyGlobalOverlayColor(); }} />
+                  value={$editorState.overlays.globals.overlay.hue}
+                  on:change={(e) => setOverlayColor('overlay', 'hue', +e.currentTarget.value)} />
                 <span class="shadow-slider-unit">&deg;</span>
               </div>
               <div class="global-shadow-row">
                 <span class="shadow-slider-label">S</span>
-                <div class="slider-track" style="background: {overlaySatGrad()}">
-                  <input type="range" min="0" max="100" value={overlaySaturation}
-                    on:input={(e) => { overlaySaturation = +e.currentTarget.value; applyGlobalOverlayColor(); }} />
+                <div class="slider-track" style="background: {overlaySatGrad($editorState.overlays.globals.overlay)}">
+                  <input type="range" min="0" max="100" value={$editorState.overlays.globals.overlay.saturation}
+                    on:pointerdown={() => beginSliderGesture('overlay saturation')}
+                    on:input={(e) => setOverlayColor('overlay', 'saturation', +e.currentTarget.value)} />
                 </div>
                 <input class="shadow-slider-input" type="number" min="0" max="100"
-                  value={overlaySaturation}
-                  on:change={(e) => { overlaySaturation = Math.min(100, Math.max(0, +e.currentTarget.value)); applyGlobalOverlayColor(); }} />
+                  value={$editorState.overlays.globals.overlay.saturation}
+                  on:change={(e) => setOverlayColor('overlay', 'saturation', +e.currentTarget.value)} />
                 <span class="shadow-slider-unit">%</span>
               </div>
               <div class="global-shadow-row">
                 <span class="shadow-slider-label">L</span>
-                <div class="slider-track" style="background: {overlayLightGrad()}">
-                  <input type="range" min="0" max="100" value={overlayLightness}
-                    on:input={(e) => { overlayLightness = +e.currentTarget.value; applyGlobalOverlayColor(); }} />
+                <div class="slider-track" style="background: {overlayLightGrad($editorState.overlays.globals.overlay)}">
+                  <input type="range" min="0" max="100" value={$editorState.overlays.globals.overlay.lightness}
+                    on:pointerdown={() => beginSliderGesture('overlay lightness')}
+                    on:input={(e) => setOverlayColor('overlay', 'lightness', +e.currentTarget.value)} />
                 </div>
                 <input class="shadow-slider-input" type="number" min="0" max="100"
-                  value={overlayLightness}
-                  on:change={(e) => { overlayLightness = Math.min(100, Math.max(0, +e.currentTarget.value)); applyGlobalOverlayColor(); }} />
+                  value={$editorState.overlays.globals.overlay.lightness}
+                  on:change={(e) => setOverlayColor('overlay', 'lightness', +e.currentTarget.value)} />
                 <span class="shadow-slider-unit">%</span>
               </div>
             </div>
@@ -1464,20 +1276,22 @@
         <div class="overlay-global-col">
           <div class="global-shadow-row">
             <span class="shadow-slider-label">Op. Min</span>
-            <input type="range" min="0" max="100" value={Math.round(overlayOpacityMin * 100)}
-              on:input={(e) => { overlayOpacityMin = +e.currentTarget.value / 100; applyGlobalOverlayOpacity(); }} />
+            <input type="range" min="0" max="100" value={Math.round($editorState.overlays.globals.overlay.opacityMin * 100)}
+              on:pointerdown={() => beginSliderGesture('overlay opacity min')}
+              on:input={(e) => setOverlayOpacity('overlay', 'opacityMin', +e.currentTarget.value / 100)} />
             <input class="shadow-slider-input" type="number" min="0" max="100"
-              value={Math.round(overlayOpacityMin * 100)}
-              on:change={(e) => { overlayOpacityMin = Math.min(100, Math.max(0, +e.currentTarget.value)) / 100; applyGlobalOverlayOpacity(); }} />
+              value={Math.round($editorState.overlays.globals.overlay.opacityMin * 100)}
+              on:change={(e) => setOverlayOpacity('overlay', 'opacityMin', Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
             <span class="shadow-slider-unit">%</span>
           </div>
           <div class="global-shadow-row">
             <span class="shadow-slider-label">Op. Max</span>
-            <input type="range" min="0" max="100" value={Math.round(overlayOpacityMax * 100)}
-              on:input={(e) => { overlayOpacityMax = +e.currentTarget.value / 100; applyGlobalOverlayOpacity(); }} />
+            <input type="range" min="0" max="100" value={Math.round($editorState.overlays.globals.overlay.opacityMax * 100)}
+              on:pointerdown={() => beginSliderGesture('overlay opacity max')}
+              on:input={(e) => setOverlayOpacity('overlay', 'opacityMax', +e.currentTarget.value / 100)} />
             <input class="shadow-slider-input" type="number" min="0" max="100"
-              value={Math.round(overlayOpacityMax * 100)}
-              on:change={(e) => { overlayOpacityMax = Math.min(100, Math.max(0, +e.currentTarget.value)) / 100; applyGlobalOverlayOpacity(); }} />
+              value={Math.round($editorState.overlays.globals.overlay.opacityMax * 100)}
+              on:change={(e) => setOverlayOpacity('overlay', 'opacityMax', Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
             <span class="shadow-slider-unit">%</span>
           </div>
         </div>
@@ -1486,7 +1300,7 @@
 
     <h3 class="group-title" style="margin-top: var(--space-16);">Hover Overlays</h3>
     <div class="overlays-grid">
-      {#each hoverTokens as token, i}
+      {#each $editorState.overlays.hoverTokens as token, i}
         <div class="overlay-item">
           <div class="overlay-swatch-wrap overlay-swatch-wrap--dark">
             <div class="overlay-swatch" style="background: {getOverlayCss(token)};"></div>
@@ -1503,10 +1317,11 @@
               <div class="shadow-slider-row">
                 <span class="shadow-slider-label">Opacity</span>
                 <input type="range" min="0" max="100" value={Math.round(token.opacity * 100)}
-                  on:input={(e) => { token.opacity = +e.currentTarget.value / 100; applyOverlay(token); hoverTokens = hoverTokens; }} />
+                  on:pointerdown={() => beginSliderGesture(`edit ${token.variable} opacity`)}
+                  on:input={(e) => setOverlayTokenOpacity('hover', i, +e.currentTarget.value / 100)} />
                 <input class="shadow-slider-input" type="number" min="0" max="100"
                   value={Math.round(token.opacity * 100)}
-                  on:change={(e) => { token.opacity = Math.min(100, Math.max(0, +e.currentTarget.value)) / 100; applyOverlay(token); hoverTokens = hoverTokens; }} />
+                  on:change={(e) => setOverlayTokenOpacity('hover', i, Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
                 <span class="shadow-slider-unit">%</span>
               </div>
               <div class="shadow-css-output">
@@ -1527,39 +1342,42 @@
       <div class="overlay-global-columns">
         <div class="overlay-global-col">
           <div class="global-color-group">
-            <div class="global-color-swatch" style="background: hsl({hoverHue}, {hoverSaturation}%, {hoverLightness}%);"></div>
+            <div class="global-color-swatch" style="background: hsl({$editorState.overlays.globals.hover.hue}, {$editorState.overlays.globals.hover.saturation}%, {$editorState.overlays.globals.hover.lightness}%);"></div>
             <div class="global-color-sliders">
               <div class="global-shadow-row">
                 <span class="shadow-slider-label">H</span>
-                <div class="slider-track" style="background: {hoverHueGrad()}">
-                  <input type="range" min="0" max="360" value={hoverHue}
-                    on:input={(e) => { hoverHue = +e.currentTarget.value; applyGlobalHoverColor(); }} />
+                <div class="slider-track" style="background: {overlayHueGrad($editorState.overlays.globals.hover)}">
+                  <input type="range" min="0" max="360" value={$editorState.overlays.globals.hover.hue}
+                    on:pointerdown={() => beginSliderGesture('hover hue')}
+                    on:input={(e) => setOverlayColor('hover', 'hue', +e.currentTarget.value)} />
                 </div>
                 <input class="shadow-slider-input" type="number" min="0" max="360"
-                  value={hoverHue}
-                  on:change={(e) => { hoverHue = Math.min(360, Math.max(0, +e.currentTarget.value)); applyGlobalHoverColor(); }} />
+                  value={$editorState.overlays.globals.hover.hue}
+                  on:change={(e) => setOverlayColor('hover', 'hue', +e.currentTarget.value)} />
                 <span class="shadow-slider-unit">&deg;</span>
               </div>
               <div class="global-shadow-row">
                 <span class="shadow-slider-label">S</span>
-                <div class="slider-track" style="background: {hoverSatGrad()}">
-                  <input type="range" min="0" max="100" value={hoverSaturation}
-                    on:input={(e) => { hoverSaturation = +e.currentTarget.value; applyGlobalHoverColor(); }} />
+                <div class="slider-track" style="background: {overlaySatGrad($editorState.overlays.globals.hover)}">
+                  <input type="range" min="0" max="100" value={$editorState.overlays.globals.hover.saturation}
+                    on:pointerdown={() => beginSliderGesture('hover saturation')}
+                    on:input={(e) => setOverlayColor('hover', 'saturation', +e.currentTarget.value)} />
                 </div>
                 <input class="shadow-slider-input" type="number" min="0" max="100"
-                  value={hoverSaturation}
-                  on:change={(e) => { hoverSaturation = Math.min(100, Math.max(0, +e.currentTarget.value)); applyGlobalHoverColor(); }} />
+                  value={$editorState.overlays.globals.hover.saturation}
+                  on:change={(e) => setOverlayColor('hover', 'saturation', +e.currentTarget.value)} />
                 <span class="shadow-slider-unit">%</span>
               </div>
               <div class="global-shadow-row">
                 <span class="shadow-slider-label">L</span>
-                <div class="slider-track" style="background: {hoverLightGrad()}">
-                  <input type="range" min="0" max="100" value={hoverLightness}
-                    on:input={(e) => { hoverLightness = +e.currentTarget.value; applyGlobalHoverColor(); }} />
+                <div class="slider-track" style="background: {overlayLightGrad($editorState.overlays.globals.hover)}">
+                  <input type="range" min="0" max="100" value={$editorState.overlays.globals.hover.lightness}
+                    on:pointerdown={() => beginSliderGesture('hover lightness')}
+                    on:input={(e) => setOverlayColor('hover', 'lightness', +e.currentTarget.value)} />
                 </div>
                 <input class="shadow-slider-input" type="number" min="0" max="100"
-                  value={hoverLightness}
-                  on:change={(e) => { hoverLightness = Math.min(100, Math.max(0, +e.currentTarget.value)); applyGlobalHoverColor(); }} />
+                  value={$editorState.overlays.globals.hover.lightness}
+                  on:change={(e) => setOverlayColor('hover', 'lightness', +e.currentTarget.value)} />
                 <span class="shadow-slider-unit">%</span>
               </div>
             </div>
@@ -1568,20 +1386,22 @@
         <div class="overlay-global-col">
           <div class="global-shadow-row">
             <span class="shadow-slider-label">Op. Min</span>
-            <input type="range" min="0" max="100" value={Math.round(hoverOpacityMin * 100)}
-              on:input={(e) => { hoverOpacityMin = +e.currentTarget.value / 100; applyGlobalHoverOpacity(); }} />
+            <input type="range" min="0" max="100" value={Math.round($editorState.overlays.globals.hover.opacityMin * 100)}
+              on:pointerdown={() => beginSliderGesture('hover opacity min')}
+              on:input={(e) => setOverlayOpacity('hover', 'opacityMin', +e.currentTarget.value / 100)} />
             <input class="shadow-slider-input" type="number" min="0" max="100"
-              value={Math.round(hoverOpacityMin * 100)}
-              on:change={(e) => { hoverOpacityMin = Math.min(100, Math.max(0, +e.currentTarget.value)) / 100; applyGlobalHoverOpacity(); }} />
+              value={Math.round($editorState.overlays.globals.hover.opacityMin * 100)}
+              on:change={(e) => setOverlayOpacity('hover', 'opacityMin', Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
             <span class="shadow-slider-unit">%</span>
           </div>
           <div class="global-shadow-row">
             <span class="shadow-slider-label">Op. Max</span>
-            <input type="range" min="0" max="100" value={Math.round(hoverOpacityMax * 100)}
-              on:input={(e) => { hoverOpacityMax = +e.currentTarget.value / 100; applyGlobalHoverOpacity(); }} />
+            <input type="range" min="0" max="100" value={Math.round($editorState.overlays.globals.hover.opacityMax * 100)}
+              on:pointerdown={() => beginSliderGesture('hover opacity max')}
+              on:input={(e) => setOverlayOpacity('hover', 'opacityMax', +e.currentTarget.value / 100)} />
             <input class="shadow-slider-input" type="number" min="0" max="100"
-              value={Math.round(hoverOpacityMax * 100)}
-              on:change={(e) => { hoverOpacityMax = Math.min(100, Math.max(0, +e.currentTarget.value)) / 100; applyGlobalHoverOpacity(); }} />
+              value={Math.round($editorState.overlays.globals.hover.opacityMax * 100)}
+              on:change={(e) => setOverlayOpacity('hover', 'opacityMax', Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
             <span class="shadow-slider-unit">%</span>
           </div>
         </div>

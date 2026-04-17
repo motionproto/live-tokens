@@ -1,15 +1,10 @@
 export { default as LiveEditorOverlay } from './LiveEditorOverlay.svelte';
-export type { NavLink } from './LiveEditorOverlay.svelte';
+export type { NavLink } from './navLinkTypes';
 export { default as ColumnsOverlay } from './ColumnsOverlay.svelte';
 
 export { columnsVisible, toggleColumns } from './columnsOverlay';
 export { configureEditor, storageKey } from './editorConfig';
-export {
-  editorConfigs,
-  loadedConfigs,
-  configsLoadedFromFile,
-  activeFileName,
-} from './editorConfigStore';
+export { activeFileName } from './editorConfigStore';
 
 export {
   setCssVar,

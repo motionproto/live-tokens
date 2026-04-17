@@ -1,7 +1,15 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import VisualsTab from '../showcase/VisualsTab.svelte';
+  import { installEditorKeybindings } from '../lib/editorKeybindings';
+  import { initializeEditorStore } from '../lib/editorStore';
 
   const inOverlay = typeof window !== 'undefined' && window.parent !== window;
+
+  onMount(() => {
+    initializeEditorStore();
+    return installEditorKeybindings();
+  });
 
   function closeOverlay() {
     try {

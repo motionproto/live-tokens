@@ -2,7 +2,6 @@
   import { tick } from 'svelte';
   import VariablesTab from './VariablesTab.svelte';
   import TokenFileManager from './TokenFileManager.svelte';
-  import type { TokenFile } from '../lib/tokenTypes';
   import {
     saveTokenFile,
     loadTokenFile,
@@ -11,10 +10,16 @@
     clearAllCssVarOverrides,
     applyCssVariables,
   } from '../lib/tokenService';
-  import { editorConfigs, activeFileName, configsLoadedFromFile } from '../lib/editorConfigStore';
-  import { fontSources, fontStacks } from '../lib/fontStore';
+  import { activeFileName } from '../lib/editorConfigStore';
   import { applyFontSources, applyFontStacks } from '../lib/fontLoader';
   import { migrateTokenFileFonts } from '../lib/fontMigration';
+  import {
+    editorState,
+    loadFromFile as loadEditorState,
+    toTokenFile,
+    markSaved,
+    DOMAIN_VAR_NAMES,
+  } from '../lib/editorStore';
   import { get } from 'svelte/store';
 
   const tokenNavItems = [
@@ -36,41 +41,28 @@
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
   }
 
-  let saveSignal = 0;
   let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
 
   async function handleSave(e: CustomEvent<{ fileName: string; displayName: string }>) {
     const { fileName, displayName } = e.detail;
-    if (!get(configsLoadedFromFile)) {
-      saveStatus = 'error';
-      console.warn('Save blocked: editor configs were not loaded from a token file.');
-      setTimeout(() => { saveStatus = 'idle'; }, 3000);
-      return;
-    }
     saveStatus = 'saving';
     try {
       // Flush pending Svelte reactive updates so inline CSS vars are current
       await tick();
-      const cssVariables = scrapeCssVariables();
-      for (const key of ['--font-display', '--font-sans', '--font-serif', '--font-mono']) {
-        delete cssVariables[key];
-      }
-      const configs = get(editorConfigs);
-      const now = new Date().toISOString();
-      const tokenFile: TokenFile = {
-        name: displayName,
-        createdAt: now,
-        updatedAt: now,
-        editorConfigs: configs,
-        cssVariables,
-        fontSources: get(fontSources),
-        fontStacks: get(fontStacks),
-      };
+      const state = get(editorState);
+      const tokenFile = toTokenFile(state, { name: displayName });
+      // PaletteEditor still writes its ramp/semantic vars directly to the DOM
+      // (derivation has not yet moved into the store). Fold those in by
+      // scraping inline overrides, dropping font vars (owned by fontStacks)
+      // and any domain-owned keys (the store emitters win for those).
+      const scraped = scrapeCssVariables();
+      for (const k of ['--font-display', '--font-sans', '--font-serif', '--font-mono']) delete scraped[k];
+      for (const k of DOMAIN_VAR_NAMES) delete scraped[k];
+      tokenFile.cssVariables = { ...scraped, ...tokenFile.cssVariables };
       await saveTokenFile(fileName, tokenFile);
       await setActiveFile(fileName);
       $activeFileName = fileName;
-      // Also trigger localStorage save in all PaletteEditors
-      saveSignal++;
+      markSaved();
       saveStatus = 'saved';
       setTimeout(() => { saveStatus = 'idle'; }, 2000);
     } catch {
@@ -79,8 +71,6 @@
     }
   }
 
-  let variablesTab: VariablesTab;
-
   async function handleLoad(e: CustomEvent<{ fileName: string }>) {
     const { fileName } = e.detail;
     try {
@@ -88,24 +78,26 @@
       migrateTokenFileFonts(tokenFile);
       // Clear current inline CSS vars so stale values don't linger
       clearAllCssVarOverrides();
-      // Immediately apply the file's pre-computed CSS variables so the site
-      // updates in one shot (shadows, overlays, and all palette vars).
+      // Seed the editor state first so its subscriber-driven derivation is
+      // the authoritative writer for anything it already owns (columns +
+      // catch-all cssVars). applyCssVariables then fills in the rest until
+      // the remaining domains move into the store in later phases.
+      loadEditorState(tokenFile);
       if (tokenFile.cssVariables && Object.keys(tokenFile.cssVariables).length > 0) {
         applyCssVariables(tokenFile.cssVariables);
       }
+      // Font data is already populated into state.fonts by loadEditorState;
+      // we still need to run the DOM-side-effect helpers so @font-face rules
+      // and --font-* CSS vars land on :root.
       if (tokenFile.fontSources && tokenFile.fontSources.length > 0) {
         applyFontSources(tokenFile.fontSources);
-        fontSources.set(tokenFile.fontSources);
       }
       if (tokenFile.fontStacks && tokenFile.fontStacks.length > 0) {
         applyFontStacks(tokenFile.fontStacks, tokenFile.fontSources ?? []);
-        fontStacks.set(tokenFile.fontStacks);
       }
-      // Directly push configs to each PaletteEditor via method call
-      if (tokenFile.editorConfigs && Object.keys(tokenFile.editorConfigs).length > 0) {
-        variablesTab.loadAllConfigs(tokenFile.editorConfigs);
-        configsLoadedFromFile.set(true);
-      }
+      // PaletteEditor instances observe `state.palettes` via their store-
+      // watching reactive, so loadEditorState() above is enough — no direct
+      // method call needed.
     } catch {
       // silent — the UI still shows current state
     }
@@ -134,7 +126,7 @@
   </nav>
 
   <main class="content">
-    <VariablesTab bind:this={variablesTab} {saveSignal} />
+    <VariablesTab />
   </main>
 </div>
 
