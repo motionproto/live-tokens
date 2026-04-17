@@ -23,10 +23,10 @@
     bottom: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
-    background: var(--surface-neutral-highest);
-    color: var(--text-primary);
+    background: var(--tooltip-surface);
+    color: var(--tooltip-text);
     padding: var(--space-6) var(--space-12);
-    border-radius: var(--radius-md);
+    border-radius: var(--tooltip-radius);
     font-size: var(--font-sm);
     white-space: nowrap;
     pointer-events: none;
@@ -43,7 +43,7 @@
     left: 50%;
     transform: translateX(-50%);
     border: 5px solid transparent;
-    border-top-color: var(--surface-neutral-highest);
+    border-top-color: var(--tooltip-surface);
   }
 
   .tooltip.bottom {
@@ -55,7 +55,7 @@
     top: auto;
     bottom: 100%;
     border-top-color: transparent;
-    border-bottom-color: var(--surface-neutral-highest);
+    border-bottom-color: var(--tooltip-surface);
   }
 
   .tooltip-wrapper:hover .tooltip {
