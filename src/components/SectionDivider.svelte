@@ -26,55 +26,55 @@
 
   /* Variant palette mappings */
   .variant-bg {
-    --_divider-1: var(--section-divider-bg-gradient-high);
-    --_divider-2: var(--section-divider-bg-gradient-mid);
-    --_divider-3: var(--section-divider-bg-gradient-low);
-    --_divider-4: var(--section-divider-bg-gradient-base);
+    --_divider-1: var(--section-divider-bg-gradient-stop-1);
+    --_divider-2: var(--section-divider-bg-gradient-stop-2);
+    --_divider-3: var(--section-divider-bg-gradient-stop-3);
+    --_divider-4: var(--section-divider-bg-gradient-stop-4);
     --_divider-stroke: var(--section-divider-bg-text-stroke);
     --_divider-radius: var(--section-divider-bg-radius);
   }
 
   .variant-neutral {
-    --_divider-1: var(--section-divider-neutral-gradient-high);
-    --_divider-2: var(--section-divider-neutral-gradient-mid);
-    --_divider-3: var(--section-divider-neutral-gradient-low);
-    --_divider-4: var(--section-divider-neutral-gradient-base);
+    --_divider-1: var(--section-divider-neutral-gradient-stop-1);
+    --_divider-2: var(--section-divider-neutral-gradient-stop-2);
+    --_divider-3: var(--section-divider-neutral-gradient-stop-3);
+    --_divider-4: var(--section-divider-neutral-gradient-stop-4);
     --_divider-stroke: var(--section-divider-neutral-text-stroke);
     --_divider-radius: var(--section-divider-neutral-radius);
   }
 
   .variant-alternate {
-    --_divider-1: var(--section-divider-alternate-gradient-high);
-    --_divider-2: var(--section-divider-alternate-gradient-mid);
-    --_divider-3: var(--section-divider-alternate-gradient-low);
-    --_divider-4: var(--section-divider-alternate-gradient-base);
+    --_divider-1: var(--section-divider-alternate-gradient-stop-1);
+    --_divider-2: var(--section-divider-alternate-gradient-stop-2);
+    --_divider-3: var(--section-divider-alternate-gradient-stop-3);
+    --_divider-4: var(--section-divider-alternate-gradient-stop-4);
     --_divider-stroke: var(--section-divider-alternate-text-stroke);
     --_divider-radius: var(--section-divider-alternate-radius);
   }
 
   .variant-primary {
-    --_divider-1: var(--section-divider-primary-gradient-high);
-    --_divider-2: var(--section-divider-primary-gradient-mid);
-    --_divider-3: var(--section-divider-primary-gradient-low);
-    --_divider-4: var(--section-divider-primary-gradient-base);
+    --_divider-1: var(--section-divider-primary-gradient-stop-1);
+    --_divider-2: var(--section-divider-primary-gradient-stop-2);
+    --_divider-3: var(--section-divider-primary-gradient-stop-3);
+    --_divider-4: var(--section-divider-primary-gradient-stop-4);
     --_divider-stroke: var(--section-divider-primary-text-stroke);
     --_divider-radius: var(--section-divider-primary-radius);
   }
 
   .variant-accent {
-    --_divider-1: var(--section-divider-accent-gradient-high);
-    --_divider-2: var(--section-divider-accent-gradient-mid);
-    --_divider-3: var(--section-divider-accent-gradient-low);
-    --_divider-4: var(--section-divider-accent-gradient-base);
+    --_divider-1: var(--section-divider-accent-gradient-stop-1);
+    --_divider-2: var(--section-divider-accent-gradient-stop-2);
+    --_divider-3: var(--section-divider-accent-gradient-stop-3);
+    --_divider-4: var(--section-divider-accent-gradient-stop-4);
     --_divider-stroke: var(--section-divider-accent-text-stroke);
     --_divider-radius: var(--section-divider-accent-radius);
   }
 
   .variant-special {
-    --_divider-1: var(--section-divider-special-gradient-high);
-    --_divider-2: var(--section-divider-special-gradient-mid);
-    --_divider-3: var(--section-divider-special-gradient-low);
-    --_divider-4: var(--section-divider-special-gradient-base);
+    --_divider-1: var(--section-divider-special-gradient-stop-1);
+    --_divider-2: var(--section-divider-special-gradient-stop-2);
+    --_divider-3: var(--section-divider-special-gradient-stop-3);
+    --_divider-4: var(--section-divider-special-gradient-stop-4);
     --_divider-stroke: var(--section-divider-special-text-stroke);
     --_divider-radius: var(--section-divider-special-radius);
   }
