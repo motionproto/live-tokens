@@ -15,7 +15,7 @@
   .section-divider {
     margin: var(--space-24) 0;
     padding: var(--space-16) var(--space-24);
-    border-radius: var(--radius-lg);
+    border-radius: var(--_divider-radius);
     background: linear-gradient(135deg,
       var(--_divider-1) 0%,
       var(--_divider-2) 30%,
@@ -26,51 +26,57 @@
 
   /* Variant palette mappings */
   .variant-bg {
-    --_divider-1: var(--surface-bg-highest);
-    --_divider-2: var(--surface-bg-higher);
-    --_divider-3: var(--surface-bg-high);
-    --_divider-4: var(--surface-bg);
-    --_divider-stroke: var(--surface-bg-lowest);
+    --_divider-1: var(--section-divider-bg-gradient-high);
+    --_divider-2: var(--section-divider-bg-gradient-mid);
+    --_divider-3: var(--section-divider-bg-gradient-low);
+    --_divider-4: var(--section-divider-bg-gradient-base);
+    --_divider-stroke: var(--section-divider-bg-text-stroke);
+    --_divider-radius: var(--section-divider-bg-radius);
   }
 
   .variant-neutral {
-    --_divider-1: var(--surface-neutral-highest);
-    --_divider-2: var(--surface-neutral-higher);
-    --_divider-3: var(--surface-neutral-high);
-    --_divider-4: var(--surface-neutral);
-    --_divider-stroke: var(--surface-neutral-lowest);
+    --_divider-1: var(--section-divider-neutral-gradient-high);
+    --_divider-2: var(--section-divider-neutral-gradient-mid);
+    --_divider-3: var(--section-divider-neutral-gradient-low);
+    --_divider-4: var(--section-divider-neutral-gradient-base);
+    --_divider-stroke: var(--section-divider-neutral-text-stroke);
+    --_divider-radius: var(--section-divider-neutral-radius);
   }
 
   .variant-alternate {
-    --_divider-1: var(--surface-alternate-highest);
-    --_divider-2: var(--surface-alternate-higher);
-    --_divider-3: var(--surface-alternate-high);
-    --_divider-4: var(--surface-alternate);
-    --_divider-stroke: var(--surface-alternate-lowest);
+    --_divider-1: var(--section-divider-alternate-gradient-high);
+    --_divider-2: var(--section-divider-alternate-gradient-mid);
+    --_divider-3: var(--section-divider-alternate-gradient-low);
+    --_divider-4: var(--section-divider-alternate-gradient-base);
+    --_divider-stroke: var(--section-divider-alternate-text-stroke);
+    --_divider-radius: var(--section-divider-alternate-radius);
   }
 
   .variant-primary {
-    --_divider-1: var(--surface-primary-highest);
-    --_divider-2: var(--surface-primary-higher);
-    --_divider-3: var(--surface-primary-high);
-    --_divider-4: var(--surface-primary);
-    --_divider-stroke: var(--surface-primary-lowest);
+    --_divider-1: var(--section-divider-primary-gradient-high);
+    --_divider-2: var(--section-divider-primary-gradient-mid);
+    --_divider-3: var(--section-divider-primary-gradient-low);
+    --_divider-4: var(--section-divider-primary-gradient-base);
+    --_divider-stroke: var(--section-divider-primary-text-stroke);
+    --_divider-radius: var(--section-divider-primary-radius);
   }
 
   .variant-accent {
-    --_divider-1: var(--surface-accent-highest);
-    --_divider-2: var(--surface-accent-higher);
-    --_divider-3: var(--surface-accent-high);
-    --_divider-4: var(--surface-accent);
-    --_divider-stroke: var(--surface-accent-lowest);
+    --_divider-1: var(--section-divider-accent-gradient-high);
+    --_divider-2: var(--section-divider-accent-gradient-mid);
+    --_divider-3: var(--section-divider-accent-gradient-low);
+    --_divider-4: var(--section-divider-accent-gradient-base);
+    --_divider-stroke: var(--section-divider-accent-text-stroke);
+    --_divider-radius: var(--section-divider-accent-radius);
   }
 
   .variant-special {
-    --_divider-1: var(--surface-special-highest);
-    --_divider-2: var(--surface-special-higher);
-    --_divider-3: var(--surface-special-high);
-    --_divider-4: var(--surface-special);
-    --_divider-stroke: var(--surface-special-lowest);
+    --_divider-1: var(--section-divider-special-gradient-high);
+    --_divider-2: var(--section-divider-special-gradient-mid);
+    --_divider-3: var(--section-divider-special-gradient-low);
+    --_divider-4: var(--section-divider-special-gradient-base);
+    --_divider-stroke: var(--section-divider-special-text-stroke);
+    --_divider-radius: var(--section-divider-special-radius);
   }
 
   .divider-label {
