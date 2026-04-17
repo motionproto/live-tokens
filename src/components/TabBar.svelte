@@ -11,6 +11,8 @@
   export let tabs: Tab[] = [];
   export let selectedTab: string = '';
   export let iconOnly: boolean = false;
+  let className: string = '';
+  export { className as class };
 
   const dispatch = createEventDispatcher<{
     tabChange: string;
@@ -23,7 +25,7 @@
   }
 </script>
 
-<div class="tab-bar">
+<div class="tab-bar {className}">
   {#each tabs as tab}
     <button
       class="tab"
@@ -46,7 +48,7 @@
   .tab-bar {
     display: flex;
     gap: var(--space-2);
-    border-bottom: 1px solid var(--border-neutral-subtle);
+    border-bottom: 1px solid var(--tabbar-divider);
     padding: 0 var(--space-8);
   }
 
@@ -58,7 +60,7 @@
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
-    color: var(--text-tertiary);
+    color: var(--tabbar-default-text);
     font-size: var(--font-md);
     font-weight: var(--font-weight-medium);
     cursor: pointer;
@@ -66,15 +68,16 @@
     position: relative;
   }
 
-  .tab:hover:not(:disabled):not(.active) {
-    color: var(--text-secondary);
-    background: var(--hover-low);
+  .tab:hover:not(:disabled):not(.active),
+  .tab-bar.force-hover .tab:not(:disabled):not(.active) {
+    color: var(--tabbar-hover-text);
+    background: var(--tabbar-hover-bg);
   }
 
   .tab.active {
-    color: var(--text-primary);
-    border-bottom-color: var(--color-primary-500);
-    background: linear-gradient(to bottom, transparent, var(--overlay-lowest));
+    color: var(--tabbar-active-text);
+    border-bottom-color: var(--tabbar-active-border);
+    background: linear-gradient(to bottom, transparent, var(--tabbar-active-bg-gradient));
   }
 
   .tab:disabled {
