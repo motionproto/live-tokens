@@ -62,31 +62,13 @@ describe('design-token architecture', () => {
     }
   });
 
-  // Demos migrated to the Layer-2 component-token pattern. Every editor-exposed
-  // variable in each listed demo must be declared in variables.css as a var()
-  // alias (not a literal, not a primitive). Grows as components are migrated;
-  // when every demo is listed, delete the allowlist and make the check
-  // unconditional.
-  const MIGRATED_DEMOS: string[] = [
-    'NotificationDemo.svelte',
-    'BadgeDemo.svelte',
-    'CardDemo.svelte',
-    'ChoiceButtonsDemo.svelte',
-    'CollapsibleSectionDemo.svelte',
-    'DialogDemo.svelte',
-    'InlineEditActionsDemo.svelte',
-    'ProgressBarDemo.svelte',
-    'RadioButtonDemo.svelte',
-    'SectionDividerDemo.svelte',
-    'StandardButtonsDemo.svelte',
-    'TabBarDemo.svelte',
-    'TooltipDemo.svelte',
-  ];
-
-  describe('migrated demos follow the component-token pattern', () => {
+  // Every editor-exposed variable across every demo must be declared in
+  // variables.css as a var() alias (not a literal, not a raw primitive).
+  // Component properties must bind to component-scoped Layer-2 aliases so
+  // editing one component never rebinds a shared primitive used elsewhere.
+  describe('every demo follows the component-token pattern', () => {
     for (const file of demoFiles) {
       const demoName = file.split('/').pop()!;
-      if (!MIGRATED_DEMOS.includes(demoName)) continue;
       const vars = extractDemoVariables(file);
       for (const v of vars) {
         it(`${demoName}: ${v} is a layer-2 component token (declared as var() alias)`, () => {
