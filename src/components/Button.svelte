@@ -10,6 +10,8 @@
    export let icon: string | undefined = undefined;
    export let iconPosition: 'left' | 'right' = 'left';
    export let fullWidth: boolean = false;
+   let className: string = '';
+   export { className as class };
 
    const dispatch = createEventDispatcher();
 
@@ -22,7 +24,7 @@
 
 <button
    {type}
-   class="button {variant}"
+   class="button {variant} {className}"
    class:small={size === 'small'}
    class:full-width={fullWidth}
    {disabled}
@@ -72,11 +74,13 @@
          transition: left 0.5s ease;
       }
 
-      &:hover:not(:disabled)::before {
+      &:hover:not(:disabled)::before,
+      &.force-hover:not(:disabled)::before {
          left: 100%;
       }
 
-      &:hover:not(:disabled) {
+      &:hover:not(:disabled),
+      &.force-hover:not(:disabled) {
          transform: translateY(-0.0625rem);
          box-shadow: var(--shadow-md);
       }
@@ -109,9 +113,10 @@
 
       // Primary variant (default)
       &.primary {
-         background: var(--surface-primary-high);
-         color: var(--text-primary);
-         border: 1px solid var(--border-primary);
+         background: var(--button-primary-surface);
+         color: var(--button-primary-text);
+         border: 1px solid var(--button-primary-border);
+         border-radius: var(--button-primary-radius);
 
          &::before {
             background: linear-gradient(90deg,
@@ -120,9 +125,11 @@
                transparent);
          }
 
-         &:hover:not(:disabled) {
-            background: var(--surface-primary-higher);
-            border-color: var(--border-primary-strong);
+         &:hover:not(:disabled),
+         &.force-hover:not(:disabled) {
+            background: var(--button-primary-hover-surface);
+            border-color: var(--button-primary-hover-border);
+            color: var(--button-primary-hover-text);
          }
 
          &:active:not(:disabled) {
@@ -130,17 +137,18 @@
          }
 
          &:disabled {
-            background: var(--color-neutral-700);
-            border-color: var(--border-neutral-faint);
-            color: var(--text-tertiary);
+            background: var(--button-primary-disabled-surface);
+            border-color: var(--button-primary-disabled-border);
+            color: var(--button-primary-disabled-text);
          }
       }
 
       // Secondary variant
       &.secondary {
-         background: var(--surface-neutral-high);
-         color: var(--text-primary);
-         border: 1px solid var(--border-neutral-default);
+         background: var(--button-secondary-surface);
+         color: var(--button-secondary-text);
+         border: 1px solid var(--button-secondary-border);
+         border-radius: var(--button-secondary-radius);
 
          &::before {
             background: linear-gradient(90deg,
@@ -149,23 +157,26 @@
                transparent);
          }
 
-         &:hover:not(:disabled) {
-            background: var(--surface-neutral-higher);
-            border-color: var(--border-neutral-strong);
+         &:hover:not(:disabled),
+         &.force-hover:not(:disabled) {
+            background: var(--button-secondary-hover-surface);
+            border-color: var(--button-secondary-hover-border);
+            color: var(--button-secondary-hover-text);
          }
 
          &:disabled {
-            background: var(--color-neutral-700);
-            border-color: var(--border-neutral-faint);
-            color: var(--text-tertiary);
+            background: var(--button-secondary-disabled-surface);
+            border-color: var(--button-secondary-disabled-border);
+            color: var(--button-secondary-disabled-text);
          }
       }
 
       // Outline variant
       &.outline {
          background: transparent;
-         color: var(--text-primary);
-         border: 1px solid var(--border-neutral-default);
+         color: var(--button-outline-text);
+         border: 1px solid var(--button-outline-border);
+         border-radius: var(--button-outline-radius);
 
          &::before {
             background: linear-gradient(90deg,
@@ -174,9 +185,11 @@
                transparent);
          }
 
-         &:hover:not(:disabled) {
-            background: var(--hover-low);
-            border-color: var(--border-neutral-strong);
+         &:hover:not(:disabled),
+         &.force-hover:not(:disabled) {
+            background: var(--button-outline-hover-surface);
+            border-color: var(--button-outline-hover-border);
+            color: var(--button-outline-hover-text);
          }
 
          &:active:not(:disabled) {
@@ -185,17 +198,18 @@
 
          &:disabled {
             background: transparent;
-            border-color: var(--border-neutral-faint);
-            color: var(--text-tertiary);
+            border-color: var(--button-outline-disabled-border);
+            color: var(--button-outline-disabled-text);
          }
       }
 
       // Small Secondary variant (matches add-structure-button)
       &.small_secondary {
          padding: var(--space-8) var(--space-16);
-         background: var(--hover);
-         color: var(--text-primary);
-         border: 1px solid var(--border-neutral-default);
+         background: var(--button-small_secondary-surface);
+         color: var(--button-small_secondary-text);
+         border: 1px solid var(--button-small_secondary-border);
+         border-radius: var(--button-small_secondary-radius);
          font-size: var(--font-sm);
          font-weight: var(--font-weight-semibold);
          line-height: 1.2;
@@ -207,9 +221,11 @@
                transparent);
          }
 
-         &:hover:not(:disabled) {
-            background: var(--hover-high);
-            border-color: var(--border-neutral-strong);
+         &:hover:not(:disabled),
+         &.force-hover:not(:disabled) {
+            background: var(--button-small_secondary-hover-surface);
+            border-color: var(--button-small_secondary-hover-border);
+            color: var(--button-small_secondary-hover-text);
          }
 
          &:active:not(:disabled) {
@@ -218,8 +234,8 @@
 
          &:disabled {
             background: transparent;
-            border-color: var(--border-neutral-faint);
-            color: var(--text-tertiary);
+            border-color: var(--button-small_secondary-disabled-border);
+            color: var(--button-small_secondary-disabled-text);
          }
 
          :global(i) {
@@ -231,9 +247,10 @@
 
       // Success variant
       &.success {
-         background: var(--surface-success-low);
-         border: 2px solid var(--border-success);
-         color: var(--text-success);
+         background: var(--button-success-surface);
+         border: 2px solid var(--button-success-border);
+         border-radius: var(--button-success-radius);
+         color: var(--button-success-text);
 
          &::before {
             background: linear-gradient(90deg,
@@ -242,24 +259,26 @@
                transparent);
          }
 
-         &:hover:not(:disabled) {
-            background: var(--surface-success-higher);
-            border-color: var(--border-success-strong);
-            color: var(--text-primary);
+         &:hover:not(:disabled),
+         &.force-hover:not(:disabled) {
+            background: var(--button-success-hover-surface);
+            border-color: var(--button-success-hover-border);
+            color: var(--button-success-hover-text);
          }
 
          &:disabled {
-            background: var(--color-neutral-700);
-            border-color: var(--border-neutral-faint);
-            color: var(--text-tertiary);
+            background: var(--button-success-disabled-surface);
+            border-color: var(--button-success-disabled-border);
+            color: var(--button-success-disabled-text);
          }
       }
 
       // Danger variant
       &.danger {
-         background: var(--surface-danger-low);
-         border: 2px solid var(--border-danger);
-         color: var(--text-danger);
+         background: var(--button-danger-surface);
+         border: 2px solid var(--button-danger-border);
+         border-radius: var(--button-danger-radius);
+         color: var(--button-danger-text);
 
          &::before {
             background: linear-gradient(90deg,
@@ -268,24 +287,26 @@
                transparent);
          }
 
-         &:hover:not(:disabled) {
-            background: var(--surface-danger-high);
-            border-color: var(--border-danger-medium);
-            color: var(--text-primary);
+         &:hover:not(:disabled),
+         &.force-hover:not(:disabled) {
+            background: var(--button-danger-hover-surface);
+            border-color: var(--button-danger-hover-border);
+            color: var(--button-danger-hover-text);
          }
 
          &:disabled {
-            background: var(--color-neutral-700);
-            border-color: var(--border-neutral-faint);
-            color: var(--text-tertiary);
+            background: var(--button-danger-disabled-surface);
+            border-color: var(--button-danger-disabled-border);
+            color: var(--button-danger-disabled-text);
          }
       }
 
       // Warning variant
       &.warning {
-         background: var(--surface-warning-low);
-         border: 2px solid var(--border-warning);
-         color: var(--text-warning);
+         background: var(--button-warning-surface);
+         border: 2px solid var(--button-warning-border);
+         border-radius: var(--button-warning-radius);
+         color: var(--button-warning-text);
 
          &::before {
             background: linear-gradient(90deg,
@@ -294,16 +315,17 @@
                transparent);
          }
 
-         &:hover:not(:disabled) {
-            background: var(--surface-warning-high);
-            border-color: var(--border-warning-medium);
-            color: var(--text-primary);
+         &:hover:not(:disabled),
+         &.force-hover:not(:disabled) {
+            background: var(--button-warning-hover-surface);
+            border-color: var(--button-warning-hover-border);
+            color: var(--button-warning-hover-text);
          }
 
          &:disabled {
-            background: var(--color-neutral-700);
-            border-color: var(--border-neutral-faint);
-            color: var(--text-tertiary);
+            background: var(--button-warning-disabled-surface);
+            border-color: var(--button-warning-disabled-border);
+            color: var(--button-warning-disabled-text);
          }
       }
 

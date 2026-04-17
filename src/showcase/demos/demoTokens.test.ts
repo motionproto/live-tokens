@@ -78,6 +78,7 @@ describe('design-token architecture', () => {
     'ProgressBarDemo.svelte',
     'RadioButtonDemo.svelte',
     'SectionDividerDemo.svelte',
+    'StandardButtonsDemo.svelte',
   ];
 
   describe('migrated demos follow the component-token pattern', () => {
