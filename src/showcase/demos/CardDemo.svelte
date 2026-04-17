@@ -1,6 +1,27 @@
 <script lang="ts">
   import Card from '../../components/Card.svelte';
-  import TokenMap from '../TokenMap.svelte';
+  import VariantGroup from '../VariantGroup.svelte';
+
+  const targetFile = 'src/components/Card.svelte';
+
+  type Token = { label: string; variable: string };
+
+  const cardStates: Record<string, Token[]> = {
+    default: [
+      { label: 'BG', variable: '--card-default-surface' },
+      { label: 'Border', variable: '--card-default-border' },
+      { label: 'Title', variable: '--card-default-title' },
+      { label: 'Body', variable: '--card-default-body' },
+      { label: 'Radius', variable: '--card-default-radius' },
+    ],
+    hover: [
+      { label: 'BG', variable: '--card-hover-surface' },
+      { label: 'Border', variable: '--card-hover-border' },
+      { label: 'Title', variable: '--card-hover-title' },
+      { label: 'Body', variable: '--card-hover-body' },
+      { label: 'Radius', variable: '--card-hover-radius' },
+    ],
+  };
 </script>
 
 <div class="demo-block">
@@ -9,36 +30,23 @@
     Generic card with icon, title, and slotted body. Import from <code>components/Card.svelte</code>
   </p>
 
-  <div class="demo-section">
+  <VariantGroup name="card" title="Card" states={cardStates} {targetFile} let:activeState>
+    {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     <div class="card-demo-grid">
-      <Card icon="fas fa-star" iconColor="var(--text-accent)" title="Featured">
+      <Card icon="fas fa-star" iconColor="var(--text-accent)" title="Featured" class={forceClass}>
         <p style="margin: 0;">A highlighted card with amber accent.</p>
       </Card>
-
-      <Card icon="fas fa-shield-alt" iconColor="var(--text-info)" title="Security">
+      <Card icon="fas fa-shield-alt" iconColor="var(--text-info)" title="Security" class={forceClass}>
         <p style="margin: 0;">Card with blue icon color on hover border.</p>
       </Card>
-
-      <Card icon="fas fa-leaf" iconColor="var(--text-success)" title="Compact" size="compact">
+      <Card icon="fas fa-leaf" iconColor="var(--text-success)" title="Compact" size="compact" class={forceClass}>
         <p style="margin: 0;">A compact-sized card variant.</p>
       </Card>
-
-      <Card title="No Icon">
+      <Card title="No Icon" class={forceClass}>
         <p style="margin: 0;">Cards work without icons too.</p>
       </Card>
     </div>
-  </div>
-
-  <div class="demo-section">
-    <h3 class="demo-subtitle">Tokens</h3>
-    <TokenMap tokens={[
-      { label: 'Background', variable: '--surface-neutral-high' },
-      { label: 'Border', variable: '--border-neutral-default' },
-      { label: 'Hover Border', variable: '--border-neutral-strong' },
-      { label: 'Title', variable: '--text-primary' },
-      { label: 'Body', variable: '--text-secondary' },
-    ]} />
-  </div>
+  </VariantGroup>
 </div>
 
 <style>

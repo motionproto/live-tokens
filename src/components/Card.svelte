@@ -3,10 +3,12 @@
   export let iconColor: string = 'var(--text-secondary)';
   export let title: string = '';
   export let size: 'default' | 'compact' = 'default';
+  let className: string = '';
+  export { className as class };
 </script>
 
 <div
-  class="card"
+  class="card {className}"
   class:compact={size === 'compact'}
   style="--card-color: {iconColor};"
 >
@@ -27,9 +29,9 @@
 
 <style>
   .card {
-    background: var(--surface-neutral-high);
-    border: 1px solid var(--border-neutral-default);
-    border-radius: var(--radius-lg);
+    background: var(--card-default-surface);
+    border: 1px solid var(--card-default-border);
+    border-radius: var(--card-default-radius);
     padding: var(--space-16);
     transition: all var(--transition-fast);
     display: flex;
@@ -37,8 +39,11 @@
     gap: var(--space-12);
   }
 
-  .card:hover {
-    border-color: var(--card-color, var(--border-neutral-strong));
+  .card:hover,
+  .card.force-hover {
+    background: var(--card-hover-surface);
+    border-color: var(--card-color, var(--card-hover-border));
+    border-radius: var(--card-hover-radius);
     box-shadow: var(--shadow-md);
   }
 
@@ -65,7 +70,12 @@
   .card-title {
     font-size: var(--font-lg);
     font-weight: var(--font-weight-semibold);
-    color: var(--text-primary);
+    color: var(--card-default-title);
+  }
+
+  .card:hover .card-title,
+  .card.force-hover .card-title {
+    color: var(--card-hover-title);
   }
 
   .card.compact .card-title {
@@ -73,8 +83,13 @@
   }
 
   .card-body {
-    color: var(--text-secondary);
+    color: var(--card-default-body);
     font-size: var(--font-md);
+  }
+
+  .card:hover .card-body,
+  .card.force-hover .card-body {
+    color: var(--card-hover-body);
   }
 
   .card.compact .card-body {
