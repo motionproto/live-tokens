@@ -43,6 +43,11 @@ export interface ColumnsState {
   margin: number;
 }
 
+export interface ComponentSlice {
+  activeFile: string;
+  aliases: Record<string, string>;
+}
+
 /**
  * Single source of truth for everything a saved token file depends on, plus
  * the domain state currently scattered across VariablesTab local `let` fields.
@@ -63,5 +68,6 @@ export interface EditorState {
     globals: OverlayGlobals;
   };
   columns: ColumnsState;
+  components: Record<string, ComponentSlice>;
   cssVars: Record<string, string>;
 }

@@ -2,8 +2,10 @@
   import Button from '../../components/Button.svelte';
   import Tooltip from '../../components/Tooltip.svelte';
   import VariantGroup from '../VariantGroup.svelte';
+  import DemoHeader from '../DemoHeader.svelte';
 
   const targetFile = 'src/components/Tooltip.svelte';
+  const component = 'tooltip';
 
   const tokens = [
     { label: 'surface color', variable: '--tooltip-surface' },
@@ -13,12 +15,13 @@
 </script>
 
 <div class="demo-block">
-  <h2 class="component-title">Tooltip Component</h2>
-  <p class="demo-description">
-    Hover tooltip with configurable position. Import from <code>components/Tooltip.svelte</code>
-  </p>
+  <DemoHeader
+    {component}
+    title="Tooltip Component"
+    description="Hover tooltip with configurable position. Import from <code>components/Tooltip.svelte</code>"
+  />
 
-  <VariantGroup name="tooltip" title="Tooltip" {tokens} {targetFile}>
+  <VariantGroup name="tooltip" title="Tooltip" {tokens} {targetFile} {component}>
     <div class="tooltip-demo-row">
       <Tooltip text="This is a top tooltip">
         <Button variant="outline">Hover me (top)</Button>

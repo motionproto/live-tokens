@@ -1,7 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import TokenMap from './TokenMap.svelte';
+  import { get } from 'svelte/store';
+  import TokenLayout from './TokenLayout.svelte';
   import { removeCssVar } from '../lib/cssVarSync';
+  import { editorState, clearComponentAlias } from '../lib/editorStore';
 
   type Token = { label: string; variable: string };
 
@@ -11,6 +13,8 @@
   export let states: Record<string, Token[]> | null = null;
   export let targetFile: string;
   export let showPrompt: boolean = true;
+  /** When set, overrides are read from and cleared through the editor store. */
+  export let component: string | undefined = undefined;
 
   let resetKey = 0;
   let prompt = '';
@@ -31,6 +35,11 @@
   $: visibleTokens = states ? states[activeState] ?? [] : tokens;
 
   function hasOverrides(): boolean {
+    if (component) {
+      const aliases = get(editorState).components[component]?.aliases ?? {};
+      for (const t of allTokens) if (t.variable in aliases) return true;
+      return false;
+    }
     for (const t of allTokens) {
       if (document.documentElement.style.getPropertyValue(t.variable).trim()) return true;
     }
@@ -42,9 +51,18 @@
   }
 
   function reset() {
-    for (const t of allTokens) removeCssVar(t.variable);
+    if (component) {
+      for (const t of allTokens) clearComponentAlias(component, t.variable);
+    } else {
+      for (const t of allTokens) removeCssVar(t.variable);
+    }
     resetKey += 1;
     updateDirty();
+  }
+
+  $: if (component) {
+    // Re-derive dirty when the store's component slice changes.
+    ($editorState as unknown) && updateDirty();
   }
 
   function copyPrompt() {
@@ -125,7 +143,7 @@
   {/if}
 
   {#key `${resetKey}:${activeState}`}
-    <TokenMap title={states ? activeState : name} tokens={visibleTokens} on:change={updateDirty} />
+    <TokenLayout title={states ? activeState : name} tokens={visibleTokens} {component} on:change={updateDirty} />
   {/key}
 
   {#if prompt}

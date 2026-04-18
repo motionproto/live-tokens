@@ -1,8 +1,10 @@
 <script lang="ts">
   import InlineEditActions from '../../components/InlineEditActions.svelte';
   import VariantGroup from '../VariantGroup.svelte';
+  import DemoHeader from '../DemoHeader.svelte';
 
   const targetFile = 'src/components/InlineEditActions.svelte';
+  const component = 'inlineeditactions';
 
   type Token = { label: string; variable: string };
 
@@ -32,12 +34,13 @@
 </script>
 
 <div class="demo-block">
-  <h2 class="component-title">Inline Edit Actions</h2>
-  <p class="demo-description">
-    Confirm/cancel button pair for inline editing. Import from <code>components/InlineEditActions.svelte</code>
-  </p>
+  <DemoHeader
+    {component}
+    title="Inline Edit Actions"
+    description="Confirm/cancel button pair for inline editing. Import from <code>components/InlineEditActions.svelte</code>"
+  />
 
-  <VariantGroup name="inline-edit" title="Inline Edit Actions" states={saveStates} {targetFile} let:activeState>
+  <VariantGroup name="inline-edit" title="Inline Edit Actions" states={saveStates} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     {@const isDisabled = activeState === 'disabled'}
     <div class="inline-edit-demo-row">

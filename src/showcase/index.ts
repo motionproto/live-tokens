@@ -12,7 +12,7 @@ export { default as BezierCurveEditor } from './BezierCurveEditor.svelte';
 export { default as ThemeFileManager } from './ThemeFileManager.svelte';
 export { default as BackupBrowser } from './BackupBrowser.svelte';
 export { default as EditorDialog } from './EditorDialog.svelte';
-export { default as TokenMap } from './TokenMap.svelte';
+export { default as TokenLayout } from './TokenLayout.svelte';
 
 export { default as TextTab } from './TextTab.svelte';
 export { default as SurfacesTab } from './SurfacesTab.svelte';

@@ -2,11 +2,24 @@
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import { setCssVar, removeCssVar, CSS_VAR_CHANGE_EVENT } from '../lib/cssVarSync';
   import { resolveAliasChain } from '../lib/tokenRegistry';
+  import { setComponentAlias, clearComponentAlias } from '../lib/editorStore';
 
   const dispatch = createEventDispatcher();
 
   export let variable: string;
   export let label: string;
+  /** When set, writes persist through the editor store under this component. */
+  export let component: string | undefined = undefined;
+
+  function writeOverride(semanticName: string | null): void {
+    if (component) {
+      if (semanticName) setComponentAlias(component, variable, semanticName);
+      else clearComponentAlias(component, variable);
+      return;
+    }
+    if (semanticName) setCssVar(variable, `var(${semanticName})`);
+    else removeCssVar(variable);
+  }
 
   const options = [
     { key: 'thin', label: 'Thin', weight: '100' },
@@ -57,7 +70,7 @@
   }
 
   function resetVariable() {
-    removeCssVar(variable);
+    writeOverride(null);
     chosenKey = null;
     readResolved();
     open = false;
@@ -67,10 +80,10 @@
   function selectOption(key: string) {
     const target = `--font-weight-${key}`;
     if (target === variable) {
-      removeCssVar(variable);
+      writeOverride(null);
       chosenKey = null;
     } else {
-      setCssVar(variable, `var(${target})`);
+      writeOverride(target);
       chosenKey = key;
     }
     readResolved();

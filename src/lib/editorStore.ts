@@ -14,7 +14,7 @@
  */
 
 import { writable, derived, get, type Readable } from 'svelte/store';
-import type { EditorState, ColumnsState, OverlayToken, ShadowToken } from './editorTypes';
+import type { EditorState, ColumnsState, ComponentSlice, OverlayToken, ShadowToken } from './editorTypes';
 import type { Theme, FontSource, FontStack, PaletteConfig } from './themeTypes';
 import { setCssVar, removeCssVar } from './cssVarSync';
 import { storageKey } from './editorConfig';
@@ -77,6 +77,7 @@ function emptyState(): EditorState {
     },
     overlays: makeDefaultOverlaysState(),
     columns: { ...DEFAULT_COLUMNS },
+    components: {},
     cssVars: {},
   };
 }
@@ -552,8 +553,10 @@ export function __resetForTests(): void {
   pendingTransaction = null;
   paletteSession = null;
   lastApplied = {};
+  for (const k of Object.keys(savedComponents)) delete savedComponents[k];
   store.set(emptyState());
   bumpTick();
+  bumpComponentSavedTick();
 }
 
 /** Test-only accessors — internal history state is module-private otherwise. */
@@ -632,6 +635,111 @@ export function seedPalettesFromTheme(palettes: Record<string, PaletteConfig>): 
   schedulePersist();
 }
 
+// ── Components ─────────────────────────────────────────────────────────────
+//
+// Each component owns a `{ activeFile, aliases }` slice. Aliases are the full
+// component-token → semantic-token map for whatever config is active (not a
+// diff); `deriveCssVars` emits every entry as `var(--<semantic>)`. Themes and
+// components are orthogonal: `loadFromFile` preserves `state.components`.
+
+function componentsToVars(components: EditorState['components']): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const slice of Object.values(components)) {
+    for (const [varName, semanticName] of Object.entries(slice.aliases)) {
+      out[varName] = `var(${semanticName})`;
+    }
+  }
+  return out;
+}
+
+export function getComponentOwnedVarNames(state: EditorState): string[] {
+  const names: string[] = [];
+  for (const slice of Object.values(state.components)) {
+    for (const name of Object.keys(slice.aliases)) names.push(name);
+  }
+  return names;
+}
+
+// Module-private baseline for per-component dirty detection. Parallels
+// `savedAtIndex` + `historyTick` for the global flag; `componentSavedTick`
+// drives re-derivation when the baseline changes.
+const savedComponents: Record<string, string> = {};
+const componentSavedTick = writable(0);
+function bumpComponentSavedTick(): void { componentSavedTick.update((n) => n + 1); }
+
+export const componentDirty: Readable<Record<string, boolean>> = derived(
+  [store, componentSavedTick],
+  ([$state]) => {
+    const out: Record<string, boolean> = {};
+    for (const [comp, slice] of Object.entries($state.components)) {
+      out[comp] = JSON.stringify(slice.aliases) !== (savedComponents[comp] ?? '{}');
+    }
+    return out;
+  },
+);
+
+export function setComponentAlias(component: string, varName: string, semanticName: string): void {
+  mutate(`set alias ${component}/${varName}`, (s) => {
+    const existing = s.components[component];
+    if (existing) {
+      existing.aliases[varName] = semanticName;
+    } else {
+      s.components[component] = { activeFile: 'default', aliases: { [varName]: semanticName } };
+    }
+  });
+}
+
+export function clearComponentAlias(component: string, varName: string): void {
+  mutate(`clear alias ${component}/${varName}`, (s) => {
+    const slice = s.components[component];
+    if (!slice) return;
+    delete slice.aliases[varName];
+  });
+}
+
+/**
+ * Replace a component's slice with a loaded config file's contents. Uses
+ * `mutate()` so the load is one undoable entry; updates the dirty baseline
+ * so the post-load state reads clean for this component.
+ */
+export function loadComponentActive(
+  component: string,
+  activeFile: string,
+  aliases: Record<string, string>,
+): void {
+  mutate(`load ${component}/${activeFile}`, (s) => {
+    s.components[component] = { activeFile, aliases: { ...aliases } };
+  });
+  savedComponents[component] = JSON.stringify(aliases);
+  bumpComponentSavedTick();
+}
+
+/**
+ * Boot-path hydration from the server's /api/component-configs fetch. No
+ * history entry, no dirty flag — components are clean relative to disk.
+ */
+export function seedComponentsFromApi(
+  configs: Record<string, ComponentSlice>,
+): void {
+  store.update((s) => {
+    s.components = {};
+    for (const [comp, cfg] of Object.entries(configs)) {
+      s.components[comp] = { activeFile: cfg.activeFile, aliases: { ...cfg.aliases } };
+      savedComponents[comp] = JSON.stringify(cfg.aliases);
+    }
+    return s;
+  });
+  bumpComponentSavedTick();
+  schedulePersist();
+}
+
+export function markComponentSaved(component: string): void {
+  const slice = get(store).components[component];
+  if (!slice) return;
+  savedComponents[component] = JSON.stringify(slice.aliases);
+  bumpComponentSavedTick();
+}
+
 /**
  * Replace state with a loaded theme. Clears history and marks saved —
  * "open a different document" semantics. Undo cannot cross a theme load.
@@ -660,6 +768,12 @@ export function loadFromFile(theme: Theme): void {
   // reopens with the same controls the user was working with.
   next.shadows.globals = structuredClone(get(store).shadows.globals);
   next.shadows.overrides = structuredClone(get(store).shadows.overrides);
+  // Themes and components are orthogonal: component aliases live in their
+  // own files, not the theme JSON. Preserve the current slice across theme
+  // loads and strip any component-owned vars that may have leaked into the
+  // theme's cssVariables bag.
+  next.components = structuredClone(get(store).components);
+  for (const name of getComponentOwnedVarNames(next)) delete rawVars[name];
   next.cssVars = rawVars;
   past.length = 0;
   future.length = 0;
@@ -767,6 +881,7 @@ function deriveCssVars(state: EditorState): Record<string, string> {
   if (state.shadows.tokens.length > 0) {
     Object.assign(out, shadowsToVars(state.shadows));
   }
+  Object.assign(out, componentsToVars(state.components));
   return out;
 }
 

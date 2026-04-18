@@ -1,8 +1,10 @@
 <script lang="ts">
   import CollapsibleSection from '../../components/CollapsibleSection.svelte';
   import VariantGroup from '../VariantGroup.svelte';
+  import DemoHeader from '../DemoHeader.svelte';
 
   const targetFile = 'src/components/CollapsibleSection.svelte';
+  const component = 'collapsiblesection';
 
   let demoExpanded = false;
 
@@ -34,12 +36,13 @@
 </script>
 
 <div class="demo-block">
-  <h2 class="component-title">Collapsible Section Component</h2>
-  <p class="demo-description">
-    Expandable section with chevron toggle. Import from <code>components/CollapsibleSection.svelte</code>
-  </p>
+  <DemoHeader
+    {component}
+    title="Collapsible Section Component"
+    description="Expandable section with chevron toggle. Import from <code>components/CollapsibleSection.svelte</code>"
+  />
 
-  <VariantGroup name="collapsible" title="Collapsible Section" {states} {targetFile} let:activeState>
+  <VariantGroup name="collapsible" title="Collapsible Section" {states} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     {@const forceActive = activeState === 'active'}
     <div class="collapsible-demo-wrapper">

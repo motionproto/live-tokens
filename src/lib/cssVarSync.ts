@@ -12,6 +12,7 @@
  */
 
 function resolveParentRoot(): HTMLElement | null {
+  if (typeof window === 'undefined') return null;
   try {
     if (window.parent !== window && window.parent?.document) {
       return window.parent.document.documentElement;
@@ -22,7 +23,7 @@ function resolveParentRoot(): HTMLElement | null {
   return null;
 }
 
-const selfRoot: HTMLElement = document.documentElement;
+const selfRoot: HTMLElement | null = typeof document !== 'undefined' ? document.documentElement : null;
 const parentRoot: HTMLElement | null = resolveParentRoot();
 
 /**
@@ -31,6 +32,7 @@ const parentRoot: HTMLElement | null = resolveParentRoot();
  * just style properties) can iterate this list.
  */
 export function getSyncedDocuments(): Document[] {
+  if (typeof document === 'undefined') return [];
   const docs: Document[] = [document];
   if (parentRoot && parentRoot.ownerDocument && parentRoot.ownerDocument !== document) {
     docs.push(parentRoot.ownerDocument);
@@ -41,17 +43,18 @@ export function getSyncedDocuments(): Document[] {
 export const CSS_VAR_CHANGE_EVENT = 'cssvar:change';
 
 function notifyChange(name: string): void {
+  if (typeof document === 'undefined') return;
   document.dispatchEvent(new CustomEvent(CSS_VAR_CHANGE_EVENT, { detail: { name } }));
 }
 
 export function setCssVar(name: string, value: string): void {
-  selfRoot.style.setProperty(name, value);
+  selfRoot?.style.setProperty(name, value);
   parentRoot?.style.setProperty(name, value);
   notifyChange(name);
 }
 
 export function removeCssVar(name: string): void {
-  selfRoot.style.removeProperty(name);
+  selfRoot?.style.removeProperty(name);
   parentRoot?.style.removeProperty(name);
   notifyChange(name);
 }
@@ -65,7 +68,7 @@ export function applyCssVariables(variables: Record<string, string>): void {
 
 /** Remove all inline CSS custom properties from :root on both self and parent. */
 export function clearAllCssVarOverrides(): void {
-  clearRoot(selfRoot);
+  if (selfRoot) clearRoot(selfRoot);
   if (parentRoot) clearRoot(parentRoot);
 }
 
@@ -81,6 +84,7 @@ function clearRoot(el: HTMLElement): void {
 
 /** Scrape all inline CSS custom properties currently on self :root. */
 export function scrapeCssVariables(): Record<string, string> {
+  if (!selfRoot) return {};
   const style = selfRoot.style;
   const variables: Record<string, string> = {};
   for (let i = 0; i < style.length; i++) {

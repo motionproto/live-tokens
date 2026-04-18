@@ -1,0 +1,15 @@
+{
+  "name": "default",
+  "component": "inlineeditactions",
+  "createdAt": "2026-04-18T02:43:11.330Z",
+  "updatedAt": "2026-04-18T02:43:11.330Z",
+  "aliases": {
+    "--inline-edit-save-bg": "--surface-success-low",
+    "--inline-edit-save-bg-hover": "--surface-success-high",
+    "--inline-edit-save-text": "--text-success",
+    "--inline-edit-cancel-bg": "--surface-danger-low",
+    "--inline-edit-cancel-bg-hover": "--surface-danger-high",
+    "--inline-edit-cancel-text": "--text-danger",
+    "--inline-edit-radius": "--radius-md"
+  }
+}

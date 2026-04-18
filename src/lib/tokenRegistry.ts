@@ -18,7 +18,10 @@
  * files (Vitest's default CSS plugin swallows `?raw` imports for .css files).
  */
 
+import { derived, type Readable } from 'svelte/store';
 import tokensCss from '../styles/tokens.css?raw';
+import { editorState } from './editorStore';
+import type { EditorState } from './editorTypes';
 
 const componentSources = import.meta.glob('../components/*.svelte', {
   query: '?raw',
@@ -101,5 +104,57 @@ export const getDeclaredValue = defaultRegistry.getDeclaredValue;
  *
  * Example: `--notification-info-title` → `--text-info` → stops (literal hex).
  * Returns `['--notification-info-title', '--text-info']`.
+ *
+ * This is a static snapshot: it only sees declarations from tokens.css + the
+ * baked-in `:global(:root)` blocks at module load. For state-aware resolution
+ * that includes live component-alias edits, subscribe to `tokenRegistry$`.
  */
 export const resolveAliasChain = defaultRegistry.resolveAliasChain;
+
+/**
+ * Build a registry that layers live component-alias overrides on top of the
+ * static base. Cheap enough to rebuild per editorState tick — components
+ * count is small and the alias walk is lazy.
+ */
+function buildOverlayRegistry(
+  base: TokenRegistry,
+  components: EditorState['components'],
+): TokenRegistry {
+  const overrides = new Map<string, string>();
+  for (const slice of Object.values(components)) {
+    for (const [varName, semanticName] of Object.entries(slice.aliases)) {
+      overrides.set(varName, `var(${semanticName})`);
+    }
+  }
+  const getDeclared = (v: string): string | null =>
+    overrides.has(v) ? overrides.get(v)! : base.getDeclaredValue(v);
+  return {
+    getDeclaredValue: getDeclared,
+    resolveAliasChain(varName: string): string[] {
+      const chain = [varName];
+      const visited = new Set<string>([varName]);
+      let current = varName;
+      while (true) {
+        const decl = getDeclared(current);
+        if (!decl) return chain;
+        const aliasMatch = decl.match(/var\((--[a-z0-9-]+)\)/i);
+        if (!aliasMatch) return chain;
+        const next = aliasMatch[1];
+        if (visited.has(next)) return chain;
+        visited.add(next);
+        chain.push(next);
+        current = next;
+      }
+    },
+  };
+}
+
+/**
+ * State-aware token registry: overlays live `state.components[*].aliases`
+ * on top of the static base registry. Consume with `$tokenRegistry$` in
+ * Svelte components when the UI needs to reflect in-flight alias edits
+ * (e.g. selectors displaying the currently-selected semantic token).
+ */
+export const tokenRegistry$: Readable<TokenRegistry> = derived(editorState, ($state) =>
+  buildOverlayRegistry(defaultRegistry, $state.components),
+);

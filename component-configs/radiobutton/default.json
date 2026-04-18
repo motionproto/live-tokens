@@ -1,0 +1,18 @@
+{
+  "name": "default",
+  "component": "radiobutton",
+  "createdAt": "2026-04-18T02:43:11.331Z",
+  "updatedAt": "2026-04-18T02:43:11.331Z",
+  "aliases": {
+    "--radio-dot-border": "--border-neutral-default",
+    "--radio-label": "--text-primary",
+    "--radio-surface": "--surface-neutral-lowest",
+    "--radio-radius": "--radius-lg",
+    "--radio-hover-dot-border": "--radio-dot-border",
+    "--radio-hover-label": "--radio-label",
+    "--radio-hover-surface": "--radio-surface",
+    "--radio-active-dot-border": "--radio-dot-border",
+    "--radio-active-label": "--radio-label",
+    "--radio-active-surface": "--radio-surface"
+  }
+}

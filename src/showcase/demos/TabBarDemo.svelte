@@ -1,8 +1,10 @@
 <script lang="ts">
   import TabBar from '../../components/TabBar.svelte';
   import VariantGroup from '../VariantGroup.svelte';
+  import DemoHeader from '../DemoHeader.svelte';
 
   const targetFile = 'src/components/TabBar.svelte';
+  const component = 'tabbar';
 
   let selectedDemoTab = 'overview';
   const demoTabs = [
@@ -39,12 +41,13 @@
 </script>
 
 <div class="demo-block">
-  <h2 class="component-title">Tab Bar Component</h2>
-  <p class="demo-description">
-    Tab navigation with icon support and disabled state. Import from <code>components/TabBar.svelte</code>
-  </p>
+  <DemoHeader
+    {component}
+    title="Tab Bar Component"
+    description="Tab navigation with icon support and disabled state. Import from <code>components/TabBar.svelte</code>"
+  />
 
-  <VariantGroup name="tabbar" title="Tab Bar" states={tabStates} {targetFile} let:activeState>
+  <VariantGroup name="tabbar" title="Tab Bar" states={tabStates} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     <TabBar
       tabs={demoTabs}

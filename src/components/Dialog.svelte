@@ -129,7 +129,7 @@
   :global(:root) {
     --dialog-surface: var(--surface-neutral-lowest);
     --dialog-border: var(--border-neutral-strong);
-    --dialog-header-surface: var(--empty);
+    --dialog-header-surface: var(--surface-neutral-lower);
     --dialog-header-border: var(--border-neutral-subtle);
     --dialog-title: var(--text-primary);
     --dialog-close-icon: var(--text-secondary);

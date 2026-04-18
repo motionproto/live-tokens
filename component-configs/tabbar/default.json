@@ -1,0 +1,16 @@
+{
+  "name": "default",
+  "component": "tabbar",
+  "createdAt": "2026-04-18T02:43:11.332Z",
+  "updatedAt": "2026-04-18T02:43:11.332Z",
+  "aliases": {
+    "--tabbar-divider": "--border-neutral-subtle",
+    "--tabbar-radius": "--radius-md",
+    "--tabbar-default-text": "--text-tertiary",
+    "--tabbar-hover-text": "--text-secondary",
+    "--tabbar-hover-bg": "--hover-low",
+    "--tabbar-active-text": "--text-primary",
+    "--tabbar-active-border": "--color-primary-500",
+    "--tabbar-active-bg-gradient": "--overlay-lowest"
+  }
+}

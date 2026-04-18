@@ -1,11 +1,10 @@
 <script lang="ts">
   import Button from '../../components/Button.svelte';
   import VariantGroup from '../VariantGroup.svelte';
+  import DemoHeader from '../DemoHeader.svelte';
 
   const targetFile = 'src/components/Button.svelte';
-
-  let small = false;
-  $: size = (small ? 'small' : 'default') as 'small' | 'default';
+  const component = 'button';
 
   type Token = { label: string; variable: string };
 
@@ -132,96 +131,212 @@
 </script>
 
 <div class="demo-block">
-  <h2 class="component-title">Standard Button Component</h2>
-  <p class="demo-description">
-    Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>
-  </p>
+  <DemoHeader
+    {component}
+    title="Standard Button Component"
+    description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>"
+  />
 
-  <label class="size-toggle">
-    <input type="checkbox" bind:checked={small} />
-    size="small"
-  </label>
-
-  <VariantGroup name="primary" title="Primary" states={variantStates.primary} {targetFile} let:activeState>
+  <VariantGroup name="primary" title="Primary" states={variantStates.primary} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     {@const isDisabled = activeState === 'disabled'}
-    <div class="button-showcase-grid">
-      <div class="button-showcase-item">
-        <Button variant="primary" {size} disabled={isDisabled} class={forceClass}>Primary</Button>
-        <span class="variant-label">primary</span>
+    <div class="size-row">
+      <div class="size-section">
+        <span class="size-label">size="default"</span>
+        <div class="button-showcase-grid">
+          <div class="button-showcase-item">
+            <Button variant="primary" disabled={isDisabled} class={forceClass}>Primary</Button>
+            <span class="variant-label">primary</span>
+          </div>
+          <div class="button-showcase-item">
+            <Button variant="primary" icon="fas fa-star" iconPosition="left" disabled={isDisabled} class={forceClass}>With Icon</Button>
+          </div>
+        </div>
       </div>
-      <div class="button-showcase-item">
-        <Button variant="primary" {size} icon="fas fa-star" iconPosition="left" disabled={isDisabled} class={forceClass}>With Icon</Button>
+      <div class="size-divider"></div>
+      <div class="size-section">
+        <span class="size-label">size="small"</span>
+        <div class="button-showcase-grid">
+          <div class="button-showcase-item">
+            <Button variant="primary" size="small" disabled={isDisabled} class={forceClass}>Primary</Button>
+          </div>
+          <div class="button-showcase-item">
+            <Button variant="primary" size="small" icon="fas fa-star" iconPosition="left" disabled={isDisabled} class={forceClass}>With Icon</Button>
+          </div>
+        </div>
       </div>
     </div>
   </VariantGroup>
 
-  <VariantGroup name="secondary" title="Secondary" states={variantStates.secondary} {targetFile} let:activeState>
+  <VariantGroup name="secondary" title="Secondary" states={variantStates.secondary} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     {@const isDisabled = activeState === 'disabled'}
-    <div class="button-showcase-grid">
-      <div class="button-showcase-item">
-        <Button variant="secondary" {size} disabled={isDisabled} class={forceClass}>Secondary</Button>
-        <span class="variant-label">secondary</span>
+    <div class="size-row">
+      <div class="size-section">
+        <span class="size-label">size="default"</span>
+        <div class="button-showcase-grid">
+          <div class="button-showcase-item">
+            <Button variant="secondary" disabled={isDisabled} class={forceClass}>Secondary</Button>
+            <span class="variant-label">secondary</span>
+          </div>
+          <div class="button-showcase-item">
+            <Button variant="secondary" icon="fas fa-check" iconPosition="right" disabled={isDisabled} class={forceClass}>Icon Right</Button>
+          </div>
+        </div>
       </div>
-      <div class="button-showcase-item">
-        <Button variant="secondary" {size} icon="fas fa-check" iconPosition="right" disabled={isDisabled} class={forceClass}>Icon Right</Button>
+      <div class="size-divider"></div>
+      <div class="size-section">
+        <span class="size-label">size="small"</span>
+        <div class="button-showcase-grid">
+          <div class="button-showcase-item">
+            <Button variant="secondary" size="small" disabled={isDisabled} class={forceClass}>Secondary</Button>
+          </div>
+          <div class="button-showcase-item">
+            <Button variant="secondary" size="small" icon="fas fa-check" iconPosition="right" disabled={isDisabled} class={forceClass}>Icon Right</Button>
+          </div>
+        </div>
       </div>
     </div>
   </VariantGroup>
 
-  <VariantGroup name="outline" title="Outline" states={variantStates.outline} {targetFile} let:activeState>
+  <VariantGroup name="outline" title="Outline" states={variantStates.outline} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     {@const isDisabled = activeState === 'disabled'}
-    <div class="button-showcase-grid">
-      <div class="button-showcase-item">
-        <Button variant="outline" {size} disabled={isDisabled} class={forceClass}>Outline</Button>
-        <span class="variant-label">outline</span>
+    <div class="size-row">
+      <div class="size-section">
+        <span class="size-label">size="default"</span>
+        <div class="button-showcase-grid">
+          <div class="button-showcase-item">
+            <Button variant="outline" disabled={isDisabled} class={forceClass}>Outline</Button>
+            <span class="variant-label">outline</span>
+          </div>
+        </div>
+      </div>
+      <div class="size-divider"></div>
+      <div class="size-section">
+        <span class="size-label">size="small"</span>
+        <div class="button-showcase-grid">
+          <div class="button-showcase-item">
+            <Button variant="outline" size="small" disabled={isDisabled} class={forceClass}>Outline</Button>
+          </div>
+        </div>
       </div>
     </div>
   </VariantGroup>
 
-  <VariantGroup name="success" title="Success" states={variantStates.success} {targetFile} let:activeState>
+  <VariantGroup name="success" title="Success" states={variantStates.success} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     {@const isDisabled = activeState === 'disabled'}
-    <div class="button-showcase-grid">
-      <div class="button-showcase-item">
-        <Button variant="success" {size} disabled={isDisabled} class={forceClass}>Success</Button>
-        <span class="variant-label">success</span>
+    <div class="size-row">
+      <div class="size-section">
+        <span class="size-label">size="default"</span>
+        <div class="button-showcase-grid">
+          <div class="button-showcase-item">
+            <Button variant="success" disabled={isDisabled} class={forceClass}>Success</Button>
+            <span class="variant-label">success</span>
+          </div>
+          <div class="button-showcase-item">
+            <Button variant="success" icon="fas fa-plus" disabled={isDisabled} class={forceClass}>Add Item</Button>
+          </div>
+        </div>
       </div>
-      <div class="button-showcase-item">
-        <Button variant="success" {size} icon="fas fa-plus" disabled={isDisabled} class={forceClass}>Add Item</Button>
+      <div class="size-divider"></div>
+      <div class="size-section">
+        <span class="size-label">size="small"</span>
+        <div class="button-showcase-grid">
+          <div class="button-showcase-item">
+            <Button variant="success" size="small" disabled={isDisabled} class={forceClass}>Success</Button>
+          </div>
+          <div class="button-showcase-item">
+            <Button variant="success" size="small" icon="fas fa-plus" disabled={isDisabled} class={forceClass}>Add Item</Button>
+          </div>
+        </div>
       </div>
     </div>
   </VariantGroup>
 
-  <VariantGroup name="danger" title="Danger" states={variantStates.danger} {targetFile} let:activeState>
+  <VariantGroup name="danger" title="Danger" states={variantStates.danger} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     {@const isDisabled = activeState === 'disabled'}
-    <div class="button-showcase-grid">
-      <div class="button-showcase-item">
-        <Button variant="danger" {size} disabled={isDisabled} class={forceClass}>Danger</Button>
-        <span class="variant-label">danger</span>
+    <div class="size-row">
+      <div class="size-section">
+        <span class="size-label">size="default"</span>
+        <div class="button-showcase-grid">
+          <div class="button-showcase-item">
+            <Button variant="danger" disabled={isDisabled} class={forceClass}>Danger</Button>
+            <span class="variant-label">danger</span>
+          </div>
+          <div class="button-showcase-item">
+            <Button variant="danger" icon="fas fa-trash" disabled={isDisabled} class={forceClass}>Delete</Button>
+          </div>
+        </div>
       </div>
-      <div class="button-showcase-item">
-        <Button variant="danger" {size} icon="fas fa-trash" disabled={isDisabled} class={forceClass}>Delete</Button>
+      <div class="size-divider"></div>
+      <div class="size-section">
+        <span class="size-label">size="small"</span>
+        <div class="button-showcase-grid">
+          <div class="button-showcase-item">
+            <Button variant="danger" size="small" disabled={isDisabled} class={forceClass}>Danger</Button>
+          </div>
+          <div class="button-showcase-item">
+            <Button variant="danger" size="small" icon="fas fa-trash" disabled={isDisabled} class={forceClass}>Delete</Button>
+          </div>
+        </div>
       </div>
     </div>
   </VariantGroup>
 
-  <VariantGroup name="warning" title="Warning" states={variantStates.warning} {targetFile} let:activeState>
+  <VariantGroup name="warning" title="Warning" states={variantStates.warning} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     {@const isDisabled = activeState === 'disabled'}
-    <div class="button-showcase-grid">
-      <div class="button-showcase-item">
-        <Button variant="warning" {size} disabled={isDisabled} class={forceClass}>Warning</Button>
-        <span class="variant-label">warning</span>
+    <div class="size-row">
+      <div class="size-section">
+        <span class="size-label">size="default"</span>
+        <div class="button-showcase-grid">
+          <div class="button-showcase-item">
+            <Button variant="warning" disabled={isDisabled} class={forceClass}>Warning</Button>
+            <span class="variant-label">warning</span>
+          </div>
+        </div>
+      </div>
+      <div class="size-divider"></div>
+      <div class="size-section">
+        <span class="size-label">size="small"</span>
+        <div class="button-showcase-grid">
+          <div class="button-showcase-item">
+            <Button variant="warning" size="small" disabled={isDisabled} class={forceClass}>Warning</Button>
+          </div>
+        </div>
       </div>
     </div>
   </VariantGroup>
 </div>
 
 <style>
+  .size-row {
+    display: flex;
+    gap: var(--space-16);
+    align-items: flex-start;
+  }
+
+  .size-divider {
+    width: 1px;
+    background: var(--ui-border-faint);
+    align-self: stretch;
+  }
+
+  .size-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .size-label {
+    font-size: var(--font-xs);
+    font-family: var(--ui-font-mono);
+    color: var(--ui-text-tertiary);
+  }
+
   .button-showcase-grid {
     display: flex;
     flex-wrap: wrap;
@@ -243,16 +358,5 @@
     background: var(--ui-surface-lowest);
     padding: var(--space-2) var(--space-6);
     border-radius: var(--radius-sm);
-  }
-
-  .size-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-8);
-    margin-bottom: var(--space-16);
-    font-family: var(--ui-font-mono);
-    font-size: var(--font-xs);
-    color: var(--ui-text-secondary);
-    cursor: pointer;
   }
 </style>

@@ -424,6 +424,13 @@
   --radius-4xl: 1.25rem;    /* 20px */
   --radius-full: 9999px;
 
+  /* Border Width */
+  --border-width-none: 0;
+  --border-width-thin: 1px;
+  --border-width-default: 2px;
+  --border-width-thick: 3px;
+  --border-width-thicker: 4px;
+
   /* Spacing */
   --space-2: 0.125rem;    /* 2px */
   --space-4: 0.25rem;     /* 4px */

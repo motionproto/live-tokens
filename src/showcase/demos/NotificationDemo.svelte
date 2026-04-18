@@ -1,8 +1,10 @@
 <script lang="ts">
   import Notification from '../../components/Notification.svelte';
   import VariantGroup from '../VariantGroup.svelte';
+  import DemoHeader from '../DemoHeader.svelte';
 
   const targetFile = 'src/components/Notification.svelte';
+  const component = 'notification';
 
   type Token = { label: string; variable: string };
 
@@ -51,12 +53,13 @@
 </script>
 
 <div class="demo-block">
-  <h2 class="component-title">Notification Components</h2>
-  <p class="demo-description">
-    Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>
-  </p>
+  <DemoHeader
+    {component}
+    title="Notification Components"
+    description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>"
+  />
 
-  <VariantGroup name="info" title="Info" tokens={variantTokens.info} {targetFile}>
+  <VariantGroup name="info" title="Info" tokens={variantTokens.info} {targetFile} {component}>
     <Notification
       variant="info"
       title="Information"
@@ -64,7 +67,7 @@
     />
   </VariantGroup>
 
-  <VariantGroup name="success" title="Success" tokens={variantTokens.success} {targetFile}>
+  <VariantGroup name="success" title="Success" tokens={variantTokens.success} {targetFile} {component}>
     <Notification
       variant="success"
       title="Success"
@@ -72,7 +75,7 @@
     />
   </VariantGroup>
 
-  <VariantGroup name="warning" title="Warning" tokens={variantTokens.warning} {targetFile}>
+  <VariantGroup name="warning" title="Warning" tokens={variantTokens.warning} {targetFile} {component}>
     <Notification
       variant="warning"
       title="Warning"
@@ -86,7 +89,7 @@
     />
   </VariantGroup>
 
-  <VariantGroup name="danger" title="Danger" tokens={variantTokens.danger} {targetFile}>
+  <VariantGroup name="danger" title="Danger" tokens={variantTokens.danger} {targetFile} {component}>
     <Notification
       variant="danger"
       title="Danger"

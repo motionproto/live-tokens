@@ -1,8 +1,10 @@
 <script lang="ts">
   import Card from '../../components/Card.svelte';
   import VariantGroup from '../VariantGroup.svelte';
+  import DemoHeader from '../DemoHeader.svelte';
 
   const targetFile = 'src/components/Card.svelte';
+  const component = 'card';
 
   type Token = { label: string; variable: string };
 
@@ -25,12 +27,13 @@
 </script>
 
 <div class="demo-block">
-  <h2 class="component-title">Card Component</h2>
-  <p class="demo-description">
-    Generic card with icon, title, and slotted body. Import from <code>components/Card.svelte</code>
-  </p>
+  <DemoHeader
+    {component}
+    title="Card Component"
+    description="Generic card with icon, title, and slotted body. Import from <code>components/Card.svelte</code>"
+  />
 
-  <VariantGroup name="card" title="Card" states={cardStates} {targetFile} let:activeState>
+  <VariantGroup name="card" title="Card" states={cardStates} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     <div class="card-demo-grid">
       <Card icon="fas fa-star" iconColor="var(--text-accent)" title="Featured" class={forceClass}>

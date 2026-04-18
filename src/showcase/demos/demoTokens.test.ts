@@ -38,7 +38,7 @@ function isLayer1TokenName(name: string): boolean {
   if (/^--surface-[a-z]+(-[a-z]+)?$/.test(name)) return true;
   if (/^--border-[a-z]+(-[a-z]+)?$/.test(name)) return true;
   if (/^--text-[a-z]+(-[a-z]+)?$/.test(name)) return true;
-  if (/^--(radius|space|font|shadow|transition|overlay|hover|empty)(-[a-z0-9]+)*$/.test(name)) return true;
+  if (/^--(radius|space|font|shadow|transition|overlay|hover|empty|border-width)(-[a-z0-9]+)*$/.test(name)) return true;
   return false;
 }
 

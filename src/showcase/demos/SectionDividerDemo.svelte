@@ -1,8 +1,10 @@
 <script lang="ts">
   import SectionDivider from '../../components/SectionDivider.svelte';
   import VariantGroup from '../VariantGroup.svelte';
+  import DemoHeader from '../DemoHeader.svelte';
 
   const targetFile = 'src/components/SectionDivider.svelte';
+  const component = 'sectiondivider';
 
   type Token = { label: string; variable: string };
 
@@ -82,13 +84,14 @@
 </script>
 
 <div class="demo-block">
-  <h2 class="component-title">Section Divider Component</h2>
-  <p class="demo-description">
-    Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>
-  </p>
+  <DemoHeader
+    {component}
+    title="Section Divider Component"
+    description="Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>"
+  />
 
   {#each variants as v}
-    <VariantGroup name={v.key} title={v.title} tokens={variantTokens[v.key]} {targetFile}>
+    <VariantGroup name={v.key} title={v.title} tokens={variantTokens[v.key]} {targetFile} {component}>
       <label class="description-toggle">
         <input type="checkbox" bind:checked={showDescription[v.key]} />
         <span>Show description</span>

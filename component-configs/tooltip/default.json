@@ -1,0 +1,11 @@
+{
+  "name": "default",
+  "component": "tooltip",
+  "createdAt": "2026-04-18T02:43:11.333Z",
+  "updatedAt": "2026-04-18T02:43:11.333Z",
+  "aliases": {
+    "--tooltip-surface": "--surface-neutral-highest",
+    "--tooltip-text": "--text-primary",
+    "--tooltip-radius": "--radius-md"
+  }
+}

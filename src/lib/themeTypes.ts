@@ -78,3 +78,19 @@ export interface ThemeMeta {
   updatedAt: string;
   isActive: boolean;
 }
+
+export interface ComponentConfig {
+  name: string;
+  component: string;
+  createdAt: string;
+  updatedAt: string;
+  aliases: Record<string, string>;
+}
+
+export interface ComponentConfigMeta {
+  name: string;
+  fileName: string;
+  updatedAt: string;
+  isActive: boolean;
+  isProduction: boolean;
+}

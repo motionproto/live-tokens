@@ -2,8 +2,10 @@
   import Button from '../../components/Button.svelte';
   import Dialog from '../../components/Dialog.svelte';
   import VariantGroup from '../VariantGroup.svelte';
+  import DemoHeader from '../DemoHeader.svelte';
 
   const targetFile = 'src/components/Dialog.svelte';
+  const component = 'dialog';
 
   let showDialog = false;
 
@@ -19,12 +21,13 @@
 </script>
 
 <div class="demo-block">
-  <h2 class="component-title">Dialog Component</h2>
-  <p class="demo-description">
-    Modal dialog with focus management and slide-in animation. Import from <code>components/Dialog.svelte</code>
-  </p>
+  <DemoHeader
+    {component}
+    title="Dialog Component"
+    description="Modal dialog with focus management and slide-in animation. Import from <code>components/Dialog.svelte</code>"
+  />
 
-  <VariantGroup name="dialog" title="Dialog" {tokens} {targetFile}>
+  <VariantGroup name="dialog" title="Dialog" {tokens} {targetFile} {component}>
     <Button variant="secondary" icon="fas fa-external-link-alt" on:click={() => showDialog = true}>
       Open Dialog
     </Button>

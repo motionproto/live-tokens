@@ -1,8 +1,10 @@
 <script lang="ts">
   import Badge from '../../components/Badge.svelte';
   import VariantGroup from '../VariantGroup.svelte';
+  import DemoHeader from '../DemoHeader.svelte';
 
   const targetFile = 'src/components/Badge.svelte';
+  const component = 'badge';
 
   type Token = { label: string; variable: string };
 
@@ -29,25 +31,26 @@
 </script>
 
 <div class="demo-block">
-  <h2 class="component-title">Badge Component</h2>
-  <p class="demo-description">
-    Pill-shaped badges with variant support. Import from <code>components/Badge.svelte</code>
-  </p>
+  <DemoHeader
+    {component}
+    title="Badge Component"
+    description="Pill-shaped badges with variant support. Import from <code>components/Badge.svelte</code>"
+  />
 
-  <VariantGroup name="info" title="Info" tokens={variantTokens.info} {targetFile}>
+  <VariantGroup name="info" title="Info" tokens={variantTokens.info} {targetFile} {component}>
     <div class="badge-showcase-grid">
       <Badge variant="info">info</Badge>
       <Badge variant="info" icon="fa-solid fa-dice-d20">With Icon</Badge>
     </div>
   </VariantGroup>
 
-  <VariantGroup name="accent" title="Accent" tokens={variantTokens.accent} {targetFile}>
+  <VariantGroup name="accent" title="Accent" tokens={variantTokens.accent} {targetFile} {component}>
     <div class="badge-showcase-grid">
       <Badge variant="accent">scenes</Badge>
     </div>
   </VariantGroup>
 
-  <VariantGroup name="trait" title="Trait" tokens={variantTokens.trait} {targetFile}>
+  <VariantGroup name="trait" title="Trait" tokens={variantTokens.trait} {targetFile} {component}>
     <div class="badge-showcase-grid">
       <Badge variant="trait">arcane</Badge>
       <Badge variant="trait">divine</Badge>

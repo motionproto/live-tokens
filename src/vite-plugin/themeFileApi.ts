@@ -9,6 +9,8 @@ export interface ThemeFileApiOptions {
   themesBackupDir?: string;    // default: `${themesDir}/_backups`
   cssBackupDir?: string;       // default: path.join(path.dirname(tokensCssPath), '_backups')
   apiBase?: string;            // default: '/api'. Must be a simple '/path' without regex metacharacters.
+  componentConfigsDir?: string; // default: 'component-configs'
+  componentsSrcDir?: string;   // default: 'src/components'
 }
 
 export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
@@ -26,6 +28,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const API_BASE = opts.apiBase ?? '/api';
   const ACTIVE_FILE = path.join(THEMES_DIR, '_active.json');
   const PRODUCTION_FILE = path.join(THEMES_DIR, '_production.json');
+  const COMPONENT_CONFIGS_DIR = opts.componentConfigsDir
+    ? path.resolve(opts.componentConfigsDir)
+    : path.resolve('component-configs');
+  const COMPONENTS_SRC_DIR = opts.componentsSrcDir
+    ? path.resolve(opts.componentsSrcDir)
+    : path.resolve('src/components');
 
   function ensureThemesDir() {
     if (!fs.existsSync(THEMES_DIR)) {
@@ -258,6 +266,228 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     console.log(`[syncFontsToCss] Wrote ${sources.length} source(s) into ${path.basename(FONTS_CSS_PATH)}`);
   }
 
+  // ── Component-configs helpers ─────────────────────────────────────────────
+  //
+  // Each component under `src/components/*.svelte` has an independent editor
+  // artifact: component-configs/{comp}/{default.json,_active.json,_production.json,_backups/}.
+  // default.json is regenerated from the component's `:global(:root)` block at
+  // dev startup and on HMR; other files are user-authored.
+
+  function extractGlobalRootBodySsr(source: string): string {
+    const re = /:global\(:root\)\s*\{([^}]*)\}/g;
+    const bodies: string[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(source)) !== null) bodies.push(m[1]);
+    return bodies.join('\n');
+  }
+
+  function extractAliasDeclarations(body: string): Record<string, string> {
+    const aliases: Record<string, string> = {};
+    const re = /(--[a-z0-9-]+)\s*:\s*var\((--[a-z0-9-]+)\)\s*;/gi;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(body)) !== null) aliases[m[1]] = m[2];
+    return aliases;
+  }
+
+  function componentNameFromFile(filePath: string): string {
+    return path.basename(filePath, '.svelte').toLowerCase();
+  }
+
+  function listComponentSourcePaths(): string[] {
+    if (!fs.existsSync(COMPONENTS_SRC_DIR)) return [];
+    return fs
+      .readdirSync(COMPONENTS_SRC_DIR)
+      .filter((f) => f.endsWith('.svelte'))
+      .map((f) => path.join(COMPONENTS_SRC_DIR, f));
+  }
+
+  function listComponentNames(): string[] {
+    return listComponentSourcePaths().map(componentNameFromFile);
+  }
+
+  function ensureComponentDir(comp: string): string {
+    const dir = path.join(COMPONENT_CONFIGS_DIR, comp);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    return dir;
+  }
+
+  function ensureComponentMeta(comp: string): void {
+    const dir = ensureComponentDir(comp);
+    const activePath = path.join(dir, '_active.json');
+    const productionPath = path.join(dir, '_production.json');
+    if (!fs.existsSync(activePath)) {
+      fs.writeFileSync(activePath, JSON.stringify({ activeFile: 'default' }));
+    }
+    if (!fs.existsSync(productionPath)) {
+      fs.writeFileSync(productionPath, JSON.stringify({ productionFile: 'default' }));
+    }
+  }
+
+  /**
+   * Regenerate `component-configs/{comp}/default.json` from the component's
+   * `:global(:root)` block. Writes only if missing or stale (source mtime >
+   * default mtime). Preserves createdAt on regeneration.
+   */
+  function generateDefaultConfig(comp: string, sourcePath: string): void {
+    if (!fs.existsSync(sourcePath)) return;
+    const dir = ensureComponentDir(comp);
+    const defaultPath = path.join(dir, 'default.json');
+    const sourceStat = fs.statSync(sourcePath);
+    if (fs.existsSync(defaultPath)) {
+      const defaultStat = fs.statSync(defaultPath);
+      if (defaultStat.mtimeMs >= sourceStat.mtimeMs) return;
+    }
+    const source = fs.readFileSync(sourcePath, 'utf-8');
+    const body = extractGlobalRootBodySsr(source);
+    const aliases = extractAliasDeclarations(body);
+    const now = new Date().toISOString();
+    let createdAt = now;
+    if (fs.existsSync(defaultPath)) {
+      try {
+        const existing = JSON.parse(fs.readFileSync(defaultPath, 'utf-8'));
+        if (existing.createdAt) createdAt = existing.createdAt;
+      } catch { /* overwrite */ }
+    }
+    const defaultConfig = {
+      name: 'default',
+      component: comp,
+      createdAt,
+      updatedAt: now,
+      aliases,
+    };
+    fs.writeFileSync(defaultPath, JSON.stringify(defaultConfig, null, 2));
+  }
+
+  function ensureComponentConfigsDir(): void {
+    if (!fs.existsSync(COMPONENT_CONFIGS_DIR)) {
+      fs.mkdirSync(COMPONENT_CONFIGS_DIR, { recursive: true });
+    }
+    for (const sourcePath of listComponentSourcePaths()) {
+      const comp = componentNameFromFile(sourcePath);
+      ensureComponentDir(comp);
+      generateDefaultConfig(comp, sourcePath);
+      ensureComponentMeta(comp);
+    }
+  }
+
+  function backupComponentConfigFile(filePath: string, comp: string, fileName: string): void {
+    if (!fs.existsSync(filePath)) return;
+    const backupDir = path.join(COMPONENT_CONFIGS_DIR, comp, '_backups');
+    if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupPath = path.join(backupDir, `${fileName}_${timestamp}.json`);
+    fs.copyFileSync(filePath, backupPath);
+    const allBackups = fs
+      .readdirSync(backupDir)
+      .filter((f) => f.startsWith(`${fileName}_`) && f.endsWith('.json'))
+      .sort()
+      .reverse();
+    for (const old of allBackups.slice(10)) {
+      fs.unlinkSync(path.join(backupDir, old));
+    }
+  }
+
+  function getComponentActiveFileName(comp: string): string {
+    try {
+      const data = JSON.parse(
+        fs.readFileSync(path.join(COMPONENT_CONFIGS_DIR, comp, '_active.json'), 'utf-8'),
+      );
+      return data.activeFile || 'default';
+    } catch {
+      return 'default';
+    }
+  }
+
+  function getComponentProductionFileName(comp: string): string {
+    try {
+      const data = JSON.parse(
+        fs.readFileSync(path.join(COMPONENT_CONFIGS_DIR, comp, '_production.json'), 'utf-8'),
+      );
+      return data.productionFile || 'default';
+    } catch {
+      return 'default';
+    }
+  }
+
+  interface ComponentConfigRead {
+    name?: string;
+    component?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    aliases?: Record<string, string>;
+  }
+
+  function readComponentConfig(comp: string, name: string): ComponentConfigRead | null {
+    const filePath = path.join(COMPONENT_CONFIGS_DIR, comp, `${name}.json`);
+    if (!fs.existsSync(filePath)) return null;
+    try {
+      return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    } catch {
+      return null;
+    }
+  }
+
+  const COMPONENT_OVERRIDES_START = '/* component-aliases:start */';
+  const COMPONENT_OVERRIDES_END = '/* component-aliases:end */';
+
+  /**
+   * Regenerate the `:root:root` override block in tokens.css from every
+   * component's `_production.json`. The block's specificity (0,0,2) beats
+   * each component's own `:global(:root)` declarations (0,0,1) so production
+   * overrides win deterministically regardless of CSS chunk ordering.
+   *
+   * When a component's production points to 'default', no overrides are
+   * emitted for it (the source `.svelte` is authoritative).
+   */
+  function syncComponentsToCss(): void {
+    if (!fs.existsSync(CSS_PATH)) return;
+    if (!fs.existsSync(COMPONENT_CONFIGS_DIR)) return;
+
+    const lines: string[] = [];
+    const components = listComponentNames();
+    for (const comp of components) {
+      const prod = getComponentProductionFileName(comp);
+      if (prod === 'default') continue; // source is authoritative
+      const prodCfg = readComponentConfig(comp, prod);
+      const defaultCfg = readComponentConfig(comp, 'default');
+      if (!prodCfg || !defaultCfg) continue;
+      const overrides: [string, string][] = [];
+      for (const [varName, semanticName] of Object.entries(prodCfg.aliases ?? {})) {
+        if ((defaultCfg.aliases ?? {})[varName] !== semanticName) {
+          overrides.push([varName, semanticName]);
+        }
+      }
+      if (overrides.length === 0) continue;
+      lines.push(`  /* ${comp} (${prod}) */`);
+      for (const [varName, semanticName] of overrides) {
+        lines.push(`  ${varName}: var(${semanticName});`);
+      }
+    }
+
+    const block = lines.length > 0
+      ? `\n\n${COMPONENT_OVERRIDES_START}\n:root:root {\n${lines.join('\n')}\n}\n${COMPONENT_OVERRIDES_END}\n`
+      : '';
+
+    let cssContent = fs.readFileSync(CSS_PATH, 'utf-8');
+    const startIdx = cssContent.indexOf(COMPONENT_OVERRIDES_START);
+    const endIdx = cssContent.indexOf(COMPONENT_OVERRIDES_END);
+    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+      // Strip preceding blank lines so re-writes don't accumulate whitespace.
+      let stripStart = startIdx;
+      while (stripStart > 0 && cssContent[stripStart - 1] === '\n') stripStart--;
+      const after = cssContent.slice(endIdx + COMPONENT_OVERRIDES_END.length);
+      cssContent = cssContent.slice(0, stripStart) + (block || '\n') + after.replace(/^\n+/, '');
+    } else if (block) {
+      cssContent = cssContent.replace(/\n*$/, '') + block;
+    }
+
+    backupCssFile();
+    fs.writeFileSync(CSS_PATH, cssContent);
+    console.log(
+      `[syncComponentsToCss] Wrote ${lines.filter((l) => !l.trim().startsWith('/*')).length} alias override(s) to tokens.css`,
+    );
+  }
+
   // Build parameterized routes/regexes from API_BASE.
   // Escape regex metacharacters so custom apiBase values still work.
   const escapedBase = API_BASE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -266,9 +496,14 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const THEMES_PRODUCTION_ROUTE = `${API_BASE}/themes/production`;
   const BACKUPS_ROUTE = `${API_BASE}/backups`;
   const CURRENT_CSS_ROUTE = `${API_BASE}/current-css`;
+  const COMPONENT_CONFIGS_ROUTE = `${API_BASE}/component-configs`;
   const THEME_BY_NAME_REGEX = new RegExp(`^${escapedBase}/themes/([a-z0-9\\-_]+)$`);
-  const BACKUP_GET_REGEX = new RegExp(`^${escapedBase}/backups/(themes|css)/(.+)$`);
-  const BACKUP_RESTORE_REGEX = new RegExp(`^${escapedBase}/backups/(themes|css)/(.+)/restore$`);
+  const BACKUP_GET_REGEX = new RegExp(`^${escapedBase}/backups/(themes|css|component-configs)/(.+)$`);
+  const BACKUP_RESTORE_REGEX = new RegExp(`^${escapedBase}/backups/(themes|css|component-configs)/(.+)/restore$`);
+  const COMP_LIST_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)$`);
+  const COMP_ACTIVE_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/active$`);
+  const COMP_PRODUCTION_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/production$`);
+  const COMP_BY_NAME_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/([a-z0-9\\-_]+)$`);
 
   return {
     name: 'theme-file-api',
@@ -284,6 +519,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     },
     configureServer(server) {
       ensureThemesDir();
+      ensureComponentConfigsDir();
 
       server.middlewares.use(async (req, res, next) => {
         const url = req.url || '';
@@ -382,6 +618,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
             fs.writeFileSync(PRODUCTION_FILE, JSON.stringify({ productionFile: fileName }));
             syncTokensToCss(fileName);
             syncFontsToCss(fileName);
+            syncComponentsToCss();
             const data = JSON.parse(fs.readFileSync(path.join(THEMES_DIR, `${fileName}.json`), 'utf-8'));
             jsonResponse(res, 200, {
               ok: true,
@@ -438,6 +675,27 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
               }
             }
 
+            // Component-config backups (one _backups dir per component)
+            if (fs.existsSync(COMPONENT_CONFIGS_DIR)) {
+              for (const comp of fs.readdirSync(COMPONENT_CONFIGS_DIR)) {
+                const compBackupDir = path.join(COMPONENT_CONFIGS_DIR, comp, '_backups');
+                if (!fs.existsSync(compBackupDir)) continue;
+                for (const f of fs.readdirSync(compBackupDir)) {
+                  if (!f.endsWith('.json')) continue;
+                  const match = f.match(/^(.+)_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z)\.json$/);
+                  if (!match) continue;
+                  const stat = fs.statSync(path.join(compBackupDir, f));
+                  backups.push({
+                    type: 'component-configs',
+                    file: `${comp}/${f}`,
+                    name: `${comp}/${match[1]}`,
+                    timestamp: fileTimestampToISO(match[2]),
+                    size: stat.size,
+                  });
+                }
+              }
+            }
+
             // Sort newest first
             backups.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
             jsonResponse(res, 200, { backups });
@@ -463,6 +721,30 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
                 // Backup current before restoring
                 backupCssFile();
                 fs.copyFileSync(backupPath, CSS_PATH);
+                jsonResponse(res, 200, { ok: true, restored: file });
+              } else if (type === 'component-configs') {
+                const decoded = decodeURIComponent(file);
+                const slash = decoded.indexOf('/');
+                if (slash === -1) {
+                  jsonResponse(res, 400, { error: 'Malformed component-configs backup path' });
+                  return;
+                }
+                const comp = decoded.slice(0, slash);
+                const backupFile = decoded.slice(slash + 1);
+                const backupDir = path.join(COMPONENT_CONFIGS_DIR, comp, '_backups');
+                const backupPath = path.join(backupDir, backupFile);
+                if (!backupPath.startsWith(backupDir) || !fs.existsSync(backupPath)) {
+                  jsonResponse(res, 404, { error: 'Backup not found' });
+                  return;
+                }
+                const nameMatch = backupFile.match(/^(.+)_\d{4}-/);
+                if (!nameMatch) {
+                  jsonResponse(res, 400, { error: 'Cannot determine config name from backup' });
+                  return;
+                }
+                const configFilePath = path.join(COMPONENT_CONFIGS_DIR, comp, `${nameMatch[1]}.json`);
+                backupComponentConfigFile(configFilePath, comp, nameMatch[1]);
+                fs.copyFileSync(backupPath, configFilePath);
                 jsonResponse(res, 200, { ok: true, restored: file });
               } else {
                 const backupPath = path.join(THEMES_BACKUP_DIR, decodeURIComponent(file));
@@ -494,8 +776,26 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
           const backupMatch = url.match(BACKUP_GET_REGEX);
           if (backupMatch && req.method === 'GET') {
             const [, type, file] = backupMatch;
-            const dir = type === 'css' ? CSS_BACKUP_DIR : THEMES_BACKUP_DIR;
-            const filePath = path.join(dir, decodeURIComponent(file));
+            let filePath: string;
+            let dir: string;
+            if (type === 'css') {
+              dir = CSS_BACKUP_DIR;
+              filePath = path.join(dir, decodeURIComponent(file));
+            } else if (type === 'component-configs') {
+              const decoded = decodeURIComponent(file);
+              const slash = decoded.indexOf('/');
+              if (slash === -1) {
+                jsonResponse(res, 400, { error: 'Malformed component-configs backup path' });
+                return;
+              }
+              const comp = decoded.slice(0, slash);
+              const backupFile = decoded.slice(slash + 1);
+              dir = path.join(COMPONENT_CONFIGS_DIR, comp, '_backups');
+              filePath = path.join(dir, backupFile);
+            } else {
+              dir = THEMES_BACKUP_DIR;
+              filePath = path.join(dir, decodeURIComponent(file));
+            }
             if (!filePath.startsWith(dir) || !fs.existsSync(filePath)) {
               jsonResponse(res, 404, { error: 'Backup not found' });
               return;
@@ -515,6 +815,233 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
             jsonResponse(res, 500, { error: err.message });
           }
           return;
+        }
+
+        // ── GET /api/component-configs — list all components ──
+        if (url === COMPONENT_CONFIGS_ROUTE && req.method === 'GET') {
+          try {
+            const components = listComponentNames().map((comp) => ({
+              name: comp,
+              activeFile: getComponentActiveFileName(comp),
+              productionFile: getComponentProductionFileName(comp),
+            }));
+            jsonResponse(res, 200, { components });
+          } catch (err: any) {
+            jsonResponse(res, 500, { error: err.message });
+          }
+          return;
+        }
+
+        // ── GET/PUT /api/component-configs/:comp/active ──
+        // Must come before COMP_BY_NAME_REGEX — 'active' would otherwise match as a name.
+        {
+          const activeMatch = url.match(COMP_ACTIVE_REGEX);
+          if (activeMatch) {
+            const comp = activeMatch[1];
+            if (req.method === 'GET') {
+              try {
+                const activeFile = getComponentActiveFileName(comp);
+                const cfg = readComponentConfig(comp, activeFile);
+                if (!cfg) {
+                  jsonResponse(res, 404, { error: 'Active config not found' });
+                  return;
+                }
+                jsonResponse(res, 200, { ...cfg, _fileName: activeFile });
+              } catch (err: any) {
+                jsonResponse(res, 500, { error: err.message });
+              }
+              return;
+            }
+            if (req.method === 'PUT') {
+              try {
+                const body = JSON.parse(await readBody(req));
+                const fileName = sanitize(body.name || 'default');
+                const configPath = path.join(COMPONENT_CONFIGS_DIR, comp, `${fileName}.json`);
+                if (!fs.existsSync(configPath)) {
+                  jsonResponse(res, 404, { error: 'Config not found' });
+                  return;
+                }
+                ensureComponentDir(comp);
+                fs.writeFileSync(
+                  path.join(COMPONENT_CONFIGS_DIR, comp, '_active.json'),
+                  JSON.stringify({ activeFile: fileName }),
+                );
+                jsonResponse(res, 200, { ok: true, activeFile: fileName });
+              } catch (err: any) {
+                jsonResponse(res, 500, { error: err.message });
+              }
+              return;
+            }
+            jsonResponse(res, 405, { error: 'Method not allowed' });
+            return;
+          }
+        }
+
+        // ── GET/PUT /api/component-configs/:comp/production ──
+        {
+          const prodMatch = url.match(COMP_PRODUCTION_REGEX);
+          if (prodMatch) {
+            const comp = prodMatch[1];
+            if (req.method === 'GET') {
+              try {
+                const prodFile = getComponentProductionFileName(comp);
+                const cfg = readComponentConfig(comp, prodFile);
+                jsonResponse(res, 200, {
+                  fileName: prodFile,
+                  name: cfg?.name || prodFile,
+                  aliases: cfg?.aliases || {},
+                });
+              } catch (err: any) {
+                jsonResponse(res, 500, { error: err.message });
+              }
+              return;
+            }
+            if (req.method === 'PUT') {
+              try {
+                const body = JSON.parse(await readBody(req));
+                const fileName = sanitize(body.name || 'default');
+                const configPath = path.join(COMPONENT_CONFIGS_DIR, comp, `${fileName}.json`);
+                if (!fs.existsSync(configPath)) {
+                  jsonResponse(res, 404, { error: 'Config not found' });
+                  return;
+                }
+                ensureComponentDir(comp);
+                fs.writeFileSync(
+                  path.join(COMPONENT_CONFIGS_DIR, comp, '_production.json'),
+                  JSON.stringify({ productionFile: fileName }),
+                );
+                syncComponentsToCss();
+                jsonResponse(res, 200, { ok: true, productionFile: fileName });
+              } catch (err: any) {
+                jsonResponse(res, 500, { error: err.message });
+              }
+              return;
+            }
+            jsonResponse(res, 405, { error: 'Method not allowed' });
+            return;
+          }
+        }
+
+        // ── GET/PUT/DELETE /api/component-configs/:comp/:name — CRUD for a single config ──
+        {
+          const byNameMatch = url.match(COMP_BY_NAME_REGEX);
+          if (byNameMatch) {
+            const [, comp, name] = byNameMatch;
+            const configPath = path.join(COMPONENT_CONFIGS_DIR, comp, `${name}.json`);
+
+            if (req.method === 'GET') {
+              try {
+                if (!fs.existsSync(configPath)) {
+                  jsonResponse(res, 404, { error: 'Not found' });
+                  return;
+                }
+                const data = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+                data._fileName = name;
+                jsonResponse(res, 200, data);
+              } catch (err: any) {
+                jsonResponse(res, 500, { error: err.message });
+              }
+              return;
+            }
+
+            if (req.method === 'PUT') {
+              if (name === 'default') {
+                jsonResponse(res, 403, { error: 'Cannot modify default config (regenerated from source)' });
+                return;
+              }
+              try {
+                const body = JSON.parse(await readBody(req));
+                body.component = comp;
+                body.name = body.name || name;
+                body.updatedAt = new Date().toISOString();
+                if (fs.existsSync(configPath)) {
+                  try {
+                    const existing = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+                    if (existing.createdAt) body.createdAt = existing.createdAt;
+                  } catch { /* use body value or set below */ }
+                }
+                if (!body.createdAt) body.createdAt = body.updatedAt;
+                ensureComponentDir(comp);
+                backupComponentConfigFile(configPath, comp, name);
+                fs.writeFileSync(configPath, JSON.stringify(body, null, 2));
+                if (getComponentProductionFileName(comp) === name) {
+                  syncComponentsToCss();
+                }
+                jsonResponse(res, 200, { ok: true, fileName: name });
+              } catch (err: any) {
+                jsonResponse(res, 500, { error: err.message });
+              }
+              return;
+            }
+
+            if (req.method === 'DELETE') {
+              if (name === 'default') {
+                jsonResponse(res, 403, { error: 'Cannot delete default config' });
+                return;
+              }
+              try {
+                if (fs.existsSync(configPath)) {
+                  fs.unlinkSync(configPath);
+                  if (getComponentActiveFileName(comp) === name) {
+                    fs.writeFileSync(
+                      path.join(COMPONENT_CONFIGS_DIR, comp, '_active.json'),
+                      JSON.stringify({ activeFile: 'default' }),
+                    );
+                  }
+                  if (getComponentProductionFileName(comp) === name) {
+                    fs.writeFileSync(
+                      path.join(COMPONENT_CONFIGS_DIR, comp, '_production.json'),
+                      JSON.stringify({ productionFile: 'default' }),
+                    );
+                    syncComponentsToCss();
+                  }
+                }
+                jsonResponse(res, 200, { ok: true });
+              } catch (err: any) {
+                jsonResponse(res, 500, { error: err.message });
+              }
+              return;
+            }
+
+            jsonResponse(res, 405, { error: 'Method not allowed' });
+            return;
+          }
+        }
+
+        // ── GET /api/component-configs/:comp — list configs for a component ──
+        {
+          const listMatch = url.match(COMP_LIST_REGEX);
+          if (listMatch && req.method === 'GET') {
+            const comp = listMatch[1];
+            try {
+              const dir = path.join(COMPONENT_CONFIGS_DIR, comp);
+              if (!fs.existsSync(dir)) {
+                jsonResponse(res, 404, { error: 'Component not found' });
+                return;
+              }
+              const activeFile = getComponentActiveFileName(comp);
+              const productionFile = getComponentProductionFileName(comp);
+              const files = fs
+                .readdirSync(dir)
+                .filter((f) => f.endsWith('.json') && !f.startsWith('_'))
+                .map((f) => {
+                  const filePath = path.join(dir, f);
+                  const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+                  const fileName = f.replace('.json', '');
+                  return {
+                    name: data.name || fileName,
+                    fileName,
+                    updatedAt: data.updatedAt || '',
+                    isActive: fileName === activeFile,
+                    isProduction: fileName === productionFile,
+                  };
+                });
+              jsonResponse(res, 200, { component: comp, files, activeFile, productionFile });
+            } catch (err: any) {
+              jsonResponse(res, 500, { error: err.message });
+            }
+            return;
+          }
         }
 
         // ── /api/themes/:name — CRUD for individual themes ──
@@ -557,6 +1084,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
               if (fileName === getProductionFileName()) {
                 syncTokensToCss(fileName);
                 syncFontsToCss(fileName);
+                syncComponentsToCss();
               }
               jsonResponse(res, 200, { ok: true, fileName });
             } catch (err: any) {
@@ -592,6 +1120,17 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         // Not a theme API request — pass through
         next();
       });
+    },
+    handleHotUpdate(ctx) {
+      // When a component source file changes, regenerate its default.json.
+      // The editor's componentConfigService picks up the new defaults on its
+      // next fetch; a full reload is not required since runtime state owns
+      // the override layer.
+      const normalized = path.resolve(ctx.file);
+      if (!normalized.startsWith(COMPONENTS_SRC_DIR)) return;
+      if (!normalized.endsWith('.svelte')) return;
+      const comp = componentNameFromFile(normalized);
+      generateDefaultConfig(comp, normalized);
     },
   };
 }

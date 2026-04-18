@@ -1,8 +1,10 @@
 <script lang="ts">
   import ProgressBar from '../../components/ProgressBar.svelte';
   import VariantGroup from '../VariantGroup.svelte';
+  import DemoHeader from '../DemoHeader.svelte';
 
   const targetFile = 'src/components/ProgressBar.svelte';
+  const component = 'progressbar';
 
   type Token = { label: string; variable: string };
 
@@ -51,37 +53,38 @@
 </script>
 
 <div class="demo-block">
-  <h2 class="component-title">Progress Bar Component</h2>
-  <p class="demo-description">
-    Animated progress bar with variants. Import from <code>components/ProgressBar.svelte</code>
-  </p>
+  <DemoHeader
+    {component}
+    title="Progress Bar Component"
+    description="Animated progress bar with variants. Import from <code>components/ProgressBar.svelte</code>"
+  />
 
-  <VariantGroup name="primary" title="Primary" tokens={variantTokens.primary} {targetFile}>
+  <VariantGroup name="primary" title="Primary" tokens={variantTokens.primary} {targetFile} {component}>
     <div class="progress-demo-stack">
       <ProgressBar value={25} label="Getting Started" variant="primary" />
       <ProgressBar value={60} variant="primary" size="compact" />
     </div>
   </VariantGroup>
 
-  <VariantGroup name="success" title="Success" tokens={variantTokens.success} {targetFile}>
+  <VariantGroup name="success" title="Success" tokens={variantTokens.success} {targetFile} {component}>
     <div class="progress-demo-stack">
       <ProgressBar value={100} label="Complete" variant="success" />
     </div>
   </VariantGroup>
 
-  <VariantGroup name="warning" title="Warning" tokens={variantTokens.warning} {targetFile}>
+  <VariantGroup name="warning" title="Warning" tokens={variantTokens.warning} {targetFile} {component}>
     <div class="progress-demo-stack">
       <ProgressBar value={75} label="Almost Done" variant="warning" />
     </div>
   </VariantGroup>
 
-  <VariantGroup name="danger" title="Danger" tokens={variantTokens.danger} {targetFile}>
+  <VariantGroup name="danger" title="Danger" tokens={variantTokens.danger} {targetFile} {component}>
     <div class="progress-demo-stack">
       <ProgressBar value={33} label="Danger Zone" variant="danger" />
     </div>
   </VariantGroup>
 
-  <VariantGroup name="info" title="Info" tokens={variantTokens.info} {targetFile}>
+  <VariantGroup name="info" title="Info" tokens={variantTokens.info} {targetFile} {component}>
     <div class="progress-demo-stack">
       <ProgressBar value={50} label="Halfway There" variant="info" />
     </div>

@@ -1,8 +1,10 @@
 <script lang="ts">
   import ChoiceButton from '../../components/ChoiceButton.svelte';
   import VariantGroup from '../VariantGroup.svelte';
+  import DemoHeader from '../DemoHeader.svelte';
 
   const targetFile = 'src/components/ChoiceButton.svelte';
+  const component = 'choicebutton';
 
   let selectedChoice = 'option-2';
 
@@ -41,12 +43,13 @@
 </script>
 
 <div class="demo-block">
-  <h2 class="component-title">Button-Based Choice Sets</h2>
-  <p class="demo-description">
-    Interactive example showing all 4 visual states. Click buttons to see selection state.
-  </p>
+  <DemoHeader
+    {component}
+    title="Button-Based Choice Sets"
+    description="Interactive example showing all 4 visual states. Click buttons to see selection state."
+  />
 
-  <VariantGroup name="choice" title="Choice Button" states={choiceStates} {targetFile} let:activeState>
+  <VariantGroup name="choice" title="Choice Button" states={choiceStates} {targetFile} {component} let:activeState>
     {@const forceClass = activeState}
     <div class="choice-buttons-container">
       <ChoiceButton

@@ -2,7 +2,8 @@ import { getActiveTheme, applyCssVariables } from './themeService';
 import { activeFileName } from './editorConfigStore';
 import { migrateThemeFonts } from './fontMigration';
 import { applyFontSources, applyFontStacks } from './fontLoader';
-import { seedFontsFromTheme, seedPalettesFromTheme } from './editorStore';
+import { seedFontsFromTheme, seedPalettesFromTheme, seedComponentsFromApi } from './editorStore';
+import { listComponents, getActiveComponentConfig } from './componentConfigService';
 
 /**
  * Fetch the active theme from the server and apply its CSS variables
@@ -37,5 +38,23 @@ export async function initializeTheme(): Promise<void> {
     }
   } catch {
     // Silent fallback — tokens.css provides defaults
+  }
+
+  try {
+    const components = await listComponents();
+    const configs: Record<string, { activeFile: string; aliases: Record<string, string> }> = {};
+    await Promise.all(
+      components.map(async (c) => {
+        const cfg = await getActiveComponentConfig(c.name);
+        if (cfg) {
+          configs[c.name] = { activeFile: c.activeFile, aliases: cfg.aliases };
+        }
+      }),
+    );
+    if (Object.keys(configs).length > 0) {
+      seedComponentsFromApi(configs);
+    }
+  } catch {
+    // Silent fallback — components slice stays empty until first edit
   }
 }
