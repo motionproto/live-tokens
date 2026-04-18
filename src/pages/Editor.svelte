@@ -6,14 +6,14 @@
 
   const inOverlay = typeof window !== 'undefined' && window.parent !== window;
 
-  // Where "Back to site" sends the user. Prefer the previous non-admin entry
+  // Where "Back to site" sends the user. Prefer the previous non-editor entry
   // from session history; fall back to /kit (the starter demo) and finally /.
   const backHref = pickBackHref();
 
   function pickBackHref(): string {
     try {
       const prev = sessionStorage.getItem('lt-prev-route');
-      if (prev && prev !== '/admin') return prev;
+      if (prev && prev !== '/editor') return prev;
     } catch {
       // ignore
     }
@@ -34,8 +34,8 @@
   }
 </script>
 
-<div class="admin-page">
-  <div class="admin-bar">
+<div class="editor-page">
+  <div class="editor-bar">
     <div class="bar-left">
       {#if inOverlay}
         <button class="back-link as-button" on:click={closeOverlay}>
@@ -48,7 +48,7 @@
           <span>Back to site</span>
         </a>
       {/if}
-      <span class="admin-label">Design System</span>
+      <span class="editor-label">Design System</span>
     </div>
 
     <div class="bar-right"></div>
@@ -60,12 +60,12 @@
 <style>
   @import '../showcase/editor.css';
 
-  .admin-page {
+  .editor-page {
     min-height: 100vh;
     background: black;
   }
 
-  .admin-bar {
+  .editor-bar {
     display: flex;
     align-items: center;
     gap: var(--ui-space-16);
@@ -108,14 +108,14 @@
     font-family: inherit;
   }
 
-  .admin-label {
+  .editor-label {
     font-size: var(--ui-font-md);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-secondary);
   }
 
   @media (max-width: 1100px) {
-    .admin-label {
+    .editor-label {
       display: none;
     }
   }

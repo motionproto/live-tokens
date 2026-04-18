@@ -733,7 +733,7 @@ function hydrate(): void {
 
 // Hydrate eagerly at module load so child components reading `$editorState`
 // in their onMount see persisted state, not the transient empty default.
-// Svelte mounts children before parents — waiting for Admin's onMount is
+// Svelte mounts children before parents — waiting for Editor's onMount is
 // too late.
 let hydrated = false;
 function ensureHydrated(): void {

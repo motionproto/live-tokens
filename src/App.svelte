@@ -1,7 +1,7 @@
 <script lang="ts">
   import Home from './pages/Home.svelte';
   import KitDemo from './pages/KitDemo.svelte';
-  import Admin from './pages/Admin.svelte';
+  import Editor from './pages/Editor.svelte';
   import ShowcasePage from './pages/ShowcasePage.svelte';
   import LiveEditorOverlay from './lib/LiveEditorOverlay.svelte';
   import ColumnsOverlay from './lib/ColumnsOverlay.svelte';
@@ -18,13 +18,13 @@
   }
 
   const isDev = import.meta.env.DEV;
-  $: isAdmin = isDev && $route === '/admin';
+  $: isEditor = isDev && $route === '/editor';
   $: isKit = isDev && $route === '/kit';
   $: isShowcase = isDev && $route === '/components';
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-noninteractive-element-interactions -->
-<div class="lt-app" class:is-admin={isAdmin} class:is-showcase={isShowcase} on:click={handleClick}>
+<div class="lt-app" class:is-editor={isEditor} class:is-showcase={isShowcase} on:click={handleClick}>
   <LiveEditorOverlay
     navLinks={[
       { path: '/', label: 'Home', icon: 'fa-home' },
@@ -35,13 +35,13 @@
       '/': 'src/pages/Home.svelte',
       '/kit': 'src/pages/KitDemo.svelte',
       '/components': 'src/pages/ShowcasePage.svelte',
-      '/admin': 'src/pages/Admin.svelte',
+      '/editor': 'src/pages/Editor.svelte',
     }}
   />
   <ColumnsOverlay />
 
-  {#if isAdmin}
-    <Admin />
+  {#if isEditor}
+    <Editor />
   {:else if isKit}
     <KitDemo />
   {:else if isShowcase}
@@ -64,7 +64,7 @@
     padding-bottom: 12rem;
   }
 
-  .lt-app.is-admin {
+  .lt-app.is-editor {
     padding-bottom: 0;
     background: black;
   }

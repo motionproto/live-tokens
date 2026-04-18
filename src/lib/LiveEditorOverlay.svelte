@@ -16,12 +16,12 @@
   import type { NavLink } from './navLinkTypes';
 
   export let open: boolean | undefined = undefined;
-  export let editorPath: string = '/admin';
+  export let editorPath: string = '/editor';
   export let navLinks: NavLink[] = [];
   export let pageSources: Record<string, string> = {};
   export let projectRoot: string = INJECTED_PROJECT_ROOT;
 
-  // Self-gate: only render in dev, and never inside an iframe (the /admin
+  // Self-gate: only render in dev, and never inside an iframe (the /editor
   // page embeds this same app in an iframe and would otherwise recursively
   // mount another overlay).
   const isDev = import.meta.env.DEV;

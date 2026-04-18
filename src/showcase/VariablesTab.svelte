@@ -652,7 +652,7 @@
   <section class="section" id="columns">
     <h2 class="section-title">Columns</h2>
     <p class="columns-intro">
-      Layout grid for page content. Toggle the live overlay from the admin bar's
+      Layout grid for page content. Toggle the live overlay from the editor bar's
       <i class="fas fa-grip-lines-vertical"></i> button to visualize.
     </p>
 

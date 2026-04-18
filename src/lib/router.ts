@@ -3,7 +3,7 @@ import { writable } from 'svelte/store';
 const PREV_KEY = 'lt-prev-route';
 
 function rememberPrev(current: string) {
-  if (current === '/admin') return;
+  if (current === '/editor') return;
   try { sessionStorage.setItem(PREV_KEY, current); } catch { /* ignore */ }
 }
 

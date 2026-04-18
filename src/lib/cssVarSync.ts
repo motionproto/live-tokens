@@ -4,10 +4,10 @@
  * Writes to document.documentElement and — when running inside a same-origin
  * iframe (the live-preview overlay) — also writes to
  * window.parent.document.documentElement. This lets the overlay editor at
- * /admin drive the host site's :root in real time without any message-passing
+ * /editor drive the host site's :root in real time without any message-passing
  * infrastructure.
  *
- * When the editor runs standalone at /admin (not inside the overlay iframe),
+ * When the editor runs standalone at /editor (not inside the overlay iframe),
  * parentRoot is null and every call is a plain single-root write.
  */
 

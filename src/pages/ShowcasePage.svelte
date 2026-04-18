@@ -21,13 +21,13 @@
 </script>
 
 <!--
-  Site-level Components showcase page. Wrapped in .admin-page so the
+  Site-level Components showcase page. Wrapped in .editor-page so the
   ComponentsTab demo chrome (labels, section wrappers) can resolve its
   --ui-* custom properties from editor.css. The actual components inside
   still read the user's design tokens, so live edits in the overlay
   editor flow straight through to this page.
 -->
-<div class="admin-page components-shell">
+<div class="editor-page components-shell">
   <nav class="sidebar">
     <div class="sidebar-header">Components</div>
     <div class="nav-items">

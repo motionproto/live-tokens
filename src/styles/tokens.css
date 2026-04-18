@@ -11,7 +11,7 @@
 :root {
   /* ═══════════════════════════════════════════════════════
      COLOR RAMPS — Base palette swatches (100–950)
-     Each ramp is driven by its PaletteEditor in the admin.
+     Each ramp is driven by its PaletteEditor in the editor.
      Values here are static defaults; runtime overrides via JS.
      ═══════════════════════════════════════════════════════ */
 
@@ -440,7 +440,7 @@
   /* ═══════════════════════════════════════════════════════
      COLUMN LAYOUT
      12-column layout tokens. Drive the dev columns overlay
-     (toggled from the admin bar) and can be consumed by any
+     (toggled from the editor bar) and can be consumed by any
      component via:
        grid-template-columns: repeat(var(--columns-count), 1fr);
        gap: var(--columns-gutter);

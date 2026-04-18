@@ -9,7 +9,7 @@
  * (--ui-surface-*, --ui-text-*, --ui-border-*) point into it.
  */
 
-.admin-page {
+.editor-page {
 
   /* ── Fonts ────────────────────────────────────────────── */
 
@@ -24,11 +24,11 @@
 
 /* Override the global :where(*) { font-family: var(--font-sans) }
    from tokens.css which applies directly to every element */
-.admin-page *:not([class*="fa-"]) {
+.editor-page *:not([class*="fa-"]) {
   font-family: inherit;
 }
 
-.admin-page {
+.editor-page {
 
   /* ═══════════════════════════════════════════════════════
      GRAYSCALE PALETTE — opaque, protected from token system

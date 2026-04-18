@@ -19,7 +19,7 @@
       {#if isDev}
         <div class="actions">
           <Button on:click={() => navigate('/kit')}>See what the kit does</Button>
-          <Button variant="secondary" on:click={() => navigate('/admin')}>Open Design System</Button>
+          <Button variant="secondary" on:click={() => navigate('/editor')}>Open Design System</Button>
         </div>
       {/if}
     </Card>

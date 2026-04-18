@@ -9,7 +9,7 @@ Both modes are supported and maintained together.
 
 ## What you get
 
-- **Design-token admin panel** at `/admin` (dev-only). Edit colors, typography, spacing, radii, shadows, and motion; the whole site updates live.
+- **Design-token editor** at `/editor` (dev-only). Edit colors, typography, spacing, radii, shadows, and motion; the whole site updates live.
 - **Live editor overlay** pinned to the top-right in dev. Opens the editor in a side panel or floating window without leaving the page you're styling.
 - **Page Source** button — jumps straight to the current page's Svelte file in VS Code (`vscode://` link).
 - **Component library** at `/components`: Button, Card, Dialog, Badge, Tabs, Tooltip, Toggle, and more. Extendable with your own sections.
@@ -30,7 +30,7 @@ Open http://localhost:5173. Replace `src/pages/Home.svelte` with your own landin
 
 - `src/pages/Home.svelte` — your app's `/` route. **Replace this with your content.**
 - `src/pages/KitDemo.svelte` — `/kit` route. Marketing/demo page for the kit itself. Safe to delete once you don't need it.
-- `src/pages/Admin.svelte` — `/admin` route. Design-system editor.
+- `src/pages/Editor.svelte` — `/editor` route. Design-system editor.
 - `src/pages/ShowcasePage.svelte` — `/components` route. Component browser.
 - `src/App.svelte` — top-level router + overlay wiring.
 - `src/components/` — reusable components.
@@ -41,7 +41,7 @@ Open http://localhost:5173. Replace `src/pages/Home.svelte` with your own landin
 
 ### How the editor ships changes to prod (starter)
 
-1. Edit in `/admin` → the overlay writes to the active theme file in `themes/`.
+1. Edit in `/editor` → the overlay writes to the active theme file in `themes/`.
 2. Promote a theme to "production" → its variables are written into `src/styles/tokens.css` and backed up under `src/styles/_backups/`.
 3. `npm run build` bundles that CSS file as-is.
 
@@ -98,13 +98,13 @@ async function boot() {
 boot();
 ```
 
-### Mount the overlay + admin route
+### Mount the overlay + editor route
 
 ```svelte
 <!-- App.svelte -->
 <script lang="ts">
   import { LiveEditorOverlay, ColumnsOverlay } from '@motion-proto/live-tokens';
-  import Admin from '@motion-proto/live-tokens/admin';
+  import Editor from '@motion-proto/live-tokens/editor';
   import { route } from './router';
 </script>
 
@@ -120,14 +120,14 @@ boot();
 />
 <ColumnsOverlay />
 
-{#if $route === '/admin'}
-  <Admin />
+{#if $route === '/editor'}
+  <Editor />
 {:else}
   <!-- your routes -->
 {/if}
 ```
 
-`<LiveEditorOverlay />` self-gates: it only renders in dev, never inside an iframe, and never when the user is on `editorPath` (defaults to `/admin`). You don't need to wrap it in `{#if import.meta.env.DEV}` guards.
+`<LiveEditorOverlay />` self-gates: it only renders in dev, never inside an iframe, and never when the user is on `editorPath` (defaults to `/editor`). You don't need to wrap it in `{#if import.meta.env.DEV}` guards.
 
 ### Styles
 
@@ -168,7 +168,7 @@ The package is published to npm as `@motion-proto/live-tokens`.
 **What ships:**
 
 - `src/lib/`, `src/showcase/`, `src/components/`
-- `src/pages/Admin.svelte` + `Admin.svelte.d.ts`
+- `src/pages/Editor.svelte` + `Editor.svelte.d.ts`
 - `src/showcase/editor.css`, `src/styles/form-controls.css`, `src/styles/fonts.css`, `src/styles/fonts/`
 - `dist-plugin/` — compiled Vite plugin
 

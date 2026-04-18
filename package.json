@@ -21,8 +21,8 @@
     "src/lib",
     "src/showcase",
     "src/components",
-    "src/pages/Admin.svelte",
-    "src/pages/Admin.svelte.d.ts",
+    "src/pages/Editor.svelte",
+    "src/pages/Editor.svelte.d.ts",
     "src/showcase/editor.css",
     "src/styles/form-controls.css",
     "src/styles/fonts.css",
@@ -40,10 +40,10 @@
       "types": "./src/showcase/index.ts",
       "default": "./src/showcase/index.ts"
     },
-    "./admin": {
-      "types": "./src/pages/Admin.svelte.d.ts",
-      "svelte": "./src/pages/Admin.svelte",
-      "default": "./src/pages/Admin.svelte"
+    "./editor": {
+      "types": "./src/pages/Editor.svelte.d.ts",
+      "svelte": "./src/pages/Editor.svelte",
+      "default": "./src/pages/Editor.svelte"
     },
     "./vite-plugin": {
       "types": "./dist-plugin/index.d.ts",
