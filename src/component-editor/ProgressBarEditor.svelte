@@ -1,7 +1,7 @@
 <script lang="ts">
-  import ProgressBar from '../../components/ProgressBar.svelte';
-  import VariantGroup from '../VariantGroup.svelte';
-  import DemoHeader from '../DemoHeader.svelte';
+  import ProgressBar from '../components/ProgressBar.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import DemoHeader from './scaffolding/DemoHeader.svelte';
 
   const targetFile = 'src/components/ProgressBar.svelte';
   const component = 'progressbar';

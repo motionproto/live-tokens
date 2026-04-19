@@ -1,30 +1,30 @@
 import type { ComponentSection } from './componentSectionType';
-import ChoiceButtonsDemo from './demos/ChoiceButtonsDemo.svelte';
-import StandardButtonsDemo from './demos/StandardButtonsDemo.svelte';
-import NotificationDemo from './demos/NotificationDemo.svelte';
-import DialogDemo from './demos/DialogDemo.svelte';
-import RadioButtonDemo from './demos/RadioButtonDemo.svelte';
-import CardDemo from './demos/CardDemo.svelte';
-import BadgeDemo from './demos/BadgeDemo.svelte';
-import InlineEditActionsDemo from './demos/InlineEditActionsDemo.svelte';
-import SectionDividerDemo from './demos/SectionDividerDemo.svelte';
-import CollapsibleSectionDemo from './demos/CollapsibleSectionDemo.svelte';
-import TabBarDemo from './demos/TabBarDemo.svelte';
-import TooltipDemo from './demos/TooltipDemo.svelte';
-import ProgressBarDemo from './demos/ProgressBarDemo.svelte';
+import ChoiceButtonsEditor from '../ChoiceButtonsEditor.svelte';
+import StandardButtonsEditor from '../StandardButtonsEditor.svelte';
+import NotificationEditor from '../NotificationEditor.svelte';
+import DialogEditor from '../DialogEditor.svelte';
+import RadioButtonEditor from '../RadioButtonEditor.svelte';
+import CardEditor from '../CardEditor.svelte';
+import BadgeEditor from '../BadgeEditor.svelte';
+import InlineEditActionsEditor from '../InlineEditActionsEditor.svelte';
+import SectionDividerEditor from '../SectionDividerEditor.svelte';
+import CollapsibleSectionEditor from '../CollapsibleSectionEditor.svelte';
+import TabBarEditor from '../TabBarEditor.svelte';
+import TooltipEditor from '../TooltipEditor.svelte';
+import ProgressBarEditor from '../ProgressBarEditor.svelte';
 
 export const defaultSections: ComponentSection[] = [
-  { id: 'choiceButtons', label: 'Choice Sets', component: ChoiceButtonsDemo },
-  { id: 'standardButtons', label: 'Button', component: StandardButtonsDemo },
-  { id: 'notifications', label: 'Notification', component: NotificationDemo },
-  { id: 'dialog', label: 'Dialog', component: DialogDemo },
-  { id: 'radioButtons', label: 'Radio Button', component: RadioButtonDemo },
-  { id: 'cards', label: 'Card', component: CardDemo },
-  { id: 'traitBadges', label: 'Trait Badge', component: BadgeDemo },
-  { id: 'inlineEdit', label: 'Inline Edit Actions', component: InlineEditActionsDemo },
-  { id: 'sectionDivider', label: 'Section Divider', component: SectionDividerDemo },
-  { id: 'collapsible', label: 'Collapsible Section', component: CollapsibleSectionDemo },
-  { id: 'tabBar', label: 'Tab Bar', component: TabBarDemo },
-  { id: 'tooltip', label: 'Tooltip', component: TooltipDemo },
-  { id: 'progressBar', label: 'Progress Bar', component: ProgressBarDemo },
+  { id: 'choiceButtons', label: 'Choice Sets', component: ChoiceButtonsEditor },
+  { id: 'standardButtons', label: 'Button', component: StandardButtonsEditor },
+  { id: 'notifications', label: 'Notification', component: NotificationEditor },
+  { id: 'dialog', label: 'Dialog', component: DialogEditor },
+  { id: 'radioButtons', label: 'Radio Button', component: RadioButtonEditor },
+  { id: 'cards', label: 'Card', component: CardEditor },
+  { id: 'traitBadges', label: 'Trait Badge', component: BadgeEditor },
+  { id: 'inlineEdit', label: 'Inline Edit Actions', component: InlineEditActionsEditor },
+  { id: 'sectionDivider', label: 'Section Divider', component: SectionDividerEditor },
+  { id: 'collapsible', label: 'Collapsible Section', component: CollapsibleSectionEditor },
+  { id: 'tabBar', label: 'Tab Bar', component: TabBarEditor },
+  { id: 'tooltip', label: 'Tooltip', component: TooltipEditor },
+  { id: 'progressBar', label: 'Progress Bar', component: ProgressBarEditor },
 ];

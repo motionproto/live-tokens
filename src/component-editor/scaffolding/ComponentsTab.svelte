@@ -21,7 +21,7 @@
     min-width: 0;
   }
 
-  /* Shared demo chrome — used by every demo wrapper in ./demos/. */
+  /* Shared editor chrome — used by every per-component editor in ../. */
   :global(.components-container .demo-block) {
     display: flex;
     flex-direction: column;

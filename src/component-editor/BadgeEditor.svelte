@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Badge from '../../components/Badge.svelte';
-  import VariantGroup from '../VariantGroup.svelte';
-  import DemoHeader from '../DemoHeader.svelte';
+  import Badge from '../components/Badge.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import DemoHeader from './scaffolding/DemoHeader.svelte';
 
   const targetFile = 'src/components/Badge.svelte';
   const component = 'badge';

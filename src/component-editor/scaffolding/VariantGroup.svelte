@@ -2,8 +2,8 @@
   import { onMount } from 'svelte';
   import { get } from 'svelte/store';
   import TokenLayout from './TokenLayout.svelte';
-  import { removeCssVar } from '../lib/cssVarSync';
-  import { editorState, clearComponentAlias } from '../lib/editorStore';
+  import { removeCssVar } from '../../lib/cssVarSync';
+  import { editorState, clearComponentAlias } from '../../lib/editorStore';
 
   type Token = { label: string; variable: string };
 

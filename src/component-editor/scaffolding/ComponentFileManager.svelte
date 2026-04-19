@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { get } from 'svelte/store';
-  import type { ComponentConfig, ComponentConfigMeta } from '../lib/themeTypes';
+  import type { ComponentConfig, ComponentConfigMeta } from '../../lib/themeTypes';
   import {
     listComponentConfigs,
     loadComponentConfig,
@@ -11,15 +11,15 @@
     getComponentProductionInfo,
     setComponentProductionFile,
     type ComponentProductionInfo,
-  } from '../lib/componentConfigService';
+  } from '../../lib/componentConfigService';
   import {
     editorState,
     componentDirty,
     loadComponentActive,
     markComponentSaved,
-  } from '../lib/editorStore';
-  import { sanitizeFileName } from '../lib/themeService';
-  import UIDialog from '../ui/UIDialog.svelte';
+  } from '../../lib/editorStore';
+  import { sanitizeFileName } from '../../lib/themeService';
+  import UIDialog from '../../ui/UIDialog.svelte';
 
   /** Which component this manager controls (e.g. "button"). */
   export let component: string;

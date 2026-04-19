@@ -8,7 +8,7 @@ import { undo, redo } from './editorStore';
  * only when focus is outside editable elements.
  *
  * Scope this installer to the pages where the editor is actually mounted
- * (Editor.svelte) so Cmd+Z on the landing / showcase pages isn't hijacked.
+ * (Editor.svelte) so Cmd+Z on the landing / component-editor pages isn't hijacked.
  *
  * Returns a cleanup function (use in Svelte's onMount return).
  */

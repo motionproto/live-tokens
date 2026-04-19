@@ -1,5 +1,5 @@
-export { default as ComponentsTab } from './ComponentsTab.svelte';
-export type { ComponentSection } from './componentSectionType';
-export { defaultSections } from './defaultSections';
+export { default as ComponentsTab } from './scaffolding/ComponentsTab.svelte';
+export type { ComponentSection } from './scaffolding/componentSectionType';
+export { defaultSections } from './scaffolding/defaultSections';
 
-export { default as TokenLayout } from './TokenLayout.svelte';
+export { default as TokenLayout } from './scaffolding/TokenLayout.svelte';

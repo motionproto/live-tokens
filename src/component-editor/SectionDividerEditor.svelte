@@ -1,7 +1,7 @@
 <script lang="ts">
-  import SectionDivider from '../../components/SectionDivider.svelte';
-  import VariantGroup from '../VariantGroup.svelte';
-  import DemoHeader from '../DemoHeader.svelte';
+  import SectionDivider from '../components/SectionDivider.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import DemoHeader from './scaffolding/DemoHeader.svelte';
 
   const targetFile = 'src/components/SectionDivider.svelte';
   const component = 'sectiondivider';

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import ComponentsTab from '../showcase/ComponentsTab.svelte';
+  import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
 
   let selectedComponent = 'standardButtons';
 
@@ -21,8 +21,8 @@
 </script>
 
 <!--
-  Site-level Components showcase page. Wrapped in .editor-page so the
-  ComponentsTab demo chrome (labels, section wrappers) can resolve its
+  Site-level component editor page. Wrapped in .editor-page so the
+  ComponentsTab scaffolding (labels, section wrappers) can resolve its
   --ui-* custom properties from ui/editor.css. The actual components inside
   still read the user's design tokens, so live edits in the overlay
   editor flow straight through to this page.

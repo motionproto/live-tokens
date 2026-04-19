@@ -4,7 +4,7 @@
  * Opaque grayscale palette for the editor itself.
  * Protected from the design-token system — these never change.
  *
- * Every showcase/editor component references these via var(--ui-*).
+ * Every editor surface (src/ui and src/component-editor) references these via var(--ui-*).
  * The --ui-gray-* ramp is the source of truth; semantic aliases
  * (--ui-surface-*, --ui-text-*, --ui-border-*) point into it.
  */

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
-  import UIFontFamilySelector from '../ui/UIFontFamilySelector.svelte';
-  import UIFontWeightSelector from '../ui/UIFontWeightSelector.svelte';
+  import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
+  import UIFontFamilySelector from '../../ui/UIFontFamilySelector.svelte';
+  import UIFontWeightSelector from '../../ui/UIFontWeightSelector.svelte';
 
   export let colorVariable: string;
   export let colorLabel: string;

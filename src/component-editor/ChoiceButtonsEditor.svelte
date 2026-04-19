@@ -1,7 +1,7 @@
 <script lang="ts">
-  import ChoiceButton from '../../components/ChoiceButton.svelte';
-  import VariantGroup from '../VariantGroup.svelte';
-  import DemoHeader from '../DemoHeader.svelte';
+  import ChoiceButton from '../components/ChoiceButton.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import DemoHeader from './scaffolding/DemoHeader.svelte';
 
   const targetFile = 'src/components/ChoiceButton.svelte';
   const component = 'choicebutton';

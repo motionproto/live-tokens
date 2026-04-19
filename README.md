@@ -31,10 +31,11 @@ Open http://localhost:5173. Replace `src/pages/Home.svelte` with your own landin
 - `src/pages/Home.svelte` — your app's `/` route. **Replace this with your content.**
 - `src/pages/KitDemo.svelte` — `/kit` route. Marketing/demo page for the kit itself. Safe to delete once you don't need it.
 - `src/pages/Editor.svelte` — `/editor` route. Design-system editor.
-- `src/pages/ShowcasePage.svelte` — `/components` route. Component browser.
+- `src/pages/ComponentEditorPage.svelte` — `/components` route. Component editor.
 - `src/App.svelte` — top-level router + overlay wiring.
 - `src/components/` — reusable components.
-- `src/showcase/` — editor UI (tabs, palette editors, curve editor, backup browser).
+- `src/component-editor/` — per-component editors plus shared scaffolding.
+- `src/ui/` — neutral editor UI primitives and the design-system editor surfaces.
 - `src/lib/` — overlay, router, token persistence, color helpers.
 - `src/styles/tokens.css` — the generated CSS variables (source of truth at runtime).
 - `themes/` — persisted theme files. `_active.json` = theme loaded on dev. `_production.json` = theme synced to CSS on "promote."
@@ -138,17 +139,17 @@ import '@motion-proto/live-tokens/styles/form-controls.css';
 import '@motion-proto/live-tokens/styles/fonts.css';
 ```
 
-### Add your own components to the showcase
+### Add your own components to the editor
 
 ```svelte
 <!-- src/pages/ComponentsPage.svelte -->
 <script lang="ts">
-  import { ComponentsTab, defaultSections, type ComponentSection } from '@motion-proto/live-tokens/components';
+  import { ComponentsTab, defaultSections, type ComponentSection } from '@motion-proto/live-tokens/component-editor';
   import '@motion-proto/live-tokens/styles/editor.css';
-  import MyWidgetDemo from '../components/MyWidgetDemo.svelte';
+  import MyWidgetEditor from '../components/MyWidgetEditor.svelte';
 
   const mySections: ComponentSection[] = [
-    { id: 'myWidget', label: 'My Widget', component: MyWidgetDemo },
+    { id: 'myWidget', label: 'My Widget', component: MyWidgetEditor },
   ];
   const allSections = [...defaultSections, ...mySections];
 </script>
@@ -167,12 +168,12 @@ The package is published to npm as `@motion-proto/live-tokens`.
 
 **What ships:**
 
-- `src/lib/`, `src/ui/`, `src/showcase/`, `src/components/`
+- `src/lib/`, `src/ui/`, `src/component-editor/`, `src/components/`
 - `src/pages/Editor.svelte` + `Editor.svelte.d.ts`
 - `src/ui/editor.css`, `src/styles/form-controls.css`, `src/styles/fonts.css`, `src/styles/fonts/`
 - `dist-plugin/` — compiled Vite plugin
 
-**What doesn't ship** (starter-only): `src/App.svelte`, `src/main.ts`, `src/pages/Home.svelte`, `src/pages/KitDemo.svelte`, `src/pages/ShowcasePage.svelte`, `index.html`, `themes/`.
+**What doesn't ship** (starter-only): `src/App.svelte`, `src/main.ts`, `src/pages/Home.svelte`, `src/pages/KitDemo.svelte`, `src/pages/ComponentEditorPage.svelte`, `index.html`, `themes/`.
 
 ## License
 

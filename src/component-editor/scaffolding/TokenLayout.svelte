@@ -1,9 +1,9 @@
 <script lang="ts">
-  import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
-  import UIRadiusSelector from '../ui/UIRadiusSelector.svelte';
-  import UIBorderWeightSelector from '../ui/UIBorderWeightSelector.svelte';
-  import UIFontFamilySelector from '../ui/UIFontFamilySelector.svelte';
-  import UIFontWeightSelector from '../ui/UIFontWeightSelector.svelte';
+  import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
+  import UIRadiusSelector from '../../ui/UIRadiusSelector.svelte';
+  import UIBorderWeightSelector from '../../ui/UIBorderWeightSelector.svelte';
+  import UIFontFamilySelector from '../../ui/UIFontFamilySelector.svelte';
+  import UIFontWeightSelector from '../../ui/UIFontWeightSelector.svelte';
   import TypeEditor from './TypeEditor.svelte';
 
   type Token = { label: string; variable: string; canBeShared?: boolean };

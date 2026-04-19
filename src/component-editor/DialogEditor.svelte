@@ -1,8 +1,8 @@
 <script lang="ts">
-  import Button from '../../components/Button.svelte';
-  import Dialog from '../../components/Dialog.svelte';
-  import VariantGroup from '../VariantGroup.svelte';
-  import DemoHeader from '../DemoHeader.svelte';
+  import Button from '../components/Button.svelte';
+  import Dialog from '../components/Dialog.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import DemoHeader from './scaffolding/DemoHeader.svelte';
 
   const targetFile = 'src/components/Dialog.svelte';
   const component = 'dialog';

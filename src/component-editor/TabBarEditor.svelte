@@ -1,7 +1,7 @@
 <script lang="ts">
-  import TabBar from '../../components/TabBar.svelte';
-  import VariantGroup from '../VariantGroup.svelte';
-  import DemoHeader from '../DemoHeader.svelte';
+  import TabBar from '../components/TabBar.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import DemoHeader from './scaffolding/DemoHeader.svelte';
 
   const targetFile = 'src/components/TabBar.svelte';
   const component = 'tabbar';

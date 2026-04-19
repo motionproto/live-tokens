@@ -1,7 +1,7 @@
 <script lang="ts">
-  import InlineEditActions from '../../components/InlineEditActions.svelte';
-  import VariantGroup from '../VariantGroup.svelte';
-  import DemoHeader from '../DemoHeader.svelte';
+  import InlineEditActions from '../components/InlineEditActions.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import DemoHeader from './scaffolding/DemoHeader.svelte';
 
   const targetFile = 'src/components/InlineEditActions.svelte';
   const component = 'inlineeditactions';

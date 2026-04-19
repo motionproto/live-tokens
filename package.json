@@ -20,7 +20,7 @@
   "files": [
     "src/lib",
     "src/ui",
-    "src/showcase",
+    "src/component-editor",
     "src/components",
     "src/pages/Editor.svelte",
     "src/pages/Editor.svelte.d.ts",
@@ -36,10 +36,10 @@
       "types": "./src/lib/index.ts",
       "default": "./src/lib/index.ts"
     },
-    "./components": {
-      "svelte": "./src/showcase/index.ts",
-      "types": "./src/showcase/index.ts",
-      "default": "./src/showcase/index.ts"
+    "./component-editor": {
+      "svelte": "./src/component-editor/index.ts",
+      "types": "./src/component-editor/index.ts",
+      "default": "./src/component-editor/index.ts"
     },
     "./ui": {
       "svelte": "./src/ui/index.ts",
