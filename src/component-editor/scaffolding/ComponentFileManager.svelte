@@ -307,9 +307,9 @@
       disabled={productionUpdateStatus === 'updating' || productionInfo?.fileName === activeFileName}
       title={productionInfo?.fileName === activeFileName ? 'Already in production' : `Set "${currentDisplayName}" as production`}
     >
-      <i class="fas" class:fa-sync-alt={productionUpdateStatus === 'idle'} class:fa-spinner={productionUpdateStatus === 'updating'} class:fa-check={productionUpdateStatus === 'done'} class:fa-times={productionUpdateStatus === 'error'}></i>
+      <i class="fas" class:fa-upload={productionUpdateStatus === 'idle'} class:fa-spinner={productionUpdateStatus === 'updating'} class:fa-check={productionUpdateStatus === 'done'} class:fa-times={productionUpdateStatus === 'error'}></i>
       <span>
-        {#if productionUpdateStatus === 'idle'}Sync Config{:else if productionUpdateStatus === 'updating'}Syncing{:else if productionUpdateStatus === 'done'}Synced{:else}Error{/if}
+        {#if productionUpdateStatus === 'idle'}Apply Config{:else if productionUpdateStatus === 'updating'}Applying{:else if productionUpdateStatus === 'done'}Applied{:else}Error{/if}
       </span>
     </button>
 
@@ -369,7 +369,7 @@
 
   .active-label {
     font-size: var(--ui-font-xs);
-    color: var(--ui-text-muted);
+    color: var(--ui-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -620,7 +620,7 @@
   }
 
   .status-label.clean {
-    color: var(--ui-text-muted);
+    color: var(--ui-text-secondary);
   }
 
   .status-label.dirty {
@@ -644,7 +644,7 @@
 
   .production-label {
     font-size: var(--ui-font-xs);
-    color: var(--ui-text-muted);
+    color: var(--ui-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -672,7 +672,7 @@
 
   .production-match {
     font-size: var(--ui-font-xs);
-    color: var(--ui-text-muted);
+    color: var(--ui-text-secondary);
     padding: 0 var(--ui-space-4);
     letter-spacing: 0.02em;
   }

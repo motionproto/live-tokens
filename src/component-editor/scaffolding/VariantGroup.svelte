@@ -3,7 +3,8 @@
   import { get } from 'svelte/store';
   import TokenLayout from './TokenLayout.svelte';
   import { removeCssVar } from '../../lib/cssVarSync';
-  import { editorState, clearComponentAlias } from '../../lib/editorStore';
+  import { editorState, mutate } from '../../lib/editorStore';
+  import { loadComponentConfig } from '../../lib/componentConfigService';
 
   type Token = { label: string; variable: string };
 
@@ -50,9 +51,20 @@
     dirty = hasOverrides();
   }
 
-  function reset() {
+  async function reset() {
     if (component) {
-      for (const t of allTokens) clearComponentAlias(component, t.variable);
+      const defaultCfg = await loadComponentConfig(component, 'default');
+      mutate(`reset ${component}/${name}`, (s) => {
+        const slice = s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {} });
+        for (const t of allTokens) {
+          const defaultVal = defaultCfg.aliases[t.variable];
+          if (defaultVal !== undefined) {
+            slice.aliases[t.variable] = defaultVal;
+          } else {
+            delete slice.aliases[t.variable];
+          }
+        }
+      });
     } else {
       for (const t of allTokens) removeCssVar(t.variable);
     }
