@@ -24,24 +24,24 @@
 
 {#if show}
   <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-noninteractive-element-interactions -->
-  <div class="ed-backdrop" on:click|self={handleClose}>
-    <div class="ed-dialog" style="width: {width}; max-width: {width};">
+  <div class="ui-dialog-backdrop" on:click|self={handleClose}>
+    <div class="ui-dialog" style="width: {width}; max-width: {width};">
       {#if title}
-        <div class="ed-header">
-          <h3 class="ed-title">{title}</h3>
-          <button bind:this={closeButtonRef} class="ed-close" on:click={handleClose} aria-label="Close">
+        <div class="ui-dialog-header">
+          <h3 class="ui-dialog-title">{title}</h3>
+          <button bind:this={closeButtonRef} class="ui-dialog-close" on:click={handleClose} aria-label="Close">
             <i class="fas fa-times"></i>
           </button>
         </div>
       {/if}
 
-      <div class="ed-body">
+      <div class="ui-dialog-body">
         <slot />
       </div>
 
       {#if showCancel}
-        <div class="ed-footer">
-          <button bind:this={cancelButtonRef} class="ed-btn" on:click={handleClose}>
+        <div class="ui-dialog-footer">
+          <button bind:this={cancelButtonRef} class="ui-dialog-btn" on:click={handleClose}>
             {cancelLabel}
           </button>
         </div>
@@ -51,7 +51,7 @@
 {/if}
 
 <style>
-  .ed-backdrop {
+  .ui-dialog-backdrop {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.65);
@@ -61,20 +61,20 @@
     z-index: 9999;
   }
 
-  .ed-dialog {
+  .ui-dialog {
     background: #1a1a1a;
     border: 1px solid #444;
     border-radius: 6px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-    animation: edSlideIn 0.15s ease-out;
+    animation: uiDialogSlideIn 0.15s ease-out;
   }
 
-  @keyframes edSlideIn {
+  @keyframes uiDialogSlideIn {
     from { opacity: 0; transform: translateY(-10px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  .ed-header {
+  .ui-dialog-header {
     padding: 10px 16px;
     border-bottom: 1px solid #333;
     display: flex;
@@ -82,14 +82,14 @@
     align-items: center;
   }
 
-  .ed-title {
+  .ui-dialog-title {
     margin: 0;
     font-size: 16px;
     font-weight: 600;
     color: #e0e0e0;
   }
 
-  .ed-close {
+  .ui-dialog-close {
     background: none;
     border: none;
     color: #888;
@@ -103,23 +103,23 @@
     border-radius: 4px;
   }
 
-  .ed-close:hover {
+  .ui-dialog-close:hover {
     background: rgba(255, 255, 255, 0.08);
     color: #ccc;
   }
 
-  .ed-body {
+  .ui-dialog-body {
     padding: 12px 16px;
   }
 
-  .ed-footer {
+  .ui-dialog-footer {
     padding: 10px 16px;
     border-top: 1px solid #333;
     display: flex;
     justify-content: flex-end;
   }
 
-  .ed-btn {
+  .ui-dialog-btn {
     padding: 6px 14px;
     background: transparent;
     border: 1px solid #555;
@@ -129,7 +129,7 @@
     cursor: pointer;
   }
 
-  .ed-btn:hover {
+  .ui-dialog-btn:hover {
     background: rgba(255, 255, 255, 0.06);
     border-color: #777;
     color: #e0e0e0;

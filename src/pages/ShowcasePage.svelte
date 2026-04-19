@@ -23,7 +23,7 @@
 <!--
   Site-level Components showcase page. Wrapped in .editor-page so the
   ComponentsTab demo chrome (labels, section wrappers) can resolve its
-  --ui-* custom properties from editor.css. The actual components inside
+  --ui-* custom properties from ui/editor.css. The actual components inside
   still read the user's design tokens, so live edits in the overlay
   editor flow straight through to this page.
 -->
@@ -54,7 +54,7 @@
 </div>
 
 <style>
-  @import '../showcase/editor.css';
+  @import '../ui/editor.css';
   .components-shell {
     display: grid;
     grid-template-columns: 240px minmax(0, 1fr);

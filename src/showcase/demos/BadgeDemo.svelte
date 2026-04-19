@@ -6,26 +6,26 @@
   const targetFile = 'src/components/Badge.svelte';
   const component = 'badge';
 
-  type Token = { label: string; variable: string };
+  type Token = { label: string; variable: string; canBeShared?: boolean };
 
   const variantTokens: Record<string, Token[]> = {
     info: [
       { label: 'surface color', variable: '--badge-info-surface' },
       { label: 'text color', variable: '--badge-info-text' },
       { label: 'border color', variable: '--badge-info-border' },
-      { label: 'radius', variable: '--badge-info-radius' },
+      { label: 'radius', canBeShared: true, variable: '--badge-info-radius' },
     ],
     accent: [
       { label: 'surface color', variable: '--badge-accent-surface' },
       { label: 'text color', variable: '--badge-accent-text' },
       { label: 'border color', variable: '--badge-accent-border' },
-      { label: 'radius', variable: '--badge-accent-radius' },
+      { label: 'radius', canBeShared: true, variable: '--badge-accent-radius' },
     ],
     trait: [
       { label: 'surface color', variable: '--badge-trait-surface' },
       { label: 'text color', variable: '--badge-trait-text' },
       { label: 'border color', variable: '--badge-trait-border' },
-      { label: 'radius', variable: '--badge-trait-radius' },
+      { label: 'radius', canBeShared: true, variable: '--badge-trait-radius' },
     ],
   };
 </script>

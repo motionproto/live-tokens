@@ -19,7 +19,7 @@
     markComponentSaved,
   } from '../lib/editorStore';
   import { sanitizeFileName } from '../lib/themeService';
-  import EditorDialog from './EditorDialog.svelte';
+  import UIDialog from '../ui/UIDialog.svelte';
 
   /** Which component this manager controls (e.g. "button"). */
   export let component: string;
@@ -321,7 +321,7 @@
   </div>
 </div>
 
-<EditorDialog
+<UIDialog
   bind:show={showFileList}
   title="Load {component} Config"
   cancelLabel="Close"
@@ -351,7 +351,7 @@
       <div class="load-item empty">No saved files</div>
     {/if}
   </div>
-</EditorDialog>
+</UIDialog>
 
 <style>
   .cfm-root {

@@ -1,12 +1,12 @@
 <script lang="ts">
-  import PaletteSelector from './PaletteSelector.svelte';
-  import RadiusSelector from './RadiusSelector.svelte';
-  import BorderWeightSelector from './BorderWeightSelector.svelte';
-  import FontFamilySelector from './FontFamilySelector.svelte';
-  import FontWeightSelector from './FontWeightSelector.svelte';
+  import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
+  import UIRadiusSelector from '../ui/UIRadiusSelector.svelte';
+  import UIBorderWeightSelector from '../ui/UIBorderWeightSelector.svelte';
+  import UIFontFamilySelector from '../ui/UIFontFamilySelector.svelte';
+  import UIFontWeightSelector from '../ui/UIFontWeightSelector.svelte';
   import TypeEditor from './TypeEditor.svelte';
 
-  type Token = { label: string; variable: string };
+  type Token = { label: string; variable: string; canBeShared?: boolean };
 
   type SimpleKind = 'surface' | 'border' | 'border-width' | 'radius' | 'font-family' | 'font-weight' | 'extras';
 
@@ -135,15 +135,15 @@
         {@const token = entry.token}
         <div class="token-entry">
           {#if entry.kind === 'radius'}
-            <RadiusSelector variable={token.variable} label={token.label} {component} on:change />
+            <UIRadiusSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} on:change />
           {:else if entry.kind === 'border-width'}
-            <BorderWeightSelector variable={token.variable} label={token.label} {component} on:change />
+            <UIBorderWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} on:change />
           {:else if entry.kind === 'font-family'}
-            <FontFamilySelector variable={token.variable} label={token.label} {component} on:change />
+            <UIFontFamilySelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} on:change />
           {:else if entry.kind === 'font-weight'}
-            <FontWeightSelector variable={token.variable} label={token.label} {component} on:change />
+            <UIFontWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} on:change />
           {:else}
-            <PaletteSelector variable={token.variable} label={token.label} {component} on:change />
+            <UIPaletteSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} on:change />
           {/if}
           <span class="token-label">{token.label}</span>
         </div>

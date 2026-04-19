@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import VisualsTab from '../showcase/VisualsTab.svelte';
+  import VisualsTab from '../ui/VisualsTab.svelte';
   import { installEditorKeybindings } from '../lib/editorKeybindings';
   import { initializeEditorStore } from '../lib/editorStore';
 
@@ -58,7 +58,7 @@
 </div>
 
 <style>
-  @import '../showcase/editor.css';
+  @import '../ui/editor.css';
 
   .editor-page {
     min-height: 100vh;

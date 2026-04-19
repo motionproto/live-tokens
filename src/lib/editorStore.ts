@@ -697,6 +697,78 @@ export function clearComponentAlias(component: string, varName: string): void {
   });
 }
 
+// Property suffix is the last hyphenated segment after the `--{component}-`
+// prefix. e.g. for component=button, varName=--button-primary-hover-radius,
+// property is "radius" and variant is "primary-hover". Used by the
+// share-across-variants UI in the property pickers.
+function parseComponentVar(component: string, varName: string): { variant: string; property: string } | null {
+  const prefix = `--${component}-`;
+  if (!varName.startsWith(prefix)) return null;
+  const rest = varName.slice(prefix.length);
+  const lastDash = rest.lastIndexOf('-');
+  if (lastDash <= 0) return null;
+  return { variant: rest.slice(0, lastDash), property: rest.slice(lastDash + 1) };
+}
+
+/**
+ * All keys in the component slice that share `varName`'s property suffix.
+ * Includes `varName` itself if it lives in the slice.
+ */
+export function getComponentPropertySiblings(component: string, varName: string): string[] {
+  const parsed = parseComponentVar(component, varName);
+  if (!parsed) return [];
+  const slice = get(store).components[component];
+  if (!slice) return [];
+  const prefix = `--${component}-`;
+  const suffix = `-${parsed.property}`;
+  const siblings: string[] = [];
+  for (const v of Object.keys(slice.aliases)) {
+    if (v.startsWith(prefix) && v.endsWith(suffix)) siblings.push(v);
+  }
+  return siblings;
+}
+
+/** True iff `varName` has ≥2 siblings and all of them resolve to the same alias value. */
+export function isComponentPropertyShared(component: string, varName: string): boolean {
+  const slice = get(store).components[component];
+  if (!slice) return false;
+  const siblings = getComponentPropertySiblings(component, varName);
+  if (siblings.length < 2) return false;
+  const first = slice.aliases[siblings[0]];
+  if (!first) return false;
+  return siblings.every((v) => slice.aliases[v] === first);
+}
+
+/** Write `semanticName` to every sibling that shares `varName`'s property suffix. */
+export function setComponentAliasShared(component: string, varName: string, semanticName: string): void {
+  const parsed = parseComponentVar(component, varName);
+  const siblings = getComponentPropertySiblings(component, varName);
+  if (!parsed || siblings.length === 0) {
+    setComponentAlias(component, varName, semanticName);
+    return;
+  }
+  mutate(`share ${component}/${parsed.property}`, (s) => {
+    const slice = s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {} });
+    for (const v of siblings) slice.aliases[v] = semanticName;
+    if (!siblings.includes(varName)) slice.aliases[varName] = semanticName;
+  });
+}
+
+/** Clear every sibling that shares `varName`'s property suffix. */
+export function clearComponentAliasShared(component: string, varName: string): void {
+  const parsed = parseComponentVar(component, varName);
+  const siblings = getComponentPropertySiblings(component, varName);
+  if (!parsed || siblings.length === 0) {
+    clearComponentAlias(component, varName);
+    return;
+  }
+  mutate(`clear shared ${component}/${parsed.property}`, (s) => {
+    const slice = s.components[component];
+    if (!slice) return;
+    for (const v of siblings) delete slice.aliases[v];
+  });
+}
+
 /**
  * Replace a component's slice with a loaded config file's contents. Uses
  * `mutate()` so the load is one undoable entry; updates the dirty baseline

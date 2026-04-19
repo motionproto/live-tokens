@@ -8,7 +8,7 @@
 
   let selectedChoice = 'option-2';
 
-  type Token = { label: string; variable: string };
+  type Token = { label: string; variable: string; canBeShared?: boolean };
 
   const choiceStates: Record<string, Token[]> = {
     default: [
@@ -16,28 +16,28 @@
       { label: 'text color', variable: '--choice-default-text' },
       { label: 'icon color', variable: '--choice-default-icon' },
       { label: 'border color', variable: '--choice-default-border' },
-      { label: 'radius', variable: '--choice-default-radius' },
+      { label: 'radius', canBeShared: true, variable: '--choice-default-radius' },
     ],
     hover: [
       { label: 'surface color', variable: '--choice-hover-bg' },
       { label: 'text color', variable: '--choice-hover-text' },
       { label: 'icon color', variable: '--choice-hover-icon' },
       { label: 'border color', variable: '--choice-hover-border' },
-      { label: 'radius', variable: '--choice-hover-radius' },
+      { label: 'radius', canBeShared: true, variable: '--choice-hover-radius' },
     ],
     selected: [
       { label: 'surface color', variable: '--choice-selected-bg' },
       { label: 'text color', variable: '--choice-selected-text' },
       { label: 'icon color', variable: '--choice-selected-icon' },
       { label: 'border color', variable: '--choice-selected-border' },
-      { label: 'radius', variable: '--choice-selected-radius' },
+      { label: 'radius', canBeShared: true, variable: '--choice-selected-radius' },
     ],
     disabled: [
       { label: 'surface color', variable: '--choice-disabled-bg' },
       { label: 'text color', variable: '--choice-disabled-text' },
       { label: 'icon color', variable: '--choice-disabled-icon' },
       { label: 'border color', variable: '--choice-disabled-border' },
-      { label: 'radius', variable: '--choice-disabled-radius' },
+      { label: 'radius', canBeShared: true, variable: '--choice-disabled-radius' },
     ],
   };
 </script>

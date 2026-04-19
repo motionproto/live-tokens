@@ -6,7 +6,7 @@
   const targetFile = 'src/components/Card.svelte';
   const component = 'card';
 
-  type Token = { label: string; variable: string };
+  type Token = { label: string; variable: string; canBeShared?: boolean };
 
   const cardStates: Record<string, Token[]> = {
     default: [
@@ -14,14 +14,14 @@
       { label: 'border color', variable: '--card-default-border' },
       { label: 'title color', variable: '--card-default-title' },
       { label: 'body color', variable: '--card-default-body' },
-      { label: 'radius', variable: '--card-default-radius' },
+      { label: 'radius', canBeShared: true, variable: '--card-default-radius' },
     ],
     hover: [
       { label: 'surface color', variable: '--card-hover-surface' },
       { label: 'border color', variable: '--card-hover-border' },
       { label: 'title color', variable: '--card-hover-title' },
       { label: 'body color', variable: '--card-hover-body' },
-      { label: 'radius', variable: '--card-hover-radius' },
+      { label: 'radius', canBeShared: true, variable: '--card-hover-radius' },
     ],
   };
 </script>

@@ -6,7 +6,7 @@
   const targetFile = 'src/components/SectionDivider.svelte';
   const component = 'sectiondivider';
 
-  type Token = { label: string; variable: string };
+  type Token = { label: string; variable: string; canBeShared?: boolean };
 
   const variantTokens: Record<string, Token[]> = {
     bg: [
@@ -15,7 +15,7 @@
       { label: 'gradient stop 3', variable: '--section-divider-bg-gradient-stop-3' },
       { label: 'gradient stop 4', variable: '--section-divider-bg-gradient-stop-4' },
       { label: 'text stroke color', variable: '--section-divider-bg-text-stroke' },
-      { label: 'radius', variable: '--section-divider-bg-radius' },
+      { label: 'radius', canBeShared: true, variable: '--section-divider-bg-radius' },
     ],
     neutral: [
       { label: 'gradient stop 1', variable: '--section-divider-neutral-gradient-stop-1' },
@@ -23,7 +23,7 @@
       { label: 'gradient stop 3', variable: '--section-divider-neutral-gradient-stop-3' },
       { label: 'gradient stop 4', variable: '--section-divider-neutral-gradient-stop-4' },
       { label: 'text stroke color', variable: '--section-divider-neutral-text-stroke' },
-      { label: 'radius', variable: '--section-divider-neutral-radius' },
+      { label: 'radius', canBeShared: true, variable: '--section-divider-neutral-radius' },
     ],
     alternate: [
       { label: 'gradient stop 1', variable: '--section-divider-alternate-gradient-stop-1' },
@@ -31,7 +31,7 @@
       { label: 'gradient stop 3', variable: '--section-divider-alternate-gradient-stop-3' },
       { label: 'gradient stop 4', variable: '--section-divider-alternate-gradient-stop-4' },
       { label: 'text stroke color', variable: '--section-divider-alternate-text-stroke' },
-      { label: 'radius', variable: '--section-divider-alternate-radius' },
+      { label: 'radius', canBeShared: true, variable: '--section-divider-alternate-radius' },
     ],
     primary: [
       { label: 'gradient stop 1', variable: '--section-divider-primary-gradient-stop-1' },
@@ -39,7 +39,7 @@
       { label: 'gradient stop 3', variable: '--section-divider-primary-gradient-stop-3' },
       { label: 'gradient stop 4', variable: '--section-divider-primary-gradient-stop-4' },
       { label: 'text stroke color', variable: '--section-divider-primary-text-stroke' },
-      { label: 'radius', variable: '--section-divider-primary-radius' },
+      { label: 'radius', canBeShared: true, variable: '--section-divider-primary-radius' },
     ],
     accent: [
       { label: 'gradient stop 1', variable: '--section-divider-accent-gradient-stop-1' },
@@ -47,7 +47,7 @@
       { label: 'gradient stop 3', variable: '--section-divider-accent-gradient-stop-3' },
       { label: 'gradient stop 4', variable: '--section-divider-accent-gradient-stop-4' },
       { label: 'text stroke color', variable: '--section-divider-accent-text-stroke' },
-      { label: 'radius', variable: '--section-divider-accent-radius' },
+      { label: 'radius', canBeShared: true, variable: '--section-divider-accent-radius' },
     ],
     special: [
       { label: 'gradient stop 1', variable: '--section-divider-special-gradient-stop-1' },
@@ -55,7 +55,7 @@
       { label: 'gradient stop 3', variable: '--section-divider-special-gradient-stop-3' },
       { label: 'gradient stop 4', variable: '--section-divider-special-gradient-stop-4' },
       { label: 'text stroke color', variable: '--section-divider-special-text-stroke' },
-      { label: 'radius', variable: '--section-divider-special-radius' },
+      { label: 'radius', canBeShared: true, variable: '--section-divider-special-radius' },
     ],
   };
 

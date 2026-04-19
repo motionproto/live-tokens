@@ -167,9 +167,9 @@ The package is published to npm as `@motion-proto/live-tokens`.
 
 **What ships:**
 
-- `src/lib/`, `src/showcase/`, `src/components/`
+- `src/lib/`, `src/ui/`, `src/showcase/`, `src/components/`
 - `src/pages/Editor.svelte` + `Editor.svelte.d.ts`
-- `src/showcase/editor.css`, `src/styles/form-controls.css`, `src/styles/fonts.css`, `src/styles/fonts/`
+- `src/ui/editor.css`, `src/styles/form-controls.css`, `src/styles/fonts.css`, `src/styles/fonts/`
 - `dist-plugin/` — compiled Vite plugin
 
 **What doesn't ship** (starter-only): `src/App.svelte`, `src/main.ts`, `src/pages/Home.svelte`, `src/pages/KitDemo.svelte`, `src/pages/ShowcasePage.svelte`, `index.html`, `themes/`.

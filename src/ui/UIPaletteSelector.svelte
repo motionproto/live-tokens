@@ -1,25 +1,13 @@
 <script lang="ts">
-  import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-  import { setCssVar, removeCssVar, CSS_VAR_CHANGE_EVENT } from '../lib/cssVarSync';
+  import { onMount, createEventDispatcher } from 'svelte';
   import { resolveAliasChain } from '../lib/tokenRegistry';
-  import { setComponentAlias, clearComponentAlias } from '../lib/editorStore';
+  import UITokenSelector from './UITokenSelector.svelte';
 
   const dispatch = createEventDispatcher();
 
   export let variable: string;
-  export let label: string;
-  /** When set, writes persist through the editor store under this component. */
   export let component: string | undefined = undefined;
-
-  function writeOverride(semanticName: string | null): void {
-    if (component) {
-      if (semanticName) setComponentAlias(component, variable, semanticName);
-      else clearComponentAlias(component, variable);
-      return;
-    }
-    if (semanticName) setCssVar(variable, `var(${semanticName})`);
-    else removeCssVar(variable);
-  }
+  export let canBeShared: boolean = false;
 
   type Category = 'palette' | 'surface' | 'border' | 'text';
 
@@ -79,10 +67,9 @@
     { id: 'text', label: 'Text' },
   ];
 
-  let open = false;
+  let selector: UITokenSelector;
   let selectedFamily: string | null = null;
   let selectedTab: Category = 'palette';
-  let container: HTMLElement;
 
   let chosenCategory: Category | null = null;
   let chosenFamily: string | null = null;
@@ -110,7 +97,6 @@
     return `#${toHex(parseInt(m[1]))}${toHex(parseInt(m[2]))}${toHex(parseInt(m[3]))}`;
   }
 
-  /** Get the CSS variable name for a category/family/step combination */
   function getVarName(category: Category, family: string, stepKey: string): string {
     switch (category) {
       case 'palette':
@@ -148,7 +134,6 @@
     return null;
   }
 
-  /** Parse a var(...) reference into category/family/step */
   function parseRef(value: string): { category: Category; family: string; step: string } | null {
     const varMatch = value.match(/var\((--[a-z0-9-]+)\)/);
     if (!varMatch) return null;
@@ -189,8 +174,7 @@
     // Inline hex values come from themeInit's bulk-apply of the active theme
     // and represent the semantic default, not a custom override — so we treat
     // them the same as "no inline override" and derive semantics from the
-    // variable's own name, or from the alias chain declared in tokens.css
-    // (e.g. `--notification-info-title: var(--text-info);`).
+    // variable's own name, or from the alias chain declared in tokens.css.
     const raw = document.documentElement.style.getPropertyValue(variable).trim();
     const parsed = raw ? parseRef(raw) : null;
     if (parsed) {
@@ -213,17 +197,14 @@
     chosenStep = null;
   }
 
-  function resetVariable() {
-    writeOverride(null);
+  function handleReset() {
     initFromCurrent();
-    open = false;
     selectedFamily = null;
     dispatch('change');
   }
 
-  function toggle() {
-    open = !open;
-    if (!open) selectedFamily = null;
+  function handleClose() {
+    selectedFamily = null;
   }
 
   function selectFamily(name: string) {
@@ -237,41 +218,20 @@
     selectedFamily = null;
   }
 
-  function selectSwatch(category: Category, step: string) {
+  function selectSwatch(category: Category, step: string, close: () => void) {
     const varName = getVarName(category, selectedFamily!, step);
-    writeOverride(varName === variable ? null : varName);
+    selector.writeOverride(varName === variable ? null : varName);
     chosenCategory = category;
     chosenFamily = selectedFamily;
     chosenStep = step;
-    open = false;
     selectedFamily = null;
+    close();
     dispatch('change');
-  }
-
-  function handleClickOutside(e: MouseEvent) {
-    if (container && !container.contains(e.target as Node)) {
-      open = false;
-      selectedFamily = null;
-    }
-  }
-
-  function handleVarChange(e: Event) {
-    const detail = (e as CustomEvent<{ name: string }>).detail;
-    if (detail?.name === variable) {
-      initFromCurrent();
-    }
   }
 
   onMount(() => {
     initFromCurrent();
     captureSelfDefault();
-    document.addEventListener('click', handleClickOutside, true);
-    document.addEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
-  });
-
-  onDestroy(() => {
-    document.removeEventListener('click', handleClickOutside, true);
-    document.removeEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
   });
 
   $: displayCategory = chosenCategory && chosenFamily
@@ -291,231 +251,117 @@
   }
 </script>
 
-<div class="palette-selector" bind:this={container}>
-  <button class="selector-trigger" on:click={toggle}>
-    <div class="trigger-swatch" style="background: var({variable});"></div>
-    <div class="trigger-text">
-      {#if displayCategory}
-        <span class="trigger-category">{displayCategory}</span>
-      {/if}
-      {#if displaySubtype}
-        <span class="trigger-subtype">{displaySubtype}</span>
-      {/if}
-    </div>
-    <i class="fas fa-chevron-down trigger-chevron" class:open></i>
-  </button>
+<UITokenSelector
+  bind:this={selector}
+  {variable}
+  {component}
+  {canBeShared}
+  dropdownMinWidth="14rem"
+  dropdownMaxWidth="calc(100vw - 2rem)"
+  hideDefaultHeader={!!selectedFamily}
+  on:reset={handleReset}
+  on:close={handleClose}
+  on:var-change={initFromCurrent}
+>
+  <div slot="trigger-preview" class="swatch" style="background: var({variable});"></div>
+  <svelte:fragment slot="trigger-title">{displayCategory}</svelte:fragment>
+  <svelte:fragment slot="trigger-meta">{displaySubtype}</svelte:fragment>
 
-  {#if open}
-    <div class="selector-dropdown">
-      {#if selectedFamily === null}
-        <div class="dropdown-header">
-          <code class="variable-name">{variable}</code>
-          <button class="reset-btn" on:click={resetVariable} title="Reset to default">
-            <i class="fas fa-undo"></i>
+  <svelte:fragment let:close>
+    {#if selectedFamily === null}
+      <div class="family-list">
+        {#each families as fam}
+          <button class="family-item" class:active={chosenFamily === fam.name} on:click={() => selectFamily(fam.name)}>
+            <div class="family-swatches">
+              <div class="mini-swatch" style="background: var(--color-{fam.name}-300);"></div>
+              <div class="mini-swatch" style="background: var(--color-{fam.name}-500);"></div>
+              <div class="mini-swatch" style="background: var(--color-{fam.name}-700);"></div>
+            </div>
+            <span class="family-label">{fam.label}</span>
+            <i class="fas fa-chevron-right family-arrow"></i>
           </button>
-        </div>
-        <div class="family-list">
-          {#each families as fam}
-            <button class="family-item" class:active={chosenFamily === fam.name} on:click={() => selectFamily(fam.name)}>
-              <div class="family-swatches">
-                <div class="mini-swatch" style="background: var(--color-{fam.name}-300);"></div>
-                <div class="mini-swatch" style="background: var(--color-{fam.name}-500);"></div>
-                <div class="mini-swatch" style="background: var(--color-{fam.name}-700);"></div>
-              </div>
-              <span class="family-label">{fam.label}</span>
-              <i class="fas fa-chevron-right family-arrow"></i>
+        {/each}
+      </div>
+    {:else}
+      <button class="dropdown-back" on:click={backToFamilies}>
+        <i class="fas fa-chevron-left"></i>
+        <span>{families.find(f => f.name === selectedFamily)?.label}</span>
+      </button>
+
+      <div class="tab-bar">
+        {#each availableTabs as tab}
+          <button
+            class="tab-btn"
+            class:selected={selectedTab === tab.id}
+            class:assigned={chosenCategory === tab.id && chosenFamily === selectedFamily}
+            on:click={() => selectedTab = tab.id}
+          >{tab.label}</button>
+        {/each}
+      </div>
+
+      {#if selectedTab === 'palette'}
+        <div class="step-grid">
+          {#each paletteSteps as step}
+            <button
+              class="step-item"
+              class:active={chosenCategory === 'palette' && chosenFamily === selectedFamily && chosenStep === step}
+              on:click={() => selectSwatch('palette', step, close)}
+            >
+              <div class="step-swatch" style="background: var(--color-{selectedFamily}-{step});"></div>
+              <span class="step-label">{step}</span>
             </button>
           {/each}
         </div>
-      {:else}
-        <button class="dropdown-back" on:click={backToFamilies}>
-          <i class="fas fa-chevron-left"></i>
-          <span>{families.find(f => f.name === selectedFamily)?.label}</span>
-        </button>
-
-        <div class="tab-bar">
-          {#each availableTabs as tab}
+      {:else if selectedTab === 'surface'}
+        <div class="step-grid">
+          {#each surfaceSteps as step}
             <button
-              class="tab-btn"
-              class:selected={selectedTab === tab.id}
-              class:assigned={chosenCategory === tab.id && chosenFamily === selectedFamily}
-              on:click={() => selectedTab = tab.id}
-            >{tab.label}</button>
+              class="step-item"
+              class:active={chosenCategory === 'surface' && chosenFamily === selectedFamily && chosenStep === step.key}
+              on:click={() => selectSwatch('surface', step.key, close)}
+            >
+              <div class="step-swatch" style="background: {previewBg('surface', selectedFamily, step.key)};"></div>
+              <span class="step-label">{step.label}</span>
+            </button>
           {/each}
         </div>
-
-        {#if selectedTab === 'palette'}
-          <div class="step-grid">
-            {#each paletteSteps as step}
-              <button
-                class="step-item"
-                class:active={chosenCategory === 'palette' && chosenFamily === selectedFamily && chosenStep === step}
-                on:click={() => selectSwatch('palette', step)}
-              >
-                <div class="step-swatch" style="background: var(--color-{selectedFamily}-{step});"></div>
-                <span class="step-label">{step}</span>
-              </button>
-            {/each}
-          </div>
-        {:else if selectedTab === 'surface'}
-          <div class="step-grid">
-            {#each surfaceSteps as step}
-              <button
-                class="step-item"
-                class:active={chosenCategory === 'surface' && chosenFamily === selectedFamily && chosenStep === step.key}
-                on:click={() => selectSwatch('surface', step.key)}
-              >
-                <div class="step-swatch" style="background: {previewBg('surface', selectedFamily, step.key)};"></div>
-                <span class="step-label">{step.label}</span>
-              </button>
-            {/each}
-          </div>
-        {:else if selectedTab === 'border'}
-          <div class="step-grid">
-            {#each borderSteps as step}
-              <button
-                class="step-item"
-                class:active={chosenCategory === 'border' && chosenFamily === selectedFamily && chosenStep === step.key}
-                on:click={() => selectSwatch('border', step.key)}
-              >
-                <div class="step-swatch" style="background: {previewBg('border', selectedFamily, step.key)};"></div>
-                <span class="step-label">{step.label}</span>
-              </button>
-            {/each}
-          </div>
-        {:else if selectedTab === 'text'}
-          <div class="step-grid">
-            {#each textSteps as step}
-              <button
-                class="step-item"
-                class:active={chosenCategory === 'text' && chosenFamily === selectedFamily && chosenStep === step.key}
-                on:click={() => selectSwatch('text', step.key)}
-              >
-                <div class="step-swatch" style="background: {previewBg('text', selectedFamily, step.key)};"></div>
-                <span class="step-label">{step.label}</span>
-              </button>
-            {/each}
-          </div>
-        {/if}
+      {:else if selectedTab === 'border'}
+        <div class="step-grid">
+          {#each borderSteps as step}
+            <button
+              class="step-item"
+              class:active={chosenCategory === 'border' && chosenFamily === selectedFamily && chosenStep === step.key}
+              on:click={() => selectSwatch('border', step.key, close)}
+            >
+              <div class="step-swatch" style="background: {previewBg('border', selectedFamily, step.key)};"></div>
+              <span class="step-label">{step.label}</span>
+            </button>
+          {/each}
+        </div>
+      {:else if selectedTab === 'text'}
+        <div class="step-grid">
+          {#each textSteps as step}
+            <button
+              class="step-item"
+              class:active={chosenCategory === 'text' && chosenFamily === selectedFamily && chosenStep === step.key}
+              on:click={() => selectSwatch('text', step.key, close)}
+            >
+              <div class="step-swatch" style="background: {previewBg('text', selectedFamily, step.key)};"></div>
+              <span class="step-label">{step.label}</span>
+            </button>
+          {/each}
+        </div>
       {/if}
-    </div>
-  {/if}
-</div>
+    {/if}
+  </svelte:fragment>
+</UITokenSelector>
 
 <style>
-  .palette-selector {
-    position: relative;
-  }
-
-  .selector-trigger {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-    padding: var(--ui-space-6) var(--ui-space-10);
-    background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-default);
-    border-radius: var(--ui-radius-md);
-    cursor: pointer;
-    transition: all var(--ui-transition-fast);
-    min-width: 10rem;
-  }
-
-  .selector-trigger:hover {
-    border-color: var(--ui-border-strong);
-    background: var(--ui-surface-high);
-  }
-
-  .trigger-swatch {
+  .swatch {
     width: 1.5rem;
     height: 1.5rem;
     border-radius: var(--ui-radius-sm);
     border: 1px solid var(--ui-border-faint);
-    flex-shrink: 0;
-  }
-
-  .trigger-text {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    flex: 1;
-    text-align: left;
-  }
-
-  .trigger-category {
-    font-size: var(--ui-font-sm);
-    color: var(--ui-text-primary);
-    font-weight: var(--ui-font-weight-medium);
-  }
-
-  .trigger-subtype {
-    font-size: var(--ui-font-xs);
-    color: var(--ui-text-secondary);
-    font-family: var(--ui-font-mono);
-  }
-
-  .trigger-chevron {
-    font-size: 0.5rem;
-    color: var(--ui-text-muted);
-    transition: transform var(--ui-transition-fast);
-  }
-
-  .trigger-chevron.open {
-    transform: rotate(180deg);
-  }
-
-  .selector-dropdown {
-    position: absolute;
-    top: calc(100% + var(--ui-space-4));
-    left: 0;
-    min-width: 14rem;
-    max-width: calc(100vw - 2rem);
-    background: var(--ui-surface-higher);
-    border: 1px solid var(--ui-border-medium);
-    border-radius: var(--ui-radius-md);
-    box-shadow: var(--ui-shadow-lg);
-    z-index: 10;
-    overflow: hidden;
-  }
-
-  .dropdown-header {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    padding: var(--ui-space-6) var(--ui-space-8);
-    border-bottom: 1px solid var(--ui-border-faint);
-  }
-
-  .variable-name {
-    flex: 1;
-    font-size: var(--ui-font-xs);
-    color: var(--ui-text-secondary);
-    font-family: var(--ui-font-mono);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .reset-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.5rem;
-    height: 1.5rem;
-    padding: 0;
-    background: none;
-    border: 1px solid var(--ui-border-default);
-    border-radius: var(--ui-radius-sm);
-    color: var(--ui-text-secondary);
-    font-size: 0.625rem;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: all var(--ui-transition-fast);
-  }
-
-  .reset-btn:hover {
-    background: var(--ui-hover);
-    border-color: var(--ui-border-strong);
-    color: var(--ui-text-primary);
   }
 
   .dropdown-back {

@@ -6,7 +6,7 @@
   const targetFile = 'src/components/Button.svelte';
   const component = 'button';
 
-  type Token = { label: string; variable: string };
+  type Token = { label: string; variable: string; canBeShared?: boolean };
 
   const variantStates: Record<string, Record<string, Token[]>> = {
     primary: {
@@ -14,19 +14,19 @@
         { label: 'surface color', variable: '--button-primary-surface' },
         { label: 'text color', variable: '--button-primary-text' },
         { label: 'border color', variable: '--button-primary-border' },
-        { label: 'radius', variable: '--button-primary-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-primary-radius' },
       ],
       hover: [
         { label: 'surface color', variable: '--button-primary-hover-surface' },
         { label: 'text color', variable: '--button-primary-hover-text' },
         { label: 'border color', variable: '--button-primary-hover-border' },
-        { label: 'radius', variable: '--button-primary-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-primary-radius' },
       ],
       disabled: [
         { label: 'surface color', variable: '--button-primary-disabled-surface' },
         { label: 'text color', variable: '--button-primary-disabled-text' },
         { label: 'border color', variable: '--button-primary-disabled-border' },
-        { label: 'radius', variable: '--button-primary-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-primary-radius' },
       ],
     },
     secondary: {
@@ -34,37 +34,37 @@
         { label: 'surface color', variable: '--button-secondary-surface' },
         { label: 'text color', variable: '--button-secondary-text' },
         { label: 'border color', variable: '--button-secondary-border' },
-        { label: 'radius', variable: '--button-secondary-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-secondary-radius' },
       ],
       hover: [
         { label: 'surface color', variable: '--button-secondary-hover-surface' },
         { label: 'text color', variable: '--button-secondary-hover-text' },
         { label: 'border color', variable: '--button-secondary-hover-border' },
-        { label: 'radius', variable: '--button-secondary-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-secondary-radius' },
       ],
       disabled: [
         { label: 'surface color', variable: '--button-secondary-disabled-surface' },
         { label: 'text color', variable: '--button-secondary-disabled-text' },
         { label: 'border color', variable: '--button-secondary-disabled-border' },
-        { label: 'radius', variable: '--button-secondary-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-secondary-radius' },
       ],
     },
     outline: {
       default: [
         { label: 'text color', variable: '--button-outline-text' },
         { label: 'border color', variable: '--button-outline-border' },
-        { label: 'radius', variable: '--button-outline-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-outline-radius' },
       ],
       hover: [
         { label: 'surface color', variable: '--button-outline-hover-surface' },
         { label: 'text color', variable: '--button-outline-hover-text' },
         { label: 'border color', variable: '--button-outline-hover-border' },
-        { label: 'radius', variable: '--button-outline-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-outline-radius' },
       ],
       disabled: [
         { label: 'text color', variable: '--button-outline-disabled-text' },
         { label: 'border color', variable: '--button-outline-disabled-border' },
-        { label: 'radius', variable: '--button-outline-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-outline-radius' },
       ],
     },
     success: {
@@ -72,19 +72,19 @@
         { label: 'surface color', variable: '--button-success-surface' },
         { label: 'text color', variable: '--button-success-text' },
         { label: 'border color', variable: '--button-success-border' },
-        { label: 'radius', variable: '--button-success-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-success-radius' },
       ],
       hover: [
         { label: 'surface color', variable: '--button-success-hover-surface' },
         { label: 'text color', variable: '--button-success-hover-text' },
         { label: 'border color', variable: '--button-success-hover-border' },
-        { label: 'radius', variable: '--button-success-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-success-radius' },
       ],
       disabled: [
         { label: 'surface color', variable: '--button-success-disabled-surface' },
         { label: 'text color', variable: '--button-success-disabled-text' },
         { label: 'border color', variable: '--button-success-disabled-border' },
-        { label: 'radius', variable: '--button-success-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-success-radius' },
       ],
     },
     danger: {
@@ -92,19 +92,19 @@
         { label: 'surface color', variable: '--button-danger-surface' },
         { label: 'text color', variable: '--button-danger-text' },
         { label: 'border color', variable: '--button-danger-border' },
-        { label: 'radius', variable: '--button-danger-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-danger-radius' },
       ],
       hover: [
         { label: 'surface color', variable: '--button-danger-hover-surface' },
         { label: 'text color', variable: '--button-danger-hover-text' },
         { label: 'border color', variable: '--button-danger-hover-border' },
-        { label: 'radius', variable: '--button-danger-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-danger-radius' },
       ],
       disabled: [
         { label: 'surface color', variable: '--button-danger-disabled-surface' },
         { label: 'text color', variable: '--button-danger-disabled-text' },
         { label: 'border color', variable: '--button-danger-disabled-border' },
-        { label: 'radius', variable: '--button-danger-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-danger-radius' },
       ],
     },
     warning: {
@@ -112,19 +112,19 @@
         { label: 'surface color', variable: '--button-warning-surface' },
         { label: 'text color', variable: '--button-warning-text' },
         { label: 'border color', variable: '--button-warning-border' },
-        { label: 'radius', variable: '--button-warning-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-warning-radius' },
       ],
       hover: [
         { label: 'surface color', variable: '--button-warning-hover-surface' },
         { label: 'text color', variable: '--button-warning-hover-text' },
         { label: 'border color', variable: '--button-warning-hover-border' },
-        { label: 'radius', variable: '--button-warning-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-warning-radius' },
       ],
       disabled: [
         { label: 'surface color', variable: '--button-warning-disabled-surface' },
         { label: 'text color', variable: '--button-warning-disabled-text' },
         { label: 'border color', variable: '--button-warning-disabled-border' },
-        { label: 'radius', variable: '--button-warning-radius' },
+        { label: 'radius', canBeShared: true, variable: '--button-warning-radius' },
       ],
     },
   };

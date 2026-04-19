@@ -6,7 +6,7 @@
   const targetFile = 'src/components/ProgressBar.svelte';
   const component = 'progressbar';
 
-  type Token = { label: string; variable: string };
+  type Token = { label: string; variable: string; canBeShared?: boolean };
 
   const variantTokens: Record<string, Token[]> = {
     primary: [
@@ -15,7 +15,7 @@
       { label: 'track border color', variable: '--progress-primary-track-border' },
       { label: 'label color', variable: '--progress-primary-label' },
       { label: 'value color', variable: '--progress-primary-value' },
-      { label: 'radius', variable: '--progress-primary-radius' },
+      { label: 'radius', canBeShared: true, variable: '--progress-primary-radius' },
     ],
     success: [
       { label: 'fill color', variable: '--progress-success-fill' },
@@ -23,7 +23,7 @@
       { label: 'track border color', variable: '--progress-success-track-border' },
       { label: 'label color', variable: '--progress-success-label' },
       { label: 'value color', variable: '--progress-success-value' },
-      { label: 'radius', variable: '--progress-success-radius' },
+      { label: 'radius', canBeShared: true, variable: '--progress-success-radius' },
     ],
     warning: [
       { label: 'fill color', variable: '--progress-warning-fill' },
@@ -31,7 +31,7 @@
       { label: 'track border color', variable: '--progress-warning-track-border' },
       { label: 'label color', variable: '--progress-warning-label' },
       { label: 'value color', variable: '--progress-warning-value' },
-      { label: 'radius', variable: '--progress-warning-radius' },
+      { label: 'radius', canBeShared: true, variable: '--progress-warning-radius' },
     ],
     danger: [
       { label: 'fill color', variable: '--progress-danger-fill' },
@@ -39,7 +39,7 @@
       { label: 'track border color', variable: '--progress-danger-track-border' },
       { label: 'label color', variable: '--progress-danger-label' },
       { label: 'value color', variable: '--progress-danger-value' },
-      { label: 'radius', variable: '--progress-danger-radius' },
+      { label: 'radius', canBeShared: true, variable: '--progress-danger-radius' },
     ],
     info: [
       { label: 'fill color', variable: '--progress-info-fill' },
@@ -47,7 +47,7 @@
       { label: 'track border color', variable: '--progress-info-track-border' },
       { label: 'label color', variable: '--progress-info-label' },
       { label: 'value color', variable: '--progress-info-value' },
-      { label: 'radius', variable: '--progress-info-radius' },
+      { label: 'radius', canBeShared: true, variable: '--progress-info-radius' },
     ],
   };
 </script>

@@ -8,7 +8,7 @@
 
   let demoExpanded = false;
 
-  type Token = { label: string; variable: string };
+  type Token = { label: string; variable: string; canBeShared?: boolean };
 
   const states: Record<string, Token[]> = {
     default: [
@@ -16,21 +16,21 @@
       { label: 'label color', variable: '--collapsible-default-label' },
       { label: 'toggle icon color', variable: '--collapsible-default-icon' },
       { label: 'border color', variable: '--collapsible-default-border' },
-      { label: 'radius', variable: '--collapsible-default-radius' },
+      { label: 'radius', canBeShared: true, variable: '--collapsible-default-radius' },
     ],
     hover: [
       { label: 'surface color', variable: '--collapsible-hover-surface' },
       { label: 'label color', variable: '--collapsible-hover-label' },
       { label: 'toggle icon color', variable: '--collapsible-hover-icon' },
       { label: 'border color', variable: '--collapsible-hover-border' },
-      { label: 'radius', variable: '--collapsible-hover-radius' },
+      { label: 'radius', canBeShared: true, variable: '--collapsible-hover-radius' },
     ],
     active: [
       { label: 'surface color', variable: '--collapsible-active-surface' },
       { label: 'label color', variable: '--collapsible-active-label' },
       { label: 'toggle icon color', variable: '--collapsible-active-icon' },
       { label: 'border color', variable: '--collapsible-active-border' },
-      { label: 'radius', variable: '--collapsible-active-radius' },
+      { label: 'radius', canBeShared: true, variable: '--collapsible-active-radius' },
     ],
   };
 </script>

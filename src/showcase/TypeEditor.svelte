@@ -1,7 +1,7 @@
 <script lang="ts">
-  import PaletteSelector from './PaletteSelector.svelte';
-  import FontFamilySelector from './FontFamilySelector.svelte';
-  import FontWeightSelector from './FontWeightSelector.svelte';
+  import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
+  import UIFontFamilySelector from '../ui/UIFontFamilySelector.svelte';
+  import UIFontWeightSelector from '../ui/UIFontWeightSelector.svelte';
 
   export let colorVariable: string;
   export let colorLabel: string;
@@ -16,18 +16,18 @@
 <div class="type-editor">
   <div class="type-editor-controls">
     <div class="type-editor-entry">
-      <PaletteSelector variable={colorVariable} label={colorLabel} {component} on:change />
+      <UIPaletteSelector variable={colorVariable} {component} on:change />
       <span class="type-editor-label">{colorLabel}</span>
     </div>
     {#if familyVariable}
       <div class="type-editor-entry">
-        <FontFamilySelector variable={familyVariable} label={familyLabel ?? ''} {component} on:change />
+        <UIFontFamilySelector variable={familyVariable} {component} on:change />
         <span class="type-editor-label">{familyLabel ?? ''}</span>
       </div>
     {/if}
     {#if weightVariable}
       <div class="type-editor-entry">
-        <FontWeightSelector variable={weightVariable} label={weightLabel ?? ''} {component} on:change />
+        <UIFontWeightSelector variable={weightVariable} {component} on:change />
         <span class="type-editor-label">{weightLabel ?? ''}</span>
       </div>
     {/if}

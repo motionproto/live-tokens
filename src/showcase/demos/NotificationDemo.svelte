@@ -6,7 +6,7 @@
   const targetFile = 'src/components/Notification.svelte';
   const component = 'notification';
 
-  type Token = { label: string; variable: string };
+  type Token = { label: string; variable: string; canBeShared?: boolean };
 
   const variantTokens: Record<string, Token[]> = {
     info: [
@@ -17,7 +17,7 @@
       { label: 'title font family', variable: '--notification-info-title-font-family' },
       { label: 'title font weight', variable: '--notification-info-title-font-weight' },
       { label: 'text color', variable: '--notification-info-text' },
-      { label: 'radius', variable: '--notification-info-radius' },
+      { label: 'radius', canBeShared: true, variable: '--notification-info-radius' },
     ],
     success: [
       { label: 'surface color', variable: '--notification-success-surface' },
@@ -27,7 +27,7 @@
       { label: 'title font family', variable: '--notification-success-title-font-family' },
       { label: 'title font weight', variable: '--notification-success-title-font-weight' },
       { label: 'text color', variable: '--notification-success-text' },
-      { label: 'radius', variable: '--notification-success-radius' },
+      { label: 'radius', canBeShared: true, variable: '--notification-success-radius' },
     ],
     warning: [
       { label: 'surface color', variable: '--notification-warning-surface' },
@@ -37,7 +37,7 @@
       { label: 'title font family', variable: '--notification-warning-title-font-family' },
       { label: 'title font weight', variable: '--notification-warning-title-font-weight' },
       { label: 'text color', variable: '--notification-warning-text' },
-      { label: 'radius', variable: '--notification-warning-radius' },
+      { label: 'radius', canBeShared: true, variable: '--notification-warning-radius' },
     ],
     danger: [
       { label: 'surface color', variable: '--notification-danger-surface' },
@@ -47,7 +47,7 @@
       { label: 'title font family', variable: '--notification-danger-title-font-family' },
       { label: 'title font weight', variable: '--notification-danger-title-font-weight' },
       { label: 'text color', variable: '--notification-danger-text' },
-      { label: 'radius', variable: '--notification-danger-radius' },
+      { label: 'radius', canBeShared: true, variable: '--notification-danger-radius' },
     ],
   };
 </script>

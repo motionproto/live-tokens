@@ -6,7 +6,7 @@
   import { activeFileName } from '../lib/editorConfigStore';
   import { dirty } from '../lib/editorStore';
   import BackupBrowser from './BackupBrowser.svelte';
-  import EditorDialog from './EditorDialog.svelte';
+  import UIDialog from './UIDialog.svelte';
 
   const dispatch = createEventDispatcher<{
     save: { fileName: string; displayName: string };
@@ -279,7 +279,7 @@
 
 </div>
 
-<EditorDialog
+<UIDialog
   bind:show={showFileList}
   title="Load Theme"
   cancelLabel="Close"
@@ -309,7 +309,7 @@
       <div class="load-item empty">No saved files</div>
     {/if}
   </div>
-</EditorDialog>
+</UIDialog>
 
 <BackupBrowser
   bind:open={showBackups}
