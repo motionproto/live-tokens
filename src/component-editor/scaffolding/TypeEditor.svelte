@@ -2,6 +2,7 @@
   import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
   import UIFontFamilySelector from '../../ui/UIFontFamilySelector.svelte';
   import UIFontWeightSelector from '../../ui/UIFontWeightSelector.svelte';
+  import FieldsetWrapper from './FieldsetWrapper.svelte';
 
   export let colorVariable: string;
   export let colorLabel: string;
@@ -13,48 +14,33 @@
   export let component: string | undefined = undefined;
 </script>
 
-<div class="type-editor">
-  <div class="type-editor-controls">
-    <div class="type-editor-entry">
-      <UIPaletteSelector variable={colorVariable} {component} on:change />
-      <span class="type-editor-label">{colorLabel}</span>
-    </div>
-    {#if familyVariable}
-      <div class="type-editor-entry">
-        <UIFontFamilySelector variable={familyVariable} {component} on:change />
-        <span class="type-editor-label">{familyLabel ?? ''}</span>
-      </div>
-    {/if}
-    {#if weightVariable}
-      <div class="type-editor-entry">
-        <UIFontWeightSelector variable={weightVariable} {component} on:change />
-        <span class="type-editor-label">{weightLabel ?? ''}</span>
-      </div>
-    {/if}
+<FieldsetWrapper legend="type">
+  <div class="entry">
+    <UIPaletteSelector variable={colorVariable} {component} on:change />
+    <span class="label">{colorLabel}</span>
   </div>
-</div>
+  {#if familyVariable}
+    <div class="entry">
+      <UIFontFamilySelector variable={familyVariable} {component} on:change />
+      <span class="label">{familyLabel ?? ''}</span>
+    </div>
+  {/if}
+  {#if weightVariable}
+    <div class="entry">
+      <UIFontWeightSelector variable={weightVariable} {component} on:change />
+      <span class="label">{weightLabel ?? ''}</span>
+    </div>
+  {/if}
+</FieldsetWrapper>
 
 <style>
-  .type-editor {
-    flex-basis: 100%;
-    display: flex;
-    align-items: flex-start;
-  }
-
-  .type-editor-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ui-space-8);
-    flex: 1;
-  }
-
-  .type-editor-entry {
+  .entry {
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-2);
   }
 
-  .type-editor-label {
+  .label {
     font-size: var(--ui-font-sm);
     color: var(--ui-text-secondary);
     padding-left: var(--ui-space-2);

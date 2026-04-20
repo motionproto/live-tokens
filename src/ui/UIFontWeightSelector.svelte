@@ -10,6 +10,7 @@
   export let variable: string;
   export let component: string | undefined = undefined;
   export let canBeShared: boolean = false;
+  export let disabled: boolean = false;
 
   const options = [
     { key: 'thin', label: 'Thin', weight: '100' },
@@ -84,6 +85,7 @@
   {variable}
   {component}
   {canBeShared}
+  {disabled}
   dropdownMinWidth="12rem"
   on:reset={handleReset}
   on:var-change={initFromCurrent}

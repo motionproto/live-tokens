@@ -9,6 +9,7 @@
   export let variable: string;
   export let component: string | undefined = undefined;
   export let canBeShared: boolean = false;
+  export let disabled: boolean = false;
 
   const options = [
     { key: 'none', label: 'None', size: '0' },
@@ -100,6 +101,7 @@
   {variable}
   {component}
   {canBeShared}
+  {disabled}
   on:reset={handleReset}
   on:var-change={handleVarChange}
 >

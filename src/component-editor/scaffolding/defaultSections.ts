@@ -1,5 +1,5 @@
 import type { ComponentSection } from './componentSectionType';
-import ChoiceButtonsEditor from '../ChoiceButtonsEditor.svelte';
+import SegmentedControlEditor from '../SegmentedControlEditor.svelte';
 import StandardButtonsEditor from '../StandardButtonsEditor.svelte';
 import NotificationEditor from '../NotificationEditor.svelte';
 import DialogEditor from '../DialogEditor.svelte';
@@ -14,7 +14,7 @@ import TooltipEditor from '../TooltipEditor.svelte';
 import ProgressBarEditor from '../ProgressBarEditor.svelte';
 
 export const defaultSections: ComponentSection[] = [
-  { id: 'choiceButtons', label: 'Choice Sets', component: ChoiceButtonsEditor },
+  { id: 'segmentedControl', label: 'Segmented Control', component: SegmentedControlEditor },
   { id: 'standardButtons', label: 'Button', component: StandardButtonsEditor },
   { id: 'notifications', label: 'Notification', component: NotificationEditor },
   { id: 'dialog', label: 'Dialog', component: DialogEditor },

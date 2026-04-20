@@ -4,7 +4,7 @@
   let selectedComponent = 'standardButtons';
 
   const componentNavItems = [
-    { id: 'choiceButtons', label: 'Choice Sets', icon: 'fas fa-hand-pointer' },
+    { id: 'segmentedControl', label: 'Segmented Control', icon: 'fas fa-hand-pointer' },
     { id: 'standardButtons', label: 'Button', icon: 'fas fa-square' },
     { id: 'notifications', label: 'Notification', icon: 'fas fa-bell' },
     { id: 'dialog', label: 'Dialog', icon: 'fas fa-window-restore' },

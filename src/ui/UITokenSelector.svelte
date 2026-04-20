@@ -24,6 +24,8 @@
   export let dropdownMaxWidth: string = '';
   /** When true, the default dropdown header (variable name + reset) is omitted. */
   export let hideDefaultHeader: boolean = false;
+  /** When true, the trigger becomes non-interactive and visually dimmed. */
+  export let disabled: boolean = false;
 
   let userUnlinked = false;
   let open = false;
@@ -59,9 +61,12 @@
   }
 
   function toggle() {
+    if (disabled) return;
     open = !open;
     dispatch(open ? 'open' : 'close');
   }
+
+  $: if (disabled && open) close();
 
   function toggleShared() {
     if (!canBeShared || !component) return;
@@ -104,8 +109,8 @@
   });
 </script>
 
-<div class="ui-token-selector" bind:this={container}>
-  <button class="ui-ts-trigger" class:shared={isSharedDisplay} on:click={toggle}>
+<div class="ui-token-selector" class:disabled bind:this={container}>
+  <button class="ui-ts-trigger" class:shared={isSharedDisplay} on:click={toggle} {disabled}>
     <div class="ui-ts-preview">
       <slot name="trigger-preview" />
     </div>
@@ -119,7 +124,7 @@
         {/if}
       </slot>
     </div>
-    {#if showLinkToggle}
+    {#if showLinkToggle && !disabled}
       <UILinkToggle linked={isSharedDisplay} on:toggle={toggleShared} />
     {/if}
     <i class="fas fa-chevron-down ui-ts-chevron" class:open></i>
@@ -148,6 +153,19 @@
 <style>
   .ui-token-selector {
     position: relative;
+  }
+
+  .ui-token-selector.disabled {
+    opacity: 0.4;
+  }
+
+  .ui-token-selector.disabled .ui-ts-trigger {
+    cursor: not-allowed;
+  }
+
+  .ui-token-selector.disabled .ui-ts-trigger:hover {
+    border-color: var(--ui-border-default);
+    background: var(--ui-surface-low);
   }
 
   .ui-ts-trigger {

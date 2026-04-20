@@ -432,6 +432,7 @@
   --border-width-thicker: 4px;
 
   /* Spacing */
+  --space-0: 0;
   --space-2: 0.125rem;    /* 2px */
   --space-4: 0.25rem;     /* 4px */
   --space-6: 0.375rem;    /* 6px */
@@ -443,6 +444,7 @@
   --space-24: 1.5rem;     /* 24px */
   --space-32: 2rem;       /* 32px */
   --space-48: 3rem;       /* 48px */
+  --space-full: 100%;
 
   /* ═══════════════════════════════════════════════════════
      COLUMN LAYOUT

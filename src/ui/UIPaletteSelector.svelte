@@ -8,6 +8,7 @@
   export let variable: string;
   export let component: string | undefined = undefined;
   export let canBeShared: boolean = false;
+  export let disabled: boolean = false;
 
   type Category = 'palette' | 'surface' | 'border' | 'text';
 
@@ -256,6 +257,7 @@
   {variable}
   {component}
   {canBeShared}
+  {disabled}
   dropdownMinWidth="14rem"
   dropdownMaxWidth="calc(100vw - 2rem)"
   hideDefaultHeader={!!selectedFamily}

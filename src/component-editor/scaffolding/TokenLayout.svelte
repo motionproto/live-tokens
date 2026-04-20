@@ -4,15 +4,27 @@
   import UIBorderWeightSelector from '../../ui/UIBorderWeightSelector.svelte';
   import UIFontFamilySelector from '../../ui/UIFontFamilySelector.svelte';
   import UIFontWeightSelector from '../../ui/UIFontWeightSelector.svelte';
+  import UIDividerHeightSelector from '../../ui/UIDividerHeightSelector.svelte';
   import TypeEditor from './TypeEditor.svelte';
+  import DividerEditor from './DividerEditor.svelte';
 
-  type Token = { label: string; variable: string; canBeShared?: boolean };
+  type Token = { label: string; variable: string; canBeShared?: boolean; disabled?: boolean };
 
-  type SimpleKind = 'surface' | 'border' | 'border-width' | 'radius' | 'font-family' | 'font-weight' | 'extras';
+  type SimpleKind =
+    | 'surface'
+    | 'border'
+    | 'border-width'
+    | 'radius'
+    | 'divider-width'
+    | 'divider-height'
+    | 'font-family'
+    | 'font-weight'
+    | 'extras';
 
   type SimpleEntry = { kind: SimpleKind; token: Token };
   type FontEntry = { kind: 'font'; color?: Token; family?: Token; weight?: Token };
-  type Entry = SimpleEntry | FontEntry;
+  type DividerEntry = { kind: 'divider'; color?: Token; width?: Token; height?: Token };
+  type Entry = SimpleEntry | FontEntry | DividerEntry;
 
   export let title: string = '';
   export let tokens: Token[];
@@ -35,6 +47,18 @@
     return v.endsWith('-border-width') || v.startsWith('--border-width-');
   }
 
+  function isDividerWidth(v: string): boolean {
+    return v.endsWith('-divider-width');
+  }
+
+  function isDividerHeight(v: string): boolean {
+    return v.endsWith('-divider-height');
+  }
+
+  function isDividerColor(v: string): boolean {
+    return v.endsWith('-divider-color');
+  }
+
   function isBorder(v: string): boolean {
     return v.endsWith('-border') || v.startsWith('--border-');
   }
@@ -52,23 +76,37 @@
     border: 1,
     'border-width': 2,
     radius: 3,
-    extras: 4,
+    'divider-width': 4,
+    'divider-height': 5,
+    extras: 6,
     // Font-family / font-weight never appear at the top level — they always
     // fold into a font group. Rank is unused but must satisfy the key set.
-    'font-family': 5,
-    'font-weight': 5,
+    'font-family': 7,
+    'font-weight': 7,
   };
 
-  function categorize(v: string, byVar: Map<string, Token>): SimpleKind | 'font-color' {
+  function categorize(v: string, byVar: Map<string, Token>): SimpleKind | 'font-color' | 'divider-color' {
     if (isFontFamily(v)) return 'font-family';
     if (isFontWeight(v)) return 'font-weight';
     if (byVar.has(`${v}-font-family`) || byVar.has(`${v}-font-weight`)) return 'font-color';
     if (isTextColor(v)) return 'font-color';
     if (isRadius(v)) return 'radius';
+    if (isDividerColor(v)) return 'divider-color';
+    if (isDividerWidth(v)) return 'divider-width';
+    if (isDividerHeight(v)) return 'divider-height';
     if (isBorderWidth(v)) return 'border-width';
     if (isBorder(v)) return 'border';
     if (isSurface(v)) return 'surface';
     return 'extras';
+  }
+
+  /** Given a divider-role token variable, derive the group's base prefix
+   *  (e.g. `--segment-divider-color` → `--segment-divider`). */
+  function dividerBase(v: string): string | null {
+    if (isDividerColor(v)) return v.slice(0, -'-color'.length);
+    if (isDividerWidth(v)) return v.slice(0, -'-width'.length);
+    if (isDividerHeight(v)) return v.slice(0, -'-height'.length);
+    return null;
   }
 
   function buildEntries(list: Token[]): Entry[] {
@@ -92,14 +130,34 @@
       if (weight) consumed.add(weightVar);
     }
 
+    // Pass 1b: identify divider groups. Any divider-role token (color, width,
+    // height) claims its siblings sharing the same `*-divider` base prefix.
+    const dividerGroups: DividerEntry[] = [];
+    for (const token of list) {
+      if (consumed.has(token.variable)) continue;
+      const base = dividerBase(token.variable);
+      if (!base) continue;
+      const colorVar = `${base}-color`;
+      const widthVar = `${base}-width`;
+      const heightVar = `${base}-height`;
+      const color = byVar.get(colorVar);
+      const width = byVar.get(widthVar);
+      const height = byVar.get(heightVar);
+      dividerGroups.push({ kind: 'divider', color, width, height });
+      if (color) consumed.add(colorVar);
+      if (width) consumed.add(widthVar);
+      if (height) consumed.add(heightVar);
+    }
+
     // Pass 2: categorize the rest. Orphan family/weight fall through to their
     // own selectors so nothing is lost.
     const simple: SimpleEntry[] = [];
     for (const token of list) {
       if (consumed.has(token.variable)) continue;
       const kind = categorize(token.variable, byVar);
-      // font-color is handled in pass 1; the remaining categories map 1:1.
-      const simpleKind: SimpleKind = kind === 'font-color' ? 'extras' : kind;
+      // font-color / divider-color are handled above; anything left maps 1:1.
+      const simpleKind: SimpleKind =
+        kind === 'font-color' || kind === 'divider-color' ? 'extras' : kind;
       simple.push({ kind: simpleKind, token });
       consumed.add(token.variable);
     }
@@ -108,10 +166,11 @@
     const indexed = simple.map((e, i) => ({ e, i }));
     indexed.sort((a, b) => orderRank[a.e.kind] - orderRank[b.e.kind] || a.i - b.i);
 
-    return [...indexed.map((x) => x.e as Entry), ...fontGroups];
+    return [...indexed.map((x) => x.e as Entry), ...fontGroups, ...dividerGroups];
   }
 
   $: entries = buildEntries(tokens);
+  $: dividerOnly = entries.length === 1 && entries[0].kind === 'divider';
 </script>
 
 <div class="token-group">
@@ -131,19 +190,33 @@
           {component}
           on:change
         />
+      {:else if entry.kind === 'divider'}
+        <DividerEditor
+          colorVariable={entry.color?.variable}
+          colorLabel={entry.color?.label}
+          widthVariable={entry.width?.variable}
+          widthLabel={entry.width?.label}
+          heightVariable={entry.height?.variable}
+          heightLabel={entry.height?.label}
+          {component}
+          on:change
+        />
       {:else}
         {@const token = entry.token}
+        {@const dis = token.disabled ?? false}
         <div class="token-entry">
           {#if entry.kind === 'radius'}
-            <UIRadiusSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} on:change />
-          {:else if entry.kind === 'border-width'}
-            <UIBorderWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} on:change />
+            <UIRadiusSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+          {:else if entry.kind === 'border-width' || entry.kind === 'divider-width'}
+            <UIBorderWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+          {:else if entry.kind === 'divider-height'}
+            <UIDividerHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
           {:else if entry.kind === 'font-family'}
-            <UIFontFamilySelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} on:change />
+            <UIFontFamilySelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
           {:else if entry.kind === 'font-weight'}
-            <UIFontWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} on:change />
+            <UIFontWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
           {:else}
-            <UIPaletteSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} on:change />
+            <UIPaletteSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
           {/if}
           <span class="token-label">{token.label}</span>
         </div>
