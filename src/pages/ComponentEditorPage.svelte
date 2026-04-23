@@ -138,7 +138,6 @@
     padding: var(--ui-space-24) var(--ui-space-32);
     background: black;
     min-width: 0;
-    max-width: 1280px;
     max-height: 100vh;
     overflow-y: auto;
   }

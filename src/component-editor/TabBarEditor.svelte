@@ -1,9 +1,8 @@
 <script lang="ts">
   import TabBar from '../components/TabBar.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import DemoHeader from './scaffolding/DemoHeader.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
 
-  const targetFile = 'src/components/TabBar.svelte';
   const component = 'tabbar';
 
   let selectedDemoTab = 'overview';
@@ -40,13 +39,7 @@
   };
 </script>
 
-<div class="demo-block">
-  <DemoHeader
-    {component}
-    title="Tab Bar Component"
-    description="Tab navigation with icon support and disabled state. Import from <code>components/TabBar.svelte</code>"
-  />
-
+<ComponentEditorBase {component} title="Tab Bar Component" description="Tab navigation with icon support and disabled state. Import from <code>components/TabBar.svelte</code>" let:targetFile>
   <VariantGroup name="tabbar" title="Tab Bar" states={tabStates} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     <TabBar
@@ -65,7 +58,7 @@
       {/if}
     </div>
   </VariantGroup>
-</div>
+</ComponentEditorBase>
 
 <style>
   .tab-content-demo {

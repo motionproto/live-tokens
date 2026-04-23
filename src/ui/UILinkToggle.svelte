@@ -23,11 +23,11 @@
   class:linked
   role="button"
   tabindex="0"
-  title={linked ? 'Linked across variants — click to unlink' : 'Click to share across all variants'}
+  title={linked ? 'Locked across variants — click to unlock' : 'Click to lock across all variants'}
   on:click={handleClick}
   on:keydown={handleKeydown}
 >
-  <i class="fas" class:fa-link={linked} class:fa-unlink={!linked}></i>
+  <i class="fas" class:fa-lock={linked} class:fa-lock-open={!linked}></i>
 </span>
 
 <style>
@@ -35,10 +35,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1rem;
-    height: 1rem;
-    color: var(--ui-text-muted);
-    font-size: 0.625rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--ui-text-secondary);
+    font-size: 0.75rem;
     cursor: pointer;
     border-radius: var(--ui-radius-sm);
     transition: color var(--ui-transition-fast), background var(--ui-transition-fast);

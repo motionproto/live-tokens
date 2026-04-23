@@ -646,7 +646,7 @@ function componentsToVars(components: EditorState['components']): Record<string,
   const out: Record<string, string> = {};
   for (const slice of Object.values(components)) {
     for (const [varName, semanticName] of Object.entries(slice.aliases)) {
-      out[varName] = `var(${semanticName})`;
+      out[varName] = semanticName.startsWith('--') ? `var(${semanticName})` : semanticName;
     }
   }
   return out;
@@ -697,12 +697,21 @@ export function clearComponentAlias(component: string, varName: string): void {
   });
 }
 
-// Property suffix is the last hyphenated segment after the `--{component}-`
-// prefix. e.g. for component=button, varName=--button-primary-hover-radius,
-// property is "radius" and variant is "primary-hover". Used by the
-// share-across-variants UI in the property pickers.
+const VAR_PREFIX_OVERRIDES: Record<string, string> = {
+  segmentedcontrol: 'segment',
+  collapsiblesection: 'collapsible',
+  progressbar: 'progress',
+  sectiondivider: 'section-divider',
+  radiobutton: 'radio',
+  inlineeditactions: 'inline-edit',
+};
+
+function componentVarPrefix(component: string): string {
+  return `--${VAR_PREFIX_OVERRIDES[component] ?? component}-`;
+}
+
 function parseComponentVar(component: string, varName: string): { variant: string; property: string } | null {
-  const prefix = `--${component}-`;
+  const prefix = componentVarPrefix(component);
   if (!varName.startsWith(prefix)) return null;
   const rest = varName.slice(prefix.length);
   const lastDash = rest.lastIndexOf('-');
@@ -719,7 +728,7 @@ export function getComponentPropertySiblings(component: string, varName: string)
   if (!parsed) return [];
   const slice = get(store).components[component];
   if (!slice) return [];
-  const prefix = `--${component}-`;
+  const prefix = componentVarPrefix(component);
   const suffix = `-${parsed.property}`;
   const siblings: string[] = [];
   for (const v of Object.keys(slice.aliases)) {
@@ -728,10 +737,12 @@ export function getComponentPropertySiblings(component: string, varName: string)
   return siblings;
 }
 
-/** True iff `varName` has ≥2 siblings and all of them resolve to the same alias value. */
+/** True iff `varName` has ≥2 siblings, all resolve to the same alias, and the property is not explicitly unlinked. */
 export function isComponentPropertyShared(component: string, varName: string): boolean {
   const slice = get(store).components[component];
   if (!slice) return false;
+  const parsed = parseComponentVar(component, varName);
+  if (parsed && slice.unlinked?.includes(parsed.property)) return false;
   const siblings = getComponentPropertySiblings(component, varName);
   if (siblings.length < 2) return false;
   const first = slice.aliases[siblings[0]];
@@ -739,7 +750,7 @@ export function isComponentPropertyShared(component: string, varName: string): b
   return siblings.every((v) => slice.aliases[v] === first);
 }
 
-/** Write `semanticName` to every sibling that shares `varName`'s property suffix. */
+/** Write `semanticName` to every sibling that shares `varName`'s property suffix, and clear the unlinked flag. */
 export function setComponentAliasShared(component: string, varName: string, semanticName: string): void {
   const parsed = parseComponentVar(component, varName);
   const siblings = getComponentPropertySiblings(component, varName);
@@ -751,6 +762,10 @@ export function setComponentAliasShared(component: string, varName: string, sema
     const slice = s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {} });
     for (const v of siblings) slice.aliases[v] = semanticName;
     if (!siblings.includes(varName)) slice.aliases[varName] = semanticName;
+    if (slice.unlinked) {
+      slice.unlinked = slice.unlinked.filter((p) => p !== parsed.property);
+      if (slice.unlinked.length === 0) delete slice.unlinked;
+    }
   });
 }
 
@@ -766,6 +781,22 @@ export function clearComponentAliasShared(component: string, varName: string): v
     const slice = s.components[component];
     if (!slice) return;
     for (const v of siblings) delete slice.aliases[v];
+  });
+}
+
+/** Mark `varName`'s property as unlinked so siblings are independently editable. Aliases are preserved. */
+export function unlinkComponentProperty(component: string, varName: string): void {
+  const parsed = parseComponentVar(component, varName);
+  if (!parsed) return;
+  const siblings = getComponentPropertySiblings(component, varName);
+  if (siblings.length < 2) return;
+  mutate(`unlink ${component}/${parsed.property}`, (s) => {
+    const slice = s.components[component];
+    if (!slice) return;
+    const unlinked = slice.unlinked ?? [];
+    if (!unlinked.includes(parsed.property)) {
+      slice.unlinked = [...unlinked, parsed.property];
+    }
   });
 }
 

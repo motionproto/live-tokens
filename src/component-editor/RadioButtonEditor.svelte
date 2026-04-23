@@ -1,9 +1,8 @@
 <script lang="ts">
   import RadioButton from '../components/RadioButton.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import DemoHeader from './scaffolding/DemoHeader.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
 
-  const targetFile = 'src/components/RadioButton.svelte';
   const component = 'radiobutton';
 
   let selectedRadio = 'option-b';
@@ -32,13 +31,7 @@
   };
 </script>
 
-<div class="demo-block">
-  <DemoHeader
-    {component}
-    title="Radio Button Component"
-    description="Styled radio buttons with icon and color support. Import from <code>components/RadioButton.svelte</code>"
-  />
-
+<ComponentEditorBase {component} title="Radio Button Component" description="Styled radio buttons with icon and color support. Import from <code>components/RadioButton.svelte</code>" let:targetFile>
   <VariantGroup name="radio" title="Radio Button" states={radioStates} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     {@const forceActive = activeState === 'active'}
@@ -69,7 +62,7 @@
       />
     </div>
   </VariantGroup>
-</div>
+</ComponentEditorBase>
 
 <style>
   .radio-demo-row {

@@ -15,7 +15,7 @@
   .fieldset-wrapper {
     border: 1px solid var(--ui-border-faint);
     border-radius: var(--ui-radius-lg);
-    padding: var(--ui-space-4) var(--ui-space-8);
+    padding: 0 var(--ui-space-8) var(--ui-space-8);
     margin: 0;
     width: fit-content;
     min-inline-size: 0;

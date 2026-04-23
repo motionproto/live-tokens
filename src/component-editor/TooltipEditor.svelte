@@ -2,9 +2,8 @@
   import Button from '../components/Button.svelte';
   import Tooltip from '../components/Tooltip.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import DemoHeader from './scaffolding/DemoHeader.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
 
-  const targetFile = 'src/components/Tooltip.svelte';
   const component = 'tooltip';
 
   const tokens = [
@@ -14,13 +13,7 @@
   ];
 </script>
 
-<div class="demo-block">
-  <DemoHeader
-    {component}
-    title="Tooltip Component"
-    description="Hover tooltip with configurable position. Import from <code>components/Tooltip.svelte</code>"
-  />
-
+<ComponentEditorBase {component} title="Tooltip Component" description="Hover tooltip with configurable position. Import from <code>components/Tooltip.svelte</code>" let:targetFile>
   <VariantGroup name="tooltip" title="Tooltip" {tokens} {targetFile} {component}>
     <div class="tooltip-demo-row">
       <Tooltip text="This is a top tooltip">
@@ -34,7 +27,7 @@
       </Tooltip>
     </div>
   </VariantGroup>
-</div>
+</ComponentEditorBase>
 
 <style>
   .tooltip-demo-row {

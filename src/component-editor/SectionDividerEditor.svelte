@@ -1,9 +1,8 @@
 <script lang="ts">
   import SectionDivider from '../components/SectionDivider.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import DemoHeader from './scaffolding/DemoHeader.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
 
-  const targetFile = 'src/components/SectionDivider.svelte';
   const component = 'sectiondivider';
 
   type Token = { label: string; variable: string; canBeShared?: boolean };
@@ -83,13 +82,7 @@
   };
 </script>
 
-<div class="demo-block">
-  <DemoHeader
-    {component}
-    title="Section Divider Component"
-    description="Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>"
-  />
-
+<ComponentEditorBase {component} title="Section Divider Component" description="Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>" let:targetFile>
   {#each variants as v}
     <VariantGroup name={v.key} title={v.title} tokens={variantTokens[v.key]} {targetFile} {component}>
       <label class="description-toggle">
@@ -103,7 +96,7 @@
       />
     </VariantGroup>
   {/each}
-</div>
+</ComponentEditorBase>
 
 <style>
   .description-toggle {

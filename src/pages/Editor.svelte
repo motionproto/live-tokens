@@ -7,7 +7,7 @@
   const inOverlay = typeof window !== 'undefined' && window.parent !== window;
 
   // Where "Back to site" sends the user. Prefer the previous non-editor entry
-  // from session history; fall back to /kit (the starter demo) and finally /.
+  // from session history; fall back to /demo and finally /.
   const backHref = pickBackHref();
 
   function pickBackHref(): string {
@@ -17,42 +17,29 @@
     } catch {
       // ignore
     }
-    return '/kit';
+    return '/demo';
   }
 
   onMount(() => {
     initializeEditorStore();
     return installEditorKeybindings();
   });
-
-  function closeOverlay() {
-    try {
-      window.parent.postMessage({ type: 'lt-overlay-close' }, window.location.origin);
-    } catch {
-      // cross-origin parent — shouldn't happen, but fall back to a noop
-    }
-  }
 </script>
 
 <div class="editor-page">
-  <div class="editor-bar">
-    <div class="bar-left">
-      {#if inOverlay}
-        <button class="back-link as-button" on:click={closeOverlay}>
-          <i class="fas fa-times"></i>
-          <span>Close</span>
-        </button>
-      {:else}
+  {#if !inOverlay}
+    <div class="editor-bar">
+      <div class="bar-left">
         <a href={backHref} class="back-link">
           <i class="fas fa-arrow-left"></i>
           <span>Back to site</span>
         </a>
-      {/if}
-      <span class="editor-label">Design System</span>
-    </div>
+        <span class="editor-label">Token Editor</span>
+      </div>
 
-    <div class="bar-right"></div>
-  </div>
+      <div class="bar-right"></div>
+    </div>
+  {/if}
 
   <VisualsTab />
 </div>
@@ -98,14 +85,6 @@
 
   .back-link:hover {
     color: var(--ui-text-primary);
-  }
-
-  .back-link.as-button {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    font-family: inherit;
   }
 
   .editor-label {

@@ -1,6 +1,6 @@
 <script lang="ts">
   import Home from './pages/Home.svelte';
-  import KitDemo from './pages/KitDemo.svelte';
+  import Demo from './pages/Demo.svelte';
   import Editor from './pages/Editor.svelte';
   import ComponentEditorPage from './pages/ComponentEditorPage.svelte';
   import LiveEditorOverlay from './lib/LiveEditorOverlay.svelte';
@@ -19,7 +19,7 @@
 
   const isDev = import.meta.env.DEV;
   $: isEditor = isDev && $route === '/editor';
-  $: isKit = isDev && $route === '/kit';
+  $: isDemo = isDev && $route === '/demo';
   $: isComponentEditor = isDev && $route === '/components';
 </script>
 
@@ -28,22 +28,23 @@
   <LiveEditorOverlay
     navLinks={[
       { path: '/', label: 'Home', icon: 'fa-home' },
-      { path: '/kit', label: 'Kit', icon: 'fa-box-open' },
+      { path: '/demo', label: 'Demo', icon: 'fa-box-open' },
       { path: '/components', label: 'Components', icon: 'fa-puzzle-piece' },
     ]}
     pageSources={{
       '/': 'src/pages/Home.svelte',
-      '/kit': 'src/pages/KitDemo.svelte',
+      '/demo': 'src/pages/Demo.svelte',
       '/components': 'src/pages/ComponentEditorPage.svelte',
       '/editor': 'src/pages/Editor.svelte',
     }}
+    hidePageSourceOn={['/components']}
   />
   <ColumnsOverlay />
 
   {#if isEditor}
     <Editor />
-  {:else if isKit}
-    <KitDemo />
+  {:else if isDemo}
+    <Demo />
   {:else if isComponentEditor}
     <ComponentEditorPage />
   {:else}

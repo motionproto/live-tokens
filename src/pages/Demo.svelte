@@ -26,7 +26,7 @@
       </p>
       {#if isDev}
         <div class="actions">
-          <Button on:click={() => navigate('/editor')}>Open Design System</Button>
+          <Button on:click={() => navigate('/editor')}>Open Token Editor</Button>
           <Button variant="secondary" on:click={() => navigate('/components')}>Browse Components</Button>
         </div>
       {:else}

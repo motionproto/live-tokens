@@ -1,9 +1,8 @@
 <script lang="ts">
   import Notification from '../components/Notification.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import DemoHeader from './scaffolding/DemoHeader.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
 
-  const targetFile = 'src/components/Notification.svelte';
   const component = 'notification';
 
   type Token = { label: string; variable: string; canBeShared?: boolean };
@@ -52,13 +51,7 @@
   };
 </script>
 
-<div class="demo-block">
-  <DemoHeader
-    {component}
-    title="Notification Components"
-    description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>"
-  />
-
+<ComponentEditorBase {component} title="Notification Components" description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>" let:targetFile>
   <VariantGroup name="info" title="Info" tokens={variantTokens.info} {targetFile} {component}>
     <Notification
       variant="info"
@@ -102,4 +95,4 @@
       emphasis={true}
     />
   </VariantGroup>
-</div>
+</ComponentEditorBase>

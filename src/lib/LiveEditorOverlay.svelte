@@ -13,12 +13,14 @@
   import { route, navigate } from './router';
   import { columnsVisible, toggleColumns } from './columnsOverlay';
   import { storageKey } from './editorConfig';
+  import { overlayOpen } from './overlayState';
   import type { NavLink } from './navLinkTypes';
 
   export let open: boolean | undefined = undefined;
   export let editorPath: string = '/editor';
   export let navLinks: NavLink[] = [];
   export let pageSources: Record<string, string> = {};
+  export let hidePageSourceOn: string[] = [];
   export let projectRoot: string = INJECTED_PROJECT_ROOT;
 
   // Self-gate: only render in dev, and never inside an iframe (the /editor
@@ -42,11 +44,13 @@
   $: if (!consumerControlsOpen && typeof window !== 'undefined') {
     try { localStorage.setItem(OPEN_KEY, open ? '1' : '0'); } catch {}
   }
+  $: overlayOpen.set(!!open);
 
   // Hide the overlay entirely when the user is already on the editor route
   // (the editor page has its own chrome).
   $: onEditorPath = $route === editorPath;
   $: sourceFile = pageSources[$route];
+  $: showSource = !!sourceFile && !!projectRoot && !hidePageSourceOn.includes($route);
 
   // Mount the iframe the first time the editor is shown, then keep it mounted
   // across hide/show cycles so editor state (unsaved slider values, scroll
@@ -216,22 +220,15 @@
     toggleOpen();
   }
 
-  // Messages from the editor iframe:
-  //   lt-overlay-close — iframe's Close button (hides the editor)
-  function handleMessage(ev: MessageEvent) {
-    if (ev.origin !== window.location.origin) return;
-    const data = ev.data;
-    if (!data || typeof data !== 'object') return;
-    if (data.type === 'lt-overlay-close') {
-      open = false;
-    }
+  function handleToggleRequest() {
+    open = !open;
   }
 
   onMount(() => {
-    window.addEventListener('message', handleMessage);
+    window.addEventListener('lt-overlay-toggle', handleToggleRequest);
   });
   onDestroy(() => {
-    window.removeEventListener('message', handleMessage);
+    window.removeEventListener('lt-overlay-toggle', handleToggleRequest);
   });
 
   $: panelStyle = !open
@@ -257,8 +254,31 @@
     on:dblclick={handleHeaderDblClick}
     title={open ? 'Double-click to hide' : 'Double-click to show'}
   >
+    <button
+      class="hdr-btn text title"
+      on:click={toggleOpen}
+      title={open ? 'Hide Token Editor' : 'Show Token Editor'}
+    >
+      <i class="fas {open ? 'fa-eye-slash' : 'fa-eye'}"></i>
+      <span>Token Editor</span>
+    </button>
+
+    <button
+      class="hdr-btn icon"
+      class:active={$columnsVisible}
+      on:click={toggleColumns}
+      title="{$columnsVisible ? 'Hide' : 'Show'} columns"
+    >
+      <i class="fas fa-grip-lines-vertical"></i>
+    </button>
+
     {#if open}
-      <span class="title">Design Editor</span>
+      <button class="hdr-btn icon" title={mode === 'docked' ? 'Float' : 'Dock to right'} on:click={toggleMode}>
+        <i class={mode === 'docked' ? 'fas fa-up-right-from-square' : 'fas fa-thumbtack'}></i>
+      </button>
+    {/if}
+
+    {#if open}
       <div class="spacer"></div>
     {/if}
 
@@ -277,26 +297,7 @@
       </div>
     {/if}
 
-    <button
-      class="hdr-btn icon"
-      class:active={$columnsVisible}
-      on:click={toggleColumns}
-      title="{$columnsVisible ? 'Hide' : 'Show'} columns"
-    >
-      <i class="fas fa-grip-lines-vertical"></i>
-    </button>
-
-    <button class="hdr-btn text" on:click={toggleOpen}>
-      {open ? 'Hide Editor' : 'Editor'}
-    </button>
-
-    {#if open}
-      <button class="hdr-btn icon" title={mode === 'docked' ? 'Float' : 'Dock to right'} on:click={toggleMode}>
-        <i class={mode === 'docked' ? 'fas fa-up-right-from-square' : 'fas fa-thumbtack'}></i>
-      </button>
-    {/if}
-
-    {#if sourceFile && projectRoot}
+    {#if showSource}
       <a
         class="hdr-btn text source"
         href="vscode://file/{projectRoot}/{sourceFile}"
@@ -312,7 +313,7 @@
     <div class="frame-wrap">
       <iframe
         src={editorPath}
-        title="Design editor"
+        title="Token editor"
         class="editor-frame"
       ></iframe>
       {#if gesturing}
@@ -386,7 +387,8 @@
     cursor: move;
   }
 
-  .title {
+  .hdr-btn.title {
+    gap: 7px;
     font-size: 13px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.85);

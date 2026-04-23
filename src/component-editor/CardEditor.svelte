@@ -1,9 +1,8 @@
 <script lang="ts">
   import Card from '../components/Card.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import DemoHeader from './scaffolding/DemoHeader.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
 
-  const targetFile = 'src/components/Card.svelte';
   const component = 'card';
 
   type Token = { label: string; variable: string; canBeShared?: boolean };
@@ -26,13 +25,7 @@
   };
 </script>
 
-<div class="demo-block">
-  <DemoHeader
-    {component}
-    title="Card Component"
-    description="Generic card with icon, title, and slotted body. Import from <code>components/Card.svelte</code>"
-  />
-
+<ComponentEditorBase {component} title="Card Component" description="Generic card with icon, title, and slotted body. Import from <code>components/Card.svelte</code>" let:targetFile>
   <VariantGroup name="card" title="Card" states={cardStates} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     <div class="card-demo-grid">
@@ -50,7 +43,7 @@
       </Card>
     </div>
   </VariantGroup>
-</div>
+</ComponentEditorBase>
 
 <style>
   .card-demo-grid {

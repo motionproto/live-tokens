@@ -46,6 +46,7 @@ export interface ColumnsState {
 export interface ComponentSlice {
   activeFile: string;
   aliases: Record<string, string>;
+  unlinked?: string[];
 }
 
 /**

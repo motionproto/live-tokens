@@ -75,6 +75,8 @@
   let chosenCategory: Category | null = null;
   let chosenFamily: string | null = null;
   let chosenStep: string | null = null;
+  let chosenNone: boolean = false;
+  let opacity: number = 100;
   let selfDefaultHex: string = '';
 
   function captureSelfDefault() {
@@ -170,18 +172,58 @@
     return null;
   }
 
+  function parseOpacity(raw: string): { inner: string; opacity: number } | null {
+    const m = raw.match(/^color-mix\(in srgb,\s*(var\(--[a-z0-9-]+\))\s+(\d+)%,\s*transparent\)$/);
+    if (!m) return null;
+    return { inner: m[1], opacity: parseInt(m[2]) };
+  }
+
+  function buildValue(varName: string): string | null {
+    if (varName === variable && opacity >= 100) return null;
+    if (opacity >= 100) return varName;
+    return `color-mix(in srgb, var(${varName}) ${opacity}%, transparent)`;
+  }
+
+  function applyOpacity() {
+    opacity = Math.max(0, Math.min(100, Math.round(opacity)));
+    if (chosenCategory === null || chosenFamily === null || chosenStep === null) return;
+    const varName = getVarName(chosenCategory, chosenFamily, chosenStep);
+    selector.writeOverride(buildValue(varName));
+    dispatch('change');
+  }
+
   function initFromCurrent() {
-    // Real user overrides are always var(...) references (written by selectSwatch).
-    // Inline hex values come from themeInit's bulk-apply of the active theme
-    // and represent the semantic default, not a custom override — so we treat
-    // them the same as "no inline override" and derive semantics from the
-    // variable's own name, or from the alias chain declared in tokens.css.
     const raw = document.documentElement.style.getPropertyValue(variable).trim();
+
+    if (raw === 'transparent') {
+      chosenNone = true;
+      chosenCategory = null;
+      chosenFamily = null;
+      chosenStep = null;
+      opacity = 100;
+      return;
+    }
+
+    chosenNone = false;
+
+    const opacityParsed = parseOpacity(raw);
+    if (opacityParsed) {
+      const parsed = parseRef(opacityParsed.inner);
+      if (parsed) {
+        chosenCategory = parsed.category;
+        chosenFamily = parsed.family;
+        chosenStep = parsed.step;
+        opacity = opacityParsed.opacity;
+        return;
+      }
+    }
+
     const parsed = raw ? parseRef(raw) : null;
     if (parsed) {
       chosenCategory = parsed.category;
       chosenFamily = parsed.family;
       chosenStep = parsed.step;
+      opacity = 100;
       return;
     }
     for (const alias of resolveAliasChain(variable)) {
@@ -190,15 +232,19 @@
         chosenCategory = aliasParsed.category;
         chosenFamily = aliasParsed.family;
         chosenStep = aliasParsed.step;
+        opacity = 100;
         return;
       }
     }
     chosenCategory = null;
     chosenFamily = null;
     chosenStep = null;
+    opacity = 100;
   }
 
   function handleReset() {
+    opacity = 100;
+    chosenNone = false;
     initFromCurrent();
     selectedFamily = null;
     dispatch('change');
@@ -219,12 +265,25 @@
     selectedFamily = null;
   }
 
+  function selectNone(close: () => void) {
+    chosenNone = true;
+    chosenCategory = null;
+    chosenFamily = null;
+    chosenStep = null;
+    opacity = 100;
+    selector.writeOverride('transparent');
+    selectedFamily = null;
+    close();
+    dispatch('change');
+  }
+
   function selectSwatch(category: Category, step: string, close: () => void) {
     const varName = getVarName(category, selectedFamily!, step);
-    selector.writeOverride(varName === variable ? null : varName);
+    chosenNone = false;
     chosenCategory = category;
     chosenFamily = selectedFamily;
     chosenStep = step;
+    selector.writeOverride(buildValue(varName));
     selectedFamily = null;
     close();
     dispatch('change');
@@ -235,13 +294,17 @@
     captureSelfDefault();
   });
 
-  $: displayCategory = chosenCategory && chosenFamily
-    ? `${chosenFamily} ${chosenCategory}`
-    : '';
+  $: displayCategory = chosenNone
+    ? 'none'
+    : (chosenCategory && chosenFamily
+      ? `${chosenFamily} ${chosenCategory}`
+      : '');
 
-  $: displaySubtype = chosenCategory && chosenFamily
-    ? (chosenStep || 'default')
-    : '';
+  $: displaySubtype = chosenNone
+    ? ''
+    : (chosenCategory && chosenFamily
+      ? (chosenStep || 'default')
+      : '');
 
   $: availableTabs = selectedFamily
     ? allCategories.filter(c => c.id !== 'text' || familiesWithText.includes(selectedFamily!))
@@ -265,15 +328,29 @@
   on:close={handleClose}
   on:var-change={initFromCurrent}
 >
-  <div slot="trigger-preview" class="swatch" style="background: var({variable});"></div>
+  <div slot="trigger-preview" class="swatch-wrap">
+    <div class="swatch" style="background: var({variable});"></div>
+  </div>
+  <div slot="subheader" class="opacity-control">
+    <span class="opacity-label">opacity</span>
+    <input type="range" min="0" max="100" bind:value={opacity} class="opacity-slider" on:input={applyOpacity} />
+    <input type="number" min="0" max="100" bind:value={opacity} class="opacity-input" on:change={applyOpacity} />
+    <span class="opacity-unit">%</span>
+  </div>
   <svelte:fragment slot="trigger-title">{displayCategory}</svelte:fragment>
   <svelte:fragment slot="trigger-meta">{displaySubtype}</svelte:fragment>
 
   <svelte:fragment let:close>
     {#if selectedFamily === null}
       <div class="family-list">
+        <button class="family-item" class:active={chosenNone} on:click={() => selectNone(close)}>
+          <div class="family-swatches">
+            <div class="none-swatch"></div>
+          </div>
+          <span class="family-label">None</span>
+        </button>
         {#each families as fam}
-          <button class="family-item" class:active={chosenFamily === fam.name} on:click={() => selectFamily(fam.name)}>
+          <button class="family-item" class:active={!chosenNone && chosenFamily === fam.name} on:click={() => selectFamily(fam.name)}>
             <div class="family-swatches">
               <div class="mini-swatch" style="background: var(--color-{fam.name}-300);"></div>
               <div class="mini-swatch" style="background: var(--color-{fam.name}-500);"></div>
@@ -359,11 +436,81 @@
 </UITokenSelector>
 
 <style>
-  .swatch {
+  .swatch-wrap {
     width: 1.5rem;
     height: 1.5rem;
     border-radius: var(--ui-radius-sm);
     border: 1px solid var(--ui-border-faint);
+    background-image: linear-gradient(45deg, var(--ui-border-subtle) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--ui-border-subtle) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--ui-border-subtle) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--ui-border-subtle) 75%);
+    background-size: 8px 8px;
+    background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+    overflow: hidden;
+  }
+
+  .swatch {
+    width: 100%;
+    height: 100%;
+  }
+
+  .opacity-control {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    padding: var(--ui-space-6) var(--ui-space-8);
+    border-bottom: 1px solid var(--ui-border-faint);
+  }
+
+  .opacity-label {
+    font-size: var(--ui-font-xs);
+    color: var(--ui-text-secondary);
+    flex-shrink: 0;
+  }
+
+  .opacity-slider {
+    flex: 1;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--ui-border-default);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .opacity-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--ui-text-primary);
+    cursor: pointer;
+  }
+
+  .opacity-input {
+    width: 3rem;
+    padding: var(--ui-space-2) var(--ui-space-4);
+    background: var(--ui-surface-lowest);
+    border: 1px solid var(--ui-border-subtle);
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-primary);
+    font-size: var(--ui-font-xs);
+    font-family: var(--ui-font-mono);
+    text-align: right;
+    -moz-appearance: textfield;
+  }
+
+  .opacity-input::-webkit-inner-spin-button,
+  .opacity-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .opacity-unit {
+    font-size: var(--ui-font-xs);
+    color: var(--ui-text-muted);
   }
 
   .dropdown-back {
@@ -465,6 +612,31 @@
     width: 0.75rem;
     height: 0.75rem;
     border-radius: 2px;
+  }
+
+  .none-swatch {
+    width: 2.5rem;
+    height: 0.75rem;
+    border-radius: 2px;
+    border: 1px solid var(--ui-border-subtle);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .none-swatch::after {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 3px,
+      var(--ui-border-subtle) 3px,
+      var(--ui-border-subtle) 4px
+    );
   }
 
   .family-label {

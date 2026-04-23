@@ -1,9 +1,8 @@
 <script lang="ts">
   import ProgressBar from '../components/ProgressBar.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import DemoHeader from './scaffolding/DemoHeader.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
 
-  const targetFile = 'src/components/ProgressBar.svelte';
   const component = 'progressbar';
 
   type Token = { label: string; variable: string; canBeShared?: boolean };
@@ -52,13 +51,7 @@
   };
 </script>
 
-<div class="demo-block">
-  <DemoHeader
-    {component}
-    title="Progress Bar Component"
-    description="Animated progress bar with variants. Import from <code>components/ProgressBar.svelte</code>"
-  />
-
+<ComponentEditorBase {component} title="Progress Bar Component" description="Animated progress bar with variants. Import from <code>components/ProgressBar.svelte</code>" let:targetFile>
   <VariantGroup name="primary" title="Primary" tokens={variantTokens.primary} {targetFile} {component}>
     <div class="progress-demo-stack">
       <ProgressBar value={25} label="Getting Started" variant="primary" />
@@ -89,7 +82,7 @@
       <ProgressBar value={50} label="Halfway There" variant="info" />
     </div>
   </VariantGroup>
-</div>
+</ComponentEditorBase>
 
 <style>
   .progress-demo-stack {

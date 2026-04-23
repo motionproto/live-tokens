@@ -8,6 +8,7 @@
     setComponentAliasShared,
     clearComponentAliasShared,
     isComponentPropertyShared,
+    unlinkComponentProperty,
   } from '../lib/editorStore';
   import UILinkToggle from './UILinkToggle.svelte';
 
@@ -27,14 +28,13 @@
   /** When true, the trigger becomes non-interactive and visually dimmed. */
   export let disabled: boolean = false;
 
-  let userUnlinked = false;
   let open = false;
   let container: HTMLElement;
 
   $: isSharedFromData = canBeShared && component && $editorState
     ? isComponentPropertyShared(component, variable)
     : false;
-  $: isSharedDisplay = canBeShared && !!component && isSharedFromData && !userUnlinked;
+  $: isSharedDisplay = canBeShared && !!component && isSharedFromData;
   $: showLinkToggle = canBeShared && !!component;
 
   /** Persist a semantic CSS-var reference (or clear it when null). */
@@ -50,8 +50,11 @@
       }
       return;
     }
-    if (semanticName) setCssVar(variable, `var(${semanticName})`);
-    else removeCssVar(variable);
+    if (semanticName) {
+      setCssVar(variable, semanticName.startsWith('--') ? `var(${semanticName})` : semanticName);
+    } else {
+      removeCssVar(variable);
+    }
   }
 
   export function close() {
@@ -71,9 +74,9 @@
   function toggleShared() {
     if (!canBeShared || !component) return;
     if (isSharedDisplay) {
-      userUnlinked = true;
+      unlinkComponentProperty(component, variable);
+      dispatch('change');
     } else {
-      userUnlinked = false;
       const currentValue = $editorState.components[component]?.aliases[variable];
       if (currentValue) {
         setComponentAliasShared(component, variable, currentValue);
@@ -124,7 +127,7 @@
         {/if}
       </slot>
     </div>
-    {#if showLinkToggle && !disabled}
+    {#if showLinkToggle}
       <UILinkToggle linked={isSharedDisplay} on:toggle={toggleShared} />
     {/if}
     <i class="fas fa-chevron-down ui-ts-chevron" class:open></i>
@@ -145,6 +148,7 @@
           </div>
         </slot>
       {/if}
+      <slot name="subheader" />
       <slot {close} {handleReset} />
     </div>
   {/if}
@@ -187,6 +191,7 @@
   }
 
   .ui-ts-trigger.shared {
+    border-left: 2px solid var(--ui-text-accent);
     background: var(--ui-surface-high);
   }
 
@@ -228,8 +233,8 @@
   }
 
   .ui-ts-chevron {
-    font-size: 0.5rem;
-    color: var(--ui-text-muted);
+    font-size: 0.625rem;
+    color: var(--ui-text-secondary);
     transition: transform var(--ui-transition-fast);
   }
 

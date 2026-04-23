@@ -1,9 +1,8 @@
 <script lang="ts">
   import Badge from '../components/Badge.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import DemoHeader from './scaffolding/DemoHeader.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
 
-  const targetFile = 'src/components/Badge.svelte';
   const component = 'badge';
 
   type Token = { label: string; variable: string; canBeShared?: boolean };
@@ -30,13 +29,7 @@
   };
 </script>
 
-<div class="demo-block">
-  <DemoHeader
-    {component}
-    title="Badge Component"
-    description="Pill-shaped badges with variant support. Import from <code>components/Badge.svelte</code>"
-  />
-
+<ComponentEditorBase {component} title="Badge Component" description="Pill-shaped badges with variant support. Import from <code>components/Badge.svelte</code>" let:targetFile>
   <VariantGroup name="info" title="Info" tokens={variantTokens.info} {targetFile} {component}>
     <div class="badge-showcase-grid">
       <Badge variant="info">info</Badge>
@@ -57,7 +50,7 @@
       <Badge variant="trait">primal</Badge>
     </div>
   </VariantGroup>
-</div>
+</ComponentEditorBase>
 
 <style>
   .badge-showcase-grid {

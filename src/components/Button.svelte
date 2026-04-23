@@ -68,12 +68,14 @@
       --button-secondary-disabled-border: var(--border-neutral-faint);
 
       /* Outline */
+      --button-outline-surface: transparent;
       --button-outline-text: var(--text-primary);
       --button-outline-border: var(--border-neutral-default);
       --button-outline-radius: var(--radius-md);
       --button-outline-hover-surface: var(--hover-low);
       --button-outline-hover-text: var(--text-primary);
       --button-outline-hover-border: var(--border-neutral-strong);
+      --button-outline-disabled-surface: transparent;
       --button-outline-disabled-text: var(--text-tertiary);
       --button-outline-disabled-border: var(--border-neutral-faint);
 
@@ -245,7 +247,7 @@
 
       // Outline variant
       &.outline {
-         background: transparent;
+         background: var(--button-outline-surface);
          color: var(--button-outline-text);
          border: 1px solid var(--button-outline-border);
          border-radius: var(--button-outline-radius);
@@ -269,7 +271,7 @@
          }
 
          &:disabled {
-            background: transparent;
+            background: var(--button-outline-disabled-surface);
             border-color: var(--button-outline-disabled-border);
             color: var(--button-outline-disabled-text);
          }

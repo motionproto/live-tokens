@@ -1,9 +1,8 @@
 <script lang="ts">
   import Button from '../components/Button.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import DemoHeader from './scaffolding/DemoHeader.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
 
-  const targetFile = 'src/components/Button.svelte';
   const component = 'button';
 
   type Token = { label: string; variable: string; canBeShared?: boolean };
@@ -51,6 +50,7 @@
     },
     outline: {
       default: [
+        { label: 'surface color', variable: '--button-outline-surface' },
         { label: 'text color', variable: '--button-outline-text' },
         { label: 'border color', variable: '--button-outline-border' },
         { label: 'radius', canBeShared: true, variable: '--button-outline-radius' },
@@ -62,6 +62,7 @@
         { label: 'radius', canBeShared: true, variable: '--button-outline-radius' },
       ],
       disabled: [
+        { label: 'surface color', variable: '--button-outline-disabled-surface' },
         { label: 'text color', variable: '--button-outline-disabled-text' },
         { label: 'border color', variable: '--button-outline-disabled-border' },
         { label: 'radius', canBeShared: true, variable: '--button-outline-radius' },
@@ -130,13 +131,7 @@
   };
 </script>
 
-<div class="demo-block">
-  <DemoHeader
-    {component}
-    title="Standard Button Component"
-    description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>"
-  />
-
+<ComponentEditorBase {component} title="Standard Button Component" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" let:targetFile>
   <VariantGroup name="primary" title="Primary" states={variantStates.primary} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     {@const isDisabled = activeState === 'disabled'}
@@ -310,7 +305,7 @@
       </div>
     </div>
   </VariantGroup>
-</div>
+</ComponentEditorBase>
 
 <style>
   .size-row {

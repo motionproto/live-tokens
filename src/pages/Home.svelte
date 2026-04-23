@@ -2,6 +2,7 @@
   import Card from '../components/Card.svelte';
   import Button from '../components/Button.svelte';
   import { navigate } from '../lib/router';
+  import { overlayOpen } from '../lib/overlayState';
 
   const isDev = import.meta.env.DEV;
 </script>
@@ -18,8 +19,13 @@
       </p>
       {#if isDev}
         <div class="actions">
-          <Button on:click={() => navigate('/kit')}>See what the kit does</Button>
-          <Button variant="secondary" on:click={() => navigate('/editor')}>Open Design System</Button>
+          <Button on:click={() => navigate('/demo')}>Demo page</Button>
+          <Button variant="secondary" on:click={() => navigate('/components')}>Components</Button>
+          <Button
+            variant="secondary"
+            class="push-right"
+            on:click={() => window.dispatchEvent(new CustomEvent('lt-overlay-toggle'))}
+          >{$overlayOpen ? 'Close Token Editor' : 'Open Token Editor'}</Button>
         </div>
       {/if}
     </Card>
@@ -76,5 +82,9 @@
     gap: var(--space-12);
     flex-wrap: wrap;
     margin-top: var(--space-20);
+  }
+
+  .actions :global(.push-right) {
+    margin-left: auto;
   }
 </style>

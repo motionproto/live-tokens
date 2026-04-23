@@ -24,12 +24,12 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173. Replace `src/pages/Home.svelte` with your own landing page. Keep or delete `src/pages/KitDemo.svelte` (the `/kit` route) depending on whether you want the demo around as a reference.
+Open http://localhost:5173. Replace `src/pages/Home.svelte` with your own landing page. Keep or delete `src/pages/Demo.svelte` (the `/demo` route) depending on whether you want the demo around as a reference.
 
 ### Starter layout
 
 - `src/pages/Home.svelte` — your app's `/` route. **Replace this with your content.**
-- `src/pages/KitDemo.svelte` — `/kit` route. Marketing/demo page for the kit itself. Safe to delete once you don't need it.
+- `src/pages/Demo.svelte` — `/demo` route. Marketing/demo page for the kit itself. Safe to delete once you don't need it.
 - `src/pages/Editor.svelte` — `/editor` route. Design-system editor.
 - `src/pages/ComponentEditorPage.svelte` — `/components` route. Component editor.
 - `src/App.svelte` — top-level router + overlay wiring.
@@ -173,7 +173,7 @@ The package is published to npm as `@motion-proto/live-tokens`.
 - `src/ui/editor.css`, `src/styles/form-controls.css`, `src/styles/fonts.css`, `src/styles/fonts/`
 - `dist-plugin/` — compiled Vite plugin
 
-**What doesn't ship** (starter-only): `src/App.svelte`, `src/main.ts`, `src/pages/Home.svelte`, `src/pages/KitDemo.svelte`, `src/pages/ComponentEditorPage.svelte`, `index.html`, `themes/`.
+**What doesn't ship** (starter-only): `src/App.svelte`, `src/main.ts`, `src/pages/Home.svelte`, `src/pages/Demo.svelte`, `src/pages/ComponentEditorPage.svelte`, `index.html`, `themes/`.
 
 ## License
 
