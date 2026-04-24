@@ -328,7 +328,7 @@
     background: var(--ui-hover);
     color: var(--ui-text-secondary);
     cursor: pointer;
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     flex-shrink: 0;
 
     &:hover {
@@ -339,13 +339,13 @@
   }
 
   .hsl-panel-title {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-secondary);
   }
 
   .hsl-hex {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-accent);
     font-family: var(--ui-font-mono);
     background: none;
@@ -362,7 +362,7 @@
   }
 
   .hsl-hex-input {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-accent);
     font-family: var(--ui-font-mono);
     background: var(--ui-surface-low);
@@ -374,7 +374,7 @@
   }
 
   .hsl-values {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-tertiary);
     font-family: var(--ui-font-mono);
   }
@@ -400,7 +400,7 @@
   }
 
   .hsl-slider-label {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
     width: 2.5rem;
@@ -466,7 +466,7 @@
   }
 
   .hsl-slider-input {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-primary);
     font-family: var(--ui-font-mono);
     width: 2.5rem;
@@ -495,7 +495,7 @@
   }
 
   .hsl-slider-unit {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-muted);
     font-family: var(--ui-font-mono);
     width: 0.75rem;

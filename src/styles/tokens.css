@@ -1,6 +1,7 @@
 /* RuneGoblin - Design System Variables */
 /* Simple CSS variables for consistent theming */
 /* Note: Font declarations moved to fonts.css which is copied directly without processing */
+/* Convention: no component-scoped tokens in this file; those belong in component-configs/*. */
 
 /* Global font fallback for all module content (excludes Font Awesome icons) */
 /* Using :where() for 0 specificity - component styles can override naturally */
@@ -42,17 +43,17 @@
   --color-alternate-950: #010202;
 
   /* Background */
-  --color-bg-100: #fbebdf;
-  --color-bg-200: #dacbbf;
-  --color-bg-300: #b5a79b;
-  --color-bg-400: #998b80;
-  --color-bg-500: #8d7f74;
-  --color-bg-600: #807267;
-  --color-bg-700: #685b50;
-  --color-bg-800: #4d4036;
-  --color-bg-850: #31251c;
-  --color-bg-900: #170d05;
-  --color-bg-950: #050100;
+  --color-canvas-100: #fbebdf;
+  --color-canvas-200: #dacbbf;
+  --color-canvas-300: #b5a79b;
+  --color-canvas-400: #998b80;
+  --color-canvas-500: #8d7f74;
+  --color-canvas-600: #807267;
+  --color-canvas-700: #685b50;
+  --color-canvas-800: #4d4036;
+  --color-canvas-850: #31251c;
+  --color-canvas-900: #170d05;
+  --color-canvas-950: #050100;
 
   /* Primary */
   --color-primary-100: #ffeada;
@@ -145,13 +146,17 @@
   --color-danger-900: #260004;
   --color-danger-950: #080000;
 
+  /* Semantic color primitives (for component tokens that need the CSS
+     keyword "transparent" as a no-fill slot rather than a palette swatch). */
+  --color-transparent: transparent;
+
   /* ═══════════════════════════════════════════════════════
-     APPLICATION BACKGROUND
+     PAGE BACKGROUND — the canvas behind all UI surfaces.
+     Editor writes these via the Palette "empty selector".
      ═══════════════════════════════════════════════════════ */
 
-  --empty: #31251c;
-  --empty-attachment: scroll;
-  --text-glow-stroke: 12px color-mix(in srgb, var(--empty) 80%, transparent);
+  --page-bg: #31251c;
+  --page-bg-attachment: scroll;
 
   /* ═══════════════════════════════════════════════════════
      SURFACES — 7-point scales (lowest → highest)
@@ -176,13 +181,13 @@
   --surface-alternate-highest: #5a5b5b;
 
   /* Background */
-  --surface-bg-lowest: #120903;
-  --surface-bg-lower: #1e130b;
-  --surface-bg-low: #2b2017;
-  --surface-bg: #392e24;
-  --surface-bg-high: #483c32;
-  --surface-bg-higher: #574b41;
-  --surface-bg-highest: #65584e;
+  --surface-canvas-lowest: #120903;
+  --surface-canvas-lower: #1e130b;
+  --surface-canvas-low: #2b2017;
+  --surface-canvas: #392e24;
+  --surface-canvas-high: #483c32;
+  --surface-canvas-higher: #574b41;
+  --surface-canvas-highest: #65584e;
 
   /* Primary */
   --surface-primary-lowest: #160700;
@@ -280,11 +285,11 @@
   --border-alternate-strong: #bdbebe;
 
   /* Background */
-  --border-bg-faint: #2a1f16;
-  --border-bg-subtle: #4c4036;
-  --border-bg: #75675d;
-  --border-bg-medium: #a09287;
-  --border-bg-strong: #cabbaf;
+  --border-canvas-faint: #2a1f16;
+  --border-canvas-subtle: #4c4036;
+  --border-canvas: #75675d;
+  --border-canvas-medium: #a09287;
+  --border-canvas-strong: #cabbaf;
 
   /* Primary */
   --border-primary-faint: #361900;
@@ -348,11 +353,11 @@
   --text-inverted: var(--color-neutral-900);
 
   /* Background */
-  --text-bg: #b2a498;
-  --text-bg-secondary: #9c9086;
-  --text-bg-tertiary: #726a64;
-  --text-bg-muted: #4a4744;
-  --text-bg-disabled: #383634;
+  --text-canvas: #b2a498;
+  --text-canvas-secondary: #9c9086;
+  --text-canvas-tertiary: #726a64;
+  --text-canvas-muted: #4a4744;
+  --text-canvas-disabled: #383634;
 
   /* Primary */
   --text-primary-color: #ec9546;
@@ -402,16 +407,6 @@
   --text-danger-tertiary: #a84950;
   --text-danger-muted: #65393b;
   --text-danger-disabled: #463030;
-
-  /* ═══════════════════════════════════════════════════════
-     BUTTONS
-     ═══════════════════════════════════════════════════════ */
-
-  /* Button Colors */
-  --btn-primary-bg: hsla(0, 63%, 31%, 1);
-  --btn-primary-hover: hsla(0, 70%, 35%, 1);
-  --btn-secondary-bg: hsla(215, 19%, 27%, 1);
-  --btn-secondary-hover: hsla(215, 14%, 34%, 1);
 
   /* Border Radius */
   --radius-none: 0;
@@ -473,42 +468,42 @@
   --font-mono: "fira-code", "Source Code Pro", "Courier New", monospace;
 
   /* Font Sizes */
-  --font-xs: 0.875rem;    /* 14px */
-  --font-sm: 1rem;        /* 16px */
-  --font-md: 1.125rem;    /* 18px */
-  --font-lg: 1.25rem;     /* 20px */
-  --font-xl: 1.375rem;    /* 22px */
-  --font-2xl: 1.625rem;   /* 26px */
-  --font-3xl: 2rem;       /* 32px */
-  --font-4xl: 2.5rem;     /* 40px */
-  --font-5xl: 3rem;       /* 48px */
-  --font-6xl: 3.5rem;     /* 56px */
+  --font-size-xs: 0.875rem;    /* 14px */
+  --font-size-sm: 1rem;        /* 16px */
+  --font-size-md: 1.125rem;    /* 18px */
+  --font-size-lg: 1.25rem;     /* 20px */
+  --font-size-xl: 1.375rem;    /* 22px */
+  --font-size-2xl: 1.625rem;   /* 26px */
+  --font-size-3xl: 2rem;       /* 32px */
+  --font-size-4xl: 2.5rem;     /* 40px */
+  --font-size-5xl: 3rem;       /* 48px */
+  --font-size-6xl: 3.5rem;     /* 56px */
 
-  /* Font Weights */
+  /* Font Weights (OpenType numeric ↔ name mapping per CSS spec) */
   --font-weight-thin: 100;
-  --font-weight-light: 200;
-  --font-weight-medium: 300;
-  --font-weight-semibold: 400;
-  --font-weight-bold: 600;
+  --font-weight-extralight: 200;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
 
   /* Gradients */
   --gradient-progress: linear-gradient(90deg, var(--color-primary-500), var(--color-accent-500));
 
-  /* Shadows */
+  /* Shadows (elevation scale) */
   --shadow-sm: 1px 1px 2px 0px hsla(237, 18%, 3%, 0.9);
   --shadow-md: 3px 3px 6px 0px hsla(237, 18%, 3%, 0.9);
   --shadow-lg: 5px 5px 9px 0px hsla(237, 18%, 3%, 0.9);
   --shadow-xl: 6px 7px 13px 0px hsla(237, 18%, 3%, 0.9);
   --shadow-2xl: 8px 9px 16px 0px hsla(237, 18%, 3%, 0.9);
-  --shadow-card: 0px 4px 8px 0px hsla(0, 0%, 0%, 0.2);
-  --shadow-overlay: 0px 10px 40px 0px hsla(0, 0%, 0%, 0.5);
-  --shadow-app: 0px 0px 20px 0px hsla(0, 0%, 0%, 0.8);
-  --shadow-focus: 0px 0px 0px 3px hsla(0, 78%, 60%, 0.1);
-  --shadow-glow-green: 0px 0px 5px 0px hsla(123, 25%, 70%, 0.3);
 
-  /* Text Shadows */
-  --text-shadow-sm: 1px 1px 2px hsla(0, 0%, 0%, 0.5);
-  --text-shadow-md: 2px 2px 4px hsla(0, 0%, 0%, 0.3);
+  /* Focus Rings (box-shadow-as-outline: only spread + color varies) */
+  --ring-focus-sm: 0 0 0 2px hsla(0, 78%, 60%, 0.1);
+  --ring-focus-md: 0 0 0 3px hsla(0, 78%, 60%, 0.1);
+  --ring-focus-lg: 0 0 0 4px hsla(0, 78%, 60%, 0.1);
 
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -530,28 +525,11 @@
   --opacity-muted: 0.5;
 
   /* Line Heights */
-  --line-height-tight: .9;
-  --line-height-snug: 1;
-  --line-height-normal: 1.25;
+  --line-height-tight: 1;
+  --line-height-snug: 1.2;
+  --line-height-normal: 1.4;
   --line-height-relaxed: 1.5;
-  --line-height-loose: 1.5;
-
-  /* Exported token additions */
-  --border: #686b69;
-
-  /* Exported token additions */
-  --surface-lowest: #090c0a;
-  --surface-lower: #0f1210;
-  --surface-low: #161a17;
-  --surface: #1e211f;
-  --surface-high: #262927;
-  --surface-higher: #2e322f;
-  --surface-highest: #353936;
-  --border-faint: #1f2320;
-  --border-subtle: #404441;
-  --border-medium: #929693;
-  --border-strong: #bbbfbc;
-  --border-neutral: #706964;
+  --line-height-loose: 2;
 
   /* Exported token additions */
   --text-alternate: #9fa1a1;
@@ -565,31 +543,31 @@
    RESPONSIVE TYPE SCALE
    Font size variables ramp down on smaller viewports so
    every heading + body style that references them adapts
-   automatically. Body text (--font-md) collapses to 16px
+   automatically. Body text (--font-size-md) collapses to 16px
    on mobile for improved readability.
    ═══════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
   :root {
-    --font-xs: 0.8125rem;   /* 13px */
-    --font-sm: 0.9375rem;   /* 15px */
-    --font-md: 1rem;        /* 16px */
-    --font-lg: 1.125rem;    /* 18px */
-    --font-xl: 1.25rem;     /* 20px */
-    --font-2xl: 1.4375rem;  /* 23px */
-    --font-3xl: 1.625rem;   /* 26px */
-    --font-4xl: 1.875rem;   /* 30px */
-    --font-5xl: 2.25rem;    /* 36px */
-    --font-6xl: 2.5rem;     /* 40px */
+    --font-size-xs: 0.8125rem;   /* 13px */
+    --font-size-sm: 0.9375rem;   /* 15px */
+    --font-size-md: 1rem;        /* 16px */
+    --font-size-lg: 1.125rem;    /* 18px */
+    --font-size-xl: 1.25rem;     /* 20px */
+    --font-size-2xl: 1.4375rem;  /* 23px */
+    --font-size-3xl: 1.625rem;   /* 26px */
+    --font-size-4xl: 1.875rem;   /* 30px */
+    --font-size-5xl: 2.25rem;    /* 36px */
+    --font-size-6xl: 2.5rem;     /* 40px */
   }
 }
 
 @media (max-width: 480px) {
   :root {
-    --font-2xl: 1.3125rem;  /* 21px */
-    --font-3xl: 1.5rem;     /* 24px */
-    --font-4xl: 1.625rem;   /* 26px */
-    --font-5xl: 1.875rem;   /* 30px */
-    --font-6xl: 2.125rem;   /* 34px */
+    --font-size-2xl: 1.3125rem;  /* 21px */
+    --font-size-3xl: 1.5rem;     /* 24px */
+    --font-size-4xl: 1.625rem;   /* 26px */
+    --font-size-5xl: 1.875rem;   /* 30px */
+    --font-size-6xl: 2.125rem;   /* 34px */
   }
 }

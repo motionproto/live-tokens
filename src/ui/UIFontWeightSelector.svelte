@@ -14,10 +14,14 @@
 
   const options = [
     { key: 'thin', label: 'Thin', weight: '100' },
-    { key: 'light', label: 'Light', weight: '200' },
-    { key: 'medium', label: 'Medium', weight: '300' },
-    { key: 'semibold', label: 'Semibold', weight: '400' },
-    { key: 'bold', label: 'Bold', weight: '600' },
+    { key: 'extralight', label: 'Extra Light', weight: '200' },
+    { key: 'light', label: 'Light', weight: '300' },
+    { key: 'normal', label: 'Normal', weight: '400' },
+    { key: 'medium', label: 'Medium', weight: '500' },
+    { key: 'semibold', label: 'Semibold', weight: '600' },
+    { key: 'bold', label: 'Bold', weight: '700' },
+    { key: 'extrabold', label: 'Extra Bold', weight: '800' },
+    { key: 'black', label: 'Black', weight: '900' },
   ];
 
   let selector: UITokenSelector;
@@ -115,7 +119,7 @@
     display: inline-block;
     width: 1.5rem;
     text-align: center;
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-primary);
     line-height: 1;
   }

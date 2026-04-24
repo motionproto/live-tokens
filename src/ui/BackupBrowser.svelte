@@ -367,7 +367,7 @@
 
   .filter-tabs button {
     padding: var(--ui-space-4) var(--ui-space-12);
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     background: none;
     border: none;
     color: var(--text-tertiary);
@@ -386,13 +386,13 @@
   }
 
   .restore-warn {
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     color: var(--text-warning, #e6a030);
   }
 
   .action-btn {
     padding: var(--ui-space-4) var(--ui-space-12);
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     font-weight: var(--ui-font-weight-medium);
     border: 1px solid var(--border-neutral-subtle);
     border-radius: var(--ui-radius-md);
@@ -491,7 +491,7 @@
   }
 
   .backup-name {
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     font-weight: var(--ui-font-weight-medium);
     white-space: nowrap;
     overflow: hidden;
@@ -499,7 +499,7 @@
   }
 
   .backup-meta {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--text-muted);
   }
 
@@ -518,7 +518,7 @@
     gap: var(--ui-space-8);
     padding: var(--ui-space-8) var(--ui-space-16);
     border-bottom: 1px solid var(--border-neutral-faint);
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     color: var(--text-secondary);
     flex-shrink: 0;
   }
@@ -540,7 +540,7 @@
     display: flex;
     align-items: center;
     gap: var(--ui-space-4);
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--text-muted);
   }
 
@@ -612,6 +612,6 @@
     height: 100%;
     min-height: 80px;
     color: var(--text-muted);
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
   }
 </style>

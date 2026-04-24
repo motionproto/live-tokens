@@ -78,7 +78,7 @@
 
   .sidebar-header {
     padding: var(--ui-space-16) var(--ui-space-16) var(--ui-space-12);
-    font-size: var(--ui-font-lg);
+    font-size: var(--ui-font-size-lg);
     font-weight: var(--ui-font-weight-bold);
     color: var(--ui-text-primary);
     background: black;
@@ -102,7 +102,7 @@
     border: none;
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-tertiary);
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     cursor: pointer;
     text-align: left;
     transition: all var(--ui-transition-fast);
@@ -121,13 +121,13 @@
   .nav-item i {
     width: 1.25rem;
     text-align: center;
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     opacity: 0.7;
   }
 
   .nav-divider-label {
     padding: var(--ui-space-12) var(--ui-space-12) var(--ui-space-4);
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
     text-transform: uppercase;

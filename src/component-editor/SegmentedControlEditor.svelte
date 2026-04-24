@@ -25,7 +25,7 @@
 
   const dividerTokens: Token[] = [
     { label: 'color', variable: '--segment-divider-color' },
-    { label: 'width', canBeShared: true, variable: '--segment-divider-width' },
+    { label: 'width', canBeShared: true, variable: '--segment-divider-thickness' },
     { label: 'height', canBeShared: true, variable: '--segment-divider-height' },
   ];
 
@@ -69,7 +69,7 @@
   const shareableContexts = new Map<string, string>([
     ['--segment-bar-border-width', 'control bar'],
     ['--segment-bar-radius', 'control bar'],
-    ['--segment-divider-width', 'divider'],
+    ['--segment-divider-thickness', 'divider'],
     ['--segment-divider-height', 'divider'],
     ['--segment-option-text-font-family', 'default option'],
     ['--segment-option-text-font-weight', 'default option'],
@@ -137,7 +137,7 @@
       highlightedVars = new Set();
       return;
     }
-    const group = sharedGroups.find((g) => g.token.variable === v);
+    const group = sharedGroups.find((g) => g.variables.includes(v));
     highlightedVars = group ? new Set(group.variables) : new Set();
   }
 
@@ -172,6 +172,7 @@
         tokens={sharedGroups.map((g) => ({ ...g.token, disabled: !g.shared }))}
         {component}
         contexts={sharedContexts}
+        {highlightedVars}
         {sharedOrder}
         on:tokenhover={handleTokenHover}
         on:change
@@ -180,21 +181,21 @@
   {/if}
 
   <FieldsetWrapper legend="control bar">
-    <TokenLayout tokens={visibleBarTokens} {component} {highlightedVars} {sharedOrder} on:change />
+    <TokenLayout tokens={visibleBarTokens} {component} {highlightedVars} {sharedOrder} on:tokenhover={handleTokenHover} on:change />
   </FieldsetWrapper>
 
   <FieldsetWrapper legend="divider">
-    <TokenLayout tokens={visibleDividerTokens} {component} {highlightedVars} {sharedOrder} on:change />
+    <TokenLayout tokens={visibleDividerTokens} {component} {highlightedVars} {sharedOrder} on:tokenhover={handleTokenHover} on:change />
   </FieldsetWrapper>
 
   <FieldsetWrapper legend="{optionState} option">
     {#key optionState}
-      <TokenLayout tokens={visibleOptionTokens} {component} {highlightedVars} {sharedOrder} on:change />
+      <TokenLayout tokens={visibleOptionTokens} {component} {highlightedVars} {sharedOrder} on:tokenhover={handleTokenHover} on:change />
     {/key}
   </FieldsetWrapper>
 
   <FieldsetWrapper legend="selected option">
-    <TokenLayout tokens={visibleSelectedTokens} {component} {highlightedVars} {sharedOrder} on:change />
+    <TokenLayout tokens={visibleSelectedTokens} {component} {highlightedVars} {sharedOrder} on:tokenhover={handleTokenHover} on:change />
   </FieldsetWrapper>
 </ComponentEditorBase>
 
@@ -212,7 +213,7 @@
   }
 
   .state-label {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-medium);
     color: var(--ui-text-secondary);
   }
@@ -223,7 +224,7 @@
     border: 1px solid var(--ui-border-subtle);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-primary);
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     font-family: var(--ui-font-mono);
     cursor: pointer;
     align-self: flex-start;

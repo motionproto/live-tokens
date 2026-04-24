@@ -49,13 +49,13 @@
 
     /* Divider (line between non-selected options) */
     --segment-divider-color: var(--border-neutral-default);
-    --segment-divider-width: var(--border-width-thin);
+    --segment-divider-thickness: var(--border-width-thin);
     --segment-divider-height: var(--space-12);
 
     /* Option — default */
     --segment-option-text: var(--text-primary);
     --segment-option-text-font-family: var(--font-sans);
-    --segment-option-text-font-weight: var(--font-weight-semibold);
+    --segment-option-text-font-weight: var(--font-weight-normal);
     --segment-option-icon: var(--text-secondary);
 
     /* Option — hover */
@@ -66,13 +66,13 @@
     /* Option — disabled */
     --segment-option-disabled-surface: var(--surface-neutral-high);
     --segment-option-disabled-text: var(--text-tertiary);
-    --segment-option-disabled-text-font-weight: var(--font-weight-medium);
+    --segment-option-disabled-text-font-weight: var(--font-weight-light);
     --segment-option-disabled-icon: var(--text-tertiary);
 
     /* Selected (inner pill) */
     --segment-selected-surface: var(--surface-success-high);
     --segment-selected-text: var(--text-primary);
-    --segment-selected-text-font-weight: var(--font-weight-bold);
+    --segment-selected-text-font-weight: var(--font-weight-semibold);
     --segment-selected-icon: var(--text-secondary);
     --segment-selected-border: var(--border-success);
     --segment-selected-border-width: var(--border-width-thin);
@@ -98,7 +98,7 @@
     border-radius: var(--segment-selected-radius);
     color: var(--segment-option-text);
     font-family: var(--segment-option-text-font-family);
-    font-size: var(--font-md);
+    font-size: var(--font-size-md);
     font-weight: var(--segment-option-text-font-weight);
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
@@ -106,7 +106,7 @@
   }
 
   .segment i {
-    font-size: var(--font-lg);
+    font-size: var(--font-size-lg);
     color: var(--segment-option-icon);
     transition: color 0.15s;
   }
@@ -115,10 +115,10 @@
   .segment + .segment::before {
     content: '';
     position: absolute;
-    left: calc(var(--space-4) * -0.5 - var(--segment-divider-width) * 0.5);
+    left: calc(var(--space-4) * -0.5 - var(--segment-divider-thickness) * 0.5);
     top: 50%;
     transform: translateY(-50%);
-    width: var(--segment-divider-width);
+    width: var(--segment-divider-thickness);
     height: var(--segment-divider-height);
     background: var(--segment-divider-color);
   }

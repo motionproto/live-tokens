@@ -9,6 +9,7 @@
   import type { PaletteConfig, GradientStyle, GradientStop } from '../lib/themeTypes';
   import { editorState, mutate, setPaletteConfig, beginSliderGesture, beginPaletteEditSession, commitPaletteEditSession, cancelPaletteEditSession } from '../lib/editorStore';
   import { setCssVar as setCssVarSync } from '../lib/cssVarSync';
+  import { showCopyPopover } from '../lib/copyPopover';
   import { get } from 'svelte/store';
 
   export let label: string;
@@ -818,17 +819,19 @@
   }
 
   let copiedKey: string | null = null;
-  function copyHex(k: string, hex: string) {
+  function copyHex(k: string, hex: string, event?: MouseEvent) {
     navigator.clipboard.writeText(hex);
     copiedKey = k;
-    setTimeout(() => { copiedKey = null; }, 1000);
+    showCopyPopover(hex, event?.currentTarget ?? null);
+    setTimeout(() => { copiedKey = null; }, 1500);
   }
 
   let copiedLabelKey: string | null = null;
-  function copyVarName(k: string, varName: string) {
+  function copyVarName(k: string, varName: string, event?: MouseEvent) {
     navigator.clipboard.writeText(varName);
     copiedLabelKey = k;
-    setTimeout(() => { copiedLabelKey = null; }, 1000);
+    showCopyPopover(varName, event?.currentTarget ?? null);
+    setTimeout(() => { copiedLabelKey = null; }, 1500);
   }
 
   // --- Snap-all: constrain an entire scale to unique palette steps ---
@@ -1036,21 +1039,21 @@
     }
   }
 
-  // Empty selector: set --empty to the selected palette step color or gradient
+  // Empty selector: set --page-bg to the selected palette step color or gradient
   $: if (mountComplete && emptySelector) {
     if (emptyMode === 'solid') {
       const _pc = paletteComputed;
       const selected = _pc.find(ps => ps.label === emptyStep);
       if (selected) {
-        setCssVar('--empty', selected.effective);
+        setCssVar('--page-bg', selected.effective);
       }
-      setCssVar('--empty-attachment', 'scroll');
+      setCssVar('--page-bg-attachment', 'scroll');
     } else {
       const _grad = gradientCssValue;
       if (_grad) {
-        setCssVar('--empty', _grad);
+        setCssVar('--page-bg', _grad);
       }
-      setCssVar('--empty-attachment', gradientSize === 'window' ? 'fixed' : 'scroll');
+      setCssVar('--page-bg-attachment', gradientSize === 'window' ? 'fixed' : 'scroll');
     }
   }
 
@@ -1106,13 +1109,13 @@
           <button
             class="base-hex clickable-hex"
             type="button"
-            on:click={() => copyHex(BASE_KEY, baseColor)}
+            on:click={(e) => copyHex(BASE_KEY, baseColor, e)}
           >{copiedKey === BASE_KEY ? 'copied!' : baseColor}</button>
         {:else}
           <button
             class="base-hex clickable-hex"
             type="button"
-            on:click={() => copyHex('gray-500', gray500Hex)}
+            on:click={(e) => copyHex('gray-500', gray500Hex, e)}
           >{copiedKey === 'gray-500' ? 'copied!' : gray500Hex}</button>
         {/if}
       </div>
@@ -1165,14 +1168,14 @@
       </div>
       <div class="swatch-grid" style="--swatch-cols: {paletteStepLightness.length + 2}">
         <div class="step-column">
-          <button class="step-label copyable-label" class:copied={copiedLabelKey === 'palette-white'} type="button" on:click={() => copyVarName('palette-white', `--color-${cssNamespace}-white`)}>
+          <button class="step-label copyable-label" class:copied={copiedLabelKey === 'palette-white'} type="button" on:click={(e) => copyVarName('palette-white', `--color-${cssNamespace}-white`, e)}>
             {copiedLabelKey === 'palette-white' ? 'copied!' : 'white'}
           </button>
           <div class="swatch gray-swatch bookend" style="background: #ffffff"></div>
         </div>
         {#each paletteComputed as ps}
           <div class="step-column">
-            <button class="step-label copyable-label" class:copied={copiedLabelKey === ps.key} type="button" on:click={() => copyVarName(ps.key, `--color-${cssNamespace}-${ps.label}`)}>
+            <button class="step-label copyable-label" class:copied={copiedLabelKey === ps.key} type="button" on:click={(e) => copyVarName(ps.key, `--color-${cssNamespace}-${ps.label}`, e)}>
               {copiedLabelKey === ps.key ? 'copied!' : ps.label}
             </button>
             <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
@@ -1204,12 +1207,12 @@
               class="step-hex"
               class:copied={copiedKey === ps.key}
               type="button"
-              on:click={() => copyHex(ps.key, ps.effective)}
+              on:click={(e) => copyHex(ps.key, ps.effective, e)}
             >{copiedKey === ps.key ? 'copied!' : ps.effective}</button>
           </div>
         {/each}
         <div class="step-column">
-          <button class="step-label copyable-label" class:copied={copiedLabelKey === 'palette-black'} type="button" on:click={() => copyVarName('palette-black', `--color-${cssNamespace}-black`)}>
+          <button class="step-label copyable-label" class:copied={copiedLabelKey === 'palette-black'} type="button" on:click={(e) => copyVarName('palette-black', `--color-${cssNamespace}-black`, e)}>
             {copiedLabelKey === 'palette-black' ? 'copied!' : 'black'}
           </button>
           <div class="swatch gray-swatch bookend" style="background: #000000"></div>
@@ -1400,7 +1403,7 @@
             {@const k = stepKey(scale.title, step.name)}
             {@const hex = effectiveColor(k, step, scale.title, curveVersion)}
             <div class="step-column">
-              <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={() => { const v = scaleToCssVar(scale.title, step.name); if (v) copyVarName(k, v); }}>
+              <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name); if (v) copyVarName(k, v, e); }}>
                 {copiedLabelKey === k ? 'copied!' : step.name}
               </button>
               <div
@@ -1433,7 +1436,7 @@
                 class="step-hex"
                 class:copied={copiedKey === k}
                 type="button"
-                on:click={() => copyHex(k, hex)}
+                on:click={(e) => copyHex(k, hex, e)}
               >{copiedKey === k ? 'copied!' : hex}</button>
             </div>
           {/each}
@@ -1486,7 +1489,7 @@
             {@const k = stepKey(scale.title, step.name)}
             {@const hex = effectiveColor(k, step, scale.title, curveVersion)}
             <div class="step-column">
-              <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={() => { const v = scaleToCssVar(scale.title, step.name); if (v) copyVarName(k, v); }}>
+              <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name); if (v) copyVarName(k, v, e); }}>
                 {copiedLabelKey === k ? 'copied!' : step.name}
               </button>
               <div
@@ -1549,7 +1552,7 @@
                 class="step-hex"
                 class:copied={copiedKey === k}
                 type="button"
-                on:click={() => copyHex(k, hex)}
+                on:click={(e) => copyHex(k, hex, e)}
               >{copiedKey === k ? 'copied!' : hex}</button>
             </div>
           {/each}
@@ -1592,14 +1595,14 @@
     </div>
     <div class="swatch-grid" style="--swatch-cols: {graySteps.length + 2}">
       <div class="step-column">
-        <button class="step-label copyable-label" class:copied={copiedLabelKey === 'gray-white'} type="button" on:click={() => copyVarName('gray-white', `--color-${cssNamespace}-white`)}>
+        <button class="step-label copyable-label" class:copied={copiedLabelKey === 'gray-white'} type="button" on:click={(e) => copyVarName('gray-white', `--color-${cssNamespace}-white`, e)}>
           {copiedLabelKey === 'gray-white' ? 'copied!' : 'white'}
         </button>
         <div class="swatch gray-swatch bookend" style="background: #ffffff"></div>
       </div>
       {#each grayEffective as g}
         <div class="step-column">
-          <button class="step-label copyable-label" class:copied={copiedLabelKey === g.key} type="button" on:click={() => copyVarName(g.key, `--color-${cssNamespace}-${g.step.label}`)}>
+          <button class="step-label copyable-label" class:copied={copiedLabelKey === g.key} type="button" on:click={(e) => copyVarName(g.key, `--color-${cssNamespace}-${g.step.label}`, e)}>
             {copiedLabelKey === g.key ? 'copied!' : g.step.label}
           </button>
           <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
@@ -1621,12 +1624,12 @@
             class="step-hex"
             class:copied={copiedKey === g.key}
             type="button"
-            on:click={() => copyHex(g.key, g.effective)}
+            on:click={(e) => copyHex(g.key, g.effective, e)}
           >{copiedKey === g.key ? 'copied!' : g.effective}</button>
         </div>
       {/each}
       <div class="step-column">
-        <button class="step-label copyable-label" class:copied={copiedLabelKey === 'gray-black'} type="button" on:click={() => copyVarName('gray-black', `--color-${cssNamespace}-black`)}>
+        <button class="step-label copyable-label" class:copied={copiedLabelKey === 'gray-black'} type="button" on:click={(e) => copyVarName('gray-black', `--color-${cssNamespace}-black`, e)}>
           {copiedLabelKey === 'gray-black' ? 'copied!' : 'black'}
         </button>
         <div class="swatch gray-swatch bookend" style="background: #000000"></div>
@@ -1683,7 +1686,7 @@
           {@const k = stepKey(scale.title, step.name)}
           {@const hex = effectiveColor(k, step, scale.title, curveVersion)}
           <div class="step-column">
-            <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={() => { const v = scaleToCssVar(scale.title, step.name); if (v) copyVarName(k, v); }}>
+            <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name); if (v) copyVarName(k, v, e); }}>
               {copiedLabelKey === k ? 'copied!' : step.name}
             </button>
             <div
@@ -1716,7 +1719,7 @@
               class="step-hex"
               class:copied={copiedKey === k}
               type="button"
-              on:click={() => copyHex(k, hex)}
+              on:click={(e) => copyHex(k, hex, e)}
             >{copiedKey === k ? 'copied!' : hex}</button>
           </div>
         {/each}
@@ -1761,7 +1764,7 @@
             {@const k = stepKey(scale.title, step.name)}
             {@const hex = effectiveColor(k, step, scale.title, curveVersion)}
             <div class="step-column">
-              <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={() => { const v = scaleToCssVar(scale.title, step.name); if (v) copyVarName(k, v); }}>
+              <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name); if (v) copyVarName(k, v, e); }}>
                 {copiedLabelKey === k ? 'copied!' : step.name}
               </button>
               <div
@@ -1803,7 +1806,7 @@
                 class="step-hex"
                 class:copied={copiedKey === k}
                 type="button"
-                on:click={() => copyHex(k, hex)}
+                on:click={(e) => copyHex(k, hex, e)}
               >{copiedKey === k ? 'copied!' : hex}</button>
             </div>
           {/each}
@@ -1909,13 +1912,13 @@
 
 
   .editor-label {
-    font-size: var(--ui-font-lg);
+    font-size: var(--ui-font-size-lg);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
   }
 
   .base-hex {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     font-family: var(--ui-font-mono);
   }
@@ -1926,7 +1929,7 @@
     cursor: pointer;
     padding: var(--ui-space-2) var(--ui-space-4);
     border-radius: var(--ui-radius-sm);
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     font-family: var(--ui-font-mono);
   }
@@ -1945,7 +1948,7 @@
   }
 
   .edit-toggle {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-tertiary);
     background: none;
     border: 1px solid var(--ui-border-subtle);
@@ -1977,7 +1980,7 @@
     background: none;
     border: none;
     color: var(--ui-text-tertiary);
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     font-weight: var(--ui-font-weight-semibold);
     cursor: pointer;
     transition: color var(--ui-transition-fast);
@@ -1990,7 +1993,7 @@
   }
 
   .derived-toggle i {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     width: 0.75rem;
     text-align: center;
   }
@@ -2013,7 +2016,7 @@
   }
 
   .scale-title {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
     margin: 0;
@@ -2035,11 +2038,11 @@
   }
 
   .step-label {
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     color: var(--ui-text-secondary);
     text-align: center;
     line-height: 1;
-    height: var(--ui-font-xs);
+    height: var(--ui-font-size-xs);
     display: flex;
     align-items: flex-end;
   }
@@ -2050,7 +2053,7 @@
     padding: 0;
     cursor: pointer;
     font: inherit;
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     justify-content: center;
     transition: color var(--ui-transition-fast);
   }
@@ -2077,7 +2080,7 @@
     align-items: center;
     justify-content: center;
     background: none;
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-bold);
   }
 
@@ -2168,7 +2171,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-semibold);
     color: white;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
@@ -2208,7 +2211,7 @@
     border-radius: var(--ui-radius-sm);
     cursor: pointer;
     color: var(--ui-text-secondary);
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     font-family: var(--ui-font-mono);
     white-space: nowrap;
   }
@@ -2240,7 +2243,7 @@
   /* Step hex values */
 
   .step-hex {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     font-family: var(--ui-font-mono);
     cursor: pointer;
@@ -2314,7 +2317,7 @@
     display: flex;
     align-items: center;
     gap: var(--ui-space-6);
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-secondary);
     cursor: pointer;
     user-select: none;
@@ -2352,7 +2355,7 @@
     justify-content: center;
     width: 100%;
     height: 100%;
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     font-weight: bold;
     color: black;
     line-height: 1;
@@ -2377,7 +2380,7 @@
   }
 
   .gradient-label {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-secondary);
     min-width: 36px;
     flex-shrink: 0;
@@ -2396,7 +2399,7 @@
     background: var(--ui-surface-lowest);
     color: var(--ui-text-secondary);
     cursor: pointer;
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2422,7 +2425,7 @@
   .gradient-pos-input {
     width: 52px;
     padding: 2px 6px;
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-subtle);
     border-radius: var(--ui-radius-md);
@@ -2438,7 +2441,7 @@
   }
 
   .gradient-unit {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-tertiary);
   }
 
@@ -2446,7 +2449,7 @@
     display: flex;
     align-items: center;
     gap: var(--ui-space-6);
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-secondary);
     cursor: pointer;
     user-select: none;
@@ -2459,7 +2462,7 @@
 
   .gradient-select {
     padding: 2px 6px;
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-subtle);
     border-radius: var(--ui-radius-md);
@@ -2553,7 +2556,7 @@
     background: var(--ui-surface-lowest);
     color: var(--ui-text-tertiary);
     cursor: pointer;
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     display: flex;
     align-items: center;
     justify-content: center;

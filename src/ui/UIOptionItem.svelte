@@ -59,13 +59,13 @@
 
   .ui-option-label {
     flex: 1;
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     color: var(--ui-text-primary);
     text-align: left;
   }
 
   .ui-option-meta {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-tertiary);
     font-family: var(--ui-font-mono);
   }

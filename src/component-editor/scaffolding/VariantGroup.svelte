@@ -201,7 +201,7 @@
     border: 1px solid var(--ui-border-subtle);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-muted);
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     cursor: pointer;
     transition: all var(--ui-transition-fast);
   }
@@ -225,7 +225,7 @@
   }
 
   .state-label {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-medium);
     color: var(--ui-text-secondary);
   }
@@ -236,7 +236,7 @@
     border: 1px solid var(--ui-border-subtle);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-primary);
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     font-family: var(--ui-font-mono);
     cursor: pointer;
     transition: all var(--ui-transition-fast);
@@ -288,7 +288,7 @@
     border: 1px solid var(--ui-border-subtle);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-secondary);
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     font-family: var(--ui-font-mono);
     white-space: pre-wrap;
     word-break: break-word;

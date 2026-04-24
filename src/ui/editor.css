@@ -121,12 +121,12 @@
 
   /* ── Font sizes ──────────────────────────────────────── */
 
-  --ui-font-xs:  0.8125rem;  /* 13px — tight labels, meta only */
-  --ui-font-sm:  0.875rem;   /* 14px — default body */
-  --ui-font-md:  0.9375rem;  /* 15px — prominent body / buttons */
-  --ui-font-lg:  1.0625rem;  /* 17px — section headings */
-  --ui-font-xl:  1.1875rem;  /* 19px */
-  --ui-font-2xl: 1.3125rem;  /* 21px */
+  --ui-font-size-xs:  0.8125rem;  /* 13px — tight labels, meta only */
+  --ui-font-size-sm:  0.875rem;   /* 14px — default body */
+  --ui-font-size-md:  0.9375rem;  /* 15px — prominent body / buttons */
+  --ui-font-size-lg:  1.0625rem;  /* 17px — section headings */
+  --ui-font-size-xl:  1.1875rem;  /* 19px */
+  --ui-font-size-2xl: 1.3125rem;  /* 21px */
 
 
   /* ── Font weights ────────────────────────────────────── */

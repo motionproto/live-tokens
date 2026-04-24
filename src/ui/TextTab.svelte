@@ -125,7 +125,7 @@
   }
 
   .group-title {
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-secondary);
     margin: 0;
@@ -151,7 +151,7 @@
   }
 
   .text-color-preview {
-    font-size: var(--font-4xl);
+    font-size: var(--font-size-4xl);
     font-weight: var(--ui-font-weight-bold);
     line-height: 1;
   }
@@ -165,14 +165,14 @@
   }
 
   .text-color-name {
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
   }
 
   .text-color-name.copyable {
     all: unset;
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
     cursor: pointer;
@@ -188,7 +188,7 @@
   }
 
   .text-color-variable {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-tertiary);
     font-family: var(--ui-font-mono);
     background: var(--ui-surface-lowest);
@@ -197,7 +197,7 @@
   }
 
   .text-color-description {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-muted);
   }
 </style>

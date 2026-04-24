@@ -38,12 +38,12 @@
     display: inline-flex;
     align-items: center;
     gap: var(--space-6);
-    font-size: var(--font-sm);
+    font-size: var(--font-size-sm);
     line-height: 1;
     padding: var(--space-6) var(--space-12);
     border-radius: var(--radius-full);
     font-family: var(--font-sans);
-    font-weight: var(--font-weight-medium);
+    font-weight: var(--font-weight-light);
     white-space: nowrap;
   }
 
@@ -58,7 +58,7 @@
   }
 
   .badge-small {
-    font-size: var(--font-xs);
+    font-size: var(--font-size-xs);
     padding: var(--space-6) var(--space-12);
     gap: var(--space-4);
   }
@@ -90,7 +90,7 @@
     background: rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-normal);
     letter-spacing: 0.02em;
   }
 

@@ -104,14 +104,14 @@
   }
 
   .radio-icon {
-    font-size: var(--font-lg);
+    font-size: var(--font-size-lg);
     color: var(--radio-color);
     line-height: 1;
   }
 
   .radio-label {
-    font-size: var(--font-md);
-    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
     color: var(--radio-label);
     line-height: 1;
   }

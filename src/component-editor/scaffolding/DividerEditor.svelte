@@ -74,7 +74,7 @@
   }
 
   .label {
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     color: var(--ui-text-secondary);
     padding-left: var(--ui-space-2);
   }

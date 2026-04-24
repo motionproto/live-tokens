@@ -337,14 +337,14 @@
   }
 
   .active-label {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
   .active-name {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
   }
@@ -365,7 +365,7 @@
     border: 1px solid var(--ui-border-subtle);
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-secondary);
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     cursor: pointer;
     transition: all var(--ui-transition-fast);
     white-space: nowrap;
@@ -379,7 +379,7 @@
   .tfm-btn:hover:not(:disabled) {
     background: var(--ui-surface);
     color: var(--ui-text-primary);
-    border-color: var(--border);
+    border-color: var(--ui-border-default);
   }
 
   .tfm-btn:disabled {
@@ -447,7 +447,7 @@
     border: 1px solid var(--ui-border-subtle);
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-primary);
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     outline: none;
   }
 
@@ -471,7 +471,7 @@
     border: 1px solid var(--ui-border-subtle);
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-secondary);
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     cursor: pointer;
     transition: all var(--ui-transition-fast);
   }
@@ -479,7 +479,7 @@
   .inline-btn:hover:not(:disabled) {
     background: var(--ui-surface);
     color: var(--ui-text-primary);
-    border-color: var(--border);
+    border-color: var(--ui-border-default);
   }
 
   .inline-btn:disabled {
@@ -584,7 +584,7 @@
   }
 
   .status-label {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     letter-spacing: 0.02em;
   }
 
@@ -614,14 +614,14 @@
   }
 
   .production-label {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
   .production-name {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
   }
@@ -642,14 +642,14 @@
   .production-update-btn.error { color: var(--ui-text-muted); }
 
   .production-match {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     padding: 0 var(--ui-space-4);
     letter-spacing: 0.02em;
   }
 
   .production-diff {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-warning, #e6a030);
     padding: 0 var(--ui-space-4);
     letter-spacing: 0.02em;

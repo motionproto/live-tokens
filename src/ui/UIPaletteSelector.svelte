@@ -15,7 +15,7 @@
   const families = [
     { name: 'neutral', label: 'Neutral' },
     { name: 'alternate', label: 'Alternate' },
-    { name: 'bg', label: 'Background' },
+    { name: 'canvas', label: 'Background' },
     { name: 'primary', label: 'Primary' },
     { name: 'accent', label: 'Accent' },
     { name: 'special', label: 'Special' },
@@ -59,7 +59,7 @@
   const borderStepKeys = borderSteps.map(s => s.key);
   const textStepKeys = textSteps.map(s => s.key);
 
-  const familiesWithText = ['neutral', 'bg', 'primary', 'accent', 'special', 'success', 'warning', 'info', 'danger'];
+  const familiesWithText = ['neutral', 'canvas', 'primary', 'accent', 'special', 'success', 'warning', 'info', 'danger'];
 
   const allCategories: { id: Category; label: string }[] = [
     { id: 'palette', label: 'Palette' },
@@ -464,7 +464,7 @@
   }
 
   .opacity-label {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     flex-shrink: 0;
   }
@@ -496,7 +496,7 @@
     border: 1px solid var(--ui-border-subtle);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-primary);
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     font-family: var(--ui-font-mono);
     text-align: right;
     -moz-appearance: textfield;
@@ -509,7 +509,7 @@
   }
 
   .opacity-unit {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-muted);
   }
 
@@ -523,7 +523,7 @@
     border: none;
     border-bottom: 1px solid var(--ui-border-faint);
     color: var(--ui-text-secondary);
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     font-weight: var(--ui-font-weight-medium);
     cursor: pointer;
     transition: background var(--ui-transition-fast);
@@ -549,7 +549,7 @@
     border: 1px solid transparent;
     border-radius: 0;
     color: var(--ui-text-muted);
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-medium);
     cursor: pointer;
     transition: all var(--ui-transition-fast);
@@ -641,7 +641,7 @@
 
   .family-label {
     flex: 1;
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     color: var(--ui-text-primary);
     text-align: left;
   }
@@ -696,7 +696,7 @@
   }
 
   .step-label {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     font-family: var(--ui-font-mono);
   }

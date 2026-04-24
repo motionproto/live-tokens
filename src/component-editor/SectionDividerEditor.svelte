@@ -8,13 +8,13 @@
   type Token = { label: string; variable: string; canBeShared?: boolean };
 
   const variantTokens: Record<string, Token[]> = {
-    bg: [
-      { label: 'gradient stop 1', variable: '--section-divider-bg-gradient-stop-1' },
-      { label: 'gradient stop 2', variable: '--section-divider-bg-gradient-stop-2' },
-      { label: 'gradient stop 3', variable: '--section-divider-bg-gradient-stop-3' },
-      { label: 'gradient stop 4', variable: '--section-divider-bg-gradient-stop-4' },
-      { label: 'text stroke color', variable: '--section-divider-bg-text-stroke' },
-      { label: 'radius', canBeShared: true, variable: '--section-divider-bg-radius' },
+    canvas: [
+      { label: 'gradient stop 1', variable: '--section-divider-canvas-gradient-stop-1' },
+      { label: 'gradient stop 2', variable: '--section-divider-canvas-gradient-stop-2' },
+      { label: 'gradient stop 3', variable: '--section-divider-canvas-gradient-stop-3' },
+      { label: 'gradient stop 4', variable: '--section-divider-canvas-gradient-stop-4' },
+      { label: 'text stroke color', variable: '--section-divider-canvas-text-stroke' },
+      { label: 'radius', canBeShared: true, variable: '--section-divider-canvas-radius' },
     ],
     neutral: [
       { label: 'gradient stop 1', variable: '--section-divider-neutral-gradient-stop-1' },
@@ -58,10 +58,10 @@
     ],
   };
 
-  type Variant = 'bg' | 'neutral' | 'alternate' | 'primary' | 'accent' | 'special';
+  type Variant = 'canvas' | 'neutral' | 'alternate' | 'primary' | 'accent' | 'special';
 
   const variants: { key: Variant; title: string }[] = [
-    { key: 'bg', title: 'Background' },
+    { key: 'canvas', title: 'Background' },
     { key: 'neutral', title: 'Neutral' },
     { key: 'alternate', title: 'Alternate' },
     { key: 'primary', title: 'Primary' },
@@ -73,7 +73,7 @@
     'These modules were created by other authors and are no longer actively maintained.';
 
   let showDescription: Record<Variant, boolean> = {
-    bg: false,
+    canvas: false,
     neutral: false,
     alternate: false,
     primary: false,
@@ -103,7 +103,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--ui-space-6);
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     cursor: pointer;
     user-select: none;

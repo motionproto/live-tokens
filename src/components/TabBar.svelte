@@ -79,8 +79,8 @@
     border: none;
     border-bottom: 2px solid transparent;
     color: var(--tabbar-default-text);
-    font-size: var(--font-md);
-    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-light);
     cursor: pointer;
     transition: all var(--transition-fast);
     position: relative;
@@ -108,6 +108,6 @@
   }
 
   .tab i {
-    font-size: var(--font-md);
+    font-size: var(--font-size-md);
   }
 </style>

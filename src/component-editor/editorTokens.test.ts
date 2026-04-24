@@ -34,11 +34,12 @@ function extractEditorVariables(file: string): string[] {
 
 /** Test whether a variable name fits a layer-1 design-token naming pattern. */
 function isLayer1TokenName(name: string): boolean {
-  if (/^--color-[a-z]+-\d{3}$/.test(name)) return true;
+  // Color ramps: --color-<palette>-<step>  OR semantic color primitives: --color-<name>
+  if (/^--color-[a-z]+(-\d{3})?$/.test(name)) return true;
   if (/^--surface-[a-z]+(-[a-z]+)?$/.test(name)) return true;
   if (/^--border-[a-z]+(-[a-z]+)?$/.test(name)) return true;
   if (/^--text-[a-z]+(-[a-z]+)?$/.test(name)) return true;
-  if (/^--(radius|space|font|shadow|transition|overlay|hover|empty|border-width)(-[a-z0-9]+)*$/.test(name)) return true;
+  if (/^--(radius|space|font|shadow|ring|transition|overlay|hover|page-bg|border-width)(-[a-z0-9]+)*$/.test(name)) return true;
   return false;
 }
 

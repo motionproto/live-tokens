@@ -48,7 +48,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--ui-space-4);
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     text-decoration: none;
     padding: var(--ui-space-2) var(--ui-space-6);

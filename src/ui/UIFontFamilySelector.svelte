@@ -121,7 +121,7 @@
     display: inline-block;
     width: 1.5rem;
     text-align: center;
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-primary);
     line-height: 1;
   }

@@ -89,7 +89,7 @@
   }
 
   .toggle-label {
-    font-size: var(--font-md);
+    font-size: var(--font-size-md);
     color: var(--text-secondary);
     line-height: 1;
   }

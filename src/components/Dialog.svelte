@@ -156,7 +156,7 @@
     background: var(--dialog-surface);
     border: 2px solid var(--dialog-border);
     border-radius: var(--dialog-radius);
-    box-shadow: var(--shadow-overlay);
+    box-shadow: var(--shadow-2xl);
     animation: dialogSlideIn var(--transition-base);
     pointer-events: auto;
   }
@@ -187,8 +187,8 @@
 
   .dialog-title {
     margin: 0;
-    font-size: var(--font-2xl);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-normal);
     color: var(--dialog-title);
   }
 
@@ -196,7 +196,7 @@
     background: none;
     border: none;
     color: var(--dialog-close-icon);
-    font-size: var(--font-xl);
+    font-size: var(--font-size-xl);
     cursor: pointer;
     margin-right: -var(--space-16);
     width: 2rem;
@@ -240,8 +240,8 @@
     padding: var(--space-8) var(--space-16);
     border: 1px solid var(--border-neutral-subtle);
     border-radius: var(--radius-md);
-    font-size: var(--font-md);
-    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-light);
     cursor: pointer;
     transition: all var(--transition-base);
     min-width: 5rem;

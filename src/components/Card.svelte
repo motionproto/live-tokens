@@ -75,17 +75,17 @@
   }
 
   .card-icon {
-    font-size: var(--font-lg);
+    font-size: var(--font-size-lg);
     color: var(--card-color, var(--text-secondary));
   }
 
   .card.compact .card-icon {
-    font-size: var(--font-md);
+    font-size: var(--font-size-md);
   }
 
   .card-title {
-    font-size: var(--font-lg);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-normal);
     color: var(--card-default-title);
   }
 
@@ -95,12 +95,12 @@
   }
 
   .card.compact .card-title {
-    font-size: var(--font-md);
+    font-size: var(--font-size-md);
   }
 
   .card-body {
     color: var(--card-default-body);
-    font-size: var(--font-md);
+    font-size: var(--font-size-md);
   }
 
   .card:hover .card-body,
@@ -109,6 +109,6 @@
   }
 
   .card.compact .card-body {
-    font-size: var(--font-sm);
+    font-size: var(--font-size-sm);
   }
 </style>

@@ -31,7 +31,7 @@
   }
 
   :global(.components-container .component-title) {
-    font-size: var(--ui-font-xl);
+    font-size: var(--ui-font-size-xl);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
     margin: 0;
@@ -40,13 +40,13 @@
   }
 
   :global(.components-container .demo-description) {
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     color: var(--ui-text-tertiary);
     margin: 0;
   }
 
   :global(.components-container .demo-description code) {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-accent);
     background: var(--ui-surface-lowest);
     padding: var(--ui-space-2) var(--ui-space-4);
@@ -61,7 +61,7 @@
   }
 
   :global(.components-container .demo-subtitle) {
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     font-weight: var(--ui-font-weight-medium);
     color: var(--ui-text-secondary);
     margin: 0;

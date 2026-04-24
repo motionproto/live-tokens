@@ -327,7 +327,7 @@
   }
 
   .size-label {
-    font-size: var(--font-xs);
+    font-size: var(--font-size-xs);
     font-family: var(--ui-font-mono);
     color: var(--ui-text-tertiary);
   }
@@ -347,7 +347,7 @@
   }
 
   .variant-label {
-    font-size: var(--font-xs);
+    font-size: var(--font-size-xs);
     color: var(--ui-text-tertiary);
     font-family: var(--ui-font-mono);
     background: var(--ui-surface-lowest);

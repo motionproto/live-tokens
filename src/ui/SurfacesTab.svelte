@@ -272,7 +272,7 @@
   }
 
   .section-title {
-    font-size: var(--ui-font-lg);
+    font-size: var(--ui-font-size-lg);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
     margin: 0;
@@ -294,7 +294,7 @@
   }
 
   .group-title {
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-secondary);
     margin: 0;
@@ -326,14 +326,14 @@
   }
 
   .swatch-name {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-tertiary);
     text-align: center;
   }
 
   .swatch-name.copyable {
     all: unset;
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-tertiary);
     text-align: center;
     cursor: pointer;
@@ -383,14 +383,14 @@
   }
 
   .border-name {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-tertiary);
     text-align: center;
   }
 
   .border-name.copyable {
     all: unset;
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-tertiary);
     text-align: center;
     cursor: pointer;

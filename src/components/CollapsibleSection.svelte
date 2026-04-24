@@ -43,21 +43,21 @@
 <style lang="scss">
    :global(:root) {
       /* Default */
-      --collapsible-default-surface: var(--surface-bg);
+      --collapsible-default-surface: var(--surface-canvas);
       --collapsible-default-label: var(--text-primary);
       --collapsible-default-icon: var(--text-muted);
       --collapsible-default-border: var(--color-primary-400);
       --collapsible-default-radius: var(--radius-md);
 
       /* Hover */
-      --collapsible-hover-surface: var(--surface-bg);
+      --collapsible-hover-surface: var(--surface-canvas);
       --collapsible-hover-label: var(--text-primary);
       --collapsible-hover-icon: var(--text-muted);
       --collapsible-hover-border: var(--color-primary-400);
       --collapsible-hover-radius: var(--radius-md);
 
       /* Active */
-      --collapsible-active-surface: var(--surface-bg-low);
+      --collapsible-active-surface: var(--surface-canvas-low);
       --collapsible-active-label: var(--text-primary);
       --collapsible-active-icon: var(--text-muted);
       --collapsible-active-border: var(--color-primary-400);
@@ -111,15 +111,15 @@
       align-items: center;
       gap: var(--space-8);
       flex-shrink: 0;
-      font-size: var(--font-md);
-      font-weight: var(--font-weight-semibold);
+      font-size: var(--font-size-md);
+      font-weight: var(--font-weight-normal);
 
       .section-label {
          color: var(--collapsible-default-label);
       }
 
       .toggle-icon {
-         font-size: var(--font-xs);
+         font-size: var(--font-size-xs);
          color: var(--collapsible-default-icon);
          transition: transform 0.15s ease;
       }

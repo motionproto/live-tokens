@@ -83,12 +83,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: var(--font-sm);
-    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-light);
   }
 
   .progress-value {
-    font-size: var(--font-xs);
+    font-size: var(--font-size-xs);
     font-family: 'Courier New', monospace;
   }
 
@@ -176,7 +176,7 @@
 
   .progress-icon {
     color: var(--text-success);
-    font-size: var(--font-md);
+    font-size: var(--font-size-md);
     text-align: right;
   }
 </style>

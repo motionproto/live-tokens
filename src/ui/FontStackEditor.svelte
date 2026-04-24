@@ -185,7 +185,7 @@
             <div class="slot-main">
               <span
                 class="slot-preview"
-                style="font-family: {slotCssValue(slot)};{stack.variable === '--font-display' ? ' font-size: var(--ui-font-2xl);' : ''}"
+                style="font-family: {slotCssValue(slot)};{stack.variable === '--font-display' ? ' font-size: var(--ui-font-size-2xl);' : ''}"
               >The quick brown fox jumps over the lazy dog</span>
               <select
                 class="form-select slot-select"
@@ -253,7 +253,7 @@
 
   .stack-variable {
     font-family: var(--ui-font-mono);
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-primary);
   }
 
@@ -278,7 +278,7 @@
     cursor: grab;
     user-select: none;
     color: var(--ui-text-muted);
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     line-height: 1;
     letter-spacing: -2px;
   }
@@ -298,7 +298,7 @@
   .slot-row.drop-after::after { bottom: -1px; }
 
   .slot-position {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-muted);
     min-width: 1.25rem;
     text-align: right;
@@ -312,7 +312,7 @@
   }
 
   .slot-preview {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-primary);
     line-height: var(--ui-line-height-normal);
     overflow: hidden;
@@ -323,14 +323,14 @@
   .slot-select {
     width: 100%;
     font-family: var(--ui-font-mono);
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
   }
 
   .slot-remove {
     background: none;
     border: 1px solid var(--ui-border-faint);
     color: var(--ui-text-muted);
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     line-height: 1;
     width: 1.5rem;
     height: 1.5rem;
@@ -348,7 +348,7 @@
     background: none;
     border: 1px dashed var(--ui-border-faint);
     color: var(--ui-text-muted);
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     padding: var(--ui-space-4) var(--ui-space-8);
     border-radius: var(--ui-radius-sm);
     cursor: pointer;

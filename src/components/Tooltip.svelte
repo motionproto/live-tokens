@@ -33,7 +33,7 @@
     color: var(--tooltip-text);
     padding: var(--space-6) var(--space-12);
     border-radius: var(--tooltip-radius);
-    font-size: var(--font-sm);
+    font-size: var(--font-size-sm);
     white-space: nowrap;
     pointer-events: none;
     opacity: 0;

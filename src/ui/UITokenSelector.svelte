@@ -9,6 +9,7 @@
     clearComponentAliasShared,
     isComponentPropertyShared,
     unlinkComponentProperty,
+    getComponentPropertySiblings,
   } from '../lib/editorStore';
   import UILinkToggle from './UILinkToggle.svelte';
 
@@ -35,7 +36,10 @@
     ? isComponentPropertyShared(component, variable)
     : false;
   $: isSharedDisplay = canBeShared && !!component && isSharedFromData;
-  $: showLinkToggle = canBeShared && !!component;
+  $: hasSiblings = canBeShared && component && $editorState
+    ? getComponentPropertySiblings(component, variable).length >= 2
+    : false;
+  $: showLinkToggle = canBeShared && !!component && hasSiblings;
 
   /** Persist a semantic CSS-var reference (or clear it when null). */
   export function writeOverride(semanticName: string | null): void {
@@ -218,13 +222,13 @@
   }
 
   .ui-ts-category {
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     color: var(--ui-text-primary);
     font-weight: var(--ui-font-weight-medium);
   }
 
   .ui-ts-subtype {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     font-family: var(--ui-font-mono);
     overflow: hidden;
@@ -264,7 +268,7 @@
 
   .ui-ts-var {
     flex: 1;
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     font-family: var(--ui-font-mono);
     overflow: hidden;

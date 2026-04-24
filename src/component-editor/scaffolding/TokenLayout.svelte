@@ -6,6 +6,7 @@
   import UIFontFamilySelector from '../../ui/UIFontFamilySelector.svelte';
   import UIFontWeightSelector from '../../ui/UIFontWeightSelector.svelte';
   import UIDividerHeightSelector from '../../ui/UIDividerHeightSelector.svelte';
+  import { editorState, getComponentPropertySiblings } from '../../lib/editorStore';
 
   const dispatch = createEventDispatcher();
 
@@ -52,7 +53,7 @@
   }
 
   function isDividerWidth(v: string): boolean {
-    return v.endsWith('-divider-width');
+    return v.endsWith('-divider-width') || v.endsWith('-divider-thickness');
   }
 
   function isDividerHeight(v: string): boolean {
@@ -71,17 +72,21 @@
     return v.endsWith('-text') || v.startsWith('--text-');
   }
 
-  const orderRank: Record<Kind, number> = {
-    surface: 0,
-    border: 1,
-    'border-width': 2,
-    radius: 3,
-    'divider-width': 4,
-    'divider-height': 5,
-    extras: 6,
-    'font-family': 7,
-    'font-weight': 7,
-  };
+  /** Fixed internal order within the linked and independent groups. */
+  const baseKindOrder: Kind[] = [
+    'font-family',
+    'font-weight',
+    'border-width',
+    'divider-width',
+    'divider-height',
+    'radius',
+    'extras',
+    'surface',
+    'border',
+  ];
+  const orderRank: Record<Kind, number> = Object.fromEntries(
+    baseKindOrder.map((k, i) => [k, i]),
+  ) as Record<Kind, number>;
 
   function categorize(v: string): Kind {
     if (isFontFamily(v)) return 'font-family';
@@ -96,63 +101,116 @@
     return 'extras';
   }
 
-  function buildEntries(list: Token[], order: Map<string, number> | undefined): Entry[] {
+  function buildEntries(list: Token[], order: Map<string, number> | undefined, linked: Set<Kind>): Entry[] {
     const indexed = list.map((token, i) => ({ e: { kind: categorize(token.variable), token }, i }));
     indexed.sort((a, b) => {
-      const aShared = a.e.token.disabled ? 0 : 1;
-      const bShared = b.e.token.disabled ? 0 : 1;
-      if (aShared !== bShared) return aShared - bShared;
+      const aLinked = linked.has(a.e.kind) ? 0 : 1;
+      const bLinked = linked.has(b.e.kind) ? 0 : 1;
+      if (aLinked !== bLinked) return aLinked - bLinked;
+      const rankDiff = orderRank[a.e.kind] - orderRank[b.e.kind];
+      if (rankDiff !== 0) return rankDiff;
       const aKey = order?.get(a.e.token.variable);
       const bKey = order?.get(b.e.token.variable);
       if (aKey !== undefined && bKey !== undefined) return aKey - bKey;
       if (aKey !== undefined) return -1;
       if (bKey !== undefined) return 1;
-      return orderRank[a.e.kind] - orderRank[b.e.kind] || a.i - b.i;
+      return a.i - b.i;
     });
     return indexed.map((x) => x.e);
   }
 
-  $: entries = buildEntries(tokens, sharedOrder);
+  /** Kinds that currently have at least one variable with ≥2 siblings in the component. */
+  function computeLinkedKinds(comp: string | undefined, state: typeof $editorState): Set<Kind> {
+    const set = new Set<Kind>();
+    if (!comp) return set;
+    const slice = state.components[comp];
+    if (!slice) return set;
+    for (const varName of Object.keys(slice.aliases)) {
+      if (getComponentPropertySiblings(comp, varName).length >= 2) {
+        set.add(categorize(varName));
+      }
+    }
+    return set;
+  }
+
+  /** Column layout: linked kinds first (leftmost), then independent kinds.
+   *  Computed per-component so all fieldsets in the same component share the same tracks. */
+  function buildColumnLayout(linked: Set<Kind>): { map: Partial<Record<Kind, number>>; extrasBaseCol: number; total: number } {
+    const ordered: Kind[] = [
+      ...baseKindOrder.filter((k) => linked.has(k)),
+      ...baseKindOrder.filter((k) => !linked.has(k)),
+    ];
+    const map: Partial<Record<Kind, number>> = {};
+    let col = 1;
+    let extrasBaseCol = 1;
+    for (const k of ordered) {
+      if (k === 'extras') {
+        extrasBaseCol = col;
+        col += 2;
+      } else {
+        map[k] = col;
+        col += 1;
+      }
+    }
+    return { map, extrasBaseCol, total: col - 1 };
+  }
+
+  $: linkedKinds = computeLinkedKinds(component, $editorState);
+  $: columnLayout = buildColumnLayout(linkedKinds);
+
+  function placeEntries(list: Entry[], layout: ReturnType<typeof buildColumnLayout>): { entry: Entry; col: number }[] {
+    let extras = 0;
+    return list.map((entry) => {
+      if (entry.kind === 'extras') {
+        const col = layout.extrasBaseCol + Math.min(extras, 1);
+        extras++;
+        return { entry, col };
+      }
+      return { entry, col: layout.map[entry.kind] ?? 1 };
+    });
+  }
+
+  $: entries = buildEntries(tokens, sharedOrder, linkedKinds);
+  $: placed = placeEntries(entries, columnLayout);
 </script>
 
 <div class="token-group">
   {#if title}
     <span class="token-group-title">{title}</span>
   {/if}
-  <div class="token-grid">
-    {#each entries as entry}
+  <div class="token-grid" style="--token-columns: {columnLayout.total};">
+    {#each placed as { entry, col }}
       {@const token = entry.token}
       {@const dis = token.disabled ?? false}
       {@const ctxs = contexts[token.variable]}
       <div
         class="token-entry"
-        class:highlighted={!dis && highlightedVars.has(token.variable)}
-        on:mouseenter={() => { if (ctxs) dispatch('tokenhover', { variable: token.variable }); }}
-        on:mouseleave={() => { if (ctxs) dispatch('tokenhover', { variable: null }); }}
+        class:highlighted={highlightedVars.has(token.variable)}
+        style="grid-column: {col};"
+        on:mouseenter={() => { if (ctxs || token.canBeShared) dispatch('tokenhover', { variable: token.variable }); }}
+        on:mouseleave={() => { if (ctxs || token.canBeShared) dispatch('tokenhover', { variable: null }); }}
       >
         <span class="token-label">{token.label}</span>
-        <div class="token-selector-row">
-          {#if entry.kind === 'radius'}
-            <UIRadiusSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
-          {:else if entry.kind === 'border-width' || entry.kind === 'divider-width'}
-            <UIBorderWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
-          {:else if entry.kind === 'divider-height'}
-            <UIDividerHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
-          {:else if entry.kind === 'font-family'}
-            <UIFontFamilySelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
-          {:else if entry.kind === 'font-weight'}
-            <UIFontWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
-          {:else}
-            <UIPaletteSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
-          {/if}
-          {#if ctxs?.length}
-            <div class="token-contexts">
-              {#each ctxs as ctx}
-                <span class="token-context">{ctx}</span>
-              {/each}
-            </div>
-          {/if}
-        </div>
+        {#if entry.kind === 'radius'}
+          <UIRadiusSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+        {:else if entry.kind === 'border-width' || entry.kind === 'divider-width'}
+          <UIBorderWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+        {:else if entry.kind === 'divider-height'}
+          <UIDividerHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+        {:else if entry.kind === 'font-family'}
+          <UIFontFamilySelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+        {:else if entry.kind === 'font-weight'}
+          <UIFontWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+        {:else}
+          <UIPaletteSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+        {/if}
+        {#if ctxs?.length}
+          <div class="token-contexts">
+            {#each ctxs as ctx}
+              <span class="token-context">{ctx}</span>
+            {/each}
+          </div>
+        {/if}
       </div>
     {/each}
   </div>
@@ -166,16 +224,17 @@
   }
 
   .token-group-title {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
     font-family: var(--ui-font-mono);
   }
 
   .token-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ui-space-8);
+    display: grid;
+    grid-template-columns: repeat(var(--token-columns, 10), max-content);
+    column-gap: var(--ui-space-8);
+    row-gap: var(--ui-space-8);
     align-items: flex-start;
   }
 
@@ -186,11 +245,12 @@
     border-radius: var(--ui-radius-sm);
     padding: var(--ui-space-2);
     transition: background var(--ui-transition-fast);
+    min-width: 0;
   }
 
   .token-entry.highlighted {
     background: var(--ui-surface-high);
-    border: 1px dashed var(--ui-text-accent);
+    outline: 1px dashed var(--ui-text-accent);
   }
 
   .token-entry.highlighted .token-label {
@@ -198,25 +258,20 @@
   }
 
   .token-label {
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     color: var(--ui-text-secondary);
     padding-left: var(--ui-space-2);
-  }
-
-  .token-selector-row {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-6);
   }
 
   .token-contexts {
     display: flex;
     flex-direction: column;
     gap: 1px;
+    padding-left: var(--ui-space-2);
   }
 
   .token-context {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-tertiary);
     white-space: nowrap;
   }

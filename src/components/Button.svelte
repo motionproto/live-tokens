@@ -68,14 +68,14 @@
       --button-secondary-disabled-border: var(--border-neutral-faint);
 
       /* Outline */
-      --button-outline-surface: transparent;
+      --button-outline-surface: var(--color-transparent);
       --button-outline-text: var(--text-primary);
       --button-outline-border: var(--border-neutral-default);
       --button-outline-radius: var(--radius-md);
       --button-outline-hover-surface: var(--hover-low);
       --button-outline-hover-text: var(--text-primary);
       --button-outline-hover-border: var(--border-neutral-strong);
-      --button-outline-disabled-surface: transparent;
+      --button-outline-disabled-surface: var(--color-transparent);
       --button-outline-disabled-text: var(--text-tertiary);
       --button-outline-disabled-border: var(--border-neutral-faint);
 
@@ -120,8 +120,8 @@
       padding: var(--space-8) var(--space-16);
       border-radius: var(--radius-md);
       cursor: pointer;
-      font-size: var(--font-sm);
-      font-weight: var(--font-weight-medium);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-light);
       line-height: 1.2;
       letter-spacing: 0.0125rem;
       display: inline-flex;
@@ -175,13 +175,13 @@
       // Small size modifier (applies to any variant)
       &.small {
          padding: var(--space-6) var(--space-12);
-         font-size: var(--font-xs);
-         font-weight: var(--font-weight-semibold);
+         font-size: var(--font-size-xs);
+         font-weight: var(--font-weight-normal);
          line-height: 1.2;
 
          :global(i) {
-            font-size: var(--font-xs);
-            font-weight: var(--font-weight-bold);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-semibold);
          }
       }
 
@@ -362,7 +362,7 @@
       }
 
    :global(i) {
-      font-size: var(--font-sm);
+      font-size: var(--font-size-sm);
 
       &.spinning {
          animation: spin 1s linear infinite;
@@ -376,7 +376,7 @@
 
       // Support for slotted content with special styles
       :global(.badge), :global(.count), :global(.fame-count) {
-         font-size: var(--font-sm);
+         font-size: var(--font-size-sm);
          opacity: 0.9;
          padding: var(--space-2) var(--space-6);
          background: var(--overlay-low);

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import VisualsTab from '../ui/VisualsTab.svelte';
+  import UICopyPopover from '../ui/UICopyPopover.svelte';
   import { installEditorKeybindings } from '../lib/editorKeybindings';
   import { initializeEditorStore } from '../lib/editorStore';
 
@@ -42,6 +43,7 @@
   {/if}
 
   <VisualsTab />
+  <UICopyPopover />
 </div>
 
 <style>
@@ -79,7 +81,7 @@
     gap: var(--ui-space-6);
     color: var(--ui-text-tertiary);
     text-decoration: none;
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     transition: color var(--ui-transition-fast);
   }
 
@@ -88,7 +90,7 @@
   }
 
   .editor-label {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-secondary);
   }

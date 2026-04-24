@@ -127,8 +127,8 @@
 
   .eyebrow {
     display: block;
-    font-size: var(--font-sm);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-normal);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-tertiary);
@@ -137,14 +137,14 @@
 
   .hero h1 {
     font-family: var(--font-display);
-    font-size: var(--font-5xl, var(--font-4xl));
+    font-size: var(--font-size-5xl, var(--font-size-4xl));
     color: var(--text-primary);
     margin: 0 0 var(--space-12);
   }
 
   .tagline {
     font-family: var(--font-serif);
-    font-size: var(--font-lg);
+    font-size: var(--font-size-lg);
     color: var(--text-secondary);
     max-width: 540px;
     margin: 0 auto;
@@ -164,7 +164,7 @@
   .note {
     margin-top: var(--space-16);
     color: var(--text-tertiary);
-    font-size: var(--font-sm);
+    font-size: var(--font-size-sm);
   }
 
   .note code {
@@ -195,7 +195,7 @@
 
   .section-header h2 {
     font-family: var(--font-display);
-    font-size: var(--font-3xl);
+    font-size: var(--font-size-3xl);
     color: var(--text-primary);
     margin: 0 0 var(--space-8);
   }
@@ -203,7 +203,7 @@
   .section-header p {
     font-family: var(--font-serif);
     color: var(--text-secondary);
-    font-size: var(--font-md);
+    font-size: var(--font-size-md);
     max-width: 560px;
     margin: 0 auto;
   }
@@ -215,7 +215,7 @@
   }
 
   .architecture :global(h3) {
-    font-size: var(--font-lg);
+    font-size: var(--font-size-lg);
     color: var(--text-primary);
     margin: 0 0 var(--space-8);
   }

@@ -49,8 +49,8 @@
 
   .eyebrow {
     display: block;
-    font-size: var(--font-sm);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-normal);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-tertiary);
@@ -59,7 +59,7 @@
 
   h1 {
     font-family: var(--font-display);
-    font-size: var(--font-4xl);
+    font-size: var(--font-size-4xl);
     color: var(--text-primary);
     margin: 0 0 var(--space-12);
   }

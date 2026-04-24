@@ -22,7 +22,7 @@
   }
 
   .fieldset-legend {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-tertiary);
     padding: 0 var(--ui-space-4);
   }

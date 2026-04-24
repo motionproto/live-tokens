@@ -38,11 +38,6 @@
     mutate('reset columns', (s) => { s.columns = { ...snapshot }; });
   }
 
-  onMount(() => {
-    initialColumns = { ...$editorState.columns };
-    seedShadowsFromDom();
-  });
-
   interface TokenItem {
     variable: string;
     value: string;
@@ -53,60 +48,92 @@
     tokens: TokenItem[];
   }
 
-  const spacingTokens: TokenItem[] = [
-    { variable: '--space-2', value: '0.125rem (2px)' },
-    { variable: '--space-4', value: '0.25rem (4px)' },
-    { variable: '--space-6', value: '0.375rem (6px)' },
-    { variable: '--space-8', value: '0.5rem (8px)' },
-    { variable: '--space-10', value: '0.625rem (10px)' },
-    { variable: '--space-12', value: '0.75rem (12px)' },
-    { variable: '--space-16', value: '1rem (16px)' },
-    { variable: '--space-20', value: '1.25rem (20px)' },
-    { variable: '--space-24', value: '1.5rem (24px)' },
-    { variable: '--space-32', value: '2rem (32px)' },
-    { variable: '--space-48', value: '3rem (48px)' }
+  // Variable names for each scale we render below. Values are read live from
+  // the stylesheet via getComputedStyle, so tokens.css stays the single source
+  // of truth — no hand-maintained list of values to drift out of sync.
+  const SPACING_VARS = [
+    '--space-2', '--space-4', '--space-6', '--space-8', '--space-10',
+    '--space-12', '--space-16', '--space-20', '--space-24', '--space-32',
+    '--space-48',
+  ];
+  const RADIUS_VARS = [
+    '--radius-none', '--radius-sm', '--radius-md', '--radius-lg', '--radius-xl',
+    '--radius-2xl', '--radius-3xl', '--radius-4xl', '--radius-full',
+  ];
+  const FONT_SIZE_VARS = [
+    '--font-size-xs', '--font-size-sm', '--font-size-md', '--font-size-lg',
+    '--font-size-xl', '--font-size-2xl', '--font-size-3xl', '--font-size-4xl',
+    '--font-size-5xl', '--font-size-6xl',
+  ];
+  const FONT_WEIGHT_VARS = [
+    '--font-weight-thin', '--font-weight-extralight', '--font-weight-light',
+    '--font-weight-normal', '--font-weight-medium', '--font-weight-semibold',
+    '--font-weight-bold', '--font-weight-extrabold', '--font-weight-black',
+  ];
+  const LINE_HEIGHT_VARS = [
+    '--line-height-tight', '--line-height-snug', '--line-height-normal',
+    '--line-height-relaxed', '--line-height-loose',
   ];
 
-  const radiusTokens: TokenItem[] = [
-    { variable: '--radius-none', value: '0' },
-    { variable: '--radius-sm', value: '0.125rem (2px)' },
-    { variable: '--radius-md', value: '0.25rem (4px)' },
-    { variable: '--radius-lg', value: '0.375rem (6px)' },
-    { variable: '--radius-xl', value: '0.5rem (8px)' },
-    { variable: '--radius-2xl', value: '0.625rem (10px)' },
-    { variable: '--radius-3xl', value: '0.75rem (12px)' },
-    { variable: '--radius-4xl', value: '1.25rem (20px)' },
-    { variable: '--radius-full', value: '9999px (pill)' }
-  ];
+  // Bumped whenever the live CSS values might have changed (breakpoint flip,
+  // editor mutation). Used as a reactivity trigger below.
+  let liveVersion = 0;
 
-  const fontSizeTokens: TokenItem[] = [
-    { variable: '--font-xs', value: '0.875rem (14px)' },
-    { variable: '--font-sm', value: '1rem (16px)' },
-    { variable: '--font-md', value: '1.125rem (18px)' },
-    { variable: '--font-lg', value: '1.25rem (20px)' },
-    { variable: '--font-xl', value: '1.375rem (22px)' },
-    { variable: '--font-2xl', value: '1.625rem (26px)' },
-    { variable: '--font-3xl', value: '2rem (32px)' },
-    { variable: '--font-4xl', value: '2.5rem (40px)' },
-    { variable: '--font-5xl', value: '3rem (48px)' },
-    { variable: '--font-6xl', value: '3.5rem (56px)' }
-  ];
+  function readVar(name: string): string {
+    if (typeof document === 'undefined') return '';
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
 
-  const fontWeightTokens: TokenItem[] = [
-    { variable: '--font-weight-thin', value: '100' },
-    { variable: '--font-weight-light', value: '200' },
-    { variable: '--font-weight-medium', value: '300' },
-    { variable: '--font-weight-semibold', value: '500' },
-    { variable: '--font-weight-bold', value: '800' }
-  ];
+  function formatValueHint(raw: string): string {
+    if (!raw) return '';
+    // 9999px reads as "9999px"; label it "pill" to match the prior convention.
+    if (raw === '9999px') return '9999px (pill)';
+    const rem = raw.match(/^(-?[\d.]+)rem$/);
+    if (rem) {
+      const px = Math.round(parseFloat(rem[1]) * 16 * 100) / 100;
+      return `${raw} (${px}px)`;
+    }
+    return raw;
+  }
 
-  const lineHeightTokens: TokenItem[] = [
-    { variable: '--line-height-tight', value: '1' },
-    { variable: '--line-height-snug', value: '1.2' },
-    { variable: '--line-height-normal', value: '1.4' },
-    { variable: '--line-height-relaxed', value: '1.5' },
-    { variable: '--line-height-loose', value: '2' }
-  ];
+  function toItems(names: readonly string[]): TokenItem[] {
+    return names.map((variable) => ({ variable, value: formatValueHint(readVar(variable)) }));
+  }
+
+  // Re-read whenever liveVersion bumps OR the editor mutates any CSS var
+  // (editor edits fan out via cssVarSync to :root). Depending on
+  // $editorState keeps the display in sync with user edits for free.
+  let spacingTokens: TokenItem[] = [];
+  let radiusTokens: TokenItem[] = [];
+  let fontSizeTokens: TokenItem[] = [];
+  let fontWeightTokens: TokenItem[] = [];
+  let lineHeightTokens: TokenItem[] = [];
+  $: {
+    liveVersion;
+    $editorState;
+    spacingTokens = toItems(SPACING_VARS);
+    radiusTokens = toItems(RADIUS_VARS);
+    fontSizeTokens = toItems(FONT_SIZE_VARS);
+    fontWeightTokens = toItems(FONT_WEIGHT_VARS);
+    lineHeightTokens = toItems(LINE_HEIGHT_VARS);
+  }
+
+  // tokens.css declares responsive overrides at 768px and 480px; refresh when
+  // those breakpoints flip so the font-size hints reflect the active viewport.
+  const BREAKPOINTS = ['(max-width: 768px)', '(max-width: 480px)'] as const;
+
+  onMount(() => {
+    initialColumns = { ...$editorState.columns };
+    seedShadowsFromDom();
+    liveVersion++; // initial read once the DOM has tokens.css applied
+    if (typeof window === 'undefined') return;
+    const mqls = BREAKPOINTS.map((q) => window.matchMedia(q));
+    const bump = () => { liveVersion++; };
+    for (const m of mqls) m.addEventListener('change', bump);
+    return () => {
+      for (const m of mqls) m.removeEventListener('change', bump);
+    };
+  });
 
   // Shadows live in $editorState.shadows. The parent onMount calls
   // seedShadowsFromDom() to capture the tokens.css baseline when the
@@ -400,13 +427,13 @@
     {
       label: 'Background',
       colors: [
-        { label: 'Lowest', value: 'var(--surface-bg-lowest)' },
-        { label: 'Lower', value: 'var(--surface-bg-lower)' },
-        { label: 'Low', value: 'var(--surface-bg-low)' },
-        { label: 'Base', value: 'var(--surface-bg)' },
-        { label: 'High', value: 'var(--surface-bg-high)' },
-        { label: 'Higher', value: 'var(--surface-bg-higher)' },
-        { label: 'Highest', value: 'var(--surface-bg-highest)' },
+        { label: 'Lowest', value: 'var(--surface-canvas-lowest)' },
+        { label: 'Lower', value: 'var(--surface-canvas-lower)' },
+        { label: 'Low', value: 'var(--surface-canvas-low)' },
+        { label: 'Base', value: 'var(--surface-canvas)' },
+        { label: 'High', value: 'var(--surface-canvas-high)' },
+        { label: 'Higher', value: 'var(--surface-canvas-higher)' },
+        { label: 'Highest', value: 'var(--surface-canvas-highest)' },
       ]
     },
     {
@@ -572,11 +599,6 @@
     return `linear-gradient(to right, hsl(${g.hue},${g.saturation}%,0%), hsl(${g.hue},${g.saturation}%,50%), hsl(${g.hue},${g.saturation}%,100%))`;
   }
 
-  const textShadowTokens: TokenItem[] = [
-    { variable: '--text-shadow-sm', value: '1px 1px 2px' },
-    { variable: '--text-shadow-md', value: '2px 2px 4px' }
-  ];
-
   const transitionTokens: TokenItem[] = [
     { variable: '--transition-fast', value: '150ms cubic-bezier' },
     { variable: '--transition-base', value: '200ms ease' },
@@ -621,7 +643,7 @@
     <div class="palette-editors">
       <PaletteEditor mode="gray" label="Neutral" cssNamespace="neutral"/>
       <PaletteEditor mode="gray" label="Alternate" cssNamespace="alternate" />
-      <PaletteEditor label="Background" initialColor="#1a1a2e" cssNamespace="bg" emptySelector />
+      <PaletteEditor label="Background" initialColor="#1a1a2e" cssNamespace="canvas" emptySelector />
       <PaletteEditor label="Primary" initialColor="#c93636" cssNamespace="primary" />
       <PaletteEditor label="Accent" initialColor="#f49e0b" cssNamespace="accent" />
       <PaletteEditor label="Special" initialColor="#8b5cf6" cssNamespace="special" />
@@ -825,18 +847,6 @@
       {/each}
     </div>
 
-    <h3 class="group-title" style="margin-top: var(--ui-space-16);">Text Shadows</h3>
-    <div class="text-shadow-demos">
-      {#each textShadowTokens as token}
-        <div class="text-shadow-item">
-          <span class="text-shadow-preview" style="text-shadow: var({token.variable});">Sample Text</span>
-          <div class="token-info">
-            <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-            <span class="token-value">{token.value}</span>
-          </div>
-        </div>
-      {/each}
-    </div>
     </div><!-- /.shadows-main -->
 
     <!-- Shadow editor sidebar -->
@@ -1484,7 +1494,7 @@
   }
 
   .section-title {
-    font-size: var(--ui-font-lg);
+    font-size: var(--ui-font-size-lg);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
     margin: 0;
@@ -1493,7 +1503,7 @@
   }
 
   .group-title {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-secondary);
     margin: 0;
@@ -1506,14 +1516,14 @@
   }
 
   .token-variable {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-tertiary);
     font-family: var(--ui-font-mono);
   }
 
   .token-variable.copyable {
     all: unset;
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-tertiary);
     font-family: var(--ui-font-mono);
     cursor: pointer;
@@ -1529,13 +1539,13 @@
   }
 
   .token-value {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-muted);
   }
 
   /* Columns */
   .columns-intro {
-    font-size: var(--ui-font-sm);
+    font-size: var(--ui-font-size-sm);
     color: var(--ui-text-muted);
     margin: 0;
     line-height: var(--ui-line-height-relaxed);
@@ -1583,7 +1593,7 @@
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-tertiary);
     font-family: inherit;
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     cursor: pointer;
     transition: color var(--ui-transition-fast), border-color var(--ui-transition-fast);
   }
@@ -1731,7 +1741,7 @@
   }
 
   .font-weight-preview {
-    font-size: var(--ui-font-xl);
+    font-size: var(--ui-font-size-xl);
     font-family: var(--ui-font-sans);
     color: var(--ui-text-primary);
     line-height: 1;
@@ -1810,7 +1820,7 @@
 
   .reset-btn {
     all: unset;
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-muted);
     cursor: pointer;
     padding: var(--ui-space-4) var(--ui-space-8);
@@ -1839,7 +1849,7 @@
 
   .shadow-edit-btn {
     all: unset;
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-muted);
     cursor: pointer;
     padding: var(--ui-space-2) var(--ui-space-8);
@@ -1871,7 +1881,7 @@
   }
 
   .shadow-slider-label {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
     width: 4rem;
@@ -1888,7 +1898,7 @@
   }
 
   .shadow-slider-input {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-primary);
     font-family: var(--ui-font-mono);
     width: 2.5rem;
@@ -1913,7 +1923,7 @@
   }
 
   .shadow-slider-unit {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-muted);
     font-family: var(--ui-font-mono);
     width: 1rem;
@@ -1962,7 +1972,7 @@
   }
 
   .shadow-css-output code {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-accent);
     font-family: var(--ui-font-mono);
     word-break: break-all;
@@ -1970,7 +1980,7 @@
 
   .shadow-copy-btn {
     all: unset;
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-muted);
     cursor: pointer;
     padding: var(--ui-space-2) var(--ui-space-6);
@@ -2001,7 +2011,7 @@
   }
 
   .global-shadow-title {
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-secondary);
     margin: 0;
@@ -2116,7 +2126,7 @@
 
   .bg-picker-btn {
     all: unset;
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     font-family: var(--ui-font-mono);
     color: var(--ui-text-muted);
     cursor: pointer;
@@ -2155,7 +2165,7 @@
     justify-content: space-between;
     align-items: center;
     padding: var(--ui-space-6) var(--ui-space-8);
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     cursor: pointer;
     border-radius: var(--ui-radius-sm);
@@ -2183,7 +2193,7 @@
     align-items: center;
     gap: var(--ui-space-8);
     padding: var(--ui-space-4) var(--ui-space-8);
-    font-size: var(--ui-font-xs);
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-tertiary);
     cursor: pointer;
     border-radius: var(--ui-radius-sm);
@@ -2201,26 +2211,6 @@
     border-radius: var(--ui-radius-sm);
     border: 1px solid var(--ui-border-subtle);
     flex-shrink: 0;
-  }
-
-  .text-shadow-demos {
-    display: flex;
-    gap: var(--ui-space-24);
-    flex-wrap: wrap;
-  }
-
-  .text-shadow-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--ui-space-8);
-  }
-
-  .text-shadow-preview {
-    font-size: var(--ui-font-2xl);
-    font-family: var(--ui-font-sans);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-primary);
   }
 
   /* Gradients */
@@ -2257,13 +2247,13 @@
 
   /* Palette Editor */
   .editor-intro {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-tertiary);
     margin: 0;
   }
 
   .editor-intro code {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-accent);
     background: var(--ui-surface-lowest);
     padding: var(--ui-space-2) var(--ui-space-4);

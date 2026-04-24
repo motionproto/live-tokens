@@ -4,8 +4,8 @@
 
 h1 {
   font-family: var(--font-display);
-  font-size: var(--font-4xl);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   margin: 0 0 var(--space-12);
   line-height: var(--line-height-snug);
@@ -14,8 +14,8 @@ h1 {
 
 h2 {
   font-family: var(--font-serif);
-  font-size: var(--font-2xl);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   letter-spacing: 0.01em;
   margin: var(--space-32) 0 var(--space-12);
@@ -25,8 +25,8 @@ h2 {
 
 h3 {
   font-family: var(--font-serif);
-  font-size: var(--font-xl);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-normal);
   color: var(--text-primary);
   margin: var(--space-24) 0 var(--space-8);
   line-height: var(--line-height-snug);
@@ -52,7 +52,7 @@ h3 {
 
 p {
   font-family: var(--font-serif);
-  font-size: var(--font-md);
+  font-size: var(--font-size-md);
   color: var(--text-secondary);
   line-height: var(--line-height-normal);
   margin: 0 0 14px;
@@ -75,7 +75,7 @@ a:hover {
 
 strong {
   color: var(--text-primary);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-semibold);
 }
 
 ul {
@@ -85,7 +85,7 @@ ul {
 
 ul li {
   font-family: var(--font-serif);
-  font-size: var(--font-md);
+  font-size: var(--font-size-md);
   color: var(--text-secondary);
   line-height: 1.75;
   margin-bottom: var(--space-4);
@@ -102,7 +102,7 @@ ol {
 
 ol li {
   font-family: var(--font-sans);
-  font-size: var(--font-md);
+  font-size: var(--font-size-md);
   color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: var(--space-4);
@@ -110,7 +110,7 @@ ol li {
 
 ol li::marker {
   color: var(--text-tertiary);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-semibold);
 }
 
 hr {

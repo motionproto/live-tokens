@@ -1,7 +1,7 @@
 <script lang="ts">
   export let title: string;
   export let description: string | undefined = undefined;
-  export let variant: 'bg' | 'neutral' | 'alternate' | 'primary' | 'accent' | 'special' = 'bg';
+  export let variant: 'canvas' | 'neutral' | 'alternate' | 'primary' | 'accent' | 'special' = 'canvas';
 </script>
 
 <div class="section-divider variant-{variant}">
@@ -14,12 +14,12 @@
 <style>
   :global(:root) {
     /* Background */
-    --section-divider-bg-gradient-stop-1: var(--surface-bg-highest);
-    --section-divider-bg-gradient-stop-2: var(--surface-bg-higher);
-    --section-divider-bg-gradient-stop-3: var(--surface-bg-high);
-    --section-divider-bg-gradient-stop-4: var(--surface-bg);
-    --section-divider-bg-text-stroke: var(--surface-bg-lowest);
-    --section-divider-bg-radius: var(--radius-lg);
+    --section-divider-canvas-gradient-stop-1: var(--surface-canvas-highest);
+    --section-divider-canvas-gradient-stop-2: var(--surface-canvas-higher);
+    --section-divider-canvas-gradient-stop-3: var(--surface-canvas-high);
+    --section-divider-canvas-gradient-stop-4: var(--surface-canvas);
+    --section-divider-canvas-text-stroke: var(--surface-canvas-lowest);
+    --section-divider-canvas-radius: var(--radius-lg);
 
     /* Neutral */
     --section-divider-neutral-gradient-stop-1: var(--surface-neutral-highest);
@@ -75,13 +75,13 @@
   }
 
   /* Variant palette mappings */
-  .variant-bg {
-    --_divider-1: var(--section-divider-bg-gradient-stop-1);
-    --_divider-2: var(--section-divider-bg-gradient-stop-2);
-    --_divider-3: var(--section-divider-bg-gradient-stop-3);
-    --_divider-4: var(--section-divider-bg-gradient-stop-4);
-    --_divider-stroke: var(--section-divider-bg-text-stroke);
-    --_divider-radius: var(--section-divider-bg-radius);
+  .variant-canvas {
+    --_divider-1: var(--section-divider-canvas-gradient-stop-1);
+    --_divider-2: var(--section-divider-canvas-gradient-stop-2);
+    --_divider-3: var(--section-divider-canvas-gradient-stop-3);
+    --_divider-4: var(--section-divider-canvas-gradient-stop-4);
+    --_divider-stroke: var(--section-divider-canvas-text-stroke);
+    --_divider-radius: var(--section-divider-canvas-radius);
   }
 
   .variant-neutral {
@@ -132,7 +132,7 @@
   .divider-label {
     display: block;
     font-family: var(--font-display);
-    font-size: var(--font-5xl);
+    font-size: var(--font-size-5xl);
     line-height: 1.05;
     color: #fff;
     overflow-wrap: break-word;
@@ -152,7 +152,7 @@
   .divider-description {
     margin: var(--space-4) 0 0;
     font-family: var(--font-sans);
-    font-size: var(--font-md);
+    font-size: var(--font-size-md);
     color: rgba(255, 255, 255, 0.8);
     line-height: var(--line-height-normal);
   }

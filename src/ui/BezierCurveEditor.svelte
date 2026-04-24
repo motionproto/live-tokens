@@ -423,7 +423,7 @@
   }
 
   .curve-panel-label {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
   }
@@ -570,7 +570,7 @@
     background: var(--ui-surface-lowest);
     cursor: pointer;
     color: var(--ui-text-muted);
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
   }
 
   .curve-tool-btn:hover {
@@ -601,7 +601,7 @@
   }
 
   .curve-hint {
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-muted);
     opacity: 0.6;
   }

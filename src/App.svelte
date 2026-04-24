@@ -54,8 +54,8 @@
 
 <style>
   :global(body) {
-    background: var(--empty);
-    background-attachment: var(--empty-attachment, fixed);
+    background: var(--page-bg);
+    background-attachment: var(--page-bg-attachment, fixed);
   }
 
   .lt-app {

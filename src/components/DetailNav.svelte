@@ -20,7 +20,7 @@
 
 <style lang="scss">
   :global(:root) {
-    --detail-nav-bg: var(--empty);
+    --detail-nav-bg: var(--page-bg);
   }
 
   .detail-nav {
@@ -46,8 +46,8 @@
     align-items: center;
     gap: 8px;
     font-family: var(--font-sans);
-    font-size: var(--font-lg);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-normal);
     color: var(--text-primary);
     text-decoration: none;
     transition: color var(--transition-fast);

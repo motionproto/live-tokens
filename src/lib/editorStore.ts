@@ -194,7 +194,6 @@ function parseRgba(raw: string): { r: number; g: number; b: number; opacity: num
 // token derived from its x/y/blur/spread/hsla fields.
 const SHADOW_VAR_NAMES = [
   '--shadow-sm', '--shadow-md', '--shadow-lg', '--shadow-xl', '--shadow-2xl',
-  '--shadow-app', '--shadow-focus', '--shadow-glow-green', '--shadow-card', '--shadow-overlay',
 ] as const;
 
 /**
@@ -844,6 +843,64 @@ export function markComponentSaved(component: string): void {
 }
 
 /**
+ * Rewrite legacy CSS-var keys in a loaded theme bag to their current names.
+ * Old themes saved before a rename keep working without re-saving; the migrated
+ * bag then flows through the normal domain routing below.
+ *
+ * Drop entries here once all on-disk themes have been resaved under the new
+ * names (the rewrites are cheap but accumulate indefinitely otherwise).
+ */
+const LEGACY_KEY_RENAMES: Record<string, string | null> = {
+  '--empty': '--page-bg',
+  '--empty-attachment': '--page-bg-attachment',
+  // Orphan exports dropped from tokens.css; no new home — silently discard.
+  '--border-neutral': null,
+  // Shadow cleanup: these five tokens were removed (low/zero consumers,
+  // aesthetic drift). Dialog migrated onto --shadow-2xl; focus rings moved
+  // to their own --ring-focus-* namespace, which themes don't carry by
+  // default — tokens.css provides the canonical values.
+  '--shadow-app': null,
+  '--shadow-card': null,
+  '--shadow-overlay': null,
+  '--shadow-focus': null,
+  '--shadow-glow-green': null,
+};
+
+// bg → canvas: rename every key in the --color-bg-*, --surface-bg(-*)?,
+// --border-bg(-*)?, --text-bg(-*)? families to their canvas equivalents.
+// Handled as a pattern match (rather than static entries in LEGACY_KEY_RENAMES)
+// because the families carry ~28 keys between them and listing each is noise.
+const BG_TO_CANVAS_PREFIXES = ['--color-bg-', '--surface-bg', '--border-bg', '--text-bg'] as const;
+
+function migrateBgToCanvas(rawVars: Record<string, string>): void {
+  for (const oldKey of Object.keys(rawVars)) {
+    for (const prefix of BG_TO_CANVAS_PREFIXES) {
+      if (!oldKey.startsWith(prefix)) continue;
+      // Only the -bg boundary should swap; don't accidentally rename
+      // --text-bgthing or similar.
+      const suffix = oldKey.slice(prefix.length);
+      if (suffix && !suffix.startsWith('-')) continue;
+      const newKey = prefix.replace('-bg', '-canvas') + suffix;
+      if (newKey === oldKey) continue;
+      const value = rawVars[oldKey];
+      delete rawVars[oldKey];
+      if (!(newKey in rawVars)) rawVars[newKey] = value;
+      break;
+    }
+  }
+}
+
+function migrateLegacyKeys(rawVars: Record<string, string>): void {
+  for (const [oldKey, newKey] of Object.entries(LEGACY_KEY_RENAMES)) {
+    if (!(oldKey in rawVars)) continue;
+    const value = rawVars[oldKey];
+    delete rawVars[oldKey];
+    if (newKey && !(newKey in rawVars)) rawVars[newKey] = value;
+  }
+  migrateBgToCanvas(rawVars);
+}
+
+/**
  * Replace state with a loaded theme. Clears history and marks saved —
  * "open a different document" semantics. Undo cannot cross a theme load.
  */
@@ -853,6 +910,7 @@ export function loadFromFile(theme: Theme): void {
   next.fonts.sources = structuredClone(theme.fontSources ?? []);
   next.fonts.stacks  = structuredClone(theme.fontStacks  ?? []);
   const rawVars = { ...(theme.cssVariables ?? {}) };
+  migrateLegacyKeys(rawVars);
   // Column vars live in state.columns; strip them out of the catch-all bag
   // so derivation stays single-source.
   const colOverrides = parseColumnVars(rawVars);

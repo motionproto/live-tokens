@@ -155,7 +155,7 @@
 
   .sidebar-header {
     padding: var(--ui-space-16) var(--ui-space-16) var(--ui-space-12);
-    font-size: var(--ui-font-lg);
+    font-size: var(--ui-font-size-lg);
     font-weight: var(--ui-font-weight-bold);
     color: var(--ui-text-primary);
   }
@@ -178,7 +178,7 @@
     border: none;
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-tertiary);
-    font-size: var(--ui-font-md);
+    font-size: var(--ui-font-size-md);
     cursor: pointer;
     text-align: left;
     transition: all var(--ui-transition-fast);
@@ -227,7 +227,7 @@
       padding: var(--ui-space-16) var(--ui-space-12);
     }
     .nav-item span {
-      font-size: var(--ui-font-sm);
+      font-size: var(--ui-font-size-sm);
     }
   }
 

@@ -87,7 +87,7 @@
       --notification-info-icon: var(--text-info);
       --notification-info-title: var(--text-info);
       --notification-info-title-font-family: var(--font-sans);
-      --notification-info-title-font-weight: var(--font-weight-semibold);
+      --notification-info-title-font-weight: var(--font-weight-normal);
       --notification-info-text: var(--text-primary);
       --notification-info-radius: var(--radius-md);
 
@@ -97,7 +97,7 @@
       --notification-success-icon: var(--text-success);
       --notification-success-title: var(--text-success);
       --notification-success-title-font-family: var(--font-sans);
-      --notification-success-title-font-weight: var(--font-weight-semibold);
+      --notification-success-title-font-weight: var(--font-weight-normal);
       --notification-success-text: var(--text-primary);
       --notification-success-radius: var(--radius-md);
 
@@ -107,7 +107,7 @@
       --notification-warning-icon: var(--text-warning);
       --notification-warning-title: var(--text-warning);
       --notification-warning-title-font-family: var(--font-sans);
-      --notification-warning-title-font-weight: var(--font-weight-semibold);
+      --notification-warning-title-font-weight: var(--font-weight-normal);
       --notification-warning-text: var(--text-primary);
       --notification-warning-radius: var(--radius-md);
 
@@ -117,7 +117,7 @@
       --notification-danger-icon: var(--text-danger);
       --notification-danger-title: var(--text-danger);
       --notification-danger-title-font-family: var(--font-sans);
-      --notification-danger-title-font-weight: var(--font-weight-semibold);
+      --notification-danger-title-font-weight: var(--font-weight-normal);
       --notification-danger-text: var(--text-primary);
       --notification-danger-radius: var(--radius-md);
    }
@@ -128,7 +128,7 @@
       align-items: flex-start;
       width: 100%;
       gap: 0;
-      font-size: var(--font-md);
+      font-size: var(--font-size-md);
       border: 1px solid;
       transition: all var(--transition-fast);
       position: relative;
@@ -140,27 +140,27 @@
       }
 
       &.compact {
-         font-size: var(--font-sm);
+         font-size: var(--font-size-sm);
 
          .notification-header {
             padding: var(--space-6) var(--space-12);
 
             i {
-               font-size: var(--font-sm);
+               font-size: var(--font-size-sm);
             }
 
             .notification-title {
-               font-size: var(--font-md);
+               font-size: var(--font-size-md);
             }
          }
 
          .notification-description {
-            font-size: var(--font-sm);
+            font-size: var(--font-size-sm);
             padding: var(--space-8) var(--space-12);
          }
 
          .notification-impact {
-            font-size: var(--font-sm);
+            font-size: var(--font-size-sm);
             padding: var(--space-8) var(--space-12);
          }
 
@@ -168,7 +168,7 @@
             padding: var(--space-8) var(--space-12);
 
             .description-text {
-               font-size: var(--font-sm);
+               font-size: var(--font-size-sm);
             }
          }
 
@@ -277,12 +277,12 @@
       }
 
       i {
-         font-size: var(--font-md);
+         font-size: var(--font-size-md);
          flex-shrink: 0;
       }
 
       .notification-title {
-         font-size: var(--font-lg);
+         font-size: var(--font-size-lg);
          text-align: left;
          flex: 1;
       }
@@ -309,7 +309,7 @@
          transition: opacity var(--transition-fast);
 
          i {
-            font-size: var(--font-sm);
+            font-size: var(--font-size-sm);
             color: inherit;
          }
 
@@ -327,19 +327,19 @@
 
    .notification-description {
       line-height: 1.4;
-      font-size: var(--font-md);
-      font-weight: var(--font-weight-light);
+      font-size: var(--font-size-md);
+      font-weight: var(--font-weight-extralight);
       text-align: left;
       padding: .75rem var(--space-16);
    }
 
    .notification-impact {
-      font-weight: var(--font-weight-bold);
+      font-weight: var(--font-weight-semibold);
       padding: var(--space-8) var(--space-16);
       padding-bottom: var(--space-12);
       margin-top: 0;
       border-top: 1px solid var(--border-neutral-subtle);
-      font-size: var(--font-md);
+      font-size: var(--font-size-md);
       text-align: left;
       width: 100%;
    }
@@ -354,8 +354,8 @@
       .description-text {
          flex: 1;
          line-height: 1.4;
-         font-size: var(--font-md);
-         font-weight: var(--font-weight-light);
+         font-size: var(--font-size-md);
+         font-weight: var(--font-weight-extralight);
       }
 
       // Button stays on the right (doesn't shrink or grow)
