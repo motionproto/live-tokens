@@ -43,25 +43,25 @@
 <style lang="scss">
    :global(:root) {
       /* Default */
-      --collapsible-default-surface: var(--surface-canvas);
-      --collapsible-default-label: var(--text-primary);
-      --collapsible-default-icon: var(--text-muted);
-      --collapsible-default-border: var(--color-primary-400);
-      --collapsible-default-radius: var(--radius-md);
+      --collapsiblesection-default-surface: var(--surface-canvas);
+      --collapsiblesection-default-label: var(--text-primary);
+      --collapsiblesection-default-icon: var(--text-muted);
+      --collapsiblesection-default-border: var(--color-primary-400);
+      --collapsiblesection-default-radius: var(--radius-md);
 
       /* Hover */
-      --collapsible-hover-surface: var(--surface-canvas);
-      --collapsible-hover-label: var(--text-primary);
-      --collapsible-hover-icon: var(--text-muted);
-      --collapsible-hover-border: var(--color-primary-400);
-      --collapsible-hover-radius: var(--radius-md);
+      --collapsiblesection-hover-surface: var(--surface-canvas);
+      --collapsiblesection-hover-label: var(--text-primary);
+      --collapsiblesection-hover-icon: var(--text-muted);
+      --collapsiblesection-hover-border: var(--color-primary-400);
+      --collapsiblesection-hover-radius: var(--radius-md);
 
       /* Active */
-      --collapsible-active-surface: var(--surface-canvas-low);
-      --collapsible-active-label: var(--text-primary);
-      --collapsible-active-icon: var(--text-muted);
-      --collapsible-active-border: var(--color-primary-400);
-      --collapsible-active-radius: var(--radius-md);
+      --collapsiblesection-active-surface: var(--surface-canvas-low);
+      --collapsiblesection-active-label: var(--text-primary);
+      --collapsiblesection-active-icon: var(--text-muted);
+      --collapsiblesection-active-border: var(--color-primary-400);
+      --collapsiblesection-active-radius: var(--radius-md);
    }
 
    .section-header {
@@ -77,14 +77,14 @@
 
       &:hover,
       &.force-hover {
-         background: var(--collapsible-hover-surface);
+         background: var(--collapsiblesection-hover-surface);
 
          .section-label {
-            color: var(--collapsible-hover-label);
+            color: var(--collapsiblesection-hover-label);
          }
 
          .toggle-icon {
-            color: var(--collapsible-hover-icon);
+            color: var(--collapsiblesection-hover-icon);
          }
       }
 
@@ -93,15 +93,15 @@
       }
 
       &.active {
-         background: var(--collapsible-active-surface);
-         border-left-color: var(--collapsible-active-border);
+         background: var(--collapsiblesection-active-surface);
+         border-left-color: var(--collapsiblesection-active-border);
 
          .section-label {
-            color: var(--collapsible-active-label);
+            color: var(--collapsiblesection-active-label);
          }
 
          .toggle-icon {
-            color: var(--collapsible-active-icon);
+            color: var(--collapsiblesection-active-icon);
          }
       }
    }
@@ -115,12 +115,12 @@
       font-weight: var(--font-weight-normal);
 
       .section-label {
-         color: var(--collapsible-default-label);
+         color: var(--collapsiblesection-default-label);
       }
 
       .toggle-icon {
          font-size: var(--font-size-xs);
-         color: var(--collapsible-default-icon);
+         color: var(--collapsiblesection-default-icon);
          transition: transform 0.15s ease;
       }
    }

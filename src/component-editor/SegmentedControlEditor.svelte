@@ -24,59 +24,59 @@
   type Token = { label: string; variable: string; canBeShared?: boolean };
 
   const dividerTokens: Token[] = [
-    { label: 'color', variable: '--segment-divider-color' },
-    { label: 'width', canBeShared: true, variable: '--segment-divider-thickness' },
-    { label: 'height', canBeShared: true, variable: '--segment-divider-height' },
+    { label: 'color', variable: '--segmentedcontrol-divider-color' },
+    { label: 'width', canBeShared: true, variable: '--segmentedcontrol-divider-thickness' },
+    { label: 'height', canBeShared: true, variable: '--segmentedcontrol-divider-height' },
   ];
 
   const barTokens: Token[] = [
-    { label: 'surface color', variable: '--segment-bar-surface' },
-    { label: 'border color', variable: '--segment-bar-border' },
-    { label: 'border width', canBeShared: true, variable: '--segment-bar-border-width' },
-    { label: 'radius', canBeShared: true, variable: '--segment-bar-radius' },
+    { label: 'surface color', variable: '--segmentedcontrol-bar-surface' },
+    { label: 'border color', variable: '--segmentedcontrol-bar-border' },
+    { label: 'border width', canBeShared: true, variable: '--segmentedcontrol-bar-border-width' },
+    { label: 'radius', canBeShared: true, variable: '--segmentedcontrol-bar-radius' },
   ];
 
   const optionStates: Record<string, Token[]> = {
     default: [
-      { label: 'text color', variable: '--segment-option-text' },
-      { label: 'font family', canBeShared: true, variable: '--segment-option-text-font-family' },
-      { label: 'font weight', canBeShared: true, variable: '--segment-option-text-font-weight' },
-      { label: 'icon color', variable: '--segment-option-icon' },
+      { label: 'text color', variable: '--segmentedcontrol-option-text' },
+      { label: 'font family', canBeShared: true, variable: '--segmentedcontrol-option-text-font-family' },
+      { label: 'font weight', canBeShared: true, variable: '--segmentedcontrol-option-text-font-weight' },
+      { label: 'icon color', variable: '--segmentedcontrol-option-icon' },
     ],
     hover: [
-      { label: 'surface color', variable: '--segment-option-hover-surface' },
-      { label: 'text color', variable: '--segment-option-hover-text' },
-      { label: 'icon color', variable: '--segment-option-hover-icon' },
+      { label: 'surface color', variable: '--segmentedcontrol-option-hover-surface' },
+      { label: 'text color', variable: '--segmentedcontrol-option-hover-text' },
+      { label: 'icon color', variable: '--segmentedcontrol-option-hover-icon' },
     ],
     disabled: [
-      { label: 'surface color', variable: '--segment-option-disabled-surface' },
-      { label: 'text color', variable: '--segment-option-disabled-text' },
-      { label: 'font weight', canBeShared: true, variable: '--segment-option-disabled-text-font-weight' },
-      { label: 'icon color', variable: '--segment-option-disabled-icon' },
+      { label: 'surface color', variable: '--segmentedcontrol-option-disabled-surface' },
+      { label: 'text color', variable: '--segmentedcontrol-option-disabled-text' },
+      { label: 'font weight', canBeShared: true, variable: '--segmentedcontrol-option-disabled-text-font-weight' },
+      { label: 'icon color', variable: '--segmentedcontrol-option-disabled-icon' },
     ],
   };
 
   const selectedTokens: Token[] = [
-    { label: 'surface color', variable: '--segment-selected-surface' },
-    { label: 'text color', variable: '--segment-selected-text' },
-    { label: 'font weight', canBeShared: true, variable: '--segment-selected-text-font-weight' },
-    { label: 'icon color', variable: '--segment-selected-icon' },
-    { label: 'border color', variable: '--segment-selected-border' },
-    { label: 'border width', canBeShared: true, variable: '--segment-selected-border-width' },
-    { label: 'radius', canBeShared: true, variable: '--segment-selected-radius' },
+    { label: 'surface color', variable: '--segmentedcontrol-selected-surface' },
+    { label: 'text color', variable: '--segmentedcontrol-selected-text' },
+    { label: 'font weight', canBeShared: true, variable: '--segmentedcontrol-selected-text-font-weight' },
+    { label: 'icon color', variable: '--segmentedcontrol-selected-icon' },
+    { label: 'border color', variable: '--segmentedcontrol-selected-border' },
+    { label: 'border width', canBeShared: true, variable: '--segmentedcontrol-selected-border-width' },
+    { label: 'radius', canBeShared: true, variable: '--segmentedcontrol-selected-radius' },
   ];
 
   const shareableContexts = new Map<string, string>([
-    ['--segment-bar-border-width', 'control bar'],
-    ['--segment-bar-radius', 'control bar'],
-    ['--segment-divider-thickness', 'divider'],
-    ['--segment-divider-height', 'divider'],
-    ['--segment-option-text-font-family', 'default option'],
-    ['--segment-option-text-font-weight', 'default option'],
-    ['--segment-option-disabled-text-font-weight', 'disabled option'],
-    ['--segment-selected-text-font-weight', 'selected option'],
-    ['--segment-selected-border-width', 'selected option'],
-    ['--segment-selected-radius', 'selected option'],
+    ['--segmentedcontrol-bar-border-width', 'control bar'],
+    ['--segmentedcontrol-bar-radius', 'control bar'],
+    ['--segmentedcontrol-divider-thickness', 'divider'],
+    ['--segmentedcontrol-divider-height', 'divider'],
+    ['--segmentedcontrol-option-text-font-family', 'default option'],
+    ['--segmentedcontrol-option-text-font-weight', 'default option'],
+    ['--segmentedcontrol-option-disabled-text-font-weight', 'disabled option'],
+    ['--segmentedcontrol-selected-text-font-weight', 'selected option'],
+    ['--segmentedcontrol-selected-border-width', 'selected option'],
+    ['--segmentedcontrol-selected-radius', 'selected option'],
   ]);
 
   type SharedGroup = {

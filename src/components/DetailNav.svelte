@@ -20,7 +20,7 @@
 
 <style lang="scss">
   :global(:root) {
-    --detail-nav-bg: var(--page-bg);
+    --detailnav-surface: var(--page-bg);
   }
 
   .detail-nav {
@@ -33,7 +33,7 @@
     position: sticky;
     top: 96px;
     z-index: 50;
-    background: var(--detail-nav-bg);
+    background: var(--detailnav-surface);
     padding: 12px 0;
   }
 

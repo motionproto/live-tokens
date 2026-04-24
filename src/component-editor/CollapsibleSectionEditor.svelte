@@ -11,25 +11,25 @@
 
   const states: Record<string, Token[]> = {
     default: [
-      { label: 'surface color', variable: '--collapsible-default-surface' },
-      { label: 'label color', variable: '--collapsible-default-label' },
-      { label: 'toggle icon color', variable: '--collapsible-default-icon' },
-      { label: 'border color', variable: '--collapsible-default-border' },
-      { label: 'radius', canBeShared: true, variable: '--collapsible-default-radius' },
+      { label: 'surface color', variable: '--collapsiblesection-default-surface' },
+      { label: 'label color', variable: '--collapsiblesection-default-label' },
+      { label: 'toggle icon color', variable: '--collapsiblesection-default-icon' },
+      { label: 'border color', variable: '--collapsiblesection-default-border' },
+      { label: 'radius', canBeShared: true, variable: '--collapsiblesection-default-radius' },
     ],
     hover: [
-      { label: 'surface color', variable: '--collapsible-hover-surface' },
-      { label: 'label color', variable: '--collapsible-hover-label' },
-      { label: 'toggle icon color', variable: '--collapsible-hover-icon' },
-      { label: 'border color', variable: '--collapsible-hover-border' },
-      { label: 'radius', canBeShared: true, variable: '--collapsible-hover-radius' },
+      { label: 'surface color', variable: '--collapsiblesection-hover-surface' },
+      { label: 'label color', variable: '--collapsiblesection-hover-label' },
+      { label: 'toggle icon color', variable: '--collapsiblesection-hover-icon' },
+      { label: 'border color', variable: '--collapsiblesection-hover-border' },
+      { label: 'radius', canBeShared: true, variable: '--collapsiblesection-hover-radius' },
     ],
     active: [
-      { label: 'surface color', variable: '--collapsible-active-surface' },
-      { label: 'label color', variable: '--collapsible-active-label' },
-      { label: 'toggle icon color', variable: '--collapsible-active-icon' },
-      { label: 'border color', variable: '--collapsible-active-border' },
-      { label: 'radius', canBeShared: true, variable: '--collapsible-active-radius' },
+      { label: 'surface color', variable: '--collapsiblesection-active-surface' },
+      { label: 'label color', variable: '--collapsiblesection-active-label' },
+      { label: 'toggle icon color', variable: '--collapsiblesection-active-icon' },
+      { label: 'border color', variable: '--collapsiblesection-active-border' },
+      { label: 'radius', canBeShared: true, variable: '--collapsiblesection-active-radius' },
     ],
   };
 </script>

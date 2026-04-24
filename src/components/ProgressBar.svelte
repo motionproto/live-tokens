@@ -32,44 +32,44 @@
 <style>
   :global(:root) {
     /* Primary */
-    --progress-primary-track-bg: var(--surface-neutral-low);
-    --progress-primary-track-border: var(--border-neutral-faint);
-    --progress-primary-label: var(--text-secondary);
-    --progress-primary-value: var(--text-tertiary);
-    --progress-primary-radius: var(--radius-full);
-    --progress-primary-fill: var(--gradient-progress);
+    --progressbar-primary-track-surface: var(--surface-neutral-low);
+    --progressbar-primary-track-border: var(--border-neutral-faint);
+    --progressbar-primary-label: var(--text-secondary);
+    --progressbar-primary-value: var(--text-tertiary);
+    --progressbar-primary-radius: var(--radius-full);
+    --progressbar-primary-fill: var(--gradient-progress);
 
     /* Success */
-    --progress-success-track-bg: var(--surface-neutral-low);
-    --progress-success-track-border: var(--border-neutral-faint);
-    --progress-success-label: var(--text-secondary);
-    --progress-success-value: var(--text-tertiary);
-    --progress-success-radius: var(--radius-full);
-    --progress-success-fill: var(--border-success);
+    --progressbar-success-track-surface: var(--surface-neutral-low);
+    --progressbar-success-track-border: var(--border-neutral-faint);
+    --progressbar-success-label: var(--text-secondary);
+    --progressbar-success-value: var(--text-tertiary);
+    --progressbar-success-radius: var(--radius-full);
+    --progressbar-success-fill: var(--border-success);
 
     /* Warning */
-    --progress-warning-track-bg: var(--surface-neutral-low);
-    --progress-warning-track-border: var(--border-neutral-faint);
-    --progress-warning-label: var(--text-secondary);
-    --progress-warning-value: var(--text-tertiary);
-    --progress-warning-radius: var(--radius-full);
-    --progress-warning-fill: var(--border-warning);
+    --progressbar-warning-track-surface: var(--surface-neutral-low);
+    --progressbar-warning-track-border: var(--border-neutral-faint);
+    --progressbar-warning-label: var(--text-secondary);
+    --progressbar-warning-value: var(--text-tertiary);
+    --progressbar-warning-radius: var(--radius-full);
+    --progressbar-warning-fill: var(--border-warning);
 
     /* Danger */
-    --progress-danger-track-bg: var(--surface-neutral-low);
-    --progress-danger-track-border: var(--border-neutral-faint);
-    --progress-danger-label: var(--text-secondary);
-    --progress-danger-value: var(--text-tertiary);
-    --progress-danger-radius: var(--radius-full);
-    --progress-danger-fill: var(--border-danger);
+    --progressbar-danger-track-surface: var(--surface-neutral-low);
+    --progressbar-danger-track-border: var(--border-neutral-faint);
+    --progressbar-danger-label: var(--text-secondary);
+    --progressbar-danger-value: var(--text-tertiary);
+    --progressbar-danger-radius: var(--radius-full);
+    --progressbar-danger-fill: var(--border-danger);
 
     /* Info */
-    --progress-info-track-bg: var(--surface-neutral-low);
-    --progress-info-track-border: var(--border-neutral-faint);
-    --progress-info-label: var(--text-secondary);
-    --progress-info-value: var(--text-tertiary);
-    --progress-info-radius: var(--radius-full);
-    --progress-info-fill: var(--border-info);
+    --progressbar-info-track-surface: var(--surface-neutral-low);
+    --progressbar-info-track-border: var(--border-neutral-faint);
+    --progressbar-info-label: var(--text-secondary);
+    --progressbar-info-value: var(--text-tertiary);
+    --progressbar-info-radius: var(--radius-full);
+    --progressbar-info-fill: var(--border-info);
   }
 
   .progress {
@@ -110,68 +110,68 @@
   }
 
   /* Primary */
-  .progress.primary .progress-label { color: var(--progress-primary-label); }
-  .progress.primary .progress-value { color: var(--progress-primary-value); }
+  .progress.primary .progress-label { color: var(--progressbar-primary-label); }
+  .progress.primary .progress-value { color: var(--progressbar-primary-value); }
   .progress.primary .progress-track {
-    background: var(--progress-primary-track-bg);
-    border-color: var(--progress-primary-track-border);
-    border-radius: var(--progress-primary-radius);
+    background: var(--progressbar-primary-track-surface);
+    border-color: var(--progressbar-primary-track-border);
+    border-radius: var(--progressbar-primary-radius);
   }
   .progress-fill.primary {
-    background: var(--progress-primary-fill);
-    border-radius: var(--progress-primary-radius);
+    background: var(--progressbar-primary-fill);
+    border-radius: var(--progressbar-primary-radius);
   }
 
   /* Success */
-  .progress.success .progress-label { color: var(--progress-success-label); }
-  .progress.success .progress-value { color: var(--progress-success-value); }
+  .progress.success .progress-label { color: var(--progressbar-success-label); }
+  .progress.success .progress-value { color: var(--progressbar-success-value); }
   .progress.success .progress-track {
-    background: var(--progress-success-track-bg);
-    border-color: var(--progress-success-track-border);
-    border-radius: var(--progress-success-radius);
+    background: var(--progressbar-success-track-surface);
+    border-color: var(--progressbar-success-track-border);
+    border-radius: var(--progressbar-success-radius);
   }
   .progress-fill.success {
-    background: var(--progress-success-fill);
-    border-radius: var(--progress-success-radius);
+    background: var(--progressbar-success-fill);
+    border-radius: var(--progressbar-success-radius);
   }
 
   /* Warning */
-  .progress.warning .progress-label { color: var(--progress-warning-label); }
-  .progress.warning .progress-value { color: var(--progress-warning-value); }
+  .progress.warning .progress-label { color: var(--progressbar-warning-label); }
+  .progress.warning .progress-value { color: var(--progressbar-warning-value); }
   .progress.warning .progress-track {
-    background: var(--progress-warning-track-bg);
-    border-color: var(--progress-warning-track-border);
-    border-radius: var(--progress-warning-radius);
+    background: var(--progressbar-warning-track-surface);
+    border-color: var(--progressbar-warning-track-border);
+    border-radius: var(--progressbar-warning-radius);
   }
   .progress-fill.warning {
-    background: var(--progress-warning-fill);
-    border-radius: var(--progress-warning-radius);
+    background: var(--progressbar-warning-fill);
+    border-radius: var(--progressbar-warning-radius);
   }
 
   /* Danger */
-  .progress.danger .progress-label { color: var(--progress-danger-label); }
-  .progress.danger .progress-value { color: var(--progress-danger-value); }
+  .progress.danger .progress-label { color: var(--progressbar-danger-label); }
+  .progress.danger .progress-value { color: var(--progressbar-danger-value); }
   .progress.danger .progress-track {
-    background: var(--progress-danger-track-bg);
-    border-color: var(--progress-danger-track-border);
-    border-radius: var(--progress-danger-radius);
+    background: var(--progressbar-danger-track-surface);
+    border-color: var(--progressbar-danger-track-border);
+    border-radius: var(--progressbar-danger-radius);
   }
   .progress-fill.danger {
-    background: var(--progress-danger-fill);
-    border-radius: var(--progress-danger-radius);
+    background: var(--progressbar-danger-fill);
+    border-radius: var(--progressbar-danger-radius);
   }
 
   /* Info */
-  .progress.info .progress-label { color: var(--progress-info-label); }
-  .progress.info .progress-value { color: var(--progress-info-value); }
+  .progress.info .progress-label { color: var(--progressbar-info-label); }
+  .progress.info .progress-value { color: var(--progressbar-info-value); }
   .progress.info .progress-track {
-    background: var(--progress-info-track-bg);
-    border-color: var(--progress-info-track-border);
-    border-radius: var(--progress-info-radius);
+    background: var(--progressbar-info-track-surface);
+    border-color: var(--progressbar-info-track-border);
+    border-radius: var(--progressbar-info-radius);
   }
   .progress-fill.info {
-    background: var(--progress-info-fill);
-    border-radius: var(--progress-info-radius);
+    background: var(--progressbar-info-fill);
+    border-radius: var(--progressbar-info-radius);
   }
 
   .progress-icon {

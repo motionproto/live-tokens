@@ -9,25 +9,25 @@
 
   const saveStates: Record<string, Token[]> = {
     default: [
-      { label: 'save surface color', variable: '--inline-edit-save-bg' },
-      { label: 'save text color', variable: '--inline-edit-save-text' },
-      { label: 'cancel surface color', variable: '--inline-edit-cancel-bg' },
-      { label: 'cancel text color', variable: '--inline-edit-cancel-text' },
-      { label: 'radius', variable: '--inline-edit-radius' },
+      { label: 'save surface color', variable: '--inlineeditactions-save-surface' },
+      { label: 'save text color', variable: '--inlineeditactions-save-text' },
+      { label: 'cancel surface color', variable: '--inlineeditactions-cancel-surface' },
+      { label: 'cancel text color', variable: '--inlineeditactions-cancel-text' },
+      { label: 'radius', variable: '--inlineeditactions-radius' },
     ],
     hover: [
-      { label: 'save surface color', variable: '--inline-edit-save-bg-hover' },
-      { label: 'save text color', variable: '--inline-edit-save-text' },
-      { label: 'cancel surface color', variable: '--inline-edit-cancel-bg-hover' },
-      { label: 'cancel text color', variable: '--inline-edit-cancel-text' },
-      { label: 'radius', variable: '--inline-edit-radius' },
+      { label: 'save surface color', variable: '--inlineeditactions-save-hover-surface' },
+      { label: 'save text color', variable: '--inlineeditactions-save-text' },
+      { label: 'cancel surface color', variable: '--inlineeditactions-cancel-hover-surface' },
+      { label: 'cancel text color', variable: '--inlineeditactions-cancel-text' },
+      { label: 'radius', variable: '--inlineeditactions-radius' },
     ],
     disabled: [
-      { label: 'save surface color', variable: '--inline-edit-save-bg' },
-      { label: 'save text color', variable: '--inline-edit-save-text' },
-      { label: 'cancel surface color', variable: '--inline-edit-cancel-bg' },
-      { label: 'cancel text color', variable: '--inline-edit-cancel-text' },
-      { label: 'radius', variable: '--inline-edit-radius' },
+      { label: 'save surface color', variable: '--inlineeditactions-save-surface' },
+      { label: 'save text color', variable: '--inlineeditactions-save-text' },
+      { label: 'cancel surface color', variable: '--inlineeditactions-cancel-surface' },
+      { label: 'cancel text color', variable: '--inlineeditactions-cancel-text' },
+      { label: 'radius', variable: '--inlineeditactions-radius' },
     ],
   };
 </script>

@@ -11,22 +11,22 @@
 
   const radioStates: Record<string, Token[]> = {
     default: [
-      { label: 'dot border color', variable: '--radio-dot-border' },
-      { label: 'label color', variable: '--radio-label' },
-      { label: 'surface color', variable: '--radio-surface' },
-      { label: 'radius', variable: '--radio-radius' },
+      { label: 'dot border color', variable: '--radiobutton-dot-border' },
+      { label: 'label color', variable: '--radiobutton-label' },
+      { label: 'surface color', variable: '--radiobutton-surface' },
+      { label: 'radius', variable: '--radiobutton-radius' },
     ],
     hover: [
-      { label: 'dot border color', variable: '--radio-hover-dot-border' },
-      { label: 'label color', variable: '--radio-hover-label' },
-      { label: 'surface color', variable: '--radio-hover-surface' },
-      { label: 'radius', variable: '--radio-radius' },
+      { label: 'dot border color', variable: '--radiobutton-hover-dot-border' },
+      { label: 'label color', variable: '--radiobutton-hover-label' },
+      { label: 'surface color', variable: '--radiobutton-hover-surface' },
+      { label: 'radius', variable: '--radiobutton-radius' },
     ],
     active: [
-      { label: 'dot border color', variable: '--radio-active-dot-border' },
-      { label: 'label color', variable: '--radio-active-label' },
-      { label: 'surface color', variable: '--radio-active-surface' },
-      { label: 'radius', variable: '--radio-radius' },
+      { label: 'dot border color', variable: '--radiobutton-active-dot-border' },
+      { label: 'label color', variable: '--radiobutton-active-label' },
+      { label: 'surface color', variable: '--radiobutton-active-surface' },
+      { label: 'radius', variable: '--radiobutton-radius' },
     ],
   };
 </script>

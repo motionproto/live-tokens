@@ -5,13 +5,15 @@
   ---                                                                                                                                                                                                                                              
   1. The mental model                                                                                                                                                                                                                              
                                                                                                                                                                                                                                                    
-  A component (e.g. segmentedcontrol) owns a set of CSS custom properties split into <prefix>-<variant>-<property>:                                                                                                                                
-                                                                                                                                                                                                                                                   
-  - --segment-bar-border-width → variant = bar, property = width                                                                                                                                                                                   
-  - --segment-selected-border-width → variant = selected, property = width                                                                                                                                                                         
-  - --segment-option-text-font-weight → variant = option-text, property = weight                                                                                                                                                                   
-                                                                                                                                                                                                                                                   
-  Siblings are discovered by matching prefix + -<property> suffix (parseComponentVar in editorStore.ts:713). Two tokens are siblings iff they end in the same last dash segment.                                                                   
+  A component (e.g. segmentedcontrol) owns a set of CSS custom properties split into <prefix>-<variant>-<property>. The prefix is derived in `componentVarPrefix` via a `VAR_PREFIX_OVERRIDES` map (`segmentedcontrol` → `segment`, `collapsiblesection` → `collapsible`, etc.), so the on-disk token names are abbreviated (`--segment-*`, not `--segmentedcontrol-*`). Examples from the live config:
+
+  - --segment-bar-border-width → variant = bar-border, property = width
+  - --segment-selected-border-width → variant = selected-border, property = width
+  - --segment-option-text-font-weight → variant = option-text-font, property = weight
+
+  Siblings are discovered by matching prefix + -<property> suffix (parseComponentVar in editorStore.ts:712 — splits on the last dash). Two tokens are siblings iff they end in the same last dash segment. This is a purely name-derived relationship — there is no explicit `groupKey` in the data.
+
+  Note: one incident of this parser silently grouping unrelated tokens has already been patched by renaming the divider token. The old `--segment-divider-width` collided with `--segment-bar-border-width` / `--segment-selected-border-width` on the `-width` suffix; it is now `--segment-divider-thickness` (suffix `-thickness`, zero siblings — correctly solo). The analogous `--segment-divider-height` is solo on `-height`. The underlying parser fragility remains — any future token ending in `-width` will auto-join the border-width sibling set whether that was intended or not.                                                                   
                                                                                                                                                                                                                                                    
   Each token can be in one of four states:                                                                                                                                                                                                         
                                          
@@ -31,10 +33,21 @@
                                                                                                                                                                                                                                                    
   The shared block at the top collapses each linked group into one representative row, with context labels listing the variants it fans out to.                                                                                                    
                                          
-  ---                                                                                                                                                                                                                                              
+  ---
+  1a. What has changed since this audit was first written
+
+  - **Divider tokens renamed** (`-width` → `-thickness`, `-height` retained). Closes the concrete false-grouping bug the audit implicitly flagged in gap E; the parser itself is unchanged.
+  - **Component editor restructured** into `src/component-editor/` with `scaffolding/` shared pieces (`TokenLayout`, `FieldsetWrapper`, `ComponentEditorBase`, `ComponentFileManager`). Selectors moved under `src/ui/` with a `UI*` prefix. All line references in this audit are against the current layout.
+  - **Component-prefix unabbreviation landed (2026-04-24):** `VAR_PREFIX_OVERRIDES` deleted; `componentVarPrefix` uses the component ID directly. Tokens now `--segmentedcontrol-*`, `--collapsiblesection-*`, `--progressbar-*`, `--sectiondivider-*`, `--radiobutton-*`, `--inlineeditactions-*`, `--detailnav-*`. `-bg` → `-surface` applied to progressbar tracks and inlineeditactions save/cancel slots (state reordered to `-hover-surface`). `migrateComponentAliases` handles legacy configs. Conventions captured in `src/styles/CONVENTIONS.md`.
+  - **Still pending** (tracked in `temp/theme-token-improvements.md` and `temp/primary-to-brand-rename.md`):
+    - Explicit `groupKey` on tokens to replace last-dash sibling parsing.
+    - Theme-layer prereqs: font-size rename, `--btn-*` eviction, bare-word orphan cleanup, full `bg` → `canvas` sweep, font-weight normalization, primary → brand.
+  - Gaps A–J below are all still present in code.
+
+  ---
   2. How editing flows today
                                          
-  From the shared block (UITokenSelector.writeOverride:43):
+  From the shared block (UITokenSelector.writeOverride:45):
   - Writing propagates via setComponentAliasShared → overwrites every sibling's alias.                                                                                                                                                             
   - Clicking the lock when linked → unlinkComponentProperty → adds property to slice.unlinked[]; aliases preserved so each sibling keeps its last value and siblings become independently editable.                                                
                                                                                                                                                                                                                                                    
@@ -47,10 +60,9 @@
   ---                                                                                                                                                                                                                                              
   3. Gaps I found                                                                                                                                                                                                                                  
                                          
-  A. Re-linking silently overwrites      
-                                                                                                                                                                                                                                                   
-  Clicking an open lock doesn't ask "link to this value, or one of the others?" — it just broadcasts the clicked sibling's current alias over every other sibling. If I tweaked --segment-selected-text-font-weight to Bold, then click to re-link,
-   I blow away Semibold on default/disabled with Bold. No preview, no undo cue.                                                                                                                                                                    
+  A. Re-linking silently overwrites
+
+  `UITokenSelector.toggleShared` (UITokenSelector.svelte:78) pulls the currently-focused token's alias and calls `setComponentAliasShared` with it — no popover, no confirmation. If I tweaked `--segment-selected-text-font-weight` to `--font-weight-semibold`, then click to re-link, I blow away the other two siblings' values (`--font-weight-normal` on default, `--font-weight-light` on disabled) with semibold. No preview, no undo cue.                                                                                                                                                                    
                                                                                                                                                                                                                                                    
   B. The "dimmed token in variant fieldset" is mute                                                                                                                                                                                                
                                          
@@ -60,15 +72,13 @@
                          
   My last change put linked kinds in the left grid columns and independent kinds on the right, but there's nothing telling the user that's what's happening. A subtle column rule, band background, or zone label would make the split legible.    
                          
-  D. Shareable-but-solo is a dead concept                                                                                                                                                                                                          
-                         
-  canBeShared: true on a token with no siblings (e.g. --segment-option-text-font-family) means the lock toggle is hidden (good) — but the intent that this property should link was declared by the developer. There's no UI for a user to say "add
-   a sibling variable for this in hover/disabled/selected states." The capability lives only in the source data.
+  D. Shareable-but-solo is a dead concept
+
+  `canBeShared: true` on a token with no siblings — `--segment-option-text-font-family` is the live example; font-family exists only on the default option, not on hover/disabled/selected — means the lock toggle is hidden (UITokenSelector.svelte:42 gates `showLinkToggle` on `hasSiblings`). The developer-declared intent ("this property ought to link") has no user-facing surface. There's no UI for a user to say "add a sibling variable for this in hover/disabled/selected states."
                                                                                                                                                                                                                                                    
-  E. Partial / divergent state has no visual                                                                                                                                                                                                       
-                                         
-  If siblings disagree and the property isn't in unlinked[] (transient state during edit, or an imported theme that doesn't fully agree), isComponentPropertyShared returns false — but the lock still appears as "open / linkable". A user can't  
-  tell "these are diverged accidentally" from "these are intentionally unlinked."
+  E. Partial / divergent state has no visual
+
+  `isComponentPropertyShared` (editorStore.ts:740) returns false in three distinct situations: (1) the property is in `slice.unlinked[]`, (2) siblings have different aliases, (3) at least one sibling alias is missing. The UI collapses all three to a single "open lock / linkable" presentation. A user can't tell "these are diverged accidentally" from "these are intentionally unlinked."
                                                                                                                                                                                                                                                    
   F. Context labels are read-only
                                          
@@ -90,10 +100,9 @@
   Until my recent fix, font-family in default option showed a non-functional lock. The fix hides it, but the declaration canBeShared: true is now a silent no-op. Either the declaration should be warned/removed, or it should bootstrap siblings 
   on first link-click.   
                                                                                                                                                                                                                                                    
-  J. No property-level affordance for rename / add / remove                                                                                                                                                                                        
-                                         
-  All tokens are hard-coded in SegmentedControlEditor.svelte. A user can't add a new shareable property, remove one, or rename the label. The editor pattern works well as a reference impl but would need a data-driven layer to scale to         
-  "assigning properties to tokens" beyond the hard-coded set.
+  J. No property-level affordance for rename / add / remove
+
+  `barTokens`, `dividerTokens`, `optionStates`, `selectedTokens`, and `shareableContexts` are all hard-coded in SegmentedControlEditor.svelte:26-80. A user can't add a new shareable property, remove one, or rename the label. The editor pattern works well as a reference impl but would need a data-driven layer (the `groupKey` + schema-file approach proposed in memory) to scale to "assigning properties to tokens" beyond the hard-coded set.
                                                                                                                                                                                                                                                    
   ---                    
   4. UX improvements, prioritized        
@@ -139,10 +148,9 @@
   When editing a shared token whose siblings span multiple option states (default/hover/disabled), the state dropdown should temporarily pin "all states affected" so the user understands scope. Alternatively, during the edit session, show the 
   non-visible states as collapsed sibling rows below the current one.                                                                                                                                                                              
                                                                                                                                                                                                                                                    
-  P7 — Lift tokens out of component code                                                                                                                                                                                                           
-                                         
-  Longer-term: the token lists in SegmentedControlEditor.svelte (barTokens, dividerTokens, etc.) should become data driven — a component-schema.json declaring variants, properties, and which properties are shareable. Then the editor is a      
-  single schema-driven component, and renaming/adding/removing properties is a matter of editing the schema, not the editor.
+  P7 — Lift tokens out of component code
+
+  Longer-term: the token lists in SegmentedControlEditor.svelte (barTokens, dividerTokens, optionStates, selectedTokens, shareableContexts) should become data driven — a component-schema.json declaring variants, properties, and which properties are shareable, with an explicit `groupKey` that formalizes sibling relationships instead of relying on last-dash suffix parsing. Then the editor is a single schema-driven component, and renaming/adding/removing properties is a matter of editing the schema, not the editor. This is the refactor target captured in the memory worksheet.
                                                                                                                                                                                                                                                    
   P8 — Clarify "Active config matches production"                                                                                                                                                                                                  
                                          

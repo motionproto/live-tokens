@@ -37,17 +37,17 @@
 <style lang="scss">
    :global(:root) {
       /* Save (confirm) */
-      --inline-edit-save-bg: var(--surface-success-low);
-      --inline-edit-save-bg-hover: var(--surface-success-high);
-      --inline-edit-save-text: var(--text-success);
+      --inlineeditactions-save-surface: var(--surface-success-low);
+      --inlineeditactions-save-hover-surface: var(--surface-success-high);
+      --inlineeditactions-save-text: var(--text-success);
 
       /* Cancel */
-      --inline-edit-cancel-bg: var(--surface-danger-low);
-      --inline-edit-cancel-bg-hover: var(--surface-danger-high);
-      --inline-edit-cancel-text: var(--text-danger);
+      --inlineeditactions-cancel-surface: var(--surface-danger-low);
+      --inlineeditactions-cancel-hover-surface: var(--surface-danger-high);
+      --inlineeditactions-cancel-text: var(--text-danger);
 
       /* Shared */
-      --inline-edit-radius: var(--radius-md);
+      --inlineeditactions-radius: var(--radius-md);
    }
 
    .inline-actions {
@@ -59,7 +59,7 @@
    .cancel-btn {
       padding: var(--space-4) var(--space-8);
       border: none;
-      border-radius: var(--inline-edit-radius);
+      border-radius: var(--inlineeditactions-radius);
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
@@ -73,22 +73,22 @@
    }
 
    .save-btn {
-      background: var(--inline-edit-save-bg);
-      color: var(--inline-edit-save-text);
+      background: var(--inlineeditactions-save-surface);
+      color: var(--inlineeditactions-save-text);
 
       &:hover:not(:disabled),
       .inline-actions.force-hover &:not(:disabled) {
-         background: var(--inline-edit-save-bg-hover);
+         background: var(--inlineeditactions-save-hover-surface);
       }
    }
 
    .cancel-btn {
-      background: var(--inline-edit-cancel-bg);
-      color: var(--inline-edit-cancel-text);
+      background: var(--inlineeditactions-cancel-surface);
+      color: var(--inlineeditactions-cancel-text);
 
       &:hover:not(:disabled),
       .inline-actions.force-hover &:not(:disabled) {
-         background: var(--inline-edit-cancel-bg-hover);
+         background: var(--inlineeditactions-cancel-hover-surface);
       }
    }
 </style>

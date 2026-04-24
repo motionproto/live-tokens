@@ -14,7 +14,7 @@
 <button
   class="radio-button {className}"
   class:active
-  style="--radio-color: {color};"
+  style="--radiobutton-color: {color};"
   on:click={() => dispatch('click')}
 >
   <span class="radio-dot" class:filled={active}></span>
@@ -24,18 +24,18 @@
 
 <style lang="scss">
   :global(:root) {
-    --radio-dot-border: var(--border-neutral-default);
-    --radio-label: var(--text-primary);
-    --radio-surface: var(--surface-neutral-lowest);
-    --radio-radius: var(--radius-lg);
+    --radiobutton-dot-border: var(--border-neutral-default);
+    --radiobutton-label: var(--text-primary);
+    --radiobutton-surface: var(--surface-neutral-lowest);
+    --radiobutton-radius: var(--radius-lg);
 
-    --radio-hover-dot-border: var(--radio-dot-border);
-    --radio-hover-label: var(--radio-label);
-    --radio-hover-surface: var(--radio-surface);
+    --radiobutton-hover-dot-border: var(--radiobutton-dot-border);
+    --radiobutton-hover-label: var(--radiobutton-label);
+    --radiobutton-hover-surface: var(--radiobutton-surface);
 
-    --radio-active-dot-border: var(--radio-dot-border);
-    --radio-active-label: var(--radio-label);
-    --radio-active-surface: var(--radio-surface);
+    --radiobutton-active-dot-border: var(--radiobutton-dot-border);
+    --radiobutton-active-label: var(--radiobutton-label);
+    --radiobutton-active-surface: var(--radiobutton-surface);
   }
 
   .radio-button {
@@ -48,7 +48,7 @@
     padding: 0 var(--space-4);
     background: transparent;
     border: none;
-    border-radius: var(--radio-radius);
+    border-radius: var(--radiobutton-radius);
     cursor: pointer;
     transition: all 0.2s ease;
     line-height: 1;
@@ -57,28 +57,28 @@
     &.force-hover {
       background: linear-gradient(
         135deg,
-        color-mix(in srgb, var(--radio-color) 12%, var(--radio-hover-surface)),
-        var(--radio-hover-surface)
+        color-mix(in srgb, var(--radiobutton-color) 12%, var(--radiobutton-hover-surface)),
+        var(--radiobutton-hover-surface)
       );
 
       .radio-label {
-        color: var(--radio-hover-label);
+        color: var(--radiobutton-hover-label);
       }
     }
 
     &.active {
       background: linear-gradient(
         135deg,
-        color-mix(in srgb, var(--radio-color) 15%, var(--radio-active-surface)),
-        color-mix(in srgb, var(--radio-color) 5%, var(--radio-active-surface))
+        color-mix(in srgb, var(--radiobutton-color) 15%, var(--radiobutton-active-surface)),
+        color-mix(in srgb, var(--radiobutton-color) 5%, var(--radiobutton-active-surface))
       );
 
       .radio-label {
-        color: var(--radio-active-label);
+        color: var(--radiobutton-active-label);
       }
 
       .radio-dot:not(.filled) {
-        border-color: var(--radio-active-dot-border, var(--radio-color));
+        border-color: var(--radiobutton-active-dot-border, var(--radiobutton-color));
       }
     }
   }
@@ -87,32 +87,32 @@
     width: 0.75rem;
     height: 0.75rem;
     border-radius: 50%;
-    border: 2px solid var(--radio-dot-border);
+    border: 2px solid var(--radiobutton-dot-border);
     flex-shrink: 0;
     transition: all 0.2s ease;
 
     .radio-button:hover &,
     .radio-button.force-hover & {
-      border-color: var(--radio-hover-dot-border, var(--radio-color));
+      border-color: var(--radiobutton-hover-dot-border, var(--radiobutton-color));
     }
 
     &.filled {
-      border-color: var(--radio-color);
-      background: var(--radio-color);
-      box-shadow: inset 0 0 0 2px var(--radio-surface);
+      border-color: var(--radiobutton-color);
+      background: var(--radiobutton-color);
+      box-shadow: inset 0 0 0 2px var(--radiobutton-surface);
     }
   }
 
   .radio-icon {
     font-size: var(--font-size-lg);
-    color: var(--radio-color);
+    color: var(--radiobutton-color);
     line-height: 1;
   }
 
   .radio-label {
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-semibold);
-    color: var(--radio-label);
+    color: var(--radiobutton-label);
     line-height: 1;
   }
 </style>

@@ -696,17 +696,8 @@ export function clearComponentAlias(component: string, varName: string): void {
   });
 }
 
-const VAR_PREFIX_OVERRIDES: Record<string, string> = {
-  segmentedcontrol: 'segment',
-  collapsiblesection: 'collapsible',
-  progressbar: 'progress',
-  sectiondivider: 'section-divider',
-  radiobutton: 'radio',
-  inlineeditactions: 'inline-edit',
-};
-
 function componentVarPrefix(component: string): string {
-  return `--${VAR_PREFIX_OVERRIDES[component] ?? component}-`;
+  return `--${component}-`;
 }
 
 function parseComponentVar(component: string, varName: string): { variant: string; property: string } | null {
@@ -800,6 +791,58 @@ export function unlinkComponentProperty(component: string, varName: string): voi
 }
 
 /**
+ * Rewrite abbreviated component-prefix keys to the long-form convention
+ * (`--segment-*` → `--segmentedcontrol-*`, etc.). Keeps saved configs loading
+ * after the prefix-unabbreviation refactor. Drop these entries once every
+ * on-disk config has been resaved under the new names.
+ */
+const COMPONENT_PREFIX_RENAMES: Record<string, string> = {
+  '--segment-': '--segmentedcontrol-',
+  '--collapsible-': '--collapsiblesection-',
+  '--progress-': '--progressbar-',
+  '--section-divider-': '--sectiondivider-',
+  '--radio-': '--radiobutton-',
+  '--inline-edit-': '--inlineeditactions-',
+};
+
+/**
+ * Per-component suffix rewrites applied after the prefix migration — these
+ * cover the `bg` → `surface` and hover-state reorder that landed alongside
+ * the prefix rename for progressbar and inlineeditactions.
+ */
+const COMPONENT_SUFFIX_RENAMES: Record<string, Array<[string, string]>> = {
+  progressbar: [['-track-bg', '-track-surface']],
+  inlineeditactions: [
+    ['-bg-hover', '-hover-surface'],
+    ['-bg', '-surface'],
+  ],
+};
+
+function migrateComponentAliases(component: string, aliases: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  const suffixRules = COMPONENT_SUFFIX_RENAMES[component] ?? [];
+  for (const [oldKey, value] of Object.entries(aliases)) {
+    let key = oldKey;
+    // One-off whole-key rename (detailnav's only abbreviated token).
+    if (key === '--detail-nav-bg') key = '--detailnav-surface';
+    for (const [oldPrefix, newPrefix] of Object.entries(COMPONENT_PREFIX_RENAMES)) {
+      if (key.startsWith(oldPrefix)) {
+        key = newPrefix + key.slice(oldPrefix.length);
+        break;
+      }
+    }
+    for (const [oldSuffix, newSuffix] of suffixRules) {
+      if (key.endsWith(oldSuffix)) {
+        key = key.slice(0, -oldSuffix.length) + newSuffix;
+        break;
+      }
+    }
+    if (!(key in out)) out[key] = value;
+  }
+  return out;
+}
+
+/**
  * Replace a component's slice with a loaded config file's contents. Uses
  * `mutate()` so the load is one undoable entry; updates the dirty baseline
  * so the post-load state reads clean for this component.
@@ -809,10 +852,11 @@ export function loadComponentActive(
   activeFile: string,
   aliases: Record<string, string>,
 ): void {
+  const migrated = migrateComponentAliases(component, aliases);
   mutate(`load ${component}/${activeFile}`, (s) => {
-    s.components[component] = { activeFile, aliases: { ...aliases } };
+    s.components[component] = { activeFile, aliases: { ...migrated } };
   });
-  savedComponents[component] = JSON.stringify(aliases);
+  savedComponents[component] = JSON.stringify(migrated);
   bumpComponentSavedTick();
 }
 
@@ -826,8 +870,9 @@ export function seedComponentsFromApi(
   store.update((s) => {
     s.components = {};
     for (const [comp, cfg] of Object.entries(configs)) {
-      s.components[comp] = { activeFile: cfg.activeFile, aliases: { ...cfg.aliases } };
-      savedComponents[comp] = JSON.stringify(cfg.aliases);
+      const migrated = migrateComponentAliases(comp, cfg.aliases);
+      s.components[comp] = { activeFile: cfg.activeFile, aliases: { ...migrated } };
+      savedComponents[comp] = JSON.stringify(migrated);
     }
     return s;
   });
