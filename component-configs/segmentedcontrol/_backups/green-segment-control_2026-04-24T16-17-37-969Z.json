@@ -1,0 +1,33 @@
+{
+  "name": "green segment control",
+  "component": "segmentedcontrol",
+  "createdAt": "2026-04-24T15:06:14.300Z",
+  "updatedAt": "2026-04-24T16:17:33.298Z",
+  "aliases": {
+    "--segmentedcontrol-bar-surface": "--surface-neutral-high",
+    "--segmentedcontrol-bar-border": "--border-neutral-default",
+    "--segmentedcontrol-bar-border-width": "--border-width-thin",
+    "--segmentedcontrol-bar-radius": "--radius-lg",
+    "--segmentedcontrol-divider-color": "--border-neutral-default",
+    "--segmentedcontrol-divider-thickness": "--border-width-thin",
+    "--segmentedcontrol-divider-height": "--space-12",
+    "--segmentedcontrol-option-text": "--text-primary",
+    "--segmentedcontrol-option-text-font-family": "--font-sans",
+    "--segmentedcontrol-option-text-font-weight": "--font-weight-normal",
+    "--segmentedcontrol-option-icon": "--text-secondary",
+    "--segmentedcontrol-option-hover-surface": "--surface-neutral-higher",
+    "--segmentedcontrol-option-hover-text": "--text-primary",
+    "--segmentedcontrol-option-hover-icon": "--text-secondary",
+    "--segmentedcontrol-option-disabled-surface": "--surface-neutral-high",
+    "--segmentedcontrol-option-disabled-text": "--text-tertiary",
+    "--segmentedcontrol-option-disabled-text-font-weight": "--font-weight-light",
+    "--segmentedcontrol-option-disabled-icon": "--text-tertiary",
+    "--segmentedcontrol-selected-surface": "--surface-success-high",
+    "--segmentedcontrol-selected-text": "--text-primary",
+    "--segmentedcontrol-selected-text-font-weight": "--font-weight-semibold",
+    "--segmentedcontrol-selected-icon": "--text-secondary",
+    "--segmentedcontrol-selected-border": "--border-success",
+    "--segmentedcontrol-selected-border-width": "--border-width-thin",
+    "--segmentedcontrol-selected-radius": "--radius-md"
+  }
+}

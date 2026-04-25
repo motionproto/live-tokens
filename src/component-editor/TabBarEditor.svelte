@@ -39,7 +39,7 @@
   };
 </script>
 
-<ComponentEditorBase {component} title="Tab Bar Component" description="Tab navigation with icon support and disabled state. Import from <code>components/TabBar.svelte</code>" let:targetFile>
+<ComponentEditorBase {component} title="Tab Bar" description="Tab navigation with icon support and disabled state. Import from <code>components/TabBar.svelte</code>" let:targetFile>
   <VariantGroup name="tabbar" title="Tab Bar" states={tabStates} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     <TabBar

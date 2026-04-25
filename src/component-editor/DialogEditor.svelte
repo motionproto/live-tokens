@@ -19,7 +19,7 @@
   ];
 </script>
 
-<ComponentEditorBase {component} title="Dialog Component" description="Modal dialog with focus management and slide-in animation. Import from <code>components/Dialog.svelte</code>" let:targetFile>
+<ComponentEditorBase {component} title="Dialog" description="Modal dialog with focus management and slide-in animation. Import from <code>components/Dialog.svelte</code>" let:targetFile>
   <VariantGroup name="dialog" title="Dialog" {tokens} {targetFile} {component}>
     <Button variant="secondary" icon="fas fa-external-link-alt" on:click={() => showDialog = true}>
       Open Dialog

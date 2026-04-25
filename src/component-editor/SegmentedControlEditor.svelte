@@ -151,9 +151,16 @@
   $: visibleDividerTokens = withSharedDisabled(dividerTokens, sharedVarSet);
   $: visibleOptionTokens = withSharedDisabled(optionStates[optionState] ?? [], sharedVarSet);
   $: visibleSelectedTokens = withSharedDisabled(selectedTokens, sharedVarSet);
+
+  const allVariables: string[] = [
+    ...barTokens.map((t) => t.variable),
+    ...dividerTokens.map((t) => t.variable),
+    ...Object.values(optionStates).flatMap((list) => list.map((t) => t.variable)),
+    ...selectedTokens.map((t) => t.variable),
+  ];
 </script>
 
-<ComponentEditorBase {component} title="Segmented Control" description="A connected set of buttons for toggling between mutually exclusive options.">
+<ComponentEditorBase {component} title="Segmented Control" description="A connected set of buttons for toggling between mutually exclusive options." resetVariables={allVariables}>
   <div class="preview-row">
     <SegmentedControl {segments} bind:value={selectedValue} />
     <label class="state-selector">

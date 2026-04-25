@@ -51,7 +51,7 @@
   };
 </script>
 
-<ComponentEditorBase {component} title="Progress Bar Component" description="Animated progress bar with variants. Import from <code>components/ProgressBar.svelte</code>" let:targetFile>
+<ComponentEditorBase {component} title="Progress Bar" description="Animated progress bar with variants. Import from <code>components/ProgressBar.svelte</code>" let:targetFile>
   <VariantGroup name="primary" title="Primary" tokens={variantTokens.primary} {targetFile} {component}>
     <div class="progress-demo-stack">
       <ProgressBar value={25} label="Getting Started" variant="primary" />

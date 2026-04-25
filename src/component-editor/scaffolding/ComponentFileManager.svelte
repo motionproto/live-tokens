@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { get } from 'svelte/store';
   import type { ComponentConfig, ComponentConfigMeta } from '../../lib/themeTypes';
   import {
@@ -17,26 +17,41 @@
     componentDirty,
     loadComponentActive,
     markComponentSaved,
+    mutate,
   } from '../../lib/editorStore';
   import { sanitizeFileName } from '../../lib/themeService';
   import UIDialog from '../../ui/UIDialog.svelte';
+  import ConfigField from './ConfigField.svelte';
 
   /** Which component this manager controls (e.g. "button"). */
   export let component: string;
+  /** Display name shown at the start of the bar (e.g. "Segmented Control"). */
+  export let title: string = '';
+  /** When provided, renders a Reset button that restores these variables to `default.json`. */
+  export let resetVariables: string[] | null = null;
 
   let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
   let files: ComponentConfigMeta[] = [];
   let activeFileName = 'default';
   let currentDisplayName = 'Default';
   let showFileList = false;
-  let saveAsEditing = false;
+  let saveAsDialog = false;
   let saveAsName = '';
   let saveAsInput: HTMLInputElement;
+  let fileMenuOpen = false;
+  let fileMenuRoot: HTMLElement;
 
   let productionInfo: ComponentProductionInfo | null = null;
   let productionUpdateStatus: 'idle' | 'updating' | 'done' | 'error' = 'idle';
 
   $: compDirty = $componentDirty[component] ?? false;
+  $: isApplied = !!productionInfo && productionInfo.fileName === activeFileName && !compDirty;
+  $: unlinkedCount = $editorState.components[component]?.unlinked?.length ?? 0;
+  $: resetDirty = (() => {
+    if (!resetVariables) return false;
+    const aliases = $editorState.components[component]?.aliases ?? {};
+    return resetVariables.some((v) => v in aliases) || unlinkedCount > 0;
+  })();
 
   async function refreshFiles() {
     try {
@@ -61,7 +76,28 @@
   onMount(async () => {
     await refreshFiles();
     await refreshProduction();
+    document.addEventListener('click', handleDocClick, true);
+    window.addEventListener('keydown', handleKeydown);
   });
+
+  onDestroy(() => {
+    document.removeEventListener('click', handleDocClick, true);
+    window.removeEventListener('keydown', handleKeydown);
+  });
+
+  function handleDocClick(e: MouseEvent) {
+    if (!fileMenuOpen) return;
+    if (fileMenuRoot && !fileMenuRoot.contains(e.target as Node)) {
+      fileMenuOpen = false;
+    }
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+      e.preventDefault();
+      handleSave();
+    }
+  }
 
   function currentAliases(): Record<string, string> {
     return get(editorState).components[component]?.aliases ?? {};
@@ -84,6 +120,7 @@
   }
 
   async function handleSave() {
+    fileMenuOpen = false;
     if (activeFileName === 'default') {
       // Default is regenerated from source — can't overwrite directly.
       openSaveAs();
@@ -101,8 +138,8 @@
     }
   }
 
-  async function handleSaveIncrement() {
-    const baseName = currentDisplayName.replace(/_\d+$/, '');
+  function nextIncrementName(baseDisplay: string): { displayName: string; fileName: string } {
+    const baseName = baseDisplay.replace(/_\d+$/, '');
     const baseFileName = sanitizeFileName(baseName);
     const existingNums = files
       .filter((f) => f.fileName === baseFileName || f.fileName.match(new RegExp(`^${baseFileName}_\\d+$`)))
@@ -112,36 +149,37 @@
       });
     const next = (existingNums.length > 0 ? Math.max(...existingNums) : 0) + 1;
     const suffix = String(next).padStart(2, '0');
-    const displayName = `${baseName}_${suffix}`;
-    const fileName = `${baseFileName}_${suffix}`;
-    saveStatus = 'saving';
-    try {
-      await persist(fileName, displayName);
-      saveStatus = 'saved';
-      setTimeout(() => (saveStatus = 'idle'), 2000);
-      await refreshFiles();
-    } catch {
-      saveStatus = 'error';
-      setTimeout(() => (saveStatus = 'idle'), 2000);
-    }
+    return { displayName: `${baseName}_${suffix}`, fileName: `${baseFileName}_${suffix}` };
   }
 
-  function openSaveAs() {
-    saveAsName = currentDisplayName === 'Default' ? '' : currentDisplayName;
-    saveAsEditing = true;
-    showFileList = false;
+  function incrementSaveAsName() {
+    saveAsName = nextIncrementName(saveAsName).displayName;
     setTimeout(() => saveAsInput?.select(), 0);
   }
 
+  function openSaveAs() {
+    fileMenuOpen = false;
+    saveAsName = sanitizeFileName(currentDisplayName) === 'default'
+      ? nextIncrementName(currentDisplayName).displayName
+      : currentDisplayName;
+    saveAsDialog = true;
+    setTimeout(() => saveAsInput?.select(), 0);
+  }
+
+  $: saveAsError = (() => {
+    const trimmed = saveAsName.trim();
+    if (!trimmed) return '';
+    if (sanitizeFileName(trimmed) === 'default') {
+      return 'The name "default" is reserved for the core component definition.';
+    }
+    return '';
+  })();
+
   async function confirmSaveAs() {
     const displayName = saveAsName.trim();
-    if (!displayName) return;
+    if (!displayName || saveAsError) return;
     const fileName = sanitizeFileName(displayName);
-    if (fileName === 'default') {
-      saveAsName = '';
-      return;
-    }
-    saveAsEditing = false;
+    saveAsDialog = false;
     saveStatus = 'saving';
     try {
       await persist(fileName, displayName);
@@ -154,9 +192,10 @@
     }
   }
 
-  function cancelSaveAs() {
-    saveAsEditing = false;
-    saveAsName = '';
+  async function openLoad() {
+    fileMenuOpen = false;
+    showFileList = true;
+    await refreshFiles();
   }
 
   async function handleLoad(file: ComponentConfigMeta) {
@@ -203,122 +242,103 @@
     }
   }
 
-  function handleSaveAsKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter') confirmSaveAs();
-    if (e.key === 'Escape') cancelSaveAs();
+  async function handleReset() {
+    if (!resetVariables) return;
+    const defaultCfg = await loadComponentConfig(component, 'default');
+    mutate(`reset ${component}`, (s) => {
+      const slice =
+        s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {} });
+      for (const v of resetVariables) {
+        const defaultVal = defaultCfg.aliases[v];
+        if (defaultVal !== undefined) slice.aliases[v] = defaultVal;
+        else delete slice.aliases[v];
+      }
+      if (slice.unlinked) delete slice.unlinked;
+    });
   }
 
-  function toggleFileList() {
-    showFileList = !showFileList;
-    saveAsEditing = false;
-    if (showFileList) refreshFiles();
+  function handleSaveAsKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') confirmSaveAs();
   }
 </script>
 
-<div class="cfm-root">
-  <div class="active-file">
-    <span class="active-label">Config · {component}</span>
-    <span class="active-name">{currentDisplayName}</span>
-  </div>
+<div class="cfm-bar">
+  {#if title}
+    <h2 class="cfm-title">{title}</h2>
+  {/if}
 
-  <div class="button-grid">
-    <div class="save-row">
-      <button
-        class="cfm-btn save-btn"
-        class:saving={saveStatus === 'saving'}
-        class:saved={saveStatus === 'saved'}
-        class:error={saveStatus === 'error'}
-        on:click={handleSave}
-        disabled={saveStatus === 'saving'}
-        title={activeFileName === 'default' ? 'Save as new file (default is regenerated from source)' : 'Save to current file'}
-      >
-        <i class="fas" class:fa-save={saveStatus === 'idle'} class:fa-spinner={saveStatus === 'saving'} class:fa-check={saveStatus === 'saved'} class:fa-times={saveStatus === 'error'}></i>
-        <span>
-          {#if saveStatus === 'idle'}Save{:else if saveStatus === 'saving'}Saving{:else if saveStatus === 'saved'}Saved{:else}Error{/if}
-        </span>
-      </button>
-      <button
-        class="cfm-btn increment-btn"
-        on:click={handleSaveIncrement}
-        disabled={saveStatus === 'saving'}
-        title="Save as incremented copy"
-      >
-        <i class="fas fa-plus"></i>
-      </button>
-    </div>
+  <ConfigField
+    label="editor config"
+    value={currentDisplayName}
+    dirty={compDirty}
+    applied={isApplied}
+    title={compDirty
+      ? 'Unsaved changes'
+      : isApplied
+        ? 'Active config is applied to production'
+        : ''}
+  />
 
-    {#if saveAsEditing}
-      <div class="save-as-inline">
-        <input
-          class="save-as-input"
-          type="text"
-          bind:value={saveAsName}
-          bind:this={saveAsInput}
-          on:keydown={handleSaveAsKeydown}
-          placeholder="Config name..."
-        />
-        <div class="save-as-actions">
-          <button class="inline-btn confirm-btn" on:click={confirmSaveAs} disabled={!saveAsName.trim()} title="Save">
-            <i class="fas fa-check"></i>
+  <div class="cfm-group actions">
+    <div class="file-menu" bind:this={fileMenuRoot}>
+      <button
+        class="cfm-btn"
+        class:active={fileMenuOpen}
+        on:click={() => (fileMenuOpen = !fileMenuOpen)}
+        title="File menu"
+      >
+        <i class="fas fa-file"></i>
+        <span>File</span>
+        <i class="fas fa-chevron-down chevron" class:open={fileMenuOpen}></i>
+      </button>
+      {#if fileMenuOpen}
+        <div class="file-menu-dropdown" role="menu">
+          <button class="file-menu-item" on:click={handleSave} role="menuitem">
+            <i class="fas fa-save"></i>
+            <span>Save</span>
           </button>
-          <button class="inline-btn cancel-btn" on:click={cancelSaveAs} title="Cancel">
-            <i class="fas fa-times"></i>
+          <button class="file-menu-item" on:click={openSaveAs} role="menuitem">
+            <i class="fas fa-copy"></i>
+            <span>Save As…</span>
+          </button>
+          <button class="file-menu-item" on:click={openLoad} role="menuitem">
+            <i class="fas fa-folder-open"></i>
+            <span>Load…</span>
           </button>
         </div>
-      </div>
-    {:else}
-      <button class="cfm-btn" on:click={openSaveAs} title="Save as new file">
-        <i class="fas fa-copy"></i>
-        <span>Save As</span>
-      </button>
-    {/if}
-
-    <button
-      class="cfm-btn"
-      class:active={showFileList}
-      on:click={toggleFileList}
-      title="Load a config"
-    >
-      <i class="fas fa-folder-open"></i>
-      <span>Load</span>
-    </button>
-  </div>
-
-  <div class="status-labels">
-    <span class="status-label" class:dirty={compDirty} class:clean={!compDirty}>
-      {compDirty ? 'Unsaved changes' : 'Saved'}
-    </span>
-  </div>
-
-  <div class="production-section">
-    <div class="production-header">
-      <span class="production-label">Production</span>
-      {#if productionInfo}
-        <span class="production-name">{productionInfo.name}</span>
       {/if}
     </div>
-
-    <button
-      class="cfm-btn production-update-btn"
-      class:updating={productionUpdateStatus === 'updating'}
-      class:done={productionUpdateStatus === 'done'}
-      class:error={productionUpdateStatus === 'error'}
-      on:click={handleUpdateProduction}
-      disabled={productionUpdateStatus === 'updating' || productionInfo?.fileName === activeFileName}
-      title={productionInfo?.fileName === activeFileName ? 'Already in production' : `Set "${currentDisplayName}" as production`}
-    >
-      <i class="fas" class:fa-upload={productionUpdateStatus === 'idle'} class:fa-spinner={productionUpdateStatus === 'updating'} class:fa-check={productionUpdateStatus === 'done'} class:fa-times={productionUpdateStatus === 'error'}></i>
-      <span>
-        {#if productionUpdateStatus === 'idle'}Apply Config{:else if productionUpdateStatus === 'updating'}Applying{:else if productionUpdateStatus === 'done'}Applied{:else}Error{/if}
-      </span>
-    </button>
-
-    {#if productionInfo?.fileName === activeFileName}
-      <span class="production-match">Active config matches production</span>
-    {:else}
-      <span class="production-diff">Active config differs from production</span>
-    {/if}
   </div>
+
+  {#if resetVariables}
+    <button
+      class="cfm-btn"
+      on:click={handleReset}
+      disabled={!resetDirty}
+      title="Reset all tokens to defaults"
+    >
+      <i class="fas fa-undo"></i>
+      <span>Reset</span>
+    </button>
+  {/if}
+
+  <div class="production-slot">
+    <ConfigField label="production config" value={productionInfo?.name ?? ''} />
+  </div>
+  <button
+    class="cfm-btn primary"
+    class:saving={productionUpdateStatus === 'updating'}
+    class:saved={productionUpdateStatus === 'done'}
+    class:error={productionUpdateStatus === 'error'}
+    on:click={handleUpdateProduction}
+    disabled={productionUpdateStatus === 'updating' || productionInfo?.fileName === activeFileName}
+    title={productionInfo?.fileName === activeFileName ? 'Already in production' : `Set "${currentDisplayName}" as production`}
+  >
+    <i class="fas" class:fa-upload={productionUpdateStatus === 'idle'} class:fa-spinner={productionUpdateStatus === 'updating'} class:fa-check={productionUpdateStatus === 'done'} class:fa-times={productionUpdateStatus === 'error'}></i>
+    <span>
+      {#if productionUpdateStatus === 'idle'}Apply Config{:else if productionUpdateStatus === 'updating'}Applying{:else if productionUpdateStatus === 'done'}Applied{:else}Error{/if}
+    </span>
+  </button>
 </div>
 
 <UIDialog
@@ -353,45 +373,79 @@
   </div>
 </UIDialog>
 
+<UIDialog
+  bind:show={saveAsDialog}
+  title="Save As"
+  cancelLabel="Cancel"
+  confirmLabel="Save"
+  confirmDisabled={!saveAsName.trim() || !!saveAsError}
+  on:confirm={confirmSaveAs}
+  width="360px"
+>
+  <div class="save-as-dialog">
+    <div class="save-as-row">
+      <input
+        class="save-as-input"
+        class:invalid={!!saveAsError}
+        type="text"
+        bind:value={saveAsName}
+        bind:this={saveAsInput}
+        on:keydown={handleSaveAsKeydown}
+        placeholder="Config name…"
+      />
+      <button
+        type="button"
+        class="save-as-increment"
+        on:click={incrementSaveAsName}
+        title="Increment filename"
+      >
+        <i class="fas fa-plus"></i>
+      </button>
+    </div>
+    {#if saveAsError}
+      <p class="save-as-error" role="alert">{saveAsError}</p>
+    {/if}
+  </div>
+</UIDialog>
+
 <style>
-  .cfm-root {
+  .cfm-bar {
     display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-8);
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--ui-space-12);
+    padding: var(--ui-space-8) var(--ui-space-10);
+    background: var(--ui-surface-low);
+    border: 1px solid var(--ui-border-faint);
+    border-radius: var(--ui-radius-md);
   }
 
-  .active-file {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-2);
-    padding: 0 var(--ui-space-4);
-  }
-
-  .active-label {
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .active-name {
-    font-size: var(--ui-font-size-md);
+  .cfm-title {
+    flex: 0 0 auto;
+    min-width: 8rem;
+    margin: 0 var(--ui-space-24) 0 0;
+    font-size: 1.4rem;
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
+    letter-spacing: -0.015em;
+    white-space: nowrap;
   }
 
-  .button-grid {
+  .cfm-group {
     display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-4);
+    align-items: flex-start;
+    gap: var(--ui-space-6);
+  }
+
+  .production-slot {
+    margin-left: auto;
   }
 
   .cfm-btn {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: var(--ui-space-4);
-    width: 100%;
-    padding: var(--ui-space-6) var(--ui-space-8);
+    padding: var(--ui-space-6) var(--ui-space-10);
     background: var(--ui-surface-low);
     border: 1px solid var(--ui-border-subtle);
     border-radius: var(--ui-radius-md);
@@ -424,56 +478,92 @@
     color: var(--ui-text-primary);
   }
 
-  .save-row {
-    display: flex;
-    gap: var(--ui-space-4);
-  }
-
-  .save-row .save-btn {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .increment-btn {
-    flex: 0 0 auto;
-    width: 34px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .save-btn {
+  .cfm-btn.primary {
     background: var(--ui-surface-high);
     border-color: var(--ui-border-medium);
     color: var(--ui-text-primary);
   }
 
-  .save-btn:hover:not(:disabled) {
+  .cfm-btn.primary:hover:not(:disabled) {
     background: var(--ui-surface-higher);
     border-color: var(--ui-border-strong);
   }
 
-  .save-btn.saving i { animation: spin 1s linear infinite; }
-  .save-btn.saved { background: var(--ui-surface-highest); color: var(--ui-text-success); }
-  .save-btn.error { background: var(--ui-surface-high); color: var(--ui-text-muted); }
+  .cfm-btn.primary.saving i { animation: spin 1s linear infinite; }
+  .cfm-btn.primary.saved { color: var(--ui-text-success); }
+  .cfm-btn.primary.error { color: var(--ui-text-muted); }
 
-  .save-as-inline {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-4);
+  .chevron {
+    font-size: 0.7em;
+    transition: transform var(--ui-transition-fast);
   }
 
-  .save-as-actions {
+  .chevron.open {
+    transform: rotate(180deg);
+  }
+
+  .file-menu {
+    position: relative;
+  }
+
+  .file-menu-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 160px;
+    background: var(--ui-surface-low);
+    border: 1px solid var(--ui-border-default);
+    border-radius: var(--ui-radius-md);
+    box-shadow: var(--shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.4));
+    padding: var(--ui-space-4);
     display: flex;
-    gap: var(--ui-space-4);
-    justify-content: flex-end;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 10;
+  }
+
+  .file-menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-6) var(--ui-space-10);
+    background: none;
+    border: none;
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-md);
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+    transition: background var(--ui-transition-fast), color var(--ui-transition-fast);
+  }
+
+  .file-menu-item i {
+    width: 1rem;
+    text-align: center;
+  }
+
+  .file-menu-item:hover {
+    background: var(--ui-hover);
+    color: var(--ui-text-primary);
+  }
+
+  .save-as-dialog {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-8);
+  }
+
+  .save-as-row {
+    display: flex;
+    align-items: stretch;
+    gap: var(--ui-space-6);
   }
 
   .save-as-input {
     flex: 1;
     min-width: 0;
-    padding: var(--ui-space-6) var(--ui-space-8);
+    padding: var(--ui-space-8) var(--ui-space-10);
     background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-subtle);
     border-radius: var(--ui-radius-md);
@@ -482,46 +572,44 @@
     outline: none;
   }
 
+  .save-as-increment {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    padding: 0;
+    background: var(--ui-surface-low);
+    border: 1px solid var(--ui-border-subtle);
+    border-radius: var(--ui-radius-md);
+    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-md);
+    cursor: pointer;
+    transition: all var(--ui-transition-fast);
+  }
+
+  .save-as-increment:hover {
+    background: var(--ui-surface);
+    border-color: var(--ui-border-default);
+    color: var(--ui-text-primary);
+  }
+
   .save-as-input:focus {
     border-color: var(--ui-border-medium);
+  }
+
+  .save-as-input.invalid,
+  .save-as-input.invalid:focus {
+    border-color: var(--ui-text-warning, #e6a030);
   }
 
   .save-as-input::placeholder {
     color: var(--ui-text-muted);
   }
 
-  .inline-btn {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    padding: 0;
-    background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    color: var(--ui-text-secondary);
-    font-size: var(--ui-font-size-sm);
-    cursor: pointer;
-    transition: all var(--ui-transition-fast);
-  }
-
-  .inline-btn:hover:not(:disabled) {
-    background: var(--ui-surface);
-    color: var(--ui-text-primary);
-    border-color: var(--ui-border-default);
-  }
-
-  .inline-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .inline-btn.confirm-btn {
-    background: var(--ui-surface-high);
-    border-color: var(--ui-border-medium);
-    color: var(--ui-text-primary);
+  .save-as-error {
+    margin: 0;
+    font-size: var(--ui-font-size-xs);
+    color: var(--ui-text-warning, #e6a030);
   }
 
   .load-list {
@@ -606,82 +694,6 @@
 
   .file-delete-btn:hover {
     color: #ccc;
-  }
-
-  .status-labels {
-    display: flex;
-    gap: var(--ui-space-8);
-    padding: 0 var(--ui-space-4);
-  }
-
-  .status-label {
-    font-size: var(--ui-font-size-xs);
-    letter-spacing: 0.02em;
-  }
-
-  .status-label.clean {
-    color: var(--ui-text-secondary);
-  }
-
-  .status-label.dirty {
-    color: var(--ui-text-warning, #e6a030);
-  }
-
-  .production-section {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-4);
-    padding-top: var(--ui-space-8);
-    border-top: 1px solid var(--ui-border-subtle);
-  }
-
-  .production-header {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-2);
-    padding: 0 var(--ui-space-4);
-  }
-
-  .production-label {
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .production-name {
-    font-size: var(--ui-font-size-md);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-primary);
-  }
-
-  .production-update-btn {
-    background: var(--ui-surface-high);
-    border-color: var(--ui-border-medium);
-    color: var(--ui-text-primary);
-  }
-
-  .production-update-btn:hover:not(:disabled) {
-    background: var(--ui-surface-higher);
-    border-color: var(--ui-border-strong);
-  }
-
-  .production-update-btn.updating i { animation: spin 1s linear infinite; }
-  .production-update-btn.done { color: var(--ui-text-success); }
-  .production-update-btn.error { color: var(--ui-text-muted); }
-
-  .production-match {
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
-    padding: 0 var(--ui-space-4);
-    letter-spacing: 0.02em;
-  }
-
-  .production-diff {
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-warning, #e6a030);
-    padding: 0 var(--ui-space-4);
-    letter-spacing: 0.02em;
   }
 
   @keyframes spin {

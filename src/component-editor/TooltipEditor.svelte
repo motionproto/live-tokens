@@ -13,7 +13,7 @@
   ];
 </script>
 
-<ComponentEditorBase {component} title="Tooltip Component" description="Hover tooltip with configurable position. Import from <code>components/Tooltip.svelte</code>" let:targetFile>
+<ComponentEditorBase {component} title="Tooltip" description="Hover tooltip with configurable position. Import from <code>components/Tooltip.svelte</code>" let:targetFile>
   <VariantGroup name="tooltip" title="Tooltip" {tokens} {targetFile} {component}>
     <div class="tooltip-demo-row">
       <Tooltip text="This is a top tooltip">

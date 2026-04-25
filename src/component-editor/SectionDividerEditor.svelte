@@ -82,7 +82,7 @@
   };
 </script>
 
-<ComponentEditorBase {component} title="Section Divider Component" description="Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>" let:targetFile>
+<ComponentEditorBase {component} title="Section Divider" description="Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>" let:targetFile>
   {#each variants as v}
     <VariantGroup name={v.key} title={v.title} tokens={variantTokens[v.key]} {targetFile} {component}>
       <label class="description-toggle">

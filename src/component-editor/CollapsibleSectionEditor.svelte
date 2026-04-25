@@ -34,7 +34,7 @@
   };
 </script>
 
-<ComponentEditorBase {component} title="Collapsible Section Component" description="Expandable section with chevron toggle. Import from <code>components/CollapsibleSection.svelte</code>" let:targetFile>
+<ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Import from <code>components/CollapsibleSection.svelte</code>" let:targetFile>
   <VariantGroup name="collapsible" title="Collapsible Section" {states} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     {@const forceActive = activeState === 'active'}

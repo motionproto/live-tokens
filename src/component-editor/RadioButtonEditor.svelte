@@ -31,7 +31,7 @@
   };
 </script>
 
-<ComponentEditorBase {component} title="Radio Button Component" description="Styled radio buttons with icon and color support. Import from <code>components/RadioButton.svelte</code>" let:targetFile>
+<ComponentEditorBase {component} title="Radio Button" description="Styled radio buttons with icon and color support. Import from <code>components/RadioButton.svelte</code>" let:targetFile>
   <VariantGroup name="radio" title="Radio Button" states={radioStates} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     {@const forceActive = activeState === 'active'}

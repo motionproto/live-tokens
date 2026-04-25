@@ -1,24 +1,34 @@
 <script lang="ts">
-  import { tick } from 'svelte';
+  import { tick, createEventDispatcher } from 'svelte';
 
   export let show: boolean = false;
   export let title: string = '';
   export let cancelLabel: string = 'Cancel';
   export let showCancel: boolean = true;
+  export let confirmLabel: string = '';
+  export let confirmDisabled: boolean = false;
   export let width: string = '500px';
+
+  const dispatch = createEventDispatcher();
 
   let closeButtonRef: HTMLButtonElement;
   let cancelButtonRef: HTMLButtonElement;
+  let confirmButtonRef: HTMLButtonElement;
 
   $: if (show) {
     tick().then(() => {
-      if (showCancel && cancelButtonRef) cancelButtonRef.focus();
+      if (confirmLabel && confirmButtonRef) confirmButtonRef.focus();
+      else if (showCancel && cancelButtonRef) cancelButtonRef.focus();
       else if (closeButtonRef) closeButtonRef.focus();
     });
   }
 
   function handleClose() {
     show = false;
+  }
+
+  function handleConfirm() {
+    dispatch('confirm');
   }
 </script>
 
@@ -39,11 +49,23 @@
         <slot />
       </div>
 
-      {#if showCancel}
+      {#if showCancel || confirmLabel}
         <div class="ui-dialog-footer">
-          <button bind:this={cancelButtonRef} class="ui-dialog-btn" on:click={handleClose}>
-            {cancelLabel}
-          </button>
+          {#if showCancel}
+            <button bind:this={cancelButtonRef} class="ui-dialog-btn" on:click={handleClose}>
+              {cancelLabel}
+            </button>
+          {/if}
+          {#if confirmLabel}
+            <button
+              bind:this={confirmButtonRef}
+              class="ui-dialog-btn primary"
+              on:click={handleConfirm}
+              disabled={confirmDisabled}
+            >
+              {confirmLabel}
+            </button>
+          {/if}
         </div>
       {/if}
     </div>
@@ -117,6 +139,7 @@
     border-top: 1px solid #333;
     display: flex;
     justify-content: flex-end;
+    gap: 8px;
   }
 
   .ui-dialog-btn {
@@ -129,9 +152,27 @@
     cursor: pointer;
   }
 
-  .ui-dialog-btn:hover {
+  .ui-dialog-btn:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.06);
     border-color: #777;
     color: #e0e0e0;
+  }
+
+  .ui-dialog-btn.primary {
+    background: #e8e8e8;
+    border-color: #e8e8e8;
+    color: #1a1a1a;
+    font-weight: 600;
+  }
+
+  .ui-dialog-btn.primary:hover:not(:disabled) {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: #1a1a1a;
+  }
+
+  .ui-dialog-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
 </style>

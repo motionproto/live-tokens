@@ -29,7 +29,7 @@
   };
 </script>
 
-<ComponentEditorBase {component} title="Badge Component" description="Pill-shaped badges with variant support. Import from <code>components/Badge.svelte</code>" let:targetFile>
+<ComponentEditorBase {component} title="Badge" description="Pill-shaped badges with variant support. Import from <code>components/Badge.svelte</code>" let:targetFile>
   <VariantGroup name="info" title="Info" tokens={variantTokens.info} {targetFile} {component}>
     <div class="badge-showcase-grid">
       <Badge variant="info">info</Badge>

@@ -25,7 +25,7 @@
   };
 </script>
 
-<ComponentEditorBase {component} title="Card Component" description="Generic card with icon, title, and slotted body. Import from <code>components/Card.svelte</code>" let:targetFile>
+<ComponentEditorBase {component} title="Card" description="Generic card with icon, title, and slotted body. Import from <code>components/Card.svelte</code>" let:targetFile>
   <VariantGroup name="card" title="Card" states={cardStates} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     <div class="card-demo-grid">

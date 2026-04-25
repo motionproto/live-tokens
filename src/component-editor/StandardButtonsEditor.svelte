@@ -131,7 +131,7 @@
   };
 </script>
 
-<ComponentEditorBase {component} title="Standard Button Component" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" let:targetFile>
+<ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" let:targetFile>
   <VariantGroup name="primary" title="Primary" states={variantStates.primary} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     {@const isDisabled = activeState === 'disabled'}

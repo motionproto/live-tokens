@@ -51,7 +51,7 @@
   };
 </script>
 
-<ComponentEditorBase {component} title="Notification Components" description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>" let:targetFile>
+<ComponentEditorBase {component} title="Notification" description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>" let:targetFile>
   <VariantGroup name="info" title="Info" tokens={variantTokens.info} {targetFile} {component}>
     <Notification
       variant="info"
