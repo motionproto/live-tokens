@@ -1,5 +1,5 @@
-const PRELUDE_PX = 96;
-const DURATION_MS = 350;
+const PRELUDE_PX = 128;
+const DURATION_MS = 400;
 const SPEED_PX_PER_MS = PRELUDE_PX / DURATION_MS;
 
 function easeOutCubic(t: number): number {
