@@ -78,9 +78,9 @@
   }
 
   .columns-overlay__col {
-    background: rgba(239, 68, 68, 0.04);
-    border-left: 1px dashed rgba(239, 68, 68, 0.22);
-    border-right: 1px dashed rgba(239, 68, 68, 0.22);
+    background: var(--ui-overlay-fill);
+    border-left: 1px dashed var(--ui-overlay-border);
+    border-right: 1px dashed var(--ui-overlay-border);
   }
 
   .columns-overlay__num {
@@ -88,7 +88,7 @@
     font-family: var(--ui-font-mono);
     font-size: 9px;
     line-height: 1;
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--ui-overlay-num);
     text-align: center;
     padding-top: 3px;
   }

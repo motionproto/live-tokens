@@ -157,3 +157,16 @@
   --ui-line-height-relaxed: 1.5;
   --ui-opacity-disabled: 0.5;
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   DEV OVERLAY TOKENS — scoped to .lt-app so they reach
+   chrome that lives outside .editor-page (e.g. ColumnsOverlay).
+   Neutral grayscale so the overlay reads on light or dark pages.
+   ═══════════════════════════════════════════════════════ */
+
+.lt-app {
+  --ui-overlay-fill:   rgba(128, 128, 128, 0.06);
+  --ui-overlay-border: rgba(128, 128, 128, 0.32);
+  --ui-overlay-num:    rgba(128, 128, 128, 0.75);
+}

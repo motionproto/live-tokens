@@ -4,6 +4,7 @@ const COMPONENT_SOURCE: Record<string, string> = {
   card: 'Card',
   collapsiblesection: 'CollapsibleSection',
   dialog: 'Dialog',
+  image: 'Image',
   inlineeditactions: 'InlineEditActions',
   notification: 'Notification',
   progressbar: 'ProgressBar',

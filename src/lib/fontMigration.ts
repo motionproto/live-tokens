@@ -24,8 +24,8 @@ function fam(sourceId: string, name: string, cssName?: string, weights?: number[
  */
 export function defaultFontSources(): FontSource[] {
   const typekitId = 'src_typekit_jes8oow';
-  const googleId = 'src_google_default';
-  const domineId = 'src_domine_local';
+  const frauncesId = 'src_fraunces_local';
+  const manropeId = 'src_manrope_local';
 
   return [
     {
@@ -34,29 +34,25 @@ export function defaultFontSources(): FontSource[] {
       url: 'https://use.typekit.net/jes8oow.css',
       label: 'Adobe Typekit',
       families: [
-        fam(typekitId, 'astounder-squared-bb', '"astounder-squared-bb"'),
-        fam(typekitId, 'astounder-squared-lc-bb', '"astounder-squared-lc-bb"'),
-        fam(typekitId, 'gravita-hum-variable', '"gravita-hum-variable"'),
         fam(typekitId, 'fira-code', '"fira-code"'),
       ],
     },
     {
-      id: googleId,
-      kind: 'google',
-      url: 'https://fonts.googleapis.com/css2?family=Faculty+Glyphic&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap',
-      label: 'Google Fonts',
+      id: frauncesId,
+      kind: 'font-face',
+      cssText: `@font-face {\n  font-family: "Fraunces";\n  src: url('./fonts/Fraunces/Fraunces-roman-latin.woff2') format('woff2');\n  font-weight: 100 900;\n  font-style: normal;\n  font-display: swap;\n}\n@font-face {\n  font-family: "Fraunces";\n  src: url('./fonts/Fraunces/Fraunces-italic-latin.woff2') format('woff2');\n  font-weight: 100 900;\n  font-style: italic;\n  font-display: swap;\n}`,
+      label: 'Local',
       families: [
-        fam(googleId, 'Faculty Glyphic'),
-        fam(googleId, 'Montserrat', '"Montserrat"', [100, 200, 300, 400, 500, 600, 700, 800, 900]),
+        fam(frauncesId, 'Fraunces', '"Fraunces"', [100, 200, 300, 400, 500, 600, 700, 800, 900]),
       ],
     },
     {
-      id: domineId,
+      id: manropeId,
       kind: 'font-face',
-      cssText: `@font-face {\n  font-family: "Domine";\n  src: url('./fonts/Domine/Domine-VariableFont_wght.ttf') format('truetype-variations');\n  font-weight: 400 700;\n  font-style: normal;\n  font-display: swap;\n}`,
+      cssText: `@font-face {\n  font-family: "Manrope";\n  src: url('./fonts/Manrope/Manrope-latin.woff2') format('woff2');\n  font-weight: 200 800;\n  font-style: normal;\n  font-display: swap;\n}`,
       label: 'Local',
       families: [
-        fam(domineId, 'Domine', '"Domine"', [400, 500, 600, 700]),
+        fam(manropeId, 'Manrope', '"Manrope"', [200, 300, 400, 500, 600, 700, 800]),
       ],
     },
   ];
@@ -82,14 +78,14 @@ export function defaultFontStacks(sources: FontSource[]): FontStack[] {
     {
       variable: '--font-display',
       slots: [
-        ...pick('astounder-squared-bb', 'astounder-squared-lc-bb'),
-        { kind: 'generic', value: 'sans-serif' },
+        ...pick('Fraunces'),
+        { kind: 'generic', value: 'serif' },
       ],
     },
     {
       variable: '--font-sans',
       slots: [
-        ...pick('Montserrat'),
+        ...pick('Manrope'),
         { kind: 'system', preset: 'system-ui-sans' },
         { kind: 'generic', value: 'sans-serif' },
       ],
@@ -97,7 +93,7 @@ export function defaultFontStacks(sources: FontSource[]): FontStack[] {
     {
       variable: '--font-serif',
       slots: [
-        ...pick('Faculty Glyphic', 'Domine'),
+        ...pick('Fraunces'),
         { kind: 'generic', value: 'serif' },
       ],
     },

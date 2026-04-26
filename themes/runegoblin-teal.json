@@ -1,12 +1,12 @@
 {
   "name": "runegoblin-teal",
   "createdAt": "2026-04-15T17:12:45.278Z",
-  "updatedAt": "2026-04-15T17:12:45.282Z",
+  "updatedAt": "2026-04-26T19:18:22.985Z",
   "editorConfigs": {
     "Neutral": {
       "baseColor": "#808080",
-      "tintHue": 53.35888601350007,
-      "tintChroma": 0.062,
+      "tintHue": 172,
+      "tintChroma": 0.087,
       "lightnessCurve": [
         {
           "x": 0,
@@ -676,7 +676,7 @@
       "gradientSize": "page"
     },
     "Primary": {
-      "baseColor": "#eb0ad4",
+      "baseColor": "#fc5abb",
       "tintHue": 240,
       "tintChroma": 0.04,
       "lightnessCurve": [
@@ -690,7 +690,7 @@
         },
         {
           "x": 40,
-          "y": 64.81117414856864,
+          "y": 70.99062938177792,
           "inDx": -15,
           "inDy": 0,
           "outDx": 15,
@@ -2225,7 +2225,6 @@
     "--color-neutral-800": "#302925",
     "--color-neutral-850": "#1a1410",
     "--color-neutral-900": "#070302",
-    "--color-neutral-950": "#000000",
     "--surface-neutral-lowest": "#0f0a07",
     "--surface-neutral-lower": "#1a1410",
     "--surface-neutral-low": "#28211d",
@@ -2235,7 +2234,6 @@
     "--surface-neutral-highest": "#615954",
     "--border-neutral-faint": "#27201c",
     "--border-neutral-subtle": "#48413c",
-    "--border-neutral": "#706964",
     "--border-neutral-medium": "#9b938e",
     "--border-neutral-strong": "#c4bcb6",
     "--text-primary": "#fff5f0",
@@ -2299,8 +2297,6 @@
     "--text-canvas-tertiary": "#647673",
     "--text-canvas-muted": "#454d4c",
     "--text-canvas-disabled": "#363a3a",
-    "--empty": "#10302d",
-    "--empty-attachment": "scroll",
     "--color-primary-100": "#ffe6f9",
     "--color-primary-200": "#ffb7f0",
     "--color-primary-300": "#ff74e9",
@@ -2497,6 +2493,12 @@
     "--text-danger-tertiary": "#a84950",
     "--text-danger-muted": "#65393b",
     "--text-danger-disabled": "#463030",
+    "--page-bg": "#10302d",
+    "--color-neutral-950": "#000000",
+    "--border-neutral": "#616e6a",
+    "--empty": "#10302d",
+    "--empty-attachment": "scroll",
+    "--page-bg-attachment": "scroll",
     "--overlay-lowest": "rgba(20, 3, 0, 0.12)",
     "--overlay-lower": "rgba(20, 3, 0, 0.25)",
     "--overlay-low": "rgba(20, 3, 0, 0.38)",
@@ -2504,6 +2506,9 @@
     "--overlay-high": "rgba(20, 3, 0, 0.64)",
     "--overlay-higher": "rgba(20, 3, 0, 0.77)",
     "--overlay-highest": "rgba(20, 3, 0, 0.9)",
+    "--hover-low": "rgba(255, 255, 255, 0.05)",
+    "--hover": "rgba(255, 255, 255, 0.1)",
+    "--hover-high": "rgba(255, 255, 255, 0.15)",
     "--shadow-sm": "1px 1px 2px 0px hsla(237, 18%, 3%, 0.9)",
     "--shadow-md": "3px 3px 6px 0px hsla(237, 18%, 3%, 0.9)",
     "--shadow-lg": "5px 5px 9px 0px hsla(237, 18%, 3%, 0.9)",

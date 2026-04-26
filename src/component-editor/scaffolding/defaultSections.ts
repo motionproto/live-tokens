@@ -6,6 +6,7 @@ import DialogEditor from '../DialogEditor.svelte';
 import RadioButtonEditor from '../RadioButtonEditor.svelte';
 import CardEditor from '../CardEditor.svelte';
 import BadgeEditor from '../BadgeEditor.svelte';
+import ImageEditor from '../ImageEditor.svelte';
 import InlineEditActionsEditor from '../InlineEditActionsEditor.svelte';
 import SectionDividerEditor from '../SectionDividerEditor.svelte';
 import CollapsibleSectionEditor from '../CollapsibleSectionEditor.svelte';
@@ -21,6 +22,7 @@ export const defaultSections: ComponentSection[] = [
   { id: 'radioButtons', label: 'Radio Button', component: RadioButtonEditor },
   { id: 'cards', label: 'Card', component: CardEditor },
   { id: 'traitBadges', label: 'Trait Badge', component: BadgeEditor },
+  { id: 'image', label: 'Image', component: ImageEditor },
   { id: 'inlineEdit', label: 'Inline Edit Actions', component: InlineEditActionsEditor },
   { id: 'sectionDivider', label: 'Section Divider', component: SectionDividerEditor },
   { id: 'collapsible', label: 'Collapsible Section', component: CollapsibleSectionEditor },

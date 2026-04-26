@@ -462,9 +462,9 @@
   --columns-margin: 0;
 
   /* Font Families */
-  --font-display: "astounder-squared-bb", "astounder-squared-lc-bb", "Signika", sans-serif;
-  --font-sans: "Montserrat", 'Segoe UI', 'Open Sans', 'Helvetica Neue', sans-serif;
-  --font-serif: "Faculty Glyphic","Domine", serif;
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-sans: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+  --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
   --font-mono: "fira-code", "Source Code Pro", "Courier New", monospace;
 
   /* Font Sizes */
