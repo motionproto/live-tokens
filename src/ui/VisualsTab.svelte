@@ -13,6 +13,7 @@
   import { activeFileName } from '../lib/editorConfigStore';
   import { applyFontSources, applyFontStacks } from '../lib/fontLoader';
   import { migrateThemeFonts } from '../lib/fontMigration';
+  import { scrollSectionIntoView } from '../lib/scrollSection';
   import {
     editorState,
     loadFromFile as loadEditorState,
@@ -38,7 +39,8 @@
 
   function scrollToSection(sectionId: string) {
     selectedTokenSection = sectionId;
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    const el = document.getElementById(sectionId);
+    if (el) scrollSectionIntoView(el);
   }
 
   let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
