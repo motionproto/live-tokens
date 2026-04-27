@@ -12,6 +12,7 @@
     getComponentPropertySiblings,
   } from '../lib/editorStore';
   import UILinkToggle from './UILinkToggle.svelte';
+  import UIRelinkConfirmPopover from './UIRelinkConfirmPopover.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -31,6 +32,8 @@
 
   let open = false;
   let container: HTMLElement;
+  let relinkOpen = false;
+  let relinkCandidates: { variable: string; alias: string }[] = [];
 
   $: isSharedFromData = canBeShared && component && $editorState
     ? isComponentPropertyShared(component, variable)
@@ -80,13 +83,38 @@
     if (isSharedDisplay) {
       unlinkComponentProperty(component, variable);
       dispatch('change');
-    } else {
-      const currentValue = $editorState.components[component]?.aliases[variable];
+      return;
+    }
+    const slice = $editorState.components[component];
+    if (!slice) return;
+    const siblings = getComponentPropertySiblings(component, variable);
+    if (siblings.length < 2) return;
+
+    const candidates = siblings.map((v) => ({ variable: v, alias: slice.aliases[v] ?? '' }));
+    const distinctValues = new Set(candidates.map((c) => c.alias).filter(Boolean));
+
+    if (distinctValues.size <= 1) {
+      const currentValue = slice.aliases[variable];
       if (currentValue) {
         setComponentAliasShared(component, variable, currentValue);
         dispatch('change');
       }
+      return;
     }
+
+    relinkCandidates = candidates;
+    relinkOpen = true;
+  }
+
+  function handleRelinkConfirm(e: CustomEvent<{ alias: string }>) {
+    if (!component) return;
+    setComponentAliasShared(component, variable, e.detail.alias);
+    dispatch('change');
+    relinkOpen = false;
+  }
+
+  function handleRelinkCancel() {
+    relinkOpen = false;
   }
 
   function handleReset() {
@@ -97,7 +125,10 @@
   }
 
   function handleClickOutside(e: MouseEvent) {
-    if (container && !container.contains(e.target as Node)) close();
+    if (container && !container.contains(e.target as Node)) {
+      close();
+      relinkOpen = false;
+    }
   }
 
   function handleVarChange(e: Event) {
@@ -136,6 +167,16 @@
     {/if}
     <i class="fas fa-chevron-down ui-ts-chevron" class:open></i>
   </button>
+
+  {#if relinkOpen && component}
+    <UIRelinkConfirmPopover
+      candidates={relinkCandidates}
+      initialVariable={variable}
+      prefixToStrip={`--${component}-`}
+      on:confirm={handleRelinkConfirm}
+      on:cancel={handleRelinkCancel}
+    />
+  {/if}
 
   {#if open}
     <div
