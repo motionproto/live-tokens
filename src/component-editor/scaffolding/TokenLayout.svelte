@@ -5,6 +5,8 @@
   import UIBorderWeightSelector from '../../ui/UIBorderWeightSelector.svelte';
   import UIFontFamilySelector from '../../ui/UIFontFamilySelector.svelte';
   import UIFontWeightSelector from '../../ui/UIFontWeightSelector.svelte';
+  import UIFontSizeSelector from '../../ui/UIFontSizeSelector.svelte';
+  import UILineHeightSelector from '../../ui/UILineHeightSelector.svelte';
   import UIDividerHeightSelector from '../../ui/UIDividerHeightSelector.svelte';
   import UIPaddingSelector from '../../ui/UIPaddingSelector.svelte';
   import { editorState, getComponentPropertySiblings } from '../../lib/editorStore';
@@ -22,6 +24,8 @@
     | 'divider-height'
     | 'font-family'
     | 'font-weight'
+    | 'font-size'
+    | 'line-height'
     | 'padding'
     | 'extras';
 
@@ -46,6 +50,14 @@
 
   function isFontWeight(v: string): boolean {
     return v.endsWith('-font-weight');
+  }
+
+  function isFontSize(v: string): boolean {
+    return v.endsWith('-font-size');
+  }
+
+  function isLineHeight(v: string): boolean {
+    return v.endsWith('-line-height');
   }
 
   function isRadius(v: string): boolean {
@@ -80,10 +92,12 @@
     return v.endsWith('-text') || v.startsWith('--text-');
   }
 
-  /** Fixed internal order within the linked and independent groups. */
+  /** Fixed internal order for tokens within a layout. */
   const baseKindOrder: Kind[] = [
     'font-family',
     'font-weight',
+    'font-size',
+    'line-height',
     'border-width',
     'divider-width',
     'divider-height',
@@ -100,6 +114,8 @@
   function categorize(v: string): Kind {
     if (isFontFamily(v)) return 'font-family';
     if (isFontWeight(v)) return 'font-weight';
+    if (isFontSize(v)) return 'font-size';
+    if (isLineHeight(v)) return 'line-height';
     if (isTextColor(v)) return 'extras';
     if (isRadius(v)) return 'radius';
     if (isDividerWidth(v)) return 'divider-width';
@@ -143,60 +159,24 @@
     return set;
   }
 
-  /** Column layout: linked kinds first (leftmost), then independent kinds.
-   *  Computed per-component so all fieldsets in the same component share the same tracks.
-   *  When both zones have content, a 0-width divider column sits at the boundary. */
-  function buildColumnLayout(linked: Set<Kind>): {
-    map: Partial<Record<Kind, number>>;
-    extrasBaseCol: number;
-    total: number;
-    dividerCol: number | null;
-  } {
-    const linkedOrdered = baseKindOrder.filter((k) => linked.has(k));
-    const independentOrdered = baseKindOrder.filter((k) => !linked.has(k));
-    const hasDivider = linkedOrdered.length > 0 && independentOrdered.length > 0;
-    const map: Partial<Record<Kind, number>> = {};
-    let col = 1;
-    let extrasBaseCol = 1;
-    let dividerCol: number | null = null;
-
-    function placeKind(k: Kind) {
-      if (k === 'extras') {
-        extrasBaseCol = col;
-        col += 2;
-      } else {
-        map[k] = col;
-        col += 1;
-      }
+  function isPaddingSplit(varName: string, comp: string | undefined, state: typeof $editorState): boolean {
+    const sides = ['top', 'right', 'bottom', 'left'];
+    if (comp) {
+      const slice = state.components[comp];
+      if (!slice) return false;
+      return sides.some((s) => `${varName}-${s}` in slice.aliases);
     }
-
-    for (const k of linkedOrdered) placeKind(k);
-    if (hasDivider) {
-      dividerCol = col;
-      col += 1;
-    }
-    for (const k of independentOrdered) placeKind(k);
-
-    return { map, extrasBaseCol, total: col - 1, dividerCol };
+    return sides.some((s) => !!document.documentElement.style.getPropertyValue(`${varName}-${s}`).trim());
   }
 
   $: linkedKinds = computeLinkedKinds(component, $editorState);
-  $: columnLayout = buildColumnLayout(linkedKinds);
-
-  function placeEntries(list: Entry[], layout: ReturnType<typeof buildColumnLayout>): { entry: Entry; col: number }[] {
-    let extras = 0;
-    return list.map((entry) => {
-      if (entry.kind === 'extras') {
-        const col = layout.extrasBaseCol + Math.min(extras, 1);
-        extras++;
-        return { entry, col };
-      }
-      return { entry, col: layout.map[entry.kind] ?? 1 };
-    });
-  }
-
   $: entries = buildEntries(tokens.filter((t) => !t.hidden), sharedOrder, linkedKinds);
-  $: placed = placeEntries(entries, columnLayout);
+  /** Index of the first independent (non-linked) entry; -1 when there are no linked entries or no boundary. */
+  $: firstIndependentIdx = (() => {
+    const idx = entries.findIndex((e) => !linkedKinds.has(e.kind));
+    if (idx <= 0) return -1;
+    return idx;
+  })();
 
   function dimmedTooltip(variable: string): string {
     if (!component) return '';
@@ -227,59 +207,72 @@
   {#if title}
     <span class="token-group-title">{title}</span>
   {/if}
-  <div class="token-grid" style="--token-columns: {columnLayout.total};">
-    {#if columnLayout.dividerCol !== null}
-      <div
-        class="zone-divider"
-        style="grid-column: {columnLayout.dividerCol}; grid-row: 1 / span {Math.max(1, tokens.length)};"
-        aria-hidden="true"
-      ></div>
-    {/if}
-    {#each placed as { entry, col }}
+  <div class="token-grid">
+    {#each entries as entry, i}
       {@const token = entry.token}
       {@const dis = token.disabled ?? false}
       {@const ctxs = contexts[token.variable]}
       {@const idx = sharedOrder?.get(token.variable)}
       {@const isMirror = dis && !isSharedBlock}
-      <div
-        class="token-entry"
-        class:highlighted={highlightedVars.has(token.variable)}
-        class:linked-mirror={isMirror}
-        data-shared-anchor={isSharedBlock ? '' : undefined}
-        data-shared-index={idx !== undefined ? String(idx) : undefined}
-        title={isMirror ? dimmedTooltip(token.variable) : null}
-        style="grid-column: {col};"
-        on:click={isMirror ? () => handleMirrorClick(token.variable) : undefined}
-        on:keydown={isMirror ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleMirrorClick(token.variable); } } : undefined}
-        role={isMirror ? 'button' : undefined}
-        tabindex={isMirror ? 0 : undefined}
-        on:mouseenter={() => { if (ctxs || token.canBeShared) dispatch('tokenhover', { variable: token.variable }); }}
-        on:mouseleave={() => { if (ctxs || token.canBeShared) dispatch('tokenhover', { variable: null }); }}
-      >
-        <span class="token-label">{token.label}</span>
-        {#if entry.kind === 'radius'}
-          <UIRadiusSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
-        {:else if entry.kind === 'border-width' || entry.kind === 'divider-width'}
-          <UIBorderWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
-        {:else if entry.kind === 'divider-height'}
-          <UIDividerHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
-        {:else if entry.kind === 'padding'}
-          <UIPaddingSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
-        {:else if entry.kind === 'font-family'}
-          <UIFontFamilySelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
-        {:else if entry.kind === 'font-weight'}
-          <UIFontWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
-        {:else}
-          <UIPaletteSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
-        {/if}
-        {#if ctxs?.length}
-          <div class="token-contexts">
-            {#each ctxs as ctx}
-              <span class="token-context">{ctx}</span>
-            {/each}
-          </div>
-        {/if}
-      </div>
+      {@const padSplit = entry.kind === 'padding' && isPaddingSplit(token.variable, component, $editorState)}
+      {#if i === firstIndependentIdx}
+        <div class="zone-divider" aria-hidden="true"></div>
+      {/if}
+      {#if padSplit}
+        <UIPaddingSelector
+          mode="sides"
+          rowLabel={token.label}
+          variable={token.variable}
+          {component}
+          canBeShared={token.canBeShared ?? false}
+          disabled={dis}
+          on:change
+        />
+      {:else}
+        <div
+          class="token-row"
+          class:highlighted={highlightedVars.has(token.variable)}
+          class:linked-mirror={isMirror}
+          class:has-contexts={!!ctxs?.length}
+          data-shared-anchor={isSharedBlock ? '' : undefined}
+          data-shared-index={idx !== undefined ? String(idx) : undefined}
+          title={isMirror ? dimmedTooltip(token.variable) : null}
+          on:click={isMirror ? () => handleMirrorClick(token.variable) : undefined}
+          on:keydown={isMirror ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleMirrorClick(token.variable); } } : undefined}
+          role={isMirror ? 'button' : undefined}
+          tabindex={isMirror ? 0 : undefined}
+          on:mouseenter={() => { if (ctxs || token.canBeShared) dispatch('tokenhover', { variable: token.variable }); }}
+          on:mouseleave={() => { if (ctxs || token.canBeShared) dispatch('tokenhover', { variable: null }); }}
+        >
+          <span class="token-label">{token.label}</span>
+          {#if entry.kind === 'radius'}
+            <UIRadiusSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+          {:else if entry.kind === 'border-width' || entry.kind === 'divider-width'}
+            <UIBorderWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+          {:else if entry.kind === 'divider-height'}
+            <UIDividerHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+          {:else if entry.kind === 'padding'}
+            <UIPaddingSelector mode="single" variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+          {:else if entry.kind === 'font-family'}
+            <UIFontFamilySelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+          {:else if entry.kind === 'font-weight'}
+            <UIFontWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+          {:else if entry.kind === 'font-size'}
+            <UIFontSizeSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+          {:else if entry.kind === 'line-height'}
+            <UILineHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+          {:else}
+            <UIPaletteSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+          {/if}
+          {#if ctxs?.length}
+            <div class="token-contexts">
+              {#each ctxs as ctx}
+                <span class="token-context">{ctx}</span>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      {/if}
     {/each}
   </div>
 </div>
@@ -300,72 +293,76 @@
 
   .token-grid {
     display: grid;
-    grid-template-columns: repeat(var(--token-columns, 10), max-content);
-    column-gap: var(--ui-space-8);
-    row-gap: var(--ui-space-8);
-    align-items: flex-start;
+    grid-template-columns: max-content max-content 1fr;
+    column-gap: var(--ui-space-10);
+    row-gap: var(--ui-space-6);
+    align-items: center;
+    padding: var(--ui-space-4) var(--ui-space-12);
   }
 
   .zone-divider {
-    width: 0;
-    align-self: stretch;
-    border-left: 1px dashed var(--ui-border-faint);
-    pointer-events: none;
+    grid-column: 1 / -1;
+    height: 0;
+    border-top: 1px dashed var(--ui-border-faint);
+    margin: var(--ui-space-2) 0;
   }
 
-  .token-entry {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-2);
+  .token-row {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    align-items: center;
+    row-gap: var(--ui-space-2);
     border-radius: var(--ui-radius-sm);
-    padding: var(--ui-space-2);
     transition: background var(--ui-transition-fast);
     min-width: 0;
   }
 
-  .token-entry.highlighted {
+  .token-row.highlighted {
     background: var(--ui-surface-high);
     outline: 1px dashed var(--ui-text-accent);
   }
 
-  .token-entry.highlighted .token-label {
+  .token-row.highlighted .token-label {
     color: var(--ui-text-accent);
   }
 
-  .token-entry.linked-mirror {
+  .token-row.linked-mirror {
     cursor: pointer;
   }
 
-  .token-entry.linked-mirror :global(.ui-token-selector) {
+  .token-row.linked-mirror :global(.ui-token-selector) {
     pointer-events: none;
   }
 
-  .token-entry.linked-mirror:focus-visible {
+  .token-row.linked-mirror:focus-visible {
     outline: 2px solid var(--ui-text-accent);
     outline-offset: 2px;
   }
 
-  :global(.token-entry.flash-highlight) {
-    animation: tokenEntryFlash 800ms ease-out;
+  :global(.token-row.flash-highlight) {
+    animation: tokenRowFlash 800ms ease-out;
   }
 
-  @keyframes tokenEntryFlash {
+  @keyframes tokenRowFlash {
     0%   { background: var(--ui-text-accent); outline: 1px solid var(--ui-text-accent); }
     40%  { background: var(--ui-surface-high); }
     100% { background: transparent; outline: 1px solid transparent; }
   }
 
   .token-label {
+    grid-column: 1;
     font-size: var(--ui-font-size-sm);
     color: var(--ui-text-secondary);
-    padding-left: var(--ui-space-2);
+    text-align: left;
+    line-height: 1;
   }
 
   .token-contexts {
+    grid-column: 2 / -1;
     display: flex;
     flex-direction: column;
     gap: 1px;
-    padding-left: var(--ui-space-2);
   }
 
   .token-context {

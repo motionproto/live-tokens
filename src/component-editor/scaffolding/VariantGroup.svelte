@@ -2,16 +2,32 @@
   import { onMount } from 'svelte';
   import { get } from 'svelte/store';
   import TokenLayout from './TokenLayout.svelte';
+  import TypeEditor from './TypeEditor.svelte';
   import { removeCssVar } from '../../lib/cssVarSync';
   import { editorState, mutate } from '../../lib/editorStore';
   import { loadComponentConfig } from '../../lib/componentConfigService';
 
   type Token = { label: string; variable: string };
+  type TypeGroupConfig = {
+    legend?: string;
+    colorVariable: string;
+    colorLabel?: string;
+    familyVariable?: string;
+    familyLabel?: string;
+    sizeVariable?: string;
+    sizeLabel?: string;
+    weightVariable?: string;
+    weightLabel?: string;
+    lineHeightVariable?: string;
+    lineHeightLabel?: string;
+  };
 
   export let name: string;
   export let title: string;
   export let tokens: Token[] = [];
   export let states: Record<string, Token[]> | null = null;
+  /** Per-state type groups; rendered as TypeEditor blocks alongside the state's TokenLayout. */
+  export let typeGroups: Record<string, TypeGroupConfig[]> = {};
   export let targetFile: string;
   export let showPrompt: boolean = true;
   /** When set, overrides are read from and cleared through the editor store. */
@@ -23,15 +39,32 @@
   /** Per-variable rank used by TokenLayout to align shared tokens with the shared block above. */
   export let sharedOrder: Map<string, number> | undefined = undefined;
 
+  function typeGroupVariables(g: TypeGroupConfig): { variable: string; label: string }[] {
+    const out: { variable: string; label: string }[] = [
+      { variable: g.colorVariable, label: g.colorLabel ?? 'text color' },
+    ];
+    if (g.familyVariable) out.push({ variable: g.familyVariable, label: g.familyLabel ?? 'font family' });
+    if (g.sizeVariable) out.push({ variable: g.sizeVariable, label: g.sizeLabel ?? 'font size' });
+    if (g.weightVariable) out.push({ variable: g.weightVariable, label: g.weightLabel ?? 'font weight' });
+    if (g.lineHeightVariable) out.push({ variable: g.lineHeightVariable, label: g.lineHeightLabel ?? 'line height' });
+    return out;
+  }
+
   let resetKey = 0;
   let prompt = '';
   let dirty = false;
 
   $: stateNames = states ? Object.keys(states) : [];
 
-  $: allTokens = states
-    ? stateNames.flatMap((s) => states![s].map((t) => ({ ...t, _state: s })))
-    : tokens.map((t) => ({ ...t, _state: '' as string }));
+  $: allTokens = (() => {
+    const baseTokens = states
+      ? stateNames.flatMap((s) => states![s].map((t) => ({ ...t, _state: s })))
+      : tokens.map((t) => ({ ...t, _state: '' as string }));
+    const tgTokens = Object.entries(typeGroups).flatMap(([stateName, groups]) =>
+      groups.flatMap((g) => typeGroupVariables(g).map((t) => ({ ...t, _state: stateName }))),
+    );
+    return [...baseTokens, ...tgTokens];
+  })();
 
   function hasOverrides(): boolean {
     if (component) {
@@ -141,22 +174,48 @@
 
   {#if states}
     {#each stateNames as stateName}
+      {@const hasTypeGroups = !!typeGroups[stateName]?.length}
       <div class="state-section">
         <span class="state-label">{stateName}</span>
         <div class="state-preview">
           <slot activeState={stateName} />
         </div>
-        {#key `${resetKey}:${stateName}`}
-          <TokenLayout
-            title=""
-            tokens={states[stateName]}
-            {component}
-            highlightedVars={highlightedVars ?? new Set()}
-            {sharedOrder}
-            on:tokenhover
-            on:change={updateDirty}
-          />
-        {/key}
+        <div class="state-controls" class:two-col={hasTypeGroups}>
+          {#if hasTypeGroups}
+            <div class="state-type-groups">
+              {#key `${resetKey}:${stateName}:type`}
+                {#each typeGroups[stateName] as tg}
+                  <TypeEditor
+                    legend={tg.legend ?? 'type'}
+                    colorVariable={tg.colorVariable}
+                    colorLabel={tg.colorLabel ?? 'text color'}
+                    familyVariable={tg.familyVariable}
+                    familyLabel={tg.familyLabel ?? 'font family'}
+                    sizeVariable={tg.sizeVariable}
+                    sizeLabel={tg.sizeLabel ?? 'font size'}
+                    weightVariable={tg.weightVariable}
+                    weightLabel={tg.weightLabel ?? 'font weight'}
+                    lineHeightVariable={tg.lineHeightVariable}
+                    lineHeightLabel={tg.lineHeightLabel ?? 'line height'}
+                    {component}
+                    on:change={updateDirty}
+                  />
+                {/each}
+              {/key}
+            </div>
+          {/if}
+          {#key `${resetKey}:${stateName}`}
+            <TokenLayout
+              title=""
+              tokens={states[stateName]}
+              {component}
+              highlightedVars={highlightedVars ?? new Set()}
+              {sharedOrder}
+              on:tokenhover
+              on:change={updateDirty}
+            />
+          {/key}
+        </div>
       </div>
     {/each}
   {:else}
@@ -253,6 +312,23 @@
   }
 
   .state-preview {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-8);
+  }
+
+  .state-controls {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ui-space-12);
+    align-items: start;
+  }
+
+  .state-controls.two-col {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .state-type-groups {
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-8);

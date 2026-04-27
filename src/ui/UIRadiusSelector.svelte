@@ -118,15 +118,6 @@
           active={activeKey === opt.key}
           on:click={() => selectOption(opt.key, close)}
         >
-          <svg
-            slot="preview"
-            class="radius-svg"
-            class:active={activeKey === opt.key}
-            viewBox="0 0 {VIEW} {VIEW}"
-            aria-hidden="true"
-          >
-            <path d={cornerPath(remToPx(opt.size))} />
-          </svg>
           <svelte:fragment slot="label">{opt.label}</svelte:fragment>
           <svelte:fragment slot="meta">{opt.size}</svelte:fragment>
         </UIOptionItem>

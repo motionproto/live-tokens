@@ -13,31 +13,26 @@
   export let disabled: boolean = false;
 
   const options = [
-    { key: 'display', label: 'Display' },
-    { key: 'sans', label: 'Sans' },
-    { key: 'serif', label: 'Serif' },
-    { key: 'mono', label: 'Mono' },
+    { key: 'tight', label: 'Tight', value: '1' },
+    { key: 'snug', label: 'Snug', value: '1.2' },
+    { key: 'normal', label: 'Normal', value: '1.4' },
+    { key: 'relaxed', label: 'Relaxed', value: '1.5' },
+    { key: 'loose', label: 'Loose', value: '2' },
   ];
 
   let selector: UITokenSelector;
   let chosenKey: string | null = null;
-  let currentStack: string = '';
+  let currentValue: string = '';
 
   function parseRef(value: string): string | null {
-    const m = value.match(/var\((--font-[a-z]+)\)/);
+    const m = value.match(/var\((--line-height-[a-z]+)\)/);
     if (!m) return null;
-    const key = m[1].replace(/^--font-/, '');
+    const key = m[1].replace(/^--line-height-/, '');
     return options.find((o) => o.key === key) ? key : null;
   }
 
-  function firstFamilyName(stack: string): string {
-    if (!stack) return '';
-    const first = stack.split(',')[0].trim();
-    return first.replace(/^['"]|['"]$/g, '');
-  }
-
   function readResolved() {
-    currentStack = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+    currentValue = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
   }
 
   function initFromCurrent() {
@@ -67,7 +62,7 @@
   }
 
   function selectOption(key: string, close: () => void) {
-    const target = `--font-${key}`;
+    const target = `--line-height-${key}`;
     if (target === variable) {
       selector.writeOverride(null);
       chosenKey = null;
@@ -83,7 +78,6 @@
   onMount(initFromCurrent);
 
   $: activeLabel = options.find((o) => o.key === chosenKey)?.label ?? '';
-  $: displayFamily = firstFamilyName(currentStack);
 </script>
 
 <UITokenSelector
@@ -92,12 +86,12 @@
   {component}
   {canBeShared}
   {disabled}
-  dropdownMinWidth="14rem"
+  dropdownMinWidth="12rem"
   on:reset={handleReset}
   on:var-change={initFromCurrent}
 >
   <svelte:fragment slot="trigger-title">{activeLabel}</svelte:fragment>
-  <svelte:fragment slot="trigger-meta">{displayFamily || '—'}</svelte:fragment>
+  <svelte:fragment slot="trigger-meta">{currentValue || '—'}</svelte:fragment>
 
   <svelte:fragment let:close>
     <UIOptionList>
@@ -106,9 +100,9 @@
           active={chosenKey === opt.key}
           on:click={() => selectOption(opt.key, close)}
         >
-          <span slot="preview" class="font-sample" style="font-family: var(--font-{opt.key});">Aa</span>
+          <span slot="preview" class="lh-sample" style="line-height: var(--line-height-{opt.key});">≡</span>
           <svelte:fragment slot="label">{opt.label}</svelte:fragment>
-          <svelte:fragment slot="meta">var(--font-{opt.key})</svelte:fragment>
+          <svelte:fragment slot="meta">{opt.value}</svelte:fragment>
         </UIOptionItem>
       {/each}
     </UIOptionList>
@@ -116,12 +110,11 @@
 </UITokenSelector>
 
 <style>
-  .font-sample {
+  .lh-sample {
     display: inline-block;
     width: 1.5rem;
     text-align: center;
     font-size: var(--ui-font-size-md);
     color: var(--ui-text-primary);
-    line-height: 1;
   }
 </style>

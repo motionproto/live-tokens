@@ -102,20 +102,10 @@
   <svelte:fragment let:close>
     <UIOptionList>
       {#each options as opt}
-        {@const h = Math.min(lineHeightPx(opt.height), VIEW - 4)}
         <UIOptionItem
           active={activeKey === opt.key}
           on:click={() => selectOption(opt.key, close)}
         >
-          <svg
-            slot="preview"
-            class="line-svg"
-            class:active={activeKey === opt.key}
-            viewBox="0 0 {VIEW} {VIEW}"
-            aria-hidden="true"
-          >
-            <line x1={VIEW / 2} y1={(VIEW - h) / 2} x2={VIEW / 2} y2={(VIEW + h) / 2} />
-          </svg>
           <svelte:fragment slot="label">{opt.label}</svelte:fragment>
           <svelte:fragment slot="meta">{opt.height}</svelte:fragment>
         </UIOptionItem>

@@ -16,9 +16,11 @@
   export let component: string | undefined = undefined;
   export let canBeShared: boolean = false;
   export let disabled: boolean = false;
+  /** When 'sides', renders as a self-contained field group spanning all parent grid columns. */
+  export let mode: 'single' | 'sides' = 'single';
+  /** Legend text for the field group when mode='sides'. */
+  export let rowLabel: string = 'padding';
 
-  // canBeShared/canBeShared accept the prop for symmetry with other selectors;
-  // padding is split-side, not variant-shared, so we don't render the link toggle.
   void canBeShared;
 
   type Side = 'top' | 'right' | 'bottom' | 'left';
@@ -77,7 +79,6 @@
     else removeCssVar(v);
   }
 
-  let mode: 'single' | 'sides' = 'single';
   let chosenKey: string | null = null;
   let resolvedSize = '';
   let sideKeys: Record<Side, string | null> = { top: null, right: null, bottom: null, left: null };
@@ -86,18 +87,14 @@
   function refreshFromState() {
     chosenKey = parseKey(readAlias(variable));
     resolvedSize = readResolved(variable);
-    let anySide = false;
     const nextKeys: Record<Side, string | null> = { top: null, right: null, bottom: null, left: null };
     const nextResolved: Record<Side, string> = { top: '', right: '', bottom: '', left: '' };
     for (const s of SIDES) {
-      const a = readAlias(sideVar(s));
-      nextKeys[s] = parseKey(a);
+      nextKeys[s] = parseKey(readAlias(sideVar(s)));
       nextResolved[s] = readResolved(sideVar(s));
-      if (a) anySide = true;
     }
     sideKeys = nextKeys;
     sideResolved = nextResolved;
-    mode = anySide ? 'sides' : 'single';
   }
 
   function selectSingle(key: string, close: () => void) {
@@ -153,39 +150,57 @@
 
   $: if ($editorState) refreshFromState();
 
-  $: activeLabel = options.find((o) => o.key === chosenKey)?.label ?? '';
+  $: activeKey = chosenKey ?? (options.find((o) => o.size === resolvedSize)?.key ?? null);
+  $: activeLabel = options.find((o) => o.key === activeKey)?.label ?? '';
+  $: sideActiveKey = {
+    top: sideKeys.top ?? (options.find((o) => o.size === sideResolved.top)?.key ?? null),
+    right: sideKeys.right ?? (options.find((o) => o.size === sideResolved.right)?.key ?? null),
+    bottom: sideKeys.bottom ?? (options.find((o) => o.size === sideResolved.bottom)?.key ?? null),
+    left: sideKeys.left ?? (options.find((o) => o.size === sideResolved.left)?.key ?? null),
+  } as Record<Side, string | null>;
   $: sideLabels = {
-    top: options.find((o) => o.key === sideKeys.top)?.label ?? '',
-    right: options.find((o) => o.key === sideKeys.right)?.label ?? '',
-    bottom: options.find((o) => o.key === sideKeys.bottom)?.label ?? '',
-    left: options.find((o) => o.key === sideKeys.left)?.label ?? '',
+    top: options.find((o) => o.key === sideActiveKey.top)?.label ?? '',
+    right: options.find((o) => o.key === sideActiveKey.right)?.label ?? '',
+    bottom: options.find((o) => o.key === sideActiveKey.bottom)?.label ?? '',
+    left: options.find((o) => o.key === sideActiveKey.left)?.label ?? '',
   } as Record<Side, string>;
 </script>
 
-<div class="ui-padding-selector" class:disabled>
-  {#if mode === 'single'}
-    <div class="row">
-      <div class="trigger-cell">
+{#if mode === 'sides'}
+  <fieldset class="padding-fieldgroup" class:disabled>
+    <legend class="padding-legend">{rowLabel}</legend>
+    <div class="merge-row">
+      <button
+        type="button"
+        class="merge-btn"
+        on:click={mergeToSingle}
+        title="Use the same value for all sides"
+        {disabled}
+      >
+        <i class="fas fa-square" aria-hidden="true"></i>
+        <span>Merge</span>
+      </button>
+    </div>
+    <div class="padding-sides-grid">
+      {#each SIDES as s}
+        <span class="side-label">{s}</span>
         <UITokenSelector
-          {variable}
+          variable={sideVar(s)}
           {component}
           canBeShared={false}
           {disabled}
-          on:reset={handleResetAll}
+          on:reset={() => handleResetSide(s)}
           on:var-change={handleVarChange}
         >
-          <span slot="trigger-preview" class="pad-preview" aria-hidden="true">
-            <span class="pad-preview-inner"></span>
-          </span>
-          <svelte:fragment slot="trigger-title">{activeLabel || '—'}</svelte:fragment>
-          <svelte:fragment slot="trigger-meta">{resolvedSize || '—'}</svelte:fragment>
+          <svelte:fragment slot="trigger-title">{sideLabels[s] || '—'}</svelte:fragment>
+          <svelte:fragment slot="trigger-meta">{sideResolved[s] || '—'}</svelte:fragment>
 
           <svelte:fragment let:close>
             <UIOptionList>
               {#each options as opt}
                 <UIOptionItem
-                  active={chosenKey === opt.key}
-                  on:click={() => selectSingle(opt.key, close)}
+                  active={sideActiveKey[s] === opt.key}
+                  on:click={() => selectSide(s, opt.key, close)}
                 >
                   <svelte:fragment slot="label">{opt.label}</svelte:fragment>
                   <svelte:fragment slot="meta">{opt.size}</svelte:fragment>
@@ -194,174 +209,154 @@
             </UIOptionList>
           </svelte:fragment>
         </UITokenSelector>
-      </div>
-      <button
-        type="button"
-        class="mode-btn"
-        on:click={splitToSides}
-        title="Set each side independently"
-        {disabled}
-      >
-        <i class="fas fa-border-all" aria-hidden="true"></i>
-      </button>
-    </div>
-  {:else}
-    <div class="sides-stack">
-      <div class="sides-header">
-        <button
-          type="button"
-          class="mode-btn merge"
-          on:click={mergeToSingle}
-          title="Use the same value for all sides"
-          {disabled}
-        >
-          <i class="fas fa-square" aria-hidden="true"></i>
-          <span>All sides</span>
-        </button>
-      </div>
-      {#each SIDES as s}
-        <div class="side-row">
-          <span class="side-label">{s}</span>
-          <UITokenSelector
-            variable={sideVar(s)}
-            {component}
-            canBeShared={false}
-            {disabled}
-            dropdownMinWidth="12rem"
-            on:reset={() => handleResetSide(s)}
-            on:var-change={handleVarChange}
-          >
-            <span slot="trigger-preview" class="pad-preview side-preview side-preview-{s}" aria-hidden="true">
-              <span class="pad-preview-inner"></span>
-            </span>
-            <svelte:fragment slot="trigger-title">{sideLabels[s] || '—'}</svelte:fragment>
-            <svelte:fragment slot="trigger-meta">{sideResolved[s] || '—'}</svelte:fragment>
-
-            <svelte:fragment let:close>
-              <UIOptionList>
-                {#each options as opt}
-                  <UIOptionItem
-                    active={sideKeys[s] === opt.key}
-                    on:click={() => selectSide(s, opt.key, close)}
-                  >
-                    <svelte:fragment slot="label">{opt.label}</svelte:fragment>
-                    <svelte:fragment slot="meta">{opt.size}</svelte:fragment>
-                  </UIOptionItem>
-                {/each}
-              </UIOptionList>
-            </svelte:fragment>
-          </UITokenSelector>
-        </div>
       {/each}
     </div>
-  {/if}
-</div>
+  </fieldset>
+{:else}
+  <div class="padding-single-row" class:disabled>
+    <UITokenSelector
+      {variable}
+      {component}
+      canBeShared={false}
+      {disabled}
+      on:reset={handleResetAll}
+      on:var-change={handleVarChange}
+    >
+      <svelte:fragment slot="trigger-title">{activeLabel || '—'}</svelte:fragment>
+
+      <svelte:fragment let:close>
+        <UIOptionList>
+          {#each options as opt}
+            <UIOptionItem
+              active={activeKey === opt.key}
+              on:click={() => selectSingle(opt.key, close)}
+            >
+              <svelte:fragment slot="label">{opt.label}</svelte:fragment>
+              <svelte:fragment slot="meta">{opt.size}</svelte:fragment>
+            </UIOptionItem>
+          {/each}
+        </UIOptionList>
+      </svelte:fragment>
+    </UITokenSelector>
+    <button
+      type="button"
+      class="split-btn"
+      on:click={splitToSides}
+      title="Set each side independently"
+      {disabled}
+    >
+      <i class="fas fa-border-all" aria-hidden="true"></i>
+    </button>
+  </div>
+{/if}
 
 <style>
-  .ui-padding-selector {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
+  .padding-single-row {
+    display: contents;
   }
 
-  .ui-padding-selector.disabled {
-    opacity: 0.4;
+  .padding-single-row :global(.ui-token-selector) {
+    grid-column: 2;
+    justify-self: start;
   }
 
-  .row {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-4);
+  .padding-single-row .split-btn {
+    grid-column: 3;
+    justify-self: start;
   }
 
-  .trigger-cell {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .mode-btn {
+  .split-btn {
     display: inline-flex;
     align-items: center;
-    gap: var(--ui-space-6);
-    padding: var(--ui-space-6) var(--ui-space-8);
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
     background: var(--ui-surface-low);
     border: 1px solid var(--ui-border-default);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-secondary);
-    font-size: var(--ui-font-size-xs);
+    font-size: var(--ui-font-size-sm);
     cursor: pointer;
     transition: all var(--ui-transition-fast);
     flex-shrink: 0;
   }
 
-  .mode-btn:hover:not(:disabled) {
+  .split-btn:hover:not(:disabled) {
     border-color: var(--ui-border-strong);
     background: var(--ui-surface-high);
     color: var(--ui-text-primary);
   }
 
-  .mode-btn:disabled {
+  .split-btn:disabled {
     cursor: not-allowed;
   }
 
-  .sides-stack {
+  .padding-fieldgroup {
+    grid-column: 1 / -1;
+    justify-self: start;
+    width: fit-content;
     display: flex;
     flex-direction: column;
-    gap: var(--ui-space-4);
-    padding: var(--ui-space-6);
-    background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-default);
+    gap: var(--ui-space-6);
+    margin: 0;
+    padding: 0 var(--ui-space-10) var(--ui-space-8);
+    border: 1px solid var(--ui-border-faint);
     border-radius: var(--ui-radius-md);
   }
 
-  .sides-header {
+  .padding-fieldgroup.disabled {
+    opacity: 0.4;
+  }
+
+  .padding-legend {
+    padding: 0 var(--ui-space-4);
+    font-size: var(--ui-font-size-xs);
+    color: var(--ui-text-tertiary);
+  }
+
+  .merge-row {
     display: flex;
     justify-content: flex-end;
   }
 
-  .side-row {
-    display: grid;
-    grid-template-columns: 3.25rem 1fr;
+  .merge-btn {
+    display: inline-flex;
     align-items: center;
     gap: var(--ui-space-6);
+    padding: var(--ui-space-4) var(--ui-space-8);
+    background: none;
+    border: 1px solid var(--ui-border-subtle);
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-muted);
+    font-size: var(--ui-font-size-xs);
+    cursor: pointer;
+    transition: all var(--ui-transition-fast);
+  }
+
+  .merge-btn:hover:not(:disabled) {
+    background: var(--ui-hover);
+    color: var(--ui-text-primary);
+    border-color: var(--ui-border-default);
+  }
+
+  .merge-btn:disabled {
+    cursor: not-allowed;
+  }
+
+  .padding-sides-grid {
+    display: grid;
+    grid-template-columns: max-content max-content max-content;
+    column-gap: var(--ui-space-10);
+    row-gap: var(--ui-space-6);
+    align-items: center;
   }
 
   .side-label {
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-tertiary);
-    font-family: var(--ui-font-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  .pad-preview {
-    width: 1.25rem;
-    height: 1.25rem;
-    border: 1px solid var(--ui-text-secondary);
-    border-radius: 2px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-  }
-
-  .pad-preview-inner {
-    width: 0.5rem;
-    height: 0.5rem;
-    background: var(--ui-text-secondary);
-    border-radius: 1px;
-  }
-
-  .side-preview-top {
-    align-items: flex-end;
-  }
-  .side-preview-right {
-    justify-content: flex-start;
-  }
-  .side-preview-bottom {
-    align-items: flex-start;
-  }
-  .side-preview-left {
-    justify-content: flex-end;
+    grid-column: 1;
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+    text-align: left;
+    line-height: 1;
   }
 </style>

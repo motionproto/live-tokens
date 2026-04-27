@@ -56,18 +56,27 @@
     /* Option — default */
     --segmentedcontrol-option-text: var(--text-primary);
     --segmentedcontrol-option-text-font-family: var(--font-sans);
+    --segmentedcontrol-option-text-font-size: var(--font-size-md);
     --segmentedcontrol-option-text-font-weight: var(--font-weight-normal);
+    --segmentedcontrol-option-text-line-height: var(--line-height-normal);
     --segmentedcontrol-option-icon: var(--text-secondary);
 
     /* Option — hover */
     --segmentedcontrol-option-hover-surface: var(--surface-neutral-higher);
     --segmentedcontrol-option-hover-text: var(--text-primary);
+    --segmentedcontrol-option-hover-text-font-family: var(--font-sans);
+    --segmentedcontrol-option-hover-text-font-size: var(--font-size-md);
+    --segmentedcontrol-option-hover-text-font-weight: var(--font-weight-normal);
+    --segmentedcontrol-option-hover-text-line-height: var(--line-height-normal);
     --segmentedcontrol-option-hover-icon: var(--text-secondary);
 
     /* Selected (inner pill) — looks the same hovered or not */
     --segmentedcontrol-selected-surface: var(--surface-success-high);
     --segmentedcontrol-selected-text: var(--text-primary);
+    --segmentedcontrol-selected-text-font-family: var(--font-sans);
+    --segmentedcontrol-selected-text-font-size: var(--font-size-md);
     --segmentedcontrol-selected-text-font-weight: var(--font-weight-semibold);
+    --segmentedcontrol-selected-text-line-height: var(--line-height-normal);
     --segmentedcontrol-selected-icon: var(--text-secondary);
     --segmentedcontrol-selected-border: var(--border-success);
     --segmentedcontrol-selected-border-width: var(--border-width-thin);
@@ -76,7 +85,10 @@
     /* Disabled (whole component state — overrides both option and selected styling) */
     --segmentedcontrol-disabled-surface: var(--surface-neutral-high);
     --segmentedcontrol-disabled-text: var(--text-tertiary);
+    --segmentedcontrol-disabled-text-font-family: var(--font-sans);
+    --segmentedcontrol-disabled-text-font-size: var(--font-size-md);
     --segmentedcontrol-disabled-text-font-weight: var(--font-weight-light);
+    --segmentedcontrol-disabled-text-line-height: var(--line-height-normal);
     --segmentedcontrol-disabled-icon: var(--text-tertiary);
   }
 
@@ -103,8 +115,9 @@
     border-radius: var(--segmentedcontrol-selected-radius);
     color: var(--segmentedcontrol-option-text);
     font-family: var(--segmentedcontrol-option-text-font-family);
-    font-size: var(--font-size-md);
+    font-size: var(--segmentedcontrol-option-text-font-size);
     font-weight: var(--segmentedcontrol-option-text-font-weight);
+    line-height: var(--segmentedcontrol-option-text-line-height);
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
     position: relative;
@@ -142,6 +155,10 @@
   .segment.force-hover:not(:disabled):not(.selected) {
     background: var(--segmentedcontrol-option-hover-surface);
     color: var(--segmentedcontrol-option-hover-text);
+    font-family: var(--segmentedcontrol-option-hover-text-font-family);
+    font-size: var(--segmentedcontrol-option-hover-text-font-size);
+    font-weight: var(--segmentedcontrol-option-hover-text-font-weight);
+    line-height: var(--segmentedcontrol-option-hover-text-line-height);
   }
 
   .segment:hover:not(:disabled):not(.selected) i,
@@ -154,7 +171,10 @@
     border: var(--segmentedcontrol-selected-border-width) solid var(--segmentedcontrol-selected-border);
     border-radius: var(--segmentedcontrol-selected-radius);
     color: var(--segmentedcontrol-selected-text);
+    font-family: var(--segmentedcontrol-selected-text-font-family);
+    font-size: var(--segmentedcontrol-selected-text-font-size);
     font-weight: var(--segmentedcontrol-selected-text-font-weight);
+    line-height: var(--segmentedcontrol-selected-text-line-height);
     /* Account for border so the pill doesn't shift adjacent segments */
     padding: calc(var(--space-6) - var(--segmentedcontrol-selected-border-width))
       calc(var(--space-16) - var(--segmentedcontrol-selected-border-width));
@@ -167,7 +187,10 @@
   .segment:disabled {
     background: var(--segmentedcontrol-disabled-surface);
     color: var(--segmentedcontrol-disabled-text);
+    font-family: var(--segmentedcontrol-disabled-text-font-family);
+    font-size: var(--segmentedcontrol-disabled-text-font-size);
     font-weight: var(--segmentedcontrol-disabled-text-font-weight);
+    line-height: var(--segmentedcontrol-disabled-text-line-height);
     opacity: 0.4;
     cursor: not-allowed;
   }

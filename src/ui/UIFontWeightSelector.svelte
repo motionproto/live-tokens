@@ -94,7 +94,6 @@
   on:reset={handleReset}
   on:var-change={initFromCurrent}
 >
-  <span slot="trigger-preview" class="weight-sample" style="font-weight: {currentWeight || 'inherit'};">A</span>
   <svelte:fragment slot="trigger-title">{activeLabel}</svelte:fragment>
   <svelte:fragment slot="trigger-meta">{currentWeight || '—'}</svelte:fragment>
 

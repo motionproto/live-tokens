@@ -148,60 +148,78 @@
 </script>
 
 <div class="ui-token-selector" class:disabled bind:this={container}>
-  <button class="ui-ts-trigger" class:shared={isSharedDisplay} on:click={toggle} {disabled}>
-    <div class="ui-ts-preview">
-      <slot name="trigger-preview" />
-    </div>
-    <div class="ui-ts-text">
-      <slot name="trigger-text">
-        {#if $$slots['trigger-title']}
-          <span class="ui-ts-category"><slot name="trigger-title" /></span>
-        {/if}
-        {#if $$slots['trigger-meta']}
-          <span class="ui-ts-subtype"><slot name="trigger-meta" /></span>
-        {/if}
-      </slot>
-    </div>
-    {#if showLinkToggle}
-      <UILinkToggle linked={isSharedDisplay} on:toggle={toggleShared} />
-    {/if}
-    <i class="fas fa-chevron-down ui-ts-chevron" class:open></i>
-  </button>
-
-  {#if relinkOpen && component}
-    <UIRelinkConfirmPopover
-      candidates={relinkCandidates}
-      initialVariable={variable}
-      prefixToStrip={`--${component}-`}
-      on:confirm={handleRelinkConfirm}
-      on:cancel={handleRelinkCancel}
-    />
-  {/if}
-
-  {#if open}
-    <div
-      class="ui-ts-dropdown"
-      style="min-width: {dropdownMinWidth};{dropdownMaxWidth ? ` max-width: ${dropdownMaxWidth};` : ''}"
-    >
-      {#if !hideDefaultHeader}
-        <slot name="header">
-          <div class="ui-ts-header">
-            <code class="ui-ts-var">{variable}</code>
-            <button class="ui-ts-reset" on:click={handleReset} title="Reset to default">
-              <i class="fas fa-undo"></i>
-            </button>
+  <div class="ui-ts-trigger-wrap">
+    <button class="ui-ts-trigger" class:shared={isSharedDisplay} on:click={toggle} {disabled}>
+      <div class="ui-ts-content">
+        {#if $$slots['trigger-preview']}
+          <div class="ui-ts-preview">
+            <slot name="trigger-preview" />
           </div>
-        </slot>
-      {/if}
-      <slot name="subheader" />
-      <slot {close} {handleReset} />
-    </div>
+        {/if}
+        <div class="ui-ts-text">
+          <slot name="trigger-text">
+            {#if $$slots['trigger-title']}
+              <span class="ui-ts-category"><slot name="trigger-title" /></span>
+            {/if}
+          </slot>
+        </div>
+      </div>
+      <i class="fas fa-chevron-down ui-ts-chevron" class:open></i>
+    </button>
+
+    {#if relinkOpen && component}
+      <UIRelinkConfirmPopover
+        candidates={relinkCandidates}
+        initialVariable={variable}
+        prefixToStrip={`--${component}-`}
+        on:confirm={handleRelinkConfirm}
+        on:cancel={handleRelinkCancel}
+      />
+    {/if}
+
+    {#if open}
+      <div
+        class="ui-ts-dropdown"
+        style="min-width: {dropdownMinWidth};{dropdownMaxWidth ? ` max-width: ${dropdownMaxWidth};` : ''}"
+      >
+        {#if !hideDefaultHeader}
+          <slot name="header">
+            <div class="ui-ts-header">
+              <code class="ui-ts-var">{variable}</code>
+              {#if showLinkToggle}
+                <UILinkToggle linked={isSharedDisplay} on:toggle={toggleShared} />
+              {/if}
+              <button class="ui-ts-reset" on:click={handleReset} title="Reset to default">
+                <i class="fas fa-undo"></i>
+              </button>
+            </div>
+          </slot>
+        {/if}
+        <slot name="subheader" />
+        <slot {close} {handleReset} />
+      </div>
+    {/if}
+  </div>
+
+  {#if $$slots['trigger-meta']}
+    <span class="ui-ts-meta-text"><slot name="trigger-meta" /></span>
   {/if}
 </div>
 
 <style>
+  /* Subgrid spanning the parent's trigger + meta columns. */
   .ui-token-selector {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: span 2;
+    align-items: stretch;
+    column-gap: var(--ui-space-8);
+  }
+
+  .ui-ts-trigger-wrap {
     position: relative;
+    min-width: 0;
+    justify-self: start;
   }
 
   .ui-token-selector.disabled {
@@ -220,19 +238,46 @@
   .ui-ts-trigger {
     display: flex;
     align-items: center;
-    gap: var(--ui-space-8);
-    padding: var(--ui-space-6) var(--ui-space-10);
+    gap: var(--ui-space-6);
+    padding: var(--ui-space-2) var(--ui-space-8);
     background: var(--ui-surface-low);
     border: 1px solid var(--ui-border-default);
     border-radius: var(--ui-radius-md);
     cursor: pointer;
     transition: all var(--ui-transition-fast);
-    min-width: 10rem;
+    min-height: 1.75rem;
   }
 
-  .ui-ts-trigger:hover {
-    border-color: var(--ui-border-strong);
-    background: var(--ui-surface-high);
+  .ui-ts-content {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--ui-space-6);
+    overflow: hidden;
+    align-self: stretch;
+  }
+
+  .ui-ts-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 0 1 auto;
+    text-align: left;
+    align-items: flex-start;
+    min-width: 0;
+  }
+
+  .ui-ts-text:has(.ui-ts-category:empty) {
+    display: none;
+  }
+
+  .ui-ts-category {
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-primary);
+    font-weight: var(--ui-font-weight-medium);
+    text-align: left;
   }
 
   .ui-ts-trigger.shared {
@@ -244,37 +289,33 @@
     background: var(--ui-surface-higher);
   }
 
+  .ui-ts-trigger:hover {
+    border-color: var(--ui-border-strong);
+    background: var(--ui-surface-high);
+  }
+
   .ui-ts-preview {
-    width: 1.5rem;
-    height: 1.5rem;
+    flex: 1;
+    align-self: stretch;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
-  .ui-ts-text {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    flex: 1;
-    text-align: left;
-    min-width: 0;
+  .ui-ts-preview:empty {
+    display: none;
   }
 
-  .ui-ts-category {
-    font-size: var(--ui-font-size-sm);
-    color: var(--ui-text-primary);
-    font-weight: var(--ui-font-weight-medium);
-  }
-
-  .ui-ts-subtype {
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
+  .ui-ts-meta-text {
+    align-self: center;
+    color: var(--ui-text-tertiary);
     font-family: var(--ui-font-mono);
+    font-size: var(--ui-font-size-sm);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
   }
 
   .ui-ts-chevron {

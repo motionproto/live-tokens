@@ -294,16 +294,10 @@
     captureSelfDefault();
   });
 
-  $: displayCategory = chosenNone
+  $: triggerMeta = chosenNone
     ? 'none'
-    : (chosenCategory && chosenFamily
-      ? `${chosenFamily} ${chosenCategory}`
-      : '');
-
-  $: displaySubtype = chosenNone
-    ? ''
-    : (chosenCategory && chosenFamily
-      ? (chosenStep || 'default')
+    : (chosenCategory && chosenFamily && chosenStep !== null
+      ? getVarName(chosenCategory, chosenFamily, chosenStep).replace(/^--/, '')
       : '');
 
   $: availableTabs = selectedFamily
@@ -337,8 +331,7 @@
     <input type="number" min="0" max="100" bind:value={opacity} class="opacity-input" on:change={applyOpacity} />
     <span class="opacity-unit">%</span>
   </div>
-  <svelte:fragment slot="trigger-title">{displayCategory}</svelte:fragment>
-  <svelte:fragment slot="trigger-meta">{displaySubtype}</svelte:fragment>
+  <svelte:fragment slot="trigger-meta">{triggerMeta}</svelte:fragment>
 
   <svelte:fragment let:close>
     {#if selectedFamily === null}
@@ -437,8 +430,8 @@
 
 <style>
   .swatch-wrap {
-    width: 1.5rem;
-    height: 1.5rem;
+    align-self: stretch;
+    flex: 1;
     border-radius: var(--ui-radius-sm);
     border: 1px solid var(--ui-border-faint);
     background-image: linear-gradient(45deg, var(--ui-border-subtle) 25%, transparent 25%),
