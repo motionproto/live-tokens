@@ -136,16 +136,23 @@
   }
 
   /** Column layout: linked kinds first (leftmost), then independent kinds.
-   *  Computed per-component so all fieldsets in the same component share the same tracks. */
-  function buildColumnLayout(linked: Set<Kind>): { map: Partial<Record<Kind, number>>; extrasBaseCol: number; total: number } {
-    const ordered: Kind[] = [
-      ...baseKindOrder.filter((k) => linked.has(k)),
-      ...baseKindOrder.filter((k) => !linked.has(k)),
-    ];
+   *  Computed per-component so all fieldsets in the same component share the same tracks.
+   *  When both zones have content, a 0-width divider column sits at the boundary. */
+  function buildColumnLayout(linked: Set<Kind>): {
+    map: Partial<Record<Kind, number>>;
+    extrasBaseCol: number;
+    total: number;
+    dividerCol: number | null;
+  } {
+    const linkedOrdered = baseKindOrder.filter((k) => linked.has(k));
+    const independentOrdered = baseKindOrder.filter((k) => !linked.has(k));
+    const hasDivider = linkedOrdered.length > 0 && independentOrdered.length > 0;
     const map: Partial<Record<Kind, number>> = {};
     let col = 1;
     let extrasBaseCol = 1;
-    for (const k of ordered) {
+    let dividerCol: number | null = null;
+
+    function placeKind(k: Kind) {
       if (k === 'extras') {
         extrasBaseCol = col;
         col += 2;
@@ -154,7 +161,15 @@
         col += 1;
       }
     }
-    return { map, extrasBaseCol, total: col - 1 };
+
+    for (const k of linkedOrdered) placeKind(k);
+    if (hasDivider) {
+      dividerCol = col;
+      col += 1;
+    }
+    for (const k of independentOrdered) placeKind(k);
+
+    return { map, extrasBaseCol, total: col - 1, dividerCol };
   }
 
   $: linkedKinds = computeLinkedKinds(component, $editorState);
@@ -205,6 +220,13 @@
     <span class="token-group-title">{title}</span>
   {/if}
   <div class="token-grid" style="--token-columns: {columnLayout.total};">
+    {#if columnLayout.dividerCol !== null}
+      <div
+        class="zone-divider"
+        style="grid-column: {columnLayout.dividerCol}; grid-row: 1 / span {Math.max(1, tokens.length)};"
+        aria-hidden="true"
+      ></div>
+    {/if}
     {#each placed as { entry, col }}
       {@const token = entry.token}
       {@const dis = token.disabled ?? false}
@@ -272,6 +294,13 @@
     column-gap: var(--ui-space-8);
     row-gap: var(--ui-space-8);
     align-items: flex-start;
+  }
+
+  .zone-divider {
+    width: 0;
+    align-self: stretch;
+    border-left: 1px dashed var(--ui-border-faint);
+    pointer-events: none;
   }
 
   .token-entry {
