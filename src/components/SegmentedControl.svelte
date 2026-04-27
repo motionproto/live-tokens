@@ -46,6 +46,7 @@
     --segmentedcontrol-bar-border: var(--border-neutral-default);
     --segmentedcontrol-bar-border-width: var(--border-width-thin);
     --segmentedcontrol-bar-radius: var(--radius-lg);
+    --segmentedcontrol-bar-padding: var(--space-4);
 
     /* Divider (line between non-selected options) */
     --segmentedcontrol-divider-color: var(--border-neutral-default);
@@ -82,7 +83,11 @@
   .segmented-control {
     display: inline-flex;
     align-items: stretch;
-    padding: var(--space-4);
+    padding:
+      var(--segmentedcontrol-bar-padding-top, var(--segmentedcontrol-bar-padding))
+      var(--segmentedcontrol-bar-padding-right, var(--segmentedcontrol-bar-padding))
+      var(--segmentedcontrol-bar-padding-bottom, var(--segmentedcontrol-bar-padding))
+      var(--segmentedcontrol-bar-padding-left, var(--segmentedcontrol-bar-padding));
     background: var(--segmentedcontrol-bar-surface);
     border: var(--segmentedcontrol-bar-border-width) solid var(--segmentedcontrol-bar-border);
     border-radius: var(--segmentedcontrol-bar-radius);

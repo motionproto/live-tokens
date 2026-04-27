@@ -21,7 +21,7 @@
     { value: 'option-3', label: 'Option 3', icon: 'fas fa-heart' },
   ];
 
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string };
+  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
 
   // One block, six rows. The first two are chrome (the bar wrapper and the
   // dividers between segments); the last four are the per-option states.
@@ -33,6 +33,11 @@
       { label: 'border color', variable: '--segmentedcontrol-bar-border' },
       { label: 'border width', variable: '--segmentedcontrol-bar-border-width' },
       { label: 'radius', canBeShared: true, groupKey: 'radius', variable: '--segmentedcontrol-bar-radius' },
+      { label: 'padding', variable: '--segmentedcontrol-bar-padding', groupKey: 'bar-padding' },
+      { label: 'padding-top', variable: '--segmentedcontrol-bar-padding-top', groupKey: 'bar-padding-top', hidden: true },
+      { label: 'padding-right', variable: '--segmentedcontrol-bar-padding-right', groupKey: 'bar-padding-right', hidden: true },
+      { label: 'padding-bottom', variable: '--segmentedcontrol-bar-padding-bottom', groupKey: 'bar-padding-bottom', hidden: true },
+      { label: 'padding-left', variable: '--segmentedcontrol-bar-padding-left', groupKey: 'bar-padding-left', hidden: true },
     ],
     divider: [
       { label: 'color', variable: '--segmentedcontrol-divider-color' },
@@ -184,11 +189,13 @@
     {@const previewValue = activeState === 'selected option' ? 'option-2' : ''}
     {@const previewForceHover = activeState === 'hover option' ? 'option-1' : null}
     {@const previewDisabled = activeState === 'disabled option'}
-    <SegmentedControl
-      {segments}
-      value={previewValue}
-      forceHoverValue={previewForceHover}
-      disabled={previewDisabled}
-    />
+    <div>
+      <SegmentedControl
+        {segments}
+        value={previewValue}
+        forceHoverValue={previewForceHover}
+        disabled={previewDisabled}
+      />
+    </div>
   </VariantGroup>
 </ComponentEditorBase>

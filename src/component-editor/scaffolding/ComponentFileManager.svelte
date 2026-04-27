@@ -1,7 +1,12 @@
+<script context="module" lang="ts">
+  declare const __PROJECT_ROOT__: string | undefined;
+</script>
+
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { get } from 'svelte/store';
   import type { ComponentConfig, ComponentConfigMeta } from '../../lib/themeTypes';
+  import { componentSourceFile } from './componentSources';
   import {
     listComponentConfigs,
     loadComponentConfig,
@@ -21,7 +26,6 @@
   } from '../../lib/editorStore';
   import { sanitizeFileName } from '../../lib/themeService';
   import UIDialog from '../../ui/UIDialog.svelte';
-  import ConfigField from './ConfigField.svelte';
 
   /** Which component this manager controls (e.g. "button"). */
   export let component: string;
@@ -29,6 +33,10 @@
   export let title: string = '';
   /** When provided, renders a Reset button that restores these variables to `default.json`. */
   export let resetVariables: string[] | null = null;
+
+  const projectRoot: string =
+    typeof __PROJECT_ROOT__ !== 'undefined' ? (__PROJECT_ROOT__ ?? '') : '';
+  $: sourceFile = componentSourceFile(component);
 
   let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
   let files: ComponentConfigMeta[] = [];
@@ -267,52 +275,68 @@
     <h2 class="cfm-title">{title}</h2>
   {/if}
 
-  <ConfigField
-    label="editor config"
-    value={currentDisplayName}
-    dirty={compDirty}
-    applied={isApplied}
+  {#if sourceFile && projectRoot}
+    <a
+      class="source-link"
+      href="vscode://file/{projectRoot}/{sourceFile}"
+      title="Open {sourceFile} in VS Code"
+    >
+      <i class="fas fa-code"></i>
+      <span>Source</span>
+    </a>
+  {/if}
+
+  <span class="cfg-label cfg-row-editor">editor config</span>
+  <span
+    class="cfg-box cfg-row-editor"
+    class:dirty={compDirty}
+    class:applied={isApplied}
     title={compDirty
       ? 'Unsaved changes'
       : isApplied
         ? 'Active config is applied to production'
         : ''}
-  />
+  >
+    <span class="cfg-name">{currentDisplayName}</span>
+  </span>
+  <span
+    class="cfg-state cfg-row-editor-state"
+    class:dirty={compDirty}
+    class:applied={isApplied}
+  >{compDirty ? 'unsaved' : isApplied ? 'applied' : ' '}</span>
 
-  <div class="cfm-group actions">
-    <div class="file-menu" bind:this={fileMenuRoot}>
-      <button
-        class="cfm-btn"
-        class:active={fileMenuOpen}
-        on:click={() => (fileMenuOpen = !fileMenuOpen)}
-        title="File menu"
-      >
-        <i class="fas fa-file"></i>
-        <span>File</span>
-        <i class="fas fa-chevron-down chevron" class:open={fileMenuOpen}></i>
-      </button>
-      {#if fileMenuOpen}
-        <div class="file-menu-dropdown" role="menu">
-          <button class="file-menu-item" on:click={handleSave} role="menuitem">
-            <i class="fas fa-save"></i>
-            <span>Save</span>
-          </button>
-          <button class="file-menu-item" on:click={openSaveAs} role="menuitem">
-            <i class="fas fa-copy"></i>
-            <span>Save As…</span>
-          </button>
-          <button class="file-menu-item" on:click={openLoad} role="menuitem">
-            <i class="fas fa-folder-open"></i>
-            <span>Load…</span>
-          </button>
-        </div>
-      {/if}
-    </div>
+  <div class="file-menu cfg-row-editor" bind:this={fileMenuRoot}>
+    <button
+      class="cfm-btn"
+      class:active={fileMenuOpen}
+      on:click={() => (fileMenuOpen = !fileMenuOpen)}
+      title="File menu"
+    >
+      <i class="fas fa-file"></i>
+      <span>File</span>
+      <i class="fas fa-chevron-down chevron" class:open={fileMenuOpen}></i>
+    </button>
+    {#if fileMenuOpen}
+      <div class="file-menu-dropdown" role="menu">
+        <button class="file-menu-item" on:click={handleSave} role="menuitem">
+          <i class="fas fa-save"></i>
+          <span>Save</span>
+        </button>
+        <button class="file-menu-item" on:click={openSaveAs} role="menuitem">
+          <i class="fas fa-copy"></i>
+          <span>Save As…</span>
+        </button>
+        <button class="file-menu-item" on:click={openLoad} role="menuitem">
+          <i class="fas fa-folder-open"></i>
+          <span>Load…</span>
+        </button>
+      </div>
+    {/if}
   </div>
 
   {#if resetVariables}
     <button
-      class="cfm-btn"
+      class="cfm-btn cfg-row-editor reset-btn"
       on:click={handleReset}
       disabled={!resetDirty}
       title="Reset all tokens to defaults"
@@ -322,11 +346,13 @@
     </button>
   {/if}
 
-  <div class="production-slot">
-    <ConfigField label="production config" value={productionInfo?.name ?? ''} />
-  </div>
+  <span class="cfg-label cfg-row-production">production config</span>
+  <span class="cfg-box cfg-row-production">
+    <span class="cfg-name">{productionInfo?.name ?? ''}</span>
+  </span>
+
   <button
-    class="cfm-btn primary"
+    class="cfm-btn primary cfg-row-production apply-btn"
     class:saving={productionUpdateStatus === 'updating'}
     class:saved={productionUpdateStatus === 'done'}
     class:error={productionUpdateStatus === 'error'}
@@ -410,36 +436,112 @@
 
 <style>
   .cfm-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: var(--ui-space-12);
-    padding: var(--ui-space-8) var(--ui-space-10);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: auto auto auto auto auto 1fr;
+    column-gap: var(--ui-space-12);
+    row-gap: var(--ui-space-4);
+    align-items: start;
+    padding: var(--ui-space-10);
     background: var(--ui-surface-low);
     border: 1px solid var(--ui-border-faint);
     border-radius: var(--ui-radius-md);
   }
 
   .cfm-title {
-    flex: 0 0 auto;
-    min-width: 8rem;
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
     margin: 0 var(--ui-space-24) 0 0;
+    min-width: 8rem;
     font-size: 1.4rem;
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
     letter-spacing: -0.015em;
     white-space: nowrap;
+    line-height: 1.1;
   }
 
-  .cfm-group {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--ui-space-6);
+  .source-link {
+    grid-column: 1;
+    grid-row: 3;
+    justify-self: start;
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-4);
+    margin-top: var(--ui-space-12);
+    padding: var(--ui-space-2) var(--ui-space-6);
+    font-size: var(--ui-font-size-xs);
+    color: var(--ui-text-secondary);
+    text-decoration: none;
+    border: 1px solid var(--ui-border-default);
+    border-radius: var(--ui-radius-sm);
+    transition: all var(--ui-transition-fast);
   }
 
-  .production-slot {
-    margin-left: auto;
+  .source-link:hover {
+    color: var(--ui-text-primary);
+    border-color: var(--ui-border-strong);
+    background: var(--ui-hover);
   }
+
+  .cfg-label {
+    align-self: center;
+    font-size: var(--ui-font-size-xs);
+    color: var(--ui-text-secondary);
+    letter-spacing: 0.02em;
+    line-height: 1.15;
+    text-align: right;
+  }
+
+  .cfg-box {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    padding: var(--ui-space-6) var(--ui-space-10);
+    width: 11rem;
+    border-radius: var(--ui-radius-md);
+    background: var(--ui-surface-lowest);
+    border: 1px solid var(--ui-border-subtle);
+  }
+
+  .cfg-box.dirty {
+    outline: 2px solid var(--ui-text-warning, #e6a030);
+    outline-offset: -1px;
+  }
+
+  .cfg-name {
+    font-size: var(--ui-font-size-md);
+    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-text-primary);
+  }
+
+  .cfg-state {
+    font-size: var(--ui-font-size-xs);
+    letter-spacing: 0.02em;
+    color: var(--ui-text-muted);
+    line-height: 1;
+    text-align: right;
+    padding-right: var(--ui-space-2);
+  }
+
+  .cfg-state.dirty { color: var(--ui-text-warning, #e6a030); }
+  .cfg-state.applied { color: var(--ui-text-applied, #5aa85e); }
+
+  /* Editor row (top): label/box in row 1, state in row 2, buttons in row 1 */
+  .cfg-row-editor.cfg-label { grid-column: 2; grid-row: 1; }
+  .cfg-row-editor.cfg-box { grid-column: 3; grid-row: 1; }
+  .cfg-row-editor-state { grid-column: 3; grid-row: 2; }
+  .file-menu.cfg-row-editor { grid-column: 4; grid-row: 1; }
+  .reset-btn.cfg-row-editor { grid-column: 5; grid-row: 1; }
+
+  /* Production row (bottom): label/box and apply button on row 3 */
+  .cfg-row-production.cfg-label { grid-column: 2; grid-row: 3; margin-top: var(--ui-space-12); }
+  .cfg-row-production.cfg-box { grid-column: 3; grid-row: 3; margin-top: var(--ui-space-12); }
+  .apply-btn.cfg-row-production { grid-column: 4; grid-row: 3; margin-top: var(--ui-space-12); }
 
   .cfm-btn {
     display: inline-flex;

@@ -1,7 +1,45 @@
 <script lang="ts">
+  import { onMount, onDestroy } from 'svelte';
   import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
+  import { navigate } from '../lib/router';
 
   let selectedComponent = 'standardButtons';
+
+  // Demo page is statically imported from `./Demo.svelte` in App.svelte; the
+  // glob resolves to an empty object if the file has been deleted, in which
+  // case we hide the demo option from the page-switcher.
+  const demoExists = Object.keys(import.meta.glob('./Demo.svelte')).length > 0;
+
+  let pageMenuOpen = false;
+  let pageMenuRoot: HTMLElement;
+
+  function selectPage(path: string) {
+    pageMenuOpen = false;
+    navigate(path);
+  }
+
+  function handleDocClick(e: MouseEvent) {
+    if (!pageMenuOpen) return;
+    if (pageMenuRoot && !pageMenuRoot.contains(e.target as Node)) {
+      pageMenuOpen = false;
+    }
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape' && pageMenuOpen) {
+      pageMenuOpen = false;
+    }
+  }
+
+  onMount(() => {
+    document.addEventListener('click', handleDocClick, true);
+    window.addEventListener('keydown', handleKeydown);
+  });
+
+  onDestroy(() => {
+    document.removeEventListener('click', handleDocClick, true);
+    window.removeEventListener('keydown', handleKeydown);
+  });
 
   const componentNavItems = [
     { id: 'segmentedControl', label: 'Segmented Control', icon: 'fas fa-hand-pointer' },
@@ -29,7 +67,41 @@
 -->
 <div class="editor-page components-shell">
   <nav class="sidebar">
-    <div class="sidebar-header">Components</div>
+    <div class="sidebar-header" bind:this={pageMenuRoot}>
+      <button
+        type="button"
+        class="sidebar-header-btn"
+        class:open={pageMenuOpen}
+        aria-haspopup="menu"
+        aria-expanded={pageMenuOpen}
+        on:click={() => (pageMenuOpen = !pageMenuOpen)}
+      >
+        <span>Components</span>
+        <i class="fas fa-chevron-down sidebar-header-chevron" class:open={pageMenuOpen}></i>
+      </button>
+      {#if pageMenuOpen}
+        <div class="sidebar-header-menu" role="menu">
+          <button
+            class="sidebar-header-menu-item"
+            role="menuitem"
+            on:click={() => selectPage('/')}
+          >
+            <i class="fas fa-home"></i>
+            <span>Main site</span>
+          </button>
+          {#if demoExists}
+            <button
+              class="sidebar-header-menu-item"
+              role="menuitem"
+              on:click={() => selectPage('/demo')}
+            >
+              <i class="fas fa-box-open"></i>
+              <span>Demo page</span>
+            </button>
+          {/if}
+        </div>
+      {/if}
+    </div>
     <div class="nav-items">
       {#each componentNavItems as item}
         {#if item.id.startsWith('divider-')}
@@ -77,11 +149,89 @@
   }
 
   .sidebar-header {
-    padding: var(--ui-space-16) var(--ui-space-16) var(--ui-space-12);
+    position: relative;
+    padding: var(--ui-space-16) var(--ui-space-8) var(--ui-space-12);
+    background: black;
+  }
+
+  .sidebar-header-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-8);
+    width: 100%;
+    padding: var(--ui-space-6) var(--ui-space-10);
+    background: none;
+    border: none;
+    border-radius: var(--ui-radius-md);
+    color: var(--ui-text-primary);
+    font-family: inherit;
     font-size: var(--ui-font-size-lg);
     font-weight: var(--ui-font-weight-bold);
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--ui-transition-fast);
+  }
+
+  .sidebar-header-btn:hover {
+    background: var(--ui-hover);
+  }
+
+  .sidebar-header-btn.open {
+    background: var(--ui-hover);
+  }
+
+  .sidebar-header-chevron {
+    font-size: 0.7em;
+    color: var(--ui-text-tertiary);
+    transition: transform var(--ui-transition-fast);
+  }
+
+  .sidebar-header-chevron.open {
+    transform: rotate(180deg);
+  }
+
+  .sidebar-header-menu {
+    position: absolute;
+    top: calc(100% - var(--ui-space-4));
+    left: var(--ui-space-8);
+    right: var(--ui-space-8);
+    background: var(--ui-surface-low);
+    border: 1px solid var(--ui-border-default);
+    border-radius: var(--ui-radius-md);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    padding: var(--ui-space-4);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 10;
+  }
+
+  .sidebar-header-menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-6) var(--ui-space-10);
+    background: none;
+    border: none;
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-secondary);
+    font-family: inherit;
+    font-size: var(--ui-font-size-md);
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--ui-transition-fast), color var(--ui-transition-fast);
+  }
+
+  .sidebar-header-menu-item i {
+    width: 1rem;
+    text-align: center;
+    opacity: 0.7;
+  }
+
+  .sidebar-header-menu-item:hover {
+    background: var(--ui-hover);
     color: var(--ui-text-primary);
-    background: black;
   }
 
   .nav-items {
@@ -135,7 +285,7 @@
   }
 
   .content {
-    padding: var(--ui-space-24) var(--ui-space-32);
+    padding: 0 var(--ui-space-32);
     background: black;
     min-width: 0;
     max-height: 100vh;

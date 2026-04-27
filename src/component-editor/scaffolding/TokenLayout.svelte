@@ -6,11 +6,12 @@
   import UIFontFamilySelector from '../../ui/UIFontFamilySelector.svelte';
   import UIFontWeightSelector from '../../ui/UIFontWeightSelector.svelte';
   import UIDividerHeightSelector from '../../ui/UIDividerHeightSelector.svelte';
+  import UIPaddingSelector from '../../ui/UIPaddingSelector.svelte';
   import { editorState, getComponentPropertySiblings } from '../../lib/editorStore';
 
   const dispatch = createEventDispatcher();
 
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; disabled?: boolean };
+  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; disabled?: boolean; hidden?: boolean };
 
   type Kind =
     | 'surface'
@@ -21,6 +22,7 @@
     | 'divider-height'
     | 'font-family'
     | 'font-weight'
+    | 'padding'
     | 'extras';
 
   type Entry = { kind: Kind; token: Token };
@@ -62,6 +64,10 @@
     return v.endsWith('-divider-height');
   }
 
+  function isPadding(v: string): boolean {
+    return v.endsWith('-padding');
+  }
+
   function isBorder(v: string): boolean {
     return v.endsWith('-border') || v.startsWith('--border-');
   }
@@ -82,6 +88,7 @@
     'divider-width',
     'divider-height',
     'radius',
+    'padding',
     'extras',
     'surface',
     'border',
@@ -97,6 +104,7 @@
     if (isRadius(v)) return 'radius';
     if (isDividerWidth(v)) return 'divider-width';
     if (isDividerHeight(v)) return 'divider-height';
+    if (isPadding(v)) return 'padding';
     if (isBorderWidth(v)) return 'border-width';
     if (isBorder(v)) return 'border';
     if (isSurface(v)) return 'surface';
@@ -187,7 +195,7 @@
     });
   }
 
-  $: entries = buildEntries(tokens, sharedOrder, linkedKinds);
+  $: entries = buildEntries(tokens.filter((t) => !t.hidden), sharedOrder, linkedKinds);
   $: placed = placeEntries(entries, columnLayout);
 
   function dimmedTooltip(variable: string): string {
@@ -255,6 +263,8 @@
           <UIBorderWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
         {:else if entry.kind === 'divider-height'}
           <UIDividerHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+        {:else if entry.kind === 'padding'}
+          <UIPaddingSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
         {:else if entry.kind === 'font-family'}
           <UIFontFamilySelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
         {:else if entry.kind === 'font-weight'}
