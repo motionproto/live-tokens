@@ -700,39 +700,70 @@ function componentVarPrefix(component: string): string {
   return `--${component}-`;
 }
 
-function parseComponentVar(component: string, varName: string): { variant: string; property: string } | null {
+/**
+ * Per-component groupKey schema registered by editor modules. Maps each
+ * declared variable to its groupKey (the explicit sibling-set identifier).
+ * Tokens with the same groupKey are siblings; tokens not in the schema fall
+ * back to last-dash property inference so unmigrated editors keep working.
+ */
+const componentSchemas: Record<string, Map<string, string>> = {};
+
+/**
+ * Register a component's token → groupKey mapping. Editors call this at
+ * module load (top of `<script>`) so sibling lookups can prefer explicit
+ * groupKeys over name-derived inference. Re-registration overwrites prior
+ * entries for the same component.
+ */
+export function registerComponentSchema(
+  component: string,
+  tokens: ReadonlyArray<{ variable: string; groupKey?: string }>,
+): void {
+  const map = new Map<string, string>();
+  for (const t of tokens) {
+    if (t.groupKey) map.set(t.variable, t.groupKey);
+  }
+  componentSchemas[component] = map;
+}
+
+/**
+ * Resolve a variable's groupKey. Schema entries win; otherwise fall back to
+ * the last-dash property suffix (legacy behaviour). Returns null when the
+ * variable is not under the component prefix.
+ */
+function getGroupKey(component: string, varName: string): string | null {
+  const schema = componentSchemas[component];
+  const explicit = schema?.get(varName);
+  if (explicit) return explicit;
   const prefix = componentVarPrefix(component);
   if (!varName.startsWith(prefix)) return null;
   const rest = varName.slice(prefix.length);
   const lastDash = rest.lastIndexOf('-');
   if (lastDash <= 0) return null;
-  return { variant: rest.slice(0, lastDash), property: rest.slice(lastDash + 1) };
+  return rest.slice(lastDash + 1);
 }
 
 /**
- * All keys in the component slice that share `varName`'s property suffix.
+ * All keys in the component slice that share `varName`'s groupKey.
  * Includes `varName` itself if it lives in the slice.
  */
 export function getComponentPropertySiblings(component: string, varName: string): string[] {
-  const parsed = parseComponentVar(component, varName);
-  if (!parsed) return [];
+  const groupKey = getGroupKey(component, varName);
+  if (!groupKey) return [];
   const slice = get(store).components[component];
   if (!slice) return [];
-  const prefix = componentVarPrefix(component);
-  const suffix = `-${parsed.property}`;
   const siblings: string[] = [];
   for (const v of Object.keys(slice.aliases)) {
-    if (v.startsWith(prefix) && v.endsWith(suffix)) siblings.push(v);
+    if (getGroupKey(component, v) === groupKey) siblings.push(v);
   }
   return siblings;
 }
 
-/** True iff `varName` has ≥2 siblings, all resolve to the same alias, and the property is not explicitly unlinked. */
+/** True iff `varName` has ≥2 siblings, all resolve to the same alias, and the groupKey is not explicitly unlinked. */
 export function isComponentPropertyShared(component: string, varName: string): boolean {
   const slice = get(store).components[component];
   if (!slice) return false;
-  const parsed = parseComponentVar(component, varName);
-  if (parsed && slice.unlinked?.includes(parsed.property)) return false;
+  const groupKey = getGroupKey(component, varName);
+  if (groupKey && slice.unlinked?.includes(groupKey)) return false;
   const siblings = getComponentPropertySiblings(component, varName);
   if (siblings.length < 2) return false;
   const first = slice.aliases[siblings[0]];
@@ -740,52 +771,52 @@ export function isComponentPropertyShared(component: string, varName: string): b
   return siblings.every((v) => slice.aliases[v] === first);
 }
 
-/** Write `semanticName` to every sibling that shares `varName`'s property suffix, and clear the unlinked flag. */
+/** Write `semanticName` to every sibling that shares `varName`'s groupKey, and clear the unlinked flag. */
 export function setComponentAliasShared(component: string, varName: string, semanticName: string): void {
-  const parsed = parseComponentVar(component, varName);
+  const groupKey = getGroupKey(component, varName);
   const siblings = getComponentPropertySiblings(component, varName);
-  if (!parsed || siblings.length === 0) {
+  if (!groupKey || siblings.length === 0) {
     setComponentAlias(component, varName, semanticName);
     return;
   }
-  mutate(`share ${component}/${parsed.property}`, (s) => {
+  mutate(`share ${component}/${groupKey}`, (s) => {
     const slice = s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {} });
     for (const v of siblings) slice.aliases[v] = semanticName;
     if (!siblings.includes(varName)) slice.aliases[varName] = semanticName;
     if (slice.unlinked) {
-      slice.unlinked = slice.unlinked.filter((p) => p !== parsed.property);
+      slice.unlinked = slice.unlinked.filter((p) => p !== groupKey);
       if (slice.unlinked.length === 0) delete slice.unlinked;
     }
   });
 }
 
-/** Clear every sibling that shares `varName`'s property suffix. */
+/** Clear every sibling that shares `varName`'s groupKey. */
 export function clearComponentAliasShared(component: string, varName: string): void {
-  const parsed = parseComponentVar(component, varName);
+  const groupKey = getGroupKey(component, varName);
   const siblings = getComponentPropertySiblings(component, varName);
-  if (!parsed || siblings.length === 0) {
+  if (!groupKey || siblings.length === 0) {
     clearComponentAlias(component, varName);
     return;
   }
-  mutate(`clear shared ${component}/${parsed.property}`, (s) => {
+  mutate(`clear shared ${component}/${groupKey}`, (s) => {
     const slice = s.components[component];
     if (!slice) return;
     for (const v of siblings) delete slice.aliases[v];
   });
 }
 
-/** Mark `varName`'s property as unlinked so siblings are independently editable. Aliases are preserved. */
+/** Mark `varName`'s groupKey as unlinked so siblings are independently editable. Aliases are preserved. */
 export function unlinkComponentProperty(component: string, varName: string): void {
-  const parsed = parseComponentVar(component, varName);
-  if (!parsed) return;
+  const groupKey = getGroupKey(component, varName);
+  if (!groupKey) return;
   const siblings = getComponentPropertySiblings(component, varName);
   if (siblings.length < 2) return;
-  mutate(`unlink ${component}/${parsed.property}`, (s) => {
+  mutate(`unlink ${component}/${groupKey}`, (s) => {
     const slice = s.components[component];
     if (!slice) return;
     const unlinked = slice.unlinked ?? [];
-    if (!unlinked.includes(parsed.property)) {
-      slice.unlinked = [...unlinked, parsed.property];
+    if (!unlinked.includes(groupKey)) {
+      slice.unlinked = [...unlinked, groupKey];
     }
   });
 }

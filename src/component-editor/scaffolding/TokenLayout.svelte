@@ -10,7 +10,7 @@
 
   const dispatch = createEventDispatcher();
 
-  type Token = { label: string; variable: string; canBeShared?: boolean; disabled?: boolean };
+  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; disabled?: boolean };
 
   type Kind =
     | 'surface'

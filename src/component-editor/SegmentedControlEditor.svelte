@@ -7,6 +7,7 @@
     editorState,
     isComponentPropertyShared,
     getComponentPropertySiblings,
+    registerComponentSchema,
   } from '../lib/editorStore';
 
   const component = 'segmentedcontrol';
@@ -21,26 +22,26 @@
     { value: 'option-3', label: 'Option 3', icon: 'fas fa-heart' },
   ];
 
-  type Token = { label: string; variable: string; canBeShared?: boolean };
+  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string };
 
   const dividerTokens: Token[] = [
     { label: 'color', variable: '--segmentedcontrol-divider-color' },
-    { label: 'width', canBeShared: true, variable: '--segmentedcontrol-divider-thickness' },
-    { label: 'height', canBeShared: true, variable: '--segmentedcontrol-divider-height' },
+    { label: 'width', canBeShared: true, groupKey: 'divider-thickness', variable: '--segmentedcontrol-divider-thickness' },
+    { label: 'height', canBeShared: true, groupKey: 'divider-height', variable: '--segmentedcontrol-divider-height' },
   ];
 
   const barTokens: Token[] = [
     { label: 'surface color', variable: '--segmentedcontrol-bar-surface' },
     { label: 'border color', variable: '--segmentedcontrol-bar-border' },
-    { label: 'border width', canBeShared: true, variable: '--segmentedcontrol-bar-border-width' },
-    { label: 'radius', canBeShared: true, variable: '--segmentedcontrol-bar-radius' },
+    { label: 'border width', canBeShared: true, groupKey: 'border-width', variable: '--segmentedcontrol-bar-border-width' },
+    { label: 'radius', canBeShared: true, groupKey: 'radius', variable: '--segmentedcontrol-bar-radius' },
   ];
 
   const optionStates: Record<string, Token[]> = {
     default: [
       { label: 'text color', variable: '--segmentedcontrol-option-text' },
-      { label: 'font family', canBeShared: true, variable: '--segmentedcontrol-option-text-font-family' },
-      { label: 'font weight', canBeShared: true, variable: '--segmentedcontrol-option-text-font-weight' },
+      { label: 'font family', canBeShared: true, groupKey: 'font-family', variable: '--segmentedcontrol-option-text-font-family' },
+      { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: '--segmentedcontrol-option-text-font-weight' },
       { label: 'icon color', variable: '--segmentedcontrol-option-icon' },
     ],
     hover: [
@@ -51,7 +52,7 @@
     disabled: [
       { label: 'surface color', variable: '--segmentedcontrol-option-disabled-surface' },
       { label: 'text color', variable: '--segmentedcontrol-option-disabled-text' },
-      { label: 'font weight', canBeShared: true, variable: '--segmentedcontrol-option-disabled-text-font-weight' },
+      { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: '--segmentedcontrol-option-disabled-text-font-weight' },
       { label: 'icon color', variable: '--segmentedcontrol-option-disabled-icon' },
     ],
   };
@@ -59,12 +60,22 @@
   const selectedTokens: Token[] = [
     { label: 'surface color', variable: '--segmentedcontrol-selected-surface' },
     { label: 'text color', variable: '--segmentedcontrol-selected-text' },
-    { label: 'font weight', canBeShared: true, variable: '--segmentedcontrol-selected-text-font-weight' },
+    { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: '--segmentedcontrol-selected-text-font-weight' },
     { label: 'icon color', variable: '--segmentedcontrol-selected-icon' },
     { label: 'border color', variable: '--segmentedcontrol-selected-border' },
-    { label: 'border width', canBeShared: true, variable: '--segmentedcontrol-selected-border-width' },
-    { label: 'radius', canBeShared: true, variable: '--segmentedcontrol-selected-radius' },
+    { label: 'border width', canBeShared: true, groupKey: 'border-width', variable: '--segmentedcontrol-selected-border-width' },
+    { label: 'radius', canBeShared: true, groupKey: 'radius', variable: '--segmentedcontrol-selected-radius' },
   ];
+
+  // Declare the explicit groupKey schema once at module load so sibling
+  // resolution prefers data over name inference. Tokens without a groupKey
+  // are solo (or fall back to last-dash property if a sibling needs it).
+  registerComponentSchema(component, [
+    ...dividerTokens,
+    ...barTokens,
+    ...Object.values(optionStates).flat(),
+    ...selectedTokens,
+  ]);
 
   const shareableContexts = new Map<string, string>([
     ['--segmentedcontrol-bar-border-width', 'control bar'],

@@ -80,11 +80,11 @@ Component tokens *reference* theme tokens. They're how a component names its own
 | `-font-family` | Font family reference                                        |
 | `-font-weight` | Font weight reference                                        |
 | `-font-size`   | Font size reference                                          |
-| `-thickness`   | Alternative stroke dimension (used where `-width` would alias another token — e.g. divider thickness vs border width) |
-| `-height`      | Explicit height when `-width`'s sibling would collide        |
+| `-thickness`   | Alternative stroke dimension (used where `-width` would alias another token under name-based fallback grouping) |
+| `-height`      | Explicit height when `-width`'s sibling would collide under name-based fallback grouping |
 | `-color`       | Generic color when none of the role words fits (rare)        |
 
-**Why `thickness` and `height` are sometimes used instead of `width`:** sibling grouping is derived from the final `-<property>` segment (see below). If two unrelated slots both end in `-width`, they get auto-grouped as link candidates. Use an alternative property word when the generic term would create a false sibling. The divider in SegmentedControl is the canonical example: `--segmentedcontrol-divider-thickness` (not `-width`) prevents it from linking with `--segmentedcontrol-bar-border-width`.
+**Why `thickness` and `height` are sometimes used instead of `width`:** when an editor declares no explicit `groupKey` for a token, sibling grouping falls back to matching the final `-<property>` segment. If two unrelated slots both end in `-width` and neither has a `groupKey`, they get auto-grouped. Either declare a `groupKey` per token in the editor (preferred) or use an alternative property word. The divider in SegmentedControl uses `--segmentedcontrol-divider-thickness` for legacy parity with the fallback rule, but it now also has `groupKey: 'divider-thickness'` declared in the editor — the `groupKey` is the source of truth.
 
 ### State order matters
 
@@ -97,20 +97,22 @@ State comes **before** the property, not after:
 
 ### Shareable siblings (the link toggle)
 
-The editor groups tokens whose names end with the same last `-<property>` segment into **sibling sets**. A property declared `canBeShared: true` in the editor shows a link toggle that lets the user broadcast one value across every sibling. So:
+Tokens that share a `groupKey` form a **sibling set**. A property declared `canBeShared: true` in the editor shows a link toggle that lets the user broadcast one value across every sibling. So in SegmentedControl:
 
-- `--segmentedcontrol-bar-border-width` and `--segmentedcontrol-selected-border-width` share on `-width`.
-- `--segmentedcontrol-option-text-font-weight`, `--segmentedcontrol-option-disabled-text-font-weight`, `--segmentedcontrol-selected-text-font-weight` share on `-weight`.
+- `--segmentedcontrol-bar-border-width` and `--segmentedcontrol-selected-border-width` share `groupKey: 'border-width'`.
+- `--segmentedcontrol-option-text-font-weight`, `--segmentedcontrol-option-disabled-text-font-weight`, `--segmentedcontrol-selected-text-font-weight` share `groupKey: 'font-weight'`.
 
-Sibling matching is purely name-derived — there is no explicit `groupKey` yet. **If two unrelated tokens happen to end in the same `-<property>`, they will be treated as siblings.** Either rename one (see `thickness` vs `width` above) or accept the grouping.
+Editor authors declare `groupKey` per token in the editor's token list (and call `registerComponentSchema(component, tokens)` once at module load). The store consults the schema first; for unmigrated editors with no schema entry, it falls back to matching the last `-<property>` segment. Tokens with neither a `groupKey` nor a colliding name suffix are solo.
 
-### When the last-dash rule surprises you
+The `unlinked` array on a `ComponentSlice` stores the `groupKey` strings that have been explicitly unlinked by the user.
 
-`parseComponentVar` splits on the *last* dash:
+### When the last-dash fallback surprises you
 
-- `--segmentedcontrol-option-text-font-weight` → variant `option-text-font`, property `weight`.
+For tokens without an explicit `groupKey`, the store derives one by splitting on the last dash:
 
-So the property is always the literal last segment. Compound "properties" like `border-width` or `font-family` work because the second-to-last segment is the disambiguator ("border", "font"), and the siblings still match on the exact last segment (`-width`, `-family`).
+- `--segmentedcontrol-option-text-font-weight` → fallback groupKey `weight`.
+
+So the fallback property is always the literal last segment. If you don't want a token to participate in the fallback grouping, declare an explicit `groupKey` (or omit `canBeShared`).
 
 ## Checklist for adding a new component token
 
@@ -118,12 +120,11 @@ So the property is always the literal last segment. Compound "properties" like `
 2. Pick a **componentId** matching the one used in `component-configs/` and the editor's `const component = '...'` literal.
 3. Build the name as `--<componentId>-<part>[-<state>]-<property>`.
 4. Use **full words**: no `bg`, no shortened component IDs.
-5. Check the `-<property>` suffix doesn't collide with an unrelated slot in the same component. If it would, reach for `thickness` / `height` / a different role word.
-6. Declare the slot in both the component's Svelte `<style>` (`--tok: var(--theme-alias);`) and the config JSON (`"--tok": "--theme-alias"`).
-7. If the slot should link across variants, add `canBeShared: true` in the editor's token list — the grouping is automatic via the suffix.
+5. Declare the slot in both the component's Svelte `<style>` (`--tok: var(--theme-alias);`) and the config JSON (`"--tok": "--theme-alias"`).
+6. If the slot should link across variants, add `canBeShared: true` and `groupKey: '<your-key>'` in the editor's token list — siblings are tokens that share the same `groupKey`. Pick a `groupKey` that names the kind of property (`radius`, `border-width`, `font-weight`, `font-family`, etc.); a unique key isolates a token from any other.
+7. Make sure the editor calls `registerComponentSchema(component, tokens)` once at module load so the store sees the explicit groupKeys.
 
 ## What's still pending
 
-- **`groupKey` on tokens** — replaces the last-dash sibling parser with an explicit field. Removes the need for `thickness`-style workarounds.
 - **`primary` → `brand` rename** — disambiguates the emphasis-tier, color-family, and component-variant uses of "primary". Tracked in `temp/primary-to-brand-rename.md`.
 - **Theme-layer cleanups** tracked in `temp/theme-token-improvements.md` (font-weight scale normalization, bare-word orphan audit, full `bg` → `canvas` sweep).
