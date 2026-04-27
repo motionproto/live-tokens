@@ -63,12 +63,6 @@
     --segmentedcontrol-option-hover-text: var(--text-primary);
     --segmentedcontrol-option-hover-icon: var(--text-secondary);
 
-    /* Option — disabled */
-    --segmentedcontrol-option-disabled-surface: var(--surface-neutral-high);
-    --segmentedcontrol-option-disabled-text: var(--text-tertiary);
-    --segmentedcontrol-option-disabled-text-font-weight: var(--font-weight-light);
-    --segmentedcontrol-option-disabled-icon: var(--text-tertiary);
-
     /* Selected (inner pill) — default */
     --segmentedcontrol-selected-surface: var(--surface-success-high);
     --segmentedcontrol-selected-text: var(--text-primary);
@@ -83,11 +77,11 @@
     --segmentedcontrol-selected-hover-text: var(--text-primary);
     --segmentedcontrol-selected-hover-icon: var(--text-secondary);
 
-    /* Selected — disabled */
-    --segmentedcontrol-selected-disabled-surface: var(--surface-success-high);
-    --segmentedcontrol-selected-disabled-text: var(--text-tertiary);
-    --segmentedcontrol-selected-disabled-text-font-weight: var(--font-weight-semibold);
-    --segmentedcontrol-selected-disabled-icon: var(--text-tertiary);
+    /* Disabled (whole component state — overrides both option and selected styling) */
+    --segmentedcontrol-disabled-surface: var(--surface-neutral-high);
+    --segmentedcontrol-disabled-text: var(--text-tertiary);
+    --segmentedcontrol-disabled-text-font-weight: var(--font-weight-light);
+    --segmentedcontrol-disabled-icon: var(--text-tertiary);
   }
 
   .segmented-control {
@@ -181,27 +175,15 @@
     color: var(--segmentedcontrol-selected-hover-icon);
   }
 
-  .segment:disabled:not(.selected) {
-    background: var(--segmentedcontrol-option-disabled-surface);
-    color: var(--segmentedcontrol-option-disabled-text);
-    font-weight: var(--segmentedcontrol-option-disabled-text-font-weight);
+  .segment:disabled {
+    background: var(--segmentedcontrol-disabled-surface);
+    color: var(--segmentedcontrol-disabled-text);
+    font-weight: var(--segmentedcontrol-disabled-text-font-weight);
     opacity: 0.4;
     cursor: not-allowed;
   }
 
-  .segment:disabled:not(.selected) i {
-    color: var(--segmentedcontrol-option-disabled-icon);
-  }
-
-  .segment.selected:disabled {
-    background: var(--segmentedcontrol-selected-disabled-surface);
-    color: var(--segmentedcontrol-selected-disabled-text);
-    font-weight: var(--segmentedcontrol-selected-disabled-text-font-weight);
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  .segment.selected:disabled i {
-    color: var(--segmentedcontrol-selected-disabled-icon);
+  .segment:disabled i {
+    color: var(--segmentedcontrol-disabled-icon);
   }
 </style>

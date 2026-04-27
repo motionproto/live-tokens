@@ -849,6 +849,19 @@ const COMPONENT_SUFFIX_RENAMES: Record<string, Array<[string, string]>> = {
   ],
 };
 
+/**
+ * SegmentedControl component-state refactor (2026-04-27): the disabled
+ * component state used to be modeled as an interaction state on the
+ * default option (`--segmentedcontrol-option-disabled-*`); it's now its
+ * own top-level component state (`--segmentedcontrol-disabled-*`).
+ * Selected-disabled was briefly introduced as a state then removed —
+ * a disabled control can't have a selected option. Drop those keys on
+ * load.
+ */
+const SEGMENTEDCONTROL_OPTION_DISABLED_PREFIX = '--segmentedcontrol-option-disabled-';
+const SEGMENTEDCONTROL_DISABLED_PREFIX = '--segmentedcontrol-disabled-';
+const SEGMENTEDCONTROL_SELECTED_DISABLED_PREFIX = '--segmentedcontrol-selected-disabled-';
+
 function migrateComponentAliases(component: string, aliases: Record<string, string>): Record<string, string> {
   const out: Record<string, string> = {};
   const suffixRules = COMPONENT_SUFFIX_RENAMES[component] ?? [];
@@ -866,6 +879,14 @@ function migrateComponentAliases(component: string, aliases: Record<string, stri
       if (key.endsWith(oldSuffix)) {
         key = key.slice(0, -oldSuffix.length) + newSuffix;
         break;
+      }
+    }
+    if (component === 'segmentedcontrol') {
+      // Drop short-lived selected-disabled tokens (impossible state).
+      if (key.startsWith(SEGMENTEDCONTROL_SELECTED_DISABLED_PREFIX)) continue;
+      // Move option-disabled-* tokens to disabled-* (component-state level).
+      if (key.startsWith(SEGMENTEDCONTROL_OPTION_DISABLED_PREFIX)) {
+        key = SEGMENTEDCONTROL_DISABLED_PREFIX + key.slice(SEGMENTEDCONTROL_OPTION_DISABLED_PREFIX.length);
       }
     }
     if (!(key in out)) out[key] = value;
