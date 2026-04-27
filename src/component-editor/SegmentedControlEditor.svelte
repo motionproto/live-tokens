@@ -192,6 +192,7 @@
         contexts={sharedContexts}
         {highlightedVars}
         {sharedOrder}
+        isSharedBlock
         on:tokenhover={handleTokenHover}
         on:change
       />

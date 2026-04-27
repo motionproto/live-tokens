@@ -35,6 +35,8 @@
   export let highlightedVars: Set<string> = new Set();
   /** Per-variable rank that overrides kind rank when sorting; lets shared tokens align with the top shared row. */
   export let sharedOrder: Map<string, number> | undefined = undefined;
+  /** Set true on the shared-block instance so dimmed variant rows can scroll/flash to the matching anchor. */
+  export let isSharedBlock: boolean = false;
 
   function isFontFamily(v: string): boolean {
     return v.endsWith('-font-family');
@@ -172,6 +174,30 @@
 
   $: entries = buildEntries(tokens, sharedOrder, linkedKinds);
   $: placed = placeEntries(entries, columnLayout);
+
+  function dimmedTooltip(variable: string): string {
+    if (!component) return '';
+    const siblings = getComponentPropertySiblings(component, variable);
+    if (siblings.length < 2) return '';
+    return `Linked across ${siblings.length} variants — edit in shared block`;
+  }
+
+  let flashTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  function handleMirrorClick(variable: string) {
+    const idx = sharedOrder?.get(variable);
+    if (idx === undefined) return;
+    const target = document.querySelector<HTMLElement>(
+      `[data-shared-anchor][data-shared-index="${idx}"]`,
+    );
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    target.classList.remove('flash-highlight');
+    void target.offsetWidth;
+    target.classList.add('flash-highlight');
+    if (flashTimeout) clearTimeout(flashTimeout);
+    flashTimeout = setTimeout(() => target.classList.remove('flash-highlight'), 800);
+  }
 </script>
 
 <div class="token-group">
@@ -183,10 +209,20 @@
       {@const token = entry.token}
       {@const dis = token.disabled ?? false}
       {@const ctxs = contexts[token.variable]}
+      {@const idx = sharedOrder?.get(token.variable)}
+      {@const isMirror = dis && !isSharedBlock}
       <div
         class="token-entry"
         class:highlighted={highlightedVars.has(token.variable)}
+        class:linked-mirror={isMirror}
+        data-shared-anchor={isSharedBlock ? '' : undefined}
+        data-shared-index={idx !== undefined ? String(idx) : undefined}
+        title={isMirror ? dimmedTooltip(token.variable) : null}
         style="grid-column: {col};"
+        on:click={isMirror ? () => handleMirrorClick(token.variable) : undefined}
+        on:keydown={isMirror ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleMirrorClick(token.variable); } } : undefined}
+        role={isMirror ? 'button' : undefined}
+        tabindex={isMirror ? 0 : undefined}
         on:mouseenter={() => { if (ctxs || token.canBeShared) dispatch('tokenhover', { variable: token.variable }); }}
         on:mouseleave={() => { if (ctxs || token.canBeShared) dispatch('tokenhover', { variable: null }); }}
       >
@@ -255,6 +291,29 @@
 
   .token-entry.highlighted .token-label {
     color: var(--ui-text-accent);
+  }
+
+  .token-entry.linked-mirror {
+    cursor: pointer;
+  }
+
+  .token-entry.linked-mirror :global(.ui-token-selector) {
+    pointer-events: none;
+  }
+
+  .token-entry.linked-mirror:focus-visible {
+    outline: 2px solid var(--ui-text-accent);
+    outline-offset: 2px;
+  }
+
+  :global(.token-entry.flash-highlight) {
+    animation: tokenEntryFlash 800ms ease-out;
+  }
+
+  @keyframes tokenEntryFlash {
+    0%   { background: var(--ui-text-accent); outline: 1px solid var(--ui-text-accent); }
+    40%  { background: var(--ui-surface-high); }
+    100% { background: transparent; outline: 1px solid transparent; }
   }
 
   .token-label {
