@@ -39,10 +39,13 @@
   - **Divider tokens renamed** (`-width` → `-thickness`, `-height` retained). Closes the concrete false-grouping bug the audit implicitly flagged in gap E; the parser itself is unchanged.
   - **Component editor restructured** into `src/component-editor/` with `scaffolding/` shared pieces (`TokenLayout`, `FieldsetWrapper`, `ComponentEditorBase`, `ComponentFileManager`). Selectors moved under `src/ui/` with a `UI*` prefix. All line references in this audit are against the current layout.
   - **Component-prefix unabbreviation landed (2026-04-24):** `VAR_PREFIX_OVERRIDES` deleted; `componentVarPrefix` uses the component ID directly. Tokens now `--segmentedcontrol-*`, `--collapsiblesection-*`, `--progressbar-*`, `--sectiondivider-*`, `--radiobutton-*`, `--inlineeditactions-*`, `--detailnav-*`. `-bg` → `-surface` applied to progressbar tracks and inlineeditactions save/cancel slots (state reordered to `-hover-surface`). `migrateComponentAliases` handles legacy configs. Conventions captured in `src/styles/CONVENTIONS.md`.
+  - **Explicit `groupKey` landed (2026-04-27):** ✅ `parseComponentVar` last-dash inference replaced with a per-component schema. Editors call `registerComponentSchema(component, tokens)` at module load; `getGroupKey` consults the schema and falls back to last-dash matching for unmigrated editors. SegmentedControl declares groupKeys (`border-width`, `radius`, `font-weight`, `font-family`, `divider-thickness`, `divider-height`). `unlinked[]` now stores groupKey strings.
+  - **Re-link confirmation popover landed (2026-04-27):** ✅ `UIRelinkConfirmPopover` opens when sibling values disagree on re-link; shows distinct alias options + sources, Confirm/Cancel; silent link path retained when siblings already agree. Closes gap A.
+  - **Click-to-scroll on dimmed mirror rows landed (2026-04-27):** ✅ Variant-fieldset dimmed rows now show a tooltip and scroll/flash the matching shared anchor on click. Closes gap B / P2.
+  - **Zone divider landed (2026-04-27):** ✅ Dashed 1px column rule between linked and independent kinds in TokenLayout. Closes gap C / P3.
   - **Still pending** (tracked in `temp/theme-token-improvements.md` and `temp/primary-to-brand-rename.md`):
-    - Explicit `groupKey` on tokens to replace last-dash sibling parsing.
     - Theme-layer prereqs: font-size rename, `--btn-*` eviction, bare-word orphan cleanup, full `bg` → `canvas` sweep, font-weight normalization, primary → brand.
-  - Gaps A–J below are all still present in code.
+  - Gaps D, E, F, G, H, I, J below are all still present in code (A/B/C are now closed).
 
   ---
   2. How editing flows today
@@ -60,17 +63,17 @@
   ---                                                                                                                                                                                                                                              
   3. Gaps I found                                                                                                                                                                                                                                  
                                          
-  A. Re-linking silently overwrites
+  A. Re-linking silently overwrites — ✅ CLOSED (2026-04-27)
 
-  `UITokenSelector.toggleShared` (UITokenSelector.svelte:78) pulls the currently-focused token's alias and calls `setComponentAliasShared` with it — no popover, no confirmation. If I tweaked `--segment-selected-text-font-weight` to `--font-weight-semibold`, then click to re-link, I blow away the other two siblings' values (`--font-weight-normal` on default, `--font-weight-light` on disabled) with semibold. No preview, no undo cue.                                                                                                                                                                    
-                                                                                                                                                                                                                                                   
-  B. The "dimmed token in variant fieldset" is mute                                                                                                                                                                                                
-                                         
-  The greyed-out lock row in e.g. control bar looks identical to a disabled UI control. There's no tooltip like "Linked — edit in shared block" and no click-through that scrolls/focuses the shared row.                                          
-                         
-  C. No visual boundary between linked and independent columns                                                                                                                                                                                     
-                         
-  My last change put linked kinds in the left grid columns and independent kinds on the right, but there's nothing telling the user that's what's happening. A subtle column rule, band background, or zone label would make the split legible.    
+  `UITokenSelector.toggleShared` now opens `UIRelinkConfirmPopover` when sibling values disagree; the popover shows distinct alias options + sources with Confirm/Cancel. The silent path is preserved when siblings already agree.
+
+  B. The "dimmed token in variant fieldset" is mute — ✅ CLOSED (2026-04-27)
+
+  Variant-fieldset dimmed rows now show a `title` tooltip ("Linked across N variants — edit in shared block") and clicking jumps to the shared-block anchor with a brief flash highlight. Keyboard accessible.
+
+  C. No visual boundary between linked and independent columns — ✅ CLOSED (2026-04-27)
+
+  TokenLayout now reserves a 0-width divider column at the boundary; CSS draws a dashed 1px rule. Renders only when both zones have content.
                          
   D. Shareable-but-solo is a dead concept
 
@@ -158,7 +161,6 @@
   timestamp — "Loaded from default.json at 14:26" — and only show "matches production" when both dirty flags are clean.
                                                                                                                                                                                                                                                    
   ---                    
-  5. Shortest path to the biggest UX lift
-                                                                                                                                                                                                                                                   
-  If you pick one thing to ship next, P1 (explicit re-link with value preview) addresses the most dangerous silent behavior. P2 (dimmed-row tooltip + click-to-scroll) is cheap, high-signal, and reveals the linked-variant model users are
-  currently reverse-engineering. Those two together would make the SegmentedControl editor feel like a finished tool rather than a reference implementation.                                                                                       
+  5. Shortest path to the biggest UX lift — ✅ landed 2026-04-27
+
+  P1 (explicit re-link), P2 (dimmed-row tooltip + click-to-scroll), and P3 (zone dividers) all shipped, alongside the `groupKey` refactor that replaces fragile last-dash sibling parsing. The SegmentedControl editor is now production-ready as the reference pattern for migrating other components.
