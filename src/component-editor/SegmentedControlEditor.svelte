@@ -2,6 +2,7 @@
   import SegmentedControl from '../components/SegmentedControl.svelte';
   import FieldsetWrapper from './scaffolding/FieldsetWrapper.svelte';
   import TokenLayout from './scaffolding/TokenLayout.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import {
     editorState,
@@ -11,8 +12,6 @@
   } from '../lib/editorStore';
 
   const component = 'segmentedcontrol';
-
-  let selectedValue = 'option-2';
 
   type Segment = { value: string; label: string; icon?: string; disabled?: boolean };
 
@@ -24,89 +23,62 @@
 
   type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string };
 
-  const dividerTokens: Token[] = [
-    { label: 'color', variable: '--segmentedcontrol-divider-color' },
-    { label: 'width', canBeShared: true, groupKey: 'divider-thickness', variable: '--segmentedcontrol-divider-thickness' },
-    { label: 'height', canBeShared: true, groupKey: 'divider-height', variable: '--segmentedcontrol-divider-height' },
-  ];
-
-  const barTokens: Token[] = [
-    { label: 'surface color', variable: '--segmentedcontrol-bar-surface' },
-    { label: 'border color', variable: '--segmentedcontrol-bar-border' },
-    { label: 'border width', canBeShared: true, groupKey: 'border-width', variable: '--segmentedcontrol-bar-border-width' },
-    { label: 'radius', canBeShared: true, groupKey: 'radius', variable: '--segmentedcontrol-bar-radius' },
-  ];
-
-  // Default component state (a non-selected, non-disabled segment).
-  // Has two interaction states: default and hover.
-  const defaultStateInteractions: Record<string, Token[]> = {
-    default: [
+  // One block, six rows. The first two are chrome (the bar wrapper and the
+  // dividers between segments); the last four are the per-option states.
+  // "selected hover" is intentionally absent — the selected pill looks the
+  // same regardless of pointer state.
+  const states: Record<string, Token[]> = {
+    'control bar': [
+      { label: 'surface color', variable: '--segmentedcontrol-bar-surface' },
+      { label: 'border color', variable: '--segmentedcontrol-bar-border' },
+      { label: 'border width', variable: '--segmentedcontrol-bar-border-width' },
+      { label: 'radius', canBeShared: true, groupKey: 'radius', variable: '--segmentedcontrol-bar-radius' },
+    ],
+    divider: [
+      { label: 'color', variable: '--segmentedcontrol-divider-color' },
+      { label: 'width', canBeShared: true, groupKey: 'divider-thickness', variable: '--segmentedcontrol-divider-thickness' },
+      { label: 'height', canBeShared: true, groupKey: 'divider-height', variable: '--segmentedcontrol-divider-height' },
+    ],
+    'default option': [
       { label: 'text color', variable: '--segmentedcontrol-option-text' },
       { label: 'font family', canBeShared: true, groupKey: 'font-family', variable: '--segmentedcontrol-option-text-font-family' },
       { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: '--segmentedcontrol-option-text-font-weight' },
       { label: 'icon color', variable: '--segmentedcontrol-option-icon' },
     ],
-    hover: [
-      { label: 'surface color', variable: '--segmentedcontrol-option-hover-surface' },
-      { label: 'text color', variable: '--segmentedcontrol-option-hover-text' },
-      { label: 'icon color', variable: '--segmentedcontrol-option-hover-icon' },
-    ],
-  };
-
-  // Selected component state — has interaction states plus state-independent frame tokens.
-  const selectedFrameTokens: Token[] = [
-    { label: 'border color', variable: '--segmentedcontrol-selected-border' },
-    { label: 'border width', canBeShared: true, groupKey: 'border-width', variable: '--segmentedcontrol-selected-border-width' },
-    { label: 'radius', canBeShared: true, groupKey: 'radius', variable: '--segmentedcontrol-selected-radius' },
-  ];
-
-  const selectedStateInteractions: Record<string, Token[]> = {
-    default: [
+    'selected option': [
       { label: 'surface color', variable: '--segmentedcontrol-selected-surface' },
       { label: 'text color', variable: '--segmentedcontrol-selected-text' },
       { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: '--segmentedcontrol-selected-text-font-weight' },
       { label: 'icon color', variable: '--segmentedcontrol-selected-icon' },
+      { label: 'border color', variable: '--segmentedcontrol-selected-border' },
+      { label: 'border width', canBeShared: true, groupKey: 'border-width', variable: '--segmentedcontrol-selected-border-width' },
+      { label: 'radius', canBeShared: true, groupKey: 'radius', variable: '--segmentedcontrol-selected-radius' },
     ],
-    hover: [
-      { label: 'surface color', variable: '--segmentedcontrol-selected-hover-surface' },
-      { label: 'text color', variable: '--segmentedcontrol-selected-hover-text' },
-      { label: 'icon color', variable: '--segmentedcontrol-selected-hover-icon' },
+    'hover option': [
+      { label: 'surface color', variable: '--segmentedcontrol-option-hover-surface' },
+      { label: 'text color', variable: '--segmentedcontrol-option-hover-text' },
+      { label: 'icon color', variable: '--segmentedcontrol-option-hover-icon' },
+    ],
+    'disabled option': [
+      { label: 'surface color', variable: '--segmentedcontrol-disabled-surface' },
+      { label: 'text color', variable: '--segmentedcontrol-disabled-text' },
+      { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: '--segmentedcontrol-disabled-text-font-weight' },
+      { label: 'icon color', variable: '--segmentedcontrol-disabled-icon' },
     ],
   };
 
-  // Disabled component state — terminal, no interaction sub-states (a
-  // disabled segment can't be hovered/focused/active, and selected-disabled
-  // is impossible because you can't change selection while disabled).
-  const disabledStateTokens: Token[] = [
-    { label: 'surface color', variable: '--segmentedcontrol-disabled-surface' },
-    { label: 'text color', variable: '--segmentedcontrol-disabled-text' },
-    { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: '--segmentedcontrol-disabled-text-font-weight' },
-    { label: 'icon color', variable: '--segmentedcontrol-disabled-icon' },
-  ];
-
-  // Declare the explicit groupKey schema once at module load so sibling
-  // resolution prefers data over name inference. Tokens without a groupKey
-  // are solo (or fall back to last-dash property if a sibling needs it).
-  registerComponentSchema(component, [
-    ...dividerTokens,
-    ...barTokens,
-    ...Object.values(defaultStateInteractions).flat(),
-    ...selectedFrameTokens,
-    ...Object.values(selectedStateInteractions).flat(),
-    ...disabledStateTokens,
-  ]);
+  registerComponentSchema(component, Object.values(states).flat());
 
   const shareableContexts = new Map<string, string>([
-    ['--segmentedcontrol-bar-border-width', 'control bar'],
     ['--segmentedcontrol-bar-radius', 'control bar'],
     ['--segmentedcontrol-divider-thickness', 'divider'],
     ['--segmentedcontrol-divider-height', 'divider'],
-    ['--segmentedcontrol-option-text-font-family', 'default'],
-    ['--segmentedcontrol-option-text-font-weight', 'default'],
-    ['--segmentedcontrol-selected-text-font-weight', 'selected'],
-    ['--segmentedcontrol-disabled-text-font-weight', 'disabled'],
-    ['--segmentedcontrol-selected-border-width', 'selected'],
-    ['--segmentedcontrol-selected-radius', 'selected'],
+    ['--segmentedcontrol-option-text-font-family', 'default option'],
+    ['--segmentedcontrol-option-text-font-weight', 'default option'],
+    ['--segmentedcontrol-selected-text-font-weight', 'selected option'],
+    ['--segmentedcontrol-disabled-text-font-weight', 'disabled option'],
+    ['--segmentedcontrol-selected-border-width', 'selected option'],
+    ['--segmentedcontrol-selected-radius', 'selected option'],
   ]);
 
   type SharedGroup = {
@@ -117,15 +89,7 @@
   };
 
   function findToken(variable: string): Token | undefined {
-    const all = [
-      ...barTokens,
-      ...dividerTokens,
-      ...Object.values(defaultStateInteractions).flat(),
-      ...selectedFrameTokens,
-      ...Object.values(selectedStateInteractions).flat(),
-      ...disabledStateTokens,
-    ];
-    return all.find((t) => t.variable === variable);
+    return Object.values(states).flat().find((t) => t.variable === variable);
   }
 
   function computeShared(_state: typeof $editorState): { groups: SharedGroup[]; vars: Set<string> } {
@@ -182,31 +146,14 @@
     return tokens.map((t) => (shared.has(t.variable) ? { ...t, disabled: true } : t));
   }
 
-  let defaultInteraction = 'default';
-  let selectedInteraction = 'default';
-  $: interactionNames = Object.keys(defaultStateInteractions);
-  $: visibleBarTokens = withSharedDisabled(barTokens, sharedVarSet);
-  $: visibleDividerTokens = withSharedDisabled(dividerTokens, sharedVarSet);
-  $: visibleDefaultTokens = withSharedDisabled(defaultStateInteractions[defaultInteraction] ?? [], sharedVarSet);
-  $: visibleSelectedFrameTokens = withSharedDisabled(selectedFrameTokens, sharedVarSet);
-  $: visibleSelectedTokens = withSharedDisabled(selectedStateInteractions[selectedInteraction] ?? [], sharedVarSet);
-  $: visibleDisabledTokens = withSharedDisabled(disabledStateTokens, sharedVarSet);
+  $: visibleStates = Object.fromEntries(
+    Object.entries(states).map(([name, list]) => [name, withSharedDisabled(list, sharedVarSet)]),
+  ) as Record<string, Token[]>;
 
-  const allVariables: string[] = [
-    ...barTokens.map((t) => t.variable),
-    ...dividerTokens.map((t) => t.variable),
-    ...Object.values(defaultStateInteractions).flatMap((list) => list.map((t) => t.variable)),
-    ...selectedFrameTokens.map((t) => t.variable),
-    ...Object.values(selectedStateInteractions).flatMap((list) => list.map((t) => t.variable)),
-    ...disabledStateTokens.map((t) => t.variable),
-  ];
+  const allVariables: string[] = Object.values(states).flatMap((list) => list.map((t) => t.variable));
 </script>
 
-<ComponentEditorBase {component} title="Segmented Control" description="A connected set of buttons for toggling between mutually exclusive options." resetVariables={allVariables}>
-  <div class="preview-row">
-    <SegmentedControl {segments} bind:value={selectedValue} />
-  </div>
-
+<ComponentEditorBase {component} title="Segmented Control" description="A connected set of buttons for toggling between mutually exclusive options." resetVariables={allVariables} let:targetFile>
   {#if sharedGroups.length > 0}
     <FieldsetWrapper legend="shared">
       <TokenLayout
@@ -222,97 +169,26 @@
     </FieldsetWrapper>
   {/if}
 
-  <FieldsetWrapper legend="control bar">
-    <TokenLayout tokens={visibleBarTokens} {component} {highlightedVars} {sharedOrder} on:tokenhover={handleTokenHover} on:change />
-  </FieldsetWrapper>
-
-  <FieldsetWrapper legend="divider">
-    <TokenLayout tokens={visibleDividerTokens} {component} {highlightedVars} {sharedOrder} on:tokenhover={handleTokenHover} on:change />
-  </FieldsetWrapper>
-
-  <FieldsetWrapper legend="default state">
-    <div class="state-row">
-      <label class="state-selector">
-        <span class="state-label">interaction</span>
-        <select class="state-select" bind:value={defaultInteraction}>
-          {#each interactionNames as name}
-            <option value={name}>{name}</option>
-          {/each}
-        </select>
-      </label>
-    </div>
-    {#key defaultInteraction}
-      <TokenLayout tokens={visibleDefaultTokens} {component} {highlightedVars} {sharedOrder} on:tokenhover={handleTokenHover} on:change />
-    {/key}
-  </FieldsetWrapper>
-
-  <FieldsetWrapper legend="selected state">
-    <TokenLayout title="frame" tokens={visibleSelectedFrameTokens} {component} {highlightedVars} {sharedOrder} on:tokenhover={handleTokenHover} on:change />
-    <div class="state-row">
-      <label class="state-selector">
-        <span class="state-label">interaction</span>
-        <select class="state-select" bind:value={selectedInteraction}>
-          {#each interactionNames as name}
-            <option value={name}>{name}</option>
-          {/each}
-        </select>
-      </label>
-    </div>
-    {#key selectedInteraction}
-      <TokenLayout tokens={visibleSelectedTokens} {component} {highlightedVars} {sharedOrder} on:tokenhover={handleTokenHover} on:change />
-    {/key}
-  </FieldsetWrapper>
-
-  <FieldsetWrapper legend="disabled state">
-    <TokenLayout tokens={visibleDisabledTokens} {component} {highlightedVars} {sharedOrder} on:tokenhover={handleTokenHover} on:change />
-  </FieldsetWrapper>
+  <VariantGroup
+    name="segmentedcontrol"
+    title="Segmented Control"
+    variantNoun="component"
+    states={visibleStates}
+    {targetFile}
+    {component}
+    {highlightedVars}
+    {sharedOrder}
+    on:tokenhover={handleTokenHover}
+    let:activeState
+  >
+    {@const previewValue = activeState === 'selected option' ? 'option-2' : ''}
+    {@const previewForceHover = activeState === 'hover option' ? 'option-1' : null}
+    {@const previewDisabled = activeState === 'disabled option'}
+    <SegmentedControl
+      {segments}
+      value={previewValue}
+      forceHoverValue={previewForceHover}
+      disabled={previewDisabled}
+    />
+  </VariantGroup>
 </ComponentEditorBase>
-
-<style>
-  .preview-row {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-16);
-  }
-
-  .state-row {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-12);
-    flex: 0 0 100%;
-  }
-
-  .state-selector {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-  }
-
-  .state-label {
-    font-size: var(--ui-font-size-xs);
-    font-weight: var(--ui-font-weight-medium);
-    color: var(--ui-text-secondary);
-  }
-
-  .state-select {
-    padding: var(--ui-space-4) var(--ui-space-10);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-sm);
-    color: var(--ui-text-primary);
-    font-size: var(--ui-font-size-xs);
-    font-family: var(--ui-font-mono);
-    cursor: pointer;
-    align-self: flex-start;
-  }
-
-  .state-select:hover {
-    background: var(--ui-hover);
-    border-color: var(--ui-border-default);
-  }
-
-  .state-select:focus {
-    outline: none;
-    border-color: var(--ui-text-accent);
-  }
-</style>

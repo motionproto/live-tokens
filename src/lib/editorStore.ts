@@ -855,12 +855,16 @@ const COMPONENT_SUFFIX_RENAMES: Record<string, Array<[string, string]>> = {
  * default option (`--segmentedcontrol-option-disabled-*`); it's now its
  * own top-level component state (`--segmentedcontrol-disabled-*`).
  * Selected-disabled was briefly introduced as a state then removed —
- * a disabled control can't have a selected option. Drop those keys on
- * load.
+ * a disabled control can't have a selected option. Selected-hover was
+ * also briefly introduced then removed when the editor flattened to a
+ * single 4-state list (default/selected/hover/disabled); the selected
+ * pill now looks the same regardless of pointer state. Drop the legacy
+ * keys on load.
  */
 const SEGMENTEDCONTROL_OPTION_DISABLED_PREFIX = '--segmentedcontrol-option-disabled-';
 const SEGMENTEDCONTROL_DISABLED_PREFIX = '--segmentedcontrol-disabled-';
 const SEGMENTEDCONTROL_SELECTED_DISABLED_PREFIX = '--segmentedcontrol-selected-disabled-';
+const SEGMENTEDCONTROL_SELECTED_HOVER_PREFIX = '--segmentedcontrol-selected-hover-';
 
 function migrateComponentAliases(component: string, aliases: Record<string, string>): Record<string, string> {
   const out: Record<string, string> = {};
@@ -884,6 +888,8 @@ function migrateComponentAliases(component: string, aliases: Record<string, stri
     if (component === 'segmentedcontrol') {
       // Drop short-lived selected-disabled tokens (impossible state).
       if (key.startsWith(SEGMENTEDCONTROL_SELECTED_DISABLED_PREFIX)) continue;
+      // Drop short-lived selected-hover tokens (selected pill no longer has a hover variation).
+      if (key.startsWith(SEGMENTEDCONTROL_SELECTED_HOVER_PREFIX)) continue;
       // Move option-disabled-* tokens to disabled-* (component-state level).
       if (key.startsWith(SEGMENTEDCONTROL_OPTION_DISABLED_PREFIX)) {
         key = SEGMENTEDCONTROL_DISABLED_PREFIX + key.slice(SEGMENTEDCONTROL_OPTION_DISABLED_PREFIX.length);

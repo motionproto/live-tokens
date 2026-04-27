@@ -63,7 +63,7 @@
     --segmentedcontrol-option-hover-text: var(--text-primary);
     --segmentedcontrol-option-hover-icon: var(--text-secondary);
 
-    /* Selected (inner pill) — default */
+    /* Selected (inner pill) — looks the same hovered or not */
     --segmentedcontrol-selected-surface: var(--surface-success-high);
     --segmentedcontrol-selected-text: var(--text-primary);
     --segmentedcontrol-selected-text-font-weight: var(--font-weight-semibold);
@@ -71,11 +71,6 @@
     --segmentedcontrol-selected-border: var(--border-success);
     --segmentedcontrol-selected-border-width: var(--border-width-thin);
     --segmentedcontrol-selected-radius: var(--radius-md);
-
-    /* Selected — hover */
-    --segmentedcontrol-selected-hover-surface: var(--surface-success-higher);
-    --segmentedcontrol-selected-hover-text: var(--text-primary);
-    --segmentedcontrol-selected-hover-icon: var(--text-secondary);
 
     /* Disabled (whole component state — overrides both option and selected styling) */
     --segmentedcontrol-disabled-surface: var(--surface-neutral-high);
@@ -162,17 +157,6 @@
 
   .segment.selected i {
     color: var(--segmentedcontrol-selected-icon);
-  }
-
-  .segment.selected:hover:not(:disabled),
-  .segment.selected.force-hover:not(:disabled) {
-    background: var(--segmentedcontrol-selected-hover-surface);
-    color: var(--segmentedcontrol-selected-hover-text);
-  }
-
-  .segment.selected:hover:not(:disabled) i,
-  .segment.selected.force-hover:not(:disabled) i {
-    color: var(--segmentedcontrol-selected-hover-icon);
   }
 
   .segment:disabled {

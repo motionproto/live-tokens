@@ -16,6 +16,12 @@
   export let showPrompt: boolean = true;
   /** When set, overrides are read from and cleared through the editor store. */
   export let component: string | undefined = undefined;
+  /** Word used after the {name} in the prompt copy ("variant" for Button, "component" for monolithic editors). */
+  export let variantNoun: string = 'variant';
+  /** Variables to flash when a sibling-shared token is hovered elsewhere. */
+  export let highlightedVars: Set<string> | undefined = undefined;
+  /** Per-variable rank used by TokenLayout to align shared tokens with the shared block above. */
+  export let sharedOrder: Map<string, number> | undefined = undefined;
 
   let resetKey = 0;
   let prompt = '';
@@ -82,7 +88,7 @@
         prompt = '';
         return;
       }
-      const text = `In \`${targetFile}\`, update the **${name}** variant:\n${changes.join('\n')}`;
+      const text = `In \`${targetFile}\`, update the **${name}** ${variantNoun}:\n${changes.join('\n')}`;
       navigator.clipboard.writeText(text);
       prompt = text;
       return;
@@ -105,7 +111,7 @@
       prompt = '';
       return;
     }
-    const text = `In \`${targetFile}\`, update the **${name}** variant:\n\n${sections.join('\n\n')}`;
+    const text = `In \`${targetFile}\`, update the **${name}** ${variantNoun}:\n\n${sections.join('\n\n')}`;
     navigator.clipboard.writeText(text);
     prompt = text;
   }
@@ -141,14 +147,30 @@
           <slot activeState={stateName} />
         </div>
         {#key `${resetKey}:${stateName}`}
-          <TokenLayout title="" tokens={states[stateName]} {component} on:change={updateDirty} />
+          <TokenLayout
+            title=""
+            tokens={states[stateName]}
+            {component}
+            highlightedVars={highlightedVars ?? new Set()}
+            {sharedOrder}
+            on:tokenhover
+            on:change={updateDirty}
+          />
         {/key}
       </div>
     {/each}
   {:else}
     <slot activeState="" />
     {#key resetKey}
-      <TokenLayout title={name} tokens={tokens} {component} on:change={updateDirty} />
+      <TokenLayout
+        title={name}
+        tokens={tokens}
+        {component}
+        highlightedVars={highlightedVars ?? new Set()}
+        {sharedOrder}
+        on:tokenhover
+        on:change={updateDirty}
+      />
     {/key}
   {/if}
 
