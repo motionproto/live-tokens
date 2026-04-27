@@ -21,19 +21,11 @@
   let prompt = '';
   let dirty = false;
 
-  let activeState: string = '';
-
   $: stateNames = states ? Object.keys(states) : [];
-
-  $: if (stateNames.length > 0 && !stateNames.includes(activeState)) {
-    activeState = stateNames[0];
-  }
 
   $: allTokens = states
     ? stateNames.flatMap((s) => states![s].map((t) => ({ ...t, _state: s })))
     : tokens.map((t) => ({ ...t, _state: '' as string }));
-
-  $: visibleTokens = states ? states[activeState] ?? [] : tokens;
 
   function hasOverrides(): boolean {
     if (component) {
@@ -141,22 +133,24 @@
     </div>
   </div>
 
-  <slot {activeState} />
-
   {#if states}
-    <label class="state-selector">
-      <span class="state-label">State</span>
-      <select class="state-select" bind:value={activeState}>
-        {#each stateNames as stateName}
-          <option value={stateName}>{stateName}</option>
-        {/each}
-      </select>
-    </label>
+    {#each stateNames as stateName}
+      <div class="state-section">
+        <span class="state-label">{stateName}</span>
+        <div class="state-preview">
+          <slot activeState={stateName} />
+        </div>
+        {#key `${resetKey}:${stateName}`}
+          <TokenLayout title="" tokens={states[stateName]} {component} on:change={updateDirty} />
+        {/key}
+      </div>
+    {/each}
+  {:else}
+    <slot activeState="" />
+    {#key resetKey}
+      <TokenLayout title={name} tokens={tokens} {component} on:change={updateDirty} />
+    {/key}
   {/if}
-
-  {#key `${resetKey}:${activeState}`}
-    <TokenLayout title={states ? activeState : name} tokens={visibleTokens} {component} on:change={updateDirty} />
-  {/key}
 
   {#if prompt}
     <div class="prompt-preview-wrapper">
@@ -217,39 +211,29 @@
     cursor: not-allowed;
   }
 
-  .state-selector {
-    display: inline-flex;
-    align-items: center;
+  .state-section {
+    display: flex;
+    flex-direction: column;
     gap: var(--ui-space-8);
-    align-self: flex-start;
+    padding: var(--ui-space-12);
+    background: var(--ui-surface-lowest);
+    border: 1px solid var(--ui-border-faint);
+    border-radius: var(--ui-radius-sm);
   }
 
   .state-label {
     font-size: var(--ui-font-size-xs);
-    font-weight: var(--ui-font-weight-medium);
-    color: var(--ui-text-secondary);
-  }
-
-  .state-select {
-    padding: var(--ui-space-4) var(--ui-space-10);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-sm);
-    color: var(--ui-text-primary);
-    font-size: var(--ui-font-size-xs);
+    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-text-tertiary);
     font-family: var(--ui-font-mono);
-    cursor: pointer;
-    transition: all var(--ui-transition-fast);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
-  .state-select:hover {
-    background: var(--ui-hover);
-    border-color: var(--ui-border-default);
-  }
-
-  .state-select:focus {
-    outline: none;
-    border-color: var(--ui-text-accent);
+  .state-preview {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-8);
   }
 
   .prompt-preview-wrapper {
