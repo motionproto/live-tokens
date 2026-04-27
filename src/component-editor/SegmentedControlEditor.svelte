@@ -57,15 +57,31 @@
     ],
   };
 
-  const selectedTokens: Token[] = [
-    { label: 'surface color', variable: '--segmentedcontrol-selected-surface' },
-    { label: 'text color', variable: '--segmentedcontrol-selected-text' },
-    { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: '--segmentedcontrol-selected-text-font-weight' },
-    { label: 'icon color', variable: '--segmentedcontrol-selected-icon' },
+  const selectedFrameTokens: Token[] = [
     { label: 'border color', variable: '--segmentedcontrol-selected-border' },
     { label: 'border width', canBeShared: true, groupKey: 'border-width', variable: '--segmentedcontrol-selected-border-width' },
     { label: 'radius', canBeShared: true, groupKey: 'radius', variable: '--segmentedcontrol-selected-radius' },
   ];
+
+  const selectedStates: Record<string, Token[]> = {
+    default: [
+      { label: 'surface color', variable: '--segmentedcontrol-selected-surface' },
+      { label: 'text color', variable: '--segmentedcontrol-selected-text' },
+      { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: '--segmentedcontrol-selected-text-font-weight' },
+      { label: 'icon color', variable: '--segmentedcontrol-selected-icon' },
+    ],
+    hover: [
+      { label: 'surface color', variable: '--segmentedcontrol-selected-hover-surface' },
+      { label: 'text color', variable: '--segmentedcontrol-selected-hover-text' },
+      { label: 'icon color', variable: '--segmentedcontrol-selected-hover-icon' },
+    ],
+    disabled: [
+      { label: 'surface color', variable: '--segmentedcontrol-selected-disabled-surface' },
+      { label: 'text color', variable: '--segmentedcontrol-selected-disabled-text' },
+      { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: '--segmentedcontrol-selected-disabled-text-font-weight' },
+      { label: 'icon color', variable: '--segmentedcontrol-selected-disabled-icon' },
+    ],
+  };
 
   // Declare the explicit groupKey schema once at module load so sibling
   // resolution prefers data over name inference. Tokens without a groupKey
@@ -74,7 +90,8 @@
     ...dividerTokens,
     ...barTokens,
     ...Object.values(optionStates).flat(),
-    ...selectedTokens,
+    ...selectedFrameTokens,
+    ...Object.values(selectedStates).flat(),
   ]);
 
   const shareableContexts = new Map<string, string>([
@@ -85,7 +102,8 @@
     ['--segmentedcontrol-option-text-font-family', 'default option'],
     ['--segmentedcontrol-option-text-font-weight', 'default option'],
     ['--segmentedcontrol-option-disabled-text-font-weight', 'disabled option'],
-    ['--segmentedcontrol-selected-text-font-weight', 'selected option'],
+    ['--segmentedcontrol-selected-text-font-weight', 'selected default'],
+    ['--segmentedcontrol-selected-disabled-text-font-weight', 'selected disabled'],
     ['--segmentedcontrol-selected-border-width', 'selected option'],
     ['--segmentedcontrol-selected-radius', 'selected option'],
   ]);
@@ -98,7 +116,13 @@
   };
 
   function findToken(variable: string): Token | undefined {
-    const all = [...barTokens, ...dividerTokens, ...Object.values(optionStates).flat(), ...selectedTokens];
+    const all = [
+      ...barTokens,
+      ...dividerTokens,
+      ...Object.values(optionStates).flat(),
+      ...selectedFrameTokens,
+      ...Object.values(selectedStates).flat(),
+    ];
     return all.find((t) => t.variable === variable);
   }
 
@@ -157,17 +181,21 @@
   }
 
   let optionState = 'default';
+  let selectedState = 'default';
   $: optionStateNames = Object.keys(optionStates);
+  $: selectedStateNames = Object.keys(selectedStates);
   $: visibleBarTokens = withSharedDisabled(barTokens, sharedVarSet);
   $: visibleDividerTokens = withSharedDisabled(dividerTokens, sharedVarSet);
   $: visibleOptionTokens = withSharedDisabled(optionStates[optionState] ?? [], sharedVarSet);
-  $: visibleSelectedTokens = withSharedDisabled(selectedTokens, sharedVarSet);
+  $: visibleSelectedFrameTokens = withSharedDisabled(selectedFrameTokens, sharedVarSet);
+  $: visibleSelectedStateTokens = withSharedDisabled(selectedStates[selectedState] ?? [], sharedVarSet);
 
   const allVariables: string[] = [
     ...barTokens.map((t) => t.variable),
     ...dividerTokens.map((t) => t.variable),
     ...Object.values(optionStates).flatMap((list) => list.map((t) => t.variable)),
-    ...selectedTokens.map((t) => t.variable),
+    ...selectedFrameTokens.map((t) => t.variable),
+    ...Object.values(selectedStates).flatMap((list) => list.map((t) => t.variable)),
   ];
 </script>
 
@@ -175,9 +203,17 @@
   <div class="preview-row">
     <SegmentedControl {segments} bind:value={selectedValue} />
     <label class="state-selector">
-      <span class="state-label">state</span>
+      <span class="state-label">option state</span>
       <select class="state-select" bind:value={optionState}>
         {#each optionStateNames as name}
+          <option value={name}>{name}</option>
+        {/each}
+      </select>
+    </label>
+    <label class="state-selector">
+      <span class="state-label">selected state</span>
+      <select class="state-select" bind:value={selectedState}>
+        {#each selectedStateNames as name}
           <option value={name}>{name}</option>
         {/each}
       </select>
@@ -214,7 +250,13 @@
   </FieldsetWrapper>
 
   <FieldsetWrapper legend="selected option">
-    <TokenLayout tokens={visibleSelectedTokens} {component} {highlightedVars} {sharedOrder} on:tokenhover={handleTokenHover} on:change />
+    <TokenLayout tokens={visibleSelectedFrameTokens} {component} {highlightedVars} {sharedOrder} on:tokenhover={handleTokenHover} on:change />
+  </FieldsetWrapper>
+
+  <FieldsetWrapper legend="{selectedState} selected">
+    {#key selectedState}
+      <TokenLayout tokens={visibleSelectedStateTokens} {component} {highlightedVars} {sharedOrder} on:tokenhover={handleTokenHover} on:change />
+    {/key}
   </FieldsetWrapper>
 </ComponentEditorBase>
 

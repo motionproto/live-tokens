@@ -2,7 +2,7 @@
   "name": "default",
   "component": "segmentedcontrol",
   "createdAt": "2026-04-19T12:31:46.987Z",
-  "updatedAt": "2026-04-24T07:26:40.239Z",
+  "updatedAt": "2026-04-27T09:12:06.785Z",
   "aliases": {
     "--segmentedcontrol-bar-surface": "--surface-neutral-high",
     "--segmentedcontrol-bar-border": "--border-neutral-default",
@@ -28,6 +28,13 @@
     "--segmentedcontrol-selected-icon": "--text-secondary",
     "--segmentedcontrol-selected-border": "--border-success",
     "--segmentedcontrol-selected-border-width": "--border-width-thin",
-    "--segmentedcontrol-selected-radius": "--radius-md"
+    "--segmentedcontrol-selected-radius": "--radius-md",
+    "--segmentedcontrol-selected-hover-surface": "--surface-success-higher",
+    "--segmentedcontrol-selected-hover-text": "--text-primary",
+    "--segmentedcontrol-selected-hover-icon": "--text-secondary",
+    "--segmentedcontrol-selected-disabled-surface": "--surface-success-high",
+    "--segmentedcontrol-selected-disabled-text": "--text-tertiary",
+    "--segmentedcontrol-selected-disabled-text-font-weight": "--font-weight-semibold",
+    "--segmentedcontrol-selected-disabled-icon": "--text-tertiary"
   }
 }
