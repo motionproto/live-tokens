@@ -279,6 +279,7 @@
     display: flex;
     align-items: center;
     gap: var(--ui-space-12);
+    flex: 0 0 100%;
   }
 
   .state-selector {
