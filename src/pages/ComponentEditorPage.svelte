@@ -14,9 +14,35 @@
   let pageMenuOpen = false;
   let pageMenuRoot: HTMLElement;
 
+  const HINT_DELAY_MS = 80;
+  let hintLabel: string | null = null;
+  let hintTop = 0;
+  let hintTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function showHint(label: string, target: HTMLElement) {
+    if (drawerOpen) return;
+    if (hintTimer) clearTimeout(hintTimer);
+    const top = target.getBoundingClientRect().top + target.offsetHeight / 2;
+    hintTimer = setTimeout(() => {
+      hintLabel = label;
+      hintTop = top;
+    }, HINT_DELAY_MS);
+  }
+
+  function hideHint() {
+    if (hintTimer) {
+      clearTimeout(hintTimer);
+      hintTimer = null;
+    }
+    hintLabel = null;
+  }
+
+  $: if (drawerOpen) hideHint();
+
   function selectComponent(id: string) {
     selectedComponent = id;
     drawerOpen = false;
+    hideHint();
   }
 
   function selectPage(path: string) {
@@ -49,8 +75,6 @@
     window.removeEventListener('keydown', handleKeydown);
   });
 
-  $: currentItem = componentNavItems.find((i) => i.id === selectedComponent);
-
   const componentNavItems = [
     { id: 'segmentedControl', label: 'Segmented Control', icon: 'fas fa-hand-pointer' },
     { id: 'standardButtons', label: 'Button', icon: 'fas fa-square' },
@@ -76,55 +100,38 @@
   still read the user's design tokens, so live edits in the overlay
   editor flow straight through to this page.
 -->
-<div class="editor-page components-shell">
-  <button
-    type="button"
-    class="drawer-trigger"
-    class:hidden={drawerOpen}
-    aria-label="Open components menu"
-    aria-expanded={drawerOpen}
-    on:click={() => (drawerOpen = true)}
-  >
-    <i class="fas fa-bars"></i>
-    <span>{currentItem?.label ?? 'Components'}</span>
-  </button>
-
-  <div
-    class="drawer-scrim"
-    class:visible={drawerOpen}
-    on:click={() => (drawerOpen = false)}
-    aria-hidden="true"
-  ></div>
-
-  <nav class="sidebar drawer" class:open={drawerOpen} inert={!drawerOpen}>
-    <div class="sidebar-header" bind:this={pageMenuRoot}>
+<div class="editor-page components-shell" class:rail-expanded={drawerOpen}>
+  <nav class="sidebar rail" class:expanded={drawerOpen}>
+    <div class="rail-header" bind:this={pageMenuRoot}>
       <button
         type="button"
-        class="sidebar-header-btn"
+        class="rail-toggle"
+        aria-label={drawerOpen ? 'Collapse components menu' : 'Expand components menu'}
+        aria-expanded={drawerOpen}
+        on:click={() => (drawerOpen = !drawerOpen)}
+      >
+        <i class="fas fa-bars"></i>
+      </button>
+      <button
+        type="button"
+        class="page-menu-trigger"
         class:open={pageMenuOpen}
         aria-haspopup="menu"
         aria-expanded={pageMenuOpen}
-        on:click={() => (pageMenuOpen = !pageMenuOpen)}
+        tabindex={drawerOpen ? 0 : -1}
+        on:click={() => drawerOpen && (pageMenuOpen = !pageMenuOpen)}
       >
-        <span>Components</span>
-        <i class="fas fa-chevron-down sidebar-header-chevron" class:open={pageMenuOpen}></i>
+        <span class="rail-label">Components</span>
+        <i class="fas fa-chevron-down rail-chevron" class:open={pageMenuOpen}></i>
       </button>
-      {#if pageMenuOpen}
-        <div class="sidebar-header-menu" role="menu">
-          <button
-            class="sidebar-header-menu-item"
-            role="menuitem"
-            on:click={() => selectPage('/')}
-          >
+      {#if pageMenuOpen && drawerOpen}
+        <div class="page-menu" role="menu">
+          <button class="page-menu-item" role="menuitem" on:click={() => selectPage('/')}>
             <i class="fas fa-home"></i>
             <span>Main site</span>
           </button>
           {#if demoExists}
-            <button
-              class="sidebar-header-menu-item"
-              role="menuitem"
-              on:click={() => selectPage('/demo')}
-            >
+            <button class="page-menu-item" role="menuitem" on:click={() => selectPage('/demo')}>
               <i class="fas fa-box-open"></i>
               <span>Demo page</span>
             </button>
@@ -140,10 +147,12 @@
           <button
             class="nav-item"
             class:active={selectedComponent === item.id}
+            on:mouseenter={(e) => showHint(item.label, e.currentTarget)}
+            on:mouseleave={hideHint}
             on:click={() => selectComponent(item.id)}
           >
             <i class={item.icon}></i>
-            <span>{item.label}</span>
+            <span class="rail-label">{item.label}</span>
           </button>
         {/if}
       {/each}
@@ -153,136 +162,117 @@
   <main class="content">
     <ComponentsTab {selectedComponent} />
   </main>
+
+  {#if hintLabel !== null && !drawerOpen}
+    <div class="rail-hint" style="top: {hintTop}px">{hintLabel}</div>
+  {/if}
 </div>
 
 <style>
   @import '../ui/editor.css';
   .components-shell {
-    position: relative;
+    --rail-w: 48px;
+    display: grid;
+    grid-template-columns: var(--rail-w) minmax(0, 1fr);
     height: 100vh;
     width: 100%;
     background: black;
     overflow: hidden;
+    transition: grid-template-columns 220ms ease;
   }
 
-  .drawer-trigger {
-    position: fixed;
-    top: var(--ui-space-12);
-    left: var(--ui-space-12);
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-    padding: var(--ui-space-6) var(--ui-space-12);
-    background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-faint);
-    border-radius: var(--ui-radius-md);
-    color: var(--ui-text-primary);
-    font-family: inherit;
-    font-size: var(--ui-font-size-md);
-    cursor: pointer;
-    transition: background var(--ui-transition-fast), opacity 180ms ease, transform 180ms ease;
+  .components-shell.rail-expanded {
+    --rail-w: 240px;
   }
 
-  .drawer-trigger:hover {
-    background: var(--ui-hover);
-  }
-
-  .drawer-trigger.hidden {
-    opacity: 0;
-    transform: translateX(-8px);
-    pointer-events: none;
-  }
-
-  .drawer-trigger i {
-    color: var(--ui-text-tertiary);
-  }
-
-  .drawer-scrim {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.55);
-    z-index: 25;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 220ms ease;
-  }
-
-  .drawer-scrim.visible {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 280px;
-    max-width: 88vw;
+  .sidebar.rail {
+    position: relative;
     height: 100vh;
     overflow-y: auto;
+    overflow-x: hidden;
     background: black;
     border-right: 1px solid var(--ui-border-faint);
     display: flex;
     flex-direction: column;
     min-width: 0;
-    z-index: 30;
-    transform: translateX(-100%);
-    transition: transform 220ms ease;
-    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.5);
   }
 
-  .sidebar.open {
-    transform: translateX(0);
-  }
-
-  .sidebar-header {
+  .rail-header {
     position: relative;
-    padding: var(--ui-space-16) var(--ui-space-8) var(--ui-space-12);
-    background: black;
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    align-items: center;
+    padding: var(--ui-space-12) 0 var(--ui-space-12) 0;
   }
 
-  .sidebar-header-btn {
+  .rail-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 36px;
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--ui-text-primary);
+    cursor: pointer;
+    transition: background var(--ui-transition-fast);
+  }
+
+  .rail-toggle:hover {
+    background: var(--ui-hover);
+  }
+
+  .page-menu-trigger {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--ui-space-8);
-    width: 100%;
-    padding: var(--ui-space-6) var(--ui-space-10);
+    height: 36px;
+    padding: 0 var(--ui-space-10) 0 0;
     background: none;
     border: none;
-    border-radius: var(--ui-radius-md);
     color: var(--ui-text-primary);
     font-family: inherit;
     font-size: var(--ui-font-size-lg);
     font-weight: var(--ui-font-weight-bold);
     text-align: left;
     cursor: pointer;
-    transition: background var(--ui-transition-fast);
+    transition: opacity 180ms ease;
+    opacity: 0;
+    pointer-events: none;
   }
 
-  .sidebar-header-btn:hover {
-    background: var(--ui-hover);
+  .components-shell.rail-expanded .page-menu-trigger {
+    opacity: 1;
+    pointer-events: auto;
   }
 
-  .sidebar-header-btn.open {
-    background: var(--ui-hover);
-  }
-
-  .sidebar-header-chevron {
+  .rail-chevron {
     font-size: 0.7em;
     color: var(--ui-text-tertiary);
     transition: transform var(--ui-transition-fast);
   }
 
-  .sidebar-header-chevron.open {
+  .rail-chevron.open {
     transform: rotate(180deg);
   }
 
-  .sidebar-header-menu {
+  .rail-label {
+    white-space: nowrap;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 180ms ease;
+  }
+
+  .components-shell.rail-expanded .rail-label {
+    opacity: 1;
+  }
+
+  .page-menu {
     position: absolute;
-    top: calc(100% - var(--ui-space-4));
-    left: var(--ui-space-8);
+    top: calc(100% - var(--ui-space-2));
+    left: 48px;
     right: var(--ui-space-8);
     background: var(--ui-surface-low);
     border: 1px solid var(--ui-border-default);
@@ -295,7 +285,7 @@
     z-index: 10;
   }
 
-  .sidebar-header-menu-item {
+  .page-menu-item {
     display: flex;
     align-items: center;
     gap: var(--ui-space-8);
@@ -311,13 +301,13 @@
     transition: background var(--ui-transition-fast), color var(--ui-transition-fast);
   }
 
-  .sidebar-header-menu-item i {
+  .page-menu-item i {
     width: 1rem;
     text-align: center;
     opacity: 0.7;
   }
 
-  .sidebar-header-menu-item:hover {
+  .page-menu-item:hover {
     background: var(--ui-hover);
     color: var(--ui-text-primary);
   }
@@ -326,24 +316,26 @@
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-2);
-    padding: 0 var(--ui-space-8) var(--ui-space-16);
+    padding: 0 0 var(--ui-space-16);
     background: black;
   }
 
   .nav-item {
-    display: flex;
+    display: grid;
+    grid-template-columns: 48px 1fr;
     align-items: center;
-    gap: var(--ui-space-8);
     width: 100%;
-    padding: var(--ui-space-6) var(--ui-space-12) var(--ui-space-6) var(--ui-space-16);
+    height: 36px;
+    padding: 0;
     background: none;
     border: none;
-    border-radius: var(--ui-radius-md);
+    border-radius: 0;
     color: var(--ui-text-tertiary);
     font-size: var(--ui-font-size-md);
     cursor: pointer;
     text-align: left;
-    transition: all var(--ui-transition-fast);
+    overflow: hidden;
+    transition: color 60ms ease, background 60ms ease;
   }
 
   .nav-item:hover {
@@ -357,10 +349,11 @@
   }
 
   .nav-item i {
+    justify-self: center;
     width: 1.25rem;
     text-align: center;
     font-size: var(--ui-font-size-md);
-    opacity: 0.7;
+    opacity: 0.85;
   }
 
   .nav-divider-label {
@@ -370,13 +363,37 @@
     color: var(--ui-text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    white-space: nowrap;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 180ms ease;
+  }
+
+  .components-shell.rail-expanded .nav-divider-label {
+    opacity: 1;
   }
 
   .content {
-    padding: var(--ui-space-48) var(--ui-space-32) 0;
+    padding: var(--ui-space-24) var(--ui-space-32) 0;
     background: black;
     min-width: 0;
     height: 100vh;
     overflow-y: auto;
+  }
+
+  .rail-hint {
+    position: fixed;
+    left: calc(var(--rail-w) + var(--ui-space-6));
+    transform: translateY(-50%);
+    z-index: 50;
+    padding: var(--ui-space-4) var(--ui-space-8);
+    background: var(--ui-surface-low);
+    border: 1px solid var(--ui-border-default);
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-primary);
+    font-size: var(--ui-font-size-sm);
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
   }
 </style>
