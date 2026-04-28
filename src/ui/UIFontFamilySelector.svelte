@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
   import { resolveAliasChain } from '../lib/tokenRegistry';
+  import { editorState } from '../lib/editorStore';
+  import type { FontFamily, FontSource } from '../lib/themeTypes';
   import UITokenSelector from './UITokenSelector.svelte';
   import UIOptionList from './UIOptionList.svelte';
   import UIOptionItem from './UIOptionItem.svelte';
@@ -21,7 +23,12 @@
 
   let selector: UITokenSelector;
   let chosenKey: string | null = null;
+  let chosenFamilyId: string | null = null;
   let currentStack: string = '';
+
+  $: fontSources = $editorState.fonts.sources;
+  $: allFamilies = (fontSources as FontSource[]).flatMap((s) => s.families);
+  $: hasProjectFonts = allFamilies.length > 0;
 
   function parseRef(value: string): string | null {
     const m = value.match(/var\((--font-[a-z]+)\)/);
@@ -36,6 +43,22 @@
     return first.replace(/^['"]|['"]$/g, '');
   }
 
+  function findProjectFamilyByCssName(name: string): FontFamily | null {
+    if (!name) return null;
+    for (const source of fontSources) {
+      for (const fam of source.families) {
+        if (fam.cssName === name) return fam;
+      }
+    }
+    return null;
+  }
+
+  function genericFor(v: string): string {
+    if (v === '--font-mono') return 'monospace';
+    if (v === '--font-serif') return 'serif';
+    return 'sans-serif';
+  }
+
   function readResolved() {
     currentStack = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
   }
@@ -47,6 +70,13 @@
       const key = parseRef(raw);
       if (key) {
         chosenKey = key;
+        chosenFamilyId = null;
+        return;
+      }
+      const fam = findProjectFamilyByCssName(firstFamilyName(raw));
+      if (fam) {
+        chosenKey = null;
+        chosenFamilyId = fam.id;
         return;
       }
     }
@@ -54,14 +84,17 @@
       const key = parseRef(`var(${alias})`);
       if (key) {
         chosenKey = key;
+        chosenFamilyId = null;
         return;
       }
     }
     chosenKey = null;
+    chosenFamilyId = null;
   }
 
   function handleReset() {
     chosenKey = null;
+    chosenFamilyId = null;
     readResolved();
     dispatch('change');
   }
@@ -75,6 +108,17 @@
       selector.writeOverride(target);
       chosenKey = key;
     }
+    chosenFamilyId = null;
+    readResolved();
+    close();
+    dispatch('change');
+  }
+
+  function selectProjectFamily(family: FontFamily, close: () => void) {
+    const stack = `'${family.cssName}', ${genericFor(variable)}`;
+    selector.writeOverride(stack);
+    chosenKey = null;
+    chosenFamilyId = family.id;
     readResolved();
     close();
     dispatch('change');
@@ -82,7 +126,9 @@
 
   onMount(initFromCurrent);
 
-  $: activeLabel = options.find((o) => o.key === chosenKey)?.label ?? '';
+  $: activeLabel = chosenFamilyId
+    ? (allFamilies.find((f) => f.id === chosenFamilyId)?.name ?? 'Project font')
+    : (options.find((o) => o.key === chosenKey)?.label ?? '');
   $: displayFamily = firstFamilyName(currentStack);
 </script>
 
@@ -111,6 +157,38 @@
           <svelte:fragment slot="meta">var(--font-{opt.key})</svelte:fragment>
         </UIOptionItem>
       {/each}
+
+      {#if hasProjectFonts}
+        <div class="pfs-divider" role="separator"></div>
+        <div class="pfs-section">
+          <div class="pfs-trigger" class:active={chosenFamilyId !== null}>
+            <span class="pfs-label">Project Fonts</span>
+            <span class="pfs-count">{allFamilies.length}</span>
+            <i class="fas fa-chevron-right pfs-chevron" aria-hidden="true"></i>
+          </div>
+          <div class="pfs-submenu">
+            {#each fontSources as source (source.id)}
+              {#if source.families.length > 0}
+                <div class="pfs-source-label">{source.label ?? source.kind}</div>
+                {#each source.families as fam (fam.id)}
+                  <UIOptionItem
+                    active={chosenFamilyId === fam.id}
+                    on:click={() => selectProjectFamily(fam, close)}
+                  >
+                    <span
+                      slot="preview"
+                      class="font-sample"
+                      style="font-family: '{fam.cssName}', {genericFor(variable)};"
+                    >Aa</span>
+                    <svelte:fragment slot="label">{fam.name}</svelte:fragment>
+                    <svelte:fragment slot="meta">{fam.cssName}</svelte:fragment>
+                  </UIOptionItem>
+                {/each}
+              {/if}
+            {/each}
+          </div>
+        </div>
+      {/if}
     </UIOptionList>
   </svelte:fragment>
 </UITokenSelector>
@@ -123,5 +201,80 @@
     font-size: var(--ui-font-size-md);
     color: var(--ui-text-primary);
     line-height: 1;
+  }
+
+  .pfs-divider {
+    height: 1px;
+    background: var(--ui-border-faint);
+    margin: var(--ui-space-4) 0;
+  }
+
+  .pfs-section {
+    position: relative;
+  }
+
+  .pfs-trigger {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    padding: var(--ui-space-6) var(--ui-space-8);
+    border: 1px solid transparent;
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-primary);
+    font-size: var(--ui-font-size-sm);
+    cursor: default;
+  }
+
+  .pfs-section:hover .pfs-trigger,
+  .pfs-trigger.active {
+    background: var(--ui-hover);
+  }
+
+  .pfs-label {
+    flex: 1;
+  }
+
+  .pfs-count {
+    color: var(--ui-text-tertiary);
+    font-family: var(--ui-font-mono);
+    font-size: var(--ui-font-size-xs);
+  }
+
+  .pfs-chevron {
+    font-size: 0.625rem;
+    color: var(--ui-text-secondary);
+    width: 0.75rem;
+  }
+
+  .pfs-submenu {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: calc(-1 * var(--ui-space-4));
+    min-width: 14rem;
+    max-width: 18rem;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: var(--ui-space-4);
+    background: var(--ui-surface-higher);
+    border: 1px solid var(--ui-border-medium);
+    border-radius: var(--ui-radius-md);
+    box-shadow: var(--ui-shadow-lg);
+    z-index: 1;
+  }
+
+  .pfs-section:hover .pfs-submenu,
+  .pfs-section:focus-within .pfs-submenu {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pfs-source-label {
+    padding: var(--ui-space-4) var(--ui-space-8) var(--ui-space-2);
+    font-family: var(--ui-font-mono);
+    font-size: var(--ui-font-size-xs);
+    color: var(--ui-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 </style>

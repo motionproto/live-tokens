@@ -49,7 +49,7 @@
 <style>
   .type-grid {
     display: grid;
-    grid-template-columns: max-content max-content 1fr;
+    grid-template-columns: max-content 8rem 1fr;
     column-gap: var(--ui-space-10);
     row-gap: var(--ui-space-6);
     align-items: center;

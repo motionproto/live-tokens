@@ -325,7 +325,9 @@
   }
 
   .state-controls.two-col {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: auto auto;
+    column-gap: 6rem;
+    justify-content: start;
   }
 
   .state-type-groups {

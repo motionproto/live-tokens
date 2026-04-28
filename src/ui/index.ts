@@ -2,6 +2,7 @@
 export { default as UIDialog } from './UIDialog.svelte';
 export { default as UILinkToggle } from './UILinkToggle.svelte';
 export { default as UITokenSelector } from './UITokenSelector.svelte';
+export { default as UIVariantSelector } from './UIVariantSelector.svelte';
 export { default as UIOptionList } from './UIOptionList.svelte';
 export { default as UIOptionItem } from './UIOptionItem.svelte';
 

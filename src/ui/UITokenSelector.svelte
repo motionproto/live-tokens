@@ -118,8 +118,12 @@
   }
 
   function handleReset() {
-    writeOverride(null);
+    // Order matters: notify children of reset first so they can clear local
+    // state, THEN clear the override. writeOverride fires CSS_VAR_CHANGE_EVENT
+    // synchronously, which triggers `var-change` on children — that's where
+    // each selector should re-derive its display state from the new default.
     dispatch('reset');
+    writeOverride(null);
     close();
     dispatch('change');
   }
@@ -219,7 +223,7 @@
   .ui-ts-trigger-wrap {
     position: relative;
     min-width: 0;
-    justify-self: start;
+    justify-self: stretch;
   }
 
   .ui-token-selector.disabled {
@@ -246,6 +250,7 @@
     cursor: pointer;
     transition: all var(--ui-transition-fast);
     min-height: 1.75rem;
+    width: 100%;
   }
 
   .ui-ts-content {
@@ -337,7 +342,6 @@
     border-radius: var(--ui-radius-md);
     box-shadow: var(--ui-shadow-lg);
     z-index: 10;
-    overflow: hidden;
   }
 
   .ui-ts-header {

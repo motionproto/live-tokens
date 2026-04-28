@@ -1,11 +1,8 @@
 <script lang="ts">
-  import { onMount, createEventDispatcher } from 'svelte';
-  import { resolveAliasChain } from '../lib/tokenRegistry';
-  import UITokenSelector from './UITokenSelector.svelte';
-  import UIOptionList from './UIOptionList.svelte';
+  import { onMount, onDestroy } from 'svelte';
+  import { CSS_VAR_CHANGE_EVENT } from '../lib/cssVarSync';
+  import UIVariantSelector from './UIVariantSelector.svelte';
   import UIOptionItem from './UIOptionItem.svelte';
-
-  const dispatch = createEventDispatcher();
 
   export let variable: string;
   export let component: string | undefined = undefined;
@@ -23,105 +20,99 @@
     { key: '4xl', label: '4XL' },
     { key: '5xl', label: '5XL' },
     { key: '6xl', label: '6XL' },
-  ];
+  ] as const;
 
-  let selector: UITokenSelector;
-  let chosenKey: string | null = null;
-  let currentSize: string = '';
+  let pxByKey: Record<string, string> = {};
 
-  function parseRef(value: string): string | null {
-    const m = value.match(/var\((--font-size-[a-z0-9]+)\)/);
-    if (!m) return null;
-    const key = m[1].replace(/^--font-size-/, '');
-    return options.find((o) => o.key === key) ? key : null;
-  }
-
-  function readResolved() {
-    currentSize = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
-  }
-
-  function initFromCurrent() {
-    readResolved();
-    const raw = document.documentElement.style.getPropertyValue(variable).trim();
-    if (raw) {
-      const key = parseRef(raw);
-      if (key) {
-        chosenKey = key;
-        return;
-      }
+  function readPxValues() {
+    const probe = document.createElement('div');
+    probe.style.position = 'absolute';
+    probe.style.visibility = 'hidden';
+    probe.style.pointerEvents = 'none';
+    document.body.appendChild(probe);
+    const next: Record<string, string> = {};
+    for (const opt of options) {
+      probe.style.fontSize = `var(--font-size-${opt.key})`;
+      const px = parseFloat(getComputedStyle(probe).fontSize);
+      next[opt.key] = Number.isFinite(px) ? `${Math.round(px * 10) / 10}px` : '';
     }
-    for (const alias of resolveAliasChain(variable)) {
-      const key = parseRef(`var(${alias})`);
-      if (key) {
-        chosenKey = key;
-        return;
-      }
-    }
-    chosenKey = null;
+    document.body.removeChild(probe);
+    pxByKey = next;
   }
 
-  function handleReset() {
-    chosenKey = null;
-    readResolved();
-    dispatch('change');
+  function handleVarChange(e: Event) {
+    const detail = (e as CustomEvent<{ name: string }>).detail;
+    if (detail?.name?.startsWith('--font-size-')) readPxValues();
   }
 
-  function selectOption(key: string, close: () => void) {
-    const target = `--font-size-${key}`;
-    if (target === variable) {
-      selector.writeOverride(null);
-      chosenKey = null;
-    } else {
-      selector.writeOverride(target);
-      chosenKey = key;
-    }
-    readResolved();
-    close();
-    dispatch('change');
-  }
-
-  onMount(initFromCurrent);
-
-  $: activeLabel = options.find((o) => o.key === chosenKey)?.label ?? '';
+  onMount(() => {
+    readPxValues();
+    document.addEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
+  });
+  onDestroy(() => {
+    document.removeEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
+  });
 </script>
 
-<UITokenSelector
-  bind:this={selector}
+<UIVariantSelector
   {variable}
   {component}
   {canBeShared}
   {disabled}
-  dropdownMinWidth="12rem"
-  on:reset={handleReset}
-  on:var-change={initFromCurrent}
+  varPrefix="--font-size-"
+  {options}
+  on:change
 >
-  <svelte:fragment slot="trigger-title">{activeLabel}</svelte:fragment>
-  <svelte:fragment slot="trigger-meta">{currentSize || '—'}</svelte:fragment>
-
-  <svelte:fragment let:close>
-    <UIOptionList>
-      {#each options as opt}
-        <UIOptionItem
-          active={chosenKey === opt.key}
-          on:click={() => selectOption(opt.key, close)}
-        >
-          <span slot="preview" class="size-sample-option" style="font-size: var(--font-size-{opt.key});">A</span>
-          <svelte:fragment slot="label">{opt.label}</svelte:fragment>
-          <svelte:fragment slot="meta">var(--font-size-{opt.key})</svelte:fragment>
-        </UIOptionItem>
-      {/each}
-    </UIOptionList>
+  <svelte:fragment slot="option" let:opt let:active let:select>
+    <UIOptionItem {active} on:click={select}>
+      <span slot="preview" class="size-sample-wrap">
+        <span class="size-sample-option" style="font-size: var(--font-size-{opt.key});">A</span>
+      </span>
+      <svelte:fragment slot="label">
+        <span class="size-row">
+          <span class="size-name">{opt.label}</span>
+          <span class="size-px">{pxByKey[opt.key] ?? ''}</span>
+        </span>
+      </svelte:fragment>
+      <svelte:fragment slot="meta">var(--font-size-{opt.key})</svelte:fragment>
+    </UIOptionItem>
   </svelte:fragment>
-</UITokenSelector>
+</UIVariantSelector>
 
 <style>
-  .size-sample-option {
+  .size-sample-wrap {
     display: inline-block;
     width: 1.5rem;
-    max-height: 1.5rem;
     overflow: hidden;
     text-align: center;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .size-sample-option {
+    display: inline-block;
     color: var(--ui-text-primary);
     line-height: 1;
+  }
+
+  .size-row {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--ui-space-12);
+  }
+
+  .size-name {
+    display: inline-block;
+    width: 2.5rem;
+    color: var(--ui-text-primary);
+  }
+
+  .size-px {
+    display: inline-block;
+    width: 3rem;
+    color: var(--ui-text-secondary);
+    font-family: var(--ui-font-mono);
+    font-size: var(--ui-font-size-xs);
+    text-align: right;
   }
 </style>
