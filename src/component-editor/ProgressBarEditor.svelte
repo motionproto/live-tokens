@@ -1,94 +1,153 @@
 <script lang="ts">
   import ProgressBar from '../components/ProgressBar.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import FieldsetWrapper from './scaffolding/FieldsetWrapper.svelte';
+  import TokenLayout from './scaffolding/TokenLayout.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-
+  import { editorState, registerComponentSchema } from '../lib/editorStore';
+  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   const component = 'progressbar';
-
-  type Token = { label: string; variable: string; canBeShared?: boolean };
-
-  const variantTokens: Record<string, Token[]> = {
-    primary: [
-      { label: 'fill color', variable: '--progressbar-primary-fill' },
-      { label: 'track surface color', variable: '--progressbar-primary-track-surface' },
-      { label: 'track border color', variable: '--progressbar-primary-track-border' },
-      { label: 'label color', variable: '--progressbar-primary-label' },
-      { label: 'value color', variable: '--progressbar-primary-value' },
-      { label: 'radius', canBeShared: true, variable: '--progressbar-primary-radius' },
-    ],
-    success: [
-      { label: 'fill color', variable: '--progressbar-success-fill' },
-      { label: 'track surface color', variable: '--progressbar-success-track-surface' },
-      { label: 'track border color', variable: '--progressbar-success-track-border' },
-      { label: 'label color', variable: '--progressbar-success-label' },
-      { label: 'value color', variable: '--progressbar-success-value' },
-      { label: 'radius', canBeShared: true, variable: '--progressbar-success-radius' },
-    ],
-    warning: [
-      { label: 'fill color', variable: '--progressbar-warning-fill' },
-      { label: 'track surface color', variable: '--progressbar-warning-track-surface' },
-      { label: 'track border color', variable: '--progressbar-warning-track-border' },
-      { label: 'label color', variable: '--progressbar-warning-label' },
-      { label: 'value color', variable: '--progressbar-warning-value' },
-      { label: 'radius', canBeShared: true, variable: '--progressbar-warning-radius' },
-    ],
-    danger: [
-      { label: 'fill color', variable: '--progressbar-danger-fill' },
-      { label: 'track surface color', variable: '--progressbar-danger-track-surface' },
-      { label: 'track border color', variable: '--progressbar-danger-track-border' },
-      { label: 'label color', variable: '--progressbar-danger-label' },
-      { label: 'value color', variable: '--progressbar-danger-value' },
-      { label: 'radius', canBeShared: true, variable: '--progressbar-danger-radius' },
-    ],
-    info: [
-      { label: 'fill color', variable: '--progressbar-info-fill' },
-      { label: 'track surface color', variable: '--progressbar-info-track-surface' },
-      { label: 'track border color', variable: '--progressbar-info-track-border' },
-      { label: 'label color', variable: '--progressbar-info-label' },
-      { label: 'value color', variable: '--progressbar-info-value' },
-      { label: 'radius', canBeShared: true, variable: '--progressbar-info-radius' },
-    ],
+  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
+  type TypeGroupConfig = {
+    legend?: string;
+    colorVariable: string;
+    colorLabel?: string;
+    familyVariable?: string;
+    sizeVariable?: string;
+    weightVariable?: string;
+    lineHeightVariable?: string;
   };
+  const variants = ['primary', 'success', 'warning', 'danger', 'info'] as const;
+  type Variant = typeof variants[number];
+
+  // Per variant: track (surface, border, border-width, radius, height) + fill (color).
+  function variantTokens(v: Variant): Token[] {
+    return [
+      { label: 'fill color', variable: `--progressbar-${v}-fill` },
+      { label: 'track surface color', variable: `--progressbar-${v}-track-surface` },
+      { label: 'track border color', variable: `--progressbar-${v}-track-border` },
+      { label: 'track border width', canBeShared: true, groupKey: 'track-border-width', variable: `--progressbar-${v}-track-border-width` },
+      { label: 'radius', canBeShared: true, groupKey: 'radius', variable: `--progressbar-${v}-radius` },
+      { label: 'track height', canBeShared: true, groupKey: 'track-height', variable: `--progressbar-${v}-track-height` },
+    ];
+  }
+
+  // Two type groups per variant: label and value.
+  function variantTypeGroups(v: Variant): TypeGroupConfig[] {
+    return [
+      {
+        legend: 'label',
+        colorVariable: `--progressbar-${v}-label`,
+        familyVariable: `--progressbar-${v}-label-font-family`,
+        sizeVariable: `--progressbar-${v}-label-font-size`,
+        weightVariable: `--progressbar-${v}-label-font-weight`,
+        lineHeightVariable: `--progressbar-${v}-label-line-height`,
+      },
+      {
+        legend: 'value',
+        colorVariable: `--progressbar-${v}-value`,
+        familyVariable: `--progressbar-${v}-value-font-family`,
+        sizeVariable: `--progressbar-${v}-value-font-size`,
+        weightVariable: `--progressbar-${v}-value-font-weight`,
+        lineHeightVariable: `--progressbar-${v}-value-line-height`,
+      },
+    ];
+  }
+  function variantTypeGroupTokens(v: Variant): Token[] {
+    return [
+      { label: 'font family', canBeShared: true, groupKey: 'label-font-family', variable: `--progressbar-${v}-label-font-family` },
+      { label: 'font size', canBeShared: true, groupKey: 'label-font-size', variable: `--progressbar-${v}-label-font-size` },
+      { label: 'font weight', canBeShared: true, groupKey: 'label-font-weight', variable: `--progressbar-${v}-label-font-weight` },
+      { label: 'line height', canBeShared: true, groupKey: 'label-line-height', variable: `--progressbar-${v}-label-line-height` },
+      { label: 'font family', canBeShared: true, groupKey: 'value-font-family', variable: `--progressbar-${v}-value-font-family` },
+      { label: 'font size', canBeShared: true, groupKey: 'value-font-size', variable: `--progressbar-${v}-value-font-size` },
+      { label: 'font weight', canBeShared: true, groupKey: 'value-font-weight', variable: `--progressbar-${v}-value-font-weight` },
+      { label: 'line height', canBeShared: true, groupKey: 'value-line-height', variable: `--progressbar-${v}-value-line-height` },
+    ];
+  }
+  const allTokens: Token[] = variants.flatMap((v) => [...variantTokens(v), ...variantTypeGroupTokens(v)]);
+  registerComponentSchema(component, allTokens);
+
+  // Cross-variant shared block surfaces shape and font props that may be linked.
+  const shareableContexts = new Map<string, string>(variants.flatMap((v) => [
+    [`--progressbar-${v}-track-border-width`, v] as const,
+    [`--progressbar-${v}-radius`, v] as const,
+    [`--progressbar-${v}-track-height`, v] as const,
+    [`--progressbar-${v}-label-font-family`, v] as const,
+    [`--progressbar-${v}-label-font-size`, v] as const,
+    [`--progressbar-${v}-label-font-weight`, v] as const,
+    [`--progressbar-${v}-label-line-height`, v] as const,
+    [`--progressbar-${v}-value-font-family`, v] as const,
+    [`--progressbar-${v}-value-font-size`, v] as const,
+    [`--progressbar-${v}-value-font-weight`, v] as const,
+    [`--progressbar-${v}-value-line-height`, v] as const,
+  ]));
+
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+
+  let highlightedVars = new Set<string>();
+  function handleTokenHover(e: CustomEvent<{ variable: string | null }>) {
+    const v = e.detail.variable;
+    if (!v) {
+      highlightedVars = new Set();
+      return;
+    }
+    const group = shared.groups.find((g) => g.variables.includes(v));
+    highlightedVars = group ? new Set(group.variables) : new Set();
+  }
+
+  $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
+  const allVariables = allTokens.map((t) => t.variable);
 </script>
 
-<ComponentEditorBase {component} title="Progress Bar" description="Animated progress bar with variants. Import from <code>components/ProgressBar.svelte</code>" let:targetFile>
-  <VariantGroup name="primary" title="Primary" tokens={variantTokens.primary} {targetFile} {component}>
-    <div class="progress-demo-stack">
-      <ProgressBar value={25} label="Getting Started" variant="primary" />
-      <ProgressBar value={60} variant="primary" size="compact" />
-    </div>
-  </VariantGroup>
-
-  <VariantGroup name="success" title="Success" tokens={variantTokens.success} {targetFile} {component}>
-    <div class="progress-demo-stack">
-      <ProgressBar value={100} label="Complete" variant="success" />
-    </div>
-  </VariantGroup>
-
-  <VariantGroup name="warning" title="Warning" tokens={variantTokens.warning} {targetFile} {component}>
-    <div class="progress-demo-stack">
-      <ProgressBar value={75} label="Almost Done" variant="warning" />
-    </div>
-  </VariantGroup>
-
-  <VariantGroup name="danger" title="Danger" tokens={variantTokens.danger} {targetFile} {component}>
-    <div class="progress-demo-stack">
-      <ProgressBar value={33} label="Danger Zone" variant="danger" />
-    </div>
-  </VariantGroup>
-
-  <VariantGroup name="info" title="Info" tokens={variantTokens.info} {targetFile} {component}>
-    <div class="progress-demo-stack">
-      <ProgressBar value={50} label="Halfway There" variant="info" />
-    </div>
-  </VariantGroup>
+<ComponentEditorBase {component} title="Progress Bar" description="Animated progress bar with variants. Import from <code>components/ProgressBar.svelte</code>" resetVariables={allVariables}>
+  {#if shared.groups.length > 0}
+    <FieldsetWrapper legend="shared">
+      <TokenLayout
+        tokens={shared.groups.map((g) => ({ ...g.token, disabled: !g.shared }))}
+        {component}
+        contexts={shared.contextsByVar}
+        {highlightedVars}
+        sharedOrder={shared.sharedOrder}
+        isSharedBlock
+        on:tokenhover={handleTokenHover}
+        on:change
+      />
+    </FieldsetWrapper>
+  {/if}
+  {#each variants as v}
+    <VariantGroup
+      name={v}
+      title={v.charAt(0).toUpperCase() + v.slice(1)}
+      states={{ [v]: visibleVariantTokens(v) }}
+      typeGroups={{ [v]: variantTypeGroups(v) }}
+      {component}
+      {highlightedVars}
+      sharedOrder={shared.sharedOrder}
+      on:tokenhover={handleTokenHover}
+    >
+      <div class="progress-demo-stack">
+        {#if v === 'primary'}
+          <ProgressBar value={25} label="Getting Started" variant="primary" />
+          <ProgressBar value={60} variant="primary" size="compact" />
+        {:else if v === 'success'}
+          <ProgressBar value={100} label="Complete" variant="success" />
+        {:else if v === 'warning'}
+          <ProgressBar value={75} label="Almost Done" variant="warning" />
+        {:else if v === 'danger'}
+          <ProgressBar value={33} label="Danger Zone" variant="danger" />
+        {:else if v === 'info'}
+          <ProgressBar value={50} label="Halfway There" variant="info" />
+        {/if}
+      </div>
+    </VariantGroup>
+  {/each}
 </ComponentEditorBase>
 
 <style>
   .progress-demo-stack {
     display: flex;
     flex-direction: column;
-    gap: var(--space-16);
-    max-width: 400px;
+    gap: var(--space-12);
   }
 </style>

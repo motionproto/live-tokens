@@ -4,6 +4,7 @@
   import { navigate } from '../lib/router';
 
   let selectedComponent = 'standardButtons';
+  let drawerOpen = false;
 
   // Demo page is statically imported from `./Demo.svelte` in App.svelte; the
   // glob resolves to an empty object if the file has been deleted, in which
@@ -13,8 +14,14 @@
   let pageMenuOpen = false;
   let pageMenuRoot: HTMLElement;
 
+  function selectComponent(id: string) {
+    selectedComponent = id;
+    drawerOpen = false;
+  }
+
   function selectPage(path: string) {
     pageMenuOpen = false;
+    drawerOpen = false;
     navigate(path);
   }
 
@@ -26,8 +33,9 @@
   }
 
   function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape' && pageMenuOpen) {
-      pageMenuOpen = false;
+    if (e.key === 'Escape') {
+      if (pageMenuOpen) pageMenuOpen = false;
+      else if (drawerOpen) drawerOpen = false;
     }
   }
 
@@ -40,6 +48,8 @@
     document.removeEventListener('click', handleDocClick, true);
     window.removeEventListener('keydown', handleKeydown);
   });
+
+  $: currentItem = componentNavItems.find((i) => i.id === selectedComponent);
 
   const componentNavItems = [
     { id: 'segmentedControl', label: 'Segmented Control', icon: 'fas fa-hand-pointer' },
@@ -67,7 +77,26 @@
   editor flow straight through to this page.
 -->
 <div class="editor-page components-shell">
-  <nav class="sidebar">
+  <button
+    type="button"
+    class="drawer-trigger"
+    class:hidden={drawerOpen}
+    aria-label="Open components menu"
+    aria-expanded={drawerOpen}
+    on:click={() => (drawerOpen = true)}
+  >
+    <i class="fas fa-bars"></i>
+    <span>{currentItem?.label ?? 'Components'}</span>
+  </button>
+
+  <div
+    class="drawer-scrim"
+    class:visible={drawerOpen}
+    on:click={() => (drawerOpen = false)}
+    aria-hidden="true"
+  ></div>
+
+  <nav class="sidebar drawer" class:open={drawerOpen} inert={!drawerOpen}>
     <div class="sidebar-header" bind:this={pageMenuRoot}>
       <button
         type="button"
@@ -111,7 +140,7 @@
           <button
             class="nav-item"
             class:active={selectedComponent === item.id}
-            on:click={() => selectedComponent = item.id}
+            on:click={() => selectComponent(item.id)}
           >
             <i class={item.icon}></i>
             <span>{item.label}</span>
@@ -129,24 +158,82 @@
 <style>
   @import '../ui/editor.css';
   .components-shell {
-    display: grid;
-    grid-template-columns: 240px minmax(0, 1fr);
+    position: relative;
     height: 100vh;
     width: 100%;
     background: black;
     overflow: hidden;
   }
 
+  .drawer-trigger {
+    position: fixed;
+    top: var(--ui-space-12);
+    left: var(--ui-space-12);
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-6) var(--ui-space-12);
+    background: var(--ui-surface-low);
+    border: 1px solid var(--ui-border-faint);
+    border-radius: var(--ui-radius-md);
+    color: var(--ui-text-primary);
+    font-family: inherit;
+    font-size: var(--ui-font-size-md);
+    cursor: pointer;
+    transition: background var(--ui-transition-fast), opacity 180ms ease, transform 180ms ease;
+  }
+
+  .drawer-trigger:hover {
+    background: var(--ui-hover);
+  }
+
+  .drawer-trigger.hidden {
+    opacity: 0;
+    transform: translateX(-8px);
+    pointer-events: none;
+  }
+
+  .drawer-trigger i {
+    color: var(--ui-text-tertiary);
+  }
+
+  .drawer-scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 25;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 220ms ease;
+  }
+
+  .drawer-scrim.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   .sidebar {
-    position: sticky;
+    position: fixed;
     top: 0;
-    max-height: 100vh;
+    left: 0;
+    width: 280px;
+    max-width: 88vw;
+    height: 100vh;
     overflow-y: auto;
     background: black;
     border-right: 1px solid var(--ui-border-faint);
     display: flex;
     flex-direction: column;
     min-width: 0;
+    z-index: 30;
+    transform: translateX(-100%);
+    transition: transform 220ms ease;
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.5);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
   }
 
   .sidebar-header {
@@ -286,10 +373,10 @@
   }
 
   .content {
-    padding: 0 var(--ui-space-32);
+    padding: var(--ui-space-48) var(--ui-space-32) 0;
     background: black;
     min-width: 0;
-    max-height: 100vh;
+    height: 100vh;
     overflow-y: auto;
   }
 </style>

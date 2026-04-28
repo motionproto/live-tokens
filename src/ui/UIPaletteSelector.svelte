@@ -15,6 +15,7 @@
   export let component: string | undefined = undefined;
   export let canBeShared: boolean = false;
   export let disabled: boolean = false;
+  export let selectionsLocked: boolean = false;
 
   type Category = 'palette' | 'surface' | 'border' | 'text';
 
@@ -360,6 +361,7 @@
   {component}
   {canBeShared}
   {disabled}
+  {selectionsLocked}
   dropdownMinWidth="14rem"
   dropdownMaxWidth="calc(100vw - 2rem)"
   hideDefaultHeader={!!selectedFamily}

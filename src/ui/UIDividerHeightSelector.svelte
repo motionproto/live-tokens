@@ -6,6 +6,7 @@
   export let component: string | undefined = undefined;
   export let canBeShared: boolean = false;
   export let disabled: boolean = false;
+  export let selectionsLocked: boolean = false;
 
   const options = [
     { key: '0', label: 'None', value: '0px' },
@@ -24,6 +25,7 @@
   {component}
   {canBeShared}
   {disabled}
+  {selectionsLocked}
   varPrefix="--space-"
   {options}
   on:change

@@ -10,6 +10,8 @@
 
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import { fade } from 'svelte/transition';
+  import { cubicInOut } from 'svelte/easing';
   import { route, navigate } from './router';
   import { columnsVisible, toggleColumns } from './columnsOverlay';
   import { storageKey } from './editorConfig';
@@ -116,6 +118,20 @@
   let dockedWidth: number = Math.max(MIN_WIDTH, initial.dockedWidth);
   let floating = { ...initial.floating };
 
+  // Approximate natural size of the collapsed pill (Token Editor + columns toggle).
+  // A few pixels of overshoot is fine — the panel has overflow:hidden.
+  const COLLAPSED_WIDTH = 184;
+  const COLLAPSED_HEIGHT = 38;
+
+  // Fade timing for the buttons that only render when open (float toggle, spacer,
+  // nav links, page-source). The bar's grow/shrink + iframe fade live in CSS vars
+  // at the top of the style block.
+  const BTN_FADE = { duration: 130, easing: cubicInOut };
+
+  // Suppress CSS transitions during gestures and mode swaps so dragging doesn't
+  // re-animate every frame, and floating↔docked swaps snap cleanly.
+  let suppressTransition = false;
+
   // Gesture state — a transparent scrim covers the iframe while any gesture is active
   // so pointer events land on the panel, not on content inside the iframe.
   let gesturing: 'drag' | 'resize-left' | 'resize-se' | null = null;
@@ -196,6 +212,7 @@
   }
 
   function toggleMode() {
+    suppressTransition = true;
     mode = mode === 'docked' ? 'floating' : 'docked';
     // Snap the floating rect back inside the viewport if it drifted off-screen since last use
     if (mode === 'floating') {
@@ -207,6 +224,7 @@
       };
     }
     persist();
+    requestAnimationFrame(() => requestAnimationFrame(() => { suppressTransition = false; }));
   }
 
   function toggleOpen() {
@@ -232,9 +250,9 @@
   });
 
   $: panelStyle = !open
-    ? 'position: fixed; top: 12px; right: 12px;'
+    ? `position: fixed; top: 12px; right: 12px; width: ${COLLAPSED_WIDTH}px; height: ${COLLAPSED_HEIGHT}px;`
     : mode === 'docked'
-      ? `position: fixed; top: 0; right: 0; bottom: 0; width: ${dockedWidth}px;`
+      ? `position: fixed; top: 0; right: 0; width: ${dockedWidth}px; height: 100vh;`
       : `position: fixed; top: ${floating.y}px; left: ${floating.x}px; width: ${floating.width}px; height: ${floating.height}px;`;
 </script>
 
@@ -247,6 +265,7 @@
   class:hidden={!open}
   class:docked={open && mode === 'docked'}
   class:floating={open && mode === 'floating'}
+  class:no-transition={!!gesturing || suppressTransition}
 >
   <div
     class="header"
@@ -259,7 +278,7 @@
       on:click={toggleOpen}
       title={open ? 'Hide Token Editor' : 'Show Token Editor'}
     >
-      <i class="fas {open ? 'fa-eye-slash' : 'fa-eye'}"></i>
+      <i class="fas {open ? 'fa-chevron-right' : 'fa-chevron-left'}"></i>
       <span>Token Editor</span>
     </button>
 
@@ -273,17 +292,22 @@
     </button>
 
     {#if open}
-      <button class="hdr-btn icon" title={mode === 'docked' ? 'Float' : 'Dock to right'} on:click={toggleMode}>
+      <button
+        class="hdr-btn icon"
+        title={mode === 'docked' ? 'Float' : 'Dock to right'}
+        on:click={toggleMode}
+        transition:fade={BTN_FADE}
+      >
         <i class={mode === 'docked' ? 'fas fa-up-right-from-square' : 'fas fa-thumbtack'}></i>
       </button>
     {/if}
 
     {#if open}
-      <div class="spacer"></div>
+      <div class="spacer" transition:fade={BTN_FADE}></div>
     {/if}
 
     {#if open && navLinks.length > 0}
-      <div class="preview-nav">
+      <div class="preview-nav" transition:fade={BTN_FADE}>
         {#each navLinks as link (link.path)}
           <button
             class="hdr-btn nav"
@@ -297,11 +321,12 @@
       </div>
     {/if}
 
-    {#if showSource}
+    {#if open && showSource}
       <a
         class="hdr-btn text source"
         href="vscode://file/{projectRoot}/{sourceFile}"
         title="Open {sourceFile} in VS Code"
+        transition:fade={BTN_FADE}
       >
         <i class="fas fa-code"></i>
         Page Source
@@ -332,6 +357,22 @@
 
 <style>
   .lt-overlay {
+    /* Animation knobs. bar = panel grow/shrink, pane = iframe fade.
+       open = collapsed to expanded, close = expanded to collapsed. */
+    --bar-open-dur: 240ms;
+    --bar-open-ease: cubic-bezier(0.65, 0, 0.35, 1);
+    --bar-open-delay: 0ms;
+    --bar-close-dur: 240ms;
+    --bar-close-ease: cubic-bezier(0.65, 0, 0.35, 1);
+    --bar-close-delay: 70ms;
+
+    --pane-open-dur: 140ms;
+    --pane-open-ease: cubic-bezier(0.65, 0, 0.35, 1);
+    --pane-open-delay: 140ms;
+    --pane-close-dur: 80ms;
+    --pane-close-ease: cubic-bezier(0.65, 0, 0.35, 1);
+    --pane-close-delay: 0ms;
+
     display: flex;
     flex-direction: column;
     background: #0a0a0a;
@@ -341,6 +382,12 @@
     overflow: hidden;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     color: #fff;
+    transition:
+      width var(--bar-open-dur) var(--bar-open-ease) var(--bar-open-delay),
+      height var(--bar-open-dur) var(--bar-open-ease) var(--bar-open-delay),
+      top var(--bar-open-dur) var(--bar-open-ease) var(--bar-open-delay),
+      right var(--bar-open-dur) var(--bar-open-ease) var(--bar-open-delay),
+      border-radius var(--bar-open-dur) var(--bar-open-ease) var(--bar-open-delay);
   }
 
   .lt-overlay.docked {
@@ -353,17 +400,26 @@
   }
 
   /* Hidden state: the editor panel is collapsed to just the header bar,
-     pinned to the top-right. The iframe stays mounted (for instant show)
-     but its container is display:none. */
+     pinned to the top-right. The iframe stays mounted; its container fades
+     to opacity 0 and the panel shrinks around it. */
   .lt-overlay.hidden {
     border-radius: 6px;
-    width: auto;
+    transition:
+      width var(--bar-close-dur) var(--bar-close-ease) var(--bar-close-delay),
+      height var(--bar-close-dur) var(--bar-close-ease) var(--bar-close-delay),
+      top var(--bar-close-dur) var(--bar-close-ease) var(--bar-close-delay),
+      right var(--bar-close-dur) var(--bar-close-ease) var(--bar-close-delay),
+      border-radius var(--bar-close-dur) var(--bar-close-ease) var(--bar-close-delay);
   }
 
-  .lt-overlay.hidden .frame-wrap,
   .lt-overlay.hidden .resize-left,
   .lt-overlay.hidden .resize-se {
     display: none;
+  }
+
+  .lt-overlay.no-transition,
+  .lt-overlay.no-transition .frame-wrap {
+    transition: none !important;
   }
 
   .header {
@@ -458,6 +514,14 @@
     flex: 1;
     min-height: 0;
     background: #000;
+    transition: opacity var(--pane-open-dur) var(--pane-open-ease) var(--pane-open-delay);
+    opacity: 1;
+  }
+
+  .lt-overlay.hidden .frame-wrap {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--pane-close-dur) var(--pane-close-ease) var(--pane-close-delay);
   }
 
   .editor-frame {

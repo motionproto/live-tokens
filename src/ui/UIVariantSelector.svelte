@@ -10,6 +10,7 @@
   export let component: string | undefined = undefined;
   export let canBeShared: boolean = false;
   export let disabled: boolean = false;
+  export let selectionsLocked: boolean = false;
   export let dropdownMinWidth: string = '12rem';
   export let dropdownMaxWidth: string = '';
   /** CSS var prefix that, joined with an option `key`, forms the target var (e.g. `--font-weight-`). */
@@ -92,6 +93,7 @@
   {component}
   {canBeShared}
   {disabled}
+  {selectionsLocked}
   {dropdownMinWidth}
   {dropdownMaxWidth}
   on:reset={handleReset}

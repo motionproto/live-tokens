@@ -1,41 +1,115 @@
 <script lang="ts">
   import CollapsibleSection from '../components/CollapsibleSection.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import FieldsetWrapper from './scaffolding/FieldsetWrapper.svelte';
+  import TokenLayout from './scaffolding/TokenLayout.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-
+  import { editorState, registerComponentSchema } from '../lib/editorStore';
+  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   const component = 'collapsiblesection';
-
   let demoExpanded = false;
-
-  type Token = { label: string; variable: string; canBeShared?: boolean };
-
-  const states: Record<string, Token[]> = {
-    default: [
-      { label: 'surface color', variable: '--collapsiblesection-default-surface' },
-      { label: 'label color', variable: '--collapsiblesection-default-label' },
-      { label: 'toggle icon color', variable: '--collapsiblesection-default-icon' },
-      { label: 'border color', variable: '--collapsiblesection-default-border' },
-      { label: 'radius', canBeShared: true, variable: '--collapsiblesection-default-radius' },
-    ],
-    hover: [
-      { label: 'surface color', variable: '--collapsiblesection-hover-surface' },
-      { label: 'label color', variable: '--collapsiblesection-hover-label' },
-      { label: 'toggle icon color', variable: '--collapsiblesection-hover-icon' },
-      { label: 'border color', variable: '--collapsiblesection-hover-border' },
-      { label: 'radius', canBeShared: true, variable: '--collapsiblesection-hover-radius' },
-    ],
-    active: [
-      { label: 'surface color', variable: '--collapsiblesection-active-surface' },
-      { label: 'label color', variable: '--collapsiblesection-active-label' },
-      { label: 'toggle icon color', variable: '--collapsiblesection-active-icon' },
-      { label: 'border color', variable: '--collapsiblesection-active-border' },
-      { label: 'radius', canBeShared: true, variable: '--collapsiblesection-active-radius' },
-    ],
+  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
+  type TypeGroupConfig = {
+    legend?: string;
+    colorVariable: string;
+    colorLabel?: string;
+    familyVariable?: string;
+    sizeVariable?: string;
+    weightVariable?: string;
+    lineHeightVariable?: string;
   };
+  const stateNames = ['default', 'hover', 'active'] as const;
+  type StateName = typeof stateNames[number];
+  function stateTokens(s: StateName): Token[] {
+    return [
+      { label: 'surface color', variable: `--collapsiblesection-${s}-surface` },
+      { label: 'border color', variable: `--collapsiblesection-${s}-border` },
+      { label: 'border width', canBeShared: true, groupKey: 'border-width', variable: `--collapsiblesection-${s}-border-width` },
+      { label: 'radius', canBeShared: true, groupKey: 'radius', variable: `--collapsiblesection-${s}-radius` },
+      { label: 'padding', canBeShared: true, groupKey: 'padding', variable: `--collapsiblesection-${s}-padding` },
+      { label: 'icon color', variable: `--collapsiblesection-${s}-icon` },
+      { label: 'icon size', canBeShared: true, groupKey: 'icon-size', variable: `--collapsiblesection-${s}-icon-size` },
+    ];
+  }
+  function stateTypeGroups(s: StateName): TypeGroupConfig[] {
+    return [{
+      legend: 'label',
+      colorVariable: `--collapsiblesection-${s}-label`,
+      familyVariable: `--collapsiblesection-${s}-label-font-family`,
+      sizeVariable: `--collapsiblesection-${s}-label-font-size`,
+      weightVariable: `--collapsiblesection-${s}-label-font-weight`,
+      lineHeightVariable: `--collapsiblesection-${s}-label-line-height`,
+    }];
+  }
+
+  const states: Record<string, Token[]> = Object.fromEntries(stateNames.map((s) => [s, stateTokens(s)]));
+  const typeGroups: Record<string, TypeGroupConfig[]> = Object.fromEntries(stateNames.map((s) => [s, stateTypeGroups(s)]));
+  const typeGroupTokens: Token[] = stateNames.flatMap((s) => [
+    { label: 'font family', canBeShared: true, groupKey: 'label-font-family', variable: `--collapsiblesection-${s}-label-font-family` },
+    { label: 'font size', canBeShared: true, groupKey: 'label-font-size', variable: `--collapsiblesection-${s}-label-font-size` },
+    { label: 'font weight', canBeShared: true, groupKey: 'label-font-weight', variable: `--collapsiblesection-${s}-label-font-weight` },
+    { label: 'line height', canBeShared: true, groupKey: 'label-line-height', variable: `--collapsiblesection-${s}-label-line-height` },
+  ]);
+  const allTokens = [...Object.values(states).flat(), ...typeGroupTokens];
+  registerComponentSchema(component, allTokens);
+
+  const shareableContexts = new Map<string, string>(stateNames.flatMap((s) => [
+    [`--collapsiblesection-${s}-border-width`, s] as const,
+    [`--collapsiblesection-${s}-radius`, s] as const,
+    [`--collapsiblesection-${s}-padding`, s] as const,
+    [`--collapsiblesection-${s}-icon-size`, s] as const,
+    [`--collapsiblesection-${s}-label-font-family`, s] as const,
+    [`--collapsiblesection-${s}-label-font-size`, s] as const,
+    [`--collapsiblesection-${s}-label-font-weight`, s] as const,
+    [`--collapsiblesection-${s}-label-line-height`, s] as const,
+  ]));
+
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+
+  let highlightedVars = new Set<string>();
+  function handleTokenHover(e: CustomEvent<{ variable: string | null }>) {
+    const v = e.detail.variable;
+    if (!v) {
+      highlightedVars = new Set();
+      return;
+    }
+    const group = shared.groups.find((g) => g.variables.includes(v));
+    highlightedVars = group ? new Set(group.variables) : new Set();
+  }
+
+  $: visibleStates = Object.fromEntries(
+    Object.entries(states).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
+  ) as Record<string, Token[]>;
+  const allVariables = allTokens.map((t) => t.variable);
 </script>
 
-<ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Import from <code>components/CollapsibleSection.svelte</code>" let:targetFile>
-  <VariantGroup name="collapsible" title="Collapsible Section" {states} {targetFile} {component} let:activeState>
+<ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Import from <code>components/CollapsibleSection.svelte</code>" resetVariables={allVariables}>
+  {#if shared.groups.length > 0}
+    <FieldsetWrapper legend="shared">
+      <TokenLayout
+        tokens={shared.groups.map((g) => ({ ...g.token, disabled: !g.shared }))}
+        {component}
+        contexts={shared.contextsByVar}
+        {highlightedVars}
+        sharedOrder={shared.sharedOrder}
+        isSharedBlock
+        on:tokenhover={handleTokenHover}
+        on:change
+      />
+    </FieldsetWrapper>
+  {/if}
+
+  <VariantGroup
+    name="collapsible"
+    title="Collapsible Section"
+    states={visibleStates}
+    {typeGroups}
+    {component}
+    {highlightedVars}
+    sharedOrder={shared.sharedOrder}
+    on:tokenhover={handleTokenHover}
+    let:activeState
+  >
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     {@const forceActive = activeState === 'active'}
     <div class="collapsible-demo-wrapper">

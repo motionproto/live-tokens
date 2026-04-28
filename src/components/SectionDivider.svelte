@@ -13,6 +13,19 @@
 
 <style>
   :global(:root) {
+    /* Component-level (applies to all variants) */
+    --sectiondivider-padding: var(--space-16);
+    --sectiondivider-title: var(--text-primary);
+    --sectiondivider-title-font-family: var(--font-display);
+    --sectiondivider-title-font-size: var(--font-size-5xl);
+    --sectiondivider-title-font-weight: var(--font-weight-normal);
+    --sectiondivider-title-line-height: var(--line-height-tight);
+    --sectiondivider-description: var(--text-secondary);
+    --sectiondivider-description-font-family: var(--font-sans);
+    --sectiondivider-description-font-size: var(--font-size-md);
+    --sectiondivider-description-font-weight: var(--font-weight-normal);
+    --sectiondivider-description-line-height: var(--line-height-normal);
+
     /* Background */
     --sectiondivider-canvas-gradient-stop-1: var(--surface-canvas-highest);
     --sectiondivider-canvas-gradient-stop-2: var(--surface-canvas-higher);
@@ -64,7 +77,7 @@
 
   .section-divider {
     margin: var(--space-24) 0;
-    padding: var(--space-16) var(--space-24);
+    padding: var(--sectiondivider-padding) calc(var(--sectiondivider-padding) * 1.5);
     border-radius: var(--_divider-radius);
     background: linear-gradient(135deg,
       var(--_divider-1) 0%,
@@ -131,10 +144,11 @@
 
   .divider-label {
     display: block;
-    font-family: var(--font-display);
-    font-size: var(--font-size-5xl);
-    line-height: 1.05;
-    color: #fff;
+    font-family: var(--sectiondivider-title-font-family);
+    font-size: var(--sectiondivider-title-font-size);
+    font-weight: var(--sectiondivider-title-font-weight);
+    line-height: var(--sectiondivider-title-line-height);
+    color: var(--sectiondivider-title);
     overflow-wrap: break-word;
     word-wrap: break-word;
     hyphens: auto;
@@ -151,10 +165,11 @@
 
   .divider-description {
     margin: var(--space-4) 0 0;
-    font-family: var(--font-sans);
-    font-size: var(--font-size-md);
-    color: rgba(255, 255, 255, 0.8);
-    line-height: var(--line-height-normal);
+    font-family: var(--sectiondivider-description-font-family);
+    font-size: var(--sectiondivider-description-font-size);
+    font-weight: var(--sectiondivider-description-font-weight);
+    line-height: var(--sectiondivider-description-line-height);
+    color: var(--sectiondivider-description);
   }
 
   @media (max-width: 600px) {

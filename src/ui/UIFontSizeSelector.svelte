@@ -8,6 +8,7 @@
   export let component: string | undefined = undefined;
   export let canBeShared: boolean = false;
   export let disabled: boolean = false;
+  export let selectionsLocked: boolean = false;
 
   const options = [
     { key: 'xs', label: 'XS' },
@@ -59,6 +60,7 @@
   {component}
   {canBeShared}
   {disabled}
+  {selectionsLocked}
   varPrefix="--font-size-"
   {options}
   on:change

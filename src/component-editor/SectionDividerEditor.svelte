@@ -2,64 +2,57 @@
   import SectionDivider from '../components/SectionDivider.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-
+  import { registerComponentSchema } from '../lib/editorStore';
   const component = 'sectiondivider';
+  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
+  type TypeGroupConfig = {
+    legend?: string;
+    colorVariable: string;
+    colorLabel?: string;
+    familyVariable?: string;
+    sizeVariable?: string;
+    weightVariable?: string;
+    lineHeightVariable?: string;
+  };
 
-  type Token = { label: string; variable: string; canBeShared?: boolean };
-
-  const variantTokens: Record<string, Token[]> = {
-    canvas: [
-      { label: 'gradient stop 1', variable: '--sectiondivider-canvas-gradient-stop-1' },
-      { label: 'gradient stop 2', variable: '--sectiondivider-canvas-gradient-stop-2' },
-      { label: 'gradient stop 3', variable: '--sectiondivider-canvas-gradient-stop-3' },
-      { label: 'gradient stop 4', variable: '--sectiondivider-canvas-gradient-stop-4' },
-      { label: 'text stroke color', variable: '--sectiondivider-canvas-text-stroke' },
-      { label: 'radius', canBeShared: true, variable: '--sectiondivider-canvas-radius' },
-    ],
-    neutral: [
-      { label: 'gradient stop 1', variable: '--sectiondivider-neutral-gradient-stop-1' },
-      { label: 'gradient stop 2', variable: '--sectiondivider-neutral-gradient-stop-2' },
-      { label: 'gradient stop 3', variable: '--sectiondivider-neutral-gradient-stop-3' },
-      { label: 'gradient stop 4', variable: '--sectiondivider-neutral-gradient-stop-4' },
-      { label: 'text stroke color', variable: '--sectiondivider-neutral-text-stroke' },
-      { label: 'radius', canBeShared: true, variable: '--sectiondivider-neutral-radius' },
-    ],
-    alternate: [
-      { label: 'gradient stop 1', variable: '--sectiondivider-alternate-gradient-stop-1' },
-      { label: 'gradient stop 2', variable: '--sectiondivider-alternate-gradient-stop-2' },
-      { label: 'gradient stop 3', variable: '--sectiondivider-alternate-gradient-stop-3' },
-      { label: 'gradient stop 4', variable: '--sectiondivider-alternate-gradient-stop-4' },
-      { label: 'text stroke color', variable: '--sectiondivider-alternate-text-stroke' },
-      { label: 'radius', canBeShared: true, variable: '--sectiondivider-alternate-radius' },
-    ],
-    primary: [
-      { label: 'gradient stop 1', variable: '--sectiondivider-primary-gradient-stop-1' },
-      { label: 'gradient stop 2', variable: '--sectiondivider-primary-gradient-stop-2' },
-      { label: 'gradient stop 3', variable: '--sectiondivider-primary-gradient-stop-3' },
-      { label: 'gradient stop 4', variable: '--sectiondivider-primary-gradient-stop-4' },
-      { label: 'text stroke color', variable: '--sectiondivider-primary-text-stroke' },
-      { label: 'radius', canBeShared: true, variable: '--sectiondivider-primary-radius' },
-    ],
-    accent: [
-      { label: 'gradient stop 1', variable: '--sectiondivider-accent-gradient-stop-1' },
-      { label: 'gradient stop 2', variable: '--sectiondivider-accent-gradient-stop-2' },
-      { label: 'gradient stop 3', variable: '--sectiondivider-accent-gradient-stop-3' },
-      { label: 'gradient stop 4', variable: '--sectiondivider-accent-gradient-stop-4' },
-      { label: 'text stroke color', variable: '--sectiondivider-accent-text-stroke' },
-      { label: 'radius', canBeShared: true, variable: '--sectiondivider-accent-radius' },
-    ],
-    special: [
-      { label: 'gradient stop 1', variable: '--sectiondivider-special-gradient-stop-1' },
-      { label: 'gradient stop 2', variable: '--sectiondivider-special-gradient-stop-2' },
-      { label: 'gradient stop 3', variable: '--sectiondivider-special-gradient-stop-3' },
-      { label: 'gradient stop 4', variable: '--sectiondivider-special-gradient-stop-4' },
-      { label: 'text stroke color', variable: '--sectiondivider-special-text-stroke' },
-      { label: 'radius', canBeShared: true, variable: '--sectiondivider-special-radius' },
+  // Component-level (shared across all variants): typography + padding.
+  const sharedStates: Record<string, Token[]> = {
+    component: [
+      { label: 'padding', variable: '--sectiondivider-padding' },
     ],
   };
 
+  const sharedTypeGroups: Record<string, TypeGroupConfig[]> = {
+    component: [
+      {
+        legend: 'title',
+        colorVariable: '--sectiondivider-title',
+        familyVariable: '--sectiondivider-title-font-family',
+        sizeVariable: '--sectiondivider-title-font-size',
+        weightVariable: '--sectiondivider-title-font-weight',
+        lineHeightVariable: '--sectiondivider-title-line-height',
+      },
+      {
+        legend: 'description',
+        colorVariable: '--sectiondivider-description',
+        familyVariable: '--sectiondivider-description-font-family',
+        sizeVariable: '--sectiondivider-description-font-size',
+        weightVariable: '--sectiondivider-description-font-weight',
+        lineHeightVariable: '--sectiondivider-description-line-height',
+      },
+    ],
+  };
+  const sharedTypeTokens: Token[] = [
+    { label: 'font family', variable: '--sectiondivider-title-font-family' },
+    { label: 'font size', variable: '--sectiondivider-title-font-size' },
+    { label: 'font weight', variable: '--sectiondivider-title-font-weight' },
+    { label: 'line height', variable: '--sectiondivider-title-line-height' },
+    { label: 'font family', variable: '--sectiondivider-description-font-family' },
+    { label: 'font size', variable: '--sectiondivider-description-font-size' },
+    { label: 'font weight', variable: '--sectiondivider-description-font-weight' },
+    { label: 'line height', variable: '--sectiondivider-description-line-height' },
+  ];
   type Variant = 'canvas' | 'neutral' | 'alternate' | 'primary' | 'accent' | 'special';
-
   const variants: { key: Variant; title: string }[] = [
     { key: 'canvas', title: 'Background' },
     { key: 'neutral', title: 'Neutral' },
@@ -68,9 +61,23 @@
     { key: 'accent', title: 'Accent' },
     { key: 'special', title: 'Special' },
   ];
-
-  const descriptionText =
-    'These modules were created by other authors and are no longer actively maintained.';
+  function variantTokens(v: Variant): Token[] {
+    return [
+      { label: 'gradient stop 1', variable: `--sectiondivider-${v}-gradient-stop-1` },
+      { label: 'gradient stop 2', variable: `--sectiondivider-${v}-gradient-stop-2` },
+      { label: 'gradient stop 3', variable: `--sectiondivider-${v}-gradient-stop-3` },
+      { label: 'gradient stop 4', variable: `--sectiondivider-${v}-gradient-stop-4` },
+      { label: 'text stroke color', variable: `--sectiondivider-${v}-text-stroke` },
+      { label: 'radius', variable: `--sectiondivider-${v}-radius` },
+    ];
+  }
+  const allTokens: Token[] = [
+    ...Object.values(sharedStates).flat(),
+    ...sharedTypeTokens,
+    ...variants.flatMap((v) => variantTokens(v.key)),
+  ];
+  registerComponentSchema(component, allTokens);
+  const descriptionText = 'These modules were created by other authors and are no longer actively maintained.';
 
   let showDescription: Record<Variant, boolean> = {
     canvas: false,
@@ -80,11 +87,21 @@
     accent: false,
     special: false,
   };
+  const allVariables = allTokens.map((t) => t.variable);
 </script>
 
-<ComponentEditorBase {component} title="Section Divider" description="Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>" let:targetFile>
+<ComponentEditorBase {component} title="Section Divider" description="Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>" resetVariables={allVariables}>
+  <VariantGroup
+    name="component"
+    title="Component-level"
+    states={sharedStates}
+    typeGroups={sharedTypeGroups}
+    {component}
+  >
+    <SectionDivider title="Section Title" description={descriptionText} variant="canvas" />
+  </VariantGroup>
   {#each variants as v}
-    <VariantGroup name={v.key} title={v.title} tokens={variantTokens[v.key]} {targetFile} {component}>
+    <VariantGroup name={v.key} title={v.title} states={{ [v.key]: variantTokens(v.key) }} {component}>
       <label class="description-toggle">
         <input type="checkbox" bind:checked={showDescription[v.key]} />
         <span>Show description</span>

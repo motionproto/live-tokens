@@ -3,9 +3,10 @@
   import Toggle from '../components/Toggle.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import FieldsetWrapper from './scaffolding/FieldsetWrapper.svelte';
+  import TokenLayout from './scaffolding/TokenLayout.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, setComponentAlias } from '../lib/editorStore';
-
+  import { editorState, setComponentAlias, registerComponentSchema } from '../lib/editorStore';
+  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   const component = 'button';
 
   $: shimmerEnabled = $editorState.components.button?.aliases['--button-shimmer'] !== '--shimmer-off';
@@ -13,314 +14,171 @@
   function handleShimmerChange(e: CustomEvent<boolean>) {
     setComponentAlias('button', '--button-shimmer', e.detail ? '--shimmer-on' : '--shimmer-off');
   }
-
-  type Token = { label: string; variable: string; canBeShared?: boolean };
-
-  const variantStates: Record<string, Record<string, Token[]>> = {
-    primary: {
-      default: [
-        { label: 'surface color', variable: '--button-primary-surface' },
-        { label: 'text color', variable: '--button-primary-text' },
-        { label: 'border color', variable: '--button-primary-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-primary-radius' },
-      ],
-      hover: [
-        { label: 'surface color', variable: '--button-primary-hover-surface' },
-        { label: 'text color', variable: '--button-primary-hover-text' },
-        { label: 'border color', variable: '--button-primary-hover-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-primary-radius' },
-      ],
-      disabled: [
-        { label: 'surface color', variable: '--button-primary-disabled-surface' },
-        { label: 'text color', variable: '--button-primary-disabled-text' },
-        { label: 'border color', variable: '--button-primary-disabled-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-primary-radius' },
-      ],
-    },
-    secondary: {
-      default: [
-        { label: 'surface color', variable: '--button-secondary-surface' },
-        { label: 'text color', variable: '--button-secondary-text' },
-        { label: 'border color', variable: '--button-secondary-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-secondary-radius' },
-      ],
-      hover: [
-        { label: 'surface color', variable: '--button-secondary-hover-surface' },
-        { label: 'text color', variable: '--button-secondary-hover-text' },
-        { label: 'border color', variable: '--button-secondary-hover-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-secondary-radius' },
-      ],
-      disabled: [
-        { label: 'surface color', variable: '--button-secondary-disabled-surface' },
-        { label: 'text color', variable: '--button-secondary-disabled-text' },
-        { label: 'border color', variable: '--button-secondary-disabled-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-secondary-radius' },
-      ],
-    },
-    outline: {
-      default: [
-        { label: 'surface color', variable: '--button-outline-surface' },
-        { label: 'text color', variable: '--button-outline-text' },
-        { label: 'border color', variable: '--button-outline-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-outline-radius' },
-      ],
-      hover: [
-        { label: 'surface color', variable: '--button-outline-hover-surface' },
-        { label: 'text color', variable: '--button-outline-hover-text' },
-        { label: 'border color', variable: '--button-outline-hover-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-outline-radius' },
-      ],
-      disabled: [
-        { label: 'surface color', variable: '--button-outline-disabled-surface' },
-        { label: 'text color', variable: '--button-outline-disabled-text' },
-        { label: 'border color', variable: '--button-outline-disabled-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-outline-radius' },
-      ],
-    },
-    success: {
-      default: [
-        { label: 'surface color', variable: '--button-success-surface' },
-        { label: 'text color', variable: '--button-success-text' },
-        { label: 'border color', variable: '--button-success-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-success-radius' },
-      ],
-      hover: [
-        { label: 'surface color', variable: '--button-success-hover-surface' },
-        { label: 'text color', variable: '--button-success-hover-text' },
-        { label: 'border color', variable: '--button-success-hover-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-success-radius' },
-      ],
-      disabled: [
-        { label: 'surface color', variable: '--button-success-disabled-surface' },
-        { label: 'text color', variable: '--button-success-disabled-text' },
-        { label: 'border color', variable: '--button-success-disabled-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-success-radius' },
-      ],
-    },
-    danger: {
-      default: [
-        { label: 'surface color', variable: '--button-danger-surface' },
-        { label: 'text color', variable: '--button-danger-text' },
-        { label: 'border color', variable: '--button-danger-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-danger-radius' },
-      ],
-      hover: [
-        { label: 'surface color', variable: '--button-danger-hover-surface' },
-        { label: 'text color', variable: '--button-danger-hover-text' },
-        { label: 'border color', variable: '--button-danger-hover-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-danger-radius' },
-      ],
-      disabled: [
-        { label: 'surface color', variable: '--button-danger-disabled-surface' },
-        { label: 'text color', variable: '--button-danger-disabled-text' },
-        { label: 'border color', variable: '--button-danger-disabled-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-danger-radius' },
-      ],
-    },
-    warning: {
-      default: [
-        { label: 'surface color', variable: '--button-warning-surface' },
-        { label: 'text color', variable: '--button-warning-text' },
-        { label: 'border color', variable: '--button-warning-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-warning-radius' },
-      ],
-      hover: [
-        { label: 'surface color', variable: '--button-warning-hover-surface' },
-        { label: 'text color', variable: '--button-warning-hover-text' },
-        { label: 'border color', variable: '--button-warning-hover-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-warning-radius' },
-      ],
-      disabled: [
-        { label: 'surface color', variable: '--button-warning-disabled-surface' },
-        { label: 'text color', variable: '--button-warning-disabled-text' },
-        { label: 'border color', variable: '--button-warning-disabled-border' },
-        { label: 'radius', canBeShared: true, variable: '--button-warning-radius' },
-      ],
-    },
+  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
+  type TypeGroupConfig = {
+    legend?: string;
+    colorVariable: string;
+    colorLabel?: string;
+    familyVariable?: string;
+    sizeVariable?: string;
+    weightVariable?: string;
+    lineHeightVariable?: string;
   };
+  const variants = ['primary', 'secondary', 'outline', 'success', 'danger', 'warning'] as const;
+  type Variant = typeof variants[number];
+  const stateNames = ['default', 'hover', 'disabled'] as const;
+  type StateName = typeof stateNames[number];
+  function statePrefix(v: Variant, s: StateName): string {
+    return s === 'default' ? `--button-${v}` : `--button-${v}-${s}`;
+  }
+  function variantStateTokens(v: Variant, s: StateName): Token[] {
+    const p = statePrefix(v, s);
+    return [
+      { label: 'surface color', variable: `${p}-surface` },
+      { label: 'border color', variable: `${p}-border` },
+      { label: 'border width', canBeShared: true, groupKey: `${v}-border-width`, variable: `${p}-border-width` },
+      { label: 'radius', canBeShared: true, groupKey: `${v}-radius`, variable: `${p}-radius` },
+      { label: 'padding', canBeShared: true, groupKey: `${v}-padding`, variable: `${p}-padding` },
+    ];
+  }
+
+  // Single typeGroup per variant lives in the default state — buttons rarely
+  // change typography per state in practice, so consolidate.
+  function variantTypeGroups(v: Variant): Record<string, TypeGroupConfig[]> {
+    return {
+      default: [{
+        legend: 'button text',
+        colorVariable: `--button-${v}-text`,
+        familyVariable: `--button-${v}-text-font-family`,
+        sizeVariable: `--button-${v}-text-font-size`,
+        weightVariable: `--button-${v}-text-font-weight`,
+        lineHeightVariable: `--button-${v}-text-line-height`,
+      }],
+      hover: [{
+        legend: 'button text (hover)',
+        colorVariable: `--button-${v}-hover-text`,
+      }],
+      disabled: [{
+        legend: 'button text (disabled)',
+        colorVariable: `--button-${v}-disabled-text`,
+      }],
+    };
+  }
+
+  function variantStates(v: Variant): Record<string, Token[]> {
+    return Object.fromEntries(stateNames.map((s) => [s, variantStateTokens(v, s)]));
+  }
+  function variantTypeGroupTokens(v: Variant): Token[] {
+    return [
+      { label: 'font family', canBeShared: true, groupKey: 'font-family', variable: `--button-${v}-text-font-family` },
+      { label: 'font size', canBeShared: true, groupKey: 'font-size', variable: `--button-${v}-text-font-size` },
+      { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: `--button-${v}-text-font-weight` },
+      { label: 'line height', canBeShared: true, groupKey: 'line-height', variable: `--button-${v}-text-line-height` },
+    ];
+  }
+  const allTokens: Token[] = variants.flatMap((v) => [
+    ...Object.values(variantStates(v)).flat(),
+    ...variantTypeGroupTokens(v),
+  ]);
+  registerComponentSchema(component, allTokens);
+
+  // Shared block:
+  //   - per-variant shape props (border-width, radius, padding) link across default/hover/disabled.
+  //   - typography props link across all six variants.
+  const shareableContexts = new Map<string, string>([
+    ...variants.flatMap((v) => stateNames.flatMap((s) => [
+      [`${statePrefix(v, s)}-border-width`, `${v} ${s}`] as const,
+      [`${statePrefix(v, s)}-radius`, `${v} ${s}`] as const,
+      [`${statePrefix(v, s)}-padding`, `${v} ${s}`] as const,
+    ])),
+    ...variants.flatMap((v) => [
+      [`--button-${v}-text-font-family`, v] as const,
+      [`--button-${v}-text-font-size`, v] as const,
+      [`--button-${v}-text-font-weight`, v] as const,
+      [`--button-${v}-text-line-height`, v] as const,
+    ]),
+  ]);
+
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+
+  let highlightedVars = new Set<string>();
+  function handleTokenHover(e: CustomEvent<{ variable: string | null }>) {
+    const v = e.detail.variable;
+    if (!v) {
+      highlightedVars = new Set();
+      return;
+    }
+    const group = shared.groups.find((g) => g.variables.includes(v));
+    highlightedVars = group ? new Set(group.variables) : new Set();
+  }
+
+  $: visibleVariantStates = (v: Variant) => Object.fromEntries(
+    Object.entries(variantStates(v)).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
+  ) as Record<string, Token[]>;
+  const allVariables = allTokens.map((t) => t.variable);
 </script>
 
-<ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" let:targetFile>
+<ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" resetVariables={allVariables}>
   <FieldsetWrapper legend="shared">
     <div class="shared-row">
       <span class="shared-label">hover shimmer</span>
       <Toggle checked={shimmerEnabled} on:change={handleShimmerChange} />
     </div>
+    {#if shared.groups.length > 0}
+      <TokenLayout
+        tokens={shared.groups.map((g) => ({ ...g.token, disabled: !g.shared }))}
+        {component}
+        contexts={shared.contextsByVar}
+        {highlightedVars}
+        sharedOrder={shared.sharedOrder}
+        isSharedBlock
+        on:tokenhover={handleTokenHover}
+        on:change
+      />
+    {/if}
   </FieldsetWrapper>
-
-  <VariantGroup name="primary" title="Primary" states={variantStates.primary} {targetFile} {component} let:activeState>
-    {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
-    {@const isDisabled = activeState === 'disabled'}
-    <div class="size-row">
-      <div class="size-section">
-        <span class="size-label">size="default"</span>
-        <div class="button-showcase-grid">
-          <div class="button-showcase-item">
-            <Button variant="primary" disabled={isDisabled} class={forceClass}>Primary</Button>
-            <span class="variant-label">primary</span>
+  {#each variants as v}
+    <VariantGroup
+      name={v}
+      title={v.charAt(0).toUpperCase() + v.slice(1)}
+      states={visibleVariantStates(v)}
+      typeGroups={variantTypeGroups(v)}
+      {component}
+      {highlightedVars}
+      sharedOrder={shared.sharedOrder}
+      on:tokenhover={handleTokenHover}
+      let:activeState
+    >
+      {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
+      {@const isDisabled = activeState === 'disabled'}
+      <div class="size-row">
+        <div class="size-section">
+          <span class="size-label">size="default"</span>
+          <div class="button-showcase-grid">
+            <div class="button-showcase-item">
+              <Button variant={v} disabled={isDisabled} class={forceClass}>{v.charAt(0).toUpperCase() + v.slice(1)}</Button>
+              <span class="variant-label">{v}</span>
+            </div>
+            <div class="button-showcase-item">
+              <Button variant={v} icon="fas fa-star" iconPosition="left" disabled={isDisabled} class={forceClass}>With Icon</Button>
+            </div>
           </div>
-          <div class="button-showcase-item">
-            <Button variant="primary" icon="fas fa-star" iconPosition="left" disabled={isDisabled} class={forceClass}>With Icon</Button>
+        </div>
+        <div class="size-divider"></div>
+        <div class="size-section">
+          <span class="size-label">size="small"</span>
+          <div class="button-showcase-grid">
+            <div class="button-showcase-item">
+              <Button variant={v} size="small" disabled={isDisabled} class={forceClass}>{v.charAt(0).toUpperCase() + v.slice(1)}</Button>
+            </div>
+            <div class="button-showcase-item">
+              <Button variant={v} size="small" icon="fas fa-star" iconPosition="left" disabled={isDisabled} class={forceClass}>With Icon</Button>
+            </div>
           </div>
         </div>
       </div>
-      <div class="size-divider"></div>
-      <div class="size-section">
-        <span class="size-label">size="small"</span>
-        <div class="button-showcase-grid">
-          <div class="button-showcase-item">
-            <Button variant="primary" size="small" disabled={isDisabled} class={forceClass}>Primary</Button>
-          </div>
-          <div class="button-showcase-item">
-            <Button variant="primary" size="small" icon="fas fa-star" iconPosition="left" disabled={isDisabled} class={forceClass}>With Icon</Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </VariantGroup>
-
-  <VariantGroup name="secondary" title="Secondary" states={variantStates.secondary} {targetFile} {component} let:activeState>
-    {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
-    {@const isDisabled = activeState === 'disabled'}
-    <div class="size-row">
-      <div class="size-section">
-        <span class="size-label">size="default"</span>
-        <div class="button-showcase-grid">
-          <div class="button-showcase-item">
-            <Button variant="secondary" disabled={isDisabled} class={forceClass}>Secondary</Button>
-            <span class="variant-label">secondary</span>
-          </div>
-          <div class="button-showcase-item">
-            <Button variant="secondary" icon="fas fa-check" iconPosition="right" disabled={isDisabled} class={forceClass}>Icon Right</Button>
-          </div>
-        </div>
-      </div>
-      <div class="size-divider"></div>
-      <div class="size-section">
-        <span class="size-label">size="small"</span>
-        <div class="button-showcase-grid">
-          <div class="button-showcase-item">
-            <Button variant="secondary" size="small" disabled={isDisabled} class={forceClass}>Secondary</Button>
-          </div>
-          <div class="button-showcase-item">
-            <Button variant="secondary" size="small" icon="fas fa-check" iconPosition="right" disabled={isDisabled} class={forceClass}>Icon Right</Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </VariantGroup>
-
-  <VariantGroup name="outline" title="Outline" states={variantStates.outline} {targetFile} {component} let:activeState>
-    {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
-    {@const isDisabled = activeState === 'disabled'}
-    <div class="size-row">
-      <div class="size-section">
-        <span class="size-label">size="default"</span>
-        <div class="button-showcase-grid">
-          <div class="button-showcase-item">
-            <Button variant="outline" disabled={isDisabled} class={forceClass}>Outline</Button>
-            <span class="variant-label">outline</span>
-          </div>
-        </div>
-      </div>
-      <div class="size-divider"></div>
-      <div class="size-section">
-        <span class="size-label">size="small"</span>
-        <div class="button-showcase-grid">
-          <div class="button-showcase-item">
-            <Button variant="outline" size="small" disabled={isDisabled} class={forceClass}>Outline</Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </VariantGroup>
-
-  <VariantGroup name="success" title="Success" states={variantStates.success} {targetFile} {component} let:activeState>
-    {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
-    {@const isDisabled = activeState === 'disabled'}
-    <div class="size-row">
-      <div class="size-section">
-        <span class="size-label">size="default"</span>
-        <div class="button-showcase-grid">
-          <div class="button-showcase-item">
-            <Button variant="success" disabled={isDisabled} class={forceClass}>Success</Button>
-            <span class="variant-label">success</span>
-          </div>
-          <div class="button-showcase-item">
-            <Button variant="success" icon="fas fa-plus" disabled={isDisabled} class={forceClass}>Add Item</Button>
-          </div>
-        </div>
-      </div>
-      <div class="size-divider"></div>
-      <div class="size-section">
-        <span class="size-label">size="small"</span>
-        <div class="button-showcase-grid">
-          <div class="button-showcase-item">
-            <Button variant="success" size="small" disabled={isDisabled} class={forceClass}>Success</Button>
-          </div>
-          <div class="button-showcase-item">
-            <Button variant="success" size="small" icon="fas fa-plus" disabled={isDisabled} class={forceClass}>Add Item</Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </VariantGroup>
-
-  <VariantGroup name="danger" title="Danger" states={variantStates.danger} {targetFile} {component} let:activeState>
-    {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
-    {@const isDisabled = activeState === 'disabled'}
-    <div class="size-row">
-      <div class="size-section">
-        <span class="size-label">size="default"</span>
-        <div class="button-showcase-grid">
-          <div class="button-showcase-item">
-            <Button variant="danger" disabled={isDisabled} class={forceClass}>Danger</Button>
-            <span class="variant-label">danger</span>
-          </div>
-          <div class="button-showcase-item">
-            <Button variant="danger" icon="fas fa-trash" disabled={isDisabled} class={forceClass}>Delete</Button>
-          </div>
-        </div>
-      </div>
-      <div class="size-divider"></div>
-      <div class="size-section">
-        <span class="size-label">size="small"</span>
-        <div class="button-showcase-grid">
-          <div class="button-showcase-item">
-            <Button variant="danger" size="small" disabled={isDisabled} class={forceClass}>Danger</Button>
-          </div>
-          <div class="button-showcase-item">
-            <Button variant="danger" size="small" icon="fas fa-trash" disabled={isDisabled} class={forceClass}>Delete</Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </VariantGroup>
-
-  <VariantGroup name="warning" title="Warning" states={variantStates.warning} {targetFile} {component} let:activeState>
-    {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
-    {@const isDisabled = activeState === 'disabled'}
-    <div class="size-row">
-      <div class="size-section">
-        <span class="size-label">size="default"</span>
-        <div class="button-showcase-grid">
-          <div class="button-showcase-item">
-            <Button variant="warning" disabled={isDisabled} class={forceClass}>Warning</Button>
-            <span class="variant-label">warning</span>
-          </div>
-        </div>
-      </div>
-      <div class="size-divider"></div>
-      <div class="size-section">
-        <span class="size-label">size="small"</span>
-        <div class="button-showcase-grid">
-          <div class="button-showcase-item">
-            <Button variant="warning" size="small" disabled={isDisabled} class={forceClass}>Warning</Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </VariantGroup>
+    </VariantGroup>
+  {/each}
 </ComponentEditorBase>
 
 <style>

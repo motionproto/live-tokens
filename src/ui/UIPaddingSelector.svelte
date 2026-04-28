@@ -16,6 +16,7 @@
   export let component: string | undefined = undefined;
   export let canBeShared: boolean = false;
   export let disabled: boolean = false;
+  export let selectionsLocked: boolean = false;
   /** When 'sides', renders as a self-contained field group spanning all parent grid columns. */
   export let mode: 'single' | 'sides' = 'single';
   /** Legend text for the field group when mode='sides'. */
@@ -175,7 +176,7 @@
         class="merge-btn"
         on:click={mergeToSingle}
         title="Use the same value for all sides"
-        {disabled}
+        disabled={disabled || selectionsLocked}
       >
         <i class="fas fa-square" aria-hidden="true"></i>
         <span>Merge</span>
@@ -189,6 +190,7 @@
           {component}
           canBeShared={false}
           {disabled}
+          {selectionsLocked}
           on:reset={() => handleResetSide(s)}
           on:var-change={handleVarChange}
         >
@@ -219,6 +221,7 @@
       {component}
       canBeShared={false}
       {disabled}
+      {selectionsLocked}
       on:reset={handleResetAll}
       on:var-change={handleVarChange}
     >
@@ -243,7 +246,7 @@
       class="split-btn"
       on:click={splitToSides}
       title="Set each side independently"
-      {disabled}
+      disabled={disabled || selectionsLocked}
     >
       <i class="fas fa-border-all" aria-hidden="true"></i>
     </button>

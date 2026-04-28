@@ -214,6 +214,8 @@
       {@const ctxs = contexts[token.variable]}
       {@const idx = sharedOrder?.get(token.variable)}
       {@const isMirror = dis && !isSharedBlock}
+      {@const lockedSelections = dis && isSharedBlock}
+      {@const triggerDisabled = dis && !isSharedBlock}
       {@const padSplit = entry.kind === 'padding' && isPaddingSplit(token.variable, component, $editorState)}
       {#if i === firstIndependentIdx}
         <div class="zone-divider" aria-hidden="true"></div>
@@ -225,7 +227,8 @@
           variable={token.variable}
           {component}
           canBeShared={token.canBeShared ?? false}
-          disabled={dis}
+          disabled={triggerDisabled}
+          selectionsLocked={lockedSelections}
           on:change
         />
       {:else}
@@ -246,23 +249,23 @@
         >
           <span class="token-label">{token.label}</span>
           {#if entry.kind === 'radius'}
-            <UIRadiusSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+            <UIRadiusSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'border-width' || entry.kind === 'divider-width'}
-            <UIBorderWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+            <UIBorderWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'divider-height'}
-            <UIDividerHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+            <UIDividerHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'padding'}
-            <UIPaddingSelector mode="single" variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+            <UIPaddingSelector mode="single" variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'font-family'}
-            <UIFontFamilySelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+            <UIFontFamilySelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'font-weight'}
-            <UIFontWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+            <UIFontWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'font-size'}
-            <UIFontSizeSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+            <UIFontSizeSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'line-height'}
-            <UILineHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+            <UILineHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
           {:else}
-            <UIPaletteSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={dis} on:change />
+            <UIPaletteSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
           {/if}
           {#if ctxs?.length}
             <div class="token-contexts">
@@ -292,12 +295,26 @@
   }
 
   .token-grid {
+    --token-selector-w: 8rem;
     display: grid;
-    grid-template-columns: max-content 8rem 1fr;
+    grid-template-columns: max-content var(--token-selector-w) 1fr;
     column-gap: var(--ui-space-10);
     row-gap: var(--ui-space-6);
     align-items: center;
     padding: var(--ui-space-4) var(--ui-space-12);
+    min-width: 0;
+  }
+
+  @container (max-width: 480px) {
+    .token-grid { --token-selector-w: 6rem; }
+  }
+
+  @container (max-width: 380px) {
+    .token-grid {
+      grid-template-columns: max-content 1fr;
+      column-gap: var(--ui-space-6);
+    }
+    .token-grid :global(.ui-token-selector) { grid-column: 2; }
   }
 
   .zone-divider {

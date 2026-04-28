@@ -84,42 +84,78 @@
       /* Info */
       --notification-info-surface: var(--surface-info);
       --notification-info-border: var(--border-info);
+      --notification-info-border-width: var(--border-width-thin);
+      --notification-info-radius: var(--radius-md);
+      --notification-info-padding: var(--space-12);
       --notification-info-icon: var(--text-info);
+      --notification-info-icon-size: var(--font-size-md);
       --notification-info-title: var(--text-info);
       --notification-info-title-font-family: var(--font-sans);
+      --notification-info-title-font-size: var(--font-size-lg);
       --notification-info-title-font-weight: var(--font-weight-normal);
+      --notification-info-title-line-height: var(--line-height-snug);
       --notification-info-text: var(--text-primary);
-      --notification-info-radius: var(--radius-md);
+      --notification-info-text-font-family: var(--font-sans);
+      --notification-info-text-font-size: var(--font-size-md);
+      --notification-info-text-font-weight: var(--font-weight-extralight);
+      --notification-info-text-line-height: var(--line-height-normal);
 
       /* Success */
       --notification-success-surface: var(--surface-success);
       --notification-success-border: var(--border-success);
+      --notification-success-border-width: var(--border-width-thin);
+      --notification-success-radius: var(--radius-md);
+      --notification-success-padding: var(--space-12);
       --notification-success-icon: var(--text-success);
+      --notification-success-icon-size: var(--font-size-md);
       --notification-success-title: var(--text-success);
       --notification-success-title-font-family: var(--font-sans);
+      --notification-success-title-font-size: var(--font-size-lg);
       --notification-success-title-font-weight: var(--font-weight-normal);
+      --notification-success-title-line-height: var(--line-height-snug);
       --notification-success-text: var(--text-primary);
-      --notification-success-radius: var(--radius-md);
+      --notification-success-text-font-family: var(--font-sans);
+      --notification-success-text-font-size: var(--font-size-md);
+      --notification-success-text-font-weight: var(--font-weight-extralight);
+      --notification-success-text-line-height: var(--line-height-normal);
 
       /* Warning */
       --notification-warning-surface: var(--surface-warning);
       --notification-warning-border: var(--border-warning);
+      --notification-warning-border-width: var(--border-width-thin);
+      --notification-warning-radius: var(--radius-md);
+      --notification-warning-padding: var(--space-12);
       --notification-warning-icon: var(--text-warning);
+      --notification-warning-icon-size: var(--font-size-md);
       --notification-warning-title: var(--text-warning);
       --notification-warning-title-font-family: var(--font-sans);
+      --notification-warning-title-font-size: var(--font-size-lg);
       --notification-warning-title-font-weight: var(--font-weight-normal);
+      --notification-warning-title-line-height: var(--line-height-snug);
       --notification-warning-text: var(--text-primary);
-      --notification-warning-radius: var(--radius-md);
+      --notification-warning-text-font-family: var(--font-sans);
+      --notification-warning-text-font-size: var(--font-size-md);
+      --notification-warning-text-font-weight: var(--font-weight-extralight);
+      --notification-warning-text-line-height: var(--line-height-normal);
 
       /* Danger */
       --notification-danger-surface: var(--surface-danger);
       --notification-danger-border: var(--border-danger);
+      --notification-danger-border-width: var(--border-width-thin);
+      --notification-danger-radius: var(--radius-md);
+      --notification-danger-padding: var(--space-12);
       --notification-danger-icon: var(--text-danger);
+      --notification-danger-icon-size: var(--font-size-md);
       --notification-danger-title: var(--text-danger);
       --notification-danger-title-font-family: var(--font-sans);
+      --notification-danger-title-font-size: var(--font-size-lg);
       --notification-danger-title-font-weight: var(--font-weight-normal);
+      --notification-danger-title-line-height: var(--line-height-snug);
       --notification-danger-text: var(--text-primary);
-      --notification-danger-radius: var(--radius-md);
+      --notification-danger-text-font-family: var(--font-sans);
+      --notification-danger-text-font-size: var(--font-size-md);
+      --notification-danger-text-font-weight: var(--font-weight-extralight);
+      --notification-danger-text-line-height: var(--line-height-normal);
    }
 
    .notification {
@@ -128,8 +164,6 @@
       align-items: flex-start;
       width: 100%;
       gap: 0;
-      font-size: var(--font-size-md);
-      border: var(--border-width-thin) solid;
       transition: all var(--transition-fast);
       position: relative;
       text-align: left;
@@ -142,121 +176,126 @@
       &.compact {
          font-size: var(--font-size-sm);
 
-         .notification-header {
-            padding: var(--space-6) var(--space-12);
-
-            i {
-               font-size: var(--font-size-sm);
-            }
-
-            .notification-title {
-               font-size: var(--font-size-md);
-            }
-         }
-
-         .notification-description {
-            font-size: var(--font-size-sm);
-            padding: var(--space-8) var(--space-12);
-         }
-
-         .notification-impact {
-            font-size: var(--font-size-sm);
-            padding: var(--space-8) var(--space-12);
-         }
-
-         .notification-actions-inline {
-            padding: var(--space-8) var(--space-12);
-
-            .description-text {
-               font-size: var(--font-size-sm);
-            }
-         }
-
+         .notification-description,
+         .notification-impact,
+         .notification-actions-inline,
          .notification-actions {
-            padding: var(--space-8) var(--space-12);
+            font-size: var(--font-size-sm);
          }
       }
 
       // Info variant (blue)
       &.info {
-         border-color: var(--notification-info-border);
+         border: var(--notification-info-border-width) solid var(--notification-info-border);
          border-radius: var(--notification-info-radius);
          color: var(--notification-info-text);
+         font-family: var(--notification-info-text-font-family);
+         font-size: var(--notification-info-text-font-size);
+         font-weight: var(--notification-info-text-font-weight);
+         line-height: var(--notification-info-text-line-height);
 
          .notification-header {
             background: var(--notification-info-surface);
+            padding: var(--notification-info-padding) calc(var(--notification-info-padding) * 1.33);
 
             i {
                color: var(--notification-info-icon);
+               font-size: var(--notification-info-icon-size);
             }
 
             .notification-title {
                color: var(--notification-info-title);
                font-family: var(--notification-info-title-font-family);
+               font-size: var(--notification-info-title-font-size);
                font-weight: var(--notification-info-title-font-weight);
+               line-height: var(--notification-info-title-line-height);
             }
          }
       }
 
       // Warning variant (orange)
       &.warning {
-         border-color: var(--notification-warning-border);
+         border: var(--notification-warning-border-width) solid var(--notification-warning-border);
          border-radius: var(--notification-warning-radius);
          color: var(--notification-warning-text);
+         font-family: var(--notification-warning-text-font-family);
+         font-size: var(--notification-warning-text-font-size);
+         font-weight: var(--notification-warning-text-font-weight);
+         line-height: var(--notification-warning-text-line-height);
 
          .notification-header {
             background: var(--notification-warning-surface);
+            padding: var(--notification-warning-padding) calc(var(--notification-warning-padding) * 1.33);
 
             i {
                color: var(--notification-warning-icon);
+               font-size: var(--notification-warning-icon-size);
             }
 
             .notification-title {
                color: var(--notification-warning-title);
                font-family: var(--notification-warning-title-font-family);
+               font-size: var(--notification-warning-title-font-size);
                font-weight: var(--notification-warning-title-font-weight);
+               line-height: var(--notification-warning-title-line-height);
             }
          }
       }
 
       // Danger variant (red)
       &.danger {
-         border-color: var(--notification-danger-border);
+         border: var(--notification-danger-border-width) solid var(--notification-danger-border);
          border-radius: var(--notification-danger-radius);
          color: var(--notification-danger-text);
+         font-family: var(--notification-danger-text-font-family);
+         font-size: var(--notification-danger-text-font-size);
+         font-weight: var(--notification-danger-text-font-weight);
+         line-height: var(--notification-danger-text-line-height);
 
          .notification-header {
             background: var(--notification-danger-surface);
+            padding: var(--notification-danger-padding) calc(var(--notification-danger-padding) * 1.33);
 
             i {
                color: var(--notification-danger-icon);
+               font-size: var(--notification-danger-icon-size);
             }
 
             .notification-title {
                color: var(--notification-danger-title);
                font-family: var(--notification-danger-title-font-family);
+               font-size: var(--notification-danger-title-font-size);
                font-weight: var(--notification-danger-title-font-weight);
+               line-height: var(--notification-danger-title-line-height);
             }
          }
       }
 
       // Success variant (green)
       &.success {
-         border-color: var(--notification-success-border);
+         border: var(--notification-success-border-width) solid var(--notification-success-border);
          border-radius: var(--notification-success-radius);
          color: var(--notification-success-text);
+         font-family: var(--notification-success-text-font-family);
+         font-size: var(--notification-success-text-font-size);
+         font-weight: var(--notification-success-text-font-weight);
+         line-height: var(--notification-success-text-line-height);
 
          .notification-header {
             background: var(--notification-success-surface);
+            padding: var(--notification-success-padding) calc(var(--notification-success-padding) * 1.33);
 
             i {
                color: var(--notification-success-icon);
+               font-size: var(--notification-success-icon-size);
             }
 
             .notification-title {
                color: var(--notification-success-title);
                font-family: var(--notification-success-title-font-family);
+               font-size: var(--notification-success-title-font-size);
                font-weight: var(--notification-success-title-font-weight);
+               line-height: var(--notification-success-title-line-height);
             }
          }
       }
@@ -268,7 +307,6 @@
       justify-content: flex-start;
       gap: var(--space-8);
       width: 100%;
-      padding: var(--space-8) var(--space-16);
       position: relative;
 
       // When action button is in header, add spacing
@@ -277,12 +315,10 @@
       }
 
       i {
-         font-size: var(--font-size-md);
          flex-shrink: 0;
       }
 
       .notification-title {
-         font-size: var(--font-size-lg);
          text-align: left;
          flex: 1;
       }
@@ -326,9 +362,6 @@
    }
 
    .notification-description {
-      line-height: var(--line-height-normal);
-      font-size: var(--font-size-md);
-      font-weight: var(--font-weight-extralight);
       text-align: left;
       padding: var(--space-12) var(--space-16);
    }
@@ -339,7 +372,6 @@
       padding-bottom: var(--space-12);
       margin-top: 0;
       border-top: var(--border-width-thin) solid var(--border-neutral-subtle);
-      font-size: var(--font-size-md);
       text-align: left;
       width: 100%;
    }
@@ -353,9 +385,6 @@
 
       .description-text {
          flex: 1;
-         line-height: var(--line-height-normal);
-         font-size: var(--font-size-md);
-         font-weight: var(--font-weight-extralight);
       }
 
       // Button stays on the right (doesn't shrink or grow)

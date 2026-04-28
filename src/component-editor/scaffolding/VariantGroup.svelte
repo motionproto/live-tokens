@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { get } from 'svelte/store';
   import TokenLayout from './TokenLayout.svelte';
   import TypeEditor from './TypeEditor.svelte';
   import { removeCssVar } from '../../lib/cssVarSync';
@@ -28,12 +26,8 @@
   export let states: Record<string, Token[]> | null = null;
   /** Per-state type groups; rendered as TypeEditor blocks alongside the state's TokenLayout. */
   export let typeGroups: Record<string, TypeGroupConfig[]> = {};
-  export let targetFile: string;
-  export let showPrompt: boolean = true;
   /** When set, overrides are read from and cleared through the editor store. */
   export let component: string | undefined = undefined;
-  /** Word used after the {name} in the prompt copy ("variant" for Button, "component" for monolithic editors). */
-  export let variantNoun: string = 'variant';
   /** Variables to flash when a sibling-shared token is hovered elsewhere. */
   export let highlightedVars: Set<string> | undefined = undefined;
   /** Per-variable rank used by TokenLayout to align shared tokens with the shared block above. */
@@ -51,8 +45,6 @@
   }
 
   let resetKey = 0;
-  let prompt = '';
-  let dirty = false;
 
   $: stateNames = states ? Object.keys(states) : [];
 
@@ -65,22 +57,6 @@
     );
     return [...baseTokens, ...tgTokens];
   })();
-
-  function hasOverrides(): boolean {
-    if (component) {
-      const aliases = get(editorState).components[component]?.aliases ?? {};
-      for (const t of allTokens) if (t.variable in aliases) return true;
-      return false;
-    }
-    for (const t of allTokens) {
-      if (document.documentElement.style.getPropertyValue(t.variable).trim()) return true;
-    }
-    return false;
-  }
-
-  function updateDirty() {
-    dirty = hasOverrides();
-  }
 
   async function reset() {
     if (component) {
@@ -100,56 +76,7 @@
       for (const t of allTokens) removeCssVar(t.variable);
     }
     resetKey += 1;
-    updateDirty();
   }
-
-  $: if (component) {
-    // Re-derive dirty when the store's component slice changes.
-    ($editorState as unknown) && updateDirty();
-  }
-
-  function copyPrompt() {
-    if (!states) {
-      const changes: string[] = [];
-      for (const t of tokens) {
-        const override = document.documentElement.style.getPropertyValue(t.variable).trim();
-        if (override) {
-          changes.push(`- Change ${t.label.toLowerCase()} from \`var(${t.variable})\` to \`${override}\``);
-        }
-      }
-      if (changes.length === 0) {
-        prompt = '';
-        return;
-      }
-      const text = `In \`${targetFile}\`, update the **${name}** ${variantNoun}:\n${changes.join('\n')}`;
-      navigator.clipboard.writeText(text);
-      prompt = text;
-      return;
-    }
-
-    const sections: string[] = [];
-    for (const stateName of stateNames) {
-      const changes: string[] = [];
-      for (const t of states[stateName]) {
-        const override = document.documentElement.style.getPropertyValue(t.variable).trim();
-        if (override) {
-          changes.push(`- Change ${t.label.toLowerCase()} from \`var(${t.variable})\` to \`${override}\``);
-        }
-      }
-      if (changes.length > 0) {
-        sections.push(`**${stateName}** state:\n${changes.join('\n')}`);
-      }
-    }
-    if (sections.length === 0) {
-      prompt = '';
-      return;
-    }
-    const text = `In \`${targetFile}\`, update the **${name}** ${variantNoun}:\n\n${sections.join('\n\n')}`;
-    navigator.clipboard.writeText(text);
-    prompt = text;
-  }
-
-  onMount(updateDirty);
 </script>
 
 <div class="demo-section variant-group">
@@ -159,16 +86,6 @@
       <button class="variant-action-btn" on:click={reset} title="Reset to defaults">
         <i class="fas fa-undo"></i> Reset
       </button>
-      {#if showPrompt}
-        <button
-          class="variant-action-btn"
-          on:click={copyPrompt}
-          title="Copy an agent prompt describing your edits"
-          disabled={!dirty}
-        >
-          <i class="fas fa-copy"></i> Get prompt
-        </button>
-      {/if}
     </div>
   </div>
 
@@ -198,7 +115,7 @@
                     lineHeightVariable={tg.lineHeightVariable}
                     lineHeightLabel={tg.lineHeightLabel ?? 'line height'}
                     {component}
-                    on:change={updateDirty}
+                    on:change
                   />
                 {/each}
               {/key}
@@ -212,7 +129,7 @@
               highlightedVars={highlightedVars ?? new Set()}
               {sharedOrder}
               on:tokenhover
-              on:change={updateDirty}
+              on:change
             />
           {/key}
         </div>
@@ -228,19 +145,11 @@
         highlightedVars={highlightedVars ?? new Set()}
         {sharedOrder}
         on:tokenhover
-        on:change={updateDirty}
+        on:change
       />
     {/key}
   {/if}
 
-  {#if prompt}
-    <div class="prompt-preview-wrapper">
-      <button class="prompt-close" on:click={() => (prompt = '')}>
-        <i class="fas fa-times"></i>
-      </button>
-      <pre class="prompt-preview">{prompt}</pre>
-    </div>
-  {/if}
 </div>
 
 <style>
@@ -300,6 +209,8 @@
     background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-faint);
     border-radius: var(--ui-radius-sm);
+    container-type: inline-size;
+    min-width: 0;
   }
 
   .state-label {
@@ -325,9 +236,17 @@
   }
 
   .state-controls.two-col {
-    grid-template-columns: auto auto;
-    column-gap: 6rem;
-    justify-content: start;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ui-space-16) var(--ui-space-32);
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  @container (min-width: 720px) {
+    .state-controls.two-col {
+      gap: var(--ui-space-16) 6rem;
+    }
   }
 
   .state-type-groups {
@@ -336,46 +255,4 @@
     gap: var(--ui-space-8);
   }
 
-  .prompt-preview-wrapper {
-    position: relative;
-  }
-
-  .prompt-close {
-    position: absolute;
-    top: var(--ui-space-4);
-    right: var(--ui-space-4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.25rem;
-    height: 1.25rem;
-    padding: 0;
-    background: none;
-    border: none;
-    border-radius: var(--ui-radius-sm);
-    color: var(--ui-text-muted);
-    font-size: 0.625rem;
-    cursor: pointer;
-    transition: all var(--ui-transition-fast);
-  }
-
-  .prompt-close:hover {
-    background: var(--ui-hover);
-    color: var(--ui-text-primary);
-  }
-
-  .prompt-preview {
-    margin: 0;
-    padding: var(--ui-space-8) var(--ui-space-10);
-    padding-right: var(--ui-space-24);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-sm);
-    color: var(--ui-text-secondary);
-    font-size: var(--ui-font-size-xs);
-    font-family: var(--ui-font-mono);
-    white-space: pre-wrap;
-    word-break: break-word;
-    line-height: 1.5;
-  }
 </style>

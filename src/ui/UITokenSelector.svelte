@@ -29,6 +29,11 @@
   export let hideDefaultHeader: boolean = false;
   /** When true, the trigger becomes non-interactive and visually dimmed. */
   export let disabled: boolean = false;
+  /** When true, the trigger opens normally but the dropdown's selection area is
+   *  dimmed and non-interactive. The lock toggle in the header stays active so
+   *  the user can re-engage editing by re-linking. Used by the shared block to
+   *  make the row openable even when currently unshared. */
+  export let selectionsLocked: boolean = false;
 
   let open = false;
   let container: HTMLElement;
@@ -189,18 +194,24 @@
         {#if !hideDefaultHeader}
           <slot name="header">
             <div class="ui-ts-header">
-              <code class="ui-ts-var">{variable}</code>
               {#if showLinkToggle}
                 <UILinkToggle linked={isSharedDisplay} on:toggle={toggleShared} />
               {/if}
-              <button class="ui-ts-reset" on:click={handleReset} title="Reset to default">
+              <button
+                class="ui-ts-reset"
+                on:click={handleReset}
+                disabled={selectionsLocked}
+                title={selectionsLocked ? 'Unlock to reset' : 'Reset to default'}
+              >
                 <i class="fas fa-undo"></i>
               </button>
             </div>
           </slot>
         {/if}
-        <slot name="subheader" />
-        <slot {close} {handleReset} />
+        <div class="ui-ts-selections" class:locked={selectionsLocked}>
+          <slot name="subheader" />
+          <slot {close} {handleReset} />
+        </div>
       </div>
     {/if}
   </div>
@@ -347,19 +358,10 @@
   .ui-ts-header {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: var(--ui-space-6);
     padding: var(--ui-space-6) var(--ui-space-8);
     border-bottom: 1px solid var(--ui-border-faint);
-  }
-
-  .ui-ts-var {
-    flex: 1;
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
-    font-family: var(--ui-font-mono);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .ui-ts-reset {
@@ -379,9 +381,19 @@
     transition: all var(--ui-transition-fast);
   }
 
-  .ui-ts-reset:hover {
+  .ui-ts-reset:hover:not(:disabled) {
     background: var(--ui-hover);
     border-color: var(--ui-border-strong);
     color: var(--ui-text-primary);
+  }
+
+  .ui-ts-reset:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .ui-ts-selections.locked {
+    opacity: 0.4;
+    pointer-events: none;
   }
 </style>

@@ -127,15 +127,68 @@
 
 <style>
   :global(:root) {
+    /* Overlay */
+    --dialog-overlay-surface: var(--overlay-high);
+
+    /* Dialog frame */
     --dialog-surface: var(--surface-neutral-lowest);
     --dialog-border: var(--border-neutral-strong);
+    --dialog-border-width: var(--border-width-default);
+    --dialog-radius: var(--radius-lg);
+    --dialog-shadow: var(--shadow-2xl);
+
+    /* Header */
     --dialog-header-surface: var(--surface-neutral-lower);
     --dialog-header-border: var(--border-neutral-subtle);
+    --dialog-header-border-width: var(--border-width-thin);
+    --dialog-header-padding: var(--space-8);
+
+    /* Title */
     --dialog-title: var(--text-primary);
+    --dialog-title-font-family: var(--font-sans);
+    --dialog-title-font-size: var(--font-size-2xl);
+    --dialog-title-font-weight: var(--font-weight-normal);
+    --dialog-title-line-height: var(--line-height-snug);
+
+    /* Close icon */
     --dialog-close-icon: var(--text-secondary);
-    --dialog-radius: var(--radius-lg);
-    --dialog-button-primary-bg: var(--surface-neutral-high);
-    --dialog-button-primary-hover-bg: var(--surface-neutral-higher);
+    --dialog-close-icon-size: var(--font-size-xl);
+
+    /* Body */
+    --dialog-body-padding: var(--space-16);
+
+    /* Footer */
+    --dialog-footer-border: var(--border-neutral-subtle);
+    --dialog-footer-border-width: var(--border-width-thin);
+    --dialog-footer-padding: var(--space-16);
+
+    /* Primary button */
+    --dialog-primary-default-surface: var(--surface-neutral-high);
+    --dialog-primary-default-text: var(--text-primary);
+    --dialog-primary-default-border: var(--border-neutral-medium);
+    --dialog-primary-default-border-width: var(--border-width-thin);
+    --dialog-primary-default-radius: var(--radius-md);
+    --dialog-primary-default-padding: var(--space-8);
+    --dialog-primary-hover-surface: var(--surface-neutral-higher);
+    --dialog-primary-hover-text: var(--text-primary);
+    --dialog-primary-hover-border: var(--border-neutral-strong);
+    --dialog-primary-hover-border-width: var(--border-width-thin);
+    --dialog-primary-hover-radius: var(--radius-md);
+    --dialog-primary-hover-padding: var(--space-8);
+
+    /* Secondary button */
+    --dialog-secondary-default-surface: transparent;
+    --dialog-secondary-default-text: var(--text-primary);
+    --dialog-secondary-default-border: var(--border-neutral-medium);
+    --dialog-secondary-default-border-width: var(--border-width-thin);
+    --dialog-secondary-default-radius: var(--radius-md);
+    --dialog-secondary-default-padding: var(--space-8);
+    --dialog-secondary-hover-surface: var(--surface-neutral-lower);
+    --dialog-secondary-hover-text: var(--text-primary);
+    --dialog-secondary-hover-border: var(--border-neutral-strong);
+    --dialog-secondary-hover-border-width: var(--border-width-thin);
+    --dialog-secondary-hover-radius: var(--radius-md);
+    --dialog-secondary-hover-padding: var(--space-8);
   }
 
   .dialog-backdrop {
@@ -144,7 +197,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: var(--overlay-high);
+    background-color: var(--dialog-overlay-surface);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -154,9 +207,9 @@
 
   .dialog {
     background: var(--dialog-surface);
-    border: var(--border-width-default) solid var(--dialog-border);
+    border: var(--dialog-border-width) solid var(--dialog-border);
     border-radius: var(--dialog-radius);
-    box-shadow: var(--shadow-2xl);
+    box-shadow: var(--dialog-shadow);
     animation: dialogSlideIn var(--transition-base);
     pointer-events: auto;
   }
@@ -177,8 +230,8 @@
   }
 
   .dialog-header {
-    padding: var(--space-8) var(--space-24);
-    border-bottom: var(--border-width-thin) solid var(--dialog-header-border);
+    padding: var(--dialog-header-padding) calc(var(--dialog-header-padding) * 3);
+    border-bottom: var(--dialog-header-border-width) solid var(--dialog-header-border);
     background: var(--dialog-header-surface);
     display: flex;
     justify-content: space-between;
@@ -187,20 +240,22 @@
 
   .dialog-title {
     margin: 0;
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-normal);
     color: var(--dialog-title);
+    font-family: var(--dialog-title-font-family);
+    font-size: var(--dialog-title-font-size);
+    font-weight: var(--dialog-title-font-weight);
+    line-height: var(--dialog-title-line-height);
   }
 
   .dialog-close {
     background: none;
     border: none;
     color: var(--dialog-close-icon);
-    font-size: var(--font-size-xl);
+    font-size: var(--dialog-close-icon-size);
     cursor: pointer;
-    margin-right: -var(--space-16);
-    width: var(--size-icon-xl);
-    height: var(--size-icon-xl);
+    margin-right: -1rem;
+    width: 2.25rem;
+    height: 2.25rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -214,12 +269,12 @@
   }
 
   .dialog-body {
-    padding: var(--space-16) var(--space-24);
+    padding: var(--dialog-body-padding) calc(var(--dialog-body-padding) * 1.5);
   }
 
   .dialog-footer {
-    padding: var(--space-16);
-    border-top: var(--border-width-thin) solid var(--border-neutral-subtle);
+    padding: var(--dialog-footer-padding);
+    border-top: var(--dialog-footer-border-width) solid var(--dialog-footer-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -237,9 +292,6 @@
   }
 
   .dialog-button {
-    padding: var(--space-8) var(--space-16);
-    border: var(--border-width-thin) solid var(--border-neutral-subtle);
-    border-radius: var(--radius-md);
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-light);
     cursor: pointer;
@@ -255,14 +307,19 @@
   }
 
   .dialog-button-primary {
-    background: var(--dialog-button-primary-bg);
-    color: var(--text-primary);
-    border-color: var(--border-neutral-medium);
+    background: var(--dialog-primary-default-surface);
+    color: var(--dialog-primary-default-text);
+    border: var(--dialog-primary-default-border-width) solid var(--dialog-primary-default-border);
+    border-radius: var(--dialog-primary-default-radius);
+    padding: var(--dialog-primary-default-padding) calc(var(--dialog-primary-default-padding) * 2);
   }
 
   .dialog-button-primary:hover:not(:disabled) {
-    background: var(--dialog-button-primary-hover-bg);
-    border-color: var(--border-neutral-strong);
+    background: var(--dialog-primary-hover-surface);
+    color: var(--dialog-primary-hover-text);
+    border: var(--dialog-primary-hover-border-width) solid var(--dialog-primary-hover-border);
+    border-radius: var(--dialog-primary-hover-radius);
+    padding: var(--dialog-primary-hover-padding) calc(var(--dialog-primary-hover-padding) * 2);
   }
 
   .dialog-button-primary:focus {
@@ -271,13 +328,18 @@
   }
 
   .dialog-button-secondary {
-    background: transparent;
-    color: var(--text-primary);
-    border-color: var(--border-neutral-medium);
+    background: var(--dialog-secondary-default-surface);
+    color: var(--dialog-secondary-default-text);
+    border: var(--dialog-secondary-default-border-width) solid var(--dialog-secondary-default-border);
+    border-radius: var(--dialog-secondary-default-radius);
+    padding: var(--dialog-secondary-default-padding) calc(var(--dialog-secondary-default-padding) * 2);
   }
 
   .dialog-button-secondary:hover:not(:disabled) {
-    background: var(--surface-neutral-lower);
-    border-color: var(--border-neutral-strong);
+    background: var(--dialog-secondary-hover-surface);
+    color: var(--dialog-secondary-hover-text);
+    border: var(--dialog-secondary-hover-border-width) solid var(--dialog-secondary-hover-border);
+    border-radius: var(--dialog-secondary-hover-radius);
+    padding: var(--dialog-secondary-hover-padding) calc(var(--dialog-secondary-hover-padding) * 2);
   }
 </style>

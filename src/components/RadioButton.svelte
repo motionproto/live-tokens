@@ -24,18 +24,41 @@
 
 <style lang="scss">
   :global(:root) {
-    --radiobutton-dot-border: var(--border-neutral-default);
-    --radiobutton-label: var(--text-primary);
-    --radiobutton-surface: var(--surface-neutral-lowest);
-    --radiobutton-radius: var(--radius-lg);
+    /* Default */
+    --radiobutton-default-dot-border: var(--border-neutral-default);
+    --radiobutton-default-dot-border-width: var(--border-width-default);
+    --radiobutton-default-label: var(--text-primary);
+    --radiobutton-default-label-font-family: var(--font-sans);
+    --radiobutton-default-label-font-size: var(--font-size-md);
+    --radiobutton-default-label-font-weight: var(--font-weight-semibold);
+    --radiobutton-default-label-line-height: var(--line-height-tight);
+    --radiobutton-default-surface: var(--surface-neutral-lowest);
+    --radiobutton-default-radius: var(--radius-lg);
+    --radiobutton-default-padding: var(--space-4);
 
-    --radiobutton-hover-dot-border: var(--radiobutton-dot-border);
-    --radiobutton-hover-label: var(--radiobutton-label);
-    --radiobutton-hover-surface: var(--radiobutton-surface);
+    /* Hover */
+    --radiobutton-hover-dot-border: var(--border-neutral-default);
+    --radiobutton-hover-dot-border-width: var(--border-width-default);
+    --radiobutton-hover-label: var(--text-primary);
+    --radiobutton-hover-label-font-family: var(--font-sans);
+    --radiobutton-hover-label-font-size: var(--font-size-md);
+    --radiobutton-hover-label-font-weight: var(--font-weight-semibold);
+    --radiobutton-hover-label-line-height: var(--line-height-tight);
+    --radiobutton-hover-surface: var(--surface-neutral-lowest);
+    --radiobutton-hover-radius: var(--radius-lg);
+    --radiobutton-hover-padding: var(--space-4);
 
-    --radiobutton-active-dot-border: var(--radiobutton-dot-border);
-    --radiobutton-active-label: var(--radiobutton-label);
-    --radiobutton-active-surface: var(--radiobutton-surface);
+    /* Active */
+    --radiobutton-active-dot-border: var(--border-neutral-default);
+    --radiobutton-active-dot-border-width: var(--border-width-default);
+    --radiobutton-active-label: var(--text-primary);
+    --radiobutton-active-label-font-family: var(--font-sans);
+    --radiobutton-active-label-font-size: var(--font-size-md);
+    --radiobutton-active-label-font-weight: var(--font-weight-semibold);
+    --radiobutton-active-label-line-height: var(--line-height-tight);
+    --radiobutton-active-surface: var(--surface-neutral-lowest);
+    --radiobutton-active-radius: var(--radius-lg);
+    --radiobutton-active-padding: var(--space-4);
   }
 
   .radio-button {
@@ -45,10 +68,10 @@
     gap: var(--space-4);
     width: 120px;
     height: 1rem;
-    padding: 0 var(--space-4);
+    padding: 0 var(--radiobutton-default-padding);
     background: transparent;
     border: none;
-    border-radius: var(--radiobutton-radius);
+    border-radius: var(--radiobutton-default-radius);
     cursor: pointer;
     transition: all var(--transition-base);
     line-height: var(--line-height-tight);
@@ -60,9 +83,15 @@
         color-mix(in srgb, var(--radiobutton-color) 12%, var(--radiobutton-hover-surface)),
         var(--radiobutton-hover-surface)
       );
+      border-radius: var(--radiobutton-hover-radius);
+      padding: 0 var(--radiobutton-hover-padding);
 
       .radio-label {
         color: var(--radiobutton-hover-label);
+        font-family: var(--radiobutton-hover-label-font-family);
+        font-size: var(--radiobutton-hover-label-font-size);
+        font-weight: var(--radiobutton-hover-label-font-weight);
+        line-height: var(--radiobutton-hover-label-line-height);
       }
     }
 
@@ -72,13 +101,19 @@
         color-mix(in srgb, var(--radiobutton-color) 15%, var(--radiobutton-active-surface)),
         color-mix(in srgb, var(--radiobutton-color) 5%, var(--radiobutton-active-surface))
       );
+      border-radius: var(--radiobutton-active-radius);
+      padding: 0 var(--radiobutton-active-padding);
 
       .radio-label {
         color: var(--radiobutton-active-label);
+        font-family: var(--radiobutton-active-label-font-family);
+        font-size: var(--radiobutton-active-label-font-size);
+        font-weight: var(--radiobutton-active-label-font-weight);
+        line-height: var(--radiobutton-active-label-line-height);
       }
 
       .radio-dot:not(.filled) {
-        border-color: var(--radiobutton-active-dot-border, var(--radiobutton-color));
+        border: var(--radiobutton-active-dot-border-width) solid var(--radiobutton-active-dot-border, var(--radiobutton-color));
       }
     }
   }
@@ -87,19 +122,19 @@
     width: var(--space-12);
     height: var(--space-12);
     border-radius: var(--radius-full);
-    border: var(--border-width-default) solid var(--radiobutton-dot-border);
+    border: var(--radiobutton-default-dot-border-width) solid var(--radiobutton-default-dot-border);
     flex-shrink: 0;
     transition: all var(--transition-base);
 
     .radio-button:hover &,
     .radio-button.force-hover & {
-      border-color: var(--radiobutton-hover-dot-border, var(--radiobutton-color));
+      border: var(--radiobutton-hover-dot-border-width) solid var(--radiobutton-hover-dot-border, var(--radiobutton-color));
     }
 
     &.filled {
       border-color: var(--radiobutton-color);
       background: var(--radiobutton-color);
-      box-shadow: inset 0 0 0 var(--border-width-default) var(--radiobutton-surface);
+      box-shadow: inset 0 0 0 var(--radiobutton-default-dot-border-width) var(--radiobutton-default-surface);
     }
   }
 
@@ -110,9 +145,10 @@
   }
 
   .radio-label {
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-semibold);
-    color: var(--radiobutton-label);
-    line-height: var(--line-height-tight);
+    color: var(--radiobutton-default-label);
+    font-family: var(--radiobutton-default-label-font-family);
+    font-size: var(--radiobutton-default-label-font-size);
+    font-weight: var(--radiobutton-default-label-font-weight);
+    line-height: var(--radiobutton-default-label-line-height);
   }
 </style>

@@ -16,7 +16,15 @@
   :global(:root) {
     --tooltip-surface: var(--surface-neutral-highest);
     --tooltip-text: var(--text-primary);
+    --tooltip-text-font-family: var(--font-sans);
+    --tooltip-text-font-size: var(--font-size-sm);
+    --tooltip-text-font-weight: var(--font-weight-normal);
+    --tooltip-text-line-height: var(--line-height-normal);
+    --tooltip-border: var(--border-neutral-default);
+    --tooltip-border-width: var(--border-width-none);
     --tooltip-radius: var(--radius-md);
+    --tooltip-padding: var(--space-6);
+    --tooltip-shadow: var(--shadow-md);
   }
 
   .tooltip-wrapper {
@@ -31,15 +39,19 @@
     transform: translateX(-50%);
     background: var(--tooltip-surface);
     color: var(--tooltip-text);
-    padding: var(--space-6) var(--space-12);
+    padding: var(--tooltip-padding) calc(var(--tooltip-padding) * 2);
+    border: var(--tooltip-border-width) solid var(--tooltip-border);
     border-radius: var(--tooltip-radius);
-    font-size: var(--font-size-sm);
+    font-family: var(--tooltip-text-font-family);
+    font-size: var(--tooltip-text-font-size);
+    font-weight: var(--tooltip-text-font-weight);
+    line-height: var(--tooltip-text-line-height);
     white-space: nowrap;
     pointer-events: none;
     opacity: 0;
     transition: opacity var(--transition-fast);
     z-index: var(--z-tooltip);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--tooltip-shadow);
   }
 
   .tooltip::after {

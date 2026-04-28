@@ -13,6 +13,7 @@
   export let component: string | undefined = undefined;
   export let canBeShared: boolean = false;
   export let disabled: boolean = false;
+  export let selectionsLocked: boolean = false;
 
   const options = [
     { key: 'display', label: 'Display' },
@@ -138,6 +139,7 @@
   {component}
   {canBeShared}
   {disabled}
+  {selectionsLocked}
   dropdownMinWidth="14rem"
   on:reset={handleReset}
   on:var-change={initFromCurrent}

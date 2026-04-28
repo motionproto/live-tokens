@@ -22,13 +22,14 @@
   :global(:root) {
     --image-default-radius: var(--radius-xl);
     --image-default-border: var(--border-neutral-default);
+    --image-default-border-width: var(--border-width-thin);
     --image-default-shadow: var(--shadow-md);
   }
 
   .image {
     border-radius: var(--image-default-radius);
     overflow: hidden;
-    border: var(--border-width-thin) solid var(--image-default-border);
+    border: var(--image-default-border-width) solid var(--image-default-border);
     box-shadow: var(--image-default-shadow);
   }
 
