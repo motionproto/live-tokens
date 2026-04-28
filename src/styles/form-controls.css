@@ -111,7 +111,6 @@
   background-color: var(--surface-neutral-lowest) !important;
   border-color: var(--border-neutral-faint) !important;
   color: var(--text-disabled) !important;
-  opacity: var(--opacity-disabled);
   cursor: not-allowed;
 }
 
@@ -131,7 +130,6 @@
 /* Disabled options */
 .form-select option:disabled {
   color: var(--text-disabled) !important;
-  opacity: var(--opacity-disabled);
 }
 
 /* Input Field Styling */
@@ -158,14 +156,15 @@
 }
 
 .form-input:disabled {
-  opacity: var(--opacity-disabled);
+  background: var(--surface-neutral-lowest);
+  border-color: var(--border-neutral-faint);
+  color: var(--text-disabled);
   cursor: not-allowed;
 }
 
 /* Placeholder text styling */
 .form-input::placeholder {
   color: var(--text-muted);
-  opacity: var(--opacity-muted);
 }
 
 /* Number input spinner buttons */
@@ -186,5 +185,4 @@
 .form-checkbox:disabled,
 .form-radio:disabled {
   cursor: not-allowed;
-  opacity: var(--opacity-disabled);
 }

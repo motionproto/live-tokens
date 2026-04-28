@@ -61,13 +61,14 @@
       border: none;
       border-radius: var(--inlineeditactions-radius);
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all var(--transition-base);
       display: flex;
       align-items: center;
       gap: var(--space-8);
 
       &:disabled {
-         opacity: 0.5;
+         background: var(--surface-neutral-low);
+         color: var(--text-disabled);
          cursor: not-allowed;
       }
    }

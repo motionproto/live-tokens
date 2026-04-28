@@ -55,7 +55,7 @@
 
     /* Hover state */
     --tabbar-hover-text: var(--text-secondary);
-    --tabbar-hover-bg: var(--hover-low);
+    --tabbar-hover-bg: var(--surface-neutral-lower);
 
     /* Active state */
     --tabbar-active-text: var(--text-primary);
@@ -66,7 +66,7 @@
   .tab-bar {
     display: flex;
     gap: var(--space-2);
-    border-bottom: 1px solid var(--tabbar-divider);
+    border-bottom: var(--border-width-thin) solid var(--tabbar-divider);
     padding: 0 var(--space-8);
   }
 
@@ -77,7 +77,7 @@
     padding: var(--space-8) var(--space-16);
     background: transparent;
     border: none;
-    border-bottom: 2px solid transparent;
+    border-bottom: var(--border-width-default) solid transparent;
     color: var(--tabbar-default-text);
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-light);
@@ -99,7 +99,7 @@
   }
 
   .tab:disabled {
-    opacity: var(--opacity-disabled);
+    color: var(--text-disabled);
     cursor: not-allowed;
   }
 

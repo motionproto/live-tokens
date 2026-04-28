@@ -69,7 +69,7 @@
       align-items: center;
       gap: var(--space-12);
       padding: var(--space-4) var(--space-8);
-      border-left: 3px solid transparent;
+      border-left: var(--border-width-thick) solid transparent;
       cursor: pointer;
       text-decoration: none;
       color: inherit;
@@ -121,7 +121,7 @@
       .toggle-icon {
          font-size: var(--font-size-xs);
          color: var(--collapsiblesection-default-icon);
-         transition: transform 0.15s ease;
+         transition: transform var(--transition-fast);
       }
    }
 </style>

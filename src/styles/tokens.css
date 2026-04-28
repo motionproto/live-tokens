@@ -150,6 +150,11 @@
      keyword "transparent" as a no-fill slot rather than a palette swatch). */
   --color-transparent: transparent;
 
+  /* Display toggles — alias targets for boolean visibility slots
+     (e.g. `--button-shimmer` aliases to one of these). */
+  --shimmer-on: block;
+  --shimmer-off: none;
+
   /* ═══════════════════════════════════════════════════════
      PAGE BACKGROUND — the canvas behind all UI surfaces.
      Editor writes these via the Palette "empty selector".
@@ -260,11 +265,6 @@
   --overlay-high: rgba(20, 3, 0, 0.64);
   --overlay-higher: rgba(20, 3, 0, 0.77);
   --overlay-highest: rgba(20, 3, 0, 0.9);
-
-  /* Interactive Hover States - 3-point scale */
-  --hover-low: rgba(255, 255, 255, 0.05);
-  --hover: rgba(255, 255, 255, 0.1);
-  --hover-high: rgba(255, 255, 255, 0.15);
 
   /* ═══════════════════════════════════════════════════════
      BORDERS — 5-point scales (faint → strong)
@@ -425,6 +425,16 @@
   --border-width-default: 2px;
   --border-width-thick: 3px;
   --border-width-thicker: 4px;
+  --border-width-heavy: 5px;
+
+  /* Icon Sizing — square icon-button & decorative icon dimensions */
+  --size-icon-sm: 1rem;     /* 16px */
+  --size-icon-md: 1.25rem;  /* 20px */
+  --size-icon-lg: 1.5rem;   /* 24px */
+  --size-icon-xl: 2rem;     /* 32px */
+  --size-icon-2xl: 4rem;    /* 64px */
+  --size-icon-3xl: 6rem;    /* 96px */
+  --size-icon-4xl: 8rem;    /* 128px */
 
   /* Spacing */
   --space-0: 0;
@@ -490,8 +500,13 @@
   --font-weight-extrabold: 800;
   --font-weight-black: 900;
 
-  /* Gradients */
-  --gradient-progress: linear-gradient(90deg, var(--color-primary-500), var(--color-accent-500));
+  /* Gradients — runtime values come from the editor store; the static
+     declarations below are fallbacks so the variables resolve before JS
+     hydrates. Match the defaults seeded in `makeDefaultGradients()`. */
+  --gradient-1: linear-gradient(90deg, var(--color-primary-500) 0%, var(--color-accent-500) 100%);
+  --gradient-2: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-special-500) 100%);
+  --gradient-3: linear-gradient(90deg, var(--color-success-500) 0%, var(--color-info-500) 100%);
+  --gradient-4: linear-gradient(45deg, var(--color-danger-500) 0%, var(--color-warning-500) 100%);
 
   /* Shadows (elevation scale) */
   --shadow-sm: 1px 1px 2px 0px hsla(237, 18%, 3%, 0.9);
@@ -518,11 +533,6 @@
   --z-modal: 1100;
   --z-popover: 1200;
   --z-tooltip: 1300;
-
-  /* Opacity */
-  --opacity-disabled: 0.6;
-  --opacity-hover: 0.8;
-  --opacity-muted: 0.5;
 
   /* Line Heights */
   --line-height-tight: 1;

@@ -46,7 +46,7 @@
 
   .card {
     background: var(--card-default-surface);
-    border: 1px solid var(--card-default-border);
+    border: var(--border-width-thin) solid var(--card-default-border);
     border-radius: var(--card-default-radius);
     padding: var(--space-16);
     transition: all var(--transition-fast);

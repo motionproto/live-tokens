@@ -37,7 +37,7 @@
     --progressbar-primary-label: var(--text-secondary);
     --progressbar-primary-value: var(--text-tertiary);
     --progressbar-primary-radius: var(--radius-full);
-    --progressbar-primary-fill: var(--gradient-progress);
+    --progressbar-primary-fill: var(--gradient-1);
 
     /* Success */
     --progressbar-success-track-surface: var(--surface-neutral-low);
@@ -89,19 +89,19 @@
 
   .progress-value {
     font-size: var(--font-size-xs);
-    font-family: 'Courier New', monospace;
+    font-family: var(--font-mono);
   }
 
   .progress-track {
     width: 100%;
-    height: 8px;
+    height: var(--space-8);
     overflow: hidden;
     border-style: solid;
-    border-width: 1px;
+    border-width: var(--border-width-thin);
   }
 
   .compact .progress-track {
-    height: 4px;
+    height: var(--space-4);
   }
 
   .progress-fill {

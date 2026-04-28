@@ -129,7 +129,7 @@
       width: 100%;
       gap: 0;
       font-size: var(--font-size-md);
-      border: 1px solid;
+      border: var(--border-width-thin) solid;
       transition: all var(--transition-fast);
       position: relative;
       text-align: left;
@@ -268,7 +268,7 @@
       justify-content: flex-start;
       gap: var(--space-8);
       width: 100%;
-      padding: .5rem var(--space-16);
+      padding: var(--space-8) var(--space-16);
       position: relative;
 
       // When action button is in header, add spacing
@@ -296,7 +296,7 @@
       .notification-close {
          position: absolute;
          top: 50%;
-         right: 0.5rem;
+         right: var(--space-8);
          transform: translateY(-50%);
          background: none;
          border: none;
@@ -318,19 +318,19 @@
          }
 
          &:focus {
-            outline: 2px solid currentColor;
-            outline-offset: 0.125rem;
+            outline: var(--border-width-default) solid currentColor;
+            outline-offset: var(--space-2);
             border-radius: var(--radius-sm);
          }
       }
    }
 
    .notification-description {
-      line-height: 1.4;
+      line-height: var(--line-height-normal);
       font-size: var(--font-size-md);
       font-weight: var(--font-weight-extralight);
       text-align: left;
-      padding: .75rem var(--space-16);
+      padding: var(--space-12) var(--space-16);
    }
 
    .notification-impact {
@@ -338,7 +338,7 @@
       padding: var(--space-8) var(--space-16);
       padding-bottom: var(--space-12);
       margin-top: 0;
-      border-top: 1px solid var(--border-neutral-subtle);
+      border-top: var(--border-width-thin) solid var(--border-neutral-subtle);
       font-size: var(--font-size-md);
       text-align: left;
       width: 100%;
@@ -353,7 +353,7 @@
 
       .description-text {
          flex: 1;
-         line-height: 1.4;
+         line-height: var(--line-height-normal);
          font-size: var(--font-size-md);
          font-weight: var(--font-weight-extralight);
       }
@@ -371,6 +371,6 @@
       gap: var(--space-8);
       padding: var(--space-12) var(--space-16);
       padding-top: var(--space-8);
-      border-top: 1px solid var(--border-neutral-subtle);
+      border-top: var(--border-width-thin) solid var(--border-neutral-subtle);
    }
 </style>

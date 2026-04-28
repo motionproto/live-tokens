@@ -43,6 +43,9 @@
 
 <style lang="scss">
    :global(:root) {
+      /* Shared — set to `none` to disable the hover shimmer sweep */
+      --button-shimmer: block;
+
       /* Primary */
       --button-primary-surface: var(--surface-primary-high);
       --button-primary-text: var(--text-primary);
@@ -72,7 +75,7 @@
       --button-outline-text: var(--text-primary);
       --button-outline-border: var(--border-neutral-default);
       --button-outline-radius: var(--radius-md);
-      --button-outline-hover-surface: var(--hover-low);
+      --button-outline-hover-surface: var(--surface-neutral-lower);
       --button-outline-hover-text: var(--text-primary);
       --button-outline-hover-border: var(--border-neutral-strong);
       --button-outline-disabled-surface: var(--color-transparent);
@@ -122,7 +125,7 @@
       cursor: pointer;
       font-size: var(--font-size-sm);
       font-weight: var(--font-weight-light);
-      line-height: 1.2;
+      line-height: var(--line-height-snug);
       letter-spacing: 0.0125rem;
       display: inline-flex;
       align-items: center;
@@ -140,6 +143,7 @@
       // Shimmer effect
       &::before {
          content: '';
+         display: var(--button-shimmer, block);
          position: absolute;
          top: 0;
          left: -100%;
@@ -164,7 +168,6 @@
       }
 
       &:disabled {
-         opacity: var(--opacity-disabled);
          cursor: not-allowed;
 
          &::before {
@@ -177,7 +180,7 @@
          padding: var(--space-6) var(--space-12);
          font-size: var(--font-size-xs);
          font-weight: var(--font-weight-normal);
-         line-height: 1.2;
+         line-height: var(--line-height-snug);
 
          :global(i) {
             font-size: var(--font-size-xs);
@@ -189,7 +192,7 @@
       &.primary {
          background: var(--button-primary-surface);
          color: var(--button-primary-text);
-         border: 1px solid var(--button-primary-border);
+         border: var(--border-width-thin) solid var(--button-primary-border);
          border-radius: var(--button-primary-radius);
 
          &::before {
@@ -221,13 +224,13 @@
       &.secondary {
          background: var(--button-secondary-surface);
          color: var(--button-secondary-text);
-         border: 1px solid var(--button-secondary-border);
+         border: var(--border-width-thin) solid var(--button-secondary-border);
          border-radius: var(--button-secondary-radius);
 
          &::before {
             background: linear-gradient(90deg,
                transparent,
-               var(--hover),
+               rgba(255, 255, 255, 0.1),
                transparent);
          }
 
@@ -249,13 +252,13 @@
       &.outline {
          background: var(--button-outline-surface);
          color: var(--button-outline-text);
-         border: 1px solid var(--button-outline-border);
+         border: var(--border-width-thin) solid var(--button-outline-border);
          border-radius: var(--button-outline-radius);
 
          &::before {
             background: linear-gradient(90deg,
                transparent,
-               var(--hover),
+               rgba(255, 255, 255, 0.1),
                transparent);
          }
 
@@ -280,7 +283,7 @@
       // Success variant
       &.success {
          background: var(--button-success-surface);
-         border: 2px solid var(--button-success-border);
+         border: var(--border-width-default) solid var(--button-success-border);
          border-radius: var(--button-success-radius);
          color: var(--button-success-text);
 
@@ -308,7 +311,7 @@
       // Danger variant
       &.danger {
          background: var(--button-danger-surface);
-         border: 2px solid var(--button-danger-border);
+         border: var(--border-width-default) solid var(--button-danger-border);
          border-radius: var(--button-danger-radius);
          color: var(--button-danger-text);
 
@@ -336,7 +339,7 @@
       // Warning variant
       &.warning {
          background: var(--button-warning-surface);
-         border: 2px solid var(--button-warning-border);
+         border: var(--border-width-default) solid var(--button-warning-border);
          border-radius: var(--button-warning-radius);
          color: var(--button-warning-text);
 

@@ -2,7 +2,7 @@
   "name": "default",
   "component": "radiobutton",
   "createdAt": "2026-04-18T02:43:11.331Z",
-  "updatedAt": "2026-04-24T07:27:11.719Z",
+  "updatedAt": "2026-04-28T00:30:54.675Z",
   "aliases": {
     "--radiobutton-dot-border": "--border-neutral-default",
     "--radiobutton-label": "--text-primary",

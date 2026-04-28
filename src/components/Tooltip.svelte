@@ -26,7 +26,7 @@
 
   .tooltip {
     position: absolute;
-    bottom: calc(100% + 8px);
+    bottom: calc(100% + var(--space-8));
     left: 50%;
     transform: translateX(-50%);
     background: var(--tooltip-surface);
@@ -54,7 +54,7 @@
 
   .tooltip.bottom {
     bottom: auto;
-    top: calc(100% + 8px);
+    top: calc(100% + var(--space-8));
   }
 
   .tooltip.bottom::after {

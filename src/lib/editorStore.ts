@@ -14,7 +14,7 @@
  */
 
 import { writable, derived, get, type Readable } from 'svelte/store';
-import type { EditorState, ColumnsState, ComponentSlice, OverlayToken, ShadowToken } from './editorTypes';
+import type { EditorState, ColumnsState, ComponentSlice, OverlayToken, ShadowToken, GradientToken, GradientTokenStop, GradientType } from './editorTypes';
 import type { Theme, FontSource, FontStack, PaletteConfig } from './themeTypes';
 import { setCssVar, removeCssVar } from './cssVarSync';
 import { storageKey } from './editorConfig';
@@ -60,6 +60,47 @@ function makeDefaultOverlaysState(): EditorState['overlays'] {
   };
 }
 
+function makeDefaultGradients(): GradientToken[] {
+  return [
+    {
+      variable: '--gradient-1',
+      type: 'linear',
+      angle: 90,
+      stops: [
+        { position: 0, color: '--color-primary-500' },
+        { position: 100, color: '--color-accent-500' },
+      ],
+    },
+    {
+      variable: '--gradient-2',
+      type: 'linear',
+      angle: 135,
+      stops: [
+        { position: 0, color: '--color-primary-500' },
+        { position: 100, color: '--color-special-500' },
+      ],
+    },
+    {
+      variable: '--gradient-3',
+      type: 'linear',
+      angle: 90,
+      stops: [
+        { position: 0, color: '--color-success-500' },
+        { position: 100, color: '--color-info-500' },
+      ],
+    },
+    {
+      variable: '--gradient-4',
+      type: 'linear',
+      angle: 45,
+      stops: [
+        { position: 0, color: '--color-danger-500' },
+        { position: 100, color: '--color-warning-500' },
+      ],
+    },
+  ];
+}
+
 function emptyState(): EditorState {
   return {
     palettes: {},
@@ -78,6 +119,7 @@ function emptyState(): EditorState {
     overlays: makeDefaultOverlaysState(),
     columns: { ...DEFAULT_COLUMNS },
     components: {},
+    gradients: { tokens: makeDefaultGradients() },
     cssVars: {},
   };
 }
@@ -641,6 +683,93 @@ export function seedPalettesFromTheme(palettes: Record<string, PaletteConfig>): 
 // diff); `deriveCssVars` emits every entry as `var(--<semantic>)`. Themes and
 // components are orthogonal: `loadFromFile` preserves `state.components`.
 
+// ── Gradients ──────────────────────────────────────────────────────────────
+//
+// Each gradient lives in `state.gradients.tokens` and renders to a single
+// CSS var (`--gradient-<name>`). Stops carry token-name references; the
+// renderer wraps them in `var(...)` so palette edits flow through.
+
+function formatGradientStop(s: GradientTokenStop): string {
+  const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
+  const opacity = s.opacity ?? 100;
+  const color = opacity >= 100
+    ? base
+    : `color-mix(in srgb, ${base} ${opacity}%, transparent)`;
+  return `${color} ${s.position}%`;
+}
+
+function formatGradient(t: GradientToken): string {
+  const stops = t.stops.map(formatGradientStop).join(', ');
+  if (t.type === 'linear') return `linear-gradient(${t.angle}deg, ${stops})`;
+  return `radial-gradient(${stops})`;
+}
+
+function gradientsToVars(g: EditorState['gradients']): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const t of g.tokens) out[t.variable] = formatGradient(t);
+  return out;
+}
+
+function findGradient(s: EditorState, variable: string): GradientToken | undefined {
+  return s.gradients.tokens.find((t) => t.variable === variable);
+}
+
+export function setGradientType(variable: string, type: GradientType): void {
+  mutate(`set gradient type ${variable}`, (s) => {
+    const t = findGradient(s, variable);
+    if (t) t.type = type;
+  });
+}
+
+export function setGradientAngle(variable: string, angle: number): void {
+  mutate(`set gradient angle ${variable}`, (s) => {
+    const t = findGradient(s, variable);
+    if (t) t.angle = angle;
+  });
+}
+
+export function setGradientStop(variable: string, index: number, stop: Partial<GradientTokenStop>): void {
+  mutate(`set gradient stop ${variable}[${index}]`, (s) => {
+    const t = findGradient(s, variable);
+    if (!t || !t.stops[index]) return;
+    if (stop.position !== undefined) t.stops[index].position = stop.position;
+    if (stop.color !== undefined) t.stops[index].color = stop.color;
+  });
+}
+
+export function addGradientStop(variable: string, stop: GradientTokenStop): void {
+  mutate(`add gradient stop ${variable}`, (s) => {
+    const t = findGradient(s, variable);
+    if (!t) return;
+    t.stops.push(stop);
+    t.stops.sort((a, b) => a.position - b.position);
+  });
+}
+
+export function removeGradientStop(variable: string, index: number): void {
+  mutate(`remove gradient stop ${variable}[${index}]`, (s) => {
+    const t = findGradient(s, variable);
+    if (!t || t.stops.length <= 2) return;
+    t.stops.splice(index, 1);
+  });
+}
+
+export function addGradientToken(token: GradientToken): void {
+  mutate(`add gradient ${token.variable}`, (s) => {
+    if (findGradient(s, token.variable)) return;
+    s.gradients.tokens.push({
+      ...token,
+      stops: token.stops.map((st) => ({ ...st })),
+    });
+  });
+}
+
+export function removeGradientToken(variable: string): void {
+  mutate(`remove gradient ${variable}`, (s) => {
+    s.gradients.tokens = s.gradients.tokens.filter((t) => t.variable !== variable);
+  });
+}
+
 function componentsToVars(components: EditorState['components']): Record<string, string> {
   const out: Record<string, string> = {};
   for (const slice of Object.values(components)) {
@@ -1093,6 +1222,20 @@ function persistNow(): void {
   }
 }
 
+function migrateGradients(state: EditorState): EditorState {
+  // Gradients are a fixed-slot scale (--gradient-1 … --gradient-4). If the
+  // persisted state predates the migration to fixed slots (e.g. it still has
+  // a token named --gradient-progress, or the count doesn't match), replace
+  // the gradients block with defaults rather than carrying stale entries.
+  const expected = makeDefaultGradients().map((g) => g.variable).sort();
+  const have = (state.gradients?.tokens ?? []).map((g) => g.variable).sort();
+  const matches =
+    have.length === expected.length &&
+    expected.every((v, i) => v === have[i]);
+  if (matches) return state;
+  return { ...state, gradients: { tokens: makeDefaultGradients() } };
+}
+
 function hydrate(): void {
   if (typeof localStorage === 'undefined') return;
   try {
@@ -1102,7 +1245,8 @@ function hydrate(): void {
     if (parsed && typeof parsed === 'object') {
       // Shallow-merge onto default shape so older persisted state missing
       // newly-added domain fields still loads.
-      store.set({ ...emptyState(), ...parsed });
+      const merged = { ...emptyState(), ...parsed } as EditorState;
+      store.set(migrateGradients(merged));
     }
   } catch {
     // corrupt state — leave defaults
@@ -1144,6 +1288,9 @@ function deriveCssVars(state: EditorState): Record<string, string> {
   }
   if (state.shadows.tokens.length > 0) {
     Object.assign(out, shadowsToVars(state.shadows));
+  }
+  if (state.gradients.tokens.length > 0) {
+    Object.assign(out, gradientsToVars(state.gradients));
   }
   Object.assign(out, componentsToVars(state.components));
   return out;

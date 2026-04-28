@@ -1,9 +1,18 @@
 <script lang="ts">
   import Button from '../components/Button.svelte';
+  import Toggle from '../components/Toggle.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import FieldsetWrapper from './scaffolding/FieldsetWrapper.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import { editorState, setComponentAlias } from '../lib/editorStore';
 
   const component = 'button';
+
+  $: shimmerEnabled = $editorState.components.button?.aliases['--button-shimmer'] !== '--shimmer-off';
+
+  function handleShimmerChange(e: CustomEvent<boolean>) {
+    setComponentAlias('button', '--button-shimmer', e.detail ? '--shimmer-on' : '--shimmer-off');
+  }
 
   type Token = { label: string; variable: string; canBeShared?: boolean };
 
@@ -132,6 +141,13 @@
 </script>
 
 <ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" let:targetFile>
+  <FieldsetWrapper legend="shared">
+    <div class="shared-row">
+      <span class="shared-label">hover shimmer</span>
+      <Toggle checked={shimmerEnabled} on:change={handleShimmerChange} />
+    </div>
+  </FieldsetWrapper>
+
   <VariantGroup name="primary" title="Primary" states={variantStates.primary} {targetFile} {component} let:activeState>
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
     {@const isDisabled = activeState === 'disabled'}
@@ -353,5 +369,17 @@
     background: var(--ui-surface-lowest);
     padding: var(--space-2) var(--space-6);
     border-radius: var(--radius-sm);
+  }
+
+  .shared-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-12);
+    padding: var(--ui-space-4) var(--ui-space-12);
+  }
+
+  .shared-label {
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
   }
 </style>

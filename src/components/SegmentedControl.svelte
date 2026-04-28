@@ -119,14 +119,14 @@
     font-weight: var(--segmentedcontrol-option-text-font-weight);
     line-height: var(--segmentedcontrol-option-text-line-height);
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition: background var(--transition-fast), color var(--transition-fast);
     position: relative;
   }
 
   .segment i {
     font-size: var(--font-size-lg);
     color: var(--segmentedcontrol-option-icon);
-    transition: color 0.15s;
+    transition: color var(--transition-fast);
   }
 
   /* Short centered divider line between adjacent segments */

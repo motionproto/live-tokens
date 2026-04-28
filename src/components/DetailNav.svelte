@@ -27,14 +27,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 24px;
+    gap: var(--space-12);
+    margin-bottom: var(--space-24);
     flex-wrap: wrap;
     position: sticky;
     top: 96px;
     z-index: 50;
     background: var(--detailnav-surface);
-    padding: 12px 0;
+    padding: var(--space-12) 0;
   }
 
   .nav-left {
@@ -44,7 +44,7 @@
   .back-link {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-8);
     font-family: var(--font-sans);
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-normal);
@@ -70,7 +70,7 @@
   .nav-right {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
     flex-shrink: 0;
   }
 

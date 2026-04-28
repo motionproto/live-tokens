@@ -50,8 +50,8 @@
     border: none;
     border-radius: var(--radiobutton-radius);
     cursor: pointer;
-    transition: all 0.2s ease;
-    line-height: 1;
+    transition: all var(--transition-base);
+    line-height: var(--line-height-tight);
 
     &:hover,
     &.force-hover {
@@ -84,12 +84,12 @@
   }
 
   .radio-dot {
-    width: 0.75rem;
-    height: 0.75rem;
-    border-radius: 50%;
-    border: 2px solid var(--radiobutton-dot-border);
+    width: var(--space-12);
+    height: var(--space-12);
+    border-radius: var(--radius-full);
+    border: var(--border-width-default) solid var(--radiobutton-dot-border);
     flex-shrink: 0;
-    transition: all 0.2s ease;
+    transition: all var(--transition-base);
 
     .radio-button:hover &,
     .radio-button.force-hover & {
@@ -99,20 +99,20 @@
     &.filled {
       border-color: var(--radiobutton-color);
       background: var(--radiobutton-color);
-      box-shadow: inset 0 0 0 2px var(--radiobutton-surface);
+      box-shadow: inset 0 0 0 var(--border-width-default) var(--radiobutton-surface);
     }
   }
 
   .radio-icon {
     font-size: var(--font-size-lg);
     color: var(--radiobutton-color);
-    line-height: 1;
+    line-height: var(--line-height-tight);
   }
 
   .radio-label {
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-semibold);
     color: var(--radiobutton-label);
-    line-height: 1;
+    line-height: var(--line-height-tight);
   }
 </style>

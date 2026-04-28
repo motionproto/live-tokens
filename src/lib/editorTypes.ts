@@ -49,6 +49,26 @@ export interface ComponentSlice {
   unlinked?: string[];
 }
 
+export type GradientType = 'linear' | 'radial';
+
+export interface GradientTokenStop {
+  /** 0–100 percentage along the gradient axis. */
+  position: number;
+  /** CSS variable name the stop resolves through (e.g. '--color-primary-500'). */
+  color: string;
+  /** 0–100 alpha applied to the stop's color. Defaults to 100 (fully opaque). */
+  opacity?: number;
+}
+
+export interface GradientToken {
+  /** Output CSS variable, e.g. '--gradient-1'. */
+  variable: string;
+  type: GradientType;
+  /** Degrees, applies to linear only. */
+  angle: number;
+  stops: GradientTokenStop[];
+}
+
 /**
  * Single source of truth for everything a saved token file depends on, plus
  * the domain state currently scattered across VariablesTab local `let` fields.
@@ -70,5 +90,6 @@ export interface EditorState {
   };
   columns: ColumnsState;
   components: Record<string, ComponentSlice>;
+  gradients: { tokens: GradientToken[] };
   cssVars: Record<string, string>;
 }

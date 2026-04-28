@@ -3,6 +3,7 @@
   import PaletteEditor from './PaletteEditor.svelte';
   import FontStackEditor from './FontStackEditor.svelte';
   import ProjectFontsSection from './ProjectFontsSection.svelte';
+  import GradientEditor from './GradientEditor.svelte';
   import {
     editorState, mutate, beginTransaction, commitTransaction, beginSliderGesture,
     seedShadowsFromDom, shadowTokenCss, computeShadowXY,
@@ -621,9 +622,7 @@
     { variable: '--opacity-muted', value: '0.5' }
   ];
 
-  const gradientTokens: TokenItem[] = [
-    { variable: '--gradient-progress', value: 'crimson → gold (90deg)' }
-  ];
+  let editingGradient: string | null = null;
 
   let copiedVar: string | null = null;
   function copyVariable(v: string) {
@@ -1424,14 +1423,22 @@
   <!-- Gradients -->
   <section class="section" id="gradients">
     <h2 class="section-title">Gradients</h2>
+    <p class="editor-intro">Each stop references a color token, so palette edits flow through. Add or remove stops; switch between linear and radial.</p>
     <div class="gradients-grid">
-      {#each gradientTokens as token}
-        <div class="gradient-item">
+      {#each $editorState.gradients.tokens as token (token.variable)}
+        <div class="gradient-item" class:active={editingGradient === token.variable}>
           <div class="gradient-box" style="background: var({token.variable});"></div>
           <div class="token-info">
             <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-            <span class="token-value">{token.value}</span>
+            <button class="gradient-edit-btn" on:click={() => editingGradient = editingGradient === token.variable ? null : token.variable}>
+              {editingGradient === token.variable ? 'Close' : 'Edit'}
+            </button>
           </div>
+          {#if editingGradient === token.variable}
+            <div class="gradient-editor-host">
+              <GradientEditor variable={token.variable} />
+            </div>
+          {/if}
         </div>
       {/each}
     </div>
@@ -2216,7 +2223,7 @@
   /* Gradients */
   .gradients-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
     gap: var(--ui-space-16);
   }
 
@@ -2224,6 +2231,45 @@
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-8);
+    padding: var(--ui-space-12);
+    border: 1px solid var(--ui-border-faint);
+    border-radius: var(--ui-radius-lg);
+    background: var(--ui-surface-lowest);
+    min-width: 0;
+  }
+
+  .gradient-item.active {
+    grid-column: 1 / -1;
+    border-color: var(--ui-text-primary);
+  }
+
+  .gradient-item .token-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-8);
+  }
+
+  .gradient-edit-btn {
+    padding: var(--ui-space-2) var(--ui-space-10);
+    background: var(--ui-surface-low);
+    border: 1px solid var(--ui-border-faint);
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-xs);
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .gradient-edit-btn:hover {
+    color: var(--ui-text-primary);
+    border-color: var(--ui-border-default);
+  }
+
+  .gradient-editor-host {
+    margin-top: var(--ui-space-8);
+    padding-top: var(--ui-space-12);
+    border-top: 1px dashed var(--ui-border-faint);
   }
 
   .gradient-box {

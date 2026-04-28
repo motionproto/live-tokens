@@ -1,7 +1,13 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
   import { resolveAliasChain } from '../lib/tokenRegistry';
+  import { editorState } from '../lib/editorStore';
   import UITokenSelector from './UITokenSelector.svelte';
+
+  /** Slot kinds where a gradient is a renderable assignment. */
+  function acceptsGradient(name: string): boolean {
+    return name.endsWith('-surface') || name.endsWith('-fill');
+  }
 
   const dispatch = createEventDispatcher();
 
@@ -76,8 +82,12 @@
   let chosenFamily: string | null = null;
   let chosenStep: string | null = null;
   let chosenNone: boolean = false;
+  let chosenGradient: string | null = null;
   let opacity: number = 100;
   let selfDefaultHex: string = '';
+
+  $: gradientsAllowed = acceptsGradient(variable);
+  $: gradientTokens = $editorState.gradients.tokens;
 
   function captureSelfDefault() {
     const root = document.documentElement;
@@ -192,6 +202,10 @@
     dispatch('change');
   }
 
+  function isGradientToken(name: string): boolean {
+    return gradientTokens.some((g) => g.variable === name);
+  }
+
   function initFromCurrent() {
     const raw = document.documentElement.style.getPropertyValue(variable).trim();
 
@@ -200,11 +214,25 @@
       chosenCategory = null;
       chosenFamily = null;
       chosenStep = null;
+      chosenGradient = null;
       opacity = 100;
       return;
     }
 
     chosenNone = false;
+
+    if (gradientsAllowed) {
+      const gradMatch = raw.match(/^var\((--[a-z0-9-]+)\)$/);
+      if (gradMatch && isGradientToken(gradMatch[1])) {
+        chosenGradient = gradMatch[1];
+        chosenCategory = null;
+        chosenFamily = null;
+        chosenStep = null;
+        opacity = 100;
+        return;
+      }
+    }
+    chosenGradient = null;
 
     const opacityParsed = parseOpacity(raw);
     if (opacityParsed) {
@@ -270,6 +298,7 @@
     chosenCategory = null;
     chosenFamily = null;
     chosenStep = null;
+    chosenGradient = null;
     opacity = 100;
     selector.writeOverride('transparent');
     selectedFamily = null;
@@ -280,10 +309,24 @@
   function selectSwatch(category: Category, step: string, close: () => void) {
     const varName = getVarName(category, selectedFamily!, step);
     chosenNone = false;
+    chosenGradient = null;
     chosenCategory = category;
     chosenFamily = selectedFamily;
     chosenStep = step;
     selector.writeOverride(buildValue(varName));
+    selectedFamily = null;
+    close();
+    dispatch('change');
+  }
+
+  function selectGradient(gradientVar: string, close: () => void) {
+    chosenNone = false;
+    chosenCategory = null;
+    chosenFamily = null;
+    chosenStep = null;
+    chosenGradient = gradientVar;
+    opacity = 100;
+    selector.writeOverride(gradientVar);
     selectedFamily = null;
     close();
     dispatch('change');
@@ -296,9 +339,11 @@
 
   $: triggerMeta = chosenNone
     ? 'none'
-    : (chosenCategory && chosenFamily && chosenStep !== null
-      ? getVarName(chosenCategory, chosenFamily, chosenStep).replace(/^--/, '')
-      : '');
+    : chosenGradient
+      ? chosenGradient.replace(/^--/, '')
+      : (chosenCategory && chosenFamily && chosenStep !== null
+        ? getVarName(chosenCategory, chosenFamily, chosenStep).replace(/^--/, '')
+        : '');
 
   $: availableTabs = selectedFamily
     ? allCategories.filter(c => c.id !== 'text' || familiesWithText.includes(selectedFamily!))
@@ -325,7 +370,7 @@
   <div slot="trigger-preview" class="swatch-wrap">
     <div class="swatch" style="background: var({variable});"></div>
   </div>
-  <div slot="subheader" class="opacity-control">
+  <div slot="subheader" class="opacity-control" class:hidden={chosenGradient !== null}>
     <span class="opacity-label">opacity</span>
     <input type="range" min="0" max="100" bind:value={opacity} class="opacity-slider" on:input={applyOpacity} />
     <input type="number" min="0" max="100" bind:value={opacity} class="opacity-input" on:change={applyOpacity} />
@@ -353,6 +398,17 @@
             <i class="fas fa-chevron-right family-arrow"></i>
           </button>
         {/each}
+        {#if gradientsAllowed && gradientTokens.length > 0}
+          <div class="family-divider">Gradients</div>
+          {#each gradientTokens as g}
+            <button class="family-item" class:active={chosenGradient === g.variable} on:click={() => selectGradient(g.variable, close)}>
+              <div class="family-swatches">
+                <div class="gradient-swatch" style="background: var({g.variable});"></div>
+              </div>
+              <span class="family-label">Gradient {g.variable.replace(/^--gradient-/, '')}</span>
+            </button>
+          {/each}
+        {/if}
       </div>
     {:else}
       <button class="dropdown-back" on:click={backToFamilies}>
@@ -454,6 +510,10 @@
     gap: var(--ui-space-6);
     padding: var(--ui-space-6) var(--ui-space-8);
     border-bottom: 1px solid var(--ui-border-faint);
+  }
+
+  .opacity-control.hidden {
+    display: none;
   }
 
   .opacity-label {
@@ -614,6 +674,24 @@
     border: 1px solid var(--ui-border-subtle);
     position: relative;
     overflow: hidden;
+  }
+
+  .gradient-swatch {
+    width: 2.5rem;
+    height: 0.75rem;
+    border-radius: 2px;
+    border: 1px solid var(--ui-border-subtle);
+  }
+
+  .family-divider {
+    margin-top: var(--ui-space-6);
+    padding: var(--ui-space-4) var(--ui-space-8);
+    font-size: var(--ui-font-size-xs);
+    font-family: var(--ui-font-mono);
+    color: var(--ui-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-top: 1px solid var(--ui-border-faint);
   }
 
   .none-swatch::after {

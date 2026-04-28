@@ -67,7 +67,7 @@
   .badge-info {
     color: var(--badge-info-text);
     background: var(--badge-info-surface);
-    border: 1px solid var(--badge-info-border);
+    border: var(--border-width-thin) solid var(--badge-info-border);
     border-radius: var(--badge-info-radius);
     box-shadow: var(--shadow-sm);
   }
@@ -77,7 +77,7 @@
   .badge-accent {
     color: var(--badge-accent-text);
     background: var(--badge-accent-surface);
-    border: 1px solid var(--badge-accent-border);
+    border: var(--border-width-thin) solid var(--badge-accent-border);
     border-radius: var(--badge-accent-radius);
     box-shadow: var(--shadow-sm);
     text-transform: capitalize;
@@ -89,7 +89,7 @@
     color: #fff;
     background: rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: var(--border-width-thin) solid rgba(255, 255, 255, 0.12);
     font-weight: var(--font-weight-normal);
     letter-spacing: 0.02em;
   }
@@ -98,7 +98,7 @@
   .badge-trait {
     color: var(--badge-trait-text);
     background: var(--badge-trait-surface);
-    border: 1px solid var(--badge-trait-border);
+    border: var(--border-width-thin) solid var(--badge-trait-border);
     border-radius: var(--badge-trait-radius);
     text-transform: capitalize;
   }

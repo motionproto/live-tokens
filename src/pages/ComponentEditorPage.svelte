@@ -49,6 +49,7 @@
     { id: 'radioButtons', label: 'Radio Button', icon: 'fas fa-dot-circle' },
     { id: 'cards', label: 'Card', icon: 'fas fa-id-card' },
     { id: 'traitBadges', label: 'Trait Badge', icon: 'fas fa-tag' },
+    { id: 'image', label: 'Image', icon: 'fas fa-image' },
     { id: 'inlineEdit', label: 'Inline Edit Actions', icon: 'fas fa-pen' },
     { id: 'sectionDivider', label: 'Section Divider', icon: 'fas fa-minus' },
     { id: 'collapsible', label: 'Collapsible Section', icon: 'fas fa-chevron-down' },

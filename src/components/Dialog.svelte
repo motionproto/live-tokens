@@ -154,7 +154,7 @@
 
   .dialog {
     background: var(--dialog-surface);
-    border: 2px solid var(--dialog-border);
+    border: var(--border-width-default) solid var(--dialog-border);
     border-radius: var(--dialog-radius);
     box-shadow: var(--shadow-2xl);
     animation: dialogSlideIn var(--transition-base);
@@ -177,8 +177,8 @@
   }
 
   .dialog-header {
-    padding: .5rem var(--space-24);
-    border-bottom: 1px solid var(--dialog-header-border);
+    padding: var(--space-8) var(--space-24);
+    border-bottom: var(--border-width-thin) solid var(--dialog-header-border);
     background: var(--dialog-header-surface);
     display: flex;
     justify-content: space-between;
@@ -199,8 +199,8 @@
     font-size: var(--font-size-xl);
     cursor: pointer;
     margin-right: -var(--space-16);
-    width: 2rem;
-    height: 2rem;
+    width: var(--size-icon-xl);
+    height: var(--size-icon-xl);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -209,7 +209,7 @@
   }
 
   .dialog-close:hover {
-    background: var(--hover);
+    background: var(--surface-neutral-low);
     color: var(--text-primary);
   }
 
@@ -219,7 +219,7 @@
 
   .dialog-footer {
     padding: var(--space-16);
-    border-top: 1px solid var(--border-neutral-subtle);
+    border-top: var(--border-width-thin) solid var(--border-neutral-subtle);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -238,7 +238,7 @@
 
   .dialog-button {
     padding: var(--space-8) var(--space-16);
-    border: 1px solid var(--border-neutral-subtle);
+    border: var(--border-width-thin) solid var(--border-neutral-subtle);
     border-radius: var(--radius-md);
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-light);
@@ -248,7 +248,9 @@
   }
 
   .dialog-button:disabled {
-    opacity: var(--opacity-disabled);
+    background: var(--surface-neutral-low);
+    border-color: var(--border-neutral-faint);
+    color: var(--text-disabled);
     cursor: not-allowed;
   }
 
@@ -264,8 +266,8 @@
   }
 
   .dialog-button-primary:focus {
-    outline: 2px solid var(--border-neutral-strong);
-    outline-offset: 0.125rem;
+    outline: var(--border-width-default) solid var(--border-neutral-strong);
+    outline-offset: var(--space-2);
   }
 
   .dialog-button-secondary {
@@ -275,7 +277,7 @@
   }
 
   .dialog-button-secondary:hover:not(:disabled) {
-    background: var(--hover-low);
+    background: var(--surface-neutral-lower);
     border-color: var(--border-neutral-strong);
   }
 </style>

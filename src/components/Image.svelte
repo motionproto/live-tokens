@@ -28,7 +28,7 @@
   .image {
     border-radius: var(--image-default-radius);
     overflow: hidden;
-    border: 1px solid var(--image-default-border);
+    border: var(--border-width-thin) solid var(--image-default-border);
     box-shadow: var(--image-default-shadow);
   }
 
