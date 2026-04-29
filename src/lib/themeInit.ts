@@ -1,29 +1,29 @@
-import { getActiveTheme, applyCssVariables } from './themeService';
+import { getActiveTheme } from './themeService';
 import { activeFileName } from './editorConfigStore';
 import { migrateThemeFonts } from './fontMigration';
 import { applyFontSources, applyFontStacks } from './fontLoader';
-import { seedFontsFromTheme, seedPalettesFromTheme, seedComponentsFromApi } from './editorStore';
+import { loadFromFile, seedComponentsFromApi } from './editorStore';
 import { listComponents, getActiveComponentConfig } from './componentConfigService';
 
 /**
  * Fetch the active theme from the server and apply its CSS variables
  * to :root before the app mounts. Seeds the editor store so PaletteEditors
  * initialize from the theme instead of stale localStorage.
+ *
+ * Routes the theme through `loadFromFile` so palette-derived vars in
+ * `deriveCssVars` correctly overwrite any stale hexes baked into
+ * `theme.cssVariables` by `handleSave`'s scrape. Writing
+ * `theme.cssVariables` directly to inline :root (the previous approach)
+ * bypassed the store and left the subscriber's `lastApplied` diff cache
+ * out of sync, so palette-derived values stayed stale until a
+ * `PaletteEditor` mounted and re-emitted them.
  */
 export async function initializeTheme(): Promise<void> {
   try {
     const theme = await getActiveTheme();
     if (theme) {
       migrateThemeFonts(theme);
-      if (theme.cssVariables && Object.keys(theme.cssVariables).length > 0) {
-        applyCssVariables(theme.cssVariables);
-      }
-      const hasFonts =
-        (theme.fontSources && theme.fontSources.length > 0) ||
-        (theme.fontStacks && theme.fontStacks.length > 0);
-      if (hasFonts) {
-        seedFontsFromTheme(theme.fontSources ?? [], theme.fontStacks ?? []);
-      }
+      loadFromFile(theme);
       if (theme.fontSources && theme.fontSources.length > 0) {
         applyFontSources(theme.fontSources);
       }
@@ -32,9 +32,6 @@ export async function initializeTheme(): Promise<void> {
       }
       const fileName = (theme as any)._fileName || 'default';
       activeFileName.set(fileName);
-      if (theme.editorConfigs && Object.keys(theme.editorConfigs).length > 0) {
-        seedPalettesFromTheme(theme.editorConfigs);
-      }
     }
   } catch {
     // Silent fallback — tokens.css provides defaults
