@@ -22,7 +22,7 @@
     --badge-info-text-font-size: var(--font-size-sm);
     --badge-info-text-font-weight: var(--font-weight-light);
     --badge-info-text-line-height: var(--line-height-tight);
-    --badge-info-border: var(--border-neutral-default);
+    --badge-info-border: var(--border-neutral);
     --badge-info-border-width: var(--border-width-thin);
     --badge-info-radius: var(--radius-full);
     --badge-info-padding: var(--space-6);

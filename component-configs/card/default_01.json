@@ -5,7 +5,7 @@
   "updatedAt": "2026-04-26T21:19:46.258Z",
   "aliases": {
     "--card-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 50%, transparent)",
-    "--card-default-border": "--border-neutral-default",
+    "--card-default-border": "--border-neutral",
     "--card-default-title": "--text-primary",
     "--card-default-body": "--text-secondary",
     "--card-default-radius": "--radius-lg",

@@ -2,10 +2,10 @@
   "name": "default",
   "component": "card",
   "createdAt": "2026-04-18T02:43:11.328Z",
-  "updatedAt": "2026-04-28T02:21:06.260Z",
+  "updatedAt": "2026-04-29T08:30:47.103Z",
   "aliases": {
     "--card-default-surface": "--surface-neutral-high",
-    "--card-default-border": "--border-neutral-default",
+    "--card-default-border": "--border-neutral",
     "--card-default-border-width": "--border-width-thin",
     "--card-default-radius": "--radius-lg",
     "--card-default-padding": "--space-16",

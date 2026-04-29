@@ -22,7 +22,10 @@
 </script>
 
 <div class="segmented-control" class:is-disabled={disabled} role="radiogroup">
-  {#each segments as seg (seg.value)}
+  {#each segments as seg, i (seg.value)}
+    {#if i > 0}
+      <span class="segment-divider" aria-hidden="true"></span>
+    {/if}
     <button
       type="button"
       class="segment"
@@ -43,13 +46,14 @@
   :global(:root) {
     /* Bar (outer wrapper) */
     --segmentedcontrol-bar-surface: var(--surface-neutral-high);
-    --segmentedcontrol-bar-border: var(--border-neutral-default);
+    --segmentedcontrol-bar-border: var(--border-neutral);
     --segmentedcontrol-bar-border-width: var(--border-width-thin);
     --segmentedcontrol-bar-radius: var(--radius-lg);
     --segmentedcontrol-bar-padding: var(--space-4);
+    --segmentedcontrol-bar-gap: var(--space-8);
 
     /* Divider (line between non-selected options) */
-    --segmentedcontrol-divider-color: var(--border-neutral-default);
+    --segmentedcontrol-divider-color: var(--border-neutral);
     --segmentedcontrol-divider-thickness: var(--border-width-thin);
     --segmentedcontrol-divider-height: var(--space-12);
 
@@ -95,6 +99,7 @@
   .segmented-control {
     display: inline-flex;
     align-items: stretch;
+    gap: var(--segmentedcontrol-bar-gap);
     padding:
       var(--segmentedcontrol-bar-padding-top, var(--segmentedcontrol-bar-padding))
       var(--segmentedcontrol-bar-padding-right, var(--segmentedcontrol-bar-padding))
@@ -129,26 +134,18 @@
     transition: color var(--transition-fast);
   }
 
-  /* Short centered divider line between adjacent segments */
-  .segment + .segment::before {
-    content: '';
-    position: absolute;
-    left: calc(var(--space-4) * -0.5 - var(--segmentedcontrol-divider-thickness) * 0.5);
-    top: 50%;
-    transform: translateY(-50%);
+  /* Short centered divider between adjacent segments. Negative margins absorb
+     the surrounding flex gap so seg-to-seg distance stays var(--bar-gap). */
+  .segment-divider {
+    align-self: center;
+    flex-shrink: 0;
     width: var(--segmentedcontrol-divider-thickness);
     height: var(--segmentedcontrol-divider-height);
+    margin-inline: calc(
+      var(--segmentedcontrol-bar-gap) * -0.5 - var(--segmentedcontrol-divider-thickness) * 0.5
+    );
     background: var(--segmentedcontrol-divider-color);
-  }
-
-  /* Hide divider adjacent to a selected or hovered segment */
-  .segment.selected + .segment::before,
-  .segment.selected::before,
-  .segment:hover:not(:disabled) + .segment::before,
-  .segment:hover:not(:disabled)::before,
-  .segment.force-hover + .segment::before,
-  .segment.force-hover::before {
-    content: none;
+    pointer-events: none;
   }
 
   .segment:hover:not(:disabled):not(.selected),

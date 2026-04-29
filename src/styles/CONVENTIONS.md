@@ -28,7 +28,7 @@ Every theme token starts with a **category prefix**. The category tells you what
 | `--gradient-*` | Named gradients                                                 |
 | `--columns-*`, `--page-*` | Page-level layout primitives                         |
 
-**Rule: a bare one-word token belongs to *some* category.** If you find yourself writing `--overlay` or `--border`, make sure the category is obvious and it's the canonical default — otherwise pick a longer name that slots it into its family (e.g. `--border-neutral-default`).
+**Rule: a bare one-word token belongs to *some* category.** If you find yourself writing `--overlay` or `--border`, make sure the category is obvious and it's the canonical default — otherwise pick a longer name that slots it into its family (e.g. `--border-neutral`).
 
 ### Families within a category
 

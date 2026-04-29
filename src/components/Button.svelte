@@ -77,7 +77,7 @@
       --button-secondary-text-font-size: var(--font-size-sm);
       --button-secondary-text-font-weight: var(--font-weight-light);
       --button-secondary-text-line-height: var(--line-height-snug);
-      --button-secondary-border: var(--border-neutral-default);
+      --button-secondary-border: var(--border-neutral);
       --button-secondary-border-width: var(--border-width-thin);
       --button-secondary-radius: var(--radius-md);
       --button-secondary-padding: var(--space-8);
@@ -101,7 +101,7 @@
       --button-outline-text-font-size: var(--font-size-sm);
       --button-outline-text-font-weight: var(--font-weight-light);
       --button-outline-text-line-height: var(--line-height-snug);
-      --button-outline-border: var(--border-neutral-default);
+      --button-outline-border: var(--border-neutral);
       --button-outline-border-width: var(--border-width-thin);
       --button-outline-radius: var(--radius-md);
       --button-outline-padding: var(--space-8);

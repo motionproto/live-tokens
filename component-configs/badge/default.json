@@ -2,7 +2,7 @@
   "name": "default",
   "component": "badge",
   "createdAt": "2026-04-18T02:43:11.327Z",
-  "updatedAt": "2026-04-28T02:19:40.350Z",
+  "updatedAt": "2026-04-29T08:30:47.121Z",
   "aliases": {
     "--badge-info-surface": "--surface-neutral-higher",
     "--badge-info-text": "--text-primary",
@@ -10,7 +10,7 @@
     "--badge-info-text-font-size": "--font-size-sm",
     "--badge-info-text-font-weight": "--font-weight-light",
     "--badge-info-text-line-height": "--line-height-tight",
-    "--badge-info-border": "--border-neutral-default",
+    "--badge-info-border": "--border-neutral",
     "--badge-info-border-width": "--border-width-thin",
     "--badge-info-radius": "--radius-full",
     "--badge-info-padding": "--space-6",

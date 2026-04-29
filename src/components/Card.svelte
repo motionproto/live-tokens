@@ -31,7 +31,7 @@
   :global(:root) {
     /* Default */
     --card-default-surface: var(--surface-neutral-high);
-    --card-default-border: var(--border-neutral-default);
+    --card-default-border: var(--border-neutral);
     --card-default-border-width: var(--border-width-thin);
     --card-default-radius: var(--radius-lg);
     --card-default-padding: var(--space-16);

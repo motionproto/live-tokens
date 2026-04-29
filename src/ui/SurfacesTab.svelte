@@ -139,7 +139,7 @@
       borders: [
         { name: 'Faint', variable: '--border-neutral-faint' },
         { name: 'Subtle', variable: '--border-neutral-subtle' },
-        { name: 'Default', variable: '--border-neutral-default' },
+        { name: 'Default', variable: '--border-neutral' },
         { name: 'Medium', variable: '--border-neutral-medium' },
         { name: 'Strong', variable: '--border-neutral-strong' }
       ]

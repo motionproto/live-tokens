@@ -374,7 +374,7 @@
   }
 
   .content {
-    padding: var(--ui-space-24) var(--ui-space-32) 0;
+    padding: 0 var(--ui-space-32);
     background: black;
     min-width: 0;
     height: 100vh;

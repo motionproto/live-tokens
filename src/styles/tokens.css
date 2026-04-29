@@ -273,7 +273,7 @@
   /* Neutral borders */
   --border-neutral-faint: #27201c;
   --border-neutral-subtle: #48413c;
-  --border-neutral-default: hsla(240, 5%, 32%, 1);
+  --border-neutral: hsla(240, 5%, 32%, 1);
   --border-neutral-medium: #9b938e;
   --border-neutral-strong: #c4bcb6;
 

@@ -13,6 +13,8 @@
   export let selectionsLocked: boolean = false;
   export let dropdownMinWidth: string = '12rem';
   export let dropdownMaxWidth: string = '';
+  /** Forwarded to UIOptionList — when set, options render in a shared-column grid. */
+  export let dropdownGridColumns: string = '';
   /** CSS var prefix that, joined with an option `key`, forms the target var (e.g. `--font-weight-`). */
   export let varPrefix: string;
   /** Selectable options. Each must have a unique `key`. */
@@ -107,7 +109,7 @@
   </svelte:fragment>
 
   <svelte:fragment let:close>
-    <UIOptionList>
+    <UIOptionList gridColumns={dropdownGridColumns}>
       {#each options as opt (opt.key)}
         <slot
           name="option"

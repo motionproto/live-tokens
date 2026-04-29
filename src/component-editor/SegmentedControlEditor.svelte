@@ -16,6 +16,8 @@
     { value: 'option-2', label: 'Option 2', icon: 'fas fa-check' },
     { value: 'option-3', label: 'Option 3', icon: 'fas fa-heart' },
   ];
+  let showIcons = true;
+  $: previewSegments = showIcons ? segments : segments.map((s) => ({ ...s, icon: undefined }));
   type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
   type TypeGroupConfig = {
     legend?: string;
@@ -39,6 +41,7 @@
       { label: 'border color', variable: '--segmentedcontrol-bar-border' },
       { label: 'border width', variable: '--segmentedcontrol-bar-border-width' },
       { label: 'radius', canBeShared: true, groupKey: 'bar-radius', variable: '--segmentedcontrol-bar-radius' },
+      { label: 'option gap', variable: '--segmentedcontrol-bar-gap' },
       { label: 'padding', variable: '--segmentedcontrol-bar-padding', groupKey: 'bar-padding' },
       { label: 'padding-top', variable: '--segmentedcontrol-bar-padding-top', groupKey: 'bar-padding-top', hidden: true },
       { label: 'padding-right', variable: '--segmentedcontrol-bar-padding-right', groupKey: 'bar-padding-right', hidden: true },
@@ -230,6 +233,12 @@
 </script>
 
 <ComponentEditorBase {component} title="Segmented Control" description="A connected set of buttons for toggling between mutually exclusive options." resetVariables={allVariables}>
+  <div class="preview-options">
+    <label class="preview-toggle">
+      <input type="checkbox" bind:checked={showIcons} />
+      <span>Show icons</span>
+    </label>
+  </div>
   <VariantGroup
     name="segmentedcontrol"
     title="Segmented Control"
@@ -246,7 +255,7 @@
     {@const previewDisabled = activeState === 'disabled option'}
     <div>
       <SegmentedControl
-        {segments}
+        segments={previewSegments}
         value={previewValue}
         forceHoverValue={previewForceHover}
         disabled={previewDisabled}
@@ -283,6 +292,21 @@
 </ComponentEditorBase>
 
 <style>
+  .preview-options {
+    display: flex;
+    gap: var(--ui-space-12);
+    padding: 0 var(--ui-space-4) var(--ui-space-8);
+  }
+
+  .preview-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+    cursor: pointer;
+  }
+
   .shared-block {
     margin-top: var(--ui-space-16);
     padding-top: var(--ui-space-12);
@@ -291,7 +315,7 @@
 
   .shared-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 30rem));
     gap: var(--ui-space-12);
     align-items: start;
   }

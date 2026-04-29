@@ -21,6 +21,8 @@
   export let mode: 'single' | 'sides' = 'single';
   /** Legend text for the field group when mode='sides'. */
   export let rowLabel: string = 'padding';
+  /** When false, hide the split-to-sides affordance (e.g. for non-box spacing like gap). */
+  export let splittable: boolean = true;
 
   void canBeShared;
 
@@ -241,15 +243,17 @@
         </UIOptionList>
       </svelte:fragment>
     </UITokenSelector>
-    <button
-      type="button"
-      class="split-btn"
-      on:click={splitToSides}
-      title="Set each side independently"
-      disabled={disabled || selectionsLocked}
-    >
-      <i class="fas fa-border-all" aria-hidden="true"></i>
-    </button>
+    {#if splittable}
+      <button
+        type="button"
+        class="split-btn"
+        on:click={splitToSides}
+        title="Set each side independently"
+        disabled={disabled || selectionsLocked}
+      >
+        <i class="fas fa-border-all" aria-hidden="true"></i>
+      </button>
+    {/if}
   </div>
 {/if}
 

@@ -127,6 +127,8 @@
   --ui-font-size-lg:  1.0625rem;  /* 17px — section headings */
   --ui-font-size-xl:  1.1875rem;  /* 19px */
   --ui-font-size-2xl: 1.3125rem;  /* 21px */
+  --ui-font-size-3xl: 1.625rem;   /* 26px */
+  --ui-font-size-4xl: 2rem;       /* 32px */
 
 
   /* ── Font weights ────────────────────────────────────── */

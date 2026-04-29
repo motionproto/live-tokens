@@ -21,7 +21,7 @@
 <style>
   :global(:root) {
     --image-default-radius: var(--radius-xl);
-    --image-default-border: var(--border-neutral-default);
+    --image-default-border: var(--border-neutral);
     --image-default-border-width: var(--border-width-thin);
     --image-default-shadow: var(--shadow-md);
   }

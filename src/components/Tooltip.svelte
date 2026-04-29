@@ -20,7 +20,7 @@
     --tooltip-text-font-size: var(--font-size-sm);
     --tooltip-text-font-weight: var(--font-weight-normal);
     --tooltip-text-line-height: var(--line-height-normal);
-    --tooltip-border: var(--border-neutral-default);
+    --tooltip-border: var(--border-neutral);
     --tooltip-border-width: var(--border-width-none);
     --tooltip-radius: var(--radius-md);
     --tooltip-padding: var(--space-6);

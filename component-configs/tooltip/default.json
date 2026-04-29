@@ -2,7 +2,7 @@
   "name": "default",
   "component": "tooltip",
   "createdAt": "2026-04-18T02:43:11.333Z",
-  "updatedAt": "2026-04-28T02:16:37.297Z",
+  "updatedAt": "2026-04-29T08:30:47.037Z",
   "aliases": {
     "--tooltip-surface": "--surface-neutral-highest",
     "--tooltip-text": "--text-primary",
@@ -10,7 +10,7 @@
     "--tooltip-text-font-size": "--font-size-sm",
     "--tooltip-text-font-weight": "--font-weight-normal",
     "--tooltip-text-line-height": "--line-height-normal",
-    "--tooltip-border": "--border-neutral-default",
+    "--tooltip-border": "--border-neutral",
     "--tooltip-border-width": "--border-width-none",
     "--tooltip-radius": "--radius-md",
     "--tooltip-padding": "--space-6",

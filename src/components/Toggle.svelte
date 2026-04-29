@@ -62,7 +62,7 @@
     width: 2.25rem;
     height: var(--space-20);
     border-radius: var(--radius-2xl);
-    border: var(--border-width-thin) solid var(--border-neutral-default);
+    border: var(--border-width-thin) solid var(--border-neutral);
     background: var(--surface-neutral-low);
     padding: 0;
     cursor: inherit;

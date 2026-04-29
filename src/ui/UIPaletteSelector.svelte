@@ -22,7 +22,7 @@
   const families = [
     { name: 'neutral', label: 'Neutral' },
     { name: 'alternate', label: 'Alternate' },
-    { name: 'canvas', label: 'Background' },
+    { name: 'canvas', label: 'Canvas' },
     { name: 'primary', label: 'Primary' },
     { name: 'accent', label: 'Accent' },
     { name: 'special', label: 'Special' },
@@ -118,10 +118,7 @@
       case 'surface':
         return stepKey ? `--surface-${family}-${stepKey}` : `--surface-${family}`;
       case 'border':
-        if (!stepKey) {
-          return family === 'neutral' ? `--border-${family}-default` : `--border-${family}`;
-        }
-        return `--border-${family}-${stepKey}`;
+        return stepKey ? `--border-${family}-${stepKey}` : `--border-${family}`;
       case 'text':
         if (family === 'neutral') return `--text-${stepKey}`;
         if (family === 'primary' && stepKey === 'primary') return '--text-primary-color';
@@ -168,8 +165,7 @@
 
     const borderM = varName.match(/^--border-([a-z]+)(?:-([a-z]+))?$/);
     if (borderM && familyNames.includes(borderM[1])) {
-      let step = borderM[2] || '';
-      if (step === 'default') step = '';
+      const step = borderM[2] || '';
       if (borderStepKeys.includes(step)) {
         return { category: 'border', family: borderM[1], step };
       }
@@ -343,7 +339,7 @@
     : chosenGradient
       ? chosenGradient.replace(/^--/, '')
       : (chosenCategory && chosenFamily && chosenStep !== null
-        ? getVarName(chosenCategory, chosenFamily, chosenStep).replace(/^--/, '')
+        ? getVarName(chosenCategory, chosenFamily, chosenStep).replace(/^--/, '') + (opacity < 100 ? ` (${opacity}%)` : '')
         : '');
 
   $: availableTabs = selectedFamily

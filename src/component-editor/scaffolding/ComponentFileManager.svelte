@@ -456,7 +456,7 @@
     align-self: start;
     margin: 0 var(--ui-space-24) 0 0;
     min-width: 8rem;
-    font-size: 1.4rem;
+    font-size: var(--ui-font-size-3xl);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
     letter-spacing: -0.015em;

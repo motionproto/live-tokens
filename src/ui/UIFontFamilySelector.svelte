@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { onMount, createEventDispatcher } from 'svelte';
+  import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import { resolveAliasChain } from '../lib/tokenRegistry';
   import { editorState } from '../lib/editorStore';
+  import { CSS_VAR_CHANGE_EVENT } from '../lib/cssVarSync';
   import type { FontFamily, FontSource } from '../lib/themeTypes';
   import UITokenSelector from './UITokenSelector.svelte';
   import UIOptionList from './UIOptionList.svelte';
@@ -26,6 +27,7 @@
   let chosenKey: string | null = null;
   let chosenFamilyId: string | null = null;
   let currentStack: string = '';
+  let familyNameByKey: Record<string, string> = {};
 
   $: fontSources = $editorState.fonts.sources;
   $: allFamilies = (fontSources as FontSource[]).flatMap((s) => s.families);
@@ -61,7 +63,19 @@
   }
 
   function readResolved() {
-    currentStack = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+    const root = getComputedStyle(document.documentElement);
+    currentStack = root.getPropertyValue(variable).trim();
+    const next: Record<string, string> = {};
+    for (const opt of options) {
+      const stack = root.getPropertyValue(`--font-${opt.key}`).trim();
+      next[opt.key] = firstFamilyName(stack);
+    }
+    familyNameByKey = next;
+  }
+
+  function handleVarChange(e: Event) {
+    const detail = (e as CustomEvent<{ name: string }>).detail;
+    if (detail?.name?.startsWith('--font-')) readResolved();
   }
 
   function initFromCurrent() {
@@ -125,7 +139,13 @@
     dispatch('change');
   }
 
-  onMount(initFromCurrent);
+  onMount(() => {
+    initFromCurrent();
+    document.addEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
+  });
+  onDestroy(() => {
+    document.removeEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
+  });
 
   $: activeLabel = chosenFamilyId
     ? (allFamilies.find((f) => f.id === chosenFamilyId)?.name ?? 'Project font')
@@ -156,7 +176,7 @@
         >
           <span slot="preview" class="font-sample" style="font-family: var(--font-{opt.key});">Aa</span>
           <svelte:fragment slot="label">{opt.label}</svelte:fragment>
-          <svelte:fragment slot="meta">var(--font-{opt.key})</svelte:fragment>
+          <svelte:fragment slot="meta">{familyNameByKey[opt.key] ?? ''}</svelte:fragment>
         </UIOptionItem>
       {/each}
 
@@ -183,7 +203,6 @@
                       style="font-family: '{fam.cssName}', {genericFor(variable)};"
                     >Aa</span>
                     <svelte:fragment slot="label">{fam.name}</svelte:fragment>
-                    <svelte:fragment slot="meta">{fam.cssName}</svelte:fragment>
                   </UIOptionItem>
                 {/each}
               {/if}
@@ -198,9 +217,10 @@
 <style>
   .font-sample {
     display: inline-block;
-    width: 1.5rem;
+    width: 2.25rem;
+    margin-right: var(--ui-space-8);
     text-align: center;
-    font-size: var(--ui-font-size-md);
+    font-size: var(--ui-font-size-2xl);
     color: var(--ui-text-primary);
     line-height: 1;
   }

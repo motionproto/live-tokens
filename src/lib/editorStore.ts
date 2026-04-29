@@ -17,6 +17,7 @@ import { writable, derived, get, type Readable } from 'svelte/store';
 import type { EditorState, ColumnsState, ComponentSlice, OverlayToken, ShadowToken, GradientToken, GradientTokenStop, GradientType } from './editorTypes';
 import type { Theme, FontSource, FontStack, PaletteConfig } from './themeTypes';
 import { setCssVar, removeCssVar } from './cssVarSync';
+import { palettesToVars } from './paletteDerivation';
 import { storageKey } from './editorConfig';
 
 const HISTORY_MAX = 100;
@@ -1275,9 +1276,8 @@ export async function initializeEditorStore(): Promise<void> {
 
 // ── Derived CSS-var subscription ───────────────────────────────────────────
 //
-// Phase 2 derivation: columns + overlays derive from their domains; the
-// catch-all cssVars bag covers everything not yet migrated. As remaining
-// domains come online (shadows → fonts → palettes), their logic moves here.
+// Phase 2 derivation: columns + overlays + palettes derive from their domains;
+// the catch-all cssVars bag covers everything not yet migrated.
 function deriveCssVars(state: EditorState): Record<string, string> {
   const out: Record<string, string> = { ...state.cssVars };
   if (!columnsEqualsDefault(state.columns)) {
@@ -1292,6 +1292,7 @@ function deriveCssVars(state: EditorState): Record<string, string> {
   if (state.gradients.tokens.length > 0) {
     Object.assign(out, gradientsToVars(state.gradients));
   }
+  Object.assign(out, palettesToVars(state.palettes));
   Object.assign(out, componentsToVars(state.components));
   return out;
 }

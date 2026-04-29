@@ -5,10 +5,10 @@
   "updatedAt": "2026-04-24T23:35:53.038Z",
   "aliases": {
     "--segmentedcontrol-bar-surface": "--surface-neutral-high",
-    "--segmentedcontrol-bar-border": "--border-neutral-default",
+    "--segmentedcontrol-bar-border": "--border-neutral",
     "--segmentedcontrol-bar-border-width": "--border-width-thin",
     "--segmentedcontrol-bar-radius": "--radius-lg",
-    "--segmentedcontrol-divider-color": "--border-neutral-default",
+    "--segmentedcontrol-divider-color": "--border-neutral",
     "--segmentedcontrol-divider-thickness": "--border-width-thin",
     "--segmentedcontrol-divider-height": "--space-12",
     "--segmentedcontrol-option-text": "--text-primary",

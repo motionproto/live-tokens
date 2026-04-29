@@ -27,6 +27,7 @@
     | 'font-size'
     | 'line-height'
     | 'padding'
+    | 'gap'
     | 'extras';
 
   type Entry = { kind: Kind; token: Token };
@@ -80,6 +81,10 @@
     return v.endsWith('-padding');
   }
 
+  function isGap(v: string): boolean {
+    return v.endsWith('-gap');
+  }
+
   function isBorder(v: string): boolean {
     return v.endsWith('-border') || v.startsWith('--border-');
   }
@@ -103,6 +108,7 @@
     'divider-height',
     'radius',
     'padding',
+    'gap',
     'extras',
     'surface',
     'border',
@@ -121,6 +127,7 @@
     if (isDividerWidth(v)) return 'divider-width';
     if (isDividerHeight(v)) return 'divider-height';
     if (isPadding(v)) return 'padding';
+    if (isGap(v)) return 'gap';
     if (isBorderWidth(v)) return 'border-width';
     if (isBorder(v)) return 'border';
     if (isSurface(v)) return 'surface';
@@ -256,6 +263,8 @@
             <UIDividerHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'padding'}
             <UIPaddingSelector mode="single" variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
+          {:else if entry.kind === 'gap'}
+            <UIPaddingSelector mode="single" splittable={false} variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'font-family'}
             <UIFontFamilySelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'font-weight'}
@@ -319,9 +328,7 @@
 
   .zone-divider {
     grid-column: 1 / -1;
-    height: 0;
-    border-top: 1px dashed var(--ui-border-faint);
-    margin: var(--ui-space-2) 0;
+    height: 1.75rem;
   }
 
   .token-row {

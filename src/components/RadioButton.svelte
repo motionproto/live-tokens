@@ -25,7 +25,7 @@
 <style lang="scss">
   :global(:root) {
     /* Default */
-    --radiobutton-default-dot-border: var(--border-neutral-default);
+    --radiobutton-default-dot-border: var(--border-neutral);
     --radiobutton-default-dot-border-width: var(--border-width-default);
     --radiobutton-default-label: var(--text-primary);
     --radiobutton-default-label-font-family: var(--font-sans);
@@ -37,7 +37,7 @@
     --radiobutton-default-padding: var(--space-4);
 
     /* Hover */
-    --radiobutton-hover-dot-border: var(--border-neutral-default);
+    --radiobutton-hover-dot-border: var(--border-neutral);
     --radiobutton-hover-dot-border-width: var(--border-width-default);
     --radiobutton-hover-label: var(--text-primary);
     --radiobutton-hover-label-font-family: var(--font-sans);
@@ -49,7 +49,7 @@
     --radiobutton-hover-padding: var(--space-4);
 
     /* Active */
-    --radiobutton-active-dot-border: var(--border-neutral-default);
+    --radiobutton-active-dot-border: var(--border-neutral);
     --radiobutton-active-dot-border-width: var(--border-width-default);
     --radiobutton-active-label: var(--text-primary);
     --radiobutton-active-label-font-family: var(--font-sans);

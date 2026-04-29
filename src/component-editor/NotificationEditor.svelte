@@ -100,6 +100,17 @@
 
   $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
   const allVariables = allTokens.map((t) => t.variable);
+
+  function siblingsFor(toVariant: Variant) {
+    return variants
+      .filter((v) => v !== toVariant)
+      .map((v) => ({
+        name: v,
+        label: v.charAt(0).toUpperCase() + v.slice(1),
+        states: { [v]: variantTokens(v) },
+        typeGroups: { [v]: variantTypeGroups(v) },
+      }));
+  }
 </script>
 
 <ComponentEditorBase {component} title="Notification" description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>" resetVariables={allVariables}>
@@ -126,6 +137,7 @@
       {component}
       {highlightedVars}
       sharedOrder={shared.sharedOrder}
+      siblings={siblingsFor(v)}
       on:tokenhover={handleTokenHover}
     >
       {#if v === 'info'}

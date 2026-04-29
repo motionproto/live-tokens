@@ -63,7 +63,7 @@
   padding: 0 var(--space-16);
   min-height: 2.375rem;  /* ~38px to match button height */
   background: var(--surface-neutral-lowest) !important;
-  border: 1px solid var(--border-neutral-default) !important;
+  border: 1px solid var(--border-neutral) !important;
   border-radius: var(--radius-md);
   color: var(--text-primary) !important;
   font-family: var(--font-sans);
@@ -136,7 +136,7 @@
 .form-input {
   padding: var(--space-8);
   background: var(--surface-neutral-lowest);
-  border: 1px solid var(--border-neutral-default);
+  border: 1px solid var(--border-neutral);
   border-radius: var(--radius-md);
   color: var(--text-primary);
   font-family: var(--font-sans);

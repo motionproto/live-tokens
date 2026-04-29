@@ -116,6 +116,17 @@
     Object.entries(variantStates(v)).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
   ) as Record<string, Token[]>;
   const allVariables = allTokens.map((t) => t.variable);
+
+  function siblingsFor(toVariant: Variant) {
+    return variants
+      .filter((v) => v !== toVariant)
+      .map((v) => ({
+        name: v,
+        label: v.charAt(0).toUpperCase() + v.slice(1),
+        states: variantStates(v),
+        typeGroups: variantTypeGroups(v),
+      }));
+  }
 </script>
 
 <ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" resetVariables={allVariables}>
@@ -146,6 +157,7 @@
       {component}
       {highlightedVars}
       sharedOrder={shared.sharedOrder}
+      siblings={siblingsFor(v)}
       on:tokenhover={handleTokenHover}
       let:activeState
     >
@@ -157,7 +169,6 @@
           <div class="button-showcase-grid">
             <div class="button-showcase-item">
               <Button variant={v} disabled={isDisabled} class={forceClass}>{v.charAt(0).toUpperCase() + v.slice(1)}</Button>
-              <span class="variant-label">{v}</span>
             </div>
             <div class="button-showcase-item">
               <Button variant={v} icon="fas fa-star" iconPosition="left" disabled={isDisabled} class={forceClass}>With Icon</Button>
@@ -184,7 +195,7 @@
 <style>
   .size-row {
     display: flex;
-    gap: var(--space-16);
+    gap: var(--space-12);
     align-items: flex-start;
   }
 
@@ -218,15 +229,6 @@
     flex-direction: column;
     gap: var(--space-8);
     align-items: flex-start;
-  }
-
-  .variant-label {
-    font-size: var(--font-size-xs);
-    color: var(--ui-text-tertiary);
-    font-family: var(--ui-font-mono);
-    background: var(--ui-surface-lowest);
-    padding: var(--space-2) var(--space-6);
-    border-radius: var(--radius-sm);
   }
 
   .shared-row {

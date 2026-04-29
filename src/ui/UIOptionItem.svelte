@@ -65,8 +65,10 @@
   }
 
   .ui-option-meta {
+    flex-shrink: 0;
     font-size: var(--ui-font-size-xs);
     color: var(--ui-text-tertiary);
     font-family: var(--ui-font-mono);
+    white-space: nowrap;
   }
 </style>
