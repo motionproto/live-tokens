@@ -2,7 +2,7 @@
   "name": "default_01",
   "component": "segmentedcontrol",
   "createdAt": "2026-04-28T21:13:17.669Z",
-  "updatedAt": "2026-04-30T09:03:02.187Z",
+  "updatedAt": "2026-04-29T07:25:11.963Z",
   "aliases": {
     "--segmentedcontrol-bar-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 85%, transparent)",
     "--segmentedcontrol-bar-border": "--border-neutral",
@@ -35,7 +35,7 @@
     "--segmentedcontrol-selected-border": "--border-primary",
     "--segmentedcontrol-selected-border-width": "--border-width-thin",
     "--segmentedcontrol-selected-radius": "--radius-md",
-    "--segmentedcontrol-disabled-surface": "--surface-neutral-low",
+    "--segmentedcontrol-disabled-surface": "--surface-neutral-high",
     "--segmentedcontrol-disabled-text": "--text-tertiary",
     "--segmentedcontrol-disabled-text-font-family": "--font-sans",
     "--segmentedcontrol-disabled-text-font-size": "--font-size-sm",

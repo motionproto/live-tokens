@@ -2,19 +2,10 @@
   import Dialog from '../components/Dialog.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema, setComponentAlias } from '../lib/editorStore';
+  import { editorState, setComponentAlias } from '../lib/editorStore';
+  import type { Token, TypeGroupConfig } from './scaffolding/types';
   import newspaperBg from '../assets/newspaper.webp';
   const component = 'dialog';
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
-  type TypeGroupConfig = {
-    legend?: string;
-    colorVariable: string;
-    colorLabel?: string;
-    familyVariable?: string;
-    sizeVariable?: string;
-    weightVariable?: string;
-    lineHeightVariable?: string;
-  };
 
   const BUTTON_VARIANTS = ['primary', 'secondary', 'outline', 'success', 'danger', 'warning'] as const;
   type ButtonVariant = typeof BUTTON_VARIANTS[number];
@@ -89,16 +80,13 @@
     ...Object.values(frameStates).flat(),
     ...frameTypeGroupTokens,
   ];
-  registerComponentSchema(component, allTokens);
-
-  const allVariables = allTokens.map((t) => t.variable);
 
   function variantLabel(v: ButtonVariant): string {
     return v.charAt(0).toUpperCase() + v.slice(1);
   }
 </script>
 
-<ComponentEditorBase {component} title="Dialog" description="Modal dialog with focus management and slide-in animation. Import from <code>components/Dialog.svelte</code>" resetVariables={allVariables}>
+<ComponentEditorBase {component} title="Dialog" description="Modal dialog with focus management and slide-in animation. Import from <code>components/Dialog.svelte</code>" tokens={allTokens}>
   <div class="dialog-preview" style="background-image: url({newspaperBg});">
     <Dialog
       show
@@ -106,12 +94,13 @@
       title="Sample Dialog"
       confirmLabel="Save"
       cancelLabel="Cancel"
+      onCancel={() => {}}
     >
       <p style="color: var(--text-secondary); margin: 0;">This is the dialog body content. It supports any slotted content including forms, lists, or other components.</p>
     </Dialog>
   </div>
-  <div class="preview-options">
-    <label class="preview-select">
+  <svelte:fragment slot="config">
+    <label>
       <span>Cancel button (left)</span>
       <select class="form-select" value={cancelVariant} on:change={setCancelVariant}>
         {#each BUTTON_VARIANTS as v}
@@ -119,7 +108,7 @@
         {/each}
       </select>
     </label>
-    <label class="preview-select">
+    <label>
       <span>Confirm button (right)</span>
       <select class="form-select" value={confirmVariant} on:change={setConfirmVariant}>
         {#each BUTTON_VARIANTS as v}
@@ -127,7 +116,7 @@
         {/each}
       </select>
     </label>
-  </div>
+  </svelte:fragment>
   <VariantGroup name="dialog" title="Dialog" states={frameStates} typeGroups={frameTypeGroups} {component} />
 </ComponentEditorBase>
 
@@ -139,24 +128,5 @@
     background-repeat: no-repeat;
     border-radius: var(--ui-radius-md);
     overflow: hidden;
-  }
-
-  .preview-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ui-space-16);
-    padding: 0 var(--ui-space-4) var(--ui-space-12);
-  }
-
-  .preview-select {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-    font-size: var(--ui-font-size-sm);
-    color: var(--ui-text-secondary);
-  }
-
-  .preview-select select {
-    font-size: var(--ui-font-size-sm);
   }
 </style>

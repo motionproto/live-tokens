@@ -1,21 +1,12 @@
 <script lang="ts">
   import Badge from '../components/Badge.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import SharedBlock from './scaffolding/SharedBlock.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
+  import { editorState } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import { buildSiblings } from './scaffolding/siblings';
+  import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'badge';
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
-  type TypeGroupConfig = {
-    legend?: string;
-    colorVariable: string;
-    colorLabel?: string;
-    familyVariable?: string;
-    sizeVariable?: string;
-    weightVariable?: string;
-    lineHeightVariable?: string;
-  };
   const variants = ['info', 'accent', 'trait'] as const;
   type Variant = typeof variants[number];
 
@@ -50,7 +41,6 @@
     ];
   }
   const allTokens: Token[] = variants.flatMap((v) => [...variantTokens(v), ...variantTypeGroupTokens(v)]);
-  registerComponentSchema(component, allTokens);
 
   // Cross-variant sharing: any token with canBeShared+groupKey participates in
   // the shared block when ≥2 variants currently agree on its alias.
@@ -83,34 +73,10 @@
   ]);
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
-
-  let highlightedVars = new Set<string>();
-  function handleTokenHover(e: CustomEvent<{ variable: string | null }>) {
-    const v = e.detail.variable;
-    if (!v) {
-      highlightedVars = new Set();
-      return;
-    }
-    const group = shared.groups.find((g) => g.variables.includes(v));
-    highlightedVars = group ? new Set(group.variables) : new Set();
-  }
-
   $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
-  const allVariables = allTokens.map((t) => t.variable);
-
-  function siblingsFor(toVariant: Variant) {
-    return variants
-      .filter((v) => v !== toVariant)
-      .map((v) => ({
-        name: v,
-        label: v.charAt(0).toUpperCase() + v.slice(1),
-        states: { [v]: variantTokens(v) },
-        typeGroups: { [v]: variantTypeGroups(v) },
-      }));
-  }
 </script>
 
-<ComponentEditorBase {component} title="Badge" description="Pill-shaped badges with variant support. Import from <code>components/Badge.svelte</code>" resetVariables={allVariables}>
+<ComponentEditorBase {component} title="Badge" description="Pill-shaped badges with variant support. Import from <code>components/Badge.svelte</code>" tokens={allTokens} {shared}>
   {#each variants as v}
     <VariantGroup
       name={v}
@@ -118,10 +84,7 @@
       states={{ [v]: visibleVariantTokens(v) }}
       typeGroups={{ [v]: variantTypeGroups(v) }}
       {component}
-      {highlightedVars}
-      sharedOrder={shared.sharedOrder}
-      siblings={siblingsFor(v)}
-      on:tokenhover={handleTokenHover}
+      siblings={buildSiblings(variants, v, variantTokens, variantTypeGroups)}
     >
       <div class="badge-showcase-grid">
         {#if v === 'info'}
@@ -137,7 +100,6 @@
       </div>
     </VariantGroup>
   {/each}
-  <SharedBlock {component} {shared} {highlightedVars} on:tokenhover={handleTokenHover} on:change />
 </ComponentEditorBase>
 
 <style>

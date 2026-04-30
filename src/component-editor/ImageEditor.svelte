@@ -2,12 +2,10 @@
   import Image from '../components/Image.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { registerComponentSchema } from '../lib/editorStore';
+  import type { Token } from './scaffolding/types';
   import demoImageUrl from '../assets/offering.webp';
 
   const component = 'image';
-
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
 
   // Single object: image frame.
   const states: Record<string, Token[]> = {
@@ -19,12 +17,10 @@
     ],
   };
 
-  registerComponentSchema(component, Object.values(states).flat());
-
-  const allVariables = Object.values(states).flatMap((list) => list.map((t) => t.variable));
+  const allTokens: Token[] = Object.values(states).flat();
 </script>
 
-<ComponentEditorBase {component} title="Image" description="Framed image with rounded corners, border, and shadow. Import from <code>components/Image.svelte</code>" resetVariables={allVariables}>
+<ComponentEditorBase {component} title="Image" description="Framed image with rounded corners, border, and shadow. Import from <code>components/Image.svelte</code>" tokens={allTokens}>
   <VariantGroup name="image" title="Image" {states} {component}>
     <div class="image-demo-grid">
       <Image src={demoImageUrl} alt="Demo" variant="compact" />

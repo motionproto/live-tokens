@@ -2,18 +2,8 @@
   import SectionDivider from '../components/SectionDivider.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { registerComponentSchema } from '../lib/editorStore';
+  import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'sectiondivider';
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
-  type TypeGroupConfig = {
-    legend?: string;
-    colorVariable: string;
-    colorLabel?: string;
-    familyVariable?: string;
-    sizeVariable?: string;
-    weightVariable?: string;
-    lineHeightVariable?: string;
-  };
 
   // Component-level (shared across all variants): typography + padding.
   const sharedStates: Record<string, Token[]> = {
@@ -76,7 +66,6 @@
     ...sharedTypeTokens,
     ...variants.flatMap((v) => variantTokens(v.key)),
   ];
-  registerComponentSchema(component, allTokens);
   const descriptionText = 'These modules were created by other authors and are no longer actively maintained.';
 
   let showDescription: Record<Variant, boolean> = {
@@ -87,10 +76,9 @@
     accent: false,
     special: false,
   };
-  const allVariables = allTokens.map((t) => t.variable);
 </script>
 
-<ComponentEditorBase {component} title="Section Divider" description="Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>" resetVariables={allVariables}>
+<ComponentEditorBase {component} title="Section Divider" description="Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>" tokens={allTokens}>
   <VariantGroup
     name="component"
     title="Component-level"

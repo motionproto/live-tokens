@@ -4,7 +4,6 @@
 
    export let title: string;
    export let description: string;
-   export let impact: string = '';
    export let variant: 'info' | 'warning' | 'danger' | 'success' = 'info';
    export let size: 'normal' | 'compact' = 'normal';
    export let icon: string = '';
@@ -54,9 +53,6 @@
    </div>
    {#if description && !actionInline}
       <div class="notification-description">{description}</div>
-   {/if}
-   {#if impact}
-      <div class="notification-impact">{impact}</div>
    {/if}
    <slot />
    {#if onAction && !actionHeader}
@@ -177,7 +173,6 @@
          font-size: var(--font-size-sm);
 
          .notification-description,
-         .notification-impact,
          .notification-actions-inline,
          .notification-actions {
             font-size: var(--font-size-sm);
@@ -307,6 +302,7 @@
       justify-content: flex-start;
       gap: var(--space-8);
       width: 100%;
+      box-sizing: border-box;
       position: relative;
 
       // When action button is in header, add spacing
@@ -330,33 +326,29 @@
       }
 
       .notification-close {
-         position: absolute;
-         top: 50%;
-         right: var(--space-8);
-         transform: translateY(-50%);
+         flex-shrink: 0;
+         margin-left: auto;
          background: none;
          border: none;
          cursor: pointer;
-         padding: var(--space-4);
+         color: inherit;
+         font-size: var(--font-size-xl);
+         width: 2.25rem;
+         height: 2.25rem;
          display: flex;
          align-items: center;
          justify-content: center;
-         opacity: 0.7;
-         transition: opacity var(--transition-fast);
-
-         i {
-            font-size: var(--font-size-sm);
-            color: inherit;
-         }
+         border-radius: var(--radius-md);
+         transition: all var(--transition-base);
 
          &:hover {
-            opacity: 1;
+            background: var(--surface-neutral-low);
+            color: var(--text-primary);
          }
 
          &:focus {
             outline: var(--border-width-default) solid currentColor;
             outline-offset: var(--space-2);
-            border-radius: var(--radius-sm);
          }
       }
    }
@@ -364,16 +356,6 @@
    .notification-description {
       text-align: left;
       padding: var(--space-12) var(--space-16);
-   }
-
-   .notification-impact {
-      font-weight: var(--font-weight-semibold);
-      padding: var(--space-8) var(--space-16);
-      padding-bottom: var(--space-12);
-      margin-top: 0;
-      border-top: var(--border-width-thin) solid var(--border-neutral-subtle);
-      text-align: left;
-      width: 100%;
    }
 
    // Action buttons - inline variant

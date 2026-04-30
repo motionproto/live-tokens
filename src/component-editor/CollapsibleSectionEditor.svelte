@@ -1,22 +1,12 @@
 <script lang="ts">
   import CollapsibleSection from '../components/CollapsibleSection.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import SharedBlock from './scaffolding/SharedBlock.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
+  import { editorState } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'collapsiblesection';
   let demoExpanded = false;
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
-  type TypeGroupConfig = {
-    legend?: string;
-    colorVariable: string;
-    colorLabel?: string;
-    familyVariable?: string;
-    sizeVariable?: string;
-    weightVariable?: string;
-    lineHeightVariable?: string;
-  };
   const stateNames = ['default', 'hover', 'active'] as const;
   type StateName = typeof stateNames[number];
   function stateTokens(s: StateName): Token[] {
@@ -50,7 +40,6 @@
     { label: 'line height', canBeShared: true, groupKey: 'label-line-height', variable: `--collapsiblesection-${s}-label-line-height` },
   ]);
   const allTokens = [...Object.values(states).flat(), ...typeGroupTokens];
-  registerComponentSchema(component, allTokens);
 
   const shareableContexts = new Map<string, string>(stateNames.flatMap((s) => [
     [`--collapsiblesection-${s}-border-width`, s] as const,
@@ -65,33 +54,18 @@
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
 
-  let highlightedVars = new Set<string>();
-  function handleTokenHover(e: CustomEvent<{ variable: string | null }>) {
-    const v = e.detail.variable;
-    if (!v) {
-      highlightedVars = new Set();
-      return;
-    }
-    const group = shared.groups.find((g) => g.variables.includes(v));
-    highlightedVars = group ? new Set(group.variables) : new Set();
-  }
-
   $: visibleStates = Object.fromEntries(
     Object.entries(states).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
   ) as Record<string, Token[]>;
-  const allVariables = allTokens.map((t) => t.variable);
 </script>
 
-<ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Import from <code>components/CollapsibleSection.svelte</code>" resetVariables={allVariables}>
+<ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Import from <code>components/CollapsibleSection.svelte</code>" tokens={allTokens} {shared}>
   <VariantGroup
     name="collapsible"
     title="Collapsible Section"
     states={visibleStates}
     {typeGroups}
     {component}
-    {highlightedVars}
-    sharedOrder={shared.sharedOrder}
-    on:tokenhover={handleTokenHover}
     let:activeState
   >
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
@@ -113,7 +87,6 @@
       {/if}
     </div>
   </VariantGroup>
-  <SharedBlock {component} {shared} {highlightedVars} on:tokenhover={handleTokenHover} on:change />
 </ComponentEditorBase>
 
 <style>

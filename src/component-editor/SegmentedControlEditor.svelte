@@ -1,10 +1,10 @@
 <script lang="ts">
   import SegmentedControl from '../components/SegmentedControl.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import SharedBlock from './scaffolding/SharedBlock.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
+  import { editorState } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'segmentedcontrol';
   type Segment = { value: string; label: string; icon?: string; disabled?: boolean };
   const segments: Segment[] = [
@@ -14,20 +14,6 @@
   ];
   let showIcons = true;
   $: previewSegments = showIcons ? segments : segments.map((s) => ({ ...s, icon: undefined }));
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
-  type TypeGroupConfig = {
-    legend?: string;
-    colorVariable: string;
-    colorLabel?: string;
-    familyVariable?: string;
-    familyLabel?: string;
-    sizeVariable?: string;
-    sizeLabel?: string;
-    weightVariable?: string;
-    weightLabel?: string;
-    lineHeightVariable?: string;
-    lineHeightLabel?: string;
-  };
 
   // Non-text tokens per state. Text/font properties live in `typeGroups` below
   // and are rendered via TypeEditor instead of TokenLayout.
@@ -128,7 +114,6 @@
     { label: 'line height', canBeShared: true, groupKey: 'line-height', variable: '--segmentedcontrol-disabled-text-line-height' },
   ];
   const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
-  registerComponentSchema(component, allTokens);
 
   const shareableContexts = new Map<string, string>([
     ['--segmentedcontrol-bar-radius', 'control bar'],
@@ -156,39 +141,24 @@
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
 
-  let highlightedVars = new Set<string>();
-  function handleTokenHover(e: CustomEvent<{ variable: string | null }>) {
-    const v = e.detail.variable;
-    if (!v) {
-      highlightedVars = new Set();
-      return;
-    }
-    const group = shared.groups.find((g) => g.variables.includes(v));
-    highlightedVars = group ? new Set(group.variables) : new Set();
-  }
-
   $: visibleStates = Object.fromEntries(
     Object.entries(states).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
   ) as Record<string, Token[]>;
-  const allVariables = allTokens.map((t) => t.variable);
 </script>
 
-<ComponentEditorBase {component} title="Segmented Control" description="A connected set of buttons for toggling between mutually exclusive options." resetVariables={allVariables}>
-  <div class="preview-options">
-    <label class="preview-toggle">
+<ComponentEditorBase {component} title="Segmented Control" description="A connected set of buttons for toggling between mutually exclusive options." tokens={allTokens} {shared}>
+  <svelte:fragment slot="config">
+    <label>
       <input type="checkbox" bind:checked={showIcons} />
       <span>Show icons</span>
     </label>
-  </div>
+  </svelte:fragment>
   <VariantGroup
     name="segmentedcontrol"
     title="Segmented Control"
     states={visibleStates}
     {typeGroups}
     {component}
-    {highlightedVars}
-    sharedOrder={shared.sharedOrder}
-    on:tokenhover={handleTokenHover}
     let:activeState
   >
     {@const previewValue = activeState === 'selected option' ? 'option-2' : ''}
@@ -203,22 +173,5 @@
       />
     </div>
   </VariantGroup>
-  <SharedBlock {component} {shared} {highlightedVars} on:tokenhover={handleTokenHover} on:change />
 </ComponentEditorBase>
 
-<style>
-  .preview-options {
-    display: flex;
-    gap: var(--ui-space-12);
-    padding: 0 var(--ui-space-4) var(--ui-space-8);
-  }
-
-  .preview-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    font-size: var(--ui-font-size-sm);
-    color: var(--ui-text-secondary);
-    cursor: pointer;
-  }
-</style>

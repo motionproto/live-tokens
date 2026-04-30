@@ -1,12 +1,11 @@
 <script lang="ts">
   import InlineEditActions from '../components/InlineEditActions.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import SharedBlock from './scaffolding/SharedBlock.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
+  import { editorState } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import type { Token } from './scaffolding/types';
   const component = 'inlineeditactions';
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
 
   // Two objects (save button, cancel button), each with default/hover states.
   // Within each button, link shape props (border-width, radius, padding, icon-size) across states.
@@ -33,7 +32,6 @@
     };
   }
   const allTokens: Token[] = buttons.flatMap((b) => Object.values(buttonStates(b)).flat());
-  registerComponentSchema(component, allTokens);
 
   // Shared block surfaces shape props per button (linked across default/hover within same button).
   const shareableContexts = new Map<string, string>(buttons.flatMap((btn) => [
@@ -45,33 +43,18 @@
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
 
-  let highlightedVars = new Set<string>();
-  function handleTokenHover(e: CustomEvent<{ variable: string | null }>) {
-    const v = e.detail.variable;
-    if (!v) {
-      highlightedVars = new Set();
-      return;
-    }
-    const group = shared.groups.find((g) => g.variables.includes(v));
-    highlightedVars = group ? new Set(group.variables) : new Set();
-  }
-
   $: visibleStatesByButton = (btn: Button) => Object.fromEntries(
     Object.entries(buttonStates(btn)).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
   ) as Record<string, Token[]>;
-  const allVariables = allTokens.map((t) => t.variable);
 </script>
 
-<ComponentEditorBase {component} title="Inline Edit Actions" description="Confirm/cancel button pair for inline editing. Import from <code>components/InlineEditActions.svelte</code>" resetVariables={allVariables}>
+<ComponentEditorBase {component} title="Inline Edit Actions" description="Confirm/cancel button pair for inline editing. Import from <code>components/InlineEditActions.svelte</code>" tokens={allTokens} {shared}>
   {#each buttons as btn}
     <VariantGroup
       name={btn}
       title={btn === 'save' ? 'Save button' : 'Cancel button'}
       states={visibleStatesByButton(btn)}
       {component}
-      {highlightedVars}
-      sharedOrder={shared.sharedOrder}
-      on:tokenhover={handleTokenHover}
       let:activeState
     >
       {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
@@ -85,7 +68,6 @@
       </div>
     </VariantGroup>
   {/each}
-  <SharedBlock {component} {shared} {highlightedVars} on:tokenhover={handleTokenHover} on:change />
 </ComponentEditorBase>
 
 <style>

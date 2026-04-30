@@ -1,21 +1,12 @@
 <script lang="ts">
   import ProgressBar from '../components/ProgressBar.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import SharedBlock from './scaffolding/SharedBlock.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
+  import { editorState } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import { buildSiblings } from './scaffolding/siblings';
+  import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'progressbar';
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
-  type TypeGroupConfig = {
-    legend?: string;
-    colorVariable: string;
-    colorLabel?: string;
-    familyVariable?: string;
-    sizeVariable?: string;
-    weightVariable?: string;
-    lineHeightVariable?: string;
-  };
   const variants = ['primary', 'success', 'warning', 'danger', 'info'] as const;
   type Variant = typeof variants[number];
 
@@ -65,7 +56,6 @@
     ];
   }
   const allTokens: Token[] = variants.flatMap((v) => [...variantTokens(v), ...variantTypeGroupTokens(v)]);
-  registerComponentSchema(component, allTokens);
 
   // Cross-variant shared block surfaces shape and font props that may be linked.
   const shareableContexts = new Map<string, string>(variants.flatMap((v) => [
@@ -83,34 +73,10 @@
   ]));
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
-
-  let highlightedVars = new Set<string>();
-  function handleTokenHover(e: CustomEvent<{ variable: string | null }>) {
-    const v = e.detail.variable;
-    if (!v) {
-      highlightedVars = new Set();
-      return;
-    }
-    const group = shared.groups.find((g) => g.variables.includes(v));
-    highlightedVars = group ? new Set(group.variables) : new Set();
-  }
-
   $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
-  const allVariables = allTokens.map((t) => t.variable);
-
-  function siblingsFor(toVariant: Variant) {
-    return variants
-      .filter((v) => v !== toVariant)
-      .map((v) => ({
-        name: v,
-        label: v.charAt(0).toUpperCase() + v.slice(1),
-        states: { [v]: variantTokens(v) },
-        typeGroups: { [v]: variantTypeGroups(v) },
-      }));
-  }
 </script>
 
-<ComponentEditorBase {component} title="Progress Bar" description="Animated progress bar with variants. Import from <code>components/ProgressBar.svelte</code>" resetVariables={allVariables}>
+<ComponentEditorBase {component} title="Progress Bar" description="Animated progress bar with variants. Import from <code>components/ProgressBar.svelte</code>" tokens={allTokens} {shared}>
   {#each variants as v}
     <VariantGroup
       name={v}
@@ -118,10 +84,7 @@
       states={{ [v]: visibleVariantTokens(v) }}
       typeGroups={{ [v]: variantTypeGroups(v) }}
       {component}
-      {highlightedVars}
-      sharedOrder={shared.sharedOrder}
-      siblings={siblingsFor(v)}
-      on:tokenhover={handleTokenHover}
+      siblings={buildSiblings(variants, v, variantTokens, variantTypeGroups)}
     >
       <div class="progress-demo-stack">
         {#if v === 'primary'}
@@ -139,7 +102,6 @@
       </div>
     </VariantGroup>
   {/each}
-  <SharedBlock {component} {shared} {highlightedVars} on:tokenhover={handleTokenHover} on:change />
 </ComponentEditorBase>
 
 <style>

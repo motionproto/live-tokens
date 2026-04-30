@@ -1,23 +1,12 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import { writable } from 'svelte/store';
   import TokenLayout from './TokenLayout.svelte';
   import TypeEditor from './TypeEditor.svelte';
   import { mutate } from '../../lib/editorStore';
-
-  type Token = { label: string; variable: string };
-  type TypeGroupConfig = {
-    legend?: string;
-    colorVariable: string;
-    colorLabel?: string;
-    familyVariable?: string;
-    familyLabel?: string;
-    sizeVariable?: string;
-    sizeLabel?: string;
-    weightVariable?: string;
-    weightLabel?: string;
-    lineHeightVariable?: string;
-    lineHeightLabel?: string;
-  };
+  import { getEditorContext } from './editorContext';
+  import type { Token, TypeGroupConfig } from './types';
+  import type { Sibling } from './siblings';
 
   export let name: string;
   export let title: string;
@@ -27,19 +16,16 @@
   export let typeGroups: Record<string, TypeGroupConfig[]> = {};
   /** When set, overrides are read from and cleared through the editor store. */
   export let component: string | undefined = undefined;
-  /** Variables to flash when a sibling-shared token is hovered elsewhere. */
-  export let highlightedVars: Set<string> | undefined = undefined;
-  /** Per-variable rank used by TokenLayout to align shared tokens with the shared block above. */
-  export let sharedOrder: Map<string, number> | undefined = undefined;
   /** Sibling variants of this component (excludes self). When non-empty,
       a "Copy from" menu is rendered in each state header that lets the user
       pull token values from a sibling's same-state into the current state. */
-  export let siblings: Array<{
-    name: string;
-    label: string;
-    states: Record<string, Token[]>;
-    typeGroups?: Record<string, TypeGroupConfig[]>;
-  }> = [];
+  export let siblings: Sibling[] = [];
+
+  const editorCtx = getEditorContext();
+  const highlightsStore = editorCtx?.highlightedVars ?? writable<Set<string>>(new Set());
+  const sharedOrderStore = editorCtx?.sharedOrder ?? writable<Map<string, number> | null>(null);
+  $: highlightedVars = $highlightsStore;
+  $: sharedOrder = $sharedOrderStore ?? undefined;
 
   let variantExpanded = true;
   let stateExpanded: Record<string, boolean> = {};
@@ -263,7 +249,7 @@
                 {component}
                 highlightedVars={highlightedVars ?? new Set()}
                 {sharedOrder}
-                on:tokenhover
+                on:tokenhover={(e) => editorCtx?.setHovered(e.detail.variable)}
                 on:change
               />
             </div>

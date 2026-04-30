@@ -2,10 +2,10 @@
   import Button from '../components/Button.svelte';
   import Toggle from '../components/Toggle.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import SharedBlock from './scaffolding/SharedBlock.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, setComponentAlias, registerComponentSchema } from '../lib/editorStore';
+  import { editorState, setComponentAlias } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'button';
 
   $: shimmerEnabled = $editorState.components.button?.aliases['--button-shimmer'] !== '--shimmer-off';
@@ -13,16 +13,6 @@
   function handleShimmerChange(e: CustomEvent<boolean>) {
     setComponentAlias('button', '--button-shimmer', e.detail ? '--shimmer-on' : '--shimmer-off');
   }
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
-  type TypeGroupConfig = {
-    legend?: string;
-    colorVariable: string;
-    colorLabel?: string;
-    familyVariable?: string;
-    sizeVariable?: string;
-    weightVariable?: string;
-    lineHeightVariable?: string;
-  };
   const variants = ['primary', 'secondary', 'outline', 'success', 'danger', 'warning'] as const;
   type Variant = typeof variants[number];
   const stateNames = ['default', 'hover', 'disabled'] as const;
@@ -79,7 +69,6 @@
     ...Object.values(variantStates(v)).flat(),
     ...variantTypeGroupTokens(v),
   ]);
-  registerComponentSchema(component, allTokens);
 
   // Shared block:
   //   - per-variant shape props (border-width, radius, padding) link across default/hover/disabled.
@@ -100,21 +89,9 @@
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
 
-  let highlightedVars = new Set<string>();
-  function handleTokenHover(e: CustomEvent<{ variable: string | null }>) {
-    const v = e.detail.variable;
-    if (!v) {
-      highlightedVars = new Set();
-      return;
-    }
-    const group = shared.groups.find((g) => g.variables.includes(v));
-    highlightedVars = group ? new Set(group.variables) : new Set();
-  }
-
   $: visibleVariantStates = (v: Variant) => Object.fromEntries(
     Object.entries(variantStates(v)).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
   ) as Record<string, Token[]>;
-  const allVariables = allTokens.map((t) => t.variable);
 
   function siblingsFor(toVariant: Variant) {
     return variants
@@ -128,13 +105,13 @@
   }
 </script>
 
-<ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" resetVariables={allVariables}>
-  <div class="preview-options">
-    <label class="preview-toggle">
+<ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" tokens={allTokens} {shared}>
+  <svelte:fragment slot="config">
+    <label>
       <span>Hover shimmer</span>
       <Toggle checked={shimmerEnabled} on:change={handleShimmerChange} />
     </label>
-  </div>
+  </svelte:fragment>
   {#each variants as v}
     <VariantGroup
       name={v}
@@ -142,10 +119,7 @@
       states={visibleVariantStates(v)}
       typeGroups={variantTypeGroups(v)}
       {component}
-      {highlightedVars}
-      sharedOrder={shared.sharedOrder}
       siblings={siblingsFor(v)}
-      on:tokenhover={handleTokenHover}
       let:activeState
     >
       {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
@@ -177,25 +151,9 @@
       </div>
     </VariantGroup>
   {/each}
-  <SharedBlock {component} {shared} {highlightedVars} on:tokenhover={handleTokenHover} on:change />
 </ComponentEditorBase>
 
 <style>
-  .preview-options {
-    display: flex;
-    gap: var(--ui-space-12);
-    padding: 0 var(--ui-space-4) var(--ui-space-8);
-  }
-
-  .preview-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-    font-size: var(--ui-font-size-sm);
-    color: var(--ui-text-secondary);
-    cursor: pointer;
-  }
-
   .size-row {
     display: flex;
     gap: var(--space-12);

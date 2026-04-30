@@ -3,18 +3,8 @@
   import Tooltip from '../components/Tooltip.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { registerComponentSchema } from '../lib/editorStore';
+  import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'tooltip';
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
-  type TypeGroupConfig = {
-    legend?: string;
-    colorVariable: string;
-    colorLabel?: string;
-    familyVariable?: string;
-    sizeVariable?: string;
-    weightVariable?: string;
-    lineHeightVariable?: string;
-  };
 
   // Tooltip is a single object — surface/border/padding/radius/shadow live together.
   const states: Record<string, Token[]> = {
@@ -44,14 +34,10 @@
     { label: 'font weight', variable: '--tooltip-text-font-weight' },
     { label: 'line height', variable: '--tooltip-text-line-height' },
   ];
-  registerComponentSchema(component, [...Object.values(states).flat(), ...typeGroupTokens]);
-  const allVariables = [
-    ...Object.values(states).flatMap((list) => list.map((t) => t.variable)),
-    ...typeGroupTokens.map((t) => t.variable),
-  ];
+  const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
 </script>
 
-<ComponentEditorBase {component} title="Tooltip" description="Hover tooltip with configurable position. Import from <code>components/Tooltip.svelte</code>" resetVariables={allVariables}>
+<ComponentEditorBase {component} title="Tooltip" description="Hover tooltip with configurable position. Import from <code>components/Tooltip.svelte</code>" tokens={allTokens}>
   <VariantGroup
     name="tooltip"
     title="Tooltip"

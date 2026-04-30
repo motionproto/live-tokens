@@ -1,21 +1,11 @@
 <script lang="ts">
   import Card from '../components/Card.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import SharedBlock from './scaffolding/SharedBlock.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
+  import { editorState } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'card';
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
-  type TypeGroupConfig = {
-    legend?: string;
-    colorVariable: string;
-    colorLabel?: string;
-    familyVariable?: string;
-    sizeVariable?: string;
-    weightVariable?: string;
-    lineHeightVariable?: string;
-  };
 
   // The card is a single object across two states (default, hover).
   // Within each state we keep object shape props (surface/border/border-width/radius/padding/shadow) together.
@@ -98,8 +88,6 @@
     { label: 'line height', canBeShared: true, groupKey: 'card-body-line-height', variable: '--card-default-body-line-height' },
     { label: 'line height', canBeShared: true, groupKey: 'card-body-line-height', variable: '--card-hover-body-line-height' },
   ];
-  registerComponentSchema(component, [...Object.values(states).flat(), ...typeGroupTokens]);
-
   // Cross-state shared block — present each linkable property from the default state.
   const shareableContexts = new Map<string, string>([
     ['--card-default-border-width', 'card'],
@@ -119,44 +107,26 @@
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
 
-  let highlightedVars = new Set<string>();
-  function handleTokenHover(e: CustomEvent<{ variable: string | null }>) {
-    const v = e.detail.variable;
-    if (!v) {
-      highlightedVars = new Set();
-      return;
-    }
-    const group = shared.groups.find((g) => g.variables.includes(v));
-    highlightedVars = group ? new Set(group.variables) : new Set();
-  }
-
   $: visibleStates = Object.fromEntries(
     Object.entries(states).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
   ) as Record<string, Token[]>;
-  const allVariables = [
-    ...Object.values(states).flatMap((list) => list.map((t) => t.variable)),
-    ...typeGroupTokens.map((t) => t.variable),
-  ];
 
   let hoverEnabled = true;
 </script>
 
-<ComponentEditorBase {component} title="Card" description="Generic card with icon, title, and slotted body. Import from <code>components/Card.svelte</code>" resetVariables={allVariables}>
-  <div class="preview-options">
-    <label class="preview-toggle">
+<ComponentEditorBase {component} title="Card" description="Generic card with icon, title, and slotted body. Import from <code>components/Card.svelte</code>" tokens={allTokens} {shared}>
+  <svelte:fragment slot="config">
+    <label>
       <input type="checkbox" bind:checked={hoverEnabled} />
       <span>Hover events</span>
     </label>
-  </div>
+  </svelte:fragment>
   <VariantGroup
     name="card"
     title="Card"
     states={visibleStates}
     {typeGroups}
     {component}
-    {highlightedVars}
-    sharedOrder={shared.sharedOrder}
-    on:tokenhover={handleTokenHover}
     let:activeState
   >
     {@const previewClass = activeState === 'hover' ? 'force-hover' : (hoverEnabled ? '' : 'no-hover')}
@@ -166,26 +136,10 @@
       </Card>
     </div>
   </VariantGroup>
-  <SharedBlock {component} {shared} {highlightedVars} on:tokenhover={handleTokenHover} on:change />
 </ComponentEditorBase>
 
 <style>
   .card-demo {
     max-width: 28rem;
-  }
-
-  .preview-options {
-    display: flex;
-    gap: var(--ui-space-12);
-    padding: 0 var(--ui-space-4) var(--ui-space-8);
-  }
-
-  .preview-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    font-size: var(--ui-font-size-sm);
-    color: var(--ui-text-secondary);
-    cursor: pointer;
   }
 </style>

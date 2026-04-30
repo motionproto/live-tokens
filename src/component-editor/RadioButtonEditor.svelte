@@ -1,22 +1,12 @@
 <script lang="ts">
   import RadioButton from '../components/RadioButton.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import SharedBlock from './scaffolding/SharedBlock.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
+  import { editorState } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'radiobutton';
   let selectedRadio = 'option-b';
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
-  type TypeGroupConfig = {
-    legend?: string;
-    colorVariable: string;
-    colorLabel?: string;
-    familyVariable?: string;
-    sizeVariable?: string;
-    weightVariable?: string;
-    lineHeightVariable?: string;
-  };
 
   // Two objects per state: button (surface, border-width on dot, radius, padding) and the dot.
   // Plus label typography.
@@ -76,8 +66,6 @@
     { label: 'font weight', canBeShared: true, groupKey: 'label-font-weight', variable: `--radiobutton-${s}-label-font-weight` },
     { label: 'line height', canBeShared: true, groupKey: 'label-line-height', variable: `--radiobutton-${s}-label-line-height` },
   ]);
-  registerComponentSchema(component, [...Object.values(states).flat(), ...typeGroupTokens]);
-
   const shareableContexts = new Map<string, string>([
     ['--radiobutton-default-dot-border-width', 'default'],
     ['--radiobutton-hover-dot-border-width', 'hover'],
@@ -105,36 +93,18 @@
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
 
-  let highlightedVars = new Set<string>();
-  function handleTokenHover(e: CustomEvent<{ variable: string | null }>) {
-    const v = e.detail.variable;
-    if (!v) {
-      highlightedVars = new Set();
-      return;
-    }
-    const group = shared.groups.find((g) => g.variables.includes(v));
-    highlightedVars = group ? new Set(group.variables) : new Set();
-  }
-
   $: visibleStates = Object.fromEntries(
     Object.entries(states).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
   ) as Record<string, Token[]>;
-  const allVariables = [
-    ...Object.values(states).flatMap((list) => list.map((t) => t.variable)),
-    ...typeGroupTokens.map((t) => t.variable),
-  ];
 </script>
 
-<ComponentEditorBase {component} title="Radio Button" description="Styled radio buttons with icon and color support. Import from <code>components/RadioButton.svelte</code>" resetVariables={allVariables}>
+<ComponentEditorBase {component} title="Radio Button" description="Styled radio buttons with icon and color support. Import from <code>components/RadioButton.svelte</code>" tokens={allTokens} {shared}>
   <VariantGroup
     name="radio"
     title="Radio Button"
     states={visibleStates}
     {typeGroups}
     {component}
-    {highlightedVars}
-    sharedOrder={shared.sharedOrder}
-    on:tokenhover={handleTokenHover}
     let:activeState
   >
     {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
@@ -166,7 +136,6 @@
       />
     </div>
   </VariantGroup>
-  <SharedBlock {component} {shared} {highlightedVars} on:tokenhover={handleTokenHover} on:change />
 </ComponentEditorBase>
 
 <style>

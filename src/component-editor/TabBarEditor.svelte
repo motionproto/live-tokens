@@ -1,10 +1,10 @@
 <script lang="ts">
   import TabBar from '../components/TabBar.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import SharedBlock from './scaffolding/SharedBlock.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
+  import { editorState } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'tabbar';
   let selectedDemoTab = 'overview';
   const demoTabs = [
@@ -13,16 +13,6 @@
     { id: 'settings', label: 'Settings', icon: 'fas fa-cog' },
     { id: 'disabled', label: 'Disabled', icon: 'fas fa-ban', disabled: true },
   ];
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
-  type TypeGroupConfig = {
-    legend?: string;
-    colorVariable: string;
-    colorLabel?: string;
-    familyVariable?: string;
-    sizeVariable?: string;
-    weightVariable?: string;
-    lineHeightVariable?: string;
-  };
 
   // The "bar" object — single state, holds container-level tokens.
   const barStates: Record<string, Token[]> = {
@@ -72,7 +62,6 @@
     { label: 'line height', canBeShared: true, groupKey: 'tab-line-height', variable: `--tabbar-${s}-text-line-height` },
   ]);
   const allTokens: Token[] = [...Object.values(barStates).flat(), ...Object.values(tabStates).flat(), ...tabTypeGroupTokens];
-  registerComponentSchema(component, allTokens);
 
   // Linking: shape props across tab states (same tab object).
   const shareableContexts = new Map<string, string>(tabStateNames.flatMap((s) => [
@@ -87,24 +76,12 @@
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
 
-  let highlightedVars = new Set<string>();
-  function handleTokenHover(e: CustomEvent<{ variable: string | null }>) {
-    const v = e.detail.variable;
-    if (!v) {
-      highlightedVars = new Set();
-      return;
-    }
-    const group = shared.groups.find((g) => g.variables.includes(v));
-    highlightedVars = group ? new Set(group.variables) : new Set();
-  }
-
   $: visibleTabStates = Object.fromEntries(
     Object.entries(tabStates).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
   ) as Record<string, Token[]>;
-  const allVariables = allTokens.map((t) => t.variable);
 </script>
 
-<ComponentEditorBase {component} title="Tab Bar" description="Tab navigation with icon support and disabled state. Import from <code>components/TabBar.svelte</code>" resetVariables={allVariables}>
+<ComponentEditorBase {component} title="Tab Bar" description="Tab navigation with icon support and disabled state. Import from <code>components/TabBar.svelte</code>" tokens={allTokens} {shared}>
   <VariantGroup name="bar" title="Bar" states={barStates} {component}>
     <TabBar tabs={demoTabs} selectedTab={selectedDemoTab} on:tabChange={(e) => (selectedDemoTab = e.detail)} />
   </VariantGroup>
@@ -115,9 +92,6 @@
     states={visibleTabStates}
     typeGroups={tabTypeGroups}
     {component}
-    {highlightedVars}
-    sharedOrder={shared.sharedOrder}
-    on:tokenhover={handleTokenHover}
     let:activeState
   >
     {@const forceClass = activeState === 'hover tab' ? 'force-hover' : ''}
@@ -132,7 +106,6 @@
       {/if}
     </div>
   </VariantGroup>
-  <SharedBlock {component} {shared} {highlightedVars} on:tokenhover={handleTokenHover} on:change />
 </ComponentEditorBase>
 
 <style>
