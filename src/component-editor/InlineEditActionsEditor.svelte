@@ -1,8 +1,7 @@
 <script lang="ts">
   import InlineEditActions from '../components/InlineEditActions.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import FieldsetWrapper from './scaffolding/FieldsetWrapper.svelte';
-  import TokenLayout from './scaffolding/TokenLayout.svelte';
+  import SharedBlock from './scaffolding/SharedBlock.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState, registerComponentSchema } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
@@ -64,20 +63,6 @@
 </script>
 
 <ComponentEditorBase {component} title="Inline Edit Actions" description="Confirm/cancel button pair for inline editing. Import from <code>components/InlineEditActions.svelte</code>" resetVariables={allVariables}>
-  {#if shared.groups.length > 0}
-    <FieldsetWrapper legend="shared">
-      <TokenLayout
-        tokens={shared.groups.map((g) => ({ ...g.token, disabled: !g.shared }))}
-        {component}
-        contexts={shared.contextsByVar}
-        {highlightedVars}
-        sharedOrder={shared.sharedOrder}
-        isSharedBlock
-        on:tokenhover={handleTokenHover}
-        on:change
-      />
-    </FieldsetWrapper>
-  {/if}
   {#each buttons as btn}
     <VariantGroup
       name={btn}
@@ -100,6 +85,7 @@
       </div>
     </VariantGroup>
   {/each}
+  <SharedBlock {component} {shared} {highlightedVars} on:tokenhover={handleTokenHover} on:change />
 </ComponentEditorBase>
 
 <style>

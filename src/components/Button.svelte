@@ -10,6 +10,7 @@
    export let icon: string | undefined = undefined;
    export let iconPosition: 'left' | 'right' = 'left';
    export let fullWidth: boolean = false;
+   export let buttonRef: HTMLButtonElement | undefined = undefined;
    let className: string = '';
    export { className as class };
 
@@ -23,6 +24,7 @@
 </script>
 
 <button
+   bind:this={buttonRef}
    {type}
    class="button {variant} {className}"
    class:small={size === 'small'}

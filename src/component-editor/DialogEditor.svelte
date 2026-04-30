@@ -1,14 +1,9 @@
 <script lang="ts">
-  import Button from '../components/Button.svelte';
   import Dialog from '../components/Dialog.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import FieldsetWrapper from './scaffolding/FieldsetWrapper.svelte';
-  import TokenLayout from './scaffolding/TokenLayout.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import { editorState, registerComponentSchema, setComponentAlias } from '../lib/editorStore';
   const component = 'dialog';
-  let showDialog = false;
   type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
   type TypeGroupConfig = {
     legend?: string;
@@ -20,7 +15,29 @@
     lineHeightVariable?: string;
   };
 
+  const BUTTON_VARIANTS = ['primary', 'secondary', 'outline', 'success', 'danger', 'warning'] as const;
+  type ButtonVariant = typeof BUTTON_VARIANTS[number];
+
+  const CONFIRM_VAR = '--dialog-confirm-variant';
+  const CANCEL_VAR = '--dialog-cancel-variant';
+  const DEFAULT_CONFIRM: ButtonVariant = 'primary';
+  const DEFAULT_CANCEL: ButtonVariant = 'outline';
+
+  $: aliases = $editorState.components.dialog?.aliases ?? {};
+  $: confirmVariant = (BUTTON_VARIANTS.includes(aliases[CONFIRM_VAR] as ButtonVariant) ? aliases[CONFIRM_VAR] : DEFAULT_CONFIRM) as ButtonVariant;
+  $: cancelVariant = (BUTTON_VARIANTS.includes(aliases[CANCEL_VAR] as ButtonVariant) ? aliases[CANCEL_VAR] : DEFAULT_CANCEL) as ButtonVariant;
+
+  function setConfirmVariant(e: Event) {
+    const v = (e.target as HTMLSelectElement).value;
+    setComponentAlias(component, CONFIRM_VAR, v);
+  }
+  function setCancelVariant(e: Event) {
+    const v = (e.target as HTMLSelectElement).value;
+    setComponentAlias(component, CANCEL_VAR, v);
+  }
+
   // Frame-level tokens (the dialog box itself + overlay + header + body + footer + close icon).
+  // Button styling lives in Button.svelte — the dialog only owns its own chrome.
   const frameStates: Record<string, Token[]> = {
     overlay: [
       { label: 'backdrop color', variable: '--dialog-overlay-surface' },
@@ -67,104 +84,73 @@
     { label: 'line height', variable: '--dialog-title-line-height' },
   ];
 
-  // Buttons (primary, secondary) — each with default + hover. Same-button cross-state linking.
-  const btnObjects = ['primary', 'secondary'] as const;
-  type Btn = typeof btnObjects[number];
-  const btnStateNames = ['default', 'hover'] as const;
-  type BtnState = typeof btnStateNames[number];
-  function btnTokens(b: Btn, s: BtnState): Token[] {
-    return [
-      { label: 'surface color', variable: `--dialog-${b}-${s}-surface` },
-      { label: 'text color', variable: `--dialog-${b}-${s}-text` },
-      { label: 'border color', variable: `--dialog-${b}-${s}-border` },
-      { label: 'border width', canBeShared: true, groupKey: `${b}-border-width`, variable: `--dialog-${b}-${s}-border-width` },
-      { label: 'radius', canBeShared: true, groupKey: `${b}-radius`, variable: `--dialog-${b}-${s}-radius` },
-      { label: 'padding', canBeShared: true, groupKey: `${b}-padding`, variable: `--dialog-${b}-${s}-padding` },
-    ];
-  }
-
-  function btnStates(b: Btn): Record<string, Token[]> {
-    return {
-      default: btnTokens(b, 'default'),
-      hover: btnTokens(b, 'hover'),
-    };
-  }
   const allTokens: Token[] = [
     ...Object.values(frameStates).flat(),
     ...frameTypeGroupTokens,
-    ...btnObjects.flatMap((b) => Object.values(btnStates(b)).flat()),
   ];
   registerComponentSchema(component, allTokens);
 
-  const shareableContexts = new Map<string, string>(btnObjects.flatMap((b) => [
-    [`--dialog-${b}-default-border-width`, `${b} button`] as const,
-    [`--dialog-${b}-default-radius`, `${b} button`] as const,
-    [`--dialog-${b}-default-padding`, `${b} button`] as const,
-  ]));
-
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
-
-  let highlightedVars = new Set<string>();
-  function handleTokenHover(e: CustomEvent<{ variable: string | null }>) {
-    const v = e.detail.variable;
-    if (!v) {
-      highlightedVars = new Set();
-      return;
-    }
-    const group = shared.groups.find((g) => g.variables.includes(v));
-    highlightedVars = group ? new Set(group.variables) : new Set();
-  }
-
-  $: visibleBtnStates = (b: Btn) => Object.fromEntries(
-    Object.entries(btnStates(b)).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
-  ) as Record<string, Token[]>;
   const allVariables = allTokens.map((t) => t.variable);
+
+  function variantLabel(v: ButtonVariant): string {
+    return v.charAt(0).toUpperCase() + v.slice(1);
+  }
 </script>
 
 <ComponentEditorBase {component} title="Dialog" description="Modal dialog with focus management and slide-in animation. Import from <code>components/Dialog.svelte</code>" resetVariables={allVariables}>
-  {#if shared.groups.length > 0}
-    <FieldsetWrapper legend="shared">
-      <TokenLayout
-        tokens={shared.groups.map((g) => ({ ...g.token, disabled: !g.shared }))}
-        {component}
-        contexts={shared.contextsByVar}
-        {highlightedVars}
-        sharedOrder={shared.sharedOrder}
-        isSharedBlock
-        on:tokenhover={handleTokenHover}
-        on:change
-      />
-    </FieldsetWrapper>
-  {/if}
-
-  <VariantGroup name="dialog" title="Dialog" states={frameStates} typeGroups={frameTypeGroups} {component}>
-    <Button variant="secondary" icon="fas fa-external-link-alt" on:click={() => showDialog = true}>
-      Open Dialog
-    </Button>
-
+  <div class="dialog-preview">
     <Dialog
-      bind:show={showDialog}
+      show
+      inline
       title="Sample Dialog"
       confirmLabel="Save"
       cancelLabel="Cancel"
-      on:confirm={() => showDialog = false}
     >
       <p style="color: var(--text-secondary); margin: 0;">This is the dialog body content. It supports any slotted content including forms, lists, or other components.</p>
     </Dialog>
-  </VariantGroup>
-  {#each btnObjects as b}
-    <VariantGroup
-      name={b}
-      title={b === 'primary' ? 'Primary button' : 'Secondary button'}
-      states={visibleBtnStates(b)}
-      {component}
-      {highlightedVars}
-      sharedOrder={shared.sharedOrder}
-      on:tokenhover={handleTokenHover}
-    >
-      <Button variant="secondary" icon="fas fa-external-link-alt" on:click={() => showDialog = true}>
-        Open Dialog (preview {b} button)
-      </Button>
-    </VariantGroup>
-  {/each}
+  </div>
+  <div class="preview-options">
+    <label class="preview-select">
+      <span>Cancel button (left)</span>
+      <select class="form-select" value={cancelVariant} on:change={setCancelVariant}>
+        {#each BUTTON_VARIANTS as v}
+          <option value={v}>{variantLabel(v)}</option>
+        {/each}
+      </select>
+    </label>
+    <label class="preview-select">
+      <span>Confirm button (right)</span>
+      <select class="form-select" value={confirmVariant} on:change={setConfirmVariant}>
+        {#each BUTTON_VARIANTS as v}
+          <option value={v}>{variantLabel(v)}</option>
+        {/each}
+      </select>
+    </label>
+  </div>
+  <VariantGroup name="dialog" title="Dialog" states={frameStates} typeGroups={frameTypeGroups} {component} />
 </ComponentEditorBase>
+
+<style>
+  .dialog-preview {
+    margin-bottom: var(--ui-space-12);
+  }
+
+  .preview-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ui-space-16);
+    padding: 0 var(--ui-space-4) var(--ui-space-12);
+  }
+
+  .preview-select {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+  }
+
+  .preview-select select {
+    font-size: var(--ui-font-size-sm);
+  }
+</style>

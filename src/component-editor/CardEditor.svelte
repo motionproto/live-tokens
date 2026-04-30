@@ -1,8 +1,7 @@
 <script lang="ts">
   import Card from '../components/Card.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import FieldsetWrapper from './scaffolding/FieldsetWrapper.svelte';
-  import TokenLayout from './scaffolding/TokenLayout.svelte';
+  import SharedBlock from './scaffolding/SharedBlock.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState, registerComponentSchema } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
@@ -141,21 +140,6 @@
 </script>
 
 <ComponentEditorBase {component} title="Card" description="Generic card with icon, title, and slotted body. Import from <code>components/Card.svelte</code>" resetVariables={allVariables}>
-  {#if shared.groups.length > 0}
-    <FieldsetWrapper legend="shared">
-      <TokenLayout
-        tokens={shared.groups.map((g) => ({ ...g.token, disabled: !g.shared }))}
-        {component}
-        contexts={shared.contextsByVar}
-        {highlightedVars}
-        sharedOrder={shared.sharedOrder}
-        isSharedBlock
-        on:tokenhover={handleTokenHover}
-        on:change
-      />
-    </FieldsetWrapper>
-  {/if}
-
   <VariantGroup
     name="card"
     title="Card"
@@ -183,6 +167,7 @@
       </Card>
     </div>
   </VariantGroup>
+  <SharedBlock {component} {shared} {highlightedVars} on:tokenhover={handleTokenHover} on:change />
 </ComponentEditorBase>
 
 <style>

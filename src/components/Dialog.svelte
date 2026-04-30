@@ -1,5 +1,13 @@
 <script lang="ts">
   import { createEventDispatcher, tick } from 'svelte';
+  import Button from './Button.svelte';
+  import { editorState } from '../lib/editorStore';
+
+  type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'success' | 'danger' | 'warning';
+  const BUTTON_VARIANTS: readonly ButtonVariant[] = ['primary', 'secondary', 'outline', 'success', 'danger', 'warning'];
+  function asVariant(v: string | undefined, fallback: ButtonVariant): ButtonVariant {
+    return v && (BUTTON_VARIANTS as readonly string[]).includes(v) ? (v as ButtonVariant) : fallback;
+  }
 
   export let show: boolean = false;
   export let title: string = '';
@@ -9,6 +17,16 @@
   export let showCancel: boolean = true;
   export let confirmDisabled: boolean = false;
   export let width: string = '500px';
+  /** Override the configured confirm-button variant. Falls back to --dialog-confirm-variant, then 'primary'. */
+  export let confirmVariant: ButtonVariant | undefined = undefined;
+  /** Override the configured cancel-button variant. Falls back to --dialog-cancel-variant, then 'outline'. */
+  export let cancelVariant: ButtonVariant | undefined = undefined;
+  /** When true, the dialog renders inline within its parent rather than as a fixed-position overlay. Used by the editor preview. */
+  export let inline: boolean = false;
+
+  $: configuredAliases = $editorState.components.dialog?.aliases ?? {};
+  $: effectiveConfirmVariant = confirmVariant ?? asVariant(configuredAliases['--dialog-confirm-variant'], 'primary');
+  $: effectiveCancelVariant = cancelVariant ?? asVariant(configuredAliases['--dialog-cancel-variant'], 'outline');
 
   // Optional callbacks for parent dialogs to control behavior
   export let onConfirm: (() => void) | undefined = undefined;
@@ -20,15 +38,13 @@
     close: void;
   }>();
 
-  // Reference to the primary (confirm) button for focus management
   let confirmButtonRef: HTMLButtonElement;
   let cancelButtonRef: HTMLButtonElement;
   let closeButtonRef: HTMLButtonElement;
 
-  // Focus the primary button when dialog opens
-  $: if (show) {
+  // Focus the primary button when dialog opens (skip in inline mode so the editor doesn't steal focus).
+  $: if (show && !inline) {
     tick().then(() => {
-      // Focus the primary (confirm) button first, then fall back to cancel, then close
       if (showConfirm && confirmButtonRef && !confirmDisabled) {
         confirmButtonRef.focus();
       } else if (showCancel && cancelButtonRef) {
@@ -42,10 +58,8 @@
   function handleConfirm() {
     if (!confirmDisabled) {
       if (onConfirm) {
-        // Parent dialog controls the flow
         onConfirm();
       } else {
-        // Default behavior for backward compatibility
         dispatch('confirm');
       }
     }
@@ -53,22 +67,17 @@
 
   function handleCancel() {
     if (onCancel) {
-      // Parent dialog controls the flow
       onCancel();
     } else {
-      // Default behavior for backward compatibility
       dispatch('cancel');
       dispatch('close');
       show = false;
     }
   }
-
-  // No implicit keyboard or backdrop close handlers
-  // Dialog only closes via explicit button clicks (X, Cancel, or Confirm)
 </script>
 
 {#if show}
-  <div class="dialog-backdrop">
+  <div class="dialog-backdrop" class:inline>
     <div class="dialog" style="width: {width}; max-width: {width};">
       <div class="dialog-content">
         {#if title}
@@ -97,25 +106,23 @@
             </div>
             <div class="dialog-footer-buttons">
               {#if showCancel}
-                <button
-                  bind:this={cancelButtonRef}
-                  class="dialog-button dialog-button-secondary"
+                <Button
+                  variant={effectiveCancelVariant}
                   on:click={handleCancel}
-                  tabindex="0"
+                  bind:buttonRef={cancelButtonRef}
                 >
                   {cancelLabel}
-                </button>
+                </Button>
               {/if}
               {#if showConfirm}
-                <button
-                  bind:this={confirmButtonRef}
-                  class="dialog-button dialog-button-primary"
-                  on:click={handleConfirm}
+                <Button
+                  variant={effectiveConfirmVariant}
                   disabled={confirmDisabled}
-                  tabindex="0"
+                  on:click={handleConfirm}
+                  bind:buttonRef={confirmButtonRef}
                 >
                   {confirmLabel}
-                </button>
+                </Button>
               {/if}
             </div>
           </div>
@@ -161,34 +168,6 @@
     --dialog-footer-border: var(--border-neutral-subtle);
     --dialog-footer-border-width: var(--border-width-thin);
     --dialog-footer-padding: var(--space-16);
-
-    /* Primary button */
-    --dialog-primary-default-surface: var(--surface-neutral-high);
-    --dialog-primary-default-text: var(--text-primary);
-    --dialog-primary-default-border: var(--border-neutral-medium);
-    --dialog-primary-default-border-width: var(--border-width-thin);
-    --dialog-primary-default-radius: var(--radius-md);
-    --dialog-primary-default-padding: var(--space-8);
-    --dialog-primary-hover-surface: var(--surface-neutral-higher);
-    --dialog-primary-hover-text: var(--text-primary);
-    --dialog-primary-hover-border: var(--border-neutral-strong);
-    --dialog-primary-hover-border-width: var(--border-width-thin);
-    --dialog-primary-hover-radius: var(--radius-md);
-    --dialog-primary-hover-padding: var(--space-8);
-
-    /* Secondary button */
-    --dialog-secondary-default-surface: transparent;
-    --dialog-secondary-default-text: var(--text-primary);
-    --dialog-secondary-default-border: var(--border-neutral-medium);
-    --dialog-secondary-default-border-width: var(--border-width-thin);
-    --dialog-secondary-default-radius: var(--radius-md);
-    --dialog-secondary-default-padding: var(--space-8);
-    --dialog-secondary-hover-surface: var(--surface-neutral-lower);
-    --dialog-secondary-hover-text: var(--text-primary);
-    --dialog-secondary-hover-border: var(--border-neutral-strong);
-    --dialog-secondary-hover-border-width: var(--border-width-thin);
-    --dialog-secondary-hover-radius: var(--radius-md);
-    --dialog-secondary-hover-padding: var(--space-8);
   }
 
   .dialog-backdrop {
@@ -197,12 +176,23 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: var(--dialog-overlay-surface);
+    background: var(--dialog-overlay-surface);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: var(--z-overlay);
     pointer-events: auto;
+  }
+
+  .dialog-backdrop.inline {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    height: auto;
+    padding: var(--space-32);
+    border-radius: var(--radius-md);
+    z-index: auto;
   }
 
   .dialog {
@@ -289,57 +279,5 @@
   .dialog-footer-buttons {
     display: flex;
     gap: var(--space-8);
-  }
-
-  .dialog-button {
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-light);
-    cursor: pointer;
-    transition: all var(--transition-base);
-    min-width: 5rem;
-  }
-
-  .dialog-button:disabled {
-    background: var(--surface-neutral-low);
-    border-color: var(--border-neutral-faint);
-    color: var(--text-disabled);
-    cursor: not-allowed;
-  }
-
-  .dialog-button-primary {
-    background: var(--dialog-primary-default-surface);
-    color: var(--dialog-primary-default-text);
-    border: var(--dialog-primary-default-border-width) solid var(--dialog-primary-default-border);
-    border-radius: var(--dialog-primary-default-radius);
-    padding: var(--dialog-primary-default-padding) calc(var(--dialog-primary-default-padding) * 2);
-  }
-
-  .dialog-button-primary:hover:not(:disabled) {
-    background: var(--dialog-primary-hover-surface);
-    color: var(--dialog-primary-hover-text);
-    border: var(--dialog-primary-hover-border-width) solid var(--dialog-primary-hover-border);
-    border-radius: var(--dialog-primary-hover-radius);
-    padding: var(--dialog-primary-hover-padding) calc(var(--dialog-primary-hover-padding) * 2);
-  }
-
-  .dialog-button-primary:focus {
-    outline: var(--border-width-default) solid var(--border-neutral-strong);
-    outline-offset: var(--space-2);
-  }
-
-  .dialog-button-secondary {
-    background: var(--dialog-secondary-default-surface);
-    color: var(--dialog-secondary-default-text);
-    border: var(--dialog-secondary-default-border-width) solid var(--dialog-secondary-default-border);
-    border-radius: var(--dialog-secondary-default-radius);
-    padding: var(--dialog-secondary-default-padding) calc(var(--dialog-secondary-default-padding) * 2);
-  }
-
-  .dialog-button-secondary:hover:not(:disabled) {
-    background: var(--dialog-secondary-hover-surface);
-    color: var(--dialog-secondary-hover-text);
-    border: var(--dialog-secondary-hover-border-width) solid var(--dialog-secondary-hover-border);
-    border-radius: var(--dialog-secondary-hover-radius);
-    padding: var(--dialog-secondary-hover-padding) calc(var(--dialog-secondary-hover-padding) * 2);
   }
 </style>

@@ -60,8 +60,10 @@
     top: 100%;
     left: 50%;
     transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: var(--tooltip-surface);
+    width: 10px;
+    height: 5px;
+    background: var(--tooltip-surface);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
   }
 
   .tooltip.bottom {
@@ -72,8 +74,7 @@
   .tooltip.bottom::after {
     top: auto;
     bottom: 100%;
-    border-top-color: transparent;
-    border-bottom-color: var(--tooltip-surface);
+    clip-path: polygon(50% 0, 0 100%, 100% 100%);
   }
 
   .tooltip-wrapper:hover .tooltip {

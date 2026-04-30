@@ -1,8 +1,7 @@
 <script lang="ts">
   import CollapsibleSection from '../components/CollapsibleSection.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import FieldsetWrapper from './scaffolding/FieldsetWrapper.svelte';
-  import TokenLayout from './scaffolding/TokenLayout.svelte';
+  import SharedBlock from './scaffolding/SharedBlock.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState, registerComponentSchema } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
@@ -84,21 +83,6 @@
 </script>
 
 <ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Import from <code>components/CollapsibleSection.svelte</code>" resetVariables={allVariables}>
-  {#if shared.groups.length > 0}
-    <FieldsetWrapper legend="shared">
-      <TokenLayout
-        tokens={shared.groups.map((g) => ({ ...g.token, disabled: !g.shared }))}
-        {component}
-        contexts={shared.contextsByVar}
-        {highlightedVars}
-        sharedOrder={shared.sharedOrder}
-        isSharedBlock
-        on:tokenhover={handleTokenHover}
-        on:change
-      />
-    </FieldsetWrapper>
-  {/if}
-
   <VariantGroup
     name="collapsible"
     title="Collapsible Section"
@@ -129,6 +113,7 @@
       {/if}
     </div>
   </VariantGroup>
+  <SharedBlock {component} {shared} {highlightedVars} on:tokenhover={handleTokenHover} on:change />
 </ComponentEditorBase>
 
 <style>

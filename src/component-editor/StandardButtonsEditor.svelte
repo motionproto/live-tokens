@@ -2,8 +2,7 @@
   import Button from '../components/Button.svelte';
   import Toggle from '../components/Toggle.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import FieldsetWrapper from './scaffolding/FieldsetWrapper.svelte';
-  import TokenLayout from './scaffolding/TokenLayout.svelte';
+  import SharedBlock from './scaffolding/SharedBlock.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState, setComponentAlias, registerComponentSchema } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
@@ -130,24 +129,12 @@
 </script>
 
 <ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" resetVariables={allVariables}>
-  <FieldsetWrapper legend="shared">
-    <div class="shared-row">
-      <span class="shared-label">hover shimmer</span>
+  <div class="preview-options">
+    <label class="preview-toggle">
+      <span>Hover shimmer</span>
       <Toggle checked={shimmerEnabled} on:change={handleShimmerChange} />
-    </div>
-    {#if shared.groups.length > 0}
-      <TokenLayout
-        tokens={shared.groups.map((g) => ({ ...g.token, disabled: !g.shared }))}
-        {component}
-        contexts={shared.contextsByVar}
-        {highlightedVars}
-        sharedOrder={shared.sharedOrder}
-        isSharedBlock
-        on:tokenhover={handleTokenHover}
-        on:change
-      />
-    {/if}
-  </FieldsetWrapper>
+    </label>
+  </div>
   {#each variants as v}
     <VariantGroup
       name={v}
@@ -190,9 +177,25 @@
       </div>
     </VariantGroup>
   {/each}
+  <SharedBlock {component} {shared} {highlightedVars} on:tokenhover={handleTokenHover} on:change />
 </ComponentEditorBase>
 
 <style>
+  .preview-options {
+    display: flex;
+    gap: var(--ui-space-12);
+    padding: 0 var(--ui-space-4) var(--ui-space-8);
+  }
+
+  .preview-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+    cursor: pointer;
+  }
+
   .size-row {
     display: flex;
     gap: var(--space-12);
@@ -229,17 +232,5 @@
     flex-direction: column;
     gap: var(--space-8);
     align-items: flex-start;
-  }
-
-  .shared-row {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-12);
-    padding: var(--ui-space-4) var(--ui-space-12);
-  }
-
-  .shared-label {
-    font-size: var(--ui-font-size-sm);
-    color: var(--ui-text-secondary);
   }
 </style>

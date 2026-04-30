@@ -1,8 +1,7 @@
 <script lang="ts">
   import TabBar from '../components/TabBar.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import FieldsetWrapper from './scaffolding/FieldsetWrapper.svelte';
-  import TokenLayout from './scaffolding/TokenLayout.svelte';
+  import SharedBlock from './scaffolding/SharedBlock.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState, registerComponentSchema } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
@@ -106,21 +105,6 @@
 </script>
 
 <ComponentEditorBase {component} title="Tab Bar" description="Tab navigation with icon support and disabled state. Import from <code>components/TabBar.svelte</code>" resetVariables={allVariables}>
-  {#if shared.groups.length > 0}
-    <FieldsetWrapper legend="shared">
-      <TokenLayout
-        tokens={shared.groups.map((g) => ({ ...g.token, disabled: !g.shared }))}
-        {component}
-        contexts={shared.contextsByVar}
-        {highlightedVars}
-        sharedOrder={shared.sharedOrder}
-        isSharedBlock
-        on:tokenhover={handleTokenHover}
-        on:change
-      />
-    </FieldsetWrapper>
-  {/if}
-
   <VariantGroup name="bar" title="Bar" states={barStates} {component}>
     <TabBar tabs={demoTabs} selectedTab={selectedDemoTab} on:tabChange={(e) => (selectedDemoTab = e.detail)} />
   </VariantGroup>
@@ -148,6 +132,7 @@
       {/if}
     </div>
   </VariantGroup>
+  <SharedBlock {component} {shared} {highlightedVars} on:tokenhover={handleTokenHover} on:change />
 </ComponentEditorBase>
 
 <style>

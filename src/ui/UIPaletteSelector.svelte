@@ -4,8 +4,17 @@
   import { editorState } from '../lib/editorStore';
   import UITokenSelector from './UITokenSelector.svelte';
 
+  /** Tokens that match the surface/fill suffix but live in <color>-only CSS contexts
+      (color-mix, box-shadow color slot) where a gradient would invalidate the declaration. */
+  const GRADIENT_DENYLIST = new Set<string>([
+    '--radiobutton-default-surface',
+    '--radiobutton-hover-surface',
+    '--radiobutton-active-surface',
+  ]);
+
   /** Slot kinds where a gradient is a renderable assignment. */
   function acceptsGradient(name: string): boolean {
+    if (GRADIENT_DENYLIST.has(name)) return false;
     return name.endsWith('-surface') || name.endsWith('-fill');
   }
 
