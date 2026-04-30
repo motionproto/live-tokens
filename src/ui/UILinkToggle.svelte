@@ -9,47 +9,52 @@
     e.stopPropagation();
     dispatch('toggle');
   }
-
-  function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleClick(e);
-    }
-  }
 </script>
 
-<span
+<button
+  type="button"
   class="ui-link-toggle"
   class:linked
-  role="button"
-  tabindex="0"
-  title={linked ? 'Locked across variants — click to unlock' : 'Click to lock across all variants'}
+  title={linked ? 'Locked across variants — click to unlink' : 'Click to link across all variants'}
   on:click={handleClick}
-  on:keydown={handleKeydown}
 >
-  <i class="fas" class:fa-lock={linked} class:fa-lock-open={!linked}></i>
-</span>
+  <i class="fas" class:fa-lock={linked} class:fa-lock-open={!linked} aria-hidden="true"></i>
+  <span>{linked ? 'Unlink' : 'Link'}</span>
+</button>
 
 <style>
   .ui-link-toggle {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    width: 1.25rem;
-    height: 1.25rem;
-    color: var(--ui-text-secondary);
-    font-size: 0.75rem;
-    cursor: pointer;
+    gap: var(--ui-space-6);
+    padding: var(--ui-space-2) var(--ui-space-8);
+    height: 1.5rem;
+    background: none;
+    border: 1px solid var(--ui-border-default);
     border-radius: var(--ui-radius-sm);
-    transition: color var(--ui-transition-fast), background var(--ui-transition-fast);
+    color: var(--ui-text-secondary);
+    font-family: inherit;
+    font-size: var(--ui-font-size-sm);
+    cursor: pointer;
+    transition: all var(--ui-transition-fast);
+  }
+
+  .ui-link-toggle i {
+    font-size: 0.75rem;
   }
 
   .ui-link-toggle:hover {
     color: var(--ui-text-primary);
     background: var(--ui-hover);
+    border-color: var(--ui-border-strong);
   }
 
   .ui-link-toggle.linked {
     color: var(--ui-text-accent);
+    border-color: var(--ui-text-accent);
+  }
+
+  .ui-link-toggle.linked:hover {
+    color: var(--ui-text-primary);
   }
 </style>

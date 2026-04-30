@@ -77,7 +77,21 @@
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
   $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
 
+  const BUTTON_VARIANT_OPTIONS = ['none', 'primary', 'secondary', 'outline', 'success', 'danger', 'warning'] as const;
+  type ButtonVariantOption = typeof BUTTON_VARIANT_OPTIONS[number];
+  type ButtonVariant = Exclude<ButtonVariantOption, 'none'>;
+  function variantLabel(v: ButtonVariantOption): string {
+    return v.charAt(0).toUpperCase() + v.slice(1);
+  }
+  function toVariant(v: ButtonVariantOption): ButtonVariant | null {
+    return v === 'none' ? null : v;
+  }
+
   let dismissible = false;
+  let rightOption: ButtonVariantOption = 'none';
+  let leftOption: ButtonVariantOption = 'none';
+  $: actionRightVariant = toVariant(rightOption);
+  $: actionLeftVariant = toVariant(leftOption);
 </script>
 
 <ComponentEditorBase {component} title="Notification" description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>" tokens={allTokens} {shared}>
@@ -85,6 +99,22 @@
     <label>
       <input type="checkbox" bind:checked={dismissible} />
       <span>Dismissible</span>
+    </label>
+    <label>
+      <span>Right button</span>
+      <select class="form-select" bind:value={rightOption}>
+        {#each BUTTON_VARIANT_OPTIONS as v}
+          <option value={v}>{variantLabel(v)}</option>
+        {/each}
+      </select>
+    </label>
+    <label>
+      <span>Left button</span>
+      <select class="form-select" bind:value={leftOption}>
+        {#each BUTTON_VARIANT_OPTIONS as v}
+          <option value={v}>{variantLabel(v)}</option>
+        {/each}
+      </select>
     </label>
   </svelte:fragment>
   {#each variants as v}
@@ -97,14 +127,13 @@
       siblings={buildSiblings(variants, v, variantTokens, variantTypeGroups)}
     >
       {#if v === 'info'}
-        <Notification variant="info" title="Information" description="This is an informational message to keep you updated." {dismissible} />
+        <Notification variant="info" title="Information" description="This is an informational message to keep you updated." {dismissible} {actionRightVariant} {actionLeftVariant} />
       {:else if v === 'success'}
-        <Notification variant="success" title="Success" description="Your action was completed successfully." {dismissible} />
+        <Notification variant="success" title="Success" description="Your action was completed successfully." {dismissible} {actionRightVariant} {actionLeftVariant} />
       {:else if v === 'warning'}
-        <Notification variant="warning" title="Warning" description="Caution: This action may have unintended consequences." {dismissible} />
-        <Notification variant="warning" title="Food Shortage" description="Your kingdom is running low on food supplies." {dismissible} />
+        <Notification variant="warning" title="Warning" description="Caution: This action may have unintended consequences." {dismissible} {actionRightVariant} {actionLeftVariant} />
       {:else if v === 'danger'}
-        <Notification variant="danger" title="Danger" description="Critical error: Please address this issue immediately." {dismissible} />
+        <Notification variant="danger" title="Danger" description="Critical error: Please address this issue immediately." {dismissible} {actionRightVariant} {actionLeftVariant} />
       {/if}
     </VariantGroup>
   {/each}

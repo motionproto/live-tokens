@@ -1,15 +1,39 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
   import TokenLayout from './TokenLayout.svelte';
-  import type { SharedBlockResult, SharedGroup } from './sharedBlock';
+  import type { SharedBlockResult, SharedGroup, SharedToken } from './sharedBlock';
 
   export let component: string;
   export let shared: SharedBlockResult;
-  export let highlightedVars: Set<string> = new Set();
-
-  const dispatch = createEventDispatcher<{ tokenhover: { variable: string | null } }>();
 
   type Bucket = { contexts: string[]; groups: SharedGroup[] };
+  type TypeColumn = { kind: 'type'; legend: string; tokens: (SharedToken & { disabled?: boolean })[] };
+  type GeneralColumn = { kind: 'general'; tokens: (SharedToken & { disabled?: boolean })[] };
+  type Column = TypeColumn | GeneralColumn;
+
+  function extractTypeGroup(v: string): string | null {
+    const m = v.match(/-([a-z][a-z0-9-]*?)-(?:font-(?:family|size|weight)|line-height)$/);
+    return m ? m[1] : null;
+  }
+
+  function partitionBucket(groups: SharedGroup[]): Column[] {
+    const typeGroups = new Map<string, (SharedToken & { disabled?: boolean })[]>();
+    const general: (SharedToken & { disabled?: boolean })[] = [];
+    for (const g of groups) {
+      const tok = { ...g.token, disabled: !g.shared };
+      const tg = extractTypeGroup(tok.variable);
+      if (tg) {
+        const arr = typeGroups.get(tg) ?? [];
+        arr.push(tok);
+        typeGroups.set(tg, arr);
+      } else {
+        general.push(tok);
+      }
+    }
+    const cols: Column[] = [];
+    for (const [legend, tokens] of typeGroups) cols.push({ kind: 'type', legend, tokens });
+    if (general.length > 0) cols.push({ kind: 'general', tokens: general });
+    return cols;
+  }
 
   $: buckets = (() => {
     const map = new Map<string, Bucket>();
@@ -22,15 +46,20 @@
     return [...map.values()].sort((a, b) => b.contexts.length - a.contexts.length);
   })();
 
-  function forwardHover(e: CustomEvent<{ variable: string | null }>) {
-    dispatch('tokenhover', e.detail);
-  }
+  $: bucketCols = buckets.map((b) => {
+    const columns = partitionBucket(b.groups);
+    return {
+      contexts: b.contexts,
+      columns,
+      hasLegend: columns.some((c) => c.kind === 'type'),
+    };
+  });
 </script>
 
 {#if buckets.length > 0}
   <section class="shared-block">
     <div class="shared-grid">
-      {#each buckets as bucket (bucket.contexts.join('|'))}
+      {#each bucketCols as bucket (bucket.contexts.join('|'))}
         <article class="shared-subgroup">
           <header class="shared-header">
             <span class="shared-eyebrow">linked across</span>
@@ -40,15 +69,24 @@
               {/each}
             </ul>
           </header>
-          <TokenLayout
-            tokens={bucket.groups.map((g) => ({ ...g.token, disabled: !g.shared }))}
-            {component}
-            {highlightedVars}
-            sharedOrder={shared.sharedOrder}
-            isSharedBlock
-            on:tokenhover={forwardHover}
-            on:change
-          />
+          <div class="shared-columns">
+            {#each bucket.columns as col}
+              <div class="shared-column">
+                {#if bucket.hasLegend}
+                  <span class="shared-column-legend" aria-hidden={col.kind !== 'type'}>
+                    {col.kind === 'type' ? col.legend : ' '}
+                  </span>
+                {/if}
+                <TokenLayout
+                  tokens={col.tokens}
+                  {component}
+                  sharedOrder={shared.sharedOrder}
+                  isSharedBlock
+                  on:change
+                />
+              </div>
+            {/each}
+          </div>
         </article>
       {/each}
     </div>
@@ -63,10 +101,9 @@
   }
 
   .shared-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 30rem));
+    display: flex;
+    flex-direction: column;
     gap: var(--ui-space-12);
-    align-items: start;
   }
 
   .shared-subgroup {
@@ -112,5 +149,30 @@
     border: 1px solid var(--ui-border-faint);
     border-radius: 999px;
     white-space: nowrap;
+  }
+
+  .shared-columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ui-space-16);
+    align-items: flex-start;
+  }
+
+  .shared-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-4);
+    min-width: 0;
+  }
+
+  .shared-column-legend {
+    font-size: var(--ui-font-size-xs);
+    line-height: 1;
+    min-height: var(--ui-font-size-xs);
+    color: var(--ui-text-tertiary);
+    font-family: var(--ui-font-mono);
+    padding: 0 var(--ui-space-12);
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
   }
 </style>

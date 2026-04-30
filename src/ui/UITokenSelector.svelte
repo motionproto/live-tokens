@@ -198,12 +198,14 @@
                 <UILinkToggle linked={isSharedDisplay} on:toggle={toggleShared} />
               {/if}
               <button
+                type="button"
                 class="ui-ts-reset"
                 on:click={handleReset}
                 disabled={selectionsLocked}
                 title={selectionsLocked ? 'Unlock to reset' : 'Reset to default'}
               >
-                <i class="fas fa-undo"></i>
+                <i class="fas fa-undo" aria-hidden="true"></i>
+                <span>Reset</span>
               </button>
             </div>
           </slot>
@@ -365,20 +367,24 @@
   }
 
   .ui-ts-reset {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    width: 1.5rem;
+    gap: var(--ui-space-6);
     height: 1.5rem;
-    padding: 0;
+    padding: var(--ui-space-2) var(--ui-space-8);
     background: none;
     border: 1px solid var(--ui-border-default);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-secondary);
-    font-size: 0.625rem;
+    font-family: inherit;
+    font-size: var(--ui-font-size-sm);
     cursor: pointer;
     flex-shrink: 0;
     transition: all var(--ui-transition-fast);
+  }
+
+  .ui-ts-reset i {
+    font-size: 0.625rem;
   }
 
   .ui-ts-reset:hover:not(:disabled) {

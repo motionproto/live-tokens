@@ -17,6 +17,16 @@
    export let actionInline: boolean = false;
    export let actionHeader: boolean = false; // NEW: Show action button in header row
 
+   // Body-row action button slots, ordered left then right. Each is shown when
+   // its variant is non-null; null hides that slot.
+   type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'success' | 'danger' | 'warning';
+   export let actionRightVariant: ButtonVariant | null = null;
+   export let actionRightLabel: string = 'Confirm';
+   export let onActionRight: (() => void) | undefined = undefined;
+   export let actionLeftVariant: ButtonVariant | null = null;
+   export let actionLeftLabel: string = 'Cancel';
+   export let onActionLeft: (() => void) | undefined = undefined;
+
    const dispatch = createEventDispatcher();
 
    // Default icons based on variant
@@ -51,8 +61,26 @@
          </button>
       {/if}
    </div>
-   {#if description && !actionInline}
-      <div class="notification-description">{description}</div>
+   {#if (description && !actionInline) || actionRightVariant || actionLeftVariant}
+      <div class="notification-body">
+         {#if description && !actionInline}
+            <div class="notification-description">{description}</div>
+         {/if}
+         {#if actionRightVariant || actionLeftVariant}
+            <div class="notification-body-actions">
+               {#if actionLeftVariant}
+                  <Button variant={actionLeftVariant} on:click={onActionLeft}>
+                     {actionLeftLabel}
+                  </Button>
+               {/if}
+               {#if actionRightVariant}
+                  <Button variant={actionRightVariant} on:click={onActionRight}>
+                     {actionRightLabel}
+                  </Button>
+               {/if}
+            </div>
+         {/if}
+      </div>
    {/if}
    <slot />
    {#if onAction && !actionHeader}
@@ -328,21 +356,16 @@
       .notification-close {
          flex-shrink: 0;
          margin-left: auto;
+         padding: 0;
          background: none;
          border: none;
          cursor: pointer;
          color: inherit;
-         font-size: var(--font-size-xl);
-         width: 2.25rem;
-         height: 2.25rem;
-         display: flex;
-         align-items: center;
-         justify-content: center;
-         border-radius: var(--radius-md);
-         transition: all var(--transition-base);
+         font-size: inherit;
+         line-height: 1;
+         transition: color var(--transition-base);
 
          &:hover {
-            background: var(--surface-neutral-low);
             color: var(--text-primary);
          }
 
@@ -353,9 +376,26 @@
       }
    }
 
-   .notification-description {
-      text-align: left;
+   // Body row: description (col 1) + optional action buttons (col 2, right-aligned).
+   .notification-body {
+      display: flex;
+      align-items: center;
+      gap: var(--space-16);
       padding: var(--space-12) var(--space-16);
+      width: 100%;
+      box-sizing: border-box;
+      text-align: left;
+   }
+
+   .notification-description {
+      flex: 1;
+   }
+
+   .notification-body-actions {
+      display: flex;
+      gap: var(--space-8);
+      margin-left: auto;
+      flex-shrink: 0;
    }
 
    // Action buttons - inline variant
@@ -384,4 +424,5 @@
       padding-top: var(--space-8);
       border-top: var(--border-width-thin) solid var(--border-neutral-subtle);
    }
+
 </style>

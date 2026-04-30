@@ -8,29 +8,24 @@
   const component = 'radiobutton';
   let selectedRadio = 'option-b';
 
-  // Two objects per state: button (surface, border-width on dot, radius, padding) and the dot.
-  // Plus label typography.
   const states: Record<string, Token[]> = {
     default: [
-      { label: 'surface color', variable: '--radiobutton-default-surface' },
-      { label: 'dot border color', variable: '--radiobutton-default-dot-border' },
-      { label: 'dot border width', canBeShared: true, groupKey: 'dot-border-width', variable: '--radiobutton-default-dot-border-width' },
-      { label: 'radius', canBeShared: true, groupKey: 'button-radius', variable: '--radiobutton-default-radius' },
-      { label: 'padding', canBeShared: true, groupKey: 'button-padding', variable: '--radiobutton-default-padding' },
+      { label: 'border color', canBeShared: true, groupKey: 'dot-border-color', variable: '--radiobutton-default-dot-border-color' },
+      { label: 'border thickness', canBeShared: true, groupKey: 'dot-border-width', variable: '--radiobutton-default-dot-border-width' },
+      { label: 'dot fill', canBeShared: true, groupKey: 'dot-fill', variable: '--radiobutton-default-dot-fill' },
+      { label: 'dot size', variable: '--radiobutton-default-dot-size' },
     ],
     hover: [
-      { label: 'surface color', variable: '--radiobutton-hover-surface' },
-      { label: 'dot border color', variable: '--radiobutton-hover-dot-border' },
-      { label: 'dot border width', canBeShared: true, groupKey: 'dot-border-width', variable: '--radiobutton-hover-dot-border-width' },
-      { label: 'radius', canBeShared: true, groupKey: 'button-radius', variable: '--radiobutton-hover-radius' },
-      { label: 'padding', canBeShared: true, groupKey: 'button-padding', variable: '--radiobutton-hover-padding' },
+      { label: 'border color', canBeShared: true, groupKey: 'dot-border-color', variable: '--radiobutton-hover-dot-border-color' },
+      { label: 'border thickness', canBeShared: true, groupKey: 'dot-border-width', variable: '--radiobutton-hover-dot-border-width' },
+      { label: 'dot fill', canBeShared: true, groupKey: 'dot-fill', variable: '--radiobutton-hover-dot-fill' },
+      { label: 'dot size', variable: '--radiobutton-hover-dot-size' },
     ],
     active: [
-      { label: 'surface color', variable: '--radiobutton-active-surface' },
-      { label: 'dot border color', variable: '--radiobutton-active-dot-border' },
-      { label: 'dot border width', canBeShared: true, groupKey: 'dot-border-width', variable: '--radiobutton-active-dot-border-width' },
-      { label: 'radius', canBeShared: true, groupKey: 'button-radius', variable: '--radiobutton-active-radius' },
-      { label: 'padding', canBeShared: true, groupKey: 'button-padding', variable: '--radiobutton-active-padding' },
+      { label: 'border color', canBeShared: true, groupKey: 'dot-border-color', variable: '--radiobutton-active-dot-border-color' },
+      { label: 'border thickness', canBeShared: true, groupKey: 'dot-border-width', variable: '--radiobutton-active-dot-border-width' },
+      { label: 'dot fill', canBeShared: true, groupKey: 'dot-fill', variable: '--radiobutton-active-dot-fill' },
+      { label: 'dot size', variable: '--radiobutton-active-dot-size' },
     ],
   };
 
@@ -67,15 +62,15 @@
     { label: 'line height', canBeShared: true, groupKey: 'label-line-height', variable: `--radiobutton-${s}-label-line-height` },
   ]);
   const shareableContexts = new Map<string, string>([
+    ['--radiobutton-default-dot-border-color', 'default'],
+    ['--radiobutton-hover-dot-border-color', 'hover'],
+    ['--radiobutton-active-dot-border-color', 'active'],
     ['--radiobutton-default-dot-border-width', 'default'],
     ['--radiobutton-hover-dot-border-width', 'hover'],
     ['--radiobutton-active-dot-border-width', 'active'],
-    ['--radiobutton-default-radius', 'default'],
-    ['--radiobutton-hover-radius', 'hover'],
-    ['--radiobutton-active-radius', 'active'],
-    ['--radiobutton-default-padding', 'default'],
-    ['--radiobutton-hover-padding', 'hover'],
-    ['--radiobutton-active-padding', 'active'],
+    ['--radiobutton-default-dot-fill', 'default'],
+    ['--radiobutton-hover-dot-fill', 'hover'],
+    ['--radiobutton-active-dot-fill', 'active'],
     ['--radiobutton-default-label-font-family', 'default'],
     ['--radiobutton-hover-label-font-family', 'hover'],
     ['--radiobutton-active-label-font-family', 'active'],
@@ -111,25 +106,19 @@
     {@const forceActive = activeState === 'active'}
     <div class="radio-demo-row">
       <RadioButton
-        icon="fas fa-shield-alt"
         label="Defense"
-        color="var(--text-info)"
         active={forceActive || selectedRadio === 'option-a'}
         class={forceClass}
         on:click={() => (selectedRadio = 'option-a')}
       />
       <RadioButton
-        icon="fas fa-coins"
         label="Economy"
-        color="var(--text-accent)"
         active={forceActive || selectedRadio === 'option-b'}
         class={forceClass}
         on:click={() => (selectedRadio = 'option-b')}
       />
       <RadioButton
-        icon="fas fa-users"
         label="Loyalty"
-        color="var(--text-success)"
         active={forceActive || selectedRadio === 'option-c'}
         class={forceClass}
         on:click={() => (selectedRadio = 'option-c')}

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
   import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
   import UIRadiusSelector from '../../ui/UIRadiusSelector.svelte';
   import UIBorderWeightSelector from '../../ui/UIBorderWeightSelector.svelte';
@@ -8,10 +7,9 @@
   import UIFontSizeSelector from '../../ui/UIFontSizeSelector.svelte';
   import UILineHeightSelector from '../../ui/UILineHeightSelector.svelte';
   import UIDividerHeightSelector from '../../ui/UIDividerHeightSelector.svelte';
+  import UIDotSizeSelector from '../../ui/UIDotSizeSelector.svelte';
   import UIPaddingSelector from '../../ui/UIPaddingSelector.svelte';
   import { editorState, getComponentPropertySiblings } from '../../lib/editorStore';
-
-  const dispatch = createEventDispatcher();
 
   type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; disabled?: boolean; hidden?: boolean };
 
@@ -22,6 +20,7 @@
     | 'radius'
     | 'divider-width'
     | 'divider-height'
+    | 'dot-size'
     | 'font-family'
     | 'font-weight'
     | 'font-size'
@@ -38,8 +37,6 @@
   export let component: string | undefined = undefined;
   /** Optional context labels per variable (shown below the selector). */
   export let contexts: Record<string, string[]> = {};
-  /** Variables to visually highlight as connected to a hovered shared property. */
-  export let highlightedVars: Set<string> = new Set();
   /** Per-variable rank that overrides kind rank when sorting; lets shared tokens align with the top shared row. */
   export let sharedOrder: Map<string, number> | undefined = undefined;
   /** Set true on the shared-block instance so dimmed variant rows can scroll/flash to the matching anchor. */
@@ -77,6 +74,10 @@
     return v.endsWith('-divider-height');
   }
 
+  function isDotSize(v: string): boolean {
+    return v.endsWith('-dot-size');
+  }
+
   function isPadding(v: string): boolean {
     return v.endsWith('-padding');
   }
@@ -106,6 +107,7 @@
     'border-width',
     'divider-width',
     'divider-height',
+    'dot-size',
     'radius',
     'padding',
     'gap',
@@ -126,6 +128,7 @@
     if (isRadius(v)) return 'radius';
     if (isDividerWidth(v)) return 'divider-width';
     if (isDividerHeight(v)) return 'divider-height';
+    if (isDotSize(v)) return 'dot-size';
     if (isPadding(v)) return 'padding';
     if (isGap(v)) return 'gap';
     if (isBorderWidth(v)) return 'border-width';
@@ -185,29 +188,6 @@
     return idx;
   })();
 
-  function dimmedTooltip(variable: string): string {
-    if (!component) return '';
-    const siblings = getComponentPropertySiblings(component, variable);
-    if (siblings.length < 2) return '';
-    return `Linked across ${siblings.length} variants — edit in shared block`;
-  }
-
-  let flashTimeout: ReturnType<typeof setTimeout> | null = null;
-
-  function handleMirrorClick(variable: string) {
-    const idx = sharedOrder?.get(variable);
-    if (idx === undefined) return;
-    const target = document.querySelector<HTMLElement>(
-      `[data-shared-anchor][data-shared-index="${idx}"]`,
-    );
-    if (!target) return;
-    target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-    target.classList.remove('flash-highlight');
-    void target.offsetWidth;
-    target.classList.add('flash-highlight');
-    if (flashTimeout) clearTimeout(flashTimeout);
-    flashTimeout = setTimeout(() => target.classList.remove('flash-highlight'), 800);
-  }
 </script>
 
 <div class="token-group">
@@ -219,10 +199,7 @@
       {@const token = entry.token}
       {@const dis = token.disabled ?? false}
       {@const ctxs = contexts[token.variable]}
-      {@const idx = sharedOrder?.get(token.variable)}
-      {@const isMirror = dis && !isSharedBlock}
-      {@const lockedSelections = dis && isSharedBlock}
-      {@const triggerDisabled = dis && !isSharedBlock}
+      {@const lockedSelections = dis}
       {@const padSplit = entry.kind === 'padding' && isPaddingSplit(token.variable, component, $editorState)}
       {#if i === firstIndependentIdx}
         <div class="zone-divider" aria-hidden="true"></div>
@@ -234,47 +211,37 @@
           variable={token.variable}
           {component}
           canBeShared={token.canBeShared ?? false}
-          disabled={triggerDisabled}
           selectionsLocked={lockedSelections}
           on:change
         />
       {:else}
         <div
           class="token-row"
-          class:highlighted={highlightedVars.has(token.variable)}
-          class:linked-mirror={isMirror}
           class:has-contexts={!!ctxs?.length}
-          data-shared-anchor={isSharedBlock ? '' : undefined}
-          data-shared-index={idx !== undefined ? String(idx) : undefined}
-          title={isMirror ? dimmedTooltip(token.variable) : null}
-          on:click={isMirror ? () => handleMirrorClick(token.variable) : undefined}
-          on:keydown={isMirror ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleMirrorClick(token.variable); } } : undefined}
-          role={isMirror ? 'button' : undefined}
-          tabindex={isMirror ? 0 : undefined}
-          on:mouseenter={() => { if (ctxs || token.canBeShared) dispatch('tokenhover', { variable: token.variable }); }}
-          on:mouseleave={() => { if (ctxs || token.canBeShared) dispatch('tokenhover', { variable: null }); }}
         >
           <span class="token-label">{token.label}</span>
           {#if entry.kind === 'radius'}
-            <UIRadiusSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
+            <UIRadiusSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'border-width' || entry.kind === 'divider-width'}
-            <UIBorderWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
+            <UIBorderWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'divider-height'}
-            <UIDividerHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
+            <UIDividerHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
+          {:else if entry.kind === 'dot-size'}
+            <UIDotSizeSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'padding'}
-            <UIPaddingSelector mode="single" variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
+            <UIPaddingSelector mode="single" variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'gap'}
-            <UIPaddingSelector mode="single" splittable={false} variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
+            <UIPaddingSelector mode="single" splittable={false} variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'font-family'}
-            <UIFontFamilySelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
+            <UIFontFamilySelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'font-weight'}
-            <UIFontWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
+            <UIFontWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'font-size'}
-            <UIFontSizeSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
+            <UIFontSizeSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'line-height'}
-            <UILineHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
+            <UILineHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
           {:else}
-            <UIPaletteSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} disabled={triggerDisabled} selectionsLocked={lockedSelections} on:change />
+            <UIPaletteSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
           {/if}
           {#if ctxs?.length}
             <div class="token-contexts">
@@ -340,38 +307,6 @@
     border-radius: var(--ui-radius-sm);
     transition: background var(--ui-transition-fast);
     min-width: 0;
-  }
-
-  .token-row.highlighted {
-    background: var(--ui-surface-high);
-    outline: 1px dashed var(--ui-text-accent);
-  }
-
-  .token-row.highlighted .token-label {
-    color: var(--ui-text-accent);
-  }
-
-  .token-row.linked-mirror {
-    cursor: pointer;
-  }
-
-  .token-row.linked-mirror :global(.ui-token-selector) {
-    pointer-events: none;
-  }
-
-  .token-row.linked-mirror:focus-visible {
-    outline: 2px solid var(--ui-text-accent);
-    outline-offset: 2px;
-  }
-
-  :global(.token-row.flash-highlight) {
-    animation: tokenRowFlash 800ms ease-out;
-  }
-
-  @keyframes tokenRowFlash {
-    0%   { background: var(--ui-text-accent); outline: 1px solid var(--ui-text-accent); }
-    40%  { background: var(--ui-surface-high); }
-    100% { background: transparent; outline: 1px solid transparent; }
   }
 
   .token-label {

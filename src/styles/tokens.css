@@ -451,6 +451,14 @@
   --space-48: 3rem;       /* 48px */
   --space-full: 100%;
 
+  /* Dot fill ratios — used by radio/checkbox-style indicators where the
+     inner dot occupies a percentage of the outer ring. */
+  --dot-size-0: 0%;
+  --dot-size-25: 25%;
+  --dot-size-50: 50%;
+  --dot-size-75: 75%;
+  --dot-size-100: 100%;
+
   /* ═══════════════════════════════════════════════════════
      COLUMN LAYOUT
      12-column layout tokens. Drive the dev columns overlay

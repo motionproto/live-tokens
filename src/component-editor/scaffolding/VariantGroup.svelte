@@ -22,9 +22,7 @@
   export let siblings: Sibling[] = [];
 
   const editorCtx = getEditorContext();
-  const highlightsStore = editorCtx?.highlightedVars ?? writable<Set<string>>(new Set());
   const sharedOrderStore = editorCtx?.sharedOrder ?? writable<Map<string, number> | null>(null);
-  $: highlightedVars = $highlightsStore;
   $: sharedOrder = $sharedOrderStore ?? undefined;
 
   let variantExpanded = true;
@@ -247,9 +245,7 @@
                 title=""
                 tokens={states[stateName]}
                 {component}
-                highlightedVars={highlightedVars ?? new Set()}
                 {sharedOrder}
-                on:tokenhover={(e) => editorCtx?.setHovered(e.detail.variable)}
                 on:change
               />
             </div>
@@ -262,9 +258,7 @@
         title={name}
         tokens={tokens}
         {component}
-        highlightedVars={highlightedVars ?? new Set()}
         {sharedOrder}
-        on:tokenhover
         on:change
       />
     {/if}

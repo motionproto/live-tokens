@@ -1,11 +1,12 @@
 <script lang="ts">
-  /** Section that gathers render-time toggles a component accepts as props but
-      that aren't theme-driven (e.g. dismissible, hover shimmer, show icons). */
+  /** Section that gathers render-time toggles a component accepts as props
+      (e.g. dismissible, action buttons, hover shimmer, show icons). */
 </script>
 
 <section class="config-block">
   <header class="config-header">
-    <span class="config-eyebrow">non-stylable configuration</span>
+    <h3 class="config-title">Configuration</h3>
+    <p class="config-description">Component accepts multiple properties that can change its layout. Use these to preview.</p>
   </header>
   <div class="config-controls">
     <slot />
@@ -22,15 +23,20 @@
   }
 
   .config-header {
-    margin-bottom: var(--ui-space-8);
+    margin-bottom: var(--ui-space-12);
   }
 
-  .config-eyebrow {
-    font-family: var(--ui-font-mono);
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-tertiary);
-    text-transform: lowercase;
-    letter-spacing: 0.04em;
+  .config-title {
+    margin: 0;
+    font-size: var(--ui-font-size-md);
+    font-weight: 500;
+    color: var(--ui-text-primary);
+  }
+
+  .config-description {
+    margin: var(--ui-space-2) 0 0;
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
   }
 
   .config-controls {

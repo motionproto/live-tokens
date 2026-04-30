@@ -41,13 +41,11 @@
 
   function selectComponent(id: string) {
     selectedComponent = id;
-    drawerOpen = false;
     hideHint();
   }
 
   function selectPage(path: string) {
     pageMenuOpen = false;
-    drawerOpen = false;
     navigate(path);
   }
 
@@ -110,7 +108,7 @@
         aria-expanded={drawerOpen}
         on:click={() => (drawerOpen = !drawerOpen)}
       >
-        <i class="fas fa-bars"></i>
+        <i class="fas {drawerOpen ? 'fa-arrow-left' : 'fa-arrow-right'}"></i>
       </button>
       <button
         type="button"
@@ -203,6 +201,7 @@
     grid-template-columns: 48px 1fr;
     align-items: center;
     padding: var(--ui-space-12) 0 var(--ui-space-12) 0;
+    border-bottom: 1px solid var(--ui-border-faint);
   }
 
   .rail-toggle {

@@ -18,17 +18,6 @@
 
   const ctx = createEditorContext();
 
-  ctx.setHovered = (variable: string | null) => {
-    if (!variable || !shared) {
-      ctx._highlights.set(new Set());
-      return;
-    }
-    const group = shared.groups.find((g) => g.variables.includes(variable));
-    ctx._highlights.set(group ? new Set(group.variables) : new Set());
-  };
-
-  const highlightsStore = ctx.highlightedVars;
-
   $: ctx._sharedOrder.set(shared?.sharedOrder ?? null);
   $: registerComponentSchema(component, tokens);
   $: resetVariables = tokens.map((t) => t.variable);
@@ -43,12 +32,6 @@
   {/if}
   <slot />
   {#if shared}
-    <SharedBlock
-      {component}
-      {shared}
-      highlightedVars={$highlightsStore}
-      on:tokenhover={(e) => ctx.setHovered(e.detail.variable)}
-      on:change
-    />
+    <SharedBlock {component} {shared} on:change />
   {/if}
 </div>
