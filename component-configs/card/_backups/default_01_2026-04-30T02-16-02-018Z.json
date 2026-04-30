@@ -2,15 +2,15 @@
   "name": "default_01",
   "component": "card",
   "createdAt": "2026-04-26T21:19:46.255Z",
-  "updatedAt": "2026-04-30T02:16:02.017Z",
+  "updatedAt": "2026-04-26T21:19:46.258Z",
   "aliases": {
     "--card-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 50%, transparent)",
     "--card-default-border": "--border-neutral",
     "--card-default-title": "--text-primary",
     "--card-default-body": "--text-secondary",
     "--card-default-radius": "--radius-lg",
-    "--card-hover-surface": "color-mix(in srgb, var(--surface-neutral-lower) 50%, transparent)",
-    "--card-hover-border": "--border-neutral",
+    "--card-hover-surface": "--surface-neutral-high",
+    "--card-hover-border": "--border-neutral-strong",
     "--card-hover-title": "--text-primary",
     "--card-hover-body": "--text-secondary",
     "--card-hover-radius": "--radius-lg"

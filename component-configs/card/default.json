@@ -2,7 +2,7 @@
   "name": "default",
   "component": "card",
   "createdAt": "2026-04-18T02:43:11.328Z",
-  "updatedAt": "2026-04-29T08:30:47.103Z",
+  "updatedAt": "2026-04-30T02:21:39.234Z",
   "aliases": {
     "--card-default-surface": "--surface-neutral-high",
     "--card-default-border": "--border-neutral",

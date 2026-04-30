@@ -2,9 +2,9 @@
   "name": "default_01",
   "component": "dialog",
   "createdAt": "2026-04-29T23:08:12.724Z",
-  "updatedAt": "2026-04-30T02:17:23.816Z",
+  "updatedAt": "2026-04-30T02:17:18.671Z",
   "aliases": {
-    "--dialog-overlay-surface": "transparent",
+    "--dialog-overlay-surface": "color-mix(in srgb, var(--color-neutral-850) 50%, transparent)",
     "--dialog-surface": "--surface-neutral-lowest",
     "--dialog-border": "--border-neutral-strong",
     "--dialog-border-width": "--border-width-default",

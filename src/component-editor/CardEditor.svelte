@@ -137,9 +137,17 @@
     ...Object.values(states).flatMap((list) => list.map((t) => t.variable)),
     ...typeGroupTokens.map((t) => t.variable),
   ];
+
+  let hoverEnabled = true;
 </script>
 
 <ComponentEditorBase {component} title="Card" description="Generic card with icon, title, and slotted body. Import from <code>components/Card.svelte</code>" resetVariables={allVariables}>
+  <div class="preview-options">
+    <label class="preview-toggle">
+      <input type="checkbox" bind:checked={hoverEnabled} />
+      <span>Hover events</span>
+    </label>
+  </div>
   <VariantGroup
     name="card"
     title="Card"
@@ -151,19 +159,10 @@
     on:tokenhover={handleTokenHover}
     let:activeState
   >
-    {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
-    <div class="card-demo-grid">
-      <Card icon="fas fa-star" iconColor="var(--text-accent)" title="Featured" class={forceClass}>
-        <p style="margin: 0;">A highlighted card with amber accent.</p>
-      </Card>
-      <Card icon="fas fa-shield-alt" iconColor="var(--text-info)" title="Security" class={forceClass}>
-        <p style="margin: 0;">Card with blue icon color on hover border.</p>
-      </Card>
-      <Card icon="fas fa-leaf" iconColor="var(--text-success)" title="Compact" size="compact" class={forceClass}>
-        <p style="margin: 0;">A compact-sized card variant.</p>
-      </Card>
-      <Card title="No Icon" class={forceClass}>
-        <p style="margin: 0;">Cards work without icons too.</p>
+    {@const previewClass = activeState === 'hover' ? 'force-hover' : (hoverEnabled ? '' : 'no-hover')}
+    <div class="card-demo">
+      <Card icon="fas fa-star" title="Card title" class={previewClass}>
+        <p style="margin: 0;">Slotted body content. Hover the card (or switch the editor to the Hover state) to preview hover styling.</p>
       </Card>
     </div>
   </VariantGroup>
@@ -171,9 +170,22 @@
 </ComponentEditorBase>
 
 <style>
-  .card-demo-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--space-16);
+  .card-demo {
+    max-width: 28rem;
+  }
+
+  .preview-options {
+    display: flex;
+    gap: var(--ui-space-12);
+    padding: 0 var(--ui-space-4) var(--ui-space-8);
+  }
+
+  .preview-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+    cursor: pointer;
   }
 </style>

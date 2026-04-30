@@ -3,6 +3,7 @@
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState, registerComponentSchema, setComponentAlias } from '../lib/editorStore';
+  import newspaperBg from '../assets/newspaper.webp';
   const component = 'dialog';
   type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; hidden?: boolean };
   type TypeGroupConfig = {
@@ -98,7 +99,7 @@
 </script>
 
 <ComponentEditorBase {component} title="Dialog" description="Modal dialog with focus management and slide-in animation. Import from <code>components/Dialog.svelte</code>" resetVariables={allVariables}>
-  <div class="dialog-preview">
+  <div class="dialog-preview" style="background-image: url({newspaperBg});">
     <Dialog
       show
       inline
@@ -133,6 +134,11 @@
 <style>
   .dialog-preview {
     margin-bottom: var(--ui-space-12);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: var(--ui-radius-md);
+    overflow: hidden;
   }
 
   .preview-options {

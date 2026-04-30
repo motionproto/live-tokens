@@ -2,9 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import TokenLayout from './TokenLayout.svelte';
   import TypeEditor from './TypeEditor.svelte';
-  import { removeCssVar } from '../../lib/cssVarSync';
-  import { editorState, mutate } from '../../lib/editorStore';
-  import { loadComponentConfig } from '../../lib/componentConfigService';
+  import { mutate } from '../../lib/editorStore';
 
   type Token = { label: string; variable: string };
   type TypeGroupConfig = {
@@ -43,18 +41,6 @@
     typeGroups?: Record<string, TypeGroupConfig[]>;
   }> = [];
 
-  function typeGroupVariables(g: TypeGroupConfig): { variable: string; label: string }[] {
-    const out: { variable: string; label: string }[] = [
-      { variable: g.colorVariable, label: g.colorLabel ?? 'text color' },
-    ];
-    if (g.familyVariable) out.push({ variable: g.familyVariable, label: g.familyLabel ?? 'font family' });
-    if (g.sizeVariable) out.push({ variable: g.sizeVariable, label: g.sizeLabel ?? 'font size' });
-    if (g.weightVariable) out.push({ variable: g.weightVariable, label: g.weightLabel ?? 'font weight' });
-    if (g.lineHeightVariable) out.push({ variable: g.lineHeightVariable, label: g.lineHeightLabel ?? 'line height' });
-    return out;
-  }
-
-  let resetKey = 0;
   let variantExpanded = true;
   let stateExpanded: Record<string, boolean> = {};
 
@@ -78,12 +64,13 @@
     copyMenuState = null;
     copyMenuVariant = null;
     if (!component || !states) return;
-    const sibling = siblings.find((s) => s.name === fromVariant);
-    if (!sibling) return;
-    const srcTokens = sibling.states[fromState] ?? [];
+    const isSelfVariant = fromVariant === name;
+    const sibling = isSelfVariant ? null : siblings.find((s) => s.name === fromVariant);
+    if (!isSelfVariant && !sibling) return;
+    const srcTokens = (isSelfVariant ? states[fromState] : sibling!.states[fromState]) ?? [];
     const dstTokens = states[toState] ?? [];
-    const srcType = sibling.typeGroups?.[fromState]?.[0];
-    const dstType = typeGroups[toState]?.[0];
+    const srcTypeGroups = (isSelfVariant ? typeGroups[fromState] : sibling!.typeGroups?.[fromState]) ?? [];
+    const dstTypeGroups = typeGroups[toState] ?? [];
 
     mutate(`copy ${fromVariant}/${fromState} → ${name}/${toState}`, (s) => {
       const slice = s.components[component!] ?? (s.components[component!] = { activeFile: 'default', aliases: {} });
@@ -94,7 +81,10 @@
       };
       const minLen = Math.min(srcTokens.length, dstTokens.length);
       for (let i = 0; i < minLen; i++) apply(srcTokens[i].variable, dstTokens[i].variable);
-      if (srcType && dstType) {
+      const minTypeGroups = Math.min(srcTypeGroups.length, dstTypeGroups.length);
+      for (let g = 0; g < minTypeGroups; g++) {
+        const srcType = srcTypeGroups[g];
+        const dstType = dstTypeGroups[g];
         for (const prop of TYPE_PROPS) {
           const srcVar = srcType[prop];
           const dstVar = dstType[prop];
@@ -104,11 +94,18 @@
     });
   }
 
-  $: copySources = siblings.map((s) => ({
-    name: s.name,
-    label: s.label,
-    states: Object.keys(s.states),
-  }));
+  $: copySources = (() => {
+    const fromSiblings = siblings.map((s) => ({
+      name: s.name,
+      label: s.label,
+      states: Object.keys(s.states),
+    }));
+    const ownStates = states ? Object.keys(states) : [];
+    if (ownStates.length >= 2) {
+      return [{ name, label: title, states: ownStates }, ...fromSiblings];
+    }
+    return fromSiblings;
+  })();
 
   function handleCopyDocClick(e: MouseEvent) {
     if (copyMenuState === null) return;
@@ -137,36 +134,6 @@
   });
 
   $: stateNames = states ? Object.keys(states) : [];
-
-  $: allTokens = (() => {
-    const baseTokens = states
-      ? stateNames.flatMap((s) => states![s].map((t) => ({ ...t, _state: s })))
-      : tokens.map((t) => ({ ...t, _state: '' as string }));
-    const tgTokens = Object.entries(typeGroups).flatMap(([stateName, groups]) =>
-      groups.flatMap((g) => typeGroupVariables(g).map((t) => ({ ...t, _state: stateName }))),
-    );
-    return [...baseTokens, ...tgTokens];
-  })();
-
-  async function reset() {
-    if (component) {
-      const defaultCfg = await loadComponentConfig(component, 'default');
-      mutate(`reset ${component}/${name}`, (s) => {
-        const slice = s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {} });
-        for (const t of allTokens) {
-          const defaultVal = defaultCfg.aliases[t.variable];
-          if (defaultVal !== undefined) {
-            slice.aliases[t.variable] = defaultVal;
-          } else {
-            delete slice.aliases[t.variable];
-          }
-        }
-      });
-    } else {
-      for (const t of allTokens) removeCssVar(t.variable);
-    }
-    resetKey += 1;
-  }
 </script>
 
 <div class="demo-section variant-group" class:collapsed={!variantExpanded}>
@@ -182,11 +149,6 @@
     >
       <h3 class="demo-subtitle">{title}</h3>
       <i class="fas fa-chevron-down chevron" class:collapsed={!variantExpanded}></i>
-    </div>
-    <div class="variant-actions">
-      <button class="variant-action-btn" on:click={reset} title="Reset to defaults">
-        <i class="fas fa-undo"></i> Reset
-      </button>
     </div>
   </div>
 
@@ -276,55 +238,49 @@
             <div class="state-controls" class:two-col={hasTypeGroups}>
               {#if hasTypeGroups}
                 <div class="state-type-groups">
-                  {#key `${resetKey}:${stateName}:type`}
-                    {#each typeGroups[stateName] as tg}
-                      <TypeEditor
-                        legend={tg.legend ?? 'type'}
-                        colorVariable={tg.colorVariable}
-                        colorLabel={tg.colorLabel ?? 'text color'}
-                        familyVariable={tg.familyVariable}
-                        familyLabel={tg.familyLabel ?? 'font family'}
-                        sizeVariable={tg.sizeVariable}
-                        sizeLabel={tg.sizeLabel ?? 'font size'}
-                        weightVariable={tg.weightVariable}
-                        weightLabel={tg.weightLabel ?? 'font weight'}
-                        lineHeightVariable={tg.lineHeightVariable}
-                        lineHeightLabel={tg.lineHeightLabel ?? 'line height'}
-                        {component}
-                        on:change
-                      />
-                    {/each}
-                  {/key}
+                  {#each typeGroups[stateName] as tg}
+                    <TypeEditor
+                      legend={tg.legend ?? 'type'}
+                      colorVariable={tg.colorVariable}
+                      colorLabel={tg.colorLabel ?? 'text color'}
+                      familyVariable={tg.familyVariable}
+                      familyLabel={tg.familyLabel ?? 'font family'}
+                      sizeVariable={tg.sizeVariable}
+                      sizeLabel={tg.sizeLabel ?? 'font size'}
+                      weightVariable={tg.weightVariable}
+                      weightLabel={tg.weightLabel ?? 'font weight'}
+                      lineHeightVariable={tg.lineHeightVariable}
+                      lineHeightLabel={tg.lineHeightLabel ?? 'line height'}
+                      {component}
+                      on:change
+                    />
+                  {/each}
                 </div>
               {/if}
-              {#key `${resetKey}:${stateName}`}
-                <TokenLayout
-                  title=""
-                  tokens={states[stateName]}
-                  {component}
-                  highlightedVars={highlightedVars ?? new Set()}
-                  {sharedOrder}
-                  on:tokenhover
-                  on:change
-                />
-              {/key}
+              <TokenLayout
+                title=""
+                tokens={states[stateName]}
+                {component}
+                highlightedVars={highlightedVars ?? new Set()}
+                {sharedOrder}
+                on:tokenhover
+                on:change
+              />
             </div>
           {/if}
         </div>
       {/each}
     {:else}
       <slot activeState="" />
-      {#key resetKey}
-        <TokenLayout
-          title={name}
-          tokens={tokens}
-          {component}
-          highlightedVars={highlightedVars ?? new Set()}
-          {sharedOrder}
-          on:tokenhover
-          on:change
-        />
-      {/key}
+      <TokenLayout
+        title={name}
+        tokens={tokens}
+        {component}
+        highlightedVars={highlightedVars ?? new Set()}
+        {sharedOrder}
+        on:tokenhover
+        on:change
+      />
     {/if}
   {/if}
 
@@ -504,36 +460,6 @@
     color: var(--ui-text-primary);
   }
 
-  .variant-actions {
-    display: flex;
-    gap: var(--ui-space-4);
-  }
-
-  .variant-action-btn {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    padding: var(--ui-space-6) var(--ui-space-10);
-    background: none;
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-sm);
-    color: var(--ui-text-muted);
-    font-size: var(--ui-font-size-sm);
-    cursor: pointer;
-    transition: all var(--ui-transition-fast);
-  }
-
-  .variant-action-btn:hover:not(:disabled) {
-    background: var(--ui-hover);
-    color: var(--ui-text-primary);
-    border-color: var(--ui-border-default);
-  }
-
-  .variant-action-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
-
   .state-section {
     display: flex;
     flex-direction: column;
@@ -571,26 +497,22 @@
   .state-controls.two-col {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--ui-space-16) var(--ui-space-32);
+    gap: var(--ui-space-16) var(--ui-space-16);
     align-items: flex-start;
     justify-content: flex-start;
   }
 
-  @container (min-width: 720px) {
-    .state-controls.two-col {
-      gap: var(--ui-space-16) 6rem;
-    }
-  }
-
   .state-type-groups {
     display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-8);
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--ui-space-16);
+    align-items: flex-start;
   }
 
-  /* Inside a state's two-col layout the fieldset frame and legend duplicate
-     what the per-row labels already say. Flatten the frame and hide the
-     legend so both columns start at the same top edge. */
+  /* Inside a state's two-col layout the fieldset frame is redundant with the
+     surrounding state card. Flatten the border/padding but keep the legend so
+     each block ("title", "body text", …) is identifiable. */
   .state-controls.two-col .state-type-groups :global(.fieldset-wrapper) {
     border: none;
     padding: 0;
@@ -601,7 +523,14 @@
   }
 
   .state-controls.two-col .state-type-groups :global(.fieldset-legend) {
-    display: none;
+    padding: 0 var(--ui-space-4) var(--ui-space-4);
+  }
+
+  /* The general-properties column has no legend of its own; pad it down by
+     one legend-line so its first row aligns with the first row of the
+     adjacent type-group. */
+  .state-controls.two-col > :global(.token-group) {
+    padding-top: calc(var(--ui-font-size-xs) + var(--ui-space-4));
   }
 
 </style>

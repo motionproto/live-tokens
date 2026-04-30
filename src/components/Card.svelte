@@ -82,7 +82,7 @@
     gap: var(--space-12);
   }
 
-  .card:hover,
+  .card:not(.no-hover):hover,
   .card.force-hover {
     background: var(--card-hover-surface);
     border: var(--card-hover-border-width) solid var(--card-color, var(--card-hover-border));
@@ -119,7 +119,7 @@
     line-height: var(--card-default-title-line-height);
   }
 
-  .card:hover .card-title,
+  .card:not(.no-hover):hover .card-title,
   .card.force-hover .card-title {
     color: var(--card-hover-title);
     font-family: var(--card-hover-title-font-family);
@@ -140,7 +140,7 @@
     line-height: var(--card-default-body-line-height);
   }
 
-  .card:hover .card-body,
+  .card:not(.no-hover):hover .card-body,
   .card.force-hover .card-body {
     color: var(--card-hover-body);
     font-family: var(--card-hover-body-font-family);
