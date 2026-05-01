@@ -158,6 +158,7 @@
               <span class="state-label">{stateName}</span>
               <i class="fas fa-chevron-down chevron" class:collapsed={!expanded}></i>
             </div>
+            <slot name="state-actions" {stateName} />
             {#if copySources.length > 0}
               <div class="copy-from" bind:this={copyMenuRoots[stateName]}>
                 <button

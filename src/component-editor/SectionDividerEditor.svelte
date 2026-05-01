@@ -58,7 +58,7 @@
       { label: 'gradient stop 3', variable: `--sectiondivider-${v}-gradient-stop-3` },
       { label: 'gradient stop 4', variable: `--sectiondivider-${v}-gradient-stop-4` },
       { label: 'text stroke color', variable: `--sectiondivider-${v}-text-stroke` },
-      { label: 'radius', variable: `--sectiondivider-${v}-radius` },
+      { label: 'corner radius', variable: `--sectiondivider-${v}-radius` },
     ];
   }
   const allTokens: Token[] = [

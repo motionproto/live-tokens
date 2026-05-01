@@ -5,6 +5,8 @@
   import { editorState } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
+  import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
   const component = 'card';
 
   // The card is a single object across two states (default, hover).
@@ -13,19 +15,25 @@
   const states: Record<string, Token[]> = {
     default: [
       { label: 'surface color', variable: '--card-default-surface' },
+      { label: 'header color', variable: '--card-default-header-surface' },
       { label: 'border color', variable: '--card-default-border' },
       { label: 'border width', canBeShared: true, groupKey: 'card-border-width', variable: '--card-default-border-width' },
-      { label: 'radius', canBeShared: true, groupKey: 'card-radius', variable: '--card-default-radius' },
-      { label: 'padding', canBeShared: true, groupKey: 'card-padding', variable: '--card-default-padding' },
-      { label: 'shadow', canBeShared: true, groupKey: 'card-shadow', variable: '--card-default-shadow' },
+      { label: 'corner radius', canBeShared: true, groupKey: 'card-radius', variable: '--card-default-radius' },
+      { label: 'header padding', canBeShared: true, groupKey: 'card-header-padding', variable: '--card-default-header-padding' },
+      { label: 'body padding', canBeShared: true, groupKey: 'card-body-padding', variable: '--card-default-body-padding' },
+      { label: 'card shadow', canBeShared: true, groupKey: 'card-shadow', variable: '--card-default-shadow' },
+      { label: 'background blur', canBeShared: true, groupKey: 'card-blur', variable: '--card-default-blur' },
     ],
     hover: [
       { label: 'surface color', variable: '--card-hover-surface' },
+      { label: 'header color', variable: '--card-hover-header-surface' },
       { label: 'border color', variable: '--card-hover-border' },
       { label: 'border width', canBeShared: true, groupKey: 'card-border-width', variable: '--card-hover-border-width' },
-      { label: 'radius', canBeShared: true, groupKey: 'card-radius', variable: '--card-hover-radius' },
-      { label: 'padding', canBeShared: true, groupKey: 'card-padding', variable: '--card-hover-padding' },
-      { label: 'shadow', canBeShared: true, groupKey: 'card-shadow', variable: '--card-hover-shadow' },
+      { label: 'corner radius', canBeShared: true, groupKey: 'card-radius', variable: '--card-hover-radius' },
+      { label: 'header padding', canBeShared: true, groupKey: 'card-header-padding', variable: '--card-hover-header-padding' },
+      { label: 'body padding', canBeShared: true, groupKey: 'card-body-padding', variable: '--card-hover-body-padding' },
+      { label: 'card shadow', canBeShared: true, groupKey: 'card-shadow', variable: '--card-hover-shadow' },
+      { label: 'background blur', canBeShared: true, groupKey: 'card-blur', variable: '--card-hover-blur' },
     ],
   };
 
@@ -92,8 +100,10 @@
   const shareableContexts = new Map<string, string>([
     ['--card-default-border-width', 'card'],
     ['--card-default-radius', 'card'],
-    ['--card-default-padding', 'card'],
+    ['--card-default-header-padding', 'card'],
+    ['--card-default-body-padding', 'card'],
     ['--card-default-shadow', 'card'],
+    ['--card-default-blur', 'card'],
     ['--card-default-title-font-family', 'title'],
     ['--card-default-title-font-size', 'title'],
     ['--card-default-title-font-weight', 'title'],
@@ -112,14 +122,13 @@
   ) as Record<string, Token[]>;
 
   let hoverEnabled = true;
+  let bgMode: 'image' | 'color' = 'image';
+  const bgVar = '--backdrop-card-surface';
 </script>
 
 <ComponentEditorBase {component} title="Card" description="Generic card with icon, title, and slotted body. Import from <code>components/Card.svelte</code>" tokens={allTokens} {shared}>
   <svelte:fragment slot="config">
-    <label>
-      <input type="checkbox" bind:checked={hoverEnabled} />
-      <span>Hover events</span>
-    </label>
+    <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
   </svelte:fragment>
   <VariantGroup
     name="card"
@@ -129,17 +138,35 @@
     {component}
     let:activeState
   >
+    <svelte:fragment slot="state-actions" let:stateName>
+      {#if stateName === 'hover'}
+        <label class="hover-enable">
+          <input type="checkbox" bind:checked={hoverEnabled} />
+          <span>Use hover</span>
+        </label>
+      {/if}
+    </svelte:fragment>
     {@const previewClass = activeState === 'hover' ? 'force-hover' : (hoverEnabled ? '' : 'no-hover')}
-    <div class="card-demo">
-      <Card icon="fas fa-star" title="Card title" class={previewClass}>
-        <p style="margin: 0;">Slotted body content. Hover the card (or switch the editor to the Hover state) to preview hover styling.</p>
-      </Card>
-    </div>
+    <ShadowBackdrop mode={bgMode} colorVariable={bgVar}>
+      <div class="card-demo">
+        <Card title="Card title" class={previewClass}>
+          <p style="margin: 0;">Slotted body content. Hover the card (or switch the editor to the Hover state) to preview hover styling.</p>
+        </Card>
+      </div>
+    </ShadowBackdrop>
   </VariantGroup>
 </ComponentEditorBase>
 
 <style>
   .card-demo {
     max-width: 28rem;
+  }
+  .hover-enable {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-4);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+    cursor: pointer;
   }
 </style>

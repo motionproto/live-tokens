@@ -14,7 +14,7 @@
       { label: 'surface color', variable: `--collapsiblesection-${s}-surface` },
       { label: 'border color', variable: `--collapsiblesection-${s}-border` },
       { label: 'border width', canBeShared: true, groupKey: 'border-width', variable: `--collapsiblesection-${s}-border-width` },
-      { label: 'radius', canBeShared: true, groupKey: 'radius', variable: `--collapsiblesection-${s}-radius` },
+      { label: 'corner radius', canBeShared: true, groupKey: 'radius', variable: `--collapsiblesection-${s}-radius` },
       { label: 'padding', canBeShared: true, groupKey: 'padding', variable: `--collapsiblesection-${s}-padding` },
       { label: 'icon color', variable: `--collapsiblesection-${s}-icon` },
       { label: 'icon size', canBeShared: true, groupKey: 'icon-size', variable: `--collapsiblesection-${s}-icon-size` },

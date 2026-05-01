@@ -143,6 +143,7 @@
     --dialog-border-width: var(--border-width-default);
     --dialog-radius: var(--radius-lg);
     --dialog-shadow: var(--shadow-2xl);
+    --dialog-blur: var(--blur-none);
 
     /* Header */
     --dialog-header-surface: var(--surface-neutral-lower);
@@ -200,6 +201,7 @@
     border: var(--dialog-border-width) solid var(--dialog-border);
     border-radius: var(--dialog-radius);
     box-shadow: var(--dialog-shadow);
+    backdrop-filter: blur(var(--dialog-blur));
     animation: dialogSlideIn var(--transition-base);
     pointer-events: auto;
   }

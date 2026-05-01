@@ -18,7 +18,7 @@
       { label: 'text color', variable: `--inlineeditactions-${btn}-${state}-text` },
       { label: 'border color', variable: `--inlineeditactions-${btn}-${state}-border` },
       { label: 'border width', canBeShared: true, groupKey: `${btn}-border-width`, variable: `--inlineeditactions-${btn}-${state}-border-width` },
-      { label: 'radius', canBeShared: true, groupKey: `${btn}-radius`, variable: `--inlineeditactions-${btn}-${state}-radius` },
+      { label: 'corner radius', canBeShared: true, groupKey: `${btn}-radius`, variable: `--inlineeditactions-${btn}-${state}-radius` },
       { label: 'padding', canBeShared: true, groupKey: `${btn}-padding`, variable: `--inlineeditactions-${btn}-${state}-padding` },
       { label: 'icon size', canBeShared: true, groupKey: `${btn}-icon-size`, variable: `--inlineeditactions-${btn}-${state}-icon-size` },
     ];

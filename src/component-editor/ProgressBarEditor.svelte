@@ -17,7 +17,7 @@
       { label: 'track surface color', variable: `--progressbar-${v}-track-surface` },
       { label: 'track border color', variable: `--progressbar-${v}-track-border` },
       { label: 'track border width', canBeShared: true, groupKey: 'track-border-width', variable: `--progressbar-${v}-track-border-width` },
-      { label: 'radius', canBeShared: true, groupKey: 'radius', variable: `--progressbar-${v}-radius` },
+      { label: 'corner radius', canBeShared: true, groupKey: 'radius', variable: `--progressbar-${v}-radius` },
       { label: 'track height', canBeShared: true, groupKey: 'track-height', variable: `--progressbar-${v}-track-height` },
     ];
   }

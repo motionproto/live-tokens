@@ -6,6 +6,8 @@
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   import { buildSiblings } from './scaffolding/siblings';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
+  import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
   const component = 'badge';
   const variants = ['info', 'accent', 'trait'] as const;
   type Variant = typeof variants[number];
@@ -17,9 +19,9 @@
       { label: 'surface color', variable: `--badge-${variant}-surface` },
       { label: 'border color', variable: `--badge-${variant}-border` },
       { label: 'border width', canBeShared: true, groupKey: 'border-width', variable: `--badge-${variant}-border-width` },
-      { label: 'radius', canBeShared: true, groupKey: 'radius', variable: `--badge-${variant}-radius` },
+      { label: 'corner radius', canBeShared: true, groupKey: 'radius', variable: `--badge-${variant}-radius` },
       { label: 'padding', canBeShared: true, groupKey: 'padding', variable: `--badge-${variant}-padding` },
-      { label: 'shadow', canBeShared: true, groupKey: 'shadow', variable: `--badge-${variant}-shadow` },
+      { label: 'badge shadow', canBeShared: true, groupKey: 'shadow', variable: `--badge-${variant}-shadow` },
     ];
   }
   function variantTypeGroups(variant: Variant): TypeGroupConfig[] {
@@ -74,9 +76,15 @@
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
   $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
+
+  let bgMode: 'image' | 'color' = 'image';
+  const bgVar = '--backdrop-badge-surface';
 </script>
 
 <ComponentEditorBase {component} title="Badge" description="Pill-shaped badges with variant support. Import from <code>components/Badge.svelte</code>" tokens={allTokens} {shared}>
+  <svelte:fragment slot="config">
+    <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
+  </svelte:fragment>
   {#each variants as v}
     <VariantGroup
       name={v}
@@ -86,18 +94,20 @@
       {component}
       siblings={buildSiblings(variants, v, variantTokens, variantTypeGroups)}
     >
-      <div class="badge-showcase-grid">
-        {#if v === 'info'}
-          <Badge variant="info">info</Badge>
-          <Badge variant="info" icon="fa-solid fa-dice-d20">With Icon</Badge>
-        {:else if v === 'accent'}
-          <Badge variant="accent">scenes</Badge>
-        {:else}
-          <Badge variant="trait">arcane</Badge>
-          <Badge variant="trait">divine</Badge>
-          <Badge variant="trait">primal</Badge>
-        {/if}
-      </div>
+      <ShadowBackdrop mode={bgMode} colorVariable={bgVar}>
+        <div class="badge-showcase-grid">
+          {#if v === 'info'}
+            <Badge variant="info">info</Badge>
+            <Badge variant="info" icon="fa-solid fa-dice-d20">With Icon</Badge>
+          {:else if v === 'accent'}
+            <Badge variant="accent">scenes</Badge>
+          {:else}
+            <Badge variant="trait">arcane</Badge>
+            <Badge variant="trait">divine</Badge>
+            <Badge variant="trait">primal</Badge>
+          {/if}
+        </div>
+      </ShadowBackdrop>
     </VariantGroup>
   {/each}
 </ComponentEditorBase>

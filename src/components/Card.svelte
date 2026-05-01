@@ -34,8 +34,11 @@
     --card-default-border: var(--border-neutral);
     --card-default-border-width: var(--border-width-thin);
     --card-default-radius: var(--radius-lg);
-    --card-default-padding: var(--space-16);
+    --card-default-header-padding: var(--space-16);
+    --card-default-body-padding: var(--space-16);
     --card-default-shadow: var(--shadow-sm);
+    --card-default-blur: var(--blur-none);
+    --card-default-header-surface: transparent;
 
     --card-default-title: var(--text-primary);
     --card-default-title-font-family: var(--font-sans);
@@ -54,8 +57,11 @@
     --card-hover-border: var(--border-neutral-strong);
     --card-hover-border-width: var(--border-width-thin);
     --card-hover-radius: var(--radius-lg);
-    --card-hover-padding: var(--space-16);
+    --card-hover-header-padding: var(--space-16);
+    --card-hover-body-padding: var(--space-16);
     --card-hover-shadow: var(--shadow-md);
+    --card-hover-blur: var(--blur-none);
+    --card-hover-header-surface: transparent;
 
     --card-hover-title: var(--text-primary);
     --card-hover-title-font-family: var(--font-sans);
@@ -74,12 +80,12 @@
     background: var(--card-default-surface);
     border: var(--card-default-border-width) solid var(--card-default-border);
     border-radius: var(--card-default-radius);
-    padding: var(--card-default-padding);
     box-shadow: var(--card-default-shadow);
+    backdrop-filter: blur(var(--card-default-blur));
     transition: all var(--transition-fast);
     display: flex;
     flex-direction: column;
-    gap: var(--space-12);
+    overflow: hidden;
   }
 
   .card:not(.no-hover):hover,
@@ -87,24 +93,37 @@
     background: var(--card-hover-surface);
     border: var(--card-hover-border-width) solid var(--card-color, var(--card-hover-border));
     border-radius: var(--card-hover-radius);
-    padding: var(--card-hover-padding);
     box-shadow: var(--card-hover-shadow);
-  }
-
-  .card.compact {
-    padding: var(--space-8) var(--space-12);
-    gap: var(--space-8);
+    backdrop-filter: blur(var(--card-hover-blur));
   }
 
   .card-header {
     display: flex;
     align-items: center;
     gap: var(--space-8);
+    padding: var(--card-default-header-padding);
+    background: var(--card-default-header-surface);
+  }
+
+  .card:not(.no-hover):hover .card-header,
+  .card.force-hover .card-header {
+    padding: var(--card-hover-header-padding);
+    background: var(--card-hover-header-surface);
+  }
+
+  .card.compact .card-header,
+  .card.compact .card-body {
+    padding: var(--space-8) var(--space-12);
   }
 
   .card-icon {
     font-size: var(--font-size-lg);
-    color: var(--card-color, var(--text-secondary));
+    color: var(--card-color, var(--card-default-title));
+  }
+
+  .card:not(.no-hover):hover .card-icon,
+  .card.force-hover .card-icon {
+    color: var(--card-color, var(--card-hover-title));
   }
 
   .card.compact .card-icon {
@@ -138,6 +157,7 @@
     font-size: var(--card-default-body-font-size);
     font-weight: var(--card-default-body-font-weight);
     line-height: var(--card-default-body-line-height);
+    padding: var(--card-default-body-padding);
   }
 
   .card:not(.no-hover):hover .card-body,
@@ -147,6 +167,7 @@
     font-size: var(--card-hover-body-font-size);
     font-weight: var(--card-hover-body-font-weight);
     line-height: var(--card-hover-body-line-height);
+    padding: var(--card-hover-body-padding);
   }
 
   .card.compact .card-body {

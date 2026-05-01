@@ -4,7 +4,8 @@
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState, setComponentAlias } from '../lib/editorStore';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
-  import newspaperBg from '../assets/newspaper.webp';
+  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
+  import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
   const component = 'dialog';
 
   const BUTTON_VARIANTS = ['primary', 'secondary', 'outline', 'success', 'danger', 'warning'] as const;
@@ -38,8 +39,9 @@
       { label: 'surface color', variable: '--dialog-surface' },
       { label: 'border color', variable: '--dialog-border' },
       { label: 'border width', variable: '--dialog-border-width' },
-      { label: 'radius', variable: '--dialog-radius' },
-      { label: 'shadow', variable: '--dialog-shadow' },
+      { label: 'corner radius', variable: '--dialog-radius' },
+      { label: 'dialog shadow', variable: '--dialog-shadow' },
+      { label: 'background blur', variable: '--dialog-blur' },
     ],
     header: [
       { label: 'surface color', variable: '--dialog-header-surface' },
@@ -84,21 +86,12 @@
   function variantLabel(v: ButtonVariant): string {
     return v.charAt(0).toUpperCase() + v.slice(1);
   }
+
+  let bgMode: 'image' | 'color' = 'image';
+  const bgVar = '--backdrop-dialog-surface';
 </script>
 
 <ComponentEditorBase {component} title="Dialog" description="Modal dialog with focus management and slide-in animation. Import from <code>components/Dialog.svelte</code>" tokens={allTokens}>
-  <div class="dialog-preview" style="background-image: url({newspaperBg});">
-    <Dialog
-      show
-      inline
-      title="Sample Dialog"
-      confirmLabel="Save"
-      cancelLabel="Cancel"
-      onCancel={() => {}}
-    >
-      <p style="color: var(--text-secondary); margin: 0;">This is the dialog body content. It supports any slotted content including forms, lists, or other components.</p>
-    </Dialog>
-  </div>
   <svelte:fragment slot="config">
     <label>
       <span>Cancel button (left)</span>
@@ -116,17 +109,20 @@
         {/each}
       </select>
     </label>
+    <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
   </svelte:fragment>
+  <ShadowBackdrop mode={bgMode} colorVariable={bgVar}>
+    <Dialog
+      show
+      inline
+      title="Sample Dialog"
+      confirmLabel="Save"
+      cancelLabel="Cancel"
+      onCancel={() => {}}
+    >
+      <p style="color: var(--text-secondary); margin: 0;">This is the dialog body content. It supports any slotted content including forms, lists, or other components.</p>
+    </Dialog>
+  </ShadowBackdrop>
   <VariantGroup name="dialog" title="Dialog" states={frameStates} typeGroups={frameTypeGroups} {component} />
 </ComponentEditorBase>
 
-<style>
-  .dialog-preview {
-    margin-bottom: var(--ui-space-12);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    border-radius: var(--ui-radius-md);
-    overflow: hidden;
-  }
-</style>

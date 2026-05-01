@@ -4,6 +4,8 @@
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import type { Token } from './scaffolding/types';
   import demoImageUrl from '../assets/offering.webp';
+  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
+  import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
 
   const component = 'image';
 
@@ -12,20 +14,27 @@
     image: [
       { label: 'border color', variable: '--image-default-border' },
       { label: 'border width', variable: '--image-default-border-width' },
-      { label: 'radius', variable: '--image-default-radius' },
-      { label: 'shadow', variable: '--image-default-shadow' },
+      { label: 'corner radius', variable: '--image-default-radius' },
+      { label: 'image shadow', variable: '--image-default-shadow' },
     ],
   };
 
   const allTokens: Token[] = Object.values(states).flat();
+  let bgMode: 'image' | 'color' = 'image';
+  const bgVar = '--backdrop-image-surface';
 </script>
 
 <ComponentEditorBase {component} title="Image" description="Framed image with rounded corners, border, and shadow. Import from <code>components/Image.svelte</code>" tokens={allTokens}>
+  <svelte:fragment slot="config">
+    <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
+  </svelte:fragment>
   <VariantGroup name="image" title="Image" {states} {component}>
-    <div class="image-demo-grid">
-      <Image src={demoImageUrl} alt="Demo" variant="compact" />
-      <Image src={demoImageUrl} alt="Demo" variant="medium" />
-    </div>
+    <ShadowBackdrop mode={bgMode} colorVariable={bgVar}>
+      <div class="image-demo-grid">
+        <Image src={demoImageUrl} alt="Demo" variant="compact" />
+        <Image src={demoImageUrl} alt="Demo" variant="medium" />
+      </div>
+    </ShadowBackdrop>
   </VariantGroup>
 </ComponentEditorBase>
 

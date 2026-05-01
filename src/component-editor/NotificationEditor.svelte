@@ -16,7 +16,7 @@
       { label: 'surface color', variable: `--notification-${v}-surface` },
       { label: 'border color', variable: `--notification-${v}-border` },
       { label: 'border width', canBeShared: true, groupKey: 'border-width', variable: `--notification-${v}-border-width` },
-      { label: 'radius', canBeShared: true, groupKey: 'radius', variable: `--notification-${v}-radius` },
+      { label: 'corner radius', canBeShared: true, groupKey: 'radius', variable: `--notification-${v}-radius` },
       { label: 'padding', canBeShared: true, groupKey: 'padding', variable: `--notification-${v}-padding` },
       { label: 'icon color', variable: `--notification-${v}-icon` },
       { label: 'icon size', canBeShared: true, groupKey: 'icon-size', variable: `--notification-${v}-icon-size` },

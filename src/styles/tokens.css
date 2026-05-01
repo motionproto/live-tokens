@@ -459,6 +459,14 @@
   --dot-size-75: 75%;
   --dot-size-100: 100%;
 
+  /* Backdrop blur radii — feed `backdrop-filter: blur(var(--blur-*))`. */
+  --blur-none: 0;
+  --blur-sm: 4px;
+  --blur-md: 8px;
+  --blur-lg: 16px;
+  --blur-xl: 24px;
+  --blur-2xl: 32px;
+
   /* ═══════════════════════════════════════════════════════
      COLUMN LAYOUT
      12-column layout tokens. Drive the dev columns overlay

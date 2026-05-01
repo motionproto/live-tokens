@@ -26,7 +26,7 @@
       { label: 'surface color', variable: `${p}-surface` },
       { label: 'border color', variable: `${p}-border` },
       { label: 'border width', canBeShared: true, groupKey: `${v}-border-width`, variable: `${p}-border-width` },
-      { label: 'radius', canBeShared: true, groupKey: `${v}-radius`, variable: `${p}-radius` },
+      { label: 'corner radius', canBeShared: true, groupKey: `${v}-radius`, variable: `${p}-radius` },
       { label: 'padding', canBeShared: true, groupKey: `${v}-padding`, variable: `${p}-padding` },
     ];
   }

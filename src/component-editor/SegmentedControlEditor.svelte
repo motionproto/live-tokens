@@ -22,7 +22,7 @@
       { label: 'surface color', variable: '--segmentedcontrol-bar-surface' },
       { label: 'border color', variable: '--segmentedcontrol-bar-border' },
       { label: 'border width', variable: '--segmentedcontrol-bar-border-width' },
-      { label: 'radius', canBeShared: true, groupKey: 'bar-radius', variable: '--segmentedcontrol-bar-radius' },
+      { label: 'corner radius', canBeShared: true, groupKey: 'bar-radius', variable: '--segmentedcontrol-bar-radius' },
       { label: 'option gap', variable: '--segmentedcontrol-bar-gap' },
       { label: 'padding', variable: '--segmentedcontrol-bar-padding', groupKey: 'bar-padding' },
       { label: 'padding-top', variable: '--segmentedcontrol-bar-padding-top', groupKey: 'bar-padding-top', hidden: true },
@@ -43,7 +43,7 @@
       { label: 'icon color', variable: '--segmentedcontrol-selected-icon' },
       { label: 'border color', variable: '--segmentedcontrol-selected-border' },
       { label: 'border width', canBeShared: true, groupKey: 'border-width', variable: '--segmentedcontrol-selected-border-width' },
-      { label: 'radius', canBeShared: true, groupKey: 'selected-radius', variable: '--segmentedcontrol-selected-radius' },
+      { label: 'corner radius', canBeShared: true, groupKey: 'selected-radius', variable: '--segmentedcontrol-selected-radius' },
     ],
     'hover option': [
       { label: 'surface color', variable: '--segmentedcontrol-option-hover-surface' },

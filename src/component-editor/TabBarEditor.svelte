@@ -19,7 +19,7 @@
     bar: [
       { label: 'divider color', variable: '--tabbar-bar-divider' },
       { label: 'divider thickness', variable: '--tabbar-bar-divider-thickness' },
-      { label: 'radius', variable: '--tabbar-bar-radius' },
+      { label: 'corner radius', variable: '--tabbar-bar-radius' },
       { label: 'padding', variable: '--tabbar-bar-padding' },
     ],
   };

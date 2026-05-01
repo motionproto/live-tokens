@@ -9,6 +9,7 @@
   import UIDividerHeightSelector from '../../ui/UIDividerHeightSelector.svelte';
   import UIDotSizeSelector from '../../ui/UIDotSizeSelector.svelte';
   import UIPaddingSelector from '../../ui/UIPaddingSelector.svelte';
+  import UIBlurSelector from '../../ui/UIBlurSelector.svelte';
   import { editorState, getComponentPropertySiblings } from '../../lib/editorStore';
 
   type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; disabled?: boolean; hidden?: boolean };
@@ -21,6 +22,7 @@
     | 'divider-width'
     | 'divider-height'
     | 'dot-size'
+    | 'blur'
     | 'font-family'
     | 'font-weight'
     | 'font-size'
@@ -78,6 +80,10 @@
     return v.endsWith('-dot-size');
   }
 
+  function isBlur(v: string): boolean {
+    return v.endsWith('-blur') || v.startsWith('--blur-');
+  }
+
   function isPadding(v: string): boolean {
     return v.endsWith('-padding');
   }
@@ -111,6 +117,7 @@
     'radius',
     'padding',
     'gap',
+    'blur',
     'extras',
     'surface',
     'border',
@@ -129,6 +136,7 @@
     if (isDividerWidth(v)) return 'divider-width';
     if (isDividerHeight(v)) return 'divider-height';
     if (isDotSize(v)) return 'dot-size';
+    if (isBlur(v)) return 'blur';
     if (isPadding(v)) return 'padding';
     if (isGap(v)) return 'gap';
     if (isBorderWidth(v)) return 'border-width';
@@ -228,6 +236,8 @@
             <UIDividerHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'dot-size'}
             <UIDotSizeSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
+          {:else if entry.kind === 'blur'}
+            <UIBlurSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'padding'}
             <UIPaddingSelector mode="single" variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
           {:else if entry.kind === 'gap'}

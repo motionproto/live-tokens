@@ -4,6 +4,8 @@
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
+  import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
   const component = 'tooltip';
 
   // Tooltip is a single object — surface/border/padding/radius/shadow live together.
@@ -12,9 +14,9 @@
       { label: 'surface color', variable: '--tooltip-surface' },
       { label: 'border color', variable: '--tooltip-border' },
       { label: 'border width', variable: '--tooltip-border-width' },
-      { label: 'radius', variable: '--tooltip-radius' },
+      { label: 'corner radius', variable: '--tooltip-radius' },
       { label: 'padding', variable: '--tooltip-padding' },
-      { label: 'shadow', variable: '--tooltip-shadow' },
+      { label: 'tooltip shadow', variable: '--tooltip-shadow' },
     ],
   };
 
@@ -35,9 +37,14 @@
     { label: 'line height', variable: '--tooltip-text-line-height' },
   ];
   const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
+  let bgMode: 'image' | 'color' = 'image';
+  const bgVar = '--backdrop-tooltip-surface';
 </script>
 
 <ComponentEditorBase {component} title="Tooltip" description="Hover tooltip with configurable position. Import from <code>components/Tooltip.svelte</code>" tokens={allTokens}>
+  <svelte:fragment slot="config">
+    <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
+  </svelte:fragment>
   <VariantGroup
     name="tooltip"
     title="Tooltip"
@@ -45,17 +52,19 @@
     {typeGroups}
     {component}
   >
-    <div class="tooltip-demo-row">
-      <Tooltip text="This is a top tooltip">
-        <Button variant="outline">Hover me (top)</Button>
-      </Tooltip>
-      <Tooltip text="Bottom tooltip" position="bottom">
-        <Button variant="outline">Hover me (bottom)</Button>
-      </Tooltip>
-      <Tooltip text="Tooltips work on any element">
-        <span class="tooltip-demo-text">Hover this text</span>
-      </Tooltip>
-    </div>
+    <ShadowBackdrop mode={bgMode} colorVariable={bgVar}>
+      <div class="tooltip-demo-row">
+        <Tooltip text="This is a top tooltip">
+          <Button variant="outline">Hover me (top)</Button>
+        </Tooltip>
+        <Tooltip text="Bottom tooltip" position="bottom">
+          <Button variant="outline">Hover me (bottom)</Button>
+        </Tooltip>
+        <Tooltip text="Tooltips work on any element">
+          <span class="tooltip-demo-text">Hover this text</span>
+        </Tooltip>
+      </div>
+    </ShadowBackdrop>
   </VariantGroup>
 </ComponentEditorBase>
 
