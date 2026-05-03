@@ -2,7 +2,7 @@
   import TabBar from '../components/TabBar.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState, registerComponentSchema } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'tabbar';
@@ -62,6 +62,7 @@
     { label: 'line height', canBeShared: true, groupKey: 'tab-line-height', variable: `--tabbar-${s}-text-line-height` },
   ]);
   const allTokens: Token[] = [...Object.values(barStates).flat(), ...Object.values(tabStates).flat(), ...tabTypeGroupTokens];
+  registerComponentSchema(component, allTokens);
 
   // Linking: shape props across tab states (same tab object).
   const shareableContexts = new Map<string, string>(tabStateNames.flatMap((s) => [

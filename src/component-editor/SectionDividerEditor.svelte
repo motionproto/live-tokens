@@ -2,6 +2,7 @@
   import SectionDivider from '../components/SectionDivider.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import { registerComponentSchema } from '../lib/editorStore';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'sectiondivider';
 
@@ -66,6 +67,7 @@
     ...sharedTypeTokens,
     ...variants.flatMap((v) => variantTokens(v.key)),
   ];
+  registerComponentSchema(component, allTokens);
   const descriptionText = 'These modules were created by other authors and are no longer actively maintained.';
 
   let showDescription: Record<Variant, boolean> = {

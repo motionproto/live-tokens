@@ -2,7 +2,7 @@
   import SegmentedControl from '../components/SegmentedControl.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState, registerComponentSchema } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'segmentedcontrol';
@@ -22,6 +22,9 @@
       { label: 'surface color', variable: '--segmentedcontrol-bar-surface' },
       { label: 'border color', variable: '--segmentedcontrol-bar-border' },
       { label: 'border width', variable: '--segmentedcontrol-bar-border-width' },
+      { label: 'divider color', variable: '--segmentedcontrol-divider-color' },
+      { label: 'divider width', canBeShared: true, groupKey: 'divider-thickness', variable: '--segmentedcontrol-divider-thickness' },
+      { label: 'divider height', canBeShared: true, groupKey: 'divider-height', variable: '--segmentedcontrol-divider-height' },
       { label: 'corner radius', canBeShared: true, groupKey: 'bar-radius', variable: '--segmentedcontrol-bar-radius' },
       { label: 'option gap', variable: '--segmentedcontrol-bar-gap' },
       { label: 'padding', variable: '--segmentedcontrol-bar-padding', groupKey: 'bar-padding' },
@@ -29,11 +32,6 @@
       { label: 'padding-right', variable: '--segmentedcontrol-bar-padding-right', groupKey: 'bar-padding-right', hidden: true },
       { label: 'padding-bottom', variable: '--segmentedcontrol-bar-padding-bottom', groupKey: 'bar-padding-bottom', hidden: true },
       { label: 'padding-left', variable: '--segmentedcontrol-bar-padding-left', groupKey: 'bar-padding-left', hidden: true },
-    ],
-    divider: [
-      { label: 'color', variable: '--segmentedcontrol-divider-color' },
-      { label: 'width', canBeShared: true, groupKey: 'divider-thickness', variable: '--segmentedcontrol-divider-thickness' },
-      { label: 'height', canBeShared: true, groupKey: 'divider-height', variable: '--segmentedcontrol-divider-height' },
     ],
     'default option': [
       { label: 'icon color', variable: '--segmentedcontrol-option-icon' },
@@ -114,11 +112,12 @@
     { label: 'line height', canBeShared: true, groupKey: 'line-height', variable: '--segmentedcontrol-disabled-text-line-height' },
   ];
   const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
+  registerComponentSchema(component, allTokens);
 
   const shareableContexts = new Map<string, string>([
     ['--segmentedcontrol-bar-radius', 'control bar'],
-    ['--segmentedcontrol-divider-thickness', 'divider'],
-    ['--segmentedcontrol-divider-height', 'divider'],
+    ['--segmentedcontrol-divider-thickness', 'control bar'],
+    ['--segmentedcontrol-divider-height', 'control bar'],
     ['--segmentedcontrol-selected-border-width', 'selected option'],
     ['--segmentedcontrol-selected-radius', 'selected option'],
     ['--segmentedcontrol-option-text-font-family', 'default option'],

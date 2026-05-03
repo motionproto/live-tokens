@@ -3,6 +3,7 @@
   import Tooltip from '../components/Tooltip.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import { registerComponentSchema } from '../lib/editorStore';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
   import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
@@ -37,6 +38,7 @@
     { label: 'line height', variable: '--tooltip-text-line-height' },
   ];
   const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
+  registerComponentSchema(component, allTokens);
   let bgMode: 'image' | 'color' = 'image';
   const bgVar = '--backdrop-tooltip-surface';
 </script>

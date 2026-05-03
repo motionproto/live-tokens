@@ -2,7 +2,7 @@
   import InlineEditActions from '../components/InlineEditActions.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState, registerComponentSchema } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   import type { Token } from './scaffolding/types';
   const component = 'inlineeditactions';
@@ -32,6 +32,7 @@
     };
   }
   const allTokens: Token[] = buttons.flatMap((b) => Object.values(buttonStates(b)).flat());
+  registerComponentSchema(component, allTokens);
 
   // Shared block surfaces shape props per button (linked across default/hover within same button).
   const shareableContexts = new Map<string, string>(buttons.flatMap((btn) => [

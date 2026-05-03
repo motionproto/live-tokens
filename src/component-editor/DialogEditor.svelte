@@ -2,7 +2,7 @@
   import Dialog from '../components/Dialog.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, setComponentAlias } from '../lib/editorStore';
+  import { editorState, setComponentAlias, registerComponentSchema } from '../lib/editorStore';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
   import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
@@ -82,6 +82,7 @@
     ...Object.values(frameStates).flat(),
     ...frameTypeGroupTokens,
   ];
+  registerComponentSchema(component, allTokens);
 
   function variantLabel(v: ButtonVariant): string {
     return v.charAt(0).toUpperCase() + v.slice(1);

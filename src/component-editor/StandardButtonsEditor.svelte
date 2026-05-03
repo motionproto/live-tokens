@@ -3,7 +3,7 @@
   import Toggle from '../components/Toggle.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, setComponentAlias } from '../lib/editorStore';
+  import { editorState, setComponentAlias, registerComponentSchema } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'button';
@@ -69,6 +69,7 @@
     ...Object.values(variantStates(v)).flat(),
     ...variantTypeGroupTokens(v),
   ]);
+  registerComponentSchema(component, allTokens);
 
   // Shared block:
   //   - shape props (border-width, radius, padding) link across every variant × state — buttons share one geometry.

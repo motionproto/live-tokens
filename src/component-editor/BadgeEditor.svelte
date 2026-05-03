@@ -2,7 +2,7 @@
   import Badge from '../components/Badge.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState, registerComponentSchema } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   import { buildSiblings } from './scaffolding/siblings';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
@@ -43,6 +43,7 @@
     ];
   }
   const allTokens: Token[] = variants.flatMap((v) => [...variantTokens(v), ...variantTypeGroupTokens(v)]);
+  registerComponentSchema(component, allTokens);
 
   // Cross-variant sharing: any token with canBeShared+groupKey participates in
   // the shared block when ≥2 variants currently agree on its alias.

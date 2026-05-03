@@ -2,7 +2,7 @@
   import RadioButton from '../components/RadioButton.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState, registerComponentSchema } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'radiobutton';
@@ -85,6 +85,7 @@
     ['--radiobutton-active-label-line-height', 'active'],
   ]);
   const allTokens = [...Object.values(states).flat(), ...typeGroupTokens];
+  registerComponentSchema(component, allTokens);
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
 

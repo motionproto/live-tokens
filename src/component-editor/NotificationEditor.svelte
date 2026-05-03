@@ -2,7 +2,7 @@
   import Notification from '../components/Notification.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState, registerComponentSchema } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   import { buildSiblings } from './scaffolding/siblings';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
@@ -57,6 +57,7 @@
     ];
   }
   const allTokens: Token[] = variants.flatMap((v) => [...variantTokens(v), ...variantTypeGroupTokens(v)]);
+  registerComponentSchema(component, allTokens);
 
   // Shared block surfaces shape and font props that may be linked across variants.
   const shareableContexts = new Map<string, string>(variants.flatMap((v) => [

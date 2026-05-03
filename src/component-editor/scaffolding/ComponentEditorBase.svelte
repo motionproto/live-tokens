@@ -2,7 +2,6 @@
   import DemoHeader from './DemoHeader.svelte';
   import NonStylableConfig from './NonStylableConfig.svelte';
   import SharedBlock from './SharedBlock.svelte';
-  import { registerComponentSchema } from '../../lib/editorStore';
   import { createEditorContext } from './editorContext';
   import type { Token } from './types';
   import type { SharedBlockResult } from './sharedBlock';
@@ -10,7 +9,8 @@
   export let component: string;
   export let title: string;
   export let description: string = '';
-  /** Schema of every token this editor manages. Drives reset + groupKey registration. */
+  /** Token list used to drive the reset action in the header. The editor itself
+      is responsible for calling `registerComponentSchema` synchronously. */
   export let tokens: Token[] = [];
   /** Optional shared-block result. When provided, the SharedBlock is rendered
       and hover highlights propagate to VariantGroup children via context. */
@@ -33,7 +33,6 @@
   $: if (showVariantTabs && ($focusedVariant === null || !variants.some((v) => v.value === $focusedVariant))) {
     focusedVariant.set(variants[0].value);
   }
-  $: registerComponentSchema(component, tokens);
   $: resetVariables = tokens.map((t) => t.variable);
 </script>
 

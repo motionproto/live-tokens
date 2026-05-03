@@ -2,7 +2,7 @@
   import CollapsibleSection from '../components/CollapsibleSection.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState, registerComponentSchema } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'collapsiblesection';
@@ -40,6 +40,7 @@
     { label: 'line height', canBeShared: true, groupKey: 'label-line-height', variable: `--collapsiblesection-${s}-label-line-height` },
   ]);
   const allTokens = [...Object.values(states).flat(), ...typeGroupTokens];
+  registerComponentSchema(component, allTokens);
 
   const shareableContexts = new Map<string, string>(stateNames.flatMap((s) => [
     [`--collapsiblesection-${s}-border-width`, s] as const,

@@ -2,7 +2,7 @@
   import Card from '../components/Card.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState, registerComponentSchema } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
@@ -114,6 +114,7 @@
     ['--card-default-body-line-height', 'body'],
   ]);
   const allTokens = [...Object.values(states).flat(), ...typeGroupTokens];
+  registerComponentSchema(component, allTokens);
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
 

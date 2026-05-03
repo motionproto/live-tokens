@@ -2,6 +2,7 @@
   import Image from '../components/Image.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import { registerComponentSchema } from '../lib/editorStore';
   import type { Token } from './scaffolding/types';
   import demoImageUrl from '../assets/offering.webp';
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
@@ -20,6 +21,7 @@
   };
 
   const allTokens: Token[] = Object.values(states).flat();
+  registerComponentSchema(component, allTokens);
   let bgMode: 'image' | 'color' = 'image';
   const bgVar = '--backdrop-image-surface';
 </script>
