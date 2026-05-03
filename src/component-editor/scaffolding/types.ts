@@ -10,6 +10,9 @@ export type Token = {
   disabled?: boolean;
   /** Token row is omitted entirely. */
   hidden?: boolean;
+  /** When the shared block collapses several same-label same-value rows into one,
+      the surviving row carries the other groupKey leads here so writes co-propagate. */
+  mergeVariables?: string[];
 };
 
 /** Editor type-group: a fieldset containing a coordinated set of typography tokens

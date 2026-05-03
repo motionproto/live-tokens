@@ -92,9 +92,11 @@
   let leftOption: ButtonVariantOption = 'none';
   $: actionRightVariant = toVariant(rightOption);
   $: actionLeftVariant = toVariant(leftOption);
+
+  const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
 </script>
 
-<ComponentEditorBase {component} title="Notification" description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>" tokens={allTokens} {shared}>
+<ComponentEditorBase {component} title="Notification" description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>" tokens={allTokens} {shared} tabbable variants={variantOptions}>
   <svelte:fragment slot="config">
     <label>
       <input type="checkbox" bind:checked={dismissible} />

@@ -26,6 +26,8 @@
   } from '../../lib/editorStore';
   import { sanitizeFileName } from '../../lib/themeService';
   import UIDialog from '../../ui/UIDialog.svelte';
+  import { writable } from 'svelte/store';
+  import { getEditorContext, type ViewMode } from './editorContext';
 
   /** Which component this manager controls (e.g. "button"). */
   export let component: string;
@@ -37,6 +39,10 @@
   const projectRoot: string =
     typeof __PROJECT_ROOT__ !== 'undefined' ? (__PROJECT_ROOT__ ?? '') : '';
   $: sourceFile = componentSourceFile(component);
+
+  const editorCtx = getEditorContext();
+  const tabbableStore = editorCtx?.tabbable ?? writable(false);
+  const viewModeStore = editorCtx?.viewMode ?? writable<ViewMode>('tabs');
 
   let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
   let files: ComponentConfigMeta[] = [];
@@ -271,20 +277,21 @@
 </script>
 
 <div class="cfm-bar">
-  {#if title}
-    <h2 class="cfm-title">{title}</h2>
-  {/if}
-
-  {#if sourceFile && projectRoot}
-    <a
-      class="source-link"
-      href="vscode://file/{projectRoot}/{sourceFile}"
-      title="Open {sourceFile} in VS Code"
-    >
-      <i class="fas fa-code"></i>
-      <span>Source</span>
-    </a>
-  {/if}
+  <div class="cfm-title-row">
+    {#if title}
+      <h2 class="cfm-title">{title}</h2>
+    {/if}
+    {#if sourceFile && projectRoot}
+      <a
+        class="source-link"
+        href="vscode://file/{projectRoot}/{sourceFile}"
+        title="Open {sourceFile} in VS Code"
+      >
+        <i class="fas fa-code"></i>
+        <span>Source</span>
+      </a>
+    {/if}
+  </div>
 
   <span class="cfg-label cfg-row-editor">editor config</span>
   <span
@@ -365,6 +372,35 @@
       {#if productionUpdateStatus === 'idle'}Apply Config{:else if productionUpdateStatus === 'updating'}Applying{:else if productionUpdateStatus === 'done'}Applied{:else}Error{/if}
     </span>
   </button>
+
+  {#if $tabbableStore}
+    <div class="view-mode-toggle" role="radiogroup" aria-label="Property view mode">
+      <button
+        type="button"
+        class="view-mode-btn"
+        class:active={$viewModeStore === 'list'}
+        role="radio"
+        aria-checked={$viewModeStore === 'list'}
+        title="Stacked list view"
+        on:click={() => viewModeStore.set('list')}
+      >
+        <i class="fas fa-bars"></i>
+        <span>List</span>
+      </button>
+      <button
+        type="button"
+        class="view-mode-btn"
+        class:active={$viewModeStore === 'tabs'}
+        role="radio"
+        aria-checked={$viewModeStore === 'tabs'}
+        title="Tabbed view (one section at a time)"
+        on:click={() => viewModeStore.set('tabs')}
+      >
+        <i class="fas fa-folder"></i>
+        <span>Tabs</span>
+      </button>
+    </div>
+  {/if}
 </div>
 
 <UIDialog
@@ -450,12 +486,19 @@
     border-radius: var(--ui-radius-md);
   }
 
-  .cfm-title {
+  .cfm-title-row {
     grid-column: 1;
     grid-row: 1;
-    align-self: start;
-    margin: 0 var(--ui-space-24) 0 0;
-    min-width: 8rem;
+    align-self: center;
+    display: flex;
+    align-items: baseline;
+    gap: var(--ui-space-12);
+    margin-right: var(--ui-space-24);
+  }
+
+  .cfm-title {
+    margin: 0;
+    min-width: 0;
     font-size: var(--ui-font-size-3xl);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
@@ -465,14 +508,9 @@
   }
 
   .source-link {
-    grid-column: 1;
-    grid-row: 3;
-    justify-self: start;
-    align-self: center;
     display: inline-flex;
     align-items: center;
     gap: var(--ui-space-4);
-    margin-top: var(--ui-space-12);
     padding: var(--ui-space-2) var(--ui-space-6);
     font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
@@ -542,6 +580,51 @@
   .cfg-row-production.cfg-label { grid-column: 2; grid-row: 3; margin-top: var(--ui-space-12); }
   .cfg-row-production.cfg-box { grid-column: 3; grid-row: 3; margin-top: var(--ui-space-12); }
   .apply-btn.cfg-row-production { grid-column: 4; grid-row: 3; margin-top: var(--ui-space-12); }
+
+  .view-mode-toggle {
+    grid-column: 1;
+    grid-row: 3;
+    justify-self: start;
+    align-self: center;
+    margin-top: var(--ui-space-12);
+    display: inline-flex;
+    align-items: stretch;
+    gap: 2px;
+    padding: 3px;
+    background: var(--ui-surface-lowest);
+    border: 1px solid var(--ui-border-default);
+    border-radius: var(--ui-radius-md);
+  }
+
+  .view-mode-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    padding: var(--ui-space-4) var(--ui-space-12);
+    background: none;
+    border: none;
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-sm);
+    cursor: pointer;
+    transition: color var(--ui-transition-fast), background var(--ui-transition-fast);
+    white-space: nowrap;
+  }
+
+  .view-mode-btn i {
+    font-size: 0.9em;
+  }
+
+  .view-mode-btn:hover:not(.active) {
+    color: var(--ui-text-primary);
+    background: var(--ui-hover);
+  }
+
+  .view-mode-btn.active {
+    color: var(--ui-text-primary);
+    background: var(--ui-surface-high);
+    box-shadow: 0 0 0 1px var(--ui-border-default);
+  }
 
   .cfm-btn {
     display: inline-flex;

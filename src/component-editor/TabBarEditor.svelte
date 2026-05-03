@@ -81,7 +81,7 @@
   ) as Record<string, Token[]>;
 </script>
 
-<ComponentEditorBase {component} title="Tab Bar" description="Tab navigation with icon support and disabled state. Import from <code>components/TabBar.svelte</code>" tokens={allTokens} {shared}>
+<ComponentEditorBase {component} title="Tab Bar" description="Tab navigation with icon support and disabled state. Import from <code>components/TabBar.svelte</code>" tokens={allTokens} {shared} tabbable>
   <VariantGroup name="bar" title="Bar" states={barStates} {component}>
     <TabBar tabs={demoTabs} selectedTab={selectedDemoTab} on:tabChange={(e) => (selectedDemoTab = e.detail)} />
   </VariantGroup>

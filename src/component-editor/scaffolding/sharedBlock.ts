@@ -11,6 +11,9 @@ export type SharedToken = {
   groupKey?: string;
   hidden?: boolean;
   disabled?: boolean;
+  /** Other groupKey lead variables whose current alias matches this row's. The row writes
+      the same alias to each of these (and their siblings) so the merged display stays in sync. */
+  mergeVariables?: string[];
 };
 
 export type SharedGroup = {

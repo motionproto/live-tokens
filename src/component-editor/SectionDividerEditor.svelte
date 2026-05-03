@@ -78,7 +78,7 @@
   };
 </script>
 
-<ComponentEditorBase {component} title="Section Divider" description="Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>" tokens={allTokens}>
+<ComponentEditorBase {component} title="Section Divider" description="Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>" tokens={allTokens} tabbable>
   <VariantGroup
     name="component"
     title="Component-level"

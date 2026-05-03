@@ -25,9 +25,9 @@
     return [
       { label: 'surface color', variable: `${p}-surface` },
       { label: 'border color', variable: `${p}-border` },
-      { label: 'border width', canBeShared: true, groupKey: `${v}-border-width`, variable: `${p}-border-width` },
-      { label: 'corner radius', canBeShared: true, groupKey: `${v}-radius`, variable: `${p}-radius` },
-      { label: 'padding', canBeShared: true, groupKey: `${v}-padding`, variable: `${p}-padding` },
+      { label: 'border width', canBeShared: true, groupKey: 'border-width', variable: `${p}-border-width` },
+      { label: 'corner radius', canBeShared: true, groupKey: 'radius', variable: `${p}-radius` },
+      { label: 'padding', canBeShared: true, groupKey: 'padding', variable: `${p}-padding` },
     ];
   }
 
@@ -71,7 +71,7 @@
   ]);
 
   // Shared block:
-  //   - per-variant shape props (border-width, radius, padding) link across default/hover/disabled.
+  //   - shape props (border-width, radius, padding) link across every variant × state — buttons share one geometry.
   //   - typography props link across all six variants.
   const shareableContexts = new Map<string, string>([
     ...variants.flatMap((v) => stateNames.flatMap((s) => [
@@ -93,6 +93,8 @@
     Object.entries(variantStates(v)).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
   ) as Record<string, Token[]>;
 
+  const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
+
   function siblingsFor(toVariant: Variant) {
     return variants
       .filter((v) => v !== toVariant)
@@ -105,7 +107,7 @@
   }
 </script>
 
-<ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" tokens={allTokens} {shared}>
+<ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" tokens={allTokens} {shared} tabbable variants={variantOptions}>
   <svelte:fragment slot="config">
     <label>
       <span>Hover shimmer</span>

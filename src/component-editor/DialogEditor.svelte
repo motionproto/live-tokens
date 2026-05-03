@@ -91,7 +91,7 @@
   const bgVar = '--backdrop-dialog-surface';
 </script>
 
-<ComponentEditorBase {component} title="Dialog" description="Modal dialog with focus management and slide-in animation. Import from <code>components/Dialog.svelte</code>" tokens={allTokens}>
+<ComponentEditorBase {component} title="Dialog" description="Modal dialog with focus management and slide-in animation. Import from <code>components/Dialog.svelte</code>" tokens={allTokens} tabbable>
   <svelte:fragment slot="config">
     <label>
       <span>Cancel button (left)</span>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import TokenLayout from './TokenLayout.svelte';
+  import { editorState } from '../../lib/editorStore';
   import type { SharedBlockResult, SharedGroup, SharedToken } from './sharedBlock';
 
   export let component: string;
@@ -15,7 +16,37 @@
     return m ? m[1] : null;
   }
 
-  function partitionBucket(groups: SharedGroup[]): Column[] {
+  /** Collapse same-label same-value tokens into a single row whose `mergeVariables` lists the
+      other groupKey leads. Disabled (unlinked) rows are kept as-is so divergence stays visible. */
+  function collapseGeneral(
+    list: (SharedToken & { disabled?: boolean })[],
+    aliases: Record<string, string>,
+  ): (SharedToken & { disabled?: boolean })[] {
+    const out: (SharedToken & { disabled?: boolean })[] = [];
+    const leadIdx = new Map<string, number>();
+    for (const tok of list) {
+      if (tok.disabled) {
+        out.push(tok);
+        continue;
+      }
+      const alias = aliases[tok.variable] ?? '';
+      const key = `${tok.label}|${alias}`;
+      const idx = leadIdx.get(key);
+      if (idx === undefined) {
+        leadIdx.set(key, out.length);
+        out.push(tok);
+      } else {
+        const lead = out[idx];
+        out[idx] = {
+          ...lead,
+          mergeVariables: [...(lead.mergeVariables ?? []), tok.variable],
+        };
+      }
+    }
+    return out;
+  }
+
+  function partitionBucket(groups: SharedGroup[], aliases: Record<string, string>): Column[] {
     const typeGroups = new Map<string, (SharedToken & { disabled?: boolean })[]>();
     const general: (SharedToken & { disabled?: boolean })[] = [];
     for (const g of groups) {
@@ -29,9 +60,10 @@
         general.push(tok);
       }
     }
+    const collapsed = collapseGeneral(general, aliases);
     const cols: Column[] = [];
     for (const [legend, tokens] of typeGroups) cols.push({ kind: 'type', legend, tokens });
-    if (general.length > 0) cols.push({ kind: 'general', tokens: general });
+    if (collapsed.length > 0) cols.push({ kind: 'general', tokens: collapsed });
     return cols;
   }
 
@@ -46,8 +78,9 @@
     return [...map.values()].sort((a, b) => b.contexts.length - a.contexts.length);
   })();
 
+  $: aliases = $editorState.components[component]?.aliases ?? {};
   $: bucketCols = buckets.map((b) => {
-    const columns = partitionBucket(b.groups);
+    const columns = partitionBucket(b.groups, aliases);
     return {
       contexts: b.contexts,
       columns,

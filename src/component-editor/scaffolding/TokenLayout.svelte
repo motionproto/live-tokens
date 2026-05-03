@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { createEventDispatcher } from 'svelte';
   import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
   import UIRadiusSelector from '../../ui/UIRadiusSelector.svelte';
   import UIBorderWeightSelector from '../../ui/UIBorderWeightSelector.svelte';
@@ -10,9 +11,14 @@
   import UIDotSizeSelector from '../../ui/UIDotSizeSelector.svelte';
   import UIPaddingSelector from '../../ui/UIPaddingSelector.svelte';
   import UIBlurSelector from '../../ui/UIBlurSelector.svelte';
-  import { editorState, getComponentPropertySiblings } from '../../lib/editorStore';
+  import {
+    editorState,
+    getComponentPropertySiblings,
+    setComponentAliasShared,
+    clearComponentAliasShared,
+  } from '../../lib/editorStore';
 
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; disabled?: boolean; hidden?: boolean };
+  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; disabled?: boolean; hidden?: boolean; mergeVariables?: string[] };
 
   type Kind =
     | 'surface'
@@ -187,6 +193,22 @@
     return sides.some((s) => !!document.documentElement.style.getPropertyValue(`${varName}-${s}`).trim());
   }
 
+  const dispatch = createEventDispatcher();
+
+  /** When a row collapses several groupKey leads into one display, mirror the lead's
+      new alias onto each peer (and its siblings) so the merged display stays in sync. */
+  function handleRowChange(token: Token) {
+    if (token.mergeVariables?.length && component) {
+      const slice = $editorState.components[component];
+      const leadAlias = slice?.aliases[token.variable];
+      for (const peer of token.mergeVariables) {
+        if (leadAlias) setComponentAliasShared(component, peer, leadAlias);
+        else clearComponentAliasShared(component, peer);
+      }
+    }
+    dispatch('change');
+  }
+
   $: linkedKinds = computeLinkedKinds(component, $editorState);
   $: entries = buildEntries(tokens.filter((t) => !t.hidden), sharedOrder, linkedKinds);
   /** Index of the first independent (non-linked) entry; -1 when there are no linked entries or no boundary. */
@@ -220,7 +242,7 @@
           {component}
           canBeShared={token.canBeShared ?? false}
           selectionsLocked={lockedSelections}
-          on:change
+          on:change={() => handleRowChange(token)}
         />
       {:else}
         <div
@@ -229,29 +251,29 @@
         >
           <span class="token-label">{token.label}</span>
           {#if entry.kind === 'radius'}
-            <UIRadiusSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
+            <UIRadiusSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
           {:else if entry.kind === 'border-width' || entry.kind === 'divider-width'}
-            <UIBorderWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
+            <UIBorderWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
           {:else if entry.kind === 'divider-height'}
-            <UIDividerHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
+            <UIDividerHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
           {:else if entry.kind === 'dot-size'}
-            <UIDotSizeSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
+            <UIDotSizeSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
           {:else if entry.kind === 'blur'}
-            <UIBlurSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
+            <UIBlurSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
           {:else if entry.kind === 'padding'}
-            <UIPaddingSelector mode="single" variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
+            <UIPaddingSelector mode="single" variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
           {:else if entry.kind === 'gap'}
-            <UIPaddingSelector mode="single" splittable={false} variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
+            <UIPaddingSelector mode="single" splittable={false} variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
           {:else if entry.kind === 'font-family'}
-            <UIFontFamilySelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
+            <UIFontFamilySelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
           {:else if entry.kind === 'font-weight'}
-            <UIFontWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
+            <UIFontWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
           {:else if entry.kind === 'font-size'}
-            <UIFontSizeSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
+            <UIFontSizeSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
           {:else if entry.kind === 'line-height'}
-            <UILineHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
+            <UILineHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
           {:else}
-            <UIPaletteSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change />
+            <UIPaletteSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
           {/if}
           {#if ctxs?.length}
             <div class="token-contexts">
