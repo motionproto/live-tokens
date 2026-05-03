@@ -39,7 +39,11 @@
         const lead = out[idx];
         out[idx] = {
           ...lead,
-          mergeVariables: [...(lead.mergeVariables ?? []), tok.variable],
+          mergeVariables: [
+            ...(lead.mergeVariables ?? []),
+            tok.variable,
+            ...(tok.mergeVariables ?? []),
+          ],
         };
       }
     }
@@ -91,6 +95,10 @@
 
 {#if buckets.length > 0}
   <section class="shared-block">
+    <header class="shared-block-header">
+      <h3 class="shared-block-title">Shared properties</h3>
+      <p class="shared-block-description">Token values linked across multiple variants or states. Changing one updates all of them.</p>
+    </header>
     <div class="shared-grid">
       {#each bucketCols as bucket (bucket.contexts.join('|'))}
         <article class="shared-subgroup">
@@ -131,6 +139,23 @@
     margin-top: var(--ui-space-16);
     padding-top: var(--ui-space-12);
     border-top: 1px dashed var(--ui-border-faint);
+  }
+
+  .shared-block-header {
+    margin-bottom: var(--ui-space-12);
+  }
+
+  .shared-block-title {
+    margin: 0;
+    font-size: var(--ui-font-size-md);
+    font-weight: 500;
+    color: var(--ui-text-primary);
+  }
+
+  .shared-block-description {
+    margin: var(--ui-space-2) 0 0;
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
   }
 
   .shared-grid {

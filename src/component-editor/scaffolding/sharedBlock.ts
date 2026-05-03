@@ -47,21 +47,48 @@ export function computeSharedBlock(
   const groups: SharedGroup[] = [];
   const varSet = new Set<string>();
   const seen = new Set<string>();
+  const seenGroupKeys = new Set<string>();
+  const tokensByVar = new Map(allTokens.map((t) => [t.variable, t]));
+
+  // Topology peers per groupKey (everything the editor declared as part of one sharing set).
+  // Used to mirror writes from a row's lead onto sibling variables that aren't yet in the
+  // slice, so a single user change propagates to the full declared topology.
+  const topologyByGroupKey = new Map<string, string[]>();
+  for (const [variable] of shareableContexts) {
+    const gk = tokensByVar.get(variable)?.groupKey;
+    if (!gk) continue;
+    const list = topologyByGroupKey.get(gk) ?? [];
+    list.push(variable);
+    topologyByGroupKey.set(gk, list);
+  }
 
   for (const [variable] of shareableContexts) {
     if (seen.has(variable)) continue;
+    const rep = tokensByVar.get(variable);
+    if (!rep) continue;
+    if (rep.groupKey && seenGroupKeys.has(rep.groupKey)) continue;
     const siblings = getComponentPropertySiblings(component, variable);
     if (siblings.length < 2) continue;
     for (const s of siblings) seen.add(s);
-
-    const rep = allTokens.find((t) => t.variable === variable);
-    if (!rep) continue;
+    if (rep.groupKey) {
+      seenGroupKeys.add(rep.groupKey);
+      // Mark every other declared peer in shareableContexts as seen so they don't spawn dupe groups
+      // when the slice covers only a subset of the declared topology.
+      for (const peer of topologyByGroupKey.get(rep.groupKey) ?? []) seen.add(peer);
+    }
 
     const isShared = isComponentPropertyShared(component, variable);
     const ctxs = [
       ...new Set(siblings.map((s) => shareableContexts.get(s)).filter((c): c is string => !!c)),
     ];
-    groups.push({ token: { ...rep, canBeShared: true }, contexts: ctxs, variables: siblings, shared: isShared });
+    const declaredPeers = rep.groupKey ? topologyByGroupKey.get(rep.groupKey) ?? [] : [];
+    const mergePeers = declaredPeers.filter((v) => v !== variable && !siblings.includes(v));
+    const tok: SharedToken = {
+      ...rep,
+      canBeShared: true,
+      ...(mergePeers.length ? { mergeVariables: mergePeers } : {}),
+    };
+    groups.push({ token: tok, contexts: ctxs, variables: siblings, shared: isShared });
     if (isShared) for (const s of siblings) varSet.add(s);
   }
 

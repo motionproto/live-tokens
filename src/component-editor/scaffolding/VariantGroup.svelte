@@ -134,6 +134,7 @@
       {#if inTabsMode}
         <!-- Tabs view: preview at top, then state tabs + Copy from, then properties for active tab. -->
         <div class="tabs-preview">
+          <span class="section-label">Preview</span>
           <slot activeState={activeTab} />
         </div>
 
@@ -167,6 +168,7 @@
         {#if activeTab && states[activeTab]}
           {@const stateName = activeTab}
           {@const hasTypeGroups = !!typeGroups[stateName]?.length}
+          <span class="section-label">Properties</span>
           <div class="state-controls" class:two-col={hasTypeGroups}>
             {#if hasTypeGroups}
               <div class="state-type-groups">
@@ -232,8 +234,10 @@
             {/if}
             {#if expanded}
               <div class="state-preview">
+                <span class="section-label">Preview</span>
                 <slot activeState={stateName} />
               </div>
+              <span class="section-label">Properties</span>
               <div class="state-controls" class:two-col={hasTypeGroups}>
                 {#if hasTypeGroups}
                   <div class="state-type-groups">
@@ -422,13 +426,26 @@
     gap: var(--ui-space-8);
   }
 
+  .section-label {
+    display: block;
+    margin: 0;
+    font-size: var(--ui-font-size-md);
+    font-weight: 500;
+    color: var(--ui-text-primary);
+  }
+
+  /* In tabs mode the Properties label is a direct child of .variant-group
+     (which doesn't apply a flex gap), so space it from the tabs strip above. */
+  .variant-group > .section-label {
+    margin-top: var(--ui-space-8);
+  }
 
   .state-controls {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--ui-space-12);
     align-items: start;
-    margin-top: var(--ui-space-16);
+    margin-top: var(--ui-space-4);
   }
 
   .state-controls.two-col {
