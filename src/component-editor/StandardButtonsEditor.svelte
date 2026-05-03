@@ -3,15 +3,16 @@
   import Toggle from '../components/Toggle.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, setComponentConfig, registerComponentSchema } from '../lib/editorStore';
+  import { editorState, setComponentAlias, registerComponentSchema } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'button';
 
-  $: shimmerEnabled = $editorState.components.button?.config['--button-shimmer'] !== '--shimmer-off';
+  $: shimmerRef = $editorState.components.button?.aliases['--button-shimmer'];
+  $: shimmerEnabled = !(shimmerRef?.kind === 'token' && shimmerRef.name === '--shimmer-off');
 
   function handleShimmerChange(e: CustomEvent<boolean>) {
-    setComponentConfig('button', '--button-shimmer', e.detail ? '--shimmer-on' : '--shimmer-off');
+    setComponentAlias('button', '--button-shimmer', { kind: 'token', name: e.detail ? '--shimmer-on' : '--shimmer-off' });
   }
   const variants = ['primary', 'secondary', 'outline', 'success', 'danger', 'warning'] as const;
   type Variant = typeof variants[number];

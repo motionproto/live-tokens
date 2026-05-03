@@ -3,8 +3,17 @@
 // { kind: 'config' })). For now it's a flat set used by the on-load
 // migration that splits legacy single-bucket aliases into the new
 // {aliases, config} shape.
+//
+// What goes here: literal-valued knobs that don't translate to CSS vars
+// (e.g. Dialog's confirm/cancel variant string is consumed by Dialog.svelte
+// via `$editorState`, not via CSS cascade).
+//
+// What does NOT go here: aliases whose values are themselves CSS-var refs
+// — even if the value space is constrained (e.g. `--button-shimmer` →
+// `--shimmer-on` | `--shimmer-off`). Those are still aliases and must flow
+// through `componentsToVars` so SCSS that does `var(--button-shimmer)`
+// keeps resolving.
 export const KNOWN_COMPONENT_CONFIG_KEYS: ReadonlySet<string> = new Set([
   '--dialog-confirm-variant',
   '--dialog-cancel-variant',
-  '--button-shimmer',
 ]);

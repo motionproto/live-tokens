@@ -73,10 +73,10 @@ describe('component config — literal-valued knobs', () => {
   });
 
   it('setComponentConfig implicitly registers the slice with empty aliases', () => {
-    setComponentConfig('button', '--button-shimmer', '--shimmer-on');
-    expect(get(editorState).components.button.activeFile).toBe('default');
-    expect(get(editorState).components.button.aliases).toEqual({});
-    expect(get(editorState).components.button.config['--button-shimmer']).toBe('--shimmer-on');
+    setComponentConfig('dialog', '--dialog-cancel-variant', 'outline');
+    expect(get(editorState).components.dialog.activeFile).toBe('default');
+    expect(get(editorState).components.dialog.aliases).toEqual({});
+    expect(get(editorState).components.dialog.config['--dialog-cancel-variant']).toBe('outline');
   });
 });
 
@@ -128,14 +128,25 @@ describe('componentDirty — per-component scoping', () => {
 
 describe('loadComponentActive — split-on-load migration', () => {
   it('routes legacy config keys from single-bucket aliases into the config bucket', () => {
+    loadComponentActive('dialog', 'default', {
+      '--dialog-surface': '--surface-neutral-low',
+      '--dialog-confirm-variant': 'danger',
+    });
+    const slice = get(editorState).components.dialog;
+    expect(slice.aliases['--dialog-surface']).toEqual(tokenRef('--surface-neutral-low'));
+    expect(slice.aliases['--dialog-confirm-variant']).toBeUndefined();
+    expect(slice.config['--dialog-confirm-variant']).toBe('danger');
+  });
+
+  it('keeps CSS-var-valued aliases (e.g. --button-shimmer → --shimmer-on) in the aliases bucket', () => {
     loadComponentActive('button', 'default', {
       '--button-primary-surface': '--surface-success-high',
       '--button-shimmer': '--shimmer-on',
     });
     const slice = get(editorState).components.button;
     expect(slice.aliases['--button-primary-surface']).toEqual(tokenRef('--surface-success-high'));
-    expect(slice.aliases['--button-shimmer']).toBeUndefined();
-    expect(slice.config['--button-shimmer']).toBe('--shimmer-on');
+    expect(slice.aliases['--button-shimmer']).toEqual(tokenRef('--shimmer-on'));
+    expect(slice.config['--button-shimmer']).toBeUndefined();
   });
 
   it('classifies literal alias values as kind "literal"', () => {
