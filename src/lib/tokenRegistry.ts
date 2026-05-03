@@ -122,8 +122,8 @@ function buildOverlayRegistry(
 ): TokenRegistry {
   const overrides = new Map<string, string>();
   for (const slice of Object.values(components)) {
-    for (const [varName, semanticName] of Object.entries(slice.aliases)) {
-      overrides.set(varName, `var(${semanticName})`);
+    for (const [varName, ref] of Object.entries(slice.aliases)) {
+      overrides.set(varName, ref.kind === 'token' ? `var(${ref.name})` : ref.value);
     }
   }
   const getDeclared = (v: string): string | null =>

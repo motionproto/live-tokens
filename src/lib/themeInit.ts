@@ -39,12 +39,12 @@ export async function initializeTheme(): Promise<void> {
 
   try {
     const components = await listComponents();
-    const configs: Record<string, { activeFile: string; aliases: Record<string, string> }> = {};
+    const configs: Record<string, { activeFile: string; aliases: Record<string, string>; config?: Record<string, unknown> }> = {};
     await Promise.all(
       components.map(async (c) => {
         const cfg = await getActiveComponentConfig(c.name);
         if (cfg) {
-          configs[c.name] = { activeFile: c.activeFile, aliases: cfg.aliases };
+          configs[c.name] = { activeFile: c.activeFile, aliases: cfg.aliases, config: cfg.config };
         }
       }),
     );

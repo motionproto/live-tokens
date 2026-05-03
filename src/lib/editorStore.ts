@@ -14,11 +14,12 @@
  */
 
 import { writable, derived, get, type Readable } from 'svelte/store';
-import type { EditorState, ColumnsState, ComponentSlice, OverlayToken, ShadowToken, GradientToken, GradientTokenStop, GradientType } from './editorTypes';
+import type { EditorState, ColumnsState, CssVarRef, OverlayToken, ShadowToken, GradientToken, GradientTokenStop, GradientType } from './editorTypes';
 import type { Theme, FontSource, FontStack, PaletteConfig } from './themeTypes';
 import { setCssVar, removeCssVar } from './cssVarSync';
 import { palettesToVars } from './paletteDerivation';
 import { storageKey } from './editorConfig';
+import { KNOWN_COMPONENT_CONFIG_KEYS } from './componentConfigKeys';
 
 const HISTORY_MAX = 100;
 const PERSIST_DEBOUNCE_MS = 300;
@@ -679,9 +680,12 @@ export function seedPalettesFromTheme(palettes: Record<string, PaletteConfig>): 
 
 // ── Components ─────────────────────────────────────────────────────────────
 //
-// Each component owns a `{ activeFile, aliases }` slice. Aliases are the full
-// component-token → semantic-token map for whatever config is active (not a
-// diff); `deriveCssVars` emits every entry as `var(--<semantic>)`. Themes and
+// Each component owns a `{ activeFile, aliases, config }` slice. `aliases` is
+// the component-token → CssVarRef map for whatever config is active (not a
+// diff); `deriveCssVars` emits each entry as `var(--<name>)` for token refs
+// or as the raw value for literal refs. `config` carries literal-valued knobs
+// (variant choices, feature toggles) that don't translate to CSS vars;
+// readers consume them via `$editorState.components.<id>.config`. Themes and
 // components are orthogonal: `loadFromFile` preserves `state.components`.
 
 // ── Gradients ──────────────────────────────────────────────────────────────
@@ -774,8 +778,8 @@ export function removeGradientToken(variable: string): void {
 function componentsToVars(components: EditorState['components']): Record<string, string> {
   const out: Record<string, string> = {};
   for (const slice of Object.values(components)) {
-    for (const [varName, semanticName] of Object.entries(slice.aliases)) {
-      out[varName] = semanticName.startsWith('--') ? `var(${semanticName})` : semanticName;
+    for (const [varName, ref] of Object.entries(slice.aliases)) {
+      out[varName] = ref.kind === 'token' ? `var(${ref.name})` : ref.value;
     }
   }
   return out;
@@ -791,29 +795,35 @@ export function getComponentOwnedVarNames(state: EditorState): string[] {
 
 // Module-private baseline for per-component dirty detection. Parallels
 // `savedAtIndex` + `historyTick` for the global flag; `componentSavedTick`
-// drives re-derivation when the baseline changes.
+// drives re-derivation when the baseline changes. Stored as the JSON of
+// both buckets so dirty detection covers aliases AND config.
 const savedComponents: Record<string, string> = {};
 const componentSavedTick = writable(0);
 function bumpComponentSavedTick(): void { componentSavedTick.update((n) => n + 1); }
+
+const EMPTY_COMPONENT_BASELINE = JSON.stringify({ aliases: {}, config: {} });
+function componentBaseline(slice: { aliases: Record<string, CssVarRef>; config: Record<string, unknown> }): string {
+  return JSON.stringify({ aliases: slice.aliases, config: slice.config });
+}
 
 export const componentDirty: Readable<Record<string, boolean>> = derived(
   [store, componentSavedTick],
   ([$state]) => {
     const out: Record<string, boolean> = {};
     for (const [comp, slice] of Object.entries($state.components)) {
-      out[comp] = JSON.stringify(slice.aliases) !== (savedComponents[comp] ?? '{}');
+      out[comp] = componentBaseline(slice) !== (savedComponents[comp] ?? EMPTY_COMPONENT_BASELINE);
     }
     return out;
   },
 );
 
-export function setComponentAlias(component: string, varName: string, semanticName: string): void {
+export function setComponentAlias(component: string, varName: string, ref: CssVarRef): void {
   mutate(`set alias ${component}/${varName}`, (s) => {
     const existing = s.components[component];
     if (existing) {
-      existing.aliases[varName] = semanticName;
+      existing.aliases[varName] = ref;
     } else {
-      s.components[component] = { activeFile: 'default', aliases: { [varName]: semanticName } };
+      s.components[component] = { activeFile: 'default', aliases: { [varName]: ref }, config: {} };
     }
   });
 }
@@ -823,6 +833,25 @@ export function clearComponentAlias(component: string, varName: string): void {
     const slice = s.components[component];
     if (!slice) return;
     delete slice.aliases[varName];
+  });
+}
+
+export function setComponentConfig(component: string, key: string, value: unknown): void {
+  mutate(`set config ${component}/${key}`, (s) => {
+    const existing = s.components[component];
+    if (existing) {
+      existing.config[key] = value;
+    } else {
+      s.components[component] = { activeFile: 'default', aliases: {}, config: { [key]: value } };
+    }
+  });
+}
+
+export function clearComponentConfig(component: string, key: string): void {
+  mutate(`clear config ${component}/${key}`, (s) => {
+    const slice = s.components[component];
+    if (!slice) return;
+    delete slice.config[key];
   });
 }
 
@@ -888,6 +917,14 @@ export function getComponentPropertySiblings(component: string, varName: string)
   return siblings;
 }
 
+function cssVarRefEqual(a: CssVarRef | undefined, b: CssVarRef | undefined): boolean {
+  if (!a || !b) return a === b;
+  if (a.kind !== b.kind) return false;
+  return a.kind === 'token'
+    ? a.name === (b as { kind: 'token'; name: string }).name
+    : a.value === (b as { kind: 'literal'; value: string }).value;
+}
+
 /** True iff `varName` has ≥2 siblings, all resolve to the same alias, and the groupKey is not explicitly unlinked. */
 export function isComponentPropertyShared(component: string, varName: string): boolean {
   const slice = get(store).components[component];
@@ -898,21 +935,21 @@ export function isComponentPropertyShared(component: string, varName: string): b
   if (siblings.length < 2) return false;
   const first = slice.aliases[siblings[0]];
   if (!first) return false;
-  return siblings.every((v) => slice.aliases[v] === first);
+  return siblings.every((v) => cssVarRefEqual(slice.aliases[v], first));
 }
 
-/** Write `semanticName` to every sibling that shares `varName`'s groupKey, and clear the unlinked flag. */
-export function setComponentAliasShared(component: string, varName: string, semanticName: string): void {
+/** Write `ref` to every sibling that shares `varName`'s groupKey, and clear the unlinked flag. */
+export function setComponentAliasShared(component: string, varName: string, ref: CssVarRef): void {
   const groupKey = getGroupKey(component, varName);
   const siblings = getComponentPropertySiblings(component, varName);
   if (!groupKey || siblings.length === 0) {
-    setComponentAlias(component, varName, semanticName);
+    setComponentAlias(component, varName, ref);
     return;
   }
   mutate(`share ${component}/${groupKey}`, (s) => {
-    const slice = s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {} });
-    for (const v of siblings) slice.aliases[v] = semanticName;
-    if (!siblings.includes(varName)) slice.aliases[varName] = semanticName;
+    const slice = s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {}, config: {} });
+    for (const v of siblings) slice.aliases[v] = ref;
+    if (!siblings.includes(varName)) slice.aliases[varName] = ref;
     if (slice.unlinked) {
       slice.unlinked = slice.unlinked.filter((p) => p !== groupKey);
       if (slice.unlinked.length === 0) delete slice.unlinked;
@@ -1031,6 +1068,33 @@ function migrateComponentAliases(component: string, aliases: Record<string, stri
 }
 
 /**
+ * Disk-shape → in-memory split. Routes legacy single-bucket aliases that
+ * carry literal-valued knobs (per `KNOWN_COMPONENT_CONFIG_KEYS`) into the
+ * config bucket, and wraps the remainder as `CssVarRef` discriminated unions.
+ *
+ * TODO(M3 schemaVersion / Wave 4): absorb into the migrations system once
+ * schemaVersion stamping lands. Today's disk shape stays string-keyed for
+ * `aliases`; `config` is a new optional disk field.
+ */
+function splitAliasesAndConfig(
+  rawAliases: Record<string, string>,
+  rawConfig: Record<string, unknown> | undefined,
+): { aliases: Record<string, CssVarRef>; config: Record<string, unknown> } {
+  const aliases: Record<string, CssVarRef> = {};
+  const config: Record<string, unknown> = { ...(rawConfig ?? {}) };
+  for (const [key, value] of Object.entries(rawAliases)) {
+    if (KNOWN_COMPONENT_CONFIG_KEYS.has(key)) {
+      if (config[key] === undefined) config[key] = value;
+      continue;
+    }
+    aliases[key] = value.startsWith('--')
+      ? { kind: 'token', name: value }
+      : { kind: 'literal', value };
+  }
+  return { aliases, config };
+}
+
+/**
  * Replace a component's slice with a loaded config file's contents. Uses
  * `mutate()` so the load is one undoable entry; updates the dirty baseline
  * so the post-load state reads clean for this component.
@@ -1039,12 +1103,14 @@ export function loadComponentActive(
   component: string,
   activeFile: string,
   aliases: Record<string, string>,
+  config?: Record<string, unknown>,
 ): void {
   const migrated = migrateComponentAliases(component, aliases);
+  const split = splitAliasesAndConfig(migrated, config);
   mutate(`load ${component}/${activeFile}`, (s) => {
-    s.components[component] = { activeFile, aliases: { ...migrated } };
+    s.components[component] = { activeFile, aliases: { ...split.aliases }, config: { ...split.config } };
   });
-  savedComponents[component] = JSON.stringify(migrated);
+  savedComponents[component] = componentBaseline(split);
   bumpComponentSavedTick();
 }
 
@@ -1053,14 +1119,15 @@ export function loadComponentActive(
  * history entry, no dirty flag — components are clean relative to disk.
  */
 export function seedComponentsFromApi(
-  configs: Record<string, ComponentSlice>,
+  configs: Record<string, { activeFile: string; aliases: Record<string, string>; config?: Record<string, unknown> }>,
 ): void {
   store.update((s) => {
     s.components = {};
     for (const [comp, cfg] of Object.entries(configs)) {
       const migrated = migrateComponentAliases(comp, cfg.aliases);
-      s.components[comp] = { activeFile: cfg.activeFile, aliases: { ...migrated } };
-      savedComponents[comp] = JSON.stringify(migrated);
+      const split = splitAliasesAndConfig(migrated, cfg.config);
+      s.components[comp] = { activeFile: cfg.activeFile, aliases: { ...split.aliases }, config: { ...split.config } };
+      savedComponents[comp] = componentBaseline(split);
     }
     return s;
   });
@@ -1071,7 +1138,7 @@ export function seedComponentsFromApi(
 export function markComponentSaved(component: string): void {
   const slice = get(store).components[component];
   if (!slice) return;
-  savedComponents[component] = JSON.stringify(slice.aliases);
+  savedComponents[component] = componentBaseline(slice);
   bumpComponentSavedTick();
 }
 

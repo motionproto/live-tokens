@@ -43,9 +43,14 @@ export interface ColumnsState {
   margin: number;
 }
 
+export type CssVarRef =
+  | { kind: 'token'; name: string }
+  | { kind: 'literal'; value: string };
+
 export interface ComponentSlice {
   activeFile: string;
-  aliases: Record<string, string>;
+  aliases: Record<string, CssVarRef>;
+  config: Record<string, unknown>;
   unlinked?: string[];
 }
 
