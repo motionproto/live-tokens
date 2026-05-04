@@ -7,7 +7,7 @@
   import ColorEditPanel from './ColorEditPanel.svelte';
   import Toggle from '../components/Toggle.svelte';
   import type { PaletteConfig, GradientStyle, GradientStop } from '../lib/themeTypes';
-  import { editorState, mutate, setPaletteConfig, beginSliderGesture, beginPaletteEditSession, commitPaletteEditSession, cancelPaletteEditSession } from '../lib/editorStore';
+  import { editorState, mutate, setPaletteConfig, beginSliderGesture, beginScope, commitScope, cancelScope, type Scope } from '../lib/editorStore';
   import { setCssVar as setCssVarSync } from '../lib/cssVarSync';
   import { showCopyPopover } from '../lib/copyPopover';
   import { get } from 'svelte/store';
@@ -95,6 +95,12 @@
   let lockedSaturationIdx: number | null = null;
   let draggingStopIndex: number | null = null;
   let selectedStopIndex: number = 0;
+
+  // Handle for the open palette edit scope: a clipping scope (clipUndoFloor:
+  // true) bracketing one panel-open → confirm/cancel cycle. Held at component
+  // scope so the inline header-swatch handlers and the function handlers
+  // share the same handle for commitScope/cancelScope.
+  let paletteEditScope: Scope | null = null;
 
   function stopColor(stop: GradientStop, pc: typeof paletteComputed): string {
     const ps = pc?.find(p => p.label === stop.paletteLabel);
@@ -482,7 +488,7 @@
     editingDraft = current;
     editingSnapshot = current;
     editingKey = k;
-    beginPaletteEditSession();
+    paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true });
   }
 
   // --- Scale types ---
@@ -701,7 +707,7 @@
     editingDraft = current;
     editingSnapshot = current;
     editingKey = k;
-    beginPaletteEditSession();
+    paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true });
   }
 
   function handleGrayClick(gStep: GrayStep, index: number) {
@@ -714,7 +720,7 @@
     editingDraft = current;
     editingSnapshot = current;
     editingKey = k;
-    beginPaletteEditSession();
+    paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true });
   }
 
   async function confirmEdit() {
@@ -748,7 +754,7 @@
     snapshotTintChroma = null;
     // tick() lets the store-derived reactives flush before session commit
     await tick();
-    commitPaletteEditSession();
+    if (paletteEditScope) { commitScope(paletteEditScope); paletteEditScope = null; }
   }
 
   function cancelEdit() {
@@ -759,7 +765,7 @@
     snapshotTintChroma = null;
     // Restoring the session snapshot in the store fires the sync reactive,
     // which pulls baseColor/tintHue/tintChroma/overrides/… back to pre-open.
-    cancelPaletteEditSession();
+    if (paletteEditScope) { cancelScope(paletteEditScope); paletteEditScope = null; }
   }
 
   function removeOverride(k: string) {
@@ -1086,10 +1092,10 @@
           class="header-swatch"
           class:active={isEditingBase}
           style="background: {baseColor}"
-          on:click={() => { if (editingKey === BASE_KEY) { confirmEdit(); } else { editingSnapshot = baseColor; editingKey = BASE_KEY; beginPaletteEditSession(); } }}
+          on:click={() => { if (editingKey === BASE_KEY) { confirmEdit(); } else { editingSnapshot = baseColor; editingKey = BASE_KEY; paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true }); } }}
           role="button"
           tabindex="0"
-          on:keydown={(e) => e.key === 'Enter' && (editingKey === BASE_KEY ? confirmEdit() : (editingSnapshot = baseColor, editingKey = BASE_KEY, beginPaletteEditSession()))}
+          on:keydown={(e) => e.key === 'Enter' && (editingKey === BASE_KEY ? confirmEdit() : (editingSnapshot = baseColor, editingKey = BASE_KEY, paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true })))}
         ></div>
       {:else}
         <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
@@ -1097,10 +1103,10 @@
           class="header-swatch"
           class:active={isEditingBase}
           style="background: {gray500Hex}"
-          on:click={() => { if (editingKey === BASE_KEY) { confirmEdit(); } else { editingSnapshot = gray500Hex; snapshotTintHue = tintHue; snapshotTintChroma = tintChroma; editingKey = BASE_KEY; beginPaletteEditSession(); } }}
+          on:click={() => { if (editingKey === BASE_KEY) { confirmEdit(); } else { editingSnapshot = gray500Hex; snapshotTintHue = tintHue; snapshotTintChroma = tintChroma; editingKey = BASE_KEY; paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true }); } }}
           role="button"
           tabindex="0"
-          on:keydown={(e) => e.key === 'Enter' && (editingKey === BASE_KEY ? confirmEdit() : (editingSnapshot = gray500Hex, snapshotTintHue = tintHue, snapshotTintChroma = tintChroma, editingKey = BASE_KEY, beginPaletteEditSession()))}
+          on:keydown={(e) => e.key === 'Enter' && (editingKey === BASE_KEY ? confirmEdit() : (editingSnapshot = gray500Hex, snapshotTintHue = tintHue, snapshotTintChroma = tintChroma, editingKey = BASE_KEY, paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true })))}
         ></div>
       {/if}
       <div class="primary-info">

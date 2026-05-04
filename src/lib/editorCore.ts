@@ -1,18 +1,29 @@
 /**
  * State-core for the editor store.
  *
- * Owns the writable, history stacks (undo/redo), transaction primitive
- * (gesture-grouped history entry), and the palette edit session bracket
- * that clips intra-session undo. Exposes `editorState` (Readable) for
- * subscribers and `mutate`/`transaction` as the single mutation entry
- * points. Domain slices import `mutate` and friends from here.
+ * Owns the writable, history stacks (undo/redo), and the unified `Scope`
+ * primitive that brackets a series of mutations. Exposes `editorState`
+ * (Readable), `mutate` for unscoped one-shots, `transaction(label, fn)` for
+ * sync closure form, `beginSliderGesture(label)` for window-pointerup wiring,
+ * and the `beginScope/commitScope/cancelScope` trio for explicit handle-based
+ * scopes (the only form palette panels need). Domain slices import `mutate`
+ * and friends from here.
+ *
+ * The Scope primitive (M6 fold) — two orthogonal axes:
+ *  - `collapseToOne` — on commit, all intra-scope mutations collapse to a
+ *    single history entry (the pre-scope snapshot).
+ *  - `clipUndoFloor` — while the scope is active, undo() is clipped to the
+ *    scope's start; on commit, intra-scope past entries are dropped from
+ *    history so the snapshot becomes the single undo target.
+ *
+ * Mapping to use cases:
+ *  - `mutate`               — unscoped one-shot (no scope at all).
+ *  - drag gesture / atomic  — scope { collapseToOne: true,  clipUndoFloor: false }.
+ *  - palette panel session  — scope { collapseToOne: true,  clipUndoFloor: true  }.
  *
  * Two side-effect hooks are wired by `editorStore.ts` at boot:
- *  - `setEmptyStateFactory` — produces a fresh state tree (lives in editorStore
- *    today; will move into the persistence layer when factories spread across
- *    slices solidify).
- *  - `setPersistHook` — debounced localStorage write (lives in editorStore for
- *    now; moves to editorPersistence in stage 6.5).
+ *  - `setEmptyStateFactory` — produces a fresh state tree.
+ *  - `setPersistHook` — debounced localStorage write.
  *
  * Hooks are nullable on first import so the module evaluates cleanly even
  * when consumed from contexts that don't need persistence (SSR, isolated
@@ -59,24 +70,189 @@ let savedAtIndex = 0;
 const historyTick = writable(0);
 function bumpTick() { historyTick.update((n) => n + 1); }
 
-// Transaction groups many in-gesture mutations into one history entry.
-// `snapshot` is the pre-gesture state; `changed` flips to true on any
-// intermediate mutate so empty gestures skip the commit.
-interface Transaction {
-  snapshot: EditorState;
-  label: string;
+/** Push `entry` onto past[], handling overflow + clearing future. */
+function pushPast(entry: EditorState): void {
+  past.push(entry);
+  if (past.length > HISTORY_MAX) {
+    past.shift();
+    if (savedAtIndex > 0) savedAtIndex--;
+  }
+  future.length = 0;
+}
+
+// ── Scope primitive ───────────────────────────────────────────────────────
+
+/**
+ * A handle for a bracketed series of mutations. Returned by `beginScope` and
+ * passed back to `commitScope`/`cancelScope`. The shape is public but its
+ * fields are read-only from outside this module — callers treat it as an
+ * opaque ticket.
+ *
+ * Two orthogonal axes:
+ *  - collapseToOne: on commit, everything in the scope collapses to one
+ *    history entry (the pre-scope snapshot).
+ *  - clipUndoFloor: while the scope is active, undo() cannot pop past
+ *    entries pushed before the scope began; on commit, intra-scope past
+ *    entries are dropped (past.length = historyIdx).
+ */
+export interface Scope {
+  readonly snapshot: EditorState;
+  readonly label: string;
+  readonly collapseToOne: boolean;
+  readonly clipUndoFloor: boolean;
+  /** past.length captured at scope start — only consulted when clipUndoFloor. */
+  readonly historyIdx: number;
+  /** Set by `mutate()` when at least one mutation is applied within the scope. */
   changed: boolean;
 }
-let pendingTransaction: Transaction | null = null;
 
-// Palette edit session: bounds a period (panel open → close) during which
-// undo is clipped to intra-session entries and the whole session collapses
-// to a single history entry on commit (or drops entirely on cancel).
-interface PaletteSession {
-  snapshot: EditorState;
-  historyIdx: number;
+// Two scope slots: one for in-flight non-clipping scopes (drag gestures,
+// atomic edits), one for clipping scopes (palette edit sessions). They can
+// coexist — a slider drag inside an open palette session is the canonical
+// case — so they're tracked independently. `mutate` consults `transactionScope`
+// to suppress per-mutate pushes; `undo` consults `clippingScope` to enforce
+// the floor.
+let transactionScope: Scope | null = null;
+let clippingScope: Scope | null = null;
+
+/**
+ * Open a new scope. Returns a handle the caller passes back to
+ * `commitScope`/`cancelScope`. The handle's `clipUndoFloor` flag determines
+ * which internal slot the scope occupies; if a slot is already filled, the
+ * prior scope is auto-committed (transaction slot) or auto-committed
+ * (clipping slot) — matching the prior wrapper behavior.
+ */
+export function beginScope(opts: {
+  label: string;
+  collapseToOne: boolean;
+  clipUndoFloor: boolean;
+}): Scope {
+  const scope: Scope = {
+    snapshot: structuredClone(get(store)),
+    label: opts.label,
+    collapseToOne: opts.collapseToOne,
+    clipUndoFloor: opts.clipUndoFloor,
+    historyIdx: past.length,
+    changed: false,
+  };
+  if (opts.clipUndoFloor) {
+    if (clippingScope) commitScope(clippingScope);
+    clippingScope = scope;
+  } else {
+    if (transactionScope) {
+      if (import.meta.env.DEV) {
+        console.warn(
+          `[editorStore] beginScope("${opts.label}") while "${transactionScope.label}" is still open; aborting previous`,
+        );
+      }
+      cancelScope(transactionScope, { silent: true });
+    }
+    transactionScope = scope;
+  }
+  return scope;
 }
-let paletteSession: PaletteSession | null = null;
+
+/**
+ * Commit the given scope. If collapseToOne, all intra-scope past entries
+ * (those pushed since `historyIdx`) are dropped and the pre-scope snapshot
+ * is pushed in their place — but only if anything actually changed.
+ *
+ * "Did anything change" is computed by state-equality (JSON) when
+ * `clipUndoFloor` is set, because the scope's intra-scope mutations were
+ * applied to history AND then dropped — the only signal left is whether
+ * the live state still matches the snapshot. For non-clipping scopes,
+ * the `changed` flag is the source of truth: empty scopes skip the commit
+ * entirely.
+ */
+export function commitScope(scope: Scope): void {
+  // Clear the slot first so internal aborts triggered during commit don't
+  // recurse against the same scope.
+  if (scope.clipUndoFloor) {
+    if (clippingScope !== scope) return;
+    if (transactionScope) cancelScope(transactionScope, { silent: true });
+    clippingScope = null;
+  } else {
+    if (transactionScope !== scope) return;
+    transactionScope = null;
+  }
+
+  if (scope.collapseToOne) {
+    if (scope.clipUndoFloor) {
+      // Clipping path: intra-scope entries were each pushed by mutate()
+      // (they had to be, so undo within the scope could walk them back).
+      // On commit, drop them and push the pre-scope snapshot iff state is
+      // not back at the snapshot.
+      past.length = scope.historyIdx;
+      const snapshotJson = JSON.stringify(scope.snapshot);
+      const currentJson = JSON.stringify(get(store));
+      const changedByEquality = snapshotJson !== currentJson;
+      if (changedByEquality) {
+        pushPast(scope.snapshot);
+        persistHook();
+      }
+      bumpTick();
+      if (import.meta.env.DEV) {
+        console.debug('[editorStore] commitScope (clipping) →', {
+          label: scope.label,
+          pastLen: past.length,
+          snapshotPalettes: paletteSnapshot(scope.snapshot),
+          currentPalettes: paletteSnapshot(get(store)),
+        });
+      }
+      return;
+    }
+    // Non-clipping path: intra-scope mutations were applied to the store
+    // but NOT pushed individually. Push the pre-scope snapshot iff anything
+    // changed.
+    if (!scope.changed) return;
+    pushPast(scope.snapshot);
+    bumpTick();
+    persistHook();
+    return;
+  }
+  // Future: a non-collapsing scope would be a no-op on commit (entries
+  // already live in past[]). Not used today.
+  bumpTick();
+}
+
+/**
+ * Cancel the given scope. Always reverts state to the snapshot and drops
+ * intra-scope past entries. The `silent` flag controls whether the cancel
+ * surfaces as a tick + persist:
+ *  - silent: false (default) — used when the user aborts a scope
+ *    explicitly (e.g., palette panel X). Refreshes dirty + persist so the
+ *    UI reflects the discard.
+ *  - silent: true — used by internal auto-aborts (a stray transaction
+ *    being killed by undo() / by a competing scope). UI observes the state
+ *    revert, but `dirty` reflects the pre-scope position because no tick
+ *    fires and no persist runs.
+ */
+export function cancelScope(scope: Scope, opts?: { silent?: boolean }): void {
+  // Clear the slot first so any code observing the state revert doesn't see
+  // a stale "scope still open" view.
+  if (scope.clipUndoFloor) {
+    if (clippingScope !== scope) return;
+    if (transactionScope) cancelScope(transactionScope, { silent: true });
+    clippingScope = null;
+  } else {
+    if (transactionScope !== scope) return;
+    transactionScope = null;
+  }
+
+  past.length = scope.historyIdx;
+  if (scope.clipUndoFloor) future.length = 0;
+  store.set(scope.snapshot);
+  if (opts?.silent) return;
+  bumpTick();
+  persistHook();
+  if (import.meta.env.DEV && scope.clipUndoFloor) {
+    console.debug('[editorStore] cancelScope (clipping) →', {
+      label: scope.label,
+      pastLen: past.length,
+      restoredPalettes: paletteSnapshot(scope.snapshot),
+    });
+  }
+}
 
 export const editorState: Readable<EditorState> = { subscribe: store.subscribe };
 
@@ -84,73 +260,36 @@ export function mutate(label: string, fn: (draft: EditorState) => void): void {
   if (import.meta.env.DEV && !label) {
     console.warn('[editorStore] mutate() called without a label');
   }
-  if (pendingTransaction) {
-    pendingTransaction.changed = true;
+  if (transactionScope) {
+    // Inside a non-clipping scope: don't push individually; just mark the
+    // scope dirty and apply. The scope's commit pushes one collapsed entry.
+    transactionScope.changed = true;
+    if (clippingScope) clippingScope.changed = true;
     store.update((s) => { fn(s); return s; });
     return;
   }
+  // No transaction scope: each mutate is its own history entry. Inside a
+  // clipping scope this still pushes per-mutate entries (so undo within the
+  // scope walks them back), and the scope's commit will collapse them.
+  if (clippingScope) clippingScope.changed = true;
   const current = get(store);
-  past.push(structuredClone(current));
-  if (past.length > HISTORY_MAX) {
-    past.shift();
-    if (savedAtIndex > 0) savedAtIndex--;
-  }
-  future.length = 0;
+  pushPast(structuredClone(current));
   store.update((s) => { fn(s); return s; });
   bumpTick();
   persistHook();
 }
 
-export function beginTransaction(label: string): void {
-  if (pendingTransaction) {
-    if (import.meta.env.DEV) {
-      console.warn(
-        `[editorStore] beginTransaction("${label}") while "${pendingTransaction.label}" is still open; aborting previous`,
-      );
-    }
-    abortTransaction();
-  }
-  pendingTransaction = {
-    snapshot: structuredClone(get(store)),
-    label,
-    changed: false,
-  };
-}
-
-export function commitTransaction(): void {
-  if (!pendingTransaction) return;
-  const { snapshot, changed } = pendingTransaction;
-  pendingTransaction = null;
-  if (!changed) return;
-  past.push(snapshot);
-  if (past.length > HISTORY_MAX) {
-    past.shift();
-    if (savedAtIndex > 0) savedAtIndex--;
-  }
-  future.length = 0;
-  bumpTick();
-  persistHook();
-}
-
-export function abortTransaction(): void {
-  if (!pendingTransaction) return;
-  const { snapshot } = pendingTransaction;
-  pendingTransaction = null;
-  store.set(snapshot);
-  // No history entry, no tick — observers see the revert but dirty state
-  // reflects the pre-transaction history position.
-}
-
 /**
- * Slider-drag helper: opens a transaction on pointerdown and commits on the
- * next window-level pointerup / pointercancel. Groups a drag gesture under
- * one history entry so undo rolls the whole drag back as a single step.
+ * Slider-drag helper: opens a non-clipping scope on pointerdown and commits
+ * it on the next window-level pointerup / pointercancel. Groups a drag
+ * gesture under one history entry so undo rolls the whole drag back as a
+ * single step.
  */
 export function beginSliderGesture(label: string): void {
   if (typeof window === 'undefined') return;
-  beginTransaction(label);
+  const scope = beginScope({ label, collapseToOne: true, clipUndoFloor: false });
   const end = () => {
-    commitTransaction();
+    commitScope(scope);
     window.removeEventListener('pointerup', end);
     window.removeEventListener('pointercancel', end);
   };
@@ -158,22 +297,29 @@ export function beginSliderGesture(label: string): void {
   window.addEventListener('pointercancel', end);
 }
 
+/**
+ * Sync closure form: opens a non-clipping scope, runs `fn`, and commits.
+ * If `fn` throws, the scope is silently cancelled (state reverted, no
+ * persist) and the error is re-thrown.
+ */
 export function transaction<T>(label: string, fn: (draft: EditorState) => T): T {
-  beginTransaction(label);
+  const scope = beginScope({ label, collapseToOne: true, clipUndoFloor: false });
   try {
     let result!: T;
     mutate(label, (draft) => { result = fn(draft); });
-    commitTransaction();
+    commitScope(scope);
     return result;
   } catch (e) {
-    abortTransaction();
+    cancelScope(scope, { silent: true });
     throw e;
   }
 }
 
+// ── Undo / redo ───────────────────────────────────────────────────────────
+
 export function undo(): boolean {
-  if (pendingTransaction) abortTransaction();
-  const floor = paletteSession ? paletteSession.historyIdx : 0;
+  if (transactionScope) cancelScope(transactionScope, { silent: true });
+  const floor = clippingScope ? clippingScope.historyIdx : 0;
   if (past.length <= floor) return false;
   future.push(structuredClone(get(store)));
   const previous = past.pop()!;
@@ -184,85 +330,14 @@ export function undo(): boolean {
     console.debug('[editorStore] undo →', {
       pastLen: past.length, floor,
       palettes: paletteSnapshot(previous),
-      inSession: !!paletteSession,
+      inClippingScope: !!clippingScope,
     });
   }
   return true;
 }
 
-/**
- * Begin a palette edit session (panel opens). Captures the pre-open state
- * and the current history length so intra-session undo can be clipped, and
- * so commit/cancel can collapse or drop everything pushed during the
- * session. No history entry is pushed here — opening the panel is not an
- * edit by itself.
- */
-export function beginPaletteEditSession(): void {
-  if (paletteSession) commitPaletteEditSession();
-  paletteSession = {
-    snapshot: structuredClone(get(store)),
-    historyIdx: past.length,
-  };
-}
-
-/**
- * Commit the session (user pressed Check). All intra-session history
- * entries are collapsed into a single entry representing the pre-open
- * state so one outside-panel undo restores it. Current state stays.
- */
-export function commitPaletteEditSession(): void {
-  if (!paletteSession) return;
-  const { snapshot, historyIdx } = paletteSession;
-  paletteSession = null;
-  if (pendingTransaction) abortTransaction();
-  past.length = historyIdx;
-  const snapshotSerialized = JSON.stringify(snapshot);
-  const currentSerialized = JSON.stringify(get(store));
-  const changed = currentSerialized !== snapshotSerialized;
-  if (changed) {
-    past.push(snapshot);
-    if (past.length > HISTORY_MAX) {
-      past.shift();
-      if (savedAtIndex > 0) savedAtIndex--;
-    }
-    future.length = 0;
-    persistHook();
-  }
-  bumpTick();
-  if (import.meta.env.DEV) {
-    console.debug('[editorStore] commitPaletteEditSession →', {
-      pastLen: past.length, changed,
-      snapshotPalettes: paletteSnapshot(snapshot),
-      currentPalettes: paletteSnapshot(get(store)),
-    });
-  }
-}
-
-/**
- * Cancel the session (user pressed X). All intra-session history entries
- * are dropped and state is restored to the snapshot — as if the panel was
- * never opened.
- */
-export function cancelPaletteEditSession(): void {
-  if (!paletteSession) return;
-  const { snapshot, historyIdx } = paletteSession;
-  paletteSession = null;
-  if (pendingTransaction) abortTransaction();
-  past.length = historyIdx;
-  future.length = 0;
-  store.set(snapshot);
-  bumpTick();
-  persistHook();
-  if (import.meta.env.DEV) {
-    console.debug('[editorStore] cancelPaletteEditSession →', {
-      pastLen: past.length,
-      restoredPalettes: paletteSnapshot(snapshot),
-    });
-  }
-}
-
 export function redo(): boolean {
-  if (pendingTransaction) abortTransaction();
+  if (transactionScope) cancelScope(transactionScope, { silent: true });
   if (future.length === 0) return false;
   past.push(structuredClone(get(store)));
   const next = future.pop()!;
@@ -282,30 +357,29 @@ export function markSaved(): void {
 }
 
 /**
- * Reset history + transient session/transaction state without touching the
- * store. Used by `loadFromFile` ("open a different document" — undo cannot
- * cross a theme load). The caller is responsible for `store.set(next)` and
- * `persistHook()`.
+ * Reset history + transient scope state without touching the store. Used by
+ * `loadFromFile` ("open a different document" — undo cannot cross a theme
+ * load). The caller is responsible for `store.set(next)` and `persistHook()`.
  */
 export function resetHistoryForLoad(): void {
   past.length = 0;
   future.length = 0;
   savedAtIndex = 0;
-  pendingTransaction = null;
+  transactionScope = null;
   bumpTick();
 }
 
 /**
- * Test-only: clear all core history + transient session/transaction state and
- * reset the store to `emptyStateFactory()`. The full `__resetForTests` in
- * editorStore also resets renderer + per-slice baselines.
+ * Test-only: clear all core history + transient scope state and reset the
+ * store to `emptyStateFactory()`. The full `__resetForTests` in editorStore
+ * also resets renderer + per-slice baselines.
  */
 export function __resetCoreForTests(): void {
   past.length = 0;
   future.length = 0;
   savedAtIndex = 0;
-  pendingTransaction = null;
-  paletteSession = null;
+  transactionScope = null;
+  clippingScope = null;
   store.set(emptyStateFactory());
   bumpTick();
 }

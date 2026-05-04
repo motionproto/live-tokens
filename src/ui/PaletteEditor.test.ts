@@ -5,9 +5,9 @@ import PaletteEditor from './PaletteEditor.svelte';
 import {
   editorState,
   mutate,
-  beginPaletteEditSession,
-  commitPaletteEditSession,
-  cancelPaletteEditSession,
+  beginScope,
+  commitScope,
+  cancelScope,
   beginSliderGesture,
   setPaletteConfig,
   undo,
@@ -30,6 +30,8 @@ function makePaletteConfig(baseColor: string): PaletteConfig {
     snappedScales: [],
   };
 }
+
+const sessionOpts = { label: 'palette session', collapseToOne: true, clipUndoFloor: true } as const;
 
 beforeEach(() => {
   __resetForTests();
@@ -67,7 +69,7 @@ describe('PaletteEditor — store-first integration', () => {
       props: { label: 'Background', initialColor: '#8d7f74', mode: 'chromatic' },
     });
 
-    beginPaletteEditSession();
+    const session = beginScope({ ...sessionOpts });
     beginSliderGesture('drag base');
 
     for (const hex of ['#8c7f73', '#8b7f72', '#8a7f71']) {
@@ -76,7 +78,7 @@ describe('PaletteEditor — store-first integration', () => {
     }
 
     window.dispatchEvent(new Event('pointerup'));
-    commitPaletteEditSession();
+    commitScope(session);
 
     expect(get(editorState).palettes.Background.baseColor).toBe('#8a7f71');
 
@@ -96,9 +98,9 @@ describe('PaletteEditor — store-first integration', () => {
       props: { label: 'Background', initialColor: '#8d7f74', mode: 'chromatic' },
     });
 
-    beginPaletteEditSession();
+    const session = beginScope({ ...sessionOpts });
     mutate('drag', (s) => { s.palettes.Background.baseColor = '#112233'; });
-    cancelPaletteEditSession();
+    cancelScope(session);
 
     expect(get(editorState).palettes.Background.baseColor).toBe('#8d7f74');
     component.$destroy();
