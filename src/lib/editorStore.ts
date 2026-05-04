@@ -21,16 +21,21 @@
 import { get } from 'svelte/store';
 import type { EditorState, ComponentSlice } from './editorTypes';
 import type { Theme } from './themeTypes';
-import { storageKey } from './editorConfig';
 import { __resetRendererCacheForTests, installRenderer } from './editorRenderer';
 import {
   store,
   mutate,
-  setEmptyStateFactory,
+  setEmptyStateFactory as setCoreEmptyStateFactory,
   setPersistHook,
   resetHistoryForLoad,
   __resetCoreForTests,
 } from './editorCore';
+import {
+  schedulePersist,
+  setEmptyStateFactory as setPersistenceEmptyStateFactory,
+  ensureHydrated,
+  initializeEditorStore,
+} from './editorPersistence';
 import { DEFAULT_COLUMNS, COLUMN_VAR_NAMES, columnsEqualsDefault, columnsToVars, parseColumnVars } from './slices/columns';
 import {
   OVERLAY_VAR_NAMES,
@@ -51,9 +56,6 @@ import {
   setSavedComponentBaseline,
   __resetComponentsForTests,
 } from './slices/components';
-
-const PERSIST_DEBOUNCE_MS = 300;
-const PERSIST_KEY = storageKey('editor-state');
 
 function emptyState(): EditorState {
   return {
@@ -101,10 +103,10 @@ export {
   __getPastAt,
 } from './editorCore';
 
-// Wire the factory + reset the store to the real default. The store was
-// initialized in editorCore with a placeholder factory; resetting here lands
-// a proper EditorState before any helper below runs `mutate`.
-setEmptyStateFactory(emptyState);
+// Wire the factory in both editorCore and editorPersistence. Resetting the
+// store lands a proper EditorState before any helper below runs `mutate`.
+setCoreEmptyStateFactory(emptyState);
+setPersistenceEmptyStateFactory(emptyState);
 store.set(emptyState());
 
 // ── Slice re-exports ──────────────────────────────────────────────────────
@@ -442,75 +444,11 @@ export function toTheme(state: EditorState, meta: { name: string }): Theme {
 
 // ── Persistence ────────────────────────────────────────────────────────────
 //
-// Lives here pending stage 6.5; will move to `editorPersistence.ts`. Wired
-// to the core's persist hook below so mutate/undo/redo all debounce-write
-// to localStorage through the same path.
+// `schedulePersist` + `hydrate` + the eager-hydrate gate live in
+// `./editorPersistence`. The barrel re-exports `initializeEditorStore` for
+// API parity.
 
-let persistTimer: ReturnType<typeof setTimeout> | null = null;
-function schedulePersist(): void {
-  if (typeof localStorage === 'undefined') return;
-  if (persistTimer) clearTimeout(persistTimer);
-  persistTimer = setTimeout(persistNow, PERSIST_DEBOUNCE_MS);
-}
-function persistNow(): void {
-  persistTimer = null;
-  try {
-    localStorage.setItem(PERSIST_KEY, JSON.stringify(get(store)));
-  } catch {
-    // quota / serialization errors — silent, not fatal
-  }
-}
-
-function migrateGradients(state: EditorState): EditorState {
-  // Gradients are a fixed-slot scale (--gradient-1 … --gradient-4). If the
-  // persisted state predates the migration to fixed slots (e.g. it still has
-  // a token named --gradient-progress, or the count doesn't match), replace
-  // the gradients block with defaults rather than carrying stale entries.
-  const expected = makeDefaultGradients().map((g) => g.variable).sort();
-  const have = (state.gradients?.tokens ?? []).map((g) => g.variable).sort();
-  const matches =
-    have.length === expected.length &&
-    expected.every((v, i) => v === have[i]);
-  if (matches) return state;
-  return { ...state, gradients: { tokens: makeDefaultGradients() } };
-}
-
-function hydrate(): void {
-  if (typeof localStorage === 'undefined') return;
-  try {
-    const raw = localStorage.getItem(PERSIST_KEY);
-    if (!raw) return;
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === 'object') {
-      // Shallow-merge onto default shape so older persisted state missing
-      // newly-added domain fields still loads.
-      const merged = { ...emptyState(), ...parsed } as EditorState;
-      store.set(migrateGradients(merged));
-    }
-  } catch {
-    // corrupt state — leave defaults
-  }
-}
-
-// Hydrate eagerly at module load so child components reading `$editorState`
-// in their onMount see persisted state, not the transient empty default.
-// Svelte mounts children before parents — waiting for Editor's onMount is
-// too late.
-let hydrated = false;
-function ensureHydrated(): void {
-  if (hydrated) return;
-  hydrated = true;
-  hydrate();
-}
-ensureHydrated();
-
-/**
- * Kept for API parity with callers that opt-in from onMount. A no-op after
- * the eager load above, but cheap to call multiple times.
- */
-export async function initializeEditorStore(): Promise<void> {
-  ensureHydrated();
-}
+export { initializeEditorStore };
 
 // ── Test-only reset ────────────────────────────────────────────────────────
 
@@ -527,12 +465,15 @@ export function __resetForTests(): void {
 // ── Wiring ─────────────────────────────────────────────────────────────────
 //
 // `setPersistHook(schedulePersist)` lets editorCore's mutate/undo/redo
-// debounce-persist through the same path. `installRenderer()` runs the
-// `store.subscribe(...)` wiring legacy `import '.../editorStore'` paths
-// depended on; it must run *after* this module's exports are initialized
-// — the renderer imports `editorState` back from editorCore, and calling
-// it earlier would TDZ because of the circular import.
+// debounce-persist through the same path. `ensureHydrated()` runs the
+// eager localStorage load (pre-Svelte-mount so children see persisted
+// state in onMount). `installRenderer()` runs the `store.subscribe(...)`
+// wiring legacy `import '.../editorStore'` paths depended on; it must run
+// *after* this module's exports are initialized — the renderer imports
+// `editorState` back from editorCore, and calling it earlier would TDZ
+// because of the circular import.
 setPersistHook(schedulePersist);
+ensureHydrated();
 export { deriveCssVars } from './editorRenderer';
 installRenderer();
 
