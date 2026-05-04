@@ -1,12 +1,7 @@
-<script lang="ts">
-  import ProgressBar from '../components/ProgressBar.svelte';
-  import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
-  import { buildSiblings } from './scaffolding/siblings';
+<script context="module" lang="ts">
   import type { Token, TypeGroupConfig } from './scaffolding/types';
-  const component = 'progressbar';
+
+  export const component = 'progressbar';
   const variants = ['primary', 'success', 'warning', 'danger', 'info'] as const;
   type Variant = typeof variants[number];
 
@@ -55,8 +50,7 @@
       { label: 'line height', canBeShared: true, groupKey: 'value-line-height', variable: `--progressbar-${v}-value-line-height` },
     ];
   }
-  const allTokens: Token[] = variants.flatMap((v) => [...variantTokens(v), ...variantTypeGroupTokens(v)]);
-  registerComponentSchema(component, allTokens);
+  export const allTokens: Token[] = variants.flatMap((v) => [...variantTokens(v), ...variantTypeGroupTokens(v)]);
 
   // Cross-variant shared block surfaces shape and font props that may be linked.
   const shareableContexts = new Map<string, string>(variants.flatMap((v) => [
@@ -73,10 +67,19 @@
     [`--progressbar-${v}-value-line-height`, v] as const,
   ]));
 
+  const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
+</script>
+
+<script lang="ts">
+  import ProgressBar from '../components/ProgressBar.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import { editorState } from '../lib/editorStore';
+  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import { buildSiblings } from './scaffolding/siblings';
+
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
   $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
-
-  const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
 </script>
 
 <ComponentEditorBase {component} title="Progress Bar" description="Animated progress bar with variants. Import from <code>components/ProgressBar.svelte</code>" tokens={allTokens} {shared} tabbable variants={variantOptions}>

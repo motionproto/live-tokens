@@ -1,12 +1,7 @@
-<script lang="ts">
-  import CollapsibleSection from '../components/CollapsibleSection.svelte';
-  import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+<script context="module" lang="ts">
   import type { Token, TypeGroupConfig } from './scaffolding/types';
-  const component = 'collapsiblesection';
-  let demoExpanded = false;
+
+  export const component = 'collapsiblesection';
   const stateNames = ['default', 'hover', 'active'] as const;
   type StateName = typeof stateNames[number];
   function stateTokens(s: StateName): Token[] {
@@ -39,8 +34,7 @@
     { label: 'font weight', canBeShared: true, groupKey: 'label-font-weight', variable: `--collapsiblesection-${s}-label-font-weight` },
     { label: 'line height', canBeShared: true, groupKey: 'label-line-height', variable: `--collapsiblesection-${s}-label-line-height` },
   ]);
-  const allTokens = [...Object.values(states).flat(), ...typeGroupTokens];
-  registerComponentSchema(component, allTokens);
+  export const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
 
   const shareableContexts = new Map<string, string>(stateNames.flatMap((s) => [
     [`--collapsiblesection-${s}-border-width`, s] as const,
@@ -52,6 +46,16 @@
     [`--collapsiblesection-${s}-label-font-weight`, s] as const,
     [`--collapsiblesection-${s}-label-line-height`, s] as const,
   ]));
+</script>
+
+<script lang="ts">
+  import CollapsibleSection from '../components/CollapsibleSection.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import { editorState } from '../lib/editorStore';
+  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+
+  let demoExpanded = false;
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
 

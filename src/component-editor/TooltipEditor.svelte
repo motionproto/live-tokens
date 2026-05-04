@@ -1,13 +1,7 @@
-<script lang="ts">
-  import Button from '../components/Button.svelte';
-  import Tooltip from '../components/Tooltip.svelte';
-  import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { registerComponentSchema } from '../lib/editorStore';
+<script context="module" lang="ts">
   import type { Token, TypeGroupConfig } from './scaffolding/types';
-  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
-  import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
-  const component = 'tooltip';
+
+  export const component = 'tooltip';
 
   // Tooltip is a single object — surface/border/padding/radius/shadow live together.
   const states: Record<string, Token[]> = {
@@ -37,8 +31,17 @@
     { label: 'font weight', variable: '--tooltip-text-font-weight' },
     { label: 'line height', variable: '--tooltip-text-line-height' },
   ];
-  const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
-  registerComponentSchema(component, allTokens);
+  export const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
+</script>
+
+<script lang="ts">
+  import Button from '../components/Button.svelte';
+  import Tooltip from '../components/Tooltip.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
+  import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
+
   let bgMode: 'image' | 'color' = 'image';
   const bgVar = '--backdrop-tooltip-surface';
 </script>

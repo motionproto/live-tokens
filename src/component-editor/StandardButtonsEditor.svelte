@@ -1,18 +1,8 @@
-<script lang="ts">
-  import Button from '../components/Button.svelte';
-  import Toggle from '../components/Toggle.svelte';
-  import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, setComponentAlias, registerComponentSchema } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+<script context="module" lang="ts">
   import type { Token, TypeGroupConfig } from './scaffolding/types';
-  const component = 'button';
 
-  $: shimmerEnabled = $editorState.components.button?.aliases['--button-shimmer'] !== '--shimmer-off';
+  export const component = 'button';
 
-  function handleShimmerChange(e: CustomEvent<boolean>) {
-    setComponentAlias('button', '--button-shimmer', e.detail ? '--shimmer-on' : '--shimmer-off');
-  }
   const variants = ['primary', 'secondary', 'outline', 'success', 'danger', 'warning'] as const;
   type Variant = typeof variants[number];
   const stateNames = ['default', 'hover', 'disabled'] as const;
@@ -65,11 +55,10 @@
       { label: 'line height', canBeShared: true, groupKey: 'line-height', variable: `--button-${v}-text-line-height` },
     ];
   }
-  const allTokens: Token[] = variants.flatMap((v) => [
+  export const allTokens: Token[] = variants.flatMap((v) => [
     ...Object.values(variantStates(v)).flat(),
     ...variantTypeGroupTokens(v),
   ]);
-  registerComponentSchema(component, allTokens);
 
   // Shared block:
   //   - shape props (border-width, radius, padding) link across every variant × state — buttons share one geometry.
@@ -88,12 +77,6 @@
     ]),
   ]);
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
-
-  $: visibleVariantStates = (v: Variant) => Object.fromEntries(
-    Object.entries(variantStates(v)).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
-  ) as Record<string, Token[]>;
-
   const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
 
   function siblingsFor(toVariant: Variant) {
@@ -106,6 +89,27 @@
         typeGroups: variantTypeGroups(v),
       }));
   }
+</script>
+
+<script lang="ts">
+  import Button from '../components/Button.svelte';
+  import Toggle from '../components/Toggle.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import { editorState, setComponentAlias } from '../lib/editorStore';
+  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+
+  $: shimmerEnabled = $editorState.components.button?.aliases['--button-shimmer'] !== '--shimmer-off';
+
+  function handleShimmerChange(e: CustomEvent<boolean>) {
+    setComponentAlias('button', '--button-shimmer', e.detail ? '--shimmer-on' : '--shimmer-off');
+  }
+
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+
+  $: visibleVariantStates = (v: Variant) => Object.fromEntries(
+    Object.entries(variantStates(v)).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
+  ) as Record<string, Token[]>;
 </script>
 
 <ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" tokens={allTokens} {shared} tabbable variants={variantOptions}>
