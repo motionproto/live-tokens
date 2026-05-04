@@ -123,6 +123,8 @@ function buildOverlayRegistry(
   const overrides = new Map<string, string>();
   for (const slice of Object.values(components)) {
     for (const [varName, semanticName] of Object.entries(slice.aliases)) {
+      // Defensive: skip malformed alias entries (see componentsToVars).
+      if (typeof semanticName !== 'string') continue;
       overrides.set(varName, `var(${semanticName})`);
     }
   }

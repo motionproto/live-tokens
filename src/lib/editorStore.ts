@@ -775,6 +775,10 @@ function componentsToVars(components: EditorState['components']): Record<string,
   const out: Record<string, string> = {};
   for (const slice of Object.values(components)) {
     for (const [varName, semanticName] of Object.entries(slice.aliases)) {
+      // Defensive: localStorage may carry malformed entries from a prior
+      // schema (e.g. cross-branch state during the C2-audit refactor series).
+      // Skip non-strings so boot survives — affected aliases reset on edit.
+      if (typeof semanticName !== 'string') continue;
       out[varName] = semanticName.startsWith('--') ? `var(${semanticName})` : semanticName;
     }
   }
