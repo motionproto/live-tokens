@@ -109,6 +109,7 @@ Design health is solid in the small (pure modules — `paletteDerivation`, `oklc
 - **Where:** `src/component-editor/scaffolding/VariantGroup.svelte:170–202` (tabs branch) and `:235–272` (list branch).
 - **What:** Two identical `<TokenLayout>` + `<TypeEditor>` rendering blocks differing only in surrounding chrome. Adding a per-state control means editing both branches.
 - **Direction:** Extract a `<StateBlock>` sub-component (or a snippet/named slot) and call it from each branch. Keep the chrome differences in the branches.
+- [done] **Resolution (2026-05-04):** New `src/component-editor/scaffolding/StateBlock.svelte` owns the shared inner block (`<TypeEditor>` row over `<TokenLayout>`) plus its scoped styles. Both VariantGroup branches now call `<StateBlock tokens typeGroups component sharedOrder on:change />` while keeping their own chrome (tabs strip + Preview slot vs per-state collapse header + state-section). The `.state-controls` / `.state-type-groups` CSS rules and their `:global` descendant rules moved into StateBlock; the chrome-only styles (`.state-section`, `.state-header`, `.tabs-preview`, etc.) stayed in VariantGroup. Tests 18 → 18.
 
 ### M6. Three coexisting history regimes — judgment call to settle before lock-in `[cross-cutting]`
 - **Where:** `src/lib/editorStore.ts:391` (`mutate`), `:412/428/443/469` (transactions), `:508/521/554` (palette sessions). Tests at `src/lib/editorStore.test.ts:117–278` work hard to verify cross-regime semantics.
