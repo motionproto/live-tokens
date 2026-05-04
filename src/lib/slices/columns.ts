@@ -43,3 +43,17 @@ export function parseColumnVars(vars: Record<string, string>): Partial<ColumnsSt
   if (Number.isFinite(margin)) out.margin = Math.round(margin);
   return out;
 }
+
+/**
+ * Loader: route the relevant entries from a freshly-loaded theme's vars bag
+ * into `next.columns` and remove them from the bag so derivation stays
+ * single-source. Mutates `next` and `rawVars` in place.
+ */
+export function loadColumnsFromVars(
+  next: import('../editorTypes').EditorState,
+  rawVars: Record<string, string>,
+): void {
+  const overrides = parseColumnVars(rawVars);
+  next.columns = { ...DEFAULT_COLUMNS, ...overrides };
+  for (const name of COLUMN_VAR_NAMES) delete rawVars[name];
+}

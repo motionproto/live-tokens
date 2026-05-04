@@ -63,6 +63,7 @@ Design health is solid in the small (pure modules — `paletteDerivation`, `oklc
 - **What:** One module owns: state shape & defaults, history (undo/redo/transaction), palette edit sessions, slider gesture wiring, font / palette / shadow / overlay / column / gradient / component slices, schema registry, sibling/sharing logic, three independent migration tables (`COMPONENT_PREFIX_RENAMES`, `COMPONENT_SUFFIX_RENAMES`, segmentedcontrol-specific block at 982–1027, `LEGACY_KEY_RENAMES`, `BG_TO_CANVAS_PREFIXES`), regex parsers for shadows + RGBA, debounced `localStorage` persistence, eager hydrate, and the DOM subscriber that writes `:root`. Module-load side effects (`ensureHydrated()` at 1267, `store.subscribe(...)` at 1303) make the import non-pure.
 - **Why it matters:** Every domain change touches this file; the file is the natural fault line that tests and the in-flight refactor (per memory) are already pulling against. Once consumers depend on its current export surface — including the `__resetForTests` escape hatches that reach into module-private mutables — splitting later forces breaking changes everywhere.
 - **Direction:** Before lock-in, partition into a state-core (writable + history machine + transaction primitives), per-domain slices (palettes/fonts/shadows/overlays/columns/components/gradients) registered into the core, a separate migration module that runs once on hydrate/load, and a renderer module that owns the `deriveCssVars → cssVarSync` subscriber. Don't pre-design the public API — let each tab's migration drive it.
+- [done] **Resolution (2026-05-04):** Wave 6 split editorStore into `editorCore.ts` (writable + history + transaction/session primitives), `editorRenderer.ts` (DOM subscriber), `editorPersistence.ts` (debounced localStorage + hydrate), and `src/lib/slices/{columns,overlays,shadows,gradients,components,palettes,fonts,domainVars}.ts` (per-domain factories + actions). editorStore.ts is now a barrel (~480 lines) that re-exports the public API and keeps the migration tables + load/save orchestration pending Wave 4. Tests stayed at the 18-failure baseline throughout the six sub-stages.
 
 ### C2. The "list of components" is duplicated across 5+ shapes — Shotgun Surgery setup `[cross-cutting]`
 - **Where:** `src/component-editor/scaffolding/defaultSections.ts:17` (id/label/component); `src/component-editor/scaffolding/componentSources.ts:1` (id → source filename); `src/pages/ComponentEditorPage.svelte:76` (id/label/icon for nav); each editor's top-level `registerComponentSchema(...)` call (e.g. `SegmentedControlEditor.svelte:115`); `src/vite-plugin/themeFileApi.ts:304` (server scans `src/components/*.svelte`).
@@ -167,6 +168,7 @@ Design health is solid in the small (pure modules — `paletteDerivation`, `oklc
 
 ### m7. `SCALE_SHADOW_VARIABLES` (Set) duplicates `SHADOW_VAR_NAMES` (tuple) `[local]`
 - `src/lib/editorStore.ts:238` defines the tuple, `:275` defines the Set with the same five literals. Derive one from the other.
+- [done] **Resolution (2026-05-04):** `slices/shadows.ts` defines `SHADOW_VAR_NAMES` once and derives `SCALE_SHADOW_VARIABLES = new Set(SHADOW_VAR_NAMES)`. Single canonical source.
 
 ### m8. `void _state` reactivity hack in `sharedBlock.ts` `[local]`
 - `src/component-editor/scaffolding/sharedBlock.ts:44, 46` — accept `EditorState` only to force a Svelte reactive re-run, then immediately `void _state`. API smell. Make `computeSharedBlock` callable without state (it reads via `getComponentPropertySiblings(...)` which already calls `get(store)`); callers that need reactivity can do `$: shared = computeSharedBlock(...); void $editorState;` at the call site.
@@ -185,6 +187,7 @@ Design health is solid in the small (pure modules — `paletteDerivation`, `oklc
 
 ### m13. `seedShadowsFromDom` couples seed timing to the shadows UI `[local]`
 - `src/lib/editorStore.ts:321`: "Called once from the shadows UI when state has no tokens yet." This is a Hidden Sequential Coupling — if the user never opens the shadows tab, no seed happens; tokens.css then disagrees with what the editor *thinks* shadows are. Move the seed into hydrate or into `loadFromFile`'s "preserve existing" branch.
+- [done] **Resolution (2026-05-04):** `editorPersistence.hydrate()` now schedules `seedShadowsFromDom()` via `requestAnimationFrame` so the seed lands once on every fresh boot regardless of whether the user opens the shadows tab. The frame-defer avoids racing tokens.css application at module-load time. VariablesTab's existing call still runs and is now a safety net rather than the only seeding path.
 
 ## Nits
 
@@ -192,6 +195,7 @@ Design health is solid in the small (pure modules — `paletteDerivation`, `oklc
 - `src/lib/paletteDerivation.ts:201` `[local]` — `--text-primary-color` one-off rule (when ns=='primary' and step=='primary') deserves a one-line WHY (avoid `--text-primary` collision) or extraction to a tiny rename map.
 - `src/component-editor/scaffolding/ComponentFileManager.svelte:1` `[local]` — 888 lines. Split the SaveAs dialog and the file menu into sub-components; the parent is hard to follow now.
 - `src/lib/editorStore.ts:1140` `[local]` — `loadFromFile` is 40 lines that read like a small pipeline (clear → split rawVars by domain → preserve session-scoped fields → reset history). A typed `loaders[domain](rawVars)` table would make the flow explicit.
+- [done] **Resolution (2026-05-04):** Each slice now exports `loadXFromVars(next, rawVars)`; `editorStore.loadFromFile` is `for (const load of Object.values(domainLoaders)) load(next, rawVars)` over a `Record<string, DomainLoader>` table. The 40-line pipeline is now ~12 lines including the table definition.
 
 ## Project conventions
 

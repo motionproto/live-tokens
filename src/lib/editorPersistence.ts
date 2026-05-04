@@ -18,6 +18,7 @@ import type { EditorState } from './editorTypes';
 import { storageKey } from './editorConfig';
 import { store } from './editorCore';
 import { makeDefaultGradients } from './slices/gradients';
+import { seedShadowsFromDom } from './slices/shadows';
 
 export const PERSIST_KEY = storageKey('editor-state');
 export const PERSIST_DEBOUNCE_MS = 300;
@@ -61,19 +62,34 @@ function migrateGradients(state: EditorState): EditorState {
 }
 
 export function hydrate(): void {
-  if (typeof localStorage === 'undefined') return;
-  try {
-    const raw = localStorage.getItem(PERSIST_KEY);
-    if (!raw) return;
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === 'object') {
-      // Shallow-merge onto default shape so older persisted state missing
-      // newly-added domain fields still loads.
-      const merged = { ...emptyStateFactory(), ...parsed } as EditorState;
-      store.set(migrateGradients(merged));
+  if (typeof localStorage !== 'undefined') {
+    try {
+      const raw = localStorage.getItem(PERSIST_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          // Shallow-merge onto default shape so older persisted state missing
+          // newly-added domain fields still loads.
+          const merged = { ...emptyStateFactory(), ...parsed } as EditorState;
+          store.set(migrateGradients(merged));
+        }
+      }
+    } catch {
+      // corrupt state — leave defaults
     }
-  } catch {
-    // corrupt state — leave defaults
+  }
+  // m13 fix: seed shadows from the DOM at hydrate time so the editor
+  // captures the tokens.css baseline regardless of whether the user opens
+  // the shadows tab. `seedShadowsFromDom` is a no-op when state already
+  // has tokens (e.g. we just loaded persisted state with shadows saved),
+  // so the seed only fires on a truly fresh boot. Deferred to next frame
+  // because tokens.css may not be applied yet at module-load time —
+  // `getComputedStyle` would return empty strings and `parseShadowCss`
+  // would reject every entry.
+  if (typeof requestAnimationFrame !== 'undefined') {
+    requestAnimationFrame(() => seedShadowsFromDom());
+  } else {
+    seedShadowsFromDom();
   }
 }
 

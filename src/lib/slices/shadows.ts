@@ -75,6 +75,26 @@ export function applyShadowVarsToState(shadows: EditorState['shadows'], vars: Re
 }
 
 /**
+ * Loader: route shadow scale tokens from a freshly-loaded theme's vars bag
+ * into `next.shadows.tokens` and remove them from the bag. Globals/overrides
+ * are preserved across theme loads from the *current* state — themes don't
+ * carry editor-UI state — so the caller copies them in. Mutates `next` and
+ * `rawVars` in place.
+ */
+export function loadShadowsFromVars(
+  next: EditorState,
+  rawVars: Record<string, string>,
+): void {
+  applyShadowVarsToState(next.shadows, rawVars);
+  for (const name of SHADOW_VAR_NAMES) delete rawVars[name];
+  // Preserve shadow globals/overrides across theme loads so the editor UI
+  // reopens with the same controls the user was working with.
+  const current = get(store).shadows;
+  next.shadows.globals = structuredClone(current.globals);
+  next.shadows.overrides = structuredClone(current.overrides);
+}
+
+/**
  * Seed state.shadows.tokens from computed styles on the document element.
  * Captures the tokens.css baseline so the editor can mutate it. Does NOT push
  * a history entry; the seed is treated as an initial snapshot, not a user

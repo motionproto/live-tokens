@@ -117,3 +117,16 @@ export function applyOverlayVarsToState(overlays: EditorState['overlays'], vars:
   applyTo(overlays.tokens);
   applyTo(overlays.hoverTokens);
 }
+
+/**
+ * Loader: route overlay/hover entries from a freshly-loaded theme's vars
+ * bag into `next.overlays` and remove them from the bag. Mutates `next`
+ * and `rawVars` in place.
+ */
+export function loadOverlaysFromVars(
+  next: EditorState,
+  rawVars: Record<string, string>,
+): void {
+  applyOverlayVarsToState(next.overlays, rawVars);
+  for (const name of OVERLAY_VAR_NAMES) delete rawVars[name];
+}

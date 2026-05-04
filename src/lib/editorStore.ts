@@ -11,14 +11,13 @@
  *  - `editorCore` (history machine + transaction/session primitives)
  *  - `slices/*` (per-domain factories + actions)
  *  - `editorRenderer` (DOM subscriber)
- *  - `editorPersistence` (debounced localStorage; lives here until 6.5)
+ *  - `editorPersistence` (debounced localStorage)
  *
  * Migration tables for legacy theme keys + abbreviated component prefixes
  * stay in this module pending Wave 4's migration extraction. `loadFromFile`
  * + `toTheme` orchestrate across slices and stay here for now.
  */
 
-import { get } from 'svelte/store';
 import type { EditorState, ComponentSlice } from './editorTypes';
 import type { Theme } from './themeTypes';
 import { __resetRendererCacheForTests, installRenderer } from './editorRenderer';
@@ -36,22 +35,25 @@ import {
   ensureHydrated,
   initializeEditorStore,
 } from './editorPersistence';
-import { DEFAULT_COLUMNS, COLUMN_VAR_NAMES, columnsEqualsDefault, columnsToVars, parseColumnVars } from './slices/columns';
 import {
-  OVERLAY_VAR_NAMES,
-  applyOverlayVarsToState,
+  DEFAULT_COLUMNS,
+  columnsEqualsDefault,
+  columnsToVars,
+  loadColumnsFromVars,
+} from './slices/columns';
+import {
+  loadOverlaysFromVars,
   makeDefaultOverlaysState,
   overlaysEqualsDefault,
   overlaysToVars,
 } from './slices/overlays';
 import {
-  SHADOW_VAR_NAMES,
-  applyShadowVarsToState,
+  loadShadowsFromVars,
   shadowsToVars,
 } from './slices/shadows';
 import { makeDefaultGradients } from './slices/gradients';
 import {
-  getComponentOwnedVarNames,
+  loadComponentsFromVars,
   notifyComponentSavedChanged,
   setSavedComponentBaseline,
   __resetComponentsForTests,
@@ -374,6 +376,22 @@ function migrateLegacyKeys(rawVars: Record<string, string>): void {
 }
 
 /**
+ * Per-domain loader: routes a freshly-loaded theme's `cssVariables` bag
+ * into typed state on `next`, then removes the routed entries so the
+ * remainder lands as the catch-all `cssVars` bag. Each loader owns its
+ * domain's parser + name list; this table is the only place editorStore
+ * needs to know about the per-slice loading contract.
+ */
+type DomainLoader = (next: EditorState, rawVars: Record<string, string>) => void;
+
+const domainLoaders: Record<string, DomainLoader> = {
+  columns: loadColumnsFromVars,
+  overlays: loadOverlaysFromVars,
+  shadows: loadShadowsFromVars,
+  components: loadComponentsFromVars,
+};
+
+/**
  * Replace state with a loaded theme. Clears history and marks saved —
  * "open a different document" semantics. Undo cannot cross a theme load.
  */
@@ -384,30 +402,11 @@ export function loadFromFile(theme: Theme): void {
   next.fonts.stacks  = structuredClone(theme.fontStacks  ?? []);
   const rawVars = { ...(theme.cssVariables ?? {}) };
   migrateLegacyKeys(rawVars);
-  // Column vars live in state.columns; strip them out of the catch-all bag
-  // so derivation stays single-source.
-  const colOverrides = parseColumnVars(rawVars);
-  next.columns = { ...DEFAULT_COLUMNS, ...colOverrides };
-  for (const name of COLUMN_VAR_NAMES) delete rawVars[name];
-  // Overlay / hover vars likewise route into state.overlays.tokens; any that
-  // fail to parse are left in the catch-all bag as a fallback.
-  applyOverlayVarsToState(next.overlays, rawVars);
-  for (const name of OVERLAY_VAR_NAMES) delete rawVars[name];
-  // Shadow vars populate state.shadows.tokens; globals/overrides stay at
-  // whatever the user has accumulated in this session (themes don't
-  // carry them — they persist via this store's own localStorage).
-  applyShadowVarsToState(next.shadows, rawVars);
-  for (const name of SHADOW_VAR_NAMES) delete rawVars[name];
-  // Preserve shadow globals/overrides across theme loads so the editor UI
-  // reopens with the same controls the user was working with.
-  next.shadows.globals = structuredClone(get(store).shadows.globals);
-  next.shadows.overrides = structuredClone(get(store).shadows.overrides);
-  // Themes and components are orthogonal: component aliases live in their
-  // own files, not the theme JSON. Preserve the current slice across theme
-  // loads and strip any component-owned vars that may have leaked into the
-  // theme's cssVariables bag.
-  next.components = structuredClone(get(store).components);
-  for (const name of getComponentOwnedVarNames(next)) delete rawVars[name];
+  // Route domain-owned entries out of the catch-all bag into typed state.
+  // Order doesn't matter — each loader claims a disjoint set of var names
+  // (or in components' case, vars that wouldn't have been in the theme to
+  // begin with).
+  for (const load of Object.values(domainLoaders)) load(next, rawVars);
   next.cssVars = rawVars;
   resetHistoryForLoad();
   store.set(next);
@@ -415,9 +414,10 @@ export function loadFromFile(theme: Theme): void {
 }
 
 /**
- * Serialize current state for saving. Phase 1 emits the escape-hatch
- * `cssVars` bag as-is; domain-derived vars fold in during later phases when
- * `deriveCssVars` grows beyond the bag.
+ * Serialize current state for saving. Domains with their own typed state
+ * (columns, overlays, shadows) fold derived vars into `cssVariables` only
+ * when they diverge from defaults; the catch-all `cssVars` bag carries
+ * everything not yet migrated to a typed domain.
  */
 export function toTheme(state: EditorState, meta: { name: string }): Theme {
   const now = new Date().toISOString();

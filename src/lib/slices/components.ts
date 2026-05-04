@@ -41,6 +41,21 @@ export function getComponentOwnedVarNames(state: EditorState): string[] {
   return names;
 }
 
+/**
+ * Loader: themes and components are orthogonal — component aliases live
+ * in their own files, not the theme JSON. Preserve the current slice
+ * across theme loads and strip any component-owned vars that may have
+ * leaked into the theme's cssVariables bag. Mutates `next` and `rawVars`
+ * in place.
+ */
+export function loadComponentsFromVars(
+  next: EditorState,
+  rawVars: Record<string, string>,
+): void {
+  next.components = structuredClone(get(store).components);
+  for (const name of getComponentOwnedVarNames(next)) delete rawVars[name];
+}
+
 // Module-private baseline for per-component dirty detection. Parallels
 // `savedAtIndex` + `historyTick` for the global flag; `componentSavedTick`
 // drives re-derivation when the baseline changes.
