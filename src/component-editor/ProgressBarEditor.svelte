@@ -87,7 +87,7 @@
       states={{ [v]: visibleVariantTokens(v) }}
       typeGroups={{ [v]: variantTypeGroups(v) }}
       {component}
-      siblings={buildSiblings(variants, v, variantTokens, variantTypeGroups)}
+      siblings={buildSiblings(variants, v, (sv) => ({ [sv]: variantTokens(sv) }), (sv) => ({ [sv]: variantTypeGroups(sv) }))}
     >
       <div class="progress-demo-stack">
         {#if v === 'primary'}

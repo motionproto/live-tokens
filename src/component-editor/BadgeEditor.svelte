@@ -95,7 +95,7 @@
       states={{ [v]: visibleVariantTokens(v) }}
       typeGroups={{ [v]: variantTypeGroups(v) }}
       {component}
-      siblings={buildSiblings(variants, v, variantTokens, variantTypeGroups)}
+      siblings={buildSiblings(variants, v, (sv) => ({ [sv]: variantTokens(sv) }), (sv) => ({ [sv]: variantTypeGroups(sv) }))}
     >
       <ShadowBackdrop mode={bgMode} colorVariable={bgVar}>
         <div class="badge-showcase-grid">

@@ -5,6 +5,8 @@
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState, setComponentAlias, registerComponentSchema } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import { buildSiblings } from './scaffolding/siblings';
+  import { buildTypeGroupTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'button';
 
@@ -57,17 +59,9 @@
   function variantStates(v: Variant): Record<string, Token[]> {
     return Object.fromEntries(stateNames.map((s) => [s, variantStateTokens(v, s)]));
   }
-  function variantTypeGroupTokens(v: Variant): Token[] {
-    return [
-      { label: 'font family', canBeShared: true, groupKey: 'font-family', variable: `--button-${v}-text-font-family` },
-      { label: 'font size', canBeShared: true, groupKey: 'font-size', variable: `--button-${v}-text-font-size` },
-      { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: `--button-${v}-text-font-weight` },
-      { label: 'line height', canBeShared: true, groupKey: 'line-height', variable: `--button-${v}-text-line-height` },
-    ];
-  }
   const allTokens: Token[] = variants.flatMap((v) => [
     ...Object.values(variantStates(v)).flat(),
-    ...variantTypeGroupTokens(v),
+    ...buildTypeGroupTokens(variantTypeGroups(v)),
   ]);
   registerComponentSchema(component, allTokens);
 
@@ -95,17 +89,6 @@
   ) as Record<string, Token[]>;
 
   const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
-
-  function siblingsFor(toVariant: Variant) {
-    return variants
-      .filter((v) => v !== toVariant)
-      .map((v) => ({
-        name: v,
-        label: v.charAt(0).toUpperCase() + v.slice(1),
-        states: variantStates(v),
-        typeGroups: variantTypeGroups(v),
-      }));
-  }
 </script>
 
 <ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" tokens={allTokens} {shared} tabbable variants={variantOptions}>
@@ -122,7 +105,7 @@
       states={visibleVariantStates(v)}
       typeGroups={variantTypeGroups(v)}
       {component}
-      siblings={siblingsFor(v)}
+      siblings={buildSiblings(variants, v, variantStates, variantTypeGroups)}
       let:activeState
     >
       {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}

@@ -127,7 +127,7 @@
       states={{ [v]: visibleVariantTokens(v) }}
       typeGroups={{ [v]: variantTypeGroups(v) }}
       {component}
-      siblings={buildSiblings(variants, v, variantTokens, variantTypeGroups)}
+      siblings={buildSiblings(variants, v, (sv) => ({ [sv]: variantTokens(sv) }), (sv) => ({ [sv]: variantTypeGroups(sv) }))}
     >
       {#if v === 'info'}
         <Notification variant="info" title="Information" description="This is an informational message to keep you updated." {dismissible} {actionRightVariant} {actionLeftVariant} />
