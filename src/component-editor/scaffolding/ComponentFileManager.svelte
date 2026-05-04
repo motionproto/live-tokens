@@ -22,11 +22,11 @@
     markComponentSaved,
     mutate,
   } from '../../lib/editorStore';
-  import { sanitizeFileName } from '../../lib/themeService';
   import { safeFetch } from '../../lib/storage';
-  import UIDialog from '../../ui/UIDialog.svelte';
   import { writable } from 'svelte/store';
   import { getEditorContext, type ViewMode } from './editorContext';
+  import ComponentFileMenu from './ComponentFileMenu.svelte';
+  import SaveAsDialog from './SaveAsDialog.svelte';
 
   /** Which component this manager controls (e.g. "button"). */
   export let component: string;
@@ -47,12 +47,7 @@
   let files: ComponentConfigMeta[] = [];
   let activeFileName = 'default';
   let currentDisplayName = 'Default';
-  let showFileList = false;
   let saveAsDialog = false;
-  let saveAsName = '';
-  let saveAsInput: HTMLInputElement;
-  let fileMenuOpen = false;
-  let fileMenuRoot: HTMLElement;
 
   let productionInfo: ComponentProductionInfo | null = null;
   let productionUpdateStatus: 'idle' | 'updating' | 'done' | 'error' = 'idle';
@@ -92,21 +87,12 @@
   onMount(async () => {
     await refreshFiles();
     await refreshProduction();
-    document.addEventListener('click', handleDocClick, true);
     window.addEventListener('keydown', handleKeydown);
   });
 
   onDestroy(() => {
-    document.removeEventListener('click', handleDocClick, true);
     window.removeEventListener('keydown', handleKeydown);
   });
-
-  function handleDocClick(e: MouseEvent) {
-    if (!fileMenuOpen) return;
-    if (fileMenuRoot && !fileMenuRoot.contains(e.target as Node)) {
-      fileMenuOpen = false;
-    }
-  }
 
   function handleKeydown(e: KeyboardEvent) {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
@@ -136,10 +122,9 @@
   }
 
   async function handleSave() {
-    fileMenuOpen = false;
     if (activeFileName === 'default') {
       // Default is regenerated from source — can't overwrite directly.
-      openSaveAs();
+      saveAsDialog = true;
       return;
     }
     saveStatus = 'saving';
@@ -154,48 +139,12 @@
     }
   }
 
-  function nextIncrementName(baseDisplay: string): { displayName: string; fileName: string } {
-    const baseName = baseDisplay.replace(/_\d+$/, '');
-    const baseFileName = sanitizeFileName(baseName);
-    const existingNums = files
-      .filter((f) => f.fileName === baseFileName || f.fileName.match(new RegExp(`^${baseFileName}_\\d+$`)))
-      .map((f) => {
-        const m = f.fileName.match(/_(\d+)$/);
-        return m ? parseInt(m[1], 10) : 0;
-      });
-    const next = (existingNums.length > 0 ? Math.max(...existingNums) : 0) + 1;
-    const suffix = String(next).padStart(2, '0');
-    return { displayName: `${baseName}_${suffix}`, fileName: `${baseFileName}_${suffix}` };
-  }
-
-  function incrementSaveAsName() {
-    saveAsName = nextIncrementName(saveAsName).displayName;
-    setTimeout(() => saveAsInput?.select(), 0);
-  }
-
   function openSaveAs() {
-    fileMenuOpen = false;
-    saveAsName = sanitizeFileName(currentDisplayName) === 'default'
-      ? nextIncrementName(currentDisplayName).displayName
-      : currentDisplayName;
     saveAsDialog = true;
-    setTimeout(() => saveAsInput?.select(), 0);
   }
 
-  $: saveAsError = (() => {
-    const trimmed = saveAsName.trim();
-    if (!trimmed) return '';
-    if (sanitizeFileName(trimmed) === 'default') {
-      return 'The name "default" is reserved for the core component definition.';
-    }
-    return '';
-  })();
-
-  async function confirmSaveAs() {
-    const displayName = saveAsName.trim();
-    if (!displayName || saveAsError) return;
-    const fileName = sanitizeFileName(displayName);
-    saveAsDialog = false;
+  async function confirmSaveAs(e: CustomEvent<{ displayName: string; fileName: string }>) {
+    const { displayName, fileName } = e.detail;
     saveStatus = 'saving';
     try {
       await persist(fileName, displayName);
@@ -208,14 +157,8 @@
     }
   }
 
-  async function openLoad() {
-    fileMenuOpen = false;
-    showFileList = true;
-    await refreshFiles();
-  }
-
-  async function handleLoad(file: ComponentConfigMeta) {
-    showFileList = false;
+  async function handleLoad(e: CustomEvent<ComponentConfigMeta>) {
+    const file = e.detail;
     // Multi-step service flow (load + set-active) — if any network call
     // fails, the dialog is already closed and the local state stays on the
     // previous selection. Silent by design; the same boot resilience that
@@ -231,7 +174,8 @@
     }
   }
 
-  async function handleDelete(file: ComponentConfigMeta) {
+  async function handleDelete(e: CustomEvent<ComponentConfigMeta>) {
+    const file = e.detail;
     if (file.fileName === 'default') return;
     // Multi-step service flow (delete + reload-default-on-active-removal).
     // Silent by design — see handleLoad.
@@ -278,10 +222,6 @@
       if (slice.unlinked) delete slice.unlinked;
     });
   }
-
-  function handleSaveAsKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter') confirmSaveAs();
-  }
 </script>
 
 <div class="cfm-bar">
@@ -320,33 +260,17 @@
     class:applied={isApplied}
   >{compDirty ? 'unsaved' : isApplied ? 'applied' : ' '}</span>
 
-  <div class="file-menu cfg-row-editor" bind:this={fileMenuRoot}>
-    <button
-      class="cfm-btn"
-      class:active={fileMenuOpen}
-      on:click={() => (fileMenuOpen = !fileMenuOpen)}
-      title="File menu"
-    >
-      <i class="fas fa-file"></i>
-      <span>File</span>
-      <i class="fas fa-chevron-down chevron" class:open={fileMenuOpen}></i>
-    </button>
-    {#if fileMenuOpen}
-      <div class="file-menu-dropdown" role="menu">
-        <button class="file-menu-item" on:click={handleSave} role="menuitem">
-          <i class="fas fa-save"></i>
-          <span>Save</span>
-        </button>
-        <button class="file-menu-item" on:click={openSaveAs} role="menuitem">
-          <i class="fas fa-copy"></i>
-          <span>Save As…</span>
-        </button>
-        <button class="file-menu-item" on:click={openLoad} role="menuitem">
-          <i class="fas fa-folder-open"></i>
-          <span>Load…</span>
-        </button>
-      </div>
-    {/if}
+  <div class="file-menu-slot cfg-row-editor">
+    <ComponentFileMenu
+      {component}
+      {files}
+      {activeFileName}
+      on:save={handleSave}
+      on:saveAs={openSaveAs}
+      on:openLoad={refreshFiles}
+      on:load={handleLoad}
+      on:delete={handleDelete}
+    />
   </div>
 
   {#if resetVariables}
@@ -411,72 +335,12 @@
   {/if}
 </div>
 
-<UIDialog
-  bind:show={showFileList}
-  title="Load {component} Config"
-  cancelLabel="Close"
-  width="420px"
->
-  <div class="load-list">
-    {#each files as file}
-      <div class="load-item" class:active={file.fileName === activeFileName}>
-        <button class="load-name-btn" on:click={() => handleLoad(file)}>
-          {file.name}
-        </button>
-        {#if file.fileName === activeFileName}
-          <span class="active-badge">active</span>
-        {/if}
-        {#if file.fileName !== 'default'}
-          <button
-            class="file-delete-btn"
-            on:click|stopPropagation={() => handleDelete(file)}
-            title="Delete {file.name}"
-          >
-            <i class="fas fa-trash-alt"></i>
-          </button>
-        {/if}
-      </div>
-    {/each}
-    {#if files.length === 0}
-      <div class="load-item empty">No saved files</div>
-    {/if}
-  </div>
-</UIDialog>
-
-<UIDialog
+<SaveAsDialog
   bind:show={saveAsDialog}
-  title="Save As"
-  cancelLabel="Cancel"
-  confirmLabel="Save"
-  confirmDisabled={!saveAsName.trim() || !!saveAsError}
-  on:confirm={confirmSaveAs}
-  width="360px"
->
-  <div class="save-as-dialog">
-    <div class="save-as-row">
-      <input
-        class="save-as-input"
-        class:invalid={!!saveAsError}
-        type="text"
-        bind:value={saveAsName}
-        bind:this={saveAsInput}
-        on:keydown={handleSaveAsKeydown}
-        placeholder="Config name…"
-      />
-      <button
-        type="button"
-        class="save-as-increment"
-        on:click={incrementSaveAsName}
-        title="Increment filename"
-      >
-        <i class="fas fa-plus"></i>
-      </button>
-    </div>
-    {#if saveAsError}
-      <p class="save-as-error" role="alert">{saveAsError}</p>
-    {/if}
-  </div>
-</UIDialog>
+  {currentDisplayName}
+  {files}
+  on:save={confirmSaveAs}
+/>
 
 <style>
   .cfm-bar {
@@ -581,7 +445,7 @@
   .cfg-row-editor.cfg-label { grid-column: 2; grid-row: 1; }
   .cfg-row-editor.cfg-box { grid-column: 3; grid-row: 1; }
   .cfg-row-editor-state { grid-column: 3; grid-row: 2; }
-  .file-menu.cfg-row-editor { grid-column: 4; grid-row: 1; }
+  .file-menu-slot.cfg-row-editor { grid-column: 4; grid-row: 1; }
   .reset-btn.cfg-row-editor { grid-column: 5; grid-row: 1; }
 
   /* Production row (bottom): label/box and apply button on row 3 */
@@ -665,12 +529,6 @@
     cursor: not-allowed;
   }
 
-  .cfm-btn.active {
-    background: var(--ui-surface);
-    border-color: var(--ui-border-default);
-    color: var(--ui-text-primary);
-  }
-
   .cfm-btn.primary {
     background: var(--ui-surface-high);
     border-color: var(--ui-border-medium);
@@ -685,209 +543,6 @@
   .cfm-btn.primary.saving i { animation: spin 1s linear infinite; }
   .cfm-btn.primary.saved { color: var(--ui-text-success); }
   .cfm-btn.primary.error { color: var(--ui-text-muted); }
-
-  .chevron {
-    font-size: 0.7em;
-    transition: transform var(--ui-transition-fast);
-  }
-
-  .chevron.open {
-    transform: rotate(180deg);
-  }
-
-  .file-menu {
-    position: relative;
-  }
-
-  .file-menu-dropdown {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    min-width: 160px;
-    background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-default);
-    border-radius: var(--ui-radius-md);
-    box-shadow: var(--shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.4));
-    padding: var(--ui-space-4);
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    z-index: 10;
-  }
-
-  .file-menu-item {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-    padding: var(--ui-space-6) var(--ui-space-10);
-    background: none;
-    border: none;
-    border-radius: var(--ui-radius-sm);
-    color: var(--ui-text-secondary);
-    font-size: var(--ui-font-size-md);
-    cursor: pointer;
-    text-align: left;
-    white-space: nowrap;
-    transition: background var(--ui-transition-fast), color var(--ui-transition-fast);
-  }
-
-  .file-menu-item i {
-    width: 1rem;
-    text-align: center;
-  }
-
-  .file-menu-item:hover {
-    background: var(--ui-hover);
-    color: var(--ui-text-primary);
-  }
-
-  .save-as-dialog {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-8);
-  }
-
-  .save-as-row {
-    display: flex;
-    align-items: stretch;
-    gap: var(--ui-space-6);
-  }
-
-  .save-as-input {
-    flex: 1;
-    min-width: 0;
-    padding: var(--ui-space-8) var(--ui-space-10);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    color: var(--ui-text-primary);
-    font-size: var(--ui-font-size-md);
-    outline: none;
-  }
-
-  .save-as-increment {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    padding: 0;
-    background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    color: var(--ui-text-secondary);
-    font-size: var(--ui-font-size-md);
-    cursor: pointer;
-    transition: all var(--ui-transition-fast);
-  }
-
-  .save-as-increment:hover {
-    background: var(--ui-surface);
-    border-color: var(--ui-border-default);
-    color: var(--ui-text-primary);
-  }
-
-  .save-as-input:focus {
-    border-color: var(--ui-border-medium);
-  }
-
-  .save-as-input.invalid,
-  .save-as-input.invalid:focus {
-    border-color: var(--ui-text-warning, #e6a030);
-  }
-
-  .save-as-input::placeholder {
-    color: var(--ui-text-muted);
-  }
-
-  .save-as-error {
-    margin: 0;
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-warning, #e6a030);
-  }
-
-  .load-list {
-    display: flex;
-    flex-direction: column;
-    max-height: 60vh;
-    overflow-y: auto;
-  }
-
-  .load-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 6px;
-    border-bottom: 1px solid #2a2a2a;
-  }
-
-  .load-item:last-child {
-    border-bottom: none;
-  }
-
-  .load-item.empty {
-    padding: 16px;
-    color: #888;
-    font-size: 14px;
-    text-align: center;
-  }
-
-  .load-name-btn {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    padding: 6px 4px;
-    background: none;
-    border: none;
-    color: #aaa;
-    font-size: 14px;
-    cursor: pointer;
-    text-align: left;
-    border-radius: 3px;
-  }
-
-  .load-name-btn:hover {
-    color: #e0e0e0;
-  }
-
-  .load-item.active .load-name-btn {
-    color: #e0e0e0;
-    font-weight: 600;
-  }
-
-  .active-badge {
-    flex-shrink: 0;
-    font-size: 12px;
-    padding: 1px 6px;
-    border-radius: 3px;
-    background: #333;
-    color: #ccc;
-  }
-
-  .file-delete-btn {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    background: none;
-    border: none;
-    color: #555;
-    font-size: 12px;
-    cursor: pointer;
-    opacity: 0;
-  }
-
-  .load-item:hover .file-delete-btn {
-    opacity: 1;
-  }
-
-  .file-delete-btn:hover {
-    color: #ccc;
-  }
 
   @keyframes spin {
     from { transform: rotate(0deg); }
