@@ -1,10 +1,7 @@
-<script lang="ts">
-  import SectionDivider from '../components/SectionDivider.svelte';
-  import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { registerComponentSchema } from '../lib/editorStore';
+<script context="module" lang="ts">
   import type { Token, TypeGroupConfig } from './scaffolding/types';
-  const component = 'sectiondivider';
+
+  export const component = 'sectiondivider';
 
   // Component-level (shared across all variants): typography + padding.
   const sharedStates: Record<string, Token[]> = {
@@ -62,12 +59,18 @@
       { label: 'corner radius', variable: `--sectiondivider-${v}-radius` },
     ];
   }
-  const allTokens: Token[] = [
+  export const allTokens: Token[] = [
     ...Object.values(sharedStates).flat(),
     ...sharedTypeTokens,
     ...variants.flatMap((v) => variantTokens(v.key)),
   ];
-  registerComponentSchema(component, allTokens);
+</script>
+
+<script lang="ts">
+  import SectionDivider from '../components/SectionDivider.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+
   const descriptionText = 'These modules were created by other authors and are no longer actively maintained.';
 
   let showDescription: Record<Variant, boolean> = {

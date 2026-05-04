@@ -2,8 +2,10 @@
   import { onMount, onDestroy } from 'svelte';
   import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
   import { navigate } from '../lib/router';
+  import { componentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
+  import { listComponents } from '../lib/componentConfigService';
 
-  let selectedComponent = 'standardButtons';
+  let selectedComponent = 'button';
   let drawerOpen = false;
 
   // Demo page is statically imported from `./Demo.svelte` in App.svelte; the
@@ -63,9 +65,16 @@
     }
   }
 
-  onMount(() => {
+  onMount(async () => {
     document.addEventListener('click', handleDocClick, true);
     window.addEventListener('keydown', handleKeydown);
+    try {
+      const summaries = await listComponents();
+      validateRegistryAgainstServerScan(summaries.map((s) => s.name));
+    } catch {
+      // Server unreachable — registry's eager schema registration still works
+      // for the editor; validation just gets skipped this boot.
+    }
   });
 
   onDestroy(() => {
@@ -73,22 +82,7 @@
     window.removeEventListener('keydown', handleKeydown);
   });
 
-  const componentNavItems = [
-    { id: 'segmentedControl', label: 'Segmented Control', icon: 'fas fa-hand-pointer' },
-    { id: 'standardButtons', label: 'Button', icon: 'fas fa-square' },
-    { id: 'notifications', label: 'Notification', icon: 'fas fa-bell' },
-    { id: 'dialog', label: 'Dialog', icon: 'fas fa-window-restore' },
-    { id: 'radioButtons', label: 'Radio Button', icon: 'fas fa-dot-circle' },
-    { id: 'cards', label: 'Card', icon: 'fas fa-id-card' },
-    { id: 'traitBadges', label: 'Trait Badge', icon: 'fas fa-tag' },
-    { id: 'image', label: 'Image', icon: 'fas fa-image' },
-    { id: 'inlineEdit', label: 'Inline Edit Actions', icon: 'fas fa-pen' },
-    { id: 'sectionDivider', label: 'Section Divider', icon: 'fas fa-minus' },
-    { id: 'collapsible', label: 'Collapsible Section', icon: 'fas fa-chevron-down' },
-    { id: 'tabBar', label: 'Tab Bar', icon: 'fas fa-columns' },
-    { id: 'tooltip', label: 'Tooltip', icon: 'fas fa-comment-dots' },
-    { id: 'progressBar', label: 'Progress Bar', icon: 'fas fa-tasks' }
-  ];
+  const componentNavItems = componentRegistryEntries.map(({ id, label, icon }) => ({ id, label, icon }));
 </script>
 
 <!--

@@ -1,12 +1,7 @@
-<script lang="ts">
-  import Dialog from '../components/Dialog.svelte';
-  import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, setComponentConfig, registerComponentSchema } from '../lib/editorStore';
+<script context="module" lang="ts">
   import type { Token, TypeGroupConfig } from './scaffolding/types';
-  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
-  import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
-  const component = 'dialog';
+
+  export const component = 'dialog';
 
   const BUTTON_VARIANTS = ['primary', 'secondary', 'outline', 'success', 'danger', 'warning'] as const;
   type ButtonVariant = typeof BUTTON_VARIANTS[number];
@@ -15,19 +10,6 @@
   const CANCEL_VAR = '--dialog-cancel-variant';
   const DEFAULT_CONFIRM: ButtonVariant = 'primary';
   const DEFAULT_CANCEL: ButtonVariant = 'outline';
-
-  $: config = $editorState.components.dialog?.config ?? {};
-  $: confirmVariant = (BUTTON_VARIANTS.includes(config[CONFIRM_VAR] as ButtonVariant) ? config[CONFIRM_VAR] : DEFAULT_CONFIRM) as ButtonVariant;
-  $: cancelVariant = (BUTTON_VARIANTS.includes(config[CANCEL_VAR] as ButtonVariant) ? config[CANCEL_VAR] : DEFAULT_CANCEL) as ButtonVariant;
-
-  function setConfirmVariant(e: Event) {
-    const v = (e.target as HTMLSelectElement).value;
-    setComponentConfig(component, CONFIRM_VAR, v);
-  }
-  function setCancelVariant(e: Event) {
-    const v = (e.target as HTMLSelectElement).value;
-    setComponentConfig(component, CANCEL_VAR, v);
-  }
 
   // Frame-level tokens (the dialog box itself + overlay + header + body + footer + close icon).
   // Button styling lives in Button.svelte — the dialog only owns its own chrome.
@@ -78,14 +60,35 @@
     { label: 'line height', variable: '--dialog-title-line-height' },
   ];
 
-  const allTokens: Token[] = [
+  export const allTokens: Token[] = [
     ...Object.values(frameStates).flat(),
     ...frameTypeGroupTokens,
   ];
-  registerComponentSchema(component, allTokens);
 
   function variantLabel(v: ButtonVariant): string {
     return v.charAt(0).toUpperCase() + v.slice(1);
+  }
+</script>
+
+<script lang="ts">
+  import Dialog from '../components/Dialog.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import { editorState, setComponentAlias } from '../lib/editorStore';
+  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
+  import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
+
+  $: aliases = $editorState.components.dialog?.aliases ?? {};
+  $: confirmVariant = (BUTTON_VARIANTS.includes(aliases[CONFIRM_VAR] as ButtonVariant) ? aliases[CONFIRM_VAR] : DEFAULT_CONFIRM) as ButtonVariant;
+  $: cancelVariant = (BUTTON_VARIANTS.includes(aliases[CANCEL_VAR] as ButtonVariant) ? aliases[CANCEL_VAR] : DEFAULT_CANCEL) as ButtonVariant;
+
+  function setConfirmVariant(e: Event) {
+    const v = (e.target as HTMLSelectElement).value;
+    setComponentAlias(component, CONFIRM_VAR, v);
+  }
+  function setCancelVariant(e: Event) {
+    const v = (e.target as HTMLSelectElement).value;
+    setComponentAlias(component, CANCEL_VAR, v);
   }
 
   let bgMode: 'image' | 'color' = 'image';

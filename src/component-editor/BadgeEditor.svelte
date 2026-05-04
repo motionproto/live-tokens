@@ -1,14 +1,7 @@
-<script lang="ts">
-  import Badge from '../components/Badge.svelte';
-  import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
-  import { buildSiblings } from './scaffolding/siblings';
+<script context="module" lang="ts">
   import type { Token, TypeGroupConfig } from './scaffolding/types';
-  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
-  import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
-  const component = 'badge';
+
+  export const component = 'badge';
   const variants = ['info', 'accent', 'trait'] as const;
   type Variant = typeof variants[number];
 
@@ -42,8 +35,7 @@
       { label: 'line height', canBeShared: true, groupKey: 'line-height', variable: `--badge-${variant}-text-line-height` },
     ];
   }
-  const allTokens: Token[] = variants.flatMap((v) => [...variantTokens(v), ...variantTypeGroupTokens(v)]);
-  registerComponentSchema(component, allTokens);
+  export const allTokens: Token[] = variants.flatMap((v) => [...variantTokens(v), ...variantTypeGroupTokens(v)]);
 
   // Cross-variant sharing: any token with canBeShared+groupKey participates in
   // the shared block when ≥2 variants currently agree on its alias.
@@ -75,13 +67,24 @@
     ['--badge-trait-text-line-height', 'trait'],
   ]);
 
+  const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
+</script>
+
+<script lang="ts">
+  import Badge from '../components/Badge.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import { editorState } from '../lib/editorStore';
+  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import { buildSiblings } from './scaffolding/siblings';
+  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
+  import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
+
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
   $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
 
   let bgMode: 'image' | 'color' = 'image';
   const bgVar = '--backdrop-badge-surface';
-
-  const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
 </script>
 
 <ComponentEditorBase {component} title="Badge" description="Pill-shaped badges with variant support. Import from <code>components/Badge.svelte</code>" tokens={allTokens} {shared} tabbable variants={variantOptions}>

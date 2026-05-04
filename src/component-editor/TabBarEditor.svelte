@@ -1,18 +1,7 @@
-<script lang="ts">
-  import TabBar from '../components/TabBar.svelte';
-  import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+<script context="module" lang="ts">
   import type { Token, TypeGroupConfig } from './scaffolding/types';
-  const component = 'tabbar';
-  let selectedDemoTab = 'overview';
-  const demoTabs = [
-    { id: 'overview', label: 'Overview', icon: 'fas fa-home' },
-    { id: 'details', label: 'Details', icon: 'fas fa-info-circle' },
-    { id: 'settings', label: 'Settings', icon: 'fas fa-cog' },
-    { id: 'disabled', label: 'Disabled', icon: 'fas fa-ban', disabled: true },
-  ];
+
+  export const component = 'tabbar';
 
   // The "bar" object — single state, holds container-level tokens.
   const barStates: Record<string, Token[]> = {
@@ -61,8 +50,7 @@
     { label: 'font weight', canBeShared: true, groupKey: 'tab-font-weight', variable: `--tabbar-${s}-text-font-weight` },
     { label: 'line height', canBeShared: true, groupKey: 'tab-line-height', variable: `--tabbar-${s}-text-line-height` },
   ]);
-  const allTokens: Token[] = [...Object.values(barStates).flat(), ...Object.values(tabStates).flat(), ...tabTypeGroupTokens];
-  registerComponentSchema(component, allTokens);
+  export const allTokens: Token[] = [...Object.values(barStates).flat(), ...Object.values(tabStates).flat(), ...tabTypeGroupTokens];
 
   // Linking: shape props across tab states (same tab object).
   const shareableContexts = new Map<string, string>(tabStateNames.flatMap((s) => [
@@ -74,6 +62,22 @@
     [`--tabbar-${s}-text-font-weight`, `${s} tab`] as const,
     [`--tabbar-${s}-text-line-height`, `${s} tab`] as const,
   ]));
+</script>
+
+<script lang="ts">
+  import TabBar from '../components/TabBar.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import { editorState } from '../lib/editorStore';
+  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+
+  let selectedDemoTab = 'overview';
+  const demoTabs = [
+    { id: 'overview', label: 'Overview', icon: 'fas fa-home' },
+    { id: 'details', label: 'Details', icon: 'fas fa-info-circle' },
+    { id: 'settings', label: 'Settings', icon: 'fas fa-cog' },
+    { id: 'disabled', label: 'Disabled', icon: 'fas fa-ban', disabled: true },
+  ];
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
 

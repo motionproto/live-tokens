@@ -1,12 +1,7 @@
-<script lang="ts">
-  import RadioButton from '../components/RadioButton.svelte';
-  import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+<script context="module" lang="ts">
   import type { Token, TypeGroupConfig } from './scaffolding/types';
-  const component = 'radiobutton';
-  let selectedRadio = 'option-b';
+
+  export const component = 'radiobutton';
 
   const states: Record<string, Token[]> = {
     default: [
@@ -84,8 +79,17 @@
     ['--radiobutton-hover-label-line-height', 'hover'],
     ['--radiobutton-active-label-line-height', 'active'],
   ]);
-  const allTokens = [...Object.values(states).flat(), ...typeGroupTokens];
-  registerComponentSchema(component, allTokens);
+  export const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
+</script>
+
+<script lang="ts">
+  import RadioButton from '../components/RadioButton.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import { editorState } from '../lib/editorStore';
+  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+
+  let selectedRadio = 'option-b';
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
 

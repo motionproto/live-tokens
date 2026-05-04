@@ -1,12 +1,7 @@
-<script lang="ts">
-  import Notification from '../components/Notification.svelte';
-  import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
-  import { buildSiblings } from './scaffolding/siblings';
+<script context="module" lang="ts">
   import type { Token, TypeGroupConfig } from './scaffolding/types';
-  const component = 'notification';
+
+  export const component = 'notification';
   const variants = ['info', 'success', 'warning', 'danger'] as const;
   type Variant = typeof variants[number];
 
@@ -56,8 +51,7 @@
       { label: 'line height', canBeShared: true, groupKey: 'text-line-height', variable: `--notification-${v}-text-line-height` },
     ];
   }
-  const allTokens: Token[] = variants.flatMap((v) => [...variantTokens(v), ...variantTypeGroupTokens(v)]);
-  registerComponentSchema(component, allTokens);
+  export const allTokens: Token[] = variants.flatMap((v) => [...variantTokens(v), ...variantTypeGroupTokens(v)]);
 
   // Shared block surfaces shape and font props that may be linked across variants.
   const shareableContexts = new Map<string, string>(variants.flatMap((v) => [
@@ -75,9 +69,6 @@
     [`--notification-${v}-text-line-height`, v] as const,
   ]));
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
-  $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
-
   const BUTTON_VARIANT_OPTIONS = ['none', 'primary', 'secondary', 'outline', 'success', 'danger', 'warning'] as const;
   type ButtonVariantOption = typeof BUTTON_VARIANT_OPTIONS[number];
   type ButtonVariant = Exclude<ButtonVariantOption, 'none'>;
@@ -88,13 +79,25 @@
     return v === 'none' ? null : v;
   }
 
+  const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
+</script>
+
+<script lang="ts">
+  import Notification from '../components/Notification.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import { editorState } from '../lib/editorStore';
+  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import { buildSiblings } from './scaffolding/siblings';
+
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
+
   let dismissible = false;
   let rightOption: ButtonVariantOption = 'none';
   let leftOption: ButtonVariantOption = 'none';
   $: actionRightVariant = toVariant(rightOption);
   $: actionLeftVariant = toVariant(leftOption);
-
-  const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
 </script>
 
 <ComponentEditorBase {component} title="Notification" description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>" tokens={allTokens} {shared} tabbable variants={variantOptions}>

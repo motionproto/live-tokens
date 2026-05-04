@@ -1,11 +1,7 @@
-<script lang="ts">
-  import InlineEditActions from '../components/InlineEditActions.svelte';
-  import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+<script context="module" lang="ts">
   import type { Token } from './scaffolding/types';
-  const component = 'inlineeditactions';
+
+  export const component = 'inlineeditactions';
 
   // Two objects (save button, cancel button), each with default/hover states.
   // Within each button, link shape props (border-width, radius, padding, icon-size) across states.
@@ -31,8 +27,7 @@
       hover: buttonStateTokens(btn, 'hover'),
     };
   }
-  const allTokens: Token[] = buttons.flatMap((b) => Object.values(buttonStates(b)).flat());
-  registerComponentSchema(component, allTokens);
+  export const allTokens: Token[] = buttons.flatMap((b) => Object.values(buttonStates(b)).flat());
 
   // Shared block surfaces shape props per button (linked across default/hover within same button).
   const shareableContexts = new Map<string, string>(buttons.flatMap((btn) => [
@@ -41,6 +36,14 @@
     [`--inlineeditactions-${btn}-default-padding`, btn] as const,
     [`--inlineeditactions-${btn}-default-icon-size`, btn] as const,
   ]));
+</script>
+
+<script lang="ts">
+  import InlineEditActions from '../components/InlineEditActions.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import { editorState } from '../lib/editorStore';
+  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
 

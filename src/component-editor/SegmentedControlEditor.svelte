@@ -1,19 +1,7 @@
-<script lang="ts">
-  import SegmentedControl from '../components/SegmentedControl.svelte';
-  import VariantGroup from './scaffolding/VariantGroup.svelte';
-  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, registerComponentSchema } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+<script context="module" lang="ts">
   import type { Token, TypeGroupConfig } from './scaffolding/types';
-  const component = 'segmentedcontrol';
-  type Segment = { value: string; label: string; icon?: string; disabled?: boolean };
-  const segments: Segment[] = [
-    { value: 'option-1', label: 'Option 1', icon: 'fas fa-star' },
-    { value: 'option-2', label: 'Option 2', icon: 'fas fa-check' },
-    { value: 'option-3', label: 'Option 3', icon: 'fas fa-heart' },
-  ];
-  let showIcons = true;
-  $: previewSegments = showIcons ? segments : segments.map((s) => ({ ...s, icon: undefined }));
+
+  export const component = 'segmentedcontrol';
 
   // Non-text tokens per state. Text/font properties live in `typeGroups` below
   // and are rendered via TypeEditor instead of TokenLayout.
@@ -111,8 +99,7 @@
     { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: '--segmentedcontrol-disabled-text-font-weight' },
     { label: 'line height', canBeShared: true, groupKey: 'line-height', variable: '--segmentedcontrol-disabled-text-line-height' },
   ];
-  const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
-  registerComponentSchema(component, allTokens);
+  export const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
 
   const shareableContexts = new Map<string, string>([
     ['--segmentedcontrol-bar-radius', 'control bar'],
@@ -137,6 +124,23 @@
     ['--segmentedcontrol-disabled-text-font-weight', 'disabled option'],
     ['--segmentedcontrol-disabled-text-line-height', 'disabled option'],
   ]);
+</script>
+
+<script lang="ts">
+  import SegmentedControl from '../components/SegmentedControl.svelte';
+  import VariantGroup from './scaffolding/VariantGroup.svelte';
+  import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import { editorState } from '../lib/editorStore';
+  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+
+  type Segment = { value: string; label: string; icon?: string; disabled?: boolean };
+  const segments: Segment[] = [
+    { value: 'option-1', label: 'Option 1', icon: 'fas fa-star' },
+    { value: 'option-2', label: 'Option 2', icon: 'fas fa-check' },
+    { value: 'option-3', label: 'Option 3', icon: 'fas fa-heart' },
+  ];
+  let showIcons = true;
+  $: previewSegments = showIcons ? segments : segments.map((s) => ({ ...s, icon: undefined }));
 
   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
 
