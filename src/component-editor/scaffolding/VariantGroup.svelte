@@ -1,7 +1,7 @@
 <script lang="ts">
   import { writable } from 'svelte/store';
   import TokenLayout from './TokenLayout.svelte';
-  import TypeEditor from './TypeEditor.svelte';
+  import StateBlock from './StateBlock.svelte';
   import CopyFromMenu from './CopyFromMenu.svelte';
   import { mutate } from '../../lib/editorStore';
   import { getEditorContext } from './editorContext';
@@ -167,43 +167,18 @@
 
         {#if activeTab && states[activeTab]}
           {@const stateName = activeTab}
-          {@const hasTypeGroups = !!typeGroups[stateName]?.length}
           <span class="section-label">Properties</span>
-          <div class="state-controls" class:two-col={hasTypeGroups}>
-            {#if hasTypeGroups}
-              <div class="state-type-groups">
-                {#each typeGroups[stateName] as tg}
-                  <TypeEditor
-                    legend={tg.legend ?? 'type'}
-                    colorVariable={tg.colorVariable}
-                    colorLabel={tg.colorLabel ?? 'text color'}
-                    familyVariable={tg.familyVariable}
-                    familyLabel={tg.familyLabel ?? 'font family'}
-                    sizeVariable={tg.sizeVariable}
-                    sizeLabel={tg.sizeLabel ?? 'font size'}
-                    weightVariable={tg.weightVariable}
-                    weightLabel={tg.weightLabel ?? 'font weight'}
-                    lineHeightVariable={tg.lineHeightVariable}
-                    lineHeightLabel={tg.lineHeightLabel ?? 'line height'}
-                    {component}
-                    on:change
-                  />
-                {/each}
-              </div>
-            {/if}
-            <TokenLayout
-              title=""
-              tokens={states[stateName]}
-              {component}
-              {sharedOrder}
-              on:change
-            />
-          </div>
+          <StateBlock
+            tokens={states[stateName]}
+            typeGroups={typeGroups[stateName] ?? []}
+            {component}
+            {sharedOrder}
+            on:change
+          />
         {/if}
       {:else}
         <!-- List view: per-state stacked sections, each with its own preview and properties. -->
         {#each stateNames as stateName}
-          {@const hasTypeGroups = !!typeGroups[stateName]?.length}
           {@const isSoloState = stateNames.length === 1}
           {@const expanded = isSoloState || stateExpanded[stateName] !== false}
           <div class="state-section" class:collapsed={!expanded}>
@@ -238,36 +213,13 @@
                 <slot activeState={stateName} />
               </div>
               <span class="section-label">Properties</span>
-              <div class="state-controls" class:two-col={hasTypeGroups}>
-                {#if hasTypeGroups}
-                  <div class="state-type-groups">
-                    {#each typeGroups[stateName] as tg}
-                      <TypeEditor
-                        legend={tg.legend ?? 'type'}
-                        colorVariable={tg.colorVariable}
-                        colorLabel={tg.colorLabel ?? 'text color'}
-                        familyVariable={tg.familyVariable}
-                        familyLabel={tg.familyLabel ?? 'font family'}
-                        sizeVariable={tg.sizeVariable}
-                        sizeLabel={tg.sizeLabel ?? 'font size'}
-                        weightVariable={tg.weightVariable}
-                        weightLabel={tg.weightLabel ?? 'font weight'}
-                        lineHeightVariable={tg.lineHeightVariable}
-                        lineHeightLabel={tg.lineHeightLabel ?? 'line height'}
-                        {component}
-                        on:change
-                      />
-                    {/each}
-                  </div>
-                {/if}
-                <TokenLayout
-                  title=""
-                  tokens={states[stateName]}
-                  {component}
-                  {sharedOrder}
-                  on:change
-                />
-              </div>
+              <StateBlock
+                tokens={states[stateName]}
+                typeGroups={typeGroups[stateName] ?? []}
+                {component}
+                {sharedOrder}
+                on:change
+              />
             {/if}
           </div>
         {/each}
@@ -438,53 +390,6 @@
      (which doesn't apply a flex gap), so space it from the tabs strip above. */
   .variant-group > .section-label {
     margin-top: var(--ui-space-8);
-  }
-
-  .state-controls {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--ui-space-12);
-    align-items: start;
-    margin-top: var(--ui-space-4);
-  }
-
-  .state-controls.two-col {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ui-space-16) var(--ui-space-16);
-    align-items: flex-start;
-    justify-content: flex-start;
-  }
-
-  .state-type-groups {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: var(--ui-space-16);
-    align-items: flex-start;
-  }
-
-  /* Inside a state's two-col layout the fieldset frame is redundant with the
-     surrounding state card. Flatten the border/padding but keep the legend so
-     each block ("title", "body text", …) is identifiable. */
-  .state-controls.two-col .state-type-groups :global(.fieldset-wrapper) {
-    border: none;
-    padding: 0;
-  }
-
-  .state-controls.two-col .state-type-groups :global(.fieldset-wrapper.active) {
-    outline: none;
-  }
-
-  .state-controls.two-col .state-type-groups :global(.fieldset-legend) {
-    padding: 0 var(--ui-space-4) var(--ui-space-4);
-  }
-
-  /* The general-properties column has no legend of its own; pad it down by
-     one legend-line so its first row aligns with the first row of the
-     adjacent type-group. */
-  .state-controls.two-col > :global(.token-group) {
-    padding-top: calc(var(--ui-font-size-xs) + var(--ui-space-4));
   }
 
 </style>

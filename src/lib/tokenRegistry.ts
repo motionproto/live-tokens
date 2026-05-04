@@ -22,6 +22,12 @@ import { derived, type Readable } from 'svelte/store';
 import tokensCss from '../styles/tokens.css?raw';
 import { editorState } from './editorStore';
 import type { EditorState } from './editorTypes';
+import { extractGlobalRootBody } from './parsers/globalRootBlock';
+
+// Re-exported for tests and downstream consumers that previously imported it
+// from this module. The canonical implementation lives in `./parsers/globalRootBlock`
+// so the dev-server vite plugin can share it.
+export { extractGlobalRootBody };
 
 const componentSources = import.meta.glob('../components/*.svelte', {
   query: '?raw',
@@ -32,24 +38,6 @@ const componentSources = import.meta.glob('../components/*.svelte', {
 export interface TokenRegistry {
   getDeclaredValue(varName: string): string | null;
   resolveAliasChain(varName: string): string[];
-}
-
-/**
- * Extract the declaration body of every `:global(:root) { ... }` rule from a
- * Svelte component source file. The body is a flat list of `--name: value;`
- * declarations that `buildTokenRegistry` can parse directly.
- *
- * Assumes no nested braces inside the block — Layer-2 token blocks are flat
- * declaration lists, not nested rulesets.
- */
-export function extractGlobalRootBody(source: string): string {
-  const re = /:global\(:root\)\s*\{([^}]*)\}/g;
-  const bodies: string[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(source)) !== null) {
-    bodies.push(m[1]);
-  }
-  return bodies.join('\n');
 }
 
 /**

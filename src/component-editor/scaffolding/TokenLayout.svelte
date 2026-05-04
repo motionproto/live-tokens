@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, type ComponentType } from 'svelte';
   import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
   import UIRadiusSelector from '../../ui/UIRadiusSelector.svelte';
   import UIBorderWeightSelector from '../../ui/UIBorderWeightSelector.svelte';
@@ -17,9 +17,10 @@
     setComponentAliasShared,
     clearComponentAliasShared,
   } from '../../lib/editorStore';
+  import type { Token } from './types';
 
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; disabled?: boolean; hidden?: boolean; mergeVariables?: string[] };
-
+  /** Selector kind. `padding-split` is `padding` whose per-side variables exist;
+      it renders the four-sided field group instead of the single-value row. */
   type Kind =
     | 'surface'
     | 'border'
@@ -34,6 +35,7 @@
     | 'font-size'
     | 'line-height'
     | 'padding'
+    | 'padding-split'
     | 'gap'
     | 'extras';
 
@@ -50,67 +52,28 @@
   /** Set true on the shared-block instance so dimmed variant rows can scroll/flash to the matching anchor. */
   export let isSharedBlock: boolean = false;
 
-  function isFontFamily(v: string): boolean {
-    return v.endsWith('-font-family');
-  }
+  /** Suffix/prefix patterns mapped to kinds — single source of truth used by `categorize`.
+      Order matters: `text` must run before `border`/`surface` because `--text-*` would
+      otherwise match `surface` checks if any pattern overlapped. */
+  const KIND_PATTERNS: Array<{ kind: Kind; matches: (v: string) => boolean }> = [
+    { kind: 'font-family', matches: (v) => v.endsWith('-font-family') },
+    { kind: 'font-weight', matches: (v) => v.endsWith('-font-weight') },
+    { kind: 'font-size', matches: (v) => v.endsWith('-font-size') },
+    { kind: 'line-height', matches: (v) => v.endsWith('-line-height') },
+    { kind: 'extras', matches: (v) => v.endsWith('-text') || v.startsWith('--text-') },
+    { kind: 'radius', matches: (v) => v.endsWith('-radius') || v.startsWith('--radius-') },
+    { kind: 'divider-width', matches: (v) => v.endsWith('-divider-width') || v.endsWith('-divider-thickness') },
+    { kind: 'divider-height', matches: (v) => v.endsWith('-divider-height') },
+    { kind: 'dot-size', matches: (v) => v.endsWith('-dot-size') },
+    { kind: 'blur', matches: (v) => v.endsWith('-blur') || v.startsWith('--blur-') },
+    { kind: 'padding', matches: (v) => v.endsWith('-padding') },
+    { kind: 'gap', matches: (v) => v.endsWith('-gap') },
+    { kind: 'border-width', matches: (v) => v.endsWith('-border-width') || v.startsWith('--border-width-') },
+    { kind: 'border', matches: (v) => v.endsWith('-border') || v.startsWith('--border-') },
+    { kind: 'surface', matches: (v) => v.endsWith('-surface') || v.startsWith('--surface-') },
+  ];
 
-  function isFontWeight(v: string): boolean {
-    return v.endsWith('-font-weight');
-  }
-
-  function isFontSize(v: string): boolean {
-    return v.endsWith('-font-size');
-  }
-
-  function isLineHeight(v: string): boolean {
-    return v.endsWith('-line-height');
-  }
-
-  function isRadius(v: string): boolean {
-    return v.endsWith('-radius') || v.startsWith('--radius-');
-  }
-
-  function isBorderWidth(v: string): boolean {
-    return v.endsWith('-border-width') || v.startsWith('--border-width-');
-  }
-
-  function isDividerWidth(v: string): boolean {
-    return v.endsWith('-divider-width') || v.endsWith('-divider-thickness');
-  }
-
-  function isDividerHeight(v: string): boolean {
-    return v.endsWith('-divider-height');
-  }
-
-  function isDotSize(v: string): boolean {
-    return v.endsWith('-dot-size');
-  }
-
-  function isBlur(v: string): boolean {
-    return v.endsWith('-blur') || v.startsWith('--blur-');
-  }
-
-  function isPadding(v: string): boolean {
-    return v.endsWith('-padding');
-  }
-
-  function isGap(v: string): boolean {
-    return v.endsWith('-gap');
-  }
-
-  function isBorder(v: string): boolean {
-    return v.endsWith('-border') || v.startsWith('--border-');
-  }
-
-  function isSurface(v: string): boolean {
-    return v.endsWith('-surface') || v.startsWith('--surface-');
-  }
-
-  function isTextColor(v: string): boolean {
-    return v.endsWith('-text') || v.startsWith('--text-');
-  }
-
-  /** Fixed internal order for tokens within a layout. */
+  /** Fixed internal order for tokens within a layout. `padding-split` co-orders with `padding`. */
   const baseKindOrder: Kind[] = [
     'font-family',
     'font-weight',
@@ -122,6 +85,7 @@
     'dot-size',
     'radius',
     'padding',
+    'padding-split',
     'gap',
     'blur',
     'extras',
@@ -132,27 +96,70 @@
     baseKindOrder.map((k, i) => [k, i]),
   ) as Record<Kind, number>;
 
-  function categorize(v: string): Kind {
-    if (isFontFamily(v)) return 'font-family';
-    if (isFontWeight(v)) return 'font-weight';
-    if (isFontSize(v)) return 'font-size';
-    if (isLineHeight(v)) return 'line-height';
-    if (isTextColor(v)) return 'extras';
-    if (isRadius(v)) return 'radius';
-    if (isDividerWidth(v)) return 'divider-width';
-    if (isDividerHeight(v)) return 'divider-height';
-    if (isDotSize(v)) return 'dot-size';
-    if (isBlur(v)) return 'blur';
-    if (isPadding(v)) return 'padding';
-    if (isGap(v)) return 'gap';
-    if (isBorderWidth(v)) return 'border-width';
-    if (isBorder(v)) return 'border';
-    if (isSurface(v)) return 'surface';
+  function rawKind(v: string): Kind {
+    for (const { kind, matches } of KIND_PATTERNS) {
+      if (matches(v)) return kind;
+    }
     return 'extras';
   }
 
-  function buildEntries(list: Token[], order: Map<string, number> | undefined, linked: Set<Kind>): Entry[] {
-    const indexed = list.map((token, i) => ({ e: { kind: categorize(token.variable), token }, i }));
+  /** A padding token is "split" when its per-side variables exist for this component. */
+  function paddingIsSplit(varName: string, comp: string | undefined, state: typeof $editorState): boolean {
+    const sides = ['top', 'right', 'bottom', 'left'];
+    if (comp) {
+      const slice = state.components[comp];
+      if (!slice) return false;
+      return sides.some((s) => `${varName}-${s}` in slice.aliases);
+    }
+    return sides.some((s) => !!document.documentElement.style.getPropertyValue(`${varName}-${s}`).trim());
+  }
+
+  function categorize(v: string, comp: string | undefined, state: typeof $editorState): Kind {
+    const k = rawKind(v);
+    if (k === 'padding' && paddingIsSplit(v, comp, state)) return 'padding-split';
+    return k;
+  }
+
+  /** For sibling/grouping checks we want the canonical kind, not the split-vs-single distinction. */
+  function groupingKind(v: string): Kind {
+    return rawKind(v);
+  }
+
+  /** Selector registry: one entry per kind. `extra` props (e.g. UIPaddingSelector's
+      `mode`/`splittable`/`rowLabel`) are forwarded alongside the shared props. */
+  type SelectorEntry = {
+    component: ComponentType;
+    extra?: (token: Token) => Record<string, unknown>;
+    /** When true, the row is rendered as a self-contained block (spans all grid columns,
+        no .token-row wrapper, no contexts strip). Currently only `padding-split`. */
+    standalone?: boolean;
+  };
+
+  const SELECTOR_REGISTRY: Record<Kind, SelectorEntry> = {
+    'font-family': { component: UIFontFamilySelector },
+    'font-weight': { component: UIFontWeightSelector },
+    'font-size': { component: UIFontSizeSelector },
+    'line-height': { component: UILineHeightSelector },
+    'border-width': { component: UIBorderWeightSelector },
+    'divider-width': { component: UIBorderWeightSelector },
+    'divider-height': { component: UIDividerHeightSelector },
+    'dot-size': { component: UIDotSizeSelector },
+    'radius': { component: UIRadiusSelector },
+    'padding': { component: UIPaddingSelector, extra: () => ({ mode: 'single' }) },
+    'padding-split': {
+      component: UIPaddingSelector,
+      extra: (token) => ({ mode: 'sides', rowLabel: token.label }),
+      standalone: true,
+    },
+    'gap': { component: UIPaddingSelector, extra: () => ({ mode: 'single', splittable: false }) },
+    'blur': { component: UIBlurSelector },
+    'surface': { component: UIPaletteSelector },
+    'border': { component: UIPaletteSelector },
+    'extras': { component: UIPaletteSelector },
+  };
+
+  function buildEntries(list: Token[], order: Map<string, number> | undefined, linked: Set<Kind>, comp: string | undefined, state: typeof $editorState): Entry[] {
+    const indexed = list.map((token, i) => ({ e: { kind: categorize(token.variable, comp, state), token }, i }));
     indexed.sort((a, b) => {
       const aLinked = linked.has(a.e.kind) ? 0 : 1;
       const bLinked = linked.has(b.e.kind) ? 0 : 1;
@@ -169,7 +176,8 @@
     return indexed.map((x) => x.e);
   }
 
-  /** Kinds that currently have at least one variable with ≥2 siblings in the component. */
+  /** Kinds that currently have at least one variable with ≥2 siblings in the component.
+      Returns canonical kinds (so a `padding` linked-set covers `padding-split` rows too). */
   function computeLinkedKinds(comp: string | undefined, state: typeof $editorState): Set<Kind> {
     const set = new Set<Kind>();
     if (!comp) return set;
@@ -177,20 +185,12 @@
     if (!slice) return set;
     for (const varName of Object.keys(slice.aliases)) {
       if (getComponentPropertySiblings(comp, varName).length >= 2) {
-        set.add(categorize(varName));
+        const k = groupingKind(varName);
+        set.add(k);
+        if (k === 'padding') set.add('padding-split');
       }
     }
     return set;
-  }
-
-  function isPaddingSplit(varName: string, comp: string | undefined, state: typeof $editorState): boolean {
-    const sides = ['top', 'right', 'bottom', 'left'];
-    if (comp) {
-      const slice = state.components[comp];
-      if (!slice) return false;
-      return sides.some((s) => `${varName}-${s}` in slice.aliases);
-    }
-    return sides.some((s) => !!document.documentElement.style.getPropertyValue(`${varName}-${s}`).trim());
   }
 
   const dispatch = createEventDispatcher();
@@ -210,7 +210,7 @@
   }
 
   $: linkedKinds = computeLinkedKinds(component, $editorState);
-  $: entries = buildEntries(tokens.filter((t) => !t.hidden), sharedOrder, linkedKinds);
+  $: entries = buildEntries(tokens.filter((t) => !t.hidden), sharedOrder, linkedKinds, component, $editorState);
   /** Index of the first independent (non-linked) entry; -1 when there are no linked entries or no boundary. */
   $: firstIndependentIdx = (() => {
     const idx = entries.findIndex((e) => !linkedKinds.has(e.kind));
@@ -230,18 +230,22 @@
       {@const dis = token.disabled ?? false}
       {@const ctxs = contexts[token.variable]}
       {@const lockedSelections = dis}
-      {@const padSplit = entry.kind === 'padding' && isPaddingSplit(token.variable, component, $editorState)}
+      {@const sel = SELECTOR_REGISTRY[entry.kind]}
+      {@const sharedProps = {
+        variable: token.variable,
+        component,
+        canBeShared: token.canBeShared ?? false,
+        selectionsLocked: lockedSelections,
+      }}
+      {@const extra = sel.extra ? sel.extra(token) : {}}
       {#if i === firstIndependentIdx}
         <div class="zone-divider" aria-hidden="true"></div>
       {/if}
-      {#if padSplit}
-        <UIPaddingSelector
-          mode="sides"
-          rowLabel={token.label}
-          variable={token.variable}
-          {component}
-          canBeShared={token.canBeShared ?? false}
-          selectionsLocked={lockedSelections}
+      {#if sel.standalone}
+        <svelte:component
+          this={sel.component}
+          {...sharedProps}
+          {...extra}
           on:change={() => handleRowChange(token)}
         />
       {:else}
@@ -250,31 +254,12 @@
           class:has-contexts={!!ctxs?.length}
         >
           <span class="token-label">{token.label}</span>
-          {#if entry.kind === 'radius'}
-            <UIRadiusSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
-          {:else if entry.kind === 'border-width' || entry.kind === 'divider-width'}
-            <UIBorderWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
-          {:else if entry.kind === 'divider-height'}
-            <UIDividerHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
-          {:else if entry.kind === 'dot-size'}
-            <UIDotSizeSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
-          {:else if entry.kind === 'blur'}
-            <UIBlurSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
-          {:else if entry.kind === 'padding'}
-            <UIPaddingSelector mode="single" variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
-          {:else if entry.kind === 'gap'}
-            <UIPaddingSelector mode="single" splittable={false} variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
-          {:else if entry.kind === 'font-family'}
-            <UIFontFamilySelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
-          {:else if entry.kind === 'font-weight'}
-            <UIFontWeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
-          {:else if entry.kind === 'font-size'}
-            <UIFontSizeSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
-          {:else if entry.kind === 'line-height'}
-            <UILineHeightSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
-          {:else}
-            <UIPaletteSelector variable={token.variable} {component} canBeShared={token.canBeShared ?? false} selectionsLocked={lockedSelections} on:change={() => handleRowChange(token)} />
-          {/if}
+          <svelte:component
+            this={sel.component}
+            {...sharedProps}
+            {...extra}
+            on:change={() => handleRowChange(token)}
+          />
           {#if ctxs?.length}
             <div class="token-contexts">
               {#each ctxs as ctx}

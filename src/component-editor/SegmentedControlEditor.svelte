@@ -1,4 +1,5 @@
 <script context="module" lang="ts">
+  import { buildTypeGroupTokens, buildTypeGroupShareableContexts } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
   export const component = 'segmentedcontrol';
@@ -80,25 +81,10 @@
   };
 
   // Schema entries for the type-group variables — registered for groupKey
-  // resolution but not rendered through TokenLayout.
-  const typeGroupTokens: Token[] = [
-    { label: 'font family', canBeShared: true, groupKey: 'font-family', variable: '--segmentedcontrol-option-text-font-family' },
-    { label: 'font size', canBeShared: true, groupKey: 'font-size', variable: '--segmentedcontrol-option-text-font-size' },
-    { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: '--segmentedcontrol-option-text-font-weight' },
-    { label: 'line height', canBeShared: true, groupKey: 'line-height', variable: '--segmentedcontrol-option-text-line-height' },
-    { label: 'font family', canBeShared: true, groupKey: 'font-family', variable: '--segmentedcontrol-selected-text-font-family' },
-    { label: 'font size', canBeShared: true, groupKey: 'font-size', variable: '--segmentedcontrol-selected-text-font-size' },
-    { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: '--segmentedcontrol-selected-text-font-weight' },
-    { label: 'line height', canBeShared: true, groupKey: 'line-height', variable: '--segmentedcontrol-selected-text-line-height' },
-    { label: 'font family', canBeShared: true, groupKey: 'font-family', variable: '--segmentedcontrol-option-hover-text-font-family' },
-    { label: 'font size', canBeShared: true, groupKey: 'font-size', variable: '--segmentedcontrol-option-hover-text-font-size' },
-    { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: '--segmentedcontrol-option-hover-text-font-weight' },
-    { label: 'line height', canBeShared: true, groupKey: 'line-height', variable: '--segmentedcontrol-option-hover-text-line-height' },
-    { label: 'font family', canBeShared: true, groupKey: 'font-family', variable: '--segmentedcontrol-disabled-text-font-family' },
-    { label: 'font size', canBeShared: true, groupKey: 'font-size', variable: '--segmentedcontrol-disabled-text-font-size' },
-    { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: '--segmentedcontrol-disabled-text-font-weight' },
-    { label: 'line height', canBeShared: true, groupKey: 'line-height', variable: '--segmentedcontrol-disabled-text-line-height' },
-  ];
+  // resolution but not rendered through TokenLayout. Derived from `typeGroups`
+  // so the four font props × four states stay in lockstep with the per-state
+  // TypeGroupConfig declarations above.
+  const typeGroupTokens: Token[] = buildTypeGroupTokens(typeGroups);
   export const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
 
   const shareableContexts = new Map<string, string>([
@@ -107,22 +93,7 @@
     ['--segmentedcontrol-divider-height', 'control bar'],
     ['--segmentedcontrol-selected-border-width', 'selected option'],
     ['--segmentedcontrol-selected-radius', 'selected option'],
-    ['--segmentedcontrol-option-text-font-family', 'default option'],
-    ['--segmentedcontrol-option-text-font-size', 'default option'],
-    ['--segmentedcontrol-option-text-font-weight', 'default option'],
-    ['--segmentedcontrol-option-text-line-height', 'default option'],
-    ['--segmentedcontrol-selected-text-font-family', 'selected option'],
-    ['--segmentedcontrol-selected-text-font-size', 'selected option'],
-    ['--segmentedcontrol-selected-text-font-weight', 'selected option'],
-    ['--segmentedcontrol-selected-text-line-height', 'selected option'],
-    ['--segmentedcontrol-option-hover-text-font-family', 'hover option'],
-    ['--segmentedcontrol-option-hover-text-font-size', 'hover option'],
-    ['--segmentedcontrol-option-hover-text-font-weight', 'hover option'],
-    ['--segmentedcontrol-option-hover-text-line-height', 'hover option'],
-    ['--segmentedcontrol-disabled-text-font-family', 'disabled option'],
-    ['--segmentedcontrol-disabled-text-font-size', 'disabled option'],
-    ['--segmentedcontrol-disabled-text-font-weight', 'disabled option'],
-    ['--segmentedcontrol-disabled-text-line-height', 'disabled option'],
+    ...buildTypeGroupShareableContexts(typeGroups),
   ]);
 </script>
 
@@ -142,7 +113,8 @@
   let showIcons = true;
   $: previewSegments = showIcons ? segments : segments.map((s) => ({ ...s, icon: undefined }));
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens);
+  $: void $editorState;
 
   $: visibleStates = Object.fromEntries(
     Object.entries(states).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),

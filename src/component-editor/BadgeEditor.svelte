@@ -80,7 +80,8 @@
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
   import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens);
+  $: void $editorState;
   $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
 
   let bgMode: 'image' | 'color' = 'image';
@@ -98,7 +99,7 @@
       states={{ [v]: visibleVariantTokens(v) }}
       typeGroups={{ [v]: variantTypeGroups(v) }}
       {component}
-      siblings={buildSiblings(variants, v, variantTokens, variantTypeGroups)}
+      siblings={buildSiblings(variants, v, (sv) => ({ [sv]: variantTokens(sv) }), (sv) => ({ [sv]: variantTypeGroups(sv) }))}
     >
       <ShadowBackdrop mode={bgMode} colorVariable={bgVar}>
         <div class="badge-showcase-grid">

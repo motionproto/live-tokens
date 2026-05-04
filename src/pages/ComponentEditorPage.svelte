@@ -133,20 +133,16 @@
     </div>
     <div class="nav-items">
       {#each componentNavItems as item}
-        {#if item.id.startsWith('divider-')}
-          <div class="nav-divider-label"><span>{item.label}</span></div>
-        {:else}
-          <button
-            class="nav-item"
-            class:active={selectedComponent === item.id}
-            on:mouseenter={(e) => showHint(item.label, e.currentTarget)}
-            on:mouseleave={hideHint}
-            on:click={() => selectComponent(item.id)}
-          >
-            <i class={item.icon}></i>
-            <span class="rail-label">{item.label}</span>
-          </button>
-        {/if}
+        <button
+          class="nav-item"
+          class:active={selectedComponent === item.id}
+          on:mouseenter={(e) => showHint(item.label, e.currentTarget)}
+          on:mouseleave={hideHint}
+          on:click={() => selectComponent(item.id)}
+        >
+          <i class={item.icon}></i>
+          <span class="rail-label">{item.label}</span>
+        </button>
       {/each}
     </div>
   </nav>
@@ -347,23 +343,6 @@
     text-align: center;
     font-size: var(--ui-font-size-md);
     opacity: 0.85;
-  }
-
-  .nav-divider-label {
-    padding: var(--ui-space-12) var(--ui-space-12) var(--ui-space-4);
-    font-size: var(--ui-font-size-xs);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    white-space: nowrap;
-    overflow: hidden;
-    opacity: 0;
-    transition: opacity 180ms ease;
-  }
-
-  .components-shell.rail-expanded .nav-divider-label {
-    opacity: 1;
   }
 
   .content {

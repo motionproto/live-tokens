@@ -79,7 +79,8 @@
     { id: 'disabled', label: 'Disabled', icon: 'fas fa-ban', disabled: true },
   ];
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens);
+  $: void $editorState;
 
   $: visibleTabStates = Object.fromEntries(
     Object.entries(tabStates).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),

@@ -90,7 +90,8 @@
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   import { buildSiblings } from './scaffolding/siblings';
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens);
+  $: void $editorState;
   $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
 
   let dismissible = false;
@@ -130,7 +131,7 @@
       states={{ [v]: visibleVariantTokens(v) }}
       typeGroups={{ [v]: variantTypeGroups(v) }}
       {component}
-      siblings={buildSiblings(variants, v, variantTokens, variantTypeGroups)}
+      siblings={buildSiblings(variants, v, (sv) => ({ [sv]: variantTokens(sv) }), (sv) => ({ [sv]: variantTypeGroups(sv) }))}
     >
       {#if v === 'info'}
         <Notification variant="info" title="Information" description="This is an informational message to keep you updated." {dismissible} {actionRightVariant} {actionLeftVariant} />

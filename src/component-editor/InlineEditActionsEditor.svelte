@@ -45,7 +45,8 @@
   import { editorState } from '../lib/editorStore';
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens);
+  $: void $editorState;
 
   $: visibleStatesByButton = (btn: Button) => Object.fromEntries(
     Object.entries(buttonStates(btn)).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
