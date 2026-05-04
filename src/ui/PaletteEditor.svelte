@@ -5,7 +5,7 @@
   import { type CurveAnchor, makeAnchor, sampleCurve, lightnessCurveConfig, saturationCurveConfig, textLightnessCurveConfig } from './curveEngine';
   import BezierCurveEditor from './BezierCurveEditor.svelte';
   import ColorEditPanel from './ColorEditPanel.svelte';
-  import Toggle from '../components/Toggle.svelte';
+  import Toggle from './Toggle.svelte';
   import type { PaletteConfig, GradientStyle, GradientStop } from '../lib/themeTypes';
   import { editorState, mutate, setPaletteConfig, beginSliderGesture, beginScope, commitScope, cancelScope, type Scope } from '../lib/editorStore';
   import { setCssVar as setCssVarSync } from '../lib/cssVarSync';

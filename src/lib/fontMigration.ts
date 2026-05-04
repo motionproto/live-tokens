@@ -1,4 +1,7 @@
 import type { FontFamily, FontSource, FontStack, Theme } from './themeTypes';
+import frauncesRomanLatin from '../styles/fonts/Fraunces/Fraunces-roman-latin.woff2?url';
+import frauncesItalicLatin from '../styles/fonts/Fraunces/Fraunces-italic-latin.woff2?url';
+import manropeLatin from '../styles/fonts/Manrope/Manrope-latin.woff2?url';
 
 function makeId(prefix: string): string {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
@@ -40,7 +43,7 @@ export function defaultFontSources(): FontSource[] {
     {
       id: frauncesId,
       kind: 'font-face',
-      cssText: `@font-face {\n  font-family: "Fraunces";\n  src: url('./fonts/Fraunces/Fraunces-roman-latin.woff2') format('woff2');\n  font-weight: 100 900;\n  font-style: normal;\n  font-display: swap;\n}\n@font-face {\n  font-family: "Fraunces";\n  src: url('./fonts/Fraunces/Fraunces-italic-latin.woff2') format('woff2');\n  font-weight: 100 900;\n  font-style: italic;\n  font-display: swap;\n}`,
+      cssText: `@font-face {\n  font-family: "Fraunces";\n  src: url('${frauncesRomanLatin}') format('woff2');\n  font-weight: 100 900;\n  font-style: normal;\n  font-display: swap;\n}\n@font-face {\n  font-family: "Fraunces";\n  src: url('${frauncesItalicLatin}') format('woff2');\n  font-weight: 100 900;\n  font-style: italic;\n  font-display: swap;\n}`,
       label: 'Local',
       families: [
         fam(frauncesId, 'Fraunces', '"Fraunces"', [100, 200, 300, 400, 500, 600, 700, 800, 900]),
@@ -49,7 +52,7 @@ export function defaultFontSources(): FontSource[] {
     {
       id: manropeId,
       kind: 'font-face',
-      cssText: `@font-face {\n  font-family: "Manrope";\n  src: url('./fonts/Manrope/Manrope-latin.woff2') format('woff2');\n  font-weight: 200 800;\n  font-style: normal;\n  font-display: swap;\n}`,
+      cssText: `@font-face {\n  font-family: "Manrope";\n  src: url('${manropeLatin}') format('woff2');\n  font-weight: 200 800;\n  font-style: normal;\n  font-display: swap;\n}`,
       label: 'Local',
       families: [
         fam(manropeId, 'Manrope', '"Manrope"', [200, 300, 400, 500, 600, 700, 800]),

@@ -76,7 +76,7 @@
 
 <script lang="ts">
   import Button from '../components/Button.svelte';
-  import Toggle from '../components/Toggle.svelte';
+  import Toggle from '../ui/Toggle.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState, setComponentAlias } from '../lib/editorStore';
