@@ -15,7 +15,7 @@
    export let actionIcon: string = '';
    export let onAction: (() => void) | undefined = undefined;
    export let actionInline: boolean = false;
-   export let actionHeader: boolean = false; // NEW: Show action button in header row
+   export let actionHeader: boolean = false;
 
    // Body-row action button slots, ordered left then right. Each is shown when
    // its variant is non-null; null hides that slot.
@@ -104,6 +104,13 @@
 </div>
 
 <style lang="scss">
+   // The four-variant token block below is intentionally NOT collapsed via SCSS
+   // `@each`. The Layer-2 token-discovery parser (`extractGlobalRootBody` in
+   // src/lib/parsers/globalRootBlock.ts) reads the `.svelte` source verbatim and
+   // does not pre-compile SCSS — wrapping these declarations in `@each` would
+   // make the editor's alias picker / file-manager UI see zero tokens for
+   // Notification, even though the rendered DOM would be unchanged. The
+   // declarations are kept flat by design so the parser can scrape them.
    :global(:root) {
       /* Info */
       --notification-info-surface: var(--surface-info);
@@ -207,118 +214,33 @@
          }
       }
 
-      // Info variant (blue)
-      &.info {
-         border: var(--notification-info-border-width) solid var(--notification-info-border);
-         border-radius: var(--notification-info-radius);
-         color: var(--notification-info-text);
-         font-family: var(--notification-info-text-font-family);
-         font-size: var(--notification-info-text-font-size);
-         font-weight: var(--notification-info-text-font-weight);
-         line-height: var(--notification-info-text-line-height);
+      // Variant rules (info / warning / danger / success) only differ by token prefix.
+      @each $variant in (info, warning, danger, success) {
+         &.#{$variant} {
+            border: var(--notification-#{$variant}-border-width) solid var(--notification-#{$variant}-border);
+            border-radius: var(--notification-#{$variant}-radius);
+            color: var(--notification-#{$variant}-text);
+            font-family: var(--notification-#{$variant}-text-font-family);
+            font-size: var(--notification-#{$variant}-text-font-size);
+            font-weight: var(--notification-#{$variant}-text-font-weight);
+            line-height: var(--notification-#{$variant}-text-line-height);
 
-         .notification-header {
-            background: var(--notification-info-surface);
-            padding: var(--notification-info-padding) calc(var(--notification-info-padding) * 1.33);
+            .notification-header {
+               background: var(--notification-#{$variant}-surface);
+               padding: var(--notification-#{$variant}-padding) calc(var(--notification-#{$variant}-padding) * 1.33);
 
-            i {
-               color: var(--notification-info-icon);
-               font-size: var(--notification-info-icon-size);
-            }
+               i {
+                  color: var(--notification-#{$variant}-icon);
+                  font-size: var(--notification-#{$variant}-icon-size);
+               }
 
-            .notification-title {
-               color: var(--notification-info-title);
-               font-family: var(--notification-info-title-font-family);
-               font-size: var(--notification-info-title-font-size);
-               font-weight: var(--notification-info-title-font-weight);
-               line-height: var(--notification-info-title-line-height);
-            }
-         }
-      }
-
-      // Warning variant (orange)
-      &.warning {
-         border: var(--notification-warning-border-width) solid var(--notification-warning-border);
-         border-radius: var(--notification-warning-radius);
-         color: var(--notification-warning-text);
-         font-family: var(--notification-warning-text-font-family);
-         font-size: var(--notification-warning-text-font-size);
-         font-weight: var(--notification-warning-text-font-weight);
-         line-height: var(--notification-warning-text-line-height);
-
-         .notification-header {
-            background: var(--notification-warning-surface);
-            padding: var(--notification-warning-padding) calc(var(--notification-warning-padding) * 1.33);
-
-            i {
-               color: var(--notification-warning-icon);
-               font-size: var(--notification-warning-icon-size);
-            }
-
-            .notification-title {
-               color: var(--notification-warning-title);
-               font-family: var(--notification-warning-title-font-family);
-               font-size: var(--notification-warning-title-font-size);
-               font-weight: var(--notification-warning-title-font-weight);
-               line-height: var(--notification-warning-title-line-height);
-            }
-         }
-      }
-
-      // Danger variant (red)
-      &.danger {
-         border: var(--notification-danger-border-width) solid var(--notification-danger-border);
-         border-radius: var(--notification-danger-radius);
-         color: var(--notification-danger-text);
-         font-family: var(--notification-danger-text-font-family);
-         font-size: var(--notification-danger-text-font-size);
-         font-weight: var(--notification-danger-text-font-weight);
-         line-height: var(--notification-danger-text-line-height);
-
-         .notification-header {
-            background: var(--notification-danger-surface);
-            padding: var(--notification-danger-padding) calc(var(--notification-danger-padding) * 1.33);
-
-            i {
-               color: var(--notification-danger-icon);
-               font-size: var(--notification-danger-icon-size);
-            }
-
-            .notification-title {
-               color: var(--notification-danger-title);
-               font-family: var(--notification-danger-title-font-family);
-               font-size: var(--notification-danger-title-font-size);
-               font-weight: var(--notification-danger-title-font-weight);
-               line-height: var(--notification-danger-title-line-height);
-            }
-         }
-      }
-
-      // Success variant (green)
-      &.success {
-         border: var(--notification-success-border-width) solid var(--notification-success-border);
-         border-radius: var(--notification-success-radius);
-         color: var(--notification-success-text);
-         font-family: var(--notification-success-text-font-family);
-         font-size: var(--notification-success-text-font-size);
-         font-weight: var(--notification-success-text-font-weight);
-         line-height: var(--notification-success-text-line-height);
-
-         .notification-header {
-            background: var(--notification-success-surface);
-            padding: var(--notification-success-padding) calc(var(--notification-success-padding) * 1.33);
-
-            i {
-               color: var(--notification-success-icon);
-               font-size: var(--notification-success-icon-size);
-            }
-
-            .notification-title {
-               color: var(--notification-success-title);
-               font-family: var(--notification-success-title-font-family);
-               font-size: var(--notification-success-title-font-size);
-               font-weight: var(--notification-success-title-font-weight);
-               line-height: var(--notification-success-title-line-height);
+               .notification-title {
+                  color: var(--notification-#{$variant}-title);
+                  font-family: var(--notification-#{$variant}-title-font-family);
+                  font-size: var(--notification-#{$variant}-title-font-size);
+                  font-weight: var(--notification-#{$variant}-title-font-weight);
+                  line-height: var(--notification-#{$variant}-title-line-height);
+               }
             }
          }
       }
