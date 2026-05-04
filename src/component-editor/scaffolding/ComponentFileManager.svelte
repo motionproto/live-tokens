@@ -25,6 +25,7 @@
     mutate,
   } from '../../lib/editorStore';
   import { sanitizeFileName } from '../../lib/themeService';
+  import type { CssVarRef } from '../../lib/editorTypes';
   import UIDialog from '../../ui/UIDialog.svelte';
   import { writable } from 'svelte/store';
   import { getEditorContext, type ViewMode } from './editorContext';
@@ -113,8 +114,20 @@
     }
   }
 
+  function refToString(ref: CssVarRef): string {
+    return ref.kind === 'token' ? ref.name : ref.value;
+  }
+
   function currentAliases(): Record<string, string> {
-    return get(editorState).components[component]?.aliases ?? {};
+    const slice = get(editorState).components[component];
+    if (!slice) return {};
+    const out: Record<string, string> = {};
+    for (const [k, ref] of Object.entries(slice.aliases)) out[k] = refToString(ref);
+    return out;
+  }
+
+  function currentConfig(): Record<string, unknown> {
+    return get(editorState).components[component]?.config ?? {};
   }
 
   async function persist(fileName: string, displayName: string): Promise<void> {
@@ -124,7 +137,8 @@
       component,
       createdAt: now,
       updatedAt: now,
-      aliases: { ...currentAliases() },
+      aliases: currentAliases(),
+      config: { ...currentConfig() },
     };
     await saveComponentConfig(component, fileName, data);
     await setActiveComponentFile(component, fileName);
@@ -217,7 +231,7 @@
     try {
       const cfg = await loadComponentConfig(component, file.fileName);
       await setActiveComponentFile(component, file.fileName);
-      loadComponentActive(component, file.fileName, cfg.aliases);
+      loadComponentActive(component, file.fileName, cfg.aliases, cfg.config);
       activeFileName = file.fileName;
       currentDisplayName = file.name;
     } catch {
@@ -234,7 +248,7 @@
       if (file.fileName === activeFileName) {
         // Server reverts active to default; reload default aliases into the store.
         const defaultCfg = await loadComponentConfig(component, 'default');
-        loadComponentActive(component, 'default', defaultCfg.aliases);
+        loadComponentActive(component, 'default', defaultCfg.aliases, defaultCfg.config);
         activeFileName = 'default';
         currentDisplayName = 'Default';
       }
@@ -261,11 +275,16 @@
     const defaultCfg = await loadComponentConfig(component, 'default');
     mutate(`reset ${component}`, (s) => {
       const slice =
-        s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {} });
+        s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {}, config: {} });
       for (const v of resetVariables) {
         const defaultVal = defaultCfg.aliases[v];
-        if (defaultVal !== undefined) slice.aliases[v] = defaultVal;
-        else delete slice.aliases[v];
+        if (defaultVal !== undefined) {
+          slice.aliases[v] = defaultVal.startsWith('--')
+            ? { kind: 'token', name: defaultVal }
+            : { kind: 'literal', value: defaultVal };
+        } else {
+          delete slice.aliases[v];
+        }
       }
       if (slice.unlinked) delete slice.unlinked;
     });

@@ -1,6 +1,7 @@
 <script lang="ts">
   import TokenLayout from './TokenLayout.svelte';
   import { editorState } from '../../lib/editorStore';
+  import type { CssVarRef } from '../../lib/editorTypes';
   import type { SharedBlockResult, SharedGroup, SharedToken } from './sharedBlock';
 
   export let component: string;
@@ -16,11 +17,16 @@
     return m ? m[1] : null;
   }
 
+  function aliasKey(ref: CssVarRef | undefined): string {
+    if (!ref) return '';
+    return ref.kind === 'token' ? ref.name : `lit:${ref.value}`;
+  }
+
   /** Collapse same-label same-value tokens into a single row whose `mergeVariables` lists the
       other groupKey leads. Disabled (unlinked) rows are kept as-is so divergence stays visible. */
   function collapseGeneral(
     list: (SharedToken & { disabled?: boolean })[],
-    aliases: Record<string, string>,
+    aliases: Record<string, CssVarRef>,
   ): (SharedToken & { disabled?: boolean })[] {
     const out: (SharedToken & { disabled?: boolean })[] = [];
     const leadIdx = new Map<string, number>();
@@ -29,7 +35,7 @@
         out.push(tok);
         continue;
       }
-      const alias = aliases[tok.variable] ?? '';
+      const alias = aliasKey(aliases[tok.variable]);
       const key = `${tok.label}|${alias}`;
       const idx = leadIdx.get(key);
       if (idx === undefined) {
@@ -50,7 +56,7 @@
     return out;
   }
 
-  function partitionBucket(groups: SharedGroup[], aliases: Record<string, string>): Column[] {
+  function partitionBucket(groups: SharedGroup[], aliases: Record<string, CssVarRef>): Column[] {
     const typeGroups = new Map<string, (SharedToken & { disabled?: boolean })[]>();
     const general: (SharedToken & { disabled?: boolean })[] = [];
     for (const g of groups) {

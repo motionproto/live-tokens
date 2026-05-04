@@ -85,6 +85,7 @@ export interface ComponentConfig {
   createdAt: string;
   updatedAt: string;
   aliases: Record<string, string>;
+  config?: Record<string, unknown>;
 }
 
 export interface ComponentConfigMeta {

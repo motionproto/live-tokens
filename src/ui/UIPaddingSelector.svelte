@@ -54,7 +54,8 @@
 
   function readAlias(v: string): string {
     if (component) {
-      return $editorState.components[component]?.aliases?.[v] ?? '';
+      const ref = $editorState.components[component]?.aliases?.[v];
+      return ref?.kind === 'token' ? ref.name : '';
     }
     const inline = document.documentElement.style.getPropertyValue(v).trim();
     const m = inline.match(/var\((--space-[a-z0-9]+)\)/);
@@ -74,7 +75,7 @@
 
   function writeAlias(v: string, semantic: string | null) {
     if (component) {
-      if (semantic) setComponentAlias(component, v, semantic);
+      if (semantic) setComponentAlias(component, v, { kind: 'token', name: semantic });
       else clearComponentAlias(component, v);
       return;
     }

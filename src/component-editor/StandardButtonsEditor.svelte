@@ -8,10 +8,11 @@
   import type { Token, TypeGroupConfig } from './scaffolding/types';
   const component = 'button';
 
-  $: shimmerEnabled = $editorState.components.button?.aliases['--button-shimmer'] !== '--shimmer-off';
+  $: shimmerRef = $editorState.components.button?.aliases['--button-shimmer'];
+  $: shimmerEnabled = !(shimmerRef?.kind === 'token' && shimmerRef.name === '--shimmer-off');
 
   function handleShimmerChange(e: CustomEvent<boolean>) {
-    setComponentAlias('button', '--button-shimmer', e.detail ? '--shimmer-on' : '--shimmer-off');
+    setComponentAlias('button', '--button-shimmer', { kind: 'token', name: e.detail ? '--shimmer-on' : '--shimmer-off' });
   }
   const variants = ['primary', 'secondary', 'outline', 'success', 'danger', 'warning'] as const;
   type Variant = typeof variants[number];

@@ -54,8 +54,9 @@
     if (component) {
       const useShared = isSharedDisplay;
       if (semanticName) {
-        if (useShared) setComponentAliasShared(component, variable, semanticName);
-        else setComponentAlias(component, variable, semanticName);
+        const ref = { kind: 'token' as const, name: semanticName };
+        if (useShared) setComponentAliasShared(component, variable, ref);
+        else setComponentAlias(component, variable, ref);
       } else {
         if (useShared) clearComponentAliasShared(component, variable);
         else clearComponentAlias(component, variable);
@@ -95,7 +96,11 @@
     const siblings = getComponentPropertySiblings(component, variable);
     if (siblings.length < 2) return;
 
-    const candidates = siblings.map((v) => ({ variable: v, alias: slice.aliases[v] ?? '' }));
+    const candidates = siblings.map((v) => {
+      const ref = slice.aliases[v];
+      const alias = ref?.kind === 'token' ? ref.name : '';
+      return { variable: v, alias };
+    });
     const distinctValues = new Set(candidates.map((c) => c.alias).filter(Boolean));
 
     if (distinctValues.size <= 1) {
@@ -113,7 +118,7 @@
 
   function handleRelinkConfirm(e: CustomEvent<{ alias: string }>) {
     if (!component) return;
-    setComponentAliasShared(component, variable, e.detail.alias);
+    setComponentAliasShared(component, variable, { kind: 'token', name: e.detail.alias });
     dispatch('change');
     relinkOpen = false;
   }

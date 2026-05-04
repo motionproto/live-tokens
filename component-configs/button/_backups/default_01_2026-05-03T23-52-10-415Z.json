@@ -2,7 +2,7 @@
   "name": "default_01",
   "component": "button",
   "createdAt": "2026-04-25T01:41:47.101Z",
-  "updatedAt": "2026-05-03T23:52:10.415Z",
+  "updatedAt": "2026-05-03T23:51:30.778Z",
   "aliases": {
     "--button-primary-surface": "--surface-primary",
     "--button-primary-text": "--text-primary",
@@ -77,7 +77,5 @@
     "--button-warning-hover-radius": "--radius-4xl",
     "--button-warning-disabled-radius": "--radius-4xl"
   },
-  "config": {
-    "--button-shimmer": "--shimmer-off"
-  }
+  "config": {}
 }

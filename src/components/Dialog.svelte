@@ -24,9 +24,9 @@
   /** When true, the dialog renders inline within its parent rather than as a fixed-position overlay. Used by the editor preview. */
   export let inline: boolean = false;
 
-  $: configuredAliases = $editorState.components.dialog?.aliases ?? {};
-  $: effectiveConfirmVariant = confirmVariant ?? asVariant(configuredAliases['--dialog-confirm-variant'], 'primary');
-  $: effectiveCancelVariant = cancelVariant ?? asVariant(configuredAliases['--dialog-cancel-variant'], 'outline');
+  $: configuredConfig = $editorState.components.dialog?.config ?? {};
+  $: effectiveConfirmVariant = confirmVariant ?? asVariant(configuredConfig['--dialog-confirm-variant'] as string | undefined, 'primary');
+  $: effectiveCancelVariant = cancelVariant ?? asVariant(configuredConfig['--dialog-cancel-variant'] as string | undefined, 'outline');
 
   // Optional callbacks for parent dialogs to control behavior
   export let onConfirm: (() => void) | undefined = undefined;

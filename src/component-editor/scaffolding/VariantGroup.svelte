@@ -49,7 +49,7 @@
     const dstTypeGroups = typeGroups[toState] ?? [];
 
     mutate(`copy ${fromVariant}/${fromState} → ${name}/${toState}`, (s) => {
-      const slice = s.components[component!] ?? (s.components[component!] = { activeFile: 'default', aliases: {} });
+      const slice = s.components[component!] ?? (s.components[component!] = { activeFile: 'default', aliases: {}, config: {} });
       const apply = (srcVar: string, dstVar: string) => {
         if (srcVar === dstVar) return;
         if (srcVar in slice.aliases) slice.aliases[dstVar] = slice.aliases[srcVar];

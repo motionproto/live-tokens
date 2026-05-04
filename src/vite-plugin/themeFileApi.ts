@@ -415,6 +415,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     createdAt?: string;
     updatedAt?: string;
     aliases?: Record<string, string>;
+    config?: Record<string, unknown>;
   }
 
   function readComponentConfig(comp: string, name: string): ComponentConfigRead | null {
