@@ -376,6 +376,10 @@ export function toTheme(state: EditorState, meta: { name: string }): Theme {
 // API parity.
 
 export { initializeEditorStore };
+/** Idempotent host hook — call once during boot. Alias for `initializeEditorStore`
+ *  matching the `module.init()` convention used by `cssVarSync` / `router` /
+ *  `columnsOverlay` so `main.ts` can call them uniformly. */
+export const init = initializeEditorStore;
 
 // ── Test-only reset ────────────────────────────────────────────────────────
 
