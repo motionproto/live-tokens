@@ -30,7 +30,7 @@ export async function initializeTheme(): Promise<void> {
       if (theme.fontStacks && theme.fontStacks.length > 0) {
         applyFontStacks(theme.fontStacks, theme.fontSources ?? []);
       }
-      const fileName = (theme as any)._fileName || 'default';
+      const fileName = theme._fileName || 'default';
       activeFileName.set(fileName);
     }
   } catch {

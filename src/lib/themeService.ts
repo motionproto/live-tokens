@@ -4,62 +4,17 @@ import {
   clearAllCssVarOverrides as clearAllCssVarOverridesSync,
   scrapeCssVariables as scrapeCssVariablesSync,
 } from './cssVarSync';
+import {
+  versionedFileResource,
+  sanitizeFileName as sanitizeFileNameImpl,
+} from './files/versionedFileResource';
 
 // ── API helpers ──────────────────────────────────────────────
-
-export async function listThemes(): Promise<ThemeMeta[]> {
-  const res = await fetch('/api/themes');
-  const data = await res.json();
-  return data.files;
-}
-
-export async function loadTheme(fileName: string): Promise<Theme> {
-  const res = await fetch(`/api/themes/${encodeURIComponent(fileName)}`);
-  if (!res.ok) throw new Error(`Failed to load theme: ${fileName}`);
-  return res.json();
-}
-
-export async function saveTheme(fileName: string, data: Theme): Promise<void> {
-  const res = await fetch(`/api/themes/${encodeURIComponent(fileName)}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Unknown error' }));
-    throw new Error(err.error || 'Save failed');
-  }
-}
-
-export async function deleteTheme(fileName: string): Promise<void> {
-  const res = await fetch(`/api/themes/${encodeURIComponent(fileName)}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Unknown error' }));
-    throw new Error(err.error || 'Delete failed');
-  }
-}
-
-export async function getActiveTheme(): Promise<Theme | null> {
-  try {
-    const res = await fetch('/api/themes/active');
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
-}
-
-export async function setActiveFile(fileName: string): Promise<void> {
-  await fetch('/api/themes/active', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: fileName }),
-  });
-}
-
-// ── Production API helpers ─────────────────────────────────
+//
+// All theme CRUD goes through `versionedFileResource('/api/themes')` —
+// shared with `componentConfigService`'s per-component clients. Theme-specific
+// response shapes (ThemeMeta list payload, ProductionInfo) are layered on top
+// via the generic type parameters.
 
 export interface ProductionInfo {
   fileName: string;
@@ -68,28 +23,41 @@ export interface ProductionInfo {
   cssVariables: Record<string, string>;
 }
 
-export async function getProductionInfo(): Promise<ProductionInfo> {
-  const res = await fetch('/api/themes/production');
-  return res.json();
+const themeResource = versionedFileResource<Theme, ThemeMeta, ProductionInfo>({
+  baseUrl: '/api/themes',
+});
+
+export async function listThemes(): Promise<ThemeMeta[]> {
+  const data = await themeResource.list();
+  return data.files;
 }
 
-export async function setProductionFile(fileName: string): Promise<{ ok: boolean; fileName: string; name: string }> {
-  const res = await fetch('/api/themes/production', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: fileName }),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Unknown error' }));
-    throw new Error(err.error || 'Update failed');
-  }
-  return res.json();
+export const loadTheme = (fileName: string): Promise<Theme> => themeResource.load(fileName);
+export const saveTheme = (fileName: string, data: Theme): Promise<void> =>
+  themeResource.save(fileName, data);
+export const deleteTheme = (fileName: string): Promise<void> => themeResource.remove(fileName);
+
+export async function getActiveTheme(): Promise<Theme | null> {
+  return themeResource.getActive();
+}
+
+export const setActiveFile = (fileName: string): Promise<void> => themeResource.setActive(fileName);
+
+// ── Production API helpers ─────────────────────────────────
+
+export const getProductionInfo = (): Promise<ProductionInfo> => themeResource.getProductionInfo();
+
+export async function setProductionFile(
+  fileName: string,
+): Promise<{ ok: boolean; fileName: string; name: string }> {
+  const data = await themeResource.setProduction(fileName);
+  return { ok: data.ok, fileName: data.fileName, name: data.name };
 }
 
 // ── Backup API helpers ──────────────────────────────────────
 
 export interface BackupEntry {
-  type: 'themes' | 'css';
+  type: 'themes' | 'css' | 'component-configs';
   file: string;
   name: string;
   timestamp: string;
@@ -131,14 +99,7 @@ export const clearAllCssVarOverrides = clearAllCssVarOverridesSync;
 export const applyCssVariables = applyCssVariablesSync;
 export const scrapeCssVariables = scrapeCssVariablesSync;
 
-/** Sanitize a display name to a safe file name */
-export function sanitizeFileName(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9\-_]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-    || 'unnamed';
-}
+/** Sanitize a display name to a safe file name. Re-exported from the shared
+ * `files/versionedFileResource` so the dev-server plugin can import the
+ * canonical pure helper without depending on this module's CSS imports. */
+export const sanitizeFileName = sanitizeFileNameImpl;

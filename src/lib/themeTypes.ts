@@ -70,6 +70,12 @@ export interface Theme {
   cssVariables: Record<string, string>;
   fontSources?: FontSource[];
   fontStacks?: FontStack[];
+  /**
+   * Server-attached file-name marker for round-tripping the file identity
+   * back to the client. Set by `themeFileApi`'s GET handlers; read by
+   * `themeInit` to seed `activeFileName`. Optional and not persisted to disk.
+   */
+  _fileName?: string;
 }
 
 export interface ThemeMeta {
@@ -85,6 +91,11 @@ export interface ComponentConfig {
   createdAt: string;
   updatedAt: string;
   aliases: Record<string, string>;
+  /**
+   * Server-attached file-name marker. Same role as `Theme._fileName`. Set by
+   * the component-configs GET handlers; not persisted to disk.
+   */
+  _fileName?: string;
 }
 
 export interface ComponentConfigMeta {

@@ -1,6 +1,14 @@
 import type { Plugin } from 'vite';
 import fs from 'fs';
 import path from 'path';
+import { extractGlobalRootBody } from '../lib/parsers/globalRootBlock';
+import { sanitizeFileName } from '../lib/files/versionedFileResource';
+import {
+  versionedFileResourceServer,
+  trimFlatBackups,
+  type VersionedFileResourceServer,
+} from './files/versionedFileResource';
+import { dispatch, type Route } from './files/routeTable';
 
 export interface ThemeFileApiOptions {
   themesDir: string;           // required, e.g. 'themes' (relative to cwd, resolved with path.resolve)
@@ -26,8 +34,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     ? path.resolve(opts.cssBackupDir)
     : path.join(path.dirname(CSS_PATH), '_backups');
   const API_BASE = opts.apiBase ?? '/api';
-  const ACTIVE_FILE = path.join(THEMES_DIR, '_active.json');
-  const PRODUCTION_FILE = path.join(THEMES_DIR, '_production.json');
   const COMPONENT_CONFIGS_DIR = opts.componentConfigsDir
     ? path.resolve(opts.componentConfigsDir)
     : path.resolve('component-configs');
@@ -35,10 +41,26 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     ? path.resolve(opts.componentsSrcDir)
     : path.resolve('src/components');
 
-  function ensureThemesDir() {
-    if (!fs.existsSync(THEMES_DIR)) {
-      fs.mkdirSync(THEMES_DIR, { recursive: true });
+  // Themes resource — list/load/save/delete + active/production + backups.
+  const themesResource = versionedFileResourceServer({
+    dir: THEMES_DIR,
+    backupDir: THEMES_BACKUP_DIR,
+  });
+
+  // Per-component resources are constructed on demand because the set of
+  // components is discovered at runtime from `src/components/*.svelte`.
+  const componentResourceCache = new Map<string, VersionedFileResourceServer>();
+  function componentResource(comp: string): VersionedFileResourceServer {
+    let r = componentResourceCache.get(comp);
+    if (!r) {
+      r = versionedFileResourceServer({ dir: path.join(COMPONENT_CONFIGS_DIR, comp) });
+      componentResourceCache.set(comp, r);
     }
+    return r;
+  }
+
+  function ensureThemesDir() {
+    themesResource.ensureDir();
     if (!fs.existsSync(path.join(THEMES_DIR, 'default.json'))) {
       const defaultTheme = {
         name: 'Default',
@@ -49,32 +71,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       };
       fs.writeFileSync(path.join(THEMES_DIR, 'default.json'), JSON.stringify(defaultTheme, null, 2));
     }
-    if (!fs.existsSync(ACTIVE_FILE)) {
-      fs.writeFileSync(ACTIVE_FILE, JSON.stringify({ activeFile: 'default' }));
-    }
-    if (!fs.existsSync(PRODUCTION_FILE)) {
-      const activeFile = getActiveFileName();
-      fs.writeFileSync(PRODUCTION_FILE, JSON.stringify({ productionFile: activeFile }));
-    }
-  }
-
-  function backupThemeFile(filePath: string, fileName: string) {
-    if (!fs.existsSync(filePath)) return;
-    if (!fs.existsSync(THEMES_BACKUP_DIR)) {
-      fs.mkdirSync(THEMES_BACKUP_DIR, { recursive: true });
-    }
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupPath = path.join(THEMES_BACKUP_DIR, `${fileName}_${timestamp}.json`);
-    fs.copyFileSync(filePath, backupPath);
-
-    // Keep only the 10 most recent backups per file
-    const allBackups = fs.readdirSync(THEMES_BACKUP_DIR)
-      .filter(f => f.startsWith(`${fileName}_`) && f.endsWith('.json'))
-      .sort()
-      .reverse();
-    for (const old of allBackups.slice(10)) {
-      fs.unlinkSync(path.join(THEMES_BACKUP_DIR, old));
-    }
+    themesResource.ensureMeta();
   }
 
   function backupCssFile() {
@@ -85,33 +82,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupPath = path.join(CSS_BACKUP_DIR, `tokens_${timestamp}.css`);
     fs.copyFileSync(CSS_PATH, backupPath);
-
-    // Keep only the 10 most recent CSS backups
-    const allBackups = fs.readdirSync(CSS_BACKUP_DIR)
-      .filter(f => f.startsWith('tokens_') && f.endsWith('.css'))
-      .sort()
-      .reverse();
-    for (const old of allBackups.slice(10)) {
-      fs.unlinkSync(path.join(CSS_BACKUP_DIR, old));
-    }
-  }
-
-  function getActiveFileName(): string {
-    try {
-      const data = JSON.parse(fs.readFileSync(ACTIVE_FILE, 'utf-8'));
-      return data.activeFile || 'default';
-    } catch {
-      return 'default';
-    }
-  }
-
-  function getProductionFileName(): string {
-    try {
-      const data = JSON.parse(fs.readFileSync(PRODUCTION_FILE, 'utf-8'));
-      return data.productionFile || 'default';
-    } catch {
-      return 'default';
-    }
+    trimFlatBackups(CSS_BACKUP_DIR, 'tokens', 'css');
   }
 
   function readBody(req: any): Promise<string> {
@@ -127,17 +98,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     res.statusCode = status;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(data));
-  }
-
-  function sanitize(name: string): string {
-    return name
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9\-_]/g, '')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '')
-      || 'unnamed';
   }
 
   const SYSTEM_CASCADES_SSR: Record<string, string> = {
@@ -273,14 +233,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // default.json is regenerated from the component's `:global(:root)` block at
   // dev startup and on HMR; other files are user-authored.
 
-  function extractGlobalRootBodySsr(source: string): string {
-    const re = /:global\(:root\)\s*\{([^}]*)\}/g;
-    const bodies: string[] = [];
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(source)) !== null) bodies.push(m[1]);
-    return bodies.join('\n');
-  }
-
   function extractAliasDeclarations(body: string): Record<string, string> {
     const aliases: Record<string, string> = {};
     const re = /(--[a-z0-9-]+)\s*:\s*var\((--[a-z0-9-]+)\)\s*;/gi;
@@ -305,24 +257,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     return listComponentSourcePaths().map(componentNameFromFile);
   }
 
-  function ensureComponentDir(comp: string): string {
-    const dir = path.join(COMPONENT_CONFIGS_DIR, comp);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    return dir;
-  }
-
-  function ensureComponentMeta(comp: string): void {
-    const dir = ensureComponentDir(comp);
-    const activePath = path.join(dir, '_active.json');
-    const productionPath = path.join(dir, '_production.json');
-    if (!fs.existsSync(activePath)) {
-      fs.writeFileSync(activePath, JSON.stringify({ activeFile: 'default' }));
-    }
-    if (!fs.existsSync(productionPath)) {
-      fs.writeFileSync(productionPath, JSON.stringify({ productionFile: 'default' }));
-    }
-  }
-
   /**
    * Regenerate `component-configs/{comp}/default.json` from the component's
    * `:global(:root)` block. Writes only if missing or stale (source mtime >
@@ -330,15 +264,16 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    */
   function generateDefaultConfig(comp: string, sourcePath: string): void {
     if (!fs.existsSync(sourcePath)) return;
-    const dir = ensureComponentDir(comp);
-    const defaultPath = path.join(dir, 'default.json');
+    const r = componentResource(comp);
+    r.ensureDir();
+    const defaultPath = r.filePath('default');
     const sourceStat = fs.statSync(sourcePath);
     if (fs.existsSync(defaultPath)) {
       const defaultStat = fs.statSync(defaultPath);
       if (defaultStat.mtimeMs >= sourceStat.mtimeMs) return;
     }
     const source = fs.readFileSync(sourcePath, 'utf-8');
-    const body = extractGlobalRootBodySsr(source);
+    const body = extractGlobalRootBody(source);
     const aliases = extractAliasDeclarations(body);
     const now = new Date().toISOString();
     let createdAt = now;
@@ -364,48 +299,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
     for (const sourcePath of listComponentSourcePaths()) {
       const comp = componentNameFromFile(sourcePath);
-      ensureComponentDir(comp);
+      const r = componentResource(comp);
+      r.ensureDir();
       generateDefaultConfig(comp, sourcePath);
-      ensureComponentMeta(comp);
-    }
-  }
-
-  function backupComponentConfigFile(filePath: string, comp: string, fileName: string): void {
-    if (!fs.existsSync(filePath)) return;
-    const backupDir = path.join(COMPONENT_CONFIGS_DIR, comp, '_backups');
-    if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupPath = path.join(backupDir, `${fileName}_${timestamp}.json`);
-    fs.copyFileSync(filePath, backupPath);
-    const allBackups = fs
-      .readdirSync(backupDir)
-      .filter((f) => f.startsWith(`${fileName}_`) && f.endsWith('.json'))
-      .sort()
-      .reverse();
-    for (const old of allBackups.slice(10)) {
-      fs.unlinkSync(path.join(backupDir, old));
-    }
-  }
-
-  function getComponentActiveFileName(comp: string): string {
-    try {
-      const data = JSON.parse(
-        fs.readFileSync(path.join(COMPONENT_CONFIGS_DIR, comp, '_active.json'), 'utf-8'),
-      );
-      return data.activeFile || 'default';
-    } catch {
-      return 'default';
-    }
-  }
-
-  function getComponentProductionFileName(comp: string): string {
-    try {
-      const data = JSON.parse(
-        fs.readFileSync(path.join(COMPONENT_CONFIGS_DIR, comp, '_production.json'), 'utf-8'),
-      );
-      return data.productionFile || 'default';
-    } catch {
-      return 'default';
+      r.ensureMeta();
     }
   }
 
@@ -418,7 +315,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   function readComponentConfig(comp: string, name: string): ComponentConfigRead | null {
-    const filePath = path.join(COMPONENT_CONFIGS_DIR, comp, `${name}.json`);
+    const filePath = componentResource(comp).filePath(name);
     if (!fs.existsSync(filePath)) return null;
     try {
       return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
@@ -446,7 +343,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const lines: string[] = [];
     const components = listComponentNames();
     for (const comp of components) {
-      const prod = getComponentProductionFileName(comp);
+      const prod = componentResource(comp).getProductionName();
       if (prod === 'default') continue; // source is authoritative
       const prodCfg = readComponentConfig(comp, prod);
       const defaultCfg = readComponentConfig(comp, 'default');
@@ -505,6 +402,541 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const COMP_PRODUCTION_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/production$`);
   const COMP_BY_NAME_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/([a-z0-9\\-_]+)$`);
 
+  // ── Route handlers ────────────────────────────────────────────────────────
+  // Each handler can throw — the route-table dispatcher centralises the 500
+  // catch. Order in the routes table matters: the active/production patterns
+  // MUST appear before the catch-all `:name` patterns (the table replaces
+  // the previous "warning comment" with explicit ordering).
+
+  function fileTimestampToISO(ts: string): string {
+    return ts.replace(/T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z/, 'T$1:$2:$3.$4Z');
+  }
+
+  // ── /api/themes ──────────────────────────────────────────────────────────
+
+  async function handleListThemes(_ctx: any) {
+    const activeFile = themesResource.getActiveName();
+    const files = fs
+      .readdirSync(THEMES_DIR)
+      .filter((f) => f.endsWith('.json') && !f.startsWith('_'))
+      .map((f) => {
+        const filePath = path.join(THEMES_DIR, f);
+        const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        const fileName = f.replace('.json', '');
+        return {
+          name: data.name || fileName,
+          fileName,
+          updatedAt: data.updatedAt || '',
+          isActive: fileName === activeFile,
+        };
+      });
+    jsonResponse(_ctx.res, 200, { files });
+  }
+
+  async function handleGetActiveTheme({ res }: any) {
+    const activeFile = themesResource.getActiveName();
+    const filePath = themesResource.filePath(activeFile);
+    if (!fs.existsSync(filePath)) {
+      jsonResponse(res, 404, { error: 'Active theme not found' });
+      return;
+    }
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    data._fileName = activeFile;
+    jsonResponse(res, 200, data);
+  }
+
+  async function handleSetActiveTheme({ req, res }: any) {
+    const body = JSON.parse(await readBody(req));
+    const fileName = sanitizeFileName(body.name || 'default');
+    if (!fs.existsSync(themesResource.filePath(fileName))) {
+      jsonResponse(res, 404, { error: 'Theme not found' });
+      return;
+    }
+    themesResource.setActiveName(fileName);
+    jsonResponse(res, 200, { ok: true, activeFile: fileName });
+  }
+
+  async function handleGetProductionTheme({ res }: any) {
+    const prodFile = themesResource.getProductionName();
+    const filePath = themesResource.filePath(prodFile);
+    if (!fs.existsSync(filePath)) {
+      jsonResponse(res, 200, { fileName: prodFile, name: prodFile, cssVariables: {} });
+      return;
+    }
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    jsonResponse(res, 200, {
+      fileName: prodFile,
+      name: data.name || prodFile,
+      updatedAt: data.updatedAt || '',
+      cssVariables: data.cssVariables || {},
+    });
+  }
+
+  async function handleSetProductionTheme({ req, res }: any) {
+    const body = JSON.parse(await readBody(req));
+    const fileName = sanitizeFileName(body.name || 'default');
+    if (!fs.existsSync(themesResource.filePath(fileName))) {
+      jsonResponse(res, 404, { error: 'Theme not found' });
+      return;
+    }
+    themesResource.setProductionName(fileName);
+    syncTokensToCss(fileName);
+    syncFontsToCss(fileName);
+    syncComponentsToCss();
+    const data = JSON.parse(fs.readFileSync(themesResource.filePath(fileName), 'utf-8'));
+    jsonResponse(res, 200, {
+      ok: true,
+      fileName,
+      name: data.name || fileName,
+      updatedAt: data.updatedAt || '',
+    });
+  }
+
+  async function handleThemeByName({ params, req, res }: any) {
+    const [fileName] = params;
+    const filePath = themesResource.filePath(fileName);
+
+    if (req.method === 'GET') {
+      if (!fs.existsSync(filePath)) {
+        jsonResponse(res, 404, { error: 'Not found' });
+        return;
+      }
+      const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+      data._fileName = fileName;
+      jsonResponse(res, 200, data);
+      return;
+    }
+
+    if (req.method === 'PUT') {
+      const body = JSON.parse(await readBody(req));
+      body.updatedAt = new Date().toISOString();
+      // Preserve createdAt from existing file
+      if (fs.existsSync(filePath)) {
+        try {
+          const existing = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+          if (existing.createdAt) body.createdAt = existing.createdAt;
+        } catch { /* use body value or set below */ }
+      }
+      if (!body.createdAt) body.createdAt = body.updatedAt;
+      // Backup existing file before overwriting
+      themesResource.backup(filePath, fileName);
+      fs.writeFileSync(filePath, JSON.stringify(body, null, 2));
+      // Keep tokens.css and fonts.css in sync when the production theme is saved
+      if (fileName === themesResource.getProductionName()) {
+        syncTokensToCss(fileName);
+        syncFontsToCss(fileName);
+        syncComponentsToCss();
+      }
+      jsonResponse(res, 200, { ok: true, fileName });
+      return;
+    }
+
+    if (req.method === 'DELETE') {
+      if (fileName === 'default') {
+        jsonResponse(res, 403, { error: 'Cannot delete the default theme' });
+        return;
+      }
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        // If this was the active theme, revert to default
+        if (themesResource.getActiveName() === fileName) {
+          themesResource.setActiveName('default');
+        }
+      }
+      jsonResponse(res, 200, { ok: true });
+      return;
+    }
+  }
+
+  // ── /api/backups ─────────────────────────────────────────────────────────
+
+  async function handleListBackups({ res }: any) {
+    const backups: { type: string; file: string; name: string; timestamp: string; size: number }[] = [];
+
+    // Theme backups
+    if (fs.existsSync(THEMES_BACKUP_DIR)) {
+      for (const f of fs.readdirSync(THEMES_BACKUP_DIR)) {
+        if (!f.endsWith('.json')) continue;
+        const match = f.match(/^(.+)_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z)\.json$/);
+        if (!match) continue;
+        const stat = fs.statSync(path.join(THEMES_BACKUP_DIR, f));
+        backups.push({
+          type: 'themes',
+          file: f,
+          name: match[1],
+          timestamp: fileTimestampToISO(match[2]),
+          size: stat.size,
+        });
+      }
+    }
+
+    // CSS backups
+    if (fs.existsSync(CSS_BACKUP_DIR)) {
+      for (const f of fs.readdirSync(CSS_BACKUP_DIR)) {
+        if (!f.endsWith('.css')) continue;
+        const match = f.match(/^(.+)_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z)\.css$/);
+        if (!match) continue;
+        const stat = fs.statSync(path.join(CSS_BACKUP_DIR, f));
+        backups.push({
+          type: 'css',
+          file: f,
+          name: match[1],
+          timestamp: fileTimestampToISO(match[2]),
+          size: stat.size,
+        });
+      }
+    }
+
+    // Component-config backups (one _backups dir per component)
+    if (fs.existsSync(COMPONENT_CONFIGS_DIR)) {
+      for (const comp of fs.readdirSync(COMPONENT_CONFIGS_DIR)) {
+        const compBackupDir = componentResource(comp).backupDir;
+        if (!fs.existsSync(compBackupDir)) continue;
+        for (const f of fs.readdirSync(compBackupDir)) {
+          if (!f.endsWith('.json')) continue;
+          const match = f.match(/^(.+)_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z)\.json$/);
+          if (!match) continue;
+          const stat = fs.statSync(path.join(compBackupDir, f));
+          backups.push({
+            type: 'component-configs',
+            file: `${comp}/${f}`,
+            name: `${comp}/${match[1]}`,
+            timestamp: fileTimestampToISO(match[2]),
+            size: stat.size,
+          });
+        }
+      }
+    }
+
+    // Sort newest first
+    backups.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+    jsonResponse(res, 200, { backups });
+  }
+
+  async function handleRestoreBackup({ params, res }: any) {
+    const [type, file] = params;
+    if (type === 'css') {
+      const backupPath = path.join(CSS_BACKUP_DIR, decodeURIComponent(file));
+      if (!backupPath.startsWith(CSS_BACKUP_DIR) || !fs.existsSync(backupPath)) {
+        jsonResponse(res, 404, { error: 'Backup not found' });
+        return;
+      }
+      // Backup current before restoring
+      backupCssFile();
+      fs.copyFileSync(backupPath, CSS_PATH);
+      jsonResponse(res, 200, { ok: true, restored: file });
+      return;
+    }
+
+    if (type === 'component-configs') {
+      const decoded = decodeURIComponent(file);
+      const slash = decoded.indexOf('/');
+      if (slash === -1) {
+        jsonResponse(res, 400, { error: 'Malformed component-configs backup path' });
+        return;
+      }
+      const comp = decoded.slice(0, slash);
+      const backupFile = decoded.slice(slash + 1);
+      const r = componentResource(comp);
+      const backupPath = path.join(r.backupDir, backupFile);
+      if (!backupPath.startsWith(r.backupDir) || !fs.existsSync(backupPath)) {
+        jsonResponse(res, 404, { error: 'Backup not found' });
+        return;
+      }
+      const nameMatch = backupFile.match(/^(.+)_\d{4}-/);
+      if (!nameMatch) {
+        jsonResponse(res, 400, { error: 'Cannot determine config name from backup' });
+        return;
+      }
+      const configFilePath = r.filePath(nameMatch[1]);
+      r.backup(configFilePath, nameMatch[1]);
+      fs.copyFileSync(backupPath, configFilePath);
+      jsonResponse(res, 200, { ok: true, restored: file });
+      return;
+    }
+
+    // themes
+    const backupPath = path.join(THEMES_BACKUP_DIR, decodeURIComponent(file));
+    if (!backupPath.startsWith(THEMES_BACKUP_DIR) || !fs.existsSync(backupPath)) {
+      jsonResponse(res, 404, { error: 'Backup not found' });
+      return;
+    }
+    const nameMatch = decodeURIComponent(file).match(/^(.+)_\d{4}-/);
+    if (!nameMatch) {
+      jsonResponse(res, 400, { error: 'Cannot determine theme name from backup' });
+      return;
+    }
+    const themeFilePath = themesResource.filePath(nameMatch[1]);
+    themesResource.backup(themeFilePath, nameMatch[1]);
+    fs.copyFileSync(backupPath, themeFilePath);
+    jsonResponse(res, 200, { ok: true, restored: file });
+  }
+
+  async function handleGetBackup({ params, res }: any) {
+    const [type, file] = params;
+    let filePath: string;
+    let dir: string;
+    if (type === 'css') {
+      dir = CSS_BACKUP_DIR;
+      filePath = path.join(dir, decodeURIComponent(file));
+    } else if (type === 'component-configs') {
+      const decoded = decodeURIComponent(file);
+      const slash = decoded.indexOf('/');
+      if (slash === -1) {
+        jsonResponse(res, 400, { error: 'Malformed component-configs backup path' });
+        return;
+      }
+      const comp = decoded.slice(0, slash);
+      const backupFile = decoded.slice(slash + 1);
+      dir = componentResource(comp).backupDir;
+      filePath = path.join(dir, backupFile);
+    } else {
+      dir = THEMES_BACKUP_DIR;
+      filePath = path.join(dir, decodeURIComponent(file));
+    }
+    if (!filePath.startsWith(dir) || !fs.existsSync(filePath)) {
+      jsonResponse(res, 404, { error: 'Backup not found' });
+      return;
+    }
+    const content = fs.readFileSync(filePath, 'utf-8');
+    jsonResponse(res, 200, { content, type, file });
+  }
+
+  // ── /api/current-css ─────────────────────────────────────────────────────
+
+  async function handleGetCurrentCss({ res }: any) {
+    const content = fs.readFileSync(CSS_PATH, 'utf-8');
+    jsonResponse(res, 200, { content });
+  }
+
+  // ── /api/component-configs ───────────────────────────────────────────────
+
+  async function handleListComponents({ res }: any) {
+    const components = listComponentNames().map((comp) => {
+      const r = componentResource(comp);
+      return {
+        name: comp,
+        activeFile: r.getActiveName(),
+        productionFile: r.getProductionName(),
+      };
+    });
+    jsonResponse(res, 200, { components });
+  }
+
+  async function handleGetComponentActive({ params, res }: any) {
+    const [comp] = params;
+    const r = componentResource(comp);
+    const activeFile = r.getActiveName();
+    const cfg = readComponentConfig(comp, activeFile);
+    if (!cfg) {
+      jsonResponse(res, 404, { error: 'Active config not found' });
+      return;
+    }
+    jsonResponse(res, 200, { ...cfg, _fileName: activeFile });
+  }
+
+  async function handleSetComponentActive({ params, req, res }: any) {
+    const [comp] = params;
+    const body = JSON.parse(await readBody(req));
+    const fileName = sanitizeFileName(body.name || 'default');
+    const r = componentResource(comp);
+    const configPath = r.filePath(fileName);
+    if (!fs.existsSync(configPath)) {
+      jsonResponse(res, 404, { error: 'Config not found' });
+      return;
+    }
+    r.ensureDir();
+    r.setActiveName(fileName);
+    jsonResponse(res, 200, { ok: true, activeFile: fileName });
+  }
+
+  async function handleGetComponentProduction({ params, res }: any) {
+    const [comp] = params;
+    const r = componentResource(comp);
+    const prodFile = r.getProductionName();
+    const cfg = readComponentConfig(comp, prodFile);
+    jsonResponse(res, 200, {
+      fileName: prodFile,
+      name: cfg?.name || prodFile,
+      aliases: cfg?.aliases || {},
+    });
+  }
+
+  async function handleSetComponentProduction({ params, req, res }: any) {
+    const [comp] = params;
+    const body = JSON.parse(await readBody(req));
+    const fileName = sanitizeFileName(body.name || 'default');
+    const r = componentResource(comp);
+    const configPath = r.filePath(fileName);
+    if (!fs.existsSync(configPath)) {
+      jsonResponse(res, 404, { error: 'Config not found' });
+      return;
+    }
+    r.ensureDir();
+    r.setProductionName(fileName);
+    syncComponentsToCss();
+    const cfg = readComponentConfig(comp, fileName);
+    jsonResponse(res, 200, {
+      ok: true,
+      fileName,
+      name: cfg?.name || fileName,
+      aliases: cfg?.aliases || {},
+    });
+  }
+
+  async function handleComponentConfigByName({ params, req, res }: any) {
+    const [comp, name] = params;
+    const r = componentResource(comp);
+    const configPath = r.filePath(name);
+
+    if (req.method === 'GET') {
+      if (!fs.existsSync(configPath)) {
+        jsonResponse(res, 404, { error: 'Not found' });
+        return;
+      }
+      const data = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      data._fileName = name;
+      jsonResponse(res, 200, data);
+      return;
+    }
+
+    if (req.method === 'PUT') {
+      if (name === 'default') {
+        jsonResponse(res, 403, { error: 'Cannot modify default config (regenerated from source)' });
+        return;
+      }
+      const body = JSON.parse(await readBody(req));
+      body.component = comp;
+      body.name = body.name || name;
+      body.updatedAt = new Date().toISOString();
+      if (fs.existsSync(configPath)) {
+        try {
+          const existing = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+          if (existing.createdAt) body.createdAt = existing.createdAt;
+        } catch { /* use body value or set below */ }
+      }
+      if (!body.createdAt) body.createdAt = body.updatedAt;
+      r.ensureDir();
+      r.backup(configPath, name);
+      fs.writeFileSync(configPath, JSON.stringify(body, null, 2));
+      if (r.getProductionName() === name) {
+        syncComponentsToCss();
+      }
+      jsonResponse(res, 200, { ok: true, fileName: name });
+      return;
+    }
+
+    if (req.method === 'DELETE') {
+      if (name === 'default') {
+        jsonResponse(res, 403, { error: 'Cannot delete default config' });
+        return;
+      }
+      if (fs.existsSync(configPath)) {
+        fs.unlinkSync(configPath);
+        if (r.getActiveName() === name) {
+          r.setActiveName('default');
+        }
+        if (r.getProductionName() === name) {
+          r.setProductionName('default');
+          syncComponentsToCss();
+        }
+      }
+      jsonResponse(res, 200, { ok: true });
+      return;
+    }
+  }
+
+  async function handleListComponentConfigs({ params, res }: any) {
+    const [comp] = params;
+    const r = componentResource(comp);
+    if (!fs.existsSync(r.dir)) {
+      jsonResponse(res, 404, { error: 'Component not found' });
+      return;
+    }
+    const activeFile = r.getActiveName();
+    const productionFile = r.getProductionName();
+    const files = fs
+      .readdirSync(r.dir)
+      .filter((f) => f.endsWith('.json') && !f.startsWith('_'))
+      .map((f) => {
+        const filePath = path.join(r.dir, f);
+        const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        const fileName = f.replace('.json', '');
+        return {
+          name: data.name || fileName,
+          fileName,
+          updatedAt: data.updatedAt || '',
+          isActive: fileName === activeFile,
+          isProduction: fileName === productionFile,
+        };
+      });
+    jsonResponse(res, 200, { component: comp, files, activeFile, productionFile });
+  }
+
+  // ── Method-not-allowed shims ─────────────────────────────────────────────
+  // Routes that match the URL pattern but were called with the wrong method
+  // need to return 405 instead of falling through to next(). We register a
+  // catch-all 405 route per pattern after the real handlers.
+
+  function methodNotAllowed({ res }: any) {
+    jsonResponse(res, 405, { error: 'Method not allowed' });
+  }
+
+  // Build the route table. ORDER MATTERS:
+  //   1. The active/production patterns must precede COMP_BY_NAME_REGEX so
+  //      `/api/component-configs/button/active` doesn't match `:comp/:name`
+  //      with `name='active'`.
+  //   2. Backup-restore must precede backup-get because the restore URL also
+  //      matches BACKUP_GET_REGEX (`.../restore` is a valid `(.+)`).
+  //   3. COMP_LIST_REGEX (`/api/component-configs/:comp`) must come after the
+  //      :comp/:name routes because the latter is more specific.
+  const routes: Route[] = [
+    // Themes — list / active / production are exact strings, must run before THEME_BY_NAME_REGEX
+    { method: 'GET',    pattern: THEMES_ROUTE,            handler: handleListThemes },
+    { method: 'GET',    pattern: THEMES_ACTIVE_ROUTE,     handler: handleGetActiveTheme },
+    { method: 'PUT',    pattern: THEMES_ACTIVE_ROUTE,     handler: handleSetActiveTheme },
+    { method: 'GET',    pattern: THEMES_PRODUCTION_ROUTE, handler: handleGetProductionTheme },
+    { method: 'PUT',    pattern: THEMES_PRODUCTION_ROUTE, handler: handleSetProductionTheme },
+
+    // Backups
+    { method: 'GET',    pattern: BACKUPS_ROUTE,           handler: handleListBackups },
+    // Restore must precede the generic backup-get regex (the restore URL also matches it).
+    { method: 'POST',   pattern: BACKUP_RESTORE_REGEX,    handler: handleRestoreBackup },
+    { method: 'GET',    pattern: BACKUP_GET_REGEX,        handler: handleGetBackup },
+
+    // Current CSS
+    { method: 'GET',    pattern: CURRENT_CSS_ROUTE,       handler: handleGetCurrentCss },
+
+    // Component configs — list of components
+    { method: 'GET',    pattern: COMPONENT_CONFIGS_ROUTE, handler: handleListComponents },
+
+    // Component configs — :comp/active (must precede :comp/:name)
+    { method: 'GET',    pattern: COMP_ACTIVE_REGEX,       handler: handleGetComponentActive },
+    { method: 'PUT',    pattern: COMP_ACTIVE_REGEX,       handler: handleSetComponentActive },
+    { method: 'POST',   pattern: COMP_ACTIVE_REGEX,       handler: methodNotAllowed },
+    { method: 'DELETE', pattern: COMP_ACTIVE_REGEX,       handler: methodNotAllowed },
+
+    // Component configs — :comp/production (must precede :comp/:name)
+    { method: 'GET',    pattern: COMP_PRODUCTION_REGEX,   handler: handleGetComponentProduction },
+    { method: 'PUT',    pattern: COMP_PRODUCTION_REGEX,   handler: handleSetComponentProduction },
+    { method: 'POST',   pattern: COMP_PRODUCTION_REGEX,   handler: methodNotAllowed },
+    { method: 'DELETE', pattern: COMP_PRODUCTION_REGEX,   handler: methodNotAllowed },
+
+    // Component configs — :comp/:name (must precede :comp listing)
+    { method: 'GET',    pattern: COMP_BY_NAME_REGEX,      handler: handleComponentConfigByName },
+    { method: 'PUT',    pattern: COMP_BY_NAME_REGEX,      handler: handleComponentConfigByName },
+    { method: 'DELETE', pattern: COMP_BY_NAME_REGEX,      handler: handleComponentConfigByName },
+    { method: 'POST',   pattern: COMP_BY_NAME_REGEX,      handler: methodNotAllowed },
+
+    // Component configs — list configs for :comp (broadest, runs last among comp routes)
+    { method: 'GET',    pattern: COMP_LIST_REGEX,         handler: handleListComponentConfigs },
+
+    // Themes — :name CRUD (broadest theme route, runs last)
+    { method: 'GET',    pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
+    { method: 'PUT',    pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
+    { method: 'DELETE', pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
+  ];
+
   return {
     name: 'theme-file-api',
     config() {
@@ -522,603 +954,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       ensureComponentConfigsDir();
 
       server.middlewares.use(async (req, res, next) => {
-        const url = req.url || '';
-
-        // ── GET /api/themes — list all themes ──
-        if (url === THEMES_ROUTE && req.method === 'GET') {
-          try {
-            const activeFile = getActiveFileName();
-            const files = fs
-              .readdirSync(THEMES_DIR)
-              .filter((f) => f.endsWith('.json') && !f.startsWith('_'))
-              .map((f) => {
-                const filePath = path.join(THEMES_DIR, f);
-                const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-                const fileName = f.replace('.json', '');
-                return {
-                  name: data.name || fileName,
-                  fileName,
-                  updatedAt: data.updatedAt || '',
-                  isActive: fileName === activeFile,
-                };
-              });
-            jsonResponse(res, 200, { files });
-          } catch (err: any) {
-            jsonResponse(res, 500, { error: err.message });
-          }
-          return;
-        }
-
-        // ── GET /api/themes/active — return the active theme ──
-        if (url === THEMES_ACTIVE_ROUTE && req.method === 'GET') {
-          try {
-            const activeFile = getActiveFileName();
-            const filePath = path.join(THEMES_DIR, `${activeFile}.json`);
-            if (!fs.existsSync(filePath)) {
-              jsonResponse(res, 404, { error: 'Active theme not found' });
-              return;
-            }
-            const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-            data._fileName = activeFile;
-            jsonResponse(res, 200, data);
-          } catch (err: any) {
-            jsonResponse(res, 500, { error: err.message });
-          }
-          return;
-        }
-
-        // ── PUT /api/themes/active — set the active theme ──
-        if (url === THEMES_ACTIVE_ROUTE && req.method === 'PUT') {
-          try {
-            const body = JSON.parse(await readBody(req));
-            const fileName = sanitize(body.name || 'default');
-            if (!fs.existsSync(path.join(THEMES_DIR, `${fileName}.json`))) {
-              jsonResponse(res, 404, { error: 'Theme not found' });
-              return;
-            }
-            fs.writeFileSync(ACTIVE_FILE, JSON.stringify({ activeFile: fileName }));
-            jsonResponse(res, 200, { ok: true, activeFile: fileName });
-          } catch (err: any) {
-            jsonResponse(res, 500, { error: err.message });
-          }
-          return;
-        }
-
-        // ── GET /api/themes/production — return production info + config ──
-        if (url === THEMES_PRODUCTION_ROUTE && req.method === 'GET') {
-          try {
-            const prodFile = getProductionFileName();
-            const filePath = path.join(THEMES_DIR, `${prodFile}.json`);
-            if (!fs.existsSync(filePath)) {
-              jsonResponse(res, 200, { fileName: prodFile, name: prodFile, cssVariables: {} });
-              return;
-            }
-            const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-            jsonResponse(res, 200, {
-              fileName: prodFile,
-              name: data.name || prodFile,
-              updatedAt: data.updatedAt || '',
-              cssVariables: data.cssVariables || {},
-            });
-          } catch (err: any) {
-            jsonResponse(res, 500, { error: err.message });
-          }
-          return;
-        }
-
-        // ── PUT /api/themes/production — update the production theme ──
-        if (url === THEMES_PRODUCTION_ROUTE && req.method === 'PUT') {
-          try {
-            const body = JSON.parse(await readBody(req));
-            const fileName = sanitize(body.name || 'default');
-            if (!fs.existsSync(path.join(THEMES_DIR, `${fileName}.json`))) {
-              jsonResponse(res, 404, { error: 'Theme not found' });
-              return;
-            }
-            fs.writeFileSync(PRODUCTION_FILE, JSON.stringify({ productionFile: fileName }));
-            syncTokensToCss(fileName);
-            syncFontsToCss(fileName);
-            syncComponentsToCss();
-            const data = JSON.parse(fs.readFileSync(path.join(THEMES_DIR, `${fileName}.json`), 'utf-8'));
-            jsonResponse(res, 200, {
-              ok: true,
-              fileName,
-              name: data.name || fileName,
-              updatedAt: data.updatedAt || '',
-            });
-          } catch (err: any) {
-            jsonResponse(res, 500, { error: err.message });
-          }
-          return;
-        }
-
-        // ── GET /api/backups — list all backups (themes + CSS) ──
-        if (url === BACKUPS_ROUTE && req.method === 'GET') {
-          try {
-            const backups: { type: string; file: string; name: string; timestamp: string; size: number }[] = [];
-
-            function fileTimestampToISO(ts: string): string {
-              return ts.replace(/T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z/, 'T$1:$2:$3.$4Z');
-            }
-
-            // Theme backups
-            if (fs.existsSync(THEMES_BACKUP_DIR)) {
-              for (const f of fs.readdirSync(THEMES_BACKUP_DIR)) {
-                if (!f.endsWith('.json')) continue;
-                const match = f.match(/^(.+)_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z)\.json$/);
-                if (!match) continue;
-                const stat = fs.statSync(path.join(THEMES_BACKUP_DIR, f));
-                backups.push({
-                  type: 'themes',
-                  file: f,
-                  name: match[1],
-                  timestamp: fileTimestampToISO(match[2]),
-                  size: stat.size,
-                });
-              }
-            }
-
-            // CSS backups
-            if (fs.existsSync(CSS_BACKUP_DIR)) {
-              for (const f of fs.readdirSync(CSS_BACKUP_DIR)) {
-                if (!f.endsWith('.css')) continue;
-                const match = f.match(/^(.+)_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z)\.css$/);
-                if (!match) continue;
-                const stat = fs.statSync(path.join(CSS_BACKUP_DIR, f));
-                backups.push({
-                  type: 'css',
-                  file: f,
-                  name: match[1],
-                  timestamp: fileTimestampToISO(match[2]),
-                  size: stat.size,
-                });
-              }
-            }
-
-            // Component-config backups (one _backups dir per component)
-            if (fs.existsSync(COMPONENT_CONFIGS_DIR)) {
-              for (const comp of fs.readdirSync(COMPONENT_CONFIGS_DIR)) {
-                const compBackupDir = path.join(COMPONENT_CONFIGS_DIR, comp, '_backups');
-                if (!fs.existsSync(compBackupDir)) continue;
-                for (const f of fs.readdirSync(compBackupDir)) {
-                  if (!f.endsWith('.json')) continue;
-                  const match = f.match(/^(.+)_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z)\.json$/);
-                  if (!match) continue;
-                  const stat = fs.statSync(path.join(compBackupDir, f));
-                  backups.push({
-                    type: 'component-configs',
-                    file: `${comp}/${f}`,
-                    name: `${comp}/${match[1]}`,
-                    timestamp: fileTimestampToISO(match[2]),
-                    size: stat.size,
-                  });
-                }
-              }
-            }
-
-            // Sort newest first
-            backups.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
-            jsonResponse(res, 200, { backups });
-          } catch (err: any) {
-            jsonResponse(res, 500, { error: err.message });
-          }
-          return;
-        }
-
-        // ── POST /api/backups/:type/:file/restore — restore a backup ──
-        // NOTE: check restore before the generic read, since the restore URL also matches BACKUP_GET_REGEX.
-        {
-          const restoreMatch = url.match(BACKUP_RESTORE_REGEX);
-          if (restoreMatch && req.method === 'POST') {
-            const [, type, file] = restoreMatch;
-            try {
-              if (type === 'css') {
-                const backupPath = path.join(CSS_BACKUP_DIR, decodeURIComponent(file));
-                if (!backupPath.startsWith(CSS_BACKUP_DIR) || !fs.existsSync(backupPath)) {
-                  jsonResponse(res, 404, { error: 'Backup not found' });
-                  return;
-                }
-                // Backup current before restoring
-                backupCssFile();
-                fs.copyFileSync(backupPath, CSS_PATH);
-                jsonResponse(res, 200, { ok: true, restored: file });
-              } else if (type === 'component-configs') {
-                const decoded = decodeURIComponent(file);
-                const slash = decoded.indexOf('/');
-                if (slash === -1) {
-                  jsonResponse(res, 400, { error: 'Malformed component-configs backup path' });
-                  return;
-                }
-                const comp = decoded.slice(0, slash);
-                const backupFile = decoded.slice(slash + 1);
-                const backupDir = path.join(COMPONENT_CONFIGS_DIR, comp, '_backups');
-                const backupPath = path.join(backupDir, backupFile);
-                if (!backupPath.startsWith(backupDir) || !fs.existsSync(backupPath)) {
-                  jsonResponse(res, 404, { error: 'Backup not found' });
-                  return;
-                }
-                const nameMatch = backupFile.match(/^(.+)_\d{4}-/);
-                if (!nameMatch) {
-                  jsonResponse(res, 400, { error: 'Cannot determine config name from backup' });
-                  return;
-                }
-                const configFilePath = path.join(COMPONENT_CONFIGS_DIR, comp, `${nameMatch[1]}.json`);
-                backupComponentConfigFile(configFilePath, comp, nameMatch[1]);
-                fs.copyFileSync(backupPath, configFilePath);
-                jsonResponse(res, 200, { ok: true, restored: file });
-              } else {
-                const backupPath = path.join(THEMES_BACKUP_DIR, decodeURIComponent(file));
-                if (!backupPath.startsWith(THEMES_BACKUP_DIR) || !fs.existsSync(backupPath)) {
-                  jsonResponse(res, 404, { error: 'Backup not found' });
-                  return;
-                }
-                // Determine which theme this backup belongs to
-                const nameMatch = decodeURIComponent(file).match(/^(.+)_\d{4}-/);
-                if (!nameMatch) {
-                  jsonResponse(res, 400, { error: 'Cannot determine theme name from backup' });
-                  return;
-                }
-                const themeFilePath = path.join(THEMES_DIR, `${nameMatch[1]}.json`);
-                // Backup current before restoring
-                backupThemeFile(themeFilePath, nameMatch[1]);
-                fs.copyFileSync(backupPath, themeFilePath);
-                jsonResponse(res, 200, { ok: true, restored: file });
-              }
-            } catch (err: any) {
-              jsonResponse(res, 500, { error: err.message });
-            }
-            return;
-          }
-        }
-
-        // ── GET /api/backups/:type/:file — read backup content ──
-        {
-          const backupMatch = url.match(BACKUP_GET_REGEX);
-          if (backupMatch && req.method === 'GET') {
-            const [, type, file] = backupMatch;
-            let filePath: string;
-            let dir: string;
-            if (type === 'css') {
-              dir = CSS_BACKUP_DIR;
-              filePath = path.join(dir, decodeURIComponent(file));
-            } else if (type === 'component-configs') {
-              const decoded = decodeURIComponent(file);
-              const slash = decoded.indexOf('/');
-              if (slash === -1) {
-                jsonResponse(res, 400, { error: 'Malformed component-configs backup path' });
-                return;
-              }
-              const comp = decoded.slice(0, slash);
-              const backupFile = decoded.slice(slash + 1);
-              dir = path.join(COMPONENT_CONFIGS_DIR, comp, '_backups');
-              filePath = path.join(dir, backupFile);
-            } else {
-              dir = THEMES_BACKUP_DIR;
-              filePath = path.join(dir, decodeURIComponent(file));
-            }
-            if (!filePath.startsWith(dir) || !fs.existsSync(filePath)) {
-              jsonResponse(res, 404, { error: 'Backup not found' });
-              return;
-            }
-            const content = fs.readFileSync(filePath, 'utf-8');
-            jsonResponse(res, 200, { content, type, file });
-            return;
-          }
-        }
-
-        // ── GET /api/current-css — read current tokens.css ──
-        if (url === CURRENT_CSS_ROUTE && req.method === 'GET') {
-          try {
-            const content = fs.readFileSync(CSS_PATH, 'utf-8');
-            jsonResponse(res, 200, { content });
-          } catch (err: any) {
-            jsonResponse(res, 500, { error: err.message });
-          }
-          return;
-        }
-
-        // ── GET /api/component-configs — list all components ──
-        if (url === COMPONENT_CONFIGS_ROUTE && req.method === 'GET') {
-          try {
-            const components = listComponentNames().map((comp) => ({
-              name: comp,
-              activeFile: getComponentActiveFileName(comp),
-              productionFile: getComponentProductionFileName(comp),
-            }));
-            jsonResponse(res, 200, { components });
-          } catch (err: any) {
-            jsonResponse(res, 500, { error: err.message });
-          }
-          return;
-        }
-
-        // ── GET/PUT /api/component-configs/:comp/active ──
-        // Must come before COMP_BY_NAME_REGEX — 'active' would otherwise match as a name.
-        {
-          const activeMatch = url.match(COMP_ACTIVE_REGEX);
-          if (activeMatch) {
-            const comp = activeMatch[1];
-            if (req.method === 'GET') {
-              try {
-                const activeFile = getComponentActiveFileName(comp);
-                const cfg = readComponentConfig(comp, activeFile);
-                if (!cfg) {
-                  jsonResponse(res, 404, { error: 'Active config not found' });
-                  return;
-                }
-                jsonResponse(res, 200, { ...cfg, _fileName: activeFile });
-              } catch (err: any) {
-                jsonResponse(res, 500, { error: err.message });
-              }
-              return;
-            }
-            if (req.method === 'PUT') {
-              try {
-                const body = JSON.parse(await readBody(req));
-                const fileName = sanitize(body.name || 'default');
-                const configPath = path.join(COMPONENT_CONFIGS_DIR, comp, `${fileName}.json`);
-                if (!fs.existsSync(configPath)) {
-                  jsonResponse(res, 404, { error: 'Config not found' });
-                  return;
-                }
-                ensureComponentDir(comp);
-                fs.writeFileSync(
-                  path.join(COMPONENT_CONFIGS_DIR, comp, '_active.json'),
-                  JSON.stringify({ activeFile: fileName }),
-                );
-                jsonResponse(res, 200, { ok: true, activeFile: fileName });
-              } catch (err: any) {
-                jsonResponse(res, 500, { error: err.message });
-              }
-              return;
-            }
-            jsonResponse(res, 405, { error: 'Method not allowed' });
-            return;
-          }
-        }
-
-        // ── GET/PUT /api/component-configs/:comp/production ──
-        {
-          const prodMatch = url.match(COMP_PRODUCTION_REGEX);
-          if (prodMatch) {
-            const comp = prodMatch[1];
-            if (req.method === 'GET') {
-              try {
-                const prodFile = getComponentProductionFileName(comp);
-                const cfg = readComponentConfig(comp, prodFile);
-                jsonResponse(res, 200, {
-                  fileName: prodFile,
-                  name: cfg?.name || prodFile,
-                  aliases: cfg?.aliases || {},
-                });
-              } catch (err: any) {
-                jsonResponse(res, 500, { error: err.message });
-              }
-              return;
-            }
-            if (req.method === 'PUT') {
-              try {
-                const body = JSON.parse(await readBody(req));
-                const fileName = sanitize(body.name || 'default');
-                const configPath = path.join(COMPONENT_CONFIGS_DIR, comp, `${fileName}.json`);
-                if (!fs.existsSync(configPath)) {
-                  jsonResponse(res, 404, { error: 'Config not found' });
-                  return;
-                }
-                ensureComponentDir(comp);
-                fs.writeFileSync(
-                  path.join(COMPONENT_CONFIGS_DIR, comp, '_production.json'),
-                  JSON.stringify({ productionFile: fileName }),
-                );
-                syncComponentsToCss();
-                jsonResponse(res, 200, { ok: true, productionFile: fileName });
-              } catch (err: any) {
-                jsonResponse(res, 500, { error: err.message });
-              }
-              return;
-            }
-            jsonResponse(res, 405, { error: 'Method not allowed' });
-            return;
-          }
-        }
-
-        // ── GET/PUT/DELETE /api/component-configs/:comp/:name — CRUD for a single config ──
-        {
-          const byNameMatch = url.match(COMP_BY_NAME_REGEX);
-          if (byNameMatch) {
-            const [, comp, name] = byNameMatch;
-            const configPath = path.join(COMPONENT_CONFIGS_DIR, comp, `${name}.json`);
-
-            if (req.method === 'GET') {
-              try {
-                if (!fs.existsSync(configPath)) {
-                  jsonResponse(res, 404, { error: 'Not found' });
-                  return;
-                }
-                const data = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-                data._fileName = name;
-                jsonResponse(res, 200, data);
-              } catch (err: any) {
-                jsonResponse(res, 500, { error: err.message });
-              }
-              return;
-            }
-
-            if (req.method === 'PUT') {
-              if (name === 'default') {
-                jsonResponse(res, 403, { error: 'Cannot modify default config (regenerated from source)' });
-                return;
-              }
-              try {
-                const body = JSON.parse(await readBody(req));
-                body.component = comp;
-                body.name = body.name || name;
-                body.updatedAt = new Date().toISOString();
-                if (fs.existsSync(configPath)) {
-                  try {
-                    const existing = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-                    if (existing.createdAt) body.createdAt = existing.createdAt;
-                  } catch { /* use body value or set below */ }
-                }
-                if (!body.createdAt) body.createdAt = body.updatedAt;
-                ensureComponentDir(comp);
-                backupComponentConfigFile(configPath, comp, name);
-                fs.writeFileSync(configPath, JSON.stringify(body, null, 2));
-                if (getComponentProductionFileName(comp) === name) {
-                  syncComponentsToCss();
-                }
-                jsonResponse(res, 200, { ok: true, fileName: name });
-              } catch (err: any) {
-                jsonResponse(res, 500, { error: err.message });
-              }
-              return;
-            }
-
-            if (req.method === 'DELETE') {
-              if (name === 'default') {
-                jsonResponse(res, 403, { error: 'Cannot delete default config' });
-                return;
-              }
-              try {
-                if (fs.existsSync(configPath)) {
-                  fs.unlinkSync(configPath);
-                  if (getComponentActiveFileName(comp) === name) {
-                    fs.writeFileSync(
-                      path.join(COMPONENT_CONFIGS_DIR, comp, '_active.json'),
-                      JSON.stringify({ activeFile: 'default' }),
-                    );
-                  }
-                  if (getComponentProductionFileName(comp) === name) {
-                    fs.writeFileSync(
-                      path.join(COMPONENT_CONFIGS_DIR, comp, '_production.json'),
-                      JSON.stringify({ productionFile: 'default' }),
-                    );
-                    syncComponentsToCss();
-                  }
-                }
-                jsonResponse(res, 200, { ok: true });
-              } catch (err: any) {
-                jsonResponse(res, 500, { error: err.message });
-              }
-              return;
-            }
-
-            jsonResponse(res, 405, { error: 'Method not allowed' });
-            return;
-          }
-        }
-
-        // ── GET /api/component-configs/:comp — list configs for a component ──
-        {
-          const listMatch = url.match(COMP_LIST_REGEX);
-          if (listMatch && req.method === 'GET') {
-            const comp = listMatch[1];
-            try {
-              const dir = path.join(COMPONENT_CONFIGS_DIR, comp);
-              if (!fs.existsSync(dir)) {
-                jsonResponse(res, 404, { error: 'Component not found' });
-                return;
-              }
-              const activeFile = getComponentActiveFileName(comp);
-              const productionFile = getComponentProductionFileName(comp);
-              const files = fs
-                .readdirSync(dir)
-                .filter((f) => f.endsWith('.json') && !f.startsWith('_'))
-                .map((f) => {
-                  const filePath = path.join(dir, f);
-                  const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-                  const fileName = f.replace('.json', '');
-                  return {
-                    name: data.name || fileName,
-                    fileName,
-                    updatedAt: data.updatedAt || '',
-                    isActive: fileName === activeFile,
-                    isProduction: fileName === productionFile,
-                  };
-                });
-              jsonResponse(res, 200, { component: comp, files, activeFile, productionFile });
-            } catch (err: any) {
-              jsonResponse(res, 500, { error: err.message });
-            }
-            return;
-          }
-        }
-
-        // ── /api/themes/:name — CRUD for individual themes ──
-        const match = url.match(THEME_BY_NAME_REGEX);
-        if (match) {
-          const fileName = match[1];
-          const filePath = path.join(THEMES_DIR, `${fileName}.json`);
-
-          if (req.method === 'GET') {
-            try {
-              if (!fs.existsSync(filePath)) {
-                jsonResponse(res, 404, { error: 'Not found' });
-                return;
-              }
-              const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-              data._fileName = fileName;
-              jsonResponse(res, 200, data);
-            } catch (err: any) {
-              jsonResponse(res, 500, { error: err.message });
-            }
-            return;
-          }
-
-          if (req.method === 'PUT') {
-            try {
-              const body = JSON.parse(await readBody(req));
-              body.updatedAt = new Date().toISOString();
-              // Preserve createdAt from existing file
-              if (fs.existsSync(filePath)) {
-                try {
-                  const existing = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-                  if (existing.createdAt) body.createdAt = existing.createdAt;
-                } catch { /* use body value or set below */ }
-              }
-              if (!body.createdAt) body.createdAt = body.updatedAt;
-              // Backup existing file before overwriting
-              backupThemeFile(filePath, fileName);
-              fs.writeFileSync(filePath, JSON.stringify(body, null, 2));
-              // Keep tokens.css and fonts.css in sync when the production theme is saved
-              if (fileName === getProductionFileName()) {
-                syncTokensToCss(fileName);
-                syncFontsToCss(fileName);
-                syncComponentsToCss();
-              }
-              jsonResponse(res, 200, { ok: true, fileName });
-            } catch (err: any) {
-              jsonResponse(res, 500, { error: err.message });
-            }
-            return;
-          }
-
-          if (req.method === 'DELETE') {
-            if (fileName === 'default') {
-              jsonResponse(res, 403, { error: 'Cannot delete the default theme' });
-              return;
-            }
-            try {
-              if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-                // If this was the active theme, revert to default
-                if (getActiveFileName() === fileName) {
-                  fs.writeFileSync(ACTIVE_FILE, JSON.stringify({ activeFile: 'default' }));
-                }
-              }
-              jsonResponse(res, 200, { ok: true });
-            } catch (err: any) {
-              jsonResponse(res, 500, { error: err.message });
-            }
-            return;
-          }
-
-          jsonResponse(res, 405, { error: 'Method not allowed' });
-          return;
-        }
-
-        // Not a theme API request — pass through
-        next();
+        const handled = await dispatch(req, res, routes);
+        if (!handled) next();
       });
     },
     handleHotUpdate(ctx) {
