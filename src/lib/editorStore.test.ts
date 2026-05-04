@@ -62,7 +62,7 @@ describe('editorStore — transactions group gestures', () => {
   it('beginTransaction + multiple mutate() + commitTransaction → one past entry equal to pre-gesture snapshot', () => {
     setPaletteConfig('Background', makePaletteConfig('#111111'));
     const baselinePast = __getHistoryLengths().past;
-    const preGesture = structuredCloneJSON(get(editorState));
+    const preGesture = structuredClone(get(editorState));
 
     beginTransaction('drag hue');
     mutate('hue step 1', (s) => { s.palettes.Background.baseColor = '#222222'; });
@@ -238,7 +238,7 @@ describe('editorStore — palette edit sessions', () => {
 describe('editorStore — apply + undo matches spec end-to-end', () => {
   it('after Apply, one Cmd+Z restores to pre-session state', () => {
     setPaletteConfig('Background', makePaletteConfig('#8d7f74'));
-    const preSessionState = structuredCloneJSON(get(editorState));
+    const preSessionState = structuredClone(get(editorState));
 
     beginPaletteEditSession();
     // Simulate three slider drags during the session
@@ -259,7 +259,7 @@ describe('editorStore — apply + undo matches spec end-to-end', () => {
 
   it('after Cancel, Cmd+Z does not resurrect discarded drags', () => {
     setPaletteConfig('Background', makePaletteConfig('#8d7f74'));
-    const preSessionState = structuredCloneJSON(get(editorState));
+    const preSessionState = structuredClone(get(editorState));
 
     beginPaletteEditSession();
     for (const hex of ['#702030', '#503090', '#205090']) {
@@ -326,7 +326,3 @@ describe('editorStore — intra-session slider-drag tracking', () => {
     expect(undo()).toBe(false);
   });
 });
-
-function structuredCloneJSON<T>(v: T): T {
-  return JSON.parse(JSON.stringify(v));
-}

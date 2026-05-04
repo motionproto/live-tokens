@@ -2,19 +2,15 @@ import {
   isComponentPropertyShared,
   getComponentPropertySiblings,
 } from '../../lib/editorStore';
-import type { EditorState } from '../../lib/editorTypes';
+import type { Token } from './types';
 
-export type SharedToken = {
-  label: string;
-  variable: string;
-  canBeShared?: boolean;
-  groupKey?: string;
-  hidden?: boolean;
-  disabled?: boolean;
+/** `Token` enriched by the shared-block computation. The base fields are inherited from
+    `Token`; the extra commentary on `mergeVariables` here is shared-block-specific. */
+export interface SharedToken extends Token {
   /** Other groupKey lead variables whose current alias matches this row's. The row writes
       the same alias to each of these (and their siblings) so the merged display stays in sync. */
   mergeVariables?: string[];
-};
+}
 
 export type SharedGroup = {
   token: SharedToken;
@@ -35,15 +31,15 @@ export type SharedBlockResult = {
  * Each entry in `shareableContexts` maps a representative variable to a context label.
  * A group is formed when ≥2 sibling variables (same component, same groupKey) exist.
  *
- * Pass `$editorState` to make the caller's reactive statement re-run when state changes.
+ * Reads editor state internally via `getComponentPropertySiblings` (which `get`s the store).
+ * Reactivity is the caller's responsibility: do `$: shared = computeSharedBlock(...);
+ * void $editorState;` so the reactive statement re-runs when state changes.
  */
 export function computeSharedBlock(
   component: string,
   shareableContexts: Map<string, string>,
   allTokens: SharedToken[],
-  _state: EditorState,
 ): SharedBlockResult {
-  void _state;
   const groups: SharedGroup[] = [];
   const varSet = new Set<string>();
   const seen = new Set<string>();

@@ -82,7 +82,8 @@
     ]),
   ]);
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens);
+  $: void $editorState;
 
   $: visibleVariantStates = (v: Variant) => Object.fromEntries(
     Object.entries(variantStates(v)).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),

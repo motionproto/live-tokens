@@ -42,7 +42,8 @@
     [`--inlineeditactions-${btn}-default-icon-size`, btn] as const,
   ]));
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens);
+  $: void $editorState;
 
   $: visibleStatesByButton = (btn: Button) => Object.fromEntries(
     Object.entries(buttonStates(btn)).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),

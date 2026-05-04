@@ -75,7 +75,8 @@
     [`--notification-${v}-text-line-height`, v] as const,
   ]));
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens);
+  $: void $editorState;
   $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
 
   const BUTTON_VARIANT_OPTIONS = ['none', 'primary', 'secondary', 'outline', 'success', 'danger', 'warning'] as const;

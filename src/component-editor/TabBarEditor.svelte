@@ -75,7 +75,8 @@
     [`--tabbar-${s}-text-line-height`, `${s} tab`] as const,
   ]));
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens);
+  $: void $editorState;
 
   $: visibleTabStates = Object.fromEntries(
     Object.entries(tabStates).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),

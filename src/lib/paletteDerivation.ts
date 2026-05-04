@@ -198,6 +198,7 @@ function scaleToCssVar(scaleTitle: string, stepName: string, cssNamespace: strin
   }
   if (scaleTitle === 'Text') {
     if (cssNamespace === 'neutral') return `--text-${stepName}`;
+    // `--text-primary-color` (not `--text-primary`) avoids collision with the neutral primary text token.
     if (cssNamespace === 'primary' && stepName === 'primary') return '--text-primary-color';
     return stepName === 'primary' ? `--text-${cssNamespace}` : `--text-${cssNamespace}-${stepName}`;
   }

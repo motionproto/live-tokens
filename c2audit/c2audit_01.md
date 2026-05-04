@@ -164,6 +164,7 @@ Design health is solid in the small (pure modules — `paletteDerivation`, `oklc
 
 ### m3. Repeated `setTimeout(() => (saveStatus = 'idle'), 2000)` `[local]`
 - `src/component-editor/scaffolding/ComponentFileManager.svelte:147,151,201,205,252,255` — five copies of the same pattern. One `flashStatus(state)` helper.
+- [done] **Resolution (2026-05-04):** Extracted `flashStatus(state)` for the saveStatus flash sites (4 setTimeouts in `handleSave`/`confirmSaveAs` collapsed) and a parallel `flashProductionStatus(state)` for the structurally identical productionUpdateStatus block in `handleUpdateProduction`. Two helpers because the status enums differ (`SaveStatus` vs `ProductionStatus`); both share the same 2s idle-revert timing. Tests 18 → 18.
 
 ### m4. Empty `try {} catch {}` blocks for "silent fallback" `[cross-cutting]`
 - `src/lib/themeInit.ts:36, 54`; `ComponentFileManager.svelte:77, 86, 224, 242`; `LiveEditorOverlay.svelte:42, 47, 99, 112`; `editorStore.ts:1222, 1252`; `columnsOverlay.ts:9, 19`. The pattern is acceptable case-by-case (storage quota, missing endpoint), but the density invites Cargo Cult — a developer adding new code copies the empty catch without re-considering. A small `quietGet/quietSet` helper for storage and a single `safeFetch` for boot-time API calls would make the silence intentional.
@@ -173,18 +174,21 @@ Design health is solid in the small (pure modules — `paletteDerivation`, `oklc
 
 ### m6. `Token` type redeclared inline `[local]`
 - `src/component-editor/scaffolding/TokenLayout.svelte:21` reproduces the type exactly from `src/component-editor/scaffolding/types.ts:2`. Import the canonical type. Same pattern in `sharedBlock.ts:7` (`SharedToken` is `Token` plus optional fields — can `extend`).
+- [done] **Resolution (2026-05-04):** TokenLayout now `import type { Token } from './types'` (inline type dropped). `SharedToken` in `sharedBlock.ts` is now `interface SharedToken extends Token { mergeVariables?: string[] }` — base fields inherited, only the shared-block-specific addition stays local.
 
 ### m7. `SCALE_SHADOW_VARIABLES` (Set) duplicates `SHADOW_VAR_NAMES` (tuple) `[local]`
 - `src/lib/editorStore.ts:238` defines the tuple, `:275` defines the Set with the same five literals. Derive one from the other.
 
 ### m8. `void _state` reactivity hack in `sharedBlock.ts` `[local]`
 - `src/component-editor/scaffolding/sharedBlock.ts:44, 46` — accept `EditorState` only to force a Svelte reactive re-run, then immediately `void _state`. API smell. Make `computeSharedBlock` callable without state (it reads via `getComponentPropertySiblings(...)` which already calls `get(store)`); callers that need reactivity can do `$: shared = computeSharedBlock(...); void $editorState;` at the call site.
+- [done] **Resolution (2026-05-04):** Dropped the `_state: EditorState` parameter from `computeSharedBlock` (and the `EditorState` import); jsdoc now documents that callers own reactivity. All 11 callers (Notification, SegmentedControl, InlineEditActions, ProgressBar, CollapsibleSection, RadioButton, TabBar, Card, Badge, StandardButtons, plus the canonical declaration) now do `$: shared = computeSharedBlock(component, shareableContexts, allTokens); $: void $editorState;` as two reactive statements.
 
 ### m9. `navigate()` triggers two store writes per call `[local]`
 - `src/lib/router.ts:14-23`: `route.set(pathname)` then `dispatchEvent(PopStateEvent)` whose listener (line 25) calls `route.set(...)` again. The synthetic popstate is unnecessary — drop it, or drop the explicit `route.set` and rely on the listener.
 
 ### m10. Dead `id.startsWith('divider-')` branch `[local]`
 - `src/pages/ComponentEditorPage.svelte:142` — none of the `componentNavItems` match this prefix. Either populate (with intent) or delete (Speculative Generality).
+- [done] **Resolution (2026-05-04):** Verified post-Wave-2: no `componentNavItems` entry, no `defaultSections.ts` entry, no `componentSources.ts` entry, no other code site starts ids with `divider-`. Branch deleted; the `.nav-divider-label` CSS rule and its rail-expanded sibling deleted with it (no other consumer).
 
 ### m11. `// NEW: Show action button in header row` task-narration comment `[local]`
 - `src/components/Notification.svelte:18` — "NEW:" is a moment-of-change marker that violates the "comments belong to the code, not the PR" project convention. Same file: 11+ `actionInline`/`actionHeader`/`actionLeftVariant`/etc. boolean+option flags are a Long Parameter List / Flag Arguments accumulation worth flagging separately.
@@ -192,6 +196,7 @@ Design health is solid in the small (pure modules — `paletteDerivation`, `oklc
 
 ### m12. `structuredCloneJSON` reinvented in tests `[local]`
 - `src/lib/editorStore.test.ts:331` — `JSON.parse(JSON.stringify(v))` helper; happy-dom and Node 18+ both have global `structuredClone`.
+- [done] **Resolution (2026-05-04):** All 3 call sites (lines 65/241/262) switched to global `structuredClone(...)`; the `structuredCloneJSON` helper at the bottom of the file deleted. Tests 18 → 18.
 
 ### m13. `seedShadowsFromDom` couples seed timing to the shadows UI `[local]`
 - `src/lib/editorStore.ts:321`: "Called once from the shadows UI when state has no tokens yet." This is a Hidden Sequential Coupling — if the user never opens the shadows tab, no seed happens; tokens.css then disagrees with what the editor *thinks* shadows are. Move the seed into hydrate or into `loadFromFile`'s "preserve existing" branch.
@@ -200,7 +205,9 @@ Design health is solid in the small (pure modules — `paletteDerivation`, `oklc
 
 - `src/lib/editorStore.ts:14, 1278` `[local]` — "Phase 1" / "Phase 2 derivation" comments. Remove once stable; keep them in the PR description.
 - `src/lib/paletteDerivation.ts:201` `[local]` — `--text-primary-color` one-off rule (when ns=='primary' and step=='primary') deserves a one-line WHY (avoid `--text-primary` collision) or extraction to a tiny rename map.
+  - [done] **Resolution (2026-05-04):** Added a one-line comment above the rule explaining the collision-avoidance with the neutral `--text-primary` token.
 - `src/component-editor/scaffolding/ComponentFileManager.svelte:1` `[local]` — 888 lines. Split the SaveAs dialog and the file menu into sub-components; the parent is hard to follow now.
+  - [deferred] **(2026-05-04):** Wave 3f bundled this with smaller micros and chose to defer rather than scope-creep. The split is its own ~30-min refactor (extract `<SaveAsDialog>` and `<FileMenu>` sub-components, thread props through, move CSS) and deserves its own follow-up wave; tracking as outstanding.
 - `src/lib/editorStore.ts:1140` `[local]` — `loadFromFile` is 40 lines that read like a small pipeline (clear → split rawVars by domain → preserve session-scoped fields → reset history). A typed `loaders[domain](rawVars)` table would make the flow explicit.
 
 ## Project conventions

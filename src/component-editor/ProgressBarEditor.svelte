@@ -73,7 +73,8 @@
     [`--progressbar-${v}-value-line-height`, v] as const,
   ]));
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens);
+  $: void $editorState;
   $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
 
   const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));

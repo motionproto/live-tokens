@@ -17,8 +17,7 @@
     setComponentAliasShared,
     clearComponentAliasShared,
   } from '../../lib/editorStore';
-
-  type Token = { label: string; variable: string; canBeShared?: boolean; groupKey?: string; disabled?: boolean; hidden?: boolean; mergeVariables?: string[] };
+  import type { Token } from './types';
 
   /** Selector kind. `padding-split` is `padding` whose per-side variables exist;
       it renders the four-sided field group instead of the single-value row. */

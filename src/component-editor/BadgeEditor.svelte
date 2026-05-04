@@ -75,7 +75,8 @@
     ['--badge-trait-text-line-height', 'trait'],
   ]);
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens);
+  $: void $editorState;
   $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
 
   let bgMode: 'image' | 'color' = 'image';

@@ -87,7 +87,8 @@
   const allTokens = [...Object.values(states).flat(), ...typeGroupTokens];
   registerComponentSchema(component, allTokens);
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens);
+  $: void $editorState;
 
   $: visibleStates = Object.fromEntries(
     Object.entries(states).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),

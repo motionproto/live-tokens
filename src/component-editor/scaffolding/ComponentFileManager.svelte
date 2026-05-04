@@ -44,7 +44,15 @@
   const tabbableStore = editorCtx?.tabbable ?? writable(false);
   const viewModeStore = editorCtx?.viewMode ?? writable<ViewMode>('tabs');
 
-  let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
+  type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+  let saveStatus: SaveStatus = 'idle';
+
+  /** Show a transient saveStatus (saved/error) and revert to idle after 2s.
+      Centralises the timing so all flash sites stay in sync. */
+  function flashStatus(state: Exclude<SaveStatus, 'idle'>) {
+    saveStatus = state;
+    setTimeout(() => (saveStatus = 'idle'), 2000);
+  }
   let files: ComponentConfigMeta[] = [];
   let activeFileName = 'default';
   let currentDisplayName = 'Default';
@@ -56,7 +64,14 @@
   let fileMenuRoot: HTMLElement;
 
   let productionInfo: ComponentProductionInfo | null = null;
-  let productionUpdateStatus: 'idle' | 'updating' | 'done' | 'error' = 'idle';
+  type ProductionStatus = 'idle' | 'updating' | 'done' | 'error';
+  let productionUpdateStatus: ProductionStatus = 'idle';
+
+  /** Same idle-after-2s pattern for the production-update flash. */
+  function flashProductionStatus(state: Exclude<ProductionStatus, 'idle'>) {
+    productionUpdateStatus = state;
+    setTimeout(() => (productionUpdateStatus = 'idle'), 2000);
+  }
 
   $: compDirty = $componentDirty[component] ?? false;
   $: isApplied = !!productionInfo && productionInfo.fileName === activeFileName && !compDirty;
@@ -143,12 +158,10 @@
     saveStatus = 'saving';
     try {
       await persist(activeFileName, currentDisplayName);
-      saveStatus = 'saved';
-      setTimeout(() => (saveStatus = 'idle'), 2000);
+      flashStatus('saved');
       await refreshFiles();
     } catch {
-      saveStatus = 'error';
-      setTimeout(() => (saveStatus = 'idle'), 2000);
+      flashStatus('error');
     }
   }
 
@@ -197,12 +210,10 @@
     saveStatus = 'saving';
     try {
       await persist(fileName, displayName);
-      saveStatus = 'saved';
-      setTimeout(() => (saveStatus = 'idle'), 2000);
+      flashStatus('saved');
       await refreshFiles();
     } catch {
-      saveStatus = 'error';
-      setTimeout(() => (saveStatus = 'idle'), 2000);
+      flashStatus('error');
     }
   }
 
@@ -248,11 +259,9 @@
     try {
       await setComponentProductionFile(component, activeFileName);
       await refreshProduction();
-      productionUpdateStatus = 'done';
-      setTimeout(() => (productionUpdateStatus = 'idle'), 2000);
+      flashProductionStatus('done');
     } catch {
-      productionUpdateStatus = 'error';
-      setTimeout(() => (productionUpdateStatus = 'idle'), 2000);
+      flashProductionStatus('error');
     }
   }
 
