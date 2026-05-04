@@ -5,9 +5,10 @@
   import ProjectFontsSection from './ProjectFontsSection.svelte';
   import GradientEditor from './GradientEditor.svelte';
   import {
-    editorState, mutate, beginTransaction, commitTransaction, beginSliderGesture,
+    editorState, mutate, beginScope, commitScope, beginSliderGesture,
     seedShadowsFromDom, shadowTokenCss, computeShadowXY,
     SCALE_SHADOW_VARIABLES, defaultShadowOverride,
+    type Scope,
   } from '../lib/editorStore';
   import type {
     ColumnsState, OverlayToken, OverlayChannelGlobals,
@@ -354,14 +355,15 @@
     return Math.round(angle);
   }
 
-  // Dial drag: open a transaction, stream angle edits into it, commit on
-  // pointerup (observed on window so an off-dial release still commits).
+  // Dial drag: open a scope, stream angle edits into it, commit on pointerup
+  // (observed on window so an off-dial release still commits).
   let dialDragIdx: number | null = null;
+  let dialDragScope: Scope | null = null;
   function handleDialDown(event: PointerEvent, idx: number) {
     dialDragIdx = idx;
     const svg = event.currentTarget as SVGSVGElement;
     svg.setPointerCapture(event.pointerId);
-    beginTransaction('drag shadow angle');
+    dialDragScope = beginScope({ label: 'drag shadow angle', collapseToOne: true, clipUndoFloor: false });
     setTokenField(idx, 'angle', angleFromPointer(event, svg));
   }
   function handleDialMove(event: PointerEvent, idx: number) {
@@ -372,15 +374,16 @@
   function handleDialUp() {
     if (dialDragIdx === null) return;
     dialDragIdx = null;
-    commitTransaction();
+    if (dialDragScope) { commitScope(dialDragScope); dialDragScope = null; }
   }
 
   let globalDialDrag = false;
+  let globalDialScope: Scope | null = null;
   function handleGlobalDialDown(event: PointerEvent) {
     globalDialDrag = true;
     const svg = event.currentTarget as SVGSVGElement;
     svg.setPointerCapture(event.pointerId);
-    beginTransaction('drag global shadow angle');
+    globalDialScope = beginScope({ label: 'drag global shadow angle', collapseToOne: true, clipUndoFloor: false });
     setGlobalAngle(angleFromPointer(event, svg));
   }
   function handleGlobalDialMove(event: PointerEvent) {
@@ -391,7 +394,7 @@
   function handleGlobalDialUp() {
     if (!globalDialDrag) return;
     globalDialDrag = false;
-    commitTransaction();
+    if (globalDialScope) { commitScope(globalDialScope); globalDialScope = null; }
   }
 
   // Background picker for shadows section

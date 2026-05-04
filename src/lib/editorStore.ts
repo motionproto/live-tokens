@@ -88,9 +88,9 @@ export {
   editorState,
   mutate,
   transaction,
-  beginTransaction,
-  commitTransaction,
-  abortTransaction,
+  beginScope,
+  commitScope,
+  cancelScope,
   beginSliderGesture,
   undo,
   redo,
@@ -98,12 +98,10 @@ export {
   canRedo,
   dirty,
   markSaved,
-  beginPaletteEditSession,
-  commitPaletteEditSession,
-  cancelPaletteEditSession,
   __getHistoryLengths,
   __getPastAt,
 } from './editorCore';
+export type { Scope } from './editorCore';
 
 // Wire the factory in both editorCore and editorPersistence. Resetting the
 // store lands a proper EditorState before any helper below runs `mutate`.
