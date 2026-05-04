@@ -113,17 +113,19 @@ Design health is solid in the small (pure modules — `paletteDerivation`, `oklc
 - **Why it matters:** Test names ("undo() with a pending transaction aborts it first") show that cross-regime edges are subtle. New edit modes (e.g. component-file edits per memory's alias gap) will plausibly want a similar "scoped undo." Locking in three is harder to extend than locking in one composable abstraction.
 - **Direction:** Consider whether all three reduce to "scoped undo with commit/cancel" — sessions = transactions whose floor is also clipped from undo. If yes, fold; if no, document the orthogonal axes so the next mode picks the right one.
 
-### M7. Module-load side effects spread across the editor — Hidden Dependencies `[cross-cutting]`
+### M7. Module-load side effects spread across the editor — Hidden Dependencies `[cross-cutting]` [done]
 - **Where:** `src/lib/editorStore.ts:1267` (eager hydrate), `:1303` (DOM subscriber); `src/lib/cssVarSync.ts:26-27` (`selfRoot`, `parentRoot` cached at import); `src/lib/columnsOverlay.ts:16` (subscribe-then-persist on import); `src/lib/router.ts:10` (reads `window.location` at module load); `src/component-editor/SegmentedControlEditor.svelte:115` and every other editor's top-level `registerComponentSchema` call.
 - **What:** Importing these modules has DOM/storage side effects — fine in browser dev, problematic for SSR, tests, or any harness that imports for type information.
 - **Why it matters:** Compounding load-order constraints. `configureEditor({storagePrefix})` (M8) is a concrete victim of this — it has to be called before `editorStore` is imported anywhere, or `PERSIST_KEY` is already cached with the default `lt-` prefix.
 - **Direction:** Ensure each module exports a deferred `init()` that the host calls (or that's idempotent). The editor-schema registration is the cleanest case — call it from a side-effect-free function that the editor page invokes once.
+- **Resolution (2026-05-04):** Added idempotent `init()` to `cssVarSync`, `columnsOverlay`, `router`, and `editorStore`. Module-load side effects (DOM root resolution, storage subscribe-and-persist, `window.location` reads, eager hydrate, DOM subscriber) now fire only when the host opts in. `src/main.ts` is the single boot orchestration point that calls all four. `__resetForTests` and the existing test suites still work without `init()` because the store-level state machinery is decoupled from the DOM subscriber. Wave 2 still owns the 14 editor `.svelte` `registerComponentSchema` calls.
 
-### M8. `configureEditor` storagePrefix is mutable global state with no enforced ordering `[local]`
+### M8. `configureEditor` storagePrefix is mutable global state with no enforced ordering `[local]` [done]
 - **Where:** `src/lib/editorConfig.ts:1` (`let prefix = 'lt-'`); `src/lib/editorStore.ts:25` (`PERSIST_KEY = storageKey('editor-state')` at module load).
 - **What:** Library consumers call `configureEditor({storagePrefix: 'my-app-'})` to namespace storage. But `editorStore.ts` resolves `PERSIST_KEY` at module-load — by the time `main.ts` calls `configureEditor`, anything else that imported `editorStore` has already locked in the default. The persist key is also a constant — there is no recompute.
 - **Why it matters:** Two consumers of the library that boot-sequence differently get silently different storage keys.
 - **Direction:** Resolve storage keys lazily (read `prefix` at use time, not at module load) — or accept the prefix as a `configureEditor` argument that explicitly initialises the store.
+- **Resolution (2026-05-04):** `editorStore` now wraps the persist key in `getPersistKey()` (called per use, no memoisation) instead of a module-scope const. `columnsOverlay` likewise resolves its key per call. New `lazyConfig.test.ts` verifies that calling `configureEditor({storagePrefix: 'test-'})` after import is observed by `storageKey('editor-state')`.
 
 ### M9. `SegmentedControlEditor` hand-lists 16 typography tokens that `StandardButtonsEditor` derives by loop `[local]`
 - **Where:** `src/component-editor/SegmentedControlEditor.svelte:96–139` (typeGroupTokens + shareableContexts spelled out 3-way for 4 states × 4 props); contrast `src/component-editor/StandardButtonsEditor.svelte:60–89` and `RadioButtonEditor.svelte:58–86` (derived from arrays via `flatMap`).
@@ -140,10 +142,11 @@ Design health is solid in the small (pure modules — `paletteDerivation`, `oklc
 - **What:** Browser and Node reimplementations because the plugin is Node-only. Acceptable today; flagging because if the assumption ever breaks (someone writes a media query inside a token block), both must change.
 - **Direction:** Move to a shared TS file imported by both — Vite's tsup build already produces both formats. Or accept the duplication with a colocated comment that names both call sites.
 
-### M12. `router.ts` hardcodes `lt-prev-route` instead of using `storageKey()` `[local]`
+### M12. `router.ts` hardcodes `lt-prev-route` instead of using `storageKey()` `[local]` [done]
 - **Where:** `src/lib/router.ts:3` (`const PREV_KEY = 'lt-prev-route'`).
 - **What:** A library consumer who calls `configureEditor({storagePrefix: 'my-app-'})` still gets `lt-prev-route` for this one key. Inconsistent with `editorStore`, `columnsOverlay`, `editorConfigStore`, and `LiveEditorOverlay` which all use `storageKey()`.
 - **Direction:** Switch to `storageKey('prev-route')` — same caveat as M8 about resolution timing.
+- **Resolution (2026-05-04):** `router.ts` now resolves the previous-route key via `storageKey('prev-route')` per call (lazy, same pattern as M8). `pages/Editor.svelte`'s "Back to site" lookup also switched from the literal `'lt-prev-route'` to `storageKey('prev-route')` so it stays in lockstep with the prefix.
 
 ## Minor
 
@@ -171,8 +174,9 @@ Design health is solid in the small (pure modules — `paletteDerivation`, `oklc
 ### m8. `void _state` reactivity hack in `sharedBlock.ts` `[local]`
 - `src/component-editor/scaffolding/sharedBlock.ts:44, 46` — accept `EditorState` only to force a Svelte reactive re-run, then immediately `void _state`. API smell. Make `computeSharedBlock` callable without state (it reads via `getComponentPropertySiblings(...)` which already calls `get(store)`); callers that need reactivity can do `$: shared = computeSharedBlock(...); void $editorState;` at the call site.
 
-### m9. `navigate()` triggers two store writes per call `[local]`
+### m9. `navigate()` triggers two store writes per call `[local]` [done]
 - `src/lib/router.ts:14-23`: `route.set(pathname)` then `dispatchEvent(PopStateEvent)` whose listener (line 25) calls `route.set(...)` again. The synthetic popstate is unnecessary — drop it, or drop the explicit `route.set` and rely on the listener.
+- **Resolution (2026-05-04):** Dropped the synthetic `dispatchEvent(PopStateEvent)`. `navigate()` now produces exactly one `route.set` per call; the popstate listener (installed in `init()`) only handles real browser back/forward events. Verified by `lazyConfig.test.ts` with a `vi.fn()` subscriber.
 
 ### m10. Dead `id.startsWith('divider-')` branch `[local]`
 - `src/pages/ComponentEditorPage.svelte:142` — none of the `componentNavItems` match this prefix. Either populate (with intent) or delete (Speculative Generality).

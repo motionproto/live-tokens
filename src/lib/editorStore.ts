@@ -22,7 +22,14 @@ import { storageKey } from './editorConfig';
 
 const HISTORY_MAX = 100;
 const PERSIST_DEBOUNCE_MS = 300;
-const PERSIST_KEY = storageKey('editor-state');
+
+// Resolve the persist key lazily (per-call) so library consumers that invoke
+// `configureEditor({storagePrefix})` before the first store write get the
+// configured prefix even if `editorStore` was imported at module-load time
+// (M8). The function call is cheap; do not memoise — that defeats the point.
+function getPersistKey(): string {
+  return storageKey('editor-state');
+}
 
 const DEFAULT_COLUMNS: ColumnsState = { count: 12, maxWidth: 1440, gutter: 16, margin: 0 };
 
@@ -1217,7 +1224,7 @@ function schedulePersist(): void {
 function persistNow(): void {
   persistTimer = null;
   try {
-    localStorage.setItem(PERSIST_KEY, JSON.stringify(get(store)));
+    localStorage.setItem(getPersistKey(), JSON.stringify(get(store)));
   } catch {
     // quota / serialization errors — silent, not fatal
   }
@@ -1240,7 +1247,7 @@ function migrateGradients(state: EditorState): EditorState {
 function hydrate(): void {
   if (typeof localStorage === 'undefined') return;
   try {
-    const raw = localStorage.getItem(PERSIST_KEY);
+    const raw = localStorage.getItem(getPersistKey());
     if (!raw) return;
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object') {
@@ -1254,21 +1261,37 @@ function hydrate(): void {
   }
 }
 
-// Hydrate eagerly at module load so child components reading `$editorState`
-// in their onMount see persisted state, not the transient empty default.
-// Svelte mounts children before parents — waiting for Editor's onMount is
-// too late.
-let hydrated = false;
+// Idempotent boot hook — the host (main.ts / editor page boot) calls `init()`
+// once. Hydrates from localStorage and wires the DOM subscriber that derives
+// CSS vars and writes them to :root. Importing the module no longer has DOM
+// or storage side effects (M7), so SSR / test harnesses can import safely.
+let initialised = false;
 function ensureHydrated(): void {
-  if (hydrated) return;
-  hydrated = true;
+  if (initialised) return;
+  initialised = true;
   hydrate();
+  if (typeof window !== 'undefined') {
+    store.subscribe((state) => {
+      const next = deriveCssVars(state);
+      for (const name in next) {
+        if (next[name] !== lastApplied[name]) setCssVar(name, next[name]);
+      }
+      for (const name in lastApplied) {
+        if (!(name in next)) removeCssVar(name);
+      }
+      lastApplied = next;
+    });
+  }
 }
-ensureHydrated();
+
+/** Idempotent host hook — call once during boot. */
+export function init(): void {
+  ensureHydrated();
+}
 
 /**
  * Kept for API parity with callers that opt-in from onMount. A no-op after
- * the eager load above, but cheap to call multiple times.
+ * the first call, but cheap to call multiple times.
  */
 export async function initializeEditorStore(): Promise<void> {
   ensureHydrated();
@@ -1297,17 +1320,7 @@ function deriveCssVars(state: EditorState): Record<string, string> {
   return out;
 }
 
+// The DOM subscriber is wired by `init()` (idempotent) so module import has
+// no side effects. `lastApplied` lives at module scope so the subscriber's
+// diff cache survives across calls.
 let lastApplied: Record<string, string> = {};
-
-if (typeof window !== 'undefined') {
-  store.subscribe((state) => {
-    const next = deriveCssVars(state);
-    for (const name in next) {
-      if (next[name] !== lastApplied[name]) setCssVar(name, next[name]);
-    }
-    for (const name in lastApplied) {
-      if (!(name in next)) removeCssVar(name);
-    }
-    lastApplied = next;
-  });
-}
