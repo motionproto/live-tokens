@@ -4,6 +4,7 @@
   import UICopyPopover from '../ui/UICopyPopover.svelte';
   import { installEditorKeybindings } from '../lib/editorKeybindings';
   import { initializeEditorStore } from '../lib/editorStore';
+  import { storageKey } from '../lib/editorConfig';
 
   const inOverlay = typeof window !== 'undefined' && window.parent !== window;
 
@@ -13,7 +14,7 @@
 
   function pickBackHref(): string {
     try {
-      const prev = sessionStorage.getItem('lt-prev-route');
+      const prev = sessionStorage.getItem(storageKey('prev-route'));
       if (prev && prev !== '/editor') return prev;
     } catch {
       // ignore
