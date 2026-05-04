@@ -36,6 +36,11 @@ export function setPersistHook(fn: () => void): void {
   persistHook = fn;
 }
 
+/** Trigger the persistence hook. Used by seed paths that bypass `mutate`. */
+export function persist(): void {
+  persistHook();
+}
+
 // ── Store + history machine ───────────────────────────────────────────────
 
 export const store = writable<EditorState>(emptyStateFactory());

@@ -3,103 +3,57 @@
  *
  * All editor state (palettes, fonts, shadows, overlays, columns, ad-hoc CSS
  * vars) lives in one `EditorState` tree. Every change must go through
- * `mutate` (or a transaction). History is captured automatically; a single
- * subscriber derives CSS vars from the tree and writes them to :root via
- * `cssVarSync` (which fans out to the parent document for the overlay
- * iframe).
+ * `mutate` (or a transaction). History is captured automatically; the
+ * renderer subscribes and writes derived CSS vars to :root via `cssVarSync`
+ * (which fans out to the parent document for the overlay iframe).
  *
- * Phase 1: the funnel exists and routes to the DOM, but no components have
- * been migrated yet. `deriveCssVars` only emits the catch-all `cssVars` bag;
- * domain-specific derivations come online as each tab migrates.
+ * This module is now a barrel: it re-exports the public API from
+ *  - `editorCore` (history machine + transaction/session primitives)
+ *  - `slices/*` (per-domain factories + actions)
+ *  - `editorRenderer` (DOM subscriber)
+ *  - `editorPersistence` (debounced localStorage; lives here until 6.5)
+ *
+ * Migration tables for legacy theme keys + abbreviated component prefixes
+ * stay in this module pending Wave 4's migration extraction. `loadFromFile`
+ * + `toTheme` orchestrate across slices and stay here for now.
  */
 
-import { writable, derived, get, type Readable } from 'svelte/store';
-import type { EditorState, ColumnsState, ComponentSlice, OverlayToken, ShadowToken, GradientToken, GradientTokenStop, GradientType } from './editorTypes';
-import type { Theme, FontSource, FontStack, PaletteConfig } from './themeTypes';
+import { get } from 'svelte/store';
+import type { EditorState, ComponentSlice } from './editorTypes';
+import type { Theme } from './themeTypes';
 import { storageKey } from './editorConfig';
 import { __resetRendererCacheForTests, installRenderer } from './editorRenderer';
+import {
+  store,
+  mutate,
+  setEmptyStateFactory,
+  setPersistHook,
+  resetHistoryForLoad,
+  __resetCoreForTests,
+} from './editorCore';
+import { DEFAULT_COLUMNS, COLUMN_VAR_NAMES, columnsEqualsDefault, columnsToVars, parseColumnVars } from './slices/columns';
+import {
+  OVERLAY_VAR_NAMES,
+  applyOverlayVarsToState,
+  makeDefaultOverlaysState,
+  overlaysEqualsDefault,
+  overlaysToVars,
+} from './slices/overlays';
+import {
+  SHADOW_VAR_NAMES,
+  applyShadowVarsToState,
+  shadowsToVars,
+} from './slices/shadows';
+import { makeDefaultGradients } from './slices/gradients';
+import {
+  getComponentOwnedVarNames,
+  notifyComponentSavedChanged,
+  setSavedComponentBaseline,
+  __resetComponentsForTests,
+} from './slices/components';
 
-const HISTORY_MAX = 100;
 const PERSIST_DEBOUNCE_MS = 300;
 const PERSIST_KEY = storageKey('editor-state');
-
-const DEFAULT_COLUMNS: ColumnsState = { count: 12, maxWidth: 1440, gutter: 16, margin: 0 };
-
-// Editor-defined overlay/hover token schema. The token *names* and positional
-// order are load-bearing (template binds by index); rgba values mirror what
-// VariablesTab historically initialised into local let state — which diverges
-// from tokens.css (rgba(20,3,0,…)) by design: the editor starts with a
-// neutral palette and tokens.css continues to win until first edit.
-function makeDefaultOverlayTokens(): OverlayToken[] {
-  return [
-    { variable: '--overlay-lowest', label: 'Lowest', r: 0, g: 0, b: 0, opacity: 0.05 },
-    { variable: '--overlay-lower',  label: 'Lower',  r: 0, g: 0, b: 0, opacity: 0.1  },
-    { variable: '--overlay-low',    label: 'Low',    r: 0, g: 0, b: 0, opacity: 0.2  },
-    { variable: '--overlay',        label: 'Base',   r: 0, g: 0, b: 0, opacity: 0.3  },
-    { variable: '--overlay-high',   label: 'High',   r: 0, g: 0, b: 0, opacity: 0.5  },
-    { variable: '--overlay-higher', label: 'Higher', r: 0, g: 0, b: 0, opacity: 0.7  },
-    { variable: '--overlay-highest',label: 'Highest',r: 0, g: 0, b: 0, opacity: 0.95 },
-  ];
-}
-function makeDefaultHoverTokens(): OverlayToken[] {
-  return [
-    { variable: '--hover-low',  label: 'Low',  r: 255, g: 255, b: 255, opacity: 0.05 },
-    { variable: '--hover',      label: 'Base', r: 255, g: 255, b: 255, opacity: 0.1  },
-    { variable: '--hover-high', label: 'High', r: 255, g: 255, b: 255, opacity: 0.15 },
-  ];
-}
-
-function makeDefaultOverlaysState(): EditorState['overlays'] {
-  return {
-    tokens: makeDefaultOverlayTokens(),
-    hoverTokens: makeDefaultHoverTokens(),
-    globals: {
-      overlay: { hue: 0, saturation: 0, lightness: 0, opacityMin: 0.05, opacityMax: 0.95 },
-      hover:   { hue: 0, saturation: 0, lightness: 100, opacityMin: 0.05, opacityMax: 0.15 },
-    },
-  };
-}
-
-function makeDefaultGradients(): GradientToken[] {
-  return [
-    {
-      variable: '--gradient-1',
-      type: 'linear',
-      angle: 90,
-      stops: [
-        { position: 0, color: '--color-primary-500' },
-        { position: 100, color: '--color-accent-500' },
-      ],
-    },
-    {
-      variable: '--gradient-2',
-      type: 'linear',
-      angle: 135,
-      stops: [
-        { position: 0, color: '--color-primary-500' },
-        { position: 100, color: '--color-special-500' },
-      ],
-    },
-    {
-      variable: '--gradient-3',
-      type: 'linear',
-      angle: 90,
-      stops: [
-        { position: 0, color: '--color-success-500' },
-        { position: 100, color: '--color-info-500' },
-      ],
-    },
-    {
-      variable: '--gradient-4',
-      type: 'linear',
-      angle: 45,
-      stops: [
-        { position: 0, color: '--color-danger-500' },
-        { position: 100, color: '--color-warning-500' },
-      ],
-    },
-  ];
-}
 
 function emptyState(): EditorState {
   return {
@@ -124,263 +78,7 @@ function emptyState(): EditorState {
   };
 }
 
-export function columnsToVars(c: ColumnsState): Record<string, string> {
-  return {
-    '--columns-count': String(c.count),
-    '--columns-max-width': `${c.maxWidth}px`,
-    '--columns-gutter': `${c.gutter}px`,
-    '--columns-margin': `${c.margin}px`,
-  };
-}
-
-/**
- * Only emit column CSS vars once the user has actually modified columns.
- * While columns match the default, we leave tokens.css in charge — which
- * preserves the `clamp()` in `--columns-gutter` until the editor overrides it.
- */
-export function columnsEqualsDefault(c: ColumnsState): boolean {
-  return c.count === DEFAULT_COLUMNS.count
-    && c.maxWidth === DEFAULT_COLUMNS.maxWidth
-    && c.gutter === DEFAULT_COLUMNS.gutter
-    && c.margin === DEFAULT_COLUMNS.margin;
-}
-
-const COLUMN_VAR_NAMES = ['--columns-count', '--columns-max-width', '--columns-gutter', '--columns-margin'] as const;
-
-function parseColumnVars(vars: Record<string, string>): Partial<ColumnsState> {
-  const out: Partial<ColumnsState> = {};
-  const count = parseInt(vars['--columns-count'] ?? '', 10);
-  if (Number.isFinite(count) && count > 0) out.count = count;
-  const maxWidth = parseFloat(vars['--columns-max-width'] ?? '');
-  if (Number.isFinite(maxWidth)) out.maxWidth = Math.round(maxWidth);
-  const gutter = parseFloat(vars['--columns-gutter'] ?? '');
-  if (Number.isFinite(gutter)) out.gutter = Math.round(gutter);
-  const margin = parseFloat(vars['--columns-margin'] ?? '');
-  if (Number.isFinite(margin)) out.margin = Math.round(margin);
-  return out;
-}
-
-function overlayTokenToRgba(t: OverlayToken): string {
-  return `rgba(${t.r}, ${t.g}, ${t.b}, ${t.opacity})`;
-}
-
-export function overlaysToVars(o: EditorState['overlays']): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const t of o.tokens) out[t.variable] = overlayTokenToRgba(t);
-  for (const t of o.hoverTokens) out[t.variable] = overlayTokenToRgba(t);
-  return out;
-}
-
-function tokensEqualDefault(tokens: OverlayToken[], defaults: OverlayToken[]): boolean {
-  if (tokens.length !== defaults.length) return false;
-  for (let i = 0; i < tokens.length; i++) {
-    const a = tokens[i]; const b = defaults[i];
-    if (a.variable !== b.variable || a.r !== b.r || a.g !== b.g || a.b !== b.b || a.opacity !== b.opacity) return false;
-  }
-  return true;
-}
-
-/**
- * Same pattern as columns: only emit overlay CSS vars once state diverges
- * from the editor defaults. tokens.css owns the rgba values until the
- * user touches any overlay control (or loads a theme that already
- * contains overrides).
- */
-export function overlaysEqualsDefault(o: EditorState['overlays']): boolean {
-  return tokensEqualDefault(o.tokens, makeDefaultOverlayTokens())
-    && tokensEqualDefault(o.hoverTokens, makeDefaultHoverTokens());
-}
-
-const OVERLAY_VAR_NAMES = [
-  '--overlay-lowest', '--overlay-lower', '--overlay-low', '--overlay',
-  '--overlay-high', '--overlay-higher', '--overlay-highest',
-  '--hover-low', '--hover', '--hover-high',
-] as const;
-
-// Accepts rgb(), rgba(), and #rrggbb[aa] — themes saved by the editor
-// always use rgba(), but loading hand-written files shouldn't break.
-const RGBA_RE = /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)/i;
-const HEX_RE = /^#([0-9a-f]{6})([0-9a-f]{2})?$/i;
-
-function parseRgba(raw: string): { r: number; g: number; b: number; opacity: number } | null {
-  const s = raw.trim();
-  const m = s.match(RGBA_RE);
-  if (m) {
-    const r = parseInt(m[1], 10);
-    const g = parseInt(m[2], 10);
-    const b = parseInt(m[3], 10);
-    const a = m[4] !== undefined ? parseFloat(m[4]) : 1;
-    if (![r, g, b].every((n) => Number.isFinite(n) && n >= 0 && n <= 255)) return null;
-    return { r, g, b, opacity: Number.isFinite(a) ? a : 1 };
-  }
-  const h = s.match(HEX_RE);
-  if (h) {
-    const hex = h[1];
-    const alpha = h[2] !== undefined ? parseInt(h[2], 16) / 255 : 1;
-    return {
-      r: parseInt(hex.slice(0, 2), 16),
-      g: parseInt(hex.slice(2, 4), 16),
-      b: parseInt(hex.slice(4, 6), 16),
-      opacity: Math.round(alpha * 100) / 100,
-    };
-  }
-  return null;
-}
-
-// ── Shadows ────────────────────────────────────────────────────────────────
-//
-// Shadow defaults come from tokens.css (not the editor), so state.shadows
-// starts with `tokens: []` and we do not emit any shadow CSS vars until the
-// editor has populated tokens (via seedShadowsFromDom on mount, or via
-// loadFromFile). Once tokens exist, the subscriber writes one CSS var per
-// token derived from its x/y/blur/spread/hsla fields.
-const SHADOW_VAR_NAMES = [
-  '--shadow-sm', '--shadow-md', '--shadow-lg', '--shadow-xl', '--shadow-2xl',
-] as const;
-
-/**
- * Every CSS var owned by a store domain (emitted by `deriveCssVars` /
- * `toTheme` from typed state, not the catch-all `cssVars` bag).
- * Consumers that scrape the DOM (e.g. the save flow still pulling palette
- * ramps emitted by PaletteEditor) use this to drop domain-owned keys from
- * their scraped bag so the store stays the single source of truth.
- */
-export const DOMAIN_VAR_NAMES: readonly string[] = [
-  ...COLUMN_VAR_NAMES,
-  ...OVERLAY_VAR_NAMES,
-  ...SHADOW_VAR_NAMES,
-];
-
-export function computeShadowXY(angle: number, distance: number): { x: number; y: number } {
-  const rad = angle * (Math.PI / 180);
-  return {
-    x: Math.round(-distance * Math.cos(rad)),
-    y: Math.round(distance * Math.sin(rad)),
-  };
-}
-
-function computeAngleDistance(x: number, y: number): { angle: number; distance: number } {
-  const distance = Math.round(Math.sqrt(x * x + y * y));
-  if (distance === 0) return { angle: 135, distance: 0 };
-  let angle = Math.atan2(y, -x) * (180 / Math.PI);
-  if (angle < 0) angle += 360;
-  return { angle: Math.round(angle), distance };
-}
-
-export function shadowTokenCss(t: ShadowToken): string {
-  return `${t.x}px ${t.y}px ${t.blur}px ${t.spread}px hsla(${t.hue}, ${t.saturation}%, ${t.lightness}%, ${t.opacity})`;
-}
-
-export const SCALE_SHADOW_VARIABLES = new Set([
-  '--shadow-sm', '--shadow-md', '--shadow-lg', '--shadow-xl', '--shadow-2xl',
-]);
-
-export function defaultShadowOverride(): import('./editorTypes').ShadowOverrideFlags {
-  return { angle: false, opacity: false, color: false, distance: false, blur: false, size: false };
-}
-
-function parseShadowCss(variable: string, raw: string): ShadowToken | null {
-  const m = raw.trim().match(/^(-?\d+)px\s+(-?\d+)px\s+(\d+)px\s+(-?\d+)px\s+hsla\(([\d.]+),\s*([\d.]+)%,\s*([\d.]+)%,\s*([\d.]+)\)$/);
-  if (!m) return null;
-  const x = parseInt(m[1], 10);
-  const y = parseInt(m[2], 10);
-  const blur = parseInt(m[3], 10);
-  const spread = parseInt(m[4], 10);
-  const hue = Math.round(parseFloat(m[5]));
-  const saturation = Math.round(parseFloat(m[6]));
-  const lightness = Math.round(parseFloat(m[7]));
-  const opacity = parseFloat(m[8]);
-  const { angle, distance } = computeAngleDistance(x, y);
-  return { variable, x, y, blur, spread, opacity, hue, saturation, lightness, angle, distance };
-}
-
-export function shadowsToVars(shadows: EditorState['shadows']): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const t of shadows.tokens) out[t.variable] = shadowTokenCss(t);
-  return out;
-}
-
-function applyShadowVarsToState(shadows: EditorState['shadows'], vars: Record<string, string>): void {
-  const parsed: ShadowToken[] = [];
-  for (const name of SHADOW_VAR_NAMES) {
-    const raw = vars[name];
-    if (!raw) continue;
-    const tok = parseShadowCss(name, raw);
-    if (tok) parsed.push(tok);
-  }
-  if (parsed.length > 0) shadows.tokens = parsed;
-}
-
-/**
- * Seed state.shadows.tokens from computed styles on the document element.
- * Called once from the shadows UI when state has no tokens yet — captures the
- * tokens.css baseline so the editor can mutate it. Does NOT push a history
- * entry; the seed is treated as an initial snapshot, not a user edit.
- */
-export function seedShadowsFromDom(): void {
-  if (typeof document === 'undefined') return;
-  const current = get(store);
-  if (current.shadows.tokens.length > 0) return;
-  const cs = getComputedStyle(document.documentElement);
-  const parsed: ShadowToken[] = [];
-  for (const name of SHADOW_VAR_NAMES) {
-    const raw = cs.getPropertyValue(name).trim();
-    if (!raw) continue;
-    const tok = parseShadowCss(name, raw);
-    if (tok) parsed.push(tok);
-  }
-  if (parsed.length === 0) return;
-  store.update((s) => { s.shadows.tokens = parsed; return s; });
-  // No bumpTick — seed is hydration-equivalent, not an edit. Persist so a
-  // reload doesn't re-seed from the DOM on every fresh session.
-  schedulePersist();
-}
-
-function applyOverlayVarsToState(overlays: EditorState['overlays'], vars: Record<string, string>): void {
-  const applyTo = (list: OverlayToken[]) => {
-    for (const t of list) {
-      const raw = vars[t.variable];
-      if (!raw) continue;
-      const parsed = parseRgba(raw);
-      if (!parsed) continue;
-      t.r = parsed.r; t.g = parsed.g; t.b = parsed.b; t.opacity = parsed.opacity;
-    }
-  };
-  applyTo(overlays.tokens);
-  applyTo(overlays.hoverTokens);
-}
-
-// History machine, transaction primitives, palette edit session, and the
-// store/editorState/canUndo/canRedo/dirty derived stores live in
-// `./editorCore`. This barrel re-exports them so legacy imports keep working.
-// The core needs two callbacks: `emptyState` (factory) and `schedulePersist`
-// (debounced localStorage write). They're wired below right before the
-// renderer install so the first emit lands in a hydrated tree.
-import {
-  store,
-  editorState,
-  mutate,
-  transaction,
-  beginTransaction,
-  commitTransaction,
-  abortTransaction,
-  beginSliderGesture,
-  undo,
-  redo,
-  canUndo,
-  canRedo,
-  dirty,
-  markSaved,
-  beginPaletteEditSession,
-  commitPaletteEditSession,
-  cancelPaletteEditSession,
-  __resetCoreForTests,
-  __getHistoryLengths,
-  __getPastAt,
-  resetHistoryForLoad,
-  setEmptyStateFactory,
-  setPersistHook,
-} from './editorCore';
+// ── editorCore re-exports ─────────────────────────────────────────────────
 
 export {
   editorState,
@@ -401,353 +99,97 @@ export {
   cancelPaletteEditSession,
   __getHistoryLengths,
   __getPastAt,
-};
+} from './editorCore';
 
 // Wire the factory + reset the store to the real default. The store was
-// initialized in editorCore with a placeholder factory (the alternative —
-// factory-as-init-arg — would force every consumer to pass it in). Resetting
-// here lands a proper EditorState before any helper below runs `mutate`.
+// initialized in editorCore with a placeholder factory; resetting here lands
+// a proper EditorState before any helper below runs `mutate`.
 setEmptyStateFactory(emptyState);
 store.set(emptyState());
 
-/**
- * Test-only: clear all history + transient session/transaction state and
- * reset the store to `emptyState()`. Not exported from the public barrel.
- */
-export function __resetForTests(): void {
-  __resetCoreForTests();
-  __resetRendererCacheForTests();
-  for (const k of Object.keys(savedComponents)) delete savedComponents[k];
-  bumpComponentSavedTick();
-}
+// ── Slice re-exports ──────────────────────────────────────────────────────
 
-// ── Fonts ──────────────────────────────────────────────────────────────────
+export {
+  DOMAIN_VAR_NAMES,
+} from './slices/domainVars';
+
+export {
+  columnsToVars,
+  columnsEqualsDefault,
+  COLUMN_VAR_NAMES,
+  DEFAULT_COLUMNS,
+  parseColumnVars,
+} from './slices/columns';
+
+export {
+  overlaysToVars,
+  overlaysEqualsDefault,
+  OVERLAY_VAR_NAMES,
+  applyOverlayVarsToState,
+  makeDefaultOverlaysState,
+  overlayTokenToRgba,
+  parseRgba,
+  RGBA_RE,
+  HEX_RE,
+} from './slices/overlays';
+
+export {
+  shadowsToVars,
+  applyShadowVarsToState,
+  SHADOW_VAR_NAMES,
+  SCALE_SHADOW_VARIABLES,
+  computeShadowXY,
+  shadowTokenCss,
+  defaultShadowOverride,
+  parseShadowCss,
+  seedShadowsFromDom,
+} from './slices/shadows';
+
+export {
+  gradientsToVars,
+  makeDefaultGradients,
+  setGradientType,
+  setGradientAngle,
+  setGradientStop,
+  addGradientStop,
+  removeGradientStop,
+  addGradientToken,
+  removeGradientToken,
+} from './slices/gradients';
+
+export {
+  componentsToVars,
+  getComponentOwnedVarNames,
+  componentDirty,
+  setComponentAlias,
+  clearComponentAlias,
+  registerComponentSchema,
+  getComponentPropertySiblings,
+  isComponentPropertyShared,
+  setComponentAliasShared,
+  clearComponentAliasShared,
+  unlinkComponentProperty,
+  markComponentSaved,
+} from './slices/components';
+
+export {
+  setFontSources,
+  setFontStacks,
+  seedFontsFromTheme,
+} from './slices/fonts';
+
+export {
+  setPaletteConfig,
+  seedPalettesFromTheme,
+} from './slices/palettes';
+
+// ── Component-config migrations ───────────────────────────────────────────
 //
-// Fonts have no derived CSS vars owned by this store — the --font-* vars are
-// written by `applyFontStacks` in fontLoader, and @font-face rules by
-// `applyFontSources`. We own the *data* (sources + stacks); callers still
-// invoke the DOM-side-effect helpers themselves after mutating.
-
-export function setFontSources(sources: FontSource[]): void {
-  mutate('update font sources', (s) => { s.fonts.sources = sources; });
-}
-
-export function setFontStacks(stacks: FontStack[]): void {
-  mutate('update font stacks', (s) => { s.fonts.stacks = stacks; });
-}
-
-/**
- * Populate fonts from the server's active theme at boot. Does not push
- * a history entry — the boot load is a starting point, not an edit.
- */
-export function seedFontsFromTheme(sources: FontSource[], stacks: FontStack[]): void {
-  store.update((s) => {
-    s.fonts.sources = structuredClone(sources);
-    s.fonts.stacks = structuredClone(stacks);
-    return s;
-  });
-  schedulePersist();
-}
-
-// ── Palettes ───────────────────────────────────────────────────────────────
-//
-// Each PaletteEditor instance is keyed by `label` (e.g. "Neutral", "Primary").
-// This store owns the full `PaletteConfig` for each label; CSS var emission
-// is still done by the editor component itself (derivation lives in
-// PaletteEditor.svelte and involves OKLCH + bezier curves). A future phase
-// can move that derivation here to unify with the subscriber pattern.
-
-export function setPaletteConfig(label: string, config: PaletteConfig): void {
-  mutate(`update palette ${label}`, (s) => {
-    s.palettes[label] = config;
-  });
-}
-
-/**
- * Server-boot path: populate all palettes at once without a history entry.
- * Mirrors `seedFontsFromTheme`.
- */
-export function seedPalettesFromTheme(palettes: Record<string, PaletteConfig>): void {
-  store.update((s) => {
-    s.palettes = structuredClone(palettes);
-    return s;
-  });
-  schedulePersist();
-}
-
-// ── Components ─────────────────────────────────────────────────────────────
-//
-// Each component owns a `{ activeFile, aliases }` slice. Aliases are the full
-// component-token → semantic-token map for whatever config is active (not a
-// diff); `deriveCssVars` emits every entry as `var(--<semantic>)`. Themes and
-// components are orthogonal: `loadFromFile` preserves `state.components`.
-
-// ── Gradients ──────────────────────────────────────────────────────────────
-//
-// Each gradient lives in `state.gradients.tokens` and renders to a single
-// CSS var (`--gradient-<name>`). Stops carry token-name references; the
-// renderer wraps them in `var(...)` so palette edits flow through.
-
-function formatGradientStop(s: GradientTokenStop): string {
-  const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
-  const opacity = s.opacity ?? 100;
-  const color = opacity >= 100
-    ? base
-    : `color-mix(in srgb, ${base} ${opacity}%, transparent)`;
-  return `${color} ${s.position}%`;
-}
-
-function formatGradient(t: GradientToken): string {
-  const stops = t.stops.map(formatGradientStop).join(', ');
-  if (t.type === 'linear') return `linear-gradient(${t.angle}deg, ${stops})`;
-  return `radial-gradient(${stops})`;
-}
-
-export function gradientsToVars(g: EditorState['gradients']): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const t of g.tokens) out[t.variable] = formatGradient(t);
-  return out;
-}
-
-function findGradient(s: EditorState, variable: string): GradientToken | undefined {
-  return s.gradients.tokens.find((t) => t.variable === variable);
-}
-
-export function setGradientType(variable: string, type: GradientType): void {
-  mutate(`set gradient type ${variable}`, (s) => {
-    const t = findGradient(s, variable);
-    if (t) t.type = type;
-  });
-}
-
-export function setGradientAngle(variable: string, angle: number): void {
-  mutate(`set gradient angle ${variable}`, (s) => {
-    const t = findGradient(s, variable);
-    if (t) t.angle = angle;
-  });
-}
-
-export function setGradientStop(variable: string, index: number, stop: Partial<GradientTokenStop>): void {
-  mutate(`set gradient stop ${variable}[${index}]`, (s) => {
-    const t = findGradient(s, variable);
-    if (!t || !t.stops[index]) return;
-    if (stop.position !== undefined) t.stops[index].position = stop.position;
-    if (stop.color !== undefined) t.stops[index].color = stop.color;
-  });
-}
-
-export function addGradientStop(variable: string, stop: GradientTokenStop): void {
-  mutate(`add gradient stop ${variable}`, (s) => {
-    const t = findGradient(s, variable);
-    if (!t) return;
-    t.stops.push(stop);
-    t.stops.sort((a, b) => a.position - b.position);
-  });
-}
-
-export function removeGradientStop(variable: string, index: number): void {
-  mutate(`remove gradient stop ${variable}[${index}]`, (s) => {
-    const t = findGradient(s, variable);
-    if (!t || t.stops.length <= 2) return;
-    t.stops.splice(index, 1);
-  });
-}
-
-export function addGradientToken(token: GradientToken): void {
-  mutate(`add gradient ${token.variable}`, (s) => {
-    if (findGradient(s, token.variable)) return;
-    s.gradients.tokens.push({
-      ...token,
-      stops: token.stops.map((st) => ({ ...st })),
-    });
-  });
-}
-
-export function removeGradientToken(variable: string): void {
-  mutate(`remove gradient ${variable}`, (s) => {
-    s.gradients.tokens = s.gradients.tokens.filter((t) => t.variable !== variable);
-  });
-}
-
-export function componentsToVars(components: EditorState['components']): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const slice of Object.values(components)) {
-    for (const [varName, semanticName] of Object.entries(slice.aliases)) {
-      out[varName] = semanticName.startsWith('--') ? `var(${semanticName})` : semanticName;
-    }
-  }
-  return out;
-}
-
-export function getComponentOwnedVarNames(state: EditorState): string[] {
-  const names: string[] = [];
-  for (const slice of Object.values(state.components)) {
-    for (const name of Object.keys(slice.aliases)) names.push(name);
-  }
-  return names;
-}
-
-// Module-private baseline for per-component dirty detection. Parallels
-// `savedAtIndex` + `historyTick` for the global flag; `componentSavedTick`
-// drives re-derivation when the baseline changes.
-const savedComponents: Record<string, string> = {};
-const componentSavedTick = writable(0);
-function bumpComponentSavedTick(): void { componentSavedTick.update((n) => n + 1); }
-
-export const componentDirty: Readable<Record<string, boolean>> = derived(
-  [store, componentSavedTick],
-  ([$state]) => {
-    const out: Record<string, boolean> = {};
-    for (const [comp, slice] of Object.entries($state.components)) {
-      out[comp] = JSON.stringify(slice.aliases) !== (savedComponents[comp] ?? '{}');
-    }
-    return out;
-  },
-);
-
-export function setComponentAlias(component: string, varName: string, semanticName: string): void {
-  mutate(`set alias ${component}/${varName}`, (s) => {
-    const existing = s.components[component];
-    if (existing) {
-      existing.aliases[varName] = semanticName;
-    } else {
-      s.components[component] = { activeFile: 'default', aliases: { [varName]: semanticName } };
-    }
-  });
-}
-
-export function clearComponentAlias(component: string, varName: string): void {
-  mutate(`clear alias ${component}/${varName}`, (s) => {
-    const slice = s.components[component];
-    if (!slice) return;
-    delete slice.aliases[varName];
-  });
-}
-
-function componentVarPrefix(component: string): string {
-  return `--${component}-`;
-}
-
-/**
- * Per-component groupKey schema registered by editor modules. Maps each
- * declared variable to its groupKey (the explicit sibling-set identifier).
- * Tokens with the same groupKey are siblings; tokens not in the schema fall
- * back to last-dash property inference so unmigrated editors keep working.
- */
-const componentSchemas: Record<string, Map<string, string>> = {};
-
-/**
- * Register a component's token → groupKey mapping. Editors call this at
- * module load (top of `<script>`) so sibling lookups can prefer explicit
- * groupKeys over name-derived inference. Re-registration overwrites prior
- * entries for the same component.
- */
-export function registerComponentSchema(
-  component: string,
-  tokens: ReadonlyArray<{ variable: string; groupKey?: string }>,
-): void {
-  const map = new Map<string, string>();
-  for (const t of tokens) {
-    if (t.groupKey) map.set(t.variable, t.groupKey);
-  }
-  componentSchemas[component] = map;
-}
-
-/**
- * Resolve a variable's groupKey. Schema entries win; otherwise fall back to
- * the last-dash property suffix (legacy behaviour). Returns null when the
- * variable is not under the component prefix.
- */
-function getGroupKey(component: string, varName: string): string | null {
-  const schema = componentSchemas[component];
-  const explicit = schema?.get(varName);
-  if (explicit) return explicit;
-  const prefix = componentVarPrefix(component);
-  if (!varName.startsWith(prefix)) return null;
-  const rest = varName.slice(prefix.length);
-  const lastDash = rest.lastIndexOf('-');
-  if (lastDash <= 0) return null;
-  return rest.slice(lastDash + 1);
-}
-
-/**
- * All keys in the component slice that share `varName`'s groupKey.
- * Includes `varName` itself if it lives in the slice.
- */
-export function getComponentPropertySiblings(component: string, varName: string): string[] {
-  const groupKey = getGroupKey(component, varName);
-  if (!groupKey) return [];
-  const slice = get(store).components[component];
-  if (!slice) return [];
-  const siblings: string[] = [];
-  for (const v of Object.keys(slice.aliases)) {
-    if (getGroupKey(component, v) === groupKey) siblings.push(v);
-  }
-  return siblings;
-}
-
-/** True iff `varName` has ≥2 siblings, all resolve to the same alias, and the groupKey is not explicitly unlinked. */
-export function isComponentPropertyShared(component: string, varName: string): boolean {
-  const slice = get(store).components[component];
-  if (!slice) return false;
-  const groupKey = getGroupKey(component, varName);
-  if (groupKey && slice.unlinked?.includes(groupKey)) return false;
-  const siblings = getComponentPropertySiblings(component, varName);
-  if (siblings.length < 2) return false;
-  const first = slice.aliases[siblings[0]];
-  if (!first) return false;
-  return siblings.every((v) => slice.aliases[v] === first);
-}
-
-/** Write `semanticName` to every sibling that shares `varName`'s groupKey, and clear the unlinked flag. */
-export function setComponentAliasShared(component: string, varName: string, semanticName: string): void {
-  const groupKey = getGroupKey(component, varName);
-  const siblings = getComponentPropertySiblings(component, varName);
-  if (!groupKey || siblings.length === 0) {
-    setComponentAlias(component, varName, semanticName);
-    return;
-  }
-  mutate(`share ${component}/${groupKey}`, (s) => {
-    const slice = s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {} });
-    for (const v of siblings) slice.aliases[v] = semanticName;
-    if (!siblings.includes(varName)) slice.aliases[varName] = semanticName;
-    if (slice.unlinked) {
-      slice.unlinked = slice.unlinked.filter((p) => p !== groupKey);
-      if (slice.unlinked.length === 0) delete slice.unlinked;
-    }
-  });
-}
-
-/** Clear every sibling that shares `varName`'s groupKey. */
-export function clearComponentAliasShared(component: string, varName: string): void {
-  const groupKey = getGroupKey(component, varName);
-  const siblings = getComponentPropertySiblings(component, varName);
-  if (!groupKey || siblings.length === 0) {
-    clearComponentAlias(component, varName);
-    return;
-  }
-  mutate(`clear shared ${component}/${groupKey}`, (s) => {
-    const slice = s.components[component];
-    if (!slice) return;
-    for (const v of siblings) delete slice.aliases[v];
-  });
-}
-
-/** Mark `varName`'s groupKey as unlinked so siblings are independently editable. Aliases are preserved. */
-export function unlinkComponentProperty(component: string, varName: string): void {
-  const groupKey = getGroupKey(component, varName);
-  if (!groupKey) return;
-  const siblings = getComponentPropertySiblings(component, varName);
-  if (siblings.length < 2) return;
-  mutate(`unlink ${component}/${groupKey}`, (s) => {
-    const slice = s.components[component];
-    if (!slice) return;
-    const unlinked = slice.unlinked ?? [];
-    if (!unlinked.includes(groupKey)) {
-      slice.unlinked = [...unlinked, groupKey];
-    }
-  });
-}
+// The component-alias migration tables (prefix + suffix renames + the
+// segmentedcontrol-specific block) stay in this module pending Wave 4's
+// migration extraction. They feed `loadComponentActive` and
+// `seedComponentsFromApi` below — both call into the components slice's
+// dirty baseline after migrating.
 
 /**
  * Rewrite abbreviated component-prefix keys to the long-form convention
@@ -842,8 +284,8 @@ export function loadComponentActive(
   mutate(`load ${component}/${activeFile}`, (s) => {
     s.components[component] = { activeFile, aliases: { ...migrated } };
   });
-  savedComponents[component] = JSON.stringify(migrated);
-  bumpComponentSavedTick();
+  setSavedComponentBaseline(component, JSON.stringify(migrated));
+  notifyComponentSavedChanged();
 }
 
 /**
@@ -858,20 +300,18 @@ export function seedComponentsFromApi(
     for (const [comp, cfg] of Object.entries(configs)) {
       const migrated = migrateComponentAliases(comp, cfg.aliases);
       s.components[comp] = { activeFile: cfg.activeFile, aliases: { ...migrated } };
-      savedComponents[comp] = JSON.stringify(migrated);
+      setSavedComponentBaseline(comp, JSON.stringify(migrated));
     }
     return s;
   });
-  bumpComponentSavedTick();
+  notifyComponentSavedChanged();
   schedulePersist();
 }
 
-export function markComponentSaved(component: string): void {
-  const slice = get(store).components[component];
-  if (!slice) return;
-  savedComponents[component] = JSON.stringify(slice.aliases);
-  bumpComponentSavedTick();
-}
+// ── Theme-load migrations ──────────────────────────────────────────────────
+//
+// Like the component-config tables above, the theme-key rename map and the
+// bg → canvas pattern stay here pending Wave 4. They feed `loadFromFile`.
 
 /**
  * Rewrite legacy CSS-var keys in a loaded theme bag to their current names.
@@ -1001,6 +441,10 @@ export function toTheme(state: EditorState, meta: { name: string }): Theme {
 }
 
 // ── Persistence ────────────────────────────────────────────────────────────
+//
+// Lives here pending stage 6.5; will move to `editorPersistence.ts`. Wired
+// to the core's persist hook below so mutate/undo/redo all debounce-write
+// to localStorage through the same path.
 
 let persistTimer: ReturnType<typeof setTimeout> | null = null;
 function schedulePersist(): void {
@@ -1068,17 +512,27 @@ export async function initializeEditorStore(): Promise<void> {
   ensureHydrated();
 }
 
-// ── Derived CSS-var subscription ───────────────────────────────────────────
+// ── Test-only reset ────────────────────────────────────────────────────────
+
+/**
+ * Test-only: clear all history + transient session/transaction state and
+ * reset the store to `emptyState()`. Not exported from the public barrel.
+ */
+export function __resetForTests(): void {
+  __resetCoreForTests();
+  __resetRendererCacheForTests();
+  __resetComponentsForTests();
+}
+
+// ── Wiring ─────────────────────────────────────────────────────────────────
 //
-// `deriveCssVars` and the DOM subscriber live in `./editorRenderer`.
-// `installRenderer()` runs the same `store.subscribe(...)` wiring legacy
-// `import '.../editorStore'` paths depended on before the split. It must be
-// called *after* this module's exports are initialized — the renderer
-// imports `editorState` back from here, and calling it earlier would TDZ
-// because of the circular import.
-//
-// `setPersistHook` is wired here too so editorCore's mutate/undo/redo all
-// debounce-persist through the same `schedulePersist` defined in this module.
+// `setPersistHook(schedulePersist)` lets editorCore's mutate/undo/redo
+// debounce-persist through the same path. `installRenderer()` runs the
+// `store.subscribe(...)` wiring legacy `import '.../editorStore'` paths
+// depended on; it must run *after* this module's exports are initialized
+// — the renderer imports `editorState` back from editorCore, and calling
+// it earlier would TDZ because of the circular import.
 setPersistHook(schedulePersist);
 export { deriveCssVars } from './editorRenderer';
 installRenderer();
+
