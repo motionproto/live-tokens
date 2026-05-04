@@ -17,6 +17,7 @@ import { get } from 'svelte/store';
 import type { EditorState } from './editorTypes';
 import { storageKey } from './editorConfig';
 import { store } from './editorCore';
+import { quietGet, quietSet } from './storage';
 import { makeDefaultGradients } from './slices/gradients';
 import { seedShadowsFromDom } from './slices/shadows';
 
@@ -46,11 +47,8 @@ export function schedulePersist(): void {
 
 export function persistNow(): void {
   persistTimer = null;
-  try {
-    localStorage.setItem(getPersistKey(), JSON.stringify(get(store)));
-  } catch {
-    // quota / serialization errors — silent, not fatal
-  }
+  // quota / serialization errors are not fatal; quietSet swallows them.
+  quietSet(getPersistKey(), JSON.stringify(get(store)));
 }
 
 function migrateGradients(state: EditorState): EditorState {
@@ -68,21 +66,14 @@ function migrateGradients(state: EditorState): EditorState {
 }
 
 export function hydrate(): void {
-  if (typeof localStorage !== 'undefined') {
-    try {
-      const raw = localStorage.getItem(getPersistKey());
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === 'object') {
-          // Shallow-merge onto default shape so older persisted state missing
-          // newly-added domain fields still loads.
-          const merged = { ...emptyStateFactory(), ...parsed } as EditorState;
-          store.set(migrateGradients(merged));
-        }
-      }
-    } catch {
-      // corrupt state — leave defaults
-    }
+  // Corrupt state, missing key, or unavailable storage all return null;
+  // the editor falls through to the empty default in that case.
+  const parsed = quietGet<unknown>(getPersistKey(), { parse: true });
+  if (parsed && typeof parsed === 'object') {
+    // Shallow-merge onto default shape so older persisted state missing
+    // newly-added domain fields still loads.
+    const merged = { ...emptyStateFactory(), ...(parsed as object) } as EditorState;
+    store.set(migrateGradients(merged));
   }
   // m13 fix: seed shadows from the DOM at hydrate time so the editor
   // captures the tokens.css baseline regardless of whether the user opens

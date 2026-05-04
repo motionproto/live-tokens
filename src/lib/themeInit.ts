@@ -1,9 +1,20 @@
-import { getActiveTheme } from './themeService';
+import type { Theme } from './themeTypes';
 import { activeFileName } from './editorConfigStore';
 import { migrateThemeFonts } from './fontMigration';
 import { applyFontSources, applyFontStacks } from './fontLoader';
 import { loadFromFile, seedComponentsFromApi } from './editorStore';
-import { listComponents, getActiveComponentConfig } from './componentConfigService';
+import { getActiveComponentConfig } from './componentConfigService';
+import { safeFetch } from './storage';
+
+interface ComponentSummaryDto {
+  name: string;
+  activeFile: string;
+  productionFile: string;
+}
+
+interface ListComponentsDto {
+  components: ComponentSummaryDto[];
+}
 
 /**
  * Fetch the active theme from the server and apply its CSS variables
@@ -17,34 +28,34 @@ import { listComponents, getActiveComponentConfig } from './componentConfigServi
  * bypassed the store and left the subscriber's `lastApplied` diff cache
  * out of sync, so palette-derived values stayed stale until a
  * `PaletteEditor` mounted and re-emitted them.
+ *
+ * Network/parse failures fall through silently — `tokens.css` provides
+ * defaults and the components slice stays empty until first edit. We use
+ * `safeFetch` (instead of empty try/catch) to make the silence intentional.
  */
 export async function initializeTheme(): Promise<void> {
-  try {
-    const theme = await getActiveTheme();
-    if (theme) {
-      migrateThemeFonts(theme);
-      loadFromFile(theme);
-      if (theme.fontSources && theme.fontSources.length > 0) {
-        applyFontSources(theme.fontSources);
-      }
-      if (theme.fontStacks && theme.fontStacks.length > 0) {
-        applyFontStacks(theme.fontStacks, theme.fontSources ?? []);
-      }
-      const fileName = theme._fileName || 'default';
-      activeFileName.set(fileName);
+  const theme = await safeFetch<Theme>('/api/themes/active');
+  if (theme) {
+    migrateThemeFonts(theme);
+    loadFromFile(theme);
+    if (theme.fontSources && theme.fontSources.length > 0) {
+      applyFontSources(theme.fontSources);
     }
-  } catch {
-    // Silent fallback — tokens.css provides defaults
+    if (theme.fontStacks && theme.fontStacks.length > 0) {
+      applyFontStacks(theme.fontStacks, theme.fontSources ?? []);
+    }
+    const fileName = theme._fileName || 'default';
+    activeFileName.set(fileName);
   }
 
-  try {
-    const components = await listComponents();
+  const list = await safeFetch<ListComponentsDto>('/api/component-configs');
+  if (list && Array.isArray(list.components)) {
     const configs: Record<
       string,
       { activeFile: string; aliases: Record<string, string>; config?: Record<string, unknown>; schemaVersion?: number }
     > = {};
     await Promise.all(
-      components.map(async (c) => {
+      list.components.map(async (c) => {
         const cfg = await getActiveComponentConfig(c.name);
         if (cfg) {
           configs[c.name] = {
@@ -59,7 +70,5 @@ export async function initializeTheme(): Promise<void> {
     if (Object.keys(configs).length > 0) {
       seedComponentsFromApi(configs);
     }
-  } catch {
-    // Silent fallback — components slice stays empty until first edit
   }
 }

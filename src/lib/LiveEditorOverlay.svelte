@@ -16,6 +16,7 @@
   import { columnsVisible, toggleColumns } from './columnsOverlay';
   import { storageKey } from './editorConfig';
   import { overlayOpen } from './overlayState';
+  import { quietGet, quietSet } from './storage';
   import type { NavLink } from './navLinkTypes';
 
   export let open: boolean | undefined = undefined;
@@ -37,14 +38,10 @@
   const OPEN_KEY = storageKey('overlay-open');
   const consumerControlsOpen = open !== undefined;
   if (!consumerControlsOpen) {
-    try {
-      open = enabled && localStorage.getItem(OPEN_KEY) === '1';
-    } catch {
-      open = false;
-    }
+    open = enabled && quietGet(OPEN_KEY) === '1';
   }
   $: if (!consumerControlsOpen && typeof window !== 'undefined') {
-    try { localStorage.setItem(OPEN_KEY, open ? '1' : '0'); } catch {}
+    quietSet(OPEN_KEY, open ? '1' : '0');
   }
   $: overlayOpen.set(!!open);
 
@@ -80,23 +77,18 @@
   }
 
   function loadState(): OverlayState {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Partial<OverlayState>;
-        return {
-          mode: parsed.mode === 'floating' ? 'floating' : 'docked',
-          dockedWidth: typeof parsed.dockedWidth === 'number' ? parsed.dockedWidth : DEFAULT_DOCKED_WIDTH,
-          floating: {
-            x: parsed.floating?.x ?? DEFAULT_FLOATING.x,
-            y: parsed.floating?.y ?? DEFAULT_FLOATING.y,
-            width: parsed.floating?.width ?? DEFAULT_FLOATING.width,
-            height: parsed.floating?.height ?? DEFAULT_FLOATING.height,
-          },
-        };
-      }
-    } catch {
-      // ignore
+    const parsed = quietGet<Partial<OverlayState>>(STORAGE_KEY, { parse: true });
+    if (parsed && typeof parsed === 'object') {
+      return {
+        mode: parsed.mode === 'floating' ? 'floating' : 'docked',
+        dockedWidth: typeof parsed.dockedWidth === 'number' ? parsed.dockedWidth : DEFAULT_DOCKED_WIDTH,
+        floating: {
+          x: parsed.floating?.x ?? DEFAULT_FLOATING.x,
+          y: parsed.floating?.y ?? DEFAULT_FLOATING.y,
+          width: parsed.floating?.width ?? DEFAULT_FLOATING.width,
+          height: parsed.floating?.height ?? DEFAULT_FLOATING.height,
+        },
+      };
     }
     return {
       mode: 'docked',
@@ -106,11 +98,7 @@
   }
 
   function persist() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ mode, dockedWidth, floating }));
-    } catch {
-      // ignore quota errors
-    }
+    quietSet(STORAGE_KEY, JSON.stringify({ mode, dockedWidth, floating }));
   }
 
   const initial = loadState();
