@@ -94,11 +94,12 @@ Design health is solid in the small (pure modules — `paletteDerivation`, `oklc
 - **Direction:** Parameterised `versionedFileResource(dir, options)` that yields the active+production+backup helpers — both client API helpers and server filesystem helpers can be generated this way. The 10-backup retention becomes a single `BACKUP_RETENTION` constant.
 - [done] **Resolution (2026-05-04):** Added `src/lib/files/versionedFileResource.ts` (client REST shape) and `src/vite-plugin/files/versionedFileResource.ts` (server fs shape, exporting `BACKUP_RETENTION = 10`). Both `themeService` and `componentConfigService` now consume the client helper; the dev-server plugin builds one resource per directory via `versionedFileResourceServer({dir})`. Theme-file lifecycle (active+production+backups) preserved.
 
-### M3. Migration tables in `editorStore.ts` accumulate without being dropped — Lava Flow risk `[cross-cutting]`
+### M3. Migration tables in `editorStore.ts` accumulate without being dropped — Lava Flow risk `[cross-cutting]` [done]
 - **Where:** `src/lib/editorStore.ts:960–997` (4 separate prefix/suffix/segmentedcontrol-specific tables), `:1086–1107` (legacy theme key renames + bg→canvas), `:982` (segmentedcontrol option-disabled migration).
 - **What:** Each table carries an explicit "drop these once all on-disk … resaved" comment. None has been dropped. The bookkeeping for *when* to drop relies on the user remembering — there is no lifecycle.
 - **Why it matters:** Migrations are correct now; they will silently make non-migration loads slower forever. More importantly, every future rename will pile on. The pattern lacks a TTL or a "migration version" stamp on the file that would let load drop migrations after a known-good upgrade.
 - **Direction:** Stamp a `schemaVersion` on saved theme/config files; run only the migrations between the file's stamp and current. Move the tables out of editorStore into a `migrations/` folder where each is dated, since they're effectively dead code after one cycle.
+- **Resolution (2026-05-04):** Added `Theme.schemaVersion` / `ComponentConfig.schemaVersion` (optional, absence = 0). Extracted three dated migration files under `src/lib/migrations/`: `2026-04-24-legacy-keys-and-bg-to-canvas.ts` (theme), `2026-04-24-component-prefix-and-suffix-renames.ts` (component-config), `2026-04-27-segmentedcontrol-disabled-flatten.ts` (component-config). Theme and component-config have independent version sequences; runner filters by `appliesTo` + `fromVersion >= file.schemaVersion`. `loadFromFile` / `loadComponentActive` / `seedComponentsFromApi` now route through `runMigrations`; `toTheme` / `persist` stamp `CURRENT_*_SCHEMA_VERSION` on save. New test file `src/lib/migrations/migrations.test.ts` (7 cases) covers legacy-up-to-current, gating by stamp, identity at current, and purity. Future renames add a new dated file and bump no longer require editing `editorStore.ts`. (Wave 4 commit, branch `c2/wave-4-m3-schema-version`.)
 
 ### M4. `TokenLayout.svelte` dispatches selectors via 13 `endsWith('-x')` predicates and 13 markup branches `[cross-cutting]`
 - **Where:** `src/component-editor/scaffolding/TokenLayout.svelte:53–152` (predicates + categorize), `:228–286` (markup dispatch).
@@ -205,7 +206,7 @@ Design health is solid in the small (pure modules — `paletteDerivation`, `oklc
 
 ## Nits
 
-- `src/lib/editorStore.ts:14, 1278` `[local]` — "Phase 1" / "Phase 2 derivation" comments. Remove once stable; keep them in the PR description.
+- `src/lib/editorStore.ts:14, 1278` `[local]` — "Phase 1" / "Phase 2 derivation" comments. Remove once stable; keep them in the PR description. [done] **Resolution (2026-05-04):** Removed the "Phase 1" paragraph from the module doc-comment and the "Phase 2 derivation" header above `deriveCssVars`. Reworded `toTheme`'s docstring to drop its own "Phase 1" reference. The narration was scaffolding for an in-flight migration that has since landed.
 - `src/lib/paletteDerivation.ts:201` `[local]` — `--text-primary-color` one-off rule (when ns=='primary' and step=='primary') deserves a one-line WHY (avoid `--text-primary` collision) or extraction to a tiny rename map.
   - [done] **Resolution (2026-05-04):** Added a one-line comment above the rule explaining the collision-avoidance with the neutral `--text-primary` token.
 - `src/component-editor/scaffolding/ComponentFileManager.svelte:1` `[local]` — 888 lines. Split the SaveAs dialog and the file menu into sub-components; the parent is hard to follow now.
@@ -215,8 +216,8 @@ Design health is solid in the small (pure modules — `paletteDerivation`, `oklc
 ## Project conventions
 
 - `src/components/Notification.svelte:18` `[local]` — "// NEW: ..." task narration comment, violates "no current-task comments in code."
-- `src/lib/editorStore.ts:14, 1278` `[local]` — "Phase 1" / "Phase 2" current-state narration comments.
-- `src/lib/editorStore.ts:960–997, 1086–1107` `[cross-cutting]` — migration tables with "drop entries here once …" comments are intent-tracking that probably belongs in a planning doc, not the source. Acceptable today; will rot.
+- `src/lib/editorStore.ts:14, 1278` `[local]` — "Phase 1" / "Phase 2" current-state narration comments. [done] **Resolution (2026-05-04):** Removed both narration blocks; same fix as the matching Nits entry.
+- `src/lib/editorStore.ts:960–997, 1086–1107` `[cross-cutting]` — migration tables with "drop entries here once …" comments are intent-tracking that probably belongs in a planning doc, not the source. Acceptable today; will rot. [done] **Resolution (2026-05-04):** Tables extracted to dated files under `src/lib/migrations/`; lifecycle is now mechanical (file-deletion drops the migration once `CURRENT_*_SCHEMA_VERSION` is past it). See M3.
 - Defensive checks like `if (!t || !t.stops[index]) return;` (`editorStore.ts:735, 752`) on a typed in-memory model: prefer making the lookup return-or-throw and trust the type — but acceptable here given the UI may dispatch out-of-order events.
 
 ## Clean

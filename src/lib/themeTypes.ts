@@ -76,6 +76,13 @@ export interface Theme {
    * `themeInit` to seed `activeFileName`. Optional and not persisted to disk.
    */
   _fileName?: string;
+  /**
+   * Migration stamp. Absent on legacy files, treated as 0; the loader runs
+   * any registered theme migrations whose `fromVersion >= file.schemaVersion`.
+   * Save paths stamp the current value so resaved files skip past
+   * migrations.
+   */
+  schemaVersion?: number;
 }
 
 export interface ThemeMeta {
@@ -97,6 +104,10 @@ export interface ComponentConfig {
    * the component-configs GET handlers; not persisted to disk.
    */
   _fileName?: string;
+  /**
+   * Migration stamp. Absent on legacy files, treated as 0. See `Theme.schemaVersion`.
+   */
+  schemaVersion?: number;
 }
 
 export interface ComponentConfigMeta {

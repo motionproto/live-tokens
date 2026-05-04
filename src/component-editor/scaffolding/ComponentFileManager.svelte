@@ -24,6 +24,7 @@
     markComponentSaved,
     mutate,
   } from '../../lib/editorStore';
+  import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../lib/migrations';
   import { sanitizeFileName } from '../../lib/themeService';
   import type { CssVarRef } from '../../lib/editorTypes';
   import UIDialog from '../../ui/UIDialog.svelte';
@@ -152,8 +153,9 @@
       component,
       createdAt: now,
       updatedAt: now,
-      aliases: currentAliases(),
+      aliases: { ...currentAliases() },
       config: { ...currentConfig() },
+      schemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
     };
     await saveComponentConfig(component, fileName, data);
     await setActiveComponentFile(component, fileName);
@@ -242,7 +244,7 @@
     try {
       const cfg = await loadComponentConfig(component, file.fileName);
       await setActiveComponentFile(component, file.fileName);
-      loadComponentActive(component, file.fileName, cfg.aliases, cfg.config);
+      loadComponentActive(component, file.fileName, cfg.aliases, cfg.config, cfg.schemaVersion ?? 0);
       activeFileName = file.fileName;
       currentDisplayName = file.name;
     } catch {
@@ -259,7 +261,7 @@
       if (file.fileName === activeFileName) {
         // Server reverts active to default; reload default aliases into the store.
         const defaultCfg = await loadComponentConfig(component, 'default');
-        loadComponentActive(component, 'default', defaultCfg.aliases, defaultCfg.config);
+        loadComponentActive(component, 'default', defaultCfg.aliases, defaultCfg.config, defaultCfg.schemaVersion ?? 0);
         activeFileName = 'default';
         currentDisplayName = 'Default';
       }
