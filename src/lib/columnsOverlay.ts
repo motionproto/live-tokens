@@ -1,24 +1,13 @@
 import { writable } from 'svelte/store';
 import { storageKey } from './editorConfig';
+import { quietGet, quietSet } from './storage';
 
 const STORAGE_KEY = storageKey('columns-visible');
 
-function load(): boolean {
-  try {
-    return localStorage.getItem(STORAGE_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
-export const columnsVisible = writable<boolean>(load());
+export const columnsVisible = writable<boolean>(quietGet(STORAGE_KEY) === '1');
 
 columnsVisible.subscribe((v) => {
-  try {
-    localStorage.setItem(STORAGE_KEY, v ? '1' : '0');
-  } catch {
-    // ignore quota errors
-  }
+  quietSet(STORAGE_KEY, v ? '1' : '0');
 });
 
 export function toggleColumns() {

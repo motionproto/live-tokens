@@ -8,12 +8,10 @@
   import type { ComponentConfig, ComponentConfigMeta } from '../../lib/themeTypes';
   import { componentSourceFile } from './componentSources';
   import {
-    listComponentConfigs,
     loadComponentConfig,
     saveComponentConfig,
     deleteComponentConfig,
     setActiveComponentFile,
-    getComponentProductionInfo,
     setComponentProductionFile,
     type ComponentProductionInfo,
   } from '../../lib/componentConfigService';
@@ -25,6 +23,7 @@
     mutate,
   } from '../../lib/editorStore';
   import { sanitizeFileName } from '../../lib/themeService';
+  import { safeFetch } from '../../lib/storage';
   import UIDialog from '../../ui/UIDialog.svelte';
   import { writable } from 'svelte/store';
   import { getEditorContext, type ViewMode } from './editorContext';
@@ -68,23 +67,26 @@
   })();
 
   async function refreshFiles() {
-    try {
-      const data = await listComponentConfigs(component);
-      files = data.files;
-      activeFileName = data.activeFile;
-      const active = files.find((f) => f.fileName === activeFileName);
-      if (active) currentDisplayName = active.name;
-    } catch {
-      // silent — empty list
-    }
+    // safeFetch returns null on dev-server unavailable / non-2xx — silently
+    // leave the file list empty in that case.
+    const data = await safeFetch<{
+      files: ComponentConfigMeta[];
+      activeFile: string;
+    }>(`/api/component-configs/${encodeURIComponent(component)}`);
+    if (!data) return;
+    files = data.files;
+    activeFileName = data.activeFile;
+    const active = files.find((f) => f.fileName === activeFileName);
+    if (active) currentDisplayName = active.name;
   }
 
   async function refreshProduction() {
-    try {
-      productionInfo = await getComponentProductionInfo(component);
-    } catch {
-      // silent
-    }
+    // Preserve existing productionInfo on transient fetch failure rather than
+    // clobbering it to null — same behaviour as the previous empty catch.
+    const info = await safeFetch<ComponentProductionInfo>(
+      `/api/component-configs/${encodeURIComponent(component)}/production`,
+    );
+    if (info) productionInfo = info;
   }
 
   onMount(async () => {
@@ -214,6 +216,10 @@
 
   async function handleLoad(file: ComponentConfigMeta) {
     showFileList = false;
+    // Multi-step service flow (load + set-active) — if any network call
+    // fails, the dialog is already closed and the local state stays on the
+    // previous selection. Silent by design; the same boot resilience that
+    // keeps the editor working without a dev-server applies here.
     try {
       const cfg = await loadComponentConfig(component, file.fileName);
       await setActiveComponentFile(component, file.fileName);
@@ -221,12 +227,14 @@
       activeFileName = file.fileName;
       currentDisplayName = file.name;
     } catch {
-      // silent
+      // intentional: see comment above
     }
   }
 
   async function handleDelete(file: ComponentConfigMeta) {
     if (file.fileName === 'default') return;
+    // Multi-step service flow (delete + reload-default-on-active-removal).
+    // Silent by design — see handleLoad.
     try {
       await deleteComponentConfig(component, file.fileName);
       await refreshFiles();
@@ -239,7 +247,7 @@
         currentDisplayName = 'Default';
       }
     } catch {
-      // silent
+      // intentional: see comment above
     }
   }
 
