@@ -70,6 +70,13 @@ export interface Theme {
   cssVariables: Record<string, string>;
   fontSources?: FontSource[];
   fontStacks?: FontStack[];
+  /**
+   * Migration stamp. Absent on legacy files, treated as 0; the loader runs
+   * any registered theme migrations whose `fromVersion >= file.schemaVersion`.
+   * Save paths stamp the current value so resaved files skip past
+   * migrations.
+   */
+  schemaVersion?: number;
 }
 
 export interface ThemeMeta {
@@ -85,6 +92,10 @@ export interface ComponentConfig {
   createdAt: string;
   updatedAt: string;
   aliases: Record<string, string>;
+  /**
+   * Migration stamp. Absent on legacy files, treated as 0. See `Theme.schemaVersion`.
+   */
+  schemaVersion?: number;
 }
 
 export interface ComponentConfigMeta {

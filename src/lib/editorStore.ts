@@ -7,18 +7,19 @@
  * subscriber derives CSS vars from the tree and writes them to :root via
  * `cssVarSync` (which fans out to the parent document for the overlay
  * iframe).
- *
- * Phase 1: the funnel exists and routes to the DOM, but no components have
- * been migrated yet. `deriveCssVars` only emits the catch-all `cssVars` bag;
- * domain-specific derivations come online as each tab migrates.
  */
 
 import { writable, derived, get, type Readable } from 'svelte/store';
-import type { EditorState, ColumnsState, ComponentSlice, OverlayToken, ShadowToken, GradientToken, GradientTokenStop, GradientType } from './editorTypes';
+import type { EditorState, ColumnsState, OverlayToken, ShadowToken, GradientToken, GradientTokenStop, GradientType } from './editorTypes';
 import type { Theme, FontSource, FontStack, PaletteConfig } from './themeTypes';
 import { setCssVar, removeCssVar } from './cssVarSync';
 import { palettesToVars } from './paletteDerivation';
 import { storageKey } from './editorConfig';
+import {
+  CURRENT_THEME_SCHEMA_VERSION,
+  CURRENT_COMPONENT_SCHEMA_VERSION,
+  runMigrations,
+} from './migrations';
 
 const HISTORY_MAX = 100;
 const PERSIST_DEBOUNCE_MS = 300;
@@ -952,95 +953,35 @@ export function unlinkComponentProperty(component: string, varName: string): voi
 }
 
 /**
- * Rewrite abbreviated component-prefix keys to the long-form convention
- * (`--segment-*` → `--segmentedcontrol-*`, etc.). Keeps saved configs loading
- * after the prefix-unabbreviation refactor. Drop these entries once every
- * on-disk config has been resaved under the new names.
+ * Run any component-config migrations between `fileVersion` and the current
+ * schema. Migrations themselves live under `src/lib/migrations/` keyed by
+ * date — adding a new dated file there auto-bumps the schema version.
  */
-const COMPONENT_PREFIX_RENAMES: Record<string, string> = {
-  '--segment-': '--segmentedcontrol-',
-  '--collapsible-': '--collapsiblesection-',
-  '--progress-': '--progressbar-',
-  '--section-divider-': '--sectiondivider-',
-  '--radio-': '--radiobutton-',
-  '--inline-edit-': '--inlineeditactions-',
-};
-
-/**
- * Per-component suffix rewrites applied after the prefix migration — these
- * cover the `bg` → `surface` and hover-state reorder that landed alongside
- * the prefix rename for progressbar and inlineeditactions.
- */
-const COMPONENT_SUFFIX_RENAMES: Record<string, Array<[string, string]>> = {
-  progressbar: [['-track-bg', '-track-surface']],
-  inlineeditactions: [
-    ['-bg-hover', '-hover-surface'],
-    ['-bg', '-surface'],
-  ],
-};
-
-/**
- * SegmentedControl component-state refactor (2026-04-27): the disabled
- * component state used to be modeled as an interaction state on the
- * default option (`--segmentedcontrol-option-disabled-*`); it's now its
- * own top-level component state (`--segmentedcontrol-disabled-*`).
- * Selected-disabled was briefly introduced as a state then removed —
- * a disabled control can't have a selected option. Selected-hover was
- * also briefly introduced then removed when the editor flattened to a
- * single 4-state list (default/selected/hover/disabled); the selected
- * pill now looks the same regardless of pointer state. Drop the legacy
- * keys on load.
- */
-const SEGMENTEDCONTROL_OPTION_DISABLED_PREFIX = '--segmentedcontrol-option-disabled-';
-const SEGMENTEDCONTROL_DISABLED_PREFIX = '--segmentedcontrol-disabled-';
-const SEGMENTEDCONTROL_SELECTED_DISABLED_PREFIX = '--segmentedcontrol-selected-disabled-';
-const SEGMENTEDCONTROL_SELECTED_HOVER_PREFIX = '--segmentedcontrol-selected-hover-';
-
-function migrateComponentAliases(component: string, aliases: Record<string, string>): Record<string, string> {
-  const out: Record<string, string> = {};
-  const suffixRules = COMPONENT_SUFFIX_RENAMES[component] ?? [];
-  for (const [oldKey, value] of Object.entries(aliases)) {
-    let key = oldKey;
-    // One-off whole-key rename (detailnav's only abbreviated token).
-    if (key === '--detail-nav-bg') key = '--detailnav-surface';
-    for (const [oldPrefix, newPrefix] of Object.entries(COMPONENT_PREFIX_RENAMES)) {
-      if (key.startsWith(oldPrefix)) {
-        key = newPrefix + key.slice(oldPrefix.length);
-        break;
-      }
-    }
-    for (const [oldSuffix, newSuffix] of suffixRules) {
-      if (key.endsWith(oldSuffix)) {
-        key = key.slice(0, -oldSuffix.length) + newSuffix;
-        break;
-      }
-    }
-    if (component === 'segmentedcontrol') {
-      // Drop short-lived selected-disabled tokens (impossible state).
-      if (key.startsWith(SEGMENTEDCONTROL_SELECTED_DISABLED_PREFIX)) continue;
-      // Drop short-lived selected-hover tokens (selected pill no longer has a hover variation).
-      if (key.startsWith(SEGMENTEDCONTROL_SELECTED_HOVER_PREFIX)) continue;
-      // Move option-disabled-* tokens to disabled-* (component-state level).
-      if (key.startsWith(SEGMENTEDCONTROL_OPTION_DISABLED_PREFIX)) {
-        key = SEGMENTEDCONTROL_DISABLED_PREFIX + key.slice(SEGMENTEDCONTROL_OPTION_DISABLED_PREFIX.length);
-      }
-    }
-    if (!(key in out)) out[key] = value;
-  }
-  return out;
+function migrateComponentAliases(
+  component: string,
+  aliases: Record<string, string>,
+  fileVersion: number,
+): Record<string, string> {
+  return runMigrations('component-config', fileVersion, aliases, { component });
 }
 
 /**
  * Replace a component's slice with a loaded config file's contents. Uses
  * `mutate()` so the load is one undoable entry; updates the dirty baseline
  * so the post-load state reads clean for this component.
+ *
+ * `schemaVersion` is the stamp on the loaded file (0 for legacy files
+ * with no stamp). The runner applies any migrations between that and
+ * `CURRENT_COMPONENT_SCHEMA_VERSION` before the slice is stored — in-memory
+ * state is always at the current version.
  */
 export function loadComponentActive(
   component: string,
   activeFile: string,
   aliases: Record<string, string>,
+  schemaVersion: number = 0,
 ): void {
-  const migrated = migrateComponentAliases(component, aliases);
+  const migrated = migrateComponentAliases(component, aliases, schemaVersion);
   mutate(`load ${component}/${activeFile}`, (s) => {
     s.components[component] = { activeFile, aliases: { ...migrated } };
   });
@@ -1048,17 +989,26 @@ export function loadComponentActive(
   bumpComponentSavedTick();
 }
 
+export interface ComponentSeed {
+  activeFile: string;
+  aliases: Record<string, string>;
+  schemaVersion?: number;
+}
+
 /**
  * Boot-path hydration from the server's /api/component-configs fetch. No
  * history entry, no dirty flag — components are clean relative to disk.
+ *
+ * Each seed may carry a `schemaVersion`; absent entries are treated as 0
+ * and migrated up to current.
  */
 export function seedComponentsFromApi(
-  configs: Record<string, ComponentSlice>,
+  configs: Record<string, ComponentSeed>,
 ): void {
   store.update((s) => {
     s.components = {};
     for (const [comp, cfg] of Object.entries(configs)) {
-      const migrated = migrateComponentAliases(comp, cfg.aliases);
+      const migrated = migrateComponentAliases(comp, cfg.aliases, cfg.schemaVersion ?? 0);
       s.components[comp] = { activeFile: cfg.activeFile, aliases: { ...migrated } };
       savedComponents[comp] = JSON.stringify(migrated);
     }
@@ -1076,74 +1026,22 @@ export function markComponentSaved(component: string): void {
 }
 
 /**
- * Rewrite legacy CSS-var keys in a loaded theme bag to their current names.
- * Old themes saved before a rename keep working without re-saving; the migrated
- * bag then flows through the normal domain routing below.
- *
- * Drop entries here once all on-disk themes have been resaved under the new
- * names (the rewrites are cheap but accumulate indefinitely otherwise).
- */
-const LEGACY_KEY_RENAMES: Record<string, string | null> = {
-  '--empty': '--page-bg',
-  '--empty-attachment': '--page-bg-attachment',
-  // Orphan exports dropped from tokens.css; no new home — silently discard.
-  '--border-neutral': null,
-  // Shadow cleanup: these five tokens were removed (low/zero consumers,
-  // aesthetic drift). Dialog migrated onto --shadow-2xl; focus rings moved
-  // to their own --ring-focus-* namespace, which themes don't carry by
-  // default — tokens.css provides the canonical values.
-  '--shadow-app': null,
-  '--shadow-card': null,
-  '--shadow-overlay': null,
-  '--shadow-focus': null,
-  '--shadow-glow-green': null,
-};
-
-// bg → canvas: rename every key in the --color-bg-*, --surface-bg(-*)?,
-// --border-bg(-*)?, --text-bg(-*)? families to their canvas equivalents.
-// Handled as a pattern match (rather than static entries in LEGACY_KEY_RENAMES)
-// because the families carry ~28 keys between them and listing each is noise.
-const BG_TO_CANVAS_PREFIXES = ['--color-bg-', '--surface-bg', '--border-bg', '--text-bg'] as const;
-
-function migrateBgToCanvas(rawVars: Record<string, string>): void {
-  for (const oldKey of Object.keys(rawVars)) {
-    for (const prefix of BG_TO_CANVAS_PREFIXES) {
-      if (!oldKey.startsWith(prefix)) continue;
-      // Only the -bg boundary should swap; don't accidentally rename
-      // --text-bgthing or similar.
-      const suffix = oldKey.slice(prefix.length);
-      if (suffix && !suffix.startsWith('-')) continue;
-      const newKey = prefix.replace('-bg', '-canvas') + suffix;
-      if (newKey === oldKey) continue;
-      const value = rawVars[oldKey];
-      delete rawVars[oldKey];
-      if (!(newKey in rawVars)) rawVars[newKey] = value;
-      break;
-    }
-  }
-}
-
-function migrateLegacyKeys(rawVars: Record<string, string>): void {
-  for (const [oldKey, newKey] of Object.entries(LEGACY_KEY_RENAMES)) {
-    if (!(oldKey in rawVars)) continue;
-    const value = rawVars[oldKey];
-    delete rawVars[oldKey];
-    if (newKey && !(newKey in rawVars)) rawVars[newKey] = value;
-  }
-  migrateBgToCanvas(rawVars);
-}
-
-/**
  * Replace state with a loaded theme. Clears history and marks saved —
  * "open a different document" semantics. Undo cannot cross a theme load.
+ *
+ * Reads `theme.schemaVersion` (absent = 0) and runs theme migrations up to
+ * `CURRENT_THEME_SCHEMA_VERSION` before splitting the bag into domains.
  */
 export function loadFromFile(theme: Theme): void {
   const next = emptyState();
   next.palettes = structuredClone(theme.editorConfigs ?? {});
   next.fonts.sources = structuredClone(theme.fontSources ?? []);
   next.fonts.stacks  = structuredClone(theme.fontStacks  ?? []);
-  const rawVars = { ...(theme.cssVariables ?? {}) };
-  migrateLegacyKeys(rawVars);
+  const rawVars = runMigrations(
+    'theme',
+    theme.schemaVersion ?? 0,
+    theme.cssVariables ?? {},
+  );
   // Column vars live in state.columns; strip them out of the catch-all bag
   // so derivation stays single-source.
   const colOverrides = parseColumnVars(rawVars);
@@ -1179,9 +1077,12 @@ export function loadFromFile(theme: Theme): void {
 }
 
 /**
- * Serialize current state for saving. Phase 1 emits the escape-hatch
- * `cssVars` bag as-is; domain-derived vars fold in during later phases when
- * `deriveCssVars` grows beyond the bag.
+ * Serialize current state for saving. Emits the escape-hatch `cssVars` bag
+ * directly; domain-derived vars (columns / overlays / shadows) fold in
+ * here so the saved file is the same shape `deriveCssVars` produces.
+ *
+ * Stamps the file with `CURRENT_THEME_SCHEMA_VERSION` so future loads can
+ * skip migrations the file is already past.
  */
 export function toTheme(state: EditorState, meta: { name: string }): Theme {
   const now = new Date().toISOString();
@@ -1203,6 +1104,7 @@ export function toTheme(state: EditorState, meta: { name: string }): Theme {
     cssVariables,
     fontSources: state.fonts.sources,
     fontStacks: state.fonts.stacks,
+    schemaVersion: CURRENT_THEME_SCHEMA_VERSION,
   };
 }
 
@@ -1276,8 +1178,9 @@ export async function initializeEditorStore(): Promise<void> {
 
 // ── Derived CSS-var subscription ───────────────────────────────────────────
 //
-// Phase 2 derivation: columns + overlays + palettes derive from their domains;
-// the catch-all cssVars bag covers everything not yet migrated.
+// columns + overlays + shadows + gradients + palettes + components derive
+// from their domains; the catch-all cssVars bag covers everything not
+// yet migrated.
 function deriveCssVars(state: EditorState): Record<string, string> {
   const out: Record<string, string> = { ...state.cssVars };
   if (!columnsEqualsDefault(state.columns)) {
