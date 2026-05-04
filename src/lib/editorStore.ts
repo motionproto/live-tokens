@@ -16,9 +16,8 @@
 import { writable, derived, get, type Readable } from 'svelte/store';
 import type { EditorState, ColumnsState, ComponentSlice, OverlayToken, ShadowToken, GradientToken, GradientTokenStop, GradientType } from './editorTypes';
 import type { Theme, FontSource, FontStack, PaletteConfig } from './themeTypes';
-import { setCssVar, removeCssVar } from './cssVarSync';
-import { palettesToVars } from './paletteDerivation';
 import { storageKey } from './editorConfig';
+import { __resetRendererCacheForTests, installRenderer } from './editorRenderer';
 
 const HISTORY_MAX = 100;
 const PERSIST_DEBOUNCE_MS = 300;
@@ -125,7 +124,7 @@ function emptyState(): EditorState {
   };
 }
 
-function columnsToVars(c: ColumnsState): Record<string, string> {
+export function columnsToVars(c: ColumnsState): Record<string, string> {
   return {
     '--columns-count': String(c.count),
     '--columns-max-width': `${c.maxWidth}px`,
@@ -139,7 +138,7 @@ function columnsToVars(c: ColumnsState): Record<string, string> {
  * While columns match the default, we leave tokens.css in charge — which
  * preserves the `clamp()` in `--columns-gutter` until the editor overrides it.
  */
-function columnsEqualsDefault(c: ColumnsState): boolean {
+export function columnsEqualsDefault(c: ColumnsState): boolean {
   return c.count === DEFAULT_COLUMNS.count
     && c.maxWidth === DEFAULT_COLUMNS.maxWidth
     && c.gutter === DEFAULT_COLUMNS.gutter
@@ -165,7 +164,7 @@ function overlayTokenToRgba(t: OverlayToken): string {
   return `rgba(${t.r}, ${t.g}, ${t.b}, ${t.opacity})`;
 }
 
-function overlaysToVars(o: EditorState['overlays']): Record<string, string> {
+export function overlaysToVars(o: EditorState['overlays']): Record<string, string> {
   const out: Record<string, string> = {};
   for (const t of o.tokens) out[t.variable] = overlayTokenToRgba(t);
   for (const t of o.hoverTokens) out[t.variable] = overlayTokenToRgba(t);
@@ -187,7 +186,7 @@ function tokensEqualDefault(tokens: OverlayToken[], defaults: OverlayToken[]): b
  * user touches any overlay control (or loads a theme that already
  * contains overrides).
  */
-function overlaysEqualsDefault(o: EditorState['overlays']): boolean {
+export function overlaysEqualsDefault(o: EditorState['overlays']): boolean {
   return tokensEqualDefault(o.tokens, makeDefaultOverlayTokens())
     && tokensEqualDefault(o.hoverTokens, makeDefaultHoverTokens());
 }
@@ -295,7 +294,7 @@ function parseShadowCss(variable: string, raw: string): ShadowToken | null {
   return { variable, x, y, blur, spread, opacity, hue, saturation, lightness, angle, distance };
 }
 
-function shadowsToVars(shadows: EditorState['shadows']): Record<string, string> {
+export function shadowsToVars(shadows: EditorState['shadows']): Record<string, string> {
   const out: Record<string, string> = {};
   for (const t of shadows.tokens) out[t.variable] = shadowTokenCss(t);
   return out;
@@ -594,7 +593,7 @@ export function __resetForTests(): void {
   savedAtIndex = 0;
   pendingTransaction = null;
   paletteSession = null;
-  lastApplied = {};
+  __resetRendererCacheForTests();
   for (const k of Object.keys(savedComponents)) delete savedComponents[k];
   store.set(emptyState());
   bumpTick();
@@ -705,7 +704,7 @@ function formatGradient(t: GradientToken): string {
   return `radial-gradient(${stops})`;
 }
 
-function gradientsToVars(g: EditorState['gradients']): Record<string, string> {
+export function gradientsToVars(g: EditorState['gradients']): Record<string, string> {
   const out: Record<string, string> = {};
   for (const t of g.tokens) out[t.variable] = formatGradient(t);
   return out;
@@ -771,7 +770,7 @@ export function removeGradientToken(variable: string): void {
   });
 }
 
-function componentsToVars(components: EditorState['components']): Record<string, string> {
+export function componentsToVars(components: EditorState['components']): Record<string, string> {
   const out: Record<string, string> = {};
   for (const slice of Object.values(components)) {
     for (const [varName, semanticName] of Object.entries(slice.aliases)) {
@@ -1276,38 +1275,11 @@ export async function initializeEditorStore(): Promise<void> {
 
 // ── Derived CSS-var subscription ───────────────────────────────────────────
 //
-// Phase 2 derivation: columns + overlays + palettes derive from their domains;
-// the catch-all cssVars bag covers everything not yet migrated.
-function deriveCssVars(state: EditorState): Record<string, string> {
-  const out: Record<string, string> = { ...state.cssVars };
-  if (!columnsEqualsDefault(state.columns)) {
-    Object.assign(out, columnsToVars(state.columns));
-  }
-  if (!overlaysEqualsDefault(state.overlays)) {
-    Object.assign(out, overlaysToVars(state.overlays));
-  }
-  if (state.shadows.tokens.length > 0) {
-    Object.assign(out, shadowsToVars(state.shadows));
-  }
-  if (state.gradients.tokens.length > 0) {
-    Object.assign(out, gradientsToVars(state.gradients));
-  }
-  Object.assign(out, palettesToVars(state.palettes));
-  Object.assign(out, componentsToVars(state.components));
-  return out;
-}
-
-let lastApplied: Record<string, string> = {};
-
-if (typeof window !== 'undefined') {
-  store.subscribe((state) => {
-    const next = deriveCssVars(state);
-    for (const name in next) {
-      if (next[name] !== lastApplied[name]) setCssVar(name, next[name]);
-    }
-    for (const name in lastApplied) {
-      if (!(name in next)) removeCssVar(name);
-    }
-    lastApplied = next;
-  });
-}
+// `deriveCssVars` and the DOM subscriber live in `./editorRenderer`.
+// `installRenderer()` runs the same `store.subscribe(...)` wiring legacy
+// `import '.../editorStore'` paths depended on before the split. It must be
+// called *after* this module's exports are initialized — the renderer
+// imports `editorState` back from here, and calling it earlier would TDZ
+// because of the circular import.
+export { deriveCssVars } from './editorRenderer';
+installRenderer();
