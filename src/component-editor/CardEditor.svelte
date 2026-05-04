@@ -1,4 +1,5 @@
 <script context="module" lang="ts">
+  import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
   export const component = 'card';
@@ -107,7 +108,11 @@
     ['--card-default-body-font-weight', 'body'],
     ['--card-default-body-line-height', 'body'],
   ]);
-  export const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
+  export const allTokens: Token[] = [
+    ...Object.values(states).flat(),
+    ...buildTypeGroupColorTokens(typeGroups),
+    ...typeGroupTokens,
+  ];
 </script>
 
 <script lang="ts">

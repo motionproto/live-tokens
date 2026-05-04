@@ -1,4 +1,5 @@
 <script context="module" lang="ts">
+  import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
   export const component = 'sectiondivider';
@@ -61,6 +62,7 @@
   }
   export const allTokens: Token[] = [
     ...Object.values(sharedStates).flat(),
+    ...buildTypeGroupColorTokens(sharedTypeGroups),
     ...sharedTypeTokens,
     ...variants.flatMap((v) => variantTokens(v.key)),
   ];

@@ -1,4 +1,5 @@
 <script context="module" lang="ts">
+  import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
   export const component = 'tooltip';
@@ -31,7 +32,11 @@
     { label: 'font weight', variable: '--tooltip-text-font-weight' },
     { label: 'line height', variable: '--tooltip-text-line-height' },
   ];
-  export const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
+  export const allTokens: Token[] = [
+    ...Object.values(states).flat(),
+    ...buildTypeGroupColorTokens(typeGroups),
+    ...typeGroupTokens,
+  ];
 </script>
 
 <script lang="ts">

@@ -1,4 +1,5 @@
 <script context="module" lang="ts">
+  import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
   export const component = 'tabbar';
@@ -50,7 +51,12 @@
     { label: 'font weight', canBeShared: true, groupKey: 'tab-font-weight', variable: `--tabbar-${s}-text-font-weight` },
     { label: 'line height', canBeShared: true, groupKey: 'tab-line-height', variable: `--tabbar-${s}-text-line-height` },
   ]);
-  export const allTokens: Token[] = [...Object.values(barStates).flat(), ...Object.values(tabStates).flat(), ...tabTypeGroupTokens];
+  export const allTokens: Token[] = [
+    ...Object.values(barStates).flat(),
+    ...Object.values(tabStates).flat(),
+    ...buildTypeGroupColorTokens(tabTypeGroups),
+    ...tabTypeGroupTokens,
+  ];
 
   // Linking: shape props across tab states (same tab object).
   const shareableContexts = new Map<string, string>(tabStateNames.flatMap((s) => [

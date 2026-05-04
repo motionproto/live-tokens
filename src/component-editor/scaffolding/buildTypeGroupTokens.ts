@@ -22,11 +22,13 @@ export type BuildTypeGroupTokensOptions = {
   groupKeyFor?: (prop: TypeFontProp, group: TypeGroupConfig) => string;
 };
 
-/** Derive the Token[] schema entries for the typography variables on every TypeGroupConfig
-    in `typeGroups`. Each state's groups contribute up to 4 tokens (font-family/size/weight/
-    line-height) wherever those variables are declared on the group; missing properties are
-    skipped. The emitted tokens carry `canBeShared: true` and a stable `groupKey` so the
-    shared-block linkage and "tokens.css declared" check both see them.
+/** Derive the Token[] schema entries for every TypeGroupConfig in `typeGroups`. Each
+    group emits one `colorVariable` token plus up to 4 font-shape tokens (family/size/
+    weight/line-height) for whichever of those are declared on the group. Font-shape
+    tokens carry `canBeShared: true` and a stable `groupKey` so the shared-block linkage
+    sees them; the color token is emitted plain (no groupKey, not shareable) so it stays
+    out of the shared block while still appearing in the editor's full token surface
+    (used by the reset-button and the design-token resolution test).
 
     Mirrors the `flatMap`/loop pattern in StandardButtonsEditor and RadioButtonEditor so
     editors don't have to hand-list 16+ near-identical Token entries. */
@@ -38,6 +40,7 @@ export function buildTypeGroupTokens(
   const tokens: Token[] = [];
   for (const groups of Object.values(typeGroups)) {
     for (const group of groups) {
+      tokens.push({ label: group.colorLabel ?? 'color', variable: group.colorVariable });
       for (const prop of TYPE_FONT_PROPS) {
         const variable = group[prop.key];
         if (!variable) continue;
@@ -47,6 +50,21 @@ export function buildTypeGroupTokens(
     }
   }
   return tokens;
+}
+
+/** Color-only counterpart for editors that hand-roll their font-shape tokens (because
+    they use a custom groupKey scheme) but still want their `colorVariable`s in
+    `allTokens` — needed so the reset-button and the design-token resolution test see
+    them. Accepts either the full `Record` shape or a flat group array, so it slots
+    cleanly into both `Object.values(typeGroups).flat()` chains and per-variant
+    `flatMap` constructions. */
+export function buildTypeGroupColorTokens(
+  typeGroups: Record<string, TypeGroupConfig[]> | TypeGroupConfig[],
+): Token[] {
+  const groups: TypeGroupConfig[] = Array.isArray(typeGroups)
+    ? typeGroups
+    : Object.values(typeGroups).flat();
+  return groups.map((g) => ({ label: g.colorLabel ?? 'color', variable: g.colorVariable }));
 }
 
 /** Companion helper: derive a `shareableContexts` map mapping every typography variable in

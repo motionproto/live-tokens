@@ -4,9 +4,9 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildTokenRegistry, extractGlobalRootBody } from '../lib/tokenRegistry';
+import { componentRegistryEntries } from './registry';
 
 const TEST_DIR = dirname(fileURLToPath(import.meta.url));
-const EDITORS_DIR = TEST_DIR;
 const TOKENS_CSS = join(TEST_DIR, '..', 'styles', 'tokens.css');
 const COMPONENTS_DIR = join(TEST_DIR, '..', 'components');
 
@@ -22,16 +22,6 @@ const componentTokenCss = readdirSync(COMPONENTS_DIR)
   .join('\n');
 const registry = buildTokenRegistry(tokensSource + '\n' + componentTokenCss);
 
-/** Scrape `variable: '--foo'` entries from an editor's <script> block. */
-function extractEditorVariables(file: string): string[] {
-  const source = readFileSync(file, 'utf8');
-  const re = /variable\s*:\s*'(--[a-z0-9-]+)'/gi;
-  const out: string[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(source)) !== null) out.push(m[1]);
-  return out;
-}
-
 /** Test whether a variable name fits a layer-1 design-token naming pattern. */
 function isLayer1TokenName(name: string): boolean {
   // Color ramps: --color-<palette>-<step>  OR semantic color primitives: --color-<name>
@@ -43,57 +33,57 @@ function isLayer1TokenName(name: string): boolean {
   return false;
 }
 
-const editorFiles = readdirSync(EDITORS_DIR)
-  .filter((f) => f.endsWith('Editor.svelte'))
-  .map((f) => join(EDITORS_DIR, f));
+// Drives both describe blocks: one entry per (component, variable) pair pulled
+// from each editor's exported `allTokens`. This is the authoritative surface —
+// includes template-literal-built tokens (Button, SegmentedControl, etc.) and
+// typography colorVariables that the previous source-regex approach silently
+// missed. See registry.ts for how each editor exports its full token list via
+// `<script context="module">`.
+const editorTokenCases: Array<{ editor: string; variable: string }> = [];
+for (const entry of componentRegistryEntries) {
+  for (const t of entry.schema) {
+    editorTokenCases.push({ editor: entry.id, variable: t.variable });
+  }
+}
 
 describe('design-token architecture', () => {
-  it('has editor files to inspect', () => {
-    expect(editorFiles.length).toBeGreaterThan(0);
+  it('has editor schemas to inspect', () => {
+    expect(editorTokenCases.length).toBeGreaterThan(0);
   });
 
   describe('every editor-exposed variable resolves to a design token', () => {
-    for (const file of editorFiles) {
-      const vars = extractEditorVariables(file);
-      if (vars.length === 0) continue;
-      const editorName = file.split('/').pop()!;
-      for (const v of vars) {
-        it(`${editorName}: ${v} resolves via alias chain to a layer-1 token`, () => {
-          const chain = registry.resolveAliasChain(v);
-          const terminal = chain[chain.length - 1];
-          expect(
-            isLayer1TokenName(terminal),
-            `${v} → [${chain.join(' → ')}]; terminal "${terminal}" is not a design-token name. ` +
-              `Either rename the target or add a var() alias declaration in tokens.css.`,
-          ).toBe(true);
-        });
-      }
+    for (const { editor, variable } of editorTokenCases) {
+      it(`${editor}: ${variable} resolves via alias chain to a layer-1 token`, () => {
+        const chain = registry.resolveAliasChain(variable);
+        const terminal = chain[chain.length - 1];
+        expect(
+          isLayer1TokenName(terminal),
+          `${variable} → [${chain.join(' → ')}]; terminal "${terminal}" is not a design-token name. ` +
+            `Either rename the target or add a var() alias declaration in tokens.css.`,
+        ).toBe(true);
+      });
     }
   });
 
-  // Every editor-exposed variable across every component editor must be
-  // declared in tokens.css as a var() alias (not a literal, not a raw
-  // primitive). Component properties must bind to component-scoped Layer-2
+  // Every variable an editor binds must be declared in tokens.css (or a
+  // component <style> :global(:root) block) as a var() alias — not a literal,
+  // not a raw primitive. Component properties bind to component-scoped Layer-2
   // aliases so editing one component never rebinds a shared primitive used
   // elsewhere.
   describe('every editor follows the component-token pattern', () => {
-    for (const file of editorFiles) {
-      const editorName = file.split('/').pop()!;
-      const vars = extractEditorVariables(file);
-      for (const v of vars) {
-        it(`${editorName}: ${v} is a layer-2 component token (declared as var() alias)`, () => {
-          const declared = registry.getDeclaredValue(v);
-          expect(
-            declared,
-            `${v} is referenced by ${editorName} but not declared in tokens.css`,
-          ).not.toBeNull();
-          expect(
-            declared!.startsWith('var('),
-            `${v} should be a component-scoped alias declared as var(--primitive); got "${declared}". ` +
-              `Component properties must not rebind shared primitives directly.`,
-          ).toBe(true);
-        });
-      }
+    for (const { editor, variable } of editorTokenCases) {
+      it(`${editor}: ${variable} is a layer-2 component token (declared as var() alias)`, () => {
+        const declared = registry.getDeclaredValue(variable);
+        expect(
+          declared,
+          `${variable} is referenced by ${editor} but not declared in tokens.css`,
+        ).not.toBeNull();
+        expect(
+          declared!.startsWith('var('),
+          `${variable} should be a component-scoped alias declared as var(--primitive); got "${declared}". ` +
+            `Component properties must not rebind shared primitives directly.`,
+        ).toBe(true);
+      });
     }
   });
 });

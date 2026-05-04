@@ -1,4 +1,5 @@
 <script context="module" lang="ts">
+  import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
   export const component = 'dialog';
@@ -62,6 +63,7 @@
 
   export const allTokens: Token[] = [
     ...Object.values(frameStates).flat(),
+    ...buildTypeGroupColorTokens(frameTypeGroups),
     ...frameTypeGroupTokens,
   ];
 

@@ -1,4 +1,5 @@
 <script context="module" lang="ts">
+  import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
   export const component = 'collapsiblesection';
@@ -34,7 +35,11 @@
     { label: 'font weight', canBeShared: true, groupKey: 'label-font-weight', variable: `--collapsiblesection-${s}-label-font-weight` },
     { label: 'line height', canBeShared: true, groupKey: 'label-line-height', variable: `--collapsiblesection-${s}-label-line-height` },
   ]);
-  export const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
+  export const allTokens: Token[] = [
+    ...Object.values(states).flat(),
+    ...buildTypeGroupColorTokens(typeGroups),
+    ...typeGroupTokens,
+  ];
 
   const shareableContexts = new Map<string, string>(stateNames.flatMap((s) => [
     [`--collapsiblesection-${s}-border-width`, s] as const,

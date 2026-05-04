@@ -1,4 +1,5 @@
 <script context="module" lang="ts">
+  import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
   export const component = 'notification';
@@ -51,7 +52,11 @@
       { label: 'line height', canBeShared: true, groupKey: 'text-line-height', variable: `--notification-${v}-text-line-height` },
     ];
   }
-  export const allTokens: Token[] = variants.flatMap((v) => [...variantTokens(v), ...variantTypeGroupTokens(v)]);
+  export const allTokens: Token[] = variants.flatMap((v) => [
+    ...variantTokens(v),
+    ...buildTypeGroupColorTokens(variantTypeGroups(v)),
+    ...variantTypeGroupTokens(v),
+  ]);
 
   // Shared block surfaces shape and font props that may be linked across variants.
   const shareableContexts = new Map<string, string>(variants.flatMap((v) => [

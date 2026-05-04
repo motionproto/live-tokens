@@ -1,4 +1,5 @@
 <script context="module" lang="ts">
+  import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
   export const component = 'progressbar';
@@ -50,7 +51,11 @@
       { label: 'line height', canBeShared: true, groupKey: 'value-line-height', variable: `--progressbar-${v}-value-line-height` },
     ];
   }
-  export const allTokens: Token[] = variants.flatMap((v) => [...variantTokens(v), ...variantTypeGroupTokens(v)]);
+  export const allTokens: Token[] = variants.flatMap((v) => [
+    ...variantTokens(v),
+    ...buildTypeGroupColorTokens(variantTypeGroups(v)),
+    ...variantTypeGroupTokens(v),
+  ]);
 
   // Cross-variant shared block surfaces shape and font props that may be linked.
   const shareableContexts = new Map<string, string>(variants.flatMap((v) => [

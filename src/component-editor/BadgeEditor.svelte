@@ -1,4 +1,5 @@
 <script context="module" lang="ts">
+  import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
   export const component = 'badge';
@@ -35,7 +36,11 @@
       { label: 'line height', canBeShared: true, groupKey: 'line-height', variable: `--badge-${variant}-text-line-height` },
     ];
   }
-  export const allTokens: Token[] = variants.flatMap((v) => [...variantTokens(v), ...variantTypeGroupTokens(v)]);
+  export const allTokens: Token[] = variants.flatMap((v) => [
+    ...variantTokens(v),
+    ...buildTypeGroupColorTokens(variantTypeGroups(v)),
+    ...variantTypeGroupTokens(v),
+  ]);
 
   // Cross-variant sharing: any token with canBeShared+groupKey participates in
   // the shared block when ≥2 variants currently agree on its alias.
