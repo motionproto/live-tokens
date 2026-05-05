@@ -48,7 +48,7 @@
 </div>
 
 <style>
-  @import '../ui/editor.css';
+  @import '../styles/ui-editor.css';
 
   .editor-page {
     min-height: 100vh;

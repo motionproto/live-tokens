@@ -1,6 +1,13 @@
-/* RuneGoblin - Main Site Styles */
-/* Styles for the landing/marketing pages (unscoped element selectors) */
-/* Sibling to styles-gamerules.css — these two don't overlap */
+/*
+ * Site Styles — global typography for the themed pages
+ *
+ * Unscoped element selectors (h1, h2, p, a, ul li, …) consume the design
+ * tokens in tokens.css and recolor with the user's theme. Loaded globally
+ * from main.ts.
+ *
+ * Pair with: ui-editor.css (--ui-* chrome, opposite scope — neutral and
+ * theme-immune; only loaded on editor pages).
+ */
 
 h1 {
   font-family: var(--font-display);

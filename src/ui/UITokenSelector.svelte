@@ -301,6 +301,10 @@
     color: var(--ui-text-primary);
     font-weight: var(--ui-font-weight-medium);
     text-align: left;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .ui-ts-trigger.shared {

@@ -134,7 +134,7 @@ boot();
 
 ```ts
 // main.ts — or wherever you import global styles
-import '@motion-proto/live-tokens/styles/editor.css';
+import '@motion-proto/live-tokens/styles/ui-editor.css';
 import '@motion-proto/live-tokens/styles/form-controls.css';
 import '@motion-proto/live-tokens/styles/fonts.css';
 ```
@@ -145,7 +145,7 @@ import '@motion-proto/live-tokens/styles/fonts.css';
 <!-- src/pages/ComponentsPage.svelte -->
 <script lang="ts">
   import { ComponentsTab, defaultSections, type ComponentSection } from '@motion-proto/live-tokens/component-editor';
-  import '@motion-proto/live-tokens/styles/editor.css';
+  import '@motion-proto/live-tokens/styles/ui-editor.css';
   import MyWidgetEditor from '../components/MyWidgetEditor.svelte';
 
   const mySections: ComponentSection[] = [
@@ -170,7 +170,7 @@ The package is published to npm as `@motion-proto/live-tokens`.
 
 - `src/lib/`, `src/ui/`, `src/component-editor/`, `src/components/`
 - `src/pages/Editor.svelte` + `Editor.svelte.d.ts`
-- `src/ui/editor.css`, `src/styles/form-controls.css`, `src/styles/fonts.css`, `src/styles/fonts/`
+- `src/styles/ui-editor.css`, `src/styles/form-controls.css`, `src/styles/fonts.css`, `src/styles/fonts/`
 - `dist-plugin/`. Compiled Vite plugin.
 
 **What doesn't ship** (starter-only): `src/App.svelte`, `src/main.ts`, `src/pages/Home.svelte`, `src/pages/Demo.svelte`, `src/pages/ComponentEditorPage.svelte`, `index.html`, `themes/`.

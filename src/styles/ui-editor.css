@@ -1,41 +1,19 @@
-/*
- * Design System Editor — UI Chrome
- *
- * Opaque grayscale palette for the editor itself.
- * Protected from the design-token system — these never change.
- *
- * Every editor surface (src/ui and src/component-editor) references these via var(--ui-*).
- * The --ui-gray-* ramp is the source of truth; semantic aliases
- * (--ui-surface-*, --ui-text-*, --ui-border-*) point into it.
- */
+/* Editor UI chrome — `--ui-*` tokens. Theme-immune; see CONVENTIONS.md. */
 
 .editor-page {
-
-  /* ── Fonts ────────────────────────────────────────────── */
-
-  /* System sans for all editor chrome — no app custom fonts */
   --ui-font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-
-  /* System monospace for variable names, hex values, code */
   --ui-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
   font-family: var(--ui-font-sans);
 }
 
-/* Override the global :where(*) { font-family: var(--font-sans) }
-   from tokens.css which applies directly to every element */
+/* Override tokens.css's global :where(*) font-family. */
 .editor-page *:not([class*="fa-"]) {
   font-family: inherit;
 }
 
 .editor-page {
-
-  /* ═══════════════════════════════════════════════════════
-     GRAYSCALE PALETTE — opaque, protected from token system
-     Lower number = darker.  Derived from the old alpha-on-black
-     values so every existing reference resolves identically.
-     ═══════════════════════════════════════════════════════ */
-
+  /* Grayscale ramp — source of truth; lower number = darker. */
   --ui-gray-50:  #050505;
   --ui-gray-100: #0a0a0a;
   --ui-gray-150: #0f0f0f;
@@ -52,9 +30,6 @@
   --ui-gray-850: #c7c7c7;
   --ui-gray-950: #f2f2f2;
 
-
-  /* ── Text ────────────────────────────────────────────── */
-
   --ui-text-primary:    #ffffff;
   --ui-text-secondary:  var(--ui-gray-800);
   --ui-text-tertiary:   var(--ui-gray-700);
@@ -63,17 +38,11 @@
   --ui-text-accent:     var(--ui-gray-950);
   --ui-text-success:    var(--ui-gray-850);
 
-
-  /* ── Borders ─────────────────────────────────────────── */
-
   --ui-border-faint:    var(--ui-gray-400);
   --ui-border-subtle:   var(--ui-gray-500);
   --ui-border-default:  var(--ui-gray-600);
   --ui-border-medium:   var(--ui-gray-700);
   --ui-border-strong:   var(--ui-gray-800);
-
-
-  /* ── Surfaces ────────────────────────────────────────── */
 
   --ui-surface-lowest:  var(--ui-gray-50);
   --ui-surface-lower:   var(--ui-gray-100);
@@ -85,15 +54,9 @@
 
   --ui-toggle:          var(--ui-gray-750);
 
-
-  /* ── Hover ───────────────────────────────────────────── */
-
   --ui-hover:           var(--ui-gray-150);
   --ui-hover-low:       var(--ui-gray-100);
   --ui-hover-high:      var(--ui-gray-250);
-
-
-  /* ── Radius ──────────────────────────────────────────── */
 
   --ui-radius-none: 0;
   --ui-radius-sm:   0.125rem;
@@ -102,9 +65,6 @@
   --ui-radius-xl:   0.5rem;
   --ui-radius-2xl:  0.625rem;
   --ui-radius-full: 9999px;
-
-
-  /* ── Spacing ─────────────────────────────────────────── */
 
   --ui-space-2:  0.125rem;
   --ui-space-4:  0.25rem;
@@ -118,55 +78,34 @@
   --ui-space-32: 2rem;
   --ui-space-48: 3rem;
 
-
-  /* ── Font sizes ──────────────────────────────────────── */
-
-  --ui-font-size-xs:  0.8125rem;  /* 13px — tight labels, meta only */
-  --ui-font-size-sm:  0.875rem;   /* 14px — default body */
-  --ui-font-size-md:  0.9375rem;  /* 15px — prominent body / buttons */
-  --ui-font-size-lg:  1.0625rem;  /* 17px — section headings */
+  --ui-font-size-xs:  0.8125rem;  /* 13px */
+  --ui-font-size-sm:  0.875rem;   /* 14px */
+  --ui-font-size-md:  0.9375rem;  /* 15px */
+  --ui-font-size-lg:  1.0625rem;  /* 17px */
   --ui-font-size-xl:  1.1875rem;  /* 19px */
   --ui-font-size-2xl: 1.3125rem;  /* 21px */
   --ui-font-size-3xl: 1.625rem;   /* 26px */
   --ui-font-size-4xl: 2rem;       /* 32px */
-
-
-  /* ── Font weights ────────────────────────────────────── */
 
   --ui-font-weight-normal:    400;
   --ui-font-weight-medium:    500;
   --ui-font-weight-semibold:  600;
   --ui-font-weight-bold:      700;
 
-
-  /* ── Shadows ─────────────────────────────────────────── */
-
   --ui-shadow-sm:      0 1px 2px rgba(0, 0, 0, 0.5);
   --ui-shadow-md:      0 2px 6px rgba(0, 0, 0, 0.5);
   --ui-shadow-lg:      0 4px 12px rgba(0, 0, 0, 0.6);
   --ui-shadow-overlay: 0 10px 40px rgba(0, 0, 0, 0.7);
 
-
-  /* ── Transitions ─────────────────────────────────────── */
-
   --ui-transition-fast: 120ms ease;
   --ui-transition-base: 180ms ease;
-
-
-  /* ── Misc ────────────────────────────────────────────── */
 
   --ui-line-height-normal:  1.25;
   --ui-line-height-relaxed: 1.5;
   --ui-opacity-disabled: 0.5;
 }
 
-
-/* ═══════════════════════════════════════════════════════
-   DEV OVERLAY TOKENS — scoped to .lt-app so they reach
-   chrome that lives outside .editor-page (e.g. ColumnsOverlay).
-   Neutral grayscale so the overlay reads on light or dark pages.
-   ═══════════════════════════════════════════════════════ */
-
+/* Dev overlay tokens — scoped to .lt-app to reach chrome outside .editor-page. */
 .lt-app {
   --ui-overlay-fill:   rgba(128, 128, 128, 0.06);
   --ui-overlay-border: rgba(128, 128, 128, 0.32);

@@ -88,7 +88,7 @@
 <!--
   Site-level component editor page. Wrapped in .editor-page so the
   ComponentsTab scaffolding (labels, section wrappers) can resolve its
-  --ui-* custom properties from ui/editor.css. The actual components inside
+  --ui-* custom properties from styles/ui-editor.css. The actual components inside
   still read the user's design tokens, so live edits in the overlay
   editor flow straight through to this page.
 -->
@@ -157,7 +157,7 @@
 </div>
 
 <style>
-  @import '../ui/editor.css';
+  @import '../styles/ui-editor.css';
   .components-shell {
     --rail-w: 48px;
     display: grid;

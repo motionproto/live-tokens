@@ -291,7 +291,7 @@ Unused:            --shadow-card, --shadow-app, --shadow-glow-green, --shadow-fo
 
 Every non-`thin` token is named a step heavier than what it actually renders at. A Figma "Bold" (700) implemented with `var(--font-weight-bold)` gets Semi Bold (600) on the web — a visible spec/implementation mismatch.
 
-The editor's own chrome (`src/ui/editor.css:135-137`, the `--ui-font-weight-*` namespace) already uses standard values (500/600/700), so the codebase knows the convention but only the theme layer deviates.
+The editor's own chrome (`src/styles/ui-editor.css:135-137`, the `--ui-font-weight-*` namespace) already uses standard values (500/600/700), so the codebase knows the convention but only the theme layer deviates.
 
 **Reasoning:** Align token names with CSS-standard numeric values (OpenType spec) so `--font-weight-bold` means CSS Bold (700), `--font-weight-semibold` means Semi Bold (600), etc. Preserves every current rendering (consumers keep their current visual weight by renaming, not re-valuing), gains a complete and predictable scale, and makes the system legible to any contributor familiar with CSS standards.
 
@@ -326,7 +326,7 @@ Final scale: nine tokens, one per CSS-standard value, all correctly named.
 var(--font-weight-light)     →  var(--font-weight-extralight)     (2 sites: Notification)
 var(--font-weight-medium)    →  var(--font-weight-light)          (7 sites: Button, TabBar, Badge, ProgressBar, Dialog, form-controls, SegmentedControl)
 var(--font-weight-semibold)  →  var(--font-weight-normal)         (~15 sites: Card, Button, Dialog, Notification titles, Badge, site headings, …)
-var(--font-weight-bold)      →  var(--font-weight-semibold)       (~8 sites: Button label, RadioButton, SegmentedControl selected, Notification hover, styles-mainsite h1/h2, Badge)
+var(--font-weight-bold)      →  var(--font-weight-semibold)       (~8 sites: Button label, RadioButton, SegmentedControl selected, Notification hover, site.css h1/h2, Badge)
 ```
 
 Best executed as a single commit so every call site moves together — any missed reference will silently render at the wrong weight.

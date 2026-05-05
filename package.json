@@ -24,7 +24,7 @@
     "src/components",
     "src/pages/Editor.svelte",
     "src/pages/Editor.svelte.d.ts",
-    "src/ui/editor.css",
+    "src/styles/ui-editor.css",
     "src/styles/form-controls.css",
     "src/styles/fonts.css",
     "src/styles/fonts",
@@ -56,7 +56,7 @@
       "import": "./dist-plugin/index.js",
       "require": "./dist-plugin/index.cjs"
     },
-    "./styles/editor.css": "./src/ui/editor.css",
+    "./styles/ui-editor.css": "./src/styles/ui-editor.css",
     "./styles/form-controls.css": "./src/styles/form-controls.css",
     "./styles/fonts.css": "./src/styles/fonts.css"
   },

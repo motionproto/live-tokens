@@ -1,7 +1,5 @@
 <script context="module" lang="ts">
   type CellStatus = 'linked' | 'broken' | 'absent';
-  /** A 1D row carries both a display label (what the user sees) and a key (the original
-      context string used for status lookup). They differ when an invariant token is stripped. */
   type RowEntry = { label: string; key: string };
   type Axes =
     | { kind: '1d'; rows: RowEntry[] }
@@ -23,10 +21,7 @@
       if (!rowSet.has(r)) { rowSet.add(r); rows.push(r); }
       if (!colSet.has(c)) { colSet.add(c); cols.push(c); }
     }
-    // Collapsed axis: if one side has only a single distinct value the matrix is really 1D.
-    // Keep the full context string as the displayed label so it matches the variant/state
-    // tab strip the editor renders — cropping a "shared" token loses the link between the
-    // chart row and the tab a click should activate.
+    // Keep the full context string as the label so row clicks still match the editor's tab strip.
     if (cols.length === 1) {
       return { kind: '1d', rows: rows.map((r) => ({ label: `${r} ${cols[0]}`, key: `${r} ${cols[0]}` })) };
     }
@@ -41,26 +36,8 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
 
-  /**
-   * Visual chart of which contexts share a token alias and which have been
-   * overridden out of the group. Rendered alongside the controls inside a
-   * shared-properties bucket.
-   *
-   * Auto-detects 1D vs 2D from the context strings: single-token strings
-   * (e.g. "info") render as a labeled column; two-token strings (e.g.
-   * "primary default") render as a row × column matrix.
-   *
-   * Clicking any cell in a row dispatches `select` with the row's label.
-   * Parents typically forward this to the editor context's `focusedVariant`.
-   */
-
-  /** Full context list in display order (e.g. variant declaration order from the editor).
-      The chart derives row order from this list, so the caller controls visual ordering. */
   export let contexts: string[] = [];
-  /** Subset of `contexts` whose alias has been overridden out of the shared group. */
   export let broken: string[] = [];
-  /** Header for the lone column when the data is 1D. The row labels are self-explanatory,
-      so this is blank by default; pass a string to override. */
   export let singleAxisLabel: string = '';
 
   const dispatch = createEventDispatcher<{ select: string }>();
@@ -170,7 +147,6 @@
 
 <style>
   .chart {
-    /* Local linkage tokens. Promote to editor.css if reused elsewhere. */
     --linkage-dot: var(--ui-text-tertiary);
     --linkage-broken-fg: #f0a338;
     --linkage-broken-tint: rgba(240, 163, 56, 0.09);
@@ -190,40 +166,39 @@
     color: var(--ui-text-primary);
   }
 
+  /* Gridlines via 1px gap exposing the container bg; cells fill themselves to hide it. */
   .grid {
     display: grid;
     gap: 1px;
     background: var(--ui-border-faint);
     border: 1px solid var(--ui-border-faint);
-    border-radius: var(--ui-radius-md);
+    border-radius: var(--ui-radius-sm);
     overflow: hidden;
   }
   .grid-2d { grid-template-columns: auto repeat(var(--cols, 1), minmax(64px, 1fr)); }
   .grid-1d { grid-template-columns: auto 40px; }
 
   .grid > * {
-    background: var(--ui-gray-250);
-    padding: var(--ui-space-6) var(--ui-space-10);
-    font-size: var(--ui-font-size-xs);
+    background: var(--ui-surface-lowest);
+    padding: var(--ui-space-4) var(--ui-space-10);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-tertiary);
+    line-height: 1;
     display: flex;
     align-items: center;
   }
-  .corner { background: var(--ui-gray-200); }
-  .col-h, .row-h {
-    font-family: var(--ui-font-mono);
-    color: var(--ui-text-tertiary);
-    text-transform: lowercase;
-    letter-spacing: 0.04em;
+  .grid .col-h {
     background: var(--ui-gray-200);
+    justify-content: center;
   }
-  .col-h { justify-content: center; }
-  .cell { justify-content: center; }
+  .grid .cell { justify-content: center; }
 
-  /* Reset button defaults so .row-h / .cell render like before. */
+  /* Avoid `font: inherit` — the shorthand resets font-size to body and oversizes row labels. */
   button.row-target {
     border: 0;
     margin: 0;
-    font: inherit;
+    font-family: inherit;
+    font-weight: inherit;
     text-align: left;
     cursor: pointer;
     color: inherit;
@@ -236,12 +211,12 @@
     outline-offset: -2px;
   }
 
-  /* Whole-row hover treatment: every cell in the same row lifts together. */
   .row-target.hovered {
-    background: var(--ui-gray-300);
+    background: var(--ui-hover);
   }
-  .row-target.row-h.hovered {
-    color: var(--ui-text-primary);
+  .grid .row-h.row-target.hovered {
+    background: var(--ui-hover-high, var(--ui-hover));
+    color: var(--ui-text-secondary);
   }
   .cell.broken.row-target.hovered {
     background: var(--linkage-broken-tint);

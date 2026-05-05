@@ -193,21 +193,20 @@
   .shared-subgroup {
     flex: 0 0 auto;
     display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: var(--ui-space-12);
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--ui-space-10);
     border: 1px solid var(--ui-border-faint);
     border-radius: var(--ui-radius-lg);
     padding: var(--ui-space-12) var(--ui-space-16);
   }
 
   /* Compact the linkage chart inside the bucket: tighten cell padding and
-     narrow the lone status column so the chart slots cleanly to the right
-     of the controls in a brickwork-sized card. Internals untouched — these
-     are scoped overrides that only apply inside SharedBlock. The selectors
-     include `.chart` as a parent hop so specificity beats the LinkageChart's
-     own `.grid` / `.chart-label` rules (which would otherwise tie and let
-     load order decide). */
+     narrow the lone status column so the chart sits as a quiet footer below
+     the controls. The card communicates "shared properties" on its own — the
+     "Linked Properties" header is suppressed here to keep focus on the
+     editable controls. Selectors include `.chart` as a parent hop to beat
+     LinkageChart's own `.grid` / `.chart-label` specificity. */
   .shared-subgroup :global(.chart .chart-grid-wrap .grid > *) {
     padding: var(--ui-space-4) var(--ui-space-8);
   }
@@ -215,8 +214,7 @@
     grid-template-columns: auto 28px;
   }
   .shared-subgroup :global(.chart .chart-label) {
-    font-size: var(--ui-font-size-sm);
-    font-weight: 500;
+    display: none;
   }
 
   /* Override TokenLayout's narrow-container collapse and force the row to
@@ -228,7 +226,7 @@
      Adding `.token-group` as a parent hop bumps specificity above
      TokenLayout's own `.token-grid` rule (which would otherwise tie). */
   .shared-subgroup :global(.token-group .token-grid) {
-    --token-selector-w: 5.5rem;
+    --token-selector-w: 8rem;
     grid-template-columns: max-content var(--token-selector-w) max-content;
     column-gap: var(--ui-space-8);
   }
@@ -236,13 +234,11 @@
     grid-column: span 2;
   }
 
-  /* Controls column is a flex column sized to fit its token rows. `flex-shrink: 0`
-     stops the parent flex layout from squeezing it below its content (which was
-     letting the rows spill into the chart's space); the basis is `auto` so width
-     follows the widest row's max-content. When controls + chart can't fit on one
-     line, the parent's `flex-wrap` drops the chart below — preferred over overlap. */
+  /* Controls column sits above the linkage chart in the column-flex card.
+     `flex: 0 0 auto` keeps the row at content height; the basis is `auto`
+     so width follows the widest row's max-content. */
   .shared-controls {
-    flex: 1 0 auto;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
   }

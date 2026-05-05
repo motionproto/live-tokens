@@ -2,6 +2,29 @@
 
 This project uses a **two-layer token system**. Read this before adding or renaming a CSS custom property.
 
+## Files in this directory
+
+Each file plays a distinct role. Don't merge them without understanding why they were split.
+
+| File | Scope | Tokens used | Loaded by | Notes |
+|---|---|---|---|---|
+| `tokens.css` | Themed pages | Defines `--color-*`, `--surface-*`, `--text-*`, `--space-*`, … | `main.ts` | **Runtime-edited.** The token editor rewrites this file via the `themeFileApi` Vite plugin. Prior versions are auto-saved to `_backups/`. |
+| `ui-editor.css` | Editor chrome only | Defines `--ui-*` (opaque grayscale) | `@import`-ed by `Editor.svelte` and `ComponentEditorPage.svelte` | Deliberately isolated from the theme system so editor surfaces stay neutral while live theme edits flow through the components being edited. Never load globally. |
+| `site.css` | Themed pages | Consumes theme tokens | `main.ts` | Global typography for the landing/demo pages (unscoped `h1`, `p`, `a`, …). Avoid loading on editor pages. |
+| `form-controls.css` | Editor-only today | Currently consumes theme tokens (a known leak — should migrate to `--ui-*`) | `main.ts` | `.form-select` / `.form-input` / `.form-field-*` classes. Used by `ProjectFontsSection`, `FontStackEditor`, `DialogEditor`, `NotificationEditor`. |
+| `fonts.css` + `fonts/` | Both scopes | n/a (`@font-face` only) | `main.ts` | Build-special-cased: copied directly to `dist/` without processing so Vite doesn't inline woff2 files as base64. |
+| `_backups/` | n/a | n/a | not imported | Auto-managed by the Vite plugin. ISO-timestamped backups of `tokens.css`. Do not edit by hand. |
+
+The library publishes `ui-editor.css`, `form-controls.css`, and `fonts.css` as separately importable subpaths under `@motion-proto/live-tokens/styles/<file>.css`. `tokens.css` and `site.css` are starter content — consumers bring their own.
+
+### When to put a rule where
+
+- It defines a `--color-*` / `--surface-*` / `--space-*` / etc. → `tokens.css`.
+- It defines a `--ui-*` token → `ui-editor.css`.
+- It styles a bare element selector (`h1`, `p`, `blockquote`) on themed pages → `site.css`.
+- It styles editor chrome → put it in the component's own `<style>` block using `--ui-*` tokens; don't add a new global file.
+- It declares an `@font-face` → `fonts.css` (and add the woff2 to `fonts/`).
+
 ## Layer 1 — theme tokens (`tokens.css`)
 
 Theme tokens are the design system's vocabulary. They describe colors, sizes, spacing, shadows, and motion: the things a designer reasons about independent of any one component. Components consume them, and themes in `themes/*.json` recolor or re-scale them.
