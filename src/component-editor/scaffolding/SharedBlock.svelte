@@ -1,13 +1,26 @@
 <script lang="ts">
   import TokenLayout from './TokenLayout.svelte';
+  import LinkageChart from './LinkageChart.svelte';
   import { editorState } from '../../lib/editorStore';
+  import { getEditorContext } from './editorContext';
   import type { CssVarRef } from '../../lib/editorTypes';
   import type { SharedBlockResult, SharedGroup, SharedToken } from './sharedBlock';
 
   export let component: string;
   export let shared: SharedBlockResult;
 
-  type Bucket = { contexts: string[]; groups: SharedGroup[] };
+  const editorCtx = getEditorContext();
+
+  /** Forward a chart row click to whichever tab strip the label belongs to. The chart
+      doesn't know if its rows are variants (top-level tab strip) or states (per-VariantGroup
+      state tabs), so we set both stores; each consumer adopts the value only if it names
+      one of its own tabs. */
+  function handleChartSelect(e: CustomEvent<string>) {
+    editorCtx?.focusedVariant.set(e.detail);
+    editorCtx?.focusedState.set(e.detail);
+  }
+
+  type Bucket = { contexts: string[]; brokenContexts: string[]; groups: SharedGroup[] };
   type TypeColumn = { kind: 'type'; legend: string; tokens: (SharedToken & { disabled?: boolean })[] };
   type GeneralColumn = { kind: 'general'; tokens: (SharedToken & { disabled?: boolean })[] };
   type Column = TypeColumn | GeneralColumn;
@@ -80,12 +93,18 @@
   $: buckets = (() => {
     const map = new Map<string, Bucket>();
     for (const g of shared.groups) {
-      const key = [...g.contexts].sort().join('|');
+      const key = [
+        [...g.contexts].sort().join(','),
+        '||',
+        [...g.brokenContexts].sort().join(','),
+      ].join('');
       const bucket = map.get(key);
       if (bucket) bucket.groups.push(g);
-      else map.set(key, { contexts: g.contexts, groups: [g] });
+      else map.set(key, { contexts: g.contexts, brokenContexts: g.brokenContexts, groups: [g] });
     }
-    return [...map.values()].sort((a, b) => b.contexts.length - a.contexts.length);
+    return [...map.values()].sort(
+      (a, b) => b.contexts.length + b.brokenContexts.length - (a.contexts.length + a.brokenContexts.length),
+    );
   })();
 
   $: aliases = $editorState.components[component]?.aliases ?? {};
@@ -93,6 +112,7 @@
     const columns = partitionBucket(b.groups, aliases);
     return {
       contexts: b.contexts,
+      brokenContexts: b.brokenContexts,
       columns,
       hasLegend: columns.some((c) => c.kind === 'type'),
     };
@@ -106,17 +126,10 @@
       <p class="shared-block-description">Token values linked across multiple variants or states. Changing one updates all of them.</p>
     </header>
     <div class="shared-grid">
-      {#each bucketCols as bucket (bucket.contexts.join('|'))}
+      {#each bucketCols as bucket (bucket.contexts.join('|') + '||' + bucket.brokenContexts.join('|'))}
         <article class="shared-subgroup">
-          <header class="shared-header">
-            <span class="shared-eyebrow">linked across</span>
-            <ul class="shared-context-strip">
-              {#each bucket.contexts as ctx}
-                <li class="shared-context-chip">{ctx}</li>
-              {/each}
-            </ul>
-          </header>
-          <div class="shared-columns">
+          <div class="shared-controls">
+            <div class="shared-columns">
             {#each bucket.columns as col}
               <div class="shared-column">
                 {#if bucket.hasLegend}
@@ -133,7 +146,9 @@
                 />
               </div>
             {/each}
+            </div>
           </div>
+          <LinkageChart contexts={bucket.contexts} broken={bucket.brokenContexts} on:select={handleChartSelect} />
         </article>
       {/each}
     </div>
@@ -164,55 +179,72 @@
     color: var(--ui-text-secondary);
   }
 
+  /* Plain flex layout, no width constraints. Cards lay out left-to-right and wrap to
+     a new row when they don't fit; each card is sized to its own content (controls +
+     chart natural widths). */
   .shared-grid {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
     gap: var(--ui-space-12);
   }
 
   .shared-subgroup {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--ui-space-12);
     border: 1px solid var(--ui-border-faint);
     border-radius: var(--ui-radius-lg);
-    padding: var(--ui-space-8) var(--ui-space-4) var(--ui-space-8) 0;
+    padding: var(--ui-space-12) var(--ui-space-16);
+  }
+
+  /* Compact the linkage chart inside the bucket: tighten cell padding and
+     narrow the lone status column so the chart slots cleanly to the right
+     of the controls in a brickwork-sized card. Internals untouched — these
+     are scoped overrides that only apply inside SharedBlock. The selectors
+     include `.chart` as a parent hop so specificity beats the LinkageChart's
+     own `.grid` / `.chart-label` rules (which would otherwise tie and let
+     load order decide). */
+  .shared-subgroup :global(.chart .chart-grid-wrap .grid > *) {
+    padding: var(--ui-space-4) var(--ui-space-8);
+  }
+  .shared-subgroup :global(.chart .chart-grid-wrap .grid-1d) {
+    grid-template-columns: auto 28px;
+  }
+  .shared-subgroup :global(.chart .chart-label) {
+    font-size: var(--ui-font-size-sm);
+    font-weight: 500;
+  }
+
+  /* Override TokenLayout's narrow-container collapse and force the row to
+     stay tabular: label · selector · value. The third column is `max-content`
+     so the value sizes to its text and never gets ellipsized; subgrid still
+     aligns rows in the bucket to the widest value. The second rule restores
+     the selector's two-column subgrid span so the meta-text doesn't wrap
+     beneath the dropdown.
+     Adding `.token-group` as a parent hop bumps specificity above
+     TokenLayout's own `.token-grid` rule (which would otherwise tie). */
+  .shared-subgroup :global(.token-group .token-grid) {
+    --token-selector-w: 5.5rem;
+    grid-template-columns: max-content var(--token-selector-w) max-content;
+    column-gap: var(--ui-space-8);
+  }
+  .shared-subgroup :global(.token-group .token-grid .ui-token-selector) {
+    grid-column: span 2;
+  }
+
+  /* Controls column is a flex column sized to fit its token rows. `flex-shrink: 0`
+     stops the parent flex layout from squeezing it below its content (which was
+     letting the rows spill into the chart's space); the basis is `auto` so width
+     follows the widest row's max-content. When controls + chart can't fit on one
+     line, the parent's `flex-wrap` drops the chart below — preferred over overlap. */
+  .shared-controls {
+    flex: 1 0 auto;
     display: flex;
     flex-direction: column;
-    gap: var(--ui-space-6);
-    min-width: 0;
-    container-type: inline-size;
-  }
-
-  .shared-header {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-    padding: 0 var(--ui-space-12);
-    flex-wrap: wrap;
-  }
-
-  .shared-eyebrow {
-    font-family: var(--ui-font-mono);
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-tertiary);
-    text-transform: lowercase;
-    letter-spacing: 0.04em;
-  }
-
-  .shared-context-strip {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ui-space-4);
-  }
-
-  .shared-context-chip {
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
-    padding: 1px var(--ui-space-6);
-    border: 1px solid var(--ui-border-faint);
-    border-radius: 999px;
-    white-space: nowrap;
   }
 
   .shared-columns {

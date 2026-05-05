@@ -95,8 +95,7 @@
   import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
   import { buildSiblings } from './scaffolding/siblings';
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens);
-  $: void $editorState;
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
   $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
 
   let dismissible = false;

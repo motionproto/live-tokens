@@ -1,19 +1,19 @@
 # Live Tokens
 
-A Svelte + Vite design-token system with an in-browser editor. Ships two ways:
+A Svelte + Vite design-token system with an in-browser editor. It ships two ways:
 
-1. **Starter** — clone the repo, replace `Home.svelte` with your app, edit tokens live.
-2. **Library** — `npm install @motion-proto/live-tokens` into an existing Svelte app and import the overlay + editor.
+1. **Starter.** Clone the repo, replace `Home.svelte` with your app, edit tokens live.
+2. **Library.** `npm install @motion-proto/live-tokens` into an existing Svelte app and import the overlay plus the editor.
 
 Both modes are supported and maintained together.
 
 ## What you get
 
 - **Design-token editor** at `/editor` (dev-only). Edit colors, typography, spacing, radii, shadows, and motion; the whole site updates live.
-- **Live editor overlay** pinned to the top-right in dev. Opens the editor in a side panel or floating window without leaving the page you're styling.
-- **Page Source** button — jumps straight to the current page's Svelte file in VS Code (`vscode://` link).
+- **Live editor overlay** pinned to the top-right in dev. Opens the editor in a side panel or a floating window without leaving the page you're styling.
+- **Page Source button.** Jumps straight to the current page's Svelte file in VS Code (`vscode://` link).
 - **Component library** at `/components`: Button, Card, Dialog, Badge, Tabs, Tooltip, Toggle, and more. Extendable with your own sections.
-- **Theme persistence**: each saved palette is a JSON file in `themes/`. The active palette syncs into `src/styles/tokens.css` on save, so production builds ship pure CSS — no editor code or JSON lookups in the prod bundle.
+- **Theme persistence.** Each saved palette is a JSON file in `themes/`. The active palette syncs into `src/styles/tokens.css` on save, so production builds ship pure CSS. No editor code, no JSON lookups in the prod bundle.
 
 ## Use as a starter
 
@@ -28,22 +28,22 @@ Open http://localhost:5173. Replace `src/pages/Home.svelte` with your own landin
 
 ### Starter layout
 
-- `src/pages/Home.svelte` — your app's `/` route. **Replace this with your content.**
-- `src/pages/Demo.svelte` — `/demo` route. Marketing/demo page for the kit itself. Safe to delete once you don't need it.
-- `src/pages/Editor.svelte` — `/editor` route. Design-system editor.
-- `src/pages/ComponentEditorPage.svelte` — `/components` route. Component editor.
-- `src/App.svelte` — top-level router + overlay wiring.
-- `src/components/` — reusable components.
-- `src/component-editor/` — per-component editors plus shared scaffolding.
-- `src/ui/` — neutral editor UI primitives and the design-system editor surfaces.
-- `src/lib/` — overlay, router, token persistence, color helpers.
-- `src/styles/tokens.css` — the generated CSS variables (source of truth at runtime).
-- `themes/` — persisted theme files. `_active.json` = theme loaded on dev. `_production.json` = theme synced to CSS on "promote."
+- `src/pages/Home.svelte`. Your app's `/` route. **Replace this with your content.**
+- `src/pages/Demo.svelte`. `/demo` route. Marketing/demo page for the kit itself. Safe to delete once you don't need it.
+- `src/pages/Editor.svelte`. `/editor` route. Design-system editor.
+- `src/pages/ComponentEditorPage.svelte`. `/components` route. Component editor.
+- `src/App.svelte`. Top-level router and overlay wiring.
+- `src/components/`. Reusable components.
+- `src/component-editor/`. Per-component editors plus shared scaffolding.
+- `src/ui/`. Neutral editor UI primitives and the design-system editor surfaces.
+- `src/lib/`. Overlay, router, token persistence, color helpers.
+- `src/styles/tokens.css`. The generated CSS variables (source of truth at runtime).
+- `themes/`. Persisted theme files. `_active.json` is the theme loaded on dev. `_production.json` is the theme synced to CSS on "promote."
 
 ### How the editor ships changes to prod (starter)
 
-1. Edit in `/editor` → the overlay writes to the active theme file in `themes/`.
-2. Promote a theme to "production" → its variables are written into `src/styles/tokens.css` and backed up under `src/styles/_backups/`.
+1. Edit in `/editor`. The overlay writes to the active theme file in `themes/`.
+2. Promote a theme to "production." Its variables are written into `src/styles/tokens.css` and backed up under `src/styles/_backups/`.
 3. `npm run build` bundles that CSS file as-is.
 
 ## Use as a library
@@ -78,7 +78,7 @@ export default defineConfig({
 
 The `themeFileApi` plugin:
 - Seeds `themes/` with a default theme on first dev-server start.
-- Hosts the `/api/*` routes the editor uses to save/load themes.
+- Hosts the `/api/*` routes the editor uses to save and load themes.
 - Auto-injects `__PROJECT_ROOT__` so the overlay's "Page Source" link can open files in VS Code. You don't need a `define` entry for this.
 
 ### Bootstrap in `main.ts`
@@ -163,7 +163,7 @@ The package is published to npm as `@motion-proto/live-tokens`.
 
 1. Bump the version in `package.json`.
 2. Verify the tarball contents: `npm pack --dry-run`.
-3. `npm publish --access public` — `prepublishOnly` rebuilds `dist-plugin/`.
+3. `npm publish --access public`. `prepublishOnly` rebuilds `dist-plugin/`.
 4. Tag and push: `git tag v0.2.0 && git push origin main --tags`.
 
 **What ships:**
@@ -171,7 +171,7 @@ The package is published to npm as `@motion-proto/live-tokens`.
 - `src/lib/`, `src/ui/`, `src/component-editor/`, `src/components/`
 - `src/pages/Editor.svelte` + `Editor.svelte.d.ts`
 - `src/ui/editor.css`, `src/styles/form-controls.css`, `src/styles/fonts.css`, `src/styles/fonts/`
-- `dist-plugin/` — compiled Vite plugin
+- `dist-plugin/`. Compiled Vite plugin.
 
 **What doesn't ship** (starter-only): `src/App.svelte`, `src/main.ts`, `src/pages/Home.svelte`, `src/pages/Demo.svelte`, `src/pages/ComponentEditorPage.svelte`, `index.html`, `themes/`.
 

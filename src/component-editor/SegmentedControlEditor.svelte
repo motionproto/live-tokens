@@ -113,8 +113,7 @@
   let showIcons = true;
   $: previewSegments = showIcons ? segments : segments.map((s) => ({ ...s, icon: undefined }));
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens);
-  $: void $editorState;
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
 
   $: visibleStates = Object.fromEntries(
     Object.entries(states).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),

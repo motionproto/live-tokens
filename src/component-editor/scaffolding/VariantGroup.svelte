@@ -26,6 +26,7 @@
   const tabbableStore = editorCtx?.tabbable ?? writable(false);
   const viewModeStore = editorCtx?.viewMode ?? writable<'list' | 'tabs'>('list');
   const focusedVariantStore = editorCtx?.focusedVariant ?? writable<string | null>(null);
+  const focusedStateStore = editorCtx?.focusedState ?? writable<string | null>(null);
   $: sharedOrder = $sharedOrderStore ?? undefined;
 
   let variantExpanded = true;
@@ -88,6 +89,10 @@
   $: tabsStripVisible = inTabsMode && stateNames.length >= 2;
   $: if (inTabsMode && stateNames.length > 0 && !stateNames.includes(activeTab)) {
     activeTab = stateNames[0];
+  }
+  // Cross-group hint from chart row clicks: adopt it if it names one of our states.
+  $: if ($focusedStateStore && stateNames.includes($focusedStateStore) && activeTab !== $focusedStateStore) {
+    activeTab = $focusedStateStore;
   }
 
   $: inFocusMode = inTabsMode && siblings.length > 0;

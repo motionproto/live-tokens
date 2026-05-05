@@ -23,14 +23,14 @@ The test suites in `src/lib/`:
 | `PaletteEditor.test.ts` (ui) | Palette derivation behavior |
 
 If any of these fail, find the cause before touching code that depends on them.
-The "current 18-failure baseline" mentioned in audit resolutions is intentional —
-some tests document open follow-up; use `npm run test 2>&1 | grep '✓\|×'` to
+The "current 18-failure baseline" mentioned in audit resolutions is intentional:
+some tests document open follow-up. Use `npm run test 2>&1 | grep '✓\|×'` to
 see deltas, not the absolute count.
 
 ## Add a CSS-var domain (a new "slice")
 
-You're adding a new family of variables (e.g., motion presets, focus rings) that
-deserves typed state instead of living in the catch-all `cssVars` bag.
+You're adding a new family of variables (e.g., motion presets, focus rings)
+that deserves typed state instead of living in the catch-all `cssVars` bag.
 
 ### 1. Define the slice
 
@@ -139,13 +139,14 @@ export function toTheme(state: EditorState, meta: { name: string }): Theme {
 
 ### 6. Add UI
 
-Wire a tab in `src/ui/` (e.g., a `MotionTab.svelte`) that calls `setMotionDuration`
-and reads `$editorState.motion`. Mount it in `Editor.svelte` alongside the
-existing tabs.
+Wire a tab in `src/ui/` (e.g., a `MotionTab.svelte`) that calls
+`setMotionDuration` and reads `$editorState.motion`. Mount it in
+`Editor.svelte` alongside the existing tabs.
 
 That's the full integration. Existing themes load with `motion: DEFAULT_MOTION`
 (the `loadMotionFromVars` loader claims the vars from the catch-all bag if
-present). New saves include motion vars whenever they diverge from the default.
+present). New saves include motion vars whenever they diverge from the
+default.
 
 ## Add a schema migration
 
@@ -153,9 +154,9 @@ You renamed a token, removed a deprecated key, or restructured a config shape.
 
 ### 1. Decide the kind
 
-Theme migrations apply to `themes/*.json` files; component-config migrations apply
-to `component-configs/<id>/*.json` files. Choose one — a single migration can't
-straddle both kinds.
+Theme migrations apply to `themes/*.json` files; component-config migrations
+apply to `component-configs/<id>/*.json` files. Pick one. A single migration
+can't straddle both kinds.
 
 ### 2. Write the migration file
 
@@ -180,8 +181,9 @@ export const themeMigration_2026_05_10_motionPresetRename: Migration = {
 };
 ```
 
-`fromVersion` is the file-stamp this applies to; `toVersion` is the post-application
-stamp. Migrations are pure — return a new map, don't mutate input.
+`fromVersion` is the file-stamp this applies to; `toVersion` is the
+post-application stamp. Migrations are pure: return a new map, don't mutate
+input.
 
 ### 3. Register it
 
@@ -216,13 +218,13 @@ test('skips when file is already at toVersion', () => {
 
 ### 5. (Eventually) delete it
 
-Once you're confident every saved file has been re-saved past `toVersion`, delete
-the migration file and remove its import from `index.ts`. The constant
+Once you're confident every saved file has been re-saved past `toVersion`,
+delete the migration file and remove its import from `index.ts`. The constant
 auto-decrements; nothing else references it.
 
 ## Add a versioned file resource (e.g., a new editable artifact class)
 
-You have a new editable class — say, motion presets — that needs the same
+You have a new editable class (say, motion presets) that needs the same
 list/save/load/active/production/backups lifecycle as themes and component
 configs.
 
@@ -281,8 +283,8 @@ const routes: Route[] = [
 ];
 ```
 
-**Order matters:** `MOTION_ACTIVE` and `MOTION_PRODUCTION` must come before
-`MOTION_BY_NAME` (otherwise `/active` matches as `name='active'`). Mirror the
+**Order matters.** `MOTION_ACTIVE` and `MOTION_PRODUCTION` must come before
+`MOTION_BY_NAME`. Otherwise `/active` matches as `name='active'`. Mirror the
 ordering used for themes and component configs.
 
 ### 4. Wire the client
@@ -308,20 +310,20 @@ export const saveMotion = motion.save;
 
 ### 5. Mirror the file-manager UI
 
-Use `ComponentFileManager` as a template, or extract a generic `<FileManager
-service={...} />` wrapper if this is the second copy.
+Use `ComponentFileManager` as a template, or extract a generic
+`<FileManager service={...} />` wrapper if this is the second copy.
 
 The audit's M2 fix collapsed two copies of this code; if you're adding a third,
 factor the file-manager UI now rather than letting it drift.
 
 ## Add a token category
 
-You want a new theme-token category (e.g., `--ring-*` already exists; suppose
+You want a new theme-token category (say, `--ring-*` already exists; suppose
 you want `--motion-*`).
 
 1. Add the tokens to `src/styles/tokens.css` under a category section header.
-   Pick a name that fits the existing vocabulary; don't invent a new scale shape
-   if numeric or t-shirt fits.
+   Pick a name that fits the existing vocabulary; don't invent a new scale
+   shape if numeric or t-shirt fits.
 2. Update `src/styles/CONVENTIONS.md` to list the new category in the table.
 3. If the category needs typed state in `EditorState`, follow the slice recipe
    above. Otherwise it lives in the catch-all `cssVars` bag and works
@@ -339,9 +341,9 @@ curl -X PUT http://localhost:5173/api/themes/production \
   -d '{"name": "green_goblin"}'
 ```
 
-This runs `syncTokensToCss + syncFontsToCss + syncComponentsToCss` server-side,
-just like the UI button. The server backs up `tokens.css` first and trims to
-`BACKUP_RETENTION = 10`.
+That runs `syncTokensToCss + syncFontsToCss + syncComponentsToCss`
+server-side, just like the UI button. The server backs up `tokens.css` first
+and trims to `BACKUP_RETENTION = 10`.
 
 ## Debug undo
 
@@ -373,8 +375,8 @@ git tag v0.3.0
 git push origin main --tags
 ```
 
-`prepublishOnly` runs `build:lib` which runs `build:plugin` (tsup ESM+CJS+dts).
-The `files` field in `package.json` controls what ships:
+`prepublishOnly` runs `build:lib` which runs `build:plugin` (tsup
+ESM+CJS+dts). The `files` field in `package.json` controls what ships:
 
 - `src/lib/`, `src/ui/`, `src/component-editor/`, `src/components/`
 - `src/pages/Editor.svelte` + `.d.ts`
@@ -388,7 +390,7 @@ What doesn't ship: `src/main.ts`, `src/App.svelte`, `src/pages/Home.svelte`,
 ## Force a fresh component-config seed
 
 If `component-configs/<id>/default.json` got out of sync with the runtime
-component (e.g., you renamed a slot but the seed still has the old name):
+component (you renamed a slot but the seed still has the old name):
 
 ```bash
 rm component-configs/<id>/default.json
@@ -396,13 +398,13 @@ rm component-configs/<id>/default.json
 touch src/components/<Name>.svelte
 ```
 
-The dev plugin's `handleHotUpdate` will regenerate `default.json` on the touch.
+The dev plugin's `handleHotUpdate` regenerates `default.json` on the touch.
 `createdAt` is preserved if there was a previous default.
 
 ## Skip migrations when manually editing a theme JSON
 
-You hand-edited `themes/foo.json` and don't want migrations to run on next load.
-Stamp the file with the current schema version:
+You hand-edited `themes/foo.json` and don't want migrations to run on next
+load. Stamp the file with the current schema version:
 
 ```bash
 # look up current
@@ -413,5 +415,5 @@ node -e "import('./src/lib/migrations/index.js').then(m => console.log(m.CURRENT
 "schemaVersion": 1
 ```
 
-Migrations gate by `fromVersion >= file.schemaVersion`, so a file at the current
-version skips all migrations.
+Migrations gate by `fromVersion >= file.schemaVersion`, so a file at the
+current version skips all migrations.

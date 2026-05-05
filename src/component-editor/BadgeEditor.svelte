@@ -85,8 +85,7 @@
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
   import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens);
-  $: void $editorState;
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
   $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
 
   let bgMode: 'image' | 'color' = 'image';

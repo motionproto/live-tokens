@@ -2,7 +2,7 @@
 
 ## Layers
 
-The system divides cleanly into four layers. Each owns its concerns; the dependencies
+The system divides cleanly into four layers. Each owns its concerns; dependencies
 flow downward.
 
 ```mermaid
@@ -46,38 +46,39 @@ flowchart TB
 
 ### Layer 1 — Runtime CSS (`src/styles/`, `src/components/`)
 
-This is what production ships. `tokens.css` declares every theme token in `:root`;
+This is what production ships. `tokens.css` declares every theme token in `:root`.
 `fonts.css` carries `@font-face` rules and the resolved `--font-*` stack values.
 Components in `src/components/` use `var(--token)` references and declare their own
-slot variables in their `<style>` block's `:global(:root)` — these are the
+slot variables in their `<style>` block's `:global(:root)`. Those are the
 **component tokens** that the alias editor lets users re-assign.
 
-Production: import `tokens.css`, ship CSS as-is, no JS state involved.
+Production: import `tokens.css`, ship the CSS as-is, no JS state involved.
 
 ### Layer 2 — Editor state (`src/lib/editor*.ts`, `src/lib/slices/`)
 
-In-memory editor state. The single funnel is the `EditorState` tree (`editorTypes.ts`).
-Writes go through `mutate()` (or `transaction()` / scopes); the renderer subscribes and
-writes derived CSS variables to `:root` via `cssVarSync`. Persistence is debounced
-localStorage. Detail in chapter 03.
+In-memory editor state. The single funnel is the `EditorState` tree
+(`editorTypes.ts`). Writes go through `mutate()` (or `transaction()` / scopes); the
+renderer subscribes and writes derived CSS variables to `:root` via `cssVarSync`.
+Persistence is debounced localStorage. Detail in chapter 03.
 
 ### Layer 3 — Persistence service (`src/lib/themeService.ts`, `componentConfigService.ts`, `migrations/`)
 
-Client-side wrappers that talk to the dev-server plugin's `/api/*` routes. Both services
-wrap a generic `versionedFileResource(baseUrl)` (defined in `src/lib/files/`) so the
-list/load/save/delete + active/production + backups vocabulary is identical. Migrations
-run on load — both theme files and component-config files carry a `schemaVersion` stamp;
-the runner applies any registered migrations whose `fromVersion >= file.schemaVersion`.
-Detail in chapter 04.
+Client-side wrappers that talk to the dev-server plugin's `/api/*` routes. Both
+services wrap a generic `versionedFileResource(baseUrl)` (defined in
+`src/lib/files/`) so the list/load/save/delete + active/production + backups
+vocabulary stays identical across both. Migrations run on load. Theme files and
+component-config files each carry a `schemaVersion` stamp; the runner applies any
+registered migrations whose `fromVersion >= file.schemaVersion`. Detail in chapter
+04.
 
 ### Layer 4 — Dev-server plugin (`src/vite-plugin/`)
 
-A Vite plugin (`themeFileApi`) that mounts under `/api/*`. Every endpoint is a top-level
-handler in a route table; the dispatcher (`routeTable.ts`) does the URL/method match and
-centralises the 500-on-throw catch. The plugin also seeds default files on first start,
-auto-injects `__PROJECT_ROOT__` for the overlay's "Page Source" links, and on
-hot-update of a `src/components/*.svelte` file regenerates that component's
-`default.json`. Detail in chapter 06.
+A Vite plugin (`themeFileApi`) that mounts under `/api/*`. Every endpoint is a
+top-level handler in a route table; the dispatcher (`routeTable.ts`) does the
+URL/method match and centralises the 500-on-throw catch. The plugin also seeds
+default files on first start, auto-injects `__PROJECT_ROOT__` for the overlay's
+"Page Source" links, and on hot-update of a `src/components/*.svelte` file it
+regenerates that component's `default.json`. Detail in chapter 06.
 
 ## Data flow — read path
 
@@ -106,7 +107,7 @@ sequenceDiagram
     Render->>DOM: setProperty('--token', value)<br/>(self + parent doc)
 ```
 
-In production, step 2 is skipped — `tokens.css` is already on disk with the
+In production, step 2 gets skipped. `tokens.css` is already on disk with the
 production-promoted values, so the page renders correctly without any `/api` call.
 
 ## Data flow — write path
@@ -137,16 +138,17 @@ sequenceDiagram
     Sync->>Parent: parent.documentElement.style.setProperty(...)
 ```
 
-Two things are subtle and matter:
+Two things matter and aren't obvious:
 
 1. **The renderer diffs.** It tracks the last-applied map and only writes the keys
-   whose values changed (and removes ones that disappeared). Without this, every drag
-   would set ~200 properties per frame. (`editorRenderer.ts:47–68`.)
+   whose values changed (and removes ones that disappeared). Without this, every
+   drag would set roughly 200 properties per frame. (`editorRenderer.ts:47–68`.)
 
-2. **`cssVarSync` writes to *both* the self document and the parent.** When the editor
-   is in the iframe, the parent is the host app — that's how slider drags re-paint the
-   actual page. When the editor runs standalone (no iframe), the parent root is null
-   and writes go to one document only. (`cssVarSync.ts:23–40, 73–78`.)
+2. **`cssVarSync` writes to *both* the self document and the parent.** When the
+   editor sits in the iframe, the parent is the host app, so slider drags repaint
+   the actual page. When the editor runs standalone (no iframe), the parent root
+   resolves to null and writes go to one document only.
+   (`cssVarSync.ts:23–40, 73–78`.)
 
 ## Module map (state)
 
@@ -185,19 +187,19 @@ flowchart LR
 
 A few rules the diagram encodes:
 
-- **Slices import `mutate` from `editorCore`, not from the barrel.** This keeps the
-  slice → core dependency one-way and avoids the circular import that the renderer
-  needs to handle carefully (see `editorStore.ts:404–409` for the renderer-install
-  ordering note).
+- **Slices import `mutate` from `editorCore`, not from the barrel.** This keeps
+  the slice → core dependency one-way and avoids the circular import that the
+  renderer needs to handle carefully (see `editorStore.ts:404–409` for the
+  renderer-install ordering note).
 
-- **The barrel (`editorStore.ts`) is the only file that touches both core and every
-  slice.** It owns boot wiring (`setPersistHook`, `ensureHydrated`, `installRenderer`)
-  and the load/save orchestration that crosses every slice (`loadFromFile`, `toTheme`,
-  `seedComponentsFromApi`).
+- **The barrel (`editorStore.ts`) is the only file that touches both core and
+  every slice.** It owns boot wiring (`setPersistHook`, `ensureHydrated`,
+  `installRenderer`) and the load/save orchestration that crosses every slice
+  (`loadFromFile`, `toTheme`, `seedComponentsFromApi`).
 
-- **The renderer is the only DOM consumer.** Slices never write to `:root`. If a slice
-  needs to derive CSS, it exports an `xxxToVars(state)` pure function that the renderer
-  calls.
+- **The renderer is the only DOM consumer.** Slices never write to `:root`. If a
+  slice needs to derive CSS, it exports an `xxxToVars(state)` pure function that
+  the renderer calls.
 
 ## Module map (component editor)
 
@@ -235,9 +237,9 @@ flowchart TB
     Service -- seed --> Slice
 ```
 
-The **registry** is the single source of truth — adding a component means authoring its
-runtime + editor and adding *one* entry there. Display order in the nav rail is the
-registry's `Object.values` order. See chapter 05.
+The **registry** is the single source of truth. Adding a component means authoring
+its runtime and editor, then adding *one* entry there. Display order in the nav
+rail follows the registry's `Object.values` order. See chapter 05.
 
 ## Module map (dev-server plugin)
 
@@ -272,13 +274,13 @@ flowchart LR
     Vite --> HotUpdate --> FS
 ```
 
-`versionedFileResource` is parameterized; `themesResource` and per-component resources
-share the same active/production/backups vocabulary. See chapter 06.
+`versionedFileResource` is parameterized; `themesResource` and per-component
+resources share the same active/production/backups vocabulary. See chapter 06.
 
 ## Boot orchestration
 
-`src/main.ts` is the single boot orchestration point. Its job is to call each module's
-idempotent `init()` once before the Svelte app mounts:
+`src/main.ts` is the single boot orchestration point. Its job is to call each
+module's idempotent `init()` once before the Svelte app mounts:
 
 ```ts
 async function boot() {
@@ -294,33 +296,35 @@ async function boot() {
 }
 ```
 
-The fact that each of these has a separate `init()` is deliberate — every one used to
-have side effects on import, and library consumers booting in non-default order silently
-got the wrong storage prefix or a router that never noticed `popstate`. Library
-consumers replicate this orchestration inside their own `main.ts` (see README "Use as a
-library").
+Every one of these modules used to have side effects on import. Library consumers
+booting in non-default order silently got the wrong storage prefix or a router
+that never noticed `popstate`. Splitting boot into separate `init()` calls fixes
+that. Library consumers replicate this orchestration inside their own `main.ts`
+(see README "Use as a library").
 
 ## Cross-cutting contracts
 
 These contracts span layers and are the parts most likely to surprise you:
 
-- **CSS-var fan-out** — `cssVarSync` writes to *both* the editor's iframe document and
-  the parent's. Anything touching `:root` style must go through `cssVarSync` or the
-  editor stops repainting the host page. (chapter 07.)
+- **CSS-var fan-out.** `cssVarSync` writes to *both* the editor's iframe document
+  and the parent's. Anything touching `:root` style must go through `cssVarSync`
+  or the editor stops repainting the host page. (Chapter 07.)
 
-- **State model** — components have *component states* (default / selected / disabled —
-  mutually exclusive) and *interaction states* (default / hover, in selects). Disabled
-  is terminal; selected-disabled is impossible. *Parts* (Dialog overlay/header/body/footer,
-  Tooltip arrow) are not states. (chapter 10.)
+- **State model.** Components have *component states* (default / selected /
+  disabled, mutually exclusive) and *interaction states* (default / hover, in
+  selects). Disabled is terminal; selected-disabled is impossible. *Parts* (Dialog
+  overlay/header/body/footer, Tooltip arrow) are not states. (Chapter 10.)
 
-- **Sharing is dev-declared** — `canBeShared` and `groupKey` live in the editor's token
-  list, registered via `registerComponentSchema`. Users toggle whether siblings are
-  *currently* linked, but they don't define what *can* be linked. (chapter 05.)
+- **Sharing is dev-declared.** `canBeShared` and `groupKey` live in the editor's
+  token list, registered via `registerComponentSchema`. Users toggle whether
+  siblings are *currently* linked, but they don't define what *can* be linked.
+  (Chapter 05.)
 
-- **Theme files and component-config files have independent schema versions.** Adding a
-  theme migration steps the theme version; component-config migrations step the
-  component-config version. They never share a version axis. (chapter 04.)
+- **Theme files and component-config files have independent schema versions.**
+  Adding a theme migration steps the theme version; component-config migrations
+  step the component-config version. They never share a version axis. (Chapter
+  04.)
 
-- **Themes and components are orthogonal.** `loadFromFile` (loading a theme) preserves
-  `state.components`. Component slices live in their own files under
-  `component-configs/<id>/`. (chapter 04.)
+- **Themes and components are orthogonal.** `loadFromFile` (loading a theme)
+  preserves `state.components`. Component slices live in their own files under
+  `component-configs/<id>/`. (Chapter 04.)

@@ -1,8 +1,16 @@
+import { get } from 'svelte/store';
 import {
   isComponentPropertyShared,
   getComponentPropertySiblings,
+  editorState,
 } from '../../lib/editorStore';
+import type { CssVarRef } from '../../lib/editorTypes';
 import type { Token } from './types';
+
+function aliasKey(ref: CssVarRef | undefined): string {
+  if (!ref) return '';
+  return ref.kind === 'token' ? `t:${ref.name}` : `v:${ref.value}`;
+}
 
 /** `Token` enriched by the shared-block computation. The base fields are inherited from
     `Token`; the extra commentary on `mergeVariables` here is shared-block-specific. */
@@ -14,7 +22,13 @@ export interface SharedToken extends Token {
 
 export type SharedGroup = {
   token: SharedToken;
+  /** Full set of contexts participating in this group (linked + broken), ordered by the
+      caller's `shareableContexts` insertion order so the LinkageChart row order matches the
+      variant tab strip. `brokenContexts` is a subset; the difference is currently linked. */
   contexts: string[];
+  /** Subset of `contexts` whose alias has been overridden out of the shared group.
+      Renders as broken cells in the LinkageChart so the historical relationship stays visible. */
+  brokenContexts: string[];
   variables: string[];
   shared: boolean;
 };
@@ -32,13 +46,19 @@ export type SharedBlockResult = {
  * A group is formed when ≥2 sibling variables (same component, same groupKey) exist.
  *
  * Reads editor state internally via `getComponentPropertySiblings` (which `get`s the store).
- * Reactivity is the caller's responsibility: do `$: shared = computeSharedBlock(...);
- * void $editorState;` so the reactive statement re-runs when state changes.
+ * Pass `$editorState` as the final argument so the call site subscribes and Svelte re-runs
+ * the reactive statement when state changes. The argument itself is ignored:
+ *
+ *   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
  */
 export function computeSharedBlock(
   component: string,
   shareableContexts: Map<string, string>,
   allTokens: SharedToken[],
+  // Reactivity hook — see JSDoc. The runtime state is read via `get(store)` internally;
+  // this parameter exists only so callers can pass `$editorState` to create the subscription.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _stateForReactivity?: unknown,
 ): SharedBlockResult {
   const groups: SharedGroup[] = [];
   const varSet = new Set<string>();
@@ -74,17 +94,62 @@ export function computeSharedBlock(
     }
 
     const isShared = isComponentPropertyShared(component, variable);
-    const ctxs = [
-      ...new Set(siblings.map((s) => shareableContexts.get(s)).filter((c): c is string => !!c)),
-    ];
     const declaredPeers = rep.groupKey ? topologyByGroupKey.get(rep.groupKey) ?? [] : [];
     const mergePeers = declaredPeers.filter((v) => v !== variable && !siblings.includes(v));
+
+    // Partition siblings by current alias. The "canonical" group is the most populous
+    // alias bucket — that way overriding a single context flips it to broken instead of
+    // making it look like the rest of the group walked away.
+    const aliases = get(editorState).components[component]?.aliases ?? {};
+    const buckets = new Map<string, string[]>();
+    for (const s of siblings) {
+      const k = aliasKey(aliases[s]);
+      const arr = buckets.get(k) ?? [];
+      arr.push(s);
+      buckets.set(k, arr);
+    }
+    let canonicalKey = aliasKey(aliases[variable]);
+    let canonicalSize = buckets.get(canonicalKey)?.length ?? 0;
+    for (const [k, arr] of buckets) {
+      if (arr.length > canonicalSize) {
+        canonicalKey = k;
+        canonicalSize = arr.length;
+      }
+    }
+    const linkedSiblings = buckets.get(canonicalKey) ?? [];
+    const divergedSiblings: string[] = [];
+    for (const [k, arr] of buckets) {
+      if (k !== canonicalKey) divergedSiblings.push(...arr);
+    }
+
+    // Build context lists in canonical (shareableContexts insertion) order so the
+    // LinkageChart row order matches the variant tab strip the editor declared.
+    const linkedSet = new Set(linkedSiblings);
+    const brokenVarSet = new Set([...divergedSiblings, ...mergePeers]);
+    const seenAll = new Set<string>();
+    const seenBroken = new Set<string>();
+    const ctxs: string[] = [];
+    const brokenContexts: string[] = [];
+    for (const [peer, ctx] of shareableContexts) {
+      if (rep.groupKey && tokensByVar.get(peer)?.groupKey !== rep.groupKey) continue;
+      const isLinked = linkedSet.has(peer);
+      const isBroken = brokenVarSet.has(peer);
+      if (!isLinked && !isBroken) continue;
+      if (!seenAll.has(ctx)) {
+        seenAll.add(ctx);
+        ctxs.push(ctx);
+      }
+      if (isBroken && !seenBroken.has(ctx)) {
+        seenBroken.add(ctx);
+        brokenContexts.push(ctx);
+      }
+    }
     const tok: SharedToken = {
       ...rep,
       canBeShared: true,
       ...(mergePeers.length ? { mergeVariables: mergePeers } : {}),
     };
-    groups.push({ token: tok, contexts: ctxs, variables: siblings, shared: isShared });
+    groups.push({ token: tok, contexts: ctxs, brokenContexts, variables: siblings, shared: isShared });
     if (isShared) for (const s of siblings) varSet.add(s);
   }
 

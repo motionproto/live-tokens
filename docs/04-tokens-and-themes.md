@@ -1,11 +1,11 @@
 # Tokens, themes, and migrations
 
-This chapter covers what tokens are, how `tokens.css` is the production runtime, what
-gets persisted in theme JSON files, and how schema migrations work.
+This chapter covers what tokens are, how `tokens.css` is the production runtime,
+what gets persisted in theme JSON files, and how schema migrations work.
 
-For naming rules — what categories exist, what suffixes mean, when to use `thickness`
-vs `width`, etc. — read `src/styles/CONVENTIONS.md`. This document covers
-*architecture* only.
+For naming rules (what categories exist, what suffixes mean, when to use
+`thickness` vs `width`, and so on) read `src/styles/CONVENTIONS.md`. This document
+covers *architecture* only.
 
 ## Two layers of tokens
 
@@ -32,13 +32,13 @@ flowchart TB
 ```
 
 **Layer 1 — theme tokens** are the design system's vocabulary: palettes, surfaces,
-borders, text colors, type scales, spacing scales, radii, shadows, motion. They live in
-`src/styles/tokens.css` and are recolored / re-scaled by themes.
+borders, text colors, type scales, spacing scales, radii, shadows, motion. They
+live in `src/styles/tokens.css` and get recolored or re-scaled by themes.
 
-**Layer 2 — component tokens** are per-component slots. Each component declares its
-slots in its `<style>` block under `:global(:root)` and references theme tokens through
-them. The editor's alias map records which theme token each slot is currently assigned
-to:
+**Layer 2 — component tokens** are per-component slots. Each component declares
+its slots in its `<style>` block under `:global(:root)` and references theme
+tokens through them. The editor's alias map records which theme token each slot
+currently points at:
 
 ```jsonc
 // component-configs/button/default_01.json
@@ -57,7 +57,7 @@ runtime the renderer emits `--button-primary-surface: var(--surface-primary);`.
 
 ## tokens.css — the production runtime
 
-`src/styles/tokens.css` is the single CSS file that's bundled into production. It
+`src/styles/tokens.css` is the single CSS file bundled into production. It
 declares every theme token in `:root` with a sensible default value:
 
 ```css
@@ -73,16 +73,16 @@ declares every theme token in `:root` with a sensible default value:
 }
 ```
 
-In dev, the editor overlays runtime values onto `:root` via `cssVarSync` —
-`tokens.css`'s defaults are still the cascade root, but inline `style="--token: …"`
-on `<html>` wins. When the user **promotes** a theme to production, the dev plugin
-rewrites `tokens.css` itself: every `--name: value;` line that the theme overrides is
-replaced in place, and additions land in a `/* Token additions */` block before the
-closing brace.
+In dev, the editor overlays runtime values onto `:root` via `cssVarSync`.
+`tokens.css`'s defaults are still the cascade root, but inline `style="--token:
+…"` on `<html>` wins. When the user **promotes** a theme to production, the dev
+plugin rewrites `tokens.css` itself: every `--name: value;` line that the theme
+overrides gets replaced in place, and additions land in a `/* Token additions */`
+block before the closing brace.
 
-So at any moment the production CSS file is a snapshot of the most recently promoted
-theme — the editor never has to be loaded for production to work, and CI builds just
-bundle the file.
+So at any moment the production CSS file is a snapshot of the most recently
+promoted theme. The editor never has to be loaded for production to work, and CI
+builds just bundle the file.
 
 ## Component runtime declarations
 
@@ -106,24 +106,23 @@ Components in `src/components/*.svelte` declare their own slot variables in a
 </style>
 ```
 
-The `:global(:root)` block is parsed by `extractGlobalRootBody`
-(`src/lib/parsers/globalRootBlock.ts`) — both the dev-server plugin (when seeding
-`default.json`) and the in-browser registry (when picking up the source-of-truth list)
-read this block.
+`extractGlobalRootBody` (`src/lib/parsers/globalRootBlock.ts`) parses the
+`:global(:root)` block. Both the dev-server plugin (when seeding `default.json`)
+and the in-browser registry (when picking up the source-of-truth list) read it.
 
-There is one quirk worth knowing: **the parser does not pre-compile SCSS**. If you
-write `@each $variant in (info, warning) { … --notification-#{$variant}-surface: …; }`,
-the parser sees the literal `@each` text and finds zero token declarations. The
-`Notification.svelte` SCSS rules use `@each` to compress the per-variant styles, but
-the `:global(:root)` block is kept flat by design. There's an inline comment in
+One quirk worth knowing: **the parser doesn't pre-compile SCSS**. If you write
+`@each $variant in (info, warning) { … --notification-#{$variant}-surface: …; }`,
+the parser sees the literal `@each` text and finds zero token declarations.
+`Notification.svelte`'s SCSS rules use `@each` to compress the per-variant styles,
+but the `:global(:root)` block stays flat by design. There's an inline comment in
 `Notification.svelte` documenting this.
 
 ## Theme files
 
-Themes live as JSON files in `themes/`. Each represents a complete saved palette set
-plus everything else the user has tweaked (column grid, overlay tints, font registry,
-shadow drivers, plus the catch-all `cssVariables` bag for tokens not yet in a typed
-slice).
+Themes live as JSON files in `themes/`. Each one is a complete saved palette set
+plus everything else the user has tweaked: column grid, overlay tints, font
+registry, shadow drivers, plus the catch-all `cssVariables` bag for tokens not
+yet in a typed slice.
 
 ```jsonc
 // themes/runegoblin-teal.json (excerpt)
@@ -152,14 +151,14 @@ Each `themes/` directory has three meta-files alongside the saved themes:
 
 | File | Role |
 |---|---|
-| `_active.json` | `{ activeFile: "<name>" }` — the theme loaded at dev-server boot. |
-| `_production.json` | `{ activeFile: "<name>" }` — the theme synced to `tokens.css` on promote. |
+| `_active.json` | `{ activeFile: "<name>" }`. The theme loaded at dev-server boot. |
+| `_production.json` | `{ activeFile: "<name>" }`. The theme synced to `tokens.css` on promote. |
 | `_backups/<name>_<timestamp>.json` | Per-save backup; `BACKUP_RETENTION = 10` per name. |
 
-The vocabulary — list / load / save / delete + active / production + backups — is
+The vocabulary (list, load, save, delete, plus active, production, backups) is
 implemented once in `src/vite-plugin/files/versionedFileResource.ts` (server) and
-`src/lib/files/versionedFileResource.ts` (client). The same vocabulary is used by
-component-config files (one resource per component directory under
+`src/lib/files/versionedFileResource.ts` (client). The same vocabulary is used
+by component-config files (one resource per component directory under
 `component-configs/<id>/`).
 
 ```mermaid
@@ -180,8 +179,8 @@ flowchart LR
     SyncCss -- writes --> FontsCss[src/styles/fonts.css]
 ```
 
-A save on the *production* theme also re-runs the sync — there's no separate "promote
-again" step. This is so editing the production theme via the editor stays
+A save on the *production* theme also re-runs the sync. There's no separate
+"promote again" step. That keeps editing the production theme via the editor
 WYSIWYG: the file you'd ship if you built right now is in lockstep with what the
 editor is showing.
 
@@ -199,11 +198,11 @@ component-configs/button/
     └── default_01_2026-05-03T23-52-10-415Z.json
 ```
 
-`default.json` is regenerated on every hot-update of the component's Svelte file
-(`themeFileApi.handleHotUpdate`). It's the seed: identity-mapped aliases parsed out
-of the component's `:global(:root)` block. User saves never overwrite `default.json`
-(the API rejects PUT/DELETE for `name === 'default'`); they go to other names like
-`default_01.json`, `_my_brand.json`, etc.
+`default.json` regenerates on every hot-update of the component's Svelte file
+(`themeFileApi.handleHotUpdate`). It's the seed: identity-mapped aliases parsed
+from the component's `:global(:root)` block. User saves never overwrite
+`default.json` (the API rejects PUT/DELETE for `name === 'default'`); they go to
+other names like `default_01.json`, `_my_brand.json`, and so on.
 
 The shape on disk:
 
@@ -222,21 +221,22 @@ interface ComponentConfig {
 
 The aliases map on disk is a flat string→string. In memory it's split:
 
-- Entries whose key is in `KNOWN_COMPONENT_CONFIG_KEYS` (`src/lib/componentConfigKeys.ts`)
-  are routed to the `config` bucket as literal values.
-- Everything else becomes a `CssVarRef` discriminated union — `{kind:'token', name}`
-  if the value starts with `--`, otherwise `{kind:'literal', value}`.
+- Entries whose key is in `KNOWN_COMPONENT_CONFIG_KEYS`
+  (`src/lib/componentConfigKeys.ts`) route to the `config` bucket as literal
+  values.
+- Everything else becomes a `CssVarRef` discriminated union: `{kind:'token',
+  name}` if the value starts with `--`, otherwise `{kind:'literal', value}`.
 
-The renderer dispatches on the `kind`: tokens emit `var(<name>)`, literals emit the
-raw value. This split was the C3 audit fix; before it, the alias map was a stringly-
-typed bucket carrying both, and `--dialog-confirm-variant: primary;` ended up in CSS
-as junk that nothing read.
+The renderer dispatches on the `kind`: tokens emit `var(<name>)`, literals emit
+the raw value. This split was the C3 audit fix. Before it, the alias map was a
+stringly-typed bucket carrying both, and `--dialog-confirm-variant: primary;`
+ended up in CSS as junk that nothing read.
 
 ## Palette derivation
 
-Palettes are special: they're not stored as flat token values, they're stored as a
-*config* (base color + curves + overrides) and **derived** into tokens at render time.
-`src/lib/paletteDerivation.ts` is the pure function:
+Palettes are special. They aren't stored as flat token values; they're stored as
+a *config* (base color + curves + overrides) and **derived** into tokens at
+render time. `src/lib/paletteDerivation.ts` is the pure function:
 
 ```ts
 const PALETTE_SPECS = [
@@ -250,17 +250,18 @@ palettesToVars(state.palettes) → { '--color-primary-100': '#…',
                                     /* 11 steps × 10 palettes = ~110 vars */ }
 ```
 
-Derivation uses OKLCH (`src/lib/oklch.ts`) for perceptual uniformity and a Bezier-based
-curve engine (`src/ui/curveEngine.ts`) for the lightness/saturation falloff per ramp.
-The `PaletteEditor` UI renders the curves and sliders; the *result* is what lives in
-state. `paletteDerivation` runs both at boot (so the disabled-state preview reads
-correctly without a PaletteEditor instance mounted) and inside the renderer subscriber.
+Derivation uses OKLCH (`src/lib/oklch.ts`) for perceptual uniformity and a
+Bezier-based curve engine (`src/ui/curveEngine.ts`) for the lightness/saturation
+falloff per ramp. The `PaletteEditor` UI renders the curves and sliders; the
+*result* is what lives in state. `paletteDerivation` runs both at boot (so the
+disabled-state preview reads correctly without a PaletteEditor instance mounted)
+and inside the renderer subscriber.
 
 ## Schema migrations
 
-Theme files and component-config files both carry an optional `schemaVersion` integer.
-The runner — `src/lib/migrations/index.ts` — applies any registered migration whose
-`fromVersion >= file.schemaVersion`, in `toVersion` order:
+Theme files and component-config files both carry an optional `schemaVersion`
+integer. The runner (`src/lib/migrations/index.ts`) applies any registered
+migration whose `fromVersion >= file.schemaVersion`, in `toVersion` order:
 
 ```mermaid
 flowchart LR
@@ -277,9 +278,9 @@ Two independent version sequences:
 - **Theme migrations** step `CURRENT_THEME_SCHEMA_VERSION`.
 - **Component-config migrations** step `CURRENT_COMPONENT_SCHEMA_VERSION`.
 
-Both constants are *computed* from the registered migration list (`countFor(kind)`) so
-adding a new dated file auto-bumps the constant. There's no shared "both" kind — every
-migration declares one or the other.
+Both constants are *computed* from the registered migration list
+(`countFor(kind)`), so adding a new dated file auto-bumps the constant. There's
+no shared "both" kind; every migration declares one or the other.
 
 ### Convention: dated files
 
@@ -307,23 +308,23 @@ export interface Migration {
 }
 ```
 
-`apply` is a pure transform on the raw vars map — add, remove, or rename keys. The
-`meta.component` field is set when `appliesTo === 'component-config'` so component-
-specific migrations (like the segmentedcontrol disabled flatten) can short-circuit
-on other components.
+`apply` is a pure transform on the raw vars map: add, remove, or rename keys.
+The `meta.component` field is set when `appliesTo === 'component-config'` so
+component-specific migrations (like the segmentedcontrol disabled flatten) can
+short-circuit on other components.
 
 ### TTL — when to delete a migration
 
 A migration's bookkeeping is dead code once every saved file on disk has been
 re-saved past it. Concretely: once every saved theme/config file has
-`schemaVersion >= migration.fromVersion + 1`, the migration is unreachable and the
-file can be deleted. Production teams running this on real artifacts can defer the
-deletion until they're confident.
+`schemaVersion >= migration.fromVersion + 1`, the migration is unreachable and
+the file can be deleted. Production teams running this on real artifacts can
+defer the deletion until they're confident.
 
-Because migrations are dated and isolated, the lifecycle is mechanical: delete the
-file (and its import in `index.ts`), and `CURRENT_*_SCHEMA_VERSION` adjusts itself.
-There's no ambient "migration tables in editorStore" that requires careful surgery
-— that was the M3 audit fix.
+Because migrations are dated and isolated, the lifecycle is mechanical: delete
+the file (and its import in `index.ts`), and `CURRENT_*_SCHEMA_VERSION` adjusts
+itself. There's no ambient "migration tables in editorStore" that requires
+careful surgery; that was the M3 audit fix.
 
 ## Save round-trip
 
@@ -354,19 +355,20 @@ sequenceDiagram
 ```
 
 `toTheme` only writes domain vars when they diverge from defaults
-(`columnsEqualsDefault`, `overlaysEqualsDefault`) — unchanged domains stay out of
+(`columnsEqualsDefault`, `overlaysEqualsDefault`). Unchanged domains stay out of
 the saved JSON, which keeps theme files small and surfaces meaningful diffs in
 version control.
 
 ## Summary
 
 - `tokens.css` is the production runtime. The dev plugin rewrites it on promote.
-- Theme files (`themes/*.json`) carry palettes + fonts + shadows + overlays + columns
-  + a catch-all `cssVariables` bag. Themes and component slices are orthogonal.
-- Component-config files (`component-configs/<id>/*.json`) carry per-component aliases
-  + literal-value config + schemaVersion. `default.json` is regenerated from the
-  Svelte source.
+- Theme files (`themes/*.json`) carry palettes, fonts, shadows, overlays,
+  columns, plus a catch-all `cssVariables` bag. Themes and component slices are
+  orthogonal.
+- Component-config files (`component-configs/<id>/*.json`) carry per-component
+  aliases, literal-value config, and a `schemaVersion`. `default.json`
+  regenerates from the Svelte source.
 - Both file types use the same active / production / backups vocabulary
   (`versionedFileResource`).
-- Migrations are dated, isolated, and self-bumping. The runner gates by `fromVersion
-  >= file.schemaVersion` so resaved files skip past migrations.
+- Migrations are dated, isolated, and self-bumping. The runner gates by
+  `fromVersion >= file.schemaVersion`, so resaved files skip past migrations.

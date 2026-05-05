@@ -89,8 +89,7 @@
     setComponentAlias('button', '--button-shimmer', { kind: 'token', name: e.detail ? '--shimmer-on' : '--shimmer-off' });
   }
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens);
-  $: void $editorState;
+  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
 
   $: visibleVariantStates = (v: Variant) => Object.fromEntries(
     Object.entries(variantStates(v)).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),

@@ -2,12 +2,12 @@
   "name": "default_01",
   "component": "button",
   "createdAt": "2026-04-25T01:41:47.101Z",
-  "updatedAt": "2026-05-05T00:39:23.382Z",
+  "updatedAt": "2026-05-03T23:52:10.415Z",
   "aliases": {
     "--button-primary-surface": "--surface-primary",
     "--button-primary-text": "--text-primary",
     "--button-primary-border": "--border-primary",
-    "--button-primary-radius": "--radius-none",
+    "--button-primary-radius": "--radius-4xl",
     "--button-primary-hover-surface": "--surface-primary-higher",
     "--button-primary-hover-text": "--text-primary",
     "--button-primary-hover-border": "--border-primary-medium",
@@ -79,6 +79,5 @@
   },
   "config": {
     "--button-shimmer": "--shimmer-off"
-  },
-  "schemaVersion": 2
+  }
 }
