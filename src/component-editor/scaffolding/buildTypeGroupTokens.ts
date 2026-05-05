@@ -18,16 +18,16 @@ export type TypeFontProp = typeof TYPE_FONT_PROPS[number];
 export type BuildTypeGroupTokensOptions = {
   /** Override the default groupKey per property. Receives the prop descriptor and the
       type-group config it came from. Return a stable string — siblings sharing the same
-      groupKey are linked in the shared block. */
+      groupKey are linked in the linked block. */
   groupKeyFor?: (prop: TypeFontProp, group: TypeGroupConfig) => string;
 };
 
 /** Derive the Token[] schema entries for every TypeGroupConfig in `typeGroups`. Each
     group emits one `colorVariable` token plus up to 4 font-shape tokens (family/size/
     weight/line-height) for whichever of those are declared on the group. Font-shape
-    tokens carry `canBeShared: true` and a stable `groupKey` so the shared-block linkage
+    tokens carry `canBeLinked: true` and a stable `groupKey` so the linked-block linkage
     sees them; the color token is emitted plain (no groupKey, not shareable) so it stays
-    out of the shared block while still appearing in the editor's full token surface
+    out of the linked block while still appearing in the editor's full token surface
     (used by the reset-button and the design-token resolution test).
 
     Mirrors the `flatMap`/loop pattern in StandardButtonsEditor and RadioButtonEditor so
@@ -45,7 +45,7 @@ export function buildTypeGroupTokens(
         const variable = group[prop.key];
         if (!variable) continue;
         const groupKey = groupKeyFor ? groupKeyFor(prop, group) : prop.defaultGroupKey;
-        tokens.push({ label: prop.label, canBeShared: true, groupKey, variable });
+        tokens.push({ label: prop.label, canBeLinked: true, groupKey, variable });
       }
     }
   }
@@ -67,8 +67,8 @@ export function buildTypeGroupColorTokens(
   return groups.map((g) => ({ label: g.colorLabel ?? 'color', variable: g.colorVariable }));
 }
 
-/** Companion helper: derive a `shareableContexts` map mapping every typography variable in
-    `typeGroups` to its state name. Use to build the shared-block context map without
+/** Companion helper: derive a `linkableContexts` map mapping every typography variable in
+    `typeGroups` to its state name. Use to build the linked-block context map without
     spelling out 16+ entries; merge with non-typography entries via spread. */
 export function buildTypeGroupShareableContexts(
   typeGroups: Record<string, TypeGroupConfig[]>,

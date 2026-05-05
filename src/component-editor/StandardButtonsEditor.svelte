@@ -17,9 +17,9 @@
     return [
       { label: 'surface color', variable: `${p}-surface` },
       { label: 'border color', variable: `${p}-border` },
-      { label: 'border width', canBeShared: true, groupKey: 'border-width', variable: `${p}-border-width` },
-      { label: 'corner radius', canBeShared: true, groupKey: 'radius', variable: `${p}-radius` },
-      { label: 'padding', canBeShared: true, groupKey: 'padding', variable: `${p}-padding` },
+      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `${p}-border-width` },
+      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `${p}-radius` },
+      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `${p}-padding` },
     ];
   }
 
@@ -54,10 +54,10 @@
     ...buildTypeGroupTokens(variantTypeGroups(v)),
   ]);
 
-  // Shared block:
+  // Linked block:
   //   - shape props (border-width, radius, padding) link across every variant × state — buttons share one geometry.
   //   - typography props link across all six variants.
-  const shareableContexts = new Map<string, string>([
+  const linkableContexts = new Map<string, string>([
     ...variants.flatMap((v) => stateNames.flatMap((s) => [
       [`${statePrefix(v, s)}-border-width`, `${v} ${s}`] as const,
       [`${statePrefix(v, s)}-radius`, `${v} ${s}`] as const,
@@ -80,7 +80,7 @@
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState, setComponentAlias } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
   $: shimmerRef = $editorState.components.button?.aliases['--button-shimmer'];
   $: shimmerEnabled = !(shimmerRef?.kind === 'token' && shimmerRef.name === '--shimmer-off');
@@ -89,14 +89,14 @@
     setComponentAlias('button', '--button-shimmer', { kind: 'token', name: e.detail ? '--shimmer-on' : '--shimmer-off' });
   }
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
 
   $: visibleVariantStates = (v: Variant) => Object.fromEntries(
-    Object.entries(variantStates(v)).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
+    Object.entries(variantStates(v)).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
   ) as Record<string, Token[]>;
 </script>
 
-<ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" tokens={allTokens} {shared} tabbable variants={variantOptions}>
+<ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" tokens={allTokens} {linked} tabbable variants={variantOptions}>
   <svelte:fragment slot="config">
     <label>
       <span>Hover shimmer</span>

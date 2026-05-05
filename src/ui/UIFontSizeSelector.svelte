@@ -5,7 +5,7 @@
 
   export let variable: string;
   export let component: string | undefined = undefined;
-  export let canBeShared: boolean = false;
+  export let canBeLinked: boolean = false;
   export let disabled: boolean = false;
   export let selectionsLocked: boolean = false;
 
@@ -72,7 +72,7 @@
 <UIVariantSelector
   {variable}
   {component}
-  {canBeShared}
+  {canBeLinked}
   {disabled}
   {selectionsLocked}
   varPrefix="--font-size-"

@@ -18,8 +18,8 @@
   export let typeGroups: TypeGroupConfig[] = [];
   /** Forwarded to TypeEditor and TokenLayout so writes persist through the editor store. */
   export let component: string | undefined = undefined;
-  /** Per-variable rank passed through to TokenLayout for shared-block alignment. */
-  export let sharedOrder: Map<string, number> | undefined = undefined;
+  /** Per-variable rank passed through to TokenLayout for linked-block alignment. */
+  export let linkedOrder: Map<string, number> | undefined = undefined;
 
   $: hasTypeGroups = typeGroups.length > 0;
 </script>
@@ -50,7 +50,7 @@
     title=""
     {tokens}
     {component}
-    {sharedOrder}
+    {linkedOrder}
     on:change
   />
 </div>

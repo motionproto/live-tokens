@@ -12,23 +12,23 @@
       { label: 'surface color', variable: '--card-default-surface' },
       { label: 'header color', variable: '--card-default-header-surface' },
       { label: 'border color', variable: '--card-default-border' },
-      { label: 'border width', canBeShared: true, groupKey: 'card-border-width', variable: '--card-default-border-width' },
-      { label: 'corner radius', canBeShared: true, groupKey: 'card-radius', variable: '--card-default-radius' },
-      { label: 'header padding', canBeShared: true, groupKey: 'card-header-padding', variable: '--card-default-header-padding' },
-      { label: 'body padding', canBeShared: true, groupKey: 'card-body-padding', variable: '--card-default-body-padding' },
-      { label: 'card shadow', canBeShared: true, groupKey: 'card-shadow', variable: '--card-default-shadow' },
-      { label: 'background blur', canBeShared: true, groupKey: 'card-blur', variable: '--card-default-blur' },
+      { label: 'border width', canBeLinked: true, groupKey: 'card-border-width', variable: '--card-default-border-width' },
+      { label: 'corner radius', canBeLinked: true, groupKey: 'card-radius', variable: '--card-default-radius' },
+      { label: 'header padding', canBeLinked: true, groupKey: 'card-header-padding', variable: '--card-default-header-padding' },
+      { label: 'body padding', canBeLinked: true, groupKey: 'card-body-padding', variable: '--card-default-body-padding' },
+      { label: 'card shadow', canBeLinked: true, groupKey: 'card-shadow', variable: '--card-default-shadow' },
+      { label: 'background blur', canBeLinked: true, groupKey: 'card-blur', variable: '--card-default-blur' },
     ],
     hover: [
       { label: 'surface color', variable: '--card-hover-surface' },
       { label: 'header color', variable: '--card-hover-header-surface' },
       { label: 'border color', variable: '--card-hover-border' },
-      { label: 'border width', canBeShared: true, groupKey: 'card-border-width', variable: '--card-hover-border-width' },
-      { label: 'corner radius', canBeShared: true, groupKey: 'card-radius', variable: '--card-hover-radius' },
-      { label: 'header padding', canBeShared: true, groupKey: 'card-header-padding', variable: '--card-hover-header-padding' },
-      { label: 'body padding', canBeShared: true, groupKey: 'card-body-padding', variable: '--card-hover-body-padding' },
-      { label: 'card shadow', canBeShared: true, groupKey: 'card-shadow', variable: '--card-hover-shadow' },
-      { label: 'background blur', canBeShared: true, groupKey: 'card-blur', variable: '--card-hover-blur' },
+      { label: 'border width', canBeLinked: true, groupKey: 'card-border-width', variable: '--card-hover-border-width' },
+      { label: 'corner radius', canBeLinked: true, groupKey: 'card-radius', variable: '--card-hover-radius' },
+      { label: 'header padding', canBeLinked: true, groupKey: 'card-header-padding', variable: '--card-hover-header-padding' },
+      { label: 'body padding', canBeLinked: true, groupKey: 'card-body-padding', variable: '--card-hover-body-padding' },
+      { label: 'card shadow', canBeLinked: true, groupKey: 'card-shadow', variable: '--card-hover-shadow' },
+      { label: 'background blur', canBeLinked: true, groupKey: 'card-blur', variable: '--card-hover-blur' },
     ],
   };
 
@@ -74,25 +74,25 @@
 
   // Title type tokens (linked across states, but title and body are different objects so they don't link to each other).
   const typeGroupTokens: Token[] = [
-    { label: 'font family', canBeShared: true, groupKey: 'card-title-font-family', variable: '--card-default-title-font-family' },
-    { label: 'font family', canBeShared: true, groupKey: 'card-title-font-family', variable: '--card-hover-title-font-family' },
-    { label: 'font size', canBeShared: true, groupKey: 'card-title-font-size', variable: '--card-default-title-font-size' },
-    { label: 'font size', canBeShared: true, groupKey: 'card-title-font-size', variable: '--card-hover-title-font-size' },
-    { label: 'font weight', canBeShared: true, groupKey: 'card-title-font-weight', variable: '--card-default-title-font-weight' },
-    { label: 'font weight', canBeShared: true, groupKey: 'card-title-font-weight', variable: '--card-hover-title-font-weight' },
-    { label: 'line height', canBeShared: true, groupKey: 'card-title-line-height', variable: '--card-default-title-line-height' },
-    { label: 'line height', canBeShared: true, groupKey: 'card-title-line-height', variable: '--card-hover-title-line-height' },
-    { label: 'font family', canBeShared: true, groupKey: 'card-body-font-family', variable: '--card-default-body-font-family' },
-    { label: 'font family', canBeShared: true, groupKey: 'card-body-font-family', variable: '--card-hover-body-font-family' },
-    { label: 'font size', canBeShared: true, groupKey: 'card-body-font-size', variable: '--card-default-body-font-size' },
-    { label: 'font size', canBeShared: true, groupKey: 'card-body-font-size', variable: '--card-hover-body-font-size' },
-    { label: 'font weight', canBeShared: true, groupKey: 'card-body-font-weight', variable: '--card-default-body-font-weight' },
-    { label: 'font weight', canBeShared: true, groupKey: 'card-body-font-weight', variable: '--card-hover-body-font-weight' },
-    { label: 'line height', canBeShared: true, groupKey: 'card-body-line-height', variable: '--card-default-body-line-height' },
-    { label: 'line height', canBeShared: true, groupKey: 'card-body-line-height', variable: '--card-hover-body-line-height' },
+    { label: 'font family', canBeLinked: true, groupKey: 'card-title-font-family', variable: '--card-default-title-font-family' },
+    { label: 'font family', canBeLinked: true, groupKey: 'card-title-font-family', variable: '--card-hover-title-font-family' },
+    { label: 'font size', canBeLinked: true, groupKey: 'card-title-font-size', variable: '--card-default-title-font-size' },
+    { label: 'font size', canBeLinked: true, groupKey: 'card-title-font-size', variable: '--card-hover-title-font-size' },
+    { label: 'font weight', canBeLinked: true, groupKey: 'card-title-font-weight', variable: '--card-default-title-font-weight' },
+    { label: 'font weight', canBeLinked: true, groupKey: 'card-title-font-weight', variable: '--card-hover-title-font-weight' },
+    { label: 'line height', canBeLinked: true, groupKey: 'card-title-line-height', variable: '--card-default-title-line-height' },
+    { label: 'line height', canBeLinked: true, groupKey: 'card-title-line-height', variable: '--card-hover-title-line-height' },
+    { label: 'font family', canBeLinked: true, groupKey: 'card-body-font-family', variable: '--card-default-body-font-family' },
+    { label: 'font family', canBeLinked: true, groupKey: 'card-body-font-family', variable: '--card-hover-body-font-family' },
+    { label: 'font size', canBeLinked: true, groupKey: 'card-body-font-size', variable: '--card-default-body-font-size' },
+    { label: 'font size', canBeLinked: true, groupKey: 'card-body-font-size', variable: '--card-hover-body-font-size' },
+    { label: 'font weight', canBeLinked: true, groupKey: 'card-body-font-weight', variable: '--card-default-body-font-weight' },
+    { label: 'font weight', canBeLinked: true, groupKey: 'card-body-font-weight', variable: '--card-hover-body-font-weight' },
+    { label: 'line height', canBeLinked: true, groupKey: 'card-body-line-height', variable: '--card-default-body-line-height' },
+    { label: 'line height', canBeLinked: true, groupKey: 'card-body-line-height', variable: '--card-hover-body-line-height' },
   ];
-  // Cross-state shared block — present each linkable property from the default state.
-  const shareableContexts = new Map<string, string>([
+  // Cross-state linked block — present each linkable property from the default state.
+  const linkableContexts = new Map<string, string>([
     ['--card-default-border-width', 'card'],
     ['--card-default-radius', 'card'],
     ['--card-default-header-padding', 'card'],
@@ -120,14 +120,14 @@
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
   import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
 
   $: visibleStates = Object.fromEntries(
-    Object.entries(states).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
+    Object.entries(states).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
   ) as Record<string, Token[]>;
 
   let hoverEnabled = true;
@@ -135,7 +135,7 @@
   const bgVar = '--backdrop-card-surface';
 </script>
 
-<ComponentEditorBase {component} title="Card" description="Generic card with icon, title, and slotted body. Import from <code>components/Card.svelte</code>" tokens={allTokens} {shared} tabbable>
+<ComponentEditorBase {component} title="Card" description="Generic card with icon, title, and slotted body. Import from <code>components/Card.svelte</code>" tokens={allTokens} {linked} tabbable>
   <svelte:fragment slot="config">
     <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
   </svelte:fragment>

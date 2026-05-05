@@ -5,13 +5,13 @@
   export const component = 'sectiondivider';
 
   // Component-level (shared across all variants): typography + padding.
-  const sharedStates: Record<string, Token[]> = {
+  const linkedStates: Record<string, Token[]> = {
     component: [
       { label: 'padding', variable: '--sectiondivider-padding' },
     ],
   };
 
-  const sharedTypeGroups: Record<string, TypeGroupConfig[]> = {
+  const linkedTypeGroups: Record<string, TypeGroupConfig[]> = {
     component: [
       {
         legend: 'title',
@@ -31,7 +31,7 @@
       },
     ],
   };
-  const sharedTypeTokens: Token[] = [
+  const linkedTypeTokens: Token[] = [
     { label: 'font family', variable: '--sectiondivider-title-font-family' },
     { label: 'font size', variable: '--sectiondivider-title-font-size' },
     { label: 'font weight', variable: '--sectiondivider-title-font-weight' },
@@ -61,9 +61,9 @@
     ];
   }
   export const allTokens: Token[] = [
-    ...Object.values(sharedStates).flat(),
-    ...buildTypeGroupColorTokens(sharedTypeGroups),
-    ...sharedTypeTokens,
+    ...Object.values(linkedStates).flat(),
+    ...buildTypeGroupColorTokens(linkedTypeGroups),
+    ...linkedTypeTokens,
     ...variants.flatMap((v) => variantTokens(v.key)),
   ];
 </script>
@@ -89,8 +89,8 @@
   <VariantGroup
     name="component"
     title="Component-level"
-    states={sharedStates}
-    typeGroups={sharedTypeGroups}
+    states={linkedStates}
+    typeGroups={linkedTypeGroups}
     {component}
   >
     <SectionDivider title="Section Title" description={descriptionText} variant="canvas" />

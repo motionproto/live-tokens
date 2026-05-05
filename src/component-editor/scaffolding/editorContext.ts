@@ -6,8 +6,8 @@ const KEY = Symbol('editor-context');
 export type ViewMode = 'list' | 'tabs';
 
 export type EditorContext = {
-  /** Per-variable rank used by TokenLayout to align shared rows; null when no shared block. */
-  sharedOrder: Readable<Map<string, number> | null>;
+  /** Per-variable rank used by TokenLayout to align linked rows; null when no linked block. */
+  linkedOrder: Readable<Map<string, number> | null>;
   /** True when this editor opted into the List/Tabs view toggle in its header. */
   tabbable: Readable<boolean>;
   /** Current view mode; honored by every multi-state VariantGroup whose editor is tabbable. */
@@ -22,23 +22,23 @@ export type EditorContext = {
 
 /** Internal mutable handle used by ComponentEditorBase. */
 export type EditorContextInternal = EditorContext & {
-  _sharedOrder: Writable<Map<string, number> | null>;
+  _linkedOrder: Writable<Map<string, number> | null>;
   _tabbable: Writable<boolean>;
 };
 
 export function createEditorContext(): EditorContextInternal {
-  const _sharedOrder = writable<Map<string, number> | null>(null);
+  const _linkedOrder = writable<Map<string, number> | null>(null);
   const _tabbable = writable(false);
   const viewMode = writable<ViewMode>('tabs');
   const focusedVariant = writable<string | null>(null);
   const focusedState = writable<string | null>(null);
   const ctx: EditorContextInternal = {
-    sharedOrder: _sharedOrder,
+    linkedOrder: _linkedOrder,
     tabbable: _tabbable,
     viewMode,
     focusedVariant,
     focusedState,
-    _sharedOrder,
+    _linkedOrder,
     _tabbable,
   };
   setContext(KEY, ctx);

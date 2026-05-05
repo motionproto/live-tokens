@@ -12,9 +12,9 @@
       { label: 'fill color', variable: `--progressbar-${v}-fill` },
       { label: 'track surface color', variable: `--progressbar-${v}-track-surface` },
       { label: 'track border color', variable: `--progressbar-${v}-track-border` },
-      { label: 'track border width', canBeShared: true, groupKey: 'track-border-width', variable: `--progressbar-${v}-track-border-width` },
-      { label: 'corner radius', canBeShared: true, groupKey: 'radius', variable: `--progressbar-${v}-radius` },
-      { label: 'track height', canBeShared: true, groupKey: 'track-height', variable: `--progressbar-${v}-track-height` },
+      { label: 'track border width', canBeLinked: true, groupKey: 'track-border-width', variable: `--progressbar-${v}-track-border-width` },
+      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--progressbar-${v}-radius` },
+      { label: 'track height', canBeLinked: true, groupKey: 'track-height', variable: `--progressbar-${v}-track-height` },
     ];
   }
 
@@ -41,14 +41,14 @@
   }
   function variantTypeGroupTokens(v: Variant): Token[] {
     return [
-      { label: 'font family', canBeShared: true, groupKey: 'label-font-family', variable: `--progressbar-${v}-label-font-family` },
-      { label: 'font size', canBeShared: true, groupKey: 'label-font-size', variable: `--progressbar-${v}-label-font-size` },
-      { label: 'font weight', canBeShared: true, groupKey: 'label-font-weight', variable: `--progressbar-${v}-label-font-weight` },
-      { label: 'line height', canBeShared: true, groupKey: 'label-line-height', variable: `--progressbar-${v}-label-line-height` },
-      { label: 'font family', canBeShared: true, groupKey: 'value-font-family', variable: `--progressbar-${v}-value-font-family` },
-      { label: 'font size', canBeShared: true, groupKey: 'value-font-size', variable: `--progressbar-${v}-value-font-size` },
-      { label: 'font weight', canBeShared: true, groupKey: 'value-font-weight', variable: `--progressbar-${v}-value-font-weight` },
-      { label: 'line height', canBeShared: true, groupKey: 'value-line-height', variable: `--progressbar-${v}-value-line-height` },
+      { label: 'font family', canBeLinked: true, groupKey: 'label-font-family', variable: `--progressbar-${v}-label-font-family` },
+      { label: 'font size', canBeLinked: true, groupKey: 'label-font-size', variable: `--progressbar-${v}-label-font-size` },
+      { label: 'font weight', canBeLinked: true, groupKey: 'label-font-weight', variable: `--progressbar-${v}-label-font-weight` },
+      { label: 'line height', canBeLinked: true, groupKey: 'label-line-height', variable: `--progressbar-${v}-label-line-height` },
+      { label: 'font family', canBeLinked: true, groupKey: 'value-font-family', variable: `--progressbar-${v}-value-font-family` },
+      { label: 'font size', canBeLinked: true, groupKey: 'value-font-size', variable: `--progressbar-${v}-value-font-size` },
+      { label: 'font weight', canBeLinked: true, groupKey: 'value-font-weight', variable: `--progressbar-${v}-value-font-weight` },
+      { label: 'line height', canBeLinked: true, groupKey: 'value-line-height', variable: `--progressbar-${v}-value-line-height` },
     ];
   }
   export const allTokens: Token[] = variants.flatMap((v) => [
@@ -57,8 +57,8 @@
     ...variantTypeGroupTokens(v),
   ]);
 
-  // Cross-variant shared block surfaces shape and font props that may be linked.
-  const shareableContexts = new Map<string, string>(variants.flatMap((v) => [
+  // Cross-variant linked block surfaces shape and font props that may be linked.
+  const linkableContexts = new Map<string, string>(variants.flatMap((v) => [
     [`--progressbar-${v}-track-border-width`, v] as const,
     [`--progressbar-${v}-radius`, v] as const,
     [`--progressbar-${v}-track-height`, v] as const,
@@ -80,14 +80,14 @@
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   import { buildSiblings } from './scaffolding/siblings';
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
-  $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
+  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
+  $: visibleVariantTokens = (v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet);
 </script>
 
-<ComponentEditorBase {component} title="Progress Bar" description="Animated progress bar with variants. Import from <code>components/ProgressBar.svelte</code>" tokens={allTokens} {shared} tabbable variants={variantOptions}>
+<ComponentEditorBase {component} title="Progress Bar" description="Animated progress bar with variants. Import from <code>components/ProgressBar.svelte</code>" tokens={allTokens} {linked} tabbable variants={variantOptions}>
   {#each variants as v}
     <VariantGroup
       name={v}

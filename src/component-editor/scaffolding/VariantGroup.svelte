@@ -22,12 +22,12 @@
   export let siblings: Sibling[] = [];
 
   const editorCtx = getEditorContext();
-  const sharedOrderStore = editorCtx?.sharedOrder ?? writable<Map<string, number> | null>(null);
+  const linkedOrderStore = editorCtx?.linkedOrder ?? writable<Map<string, number> | null>(null);
   const tabbableStore = editorCtx?.tabbable ?? writable(false);
   const viewModeStore = editorCtx?.viewMode ?? writable<'list' | 'tabs'>('list');
   const focusedVariantStore = editorCtx?.focusedVariant ?? writable<string | null>(null);
   const focusedStateStore = editorCtx?.focusedState ?? writable<string | null>(null);
-  $: sharedOrder = $sharedOrderStore ?? undefined;
+  $: linkedOrder = $linkedOrderStore ?? undefined;
 
   let variantExpanded = true;
   let stateExpanded: Record<string, boolean> = {};
@@ -177,7 +177,7 @@
             tokens={states[stateName]}
             typeGroups={typeGroups[stateName] ?? []}
             {component}
-            {sharedOrder}
+            {linkedOrder}
             on:change
           />
         {/if}
@@ -222,7 +222,7 @@
                 tokens={states[stateName]}
                 typeGroups={typeGroups[stateName] ?? []}
                 {component}
-                {sharedOrder}
+                {linkedOrder}
                 on:change
               />
             {/if}
@@ -235,7 +235,7 @@
         title={name}
         tokens={tokens}
         {component}
-        {sharedOrder}
+        {linkedOrder}
         on:change
       />
     {/if}

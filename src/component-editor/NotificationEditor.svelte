@@ -11,11 +11,11 @@
     return [
       { label: 'surface color', variable: `--notification-${v}-surface` },
       { label: 'border color', variable: `--notification-${v}-border` },
-      { label: 'border width', canBeShared: true, groupKey: 'border-width', variable: `--notification-${v}-border-width` },
-      { label: 'corner radius', canBeShared: true, groupKey: 'radius', variable: `--notification-${v}-radius` },
-      { label: 'padding', canBeShared: true, groupKey: 'padding', variable: `--notification-${v}-padding` },
+      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--notification-${v}-border-width` },
+      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--notification-${v}-radius` },
+      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--notification-${v}-padding` },
       { label: 'icon color', variable: `--notification-${v}-icon` },
-      { label: 'icon size', canBeShared: true, groupKey: 'icon-size', variable: `--notification-${v}-icon-size` },
+      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: `--notification-${v}-icon-size` },
     ];
   }
 
@@ -42,14 +42,14 @@
   }
   function variantTypeGroupTokens(v: Variant): Token[] {
     return [
-      { label: 'font family', canBeShared: true, groupKey: 'title-font-family', variable: `--notification-${v}-title-font-family` },
-      { label: 'font size', canBeShared: true, groupKey: 'title-font-size', variable: `--notification-${v}-title-font-size` },
-      { label: 'font weight', canBeShared: true, groupKey: 'title-font-weight', variable: `--notification-${v}-title-font-weight` },
-      { label: 'line height', canBeShared: true, groupKey: 'title-line-height', variable: `--notification-${v}-title-line-height` },
-      { label: 'font family', canBeShared: true, groupKey: 'text-font-family', variable: `--notification-${v}-text-font-family` },
-      { label: 'font size', canBeShared: true, groupKey: 'text-font-size', variable: `--notification-${v}-text-font-size` },
-      { label: 'font weight', canBeShared: true, groupKey: 'text-font-weight', variable: `--notification-${v}-text-font-weight` },
-      { label: 'line height', canBeShared: true, groupKey: 'text-line-height', variable: `--notification-${v}-text-line-height` },
+      { label: 'font family', canBeLinked: true, groupKey: 'title-font-family', variable: `--notification-${v}-title-font-family` },
+      { label: 'font size', canBeLinked: true, groupKey: 'title-font-size', variable: `--notification-${v}-title-font-size` },
+      { label: 'font weight', canBeLinked: true, groupKey: 'title-font-weight', variable: `--notification-${v}-title-font-weight` },
+      { label: 'line height', canBeLinked: true, groupKey: 'title-line-height', variable: `--notification-${v}-title-line-height` },
+      { label: 'font family', canBeLinked: true, groupKey: 'text-font-family', variable: `--notification-${v}-text-font-family` },
+      { label: 'font size', canBeLinked: true, groupKey: 'text-font-size', variable: `--notification-${v}-text-font-size` },
+      { label: 'font weight', canBeLinked: true, groupKey: 'text-font-weight', variable: `--notification-${v}-text-font-weight` },
+      { label: 'line height', canBeLinked: true, groupKey: 'text-line-height', variable: `--notification-${v}-text-line-height` },
     ];
   }
   export const allTokens: Token[] = variants.flatMap((v) => [
@@ -58,8 +58,8 @@
     ...variantTypeGroupTokens(v),
   ]);
 
-  // Shared block surfaces shape and font props that may be linked across variants.
-  const shareableContexts = new Map<string, string>(variants.flatMap((v) => [
+  // Linked block surfaces shape and font props that may be linked across variants.
+  const linkableContexts = new Map<string, string>(variants.flatMap((v) => [
     [`--notification-${v}-border-width`, v] as const,
     [`--notification-${v}-radius`, v] as const,
     [`--notification-${v}-padding`, v] as const,
@@ -92,11 +92,11 @@
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   import { buildSiblings } from './scaffolding/siblings';
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
-  $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
+  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
+  $: visibleVariantTokens = (v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet);
 
   let dismissible = false;
   let rightOption: ButtonVariantOption = 'none';
@@ -105,7 +105,7 @@
   $: actionLeftVariant = toVariant(leftOption);
 </script>
 
-<ComponentEditorBase {component} title="Notification" description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>" tokens={allTokens} {shared} tabbable variants={variantOptions}>
+<ComponentEditorBase {component} title="Notification" description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>" tokens={allTokens} {linked} tabbable variants={variantOptions}>
   <svelte:fragment slot="config">
     <label>
       <input type="checkbox" bind:checked={dismissible} />

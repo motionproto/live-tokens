@@ -15,7 +15,7 @@
  *
  * Sharing semantics: tokens with the same groupKey (registered explicitly
  * via `registerComponentSchema`, or inferred from the last-dash suffix)
- * are siblings. `setComponentAliasShared` writes the same alias to every
+ * are siblings. `setComponentAliasLinked` writes the same alias to every
  * sibling; `unlinkComponentProperty` flags a groupKey as independently
  * editable. The `unlinked` list lives on the slice so it persists across
  * theme loads.
@@ -197,7 +197,7 @@ function cssVarRefEqual(a: CssVarRef | undefined, b: CssVarRef | undefined): boo
 }
 
 /** True iff `varName` has ≥2 siblings, all resolve to the same alias, and the groupKey is not explicitly unlinked. */
-export function isComponentPropertyShared(component: string, varName: string): boolean {
+export function isComponentPropertyLinked(component: string, varName: string): boolean {
   const slice = get(store).components[component];
   if (!slice) return false;
   const groupKey = getGroupKey(component, varName);
@@ -210,7 +210,7 @@ export function isComponentPropertyShared(component: string, varName: string): b
 }
 
 /** Write `ref` to every sibling that shares `varName`'s groupKey, and clear the unlinked flag. */
-export function setComponentAliasShared(component: string, varName: string, ref: CssVarRef): void {
+export function setComponentAliasLinked(component: string, varName: string, ref: CssVarRef): void {
   const groupKey = getGroupKey(component, varName);
   const siblings = getComponentPropertySiblings(component, varName);
   if (!groupKey || siblings.length === 0) {
@@ -229,14 +229,14 @@ export function setComponentAliasShared(component: string, varName: string, ref:
 }
 
 /** Clear every sibling that shares `varName`'s groupKey. */
-export function clearComponentAliasShared(component: string, varName: string): void {
+export function clearComponentAliasLinked(component: string, varName: string): void {
   const groupKey = getGroupKey(component, varName);
   const siblings = getComponentPropertySiblings(component, varName);
   if (!groupKey || siblings.length === 0) {
     clearComponentAlias(component, varName);
     return;
   }
-  mutate(`clear shared ${component}/${groupKey}`, (s) => {
+  mutate(`clear linked ${component}/${groupKey}`, (s) => {
     const slice = s.components[component];
     if (!slice) return;
     for (const v of siblings) delete slice.aliases[v];

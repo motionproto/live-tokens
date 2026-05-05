@@ -1,6 +1,6 @@
 import { get } from 'svelte/store';
 import {
-  isComponentPropertyShared,
+  isComponentPropertyLinked,
   getComponentPropertySiblings,
   editorState,
 } from '../../lib/editorStore';
@@ -12,55 +12,55 @@ function aliasKey(ref: CssVarRef | undefined): string {
   return ref.kind === 'token' ? `t:${ref.name}` : `v:${ref.value}`;
 }
 
-/** `Token` enriched by the shared-block computation. The base fields are inherited from
-    `Token`; the extra commentary on `mergeVariables` here is shared-block-specific. */
-export interface SharedToken extends Token {
+/** `Token` enriched by the linked-block computation. The base fields are inherited from
+    `Token`; the extra commentary on `mergeVariables` here is linked-block-specific. */
+export interface LinkedToken extends Token {
   /** Other groupKey lead variables whose current alias matches this row's. The row writes
       the same alias to each of these (and their siblings) so the merged display stays in sync. */
   mergeVariables?: string[];
 }
 
-export type SharedGroup = {
-  token: SharedToken;
+export type LinkedGroup = {
+  token: LinkedToken;
   /** Full set of contexts participating in this group (linked + broken), ordered by the
-      caller's `shareableContexts` insertion order so the LinkageChart row order matches the
+      caller's `linkableContexts` insertion order so the LinkageChart row order matches the
       variant tab strip. `brokenContexts` is a subset; the difference is currently linked. */
   contexts: string[];
-  /** Subset of `contexts` whose alias has been overridden out of the shared group.
+  /** Subset of `contexts` whose alias has been overridden out of the linked group.
       Renders as broken cells in the LinkageChart so the historical relationship stays visible. */
   brokenContexts: string[];
   variables: string[];
-  shared: boolean;
+  linked: boolean;
 };
 
-export type SharedBlockResult = {
-  groups: SharedGroup[];
+export type LinkedBlockResult = {
+  groups: LinkedGroup[];
   varSet: Set<string>;
   contextsByVar: Record<string, string[]>;
-  sharedOrder: Map<string, number>;
+  linkedOrder: Map<string, number>;
 };
 
 /**
- * Compute shared-block groups for the given component.
- * Each entry in `shareableContexts` maps a representative variable to a context label.
+ * Compute linked-block groups for the given component.
+ * Each entry in `linkableContexts` maps a representative variable to a context label.
  * A group is formed when ≥2 sibling variables (same component, same groupKey) exist.
  *
  * Reads editor state internally via `getComponentPropertySiblings` (which `get`s the store).
  * Pass `$editorState` as the final argument so the call site subscribes and Svelte re-runs
  * the reactive statement when state changes. The argument itself is ignored:
  *
- *   $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+ *   $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
  */
-export function computeSharedBlock(
+export function computeLinkedBlock(
   component: string,
-  shareableContexts: Map<string, string>,
-  allTokens: SharedToken[],
+  linkableContexts: Map<string, string>,
+  allTokens: LinkedToken[],
   // Reactivity hook — see JSDoc. The runtime state is read via `get(store)` internally;
   // this parameter exists only so callers can pass `$editorState` to create the subscription.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _stateForReactivity?: unknown,
-): SharedBlockResult {
-  const groups: SharedGroup[] = [];
+): LinkedBlockResult {
+  const groups: LinkedGroup[] = [];
   const varSet = new Set<string>();
   const seen = new Set<string>();
   const seenGroupKeys = new Set<string>();
@@ -70,7 +70,7 @@ export function computeSharedBlock(
   // Used to mirror writes from a row's lead onto sibling variables that aren't yet in the
   // slice, so a single user change propagates to the full declared topology.
   const topologyByGroupKey = new Map<string, string[]>();
-  for (const [variable] of shareableContexts) {
+  for (const [variable] of linkableContexts) {
     const gk = tokensByVar.get(variable)?.groupKey;
     if (!gk) continue;
     const list = topologyByGroupKey.get(gk) ?? [];
@@ -78,7 +78,7 @@ export function computeSharedBlock(
     topologyByGroupKey.set(gk, list);
   }
 
-  for (const [variable] of shareableContexts) {
+  for (const [variable] of linkableContexts) {
     if (seen.has(variable)) continue;
     const rep = tokensByVar.get(variable);
     if (!rep) continue;
@@ -88,12 +88,12 @@ export function computeSharedBlock(
     for (const s of siblings) seen.add(s);
     if (rep.groupKey) {
       seenGroupKeys.add(rep.groupKey);
-      // Mark every other declared peer in shareableContexts as seen so they don't spawn dupe groups
+      // Mark every other declared peer in linkableContexts as seen so they don't spawn dupe groups
       // when the slice covers only a subset of the declared topology.
       for (const peer of topologyByGroupKey.get(rep.groupKey) ?? []) seen.add(peer);
     }
 
-    const isShared = isComponentPropertyShared(component, variable);
+    const propertyLinked = isComponentPropertyLinked(component, variable);
     const declaredPeers = rep.groupKey ? topologyByGroupKey.get(rep.groupKey) ?? [] : [];
     const mergePeers = declaredPeers.filter((v) => v !== variable && !siblings.includes(v));
 
@@ -122,7 +122,7 @@ export function computeSharedBlock(
       if (k !== canonicalKey) divergedSiblings.push(...arr);
     }
 
-    // Build context lists in canonical (shareableContexts insertion) order so the
+    // Build context lists in canonical (linkableContexts insertion) order so the
     // LinkageChart row order matches the variant tab strip the editor declared.
     const linkedSet = new Set(linkedSiblings);
     const brokenVarSet = new Set([...divergedSiblings, ...mergePeers]);
@@ -130,7 +130,7 @@ export function computeSharedBlock(
     const seenBroken = new Set<string>();
     const ctxs: string[] = [];
     const brokenContexts: string[] = [];
-    for (const [peer, ctx] of shareableContexts) {
+    for (const [peer, ctx] of linkableContexts) {
       if (rep.groupKey && tokensByVar.get(peer)?.groupKey !== rep.groupKey) continue;
       const isLinked = linkedSet.has(peer);
       const isBroken = brokenVarSet.has(peer);
@@ -144,26 +144,26 @@ export function computeSharedBlock(
         brokenContexts.push(ctx);
       }
     }
-    const tok: SharedToken = {
+    const tok: LinkedToken = {
       ...rep,
-      canBeShared: true,
+      canBeLinked: true,
       ...(mergePeers.length ? { mergeVariables: mergePeers } : {}),
     };
-    groups.push({ token: tok, contexts: ctxs, brokenContexts, variables: siblings, shared: isShared });
-    if (isShared) for (const s of siblings) varSet.add(s);
+    groups.push({ token: tok, contexts: ctxs, brokenContexts, variables: siblings, linked: propertyLinked });
+    if (propertyLinked) for (const s of siblings) varSet.add(s);
   }
 
   const contextsByVar = Object.fromEntries(groups.map((g) => [g.token.variable, g.contexts]));
-  const sharedOrder = new Map<string, number>(
+  const linkedOrder = new Map<string, number>(
     groups.flatMap((g, i) => [
       [g.token.variable, i] as const,
       ...g.variables.map((v) => [v, i] as const),
     ]),
   );
 
-  return { groups, varSet, contextsByVar, sharedOrder };
+  return { groups, varSet, contextsByVar, linkedOrder };
 }
 
-export function withSharedDisabled<T extends { variable: string }>(tokens: T[], shared: Set<string>): (T & { disabled?: boolean })[] {
-  return tokens.map((t) => (shared.has(t.variable) ? { ...t, disabled: true } : t));
+export function withLinkedDisabled<T extends { variable: string }>(tokens: T[], linked: Set<string>): (T & { disabled?: boolean })[] {
+  return tokens.map((t) => (linked.has(t.variable) ? { ...t, disabled: true } : t));
 }

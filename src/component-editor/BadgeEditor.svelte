@@ -12,10 +12,10 @@
     return [
       { label: 'surface color', variable: `--badge-${variant}-surface` },
       { label: 'border color', variable: `--badge-${variant}-border` },
-      { label: 'border width', canBeShared: true, groupKey: 'border-width', variable: `--badge-${variant}-border-width` },
-      { label: 'corner radius', canBeShared: true, groupKey: 'radius', variable: `--badge-${variant}-radius` },
-      { label: 'padding', canBeShared: true, groupKey: 'padding', variable: `--badge-${variant}-padding` },
-      { label: 'badge shadow', canBeShared: true, groupKey: 'shadow', variable: `--badge-${variant}-shadow` },
+      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--badge-${variant}-border-width` },
+      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--badge-${variant}-radius` },
+      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--badge-${variant}-padding` },
+      { label: 'badge shadow', canBeLinked: true, groupKey: 'shadow', variable: `--badge-${variant}-shadow` },
     ];
   }
   function variantTypeGroups(variant: Variant): TypeGroupConfig[] {
@@ -30,10 +30,10 @@
   }
   function variantTypeGroupTokens(variant: Variant): Token[] {
     return [
-      { label: 'font family', canBeShared: true, groupKey: 'font-family', variable: `--badge-${variant}-text-font-family` },
-      { label: 'font size', canBeShared: true, groupKey: 'font-size', variable: `--badge-${variant}-text-font-size` },
-      { label: 'font weight', canBeShared: true, groupKey: 'font-weight', variable: `--badge-${variant}-text-font-weight` },
-      { label: 'line height', canBeShared: true, groupKey: 'line-height', variable: `--badge-${variant}-text-line-height` },
+      { label: 'font family', canBeLinked: true, groupKey: 'font-family', variable: `--badge-${variant}-text-font-family` },
+      { label: 'font size', canBeLinked: true, groupKey: 'font-size', variable: `--badge-${variant}-text-font-size` },
+      { label: 'font weight', canBeLinked: true, groupKey: 'font-weight', variable: `--badge-${variant}-text-font-weight` },
+      { label: 'line height', canBeLinked: true, groupKey: 'line-height', variable: `--badge-${variant}-text-line-height` },
     ];
   }
   export const allTokens: Token[] = variants.flatMap((v) => [
@@ -42,9 +42,9 @@
     ...variantTypeGroupTokens(v),
   ]);
 
-  // Cross-variant sharing: any token with canBeShared+groupKey participates in
-  // the shared block when ≥2 variants currently agree on its alias.
-  const shareableContexts = new Map<string, string>([
+  // Cross-variant sharing: any token with canBeLinked+groupKey participates in
+  // the linked block when ≥2 variants currently agree on its alias.
+  const linkableContexts = new Map<string, string>([
     // Use the first variant's variable as the canonical key for each groupKey.
     ['--badge-info-border-width', 'info'],
     ['--badge-accent-border-width', 'accent'],
@@ -80,19 +80,19 @@
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   import { buildSiblings } from './scaffolding/siblings';
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
   import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
-  $: visibleVariantTokens = (v: Variant) => withSharedDisabled(variantTokens(v), shared.varSet);
+  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
+  $: visibleVariantTokens = (v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet);
 
   let bgMode: 'image' | 'color' = 'image';
   const bgVar = '--backdrop-badge-surface';
 </script>
 
-<ComponentEditorBase {component} title="Badge" description="Pill-shaped badges with variant support. Import from <code>components/Badge.svelte</code>" tokens={allTokens} {shared} tabbable variants={variantOptions}>
+<ComponentEditorBase {component} title="Badge" description="Pill-shaped badges with variant support. Import from <code>components/Badge.svelte</code>" tokens={allTokens} {linked} tabbable variants={variantOptions}>
   <svelte:fragment slot="config">
     <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
   </svelte:fragment>

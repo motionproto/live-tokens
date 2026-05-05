@@ -21,9 +21,9 @@
     const list: Token[] = [];
     if (s !== 'default') list.push({ label: 'surface color', variable: `--tabbar-${s}-surface` });
     list.push(
-      { label: 'border width', canBeShared: true, groupKey: 'tab-border-width', variable: `--tabbar-${s}-border-width` },
-      { label: 'padding', canBeShared: true, groupKey: 'tab-padding', variable: `--tabbar-${s}-padding` },
-      { label: 'icon size', canBeShared: true, groupKey: 'tab-icon-size', variable: `--tabbar-${s}-icon-size` },
+      { label: 'border width', canBeLinked: true, groupKey: 'tab-border-width', variable: `--tabbar-${s}-border-width` },
+      { label: 'padding', canBeLinked: true, groupKey: 'tab-padding', variable: `--tabbar-${s}-padding` },
+      { label: 'icon size', canBeLinked: true, groupKey: 'tab-icon-size', variable: `--tabbar-${s}-icon-size` },
     );
     if (s === 'active') list.push({ label: 'border color', variable: '--tabbar-active-border' });
     return list;
@@ -46,10 +46,10 @@
     tabStateNames.map((s) => [`${s} tab`, tabStateTypeGroups(s)]),
   );
   const tabTypeGroupTokens: Token[] = tabStateNames.flatMap((s) => [
-    { label: 'font family', canBeShared: true, groupKey: 'tab-font-family', variable: `--tabbar-${s}-text-font-family` },
-    { label: 'font size', canBeShared: true, groupKey: 'tab-font-size', variable: `--tabbar-${s}-text-font-size` },
-    { label: 'font weight', canBeShared: true, groupKey: 'tab-font-weight', variable: `--tabbar-${s}-text-font-weight` },
-    { label: 'line height', canBeShared: true, groupKey: 'tab-line-height', variable: `--tabbar-${s}-text-line-height` },
+    { label: 'font family', canBeLinked: true, groupKey: 'tab-font-family', variable: `--tabbar-${s}-text-font-family` },
+    { label: 'font size', canBeLinked: true, groupKey: 'tab-font-size', variable: `--tabbar-${s}-text-font-size` },
+    { label: 'font weight', canBeLinked: true, groupKey: 'tab-font-weight', variable: `--tabbar-${s}-text-font-weight` },
+    { label: 'line height', canBeLinked: true, groupKey: 'tab-line-height', variable: `--tabbar-${s}-text-line-height` },
   ]);
   export const allTokens: Token[] = [
     ...Object.values(barStates).flat(),
@@ -59,7 +59,7 @@
   ];
 
   // Linking: shape props across tab states (same tab object).
-  const shareableContexts = new Map<string, string>(tabStateNames.flatMap((s) => [
+  const linkableContexts = new Map<string, string>(tabStateNames.flatMap((s) => [
     [`--tabbar-${s}-border-width`, `${s} tab`] as const,
     [`--tabbar-${s}-padding`, `${s} tab`] as const,
     [`--tabbar-${s}-icon-size`, `${s} tab`] as const,
@@ -75,7 +75,7 @@
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
   let selectedDemoTab = 'overview';
   const demoTabs = [
@@ -85,14 +85,14 @@
     { id: 'disabled', label: 'Disabled', icon: 'fas fa-ban', disabled: true },
   ];
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
 
   $: visibleTabStates = Object.fromEntries(
-    Object.entries(tabStates).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
+    Object.entries(tabStates).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
   ) as Record<string, Token[]>;
 </script>
 
-<ComponentEditorBase {component} title="Tab Bar" description="Tab navigation with icon support and disabled state. Import from <code>components/TabBar.svelte</code>" tokens={allTokens} {shared} tabbable>
+<ComponentEditorBase {component} title="Tab Bar" description="Tab navigation with icon support and disabled state. Import from <code>components/TabBar.svelte</code>" tokens={allTokens} {linked} tabbable>
   <VariantGroup name="bar" title="Bar" states={barStates} {component}>
     <TabBar tabs={demoTabs} selectedTab={selectedDemoTab} on:tabChange={(e) => (selectedDemoTab = e.detail)} />
   </VariantGroup>

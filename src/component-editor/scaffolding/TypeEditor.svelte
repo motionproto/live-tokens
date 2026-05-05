@@ -29,19 +29,19 @@
 
     {#if familyVariable}
       <span class="row-label">{familyLabel}</span>
-      <UIFontFamilySelector variable={familyVariable} {component} canBeShared on:change />
+      <UIFontFamilySelector variable={familyVariable} {component} canBeLinked on:change />
     {/if}
     {#if weightVariable}
       <span class="row-label">{weightLabel}</span>
-      <UIFontWeightSelector variable={weightVariable} {component} canBeShared on:change />
+      <UIFontWeightSelector variable={weightVariable} {component} canBeLinked on:change />
     {/if}
     {#if sizeVariable}
       <span class="row-label">{sizeLabel}</span>
-      <UIFontSizeSelector variable={sizeVariable} {component} canBeShared on:change />
+      <UIFontSizeSelector variable={sizeVariable} {component} canBeLinked on:change />
     {/if}
     {#if lineHeightVariable}
       <span class="row-label">{lineHeightLabel}</span>
-      <UILineHeightSelector variable={lineHeightVariable} {component} canBeShared on:change />
+      <UILineHeightSelector variable={lineHeightVariable} {component} canBeLinked on:change />
     {/if}
   </div>
 </FieldsetWrapper>

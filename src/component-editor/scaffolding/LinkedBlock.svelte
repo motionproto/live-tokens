@@ -4,10 +4,10 @@
   import { editorState } from '../../lib/editorStore';
   import { getEditorContext } from './editorContext';
   import type { CssVarRef } from '../../lib/editorTypes';
-  import type { SharedBlockResult, SharedGroup, SharedToken } from './sharedBlock';
+  import type { LinkedBlockResult, LinkedGroup, LinkedToken } from './linkedBlock';
 
   export let component: string;
-  export let shared: SharedBlockResult;
+  export let linked: LinkedBlockResult;
 
   const editorCtx = getEditorContext();
 
@@ -20,9 +20,9 @@
     editorCtx?.focusedState.set(e.detail);
   }
 
-  type Bucket = { contexts: string[]; brokenContexts: string[]; groups: SharedGroup[] };
-  type TypeColumn = { kind: 'type'; legend: string; tokens: (SharedToken & { disabled?: boolean })[] };
-  type GeneralColumn = { kind: 'general'; tokens: (SharedToken & { disabled?: boolean })[] };
+  type Bucket = { contexts: string[]; brokenContexts: string[]; groups: LinkedGroup[] };
+  type TypeColumn = { kind: 'type'; legend: string; tokens: (LinkedToken & { disabled?: boolean })[] };
+  type GeneralColumn = { kind: 'general'; tokens: (LinkedToken & { disabled?: boolean })[] };
   type Column = TypeColumn | GeneralColumn;
 
   function extractTypeGroup(v: string): string | null {
@@ -38,10 +38,10 @@
   /** Collapse same-label same-value tokens into a single row whose `mergeVariables` lists the
       other groupKey leads. Disabled (unlinked) rows are kept as-is so divergence stays visible. */
   function collapseGeneral(
-    list: (SharedToken & { disabled?: boolean })[],
+    list: (LinkedToken & { disabled?: boolean })[],
     aliases: Record<string, CssVarRef>,
-  ): (SharedToken & { disabled?: boolean })[] {
-    const out: (SharedToken & { disabled?: boolean })[] = [];
+  ): (LinkedToken & { disabled?: boolean })[] {
+    const out: (LinkedToken & { disabled?: boolean })[] = [];
     const leadIdx = new Map<string, number>();
     for (const tok of list) {
       if (tok.disabled) {
@@ -69,11 +69,11 @@
     return out;
   }
 
-  function partitionBucket(groups: SharedGroup[], aliases: Record<string, CssVarRef>): Column[] {
-    const typeGroups = new Map<string, (SharedToken & { disabled?: boolean })[]>();
-    const general: (SharedToken & { disabled?: boolean })[] = [];
+  function partitionBucket(groups: LinkedGroup[], aliases: Record<string, CssVarRef>): Column[] {
+    const typeGroups = new Map<string, (LinkedToken & { disabled?: boolean })[]>();
+    const general: (LinkedToken & { disabled?: boolean })[] = [];
     for (const g of groups) {
-      const tok = { ...g.token, disabled: !g.shared };
+      const tok = { ...g.token, disabled: !g.linked };
       const tg = extractTypeGroup(tok.variable);
       if (tg) {
         const arr = typeGroups.get(tg) ?? [];
@@ -92,7 +92,7 @@
 
   $: buckets = (() => {
     const map = new Map<string, Bucket>();
-    for (const g of shared.groups) {
+    for (const g of linked.groups) {
       const key = [
         [...g.contexts].sort().join(','),
         '||',
@@ -120,28 +120,28 @@
 </script>
 
 {#if buckets.length > 0}
-  <section class="shared-block">
-    <header class="shared-block-header">
-      <h3 class="shared-block-title">Shared properties</h3>
-      <p class="shared-block-description">Token values linked across multiple variants or states. Changing one updates all of them.</p>
+  <section class="linked-block">
+    <header class="linked-block-header">
+      <h3 class="linked-block-title">Linked properties</h3>
+      <p class="linked-block-description">Token values linked across multiple variants or states. Changing one updates all of them.</p>
     </header>
-    <div class="shared-grid">
+    <div class="linked-grid">
       {#each bucketCols as bucket (bucket.contexts.join('|') + '||' + bucket.brokenContexts.join('|'))}
-        <article class="shared-subgroup">
-          <div class="shared-controls">
-            <div class="shared-columns">
+        <article class="linked-subgroup">
+          <div class="linked-controls">
+            <div class="linked-columns">
             {#each bucket.columns as col}
-              <div class="shared-column">
+              <div class="linked-column">
                 {#if bucket.hasLegend}
-                  <span class="shared-column-legend" aria-hidden={col.kind !== 'type'}>
+                  <span class="linked-column-legend" aria-hidden={col.kind !== 'type'}>
                     {col.kind === 'type' ? col.legend : ' '}
                   </span>
                 {/if}
                 <TokenLayout
                   tokens={col.tokens}
                   {component}
-                  sharedOrder={shared.sharedOrder}
-                  isSharedBlock
+                  linkedOrder={linked.linkedOrder}
+                  isLinkedBlock
                   on:change
                 />
               </div>
@@ -156,24 +156,24 @@
 {/if}
 
 <style>
-  .shared-block {
+  .linked-block {
     margin-top: var(--ui-space-16);
     padding-top: var(--ui-space-12);
     border-top: 1px dashed var(--ui-border-faint);
   }
 
-  .shared-block-header {
+  .linked-block-header {
     margin-bottom: var(--ui-space-12);
   }
 
-  .shared-block-title {
+  .linked-block-title {
     margin: 0;
     font-size: var(--ui-font-size-md);
     font-weight: 500;
     color: var(--ui-text-primary);
   }
 
-  .shared-block-description {
+  .linked-block-description {
     margin: var(--ui-space-2) 0 0;
     font-size: var(--ui-font-size-sm);
     color: var(--ui-text-secondary);
@@ -182,7 +182,7 @@
   /* Plain flex layout, no width constraints. Cards lay out left-to-right and wrap to
      a new row when they don't fit; each card is sized to its own content (controls +
      chart natural widths). */
-  .shared-grid {
+  .linked-grid {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -190,12 +190,12 @@
     gap: var(--ui-space-12);
   }
 
-  .shared-subgroup {
+  .linked-subgroup {
     flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: var(--ui-space-10);
+    gap: var(--ui-space-20);
     border: 1px solid var(--ui-border-faint);
     border-radius: var(--ui-radius-lg);
     padding: var(--ui-space-12) var(--ui-space-16);
@@ -203,17 +203,17 @@
 
   /* Compact the linkage chart inside the bucket: tighten cell padding and
      narrow the lone status column so the chart sits as a quiet footer below
-     the controls. The card communicates "shared properties" on its own — the
+     the controls. The card communicates "linked properties" on its own — the
      "Linked Properties" header is suppressed here to keep focus on the
      editable controls. Selectors include `.chart` as a parent hop to beat
      LinkageChart's own `.grid` / `.chart-label` specificity. */
-  .shared-subgroup :global(.chart .chart-grid-wrap .grid > *) {
+  .linked-subgroup :global(.chart .chart-grid-wrap .grid > *) {
     padding: var(--ui-space-4) var(--ui-space-8);
   }
-  .shared-subgroup :global(.chart .chart-grid-wrap .grid-1d) {
+  .linked-subgroup :global(.chart .chart-grid-wrap .grid-1d) {
     grid-template-columns: auto 28px;
   }
-  .shared-subgroup :global(.chart .chart-label) {
+  .linked-subgroup :global(.chart .chart-label) {
     display: none;
   }
 
@@ -225,39 +225,39 @@
      beneath the dropdown.
      Adding `.token-group` as a parent hop bumps specificity above
      TokenLayout's own `.token-grid` rule (which would otherwise tie). */
-  .shared-subgroup :global(.token-group .token-grid) {
+  .linked-subgroup :global(.token-group .token-grid) {
     --token-selector-w: 8rem;
     grid-template-columns: max-content var(--token-selector-w) max-content;
     column-gap: var(--ui-space-8);
   }
-  .shared-subgroup :global(.token-group .token-grid .ui-token-selector) {
+  .linked-subgroup :global(.token-group .token-grid .ui-token-selector) {
     grid-column: span 2;
   }
 
   /* Controls column sits above the linkage chart in the column-flex card.
      `flex: 0 0 auto` keeps the row at content height; the basis is `auto`
      so width follows the widest row's max-content. */
-  .shared-controls {
+  .linked-controls {
     flex: 0 0 auto;
     display: flex;
     flex-direction: column;
   }
 
-  .shared-columns {
+  .linked-columns {
     display: flex;
     flex-wrap: wrap;
     gap: var(--ui-space-16);
     align-items: flex-start;
   }
 
-  .shared-column {
+  .linked-column {
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-4);
     min-width: 0;
   }
 
-  .shared-column-legend {
+  .linked-column-legend {
     font-size: var(--ui-font-size-xs);
     line-height: 1;
     min-height: var(--ui-font-size-xs);

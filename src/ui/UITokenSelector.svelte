@@ -5,9 +5,9 @@
     editorState,
     setComponentAlias,
     clearComponentAlias,
-    setComponentAliasShared,
-    clearComponentAliasShared,
-    isComponentPropertyShared,
+    setComponentAliasLinked,
+    clearComponentAliasLinked,
+    isComponentPropertyLinked,
     unlinkComponentProperty,
     getComponentPropertySiblings,
   } from '../lib/editorStore';
@@ -20,7 +20,7 @@
   /** When set, writes persist through the editor store under this component. */
   export let component: string | undefined = undefined;
   /** When true, render a link toggle that lets the user share this value across all sibling variants. */
-  export let canBeShared: boolean = false;
+  export let canBeLinked: boolean = false;
   /** Minimum width of the dropdown panel. */
   export let dropdownMinWidth: string = '14rem';
   /** Max width of the dropdown panel (useful for grids). */
@@ -31,7 +31,7 @@
   export let disabled: boolean = false;
   /** When true, the trigger opens normally but the dropdown's selection area is
    *  dimmed and non-interactive. The lock toggle in the header stays active so
-   *  the user can re-engage editing by re-linking. Used by the shared block to
+   *  the user can re-engage editing by re-linking. Used by the linked block to
    *  make the row openable even when currently unshared. */
   export let selectionsLocked: boolean = false;
 
@@ -40,25 +40,25 @@
   let relinkOpen = false;
   let relinkCandidates: { variable: string; alias: string }[] = [];
 
-  $: isSharedFromData = canBeShared && component && $editorState
-    ? isComponentPropertyShared(component, variable)
+  $: isLinkedFromData = canBeLinked && component && $editorState
+    ? isComponentPropertyLinked(component, variable)
     : false;
-  $: isSharedDisplay = canBeShared && !!component && isSharedFromData;
-  $: hasSiblings = canBeShared && component && $editorState
+  $: isLinkedDisplay = canBeLinked && !!component && isLinkedFromData;
+  $: hasSiblings = canBeLinked && component && $editorState
     ? getComponentPropertySiblings(component, variable).length >= 2
     : false;
-  $: showLinkToggle = canBeShared && !!component && hasSiblings;
+  $: showLinkToggle = canBeLinked && !!component && hasSiblings;
 
   /** Persist a semantic CSS-var reference (or clear it when null). */
   export function writeOverride(semanticName: string | null): void {
     if (component) {
-      const useShared = isSharedDisplay;
+      const useLinked = isLinkedDisplay;
       if (semanticName) {
         const ref = { kind: 'token' as const, name: semanticName };
-        if (useShared) setComponentAliasShared(component, variable, ref);
+        if (useLinked) setComponentAliasLinked(component, variable, ref);
         else setComponentAlias(component, variable, ref);
       } else {
-        if (useShared) clearComponentAliasShared(component, variable);
+        if (useLinked) clearComponentAliasLinked(component, variable);
         else clearComponentAlias(component, variable);
       }
       return;
@@ -84,9 +84,9 @@
 
   $: if (disabled && open) close();
 
-  function toggleShared() {
-    if (!canBeShared || !component) return;
-    if (isSharedDisplay) {
+  function toggleLinked() {
+    if (!canBeLinked || !component) return;
+    if (isLinkedDisplay) {
       unlinkComponentProperty(component, variable);
       dispatch('change');
       return;
@@ -106,7 +106,7 @@
     if (distinctValues.size <= 1) {
       const currentValue = slice.aliases[variable];
       if (currentValue) {
-        setComponentAliasShared(component, variable, currentValue);
+        setComponentAliasLinked(component, variable, currentValue);
         dispatch('change');
       }
       return;
@@ -118,7 +118,7 @@
 
   function handleRelinkConfirm(e: CustomEvent<{ alias: string }>) {
     if (!component) return;
-    setComponentAliasShared(component, variable, { kind: 'token', name: e.detail.alias });
+    setComponentAliasLinked(component, variable, { kind: 'token', name: e.detail.alias });
     dispatch('change');
     relinkOpen = false;
   }
@@ -163,7 +163,7 @@
 
 <div class="ui-token-selector" class:disabled bind:this={container}>
   <div class="ui-ts-trigger-wrap">
-    <button class="ui-ts-trigger" class:shared={isSharedDisplay} on:click={toggle} {disabled}>
+    <button class="ui-ts-trigger" class:linked={isLinkedDisplay} on:click={toggle} {disabled}>
       <div class="ui-ts-content">
         {#if $$slots['trigger-preview']}
           <div class="ui-ts-preview">
@@ -200,7 +200,7 @@
           <slot name="header">
             <div class="ui-ts-header">
               {#if showLinkToggle}
-                <UILinkToggle linked={isSharedDisplay} on:toggle={toggleShared} />
+                <UILinkToggle linked={isLinkedDisplay} on:toggle={toggleLinked} />
               {/if}
               <button
                 type="button"
@@ -307,12 +307,12 @@
     text-overflow: ellipsis;
   }
 
-  .ui-ts-trigger.shared {
+  .ui-ts-trigger.linked {
     border-left: 2px solid var(--ui-text-accent);
     background: var(--ui-surface-high);
   }
 
-  .ui-ts-trigger.shared:hover {
+  .ui-ts-trigger.linked:hover {
     background: var(--ui-surface-higher);
   }
 

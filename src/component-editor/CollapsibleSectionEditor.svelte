@@ -9,11 +9,11 @@
     return [
       { label: 'surface color', variable: `--collapsiblesection-${s}-surface` },
       { label: 'border color', variable: `--collapsiblesection-${s}-border` },
-      { label: 'border width', canBeShared: true, groupKey: 'border-width', variable: `--collapsiblesection-${s}-border-width` },
-      { label: 'corner radius', canBeShared: true, groupKey: 'radius', variable: `--collapsiblesection-${s}-radius` },
-      { label: 'padding', canBeShared: true, groupKey: 'padding', variable: `--collapsiblesection-${s}-padding` },
+      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--collapsiblesection-${s}-border-width` },
+      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--collapsiblesection-${s}-radius` },
+      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--collapsiblesection-${s}-padding` },
       { label: 'icon color', variable: `--collapsiblesection-${s}-icon` },
-      { label: 'icon size', canBeShared: true, groupKey: 'icon-size', variable: `--collapsiblesection-${s}-icon-size` },
+      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: `--collapsiblesection-${s}-icon-size` },
     ];
   }
   function stateTypeGroups(s: StateName): TypeGroupConfig[] {
@@ -30,10 +30,10 @@
   const states: Record<string, Token[]> = Object.fromEntries(stateNames.map((s) => [s, stateTokens(s)]));
   const typeGroups: Record<string, TypeGroupConfig[]> = Object.fromEntries(stateNames.map((s) => [s, stateTypeGroups(s)]));
   const typeGroupTokens: Token[] = stateNames.flatMap((s) => [
-    { label: 'font family', canBeShared: true, groupKey: 'label-font-family', variable: `--collapsiblesection-${s}-label-font-family` },
-    { label: 'font size', canBeShared: true, groupKey: 'label-font-size', variable: `--collapsiblesection-${s}-label-font-size` },
-    { label: 'font weight', canBeShared: true, groupKey: 'label-font-weight', variable: `--collapsiblesection-${s}-label-font-weight` },
-    { label: 'line height', canBeShared: true, groupKey: 'label-line-height', variable: `--collapsiblesection-${s}-label-line-height` },
+    { label: 'font family', canBeLinked: true, groupKey: 'label-font-family', variable: `--collapsiblesection-${s}-label-font-family` },
+    { label: 'font size', canBeLinked: true, groupKey: 'label-font-size', variable: `--collapsiblesection-${s}-label-font-size` },
+    { label: 'font weight', canBeLinked: true, groupKey: 'label-font-weight', variable: `--collapsiblesection-${s}-label-font-weight` },
+    { label: 'line height', canBeLinked: true, groupKey: 'label-line-height', variable: `--collapsiblesection-${s}-label-line-height` },
   ]);
   export const allTokens: Token[] = [
     ...Object.values(states).flat(),
@@ -41,7 +41,7 @@
     ...typeGroupTokens,
   ];
 
-  const shareableContexts = new Map<string, string>(stateNames.flatMap((s) => [
+  const linkableContexts = new Map<string, string>(stateNames.flatMap((s) => [
     [`--collapsiblesection-${s}-border-width`, s] as const,
     [`--collapsiblesection-${s}-radius`, s] as const,
     [`--collapsiblesection-${s}-padding`, s] as const,
@@ -58,18 +58,18 @@
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
   let demoExpanded = false;
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
 
   $: visibleStates = Object.fromEntries(
-    Object.entries(states).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
+    Object.entries(states).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
   ) as Record<string, Token[]>;
 </script>
 
-<ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Import from <code>components/CollapsibleSection.svelte</code>" tokens={allTokens} {shared} tabbable>
+<ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Import from <code>components/CollapsibleSection.svelte</code>" tokens={allTokens} {linked} tabbable>
   <VariantGroup
     name="collapsible"
     title="Collapsible Section"

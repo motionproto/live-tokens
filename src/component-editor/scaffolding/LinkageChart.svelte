@@ -155,7 +155,7 @@
     align-self: flex-start;
     display: flex;
     flex-direction: column;
-    gap: var(--ui-space-8);
+    gap: var(--ui-space-24);
   }
 
   .chart-label {
@@ -163,7 +163,7 @@
     margin: 0;
     font-size: var(--ui-font-size-md);
     font-weight: 500;
-    color: var(--ui-text-primary);
+    color: var(--ui-text-secondary);
   }
 
   /* Gridlines via 1px gap exposing the container bg; cells fill themselves to hide it. */
@@ -201,7 +201,6 @@
     font-weight: inherit;
     text-align: left;
     cursor: pointer;
-    color: inherit;
   }
   button.cell.row-target {
     text-align: center;

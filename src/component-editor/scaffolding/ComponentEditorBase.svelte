@@ -1,10 +1,10 @@
 <script lang="ts">
   import DemoHeader from './DemoHeader.svelte';
   import NonStylableConfig from './NonStylableConfig.svelte';
-  import SharedBlock from './SharedBlock.svelte';
+  import LinkedBlock from './LinkedBlock.svelte';
   import { createEditorContext } from './editorContext';
   import type { Token } from './types';
-  import type { SharedBlockResult } from './sharedBlock';
+  import type { LinkedBlockResult } from './linkedBlock';
 
   export let component: string;
   export let title: string;
@@ -12,9 +12,9 @@
   /** Token list used to drive the reset action in the header. The editor itself
       is responsible for calling `registerComponentSchema` synchronously. */
   export let tokens: Token[] = [];
-  /** Optional shared-block result. When provided, the SharedBlock is rendered
+  /** Optional linked-block result. When provided, the LinkedBlock is rendered
       and hover highlights propagate to VariantGroup children via context. */
-  export let shared: SharedBlockResult | null = null;
+  export let linked: LinkedBlockResult | null = null;
   /** When true, exposes a List/Tabs view toggle in the component header strip.
       Every multi-state VariantGroup in this editor honors the chosen mode. */
   export let tabbable: boolean = false;
@@ -26,7 +26,7 @@
   const ctx = createEditorContext();
   const { viewMode, focusedVariant } = ctx;
 
-  $: ctx._sharedOrder.set(shared?.sharedOrder ?? null);
+  $: ctx._linkedOrder.set(linked?.linkedOrder ?? null);
   $: ctx._tabbable.set(tabbable);
   $: if ($viewMode === 'list') ctx.focusedVariant.set(null);
   $: showVariantTabs = tabbable && $viewMode === 'tabs' && variants.length >= 2;
@@ -58,8 +58,8 @@
     </div>
   {/if}
   <slot />
-  {#if shared}
-    <SharedBlock {component} {shared} on:change />
+  {#if linked}
+    <LinkedBlock {component} {linked} on:change />
   {/if}
 </div>
 

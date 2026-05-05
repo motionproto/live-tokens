@@ -22,7 +22,7 @@
 
   export let variable: string;
   export let component: string | undefined = undefined;
-  export let canBeShared: boolean = false;
+  export let canBeLinked: boolean = false;
   export let disabled: boolean = false;
   export let selectionsLocked: boolean = false;
 
@@ -364,7 +364,7 @@
   bind:this={selector}
   {variable}
   {component}
-  {canBeShared}
+  {canBeLinked}
   {disabled}
   {selectionsLocked}
   dropdownMinWidth="14rem"

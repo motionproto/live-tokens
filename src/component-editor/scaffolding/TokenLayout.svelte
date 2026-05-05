@@ -14,8 +14,8 @@
   import {
     editorState,
     getComponentPropertySiblings,
-    setComponentAliasShared,
-    clearComponentAliasShared,
+    setComponentAliasLinked,
+    clearComponentAliasLinked,
   } from '../../lib/editorStore';
   import type { Token } from './types';
 
@@ -47,10 +47,10 @@
   export let component: string | undefined = undefined;
   /** Optional context labels per variable (shown below the selector). */
   export let contexts: Record<string, string[]> = {};
-  /** Per-variable rank that overrides kind rank when sorting; lets shared tokens align with the top shared row. */
-  export let sharedOrder: Map<string, number> | undefined = undefined;
-  /** Set true on the shared-block instance so dimmed variant rows can scroll/flash to the matching anchor. */
-  export let isSharedBlock: boolean = false;
+  /** Per-variable rank that overrides kind rank when sorting; lets linked tokens align with the top linked row. */
+  export let linkedOrder: Map<string, number> | undefined = undefined;
+  /** Set true on the linked-block instance so dimmed variant rows can scroll/flash to the matching anchor. */
+  export let isLinkedBlock: boolean = false;
 
   /** Suffix/prefix patterns mapped to kinds — single source of truth used by `categorize`.
       Order matters: `text` must run before `border`/`surface` because `--text-*` would
@@ -126,7 +126,7 @@
   }
 
   /** Selector registry: one entry per kind. `extra` props (e.g. UIPaddingSelector's
-      `mode`/`splittable`/`rowLabel`) are forwarded alongside the shared props. */
+      `mode`/`splittable`/`rowLabel`) are forwarded alongside the linked props. */
   type SelectorEntry = {
     component: ComponentType;
     extra?: (token: Token) => Record<string, unknown>;
@@ -202,15 +202,15 @@
       const slice = $editorState.components[component];
       const leadAlias = slice?.aliases[token.variable];
       for (const peer of token.mergeVariables) {
-        if (leadAlias) setComponentAliasShared(component, peer, leadAlias);
-        else clearComponentAliasShared(component, peer);
+        if (leadAlias) setComponentAliasLinked(component, peer, leadAlias);
+        else clearComponentAliasLinked(component, peer);
       }
     }
     dispatch('change');
   }
 
   $: linkedKinds = computeLinkedKinds(component, $editorState);
-  $: entries = buildEntries(tokens.filter((t) => !t.hidden), sharedOrder, linkedKinds, component, $editorState);
+  $: entries = buildEntries(tokens.filter((t) => !t.hidden), linkedOrder, linkedKinds, component, $editorState);
   /** Index of the first independent (non-linked) entry; -1 when there are no linked entries or no boundary. */
   $: firstIndependentIdx = (() => {
     const idx = entries.findIndex((e) => !linkedKinds.has(e.kind));
@@ -234,7 +234,7 @@
       {@const sharedProps = {
         variable: token.variable,
         component,
-        canBeShared: token.canBeShared ?? false,
+        canBeLinked: token.canBeLinked ?? false,
         selectionsLocked: lockedSelections,
       }}
       {@const extra = sel.extra ? sel.extra(token) : {}}

@@ -13,10 +13,10 @@
       { label: 'surface color', variable: `--inlineeditactions-${btn}-${state}-surface` },
       { label: 'text color', variable: `--inlineeditactions-${btn}-${state}-text` },
       { label: 'border color', variable: `--inlineeditactions-${btn}-${state}-border` },
-      { label: 'border width', canBeShared: true, groupKey: `${btn}-border-width`, variable: `--inlineeditactions-${btn}-${state}-border-width` },
-      { label: 'corner radius', canBeShared: true, groupKey: `${btn}-radius`, variable: `--inlineeditactions-${btn}-${state}-radius` },
-      { label: 'padding', canBeShared: true, groupKey: `${btn}-padding`, variable: `--inlineeditactions-${btn}-${state}-padding` },
-      { label: 'icon size', canBeShared: true, groupKey: `${btn}-icon-size`, variable: `--inlineeditactions-${btn}-${state}-icon-size` },
+      { label: 'border width', canBeLinked: true, groupKey: `${btn}-border-width`, variable: `--inlineeditactions-${btn}-${state}-border-width` },
+      { label: 'corner radius', canBeLinked: true, groupKey: `${btn}-radius`, variable: `--inlineeditactions-${btn}-${state}-radius` },
+      { label: 'padding', canBeLinked: true, groupKey: `${btn}-padding`, variable: `--inlineeditactions-${btn}-${state}-padding` },
+      { label: 'icon size', canBeLinked: true, groupKey: `${btn}-icon-size`, variable: `--inlineeditactions-${btn}-${state}-icon-size` },
     ];
   }
 
@@ -29,8 +29,8 @@
   }
   export const allTokens: Token[] = buttons.flatMap((b) => Object.values(buttonStates(b)).flat());
 
-  // Shared block surfaces shape props per button (linked across default/hover within same button).
-  const shareableContexts = new Map<string, string>(buttons.flatMap((btn) => [
+  // Linked block surfaces shape props per button (linked across default/hover within same button).
+  const linkableContexts = new Map<string, string>(buttons.flatMap((btn) => [
     [`--inlineeditactions-${btn}-default-border-width`, btn] as const,
     [`--inlineeditactions-${btn}-default-radius`, btn] as const,
     [`--inlineeditactions-${btn}-default-padding`, btn] as const,
@@ -43,16 +43,16 @@
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState } from '../lib/editorStore';
-  import { computeSharedBlock, withSharedDisabled } from './scaffolding/sharedBlock';
+  import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
-  $: shared = computeSharedBlock(component, shareableContexts, allTokens, $editorState);
+  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
 
   $: visibleStatesByButton = (btn: Button) => Object.fromEntries(
-    Object.entries(buttonStates(btn)).map(([name, list]) => [name, withSharedDisabled(list, shared.varSet)]),
+    Object.entries(buttonStates(btn)).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
   ) as Record<string, Token[]>;
 </script>
 
-<ComponentEditorBase {component} title="Inline Edit Actions" description="Confirm/cancel button pair for inline editing. Import from <code>components/InlineEditActions.svelte</code>" tokens={allTokens} {shared} tabbable>
+<ComponentEditorBase {component} title="Inline Edit Actions" description="Confirm/cancel button pair for inline editing. Import from <code>components/InlineEditActions.svelte</code>" tokens={allTokens} {linked} tabbable>
   {#each buttons as btn}
     <VariantGroup
       name={btn}

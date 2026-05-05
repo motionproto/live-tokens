@@ -14,7 +14,7 @@
 
   export let variable: string;
   export let component: string | undefined = undefined;
-  export let canBeShared: boolean = false;
+  export let canBeLinked: boolean = false;
   export let disabled: boolean = false;
   export let selectionsLocked: boolean = false;
   /** When 'sides', renders as a self-contained field group spanning all parent grid columns. */
@@ -24,7 +24,7 @@
   /** When false, hide the split-to-sides affordance (e.g. for non-box spacing like gap). */
   export let splittable: boolean = true;
 
-  void canBeShared;
+  void canBeLinked;
 
   type Side = 'top' | 'right' | 'bottom' | 'left';
   const SIDES: readonly Side[] = ['top', 'right', 'bottom', 'left'];
@@ -191,7 +191,7 @@
         <UITokenSelector
           variable={sideVar(s)}
           {component}
-          canBeShared={false}
+          canBeLinked={false}
           {disabled}
           {selectionsLocked}
           on:reset={() => handleResetSide(s)}
@@ -222,7 +222,7 @@
     <UITokenSelector
       {variable}
       {component}
-      canBeShared={false}
+      canBeLinked={false}
       {disabled}
       {selectionsLocked}
       on:reset={handleResetAll}

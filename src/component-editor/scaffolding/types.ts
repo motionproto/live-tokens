@@ -2,15 +2,15 @@
 export type Token = {
   label: string;
   variable: string;
-  /** When true, this token participates in the shared block when ≥2 variants agree on its value. */
-  canBeShared?: boolean;
+  /** When true, this token participates in the linked block when ≥2 variants agree on its value. */
+  canBeLinked?: boolean;
   /** Used by the editor store to identify cross-variant counterparts (e.g. all `border-width` tokens link). */
   groupKey?: string;
   /** Token row is rendered in a disabled state (still visible). */
   disabled?: boolean;
   /** Token row is omitted entirely. */
   hidden?: boolean;
-  /** When the shared block collapses several same-label same-value rows into one,
+  /** When the linked block collapses several same-label same-value rows into one,
       the surviving row carries the other groupKey leads here so writes co-propagate. */
   mergeVariables?: string[];
 };

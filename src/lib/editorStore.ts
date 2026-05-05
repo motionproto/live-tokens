@@ -176,9 +176,9 @@ export {
   clearComponentConfig,
   registerComponentSchema,
   getComponentPropertySiblings,
-  isComponentPropertyShared,
-  setComponentAliasShared,
-  clearComponentAliasShared,
+  isComponentPropertyLinked,
+  setComponentAliasLinked,
+  clearComponentAliasLinked,
   unlinkComponentProperty,
   markComponentSaved,
 } from './slices/components';

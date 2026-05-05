@@ -8,12 +8,12 @@
 
   export let variable: string;
   export let component: string | undefined = undefined;
-  export let canBeShared: boolean = false;
+  export let canBeLinked: boolean = false;
   export let disabled: boolean = false;
   export let selectionsLocked: boolean = false;
   export let dropdownMinWidth: string = '12rem';
   export let dropdownMaxWidth: string = '';
-  /** Forwarded to UIOptionList — when set, options render in a shared-column grid. */
+  /** Forwarded to UIOptionList — when set, options render in a linked-column grid. */
   export let dropdownGridColumns: string = '';
   /** CSS var prefix that, joined with an option `key`, forms the target var (e.g. `--font-weight-`). */
   export let varPrefix: string;
@@ -93,7 +93,7 @@
   bind:this={selector}
   {variable}
   {component}
-  {canBeShared}
+  {canBeLinked}
   {disabled}
   {selectionsLocked}
   {dropdownMinWidth}
