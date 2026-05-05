@@ -39,6 +39,12 @@
   export let contexts: string[] = [];
   export let broken: string[] = [];
   export let singleAxisLabel: string = '';
+  /** Currently focused variant (matches a row in 2d / a row label in 1d). When set,
+      the matching row is highlighted with the same active style as the variant tab strip. */
+  export let selectedRow: string | null = null;
+  /** Currently focused state (matches a column in 2d). The cell at (selectedRow, selectedCol)
+      gets an additional accent. Ignored in 1d charts. */
+  export let selectedCol: string | null = null;
 
   const dispatch = createEventDispatcher<{ select: string }>();
 
@@ -54,6 +60,16 @@
 
   function key2d(r: string, c: string): string { return `${r} ${c}`; }
   function selectRow(label: string) { dispatch('select', label); }
+  /** True when this 1d row's key matches focus — either as a bare label
+      (`"primary"` matches focusedVariant `"primary"`) or as a compound
+      `"variant state"` matching the focused pair. */
+  function isRowSelected1d(key: string, row: string | null, col: string | null): boolean {
+    if (!row) return false;
+    if (key === row) return true;
+    if (col && key === `${row} ${col}`) return true;
+    if (col && key === `${col} ${row}`) return true;
+    return false;
+  }
 </script>
 
 <div class="chart">
@@ -70,6 +86,7 @@
           type="button"
           class="row-h row-target"
           class:hovered={hoveredRow === i}
+          class:selected={selectedRow === r}
           on:click={() => selectRow(r)}
           on:mouseenter={() => (hoveredRow = i)}
           on:mouseleave={() => (hoveredRow = -1)}
@@ -83,6 +100,8 @@
             tabindex="-1"
             class="cell row-target {st}"
             class:hovered={hoveredRow === i}
+            class:selected={selectedRow === r && selectedCol === c}
+            class:in-selected-row={selectedRow === r && selectedCol !== c}
             aria-label="{r} {c}: {st}"
             on:click={() => selectRow(r)}
             on:mouseenter={() => (hoveredRow = i)}
@@ -108,10 +127,12 @@
       <div class="col-h">{singleAxisLabel}</div>
       {#each axes.rows as r, i (r.key)}
         {@const st = status.get(r.key) ?? 'absent'}
+        {@const isSel = isRowSelected1d(r.key, selectedRow, selectedCol)}
         <button
           type="button"
           class="row-h row-target"
           class:hovered={hoveredRow === i}
+          class:selected={isSel}
           on:click={() => selectRow(r.label)}
           on:mouseenter={() => (hoveredRow = i)}
           on:mouseleave={() => (hoveredRow = -1)}
@@ -123,6 +144,7 @@
           tabindex="-1"
           class="cell row-target {st}"
           class:hovered={hoveredRow === i}
+          class:selected={isSel}
           aria-label="{r.label}: {st}"
           on:click={() => selectRow(r.label)}
           on:mouseenter={() => (hoveredRow = i)}
@@ -220,6 +242,29 @@
   .cell.broken.row-target.hovered {
     background: var(--linkage-broken-tint);
     filter: brightness(1.15);
+  }
+
+  /* Selected row — matches the variant tab's active treatment so the visual
+     relationship between the focused tab above and the chart row reading the
+     same context is clear. The selected cell (variant×state intersection) gets
+     an extra accent ring to mark it as the live read-out. */
+  .grid .row-h.row-target.selected {
+    background: var(--ui-surface-high);
+    color: var(--ui-text-primary);
+    box-shadow: inset 0 0 0 1px var(--ui-border-default);
+    z-index: 1;
+  }
+  .grid .cell.row-target.in-selected-row,
+  .grid .cell.row-target.selected {
+    background: var(--ui-surface-high);
+  }
+  .grid .cell.row-target.selected {
+    box-shadow: inset 0 0 0 1px var(--ui-border-default);
+    z-index: 1;
+  }
+  .grid .cell.broken.row-target.in-selected-row,
+  .grid .cell.broken.row-target.selected {
+    background: color-mix(in srgb, var(--linkage-broken-tint) 60%, var(--ui-surface-high));
   }
 
   .dot {

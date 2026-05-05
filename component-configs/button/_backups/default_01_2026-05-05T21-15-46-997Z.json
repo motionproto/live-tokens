@@ -2,7 +2,7 @@
   "name": "default_01",
   "component": "button",
   "createdAt": "2026-04-25T01:41:47.101Z",
-  "updatedAt": "2026-05-05T21:15:46.996Z",
+  "updatedAt": "2026-05-05T00:39:23.382Z",
   "aliases": {
     "--button-primary-surface": "--surface-primary",
     "--button-primary-text": "--text-primary",
@@ -27,7 +27,7 @@
     "--button-outline-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 60%, transparent)",
     "--button-outline-text": "--text-primary",
     "--button-outline-border": "--border-neutral",
-    "--button-outline-radius": "--radius-2xl",
+    "--button-outline-radius": "--radius-4xl",
     "--button-outline-hover-surface": "color-mix(in srgb, var(--surface-alternate-low) 75%, transparent)",
     "--button-outline-hover-text": "--text-primary",
     "--button-outline-hover-border": "--border-alternate-medium",

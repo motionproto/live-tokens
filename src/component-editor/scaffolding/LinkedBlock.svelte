@@ -10,6 +10,8 @@
   export let linked: LinkedBlockResult;
 
   const editorCtx = getEditorContext();
+  const focusedVariant = editorCtx?.focusedVariant;
+  const focusedState = editorCtx?.focusedState;
 
   /** Forward a chart row click to whichever tab strip the label belongs to. The chart
       doesn't know if its rows are variants (top-level tab strip) or states (per-VariantGroup
@@ -21,9 +23,29 @@
   }
 
   type Bucket = { contexts: string[]; brokenContexts: string[]; groups: LinkedGroup[] };
-  type TypeColumn = { kind: 'type'; legend: string; tokens: (LinkedToken & { disabled?: boolean })[] };
-  type GeneralColumn = { kind: 'general'; tokens: (LinkedToken & { disabled?: boolean })[] };
+  type TypeColumn = { kind: 'type'; legend: string; tokens: LinkedToken[] };
+  type GeneralColumn = { kind: 'general'; tokens: LinkedToken[] };
   type Column = TypeColumn | GeneralColumn;
+
+  /** Pick the sibling that backs the cell the user is currently focused on, so the row
+      reflects that specific variant×state. Tries the most specific match first
+      (`"variant state"`), then either dimension alone, finally the group's default rep. */
+  function pickFocusedVariable(g: LinkedGroup, variant: string | null, state: string | null): string {
+    const map = g.contextToVariable;
+    if (variant && state) {
+      const both = map.get(`${variant} ${state}`);
+      if (both) return both;
+    }
+    if (variant) {
+      const v = map.get(variant);
+      if (v) return v;
+    }
+    if (state) {
+      const s = map.get(state);
+      if (s) return s;
+    }
+    return g.token.variable;
+  }
 
   function extractTypeGroup(v: string): string | null {
     const m = v.match(/-([a-z][a-z0-9-]*?)-(?:font-(?:family|size|weight)|line-height)$/);
@@ -35,19 +57,16 @@
     return ref.kind === 'token' ? ref.name : `lit:${ref.value}`;
   }
 
-  /** Collapse same-label same-value tokens into a single row whose `mergeVariables` lists the
-      other groupKey leads. Disabled (unlinked) rows are kept as-is so divergence stays visible. */
+  /** Collapse same-label same-value rows into one whose `mergeVariables` lists the other
+      groupKey leads. Always merges — per-property unlinked state is communicated by the
+      pop-bar on each row's selector, not by visual separation here. */
   function collapseGeneral(
-    list: (LinkedToken & { disabled?: boolean })[],
+    list: LinkedToken[],
     aliases: Record<string, CssVarRef>,
-  ): (LinkedToken & { disabled?: boolean })[] {
-    const out: (LinkedToken & { disabled?: boolean })[] = [];
+  ): LinkedToken[] {
+    const out: LinkedToken[] = [];
     const leadIdx = new Map<string, number>();
     for (const tok of list) {
-      if (tok.disabled) {
-        out.push(tok);
-        continue;
-      }
       const alias = aliasKey(aliases[tok.variable]);
       const key = `${tok.label}|${alias}`;
       const idx = leadIdx.get(key);
@@ -69,11 +88,17 @@
     return out;
   }
 
-  function partitionBucket(groups: LinkedGroup[], aliases: Record<string, CssVarRef>): Column[] {
-    const typeGroups = new Map<string, (LinkedToken & { disabled?: boolean })[]>();
-    const general: (LinkedToken & { disabled?: boolean })[] = [];
+  function partitionBucket(
+    groups: LinkedGroup[],
+    aliases: Record<string, CssVarRef>,
+    variant: string | null,
+    state: string | null,
+  ): Column[] {
+    const typeGroups = new Map<string, LinkedToken[]>();
+    const general: LinkedToken[] = [];
     for (const g of groups) {
-      const tok = { ...g.token, disabled: !g.linked };
+      const focusedVar = pickFocusedVariable(g, variant, state);
+      const tok: LinkedToken = { ...g.token, variable: focusedVar };
       const tg = extractTypeGroup(tok.variable);
       if (tg) {
         const arr = typeGroups.get(tg) ?? [];
@@ -108,8 +133,10 @@
   })();
 
   $: aliases = $editorState.components[component]?.aliases ?? {};
+  $: focusedV = (focusedVariant ? $focusedVariant : null) ?? null;
+  $: focusedS = (focusedState ? $focusedState : null) ?? null;
   $: bucketCols = buckets.map((b) => {
-    const columns = partitionBucket(b.groups, aliases);
+    const columns = partitionBucket(b.groups, aliases, focusedV, focusedS);
     return {
       contexts: b.contexts,
       brokenContexts: b.brokenContexts,
@@ -148,7 +175,13 @@
             {/each}
             </div>
           </div>
-          <LinkageChart contexts={bucket.contexts} broken={bucket.brokenContexts} on:select={handleChartSelect} />
+          <LinkageChart
+            contexts={bucket.contexts}
+            broken={bucket.brokenContexts}
+            selectedRow={focusedV}
+            selectedCol={focusedS}
+            on:select={handleChartSelect}
+          />
         </article>
       {/each}
     </div>

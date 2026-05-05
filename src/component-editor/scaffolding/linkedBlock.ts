@@ -31,6 +31,11 @@ export type LinkedGroup = {
   brokenContexts: string[];
   variables: string[];
   linked: boolean;
+  /** Reverse lookup from chart context label (e.g. "primary default") to the sibling variable
+      that backs that cell. Used by LinkedBlock to swap the row's displayed variable when the
+      user focuses a different variant/state, so the value and pop-bar reflect the cell the
+      user is looking at — not the group's first-seen representative. */
+  contextToVariable: Map<string, string>;
 };
 
 export type LinkedBlockResult = {
@@ -97,18 +102,25 @@ export function computeLinkedBlock(
     const declaredPeers = rep.groupKey ? topologyByGroupKey.get(rep.groupKey) ?? [] : [];
     const mergePeers = declaredPeers.filter((v) => v !== variable && !siblings.includes(v));
 
-    // Partition siblings by current alias. The "canonical" group is the most populous
-    // alias bucket — that way overriding a single context flips it to broken instead of
-    // making it look like the rest of the group walked away.
-    const aliases = get(editorState).components[component]?.aliases ?? {};
+    // Partition the *currently linked* siblings by alias. Explicitly unlinked
+    // siblings (those in `slice.unlinked`) are tracked separately and always
+    // render as broken in the chart — even when their alias happens to match
+    // the canonical value — because they've opted out of sharing.
+    const slice = get(editorState).components[component];
+    const aliases = slice?.aliases ?? {};
+    const unlinkedSet = new Set(slice?.unlinked ?? []);
     const buckets = new Map<string, string[]>();
     for (const s of siblings) {
+      if (unlinkedSet.has(s)) continue;
       const k = aliasKey(aliases[s]);
       const arr = buckets.get(k) ?? [];
       arr.push(s);
       buckets.set(k, arr);
     }
-    let canonicalKey = aliasKey(aliases[variable]);
+    // Canonical = representative's bucket (if it's linked), promoted to a more
+    // populous bucket when one exists. Falls back to the largest bucket when
+    // the representative itself has detached.
+    let canonicalKey = unlinkedSet.has(variable) ? '' : aliasKey(aliases[variable]);
     let canonicalSize = buckets.get(canonicalKey)?.length ?? 0;
     for (const [k, arr] of buckets) {
       if (arr.length > canonicalSize) {
@@ -121,17 +133,25 @@ export function computeLinkedBlock(
     for (const [k, arr] of buckets) {
       if (k !== canonicalKey) divergedSiblings.push(...arr);
     }
+    const explicitlyUnlinked = siblings.filter((s) => unlinkedSet.has(s));
 
     // Build context lists in canonical (linkableContexts insertion) order so the
     // LinkageChart row order matches the variant tab strip the editor declared.
+    // `contextToVariable` records which sibling backs each cell, so LinkedBlock
+    // can swap the row's displayed variable to follow focusedVariant/focusedState.
     const linkedSet = new Set(linkedSiblings);
-    const brokenVarSet = new Set([...divergedSiblings, ...mergePeers]);
+    const brokenVarSet = new Set([...divergedSiblings, ...mergePeers, ...explicitlyUnlinked]);
+    const siblingSet = new Set(siblings);
     const seenAll = new Set<string>();
     const seenBroken = new Set<string>();
     const ctxs: string[] = [];
     const brokenContexts: string[] = [];
+    const contextToVariable = new Map<string, string>();
     for (const [peer, ctx] of linkableContexts) {
       if (rep.groupKey && tokensByVar.get(peer)?.groupKey !== rep.groupKey) continue;
+      if (siblingSet.has(peer) && !contextToVariable.has(ctx)) {
+        contextToVariable.set(ctx, peer);
+      }
       const isLinked = linkedSet.has(peer);
       const isBroken = brokenVarSet.has(peer);
       if (!isLinked && !isBroken) continue;
@@ -149,7 +169,7 @@ export function computeLinkedBlock(
       canBeLinked: true,
       ...(mergePeers.length ? { mergeVariables: mergePeers } : {}),
     };
-    groups.push({ token: tok, contexts: ctxs, brokenContexts, variables: siblings, linked: propertyLinked });
+    groups.push({ token: tok, contexts: ctxs, brokenContexts, variables: siblings, linked: propertyLinked, contextToVariable });
     if (propertyLinked) for (const s of siblings) varSet.add(s);
   }
 

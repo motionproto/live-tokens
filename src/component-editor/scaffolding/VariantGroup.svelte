@@ -98,6 +98,12 @@
   $: inFocusMode = inTabsMode && siblings.length > 0;
   $: amIFocused = $focusedVariantStore === name;
   $: shouldRender = !inFocusMode || amIFocused;
+  // Mirror this group's active state back to the shared store when this is the
+  // focused variant, so the linked-block row + chart selection track the user's
+  // state-tab clicks (not just chart-row clicks).
+  $: if (amIFocused && activeTab && stateNames.includes(activeTab) && $focusedStateStore !== activeTab) {
+    focusedStateStore.set(activeTab);
+  }
 
 </script>
 

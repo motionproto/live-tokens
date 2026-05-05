@@ -15,9 +15,12 @@
  *
  * Sharing semantics: tokens with the same groupKey (registered explicitly
  * via `registerComponentSchema`, or inferred from the last-dash suffix)
- * are siblings. `setComponentAliasLinked` writes the same alias to every
- * sibling; `unlinkComponentProperty` flags a groupKey as independently
- * editable. The `unlinked` list lives on the slice so it persists across
+ * are siblings. Each individual sibling can opt out of the group: `unlinked`
+ * lists the specific variable names that have detached, leaving the rest
+ * of the group intact. `setComponentAliasLinked` writes the alias to every
+ * sibling that is *currently linked* (i.e. not in `unlinked`) plus the
+ * target itself, re-joining it to the group; `unlinkComponentProperty`
+ * detaches just that one variable. The `unlinked` list persists across
  * theme loads.
  *
  * Dirty tracking: `savedComponents` is the on-disk snapshot baseline (one
@@ -196,20 +199,22 @@ function cssVarRefEqual(a: CssVarRef | undefined, b: CssVarRef | undefined): boo
     : a.value === (b as { kind: 'literal'; value: string }).value;
 }
 
-/** True iff `varName` has ≥2 siblings, all resolve to the same alias, and the groupKey is not explicitly unlinked. */
+/** True iff `varName` is not individually opted out, has ≥2 siblings, and shares its alias with the other linked siblings. */
 export function isComponentPropertyLinked(component: string, varName: string): boolean {
   const slice = get(store).components[component];
   if (!slice) return false;
-  const groupKey = getGroupKey(component, varName);
-  if (groupKey && slice.unlinked?.includes(groupKey)) return false;
+  if (slice.unlinked?.includes(varName)) return false;
   const siblings = getComponentPropertySiblings(component, varName);
   if (siblings.length < 2) return false;
-  const first = slice.aliases[siblings[0]];
+  const linkedSiblings = siblings.filter((v) => !slice.unlinked?.includes(v));
+  if (linkedSiblings.length < 2) return false;
+  const first = slice.aliases[linkedSiblings[0]];
   if (!first) return false;
-  return siblings.every((v) => cssVarRefEqual(slice.aliases[v], first));
+  return linkedSiblings.every((v) => cssVarRefEqual(slice.aliases[v], first));
 }
 
-/** Write `ref` to every sibling that shares `varName`'s groupKey, and clear the unlinked flag. */
+/** Write `ref` to `varName` and every sibling currently linked (not in `unlinked`),
+ *  and remove `varName` from the unlinked list so it rejoins the group. */
 export function setComponentAliasLinked(component: string, varName: string, ref: CssVarRef): void {
   const groupKey = getGroupKey(component, varName);
   const siblings = getComponentPropertySiblings(component, varName);
@@ -219,16 +224,18 @@ export function setComponentAliasLinked(component: string, varName: string, ref:
   }
   mutate(`share ${component}/${groupKey}`, (s) => {
     const slice = s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {}, config: {} });
-    for (const v of siblings) slice.aliases[v] = ref;
-    if (!siblings.includes(varName)) slice.aliases[varName] = ref;
-    if (slice.unlinked) {
-      slice.unlinked = slice.unlinked.filter((p) => p !== groupKey);
-      if (slice.unlinked.length === 0) delete slice.unlinked;
+    const unlinked = (slice.unlinked ?? []).filter((p) => p !== varName);
+    slice.aliases[varName] = ref;
+    for (const v of siblings) {
+      if (v === varName) continue;
+      if (!unlinked.includes(v)) slice.aliases[v] = ref;
     }
+    if (unlinked.length === 0) delete slice.unlinked;
+    else slice.unlinked = unlinked;
   });
 }
 
-/** Clear every sibling that shares `varName`'s groupKey. */
+/** Clear `varName` and every sibling currently linked (not in `unlinked`). */
 export function clearComponentAliasLinked(component: string, varName: string): void {
   const groupKey = getGroupKey(component, varName);
   const siblings = getComponentPropertySiblings(component, varName);
@@ -239,22 +246,26 @@ export function clearComponentAliasLinked(component: string, varName: string): v
   mutate(`clear linked ${component}/${groupKey}`, (s) => {
     const slice = s.components[component];
     if (!slice) return;
-    for (const v of siblings) delete slice.aliases[v];
+    const unlinked = slice.unlinked ?? [];
+    for (const v of siblings) {
+      if (v === varName || !unlinked.includes(v)) delete slice.aliases[v];
+    }
   });
 }
 
-/** Mark `varName`'s groupKey as unlinked so siblings are independently editable. Aliases are preserved. */
+/** Detach a single property from its sibling group. Other siblings stay linked
+ *  to each other; only `varName` becomes independently editable. */
 export function unlinkComponentProperty(component: string, varName: string): void {
   const groupKey = getGroupKey(component, varName);
   if (!groupKey) return;
   const siblings = getComponentPropertySiblings(component, varName);
   if (siblings.length < 2) return;
-  mutate(`unlink ${component}/${groupKey}`, (s) => {
+  mutate(`unlink ${component}/${varName}`, (s) => {
     const slice = s.components[component];
     if (!slice) return;
     const unlinked = slice.unlinked ?? [];
-    if (!unlinked.includes(groupKey)) {
-      slice.unlinked = [...unlinked, groupKey];
+    if (!unlinked.includes(varName)) {
+      slice.unlinked = [...unlinked, varName];
     }
   });
 }

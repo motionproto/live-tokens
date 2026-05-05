@@ -96,7 +96,25 @@
     const siblings = getComponentPropertySiblings(component, variable);
     if (siblings.length < 2) return;
 
-    const candidates = siblings.map((v) => {
+    // Re-linking this property: figure out the value to adopt by inspecting the
+    // siblings *currently linked* (those not in `unlinked`, excluding the target).
+    // The target itself is rejoining, so its own value isn't a candidate unless
+    // every other sibling has also detached.
+    const linkedSiblings = siblings.filter(
+      (v) => v !== variable && !slice.unlinked?.includes(v),
+    );
+
+    if (linkedSiblings.length === 0) {
+      // No remaining linked siblings — promote this property's current value.
+      const currentValue = slice.aliases[variable];
+      if (currentValue) {
+        setComponentAliasLinked(component, variable, currentValue);
+        dispatch('change');
+      }
+      return;
+    }
+
+    const candidates = linkedSiblings.map((v) => {
       const ref = slice.aliases[v];
       const alias = ref?.kind === 'token' ? ref.name : '';
       return { variable: v, alias };
@@ -104,9 +122,9 @@
     const distinctValues = new Set(candidates.map((c) => c.alias).filter(Boolean));
 
     if (distinctValues.size <= 1) {
-      const currentValue = slice.aliases[variable];
-      if (currentValue) {
-        setComponentAliasLinked(component, variable, currentValue);
+      const adoptRef = slice.aliases[linkedSiblings[0]];
+      if (adoptRef) {
+        setComponentAliasLinked(component, variable, adoptRef);
         dispatch('change');
       }
       return;
@@ -163,7 +181,13 @@
 
 <div class="ui-token-selector" class:disabled bind:this={container}>
   <div class="ui-ts-trigger-wrap">
-    <button class="ui-ts-trigger" class:linked={isLinkedDisplay} on:click={toggle} {disabled}>
+    <button
+      class="ui-ts-trigger"
+      class:linked={isLinkedDisplay}
+      class:unlinked={showLinkToggle && !isLinkedDisplay}
+      on:click={toggle}
+      {disabled}
+    >
       <div class="ui-ts-content">
         {#if $$slots['trigger-preview']}
           <div class="ui-ts-preview">
@@ -307,18 +331,54 @@
     text-overflow: ellipsis;
   }
 
-  .ui-ts-trigger.linked {
-    border-left: 2px solid var(--ui-text-accent);
-    background: var(--ui-surface-high);
-  }
-
-  .ui-ts-trigger.linked:hover {
-    background: var(--ui-surface-higher);
-  }
-
   .ui-ts-trigger:hover {
     border-color: var(--ui-border-strong);
     background: var(--ui-surface-high);
+  }
+
+  /* Link-state pop-bar. The wrap already has `position: relative` (so the
+     dropdown can anchor). The bar is a `::before` anchored at the wrap's
+     left edge — same column position regardless of state, so a stack of
+     mixed linked/unlinked rows shares one continuous link-state column.
+     Linked rows: bar is teal, full size, sitting flush against the trigger.
+     Unlinked rows: bar shrinks to a smaller amber tick and the trigger is
+     indented (`padding-left` on the wrap) so the bar sits clear of it. */
+  .ui-ts-trigger-wrap {
+    transition: padding-left 320ms cubic-bezier(0.5, 1.6, 0.5, 1);
+  }
+  .ui-ts-trigger-wrap:has(> .ui-ts-trigger.linked, > .ui-ts-trigger.unlinked)::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 3px;
+    height: 1.25rem;
+    border-radius: 2px;
+    background: var(--ui-link-active);
+    transform: translateY(-50%);
+    pointer-events: none;
+    transition:
+      width 220ms cubic-bezier(0.4, 0, 0.2, 1),
+      height 220ms cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .ui-ts-trigger-wrap:has(> .ui-ts-trigger.unlinked) {
+    padding-left: 0.5rem;
+  }
+  .ui-ts-trigger-wrap:has(> .ui-ts-trigger.unlinked)::before {
+    background: var(--ui-link-broken);
+    width: 2px;
+    height: 0.875rem;
+  }
+  /* Keep the dropdown's left edge aligned with the (indented) trigger rather
+     than the column anchor, so an open dropdown doesn't bleed left of its
+     associated control. */
+  .ui-ts-trigger-wrap:has(> .ui-ts-trigger.unlinked) > .ui-ts-dropdown {
+    left: 0.5rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ui-ts-trigger-wrap,
+    .ui-ts-trigger-wrap::before { transition: none; }
   }
 
   .ui-ts-preview {

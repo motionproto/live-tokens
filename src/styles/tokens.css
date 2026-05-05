@@ -597,3 +597,53 @@
     --font-size-6xl: 2.125rem;   /* 34px */
   }
 }
+
+/* component-aliases:start */
+:root:root {
+  /* button (default_01) */
+  --button-primary-surface: var(--surface-primary);
+  --button-primary-radius: var(--radius-none);
+  --button-primary-hover-border: var(--border-primary-medium);
+  --button-primary-disabled-surface: var(--surface-neutral-low);
+  --button-primary-disabled-border: var(--border-neutral-subtle);
+  --button-secondary-surface: var(--surface-accent);
+  --button-secondary-border: var(--border-accent);
+  --button-secondary-radius: var(--radius-4xl);
+  --button-secondary-hover-surface: var(--surface-accent-high);
+  --button-secondary-hover-border: var(--border-accent-medium);
+  --button-secondary-disabled-surface: var(--surface-neutral);
+  --button-secondary-disabled-border: var(--border-neutral);
+  --button-outline-surface: var(color-mix(in srgb, var(--surface-neutral-lowest) 60%, transparent));
+  --button-outline-radius: var(--radius-2xl);
+  --button-outline-hover-surface: var(color-mix(in srgb, var(--surface-alternate-low) 75%, transparent));
+  --button-outline-hover-border: var(--border-alternate-medium);
+  --button-outline-disabled-surface: var(--surface-neutral-low);
+  --button-outline-disabled-border: var(--border-neutral-subtle);
+  --button-success-surface: var(--surface-success);
+  --button-success-text: var(--text-primary);
+  --button-success-radius: var(--radius-4xl);
+  --button-success-hover-surface: var(--surface-success-high);
+  --button-success-hover-border: var(--border-success-medium);
+  --button-success-disabled-surface: var(--surface-neutral-low);
+  --button-success-disabled-border: var(--border-neutral-subtle);
+  --button-danger-text: var(--text-primary);
+  --button-danger-radius: var(--radius-4xl);
+  --button-danger-disabled-surface: var(--surface-neutral-low);
+  --button-danger-disabled-border: var(--border-neutral-subtle);
+  --button-warning-radius: var(--radius-4xl);
+  --button-warning-disabled-surface: var(--surface-neutral-low);
+  --button-warning-disabled-border: var(--border-neutral-subtle);
+  --button-primary-hover-radius: var(--radius-4xl);
+  --button-primary-disabled-radius: var(--radius-4xl);
+  --button-secondary-hover-radius: var(--radius-4xl);
+  --button-secondary-disabled-radius: var(--radius-4xl);
+  --button-outline-hover-radius: var(--radius-4xl);
+  --button-outline-disabled-radius: var(--radius-4xl);
+  --button-success-hover-radius: var(--radius-4xl);
+  --button-success-disabled-radius: var(--radius-4xl);
+  --button-danger-hover-radius: var(--radius-4xl);
+  --button-danger-disabled-radius: var(--radius-4xl);
+  --button-warning-hover-radius: var(--radius-4xl);
+  --button-warning-disabled-radius: var(--radius-4xl);
+}
+/* component-aliases:end */

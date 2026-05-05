@@ -38,6 +38,13 @@
   --ui-text-accent:     var(--ui-gray-950);
   --ui-text-success:    var(--ui-gray-850);
 
+  /* Link-state signals — bar attached to a control's left edge when its value
+     is shared with siblings (active), popped off into the column gap when the
+     control has broken away from its sibling group (broken). */
+  --ui-link-active:       #6cd0c2;
+  --ui-link-broken:       #f0c34a;
+  --ui-link-broken-glow:  rgba(240, 195, 74, 0.28);
+
   --ui-border-faint:    var(--ui-gray-400);
   --ui-border-subtle:   var(--ui-gray-500);
   --ui-border-default:  var(--ui-gray-600);

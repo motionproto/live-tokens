@@ -51,7 +51,9 @@ export interface RegistryEntry {
 /**
  * Single source of truth for every component editor. Each entry binds the
  * canonical id to its label, icon, source file, editor component, and token
- * schema. Order here is the display order in the nav rail.
+ * schema. Display order in the nav rail is sorted alphabetically by label
+ * (see `componentRegistryEntries` below) — order in this object literal does
+ * not affect the UI.
  *
  * Adding a component:
  *   1. Author `src/components/<Name>.svelte` (declares CSS vars in `:global(:root)`)
@@ -173,9 +175,9 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
   },
 });
 
-/** Display-ordered list of registry entries. Iteration order matches the nav rail. */
+/** Display-ordered list of registry entries — sorted alphabetically by label. Iteration order matches the nav rail. */
 export const componentRegistryEntries: ReadonlyArray<RegistryEntry> = Object.freeze(
-  Object.values(componentRegistry),
+  Object.values(componentRegistry).sort((a, b) => a.label.localeCompare(b.label)),
 );
 
 /** All canonical component ids, in display order. */
