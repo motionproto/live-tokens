@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+  import UIRadio from './UIRadio.svelte';
 
   type Candidate = { variable: string; alias: string };
 
@@ -84,7 +85,7 @@
   <div class="ui-relink-body">
     {#each options as opt}
       <label class="ui-relink-row">
-        <input type="radio" bind:group={selected} value={opt.alias} />
+        <UIRadio bind:group={selected} value={opt.alias} />
         <div class="ui-relink-row-info">
           <code class="ui-relink-alias">{opt.alias}</code>
           <span class="ui-relink-sources">
@@ -155,10 +156,10 @@
     background: var(--ui-hover);
   }
 
-  .ui-relink-row input[type='radio'] {
+  /* Lift the radio slightly so it visually aligns with the first line of the
+     two-line row label. Selection styling lives in UIRadio. */
+  .ui-relink-row :global(.ui-radio) {
     margin-top: 0.2rem;
-    flex-shrink: 0;
-    accent-color: var(--ui-text-accent);
   }
 
   .ui-relink-row-info {

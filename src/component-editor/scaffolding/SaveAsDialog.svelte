@@ -162,7 +162,7 @@
 
   .save-as-input.invalid,
   .save-as-input.invalid:focus {
-    border-color: var(--ui-text-warning, #e6a030);
+    border-color: var(--ui-highlight);
   }
 
   .save-as-input::placeholder {
@@ -172,6 +172,6 @@
   .save-as-error {
     margin: 0;
     font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-warning, #e6a030);
+    color: var(--ui-highlight);
   }
 </style>

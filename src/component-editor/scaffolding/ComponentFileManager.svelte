@@ -449,7 +449,7 @@
   }
 
   .cfg-box.dirty {
-    outline: 2px solid var(--ui-text-warning, #e6a030);
+    outline: 2px solid var(--ui-highlight);
     outline-offset: -1px;
   }
 
@@ -468,7 +468,7 @@
     padding-right: var(--ui-space-2);
   }
 
-  .cfg-state.dirty { color: var(--ui-text-warning, #e6a030); }
+  .cfg-state.dirty { color: var(--ui-highlight); }
   .cfg-state.applied { color: var(--ui-text-applied, #5aa85e); }
 
   /* Editor row (top): label/box in row 1, state in row 2, buttons in row 1 */

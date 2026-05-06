@@ -351,15 +351,16 @@
     position: absolute;
     top: 50%;
     left: 0;
-    width: 3px;
-    height: 1.25rem;
-    border-radius: 2px;
-    background: var(--ui-link-active);
+    width: 4px;
+    height: 1.75rem;
+    border-radius: var(--ui-radius-md) 0 0 var(--ui-radius-md);
+    background: var(--ui-text-primary);
     transform: translateY(-50%);
     pointer-events: none;
     transition:
       width 220ms cubic-bezier(0.4, 0, 0.2, 1),
       height 220ms cubic-bezier(0.4, 0, 0.2, 1),
+      border-radius 220ms cubic-bezier(0.4, 0, 0.2, 1),
       background-color 220ms cubic-bezier(0.4, 0, 0.2, 1);
   }
   .ui-ts-trigger-wrap:has(> .ui-ts-trigger.unlinked) {
@@ -369,6 +370,7 @@
     background: var(--ui-link-broken);
     width: 2px;
     height: 0.875rem;
+    border-radius: 1px;
   }
   /* Keep the dropdown's left edge aligned with the (indented) trigger rather
      than the column anchor, so an open dropdown doesn't bleed left of its

@@ -170,7 +170,10 @@ export function computeLinkedBlock(
       ...(mergePeers.length ? { mergeVariables: mergePeers } : {}),
     };
     groups.push({ token: tok, contexts: ctxs, brokenContexts, variables: siblings, linked: propertyLinked, contextToVariable });
-    if (propertyLinked) for (const s of siblings) varSet.add(s);
+    // Mark siblings as "owned by the linked block" so the per-variant view dims
+    // them (deferring edits to the linked block). Explicitly unlinked siblings
+    // are *not* dimmed — they've opted out and need to be directly editable.
+    if (propertyLinked) for (const s of siblings) if (!unlinkedSet.has(s)) varSet.add(s);
   }
 
   const contextsByVar = Object.fromEntries(groups.map((g) => [g.token.variable, g.contexts]));

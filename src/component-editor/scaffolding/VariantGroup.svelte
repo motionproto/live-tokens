@@ -150,29 +150,34 @@
         </div>
 
         {#if tabsStripVisible || (copySources.length > 0 && activeTab)}
-          <div class="tabs-selectors">
+          <div class="tabs-states-block">
             {#if tabsStripVisible}
-              <div class="state-tabs" role="tablist">
-                {#each stateNames as s}
-                  <button
-                    type="button"
-                    class="state-tab-btn"
-                    class:active={activeTab === s}
-                    role="tab"
-                    aria-selected={activeTab === s}
-                    on:click={() => (activeTab = s)}
-                  >{s}</button>
-                {/each}
-              </div>
+              <span class="section-label">States</span>
             {/if}
-            {#if copySources.length > 0 && activeTab}
-              <CopyFromMenu
-                toState={activeTab}
-                variantName={name}
-                {copySources}
-                on:select={(e) => pickCopySource(activeTab, e.detail.fromVariant, e.detail.fromState)}
-              />
-            {/if}
+            <div class="tabs-selectors">
+              {#if tabsStripVisible}
+                <div class="state-tabs" role="tablist">
+                  {#each stateNames as s}
+                    <button
+                      type="button"
+                      class="state-tab-btn"
+                      class:active={activeTab === s}
+                      role="tab"
+                      aria-selected={activeTab === s}
+                      on:click={() => { activeTab = s; focusedStateStore.set(s); }}
+                    >{s}</button>
+                  {/each}
+                </div>
+              {/if}
+              {#if copySources.length > 0 && activeTab}
+                <CopyFromMenu
+                  toState={activeTab}
+                  variantName={name}
+                  {copySources}
+                  on:select={(e) => pickCopySource(activeTab, e.detail.fromVariant, e.detail.fromState)}
+                />
+              {/if}
+            </div>
           </div>
         {/if}
 
@@ -303,6 +308,12 @@
   }
 
   .tabs-preview {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-8);
+  }
+
+  .tabs-states-block {
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-8);

@@ -593,7 +593,7 @@
   }
 
   .status-label.dirty {
-    color: var(--ui-text-warning, #e6a030);
+    color: var(--ui-highlight);
   }
 
   /* ── Production section ── */
@@ -650,7 +650,7 @@
 
   .production-diff {
     font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-warning, #e6a030);
+    color: var(--ui-highlight);
     padding: 0 var(--ui-space-4);
     letter-spacing: 0.02em;
   }

@@ -38,6 +38,11 @@
   --ui-text-accent:     var(--ui-gray-950);
   --ui-text-success:    var(--ui-gray-850);
 
+  /* Bright amber used for selection dots, focus halos, and "unsaved" / "dirty"
+     state indicators. Single token shared by all "this is the live thing"
+     surfaces so the editor speaks one selection language. */
+  --ui-highlight:       #ffac28;
+
   /* Link-state signals — bar attached to a control's left edge when its value
      is shared with siblings (active), popped off into the column gap when the
      control has broken away from its sibling group (broken). */
