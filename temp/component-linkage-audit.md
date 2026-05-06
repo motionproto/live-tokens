@@ -1,6 +1,6 @@
 # Component linkage audit
 
-Working doc for revising linked property groups across all 14 component editors.
+Working doc for revising linked property groups across all 14 component editors. Component order matches the editor sidebar (alphabetical by registry label).
 
 Each section lists:
 - **Linked groups** declared via `canBeLinked: true` + a shared `groupKey`. Format: `` `groupKey` `` — *representative label* (N tokens, scope: …) — `[ ]` notes column for revisions.
@@ -21,18 +21,20 @@ These editors declare no `canBeLinked` tokens at all. Confirm whether that's int
 
 ---
 
-## Badge
-File: `BadgeEditor.svelte`
+## Button
+File: `StandardButtonsEditor.svelte`
 
 Linked groups:
-- [ ] `border-width` — *border width* (3 tokens, scope: info, accent, trait)
-- [ ] `radius` — *corner radius* (3 tokens, scope: info, accent, trait)
-- [ ] `padding` — *padding* (3 tokens, scope: info, accent, trait)
-- [ ] `shadow` — *badge shadow* (3 tokens, scope: info, accent, trait)
-- [ ] `font-family` — *font family* (3 tokens, scope: info, accent, trait)
-- [ ] `font-size` — *font size* (3 tokens, scope: info, accent, trait)
-- [ ] `font-weight` — *font weight* (3 tokens, scope: info, accent, trait)
-- [ ] `line-height` — *line height* (3 tokens, scope: info, accent, trait)
+- [ ] `border-width` — *border width* (18 tokens, scope: 6 variants × 3 states — primary/secondary/outline/success/danger/warning × default/hover/disabled)
+- [ ] `radius` — *corner radius* (18 tokens, scope: 6 variants × 3 states)
+- [ ] `padding` — *padding* (18 tokens, scope: 6 variants × 3 states)
+- [ ] `font-family` — *font family* (6 tokens, scope: primary, secondary, outline, success, danger, warning)
+- [ ] `font-size` — *font size* (6 tokens, scope: primary, secondary, outline, success, danger, warning)
+- [ ] `font-weight` — *font weight* (6 tokens, scope: primary, secondary, outline, success, danger, warning)
+- [ ] `font-line-height` — *font line height* (6 tokens, scope: primary, secondary, outline, success, danger, warning)
+
+Notes:
+- [ ] Shape properties (border-width/radius/padding) span all 18 variant×state combinations. Typography spans only the 6 variants (no per-state typography). Confirm this asymmetry is intentional.
 
 Internal-only groupKeys: none.
 
@@ -205,25 +207,6 @@ Internal-only groupKeys:
 
 ---
 
-## Standard Buttons
-File: `StandardButtonsEditor.svelte`
-
-Linked groups:
-- [ ] `border-width` — *border width* (18 tokens, scope: 6 variants × 3 states — primary/secondary/outline/success/danger/warning × default/hover/disabled)
-- [ ] `radius` — *corner radius* (18 tokens, scope: 6 variants × 3 states)
-- [ ] `padding` — *padding* (18 tokens, scope: 6 variants × 3 states)
-- [ ] `font-family` — *font family* (6 tokens, scope: primary, secondary, outline, success, danger, warning)
-- [ ] `font-size` — *font size* (6 tokens, scope: primary, secondary, outline, success, danger, warning)
-- [ ] `font-weight` — *font weight* (6 tokens, scope: primary, secondary, outline, success, danger, warning)
-- [ ] `font-line-height` — *font line height* (6 tokens, scope: primary, secondary, outline, success, danger, warning)
-
-Notes:
-- [ ] Shape properties (border-width/radius/padding) span all 18 variant×state combinations. Typography spans only the 6 variants (no per-state typography). Confirm this asymmetry is intentional.
-
-Internal-only groupKeys: none.
-
----
-
 ## Tab Bar
 File: `TabBarEditor.svelte`
 
@@ -253,11 +236,28 @@ Notes:
 
 ---
 
+## Trait Badge
+File: `BadgeEditor.svelte`
+
+Linked groups:
+- [ ] `border-width` — *border width* (3 tokens, scope: info, accent, trait)
+- [ ] `radius` — *corner radius* (3 tokens, scope: info, accent, trait)
+- [ ] `padding` — *padding* (3 tokens, scope: info, accent, trait)
+- [ ] `shadow` — *badge shadow* (3 tokens, scope: info, accent, trait)
+- [ ] `font-family` — *font family* (3 tokens, scope: info, accent, trait)
+- [ ] `font-size` — *font size* (3 tokens, scope: info, accent, trait)
+- [ ] `font-weight` — *font weight* (3 tokens, scope: info, accent, trait)
+- [ ] `line-height` — *line height* (3 tokens, scope: info, accent, trait)
+
+Internal-only groupKeys: none.
+
+---
+
 ## Cross-component consistency checklist
 
 Patterns to look for when revising:
 
-- [ ] **Shape trio** (border-width, radius, padding) — should link wherever a component has multiple variants or states. Currently linked in: Badge, Card, CollapsibleSection, InlineEditActions, Notification, ProgressBar, StandardButtons, TabBar.
-- [ ] **Typography quad** (font-family, font-size, font-weight, line-height) — same pattern. Currently linked in all "shape trio" components above plus RadioButton.
+- [ ] **Shape trio** (border-width, radius, padding) — should link wherever a component has multiple variants or states. Currently linked in: Button, Card, Collapsible Section, Inline Edit Actions, Notification, Progress Bar, Tab Bar, Trait Badge.
+- [ ] **Typography quad** (font-family, font-size, font-weight, line-height) — same pattern. Currently linked in all "shape trio" components above plus Radio Button.
 - [ ] **GroupKey naming** — some editors prefix with the component slug (`card-border-width`, `tab-border-width`), others don't (`border-width`, `radius`). Pick a convention.
-- [ ] **Single-token linked groups** — only present in SegmentedControl. Either drop `canBeLinked` or expand the sibling set.
+- [ ] **Single-token linked groups** — only present in Segmented Control. Either drop `canBeLinked` or expand the sibling set.
