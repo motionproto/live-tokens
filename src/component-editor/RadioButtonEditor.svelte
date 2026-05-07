@@ -6,21 +6,21 @@
 
   const states: Record<string, Token[]> = {
     default: [
-      { label: 'border color', canBeLinked: true, groupKey: 'dot-border-color', variable: '--radiobutton-default-dot-border-color' },
-      { label: 'border thickness', canBeLinked: true, groupKey: 'dot-border-width', variable: '--radiobutton-default-dot-border-width' },
-      { label: 'dot fill', canBeLinked: true, groupKey: 'dot-fill', variable: '--radiobutton-default-dot-fill' },
+      { label: 'border color', variable: '--radiobutton-default-dot-border-color' },
+      { label: 'border thickness', canBeLinked: true, groupKey: 'border-width', variable: '--radiobutton-default-dot-border-width' },
+      { label: 'dot fill', variable: '--radiobutton-default-dot-fill' },
       { label: 'dot size', variable: '--radiobutton-default-dot-size' },
     ],
     hover: [
-      { label: 'border color', canBeLinked: true, groupKey: 'dot-border-color', variable: '--radiobutton-hover-dot-border-color' },
-      { label: 'border thickness', canBeLinked: true, groupKey: 'dot-border-width', variable: '--radiobutton-hover-dot-border-width' },
-      { label: 'dot fill', canBeLinked: true, groupKey: 'dot-fill', variable: '--radiobutton-hover-dot-fill' },
+      { label: 'border color', variable: '--radiobutton-hover-dot-border-color' },
+      { label: 'border thickness', canBeLinked: true, groupKey: 'border-width', variable: '--radiobutton-hover-dot-border-width' },
+      { label: 'dot fill', variable: '--radiobutton-hover-dot-fill' },
       { label: 'dot size', variable: '--radiobutton-hover-dot-size' },
     ],
     active: [
-      { label: 'border color', canBeLinked: true, groupKey: 'dot-border-color', variable: '--radiobutton-active-dot-border-color' },
-      { label: 'border thickness', canBeLinked: true, groupKey: 'dot-border-width', variable: '--radiobutton-active-dot-border-width' },
-      { label: 'dot fill', canBeLinked: true, groupKey: 'dot-fill', variable: '--radiobutton-active-dot-fill' },
+      { label: 'border color', variable: '--radiobutton-active-dot-border-color' },
+      { label: 'border thickness', canBeLinked: true, groupKey: 'border-width', variable: '--radiobutton-active-dot-border-width' },
+      { label: 'dot fill', variable: '--radiobutton-active-dot-fill' },
       { label: 'dot size', variable: '--radiobutton-active-dot-size' },
     ],
   };
@@ -52,21 +52,15 @@
     }],
   };
   const typeGroupTokens: Token[] = (['default', 'hover', 'active'] as const).flatMap((s) => [
-    { label: 'font family', canBeLinked: true, groupKey: 'label-font-family', variable: `--radiobutton-${s}-label-font-family` },
-    { label: 'font size', canBeLinked: true, groupKey: 'label-font-size', variable: `--radiobutton-${s}-label-font-size` },
-    { label: 'font weight', canBeLinked: true, groupKey: 'label-font-weight', variable: `--radiobutton-${s}-label-font-weight` },
-    { label: 'line height', canBeLinked: true, groupKey: 'label-line-height', variable: `--radiobutton-${s}-label-line-height` },
+    { label: 'font family', canBeLinked: true, groupKey: 'font-family', variable: `--radiobutton-${s}-label-font-family` },
+    { label: 'font size', canBeLinked: true, groupKey: 'font-size', variable: `--radiobutton-${s}-label-font-size` },
+    { label: 'font weight', canBeLinked: true, groupKey: 'font-weight', variable: `--radiobutton-${s}-label-font-weight` },
+    { label: 'line height', canBeLinked: true, groupKey: 'line-height', variable: `--radiobutton-${s}-label-line-height` },
   ]);
   const linkableContexts = new Map<string, string>([
-    ['--radiobutton-default-dot-border-color', 'default'],
-    ['--radiobutton-hover-dot-border-color', 'hover'],
-    ['--radiobutton-active-dot-border-color', 'active'],
     ['--radiobutton-default-dot-border-width', 'default'],
     ['--radiobutton-hover-dot-border-width', 'hover'],
     ['--radiobutton-active-dot-border-width', 'active'],
-    ['--radiobutton-default-dot-fill', 'default'],
-    ['--radiobutton-hover-dot-fill', 'hover'],
-    ['--radiobutton-active-dot-fill', 'active'],
     ['--radiobutton-default-label-font-family', 'default'],
     ['--radiobutton-hover-label-font-family', 'hover'],
     ['--radiobutton-active-label-font-family', 'active'],

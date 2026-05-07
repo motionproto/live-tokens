@@ -30,10 +30,10 @@
   const states: Record<string, Token[]> = Object.fromEntries(stateNames.map((s) => [s, stateTokens(s)]));
   const typeGroups: Record<string, TypeGroupConfig[]> = Object.fromEntries(stateNames.map((s) => [s, stateTypeGroups(s)]));
   const typeGroupTokens: Token[] = stateNames.flatMap((s) => [
-    { label: 'font family', canBeLinked: true, groupKey: 'label-font-family', variable: `--collapsiblesection-${s}-label-font-family` },
-    { label: 'font size', canBeLinked: true, groupKey: 'label-font-size', variable: `--collapsiblesection-${s}-label-font-size` },
-    { label: 'font weight', canBeLinked: true, groupKey: 'label-font-weight', variable: `--collapsiblesection-${s}-label-font-weight` },
-    { label: 'line height', canBeLinked: true, groupKey: 'label-line-height', variable: `--collapsiblesection-${s}-label-line-height` },
+    { label: 'font family', canBeLinked: true, groupKey: 'font-family', variable: `--collapsiblesection-${s}-label-font-family` },
+    { label: 'font size', canBeLinked: true, groupKey: 'font-size', variable: `--collapsiblesection-${s}-label-font-size` },
+    { label: 'font weight', canBeLinked: true, groupKey: 'font-weight', variable: `--collapsiblesection-${s}-label-font-weight` },
+    { label: 'line height', canBeLinked: true, groupKey: 'line-height', variable: `--collapsiblesection-${s}-label-line-height` },
   ]);
   export const allTokens: Token[] = [
     ...Object.values(states).flat(),

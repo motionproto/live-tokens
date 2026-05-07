@@ -21,9 +21,9 @@
     const list: Token[] = [];
     if (s !== 'default') list.push({ label: 'surface color', variable: `--tabbar-${s}-surface` });
     list.push(
-      { label: 'border width', canBeLinked: true, groupKey: 'tab-border-width', variable: `--tabbar-${s}-border-width` },
-      { label: 'padding', canBeLinked: true, groupKey: 'tab-padding', variable: `--tabbar-${s}-padding` },
-      { label: 'icon size', canBeLinked: true, groupKey: 'tab-icon-size', variable: `--tabbar-${s}-icon-size` },
+      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--tabbar-${s}-border-width` },
+      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--tabbar-${s}-padding` },
+      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: `--tabbar-${s}-icon-size` },
     );
     if (s === 'active') list.push({ label: 'border color', variable: '--tabbar-active-border' });
     return list;
@@ -46,10 +46,10 @@
     tabStateNames.map((s) => [`${s} tab`, tabStateTypeGroups(s)]),
   );
   const tabTypeGroupTokens: Token[] = tabStateNames.flatMap((s) => [
-    { label: 'font family', canBeLinked: true, groupKey: 'tab-font-family', variable: `--tabbar-${s}-text-font-family` },
-    { label: 'font size', canBeLinked: true, groupKey: 'tab-font-size', variable: `--tabbar-${s}-text-font-size` },
-    { label: 'font weight', canBeLinked: true, groupKey: 'tab-font-weight', variable: `--tabbar-${s}-text-font-weight` },
-    { label: 'line height', canBeLinked: true, groupKey: 'tab-line-height', variable: `--tabbar-${s}-text-line-height` },
+    { label: 'font family', canBeLinked: true, groupKey: 'font-family', variable: `--tabbar-${s}-text-font-family` },
+    { label: 'font size', canBeLinked: true, groupKey: 'font-size', variable: `--tabbar-${s}-text-font-size` },
+    { label: 'font weight', canBeLinked: true, groupKey: 'font-weight', variable: `--tabbar-${s}-text-font-weight` },
+    { label: 'line height', canBeLinked: true, groupKey: 'line-height', variable: `--tabbar-${s}-text-line-height` },
   ]);
   export const allTokens: Token[] = [
     ...Object.values(barStates).flat(),

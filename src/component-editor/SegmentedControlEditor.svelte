@@ -12,9 +12,9 @@
       { label: 'border color', variable: '--segmentedcontrol-bar-border' },
       { label: 'border width', variable: '--segmentedcontrol-bar-border-width' },
       { label: 'divider color', variable: '--segmentedcontrol-divider-color' },
-      { label: 'divider width', canBeLinked: true, groupKey: 'divider-thickness', variable: '--segmentedcontrol-divider-thickness' },
-      { label: 'divider height', canBeLinked: true, groupKey: 'divider-height', variable: '--segmentedcontrol-divider-height' },
-      { label: 'corner radius', canBeLinked: true, groupKey: 'bar-radius', variable: '--segmentedcontrol-bar-radius' },
+      { label: 'divider width', variable: '--segmentedcontrol-divider-thickness' },
+      { label: 'divider height', variable: '--segmentedcontrol-divider-height' },
+      { label: 'corner radius', variable: '--segmentedcontrol-bar-radius' },
       { label: 'option gap', variable: '--segmentedcontrol-bar-gap' },
       { label: 'padding', variable: '--segmentedcontrol-bar-padding', groupKey: 'bar-padding' },
       { label: 'padding-top', variable: '--segmentedcontrol-bar-padding-top', groupKey: 'bar-padding-top', hidden: true },
@@ -29,8 +29,8 @@
       { label: 'surface color', variable: '--segmentedcontrol-selected-surface' },
       { label: 'icon color', variable: '--segmentedcontrol-selected-icon' },
       { label: 'border color', variable: '--segmentedcontrol-selected-border' },
-      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: '--segmentedcontrol-selected-border-width' },
-      { label: 'corner radius', canBeLinked: true, groupKey: 'selected-radius', variable: '--segmentedcontrol-selected-radius' },
+      { label: 'border width', variable: '--segmentedcontrol-selected-border-width' },
+      { label: 'corner radius', variable: '--segmentedcontrol-selected-radius' },
     ],
     'hover option': [
       { label: 'surface color', variable: '--segmentedcontrol-option-hover-surface' },
@@ -88,11 +88,6 @@
   export const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
 
   const linkableContexts = new Map<string, string>([
-    ['--segmentedcontrol-bar-radius', 'control bar'],
-    ['--segmentedcontrol-divider-thickness', 'control bar'],
-    ['--segmentedcontrol-divider-height', 'control bar'],
-    ['--segmentedcontrol-selected-border-width', 'selected option'],
-    ['--segmentedcontrol-selected-radius', 'selected option'],
     ...buildTypeGroupShareableContexts(typeGroups),
   ]);
 </script>
