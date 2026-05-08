@@ -11,6 +11,7 @@
   import UIDotSizeSelector from '../../ui/UIDotSizeSelector.svelte';
   import UIPaddingSelector from '../../ui/UIPaddingSelector.svelte';
   import UIBlurSelector from '../../ui/UIBlurSelector.svelte';
+  import UIShadowSelector from '../../ui/UIShadowSelector.svelte';
   import {
     editorState,
     getComponentPropertySiblings,
@@ -31,6 +32,7 @@
     | 'divider-height'
     | 'dot-size'
     | 'blur'
+    | 'shadow'
     | 'font-family'
     | 'font-weight'
     | 'font-size'
@@ -64,14 +66,15 @@
   const KIND_PATTERNS: Array<{ kind: Kind; matches: (v: string) => boolean }> = [
     { kind: 'font-family', matches: (v) => v.endsWith('-font-family') },
     { kind: 'font-weight', matches: (v) => v.endsWith('-font-weight') },
-    { kind: 'font-size', matches: (v) => v.endsWith('-font-size') },
+    { kind: 'font-size', matches: (v) => v.endsWith('-font-size') || v.endsWith('-icon-size') },
     { kind: 'line-height', matches: (v) => v.endsWith('-line-height') },
     { kind: 'extras', matches: (v) => v.endsWith('-text') || v.startsWith('--text-') },
     { kind: 'radius', matches: (v) => v.endsWith('-radius') || v.startsWith('--radius-') },
     { kind: 'divider-width', matches: (v) => v.endsWith('-divider-width') || v.endsWith('-divider-thickness') },
-    { kind: 'divider-height', matches: (v) => v.endsWith('-divider-height') },
+    { kind: 'divider-height', matches: (v) => v.endsWith('-divider-height') || v.endsWith('-track-height') },
     { kind: 'dot-size', matches: (v) => v.endsWith('-dot-size') },
     { kind: 'blur', matches: (v) => v.endsWith('-blur') || v.startsWith('--blur-') },
+    { kind: 'shadow', matches: (v) => v.endsWith('-shadow') || v.startsWith('--shadow-') },
     { kind: 'padding', matches: (v) => v.endsWith('-padding') },
     { kind: 'gap', matches: (v) => v.endsWith('-gap') },
     { kind: 'border-width', matches: (v) => v.endsWith('-border-width') || v.startsWith('--border-width-') },
@@ -94,6 +97,7 @@
     'padding-split',
     'gap',
     'blur',
+    'shadow',
     'extras',
     'surface',
     'border',
@@ -164,6 +168,7 @@
     },
     'gap': { component: UIPaddingSelector, extra: () => ({ mode: 'single', splittable: false }) },
     'blur': { component: UIBlurSelector },
+    'shadow': { component: UIShadowSelector },
     'surface': { component: UIPaletteSelector },
     'border': { component: UIPaletteSelector },
     'extras': { component: UIPaletteSelector },
@@ -189,6 +194,7 @@
       'padding-split',
       'gap',
       'blur',
+      'shadow',
       'surface',
       'border',
     ];

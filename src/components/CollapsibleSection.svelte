@@ -46,7 +46,6 @@
    :global(:root) {
       /* Default */
       --collapsiblesection-default-surface: var(--surface-canvas);
-      --collapsiblesection-default-border: var(--color-primary-400);
       --collapsiblesection-default-border-width: var(--border-width-thick);
       --collapsiblesection-default-radius: var(--radius-none);
       --collapsiblesection-default-padding: var(--space-4);
@@ -60,7 +59,6 @@
 
       /* Hover */
       --collapsiblesection-hover-surface: var(--surface-canvas);
-      --collapsiblesection-hover-border: var(--color-primary-400);
       --collapsiblesection-hover-border-width: var(--border-width-thick);
       --collapsiblesection-hover-radius: var(--radius-none);
       --collapsiblesection-hover-padding: var(--space-4);

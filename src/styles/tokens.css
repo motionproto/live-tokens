@@ -525,6 +525,7 @@
   --gradient-4: linear-gradient(45deg, var(--color-danger-500) 0%, var(--color-warning-500) 100%);
 
   /* Shadows (elevation scale) */
+  --shadow-none: none;
   --shadow-sm: 1px 1px 2px 0px hsla(237, 18%, 3%, 0.9);
   --shadow-md: 3px 3px 6px 0px hsla(237, 18%, 3%, 0.9);
   --shadow-lg: 5px 5px 9px 0px hsla(237, 18%, 3%, 0.9);

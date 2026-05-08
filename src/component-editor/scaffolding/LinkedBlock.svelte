@@ -95,11 +95,11 @@
   $: brokenPropertyCount = cards.filter((c) => c.isBroken).length;
   $: hasAnyBroken = brokenPropertyCount > 0;
 
-  /** Smart default: open when broken, closed when uniform. The user's first
-      explicit toggle (`sectionToggleOverride`) locks the value so subsequent
-      state changes don't re-flip the section out from under them. */
+  /** Default closed; the section header's summary count + "in sync / N unlinked"
+      text is the at-a-glance signal, so users opt into the matrix only when
+      they need it. */
   let sectionToggleOverride: boolean | null = null;
-  $: sectionExpanded = sectionToggleOverride ?? hasAnyBroken;
+  $: sectionExpanded = sectionToggleOverride ?? false;
   function toggleSection() {
     sectionToggleOverride = !sectionExpanded;
   }

@@ -91,7 +91,7 @@
   .card:not(.no-hover):hover,
   .card.force-hover {
     background: var(--card-hover-surface);
-    border: var(--card-hover-border-width) solid var(--card-color, var(--card-hover-border));
+    border: var(--card-hover-border-width) solid var(--card-hover-border);
     border-radius: var(--card-hover-radius);
     box-shadow: var(--card-hover-shadow);
     backdrop-filter: blur(var(--card-hover-blur));

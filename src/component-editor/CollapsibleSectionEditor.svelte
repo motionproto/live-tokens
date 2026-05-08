@@ -6,9 +6,15 @@
   const stateNames = ['default', 'hover', 'active'] as const;
   type StateName = typeof stateNames[number];
   function stateTokens(s: StateName): Token[] {
+    // Default + hover paint the left border `transparent` (placeholder so the
+    // active-state width transition has a slot to grow into); only active
+    // shows a colored border. Exposing border-color in default/hover would be
+    // a dead row.
     return [
       { label: 'surface color', variable: `--collapsiblesection-${s}-surface` },
-      { label: 'border color', variable: `--collapsiblesection-${s}-border` },
+      ...(s === 'active'
+        ? [{ label: 'border color', variable: `--collapsiblesection-${s}-border` }]
+        : []),
       { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--collapsiblesection-${s}-border-width` },
       { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--collapsiblesection-${s}-radius` },
       { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--collapsiblesection-${s}-padding` },
