@@ -1,15 +1,11 @@
 /**
  * Client-side REST helpers for any "versioned file resource" — a class of
  * editable artifact whose lifecycle mirrors the theme files: list / load /
- * save / delete + an active pointer + a production pointer + a backup history.
+ * save / delete + an active pointer + a production pointer.
  *
  * `themeService.ts` and `componentConfigService.ts` previously reimplemented
  * the same fetch shape. They now both consume `versionedFileResource(...)`
  * with their resource-specific URL.
- *
- * The contract preserves the "mirror theme-file lifecycle for new editor
- * artifacts" invariant: every named-file resource gets a backups directory
- * and active/production pointers under the same routes.
  *
  * Pure URL construction + fetch — no DOM, no filesystem, safe for any browser
  * or test harness that has a `fetch` global.

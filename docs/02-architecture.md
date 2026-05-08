@@ -29,7 +29,7 @@ flowchart TB
     subgraph L4["Layer 4 — Dev-server plugin"]
         Plugin["themeFileApi<br/><small>Vite middleware</small>"]
         Routes["routeTable<br/><small>method+pattern → handler</small>"]
-        VFR["versionedFileResource<br/><small>active+production+backups</small>"]
+        VFR["versionedFileResource<br/><small>active+production pointers</small>"]
         FS[("themes/<br/>component-configs/<br/>tokens.css")]
     end
 
@@ -65,7 +65,7 @@ Persistence is debounced localStorage. Detail in chapter 03.
 
 Client-side wrappers that talk to the dev-server plugin's `/api/*` routes. Both
 services wrap a generic `versionedFileResource(baseUrl)` (defined in
-`src/lib/files/`) so the list/load/save/delete + active/production + backups
+`src/lib/files/`) so the list/load/save/delete + active/production
 vocabulary stays identical across both. Migrations run on load. Theme files and
 component-config files each carry a `schemaVersion` stamp; the runner applies any
 registered migrations whose `fromVersion >= file.schemaVersion`. Detail in chapter
@@ -252,8 +252,6 @@ flowchart LR
         Themes["themes/* CRUD"]
         Active["themes/active GET PUT"]
         Production["themes/production GET PUT"]
-        Backups["backups list / restore / get"]
-        CurrentCss["current-css GET"]
         Comps["component-configs/:comp/* CRUD"]
     end
 
@@ -275,7 +273,7 @@ flowchart LR
 ```
 
 `versionedFileResource` is parameterized; `themesResource` and per-component
-resources share the same active/production/backups vocabulary. See chapter 06.
+resources share the same active/production vocabulary. See chapter 06.
 
 ## Boot orchestration
 

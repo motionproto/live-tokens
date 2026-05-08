@@ -22,8 +22,6 @@ export default defineConfig({
       tokensCssPath: 'src/styles/tokens.css',
       // Optional overrides:
       fontsCssPath: 'src/styles/fonts.css',           // default: sibling of tokensCssPath
-      themesBackupDir: 'themes/_backups',             // default: themesDir/_backups
-      cssBackupDir: 'src/styles/_backups',            // default: cssPath dir/_backups
       apiBase: '/api',                                // default: '/api'
       componentConfigsDir: 'component-configs',
       componentsSrcDir: 'src/components',
@@ -66,7 +64,7 @@ Three responsibilities:
 1. **Seed defaults.** On first start, write `themes/default.json` if missing and
    regenerate `component-configs/<id>/default.json` from each component's
    `:global(:root)` block.
-2. **Serve `/api/*`.** Themes CRUD, component-config CRUD, backups, current CSS.
+2. **Serve `/api/*`.** Themes CRUD and component-config CRUD.
 3. **Inject `__PROJECT_ROOT__`.** Vite `define` so `LiveEditorOverlay`'s "Page
    Source" button can build `vscode://file/<root>/<path>` URLs without each
    consumer adding their own `define`.
@@ -105,7 +103,7 @@ ordering; the previous code maintained order via comment warnings.
 | `GET` | `/api/themes/production` | Get the production theme info |
 | `PUT` | `/api/themes/production` | Promote a theme to production — runs `syncTokensToCss + syncFontsToCss + syncComponentsToCss` |
 | `GET` | `/api/themes/:name` | Get a theme JSON |
-| `PUT` | `/api/themes/:name` | Save a theme (backup-then-write); if `:name` is the production theme, also re-runs the syncs |
+| `PUT` | `/api/themes/:name` | Save a theme; if `:name` is the production theme, also re-runs the syncs |
 | `DELETE` | `/api/themes/:name` | Delete (rejected for `default`); if it was active, fallback to `default` |
 
 ### Component configs
@@ -122,29 +120,15 @@ ordering; the previous code maintained order via comment warnings.
 | `DELETE` | `/api/component-configs/:comp/:name` | Delete (rejected for `default`); active/production fall back to `default` |
 | `GET` | `/api/component-configs/:comp` | List configs for one component |
 
-### Backups
-
-| Method | Path | Purpose |
-|---|---|---|
-| `GET` | `/api/backups` | List all backups across themes / css / component-configs (newest first) |
-| `GET` | `/api/backups/:type/:file` | Read a single backup's content |
-| `POST` | `/api/backups/:type/:file/restore` | Backup-current-then-restore the named backup |
-
-### Current CSS
-
-| Method | Path | Purpose |
-|---|---|---|
-| `GET` | `/api/current-css` | Read `tokens.css` (used by the editor's "Apply now" preview) |
-
 ## `versionedFileResource`
 
-Both themes and per-component configs use the same active/production/backups
+Both themes and per-component configs use the same active/production
 vocabulary. That vocabulary is implemented once, in two halves:
 
 - **Server.** `src/vite-plugin/files/versionedFileResource.ts` exports
-  `versionedFileResourceServer({dir, backupDir?, defaultName?})`. Returns
+  `versionedFileResourceServer({dir, defaultName?})`. Returns
   `{ ensureDir, ensureMeta, filePath, getActiveName, getProductionName,
-  setActiveName, setProductionName, backup }`.
+  setActiveName, setProductionName }`.
 - **Client.** `src/lib/files/versionedFileResource.ts` exports
   `versionedFileResource<T, M, P>({baseUrl})`. Returns `{ list, load, save,
   remove, getActive, setActive, getProductionInfo, setProduction }`.
@@ -153,10 +137,6 @@ The themes resource is constructed once at plugin init; per-component resources
 are **lazily** constructed on first access via the `componentResource(comp)`
 cache. That matters because the set of components is discovered at runtime from
 `src/components/*.svelte`; there's no static list.
-
-`BACKUP_RETENTION = 10` is a single constant on the server side. Both the
-`backup(...)` method (per-name) and `trimFlatBackups(dir, prefix, ext)` (for
-the flat `tokens_*.css` backups) honor it.
 
 ## Sync functions
 
@@ -170,7 +150,6 @@ flowchart LR
     SetProd --> SyncTokens["syncTokensToCss<br/><small>rewrite --token: value;<br/>append additions block</small>"]
     SetProd --> SyncFonts["syncFontsToCss<br/><small>regenerate fonts.css from<br/>theme.fontSources</small>"]
     SetProd --> SyncComps["syncComponentsToCss<br/><small>rebuild :root:root override<br/>block from each component's<br/>_production.json</small>"]
-    SyncTokens --> Backup1[backupCssFile]
     SyncTokens --> WriteCss[fs.writeFileSync tokens.css]
     SyncFonts --> WriteFonts[fs.writeFileSync fonts.css]
     SyncComps --> WriteCss2[fs.writeFileSync tokens.css]
@@ -271,7 +250,7 @@ injection so library consumers don't need to add their own `define` entry. The
 README's `vite.config.ts` example explicitly notes "You don't need a `define`
 entry for this."
 
-## Sanitization
+## Sanitization & path safety
 
 User-provided file names go through `sanitizeFileName(name)`:
 
@@ -286,20 +265,17 @@ leading and trailing underscores trim. The same helper is used on the client
 `src/lib/files/versionedFileResource.ts` (the canonical pure helper) so they
 can't drift.
 
-## Path traversal protection
-
-Backup-path handlers (`handleGetBackup`, `handleRestoreBackup`) all validate
-`path.startsWith(<expectedDir>)` after resolving the user-provided file name.
-That guards against `..` escapes in the URL path component. The check happens
-*after* `path.join` resolves, so it catches both `../` and absolute-path
-injection.
+User-supplied path components (`:name`, `:comp`) are also constrained at the
+route-pattern level: every regex uses `[a-z0-9\-_]+`, so `..` and `/` never
+reach the handlers in the first place.
 
 ## Summary
 
 - One Vite plugin, one route table, one dispatcher with centralized
   500-on-throw.
 - Themes and component configs share the `versionedFileResource` vocabulary:
-  server half (filesystem ops) plus client half (REST shape).
+  server half (filesystem ops + active/production pointers) plus client half
+  (REST shape).
 - Promote-to-production triggers three syncs that rewrite `tokens.css` and
   `fonts.css` in place; `tokens.css` ends up with a `:root:root` override block
   for component aliases.

@@ -200,7 +200,9 @@
     document.removeEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
   });
 
-  $: if ($editorState) refreshFromState();
+  // Track `variable` alongside `$editorState` so a VariantGroup tabs view that
+  // reuses this selector across states refreshes when the bound prop swaps.
+  $: { variable; if ($editorState) refreshFromState(); }
 
   $: activeKey = chosenKey ?? (options.find((o) => o.size === resolvedSize)?.key ?? null);
   $: activeLabel = options.find((o) => o.key === activeKey)?.label ?? '';
@@ -509,6 +511,14 @@
     gap: var(--ui-space-8);
     grid-column: auto;
     flex: 0 0 auto;
+  }
+  /* Pin the trigger to the same width as the surrounding selectors' trigger
+     column (`--token-selector-w` on the parent .token-grid, 8rem default).
+     Without this, a short token label like "XS" collapses the inline-flex
+     trigger to natural width and breaks the column alignment with the
+     border-width/corner-radius/etc. rows above and below. */
+  .padding-single-row :global(.ui-ts-trigger-wrap) {
+    min-width: var(--token-selector-w, 8rem);
   }
 
   .split-btn {

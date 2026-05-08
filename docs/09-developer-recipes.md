@@ -225,8 +225,7 @@ auto-decrements; nothing else references it.
 ## Add a versioned file resource (e.g., a new editable artifact class)
 
 You have a new editable class (say, motion presets) that needs the same
-list/save/load/active/production/backups lifecycle as themes and component
-configs.
+list/save/load/active/production lifecycle as themes and component configs.
 
 The conventions are encoded in `versionedFileResource`. Follow the pattern:
 
@@ -237,9 +236,7 @@ motion-presets/
 ├── _active.json
 ├── _production.json
 ├── default.json
-├── slow.json
-└── _backups/
-    └── slow_<timestamp>.json
+└── slow.json
 ```
 
 ### 2. Wire the server resource
@@ -342,8 +339,7 @@ curl -X PUT http://localhost:5173/api/themes/production \
 ```
 
 That runs `syncTokensToCss + syncFontsToCss + syncComponentsToCss`
-server-side, just like the UI button. The server backs up `tokens.css` first
-and trims to `BACKUP_RETENTION = 10`.
+server-side, just like the UI button.
 
 ## Debug undo
 

@@ -26,13 +26,9 @@ export {
   setActiveFile,
   getProductionInfo,
   setProductionFile,
-  listBackups,
-  getBackupContent,
-  restoreBackup,
-  getCurrentCss,
   sanitizeFileName,
 } from './themeService';
-export type { ProductionInfo, BackupEntry } from './themeService';
+export type { ProductionInfo } from './themeService';
 
 export type {
   PaletteConfig,

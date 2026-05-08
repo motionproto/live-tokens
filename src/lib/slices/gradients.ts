@@ -57,8 +57,15 @@ function formatGradientStop(s: GradientTokenStop): string {
   return `${color} ${s.position}%`;
 }
 
+/** Stops portion only — used by the palette selector to materialize a
+ *  linear-gradient with a per-slot angle override while keeping the token's
+ *  stop list (and its `var(--color-…)` refs, which propagate palette edits). */
+export function formatGradientStops(t: GradientToken): string {
+  return t.stops.map(formatGradientStop).join(', ');
+}
+
 function formatGradient(t: GradientToken): string {
-  const stops = t.stops.map(formatGradientStop).join(', ');
+  const stops = formatGradientStops(t);
   if (t.type === 'linear') return `linear-gradient(${t.angle}deg, ${stops})`;
   return `radial-gradient(${stops})`;
 }

@@ -1,9 +1,10 @@
 <script lang="ts">
   export let text: string = '';
   export let position: 'top' | 'bottom' = 'top';
+  export let open: boolean = false;
 </script>
 
-<div class="tooltip-wrapper">
+<div class="tooltip-wrapper" class:open>
   <slot />
   {#if text}
     <div class="tooltip" class:bottom={position === 'bottom'}>
@@ -77,7 +78,8 @@
     clip-path: polygon(50% 0, 0 100%, 100% 100%);
   }
 
-  .tooltip-wrapper:hover .tooltip {
+  .tooltip-wrapper:hover .tooltip,
+  .tooltip-wrapper.open .tooltip {
     opacity: 1;
   }
 </style>

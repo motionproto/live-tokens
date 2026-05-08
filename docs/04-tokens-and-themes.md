@@ -145,21 +145,20 @@ yet in a typed slice.
 }
 ```
 
-### Lifecycle: active, production, backups
+### Lifecycle: active, production
 
-Each `themes/` directory has three meta-files alongside the saved themes:
+Each `themes/` directory has two meta-files alongside the saved themes:
 
 | File | Role |
 |---|---|
 | `_active.json` | `{ activeFile: "<name>" }`. The theme loaded at dev-server boot. |
 | `_production.json` | `{ activeFile: "<name>" }`. The theme synced to `tokens.css` on promote. |
-| `_backups/<name>_<timestamp>.json` | Per-save backup; `BACKUP_RETENTION = 10` per name. |
 
-The vocabulary (list, load, save, delete, plus active, production, backups) is
-implemented once in `src/vite-plugin/files/versionedFileResource.ts` (server) and
-`src/lib/files/versionedFileResource.ts` (client). The same vocabulary is used
-by component-config files (one resource per component directory under
-`component-configs/<id>/`).
+The vocabulary (list, load, save, delete, plus active and production pointers)
+is implemented once in `src/vite-plugin/files/versionedFileResource.ts`
+(server) and `src/lib/files/versionedFileResource.ts` (client). The same
+vocabulary is used by component-config files (one resource per component
+directory under `component-configs/<id>/`).
 
 ```mermaid
 flowchart LR
@@ -167,11 +166,9 @@ flowchart LR
         Active["_active.json<br/><small>{activeFile}</small>"]
         Prod["_production.json<br/><small>{activeFile}</small>"]
         Files["default.json<br/>runegoblin.json<br/>green_goblin.json<br/>…"]
-        Backups["_backups/<br/><small>name_TIMESTAMP.json</small>"]
     end
 
     Editor[Editor UI] -- save --> Files
-    Files -- on save --> Backups
     Editor -- "Set active" --> Active
     Editor -- "Promote to production" --> Prod
     Prod -- triggers --> SyncCss["syncTokensToCss /<br/>syncFontsToCss /<br/>syncComponentsToCss"]
@@ -193,9 +190,7 @@ component-configs/button/
 ├── _active.json            { "activeFile": "default_01" }
 ├── _production.json        { "activeFile": "default" }
 ├── default.json            (regenerated from src/components/Button.svelte on hot-update)
-├── default_01.json         (user-saved)
-└── _backups/
-    └── default_01_2026-05-03T23-52-10-415Z.json
+└── default_01.json         (user-saved)
 ```
 
 `default.json` regenerates on every hot-update of the component's Svelte file
@@ -343,7 +338,6 @@ sequenceDiagram
     Store-->>UI: Theme JSON
     UI->>Svc: saveTheme(fileName, theme)
     Svc->>Plugin: PUT /api/themes/:name (body = theme)
-    Plugin->>Plugin: backup(filePath, fileName)
     Plugin->>FS: writeFileSync(filePath, JSON)
     alt fileName === productionName
         Plugin->>Plugin: syncTokensToCss + syncFontsToCss + syncComponentsToCss
@@ -368,7 +362,7 @@ version control.
 - Component-config files (`component-configs/<id>/*.json`) carry per-component
   aliases, literal-value config, and a `schemaVersion`. `default.json`
   regenerates from the Svelte source.
-- Both file types use the same active / production / backups vocabulary
+- Both file types use the same active / production vocabulary
   (`versionedFileResource`).
 - Migrations are dated, isolated, and self-bumping. The runner gates by
   `fromVersion >= file.schemaVersion`, so resaved files skip past migrations.

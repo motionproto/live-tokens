@@ -101,9 +101,8 @@
         <p>
           Save to persist the active theme as JSON under <code>themes/</code>.
           Promote a theme to production, and the editor flushes its values into
-          <code>tokens.css</code> and backs up the previous file under
-          <code>src/styles/_backups/</code>. The production build then ships as
-          pure CSS — no editor code reaches the bundle.
+          <code>tokens.css</code>. The production build then ships as pure CSS
+          — no editor code reaches the bundle.
         </p>
       </Card>
     </div>

@@ -307,6 +307,7 @@
         selectionsLocked: lockedSelections,
       }}
       {@const extra = sel.extra ? sel.extra(token) : {}}
+      {@const isNonFirstSet = isMultiCol && Math.floor(i / rowsPerCol) > 0}
       {#if i === firstIndependentIdx}
         <div class="zone-divider" aria-hidden="true"></div>
       {/if}
@@ -329,6 +330,7 @@
         class:token-row={!sel.standalone}
         class:has-contexts={!sel.standalone && !!ctxs?.length}
         class:linked-hovered={isHovered}
+        class:non-first-set={isNonFirstSet}
         on:mouseenter={isLinkedBlock || !isLinkedRow ? undefined : () => setHover(token.variable)}
         on:mouseleave={isLinkedBlock || !isLinkedRow ? undefined : () => setHover(null)}
       >
@@ -379,12 +381,20 @@
     min-width: 0;
   }
   /* Multi-col mode: column-major flow with explicit row count so items fill
-     column 1 top-to-bottom before spilling into column 2, etc. Wider gap
-     between column-sets since they read as separate visual groups. */
+     column 1 top-to-bottom before spilling into column 2, etc. The value track
+     drops to `auto` so column-sets pack at natural width instead of letting
+     `1fr` value cells eat the panel and shove sets to opposite edges. The
+     fixed inter-set gap (~3rem) is applied as `padding-left` on the lead
+     column of every non-first set — see `.non-first-set > .token-label`. */
   .token-grid.multi-col {
+    grid-template-columns: repeat(var(--columns), max-content var(--token-selector-w) auto);
     grid-template-rows: repeat(var(--rows-per-col), auto);
     grid-auto-flow: column;
-    column-gap: var(--ui-space-24);
+    column-gap: var(--ui-space-12);
+    justify-content: start;
+  }
+  .token-grid.multi-col .token-entry.token-row.non-first-set > .token-label {
+    padding-left: var(--ui-space-48);
   }
 
   @container (max-width: 480px) {
@@ -393,12 +403,19 @@
 
   /* Drop to one column if the container can't fit even two column-sets
      comfortably. Single col uses row flow (default), so unsetting the
-     column-flow + row template restores the original layout. */
+     column-flow + row template restores the original layout. The value
+     track also returns to `1fr` so the lone column fills the panel like
+     single-col mode, and the inter-set padding is suppressed so wrapped
+     "set 2" rows don't sit indented. */
   @container (max-width: 720px) {
     .token-grid.multi-col {
       --columns: 1;
+      grid-template-columns: max-content var(--token-selector-w) 1fr;
       grid-template-rows: none;
       grid-auto-flow: row;
+    }
+    .token-grid.multi-col .token-entry.token-row.non-first-set > .token-label {
+      padding-left: 0;
     }
   }
 

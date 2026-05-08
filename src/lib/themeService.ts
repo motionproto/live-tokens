@@ -54,42 +54,6 @@ export async function setProductionFile(
   return { ok: data.ok, fileName: data.fileName, name: data.name };
 }
 
-// ── Backup API helpers ──────────────────────────────────────
-
-export interface BackupEntry {
-  type: 'themes' | 'css' | 'component-configs';
-  file: string;
-  name: string;
-  timestamp: string;
-  size: number;
-}
-
-export async function listBackups(): Promise<BackupEntry[]> {
-  const res = await fetch('/api/backups');
-  const data = await res.json();
-  return data.backups;
-}
-
-export async function getBackupContent(type: string, file: string): Promise<string> {
-  const res = await fetch(`/api/backups/${type}/${encodeURIComponent(file)}`);
-  if (!res.ok) throw new Error('Failed to load backup');
-  const data = await res.json();
-  return data.content;
-}
-
-export async function restoreBackup(type: string, file: string): Promise<void> {
-  const res = await fetch(`/api/backups/${type}/${encodeURIComponent(file)}/restore`, {
-    method: 'POST',
-  });
-  if (!res.ok) throw new Error('Restore failed');
-}
-
-export async function getCurrentCss(): Promise<string> {
-  const res = await fetch('/api/current-css');
-  const data = await res.json();
-  return data.content;
-}
-
 // ── CSS variable utilities ───────────────────────────────────
 // Implementations live in cssVarSync.ts so writes can fan out to the
 // parent document when running inside the live-preview overlay iframe.

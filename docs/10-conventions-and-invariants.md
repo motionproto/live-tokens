@@ -33,14 +33,13 @@ If you find a new code path that writes `:root` style, route it through
 ## Mirror the theme-file lifecycle for new editor artifacts
 
 **Rule:** Any new editable artifact class (component configs, future motion
-presets, future icon sets, and so on) gets the full active+production+backups
+presets, future icon sets, and so on) gets the full active+production
 lifecycle and a file-manager UI.
 
 **Why:** This was the original theme-files contract and it's load-bearing for
 the user's workflow ("save as named file, switch active, promote to
-production, backup-then-overwrite, undo by restore"). Side-loading new
-artifacts into the theme JSON or into a single-file blob trades short-term
-simplicity for a migration tax later.
+production"). Side-loading new artifacts into the theme JSON or into a
+single-file blob trades short-term simplicity for a migration tax later.
 
 **How to apply:**
 
@@ -50,8 +49,6 @@ simplicity for a migration tax later.
   the client side.
 - Mirror the route table ordering: active and production routes must come
   before the catch-all `:name` route.
-- Keep `BACKUP_RETENTION = 10` per resource (single constant on the server
-  side).
 
 See chapter 09 for the recipe.
 
@@ -187,8 +184,8 @@ confirmation.
 **Why:** This codebase often has hand-saved theme/config files that were
 written through the editor and aren't committed yet (the editor is a save
 tool as much as a tweak tool). A stash-drop or reset that "cleans up" would
-silently delete the user's work in a way that's not always recoverable from
-`themes/_backups/` or `component-configs/<id>/_backups/`.
+silently delete the user's work, and the dev plugin doesn't keep its own
+backups — git is the only safety net.
 
 **How to apply:**
 

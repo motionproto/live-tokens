@@ -6,20 +6,12 @@
   const stateNames = ['default', 'hover', 'active'] as const;
   type StateName = typeof stateNames[number];
   function stateTokens(s: StateName): Token[] {
-    // Default + hover paint the left border `transparent` (placeholder so the
-    // active-state width transition has a slot to grow into); only active
-    // shows a colored border. Exposing border-color in default/hover would be
-    // a dead row.
     return [
       { label: 'surface color', variable: `--collapsiblesection-${s}-surface` },
-      ...(s === 'active'
-        ? [{ label: 'border color', variable: `--collapsiblesection-${s}-border` }]
-        : []),
+      { label: 'border color', variable: `--collapsiblesection-${s}-border` },
       { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--collapsiblesection-${s}-border-width` },
       { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--collapsiblesection-${s}-radius` },
       { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--collapsiblesection-${s}-padding` },
-      { label: 'icon color', variable: `--collapsiblesection-${s}-icon` },
-      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: `--collapsiblesection-${s}-icon-size` },
     ];
   }
   function stateTypeGroups(s: StateName): TypeGroupConfig[] {
@@ -51,7 +43,6 @@
     [`--collapsiblesection-${s}-border-width`, s] as const,
     [`--collapsiblesection-${s}-radius`, s] as const,
     [`--collapsiblesection-${s}-padding`, s] as const,
-    [`--collapsiblesection-${s}-icon-size`, s] as const,
     [`--collapsiblesection-${s}-label-font-family`, s] as const,
     [`--collapsiblesection-${s}-label-font-size`, s] as const,
     [`--collapsiblesection-${s}-label-font-weight`, s] as const,

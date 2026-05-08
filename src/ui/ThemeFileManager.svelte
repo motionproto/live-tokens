@@ -5,7 +5,6 @@
   import type { ProductionInfo } from '../lib/themeService';
   import { activeFileName } from '../lib/editorConfigStore';
   import { dirty } from '../lib/editorStore';
-  import BackupBrowser from './BackupBrowser.svelte';
   import UIDialog from './UIDialog.svelte';
 
   const dispatch = createEventDispatcher<{
@@ -21,7 +20,6 @@
   let saveAsName = '';
   let saveAsInput: HTMLInputElement;
   let currentDisplayName = 'Default';
-  let showBackups = false;
 
   // --- Production state ---
   let productionInfo: ProductionInfo | null = null;
@@ -230,14 +228,6 @@
       <span>Load</span>
     </button>
 
-    <button
-      class="tfm-btn history-btn"
-      on:click={() => showBackups = true}
-      title="View backup history and restore"
-    >
-      <i class="fas fa-history"></i>
-      <span>History</span>
-    </button>
 
   </div>
 
@@ -310,16 +300,6 @@
     {/if}
   </div>
 </UIDialog>
-
-<BackupBrowser
-  bind:open={showBackups}
-  on:restored={(e) => {
-    if (e.detail.type === 'themes') {
-      dispatch('load', { fileName: $activeFileName });
-    }
-    refreshFiles();
-  }}
-/>
 
 
 <style>

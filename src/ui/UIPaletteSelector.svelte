@@ -1,8 +1,19 @@
 <script lang="ts">
-  import { onMount, createEventDispatcher } from 'svelte';
+  import { createEventDispatcher } from 'svelte';
+  import { slide } from 'svelte/transition';
+  import { cubicOut, cubicIn } from 'svelte/easing';
   import { resolveAliasChain } from '../lib/tokenRegistry';
   import { editorState } from '../lib/editorStore';
+  import { formatGradientStops } from '../lib/slices/gradients';
+  import type { GradientToken } from '../lib/editorTypes';
   import UITokenSelector from './UITokenSelector.svelte';
+
+  /** Honor prefers-reduced-motion: `t()` zeroes durations when the OS asks for
+   *  less motion, so the detail-row enter/exit slides skip outright. Mirrors
+   *  the pattern used in UIPaddingSelector for split↔merge transitions. */
+  const reduceMotion = typeof window !== 'undefined'
+    && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+  const t = (ms: number) => (reduceMotion ? 0 : ms);
 
   /** Tokens that match the surface/fill suffix but live in <color>-only CSS contexts
       (color-mix, box-shadow color slot) where a gradient would invalidate the declaration. */
@@ -88,11 +99,34 @@
   let selectedFamily: string | null = null;
   let selectedTab: Category = 'palette';
 
+  /** Compass-rose layout for the orientation grid. Angles follow the CSS
+   *  linear-gradient convention (0° points up, 90° points right). */
+  const directionGrid: { angle: number; glyph: string; col: number; row: number; label: string }[] = [
+    { angle: 315, glyph: '↖', col: 1, row: 1, label: 'top-left' },
+    { angle: 0,   glyph: '↑', col: 2, row: 1, label: 'top' },
+    { angle: 45,  glyph: '↗', col: 3, row: 1, label: 'top-right' },
+    { angle: 270, glyph: '←', col: 1, row: 2, label: 'left' },
+    { angle: 90,  glyph: '→', col: 3, row: 2, label: 'right' },
+    { angle: 225, glyph: '↙', col: 1, row: 3, label: 'bottom-left' },
+    { angle: 180, glyph: '↓', col: 2, row: 3, label: 'bottom' },
+    { angle: 135, glyph: '↘', col: 3, row: 3, label: 'bottom-right' },
+  ];
+
+  /** Numeric input value. Kept in sync with chosenAngle/token-default by the
+   *  reactive block below; user edits flow back through `applyOrientation`. */
+  let angleInput: number = 0;
+
   let chosenCategory: Category | null = null;
   let chosenFamily: string | null = null;
   let chosenStep: string | null = null;
   let chosenNone: boolean = false;
   let chosenGradient: string | null = null;
+  /** Per-slot angle override on the chosen linear gradient. Null means
+   *  "no override" — the slot writes `var(--gradient-N)` and inherits the
+   *  token's natural angle. Non-null means the slot writes a materialized
+   *  `linear-gradient(<angle>, <token's stops>)` so the angle is locally
+   *  pinned while stop colors keep flowing from the token's `var()` refs. */
+  let chosenAngle: number | null = null;
   let opacity: number = 100;
   let selfDefaultHex: string = '';
 
@@ -208,8 +242,65 @@
     dispatch('change');
   }
 
+  /** Apply (or clear) a per-slot angle override on the chosen linear gradient.
+   *  When the requested angle matches the gradient token's own natural angle
+   *  we drop back to the cleaner `var(--gradient-N)` form — that way dialing
+   *  back to default and pressing the reset button arrive at the same value. */
+  function applyOrientation(nextAngle: number) {
+    if (chosenGradient === null) return;
+    const token = getGradientToken(chosenGradient);
+    if (!token || token.type !== 'linear') return;
+    const normalized = ((Math.round(nextAngle) % 360) + 360) % 360;
+    chosenAngle = normalized;
+    if (normalized === token.angle) {
+      selector.writeOverride(chosenGradient);
+    } else {
+      selector.writeOverride(materializeGradient(token, normalized));
+    }
+    dispatch('change');
+  }
+
+  function resetOrientation() {
+    if (chosenGradient === null) return;
+    chosenAngle = null;
+    selector.writeOverride(chosenGradient);
+    dispatch('change');
+  }
+
   function isGradientToken(name: string): boolean {
     return gradientTokens.some((g) => g.variable === name);
+  }
+
+  function getGradientToken(name: string): GradientToken | undefined {
+    return gradientTokens.find((g) => g.variable === name);
+  }
+
+  /** Normalize whitespace so a slot's stored linear-gradient string compares
+   *  equal to the canonical `formatGradientStops` output regardless of how it
+   *  was last serialized through the DOM / persistence layer. */
+  function normStops(s: string): string {
+    return s.replace(/\s+/g, ' ').trim();
+  }
+
+  /** Match a materialized linear-gradient back to its source gradient token by
+   *  comparing the inlined stop list. We only need to identify linear tokens
+   *  here because angle override doesn't apply to radial. */
+  function identifyMaterializedGradient(raw: string): { variable: string; angle: number } | null {
+    const m = raw.match(/^linear-gradient\(\s*([\d.]+)deg\s*,\s*(.+)\)\s*$/);
+    if (!m) return null;
+    const angle = parseFloat(m[1]);
+    const stops = normStops(m[2]);
+    for (const t of gradientTokens) {
+      if (t.type !== 'linear') continue;
+      if (normStops(formatGradientStops(t)) === stops) {
+        return { variable: t.variable, angle };
+      }
+    }
+    return null;
+  }
+
+  function materializeGradient(token: GradientToken, angle: number): string {
+    return `linear-gradient(${angle}deg, ${formatGradientStops(token)})`;
   }
 
   function initFromCurrent() {
@@ -221,6 +312,7 @@
       chosenFamily = null;
       chosenStep = null;
       chosenGradient = null;
+      chosenAngle = null;
       opacity = 100;
       return;
     }
@@ -234,11 +326,26 @@
         chosenCategory = null;
         chosenFamily = null;
         chosenStep = null;
+        chosenAngle = null;
+        opacity = 100;
+        return;
+      }
+      // Materialized form: `linear-gradient(<angle>, <token's stops>)`
+      // — an angle override pinned locally while stops still carry var() refs
+      // back to palette tokens.
+      const materialized = identifyMaterializedGradient(raw);
+      if (materialized) {
+        chosenGradient = materialized.variable;
+        chosenCategory = null;
+        chosenFamily = null;
+        chosenStep = null;
+        chosenAngle = materialized.angle;
         opacity = 100;
         return;
       }
     }
     chosenGradient = null;
+    chosenAngle = null;
 
     const opacityParsed = parseOpacity(raw);
     if (opacityParsed) {
@@ -305,6 +412,7 @@
     chosenFamily = null;
     chosenStep = null;
     chosenGradient = null;
+    chosenAngle = null;
     opacity = 100;
     selector.writeOverride('transparent');
     selectedFamily = null;
@@ -316,6 +424,7 @@
     const varName = getVarName(category, selectedFamily!, step);
     chosenNone = false;
     chosenGradient = null;
+    chosenAngle = null;
     chosenCategory = category;
     chosenFamily = selectedFamily;
     chosenStep = step;
@@ -325,12 +434,17 @@
     dispatch('change');
   }
 
+  // Picking any gradient is a fresh start: any prior angle override is
+  // discarded and the slot adopts the new token's natural orientation by
+  // writing `var(--gradient-N)`. The orientation control then displays the
+  // token's default angle but with no local override active.
   function selectGradient(gradientVar: string, close: () => void) {
     chosenNone = false;
     chosenCategory = null;
     chosenFamily = null;
     chosenStep = null;
     chosenGradient = gradientVar;
+    chosenAngle = null;
     opacity = 100;
     selector.writeOverride(gradientVar);
     selectedFamily = null;
@@ -338,15 +452,29 @@
     dispatch('change');
   }
 
-  onMount(() => {
+  // Re-derive trigger state when the bound `variable` changes (e.g. when a
+  // VariantGroup tabs view reuses the same selector instance across states).
+  // The wrapper UITokenSelector forwards `var-change` only for the currently
+  // bound variable, so prop swaps wouldn't otherwise refresh `chosenCategory`
+  // / `chosenFamily` / `chosenStep` and the meta label drifts from the swatch.
+  let lastSeenVariable: string | null = null;
+  $: if (variable !== lastSeenVariable) {
+    lastSeenVariable = variable;
     initFromCurrent();
     captureSelfDefault();
-  });
+  }
+
+  $: chosenGradientToken = chosenGradient ? getGradientToken(chosenGradient) : undefined;
+  $: isLinearGradientChosen = !!chosenGradientToken && chosenGradientToken.type === 'linear';
+  $: effectiveAngle = chosenGradientToken
+    ? (chosenAngle ?? chosenGradientToken.angle)
+    : 0;
+  $: angleInput = effectiveAngle;
 
   $: triggerMeta = chosenNone
     ? 'none'
     : chosenGradient
-      ? chosenGradient.replace(/^--/, '')
+      ? chosenGradient.replace(/^--/, '') + (chosenAngle !== null ? ` (${effectiveAngle}°)` : '')
       : (chosenCategory && chosenFamily && chosenStep !== null
         ? getVarName(chosenCategory, chosenFamily, chosenStep).replace(/^--/, '') + (opacity < 100 ? ` (${opacity}%)` : '')
         : '');
@@ -490,6 +618,59 @@
     {/if}
   </svelte:fragment>
 </UITokenSelector>
+
+<!--
+  Inline orientation row. When a linear gradient is the chosen value the
+  palette row "grows" — UITokenSelector occupies row 1 (cols 2-3 of the
+  parent token-row's subgrid via its default `grid-column: span 2`); this
+  block lands on row 2, also cols 2-3, sitting directly under the swatch
+  trigger. Same pattern padding-sides uses to expand into row 2 of the
+  parent token-row, just lighter (no link/merge header chrome).
+-->
+{#if isLinearGradientChosen}
+  <div
+    class="palette-detail-row"
+    in:slide|local={{ duration: t(280), delay: t(60), easing: cubicOut }}
+    out:slide|local={{ duration: t(220), easing: cubicIn }}
+  >
+    <span class="detail-label">orientation</span>
+    <div class="orientation-body">
+      <div class="dir-grid">
+        {#each directionGrid as d}
+          <button
+            type="button"
+            class="dir-btn"
+            class:active={d.angle === ((effectiveAngle % 360) + 360) % 360}
+            style="grid-column: {d.col}; grid-row: {d.row};"
+            on:click={() => applyOrientation(d.angle)}
+            title="{d.label} ({d.angle}°)"
+          >{d.glyph}</button>
+        {/each}
+      </div>
+      <div class="angle-input-wrap">
+        <input
+          type="number"
+          min="0"
+          max="359"
+          class="angle-input"
+          bind:value={angleInput}
+          on:change={() => applyOrientation(angleInput)}
+        />
+        <span class="angle-unit">°</span>
+      </div>
+      <button
+        type="button"
+        class="orientation-reset"
+        class:active={chosenAngle !== null}
+        on:click={resetOrientation}
+        disabled={chosenAngle === null}
+        title="Reset to gradient default"
+      >
+        <i class="fas fa-rotate-left"></i>
+      </button>
+    </div>
+  </div>
+{/if}
 
 <style>
   .swatch-wrap {
@@ -777,5 +958,129 @@
     font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     font-family: var(--ui-font-mono);
+  }
+
+  /* Inline detail row, sibling of the UITokenSelector inside the parent
+     token-row's 3-col subgrid. Lands in cols 2-3 of row 2, directly under
+     the swatch trigger — same column anchoring the value/contexts strip
+     uses, so the orientation block reads as a continuation of the row. */
+  .palette-detail-row {
+    grid-column: 2 / -1;
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+    padding-top: var(--ui-space-4);
+    min-width: 0;
+  }
+
+  .detail-label {
+    font-size: var(--ui-font-size-xs);
+    color: var(--ui-text-secondary);
+    flex-shrink: 0;
+  }
+
+  .orientation-reset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-muted);
+    font-size: 0.625rem;
+    cursor: pointer;
+    transition: all var(--ui-transition-fast);
+    flex-shrink: 0;
+  }
+
+  .orientation-reset.active {
+    color: var(--ui-link-broken, var(--ui-text-secondary));
+    border-color: var(--ui-border-subtle);
+  }
+
+  .orientation-reset:hover:not(:disabled) {
+    background: var(--ui-hover);
+    color: var(--ui-text-primary);
+  }
+
+  .orientation-reset:disabled {
+    cursor: default;
+    opacity: 0.4;
+  }
+
+  .orientation-body {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .dir-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1.25rem);
+    grid-template-rows: repeat(3, 1.25rem);
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .dir-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: var(--ui-surface-lowest);
+    border: 1px solid var(--ui-border-subtle);
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-secondary);
+    font-size: 0.875rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all var(--ui-transition-fast);
+  }
+
+  .dir-btn:hover {
+    background: var(--ui-hover);
+    border-color: var(--ui-border-default);
+    color: var(--ui-text-primary);
+  }
+
+  .dir-btn.active {
+    background: var(--ui-hover-high);
+    border-color: var(--ui-text-accent);
+    color: var(--ui-text-accent);
+  }
+
+  .angle-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-2);
+  }
+
+  .angle-input {
+    width: 3rem;
+    padding: var(--ui-space-2) var(--ui-space-4);
+    background: var(--ui-surface-lowest);
+    border: 1px solid var(--ui-border-subtle);
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-primary);
+    font-size: var(--ui-font-size-xs);
+    font-family: var(--ui-font-mono);
+    text-align: right;
+    -moz-appearance: textfield;
+  }
+
+  .angle-input::-webkit-inner-spin-button,
+  .angle-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .angle-unit {
+    font-size: var(--ui-font-size-xs);
+    color: var(--ui-text-muted);
   }
 </style>

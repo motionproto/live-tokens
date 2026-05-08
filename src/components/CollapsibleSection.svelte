@@ -46,6 +46,7 @@
    :global(:root) {
       /* Default */
       --collapsiblesection-default-surface: var(--surface-canvas);
+      --collapsiblesection-default-border: transparent;
       --collapsiblesection-default-border-width: var(--border-width-thick);
       --collapsiblesection-default-radius: var(--radius-none);
       --collapsiblesection-default-padding: var(--space-4);
@@ -54,11 +55,10 @@
       --collapsiblesection-default-label-font-size: var(--font-size-md);
       --collapsiblesection-default-label-font-weight: var(--font-weight-normal);
       --collapsiblesection-default-label-line-height: var(--line-height-normal);
-      --collapsiblesection-default-icon: var(--text-muted);
-      --collapsiblesection-default-icon-size: var(--font-size-xs);
 
       /* Hover */
       --collapsiblesection-hover-surface: var(--surface-canvas);
+      --collapsiblesection-hover-border: transparent;
       --collapsiblesection-hover-border-width: var(--border-width-thick);
       --collapsiblesection-hover-radius: var(--radius-none);
       --collapsiblesection-hover-padding: var(--space-4);
@@ -67,8 +67,6 @@
       --collapsiblesection-hover-label-font-size: var(--font-size-md);
       --collapsiblesection-hover-label-font-weight: var(--font-weight-normal);
       --collapsiblesection-hover-label-line-height: var(--line-height-normal);
-      --collapsiblesection-hover-icon: var(--text-muted);
-      --collapsiblesection-hover-icon-size: var(--font-size-xs);
 
       /* Active */
       --collapsiblesection-active-surface: var(--surface-canvas-low);
@@ -81,8 +79,6 @@
       --collapsiblesection-active-label-font-size: var(--font-size-md);
       --collapsiblesection-active-label-font-weight: var(--font-weight-normal);
       --collapsiblesection-active-label-line-height: var(--line-height-normal);
-      --collapsiblesection-active-icon: var(--text-muted);
-      --collapsiblesection-active-icon-size: var(--font-size-xs);
    }
 
    .section-header {
@@ -91,7 +87,7 @@
       gap: var(--space-12);
       @include themed-padding(--collapsiblesection-default-padding, $h: 2);
       background: var(--collapsiblesection-default-surface);
-      border-left: var(--collapsiblesection-default-border-width) solid transparent;
+      border-left: var(--collapsiblesection-default-border-width) solid var(--collapsiblesection-default-border);
       border-radius: var(--collapsiblesection-default-radius);
       cursor: pointer;
       text-decoration: none;
@@ -102,20 +98,16 @@
       &.force-hover {
          background: var(--collapsiblesection-hover-surface);
          @include themed-padding(--collapsiblesection-hover-padding, $h: 2);
-         border-left-width: var(--collapsiblesection-hover-border-width);
+         border-left: var(--collapsiblesection-hover-border-width) solid var(--collapsiblesection-hover-border);
          border-radius: var(--collapsiblesection-hover-radius);
 
-         .section-label {
+         .section-label,
+         .toggle-icon {
             color: var(--collapsiblesection-hover-label);
             font-family: var(--collapsiblesection-hover-label-font-family);
             font-size: var(--collapsiblesection-hover-label-font-size);
             font-weight: var(--collapsiblesection-hover-label-font-weight);
             line-height: var(--collapsiblesection-hover-label-line-height);
-         }
-
-         .toggle-icon {
-            color: var(--collapsiblesection-hover-icon);
-            font-size: var(--collapsiblesection-hover-icon-size);
          }
       }
 
@@ -129,17 +121,13 @@
          border-left: var(--collapsiblesection-active-border-width) solid var(--collapsiblesection-active-border);
          border-radius: var(--collapsiblesection-active-radius);
 
-         .section-label {
+         .section-label,
+         .toggle-icon {
             color: var(--collapsiblesection-active-label);
             font-family: var(--collapsiblesection-active-label-font-family);
             font-size: var(--collapsiblesection-active-label-font-size);
             font-weight: var(--collapsiblesection-active-label-font-weight);
             line-height: var(--collapsiblesection-active-label-line-height);
-         }
-
-         .toggle-icon {
-            color: var(--collapsiblesection-active-icon);
-            font-size: var(--collapsiblesection-active-icon-size);
          }
       }
    }
@@ -159,8 +147,8 @@
       }
 
       .toggle-icon {
-         font-size: var(--collapsiblesection-default-icon-size);
-         color: var(--collapsiblesection-default-icon);
+         font-size: var(--collapsiblesection-default-label-font-size);
+         color: var(--collapsiblesection-default-label);
          transition: transform var(--transition-fast);
       }
    }

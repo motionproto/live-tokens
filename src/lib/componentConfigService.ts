@@ -6,7 +6,7 @@ import { versionedFileResource } from './files/versionedFileResource';
  * but scoped to `/api/component-configs/*`. Each component (button, card, …)
  * has its own lifecycle: default.json (generated from the `.svelte` source),
  * plus user-authored named configs, each with its own active / production
- * pointer and _backups directory.
+ * pointer.
  *
  * Both this and `themeService` consume `versionedFileResource(...)`. Adding a
  * third file-managed resource — per the user's "mirror theme-file lifecycle

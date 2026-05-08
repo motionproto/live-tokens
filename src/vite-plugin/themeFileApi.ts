@@ -5,7 +5,6 @@ import { extractGlobalRootBody } from '../lib/parsers/globalRootBlock';
 import { sanitizeFileName } from '../lib/files/versionedFileResource';
 import {
   versionedFileResourceServer,
-  trimFlatBackups,
   type VersionedFileResourceServer,
 } from './files/versionedFileResource';
 import { dispatch, type Route } from './files/routeTable';
@@ -14,8 +13,6 @@ export interface ThemeFileApiOptions {
   themesDir: string;           // required, e.g. 'themes' (relative to cwd, resolved with path.resolve)
   tokensCssPath: string;       // required, e.g. 'src/styles/tokens.css'
   fontsCssPath?: string;       // default: sibling of tokensCssPath named 'fonts.css'
-  themesBackupDir?: string;    // default: `${themesDir}/_backups`
-  cssBackupDir?: string;       // default: path.join(path.dirname(tokensCssPath), '_backups')
   apiBase?: string;            // default: '/api'. Must be a simple '/path' without regex metacharacters.
   componentConfigsDir?: string; // default: 'component-configs'
   componentsSrcDir?: string;   // default: 'src/components'
@@ -27,12 +24,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const FONTS_CSS_PATH = opts.fontsCssPath
     ? path.resolve(opts.fontsCssPath)
     : path.join(path.dirname(CSS_PATH), 'fonts.css');
-  const THEMES_BACKUP_DIR = opts.themesBackupDir
-    ? path.resolve(opts.themesBackupDir)
-    : path.join(THEMES_DIR, '_backups');
-  const CSS_BACKUP_DIR = opts.cssBackupDir
-    ? path.resolve(opts.cssBackupDir)
-    : path.join(path.dirname(CSS_PATH), '_backups');
   const API_BASE = opts.apiBase ?? '/api';
   const COMPONENT_CONFIGS_DIR = opts.componentConfigsDir
     ? path.resolve(opts.componentConfigsDir)
@@ -41,10 +32,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     ? path.resolve(opts.componentsSrcDir)
     : path.resolve('src/components');
 
-  // Themes resource — list/load/save/delete + active/production + backups.
+  // Themes resource — list/load/save/delete + active/production.
   const themesResource = versionedFileResourceServer({
     dir: THEMES_DIR,
-    backupDir: THEMES_BACKUP_DIR,
   });
 
   // Per-component resources are constructed on demand because the set of
@@ -72,17 +62,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       fs.writeFileSync(path.join(THEMES_DIR, 'default.json'), JSON.stringify(defaultTheme, null, 2));
     }
     themesResource.ensureMeta();
-  }
-
-  function backupCssFile() {
-    if (!fs.existsSync(CSS_PATH)) return;
-    if (!fs.existsSync(CSS_BACKUP_DIR)) {
-      fs.mkdirSync(CSS_BACKUP_DIR, { recursive: true });
-    }
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupPath = path.join(CSS_BACKUP_DIR, `tokens_${timestamp}.css`);
-    fs.copyFileSync(CSS_PATH, backupPath);
-    trimFlatBackups(CSS_BACKUP_DIR, 'tokens', 'css');
   }
 
   function readBody(req: any): Promise<string> {
@@ -177,7 +156,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       );
     }
 
-    backupCssFile();
     fs.writeFileSync(CSS_PATH, finalContent);
     console.log(`[syncTokensToCss] Wrote ${Object.keys(cssVars).length} variables from "${fileName}" into tokens.css`);
   }
@@ -229,7 +207,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // ── Component-configs helpers ─────────────────────────────────────────────
   //
   // Each component under `src/components/*.svelte` has an independent editor
-  // artifact: component-configs/{comp}/{default.json,_active.json,_production.json,_backups/}.
+  // artifact: component-configs/{comp}/{default.json,_active.json,_production.json}.
   // default.json is regenerated from the component's `:global(:root)` block at
   // dev startup and on HMR; other files are user-authored.
 
@@ -379,7 +357,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       cssContent = cssContent.replace(/\n*$/, '') + block;
     }
 
-    backupCssFile();
     fs.writeFileSync(CSS_PATH, cssContent);
     console.log(
       `[syncComponentsToCss] Wrote ${lines.filter((l) => !l.trim().startsWith('/*')).length} alias override(s) to tokens.css`,
@@ -392,12 +369,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const THEMES_ROUTE = `${API_BASE}/themes`;
   const THEMES_ACTIVE_ROUTE = `${API_BASE}/themes/active`;
   const THEMES_PRODUCTION_ROUTE = `${API_BASE}/themes/production`;
-  const BACKUPS_ROUTE = `${API_BASE}/backups`;
-  const CURRENT_CSS_ROUTE = `${API_BASE}/current-css`;
   const COMPONENT_CONFIGS_ROUTE = `${API_BASE}/component-configs`;
   const THEME_BY_NAME_REGEX = new RegExp(`^${escapedBase}/themes/([a-z0-9\\-_]+)$`);
-  const BACKUP_GET_REGEX = new RegExp(`^${escapedBase}/backups/(themes|css|component-configs)/(.+)$`);
-  const BACKUP_RESTORE_REGEX = new RegExp(`^${escapedBase}/backups/(themes|css|component-configs)/(.+)/restore$`);
   const COMP_LIST_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)$`);
   const COMP_ACTIVE_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/active$`);
   const COMP_PRODUCTION_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/production$`);
@@ -408,10 +381,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // catch. Order in the routes table matters: the active/production patterns
   // MUST appear before the catch-all `:name` patterns (the table replaces
   // the previous "warning comment" with explicit ordering).
-
-  function fileTimestampToISO(ts: string): string {
-    return ts.replace(/T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z/, 'T$1:$2:$3.$4Z');
-  }
 
   // ── /api/themes ──────────────────────────────────────────────────────────
 
@@ -519,8 +488,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         } catch { /* use body value or set below */ }
       }
       if (!body.createdAt) body.createdAt = body.updatedAt;
-      // Backup existing file before overwriting
-      themesResource.backup(filePath, fileName);
       fs.writeFileSync(filePath, JSON.stringify(body, null, 2));
       // Keep tokens.css and fonts.css in sync when the production theme is saved
       if (fileName === themesResource.getProductionName()) {
@@ -547,167 +514,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       jsonResponse(res, 200, { ok: true });
       return;
     }
-  }
-
-  // ── /api/backups ─────────────────────────────────────────────────────────
-
-  async function handleListBackups({ res }: any) {
-    const backups: { type: string; file: string; name: string; timestamp: string; size: number }[] = [];
-
-    // Theme backups
-    if (fs.existsSync(THEMES_BACKUP_DIR)) {
-      for (const f of fs.readdirSync(THEMES_BACKUP_DIR)) {
-        if (!f.endsWith('.json')) continue;
-        const match = f.match(/^(.+)_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z)\.json$/);
-        if (!match) continue;
-        const stat = fs.statSync(path.join(THEMES_BACKUP_DIR, f));
-        backups.push({
-          type: 'themes',
-          file: f,
-          name: match[1],
-          timestamp: fileTimestampToISO(match[2]),
-          size: stat.size,
-        });
-      }
-    }
-
-    // CSS backups
-    if (fs.existsSync(CSS_BACKUP_DIR)) {
-      for (const f of fs.readdirSync(CSS_BACKUP_DIR)) {
-        if (!f.endsWith('.css')) continue;
-        const match = f.match(/^(.+)_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z)\.css$/);
-        if (!match) continue;
-        const stat = fs.statSync(path.join(CSS_BACKUP_DIR, f));
-        backups.push({
-          type: 'css',
-          file: f,
-          name: match[1],
-          timestamp: fileTimestampToISO(match[2]),
-          size: stat.size,
-        });
-      }
-    }
-
-    // Component-config backups (one _backups dir per component)
-    if (fs.existsSync(COMPONENT_CONFIGS_DIR)) {
-      for (const comp of fs.readdirSync(COMPONENT_CONFIGS_DIR)) {
-        const compBackupDir = componentResource(comp).backupDir;
-        if (!fs.existsSync(compBackupDir)) continue;
-        for (const f of fs.readdirSync(compBackupDir)) {
-          if (!f.endsWith('.json')) continue;
-          const match = f.match(/^(.+)_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z)\.json$/);
-          if (!match) continue;
-          const stat = fs.statSync(path.join(compBackupDir, f));
-          backups.push({
-            type: 'component-configs',
-            file: `${comp}/${f}`,
-            name: `${comp}/${match[1]}`,
-            timestamp: fileTimestampToISO(match[2]),
-            size: stat.size,
-          });
-        }
-      }
-    }
-
-    // Sort newest first
-    backups.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
-    jsonResponse(res, 200, { backups });
-  }
-
-  async function handleRestoreBackup({ params, res }: any) {
-    const [type, file] = params;
-    if (type === 'css') {
-      const backupPath = path.join(CSS_BACKUP_DIR, decodeURIComponent(file));
-      if (!backupPath.startsWith(CSS_BACKUP_DIR) || !fs.existsSync(backupPath)) {
-        jsonResponse(res, 404, { error: 'Backup not found' });
-        return;
-      }
-      // Backup current before restoring
-      backupCssFile();
-      fs.copyFileSync(backupPath, CSS_PATH);
-      jsonResponse(res, 200, { ok: true, restored: file });
-      return;
-    }
-
-    if (type === 'component-configs') {
-      const decoded = decodeURIComponent(file);
-      const slash = decoded.indexOf('/');
-      if (slash === -1) {
-        jsonResponse(res, 400, { error: 'Malformed component-configs backup path' });
-        return;
-      }
-      const comp = decoded.slice(0, slash);
-      const backupFile = decoded.slice(slash + 1);
-      const r = componentResource(comp);
-      const backupPath = path.join(r.backupDir, backupFile);
-      if (!backupPath.startsWith(r.backupDir) || !fs.existsSync(backupPath)) {
-        jsonResponse(res, 404, { error: 'Backup not found' });
-        return;
-      }
-      const nameMatch = backupFile.match(/^(.+)_\d{4}-/);
-      if (!nameMatch) {
-        jsonResponse(res, 400, { error: 'Cannot determine config name from backup' });
-        return;
-      }
-      const configFilePath = r.filePath(nameMatch[1]);
-      r.backup(configFilePath, nameMatch[1]);
-      fs.copyFileSync(backupPath, configFilePath);
-      jsonResponse(res, 200, { ok: true, restored: file });
-      return;
-    }
-
-    // themes
-    const backupPath = path.join(THEMES_BACKUP_DIR, decodeURIComponent(file));
-    if (!backupPath.startsWith(THEMES_BACKUP_DIR) || !fs.existsSync(backupPath)) {
-      jsonResponse(res, 404, { error: 'Backup not found' });
-      return;
-    }
-    const nameMatch = decodeURIComponent(file).match(/^(.+)_\d{4}-/);
-    if (!nameMatch) {
-      jsonResponse(res, 400, { error: 'Cannot determine theme name from backup' });
-      return;
-    }
-    const themeFilePath = themesResource.filePath(nameMatch[1]);
-    themesResource.backup(themeFilePath, nameMatch[1]);
-    fs.copyFileSync(backupPath, themeFilePath);
-    jsonResponse(res, 200, { ok: true, restored: file });
-  }
-
-  async function handleGetBackup({ params, res }: any) {
-    const [type, file] = params;
-    let filePath: string;
-    let dir: string;
-    if (type === 'css') {
-      dir = CSS_BACKUP_DIR;
-      filePath = path.join(dir, decodeURIComponent(file));
-    } else if (type === 'component-configs') {
-      const decoded = decodeURIComponent(file);
-      const slash = decoded.indexOf('/');
-      if (slash === -1) {
-        jsonResponse(res, 400, { error: 'Malformed component-configs backup path' });
-        return;
-      }
-      const comp = decoded.slice(0, slash);
-      const backupFile = decoded.slice(slash + 1);
-      dir = componentResource(comp).backupDir;
-      filePath = path.join(dir, backupFile);
-    } else {
-      dir = THEMES_BACKUP_DIR;
-      filePath = path.join(dir, decodeURIComponent(file));
-    }
-    if (!filePath.startsWith(dir) || !fs.existsSync(filePath)) {
-      jsonResponse(res, 404, { error: 'Backup not found' });
-      return;
-    }
-    const content = fs.readFileSync(filePath, 'utf-8');
-    jsonResponse(res, 200, { content, type, file });
-  }
-
-  // ── /api/current-css ─────────────────────────────────────────────────────
-
-  async function handleGetCurrentCss({ res }: any) {
-    const content = fs.readFileSync(CSS_PATH, 'utf-8');
-    jsonResponse(res, 200, { content });
   }
 
   // ── /api/component-configs ───────────────────────────────────────────────
@@ -818,7 +624,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       }
       if (!body.createdAt) body.createdAt = body.updatedAt;
       r.ensureDir();
-      r.backup(configPath, name);
       fs.writeFileSync(configPath, JSON.stringify(body, null, 2));
       if (r.getProductionName() === name) {
         syncComponentsToCss();
@@ -887,9 +692,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   //   1. The active/production patterns must precede COMP_BY_NAME_REGEX so
   //      `/api/component-configs/button/active` doesn't match `:comp/:name`
   //      with `name='active'`.
-  //   2. Backup-restore must precede backup-get because the restore URL also
-  //      matches BACKUP_GET_REGEX (`.../restore` is a valid `(.+)`).
-  //   3. COMP_LIST_REGEX (`/api/component-configs/:comp`) must come after the
+  //   2. COMP_LIST_REGEX (`/api/component-configs/:comp`) must come after the
   //      :comp/:name routes because the latter is more specific.
   const routes: Route[] = [
     // Themes — list / active / production are exact strings, must run before THEME_BY_NAME_REGEX
@@ -898,15 +701,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     { method: 'PUT',    pattern: THEMES_ACTIVE_ROUTE,     handler: handleSetActiveTheme },
     { method: 'GET',    pattern: THEMES_PRODUCTION_ROUTE, handler: handleGetProductionTheme },
     { method: 'PUT',    pattern: THEMES_PRODUCTION_ROUTE, handler: handleSetProductionTheme },
-
-    // Backups
-    { method: 'GET',    pattern: BACKUPS_ROUTE,           handler: handleListBackups },
-    // Restore must precede the generic backup-get regex (the restore URL also matches it).
-    { method: 'POST',   pattern: BACKUP_RESTORE_REGEX,    handler: handleRestoreBackup },
-    { method: 'GET',    pattern: BACKUP_GET_REGEX,        handler: handleGetBackup },
-
-    // Current CSS
-    { method: 'GET',    pattern: CURRENT_CSS_ROUTE,       handler: handleGetCurrentCss },
 
     // Component configs — list of components
     { method: 'GET',    pattern: COMPONENT_CONFIGS_ROUTE, handler: handleListComponents },

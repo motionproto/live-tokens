@@ -70,7 +70,7 @@ flowchart LR
     end
 
     subgraph Server["Vite dev plugin"]
-        API["/api/themes<br/>/api/component-configs<br/>/api/backups"]
+        API["/api/themes<br/>/api/component-configs"]
         FS[("themes/*.json<br/>component-configs/*/<br/>tokens.css")]
     end
 
@@ -126,18 +126,18 @@ src/
 ├── ui/                     — neutral primitives + design-system editor surfaces
 │   ├── VariablesTab.svelte / SurfacesTab.svelte / TextTab.svelte / VisualsTab.svelte
 │   ├── PaletteEditor.svelte / GradientEditor.svelte / ColorEditPanel.svelte
-│   ├── ThemeFileManager.svelte / BackupBrowser.svelte
+│   ├── ThemeFileManager.svelte
 │   └── UI*Selector.svelte  — token-aware form controls
 ├── component-editor/       — per-component editors + scaffolding
 │   ├── registry.ts         — single source of truth for the component list
 │   ├── scaffolding/        — ComponentEditorBase, VariantGroup, TokenLayout, …
 │   └── <Foo>Editor.svelte  — one per component
 ├── components/             — runtime components (Button, Dialog, Tooltip, …)
-├── styles/                 — tokens.css, fonts.css, form-controls.css, _backups/
+├── styles/                 — tokens.css, fonts.css, form-controls.css
 ├── data/                   — google-fonts.json
 └── vite-plugin/            — themeFileApi entry + route table + file resources
 
-themes/                     — *.json theme files (active/production/backups)
+themes/                     — *.json theme files (active/production pointers)
 component-configs/<id>/     — *.json per-component alias/config files
 ```
 

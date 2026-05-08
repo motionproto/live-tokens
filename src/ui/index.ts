@@ -30,4 +30,3 @@ export { default as ProjectFontsSection } from './ProjectFontsSection.svelte';
 
 // Theme persistence UI
 export { default as ThemeFileManager } from './ThemeFileManager.svelte';
-export { default as BackupBrowser } from './BackupBrowser.svelte';

@@ -1,5 +1,5 @@
 <script lang="ts" generics="T extends { key: string; label?: string; value?: string }">
-  import { onMount, createEventDispatcher } from 'svelte';
+  import { createEventDispatcher } from 'svelte';
   import { resolveAliasChain } from '../lib/tokenRegistry';
   import UITokenSelector from './UITokenSelector.svelte';
   import UIOptionList from './UIOptionList.svelte';
@@ -84,7 +84,14 @@
     dispatch('change');
   }
 
-  onMount(initFromCurrent);
+  // Re-derive `chosenKey` when the bound `variable` changes (e.g. when a
+  // VariantGroup tabs view reuses the same selector across states). Without
+  // this, prop swaps leave the trigger label stale.
+  let lastSeenVariable: string | null = null;
+  $: if (variable !== lastSeenVariable) {
+    lastSeenVariable = variable;
+    initFromCurrent();
+  }
 
   $: activeOption = (options.find((o) => o.key === chosenKey) ?? null) as T | null;
 </script>

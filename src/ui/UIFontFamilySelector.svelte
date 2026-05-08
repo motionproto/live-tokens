@@ -139,8 +139,15 @@
     dispatch('change');
   }
 
-  onMount(() => {
+  // Re-derive `chosenKey` / `chosenFamilyId` when `variable` changes (the
+  // VariantGroup tabs view reuses the same selector instance across states).
+  let lastSeenVariable: string | null = null;
+  $: if (variable !== lastSeenVariable) {
+    lastSeenVariable = variable;
     initFromCurrent();
+  }
+
+  onMount(() => {
     document.addEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
   });
   onDestroy(() => {

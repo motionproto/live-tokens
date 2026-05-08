@@ -1,17 +1,17 @@
 {
-  "name": "default",
+  "name": "default_01",
   "component": "collapsiblesection",
-  "createdAt": "2026-04-18T02:43:11.329Z",
-  "updatedAt": "2026-05-08T14:59:22.481Z",
+  "createdAt": "2026-05-08T14:51:33.738Z",
+  "updatedAt": "2026-05-08T14:51:33.743Z",
   "aliases": {
-    "--collapsiblesection-default-surface": "--surface-canvas",
+    "--collapsiblesection-default-surface": "--surface-canvas-high",
     "--collapsiblesection-default-border-width": "--border-width-thick",
     "--collapsiblesection-default-radius": "--radius-none",
     "--collapsiblesection-default-padding": "--space-4",
     "--collapsiblesection-default-label": "--text-primary",
     "--collapsiblesection-default-label-font-family": "--font-sans",
     "--collapsiblesection-default-label-font-size": "--font-size-md",
-    "--collapsiblesection-default-label-font-weight": "--font-weight-normal",
+    "--collapsiblesection-default-label-font-weight": "--font-weight-bold",
     "--collapsiblesection-default-label-line-height": "--line-height-normal",
     "--collapsiblesection-hover-surface": "--surface-canvas",
     "--collapsiblesection-hover-border-width": "--border-width-thick",
@@ -20,7 +20,7 @@
     "--collapsiblesection-hover-label": "--text-primary",
     "--collapsiblesection-hover-label-font-family": "--font-sans",
     "--collapsiblesection-hover-label-font-size": "--font-size-md",
-    "--collapsiblesection-hover-label-font-weight": "--font-weight-normal",
+    "--collapsiblesection-hover-label-font-weight": "--font-weight-bold",
     "--collapsiblesection-hover-label-line-height": "--line-height-normal",
     "--collapsiblesection-active-surface": "--surface-canvas-low",
     "--collapsiblesection-active-border": "--color-primary-400",
@@ -30,7 +30,9 @@
     "--collapsiblesection-active-label": "--text-primary",
     "--collapsiblesection-active-label-font-family": "--font-sans",
     "--collapsiblesection-active-label-font-size": "--font-size-md",
-    "--collapsiblesection-active-label-font-weight": "--font-weight-normal",
+    "--collapsiblesection-active-label-font-weight": "--font-weight-bold",
     "--collapsiblesection-active-label-line-height": "--line-height-normal"
-  }
+  },
+  "config": {},
+  "schemaVersion": 2
 }

@@ -40,7 +40,6 @@
 </script>
 
 <script lang="ts">
-  import Button from '../components/Button.svelte';
   import Tooltip from '../components/Tooltip.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
@@ -64,15 +63,18 @@
   >
     <ShadowBackdrop mode={bgMode} colorVariable={bgVar}>
       <div class="tooltip-demo-row">
-        <Tooltip text="This is a top tooltip">
-          <Button variant="outline">Hover me (top)</Button>
-        </Tooltip>
-        <Tooltip text="Bottom tooltip" position="bottom">
-          <Button variant="outline">Hover me (bottom)</Button>
-        </Tooltip>
-        <Tooltip text="Tooltips work on any element">
-          <span class="tooltip-demo-text">Hover this text</span>
-        </Tooltip>
+        <div class="tooltip-demo-block">
+          <Tooltip text="Always visible tooltip" open>
+            <span class="tooltip-demo-target">Always shown</span>
+          </Tooltip>
+          <span class="tooltip-demo-caption">always shown</span>
+        </div>
+        <div class="tooltip-demo-block">
+          <Tooltip text="Hover-only tooltip" position="bottom">
+            <span class="tooltip-demo-target">Hover to reveal</span>
+          </Tooltip>
+          <span class="tooltip-demo-caption">on hover</span>
+        </div>
       </div>
     </ShadowBackdrop>
   </VariantGroup>
@@ -81,15 +83,33 @@
 <style>
   .tooltip-demo-row {
     display: flex;
-    gap: var(--space-24);
-    align-items: center;
-    padding-top: var(--space-32);
+    gap: var(--space-48);
+    align-items: flex-start;
+    justify-content: center;
+    padding: var(--space-48) 0;
   }
 
-  .tooltip-demo-text {
+  .tooltip-demo-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-12);
+  }
+
+  .tooltip-demo-target {
+    display: inline-block;
+    padding: var(--space-8) var(--space-16);
     color: var(--ui-text-secondary);
-    text-decoration: underline;
-    text-decoration-style: dotted;
-    cursor: help;
+    font-size: var(--font-size-sm);
+    border: 1px dashed var(--ui-border-subtle);
+    border-radius: var(--radius-sm);
+    background: transparent;
+  }
+
+  .tooltip-demo-caption {
+    color: var(--ui-text-tertiary);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 </style>
