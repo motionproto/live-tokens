@@ -6,7 +6,7 @@
   import { listComponents } from '../lib/componentConfigService';
 
   let selectedComponent = 'button';
-  let drawerOpen = false;
+  let drawerOpen = true;
 
   // Demo page is statically imported from `./Demo.svelte` in App.svelte; the
   // glob resolves to an empty object if the file has been deleted, in which
