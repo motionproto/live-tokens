@@ -20,6 +20,11 @@
   export let component: string | undefined = undefined;
   /** Per-variable rank passed through to TokenLayout for linked-block alignment. */
   export let linkedOrder: Map<string, number> | undefined = undefined;
+  /** Render the token grid with N visual columns. >1 spreads a long property
+      list horizontally; only meaningful for state-blocks without typeGroups
+      (the two-col flex layout already partitions screen real estate when
+      typeGroups are present). */
+  export let columns: number = 1;
 
   $: hasTypeGroups = typeGroups.length > 0;
 </script>
@@ -51,6 +56,7 @@
     {tokens}
     {component}
     {linkedOrder}
+    {columns}
     on:change
   />
 </div>

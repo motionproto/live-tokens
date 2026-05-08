@@ -107,7 +107,7 @@ Component tokens *reference* theme tokens. They're how a component names its own
 | `-height`      | Explicit height when `-width`'s sibling would collide under name-based fallback grouping |
 | `-color`       | Generic color when none of the role words fits (rare)        |
 
-**Why `thickness` and `height` sometimes stand in for `width`:** when an editor declares no explicit `groupKey` for a token, sibling grouping falls back to matching the final `-<property>` segment. If two unrelated slots both end in `-width` and neither has a `groupKey`, they get auto-grouped. Either declare a `groupKey` per token in the editor (preferred) or use an alternative property word. The divider in SegmentedControl uses `--segmentedcontrol-divider-thickness` for legacy parity with the fallback rule, but it now also has `groupKey: 'divider-thickness'` declared in the editor. The `groupKey` is the source of truth.
+**Why `thickness` and `height` sometimes stand in for `width`:** when an editor declares no explicit `groupKey` for a token, sibling grouping falls back to matching the final `-<property>` segment. If two unrelated slots both end in `-width` and neither has a `groupKey`, they get auto-linked. Either declare a `groupKey` per token in the editor (preferred) or use an alternative property word. The divider in SegmentedControl uses `--segmentedcontrol-divider-thickness` for legacy parity with the fallback rule, but it now also has `groupKey: 'divider-thickness'` declared in the editor. The `groupKey` is the source of truth.
 
 ### State order matters
 
@@ -118,16 +118,31 @@ State comes **before** the property, not after:
 --inlineeditactions-save-surface-hover    ✗  breaks sibling matching and reads oddly
 ```
 
-### Shareable siblings (the link toggle)
+### Linked siblings (the link toggle)
 
-Tokens that share a `groupKey` form a **sibling set**. A property declared `canBeShared: true` in the editor shows a link toggle that lets the user broadcast one value across every sibling. So in SegmentedControl:
+Tokens that share a `groupKey` form a **sibling set**. A property declared `canBeLinked: true` in the editor shows a link toggle that lets the user broadcast one value across every sibling. So in SegmentedControl:
 
 - `--segmentedcontrol-bar-border-width` and `--segmentedcontrol-selected-border-width` share `groupKey: 'border-width'`.
 - `--segmentedcontrol-option-text-font-weight`, `--segmentedcontrol-option-disabled-text-font-weight`, and `--segmentedcontrol-selected-text-font-weight` share `groupKey: 'font-weight'`.
 
 Editor authors declare `groupKey` per token in the editor's token list (and call `registerComponentSchema(component, tokens)` once at module load). The store consults the schema first; for unmigrated editors with no schema entry, it falls back to matching the last `-<property>` segment. Tokens with neither a `groupKey` nor a colliding name suffix are solo.
 
-The `unlinked` array on a `ComponentSlice` stores the `groupKey` strings the user has explicitly unlinked.
+Linkage is **dev-declared** — the editor schema is the source of truth for which variables share a `groupKey`. Users only choose whether to opt out of an existing link (per-property), never to add or reshape one.
+
+The `unlinked` array on a `ComponentSlice` stores the variable names the user has explicitly detached. The remaining declared siblings stay linked to each other; an unlinked variable rejoins via `setComponentAliasLinked` or `relinkComponentProperty`.
+
+### Typography slot scoping
+
+When a component declares more than one typography slot — e.g. a notification with separate `title` and `text` slots — every typography `groupKey` (`font-family`, `font-size`, `font-weight`, `line-height`) **must** include the slot name as a prefix:
+
+```
+groupKey: 'title-font-family', 'text-font-family'   ✓  one link tree per slot
+groupKey: 'font-family'                              ✗  silently links title and text together
+```
+
+A bare typography `groupKey` like `'font-family'` is fine when the component has only one typography slot (Button has only `text`; RadioButton only `label`; CollapsibleSection only `label`). Add a slot prefix the moment the component grows a second slot.
+
+`registerComponentSchema` emits a console warning at runtime if a single `groupKey` covers variables whose name-derived slots differ. Treat that warning as a build-time error.
 
 ### When the last-dash fallback surprises you
 
@@ -135,7 +150,7 @@ For tokens without an explicit `groupKey`, the store derives one by splitting on
 
 - `--segmentedcontrol-option-text-font-weight` → fallback groupKey `weight`.
 
-So the fallback property is always the literal last segment. If you don't want a token to participate in the fallback grouping, declare an explicit `groupKey` (or omit `canBeShared`).
+So the fallback property is always the literal last segment. If you don't want a token to participate in the fallback grouping, declare an explicit `groupKey` (or omit `canBeLinked`).
 
 ## Checklist for adding a new component token
 
@@ -144,7 +159,7 @@ So the fallback property is always the literal last segment. If you don't want a
 3. Build the name as `--<componentId>-<part>[-<state>]-<property>`.
 4. Use **full words**: no `bg`, no shortened component IDs.
 5. Declare the slot in both the component's Svelte `<style>` (`--tok: var(--theme-alias);`) and the config JSON (`"--tok": "--theme-alias"`).
-6. If the slot should link across variants, add `canBeShared: true` and `groupKey: '<your-key>'` in the editor's token list. Siblings are tokens that share the same `groupKey`. Pick a `groupKey` that names the kind of property (`radius`, `border-width`, `font-weight`, `font-family`, etc.); a unique key isolates a token from any other.
+6. If the slot should link across variants, add `canBeLinked: true` and `groupKey: '<your-key>'` in the editor's token list. Siblings are tokens that share the same `groupKey`. Pick a `groupKey` that names the kind of property (`radius`, `border-width`, `font-weight`, `font-family`, etc.); a unique key isolates a token from any other. For typography on multi-slot components, prefix the slot name (see "Typography slot scoping").
 7. Make sure the editor calls `registerComponentSchema(component, tokens)` once at module load so the store sees the explicit groupKeys.
 
 ## What's still pending

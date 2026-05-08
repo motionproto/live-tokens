@@ -42,7 +42,9 @@
   {/each}
 </div>
 
-<style>
+<style lang="scss">
+  @use '../styles/padding' as *;
+
   :global(:root) {
     /* Bar (outer wrapper) */
     --segmentedcontrol-bar-surface: var(--surface-neutral-high);
@@ -100,11 +102,7 @@
     display: inline-flex;
     align-items: stretch;
     gap: var(--segmentedcontrol-bar-gap);
-    padding:
-      var(--segmentedcontrol-bar-padding-top, var(--segmentedcontrol-bar-padding))
-      var(--segmentedcontrol-bar-padding-right, var(--segmentedcontrol-bar-padding))
-      var(--segmentedcontrol-bar-padding-bottom, var(--segmentedcontrol-bar-padding))
-      var(--segmentedcontrol-bar-padding-left, var(--segmentedcontrol-bar-padding));
+    @include themed-padding(--segmentedcontrol-bar-padding);
     background: var(--segmentedcontrol-bar-surface);
     border: var(--segmentedcontrol-bar-border-width) solid var(--segmentedcontrol-bar-border);
     border-radius: var(--segmentedcontrol-bar-radius);

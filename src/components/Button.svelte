@@ -44,6 +44,8 @@
 </button>
 
 <style lang="scss">
+   @use '../styles/padding' as *;
+
    :global(:root) {
       /* Shared — set to `none` to disable the hover shimmer sweep */
       --button-shimmer: block;
@@ -263,7 +265,7 @@
          color: var(--button-primary-text);
          border: var(--button-primary-border-width) solid var(--button-primary-border);
          border-radius: var(--button-primary-radius);
-         padding: var(--button-primary-padding) calc(var(--button-primary-padding) * 2);
+         @include themed-padding(--button-primary-padding, $h: 2);
          font-family: var(--button-primary-text-font-family);
          font-size: var(--button-primary-text-font-size);
          font-weight: var(--button-primary-text-font-weight);
@@ -281,7 +283,7 @@
             background: var(--button-primary-hover-surface);
             border: var(--button-primary-hover-border-width) solid var(--button-primary-hover-border);
             border-radius: var(--button-primary-hover-radius);
-            padding: var(--button-primary-hover-padding) calc(var(--button-primary-hover-padding) * 2);
+            @include themed-padding(--button-primary-hover-padding, $h: 2);
             color: var(--button-primary-hover-text);
          }
 
@@ -293,7 +295,7 @@
             background: var(--button-primary-disabled-surface);
             border: var(--button-primary-disabled-border-width) solid var(--button-primary-disabled-border);
             border-radius: var(--button-primary-disabled-radius);
-            padding: var(--button-primary-disabled-padding) calc(var(--button-primary-disabled-padding) * 2);
+            @include themed-padding(--button-primary-disabled-padding, $h: 2);
             color: var(--button-primary-disabled-text);
          }
       }
@@ -304,7 +306,7 @@
          color: var(--button-secondary-text);
          border: var(--button-secondary-border-width) solid var(--button-secondary-border);
          border-radius: var(--button-secondary-radius);
-         padding: var(--button-secondary-padding) calc(var(--button-secondary-padding) * 2);
+         @include themed-padding(--button-secondary-padding, $h: 2);
          font-family: var(--button-secondary-text-font-family);
          font-size: var(--button-secondary-text-font-size);
          font-weight: var(--button-secondary-text-font-weight);
@@ -322,7 +324,7 @@
             background: var(--button-secondary-hover-surface);
             border: var(--button-secondary-hover-border-width) solid var(--button-secondary-hover-border);
             border-radius: var(--button-secondary-hover-radius);
-            padding: var(--button-secondary-hover-padding) calc(var(--button-secondary-hover-padding) * 2);
+            @include themed-padding(--button-secondary-hover-padding, $h: 2);
             color: var(--button-secondary-hover-text);
          }
 
@@ -330,7 +332,7 @@
             background: var(--button-secondary-disabled-surface);
             border: var(--button-secondary-disabled-border-width) solid var(--button-secondary-disabled-border);
             border-radius: var(--button-secondary-disabled-radius);
-            padding: var(--button-secondary-disabled-padding) calc(var(--button-secondary-disabled-padding) * 2);
+            @include themed-padding(--button-secondary-disabled-padding, $h: 2);
             color: var(--button-secondary-disabled-text);
          }
       }
@@ -341,7 +343,7 @@
          color: var(--button-outline-text);
          border: var(--button-outline-border-width) solid var(--button-outline-border);
          border-radius: var(--button-outline-radius);
-         padding: var(--button-outline-padding) calc(var(--button-outline-padding) * 2);
+         @include themed-padding(--button-outline-padding, $h: 2);
          font-family: var(--button-outline-text-font-family);
          font-size: var(--button-outline-text-font-size);
          font-weight: var(--button-outline-text-font-weight);
@@ -359,7 +361,7 @@
             background: var(--button-outline-hover-surface);
             border: var(--button-outline-hover-border-width) solid var(--button-outline-hover-border);
             border-radius: var(--button-outline-hover-radius);
-            padding: var(--button-outline-hover-padding) calc(var(--button-outline-hover-padding) * 2);
+            @include themed-padding(--button-outline-hover-padding, $h: 2);
             color: var(--button-outline-hover-text);
          }
 
@@ -371,7 +373,7 @@
             background: var(--button-outline-disabled-surface);
             border: var(--button-outline-disabled-border-width) solid var(--button-outline-disabled-border);
             border-radius: var(--button-outline-disabled-radius);
-            padding: var(--button-outline-disabled-padding) calc(var(--button-outline-disabled-padding) * 2);
+            @include themed-padding(--button-outline-disabled-padding, $h: 2);
             color: var(--button-outline-disabled-text);
          }
       }
@@ -381,7 +383,7 @@
          background: var(--button-success-surface);
          border: var(--button-success-border-width) solid var(--button-success-border);
          border-radius: var(--button-success-radius);
-         padding: var(--button-success-padding) calc(var(--button-success-padding) * 2);
+         @include themed-padding(--button-success-padding, $h: 2);
          color: var(--button-success-text);
          font-family: var(--button-success-text-font-family);
          font-size: var(--button-success-text-font-size);
@@ -400,7 +402,7 @@
             background: var(--button-success-hover-surface);
             border: var(--button-success-hover-border-width) solid var(--button-success-hover-border);
             border-radius: var(--button-success-hover-radius);
-            padding: var(--button-success-hover-padding) calc(var(--button-success-hover-padding) * 2);
+            @include themed-padding(--button-success-hover-padding, $h: 2);
             color: var(--button-success-hover-text);
          }
 
@@ -408,7 +410,7 @@
             background: var(--button-success-disabled-surface);
             border: var(--button-success-disabled-border-width) solid var(--button-success-disabled-border);
             border-radius: var(--button-success-disabled-radius);
-            padding: var(--button-success-disabled-padding) calc(var(--button-success-disabled-padding) * 2);
+            @include themed-padding(--button-success-disabled-padding, $h: 2);
             color: var(--button-success-disabled-text);
          }
       }
@@ -418,7 +420,7 @@
          background: var(--button-danger-surface);
          border: var(--button-danger-border-width) solid var(--button-danger-border);
          border-radius: var(--button-danger-radius);
-         padding: var(--button-danger-padding) calc(var(--button-danger-padding) * 2);
+         @include themed-padding(--button-danger-padding, $h: 2);
          color: var(--button-danger-text);
          font-family: var(--button-danger-text-font-family);
          font-size: var(--button-danger-text-font-size);
@@ -437,7 +439,7 @@
             background: var(--button-danger-hover-surface);
             border: var(--button-danger-hover-border-width) solid var(--button-danger-hover-border);
             border-radius: var(--button-danger-hover-radius);
-            padding: var(--button-danger-hover-padding) calc(var(--button-danger-hover-padding) * 2);
+            @include themed-padding(--button-danger-hover-padding, $h: 2);
             color: var(--button-danger-hover-text);
          }
 
@@ -445,7 +447,7 @@
             background: var(--button-danger-disabled-surface);
             border: var(--button-danger-disabled-border-width) solid var(--button-danger-disabled-border);
             border-radius: var(--button-danger-disabled-radius);
-            padding: var(--button-danger-disabled-padding) calc(var(--button-danger-disabled-padding) * 2);
+            @include themed-padding(--button-danger-disabled-padding, $h: 2);
             color: var(--button-danger-disabled-text);
          }
       }
@@ -455,7 +457,7 @@
          background: var(--button-warning-surface);
          border: var(--button-warning-border-width) solid var(--button-warning-border);
          border-radius: var(--button-warning-radius);
-         padding: var(--button-warning-padding) calc(var(--button-warning-padding) * 2);
+         @include themed-padding(--button-warning-padding, $h: 2);
          color: var(--button-warning-text);
          font-family: var(--button-warning-text-font-family);
          font-size: var(--button-warning-text-font-size);
@@ -474,7 +476,7 @@
             background: var(--button-warning-hover-surface);
             border: var(--button-warning-hover-border-width) solid var(--button-warning-hover-border);
             border-radius: var(--button-warning-hover-radius);
-            padding: var(--button-warning-hover-padding) calc(var(--button-warning-hover-padding) * 2);
+            @include themed-padding(--button-warning-hover-padding, $h: 2);
             color: var(--button-warning-hover-text);
          }
 
@@ -482,7 +484,7 @@
             background: var(--button-warning-disabled-surface);
             border: var(--button-warning-disabled-border-width) solid var(--button-warning-disabled-border);
             border-radius: var(--button-warning-disabled-radius);
-            padding: var(--button-warning-disabled-padding) calc(var(--button-warning-disabled-padding) * 2);
+            @include themed-padding(--button-warning-disabled-padding, $h: 2);
             color: var(--button-warning-disabled-text);
          }
       }

@@ -44,7 +44,9 @@
   {/each}
 </div>
 
-<style>
+<style lang="scss">
+  @use '../styles/padding' as *;
+
   :global(:root) {
     /* Bar */
     --tabbar-bar-divider: var(--border-neutral-subtle);
@@ -91,14 +93,14 @@
     gap: var(--space-2);
     border-bottom: var(--tabbar-bar-divider-thickness) solid var(--tabbar-bar-divider);
     border-radius: var(--tabbar-bar-radius);
-    padding: 0 var(--tabbar-bar-padding);
+    @include themed-padding(--tabbar-bar-padding, $v: 0);
   }
 
   .tab {
     display: inline-flex;
     align-items: center;
     gap: var(--space-6);
-    padding: var(--tabbar-default-padding) calc(var(--tabbar-default-padding) * 2);
+    @include themed-padding(--tabbar-default-padding, $h: 2);
     background: transparent;
     border: none;
     border-bottom: var(--tabbar-default-border-width) solid transparent;
@@ -120,7 +122,7 @@
     font-size: var(--tabbar-hover-text-font-size);
     font-weight: var(--tabbar-hover-text-font-weight);
     line-height: var(--tabbar-hover-text-line-height);
-    padding: var(--tabbar-hover-padding) calc(var(--tabbar-hover-padding) * 2);
+    @include themed-padding(--tabbar-hover-padding, $h: 2);
     border-bottom-width: var(--tabbar-hover-border-width);
   }
 
@@ -132,7 +134,7 @@
     font-size: var(--tabbar-active-text-font-size);
     font-weight: var(--tabbar-active-text-font-weight);
     line-height: var(--tabbar-active-text-line-height);
-    padding: var(--tabbar-active-padding) calc(var(--tabbar-active-padding) * 2);
+    @include themed-padding(--tabbar-active-padding, $h: 2);
   }
 
   .tab:disabled {

@@ -2,7 +2,7 @@
   "name": "default",
   "component": "segmentedcontrol",
   "createdAt": "2026-04-28T21:48:05.910Z",
-  "updatedAt": "2026-04-29T08:30:47.056Z",
+  "updatedAt": "2026-05-07T11:10:54.708Z",
   "aliases": {
     "--segmentedcontrol-bar-surface": "--surface-neutral-high",
     "--segmentedcontrol-bar-border": "--border-neutral",

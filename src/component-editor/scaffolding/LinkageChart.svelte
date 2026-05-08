@@ -39,6 +39,11 @@
   export let contexts: string[] = [];
   export let broken: string[] = [];
   export let singleAxisLabel: string = '';
+  /** Caption rendered above the grid. Use to describe the linkage scope
+      (e.g. "Links across variants and states"). Defaults to the legacy
+      "Linked Properties" label so consumers that don't pass a caption
+      keep their existing rendering. */
+  export let caption: string = 'Linked Properties';
   /** Currently focused variant (matches a row in 2d / a row label in 1d). When set,
       the matching row is highlighted with the same active style as the variant tab strip. */
   export let selectedRow: string | null = null;
@@ -73,7 +78,7 @@
 </script>
 
 <div class="chart">
-  <span class="chart-label">Linked Properties</span>
+  <span class="chart-label">{caption}</span>
   <div class="chart-grid-wrap" role="grid" aria-label="Linked contexts">
   {#if axes.kind === '2d'}
     <div class="grid grid-2d" style="--cols: {axes.cols.length};">

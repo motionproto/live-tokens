@@ -180,6 +180,7 @@ export {
   setComponentAliasLinked,
   clearComponentAliasLinked,
   unlinkComponentProperty,
+  relinkComponentProperty,
   markComponentSaved,
 } from './slices/components';
 

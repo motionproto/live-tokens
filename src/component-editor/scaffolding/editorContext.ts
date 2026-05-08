@@ -18,6 +18,10 @@ export type EditorContext = {
       contain the value adopt it as their `activeTab`; others ignore it. Used to forward
       LinkageChart row clicks to the state tab strip when the chart spans states. */
   focusedState: Writable<string | null>;
+  /** Variable currently hovered in either the per-state Properties grid or the
+      Linked-properties block. Bidirectional cue: a hover in one surface lights up
+      the matching row in the other so the user can see the linkage at a glance. */
+  hoveredLinkedVariable: Writable<string | null>;
 };
 
 /** Internal mutable handle used by ComponentEditorBase. */
@@ -32,12 +36,14 @@ export function createEditorContext(): EditorContextInternal {
   const viewMode = writable<ViewMode>('tabs');
   const focusedVariant = writable<string | null>(null);
   const focusedState = writable<string | null>(null);
+  const hoveredLinkedVariable = writable<string | null>(null);
   const ctx: EditorContextInternal = {
     linkedOrder: _linkedOrder,
     tabbable: _tabbable,
     viewMode,
     focusedVariant,
     focusedState,
+    hoveredLinkedVariable,
     _linkedOrder,
     _tabbable,
   };

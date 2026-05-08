@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher, onMount, onDestroy } from 'svelte';
   import UIRadio from './UIRadio.svelte';
+  import { keepInViewport } from './keepInViewport';
 
   type Candidate = { variable: string; alias: string };
 
@@ -72,6 +73,7 @@
   aria-label="Confirm link"
   tabindex="-1"
   bind:this={popoverEl}
+  use:keepInViewport
   on:click|stopPropagation
 >
   <div class="ui-relink-header">

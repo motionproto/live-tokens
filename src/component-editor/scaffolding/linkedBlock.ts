@@ -12,6 +12,28 @@ function aliasKey(ref: CssVarRef | undefined): string {
   return ref.kind === 'token' ? `t:${ref.name}` : `v:${ref.value}`;
 }
 
+const TYPOGRAPHY_PROP_SUFFIXES = ['font-family', 'font-size', 'font-weight', 'line-height'] as const;
+
+/** Derive a slot-aware label from a token's groupKey when the groupKey carries
+ *  a slot prefix (e.g. `title-font-family` → "title font family"). Bare
+ *  typography groupKeys (`font-family`) and non-typography groupKeys keep the
+ *  token's original label.
+ *
+ *  Disambiguates rows in the linked block when one bucket holds multiple
+ *  same-shape link groups (e.g. Notification's title vs. text typography),
+ *  without coupling the label to the per-variant view. */
+function deriveLinkedLabel(label: string, groupKey: string | undefined): string {
+  if (!groupKey) return label;
+  for (const prop of TYPOGRAPHY_PROP_SUFFIXES) {
+    if (groupKey === prop) return label;
+    if (groupKey.endsWith('-' + prop)) {
+      const slot = groupKey.slice(0, groupKey.length - prop.length - 1);
+      return `${slot} ${label}`;
+    }
+  }
+  return label;
+}
+
 /** `Token` enriched by the linked-block computation. The base fields are inherited from
     `Token`; the extra commentary on `mergeVariables` here is linked-block-specific. */
 export interface LinkedToken extends Token {
@@ -117,12 +139,15 @@ export function computeLinkedBlock(
       arr.push(s);
       buckets.set(k, arr);
     }
-    // Canonical = representative's bucket (if it's linked), promoted to a more
-    // populous bucket when one exists. Falls back to the largest bucket when
-    // the representative itself has detached.
+    // Canonical = representative's bucket (if it's linked). Promoted to a more
+    // populous *explicit-alias* bucket when one exists. The empty-key bucket
+    // (peers with no saved alias) only wins canonical when the representative
+    // itself has no saved alias — otherwise an unsaved peer would silently
+    // outvote a peer that the user actively set.
     let canonicalKey = unlinkedSet.has(variable) ? '' : aliasKey(aliases[variable]);
     let canonicalSize = buckets.get(canonicalKey)?.length ?? 0;
     for (const [k, arr] of buckets) {
+      if (k === '' && canonicalKey !== '') continue;
       if (arr.length > canonicalSize) {
         canonicalKey = k;
         canonicalSize = arr.length;
@@ -166,14 +191,16 @@ export function computeLinkedBlock(
     }
     const tok: LinkedToken = {
       ...rep,
+      label: deriveLinkedLabel(rep.label, rep.groupKey),
       canBeLinked: true,
       ...(mergePeers.length ? { mergeVariables: mergePeers } : {}),
     };
     groups.push({ token: tok, contexts: ctxs, brokenContexts, variables: siblings, linked: propertyLinked, contextToVariable });
-    // Mark siblings as "owned by the linked block" so the per-variant view dims
-    // them (deferring edits to the linked block). Explicitly unlinked siblings
-    // are *not* dimmed — they've opted out and need to be directly editable.
-    if (propertyLinked) for (const s of siblings) if (!unlinkedSet.has(s)) varSet.add(s);
+    // Per-variant rows for linked siblings stay directly editable — writes fan
+    // out through the linked write path (`setComponentAliasLinked`) because
+    // `isLinkedDisplay` resolves true. The link topology is dev-declared, so
+    // we don't gate edits behind a "go use the linked block" detour; the
+    // linked-block row is the topology view, not the only edit point.
   }
 
   const contextsByVar = Object.fromEntries(groups.map((g) => [g.token.variable, g.contexts]));
@@ -187,6 +214,13 @@ export function computeLinkedBlock(
   return { groups, varSet, contextsByVar, linkedOrder };
 }
 
-export function withLinkedDisabled<T extends { variable: string }>(tokens: T[], linked: Set<string>): (T & { disabled?: boolean })[] {
-  return tokens.map((t) => (linked.has(t.variable) ? { ...t, disabled: true } : t));
+/** No-op since the linked-block became a peer to per-variant editing rather
+ *  than the single canonical edit point. Per-variant rows for linked properties
+ *  stay fully interactive — writes route through `setComponentAliasLinked`
+ *  when `isLinkedDisplay` resolves true, fanning out to all linked siblings.
+ *
+ *  Kept as an identity passthrough so existing editor call sites compile
+ *  without churn; remove the calls (and this export) when consolidating. */
+export function withLinkedDisabled<T extends { variable: string }>(tokens: T[], _linked: Set<string>): T[] {
+  return tokens;
 }

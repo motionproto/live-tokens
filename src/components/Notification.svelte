@@ -104,6 +104,8 @@
 </div>
 
 <style lang="scss">
+   @use '../styles/padding' as *;
+
    // The four-variant token block below is intentionally NOT collapsed via SCSS
    // `@each`. The Layer-2 token-discovery parser (`extractGlobalRootBody` in
    // src/lib/parsers/globalRootBlock.ts) reads the `.svelte` source verbatim and
@@ -227,7 +229,7 @@
 
             .notification-header {
                background: var(--notification-#{$variant}-surface);
-               padding: var(--notification-#{$variant}-padding) calc(var(--notification-#{$variant}-padding) * 1.33);
+               @include themed-padding(--notification-#{$variant}-padding, $h: 1.33);
 
                i {
                   color: var(--notification-#{$variant}-icon);

@@ -17,6 +17,7 @@
     setComponentAliasLinked,
     clearComponentAliasLinked,
   } from '../../lib/editorStore';
+  import { getEditorContext } from './editorContext';
   import type { Token } from './types';
 
   /** Selector kind. `padding-split` is `padding` whose per-side variables exist;
@@ -51,6 +52,11 @@
   export let linkedOrder: Map<string, number> | undefined = undefined;
   /** Set true on the linked-block instance so dimmed variant rows can scroll/flash to the matching anchor. */
   export let isLinkedBlock: boolean = false;
+  /** Number of visual columns. >1 switches to a column-major grid (grid-auto-flow: column)
+      so the consumer can spread a long property list across the available width. In
+      multi-col mode, the linked-first sort + zone divider are dropped — kind-grouped flow
+      reads more naturally when columns themselves carry the visual grouping. */
+  export let columns: number = 1;
 
   /** Suffix/prefix patterns mapped to kinds — single source of truth used by `categorize`.
       Order matters: `text` must run before `border`/`surface` because `--text-*` would
@@ -146,10 +152,15 @@
     'dot-size': { component: UIDotSizeSelector },
     'radius': { component: UIRadiusSelector },
     'padding': { component: UIPaddingSelector, extra: () => ({ mode: 'single' }) },
+    /* padding-split is NOT standalone: TokenLayout renders the .token-label
+       (e.g. "padding") in col 1 and the wrapper provides the [label][trigger][value]
+       subgrid. UIPaddingSelector's sides template fills cols 2-3 of row 1 with
+       the link/merge header and cols 1-3 of row 2 with the side rows, so the
+       four side dropdowns align with the same trigger and value columns as
+       every other property in the panel. */
     'padding-split': {
       component: UIPaddingSelector,
-      extra: (token) => ({ mode: 'sides', rowLabel: token.label }),
-      standalone: true,
+      extra: () => ({ mode: 'sides' }),
     },
     'gap': { component: UIPaddingSelector, extra: () => ({ mode: 'single', splittable: false }) },
     'blur': { component: UIBlurSelector },
@@ -158,13 +169,42 @@
     'extras': { component: UIPaletteSelector },
   };
 
-  function buildEntries(list: Token[], order: Map<string, number> | undefined, linked: Set<Kind>, comp: string | undefined, state: typeof $editorState): Entry[] {
+  /** Multi-col rank: same as `orderRank` but with `extras` (text-color-like) hoisted
+      between `line-height` and `border-width` so typography reads as one logical
+      block in column flow. Single-col mode keeps `orderRank` (linked-first sort
+      already segregates extras to the bottom). */
+  const multiColRank: Record<Kind, number> = (() => {
+    const reordered: Kind[] = [
+      'font-family',
+      'font-weight',
+      'font-size',
+      'line-height',
+      'extras',
+      'border-width',
+      'divider-width',
+      'divider-height',
+      'dot-size',
+      'radius',
+      'padding',
+      'padding-split',
+      'gap',
+      'blur',
+      'surface',
+      'border',
+    ];
+    return Object.fromEntries(reordered.map((k, i) => [k, i])) as Record<Kind, number>;
+  })();
+
+  function buildEntries(list: Token[], order: Map<string, number> | undefined, linked: Set<Kind>, comp: string | undefined, state: typeof $editorState, multiCol: boolean): Entry[] {
     const indexed = list.map((token, i) => ({ e: { kind: categorize(token.variable, comp, state), token }, i }));
+    const rank = multiCol ? multiColRank : orderRank;
     indexed.sort((a, b) => {
-      const aLinked = linked.has(a.e.kind) ? 0 : 1;
-      const bLinked = linked.has(b.e.kind) ? 0 : 1;
-      if (aLinked !== bLinked) return aLinked - bLinked;
-      const rankDiff = orderRank[a.e.kind] - orderRank[b.e.kind];
+      if (!multiCol) {
+        const aLinked = linked.has(a.e.kind) ? 0 : 1;
+        const bLinked = linked.has(b.e.kind) ? 0 : 1;
+        if (aLinked !== bLinked) return aLinked - bLinked;
+      }
+      const rankDiff = rank[a.e.kind] - rank[b.e.kind];
       if (rankDiff !== 0) return rankDiff;
       const aKey = order?.get(a.e.token.variable);
       const bKey = order?.get(b.e.token.variable);
@@ -209,14 +249,32 @@
     dispatch('change');
   }
 
+  /** Bidirectional hover cue with the Linked-properties block. The upper grid
+      (isLinkedBlock=false) drives and reads the shared store; the inner grid
+      inside each linked card (isLinkedBlock=true) sits out — its parent card
+      already provides the visual cue, and re-emitting from the inner row would
+      flicker hover state when the cursor crossed sub-elements. */
+  const editorCtx = getEditorContext();
+  const hoveredLinkedVariable = editorCtx?.hoveredLinkedVariable;
+  function setHover(variable: string | null) {
+    if (isLinkedBlock) return;
+    hoveredLinkedVariable?.set(variable);
+  }
+
+  $: hoveredVar = !isLinkedBlock && hoveredLinkedVariable ? $hoveredLinkedVariable : null;
+  $: isMultiCol = columns > 1;
   $: linkedKinds = computeLinkedKinds(component, $editorState);
-  $: entries = buildEntries(tokens.filter((t) => !t.hidden), linkedOrder, linkedKinds, component, $editorState);
-  /** Index of the first independent (non-linked) entry; -1 when there are no linked entries or no boundary. */
+  $: entries = buildEntries(tokens.filter((t) => !t.hidden), linkedOrder, linkedKinds, component, $editorState, isMultiCol);
+  /** Index of the first independent (non-linked) entry; -1 when there are no linked entries or no boundary.
+      Suppressed in multi-col mode (no divider — column structure is the grouping). */
   $: firstIndependentIdx = (() => {
+    if (isMultiCol) return -1;
     const idx = entries.findIndex((e) => !linkedKinds.has(e.kind));
     if (idx <= 0) return -1;
     return idx;
   })();
+  /** Rows per column for column-major flow; ceil so the last column may be short. */
+  $: rowsPerCol = isMultiCol ? Math.max(1, Math.ceil(entries.length / columns)) : entries.length;
 
 </script>
 
@@ -224,7 +282,12 @@
   {#if title}
     <span class="token-group-title">{title}</span>
   {/if}
-  <div class="token-grid">
+  <div
+    class="token-grid"
+    class:multi-col={isMultiCol}
+    style:--columns={columns}
+    style:--rows-per-col={rowsPerCol}
+  >
     {#each entries as entry, i}
       {@const token = entry.token}
       {@const dis = token.disabled ?? false}
@@ -241,34 +304,45 @@
       {#if i === firstIndependentIdx}
         <div class="zone-divider" aria-hidden="true"></div>
       {/if}
-      {#if sel.standalone}
+      <!--
+        Same wrapper for standalone and row-chrome modes so the inner
+        <svelte:component> stays at one template position across a kind
+        change (e.g. padding ↔ padding-split). If we branched on
+        sel.standalone with the component inside each branch, Svelte
+        would treat them as different mount points and remount the
+        selector — which kills any |local transition the selector runs
+        on internal prop changes (mode in UIPaddingSelector). Class
+        toggling alone keeps the instance alive; the label and contexts
+        come and go around it.
+      -->
+      {@const isLinkedRow = linkedKinds.has(entry.kind)}
+      {@const isHovered = !isLinkedBlock && isLinkedRow && hoveredVar === token.variable}
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <div
+        class="token-entry"
+        class:token-row={!sel.standalone}
+        class:has-contexts={!sel.standalone && !!ctxs?.length}
+        class:linked-hovered={isHovered}
+        on:mouseenter={isLinkedBlock || !isLinkedRow ? undefined : () => setHover(token.variable)}
+        on:mouseleave={isLinkedBlock || !isLinkedRow ? undefined : () => setHover(null)}
+      >
+        {#if !sel.standalone}
+          <span class="token-label">{token.label}</span>
+        {/if}
         <svelte:component
           this={sel.component}
           {...sharedProps}
           {...extra}
           on:change={() => handleRowChange(token)}
         />
-      {:else}
-        <div
-          class="token-row"
-          class:has-contexts={!!ctxs?.length}
-        >
-          <span class="token-label">{token.label}</span>
-          <svelte:component
-            this={sel.component}
-            {...sharedProps}
-            {...extra}
-            on:change={() => handleRowChange(token)}
-          />
-          {#if ctxs?.length}
-            <div class="token-contexts">
-              {#each ctxs as ctx}
-                <span class="token-context">{ctx}</span>
-              {/each}
-            </div>
-          {/if}
-        </div>
-      {/if}
+        {#if !sel.standalone && ctxs?.length}
+          <div class="token-contexts">
+            {#each ctxs as ctx}
+              <span class="token-context">{ctx}</span>
+            {/each}
+          </div>
+        {/if}
+      </div>
     {/each}
   </div>
 </div>
@@ -289,17 +363,37 @@
 
   .token-grid {
     --token-selector-w: 8rem;
+    --columns: 1;
     display: grid;
-    grid-template-columns: max-content var(--token-selector-w) 1fr;
+    grid-template-columns: repeat(var(--columns), max-content var(--token-selector-w) 1fr);
     column-gap: var(--ui-space-10);
     row-gap: var(--ui-space-6);
     align-items: center;
     padding: var(--ui-space-4) var(--ui-space-12);
     min-width: 0;
   }
+  /* Multi-col mode: column-major flow with explicit row count so items fill
+     column 1 top-to-bottom before spilling into column 2, etc. Wider gap
+     between column-sets since they read as separate visual groups. */
+  .token-grid.multi-col {
+    grid-template-rows: repeat(var(--rows-per-col), auto);
+    grid-auto-flow: column;
+    column-gap: var(--ui-space-24);
+  }
 
   @container (max-width: 480px) {
     .token-grid { --token-selector-w: 6rem; }
+  }
+
+  /* Drop to one column if the container can't fit even two column-sets
+     comfortably. Single col uses row flow (default), so unsetting the
+     column-flow + row template restores the original layout. */
+  @container (max-width: 720px) {
+    .token-grid.multi-col {
+      --columns: 1;
+      grid-template-rows: none;
+      grid-auto-flow: row;
+    }
   }
 
   @container (max-width: 380px) {
@@ -315,15 +409,48 @@
     height: 1.75rem;
   }
 
-  .token-row {
+  /* The wrapper exists in both standalone and row-chrome modes to keep
+     the inner <svelte:component> at one template position across kind
+     changes (so its internal |local transitions can fire on prop
+     updates instead of being short-circuited by a remount).
+     - Standalone (no .token-row): `display: contents` makes the
+       wrapper transparent to the parent grid, letting the standalone
+       child (e.g. UIPaddingSelector's split fieldset) place itself
+       directly against `.token-grid`'s columns just like it did when
+       it was rendered without a wrapper.
+     - Row chrome (.token-row): grid + subgrid + alignment, the
+       original .token-row layout for [label][trigger][value]. */
+  .token-entry {
+    display: contents;
+  }
+  .token-entry.token-row {
     display: grid;
     grid-template-columns: subgrid;
-    grid-column: 1 / -1;
+    /* Span one [label][selector][value] column-set. Equivalent to `1 / -1`
+       in single-col mode (3 sub-cols total) and lands the row in one
+       column-set in multi-col mode (3*N sub-cols total). */
+    grid-column: span 3;
     align-items: center;
     row-gap: var(--ui-space-2);
     border-radius: var(--ui-radius-sm);
-    transition: background var(--ui-transition-fast);
+    transition: background var(--ui-transition-fast), box-shadow var(--ui-transition-fast);
     min-width: 0;
+  }
+  /* Bidirectional hover cue with the Linked-properties block. Background
+     lift extends the row beyond its three columns so the cue reads as a
+     full-width band; box-shadow adds the same horizontal padding the grid's
+     own padding provides without pushing the row's inner layout. */
+  .token-entry.token-row.linked-hovered {
+    background: var(--ui-hover-lowest);
+    box-shadow: 0 0 0 var(--ui-space-6) var(--ui-hover-lowest);
+  }
+  /* Suppress the trigger's own surface fill while the row is in the linked-
+     hover state so the row's hover band reads as one continuous strip
+     instead of being broken by the trigger's brighter chip. `:not(:hover)`
+     keeps the trigger's direct hover style intact when the cursor lands on
+     it specifically. */
+  .token-entry.token-row.linked-hovered :global(.ui-ts-trigger:not(:hover)) {
+    background: transparent;
   }
 
   .token-label {

@@ -1,10 +1,17 @@
 <script lang="ts">
+  import { fade, slide } from 'svelte/transition';
   import TokenLayout from './TokenLayout.svelte';
   import LinkageChart from './LinkageChart.svelte';
-  import { editorState } from '../../lib/editorStore';
   import { getEditorContext } from './editorContext';
-  import type { CssVarRef } from '../../lib/editorTypes';
-  import type { LinkedBlockResult, LinkedGroup, LinkedToken } from './linkedBlock';
+  import type { LinkedBlockResult, LinkedGroup } from './linkedBlock';
+
+  /** Honor prefers-reduced-motion: matches the rest of the editor's motion
+      vocabulary (UITokenSelector pop-bar gates its transitions the same way).
+      Read once at module mount; user can toggle in OS preferences and reload. */
+  const reduceMotion = typeof window !== 'undefined'
+    && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+  const fadeDur = reduceMotion ? 0 : 140;
+  const slideDur = reduceMotion ? 0 : 200;
 
   export let component: string;
   export let linked: LinkedBlockResult;
@@ -12,6 +19,7 @@
   const editorCtx = getEditorContext();
   const focusedVariant = editorCtx?.focusedVariant;
   const focusedState = editorCtx?.focusedState;
+  const hoveredLinkedVariable = editorCtx?.hoveredLinkedVariable;
 
   /** Forward a chart row click to whichever tab strip the label belongs to. The chart
       doesn't know if its rows are variants (top-level tab strip) or states (per-VariantGroup
@@ -21,11 +29,6 @@
     editorCtx?.focusedVariant.set(e.detail);
     editorCtx?.focusedState.set(e.detail);
   }
-
-  type Bucket = { contexts: string[]; brokenContexts: string[]; groups: LinkedGroup[] };
-  type TypeColumn = { kind: 'type'; legend: string; tokens: LinkedToken[] };
-  type GeneralColumn = { kind: 'general'; tokens: LinkedToken[] };
-  type Column = TypeColumn | GeneralColumn;
 
   /** Pick the sibling that backs the cell the user is currently focused on, so the row
       reflects that specific variant×state. Tries the most specific match first
@@ -47,257 +50,369 @@
     return g.token.variable;
   }
 
-  function extractTypeGroup(v: string): string | null {
-    const m = v.match(/-([a-z][a-z0-9-]*?)-(?:font-(?:family|size|weight)|line-height)$/);
-    return m ? m[1] : null;
+  /** Caption for a card's chart describing the linkage scope. 2-token context
+      labels (e.g. "primary default") imply variants × states; single-token
+      labels imply one axis. Tuned to typography linking across variants only. */
+  function captionFor(contexts: string[]): string {
+    if (contexts.length === 0) return '';
+    const has2D = contexts.some((c) => /\s/.test(c));
+    if (has2D) return 'Links across variants and states';
+    return 'Links across variants';
   }
 
-  function aliasKey(ref: CssVarRef | undefined): string {
-    if (!ref) return '';
-    return ref.kind === 'token' ? ref.name : `lit:${ref.value}`;
-  }
-
-  /** Collapse same-label same-value rows into one whose `mergeVariables` lists the other
-      groupKey leads. Always merges — per-property unlinked state is communicated by the
-      pop-bar on each row's selector, not by visual separation here. */
-  function collapseGeneral(
-    list: LinkedToken[],
-    aliases: Record<string, CssVarRef>,
-  ): LinkedToken[] {
-    const out: LinkedToken[] = [];
-    const leadIdx = new Map<string, number>();
-    for (const tok of list) {
-      const alias = aliasKey(aliases[tok.variable]);
-      const key = `${tok.label}|${alias}`;
-      const idx = leadIdx.get(key);
-      if (idx === undefined) {
-        leadIdx.set(key, out.length);
-        out.push(tok);
-      } else {
-        const lead = out[idx];
-        out[idx] = {
-          ...lead,
-          mergeVariables: [
-            ...(lead.mergeVariables ?? []),
-            tok.variable,
-            ...(tok.mergeVariables ?? []),
-          ],
-        };
-      }
+  /** Format the bracket text on the drill-down row. ≤2 names → comma-list;
+      >2 names → numeric ("3 unlinked"). The names ARE the divergence info,
+      so this is the primary signal when broken; the chart is drill-down detail. */
+  function formatUnlinked(brokenContexts: string[]): string {
+    if (brokenContexts.length === 0) return '';
+    if (brokenContexts.length <= 2) {
+      return `${brokenContexts.join(', ')} unlinked`;
     }
-    return out;
+    return `${brokenContexts.length} unlinked`;
   }
 
-  function partitionBucket(
-    groups: LinkedGroup[],
-    aliases: Record<string, CssVarRef>,
-    variant: string | null,
-    state: string | null,
-  ): Column[] {
-    const typeGroups = new Map<string, LinkedToken[]>();
-    const general: LinkedToken[] = [];
-    for (const g of groups) {
-      const focusedVar = pickFocusedVariable(g, variant, state);
-      const tok: LinkedToken = { ...g.token, variable: focusedVar };
-      const tg = extractTypeGroup(tok.variable);
-      if (tg) {
-        const arr = typeGroups.get(tg) ?? [];
-        arr.push(tok);
-        typeGroups.set(tg, arr);
-      } else {
-        general.push(tok);
-      }
-    }
-    const collapsed = collapseGeneral(general, aliases);
-    const cols: Column[] = [];
-    for (const [legend, tokens] of typeGroups) cols.push({ kind: 'type', legend, tokens });
-    if (collapsed.length > 0) cols.push({ kind: 'general', tokens: collapsed });
-    return cols;
-  }
-
-  $: buckets = (() => {
-    const map = new Map<string, Bucket>();
-    for (const g of linked.groups) {
-      const key = [
-        [...g.contexts].sort().join(','),
-        '||',
-        [...g.brokenContexts].sort().join(','),
-      ].join('');
-      const bucket = map.get(key);
-      if (bucket) bucket.groups.push(g);
-      else map.set(key, { contexts: g.contexts, brokenContexts: g.brokenContexts, groups: [g] });
-    }
-    return [...map.values()].sort(
-      (a, b) => b.contexts.length + b.brokenContexts.length - (a.contexts.length + a.brokenContexts.length),
-    );
-  })();
-
-  $: aliases = $editorState.components[component]?.aliases ?? {};
   $: focusedV = (focusedVariant ? $focusedVariant : null) ?? null;
   $: focusedS = (focusedState ? $focusedState : null) ?? null;
-  $: bucketCols = buckets.map((b) => {
-    const columns = partitionBucket(b.groups, aliases, focusedV, focusedS);
-    return {
-      contexts: b.contexts,
-      brokenContexts: b.brokenContexts,
-      columns,
-      hasLegend: columns.some((c) => c.kind === 'type'),
-    };
-  });
+  $: hoveredVar = (hoveredLinkedVariable ? $hoveredLinkedVariable : null) ?? null;
+
+  function setHover(variable: string | null) {
+    hoveredLinkedVariable?.set(variable);
+  }
+
+  /** One card per LinkedGroup. Stable order = editor-declared order. */
+  $: cards = linked.groups.map((g) => ({
+    contexts: g.contexts,
+    brokenContexts: g.brokenContexts,
+    row: { ...g.token, variable: pickFocusedVariable(g, focusedV, focusedS) },
+    caption: captionFor(g.contexts),
+    unlinkedText: formatUnlinked(g.brokenContexts),
+    isBroken: g.brokenContexts.length > 0,
+  }));
+
+  /** Section-level summary: count of properties with any broken peers. The
+      header tells the user *whether to look*; the per-card text tells them
+      *what's broken*. Two layers, two granularities. */
+  $: brokenPropertyCount = cards.filter((c) => c.isBroken).length;
+  $: hasAnyBroken = brokenPropertyCount > 0;
+
+  /** Smart default: open when broken, closed when uniform. The user's first
+      explicit toggle (`sectionToggleOverride`) locks the value so subsequent
+      state changes don't re-flip the section out from under them. */
+  let sectionToggleOverride: boolean | null = null;
+  $: sectionExpanded = sectionToggleOverride ?? hasAnyBroken;
+  function toggleSection() {
+    sectionToggleOverride = !sectionExpanded;
+  }
+
+  /** Per-card chart expand state, keyed by the card's row variable (which is
+      stable per LinkedGroup since pickFocusedVariable runs against the same
+      group on every render). */
+  let expandedCards: Record<string, boolean> = {};
+  function toggleCard(variable: string) {
+    expandedCards = { ...expandedCards, [variable]: !expandedCards[variable] };
+  }
 </script>
 
-{#if buckets.length > 0}
+{#if cards.length > 0}
   <section class="linked-block">
-    <header class="linked-block-header">
-      <h3 class="linked-block-title">Linked properties</h3>
-      <p class="linked-block-description">Token values linked across multiple variants or states. Changing one updates all of them.</p>
-    </header>
-    <div class="linked-grid">
-      {#each bucketCols as bucket (bucket.contexts.join('|') + '||' + bucket.brokenContexts.join('|'))}
-        <article class="linked-subgroup">
-          <div class="linked-controls">
-            <div class="linked-columns">
-            {#each bucket.columns as col}
-              <div class="linked-column">
-                {#if bucket.hasLegend}
-                  <span class="linked-column-legend" aria-hidden={col.kind !== 'type'}>
-                    {col.kind === 'type' ? col.legend : ' '}
-                  </span>
-                {/if}
-                <TokenLayout
-                  tokens={col.tokens}
-                  {component}
-                  linkedOrder={linked.linkedOrder}
-                  isLinkedBlock
-                  on:change
+    <button
+      type="button"
+      class="section-header"
+      class:expanded={sectionExpanded}
+      aria-expanded={sectionExpanded}
+      on:click={toggleSection}
+    >
+      <i class="fas fa-chevron-right chevron"></i>
+      <span class="section-title">Linked properties</span>
+      <span class="section-summary">
+        <span class="section-summary-sep">·</span>
+        <span class="section-summary-count">{cards.length}</span>
+        <span class="section-summary-sep">·</span>
+        {#if hasAnyBroken}
+          <span class="section-summary-broken">{brokenPropertyCount} unlinked</span>
+        {:else}
+          <span class="section-summary-ok">in sync</span>
+        {/if}
+      </span>
+    </button>
+    {#if sectionExpanded}
+      <div class="linked-grid" transition:slide|local={{ duration: slideDur }}>
+        {#each cards as card (card.row.variable)}
+          {@const cardExpanded = expandedCards[card.row.variable] === true}
+          {@const cardHovered = hoveredVar === card.row.variable}
+          <article
+            class="linked-card"
+            class:broken={card.isBroken}
+            class:hovered={cardHovered}
+            on:mouseenter={() => setHover(card.row.variable)}
+            on:mouseleave={() => setHover(null)}
+          >
+            <h4 class="property-name">{card.row.label}</h4>
+            <div class="control-row">
+              <TokenLayout
+                tokens={[card.row]}
+                {component}
+                linkedOrder={linked.linkedOrder}
+                isLinkedBlock
+                on:change
+              />
+            </div>
+            <button
+              type="button"
+              class="drill-down"
+              class:expanded={cardExpanded}
+              aria-expanded={cardExpanded}
+              on:click={() => toggleCard(card.row.variable)}
+            >
+              <i class="fas fa-chevron-right chevron"></i>
+              <span class="drill-label">Links</span>
+              {#if !cardExpanded && card.isBroken}
+                <span
+                  class="unlinked-bracket"
+                  transition:fade|local={{ duration: fadeDur }}
+                >({card.unlinkedText})</span>
+              {/if}
+            </button>
+            {#if cardExpanded}
+              <div class="chart-wrap" transition:slide|local={{ duration: slideDur }}>
+                <LinkageChart
+                  contexts={card.contexts}
+                  broken={card.brokenContexts}
+                  caption={card.caption}
+                  selectedRow={focusedV}
+                  selectedCol={focusedS}
+                  on:select={handleChartSelect}
                 />
               </div>
-            {/each}
-            </div>
-          </div>
-          <LinkageChart
-            contexts={bucket.contexts}
-            broken={bucket.brokenContexts}
-            selectedRow={focusedV}
-            selectedCol={focusedS}
-            on:select={handleChartSelect}
-          />
-        </article>
-      {/each}
-    </div>
+            {/if}
+          </article>
+        {/each}
+      </div>
+    {/if}
   </section>
 {/if}
 
 <style>
+  /* Panel chrome matches NonStylableConfig (the "Configuration" panel) so the
+     three sibling sections — config, variants, linked — read as a coherent
+     family. Background + full border + radius give the section the same
+     presence as its siblings even when collapsed to just the header row. */
   .linked-block {
-    margin-top: var(--ui-space-16);
-    padding-top: var(--ui-space-12);
-    border-top: 1px dashed var(--ui-border-faint);
+    margin-top: var(--ui-space-12);
+    padding: var(--ui-space-12);
+    border: 1px solid var(--ui-border-faint);
+    border-radius: var(--ui-radius-md);
+    background: var(--ui-surface-low);
   }
 
-  .linked-block-header {
-    margin-bottom: var(--ui-space-12);
+  /* Section header — clickable strip that doubles as the collapsed-state
+     summary. Reads "Linked properties · 7 · in sync" or "· 2 unlinked"; the
+     count + status are the at-a-glance signal. The header sits at the top of
+     the panel; when the body opens, it slides in below the header (the panel
+     grows downward, the header stays put). */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+    width: 100%;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
   }
-
-  .linked-block-title {
-    margin: 0;
+  .section-header .chevron {
+    font-size: 0.625rem;
+    color: var(--ui-text-tertiary);
+    transition: transform var(--ui-transition-fast);
+    width: 0.75rem;
+  }
+  .section-header.expanded .chevron {
+    transform: rotate(90deg);
+  }
+  .section-title {
     font-size: var(--ui-font-size-md);
     font-weight: 500;
     color: var(--ui-text-primary);
   }
-
-  .linked-block-description {
-    margin: var(--ui-space-2) 0 0;
+  .section-summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-6);
     font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-tertiary);
+  }
+  .section-summary-sep {
+    color: var(--ui-border-default);
+  }
+  .section-summary-count {
+    font-family: var(--ui-font-mono);
+    font-variant-numeric: tabular-nums;
     color: var(--ui-text-secondary);
   }
+  .section-summary-ok {
+    color: var(--ui-text-tertiary);
+  }
+  .section-summary-broken {
+    color: var(--ui-link-broken);
+  }
 
-  /* Plain flex layout, no width constraints. Cards lay out left-to-right and wrap to
-     a new row when they don't fit; each card is sized to its own content (controls +
-     chart natural widths). */
   .linked-grid {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: flex-start;
     gap: var(--ui-space-12);
+    margin-top: var(--ui-space-16);
   }
 
-  .linked-subgroup {
+  /* Card — vertical stack: label heading · control row · drill-down · chart.
+     Chrome is the property's visual envelope. The card grows vertically when
+     drilled down; adjacent cards keep their position. */
+  .linked-card {
     flex: 0 0 auto;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    gap: var(--ui-space-20);
+    gap: var(--ui-space-8);
     border: 1px solid var(--ui-border-faint);
     border-radius: var(--ui-radius-lg);
     padding: var(--ui-space-12) var(--ui-space-16);
+    min-width: 14rem;
+  }
+  /* Broken cards adopt the deep amber link-broken color directly — same hue
+     as the section-summary text and the inline bracket, so the cue carries
+     across all three layers (header → card border → bracket text). */
+  .linked-card.broken {
+    border-color: var(--ui-link-broken);
+  }
+  /* Bidirectional hover cue: when the user hovers this card, or the matching
+     row in the per-state Properties grid, both surfaces light up so the
+     linkage is legible at a glance. Background lift + border bump; broken
+     cards keep their amber border so the link-state cue isn't overwritten. */
+  .linked-card {
+    transition: background var(--ui-transition-fast), border-color var(--ui-transition-fast);
+  }
+  .linked-card.hovered {
+    background: var(--ui-hover-lowest);
+    border-color: var(--ui-border-default);
+  }
+  .linked-card.hovered.broken {
+    border-color: var(--ui-link-broken);
+  }
+  /* Mirror the trigger-bg suppression from TokenLayout: while the card is
+     hovered, the inner trigger drops its own surface fill so the card's
+     hover band reads as one strip. Direct trigger hover keeps its style. */
+  .linked-card.hovered :global(.ui-ts-trigger:not(:hover)) {
+    background: transparent;
   }
 
-  /* Compact the linkage chart inside the bucket: tighten cell padding and
-     narrow the lone status column so the chart sits as a quiet footer below
-     the controls. The card communicates "linked properties" on its own — the
-     "Linked Properties" header is suppressed here to keep focus on the
-     editable controls. Selectors include `.chart` as a parent hop to beat
-     LinkageChart's own `.grid` / `.chart-label` specificity. */
-  .linked-subgroup :global(.chart .chart-grid-wrap .grid > *) {
-    padding: var(--ui-space-4) var(--ui-space-8);
+  .property-name {
+    margin: 0;
+    font-size: var(--ui-font-size-md);
+    font-weight: var(--ui-font-weight-medium);
+    color: var(--ui-text-primary);
+    letter-spacing: 0.005em;
   }
-  .linked-subgroup :global(.chart .chart-grid-wrap .grid-1d) {
-    grid-template-columns: auto 28px;
+
+  /* Control row hosts a single TokenLayout-rendered selector + resolved value.
+     TokenLayout's inline label is suppressed here (we render our own heading
+     above), and the grid is reduced to selector + value columns. */
+  .control-row {
+    display: flex;
+    flex-direction: column;
   }
-  .linked-subgroup :global(.chart .chart-label) {
+  .control-row :global(.token-row .token-label) {
     display: none;
   }
-
-  /* Override TokenLayout's narrow-container collapse and force the row to
-     stay tabular: label · selector · value. The third column is `max-content`
-     so the value sizes to its text and never gets ellipsized; subgrid still
-     aligns rows in the bucket to the widest value. The second rule restores
-     the selector's two-column subgrid span so the meta-text doesn't wrap
-     beneath the dropdown.
-     Adding `.token-group` as a parent hop bumps specificity above
-     TokenLayout's own `.token-grid` rule (which would otherwise tie). */
-  .linked-subgroup :global(.token-group .token-grid) {
-    --token-selector-w: 8rem;
+  .control-row :global(.token-group .token-grid) {
+    /* Inherit --token-selector-w from TokenLayout's default (8rem) so the
+       trigger renders at the same fixed width here as in per-variant view.
+       The earlier 9rem override existed to give the chain badge breathing
+       room inside the trigger; the badge is gone now, so the wider column
+       just leaves dead space and visually misaligns the two contexts. */
+    grid-template-columns: var(--token-selector-w) max-content;
+    column-gap: var(--ui-space-8);
+    padding: 0;
+    /* Linked-block grid skips the label column (we render the property name
+       above as a heading), so padding-single-row should start at col 1 here. */
+    --padding-row-start: 1;
+  }
+  .control-row :global(.token-group .token-grid .ui-token-selector) {
+    grid-column: span 2;
+  }
+  /* Linked-block parent grid only has 2 cols (selector + value), so
+     UIPaddingSelector's .padding-sides-block can't subgrid into the
+     [side-label][trigger][value] layout it uses in per-variant view —
+     auto-placement would push each <UITokenSelector> onto its own row.
+     Override to a self-contained 3-col grid so each side row keeps the
+     [name][dropdown][value] alignment side by side. The `span 2` from the
+     rule above still lands the dropdown in cols 2-3 of this local grid,
+     after the side label takes col 1. */
+  .control-row :global(.padding-sides-block) {
     grid-template-columns: max-content var(--token-selector-w) max-content;
     column-gap: var(--ui-space-8);
   }
-  .linked-subgroup :global(.token-group .token-grid .ui-token-selector) {
-    grid-column: span 2;
-  }
 
-  /* Controls column sits above the linkage chart in the column-flex card.
-     `flex: 0 0 auto` keeps the row at content height; the basis is `auto`
-     so width follows the widest row's max-content. */
-  .linked-controls {
-    flex: 0 0 auto;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .linked-columns {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ui-space-16);
-    align-items: flex-start;
-  }
-
-  .linked-column {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-4);
-    min-width: 0;
-  }
-
-  .linked-column-legend {
-    font-size: var(--ui-font-size-xs);
-    line-height: 1;
-    min-height: var(--ui-font-size-xs);
+  /* Drill-down row — chevron at the front, "Links" label, optional amber
+     bracket of unlinked context names. Whole row is the click target. The
+     bracket is hidden when expanded (the chart becomes the source of truth)
+     and when nothing is broken (chart still drillable for inspection). */
+  .drill-down {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    padding: var(--ui-space-4) 0;
+    background: none;
+    border: 0;
     color: var(--ui-text-tertiary);
+    font: inherit;
+    font-size: var(--ui-font-size-sm);
+    text-align: left;
+    cursor: pointer;
+    transition: color var(--ui-transition-fast);
+  }
+  .drill-down:hover {
+    color: var(--ui-text-secondary);
+  }
+  .drill-down .chevron {
+    font-size: 0.625rem;
+    color: var(--ui-text-tertiary);
+    transition: transform var(--ui-transition-fast);
+    width: 0.75rem;
+  }
+  .drill-down.expanded .chevron {
+    transform: rotate(90deg);
+  }
+  .drill-down .drill-label {
+    color: var(--ui-text-secondary);
+  }
+  .unlinked-bracket {
+    color: var(--ui-link-broken);
     font-family: var(--ui-font-mono);
-    padding: 0 var(--ui-space-12);
-    text-transform: lowercase;
-    letter-spacing: 0.04em;
+    font-size: var(--ui-font-size-xs);
+  }
+
+  /* Chart sits in its own wrapper so the column gap above the chart is the
+     drill-down row's natural spacing, not the card's main gap. */
+  .chart-wrap {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .linked-card :global(.chart .chart-grid-wrap .grid > *) {
+    padding: var(--ui-space-4) var(--ui-space-8);
+  }
+  .linked-card :global(.chart .chart-grid-wrap .grid-1d) {
+    grid-template-columns: auto 28px;
+  }
+  .linked-card :global(.chart) {
+    gap: var(--ui-space-6);
+  }
+  .linked-card :global(.chart .chart-label) {
+    font-size: var(--ui-font-size-sm);
+    font-weight: 400;
+    color: var(--ui-text-tertiary);
   }
 </style>

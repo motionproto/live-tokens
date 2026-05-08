@@ -9,10 +9,12 @@
     clearComponentAliasLinked,
     isComponentPropertyLinked,
     unlinkComponentProperty,
+    relinkComponentProperty,
     getComponentPropertySiblings,
   } from '../lib/editorStore';
   import UILinkToggle from './UILinkToggle.svelte';
   import UIRelinkConfirmPopover from './UIRelinkConfirmPopover.svelte';
+  import { keepInViewport } from './keepInViewport';
 
   const dispatch = createEventDispatcher();
 
@@ -44,9 +46,10 @@
     ? isComponentPropertyLinked(component, variable)
     : false;
   $: isLinkedDisplay = canBeLinked && !!component && isLinkedFromData;
-  $: hasSiblings = canBeLinked && component && $editorState
-    ? getComponentPropertySiblings(component, variable).length >= 2
-    : false;
+  $: peerCount = canBeLinked && component && $editorState
+    ? getComponentPropertySiblings(component, variable).length
+    : 0;
+  $: hasSiblings = peerCount >= 2;
   $: showLinkToggle = canBeLinked && !!component && hasSiblings;
 
   /** Persist a semantic CSS-var reference (or clear it when null). */
@@ -119,14 +122,21 @@
       const alias = ref?.kind === 'token' ? ref.name : '';
       return { variable: v, alias };
     });
-    const distinctValues = new Set(candidates.map((c) => c.alias).filter(Boolean));
+    const definedCandidates = candidates.filter((c) => c.alias);
+    const distinctValues = new Set(definedCandidates.map((c) => c.alias));
 
     if (distinctValues.size <= 1) {
-      const adoptRef = slice.aliases[linkedSiblings[0]];
-      if (adoptRef) {
-        setComponentAliasLinked(component, variable, adoptRef);
-        dispatch('change');
-      }
+      // ≤1 explicit alias among peers: adopt it; if none of them have one,
+      // promote this property's current value so the lock takes effect even
+      // when peers are still at their declared defaults. If no alias exists
+      // anywhere in the group, rejoin as pure metadata (the group is linked
+      // at its upstream default and there's nothing to write).
+      const adoptRef = definedCandidates.length > 0
+        ? slice.aliases[definedCandidates[0].variable]
+        : slice.aliases[variable];
+      if (adoptRef) setComponentAliasLinked(component, variable, adoptRef);
+      else relinkComponentProperty(component, variable);
+      dispatch('change');
       return;
     }
 
@@ -150,6 +160,14 @@
     // state, THEN clear the override. writeOverride fires CSS_VAR_CHANGE_EVENT
     // synchronously, which triggers `var-change` on children — that's where
     // each selector should re-derive its display state from the new default.
+    //
+    // Linked properties: writeOverride(null) routes through
+    // `clearComponentAliasLinked`, which clears the shared override on every
+    // linked peer. That's the natural meaning of "clear" on a linked group —
+    // peers all return to the upstream default together, the link stays.
+    // Per-peer resets while preserving the link are impossible by definition
+    // (linked = peers share one value); a "reset just this one" intent is
+    // really "unlink, then reset," which the user does in two visible steps.
     dispatch('reset');
     writeOverride(null);
     close();
@@ -219,6 +237,7 @@
       <div
         class="ui-ts-dropdown"
         style="min-width: {dropdownMinWidth};{dropdownMaxWidth ? ` max-width: ${dropdownMaxWidth};` : ''}"
+        use:keepInViewport
       >
         {#if !hideDefaultHeader}
           <slot name="header">

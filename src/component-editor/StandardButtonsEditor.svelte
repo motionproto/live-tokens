@@ -1,7 +1,6 @@
 <script context="module" lang="ts">
   import { buildSiblings } from './scaffolding/siblings';
-  import { buildTypeGroupTokens } from './scaffolding/buildTypeGroupTokens';
-  import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import type { Token } from './scaffolding/types';
 
   export const component = 'button';
 
@@ -12,47 +11,39 @@
   function statePrefix(v: Variant, s: StateName): string {
     return s === 'default' ? `--button-${v}` : `--button-${v}-${s}`;
   }
+  /** Buttons have a single text slot, so its typography props live as peer
+   *  rows in the unified token grid (no TypeEditor fieldset). Default state
+   *  carries the full font shape (family/weight/size/line-height); hover and
+   *  disabled only override text color, so they keep just the color row. */
   function variantStateTokens(v: Variant, s: StateName): Token[] {
     const p = statePrefix(v, s);
-    return [
+    const tokens: Token[] = [
       { label: 'surface color', variable: `${p}-surface` },
       { label: 'border color', variable: `${p}-border` },
       { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `${p}-border-width` },
       { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `${p}-radius` },
       { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `${p}-padding` },
     ];
-  }
-
-  // Single typeGroup per variant lives in the default state — buttons rarely
-  // change typography per state in practice, so consolidate.
-  function variantTypeGroups(v: Variant): Record<string, TypeGroupConfig[]> {
-    return {
-      default: [{
-        legend: 'button text',
-        colorVariable: `--button-${v}-text`,
-        familyVariable: `--button-${v}-text-font-family`,
-        sizeVariable: `--button-${v}-text-font-size`,
-        weightVariable: `--button-${v}-text-font-weight`,
-        lineHeightVariable: `--button-${v}-text-line-height`,
-      }],
-      hover: [{
-        legend: 'button text (hover)',
-        colorVariable: `--button-${v}-hover-text`,
-      }],
-      disabled: [{
-        legend: 'button text (disabled)',
-        colorVariable: `--button-${v}-disabled-text`,
-      }],
-    };
+    if (s === 'default') {
+      tokens.push(
+        { label: 'text color', variable: `--button-${v}-text` },
+        { label: 'font family', canBeLinked: true, groupKey: 'font-family', variable: `--button-${v}-text-font-family` },
+        { label: 'font size', canBeLinked: true, groupKey: 'font-size', variable: `--button-${v}-text-font-size` },
+        { label: 'font weight', canBeLinked: true, groupKey: 'font-weight', variable: `--button-${v}-text-font-weight` },
+        { label: 'line height', canBeLinked: true, groupKey: 'line-height', variable: `--button-${v}-text-line-height` },
+      );
+    } else {
+      tokens.push({ label: 'text color', variable: `--button-${v}-${s}-text` });
+    }
+    return tokens;
   }
 
   function variantStates(v: Variant): Record<string, Token[]> {
     return Object.fromEntries(stateNames.map((s) => [s, variantStateTokens(v, s)]));
   }
-  export const allTokens: Token[] = variants.flatMap((v) => [
-    ...Object.values(variantStates(v)).flat(),
-    ...buildTypeGroupTokens(variantTypeGroups(v)),
-  ]);
+  export const allTokens: Token[] = variants.flatMap((v) =>
+    Object.values(variantStates(v)).flat(),
+  );
 
   // Linked block:
   //   - shape props (border-width, radius, padding) link across every variant × state — buttons share one geometry.
@@ -108,9 +99,9 @@
       name={v}
       title={v.charAt(0).toUpperCase() + v.slice(1)}
       states={visibleVariantStates(v)}
-      typeGroups={variantTypeGroups(v)}
       {component}
-      siblings={buildSiblings(variants, v, variantStates, variantTypeGroups)}
+      columns={2}
+      siblings={buildSiblings(variants, v, variantStates)}
       let:activeState
     >
       {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}

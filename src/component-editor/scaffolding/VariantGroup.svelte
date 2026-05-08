@@ -20,6 +20,11 @@
       a "Copy from" menu is rendered that lets the user pull token values from
       a sibling's same-state into the current state. */
   export let siblings: Sibling[] = [];
+  /** Forwarded to StateBlock → TokenLayout. >1 lays out the property grid
+      across multiple visual columns (column-major flow). Useful for
+      single-text components like Button whose 8-10 properties stretch the
+      panel vertically when stacked single-column. */
+  export let columns: number = 1;
 
   const editorCtx = getEditorContext();
   const linkedOrderStore = editorCtx?.linkedOrder ?? writable<Map<string, number> | null>(null);
@@ -189,6 +194,7 @@
             typeGroups={typeGroups[stateName] ?? []}
             {component}
             {linkedOrder}
+            {columns}
             on:change
           />
         {/if}

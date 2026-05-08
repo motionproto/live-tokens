@@ -41,6 +41,8 @@
 {/if}
 
 <style lang="scss">
+   @use '../styles/padding' as *;
+
    :global(:root) {
       /* Default */
       --collapsiblesection-default-surface: var(--surface-canvas);
@@ -89,7 +91,7 @@
       display: flex;
       align-items: center;
       gap: var(--space-12);
-      padding: var(--collapsiblesection-default-padding) calc(var(--collapsiblesection-default-padding) * 2);
+      @include themed-padding(--collapsiblesection-default-padding, $h: 2);
       background: var(--collapsiblesection-default-surface);
       border-left: var(--collapsiblesection-default-border-width) solid transparent;
       border-radius: var(--collapsiblesection-default-radius);
@@ -101,7 +103,7 @@
       &:hover,
       &.force-hover {
          background: var(--collapsiblesection-hover-surface);
-         padding: var(--collapsiblesection-hover-padding) calc(var(--collapsiblesection-hover-padding) * 2);
+         @include themed-padding(--collapsiblesection-hover-padding, $h: 2);
          border-left-width: var(--collapsiblesection-hover-border-width);
          border-radius: var(--collapsiblesection-hover-radius);
 
@@ -125,7 +127,7 @@
 
       &.active {
          background: var(--collapsiblesection-active-surface);
-         padding: var(--collapsiblesection-active-padding) calc(var(--collapsiblesection-active-padding) * 2);
+         @include themed-padding(--collapsiblesection-active-padding, $h: 2);
          border-left: var(--collapsiblesection-active-border-width) solid var(--collapsiblesection-active-border);
          border-radius: var(--collapsiblesection-active-radius);
 

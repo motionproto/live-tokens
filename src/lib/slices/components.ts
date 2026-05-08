@@ -140,22 +140,70 @@ function componentVarPrefix(component: string): string {
  * back to last-dash property inference so unmigrated editors keep working.
  */
 const componentSchemas: Record<string, Map<string, string>> = {};
+/** Inverse of `componentSchemas`: groupKey → declared variables sharing it.
+ *  This is the linkage topology declared by the editor, independent of which
+ *  aliases the user happens to have saved. */
+const componentSchemaSiblings: Record<string, Map<string, string[]>> = {};
+
+const TYPOGRAPHY_PROP_SUFFIXES = ['font-family', 'font-size', 'font-weight', 'line-height'] as const;
+
+/** Pull the slot identifier off a typography variable name, e.g.
+ *  `--card-primary-title-font-family` → `'title'`. Returns null for
+ *  non-typography vars, where the slot concept doesn't apply. */
+function typographySlotOf(varName: string): string | null {
+  for (const suffix of TYPOGRAPHY_PROP_SUFFIXES) {
+    if (!varName.endsWith('-' + suffix)) continue;
+    const head = varName.slice(0, -(suffix.length + 1));
+    const lastDash = head.lastIndexOf('-');
+    if (lastDash < 0) return null;
+    return head.slice(lastDash + 1);
+  }
+  return null;
+}
 
 /**
  * Register a component's token → groupKey mapping. Editors call this at
  * module load (top of `<script>`) so sibling lookups can prefer explicit
  * groupKeys over name-derived inference. Re-registration overwrites prior
  * entries for the same component.
+ *
+ * Warns when a single groupKey covers typography variables whose name-derived
+ * slots differ — e.g. `groupKey: 'font-family'` covering both
+ * `--card-primary-title-font-family` and `--card-primary-body-font-family`.
+ * Slot prefixes (`title-font-family` vs `body-font-family`) are required so
+ * each slot is independently linkable. See `src/styles/CONVENTIONS.md`.
  */
 export function registerComponentSchema(
   component: string,
   tokens: ReadonlyArray<{ variable: string; groupKey?: string }>,
 ): void {
   const map = new Map<string, string>();
+  const siblings = new Map<string, string[]>();
   for (const t of tokens) {
-    if (t.groupKey) map.set(t.variable, t.groupKey);
+    if (!t.groupKey) continue;
+    map.set(t.variable, t.groupKey);
+    const list = siblings.get(t.groupKey) ?? [];
+    list.push(t.variable);
+    siblings.set(t.groupKey, list);
   }
   componentSchemas[component] = map;
+  componentSchemaSiblings[component] = siblings;
+
+  for (const [groupKey, vars] of siblings) {
+    const slots = new Set<string>();
+    for (const v of vars) {
+      const slot = typographySlotOf(v);
+      if (slot) slots.add(slot);
+    }
+    if (slots.size > 1) {
+      const slotList = [...slots];
+      const examples = slotList.map((s) => `"${s}-${groupKey}"`).join(', ');
+      console.warn(
+        `[registerComponentSchema] component "${component}" groupKey "${groupKey}" links typography variables with distinct slots: ${slotList.join(', ')}. ` +
+          `Use slot-prefixed groupKeys (e.g. ${examples}) so each slot is independently linkable.`,
+      );
+    }
+  }
 }
 
 /**
@@ -176,12 +224,18 @@ function getGroupKey(component: string, varName: string): string | null {
 }
 
 /**
- * All keys in the component slice that share `varName`'s groupKey.
- * Includes `varName` itself if it lives in the slice.
+ * Variables that share `varName`'s groupKey, i.e. are declared as one
+ * linkage group. The editor's registered schema is the source of truth — the
+ * declared topology is reported regardless of which aliases happen to be
+ * persisted in the slice, so link UI reflects the editor's intent rather than
+ * leaking through the on-disk state. Falls back to a slice scan only when the
+ * variable isn't declared (legacy/inferred groupKey).
  */
 export function getComponentPropertySiblings(component: string, varName: string): string[] {
   const groupKey = getGroupKey(component, varName);
   if (!groupKey) return [];
+  const declared = componentSchemaSiblings[component]?.get(groupKey);
+  if (declared && declared.length > 0) return declared.slice();
   const slice = get(store).components[component];
   if (!slice) return [];
   const siblings: string[] = [];
@@ -199,18 +253,20 @@ function cssVarRefEqual(a: CssVarRef | undefined, b: CssVarRef | undefined): boo
     : a.value === (b as { kind: 'literal'; value: string }).value;
 }
 
-/** True iff `varName` is not individually opted out, has ≥2 siblings, and shares its alias with the other linked siblings. */
+/** True iff `varName` is not individually opted out, has ≥2 declared siblings,
+ *  and the linked siblings agree — either all sharing the same explicit alias,
+ *  or all having no override (linked at the upstream default). */
 export function isComponentPropertyLinked(component: string, varName: string): boolean {
   const slice = get(store).components[component];
-  if (!slice) return false;
-  if (slice.unlinked?.includes(varName)) return false;
+  if (slice?.unlinked?.includes(varName)) return false;
   const siblings = getComponentPropertySiblings(component, varName);
   if (siblings.length < 2) return false;
-  const linkedSiblings = siblings.filter((v) => !slice.unlinked?.includes(v));
+  const unlinkedList = slice?.unlinked ?? [];
+  const linkedSiblings = siblings.filter((v) => !unlinkedList.includes(v));
   if (linkedSiblings.length < 2) return false;
-  const first = slice.aliases[linkedSiblings[0]];
-  if (!first) return false;
-  return linkedSiblings.every((v) => cssVarRefEqual(slice.aliases[v], first));
+  const aliases = slice?.aliases ?? {};
+  const first = aliases[linkedSiblings[0]];
+  return linkedSiblings.every((v) => cssVarRefEqual(aliases[v], first));
 }
 
 /** Write `ref` to `varName` and every sibling currently linked (not in `unlinked`),
@@ -222,7 +278,7 @@ export function setComponentAliasLinked(component: string, varName: string, ref:
     setComponentAlias(component, varName, ref);
     return;
   }
-  mutate(`share ${component}/${groupKey}`, (s) => {
+  mutate(`link ${component}/${groupKey}`, (s) => {
     const slice = s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {}, config: {} });
     const unlinked = (slice.unlinked ?? []).filter((p) => p !== varName);
     slice.aliases[varName] = ref;
@@ -243,7 +299,7 @@ export function clearComponentAliasLinked(component: string, varName: string): v
     clearComponentAlias(component, varName);
     return;
   }
-  mutate(`clear linked ${component}/${groupKey}`, (s) => {
+  mutate(`clear link ${component}/${groupKey}`, (s) => {
     const slice = s.components[component];
     if (!slice) return;
     const unlinked = slice.unlinked ?? [];
@@ -267,6 +323,23 @@ export function unlinkComponentProperty(component: string, varName: string): voi
     if (!unlinked.includes(varName)) {
       slice.unlinked = [...unlinked, varName];
     }
+  });
+}
+
+/** Rejoin `varName` to its sibling group as pure metadata: drop it from the
+ *  `unlinked` list without writing any alias. Use when the group has no
+ *  overrides yet (linked at the upstream default) and the user just wants to
+ *  re-engage membership — `setComponentAliasLinked` requires a ref to write,
+ *  which there is none of in that state. */
+export function relinkComponentProperty(component: string, varName: string): void {
+  const slice = get(store).components[component];
+  if (!slice?.unlinked?.includes(varName)) return;
+  mutate(`relink ${component}/${varName}`, (s) => {
+    const next = s.components[component];
+    if (!next?.unlinked) return;
+    const remaining = next.unlinked.filter((v) => v !== varName);
+    if (remaining.length === 0) delete next.unlinked;
+    else next.unlinked = remaining;
   });
 }
 

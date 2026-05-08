@@ -66,8 +66,9 @@
 
   --ui-toggle:          var(--ui-gray-750);
 
-  --ui-hover:           var(--ui-gray-150);
+  --ui-hover-lowest:    #000000;
   --ui-hover-low:       var(--ui-gray-100);
+  --ui-hover:           var(--ui-gray-150);
   --ui-hover-high:      var(--ui-gray-250);
 
   --ui-radius-none: 0;

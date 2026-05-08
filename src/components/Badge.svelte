@@ -13,7 +13,9 @@
   <slot />
 </span>
 
-<style>
+<style lang="scss">
+  @use '../styles/padding' as *;
+
   :global(:root) {
     /* Info */
     --badge-info-surface: var(--surface-neutral-higher);
@@ -83,7 +85,7 @@
     background: var(--badge-info-surface);
     border: var(--badge-info-border-width) solid var(--badge-info-border);
     border-radius: var(--badge-info-radius);
-    padding: var(--badge-info-padding) calc(var(--badge-info-padding) * 2);
+    @include themed-padding(--badge-info-padding, $h: 2);
     font-family: var(--badge-info-text-font-family);
     font-size: var(--badge-info-text-font-size);
     font-weight: var(--badge-info-text-font-weight);
@@ -98,7 +100,7 @@
     background: var(--badge-accent-surface);
     border: var(--badge-accent-border-width) solid var(--badge-accent-border);
     border-radius: var(--badge-accent-radius);
-    padding: var(--badge-accent-padding) calc(var(--badge-accent-padding) * 2);
+    @include themed-padding(--badge-accent-padding, $h: 2);
     font-family: var(--badge-accent-text-font-family);
     font-size: var(--badge-accent-text-font-size);
     font-weight: var(--badge-accent-text-font-weight);
@@ -127,7 +129,7 @@
     background: var(--badge-trait-surface);
     border: var(--badge-trait-border-width) solid var(--badge-trait-border);
     border-radius: var(--badge-trait-radius);
-    padding: var(--badge-trait-padding) calc(var(--badge-trait-padding) * 2);
+    @include themed-padding(--badge-trait-padding, $h: 2);
     font-family: var(--badge-trait-text-font-family);
     font-size: var(--badge-trait-text-font-size);
     font-weight: var(--badge-trait-text-font-weight);
