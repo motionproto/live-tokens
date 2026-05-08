@@ -121,7 +121,7 @@
       --notification-info-radius: var(--radius-md);
       --notification-info-padding: var(--space-12);
       --notification-info-icon: var(--text-info);
-      --notification-info-icon-size: var(--font-size-md);
+      --notification-info-icon-size: var(--icon-size-md);
       --notification-info-title: var(--text-info);
       --notification-info-title-font-family: var(--font-sans);
       --notification-info-title-font-size: var(--font-size-lg);
@@ -140,7 +140,7 @@
       --notification-success-radius: var(--radius-md);
       --notification-success-padding: var(--space-12);
       --notification-success-icon: var(--text-success);
-      --notification-success-icon-size: var(--font-size-md);
+      --notification-success-icon-size: var(--icon-size-md);
       --notification-success-title: var(--text-success);
       --notification-success-title-font-family: var(--font-sans);
       --notification-success-title-font-size: var(--font-size-lg);
@@ -159,7 +159,7 @@
       --notification-warning-radius: var(--radius-md);
       --notification-warning-padding: var(--space-12);
       --notification-warning-icon: var(--text-warning);
-      --notification-warning-icon-size: var(--font-size-md);
+      --notification-warning-icon-size: var(--icon-size-md);
       --notification-warning-title: var(--text-warning);
       --notification-warning-title-font-family: var(--font-sans);
       --notification-warning-title-font-size: var(--font-size-lg);
@@ -178,7 +178,7 @@
       --notification-danger-radius: var(--radius-md);
       --notification-danger-padding: var(--space-12);
       --notification-danger-icon: var(--text-danger);
-      --notification-danger-icon-size: var(--font-size-md);
+      --notification-danger-icon-size: var(--icon-size-md);
       --notification-danger-title: var(--text-danger);
       --notification-danger-title-font-family: var(--font-sans);
       --notification-danger-title-font-size: var(--font-size-lg);

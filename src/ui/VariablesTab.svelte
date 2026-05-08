@@ -67,6 +67,11 @@
     '--font-size-xl', '--font-size-2xl', '--font-size-3xl', '--font-size-4xl',
     '--font-size-5xl', '--font-size-6xl',
   ];
+  const ICON_SIZE_VARS = [
+    '--icon-size-xs', '--icon-size-sm', '--icon-size-md', '--icon-size-lg',
+    '--icon-size-xl', '--icon-size-2xl', '--icon-size-3xl', '--icon-size-4xl',
+    '--icon-size-5xl', '--icon-size-6xl',
+  ];
   const FONT_WEIGHT_VARS = [
     '--font-weight-thin', '--font-weight-extralight', '--font-weight-light',
     '--font-weight-normal', '--font-weight-medium', '--font-weight-semibold',
@@ -110,6 +115,7 @@
   let fontSizeTokens: TokenItem[] = [];
   let fontWeightTokens: TokenItem[] = [];
   let lineHeightTokens: TokenItem[] = [];
+  let iconSizeTokens: TokenItem[] = [];
   $: {
     liveVersion;
     $editorState;
@@ -118,6 +124,7 @@
     fontSizeTokens = toItems(FONT_SIZE_VARS);
     fontWeightTokens = toItems(FONT_WEIGHT_VARS);
     lineHeightTokens = toItems(LINE_HEIGHT_VARS);
+    iconSizeTokens = toItems(ICON_SIZE_VARS);
   }
 
   // tokens.css declares responsive overrides at 768px and 480px; refresh when
@@ -810,6 +817,25 @@
           {/each}
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Icon Sizes -->
+  <section class="section" id="icon-sizes">
+    <h2 class="section-title">Icon Sizes</h2>
+
+    <div class="font-size-demos">
+      {#each iconSizeTokens as token}
+        <div class="font-size-item">
+          <span class="icon-size-preview" style="font-size: var({token.variable});">
+            <i class="fas fa-star"></i>
+          </span>
+          <div class="token-info">
+            <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
+            <span class="token-value">{token.value}</span>
+          </div>
+        </div>
+      {/each}
     </div>
   </section>
 
@@ -1730,6 +1756,14 @@
     font-family: var(--ui-font-sans);
     line-height: 1;
     min-width: 3rem;
+  }
+
+  .icon-size-preview {
+    color: var(--ui-text-primary);
+    line-height: 1;
+    min-width: 3rem;
+    display: inline-flex;
+    align-items: center;
   }
 
   .font-size-item .token-info {

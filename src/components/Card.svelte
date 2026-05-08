@@ -46,6 +46,8 @@
     --card-default-title-font-weight: var(--font-weight-normal);
     --card-default-title-line-height: var(--line-height-snug);
 
+    --card-default-icon-size: var(--icon-size-lg);
+
     --card-default-body: var(--text-secondary);
     --card-default-body-font-family: var(--font-sans);
     --card-default-body-font-size: var(--font-size-md);
@@ -68,6 +70,8 @@
     --card-hover-title-font-size: var(--font-size-lg);
     --card-hover-title-font-weight: var(--font-weight-normal);
     --card-hover-title-line-height: var(--line-height-snug);
+
+    --card-hover-icon-size: var(--icon-size-lg);
 
     --card-hover-body: var(--text-secondary);
     --card-hover-body-font-family: var(--font-sans);
@@ -117,17 +121,18 @@
   }
 
   .card-icon {
-    font-size: var(--font-size-lg);
+    font-size: var(--card-default-icon-size);
     color: var(--card-color, var(--card-default-title));
   }
 
   .card:not(.no-hover):hover .card-icon,
   .card.force-hover .card-icon {
+    font-size: var(--card-hover-icon-size);
     color: var(--card-color, var(--card-hover-title));
   }
 
   .card.compact .card-icon {
-    font-size: var(--font-size-md);
+    font-size: var(--icon-size-md);
   }
 
   .card-title {

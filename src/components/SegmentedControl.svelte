@@ -66,6 +66,7 @@
     --segmentedcontrol-option-text-font-weight: var(--font-weight-normal);
     --segmentedcontrol-option-text-line-height: var(--line-height-normal);
     --segmentedcontrol-option-icon: var(--text-secondary);
+    --segmentedcontrol-option-icon-size: var(--icon-size-md);
 
     /* Option — hover */
     --segmentedcontrol-option-hover-surface: var(--surface-neutral-higher);
@@ -75,6 +76,7 @@
     --segmentedcontrol-option-hover-text-font-weight: var(--font-weight-normal);
     --segmentedcontrol-option-hover-text-line-height: var(--line-height-normal);
     --segmentedcontrol-option-hover-icon: var(--text-secondary);
+    --segmentedcontrol-option-hover-icon-size: var(--icon-size-md);
 
     /* Selected (inner pill) — looks the same hovered or not */
     --segmentedcontrol-selected-surface: var(--surface-success-high);
@@ -84,6 +86,7 @@
     --segmentedcontrol-selected-text-font-weight: var(--font-weight-semibold);
     --segmentedcontrol-selected-text-line-height: var(--line-height-normal);
     --segmentedcontrol-selected-icon: var(--text-secondary);
+    --segmentedcontrol-selected-icon-size: var(--icon-size-md);
     --segmentedcontrol-selected-border: var(--border-success);
     --segmentedcontrol-selected-border-width: var(--border-width-thin);
     --segmentedcontrol-selected-radius: var(--radius-md);
@@ -96,6 +99,7 @@
     --segmentedcontrol-disabled-text-font-weight: var(--font-weight-light);
     --segmentedcontrol-disabled-text-line-height: var(--line-height-normal);
     --segmentedcontrol-disabled-icon: var(--text-tertiary);
+    --segmentedcontrol-disabled-icon-size: var(--icon-size-md);
   }
 
   .segmented-control {
@@ -127,7 +131,7 @@
   }
 
   .segment i {
-    font-size: var(--font-size-lg);
+    font-size: var(--segmentedcontrol-option-icon-size);
     color: var(--segmentedcontrol-option-icon);
     transition: color var(--transition-fast);
   }
@@ -159,6 +163,7 @@
   .segment:hover:not(:disabled):not(.selected) i,
   .segment.force-hover:not(:disabled):not(.selected) i {
     color: var(--segmentedcontrol-option-hover-icon);
+    font-size: var(--segmentedcontrol-option-hover-icon-size);
   }
 
   .segment.selected {
@@ -177,6 +182,7 @@
 
   .segment.selected i {
     color: var(--segmentedcontrol-selected-icon);
+    font-size: var(--segmentedcontrol-selected-icon-size);
   }
 
   .segment:disabled {
@@ -192,5 +198,6 @@
 
   .segment:disabled i {
     color: var(--segmentedcontrol-disabled-icon);
+    font-size: var(--segmentedcontrol-disabled-icon-size);
   }
 </style>

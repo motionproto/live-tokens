@@ -287,7 +287,7 @@
 
   .progress-icon {
     color: var(--text-success);
-    font-size: var(--font-size-md);
+    font-size: var(--icon-size-md);
     text-align: right;
   }
 </style>

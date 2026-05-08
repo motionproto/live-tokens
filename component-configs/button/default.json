@@ -2,7 +2,7 @@
   "name": "default",
   "component": "button",
   "createdAt": "2026-04-18T02:43:11.327Z",
-  "updatedAt": "2026-05-07T11:08:44.539Z",
+  "updatedAt": "2026-05-08T17:00:05.799Z",
   "aliases": {
     "--button-primary-surface": "--surface-primary-high",
     "--button-primary-text": "--text-primary",
@@ -26,6 +26,7 @@
     "--button-primary-disabled-border-width": "--border-width-thin",
     "--button-primary-disabled-radius": "--radius-md",
     "--button-primary-disabled-padding": "--space-8",
+    "--button-primary-icon-size": "--icon-size-sm",
     "--button-secondary-surface": "--surface-neutral-high",
     "--button-secondary-text": "--text-primary",
     "--button-secondary-text-font-family": "--font-sans",
@@ -48,6 +49,7 @@
     "--button-secondary-disabled-border-width": "--border-width-thin",
     "--button-secondary-disabled-radius": "--radius-md",
     "--button-secondary-disabled-padding": "--space-8",
+    "--button-secondary-icon-size": "--icon-size-sm",
     "--button-outline-surface": "--color-transparent",
     "--button-outline-text": "--text-primary",
     "--button-outline-text-font-family": "--font-sans",
@@ -70,6 +72,7 @@
     "--button-outline-disabled-border-width": "--border-width-thin",
     "--button-outline-disabled-radius": "--radius-md",
     "--button-outline-disabled-padding": "--space-8",
+    "--button-outline-icon-size": "--icon-size-sm",
     "--button-success-surface": "--surface-success-low",
     "--button-success-text": "--text-success",
     "--button-success-text-font-family": "--font-sans",
@@ -92,6 +95,7 @@
     "--button-success-disabled-border-width": "--border-width-default",
     "--button-success-disabled-radius": "--radius-md",
     "--button-success-disabled-padding": "--space-8",
+    "--button-success-icon-size": "--icon-size-sm",
     "--button-danger-surface": "--surface-danger-low",
     "--button-danger-text": "--text-danger",
     "--button-danger-text-font-family": "--font-sans",
@@ -114,6 +118,7 @@
     "--button-danger-disabled-border-width": "--border-width-default",
     "--button-danger-disabled-radius": "--radius-md",
     "--button-danger-disabled-padding": "--space-8",
+    "--button-danger-icon-size": "--icon-size-sm",
     "--button-warning-surface": "--surface-warning-low",
     "--button-warning-text": "--text-warning",
     "--button-warning-text-font-family": "--font-sans",
@@ -135,6 +140,7 @@
     "--button-warning-disabled-border": "--border-neutral-faint",
     "--button-warning-disabled-border-width": "--border-width-default",
     "--button-warning-disabled-radius": "--radius-md",
-    "--button-warning-disabled-padding": "--space-8"
+    "--button-warning-disabled-padding": "--space-8",
+    "--button-warning-icon-size": "--icon-size-sm"
   }
 }

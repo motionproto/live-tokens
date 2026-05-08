@@ -160,7 +160,7 @@
 
     /* Close icon */
     --dialog-close-icon: var(--text-secondary);
-    --dialog-close-icon-size: var(--font-size-xl);
+    --dialog-close-icon-size: var(--icon-size-xl);
 
     /* Body */
     --dialog-body-padding: var(--space-16);

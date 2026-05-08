@@ -18,6 +18,7 @@
       { label: 'body padding', canBeLinked: true, groupKey: 'body-padding', variable: '--card-default-body-padding' },
       { label: 'card shadow', canBeLinked: true, groupKey: 'shadow', variable: '--card-default-shadow' },
       { label: 'background blur', canBeLinked: true, groupKey: 'blur', variable: '--card-default-blur' },
+      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--card-default-icon-size' },
     ],
     hover: [
       { label: 'surface color', variable: '--card-hover-surface' },
@@ -29,6 +30,7 @@
       { label: 'body padding', canBeLinked: true, groupKey: 'body-padding', variable: '--card-hover-body-padding' },
       { label: 'card shadow', canBeLinked: true, groupKey: 'shadow', variable: '--card-hover-shadow' },
       { label: 'background blur', canBeLinked: true, groupKey: 'blur', variable: '--card-hover-blur' },
+      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--card-hover-icon-size' },
     ],
   };
 
@@ -99,6 +101,7 @@
     ['--card-default-body-padding', 'card'],
     ['--card-default-shadow', 'card'],
     ['--card-default-blur', 'card'],
+    ['--card-default-icon-size', 'card'],
     ['--card-default-title-font-family', 'title'],
     ['--card-default-title-font-size', 'title'],
     ['--card-default-title-font-weight', 'title'],

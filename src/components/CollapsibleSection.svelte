@@ -55,6 +55,8 @@
       --collapsiblesection-default-label-font-size: var(--font-size-md);
       --collapsiblesection-default-label-font-weight: var(--font-weight-normal);
       --collapsiblesection-default-label-line-height: var(--line-height-normal);
+      --collapsiblesection-default-icon: var(--text-muted);
+      --collapsiblesection-default-icon-size: var(--icon-size-xs);
 
       /* Hover */
       --collapsiblesection-hover-surface: var(--surface-canvas);
@@ -67,6 +69,8 @@
       --collapsiblesection-hover-label-font-size: var(--font-size-md);
       --collapsiblesection-hover-label-font-weight: var(--font-weight-normal);
       --collapsiblesection-hover-label-line-height: var(--line-height-normal);
+      --collapsiblesection-hover-icon: var(--text-muted);
+      --collapsiblesection-hover-icon-size: var(--icon-size-xs);
 
       /* Active */
       --collapsiblesection-active-surface: var(--surface-canvas-low);
@@ -79,6 +83,8 @@
       --collapsiblesection-active-label-font-size: var(--font-size-md);
       --collapsiblesection-active-label-font-weight: var(--font-weight-normal);
       --collapsiblesection-active-label-line-height: var(--line-height-normal);
+      --collapsiblesection-active-icon: var(--text-muted);
+      --collapsiblesection-active-icon-size: var(--icon-size-xs);
    }
 
    .section-header {
@@ -101,13 +107,17 @@
          border-left: var(--collapsiblesection-hover-border-width) solid var(--collapsiblesection-hover-border);
          border-radius: var(--collapsiblesection-hover-radius);
 
-         .section-label,
-         .toggle-icon {
+         .section-label {
             color: var(--collapsiblesection-hover-label);
             font-family: var(--collapsiblesection-hover-label-font-family);
             font-size: var(--collapsiblesection-hover-label-font-size);
             font-weight: var(--collapsiblesection-hover-label-font-weight);
             line-height: var(--collapsiblesection-hover-label-line-height);
+         }
+
+         .toggle-icon {
+            color: var(--collapsiblesection-hover-icon);
+            font-size: var(--collapsiblesection-hover-icon-size);
          }
       }
 
@@ -121,13 +131,17 @@
          border-left: var(--collapsiblesection-active-border-width) solid var(--collapsiblesection-active-border);
          border-radius: var(--collapsiblesection-active-radius);
 
-         .section-label,
-         .toggle-icon {
+         .section-label {
             color: var(--collapsiblesection-active-label);
             font-family: var(--collapsiblesection-active-label-font-family);
             font-size: var(--collapsiblesection-active-label-font-size);
             font-weight: var(--collapsiblesection-active-label-font-weight);
             line-height: var(--collapsiblesection-active-label-line-height);
+         }
+
+         .toggle-icon {
+            color: var(--collapsiblesection-active-icon);
+            font-size: var(--collapsiblesection-active-icon-size);
          }
       }
    }
@@ -147,8 +161,8 @@
       }
 
       .toggle-icon {
-         font-size: var(--collapsiblesection-default-label-font-size);
-         color: var(--collapsiblesection-default-label);
+         font-size: var(--collapsiblesection-default-icon-size);
+         color: var(--collapsiblesection-default-icon);
          transition: transform var(--transition-fast);
       }
    }

@@ -2,7 +2,7 @@
   "name": "default",
   "component": "segmentedcontrol",
   "createdAt": "2026-04-28T21:48:05.910Z",
-  "updatedAt": "2026-05-07T11:10:54.708Z",
+  "updatedAt": "2026-05-08T16:54:23.699Z",
   "aliases": {
     "--segmentedcontrol-bar-surface": "--surface-neutral-high",
     "--segmentedcontrol-bar-border": "--border-neutral",
@@ -19,6 +19,7 @@
     "--segmentedcontrol-option-text-font-weight": "--font-weight-normal",
     "--segmentedcontrol-option-text-line-height": "--line-height-normal",
     "--segmentedcontrol-option-icon": "--text-secondary",
+    "--segmentedcontrol-option-icon-size": "--icon-size-md",
     "--segmentedcontrol-option-hover-surface": "--surface-neutral-higher",
     "--segmentedcontrol-option-hover-text": "--text-primary",
     "--segmentedcontrol-option-hover-text-font-family": "--font-sans",
@@ -26,6 +27,7 @@
     "--segmentedcontrol-option-hover-text-font-weight": "--font-weight-normal",
     "--segmentedcontrol-option-hover-text-line-height": "--line-height-normal",
     "--segmentedcontrol-option-hover-icon": "--text-secondary",
+    "--segmentedcontrol-option-hover-icon-size": "--icon-size-md",
     "--segmentedcontrol-selected-surface": "--surface-success-high",
     "--segmentedcontrol-selected-text": "--text-primary",
     "--segmentedcontrol-selected-text-font-family": "--font-sans",
@@ -33,6 +35,7 @@
     "--segmentedcontrol-selected-text-font-weight": "--font-weight-semibold",
     "--segmentedcontrol-selected-text-line-height": "--line-height-normal",
     "--segmentedcontrol-selected-icon": "--text-secondary",
+    "--segmentedcontrol-selected-icon-size": "--icon-size-md",
     "--segmentedcontrol-selected-border": "--border-success",
     "--segmentedcontrol-selected-border-width": "--border-width-thin",
     "--segmentedcontrol-selected-radius": "--radius-md",
@@ -42,6 +45,7 @@
     "--segmentedcontrol-disabled-text-font-size": "--font-size-md",
     "--segmentedcontrol-disabled-text-font-weight": "--font-weight-light",
     "--segmentedcontrol-disabled-text-line-height": "--line-height-normal",
-    "--segmentedcontrol-disabled-icon": "--text-tertiary"
+    "--segmentedcontrol-disabled-icon": "--text-tertiary",
+    "--segmentedcontrol-disabled-icon-size": "--icon-size-md"
   }
 }

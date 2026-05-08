@@ -60,7 +60,7 @@
     --tabbar-default-text-font-size: var(--font-size-md);
     --tabbar-default-text-font-weight: var(--font-weight-light);
     --tabbar-default-text-line-height: var(--line-height-normal);
-    --tabbar-default-icon-size: var(--font-size-md);
+    --tabbar-default-icon-size: var(--icon-size-md);
     --tabbar-default-padding: var(--space-8);
     --tabbar-default-border-width: var(--border-width-default);
 
@@ -71,7 +71,7 @@
     --tabbar-hover-text-font-size: var(--font-size-md);
     --tabbar-hover-text-font-weight: var(--font-weight-light);
     --tabbar-hover-text-line-height: var(--line-height-normal);
-    --tabbar-hover-icon-size: var(--font-size-md);
+    --tabbar-hover-icon-size: var(--icon-size-md);
     --tabbar-hover-padding: var(--space-8);
     --tabbar-hover-border-width: var(--border-width-default);
 
@@ -83,7 +83,7 @@
     --tabbar-active-text-font-size: var(--font-size-md);
     --tabbar-active-text-font-weight: var(--font-weight-light);
     --tabbar-active-text-line-height: var(--line-height-normal);
-    --tabbar-active-icon-size: var(--font-size-md);
+    --tabbar-active-icon-size: var(--icon-size-md);
     --tabbar-active-padding: var(--space-8);
     --tabbar-active-border-width: var(--border-width-default);
   }

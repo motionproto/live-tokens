@@ -505,6 +505,19 @@
   --font-size-5xl: 3rem;       /* 48px */
   --font-size-6xl: 3.5rem;     /* 56px */
 
+  /* Icon Sizes — for inline icon glyphs (e.g. Font Awesome <i>),
+     parallel to the type scale so icons can size with surrounding text. */
+  --icon-size-xs: 0.875rem;    /* 14px */
+  --icon-size-sm: 1rem;        /* 16px */
+  --icon-size-md: 1.125rem;    /* 18px */
+  --icon-size-lg: 1.25rem;     /* 20px */
+  --icon-size-xl: 1.375rem;    /* 22px */
+  --icon-size-2xl: 1.625rem;   /* 26px */
+  --icon-size-3xl: 2rem;       /* 32px */
+  --icon-size-4xl: 2.5rem;     /* 40px */
+  --icon-size-5xl: 3rem;       /* 48px */
+  --icon-size-6xl: 3.5rem;     /* 56px */
+
   /* Font Weights (OpenType numeric ↔ name mapping per CSS spec) */
   --font-weight-thin: 100;
   --font-weight-extralight: 200;
@@ -586,6 +599,17 @@
     --font-size-4xl: 1.875rem;   /* 30px */
     --font-size-5xl: 2.25rem;    /* 36px */
     --font-size-6xl: 2.5rem;     /* 40px */
+
+    --icon-size-xs: 0.8125rem;   /* 13px */
+    --icon-size-sm: 0.9375rem;   /* 15px */
+    --icon-size-md: 1rem;        /* 16px */
+    --icon-size-lg: 1.125rem;    /* 18px */
+    --icon-size-xl: 1.25rem;     /* 20px */
+    --icon-size-2xl: 1.4375rem;  /* 23px */
+    --icon-size-3xl: 1.625rem;   /* 26px */
+    --icon-size-4xl: 1.875rem;   /* 30px */
+    --icon-size-5xl: 2.25rem;    /* 36px */
+    --icon-size-6xl: 2.5rem;     /* 40px */
   }
 }
 
@@ -596,5 +620,11 @@
     --font-size-4xl: 1.625rem;   /* 26px */
     --font-size-5xl: 1.875rem;   /* 30px */
     --font-size-6xl: 2.125rem;   /* 34px */
+
+    --icon-size-2xl: 1.3125rem;  /* 21px */
+    --icon-size-3xl: 1.5rem;     /* 24px */
+    --icon-size-4xl: 1.625rem;   /* 26px */
+    --icon-size-5xl: 1.875rem;   /* 30px */
+    --icon-size-6xl: 2.125rem;   /* 34px */
   }
 }

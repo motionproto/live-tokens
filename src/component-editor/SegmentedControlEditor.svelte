@@ -24,10 +24,12 @@
     ],
     'default option': [
       { label: 'icon color', variable: '--segmentedcontrol-option-icon' },
+      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--segmentedcontrol-option-icon-size' },
     ],
     'selected option': [
       { label: 'surface color', variable: '--segmentedcontrol-selected-surface' },
       { label: 'icon color', variable: '--segmentedcontrol-selected-icon' },
+      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--segmentedcontrol-selected-icon-size' },
       { label: 'border color', variable: '--segmentedcontrol-selected-border' },
       { label: 'border width', variable: '--segmentedcontrol-selected-border-width' },
       { label: 'corner radius', variable: '--segmentedcontrol-selected-radius' },
@@ -35,10 +37,12 @@
     'hover option': [
       { label: 'surface color', variable: '--segmentedcontrol-option-hover-surface' },
       { label: 'icon color', variable: '--segmentedcontrol-option-hover-icon' },
+      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--segmentedcontrol-option-hover-icon-size' },
     ],
     'disabled option': [
       { label: 'surface color', variable: '--segmentedcontrol-disabled-surface' },
       { label: 'icon color', variable: '--segmentedcontrol-disabled-icon' },
+      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--segmentedcontrol-disabled-icon-size' },
     ],
   };
 
@@ -89,6 +93,10 @@
 
   const linkableContexts = new Map<string, string>([
     ...buildTypeGroupShareableContexts(typeGroups),
+    ['--segmentedcontrol-option-icon-size', 'default option'],
+    ['--segmentedcontrol-selected-icon-size', 'selected option'],
+    ['--segmentedcontrol-option-hover-icon-size', 'hover option'],
+    ['--segmentedcontrol-disabled-icon-size', 'disabled option'],
   ]);
 </script>
 

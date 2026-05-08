@@ -13,6 +13,8 @@
     "--collapsiblesection-default-label-font-size": "--font-size-md",
     "--collapsiblesection-default-label-font-weight": "--font-weight-bold",
     "--collapsiblesection-default-label-line-height": "--line-height-normal",
+    "--collapsiblesection-default-icon": "--text-muted",
+    "--collapsiblesection-default-icon-size": "--icon-size-xs",
     "--collapsiblesection-hover-surface": "--surface-canvas",
     "--collapsiblesection-hover-border-width": "--border-width-thick",
     "--collapsiblesection-hover-radius": "--radius-none",
@@ -22,6 +24,8 @@
     "--collapsiblesection-hover-label-font-size": "--font-size-md",
     "--collapsiblesection-hover-label-font-weight": "--font-weight-bold",
     "--collapsiblesection-hover-label-line-height": "--line-height-normal",
+    "--collapsiblesection-hover-icon": "--text-muted",
+    "--collapsiblesection-hover-icon-size": "--icon-size-xs",
     "--collapsiblesection-active-surface": "--surface-canvas-low",
     "--collapsiblesection-active-border": "--color-primary-400",
     "--collapsiblesection-active-border-width": "--border-width-thick",
@@ -31,7 +35,9 @@
     "--collapsiblesection-active-label-font-family": "--font-sans",
     "--collapsiblesection-active-label-font-size": "--font-size-md",
     "--collapsiblesection-active-label-font-weight": "--font-weight-bold",
-    "--collapsiblesection-active-label-line-height": "--line-height-normal"
+    "--collapsiblesection-active-label-line-height": "--line-height-normal",
+    "--collapsiblesection-active-icon": "--text-muted",
+    "--collapsiblesection-active-icon-size": "--icon-size-xs"
   },
   "config": {},
   "schemaVersion": 2

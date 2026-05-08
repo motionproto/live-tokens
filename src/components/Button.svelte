@@ -73,6 +73,7 @@
       --button-primary-disabled-border-width: var(--border-width-thin);
       --button-primary-disabled-radius: var(--radius-md);
       --button-primary-disabled-padding: var(--space-8);
+      --button-primary-icon-size: var(--icon-size-sm);
 
       /* Secondary */
       --button-secondary-surface: var(--surface-neutral-high);
@@ -97,6 +98,7 @@
       --button-secondary-disabled-border-width: var(--border-width-thin);
       --button-secondary-disabled-radius: var(--radius-md);
       --button-secondary-disabled-padding: var(--space-8);
+      --button-secondary-icon-size: var(--icon-size-sm);
 
       /* Outline */
       --button-outline-surface: var(--color-transparent);
@@ -121,6 +123,7 @@
       --button-outline-disabled-border-width: var(--border-width-thin);
       --button-outline-disabled-radius: var(--radius-md);
       --button-outline-disabled-padding: var(--space-8);
+      --button-outline-icon-size: var(--icon-size-sm);
 
       /* Success */
       --button-success-surface: var(--surface-success-low);
@@ -145,6 +148,7 @@
       --button-success-disabled-border-width: var(--border-width-default);
       --button-success-disabled-radius: var(--radius-md);
       --button-success-disabled-padding: var(--space-8);
+      --button-success-icon-size: var(--icon-size-sm);
 
       /* Danger */
       --button-danger-surface: var(--surface-danger-low);
@@ -169,6 +173,7 @@
       --button-danger-disabled-border-width: var(--border-width-default);
       --button-danger-disabled-radius: var(--radius-md);
       --button-danger-disabled-padding: var(--space-8);
+      --button-danger-icon-size: var(--icon-size-sm);
 
       /* Warning */
       --button-warning-surface: var(--surface-warning-low);
@@ -193,6 +198,7 @@
       --button-warning-disabled-border-width: var(--border-width-default);
       --button-warning-disabled-radius: var(--radius-md);
       --button-warning-disabled-padding: var(--space-8);
+      --button-warning-icon-size: var(--icon-size-sm);
    }
 
    .button {
@@ -261,6 +267,7 @@
 
       // Primary variant (default)
       &.primary {
+         --button-icon-size: var(--button-primary-icon-size);
          background: var(--button-primary-surface);
          color: var(--button-primary-text);
          border: var(--button-primary-border-width) solid var(--button-primary-border);
@@ -302,6 +309,7 @@
 
       // Secondary variant
       &.secondary {
+         --button-icon-size: var(--button-secondary-icon-size);
          background: var(--button-secondary-surface);
          color: var(--button-secondary-text);
          border: var(--button-secondary-border-width) solid var(--button-secondary-border);
@@ -339,6 +347,7 @@
 
       // Outline variant
       &.outline {
+         --button-icon-size: var(--button-outline-icon-size);
          background: var(--button-outline-surface);
          color: var(--button-outline-text);
          border: var(--button-outline-border-width) solid var(--button-outline-border);
@@ -380,6 +389,7 @@
 
       // Success variant
       &.success {
+         --button-icon-size: var(--button-success-icon-size);
          background: var(--button-success-surface);
          border: var(--button-success-border-width) solid var(--button-success-border);
          border-radius: var(--button-success-radius);
@@ -417,6 +427,7 @@
 
       // Danger variant
       &.danger {
+         --button-icon-size: var(--button-danger-icon-size);
          background: var(--button-danger-surface);
          border: var(--button-danger-border-width) solid var(--button-danger-border);
          border-radius: var(--button-danger-radius);
@@ -454,6 +465,7 @@
 
       // Warning variant
       &.warning {
+         --button-icon-size: var(--button-warning-icon-size);
          background: var(--button-warning-surface);
          border: var(--button-warning-border-width) solid var(--button-warning-border);
          border-radius: var(--button-warning-radius);
@@ -490,7 +502,7 @@
       }
 
    :global(i) {
-      font-size: var(--font-size-sm);
+      font-size: var(--button-icon-size, var(--icon-size-sm));
 
       &.spinning {
          animation: spin 1s linear infinite;

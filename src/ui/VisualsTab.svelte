@@ -29,6 +29,7 @@
     { id: 'columns', label: 'Columns' },
     { id: 'border-radius', label: 'Border Radius' },
     { id: 'typography', label: 'Typography' },
+    { id: 'icon-sizes', label: 'Icon Sizes' },
     { id: 'shadows', label: 'Shadows' },
     { id: 'overlays', label: 'Overlays' },
     { id: 'gradients', label: 'Gradients' },

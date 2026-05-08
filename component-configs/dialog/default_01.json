@@ -20,7 +20,7 @@
     "--dialog-title-font-weight": "--font-weight-normal",
     "--dialog-title-line-height": "--line-height-snug",
     "--dialog-close-icon": "--text-secondary",
-    "--dialog-close-icon-size": "--font-size-xl",
+    "--dialog-close-icon-size": "--icon-size-xl",
     "--dialog-body-padding": "--space-16",
     "--dialog-footer-border": "--border-neutral-subtle",
     "--dialog-footer-border-width": "--border-width-thin",

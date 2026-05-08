@@ -9,6 +9,10 @@
   export let disabled: boolean = false;
   export let selectionsLocked: boolean = false;
 
+  // Icon-size variables (e.g. --tabbar-default-icon-size) pick from the
+  // --icon-size-* scale; everything else from --font-size-*.
+  $: scalePrefix = variable.endsWith('-icon-size') ? '--icon-size-' : '--font-size-';
+
   const options = [
     { key: 'xs', label: 'XS' },
     { key: 'sm', label: 'SM' },
@@ -40,7 +44,7 @@
     const nextPx: Record<string, string> = {};
     const nextRem: Record<string, string> = {};
     for (const opt of options) {
-      probe.style.fontSize = `var(--font-size-${opt.key})`;
+      probe.style.fontSize = `var(${scalePrefix}${opt.key})`;
       const px = parseFloat(getComputedStyle(probe).fontSize);
       if (Number.isFinite(px)) {
         nextPx[opt.key] = `${Math.round(px * 10) / 10}px`;
@@ -57,8 +61,12 @@
 
   function handleVarChange(e: Event) {
     const detail = (e as CustomEvent<{ name: string }>).detail;
-    if (detail?.name?.startsWith('--font-size-')) readPxValues();
+    if (detail?.name?.startsWith('--font-size-') || detail?.name?.startsWith('--icon-size-')) readPxValues();
   }
+
+  // Re-read sizes when the target variable's scale changes
+  // (mounting one selector, then opening another whose variable resolves to a different scale).
+  $: if (typeof document !== 'undefined' && scalePrefix) readPxValues();
 
   onMount(() => {
     readPxValues();
@@ -75,7 +83,7 @@
   {canBeLinked}
   {disabled}
   {selectionsLocked}
-  varPrefix="--font-size-"
+  varPrefix={scalePrefix}
   {options}
   dropdownGridColumns="auto auto auto auto"
   on:change
@@ -83,7 +91,7 @@
   <svelte:fragment slot="option" let:opt let:active let:select>
     <button class="font-size-row" class:active on:click={select}>
       <span class="size-sample-cell">
-        <span class="size-sample" style="font-size: calc(var(--font-size-{opt.key}) * 1.5);">A</span>
+        <span class="size-sample" style="font-size: calc(var({scalePrefix}{opt.key}) * 1.5);">A</span>
       </span>
       <span class="size-label">{opt.label}</span>
       <code class="size-measure">{pxByKey[opt.key] ?? ''}</code>

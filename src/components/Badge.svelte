@@ -29,6 +29,7 @@
     --badge-info-radius: var(--radius-full);
     --badge-info-padding: var(--space-6);
     --badge-info-shadow: var(--shadow-sm);
+    --badge-info-icon-size: var(--icon-size-sm);
 
     /* Accent */
     --badge-accent-surface: var(--surface-neutral-higher);
@@ -42,6 +43,7 @@
     --badge-accent-radius: var(--radius-full);
     --badge-accent-padding: var(--space-6);
     --badge-accent-shadow: var(--shadow-sm);
+    --badge-accent-icon-size: var(--icon-size-sm);
 
     /* Trait */
     --badge-trait-surface: var(--surface-primary-high);
@@ -55,6 +57,7 @@
     --badge-trait-radius: var(--radius-full);
     --badge-trait-padding: var(--space-6);
     --badge-trait-shadow: var(--shadow-sm);
+    --badge-trait-icon-size: var(--icon-size-sm);
   }
 
   .badge {
@@ -68,7 +71,7 @@
   .icon {
     display: inline-flex;
     align-items: center;
-    font-size: 1em;
+    font-size: var(--badge-icon-size, 1em);
   }
 
   .icon:empty {
@@ -81,6 +84,7 @@
 
   /* Info (default) */
   .badge-info {
+    --badge-icon-size: var(--badge-info-icon-size);
     color: var(--badge-info-text);
     background: var(--badge-info-surface);
     border: var(--badge-info-border-width) solid var(--badge-info-border);
@@ -96,6 +100,7 @@
 
   /* Accent */
   .badge-accent {
+    --badge-icon-size: var(--badge-accent-icon-size);
     color: var(--badge-accent-text);
     background: var(--badge-accent-surface);
     border: var(--badge-accent-border-width) solid var(--badge-accent-border);
@@ -125,6 +130,7 @@
 
   /* Trait */
   .badge-trait {
+    --badge-icon-size: var(--badge-trait-icon-size);
     color: var(--badge-trait-text);
     background: var(--badge-trait-surface);
     border: var(--badge-trait-border-width) solid var(--badge-trait-border);

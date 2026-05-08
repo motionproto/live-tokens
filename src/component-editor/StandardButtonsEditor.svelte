@@ -31,6 +31,7 @@
         { label: 'font size', canBeLinked: true, groupKey: 'font-size', variable: `--button-${v}-text-font-size` },
         { label: 'font weight', canBeLinked: true, groupKey: 'font-weight', variable: `--button-${v}-text-font-weight` },
         { label: 'line height', canBeLinked: true, groupKey: 'line-height', variable: `--button-${v}-text-line-height` },
+        { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: `--button-${v}-icon-size` },
       );
     } else {
       tokens.push({ label: 'text color', variable: `--button-${v}-${s}-text` });
@@ -59,6 +60,7 @@
       [`--button-${v}-text-font-size`, v] as const,
       [`--button-${v}-text-font-weight`, v] as const,
       [`--button-${v}-text-line-height`, v] as const,
+      [`--button-${v}-icon-size`, v] as const,
     ]),
   ]);
 

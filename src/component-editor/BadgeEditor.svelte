@@ -16,6 +16,7 @@
       { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--badge-${variant}-radius` },
       { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--badge-${variant}-padding` },
       { label: 'badge shadow', canBeLinked: true, groupKey: 'shadow', variable: `--badge-${variant}-shadow` },
+      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: `--badge-${variant}-icon-size` },
     ];
   }
   function variantTypeGroups(variant: Variant): TypeGroupConfig[] {
@@ -58,6 +59,9 @@
     ['--badge-info-shadow', 'info'],
     ['--badge-accent-shadow', 'accent'],
     ['--badge-trait-shadow', 'trait'],
+    ['--badge-info-icon-size', 'info'],
+    ['--badge-accent-icon-size', 'accent'],
+    ['--badge-trait-icon-size', 'trait'],
     ['--badge-info-text-font-family', 'info'],
     ['--badge-accent-text-font-family', 'accent'],
     ['--badge-trait-text-font-family', 'trait'],
