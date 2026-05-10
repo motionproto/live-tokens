@@ -57,7 +57,7 @@
       {/each}
     </div>
   {/if}
-  <slot />
+  <slot viewMode={$viewMode} focusedVariant={$focusedVariant} />
   {#if linked}
     <LinkedBlock {component} {linked} on:change />
   {/if}

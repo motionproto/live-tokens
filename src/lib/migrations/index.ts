@@ -33,6 +33,8 @@ export interface Migration {
 import { themeMigration_2026_04_24_legacyKeysAndBgToCanvas } from './2026-04-24-legacy-keys-and-bg-to-canvas';
 import { componentMigration_2026_04_24_prefixAndSuffixRenames } from './2026-04-24-component-prefix-and-suffix-renames';
 import { componentMigration_2026_04_27_segmentedcontrolDisabledFlatten } from './2026-04-27-segmentedcontrol-disabled-flatten';
+import { componentMigration_2026_05_08_collapsiblesectionVariantNamespace } from './2026-05-08-collapsiblesection-variant-namespace';
+import { componentMigration_2026_05_08_collapsiblesectionFrameAndCleanup } from './2026-05-08-collapsiblesection-frame-and-cleanup';
 
 /**
  * Registered migrations. Order in this array does not matter — the runner
@@ -42,6 +44,8 @@ export const MIGRATIONS: Migration[] = [
   themeMigration_2026_04_24_legacyKeysAndBgToCanvas,
   componentMigration_2026_04_24_prefixAndSuffixRenames,
   componentMigration_2026_04_27_segmentedcontrolDisabledFlatten,
+  componentMigration_2026_05_08_collapsiblesectionVariantNamespace,
+  componentMigration_2026_05_08_collapsiblesectionFrameAndCleanup,
 ];
 
 function countFor(kind: 'theme' | 'component-config'): number {

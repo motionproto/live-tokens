@@ -88,6 +88,106 @@ describe('migration runner — schemaVersion gating', () => {
     expect(migrated['--segmentedcontrol-something']).toBeUndefined();
   });
 
+  it('component-config at version 2 → collapsiblesection state tokens namespace into container; v3→v4 cleanup applies on top', () => {
+    const v2 = {
+      '--collapsiblesection-default-surface': '--surface-canvas-high',
+      '--collapsiblesection-hover-icon': '--text-primary',
+      '--collapsiblesection-active-border': '--color-primary-400',
+      '--collapsiblesection-expanded-padding': '--space-4',
+      '--collapsiblesection-default-label-font-family': '--font-sans',
+    };
+    const migrated = runMigrations('component-config', 2, v2, {
+      component: 'collapsiblesection',
+    });
+    // Old, unscoped keys are gone after v2→v3
+    expect(migrated['--collapsiblesection-default-surface']).toBeUndefined();
+    expect(migrated['--collapsiblesection-hover-icon']).toBeUndefined();
+    // Surviving header tokens land in the container namespace
+    expect(migrated['--collapsiblesection-container-default-surface']).toBe('--surface-canvas-high');
+    expect(migrated['--collapsiblesection-container-hover-icon']).toBe('--text-primary');
+    expect(migrated['--collapsiblesection-container-default-label-font-family']).toBe('--font-sans');
+    expect(migrated['--collapsiblesection-container-expanded-padding']).toBe('--space-4');
+    // v3→v4 drops container active-border (frame owns chrome now); the
+    // pre-existing default-surface is also seeded into the new frame namespace.
+    expect(migrated['--collapsiblesection-container-active-border']).toBeUndefined();
+    expect(migrated['--collapsiblesection-container-frame-surface']).toBe('--surface-canvas-high');
+  });
+
+  it('component-config v2 namespace migration only fires for collapsiblesection', () => {
+    const v2 = { '--button-primary-surface': '--surface-success' };
+    const out = runMigrations('component-config', 2, v2, { component: 'button' });
+    expect(out).toEqual(v2);
+  });
+
+  it('component-config at version 3 → collapsiblesection container chrome moves into frame, dead per-state tokens drop', () => {
+    const v3 = {
+      // Container default-state chrome → frame (values preserved).
+      '--collapsiblesection-container-default-surface': '--surface-canvas-high',
+      '--collapsiblesection-container-default-border': '--color-primary-400',
+      '--collapsiblesection-container-default-border-width': '--border-width-thick',
+      '--collapsiblesection-container-default-radius': '--radius-md',
+      '--collapsiblesection-container-default-padding': '--space-4',
+      // Container hover/active border tokens drop (frame owns chrome).
+      '--collapsiblesection-container-hover-border': '--color-primary-500',
+      '--collapsiblesection-container-hover-border-width': '--border-width-thick',
+      '--collapsiblesection-container-active-radius': '--radius-md',
+      '--collapsiblesection-container-active-surface': '--surface-canvas-low',
+      // Chromeless per-state border / radius drop.
+      '--collapsiblesection-chromeless-default-border': '--color-primary-400',
+      '--collapsiblesection-chromeless-hover-border-width': '--border-width-thin',
+      '--collapsiblesection-chromeless-active-radius': '--radius-none',
+      '--collapsiblesection-chromeless-default-padding': '--space-4',
+      // Divider radius drops; divider border-* survives (paints bottom rule).
+      '--collapsiblesection-divider-default-border': '--border-neutral-faint',
+      '--collapsiblesection-divider-default-border-width': '--border-width-thin',
+      '--collapsiblesection-divider-default-radius': '--radius-none',
+      // Expanded panel: only padding for chromeless/divider; surface + padding for container.
+      '--collapsiblesection-chromeless-expanded-border': '--color-primary-400',
+      '--collapsiblesection-chromeless-expanded-surface': '--surface-canvas',
+      '--collapsiblesection-chromeless-expanded-padding': '--space-4',
+      '--collapsiblesection-container-expanded-radius': '--radius-md',
+      '--collapsiblesection-container-expanded-surface': '--surface-canvas-low',
+      '--collapsiblesection-container-expanded-padding': '--space-4',
+    };
+    const migrated = runMigrations('component-config', 3, v3, {
+      component: 'collapsiblesection',
+    });
+    // Container frame-* seeded from old default-state tokens
+    expect(migrated['--collapsiblesection-container-frame-surface']).toBe('--surface-canvas-high');
+    expect(migrated['--collapsiblesection-container-frame-border']).toBe('--color-primary-400');
+    expect(migrated['--collapsiblesection-container-frame-border-width']).toBe('--border-width-thick');
+    expect(migrated['--collapsiblesection-container-frame-radius']).toBe('--radius-md');
+    // Container default-state surface + padding survive (still drive header strip)
+    expect(migrated['--collapsiblesection-container-default-surface']).toBe('--surface-canvas-high');
+    expect(migrated['--collapsiblesection-container-default-padding']).toBe('--space-4');
+    // Container default-state border / radius dropped (frame owns them now)
+    expect(migrated['--collapsiblesection-container-default-border']).toBeUndefined();
+    expect(migrated['--collapsiblesection-container-default-border-width']).toBeUndefined();
+    expect(migrated['--collapsiblesection-container-default-radius']).toBeUndefined();
+    // Container hover/active border tokens dropped
+    expect(migrated['--collapsiblesection-container-hover-border']).toBeUndefined();
+    expect(migrated['--collapsiblesection-container-hover-border-width']).toBeUndefined();
+    expect(migrated['--collapsiblesection-container-active-radius']).toBeUndefined();
+    // Container hover/active surface survives (header strip)
+    expect(migrated['--collapsiblesection-container-active-surface']).toBe('--surface-canvas-low');
+    // Chromeless per-state border / radius dropped; padding stays
+    expect(migrated['--collapsiblesection-chromeless-default-border']).toBeUndefined();
+    expect(migrated['--collapsiblesection-chromeless-hover-border-width']).toBeUndefined();
+    expect(migrated['--collapsiblesection-chromeless-active-radius']).toBeUndefined();
+    expect(migrated['--collapsiblesection-chromeless-default-padding']).toBe('--space-4');
+    // Divider border / border-width survive; radius drops
+    expect(migrated['--collapsiblesection-divider-default-border']).toBe('--border-neutral-faint');
+    expect(migrated['--collapsiblesection-divider-default-border-width']).toBe('--border-width-thin');
+    expect(migrated['--collapsiblesection-divider-default-radius']).toBeUndefined();
+    // Expanded panel cleanup
+    expect(migrated['--collapsiblesection-chromeless-expanded-border']).toBeUndefined();
+    expect(migrated['--collapsiblesection-chromeless-expanded-surface']).toBeUndefined();
+    expect(migrated['--collapsiblesection-chromeless-expanded-padding']).toBe('--space-4');
+    expect(migrated['--collapsiblesection-container-expanded-radius']).toBeUndefined();
+    expect(migrated['--collapsiblesection-container-expanded-surface']).toBe('--surface-canvas-low');
+    expect(migrated['--collapsiblesection-container-expanded-padding']).toBe('--space-4');
+  });
+
   it('component-config at current version → no migrations run', () => {
     const current = { '--button-primary-surface': '--surface-success' };
     const out = runMigrations(

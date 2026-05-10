@@ -2,7 +2,7 @@
   "name": "default_01",
   "component": "collapsiblesection",
   "createdAt": "2026-05-08T14:51:33.738Z",
-  "updatedAt": "2026-05-08T14:51:33.743Z",
+  "updatedAt": "2026-05-08T17:48:17.715Z",
   "aliases": {
     "--collapsiblesection-default-surface": "--surface-canvas-high",
     "--collapsiblesection-default-border-width": "--border-width-thick",
@@ -13,7 +13,7 @@
     "--collapsiblesection-default-label-font-size": "--font-size-md",
     "--collapsiblesection-default-label-font-weight": "--font-weight-bold",
     "--collapsiblesection-default-label-line-height": "--line-height-normal",
-    "--collapsiblesection-default-icon": "--text-muted",
+    "--collapsiblesection-default-icon": "--text-primary",
     "--collapsiblesection-default-icon-size": "--icon-size-xs",
     "--collapsiblesection-hover-surface": "--surface-canvas",
     "--collapsiblesection-hover-border-width": "--border-width-thick",
