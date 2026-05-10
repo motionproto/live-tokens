@@ -2,7 +2,7 @@
   "name": "default",
   "component": "badge",
   "createdAt": "2026-05-01T08:28:00.345Z",
-  "updatedAt": "2026-05-10T16:38:18.398Z",
+  "updatedAt": "2026-05-10T16:59:16.435Z",
   "aliases": {
     "--badge-primary-surface": "--surface-primary",
     "--badge-primary-text": "--text-primary-color",

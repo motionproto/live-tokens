@@ -2,7 +2,7 @@
   "name": "default",
   "component": "dialog",
   "createdAt": "2026-04-29T23:08:12.724Z",
-  "updatedAt": "2026-05-10T16:25:36.757Z",
+  "updatedAt": "2026-05-10T16:59:16.436Z",
   "aliases": {
     "--dialog-overlay-surface": "--overlay-high",
     "--dialog-surface": "--surface-neutral-lowest",
