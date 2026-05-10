@@ -20,7 +20,6 @@
     componentDirty,
     loadComponentActive,
     markComponentSaved,
-    mutate,
   } from '../../lib/editorStore';
   import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../lib/migrations';
   import type { CssVarRef } from '../../lib/editorTypes';
@@ -34,7 +33,9 @@
   export let component: string;
   /** Display name shown at the start of the bar (e.g. "Segmented Control"). */
   export let title: string = '';
-  /** When provided, renders a Reset button that restores these variables to `default.json`. */
+  /** When provided, renders a Reset button that reverts the component to its
+      currently-loaded config file (discarding unsaved edits). To switch
+      configs or return to default, use the File menu. */
   export let resetVariables: string[] | null = null;
 
   const projectRoot: string =
@@ -71,12 +72,7 @@
 
   $: compDirty = $componentDirty[component] ?? false;
   $: isApplied = !!productionInfo && productionInfo.fileName === activeFileName && !compDirty;
-  $: unlinkedCount = $editorState.components[component]?.unlinked?.length ?? 0;
-  $: resetDirty = (() => {
-    if (!resetVariables) return false;
-    const aliases = $editorState.components[component]?.aliases ?? {};
-    return resetVariables.some((v) => v in aliases) || unlinkedCount > 0;
-  })();
+  $: resetDirty = !!resetVariables && compDirty;
 
   async function refreshFiles() {
     // safeFetch returns null on dev-server unavailable / non-2xx — silently
@@ -235,22 +231,12 @@
 
   async function handleReset() {
     if (!resetVariables) return;
-    const defaultCfg = await loadComponentConfig(component, 'default');
-    mutate(`reset ${component}`, (s) => {
-      const slice =
-        s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {}, config: {} });
-      for (const v of resetVariables) {
-        const defaultVal = defaultCfg.aliases[v];
-        if (defaultVal !== undefined) {
-          slice.aliases[v] = defaultVal.startsWith('--')
-            ? { kind: 'token', name: defaultVal }
-            : { kind: 'literal', value: defaultVal };
-        } else {
-          delete slice.aliases[v];
-        }
-      }
-      if (slice.unlinked) delete slice.unlinked;
-    });
+    try {
+      const cfg = await loadComponentConfig(component, activeFileName);
+      loadComponentActive(component, activeFileName, cfg.aliases, cfg.config, cfg.schemaVersion ?? 0);
+    } catch {
+      // intentional: dev-server unavailable — leave state untouched
+    }
   }
 </script>
 
@@ -308,7 +294,7 @@
       class="cfm-btn cfg-row-editor reset-btn"
       on:click={handleReset}
       disabled={!resetDirty}
-      title="Reset all tokens to defaults"
+      title="Revert unsaved changes to {currentDisplayName}"
     >
       <i class="fas fa-undo"></i>
       <span>Reset</span>
