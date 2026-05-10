@@ -8,53 +8,15 @@
   import OverlaysSection from './sections/OverlaysSection.svelte';
   import GradientsSection from './sections/GradientsSection.svelte';
   import ShadowsSection from './sections/ShadowsSection.svelte';
+  import {
+    SPACING_VARS, BORDER_WIDTH_VARS, RADIUS_VARS, FONT_SIZE_VARS,
+    ICON_SIZE_VARS, FONT_WEIGHT_VARS, LINE_HEIGHT_VARS,
+    DURATION_TOKENS, Z_INDEX_TOKENS, OPACITY_TOKENS,
+  } from './sections/tokenScales';
 
   /** Visual flash for the copy-to-clipboard chip, kept short enough to
    *  feel like immediate confirmation but long enough to register. */
   const COPIED_FLASH_MS = 1000;
-
-  interface TokenItem {
-    variable: string;
-    value: string;
-  }
-
-  // Variable names for each scale rendered below. TokenScaleTable resolves the
-  // values live via getComputedStyle so tokens.css stays the single source of
-  // truth — no hand-maintained list of values to drift out of sync.
-  const SPACING_VARS = [
-    '--space-2', '--space-4', '--space-6', '--space-8', '--space-10',
-    '--space-12', '--space-16', '--space-20', '--space-24', '--space-32',
-    '--space-48',
-  ];
-  const BORDER_WIDTH_VARS = [
-    '--border-width-0', '--border-width-1', '--border-width-2', '--border-width-3',
-    '--border-width-4', '--border-width-5', '--border-width-6', '--border-width-8',
-    '--border-width-10', '--border-width-12', '--border-width-16', '--border-width-20',
-    '--border-width-24',
-  ];
-  const RADIUS_VARS = [
-    '--radius-none', '--radius-sm', '--radius-md', '--radius-lg', '--radius-xl',
-    '--radius-2xl', '--radius-3xl', '--radius-4xl', '--radius-full',
-  ];
-  const FONT_SIZE_VARS = [
-    '--font-size-xs', '--font-size-sm', '--font-size-md', '--font-size-lg',
-    '--font-size-xl', '--font-size-2xl', '--font-size-3xl', '--font-size-4xl',
-    '--font-size-5xl', '--font-size-6xl',
-  ];
-  const ICON_SIZE_VARS = [
-    '--icon-size-xs', '--icon-size-sm', '--icon-size-md', '--icon-size-lg',
-    '--icon-size-xl', '--icon-size-2xl', '--icon-size-3xl', '--icon-size-4xl',
-    '--icon-size-5xl', '--icon-size-6xl',
-  ];
-  const FONT_WEIGHT_VARS = [
-    '--font-weight-thin', '--font-weight-extralight', '--font-weight-light',
-    '--font-weight-normal', '--font-weight-medium', '--font-weight-semibold',
-    '--font-weight-bold', '--font-weight-extrabold', '--font-weight-black',
-  ];
-  const LINE_HEIGHT_VARS = [
-    '--line-height-tight', '--line-height-snug', '--line-height-normal',
-    '--line-height-relaxed', '--line-height-loose',
-  ];
 
   // Bumped on breakpoint flips; passed to TokenScaleTable so it re-resolves.
   // tokens.css declares responsive overrides at 768px and 480px.
@@ -72,40 +34,12 @@
     };
   });
 
-  const durationTokens: TokenItem[] = [
-    { variable: '--duration-75', value: '75ms' },
-    { variable: '--duration-150', value: '150ms' },
-    { variable: '--duration-200', value: '200ms' },
-    { variable: '--duration-300', value: '300ms' },
-    { variable: '--duration-500', value: '500ms' },
-    { variable: '--duration-750', value: '750ms' },
-    { variable: '--duration-1000', value: '1000ms' }
-  ];
-
-  const zIndexTokens: TokenItem[] = [
-    { variable: '--z-base', value: '0' },
-    { variable: '--z-dropdown', value: '100' },
-    { variable: '--z-sticky', value: '200' },
-    { variable: '--z-overlay', value: '1000' },
-    { variable: '--z-modal', value: '1100' },
-    { variable: '--z-popover', value: '1200' },
-    { variable: '--z-tooltip', value: '1300' }
-  ];
-
-  const opacityTokens: TokenItem[] = [
-    { variable: '--opacity-disabled', value: '0.6' },
-    { variable: '--opacity-hover', value: '0.8' },
-    { variable: '--opacity-muted', value: '0.5' }
-  ];
-
   let copiedVar: string | null = null;
   function copyVariable(v: string) {
     navigator.clipboard.writeText(v);
     copiedVar = v;
     setTimeout(() => { copiedVar = null; }, COPIED_FLASH_MS);
   }
-
-
 </script>
 
 <div class="variables-container">
@@ -196,17 +130,17 @@
     <div class="utility-columns">
       <div class="utility-group">
         <h3 class="group-title">Durations</h3>
-        <TokenScaleTable kind="line-height" tokens={durationTokens} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
+        <TokenScaleTable kind="line-height" tokens={DURATION_TOKENS} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
       </div>
 
       <div class="utility-group">
         <h3 class="group-title">Z-Index Layers</h3>
-        <TokenScaleTable kind="line-height" tokens={zIndexTokens} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
+        <TokenScaleTable kind="line-height" tokens={Z_INDEX_TOKENS} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
       </div>
 
       <div class="utility-group">
         <h3 class="group-title">Opacity</h3>
-        <TokenScaleTable kind="line-height" tokens={opacityTokens} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
+        <TokenScaleTable kind="line-height" tokens={OPACITY_TOKENS} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
       </div>
     </div>
   </section>
