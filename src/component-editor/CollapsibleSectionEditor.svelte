@@ -13,6 +13,12 @@
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
+  const VARIANT_LABELS: Record<Variant, string> = {
+    chromeless: 'Chromeless',
+    divider: 'With Divider',
+    container: 'Container',
+  };
+
   // Header tokens per variant. Chromeless has no chrome; divider exposes the
   // bottom-border (the divider line) per state; container's outer chrome lives
   // in `frame` so the header strip itself just owns surface + padding + text.
@@ -108,7 +114,7 @@
     ]),
   ]);
 
-  const variantOptions = VARIANTS.map((v) => ({ value: v, label: capitalize(v) }));
+  const variantOptions = VARIANTS.map((v) => ({ value: v, label: VARIANT_LABELS[v] }));
 </script>
 
 <script lang="ts">
@@ -130,7 +136,7 @@
   {#each VARIANTS as v}
     <VariantGroup
       name={v}
-      title={capitalize(v)}
+      title={VARIANT_LABELS[v]}
       states={visibleVariantStates(v)}
       typeGroups={variantTypeGroups(v)}
       {component}
