@@ -111,7 +111,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
   },
   badge: {
     id: 'badge',
-    label: 'Trait Badge',
+    label: 'Badge',
     icon: 'fas fa-tag',
     sourceFile: 'src/components/Badge.svelte',
     editorComponent: BadgeEditor,
