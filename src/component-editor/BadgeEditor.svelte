@@ -76,7 +76,7 @@
 
   onMount(() => {
     if (!document.documentElement.style.getPropertyValue(bgVar)) {
-      setCssVar(bgVar, 'var(--surface-canvas)');
+      setCssVar(bgVar, 'transparent');
     }
   });
 </script>
@@ -101,7 +101,7 @@
     >
       <ShadowBackdrop mode="color" colorVariable={bgVar}>
         <div class="badge-showcase-grid">
-          <Badge variant={v}>{v}</Badge>
+          <Badge variant={v}>{v.charAt(0).toUpperCase() + v.slice(1)}</Badge>
           <Badge variant={v} icon="fa-solid fa-dice-d20">With Icon</Badge>
         </div>
       </ShadowBackdrop>
