@@ -6,32 +6,54 @@
 
   type Variant = 'canvas' | 'neutral' | 'alternate' | 'primary' | 'accent' | 'special';
   const variants: { key: Variant; title: string }[] = [
-    { key: 'canvas', title: 'Background' },
-    { key: 'neutral', title: 'Neutral' },
-    { key: 'alternate', title: 'Alternate' },
     { key: 'primary', title: 'Primary' },
     { key: 'accent', title: 'Accent' },
+    { key: 'neutral', title: 'Neutral' },
     { key: 'special', title: 'Special' },
+    { key: 'canvas', title: 'Canvas' },
+    { key: 'alternate', title: 'Alternate' },
   ];
 
-  /** Frame tokens (padding, radius, outline, gradient stops) for a variant.
-   *  Gradient stops are explicitly variant-local — they define the variant — and
-   *  carry no groupKey, so they never participate in linking. */
-  function variantTokens(v: Variant): Token[] {
+  /** Frame tokens for a variant. Gradient tokens are owned by GradientCard, and
+   *  outline thickness/color are rendered nested under the title TypeEditor;
+   *  both are emitted only for `allTokens` (reset/registry) — not for the
+   *  per-state token grid. */
+  function frameTokens(v: Variant): Token[] {
     return [
       { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--sectiondivider-${v}-padding` },
       { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--sectiondivider-${v}-radius` },
+      { label: 'border color', canBeLinked: true, groupKey: 'border', variable: `--sectiondivider-${v}-border` },
+      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--sectiondivider-${v}-border-width` },
+      { label: 'drop shadow', canBeLinked: true, groupKey: 'shadow', variable: `--sectiondivider-${v}-shadow` },
+    ];
+  }
+  /** Title outline tokens — rendered inside the title TypeEditor (not the
+   *  property grid) but registered here so reset/linkage still see them. */
+  function titleOutlineTokens(v: Variant): Token[] {
+    return [
       { label: 'outline thickness', canBeLinked: true, groupKey: 'title-border-width', variable: `--sectiondivider-${v}-title-border-width` },
       { label: 'outline color', canBeLinked: true, groupKey: 'title-stroke-color', variable: `--sectiondivider-${v}-title-stroke-color` },
-      { label: 'gradient stop 1', variable: `--sectiondivider-${v}-gradient-stop-1` },
-      { label: 'gradient stop 2', variable: `--sectiondivider-${v}-gradient-stop-2` },
-      { label: 'gradient stop 3', variable: `--sectiondivider-${v}-gradient-stop-3` },
-      { label: 'gradient stop 4', variable: `--sectiondivider-${v}-gradient-stop-4` },
     ];
+  }
+  function gradientTokens(v: Variant): Token[] {
+    return [
+      { label: 'gradient angle', variable: `--sectiondivider-${v}-gradient-angle` },
+      { label: 'gradient stop 1 color', variable: `--sectiondivider-${v}-gradient-stop-1-color` },
+      { label: 'gradient stop 1 position', variable: `--sectiondivider-${v}-gradient-stop-1-position` },
+      { label: 'gradient stop 2 color', variable: `--sectiondivider-${v}-gradient-stop-2-color` },
+      { label: 'gradient stop 2 position', variable: `--sectiondivider-${v}-gradient-stop-2-position` },
+      { label: 'gradient stop 3 color', variable: `--sectiondivider-${v}-gradient-stop-3-color` },
+      { label: 'gradient stop 3 position', variable: `--sectiondivider-${v}-gradient-stop-3-position` },
+    ];
+  }
+  function variantTokens(v: Variant): Token[] {
+    return [...frameTokens(v), ...titleOutlineTokens(v), ...gradientTokens(v)];
   }
 
   /** Two type groups per variant: title and description. The TypeEditor
-   *  fieldset visually groups each color with its font-shape props. */
+   *  fieldset visually groups each color with its font-shape props. The
+   *  title fieldset also nests the SVG-text outline width + color so those
+   *  controls sit with the typography that drives them. */
   function variantTypeGroups(v: Variant): TypeGroupConfig[] {
     return [
       {
@@ -41,6 +63,8 @@
         sizeVariable: `--sectiondivider-${v}-title-font-size`,
         weightVariable: `--sectiondivider-${v}-title-font-weight`,
         lineHeightVariable: `--sectiondivider-${v}-title-line-height`,
+        outlineWidthVariable: `--sectiondivider-${v}-title-border-width`,
+        outlineColorVariable: `--sectiondivider-${v}-title-stroke-color`,
       },
       {
         legend: 'description',
@@ -81,6 +105,7 @@
   // Gradient stops are intentionally absent — they're variant-defining and never link.
   const LINKED_GROUP_KEYS = [
     'padding', 'radius',
+    'border', 'border-width', 'shadow',
     'title-border-width', 'title-stroke-color',
     'title-color', 'title-font-family', 'title-font-size', 'title-font-weight', 'title-line-height',
     'description-color', 'description-font-family', 'description-font-size', 'description-font-weight', 'description-line-height',
@@ -97,18 +122,34 @@
 </script>
 
 <script lang="ts">
+  import { onMount } from 'svelte';
   import SectionDivider from '../components/SectionDivider.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import GradientCard from './scaffolding/GradientCard.svelte';
+  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
+  import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
   import { editorState } from '../lib/editorStore';
+  import { setCssVar } from '../lib/cssVarSync';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
   let testTitle = 'Section Title';
   let showDescription = true;
   let descriptionText = 'This text is meant to provide additional context or meaning.';
 
+  const bgVar = '--backdrop-sectiondivider-surface';
+
+  onMount(() => {
+    if (!document.documentElement.style.getPropertyValue(bgVar)) {
+      setCssVar(bgVar, 'var(--surface-canvas)');
+    }
+  });
+
   $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
-  $: visibleVariantTokens = (v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet);
+  // The gradient tokens are owned by GradientCard, so the property grid only
+  // shows the frame tokens (padding/radius/outline). Gradient tokens still
+  // live in `allTokens` so they participate in reset and the registry.
+  $: visibleVariantTokens = (v: Variant) => withLinkedDisabled(frameTokens(v), linked.varSet);
 </script>
 
 <ComponentEditorBase {component} title="Section Divider" description="Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>" tokens={allTokens} {linked} tabbable variants={variantOptions}>
@@ -125,6 +166,12 @@
       <span>Description text</span>
       <input type="text" bind:value={descriptionText} placeholder="Description text" />
     </label>
+    <label class="backdrop-config">
+      <span>Sample background</span>
+      <div class="picker-slot">
+        <UIPaletteSelector variable={bgVar} />
+      </div>
+    </label>
   </svelte:fragment>
   {#each variants as v}
     <VariantGroup
@@ -140,11 +187,17 @@
         (sv) => ({ [sv]: variantTypeGroups(sv) }),
       )}
     >
-      <SectionDivider
-        title={testTitle || v.title}
-        variant={v.key}
-        description={showDescription ? descriptionText : undefined}
-      />
+      <ShadowBackdrop mode="color" colorVariable={bgVar} padding="32px">
+        <SectionDivider
+          title={testTitle || v.title}
+          variant={v.key}
+          description={showDescription ? descriptionText : undefined}
+        />
+      </ShadowBackdrop>
+      <svelte:fragment slot="composite-controls">
+        <span class="gradient-section-label">Gradient</span>
+        <GradientCard {component} prefix={`--sectiondivider-${v.key}`} />
+      </svelte:fragment>
     </VariantGroup>
   {/each}
 </ComponentEditorBase>
@@ -182,5 +235,29 @@
 
   .text-field-wide input {
     min-width: 28rem;
+  }
+
+  .backdrop-config {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+    font-size: var(--ui-font-size-xs);
+    color: var(--ui-text-secondary);
+  }
+
+  .picker-slot {
+    min-width: 8rem;
+  }
+
+  .picker-slot :global(.ui-token-selector) {
+    width: 100%;
+  }
+
+  .gradient-section-label {
+    display: block;
+    margin-top: var(--ui-space-8);
+    font-size: var(--ui-font-size-md);
+    font-weight: 500;
+    color: var(--ui-text-primary);
   }
 </style>

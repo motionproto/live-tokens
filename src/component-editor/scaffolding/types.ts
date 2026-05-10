@@ -17,7 +17,9 @@ export type Token = {
 
 /** Editor type-group: a fieldset containing a coordinated set of typography tokens
     (text color + font-family/size/weight/line-height) for a piece of content
-    (e.g. a card title, notification body). */
+    (e.g. a card title, notification body). Optional outline rows let
+    text-with-stroke groups (e.g. SectionDivider title) keep their stroke
+    width/color visually nested with the typography that drives them. */
 export type TypeGroupConfig = {
   legend?: string;
   colorVariable: string;
@@ -30,4 +32,8 @@ export type TypeGroupConfig = {
   weightLabel?: string;
   lineHeightVariable?: string;
   lineHeightLabel?: string;
+  outlineWidthVariable?: string;
+  outlineWidthLabel?: string;
+  outlineColorVariable?: string;
+  outlineColorLabel?: string;
 };

@@ -47,7 +47,7 @@
     stateExpanded = { ...stateExpanded, [stateName]: stateExpanded[stateName] === false };
   }
 
-  const TYPE_PROPS = ['colorVariable', 'familyVariable', 'sizeVariable', 'weightVariable', 'lineHeightVariable'] as const;
+  const TYPE_PROPS = ['colorVariable', 'familyVariable', 'sizeVariable', 'weightVariable', 'lineHeightVariable', 'outlineWidthVariable', 'outlineColorVariable'] as const;
 
   function pickCopySource(toState: string, fromVariant: string, fromState: string) {
     if (!component || !states) return;
@@ -193,6 +193,7 @@
 
         {#if activeTab && states[activeTab]}
           {@const stateName = activeTab}
+          <slot name="composite-controls" {stateName} />
           <span class="section-label">Properties</span>
           <StateBlock
             tokens={states[stateName]}
@@ -239,6 +240,7 @@
                 <span class="section-label">Preview</span>
                 <slot activeState={stateName} />
               </div>
+              <slot name="composite-controls" {stateName} />
               <span class="section-label">Properties</span>
               <StateBlock
                 tokens={states[stateName]}

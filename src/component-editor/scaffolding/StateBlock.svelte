@@ -45,6 +45,10 @@
           weightLabel={tg.weightLabel ?? 'font weight'}
           lineHeightVariable={tg.lineHeightVariable}
           lineHeightLabel={tg.lineHeightLabel ?? 'line height'}
+          outlineWidthVariable={tg.outlineWidthVariable}
+          outlineWidthLabel={tg.outlineWidthLabel ?? 'outline thickness'}
+          outlineColorVariable={tg.outlineColorVariable}
+          outlineColorLabel={tg.outlineColorLabel ?? 'outline color'}
           {component}
           on:change
         />

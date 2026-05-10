@@ -35,6 +35,7 @@ import { componentMigration_2026_04_24_prefixAndSuffixRenames } from './2026-04-
 import { componentMigration_2026_04_27_segmentedcontrolDisabledFlatten } from './2026-04-27-segmentedcontrol-disabled-flatten';
 import { componentMigration_2026_05_08_collapsiblesectionVariantNamespace } from './2026-05-08-collapsiblesection-variant-namespace';
 import { componentMigration_2026_05_08_collapsiblesectionFrameAndCleanup } from './2026-05-08-collapsiblesection-frame-and-cleanup';
+import { componentMigration_2026_05_10_sectiondividerGradientStops } from './2026-05-10-sectiondivider-gradient-stops';
 
 /**
  * Registered migrations. Order in this array does not matter — the runner
@@ -46,6 +47,7 @@ export const MIGRATIONS: Migration[] = [
   componentMigration_2026_04_27_segmentedcontrolDisabledFlatten,
   componentMigration_2026_05_08_collapsiblesectionVariantNamespace,
   componentMigration_2026_05_08_collapsiblesectionFrameAndCleanup,
+  componentMigration_2026_05_10_sectiondividerGradientStops,
 ];
 
 function countFor(kind: 'theme' | 'component-config'): number {

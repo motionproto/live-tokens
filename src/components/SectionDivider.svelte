@@ -86,8 +86,8 @@
 <style>
   /* Per-variant slots. Properties the editor links across variants
      (typography, padding, outline, radius) ship with identical defaults so
-     they read as one linked group out of the box; gradient stops are
-     authored to differ per variant and are not linked. */
+     they read as one linked group out of the box; gradient angle, stop
+     colors, and stop positions are authored per variant and are not linked. */
   :global(:root) {
     /* Canvas */
     --sectiondivider-canvas-padding: var(--space-16);
@@ -98,16 +98,25 @@
     --sectiondivider-canvas-title-line-height: var(--line-height-tight);
     --sectiondivider-canvas-title-border-width: var(--border-width-4);
     --sectiondivider-canvas-title-stroke-color: var(--surface-canvas-lowest);
+    /* Title stroke defaults intentionally diverge per variant — the property
+       is linkable but ships unlinked, with each variant matching its own
+       surface-lowest so stroke + gradient read as one family. */
     --sectiondivider-canvas-description: var(--text-secondary);
     --sectiondivider-canvas-description-font-family: var(--font-sans);
     --sectiondivider-canvas-description-font-size: var(--font-size-md);
     --sectiondivider-canvas-description-font-weight: var(--font-weight-normal);
     --sectiondivider-canvas-description-line-height: var(--line-height-normal);
-    --sectiondivider-canvas-gradient-stop-1: var(--surface-canvas-highest);
-    --sectiondivider-canvas-gradient-stop-2: var(--surface-canvas-higher);
-    --sectiondivider-canvas-gradient-stop-3: var(--surface-canvas-high);
-    --sectiondivider-canvas-gradient-stop-4: var(--surface-canvas);
+    --sectiondivider-canvas-gradient-angle: var(--gradient-angle-diagonal);
+    --sectiondivider-canvas-gradient-stop-1-color: var(--surface-canvas-highest);
+    --sectiondivider-canvas-gradient-stop-1-position: var(--gradient-stop-start);
+    --sectiondivider-canvas-gradient-stop-2-color: var(--surface-canvas-higher);
+    --sectiondivider-canvas-gradient-stop-2-position: var(--gradient-stop-mid);
+    --sectiondivider-canvas-gradient-stop-3-color: var(--surface-canvas);
+    --sectiondivider-canvas-gradient-stop-3-position: var(--gradient-stop-end);
     --sectiondivider-canvas-radius: var(--radius-lg);
+    --sectiondivider-canvas-border: var(--color-transparent);
+    --sectiondivider-canvas-border-width: var(--border-width-0);
+    --sectiondivider-canvas-shadow: var(--shadow-none);
 
     /* Neutral */
     --sectiondivider-neutral-padding: var(--space-16);
@@ -117,17 +126,23 @@
     --sectiondivider-neutral-title-font-weight: var(--font-weight-normal);
     --sectiondivider-neutral-title-line-height: var(--line-height-tight);
     --sectiondivider-neutral-title-border-width: var(--border-width-4);
-    --sectiondivider-neutral-title-stroke-color: var(--surface-canvas-lowest);
+    --sectiondivider-neutral-title-stroke-color: var(--surface-neutral-lowest);
     --sectiondivider-neutral-description: var(--text-secondary);
     --sectiondivider-neutral-description-font-family: var(--font-sans);
     --sectiondivider-neutral-description-font-size: var(--font-size-md);
     --sectiondivider-neutral-description-font-weight: var(--font-weight-normal);
     --sectiondivider-neutral-description-line-height: var(--line-height-normal);
-    --sectiondivider-neutral-gradient-stop-1: var(--surface-neutral-highest);
-    --sectiondivider-neutral-gradient-stop-2: var(--surface-neutral-higher);
-    --sectiondivider-neutral-gradient-stop-3: var(--surface-neutral-high);
-    --sectiondivider-neutral-gradient-stop-4: var(--surface-neutral);
+    --sectiondivider-neutral-gradient-angle: var(--gradient-angle-diagonal);
+    --sectiondivider-neutral-gradient-stop-1-color: var(--surface-neutral-highest);
+    --sectiondivider-neutral-gradient-stop-1-position: var(--gradient-stop-start);
+    --sectiondivider-neutral-gradient-stop-2-color: var(--surface-neutral-higher);
+    --sectiondivider-neutral-gradient-stop-2-position: var(--gradient-stop-mid);
+    --sectiondivider-neutral-gradient-stop-3-color: var(--surface-neutral);
+    --sectiondivider-neutral-gradient-stop-3-position: var(--gradient-stop-end);
     --sectiondivider-neutral-radius: var(--radius-lg);
+    --sectiondivider-neutral-border: var(--color-transparent);
+    --sectiondivider-neutral-border-width: var(--border-width-0);
+    --sectiondivider-neutral-shadow: var(--shadow-none);
 
     /* Alternate */
     --sectiondivider-alternate-padding: var(--space-16);
@@ -137,17 +152,23 @@
     --sectiondivider-alternate-title-font-weight: var(--font-weight-normal);
     --sectiondivider-alternate-title-line-height: var(--line-height-tight);
     --sectiondivider-alternate-title-border-width: var(--border-width-4);
-    --sectiondivider-alternate-title-stroke-color: var(--surface-canvas-lowest);
+    --sectiondivider-alternate-title-stroke-color: var(--surface-alternate-lowest);
     --sectiondivider-alternate-description: var(--text-secondary);
     --sectiondivider-alternate-description-font-family: var(--font-sans);
     --sectiondivider-alternate-description-font-size: var(--font-size-md);
     --sectiondivider-alternate-description-font-weight: var(--font-weight-normal);
     --sectiondivider-alternate-description-line-height: var(--line-height-normal);
-    --sectiondivider-alternate-gradient-stop-1: var(--surface-alternate-highest);
-    --sectiondivider-alternate-gradient-stop-2: var(--surface-alternate-higher);
-    --sectiondivider-alternate-gradient-stop-3: var(--surface-alternate-high);
-    --sectiondivider-alternate-gradient-stop-4: var(--surface-alternate);
+    --sectiondivider-alternate-gradient-angle: var(--gradient-angle-diagonal);
+    --sectiondivider-alternate-gradient-stop-1-color: var(--surface-alternate-highest);
+    --sectiondivider-alternate-gradient-stop-1-position: var(--gradient-stop-start);
+    --sectiondivider-alternate-gradient-stop-2-color: var(--surface-alternate-higher);
+    --sectiondivider-alternate-gradient-stop-2-position: var(--gradient-stop-mid);
+    --sectiondivider-alternate-gradient-stop-3-color: var(--surface-alternate);
+    --sectiondivider-alternate-gradient-stop-3-position: var(--gradient-stop-end);
     --sectiondivider-alternate-radius: var(--radius-lg);
+    --sectiondivider-alternate-border: var(--color-transparent);
+    --sectiondivider-alternate-border-width: var(--border-width-0);
+    --sectiondivider-alternate-shadow: var(--shadow-none);
 
     /* Primary */
     --sectiondivider-primary-padding: var(--space-16);
@@ -157,17 +178,23 @@
     --sectiondivider-primary-title-font-weight: var(--font-weight-normal);
     --sectiondivider-primary-title-line-height: var(--line-height-tight);
     --sectiondivider-primary-title-border-width: var(--border-width-4);
-    --sectiondivider-primary-title-stroke-color: var(--surface-canvas-lowest);
+    --sectiondivider-primary-title-stroke-color: var(--surface-primary-lowest);
     --sectiondivider-primary-description: var(--text-secondary);
     --sectiondivider-primary-description-font-family: var(--font-sans);
     --sectiondivider-primary-description-font-size: var(--font-size-md);
     --sectiondivider-primary-description-font-weight: var(--font-weight-normal);
     --sectiondivider-primary-description-line-height: var(--line-height-normal);
-    --sectiondivider-primary-gradient-stop-1: var(--surface-primary-highest);
-    --sectiondivider-primary-gradient-stop-2: var(--surface-primary-higher);
-    --sectiondivider-primary-gradient-stop-3: var(--surface-primary-high);
-    --sectiondivider-primary-gradient-stop-4: var(--surface-primary);
+    --sectiondivider-primary-gradient-angle: var(--gradient-angle-diagonal);
+    --sectiondivider-primary-gradient-stop-1-color: var(--surface-primary-highest);
+    --sectiondivider-primary-gradient-stop-1-position: var(--gradient-stop-start);
+    --sectiondivider-primary-gradient-stop-2-color: var(--surface-primary-higher);
+    --sectiondivider-primary-gradient-stop-2-position: var(--gradient-stop-mid);
+    --sectiondivider-primary-gradient-stop-3-color: var(--surface-primary);
+    --sectiondivider-primary-gradient-stop-3-position: var(--gradient-stop-end);
     --sectiondivider-primary-radius: var(--radius-lg);
+    --sectiondivider-primary-border: var(--color-transparent);
+    --sectiondivider-primary-border-width: var(--border-width-0);
+    --sectiondivider-primary-shadow: var(--shadow-none);
 
     /* Accent */
     --sectiondivider-accent-padding: var(--space-16);
@@ -177,17 +204,23 @@
     --sectiondivider-accent-title-font-weight: var(--font-weight-normal);
     --sectiondivider-accent-title-line-height: var(--line-height-tight);
     --sectiondivider-accent-title-border-width: var(--border-width-4);
-    --sectiondivider-accent-title-stroke-color: var(--surface-canvas-lowest);
+    --sectiondivider-accent-title-stroke-color: var(--surface-accent-lowest);
     --sectiondivider-accent-description: var(--text-secondary);
     --sectiondivider-accent-description-font-family: var(--font-sans);
     --sectiondivider-accent-description-font-size: var(--font-size-md);
     --sectiondivider-accent-description-font-weight: var(--font-weight-normal);
     --sectiondivider-accent-description-line-height: var(--line-height-normal);
-    --sectiondivider-accent-gradient-stop-1: var(--surface-accent-highest);
-    --sectiondivider-accent-gradient-stop-2: var(--surface-accent-higher);
-    --sectiondivider-accent-gradient-stop-3: var(--surface-accent-high);
-    --sectiondivider-accent-gradient-stop-4: var(--surface-accent);
+    --sectiondivider-accent-gradient-angle: var(--gradient-angle-diagonal);
+    --sectiondivider-accent-gradient-stop-1-color: var(--surface-accent-highest);
+    --sectiondivider-accent-gradient-stop-1-position: var(--gradient-stop-start);
+    --sectiondivider-accent-gradient-stop-2-color: var(--surface-accent-higher);
+    --sectiondivider-accent-gradient-stop-2-position: var(--gradient-stop-mid);
+    --sectiondivider-accent-gradient-stop-3-color: var(--surface-accent);
+    --sectiondivider-accent-gradient-stop-3-position: var(--gradient-stop-end);
     --sectiondivider-accent-radius: var(--radius-lg);
+    --sectiondivider-accent-border: var(--color-transparent);
+    --sectiondivider-accent-border-width: var(--border-width-0);
+    --sectiondivider-accent-shadow: var(--shadow-none);
 
     /* Special */
     --sectiondivider-special-padding: var(--space-16);
@@ -197,28 +230,36 @@
     --sectiondivider-special-title-font-weight: var(--font-weight-normal);
     --sectiondivider-special-title-line-height: var(--line-height-tight);
     --sectiondivider-special-title-border-width: var(--border-width-4);
-    --sectiondivider-special-title-stroke-color: var(--surface-canvas-lowest);
+    --sectiondivider-special-title-stroke-color: var(--surface-special-lowest);
     --sectiondivider-special-description: var(--text-secondary);
     --sectiondivider-special-description-font-family: var(--font-sans);
     --sectiondivider-special-description-font-size: var(--font-size-md);
     --sectiondivider-special-description-font-weight: var(--font-weight-normal);
     --sectiondivider-special-description-line-height: var(--line-height-normal);
-    --sectiondivider-special-gradient-stop-1: var(--surface-special-highest);
-    --sectiondivider-special-gradient-stop-2: var(--surface-special-higher);
-    --sectiondivider-special-gradient-stop-3: var(--surface-special-high);
-    --sectiondivider-special-gradient-stop-4: var(--surface-special);
+    --sectiondivider-special-gradient-angle: var(--gradient-angle-diagonal);
+    --sectiondivider-special-gradient-stop-1-color: var(--surface-special-highest);
+    --sectiondivider-special-gradient-stop-1-position: var(--gradient-stop-start);
+    --sectiondivider-special-gradient-stop-2-color: var(--surface-special-higher);
+    --sectiondivider-special-gradient-stop-2-position: var(--gradient-stop-mid);
+    --sectiondivider-special-gradient-stop-3-color: var(--surface-special);
+    --sectiondivider-special-gradient-stop-3-position: var(--gradient-stop-end);
     --sectiondivider-special-radius: var(--radius-lg);
+    --sectiondivider-special-border: var(--color-transparent);
+    --sectiondivider-special-border-width: var(--border-width-0);
+    --sectiondivider-special-shadow: var(--shadow-none);
   }
 
   .section-divider {
     margin: var(--space-24) 0;
     padding: var(--_divider-padding) calc(var(--_divider-padding) * 1.5);
     border-radius: var(--_divider-radius);
-    background: linear-gradient(135deg,
-      var(--_divider-1) 0%,
-      var(--_divider-2) 30%,
-      var(--_divider-3) 60%,
-      var(--_divider-4) 100%
+    border: var(--_divider-border-width) solid var(--_divider-border);
+    box-shadow: var(--_divider-shadow);
+    background: linear-gradient(
+      var(--_divider-gradient-angle),
+      var(--_divider-stop-1-color) var(--_divider-stop-1-position),
+      var(--_divider-stop-2-color) var(--_divider-stop-2-position),
+      var(--_divider-stop-3-color) var(--_divider-stop-3-position)
     );
   }
 
@@ -228,10 +269,16 @@
   .variant-canvas {
     --_divider-padding: var(--sectiondivider-canvas-padding);
     --_divider-radius: var(--sectiondivider-canvas-radius);
-    --_divider-1: var(--sectiondivider-canvas-gradient-stop-1);
-    --_divider-2: var(--sectiondivider-canvas-gradient-stop-2);
-    --_divider-3: var(--sectiondivider-canvas-gradient-stop-3);
-    --_divider-4: var(--sectiondivider-canvas-gradient-stop-4);
+    --_divider-border: var(--sectiondivider-canvas-border);
+    --_divider-border-width: var(--sectiondivider-canvas-border-width);
+    --_divider-shadow: var(--sectiondivider-canvas-shadow);
+    --_divider-gradient-angle: var(--sectiondivider-canvas-gradient-angle);
+    --_divider-stop-1-color: var(--sectiondivider-canvas-gradient-stop-1-color);
+    --_divider-stop-1-position: var(--sectiondivider-canvas-gradient-stop-1-position);
+    --_divider-stop-2-color: var(--sectiondivider-canvas-gradient-stop-2-color);
+    --_divider-stop-2-position: var(--sectiondivider-canvas-gradient-stop-2-position);
+    --_divider-stop-3-color: var(--sectiondivider-canvas-gradient-stop-3-color);
+    --_divider-stop-3-position: var(--sectiondivider-canvas-gradient-stop-3-position);
     --_divider-title: var(--sectiondivider-canvas-title);
     --_divider-title-font-family: var(--sectiondivider-canvas-title-font-family);
     --_divider-title-font-size: var(--sectiondivider-canvas-title-font-size);
@@ -249,10 +296,16 @@
   .variant-neutral {
     --_divider-padding: var(--sectiondivider-neutral-padding);
     --_divider-radius: var(--sectiondivider-neutral-radius);
-    --_divider-1: var(--sectiondivider-neutral-gradient-stop-1);
-    --_divider-2: var(--sectiondivider-neutral-gradient-stop-2);
-    --_divider-3: var(--sectiondivider-neutral-gradient-stop-3);
-    --_divider-4: var(--sectiondivider-neutral-gradient-stop-4);
+    --_divider-border: var(--sectiondivider-neutral-border);
+    --_divider-border-width: var(--sectiondivider-neutral-border-width);
+    --_divider-shadow: var(--sectiondivider-neutral-shadow);
+    --_divider-gradient-angle: var(--sectiondivider-neutral-gradient-angle);
+    --_divider-stop-1-color: var(--sectiondivider-neutral-gradient-stop-1-color);
+    --_divider-stop-1-position: var(--sectiondivider-neutral-gradient-stop-1-position);
+    --_divider-stop-2-color: var(--sectiondivider-neutral-gradient-stop-2-color);
+    --_divider-stop-2-position: var(--sectiondivider-neutral-gradient-stop-2-position);
+    --_divider-stop-3-color: var(--sectiondivider-neutral-gradient-stop-3-color);
+    --_divider-stop-3-position: var(--sectiondivider-neutral-gradient-stop-3-position);
     --_divider-title: var(--sectiondivider-neutral-title);
     --_divider-title-font-family: var(--sectiondivider-neutral-title-font-family);
     --_divider-title-font-size: var(--sectiondivider-neutral-title-font-size);
@@ -270,10 +323,16 @@
   .variant-alternate {
     --_divider-padding: var(--sectiondivider-alternate-padding);
     --_divider-radius: var(--sectiondivider-alternate-radius);
-    --_divider-1: var(--sectiondivider-alternate-gradient-stop-1);
-    --_divider-2: var(--sectiondivider-alternate-gradient-stop-2);
-    --_divider-3: var(--sectiondivider-alternate-gradient-stop-3);
-    --_divider-4: var(--sectiondivider-alternate-gradient-stop-4);
+    --_divider-border: var(--sectiondivider-alternate-border);
+    --_divider-border-width: var(--sectiondivider-alternate-border-width);
+    --_divider-shadow: var(--sectiondivider-alternate-shadow);
+    --_divider-gradient-angle: var(--sectiondivider-alternate-gradient-angle);
+    --_divider-stop-1-color: var(--sectiondivider-alternate-gradient-stop-1-color);
+    --_divider-stop-1-position: var(--sectiondivider-alternate-gradient-stop-1-position);
+    --_divider-stop-2-color: var(--sectiondivider-alternate-gradient-stop-2-color);
+    --_divider-stop-2-position: var(--sectiondivider-alternate-gradient-stop-2-position);
+    --_divider-stop-3-color: var(--sectiondivider-alternate-gradient-stop-3-color);
+    --_divider-stop-3-position: var(--sectiondivider-alternate-gradient-stop-3-position);
     --_divider-title: var(--sectiondivider-alternate-title);
     --_divider-title-font-family: var(--sectiondivider-alternate-title-font-family);
     --_divider-title-font-size: var(--sectiondivider-alternate-title-font-size);
@@ -291,10 +350,16 @@
   .variant-primary {
     --_divider-padding: var(--sectiondivider-primary-padding);
     --_divider-radius: var(--sectiondivider-primary-radius);
-    --_divider-1: var(--sectiondivider-primary-gradient-stop-1);
-    --_divider-2: var(--sectiondivider-primary-gradient-stop-2);
-    --_divider-3: var(--sectiondivider-primary-gradient-stop-3);
-    --_divider-4: var(--sectiondivider-primary-gradient-stop-4);
+    --_divider-border: var(--sectiondivider-primary-border);
+    --_divider-border-width: var(--sectiondivider-primary-border-width);
+    --_divider-shadow: var(--sectiondivider-primary-shadow);
+    --_divider-gradient-angle: var(--sectiondivider-primary-gradient-angle);
+    --_divider-stop-1-color: var(--sectiondivider-primary-gradient-stop-1-color);
+    --_divider-stop-1-position: var(--sectiondivider-primary-gradient-stop-1-position);
+    --_divider-stop-2-color: var(--sectiondivider-primary-gradient-stop-2-color);
+    --_divider-stop-2-position: var(--sectiondivider-primary-gradient-stop-2-position);
+    --_divider-stop-3-color: var(--sectiondivider-primary-gradient-stop-3-color);
+    --_divider-stop-3-position: var(--sectiondivider-primary-gradient-stop-3-position);
     --_divider-title: var(--sectiondivider-primary-title);
     --_divider-title-font-family: var(--sectiondivider-primary-title-font-family);
     --_divider-title-font-size: var(--sectiondivider-primary-title-font-size);
@@ -312,10 +377,16 @@
   .variant-accent {
     --_divider-padding: var(--sectiondivider-accent-padding);
     --_divider-radius: var(--sectiondivider-accent-radius);
-    --_divider-1: var(--sectiondivider-accent-gradient-stop-1);
-    --_divider-2: var(--sectiondivider-accent-gradient-stop-2);
-    --_divider-3: var(--sectiondivider-accent-gradient-stop-3);
-    --_divider-4: var(--sectiondivider-accent-gradient-stop-4);
+    --_divider-border: var(--sectiondivider-accent-border);
+    --_divider-border-width: var(--sectiondivider-accent-border-width);
+    --_divider-shadow: var(--sectiondivider-accent-shadow);
+    --_divider-gradient-angle: var(--sectiondivider-accent-gradient-angle);
+    --_divider-stop-1-color: var(--sectiondivider-accent-gradient-stop-1-color);
+    --_divider-stop-1-position: var(--sectiondivider-accent-gradient-stop-1-position);
+    --_divider-stop-2-color: var(--sectiondivider-accent-gradient-stop-2-color);
+    --_divider-stop-2-position: var(--sectiondivider-accent-gradient-stop-2-position);
+    --_divider-stop-3-color: var(--sectiondivider-accent-gradient-stop-3-color);
+    --_divider-stop-3-position: var(--sectiondivider-accent-gradient-stop-3-position);
     --_divider-title: var(--sectiondivider-accent-title);
     --_divider-title-font-family: var(--sectiondivider-accent-title-font-family);
     --_divider-title-font-size: var(--sectiondivider-accent-title-font-size);
@@ -333,10 +404,16 @@
   .variant-special {
     --_divider-padding: var(--sectiondivider-special-padding);
     --_divider-radius: var(--sectiondivider-special-radius);
-    --_divider-1: var(--sectiondivider-special-gradient-stop-1);
-    --_divider-2: var(--sectiondivider-special-gradient-stop-2);
-    --_divider-3: var(--sectiondivider-special-gradient-stop-3);
-    --_divider-4: var(--sectiondivider-special-gradient-stop-4);
+    --_divider-border: var(--sectiondivider-special-border);
+    --_divider-border-width: var(--sectiondivider-special-border-width);
+    --_divider-shadow: var(--sectiondivider-special-shadow);
+    --_divider-gradient-angle: var(--sectiondivider-special-gradient-angle);
+    --_divider-stop-1-color: var(--sectiondivider-special-gradient-stop-1-color);
+    --_divider-stop-1-position: var(--sectiondivider-special-gradient-stop-1-position);
+    --_divider-stop-2-color: var(--sectiondivider-special-gradient-stop-2-color);
+    --_divider-stop-2-position: var(--sectiondivider-special-gradient-stop-2-position);
+    --_divider-stop-3-color: var(--sectiondivider-special-gradient-stop-3-color);
+    --_divider-stop-3-position: var(--sectiondivider-special-gradient-stop-3-position);
     --_divider-title: var(--sectiondivider-special-title);
     --_divider-title-font-family: var(--sectiondivider-special-title-font-family);
     --_divider-title-font-size: var(--sectiondivider-special-title-font-size);

@@ -1,10 +1,12 @@
 <script lang="ts">
   import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
+  import UIVariantSelector from '../../ui/UIVariantSelector.svelte';
   import UIFontFamilySelector from '../../ui/UIFontFamilySelector.svelte';
   import UIFontSizeSelector from '../../ui/UIFontSizeSelector.svelte';
   import UIFontWeightSelector from '../../ui/UIFontWeightSelector.svelte';
   import UILineHeightSelector from '../../ui/UILineHeightSelector.svelte';
   import FieldsetWrapper from './FieldsetWrapper.svelte';
+  import { BORDER_WIDTH } from '../../ui/variantScales';
 
   export let colorVariable: string;
   export let colorLabel: string = 'color';
@@ -16,6 +18,13 @@
   export let weightLabel: string = 'weight';
   export let lineHeightVariable: string | undefined = undefined;
   export let lineHeightLabel: string = 'line-h';
+  /** Optional outline rows rendered under the typography rows so a text-with-
+      stroke group keeps stroke controls visually nested with the type they
+      drive (e.g. SectionDivider title outline). */
+  export let outlineWidthVariable: string | undefined = undefined;
+  export let outlineWidthLabel: string = 'outline thickness';
+  export let outlineColorVariable: string | undefined = undefined;
+  export let outlineColorLabel: string = 'outline color';
   /** When set, writes persist through the editor store under this component. */
   export let component: string | undefined = undefined;
   /** Legend text for the fieldset. */
@@ -42,6 +51,14 @@
     {#if lineHeightVariable}
       <span class="row-label">{lineHeightLabel}</span>
       <UILineHeightSelector variable={lineHeightVariable} {component} canBeLinked on:change />
+    {/if}
+    {#if outlineWidthVariable}
+      <span class="row-label">{outlineWidthLabel}</span>
+      <UIVariantSelector variable={outlineWidthVariable} {component} canBeLinked {...BORDER_WIDTH} on:change />
+    {/if}
+    {#if outlineColorVariable}
+      <span class="row-label">{outlineColorLabel}</span>
+      <UIPaletteSelector variable={outlineColorVariable} {component} canBeLinked on:change />
     {/if}
   </div>
 </FieldsetWrapper>
