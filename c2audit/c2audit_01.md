@@ -259,3 +259,4 @@ This is a recommendation, not a plan — the user should triage first.
 8. **M4 (TokenLayout selector dispatch), M5 (VariantGroup duplication), M9 (SegmentedControlEditor regression), M10 (Notification CSS), m1-m13** — parallelisable cleanup once the structural items are settled.
 
 When work lands, mark each finding here with `[done] **Resolution (YYYY-MM-DD):** …` immediately under its bullet block. Don't move findings — severity remains the document's organising axis.
+/clear

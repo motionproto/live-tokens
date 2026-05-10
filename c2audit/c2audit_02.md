@@ -1,0 +1,196 @@
+# C2 Audit Report — 02
+
+**Date:** 2026-05-10
+**Branch:** `main` (working tree clean; HEAD `cbfbaf1 update defaults`)
+**Scope:** full codebase — pre-alpha-release review
+**Files reviewed:** ~80 (state core + slices + persistence + parsers + plugin route table + 14 component editors + scaffolding suite + 14 runtime components + 4 UI tab editors + selector family + pages)
+**Findings:** 2 critical, 6 major, 5 minor, 4 nits (C1 downgraded in scope after deeper read — see C1 body; severity left as Critical because pre-alpha is the right moment to delete misleading architecture-narrating code)
+**Scope tags:** ~12 [local], ~5 [cross-cutting]
+
+---
+
+## Handoff context (for the next task to pick up)
+
+### Why this audit was run
+The user is preparing the alpha release and wants a fresh structured review of design-quality issues across the whole codebase before final adjustments. Audit-01 (2026-05-03) was run before the architecture-lock; almost every finding was resolved in Waves 1–7b on 2026-05-04. This audit looks at what is **true of the current code** — it deliberately does not relitigate fixed items (those remain marked `[done]` in audit-01).
+
+### What changed between audit-01 and audit-02
+- `editorStore.ts` collapsed from 1313 → 410 lines via the slice/core/renderer/persistence split.
+- Component registry consolidated to one source of truth (`src/component-editor/registry.ts`).
+- `ComponentSlice` shape split into `{ aliases: Record<string, CssVarRef>, config: Record<string, unknown> }`.
+- Dated migration files under `src/lib/migrations/` with `schemaVersion` stamping.
+- TokenLayout selector dispatch table; VariantGroup/StateBlock split.
+- Three history regimes folded into one composable `Scope` primitive.
+- New `versionedFileResource` parameterised on both client + server sides.
+- Module-load side effects deferred via `init()` hooks; storage prefix lazy-resolved.
+- Notification SCSS rules collapsed; ComponentFileManager split into SaveAsDialog + ComponentFileMenu.
+
+### How the report is organised
+- Severity-first ordering (Critical → Major → Minor → Nits → Project conventions → Clean). Organising axis is severity, not workflow status.
+- Every finding has `[local]` or `[cross-cutting]` immediately after the title.
+- As work lands, append `[done]`, `[skipped]`, `[partial]`, or `[deferred]` after the scope tag and add a one-line `**Resolution (YYYY-MM-DD):** <what shipped, what's deferred>` immediately under the touched bullet block. Do not move findings out of position when resolved — `grep '\[done\]'` produces the shipped list.
+
+### Critical things to know before touching code (project memory)
+- **Iframe CSS-var fan-out** (`cssVarSync`) is load-bearing — writes must hit both self and parent `:root`. Any state architecture must preserve this.
+- **Theme-file lifecycle** (active/production/backups + file-manager UI) is the contract for every editable artifact class. New artifacts use `versionedFileResource`, not sidecar JSON.
+- **Linkage** (`canBeLinked` / sibling sets) is dev-declared, not user-editable. "linked" terminology over "shared".
+- **Component vs interaction state model** — components have component-states (default/selected/disabled, mutually exclusive, disabled terminal) and interaction-states (default/hover, in selects). Selected-disabled is impossible.
+- **Parts are not states** — Dialog's overlay/header/body/footer are structural parts.
+- **Linked-block UX** — one card per LinkedGroup; never bucket cards by computed signatures. Two-layer progressive disclosure (section collapse + per-card chart drill-down). Broken-link state is persistent provenance (subtle amber + unlock glyph). Linked vs unlinked: only the link-state indicator changes; value/token-slug renders identically.
+- **Treat uncommitted work as the only copy** — no `stash drop` / `reset` / `checkout --` without explicit confirmation; use a worktree for verification runs.
+
+### Tests as guardrails
+- `src/lib/editorStore.test.ts` (328 lines), `src/lib/componentConfig.test.ts`, `src/lib/lazyConfig.test.ts`, `src/lib/migrations/migrations.test.ts` — keep all four green when restructuring.
+- `src/component-editor/editorTokens.test.ts`, `src/ui/PaletteEditor.test.ts` exist; verify scope before touching token registry / palette derivation.
+- `npm run check` baseline is currently **4 errors / 26 warnings** — the 4 errors are all C1 below; fixing C1 should reach 0 errors.
+
+### Recommended sequencing
+The two Criticals are independent and both small. **Do C2 (DialogEditor) first** — it's a 5-line fix that closes a runtime bug and clears all 4 outstanding TS errors. **Then C1 (delete the Lava Flow)** — half-day of coordinated deletions across PaletteEditor and VisualsTab; once those land, the architecture-as-described matches the architecture-as-implemented and M1/M5 become obvious follow-on tasks. Pair-verify with `npm run check` (should reach 0 errors after C1+C2) and the existing PaletteEditor.test.ts.
+
+After that, M3 (selector parallel hierarchy) is a quick mechanical cleanup; M5 (VisualsTab rename + extract orchestration) becomes natural after C1 because the `scrapeCssVariables` block disappears; M4 (PaletteEditor state-machine fold) is cleaner once C1's deletions trim the file by ~80 lines.
+
+---
+
+## Summary
+
+The codebase is in **substantially better shape than audit-01** — three Criticals and twelve Majors from the prior pass shipped cleanly, and the foundational seams (state core/slices, registry, file-resource lifecycle, migration machinery) are now well-defined. Two themes dominate this audit: (1) **leftover Lava Flow from the in-flight migrations** — `PaletteEditor` and `VisualsTab` still carry ~60 lines of duplicate palette emission + save-path scrape code from before `paletteDerivation.ts` was extracted, plus two stale block comments that misdescribe the current architecture (auditors and future contributors will both believe palette derivation hasn't moved into the store, because the code says so); and (2) **the two largest UI files** (`PaletteEditor.svelte` 2597 lines, `VariablesTab.svelte` 2480 lines) are God Components that own 4–5 independently-varied concerns each and resist further change. Beyond those, the C3 alias/config split has one stranded editor (`DialogEditor`) that still writes to the wrong bucket — currently silently broken at runtime and the source of all 4 outstanding TS errors. The selector family in `src/ui/UI*Selector.svelte` has 5 near-identical 35–50-line wrappers begging to be data. None of this prevents shipping alpha; all of it benefits from being settled before the API is locked.
+
+## Critical
+
+### C1. PaletteEditor's reactive DOM-emission blocks duplicate `paletteDerivation` — Lava Flow + Stale Comment-as-Lies `[local]`
+- **Where:** `src/ui/PaletteEditor.svelte:994–1064` (three `$:` reactive blocks plus helper `setCssVar` + `appliedCssVars` array, all writing palette/scale/`--page-bg` CSS vars directly via `cssVarSync`); `src/ui/VisualsTab.svelte:57–64, 82–87` (the `scrapeCssVariables()` save-path fold + the stale "derivation has not yet moved into the store" comment).
+- **What:** Audit-02 was drafted on a wrong premise — derivation **has** moved into the store. `src/lib/paletteDerivation.ts` exports `palettesToVars(state.palettes)`, which produces every var PaletteEditor's reactive blocks emit (`--color-{ns}-{step}`, `--surface-*`, `--border-*`, `--text-*`, `--page-bg`, `--page-bg-attachment`). `editorRenderer.installRenderer()` subscribes to `editorState`, calls `deriveCssVars(state)` (which fans out to `palettesToVars` plus all the other slice emitters), and writes the diff via `cssVarSync` on every state change. Palette config itself lives in `state.palettes[label]` — `PaletteEditor.svelte:21–28` is explicit ("All persistent palette state lives in `$editorState.palettes[label]`. Local `$:` derivations below pull named fields with defaults; every handler writes via `edit()` / `patchPalette()` so the store is the only writer. No `let` mirrors, no round-trip sync reactives.").
+
+  What's actually wrong is downstream debris from that completed migration:
+  1. **Three reactive emission blocks in PaletteEditor (`PaletteEditor.svelte:1005–1064`)** still write to `cssVarSync.setCssVar` for chromatic palette + gray palette + empty-selector. Every var they write is *also* written by the renderer's subscription. Two paths emit the same value on every state change. They converge (same input, same pure derivation), so no visible race — but the duplicated code is meaningful waste and obscures who owns the contract.
+  2. **`scrapeCssVariables()` in `VisualsTab.handleSave` (`VisualsTab.svelte:61–64`)** + the matching `applyCssVariables(theme.cssVariables)` in `handleLoad` (`:88–91`) exist purely to bridge the (no-longer-real) gap. The font-and-domain-var denylist at `:62–63` is hand-maintained scaffolding for a problem that doesn't exist. `toTheme(state)` already produces a complete payload via the slice emitters.
+  3. **Two block comments narrate the obsolete state** ("PaletteEditor still writes its ramp/semantic vars directly to the DOM (derivation has not yet moved into the store)" and "applyCssVariables then fills in the rest until the remaining domains move into the store in later phases") — these are now inaccurate; future readers will trust them and waste time.
+  4. **`PaletteEditor.svelte:970–992`** redefines `scaleToCssVar` locally with the same `--text-primary-color` collision rule that already lives canonically in `paletteDerivation.scaleToCssVar:190–206`. Once the emission blocks go, the helper goes with them.
+- **Why it matters:** Lava Flow + Lies, not Action At A Distance. The cost is moderate: it misdescribes the architecture to anyone reading PaletteEditor or VisualsTab, it duplicates ~60 lines of derivation logic in two files, and the `scrapeCssVariables` plumbing is a load-bearing seam for a load that no longer exists. Every audit reader (this one included) will conclude "palette derivation must still be in the editor" because the code says so. Pre-alpha is the right time to delete it.
+- **Direction:** Mostly deletions, in two coordinated edits:
+  1. **PaletteEditor.svelte** — delete the three `$:` emission blocks (lines 1005–1026 chromatic, 1029–1046 gray, 1049–1064 empty-selector), the local `setCssVar` helper + `appliedCssVars` array (994–999), the local `scaleToCssVar` helper (~970–992), and the `setCssVar as setCssVarSync` import (line 11). PaletteEditor becomes a pure presentational consumer of `editorState.palettes` — every handler already writes through `mutate` / `patchPalette` / `setPaletteConfig`, and the renderer is already subscribed.
+  2. **VisualsTab.svelte** — in `handleSave`, drop the `scrapeCssVariables()` fold and the font/domain denylist; replace with `const theme = toTheme(state, { name: displayName })` then `await saveTheme(...)`. In `handleLoad`, drop the `applyCssVariables(theme.cssVariables)` line; `loadEditorState(theme)` already drives the renderer via the store subscription. Delete both narrative block comments.
+  3. **Verify** — confirm `npm run test` (especially `editorStore.test.ts` and `PaletteEditor.test.ts`) stays at the 18-failure baseline, and that the editor preview reflects palette edits without visible flicker (the renderer subscription should already be doing this; the deletion just removes the redundant second writer). Confirm `npm run check` reaches **0 errors** when paired with C2.
+
+### C2. `DialogEditor` writes to `aliases` bucket; `Dialog.svelte` reads from `config` bucket — Broken Encapsulation + 4 TS errors `[local]`
+- **Where:** `src/component-editor/DialogEditor.svelte:79,84,85,89,93` (writes via `setComponentAlias` and reads via `aliases[CONFIRM_VAR]`); `src/components/Dialog.svelte:27–29` (reads `$editorState.components.dialog?.config`).
+- **What:** Audit-01 C3 split `ComponentSlice` into `{ aliases, config }` — aliases hold `CssVarRef` discriminated unions (CSS-var pointers), config holds arbitrary literal-valued knobs the runtime reads via `$editorState`. DialogEditor's confirm/cancel button-variant pickers should live in `config` (literal string, JS-consumed). They live in `aliases` instead — three call sites of `setComponentAlias(component, '--dialog-confirm-variant', v)` where `v` is a raw `'primary' | 'secondary' | …` string, plus two reads `aliases[CONFIRM_VAR] as ButtonVariant`. The `setComponentAlias` parameter type is `CssVarRef`, not `string`, so TypeScript reports:
+  ```
+  Argument of type 'string' is not assignable to parameter of type 'CssVarRef'. (×2)
+  Conversion of type 'CssVarRef' to type 'ButtonVariant' may be a mistake … (×2)
+  ```
+  These are the 4 errors in `npm run check`.
+- **Why it matters:** This is currently a **silent runtime bug**: the editor writes to `aliases.dialog['--dialog-confirm-variant']`, the runtime reads from `config.dialog['--dialog-confirm-variant']`, the two never see each other, so dialogs always render with `'primary'` / `'outline'` defaults regardless of what the user selects. The audit-01 resolution note for C3 explicitly documented Dialog as migrated; that was correct for the on-disk shape and the runtime read path, but the editor was missed. Audit-01 also noted `--button-shimmer` is genuinely an alias (Button.svelte uses `display: var(--button-shimmer)`), so the rule "alias = consumed via CSS cascade; config = consumed by JS via `$editorState`" is the correct discriminator, and DialogEditor is on the JS-consumed side.
+- **Direction:** Replace the three `setComponentAlias` calls with `setComponentConfig(component, CONFIRM_VAR, v)` / `setComponentConfig(component, CANCEL_VAR, v)`. Switch the reactive declarations on lines 83–85 from `aliases = $editorState.components.dialog?.aliases ?? {}` to `config = $editorState.components.dialog?.config ?? {}` and read `config[CONFIRM_VAR] as ButtonVariant`. The five-line change clears all 4 TS errors and the runtime bug simultaneously. Check `KNOWN_COMPONENT_CONFIG_KEYS` in `src/lib/componentConfigKeys.ts` to confirm both vars are in the migration set so existing on-disk files migrate cleanly on next load.
+
+## Major
+
+### M1. `PaletteEditor.svelte` is a 2597-line God Component with 4–5 independently-varied concerns `[cross-cutting]`
+- **Where:** `src/ui/PaletteEditor.svelte:1` (whole file).
+- **What:** ~100 top-level declarations. The file owns: base colour picker, palette derivation across 4 scales (chromatic/gray × lightness/saturation), 6 curve editors (3 scales × 2 channels) with locked-anchor injection logic, gradient stop editor with drag/click handlers, snap-to-palette confirm/cancel state machine (`editingKey` / `editingSnapshot` / `editingDraft`), tint hue/chroma snapshots, and the per-stop position/colour editing UI. Twelve+ `let` flags encode transient sub-modes (`grayEditorOpen`, `paletteEditorOpen`, `injectedLightness`, `injectedSaturation`, `lockedLightnessIdx`, `lockedSaturationIdx`, `draggingStopIndex`, `selectedStopIndex`, `paletteEditScope`, `snapshotTintHue`, `snapshotTintChroma`, `copiedKey`, `copiedLabelKey`, `bgPickerOpen`, `expandedGroup`).
+- **Why it matters:** Every palette-related change touches this one file. The file is bound up with C1 (DOM-direct writes); both fixes converge — moving derivation into a slice naturally pulls sub-components out (`PaletteBase.svelte`, `ScaleCurveEditor.svelte`, `GradientStopEditor.svelte`, `TintControls.svelte`).
+- **Direction:** After C1's slice exists, partition the markup along the existing scaffolding: a `PaletteBase` (base colour + mode toggle + tint hue/chroma), a `ScaleCurveEditor` (one component instance per scale × channel, parameterised by `kind`), a `GradientStopEditor` (the bar + drag handlers), and an `OverridesPanel`. Parent shrinks to a layout shell that wires the slice to each section.
+
+### M2. `VariablesTab.svelte` is a 2480-line God Component spanning shadows, overlays, gradients, fonts, columns, and 7 token-display groups `[cross-cutting]`
+- **Where:** `src/ui/VariablesTab.svelte:1` (whole file).
+- **What:** ~75 top-level declarations. Owns: shadow globals (5 `setGlobal*` functions: angle/opacity/distance/blur/size/color), per-token shadow editing with dial drag (`handleDialDown` / `handleDialMove` / `handleDialUp`, `globalDialDrag`), shadow-token override flags (`getShadowOverride` / `interpolateScale`), background-colour picker for the shadow preview, overlay channels, gradient sections, font-stack section, columns config, and 7 token-display tables (spacing, border-width, radius, font-size, font-weight, line-height, icon-size). Each table has its own `*Tokens: TokenItem[]` `let` decl and reactive resolver. Three orthogonal state machines coexist (shadow editing, dial drag, bg picker) without explicit types.
+- **Why it matters:** Same change-cost problem as M1. Shadow editing and the seven token-display tables are the two natural seams; they don't share state with each other and don't share state with overlays/gradients/fonts/columns.
+- **Direction:** Extract `ShadowsSection.svelte` (the dial + globals + per-token + bg picker), one `TokenScaleTable.svelte` parameterised by `vars + label-formatter` (replaces the 7 hand-listed tables), `OverlaysSection.svelte`, `GradientsSection.svelte`. Parent becomes a vertical layout that wires sections to slices.
+
+### M3. Five `UI*Selector.svelte` wrappers are ~95% identical — Parallel Hierarchy `[local]`
+- **Where:** `src/ui/UIBlurSelector.svelte` (37 lines), `UIBorderWeightSelector.svelte` (44), `UIDotSizeSelector.svelte` (35), `UILineHeightSelector.svelte` (47), `UIDividerHeightSelector.svelte` (39), `UIRadiusSelector.svelte` (40), `UIShadowSelector.svelte` (36), `UIFontWeightSelector.svelte` (52). Compare the bodies of any two — same five `export let` props, same wrapper around `<UIVariantSelector>`, same `<UIOptionItem>` slot scaffolding. The only things that vary are the `options` array literal and the `varPrefix` string.
+- **What:** Eight near-identical files exist solely to bind `(options, varPrefix)` data. Adding a new variant scale requires creating a new `UIXxxSelector.svelte` and exporting it from `index.ts`.
+- **Why it matters:** Once And Only Once. The data is mechanical; the file boundaries don't earn their keep. Adding a prop (e.g. `dropdownGridColumns` per `UIVariantSelector.svelte:17`) requires editing 8 files in lockstep — exactly the Shotgun Surgery these wrappers were trying to prevent.
+- **Direction:** Replace each with a typed entry in a single registry — e.g. `src/ui/variantScales.ts` exports `BLUR`, `BORDER_WIDTH`, `DOT_SIZE`, etc., each `{ varPrefix, options, optionRender? }`. Consumers pass the registry entry into `<UIVariantSelector>` directly: `<UIVariantSelector {...BLUR} {variable} />`. Three or four wrappers that genuinely customise rendering (`UILineHeightSelector` adds a preview slot, `UIPaletteSelector` is its own thing) stay as components.
+
+### M4. `PaletteEditor`'s editing-state machine is scattered across 8 unrelated `let` declarations — Implicit State Machine `[local]`
+- **Where:** `src/ui/PaletteEditor.svelte:94–95` (`lockedLightnessIdx` / `lockedSaturationIdx`), `:96–97` (`draggingStopIndex` / `selectedStopIndex`), `:103` (`paletteEditScope: Scope | null`), `:236, 240` (`grayEditorOpen` / `paletteEditorOpen`), `:279–280` (`snapshotTintHue` / `snapshotTintChroma`), `:351–352` (`injectedLightness` / `injectedSaturation`), and `editingKey` / `editingSnapshot` / `editingDraft` later in the file.
+- **What:** The valid combinations are implicit. `confirmEdit()` reads five of these to infer what the user actually changed; `setAnchorToBase()` toggles `injectedLightness`+`injectedSaturation` together with locked-anchor indices; the snapshot/draft pair encodes a session-level rollback. None of this is in a discriminated union or a typed state. `paletteEditScope: Scope | null` is the cleanest of the bunch (the new `Scope` primitive from audit-01 M6).
+- **Why it matters:** Refactoring this without a type — especially while moving derivation into a slice (C1) — is a re-derivation of all the implicit invariants. Tests must assert transitive states.
+- **Direction:** Once C1 has carved out the slice, replace the eight `let` decls with a single `editing: EditingState` discriminated union: `{ kind: 'idle' } | { kind: 'editingBase'; snapshotHue, snapshotChroma } | { kind: 'editingScale'; scale: 'palette' | 'gray'; channel: 'lightness' | 'saturation'; lockedIdx?: number } | { kind: 'editingStop'; stopIndex: number; draggingFrom?: number }`. `confirmEdit` / `cancelEdit` dispatch on `editing.kind`; the type-checker enforces field validity per mode.
+
+### M5. `VisualsTab` is misnamed and owns theme save/load orchestration — Misleading Names + SRP `[local]`
+- **Where:** `src/ui/VisualsTab.svelte:1` (whole file). Comment at `:57–64` shows the file is doing the job that `themeService` should do.
+- **What:** The file is named for the "Visuals" tab but actually serves as the page-level shell that hosts `<VariablesTab>` plus `<ThemeFileManager>` and owns the entire theme-save/load pipeline (`handleSave`, `handleLoad`, the `scrapeCssVariables` fold, font migration). Reader assumes "tab"; reality is "page-shell + I/O coordinator." Compare `Editor.svelte:3` — the only consumer — which imports `VisualsTab` as if it were a tab.
+- **Why it matters:** The misnomer hides where the I/O lives. New developers searching for "where does theme save happen?" greppable answers point at `themeService.saveTheme`, but the orchestration (scrape, migrate fonts, mark saved, file-name dance) lives in this 243-line tab file. Once C1 lands, the `scrapeCssVariables` block disappears and what remains is genuinely reusable orchestration.
+- **Direction:** Either rename to `VisualsPage.svelte` / `EditorShell.svelte` and accept the larger role, or extract the save/load orchestration to `themeService.persistTheme(state)` / `themeService.hydrateTheme(fileName)` and leave a thin tab. Pair with C1 — `scrapeCssVariables` should not be in either home post-C1.
+
+### M6. `Notification` (16 props), `Dialog` (13 props), `Button` (10 props) — Long Parameter List + Flag Arguments `[cross-cutting]`
+- **Where:** `src/components/Notification.svelte:1–28` (16 `export let`s including `actionInline`, `actionHeader`, `actionRightVariant`, `actionRightLabel`, `onActionRight`, `actionLeftVariant`, `actionLeftLabel`, `onActionLeft`); `src/components/Dialog.svelte:12–25` (13 props); `src/components/Button.svelte` (10).
+- **What:** This was flagged in audit-01 m11 and explicitly deferred for "its own wave" because it requires updating both the runtime component and its editor's instance-config controls. It is now the largest accumulated debt in the runtime-component layer. Notification's three action positions (`header`, `inline`, `left+right`) each spread across 3 separate boolean+string+callback triplets. Dialog's six `confirmDisabled` / `showConfirm` / `showCancel` / `confirmLabel` / `cancelLabel` / `inline` flags pair with an explicit `confirmVariant` / `cancelVariant` override that audit-01 C3 documented.
+- **Why it matters:** Every additional Notification configuration request (a fifth action position, a per-action icon variant) doubles the surface again. The components currently work; the cost is in change-velocity. Worth resolving before alpha because the public API of these components is what consumers will lock against.
+- **Direction:** Collapse action configuration into a single `actions: { header?: ActionSpec; inline?: ActionSpec; left?: ActionSpec; right?: ActionSpec }` config object on Notification, where `ActionSpec = { text, icon?, onAction, variant?, label? }`. Same pattern for Dialog: collapse `showConfirm`/`confirmLabel`/`confirmDisabled`/`onConfirm`/`confirmVariant` into `confirm?: ConfirmSpec` (and same for `cancel`), with `undefined = hidden`. NotificationEditor's instance-config controls switch from one toggle per flag to one row per action slot. Likely two days of focused work; pair with a documented migration that turns existing `actionHeader: true` + `actionText: 'Foo'` into `actions: { header: { text: 'Foo' } }` on load.
+
+## Minor
+
+### m1. `applyCssVariables` re-exported from both `cssVarSync` and `themeService` — Boat Anchor `[local]`
+- **Where:** `src/lib/themeService.ts:130–132` re-exports the trio (`applyCssVariables`, `clearAllCssVarOverrides`, `scrapeCssVariables`); `src/lib/index.ts:9–15` exports them directly from `cssVarSync`. Two import paths for the same function.
+- **What:** Carried over from audit-01 m5; the comment in `themeService.ts` says the re-export exists "to preserve existing call sites." Audit `git grep "from '.*themeService'" | grep -E "(applyCssVariables|clearAllCssVarOverrides|scrapeCssVariables)"` to count actual consumers.
+- **Direction:** If consumers all import from `themeService`, delete the `cssVarSync` direct re-export from `index.ts`. Otherwise drop the `themeService` re-export and update the (likely small) set of call sites.
+
+### m2. Magic colour and duration literals scattered across `PaletteEditor` and `VariablesTab` `[local]`
+- **Where:** `src/ui/PaletteEditor.svelte:1180, 1224, 1607, 1641` (`#ffffff` / `#000000` hard-coded as gradient endpoint swatches); `:321` (`#808080` fallback for `gray500Hex`); `VariablesTab.svelte:133` (`setTimeout(... , 1000)` for copied-var reset); various inline `cubic-bezier(0.5, 1.6, 0.5, 1)` and `320ms` transition values across `.svelte` files.
+- **Direction:** Module-level constants — `const GRADIENT_ENDPOINTS = { light: '#ffffff', dark: '#000000' }`, `const COPIED_FLASH_MS = 1000`. For CSS, prefer `var(--ui-transition-fast)` consistently over inline `320ms`.
+
+### m3. `UITokenSelector` dispatches stringly-typed events with no payload schema `[local]`
+- **Where:** `src/ui/UITokenSelector.svelte:20` (`createEventDispatcher` without generic), `:179, 182, 194` (`dispatch('reset')`, `dispatch('change')`, `dispatch('var-change')`).
+- **What:** Three event names with no typed schema. `UIVariantSelector.svelte:7` is the same — `createEventDispatcher()` without a generic. By contrast, `Dialog.svelte:35` and `UIRelinkConfirmPopover.svelte:14` do supply typed schemas. Inconsistency.
+- **Direction:** `createEventDispatcher<{ reset: void; change: void; 'var-change': void }>()` on both. If/when payloads are added, the type-checker enforces consumer updates.
+
+### m4. `componentConfigKeys.ts` is a flat `Set<string>` with a Wave-4 TODO `[local]` [deferred]
+- **Where:** `src/lib/componentConfigKeys.ts:1` (TODO block).
+- **What:** `KNOWN_COMPONENT_CONFIG_KEYS` was introduced as a transient migration list during the C3 alias/config split; the TODO marks the intent to replace it with a per-component schema declaration once `registerComponentSchema` carries config-key metadata.
+- **Direction:** Defer to a later wave. Acceptable today; it's a 12-element set with one consumer (`splitAliasesAndConfig` in the legacy migration) and shrinks toward zero as on-disk files migrate. Mark `[deferred]`.
+
+### m5. `setTokenField` / `setTokenColor` mutate-then-recompute boilerplate in `VariablesTab` shadow handlers `[local]`
+- **Where:** `src/ui/VariablesTab.svelte:286–340` — five near-identical handlers, each spreads the override object, mutates one field, and recomputes `(x, y)` from `(angle, distance)`.
+- **Direction:** Extract `updateShadowToken(idx, patch)` once; handlers become one-liners. This is the same shape as the M5 audit-01 fix for `flashStatus` — small but the duplication is visible.
+
+## Nits
+
+- `src/lib/editorStore.ts` `[local]` — file is now a 410-line barrel; consider whether the legacy `splitAliasesAndConfig` migration belongs in the dated `migrations/` folder rather than inline (the audit-01 M3 resolution note already flags this for Wave 4).
+- `src/components/Notification.svelte:107–113` `[local]` — the documented "do not collapse the `:global(:root)` block to `@each`" constraint comment is the right place; consider also adding a one-line note in `src/lib/parsers/globalRootBlock.ts` so the next reader of *that* file knows what the constraint protects.
+- `src/pages/Editor.svelte:75` `[local]` — empty `.bar-right` ruleset with `/* Reserved for future right-aligned controls */` comment. Either populate or delete (Speculative Generality + svelte-check warning).
+- `src/ui/VariablesTab.svelte:2000` `[local]` — `-moz-appearance: textfield` without the standard `appearance: textfield`. svelte-check warning.
+
+## Project conventions
+
+- `src/components/Dialog.svelte:20–25, 24` `[local]` — the three `/** … */` jsdoc blocks that explain `confirmVariant` / `cancelVariant` / `inline` props are good (WHY, not WHAT). Keep this pattern; it's the one place in the runtime components doing this consistently.
+- `src/ui/VisualsTab.svelte:57–63, 82–87` `[cross-cutting]` — the multi-line block comments inside `handleSave` / `handleLoad` are narrating *current architectural state* ("…not yet moved into the store") rather than the immutable WHY. They're acceptable today *because they accurately describe load-bearing scaffolding* (C1's TODO), but they will turn into Stale Comments the moment C1 lands. Treat them as a delete-when-resolving marker for C1.
+- No "// NEW:" / "// removed for X" / Phase-narration comments observed in this pass — audit-01's project-conventions cleanup held.
+
+## Clean
+
+- **Editor state core + slices** — `editorCore.ts`, `editorPersistence.ts`, `editorRenderer.ts`, and `src/lib/slices/*` are cohesive single-purpose modules. The `Scope` primitive (audit-01 M6) reads cleanly with `mutate` / `transaction` / `beginScope` as orthogonal axes.
+- **Component registry** — single source of truth at `src/component-editor/registry.ts`; no silent-degradation paths; boot-time `validateRegistryAgainstServerScan` works.
+- **Migration machinery** — dated files under `src/lib/migrations/`, `schemaVersion` stamping, `runMigrations` filtering. Adding a future rename adds one dated file; no `editorStore.ts` edits.
+- **Versioned-file resource** — both client (`src/lib/files/versionedFileResource.ts`) and server (`src/vite-plugin/files/versionedFileResource.ts`) sides parameterised; theme-file lifecycle preserved.
+- **Route table** — `src/vite-plugin/files/routeTable.ts` is a clean dispatcher; the 14 inline try/catch blocks are gone.
+- **TokenLayout selector dispatch** — single `KIND_PATTERNS` table and `<svelte:component>` dispatch; no DOM scrapes in render.
+- **VariantGroup / StateBlock** — clean split with chrome differences contained.
+- **Component editors** — all 14 follow the derived-from-arrays pattern; no drift, no hand-listed token boilerplate.
+- **Component-editor scaffolding** — TokenLayout / VariantGroup / StateBlock / LinkedBlock / LinkageChart / CopyFromMenu / CopyFromMenu form a coherent set with clear responsibilities; no overlap.
+- **Module-load side effects** — deferred via idempotent `init()` hooks; `main.ts` is the single boot orchestrator.
+- **Storage-prefix lazy resolution** — `getPersistKey()` and `prevKey()` resolve per call; `configureEditor({storagePrefix})` is now order-independent.
+- **Error-handling helpers** — `quietGet` / `quietSet` / `safeFetch` in `src/lib/storage.ts` replace the empty-catch density.
+- **Test coverage** — `editorStore.test.ts`, `componentConfig.test.ts`, `lazyConfig.test.ts`, `migrations.test.ts` all green at audit time. PaletteEditor.test.ts exists but PaletteEditor's coupling to the DOM (C1) limits what it can cover.
+- **Naming** — `canBeLinked`, `unlinked`, `LinkedGroup`, `groupKey`, `seedFromTheme`, `markComponentSaved`, `__resetForTests`, `Scope`, `collapseToOne`, `clipUndoFloor` all carry their meaning. Project memory's "linked over shared" is observed throughout.
+- **Race hazards / concurrency** — none observed; mutate/scope is single-threaded by design.
+- **LSP / ISP / inheritance** — components use slots/props; no inheritance abuse; no Refused Bequest.
+
+---
+
+## Suggested triage / sequencing for the alpha-readiness pass
+
+This is a recommendation, not a plan — triage first.
+
+1. **C2 (DialogEditor alias→config swap)** — 5-line fix. Closes a runtime bug + clears the 4 outstanding TS errors. Do first.
+2. **C1 (delete redundant palette emission + scrape)** — half-day deletion. Removes ~60 lines from PaletteEditor + ~20 lines from VisualsTab + two stale comments. Renderer subscription already does the right thing; deletion just drops the second writer. Pair with C2 to reach `npm run check` 0 errors and a non-misleading code state.
+3. **M6 (Notification/Dialog/Button API collapse)** — best done before alpha because the component public APIs are what consumers will lock against. Two days of focused work plus a load-time migration for existing component-config files.
+4. **M3 (selector parallel hierarchy → registry)** — independent, mechanical, ~half-day. Replace 8 wrappers with a single `variantScales.ts` registry; consumers pass the entry to `<UIVariantSelector>` directly.
+5. **M2 (VariablesTab decomposition)** — the seven token-display tables collapse into one `<TokenScaleTable>` component. Shadows section is the largest extracted piece. Lower priority than C1/M1 because it's not blocking anything; mostly about change-velocity.
+6. **M5 (VisualsTab rename + extract orchestration)** — natural follow-on once C1 removes the `scrapeCssVariables` block.
+7. **M4 (PaletteEditor state-machine fold)** — best done after C1 lands and the slice exists.
+8. **m1–m5, nits, project-conventions cleanup** — parallelisable once the structural items settle.
+
+When work lands, mark each finding here with `[done] **Resolution (YYYY-MM-DD):** …` immediately under its bullet block. Don't move findings — severity remains the document's organising axis.
