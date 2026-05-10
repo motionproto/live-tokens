@@ -1,8 +1,8 @@
 {
-  "name": "green segment control",
+  "name": "green segment control_01",
   "component": "segmentedcontrol",
-  "createdAt": "2026-04-24T15:06:14.300Z",
-  "updatedAt": "2026-04-24T23:35:53.038Z",
+  "createdAt": "2026-04-24T23:35:55.858Z",
+  "updatedAt": "2026-04-24T23:35:59.116Z",
   "aliases": {
     "--segmentedcontrol-bar-surface": "--surface-neutral-high",
     "--segmentedcontrol-bar-border": "--border-neutral",

@@ -1,8 +1,8 @@
 {
-  "name": "default",
+  "name": "default_01",
   "component": "sectiondivider",
-  "createdAt": "2026-04-18T02:43:11.332Z",
-  "updatedAt": "2026-05-10T13:20:07.207Z",
+  "createdAt": "2026-05-10T14:08:13.444Z",
+  "updatedAt": "2026-05-10T14:08:13.446Z",
   "aliases": {
     "--sectiondivider-canvas-padding": "--space-16",
     "--sectiondivider-canvas-title": "--text-primary",
@@ -11,7 +11,7 @@
     "--sectiondivider-canvas-title-font-weight": "--font-weight-normal",
     "--sectiondivider-canvas-title-line-height": "--line-height-tight",
     "--sectiondivider-canvas-title-border-width": "--border-width-4",
-    "--sectiondivider-canvas-title-stroke-color": "--surface-canvas-lowest",
+    "--sectiondivider-canvas-title-stroke-color": "color-mix(in srgb, var(--surface-canvas-lowest) 62%, transparent)",
     "--sectiondivider-canvas-description": "--text-secondary",
     "--sectiondivider-canvas-description-font-family": "--font-sans",
     "--sectiondivider-canvas-description-font-size": "--font-size-md",
@@ -22,7 +22,6 @@
     "--sectiondivider-canvas-gradient-stop-3": "--surface-canvas-high",
     "--sectiondivider-canvas-gradient-stop-4": "--surface-canvas",
     "--sectiondivider-canvas-radius": "--radius-lg",
-
     "--sectiondivider-neutral-padding": "--space-16",
     "--sectiondivider-neutral-title": "--text-primary",
     "--sectiondivider-neutral-title-font-family": "--font-display",
@@ -30,7 +29,7 @@
     "--sectiondivider-neutral-title-font-weight": "--font-weight-normal",
     "--sectiondivider-neutral-title-line-height": "--line-height-tight",
     "--sectiondivider-neutral-title-border-width": "--border-width-4",
-    "--sectiondivider-neutral-title-stroke-color": "--surface-canvas-lowest",
+    "--sectiondivider-neutral-title-stroke-color": "color-mix(in srgb, var(--surface-canvas-lowest) 62%, transparent)",
     "--sectiondivider-neutral-description": "--text-secondary",
     "--sectiondivider-neutral-description-font-family": "--font-sans",
     "--sectiondivider-neutral-description-font-size": "--font-size-md",
@@ -41,7 +40,6 @@
     "--sectiondivider-neutral-gradient-stop-3": "--surface-neutral-high",
     "--sectiondivider-neutral-gradient-stop-4": "--surface-neutral",
     "--sectiondivider-neutral-radius": "--radius-lg",
-
     "--sectiondivider-alternate-padding": "--space-16",
     "--sectiondivider-alternate-title": "--text-primary",
     "--sectiondivider-alternate-title-font-family": "--font-display",
@@ -49,7 +47,7 @@
     "--sectiondivider-alternate-title-font-weight": "--font-weight-normal",
     "--sectiondivider-alternate-title-line-height": "--line-height-tight",
     "--sectiondivider-alternate-title-border-width": "--border-width-4",
-    "--sectiondivider-alternate-title-stroke-color": "--surface-canvas-lowest",
+    "--sectiondivider-alternate-title-stroke-color": "color-mix(in srgb, var(--surface-canvas-lowest) 62%, transparent)",
     "--sectiondivider-alternate-description": "--text-secondary",
     "--sectiondivider-alternate-description-font-family": "--font-sans",
     "--sectiondivider-alternate-description-font-size": "--font-size-md",
@@ -60,7 +58,6 @@
     "--sectiondivider-alternate-gradient-stop-3": "--surface-alternate-high",
     "--sectiondivider-alternate-gradient-stop-4": "--surface-alternate",
     "--sectiondivider-alternate-radius": "--radius-lg",
-
     "--sectiondivider-primary-padding": "--space-16",
     "--sectiondivider-primary-title": "--text-primary",
     "--sectiondivider-primary-title-font-family": "--font-display",
@@ -68,7 +65,7 @@
     "--sectiondivider-primary-title-font-weight": "--font-weight-normal",
     "--sectiondivider-primary-title-line-height": "--line-height-tight",
     "--sectiondivider-primary-title-border-width": "--border-width-4",
-    "--sectiondivider-primary-title-stroke-color": "--surface-canvas-lowest",
+    "--sectiondivider-primary-title-stroke-color": "color-mix(in srgb, var(--surface-canvas-lowest) 62%, transparent)",
     "--sectiondivider-primary-description": "--text-secondary",
     "--sectiondivider-primary-description-font-family": "--font-sans",
     "--sectiondivider-primary-description-font-size": "--font-size-md",
@@ -79,7 +76,6 @@
     "--sectiondivider-primary-gradient-stop-3": "--surface-primary-high",
     "--sectiondivider-primary-gradient-stop-4": "--surface-primary",
     "--sectiondivider-primary-radius": "--radius-lg",
-
     "--sectiondivider-accent-padding": "--space-16",
     "--sectiondivider-accent-title": "--text-primary",
     "--sectiondivider-accent-title-font-family": "--font-display",
@@ -87,7 +83,7 @@
     "--sectiondivider-accent-title-font-weight": "--font-weight-normal",
     "--sectiondivider-accent-title-line-height": "--line-height-tight",
     "--sectiondivider-accent-title-border-width": "--border-width-4",
-    "--sectiondivider-accent-title-stroke-color": "--surface-canvas-lowest",
+    "--sectiondivider-accent-title-stroke-color": "color-mix(in srgb, var(--surface-canvas-lowest) 62%, transparent)",
     "--sectiondivider-accent-description": "--text-secondary",
     "--sectiondivider-accent-description-font-family": "--font-sans",
     "--sectiondivider-accent-description-font-size": "--font-size-md",
@@ -98,7 +94,6 @@
     "--sectiondivider-accent-gradient-stop-3": "--surface-accent-high",
     "--sectiondivider-accent-gradient-stop-4": "--surface-accent",
     "--sectiondivider-accent-radius": "--radius-lg",
-
     "--sectiondivider-special-padding": "--space-16",
     "--sectiondivider-special-title": "--text-primary",
     "--sectiondivider-special-title-font-family": "--font-display",
@@ -106,7 +101,7 @@
     "--sectiondivider-special-title-font-weight": "--font-weight-normal",
     "--sectiondivider-special-title-line-height": "--line-height-tight",
     "--sectiondivider-special-title-border-width": "--border-width-4",
-    "--sectiondivider-special-title-stroke-color": "--surface-canvas-lowest",
+    "--sectiondivider-special-title-stroke-color": "color-mix(in srgb, var(--surface-canvas-lowest) 62%, transparent)",
     "--sectiondivider-special-description": "--text-secondary",
     "--sectiondivider-special-description-font-family": "--font-sans",
     "--sectiondivider-special-description-font-size": "--font-size-md",
@@ -117,5 +112,7 @@
     "--sectiondivider-special-gradient-stop-3": "--surface-special-high",
     "--sectiondivider-special-gradient-stop-4": "--surface-special",
     "--sectiondivider-special-radius": "--radius-lg"
-  }
+  },
+  "config": {},
+  "schemaVersion": 4
 }
