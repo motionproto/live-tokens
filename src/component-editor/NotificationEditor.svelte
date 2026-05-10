@@ -98,11 +98,19 @@
   $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
   $: visibleVariantTokens = (v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet);
 
+  import type { NotificationActions } from '../components/types';
+
   let dismissible = false;
   let rightOption: ButtonVariantOption = 'none';
   let leftOption: ButtonVariantOption = 'none';
-  $: actionRightVariant = toVariant(rightOption);
-  $: actionLeftVariant = toVariant(leftOption);
+  $: actions = ((): NotificationActions => {
+    const a: NotificationActions = {};
+    const right = toVariant(rightOption);
+    const left = toVariant(leftOption);
+    if (right) a.right = { label: 'Confirm', variant: right, onClick: () => {} };
+    if (left) a.left = { label: 'Cancel', variant: left, onClick: () => {} };
+    return a;
+  })();
 </script>
 
 <ComponentEditorBase {component} title="Notification" description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>" tokens={allTokens} {linked} tabbable variants={variantOptions}>
@@ -138,13 +146,13 @@
       siblings={buildSiblings(variants, v, (sv) => ({ [sv]: variantTokens(sv) }), (sv) => ({ [sv]: variantTypeGroups(sv) }))}
     >
       {#if v === 'info'}
-        <Notification variant="info" title="Information" description="This is an informational message to keep you updated." {dismissible} {actionRightVariant} {actionLeftVariant} />
+        <Notification variant="info" title="Information" description="This is an informational message to keep you updated." {dismissible} {actions} />
       {:else if v === 'success'}
-        <Notification variant="success" title="Success" description="Your action was completed successfully." {dismissible} {actionRightVariant} {actionLeftVariant} />
+        <Notification variant="success" title="Success" description="Your action was completed successfully." {dismissible} {actions} />
       {:else if v === 'warning'}
-        <Notification variant="warning" title="Warning" description="Caution: This action may have unintended consequences." {dismissible} {actionRightVariant} {actionLeftVariant} />
+        <Notification variant="warning" title="Warning" description="Caution: This action may have unintended consequences." {dismissible} {actions} />
       {:else if v === 'danger'}
-        <Notification variant="danger" title="Danger" description="Critical error: Please address this issue immediately." {dismissible} {actionRightVariant} {actionLeftVariant} />
+        <Notification variant="danger" title="Danger" description="Critical error: Please address this issue immediately." {dismissible} {actions} />
       {/if}
     </VariantGroup>
   {/each}

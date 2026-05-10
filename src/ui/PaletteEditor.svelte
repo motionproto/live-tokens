@@ -8,7 +8,7 @@
   import Toggle from './Toggle.svelte';
   import type { PaletteConfig, GradientStyle, GradientStop } from '../lib/themeTypes';
   import { editorState, mutate, setPaletteConfig, beginSliderGesture, beginScope, commitScope, cancelScope, type Scope } from '../lib/editorStore';
-  import { setCssVar as setCssVarSync } from '../lib/cssVarSync';
+  import { scaleToCssVar } from '../lib/paletteDerivation';
   import { showCopyPopover } from '../lib/copyPopover';
   import { get } from 'svelte/store';
 
@@ -969,99 +969,10 @@
 
   $: baseColor, scaleCurves, lightnessCurve, saturationCurve, curveOffset, snappedScales, resnapScales();
 
-  // --- Live CSS variable output ---
-
-  function scaleToCssVar(scaleTitle: string, stepName: string): string | null {
-    if (cssNamespace === null) return null;
-    if (scaleTitle === 'Surfaces') {
-      const suffix = stepName === 'default' ? '' : `-${stepName}`;
-      if (cssNamespace === 'neutral') return `--surface-neutral${suffix}`;
-      return cssNamespace ? `--surface-${cssNamespace}${suffix}` : `--surface-neutral${suffix}`;
-    }
-    if (scaleTitle === 'Borders') {
-      const suffix = stepName === 'default' ? '' : `-${stepName}`;
-      if (cssNamespace === 'neutral') return `--border-neutral${suffix}`;
-      return cssNamespace ? `--border-${cssNamespace}${suffix}` : `--border-neutral${suffix}`;
-    }
-    if (scaleTitle === 'Text') {
-      if (!cssNamespace || cssNamespace === 'neutral') return `--text-${stepName}`;
-      if (cssNamespace === 'primary' && stepName === 'primary') return '--text-primary-color';
-      return stepName === 'primary' ? `--text-${cssNamespace}` : `--text-${cssNamespace}-${stepName}`;
-    }
-    return null;
-  }
-
-  let appliedCssVars: string[] = [];
-
-  function setCssVar(name: string, value: string) {
-    setCssVarSync(name, value);
-    if (!appliedCssVars.includes(name)) appliedCssVars.push(name);
-  }
-
-  // Chromatic mode: set --color-{namespace}-* palette ramp + semantic surface/border/text CSS variables
-  // Gated on mountComplete so the initial reactive flush — which runs with hardcoded
-  // component defaults, before the onMount `state.palettes[label]` / localStorage seed —
-  // does not stomp the host :root that tokens.css / themeInit already populated.
-  $: if (mountComplete && cssNamespace !== null && mode === 'chromatic') {
-    const _cv = curveVersion;
-    const _ov = overrides;
-    const _bc = baseColor;
-    // Palette color ramp (100–950)
-    const _pc = paletteComputed;
-    let _emitted = 0;
-    for (const ps of _pc) {
-      setCssVar(`--color-${cssNamespace}-${ps.label}`, ps.effective);
-      _emitted++;
-    }
-    // Semantic scales (surfaces, borders, text)
-    for (const scale of scales) {
-      for (const step of scale.steps) {
-        const k = stepKey(scale.title, step.name);
-        const hex = (k in _ov) ? _ov[k] : computeDerivedColor(step, _bc, configForScale(scale.title), scale.title);
-        const varName = scaleToCssVar(scale.title, step.name);
-        if (varName) { setCssVar(varName, hex); _emitted++; }
-      }
-    }
-    void _emitted;
-  }
-
-  // Gray mode: set --color-{namespace}-* variables + semantic scales (surfaces, borders, text)
-  $: if (mountComplete && cssNamespace !== null && mode === 'gray') {
-    const _ge = grayEffective;
-    const _cv = curveVersion;
-    const _ov = overrides;
-    const _gs = grayScales;
-    const _base = gray500Hex;
-    for (const g of _ge) {
-      setCssVar(`--color-${cssNamespace}-${g.step.label}`, g.effective);
-    }
-    for (const scale of _gs) {
-      for (const step of scale.steps) {
-        const k = stepKey(scale.title, step.name);
-        const hex = (k in _ov) ? _ov[k] : computeDerivedColor(step, _base, configForScale(scale.title), scale.title);
-        const varName = scaleToCssVar(scale.title, step.name);
-        if (varName) setCssVar(varName, hex);
-      }
-    }
-  }
-
-  // Empty selector: set --page-bg to the selected palette step color or gradient
-  $: if (mountComplete && emptySelector) {
-    if (emptyMode === 'solid') {
-      const _pc = paletteComputed;
-      const selected = _pc.find(ps => ps.label === emptyStep);
-      if (selected) {
-        setCssVar('--page-bg', selected.effective);
-      }
-      setCssVar('--page-bg-attachment', 'scroll');
-    } else {
-      const _grad = gradientCssValue;
-      if (_grad) {
-        setCssVar('--page-bg', _grad);
-      }
-      setCssVar('--page-bg-attachment', gradientSize === 'window' ? 'fixed' : 'scroll');
-    }
-  }
+  // CSS-var emission lives in `paletteDerivation` → `editorRenderer`; the store
+  // is the single source of truth for palette config and the renderer
+  // subscription writes the derived `--color-*` / `--surface-*` / `--border-*`
+  // / `--text-*` / `--page-bg` variables to :root.
 
   // --- Load external config ---
   //
@@ -1073,13 +984,6 @@
     setPaletteConfig(label, config);
   }
 
-  let mountComplete = false;
-  onMount(async () => {
-    // Store is already hydrated at module load; component defaults in $:
-    // derivations handle brand-new installs where palettes[label] is undefined.
-    await tick();
-    mountComplete = true;
-  });
 
 </script>
 
@@ -1409,7 +1313,7 @@
             {@const k = stepKey(scale.title, step.name)}
             {@const hex = effectiveColor(k, step, scale.title, curveVersion)}
             <div class="step-column">
-              <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name); if (v) copyVarName(k, v, e); }}>
+              <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name, cssNamespace); if (v) copyVarName(k, v, e); }}>
                 {copiedLabelKey === k ? 'copied!' : step.name}
               </button>
               <div
@@ -1495,7 +1399,7 @@
             {@const k = stepKey(scale.title, step.name)}
             {@const hex = effectiveColor(k, step, scale.title, curveVersion)}
             <div class="step-column">
-              <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name); if (v) copyVarName(k, v, e); }}>
+              <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name, cssNamespace); if (v) copyVarName(k, v, e); }}>
                 {copiedLabelKey === k ? 'copied!' : step.name}
               </button>
               <div
@@ -1692,7 +1596,7 @@
           {@const k = stepKey(scale.title, step.name)}
           {@const hex = effectiveColor(k, step, scale.title, curveVersion)}
           <div class="step-column">
-            <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name); if (v) copyVarName(k, v, e); }}>
+            <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name, cssNamespace); if (v) copyVarName(k, v, e); }}>
               {copiedLabelKey === k ? 'copied!' : step.name}
             </button>
             <div
@@ -1770,7 +1674,7 @@
             {@const k = stepKey(scale.title, step.name)}
             {@const hex = effectiveColor(k, step, scale.title, curveVersion)}
             <div class="step-column">
-              <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name); if (v) copyVarName(k, v, e); }}>
+              <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name, cssNamespace); if (v) copyVarName(k, v, e); }}>
                 {copiedLabelKey === k ? 'copied!' : step.name}
               </button>
               <div

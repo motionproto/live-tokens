@@ -1,6 +1,7 @@
 <script lang="ts">
    import { createEventDispatcher } from 'svelte';
    import Button from './Button.svelte';
+   import type { NotificationActions } from './types';
 
    export let title: string;
    export let description: string;
@@ -9,23 +10,7 @@
    export let icon: string = '';
    export let dismissible: boolean = false;
    export let emphasis: boolean = false;
-
-   // Action button props
-   export let actionText: string = '';
-   export let actionIcon: string = '';
-   export let onAction: (() => void) | undefined = undefined;
-   export let actionInline: boolean = false;
-   export let actionHeader: boolean = false;
-
-   // Body-row action button slots, ordered left then right. Each is shown when
-   // its variant is non-null; null hides that slot.
-   type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'success' | 'danger' | 'warning';
-   export let actionRightVariant: ButtonVariant | null = null;
-   export let actionRightLabel: string = 'Confirm';
-   export let onActionRight: (() => void) | undefined = undefined;
-   export let actionLeftVariant: ButtonVariant | null = null;
-   export let actionLeftLabel: string = 'Cancel';
-   export let onActionLeft: (() => void) | undefined = undefined;
+   export let actions: NotificationActions = {};
 
    const dispatch = createEventDispatcher();
 
@@ -45,13 +30,13 @@
 </script>
 
 <div class="notification" class:info={variant === 'info'} class:warning={variant === 'warning'} class:danger={variant === 'danger'} class:success={variant === 'success'} class:emphasis={emphasis} class:compact={size === 'compact'}>
-   <div class="notification-header" class:has-action={actionHeader && onAction}>
+   <div class="notification-header" class:has-action={actions.header}>
       <i class={displayIcon}></i>
       <span class="notification-title">{title}</span>
-      {#if actionHeader && onAction}
+      {#if actions.header}
          <div class="action-button-backdrop">
-            <Button variant="outline" icon={actionIcon} on:click={onAction}>
-               {actionText}
+            <Button variant={actions.header.variant ?? 'outline'} icon={actions.header.icon} disabled={actions.header.disabled} on:click={actions.header.onClick}>
+               {actions.header.label ?? ''}
             </Button>
          </div>
       {/if}
@@ -61,21 +46,21 @@
          </button>
       {/if}
    </div>
-   {#if (description && !actionInline) || actionRightVariant || actionLeftVariant}
+   {#if (description && !actions.inline) || actions.right || actions.left}
       <div class="notification-body">
-         {#if description && !actionInline}
+         {#if description && !actions.inline}
             <div class="notification-description">{description}</div>
          {/if}
-         {#if actionRightVariant || actionLeftVariant}
+         {#if actions.right || actions.left}
             <div class="notification-body-actions">
-               {#if actionLeftVariant}
-                  <Button variant={actionLeftVariant} on:click={onActionLeft}>
-                     {actionLeftLabel}
+               {#if actions.left}
+                  <Button variant={actions.left.variant ?? 'outline'} icon={actions.left.icon} disabled={actions.left.disabled} on:click={actions.left.onClick}>
+                     {actions.left.label ?? ''}
                   </Button>
                {/if}
-               {#if actionRightVariant}
-                  <Button variant={actionRightVariant} on:click={onActionRight}>
-                     {actionRightLabel}
+               {#if actions.right}
+                  <Button variant={actions.right.variant ?? 'primary'} icon={actions.right.icon} disabled={actions.right.disabled} on:click={actions.right.onClick}>
+                     {actions.right.label ?? ''}
                   </Button>
                {/if}
             </div>
@@ -83,23 +68,15 @@
       </div>
    {/if}
    <slot />
-   {#if onAction && !actionHeader}
-      {#if actionInline}
-         <div class="notification-actions-inline">
-            {#if description}
-               <span class="description-text">{description}</span>
-            {/if}
-            <Button variant="outline" icon={actionIcon} on:click={onAction}>
-               {actionText}
-            </Button>
-         </div>
-      {:else}
-         <div class="notification-actions">
-            <Button variant="outline" icon={actionIcon} on:click={onAction}>
-               {actionText}
-            </Button>
-         </div>
-      {/if}
+   {#if actions.inline}
+      <div class="notification-actions-inline">
+         {#if description}
+            <span class="description-text">{description}</span>
+         {/if}
+         <Button variant={actions.inline.variant ?? 'outline'} icon={actions.inline.icon} disabled={actions.inline.disabled} on:click={actions.inline.onClick}>
+            {actions.inline.label ?? ''}
+         </Button>
+      </div>
    {/if}
 </div>
 

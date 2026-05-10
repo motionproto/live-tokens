@@ -76,21 +76,21 @@
   import Dialog from '../components/Dialog.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, setComponentAlias } from '../lib/editorStore';
+  import { editorState, setComponentConfig } from '../lib/editorStore';
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
   import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
 
-  $: aliases = $editorState.components.dialog?.aliases ?? {};
-  $: confirmVariant = (BUTTON_VARIANTS.includes(aliases[CONFIRM_VAR] as ButtonVariant) ? aliases[CONFIRM_VAR] : DEFAULT_CONFIRM) as ButtonVariant;
-  $: cancelVariant = (BUTTON_VARIANTS.includes(aliases[CANCEL_VAR] as ButtonVariant) ? aliases[CANCEL_VAR] : DEFAULT_CANCEL) as ButtonVariant;
+  $: config = $editorState.components.dialog?.config ?? {};
+  $: confirmVariant = (BUTTON_VARIANTS.includes(config[CONFIRM_VAR] as ButtonVariant) ? config[CONFIRM_VAR] : DEFAULT_CONFIRM) as ButtonVariant;
+  $: cancelVariant = (BUTTON_VARIANTS.includes(config[CANCEL_VAR] as ButtonVariant) ? config[CANCEL_VAR] : DEFAULT_CANCEL) as ButtonVariant;
 
   function setConfirmVariant(e: Event) {
     const v = (e.target as HTMLSelectElement).value;
-    setComponentAlias(component, CONFIRM_VAR, v);
+    setComponentConfig(component, CONFIRM_VAR, v);
   }
   function setCancelVariant(e: Event) {
     const v = (e.target as HTMLSelectElement).value;
-    setComponentAlias(component, CANCEL_VAR, v);
+    setComponentConfig(component, CANCEL_VAR, v);
   }
 
   let bgMode: 'image' | 'color' = 'image';
@@ -123,9 +123,8 @@
         show
         inline
         title="Sample Dialog"
-        confirmLabel="Save"
-        cancelLabel="Cancel"
-        onCancel={() => {}}
+        confirm={{ label: 'Save', onClick: () => {} }}
+        cancel={{ label: 'Cancel', onClick: () => {} }}
       >
         <p style="color: var(--text-secondary); margin: 0;">This is the dialog body content. It supports any slotted content including forms, lists, or other components.</p>
       </Dialog>

@@ -2,8 +2,8 @@
   import { createEventDispatcher, tick } from 'svelte';
   import Button from './Button.svelte';
   import { editorState } from '../lib/editorStore';
+  import type { ButtonVariant, DialogButtonSpec } from './types';
 
-  type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'success' | 'danger' | 'warning';
   const BUTTON_VARIANTS: readonly ButtonVariant[] = ['primary', 'secondary', 'outline', 'success', 'danger', 'warning'];
   function asVariant(v: string | undefined, fallback: ButtonVariant): ButtonVariant {
     return v && (BUTTON_VARIANTS as readonly string[]).includes(v) ? (v as ButtonVariant) : fallback;
@@ -11,30 +11,19 @@
 
   export let show: boolean = false;
   export let title: string = '';
-  export let confirmLabel: string = 'Confirm';
-  export let cancelLabel: string = 'Cancel';
-  export let showConfirm: boolean = true;
-  export let showCancel: boolean = true;
-  export let confirmDisabled: boolean = false;
   export let width: string = '500px';
-  /** Override the configured confirm-button variant. Falls back to --dialog-confirm-variant, then 'primary'. */
-  export let confirmVariant: ButtonVariant | undefined = undefined;
-  /** Override the configured cancel-button variant. Falls back to --dialog-cancel-variant, then 'outline'. */
-  export let cancelVariant: ButtonVariant | undefined = undefined;
   /** When true, the dialog renders inline within its parent rather than as a fixed-position overlay. Used by the editor preview. */
   export let inline: boolean = false;
+  /** Right footer button. Undefined hides it. `--dialog-confirm-variant` config drives the variant when `confirm.variant` is unset. */
+  export let confirm: DialogButtonSpec | undefined = undefined;
+  /** Left footer button. Undefined hides it. `--dialog-cancel-variant` config drives the variant when `cancel.variant` is unset. */
+  export let cancel: DialogButtonSpec | undefined = undefined;
 
   $: configuredConfig = $editorState.components.dialog?.config ?? {};
-  $: effectiveConfirmVariant = confirmVariant ?? asVariant(configuredConfig['--dialog-confirm-variant'] as string | undefined, 'primary');
-  $: effectiveCancelVariant = cancelVariant ?? asVariant(configuredConfig['--dialog-cancel-variant'] as string | undefined, 'outline');
-
-  // Optional callbacks for parent dialogs to control behavior
-  export let onConfirm: (() => void) | undefined = undefined;
-  export let onCancel: (() => void) | undefined = undefined;
+  $: effectiveConfirmVariant = confirm?.variant ?? asVariant(configuredConfig['--dialog-confirm-variant'] as string | undefined, 'primary');
+  $: effectiveCancelVariant = cancel?.variant ?? asVariant(configuredConfig['--dialog-cancel-variant'] as string | undefined, 'outline');
 
   const dispatch = createEventDispatcher<{
-    confirm: void;
-    cancel: void;
     close: void;
   }>();
 
@@ -45,9 +34,9 @@
   // Focus the primary button when dialog opens (skip in inline mode so the editor doesn't steal focus).
   $: if (show && !inline) {
     tick().then(() => {
-      if (showConfirm && confirmButtonRef && !confirmDisabled) {
+      if (confirm && confirmButtonRef && !confirm.disabled) {
         confirmButtonRef.focus();
-      } else if (showCancel && cancelButtonRef) {
+      } else if (cancel && cancelButtonRef) {
         cancelButtonRef.focus();
       } else if (closeButtonRef) {
         closeButtonRef.focus();
@@ -56,20 +45,15 @@
   }
 
   function handleConfirm() {
-    if (!confirmDisabled) {
-      if (onConfirm) {
-        onConfirm();
-      } else {
-        dispatch('confirm');
-      }
+    if (confirm && !confirm.disabled) {
+      confirm.onClick();
     }
   }
 
   function handleCancel() {
-    if (onCancel) {
-      onCancel();
+    if (cancel) {
+      cancel.onClick();
     } else {
-      dispatch('cancel');
       dispatch('close');
       show = false;
     }
@@ -99,29 +83,30 @@
           <slot />
         </div>
 
-        {#if showConfirm || showCancel}
+        {#if confirm || cancel}
           <div class="dialog-footer">
             <div class="dialog-footer-left">
               <slot name="footer-left" />
             </div>
             <div class="dialog-footer-buttons">
-              {#if showCancel}
+              {#if cancel}
                 <Button
                   variant={effectiveCancelVariant}
+                  disabled={cancel.disabled}
                   on:click={handleCancel}
                   bind:buttonRef={cancelButtonRef}
                 >
-                  {cancelLabel}
+                  {cancel.label}
                 </Button>
               {/if}
-              {#if showConfirm}
+              {#if confirm}
                 <Button
                   variant={effectiveConfirmVariant}
-                  disabled={confirmDisabled}
+                  disabled={confirm.disabled}
                   on:click={handleConfirm}
                   bind:buttonRef={confirmButtonRef}
                 >
-                  {confirmLabel}
+                  {confirm.label}
                 </Button>
               {/if}
             </div>

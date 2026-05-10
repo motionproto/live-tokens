@@ -187,7 +187,8 @@ function computeDerivedColor(
   return oklchToHex(clamped.l, clamped.c, clamped.h);
 }
 
-function scaleToCssVar(scaleTitle: string, stepName: string, cssNamespace: string): string | null {
+export function scaleToCssVar(scaleTitle: string, stepName: string, cssNamespace: string | null): string | null {
+  if (cssNamespace === null) return null;
   if (scaleTitle === 'Surfaces') {
     const suffix = stepName === 'default' ? '' : `-${stepName}`;
     return cssNamespace === 'neutral' ? `--surface-neutral${suffix}` : `--surface-${cssNamespace}${suffix}`;
