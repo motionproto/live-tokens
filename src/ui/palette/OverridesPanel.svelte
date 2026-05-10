@@ -1,5 +1,5 @@
 <script lang="ts">
-  import BezierCurveEditor from '../BezierCurveEditor.svelte';
+  import ScaleCurveEditor from './ScaleCurveEditor.svelte';
   import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig, textLightnessCurveConfig } from '../curveEngine';
   import { scaleToCssVar } from '../../lib/paletteDerivation';
 
@@ -211,14 +211,15 @@
     {#if editorOpen}
       <div class="curve-grid-span" style="grid-column: 1 / -1">
         {#each curveDescriptors as curve (curve.key)}
-          <BezierCurveEditor
+          <ScaleCurveEditor
+            curveKey={curve.key}
             anchors={curve.anchors}
             cfg={curve.cfg}
             stepCount={scale.steps.length}
-            defaultAnchors={curve.defaults}
+            defaults={curve.defaults}
             offset={curveOffset[curve.key] ?? 0}
             onAnchorsChange={(a) => onSetScaleCurve(scale.title, curve.channel, a)}
-            onOffsetChange={(v) => onOffsetChange(curve.key, v)}
+            onOffsetChange={onOffsetChange}
           />
         {/each}
       </div>

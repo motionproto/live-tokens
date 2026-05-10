@@ -3,11 +3,11 @@
   import Button from '../components/Button.svelte';
   import { hexToOklch, oklchToHex, gamutClamp } from '../lib/oklch';
   import { type CurveAnchor, makeAnchor, sampleCurve, lightnessCurveConfig, saturationCurveConfig, textLightnessCurveConfig } from './curveEngine';
-  import BezierCurveEditor from './BezierCurveEditor.svelte';
   import ColorEditPanel from './ColorEditPanel.svelte';
   import Toggle from './Toggle.svelte';
   import OverridesPanel from './palette/OverridesPanel.svelte';
   import GradientStopEditor from './palette/GradientStopEditor.svelte';
+  import ScaleCurveEditor from './palette/ScaleCurveEditor.svelte';
   import type { PaletteConfig, GradientStyle, GradientStop } from '../lib/themeTypes';
   import { editorState, mutate, setPaletteConfig, beginSliderGesture, beginScope, commitScope, cancelScope, type Scope } from '../lib/editorStore';
   import { scaleToCssVar } from '../lib/paletteDerivation';
@@ -1044,21 +1044,28 @@
         </div>
       {#if paletteEditorOpen}
         <div class="curve-grid-span" style="grid-column: 2 / {paletteStepLightness.length + 2}">
-          {#each [
-            { key: 'lightness', anchors: lightnessCurve, cfg: lightnessCurveConfig, defaults: DEFAULT_PALETTE_LIGHTNESS(), set: setLightnessCurve, lockedIdx: lockedLightnessIdx },
-            { key: 'saturation', anchors: saturationCurve, cfg: saturationCurveConfig, defaults: DEFAULT_PALETTE_SATURATION(), set: setSaturationCurve, lockedIdx: lockedSaturationIdx },
-          ] as curve (curve.key)}
-            <BezierCurveEditor
-              anchors={curve.anchors}
-              cfg={curve.cfg}
-              stepCount={paletteStepLightness.length}
-              defaultAnchors={curve.defaults}
-              offset={curveOffset[curve.key] ?? 0}
-              lockedAnchorIndex={curve.lockedIdx}
-              onAnchorsChange={curve.set}
-              onOffsetChange={(v) => handleOffset(curve.key, v)}
-            />
-          {/each}
+          <ScaleCurveEditor
+            curveKey="lightness"
+            anchors={lightnessCurve}
+            cfg={lightnessCurveConfig}
+            stepCount={paletteStepLightness.length}
+            defaults={DEFAULT_PALETTE_LIGHTNESS()}
+            offset={curveOffset['lightness'] ?? 0}
+            lockedAnchorIndex={lockedLightnessIdx}
+            onAnchorsChange={setLightnessCurve}
+            onOffsetChange={handleOffset}
+          />
+          <ScaleCurveEditor
+            curveKey="saturation"
+            anchors={saturationCurve}
+            cfg={saturationCurveConfig}
+            stepCount={paletteStepLightness.length}
+            defaults={DEFAULT_PALETTE_SATURATION()}
+            offset={curveOffset['saturation'] ?? 0}
+            lockedAnchorIndex={lockedSaturationIdx}
+            onAnchorsChange={setSaturationCurve}
+            onOffsetChange={handleOffset}
+          />
         </div>
       {/if}
       </div>
@@ -1219,20 +1226,26 @@
       </div>
     {#if grayEditorOpen}
       <div class="curve-grid-span" style="grid-column: 2 / {graySteps.length + 2}">
-        {#each [
-          { key: 'gray-lightness', anchors: grayLightnessCurve, cfg: lightnessCurveConfig, defaults: DEFAULT_GRAY_LIGHTNESS(), set: setGrayLightnessCurve },
-          { key: 'gray-saturation', anchors: graySaturationCurve, cfg: saturationCurveConfig, defaults: DEFAULT_GRAY_SATURATION(), set: setGraySaturationCurve },
-        ] as curve (curve.key)}
-          <BezierCurveEditor
-            anchors={curve.anchors}
-            cfg={curve.cfg}
-            stepCount={graySteps.length}
-            defaultAnchors={curve.defaults}
-            offset={curveOffset[curve.key] ?? 0}
-            onAnchorsChange={curve.set}
-            onOffsetChange={(v) => handleOffset(curve.key, v)}
-          />
-        {/each}
+        <ScaleCurveEditor
+          curveKey="gray-lightness"
+          anchors={grayLightnessCurve}
+          cfg={lightnessCurveConfig}
+          stepCount={graySteps.length}
+          defaults={DEFAULT_GRAY_LIGHTNESS()}
+          offset={curveOffset['gray-lightness'] ?? 0}
+          onAnchorsChange={setGrayLightnessCurve}
+          onOffsetChange={handleOffset}
+        />
+        <ScaleCurveEditor
+          curveKey="gray-saturation"
+          anchors={graySaturationCurve}
+          cfg={saturationCurveConfig}
+          stepCount={graySteps.length}
+          defaults={DEFAULT_GRAY_SATURATION()}
+          offset={curveOffset['gray-saturation'] ?? 0}
+          onAnchorsChange={setGraySaturationCurve}
+          onOffsetChange={handleOffset}
+        />
       </div>
     {/if}
     </div>
