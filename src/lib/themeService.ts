@@ -1,8 +1,14 @@
+import { tick } from 'svelte';
 import type { Theme, ThemeMeta } from './themeTypes';
+import type { EditorState } from './editorTypes';
 import {
   versionedFileResource,
   sanitizeFileName as sanitizeFileNameImpl,
 } from './files/versionedFileResource';
+import { loadFromFile as loadEditorState, toTheme, markSaved } from './editorStore';
+import { activeFileName } from './editorConfigStore';
+import { applyFontSources, applyFontStacks } from './fontLoader';
+import { migrateThemeFonts } from './fontMigration';
 
 // ── API helpers ──────────────────────────────────────────────
 //
@@ -53,3 +59,43 @@ export async function setProductionFile(
  * `files/versionedFileResource` so the dev-server plugin can import the
  * canonical pure helper without depending on this module's CSS imports. */
 export const sanitizeFileName = sanitizeFileNameImpl;
+
+// ── Theme save/load orchestration ──────────────────────────
+//
+// `persistTheme` and `hydrateTheme` are the canonical entry points for
+// round-tripping editor state to disk. Callers (e.g. `EditorShell`) need
+// only handle UI-level concerns (status flashing, error chrome) and
+// delegate the actual orchestration here.
+
+/** Snapshot the editor state to disk under `fileName`, mark the file active,
+ *  and clear the dirty flag. The caller is responsible for surfacing
+ *  saving / saved / error UI states around this call. */
+export async function persistTheme(
+  state: EditorState,
+  fileName: string,
+  displayName: string,
+): Promise<void> {
+  await tick();
+  const theme = toTheme(state, { name: displayName });
+  await saveTheme(fileName, theme);
+  await setActiveFile(fileName);
+  activeFileName.set(fileName);
+  markSaved();
+}
+
+/** Load a theme file into the editor state and re-apply font side-effects
+ *  (@font-face rules + `--font-*` CSS vars on :root). */
+export async function hydrateTheme(fileName: string): Promise<void> {
+  const theme = await loadTheme(fileName);
+  migrateThemeFonts(theme);
+  loadEditorState(theme);
+  // Font data is in state.fonts via loadEditorState; the DOM-side-effect
+  // helpers still need to run so @font-face rules and --font-* CSS vars
+  // land on :root.
+  if (theme.fontSources && theme.fontSources.length > 0) {
+    applyFontSources(theme.fontSources);
+  }
+  if (theme.fontStacks && theme.fontStacks.length > 0) {
+    applyFontStacks(theme.fontStacks, theme.fontSources ?? []);
+  }
+}

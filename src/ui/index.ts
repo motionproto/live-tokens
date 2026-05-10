@@ -14,7 +14,6 @@ export { default as UIFontWeightSelector } from './UIFontWeightSelector.svelte';
 export * from './variantScales';
 
 // Editor tabs & panels
-export { default as VisualsTab } from './VisualsTab.svelte';
 export { default as VariablesTab } from './VariablesTab.svelte';
 export { default as TextTab } from './TextTab.svelte';
 export { default as SurfacesTab } from './SurfacesTab.svelte';

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import VisualsTab from '../ui/VisualsTab.svelte';
+  import EditorShell from './EditorShell.svelte';
   import UICopyPopover from '../ui/UICopyPopover.svelte';
   import { installEditorKeybindings } from '../lib/editorKeybindings';
   import { initializeEditorStore } from '../lib/editorStore';
@@ -41,7 +41,7 @@
     </div>
   {/if}
 
-  <VisualsTab />
+  <EditorShell />
   <UICopyPopover />
 </div>
 
