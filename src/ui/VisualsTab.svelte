@@ -1,22 +1,9 @@
 <script lang="ts">
-  import { tick } from 'svelte';
   import VariablesTab from './VariablesTab.svelte';
   import ThemeFileManager from './ThemeFileManager.svelte';
-  import {
-    saveTheme,
-    loadTheme,
-    setActiveFile,
-  } from '../lib/themeService';
-  import { activeFileName } from '../lib/editorConfigStore';
-  import { applyFontSources, applyFontStacks } from '../lib/fontLoader';
-  import { migrateThemeFonts } from '../lib/fontMigration';
+  import { persistTheme, hydrateTheme } from '../lib/themeService';
   import { scrollSectionIntoView } from '../lib/scrollSection';
-  import {
-    editorState,
-    loadFromFile as loadEditorState,
-    toTheme,
-    markSaved,
-  } from '../lib/editorStore';
+  import { editorState } from '../lib/editorStore';
   import { get } from 'svelte/store';
 
   const tokenNavItems = [
@@ -46,13 +33,7 @@
     const { fileName, displayName } = e.detail;
     saveStatus = 'saving';
     try {
-      await tick();
-      const state = get(editorState);
-      const theme = toTheme(state, { name: displayName });
-      await saveTheme(fileName, theme);
-      await setActiveFile(fileName);
-      $activeFileName = fileName;
-      markSaved();
+      await persistTheme(get(editorState), fileName, displayName);
       saveStatus = 'saved';
       setTimeout(() => { saveStatus = 'idle'; }, 2000);
     } catch {
@@ -62,20 +43,8 @@
   }
 
   async function handleLoad(e: CustomEvent<{ fileName: string }>) {
-    const { fileName } = e.detail;
     try {
-      const theme = await loadTheme(fileName);
-      migrateThemeFonts(theme);
-      loadEditorState(theme);
-      // Font data is in state.fonts via loadEditorState; the DOM-side-effect
-      // helpers still need to run so @font-face rules and --font-* CSS vars
-      // land on :root.
-      if (theme.fontSources && theme.fontSources.length > 0) {
-        applyFontSources(theme.fontSources);
-      }
-      if (theme.fontStacks && theme.fontStacks.length > 0) {
-        applyFontStacks(theme.fontStacks, theme.fontSources ?? []);
-      }
+      await hydrateTheme(e.detail.fileName);
     } catch {
       // silent — the UI still shows current state
     }
