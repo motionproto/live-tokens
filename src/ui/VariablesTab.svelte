@@ -6,6 +6,7 @@
   import GradientEditor from './GradientEditor.svelte';
   import ColumnsSection from './sections/ColumnsSection.svelte';
   import TokenScaleTable from './sections/TokenScaleTable.svelte';
+  import OverlaysSection from './sections/OverlaysSection.svelte';
   import {
     editorState, mutate, beginScope, commitScope, beginSliderGesture,
     seedShadowsFromDom, shadowTokenCss, computeShadowXY,
@@ -13,13 +14,8 @@
     type Scope,
   } from '../lib/editorStore';
   import type {
-    OverlayToken, OverlayChannelGlobals,
     ShadowToken, ShadowOverrideFlags, EditorState,
   } from '../lib/editorTypes';
-
-  function clampNum(v: number, lo: number, hi: number): number {
-    return Math.max(lo, Math.min(hi, Math.round(v)));
-  }
 
   /** Visual flash for the copy-to-clipboard chip, kept short enough to
    *  feel like immediate confirmation but long enough to register. */
@@ -512,102 +508,6 @@
   function toggleBgPicker() {
     bgPickerOpen = !bgPickerOpen;
     if (!bgPickerOpen) expandedGroup = null;
-  }
-
-  // ── Overlay tokens ──
-  // Overlay + hover token arrays and their global hue/sat/light/opacity
-  // controls live in $editorState.overlays. The store's subscriber fans the
-  // rgba values out to :root, so this file only orchestrates mutations and
-  // reads derived display state.
-
-  let editingOverlay: string | null = null;
-
-  function getOverlayCss(t: OverlayToken): string {
-    return `rgba(${t.r}, ${t.g}, ${t.b}, ${t.opacity})`;
-  }
-
-  function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: number } {
-    s /= 100; l /= 100;
-    const c = (1 - Math.abs(2 * l - 1)) * s;
-    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
-    const m = l - c / 2;
-    let r1 = 0, g1 = 0, b1 = 0;
-    if (h < 60) { r1 = c; g1 = x; }
-    else if (h < 120) { r1 = x; g1 = c; }
-    else if (h < 180) { g1 = c; b1 = x; }
-    else if (h < 240) { g1 = x; b1 = c; }
-    else if (h < 300) { r1 = x; b1 = c; }
-    else { r1 = c; b1 = x; }
-    return {
-      r: Math.round((r1 + m) * 255),
-      g: Math.round((g1 + m) * 255),
-      b: Math.round((b1 + m) * 255),
-    };
-  }
-
-  // The global-color / global-opacity derivations touch *every* token in a
-  // channel. Keeping them as functions that take the draft lets a single
-  // mutate() call update the global setting and the derived tokens in one
-  // history entry.
-  function applyChannelColor(tokens: OverlayToken[], g: OverlayChannelGlobals): void {
-    const rgb = hslToRgb(g.hue, g.saturation, g.lightness);
-    for (const t of tokens) { t.r = rgb.r; t.g = rgb.g; t.b = rgb.b; }
-  }
-  function applyChannelOpacity(tokens: OverlayToken[], g: OverlayChannelGlobals): void {
-    const last = tokens.length - 1;
-    tokens.forEach((t, i) => {
-      const frac = last > 0 ? i / last : 0.5;
-      t.opacity = Math.round((g.opacityMin + frac * (g.opacityMax - g.opacityMin)) * 100) / 100;
-    });
-  }
-
-  type OverlayChannel = 'overlay' | 'hover';
-  type ColorField = 'hue' | 'saturation' | 'lightness';
-  type OpacityField = 'opacityMin' | 'opacityMax';
-
-  function pickChannelTokens(s: import('../lib/editorTypes').EditorState, ch: OverlayChannel): OverlayToken[] {
-    return ch === 'overlay' ? s.overlays.tokens : s.overlays.hoverTokens;
-  }
-
-  function setOverlayColor(ch: OverlayChannel, field: ColorField, value: number) {
-    mutate(`${ch} ${field}`, (s) => {
-      const g = s.overlays.globals[ch];
-      if (field === 'hue') g.hue = clampNum(value, 0, 360);
-      else if (field === 'saturation') g.saturation = clampNum(value, 0, 100);
-      else g.lightness = clampNum(value, 0, 100);
-      applyChannelColor(pickChannelTokens(s, ch), g);
-    });
-  }
-
-  function setOverlayOpacity(ch: OverlayChannel, field: OpacityField, value01: number) {
-    mutate(`${ch} ${field}`, (s) => {
-      const g = s.overlays.globals[ch];
-      const clamped = Math.max(0, Math.min(1, value01));
-      if (field === 'opacityMin') g.opacityMin = clamped;
-      else g.opacityMax = clamped;
-      applyChannelOpacity(pickChannelTokens(s, ch), g);
-    });
-  }
-
-  function setOverlayTokenOpacity(ch: OverlayChannel, idx: number, value01: number) {
-    mutate(`${ch} token opacity`, (s) => {
-      const arr = pickChannelTokens(s, ch);
-      const t = arr[idx];
-      if (!t) return;
-      t.opacity = Math.max(0, Math.min(1, value01));
-    });
-  }
-
-  function overlayHueGrad(g: OverlayChannelGlobals): string {
-    return `linear-gradient(to right, ${
-      [0, 60, 120, 180, 240, 300, 360].map(h => `hsl(${h},${g.saturation}%,${g.lightness}%)`).join(',')
-    })`;
-  }
-  function overlaySatGrad(g: OverlayChannelGlobals): string {
-    return `linear-gradient(to right, hsl(${g.hue},0%,${g.lightness}%), hsl(${g.hue},100%,${g.lightness}%))`;
-  }
-  function overlayLightGrad(g: OverlayChannelGlobals): string {
-    return `linear-gradient(to right, hsl(${g.hue},${g.saturation}%,0%), hsl(${g.hue},${g.saturation}%,50%), hsl(${g.hue},${g.saturation}%,100%))`;
   }
 
   const durationTokens: TokenItem[] = [
@@ -1104,230 +1004,9 @@
     </div><!-- /.shadows-layout -->
   </section>
 
+
   <!-- Overlays -->
-  <section class="section" id="overlays">
-    <h2 class="section-title">Overlays</h2>
-
-    <h3 class="group-title">Dark Overlays</h3>
-    <div class="overlays-grid">
-      {#each $editorState.overlays.tokens as token, i}
-        <div class="overlay-item">
-          <div class="overlay-swatch-wrap">
-            <div class="overlay-swatch" style="background: {getOverlayCss(token)};"></div>
-          </div>
-          <div class="token-info">
-            <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-            <span class="token-value">{token.label} — {Math.round(token.opacity * 100)}%</span>
-          </div>
-          <button class="shadow-edit-btn" on:click={() => editingOverlay = editingOverlay === token.variable ? null : token.variable}>
-            {editingOverlay === token.variable ? 'Close' : 'Edit'}
-          </button>
-          {#if editingOverlay === token.variable}
-            <div class="shadow-editor">
-              <div class="shadow-slider-row">
-                <span class="shadow-slider-label">Opacity</span>
-                <input type="range" min="0" max="100" value={Math.round(token.opacity * 100)}
-                  on:pointerdown={() => beginSliderGesture(`edit ${token.variable} opacity`)}
-                  on:input={(e) => setOverlayTokenOpacity('overlay', i, +e.currentTarget.value / 100)} />
-                <input class="shadow-slider-input" type="number" min="0" max="100"
-                  value={Math.round(token.opacity * 100)}
-                  on:change={(e) => setOverlayTokenOpacity('overlay', i, Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
-                <span class="shadow-slider-unit">%</span>
-              </div>
-              <div class="shadow-css-output">
-                <code>{getOverlayCss(token)}</code>
-                <button class="shadow-copy-btn" on:click={() => copyVariable(getOverlayCss(token))}>
-                  {copiedVar === getOverlayCss(token) ? 'Copied!' : 'Copy CSS'}
-                </button>
-              </div>
-            </div>
-          {/if}
-        </div>
-      {/each}
-    </div>
-
-    <!-- Global overlay editor -->
-    <div class="overlay-global-editor">
-      <h4 class="global-shadow-title">Global Overlay Controls</h4>
-      <div class="overlay-global-columns">
-        <div class="overlay-global-col">
-          <div class="global-color-group">
-            <div class="global-color-swatch" style="background: hsl({$editorState.overlays.globals.overlay.hue}, {$editorState.overlays.globals.overlay.saturation}%, {$editorState.overlays.globals.overlay.lightness}%);"></div>
-            <div class="global-color-sliders">
-              <div class="global-shadow-row">
-                <span class="shadow-slider-label">H</span>
-                <div class="slider-track" style="background: {overlayHueGrad($editorState.overlays.globals.overlay)}">
-                  <input type="range" min="0" max="360" value={$editorState.overlays.globals.overlay.hue}
-                    on:pointerdown={() => beginSliderGesture('overlay hue')}
-                    on:input={(e) => setOverlayColor('overlay', 'hue', +e.currentTarget.value)} />
-                </div>
-                <input class="shadow-slider-input" type="number" min="0" max="360"
-                  value={$editorState.overlays.globals.overlay.hue}
-                  on:change={(e) => setOverlayColor('overlay', 'hue', +e.currentTarget.value)} />
-                <span class="shadow-slider-unit">&deg;</span>
-              </div>
-              <div class="global-shadow-row">
-                <span class="shadow-slider-label">S</span>
-                <div class="slider-track" style="background: {overlaySatGrad($editorState.overlays.globals.overlay)}">
-                  <input type="range" min="0" max="100" value={$editorState.overlays.globals.overlay.saturation}
-                    on:pointerdown={() => beginSliderGesture('overlay saturation')}
-                    on:input={(e) => setOverlayColor('overlay', 'saturation', +e.currentTarget.value)} />
-                </div>
-                <input class="shadow-slider-input" type="number" min="0" max="100"
-                  value={$editorState.overlays.globals.overlay.saturation}
-                  on:change={(e) => setOverlayColor('overlay', 'saturation', +e.currentTarget.value)} />
-                <span class="shadow-slider-unit">%</span>
-              </div>
-              <div class="global-shadow-row">
-                <span class="shadow-slider-label">L</span>
-                <div class="slider-track" style="background: {overlayLightGrad($editorState.overlays.globals.overlay)}">
-                  <input type="range" min="0" max="100" value={$editorState.overlays.globals.overlay.lightness}
-                    on:pointerdown={() => beginSliderGesture('overlay lightness')}
-                    on:input={(e) => setOverlayColor('overlay', 'lightness', +e.currentTarget.value)} />
-                </div>
-                <input class="shadow-slider-input" type="number" min="0" max="100"
-                  value={$editorState.overlays.globals.overlay.lightness}
-                  on:change={(e) => setOverlayColor('overlay', 'lightness', +e.currentTarget.value)} />
-                <span class="shadow-slider-unit">%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="overlay-global-col">
-          <div class="global-shadow-row">
-            <span class="shadow-slider-label">Op. Min</span>
-            <input type="range" min="0" max="100" value={Math.round($editorState.overlays.globals.overlay.opacityMin * 100)}
-              on:pointerdown={() => beginSliderGesture('overlay opacity min')}
-              on:input={(e) => setOverlayOpacity('overlay', 'opacityMin', +e.currentTarget.value / 100)} />
-            <input class="shadow-slider-input" type="number" min="0" max="100"
-              value={Math.round($editorState.overlays.globals.overlay.opacityMin * 100)}
-              on:change={(e) => setOverlayOpacity('overlay', 'opacityMin', Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
-            <span class="shadow-slider-unit">%</span>
-          </div>
-          <div class="global-shadow-row">
-            <span class="shadow-slider-label">Op. Max</span>
-            <input type="range" min="0" max="100" value={Math.round($editorState.overlays.globals.overlay.opacityMax * 100)}
-              on:pointerdown={() => beginSliderGesture('overlay opacity max')}
-              on:input={(e) => setOverlayOpacity('overlay', 'opacityMax', +e.currentTarget.value / 100)} />
-            <input class="shadow-slider-input" type="number" min="0" max="100"
-              value={Math.round($editorState.overlays.globals.overlay.opacityMax * 100)}
-              on:change={(e) => setOverlayOpacity('overlay', 'opacityMax', Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
-            <span class="shadow-slider-unit">%</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <h3 class="group-title" style="margin-top: var(--ui-space-16);">Hover Overlays</h3>
-    <div class="overlays-grid">
-      {#each $editorState.overlays.hoverTokens as token, i}
-        <div class="overlay-item">
-          <div class="overlay-swatch-wrap overlay-swatch-wrap--dark">
-            <div class="overlay-swatch" style="background: {getOverlayCss(token)};"></div>
-          </div>
-          <div class="token-info">
-            <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-            <span class="token-value">{token.label} — {Math.round(token.opacity * 100)}%</span>
-          </div>
-          <button class="shadow-edit-btn" on:click={() => editingOverlay = editingOverlay === token.variable ? null : token.variable}>
-            {editingOverlay === token.variable ? 'Close' : 'Edit'}
-          </button>
-          {#if editingOverlay === token.variable}
-            <div class="shadow-editor">
-              <div class="shadow-slider-row">
-                <span class="shadow-slider-label">Opacity</span>
-                <input type="range" min="0" max="100" value={Math.round(token.opacity * 100)}
-                  on:pointerdown={() => beginSliderGesture(`edit ${token.variable} opacity`)}
-                  on:input={(e) => setOverlayTokenOpacity('hover', i, +e.currentTarget.value / 100)} />
-                <input class="shadow-slider-input" type="number" min="0" max="100"
-                  value={Math.round(token.opacity * 100)}
-                  on:change={(e) => setOverlayTokenOpacity('hover', i, Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
-                <span class="shadow-slider-unit">%</span>
-              </div>
-              <div class="shadow-css-output">
-                <code>{getOverlayCss(token)}</code>
-                <button class="shadow-copy-btn" on:click={() => copyVariable(getOverlayCss(token))}>
-                  {copiedVar === getOverlayCss(token) ? 'Copied!' : 'Copy CSS'}
-                </button>
-              </div>
-            </div>
-          {/if}
-        </div>
-      {/each}
-    </div>
-
-    <!-- Global hover editor -->
-    <div class="overlay-global-editor">
-      <h4 class="global-shadow-title">Global Hover Controls</h4>
-      <div class="overlay-global-columns">
-        <div class="overlay-global-col">
-          <div class="global-color-group">
-            <div class="global-color-swatch" style="background: hsl({$editorState.overlays.globals.hover.hue}, {$editorState.overlays.globals.hover.saturation}%, {$editorState.overlays.globals.hover.lightness}%);"></div>
-            <div class="global-color-sliders">
-              <div class="global-shadow-row">
-                <span class="shadow-slider-label">H</span>
-                <div class="slider-track" style="background: {overlayHueGrad($editorState.overlays.globals.hover)}">
-                  <input type="range" min="0" max="360" value={$editorState.overlays.globals.hover.hue}
-                    on:pointerdown={() => beginSliderGesture('hover hue')}
-                    on:input={(e) => setOverlayColor('hover', 'hue', +e.currentTarget.value)} />
-                </div>
-                <input class="shadow-slider-input" type="number" min="0" max="360"
-                  value={$editorState.overlays.globals.hover.hue}
-                  on:change={(e) => setOverlayColor('hover', 'hue', +e.currentTarget.value)} />
-                <span class="shadow-slider-unit">&deg;</span>
-              </div>
-              <div class="global-shadow-row">
-                <span class="shadow-slider-label">S</span>
-                <div class="slider-track" style="background: {overlaySatGrad($editorState.overlays.globals.hover)}">
-                  <input type="range" min="0" max="100" value={$editorState.overlays.globals.hover.saturation}
-                    on:pointerdown={() => beginSliderGesture('hover saturation')}
-                    on:input={(e) => setOverlayColor('hover', 'saturation', +e.currentTarget.value)} />
-                </div>
-                <input class="shadow-slider-input" type="number" min="0" max="100"
-                  value={$editorState.overlays.globals.hover.saturation}
-                  on:change={(e) => setOverlayColor('hover', 'saturation', +e.currentTarget.value)} />
-                <span class="shadow-slider-unit">%</span>
-              </div>
-              <div class="global-shadow-row">
-                <span class="shadow-slider-label">L</span>
-                <div class="slider-track" style="background: {overlayLightGrad($editorState.overlays.globals.hover)}">
-                  <input type="range" min="0" max="100" value={$editorState.overlays.globals.hover.lightness}
-                    on:pointerdown={() => beginSliderGesture('hover lightness')}
-                    on:input={(e) => setOverlayColor('hover', 'lightness', +e.currentTarget.value)} />
-                </div>
-                <input class="shadow-slider-input" type="number" min="0" max="100"
-                  value={$editorState.overlays.globals.hover.lightness}
-                  on:change={(e) => setOverlayColor('hover', 'lightness', +e.currentTarget.value)} />
-                <span class="shadow-slider-unit">%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="overlay-global-col">
-          <div class="global-shadow-row">
-            <span class="shadow-slider-label">Op. Min</span>
-            <input type="range" min="0" max="100" value={Math.round($editorState.overlays.globals.hover.opacityMin * 100)}
-              on:pointerdown={() => beginSliderGesture('hover opacity min')}
-              on:input={(e) => setOverlayOpacity('hover', 'opacityMin', +e.currentTarget.value / 100)} />
-            <input class="shadow-slider-input" type="number" min="0" max="100"
-              value={Math.round($editorState.overlays.globals.hover.opacityMin * 100)}
-              on:change={(e) => setOverlayOpacity('hover', 'opacityMin', Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
-            <span class="shadow-slider-unit">%</span>
-          </div>
-          <div class="global-shadow-row">
-            <span class="shadow-slider-label">Op. Max</span>
-            <input type="range" min="0" max="100" value={Math.round($editorState.overlays.globals.hover.opacityMax * 100)}
-              on:pointerdown={() => beginSliderGesture('hover opacity max')}
-              on:input={(e) => setOverlayOpacity('hover', 'opacityMax', +e.currentTarget.value / 100)} />
-            <input class="shadow-slider-input" type="number" min="0" max="100"
-              value={Math.round($editorState.overlays.globals.hover.opacityMax * 100)}
-              on:change={(e) => setOverlayOpacity('hover', 'opacityMax', Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
-            <span class="shadow-slider-unit">%</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+  <OverlaysSection {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
 
   <!-- Gradients -->
   <section class="section" id="gradients">
@@ -1561,24 +1240,6 @@
     background: var(--ui-surface-low);
   }
 
-  .shadow-editor {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-8);
-    padding: var(--ui-space-12);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    width: 100%;
-    min-width: 14rem;
-  }
-
-  .shadow-slider-row {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-  }
-
   .shadow-slider-label {
     font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
@@ -1586,14 +1247,6 @@
     width: 4rem;
     text-align: right;
     flex-shrink: 0;
-  }
-
-  .shadow-slider-row input[type="range"] {
-    flex: 1;
-    min-width: 5rem;
-    accent-color: var(--ui-text-accent);
-    height: 4px;
-    cursor: pointer;
   }
 
   .shadow-slider-input {
@@ -2004,83 +1657,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-16);
-  }
-
-  /* Overlays */
-  .overlays-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
-    gap: var(--ui-space-16);
-  }
-
-  .overlay-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--ui-space-8);
-  }
-
-  .overlay-swatch-wrap {
-    width: 4rem;
-    height: 4rem;
-    border-radius: var(--ui-radius-md);
-    position: relative;
-    overflow: hidden;
-    border: 1px solid var(--ui-border-subtle);
-    background-image:
-      linear-gradient(45deg, #ccc 25%, transparent 25%),
-      linear-gradient(-45deg, #ccc 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, #ccc 75%),
-      linear-gradient(-45deg, transparent 75%, #ccc 75%);
-    background-size: 12px 12px;
-    background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
-    background-color: #fff;
-  }
-
-  .overlay-swatch-wrap--dark {
-    background-color: #222;
-    background-image:
-      linear-gradient(45deg, #333 25%, transparent 25%),
-      linear-gradient(-45deg, #333 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, #333 75%),
-      linear-gradient(-45deg, transparent 75%, #333 75%);
-    background-size: 12px 12px;
-    background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
-  }
-
-  .overlay-swatch {
-    position: absolute;
-    inset: 0;
-  }
-
-  .overlay-item .token-info {
-    align-items: center;
-    text-align: center;
-  }
-
-  .overlay-global-editor {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-8);
-    padding: var(--ui-space-12);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    margin-top: var(--ui-space-8);
-  }
-
-  .overlay-global-columns {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
-    gap: var(--ui-space-16);
-    align-items: start;
-  }
-
-  .overlay-global-col {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-6);
-    min-width: 0;
   }
 
   /* Gradients and utility fills tighten at narrow widths */
