@@ -38,8 +38,6 @@
         </a>
         <span class="editor-label">Token Editor</span>
       </div>
-
-      <div class="bar-right"></div>
     </div>
   {/if}
 
@@ -70,10 +68,6 @@
     align-items: center;
     gap: var(--ui-space-16);
     min-width: 0;
-  }
-
-  .bar-right {
-    /* Reserved for future right-aligned controls; keeps grid balanced. */
   }
 
   .back-link {

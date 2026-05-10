@@ -1,10 +1,5 @@
 import type { Theme, ThemeMeta } from './themeTypes';
 import {
-  applyCssVariables as applyCssVariablesSync,
-  clearAllCssVarOverrides as clearAllCssVarOverridesSync,
-  scrapeCssVariables as scrapeCssVariablesSync,
-} from './cssVarSync';
-import {
   versionedFileResource,
   sanitizeFileName as sanitizeFileNameImpl,
 } from './files/versionedFileResource';
@@ -53,15 +48,6 @@ export async function setProductionFile(
   const data = await themeResource.setProduction(fileName);
   return { ok: data.ok, fileName: data.fileName, name: data.name };
 }
-
-// ── CSS variable utilities ───────────────────────────────────
-// Implementations live in cssVarSync.ts so writes can fan out to the
-// parent document when running inside the live-preview overlay iframe.
-// Re-exported here to preserve existing call sites.
-
-export const clearAllCssVarOverrides = clearAllCssVarOverridesSync;
-export const applyCssVariables = applyCssVariablesSync;
-export const scrapeCssVariables = scrapeCssVariablesSync;
 
 /** Sanitize a display name to a safe file name. Re-exported from the shared
  * `files/versionedFileResource` so the dev-server plugin can import the

@@ -2,8 +2,8 @@
   import { onMount, onDestroy } from 'svelte';
   import { CSS_VAR_CHANGE_EVENT } from '../../lib/cssVarSync';
   import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
-  import UIBorderWeightSelector from '../../ui/UIBorderWeightSelector.svelte';
-  import UIDividerHeightSelector from '../../ui/UIDividerHeightSelector.svelte';
+  import UIVariantSelector from '../../ui/UIVariantSelector.svelte';
+  import { BORDER_WIDTH, DIVIDER_HEIGHT } from '../../ui/variantScales';
   import FieldsetWrapper from './FieldsetWrapper.svelte';
 
   export let colorVariable: string | undefined = undefined;
@@ -54,13 +54,13 @@
   {/if}
   {#if widthVariable}
     <div class="entry">
-      <UIBorderWeightSelector variable={widthVariable} {component} disabled={siblingDisabled} on:change={readHeight} />
+      <UIVariantSelector variable={widthVariable} {component} disabled={siblingDisabled} {...BORDER_WIDTH} on:change={readHeight} />
       <span class="label">{widthLabel ?? ''}</span>
     </div>
   {/if}
   {#if heightVariable}
     <div class="entry">
-      <UIDividerHeightSelector variable={heightVariable} {component} on:change={readHeight} />
+      <UIVariantSelector variable={heightVariable} {component} {...DIVIDER_HEIGHT} on:change={readHeight} />
       <span class="label">{heightLabel ?? ''}</span>
     </div>
   {/if}

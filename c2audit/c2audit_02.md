@@ -99,7 +99,8 @@ The codebase is in **substantially better shape than audit-01** — three Critic
 - **Why it matters:** Same change-cost problem as M1. Shadow editing and the seven token-display tables are the two natural seams; they don't share state with each other and don't share state with overlays/gradients/fonts/columns.
 - **Direction:** Extract `ShadowsSection.svelte` (the dial + globals + per-token + bg picker), one `TokenScaleTable.svelte` parameterised by `vars + label-formatter` (replaces the 7 hand-listed tables), `OverlaysSection.svelte`, `GradientsSection.svelte`. Parent becomes a vertical layout that wires sections to slices.
 
-### M3. Five `UI*Selector.svelte` wrappers are ~95% identical — Parallel Hierarchy `[local]`
+### M3. Five `UI*Selector.svelte` wrappers are ~95% identical — Parallel Hierarchy `[local]` `[done]`
+**Resolution (2026-05-10):** Created `src/ui/variantScales.ts` with `BLUR / BORDER_WIDTH / DOT_SIZE / RADIUS / SHADOW / DIVIDER_HEIGHT` data entries; consumers spread them into `<UIVariantSelector>` directly. Added a default option-slot rendering inside `UIVariantSelector` that lays down a `UIOptionItem` with optional `meta`, so call sites no longer need the slot scaffolding. Deleted the 6 truly-identical wrappers (UIBlurSelector, UIBorderWeightSelector, UIDotSizeSelector, UIRadiusSelector, UIShadowSelector, UIDividerHeightSelector) and updated the two non-test consumers (`TokenLayout.svelte` SELECTOR_REGISTRY, `DividerEditor.svelte`). Kept UIFontWeightSelector + UILineHeightSelector (preview chrome) and UIFontSizeSelector (DOM-probe). 1680 tests pass; 0 errors.
 - **Where:** `src/ui/UIBlurSelector.svelte` (37 lines), `UIBorderWeightSelector.svelte` (44), `UIDotSizeSelector.svelte` (35), `UILineHeightSelector.svelte` (47), `UIDividerHeightSelector.svelte` (39), `UIRadiusSelector.svelte` (40), `UIShadowSelector.svelte` (36), `UIFontWeightSelector.svelte` (52). Compare the bodies of any two — same five `export let` props, same wrapper around `<UIVariantSelector>`, same `<UIOptionItem>` slot scaffolding. The only things that vary are the `options` array literal and the `varPrefix` string.
 - **What:** Eight near-identical files exist solely to bind `(options, varPrefix)` data. Adding a new variant scale requires creating a new `UIXxxSelector.svelte` and exporting it from `index.ts`.
 - **Why it matters:** Once And Only Once. The data is mechanical; the file boundaries don't earn their keep. Adding a prop (e.g. `dropdownGridColumns` per `UIVariantSelector.svelte:17`) requires editing 8 files in lockstep — exactly the Shotgun Surgery these wrappers were trying to prevent.
@@ -126,16 +127,19 @@ The codebase is in **substantially better shape than audit-01** — three Critic
 
 ## Minor
 
-### m1. `applyCssVariables` re-exported from both `cssVarSync` and `themeService` — Boat Anchor `[local]`
+### m1. `applyCssVariables` re-exported from both `cssVarSync` and `themeService` — Boat Anchor `[local]` `[done]`
+**Resolution (2026-05-10):** Audited consumers — VisualsTab was the sole non-export caller (removed in W1). Dropped the three re-exports from `themeService.ts` and the matching block in `lib/index.ts`. Canonical path is `cssVarSync` only; `setCssVar` / `removeCssVar` remain re-exported from `lib/index.ts` for library consumers. Function bodies in `cssVarSync.ts` left intact as primitives.
 - **Where:** `src/lib/themeService.ts:130–132` re-exports the trio (`applyCssVariables`, `clearAllCssVarOverrides`, `scrapeCssVariables`); `src/lib/index.ts:9–15` exports them directly from `cssVarSync`. Two import paths for the same function.
 - **What:** Carried over from audit-01 m5; the comment in `themeService.ts` says the re-export exists "to preserve existing call sites." Audit `git grep "from '.*themeService'" | grep -E "(applyCssVariables|clearAllCssVarOverrides|scrapeCssVariables)"` to count actual consumers.
 - **Direction:** If consumers all import from `themeService`, delete the `cssVarSync` direct re-export from `index.ts`. Otherwise drop the `themeService` re-export and update the (likely small) set of call sites.
 
-### m2. Magic colour and duration literals scattered across `PaletteEditor` and `VariablesTab` `[local]`
+### m2. Magic colour and duration literals scattered across `PaletteEditor` and `VariablesTab` `[local]` `[partial]`
+**Resolution (2026-05-10):** Extracted `GRAY_FALLBACK = '#808080'` in `PaletteEditor.svelte` (used 2x — `initialColor` default + `gray500Hex` fallback) and `COPIED_FLASH_MS = 1000` in `VariablesTab.svelte`. Skipped the two `#ffffff` / `#000000` markup literals — they're inline `style="background: …"` bookend swatches in the gray-scale UI, not data; extracting to JS constants doesn't earn its keep. The audit-mentioned `cubic-bezier` / `320ms` literals were already migrated to `--ui-transition-fast` token references; no remaining hits.
 - **Where:** `src/ui/PaletteEditor.svelte:1180, 1224, 1607, 1641` (`#ffffff` / `#000000` hard-coded as gradient endpoint swatches); `:321` (`#808080` fallback for `gray500Hex`); `VariablesTab.svelte:133` (`setTimeout(... , 1000)` for copied-var reset); various inline `cubic-bezier(0.5, 1.6, 0.5, 1)` and `320ms` transition values across `.svelte` files.
 - **Direction:** Module-level constants — `const GRADIENT_ENDPOINTS = { light: '#ffffff', dark: '#000000' }`, `const COPIED_FLASH_MS = 1000`. For CSS, prefer `var(--ui-transition-fast)` consistently over inline `320ms`.
 
-### m3. `UITokenSelector` dispatches stringly-typed events with no payload schema `[local]`
+### m3. `UITokenSelector` dispatches stringly-typed events with no payload schema `[local]` `[done]`
+**Resolution (2026-05-10):** Added typed dispatcher signatures to both selectors. UITokenSelector: `{ change: void; reset: void; open: void; close: void; 'var-change': void }`. UIVariantSelector: `{ change: void }`. No consumer updates needed (no payloads); the type-checker now enforces consistent event names.
 - **Where:** `src/ui/UITokenSelector.svelte:20` (`createEventDispatcher` without generic), `:179, 182, 194` (`dispatch('reset')`, `dispatch('change')`, `dispatch('var-change')`).
 - **What:** Three event names with no typed schema. `UIVariantSelector.svelte:7` is the same — `createEventDispatcher()` without a generic. By contrast, `Dialog.svelte:35` and `UIRelinkConfirmPopover.svelte:14` do supply typed schemas. Inconsistency.
 - **Direction:** `createEventDispatcher<{ reset: void; change: void; 'var-change': void }>()` on both. If/when payloads are added, the type-checker enforces consumer updates.
@@ -145,16 +149,17 @@ The codebase is in **substantially better shape than audit-01** — three Critic
 - **What:** `KNOWN_COMPONENT_CONFIG_KEYS` was introduced as a transient migration list during the C3 alias/config split; the TODO marks the intent to replace it with a per-component schema declaration once `registerComponentSchema` carries config-key metadata.
 - **Direction:** Defer to a later wave. Acceptable today; it's a 12-element set with one consumer (`splitAliasesAndConfig` in the legacy migration) and shrinks toward zero as on-disk files migrate. Mark `[deferred]`.
 
-### m5. `setTokenField` / `setTokenColor` mutate-then-recompute boilerplate in `VariablesTab` shadow handlers `[local]`
+### m5. `setTokenField` / `setTokenColor` mutate-then-recompute boilerplate in `VariablesTab` shadow handlers `[local]` `[partial]`
+**Resolution (2026-05-10):** Extracted `withShadowToken(label, idx, mut)` helper that wraps the `mutate(...)` + token-find + early-return prelude. Both handlers (`setTokenField`, `setTokenColor`) now use it. The audit's claimed 60-line saving overstated — the per-field clamp/round/x-y-recompute logic in `setTokenField` is genuinely distinct per branch and doesn't fold further without losing clarity. ~6 lines of true duplication removed; remaining branches preserved as-is because each carries different normalization semantics.
 - **Where:** `src/ui/VariablesTab.svelte:286–340` — five near-identical handlers, each spreads the override object, mutates one field, and recomputes `(x, y)` from `(angle, distance)`.
 - **Direction:** Extract `updateShadowToken(idx, patch)` once; handlers become one-liners. This is the same shape as the M5 audit-01 fix for `flashStatus` — small but the duplication is visible.
 
 ## Nits
 
 - `src/lib/editorStore.ts` `[local]` — file is now a 410-line barrel; consider whether the legacy `splitAliasesAndConfig` migration belongs in the dated `migrations/` folder rather than inline (the audit-01 M3 resolution note already flags this for Wave 4).
-- `src/components/Notification.svelte:107–113` `[local]` — the documented "do not collapse the `:global(:root)` block to `@each`" constraint comment is the right place; consider also adding a one-line note in `src/lib/parsers/globalRootBlock.ts` so the next reader of *that* file knows what the constraint protects.
-- `src/pages/Editor.svelte:75` `[local]` — empty `.bar-right` ruleset with `/* Reserved for future right-aligned controls */` comment. Either populate or delete (Speculative Generality + svelte-check warning).
-- `src/ui/VariablesTab.svelte:2000` `[local]` — `-moz-appearance: textfield` without the standard `appearance: textfield`. svelte-check warning.
+- `src/components/Notification.svelte:107–113` `[local]` `[done]` — Added a consumer-facing-implication note to `src/lib/parsers/globalRootBlock.ts` cross-referencing the Notification block and explaining why the parser's flat-declarations assumption is load-bearing. Resolution (2026-05-10).
+- `src/pages/Editor.svelte:75` `[local]` `[done]` — Deleted the empty `.bar-right` div + ruleset (Speculative Generality). `.editor-bar` is `display: flex` so removing the empty child has no layout effect. svelte-check warning gone. Resolution (2026-05-10).
+- `src/ui/VariablesTab.svelte:2000` `[local]` `[done]` — Added the standard `appearance: textfield` alongside the `-moz-` prefix. svelte-check warning gone. Resolution (2026-05-10).
 
 ## Project conventions
 

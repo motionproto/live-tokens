@@ -8,10 +8,10 @@ export { default as UIOptionItem } from './UIOptionItem.svelte';
 
 // Semantic-property selectors
 export { default as UIPaletteSelector } from './UIPaletteSelector.svelte';
-export { default as UIRadiusSelector } from './UIRadiusSelector.svelte';
-export { default as UIBorderWeightSelector } from './UIBorderWeightSelector.svelte';
 export { default as UIFontFamilySelector } from './UIFontFamilySelector.svelte';
 export { default as UIFontWeightSelector } from './UIFontWeightSelector.svelte';
+// Scale data spread into UIVariantSelector — replaces the per-scale wrappers.
+export * from './variantScales';
 
 // Editor tabs & panels
 export { default as VisualsTab } from './VisualsTab.svelte';

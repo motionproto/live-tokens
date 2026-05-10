@@ -3,8 +3,11 @@
   import { resolveAliasChain } from '../lib/tokenRegistry';
   import UITokenSelector from './UITokenSelector.svelte';
   import UIOptionList from './UIOptionList.svelte';
+  import UIOptionItem from './UIOptionItem.svelte';
 
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher<{
+    change: void;
+  }>();
 
   export let variable: string;
   export let component: string | undefined = undefined;
@@ -123,7 +126,18 @@
           {opt}
           active={chosenKey === opt.key}
           select={() => selectKey(opt.key, close)}
-        />
+        >
+          {#if opt.value !== undefined}
+            <UIOptionItem active={chosenKey === opt.key} on:click={() => selectKey(opt.key, close)}>
+              <svelte:fragment slot="label">{opt.label ?? ''}</svelte:fragment>
+              <svelte:fragment slot="meta">{opt.value}</svelte:fragment>
+            </UIOptionItem>
+          {:else}
+            <UIOptionItem active={chosenKey === opt.key} on:click={() => selectKey(opt.key, close)}>
+              <svelte:fragment slot="label">{opt.label ?? ''}</svelte:fragment>
+            </UIOptionItem>
+          {/if}
+        </slot>
       {/each}
       <slot name="extras" {close} />
     </UIOptionList>

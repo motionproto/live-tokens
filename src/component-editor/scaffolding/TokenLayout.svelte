@@ -1,17 +1,13 @@
 <script lang="ts">
   import { createEventDispatcher, type ComponentType } from 'svelte';
   import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
-  import UIRadiusSelector from '../../ui/UIRadiusSelector.svelte';
-  import UIBorderWeightSelector from '../../ui/UIBorderWeightSelector.svelte';
+  import UIVariantSelector from '../../ui/UIVariantSelector.svelte';
   import UIFontFamilySelector from '../../ui/UIFontFamilySelector.svelte';
   import UIFontWeightSelector from '../../ui/UIFontWeightSelector.svelte';
   import UIFontSizeSelector from '../../ui/UIFontSizeSelector.svelte';
   import UILineHeightSelector from '../../ui/UILineHeightSelector.svelte';
-  import UIDividerHeightSelector from '../../ui/UIDividerHeightSelector.svelte';
-  import UIDotSizeSelector from '../../ui/UIDotSizeSelector.svelte';
   import UIPaddingSelector from '../../ui/UIPaddingSelector.svelte';
-  import UIBlurSelector from '../../ui/UIBlurSelector.svelte';
-  import UIShadowSelector from '../../ui/UIShadowSelector.svelte';
+  import { BLUR, BORDER_WIDTH, DOT_SIZE, RADIUS, SHADOW, DIVIDER_HEIGHT } from '../../ui/variantScales';
   import {
     editorState,
     getComponentPropertySiblings,
@@ -150,11 +146,11 @@
     'font-weight': { component: UIFontWeightSelector },
     'font-size': { component: UIFontSizeSelector },
     'line-height': { component: UILineHeightSelector },
-    'border-width': { component: UIBorderWeightSelector },
-    'divider-width': { component: UIBorderWeightSelector },
-    'divider-height': { component: UIDividerHeightSelector },
-    'dot-size': { component: UIDotSizeSelector },
-    'radius': { component: UIRadiusSelector },
+    'border-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
+    'divider-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
+    'divider-height': { component: UIVariantSelector, extra: () => ({ ...DIVIDER_HEIGHT }) },
+    'dot-size': { component: UIVariantSelector, extra: () => ({ ...DOT_SIZE }) },
+    'radius': { component: UIVariantSelector, extra: () => ({ ...RADIUS }) },
     'padding': { component: UIPaddingSelector, extra: () => ({ mode: 'single' }) },
     /* padding-split is NOT standalone: TokenLayout renders the .token-label
        (e.g. "padding") in col 1 and the wrapper provides the [label][trigger][value]
@@ -167,8 +163,8 @@
       extra: () => ({ mode: 'sides' }),
     },
     'gap': { component: UIPaddingSelector, extra: () => ({ mode: 'single', splittable: false }) },
-    'blur': { component: UIBlurSelector },
-    'shadow': { component: UIShadowSelector },
+    'blur': { component: UIVariantSelector, extra: () => ({ ...BLUR }) },
+    'shadow': { component: UIVariantSelector, extra: () => ({ ...SHADOW }) },
     'surface': { component: UIPaletteSelector },
     'border': { component: UIPaletteSelector },
     'extras': { component: UIPaletteSelector },

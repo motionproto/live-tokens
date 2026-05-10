@@ -14,6 +14,12 @@
  *
  * Pure (no DOM, no fs) so the tsup ESM+CJS build of the vite plugin can import
  * it safely.
+ *
+ * Consumer-facing implication: components must keep their `:global(:root)`
+ * blocks as flat literal declarations — no `@each` / SCSS loops — otherwise
+ * this parser sees zero tokens and the editor's alias picker / file-manager
+ * UI is empty for that component. See `src/components/Notification.svelte:86–92`
+ * for the documented reason a four-variant block stays expanded.
  */
 export function extractGlobalRootBody(source: string): string {
   const re = /:global\(:root\)\s*\{([^}]*)\}/g;

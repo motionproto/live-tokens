@@ -34,6 +34,10 @@
 
   let initialColumns: ColumnsState | null = null;
 
+  /** Visual flash for the copy-to-clipboard chip, kept short enough to
+   *  feel like immediate confirmation but long enough to register. */
+  const COPIED_FLASH_MS = 1000;
+
   function resetColumns() {
     if (!initialColumns) return;
     const snapshot = initialColumns;
@@ -281,12 +285,22 @@
     });
   }
 
+  /** Locate token at `idx` and run `mut` inside a single `mutate(...)` action.
+   *  Token-field handlers below collapse to one or two lines via this helper —
+   *  per-field clamp/round semantics stay distinct, but the mutate/find/early-
+   *  return prelude doesn't repeat. */
+  function withShadowToken(label: string, idx: number, mut: (t: ShadowToken, s: EditorState) => void) {
+    mutate(`set shadow token ${label}`, (s) => {
+      const t = s.shadows.tokens[idx];
+      if (!t) return;
+      mut(t, s);
+    });
+  }
+
   // Per-token edits set the override flag for the edited field so future
   // global broadcasts skip this token, preserving the user's manual value.
   function setTokenField(idx: number, field: 'angle' | 'distance' | 'spread' | 'blur' | 'opacity', value: number) {
-    mutate(`set shadow token ${field}`, (s) => {
-      const t = s.shadows.tokens[idx];
-      if (!t) return;
+    withShadowToken(field, idx, (t, s) => {
       const ov = getShadowOverride(s, t.variable);
       if (field === 'angle') {
         t.angle = ((Math.round(value) % 360) + 360) % 360;
@@ -312,9 +326,7 @@
   }
 
   function setTokenColor(idx: number, field: 'hue' | 'saturation' | 'lightness', value: number) {
-    mutate(`set shadow token ${field}`, (s) => {
-      const t = s.shadows.tokens[idx];
-      if (!t) return;
+    withShadowToken(field, idx, (t, s) => {
       const hi = field === 'hue' ? 360 : 100;
       t[field] = Math.max(0, Math.min(hi, Math.round(value)));
       getShadowOverride(s, t.variable).color = true;
@@ -650,7 +662,7 @@
   function copyVariable(v: string) {
     navigator.clipboard.writeText(v);
     copiedVar = v;
-    setTimeout(() => { copiedVar = null; }, 1000);
+    setTimeout(() => { copiedVar = null; }, COPIED_FLASH_MS);
   }
 
 
@@ -1998,6 +2010,7 @@
     border-radius: var(--ui-radius-sm);
     padding: var(--ui-space-2) var(--ui-space-4);
     -moz-appearance: textfield;
+    appearance: textfield;
   }
 
   .shadow-slider-input::-webkit-inner-spin-button,

@@ -9,13 +9,7 @@ export { init as initRouter, route, navigate } from './router';
 export { init as initCssVarSync } from './cssVarSync';
 export { init as initEditorStore } from './editorStore';
 
-export {
-  setCssVar,
-  removeCssVar,
-  applyCssVariables,
-  clearAllCssVarOverrides,
-  scrapeCssVariables,
-} from './cssVarSync';
+export { setCssVar, removeCssVar } from './cssVarSync';
 
 export {
   listThemes,

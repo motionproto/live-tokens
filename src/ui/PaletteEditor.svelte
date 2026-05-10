@@ -12,8 +12,11 @@
   import { showCopyPopover } from '../lib/copyPopover';
   import { get } from 'svelte/store';
 
+  /** Mid-gray fallback used when no base colour or computed gray-500 is available. */
+  const GRAY_FALLBACK = '#808080';
+
   export let label: string;
-  export let initialColor: string = '#808080';
+  export let initialColor: string = GRAY_FALLBACK;
   export let mode: 'chromatic' | 'gray' = 'chromatic';
   export let cssNamespace: string | null = null;
   export let emptySelector: boolean = false;
@@ -318,7 +321,7 @@
   // Gray-500 hex — always the computed (curve-derived) value so derived
   // scales (surfaces, borders, text) update in realtime when tint changes.
   $: gray500Hex = mode === 'gray'
-    ? (grayComputed.find(g => g.step.label === '500')?.hex ?? '#808080')
+    ? (grayComputed.find(g => g.step.label === '500')?.hex ?? GRAY_FALLBACK)
     : baseColor;
 
 

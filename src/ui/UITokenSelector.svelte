@@ -17,7 +17,13 @@
   import UIRelinkConfirmPopover from './UIRelinkConfirmPopover.svelte';
   import { keepInViewport } from './keepInViewport';
 
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher<{
+    change: void;
+    reset: void;
+    open: void;
+    close: void;
+    'var-change': void;
+  }>();
 
   export let variable: string;
   /** When set, writes persist through the editor store under this component. */
