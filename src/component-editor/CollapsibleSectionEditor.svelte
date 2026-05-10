@@ -33,11 +33,38 @@
     return base;
   }
 
-  function headerStates(v: Variant): Record<string, Token[]> {
-    return Object.fromEntries(HEADER_STATES.map((s) => [s, headerStateTokens(v, s)]));
+  // Container has a single Frame ruleset for the always-on outer chrome.
+  const frameTokens: Token[] = [
+    { label: 'surface color', variable: '--collapsiblesection-container-frame-surface' },
+    { label: 'border color', variable: '--collapsiblesection-container-frame-border' },
+    { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: '--collapsiblesection-container-frame-border-width' },
+    { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: '--collapsiblesection-container-frame-radius' },
+  ];
+
+  // Expanded panel: chromeless/divider only own padding; container also paints
+  // its own surface so the content area can read distinct from the header strip.
+  function expandedTokens(v: Variant): Token[] {
+    const p = `--collapsiblesection-${v}-expanded`;
+    const tokens: Token[] = [];
+    if (v === 'container') tokens.push({ label: 'surface color', variable: `${p}-surface` });
+    tokens.push({ label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `${p}-padding` });
+    return tokens;
   }
 
-  function headerTypeGroups(v: Variant): Record<string, TypeGroupConfig[]> {
+  // Single per-variant state map: frame (container only), default/hover/active,
+  // expanded. State-tab strip inside the VariantGroup walks this sequence so the
+  // user moves through the whole variant from one tabbed surface.
+  function variantStates(v: Variant): Record<string, Token[]> {
+    const out: Record<string, Token[]> = {};
+    if (v === 'container') out.frame = frameTokens;
+    for (const s of HEADER_STATES) out[s] = headerStateTokens(v, s);
+    out.expanded = expandedTokens(v);
+    return out;
+  }
+
+  // Label typography only attaches to header states; frame and expanded don't
+  // own text. VariantGroup tolerates a partial map.
+  function variantTypeGroups(v: Variant): Record<string, TypeGroupConfig[]> {
     return Object.fromEntries(HEADER_STATES.map((s) => [s, [{
       legend: 'label',
       colorVariable: `--collapsiblesection-${v}-${s}-label`,
@@ -48,26 +75,6 @@
     }]]));
   }
 
-  // Container has a single Frame ruleset for the always-on outer chrome.
-  const frameStates: Record<string, Token[]> = {
-    frame: [
-      { label: 'surface color', variable: '--collapsiblesection-container-frame-surface' },
-      { label: 'border color', variable: '--collapsiblesection-container-frame-border' },
-      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: '--collapsiblesection-container-frame-border-width' },
-      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: '--collapsiblesection-container-frame-radius' },
-    ],
-  };
-
-  // Expanded panel: chromeless/divider only own padding; container also paints
-  // its own surface so the content area can read distinct from the header strip.
-  function expandedStates(v: Variant): Record<string, Token[]> {
-    const p = `--collapsiblesection-${v}-expanded`;
-    const tokens: Token[] = [];
-    if (v === 'container') tokens.push({ label: 'surface color', variable: `${p}-surface` });
-    tokens.push({ label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `${p}-padding` });
-    return { expanded: tokens };
-  }
-
   const headerTypeGroupTokens: Token[] = VARIANTS.flatMap((v) => HEADER_STATES.flatMap((s) => [
     { label: 'font family', canBeLinked: true, groupKey: 'font-family', variable: `--collapsiblesection-${v}-${s}-label-font-family` },
     { label: 'font size', canBeLinked: true, groupKey: 'font-size', variable: `--collapsiblesection-${v}-${s}-label-font-size` },
@@ -76,11 +83,9 @@
   ]));
 
   export const allTokens: Token[] = [
-    ...VARIANTS.flatMap((v) => Object.values(headerStates(v)).flat()),
-    ...VARIANTS.flatMap((v) => buildTypeGroupColorTokens(headerTypeGroups(v))),
+    ...VARIANTS.flatMap((v) => Object.values(variantStates(v)).flat()),
+    ...VARIANTS.flatMap((v) => buildTypeGroupColorTokens(variantTypeGroups(v))),
     ...headerTypeGroupTokens,
-    ...Object.values(frameStates).flat(),
-    ...VARIANTS.flatMap((v) => Object.values(expandedStates(v)).flat()),
   ];
 
   const linkableContexts = new Map<string, string>([
@@ -110,78 +115,47 @@
   import CollapsibleSection from '../components/CollapsibleSection.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import { buildSiblings } from './scaffolding/siblings';
   import { editorState } from '../lib/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
-  let demoExpanded: Record<Variant, boolean> = { chromeless: false, divider: false, container: false };
-
   $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
 
-  $: visibleHeaderStates = (v: Variant) => Object.fromEntries(
-    Object.entries(headerStates(v)).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
-  ) as Record<string, Token[]>;
-
-  $: visibleExpandedStates = (v: Variant) => Object.fromEntries(
-    Object.entries(expandedStates(v)).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
-  ) as Record<string, Token[]>;
-
-  $: visibleFrameStates = Object.fromEntries(
-    Object.entries(frameStates).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
+  $: visibleVariantStates = (v: Variant) => Object.fromEntries(
+    Object.entries(variantStates(v)).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
   ) as Record<string, Token[]>;
 </script>
 
-<ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Variants: chromeless, divider, container. Import from <code>components/CollapsibleSection.svelte</code>" tokens={allTokens} {linked} tabbable variants={variantOptions} let:viewMode let:focusedVariant>
+<ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Variants: chromeless, divider, container. Import from <code>components/CollapsibleSection.svelte</code>" tokens={allTokens} {linked} tabbable variants={variantOptions}>
   {#each VARIANTS as v}
-    {#if viewMode === 'list' || focusedVariant === v}
-    {#if v === 'container'}
-      <VariantGroup
-        name="container-frame"
-        title="Container — Frame"
-        states={visibleFrameStates}
-        {component}
-      >
-        <CollapsibleSection variant={v} label="Click to expand" expanded>
-          <p style="margin: 0; color: var(--text-secondary);">
-            This content is revealed when the section is expanded. Any content can go here.
-          </p>
-        </CollapsibleSection>
-      </VariantGroup>
-    {/if}
     <VariantGroup
-      name={`${v}-header`}
-      title={`${capitalize(v)} — Header`}
-      states={visibleHeaderStates(v)}
-      typeGroups={headerTypeGroups(v)}
+      name={v}
+      title={capitalize(v)}
+      states={visibleVariantStates(v)}
+      typeGroups={variantTypeGroups(v)}
       {component}
+      siblings={buildSiblings(VARIANTS, v, variantStates, variantTypeGroups)}
       let:activeState
     >
+      {@const isExpanded = activeState === 'expanded'}
+      {@const isFrame = activeState === 'frame'}
       {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
       {@const forceActive = activeState === 'active'}
       <CollapsibleSection
         variant={v}
         label="Click to expand"
-        expanded={demoExpanded[v]}
+        expanded={isExpanded}
         active={forceActive}
         class={forceClass}
-        on:toggle={() => (demoExpanded = { ...demoExpanded, [v]: !demoExpanded[v] })}
       >
         <p style="margin: 0; color: var(--text-secondary);">
-          This content is revealed when the section is expanded. Any content can go here.
+          {#if isFrame}
+            (Frame) — outer chrome only; expand the section to see content area styling.
+          {:else}
+            This content is revealed when the section is expanded. Any content can go here.
+          {/if}
         </p>
       </CollapsibleSection>
     </VariantGroup>
-    <VariantGroup
-      name={`${v}-expanded`}
-      title={`${capitalize(v)} — Expanded panel`}
-      states={visibleExpandedStates(v)}
-      {component}
-    >
-      <CollapsibleSection variant={v} label="Click to expand" expanded>
-        <p style="margin: 0; color: var(--text-secondary);">
-          This content is revealed when the section is expanded. Any content can go here.
-        </p>
-      </CollapsibleSection>
-    </VariantGroup>
-    {/if}
   {/each}
 </ComponentEditorBase>

@@ -17,25 +17,36 @@
 </script>
 
 <script lang="ts">
+  import { onMount } from 'svelte';
   import Image from '../components/Image.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import demoImageUrl from '../assets/offering.webp';
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
-  import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
+  import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
+  import { setCssVar } from '../lib/cssVarSync';
 
-  let bgMode: 'image' | 'color' = 'image';
   const bgVar = '--backdrop-image-surface';
+
+  onMount(() => {
+    if (!document.documentElement.style.getPropertyValue(bgVar)) {
+      setCssVar(bgVar, 'var(--surface-canvas)');
+    }
+  });
 </script>
 
 <ComponentEditorBase {component} title="Image" description="Framed image with rounded corners, border, and shadow. Import from <code>components/Image.svelte</code>" tokens={allTokens} tabbable>
   <svelte:fragment slot="config">
-    <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
+    <label class="backdrop-config">
+      <span>Sample background</span>
+      <div class="picker-slot">
+        <UIPaletteSelector variable={bgVar} />
+      </div>
+    </label>
   </svelte:fragment>
   <VariantGroup name="image" title="Image" {states} {component}>
-    <ShadowBackdrop mode={bgMode} colorVariable={bgVar}>
+    <ShadowBackdrop mode="color" colorVariable={bgVar}>
       <div class="image-demo-grid">
-        <Image src={demoImageUrl} alt="Demo" variant="compact" />
         <Image src={demoImageUrl} alt="Demo" variant="medium" />
       </div>
     </ShadowBackdrop>
@@ -45,7 +56,17 @@
 <style>
   .image-demo-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--space-16);
+    place-items: center;
+  }
+  .backdrop-config {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+  }
+  .picker-slot {
+    min-width: 8rem;
+  }
+  .picker-slot :global(.ui-token-selector) {
+    width: 100%;
   }
 </style>

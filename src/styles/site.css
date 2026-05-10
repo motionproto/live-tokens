@@ -72,7 +72,7 @@ p:last-child {
 a {
   color: var(--text-primary-color);
   text-decoration: none;
-  transition: color var(--transition-fast);
+  transition: color var(--duration-150);
 }
 
 a:hover {

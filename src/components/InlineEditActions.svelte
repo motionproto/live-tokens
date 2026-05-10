@@ -40,7 +40,7 @@
       --inlineeditactions-save-default-surface: var(--surface-success-low);
       --inlineeditactions-save-default-text: var(--text-success);
       --inlineeditactions-save-default-border: var(--border-success);
-      --inlineeditactions-save-default-border-width: var(--border-width-none);
+      --inlineeditactions-save-default-border-width: var(--border-width-0);
       --inlineeditactions-save-default-radius: var(--radius-md);
       --inlineeditactions-save-default-padding: var(--space-4);
       --inlineeditactions-save-default-icon-size: var(--icon-size-md);
@@ -49,7 +49,7 @@
       --inlineeditactions-save-hover-surface: var(--surface-success-high);
       --inlineeditactions-save-hover-text: var(--text-success);
       --inlineeditactions-save-hover-border: var(--border-success);
-      --inlineeditactions-save-hover-border-width: var(--border-width-none);
+      --inlineeditactions-save-hover-border-width: var(--border-width-0);
       --inlineeditactions-save-hover-radius: var(--radius-md);
       --inlineeditactions-save-hover-padding: var(--space-4);
       --inlineeditactions-save-hover-icon-size: var(--icon-size-md);
@@ -58,7 +58,7 @@
       --inlineeditactions-cancel-default-surface: var(--surface-danger-low);
       --inlineeditactions-cancel-default-text: var(--text-danger);
       --inlineeditactions-cancel-default-border: var(--border-danger);
-      --inlineeditactions-cancel-default-border-width: var(--border-width-none);
+      --inlineeditactions-cancel-default-border-width: var(--border-width-0);
       --inlineeditactions-cancel-default-radius: var(--radius-md);
       --inlineeditactions-cancel-default-padding: var(--space-4);
       --inlineeditactions-cancel-default-icon-size: var(--icon-size-md);
@@ -67,7 +67,7 @@
       --inlineeditactions-cancel-hover-surface: var(--surface-danger-high);
       --inlineeditactions-cancel-hover-text: var(--text-danger);
       --inlineeditactions-cancel-hover-border: var(--border-danger);
-      --inlineeditactions-cancel-hover-border-width: var(--border-width-none);
+      --inlineeditactions-cancel-hover-border-width: var(--border-width-0);
       --inlineeditactions-cancel-hover-radius: var(--radius-md);
       --inlineeditactions-cancel-hover-padding: var(--space-4);
       --inlineeditactions-cancel-hover-icon-size: var(--icon-size-md);
@@ -81,7 +81,7 @@
    .save-btn,
    .cancel-btn {
       cursor: pointer;
-      transition: all var(--transition-base);
+      transition: all var(--duration-200);
       display: flex;
       align-items: center;
       gap: var(--space-8);

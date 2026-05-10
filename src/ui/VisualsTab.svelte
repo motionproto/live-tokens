@@ -25,7 +25,7 @@
 
   const tokenNavItems = [
     { id: 'palette-editor', label: 'Palette Editor' },
-    { id: 'spacing', label: 'Spacing' },
+    { id: 'spacing', label: 'Spacing & Borders' },
     { id: 'columns', label: 'Columns' },
     { id: 'border-radius', label: 'Border Radius' },
     { id: 'typography', label: 'Typography' },

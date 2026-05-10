@@ -29,7 +29,7 @@ function isLayer1TokenName(name: string): boolean {
   if (/^--surface-[a-z]+(-[a-z]+)?$/.test(name)) return true;
   if (/^--border-[a-z]+(-[a-z]+)?$/.test(name)) return true;
   if (/^--text-[a-z]+(-[a-z]+)?$/.test(name)) return true;
-  if (/^--(radius|space|font|line-height|shadow|ring|transition|overlay|hover|page-bg|border-width|gradient)(-[a-z0-9]+)*$/.test(name)) return true;
+  if (/^--(radius|space|font|line-height|shadow|ring|transition|overlay|hover|page-bg|border-width|gradient|icon-size|blur|dot-size)(-[a-z0-9]+)*$/.test(name)) return true;
   return false;
 }
 
@@ -42,6 +42,10 @@ function isLayer1TokenName(name: string): boolean {
 const editorTokenCases: Array<{ editor: string; variable: string }> = [];
 for (const entry of componentRegistryEntries) {
   for (const t of entry.schema) {
+    // `hidden: true` tokens are optional override slots (e.g. split-padding's
+    // per-side overrides used as `var(--x, fallback)` by the themed-padding
+    // mixin) — they don't need a default declaration in tokens.css.
+    if ((t as { hidden?: boolean }).hidden) continue;
     editorTokenCases.push({ editor: entry.id, variable: t.variable });
   }
 }

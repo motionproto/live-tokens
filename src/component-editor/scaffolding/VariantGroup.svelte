@@ -25,6 +25,11 @@
       single-text components like Button whose 8-10 properties stretch the
       panel vertically when stacked single-column. */
   export let columns: number = 1;
+  /** Label rendered above the tabs-mode selector strip. Defaults to "Element"
+      because most strips mix structural parts (e.g. bar, frame) with
+      component states; "States" would mislabel the parts. Editors can override
+      when every tab on the strip really is a state. */
+  export let selectorLabel: string = 'Element';
 
   const editorCtx = getEditorContext();
   const linkedOrderStore = editorCtx?.linkedOrder ?? writable<Map<string, number> | null>(null);
@@ -157,7 +162,7 @@
         {#if tabsStripVisible || (copySources.length > 0 && activeTab)}
           <div class="tabs-states-block">
             {#if tabsStripVisible}
-              <span class="section-label">States</span>
+              <span class="section-label">{selectorLabel}</span>
             {/if}
             <div class="tabs-selectors">
               {#if tabsStripVisible}

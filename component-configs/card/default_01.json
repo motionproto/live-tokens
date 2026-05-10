@@ -2,25 +2,25 @@
   "name": "default_01",
   "component": "card",
   "createdAt": "2026-04-26T21:19:46.255Z",
-  "updatedAt": "2026-05-08T13:51:05.989Z",
+  "updatedAt": "2026-05-10T09:24:14.439Z",
   "aliases": {
-    "--card-default-surface": "color-mix(in srgb, var(--surface-neutral) 90%, transparent)",
+    "--card-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 90%, transparent)",
     "--card-default-border": "--border-neutral",
     "--card-default-title": "--text-primary",
     "--card-default-body": "--text-secondary",
     "--card-default-radius": "--radius-lg",
-    "--card-hover-surface": "--surface-neutral-high",
-    "--card-hover-border": "--border-neutral-medium",
+    "--card-hover-surface": "color-mix(in srgb, var(--surface-neutral-lower) 90%, transparent)",
+    "--card-hover-border": "--border-neutral",
     "--card-hover-title": "--text-primary",
     "--card-hover-body": "--text-secondary",
     "--card-hover-radius": "--radius-lg",
-    "--card-hover-shadow": "--shadow-lg",
+    "--card-hover-shadow": "--shadow-sm",
     "--card-default-shadow": "--shadow-sm",
-    "--card-hover-header-surface": "--surface-neutral",
+    "--card-hover-header-surface": "--surface-neutral-high",
     "--card-default-header-surface": "--surface-neutral",
-    "--card-hover-border-width": "--border-width-thin",
-    "--card-default-border-width": "--border-width-thin"
+    "--card-hover-border-width": "--border-width-1",
+    "--card-default-border-width": "--border-width-1"
   },
   "config": {},
-  "schemaVersion": 2
+  "schemaVersion": 4
 }

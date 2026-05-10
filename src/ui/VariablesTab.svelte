@@ -58,6 +58,12 @@
     '--space-12', '--space-16', '--space-20', '--space-24', '--space-32',
     '--space-48',
   ];
+  const BORDER_WIDTH_VARS = [
+    '--border-width-0', '--border-width-1', '--border-width-2', '--border-width-3',
+    '--border-width-4', '--border-width-5', '--border-width-6', '--border-width-8',
+    '--border-width-10', '--border-width-12', '--border-width-16', '--border-width-20',
+    '--border-width-24',
+  ];
   const RADIUS_VARS = [
     '--radius-none', '--radius-sm', '--radius-md', '--radius-lg', '--radius-xl',
     '--radius-2xl', '--radius-3xl', '--radius-4xl', '--radius-full',
@@ -111,6 +117,7 @@
   // (editor edits fan out via cssVarSync to :root). Depending on
   // $editorState keeps the display in sync with user edits for free.
   let spacingTokens: TokenItem[] = [];
+  let borderWidthTokens: TokenItem[] = [];
   let radiusTokens: TokenItem[] = [];
   let fontSizeTokens: TokenItem[] = [];
   let fontWeightTokens: TokenItem[] = [];
@@ -120,6 +127,7 @@
     liveVersion;
     $editorState;
     spacingTokens = toItems(SPACING_VARS);
+    borderWidthTokens = toItems(BORDER_WIDTH_VARS);
     radiusTokens = toItems(RADIUS_VARS);
     fontSizeTokens = toItems(FONT_SIZE_VARS);
     fontWeightTokens = toItems(FONT_WEIGHT_VARS);
@@ -610,10 +618,14 @@
     return `linear-gradient(to right, hsl(${g.hue},${g.saturation}%,0%), hsl(${g.hue},${g.saturation}%,50%), hsl(${g.hue},${g.saturation}%,100%))`;
   }
 
-  const transitionTokens: TokenItem[] = [
-    { variable: '--transition-fast', value: '150ms cubic-bezier' },
-    { variable: '--transition-base', value: '200ms ease' },
-    { variable: '--transition-slow', value: '300ms ease' }
+  const durationTokens: TokenItem[] = [
+    { variable: '--duration-75', value: '75ms' },
+    { variable: '--duration-150', value: '150ms' },
+    { variable: '--duration-200', value: '200ms' },
+    { variable: '--duration-300', value: '300ms' },
+    { variable: '--duration-500', value: '500ms' },
+    { variable: '--duration-750', value: '750ms' },
+    { variable: '--duration-1000', value: '1000ms' }
   ];
 
   const zIndexTokens: TokenItem[] = [
@@ -663,13 +675,26 @@
     </div>
   </section>
 
-  <!-- Spacing -->
+  <!-- Spacing & Borders -->
   <section class="section" id="spacing">
-    <h2 class="section-title">Spacing</h2>
+    <h2 class="section-title">Spacing &amp; Borders</h2>
+    <h3 class="subsection-title">Spacing</h3>
     <div class="spacing-grid">
       {#each spacingTokens as token}
         <div class="spacing-item">
           <div class="spacing-bar" style="width: var({token.variable}); min-width: 2px;"></div>
+          <div class="token-info">
+            <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
+            <span class="token-value">{token.value}</span>
+          </div>
+        </div>
+      {/each}
+    </div>
+    <h3 class="subsection-title">Borders</h3>
+    <div class="spacing-grid">
+      {#each borderWidthTokens as token}
+        <div class="spacing-item">
+          <div class="border-width-bar" style="height: var({token.variable});"></div>
           <div class="token-info">
             <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
             <span class="token-value">{token.value}</span>
@@ -1478,9 +1503,9 @@
     <h2 class="section-title">Utility Tokens</h2>
     <div class="utility-columns">
       <div class="utility-group">
-        <h3 class="group-title">Transitions</h3>
+        <h3 class="group-title">Durations</h3>
         <div class="token-table">
-          {#each transitionTokens as token}
+          {#each durationTokens as token}
             <div class="token-row">
               <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
               <span class="token-value">{token.value}</span>
@@ -1673,11 +1698,25 @@
     padding-top: 4px;
   }
 
-  /* Spacing */
+  /* Spacing & Borders */
   .spacing-grid {
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-6);
+  }
+
+  .subsection-title {
+    margin: var(--ui-space-16) 0 var(--ui-space-8);
+    font-size: var(--ui-font-size-sm);
+    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .subsection-title:first-child,
+  .section-title + .subsection-title {
+    margin-top: 0;
   }
 
   .spacing-item {
@@ -1690,6 +1729,12 @@
     height: 1.25rem;
     background: var(--ui-text-accent);
     border-radius: var(--ui-radius-sm);
+    flex-shrink: 0;
+  }
+
+  .border-width-bar {
+    width: 4rem;
+    background: var(--ui-text-accent);
     flex-shrink: 0;
   }
 

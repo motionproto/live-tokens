@@ -87,7 +87,7 @@
       /* Divider — default */
       --collapsiblesection-divider-default-surface: var(--color-transparent);
       --collapsiblesection-divider-default-border: var(--border-neutral-faint);
-      --collapsiblesection-divider-default-border-width: var(--border-width-thin);
+      --collapsiblesection-divider-default-border-width: var(--border-width-1);
       --collapsiblesection-divider-default-padding: var(--space-4);
       --collapsiblesection-divider-default-label: var(--text-primary);
       --collapsiblesection-divider-default-label-font-family: var(--font-sans);
@@ -99,7 +99,7 @@
       /* Divider — hover */
       --collapsiblesection-divider-hover-surface: var(--color-transparent);
       --collapsiblesection-divider-hover-border: var(--border-neutral);
-      --collapsiblesection-divider-hover-border-width: var(--border-width-thin);
+      --collapsiblesection-divider-hover-border-width: var(--border-width-1);
       --collapsiblesection-divider-hover-padding: var(--space-4);
       --collapsiblesection-divider-hover-label: var(--text-primary);
       --collapsiblesection-divider-hover-label-font-family: var(--font-sans);
@@ -111,7 +111,7 @@
       /* Divider — active */
       --collapsiblesection-divider-active-surface: var(--color-transparent);
       --collapsiblesection-divider-active-border: var(--color-primary-400);
-      --collapsiblesection-divider-active-border-width: var(--border-width-thin);
+      --collapsiblesection-divider-active-border-width: var(--border-width-1);
       --collapsiblesection-divider-active-padding: var(--space-4);
       --collapsiblesection-divider-active-label: var(--text-primary);
       --collapsiblesection-divider-active-label-font-family: var(--font-sans);
@@ -126,7 +126,7 @@
       /* Container — frame (always-on outer chrome) */
       --collapsiblesection-container-frame-surface: var(--surface-canvas);
       --collapsiblesection-container-frame-border: var(--color-transparent);
-      --collapsiblesection-container-frame-border-width: var(--border-width-thick);
+      --collapsiblesection-container-frame-border-width: var(--border-width-3);
       --collapsiblesection-container-frame-radius: var(--radius-none);
       /* Container — default header strip */
       --collapsiblesection-container-default-surface: var(--surface-canvas);
@@ -175,7 +175,7 @@
       cursor: pointer;
       text-decoration: none;
       color: inherit;
-      transition: all var(--transition-fast);
+      transition: all var(--duration-150);
 
       &.expanded .toggle-icon {
          transform: rotate(90deg);
@@ -204,7 +204,7 @@
       .toggle-icon {
          color: var(--collapsiblesection-#{$variant}-#{$state}-icon);
          font-size: var(--collapsiblesection-#{$variant}-#{$state}-icon-size);
-         transition: transform var(--transition-fast);
+         transition: transform var(--duration-150);
       }
    }
 

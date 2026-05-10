@@ -1,5 +1,21 @@
+<script context="module" lang="ts">
+  export const badgeVariants = [
+    'primary',
+    'accent',
+    'neutral',
+    'alternate',
+    'canvas',
+    'special',
+    'success',
+    'warning',
+    'danger',
+    'info',
+  ] as const;
+  export type BadgeVariant = typeof badgeVariants[number];
+</script>
+
 <script lang="ts">
-  export let variant: 'info' | 'accent' | 'trait' | 'hero' = 'info';
+  export let variant: BadgeVariant = 'info';
   export let size: 'default' | 'small' = 'default';
   export let icon: string | undefined = undefined;
 </script>
@@ -15,49 +31,42 @@
 
 <style lang="scss">
   @use '../styles/padding' as *;
+  @use 'sass:map';
 
+  $variants: info, accent, primary, success, warning, danger, neutral, special, alternate, canvas;
+
+  // Per-variant color fallbacks: each variant uses its family's text token.
+  // `--text-primary` is the neutral primary text (with -secondary/-tertiary scale);
+  // `--text-primary-color` is the primary-family text.
+  $variant-text: (
+    info: --text-info,
+    accent: --text-accent,
+    primary: --text-primary-color,
+    success: --text-success,
+    warning: --text-warning,
+    danger: --text-danger,
+    neutral: --text-primary,
+    special: --text-special,
+    alternate: --text-alternate,
+    canvas: --text-canvas,
+  );
+
+  // Real values come from component-configs aliases.
   :global(:root) {
-    /* Info */
-    --badge-info-surface: var(--surface-neutral-higher);
-    --badge-info-text: var(--text-primary);
-    --badge-info-text-font-family: var(--font-sans);
-    --badge-info-text-font-size: var(--font-size-sm);
-    --badge-info-text-font-weight: var(--font-weight-light);
-    --badge-info-text-line-height: var(--line-height-tight);
-    --badge-info-border: var(--border-neutral);
-    --badge-info-border-width: var(--border-width-thin);
-    --badge-info-radius: var(--radius-full);
-    --badge-info-padding: var(--space-6);
-    --badge-info-shadow: var(--shadow-sm);
-    --badge-info-icon-size: var(--icon-size-sm);
-
-    /* Accent */
-    --badge-accent-surface: var(--surface-neutral-higher);
-    --badge-accent-text: var(--color-accent-300);
-    --badge-accent-text-font-family: var(--font-sans);
-    --badge-accent-text-font-size: var(--font-size-sm);
-    --badge-accent-text-font-weight: var(--font-weight-light);
-    --badge-accent-text-line-height: var(--line-height-tight);
-    --badge-accent-border: var(--border-accent);
-    --badge-accent-border-width: var(--border-width-thin);
-    --badge-accent-radius: var(--radius-full);
-    --badge-accent-padding: var(--space-6);
-    --badge-accent-shadow: var(--shadow-sm);
-    --badge-accent-icon-size: var(--icon-size-sm);
-
-    /* Trait */
-    --badge-trait-surface: var(--surface-primary-high);
-    --badge-trait-text: var(--text-primary);
-    --badge-trait-text-font-family: var(--font-sans);
-    --badge-trait-text-font-size: var(--font-size-sm);
-    --badge-trait-text-font-weight: var(--font-weight-light);
-    --badge-trait-text-line-height: var(--line-height-tight);
-    --badge-trait-border: var(--border-primary-strong);
-    --badge-trait-border-width: var(--border-width-thin);
-    --badge-trait-radius: var(--radius-full);
-    --badge-trait-padding: var(--space-6);
-    --badge-trait-shadow: var(--shadow-sm);
-    --badge-trait-icon-size: var(--icon-size-sm);
+    @each $v in $variants {
+      --badge-#{$v}-surface: var(--surface-#{$v});
+      --badge-#{$v}-text: var(#{map.get($variant-text, $v)});
+      --badge-#{$v}-border: var(--border-#{$v});
+      --badge-#{$v}-text-font-family: var(--font-sans);
+      --badge-#{$v}-text-font-size: var(--font-size-sm);
+      --badge-#{$v}-text-font-weight: var(--font-weight-light);
+      --badge-#{$v}-text-line-height: var(--line-height-tight);
+      --badge-#{$v}-border-width: var(--border-width-1);
+      --badge-#{$v}-radius: var(--radius-full);
+      --badge-#{$v}-padding: var(--space-6);
+      --badge-#{$v}-shadow: var(--shadow-none);
+      --badge-#{$v}-icon-size: var(--icon-size-sm);
+    }
   }
 
   .badge {
@@ -82,65 +91,19 @@
     gap: var(--space-4);
   }
 
-  /* Info (default) */
-  .badge-info {
-    --badge-icon-size: var(--badge-info-icon-size);
-    color: var(--badge-info-text);
-    background: var(--badge-info-surface);
-    border: var(--badge-info-border-width) solid var(--badge-info-border);
-    border-radius: var(--badge-info-radius);
-    @include themed-padding(--badge-info-padding, $h: 2);
-    font-family: var(--badge-info-text-font-family);
-    font-size: var(--badge-info-text-font-size);
-    font-weight: var(--badge-info-text-font-weight);
-    line-height: var(--badge-info-text-line-height);
-    box-shadow: var(--badge-info-shadow);
-  }
-
-
-  /* Accent */
-  .badge-accent {
-    --badge-icon-size: var(--badge-accent-icon-size);
-    color: var(--badge-accent-text);
-    background: var(--badge-accent-surface);
-    border: var(--badge-accent-border-width) solid var(--badge-accent-border);
-    border-radius: var(--badge-accent-radius);
-    @include themed-padding(--badge-accent-padding, $h: 2);
-    font-family: var(--badge-accent-text-font-family);
-    font-size: var(--badge-accent-text-font-size);
-    font-weight: var(--badge-accent-text-font-weight);
-    line-height: var(--badge-accent-text-line-height);
-    box-shadow: var(--badge-accent-shadow);
-    text-transform: capitalize;
-  }
-
-
-  /* Hero */
-  .badge-hero {
-    color: #fff;
-    background: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(8px);
-    border: var(--border-width-thin) solid rgba(255, 255, 255, 0.12);
-    padding: var(--space-6) var(--space-12);
-    font-family: var(--font-sans);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-normal);
-    letter-spacing: 0.02em;
-  }
-
-  /* Trait */
-  .badge-trait {
-    --badge-icon-size: var(--badge-trait-icon-size);
-    color: var(--badge-trait-text);
-    background: var(--badge-trait-surface);
-    border: var(--badge-trait-border-width) solid var(--badge-trait-border);
-    border-radius: var(--badge-trait-radius);
-    @include themed-padding(--badge-trait-padding, $h: 2);
-    font-family: var(--badge-trait-text-font-family);
-    font-size: var(--badge-trait-text-font-size);
-    font-weight: var(--badge-trait-text-font-weight);
-    line-height: var(--badge-trait-text-line-height);
-    box-shadow: var(--badge-trait-shadow);
-    text-transform: capitalize;
+  @each $v in $variants {
+    .badge-#{$v} {
+      --badge-icon-size: var(--badge-#{$v}-icon-size);
+      color: var(--badge-#{$v}-text);
+      background: var(--badge-#{$v}-surface);
+      border: var(--badge-#{$v}-border-width) solid var(--badge-#{$v}-border);
+      border-radius: var(--badge-#{$v}-radius);
+      @include themed-padding(--badge-#{$v}-padding, $h: 2);
+      font-family: var(--badge-#{$v}-text-font-family);
+      font-size: var(--badge-#{$v}-text-font-size);
+      font-weight: var(--badge-#{$v}-text-font-weight);
+      line-height: var(--badge-#{$v}-text-line-height);
+      box-shadow: var(--badge-#{$v}-shadow);
+    }
   }
 </style>

@@ -117,18 +117,26 @@
     </label>
     <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
   </svelte:fragment>
-  <ShadowBackdrop mode={bgMode} colorVariable={bgVar}>
-    <Dialog
-      show
-      inline
-      title="Sample Dialog"
-      confirmLabel="Save"
-      cancelLabel="Cancel"
-      onCancel={() => {}}
-    >
-      <p style="color: var(--text-secondary); margin: 0;">This is the dialog body content. It supports any slotted content including forms, lists, or other components.</p>
-    </Dialog>
-  </ShadowBackdrop>
+  <div class="dialog-preview">
+    <ShadowBackdrop mode={bgMode} colorVariable={bgVar} padding="0">
+      <Dialog
+        show
+        inline
+        title="Sample Dialog"
+        confirmLabel="Save"
+        cancelLabel="Cancel"
+        onCancel={() => {}}
+      >
+        <p style="color: var(--text-secondary); margin: 0;">This is the dialog body content. It supports any slotted content including forms, lists, or other components.</p>
+      </Dialog>
+    </ShadowBackdrop>
+  </div>
   <VariantGroup name="dialog" title="Dialog" states={frameStates} typeGroups={frameTypeGroups} {component} />
 </ComponentEditorBase>
+
+<style>
+  .dialog-preview :global(.dialog-backdrop.inline) {
+    padding: 128px;
+  }
+</style>
 

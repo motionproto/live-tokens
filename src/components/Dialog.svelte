@@ -140,7 +140,7 @@
     /* Dialog frame */
     --dialog-surface: var(--surface-neutral-lowest);
     --dialog-border: var(--border-neutral-strong);
-    --dialog-border-width: var(--border-width-default);
+    --dialog-border-width: var(--border-width-2);
     --dialog-radius: var(--radius-lg);
     --dialog-shadow: var(--shadow-2xl);
     --dialog-blur: var(--blur-none);
@@ -148,7 +148,7 @@
     /* Header */
     --dialog-header-surface: var(--surface-neutral-lower);
     --dialog-header-border: var(--border-neutral-subtle);
-    --dialog-header-border-width: var(--border-width-thin);
+    --dialog-header-border-width: var(--border-width-1);
     --dialog-header-padding: var(--space-8);
 
     /* Title */
@@ -167,7 +167,7 @@
 
     /* Footer */
     --dialog-footer-border: var(--border-neutral-subtle);
-    --dialog-footer-border-width: var(--border-width-thin);
+    --dialog-footer-border-width: var(--border-width-1);
     --dialog-footer-padding: var(--space-16);
   }
 
@@ -202,7 +202,7 @@
     border-radius: var(--dialog-radius);
     box-shadow: var(--dialog-shadow);
     backdrop-filter: blur(var(--dialog-blur));
-    animation: dialogSlideIn var(--transition-base);
+    animation: dialogSlideIn var(--duration-200);
     pointer-events: auto;
   }
 
@@ -252,7 +252,7 @@
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-md);
-    transition: all var(--transition-base);
+    transition: all var(--duration-200);
   }
 
   .dialog-close:hover {

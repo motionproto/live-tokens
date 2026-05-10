@@ -22,7 +22,7 @@
     --tooltip-text-font-weight: var(--font-weight-normal);
     --tooltip-text-line-height: var(--line-height-normal);
     --tooltip-border: var(--border-neutral);
-    --tooltip-border-width: var(--border-width-none);
+    --tooltip-border-width: var(--border-width-0);
     --tooltip-radius: var(--radius-md);
     --tooltip-padding: var(--space-6);
     --tooltip-shadow: var(--shadow-md);
@@ -50,7 +50,7 @@
     white-space: nowrap;
     pointer-events: none;
     opacity: 0;
-    transition: opacity var(--transition-fast);
+    transition: opacity var(--duration-150);
     z-index: var(--z-tooltip);
     box-shadow: var(--tooltip-shadow);
   }

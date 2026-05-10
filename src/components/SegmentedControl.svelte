@@ -49,14 +49,14 @@
     /* Bar (outer wrapper) */
     --segmentedcontrol-bar-surface: var(--surface-neutral-high);
     --segmentedcontrol-bar-border: var(--border-neutral);
-    --segmentedcontrol-bar-border-width: var(--border-width-thin);
+    --segmentedcontrol-bar-border-width: var(--border-width-1);
     --segmentedcontrol-bar-radius: var(--radius-lg);
     --segmentedcontrol-bar-padding: var(--space-4);
     --segmentedcontrol-bar-gap: var(--space-8);
 
     /* Divider (line between non-selected options) */
     --segmentedcontrol-divider-color: var(--border-neutral);
-    --segmentedcontrol-divider-thickness: var(--border-width-thin);
+    --segmentedcontrol-divider-thickness: var(--border-width-1);
     --segmentedcontrol-divider-height: var(--space-12);
 
     /* Option — default */
@@ -88,7 +88,7 @@
     --segmentedcontrol-selected-icon: var(--text-secondary);
     --segmentedcontrol-selected-icon-size: var(--icon-size-md);
     --segmentedcontrol-selected-border: var(--border-success);
-    --segmentedcontrol-selected-border-width: var(--border-width-thin);
+    --segmentedcontrol-selected-border-width: var(--border-width-1);
     --segmentedcontrol-selected-radius: var(--radius-md);
 
     /* Disabled (whole component state — overrides both option and selected styling) */
@@ -126,14 +126,14 @@
     font-weight: var(--segmentedcontrol-option-text-font-weight);
     line-height: var(--segmentedcontrol-option-text-line-height);
     cursor: pointer;
-    transition: background var(--transition-fast), color var(--transition-fast);
+    transition: background var(--duration-150), color var(--duration-150);
     position: relative;
   }
 
   .segment i {
     font-size: var(--segmentedcontrol-option-icon-size);
     color: var(--segmentedcontrol-option-icon);
-    transition: color var(--transition-fast);
+    transition: color var(--duration-150);
   }
 
   /* Short centered divider between adjacent segments. Negative margins absorb

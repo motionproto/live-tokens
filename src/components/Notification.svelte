@@ -117,7 +117,7 @@
       /* Info */
       --notification-info-surface: var(--surface-info);
       --notification-info-border: var(--border-info);
-      --notification-info-border-width: var(--border-width-thin);
+      --notification-info-border-width: var(--border-width-1);
       --notification-info-radius: var(--radius-md);
       --notification-info-padding: var(--space-12);
       --notification-info-icon: var(--text-info);
@@ -136,7 +136,7 @@
       /* Success */
       --notification-success-surface: var(--surface-success);
       --notification-success-border: var(--border-success);
-      --notification-success-border-width: var(--border-width-thin);
+      --notification-success-border-width: var(--border-width-1);
       --notification-success-radius: var(--radius-md);
       --notification-success-padding: var(--space-12);
       --notification-success-icon: var(--text-success);
@@ -155,7 +155,7 @@
       /* Warning */
       --notification-warning-surface: var(--surface-warning);
       --notification-warning-border: var(--border-warning);
-      --notification-warning-border-width: var(--border-width-thin);
+      --notification-warning-border-width: var(--border-width-1);
       --notification-warning-radius: var(--radius-md);
       --notification-warning-padding: var(--space-12);
       --notification-warning-icon: var(--text-warning);
@@ -174,7 +174,7 @@
       /* Danger */
       --notification-danger-surface: var(--surface-danger);
       --notification-danger-border: var(--border-danger);
-      --notification-danger-border-width: var(--border-width-thin);
+      --notification-danger-border-width: var(--border-width-1);
       --notification-danger-radius: var(--radius-md);
       --notification-danger-padding: var(--space-12);
       --notification-danger-icon: var(--text-danger);
@@ -197,7 +197,7 @@
       align-items: flex-start;
       width: 100%;
       gap: 0;
-      transition: all var(--transition-fast);
+      transition: all var(--duration-150);
       position: relative;
       text-align: left;
       overflow: hidden;
@@ -287,14 +287,14 @@
          color: inherit;
          font-size: inherit;
          line-height: 1;
-         transition: color var(--transition-base);
+         transition: color var(--duration-200);
 
          &:hover {
             color: var(--text-primary);
          }
 
          &:focus {
-            outline: var(--border-width-default) solid currentColor;
+            outline: var(--border-width-2) solid currentColor;
             outline-offset: var(--space-2);
          }
       }
@@ -346,7 +346,7 @@
       gap: var(--space-8);
       padding: var(--space-12) var(--space-16);
       padding-top: var(--space-8);
-      border-top: var(--border-width-thin) solid var(--border-neutral-subtle);
+      border-top: var(--border-width-1) solid var(--border-neutral-subtle);
    }
 
 </style>

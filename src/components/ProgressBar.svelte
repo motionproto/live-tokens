@@ -34,7 +34,7 @@
     /* Primary */
     --progressbar-primary-track-surface: var(--surface-neutral-low);
     --progressbar-primary-track-border: var(--border-neutral-faint);
-    --progressbar-primary-track-border-width: var(--border-width-thin);
+    --progressbar-primary-track-border-width: var(--border-width-1);
     --progressbar-primary-track-height: var(--space-8);
     --progressbar-primary-radius: var(--radius-full);
     --progressbar-primary-fill: var(--gradient-1);
@@ -52,7 +52,7 @@
     /* Success */
     --progressbar-success-track-surface: var(--surface-neutral-low);
     --progressbar-success-track-border: var(--border-neutral-faint);
-    --progressbar-success-track-border-width: var(--border-width-thin);
+    --progressbar-success-track-border-width: var(--border-width-1);
     --progressbar-success-track-height: var(--space-8);
     --progressbar-success-radius: var(--radius-full);
     --progressbar-success-fill: var(--border-success);
@@ -70,7 +70,7 @@
     /* Warning */
     --progressbar-warning-track-surface: var(--surface-neutral-low);
     --progressbar-warning-track-border: var(--border-neutral-faint);
-    --progressbar-warning-track-border-width: var(--border-width-thin);
+    --progressbar-warning-track-border-width: var(--border-width-1);
     --progressbar-warning-track-height: var(--space-8);
     --progressbar-warning-radius: var(--radius-full);
     --progressbar-warning-fill: var(--border-warning);
@@ -88,7 +88,7 @@
     /* Danger */
     --progressbar-danger-track-surface: var(--surface-neutral-low);
     --progressbar-danger-track-border: var(--border-neutral-faint);
-    --progressbar-danger-track-border-width: var(--border-width-thin);
+    --progressbar-danger-track-border-width: var(--border-width-1);
     --progressbar-danger-track-height: var(--space-8);
     --progressbar-danger-radius: var(--radius-full);
     --progressbar-danger-fill: var(--border-danger);
@@ -106,7 +106,7 @@
     /* Info */
     --progressbar-info-track-surface: var(--surface-neutral-low);
     --progressbar-info-track-border: var(--border-neutral-faint);
-    --progressbar-info-track-border-width: var(--border-width-thin);
+    --progressbar-info-track-border-width: var(--border-width-1);
     --progressbar-info-track-height: var(--space-8);
     --progressbar-info-radius: var(--radius-full);
     --progressbar-info-fill: var(--border-info);

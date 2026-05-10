@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import UIRadioGroup from '../../ui/UIRadioGroup.svelte';
   import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
+  import { setCssVar } from '../../lib/cssVarSync';
 
   type Mode = 'image' | 'color';
   export let mode: Mode = 'image';
@@ -11,6 +13,15 @@
     { value: 'image', label: 'Image' },
     { value: 'color', label: 'Color' },
   ];
+
+  // Editor-only backdrop vars aren't persisted to disk; seed surface-canvas as
+  // the default selection on first mount so the picker reads as surface-canvas
+  // and the color-mode preview matches.
+  onMount(() => {
+    if (!document.documentElement.style.getPropertyValue(colorVariable)) {
+      setCssVar(colorVariable, 'var(--surface-canvas)');
+    }
+  });
 </script>
 
 <label class="backdrop-config">

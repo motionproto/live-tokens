@@ -32,13 +32,13 @@
     /* Default */
     --card-default-surface: var(--surface-neutral-high);
     --card-default-border: var(--border-neutral);
-    --card-default-border-width: var(--border-width-thin);
+    --card-default-border-width: var(--border-width-1);
     --card-default-radius: var(--radius-lg);
     --card-default-header-padding: var(--space-16);
     --card-default-body-padding: var(--space-16);
     --card-default-shadow: var(--shadow-sm);
     --card-default-blur: var(--blur-none);
-    --card-default-header-surface: transparent;
+    --card-default-header-surface: var(--color-transparent);
 
     --card-default-title: var(--text-primary);
     --card-default-title-font-family: var(--font-sans);
@@ -57,13 +57,13 @@
     /* Hover */
     --card-hover-surface: var(--surface-neutral-high);
     --card-hover-border: var(--border-neutral-strong);
-    --card-hover-border-width: var(--border-width-thin);
+    --card-hover-border-width: var(--border-width-1);
     --card-hover-radius: var(--radius-lg);
     --card-hover-header-padding: var(--space-16);
     --card-hover-body-padding: var(--space-16);
     --card-hover-shadow: var(--shadow-md);
     --card-hover-blur: var(--blur-none);
-    --card-hover-header-surface: transparent;
+    --card-hover-header-surface: var(--color-transparent);
 
     --card-hover-title: var(--text-primary);
     --card-hover-title-font-family: var(--font-sans);
@@ -86,7 +86,7 @@
     border-radius: var(--card-default-radius);
     box-shadow: var(--card-default-shadow);
     backdrop-filter: blur(var(--card-default-blur));
-    transition: all var(--transition-fast);
+    transition: all var(--duration-150);
     display: flex;
     flex-direction: column;
     overflow: hidden;

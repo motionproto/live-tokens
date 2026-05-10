@@ -50,7 +50,7 @@
   :global(:root) {
     /* Bar */
     --tabbar-bar-divider: var(--border-neutral-subtle);
-    --tabbar-bar-divider-thickness: var(--border-width-thin);
+    --tabbar-bar-divider-thickness: var(--border-width-1);
     --tabbar-bar-radius: var(--radius-md);
     --tabbar-bar-padding: var(--space-8);
 
@@ -62,7 +62,7 @@
     --tabbar-default-text-line-height: var(--line-height-normal);
     --tabbar-default-icon-size: var(--icon-size-md);
     --tabbar-default-padding: var(--space-8);
-    --tabbar-default-border-width: var(--border-width-default);
+    --tabbar-default-border-width: var(--border-width-2);
 
     /* Hover tab */
     --tabbar-hover-text: var(--text-secondary);
@@ -73,7 +73,7 @@
     --tabbar-hover-text-line-height: var(--line-height-normal);
     --tabbar-hover-icon-size: var(--icon-size-md);
     --tabbar-hover-padding: var(--space-8);
-    --tabbar-hover-border-width: var(--border-width-default);
+    --tabbar-hover-border-width: var(--border-width-2);
 
     /* Active tab */
     --tabbar-active-text: var(--text-primary);
@@ -85,7 +85,7 @@
     --tabbar-active-text-line-height: var(--line-height-normal);
     --tabbar-active-icon-size: var(--icon-size-md);
     --tabbar-active-padding: var(--space-8);
-    --tabbar-active-border-width: var(--border-width-default);
+    --tabbar-active-border-width: var(--border-width-2);
   }
 
   .tab-bar {
@@ -110,7 +110,7 @@
     font-weight: var(--tabbar-default-text-font-weight);
     line-height: var(--tabbar-default-text-line-height);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all var(--duration-150);
     position: relative;
   }
 

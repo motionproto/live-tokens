@@ -4,17 +4,7 @@
 
   export const component = 'tabbar';
 
-  // The "bar" object — single state, holds container-level tokens.
-  const barStates: Record<string, Token[]> = {
-    bar: [
-      { label: 'divider color', variable: '--tabbar-bar-divider' },
-      { label: 'divider thickness', variable: '--tabbar-bar-divider-thickness' },
-      { label: 'corner radius', variable: '--tabbar-bar-radius' },
-      { label: 'padding', variable: '--tabbar-bar-padding' },
-    ],
-  };
-
-  // The "tab" object — three states (default/hover/active) of the same tab button.
+  // The tab object — three states (default/hover/active) of the same tab button.
   const tabStateNames = ['default', 'hover', 'active'] as const;
   type TabState = typeof tabStateNames[number];
   function tabStateTokens(s: TabState): Token[] {
@@ -39,10 +29,18 @@
     }];
   }
 
-  const tabStates: Record<string, Token[]> = Object.fromEntries(
-    tabStateNames.map((s) => [`${s} tab`, tabStateTokens(s)]),
-  );
-  const tabTypeGroups: Record<string, TypeGroupConfig[]> = Object.fromEntries(
+  // One VariantGroup with the bar exposed as a state alongside the three tab
+  // states (mirrors SegmentedControl's "control bar" + per-option states layout).
+  const states: Record<string, Token[]> = {
+    bar: [
+      { label: 'divider color', variable: '--tabbar-bar-divider' },
+      { label: 'divider thickness', variable: '--tabbar-bar-divider-thickness' },
+      { label: 'corner radius', variable: '--tabbar-bar-radius' },
+      { label: 'padding', variable: '--tabbar-bar-padding' },
+    ],
+    ...Object.fromEntries(tabStateNames.map((s) => [`${s} tab`, tabStateTokens(s)])),
+  };
+  const typeGroups: Record<string, TypeGroupConfig[]> = Object.fromEntries(
     tabStateNames.map((s) => [`${s} tab`, tabStateTypeGroups(s)]),
   );
   const tabTypeGroupTokens: Token[] = tabStateNames.flatMap((s) => [
@@ -52,9 +50,8 @@
     { label: 'line height', canBeLinked: true, groupKey: 'line-height', variable: `--tabbar-${s}-text-line-height` },
   ]);
   export const allTokens: Token[] = [
-    ...Object.values(barStates).flat(),
-    ...Object.values(tabStates).flat(),
-    ...buildTypeGroupColorTokens(tabTypeGroups),
+    ...Object.values(states).flat(),
+    ...buildTypeGroupColorTokens(typeGroups),
     ...tabTypeGroupTokens,
   ];
 
@@ -87,21 +84,17 @@
 
   $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
 
-  $: visibleTabStates = Object.fromEntries(
-    Object.entries(tabStates).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
+  $: visibleStates = Object.fromEntries(
+    Object.entries(states).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
   ) as Record<string, Token[]>;
 </script>
 
 <ComponentEditorBase {component} title="Tab Bar" description="Tab navigation with icon support and disabled state. Import from <code>components/TabBar.svelte</code>" tokens={allTokens} {linked} tabbable>
-  <VariantGroup name="bar" title="Bar" states={barStates} {component}>
-    <TabBar tabs={demoTabs} selectedTab={selectedDemoTab} on:tabChange={(e) => (selectedDemoTab = e.detail)} />
-  </VariantGroup>
-
   <VariantGroup
-    name="tab"
-    title="Tab"
-    states={visibleTabStates}
-    typeGroups={tabTypeGroups}
+    name="tabbar"
+    title="Tab Bar"
+    states={visibleStates}
+    {typeGroups}
     {component}
     let:activeState
   >

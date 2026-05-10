@@ -9,11 +9,19 @@
   export let selectionsLocked: boolean = false;
 
   const options = [
-    { key: 'none', label: 'None', value: '0' },
-    { key: 'thin', label: 'Thin', value: '1px' },
-    { key: 'default', label: 'Default', value: '2px' },
-    { key: 'thick', label: 'Thick', value: '3px' },
-    { key: 'thicker', label: 'Thicker', value: '4px' },
+    { key: '0', label: '0', value: '0' },
+    { key: '1', label: '1', value: '1px' },
+    { key: '2', label: '2', value: '2px' },
+    { key: '3', label: '3', value: '3px' },
+    { key: '4', label: '4', value: '4px' },
+    { key: '5', label: '5', value: '5px' },
+    { key: '6', label: '6', value: '6px' },
+    { key: '8', label: '8', value: '8px' },
+    { key: '10', label: '10', value: '10px' },
+    { key: '12', label: '12', value: '12px' },
+    { key: '16', label: '16', value: '16px' },
+    { key: '20', label: '20', value: '20px' },
+    { key: '24', label: '24', value: '24px' },
   ] as const;
 </script>
 

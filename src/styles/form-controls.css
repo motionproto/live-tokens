@@ -72,7 +72,7 @@
   line-height: var(--line-height-relaxed);
   vertical-align: middle;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all var(--duration-150);
   /* Prevent clipping */
   overflow: visible !important;
   box-sizing: border-box !important;
@@ -141,7 +141,7 @@
   color: var(--text-primary);
   font-family: var(--font-sans);
   font-size: var(--font-size-md);
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--duration-150);
 }
 
 .form-input:hover:not(:disabled) {

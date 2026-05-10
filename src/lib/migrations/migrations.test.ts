@@ -124,22 +124,22 @@ describe('migration runner — schemaVersion gating', () => {
       // Container default-state chrome → frame (values preserved).
       '--collapsiblesection-container-default-surface': '--surface-canvas-high',
       '--collapsiblesection-container-default-border': '--color-primary-400',
-      '--collapsiblesection-container-default-border-width': '--border-width-thick',
+      '--collapsiblesection-container-default-border-width': '--border-width-3',
       '--collapsiblesection-container-default-radius': '--radius-md',
       '--collapsiblesection-container-default-padding': '--space-4',
       // Container hover/active border tokens drop (frame owns chrome).
       '--collapsiblesection-container-hover-border': '--color-primary-500',
-      '--collapsiblesection-container-hover-border-width': '--border-width-thick',
+      '--collapsiblesection-container-hover-border-width': '--border-width-3',
       '--collapsiblesection-container-active-radius': '--radius-md',
       '--collapsiblesection-container-active-surface': '--surface-canvas-low',
       // Chromeless per-state border / radius drop.
       '--collapsiblesection-chromeless-default-border': '--color-primary-400',
-      '--collapsiblesection-chromeless-hover-border-width': '--border-width-thin',
+      '--collapsiblesection-chromeless-hover-border-width': '--border-width-1',
       '--collapsiblesection-chromeless-active-radius': '--radius-none',
       '--collapsiblesection-chromeless-default-padding': '--space-4',
       // Divider radius drops; divider border-* survives (paints bottom rule).
       '--collapsiblesection-divider-default-border': '--border-neutral-faint',
-      '--collapsiblesection-divider-default-border-width': '--border-width-thin',
+      '--collapsiblesection-divider-default-border-width': '--border-width-1',
       '--collapsiblesection-divider-default-radius': '--radius-none',
       // Expanded panel: only padding for chromeless/divider; surface + padding for container.
       '--collapsiblesection-chromeless-expanded-border': '--color-primary-400',
@@ -155,7 +155,7 @@ describe('migration runner — schemaVersion gating', () => {
     // Container frame-* seeded from old default-state tokens
     expect(migrated['--collapsiblesection-container-frame-surface']).toBe('--surface-canvas-high');
     expect(migrated['--collapsiblesection-container-frame-border']).toBe('--color-primary-400');
-    expect(migrated['--collapsiblesection-container-frame-border-width']).toBe('--border-width-thick');
+    expect(migrated['--collapsiblesection-container-frame-border-width']).toBe('--border-width-3');
     expect(migrated['--collapsiblesection-container-frame-radius']).toBe('--radius-md');
     // Container default-state surface + padding survive (still drive header strip)
     expect(migrated['--collapsiblesection-container-default-surface']).toBe('--surface-canvas-high');
@@ -177,7 +177,7 @@ describe('migration runner — schemaVersion gating', () => {
     expect(migrated['--collapsiblesection-chromeless-default-padding']).toBe('--space-4');
     // Divider border / border-width survive; radius drops
     expect(migrated['--collapsiblesection-divider-default-border']).toBe('--border-neutral-faint');
-    expect(migrated['--collapsiblesection-divider-default-border-width']).toBe('--border-width-thin');
+    expect(migrated['--collapsiblesection-divider-default-border-width']).toBe('--border-width-1');
     expect(migrated['--collapsiblesection-divider-default-radius']).toBeUndefined();
     // Expanded panel cleanup
     expect(migrated['--collapsiblesection-chromeless-expanded-border']).toBeUndefined();

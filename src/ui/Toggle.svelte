@@ -62,11 +62,11 @@
     width: 2.25rem;
     height: var(--space-20);
     border-radius: var(--radius-2xl);
-    border: var(--border-width-thin) solid var(--border-neutral);
+    border: var(--border-width-1) solid var(--border-neutral);
     background: var(--surface-neutral-low);
     padding: 0;
     cursor: inherit;
-    transition: background var(--transition-fast), border-color var(--transition-fast);
+    transition: background var(--duration-150), border-color var(--duration-150);
     flex-shrink: 0;
 
     &.on {
@@ -79,7 +79,7 @@
     }
 
     &:focus-visible {
-      outline: var(--border-width-default) solid var(--border-primary);
+      outline: var(--border-width-2) solid var(--border-primary);
       outline-offset: var(--space-2);
     }
   }
@@ -92,7 +92,7 @@
     height: 0.875rem;
     border-radius: var(--radius-full);
     background: var(--text-secondary);
-    transition: transform var(--transition-fast), background var(--transition-fast);
+    transition: transform var(--duration-150), background var(--duration-150);
 
     .on & {
       transform: translateX(var(--space-16));

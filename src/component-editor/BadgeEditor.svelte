@@ -1,9 +1,10 @@
 <script context="module" lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import { badgeVariants } from '../components/Badge.svelte';
 
   export const component = 'badge';
-  const variants = ['info', 'accent', 'trait'] as const;
+  const variants = badgeVariants;
   type Variant = typeof variants[number];
 
   // Each variant is its own visual presentation; surface/text/border colors are unique.
@@ -45,36 +46,13 @@
 
   // Cross-variant sharing: any token with canBeLinked+groupKey participates in
   // the linked block when ≥2 variants currently agree on its alias.
-  const linkableContexts = new Map<string, string>([
-    // Use the first variant's variable as the canonical key for each groupKey.
-    ['--badge-info-border-width', 'info'],
-    ['--badge-accent-border-width', 'accent'],
-    ['--badge-trait-border-width', 'trait'],
-    ['--badge-info-radius', 'info'],
-    ['--badge-accent-radius', 'accent'],
-    ['--badge-trait-radius', 'trait'],
-    ['--badge-info-padding', 'info'],
-    ['--badge-accent-padding', 'accent'],
-    ['--badge-trait-padding', 'trait'],
-    ['--badge-info-shadow', 'info'],
-    ['--badge-accent-shadow', 'accent'],
-    ['--badge-trait-shadow', 'trait'],
-    ['--badge-info-icon-size', 'info'],
-    ['--badge-accent-icon-size', 'accent'],
-    ['--badge-trait-icon-size', 'trait'],
-    ['--badge-info-text-font-family', 'info'],
-    ['--badge-accent-text-font-family', 'accent'],
-    ['--badge-trait-text-font-family', 'trait'],
-    ['--badge-info-text-font-size', 'info'],
-    ['--badge-accent-text-font-size', 'accent'],
-    ['--badge-trait-text-font-size', 'trait'],
-    ['--badge-info-text-font-weight', 'info'],
-    ['--badge-accent-text-font-weight', 'accent'],
-    ['--badge-trait-text-font-weight', 'trait'],
-    ['--badge-info-text-line-height', 'info'],
-    ['--badge-accent-text-line-height', 'accent'],
-    ['--badge-trait-text-line-height', 'trait'],
-  ]);
+  const linkableProps = [
+    'border-width', 'radius', 'padding', 'shadow', 'icon-size',
+    'text-font-family', 'text-font-size', 'text-font-weight', 'text-line-height',
+  ] as const;
+  const linkableContexts = new Map<string, string>(
+    variants.flatMap((v) => linkableProps.map((p) => [`--badge-${v}-${p}`, v] as [string, string]))
+  );
 
   const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
 </script>
@@ -87,18 +65,30 @@
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   import { buildSiblings } from './scaffolding/siblings';
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
-  import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
+  import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
+  import { onMount } from 'svelte';
+  import { setCssVar } from '../lib/cssVarSync';
 
   $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
   $: visibleVariantTokens = (v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet);
 
-  let bgMode: 'image' | 'color' = 'image';
   const bgVar = '--backdrop-badge-surface';
+
+  onMount(() => {
+    if (!document.documentElement.style.getPropertyValue(bgVar)) {
+      setCssVar(bgVar, 'var(--surface-canvas)');
+    }
+  });
 </script>
 
-<ComponentEditorBase {component} title="Badge" description="Pill-shaped badges with variant support. Import from <code>components/Badge.svelte</code>" tokens={allTokens} {linked} tabbable variants={variantOptions}>
+<ComponentEditorBase {component} title="Badge" description="Pill-shaped badges with color variants. Import from <code>components/Badge.svelte</code>" tokens={allTokens} {linked} tabbable variants={variantOptions}>
   <svelte:fragment slot="config">
-    <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
+    <label class="backdrop-config">
+      <span>Sample background</span>
+      <div class="picker-slot">
+        <UIPaletteSelector variable={bgVar} />
+      </div>
+    </label>
   </svelte:fragment>
   {#each variants as v}
     <VariantGroup
@@ -109,18 +99,10 @@
       {component}
       siblings={buildSiblings(variants, v, (sv) => ({ [sv]: variantTokens(sv) }), (sv) => ({ [sv]: variantTypeGroups(sv) }))}
     >
-      <ShadowBackdrop mode={bgMode} colorVariable={bgVar}>
+      <ShadowBackdrop mode="color" colorVariable={bgVar}>
         <div class="badge-showcase-grid">
-          {#if v === 'info'}
-            <Badge variant="info">info</Badge>
-            <Badge variant="info" icon="fa-solid fa-dice-d20">With Icon</Badge>
-          {:else if v === 'accent'}
-            <Badge variant="accent">scenes</Badge>
-          {:else}
-            <Badge variant="trait">arcane</Badge>
-            <Badge variant="trait">divine</Badge>
-            <Badge variant="trait">primal</Badge>
-          {/if}
+          <Badge variant={v}>{v}</Badge>
+          <Badge variant={v} icon="fa-solid fa-dice-d20">With Icon</Badge>
         </div>
       </ShadowBackdrop>
     </VariantGroup>
@@ -133,5 +115,19 @@
     flex-wrap: wrap;
     gap: var(--space-8);
     align-items: center;
+  }
+
+  .backdrop-config {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+  }
+
+  .picker-slot {
+    min-width: 8rem;
+  }
+
+  .picker-slot :global(.ui-token-selector) {
+    width: 100%;
   }
 </style>

@@ -24,7 +24,7 @@
   :global(:root) {
     /* Default */
     --radiobutton-default-dot-border-color: var(--border-neutral);
-    --radiobutton-default-dot-border-width: var(--border-width-default);
+    --radiobutton-default-dot-border-width: var(--border-width-2);
     --radiobutton-default-dot-fill: var(--text-secondary);
     --radiobutton-default-dot-size: var(--dot-size-0);
     --radiobutton-default-label: var(--text-primary);
@@ -35,7 +35,7 @@
 
     /* Hover */
     --radiobutton-hover-dot-border-color: var(--border-neutral);
-    --radiobutton-hover-dot-border-width: var(--border-width-default);
+    --radiobutton-hover-dot-border-width: var(--border-width-2);
     --radiobutton-hover-dot-fill: var(--text-secondary);
     --radiobutton-hover-dot-size: var(--dot-size-50);
     --radiobutton-hover-label: var(--text-primary);
@@ -46,7 +46,7 @@
 
     /* Active */
     --radiobutton-active-dot-border-color: var(--border-neutral);
-    --radiobutton-active-dot-border-width: var(--border-width-default);
+    --radiobutton-active-dot-border-width: var(--border-width-2);
     --radiobutton-active-dot-fill: var(--text-secondary);
     --radiobutton-active-dot-size: var(--dot-size-50);
     --radiobutton-active-label: var(--text-primary);
@@ -61,11 +61,10 @@
     align-items: center;
     justify-content: flex-start;
     gap: var(--space-8);
-    height: 1rem;
     background: transparent;
     border: none;
     cursor: pointer;
-    transition: all var(--transition-base);
+    transition: all var(--duration-200);
     line-height: var(--line-height-tight);
 
     &:hover,
@@ -82,6 +81,17 @@
         font-size: var(--radiobutton-hover-label-font-size);
         font-weight: var(--radiobutton-hover-label-font-weight);
         line-height: var(--radiobutton-hover-label-line-height);
+      }
+
+      .radio-dot {
+        border: var(--radiobutton-hover-dot-border-width) solid var(--radiobutton-color, var(--radiobutton-hover-dot-border-color));
+
+        &::after {
+          width: var(--radiobutton-hover-dot-size);
+          height: var(--radiobutton-hover-dot-size);
+          background: var(--radiobutton-color, var(--radiobutton-hover-dot-fill));
+          opacity: 1;
+        }
       }
     }
 
@@ -107,6 +117,7 @@
           width: var(--radiobutton-active-dot-size);
           height: var(--radiobutton-active-dot-size);
           background: var(--radiobutton-color, var(--radiobutton-active-dot-fill));
+          opacity: 1;
         }
       }
     }
@@ -119,7 +130,7 @@
     border-radius: var(--radius-full);
     border: var(--radiobutton-default-dot-border-width) solid var(--radiobutton-default-dot-border-color);
     flex-shrink: 0;
-    transition: all var(--transition-base);
+    transition: all var(--duration-200);
 
     &::after {
       content: '';
@@ -131,19 +142,8 @@
       background: var(--radiobutton-color, var(--radiobutton-default-dot-fill));
       border-radius: var(--radius-full);
       transform: translate(-50%, -50%);
-      transition: all var(--transition-base);
-    }
-
-    .radio-button:hover &,
-    .radio-button.force-hover & {
-      border: var(--radiobutton-hover-dot-border-width) solid var(--radiobutton-color, var(--radiobutton-hover-dot-border-color));
-    }
-
-    .radio-button:hover &::after,
-    .radio-button.force-hover &::after {
-      width: var(--radiobutton-hover-dot-size);
-      height: var(--radiobutton-hover-dot-size);
-      background: var(--radiobutton-color, var(--radiobutton-hover-dot-fill));
+      opacity: 0;
+      transition: opacity var(--duration-200);
     }
   }
 

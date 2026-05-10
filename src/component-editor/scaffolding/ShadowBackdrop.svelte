@@ -4,11 +4,13 @@
   export let mode: 'image' | 'color' = 'image';
   /** CSS var name (set by ShadowBackdropControls) the backdrop reads when in color mode. */
   export let colorVariable: string;
+  /** Padding around the slotted preview. Set to '0' when the slotted component should cover the full backdrop area (e.g. dialog overlay). */
+  export let padding: string = '128px';
 
   $: backgroundStyle =
     mode === 'image'
-      ? `background-image: url(${newspaperBg}); background-size: cover; background-position: center; background-repeat: no-repeat;`
-      : `background: var(${colorVariable}, #1a1a1a);`;
+      ? `padding: ${padding}; background-image: url(${newspaperBg}); background-size: cover; background-position: center; background-repeat: no-repeat;`
+      : `padding: ${padding}; background: var(${colorVariable}, #1a1a1a);`;
 </script>
 
 <div class="shadow-backdrop" style={backgroundStyle}>
@@ -17,7 +19,6 @@
 
 <style>
   .shadow-backdrop {
-    padding: 128px;
     border-radius: var(--ui-radius-md);
     overflow: hidden;
   }
