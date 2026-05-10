@@ -11,6 +11,7 @@
    * `tokens`), so tokens.css remains the single source of truth.
    */
   import { createEventDispatcher } from 'svelte';
+  import { editorState } from '../../lib/editorStore';
 
   interface TokenItem {
     variable: string;
@@ -29,17 +30,56 @@
     | 'icon-size';   // star icon sized by font-size: var(--xx)
 
   export let kind: ScaleKind;
-  export let tokens: TokenItem[] = [];
+  /** Var names to resolve via getComputedStyle. Mutually exclusive with `tokens`. */
+  export let vars: readonly string[] | undefined = undefined;
+  /** Pre-built token list. Use when values are static (e.g. duration/z-index/opacity
+   *  literals) and don't need live CSS resolution. Mutually exclusive with `vars`. */
+  export let tokens: TokenItem[] | undefined = undefined;
+  /** Bumped by the parent when the live CSS values may have changed (breakpoint
+   *  flip). Triggers re-resolution when reading via `vars`. */
+  export let liveVersion: number = 0;
   /** When provided, the parent owns the copy-flash UI (pass copiedVar through). */
   export let copiedVar: string | null = null;
 
   const dispatch = createEventDispatcher<{ copy: string }>();
   function copy(v: string) { dispatch('copy', v); }
+
+  function readVar(name: string): string {
+    if (typeof document === 'undefined') return '';
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  function formatValueHint(raw: string): string {
+    if (!raw) return '';
+    if (raw === '9999px') return '9999px (pill)';
+    const rem = raw.match(/^(-?[\d.]+)rem$/);
+    if (rem) {
+      const px = Math.round(parseFloat(rem[1]) * 16 * 100) / 100;
+      return `${raw} (${px}px)`;
+    }
+    return raw;
+  }
+
+  // Re-read whenever liveVersion bumps OR the editor mutates any CSS var
+  // (editor edits fan out via cssVarSync to :root). Depending on $editorState
+  // keeps the display in sync with user edits for free.
+  let resolved: TokenItem[] = [];
+  $: {
+    liveVersion;
+    $editorState;
+    if (tokens) {
+      resolved = tokens;
+    } else if (vars) {
+      resolved = vars.map((variable) => ({ variable, value: formatValueHint(readVar(variable)) }));
+    } else {
+      resolved = [];
+    }
+  }
 </script>
 
 {#if kind === 'spacing'}
   <div class="spacing-grid">
-    {#each tokens as token}
+    {#each resolved as token}
       <div class="spacing-item">
         <div class="spacing-bar" style="width: var({token.variable}); min-width: 2px;"></div>
         <div class="token-info">
@@ -51,7 +91,7 @@
   </div>
 {:else if kind === 'border'}
   <div class="spacing-grid">
-    {#each tokens as token}
+    {#each resolved as token}
       <div class="spacing-item">
         <div class="border-width-bar" style="height: var({token.variable});"></div>
         <div class="token-info">
@@ -63,7 +103,7 @@
   </div>
 {:else if kind === 'radius'}
   <div class="radius-grid">
-    {#each tokens as token}
+    {#each resolved as token}
       <div class="radius-item">
         <div class="radius-box" style="border-radius: var({token.variable});"></div>
         <div class="token-info">
@@ -75,7 +115,7 @@
   </div>
 {:else if kind === 'font-size'}
   <div class="font-size-demos">
-    {#each tokens as token}
+    {#each resolved as token}
       <div class="font-size-item">
         <span class="font-size-preview" style="font-size: var({token.variable});">Ag</span>
         <div class="token-info">
@@ -87,7 +127,7 @@
   </div>
 {:else if kind === 'font-weight'}
   <div class="font-weight-demos">
-    {#each tokens as token}
+    {#each resolved as token}
       <div class="font-weight-item">
         <span class="font-weight-preview" style="font-weight: var({token.variable});">Ag</span>
         <div class="token-info">
@@ -99,7 +139,7 @@
   </div>
 {:else if kind === 'line-height'}
   <div class="token-table">
-    {#each tokens as token}
+    {#each resolved as token}
       <div class="token-row">
         <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copy(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
         <span class="token-value">{token.value}</span>
@@ -108,7 +148,7 @@
   </div>
 {:else if kind === 'icon-size'}
   <div class="font-size-demos">
-    {#each tokens as token}
+    {#each resolved as token}
       <div class="font-size-item">
         <span class="icon-size-preview" style="font-size: var({token.variable});">
           <i class="fas fa-star"></i>
