@@ -1,13 +1,12 @@
 <script lang="ts">
   import { onMount, onDestroy, tick } from 'svelte';
-  import Button from '../components/Button.svelte';
   import { hexToOklch, oklchToHex, gamutClamp } from '../lib/oklch';
   import { type CurveAnchor, makeAnchor, sampleCurve, lightnessCurveConfig, saturationCurveConfig, textLightnessCurveConfig } from './curveEngine';
   import ColorEditPanel from './ColorEditPanel.svelte';
-  import Toggle from './Toggle.svelte';
   import OverridesPanel from './palette/OverridesPanel.svelte';
   import GradientStopEditor from './palette/GradientStopEditor.svelte';
   import ScaleCurveEditor from './palette/ScaleCurveEditor.svelte';
+  import PaletteBase from './palette/PaletteBase.svelte';
   import type { PaletteConfig, GradientStyle, GradientStop } from '../lib/themeTypes';
   import { editorState, mutate, setPaletteConfig, beginSliderGesture, beginScope, commitScope, cancelScope, type Scope } from '../lib/editorStore';
   import { scaleToCssVar } from '../lib/paletteDerivation';
@@ -373,6 +372,19 @@
     } else {
       gradientCssValue = '';
     }
+  }
+
+  function startBaseEdit() {
+    if (editingKey === BASE_KEY) { confirmEdit(); return; }
+    if (mode === 'gray') {
+      editingSnapshot = gray500Hex;
+      snapshotTintHue = tintHue;
+      snapshotTintChroma = tintChroma;
+    } else {
+      editingSnapshot = baseColor;
+    }
+    editingKey = BASE_KEY;
+    paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true });
   }
 
   function handlePaletteClick(ps: { label: string; lightness: number; index: number }) {
@@ -903,70 +915,27 @@
 </script>
 
 <div class="palette-editor" style="--editor-base: {mode === 'gray' ? gray500Hex : baseColor}">
-  <div class="editor-top">
-    <div class="editor-primary">
-      {#if mode === 'chromatic'}
-        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-        <div
-          class="header-swatch"
-          class:active={isEditingBase}
-          style="background: {baseColor}"
-          on:click={() => { if (editingKey === BASE_KEY) { confirmEdit(); } else { editingSnapshot = baseColor; editingKey = BASE_KEY; paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true }); } }}
-          role="button"
-          tabindex="0"
-          on:keydown={(e) => e.key === 'Enter' && (editingKey === BASE_KEY ? confirmEdit() : (editingSnapshot = baseColor, editingKey = BASE_KEY, paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true })))}
-        ></div>
-      {:else}
-        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-        <div
-          class="header-swatch"
-          class:active={isEditingBase}
-          style="background: {gray500Hex}"
-          on:click={() => { if (editingKey === BASE_KEY) { confirmEdit(); } else { editingSnapshot = gray500Hex; snapshotTintHue = tintHue; snapshotTintChroma = tintChroma; editingKey = BASE_KEY; paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true }); } }}
-          role="button"
-          tabindex="0"
-          on:keydown={(e) => e.key === 'Enter' && (editingKey === BASE_KEY ? confirmEdit() : (editingSnapshot = gray500Hex, snapshotTintHue = tintHue, snapshotTintChroma = tintChroma, editingKey = BASE_KEY, paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true })))}
-        ></div>
-      {/if}
-      <div class="primary-info">
-        <span class="editor-label">{label}</span>
-        {#if mode === 'chromatic'}
-          <button
-            class="base-hex clickable-hex"
-            type="button"
-            on:click={(e) => copyHex(BASE_KEY, baseColor, e)}
-          >{copiedKey === BASE_KEY ? 'copied!' : baseColor}</button>
-        {:else}
-          <button
-            class="base-hex clickable-hex"
-            type="button"
-            on:click={(e) => copyHex('gray-500', gray500Hex, e)}
-          >{copiedKey === 'gray-500' ? 'copied!' : gray500Hex}</button>
-        {/if}
-      </div>
-    </div>
-  </div>
-
-  {#if isEditingBase && panelOpen && editingColor}
-    <ColorEditPanel
-      color={editingColor}
-      title={editPanelTitle}
-      showRemoveOverride={false}
-      mode={mode === 'gray' ? 'hue-chroma' : 'hsl'}
-      hue={tintHue}
-      chroma={tintChroma}
-      onHueChromaChange={(h, c) => patchPalette({ tintHue: h, tintChroma: c }, 'tint hue/chroma')}
-      onColorChange={handleColorChange}
-      onConfirm={confirmEdit}
-      onCancel={cancelEdit}
-      onRemoveOverride={() => {}}
-      onSliderStart={() => beginSliderGesture(`edit ${label} base`)}
-    >
-      <span slot="actions" class:hidden={mode !== 'chromatic'}>
-        <Toggle checked={anchorToBase} on:change={(e) => setAnchorToBase(e.detail ?? !anchorToBase)} label="Lock base color to position 500" />
-      </span>
-    </ColorEditPanel>
-  {/if}
+  <PaletteBase
+    {label}
+    {mode}
+    {baseColor}
+    {gray500Hex}
+    {tintHue}
+    {tintChroma}
+    {anchorToBase}
+    {isEditingBase}
+    {panelOpen}
+    {editingColor}
+    {editPanelTitle}
+    {copiedKey}
+    onStartEdit={startBaseEdit}
+    onConfirm={confirmEdit}
+    onCancel={cancelEdit}
+    onColorChange={handleColorChange}
+    onTintChange={(h, c) => patchPalette({ tintHue: h, tintChroma: c }, 'tint hue/chroma')}
+    onAnchorToBaseChange={setAnchorToBase}
+    onCopyBaseHex={copyHex}
+  />
 
   {#if mode === 'chromatic'}
   <!-- Palette + Text row -->
@@ -1368,74 +1337,6 @@
     border-bottom: none;
   }
 
-  .editor-top {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--ui-space-16);
-    flex-wrap: wrap;
-  }
-
-  .editor-primary {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-    flex-shrink: 0;
-  }
-
-  .primary-info {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-2);
-  }
-
-  .header-swatch {
-    width: 4rem;
-    height: 4rem;
-    border-radius: var(--ui-radius-md);
-    border: 2px solid var(--ui-border-default);
-    flex-shrink: 0;
-    cursor: pointer;
-  }
-
-  .header-swatch:hover {
-    border-color: var(--ui-border-strong);
-  }
-
-  .header-swatch.active {
-    border-color: var(--ui-border-strong);
-    outline: 2px solid var(--ui-border-medium);
-    outline-offset: 1px;
-  }
-
-
-  .editor-label {
-    font-size: var(--ui-font-size-lg);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-primary);
-  }
-
-  .base-hex {
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
-    font-family: var(--ui-font-mono);
-  }
-
-  .clickable-hex {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: var(--ui-space-2) var(--ui-space-4);
-    border-radius: var(--ui-radius-sm);
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
-    font-family: var(--ui-font-mono);
-  }
-
-  .clickable-hex:hover {
-    background: var(--ui-surface-highest);
-    color: var(--ui-text-primary);
-  }
-
   /* Scale header with edit button */
 
   .scale-header {
@@ -1457,16 +1358,6 @@
   .edit-toggle:hover {
     color: var(--ui-text-primary);
     border-color: var(--ui-border-medium);
-  }
-
-  .edit-toggle.active {
-    color: var(--ui-text-primary);
-    border-color: var(--ui-border-medium);
-    background: var(--ui-surface-high);
-  }
-
-  .hidden {
-    display: none;
   }
 
   .derived-toggle {
@@ -1700,10 +1591,6 @@
     }
     .scales-row {
       gap: var(--ui-space-24);
-    }
-    .header-swatch {
-      width: 3rem;
-      height: 3rem;
     }
   }
 
