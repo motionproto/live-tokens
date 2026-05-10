@@ -5,6 +5,7 @@
   import ProjectFontsSection from './ProjectFontsSection.svelte';
   import GradientEditor from './GradientEditor.svelte';
   import ColumnsSection from './sections/ColumnsSection.svelte';
+  import TokenScaleTable from './sections/TokenScaleTable.svelte';
   import {
     editorState, mutate, beginScope, commitScope, beginSliderGesture,
     seedShadowsFromDom, shadowTokenCss, computeShadowXY,
@@ -670,29 +671,9 @@
   <section class="section" id="spacing">
     <h2 class="section-title">Spacing &amp; Borders</h2>
     <h3 class="subsection-title">Spacing</h3>
-    <div class="spacing-grid">
-      {#each spacingTokens as token}
-        <div class="spacing-item">
-          <div class="spacing-bar" style="width: var({token.variable}); min-width: 2px;"></div>
-          <div class="token-info">
-            <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-            <span class="token-value">{token.value}</span>
-          </div>
-        </div>
-      {/each}
-    </div>
+    <TokenScaleTable kind="spacing" tokens={spacingTokens} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
     <h3 class="subsection-title">Borders</h3>
-    <div class="spacing-grid">
-      {#each borderWidthTokens as token}
-        <div class="spacing-item">
-          <div class="border-width-bar" style="height: var({token.variable});"></div>
-          <div class="token-info">
-            <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-            <span class="token-value">{token.value}</span>
-          </div>
-        </div>
-      {/each}
-    </div>
+    <TokenScaleTable kind="border" tokens={borderWidthTokens} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
   </section>
 
   <!-- Columns -->
@@ -701,17 +682,7 @@
   <!-- Border Radius -->
   <section class="section" id="border-radius">
     <h2 class="section-title">Border Radius</h2>
-    <div class="radius-grid">
-      {#each radiusTokens as token}
-        <div class="radius-item">
-          <div class="radius-box" style="border-radius: var({token.variable});"></div>
-          <div class="token-info">
-            <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-            <span class="token-value">{token.value}</span>
-          </div>
-        </div>
-      {/each}
-    </div>
+    <TokenScaleTable kind="radius" tokens={radiusTokens} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
   </section>
 
   <!-- Typography -->
@@ -727,44 +698,17 @@
 
       <div class="typography-group">
         <h3 class="group-title">Font Sizes</h3>
-        <div class="font-size-demos">
-          {#each fontSizeTokens as token}
-            <div class="font-size-item">
-              <span class="font-size-preview" style="font-size: var({token.variable});">Ag</span>
-              <div class="token-info">
-                <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-                <span class="token-value">{token.value}</span>
-              </div>
-            </div>
-          {/each}
-        </div>
+        <TokenScaleTable kind="font-size" tokens={fontSizeTokens} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
       </div>
 
       <div class="typography-group">
         <h3 class="group-title">Font Weights</h3>
-        <div class="font-weight-demos">
-          {#each fontWeightTokens as token}
-            <div class="font-weight-item">
-              <span class="font-weight-preview" style="font-weight: var({token.variable});">Ag</span>
-              <div class="token-info">
-                <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-                <span class="token-value">{token.value}</span>
-              </div>
-            </div>
-          {/each}
-        </div>
+        <TokenScaleTable kind="font-weight" tokens={fontWeightTokens} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
       </div>
 
       <div class="typography-group">
         <h3 class="group-title">Line Heights</h3>
-        <div class="token-table">
-          {#each lineHeightTokens as token}
-            <div class="token-row">
-              <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-              <span class="token-value">{token.value}</span>
-            </div>
-          {/each}
-        </div>
+        <TokenScaleTable kind="line-height" tokens={lineHeightTokens} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
       </div>
     </div>
   </section>
@@ -772,20 +716,7 @@
   <!-- Icon Sizes -->
   <section class="section" id="icon-sizes">
     <h2 class="section-title">Icon Sizes</h2>
-
-    <div class="font-size-demos">
-      {#each iconSizeTokens as token}
-        <div class="font-size-item">
-          <span class="icon-size-preview" style="font-size: var({token.variable});">
-            <i class="fas fa-star"></i>
-          </span>
-          <div class="token-info">
-            <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-            <span class="token-value">{token.value}</span>
-          </div>
-        </div>
-      {/each}
-    </div>
+    <TokenScaleTable kind="icon-size" tokens={iconSizeTokens} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
   </section>
 
   <!-- Shadows -->
@@ -1428,38 +1359,17 @@
     <div class="utility-columns">
       <div class="utility-group">
         <h3 class="group-title">Durations</h3>
-        <div class="token-table">
-          {#each durationTokens as token}
-            <div class="token-row">
-              <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-              <span class="token-value">{token.value}</span>
-            </div>
-          {/each}
-        </div>
+        <TokenScaleTable kind="line-height" tokens={durationTokens} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
       </div>
 
       <div class="utility-group">
         <h3 class="group-title">Z-Index Layers</h3>
-        <div class="token-table">
-          {#each zIndexTokens as token}
-            <div class="token-row">
-              <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-              <span class="token-value">{token.value}</span>
-            </div>
-          {/each}
-        </div>
+        <TokenScaleTable kind="line-height" tokens={zIndexTokens} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
       </div>
 
       <div class="utility-group">
         <h3 class="group-title">Opacity</h3>
-        <div class="token-table">
-          {#each opacityTokens as token}
-            <div class="token-row">
-              <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copyVariable(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-              <span class="token-value">{token.value}</span>
-            </div>
-          {/each}
-        </div>
+        <TokenScaleTable kind="line-height" tokens={opacityTokens} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
       </div>
     </div>
   </section>
@@ -1528,13 +1438,7 @@
     color: var(--ui-text-muted);
   }
 
-  /* Spacing & Borders */
-  .spacing-grid {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-6);
-  }
-
+  /* Subsection title (used by Spacing & Borders) */
   .subsection-title {
     margin: var(--ui-space-16) 0 var(--ui-space-8);
     font-size: var(--ui-font-size-sm);
@@ -1547,52 +1451,6 @@
   .subsection-title:first-child,
   .section-title + .subsection-title {
     margin-top: 0;
-  }
-
-  .spacing-item {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-12);
-  }
-
-  .spacing-bar {
-    height: 1.25rem;
-    background: var(--ui-text-accent);
-    border-radius: var(--ui-radius-sm);
-    flex-shrink: 0;
-  }
-
-  .border-width-bar {
-    width: 4rem;
-    background: var(--ui-text-accent);
-    flex-shrink: 0;
-  }
-
-  .spacing-item .token-info {
-    flex-direction: row;
-    gap: var(--ui-space-8);
-    align-items: baseline;
-  }
-
-  /* Border Radius */
-  .radius-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
-    gap: var(--ui-space-16);
-  }
-
-  .radius-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--ui-space-8);
-  }
-
-  .radius-box {
-    width: 3.5rem;
-    height: 3.5rem;
-    background: none;
-    border: 2px solid var(--ui-border-medium);
   }
 
   /* Typography */
@@ -1612,84 +1470,6 @@
 
   .font-families-group {
     grid-column: 1 / -1;
-  }
-
-  .font-size-demos {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-4);
-  }
-
-  .font-size-item {
-    display: flex;
-    align-items: baseline;
-    gap: var(--ui-space-12);
-  }
-
-  .font-size-preview {
-    color: var(--ui-text-primary);
-    font-family: var(--ui-font-sans);
-    line-height: 1;
-    min-width: 3rem;
-  }
-
-  .icon-size-preview {
-    color: var(--ui-text-primary);
-    line-height: 1;
-    min-width: 3rem;
-    display: inline-flex;
-    align-items: center;
-  }
-
-  .font-size-item .token-info {
-    flex-direction: row;
-    gap: var(--ui-space-8);
-    align-items: baseline;
-  }
-
-  .font-weight-demos {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-4);
-  }
-
-  .font-weight-item {
-    display: flex;
-    align-items: baseline;
-    gap: var(--ui-space-12);
-  }
-
-  .font-weight-preview {
-    font-size: var(--ui-font-size-xl);
-    font-family: var(--ui-font-sans);
-    color: var(--ui-text-primary);
-    line-height: 1;
-    min-width: 2rem;
-  }
-
-  .font-weight-item .token-info {
-    flex-direction: row;
-    gap: var(--ui-space-8);
-    align-items: baseline;
-  }
-
-  /* Token Table */
-  .token-table {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-4);
-  }
-
-  .token-row {
-    display: flex;
-    align-items: baseline;
-    gap: var(--ui-space-12);
-    padding: var(--ui-space-4) 0;
-    border-bottom: 1px solid var(--ui-border-faint);
-  }
-
-  .token-row:last-child {
-    border-bottom: none;
   }
 
   /* Shadows */
