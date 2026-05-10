@@ -1,6 +1,6 @@
 <script lang="ts">
-  import VariablesTab from './VariablesTab.svelte';
-  import ThemeFileManager from './ThemeFileManager.svelte';
+  import VariablesTab from '../ui/VariablesTab.svelte';
+  import ThemeFileManager from '../ui/ThemeFileManager.svelte';
   import { persistTheme, hydrateTheme } from '../lib/themeService';
   import { scrollSectionIntoView } from '../lib/scrollSection';
   import { editorState } from '../lib/editorStore';
