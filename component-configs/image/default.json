@@ -2,7 +2,7 @@
   "name": "default",
   "component": "image",
   "createdAt": "2026-04-26T00:00:00.000Z",
-  "updatedAt": "2026-04-29T08:30:47.094Z",
+  "updatedAt": "2026-05-10T16:59:16.436Z",
   "aliases": {
     "--image-default-radius": "--radius-xl",
     "--image-default-border": "--border-neutral",

@@ -1,11 +1,13 @@
 <script lang="ts">
   import { onMount, onDestroy, tick } from 'svelte';
-  import Button from '../components/Button.svelte';
   import { hexToOklch, oklchToHex, gamutClamp } from '../lib/oklch';
   import { type CurveAnchor, makeAnchor, sampleCurve, lightnessCurveConfig, saturationCurveConfig, textLightnessCurveConfig } from './curveEngine';
-  import BezierCurveEditor from './BezierCurveEditor.svelte';
   import ColorEditPanel from './ColorEditPanel.svelte';
-  import Toggle from './Toggle.svelte';
+  import OverridesPanel from './palette/OverridesPanel.svelte';
+  import GradientStopEditor from './palette/GradientStopEditor.svelte';
+  import ScaleCurveEditor from './palette/ScaleCurveEditor.svelte';
+  import PaletteBase from './palette/PaletteBase.svelte';
+  import { type EditingState, idleState, BASE_KEY, isEditingBase as isBaseEdit } from './palette/paletteEditorState';
   import type { PaletteConfig, GradientStyle, GradientStop } from '../lib/themeTypes';
   import { editorState, mutate, setPaletteConfig, beginSliderGesture, beginScope, commitScope, cancelScope, type Scope } from '../lib/editorStore';
   import { scaleToCssVar } from '../lib/paletteDerivation';
@@ -96,8 +98,6 @@
   // --- Transient UI state (not persisted; not in PaletteConfig) ---
   let lockedLightnessIdx: number | null = null;
   let lockedSaturationIdx: number | null = null;
-  let draggingStopIndex: number | null = null;
-  let selectedStopIndex: number = 0;
 
   // Handle for the open palette edit scope: a clipping scope (clipUndoFloor:
   // true) bracketing one panel-open → confirm/cancel cycle. Held at component
@@ -114,103 +114,8 @@
   let gradientCssValue = '';
   let gradientBarPreview = '';
 
-  // Must run after paletteComputed is defined — see reactive block below
-
-  function onAngleInput(e: Event) {
-    const v = parseInt((e.currentTarget as HTMLInputElement).value) || 0;
-    edit('gradientAngle', v);
-  }
-
-  function onReverseChange(e: Event) {
-    edit('gradientReverse', (e.currentTarget as HTMLInputElement).checked);
-  }
-
   function onEmptyModeChange(e: Event) {
     edit('emptyMode', (e.currentTarget as HTMLInputElement).checked ? 'gradient' : 'solid');
-  }
-
-  function onStopColorChange(e: Event) {
-    const v = (e.currentTarget as HTMLSelectElement).value;
-    const next = gradientStops.map((s, idx) => idx === selectedStopIndex ? { ...s, paletteLabel: v } : s);
-    edit('gradientStops', next);
-  }
-
-  function onStopPositionChange(e: Event) {
-    const raw = parseInt((e.currentTarget as HTMLInputElement).value) || 0;
-    const v = Math.max(0, Math.min(100, raw));
-    const next = gradientStops.map((s, idx) => idx === selectedStopIndex ? { ...s, position: v } : s);
-    edit('gradientStops', next);
-  }
-
-  function addGradientStop(position: number) {
-    // Find nearest palette color by interpolating between surrounding stops
-    const nearest = paletteComputed.reduce((prev, curr) => {
-      const prevDist = Math.abs(parseInt(prev.label) - 500);
-      const currDist = Math.abs(parseInt(curr.label) - 500);
-      return currDist < prevDist ? curr : prev;
-    });
-    const next = [...gradientStops, { position, paletteLabel: nearest.label }];
-    edit('gradientStops', next);
-    selectedStopIndex = next.length - 1;
-  }
-
-  function removeGradientStop(index: number) {
-    if (gradientStops.length <= 2) return;
-    const next = gradientStops.filter((_, i) => i !== index);
-    edit('gradientStops', next);
-    if (selectedStopIndex >= next.length) selectedStopIndex = next.length - 1;
-  }
-
-  function handleStopHandleMouseDown(e: MouseEvent, i: number) {
-    selectedStopIndex = i;
-    draggingStopIndex = i;
-    const bar = (e.currentTarget as HTMLElement).parentElement!;
-    const rect = bar.getBoundingClientRect();
-    beginSliderGesture('drag gradient stop');
-    function onMove(me: MouseEvent) {
-      if (draggingStopIndex === null) return;
-      const newPos = Math.round(Math.max(0, Math.min(100, ((me.clientX - rect.left) / rect.width) * 100)));
-      const next = gradientStops.map((s, idx) => idx === draggingStopIndex ? { ...s, position: newPos } : s);
-      edit('gradientStops', next);
-    }
-    function onUp() {
-      draggingStopIndex = null;
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-    }
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-  }
-
-  function handleStopBarMouseDown(e: MouseEvent) {
-    const bar = (e.currentTarget as HTMLElement);
-    const rect = bar.getBoundingClientRect();
-    const pos = Math.round(((e.clientX - rect.left) / rect.width) * 100);
-
-    const nearIdx = gradientStops.findIndex(s => Math.abs(s.position - pos) < 4);
-    if (nearIdx >= 0) {
-      selectedStopIndex = nearIdx;
-      draggingStopIndex = nearIdx;
-      beginSliderGesture('drag gradient stop');
-    } else {
-      addGradientStop(Math.max(0, Math.min(100, pos)));
-      draggingStopIndex = gradientStops.length - 1;
-      beginSliderGesture('drag gradient stop');
-    }
-
-    function onMove(me: MouseEvent) {
-      if (draggingStopIndex === null) return;
-      const newPos = Math.round(Math.max(0, Math.min(100, ((me.clientX - rect.left) / rect.width) * 100)));
-      const next = gradientStops.map((s, idx) => idx === draggingStopIndex ? { ...s, position: newPos } : s);
-      edit('gradientStops', next);
-    }
-    function onUp() {
-      draggingStopIndex = null;
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-    }
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
   }
 
   // --- Gray mode ---
@@ -253,17 +158,6 @@
   function setGrayLightnessCurve(a: CurveAnchor[]) { edit('grayLightnessCurve', a); }
   function setGraySaturationCurve(a: CurveAnchor[]) { edit('graySaturationCurve', a); }
 
-  const gradientStyleOptions: { value: GradientStyle; icon: string; title: string }[] = [
-    { value: 'linear', icon: '/', title: 'Linear' },
-    { value: 'radial', icon: '\u25CB', title: 'Radial' },
-    { value: 'conic',  icon: '\u25D4', title: 'Conic' },
-  ];
-
-  const gradientSizeOptions: { value: 'page' | 'window'; label: string; title: string }[] = [
-    { value: 'page', label: 'Page', title: 'Gradient stretches over the full scrollable page' },
-    { value: 'window', label: 'Window', title: 'Gradient stays fixed to the viewport' },
-  ];
-
   // --- Curve offset + clipboard (shared across all curve editors) ---
 
   function handleOffset(key: string, value: number) {
@@ -278,9 +172,21 @@
   // Base chroma for gray tinting (editable via the color panel's chroma slider)
   const DEFAULT_TINT_CHROMA = 0.04;
 
-  // Snapshots for cancel in gray base editing (avoids lossy hex round-trip)
-  let snapshotTintHue: number | null = null;
-  let snapshotTintChroma: number | null = null;
+  // --- Editing-state machine (M4 fold) ---
+  //
+  // Single discriminated union replaces five independent `let` decls
+  // (`editingKey`, `editingSnapshot`, `editingDraft`, `snapshotTintHue`,
+  // `snapshotTintChroma`). The compatibility `$:` derivations below preserve
+  // existing read sites while writes go through `editing = { kind: ... }`.
+  let editing: EditingState = idleState;
+
+  // Read-side compat: existing `editingKey === ...` etc. comparisons keep
+  // working. New code should narrow on `editing.kind` directly.
+  $: editingKey = editing.kind === 'idle' ? null : editing.kind === 'editingBase' ? BASE_KEY : editing.stepKey;
+  $: editingDraft = editing.kind === 'editingStep' ? editing.draft : null;
+  $: editingSnapshot = editing.kind === 'idle' ? null : editing.kind === 'editingBase' ? editing.snapshotHex : editing.snapshot;
+  $: snapshotTintHue = editing.kind === 'editingBase' ? editing.snapshotTintHue : null;
+  $: snapshotTintChroma = editing.kind === 'editingBase' ? editing.snapshotTintChroma : null;
 
   function computeGrayColor(index: number, hue: number, chroma: number = tintChroma): string {
     const xPos = grayStepToX(index);
@@ -481,6 +387,14 @@
     }
   }
 
+  function startBaseEdit() {
+    if (editing.kind === 'editingBase') { confirmEdit(); return; }
+    editing = mode === 'gray'
+      ? { kind: 'editingBase', snapshotHex: gray500Hex, snapshotTintHue: tintHue, snapshotTintChroma: tintChroma }
+      : { kind: 'editingBase', snapshotHex: baseColor, snapshotTintHue: null, snapshotTintChroma: null };
+    paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true });
+  }
+
   function handlePaletteClick(ps: { label: string; lightness: number; index: number }) {
     const k = paletteStepKey(ps.label);
     if (editingKey === k) {
@@ -488,9 +402,7 @@
       return;
     }
     const current = (k in overrides) ? overrides[k] : computePaletteColor(ps.index, baseColor);
-    editingDraft = current;
-    editingSnapshot = current;
-    editingKey = k;
+    editing = { kind: 'editingStep', stepKey: k, snapshot: current, draft: current };
     paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true });
   }
 
@@ -574,6 +486,11 @@
 
   let scaleEditorOpen: Record<string, boolean> = { Surfaces: false, Borders: false, Text: false };
 
+  function toggleScaleEditor(title: string) {
+    scaleEditorOpen[title] = !scaleEditorOpen[title];
+    scaleEditorOpen = scaleEditorOpen;
+  }
+
   function setScaleCurve(title: string, channel: 'lightness' | 'saturation', a: CurveAnchor[]) {
     const cur = scaleCurves[title] ?? { lightness: defaultScaleCurves[title].lightness(), saturation: defaultScaleCurves[title].saturation() };
     edit('scaleCurves', { ...scaleCurves, [title]: { ...cur, [channel]: a } });
@@ -593,9 +510,6 @@
     return { lightnessLow: 0, lightnessHigh: 100, saturation: 100 };
   }
 
-  let editingKey: string | null = null;
-  let editingSnapshot: string | null = null;
-  let editingDraft: string | null = null;
 
   function stepKey(scaleTitle: string, stepName: string): string {
     return `${scaleTitle}-${stepName}`;
@@ -607,11 +521,22 @@
     return computeDerivedColor(step, base, configForScale(scaleTitle), scaleTitle);
   }
 
+  /**
+   * Closure factories used by `<OverridesPanel>` so the panel doesn't have to
+   * know about `baseColor` / `gray500Hex` / `curveVersion`. These keep
+   * reactivity intact (the parent's `$:` blocks still drive re-render).
+   *
+   * Note: `effectiveColor` itself always uses `gray500Hex` for non-override
+   * derivation (pre-existing); the chromatic vs gray distinction here is
+   * only for the `derivedHex` (the "Ag" preview / border-color base).
+   */
+  $: derivedHexForBase = (step: Step, scaleTitle: string) => derivedHex(step, baseColor, scaleTitle, curveVersion);
+  $: derivedHexForGray = (step: Step, scaleTitle: string) => derivedHex(step, gray500Hex, scaleTitle, curveVersion);
+  $: effectiveHexAny = (k: string, step: Step, scaleTitle: string) => effectiveColor(k, step, scaleTitle, curveVersion);
+
   // --- Reactive editing state ---
 
-  const BASE_KEY = '__base__';
-
-  $: isEditingBase = editingKey === BASE_KEY;
+  $: isEditingBase = isBaseEdit(editing);
 
   $: editingColor = isEditingBase
     ? (mode === 'gray' ? gray500Hex : baseColor)
@@ -687,10 +612,10 @@
       if (mode === 'chromatic') edit('baseColor', hex);
       return;
     }
-    if (editingKey) {
-      editingDraft = hex;
-      if (editingKey in overrides) {
-        edit('overrides', { ...overrides, [editingKey]: hex });
+    if (editing.kind === 'editingStep') {
+      editing = { ...editing, draft: hex };
+      if (editing.stepKey in overrides) {
+        edit('overrides', { ...overrides, [editing.stepKey]: hex });
       }
     }
   }
@@ -707,9 +632,7 @@
       return;
     }
     const current = (k in overrides) ? overrides[k] : computeDerivedColor(step, gray500Hex, configForScale(scaleTitle), scaleTitle);
-    editingDraft = current;
-    editingSnapshot = current;
-    editingKey = k;
+    editing = { kind: 'editingStep', stepKey: k, snapshot: current, draft: current };
     paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true });
   }
 
@@ -720,9 +643,7 @@
       return;
     }
     const current = (k in overrides) ? overrides[k] : computeGrayColor(index, tintHue, tintChroma);
-    editingDraft = current;
-    editingSnapshot = current;
-    editingKey = k;
+    editing = { kind: 'editingStep', stepKey: k, snapshot: current, draft: current };
     paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true });
   }
 
@@ -750,22 +671,14 @@
         edit('overrides', nextOverrides);
       }
     }
-    editingKey = null;
-    editingSnapshot = null;
-    editingDraft = null;
-    snapshotTintHue = null;
-    snapshotTintChroma = null;
+    editing = idleState;
     // tick() lets the store-derived reactives flush before session commit
     await tick();
     if (paletteEditScope) { commitScope(paletteEditScope); paletteEditScope = null; }
   }
 
   function cancelEdit() {
-    editingKey = null;
-    editingSnapshot = null;
-    editingDraft = null;
-    snapshotTintHue = null;
-    snapshotTintChroma = null;
+    editing = idleState;
     // Restoring the session snapshot in the store fires the sync reactive,
     // which pulls baseColor/tintHue/tintChroma/overrides/… back to pre-open.
     if (paletteEditScope) { cancelScope(paletteEditScope); paletteEditScope = null; }
@@ -774,8 +687,7 @@
   function removeOverride(k: string) {
     const { [k]: _, ...rest } = overrides;
     edit('overrides', rest);
-    if (editingKey === k) { editingKey = null; editingDraft = null; }
-    editingSnapshot = null;
+    if (editingKey === k) { editing = idleState; }
   }
 
   function computedValueForKey(key: string): string | null {
@@ -891,8 +803,7 @@
       const nextSnapped = [...snappedScales].filter(s => s !== scale.title);
       patchPalette({ snappedScales: nextSnapped, overrides: nextOverrides }, 'unsnap scale');
       if (editingKey && scale.steps.some(s => stepKey(scale.title, s.name) === editingKey)) {
-        editingKey = null;
-        editingSnapshot = null;
+        editing = idleState;
       }
     } else {
       const assigned = snapScaleToPalette(scale);
@@ -924,8 +835,7 @@
     const nextSnapped = [...snappedScales].filter(s => s !== scale.title);
     patchPalette({ snappedScales: nextSnapped, overrides: nextOverrides }, 'clear scale overrides');
     if (editingKey && scale.steps.some(s => stepKey(scale.title, s.name) === editingKey)) {
-      editingKey = null;
-      editingSnapshot = null;
+      editing = idleState;
     }
   }
 
@@ -991,70 +901,27 @@
 </script>
 
 <div class="palette-editor" style="--editor-base: {mode === 'gray' ? gray500Hex : baseColor}">
-  <div class="editor-top">
-    <div class="editor-primary">
-      {#if mode === 'chromatic'}
-        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-        <div
-          class="header-swatch"
-          class:active={isEditingBase}
-          style="background: {baseColor}"
-          on:click={() => { if (editingKey === BASE_KEY) { confirmEdit(); } else { editingSnapshot = baseColor; editingKey = BASE_KEY; paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true }); } }}
-          role="button"
-          tabindex="0"
-          on:keydown={(e) => e.key === 'Enter' && (editingKey === BASE_KEY ? confirmEdit() : (editingSnapshot = baseColor, editingKey = BASE_KEY, paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true })))}
-        ></div>
-      {:else}
-        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-        <div
-          class="header-swatch"
-          class:active={isEditingBase}
-          style="background: {gray500Hex}"
-          on:click={() => { if (editingKey === BASE_KEY) { confirmEdit(); } else { editingSnapshot = gray500Hex; snapshotTintHue = tintHue; snapshotTintChroma = tintChroma; editingKey = BASE_KEY; paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true }); } }}
-          role="button"
-          tabindex="0"
-          on:keydown={(e) => e.key === 'Enter' && (editingKey === BASE_KEY ? confirmEdit() : (editingSnapshot = gray500Hex, snapshotTintHue = tintHue, snapshotTintChroma = tintChroma, editingKey = BASE_KEY, paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true })))}
-        ></div>
-      {/if}
-      <div class="primary-info">
-        <span class="editor-label">{label}</span>
-        {#if mode === 'chromatic'}
-          <button
-            class="base-hex clickable-hex"
-            type="button"
-            on:click={(e) => copyHex(BASE_KEY, baseColor, e)}
-          >{copiedKey === BASE_KEY ? 'copied!' : baseColor}</button>
-        {:else}
-          <button
-            class="base-hex clickable-hex"
-            type="button"
-            on:click={(e) => copyHex('gray-500', gray500Hex, e)}
-          >{copiedKey === 'gray-500' ? 'copied!' : gray500Hex}</button>
-        {/if}
-      </div>
-    </div>
-  </div>
-
-  {#if isEditingBase && panelOpen && editingColor}
-    <ColorEditPanel
-      color={editingColor}
-      title={editPanelTitle}
-      showRemoveOverride={false}
-      mode={mode === 'gray' ? 'hue-chroma' : 'hsl'}
-      hue={tintHue}
-      chroma={tintChroma}
-      onHueChromaChange={(h, c) => patchPalette({ tintHue: h, tintChroma: c }, 'tint hue/chroma')}
-      onColorChange={handleColorChange}
-      onConfirm={confirmEdit}
-      onCancel={cancelEdit}
-      onRemoveOverride={() => {}}
-      onSliderStart={() => beginSliderGesture(`edit ${label} base`)}
-    >
-      <span slot="actions" class:hidden={mode !== 'chromatic'}>
-        <Toggle checked={anchorToBase} on:change={(e) => setAnchorToBase(e.detail ?? !anchorToBase)} label="Lock base color to position 500" />
-      </span>
-    </ColorEditPanel>
-  {/if}
+  <PaletteBase
+    {label}
+    {mode}
+    {baseColor}
+    {gray500Hex}
+    {tintHue}
+    {tintChroma}
+    {anchorToBase}
+    {isEditingBase}
+    {panelOpen}
+    {editingColor}
+    {editPanelTitle}
+    {copiedKey}
+    onStartEdit={startBaseEdit}
+    onConfirm={confirmEdit}
+    onCancel={cancelEdit}
+    onColorChange={handleColorChange}
+    onTintChange={(h, c) => patchPalette({ tintHue: h, tintChroma: c }, 'tint hue/chroma')}
+    onAnchorToBaseChange={setAnchorToBase}
+    onCopyBaseHex={copyHex}
+  />
 
   {#if mode === 'chromatic'}
   <!-- Palette + Text row -->
@@ -1132,155 +999,47 @@
         </div>
       {#if paletteEditorOpen}
         <div class="curve-grid-span" style="grid-column: 2 / {paletteStepLightness.length + 2}">
-          {#each [
-            { key: 'lightness', anchors: lightnessCurve, cfg: lightnessCurveConfig, defaults: DEFAULT_PALETTE_LIGHTNESS(), set: setLightnessCurve, lockedIdx: lockedLightnessIdx },
-            { key: 'saturation', anchors: saturationCurve, cfg: saturationCurveConfig, defaults: DEFAULT_PALETTE_SATURATION(), set: setSaturationCurve, lockedIdx: lockedSaturationIdx },
-          ] as curve (curve.key)}
-            <BezierCurveEditor
-              anchors={curve.anchors}
-              cfg={curve.cfg}
-              stepCount={paletteStepLightness.length}
-              defaultAnchors={curve.defaults}
-              offset={curveOffset[curve.key] ?? 0}
-              lockedAnchorIndex={curve.lockedIdx}
-              onAnchorsChange={curve.set}
-              onOffsetChange={(v) => handleOffset(curve.key, v)}
-            />
-          {/each}
+          <ScaleCurveEditor
+            curveKey="lightness"
+            anchors={lightnessCurve}
+            cfg={lightnessCurveConfig}
+            stepCount={paletteStepLightness.length}
+            defaults={DEFAULT_PALETTE_LIGHTNESS()}
+            offset={curveOffset['lightness'] ?? 0}
+            lockedAnchorIndex={lockedLightnessIdx}
+            onAnchorsChange={setLightnessCurve}
+            onOffsetChange={handleOffset}
+          />
+          <ScaleCurveEditor
+            curveKey="saturation"
+            anchors={saturationCurve}
+            cfg={saturationCurveConfig}
+            stepCount={paletteStepLightness.length}
+            defaults={DEFAULT_PALETTE_SATURATION()}
+            offset={curveOffset['saturation'] ?? 0}
+            lockedAnchorIndex={lockedSaturationIdx}
+            onAnchorsChange={setSaturationCurve}
+            onOffsetChange={handleOffset}
+          />
         </div>
       {/if}
       </div>
 
       {#if emptySelector && emptyMode === 'gradient'}
-        <div class="gradient-controls">
-          <div class="gradient-row">
-            <span class="gradient-label">Style:</span>
-            <div class="gradient-style-buttons">
-              {#each gradientStyleOptions as opt}
-                <button
-                  class="style-btn"
-                  class:active={gradientStyle === opt.value}
-                  type="button"
-                  title={opt.title}
-                  on:click={() => edit('gradientStyle', opt.value)}
-                >{opt.icon}</button>
-              {/each}
-            </div>
-          </div>
-
-          <div class="gradient-row">
-            <span class="gradient-label">Angle:</span>
-            <input
-              class="gradient-angle-input"
-              type="number"
-              min="0"
-              max="360"
-              value={gradientAngle}
-              on:input={onAngleInput}
-            />
-            <span class="gradient-unit">deg</span>
-            <input
-              class="gradient-angle-slider"
-              type="range"
-              min="0"
-              max="360"
-              value={gradientAngle}
-              on:input={onAngleInput}
-            />
-          </div>
-
-          <div class="gradient-row">
-            <span class="gradient-label">Size:</span>
-            <div class="gradient-style-buttons">
-              {#each gradientSizeOptions as opt}
-                <button
-                  class="style-btn size-btn"
-                  class:active={gradientSize === opt.value}
-                  type="button"
-                  title={opt.title}
-                  on:click={() => edit('gradientSize', opt.value)}
-                >{opt.label}</button>
-              {/each}
-            </div>
-          </div>
-
-          <div class="gradient-row">
-            <label class="gradient-checkbox-label">
-              <input type="checkbox" checked={gradientReverse} on:change={onReverseChange} />
-              Reverse
-            </label>
-          </div>
-
-          <!-- Gradient stop bar -->
-          <div class="gradient-stop-bar-wrapper">
-            <div class="gradient-stop-handles">
-              {#each gradientStops as stop, i}
-                <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-                <div
-                  class="gradient-stop-handle"
-                  class:selected={selectedStopIndex === i}
-                  style="left: {stop.position}%; --stop-color: {stopColor(stop, paletteComputed)}"
-                  on:mousedown|stopPropagation={(e) => handleStopHandleMouseDown(e, i)}
-                  role="button"
-                  tabindex="0"
-                  on:keydown={(e) => {
-                    if (e.key === 'Delete' || e.key === 'Backspace') removeGradientStop(i);
-                  }}
-                >
-                  <div class="stop-swatch" style="background: {stopColor(stop, paletteComputed)}"></div>
-                  <div class="stop-arrow"></div>
-                </div>
-              {/each}
-            </div>
-            <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-            <div
-              class="gradient-stop-bar"
-              style="background: {gradientBarPreview}"
-              on:mousedown={handleStopBarMouseDown}
-              role="slider"
-              tabindex="0"
-              aria-label="Gradient stops"
-              aria-valuenow={gradientStops[selectedStopIndex]?.position ?? 0}
-              aria-valuemin="0"
-              aria-valuemax="100"
-            ></div>
-          </div>
-
-          <!-- Selected stop controls -->
-          {#if gradientStops[selectedStopIndex]}
-            <div class="gradient-row stop-controls">
-              <span class="gradient-label">Color:</span>
-              <select
-                class="gradient-select"
-                value={gradientStops[selectedStopIndex].paletteLabel}
-                on:change={onStopColorChange}
-              >
-                {#each paletteComputed as ps}
-                  <option value={ps.label}>{ps.label}</option>
-                {/each}
-              </select>
-              <div class="stop-color-preview" style="background: {stopColor(gradientStops[selectedStopIndex], paletteComputed)}"></div>
-              <span class="gradient-label">Pos:</span>
-              <input
-                class="gradient-pos-input"
-                type="number"
-                min="0"
-                max="100"
-                value={gradientStops[selectedStopIndex].position}
-                on:change={onStopPositionChange}
-              />
-              <span class="gradient-unit">%</span>
-              {#if gradientStops.length > 2}
-                <button
-                  class="stop-remove-btn"
-                  type="button"
-                  title="Remove stop"
-                  on:click={() => removeGradientStop(selectedStopIndex)}
-                >&times;</button>
-              {/if}
-            </div>
-          {/if}
-        </div>
+        <GradientStopEditor
+          {gradientStyle}
+          {gradientAngle}
+          {gradientSize}
+          {gradientReverse}
+          {gradientStops}
+          {gradientBarPreview}
+          {paletteComputed}
+          onSetGradientStyle={(v) => edit('gradientStyle', v)}
+          onSetGradientSize={(v) => edit('gradientSize', v)}
+          onSetGradientAngle={(v) => edit('gradientAngle', v)}
+          onSetGradientReverse={(v) => edit('gradientReverse', v)}
+          onSetGradientStops={(v) => edit('gradientStops', v)}
+        />
       {/if}
     </div>
 
@@ -1294,201 +1053,74 @@
   {#if showDerived}
   <div class="scales-row">
     {#each scales.filter(s => s.isText) as scale}
-      {@const textEditorOpen = scaleEditorOpen[scale.title] ?? false}
-      <div class="scale-section">
-        <div class="scale-header">
-          <h4 class="scale-title">{scale.title}</h4>
-          <button
-            class="edit-toggle"
-            class:active={snappedScales.has(scale.title)}
-            type="button"
-            on:click={() => toggleSnapAll(scale)}
-          >{snappedScales.has(scale.title) ? 'Unsnap' : 'Snap All'}</button>
-          <button class="edit-toggle" type="button" on:click={() => clearScaleOverrides(scale)}>Clear Overrides</button>
-          <button
-            class="edit-toggle"
-            type="button"
-            on:click={() => { scaleEditorOpen[scale.title] = !scaleEditorOpen[scale.title]; scaleEditorOpen = scaleEditorOpen; }}
-          >{textEditorOpen ? 'Close' : 'Edit'}</button>
-        </div>
-        <div class="swatch-grid" style="--swatch-cols: {scale.steps.length}; --swatch-gap: var(--ui-space-8)">
-          {#each scale.steps as step}
-            {@const k = stepKey(scale.title, step.name)}
-            {@const hex = effectiveColor(k, step, scale.title, curveVersion)}
-            <div class="step-column">
-              <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name, cssNamespace); if (v) copyVarName(k, v, e); }}>
-                {copiedLabelKey === k ? 'copied!' : step.name}
-              </button>
-              <div
-                class="swatch derived text-swatch"
-                class:dimmed={k in overrides}
-                class:clickable={k in overrides}
-                on:click={() => resetOverride(k)}
-                role={k in overrides ? 'button' : undefined}
-                tabindex={k in overrides ? 0 : undefined}
-                on:keydown={(e) => k in overrides && e.key === 'Enter' && resetOverride(k)}
-              >
-                <span style="color: {derivedHex(step, baseColor, scale.title, curveVersion)}">Ag</span>
-              </div>
-              <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-              <div
-                class="swatch override-slot text-swatch"
-                class:active={editingKey === k}
-                class:populated={k in overrides}
-                class:matching={k in overrides && overrides[k] === derivedHex(step, baseColor, scale.title, curveVersion)}
-                on:click={() => handleOverrideClick(k, step, scale.title)}
-                role="button"
-                tabindex="0"
-                on:keydown={(e) => e.key === 'Enter' && handleOverrideClick(k, step, scale.title)}
-              >
-                {#if k in overrides}
-                  <span style="color: {overrides[k]}">Ag</span>
-                {/if}
-              </div>
-              <button
-                class="step-hex"
-                class:copied={copiedKey === k}
-                type="button"
-                on:click={(e) => copyHex(k, hex, e)}
-              >{copiedKey === k ? 'copied!' : hex}</button>
-            </div>
-          {/each}
-        {#if textEditorOpen}
-          <div class="curve-grid-span" style="grid-column: 1 / -1">
-            {#each [
-              { key: getScaleCurveKey(scale.title, 'lightness'), anchors: scaleCurves[scale.title].lightness, cfg: textLightnessCurveConfig, defaults: defaultScaleCurves[scale.title].lightness(), set: setScaleCurve.bind(null, scale.title, 'lightness') },
-              { key: getScaleCurveKey(scale.title, 'saturation'), anchors: scaleCurves[scale.title].saturation, cfg: saturationCurveConfig, defaults: defaultScaleCurves[scale.title].saturation(), set: setScaleCurve.bind(null, scale.title, 'saturation') },
-            ] as curve (curve.key)}
-              <BezierCurveEditor
-                anchors={curve.anchors}
-                cfg={curve.cfg}
-                stepCount={scale.steps.length}
-                defaultAnchors={curve.defaults}
-                offset={curveOffset[curve.key] ?? 0}
-                onAnchorsChange={curve.set}
-                onOffsetChange={(v) => handleOffset(curve.key, v)}
-              />
-            {/each}
-          </div>
-        {/if}
-        </div>
-      </div>
+      <OverridesPanel
+        {scale}
+        editorOpen={scaleEditorOpen[scale.title] ?? false}
+        snapped={snappedScales.has(scale.title)}
+        supportsSnap={true}
+        {cssNamespace}
+        {scaleCurves}
+        {curveOffset}
+        {defaultScaleCurves}
+        {overrides}
+        {editingKey}
+        {snapPickerKey}
+        {copiedKey}
+        {copiedLabelKey}
+        {paletteComputed}
+        derivedHexFor={derivedHexForBase}
+        effectiveHexFor={effectiveHexAny}
+        stepKeyFor={stepKey}
+        scaleCurveKeyFor={getScaleCurveKey}
+        onToggleSnap={toggleSnapAll}
+        onClearScaleOverrides={clearScaleOverrides}
+        onToggleEditor={toggleScaleEditor}
+        onResetOverride={resetOverride}
+        onOverrideClick={handleOverrideClick}
+        onSnappedClick={handleSnappedClick}
+        onSelectSnapValue={selectSnapValue}
+        onCopyHex={copyHex}
+        onCopyVarName={copyVarName}
+        onSetScaleCurve={setScaleCurve}
+        onOffsetChange={handleOffset}
+      />
     {/each}
   </div>
 
   <!-- Surfaces & Borders — per-scale editors -->
   <div class="scales-row">
     {#each scales.filter(s => !s.isText) as scale}
-      {@const cfg = configForScale(scale.title)}
-      {@const editorOpen = scaleEditorOpen[scale.title] ?? false}
-      <div class="scale-section">
-        <div class="scale-header">
-          <h4 class="scale-title">{scale.title}</h4>
-          <button
-            class="edit-toggle"
-            class:active={snappedScales.has(scale.title)}
-            type="button"
-            on:click={() => toggleSnapAll(scale)}
-          >{snappedScales.has(scale.title) ? 'Unsnap' : 'Snap All'}</button>
-          <button class="edit-toggle" type="button" on:click={() => clearScaleOverrides(scale)}>Clear Overrides</button>
-          <button
-            class="edit-toggle"
-            type="button"
-            on:click={() => { scaleEditorOpen[scale.title] = !scaleEditorOpen[scale.title]; scaleEditorOpen = scaleEditorOpen; }}
-          >{editorOpen ? 'Close' : 'Edit'}</button>
-        </div>
-        <div class="swatch-grid" style="--swatch-cols: {scale.steps.length}; --swatch-gap: var(--ui-space-8)">
-          {#each scale.steps as step}
-            {@const k = stepKey(scale.title, step.name)}
-            {@const hex = effectiveColor(k, step, scale.title, curveVersion)}
-            <div class="step-column">
-              <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name, cssNamespace); if (v) copyVarName(k, v, e); }}>
-                {copiedLabelKey === k ? 'copied!' : step.name}
-              </button>
-              <div
-                class="swatch derived"
-                class:border-preview={scale.title === 'Borders'}
-                class:dimmed={k in overrides}
-                class:clickable={k in overrides}
-                style={scale.title === 'Borders'
-                  ? `border: 3px solid ${derivedHex(step, baseColor, scale.title, curveVersion)}`
-                  : `background: ${derivedHex(step, baseColor, scale.title, curveVersion)}`}
-                on:click={() => resetOverride(k)}
-                role={k in overrides ? 'button' : undefined}
-                tabindex={k in overrides ? 0 : undefined}
-                on:keydown={(e) => k in overrides && e.key === 'Enter' && resetOverride(k)}
-              ></div>
-              <div class="override-slot-wrapper">
-                <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-                <div
-                  class="swatch override-slot"
-                  class:border-preview={scale.title === 'Borders'}
-                  class:active={editingKey === k || snapPickerKey === k}
-                  class:populated={k in overrides}
-                  class:matching={k in overrides && overrides[k] === derivedHex(step, baseColor, scale.title, curveVersion)}
-                  on:click={() => snappedScales.has(scale.title) ? handleSnappedClick(k) : handleOverrideClick(k, step, scale.title)}
-                  role="button"
-                  tabindex="0"
-                  on:keydown={(e) => e.key === 'Enter' && (snappedScales.has(scale.title) ? handleSnappedClick(k) : handleOverrideClick(k, step, scale.title))}
-                >
-                  {#if k in overrides}
-                    {#if scale.title === 'Borders'}
-                      <div class="override-fill border-fill" style="border: 3px solid {overrides[k]}"></div>
-                    {:else}
-                      <div class="override-fill" style="background: {overrides[k]}"></div>
-                    {/if}
-                    {#if snappedScales.has(scale.title)}
-                      {@const plabel = paletteComputed.find(ps => ps.hex === overrides[k])?.label ?? null}
-                      {#if plabel}
-                        <span class="palette-step-label">{plabel}</span>
-                      {/if}
-                    {/if}
-                  {/if}
-                </div>
-                {#if snapPickerKey === k}
-                  <div class="snap-picker">
-                    {#each paletteComputed as ps}
-                      <button
-                        class="snap-picker-item"
-                        class:selected={overrides[k] === ps.hex}
-                        type="button"
-                        on:click={() => selectSnapValue(k, ps.hex, scale.title)}
-                      >
-                        <span class="snap-picker-swatch" style="background: {ps.hex}"></span>
-                        <span class="snap-picker-label">{ps.label}</span>
-                      </button>
-                    {/each}
-                  </div>
-                {/if}
-              </div>
-              <button
-                class="step-hex"
-                class:copied={copiedKey === k}
-                type="button"
-                on:click={(e) => copyHex(k, hex, e)}
-              >{copiedKey === k ? 'copied!' : hex}</button>
-            </div>
-          {/each}
-        {#if editorOpen}
-          <div class="curve-grid-span" style="grid-column: 1 / -1">
-            {#each [
-              { key: getScaleCurveKey(scale.title, 'lightness'), anchors: scaleCurves[scale.title].lightness, cfg: lightnessCurveConfig, defaults: defaultScaleCurves[scale.title].lightness(), set: setScaleCurve.bind(null, scale.title, 'lightness') },
-              { key: getScaleCurveKey(scale.title, 'saturation'), anchors: scaleCurves[scale.title].saturation, cfg: saturationCurveConfig, defaults: defaultScaleCurves[scale.title].saturation(), set: setScaleCurve.bind(null, scale.title, 'saturation') },
-            ] as curve (curve.key)}
-              <BezierCurveEditor
-                anchors={curve.anchors}
-                cfg={curve.cfg}
-                stepCount={scale.steps.length}
-                defaultAnchors={curve.defaults}
-                offset={curveOffset[curve.key] ?? 0}
-                onAnchorsChange={curve.set}
-                onOffsetChange={(v) => handleOffset(curve.key, v)}
-              />
-            {/each}
-          </div>
-        {/if}
-        </div>
-      </div>
+      <OverridesPanel
+        {scale}
+        editorOpen={scaleEditorOpen[scale.title] ?? false}
+        snapped={snappedScales.has(scale.title)}
+        supportsSnap={true}
+        {cssNamespace}
+        {scaleCurves}
+        {curveOffset}
+        {defaultScaleCurves}
+        {overrides}
+        {editingKey}
+        {snapPickerKey}
+        {copiedKey}
+        {copiedLabelKey}
+        {paletteComputed}
+        derivedHexFor={derivedHexForBase}
+        effectiveHexFor={effectiveHexAny}
+        stepKeyFor={stepKey}
+        scaleCurveKeyFor={getScaleCurveKey}
+        onToggleSnap={toggleSnapAll}
+        onClearScaleOverrides={clearScaleOverrides}
+        onToggleEditor={toggleScaleEditor}
+        onResetOverride={resetOverride}
+        onOverrideClick={handleOverrideClick}
+        onSnappedClick={handleSnappedClick}
+        onSelectSnapValue={selectSnapValue}
+        onCopyHex={copyHex}
+        onCopyVarName={copyVarName}
+        onSetScaleCurve={setScaleCurve}
+        onOffsetChange={handleOffset}
+      />
     {/each}
   </div>
   {/if}
@@ -1549,20 +1181,26 @@
       </div>
     {#if grayEditorOpen}
       <div class="curve-grid-span" style="grid-column: 2 / {graySteps.length + 2}">
-        {#each [
-          { key: 'gray-lightness', anchors: grayLightnessCurve, cfg: lightnessCurveConfig, defaults: DEFAULT_GRAY_LIGHTNESS(), set: setGrayLightnessCurve },
-          { key: 'gray-saturation', anchors: graySaturationCurve, cfg: saturationCurveConfig, defaults: DEFAULT_GRAY_SATURATION(), set: setGraySaturationCurve },
-        ] as curve (curve.key)}
-          <BezierCurveEditor
-            anchors={curve.anchors}
-            cfg={curve.cfg}
-            stepCount={graySteps.length}
-            defaultAnchors={curve.defaults}
-            offset={curveOffset[curve.key] ?? 0}
-            onAnchorsChange={curve.set}
-            onOffsetChange={(v) => handleOffset(curve.key, v)}
-          />
-        {/each}
+        <ScaleCurveEditor
+          curveKey="gray-lightness"
+          anchors={grayLightnessCurve}
+          cfg={lightnessCurveConfig}
+          stepCount={graySteps.length}
+          defaults={DEFAULT_GRAY_LIGHTNESS()}
+          offset={curveOffset['gray-lightness'] ?? 0}
+          onAnchorsChange={setGrayLightnessCurve}
+          onOffsetChange={handleOffset}
+        />
+        <ScaleCurveEditor
+          curveKey="gray-saturation"
+          anchors={graySaturationCurve}
+          cfg={saturationCurveConfig}
+          stepCount={graySteps.length}
+          defaults={DEFAULT_GRAY_SATURATION()}
+          offset={curveOffset['gray-saturation'] ?? 0}
+          onAnchorsChange={setGraySaturationCurve}
+          onOffsetChange={handleOffset}
+        />
       </div>
     {/if}
     </div>
@@ -1576,173 +1214,74 @@
 
   {#if showDerived}
   <div class="scales-row">
-  {#each grayScales.filter(s => s.isText) as scale}
-    {@const textEditorOpen = scaleEditorOpen[scale.title] ?? false}
-    <div class="scale-section">
-      <div class="scale-header">
-        <h4 class="scale-title">{scale.title}</h4>
-        <button
-          class="edit-toggle"
-          class:active={snappedScales.has(scale.title)}
-          type="button"
-          on:click={() => toggleSnapAll(scale)}
-        >{snappedScales.has(scale.title) ? 'Unsnap' : 'Snap All'}</button>
-        <button class="edit-toggle" type="button" on:click={() => clearScaleOverrides(scale)}>Clear Overrides</button>
-        <button
-          class="edit-toggle"
-          type="button"
-          on:click={() => { scaleEditorOpen[scale.title] = !scaleEditorOpen[scale.title]; scaleEditorOpen = scaleEditorOpen; }}
-        >{textEditorOpen ? 'Close' : 'Edit'}</button>
-      </div>
-      <div class="swatch-grid" style="--swatch-cols: {scale.steps.length}; --swatch-gap: var(--ui-space-8)">
-        {#each scale.steps as step}
-          {@const k = stepKey(scale.title, step.name)}
-          {@const hex = effectiveColor(k, step, scale.title, curveVersion)}
-          <div class="step-column">
-            <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name, cssNamespace); if (v) copyVarName(k, v, e); }}>
-              {copiedLabelKey === k ? 'copied!' : step.name}
-            </button>
-            <div
-              class="swatch derived text-swatch"
-              class:dimmed={k in overrides}
-              class:clickable={k in overrides}
-              on:click={() => resetOverride(k)}
-              role={k in overrides ? 'button' : undefined}
-              tabindex={k in overrides ? 0 : undefined}
-              on:keydown={(e) => k in overrides && e.key === 'Enter' && resetOverride(k)}
-            >
-              <span style="color: {derivedHex(step, gray500Hex, scale.title, curveVersion)}">Ag</span>
-            </div>
-            <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-            <div
-              class="swatch override-slot text-swatch"
-              class:active={editingKey === k}
-              class:populated={k in overrides}
-              class:matching={k in overrides && overrides[k] === derivedHex(step, gray500Hex, scale.title, curveVersion)}
-              on:click={() => handleOverrideClick(k, step, scale.title)}
-              role="button"
-              tabindex="0"
-              on:keydown={(e) => e.key === 'Enter' && handleOverrideClick(k, step, scale.title)}
-            >
-              {#if k in overrides}
-                <span style="color: {overrides[k]}">Ag</span>
-              {/if}
-            </div>
-            <button
-              class="step-hex"
-              class:copied={copiedKey === k}
-              type="button"
-              on:click={(e) => copyHex(k, hex, e)}
-            >{copiedKey === k ? 'copied!' : hex}</button>
-          </div>
-        {/each}
-      {#if textEditorOpen}
-        <div class="curve-grid-span" style="grid-column: 1 / -1">
-          {#each [
-            { key: getScaleCurveKey(scale.title, 'lightness'), anchors: scaleCurves[scale.title].lightness, cfg: textLightnessCurveConfig, defaults: defaultScaleCurves[scale.title].lightness(), set: setScaleCurve.bind(null, scale.title, 'lightness') },
-            { key: getScaleCurveKey(scale.title, 'saturation'), anchors: scaleCurves[scale.title].saturation, cfg: saturationCurveConfig, defaults: defaultScaleCurves[scale.title].saturation(), set: setScaleCurve.bind(null, scale.title, 'saturation') },
-          ] as curve (curve.key)}
-            <BezierCurveEditor
-              anchors={curve.anchors}
-              cfg={curve.cfg}
-              stepCount={scale.steps.length}
-              defaultAnchors={curve.defaults}
-              offset={curveOffset[curve.key] ?? 0}
-              onAnchorsChange={curve.set}
-              onOffsetChange={(v) => handleOffset(curve.key, v)}
-            />
-          {/each}
-        </div>
-      {/if}
-      </div>
-    </div>
-  {/each}
+    {#each grayScales.filter(s => s.isText) as scale}
+      <OverridesPanel
+        {scale}
+        editorOpen={scaleEditorOpen[scale.title] ?? false}
+        snapped={snappedScales.has(scale.title)}
+        supportsSnap={true}
+        {cssNamespace}
+        {scaleCurves}
+        {curveOffset}
+        {defaultScaleCurves}
+        {overrides}
+        {editingKey}
+        {snapPickerKey}
+        {copiedKey}
+        {copiedLabelKey}
+        {paletteComputed}
+        derivedHexFor={derivedHexForGray}
+        effectiveHexFor={effectiveHexAny}
+        stepKeyFor={stepKey}
+        scaleCurveKeyFor={getScaleCurveKey}
+        onToggleSnap={toggleSnapAll}
+        onClearScaleOverrides={clearScaleOverrides}
+        onToggleEditor={toggleScaleEditor}
+        onResetOverride={resetOverride}
+        onOverrideClick={handleOverrideClick}
+        onSnappedClick={handleSnappedClick}
+        onSelectSnapValue={selectSnapValue}
+        onCopyHex={copyHex}
+        onCopyVarName={copyVarName}
+        onSetScaleCurve={setScaleCurve}
+        onOffsetChange={handleOffset}
+      />
+    {/each}
   </div>
   <!-- Surfaces & Borders for gray mode -->
   <div class="scales-row">
     {#each grayScales.filter(s => !s.isText) as scale}
-      {@const editorOpen = scaleEditorOpen[scale.title] ?? false}
-      <div class="scale-section">
-        <div class="scale-header">
-          <h4 class="scale-title">{scale.title}</h4>
-          <button class="edit-toggle" type="button" on:click={() => clearScaleOverrides(scale)}>Clear Overrides</button>
-          <button
-            class="edit-toggle"
-            type="button"
-            on:click={() => { scaleEditorOpen[scale.title] = !scaleEditorOpen[scale.title]; scaleEditorOpen = scaleEditorOpen; }}
-          >{editorOpen ? 'Close' : 'Edit'}</button>
-        </div>
-        <div class="swatch-grid" style="--swatch-cols: {scale.steps.length}; --swatch-gap: var(--ui-space-8)">
-          {#each scale.steps as step}
-            {@const k = stepKey(scale.title, step.name)}
-            {@const hex = effectiveColor(k, step, scale.title, curveVersion)}
-            <div class="step-column">
-              <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name, cssNamespace); if (v) copyVarName(k, v, e); }}>
-                {copiedLabelKey === k ? 'copied!' : step.name}
-              </button>
-              <div
-                class="swatch derived"
-                class:border-preview={scale.title === 'Borders'}
-                class:dimmed={k in overrides}
-                class:clickable={k in overrides}
-                style={scale.title === 'Borders'
-                  ? `border: 3px solid ${derivedHex(step, gray500Hex, scale.title, curveVersion)}`
-                  : `background: ${derivedHex(step, gray500Hex, scale.title, curveVersion)}`}
-                on:click={() => resetOverride(k)}
-                role={k in overrides ? 'button' : undefined}
-                tabindex={k in overrides ? 0 : undefined}
-                on:keydown={(e) => k in overrides && e.key === 'Enter' && resetOverride(k)}
-              ></div>
-              <div class="override-slot-wrapper">
-                <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-                <div
-                  class="swatch override-slot"
-                  class:border-preview={scale.title === 'Borders'}
-                  class:active={editingKey === k}
-                  class:populated={k in overrides}
-                  class:matching={k in overrides && overrides[k] === derivedHex(step, gray500Hex, scale.title, curveVersion)}
-                  on:click={() => handleOverrideClick(k, step, scale.title)}
-                  role="button"
-                  tabindex="0"
-                  on:keydown={(e) => e.key === 'Enter' && handleOverrideClick(k, step, scale.title)}
-                >
-                  {#if k in overrides}
-                    {#if scale.title === 'Borders'}
-                      <div class="override-fill border-fill" style="border: 3px solid {overrides[k]}"></div>
-                    {:else}
-                      <div class="override-fill" style="background: {overrides[k]}"></div>
-                    {/if}
-                  {/if}
-                </div>
-              </div>
-              <button
-                class="step-hex"
-                class:copied={copiedKey === k}
-                type="button"
-                on:click={(e) => copyHex(k, hex, e)}
-              >{copiedKey === k ? 'copied!' : hex}</button>
-            </div>
-          {/each}
-        {#if editorOpen}
-          <div class="curve-grid-span" style="grid-column: 1 / -1">
-            {#each [
-              { key: getScaleCurveKey(scale.title, 'lightness'), anchors: scaleCurves[scale.title].lightness, cfg: lightnessCurveConfig, defaults: defaultScaleCurves[scale.title].lightness(), set: setScaleCurve.bind(null, scale.title, 'lightness') },
-              { key: getScaleCurveKey(scale.title, 'saturation'), anchors: scaleCurves[scale.title].saturation, cfg: saturationCurveConfig, defaults: defaultScaleCurves[scale.title].saturation(), set: setScaleCurve.bind(null, scale.title, 'saturation') },
-            ] as curve (curve.key)}
-              <BezierCurveEditor
-                anchors={curve.anchors}
-                cfg={curve.cfg}
-                stepCount={scale.steps.length}
-                defaultAnchors={curve.defaults}
-                offset={curveOffset[curve.key] ?? 0}
-                onAnchorsChange={curve.set}
-                onOffsetChange={(v) => handleOffset(curve.key, v)}
-              />
-            {/each}
-          </div>
-        {/if}
-        </div>
-      </div>
+      <OverridesPanel
+        {scale}
+        editorOpen={scaleEditorOpen[scale.title] ?? false}
+        snapped={false}
+        supportsSnap={false}
+        {cssNamespace}
+        {scaleCurves}
+        {curveOffset}
+        {defaultScaleCurves}
+        {overrides}
+        {editingKey}
+        {snapPickerKey}
+        {copiedKey}
+        {copiedLabelKey}
+        {paletteComputed}
+        derivedHexFor={derivedHexForGray}
+        effectiveHexFor={effectiveHexAny}
+        stepKeyFor={stepKey}
+        scaleCurveKeyFor={getScaleCurveKey}
+        onToggleSnap={toggleSnapAll}
+        onClearScaleOverrides={clearScaleOverrides}
+        onToggleEditor={toggleScaleEditor}
+        onResetOverride={resetOverride}
+        onOverrideClick={handleOverrideClick}
+        onSnappedClick={handleSnappedClick}
+        onSelectSnapValue={selectSnapValue}
+        onCopyHex={copyHex}
+        onCopyVarName={copyVarName}
+        onSetScaleCurve={setScaleCurve}
+        onOffsetChange={handleOffset}
+      />
     {/each}
   </div>
   {/if}
@@ -1784,74 +1323,6 @@
     border-bottom: none;
   }
 
-  .editor-top {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--ui-space-16);
-    flex-wrap: wrap;
-  }
-
-  .editor-primary {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-    flex-shrink: 0;
-  }
-
-  .primary-info {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-2);
-  }
-
-  .header-swatch {
-    width: 4rem;
-    height: 4rem;
-    border-radius: var(--ui-radius-md);
-    border: 2px solid var(--ui-border-default);
-    flex-shrink: 0;
-    cursor: pointer;
-  }
-
-  .header-swatch:hover {
-    border-color: var(--ui-border-strong);
-  }
-
-  .header-swatch.active {
-    border-color: var(--ui-border-strong);
-    outline: 2px solid var(--ui-border-medium);
-    outline-offset: 1px;
-  }
-
-
-  .editor-label {
-    font-size: var(--ui-font-size-lg);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-primary);
-  }
-
-  .base-hex {
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
-    font-family: var(--ui-font-mono);
-  }
-
-  .clickable-hex {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: var(--ui-space-2) var(--ui-space-4);
-    border-radius: var(--ui-radius-sm);
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
-    font-family: var(--ui-font-mono);
-  }
-
-  .clickable-hex:hover {
-    background: var(--ui-surface-highest);
-    color: var(--ui-text-primary);
-  }
-
   /* Scale header with edit button */
 
   .scale-header {
@@ -1873,16 +1344,6 @@
   .edit-toggle:hover {
     color: var(--ui-text-primary);
     border-color: var(--ui-border-medium);
-  }
-
-  .edit-toggle.active {
-    color: var(--ui-text-primary);
-    border-color: var(--ui-border-medium);
-    background: var(--ui-surface-high);
-  }
-
-  .hidden {
-    display: none;
   }
 
   .derived-toggle {
@@ -1986,171 +1447,6 @@
     height: 2rem;
     border-radius: var(--ui-radius-sm);
     border: 1px solid var(--ui-border-faint);
-  }
-
-  .swatch.text-swatch {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: none;
-    font-size: var(--ui-font-size-md);
-    font-weight: var(--ui-font-weight-bold);
-  }
-
-  .swatch.border-preview {
-    background: none;
-    border-radius: var(--ui-radius-md);
-  }
-
-  .override-fill.border-fill {
-    background: none;
-    border-radius: var(--ui-radius-sm);
-  }
-
-  .swatch.derived.clickable {
-    cursor: pointer;
-  }
-
-  .swatch.derived.clickable:hover {
-    outline: 2px solid var(--ui-border-medium);
-    outline-offset: 1px;
-  }
-
-  .swatch.derived.dimmed {
-    position: relative;
-  }
-
-  .swatch.derived.dimmed::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to bottom left,
-      transparent calc(50% - 0.5px),
-      white calc(50% - 0.5px),
-      white calc(50% + 0.5px),
-      transparent calc(50% + 0.5px)
-    );
-    border-radius: inherit;
-  }
-
-  /* Override slot */
-  .override-slot {
-    border-style: dashed;
-    border-color: var(--ui-border-subtle);
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .override-slot:hover {
-    border-color: var(--ui-border-medium);
-  }
-
-  .override-slot.active {
-    border-color: var(--ui-border-strong);
-    outline: 1px solid var(--ui-border-medium);
-    outline-offset: 1px;
-  }
-
-  .override-slot.populated {
-    border-color: var(--ui-border-medium);
-  }
-
-  .override-slot.matching::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to bottom left,
-      transparent calc(50% - 0.5px),
-      white calc(50% - 0.5px),
-      white calc(50% + 0.5px),
-      transparent calc(50% + 0.5px)
-    );
-    border-radius: inherit;
-    pointer-events: none;
-  }
-
-  .override-fill {
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-  }
-
-  .palette-step-label {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: var(--ui-font-size-md);
-    font-weight: var(--ui-font-weight-semibold);
-    color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-    pointer-events: none;
-    z-index: 1;
-  }
-
-  .override-slot-wrapper {
-    position: relative;
-  }
-
-  .snap-picker {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    margin-top: var(--ui-space-4);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-medium);
-    border-radius: var(--ui-radius-md);
-    padding: var(--ui-space-4);
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    min-width: 5.5rem;
-  }
-
-  .snap-picker-item {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    padding: var(--ui-space-2) var(--ui-space-6);
-    border: none;
-    background: none;
-    border-radius: var(--ui-radius-sm);
-    cursor: pointer;
-    color: var(--ui-text-secondary);
-    font-size: var(--ui-font-size-md);
-    font-family: var(--ui-font-mono);
-    white-space: nowrap;
-  }
-
-  .snap-picker-item:hover {
-    background: var(--ui-surface-high);
-    color: var(--ui-text-primary);
-  }
-
-  .snap-picker-item.selected {
-    background: var(--ui-surface-highest);
-    color: var(--ui-text-primary);
-    font-weight: var(--ui-font-weight-semibold);
-  }
-
-  .snap-picker-swatch {
-    display: inline-block;
-    width: 1rem;
-    height: 1rem;
-    border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-faint);
-    flex-shrink: 0;
-  }
-
-  .snap-picker-label {
-    line-height: 1;
   }
 
   /* Step hex values */
@@ -2274,214 +1570,6 @@
     line-height: 1;
   }
 
-  /* Gradient controls */
-  .gradient-controls {
-    margin-top: var(--ui-space-8);
-    padding: var(--ui-space-12);
-    background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-faint);
-    border-radius: var(--ui-radius-lg);
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-8);
-  }
-
-  .gradient-row {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-  }
-
-  .gradient-label {
-    font-size: var(--ui-font-size-md);
-    color: var(--ui-text-secondary);
-    min-width: 36px;
-    flex-shrink: 0;
-  }
-
-  .gradient-style-buttons {
-    display: flex;
-    gap: var(--ui-space-2);
-  }
-
-  .style-btn {
-    width: 28px;
-    height: 28px;
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    background: var(--ui-surface-lowest);
-    color: var(--ui-text-secondary);
-    cursor: pointer;
-    font-size: var(--ui-font-size-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-  }
-
-  .style-btn.active {
-    border-color: var(--ui-text-secondary);
-    background: var(--ui-surface-high);
-    color: var(--ui-text-primary);
-  }
-
-  .style-btn:hover {
-    border-color: var(--ui-border-medium);
-  }
-
-  .size-btn {
-    width: auto;
-    padding: 0 8px;
-  }
-
-  .gradient-angle-input,
-  .gradient-pos-input {
-    width: 52px;
-    padding: 2px 6px;
-    font-size: var(--ui-font-size-md);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    color: var(--ui-text-primary);
-    text-align: center;
-  }
-
-  .gradient-angle-slider {
-    flex: 1;
-    min-width: 60px;
-    height: 4px;
-    accent-color: var(--ui-text-secondary);
-  }
-
-  .gradient-unit {
-    font-size: var(--ui-font-size-md);
-    color: var(--ui-text-tertiary);
-  }
-
-  .gradient-checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    font-size: var(--ui-font-size-md);
-    color: var(--ui-text-secondary);
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .gradient-checkbox-label input {
-    margin: 0;
-    cursor: pointer;
-  }
-
-  .gradient-select {
-    padding: 2px 6px;
-    font-size: var(--ui-font-size-md);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    color: var(--ui-text-primary);
-  }
-
-  .stop-color-preview {
-    width: 20px;
-    height: 20px;
-    border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-subtle);
-    flex-shrink: 0;
-  }
-
-  .gradient-stop-bar-wrapper {
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-
-  .gradient-stop-handles {
-    position: relative;
-    height: 28px;
-  }
-
-  .gradient-stop-bar {
-    position: relative;
-    height: 24px;
-    border-radius: var(--ui-radius-md);
-    border: 1px solid var(--ui-border-subtle);
-    cursor: crosshair;
-  }
-
-  .gradient-stop-handle {
-    position: absolute;
-    top: 0;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: grab;
-    z-index: 1;
-  }
-
-  .gradient-stop-handle.selected {
-    z-index: 2;
-  }
-
-  .stop-swatch {
-    width: 16px;
-    height: 16px;
-    border-radius: var(--ui-radius-sm);
-    border: 2px solid var(--ui-border-medium);
-    flex-shrink: 0;
-  }
-
-  .gradient-stop-handle.selected .stop-swatch {
-    border-color: var(--ui-text-primary);
-  }
-
-  .gradient-stop-handle:hover .stop-swatch {
-    border-color: var(--ui-text-secondary);
-  }
-
-  .stop-arrow {
-    width: 0;
-    height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 6px solid var(--ui-border-medium);
-  }
-
-  .gradient-stop-handle.selected .stop-arrow {
-    border-top-color: var(--ui-text-primary);
-  }
-
-  .gradient-stop-handle:hover .stop-arrow {
-    border-top-color: var(--ui-text-secondary);
-  }
-
-  .stop-controls {
-    flex-wrap: wrap;
-  }
-
-  .stop-remove-btn {
-    width: 20px;
-    height: 20px;
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    background: var(--ui-surface-lowest);
-    color: var(--ui-text-tertiary);
-    cursor: pointer;
-    font-size: var(--ui-font-size-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    margin-left: auto;
-  }
-
-  .stop-remove-btn:hover {
-    border-color: var(--ui-border-strong);
-    color: var(--ui-text-primary);
-  }
-
   /* Narrow desktop: tighten palette editor spacing */
   @media (max-width: 1280px) {
     .palette-editor {
@@ -2489,10 +1577,6 @@
     }
     .scales-row {
       gap: var(--ui-space-24);
-    }
-    .header-swatch {
-      width: 3rem;
-      height: 3rem;
     }
   }
 

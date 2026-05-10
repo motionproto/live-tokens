@@ -1,8 +1,8 @@
 {
-  "name": "default_01",
+  "name": "default",
   "component": "sectiondivider",
   "createdAt": "2026-05-10T14:08:13.444Z",
-  "updatedAt": "2026-05-10T14:08:13.446Z",
+  "updatedAt": "2026-05-10T16:59:16.437Z",
   "aliases": {
     "--sectiondivider-canvas-padding": "--space-16",
     "--sectiondivider-canvas-title": "--text-primary",
@@ -11,7 +11,7 @@
     "--sectiondivider-canvas-title-font-weight": "--font-weight-normal",
     "--sectiondivider-canvas-title-line-height": "--line-height-tight",
     "--sectiondivider-canvas-title-border-width": "--border-width-4",
-    "--sectiondivider-canvas-title-stroke-color": "color-mix(in srgb, var(--surface-canvas-lowest) 62%, transparent)",
+    "--sectiondivider-canvas-title-stroke-color": "--surface-canvas-lowest",
     "--sectiondivider-canvas-description": "--text-secondary",
     "--sectiondivider-canvas-description-font-family": "--font-sans",
     "--sectiondivider-canvas-description-font-size": "--font-size-md",
@@ -29,7 +29,7 @@
     "--sectiondivider-neutral-title-font-weight": "--font-weight-normal",
     "--sectiondivider-neutral-title-line-height": "--line-height-tight",
     "--sectiondivider-neutral-title-border-width": "--border-width-4",
-    "--sectiondivider-neutral-title-stroke-color": "color-mix(in srgb, var(--surface-canvas-lowest) 62%, transparent)",
+    "--sectiondivider-neutral-title-stroke-color": "--surface-canvas-lowest",
     "--sectiondivider-neutral-description": "--text-secondary",
     "--sectiondivider-neutral-description-font-family": "--font-sans",
     "--sectiondivider-neutral-description-font-size": "--font-size-md",
@@ -47,7 +47,7 @@
     "--sectiondivider-alternate-title-font-weight": "--font-weight-normal",
     "--sectiondivider-alternate-title-line-height": "--line-height-tight",
     "--sectiondivider-alternate-title-border-width": "--border-width-4",
-    "--sectiondivider-alternate-title-stroke-color": "color-mix(in srgb, var(--surface-canvas-lowest) 62%, transparent)",
+    "--sectiondivider-alternate-title-stroke-color": "--surface-canvas-lowest",
     "--sectiondivider-alternate-description": "--text-secondary",
     "--sectiondivider-alternate-description-font-family": "--font-sans",
     "--sectiondivider-alternate-description-font-size": "--font-size-md",
@@ -65,7 +65,7 @@
     "--sectiondivider-primary-title-font-weight": "--font-weight-normal",
     "--sectiondivider-primary-title-line-height": "--line-height-tight",
     "--sectiondivider-primary-title-border-width": "--border-width-4",
-    "--sectiondivider-primary-title-stroke-color": "color-mix(in srgb, var(--surface-canvas-lowest) 62%, transparent)",
+    "--sectiondivider-primary-title-stroke-color": "--surface-canvas-lowest",
     "--sectiondivider-primary-description": "--text-secondary",
     "--sectiondivider-primary-description-font-family": "--font-sans",
     "--sectiondivider-primary-description-font-size": "--font-size-md",
@@ -83,7 +83,7 @@
     "--sectiondivider-accent-title-font-weight": "--font-weight-normal",
     "--sectiondivider-accent-title-line-height": "--line-height-tight",
     "--sectiondivider-accent-title-border-width": "--border-width-4",
-    "--sectiondivider-accent-title-stroke-color": "color-mix(in srgb, var(--surface-canvas-lowest) 62%, transparent)",
+    "--sectiondivider-accent-title-stroke-color": "--surface-canvas-lowest",
     "--sectiondivider-accent-description": "--text-secondary",
     "--sectiondivider-accent-description-font-family": "--font-sans",
     "--sectiondivider-accent-description-font-size": "--font-size-md",
@@ -101,7 +101,7 @@
     "--sectiondivider-special-title-font-weight": "--font-weight-normal",
     "--sectiondivider-special-title-line-height": "--line-height-tight",
     "--sectiondivider-special-title-border-width": "--border-width-4",
-    "--sectiondivider-special-title-stroke-color": "color-mix(in srgb, var(--surface-canvas-lowest) 62%, transparent)",
+    "--sectiondivider-special-title-stroke-color": "--surface-canvas-lowest",
     "--sectiondivider-special-description": "--text-secondary",
     "--sectiondivider-special-description-font-family": "--font-sans",
     "--sectiondivider-special-description-font-size": "--font-size-md",
@@ -112,7 +112,5 @@
     "--sectiondivider-special-gradient-stop-3": "--surface-special-high",
     "--sectiondivider-special-gradient-stop-4": "--surface-special",
     "--sectiondivider-special-radius": "--radius-lg"
-  },
-  "config": {},
-  "schemaVersion": 4
+  }
 }

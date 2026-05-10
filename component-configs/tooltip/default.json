@@ -2,7 +2,7 @@
   "name": "default",
   "component": "tooltip",
   "createdAt": "2026-04-18T02:43:11.333Z",
-  "updatedAt": "2026-05-10T14:41:28.407Z",
+  "updatedAt": "2026-05-10T16:59:16.438Z",
   "aliases": {
     "--tooltip-surface": "--surface-neutral-highest",
     "--tooltip-text": "--text-primary",
