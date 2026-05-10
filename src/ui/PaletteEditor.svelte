@@ -7,6 +7,7 @@
   import ColorEditPanel from './ColorEditPanel.svelte';
   import Toggle from './Toggle.svelte';
   import OverridesPanel from './palette/OverridesPanel.svelte';
+  import GradientStopEditor from './palette/GradientStopEditor.svelte';
   import type { PaletteConfig, GradientStyle, GradientStop } from '../lib/themeTypes';
   import { editorState, mutate, setPaletteConfig, beginSliderGesture, beginScope, commitScope, cancelScope, type Scope } from '../lib/editorStore';
   import { scaleToCssVar } from '../lib/paletteDerivation';
@@ -97,8 +98,6 @@
   // --- Transient UI state (not persisted; not in PaletteConfig) ---
   let lockedLightnessIdx: number | null = null;
   let lockedSaturationIdx: number | null = null;
-  let draggingStopIndex: number | null = null;
-  let selectedStopIndex: number = 0;
 
   // Handle for the open palette edit scope: a clipping scope (clipUndoFloor:
   // true) bracketing one panel-open → confirm/cancel cycle. Held at component
@@ -115,103 +114,8 @@
   let gradientCssValue = '';
   let gradientBarPreview = '';
 
-  // Must run after paletteComputed is defined — see reactive block below
-
-  function onAngleInput(e: Event) {
-    const v = parseInt((e.currentTarget as HTMLInputElement).value) || 0;
-    edit('gradientAngle', v);
-  }
-
-  function onReverseChange(e: Event) {
-    edit('gradientReverse', (e.currentTarget as HTMLInputElement).checked);
-  }
-
   function onEmptyModeChange(e: Event) {
     edit('emptyMode', (e.currentTarget as HTMLInputElement).checked ? 'gradient' : 'solid');
-  }
-
-  function onStopColorChange(e: Event) {
-    const v = (e.currentTarget as HTMLSelectElement).value;
-    const next = gradientStops.map((s, idx) => idx === selectedStopIndex ? { ...s, paletteLabel: v } : s);
-    edit('gradientStops', next);
-  }
-
-  function onStopPositionChange(e: Event) {
-    const raw = parseInt((e.currentTarget as HTMLInputElement).value) || 0;
-    const v = Math.max(0, Math.min(100, raw));
-    const next = gradientStops.map((s, idx) => idx === selectedStopIndex ? { ...s, position: v } : s);
-    edit('gradientStops', next);
-  }
-
-  function addGradientStop(position: number) {
-    // Find nearest palette color by interpolating between surrounding stops
-    const nearest = paletteComputed.reduce((prev, curr) => {
-      const prevDist = Math.abs(parseInt(prev.label) - 500);
-      const currDist = Math.abs(parseInt(curr.label) - 500);
-      return currDist < prevDist ? curr : prev;
-    });
-    const next = [...gradientStops, { position, paletteLabel: nearest.label }];
-    edit('gradientStops', next);
-    selectedStopIndex = next.length - 1;
-  }
-
-  function removeGradientStop(index: number) {
-    if (gradientStops.length <= 2) return;
-    const next = gradientStops.filter((_, i) => i !== index);
-    edit('gradientStops', next);
-    if (selectedStopIndex >= next.length) selectedStopIndex = next.length - 1;
-  }
-
-  function handleStopHandleMouseDown(e: MouseEvent, i: number) {
-    selectedStopIndex = i;
-    draggingStopIndex = i;
-    const bar = (e.currentTarget as HTMLElement).parentElement!;
-    const rect = bar.getBoundingClientRect();
-    beginSliderGesture('drag gradient stop');
-    function onMove(me: MouseEvent) {
-      if (draggingStopIndex === null) return;
-      const newPos = Math.round(Math.max(0, Math.min(100, ((me.clientX - rect.left) / rect.width) * 100)));
-      const next = gradientStops.map((s, idx) => idx === draggingStopIndex ? { ...s, position: newPos } : s);
-      edit('gradientStops', next);
-    }
-    function onUp() {
-      draggingStopIndex = null;
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-    }
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-  }
-
-  function handleStopBarMouseDown(e: MouseEvent) {
-    const bar = (e.currentTarget as HTMLElement);
-    const rect = bar.getBoundingClientRect();
-    const pos = Math.round(((e.clientX - rect.left) / rect.width) * 100);
-
-    const nearIdx = gradientStops.findIndex(s => Math.abs(s.position - pos) < 4);
-    if (nearIdx >= 0) {
-      selectedStopIndex = nearIdx;
-      draggingStopIndex = nearIdx;
-      beginSliderGesture('drag gradient stop');
-    } else {
-      addGradientStop(Math.max(0, Math.min(100, pos)));
-      draggingStopIndex = gradientStops.length - 1;
-      beginSliderGesture('drag gradient stop');
-    }
-
-    function onMove(me: MouseEvent) {
-      if (draggingStopIndex === null) return;
-      const newPos = Math.round(Math.max(0, Math.min(100, ((me.clientX - rect.left) / rect.width) * 100)));
-      const next = gradientStops.map((s, idx) => idx === draggingStopIndex ? { ...s, position: newPos } : s);
-      edit('gradientStops', next);
-    }
-    function onUp() {
-      draggingStopIndex = null;
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-    }
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
   }
 
   // --- Gray mode ---
@@ -253,17 +157,6 @@
   function setSaturationCurve(a: CurveAnchor[]) { edit('saturationCurve', a); }
   function setGrayLightnessCurve(a: CurveAnchor[]) { edit('grayLightnessCurve', a); }
   function setGraySaturationCurve(a: CurveAnchor[]) { edit('graySaturationCurve', a); }
-
-  const gradientStyleOptions: { value: GradientStyle; icon: string; title: string }[] = [
-    { value: 'linear', icon: '/', title: 'Linear' },
-    { value: 'radial', icon: '\u25CB', title: 'Radial' },
-    { value: 'conic',  icon: '\u25D4', title: 'Conic' },
-  ];
-
-  const gradientSizeOptions: { value: 'page' | 'window'; label: string; title: string }[] = [
-    { value: 'page', label: 'Page', title: 'Gradient stretches over the full scrollable page' },
-    { value: 'window', label: 'Window', title: 'Gradient stays fixed to the viewport' },
-  ];
 
   // --- Curve offset + clipboard (shared across all curve editors) ---
 
@@ -1171,135 +1064,20 @@
       </div>
 
       {#if emptySelector && emptyMode === 'gradient'}
-        <div class="gradient-controls">
-          <div class="gradient-row">
-            <span class="gradient-label">Style:</span>
-            <div class="gradient-style-buttons">
-              {#each gradientStyleOptions as opt}
-                <button
-                  class="style-btn"
-                  class:active={gradientStyle === opt.value}
-                  type="button"
-                  title={opt.title}
-                  on:click={() => edit('gradientStyle', opt.value)}
-                >{opt.icon}</button>
-              {/each}
-            </div>
-          </div>
-
-          <div class="gradient-row">
-            <span class="gradient-label">Angle:</span>
-            <input
-              class="gradient-angle-input"
-              type="number"
-              min="0"
-              max="360"
-              value={gradientAngle}
-              on:input={onAngleInput}
-            />
-            <span class="gradient-unit">deg</span>
-            <input
-              class="gradient-angle-slider"
-              type="range"
-              min="0"
-              max="360"
-              value={gradientAngle}
-              on:input={onAngleInput}
-            />
-          </div>
-
-          <div class="gradient-row">
-            <span class="gradient-label">Size:</span>
-            <div class="gradient-style-buttons">
-              {#each gradientSizeOptions as opt}
-                <button
-                  class="style-btn size-btn"
-                  class:active={gradientSize === opt.value}
-                  type="button"
-                  title={opt.title}
-                  on:click={() => edit('gradientSize', opt.value)}
-                >{opt.label}</button>
-              {/each}
-            </div>
-          </div>
-
-          <div class="gradient-row">
-            <label class="gradient-checkbox-label">
-              <input type="checkbox" checked={gradientReverse} on:change={onReverseChange} />
-              Reverse
-            </label>
-          </div>
-
-          <!-- Gradient stop bar -->
-          <div class="gradient-stop-bar-wrapper">
-            <div class="gradient-stop-handles">
-              {#each gradientStops as stop, i}
-                <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-                <div
-                  class="gradient-stop-handle"
-                  class:selected={selectedStopIndex === i}
-                  style="left: {stop.position}%; --stop-color: {stopColor(stop, paletteComputed)}"
-                  on:mousedown|stopPropagation={(e) => handleStopHandleMouseDown(e, i)}
-                  role="button"
-                  tabindex="0"
-                  on:keydown={(e) => {
-                    if (e.key === 'Delete' || e.key === 'Backspace') removeGradientStop(i);
-                  }}
-                >
-                  <div class="stop-swatch" style="background: {stopColor(stop, paletteComputed)}"></div>
-                  <div class="stop-arrow"></div>
-                </div>
-              {/each}
-            </div>
-            <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-            <div
-              class="gradient-stop-bar"
-              style="background: {gradientBarPreview}"
-              on:mousedown={handleStopBarMouseDown}
-              role="slider"
-              tabindex="0"
-              aria-label="Gradient stops"
-              aria-valuenow={gradientStops[selectedStopIndex]?.position ?? 0}
-              aria-valuemin="0"
-              aria-valuemax="100"
-            ></div>
-          </div>
-
-          <!-- Selected stop controls -->
-          {#if gradientStops[selectedStopIndex]}
-            <div class="gradient-row stop-controls">
-              <span class="gradient-label">Color:</span>
-              <select
-                class="gradient-select"
-                value={gradientStops[selectedStopIndex].paletteLabel}
-                on:change={onStopColorChange}
-              >
-                {#each paletteComputed as ps}
-                  <option value={ps.label}>{ps.label}</option>
-                {/each}
-              </select>
-              <div class="stop-color-preview" style="background: {stopColor(gradientStops[selectedStopIndex], paletteComputed)}"></div>
-              <span class="gradient-label">Pos:</span>
-              <input
-                class="gradient-pos-input"
-                type="number"
-                min="0"
-                max="100"
-                value={gradientStops[selectedStopIndex].position}
-                on:change={onStopPositionChange}
-              />
-              <span class="gradient-unit">%</span>
-              {#if gradientStops.length > 2}
-                <button
-                  class="stop-remove-btn"
-                  type="button"
-                  title="Remove stop"
-                  on:click={() => removeGradientStop(selectedStopIndex)}
-                >&times;</button>
-              {/if}
-            </div>
-          {/if}
-        </div>
+        <GradientStopEditor
+          {gradientStyle}
+          {gradientAngle}
+          {gradientSize}
+          {gradientReverse}
+          {gradientStops}
+          {gradientBarPreview}
+          {paletteComputed}
+          onSetGradientStyle={(v) => edit('gradientStyle', v)}
+          onSetGradientSize={(v) => edit('gradientSize', v)}
+          onSetGradientAngle={(v) => edit('gradientAngle', v)}
+          onSetGradientReverse={(v) => edit('gradientReverse', v)}
+          onSetGradientStops={(v) => edit('gradientStops', v)}
+        />
       {/if}
     </div>
 
@@ -1900,214 +1678,6 @@
     font-weight: bold;
     color: black;
     line-height: 1;
-  }
-
-  /* Gradient controls */
-  .gradient-controls {
-    margin-top: var(--ui-space-8);
-    padding: var(--ui-space-12);
-    background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-faint);
-    border-radius: var(--ui-radius-lg);
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-8);
-  }
-
-  .gradient-row {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-  }
-
-  .gradient-label {
-    font-size: var(--ui-font-size-md);
-    color: var(--ui-text-secondary);
-    min-width: 36px;
-    flex-shrink: 0;
-  }
-
-  .gradient-style-buttons {
-    display: flex;
-    gap: var(--ui-space-2);
-  }
-
-  .style-btn {
-    width: 28px;
-    height: 28px;
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    background: var(--ui-surface-lowest);
-    color: var(--ui-text-secondary);
-    cursor: pointer;
-    font-size: var(--ui-font-size-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-  }
-
-  .style-btn.active {
-    border-color: var(--ui-text-secondary);
-    background: var(--ui-surface-high);
-    color: var(--ui-text-primary);
-  }
-
-  .style-btn:hover {
-    border-color: var(--ui-border-medium);
-  }
-
-  .size-btn {
-    width: auto;
-    padding: 0 8px;
-  }
-
-  .gradient-angle-input,
-  .gradient-pos-input {
-    width: 52px;
-    padding: 2px 6px;
-    font-size: var(--ui-font-size-md);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    color: var(--ui-text-primary);
-    text-align: center;
-  }
-
-  .gradient-angle-slider {
-    flex: 1;
-    min-width: 60px;
-    height: 4px;
-    accent-color: var(--ui-text-secondary);
-  }
-
-  .gradient-unit {
-    font-size: var(--ui-font-size-md);
-    color: var(--ui-text-tertiary);
-  }
-
-  .gradient-checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    font-size: var(--ui-font-size-md);
-    color: var(--ui-text-secondary);
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .gradient-checkbox-label input {
-    margin: 0;
-    cursor: pointer;
-  }
-
-  .gradient-select {
-    padding: 2px 6px;
-    font-size: var(--ui-font-size-md);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    color: var(--ui-text-primary);
-  }
-
-  .stop-color-preview {
-    width: 20px;
-    height: 20px;
-    border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-subtle);
-    flex-shrink: 0;
-  }
-
-  .gradient-stop-bar-wrapper {
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-
-  .gradient-stop-handles {
-    position: relative;
-    height: 28px;
-  }
-
-  .gradient-stop-bar {
-    position: relative;
-    height: 24px;
-    border-radius: var(--ui-radius-md);
-    border: 1px solid var(--ui-border-subtle);
-    cursor: crosshair;
-  }
-
-  .gradient-stop-handle {
-    position: absolute;
-    top: 0;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: grab;
-    z-index: 1;
-  }
-
-  .gradient-stop-handle.selected {
-    z-index: 2;
-  }
-
-  .stop-swatch {
-    width: 16px;
-    height: 16px;
-    border-radius: var(--ui-radius-sm);
-    border: 2px solid var(--ui-border-medium);
-    flex-shrink: 0;
-  }
-
-  .gradient-stop-handle.selected .stop-swatch {
-    border-color: var(--ui-text-primary);
-  }
-
-  .gradient-stop-handle:hover .stop-swatch {
-    border-color: var(--ui-text-secondary);
-  }
-
-  .stop-arrow {
-    width: 0;
-    height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 6px solid var(--ui-border-medium);
-  }
-
-  .gradient-stop-handle.selected .stop-arrow {
-    border-top-color: var(--ui-text-primary);
-  }
-
-  .gradient-stop-handle:hover .stop-arrow {
-    border-top-color: var(--ui-text-secondary);
-  }
-
-  .stop-controls {
-    flex-wrap: wrap;
-  }
-
-  .stop-remove-btn {
-    width: 20px;
-    height: 20px;
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    background: var(--ui-surface-lowest);
-    color: var(--ui-text-tertiary);
-    cursor: pointer;
-    font-size: var(--ui-font-size-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    margin-left: auto;
-  }
-
-  .stop-remove-btn:hover {
-    border-color: var(--ui-border-strong);
-    color: var(--ui-text-primary);
   }
 
   /* Narrow desktop: tighten palette editor spacing */
