@@ -70,8 +70,8 @@
     flex-shrink: 0;
 
     &.on {
-      background: var(--surface-primary-high);
-      border-color: var(--border-neutral-medium);
+      background: var(--ui-toggle);
+      border-color: var(--ui-toggle);
     }
 
     &:hover:not(:disabled) {

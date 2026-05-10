@@ -153,6 +153,43 @@
     if (showFileList) refreshFiles();
   }
 
+  const dateFormatter = new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
+  function formatUpdatedAt(iso: string): string {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    return dateFormatter.format(d);
+  }
+
+  type SortKey = 'name' | 'updatedAt';
+  let sortKey: SortKey = 'updatedAt';
+  let sortDir: 'asc' | 'desc' = 'desc';
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortKey = key;
+      // Default: names asc, dates desc (most-recent first)
+      sortDir = key === 'name' ? 'asc' : 'desc';
+    }
+  }
+
+  $: sortedFiles = [...files].sort((a, b) => {
+    let cmp = 0;
+    if (sortKey === 'name') {
+      cmp = a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+    } else {
+      cmp = (a.updatedAt || '').localeCompare(b.updatedAt || '');
+    }
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
 </script>
 
 <div class="theme-file-manager">
@@ -276,11 +313,35 @@
   width="420px"
 >
   <div class="load-list">
-    {#each files as file}
+    <div class="load-header">
+      <button
+        class="sort-btn name-col"
+        class:active-sort={sortKey === 'name'}
+        on:click={() => toggleSort('name')}
+      >
+        <span>Name</span>
+        {#if sortKey === 'name'}
+          <i class="fas {sortDir === 'asc' ? 'fa-caret-up' : 'fa-caret-down'}"></i>
+        {/if}
+      </button>
+      <button
+        class="sort-btn date-col"
+        class:active-sort={sortKey === 'updatedAt'}
+        on:click={() => toggleSort('updatedAt')}
+      >
+        <span>Date</span>
+        {#if sortKey === 'updatedAt'}
+          <i class="fas {sortDir === 'asc' ? 'fa-caret-up' : 'fa-caret-down'}"></i>
+        {/if}
+      </button>
+      <span class="header-spacer"></span>
+    </div>
+    {#each sortedFiles as file}
       <div class="load-item" class:active={file.fileName === $activeFileName}>
         <button class="load-name-btn" on:click={() => handleLoad(file)}>
           {file.name}
         </button>
+        <span class="updated-at" title={file.updatedAt}>{formatUpdatedAt(file.updatedAt)}</span>
         {#if file.fileName === $activeFileName}
           <span class="active-badge">active</span>
         {/if}
@@ -480,6 +541,62 @@
     overflow-y: auto;
   }
 
+  .load-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    border-bottom: 1px solid #3a3a3a;
+    position: sticky;
+    top: 0;
+    background: var(--ui-surface, #1a1a1a);
+    z-index: 1;
+  }
+
+  .sort-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .sort-btn:hover {
+    color: #ccc;
+  }
+
+  .sort-btn.active-sort {
+    color: #e0e0e0;
+  }
+
+  .sort-btn i {
+    font-size: 10px;
+    opacity: 0.85;
+  }
+
+  .sort-btn.name-col {
+    flex: 1;
+    min-width: 0;
+    padding-left: 4px;
+  }
+
+  .sort-btn.date-col {
+    flex-shrink: 0;
+  }
+
+  .header-spacer {
+    flex-shrink: 0;
+    width: 24px; /* reserve space matching .file-delete-btn */
+  }
+
   .load-item {
     display: flex;
     align-items: center;
@@ -522,6 +639,14 @@
   .load-item.active .load-name-btn {
     color: #e0e0e0;
     font-weight: 600;
+  }
+
+  .updated-at {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: #777;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   .active-badge {

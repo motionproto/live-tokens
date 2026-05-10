@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
+  import PresetFileManager from '../ui/PresetFileManager.svelte';
   import { navigate } from '../lib/router';
   import { componentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
   import { listComponents } from '../lib/componentConfigService';
@@ -145,6 +146,11 @@
         </button>
       {/each}
     </div>
+    {#if drawerOpen}
+      <div class="sidebar-footer">
+        <PresetFileManager />
+      </div>
+    {/if}
   </nav>
 
   <main class="content">
@@ -307,6 +313,13 @@
     gap: var(--ui-space-2);
     padding: 0 0 var(--ui-space-16);
     background: black;
+  }
+
+  .sidebar-footer {
+    flex-shrink: 0;
+    margin-top: auto;
+    padding: var(--ui-space-12) var(--ui-space-8) var(--ui-space-16);
+    border-top: 1px solid var(--ui-border-faint);
   }
 
   .nav-item {

@@ -1,12 +1,12 @@
 {
   "name": "default_01",
-  "createdAt": "2026-04-16T23:20:18.409Z",
-  "updatedAt": "2026-04-16T23:20:18.413Z",
+  "createdAt": "2026-05-10T19:25:03.305Z",
+  "updatedAt": "2026-05-10T19:25:03.310Z",
   "editorConfigs": {
     "Neutral": {
       "baseColor": "#808080",
-      "tintHue": 53.35888601350007,
-      "tintChroma": 0.062,
+      "tintHue": 236,
+      "tintChroma": 0.067,
       "lightnessCurve": [
         {
           "x": 0,
@@ -229,8 +229,8 @@
     },
     "Alternate": {
       "baseColor": "#808080",
-      "tintHue": 177.10156053698154,
-      "tintChroma": 0.0089369893488387,
+      "tintHue": 53,
+      "tintChroma": 0.041,
       "lightnessCurve": [
         {
           "x": 0,
@@ -444,7 +444,7 @@
       "anchorToBase": true
     },
     "Background": {
-      "baseColor": "#8d7f74",
+      "baseColor": "#3c3c53",
       "tintHue": 240,
       "tintChroma": 0.04,
       "lightnessCurve": [
@@ -458,7 +458,7 @@
         },
         {
           "x": 40,
-          "y": 60.59225995344052,
+          "y": 36.60639980313516,
           "inDx": -15,
           "inDy": 0,
           "outDx": 15,
@@ -676,7 +676,7 @@
       "gradientSize": "page"
     },
     "Primary": {
-      "baseColor": "#bd6a08",
+      "baseColor": "#fc5abb",
       "tintHue": 240,
       "tintChroma": 0.04,
       "lightnessCurve": [
@@ -690,7 +690,7 @@
         },
         {
           "x": 40,
-          "y": 60.590653319394406,
+          "y": 70.99062938177792,
           "inDx": -15,
           "inDy": 0,
           "outDx": 15,
@@ -916,7 +916,7 @@
       "anchorToBase": true
     },
     "Accent": {
-      "baseColor": "#9d7f00",
+      "baseColor": "#008582",
       "tintHue": 240,
       "tintChroma": 0.04,
       "lightnessCurve": [
@@ -930,7 +930,7 @@
         },
         {
           "x": 40,
-          "y": 60.73569284676126,
+          "y": 55.724652427861876,
           "inDx": -0.15005988575639861,
           "inDy": 0.8375145169699039,
           "outDx": 13.207918739635154,
@@ -1564,7 +1564,7 @@
       "anchorToBase": true
     },
     "Warning": {
-      "baseColor": "#cd5d00",
+      "baseColor": "#f09c00",
       "tintHue": 240,
       "tintChroma": 0.04,
       "lightnessCurve": [
@@ -1578,7 +1578,7 @@
         },
         {
           "x": 40,
-          "y": 60.779093666703034,
+          "y": 75.8883165260383,
           "inDx": -15,
           "inDy": 0,
           "outDx": 15,
@@ -1780,7 +1780,7 @@
       "anchorToBase": true
     },
     "Info": {
-      "baseColor": "#274a82",
+      "baseColor": "#0896fd",
       "tintHue": 240,
       "tintChroma": 0.04,
       "lightnessCurve": [
@@ -1794,7 +1794,7 @@
         },
         {
           "x": 40,
-          "y": 41.30852056522697,
+          "y": 66.16639337665728,
           "inDx": -15,
           "inDy": 0,
           "outDx": 15,
@@ -1998,7 +1998,7 @@
       "anchorToBase": true
     },
     "Danger": {
-      "baseColor": "#e72e4e",
+      "baseColor": "#d10023",
       "tintHue": 240,
       "tintChroma": 0.04,
       "lightnessCurve": [
@@ -2012,7 +2012,7 @@
         },
         {
           "x": 40,
-          "y": 60.706809233661694,
+          "y": 54.23382641733694,
           "inDx": -15,
           "inDy": 0,
           "outDx": 15,
@@ -2225,7 +2225,6 @@
     "--color-neutral-800": "#302925",
     "--color-neutral-850": "#1a1410",
     "--color-neutral-900": "#070302",
-    "--color-neutral-950": "#000000",
     "--surface-neutral-lowest": "#0f0a07",
     "--surface-neutral-lower": "#1a1410",
     "--surface-neutral-low": "#28211d",
@@ -2235,7 +2234,6 @@
     "--surface-neutral-highest": "#615954",
     "--border-neutral-faint": "#27201c",
     "--border-neutral-subtle": "#48413c",
-    "--border-neutral": "#706964",
     "--border-neutral-medium": "#9b938e",
     "--border-neutral-strong": "#c4bcb6",
     "--text-primary": "#fff5f0",
@@ -2271,64 +2269,62 @@
     "--text-alternate-tertiary": "#676868",
     "--text-alternate-muted": "#444444",
     "--text-alternate-disabled": "#343434",
-    "--color-canvas-100": "#fbebdf",
-    "--color-canvas-200": "#dacbbf",
-    "--color-canvas-300": "#b5a79b",
-    "--color-canvas-400": "#998b80",
-    "--color-canvas-500": "#8d7f74",
-    "--color-canvas-600": "#807267",
-    "--color-canvas-700": "#685b50",
-    "--color-canvas-800": "#4d4036",
-    "--color-canvas-850": "#31251c",
-    "--color-canvas-900": "#170d05",
-    "--color-canvas-950": "#050100",
-    "--surface-canvas-lowest": "#120903",
-    "--surface-canvas-lower": "#1e130b",
-    "--surface-canvas-low": "#2b2017",
-    "--surface-canvas": "#392e24",
-    "--surface-canvas-high": "#483c32",
-    "--surface-canvas-higher": "#574b41",
-    "--surface-canvas-highest": "#65584e",
-    "--border-canvas-faint": "#2a1f16",
-    "--border-canvas-subtle": "#4c4036",
-    "--border-canvas": "#75675d",
-    "--border-canvas-medium": "#a09287",
-    "--border-canvas-strong": "#cabbaf",
-    "--text-canvas": "#b2a498",
-    "--text-canvas-secondary": "#9c9086",
-    "--text-canvas-tertiary": "#726a64",
-    "--text-canvas-muted": "#4a4744",
-    "--text-canvas-disabled": "#383634",
-    "--empty": "#31251c",
-    "--empty-attachment": "scroll",
-    "--color-primary-100": "#ffeada",
-    "--color-primary-200": "#ffbf8b",
-    "--color-primary-300": "#e99243",
-    "--color-primary-400": "#ca7620",
-    "--color-primary-500": "#bd6a08",
-    "--color-primary-600": "#ac5f00",
-    "--color-primary-700": "#8a4b00",
-    "--color-primary-800": "#653500",
-    "--color-primary-850": "#3f1f00",
-    "--color-primary-900": "#1c0a00",
-    "--color-primary-950": "#050100",
-    "--surface-primary-lowest": "#160700",
-    "--surface-primary-lower": "#250f00",
-    "--surface-primary-low": "#371a00",
-    "--surface-primary": "#4a2600",
-    "--surface-primary-high": "#5f3200",
-    "--surface-primary-higher": "#733e00",
-    "--surface-primary-highest": "#864900",
-    "--border-primary-faint": "#361900",
-    "--border-primary-subtle": "#643500",
-    "--border-primary": "#9c5600",
-    "--border-primary-medium": "#d27d2a",
-    "--border-primary-strong": "#ffa659",
-    "--text-primary-color": "#ec9546",
-    "--text-primary-secondary": "#cf8746",
-    "--text-primary-tertiary": "#966841",
-    "--text-primary-muted": "#66503e",
-    "--text-primary-disabled": "#4d4239",
+    "--color-canvas-100": "#d3f7f3",
+    "--color-canvas-200": "#b6d9d4",
+    "--color-canvas-300": "#94b6b2",
+    "--color-canvas-400": "#7a9b97",
+    "--color-canvas-500": "#6f908c",
+    "--color-canvas-600": "#62827e",
+    "--color-canvas-700": "#496966",
+    "--color-canvas-800": "#2e4d49",
+    "--color-canvas-850": "#10302d",
+    "--color-canvas-900": "#001412",
+    "--color-canvas-950": "#000202",
+    "--surface-canvas-lowest": "#000f0d",
+    "--surface-canvas-lower": "#001b18",
+    "--surface-canvas-low": "#082826",
+    "--surface-canvas": "#173633",
+    "--surface-canvas-high": "#264542",
+    "--surface-canvas-higher": "#355451",
+    "--surface-canvas-highest": "#42625e",
+    "--border-canvas-faint": "#072725",
+    "--border-canvas-subtle": "#2a4946",
+    "--border-canvas": "#52726e",
+    "--border-canvas-medium": "#7b9d99",
+    "--border-canvas-strong": "#a3c6c2",
+    "--text-canvas": "#95b7b3",
+    "--text-canvas-secondary": "#84a09d",
+    "--text-canvas-tertiary": "#647673",
+    "--text-canvas-muted": "#454d4c",
+    "--text-canvas-disabled": "#363a3a",
+    "--color-primary-100": "#ffe6f9",
+    "--color-primary-200": "#ffb7f0",
+    "--color-primary-300": "#ff74e9",
+    "--color-primary-400": "#f828e0",
+    "--color-primary-500": "#eb0ad4",
+    "--color-primary-600": "#d500c0",
+    "--color-primary-700": "#ac009b",
+    "--color-primary-800": "#7d0070",
+    "--color-primary-850": "#4e0046",
+    "--color-primary-900": "#23001f",
+    "--color-primary-950": "#060005",
+    "--surface-primary-lowest": "#1a0017",
+    "--surface-primary-lower": "#2b0026",
+    "--surface-primary-low": "#400038",
+    "--surface-primary": "#55004c",
+    "--surface-primary-high": "#6c0061",
+    "--surface-primary-higher": "#840076",
+    "--surface-primary-highest": "#99008a",
+    "--border-primary-faint": "#3e0037",
+    "--border-primary-subtle": "#730067",
+    "--border-primary": "#b200a0",
+    "--border-primary-medium": "#f31fdb",
+    "--border-primary-strong": "#ff90eb",
+    "--text-primary-color": "#ff8eeb",
+    "--text-primary-secondary": "#fe5be7",
+    "--text-primary-tertiary": "#b753a7",
+    "--text-primary-muted": "#7a4b71",
+    "--text-primary-disabled": "#5a4355",
     "--color-accent-100": "#ffeaab",
     "--color-accent-200": "#f1d479",
     "--color-accent-300": "#d6b95c",
@@ -2441,34 +2437,34 @@
     "--text-warning-tertiary": "#985b39",
     "--text-warning-muted": "#5d4031",
     "--text-warning-disabled": "#41332b",
-    "--color-info-100": "#e5efff",
-    "--color-info-200": "#95beff",
-    "--color-info-300": "#5f86c3",
-    "--color-info-400": "#385c95",
-    "--color-info-500": "#274a82",
-    "--color-info-600": "#20427a",
-    "--color-info-700": "#12346a",
-    "--color-info-800": "#022357",
-    "--color-info-850": "#00143b",
-    "--color-info-900": "#00061f",
-    "--color-info-950": "#00010d",
-    "--surface-info-lowest": "#000923",
-    "--surface-info-lower": "#05152f",
-    "--surface-info-low": "#11223e",
-    "--surface-info": "#1e304d",
-    "--surface-info-high": "#2c3f5d",
-    "--surface-info-higher": "#3a4e6d",
-    "--surface-info-highest": "#475c7b",
-    "--border-info-faint": "#001e50",
-    "--border-info-subtle": "#1e4178",
-    "--border-info": "#456aa5",
-    "--border-info-medium": "#6f96d4",
-    "--border-info-strong": "#97bfff",
-    "--text-info": "#78acff",
-    "--text-info-secondary": "#5385d6",
-    "--text-info-tertiary": "#406298",
-    "--text-info-muted": "#2e415e",
-    "--text-info-disabled": "#172132",
+    "--color-info-100": "#cff7ff",
+    "--color-info-200": "#8ad4e3",
+    "--color-info-300": "#5ca6b4",
+    "--color-info-400": "#388391",
+    "--color-info-500": "#277482",
+    "--color-info-600": "#196977",
+    "--color-info-700": "#005562",
+    "--color-info-800": "#003d47",
+    "--color-info-850": "#00252c",
+    "--color-info-900": "#000f13",
+    "--color-info-950": "#000203",
+    "--surface-info-lowest": "#000e12",
+    "--surface-info-lower": "#001a1f",
+    "--surface-info-low": "#02282e",
+    "--surface-info": "#12363d",
+    "--surface-info-high": "#21454c",
+    "--surface-info-higher": "#30545b",
+    "--surface-info-highest": "#3e6169",
+    "--border-info-faint": "#00272e",
+    "--border-info-subtle": "#004c57",
+    "--border-info": "#297684",
+    "--border-info-medium": "#58a2b0",
+    "--border-info-strong": "#82cbda",
+    "--text-info": "#bef4ff",
+    "--text-info-secondary": "#60c8dc",
+    "--text-info-tertiary": "#5092a0",
+    "--text-info-muted": "#3e6067",
+    "--text-info-disabled": "#203438",
     "--color-danger-100": "#ffe8e8",
     "--color-danger-200": "#ffbabb",
     "--color-danger-300": "#ff7a83",
@@ -2497,6 +2493,61 @@
     "--text-danger-tertiary": "#a84950",
     "--text-danger-muted": "#65393b",
     "--text-danger-disabled": "#463030",
+    "--page-bg": "#10302d",
+    "--color-neutral-950": "#000000",
+    "--page-bg-attachment": "scroll",
+    "--gradient-1": "linear-gradient(90deg, var(--color-primary-500) 0%, var(--color-accent-500) 100%)",
+    "--gradient-2": "linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-special-500) 100%)",
+    "--gradient-3": "linear-gradient(90deg, var(--color-success-500) 0%, var(--color-info-500) 100%)",
+    "--gradient-4": "linear-gradient(45deg, var(--color-danger-500) 0%, var(--color-warning-500) 100%)",
+    "--border-neutral": "#656b6f",
+    "--badge-trait-surface": "var(--surface-primary)",
+    "--badge-trait-text": "var(--text-primary-color)",
+    "--badge-trait-text-font-family": "var(--font-sans)",
+    "--badge-trait-text-font-size": "var(--font-size-sm)",
+    "--badge-trait-text-font-weight": "var(--font-weight-light)",
+    "--badge-trait-text-line-height": "var(--line-height-tight)",
+    "--badge-trait-border": "var(--border-primary-medium)",
+    "--badge-trait-border-width": "var(--border-width-1)",
+    "--badge-trait-radius": "var(--radius-full)",
+    "--badge-trait-padding": "var(--space-6)",
+    "--badge-trait-shadow": "transparent",
+    "--sectiondivider-padding": "var(--space-16)",
+    "--sectiondivider-title": "var(--text-primary)",
+    "--sectiondivider-title-font-family": "var(--font-display)",
+    "--sectiondivider-title-font-size": "var(--font-size-5xl)",
+    "--sectiondivider-title-font-weight": "var(--font-weight-normal)",
+    "--sectiondivider-title-line-height": "var(--line-height-tight)",
+    "--sectiondivider-title-border-width": "var(--border-width-4)",
+    "--sectiondivider-title-stroke-color": "var(--surface-canvas-lowest)",
+    "--sectiondivider-description": "var(--text-secondary)",
+    "--sectiondivider-description-font-family": "var(--font-sans)",
+    "--sectiondivider-description-font-size": "var(--font-size-md)",
+    "--sectiondivider-description-font-weight": "var(--font-weight-normal)",
+    "--sectiondivider-description-line-height": "var(--line-height-normal)",
+    "--dialog-primary-default-surface": "var(--surface-neutral-high)",
+    "--dialog-primary-default-text": "var(--text-primary)",
+    "--dialog-primary-default-border": "var(--border-neutral-medium)",
+    "--dialog-primary-default-border-width": "var(--border-width-1)",
+    "--dialog-primary-default-radius": "var(--radius-md)",
+    "--dialog-primary-default-padding": "var(--space-8)",
+    "--dialog-primary-hover-surface": "var(--surface-neutral-higher)",
+    "--dialog-primary-hover-text": "var(--text-primary)",
+    "--dialog-primary-hover-border": "var(--border-neutral-strong)",
+    "--dialog-primary-hover-border-width": "var(--border-width-1)",
+    "--dialog-primary-hover-radius": "var(--radius-md)",
+    "--dialog-primary-hover-padding": "var(--space-8)",
+    "--dialog-secondary-default-text": "var(--text-primary)",
+    "--dialog-secondary-default-border": "var(--border-neutral-medium)",
+    "--dialog-secondary-default-border-width": "var(--border-width-1)",
+    "--dialog-secondary-default-radius": "var(--radius-md)",
+    "--dialog-secondary-default-padding": "var(--space-8)",
+    "--dialog-secondary-hover-surface": "var(--surface-neutral-lower)",
+    "--dialog-secondary-hover-text": "var(--text-primary)",
+    "--dialog-secondary-hover-border": "var(--border-neutral-strong)",
+    "--dialog-secondary-hover-border-width": "var(--border-width-1)",
+    "--dialog-secondary-hover-radius": "var(--radius-md)",
+    "--dialog-secondary-hover-padding": "var(--space-8)",
     "--overlay-lowest": "rgba(20, 3, 0, 0.12)",
     "--overlay-lower": "rgba(20, 3, 0, 0.25)",
     "--overlay-low": "rgba(20, 3, 0, 0.38)",
@@ -2504,10 +2555,137 @@
     "--overlay-high": "rgba(20, 3, 0, 0.64)",
     "--overlay-higher": "rgba(20, 3, 0, 0.77)",
     "--overlay-highest": "rgba(20, 3, 0, 0.9)",
+    "--hover-low": "rgba(255, 255, 255, 0.05)",
+    "--hover": "rgba(255, 255, 255, 0.1)",
+    "--hover-high": "rgba(255, 255, 255, 0.15)",
     "--shadow-sm": "1px 1px 2px 0px hsla(237, 18%, 3%, 0.9)",
     "--shadow-md": "3px 3px 6px 0px hsla(237, 18%, 3%, 0.9)",
     "--shadow-lg": "5px 5px 9px 0px hsla(237, 18%, 3%, 0.9)",
     "--shadow-xl": "6px 7px 13px 0px hsla(237, 18%, 3%, 0.9)",
     "--shadow-2xl": "8px 9px 16px 0px hsla(237, 18%, 3%, 0.9)"
-  }
+  },
+  "fontSources": [
+    {
+      "id": "src_typekit_jes8oow",
+      "kind": "typekit",
+      "url": "https://use.typekit.net/jes8oow.css",
+      "label": "Adobe Typekit",
+      "families": [
+        {
+          "id": "src_typekit_jes8oow:fira-code",
+          "name": "fira-code",
+          "cssName": "\"fira-code\""
+        }
+      ]
+    },
+    {
+      "id": "src_fraunces_local",
+      "kind": "font-face",
+      "cssText": "@font-face {\n  font-family: \"Fraunces\";\n  src: url('/src/styles/fonts/Fraunces/Fraunces-roman-latin.woff2') format('woff2');\n  font-weight: 100 900;\n  font-style: normal;\n  font-display: swap;\n}\n@font-face {\n  font-family: \"Fraunces\";\n  src: url('/src/styles/fonts/Fraunces/Fraunces-italic-latin.woff2') format('woff2');\n  font-weight: 100 900;\n  font-style: italic;\n  font-display: swap;\n}",
+      "label": "Local",
+      "families": [
+        {
+          "id": "src_fraunces_local:fraunces",
+          "name": "Fraunces",
+          "cssName": "\"Fraunces\"",
+          "weights": [
+            100,
+            200,
+            300,
+            400,
+            500,
+            600,
+            700,
+            800,
+            900
+          ]
+        }
+      ]
+    },
+    {
+      "id": "src_manrope_local",
+      "kind": "font-face",
+      "cssText": "@font-face {\n  font-family: \"Manrope\";\n  src: url('/src/styles/fonts/Manrope/Manrope-latin.woff2') format('woff2');\n  font-weight: 200 800;\n  font-style: normal;\n  font-display: swap;\n}",
+      "label": "Local",
+      "families": [
+        {
+          "id": "src_manrope_local:manrope",
+          "name": "Manrope",
+          "cssName": "\"Manrope\"",
+          "weights": [
+            200,
+            300,
+            400,
+            500,
+            600,
+            700,
+            800
+          ]
+        }
+      ]
+    }
+  ],
+  "fontStacks": [
+    {
+      "variable": "--font-display",
+      "slots": [
+        {
+          "kind": "project",
+          "familyId": "src_fraunces_local:fraunces"
+        },
+        {
+          "kind": "generic",
+          "value": "serif"
+        }
+      ]
+    },
+    {
+      "variable": "--font-sans",
+      "slots": [
+        {
+          "kind": "project",
+          "familyId": "src_manrope_local:manrope"
+        },
+        {
+          "kind": "system",
+          "preset": "system-ui-sans"
+        },
+        {
+          "kind": "generic",
+          "value": "sans-serif"
+        }
+      ]
+    },
+    {
+      "variable": "--font-serif",
+      "slots": [
+        {
+          "kind": "project",
+          "familyId": "src_fraunces_local:fraunces"
+        },
+        {
+          "kind": "generic",
+          "value": "serif"
+        }
+      ]
+    },
+    {
+      "variable": "--font-mono",
+      "slots": [
+        {
+          "kind": "project",
+          "familyId": "src_typekit_jes8oow:fira-code"
+        },
+        {
+          "kind": "system",
+          "preset": "system-ui-mono"
+        },
+        {
+          "kind": "generic",
+          "value": "monospace"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 1
 }

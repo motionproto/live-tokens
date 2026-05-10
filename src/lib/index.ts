@@ -38,7 +38,21 @@ export type {
   FontStackVariable,
   SystemCascadePreset,
   GenericFamily,
+  Preset,
+  PresetMeta,
 } from './themeTypes';
+
+export {
+  listPresets,
+  loadPreset,
+  savePreset,
+  deletePreset,
+  getActivePreset,
+  setActivePreset,
+  applyPreset,
+  captureCurrentAsPreset,
+} from './presetService';
+export type { ApplyPresetResult } from './presetService';
 
 export {
   applyFontSources,

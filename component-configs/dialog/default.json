@@ -2,7 +2,7 @@
   "name": "default",
   "component": "dialog",
   "createdAt": "2026-04-29T23:08:12.724Z",
-  "updatedAt": "2026-05-10T16:59:16.436Z",
+  "updatedAt": "2026-05-10T20:16:43.313Z",
   "aliases": {
     "--dialog-overlay-surface": "--overlay-high",
     "--dialog-surface": "--surface-neutral-lowest",
@@ -23,6 +23,11 @@
     "--dialog-close-icon": "--text-secondary",
     "--dialog-close-icon-size": "--icon-size-xl",
     "--dialog-body-padding": "--space-16",
+    "--dialog-body": "--text-secondary",
+    "--dialog-body-font-family": "--font-sans",
+    "--dialog-body-font-size": "--font-size-md",
+    "--dialog-body-font-weight": "--font-weight-normal",
+    "--dialog-body-line-height": "--line-height-normal",
     "--dialog-footer-border": "--border-neutral-subtle",
     "--dialog-footer-border-width": "--border-width-1",
     "--dialog-footer-padding": "--space-16"

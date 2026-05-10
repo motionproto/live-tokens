@@ -16,6 +16,7 @@ export interface ThemeFileApiOptions {
   apiBase?: string;            // default: '/api'. Must be a simple '/path' without regex metacharacters.
   componentConfigsDir?: string; // default: 'component-configs'
   componentsSrcDir?: string;   // default: 'src/components'
+  presetsDir?: string;         // default: 'presets'
 }
 
 export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
@@ -31,6 +32,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const COMPONENTS_SRC_DIR = opts.componentsSrcDir
     ? path.resolve(opts.componentsSrcDir)
     : path.resolve('src/components');
+  const PRESETS_DIR = opts.presetsDir
+    ? path.resolve(opts.presetsDir)
+    : path.resolve('presets');
 
   // Themes resource — list/load/save/delete + active/production.
   const themesResource = versionedFileResourceServer({
@@ -48,6 +52,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
     return r;
   }
+
+  // Presets resource — manifest files that pin one theme + one config per
+  // component. No production pointer in V1; presets are dev-time conveniences.
+  const presetsResource = versionedFileResourceServer({ dir: PRESETS_DIR });
 
   function ensureThemesDir() {
     themesResource.ensureDir();
@@ -284,6 +292,34 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
   }
 
+  // ── Presets helpers ───────────────────────────────────────────────────────
+
+  function ensurePresetsDir(): void {
+    presetsResource.ensureDir();
+    const defaultPath = path.join(PRESETS_DIR, 'default.json');
+    if (!fs.existsSync(defaultPath)) {
+      // The "default preset" should capture whatever is checked in as the
+      // current active state — the team's intended defaults — not a synthetic
+      // all-default manifest. Read each resource's `_active.json` pointer so a
+      // first run on a customized repo produces a Default preset that round-
+      // trips back to the same state.
+      const componentConfigs: Record<string, string> = {};
+      for (const comp of listComponentNames()) {
+        componentConfigs[comp] = componentResource(comp).getActiveName();
+      }
+      const now = new Date().toISOString();
+      const defaultPreset = {
+        name: 'Default',
+        createdAt: now,
+        updatedAt: now,
+        theme: themesResource.getActiveName(),
+        componentConfigs,
+      };
+      fs.writeFileSync(defaultPath, JSON.stringify(defaultPreset, null, 2));
+    }
+    presetsResource.ensureMeta();
+  }
+
   interface ComponentConfigRead {
     name?: string;
     component?: string;
@@ -370,11 +406,15 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const THEMES_ACTIVE_ROUTE = `${API_BASE}/themes/active`;
   const THEMES_PRODUCTION_ROUTE = `${API_BASE}/themes/production`;
   const COMPONENT_CONFIGS_ROUTE = `${API_BASE}/component-configs`;
+  const PRESETS_ROUTE = `${API_BASE}/presets`;
+  const PRESETS_ACTIVE_ROUTE = `${API_BASE}/presets/active`;
   const THEME_BY_NAME_REGEX = new RegExp(`^${escapedBase}/themes/([a-z0-9\\-_]+)$`);
   const COMP_LIST_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)$`);
   const COMP_ACTIVE_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/active$`);
   const COMP_PRODUCTION_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/production$`);
   const COMP_BY_NAME_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/([a-z0-9\\-_]+)$`);
+  const PRESET_APPLY_REGEX = new RegExp(`^${escapedBase}/presets/([a-z0-9\\-_]+)/apply$`);
+  const PRESET_BY_NAME_REGEX = new RegExp(`^${escapedBase}/presets/([a-z0-9\\-_]+)$`);
 
   // ── Route handlers ────────────────────────────────────────────────────────
   // Each handler can throw — the route-table dispatcher centralises the 500
@@ -679,6 +719,176 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     jsonResponse(res, 200, { component: comp, files, activeFile, productionFile });
   }
 
+  // ── /api/presets ─────────────────────────────────────────────────────────
+
+  async function handleListPresets({ res }: any) {
+    const activeFile = presetsResource.getActiveName();
+    const files = fs
+      .readdirSync(PRESETS_DIR)
+      .filter((f) => f.endsWith('.json') && !f.startsWith('_'))
+      .map((f) => {
+        const filePath = path.join(PRESETS_DIR, f);
+        const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        const fileName = f.replace('.json', '');
+        return {
+          name: data.name || fileName,
+          fileName,
+          updatedAt: data.updatedAt || '',
+          isActive: fileName === activeFile,
+        };
+      });
+    jsonResponse(res, 200, { files, activeFile });
+  }
+
+  async function handleGetActivePreset({ res }: any) {
+    const activeFile = presetsResource.getActiveName();
+    const filePath = presetsResource.filePath(activeFile);
+    if (!fs.existsSync(filePath)) {
+      jsonResponse(res, 404, { error: 'Active preset not found' });
+      return;
+    }
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    data._fileName = activeFile;
+    jsonResponse(res, 200, data);
+  }
+
+  async function handleSetActivePreset({ req, res }: any) {
+    const body = JSON.parse(await readBody(req));
+    const fileName = sanitizeFileName(body.name || 'default');
+    if (!fs.existsSync(presetsResource.filePath(fileName))) {
+      jsonResponse(res, 404, { error: 'Preset not found' });
+      return;
+    }
+    presetsResource.setActiveName(fileName);
+    jsonResponse(res, 200, { ok: true, activeFile: fileName });
+  }
+
+  async function handlePresetByName({ params, req, res }: any) {
+    const [fileName] = params;
+    const filePath = presetsResource.filePath(fileName);
+
+    if (req.method === 'GET') {
+      if (!fs.existsSync(filePath)) {
+        jsonResponse(res, 404, { error: 'Not found' });
+        return;
+      }
+      const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+      data._fileName = fileName;
+      jsonResponse(res, 200, data);
+      return;
+    }
+
+    if (req.method === 'PUT') {
+      const body = JSON.parse(await readBody(req));
+      body.updatedAt = new Date().toISOString();
+      if (fs.existsSync(filePath)) {
+        try {
+          const existing = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+          if (existing.createdAt) body.createdAt = existing.createdAt;
+        } catch { /* use body value or set below */ }
+      }
+      if (!body.createdAt) body.createdAt = body.updatedAt;
+      fs.writeFileSync(filePath, JSON.stringify(body, null, 2));
+      jsonResponse(res, 200, { ok: true, fileName });
+      return;
+    }
+
+    if (req.method === 'DELETE') {
+      if (fileName === 'default') {
+        jsonResponse(res, 403, { error: 'Cannot delete the default preset' });
+        return;
+      }
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        if (presetsResource.getActiveName() === fileName) {
+          presetsResource.setActiveName('default');
+        }
+      }
+      jsonResponse(res, 200, { ok: true });
+      return;
+    }
+  }
+
+  /**
+   * Atomically apply a preset: validate that every referenced file exists,
+   * flip the theme + each component's `_active.json` pointers, mark the preset
+   * itself active, and return the resolved theme + component configs in one
+   * payload. The client uses this to hydrate the editor without N+1 round-trips.
+   */
+  async function handleApplyPreset({ params, res }: any) {
+    const [fileName] = params;
+    const presetPath = presetsResource.filePath(fileName);
+    if (!fs.existsSync(presetPath)) {
+      jsonResponse(res, 404, { error: 'Preset not found' });
+      return;
+    }
+    const preset = JSON.parse(fs.readFileSync(presetPath, 'utf-8'));
+
+    // Validate theme exists.
+    const themeName = sanitizeFileName(preset.theme || 'default');
+    const themePath = themesResource.filePath(themeName);
+    if (!fs.existsSync(themePath)) {
+      jsonResponse(res, 422, { error: `Preset references missing theme: ${themeName}` });
+      return;
+    }
+
+    // Validate every referenced component config exists. Components in the
+    // manifest that don't exist as components get skipped (component was
+    // removed since the preset was saved); missing config files for an
+    // existing component are a hard error.
+    const knownComponents = new Set(listComponentNames());
+    const componentConfigs = preset.componentConfigs ?? {};
+    const resolvedConfigs: Record<string, any> = {};
+    const apply: Array<[string, string]> = []; // [comp, fileName]
+    for (const [comp, configFile] of Object.entries(componentConfigs)) {
+      if (!knownComponents.has(comp)) continue;
+      const sanitized = sanitizeFileName(String(configFile) || 'default');
+      const r = componentResource(comp);
+      const cfgPath = r.filePath(sanitized);
+      if (!fs.existsSync(cfgPath)) {
+        jsonResponse(res, 422, {
+          error: `Preset references missing config: ${comp}/${sanitized}`,
+        });
+        return;
+      }
+      apply.push([comp, sanitized]);
+    }
+
+    // All references valid — flip pointers and gather resolved JSON.
+    themesResource.setActiveName(themeName);
+    const themeData = JSON.parse(fs.readFileSync(themePath, 'utf-8'));
+    themeData._fileName = themeName;
+
+    for (const [comp, configFile] of apply) {
+      const r = componentResource(comp);
+      r.setActiveName(configFile);
+      const cfg = readComponentConfig(comp, configFile);
+      if (cfg) resolvedConfigs[comp] = { ...cfg, _fileName: configFile };
+    }
+
+    // Components on disk but not mentioned in the manifest: leave their active
+    // pointer alone. The preset has no opinion about them. Forcing every
+    // unmentioned component to 'default' would silently revert user state for
+    // components a preset wasn't trying to touch. If you want exhaustive
+    // restoration, save a preset via captureCurrentAsPreset — it captures
+    // every component's current active and writes a complete manifest.
+    for (const comp of knownComponents) {
+      if (resolvedConfigs[comp]) continue;
+      const activeName = componentResource(comp).getActiveName();
+      const cfg = readComponentConfig(comp, activeName);
+      if (cfg) resolvedConfigs[comp] = { ...cfg, _fileName: activeName };
+    }
+
+    presetsResource.setActiveName(fileName);
+
+    jsonResponse(res, 200, {
+      ok: true,
+      preset: { ...preset, _fileName: fileName },
+      theme: themeData,
+      componentConfigs: resolvedConfigs,
+    });
+  }
+
   // ── Method-not-allowed shims ─────────────────────────────────────────────
   // Routes that match the URL pattern but were called with the wrong method
   // need to return 405 instead of falling through to next(). We register a
@@ -730,6 +940,22 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     { method: 'GET',    pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
     { method: 'PUT',    pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
     { method: 'DELETE', pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
+
+    // Presets — list / active are exact strings, must run before regexes
+    { method: 'GET',    pattern: PRESETS_ROUTE,           handler: handleListPresets },
+    { method: 'GET',    pattern: PRESETS_ACTIVE_ROUTE,    handler: handleGetActivePreset },
+    { method: 'PUT',    pattern: PRESETS_ACTIVE_ROUTE,    handler: handleSetActivePreset },
+
+    // Presets — :name/apply (more specific than :name)
+    { method: 'PUT',    pattern: PRESET_APPLY_REGEX,      handler: handleApplyPreset },
+    { method: 'POST',   pattern: PRESET_APPLY_REGEX,      handler: methodNotAllowed },
+    { method: 'GET',    pattern: PRESET_APPLY_REGEX,      handler: methodNotAllowed },
+    { method: 'DELETE', pattern: PRESET_APPLY_REGEX,      handler: methodNotAllowed },
+
+    // Presets — :name CRUD (broadest preset route, runs last)
+    { method: 'GET',    pattern: PRESET_BY_NAME_REGEX,    handler: handlePresetByName },
+    { method: 'PUT',    pattern: PRESET_BY_NAME_REGEX,    handler: handlePresetByName },
+    { method: 'DELETE', pattern: PRESET_BY_NAME_REGEX,    handler: handlePresetByName },
   ];
 
   return {
@@ -747,6 +973,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     configureServer(server) {
       ensureThemesDir();
       ensureComponentConfigsDir();
+      ensurePresetsDir();
 
       server.middlewares.use(async (req, res, next) => {
         const handled = await dispatch(req, res, routes);

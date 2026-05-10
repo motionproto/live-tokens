@@ -117,3 +117,30 @@ export interface ComponentConfigMeta {
   isActive: boolean;
   isProduction: boolean;
 }
+
+/**
+ * Manifest that captures an entire site state — the active theme plus the
+ * active config for every component. Loading a preset flips the relevant
+ * `_active.json` pointers; the underlying theme + component-config files stay
+ * the source of truth, so editing them flows through any preset that
+ * references them.
+ */
+export interface Preset {
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  /** File basename (no `.json`) of the theme this preset pins. */
+  theme: string;
+  /** Map of componentId → config file basename. Components omitted here fall
+   *  back to "default" at apply time. */
+  componentConfigs: Record<string, string>;
+  /** Server-attached file-name marker. Same role as `Theme._fileName`. */
+  _fileName?: string;
+}
+
+export interface PresetMeta {
+  name: string;
+  fileName: string;
+  updatedAt: string;
+  isActive: boolean;
+}

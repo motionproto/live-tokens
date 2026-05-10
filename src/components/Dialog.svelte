@@ -149,6 +149,11 @@
 
     /* Body */
     --dialog-body-padding: var(--space-16);
+    --dialog-body: var(--text-secondary);
+    --dialog-body-font-family: var(--font-sans);
+    --dialog-body-font-size: var(--font-size-md);
+    --dialog-body-font-weight: var(--font-weight-normal);
+    --dialog-body-line-height: var(--line-height-normal);
 
     /* Footer */
     --dialog-footer-border: var(--border-neutral-subtle);
@@ -207,7 +212,11 @@
   }
 
   .dialog-header {
-    padding: var(--dialog-header-padding) calc(var(--dialog-header-padding) * 3);
+    padding:
+      var(--dialog-header-padding-top, var(--dialog-header-padding))
+      var(--dialog-header-padding-right, calc(var(--dialog-header-padding) * 3))
+      var(--dialog-header-padding-bottom, var(--dialog-header-padding))
+      var(--dialog-header-padding-left, calc(var(--dialog-header-padding) * 3));
     border-bottom: var(--dialog-header-border-width) solid var(--dialog-header-border);
     background: var(--dialog-header-surface);
     display: flex;
@@ -246,11 +255,24 @@
   }
 
   .dialog-body {
-    padding: var(--dialog-body-padding) calc(var(--dialog-body-padding) * 1.5);
+    padding:
+      var(--dialog-body-padding-top, var(--dialog-body-padding))
+      var(--dialog-body-padding-right, calc(var(--dialog-body-padding) * 1.5))
+      var(--dialog-body-padding-bottom, var(--dialog-body-padding))
+      var(--dialog-body-padding-left, calc(var(--dialog-body-padding) * 1.5));
+    color: var(--dialog-body);
+    font-family: var(--dialog-body-font-family);
+    font-size: var(--dialog-body-font-size);
+    font-weight: var(--dialog-body-font-weight);
+    line-height: var(--dialog-body-line-height);
   }
 
   .dialog-footer {
-    padding: var(--dialog-footer-padding);
+    padding:
+      var(--dialog-footer-padding-top, var(--dialog-footer-padding))
+      var(--dialog-footer-padding-right, var(--dialog-footer-padding))
+      var(--dialog-footer-padding-bottom, var(--dialog-footer-padding))
+      var(--dialog-footer-padding-left, var(--dialog-footer-padding));
     border-top: var(--dialog-footer-border-width) solid var(--dialog-footer-border);
     display: flex;
     justify-content: space-between;

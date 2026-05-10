@@ -53,12 +53,24 @@
       weightVariable: '--dialog-title-font-weight',
       lineHeightVariable: '--dialog-title-line-height',
     }],
+    body: [{
+      legend: 'body text',
+      colorVariable: '--dialog-body',
+      familyVariable: '--dialog-body-font-family',
+      sizeVariable: '--dialog-body-font-size',
+      weightVariable: '--dialog-body-font-weight',
+      lineHeightVariable: '--dialog-body-line-height',
+    }],
   };
   const frameTypeGroupTokens: Token[] = [
     { label: 'font family', variable: '--dialog-title-font-family' },
     { label: 'font size', variable: '--dialog-title-font-size' },
     { label: 'font weight', variable: '--dialog-title-font-weight' },
     { label: 'line height', variable: '--dialog-title-line-height' },
+    { label: 'font family', variable: '--dialog-body-font-family' },
+    { label: 'font size', variable: '--dialog-body-font-size' },
+    { label: 'font weight', variable: '--dialog-body-font-weight' },
+    { label: 'line height', variable: '--dialog-body-line-height' },
   ];
 
   export const allTokens: Token[] = [
@@ -126,7 +138,7 @@
         confirm={{ label: 'Save', onClick: () => {} }}
         cancel={{ label: 'Cancel', onClick: () => {} }}
       >
-        <p style="color: var(--text-secondary); margin: 0;">This is the dialog body content. It supports any slotted content including forms, lists, or other components.</p>
+        <p style="margin: 0;">This is the dialog body content. It supports any slotted content including forms, lists, or other components.</p>
       </Dialog>
     </ShadowBackdrop>
   </div>
