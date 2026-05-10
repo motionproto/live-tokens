@@ -7,6 +7,7 @@
   import GradientStopEditor from './palette/GradientStopEditor.svelte';
   import ScaleCurveEditor from './palette/ScaleCurveEditor.svelte';
   import PaletteBase from './palette/PaletteBase.svelte';
+  import { type EditingState, idleState, BASE_KEY, isEditingBase as isBaseEdit } from './palette/paletteEditorState';
   import type { PaletteConfig, GradientStyle, GradientStop } from '../lib/themeTypes';
   import { editorState, mutate, setPaletteConfig, beginSliderGesture, beginScope, commitScope, cancelScope, type Scope } from '../lib/editorStore';
   import { scaleToCssVar } from '../lib/paletteDerivation';
@@ -171,9 +172,21 @@
   // Base chroma for gray tinting (editable via the color panel's chroma slider)
   const DEFAULT_TINT_CHROMA = 0.04;
 
-  // Snapshots for cancel in gray base editing (avoids lossy hex round-trip)
-  let snapshotTintHue: number | null = null;
-  let snapshotTintChroma: number | null = null;
+  // --- Editing-state machine (M4 fold) ---
+  //
+  // Single discriminated union replaces five independent `let` decls
+  // (`editingKey`, `editingSnapshot`, `editingDraft`, `snapshotTintHue`,
+  // `snapshotTintChroma`). The compatibility `$:` derivations below preserve
+  // existing read sites while writes go through `editing = { kind: ... }`.
+  let editing: EditingState = idleState;
+
+  // Read-side compat: existing `editingKey === ...` etc. comparisons keep
+  // working. New code should narrow on `editing.kind` directly.
+  $: editingKey = editing.kind === 'idle' ? null : editing.kind === 'editingBase' ? BASE_KEY : editing.stepKey;
+  $: editingDraft = editing.kind === 'editingStep' ? editing.draft : null;
+  $: editingSnapshot = editing.kind === 'idle' ? null : editing.kind === 'editingBase' ? editing.snapshotHex : editing.snapshot;
+  $: snapshotTintHue = editing.kind === 'editingBase' ? editing.snapshotTintHue : null;
+  $: snapshotTintChroma = editing.kind === 'editingBase' ? editing.snapshotTintChroma : null;
 
   function computeGrayColor(index: number, hue: number, chroma: number = tintChroma): string {
     const xPos = grayStepToX(index);
@@ -375,15 +388,10 @@
   }
 
   function startBaseEdit() {
-    if (editingKey === BASE_KEY) { confirmEdit(); return; }
-    if (mode === 'gray') {
-      editingSnapshot = gray500Hex;
-      snapshotTintHue = tintHue;
-      snapshotTintChroma = tintChroma;
-    } else {
-      editingSnapshot = baseColor;
-    }
-    editingKey = BASE_KEY;
+    if (editing.kind === 'editingBase') { confirmEdit(); return; }
+    editing = mode === 'gray'
+      ? { kind: 'editingBase', snapshotHex: gray500Hex, snapshotTintHue: tintHue, snapshotTintChroma: tintChroma }
+      : { kind: 'editingBase', snapshotHex: baseColor, snapshotTintHue: null, snapshotTintChroma: null };
     paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true });
   }
 
@@ -394,9 +402,7 @@
       return;
     }
     const current = (k in overrides) ? overrides[k] : computePaletteColor(ps.index, baseColor);
-    editingDraft = current;
-    editingSnapshot = current;
-    editingKey = k;
+    editing = { kind: 'editingStep', stepKey: k, snapshot: current, draft: current };
     paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true });
   }
 
@@ -504,9 +510,6 @@
     return { lightnessLow: 0, lightnessHigh: 100, saturation: 100 };
   }
 
-  let editingKey: string | null = null;
-  let editingSnapshot: string | null = null;
-  let editingDraft: string | null = null;
 
   function stepKey(scaleTitle: string, stepName: string): string {
     return `${scaleTitle}-${stepName}`;
@@ -533,9 +536,7 @@
 
   // --- Reactive editing state ---
 
-  const BASE_KEY = '__base__';
-
-  $: isEditingBase = editingKey === BASE_KEY;
+  $: isEditingBase = isBaseEdit(editing);
 
   $: editingColor = isEditingBase
     ? (mode === 'gray' ? gray500Hex : baseColor)
@@ -611,10 +612,10 @@
       if (mode === 'chromatic') edit('baseColor', hex);
       return;
     }
-    if (editingKey) {
-      editingDraft = hex;
-      if (editingKey in overrides) {
-        edit('overrides', { ...overrides, [editingKey]: hex });
+    if (editing.kind === 'editingStep') {
+      editing = { ...editing, draft: hex };
+      if (editing.stepKey in overrides) {
+        edit('overrides', { ...overrides, [editing.stepKey]: hex });
       }
     }
   }
@@ -631,9 +632,7 @@
       return;
     }
     const current = (k in overrides) ? overrides[k] : computeDerivedColor(step, gray500Hex, configForScale(scaleTitle), scaleTitle);
-    editingDraft = current;
-    editingSnapshot = current;
-    editingKey = k;
+    editing = { kind: 'editingStep', stepKey: k, snapshot: current, draft: current };
     paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true });
   }
 
@@ -644,9 +643,7 @@
       return;
     }
     const current = (k in overrides) ? overrides[k] : computeGrayColor(index, tintHue, tintChroma);
-    editingDraft = current;
-    editingSnapshot = current;
-    editingKey = k;
+    editing = { kind: 'editingStep', stepKey: k, snapshot: current, draft: current };
     paletteEditScope = beginScope({ label: 'palette session', collapseToOne: true, clipUndoFloor: true });
   }
 
@@ -674,22 +671,14 @@
         edit('overrides', nextOverrides);
       }
     }
-    editingKey = null;
-    editingSnapshot = null;
-    editingDraft = null;
-    snapshotTintHue = null;
-    snapshotTintChroma = null;
+    editing = idleState;
     // tick() lets the store-derived reactives flush before session commit
     await tick();
     if (paletteEditScope) { commitScope(paletteEditScope); paletteEditScope = null; }
   }
 
   function cancelEdit() {
-    editingKey = null;
-    editingSnapshot = null;
-    editingDraft = null;
-    snapshotTintHue = null;
-    snapshotTintChroma = null;
+    editing = idleState;
     // Restoring the session snapshot in the store fires the sync reactive,
     // which pulls baseColor/tintHue/tintChroma/overrides/… back to pre-open.
     if (paletteEditScope) { cancelScope(paletteEditScope); paletteEditScope = null; }
@@ -698,8 +687,7 @@
   function removeOverride(k: string) {
     const { [k]: _, ...rest } = overrides;
     edit('overrides', rest);
-    if (editingKey === k) { editingKey = null; editingDraft = null; }
-    editingSnapshot = null;
+    if (editingKey === k) { editing = idleState; }
   }
 
   function computedValueForKey(key: string): string | null {
@@ -815,8 +803,7 @@
       const nextSnapped = [...snappedScales].filter(s => s !== scale.title);
       patchPalette({ snappedScales: nextSnapped, overrides: nextOverrides }, 'unsnap scale');
       if (editingKey && scale.steps.some(s => stepKey(scale.title, s.name) === editingKey)) {
-        editingKey = null;
-        editingSnapshot = null;
+        editing = idleState;
       }
     } else {
       const assigned = snapScaleToPalette(scale);
@@ -848,8 +835,7 @@
     const nextSnapped = [...snappedScales].filter(s => s !== scale.title);
     patchPalette({ snappedScales: nextSnapped, overrides: nextOverrides }, 'clear scale overrides');
     if (editingKey && scale.steps.some(s => stepKey(scale.title, s.name) === editingKey)) {
-      editingKey = null;
-      editingSnapshot = null;
+      editing = idleState;
     }
   }
 
