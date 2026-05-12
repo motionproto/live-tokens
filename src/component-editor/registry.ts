@@ -3,6 +3,7 @@ import type { Token } from './scaffolding/types';
 import { registerComponentSchema } from '../lib/editorStore';
 
 import BadgeEditor, { allTokens as badgeTokens } from './BadgeEditor.svelte';
+import CornerBadgeEditor, { allTokens as cornerBadgeTokens } from './CornerBadgeEditor.svelte';
 import StandardButtonsEditor, { allTokens as buttonTokens } from './StandardButtonsEditor.svelte';
 import CardEditor, { allTokens as cardTokens } from './CardEditor.svelte';
 import CollapsibleSectionEditor, { allTokens as collapsibleSectionTokens } from './CollapsibleSectionEditor.svelte';
@@ -25,6 +26,7 @@ export type ComponentId =
   | 'radiobutton'
   | 'card'
   | 'badge'
+  | 'cornerbadge'
   | 'image'
   | 'inlineeditactions'
   | 'sectiondivider'
@@ -116,6 +118,14 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/components/Badge.svelte',
     editorComponent: BadgeEditor,
     schema: badgeTokens,
+  },
+  cornerbadge: {
+    id: 'cornerbadge',
+    label: 'Corner Badge',
+    icon: 'fas fa-tags',
+    sourceFile: 'src/components/CornerBadge.svelte',
+    editorComponent: CornerBadgeEditor,
+    schema: cornerBadgeTokens,
   },
   image: {
     id: 'image',

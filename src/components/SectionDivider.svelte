@@ -56,7 +56,10 @@
   onMount(() => {
     measure();
     syncFilter();
-    const obs = new MutationObserver(syncFilter);
+    // CSS-var edits (font-size/family/weight) change the rendered bbox but
+    // never change the `title` prop — so re-measure on every style mutation
+    // alongside the filter sync.
+    const obs = new MutationObserver(() => { measure(); syncFilter(); });
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
     return () => obs.disconnect();
   });
