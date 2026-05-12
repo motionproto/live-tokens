@@ -1,15 +1,15 @@
 {
-  "name": "default",
+  "name": "default_01",
   "component": "progressbar",
-  "createdAt": "2026-05-10T09:55:59.965Z",
-  "updatedAt": "2026-05-10T16:59:16.437Z",
+  "createdAt": "2026-05-10T20:42:26.726Z",
+  "updatedAt": "2026-05-10T20:42:26.728Z",
   "aliases": {
-    "--progressbar-primary-track-surface": "--surface-neutral-low",
-    "--progressbar-primary-track-border": "--border-neutral-faint",
+    "--progressbar-primary-track-surface": "--surface-neutral-lower",
+    "--progressbar-primary-track-border": "--border-neutral-subtle",
     "--progressbar-primary-track-border-width": "--border-width-1",
     "--progressbar-primary-track-height": "--space-8",
     "--progressbar-primary-radius": "--radius-full",
-    "--progressbar-primary-fill": "--gradient-1",
+    "--progressbar-primary-fill": "--color-primary-500",
     "--progressbar-primary-label": "--text-secondary",
     "--progressbar-primary-label-font-family": "--font-sans",
     "--progressbar-primary-label-font-size": "--font-size-sm",
@@ -84,5 +84,7 @@
     "--progressbar-info-value-font-size": "--font-size-xs",
     "--progressbar-info-value-font-weight": "--font-weight-light",
     "--progressbar-info-value-line-height": "--line-height-normal"
-  }
+  },
+  "config": {},
+  "schemaVersion": 4
 }

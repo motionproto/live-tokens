@@ -1,10 +1,10 @@
 {
-  "name": "default",
+  "name": "default_01",
   "component": "card",
-  "createdAt": "2026-04-26T21:19:46.255Z",
-  "updatedAt": "2026-05-10T16:59:16.436Z",
+  "createdAt": "2026-05-10T19:26:31.704Z",
+  "updatedAt": "2026-05-10T19:26:31.707Z",
   "aliases": {
-    "--card-default-surface": "--surface-neutral-high",
+    "--card-default-surface": "--surface-neutral",
     "--card-default-border": "--border-neutral",
     "--card-default-border-width": "--border-width-1",
     "--card-default-radius": "--radius-lg",
@@ -12,7 +12,7 @@
     "--card-default-body-padding": "--space-16",
     "--card-default-shadow": "--shadow-sm",
     "--card-default-blur": "--blur-none",
-    "--card-default-header-surface": "--color-transparent",
+    "--card-default-header-surface": "--surface-neutral-low",
     "--card-default-title": "--text-primary",
     "--card-default-title-font-family": "--font-sans",
     "--card-default-title-font-size": "--font-size-lg",
@@ -44,5 +44,7 @@
     "--card-hover-body-font-size": "--font-size-md",
     "--card-hover-body-font-weight": "--font-weight-normal",
     "--card-hover-body-line-height": "--line-height-normal"
-  }
+  },
+  "config": {},
+  "schemaVersion": 4
 }

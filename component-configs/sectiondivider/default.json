@@ -1,8 +1,8 @@
 {
   "name": "default",
   "component": "sectiondivider",
-  "createdAt": "2026-05-10T14:08:13.444Z",
-  "updatedAt": "2026-05-10T22:09:12.832Z",
+  "createdAt": "2026-05-10T22:09:00.336Z",
+  "updatedAt": "2026-05-12T11:18:22.159Z",
   "aliases": {
     "--sectiondivider-canvas-padding": "--space-16",
     "--sectiondivider-canvas-title": "--text-primary",

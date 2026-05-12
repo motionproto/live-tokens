@@ -1,9 +1,10 @@
 {
-  "name": "default",
+  "name": "default_01",
   "component": "collapsiblesection",
-  "createdAt": "2026-05-08T14:51:33.738Z",
-  "updatedAt": "2026-05-10T16:59:16.436Z",
+  "createdAt": "2026-05-10T20:40:17.048Z",
+  "updatedAt": "2026-05-10T20:40:17.053Z",
   "aliases": {
+    "--collapsiblesection-container-frame-surface": "--surface-canvas",
     "--collapsiblesection-chromeless-default-surface": "--color-transparent",
     "--collapsiblesection-chromeless-default-padding": "--space-4",
     "--collapsiblesection-chromeless-default-label": "--text-primary",
@@ -33,7 +34,7 @@
     "--collapsiblesection-chromeless-active-icon-size": "--icon-size-xs",
     "--collapsiblesection-chromeless-expanded-padding": "--space-4",
     "--collapsiblesection-divider-default-surface": "--color-transparent",
-    "--collapsiblesection-divider-default-border": "--border-neutral-faint",
+    "--collapsiblesection-divider-default-border": "--border-neutral",
     "--collapsiblesection-divider-default-border-width": "--border-width-1",
     "--collapsiblesection-divider-default-padding": "--space-4",
     "--collapsiblesection-divider-default-label": "--text-primary",
@@ -66,7 +67,6 @@
     "--collapsiblesection-divider-active-icon": "--text-muted",
     "--collapsiblesection-divider-active-icon-size": "--icon-size-xs",
     "--collapsiblesection-divider-expanded-padding": "--space-4",
-    "--collapsiblesection-container-frame-surface": "--surface-canvas",
     "--collapsiblesection-container-frame-border": "--color-transparent",
     "--collapsiblesection-container-frame-border-width": "--border-width-3",
     "--collapsiblesection-container-frame-radius": "--radius-none",
@@ -99,5 +99,7 @@
     "--collapsiblesection-container-active-icon-size": "--icon-size-xs",
     "--collapsiblesection-container-expanded-surface": "--surface-canvas-low",
     "--collapsiblesection-container-expanded-padding": "--space-4"
-  }
+  },
+  "config": {},
+  "schemaVersion": 4
 }
