@@ -2,6 +2,9 @@
   import Home from './pages/Home.svelte';
   import Demo from './pages/Demo.svelte';
   import Editor from './pages/Editor.svelte';
+  // Same import path that consumers use via the package export
+  // (`@motion-proto/live-tokens/component-editor-page`); kept relative here
+  // because this file is inside the package source.
   import ComponentEditorPage from './pages/ComponentEditorPage.svelte';
   import LiveEditorOverlay from './lib/LiveEditorOverlay.svelte';
   import ColumnsOverlay from './lib/ColumnsOverlay.svelte';

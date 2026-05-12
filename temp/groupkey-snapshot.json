@@ -1,5 +1,17 @@
 {
   "badge": {
+    "blur": [
+      "--badge-accent-blur",
+      "--badge-alternate-blur",
+      "--badge-canvas-blur",
+      "--badge-danger-blur",
+      "--badge-info-blur",
+      "--badge-neutral-blur",
+      "--badge-primary-blur",
+      "--badge-special-blur",
+      "--badge-success-blur",
+      "--badge-warning-blur"
+    ],
     "border": [
       "--badge-accent-border",
       "--badge-alternate-border",

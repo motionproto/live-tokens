@@ -9,6 +9,8 @@
   let svgTextEl: SVGTextElement | undefined;
   let svgW = 0;
   let svgH = 0;
+  let svgX = 0;
+  let svgY = 0;
 
   // feMorphology radius and feFlood flood-color are non-presentation attributes:
   // they can't read CSS vars. We read the resolved values off the SVG element
@@ -36,8 +38,15 @@
   function measure(): void {
     if (!svgTextEl) return;
     const bb = svgTextEl.getBBox();
-    svgW = Math.ceil(bb.x + bb.width);
-    svgH = Math.ceil(bb.y + bb.height);
+    // Size the SVG to the glyph bbox exactly and map that bbox onto the
+    // canvas via viewBox. Otherwise svgH = bb.y + bb.height carries any
+    // empty band between y=0 and the glyph top (and any extra at the
+    // bottom of the bbox), leaving the title vertically unbalanced inside
+    // the container's symmetric top/bottom padding.
+    svgX = bb.x;
+    svgY = bb.y;
+    svgW = Math.ceil(bb.width);
+    svgH = Math.ceil(bb.height);
   }
 
   $: if (title) {
@@ -59,6 +68,7 @@
     class="divider-label"
     width={svgW || undefined}
     height={svgH || undefined}
+    viewBox={svgW && svgH ? `${svgX} ${svgY} ${svgW} ${svgH}` : undefined}
     aria-label={title}
     role="img"
   >

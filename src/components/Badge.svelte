@@ -18,9 +18,24 @@
   export let variant: BadgeVariant = 'info';
   export let size: 'default' | 'small' = 'default';
   export let icon: string | undefined = undefined;
+  /** When true, badge is absolutely positioned. Requires the parent to be position: relative. */
+  export let floating: boolean = false;
+  /** Corner of the positioned parent to attach to when floating. */
+  export let anchor: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' = 'bottom-right';
+  /** CSS length to offset from the anchor edges. Defaults to --space-12 (or --space-8 when size='small'). */
+  export let offset: string | undefined = undefined;
+  /** When true, badge sits flush in the anchor corner: zero offset and squared corners. */
+  export let flush: boolean = false;
 </script>
 
-<span class="badge badge-{variant}" class:badge-small={size === 'small'}>
+<span
+  class="badge badge-{variant}"
+  class:badge-small={size === 'small'}
+  class:badge-floating={floating}
+  class:badge-flush={flush}
+  data-anchor={floating ? anchor : undefined}
+  style={floating && offset && !flush ? `--badge-offset: ${offset};` : undefined}
+>
   {#if icon}
     <span class="icon"><i class={icon}></i></span>
   {:else}
@@ -54,6 +69,7 @@
     --badge-primary-radius: var(--radius-full);
     --badge-primary-padding: var(--space-6);
     --badge-primary-shadow: var(--shadow-none);
+    --badge-primary-blur: var(--blur-none);
     --badge-primary-icon-size: var(--icon-size-sm);
 
     /* Accent */
@@ -68,6 +84,7 @@
     --badge-accent-radius: var(--radius-full);
     --badge-accent-padding: var(--space-6);
     --badge-accent-shadow: var(--shadow-none);
+    --badge-accent-blur: var(--blur-none);
     --badge-accent-icon-size: var(--icon-size-sm);
 
     /* Neutral */
@@ -82,6 +99,7 @@
     --badge-neutral-radius: var(--radius-full);
     --badge-neutral-padding: var(--space-6);
     --badge-neutral-shadow: var(--shadow-none);
+    --badge-neutral-blur: var(--blur-none);
     --badge-neutral-icon-size: var(--icon-size-sm);
 
     /* Alternate */
@@ -96,6 +114,7 @@
     --badge-alternate-radius: var(--radius-full);
     --badge-alternate-padding: var(--space-6);
     --badge-alternate-shadow: var(--shadow-none);
+    --badge-alternate-blur: var(--blur-none);
     --badge-alternate-icon-size: var(--icon-size-sm);
 
     /* Canvas */
@@ -110,6 +129,7 @@
     --badge-canvas-radius: var(--radius-full);
     --badge-canvas-padding: var(--space-6);
     --badge-canvas-shadow: var(--shadow-none);
+    --badge-canvas-blur: var(--blur-none);
     --badge-canvas-icon-size: var(--icon-size-sm);
 
     /* Special */
@@ -124,6 +144,7 @@
     --badge-special-radius: var(--radius-full);
     --badge-special-padding: var(--space-6);
     --badge-special-shadow: var(--shadow-none);
+    --badge-special-blur: var(--blur-none);
     --badge-special-icon-size: var(--icon-size-sm);
 
     /* Success */
@@ -138,6 +159,7 @@
     --badge-success-radius: var(--radius-full);
     --badge-success-padding: var(--space-6);
     --badge-success-shadow: var(--shadow-none);
+    --badge-success-blur: var(--blur-none);
     --badge-success-icon-size: var(--icon-size-sm);
 
     /* Warning */
@@ -152,6 +174,7 @@
     --badge-warning-radius: var(--radius-full);
     --badge-warning-padding: var(--space-6);
     --badge-warning-shadow: var(--shadow-none);
+    --badge-warning-blur: var(--blur-none);
     --badge-warning-icon-size: var(--icon-size-sm);
 
     /* Danger */
@@ -166,6 +189,7 @@
     --badge-danger-radius: var(--radius-full);
     --badge-danger-padding: var(--space-6);
     --badge-danger-shadow: var(--shadow-none);
+    --badge-danger-blur: var(--blur-none);
     --badge-danger-icon-size: var(--icon-size-sm);
 
     /* Info */
@@ -180,15 +204,19 @@
     --badge-info-radius: var(--radius-full);
     --badge-info-padding: var(--space-6);
     --badge-info-shadow: var(--shadow-none);
+    --badge-info-blur: var(--blur-none);
     --badge-info-icon-size: var(--icon-size-sm);
   }
 
   .badge {
+    --badge-offset: var(--space-12);
     display: inline-flex;
     align-items: center;
     gap: var(--space-6);
     line-height: var(--line-height-tight);
     white-space: nowrap;
+    backdrop-filter: blur(var(--badge-blur, 0));
+    -webkit-backdrop-filter: blur(var(--badge-blur, 0));
   }
 
   .icon {
@@ -202,12 +230,26 @@
   }
 
   .badge-small {
+    --badge-offset: var(--space-8);
     gap: var(--space-4);
   }
+
+  .badge-floating {
+    position: absolute;
+    /* Floating badges are decorative overlays over other content — let clicks
+       pass through to whatever owns the underlying surface (links, buttons). */
+    pointer-events: none;
+  }
+
+  .badge-floating[data-anchor='top-left']     { top: var(--badge-offset); left: var(--badge-offset); }
+  .badge-floating[data-anchor='top-right']    { top: var(--badge-offset); right: var(--badge-offset); }
+  .badge-floating[data-anchor='bottom-left']  { bottom: var(--badge-offset); left: var(--badge-offset); }
+  .badge-floating[data-anchor='bottom-right'] { bottom: var(--badge-offset); right: var(--badge-offset); }
 
   @each $v in $variants {
     .badge-#{$v} {
       --badge-icon-size: var(--badge-#{$v}-icon-size);
+      --badge-blur: var(--badge-#{$v}-blur);
       color: var(--badge-#{$v}-text);
       background: var(--badge-#{$v}-surface);
       border: var(--badge-#{$v}-border-width) solid var(--badge-#{$v}-border);
@@ -219,5 +261,11 @@
       line-height: var(--badge-#{$v}-text-line-height);
       box-shadow: var(--badge-#{$v}-shadow);
     }
+  }
+
+  /* Flush wins over per-variant radius via source order — declared after @each. */
+  .badge-flush {
+    --badge-offset: 0;
+    border-radius: 0;
   }
 </style>

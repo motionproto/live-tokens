@@ -25,6 +25,8 @@
     "src/pages/Editor.svelte",
     "src/pages/Editor.svelte.d.ts",
     "src/pages/EditorShell.svelte",
+    "src/pages/ComponentEditorPage.svelte",
+    "src/pages/ComponentEditorPage.svelte.d.ts",
     "src/styles/ui-editor.css",
     "src/styles/form-controls.css",
     "src/styles/fonts.css",
@@ -56,6 +58,11 @@
       "svelte": "./src/pages/Editor.svelte",
       "default": "./src/pages/Editor.svelte"
     },
+    "./component-editor-page": {
+      "types": "./src/pages/ComponentEditorPage.svelte.d.ts",
+      "svelte": "./src/pages/ComponentEditorPage.svelte",
+      "default": "./src/pages/ComponentEditorPage.svelte"
+    },
     "./components/*": {
       "svelte": "./src/components/*",
       "default": "./src/components/*"
@@ -78,6 +85,7 @@
     "test:watch": "vitest",
     "build:plugin": "tsup src/vite-plugin/index.ts --out-dir dist-plugin --format esm,cjs --dts --external vite --platform node --clean",
     "build:lib": "npm run build:plugin",
+    "deploy:local": "bash scripts/deploy-local.sh",
     "prepublishOnly": "npm run build:lib"
   },
   "peerDependencies": {
