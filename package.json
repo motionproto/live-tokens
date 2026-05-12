@@ -51,6 +51,10 @@
       "svelte": "./src/pages/Editor.svelte",
       "default": "./src/pages/Editor.svelte"
     },
+    "./components/*": {
+      "svelte": "./src/components/*",
+      "default": "./src/components/*"
+    },
     "./vite-plugin": {
       "types": "./dist-plugin/index.d.ts",
       "import": "./dist-plugin/index.js",
