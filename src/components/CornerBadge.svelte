@@ -34,70 +34,70 @@
   //  - v-axis: the on-axis corner along the vertical edge shared with `outer`
   :global(:root) {
     /* Primary */
-    --corner-badge-primary-margin: var(--space-8);
+    --corner-badge-primary-margin: var(--space-0);
     --corner-badge-primary-outer-radius: var(--radius-none);
     --corner-badge-primary-inner-radius: var(--radius-none);
     --corner-badge-primary-h-axis-radius: var(--radius-none);
     --corner-badge-primary-v-axis-radius: var(--radius-none);
 
     /* Accent */
-    --corner-badge-accent-margin: var(--space-8);
+    --corner-badge-accent-margin: var(--space-0);
     --corner-badge-accent-outer-radius: var(--radius-none);
     --corner-badge-accent-inner-radius: var(--radius-none);
     --corner-badge-accent-h-axis-radius: var(--radius-none);
     --corner-badge-accent-v-axis-radius: var(--radius-none);
 
     /* Neutral */
-    --corner-badge-neutral-margin: var(--space-8);
+    --corner-badge-neutral-margin: var(--space-0);
     --corner-badge-neutral-outer-radius: var(--radius-none);
     --corner-badge-neutral-inner-radius: var(--radius-none);
     --corner-badge-neutral-h-axis-radius: var(--radius-none);
     --corner-badge-neutral-v-axis-radius: var(--radius-none);
 
     /* Alternate */
-    --corner-badge-alternate-margin: var(--space-8);
+    --corner-badge-alternate-margin: var(--space-0);
     --corner-badge-alternate-outer-radius: var(--radius-none);
     --corner-badge-alternate-inner-radius: var(--radius-none);
     --corner-badge-alternate-h-axis-radius: var(--radius-none);
     --corner-badge-alternate-v-axis-radius: var(--radius-none);
 
     /* Canvas */
-    --corner-badge-canvas-margin: var(--space-8);
+    --corner-badge-canvas-margin: var(--space-0);
     --corner-badge-canvas-outer-radius: var(--radius-none);
     --corner-badge-canvas-inner-radius: var(--radius-none);
     --corner-badge-canvas-h-axis-radius: var(--radius-none);
     --corner-badge-canvas-v-axis-radius: var(--radius-none);
 
     /* Special */
-    --corner-badge-special-margin: var(--space-8);
+    --corner-badge-special-margin: var(--space-0);
     --corner-badge-special-outer-radius: var(--radius-none);
     --corner-badge-special-inner-radius: var(--radius-none);
     --corner-badge-special-h-axis-radius: var(--radius-none);
     --corner-badge-special-v-axis-radius: var(--radius-none);
 
     /* Success */
-    --corner-badge-success-margin: var(--space-8);
+    --corner-badge-success-margin: var(--space-0);
     --corner-badge-success-outer-radius: var(--radius-none);
     --corner-badge-success-inner-radius: var(--radius-none);
     --corner-badge-success-h-axis-radius: var(--radius-none);
     --corner-badge-success-v-axis-radius: var(--radius-none);
 
     /* Warning */
-    --corner-badge-warning-margin: var(--space-8);
+    --corner-badge-warning-margin: var(--space-0);
     --corner-badge-warning-outer-radius: var(--radius-none);
     --corner-badge-warning-inner-radius: var(--radius-none);
     --corner-badge-warning-h-axis-radius: var(--radius-none);
     --corner-badge-warning-v-axis-radius: var(--radius-none);
 
     /* Danger */
-    --corner-badge-danger-margin: var(--space-8);
+    --corner-badge-danger-margin: var(--space-0);
     --corner-badge-danger-outer-radius: var(--radius-none);
     --corner-badge-danger-inner-radius: var(--radius-none);
     --corner-badge-danger-h-axis-radius: var(--radius-none);
     --corner-badge-danger-v-axis-radius: var(--radius-none);
 
     /* Info */
-    --corner-badge-info-margin: var(--space-8);
+    --corner-badge-info-margin: var(--space-0);
     --corner-badge-info-outer-radius: var(--radius-none);
     --corner-badge-info-inner-radius: var(--radius-none);
     --corner-badge-info-h-axis-radius: var(--radius-none);

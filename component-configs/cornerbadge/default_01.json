@@ -1,8 +1,8 @@
 {
-  "name": "default",
+  "name": "default_01",
   "component": "cornerbadge",
-  "createdAt": "2026-05-12T15:31:06.313Z",
-  "updatedAt": "2026-05-12T16:32:12.483Z",
+  "createdAt": "2026-05-12T16:30:26.449Z",
+  "updatedAt": "2026-05-12T16:30:26.456Z",
   "aliases": {
     "--corner-badge-primary-margin": "--space-0",
     "--corner-badge-primary-outer-radius": "--radius-none",
@@ -54,5 +54,7 @@
     "--corner-badge-info-inner-radius": "--radius-none",
     "--corner-badge-info-h-axis-radius": "--radius-none",
     "--corner-badge-info-v-axis-radius": "--radius-none"
-  }
+  },
+  "config": {},
+  "schemaVersion": 5
 }
