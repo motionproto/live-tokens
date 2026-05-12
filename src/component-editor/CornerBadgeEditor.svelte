@@ -28,7 +28,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import CornerBadge, { type CornerAnchor } from '../components/CornerBadge.svelte';
-  import { badgeVariants, type BadgeVariant } from '../components/Badge.svelte';
+  import type { BadgeVariant } from '../components/Badge.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
