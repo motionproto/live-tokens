@@ -9,7 +9,7 @@
     tooltip: [
       { label: 'surface color', variable: '--tooltip-surface' },
       { label: 'border color', variable: '--tooltip-border' },
-      { label: 'border width', variable: '--tooltip-border-width' },
+      { label: 'border width', groupKey: 'width', variable: '--tooltip-border-width' },
       { label: 'corner radius', variable: '--tooltip-radius' },
       { label: 'padding', variable: '--tooltip-padding' },
       { label: 'tooltip shadow', variable: '--tooltip-shadow' },
@@ -27,10 +27,10 @@
     }],
   };
   const typeGroupTokens: Token[] = [
-    { label: 'font family', variable: '--tooltip-text-font-family' },
-    { label: 'font size', variable: '--tooltip-text-font-size' },
-    { label: 'font weight', variable: '--tooltip-text-font-weight' },
-    { label: 'line height', variable: '--tooltip-text-line-height' },
+    { label: 'font family', groupKey: 'family', variable: '--tooltip-text-font-family' },
+    { label: 'font size', groupKey: 'size', variable: '--tooltip-text-font-size' },
+    { label: 'font weight', groupKey: 'weight', variable: '--tooltip-text-font-weight' },
+    { label: 'line height', groupKey: 'height', variable: '--tooltip-text-line-height' },
   ];
   export const allTokens: Token[] = [
     ...Object.values(states).flat(),

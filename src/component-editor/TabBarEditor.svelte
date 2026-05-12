@@ -4,19 +4,19 @@
 
   export const component = 'tabbar';
 
-  // The tab object — three states (default/hover/active) of the same tab button.
-  const tabStateNames = ['default', 'hover', 'active'] as const;
+  // The tab object — four states (default/hover/active/disabled) of the same tab button.
+  const tabStateNames = ['default', 'hover', 'active', 'disabled'] as const;
   type TabState = typeof tabStateNames[number];
   function tabStateTokens(s: TabState): Token[] {
-    const list: Token[] = [];
-    if (s !== 'default') list.push({ label: 'surface color', variable: `--tabbar-${s}-surface` });
-    list.push(
-      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--tabbar-${s}-border-width` },
-      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--tabbar-${s}-padding` },
+    return [
       { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: `--tabbar-${s}-icon-size` },
-    );
-    if (s === 'active') list.push({ label: 'border color', variable: '--tabbar-active-border' });
-    return list;
+      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--tabbar-${s}-padding` },
+      { label: 'surface color', groupKey: 'surface', variable: `--tabbar-${s}-surface` },
+      { label: 'top radius', canBeLinked: true, groupKey: 'tab-top-radius', variable: `--tabbar-${s}-tab-top-radius` },
+      { label: 'bottom radius', canBeLinked: true, groupKey: 'tab-bottom-radius', variable: `--tabbar-${s}-tab-bottom-radius` },
+      { label: 'border color', canBeLinked: true, groupKey: 'tab-border-color', variable: `--tabbar-${s}-tab-border-color` },
+      { label: 'border width', canBeLinked: true, groupKey: 'tab-border-width', variable: `--tabbar-${s}-tab-border-width` },
+    ];
   }
   function tabStateTypeGroups(s: TabState): TypeGroupConfig[] {
     return [{
@@ -33,13 +33,20 @@
   // states (mirrors SegmentedControl's "control bar" + per-option states layout).
   const states: Record<string, Token[]> = {
     bar: [
-      { label: 'divider color', variable: '--tabbar-bar-divider' },
-      { label: 'divider thickness', variable: '--tabbar-bar-divider-thickness' },
-      { label: 'corner radius', variable: '--tabbar-bar-radius' },
-      { label: 'padding', variable: '--tabbar-bar-padding' },
+      { label: 'divider color', groupKey: 'bar-divider', variable: '--tabbar-bar-divider' },
+      { label: 'divider thickness', groupKey: 'bar-divider-thickness', variable: '--tabbar-bar-divider-thickness' },
+      { label: 'indicator thickness', groupKey: 'bar-indicator-thickness', variable: '--tabbar-bar-indicator-thickness' },
+      { label: 'space above', groupKey: 'bar-top-margin', variable: '--tabbar-bar-top-margin' },
+      { label: 'space below tabs', groupKey: 'bar-bottom-padding', variable: '--tabbar-bar-bottom-padding' },
+      { label: 'space under divider', groupKey: 'bar-bottom-margin', variable: '--tabbar-bar-bottom-margin' },
+      { label: 'tab gap', groupKey: 'tab-gap', variable: '--tabbar-tab-gap' },
     ],
     ...Object.fromEntries(tabStateNames.map((s) => [`${s} tab`, tabStateTokens(s)])),
   };
+  states['active tab'] = [
+    ...states['active tab'],
+    { label: 'indicator color', groupKey: 'indicator-color', variable: '--tabbar-active-border' },
+  ];
   const typeGroups: Record<string, TypeGroupConfig[]> = Object.fromEntries(
     tabStateNames.map((s) => [`${s} tab`, tabStateTypeGroups(s)]),
   );
@@ -56,15 +63,21 @@
   ];
 
   // Linking: shape props across tab states (same tab object).
-  const linkableContexts = new Map<string, string>(tabStateNames.flatMap((s) => [
-    [`--tabbar-${s}-border-width`, `${s} tab`] as const,
+  const linkableContexts = new Map<string, string>([
+    [`--tabbar-active-border`, `active tab`] as const,
+    ...tabStateNames.flatMap((s) => [
+    [`--tabbar-${s}-tab-border-color`, `${s} tab`] as const,
+    [`--tabbar-${s}-tab-border-width`, `${s} tab`] as const,
+    [`--tabbar-${s}-tab-top-radius`, `${s} tab`] as const,
+    [`--tabbar-${s}-tab-bottom-radius`, `${s} tab`] as const,
     [`--tabbar-${s}-padding`, `${s} tab`] as const,
     [`--tabbar-${s}-icon-size`, `${s} tab`] as const,
     [`--tabbar-${s}-text-font-family`, `${s} tab`] as const,
     [`--tabbar-${s}-text-font-size`, `${s} tab`] as const,
     [`--tabbar-${s}-text-font-weight`, `${s} tab`] as const,
     [`--tabbar-${s}-text-line-height`, `${s} tab`] as const,
-  ]));
+  ]),
+  ]);
 </script>
 
 <script lang="ts">

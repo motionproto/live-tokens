@@ -57,14 +57,24 @@ export function buildTypeGroupTokens(
     `allTokens` — needed so the reset-button and the design-token resolution test see
     them. Accepts either the full `Record` shape or a flat group array, so it slots
     cleanly into both `Object.values(typeGroups).flat()` chains and per-variant
-    `flatMap` constructions. */
+    `flatMap` constructions.
+
+    Each color token gets a groupKey derived from the colorVariable's last-dash
+    suffix (e.g. `--badge-primary-text` → `text`) so that all variants/states of
+    the same slot are siblings and can be linked in the editor. They start out
+    divergent (one value per variant) and the user can opt in to a single shared
+    value via the link UI. */
 export function buildTypeGroupColorTokens(
   typeGroups: Record<string, TypeGroupConfig[]> | TypeGroupConfig[],
 ): Token[] {
   const groups: TypeGroupConfig[] = Array.isArray(typeGroups)
     ? typeGroups
     : Object.values(typeGroups).flat();
-  return groups.map((g) => ({ label: g.colorLabel ?? 'color', variable: g.colorVariable }));
+  return groups.map((g) => {
+    const lastDash = g.colorVariable.lastIndexOf('-');
+    const groupKey = lastDash >= 0 ? g.colorVariable.slice(lastDash + 1) : g.colorVariable;
+    return { label: g.colorLabel ?? 'color', variable: g.colorVariable, groupKey };
+  });
 }
 
 /** Companion helper: derive a `linkableContexts` map mapping every typography variable in

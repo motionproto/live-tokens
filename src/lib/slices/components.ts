@@ -14,8 +14,7 @@
  * `state.components`.
  *
  * Sharing semantics: tokens with the same groupKey (registered explicitly
- * via `registerComponentSchema`, or inferred from the last-dash suffix)
- * are siblings. Each individual sibling can opt out of the group: `unlinked`
+ * via `registerComponentSchema`) are siblings. Each individual sibling can opt out of the group: `unlinked`
  * lists the specific variable names that have detached, leaving the rest
  * of the group intact. `setComponentAliasLinked` writes the alias to every
  * sibling that is *currently linked* (i.e. not in `unlinked`) plus the
@@ -207,20 +206,12 @@ export function registerComponentSchema(
 }
 
 /**
- * Resolve a variable's groupKey. Schema entries win; otherwise fall back to
- * the last-dash property suffix (legacy behaviour). Returns null when the
- * variable is not under the component prefix.
+ * Resolve a variable's groupKey from the component's registered schema.
+ * Returns null when the variable has no declared groupKey (i.e. it isn't a
+ * member of any sibling group).
  */
 function getGroupKey(component: string, varName: string): string | null {
-  const schema = componentSchemas[component];
-  const explicit = schema?.get(varName);
-  if (explicit) return explicit;
-  const prefix = componentVarPrefix(component);
-  if (!varName.startsWith(prefix)) return null;
-  const rest = varName.slice(prefix.length);
-  const lastDash = rest.lastIndexOf('-');
-  if (lastDash <= 0) return null;
-  return rest.slice(lastDash + 1);
+  return componentSchemas[component]?.get(varName) ?? null;
 }
 
 /**

@@ -18,15 +18,15 @@
   function variantStateTokens(v: Variant, s: StateName): Token[] {
     const p = statePrefix(v, s);
     const tokens: Token[] = [
-      { label: 'surface color', variable: `${p}-surface` },
-      { label: 'border color', variable: `${p}-border` },
+      { label: 'surface color', groupKey: 'surface', variable: `${p}-surface` },
+      { label: 'border color', groupKey: 'border', variable: `${p}-border` },
       { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `${p}-border-width` },
       { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `${p}-radius` },
       { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `${p}-padding` },
     ];
     if (s === 'default') {
       tokens.push(
-        { label: 'text color', variable: `--button-${v}-text` },
+        { label: 'text color', groupKey: 'text', variable: `--button-${v}-text` },
         { label: 'font family', canBeLinked: true, groupKey: 'font-family', variable: `--button-${v}-text-font-family` },
         { label: 'font size', canBeLinked: true, groupKey: 'font-size', variable: `--button-${v}-text-font-size` },
         { label: 'font weight', canBeLinked: true, groupKey: 'font-weight', variable: `--button-${v}-text-font-weight` },
@@ -34,7 +34,7 @@
         { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: `--button-${v}-icon-size` },
       );
     } else {
-      tokens.push({ label: 'text color', variable: `--button-${v}-${s}-text` });
+      tokens.push({ label: 'text color', groupKey: 'text', variable: `--button-${v}-${s}-text` });
     }
     return tokens;
   }

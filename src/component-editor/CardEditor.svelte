@@ -9,9 +9,9 @@
   // Title and body are nested elements with their own typography.
   const states: Record<string, Token[]> = {
     default: [
-      { label: 'surface color', variable: '--card-default-surface' },
-      { label: 'header color', variable: '--card-default-header-surface' },
-      { label: 'border color', variable: '--card-default-border' },
+      { label: 'surface color', groupKey: 'surface', variable: '--card-default-surface' },
+      { label: 'header color', groupKey: 'surface', variable: '--card-default-header-surface' },
+      { label: 'border color', groupKey: 'border', variable: '--card-default-border' },
       { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: '--card-default-border-width' },
       { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: '--card-default-radius' },
       { label: 'header padding', canBeLinked: true, groupKey: 'header-padding', variable: '--card-default-header-padding' },
@@ -21,9 +21,9 @@
       { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--card-default-icon-size' },
     ],
     hover: [
-      { label: 'surface color', variable: '--card-hover-surface' },
-      { label: 'header color', variable: '--card-hover-header-surface' },
-      { label: 'border color', variable: '--card-hover-border' },
+      { label: 'surface color', groupKey: 'surface', variable: '--card-hover-surface' },
+      { label: 'header color', groupKey: 'surface', variable: '--card-hover-header-surface' },
+      { label: 'border color', groupKey: 'border', variable: '--card-hover-border' },
       { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: '--card-hover-border-width' },
       { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: '--card-hover-radius' },
       { label: 'header padding', canBeLinked: true, groupKey: 'header-padding', variable: '--card-hover-header-padding' },

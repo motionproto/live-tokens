@@ -263,19 +263,35 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const aliases = extractAliasDeclarations(body);
     const now = new Date().toISOString();
     let createdAt = now;
+    let existingUpdatedAt: string | undefined;
+    let existingAliases: Record<string, string> | undefined;
     if (fs.existsSync(defaultPath)) {
       try {
         const existing = JSON.parse(fs.readFileSync(defaultPath, 'utf-8'));
         if (existing.createdAt) createdAt = existing.createdAt;
+        if (typeof existing.updatedAt === 'string') existingUpdatedAt = existing.updatedAt;
+        if (existing.aliases && typeof existing.aliases === 'object') {
+          existingAliases = existing.aliases as Record<string, string>;
+        }
       } catch { /* overwrite */ }
     }
+    const aliasesUnchanged =
+      existingAliases !== undefined &&
+      JSON.stringify(existingAliases) === JSON.stringify(aliases);
     const defaultConfig = {
       name: 'default',
       component: comp,
       createdAt,
-      updatedAt: now,
+      updatedAt: aliasesUnchanged && existingUpdatedAt ? existingUpdatedAt : now,
       aliases,
     };
+    if (aliasesUnchanged && existingUpdatedAt) {
+      // Bump default.json's mtime so the source > default check stops firing,
+      // but leave file bytes (including updatedAt) untouched.
+      const t = new Date();
+      fs.utimesSync(defaultPath, t, t);
+      return;
+    }
     fs.writeFileSync(defaultPath, JSON.stringify(defaultConfig, null, 2));
   }
 

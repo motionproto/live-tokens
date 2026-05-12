@@ -37,13 +37,13 @@
   }
   function gradientTokens(v: Variant): Token[] {
     return [
-      { label: 'gradient angle', variable: `--sectiondivider-${v}-gradient-angle` },
-      { label: 'gradient stop 1 color', variable: `--sectiondivider-${v}-gradient-stop-1-color` },
-      { label: 'gradient stop 1 position', variable: `--sectiondivider-${v}-gradient-stop-1-position` },
-      { label: 'gradient stop 2 color', variable: `--sectiondivider-${v}-gradient-stop-2-color` },
-      { label: 'gradient stop 2 position', variable: `--sectiondivider-${v}-gradient-stop-2-position` },
-      { label: 'gradient stop 3 color', variable: `--sectiondivider-${v}-gradient-stop-3-color` },
-      { label: 'gradient stop 3 position', variable: `--sectiondivider-${v}-gradient-stop-3-position` },
+      { label: 'gradient angle', groupKey: 'angle', variable: `--sectiondivider-${v}-gradient-angle` },
+      { label: 'gradient stop 1 color', groupKey: 'color', variable: `--sectiondivider-${v}-gradient-stop-1-color` },
+      { label: 'gradient stop 1 position', groupKey: 'position', variable: `--sectiondivider-${v}-gradient-stop-1-position` },
+      { label: 'gradient stop 2 color', groupKey: 'color', variable: `--sectiondivider-${v}-gradient-stop-2-color` },
+      { label: 'gradient stop 2 position', groupKey: 'position', variable: `--sectiondivider-${v}-gradient-stop-2-position` },
+      { label: 'gradient stop 3 color', groupKey: 'color', variable: `--sectiondivider-${v}-gradient-stop-3-color` },
+      { label: 'gradient stop 3 position', groupKey: 'position', variable: `--sectiondivider-${v}-gradient-stop-3-position` },
     ];
   }
   function variantTokens(v: Variant): Token[] {

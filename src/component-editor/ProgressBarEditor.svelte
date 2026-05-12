@@ -9,9 +9,9 @@
   // Per variant: track (surface, border, border-width, radius, height) + fill (color).
   function variantTokens(v: Variant): Token[] {
     return [
-      { label: 'fill color', variable: `--progressbar-${v}-fill` },
-      { label: 'track surface color', variable: `--progressbar-${v}-track-surface` },
-      { label: 'track border color', variable: `--progressbar-${v}-track-border` },
+      { label: 'fill color', groupKey: 'fill', variable: `--progressbar-${v}-fill` },
+      { label: 'track surface color', groupKey: 'surface', variable: `--progressbar-${v}-track-surface` },
+      { label: 'track border color', groupKey: 'border', variable: `--progressbar-${v}-track-border` },
       { label: 'track border width', canBeLinked: true, groupKey: 'track-border-width', variable: `--progressbar-${v}-track-border-width` },
       { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--progressbar-${v}-radius` },
       { label: 'track height', canBeLinked: true, groupKey: 'track-height', variable: `--progressbar-${v}-track-height` },

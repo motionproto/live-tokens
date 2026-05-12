@@ -16,31 +16,31 @@
   // Button styling lives in Button.svelte — the dialog only owns its own chrome.
   const frameStates: Record<string, Token[]> = {
     overlay: [
-      { label: 'backdrop color', variable: '--dialog-overlay-surface' },
+      { label: 'backdrop color', groupKey: 'surface', variable: '--dialog-overlay-surface' },
     ],
     dialog: [
       { label: 'surface color', variable: '--dialog-surface' },
       { label: 'border color', variable: '--dialog-border' },
-      { label: 'border width', variable: '--dialog-border-width' },
+      { label: 'border width', groupKey: 'width', variable: '--dialog-border-width' },
       { label: 'corner radius', variable: '--dialog-radius' },
       { label: 'dialog shadow', variable: '--dialog-shadow' },
       { label: 'background blur', variable: '--dialog-blur' },
     ],
     header: [
-      { label: 'surface color', variable: '--dialog-header-surface' },
-      { label: 'border color', variable: '--dialog-header-border' },
-      { label: 'border width', variable: '--dialog-header-border-width' },
-      { label: 'padding', variable: '--dialog-header-padding' },
-      { label: 'close icon color', variable: '--dialog-close-icon' },
-      { label: 'close icon size', variable: '--dialog-close-icon-size' },
+      { label: 'surface color', groupKey: 'surface', variable: '--dialog-header-surface' },
+      { label: 'border color', groupKey: 'border', variable: '--dialog-header-border' },
+      { label: 'border width', groupKey: 'width', variable: '--dialog-header-border-width' },
+      { label: 'padding', groupKey: 'padding', variable: '--dialog-header-padding' },
+      { label: 'close icon color', groupKey: 'icon', variable: '--dialog-close-icon' },
+      { label: 'close icon size', groupKey: 'size', variable: '--dialog-close-icon-size' },
     ],
     body: [
-      { label: 'padding', variable: '--dialog-body-padding' },
+      { label: 'padding', groupKey: 'padding', variable: '--dialog-body-padding' },
     ],
     footer: [
-      { label: 'border color', variable: '--dialog-footer-border' },
-      { label: 'border width', variable: '--dialog-footer-border-width' },
-      { label: 'padding', variable: '--dialog-footer-padding' },
+      { label: 'border color', groupKey: 'border', variable: '--dialog-footer-border' },
+      { label: 'border width', groupKey: 'width', variable: '--dialog-footer-border-width' },
+      { label: 'padding', groupKey: 'padding', variable: '--dialog-footer-padding' },
     ],
   };
 
@@ -63,14 +63,14 @@
     }],
   };
   const frameTypeGroupTokens: Token[] = [
-    { label: 'font family', variable: '--dialog-title-font-family' },
-    { label: 'font size', variable: '--dialog-title-font-size' },
-    { label: 'font weight', variable: '--dialog-title-font-weight' },
-    { label: 'line height', variable: '--dialog-title-line-height' },
-    { label: 'font family', variable: '--dialog-body-font-family' },
-    { label: 'font size', variable: '--dialog-body-font-size' },
-    { label: 'font weight', variable: '--dialog-body-font-weight' },
-    { label: 'line height', variable: '--dialog-body-line-height' },
+    { label: 'font family', groupKey: 'family', variable: '--dialog-title-font-family' },
+    { label: 'font size', groupKey: 'size', variable: '--dialog-title-font-size' },
+    { label: 'font weight', groupKey: 'weight', variable: '--dialog-title-font-weight' },
+    { label: 'line height', groupKey: 'height', variable: '--dialog-title-line-height' },
+    { label: 'font family', groupKey: 'family', variable: '--dialog-body-font-family' },
+    { label: 'font size', groupKey: 'size', variable: '--dialog-body-font-size' },
+    { label: 'font weight', groupKey: 'weight', variable: '--dialog-body-font-weight' },
+    { label: 'line height', groupKey: 'height', variable: '--dialog-body-line-height' },
   ];
 
   export const allTokens: Token[] = [

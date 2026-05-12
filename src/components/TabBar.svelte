@@ -51,8 +51,11 @@
     /* Bar */
     --tabbar-bar-divider: var(--border-neutral-subtle);
     --tabbar-bar-divider-thickness: var(--border-width-1);
-    --tabbar-bar-radius: var(--radius-md);
-    --tabbar-bar-padding: var(--space-8);
+    --tabbar-bar-indicator-thickness: var(--border-width-2);
+    --tabbar-bar-top-margin: var(--space-0);
+    --tabbar-bar-bottom-padding: var(--space-0);
+    --tabbar-bar-bottom-margin: var(--space-0);
+    --tabbar-tab-gap: var(--space-2);
 
     /* Default tab */
     --tabbar-default-text: var(--text-tertiary);
@@ -62,7 +65,12 @@
     --tabbar-default-text-line-height: var(--line-height-normal);
     --tabbar-default-icon-size: var(--icon-size-md);
     --tabbar-default-padding: var(--space-8);
-    --tabbar-default-border-width: var(--border-width-2);
+    --tabbar-default-border: var(--color-transparent);
+    --tabbar-default-surface: var(--color-transparent);
+    --tabbar-default-tab-border-color: var(--color-transparent);
+    --tabbar-default-tab-border-width: var(--border-width-0);
+    --tabbar-default-tab-top-radius: var(--radius-none);
+    --tabbar-default-tab-bottom-radius: var(--radius-none);
 
     /* Hover tab */
     --tabbar-hover-text: var(--text-secondary);
@@ -73,7 +81,11 @@
     --tabbar-hover-text-line-height: var(--line-height-normal);
     --tabbar-hover-icon-size: var(--icon-size-md);
     --tabbar-hover-padding: var(--space-8);
-    --tabbar-hover-border-width: var(--border-width-2);
+    --tabbar-hover-border: var(--color-transparent);
+    --tabbar-hover-tab-border-color: var(--color-transparent);
+    --tabbar-hover-tab-border-width: var(--border-width-0);
+    --tabbar-hover-tab-top-radius: var(--radius-none);
+    --tabbar-hover-tab-bottom-radius: var(--radius-none);
 
     /* Active tab */
     --tabbar-active-text: var(--text-primary);
@@ -85,15 +97,34 @@
     --tabbar-active-text-line-height: var(--line-height-normal);
     --tabbar-active-icon-size: var(--icon-size-md);
     --tabbar-active-padding: var(--space-8);
-    --tabbar-active-border-width: var(--border-width-2);
+    --tabbar-active-tab-border-color: var(--color-transparent);
+    --tabbar-active-tab-border-width: var(--border-width-0);
+    --tabbar-active-tab-top-radius: var(--radius-none);
+    --tabbar-active-tab-bottom-radius: var(--radius-none);
+
+    /* Disabled tab */
+    --tabbar-disabled-text: var(--text-disabled);
+    --tabbar-disabled-text-font-family: var(--font-sans);
+    --tabbar-disabled-text-font-size: var(--font-size-md);
+    --tabbar-disabled-text-font-weight: var(--font-weight-light);
+    --tabbar-disabled-text-line-height: var(--line-height-normal);
+    --tabbar-disabled-icon-size: var(--icon-size-md);
+    --tabbar-disabled-padding: var(--space-8);
+    --tabbar-disabled-border: var(--color-transparent);
+    --tabbar-disabled-surface: var(--color-transparent);
+    --tabbar-disabled-tab-border-color: var(--color-transparent);
+    --tabbar-disabled-tab-border-width: var(--border-width-0);
+    --tabbar-disabled-tab-top-radius: var(--radius-none);
+    --tabbar-disabled-tab-bottom-radius: var(--radius-none);
   }
 
   .tab-bar {
     display: flex;
-    gap: var(--space-2);
+    gap: var(--tabbar-tab-gap);
     border-bottom: var(--tabbar-bar-divider-thickness) solid var(--tabbar-bar-divider);
-    border-radius: var(--tabbar-bar-radius);
-    @include themed-padding(--tabbar-bar-padding, $v: 0);
+    margin-top: var(--tabbar-bar-top-margin);
+    padding-bottom: var(--tabbar-bar-bottom-padding);
+    margin-bottom: var(--tabbar-bar-bottom-margin);
   }
 
   .tab {
@@ -101,9 +132,11 @@
     align-items: center;
     gap: var(--space-6);
     @include themed-padding(--tabbar-default-padding, $h: 2);
-    background: transparent;
-    border: none;
-    border-bottom: var(--tabbar-default-border-width) solid transparent;
+    background: var(--tabbar-default-surface);
+    border: var(--tabbar-default-tab-border-width) solid var(--tabbar-default-tab-border-color);
+    /* indicator accent — owns the bottom edge */
+    border-bottom: var(--tabbar-bar-indicator-thickness) solid var(--tabbar-default-border);
+    border-radius: var(--tabbar-default-tab-top-radius) var(--tabbar-default-tab-top-radius) var(--tabbar-default-tab-bottom-radius) var(--tabbar-default-tab-bottom-radius);
     color: var(--tabbar-default-text);
     font-family: var(--tabbar-default-text-font-family);
     font-size: var(--tabbar-default-text-font-size);
@@ -118,18 +151,26 @@
   .tab-bar.force-hover .tab:not(:disabled):not(.active) {
     color: var(--tabbar-hover-text);
     background: var(--tabbar-hover-surface);
+    border-color: var(--tabbar-hover-tab-border-color);
+    border-width: var(--tabbar-hover-tab-border-width);
+    /* indicator accent owns the bottom edge */
+    border-bottom: var(--tabbar-bar-indicator-thickness) solid var(--tabbar-hover-border);
+    border-radius: var(--tabbar-hover-tab-top-radius) var(--tabbar-hover-tab-top-radius) var(--tabbar-hover-tab-bottom-radius) var(--tabbar-hover-tab-bottom-radius);
     font-family: var(--tabbar-hover-text-font-family);
     font-size: var(--tabbar-hover-text-font-size);
     font-weight: var(--tabbar-hover-text-font-weight);
     line-height: var(--tabbar-hover-text-line-height);
     @include themed-padding(--tabbar-hover-padding, $h: 2);
-    border-bottom-width: var(--tabbar-hover-border-width);
   }
 
   .tab.active {
     color: var(--tabbar-active-text);
-    border-bottom: var(--tabbar-active-border-width) solid var(--tabbar-active-border);
-    background: linear-gradient(to bottom, transparent, var(--tabbar-active-surface));
+    background: var(--tabbar-active-surface);
+    border-color: var(--tabbar-active-tab-border-color);
+    border-width: var(--tabbar-active-tab-border-width);
+    /* indicator accent owns the bottom edge */
+    border-bottom: var(--tabbar-bar-indicator-thickness) solid var(--tabbar-active-border);
+    border-radius: var(--tabbar-active-tab-top-radius) var(--tabbar-active-tab-top-radius) var(--tabbar-active-tab-bottom-radius) var(--tabbar-active-tab-bottom-radius);
     font-family: var(--tabbar-active-text-font-family);
     font-size: var(--tabbar-active-text-font-size);
     font-weight: var(--tabbar-active-text-font-weight);
@@ -138,7 +179,18 @@
   }
 
   .tab:disabled {
-    color: var(--text-disabled);
+    color: var(--tabbar-disabled-text);
+    background: var(--tabbar-disabled-surface);
+    border-color: var(--tabbar-disabled-tab-border-color);
+    border-width: var(--tabbar-disabled-tab-border-width);
+    /* indicator accent owns the bottom edge */
+    border-bottom: var(--tabbar-bar-indicator-thickness) solid var(--tabbar-disabled-border);
+    border-radius: var(--tabbar-disabled-tab-top-radius) var(--tabbar-disabled-tab-top-radius) var(--tabbar-disabled-tab-bottom-radius) var(--tabbar-disabled-tab-bottom-radius);
+    font-family: var(--tabbar-disabled-text-font-family);
+    font-size: var(--tabbar-disabled-text-font-size);
+    font-weight: var(--tabbar-disabled-text-font-weight);
+    line-height: var(--tabbar-disabled-text-line-height);
+    @include themed-padding(--tabbar-disabled-padding, $h: 2);
     cursor: not-allowed;
   }
 
@@ -153,6 +205,10 @@
 
   .tab.active i {
     font-size: var(--tabbar-active-icon-size);
+  }
+
+  .tab:disabled i {
+    font-size: var(--tabbar-disabled-icon-size);
   }
 
   .tab i {

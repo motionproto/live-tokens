@@ -58,13 +58,15 @@
   .tooltip::after {
     content: '';
     position: absolute;
-    top: 100%;
+    bottom: calc(-4px - var(--tooltip-border-width) * 1px);
     left: 50%;
-    transform: translateX(-50%);
-    width: 10px;
-    height: 5px;
+    width: 8px;
+    height: 8px;
+    transform: translateX(-50%) rotate(45deg);
     background: var(--tooltip-surface);
-    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    border-right: var(--tooltip-border-width) solid var(--tooltip-border);
+    border-bottom: var(--tooltip-border-width) solid var(--tooltip-border);
+    z-index: -1;
   }
 
   .tooltip.bottom {
@@ -73,9 +75,12 @@
   }
 
   .tooltip.bottom::after {
-    top: auto;
-    bottom: 100%;
-    clip-path: polygon(50% 0, 0 100%, 100% 100%);
+    bottom: auto;
+    top: calc(-4px - var(--tooltip-border-width) * 1px);
+    border-right: none;
+    border-bottom: none;
+    border-left: var(--tooltip-border-width) solid var(--tooltip-border);
+    border-top: var(--tooltip-border-width) solid var(--tooltip-border);
   }
 
   .tooltip-wrapper:hover .tooltip,

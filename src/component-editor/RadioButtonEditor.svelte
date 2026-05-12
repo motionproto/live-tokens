@@ -6,22 +6,22 @@
 
   const states: Record<string, Token[]> = {
     default: [
-      { label: 'border color', variable: '--radiobutton-default-dot-border-color' },
+      { label: 'border color', groupKey: 'color', variable: '--radiobutton-default-dot-border-color' },
       { label: 'border thickness', canBeLinked: true, groupKey: 'border-width', variable: '--radiobutton-default-dot-border-width' },
-      { label: 'dot fill', variable: '--radiobutton-default-dot-fill' },
-      { label: 'dot size', variable: '--radiobutton-default-dot-size' },
+      { label: 'dot fill', groupKey: 'fill', variable: '--radiobutton-default-dot-fill' },
+      { label: 'dot size', groupKey: 'size', variable: '--radiobutton-default-dot-size' },
     ],
     hover: [
-      { label: 'border color', variable: '--radiobutton-hover-dot-border-color' },
+      { label: 'border color', groupKey: 'color', variable: '--radiobutton-hover-dot-border-color' },
       { label: 'border thickness', canBeLinked: true, groupKey: 'border-width', variable: '--radiobutton-hover-dot-border-width' },
-      { label: 'dot fill', variable: '--radiobutton-hover-dot-fill' },
-      { label: 'dot size', variable: '--radiobutton-hover-dot-size' },
+      { label: 'dot fill', groupKey: 'fill', variable: '--radiobutton-hover-dot-fill' },
+      { label: 'dot size', groupKey: 'size', variable: '--radiobutton-hover-dot-size' },
     ],
     active: [
-      { label: 'border color', variable: '--radiobutton-active-dot-border-color' },
+      { label: 'border color', groupKey: 'color', variable: '--radiobutton-active-dot-border-color' },
       { label: 'border thickness', canBeLinked: true, groupKey: 'border-width', variable: '--radiobutton-active-dot-border-width' },
-      { label: 'dot fill', variable: '--radiobutton-active-dot-fill' },
-      { label: 'dot size', variable: '--radiobutton-active-dot-size' },
+      { label: 'dot fill', groupKey: 'fill', variable: '--radiobutton-active-dot-fill' },
+      { label: 'dot size', groupKey: 'size', variable: '--radiobutton-active-dot-size' },
     ],
   };
 

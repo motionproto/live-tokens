@@ -10,9 +10,9 @@
   type Button = typeof buttons[number];
   function buttonStateTokens(btn: Button, state: 'default' | 'hover'): Token[] {
     return [
-      { label: 'surface color', variable: `--inlineeditactions-${btn}-${state}-surface` },
-      { label: 'text color', variable: `--inlineeditactions-${btn}-${state}-text` },
-      { label: 'border color', variable: `--inlineeditactions-${btn}-${state}-border` },
+      { label: 'surface color', groupKey: 'surface', variable: `--inlineeditactions-${btn}-${state}-surface` },
+      { label: 'text color', groupKey: 'text', variable: `--inlineeditactions-${btn}-${state}-text` },
+      { label: 'border color', groupKey: 'border', variable: `--inlineeditactions-${btn}-${state}-border` },
       { label: 'border width', canBeLinked: true, groupKey: `${btn}-border-width`, variable: `--inlineeditactions-${btn}-${state}-border-width` },
       { label: 'corner radius', canBeLinked: true, groupKey: `${btn}-radius`, variable: `--inlineeditactions-${btn}-${state}-radius` },
       { label: 'padding', canBeLinked: true, groupKey: `${btn}-padding`, variable: `--inlineeditactions-${btn}-${state}-padding` },

@@ -25,14 +25,14 @@
   function headerStateTokens(v: Variant, s: HeaderState): Token[] {
     const p = `--collapsiblesection-${v}-${s}`;
     const base: Token[] = [
-      { label: 'surface color', variable: `${p}-surface` },
+      { label: 'surface color', groupKey: 'surface', variable: `${p}-surface` },
       { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `${p}-padding` },
-      { label: 'icon color', variable: `${p}-icon` },
+      { label: 'icon color', groupKey: 'icon', variable: `${p}-icon` },
       { label: 'icon size', canBeLinked: true, groupKey: 'font-size', variable: `${p}-icon-size` },
     ];
     if (v === 'divider') {
       base.splice(1, 0,
-        { label: 'divider color', variable: `${p}-border` },
+        { label: 'divider color', groupKey: 'border', variable: `${p}-border` },
         { label: 'divider width', canBeLinked: true, groupKey: 'border-width', variable: `${p}-border-width` },
       );
     }
@@ -41,8 +41,8 @@
 
   // Container has a single Frame ruleset for the always-on outer chrome.
   const frameTokens: Token[] = [
-    { label: 'surface color', variable: '--collapsiblesection-container-frame-surface' },
-    { label: 'border color', variable: '--collapsiblesection-container-frame-border' },
+    { label: 'surface color', groupKey: 'surface', variable: '--collapsiblesection-container-frame-surface' },
+    { label: 'border color', groupKey: 'border', variable: '--collapsiblesection-container-frame-border' },
     { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: '--collapsiblesection-container-frame-border-width' },
     { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: '--collapsiblesection-container-frame-radius' },
   ];
@@ -52,7 +52,7 @@
   function expandedTokens(v: Variant): Token[] {
     const p = `--collapsiblesection-${v}-expanded`;
     const tokens: Token[] = [];
-    if (v === 'container') tokens.push({ label: 'surface color', variable: `${p}-surface` });
+    if (v === 'container') tokens.push({ label: 'surface color', groupKey: 'surface', variable: `${p}-surface` });
     tokens.push({ label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `${p}-padding` });
     return tokens;
   }

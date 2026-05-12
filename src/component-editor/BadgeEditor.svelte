@@ -11,8 +11,8 @@
   // Shape props (radius/border-width/padding/shadow) and font props can be linked across variants.
   function variantTokens(variant: Variant): Token[] {
     return [
-      { label: 'surface color', variable: `--badge-${variant}-surface` },
-      { label: 'border color', variable: `--badge-${variant}-border` },
+      { label: 'surface color', groupKey: 'surface', variable: `--badge-${variant}-surface` },
+      { label: 'border color', groupKey: 'border', variable: `--badge-${variant}-border` },
       { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--badge-${variant}-border-width` },
       { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--badge-${variant}-radius` },
       { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--badge-${variant}-padding` },

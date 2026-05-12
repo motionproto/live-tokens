@@ -17,7 +17,10 @@
 //   @include themed-padding(--tabbar-bar-padding, $v: 0);
 
 @function _padding-side($base, $factor) {
-  @return if($factor == 1, var(#{$base}), calc(var(#{$base}) * #{$factor}));
+  @if $factor == 1 {
+    @return var(#{$base});
+  }
+  @return calc(var(#{$base}) * #{$factor});
 }
 
 @mixin themed-padding($base, $h: 1, $v: 1) {

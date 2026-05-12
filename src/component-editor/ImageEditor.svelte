@@ -6,10 +6,10 @@
   // Single object: image frame.
   const states: Record<string, Token[]> = {
     image: [
-      { label: 'border color', variable: '--image-default-border' },
-      { label: 'border width', variable: '--image-default-border-width' },
-      { label: 'corner radius', variable: '--image-default-radius' },
-      { label: 'image shadow', variable: '--image-default-shadow' },
+      { label: 'border color', groupKey: 'border', variable: '--image-default-border' },
+      { label: 'border width', groupKey: 'width', variable: '--image-default-border-width' },
+      { label: 'corner radius', groupKey: 'radius', variable: '--image-default-radius' },
+      { label: 'image shadow', groupKey: 'shadow', variable: '--image-default-shadow' },
     ],
   };
 
@@ -47,7 +47,7 @@
   <VariantGroup name="image" title="Image" {states} {component}>
     <ShadowBackdrop mode="color" colorVariable={bgVar}>
       <div class="image-demo-grid">
-        <Image src={demoImageUrl} alt="Demo" variant="medium" />
+        <Image src={demoImageUrl} alt="Demo" variant="banner" />
       </div>
     </ShadowBackdrop>
   </VariantGroup>

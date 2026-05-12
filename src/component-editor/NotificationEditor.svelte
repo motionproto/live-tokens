@@ -9,12 +9,12 @@
   // Per variant: notification frame (surface, border, border-width, radius, padding) + icon (color, size).
   function variantTokens(v: Variant): Token[] {
     return [
-      { label: 'surface color', variable: `--notification-${v}-surface` },
-      { label: 'border color', variable: `--notification-${v}-border` },
+      { label: 'surface color', groupKey: 'surface', variable: `--notification-${v}-surface` },
+      { label: 'border color', groupKey: 'border', variable: `--notification-${v}-border` },
       { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--notification-${v}-border-width` },
       { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--notification-${v}-radius` },
       { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--notification-${v}-padding` },
-      { label: 'icon color', variable: `--notification-${v}-icon` },
+      { label: 'icon color', groupKey: 'icon', variable: `--notification-${v}-icon` },
       { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: `--notification-${v}-icon-size` },
     ];
   }

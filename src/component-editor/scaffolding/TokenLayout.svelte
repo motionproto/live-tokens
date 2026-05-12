@@ -71,7 +71,7 @@
     { kind: 'dot-size', matches: (v) => v.endsWith('-dot-size') },
     { kind: 'blur', matches: (v) => v.endsWith('-blur') || v.startsWith('--blur-') },
     { kind: 'shadow', matches: (v) => v.endsWith('-shadow') || v.startsWith('--shadow-') },
-    { kind: 'padding', matches: (v) => v.endsWith('-padding') },
+    { kind: 'padding', matches: (v) => v.endsWith('-padding') || v.endsWith('-margin') },
     { kind: 'gap', matches: (v) => v.endsWith('-gap') },
     { kind: 'border-width', matches: (v) => v.endsWith('-border-width') || v.startsWith('--border-width-') },
     { kind: 'border', matches: (v) => v.endsWith('-border') || v.startsWith('--border-') },
@@ -84,7 +84,6 @@
     'font-weight',
     'font-size',
     'line-height',
-    'border-width',
     'divider-width',
     'divider-height',
     'dot-size',
@@ -96,6 +95,7 @@
     'shadow',
     'extras',
     'surface',
+    'border-width',
     'border',
   ];
   const orderRank: Record<Kind, number> = Object.fromEntries(
@@ -181,7 +181,6 @@
       'font-size',
       'line-height',
       'extras',
-      'border-width',
       'divider-width',
       'divider-height',
       'dot-size',
@@ -192,6 +191,7 @@
       'blur',
       'shadow',
       'surface',
+      'border-width',
       'border',
     ];
     return Object.fromEntries(reordered.map((k, i) => [k, i])) as Record<Kind, number>;
