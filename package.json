@@ -24,10 +24,15 @@
     "src/components",
     "src/pages/Editor.svelte",
     "src/pages/Editor.svelte.d.ts",
+    "src/pages/EditorShell.svelte",
     "src/styles/ui-editor.css",
     "src/styles/form-controls.css",
     "src/styles/fonts.css",
     "src/styles/fonts",
+    "src/styles/_padding.scss",
+    "src/styles/tokens.css",
+    "src/data",
+    "src/assets",
     "dist-plugin"
   ],
   "exports": {

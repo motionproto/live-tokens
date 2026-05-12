@@ -78,17 +78,21 @@
   }
 
   .columns-overlay__col {
-    background: var(--ui-overlay-fill);
-    border-left: 1px dashed var(--ui-overlay-border);
-    border-right: 1px dashed var(--ui-overlay-border);
+    /* Fallbacks let the overlay render on any host. --ui-* tokens are
+       declared in ui-editor.css which by convention is editor-scoped and
+       not loaded globally; without fallbacks the host site sees invisible
+       columns. */
+    background: var(--ui-overlay-fill, rgba(128, 128, 128, 0.06));
+    border-left: 1px dashed var(--ui-overlay-border, rgba(128, 128, 128, 0.32));
+    border-right: 1px dashed var(--ui-overlay-border, rgba(128, 128, 128, 0.32));
   }
 
   .columns-overlay__num {
     display: block;
-    font-family: var(--ui-font-mono);
+    font-family: var(--ui-font-mono, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace);
     font-size: 9px;
     line-height: 1;
-    color: var(--ui-overlay-num);
+    color: var(--ui-overlay-num, rgba(128, 128, 128, 0.75));
     text-align: center;
     padding-top: 3px;
   }
@@ -106,7 +110,7 @@
     -webkit-backdrop-filter: blur(6px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 4px;
-    font-family: var(--ui-font-mono);
+    font-family: var(--ui-font-mono, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace);
     font-size: 10px;
     color: rgba(255, 255, 255, 0.75);
     letter-spacing: 0.02em;
