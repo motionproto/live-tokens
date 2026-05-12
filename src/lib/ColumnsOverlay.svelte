@@ -74,6 +74,11 @@
     height: 100%;
     display: grid;
     grid-template-columns: repeat(var(--columns-count, 12), 1fr);
+    /* Single implicit row that fills the container — without this, row
+       tracks default to `auto` and collapse to the content height (the
+       number span, ~12px), so the column fill and dashed borders are
+       only ~12px tall and look invisible against any backdrop. */
+    grid-template-rows: 1fr;
     gap: var(--columns-gutter);
   }
 
