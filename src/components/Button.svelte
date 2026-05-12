@@ -252,19 +252,6 @@
          }
       }
 
-      // Small size modifier (applies to any variant)
-      &.small {
-         padding: var(--space-6) var(--space-12);
-         font-size: var(--font-size-xs);
-         font-weight: var(--font-weight-normal);
-         line-height: var(--line-height-snug);
-
-         :global(i) {
-            font-size: var(--font-size-xs);
-            font-weight: var(--font-weight-semibold);
-         }
-      }
-
       // Primary variant (default)
       &.primary {
          --button-icon-size: var(--button-primary-icon-size);
@@ -499,6 +486,25 @@
             @include themed-padding(--button-warning-disabled-padding, $h: 2);
             color: var(--button-warning-disabled-text);
          }
+      }
+
+      // Small size modifier (applies to any variant).
+      // Declared after variants so equal-specificity rules win on source order;
+      // :hover/.force-hover/:disabled are listed so variant state-padding
+      // doesn't clobber .small in those states.
+      &.small,
+      &.small:hover:not(:disabled),
+      &.small.force-hover:not(:disabled),
+      &.small:disabled {
+         padding: var(--space-6) var(--space-12);
+         font-size: var(--font-size-xs);
+         font-weight: var(--font-weight-normal);
+         line-height: var(--line-height-snug);
+      }
+
+      &.small :global(i) {
+         font-size: var(--font-size-xs);
+         font-weight: var(--font-weight-semibold);
       }
 
    :global(i) {
