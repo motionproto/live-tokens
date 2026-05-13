@@ -1,7 +1,7 @@
 {
   "name": "default",
   "createdAt": "2026-04-01T11:00:38.342Z",
-  "updatedAt": "2026-05-10T20:51:35.696Z",
+  "updatedAt": "2026-05-13T20:55:06.879Z",
   "editorConfigs": {
     "Neutral": {
       "baseColor": "#808080",
@@ -1772,29 +1772,21 @@
       "anchorToBase": true
     },
     "Info": {
-      "baseColor": "#0896fd",
+      "baseColor": "#0080ff",
       "tintHue": 240,
       "tintChroma": 0.04,
       "lightnessCurve": [
         {
           "x": 0,
-          "y": 95,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        },
-        {
-          "x": 40,
-          "y": 66.16639337665728,
-          "inDx": -15,
-          "inDy": 0,
-          "outDx": 15,
-          "outDy": 0
+          "y": 84,
+          "inDx": -6.190346352639773,
+          "inDy": 3,
+          "outDx": 6.190346352639773,
+          "outDy": -3
         },
         {
           "x": 100,
-          "y": 8,
+          "y": 19,
           "inDx": -5,
           "inDy": 0,
           "outDx": 5,
@@ -1804,26 +1796,18 @@
       "saturationCurve": [
         {
           "x": 0,
-          "y": 100,
-          "inDx": -30,
+          "y": 68,
+          "inDx": 0,
           "inDy": 0,
-          "outDx": 30,
-          "outDy": 0
-        },
-        {
-          "x": 40,
-          "y": 100,
-          "inDx": -15,
-          "inDy": 0,
-          "outDx": 15,
+          "outDx": 0,
           "outDy": 0
         },
         {
           "x": 100,
-          "y": 100,
-          "inDx": -30,
+          "y": 146,
+          "inDx": 0,
           "inDy": 0,
-          "outDx": 30,
+          "outDx": 0,
           "outDy": 0
         }
       ],
@@ -1906,7 +1890,7 @@
           "lightness": [
             {
               "x": 0,
-              "y": 25,
+              "y": 27,
               "inDx": -5,
               "inDy": 0,
               "outDx": 5,
@@ -1914,7 +1898,7 @@
             },
             {
               "x": 100,
-              "y": 80,
+              "y": 73,
               "inDx": -5,
               "inDy": 0,
               "outDx": 5,
@@ -1924,19 +1908,19 @@
           "saturation": [
             {
               "x": 0,
-              "y": 100,
-              "inDx": -30,
+              "y": 151,
+              "inDx": 0,
               "inDy": 0,
-              "outDx": 30,
+              "outDx": 0,
               "outDy": 0
             },
             {
               "x": 100,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
+              "y": 185,
+              "inDx": 0,
+              "inDy": -3,
+              "outDx": 0,
+              "outDy": 3
             }
           ]
         },
@@ -1944,7 +1928,7 @@
           "lightness": [
             {
               "x": 0,
-              "y": 180,
+              "y": 133,
               "inDx": 0,
               "inDy": 0,
               "outDx": 0,
@@ -1962,15 +1946,15 @@
           "saturation": [
             {
               "x": 0,
-              "y": 150,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
+              "y": 179,
+              "inDx": -7.209619573895974,
+              "inDy": 13,
+              "outDx": 7.209619573895974,
+              "outDy": -13
             },
             {
               "x": 100,
-              "y": 35,
+              "y": 9,
               "inDx": -30,
               "inDy": 0,
               "outDx": 30,

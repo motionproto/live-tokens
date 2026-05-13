@@ -149,8 +149,24 @@
 </ComponentEditorBase>
 
 <style>
+  .dialog-preview {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+  }
+  .dialog-preview :global(.shadow-backdrop) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+  }
   .dialog-preview :global(.dialog-backdrop.inline) {
-    padding: 128px;
+    width: auto;
+    box-sizing: border-box;
+    padding: clamp(24px, 6vw, 128px);
   }
 </style>
 

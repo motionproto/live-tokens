@@ -130,13 +130,14 @@
   .cfm-btn {
     display: inline-flex;
     align-items: center;
-    gap: var(--ui-space-4);
-    padding: var(--ui-space-6) var(--ui-space-10);
-    background: var(--ui-surface-low);
+    gap: var(--ui-space-6);
+    padding: var(--ui-space-6) var(--ui-space-12);
+    background: var(--ui-surface);
     border: 1px solid var(--ui-border-subtle);
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-md);
+    font-weight: var(--ui-font-weight-medium);
     cursor: pointer;
     transition: all var(--ui-transition-fast);
     white-space: nowrap;
@@ -145,23 +146,29 @@
   .cfm-btn i {
     width: 1rem;
     text-align: center;
+    font-size: 0.85em;
   }
 
   .cfm-btn:hover:not(:disabled) {
-    background: var(--ui-surface);
+    background: var(--ui-surface-high);
     color: var(--ui-text-primary);
     border-color: var(--ui-border-default);
   }
 
   .cfm-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
   }
 
   .cfm-btn.active {
-    background: var(--ui-surface);
+    background: var(--ui-surface-high);
     border-color: var(--ui-border-default);
     color: var(--ui-text-primary);
+  }
+
+  @media (max-width: 640px) {
+    .cfm-btn > span:not(.chevron) { display: none; }
+    .cfm-btn { padding: var(--ui-space-6) var(--ui-space-10); }
   }
 
   .chevron {

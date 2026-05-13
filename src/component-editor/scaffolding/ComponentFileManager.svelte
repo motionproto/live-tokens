@@ -57,11 +57,15 @@
   let productionInfo: ComponentProductionInfo | null = null;
   type ProductionStatus = 'idle' | 'updating' | 'done' | 'error';
   let productionUpdateStatus: ProductionStatus = 'idle';
+  let adoptFeedback = '';
 
   /** Same idle-after-2s pattern for the production-update flash. */
   function flashProductionStatus(state: Exclude<ProductionStatus, 'idle'>) {
     productionUpdateStatus = state;
-    setTimeout(() => (productionUpdateStatus = 'idle'), 2000);
+    setTimeout(() => {
+      productionUpdateStatus = 'idle';
+      adoptFeedback = '';
+    }, 2000);
   }
 
   $: compDirty = $componentDirty[component] ?? false;
@@ -213,12 +217,30 @@
   }
 
   async function handleUpdateProduction() {
+    // If the editor has unsaved edits, persist them first so production adopts
+    // the actual current state — not a stale snapshot. The `default` file is
+    // regenerated from source and can't be overwritten, so route to Save As
+    // and bail; the user can re-trigger Adopt after the new file is saved.
+    if (compDirty && activeFileName === 'default') {
+      saveAsDialog = true;
+      return;
+    }
+    const wasDirty = compDirty;
+    const adoptingName = currentDisplayName;
     productionUpdateStatus = 'updating';
     try {
+      if (wasDirty) {
+        await persist(activeFileName, currentDisplayName);
+        await refreshFiles();
+      }
       await setComponentProductionFile(component, activeFileName);
       await refreshProduction();
+      adoptFeedback = wasDirty
+        ? `Saved "${adoptingName}" and adopted`
+        : `Adopted "${adoptingName}"`;
       flashProductionStatus('done');
     } catch {
+      adoptFeedback = '';
       flashProductionStatus('error');
     }
   }
@@ -234,7 +256,7 @@
   }
 </script>
 
-<div class="cfm-bar">
+<header class="cfm-bar">
   <div class="cfm-title-row">
     {#if title}
       <h2 class="cfm-title">{title}</h2>
@@ -251,71 +273,99 @@
     {/if}
   </div>
 
-  <span class="cfg-label cfg-row-editor">editor config</span>
-  <span
-    class="cfg-box cfg-row-editor"
-    class:dirty={compDirty}
-    class:applied={isApplied}
-    title={compDirty
-      ? 'Unsaved changes'
-      : isApplied
-        ? 'Active config is applied to production'
-        : ''}
-  >
-    <span class="cfg-name">{currentDisplayName}</span>
-  </span>
-  <span
-    class="cfg-state cfg-row-editor-state"
-    class:dirty={compDirty}
-    class:applied={isApplied}
-  >{compDirty ? 'unsaved' : isApplied ? 'applied' : ' '}</span>
+  <div class="cfm-rows" class:in-sync={isApplied} class:promotable={compDirty || (!!productionInfo && productionInfo.fileName !== activeFileName)}>
+    <div class="cfm-row cfm-row-editor" class:dirty={compDirty} class:applied={isApplied}>
+      <span class="cfm-rail" aria-hidden="true"></span>
+      <div class="cfm-row-head">
+        <span class="cfm-row-label">Editor</span>
+        <span class="cfm-row-status" class:dirty={compDirty} class:applied={isApplied}>
+          <i class="cfm-status-dot" aria-hidden="true"></i>
+          <span>{compDirty ? 'unsaved' : isApplied ? 'live' : 'saved'}</span>
+        </span>
+      </div>
+      <span
+        class="cfm-pill"
+        class:dirty={compDirty}
+        class:applied={isApplied}
+        title={compDirty
+          ? 'Unsaved changes'
+          : isApplied
+            ? 'Active config is applied to production'
+            : ''}
+      >
+        <span class="cfm-pill-name">{currentDisplayName}</span>
+      </span>
+      <div class="cfm-actions">
+        <ComponentFileMenu
+          {component}
+          {files}
+          {activeFileName}
+          on:save={handleSave}
+          on:saveAs={openSaveAs}
+          on:openLoad={refreshFiles}
+          on:load={handleLoad}
+          on:delete={handleDelete}
+        />
+        {#if resetVariables}
+          <button
+            class="cfm-btn reset-btn"
+            on:click={handleReset}
+            disabled={!resetDirty}
+            title="Revert unsaved changes to {currentDisplayName}"
+          >
+            <i class="fas fa-rotate-left"></i>
+            <span>Reset</span>
+          </button>
+        {/if}
+      </div>
+    </div>
 
-  <div class="file-menu-slot cfg-row-editor">
-    <ComponentFileMenu
-      {component}
-      {files}
-      {activeFileName}
-      on:save={handleSave}
-      on:saveAs={openSaveAs}
-      on:openLoad={refreshFiles}
-      on:load={handleLoad}
-      on:delete={handleDelete}
-    />
+    <div class="cfm-promote" aria-hidden="true">
+      <i class="fas fa-arrow-down cfm-promote-icon"></i>
+    </div>
+
+    <div class="cfm-row cfm-row-production" class:applied={isApplied}>
+      <span class="cfm-rail" aria-hidden="true"></span>
+      <div class="cfm-row-head">
+        <span class="cfm-row-label">Prod</span>
+        <span class="cfm-row-status applied">
+          <i class="cfm-status-dot" aria-hidden="true"></i>
+          <span>live</span>
+        </span>
+      </div>
+      <span class="cfm-pill production">
+        <span class="cfm-pill-name">{productionInfo?.name ?? '—'}</span>
+      </span>
+      <div class="cfm-actions">
+        <button
+          class="cfm-btn primary apply-btn"
+          class:saving={productionUpdateStatus === 'updating'}
+          class:saved={productionUpdateStatus === 'done'}
+          class:error={productionUpdateStatus === 'error'}
+          on:click={handleUpdateProduction}
+          disabled={productionUpdateStatus === 'updating' || !productionInfo || (productionInfo.fileName === activeFileName && !compDirty)}
+          title={!productionInfo
+            ? ''
+            : productionInfo.fileName === activeFileName && !compDirty
+              ? 'Already in sync with editor'
+              : compDirty && activeFileName === 'default'
+                ? 'Save edits as a new file, then adopt'
+                : compDirty
+                  ? `Save "${currentDisplayName}" and adopt`
+                  : `Adopt "${currentDisplayName}" from editor`}
+        >
+          <i class="fas" class:fa-arrow-down={productionUpdateStatus === 'idle'} class:fa-spinner={productionUpdateStatus === 'updating'} class:fa-check={productionUpdateStatus === 'done'} class:fa-xmark={productionUpdateStatus === 'error'}></i>
+          <span>
+            {#if productionUpdateStatus === 'idle'}Adopt{:else if productionUpdateStatus === 'updating'}Adopting{:else if productionUpdateStatus === 'done'}Adopted{:else}Error{/if}
+          </span>
+        </button>
+        {#if adoptFeedback}
+          <span class="cfm-feedback" aria-live="polite">{adoptFeedback}</span>
+        {/if}
+      </div>
+    </div>
   </div>
-
-  {#if resetVariables}
-    <button
-      class="cfm-btn cfg-row-editor reset-btn"
-      on:click={handleReset}
-      disabled={!resetDirty}
-      title="Revert unsaved changes to {currentDisplayName}"
-    >
-      <i class="fas fa-undo"></i>
-      <span>Reset</span>
-    </button>
-  {/if}
-
-  <span class="cfg-label cfg-row-production">production config</span>
-  <span class="cfg-box cfg-row-production">
-    <span class="cfg-name">{productionInfo?.name ?? ''}</span>
-  </span>
-
-  <button
-    class="cfm-btn primary cfg-row-production apply-btn"
-    class:saving={productionUpdateStatus === 'updating'}
-    class:saved={productionUpdateStatus === 'done'}
-    class:error={productionUpdateStatus === 'error'}
-    on:click={handleUpdateProduction}
-    disabled={productionUpdateStatus === 'updating' || productionInfo?.fileName === activeFileName}
-    title={productionInfo?.fileName === activeFileName ? 'Already in production' : `Set "${currentDisplayName}" as production`}
-  >
-    <i class="fas" class:fa-upload={productionUpdateStatus === 'idle'} class:fa-spinner={productionUpdateStatus === 'updating'} class:fa-check={productionUpdateStatus === 'done'} class:fa-times={productionUpdateStatus === 'error'}></i>
-    <span>
-      {#if productionUpdateStatus === 'idle'}Apply Config{:else if productionUpdateStatus === 'updating'}Applying{:else if productionUpdateStatus === 'done'}Applied{:else}Error{/if}
-    </span>
-  </button>
-
-</div>
+</header>
 
 <SaveAsDialog
   bind:show={saveAsDialog}
@@ -326,28 +376,28 @@
 
 <style>
   .cfm-bar {
+    --cfm-applied: #5aa85e;
+    --cfm-rail-neutral: var(--ui-border-default);
+    --cfm-rail-dirty: var(--ui-highlight);
+    --cfm-rail-applied: var(--cfm-applied);
+
     position: sticky;
     top: 0;
     z-index: 5;
-    display: grid;
-    grid-template-columns: auto auto auto auto auto 1fr;
-    column-gap: var(--ui-space-12);
-    row-gap: var(--ui-space-4);
-    align-items: start;
-    padding: var(--ui-space-10);
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-12);
     background: var(--ui-surface-low);
     border: 1px solid var(--ui-border-faint);
-    border-radius: var(--ui-radius-md);
+    border-radius: var(--ui-radius-lg);
   }
 
   .cfm-title-row {
-    grid-column: 1;
-    grid-row: 1;
-    align-self: center;
     display: flex;
     align-items: baseline;
     gap: var(--ui-space-12);
-    margin-right: var(--ui-space-24);
+    flex-wrap: wrap;
   }
 
   .cfm-title {
@@ -357,7 +407,6 @@
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
     letter-spacing: -0.015em;
-    white-space: nowrap;
     line-height: 1.1;
   }
 
@@ -380,71 +429,192 @@
     background: var(--ui-hover);
   }
 
-  .cfg-label {
-    align-self: center;
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
-    letter-spacing: 0.02em;
-    line-height: 1.15;
-    text-align: right;
+  /* ── two-row pipeline ─────────────────────────────────────── */
+  .cfm-rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-6);
   }
 
-  .cfg-box {
-    display: inline-flex;
-    align-items: baseline;
-    justify-content: center;
-    padding: var(--ui-space-6) var(--ui-space-10);
-    width: 11rem;
-    border-radius: var(--ui-radius-md);
-    background: var(--ui-surface-lowest);
+  .cfm-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ui-space-10);
+    padding: var(--ui-space-8) var(--ui-space-10) var(--ui-space-8) var(--ui-space-16);
+    background: var(--ui-surface-lower);
     border: 1px solid var(--ui-border-subtle);
+    border-radius: var(--ui-radius-md);
   }
 
-  .cfg-box.dirty {
-    outline: 2px solid var(--ui-highlight);
-    outline-offset: -1px;
+  .cfm-rail {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    border-radius: var(--ui-radius-md) 0 0 var(--ui-radius-md);
+    background: var(--cfm-rail-neutral);
+    transition: background var(--ui-transition-base);
   }
 
-  .cfg-name {
-    font-size: var(--ui-font-size-md);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-primary);
+  .cfm-row-editor.dirty .cfm-rail { background: var(--cfm-rail-dirty); }
+  .cfm-row-editor.applied .cfm-rail { background: var(--cfm-rail-applied); }
+  .cfm-row-production.applied .cfm-rail { background: var(--cfm-rail-applied); }
+
+  /* row head — label stacked over a small status sub-label so the
+     filename pill in each row starts at the same x and width */
+  .cfm-row-head {
+    flex-shrink: 0;
+    width: 4.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-2);
   }
 
-  .cfg-state {
+  .cfm-row-label {
     font-size: var(--ui-font-size-xs);
-    letter-spacing: 0.02em;
-    color: var(--ui-text-muted);
-    line-height: 1;
-    text-align: right;
-    padding-right: var(--ui-space-2);
+    font-weight: var(--ui-font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ui-text-secondary);
+    line-height: 1.1;
   }
 
-  .cfg-state.dirty { color: var(--ui-highlight); }
-  .cfg-state.applied { color: var(--ui-text-applied, #5aa85e); }
-
-  /* Editor row (top): label/box in row 1, state in row 2, buttons in row 1 */
-  .cfg-row-editor.cfg-label { grid-column: 2; grid-row: 1; }
-  .cfg-row-editor.cfg-box { grid-column: 3; grid-row: 1; }
-  .cfg-row-editor-state { grid-column: 3; grid-row: 2; }
-  .file-menu-slot.cfg-row-editor { grid-column: 4; grid-row: 1; }
-  .reset-btn.cfg-row-editor { grid-column: 5; grid-row: 1; }
-
-  /* Production row (bottom): label/box and apply button on row 3 */
-  .cfg-row-production.cfg-label { grid-column: 2; grid-row: 3; margin-top: var(--ui-space-12); }
-  .cfg-row-production.cfg-box { grid-column: 3; grid-row: 3; margin-top: var(--ui-space-12); }
-  .apply-btn.cfg-row-production { grid-column: 4; grid-row: 3; margin-top: var(--ui-space-12); }
-
-  .cfm-btn {
+  .cfm-row-status {
     display: inline-flex;
     align-items: center;
     gap: var(--ui-space-4);
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    color: var(--ui-text-muted);
+    line-height: 1;
+  }
+
+  .cfm-status-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.7;
+    flex-shrink: 0;
+  }
+
+  .cfm-row-status.dirty {
+    color: var(--ui-highlight);
+  }
+  .cfm-row-status.dirty .cfm-status-dot {
+    opacity: 1;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-highlight) 22%, transparent);
+    animation: cfm-pulse 1.6s ease-in-out infinite;
+  }
+
+  .cfm-row-status.applied {
+    color: var(--cfm-applied);
+  }
+  .cfm-row-status.applied .cfm-status-dot {
+    opacity: 1;
+  }
+
+  /* filename pill — fixed width so editor and production pills
+     stack with their left and right edges perfectly aligned. */
+  .cfm-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    flex: 0 0 7.5rem;
+    width: 7.5rem;
     padding: var(--ui-space-6) var(--ui-space-10);
-    background: var(--ui-surface-low);
+    background: var(--ui-surface-lowest);
+    border: 1px solid var(--ui-border-subtle);
+    border-radius: var(--ui-radius-md);
+    transition: border-color var(--ui-transition-fast), box-shadow var(--ui-transition-fast);
+  }
+
+  .cfm-pill.dirty {
+    border-color: color-mix(in srgb, var(--ui-highlight) 60%, var(--ui-border-subtle));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ui-highlight) 35%, transparent);
+  }
+
+  .cfm-pill.applied {
+    border-color: color-mix(in srgb, var(--cfm-applied) 50%, var(--ui-border-subtle));
+  }
+
+  .cfm-pill-name {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--ui-font-size-md);
+    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* actions cluster — sits directly next to the filename pill so the
+     buttons stay near the input and don't drift under the open editor panel */
+  .cfm-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    flex-wrap: wrap;
+  }
+
+  .cfm-feedback {
+    font-size: var(--ui-font-size-xs);
+    color: var(--cfm-applied);
+    white-space: nowrap;
+    animation: cfm-feedback-in 180ms ease;
+  }
+
+  @keyframes cfm-feedback-in {
+    from { opacity: 0; transform: translateX(-2px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* promote connector between rows */
+  .cfm-promote {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    /* aligns under the pill column: row left-padding + head width + row gap */
+    padding-left: calc(var(--ui-space-16) + 4.5rem + var(--ui-space-10));
+    height: 0.25rem;
+    color: var(--ui-text-tertiary);
+    font-size: 0.7rem;
+    opacity: 0;
+    transform: translateY(-2px);
+    transition: opacity var(--ui-transition-base), transform var(--ui-transition-base), color var(--ui-transition-base);
+    pointer-events: none;
+  }
+
+  .cfm-rows.promotable .cfm-promote {
+    opacity: 0.85;
+    transform: translateY(0);
+    color: var(--ui-highlight);
+  }
+
+  .cfm-rows.in-sync .cfm-promote {
+    opacity: 0;
+  }
+
+  .cfm-promote-icon {
+    line-height: 1;
+  }
+
+  /* buttons */
+  .cfm-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    padding: var(--ui-space-6) var(--ui-space-12);
+    background: var(--ui-surface);
     border: 1px solid var(--ui-border-subtle);
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-md);
+    font-weight: var(--ui-font-weight-medium);
     cursor: pointer;
     transition: all var(--ui-transition-fast);
     white-space: nowrap;
@@ -453,36 +623,60 @@
   .cfm-btn i {
     width: 1rem;
     text-align: center;
+    font-size: 0.85em;
   }
 
   .cfm-btn:hover:not(:disabled) {
-    background: var(--ui-surface);
+    background: var(--ui-surface-high);
     color: var(--ui-text-primary);
     border-color: var(--ui-border-default);
   }
 
   .cfm-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
   }
 
   .cfm-btn.primary {
-    background: var(--ui-surface-high);
-    border-color: var(--ui-border-medium);
+    background: color-mix(in srgb, var(--cfm-applied) 18%, var(--ui-surface-high));
+    border-color: color-mix(in srgb, var(--cfm-applied) 45%, var(--ui-border-medium));
     color: var(--ui-text-primary);
   }
 
   .cfm-btn.primary:hover:not(:disabled) {
-    background: var(--ui-surface-higher);
-    border-color: var(--ui-border-strong);
+    background: color-mix(in srgb, var(--cfm-applied) 30%, var(--ui-surface-higher));
+    border-color: color-mix(in srgb, var(--cfm-applied) 70%, var(--ui-border-strong));
   }
 
-  .cfm-btn.primary.saving i { animation: spin 1s linear infinite; }
-  .cfm-btn.primary.saved { color: var(--ui-text-success); }
-  .cfm-btn.primary.error { color: var(--ui-text-muted); }
+  .cfm-btn.primary:disabled {
+    background: var(--ui-surface);
+    border-color: var(--ui-border-subtle);
+    color: var(--ui-text-muted);
+    opacity: 1;
+  }
 
-  @keyframes spin {
+  .cfm-btn.primary.saving i { animation: cfm-spin 1s linear infinite; }
+  .cfm-btn.primary.saved {
+    background: color-mix(in srgb, var(--cfm-applied) 30%, var(--ui-surface-high));
+    color: var(--cfm-applied);
+  }
+  .cfm-btn.primary.error {
+    color: var(--ui-text-muted);
+  }
+
+  @keyframes cfm-spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+  }
+
+  @keyframes cfm-pulse {
+    0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-highlight) 22%, transparent); }
+    50%      { box-shadow: 0 0 0 5px color-mix(in srgb, var(--ui-highlight) 10%, transparent); }
+  }
+
+  /* narrow viewports: hide button text, keep icons visible */
+  @media (max-width: 640px) {
+    .cfm-btn span { display: none; }
+    .cfm-btn { padding: var(--ui-space-6) var(--ui-space-10); }
   }
 </style>

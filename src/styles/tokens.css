@@ -1298,3 +1298,25 @@
   --sectiondivider-special-description-font-weight: var(--font-weight-normal);
   --sectiondivider-special-description-line-height: var(--line-height-normal);
 }
+
+/* component-aliases:start */
+:root:root {
+  /* callout (default_01) */
+  --callout-info-surface: var(--surface-info-low);
+  --callout-info-border: var(--border-info);
+  --callout-info-label-font-family: var(--font-sans);
+  --callout-info-text-font-family: var(--font-sans);
+  --callout-success-surface: var(--surface-success-low);
+  --callout-success-border: var(--border-success);
+  --callout-success-label-font-family: var(--font-sans);
+  --callout-success-text-font-family: var(--font-sans);
+  --callout-warning-surface: var(--surface-warning-low);
+  --callout-warning-border: var(--border-warning);
+  --callout-warning-label-font-family: var(--font-sans);
+  --callout-warning-text-font-family: var(--font-sans);
+  --callout-danger-surface: var(--surface-danger-low);
+  --callout-danger-border: var(--border-danger);
+  --callout-danger-label-font-family: var(--font-sans);
+  --callout-danger-text-font-family: var(--font-sans);
+}
+/* component-aliases:end */
