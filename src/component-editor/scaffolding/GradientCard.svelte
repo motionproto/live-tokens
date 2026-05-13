@@ -11,7 +11,7 @@
    * UIPaletteSelector. Reads resolve through `tokenRegistry$` so values
    * authored as `var(--gradient-angle-diagonal)` show their resolved degrees.
    */
-  import { editorState, setComponentAlias } from '../../lib/editorStore';
+  import { setComponentAlias } from '../../lib/editorStore';
   import { tokenRegistry$ } from '../../lib/tokenRegistry';
   import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
   import AngleDial from './AngleDial.svelte';
@@ -59,11 +59,11 @@
     parseNumberFromCss(resolveLiteralWith($tokenRegistry$, stopPositionVar(3)), '%') ?? 100,
   ] as [number, number, number];
 
-  $: stopColors = ([1, 2, 3] as StopIndex[]).map((i) => {
-    const ref = $editorState.components[component]?.aliases[stopColorVar(i)];
-    if (!ref) return '#888';
-    return ref.kind === 'token' ? `var(${ref.name})` : ref.value;
-  }) as [string, string, string];
+  // Reference the per-stop CSS var directly so the cascade fills in the
+  // component's CSS defaults when the user hasn't overridden a stop. Reading
+  // `aliases[...]` alone would miss defaults (no override → `#888`) even
+  // though the component is rendering the color via its own `:root` block.
+  $: stopColors = ([1, 2, 3] as StopIndex[]).map((i) => `var(${stopColorVar(i)})`) as [string, string, string];
 
   // Build the live gradient string from current positions + colors so the
   // ribbon reflects edits even mid-drag (before the component re-renders via
