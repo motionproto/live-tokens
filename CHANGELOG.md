@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.3
+
+### Fixed
+
+- `GradientCard` (Section Divider gradient editor) now renders the ribbon and stop handles correctly when a stop's color is still at the component's CSS default. Previously the ribbon and unselected diamond handles fell back to gray (`#888`) because the card read `aliases[…]` directly, which only contains user overrides. Stop colors now reference the CSS var so the cascade fills in component defaults (and live edits) the same way `UIPaletteSelector`'s swatch already did.
+
 ## 0.3.2
 
 ### Docs
