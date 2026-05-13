@@ -62,15 +62,18 @@
       lineHeightVariable: '--dialog-body-line-height',
     }],
   };
+  // Slot-prefixed groupKeys keep title and body typography independent.
+  // Sharing a groupKey would phantom-link the two slots in the schema without
+  // surfacing the link in the LinkedBlock.
   const frameTypeGroupTokens: Token[] = [
-    { label: 'font family', groupKey: 'family', variable: '--dialog-title-font-family' },
-    { label: 'font size', groupKey: 'size', variable: '--dialog-title-font-size' },
-    { label: 'font weight', groupKey: 'weight', variable: '--dialog-title-font-weight' },
-    { label: 'line height', groupKey: 'height', variable: '--dialog-title-line-height' },
-    { label: 'font family', groupKey: 'family', variable: '--dialog-body-font-family' },
-    { label: 'font size', groupKey: 'size', variable: '--dialog-body-font-size' },
-    { label: 'font weight', groupKey: 'weight', variable: '--dialog-body-font-weight' },
-    { label: 'line height', groupKey: 'height', variable: '--dialog-body-line-height' },
+    { label: 'font family', groupKey: 'title-font-family', variable: '--dialog-title-font-family' },
+    { label: 'font size', groupKey: 'title-font-size', variable: '--dialog-title-font-size' },
+    { label: 'font weight', groupKey: 'title-font-weight', variable: '--dialog-title-font-weight' },
+    { label: 'line height', groupKey: 'title-line-height', variable: '--dialog-title-line-height' },
+    { label: 'font family', groupKey: 'body-font-family', variable: '--dialog-body-font-family' },
+    { label: 'font size', groupKey: 'body-font-size', variable: '--dialog-body-font-size' },
+    { label: 'font weight', groupKey: 'body-font-weight', variable: '--dialog-body-font-weight' },
+    { label: 'line height', groupKey: 'body-line-height', variable: '--dialog-body-line-height' },
   ];
 
   export const allTokens: Token[] = [

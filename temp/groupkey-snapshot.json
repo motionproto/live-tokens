@@ -790,17 +790,21 @@
     "body": [
       "--dialog-body"
     ],
+    "body-font-family": [
+      "--dialog-body-font-family"
+    ],
+    "body-font-size": [
+      "--dialog-body-font-size"
+    ],
+    "body-font-weight": [
+      "--dialog-body-font-weight"
+    ],
+    "body-line-height": [
+      "--dialog-body-line-height"
+    ],
     "border": [
       "--dialog-footer-border",
       "--dialog-header-border"
-    ],
-    "family": [
-      "--dialog-body-font-family",
-      "--dialog-title-font-family"
-    ],
-    "height": [
-      "--dialog-body-line-height",
-      "--dialog-title-line-height"
     ],
     "icon": [
       "--dialog-close-icon"
@@ -811,9 +815,7 @@
       "--dialog-header-padding"
     ],
     "size": [
-      "--dialog-body-font-size",
-      "--dialog-close-icon-size",
-      "--dialog-title-font-size"
+      "--dialog-close-icon-size"
     ],
     "surface": [
       "--dialog-header-surface",
@@ -822,9 +824,17 @@
     "title": [
       "--dialog-title"
     ],
-    "weight": [
-      "--dialog-body-font-weight",
+    "title-font-family": [
+      "--dialog-title-font-family"
+    ],
+    "title-font-size": [
+      "--dialog-title-font-size"
+    ],
+    "title-font-weight": [
       "--dialog-title-font-weight"
+    ],
+    "title-line-height": [
+      "--dialog-title-line-height"
     ],
     "width": [
       "--dialog-border-width",
