@@ -106,7 +106,7 @@
   let dockedWidth: number = Math.max(MIN_WIDTH, initial.dockedWidth);
   let floating = { ...initial.floating };
 
-  // Approximate natural size of the collapsed pill (Token Editor + columns toggle).
+  // Approximate natural size of the collapsed pill (Editor title + columns toggle).
   // A few pixels of overshoot is fine — the panel has overflow:hidden.
   const COLLAPSED_WIDTH = 184;
   const COLLAPSED_HEIGHT = 38;
@@ -264,10 +264,10 @@
     <button
       class="hdr-btn text title"
       on:click={toggleOpen}
-      title={open ? 'Hide Token Editor' : 'Show Token Editor'}
+      title={open ? 'Hide Editor' : 'Show Editor'}
     >
       <i class="fas {open ? 'fa-chevron-right' : 'fa-chevron-left'}"></i>
-      <span>Token Editor</span>
+      <span>Editor</span>
     </button>
 
     <button
@@ -295,17 +295,23 @@
     {/if}
 
     {#if open && navLinks.length > 0}
-      <div class="preview-nav" transition:fade={BTN_FADE}>
-        {#each navLinks as link (link.path)}
-          <button
-            class="hdr-btn nav"
-            class:active={$route === link.path}
-            on:click={() => navigate(link.path)}
-          >
-            {#if link.icon}<i class="fas {link.icon}"></i>{/if}
-            <span>{link.label}</span>
-          </button>
-        {/each}
+      <div class="seg-group" transition:fade={BTN_FADE}>
+        <span class="seg-label">Page</span>
+        <div class="seg-bar" role="tablist" aria-label="Underlying page">
+          {#each navLinks as link (link.path)}
+            <button
+              type="button"
+              role="tab"
+              class="seg-pill"
+              class:active={$route === link.path}
+              aria-selected={$route === link.path}
+              on:click={() => navigate(link.path)}
+            >
+              {#if link.icon}<i class="fas {link.icon}"></i>{/if}
+              <span>{link.label}</span>
+            </button>
+          {/each}
+        </div>
       </div>
     {/if}
 
@@ -491,10 +497,62 @@
     border-color: rgba(255, 255, 255, 0.18);
   }
 
-  .preview-nav {
-    display: flex;
-    gap: 3px;
+  .seg-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     margin-right: 4px;
+  }
+
+  .seg-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .seg-bar {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 5px;
+  }
+
+  .seg-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 22px;
+    padding: 0 9px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s, border-color 0.1s;
+  }
+
+  .seg-pill i {
+    font-size: 10px;
+    opacity: 0.85;
+  }
+
+  .seg-pill:hover {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  /* Outlined active — quieter than the iframe's filled switcher, so the two
+     segmented controls read as siblings, not twins. */
+  .seg-pill.active {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.04);
   }
 
   .frame-wrap {

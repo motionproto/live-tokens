@@ -5,8 +5,8 @@
   import { navigate } from '../lib/router';
   import { componentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
   import { listComponents } from '../lib/componentConfigService';
+  import { selectedComponent } from '../lib/editorViewStore';
 
-  let selectedComponent = 'button';
   let drawerOpen = true;
 
   // Demo page is statically imported from `./Demo.svelte` in App.svelte; the
@@ -43,7 +43,7 @@
   $: if (drawerOpen) hideHint();
 
   function selectComponent(id: string) {
-    selectedComponent = id;
+    selectedComponent.set(id);
     hideHint();
   }
 
@@ -136,7 +136,7 @@
       {#each componentNavItems as item}
         <button
           class="nav-item"
-          class:active={selectedComponent === item.id}
+          class:active={$selectedComponent === item.id}
           on:mouseenter={(e) => showHint(item.label, e.currentTarget)}
           on:mouseleave={hideHint}
           on:click={() => selectComponent(item.id)}
@@ -154,7 +154,7 @@
   </nav>
 
   <main class="content">
-    <ComponentsTab {selectedComponent} />
+    <ComponentsTab selectedComponent={$selectedComponent} />
   </main>
 
   {#if hintLabel !== null && !drawerOpen}

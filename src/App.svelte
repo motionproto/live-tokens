@@ -9,6 +9,20 @@
   import LiveEditorOverlay from './lib/LiveEditorOverlay.svelte';
   import ColumnsOverlay from './lib/ColumnsOverlay.svelte';
   import { route, navigate } from './lib/router';
+  import { editorView } from './lib/editorViewStore';
+
+  const allNavLinks = [
+    { path: '/', label: 'Home', icon: 'fa-home' },
+    { path: '/demo', label: 'Demo', icon: 'fa-box-open' },
+    { path: '/components', label: 'Components', icon: 'fa-puzzle-piece' },
+  ];
+
+  // When the overlay is editing components, hide the page-switch to /components —
+  // navigating the underlying page there would put ComponentEditorPage beneath
+  // an overlay that's already showing the components editor.
+  $: visibleNavLinks = $editorView === 'components'
+    ? allNavLinks.filter((l) => l.path !== '/components')
+    : allNavLinks;
 
   function handleClick(e: MouseEvent) {
     const anchor = (e.target as HTMLElement).closest('a[href]');
@@ -29,11 +43,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-noninteractive-element-interactions -->
 <div class="lt-app" class:is-editor={isEditor} class:is-component-editor={isComponentEditor} on:click={handleClick}>
   <LiveEditorOverlay
-    navLinks={[
-      { path: '/', label: 'Home', icon: 'fa-home' },
-      { path: '/demo', label: 'Demo', icon: 'fa-box-open' },
-      { path: '/components', label: 'Components', icon: 'fa-puzzle-piece' },
-    ]}
+    navLinks={visibleNavLinks}
     pageSources={{
       '/': 'src/pages/Home.svelte',
       '/demo': 'src/pages/Demo.svelte',

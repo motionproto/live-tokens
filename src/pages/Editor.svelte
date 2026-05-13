@@ -36,7 +36,7 @@
           <i class="fas fa-arrow-left"></i>
           <span>Back to site</span>
         </a>
-        <span class="editor-label">Token Editor</span>
+        <span class="editor-label">Editor</span>
       </div>
     </div>
   {/if}
