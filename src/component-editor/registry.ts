@@ -3,6 +3,7 @@ import type { Token } from './scaffolding/types';
 import { registerComponentSchema } from '../lib/editorStore';
 
 import BadgeEditor, { allTokens as badgeTokens } from './BadgeEditor.svelte';
+import CalloutEditor, { allTokens as calloutTokens } from './CalloutEditor.svelte';
 import CornerBadgeEditor, { allTokens as cornerBadgeTokens } from './CornerBadgeEditor.svelte';
 import StandardButtonsEditor, { allTokens as buttonTokens } from './StandardButtonsEditor.svelte';
 import CardEditor, { allTokens as cardTokens } from './CardEditor.svelte';
@@ -15,6 +16,7 @@ import ProgressBarEditor, { allTokens as progressBarTokens } from './ProgressBar
 import RadioButtonEditor, { allTokens as radioButtonTokens } from './RadioButtonEditor.svelte';
 import SectionDividerEditor, { allTokens as sectionDividerTokens } from './SectionDividerEditor.svelte';
 import SegmentedControlEditor, { allTokens as segmentedControlTokens } from './SegmentedControlEditor.svelte';
+import TableEditor, { allTokens as tableTokens } from './TableEditor.svelte';
 import TabBarEditor, { allTokens as tabBarTokens } from './TabBarEditor.svelte';
 import TooltipEditor, { allTokens as tooltipTokens } from './TooltipEditor.svelte';
 
@@ -26,11 +28,13 @@ export type ComponentId =
   | 'radiobutton'
   | 'card'
   | 'badge'
+  | 'callout'
   | 'cornerbadge'
   | 'image'
   | 'inlineeditactions'
   | 'sectiondivider'
   | 'collapsiblesection'
+  | 'table'
   | 'tabbar'
   | 'tooltip'
   | 'progressbar';
@@ -119,6 +123,14 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     editorComponent: BadgeEditor,
     schema: badgeTokens,
   },
+  callout: {
+    id: 'callout',
+    label: 'Callout',
+    icon: 'fas fa-quote-left',
+    sourceFile: 'src/components/Callout.svelte',
+    editorComponent: CalloutEditor,
+    schema: calloutTokens,
+  },
   cornerbadge: {
     id: 'cornerbadge',
     label: 'Corner Badge',
@@ -158,6 +170,14 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/components/CollapsibleSection.svelte',
     editorComponent: CollapsibleSectionEditor,
     schema: collapsibleSectionTokens,
+  },
+  table: {
+    id: 'table',
+    label: 'Table',
+    icon: 'fas fa-table',
+    sourceFile: 'src/components/Table.svelte',
+    editorComponent: TableEditor,
+    schema: tableTokens,
   },
   tabbar: {
     id: 'tabbar',
