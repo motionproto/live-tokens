@@ -185,4 +185,4 @@ The package publishes to npm as `@motion-proto/live-tokens`.
 
 ## License
 
-MIT. Originally extracted from RuneGoblin.
+MIT. Originally extracted from [RuneGoblin](https://www.runegoblin.com/).
