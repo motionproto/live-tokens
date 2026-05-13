@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+First published release in the 0.3.x line — 0.3.0 was bumped locally but never pushed to npm. No code changes from 0.3.0.
+
 ## 0.3.0
 
 ### Breaking
