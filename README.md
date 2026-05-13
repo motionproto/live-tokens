@@ -1,60 +1,26 @@
 # Live Tokens
 
-A Svelte + Vite design-token system with an in-browser editor. It ships two ways:
+A foundational design system for quickly styling and building Svelte 4 + Vite microsites. **Edit your tokens and components in real time** — colors, typography, spacing, per-component aliases — and see the site update as you drag the slider. Save the result as a portable configuration you can carry from project to project.
 
-1. **Starter.** Clone the repo, replace `Home.svelte` with your app, edit tokens live.
-2. **Library.** `npm install @motion-proto/live-tokens` into an existing Svelte app and import the overlay plus the editor.
-
-Both modes are supported and maintained together.
+`npm install @motion-proto/live-tokens` into your app — install once, style fast. The editor is dev-only; production builds get plain CSS variables and your chosen components, nothing else.
 
 ## What you get
 
-- **Design-token editor** at `/editor` (dev-only). Edit colors, typography, spacing, radii, shadows, and motion; the whole site updates live.
-- **Live editor overlay** pinned to the top-right in dev. Opens the editor in a side panel or a floating window without leaving the page you're styling.
-- **Page Source button.** Jumps straight to the current page's Svelte file in VS Code (`vscode://` link).
-- **Component library** at `/components`: Button, Card, Dialog, Badge, Tabs, Tooltip, Toggle, and more. Extendable with your own sections.
-- **Theme persistence.** Each saved palette is a JSON file in `themes/`. The active palette syncs into `src/styles/tokens.css` on save, so production builds ship pure CSS. No editor code, no JSON lookups in the prod bundle.
+- **Real-time token editing.** Pick a color, drag a hue slider, retype a font size — the page repaints on every input event via CSS-variable writes. No reload, no save-and-refresh, no build step. Works across colors, typography, spacing, radii, shadows, motion, palettes, and gradients.
+- **Real-time component editing.** Each of ~19 shipped Svelte components (Button, Card, Dialog, Badge, Callout, Table, Tooltip, Toggle, Tabs, SegmentedControl, ProgressBar, CornerBadge, SectionDivider, CollapsibleSection, and more) declares its own design-token aliases in a `:global(:root)` block. Rewire any alias from a per-component picker and see that component update everywhere it's used — live, on your real pages, not in a Storybook sandbox.
+- **Theme editor** (`/editor` route, dev-only) — the home of real-time token editing. Save themes to disk as JSON, promote one to "production" to bake it into a static `tokens.css` for the build.
+- **Per-component editor** (`/components` route, dev-only) — the home of real-time component-alias editing. Pick token aliases per component without writing CSS.
+- **Live editor overlay** — pins to the top-right of every dev page. Opens the editor in a side panel or floating window so you edit *on the page you're styling*, not in a separate tab. Includes a "Page Source" button that opens the current page's `.svelte` file in VS Code.
+- **Preset bundles** — capture a whole site configuration (active theme + every component's active config) as a single portable artifact. Drop a preset into a new project to restore the full styling in one step.
+- **Vite plugin** — hosts the `/api/themes/*`, `/api/component-configs/*`, and `/api/presets/*` routes that persist your edits to disk as you make them.
 
-## Use as a starter
-
-```bash
-npx degit motionproto/live-tokens my-app
-cd my-app
-npm install
-npm run dev
-```
-
-Open http://localhost:5173. Replace `src/pages/Home.svelte` with your own landing page. Keep or delete `src/pages/Demo.svelte` (the `/demo` route) depending on whether you want the demo around as a reference.
-
-### Starter layout
-
-- `src/pages/Home.svelte`. Your app's `/` route. **Replace this with your content.**
-- `src/pages/Demo.svelte`. `/demo` route. Marketing/demo page for the kit itself. Safe to delete once you don't need it.
-- `src/pages/Editor.svelte`. `/editor` route. Design-system editor.
-- `src/pages/ComponentEditorPage.svelte`. `/components` route. Component editor.
-- `src/App.svelte`. Top-level router and overlay wiring.
-- `src/components/`. Reusable components.
-- `src/component-editor/`. Per-component editors plus shared scaffolding.
-- `src/ui/`. Neutral editor UI primitives and the design-system editor surfaces.
-- `src/lib/`. Overlay, router, token persistence, color helpers.
-- `src/styles/tokens.css`. The generated CSS variables (source of truth at runtime).
-- `themes/`. Persisted theme files. `_active.json` is the theme loaded on dev. `_production.json` is the theme synced to CSS on "promote."
-
-### How the editor ships changes to prod (starter)
-
-1. Edit in `/editor`. The overlay writes to the active theme file in `themes/`.
-2. Promote a theme to "production." Its variables are written into `src/styles/tokens.css` and backed up under `src/styles/_backups/`.
-3. `npm run build` bundles that CSS file as-is.
-
-## Use as a library
-
-Install into an existing Svelte 4 + Vite project:
+## Quick install
 
 ```bash
 npm install @motion-proto/live-tokens
 ```
 
-### Wire it into your Vite config
+### Vite config
 
 ```ts
 // vite.config.ts
@@ -78,18 +44,31 @@ export default defineConfig({
 
 The `themeFileApi` plugin:
 - Seeds `themes/` with a default theme on first dev-server start.
-- Hosts the `/api/*` routes the editor uses to save and load themes.
-- Auto-injects `__PROJECT_ROOT__` so the overlay's "Page Source" link can open files in VS Code. You don't need a `define` entry for this.
+- Discovers components at `src/components/*.svelte` and seeds `component-configs/{comp}/default.json` from each component's `:global(:root)` block.
+- Hosts the `/api/*` routes the editor uses to save and load themes + per-component configs.
+- Auto-injects `__PROJECT_ROOT__` for the overlay's "Page Source" link.
 
 ### Bootstrap in `main.ts`
 
 ```ts
-import { configureEditor, initializeTheme } from '@motion-proto/live-tokens';
+import './styles/tokens.css';
+import {
+  configureEditor,
+  initializeTheme,
+  initCssVarSync,
+  initRouter,
+  initColumnsOverlay,
+  initEditorStore,
+} from '@motion-proto/live-tokens';
 import App from './App.svelte';
 
 configureEditor({ storagePrefix: 'my-app-' });
 
 async function boot() {
+  initCssVarSync();
+  initRouter();
+  initColumnsOverlay();
+  initEditorStore();
   if (import.meta.env.DEV) {
     await initializeTheme();
   }
@@ -99,13 +78,14 @@ async function boot() {
 boot();
 ```
 
-### Mount the overlay + editor route
+### Mount overlay + editor pages
 
 ```svelte
 <!-- App.svelte -->
 <script lang="ts">
   import { LiveEditorOverlay, ColumnsOverlay } from '@motion-proto/live-tokens';
   import Editor from '@motion-proto/live-tokens/editor';
+  import ComponentEditorPage from '@motion-proto/live-tokens/component-editor-page';
   import { route } from './router';
 </script>
 
@@ -116,64 +96,92 @@ boot();
   ]}
   pageSources={{
     '/': 'src/pages/Home.svelte',
-    '/components': 'src/pages/ComponentsPage.svelte',
   }}
 />
 <ColumnsOverlay />
 
 {#if $route === '/editor'}
   <Editor />
+{:else if $route === '/components'}
+  <ComponentEditorPage />
 {:else}
   <!-- your routes -->
 {/if}
 ```
 
-`<LiveEditorOverlay />` self-gates: it only renders in dev, never inside an iframe, and never when the user is on `editorPath` (defaults to `/editor`). You don't need to wrap it in `{#if import.meta.env.DEV}` guards.
+`<LiveEditorOverlay />` self-gates: it only renders in dev, never inside an iframe, and never on the editor route. No need to wrap in `{#if import.meta.env.DEV}` guards.
+
+### Use components
+
+```svelte
+<script lang="ts">
+  import Button from '@motion-proto/live-tokens/components/Button.svelte';
+  import Callout from '@motion-proto/live-tokens/components/Callout.svelte';
+</script>
+
+<Callout variant="info">Read this.</Callout>
+<Button variant="primary">Save</Button>
+```
+
+The components carry their own design-token aliases (declared inside each `.svelte` file). They'll pick up your `tokens.css` overrides automatically. Strip out the ones you don't use; nothing is forced.
 
 ### Styles
 
 ```ts
-// main.ts — or wherever you import global styles
 import '@motion-proto/live-tokens/styles/ui-editor.css';
 import '@motion-proto/live-tokens/styles/form-controls.css';
 import '@motion-proto/live-tokens/styles/fonts.css';
 ```
 
-### Add your own components to the editor
+You'll also need your own `src/styles/tokens.css` declaring your design tokens as CSS variables on `:root`. Start from the package's default (`node_modules/@motion-proto/live-tokens/src/styles/tokens.css`) and overlay your overrides — or let the editor seed `themes/default.json` on first run and promote it.
 
-```svelte
-<!-- src/pages/ComponentsPage.svelte -->
-<script lang="ts">
-  import { ComponentsTab, defaultSections, type ComponentSection } from '@motion-proto/live-tokens/component-editor';
-  import '@motion-proto/live-tokens/styles/ui-editor.css';
-  import MyWidgetEditor from '../components/MyWidgetEditor.svelte';
+## Greenfield? Use the starter
 
-  const mySections: ComponentSection[] = [
-    { id: 'myWidget', label: 'My Widget', component: MyWidgetEditor },
-  ];
-  const allSections = [...defaultSections, ...mySections];
-</script>
+If you're starting from scratch, skip the manual wiring and clone the repo as a template — `App.svelte`, `main.ts`, the router, and a placeholder `Home.svelte` saying "put your content here" are all pre-wired.
 
-<ComponentsTab sections={allSections} />
+```bash
+npx degit motionproto/live-tokens my-app
+cd my-app
+npm install
+npm run dev
 ```
 
-## Publishing
+Open http://localhost:5173 and replace `src/pages/Home.svelte` with your content. The rest of the wiring is already done — it's the same code the npm package ships, just with the App-shell scaffolding included.
 
-The package is published to npm as `@motion-proto/live-tokens`.
+## How the editor ships changes to prod
+
+1. Edit in `/editor` or `/components`. Saves write to `themes/{name}.json` and `component-configs/{comp}/{name}.json`.
+2. Promote a theme to "production." Its variables are written into `src/styles/tokens.css` and backed up under `src/styles/_backups/`.
+3. `npm run build` bundles `tokens.css` as plain CSS. No editor code, no JSON lookups, no dev surfaces ship to prod.
+
+## File ownership — what the plugin writes
+
+Knowing which files the plugin touches matters when upgrading the package or working in a repo you don't want overwritten.
+
+**On `npm install` or `npm update`: nothing outside `node_modules/`.** No install hooks. Upgrading versions never touches your `themes/`, `component-configs/`, `presets/`, or any file in `src/`.
+
+**At dev-server startup, the plugin only fills gaps — it never overwrites authored files:**
+
+- `themes/default.json` — written **only if missing**.
+- `themes/_active.json` and `themes/_production.json` — written **only if missing**.
+- `component-configs/{comp}/_active.json` and `_production.json` — same: only if missing.
+- `component-configs/{comp}/default.json` — regenerated from the component's `:global(:root)` block **only when the `.svelte` source is newer than the existing default**. This file is a build artifact of the source; don't hand-edit it.
+
+**At dev-time editor actions, these files get rewritten by your explicit save/promote:**
+
+- `themes/{name}.json` — every save in the editor.
+- `src/styles/tokens.css` — fully regenerated when you save or promote the production theme. **Treat this as a build artifact.** Hand-edits get clobbered next time the production theme is saved; promote a theme instead.
+- `src/styles/fonts.css` — same rule: regenerated from the theme's font sources.
+- `component-configs/{comp}/{name}.json` — every save of a per-component config.
+
+## Maintainer notes — publishing
+
+The package publishes to npm as `@motion-proto/live-tokens`.
 
 1. Bump the version in `package.json`.
-2. Verify the tarball contents: `npm pack --dry-run`.
-3. `npm publish --access public`. `prepublishOnly` rebuilds `dist-plugin/`.
-4. Tag and push: `git tag v0.2.0 && git push origin main --tags`.
-
-**What ships:**
-
-- `src/lib/`, `src/ui/`, `src/component-editor/`, `src/components/`
-- `src/pages/Editor.svelte` + `Editor.svelte.d.ts`
-- `src/styles/ui-editor.css`, `src/styles/form-controls.css`, `src/styles/fonts.css`, `src/styles/fonts/`
-- `dist-plugin/`. Compiled Vite plugin.
-
-**What doesn't ship** (starter-only): `src/App.svelte`, `src/main.ts`, `src/pages/Home.svelte`, `src/pages/Demo.svelte`, `src/pages/ComponentEditorPage.svelte`, `index.html`, `themes/`.
+2. Verify tarball contents: `npm pack --dry-run`.
+3. `npm publish`. `prepublishOnly` rebuilds `dist-plugin/`.
+4. Tag and push: `git tag vX.Y.Z && git push origin main vX.Y.Z`.
 
 ## License
 
