@@ -1,10 +1,16 @@
 # Changelog
 
-## 0.3.3
+## 0.3.4
+
+First release published via the GitHub Actions OIDC trusted publisher workflow. `0.3.3` was tagged but never reached npm (lockfile drift broke the publish job); `0.3.4` carries the same fix plus a synced `package-lock.json`.
 
 ### Fixed
 
 - `GradientCard` (Section Divider gradient editor) now renders the ribbon and stop handles correctly when a stop's color is still at the component's CSS default. Previously the ribbon and unselected diamond handles fell back to gray (`#888`) because the card read `aliases[…]` directly, which only contains user overrides. Stop colors now reference the CSS var so the cascade fills in component defaults (and live edits) the same way `UIPaletteSelector`'s swatch already did.
+
+### Internal
+
+- Added `.github/workflows/publish.yml`: tag push (`v*`) triggers an OIDC-authenticated `npm publish --provenance --access public`. No `NPM_TOKEN` secret; npm trusts this workflow via Trusted Publisher.
 
 ## 0.3.2
 
