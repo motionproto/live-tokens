@@ -89,7 +89,7 @@
   ) as Record<string, Token[]>;
 </script>
 
-<ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" tokens={allTokens} {linked} tabbable variants={variantOptions}>
+<ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" tokens={allTokens} {linked} variants={variantOptions}>
   <svelte:fragment slot="config">
     <label>
       <span>Hover shimmer</span>

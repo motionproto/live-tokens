@@ -152,9 +152,11 @@ describe('migration runner — schemaVersion gating', () => {
     const migrated = runMigrations('component-config', 3, v3, {
       component: 'collapsiblesection',
     });
-    // Container frame-* seeded from old default-state tokens
+    // Container frame-* seeded from old default-state tokens. The
+    // v5→v6 primary→brand migration rewrites `--color-primary-*` values
+    // to `--color-brand-*` at the tail of the chain.
     expect(migrated['--collapsiblesection-container-frame-surface']).toBe('--surface-canvas-high');
-    expect(migrated['--collapsiblesection-container-frame-border']).toBe('--color-primary-400');
+    expect(migrated['--collapsiblesection-container-frame-border']).toBe('--color-brand-400');
     expect(migrated['--collapsiblesection-container-frame-border-width']).toBe('--border-width-3');
     expect(migrated['--collapsiblesection-container-frame-radius']).toBe('--radius-md');
     // Container default-state surface + padding survive (still drive header strip)
@@ -214,10 +216,11 @@ describe('migration runner — schemaVersion gating', () => {
     expect(migrated['--sectiondivider-canvas-gradient-stop-2-position']).toBe('--gradient-stop-mid');
     expect(migrated['--sectiondivider-canvas-gradient-stop-3-color']).toBe('--surface-canvas');
     expect(migrated['--sectiondivider-canvas-gradient-stop-3-position']).toBe('--gradient-stop-end');
-    // Primary: user-tuned colors carry across
-    expect(migrated['--sectiondivider-primary-gradient-stop-1-color']).toBe('--color-primary-300');
-    expect(migrated['--sectiondivider-primary-gradient-stop-2-color']).toBe('--color-primary-500');
-    expect(migrated['--sectiondivider-primary-gradient-stop-3-color']).toBe('--color-primary-800');
+    // Primary variant: user-tuned colors carry across; v5→v6 also rewrites
+    // the brand-family value names.
+    expect(migrated['--sectiondivider-primary-gradient-stop-1-color']).toBe('--color-brand-300');
+    expect(migrated['--sectiondivider-primary-gradient-stop-2-color']).toBe('--color-brand-500');
+    expect(migrated['--sectiondivider-primary-gradient-stop-3-color']).toBe('--color-brand-800');
     // Variants the file didn't set still gain default colors and angle/positions
     expect(migrated['--sectiondivider-special-gradient-angle']).toBe('--gradient-angle-diagonal');
     expect(migrated['--sectiondivider-special-gradient-stop-1-color']).toBe('--surface-special-highest');
@@ -225,7 +228,8 @@ describe('migration runner — schemaVersion gating', () => {
   });
 
   it('component-config v4 sectiondivider migration only fires for sectiondivider', () => {
-    const v4 = { '--button-primary-gradient-stop-1': '--color-primary-300' };
+    // Use a value not in the brand-rename map so the v5→v6 step is also a no-op.
+    const v4 = { '--button-primary-gradient-stop-1': '--surface-accent' };
     const out = runMigrations('component-config', 4, v4, { component: 'button' });
     expect(out).toEqual(v4);
   });
@@ -241,9 +245,10 @@ describe('migration runner — schemaVersion gating', () => {
       '--sectiondivider-canvas-gradient-stop-3-position': '85%',
     };
     const out = runMigrations('component-config', 4, newShape, { component: 'sectiondivider' });
-    // User-tuned values for canvas survive; other variants get scale defaults.
+    // User-tuned values for canvas survive structurally; v5→v6 rewrites
+    // brand-family value names from primary → brand at the tail of the chain.
     expect(out['--sectiondivider-canvas-gradient-angle']).toBe('--gradient-angle-horizontal');
-    expect(out['--sectiondivider-canvas-gradient-stop-1-color']).toBe('--color-primary-200');
+    expect(out['--sectiondivider-canvas-gradient-stop-1-color']).toBe('--color-brand-200');
     expect(out['--sectiondivider-canvas-gradient-stop-1-position']).toBe('10%');
     expect(out['--sectiondivider-canvas-gradient-stop-2-position']).toBe('40%');
     expect(out['--sectiondivider-canvas-gradient-stop-3-position']).toBe('85%');
@@ -258,6 +263,73 @@ describe('migration runner — schemaVersion gating', () => {
       { component: 'button' },
     );
     expect(out).toEqual(current);
+  });
+
+  it('theme v1 → v2 primary→brand: brand family keys renamed, neutral --text-primary untouched', () => {
+    const v1 = {
+      '--color-primary-100': '#ffe6f9',
+      '--color-primary-500': '#eb0ad4',
+      '--surface-primary': '#55004c',
+      '--surface-primary-high': '#6c0061',
+      '--border-primary': '#b200a0',
+      '--border-primary-strong': '#ff90eb',
+      '--text-primary-color': '#ff8eeb',
+      '--text-primary-secondary': '#fe5be7',
+      // Neutral text ramp — must NOT be touched.
+      '--text-primary': '#fff5f0',
+      '--text-secondary': '#b0a9a4',
+      // Component variant — also must NOT be touched.
+      '--button-primary-surface': '#abc123',
+    };
+    const out = runMigrations('theme', 1, v1);
+    // Brand family renamed.
+    expect(out['--color-brand-100']).toBe('#ffe6f9');
+    expect(out['--color-brand-500']).toBe('#eb0ad4');
+    expect(out['--surface-brand']).toBe('#55004c');
+    expect(out['--surface-brand-high']).toBe('#6c0061');
+    expect(out['--border-brand']).toBe('#b200a0');
+    expect(out['--border-brand-strong']).toBe('#ff90eb');
+    expect(out['--text-brand']).toBe('#ff8eeb');
+    expect(out['--text-brand-secondary']).toBe('#fe5be7');
+    // Old keys gone.
+    expect(out['--color-primary-100']).toBeUndefined();
+    expect(out['--surface-primary']).toBeUndefined();
+    expect(out['--border-primary']).toBeUndefined();
+    expect(out['--text-primary-color']).toBeUndefined();
+    expect(out['--text-primary-secondary']).toBeUndefined();
+    // Neutral text + component variants survive verbatim.
+    expect(out['--text-primary']).toBe('#fff5f0');
+    expect(out['--text-secondary']).toBe('#b0a9a4');
+    expect(out['--button-primary-surface']).toBe('#abc123');
+  });
+
+  it('component-config v5 → v6 primary→brand: rewrites alias keys AND values; component variants untouched', () => {
+    const v5 = {
+      // Brand family on the alias key side (rare but possible).
+      '--text-primary-color': '#fff',
+      // Brand family on the value side (common: component aliases to family token).
+      '--badge-trait-surface': '--surface-primary',
+      '--badge-trait-text': '--text-primary-color',
+      '--badge-trait-border': '--border-primary-medium',
+      // Component variant token — name should NOT change.
+      '--button-primary-surface': '--surface-brand-high',
+      // Neutral text — value should NOT change.
+      '--card-default-title': '--text-primary',
+      // Unrelated key/value pair.
+      '--card-hover-title': '--text-secondary',
+    };
+    const out = runMigrations('component-config', 5, v5, { component: 'badge' });
+    expect(out['--text-brand']).toBe('#fff');
+    expect(out['--text-primary-color']).toBeUndefined();
+    expect(out['--badge-trait-surface']).toBe('--surface-brand');
+    expect(out['--badge-trait-text']).toBe('--text-brand');
+    expect(out['--badge-trait-border']).toBe('--border-brand-medium');
+    // Component variant identifier (LHS) is preserved; its value is not in the
+    // rename map so it passes through.
+    expect(out['--button-primary-surface']).toBe('--surface-brand-high');
+    // Neutral text value preserved.
+    expect(out['--card-default-title']).toBe('--text-primary');
+    expect(out['--card-hover-title']).toBe('--text-secondary');
   });
 
   it('runMigrations is pure — does not mutate the input map', () => {

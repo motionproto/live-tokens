@@ -97,7 +97,7 @@
   ) as Record<string, Token[]>;
 </script>
 
-<ComponentEditorBase {component} title="Radio Button" description="Styled radio buttons with icon and color support. Import from <code>components/RadioButton.svelte</code>" tokens={allTokens} {linked} tabbable>
+<ComponentEditorBase {component} title="Radio Button" description="Styled radio buttons with icon and color support. Import from <code>components/RadioButton.svelte</code>" tokens={allTokens} {linked}>
   <VariantGroup
     name="radio"
     title="Radio Button"

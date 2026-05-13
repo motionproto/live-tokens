@@ -24,17 +24,24 @@
   <p class="editor-intro">Each stop references a color token, so palette edits flow through. Add or remove stops; switch between linear and radial.</p>
   <div class="gradients-grid">
     {#each $editorState.gradients.tokens as token (token.variable)}
-      <div class="gradient-item" class:active={editingGradient === token.variable}>
-        <div class="gradient-box" style="background: var({token.variable});"></div>
+      {@const isEditing = editingGradient === token.variable}
+      <div class="gradient-item" class:active={isEditing}>
+        {#if !isEditing}
+          <div class="gradient-box" style="background: var({token.variable});"></div>
+        {/if}
         <div class="token-info">
           <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copy(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-          <button class="gradient-edit-btn" on:click={() => editingGradient = editingGradient === token.variable ? null : token.variable}>
-            {editingGradient === token.variable ? 'Close' : 'Edit'}
-          </button>
+          {#if !isEditing}
+            <button class="gradient-edit-btn" on:click={() => editingGradient = token.variable}>Edit</button>
+          {/if}
         </div>
-        {#if editingGradient === token.variable}
+        {#if isEditing}
           <div class="gradient-editor-host">
-            <GradientEditor variable={token.variable} />
+            <GradientEditor
+              variable={token.variable}
+              on:save={() => editingGradient = null}
+              on:cancel={() => editingGradient = null}
+            />
           </div>
         {/if}
       </div>

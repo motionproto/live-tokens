@@ -1,7 +1,7 @@
 /**
  * Gradients slice — fixed four-slot scale (--gradient-1 … --gradient-4),
  * each rendering to a single CSS var. Stops carry token-name references
- * (`--color-primary-500`); the renderer wraps them in `var(...)` so palette
+ * (`--color-brand-500`); the renderer wraps them in `var(...)` so palette
  * edits flow through.
  */
 import type { EditorState, GradientToken, GradientTokenStop, GradientType } from '../editorTypes';
@@ -14,7 +14,7 @@ export function makeDefaultGradients(): GradientToken[] {
       type: 'linear',
       angle: 90,
       stops: [
-        { position: 0, color: '--color-primary-500' },
+        { position: 0, color: '--color-brand-500' },
         { position: 100, color: '--color-accent-500' },
       ],
     },
@@ -23,7 +23,7 @@ export function makeDefaultGradients(): GradientToken[] {
       type: 'linear',
       angle: 135,
       stops: [
-        { position: 0, color: '--color-primary-500' },
+        { position: 0, color: '--color-brand-500' },
         { position: 100, color: '--color-special-500' },
       ],
     },
@@ -80,6 +80,21 @@ function findGradient(s: EditorState, variable: string): GradientToken | undefin
   return s.gradients.tokens.find((t) => t.variable === variable);
 }
 
+/** Replace a gradient's type, angle, and stops in one shot. Used by the editor
+ *  to restore a pre-edit snapshot on Cancel. */
+export function setGradient(
+  variable: string,
+  next: { type: GradientType; angle: number; stops: GradientTokenStop[] },
+): void {
+  mutate(`replace gradient ${variable}`, (s) => {
+    const t = findGradient(s, variable);
+    if (!t) return;
+    t.type = next.type;
+    t.angle = next.angle;
+    t.stops = next.stops.map((st) => ({ ...st }));
+  });
+}
+
 export function setGradientType(variable: string, type: GradientType): void {
   mutate(`set gradient type ${variable}`, (s) => {
     const t = findGradient(s, variable);
@@ -100,6 +115,7 @@ export function setGradientStop(variable: string, index: number, stop: Partial<G
     if (!t || !t.stops[index]) return;
     if (stop.position !== undefined) t.stops[index].position = stop.position;
     if (stop.color !== undefined) t.stops[index].color = stop.color;
+    if (stop.opacity !== undefined) t.stops[index].opacity = stop.opacity;
   });
 }
 

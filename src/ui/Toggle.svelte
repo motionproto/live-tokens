@@ -79,7 +79,7 @@
     }
 
     &:focus-visible {
-      outline: var(--border-width-2) solid var(--border-primary);
+      outline: var(--border-width-2) solid var(--border-brand);
       outline-offset: var(--space-2);
     }
   }

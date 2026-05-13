@@ -36,12 +36,12 @@ export const PALETTE_SPECS: readonly PaletteSpec[] = [
   { label: 'Neutral',    cssNamespace: 'neutral',   mode: 'gray',      initialColor: '#808080' },
   { label: 'Alternate',  cssNamespace: 'alternate', mode: 'gray',      initialColor: '#808080' },
   { label: 'Background', cssNamespace: 'canvas',    mode: 'chromatic', emptySelector: true, initialColor: '#1a1a2e' },
-  { label: 'Primary',    cssNamespace: 'primary',   mode: 'chromatic', initialColor: '#c93636' },
+  { label: 'Brand',      cssNamespace: 'brand',     mode: 'chromatic', initialColor: '#c93636' },
   { label: 'Accent',     cssNamespace: 'accent',    mode: 'chromatic', initialColor: '#f49e0b' },
   { label: 'Special',    cssNamespace: 'special',   mode: 'chromatic', initialColor: '#8b5cf6' },
+  { label: 'Info',       cssNamespace: 'info',      mode: 'chromatic', initialColor: '#3077e8' },
   { label: 'Success',    cssNamespace: 'success',   mode: 'chromatic', initialColor: '#21c45d' },
   { label: 'Warning',    cssNamespace: 'warning',   mode: 'chromatic', initialColor: '#e66e1a' },
-  { label: 'Info',       cssNamespace: 'info',      mode: 'chromatic', initialColor: '#3077e8' },
   { label: 'Danger',     cssNamespace: 'danger',    mode: 'chromatic', initialColor: '#e8304f' },
 ] as const;
 
@@ -199,8 +199,6 @@ export function scaleToCssVar(scaleTitle: string, stepName: string, cssNamespace
   }
   if (scaleTitle === 'Text') {
     if (cssNamespace === 'neutral') return `--text-${stepName}`;
-    // `--text-primary-color` (not `--text-primary`) avoids collision with the neutral primary text token.
-    if (cssNamespace === 'primary' && stepName === 'primary') return '--text-primary-color';
     return stepName === 'primary' ? `--text-${cssNamespace}` : `--text-${cssNamespace}-${stepName}`;
   }
   return null;

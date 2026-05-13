@@ -22,9 +22,9 @@
     "--radiobutton-hover-label-font-size": "--font-size-md",
     "--radiobutton-hover-label-font-weight": "--font-weight-semibold",
     "--radiobutton-hover-label-line-height": "--line-height-tight",
-    "--radiobutton-active-dot-border-color": "--border-primary-medium",
+    "--radiobutton-active-dot-border-color": "--border-brand-medium",
     "--radiobutton-active-dot-border-width": "--border-width-1",
-    "--radiobutton-active-dot-fill": "--border-primary-medium",
+    "--radiobutton-active-dot-fill": "--border-brand-medium",
     "--radiobutton-active-dot-size": "--dot-size-75",
     "--radiobutton-active-label": "--text-primary",
     "--radiobutton-active-label-font-family": "--font-sans",
@@ -33,5 +33,5 @@
     "--radiobutton-active-label-line-height": "--line-height-tight"
   },
   "config": {},
-  "schemaVersion": 4
+  "schemaVersion": 6
 }

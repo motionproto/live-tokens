@@ -17,13 +17,13 @@
       ]
     },
     {
-      title: 'Primary Text Colors (Crimson)',
+      title: 'Brand Text Colors (Crimson)',
       colors: [
-        { name: 'Primary', variable: '--text-primary-color', description: 'Primary - Main text color' },
-        { name: 'Primary Secondary', variable: '--text-primary-secondary', description: 'Secondary - Less prominent' },
-        { name: 'Primary Tertiary', variable: '--text-primary-tertiary', description: 'Tertiary - Subtle text' },
-        { name: 'Primary Muted', variable: '--text-primary-muted', description: 'Muted - De-emphasized' },
-        { name: 'Primary Disabled', variable: '--text-primary-disabled', description: 'Disabled - Disabled state' }
+        { name: 'Brand', variable: '--text-brand', description: 'Primary - Main text color' },
+        { name: 'Brand Secondary', variable: '--text-brand-secondary', description: 'Secondary - Less prominent' },
+        { name: 'Brand Tertiary', variable: '--text-brand-tertiary', description: 'Tertiary - Subtle text' },
+        { name: 'Brand Muted', variable: '--text-brand-muted', description: 'Muted - De-emphasized' },
+        { name: 'Brand Disabled', variable: '--text-brand-disabled', description: 'Disabled - Disabled state' }
       ]
     },
     {

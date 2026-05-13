@@ -51,19 +51,19 @@
       --button-shimmer: block;
 
       /* Primary */
-      --button-primary-surface: var(--surface-primary-high);
+      --button-primary-surface: var(--surface-brand-high);
       --button-primary-text: var(--text-primary);
       --button-primary-text-font-family: var(--font-sans);
       --button-primary-text-font-size: var(--font-size-sm);
       --button-primary-text-font-weight: var(--font-weight-light);
       --button-primary-text-line-height: var(--line-height-snug);
-      --button-primary-border: var(--border-primary);
+      --button-primary-border: var(--border-brand);
       --button-primary-border-width: var(--border-width-1);
       --button-primary-radius: var(--radius-md);
       --button-primary-padding: var(--space-8);
-      --button-primary-hover-surface: var(--surface-primary-higher);
+      --button-primary-hover-surface: var(--surface-brand-higher);
       --button-primary-hover-text: var(--text-primary);
-      --button-primary-hover-border: var(--border-primary-strong);
+      --button-primary-hover-border: var(--border-brand-strong);
       --button-primary-hover-border-width: var(--border-width-1);
       --button-primary-hover-radius: var(--radius-md);
       --button-primary-hover-padding: var(--space-8);

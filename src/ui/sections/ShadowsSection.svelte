@@ -332,15 +332,15 @@
       ]
     },
     {
-      label: 'Primary',
+      label: 'Brand',
       colors: [
-        { label: 'Lowest', value: 'var(--surface-primary-lowest)' },
-        { label: 'Lower', value: 'var(--surface-primary-lower)' },
-        { label: 'Low', value: 'var(--surface-primary-low)' },
-        { label: 'Base', value: 'var(--surface-primary)' },
-        { label: 'High', value: 'var(--surface-primary-high)' },
-        { label: 'Higher', value: 'var(--surface-primary-higher)' },
-        { label: 'Highest', value: 'var(--surface-primary-highest)' },
+        { label: 'Lowest', value: 'var(--surface-brand-lowest)' },
+        { label: 'Lower', value: 'var(--surface-brand-lower)' },
+        { label: 'Low', value: 'var(--surface-brand-low)' },
+        { label: 'Base', value: 'var(--surface-brand)' },
+        { label: 'High', value: 'var(--surface-brand-high)' },
+        { label: 'Higher', value: 'var(--surface-brand-higher)' },
+        { label: 'Highest', value: 'var(--surface-brand-highest)' },
       ]
     },
     {

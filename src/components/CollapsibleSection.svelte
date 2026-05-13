@@ -110,7 +110,7 @@
       --collapsiblesection-divider-hover-icon-size: var(--icon-size-xs);
       /* Divider — active */
       --collapsiblesection-divider-active-surface: var(--color-transparent);
-      --collapsiblesection-divider-active-border: var(--color-primary-400);
+      --collapsiblesection-divider-active-border: var(--color-brand-400);
       --collapsiblesection-divider-active-border-width: var(--border-width-1);
       --collapsiblesection-divider-active-padding: var(--space-4);
       --collapsiblesection-divider-active-label: var(--text-primary);

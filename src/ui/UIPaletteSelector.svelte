@@ -43,7 +43,7 @@
     { name: 'neutral', label: 'Neutral' },
     { name: 'alternate', label: 'Alternate' },
     { name: 'canvas', label: 'Canvas' },
-    { name: 'primary', label: 'Primary' },
+    { name: 'brand', label: 'Brand' },
     { name: 'accent', label: 'Accent' },
     { name: 'special', label: 'Special' },
     { name: 'success', label: 'Success' },
@@ -86,7 +86,7 @@
   const borderStepKeys = borderSteps.map(s => s.key);
   const textStepKeys = textSteps.map(s => s.key);
 
-  const familiesWithText = ['neutral', 'canvas', 'primary', 'accent', 'special', 'success', 'warning', 'info', 'danger'];
+  const familiesWithText = ['neutral', 'canvas', 'brand', 'accent', 'special', 'success', 'warning', 'info', 'danger'];
 
   const allCategories: { id: Category; label: string }[] = [
     { id: 'palette', label: 'Palette' },
@@ -164,7 +164,6 @@
         return stepKey ? `--border-${family}-${stepKey}` : `--border-${family}`;
       case 'text':
         if (family === 'neutral') return `--text-${stepKey}`;
-        if (family === 'primary' && stepKey === 'primary') return '--text-primary-color';
         if (stepKey === 'primary') return `--text-${family}`;
         return `--text-${family}-${stepKey}`;
     }
@@ -176,7 +175,6 @@
     if (varName === '--text-tertiary') return { family: 'neutral', step: 'tertiary' };
     if (varName === '--text-muted') return { family: 'neutral', step: 'muted' };
     if (varName === '--text-disabled') return { family: 'neutral', step: 'disabled' };
-    if (varName === '--text-primary-color') return { family: 'primary', step: 'primary' };
     const m = varName.match(/^--text-([a-z]+)(?:-([a-z]+))?$/);
     if (m) {
       const fam = m[1];

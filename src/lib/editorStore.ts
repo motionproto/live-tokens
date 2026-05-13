@@ -26,6 +26,7 @@ import {
   CURRENT_COMPONENT_SCHEMA_VERSION,
   runMigrations,
 } from './migrations';
+import { renamePrimaryPaletteKey } from './migrations/2026-05-13-primary-to-brand';
 import { __resetRendererCacheForTests, installRenderer } from './editorRenderer';
 import {
   store,
@@ -157,6 +158,7 @@ export {
 export {
   gradientsToVars,
   makeDefaultGradients,
+  setGradient,
   setGradientType,
   setGradientAngle,
   setGradientStop,
@@ -318,7 +320,7 @@ const domainLoaders: Record<string, DomainLoader> = {
  */
 export function loadFromFile(theme: Theme): void {
   const next = emptyState();
-  next.palettes = structuredClone(theme.editorConfigs ?? {});
+  next.palettes = renamePrimaryPaletteKey(structuredClone(theme.editorConfigs ?? {}));
   next.fonts.sources = structuredClone(theme.fontSources ?? []);
   next.fonts.stacks  = structuredClone(theme.fontStacks  ?? []);
   const rawVars = runMigrations(

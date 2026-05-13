@@ -55,12 +55,12 @@
   // @each interpolation would make the parser see zero tokens for Badge,
   // even though the rendered DOM would be identical. See parallel comment in
   // Notification.svelte. `--text-primary` is the neutral primary text (with
-  // -secondary/-tertiary scale); `--text-primary-color` is the primary-family text.
+  // -secondary/-tertiary scale); `--text-brand` is the brand-family text.
   :global(:root) {
     /* Primary */
-    --badge-primary-surface: var(--surface-primary);
-    --badge-primary-text: var(--text-primary-color);
-    --badge-primary-border: var(--border-primary);
+    --badge-primary-surface: var(--surface-brand);
+    --badge-primary-text: var(--text-brand);
+    --badge-primary-border: var(--border-brand);
     --badge-primary-text-font-family: var(--font-sans);
     --badge-primary-text-font-size: var(--font-size-sm);
     --badge-primary-text-font-weight: var(--font-weight-light);

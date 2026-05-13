@@ -113,7 +113,7 @@
   })();
 </script>
 
-<ComponentEditorBase {component} title="Notification" description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>" tokens={allTokens} {linked} tabbable variants={variantOptions}>
+<ComponentEditorBase {component} title="Notification" description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>" tokens={allTokens} {linked} variants={variantOptions}>
   <svelte:fragment slot="config">
     <label>
       <input type="checkbox" bind:checked={dismissible} />

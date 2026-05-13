@@ -10,7 +10,7 @@
   import { setCssVar, removeCssVar } from '../lib/cssVarSync';
 
   export let stopId: string;        // unique key (e.g. gradient-var + stop index)
-  export let color: string;          // token name like '--color-primary-500'
+  export let color: string;          // token name like '--color-brand-500'
   export let opacity: number = 100;  // 0–100
 
   const dispatch = createEventDispatcher<{ change: { color: string; opacity: number } }>();

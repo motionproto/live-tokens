@@ -105,7 +105,7 @@
   ) as Record<string, Token[]>;
 </script>
 
-<ComponentEditorBase {component} title="Table" description="Styled wrapper around <code>&lt;table&gt;</code> with horizontal scroll on narrow viewports. Import from <code>components/Table.svelte</code>" tokens={allTokens} {linked} tabbable>
+<ComponentEditorBase {component} title="Table" description="Styled wrapper around <code>&lt;table&gt;</code> with horizontal scroll on narrow viewports. Import from <code>components/Table.svelte</code>" tokens={allTokens} {linked}>
   <VariantGroup name="table" title="Table" states={visibleStates} {typeGroups} {component}>
     <Table>
       <table>

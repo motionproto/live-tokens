@@ -84,7 +84,7 @@
           Raw CSS variables for colour, type, spacing, radii, shadows, and
           motion. They live in <code>src/styles/tokens.css</code>, the only
           file the editor touches. Names describe values
-          (<code>--color-primary-500</code>, <code>--space-16</code>,
+          (<code>--color-brand-500</code>, <code>--space-16</code>,
           <code>--radius-md</code>), not the components that use them.
         </p>
       </Card>

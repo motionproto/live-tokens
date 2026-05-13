@@ -15,6 +15,7 @@
    */
 
   export let label: string;
+  export let displayLabel: string | null = null;
   export let mode: 'chromatic' | 'gray';
   export let baseColor: string;
   export let gray500Hex: string;
@@ -52,7 +53,7 @@
       on:keydown={(e) => e.key === 'Enter' && onStartEdit()}
     ></div>
     <div class="primary-info">
-      <span class="editor-label">{label}</span>
+      <span class="editor-label">{displayLabel ?? label}</span>
       <button
         class="base-hex clickable-hex"
         type="button"

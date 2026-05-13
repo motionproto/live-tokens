@@ -56,5 +56,5 @@
     "--corner-badge-info-v-axis-radius": "--radius-none"
   },
   "config": {},
-  "schemaVersion": 5
+  "schemaVersion": 6
 }

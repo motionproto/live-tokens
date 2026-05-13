@@ -35,7 +35,7 @@
   });
 </script>
 
-<ComponentEditorBase {component} title="Image" description="Framed image with rounded corners, border, and shadow. Import from <code>components/Image.svelte</code>" tokens={allTokens} tabbable>
+<ComponentEditorBase {component} title="Image" description="Framed image with rounded corners, border, and shadow. Import from <code>components/Image.svelte</code>" tokens={allTokens}>
   <svelte:fragment slot="config">
     <label class="backdrop-config">
       <span>Sample background</span>

@@ -24,8 +24,6 @@
   import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../lib/migrations';
   import type { CssVarRef } from '../../lib/editorTypes';
   import { safeFetch } from '../../lib/storage';
-  import { writable } from 'svelte/store';
-  import { getEditorContext, type ViewMode } from './editorContext';
   import ComponentFileMenu from './ComponentFileMenu.svelte';
   import SaveAsDialog from './SaveAsDialog.svelte';
 
@@ -41,10 +39,6 @@
   const projectRoot: string =
     typeof __PROJECT_ROOT__ !== 'undefined' ? (__PROJECT_ROOT__ ?? '') : '';
   $: sourceFile = componentSourceFile(component);
-
-  const editorCtx = getEditorContext();
-  const tabbableStore = editorCtx?.tabbable ?? writable(false);
-  const viewModeStore = editorCtx?.viewMode ?? writable<ViewMode>('tabs');
 
   type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
   let saveStatus: SaveStatus = 'idle';
@@ -321,34 +315,6 @@
     </span>
   </button>
 
-  {#if $tabbableStore}
-    <div class="view-mode-toggle" role="radiogroup" aria-label="Property view mode">
-      <button
-        type="button"
-        class="view-mode-btn"
-        class:active={$viewModeStore === 'list'}
-        role="radio"
-        aria-checked={$viewModeStore === 'list'}
-        title="Stacked list view"
-        on:click={() => viewModeStore.set('list')}
-      >
-        <i class="fas fa-bars"></i>
-        <span>List</span>
-      </button>
-      <button
-        type="button"
-        class="view-mode-btn"
-        class:active={$viewModeStore === 'tabs'}
-        role="radio"
-        aria-checked={$viewModeStore === 'tabs'}
-        title="Tabbed view (one section at a time)"
-        on:click={() => viewModeStore.set('tabs')}
-      >
-        <i class="fas fa-folder"></i>
-        <span>Tabs</span>
-      </button>
-    </div>
-  {/if}
 </div>
 
 <SaveAsDialog
@@ -468,51 +434,6 @@
   .cfg-row-production.cfg-label { grid-column: 2; grid-row: 3; margin-top: var(--ui-space-12); }
   .cfg-row-production.cfg-box { grid-column: 3; grid-row: 3; margin-top: var(--ui-space-12); }
   .apply-btn.cfg-row-production { grid-column: 4; grid-row: 3; margin-top: var(--ui-space-12); }
-
-  .view-mode-toggle {
-    grid-column: 1;
-    grid-row: 3;
-    justify-self: start;
-    align-self: center;
-    margin-top: var(--ui-space-12);
-    display: inline-flex;
-    align-items: stretch;
-    gap: 2px;
-    padding: 3px;
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-default);
-    border-radius: var(--ui-radius-md);
-  }
-
-  .view-mode-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    padding: var(--ui-space-4) var(--ui-space-12);
-    background: none;
-    border: none;
-    border-radius: var(--ui-radius-sm);
-    color: var(--ui-text-secondary);
-    font-size: var(--ui-font-size-sm);
-    cursor: pointer;
-    transition: color var(--ui-transition-fast), background var(--ui-transition-fast);
-    white-space: nowrap;
-  }
-
-  .view-mode-btn i {
-    font-size: 0.9em;
-  }
-
-  .view-mode-btn:hover:not(.active) {
-    color: var(--ui-text-primary);
-    background: var(--ui-hover);
-  }
-
-  .view-mode-btn.active {
-    color: var(--ui-text-primary);
-    background: var(--ui-surface-high);
-    box-shadow: 0 0 0 1px var(--ui-border-default);
-  }
 
   .cfm-btn {
     display: inline-flex;

@@ -58,7 +58,7 @@
   });
 </script>
 
-<ComponentEditorBase {component} title="Tooltip" description="Hover tooltip with configurable position. Import from <code>components/Tooltip.svelte</code>" tokens={allTokens} tabbable>
+<ComponentEditorBase {component} title="Tooltip" description="Hover tooltip with configurable position. Import from <code>components/Tooltip.svelte</code>" tokens={allTokens}>
   <svelte:fragment slot="config">
     <label class="backdrop-config">
       <span>Sample background</span>

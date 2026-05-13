@@ -123,7 +123,7 @@
   ) as Record<string, Token[]>;
 </script>
 
-<ComponentEditorBase {component} title="Segmented Control" description="A connected set of buttons for toggling between mutually exclusive options." tokens={allTokens} {linked} tabbable>
+<ComponentEditorBase {component} title="Segmented Control" description="A connected set of buttons for toggling between mutually exclusive options." tokens={allTokens} {linked}>
   <svelte:fragment slot="config">
     <label>
       <input type="checkbox" bind:checked={showIcons} />

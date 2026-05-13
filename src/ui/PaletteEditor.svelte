@@ -18,6 +18,7 @@
   const GRAY_FALLBACK = '#808080';
 
   export let label: string;
+  export let displayLabel: string | null = null;
   export let initialColor: string = GRAY_FALLBACK;
   export let mode: 'chromatic' | 'gray' = 'chromatic';
   export let cssNamespace: string | null = null;
@@ -903,6 +904,7 @@
 <div class="palette-editor" style="--editor-base: {mode === 'gray' ? gray500Hex : baseColor}">
   <PaletteBase
     {label}
+    {displayLabel}
     {mode}
     {baseColor}
     {gray500Hex}
@@ -1130,7 +1132,7 @@
   <div class="scales-row">
   <div class="scale-section">
     <div class="scale-header">
-      <h4 class="scale-title">{label}</h4>
+      <h4 class="scale-title">{displayLabel ?? label}</h4>
       <button class="edit-toggle" type="button" on:click={clearPaletteOverrides}>Clear Overrides</button>
       <button
         class="edit-toggle"

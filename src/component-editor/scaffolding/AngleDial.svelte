@@ -125,7 +125,7 @@
   }
 
   .dial:focus-visible {
-    outline: 2px solid var(--ui-border-focus, var(--color-primary-500));
+    outline: 2px solid var(--ui-border-focus, var(--color-brand-500));
     outline-offset: 2px;
   }
 

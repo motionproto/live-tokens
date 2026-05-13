@@ -25,7 +25,7 @@
       single-text components like Button whose 8-10 properties stretch the
       panel vertically when stacked single-column. */
   export let columns: number = 1;
-  /** Label rendered above the tabs-mode selector strip. Defaults to "Element"
+  /** Label rendered above the state-tab selector strip. Defaults to "Element"
       because most strips mix structural parts (e.g. bar, frame) with
       component states; "States" would mislabel the parts. Editors can override
       when every tab on the strip really is a state. */
@@ -33,19 +33,11 @@
 
   const editorCtx = getEditorContext();
   const linkedOrderStore = editorCtx?.linkedOrder ?? writable<Map<string, number> | null>(null);
-  const tabbableStore = editorCtx?.tabbable ?? writable(false);
-  const viewModeStore = editorCtx?.viewMode ?? writable<'list' | 'tabs'>('list');
   const focusedVariantStore = editorCtx?.focusedVariant ?? writable<string | null>(null);
   const focusedStateStore = editorCtx?.focusedState ?? writable<string | null>(null);
   $: linkedOrder = $linkedOrderStore ?? undefined;
 
-  let variantExpanded = true;
-  let stateExpanded: Record<string, boolean> = {};
   let activeTab: string = '';
-
-  function toggleState(stateName: string) {
-    stateExpanded = { ...stateExpanded, [stateName]: stateExpanded[stateName] === false };
-  }
 
   const TYPE_PROPS = ['colorVariable', 'familyVariable', 'sizeVariable', 'weightVariable', 'lineHeightVariable', 'outlineWidthVariable', 'outlineColorVariable'] as const;
 
@@ -95,9 +87,8 @@
   })();
 
   $: stateNames = states ? Object.keys(states) : [];
-  $: inTabsMode = $tabbableStore && $viewModeStore === 'tabs';
-  $: tabsStripVisible = inTabsMode && stateNames.length >= 2;
-  $: if (inTabsMode && stateNames.length > 0 && !stateNames.includes(activeTab)) {
+  $: tabsStripVisible = stateNames.length >= 2;
+  $: if (stateNames.length > 0 && !stateNames.includes(activeTab)) {
     activeTab = stateNames[0];
   }
   // Cross-group hint from chart row clicks: adopt it if it names one of our states.
@@ -105,7 +96,7 @@
     activeTab = $focusedStateStore;
   }
 
-  $: inFocusMode = inTabsMode && siblings.length > 0;
+  $: inFocusMode = siblings.length > 0;
   $: amIFocused = $focusedVariantStore === name;
   $: shouldRender = !inFocusMode || amIFocused;
   // Mirror this group's active state back to the shared store when this is the
@@ -118,151 +109,77 @@
 </script>
 
 {#if shouldRender}
-<div class="demo-section variant-group" class:collapsed={!variantExpanded && !inTabsMode}>
-  {#if inTabsMode ? !inFocusMode : true}
-  <div class="variant-header" class:tabs-mode={inTabsMode}>
-    {#if inTabsMode}
-      <h3 class="demo-subtitle">{title}</h3>
-    {:else}
-      <div
-        class="variant-toggle"
-        role="button"
-        tabindex="0"
-        aria-expanded={variantExpanded}
-        title={variantExpanded ? 'Collapse' : 'Expand'}
-        on:click={() => (variantExpanded = !variantExpanded)}
-        on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); variantExpanded = !variantExpanded; } }}
-      >
-        <h3 class="demo-subtitle">{title}</h3>
-        <i class="fas fa-chevron-down chevron" class:collapsed={!variantExpanded}></i>
-      </div>
-      {#if stateNames.length === 1 && copySources.length > 0 && variantExpanded}
-        {@const soloState = stateNames[0]}
-        <CopyFromMenu
-          toState={soloState}
-          variantName={name}
-          {copySources}
-          placement="end"
-          on:select={(e) => pickCopySource(soloState, e.detail.fromVariant, e.detail.fromState)}
-        />
-      {/if}
-    {/if}
+<div class="demo-section variant-group">
+  {#if !inFocusMode}
+  <div class="variant-header">
+    <h3 class="demo-subtitle">{title}</h3>
   </div>
   {/if}
 
-  {#if variantExpanded || inTabsMode}
-    {#if states}
-      {#if inTabsMode}
-        <!-- Tabs view: preview at top, then state tabs + Copy from, then properties for active tab. -->
-        <div class="tabs-preview">
-          <span class="section-label">Preview</span>
-          <slot activeState={activeTab} />
-        </div>
+  {#if states}
+    <!-- Preview at top, then state tabs + Copy from, then properties for active tab. -->
+    <div class="tabs-preview">
+      <span class="section-label">Preview</span>
+      <slot activeState={activeTab} />
+    </div>
 
-        {#if tabsStripVisible || (copySources.length > 0 && activeTab)}
-          <div class="tabs-states-block">
-            {#if tabsStripVisible}
-              <span class="section-label">{selectorLabel}</span>
-            {/if}
-            <div class="tabs-selectors">
-              {#if tabsStripVisible}
-                <div class="state-tabs" role="tablist">
-                  {#each stateNames as s}
-                    <button
-                      type="button"
-                      class="state-tab-btn"
-                      class:active={activeTab === s}
-                      role="tab"
-                      aria-selected={activeTab === s}
-                      on:click={() => { activeTab = s; focusedStateStore.set(s); }}
-                    >{s}</button>
-                  {/each}
-                </div>
-              {/if}
-              {#if copySources.length > 0 && activeTab}
-                <CopyFromMenu
-                  toState={activeTab}
-                  variantName={name}
-                  {copySources}
-                  on:select={(e) => pickCopySource(activeTab, e.detail.fromVariant, e.detail.fromState)}
-                />
-              {/if}
+    {#if tabsStripVisible || (copySources.length > 0 && activeTab)}
+      <div class="tabs-states-block">
+        {#if tabsStripVisible}
+          <span class="section-label">{selectorLabel}</span>
+        {/if}
+        <div class="tabs-selectors">
+          {#if tabsStripVisible}
+            <div class="state-tabs" role="tablist">
+              {#each stateNames as s}
+                <button
+                  type="button"
+                  class="state-tab-btn"
+                  class:active={activeTab === s}
+                  role="tab"
+                  aria-selected={activeTab === s}
+                  on:click={() => { activeTab = s; focusedStateStore.set(s); }}
+                >{s}</button>
+              {/each}
             </div>
-          </div>
-        {/if}
+          {/if}
+          {#if activeTab}
+            <slot name="state-actions" stateName={activeTab} />
+          {/if}
+          {#if copySources.length > 0 && activeTab}
+            <CopyFromMenu
+              toState={activeTab}
+              variantName={name}
+              {copySources}
+              on:select={(e) => pickCopySource(activeTab, e.detail.fromVariant, e.detail.fromState)}
+            />
+          {/if}
+        </div>
+      </div>
+    {/if}
 
-        {#if activeTab && states[activeTab]}
-          {@const stateName = activeTab}
-          <slot name="composite-controls" {stateName} />
-          <span class="section-label">Properties</span>
-          <StateBlock
-            tokens={states[stateName]}
-            typeGroups={typeGroups[stateName] ?? []}
-            {component}
-            {linkedOrder}
-            {columns}
-            on:change
-          />
-        {/if}
-      {:else}
-        <!-- List view: per-state stacked sections, each with its own preview and properties. -->
-        {#each stateNames as stateName}
-          {@const isSoloState = stateNames.length === 1}
-          {@const expanded = isSoloState || stateExpanded[stateName] !== false}
-          <div class="state-section" class:collapsed={!expanded}>
-            {#if !isSoloState}
-              <div class="state-header">
-                <div
-                  class="state-toggle"
-                  role="button"
-                  tabindex="0"
-                  aria-expanded={expanded}
-                  title={expanded ? 'Collapse' : 'Expand'}
-                  on:click={() => toggleState(stateName)}
-                  on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleState(stateName); } }}
-                >
-                  <span class="state-label">{stateName}</span>
-                  <i class="fas fa-chevron-down chevron" class:collapsed={!expanded}></i>
-                </div>
-                <slot name="state-actions" {stateName} />
-                {#if copySources.length > 0}
-                  <CopyFromMenu
-                    toState={stateName}
-                    variantName={name}
-                    {copySources}
-                    on:select={(e) => pickCopySource(stateName, e.detail.fromVariant, e.detail.fromState)}
-                  />
-                {/if}
-              </div>
-            {/if}
-            {#if expanded}
-              <div class="state-preview">
-                <span class="section-label">Preview</span>
-                <slot activeState={stateName} />
-              </div>
-              <slot name="composite-controls" {stateName} />
-              <span class="section-label">Properties</span>
-              <StateBlock
-                tokens={states[stateName]}
-                typeGroups={typeGroups[stateName] ?? []}
-                {component}
-                {linkedOrder}
-                on:change
-              />
-            {/if}
-          </div>
-        {/each}
-      {/if}
-    {:else}
-      <slot activeState="" />
-      <TokenLayout
-        title={name}
-        tokens={tokens}
+    {#if activeTab && states[activeTab]}
+      {@const stateName = activeTab}
+      <slot name="composite-controls" {stateName} />
+      <span class="section-label">Properties</span>
+      <StateBlock
+        tokens={states[stateName]}
+        typeGroups={typeGroups[stateName] ?? []}
         {component}
         {linkedOrder}
+        {columns}
         on:change
       />
     {/if}
+  {:else}
+    <slot activeState="" />
+    <TokenLayout
+      title={name}
+      tokens={tokens}
+      {component}
+      {linkedOrder}
+      on:change
+    />
   {/if}
 
 </div>
@@ -277,19 +194,11 @@
     gap: var(--ui-space-12);
   }
 
-  .variant-group.collapsed {
-    gap: 0;
-  }
-
   .variant-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--ui-space-12);
-  }
-
-  .variant-header.tabs-mode {
     justify-content: flex-start;
+    gap: var(--ui-space-12);
   }
 
   .variant-header .demo-subtitle {
@@ -297,27 +206,6 @@
     font-size: var(--ui-font-size-2xl);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
-  }
-
-  .variant-toggle,
-  .state-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-    padding: 0;
-    background: none;
-    border: none;
-    color: inherit;
-    cursor: pointer;
-    text-align: left;
-  }
-
-  .state-header {
-    display: flex;
-    flex-direction: row;
-    align-items: baseline;
-    justify-content: flex-start;
-    gap: var(--ui-space-12);
   }
 
   .tabs-preview {
@@ -372,47 +260,6 @@
     box-shadow: 0 0 0 1px var(--ui-border-default);
   }
 
-  .chevron {
-    font-size: 0.75em;
-    color: var(--ui-text-tertiary);
-    transition: transform var(--ui-transition-fast);
-  }
-
-  .chevron.collapsed {
-    transform: rotate(-90deg);
-  }
-
-  .variant-toggle:hover .chevron,
-  .state-toggle:hover .chevron {
-    color: var(--ui-text-primary);
-  }
-
-  .state-section {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-8);
-    padding: var(--ui-space-12);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-faint);
-    border-radius: var(--ui-radius-sm);
-    container-type: inline-size;
-    min-width: 0;
-  }
-
-  .state-label {
-    font-size: var(--ui-font-size-xl);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-secondary);
-    text-transform: capitalize;
-    margin-bottom: var(--ui-space-8);
-  }
-
-  .state-preview {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-8);
-  }
-
   .section-label {
     display: block;
     margin: 0;
@@ -421,8 +268,8 @@
     color: var(--ui-text-primary);
   }
 
-  /* In tabs mode the Properties label is a direct child of .variant-group
-     (which doesn't apply a flex gap), so space it from the tabs strip above. */
+  /* The Properties label is a direct child of .variant-group (which doesn't
+     apply a flex gap), so space it from the tabs strip above. */
   .variant-group > .section-label {
     margin-top: var(--ui-space-8);
   }

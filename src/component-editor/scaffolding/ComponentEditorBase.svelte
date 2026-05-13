@@ -15,21 +15,16 @@
   /** Optional linked-block result. When provided, the LinkedBlock is rendered
       and hover highlights propagate to VariantGroup children via context. */
   export let linked: LinkedBlockResult | null = null;
-  /** When true, exposes a List/Tabs view toggle in the component header strip.
-      Every multi-state VariantGroup in this editor honors the chosen mode. */
-  export let tabbable: boolean = false;
   /** Canonical {value,label} list of variants in display order. When provided
-      and the editor is in tabs mode, a single variant tab strip is rendered
-      that drives which VariantGroup is focused. */
+      with 2+ entries, a single variant tab strip is rendered that drives which
+      VariantGroup is focused. */
   export let variants: { value: string; label: string }[] = [];
 
   const ctx = createEditorContext();
-  const { viewMode, focusedVariant } = ctx;
+  const { focusedVariant } = ctx;
 
   $: ctx._linkedOrder.set(linked?.linkedOrder ?? null);
-  $: ctx._tabbable.set(tabbable);
-  $: if ($viewMode === 'list') ctx.focusedVariant.set(null);
-  $: showVariantTabs = tabbable && $viewMode === 'tabs' && variants.length >= 2;
+  $: showVariantTabs = variants.length >= 2;
   $: if (showVariantTabs && ($focusedVariant === null || !variants.some((v) => v.value === $focusedVariant))) {
     focusedVariant.set(variants[0].value);
   }
@@ -57,7 +52,7 @@
       {/each}
     </div>
   {/if}
-  <slot viewMode={$viewMode} focusedVariant={$focusedVariant} />
+  <slot focusedVariant={$focusedVariant} />
   {#if linked}
     <LinkedBlock {component} {linked} on:change />
   {/if}

@@ -12,17 +12,20 @@
   import { editorView } from './lib/editorViewStore';
 
   const allNavLinks = [
-    { path: '/', label: 'Home', icon: 'fa-home' },
+    { path: '/', label: 'Site', icon: 'fa-home' },
     { path: '/demo', label: 'Demo', icon: 'fa-box-open' },
     { path: '/components', label: 'Components', icon: 'fa-puzzle-piece' },
   ];
 
-  // When the overlay is editing components, hide the page-switch to /components —
-  // navigating the underlying page there would put ComponentEditorPage beneath
-  // an overlay that's already showing the components editor.
-  $: visibleNavLinks = $editorView === 'components'
-    ? allNavLinks.filter((l) => l.path !== '/components')
-    : allNavLinks;
+  $: visibleNavLinks = allNavLinks;
+
+  // The /components page and the overlay's components view are the same surface.
+  // Keep them mutually exclusive by flipping the overlay to tokens whenever the
+  // underlying page is /components, so they pair as page+overlay instead of
+  // stacking on top of each other.
+  $: if ($route === '/components' && $editorView === 'components') {
+    editorView.set('tokens');
+  }
 
   function handleClick(e: MouseEvent) {
     const anchor = (e.target as HTMLElement).closest('a[href]');
@@ -66,6 +69,10 @@
 </div>
 
 <style>
+  :global(html) {
+    scrollbar-gutter: stable;
+  }
+
   :global(body) {
     background: var(--page-bg);
     background-attachment: var(--page-bg-attachment, fixed);

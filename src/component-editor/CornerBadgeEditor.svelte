@@ -90,7 +90,7 @@
   const variantOptions = badgeVariants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
 </script>
 
-<ComponentEditorBase {component} title="Corner Badge" description="Badge pinned flush to a corner of a positioned ancestor. Composes <code>Badge</code>; adds offset + inner-radius tokens. Import from <code>components/CornerBadge.svelte</code>" tokens={allTokens} {linked} tabbable>
+<ComponentEditorBase {component} title="Corner Badge" description="Badge pinned flush to a corner of a positioned ancestor. Composes <code>Badge</code>; adds offset + inner-radius tokens. Import from <code>components/CornerBadge.svelte</code>" tokens={allTokens} {linked}>
   <svelte:fragment slot="config">
     <label class="backdrop-config">
       <span>Sample background</span>

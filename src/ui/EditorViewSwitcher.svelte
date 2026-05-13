@@ -1,13 +1,21 @@
 <script lang="ts">
   import { editorView } from '../lib/editorViewStore';
+  import { parentRoute } from '../lib/parentRouteStore';
 
   export let condensed = false;
+
+  // On /components the host page is already the components editor — the
+  // overlay's components view would just stack on top of it, so disable the
+  // switch. The switcher renders inside the editor iframe, so we read the
+  // *parent* route, not this iframe's own route.
+  $: componentsDisabled = $parentRoute === '/components';
 
   function set(v: 'tokens' | 'components') {
     editorView.set(v);
   }
 
   function toggle() {
+    if (componentsDisabled) return;
     editorView.update((v) => (v === 'tokens' ? 'components' : 'tokens'));
   }
 </script>
@@ -34,7 +42,7 @@
         aria-selected={$editorView === 'tokens'}
         on:click={() => set('tokens')}
       >
-        <i class="fas fa-palette"></i>
+        <span class="radio" aria-hidden="true"></span>
         <span>Tokens</span>
       </button>
       <button
@@ -43,9 +51,11 @@
         class="seg-btn"
         class:active={$editorView === 'components'}
         aria-selected={$editorView === 'components'}
+        disabled={componentsDisabled}
+        title={componentsDisabled ? 'Already viewing the Components page' : undefined}
         on:click={() => set('components')}
       >
-        <i class="fas fa-cubes"></i>
+        <span class="radio" aria-hidden="true"></span>
         <span>Components</span>
       </button>
     </div>
@@ -65,27 +75,33 @@
     font-weight: var(--ui-font-weight-semibold);
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--ui-text-muted);
+    color: #fff;
     padding-left: var(--ui-space-2);
   }
 
   .seg {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 2px;
     padding: 3px;
     background: var(--ui-surface-low);
     border: 1px solid var(--ui-border-faint);
     border-radius: var(--ui-radius-lg);
+    /* Fill the sidebar's content area so the box width is fixed by the rail,
+       not by which label happens to be active. Buttons inherit this width via
+       the default `align-items: stretch` on the column flex. */
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .seg-btn {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    justify-content: center;
-    gap: var(--ui-space-6);
+    justify-content: flex-start;
+    gap: var(--ui-space-8);
+    width: 100%;
     height: 28px;
-    padding: 0 var(--ui-space-8);
+    padding: 0 var(--ui-space-10);
     background: none;
     border: none;
     border-radius: var(--ui-radius-md);
@@ -93,13 +109,32 @@
     font-family: inherit;
     font-size: var(--ui-font-size-sm);
     font-weight: var(--ui-font-weight-medium);
+    text-align: left;
+    box-sizing: border-box;
     cursor: pointer;
     transition: background var(--ui-transition-fast), color var(--ui-transition-fast);
   }
 
-  .seg-btn i {
-    font-size: 0.85em;
-    opacity: 0.85;
+  .radio {
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: var(--ui-radius-full);
+    border: 1.5px solid var(--ui-text-tertiary);
+    background: transparent;
+    transition: border-color var(--ui-transition-fast), background var(--ui-transition-fast),
+      box-shadow var(--ui-transition-fast);
+  }
+
+  .seg-btn.active .radio {
+    border-color: var(--ui-text-primary);
+    /* Inner dot via inset shadow keeps the box-model identical to the inactive
+       ring — no border-thickness shift between states. */
+    box-shadow: inset 0 0 0 2.5px var(--ui-surface-high), inset 0 0 0 6px var(--ui-text-primary);
+  }
+
+  .seg-btn:hover:not(.active) .radio {
+    border-color: var(--ui-text-secondary);
   }
 
   .seg-btn:hover {
@@ -110,6 +145,19 @@
     background: var(--ui-surface-high);
     color: var(--ui-text-primary);
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .seg-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  .seg-btn:disabled:hover {
+    color: var(--ui-text-tertiary);
+  }
+
+  .seg-btn:disabled:hover .radio {
+    border-color: var(--ui-text-tertiary);
   }
 
   .compact {

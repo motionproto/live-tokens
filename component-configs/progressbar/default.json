@@ -9,7 +9,7 @@
     "--progressbar-primary-track-border-width": "--border-width-1",
     "--progressbar-primary-track-height": "--space-8",
     "--progressbar-primary-radius": "--radius-full",
-    "--progressbar-primary-fill": "--color-primary-500",
+    "--progressbar-primary-fill": "--color-brand-500",
     "--progressbar-primary-label": "--text-secondary",
     "--progressbar-primary-label-font-family": "--font-sans",
     "--progressbar-primary-label-font-size": "--font-size-sm",
@@ -86,5 +86,5 @@
     "--progressbar-info-value-line-height": "--line-height-normal"
   },
   "config": {},
-  "schemaVersion": 4
+  "schemaVersion": 6
 }

@@ -152,7 +152,7 @@
   $: visibleVariantTokens = (v: Variant) => withLinkedDisabled(frameTokens(v), linked.varSet);
 </script>
 
-<ComponentEditorBase {component} title="Section Divider" description="Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>" tokens={allTokens} {linked} tabbable variants={variantOptions}>
+<ComponentEditorBase {component} title="Section Divider" description="Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>" tokens={allTokens} {linked} variants={variantOptions}>
   <svelte:fragment slot="config">
     <label class="text-field">
       <span>Test title</span>

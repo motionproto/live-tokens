@@ -41,15 +41,15 @@
       ]
     },
     {
-      title: 'Primary (Crimson)',
+      title: 'Brand (Crimson)',
       swatches: [
-        { name: 'Lowest', variable: '--surface-primary-lowest', description: 'Deepest' },
-        { name: 'Lower', variable: '--surface-primary-lower', description: 'Barely perceptible' },
-        { name: 'Low', variable: '--surface-primary-low', description: 'Subtle' },
-        { name: 'Primary', variable: '--surface-primary', description: 'Default' },
-        { name: 'High', variable: '--surface-primary-high', description: 'More prominent' },
-        { name: 'Higher', variable: '--surface-primary-higher', description: 'Very prominent' },
-        { name: 'Highest', variable: '--surface-primary-highest', description: 'Most prominent' }
+        { name: 'Lowest', variable: '--surface-brand-lowest', description: 'Deepest' },
+        { name: 'Lower', variable: '--surface-brand-lower', description: 'Barely perceptible' },
+        { name: 'Low', variable: '--surface-brand-low', description: 'Subtle' },
+        { name: 'Brand', variable: '--surface-brand', description: 'Default' },
+        { name: 'High', variable: '--surface-brand-high', description: 'More prominent' },
+        { name: 'Higher', variable: '--surface-brand-higher', description: 'Very prominent' },
+        { name: 'Highest', variable: '--surface-brand-highest', description: 'Most prominent' }
       ]
     },
     {
@@ -145,13 +145,13 @@
       ]
     },
     {
-      title: 'Primary (Crimson)',
+      title: 'Brand (Crimson)',
       borders: [
-        { name: 'Faint', variable: '--border-primary-faint' },
-        { name: 'Subtle', variable: '--border-primary-subtle' },
-        { name: 'Primary', variable: '--border-primary' },
-        { name: 'Medium', variable: '--border-primary-medium' },
-        { name: 'Strong', variable: '--border-primary-strong' }
+        { name: 'Faint', variable: '--border-brand-faint' },
+        { name: 'Subtle', variable: '--border-brand-subtle' },
+        { name: 'Brand', variable: '--border-brand' },
+        { name: 'Medium', variable: '--border-brand-medium' },
+        { name: 'Strong', variable: '--border-brand-strong' }
       ]
     },
     {

@@ -70,13 +70,13 @@ p:last-child {
 }
 
 a {
-  color: var(--text-primary-color);
+  color: var(--text-brand);
   text-decoration: none;
   transition: color var(--duration-150);
 }
 
 a:hover {
-  color: var(--color-primary-300);
+  color: var(--color-brand-300);
   text-decoration: underline;
 }
 
@@ -129,8 +129,8 @@ hr {
 blockquote {
   margin: var(--space-16) 0;
   padding: var(--space-12) var(--space-20);
-  border: 1px solid var(--color-primary-500);
-  border-left: 4px solid var(--color-primary-500);
+  border: 1px solid var(--color-brand-500);
+  border-left: 4px solid var(--color-brand-500);
   background: var(--surface-neutral-high);
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
   color: var(--text-secondary);

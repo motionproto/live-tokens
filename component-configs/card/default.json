@@ -46,5 +46,5 @@
     "--card-hover-body-line-height": "--line-height-normal"
   },
   "config": {},
-  "schemaVersion": 4
+  "schemaVersion": 6
 }

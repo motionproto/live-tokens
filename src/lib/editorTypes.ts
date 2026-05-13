@@ -59,7 +59,7 @@ export type GradientType = 'linear' | 'radial';
 export interface GradientTokenStop {
   /** 0–100 percentage along the gradient axis. */
   position: number;
-  /** CSS variable name the stop resolves through (e.g. '--color-primary-500'). */
+  /** CSS variable name the stop resolves through (e.g. '--color-brand-500'). */
   color: string;
   /** 0–100 alpha applied to the stop's color. Defaults to 100 (fully opaque). */
   opacity?: number;

@@ -48,15 +48,15 @@
     <h2 class="section-title">Palette Editor</h2>
     <p class="editor-intro">Derived palettes via <code>color-mix(in oklch)</code>. Change a base color to update all derived steps. Click any derived swatch to add a manual override.</p>
     <div class="palette-editors">
-      <PaletteEditor mode="gray" label="Neutral" cssNamespace="neutral"/>
-      <PaletteEditor mode="gray" label="Alternate" cssNamespace="alternate" />
-      <PaletteEditor label="Background" initialColor="#1a1a2e" cssNamespace="canvas" emptySelector />
-      <PaletteEditor label="Primary" initialColor="#c93636" cssNamespace="primary" />
+      <PaletteEditor label="Brand" initialColor="#c93636" cssNamespace="brand" />
       <PaletteEditor label="Accent" initialColor="#f49e0b" cssNamespace="accent" />
+      <PaletteEditor label="Background" initialColor="#1a1a2e" cssNamespace="canvas" emptySelector />
+      <PaletteEditor mode="gray" label="Neutral" cssNamespace="neutral"/>
+      <PaletteEditor mode="gray" label="Alternate" displayLabel="Alternate (neutral)" cssNamespace="alternate" />
       <PaletteEditor label="Special" initialColor="#8b5cf6" cssNamespace="special" />
+      <PaletteEditor label="Info" initialColor="#3077e8" cssNamespace="info" />
       <PaletteEditor label="Success" initialColor="#21c45d" cssNamespace="success" />
       <PaletteEditor label="Warning" initialColor="#e66e1a" cssNamespace="warning" />
-      <PaletteEditor label="Info" initialColor="#3077e8" cssNamespace="info" />
       <PaletteEditor label="Danger" initialColor="#e8304f" cssNamespace="danger" />
     </div>
   </section>

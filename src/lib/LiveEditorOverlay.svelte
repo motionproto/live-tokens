@@ -17,6 +17,7 @@
   import { storageKey } from './editorConfig';
   import { overlayOpen } from './overlayState';
   import { quietGet, quietSet } from './storage';
+  import { postParentRoute } from './parentRouteStore';
   import type { NavLink } from './navLinkTypes';
 
   export let open: boolean | undefined = undefined;
@@ -56,6 +57,9 @@
   // position, expanded sections) survives.
   let hasBeenOpen: boolean = !!open;
   $: if (open) hasBeenOpen = true;
+
+  let editorFrame: HTMLIFrameElement | undefined;
+  $: postParentRoute(editorFrame?.contentWindow, $route);
 
   type Mode = 'docked' | 'floating';
 
@@ -294,9 +298,21 @@
       <div class="spacer" transition:fade={BTN_FADE}></div>
     {/if}
 
+    {#if open && showSource}
+      <a
+        class="hdr-btn text source"
+        href="vscode://file/{projectRoot}/{sourceFile}"
+        title="Open {sourceFile} in VS Code"
+        transition:fade={BTN_FADE}
+      >
+        <i class="fas fa-code"></i>
+        Show Source
+      </a>
+    {/if}
+
     {#if open && navLinks.length > 0}
       <div class="seg-group" transition:fade={BTN_FADE}>
-        <span class="seg-label">Page</span>
+        <span class="seg-label">Active Page:</span>
         <div class="seg-bar" role="tablist" aria-label="Underlying page">
           {#each navLinks as link (link.path)}
             <button
@@ -305,6 +321,7 @@
               class="seg-pill"
               class:active={$route === link.path}
               aria-selected={$route === link.path}
+              disabled={link.disabled}
               on:click={() => navigate(link.path)}
             >
               {#if link.icon}<i class="fas {link.icon}"></i>{/if}
@@ -314,18 +331,6 @@
         </div>
       </div>
     {/if}
-
-    {#if open && showSource}
-      <a
-        class="hdr-btn text source"
-        href="vscode://file/{projectRoot}/{sourceFile}"
-        title="Open {sourceFile} in VS Code"
-        transition:fade={BTN_FADE}
-      >
-        <i class="fas fa-code"></i>
-        Page Source
-      </a>
-    {/if}
   </div>
 
   {#if hasBeenOpen}
@@ -334,6 +339,8 @@
         src={editorPath}
         title="Token editor"
         class="editor-frame"
+        bind:this={editorFrame}
+        on:load={() => postParentRoute(editorFrame?.contentWindow, $route)}
       ></iframe>
       {#if gesturing}
         <div class="gesture-scrim"></div>
@@ -476,6 +483,20 @@
   a.hdr-btn.source {
     gap: 6px;
     text-decoration: none;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.45);
+    border-radius: 999px;
+    padding: 0 14px;
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  a.hdr-btn.source:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.6);
+  }
+
+  a.hdr-btn.source i {
+    color: rgba(255, 255, 255, 0.6);
   }
 
   .hdr-btn.nav {
@@ -500,25 +521,28 @@
   .seg-group {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
+    margin-left: 18px;
     margin-right: 4px;
   }
 
   .seg-label {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.02em;
+    color: #fff;
   }
 
   .seg-bar {
     display: inline-flex;
     align-items: center;
-    padding: 2px;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 5px;
+    padding: 3px;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 6px;
+    box-shadow:
+      inset 0 1px 0 rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(0, 0, 0, 0.4);
   }
 
   .seg-pill {
@@ -543,16 +567,26 @@
     opacity: 0.85;
   }
 
-  .seg-pill:hover {
+  .seg-pill:hover:not(:disabled) {
     color: rgba(255, 255, 255, 0.9);
+  }
+
+  .seg-pill:disabled {
+    color: rgba(255, 255, 255, 0.28);
+    cursor: not-allowed;
+  }
+
+  .seg-pill:disabled i {
+    opacity: 0.5;
   }
 
   /* Outlined active — quieter than the iframe's filled switcher, so the two
      segmented controls read as siblings, not twins. */
   .seg-pill.active {
     color: #fff;
-    border-color: rgba(255, 255, 255, 0.22);
-    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
   }
 
   .frame-wrap {

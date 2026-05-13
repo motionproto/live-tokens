@@ -380,35 +380,51 @@
      column 1 top-to-bottom before spilling into column 2, etc. The value track
      drops to `auto` so column-sets pack at natural width instead of letting
      `1fr` value cells eat the panel and shove sets to opposite edges. The
-     fixed inter-set gap (~3rem) is applied as `padding-left` on the lead
-     column of every non-first set — see `.non-first-set > .token-label`. */
+     inter-set gap is applied as `padding-left` on the lead column of every
+     non-first set — see `.non-first-set > .token-label`. Selector width and
+     gap are intentionally tighter than single-col so the layout stays viable
+     inside the docked overlay's iframe (~624px container at default width). */
   .token-grid.multi-col {
+    --token-selector-w: 7rem;
     grid-template-columns: repeat(var(--columns), max-content var(--token-selector-w) auto);
     grid-template-rows: repeat(var(--rows-per-col), auto);
     grid-auto-flow: column;
-    column-gap: var(--ui-space-12);
+    column-gap: var(--ui-space-8);
     justify-content: start;
   }
   .token-grid.multi-col .token-entry.token-row.non-first-set > .token-label {
-    padding-left: var(--ui-space-48);
+    padding-left: var(--ui-space-20);
   }
 
   @container (max-width: 480px) {
     .token-grid { --token-selector-w: 6rem; }
   }
 
-  /* Drop to one column if the container can't fit even two column-sets
-     comfortably. Single col uses row flow (default), so unsetting the
-     column-flow + row template restores the original layout. The value
-     track also returns to `1fr` so the lone column fills the panel like
-     single-col mode, and the inter-set padding is suppressed so wrapped
-     "set 2" rows don't sit indented. */
-  @container (max-width: 720px) {
+  /* Narrow multi-col: shrink selector + inter-set gap further before giving
+     up the second column. Targets the overlay's typical docked width range. */
+  @container (max-width: 640px) {
+    .token-grid.multi-col {
+      --token-selector-w: 6rem;
+      column-gap: var(--ui-space-6);
+    }
+    .token-grid.multi-col .token-entry.token-row.non-first-set > .token-label {
+      padding-left: var(--ui-space-12);
+    }
+  }
+
+  /* Drop to one column only when even the tightened layout can't fit two
+     sets. Single col uses row flow (default), so unsetting the column-flow +
+     row template restores the original layout. The value track returns to
+     `1fr` so the lone column fills the panel like single-col mode, and the
+     inter-set padding is suppressed so wrapped "set 2" rows don't sit
+     indented. */
+  @container (max-width: 520px) {
     .token-grid.multi-col {
       --columns: 1;
       grid-template-columns: max-content var(--token-selector-w) 1fr;
       grid-template-rows: none;
       grid-auto-flow: row;
+      column-gap: var(--ui-space-10);
     }
     .token-grid.multi-col .token-entry.token-row.non-first-set > .token-label {
       padding-left: 0;

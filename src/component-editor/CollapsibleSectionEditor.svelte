@@ -132,7 +132,7 @@
   ) as Record<string, Token[]>;
 </script>
 
-<ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Variants: chromeless, divider, container. Import from <code>components/CollapsibleSection.svelte</code>" tokens={allTokens} {linked} tabbable variants={variantOptions}>
+<ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Variants: chromeless, divider, container. Import from <code>components/CollapsibleSection.svelte</code>" tokens={allTokens} {linked} variants={variantOptions}>
   {#each VARIANTS as v}
     <VariantGroup
       name={v}

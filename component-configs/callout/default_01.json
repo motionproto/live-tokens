@@ -70,5 +70,5 @@
     "--callout-danger-text-line-height": "--line-height-relaxed"
   },
   "config": {},
-  "schemaVersion": 5
+  "schemaVersion": 6
 }
