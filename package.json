@@ -89,7 +89,7 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build:plugin": "tsup src/vite-plugin/index.ts --out-dir dist-plugin --format esm,cjs --dts --external vite --platform node --clean",
+    "build:plugin": "tsup",
     "build:lib": "npm run build:plugin",
     "deploy:local": "bash scripts/deploy-local.sh",
     "check:no-style-imports": "node scripts/check-no-style-imports.mjs",

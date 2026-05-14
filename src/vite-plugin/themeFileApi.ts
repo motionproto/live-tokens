@@ -9,6 +9,12 @@ import {
 } from './files/versionedFileResource';
 import { dispatch, type Route } from './files/routeTable';
 
+// __LIVE_TOKENS_PKG_VERSION__ is replaced at plugin build time by tsup
+// (see tsup.config.ts) with the live-tokens package version literal.
+declare const __LIVE_TOKENS_PKG_VERSION__: string;
+const PKG_VERSION: string =
+  typeof __LIVE_TOKENS_PKG_VERSION__ !== 'undefined' ? __LIVE_TOKENS_PKG_VERSION__ : '';
+
 export interface ThemeFileApiOptions {
   themesDir: string;           // required, e.g. 'themes' (relative to cwd, resolved with path.resolve)
   tokensCssPath: string;       // required, e.g. 'src/styles/tokens.css'
@@ -1068,10 +1074,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     config() {
       // Inject __PROJECT_ROOT__ so the editor overlay's "Page Source" link
       // can build `vscode://file/<root>/<path>` URLs without each consumer
-      // having to wire their own `define` entry.
+      // having to wire their own `define` entry. __APP_VERSION__ ships the
+      // live-tokens package version to the overlay's header badge.
       return {
         define: {
           __PROJECT_ROOT__: JSON.stringify(process.cwd()),
+          __APP_VERSION__: JSON.stringify(PKG_VERSION),
         },
       };
     },
