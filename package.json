@@ -1,6 +1,6 @@
 {
   "name": "@motion-proto/live-tokens",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "type": "module",
   "description": "Design token editor with live CSS variable editing. Svelte 4 + Vite.",
   "keywords": [
@@ -35,7 +35,9 @@
     "src/styles/tokens.css",
     "src/data",
     "src/assets",
-    "dist-plugin"
+    "dist-plugin",
+    "!**/*.test.ts",
+    "!**/*.spec.ts"
   ],
   "exports": {
     ".": {
