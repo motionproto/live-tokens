@@ -36,37 +36,71 @@
 
   interface PaletteStep { label: string; hex: string }
 
-  export let scale: Scale;
-  export let editorOpen: boolean;
-  export let snapped: boolean;
-  export let supportsSnap: boolean;
-  export let cssNamespace: string | null;
-  export let scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }>;
-  export let curveOffset: Record<string, number>;
-  export let defaultScaleCurves: Record<string, ScaleCurveDef>;
-  export let overrides: Record<string, string>;
-  export let editingKey: string | null;
-  export let snapPickerKey: string | null;
-  export let copiedKey: string | null;
-  export let copiedLabelKey: string | null;
-  export let paletteComputed: PaletteStep[];
 
-  export let derivedHexFor: (step: Step, scaleTitle: string) => string;
-  export let effectiveHexFor: (key: string, step: Step, scaleTitle: string) => string;
-  export let stepKeyFor: (scaleTitle: string, stepName: string) => string;
-  export let scaleCurveKeyFor: (scaleTitle: string, channel: Channel) => string;
 
-  export let onToggleSnap: (scale: Scale) => void;
-  export let onClearScaleOverrides: (scale: Scale) => void;
-  export let onToggleEditor: (scaleTitle: string) => void;
-  export let onResetOverride: (key: string) => void;
-  export let onOverrideClick: (key: string, step: Step, scaleTitle: string) => void;
-  export let onSnappedClick: (key: string) => void;
-  export let onSelectSnapValue: (key: string, paletteHex: string, scaleTitle: string) => void;
-  export let onCopyHex: (key: string, hex: string, event?: MouseEvent) => void;
-  export let onCopyVarName: (key: string, varName: string, event?: MouseEvent) => void;
-  export let onSetScaleCurve: (scaleTitle: string, channel: Channel, anchors: CurveAnchor[]) => void;
-  export let onOffsetChange: (key: string, value: number) => void;
+  interface Props {
+    scale: Scale;
+    editorOpen: boolean;
+    snapped: boolean;
+    supportsSnap: boolean;
+    cssNamespace: string | null;
+    scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }>;
+    curveOffset: Record<string, number>;
+    defaultScaleCurves: Record<string, ScaleCurveDef>;
+    overrides: Record<string, string>;
+    editingKey: string | null;
+    snapPickerKey: string | null;
+    copiedKey: string | null;
+    copiedLabelKey: string | null;
+    paletteComputed: PaletteStep[];
+    derivedHexFor: (step: Step, scaleTitle: string) => string;
+    effectiveHexFor: (key: string, step: Step, scaleTitle: string) => string;
+    stepKeyFor: (scaleTitle: string, stepName: string) => string;
+    scaleCurveKeyFor: (scaleTitle: string, channel: Channel) => string;
+    onToggleSnap: (scale: Scale) => void;
+    onClearScaleOverrides: (scale: Scale) => void;
+    onToggleEditor: (scaleTitle: string) => void;
+    onResetOverride: (key: string) => void;
+    onOverrideClick: (key: string, step: Step, scaleTitle: string) => void;
+    onSnappedClick: (key: string) => void;
+    onSelectSnapValue: (key: string, paletteHex: string, scaleTitle: string) => void;
+    onCopyHex: (key: string, hex: string, event?: MouseEvent) => void;
+    onCopyVarName: (key: string, varName: string, event?: MouseEvent) => void;
+    onSetScaleCurve: (scaleTitle: string, channel: Channel, anchors: CurveAnchor[]) => void;
+    onOffsetChange: (key: string, value: number) => void;
+  }
+
+  let {
+    scale,
+    editorOpen,
+    snapped,
+    supportsSnap,
+    cssNamespace,
+    scaleCurves,
+    curveOffset,
+    defaultScaleCurves,
+    overrides,
+    editingKey,
+    snapPickerKey,
+    copiedKey,
+    copiedLabelKey,
+    paletteComputed,
+    derivedHexFor,
+    effectiveHexFor,
+    stepKeyFor,
+    scaleCurveKeyFor,
+    onToggleSnap,
+    onClearScaleOverrides,
+    onToggleEditor,
+    onResetOverride,
+    onOverrideClick,
+    onSnappedClick,
+    onSelectSnapValue,
+    onCopyHex,
+    onCopyVarName,
+    onSetScaleCurve,
+    onOffsetChange
+  }: Props = $props();
 
   interface CurveDescriptor {
     key: string;
@@ -76,7 +110,7 @@
     channel: Channel;
   }
 
-  $: curveDescriptors = ((): CurveDescriptor[] => {
+  let curveDescriptors = $derived(((): CurveDescriptor[] => {
     const lightnessCfg = scale.isText ? textLightnessCurveConfig : lightnessCurveConfig;
     const sc = scaleCurves[scale.title];
     const defs = defaultScaleCurves[scale.title];
@@ -85,7 +119,7 @@
       { key: scaleCurveKeyFor(scale.title, 'lightness'), anchors: sc.lightness, cfg: lightnessCfg, defaults: defs.lightness(), channel: 'lightness' },
       { key: scaleCurveKeyFor(scale.title, 'saturation'), anchors: sc.saturation, cfg: saturationCurveConfig, defaults: defs.saturation(), channel: 'saturation' },
     ];
-  })();
+  })());
 </script>
 
 <div class="scale-section">
@@ -96,14 +130,14 @@
         class="edit-toggle"
         class:active={snapped}
         type="button"
-        on:click={() => onToggleSnap(scale)}
+        onclick={() => onToggleSnap(scale)}
       >{snapped ? 'Unsnap' : 'Snap All'}</button>
     {/if}
-    <button class="edit-toggle" type="button" on:click={() => onClearScaleOverrides(scale)}>Clear Overrides</button>
+    <button class="edit-toggle" type="button" onclick={() => onClearScaleOverrides(scale)}>Clear Overrides</button>
     <button
       class="edit-toggle"
       type="button"
-      on:click={() => onToggleEditor(scale.title)}
+      onclick={() => onToggleEditor(scale.title)}
     >{editorOpen ? 'Close' : 'Edit'}</button>
   </div>
   <div class="swatch-grid" style="--swatch-cols: {scale.steps.length}; --swatch-gap: var(--ui-space-8)">
@@ -112,7 +146,7 @@
       {@const hex = effectiveHexFor(k, step, scale.title)}
       {@const dHex = derivedHexFor(step, scale.title)}
       <div class="step-column">
-        <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" on:click={(e) => { const v = scaleToCssVar(scale.title, step.name, cssNamespace); if (v) onCopyVarName(k, v, e); }}>
+        <button class="step-label copyable-label" class:copied={copiedLabelKey === k} type="button" onclick={(e) => { const v = scaleToCssVar(scale.title, step.name, cssNamespace); if (v) onCopyVarName(k, v, e); }}>
           {copiedLabelKey === k ? 'copied!' : step.name}
         </button>
         {#if scale.isText}
@@ -120,23 +154,23 @@
             class="swatch derived text-swatch"
             class:dimmed={k in overrides}
             class:clickable={k in overrides}
-            on:click={() => onResetOverride(k)}
+            onclick={() => onResetOverride(k)}
             role={k in overrides ? 'button' : undefined}
             tabindex={k in overrides ? 0 : undefined}
-            on:keydown={(e) => k in overrides && e.key === 'Enter' && onResetOverride(k)}
+            onkeydown={(e) => k in overrides && e.key === 'Enter' && onResetOverride(k)}
           >
             <span style="color: {dHex}">Ag</span>
           </div>
-          <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+          <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
           <div
             class="swatch override-slot text-swatch"
             class:active={editingKey === k}
             class:populated={k in overrides}
             class:matching={k in overrides && overrides[k] === dHex}
-            on:click={() => onOverrideClick(k, step, scale.title)}
+            onclick={() => onOverrideClick(k, step, scale.title)}
             role="button"
             tabindex="0"
-            on:keydown={(e) => e.key === 'Enter' && onOverrideClick(k, step, scale.title)}
+            onkeydown={(e) => e.key === 'Enter' && onOverrideClick(k, step, scale.title)}
           >
             {#if k in overrides}
               <span style="color: {overrides[k]}">Ag</span>
@@ -151,23 +185,23 @@
             style={scale.title === 'Borders'
               ? `border: 3px solid ${dHex}`
               : `background: ${dHex}`}
-            on:click={() => onResetOverride(k)}
+            onclick={() => onResetOverride(k)}
             role={k in overrides ? 'button' : undefined}
             tabindex={k in overrides ? 0 : undefined}
-            on:keydown={(e) => k in overrides && e.key === 'Enter' && onResetOverride(k)}
+            onkeydown={(e) => k in overrides && e.key === 'Enter' && onResetOverride(k)}
           ></div>
           <div class="override-slot-wrapper">
-            <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
             <div
               class="swatch override-slot"
               class:border-preview={scale.title === 'Borders'}
               class:active={editingKey === k || snapPickerKey === k}
               class:populated={k in overrides}
               class:matching={k in overrides && overrides[k] === dHex}
-              on:click={() => snapped ? onSnappedClick(k) : onOverrideClick(k, step, scale.title)}
+              onclick={() => snapped ? onSnappedClick(k) : onOverrideClick(k, step, scale.title)}
               role="button"
               tabindex="0"
-              on:keydown={(e) => e.key === 'Enter' && (snapped ? onSnappedClick(k) : onOverrideClick(k, step, scale.title))}
+              onkeydown={(e) => e.key === 'Enter' && (snapped ? onSnappedClick(k) : onOverrideClick(k, step, scale.title))}
             >
               {#if k in overrides}
                 {#if scale.title === 'Borders'}
@@ -190,7 +224,7 @@
                     class="snap-picker-item"
                     class:selected={overrides[k] === ps.hex}
                     type="button"
-                    on:click={() => onSelectSnapValue(k, ps.hex, scale.title)}
+                    onclick={() => onSelectSnapValue(k, ps.hex, scale.title)}
                   >
                     <span class="snap-picker-swatch" style="background: {ps.hex}"></span>
                     <span class="snap-picker-label">{ps.label}</span>
@@ -204,7 +238,7 @@
           class="step-hex"
           class:copied={copiedKey === k}
           type="button"
-          on:click={(e) => onCopyHex(k, hex, e)}
+          onclick={(e) => onCopyHex(k, hex, e)}
         >{copiedKey === k ? 'copied!' : hex}</button>
       </div>
     {/each}

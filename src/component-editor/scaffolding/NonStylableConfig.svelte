@@ -1,4 +1,9 @@
 <script lang="ts">
+  interface Props {
+    children?: import('svelte').Snippet;
+  }
+
+  let { children }: Props = $props();
   /** Section that gathers render-time toggles a component accepts as props
       (e.g. dismissible, action buttons, hover shimmer, show icons). */
 </script>
@@ -9,7 +14,7 @@
     <p class="config-description">Component accepts multiple properties that can change its layout. Use these to preview.</p>
   </header>
   <div class="config-controls">
-    <slot />
+    {@render children?.()}
   </div>
 </section>
 

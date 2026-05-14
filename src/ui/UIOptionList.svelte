@@ -1,8 +1,14 @@
 <script lang="ts">
-  /** When set, the list becomes a CSS grid using these columns; rows are
+  
+  interface Props {
+    /** When set, the list becomes a CSS grid using these columns; rows are
    *  expected to use `display: grid; grid-template-columns: subgrid` so cells
    *  align across rows. */
-  export let gridColumns: string = '';
+    gridColumns?: string;
+    children?: import('svelte').Snippet;
+  }
+
+  let { gridColumns = '', children }: Props = $props();
 </script>
 
 <div
@@ -10,7 +16,7 @@
   class:grid={!!gridColumns}
   style:grid-template-columns={gridColumns || null}
 >
-  <slot />
+  {@render children?.()}
 </div>
 
 <style>

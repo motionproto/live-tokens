@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   import type { Token } from './scaffolding/types';
 
   export const component = 'image';
@@ -36,14 +36,16 @@
 </script>
 
 <ComponentEditorBase {component} title="Image" description="Framed image with rounded corners, border, and shadow. Import from <code>components/Image.svelte</code>" tokens={allTokens}>
-  <svelte:fragment slot="config">
-    <label class="backdrop-config">
-      <span>Sample background</span>
-      <div class="picker-slot">
-        <UIPaletteSelector variable={bgVar} />
-      </div>
-    </label>
-  </svelte:fragment>
+  {#snippet config()}
+  
+      <label class="backdrop-config">
+        <span>Sample background</span>
+        <div class="picker-slot">
+          <UIPaletteSelector variable={bgVar} />
+        </div>
+      </label>
+    
+  {/snippet}
   <VariantGroup name="image" title="Image" {states} {component}>
     <ShadowBackdrop mode="color" colorVariable={bgVar}>
       <div class="image-demo-grid">

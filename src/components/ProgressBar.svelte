@@ -1,12 +1,22 @@
 <script lang="ts">
-  export let value: number = 0;
-  export let label: string = '';
-  export let variant: 'primary' | 'success' | 'warning' | 'danger' | 'info' = 'primary';
-  export let size: 'default' | 'compact' = 'default';
-  export let showIcon: boolean = true;
+  interface Props {
+    value?: number;
+    label?: string;
+    variant?: 'primary' | 'success' | 'warning' | 'danger' | 'info';
+    size?: 'default' | 'compact';
+    showIcon?: boolean;
+  }
 
-  $: clampedValue = Math.min(100, Math.max(0, value));
-  $: isComplete = clampedValue >= 100;
+  let {
+    value = 0,
+    label = '',
+    variant = 'primary',
+    size = 'default',
+    showIcon = true
+  }: Props = $props();
+
+  let clampedValue = $derived(Math.min(100, Math.max(0, value)));
+  let isComplete = $derived(clampedValue >= 100);
 </script>
 
 <div class="progress {variant}" class:compact={size === 'compact'}>

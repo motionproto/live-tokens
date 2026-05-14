@@ -2,13 +2,17 @@
   import { editorView } from '../lib/editorViewStore';
   import { parentRoute } from '../lib/parentRouteStore';
 
-  export let condensed = false;
+  interface Props {
+    condensed?: boolean;
+  }
+
+  let { condensed = false }: Props = $props();
 
   // On /components the host page is already the components editor — the
   // overlay's components view would just stack on top of it, so disable the
   // switch. The switcher renders inside the editor iframe, so we read the
   // *parent* route, not this iframe's own route.
-  $: componentsDisabled = $parentRoute === '/components';
+  let componentsDisabled = $derived($parentRoute === '/components');
 
   function set(v: 'tokens' | 'components') {
     editorView.set(v);
@@ -26,7 +30,7 @@
     class="compact"
     aria-label={$editorView === 'tokens' ? 'Switch to components' : 'Switch to tokens'}
     title={$editorView === 'tokens' ? 'Tokens (click for components)' : 'Components (click for tokens)'}
-    on:click={toggle}
+    onclick={toggle}
   >
     <i class="fas {$editorView === 'tokens' ? 'fa-palette' : 'fa-cubes'}"></i>
   </button>
@@ -40,7 +44,7 @@
         class="seg-btn"
         class:active={$editorView === 'tokens'}
         aria-selected={$editorView === 'tokens'}
-        on:click={() => set('tokens')}
+        onclick={() => set('tokens')}
       >
         <span class="radio" aria-hidden="true"></span>
         <span>Tokens</span>
@@ -53,7 +57,7 @@
         aria-selected={$editorView === 'components'}
         disabled={componentsDisabled}
         title={componentsDisabled ? 'Already viewing the Components page' : undefined}
-        on:click={() => set('components')}
+        onclick={() => set('components')}
       >
         <span class="radio" aria-hidden="true"></span>
         <span>Components</span>

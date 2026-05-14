@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
   import { badgeVariants } from '../components/Badge.svelte';
@@ -69,18 +69,18 @@
   import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
   import UIRadioGroup from '../ui/UIRadioGroup.svelte';
 
-  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
-  $: visibleVariantTokens = (v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet);
+  let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
+  let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet));
 
-  let bgMode: 'image' | 'color' = 'image';
+  let bgMode: 'image' | 'color' = $state('image');
   const bgVar = '--backdrop-badge-surface';
 
   // Preview-only props for Badge's floating/anchor/flush features (not persisted).
   // For corner-anchored use, prefer the dedicated CornerBadge component; Badge.floating
   // is the low-level escape hatch for off-corner floating placements.
-  let floating: boolean = false;
-  let flush: boolean = false;
-  let anchor: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' = 'bottom-right';
+  let floating: boolean = $state(false);
+  let flush: boolean = $state(false);
+  let anchor: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' = $state('bottom-right');
   const anchorOptions = [
     { value: 'top-left' as const, label: 'TL' },
     { value: 'top-right' as const, label: 'TR' },
@@ -90,23 +90,25 @@
 </script>
 
 <ComponentEditorBase {component} title="Badge" description="Pill-shaped badges with color variants. Import from <code>components/Badge.svelte</code>" tokens={allTokens} {linked} variants={variantOptions}>
-  <svelte:fragment slot="config">
-    <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
-    <label class="float-toggle">
-      <input type="checkbox" bind:checked={floating} />
-      <span>Floating preview</span>
-    </label>
-    {#if floating}
+  {#snippet config()}
+  
+      <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
       <label class="float-toggle">
-        <input type="checkbox" bind:checked={flush} />
-        <span>Flush corner</span>
+        <input type="checkbox" bind:checked={floating} />
+        <span>Floating preview</span>
       </label>
-      <div class="anchor-control">
-        <span>Anchor</span>
-        <UIRadioGroup bind:value={anchor} name="badge-anchor" options={anchorOptions} />
-      </div>
-    {/if}
-  </svelte:fragment>
+      {#if floating}
+        <label class="float-toggle">
+          <input type="checkbox" bind:checked={flush} />
+          <span>Flush corner</span>
+        </label>
+        <div class="anchor-control">
+          <span>Anchor</span>
+          <UIRadioGroup bind:value={anchor} name="badge-anchor" options={anchorOptions} />
+        </div>
+      {/if}
+    
+  {/snippet}
   {#each variants as v}
     <VariantGroup
       name={v}

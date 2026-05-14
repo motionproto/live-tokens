@@ -1,11 +1,20 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
 
-  export let active: boolean = false;
-  export let label: string;
-  export let color: string = '';
-  let className: string = '';
-  export { className as class };
+  interface Props {
+    active?: boolean;
+    label: string;
+    color?: string;
+    class?: string;
+  }
+
+  let {
+    active = false,
+    label,
+    color = '',
+    class: className = ''
+  }: Props = $props();
+  
 
   const dispatch = createEventDispatcher();
 </script>
@@ -14,7 +23,7 @@
   class="radio-button {className}"
   class:active
   style={color ? `--radiobutton-color: ${color};` : ''}
-  on:click={() => dispatch('click')}
+  onclick={() => dispatch('click')}
 >
   <span class="radio-dot"></span>
   <span class="radio-label">{label}</span>

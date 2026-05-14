@@ -14,6 +14,7 @@ import {
   __resetForTests,
 } from '../lib/editorStore';
 import type { PaletteConfig } from '../lib/themeTypes';
+import { mount, unmount } from "svelte";
 
 function makePaletteConfig(baseColor: string): PaletteConfig {
   return {
@@ -50,13 +51,13 @@ describe('PaletteEditor — store-first integration', () => {
     const target = document.createElement('div');
     document.body.appendChild(target);
 
-    const component = new PaletteEditor({
-      target,
-      props: { label: 'Background', initialColor: '#8d7f74', mode: 'chromatic' },
-    });
+    const component = mount(PaletteEditor, {
+          target,
+          props: { label: 'Background', initialColor: '#8d7f74', mode: 'chromatic' },
+        });
 
     expect(get(editorState).palettes.Background.baseColor).toBe('#8d7f74');
-    component.$destroy();
+    unmount(component);
   });
 
   it('per-tick store mutations are visible immediately during a session', () => {
@@ -64,10 +65,10 @@ describe('PaletteEditor — store-first integration', () => {
 
     const target = document.createElement('div');
     document.body.appendChild(target);
-    const component = new PaletteEditor({
-      target,
-      props: { label: 'Background', initialColor: '#8d7f74', mode: 'chromatic' },
-    });
+    const component = mount(PaletteEditor, {
+          target,
+          props: { label: 'Background', initialColor: '#8d7f74', mode: 'chromatic' },
+        });
 
     const session = beginScope({ ...sessionOpts });
     beginSliderGesture('drag base');
@@ -85,7 +86,7 @@ describe('PaletteEditor — store-first integration', () => {
     undo();
     expect(get(editorState).palettes.Background.baseColor).toBe('#8d7f74');
 
-    component.$destroy();
+    unmount(component);
   });
 
   it('cancel after drag snaps the store back to pre-session', () => {
@@ -93,16 +94,16 @@ describe('PaletteEditor — store-first integration', () => {
 
     const target = document.createElement('div');
     document.body.appendChild(target);
-    const component = new PaletteEditor({
-      target,
-      props: { label: 'Background', initialColor: '#8d7f74', mode: 'chromatic' },
-    });
+    const component = mount(PaletteEditor, {
+          target,
+          props: { label: 'Background', initialColor: '#8d7f74', mode: 'chromatic' },
+        });
 
     const session = beginScope({ ...sessionOpts });
     mutate('drag', (s) => { s.palettes.Background.baseColor = '#112233'; });
     cancelScope(session);
 
     expect(get(editorState).palettes.Background.baseColor).toBe('#8d7f74');
-    component.$destroy();
+    unmount(component);
   });
 });

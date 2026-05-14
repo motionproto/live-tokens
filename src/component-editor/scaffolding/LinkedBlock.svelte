@@ -13,8 +13,12 @@
   const fadeDur = reduceMotion ? 0 : 140;
   const slideDur = reduceMotion ? 0 : 200;
 
-  export let component: string;
-  export let linked: LinkedBlockResult;
+  interface Props {
+    component: string;
+    linked: LinkedBlockResult;
+  }
+
+  let { component, linked }: Props = $props();
 
   const editorCtx = getEditorContext();
   const focusedVariant = editorCtx?.focusedVariant;
@@ -71,35 +75,35 @@
     return `${brokenContexts.length} unlinked`;
   }
 
-  $: focusedV = (focusedVariant ? $focusedVariant : null) ?? null;
-  $: focusedS = (focusedState ? $focusedState : null) ?? null;
-  $: hoveredVar = (hoveredLinkedVariable ? $hoveredLinkedVariable : null) ?? null;
+  let focusedV = $derived((focusedVariant ? $focusedVariant : null) ?? null);
+  let focusedS = $derived((focusedState ? $focusedState : null) ?? null);
+  let hoveredVar = $derived((hoveredLinkedVariable ? $hoveredLinkedVariable : null) ?? null);
 
   function setHover(variable: string | null) {
     hoveredLinkedVariable?.set(variable);
   }
 
   /** One card per LinkedGroup. Stable order = editor-declared order. */
-  $: cards = linked.groups.map((g) => ({
+  let cards = $derived(linked.groups.map((g) => ({
     contexts: g.contexts,
     brokenContexts: g.brokenContexts,
     row: { ...g.token, variable: pickFocusedVariable(g, focusedV, focusedS) },
     caption: captionFor(g.contexts),
     unlinkedText: formatUnlinked(g.brokenContexts),
     isBroken: g.brokenContexts.length > 0,
-  }));
+  })));
 
   /** Section-level summary: count of properties with any broken peers. The
       header tells the user *whether to look*; the per-card text tells them
       *what's broken*. Two layers, two granularities. */
-  $: brokenPropertyCount = cards.filter((c) => c.isBroken).length;
-  $: hasAnyBroken = brokenPropertyCount > 0;
+  let brokenPropertyCount = $derived(cards.filter((c) => c.isBroken).length);
+  let hasAnyBroken = $derived(brokenPropertyCount > 0);
 
   /** Default closed; the section header's summary count + "in sync / N unlinked"
       text is the at-a-glance signal, so users opt into the matrix only when
       they need it. */
-  let sectionToggleOverride: boolean | null = null;
-  $: sectionExpanded = sectionToggleOverride ?? false;
+  let sectionToggleOverride: boolean | null = $state(null);
+  let sectionExpanded = $derived(sectionToggleOverride ?? false);
   function toggleSection() {
     sectionToggleOverride = !sectionExpanded;
   }
@@ -107,7 +111,7 @@
   /** Per-card chart expand state, keyed by the card's row variable (which is
       stable per LinkedGroup since pickFocusedVariable runs against the same
       group on every render). */
-  let expandedCards: Record<string, boolean> = {};
+  let expandedCards: Record<string, boolean> = $state({});
   function toggleCard(variable: string) {
     expandedCards = { ...expandedCards, [variable]: !expandedCards[variable] };
   }
@@ -120,7 +124,7 @@
       class="section-header"
       class:expanded={sectionExpanded}
       aria-expanded={sectionExpanded}
-      on:click={toggleSection}
+      onclick={toggleSection}
     >
       <i class="fas fa-chevron-right chevron"></i>
       <span class="section-title">Linked properties</span>
@@ -144,8 +148,8 @@
             class="linked-card"
             class:broken={card.isBroken}
             class:hovered={cardHovered}
-            on:mouseenter={() => setHover(card.row.variable)}
-            on:mouseleave={() => setHover(null)}
+            onmouseenter={() => setHover(card.row.variable)}
+            onmouseleave={() => setHover(null)}
           >
             <h4 class="property-name">{card.row.label}</h4>
             <div class="control-row">
@@ -162,7 +166,7 @@
               class="drill-down"
               class:expanded={cardExpanded}
               aria-expanded={cardExpanded}
-              on:click={() => toggleCard(card.row.variable)}
+              onclick={() => toggleCard(card.row.variable)}
             >
               <i class="fas fa-chevron-right chevron"></i>
               <span class="drill-label">Links</span>

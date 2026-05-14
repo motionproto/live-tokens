@@ -11,12 +11,16 @@
   import { editorState } from '../../lib/editorStore';
   import GradientEditor from '../GradientEditor.svelte';
 
-  export let copiedVar: string | null = null;
+  interface Props {
+    copiedVar?: string | null;
+  }
+
+  let { copiedVar = null }: Props = $props();
 
   const dispatch = createEventDispatcher<{ copy: string }>();
   function copy(v: string) { dispatch('copy', v); }
 
-  let editingGradient: string | null = null;
+  let editingGradient: string | null = $state(null);
 </script>
 
 <section class="section" id="gradients">
@@ -30,9 +34,9 @@
           <div class="gradient-box" style="background: var({token.variable});"></div>
         {/if}
         <div class="token-info">
-          <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copy(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
+          <button class="token-variable copyable" class:copied={copiedVar === token.variable} onclick={() => copy(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
           {#if !isEditing}
-            <button class="gradient-edit-btn" on:click={() => editingGradient = token.variable}>Edit</button>
+            <button class="gradient-edit-btn" onclick={() => editingGradient = token.variable}>Edit</button>
           {/if}
         </div>
         {#if isEditing}

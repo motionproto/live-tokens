@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
   export const component = 'table';
@@ -99,10 +99,10 @@
   import { editorState } from '../lib/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
-  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
-  $: visibleStates = Object.fromEntries(
+  let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
+  let visibleStates = $derived(Object.fromEntries(
     Object.entries(states).map(([state, tokens]) => [state, withLinkedDisabled(tokens, linked.varSet)]),
-  ) as Record<string, Token[]>;
+  ) as Record<string, Token[]>);
 </script>
 
 <ComponentEditorBase {component} title="Table" description="Styled wrapper around <code>&lt;table&gt;</code> with horizontal scroll on narrow viewports. Import from <code>components/Table.svelte</code>" tokens={allTokens} {linked}>

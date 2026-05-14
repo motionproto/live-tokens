@@ -10,12 +10,16 @@
   import { editorState, mutate, beginSliderGesture } from '../../lib/editorStore';
   import type { OverlayToken, OverlayChannelGlobals, EditorState } from '../../lib/editorTypes';
 
-  export let copiedVar: string | null = null;
+  interface Props {
+    copiedVar?: string | null;
+  }
+
+  let { copiedVar = null }: Props = $props();
 
   const dispatch = createEventDispatcher<{ copy: string }>();
   function copy(v: string) { dispatch('copy', v); }
 
-  let editingOverlay: string | null = null;
+  let editingOverlay: string | null = $state(null);
 
   function clampNum(v: number, lo: number, hi: number): number {
     return Math.max(lo, Math.min(hi, Math.round(v)));
@@ -117,10 +121,10 @@
           <div class="overlay-swatch" style="background: {getOverlayCss(token)};"></div>
         </div>
         <div class="token-info">
-          <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copy(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
+          <button class="token-variable copyable" class:copied={copiedVar === token.variable} onclick={() => copy(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
           <span class="token-value">{token.label} — {Math.round(token.opacity * 100)}%</span>
         </div>
-        <button class="shadow-edit-btn" on:click={() => editingOverlay = editingOverlay === token.variable ? null : token.variable}>
+        <button class="shadow-edit-btn" onclick={() => editingOverlay = editingOverlay === token.variable ? null : token.variable}>
           {editingOverlay === token.variable ? 'Close' : 'Edit'}
         </button>
         {#if editingOverlay === token.variable}
@@ -128,16 +132,16 @@
             <div class="shadow-slider-row">
               <span class="shadow-slider-label">Opacity</span>
               <input type="range" min="0" max="100" value={Math.round(token.opacity * 100)}
-                on:pointerdown={() => beginSliderGesture(`edit ${token.variable} opacity`)}
-                on:input={(e) => setOverlayTokenOpacity('overlay', i, +e.currentTarget.value / 100)} />
+                onpointerdown={() => beginSliderGesture(`edit ${token.variable} opacity`)}
+                oninput={(e) => setOverlayTokenOpacity('overlay', i, +e.currentTarget.value / 100)} />
               <input class="shadow-slider-input" type="number" min="0" max="100"
                 value={Math.round(token.opacity * 100)}
-                on:change={(e) => setOverlayTokenOpacity('overlay', i, Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
+                onchange={(e) => setOverlayTokenOpacity('overlay', i, Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
               <span class="shadow-slider-unit">%</span>
             </div>
             <div class="shadow-css-output">
               <code>{getOverlayCss(token)}</code>
-              <button class="shadow-copy-btn" on:click={() => copy(getOverlayCss(token))}>
+              <button class="shadow-copy-btn" onclick={() => copy(getOverlayCss(token))}>
                 {copiedVar === getOverlayCss(token) ? 'Copied!' : 'Copy CSS'}
               </button>
             </div>
@@ -159,36 +163,36 @@
               <span class="shadow-slider-label">H</span>
               <div class="slider-track" style="background: {overlayHueGrad($editorState.overlays.globals.overlay)}">
                 <input type="range" min="0" max="360" value={$editorState.overlays.globals.overlay.hue}
-                  on:pointerdown={() => beginSliderGesture('overlay hue')}
-                  on:input={(e) => setOverlayColor('overlay', 'hue', +e.currentTarget.value)} />
+                  onpointerdown={() => beginSliderGesture('overlay hue')}
+                  oninput={(e) => setOverlayColor('overlay', 'hue', +e.currentTarget.value)} />
               </div>
               <input class="shadow-slider-input" type="number" min="0" max="360"
                 value={$editorState.overlays.globals.overlay.hue}
-                on:change={(e) => setOverlayColor('overlay', 'hue', +e.currentTarget.value)} />
+                onchange={(e) => setOverlayColor('overlay', 'hue', +e.currentTarget.value)} />
               <span class="shadow-slider-unit">&deg;</span>
             </div>
             <div class="global-shadow-row">
               <span class="shadow-slider-label">S</span>
               <div class="slider-track" style="background: {overlaySatGrad($editorState.overlays.globals.overlay)}">
                 <input type="range" min="0" max="100" value={$editorState.overlays.globals.overlay.saturation}
-                  on:pointerdown={() => beginSliderGesture('overlay saturation')}
-                  on:input={(e) => setOverlayColor('overlay', 'saturation', +e.currentTarget.value)} />
+                  onpointerdown={() => beginSliderGesture('overlay saturation')}
+                  oninput={(e) => setOverlayColor('overlay', 'saturation', +e.currentTarget.value)} />
               </div>
               <input class="shadow-slider-input" type="number" min="0" max="100"
                 value={$editorState.overlays.globals.overlay.saturation}
-                on:change={(e) => setOverlayColor('overlay', 'saturation', +e.currentTarget.value)} />
+                onchange={(e) => setOverlayColor('overlay', 'saturation', +e.currentTarget.value)} />
               <span class="shadow-slider-unit">%</span>
             </div>
             <div class="global-shadow-row">
               <span class="shadow-slider-label">L</span>
               <div class="slider-track" style="background: {overlayLightGrad($editorState.overlays.globals.overlay)}">
                 <input type="range" min="0" max="100" value={$editorState.overlays.globals.overlay.lightness}
-                  on:pointerdown={() => beginSliderGesture('overlay lightness')}
-                  on:input={(e) => setOverlayColor('overlay', 'lightness', +e.currentTarget.value)} />
+                  onpointerdown={() => beginSliderGesture('overlay lightness')}
+                  oninput={(e) => setOverlayColor('overlay', 'lightness', +e.currentTarget.value)} />
               </div>
               <input class="shadow-slider-input" type="number" min="0" max="100"
                 value={$editorState.overlays.globals.overlay.lightness}
-                on:change={(e) => setOverlayColor('overlay', 'lightness', +e.currentTarget.value)} />
+                onchange={(e) => setOverlayColor('overlay', 'lightness', +e.currentTarget.value)} />
               <span class="shadow-slider-unit">%</span>
             </div>
           </div>
@@ -198,21 +202,21 @@
         <div class="global-shadow-row">
           <span class="shadow-slider-label">Op. Min</span>
           <input type="range" min="0" max="100" value={Math.round($editorState.overlays.globals.overlay.opacityMin * 100)}
-            on:pointerdown={() => beginSliderGesture('overlay opacity min')}
-            on:input={(e) => setOverlayOpacity('overlay', 'opacityMin', +e.currentTarget.value / 100)} />
+            onpointerdown={() => beginSliderGesture('overlay opacity min')}
+            oninput={(e) => setOverlayOpacity('overlay', 'opacityMin', +e.currentTarget.value / 100)} />
           <input class="shadow-slider-input" type="number" min="0" max="100"
             value={Math.round($editorState.overlays.globals.overlay.opacityMin * 100)}
-            on:change={(e) => setOverlayOpacity('overlay', 'opacityMin', Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
+            onchange={(e) => setOverlayOpacity('overlay', 'opacityMin', Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
           <span class="shadow-slider-unit">%</span>
         </div>
         <div class="global-shadow-row">
           <span class="shadow-slider-label">Op. Max</span>
           <input type="range" min="0" max="100" value={Math.round($editorState.overlays.globals.overlay.opacityMax * 100)}
-            on:pointerdown={() => beginSliderGesture('overlay opacity max')}
-            on:input={(e) => setOverlayOpacity('overlay', 'opacityMax', +e.currentTarget.value / 100)} />
+            onpointerdown={() => beginSliderGesture('overlay opacity max')}
+            oninput={(e) => setOverlayOpacity('overlay', 'opacityMax', +e.currentTarget.value / 100)} />
           <input class="shadow-slider-input" type="number" min="0" max="100"
             value={Math.round($editorState.overlays.globals.overlay.opacityMax * 100)}
-            on:change={(e) => setOverlayOpacity('overlay', 'opacityMax', Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
+            onchange={(e) => setOverlayOpacity('overlay', 'opacityMax', Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
           <span class="shadow-slider-unit">%</span>
         </div>
       </div>
@@ -227,10 +231,10 @@
           <div class="overlay-swatch" style="background: {getOverlayCss(token)};"></div>
         </div>
         <div class="token-info">
-          <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copy(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
+          <button class="token-variable copyable" class:copied={copiedVar === token.variable} onclick={() => copy(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
           <span class="token-value">{token.label} — {Math.round(token.opacity * 100)}%</span>
         </div>
-        <button class="shadow-edit-btn" on:click={() => editingOverlay = editingOverlay === token.variable ? null : token.variable}>
+        <button class="shadow-edit-btn" onclick={() => editingOverlay = editingOverlay === token.variable ? null : token.variable}>
           {editingOverlay === token.variable ? 'Close' : 'Edit'}
         </button>
         {#if editingOverlay === token.variable}
@@ -238,16 +242,16 @@
             <div class="shadow-slider-row">
               <span class="shadow-slider-label">Opacity</span>
               <input type="range" min="0" max="100" value={Math.round(token.opacity * 100)}
-                on:pointerdown={() => beginSliderGesture(`edit ${token.variable} opacity`)}
-                on:input={(e) => setOverlayTokenOpacity('hover', i, +e.currentTarget.value / 100)} />
+                onpointerdown={() => beginSliderGesture(`edit ${token.variable} opacity`)}
+                oninput={(e) => setOverlayTokenOpacity('hover', i, +e.currentTarget.value / 100)} />
               <input class="shadow-slider-input" type="number" min="0" max="100"
                 value={Math.round(token.opacity * 100)}
-                on:change={(e) => setOverlayTokenOpacity('hover', i, Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
+                onchange={(e) => setOverlayTokenOpacity('hover', i, Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
               <span class="shadow-slider-unit">%</span>
             </div>
             <div class="shadow-css-output">
               <code>{getOverlayCss(token)}</code>
-              <button class="shadow-copy-btn" on:click={() => copy(getOverlayCss(token))}>
+              <button class="shadow-copy-btn" onclick={() => copy(getOverlayCss(token))}>
                 {copiedVar === getOverlayCss(token) ? 'Copied!' : 'Copy CSS'}
               </button>
             </div>
@@ -269,36 +273,36 @@
               <span class="shadow-slider-label">H</span>
               <div class="slider-track" style="background: {overlayHueGrad($editorState.overlays.globals.hover)}">
                 <input type="range" min="0" max="360" value={$editorState.overlays.globals.hover.hue}
-                  on:pointerdown={() => beginSliderGesture('hover hue')}
-                  on:input={(e) => setOverlayColor('hover', 'hue', +e.currentTarget.value)} />
+                  onpointerdown={() => beginSliderGesture('hover hue')}
+                  oninput={(e) => setOverlayColor('hover', 'hue', +e.currentTarget.value)} />
               </div>
               <input class="shadow-slider-input" type="number" min="0" max="360"
                 value={$editorState.overlays.globals.hover.hue}
-                on:change={(e) => setOverlayColor('hover', 'hue', +e.currentTarget.value)} />
+                onchange={(e) => setOverlayColor('hover', 'hue', +e.currentTarget.value)} />
               <span class="shadow-slider-unit">&deg;</span>
             </div>
             <div class="global-shadow-row">
               <span class="shadow-slider-label">S</span>
               <div class="slider-track" style="background: {overlaySatGrad($editorState.overlays.globals.hover)}">
                 <input type="range" min="0" max="100" value={$editorState.overlays.globals.hover.saturation}
-                  on:pointerdown={() => beginSliderGesture('hover saturation')}
-                  on:input={(e) => setOverlayColor('hover', 'saturation', +e.currentTarget.value)} />
+                  onpointerdown={() => beginSliderGesture('hover saturation')}
+                  oninput={(e) => setOverlayColor('hover', 'saturation', +e.currentTarget.value)} />
               </div>
               <input class="shadow-slider-input" type="number" min="0" max="100"
                 value={$editorState.overlays.globals.hover.saturation}
-                on:change={(e) => setOverlayColor('hover', 'saturation', +e.currentTarget.value)} />
+                onchange={(e) => setOverlayColor('hover', 'saturation', +e.currentTarget.value)} />
               <span class="shadow-slider-unit">%</span>
             </div>
             <div class="global-shadow-row">
               <span class="shadow-slider-label">L</span>
               <div class="slider-track" style="background: {overlayLightGrad($editorState.overlays.globals.hover)}">
                 <input type="range" min="0" max="100" value={$editorState.overlays.globals.hover.lightness}
-                  on:pointerdown={() => beginSliderGesture('hover lightness')}
-                  on:input={(e) => setOverlayColor('hover', 'lightness', +e.currentTarget.value)} />
+                  onpointerdown={() => beginSliderGesture('hover lightness')}
+                  oninput={(e) => setOverlayColor('hover', 'lightness', +e.currentTarget.value)} />
               </div>
               <input class="shadow-slider-input" type="number" min="0" max="100"
                 value={$editorState.overlays.globals.hover.lightness}
-                on:change={(e) => setOverlayColor('hover', 'lightness', +e.currentTarget.value)} />
+                onchange={(e) => setOverlayColor('hover', 'lightness', +e.currentTarget.value)} />
               <span class="shadow-slider-unit">%</span>
             </div>
           </div>
@@ -308,21 +312,21 @@
         <div class="global-shadow-row">
           <span class="shadow-slider-label">Op. Min</span>
           <input type="range" min="0" max="100" value={Math.round($editorState.overlays.globals.hover.opacityMin * 100)}
-            on:pointerdown={() => beginSliderGesture('hover opacity min')}
-            on:input={(e) => setOverlayOpacity('hover', 'opacityMin', +e.currentTarget.value / 100)} />
+            onpointerdown={() => beginSliderGesture('hover opacity min')}
+            oninput={(e) => setOverlayOpacity('hover', 'opacityMin', +e.currentTarget.value / 100)} />
           <input class="shadow-slider-input" type="number" min="0" max="100"
             value={Math.round($editorState.overlays.globals.hover.opacityMin * 100)}
-            on:change={(e) => setOverlayOpacity('hover', 'opacityMin', Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
+            onchange={(e) => setOverlayOpacity('hover', 'opacityMin', Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
           <span class="shadow-slider-unit">%</span>
         </div>
         <div class="global-shadow-row">
           <span class="shadow-slider-label">Op. Max</span>
           <input type="range" min="0" max="100" value={Math.round($editorState.overlays.globals.hover.opacityMax * 100)}
-            on:pointerdown={() => beginSliderGesture('hover opacity max')}
-            on:input={(e) => setOverlayOpacity('hover', 'opacityMax', +e.currentTarget.value / 100)} />
+            onpointerdown={() => beginSliderGesture('hover opacity max')}
+            oninput={(e) => setOverlayOpacity('hover', 'opacityMax', +e.currentTarget.value / 100)} />
           <input class="shadow-slider-input" type="number" min="0" max="100"
             value={Math.round($editorState.overlays.globals.hover.opacityMax * 100)}
-            on:change={(e) => setOverlayOpacity('hover', 'opacityMax', Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
+            onchange={(e) => setOverlayOpacity('hover', 'opacityMax', Math.min(100, Math.max(0, +e.currentTarget.value)) / 100)} />
           <span class="shadow-slider-unit">%</span>
         </div>
       </div>

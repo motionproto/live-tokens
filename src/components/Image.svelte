@@ -1,8 +1,17 @@
 <script lang="ts">
-  export let src: string;
-  export let alt: string;
-  export let variant: 'default' | 'banner' | 'medium' | 'compact' = 'default';
-  export let height: string | undefined = undefined;
+  interface Props {
+    src: string;
+    alt: string;
+    variant?: 'default' | 'banner' | 'medium' | 'compact';
+    height?: string | undefined;
+  }
+
+  let {
+    src,
+    alt,
+    variant = 'default',
+    height = undefined
+  }: Props = $props();
 
   const variantHeights: Record<string, string | undefined> = {
     default: undefined,
@@ -11,7 +20,7 @@
     compact: '180px',
   };
 
-  $: resolvedHeight = height ?? variantHeights[variant];
+  let resolvedHeight = $derived(height ?? variantHeights[variant]);
 </script>
 
 <div class="image" style:height={resolvedHeight}>

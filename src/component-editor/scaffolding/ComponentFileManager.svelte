@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   declare const __PROJECT_ROOT__: string | undefined;
 </script>
 
@@ -27,18 +27,25 @@
   import ComponentFileMenu from './ComponentFileMenu.svelte';
   import SaveAsDialog from './SaveAsDialog.svelte';
 
-  /** Which component this manager controls (e.g. "button"). */
-  export let component: string;
-  /** Display name shown at the start of the bar (e.g. "Segmented Control"). */
-  export let title: string = '';
-  /** When provided, renders a Reset button that reverts the component to its
+  
+  
+  
+  interface Props {
+    /** Which component this manager controls (e.g. "button"). */
+    component: string;
+    /** Display name shown at the start of the bar (e.g. "Segmented Control"). */
+    title?: string;
+    /** When provided, renders a Reset button that reverts the component to its
       currently-loaded config file (discarding unsaved edits). To switch
       configs or return to default, use the File menu. */
-  export let resetVariables: string[] | null = null;
+    resetVariables?: string[] | null;
+  }
+
+  let { component, title = '', resetVariables = null }: Props = $props();
 
   const projectRoot: string =
     typeof __PROJECT_ROOT__ !== 'undefined' ? (__PROJECT_ROOT__ ?? '') : '';
-  $: sourceFile = componentSourceFile(component);
+  let sourceFile = $derived(componentSourceFile(component));
 
   type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
   let saveStatus: SaveStatus = 'idle';
@@ -49,15 +56,15 @@
     saveStatus = state;
     setTimeout(() => (saveStatus = 'idle'), 2000);
   }
-  let files: ComponentConfigMeta[] = [];
-  let activeFileName = 'default';
-  let currentDisplayName = 'Default';
-  let saveAsDialog = false;
+  let files: ComponentConfigMeta[] = $state([]);
+  let activeFileName = $state('default');
+  let currentDisplayName = $state('Default');
+  let saveAsDialog = $state(false);
 
-  let productionInfo: ComponentProductionInfo | null = null;
+  let productionInfo: ComponentProductionInfo | null = $state(null);
   type ProductionStatus = 'idle' | 'updating' | 'done' | 'error';
-  let productionUpdateStatus: ProductionStatus = 'idle';
-  let adoptFeedback = '';
+  let productionUpdateStatus: ProductionStatus = $state('idle');
+  let adoptFeedback = $state('');
 
   /** Same idle-after-2s pattern for the production-update flash. */
   function flashProductionStatus(state: Exclude<ProductionStatus, 'idle'>) {
@@ -68,9 +75,9 @@
     }, 2000);
   }
 
-  $: compDirty = $componentDirty[component] ?? false;
-  $: isApplied = !!productionInfo && productionInfo.fileName === activeFileName && !compDirty;
-  $: resetDirty = !!resetVariables && compDirty;
+  let compDirty = $derived($componentDirty[component] ?? false);
+  let isApplied = $derived(!!productionInfo && productionInfo.fileName === activeFileName && !compDirty);
+  let resetDirty = $derived(!!resetVariables && compDirty);
 
   async function refreshFiles() {
     // safeFetch returns null on dev-server unavailable / non-2xx — silently
@@ -309,7 +316,7 @@
         {#if resetVariables}
           <button
             class="cfm-btn reset-btn"
-            on:click={handleReset}
+            onclick={handleReset}
             disabled={!resetDirty}
             title="Revert unsaved changes to {currentDisplayName}"
           >
@@ -342,7 +349,7 @@
           class:saving={productionUpdateStatus === 'updating'}
           class:saved={productionUpdateStatus === 'done'}
           class:error={productionUpdateStatus === 'error'}
-          on:click={handleUpdateProduction}
+          onclick={handleUpdateProduction}
           disabled={productionUpdateStatus === 'updating' || !productionInfo || (productionInfo.fileName === activeFileName && !compDirty)}
           title={!productionInfo
             ? ''

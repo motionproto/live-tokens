@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { stopPropagation } from 'svelte/legacy';
+
   import { onMount } from 'svelte';
   import type { PresetMeta } from '../lib/themeTypes';
   import {
@@ -12,17 +14,17 @@
   import { dirty } from '../lib/editorStore';
   import UIDialog from './UIDialog.svelte';
 
-  let files: PresetMeta[] = [];
-  let showFileList = false;
-  let saveAsEditing = false;
-  let saveAsName = '';
-  let saveAsInput: HTMLInputElement;
+  let files: PresetMeta[] = $state([]);
+  let showFileList = $state(false);
+  let saveAsEditing = $state(false);
+  let saveAsName = $state('');
+  let saveAsInput: HTMLInputElement = $state();
 
-  let activeFileName = 'default';
-  let currentDisplayName = 'Default';
+  let activeFileName = $state('default');
+  let currentDisplayName = $state('Default');
 
-  let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
-  let applyStatus: 'idle' | 'applying' = 'idle';
+  let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = $state('idle');
+  let applyStatus: 'idle' | 'applying' = $state('idle');
 
   async function refreshFiles() {
     try {
@@ -186,7 +188,7 @@
         class:saving={saveStatus === 'saving'}
         class:saved={saveStatus === 'saved'}
         class:error={saveStatus === 'error'}
-        on:click={handleSave}
+        onclick={handleSave}
         disabled={saveStatus === 'saving' || applyStatus === 'applying'}
         title="Capture the current theme + component configs into this preset"
       >
@@ -203,7 +205,7 @@
       </button>
       <button
         class="pfm-btn increment-btn"
-        on:click={handleSaveIncrement}
+        onclick={handleSaveIncrement}
         disabled={saveStatus === 'saving' || applyStatus === 'applying'}
         title="Save as incremented preset"
       >
@@ -218,25 +220,25 @@
           type="text"
           bind:value={saveAsName}
           bind:this={saveAsInput}
-          on:keydown={handleSaveAsKeydown}
+          onkeydown={handleSaveAsKeydown}
           placeholder="Preset name..."
         />
         <div class="save-as-actions">
           <button
             class="inline-btn confirm-btn"
-            on:click={confirmSaveAs}
+            onclick={confirmSaveAs}
             disabled={!saveAsName.trim()}
             title="Save"
           >
             <i class="fas fa-check"></i>
           </button>
-          <button class="inline-btn cancel-btn" on:click={cancelSaveAs} title="Cancel">
+          <button class="inline-btn cancel-btn" onclick={cancelSaveAs} title="Cancel">
             <i class="fas fa-times"></i>
           </button>
         </div>
       </div>
     {:else}
-      <button class="pfm-btn" on:click={openSaveAs} title="Save as new preset">
+      <button class="pfm-btn" onclick={openSaveAs} title="Save as new preset">
         <i class="fas fa-copy"></i>
         <span>Save As</span>
       </button>
@@ -245,7 +247,7 @@
     <button
       class="pfm-btn"
       class:active={showFileList}
-      on:click={toggleFileList}
+      onclick={toggleFileList}
       disabled={applyStatus === 'applying'}
       title="Load a preset"
     >
@@ -263,7 +265,7 @@
   <div class="load-list">
     {#each files as file}
       <div class="load-item" class:active={file.fileName === activeFileName}>
-        <button class="load-name-btn" on:click={() => handleApply(file)}>
+        <button class="load-name-btn" onclick={() => handleApply(file)}>
           {file.name}
         </button>
         {#if file.fileName === activeFileName}
@@ -272,7 +274,7 @@
         {#if file.fileName !== 'default'}
           <button
             class="file-delete-btn"
-            on:click|stopPropagation={() => handleDelete(file)}
+            onclick={stopPropagation(() => handleDelete(file))}
             title="Delete {file.name}"
           >
             <i class="fas fa-trash-alt"></i>

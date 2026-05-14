@@ -12,21 +12,36 @@
   import TypeEditor from './TypeEditor.svelte';
   import type { Token, TypeGroupConfig } from './types';
 
-  /** Tokens for this state, fed to `<TokenLayout>`. */
-  export let tokens: Token[];
-  /** Type groups for this state; rendered as a row of `<TypeEditor>` blocks. */
-  export let typeGroups: TypeGroupConfig[] = [];
-  /** Forwarded to TypeEditor and TokenLayout so writes persist through the editor store. */
-  export let component: string | undefined = undefined;
-  /** Per-variable rank passed through to TokenLayout for linked-block alignment. */
-  export let linkedOrder: Map<string, number> | undefined = undefined;
-  /** Render the token grid with N visual columns. >1 spreads a long property
+  
+  
+  
+  
+  
+  interface Props {
+    /** Tokens for this state, fed to `<TokenLayout>`. */
+    tokens: Token[];
+    /** Type groups for this state; rendered as a row of `<TypeEditor>` blocks. */
+    typeGroups?: TypeGroupConfig[];
+    /** Forwarded to TypeEditor and TokenLayout so writes persist through the editor store. */
+    component?: string | undefined;
+    /** Per-variable rank passed through to TokenLayout for linked-block alignment. */
+    linkedOrder?: Map<string, number> | undefined;
+    /** Render the token grid with N visual columns. >1 spreads a long property
       list horizontally; only meaningful for state-blocks without typeGroups
       (the two-col flex layout already partitions screen real estate when
       typeGroups are present). */
-  export let columns: number = 1;
+    columns?: number;
+  }
 
-  $: hasTypeGroups = typeGroups.length > 0;
+  let {
+    tokens,
+    typeGroups = [],
+    component = undefined,
+    linkedOrder = undefined,
+    columns = 1
+  }: Props = $props();
+
+  let hasTypeGroups = $derived(typeGroups.length > 0);
 </script>
 
 <div class="state-controls" class:two-col={hasTypeGroups}>

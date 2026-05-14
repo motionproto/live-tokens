@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: This migration would change the name of a slot (state-actions to state_actions) making the component unusable -->
 <script lang="ts">
   import { writable } from 'svelte/store';
   import TokenLayout from './TokenLayout.svelte';

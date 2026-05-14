@@ -7,14 +7,18 @@
    */
   import { createEventDispatcher } from 'svelte';
 
-  export let value: number = 0;
-  export let label: string = 'Angle';
-  export let size: number = 44;
+  interface Props {
+    value?: number;
+    label?: string;
+    size?: number;
+  }
+
+  let { value = $bindable(0), label = 'Angle', size = 44 }: Props = $props();
 
   const dispatch = createEventDispatcher<{ change: { value: number } }>();
 
-  let dialEl: HTMLDivElement;
-  let dragging = false;
+  let dialEl: HTMLDivElement = $state();
+  let dragging = $state(false);
 
   function normalize(deg: number): number {
     const r = Math.round(deg) % 360;
@@ -59,7 +63,7 @@
     if (Number.isFinite(v)) emit(v);
   }
 
-  $: indicatorTransform = `rotate(${value}deg)`;
+  let indicatorTransform = $derived(`rotate(${value}deg)`);
 </script>
 
 <div class="angle-dial-row">
@@ -71,17 +75,17 @@
     class="dial"
     class:dragging
     style="width: {size}px; height: {size}px;"
-    on:pointerdown={onPointerDown}
-    on:pointermove={onPointerMove}
-    on:pointerup={onPointerUp}
-    on:pointercancel={onPointerUp}
+    onpointerdown={onPointerDown}
+    onpointermove={onPointerMove}
+    onpointerup={onPointerUp}
+    onpointercancel={onPointerUp}
     role="slider"
     aria-valuemin="0"
     aria-valuemax="360"
     aria-valuenow={value}
     aria-label={label}
     tabindex="0"
-    on:keydown={(e) => {
+    onkeydown={(e) => {
       if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); emit(value - 1); }
       else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); emit(value + 1); }
     }}
@@ -96,7 +100,7 @@
     max="360"
     step="1"
     value={value}
-    on:change={onInputChange}
+    onchange={onInputChange}
   />
   <span class="suffix">°</span>
 </div>

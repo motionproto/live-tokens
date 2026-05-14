@@ -1,14 +1,23 @@
 <script lang="ts">
+  import { stopPropagation } from 'svelte/legacy';
+
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import type { ComponentConfigMeta } from '../../lib/themeTypes';
   import UIDialog from '../../ui/UIDialog.svelte';
 
-  /** Component slug used in the load-dialog title (e.g. "button"). */
-  export let component: string;
-  /** Files shown in the load dialog. */
-  export let files: ComponentConfigMeta[] = [];
-  /** Currently active file — highlighted in the load list. */
-  export let activeFileName: string = 'default';
+  
+  
+  
+  interface Props {
+    /** Component slug used in the load-dialog title (e.g. "button"). */
+    component: string;
+    /** Files shown in the load dialog. */
+    files?: ComponentConfigMeta[];
+    /** Currently active file — highlighted in the load list. */
+    activeFileName?: string;
+  }
+
+  let { component, files = [], activeFileName = 'default' }: Props = $props();
 
   const dispatch = createEventDispatcher<{
     save: void;
@@ -19,9 +28,9 @@
     delete: ComponentConfigMeta;
   }>();
 
-  let fileMenuOpen = false;
-  let fileMenuRoot: HTMLElement;
-  let showFileList = false;
+  let fileMenuOpen = $state(false);
+  let fileMenuRoot: HTMLElement = $state();
+  let showFileList = $state(false);
 
   onMount(() => {
     document.addEventListener('click', handleDocClick, true);
@@ -69,7 +78,7 @@
   <button
     class="cfm-btn"
     class:active={fileMenuOpen}
-    on:click={() => (fileMenuOpen = !fileMenuOpen)}
+    onclick={() => (fileMenuOpen = !fileMenuOpen)}
     title="File menu"
   >
     <i class="fas fa-file"></i>
@@ -78,15 +87,15 @@
   </button>
   {#if fileMenuOpen}
     <div class="file-menu-dropdown" role="menu">
-      <button class="file-menu-item" on:click={handleSave} role="menuitem">
+      <button class="file-menu-item" onclick={handleSave} role="menuitem">
         <i class="fas fa-save"></i>
         <span>Save</span>
       </button>
-      <button class="file-menu-item" on:click={handleSaveAs} role="menuitem">
+      <button class="file-menu-item" onclick={handleSaveAs} role="menuitem">
         <i class="fas fa-copy"></i>
         <span>Save As…</span>
       </button>
-      <button class="file-menu-item" on:click={handleOpenLoad} role="menuitem">
+      <button class="file-menu-item" onclick={handleOpenLoad} role="menuitem">
         <i class="fas fa-folder-open"></i>
         <span>Load…</span>
       </button>
@@ -103,7 +112,7 @@
   <div class="load-list">
     {#each files as file}
       <div class="load-item" class:active={file.fileName === activeFileName}>
-        <button class="load-name-btn" on:click={() => handleLoad(file)}>
+        <button class="load-name-btn" onclick={() => handleLoad(file)}>
           {file.name}
         </button>
         {#if file.fileName === activeFileName}
@@ -112,7 +121,7 @@
         {#if file.fileName !== 'default'}
           <button
             class="file-delete-btn"
-            on:click|stopPropagation={() => handleDelete(file)}
+            onclick={stopPropagation(() => handleDelete(file))}
             title="Delete {file.name}"
           >
             <i class="fas fa-trash-alt"></i>

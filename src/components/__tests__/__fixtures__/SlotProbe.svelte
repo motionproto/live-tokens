@@ -7,8 +7,12 @@
   import Card from '../../Card.svelte';
   import Callout from '../../Callout.svelte';
 
-  export let which: 'button' | 'card' | 'callout';
-  export let text: string;
+  interface Props {
+    which: 'button' | 'card' | 'callout';
+    text: string;
+  }
+
+  let { which, text }: Props = $props();
 </script>
 
 {#if which === 'button'}

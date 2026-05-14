@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { onMount, onDestroy } from 'svelte';
   import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
   import PresetFileManager from '../ui/PresetFileManager.svelte';
@@ -7,19 +9,19 @@
   import { listComponents } from '../lib/componentConfigService';
   import { selectedComponent } from '../lib/editorViewStore';
 
-  let drawerOpen = true;
+  let drawerOpen = $state(true);
 
   // Demo page is statically imported from `./Demo.svelte` in App.svelte; the
   // glob resolves to an empty object if the file has been deleted, in which
   // case we hide the demo option from the page-switcher.
   const demoExists = Object.keys(import.meta.glob('./Demo.svelte')).length > 0;
 
-  let pageMenuOpen = false;
-  let pageMenuRoot: HTMLElement;
+  let pageMenuOpen = $state(false);
+  let pageMenuRoot: HTMLElement = $state();
 
   const HINT_DELAY_MS = 80;
-  let hintLabel: string | null = null;
-  let hintTop = 0;
+  let hintLabel: string | null = $state(null);
+  let hintTop = $state(0);
   let hintTimer: ReturnType<typeof setTimeout> | null = null;
 
   function showHint(label: string, target: HTMLElement) {
@@ -40,7 +42,9 @@
     hintLabel = null;
   }
 
-  $: if (drawerOpen) hideHint();
+  run(() => {
+    if (drawerOpen) hideHint();
+  });
 
   function selectComponent(id: string) {
     selectedComponent.set(id);
@@ -101,7 +105,7 @@
         class="rail-toggle"
         aria-label={drawerOpen ? 'Collapse components menu' : 'Expand components menu'}
         aria-expanded={drawerOpen}
-        on:click={() => (drawerOpen = !drawerOpen)}
+        onclick={() => (drawerOpen = !drawerOpen)}
       >
         <i class="fas {drawerOpen ? 'fa-arrow-left' : 'fa-arrow-right'}"></i>
       </button>
@@ -112,19 +116,19 @@
         aria-haspopup="menu"
         aria-expanded={pageMenuOpen}
         tabindex={drawerOpen ? 0 : -1}
-        on:click={() => drawerOpen && (pageMenuOpen = !pageMenuOpen)}
+        onclick={() => drawerOpen && (pageMenuOpen = !pageMenuOpen)}
       >
         <span class="rail-label">Components</span>
         <i class="fas fa-chevron-down rail-chevron" class:open={pageMenuOpen}></i>
       </button>
       {#if pageMenuOpen && drawerOpen}
         <div class="page-menu" role="menu">
-          <button class="page-menu-item" role="menuitem" on:click={() => selectPage('/')}>
+          <button class="page-menu-item" role="menuitem" onclick={() => selectPage('/')}>
             <i class="fas fa-home"></i>
             <span>Main site</span>
           </button>
           {#if demoExists}
-            <button class="page-menu-item" role="menuitem" on:click={() => selectPage('/demo')}>
+            <button class="page-menu-item" role="menuitem" onclick={() => selectPage('/demo')}>
               <i class="fas fa-box-open"></i>
               <span>Demo page</span>
             </button>
@@ -137,9 +141,9 @@
         <button
           class="nav-item"
           class:active={$selectedComponent === item.id}
-          on:mouseenter={(e) => showHint(item.label, e.currentTarget)}
-          on:mouseleave={hideHint}
-          on:click={() => selectComponent(item.id)}
+          onmouseenter={(e) => showHint(item.label, e.currentTarget)}
+          onmouseleave={hideHint}
+          onclick={() => selectComponent(item.id)}
         >
           <i class={item.icon}></i>
           <span class="rail-label">{item.label}</span>

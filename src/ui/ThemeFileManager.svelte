@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { stopPropagation } from 'svelte/legacy';
+
   import { createEventDispatcher, onMount } from 'svelte';
   import type { ThemeMeta } from '../lib/themeTypes';
   import { listThemes, deleteTheme, setActiveFile, sanitizeFileName, getProductionInfo, setProductionFile } from '../lib/themeService';
@@ -12,18 +14,22 @@
     load: { fileName: string };
   }>();
 
-  export let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
+  interface Props {
+    saveStatus?: 'idle' | 'saving' | 'saved' | 'error';
+  }
 
-  let files: ThemeMeta[] = [];
-  let showFileList = false;
-  let saveAsEditing = false;
-  let saveAsName = '';
-  let saveAsInput: HTMLInputElement;
-  let currentDisplayName = 'Default';
+  let { saveStatus = 'idle' }: Props = $props();
+
+  let files: ThemeMeta[] = $state([]);
+  let showFileList = $state(false);
+  let saveAsEditing = $state(false);
+  let saveAsName = $state('');
+  let saveAsInput: HTMLInputElement = $state();
+  let currentDisplayName = $state('Default');
 
   // --- Production state ---
-  let productionInfo: ProductionInfo | null = null;
-  let productionUpdateStatus: 'idle' | 'updating' | 'done' | 'error' = 'idle';
+  let productionInfo: ProductionInfo | null = $state(null);
+  let productionUpdateStatus: 'idle' | 'updating' | 'done' | 'error' = $state('idle');
 
   async function refreshFiles() {
     try {
@@ -168,8 +174,8 @@
   }
 
   type SortKey = 'name' | 'updatedAt';
-  let sortKey: SortKey = 'updatedAt';
-  let sortDir: 'asc' | 'desc' = 'desc';
+  let sortKey: SortKey = $state('updatedAt');
+  let sortDir: 'asc' | 'desc' = $state('desc');
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -181,7 +187,7 @@
     }
   }
 
-  $: sortedFiles = [...files].sort((a, b) => {
+  let sortedFiles = $derived([...files].sort((a, b) => {
     let cmp = 0;
     if (sortKey === 'name') {
       cmp = a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
@@ -189,7 +195,7 @@
       cmp = (a.updatedAt || '').localeCompare(b.updatedAt || '');
     }
     return sortDir === 'asc' ? cmp : -cmp;
-  });
+  }));
 </script>
 
 <div class="theme-file-manager">
@@ -206,7 +212,7 @@
         class:saving={saveStatus === 'saving'}
         class:saved={saveStatus === 'saved'}
         class:error={saveStatus === 'error'}
-        on:click={handleSave}
+        onclick={handleSave}
         disabled={saveStatus === 'saving'}
         title="Save to current file"
       >
@@ -217,7 +223,7 @@
       </button>
       <button
         class="tfm-btn increment-btn"
-        on:click={handleSaveIncrement}
+        onclick={handleSaveIncrement}
         disabled={saveStatus === 'saving'}
         title="Save as incremented copy"
       >
@@ -232,14 +238,14 @@
           type="text"
           bind:value={saveAsName}
           bind:this={saveAsInput}
-          on:keydown={handleSaveAsKeydown}
+          onkeydown={handleSaveAsKeydown}
           placeholder="Theme name..."
         />
         <div class="save-as-actions">
-          <button class="inline-btn confirm-btn" on:click={confirmSaveAs} disabled={!saveAsName.trim()} title="Save">
+          <button class="inline-btn confirm-btn" onclick={confirmSaveAs} disabled={!saveAsName.trim()} title="Save">
             <i class="fas fa-check"></i>
           </button>
-          <button class="inline-btn cancel-btn" on:click={cancelSaveAs} title="Cancel">
+          <button class="inline-btn cancel-btn" onclick={cancelSaveAs} title="Cancel">
             <i class="fas fa-times"></i>
           </button>
         </div>
@@ -247,7 +253,7 @@
     {:else}
       <button
         class="tfm-btn"
-        on:click={openSaveAs}
+        onclick={openSaveAs}
         title="Save as new file"
       >
         <i class="fas fa-copy"></i>
@@ -258,7 +264,7 @@
     <button
       class="tfm-btn"
       class:active={showFileList}
-      on:click={toggleFileList}
+      onclick={toggleFileList}
       title="Load a theme"
     >
       <i class="fas fa-folder-open"></i>
@@ -287,7 +293,7 @@
       class:updating={productionUpdateStatus === 'updating'}
       class:done={productionUpdateStatus === 'done'}
       class:error={productionUpdateStatus === 'error'}
-      on:click={handleUpdateProduction}
+      onclick={handleUpdateProduction}
       disabled={productionUpdateStatus === 'updating' || (productionInfo?.fileName === $activeFileName)}
       title={productionInfo?.fileName === $activeFileName ? 'Already in production' : `Set "${currentDisplayName}" as production`}
     >
@@ -317,7 +323,7 @@
       <button
         class="sort-btn name-col"
         class:active-sort={sortKey === 'name'}
-        on:click={() => toggleSort('name')}
+        onclick={() => toggleSort('name')}
       >
         <span>Name</span>
         {#if sortKey === 'name'}
@@ -327,7 +333,7 @@
       <button
         class="sort-btn date-col"
         class:active-sort={sortKey === 'updatedAt'}
-        on:click={() => toggleSort('updatedAt')}
+        onclick={() => toggleSort('updatedAt')}
       >
         <span>Date</span>
         {#if sortKey === 'updatedAt'}
@@ -338,7 +344,7 @@
     </div>
     {#each sortedFiles as file}
       <div class="load-item" class:active={file.fileName === $activeFileName}>
-        <button class="load-name-btn" on:click={() => handleLoad(file)}>
+        <button class="load-name-btn" onclick={() => handleLoad(file)}>
           {file.name}
         </button>
         <span class="updated-at" title={file.updatedAt}>{formatUpdatedAt(file.updatedAt)}</span>
@@ -348,7 +354,7 @@
         {#if file.fileName !== 'default'}
           <button
             class="file-delete-btn"
-            on:click|stopPropagation={() => handleDelete(file)}
+            onclick={stopPropagation(() => handleDelete(file))}
             title="Delete {file.name}"
           >
             <i class="fas fa-trash-alt"></i>

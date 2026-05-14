@@ -1,7 +1,13 @@
 <script lang="ts">
-  export let legend: string = '';
-  /** When true, the fieldset is rendered with a strong outline to mark it as the one currently driving the rendered preview. */
-  export let active: boolean = false;
+  
+  interface Props {
+    legend?: string;
+    /** When true, the fieldset is rendered with a strong outline to mark it as the one currently driving the rendered preview. */
+    active?: boolean;
+    children?: import('svelte').Snippet;
+  }
+
+  let { legend = '', active = false, children }: Props = $props();
 </script>
 
 <fieldset class="fieldset-wrapper" class:active>
@@ -9,7 +15,7 @@
     <legend class="fieldset-legend">{legend}</legend>
   {/if}
   <div class="fieldset-controls">
-    <slot />
+    {@render children?.()}
   </div>
 </fieldset>
 

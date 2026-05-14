@@ -78,7 +78,7 @@
     }
   ];
 
-  let copiedVar: string | null = null;
+  let copiedVar: string | null = $state(null);
   function copyVariable(v: string) {
     navigator.clipboard.writeText(v);
     copiedVar = v;
@@ -100,7 +100,7 @@
               Ag
             </div>
             <div class="text-color-info">
-              <button class="text-color-name copyable" class:copied={copiedVar === color.variable} on:click={() => copyVariable(color.variable)}>{copiedVar === color.variable ? 'copied!' : color.name}</button>
+              <button class="text-color-name copyable" class:copied={copiedVar === color.variable} onclick={() => copyVariable(color.variable)}>{copiedVar === color.variable ? 'copied!' : color.name}</button>
               <div class="text-color-variable">{color.variable}</div>
               <div class="text-color-description">{color.description}</div>
             </div>

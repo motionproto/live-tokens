@@ -1,11 +1,21 @@
 <script lang="ts">
-  export let text: string = '';
-  export let position: 'top' | 'bottom' = 'top';
-  export let open: boolean = false;
+  interface Props {
+    text?: string;
+    position?: 'top' | 'bottom';
+    open?: boolean;
+    children?: import('svelte').Snippet;
+  }
+
+  let {
+    text = '',
+    position = 'top',
+    open = false,
+    children
+  }: Props = $props();
 </script>
 
 <div class="tooltip-wrapper" class:open>
-  <slot />
+  {@render children?.()}
   {#if text}
     <div class="tooltip" class:bottom={position === 'bottom'}>
       {text}

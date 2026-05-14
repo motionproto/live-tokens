@@ -6,9 +6,9 @@
   const isInIframe = typeof window !== 'undefined' && window.parent !== window;
   const enabled = isDev && !isInIframe;
 
-  let count = 12;
-  let gutter = '';
-  let margin = '';
+  let count = $state(12);
+  let gutter = $state('');
+  let margin = $state('');
 
   function readTokens() {
     const cs = getComputedStyle(document.documentElement);

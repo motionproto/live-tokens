@@ -2,14 +2,18 @@
   import type { ComponentSection } from './componentSectionType';
   import { defaultSections } from './defaultSections';
 
-  export let sections: ComponentSection[] = defaultSections;
-  export let selectedComponent: string = sections[0]?.id ?? '';
+  interface Props {
+    sections?: ComponentSection[];
+    selectedComponent?: string;
+  }
+
+  let { sections = defaultSections, selectedComponent = sections[0]?.id ?? '' }: Props = $props();
 </script>
 
 <div class="components-container">
   {#each sections as section (section.id)}
     {#if selectedComponent === section.id}
-      <svelte:component this={section.component} {...(section.props ?? {})} />
+      <section.component {...(section.props ?? {})} />
     {/if}
   {/each}
 </div>

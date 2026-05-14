@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: This migration would change the name of a slot (trigger-title to trigger_title) making the component unusable -->
 <script lang="ts" generics="T extends { key: string; label?: string; value?: string }">
   import { createEventDispatcher } from 'svelte';
   import { resolveAliasChain } from '../lib/tokenRegistry';

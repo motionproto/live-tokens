@@ -20,7 +20,7 @@
 
   // Bumped on breakpoint flips; passed to TokenScaleTable so it re-resolves.
   // tokens.css declares responsive overrides at 768px and 480px.
-  let liveVersion = 0;
+  let liveVersion = $state(0);
   const BREAKPOINTS = ['(max-width: 768px)', '(max-width: 480px)'] as const;
 
   onMount(() => {
@@ -34,7 +34,7 @@
     };
   });
 
-  let copiedVar: string | null = null;
+  let copiedVar: string | null = $state(null);
   function copyVariable(v: string) {
     navigator.clipboard.writeText(v);
     copiedVar = v;

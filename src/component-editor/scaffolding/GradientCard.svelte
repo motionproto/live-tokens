@@ -16,14 +16,19 @@
   import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
   import AngleDial from './AngleDial.svelte';
 
-  export let component: string;
-  /** Prefix shared by all 7 token names — e.g. `--sectiondivider-canvas`. */
-  export let prefix: string;
+  
+  interface Props {
+    component: string;
+    /** Prefix shared by all 7 token names — e.g. `--sectiondivider-canvas`. */
+    prefix: string;
+  }
+
+  let { component, prefix }: Props = $props();
 
   type StopIndex = 1 | 2 | 3;
   const STOPS: readonly StopIndex[] = [1, 2, 3] as const;
 
-  $: angleVar = `${prefix}-gradient-angle`;
+  let angleVar = $derived(`${prefix}-gradient-angle`);
   function stopColorVar(i: StopIndex): string {
     return `${prefix}-gradient-stop-${i}-color`;
   }
@@ -52,27 +57,27 @@
     return m ? parseFloat(m[1]) : null;
   }
 
-  $: angleDeg = parseNumberFromCss(resolveLiteralWith($tokenRegistry$, angleVar), 'deg') ?? 135;
-  $: positions = [
+  let angleDeg = $derived(parseNumberFromCss(resolveLiteralWith($tokenRegistry$, angleVar), 'deg') ?? 135);
+  let positions = $derived([
     parseNumberFromCss(resolveLiteralWith($tokenRegistry$, stopPositionVar(1)), '%') ?? 0,
     parseNumberFromCss(resolveLiteralWith($tokenRegistry$, stopPositionVar(2)), '%') ?? 50,
     parseNumberFromCss(resolveLiteralWith($tokenRegistry$, stopPositionVar(3)), '%') ?? 100,
-  ] as [number, number, number];
+  ] as [number, number, number]);
 
   // Reference the per-stop CSS var directly so the cascade fills in the
   // component's CSS defaults when the user hasn't overridden a stop. Reading
   // `aliases[...]` alone would miss defaults (no override → `#888`) even
   // though the component is rendering the color via its own `:root` block.
-  $: stopColors = ([1, 2, 3] as StopIndex[]).map((i) => `var(${stopColorVar(i)})`) as [string, string, string];
+  let stopColors = $derived(([1, 2, 3] as StopIndex[]).map((i) => `var(${stopColorVar(i)})`) as [string, string, string]);
 
   // Build the live gradient string from current positions + colors so the
   // ribbon reflects edits even mid-drag (before the component re-renders via
   // its own CSS var consumption).
-  $: ribbonBg = `linear-gradient(90deg, ${stopColors
+  let ribbonBg = $derived(`linear-gradient(90deg, ${stopColors
     .map((c, i) => `${c} ${positions[i]}%`)
-    .join(', ')})`;
+    .join(', ')})`);
 
-  let selected: StopIndex = 1;
+  let selected: StopIndex = $state(1);
 
   function setAngle(deg: number) {
     setComponentAlias(component, angleVar, { kind: 'literal', value: `${Math.round(deg)}deg` });
@@ -84,8 +89,8 @@
   }
 
   // ── Position handle drag ────────────────────────────────────────────────
-  let barEl: HTMLDivElement;
-  let dragIndex: StopIndex | null = null;
+  let barEl: HTMLDivElement = $state();
+  let dragIndex: StopIndex | null = $state(null);
 
   function pctFromEvent(e: PointerEvent): number {
     const rect = barEl.getBoundingClientRect();
@@ -126,10 +131,10 @@
           class:selected={selected === i}
           class:dragging={dragIndex === i}
           style="left: {positions[i - 1]}%; --stop-color: {stopColors[i - 1]};"
-          on:pointerdown={(e) => onHandleDown(e, i)}
-          on:pointermove={onHandleMove}
-          on:pointerup={onHandleUp}
-          on:pointercancel={onHandleUp}
+          onpointerdown={(e) => onHandleDown(e, i)}
+          onpointermove={onHandleMove}
+          onpointerup={onHandleUp}
+          onpointercancel={onHandleUp}
           title="Stop {i} ({positions[i - 1]}%)"
           aria-label="Gradient stop {i}"
         >
@@ -148,7 +153,7 @@
         max="100"
         step="0.1"
         value={positions[selected - 1]}
-        on:change={(e) => onPositionInput(selected, e)}
+        onchange={(e) => onPositionInput(selected, e)}
       />
       <span class="suffix">%</span>
     </label>

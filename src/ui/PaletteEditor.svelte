@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { run, stopPropagation, createBubbler } from 'svelte/legacy';
+
+  const bubble = createBubbler();
   import { onMount, onDestroy, tick } from 'svelte';
   import { hexToOklch, oklchToHex, gamutClamp } from '../lib/oklch';
   import { type CurveAnchor, makeAnchor, sampleCurve, lightnessCurveConfig, saturationCurveConfig, textLightnessCurveConfig } from './curveEngine';
@@ -17,45 +20,24 @@
   /** Mid-gray fallback used when no base colour or computed gray-500 is available. */
   const GRAY_FALLBACK = '#808080';
 
-  export let label: string;
-  export let displayLabel: string | null = null;
-  export let initialColor: string = GRAY_FALLBACK;
-  export let mode: 'chromatic' | 'gray' = 'chromatic';
-  export let cssNamespace: string | null = null;
-  export let emptySelector: boolean = false;
+  interface Props {
+    label: string;
+    displayLabel?: string | null;
+    initialColor?: string;
+    mode?: 'chromatic' | 'gray';
+    cssNamespace?: string | null;
+    emptySelector?: boolean;
+  }
 
-  // --- Store-sourced config (single source of truth) ---
-  //
-  // All persistent palette state lives in `$editorState.palettes[label]`.
-  // Local `$:` derivations below pull named fields with defaults; every
-  // handler writes via `edit()` / `patchPalette()` so the store is the only
-  // writer. No `let` mirrors, no round-trip sync reactives.
-  //
-  // The defaults fall back only when palettes[label] is undefined (brand-new
-  // install, never seeded). Production seeds via themeInit → seedPalettesFromTheme.
-  $: paletteConfig = $editorState.palettes[label];
-  $: baseColor = paletteConfig?.baseColor ?? initialColor;
-  $: tintHue = paletteConfig?.tintHue ?? 240;
-  $: tintChroma = paletteConfig?.tintChroma ?? DEFAULT_TINT_CHROMA;
-  $: lightnessCurve = paletteConfig?.lightnessCurve ?? DEFAULT_PALETTE_LIGHTNESS();
-  $: saturationCurve = paletteConfig?.saturationCurve ?? DEFAULT_PALETTE_SATURATION();
-  $: grayLightnessCurve = paletteConfig?.grayLightnessCurve ?? DEFAULT_GRAY_LIGHTNESS();
-  $: graySaturationCurve = paletteConfig?.graySaturationCurve ?? DEFAULT_GRAY_SATURATION();
-  $: scaleCurves = paletteConfig?.scaleCurves ?? defaultScaleCurvesObject();
-  $: curveOffset = paletteConfig?.curveOffset ?? { lightness: 0, saturation: 0 };
-  $: overrides = paletteConfig?.overrides ?? {};
-  $: snappedScales = new Set(paletteConfig?.snappedScales ?? []);
-  $: anchorToBase = paletteConfig?.anchorToBase ?? true;
-  $: emptyMode = paletteConfig?.emptyMode ?? 'solid';
-  $: emptyStep = paletteConfig?.emptyStep ?? '850';
-  $: gradientStyle = paletteConfig?.gradientStyle ?? 'linear';
-  $: gradientAngle = paletteConfig?.gradientAngle ?? 180;
-  $: gradientReverse = paletteConfig?.gradientReverse ?? false;
-  $: gradientStops = paletteConfig?.gradientStops ?? [
-    { position: 0, paletteLabel: '800' },
-    { position: 100, paletteLabel: '950' },
-  ];
-  $: gradientSize = paletteConfig?.gradientSize ?? 'page';
+  let {
+    label,
+    displayLabel = null,
+    initialColor = GRAY_FALLBACK,
+    mode = 'chromatic',
+    cssNamespace = null,
+    emptySelector = false
+  }: Props = $props();
+
 
   function defaultPaletteConfig(): PaletteConfig {
     return {
@@ -97,8 +79,8 @@
   }
 
   // --- Transient UI state (not persisted; not in PaletteConfig) ---
-  let lockedLightnessIdx: number | null = null;
-  let lockedSaturationIdx: number | null = null;
+  let lockedLightnessIdx: number | null = $state(null);
+  let lockedSaturationIdx: number | null = $state(null);
 
   // Handle for the open palette edit scope: a clipping scope (clipUndoFloor:
   // true) bracketing one panel-open → confirm/cancel cycle. Held at component
@@ -111,9 +93,9 @@
     return ps ? ps.effective : '#000000';
   }
 
-  let gradientColorStops = '';
-  let gradientCssValue = '';
-  let gradientBarPreview = '';
+  let gradientColorStops = $state('');
+  let gradientCssValue = $state('');
+  let gradientBarPreview = $state('');
 
   function onEmptyModeChange(e: Event) {
     edit('emptyMode', (e.currentTarget as HTMLInputElement).checked ? 'gradient' : 'solid');
@@ -142,11 +124,11 @@
     { label: '950', hue: 229, saturation: 34, lightness: 3 },
   ];
 
-  let grayEditorOpen = false;
-  let showDerived = false;
+  let grayEditorOpen = $state(false);
+  let showDerived = $state(false);
 
   // --- Palette curve editors (lightness + saturation) ---
-  let paletteEditorOpen = false;
+  let paletteEditorOpen = $state(false);
 
   // Default curve anchors (used for initial state and reset)
   const DEFAULT_PALETTE_LIGHTNESS = () => [makeAnchor(0, 95, 5), makeAnchor(100, 8, 5)];
@@ -179,15 +161,8 @@
   // (`editingKey`, `editingSnapshot`, `editingDraft`, `snapshotTintHue`,
   // `snapshotTintChroma`). The compatibility `$:` derivations below preserve
   // existing read sites while writes go through `editing = { kind: ... }`.
-  let editing: EditingState = idleState;
+  let editing: EditingState = $state(idleState);
 
-  // Read-side compat: existing `editingKey === ...` etc. comparisons keep
-  // working. New code should narrow on `editing.kind` directly.
-  $: editingKey = editing.kind === 'idle' ? null : editing.kind === 'editingBase' ? BASE_KEY : editing.stepKey;
-  $: editingDraft = editing.kind === 'editingStep' ? editing.draft : null;
-  $: editingSnapshot = editing.kind === 'idle' ? null : editing.kind === 'editingBase' ? editing.snapshotHex : editing.snapshot;
-  $: snapshotTintHue = editing.kind === 'editingBase' ? editing.snapshotTintHue : null;
-  $: snapshotTintChroma = editing.kind === 'editingBase' ? editing.snapshotTintChroma : null;
 
   function computeGrayColor(index: number, hue: number, chroma: number = tintChroma): string {
     const xPos = grayStepToX(index);
@@ -206,30 +181,8 @@
     return `gray-${label}`;
   }
 
-  // Reactive map of computed gray colors
-  $: grayComputed = (() => {
-    const _gl = grayLightnessCurve, _gs = graySaturationCurve, _co = curveOffset, _tc = tintChroma, _th = tintHue;
-    return graySteps.map((step, index) => ({
-      step,
-      index,
-      key: grayStepKey(step.label),
-      hex: computeGrayColor(index, _th, _tc),
-    }));
-  })();
 
-  $: grayEffective = (() => {
-    const _ed = editingDraft, _ek = editingKey, _ov = overrides;
-    return grayComputed.map(g => ({
-      ...g,
-      effective: (_ek === g.key && _ed !== null) ? _ed : (g.key in _ov) ? _ov[g.key] : g.hex,
-    }));
-  })();
 
-  // Gray-500 hex — always the computed (curve-derived) value so derived
-  // scales (surfaces, borders, text) update in realtime when tint changes.
-  $: gray500Hex = mode === 'gray'
-    ? (grayComputed.find(g => g.step.label === '500')?.hex ?? GRAY_FALLBACK)
-    : baseColor;
 
 
   // --- Chromatic palette steps ---
@@ -313,34 +266,7 @@
     }
   }
 
-  // Derive locked anchor indices from curve shape — no writes to state.
-  $: {
-    if (anchorToBase) {
-      const x500 = stepIndexToX(4);
-      const lIdx = lightnessCurve.findIndex(a => Math.abs(a.x - x500) < 0.5);
-      lockedLightnessIdx = lIdx >= 0 ? lIdx : null;
-      const sIdx = saturationCurve.findIndex(a => Math.abs(a.x - x500) < 0.5);
-      lockedSaturationIdx = sIdx >= 0 ? sIdx : null;
-    } else {
-      lockedLightnessIdx = null;
-      lockedSaturationIdx = null;
-    }
-  }
 
-  /**
-   * Keep the locked lightness anchor y in sync with baseColor. Idempotent —
-   * only writes when the curve's anchor y differs from the baseColor-derived
-   * target. During a baseColor drag (inside a slider transaction) this
-   * additional curve edit merges into the same history entry. On undo/redo
-   * the curve already has the correct y (they're saved together), so this
-   * is a no-op.
-   */
-  $: if (anchorToBase && lockedLightnessIdx !== null && baseColor) {
-    const targetY = hexToOklch(baseColor).l * 100;
-    if (lightnessCurve[lockedLightnessIdx] && Math.abs(lightnessCurve[lockedLightnessIdx].y - targetY) > 0.01) {
-      edit('lightnessCurve', lightnessCurve.map((a, i) => i === lockedLightnessIdx ? { ...a, y: targetY } : a));
-    }
-  }
 
   function computePaletteColor(index: number, base: string): string {
     const { c: baseC, h } = hexToOklch(base);
@@ -354,39 +280,7 @@
     return oklchToHex(clamped.l, clamped.c, clamped.h);
   }
 
-  $: paletteComputed = (() => {
-    const _bc = baseColor, _lc = lightnessCurve, _sc = saturationCurve, _co = curveOffset, _ed = editingDraft, _ek = editingKey, _ov = overrides, _ab = anchorToBase;
-    return paletteStepLightness.map((ps, index) => {
-      const k = paletteStepKey(ps.label);
-      const hex = computePaletteColor(index, baseColor);
-      const effective = (_ek === k && _ed !== null) ? _ed : (k in _ov) ? _ov[k] : hex;
-      return {
-        label: ps.label,
-        lightness: ps.lightness,
-        index,
-        key: k,
-        hex,
-        effective,
-      };
-    });
-  })();
 
-  // Gradient reactives — must follow paletteComputed
-  $: {
-    const pc = paletteComputed;
-    const sorted = [...gradientStops].sort((a, b) => gradientReverse ? b.position - a.position : a.position - b.position);
-    gradientColorStops = sorted.map(s => `${stopColor(s, pc)} ${s.position}%`).join(', ');
-    gradientBarPreview = `linear-gradient(to right, ${gradientColorStops})`;
-    if (emptySelector && emptyMode === 'gradient') {
-      switch (gradientStyle) {
-        case 'radial': gradientCssValue = `radial-gradient(circle, ${gradientColorStops})`; break;
-        case 'conic': gradientCssValue = `conic-gradient(from ${gradientAngle}deg, ${gradientColorStops})`; break;
-        default: gradientCssValue = `linear-gradient(${gradientAngle}deg, ${gradientColorStops})`;
-      }
-    } else {
-      gradientCssValue = '';
-    }
-  }
 
   function startBaseEdit() {
     if (editing.kind === 'editingBase') { confirmEdit(); return; }
@@ -460,13 +354,6 @@
     }
   ];
 
-  // Scales to render in gray mode (varies by namespace)
-  $: grayScales = mode === 'gray' ? scales.filter(scale => {
-    if (scale.title === 'Surfaces') return true;
-    if (scale.title === 'Borders') return true;
-    if (scale.title === 'Text') return true;
-    return false;
-  }) : [];
 
   // --- Per-scale curve state (Surfaces & Borders) ---
 
@@ -485,7 +372,7 @@
     },
   };
 
-  let scaleEditorOpen: Record<string, boolean> = { Surfaces: false, Borders: false, Text: false };
+  let scaleEditorOpen: Record<string, boolean> = $state({ Surfaces: false, Borders: false, Text: false });
 
   function toggleScaleEditor(title: string) {
     scaleEditorOpen[title] = !scaleEditorOpen[title];
@@ -516,58 +403,16 @@
     return `${scaleTitle}-${stepName}`;
   }
 
-  $: curveVersion = JSON.stringify(scaleCurves) + JSON.stringify(curveOffset) + gray500Hex;
 
   function derivedHex(step: Step, base: string, scaleTitle: string, _version?: string): string {
     return computeDerivedColor(step, base, configForScale(scaleTitle), scaleTitle);
   }
 
-  /**
-   * Closure factories used by `<OverridesPanel>` so the panel doesn't have to
-   * know about `baseColor` / `gray500Hex` / `curveVersion`. These keep
-   * reactivity intact (the parent's `$:` blocks still drive re-render).
-   *
-   * Note: `effectiveColor` itself always uses `gray500Hex` for non-override
-   * derivation (pre-existing); the chromatic vs gray distinction here is
-   * only for the `derivedHex` (the "Ag" preview / border-color base).
-   */
-  $: derivedHexForBase = (step: Step, scaleTitle: string) => derivedHex(step, baseColor, scaleTitle, curveVersion);
-  $: derivedHexForGray = (step: Step, scaleTitle: string) => derivedHex(step, gray500Hex, scaleTitle, curveVersion);
-  $: effectiveHexAny = (k: string, step: Step, scaleTitle: string) => effectiveColor(k, step, scaleTitle, curveVersion);
 
-  // --- Reactive editing state ---
 
-  $: isEditingBase = isBaseEdit(editing);
 
-  $: editingColor = isEditingBase
-    ? (mode === 'gray' ? gray500Hex : baseColor)
-    : editingDraft;
 
-  $: editingStepInfo = (() => {
-    if (!editingKey || isEditingBase) return null;
-    if (mode === 'gray') {
-      const gs = graySteps.find(s => grayStepKey(s.label) === editingKey);
-      if (gs) return { scale: 'Gray', step: gs.label };
-    }
-    const ps = paletteStepLightness.find(p => paletteStepKey(p.label) === editingKey);
-    if (ps) return { scale: 'Palette', step: ps.label };
-    for (const scale of scales) {
-      for (const step of scale.steps) {
-        if (stepKey(scale.title, step.name) === editingKey) {
-          return { scale: scale.title, step: step.name };
-        }
-      }
-    }
-    return null;
-  })();
 
-  $: panelOpen = editingKey !== null && (isEditingBase || (editingDraft !== null && editingStepInfo !== null));
-
-  $: editPanelTitle = isEditingBase
-    ? 'Base Color'
-    : editingStepInfo
-      ? `${editingStepInfo.scale} \u203A ${editingStepInfo.step}`
-      : null;
 
   // --- Compute derived color via OKLCH ---
 
@@ -740,7 +585,7 @@
     return `linear-gradient(to right, ${points.join(', ')})`;
   }
 
-  let copiedKey: string | null = null;
+  let copiedKey: string | null = $state(null);
   function copyHex(k: string, hex: string, event?: MouseEvent) {
     navigator.clipboard.writeText(hex);
     copiedKey = k;
@@ -748,7 +593,7 @@
     setTimeout(() => { copiedKey = null; }, 1500);
   }
 
-  let copiedLabelKey: string | null = null;
+  let copiedLabelKey: string | null = $state(null);
   function copyVarName(k: string, varName: string, event?: MouseEvent) {
     navigator.clipboard.writeText(varName);
     copiedLabelKey = k;
@@ -840,7 +685,7 @@
     }
   }
 
-  let snapPickerKey: string | null = null;
+  let snapPickerKey: string | null = $state(null);
 
   function handleDocClick(e: MouseEvent) {
     if (!snapPickerKey) return;
@@ -881,7 +726,6 @@
     if (changed) edit('overrides', next);
   }
 
-  $: baseColor, scaleCurves, lightnessCurve, saturationCurve, curveOffset, snappedScales, resnapScales();
 
   // CSS-var emission lives in `paletteDerivation` → `editorRenderer`; the store
   // is the single source of truth for palette config and the renderer
@@ -899,6 +743,180 @@
   }
 
 
+  // --- Store-sourced config (single source of truth) ---
+  //
+  // All persistent palette state lives in `$editorState.palettes[label]`.
+  // Local `$:` derivations below pull named fields with defaults; every
+  // handler writes via `edit()` / `patchPalette()` so the store is the only
+  // writer. No `let` mirrors, no round-trip sync reactives.
+  //
+  // The defaults fall back only when palettes[label] is undefined (brand-new
+  // install, never seeded). Production seeds via themeInit → seedPalettesFromTheme.
+  let paletteConfig = $derived($editorState.palettes[label]);
+  let baseColor = $derived(paletteConfig?.baseColor ?? initialColor);
+  let tintHue = $derived(paletteConfig?.tintHue ?? 240);
+  let tintChroma = $derived(paletteConfig?.tintChroma ?? DEFAULT_TINT_CHROMA);
+  let lightnessCurve = $derived(paletteConfig?.lightnessCurve ?? DEFAULT_PALETTE_LIGHTNESS());
+  let saturationCurve = $derived(paletteConfig?.saturationCurve ?? DEFAULT_PALETTE_SATURATION());
+  let grayLightnessCurve = $derived(paletteConfig?.grayLightnessCurve ?? DEFAULT_GRAY_LIGHTNESS());
+  let graySaturationCurve = $derived(paletteConfig?.graySaturationCurve ?? DEFAULT_GRAY_SATURATION());
+  let scaleCurves = $derived(paletteConfig?.scaleCurves ?? defaultScaleCurvesObject());
+  let curveOffset = $derived(paletteConfig?.curveOffset ?? { lightness: 0, saturation: 0 });
+  let overrides = $derived(paletteConfig?.overrides ?? {});
+  let snappedScales = $derived(new Set(paletteConfig?.snappedScales ?? []));
+  let anchorToBase = $derived(paletteConfig?.anchorToBase ?? true);
+  let emptyMode = $derived(paletteConfig?.emptyMode ?? 'solid');
+  let emptyStep = $derived(paletteConfig?.emptyStep ?? '850');
+  let gradientStyle = $derived(paletteConfig?.gradientStyle ?? 'linear');
+  let gradientAngle = $derived(paletteConfig?.gradientAngle ?? 180);
+  let gradientReverse = $derived(paletteConfig?.gradientReverse ?? false);
+  let gradientStops = $derived(paletteConfig?.gradientStops ?? [
+    { position: 0, paletteLabel: '800' },
+    { position: 100, paletteLabel: '950' },
+  ]);
+  let gradientSize = $derived(paletteConfig?.gradientSize ?? 'page');
+  // Read-side compat: existing `editingKey === ...` etc. comparisons keep
+  // working. New code should narrow on `editing.kind` directly.
+  let editingKey = $derived(editing.kind === 'idle' ? null : editing.kind === 'editingBase' ? BASE_KEY : editing.stepKey);
+  let editingDraft = $derived(editing.kind === 'editingStep' ? editing.draft : null);
+  let editingSnapshot = $derived(editing.kind === 'idle' ? null : editing.kind === 'editingBase' ? editing.snapshotHex : editing.snapshot);
+  let snapshotTintHue = $derived(editing.kind === 'editingBase' ? editing.snapshotTintHue : null);
+  let snapshotTintChroma = $derived(editing.kind === 'editingBase' ? editing.snapshotTintChroma : null);
+  // Reactive map of computed gray colors
+  let grayComputed = $derived((() => {
+    const _gl = grayLightnessCurve, _gs = graySaturationCurve, _co = curveOffset, _tc = tintChroma, _th = tintHue;
+    return graySteps.map((step, index) => ({
+      step,
+      index,
+      key: grayStepKey(step.label),
+      hex: computeGrayColor(index, _th, _tc),
+    }));
+  })());
+  let grayEffective = $derived((() => {
+    const _ed = editingDraft, _ek = editingKey, _ov = overrides;
+    return grayComputed.map(g => ({
+      ...g,
+      effective: (_ek === g.key && _ed !== null) ? _ed : (g.key in _ov) ? _ov[g.key] : g.hex,
+    }));
+  })());
+  // Gray-500 hex — always the computed (curve-derived) value so derived
+  // scales (surfaces, borders, text) update in realtime when tint changes.
+  let gray500Hex = $derived(mode === 'gray'
+    ? (grayComputed.find(g => g.step.label === '500')?.hex ?? GRAY_FALLBACK)
+    : baseColor);
+  // Derive locked anchor indices from curve shape — no writes to state.
+  run(() => {
+    if (anchorToBase) {
+      const x500 = stepIndexToX(4);
+      const lIdx = lightnessCurve.findIndex(a => Math.abs(a.x - x500) < 0.5);
+      lockedLightnessIdx = lIdx >= 0 ? lIdx : null;
+      const sIdx = saturationCurve.findIndex(a => Math.abs(a.x - x500) < 0.5);
+      lockedSaturationIdx = sIdx >= 0 ? sIdx : null;
+    } else {
+      lockedLightnessIdx = null;
+      lockedSaturationIdx = null;
+    }
+  });
+  /**
+   * Keep the locked lightness anchor y in sync with baseColor. Idempotent —
+   * only writes when the curve's anchor y differs from the baseColor-derived
+   * target. During a baseColor drag (inside a slider transaction) this
+   * additional curve edit merges into the same history entry. On undo/redo
+   * the curve already has the correct y (they're saved together), so this
+   * is a no-op.
+   */
+  run(() => {
+    if (anchorToBase && lockedLightnessIdx !== null && baseColor) {
+      const targetY = hexToOklch(baseColor).l * 100;
+      if (lightnessCurve[lockedLightnessIdx] && Math.abs(lightnessCurve[lockedLightnessIdx].y - targetY) > 0.01) {
+        edit('lightnessCurve', lightnessCurve.map((a, i) => i === lockedLightnessIdx ? { ...a, y: targetY } : a));
+      }
+    }
+  });
+  let paletteComputed = $derived((() => {
+    const _bc = baseColor, _lc = lightnessCurve, _sc = saturationCurve, _co = curveOffset, _ed = editingDraft, _ek = editingKey, _ov = overrides, _ab = anchorToBase;
+    return paletteStepLightness.map((ps, index) => {
+      const k = paletteStepKey(ps.label);
+      const hex = computePaletteColor(index, baseColor);
+      const effective = (_ek === k && _ed !== null) ? _ed : (k in _ov) ? _ov[k] : hex;
+      return {
+        label: ps.label,
+        lightness: ps.lightness,
+        index,
+        key: k,
+        hex,
+        effective,
+      };
+    });
+  })());
+  // Gradient reactives — must follow paletteComputed
+  run(() => {
+    const pc = paletteComputed;
+    const sorted = [...gradientStops].sort((a, b) => gradientReverse ? b.position - a.position : a.position - b.position);
+    gradientColorStops = sorted.map(s => `${stopColor(s, pc)} ${s.position}%`).join(', ');
+    gradientBarPreview = `linear-gradient(to right, ${gradientColorStops})`;
+    if (emptySelector && emptyMode === 'gradient') {
+      switch (gradientStyle) {
+        case 'radial': gradientCssValue = `radial-gradient(circle, ${gradientColorStops})`; break;
+        case 'conic': gradientCssValue = `conic-gradient(from ${gradientAngle}deg, ${gradientColorStops})`; break;
+        default: gradientCssValue = `linear-gradient(${gradientAngle}deg, ${gradientColorStops})`;
+      }
+    } else {
+      gradientCssValue = '';
+    }
+  });
+  // Scales to render in gray mode (varies by namespace)
+  let grayScales = $derived(mode === 'gray' ? scales.filter(scale => {
+    if (scale.title === 'Surfaces') return true;
+    if (scale.title === 'Borders') return true;
+    if (scale.title === 'Text') return true;
+    return false;
+  }) : []);
+  let curveVersion = $derived(JSON.stringify(scaleCurves) + JSON.stringify(curveOffset) + gray500Hex);
+  /**
+   * Closure factories used by `<OverridesPanel>` so the panel doesn't have to
+   * know about `baseColor` / `gray500Hex` / `curveVersion`. These keep
+   * reactivity intact (the parent's `$:` blocks still drive re-render).
+   *
+   * Note: `effectiveColor` itself always uses `gray500Hex` for non-override
+   * derivation (pre-existing); the chromatic vs gray distinction here is
+   * only for the `derivedHex` (the "Ag" preview / border-color base).
+   */
+  let derivedHexForBase = $derived((step: Step, scaleTitle: string) => derivedHex(step, baseColor, scaleTitle, curveVersion));
+  let derivedHexForGray = $derived((step: Step, scaleTitle: string) => derivedHex(step, gray500Hex, scaleTitle, curveVersion));
+  let effectiveHexAny = $derived((k: string, step: Step, scaleTitle: string) => effectiveColor(k, step, scaleTitle, curveVersion));
+  // --- Reactive editing state ---
+
+  let isEditingBase = $derived(isBaseEdit(editing));
+  let editingColor = $derived(isEditingBase
+    ? (mode === 'gray' ? gray500Hex : baseColor)
+    : editingDraft);
+  let editingStepInfo = $derived((() => {
+    if (!editingKey || isEditingBase) return null;
+    if (mode === 'gray') {
+      const gs = graySteps.find(s => grayStepKey(s.label) === editingKey);
+      if (gs) return { scale: 'Gray', step: gs.label };
+    }
+    const ps = paletteStepLightness.find(p => paletteStepKey(p.label) === editingKey);
+    if (ps) return { scale: 'Palette', step: ps.label };
+    for (const scale of scales) {
+      for (const step of scale.steps) {
+        if (stepKey(scale.title, step.name) === editingKey) {
+          return { scale: scale.title, step: step.name };
+        }
+      }
+    }
+    return null;
+  })());
+  let panelOpen = $derived(editingKey !== null && (isEditingBase || (editingDraft !== null && editingStepInfo !== null)));
+  let editPanelTitle = $derived(isEditingBase
+    ? 'Base Color'
+    : editingStepInfo
+      ? `${editingStepInfo.scale} \u203A ${editingStepInfo.step}`
+      : null);
+  run(() => {
+    baseColor, scaleCurves, lightnessCurve, saturationCurve, curveOffset, snappedScales, resnapScales();
+  });
 </script>
 
 <div class="palette-editor" style="--editor-base: {mode === 'gray' ? gray500Hex : baseColor}">
@@ -936,40 +954,40 @@
             <input
               type="checkbox"
               checked={emptyMode === 'gradient'}
-              on:change={onEmptyModeChange}
+              onchange={onEmptyModeChange}
             />
             <span>Gradient</span>
           </label>
         {/if}
-        <button class="edit-toggle" type="button" on:click={clearPaletteOverrides}>Clear Overrides</button>
+        <button class="edit-toggle" type="button" onclick={clearPaletteOverrides}>Clear Overrides</button>
         <button
           class="edit-toggle"
           type="button"
-          on:click={() => paletteEditorOpen = !paletteEditorOpen}
+          onclick={() => paletteEditorOpen = !paletteEditorOpen}
         >{paletteEditorOpen ? 'Close' : 'Edit'}</button>
       </div>
       <div class="swatch-grid" style="--swatch-cols: {paletteStepLightness.length + 2}">
         <div class="step-column">
-          <button class="step-label copyable-label" class:copied={copiedLabelKey === 'palette-white'} type="button" on:click={(e) => copyVarName('palette-white', `--color-${cssNamespace}-white`, e)}>
+          <button class="step-label copyable-label" class:copied={copiedLabelKey === 'palette-white'} type="button" onclick={(e) => copyVarName('palette-white', `--color-${cssNamespace}-white`, e)}>
             {copiedLabelKey === 'palette-white' ? 'copied!' : 'white'}
           </button>
           <div class="swatch gray-swatch bookend" style="background: #ffffff"></div>
         </div>
         {#each paletteComputed as ps}
           <div class="step-column">
-            <button class="step-label copyable-label" class:copied={copiedLabelKey === ps.key} type="button" on:click={(e) => copyVarName(ps.key, `--color-${cssNamespace}-${ps.label}`, e)}>
+            <button class="step-label copyable-label" class:copied={copiedLabelKey === ps.key} type="button" onclick={(e) => copyVarName(ps.key, `--color-${cssNamespace}-${ps.label}`, e)}>
               {copiedLabelKey === ps.key ? 'copied!' : ps.label}
             </button>
-            <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
             <div
               class="swatch gray-swatch"
               class:active={editingKey === ps.key}
               class:overridden={ps.key in overrides}
               style="background: {ps.effective}"
-              on:click={() => handlePaletteClick({ label: ps.label, lightness: ps.lightness, index: ps.index })}
+              onclick={() => handlePaletteClick({ label: ps.label, lightness: ps.lightness, index: ps.index })}
               role="button"
               tabindex="0"
-              on:keydown={(e) => e.key === 'Enter' && handlePaletteClick({ label: ps.label, lightness: ps.lightness, index: ps.index })}
+              onkeydown={(e) => e.key === 'Enter' && handlePaletteClick({ label: ps.label, lightness: ps.lightness, index: ps.index })}
             >
               {#if ps.key in overrides}
                 <span class="override-dot" title="Palette override"></span>
@@ -979,8 +997,8 @@
                   type="checkbox"
                   class="empty-check"
                   checked={emptyStep === ps.label}
-                  on:click|stopPropagation={() => edit('emptyStep', ps.label)}
-                  on:keydown|stopPropagation
+                  onclick={stopPropagation(() => edit('emptyStep', ps.label))}
+                  onkeydown={stopPropagation(bubble('keydown'))}
                   title="Page background"
                 />
               {/if}
@@ -989,12 +1007,12 @@
               class="step-hex"
               class:copied={copiedKey === ps.key}
               type="button"
-              on:click={(e) => copyHex(ps.key, ps.effective, e)}
+              onclick={(e) => copyHex(ps.key, ps.effective, e)}
             >{copiedKey === ps.key ? 'copied!' : ps.effective}</button>
           </div>
         {/each}
         <div class="step-column">
-          <button class="step-label copyable-label" class:copied={copiedLabelKey === 'palette-black'} type="button" on:click={(e) => copyVarName('palette-black', `--color-${cssNamespace}-black`, e)}>
+          <button class="step-label copyable-label" class:copied={copiedLabelKey === 'palette-black'} type="button" onclick={(e) => copyVarName('palette-black', `--color-${cssNamespace}-black`, e)}>
             {copiedLabelKey === 'palette-black' ? 'copied!' : 'black'}
           </button>
           <div class="swatch gray-swatch bookend" style="background: #000000"></div>
@@ -1047,7 +1065,7 @@
 
   </div>
 
-  <button class="derived-toggle" type="button" on:click={() => showDerived = !showDerived}>
+  <button class="derived-toggle" type="button" onclick={() => showDerived = !showDerived}>
     <i class="fas" class:fa-chevron-right={!showDerived} class:fa-chevron-down={showDerived}></i>
     <span>Text, Surfaces &amp; Borders</span>
   </button>
@@ -1133,35 +1151,35 @@
   <div class="scale-section">
     <div class="scale-header">
       <h4 class="scale-title">{displayLabel ?? label}</h4>
-      <button class="edit-toggle" type="button" on:click={clearPaletteOverrides}>Clear Overrides</button>
+      <button class="edit-toggle" type="button" onclick={clearPaletteOverrides}>Clear Overrides</button>
       <button
         class="edit-toggle"
         type="button"
-        on:click={() => grayEditorOpen = !grayEditorOpen}
+        onclick={() => grayEditorOpen = !grayEditorOpen}
       >{grayEditorOpen ? 'Close' : 'Edit'}</button>
     </div>
     <div class="swatch-grid" style="--swatch-cols: {graySteps.length + 2}">
       <div class="step-column">
-        <button class="step-label copyable-label" class:copied={copiedLabelKey === 'gray-white'} type="button" on:click={(e) => copyVarName('gray-white', `--color-${cssNamespace}-white`, e)}>
+        <button class="step-label copyable-label" class:copied={copiedLabelKey === 'gray-white'} type="button" onclick={(e) => copyVarName('gray-white', `--color-${cssNamespace}-white`, e)}>
           {copiedLabelKey === 'gray-white' ? 'copied!' : 'white'}
         </button>
         <div class="swatch gray-swatch bookend" style="background: #ffffff"></div>
       </div>
       {#each grayEffective as g}
         <div class="step-column">
-          <button class="step-label copyable-label" class:copied={copiedLabelKey === g.key} type="button" on:click={(e) => copyVarName(g.key, `--color-${cssNamespace}-${g.step.label}`, e)}>
+          <button class="step-label copyable-label" class:copied={copiedLabelKey === g.key} type="button" onclick={(e) => copyVarName(g.key, `--color-${cssNamespace}-${g.step.label}`, e)}>
             {copiedLabelKey === g.key ? 'copied!' : g.step.label}
           </button>
-          <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+          <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
           <div
             class="swatch gray-swatch"
             class:active={editingKey === g.key}
             class:overridden={g.key in overrides}
             style="background: {g.effective}"
-            on:click={() => handleGrayClick(g.step, g.index)}
+            onclick={() => handleGrayClick(g.step, g.index)}
             role="button"
             tabindex="0"
-            on:keydown={(e) => e.key === 'Enter' && handleGrayClick(g.step, g.index)}
+            onkeydown={(e) => e.key === 'Enter' && handleGrayClick(g.step, g.index)}
           >
             {#if g.key in overrides}
               <span class="override-dot" title="Palette override"></span>
@@ -1171,12 +1189,12 @@
             class="step-hex"
             class:copied={copiedKey === g.key}
             type="button"
-            on:click={(e) => copyHex(g.key, g.effective, e)}
+            onclick={(e) => copyHex(g.key, g.effective, e)}
           >{copiedKey === g.key ? 'copied!' : g.effective}</button>
         </div>
       {/each}
       <div class="step-column">
-        <button class="step-label copyable-label" class:copied={copiedLabelKey === 'gray-black'} type="button" on:click={(e) => copyVarName('gray-black', `--color-${cssNamespace}-black`, e)}>
+        <button class="step-label copyable-label" class:copied={copiedLabelKey === 'gray-black'} type="button" onclick={(e) => copyVarName('gray-black', `--color-${cssNamespace}-black`, e)}>
           {copiedLabelKey === 'gray-black' ? 'copied!' : 'black'}
         </button>
         <div class="swatch gray-swatch bookend" style="background: #000000"></div>
@@ -1209,7 +1227,7 @@
   </div>
   </div>
 
-  <button class="derived-toggle" type="button" on:click={() => showDerived = !showDerived}>
+  <button class="derived-toggle" type="button" onclick={() => showDerived = !showDerived}>
     <i class="fas" class:fa-chevron-right={!showDerived} class:fa-chevron-down={showDerived}></i>
     <span>Text, Surfaces &amp; Borders</span>
   </button>

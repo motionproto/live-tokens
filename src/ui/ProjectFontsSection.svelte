@@ -15,28 +15,28 @@
   const GOOGLE_FONTS: GoogleFontEntry[] = (googleFontsData as any).fonts;
 
   type AddMode = 'closed' | 'google' | 'url' | 'fontface';
-  let addMode: AddMode = 'closed';
+  let addMode: AddMode = $state('closed');
 
   // Google search
-  let googleQuery = '';
-  $: googleMatches = googleQuery.trim().length >= 1
+  let googleQuery = $state('');
+  let googleMatches = $derived(googleQuery.trim().length >= 1
     ? GOOGLE_FONTS
         .filter((f) => f.family.toLowerCase().includes(googleQuery.toLowerCase()))
         .slice(0, 20)
-    : GOOGLE_FONTS.slice(0, 10);
+    : GOOGLE_FONTS.slice(0, 10));
 
   // URL paste
-  let urlInput = '';
-  let urlError = '';
-  let urlDiscovering = false;
-  let urlParsed: ParsedFamily[] | null = null;
-  let urlPickedNames = new Set<string>();
-  let urlNeedsManualFamilies = false;
-  let urlManualFamilies = '';
+  let urlInput = $state('');
+  let urlError = $state('');
+  let urlDiscovering = $state(false);
+  let urlParsed: ParsedFamily[] | null = $state(null);
+  let urlPickedNames = $state(new Set<string>());
+  let urlNeedsManualFamilies = $state(false);
+  let urlManualFamilies = $state('');
 
   // @font-face paste
-  let fontFaceText = '';
-  let fontFaceParsed: ParsedFamily[] = [];
+  let fontFaceText = $state('');
+  let fontFaceParsed: ParsedFamily[] = $state([]);
 
   function reset() {
     addMode = 'closed';
@@ -52,8 +52,8 @@
     fontFaceParsed = [];
   }
 
-  $: fontSourcesList = $editorState.fonts.sources;
-  $: fontStacksList = $editorState.fonts.stacks;
+  let fontSourcesList = $derived($editorState.fonts.sources);
+  let fontStacksList = $derived($editorState.fonts.stacks);
 
   function commitSources(next: FontSource[]) {
     setFontSources(next);
@@ -161,7 +161,7 @@
       .map((s) => s.variable);
   }
 
-  let expanded = new Set<string>();
+  let expanded = $state(new Set<string>());
   function toggleExpanded(familyId: string) {
     const next = new Set(expanded);
     if (next.has(familyId)) next.delete(familyId); else next.add(familyId);
@@ -200,7 +200,7 @@
                     type="button"
                     class="pf-family-disclosure"
                     class:open={isOpen}
-                    on:click={() => toggleExpanded(fam.id)}
+                    onclick={() => toggleExpanded(fam.id)}
                     aria-label={isOpen ? 'Collapse weights' : 'Expand weights'}
                     aria-expanded={isOpen}
                   ><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
@@ -212,7 +212,7 @@
                 <button
                   type="button"
                   class="pf-family-remove"
-                  on:click={() => removeFamily(source.id, fam.id)}
+                  onclick={() => removeFamily(source.id, fam.id)}
                   aria-label={`Remove ${fam.name}`}
                   title="Remove family"
                 ><i class="fas fa-xmark" aria-hidden="true"></i></button>
@@ -239,14 +239,14 @@
   </div>
 
   {#if addMode === 'closed'}
-    <button type="button" class="pf-add-toggle" on:click={() => (addMode = 'google')}>+ add font</button>
+    <button type="button" class="pf-add-toggle" onclick={() => (addMode = 'google')}>+ add font</button>
   {:else}
     <div class="pf-add-panel">
       <div class="pf-add-tabs">
-        <button type="button" class:active={addMode === 'google'} on:click={() => (addMode = 'google')}>Google search</button>
-        <button type="button" class:active={addMode === 'url'} on:click={() => (addMode = 'url')}>Paste URL</button>
-        <button type="button" class:active={addMode === 'fontface'} on:click={() => (addMode = 'fontface')}>@font-face</button>
-        <button type="button" class="pf-add-close" on:click={reset} aria-label="Cancel">×</button>
+        <button type="button" class:active={addMode === 'google'} onclick={() => (addMode = 'google')}>Google search</button>
+        <button type="button" class:active={addMode === 'url'} onclick={() => (addMode = 'url')}>Paste URL</button>
+        <button type="button" class:active={addMode === 'fontface'} onclick={() => (addMode = 'fontface')}>@font-face</button>
+        <button type="button" class="pf-add-close" onclick={reset} aria-label="Cancel">×</button>
       </div>
 
       {#if addMode === 'google'}
@@ -261,7 +261,7 @@
             <li class="pf-result">
               <span class="pf-result-preview" style="font-family: '{m.family}', {m.category};">{m.family}</span>
               <span class="pf-result-meta">{m.category} · {m.variants.length}w</span>
-              <button type="button" class="pf-result-add" on:click={() => addGoogleFont(m)}>add</button>
+              <button type="button" class="pf-result-add" onclick={() => addGoogleFont(m)}>add</button>
             </li>
           {/each}
           {#if googleMatches.length === 0}
@@ -276,7 +276,7 @@
           bind:value={urlInput}
         />
         <div class="pf-row">
-          <button type="button" class="pf-btn" on:click={discoverUrl} disabled={!urlInput.trim() || urlDiscovering}>
+          <button type="button" class="pf-btn" onclick={discoverUrl} disabled={!urlInput.trim() || urlDiscovering}>
             {urlDiscovering ? 'Checking…' : 'Detect families'}
           </button>
         </div>
@@ -290,7 +290,7 @@
                   <input
                     type="checkbox"
                     checked={urlPickedNames.has(f.name)}
-                    on:change={(e) => {
+                    onchange={(e) => {
                       const target = e.currentTarget;
                       const s = new Set(urlPickedNames);
                       if (target.checked) s.add(f.name); else s.delete(f.name);
@@ -305,7 +305,7 @@
               </li>
             {/each}
           </ul>
-          <button type="button" class="pf-btn primary" on:click={addUrlSource}>Add {urlPickedNames.size} selected</button>
+          <button type="button" class="pf-btn primary" onclick={addUrlSource}>Add {urlPickedNames.size} selected</button>
         {:else if urlNeedsManualFamilies}
           <div class="pf-detected">Couldn't auto-detect families (CORS or no metadata). Name them:</div>
           <input
@@ -314,7 +314,7 @@
             placeholder="Comma-separated family names"
             bind:value={urlManualFamilies}
           />
-          <button type="button" class="pf-btn primary" on:click={addUrlSource} disabled={!urlManualFamilies.trim()}>Add</button>
+          <button type="button" class="pf-btn primary" onclick={addUrlSource} disabled={!urlManualFamilies.trim()}>Add</button>
         {/if}
       {:else if addMode === 'fontface'}
         <textarea
@@ -322,12 +322,12 @@
           placeholder={'Paste one or more @font-face { ... } rules'}
           rows="6"
           bind:value={fontFaceText}
-          on:input={parseFontFaceTextInput}
+          oninput={parseFontFaceTextInput}
         ></textarea>
         {#if fontFaceParsed.length > 0}
           <div class="pf-detected">Detected: {fontFaceParsed.map((f) => f.name).join(', ')}</div>
         {/if}
-        <button type="button" class="pf-btn primary" on:click={addFontFaceSource} disabled={fontFaceParsed.length === 0}>Add</button>
+        <button type="button" class="pf-btn primary" onclick={addFontFaceSource} disabled={fontFaceParsed.length === 0}>Add</button>
       {/if}
     </div>
   {/if}

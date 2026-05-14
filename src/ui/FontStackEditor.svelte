@@ -21,17 +21,17 @@
     '--font-mono',
   ];
 
-  $: fontSourcesList = $editorState.fonts.sources;
-  $: fontStacksList = $editorState.fonts.stacks;
-  $: allFamilies = (fontSourcesList as FontSource[]).flatMap((s) => s.families.map((f) => ({ ...f, sourceLabel: s.label ?? s.kind })));
-  $: familyById = new Map<string, FontFamily>(allFamilies.map((f) => [f.id, f]));
+  let fontSourcesList = $derived($editorState.fonts.sources);
+  let fontStacksList = $derived($editorState.fonts.stacks);
+  let allFamilies = $derived((fontSourcesList as FontSource[]).flatMap((s) => s.families.map((f) => ({ ...f, sourceLabel: s.label ?? s.kind }))));
+  let familyById = $derived(new Map<string, FontFamily>(allFamilies.map((f) => [f.id, f])));
 
   function ensureAllStacksPresent(current: FontStack[]): FontStack[] {
     const byVar = new Map(current.map((s) => [s.variable, s]));
     return STACK_VARIABLES.map((v) => byVar.get(v) ?? { variable: v, slots: [{ kind: 'generic', value: 'sans-serif' } as FontStackSlot] });
   }
 
-  $: stacks = ensureAllStacksPresent(fontStacksList);
+  let stacks = $derived(ensureAllStacksPresent(fontStacksList));
 
   function slotKey(slot: FontStackSlot): string {
     if (slot.kind === 'project') return `project:${slot.familyId}`;
@@ -108,8 +108,8 @@
     });
   }
 
-  let dragSource: { variable: FontStackVariable; index: number } | null = null;
-  let dragOver: { variable: FontStackVariable; index: number; position: 'before' | 'on' | 'after' } | null = null;
+  let dragSource: { variable: FontStackVariable; index: number } | null = $state(null);
+  let dragOver: { variable: FontStackVariable; index: number; position: 'before' | 'on' | 'after' } | null = $state(null);
 
   function onDragStart(e: DragEvent, variable: FontStackVariable, index: number) {
     if (!e.dataTransfer) return;
@@ -174,11 +174,11 @@
             class:drop-after={dragOver?.variable === stack.variable && dragOver?.index === i && dragOver?.position === 'after'}
             class:dragging={dragSource?.variable === stack.variable && dragSource?.index === i}
             draggable="true"
-            on:dragstart={(e) => onDragStart(e, stack.variable, i)}
-            on:dragover={(e) => onDragOver(e, stack.variable, i)}
-            on:dragleave={onDragLeave}
-            on:drop={(e) => onDrop(e, stack.variable, i)}
-            on:dragend={onDragEnd}
+            ondragstart={(e) => onDragStart(e, stack.variable, i)}
+            ondragover={(e) => onDragOver(e, stack.variable, i)}
+            ondragleave={onDragLeave}
+            ondrop={(e) => onDrop(e, stack.variable, i)}
+            ondragend={onDragEnd}
           >
             <span class="drag-handle" aria-hidden="true">⋮⋮</span>
             <span class="slot-position">{i + 1}.</span>
@@ -190,7 +190,7 @@
               <select
                 class="form-select slot-select"
                 value={slotKey(slot)}
-                on:change={(e) => onSelectChange(e, stack.variable, i)}
+                onchange={(e) => onSelectChange(e, stack.variable, i)}
               >
                 {#if allFamilies.length > 0}
                   <optgroup label="Project fonts">
@@ -216,13 +216,13 @@
               class="slot-remove"
               aria-label="Remove slot"
               title="Remove"
-              on:click={() => removeSlot(stack.variable, i)}
+              onclick={() => removeSlot(stack.variable, i)}
               disabled={stack.slots.length <= 1}
             >×</button>
           </div>
         {/each}
       </div>
-      <button type="button" class="add-fallback" on:click={() => addSlot(stack.variable)}>
+      <button type="button" class="add-fallback" onclick={() => addSlot(stack.variable)}>
         + add fallback
       </button>
     </div>

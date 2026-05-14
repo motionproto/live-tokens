@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { stopPropagation } from 'svelte/legacy';
+
   import type { GradientStyle, GradientStop } from '../../lib/themeTypes';
   import { beginSliderGesture } from '../../lib/editorStore';
 
@@ -16,19 +18,36 @@
 
   interface PaletteStep { label: string; hex: string }
 
-  export let gradientStyle: GradientStyle;
-  export let gradientAngle: number;
-  export let gradientSize: 'page' | 'window';
-  export let gradientReverse: boolean;
-  export let gradientStops: GradientStop[];
-  export let gradientBarPreview: string;
-  export let paletteComputed: PaletteStep[];
 
-  export let onSetGradientStyle: (style: GradientStyle) => void;
-  export let onSetGradientSize: (size: 'page' | 'window') => void;
-  export let onSetGradientAngle: (angle: number) => void;
-  export let onSetGradientReverse: (reverse: boolean) => void;
-  export let onSetGradientStops: (stops: GradientStop[]) => void;
+  interface Props {
+    gradientStyle: GradientStyle;
+    gradientAngle: number;
+    gradientSize: 'page' | 'window';
+    gradientReverse: boolean;
+    gradientStops: GradientStop[];
+    gradientBarPreview: string;
+    paletteComputed: PaletteStep[];
+    onSetGradientStyle: (style: GradientStyle) => void;
+    onSetGradientSize: (size: 'page' | 'window') => void;
+    onSetGradientAngle: (angle: number) => void;
+    onSetGradientReverse: (reverse: boolean) => void;
+    onSetGradientStops: (stops: GradientStop[]) => void;
+  }
+
+  let {
+    gradientStyle,
+    gradientAngle,
+    gradientSize,
+    gradientReverse,
+    gradientStops,
+    gradientBarPreview,
+    paletteComputed,
+    onSetGradientStyle,
+    onSetGradientSize,
+    onSetGradientAngle,
+    onSetGradientReverse,
+    onSetGradientStops
+  }: Props = $props();
 
   const gradientStyleOptions: { value: GradientStyle; icon: string; title: string }[] = [
     { value: 'linear', icon: '/', title: 'Linear' },
@@ -41,7 +60,7 @@
     { value: 'window', label: 'Window', title: 'Gradient stays fixed to the viewport' },
   ];
 
-  let selectedStopIndex = 0;
+  let selectedStopIndex = $state(0);
   let draggingStopIndex: number | null = null;
 
   function stopColor(stop: GradientStop): string {
@@ -152,7 +171,7 @@
           class:active={gradientStyle === opt.value}
           type="button"
           title={opt.title}
-          on:click={() => onSetGradientStyle(opt.value)}
+          onclick={() => onSetGradientStyle(opt.value)}
         >{opt.icon}</button>
       {/each}
     </div>
@@ -166,7 +185,7 @@
       min="0"
       max="360"
       value={gradientAngle}
-      on:input={onAngleInput}
+      oninput={onAngleInput}
     />
     <span class="gradient-unit">deg</span>
     <input
@@ -175,7 +194,7 @@
       min="0"
       max="360"
       value={gradientAngle}
-      on:input={onAngleInput}
+      oninput={onAngleInput}
     />
   </div>
 
@@ -188,7 +207,7 @@
           class:active={gradientSize === opt.value}
           type="button"
           title={opt.title}
-          on:click={() => onSetGradientSize(opt.value)}
+          onclick={() => onSetGradientSize(opt.value)}
         >{opt.label}</button>
       {/each}
     </div>
@@ -196,7 +215,7 @@
 
   <div class="gradient-row">
     <label class="gradient-checkbox-label">
-      <input type="checkbox" checked={gradientReverse} on:change={onReverseChange} />
+      <input type="checkbox" checked={gradientReverse} onchange={onReverseChange} />
       Reverse
     </label>
   </div>
@@ -205,15 +224,15 @@
   <div class="gradient-stop-bar-wrapper">
     <div class="gradient-stop-handles">
       {#each gradientStops as stop, i}
-        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
         <div
           class="gradient-stop-handle"
           class:selected={selectedStopIndex === i}
           style="left: {stop.position}%; --stop-color: {stopColor(stop)}"
-          on:mousedown|stopPropagation={(e) => handleStopHandleMouseDown(e, i)}
+          onmousedown={stopPropagation((e) => handleStopHandleMouseDown(e, i))}
           role="button"
           tabindex="0"
-          on:keydown={(e) => {
+          onkeydown={(e) => {
             if (e.key === 'Delete' || e.key === 'Backspace') removeGradientStop(i);
           }}
         >
@@ -222,11 +241,11 @@
         </div>
       {/each}
     </div>
-    <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
     <div
       class="gradient-stop-bar"
       style="background: {gradientBarPreview}"
-      on:mousedown={handleStopBarMouseDown}
+      onmousedown={handleStopBarMouseDown}
       role="slider"
       tabindex="0"
       aria-label="Gradient stops"
@@ -243,7 +262,7 @@
       <select
         class="gradient-select"
         value={gradientStops[selectedStopIndex].paletteLabel}
-        on:change={onStopColorChange}
+        onchange={onStopColorChange}
       >
         {#each paletteComputed as ps}
           <option value={ps.label}>{ps.label}</option>
@@ -257,7 +276,7 @@
         min="0"
         max="100"
         value={gradientStops[selectedStopIndex].position}
-        on:change={onStopPositionChange}
+        onchange={onStopPositionChange}
       />
       <span class="gradient-unit">%</span>
       {#if gradientStops.length > 2}
@@ -265,7 +284,7 @@
           class="stop-remove-btn"
           type="button"
           title="Remove stop"
-          on:click={() => removeGradientStop(selectedStopIndex)}
+          onclick={() => removeGradientStop(selectedStopIndex)}
         >&times;</button>
       {/if}
     </div>

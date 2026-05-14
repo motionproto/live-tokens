@@ -3,25 +3,46 @@
   import InlineEditActions from '../components/InlineEditActions.svelte';
   import Button from '../components/Button.svelte';
 
-  export let color: string;
-  export let title: string | null = null;
-  export let showRemoveOverride: boolean = false;
-  export let onColorChange: (hex: string) => void = () => {};
-  export let onConfirm: () => void = () => {};
-  export let onCancel: () => void = () => {};
-  export let onRemoveOverride: () => void = () => {};
-  /**
+  
+
+  
+  interface Props {
+    color: string;
+    title?: string | null;
+    showRemoveOverride?: boolean;
+    onColorChange?: (hex: string) => void;
+    onConfirm?: () => void;
+    onCancel?: () => void;
+    onRemoveOverride?: () => void;
+    /**
    * Optional pointerdown hook for slider drags — lets parents open a store
    * transaction so the whole drag collapses to one undo step. If the parent
    * doesn't route slider writes through the editor store, leave this unset.
    */
-  export let onSliderStart: () => void = () => {};
+    onSliderStart?: () => void;
+    // Hue-chroma mode props (for neutral/gray base editing)
+    mode?: 'hsl' | 'hue-chroma';
+    hue?: number;
+    chroma?: number;
+    onHueChromaChange?: (hue: number, chroma: number) => void;
+    actions?: import('svelte').Snippet;
+  }
 
-  // Hue-chroma mode props (for neutral/gray base editing)
-  export let mode: 'hsl' | 'hue-chroma' = 'hsl';
-  export let hue: number = 0;
-  export let chroma: number = 0.04;
-  export let onHueChromaChange: (hue: number, chroma: number) => void = () => {};
+  let {
+    color,
+    title = null,
+    showRemoveOverride = false,
+    onColorChange = () => {},
+    onConfirm = () => {},
+    onCancel = () => {},
+    onRemoveOverride = () => {},
+    onSliderStart = () => {},
+    mode = 'hsl',
+    hue = 0,
+    chroma = 0.04,
+    onHueChromaChange = () => {},
+    actions
+  }: Props = $props();
 
   const hasEyeDropper = typeof window !== 'undefined' && 'EyeDropper' in window;
   const PREVIEW_LIGHTNESS = 0.55;
@@ -59,7 +80,7 @@
 
   // --- HSL mode reactives ---
 
-  $: hsl = hexToHsl(color);
+  let hsl = $derived(hexToHsl(color));
 
   function hueGrad(s: number, l: number): string {
     return `linear-gradient(to right, ${
@@ -83,11 +104,11 @@
 
   // --- Hue-chroma mode reactives ---
 
-  $: previewHex = mode === 'hue-chroma'
+  let previewHex = $derived(mode === 'hue-chroma'
     ? (() => { const c = gamutClamp(PREVIEW_LIGHTNESS, chroma, hue); return oklchToHex(c.l, c.c, c.h); })()
-    : color;
+    : color);
 
-  $: hueGradient = (() => {
+  let hueGradient = $derived((() => {
     const _c = chroma;
     const displayChroma = Math.max(_c, CHROMA_MAX);
     const stops = Array.from({ length: 13 }, (_, i) => {
@@ -96,9 +117,9 @@
       return oklchToHex(c.l, c.c, c.h);
     });
     return `linear-gradient(to right, ${stops.join(',')})`;
-  })();
+  })());
 
-  $: chromaGradient = (() => {
+  let chromaGradient = $derived((() => {
     const _h = hue;
     const stops = Array.from({ length: 8 }, (_, i) => {
       const c = (i / 7) * CHROMA_MAX;
@@ -106,7 +127,7 @@
       return oklchToHex(clamped.l, clamped.c, clamped.h);
     });
     return `linear-gradient(to right, ${stops.join(',')})`;
-  })();
+  })());
 
   // --- Shared ---
 
@@ -127,8 +148,8 @@
     }
   }
 
-  let hexEditing = false;
-  let hexDraft = '';
+  let hexEditing = $state(false);
+  let hexDraft = $state('');
 
   function startHexEdit() {
     hexDraft = previewHex;
@@ -165,7 +186,7 @@
         class="eyedropper-btn"
         type="button"
         title="Pick color from screen"
-        on:click={pickScreenColor}
+        onclick={pickScreenColor}
       ><i class="fas fa-eye-dropper"></i></button>
     {/if}
     {#if title}
@@ -176,20 +197,20 @@
         class="hsl-hex-input"
         type="text"
         bind:value={hexDraft}
-        on:keydown={handleHexKeydown}
-        on:blur={commitHex}
+        onkeydown={handleHexKeydown}
+        onblur={commitHex}
         maxlength="7"
         use:autoFocus
       />
     {:else}
-      <button class="hsl-hex" on:click={startHexEdit} title="Click to edit hex">{previewHex}</button>
+      <button class="hsl-hex" onclick={startHexEdit} title="Click to edit hex">{previewHex}</button>
     {/if}
     {#if mode === 'hue-chroma'}
       <code class="hsl-values">oklch({PREVIEW_LIGHTNESS}, {chroma.toFixed(3)}, {Math.round(hue)})</code>
     {:else}
       <code class="hsl-values">hsl({hsl[0]}, {hsl[1]}%, {hsl[2]}%)</code>
     {/if}
-    <slot name="actions" />
+    {@render actions?.()}
     <div class="hsl-panel-actions">
       {#if showRemoveOverride}
         <Button
@@ -211,9 +232,9 @@
     {#if mode === 'hue-chroma'}
       <div class="hsl-slider-row">
         <span class="hsl-slider-label">H</span>
-        <div class="slider-track" style="background: {hueGradient}" on:pointerdown={onSliderStart}>
+        <div class="slider-track" style="background: {hueGradient}" onpointerdown={onSliderStart}>
           <input type="range" min="0" max="360" value={hue}
-            on:input={(e) => onHueChromaChange(+e.currentTarget.value, chroma)} />
+            oninput={(e) => onHueChromaChange(+e.currentTarget.value, chroma)} />
         </div>
         <input
           class="hsl-slider-input"
@@ -221,14 +242,14 @@
           min="0"
           max="360"
           value={hue}
-          on:change={(e) => onHueChromaChange(Math.min(360, Math.max(0, +e.currentTarget.value)), chroma)}
+          onchange={(e) => onHueChromaChange(Math.min(360, Math.max(0, +e.currentTarget.value)), chroma)}
         /><span class="hsl-slider-unit">&deg;</span>
       </div>
       <div class="hsl-slider-row">
         <span class="hsl-slider-label">C</span>
-        <div class="slider-track" style="background: {chromaGradient}" on:pointerdown={onSliderStart}>
+        <div class="slider-track" style="background: {chromaGradient}" onpointerdown={onSliderStart}>
           <input type="range" min="0" max={CHROMA_MAX} step="0.001" value={chroma}
-            on:input={(e) => onHueChromaChange(hue, +e.currentTarget.value)} />
+            oninput={(e) => onHueChromaChange(hue, +e.currentTarget.value)} />
         </div>
         <input
           class="hsl-slider-input chroma-input"
@@ -237,15 +258,15 @@
           max={CHROMA_MAX}
           step="0.001"
           value={chroma.toFixed(3)}
-          on:change={(e) => onHueChromaChange(hue, Math.min(CHROMA_MAX, Math.max(0, +e.currentTarget.value)))}
+          onchange={(e) => onHueChromaChange(hue, Math.min(CHROMA_MAX, Math.max(0, +e.currentTarget.value)))}
         />
       </div>
     {:else}
       <div class="hsl-slider-row">
         <span class="hsl-slider-label">H</span>
-        <div class="slider-track" style="background: {hueGrad(hsl[1], hsl[2])}" on:pointerdown={onSliderStart}>
+        <div class="slider-track" style="background: {hueGrad(hsl[1], hsl[2])}" onpointerdown={onSliderStart}>
           <input type="range" min="0" max="360" value={hsl[0]}
-            on:input={(e) => updateHsl(0, +e.currentTarget.value)} />
+            oninput={(e) => updateHsl(0, +e.currentTarget.value)} />
         </div>
         <input
           class="hsl-slider-input"
@@ -253,14 +274,14 @@
           min="0"
           max="360"
           value={hsl[0]}
-          on:change={(e) => updateHsl(0, Math.min(360, Math.max(0, +e.currentTarget.value)))}
+          onchange={(e) => updateHsl(0, Math.min(360, Math.max(0, +e.currentTarget.value)))}
         /><span class="hsl-slider-unit">&deg;</span>
       </div>
       <div class="hsl-slider-row">
         <span class="hsl-slider-label">S</span>
-        <div class="slider-track" style="background: {satGrad(hsl[0], hsl[2])}" on:pointerdown={onSliderStart}>
+        <div class="slider-track" style="background: {satGrad(hsl[0], hsl[2])}" onpointerdown={onSliderStart}>
           <input type="range" min="0" max="100" value={hsl[1]}
-            on:input={(e) => updateHsl(1, +e.currentTarget.value)} />
+            oninput={(e) => updateHsl(1, +e.currentTarget.value)} />
         </div>
         <input
           class="hsl-slider-input"
@@ -268,14 +289,14 @@
           min="0"
           max="100"
           value={hsl[1]}
-          on:change={(e) => updateHsl(1, Math.min(100, Math.max(0, +e.currentTarget.value)))}
+          onchange={(e) => updateHsl(1, Math.min(100, Math.max(0, +e.currentTarget.value)))}
         /><span class="hsl-slider-unit">%</span>
       </div>
       <div class="hsl-slider-row">
         <span class="hsl-slider-label">L</span>
-        <div class="slider-track" style="background: {lightGrad(hsl[0], hsl[1])}" on:pointerdown={onSliderStart}>
+        <div class="slider-track" style="background: {lightGrad(hsl[0], hsl[1])}" onpointerdown={onSliderStart}>
           <input type="range" min="0" max="100" value={hsl[2]}
-            on:input={(e) => updateHsl(2, +e.currentTarget.value)} />
+            oninput={(e) => updateHsl(2, +e.currentTarget.value)} />
         </div>
         <input
           class="hsl-slider-input"
@@ -283,7 +304,7 @@
           min="0"
           max="100"
           value={hsl[2]}
-          on:change={(e) => updateHsl(2, Math.min(100, Math.max(0, +e.currentTarget.value)))}
+          onchange={(e) => updateHsl(2, Math.min(100, Math.max(0, +e.currentTarget.value)))}
         /><span class="hsl-slider-unit">%</span>
       </div>
     {/if}

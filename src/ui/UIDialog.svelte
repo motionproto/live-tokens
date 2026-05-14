@@ -1,27 +1,45 @@
 <script lang="ts">
+  import { run, self } from 'svelte/legacy';
+
   import { tick, createEventDispatcher } from 'svelte';
 
-  export let show: boolean = false;
-  export let title: string = '';
-  export let cancelLabel: string = 'Cancel';
-  export let showCancel: boolean = true;
-  export let confirmLabel: string = '';
-  export let confirmDisabled: boolean = false;
-  export let width: string = '500px';
+  interface Props {
+    show?: boolean;
+    title?: string;
+    cancelLabel?: string;
+    showCancel?: boolean;
+    confirmLabel?: string;
+    confirmDisabled?: boolean;
+    width?: string;
+    children?: import('svelte').Snippet;
+  }
+
+  let {
+    show = $bindable(false),
+    title = '',
+    cancelLabel = 'Cancel',
+    showCancel = true,
+    confirmLabel = '',
+    confirmDisabled = false,
+    width = '500px',
+    children
+  }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
-  let closeButtonRef: HTMLButtonElement;
-  let cancelButtonRef: HTMLButtonElement;
-  let confirmButtonRef: HTMLButtonElement;
+  let closeButtonRef: HTMLButtonElement = $state();
+  let cancelButtonRef: HTMLButtonElement = $state();
+  let confirmButtonRef: HTMLButtonElement = $state();
 
-  $: if (show) {
-    tick().then(() => {
-      if (confirmLabel && confirmButtonRef) confirmButtonRef.focus();
-      else if (showCancel && cancelButtonRef) cancelButtonRef.focus();
-      else if (closeButtonRef) closeButtonRef.focus();
-    });
-  }
+  run(() => {
+    if (show) {
+      tick().then(() => {
+        if (confirmLabel && confirmButtonRef) confirmButtonRef.focus();
+        else if (showCancel && cancelButtonRef) cancelButtonRef.focus();
+        else if (closeButtonRef) closeButtonRef.focus();
+      });
+    }
+  });
 
   function handleClose() {
     show = false;
@@ -33,26 +51,26 @@
 </script>
 
 {#if show}
-  <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-noninteractive-element-interactions -->
-  <div class="ui-dialog-backdrop" on:click|self={handleClose}>
+  <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+  <div class="ui-dialog-backdrop" onclick={self(handleClose)}>
     <div class="ui-dialog" style="width: {width}; max-width: {width};">
       {#if title}
         <div class="ui-dialog-header">
           <h3 class="ui-dialog-title">{title}</h3>
-          <button bind:this={closeButtonRef} class="ui-dialog-close" on:click={handleClose} aria-label="Close">
+          <button bind:this={closeButtonRef} class="ui-dialog-close" onclick={handleClose} aria-label="Close">
             <i class="fas fa-times"></i>
           </button>
         </div>
       {/if}
 
       <div class="ui-dialog-body">
-        <slot />
+        {@render children?.()}
       </div>
 
       {#if showCancel || confirmLabel}
         <div class="ui-dialog-footer">
           {#if showCancel}
-            <button bind:this={cancelButtonRef} class="ui-dialog-btn" on:click={handleClose}>
+            <button bind:this={cancelButtonRef} class="ui-dialog-btn" onclick={handleClose}>
               {cancelLabel}
             </button>
           {/if}
@@ -60,7 +78,7 @@
             <button
               bind:this={confirmButtonRef}
               class="ui-dialog-btn primary"
-              on:click={handleConfirm}
+              onclick={handleConfirm}
               disabled={confirmDisabled}
             >
               {confirmLabel}

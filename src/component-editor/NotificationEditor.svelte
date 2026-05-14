@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
@@ -95,47 +95,49 @@
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   import { buildSiblings } from './scaffolding/siblings';
 
-  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
-  $: visibleVariantTokens = (v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet);
+  let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
+  let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet));
 
   import type { NotificationActions } from '../components/types';
 
-  let dismissible = false;
-  let rightOption: ButtonVariantOption = 'none';
-  let leftOption: ButtonVariantOption = 'none';
-  $: actions = ((): NotificationActions => {
+  let dismissible = $state(false);
+  let rightOption: ButtonVariantOption = $state('none');
+  let leftOption: ButtonVariantOption = $state('none');
+  let actions = $derived(((): NotificationActions => {
     const a: NotificationActions = {};
     const right = toVariant(rightOption);
     const left = toVariant(leftOption);
     if (right) a.right = { label: 'Confirm', variant: right, onClick: () => {} };
     if (left) a.left = { label: 'Cancel', variant: left, onClick: () => {} };
     return a;
-  })();
+  })());
 </script>
 
 <ComponentEditorBase {component} title="Notification" description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>" tokens={allTokens} {linked} variants={variantOptions}>
-  <svelte:fragment slot="config">
-    <label>
-      <input type="checkbox" bind:checked={dismissible} />
-      <span>Dismissible</span>
-    </label>
-    <label>
-      <span>Right button</span>
-      <select class="form-select" bind:value={rightOption}>
-        {#each BUTTON_VARIANT_OPTIONS as v}
-          <option value={v}>{variantLabel(v)}</option>
-        {/each}
-      </select>
-    </label>
-    <label>
-      <span>Left button</span>
-      <select class="form-select" bind:value={leftOption}>
-        {#each BUTTON_VARIANT_OPTIONS as v}
-          <option value={v}>{variantLabel(v)}</option>
-        {/each}
-      </select>
-    </label>
-  </svelte:fragment>
+  {#snippet config()}
+  
+      <label>
+        <input type="checkbox" bind:checked={dismissible} />
+        <span>Dismissible</span>
+      </label>
+      <label>
+        <span>Right button</span>
+        <select class="form-select" bind:value={rightOption}>
+          {#each BUTTON_VARIANT_OPTIONS as v}
+            <option value={v}>{variantLabel(v)}</option>
+          {/each}
+        </select>
+      </label>
+      <label>
+        <span>Left button</span>
+        <select class="form-select" bind:value={leftOption}>
+          {#each BUTTON_VARIANT_OPTIONS as v}
+            <option value={v}>{variantLabel(v)}</option>
+          {/each}
+        </select>
+      </label>
+    
+  {/snippet}
   {#each variants as v}
     <VariantGroup
       name={v}

@@ -1,16 +1,22 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { onMount, tick } from 'svelte';
 
-  export let title: string;
-  export let description: string | undefined = undefined;
-  export let variant: 'canvas' | 'neutral' | 'alternate' | 'primary' | 'accent' | 'special' = 'canvas';
+  interface Props {
+    title: string;
+    description?: string | undefined;
+    variant?: 'canvas' | 'neutral' | 'alternate' | 'primary' | 'accent' | 'special';
+  }
 
-  let svgEl: SVGSVGElement | undefined;
-  let svgTextEl: SVGTextElement | undefined;
-  let svgW = 0;
-  let svgH = 0;
-  let svgX = 0;
-  let svgY = 0;
+  let { title, description = undefined, variant = 'canvas' }: Props = $props();
+
+  let svgEl: SVGSVGElement | undefined = $state();
+  let svgTextEl: SVGTextElement | undefined = $state();
+  let svgW = $state(0);
+  let svgH = $state(0);
+  let svgX = $state(0);
+  let svgY = $state(0);
 
   // feMorphology radius and feFlood flood-color are non-presentation attributes:
   // they can't read CSS vars. We read the resolved values off the SVG element
@@ -18,8 +24,8 @@
   // mutates inline CSS vars on documentElement. Reading the variant-scoped
   // internal `--_divider-title-*` vars (set by the .variant-{v} class) keeps
   // this independent of the variant prop.
-  let outlineRadius = '0';
-  let outlineColor = '#000';
+  let outlineRadius = $state('0');
+  let outlineColor = $state('#000');
   // Stable per-instance id so multiple SectionDividers on the same page each
   // bind their <text> to their own filter.
   const filterId = `sd-outline-${Math.random().toString(36).slice(2, 10)}`;
@@ -49,9 +55,11 @@
     svgH = Math.ceil(bb.height);
   }
 
-  $: if (title) {
-    tick().then(() => { measure(); syncFilter(); });
-  }
+  run(() => {
+    if (title) {
+      tick().then(() => { measure(); syncFilter(); });
+    }
+  });
 
   onMount(() => {
     measure();

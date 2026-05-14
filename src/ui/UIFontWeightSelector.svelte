@@ -2,11 +2,21 @@
   import UIVariantSelector from './UIVariantSelector.svelte';
   import UIOptionItem from './UIOptionItem.svelte';
 
-  export let variable: string;
-  export let component: string | undefined = undefined;
-  export let canBeLinked: boolean = false;
-  export let disabled: boolean = false;
-  export let selectionsLocked: boolean = false;
+  interface Props {
+    variable: string;
+    component?: string | undefined;
+    canBeLinked?: boolean;
+    disabled?: boolean;
+    selectionsLocked?: boolean;
+  }
+
+  let {
+    variable,
+    component = undefined,
+    canBeLinked = false,
+    disabled = false,
+    selectionsLocked = false
+  }: Props = $props();
 
   const options = [
     { key: 'thin', label: 'Thin', value: '100' },
@@ -31,13 +41,21 @@
   {options}
   on:change
 >
-  <svelte:fragment slot="option" let:opt let:active let:select>
-    <UIOptionItem {active} on:click={select}>
-      <span slot="preview" class="weight-sample" style="font-weight: var(--font-weight-{opt.key});">A</span>
-      <svelte:fragment slot="label">{opt.label}</svelte:fragment>
-      <svelte:fragment slot="meta">{opt.value}</svelte:fragment>
-    </UIOptionItem>
-  </svelte:fragment>
+  {#snippet option({ opt, active, select })}
+  
+      <UIOptionItem {active} on:click={select}>
+        {#snippet preview()}
+            <span  class="weight-sample" style="font-weight: var(--font-weight-{opt.key});">A</span>
+          {/snippet}
+        {#snippet label()}
+            {opt.label}
+          {/snippet}
+        {#snippet meta()}
+            {opt.value}
+          {/snippet}
+      </UIOptionItem>
+    
+  {/snippet}
 </UIVariantSelector>
 
 <style>

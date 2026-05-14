@@ -8,10 +8,19 @@
     disabled?: boolean;
   };
 
-  export let segments: Segment[] = [];
-  export let value: string = '';
-  export let disabled: boolean = false;
-  export let forceHoverValue: string | null = null;
+  interface Props {
+    segments?: Segment[];
+    value?: string;
+    disabled?: boolean;
+    forceHoverValue?: string | null;
+  }
+
+  let {
+    segments = [],
+    value = $bindable(''),
+    disabled = false,
+    forceHoverValue = null
+  }: Props = $props();
 
   const dispatch = createEventDispatcher<{ change: string }>();
 
@@ -34,7 +43,7 @@
       disabled={disabled || seg.disabled}
       role="radio"
       aria-checked={value === seg.value}
-      on:click={() => select(seg.value)}
+      onclick={() => select(seg.value)}
     >
       {#if seg.icon}<i class={seg.icon}></i>{/if}
       <span>{seg.label}</span>

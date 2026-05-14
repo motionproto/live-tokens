@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   import { buildTypeGroupTokens, buildTypeGroupShareableContexts } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
@@ -113,42 +113,46 @@
     { value: 'option-2', label: 'Option 2', icon: 'fas fa-check' },
     { value: 'option-3', label: 'Option 3', icon: 'fas fa-heart' },
   ];
-  let showIcons = true;
-  $: previewSegments = showIcons ? segments : segments.map((s) => ({ ...s, icon: undefined }));
+  let showIcons = $state(true);
+  let previewSegments = $derived(showIcons ? segments : segments.map((s) => ({ ...s, icon: undefined })));
 
-  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
+  let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
 
-  $: visibleStates = Object.fromEntries(
+  let visibleStates = $derived(Object.fromEntries(
     Object.entries(states).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
-  ) as Record<string, Token[]>;
+  ) as Record<string, Token[]>);
 </script>
 
 <ComponentEditorBase {component} title="Segmented Control" description="A connected set of buttons for toggling between mutually exclusive options." tokens={allTokens} {linked}>
-  <svelte:fragment slot="config">
-    <label>
-      <input type="checkbox" bind:checked={showIcons} />
-      <span>Show icons</span>
-    </label>
-  </svelte:fragment>
+  {#snippet config()}
+  
+      <label>
+        <input type="checkbox" bind:checked={showIcons} />
+        <span>Show icons</span>
+      </label>
+    
+  {/snippet}
   <VariantGroup
     name="segmentedcontrol"
     title="Segmented Control"
     states={visibleStates}
     {typeGroups}
     {component}
-    let:activeState
+    
   >
-    {@const previewValue = activeState === 'selected option' ? 'option-2' : ''}
-    {@const previewForceHover = activeState === 'hover option' ? 'option-1' : null}
-    {@const previewDisabled = activeState === 'disabled option'}
-    <div>
-      <SegmentedControl
-        segments={previewSegments}
-        value={previewValue}
-        forceHoverValue={previewForceHover}
-        disabled={previewDisabled}
-      />
-    </div>
-  </VariantGroup>
+    {#snippet children({ activeState })}
+        {@const previewValue = activeState === 'selected option' ? 'option-2' : ''}
+      {@const previewForceHover = activeState === 'hover option' ? 'option-1' : null}
+      {@const previewDisabled = activeState === 'disabled option'}
+      <div>
+        <SegmentedControl
+          segments={previewSegments}
+          value={previewValue}
+          forceHoverValue={previewForceHover}
+          disabled={previewDisabled}
+        />
+      </div>
+          {/snippet}
+    </VariantGroup>
 </ComponentEditorBase>
 

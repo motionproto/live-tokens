@@ -1,23 +1,35 @@
 <script lang="ts">
-   /**
+   
+
+   interface Props {
+      /**
     * Reusable inline edit action buttons (confirm/cancel)
     * Used for inline editing throughout the app
     */
+      onSave: () => void | Promise<void>;
+      onCancel: () => void;
+      disabled?: boolean;
+      saveTitle?: string;
+      cancelTitle?: string;
+      class?: string;
+   }
 
-   export let onSave: () => void | Promise<void>;
-   export let onCancel: () => void;
-   export let disabled = false;
-   export let saveTitle = "Save";
-   export let cancelTitle = "Cancel";
-   let className: string = '';
-   export { className as class };
+   let {
+      onSave,
+      onCancel,
+      disabled = false,
+      saveTitle = "Save",
+      cancelTitle = "Cancel",
+      class: className = ''
+   }: Props = $props();
+   
 </script>
 
 <div class="inline-actions {className}">
    <button
       class="save-btn"
       type="button"
-      on:click={onSave}
+      onclick={onSave}
       {disabled}
       title={saveTitle}
    >
@@ -26,7 +38,7 @@
    <button
       class="cancel-btn"
       type="button"
-      on:click={onCancel}
+      onclick={onCancel}
       disabled={disabled}
       title={cancelTitle}
    >

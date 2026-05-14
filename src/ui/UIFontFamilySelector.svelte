@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import { resolveAliasChain } from '../lib/tokenRegistry';
   import { editorState } from '../lib/editorStore';
@@ -10,11 +12,21 @@
 
   const dispatch = createEventDispatcher();
 
-  export let variable: string;
-  export let component: string | undefined = undefined;
-  export let canBeLinked: boolean = false;
-  export let disabled: boolean = false;
-  export let selectionsLocked: boolean = false;
+  interface Props {
+    variable: string;
+    component?: string | undefined;
+    canBeLinked?: boolean;
+    disabled?: boolean;
+    selectionsLocked?: boolean;
+  }
+
+  let {
+    variable,
+    component = undefined,
+    canBeLinked = false,
+    disabled = false,
+    selectionsLocked = false
+  }: Props = $props();
 
   const options = [
     { key: 'display', label: 'Display' },
@@ -23,15 +35,15 @@
     { key: 'mono', label: 'Mono' },
   ];
 
-  let selector: UITokenSelector;
-  let chosenKey: string | null = null;
-  let chosenFamilyId: string | null = null;
-  let currentStack: string = '';
-  let familyNameByKey: Record<string, string> = {};
+  let selector: UITokenSelector = $state();
+  let chosenKey: string | null = $state(null);
+  let chosenFamilyId: string | null = $state(null);
+  let currentStack: string = $state('');
+  let familyNameByKey: Record<string, string> = $state({});
 
-  $: fontSources = $editorState.fonts.sources;
-  $: allFamilies = (fontSources as FontSource[]).flatMap((s) => s.families);
-  $: hasProjectFonts = allFamilies.length > 0;
+  let fontSources = $derived($editorState.fonts.sources);
+  let allFamilies = $derived((fontSources as FontSource[]).flatMap((s) => s.families));
+  let hasProjectFonts = $derived(allFamilies.length > 0);
 
   function parseRef(value: string): string | null {
     const m = value.match(/var\((--font-[a-z]+)\)/);
@@ -141,11 +153,13 @@
 
   // Re-derive `chosenKey` / `chosenFamilyId` when `variable` changes (the
   // VariantGroup tabs view reuses the same selector instance across states).
-  let lastSeenVariable: string | null = null;
-  $: if (variable !== lastSeenVariable) {
-    lastSeenVariable = variable;
-    initFromCurrent();
-  }
+  let lastSeenVariable: string | null = $state(null);
+  run(() => {
+    if (variable !== lastSeenVariable) {
+      lastSeenVariable = variable;
+      initFromCurrent();
+    }
+  });
 
   onMount(() => {
     document.addEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
@@ -154,10 +168,10 @@
     document.removeEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
   });
 
-  $: activeLabel = chosenFamilyId
+  let activeLabel = $derived(chosenFamilyId
     ? (allFamilies.find((f) => f.id === chosenFamilyId)?.name ?? 'Project font')
-    : (options.find((o) => o.key === chosenKey)?.label ?? '');
-  $: displayFamily = firstFamilyName(currentStack);
+    : (options.find((o) => o.key === chosenKey)?.label ?? ''));
+  let displayFamily = $derived(firstFamilyName(currentStack));
 </script>
 
 <UITokenSelector
@@ -171,54 +185,68 @@
   on:reset={handleReset}
   on:var-change={initFromCurrent}
 >
+  <!-- @migration-task: migrate this slot by hand, `trigger-title` is an invalid identifier -->
   <svelte:fragment slot="trigger-title">{activeLabel}</svelte:fragment>
+  <!-- @migration-task: migrate this slot by hand, `trigger-meta` is an invalid identifier -->
   <svelte:fragment slot="trigger-meta">{displayFamily || '—'}</svelte:fragment>
 
-  <svelte:fragment let:close>
-    <UIOptionList>
-      {#each options as opt}
-        <UIOptionItem
-          active={chosenKey === opt.key}
-          on:click={() => selectOption(opt.key, close)}
-        >
-          <span slot="preview" class="font-sample" style="font-family: var(--font-{opt.key});">Aa</span>
-          <svelte:fragment slot="label">{opt.label}</svelte:fragment>
-          <svelte:fragment slot="meta">{familyNameByKey[opt.key] ?? ''}</svelte:fragment>
-        </UIOptionItem>
-      {/each}
+  {#snippet children({ close })}
+  
+      <UIOptionList>
+        {#each options as opt}
+          <UIOptionItem
+            active={chosenKey === opt.key}
+            on:click={() => selectOption(opt.key, close)}
+          >
+            {#snippet preview()}
+                    <span  class="font-sample" style="font-family: var(--font-{opt.key});">Aa</span>
+                  {/snippet}
+            {#snippet label()}
+                    {opt.label}
+                  {/snippet}
+            {#snippet meta()}
+                    {familyNameByKey[opt.key] ?? ''}
+                  {/snippet}
+          </UIOptionItem>
+        {/each}
 
-      {#if hasProjectFonts}
-        <div class="pfs-divider" role="separator"></div>
-        <div class="pfs-section">
-          <div class="pfs-trigger" class:active={chosenFamilyId !== null}>
-            <span class="pfs-label">Project Fonts</span>
-            <span class="pfs-count">{allFamilies.length}</span>
-            <i class="fas fa-chevron-right pfs-chevron" aria-hidden="true"></i>
+        {#if hasProjectFonts}
+          <div class="pfs-divider" role="separator"></div>
+          <div class="pfs-section">
+            <div class="pfs-trigger" class:active={chosenFamilyId !== null}>
+              <span class="pfs-label">Project Fonts</span>
+              <span class="pfs-count">{allFamilies.length}</span>
+              <i class="fas fa-chevron-right pfs-chevron" aria-hidden="true"></i>
+            </div>
+            <div class="pfs-submenu">
+              {#each fontSources as source (source.id)}
+                {#if source.families.length > 0}
+                  <div class="pfs-source-label">{source.label ?? source.kind}</div>
+                  {#each source.families as fam (fam.id)}
+                    <UIOptionItem
+                      active={chosenFamilyId === fam.id}
+                      on:click={() => selectProjectFamily(fam, close)}
+                    >
+                      {#snippet preview()}
+                                        <span
+                          
+                          class="font-sample"
+                          style="font-family: '{fam.cssName}', {genericFor(variable)};"
+                        >Aa</span>
+                                      {/snippet}
+                      {#snippet label()}
+                                        {fam.name}
+                                      {/snippet}
+                    </UIOptionItem>
+                  {/each}
+                {/if}
+              {/each}
+            </div>
           </div>
-          <div class="pfs-submenu">
-            {#each fontSources as source (source.id)}
-              {#if source.families.length > 0}
-                <div class="pfs-source-label">{source.label ?? source.kind}</div>
-                {#each source.families as fam (fam.id)}
-                  <UIOptionItem
-                    active={chosenFamilyId === fam.id}
-                    on:click={() => selectProjectFamily(fam, close)}
-                  >
-                    <span
-                      slot="preview"
-                      class="font-sample"
-                      style="font-family: '{fam.cssName}', {genericFor(variable)};"
-                    >Aa</span>
-                    <svelte:fragment slot="label">{fam.name}</svelte:fragment>
-                  </UIOptionItem>
-                {/each}
-              {/if}
-            {/each}
-          </div>
-        </div>
-      {/if}
-    </UIOptionList>
-  </svelte:fragment>
+        {/if}
+      </UIOptionList>
+    
+  {/snippet}
 </UITokenSelector>
 
 <style>

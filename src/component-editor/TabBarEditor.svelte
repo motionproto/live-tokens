@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
@@ -87,7 +87,7 @@
   import { editorState } from '../lib/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
-  let selectedDemoTab = 'overview';
+  let selectedDemoTab = $state('overview');
   const demoTabs = [
     { id: 'overview', label: 'Overview', icon: 'fas fa-home' },
     { id: 'details', label: 'Details', icon: 'fas fa-info-circle' },
@@ -95,11 +95,11 @@
     { id: 'disabled', label: 'Disabled', icon: 'fas fa-ban', disabled: true },
   ];
 
-  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
+  let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
 
-  $: visibleStates = Object.fromEntries(
+  let visibleStates = $derived(Object.fromEntries(
     Object.entries(states).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
-  ) as Record<string, Token[]>;
+  ) as Record<string, Token[]>);
 </script>
 
 <ComponentEditorBase {component} title="Tab Bar" description="Tab navigation with icon support and disabled state. Import from <code>components/TabBar.svelte</code>" tokens={allTokens} {linked}>
@@ -109,20 +109,22 @@
     states={visibleStates}
     {typeGroups}
     {component}
-    let:activeState
+    
   >
-    {@const forceClass = activeState === 'hover tab' ? 'force-hover' : ''}
-    <TabBar tabs={demoTabs} selectedTab={selectedDemoTab} class={forceClass} on:tabChange={(e) => (selectedDemoTab = e.detail)} />
-    <div class="tab-content-demo">
-      {#if selectedDemoTab === 'overview'}
-        <p style="margin: 0;">Overview tab content</p>
-      {:else if selectedDemoTab === 'details'}
-        <p style="margin: 0;">Details tab content</p>
-      {:else if selectedDemoTab === 'settings'}
-        <p style="margin: 0;">Settings tab content</p>
-      {/if}
-    </div>
-  </VariantGroup>
+    {#snippet children({ activeState })}
+        {@const forceClass = activeState === 'hover tab' ? 'force-hover' : ''}
+      <TabBar tabs={demoTabs} selectedTab={selectedDemoTab} class={forceClass} on:tabChange={(e) => (selectedDemoTab = e.detail)} />
+      <div class="tab-content-demo">
+        {#if selectedDemoTab === 'overview'}
+          <p style="margin: 0;">Overview tab content</p>
+        {:else if selectedDemoTab === 'details'}
+          <p style="margin: 0;">Details tab content</p>
+        {:else if selectedDemoTab === 'settings'}
+          <p style="margin: 0;">Settings tab content</p>
+        {/if}
+      </div>
+          {/snippet}
+    </VariantGroup>
 </ComponentEditorBase>
 
 <style>

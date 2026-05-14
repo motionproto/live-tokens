@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
@@ -95,9 +95,9 @@
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
   import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
 
-  $: config = $editorState.components.dialog?.config ?? {};
-  $: confirmVariant = (BUTTON_VARIANTS.includes(config[CONFIRM_VAR] as ButtonVariant) ? config[CONFIRM_VAR] : DEFAULT_CONFIRM) as ButtonVariant;
-  $: cancelVariant = (BUTTON_VARIANTS.includes(config[CANCEL_VAR] as ButtonVariant) ? config[CANCEL_VAR] : DEFAULT_CANCEL) as ButtonVariant;
+  let config = $derived($editorState.components.dialog?.config ?? {});
+  let confirmVariant = $derived((BUTTON_VARIANTS.includes(config[CONFIRM_VAR] as ButtonVariant) ? config[CONFIRM_VAR] : DEFAULT_CONFIRM) as ButtonVariant);
+  let cancelVariant = $derived((BUTTON_VARIANTS.includes(config[CANCEL_VAR] as ButtonVariant) ? config[CANCEL_VAR] : DEFAULT_CANCEL) as ButtonVariant);
 
   function setConfirmVariant(e: Event) {
     const v = (e.target as HTMLSelectElement).value;
@@ -108,30 +108,32 @@
     setComponentConfig(component, CANCEL_VAR, v);
   }
 
-  let bgMode: 'image' | 'color' = 'image';
+  let bgMode: 'image' | 'color' = $state('image');
   const bgVar = '--backdrop-dialog-surface';
 </script>
 
 <ComponentEditorBase {component} title="Dialog" description="Modal dialog with focus management and slide-in animation. Import from <code>components/Dialog.svelte</code>" tokens={allTokens}>
-  <svelte:fragment slot="config">
-    <label>
-      <span>Cancel button (left)</span>
-      <select class="form-select" value={cancelVariant} on:change={setCancelVariant}>
-        {#each BUTTON_VARIANTS as v}
-          <option value={v}>{variantLabel(v)}</option>
-        {/each}
-      </select>
-    </label>
-    <label>
-      <span>Confirm button (right)</span>
-      <select class="form-select" value={confirmVariant} on:change={setConfirmVariant}>
-        {#each BUTTON_VARIANTS as v}
-          <option value={v}>{variantLabel(v)}</option>
-        {/each}
-      </select>
-    </label>
-    <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
-  </svelte:fragment>
+  {#snippet config()}
+  
+      <label>
+        <span>Cancel button (left)</span>
+        <select class="form-select" value={cancelVariant} onchange={setCancelVariant}>
+          {#each BUTTON_VARIANTS as v}
+            <option value={v}>{variantLabel(v)}</option>
+          {/each}
+        </select>
+      </label>
+      <label>
+        <span>Confirm button (right)</span>
+        <select class="form-select" value={confirmVariant} onchange={setConfirmVariant}>
+          {#each BUTTON_VARIANTS as v}
+            <option value={v}>{variantLabel(v)}</option>
+          {/each}
+        </select>
+      </label>
+      <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
+    
+  {/snippet}
   <div class="dialog-preview">
     <ShadowBackdrop mode={bgMode} colorVariable={bgVar} padding="0">
       <Dialog

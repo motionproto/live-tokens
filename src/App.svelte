@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import Home from './pages/Home.svelte';
   import Demo from './pages/Demo.svelte';
   import Editor from './pages/Editor.svelte';
@@ -17,15 +19,17 @@
     { path: '/components', label: 'Components', icon: 'fa-puzzle-piece' },
   ];
 
-  $: visibleNavLinks = allNavLinks;
+  let visibleNavLinks = $derived(allNavLinks);
 
   // The /components page and the overlay's components view are the same surface.
   // Keep them mutually exclusive by flipping the overlay to tokens whenever the
   // underlying page is /components, so they pair as page+overlay instead of
   // stacking on top of each other.
-  $: if ($route === '/components' && $editorView === 'components') {
-    editorView.set('tokens');
-  }
+  run(() => {
+    if ($route === '/components' && $editorView === 'components') {
+      editorView.set('tokens');
+    }
+  });
 
   function handleClick(e: MouseEvent) {
     const anchor = (e.target as HTMLElement).closest('a[href]');
@@ -38,13 +42,13 @@
   }
 
   const isDev = import.meta.env.DEV;
-  $: isEditor = isDev && $route === '/editor';
-  $: isDemo = isDev && $route === '/demo';
-  $: isComponentEditor = isDev && $route === '/components';
+  let isEditor = $derived(isDev && $route === '/editor');
+  let isDemo = $derived(isDev && $route === '/demo');
+  let isComponentEditor = $derived(isDev && $route === '/components');
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-noninteractive-element-interactions -->
-<div class="lt-app" class:is-editor={isEditor} class:is-component-editor={isComponentEditor} on:click={handleClick}>
+<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+<div class="lt-app" class:is-editor={isEditor} class:is-component-editor={isComponentEditor} onclick={handleClick}>
   <LiveEditorOverlay
     navLinks={visibleNavLinks}
     pageSources={{

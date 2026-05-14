@@ -8,13 +8,28 @@
     <UIRadio bind:group={selected} value="beta" disabled />
 -->
 <script lang="ts">
-  /** Value this radio represents within its group. */
-  export let value: string;
-  /** Two-way bound group selection. The radio is checked when `group === value`. */
-  export let group: string;
-  /** Optional native name; omit to let Svelte's `bind:group` wire it automatically. */
-  export let name: string = '';
-  export let disabled: boolean = false;
+  import { createBubbler } from 'svelte/legacy';
+
+  const bubble = createBubbler();
+  
+  
+  
+  interface Props {
+    /** Value this radio represents within its group. */
+    value: string;
+    /** Two-way bound group selection. The radio is checked when `group === value`. */
+    group: string;
+    /** Optional native name; omit to let Svelte's `bind:group` wire it automatically. */
+    name?: string;
+    disabled?: boolean;
+  }
+
+  let {
+    value,
+    group = $bindable(),
+    name = '',
+    disabled = false
+  }: Props = $props();
 </script>
 
 <input
@@ -24,7 +39,7 @@
   {name}
   {disabled}
   bind:group
-  on:change
+  onchange={bubble('change')}
 />
 
 <style>

@@ -1,9 +1,13 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
 
-  export let checked: boolean = false;
-  export let disabled: boolean = false;
-  export let label: string = '';
+  interface Props {
+    checked?: boolean;
+    disabled?: boolean;
+    label?: string;
+  }
+
+  let { checked = $bindable(false), disabled = false, label = '' }: Props = $props();
 
   const dispatch = createEventDispatcher<{ change: boolean }>();
 
@@ -22,9 +26,9 @@
     {disabled}
     class="toggle-track"
     class:on={checked}
-    on:click={toggle}
+    onclick={toggle}
   >
-    <span class="toggle-thumb" />
+    <span class="toggle-thumb"></span>
   </button>
   {#if label}
     <span class="toggle-label">{label}</span>

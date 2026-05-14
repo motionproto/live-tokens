@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
@@ -127,30 +127,33 @@
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
   import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
 
-  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
+  let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
 
-  $: visibleStates = Object.fromEntries(
+  let visibleStates = $derived(Object.fromEntries(
     Object.entries(states).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
-  ) as Record<string, Token[]>;
+  ) as Record<string, Token[]>);
 
-  let hoverEnabled = true;
-  let bgMode: 'image' | 'color' = 'image';
+  let hoverEnabled = $state(true);
+  let bgMode: 'image' | 'color' = $state('image');
   const bgVar = '--backdrop-card-surface';
 </script>
 
 <ComponentEditorBase {component} title="Card" description="Generic card with icon, title, and slotted body. Import from <code>components/Card.svelte</code>" tokens={allTokens} {linked}>
-  <svelte:fragment slot="config">
-    <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
-  </svelte:fragment>
+  {#snippet config()}
+  
+      <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
+    
+  {/snippet}
   <VariantGroup
     name="card"
     title="Card"
     states={visibleStates}
     {typeGroups}
     {component}
-    let:activeState
+    
   >
-    <svelte:fragment slot="state-actions" let:stateName>
+    <!-- @migration-task: migrate this slot by hand, `state-actions` is an invalid identifier -->
+  <svelte:fragment slot="state-actions" let:stateName>
       {#if stateName === 'hover'}
         <label class="hover-enable">
           <input type="checkbox" bind:checked={hoverEnabled} />
@@ -158,15 +161,17 @@
         </label>
       {/if}
     </svelte:fragment>
-    {@const previewClass = activeState === 'hover' ? 'force-hover' : (hoverEnabled ? '' : 'no-hover')}
-    <ShadowBackdrop mode={bgMode} colorVariable={bgVar}>
-      <div class="card-demo">
-        <Card title="Card title" class={previewClass}>
-          <p style="margin: 0;">Slotted body content. Hover the card (or switch the editor to the Hover state) to preview hover styling.</p>
-        </Card>
-      </div>
-    </ShadowBackdrop>
-  </VariantGroup>
+    {#snippet children({ activeState })}
+        {@const previewClass = activeState === 'hover' ? 'force-hover' : (hoverEnabled ? '' : 'no-hover')}
+      <ShadowBackdrop mode={bgMode} colorVariable={bgVar}>
+        <div class="card-demo">
+          <Card title="Card title" class={previewClass}>
+            <p style="margin: 0;">Slotted body content. Hover the card (or switch the editor to the Hover state) to preview hover styling.</p>
+          </Card>
+        </div>
+      </ShadowBackdrop>
+          {/snippet}
+    </VariantGroup>
 </ComponentEditorBase>
 
 <style>

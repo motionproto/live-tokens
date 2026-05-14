@@ -1,19 +1,34 @@
 <script lang="ts">
-  export let active: boolean = false;
+  import { createBubbler } from 'svelte/legacy';
+
+  const bubble = createBubbler();
+  interface Props {
+    active?: boolean;
+    preview?: import('svelte').Snippet;
+    label?: import('svelte').Snippet;
+    meta?: import('svelte').Snippet;
+  }
+
+  let {
+    active = false,
+    preview,
+    label,
+    meta
+  }: Props = $props();
 </script>
 
-<button class="ui-option-item" class:active on:click>
-  {#if $$slots.preview}
+<button class="ui-option-item" class:active onclick={bubble('click')}>
+  {#if preview}
     <span class="ui-option-preview">
-      <slot name="preview" />
+      {@render preview?.()}
     </span>
   {/if}
   <span class="ui-option-label">
-    <slot name="label" />
+    {@render label?.()}
   </span>
-  {#if $$slots.meta}
+  {#if meta}
     <code class="ui-option-meta">
-      <slot name="meta" />
+      {@render meta?.()}
     </code>
   {/if}
 </button>

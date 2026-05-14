@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   type CellStatus = 'linked' | 'broken' | 'absent';
   type RowEntry = { label: string; key: string };
   type Axes =
@@ -36,32 +36,46 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
 
-  export let contexts: string[] = [];
-  export let broken: string[] = [];
-  export let singleAxisLabel: string = '';
-  /** Caption rendered above the grid. Use to describe the linkage scope
+  
+  
+  
+  interface Props {
+    contexts?: string[];
+    broken?: string[];
+    singleAxisLabel?: string;
+    /** Caption rendered above the grid. Use to describe the linkage scope
       (e.g. "Links across variants and states"). Defaults to the legacy
       "Linked Properties" label so consumers that don't pass a caption
       keep their existing rendering. */
-  export let caption: string = 'Linked Properties';
-  /** Currently focused variant (matches a row in 2d / a row label in 1d). When set,
+    caption?: string;
+    /** Currently focused variant (matches a row in 2d / a row label in 1d). When set,
       the matching row is highlighted with the same active style as the variant tab strip. */
-  export let selectedRow: string | null = null;
-  /** Currently focused state (matches a column in 2d). The cell at (selectedRow, selectedCol)
+    selectedRow?: string | null;
+    /** Currently focused state (matches a column in 2d). The cell at (selectedRow, selectedCol)
       gets an additional accent. Ignored in 1d charts. */
-  export let selectedCol: string | null = null;
+    selectedCol?: string | null;
+  }
+
+  let {
+    contexts = [],
+    broken = [],
+    singleAxisLabel = '',
+    caption = 'Linked Properties',
+    selectedRow = null,
+    selectedCol = null
+  }: Props = $props();
 
   const dispatch = createEventDispatcher<{ select: string }>();
 
-  $: axes = deriveAxes(contexts);
-  $: status = (() => {
+  let axes = $derived(deriveAxes(contexts));
+  let status = $derived((() => {
     const brokenSet = new Set(broken);
     const m = new Map<string, CellStatus>();
     for (const c of contexts) m.set(c, brokenSet.has(c) ? 'broken' : 'linked');
     return m;
-  })();
+  })());
 
-  let hoveredRow: number = -1;
+  let hoveredRow: number = $state(-1);
 
   function key2d(r: string, c: string): string { return `${r} ${c}`; }
   function selectRow(label: string) { dispatch('select', label); }
@@ -92,11 +106,11 @@
           class="row-h row-target"
           class:hovered={hoveredRow === i}
           class:selected={selectedRow === r}
-          on:click={() => selectRow(r)}
-          on:mouseenter={() => (hoveredRow = i)}
-          on:mouseleave={() => (hoveredRow = -1)}
-          on:focus={() => (hoveredRow = i)}
-          on:blur={() => (hoveredRow = -1)}
+          onclick={() => selectRow(r)}
+          onmouseenter={() => (hoveredRow = i)}
+          onmouseleave={() => (hoveredRow = -1)}
+          onfocus={() => (hoveredRow = i)}
+          onblur={() => (hoveredRow = -1)}
         >{r}</button>
         {#each axes.cols as c (c)}
           {@const st = status.get(key2d(r, c)) ?? 'absent'}
@@ -108,9 +122,9 @@
             class:selected={selectedRow === r && selectedCol === c}
             class:in-selected-row={selectedRow === r && selectedCol !== c}
             aria-label="{r} {c}: {st}"
-            on:click={() => selectRow(r)}
-            on:mouseenter={() => (hoveredRow = i)}
-            on:mouseleave={() => (hoveredRow = -1)}
+            onclick={() => selectRow(r)}
+            onmouseenter={() => (hoveredRow = i)}
+            onmouseleave={() => (hoveredRow = -1)}
           >
             {#if st === 'linked'}
               <span class="dot" aria-hidden="true"></span>
@@ -138,11 +152,11 @@
           class="row-h row-target"
           class:hovered={hoveredRow === i}
           class:selected={isSel}
-          on:click={() => selectRow(r.label)}
-          on:mouseenter={() => (hoveredRow = i)}
-          on:mouseleave={() => (hoveredRow = -1)}
-          on:focus={() => (hoveredRow = i)}
-          on:blur={() => (hoveredRow = -1)}
+          onclick={() => selectRow(r.label)}
+          onmouseenter={() => (hoveredRow = i)}
+          onmouseleave={() => (hoveredRow = -1)}
+          onfocus={() => (hoveredRow = i)}
+          onblur={() => (hoveredRow = -1)}
         >{r.label}</button>
         <button
           type="button"
@@ -151,9 +165,9 @@
           class:hovered={hoveredRow === i}
           class:selected={isSel}
           aria-label="{r.label}: {st}"
-          on:click={() => selectRow(r.label)}
-          on:mouseenter={() => (hoveredRow = i)}
-          on:mouseleave={() => (hoveredRow = -1)}
+          onclick={() => selectRow(r.label)}
+          onmouseenter={() => (hoveredRow = i)}
+          onmouseleave={() => (hoveredRow = -1)}
         >
           {#if st === 'linked'}
             <span class="dot" aria-hidden="true"></span>

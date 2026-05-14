@@ -1,43 +1,33 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher } from 'svelte';
   import type { ComponentConfigMeta } from '../../lib/themeTypes';
   import { sanitizeFileName } from '../../lib/themeService';
   import UIDialog from '../../ui/UIDialog.svelte';
 
-  /** Two-way bound: parent toggles to open/close. */
-  export let show: boolean = false;
-  /** Display name to seed the input with when the dialog opens. */
-  export let currentDisplayName: string = '';
-  /** Existing files used by the increment helper to find the next available `_NN` suffix. */
-  export let files: ComponentConfigMeta[] = [];
+  
+  
+  
+  interface Props {
+    /** Two-way bound: parent toggles to open/close. */
+    show?: boolean;
+    /** Display name to seed the input with when the dialog opens. */
+    currentDisplayName?: string;
+    /** Existing files used by the increment helper to find the next available `_NN` suffix. */
+    files?: ComponentConfigMeta[];
+  }
+
+  let { show = $bindable(false), currentDisplayName = '', files = [] }: Props = $props();
 
   const dispatch = createEventDispatcher<{
     save: { displayName: string; fileName: string };
   }>();
 
-  let saveAsName = '';
-  let saveAsInput: HTMLInputElement;
+  let saveAsName = $state('');
+  let saveAsInput: HTMLInputElement = $state();
 
-  // Seed and select the input whenever the dialog opens. setTimeout(..., 0)
-  // matches the original parent's behaviour: it runs as a macrotask, after
-  // UIDialog's microtask-queued focus on the confirm button — so the input
-  // ends up focused-and-selected, not the button.
-  $: if (show) {
-    saveAsName =
-      sanitizeFileName(currentDisplayName) === 'default'
-        ? nextIncrementName(currentDisplayName).displayName
-        : currentDisplayName;
-    setTimeout(() => saveAsInput?.select(), 0);
-  }
 
-  $: saveAsError = (() => {
-    const trimmed = saveAsName.trim();
-    if (!trimmed) return '';
-    if (sanitizeFileName(trimmed) === 'default') {
-      return 'The name "default" is reserved for the core component definition.';
-    }
-    return '';
-  })();
 
   function nextIncrementName(baseDisplay: string): { displayName: string; fileName: string } {
     const baseName = baseDisplay.replace(/_\d+$/, '');
@@ -73,6 +63,27 @@
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === 'Enter') confirmSaveAs();
   }
+  // Seed and select the input whenever the dialog opens. setTimeout(..., 0)
+  // matches the original parent's behaviour: it runs as a macrotask, after
+  // UIDialog's microtask-queued focus on the confirm button — so the input
+  // ends up focused-and-selected, not the button.
+  run(() => {
+    if (show) {
+      saveAsName =
+        sanitizeFileName(currentDisplayName) === 'default'
+          ? nextIncrementName(currentDisplayName).displayName
+          : currentDisplayName;
+      setTimeout(() => saveAsInput?.select(), 0);
+    }
+  });
+  let saveAsError = $derived((() => {
+    const trimmed = saveAsName.trim();
+    if (!trimmed) return '';
+    if (sanitizeFileName(trimmed) === 'default') {
+      return 'The name "default" is reserved for the core component definition.';
+    }
+    return '';
+  })());
 </script>
 
 <UIDialog
@@ -92,13 +103,13 @@
         type="text"
         bind:value={saveAsName}
         bind:this={saveAsInput}
-        on:keydown={handleKeydown}
+        onkeydown={handleKeydown}
         placeholder="Config name…"
       />
       <button
         type="button"
         class="save-as-increment"
-        on:click={incrementSaveAsName}
+        onclick={incrementSaveAsName}
         title="Increment filename"
       >
         <i class="fas fa-plus"></i>

@@ -1,15 +1,24 @@
 <script lang="ts">
+  import { run, createBubbler, stopPropagation } from 'svelte/legacy';
+
+  const bubble = createBubbler();
   import { createEventDispatcher, onMount, onDestroy } from 'svelte';
   import UIRadio from './UIRadio.svelte';
   import { keepInViewport } from './keepInViewport';
 
   type Candidate = { variable: string; alias: string };
 
-  export let candidates: Candidate[];
-  /** Variable whose lock was clicked — its alias is the default selection. */
-  export let initialVariable: string;
-  /** Component prefix to strip when rendering source labels. */
-  export let prefixToStrip: string = '';
+  
+  
+  interface Props {
+    candidates: Candidate[];
+    /** Variable whose lock was clicked — its alias is the default selection. */
+    initialVariable: string;
+    /** Component prefix to strip when rendering source labels. */
+    prefixToStrip?: string;
+  }
+
+  let { candidates, initialVariable, prefixToStrip = '' }: Props = $props();
 
   const dispatch = createEventDispatcher<{ confirm: { alias: string }; cancel: void }>();
 
@@ -31,9 +40,11 @@
     return [...seen.values()];
   }
 
-  $: options = distinctOptions(candidates, initialVariable);
-  let selected = '';
-  $: if (selected === '' && options.length > 0) selected = options[0].alias;
+  let options = $derived(distinctOptions(candidates, initialVariable));
+  let selected = $state('');
+  run(() => {
+    if (selected === '' && options.length > 0) selected = options[0].alias;
+  });
 
   function handleConfirm() {
     if (!selected) return;
@@ -55,7 +66,7 @@
     }
   }
 
-  let popoverEl: HTMLDivElement;
+  let popoverEl: HTMLDivElement = $state();
 
   onMount(() => {
     popoverEl?.focus();
@@ -74,7 +85,7 @@
   tabindex="-1"
   bind:this={popoverEl}
   use:keepInViewport
-  on:click|stopPropagation
+  onclick={stopPropagation(bubble('click'))}
 >
   <div class="ui-relink-header">
     {#if options.length > 1}
@@ -99,8 +110,8 @@
   </div>
 
   <div class="ui-relink-footer">
-    <button type="button" class="ui-relink-btn ui-relink-btn-cancel" on:click={handleCancel}>Cancel</button>
-    <button type="button" class="ui-relink-btn ui-relink-btn-confirm" on:click={handleConfirm}>Link</button>
+    <button type="button" class="ui-relink-btn ui-relink-btn-cancel" onclick={handleCancel}>Cancel</button>
+    <button type="button" class="ui-relink-btn ui-relink-btn-confirm" onclick={handleConfirm}>Link</button>
   </div>
 </div>
 

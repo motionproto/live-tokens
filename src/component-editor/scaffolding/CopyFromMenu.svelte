@@ -3,15 +3,24 @@
 
   type Source = { name: string; label: string; states: string[] };
 
-  export let toState: string;
-  export let variantName: string;
-  export let copySources: Source[] = [];
-  export let placement: 'start' | 'end' = 'start';
+  interface Props {
+    toState: string;
+    variantName: string;
+    copySources?: Source[];
+    placement?: 'start' | 'end';
+  }
+
+  let {
+    toState,
+    variantName,
+    copySources = [],
+    placement = 'start'
+  }: Props = $props();
 
   const dispatch = createEventDispatcher<{ select: { fromVariant: string; fromState: string } }>();
 
-  let open = false;
-  let root: HTMLElement;
+  let open = $state(false);
+  let root: HTMLElement = $state();
 
   function toggle() {
     open = !open;
@@ -47,7 +56,7 @@
     type="button"
     class="copy-from-btn"
     class:active={open}
-    on:click={toggle}
+    onclick={toggle}
     title="Copy values from another variant/state"
   >
     <i class="fas fa-clone"></i>
@@ -63,7 +72,7 @@
             type="button"
             class="copy-menu-item"
             disabled={isSelf}
-            on:click={() => pick(src.name, onlyState)}
+            onclick={() => pick(src.name, onlyState)}
             role="menuitem"
           >
             <span>{src.label}</span>
@@ -87,7 +96,7 @@
                   type="button"
                   class="copy-menu-item"
                   disabled={isSelf}
-                  on:click={() => pick(src.name, fromState)}
+                  onclick={() => pick(src.name, fromState)}
                   role="menuitem"
                 >
                   <span>{fromState}</span>

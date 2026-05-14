@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import DemoHeader from './DemoHeader.svelte';
   import NonStylableConfig from './NonStylableConfig.svelte';
   import LinkedBlock from './LinkedBlock.svelte';
@@ -6,36 +8,58 @@
   import type { Token } from './types';
   import type { LinkedBlockResult } from './linkedBlock';
 
-  export let component: string;
-  export let title: string;
-  export let description: string = '';
-  /** Token list used to drive the reset action in the header. The editor itself
+  
+  
+  
+  interface Props {
+    component: string;
+    title: string;
+    description?: string;
+    /** Token list used to drive the reset action in the header. The editor itself
       is responsible for calling `registerComponentSchema` synchronously. */
-  export let tokens: Token[] = [];
-  /** Optional linked-block result. When provided, the LinkedBlock is rendered
+    tokens?: Token[];
+    /** Optional linked-block result. When provided, the LinkedBlock is rendered
       and hover highlights propagate to VariantGroup children via context. */
-  export let linked: LinkedBlockResult | null = null;
-  /** Canonical {value,label} list of variants in display order. When provided
+    linked?: LinkedBlockResult | null;
+    /** Canonical {value,label} list of variants in display order. When provided
       with 2+ entries, a single variant tab strip is rendered that drives which
       VariantGroup is focused. */
-  export let variants: { value: string; label: string }[] = [];
+    variants?: { value: string; label: string }[];
+    config?: import('svelte').Snippet;
+    children?: import('svelte').Snippet<[any]>;
+  }
+
+  let {
+    component,
+    title,
+    description = '',
+    tokens = [],
+    linked = null,
+    variants = [],
+    config,
+    children
+  }: Props = $props();
 
   const ctx = createEditorContext();
   const { focusedVariant } = ctx;
 
-  $: ctx._linkedOrder.set(linked?.linkedOrder ?? null);
-  $: showVariantTabs = variants.length >= 2;
-  $: if (showVariantTabs && ($focusedVariant === null || !variants.some((v) => v.value === $focusedVariant))) {
-    focusedVariant.set(variants[0].value);
-  }
-  $: resetVariables = tokens.map((t) => t.variable);
+  run(() => {
+    ctx._linkedOrder.set(linked?.linkedOrder ?? null);
+  });
+  let showVariantTabs = $derived(variants.length >= 2);
+  run(() => {
+    if (showVariantTabs && ($focusedVariant === null || !variants.some((v) => v.value === $focusedVariant))) {
+      focusedVariant.set(variants[0].value);
+    }
+  });
+  let resetVariables = $derived(tokens.map((t) => t.variable));
 </script>
 
 <div class="demo-block">
   <DemoHeader {component} {title} {description} {resetVariables} />
-  {#if $$slots.config}
+  {#if config}
     <NonStylableConfig>
-      <slot name="config" />
+      {@render config?.()}
     </NonStylableConfig>
   {/if}
   {#if showVariantTabs}
@@ -47,12 +71,12 @@
           class:active={opt.value === $focusedVariant}
           role="tab"
           aria-selected={opt.value === $focusedVariant}
-          on:click={() => focusedVariant.set(opt.value)}
+          onclick={() => focusedVariant.set(opt.value)}
         >{opt.label}</button>
       {/each}
     </div>
   {/if}
-  <slot focusedVariant={$focusedVariant} />
+  {@render children?.({ focusedVariant: $focusedVariant, })}
   {#if linked}
     <LinkedBlock {component} {linked} on:change />
   {/if}

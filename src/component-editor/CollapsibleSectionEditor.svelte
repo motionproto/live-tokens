@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
@@ -125,11 +125,11 @@
   import { editorState } from '../lib/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
-  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
+  let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
 
-  $: visibleVariantStates = (v: Variant) => Object.fromEntries(
+  let visibleVariantStates = $derived((v: Variant) => Object.fromEntries(
     Object.entries(variantStates(v)).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
-  ) as Record<string, Token[]>;
+  ) as Record<string, Token[]>);
 </script>
 
 <ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Variants: chromeless, divider, container. Import from <code>components/CollapsibleSection.svelte</code>" tokens={allTokens} {linked} variants={variantOptions}>
@@ -141,27 +141,29 @@
       typeGroups={variantTypeGroups(v)}
       {component}
       siblings={buildSiblings(VARIANTS, v, variantStates, variantTypeGroups)}
-      let:activeState
+      
     >
-      {@const isExpanded = activeState === 'expanded'}
-      {@const isFrame = activeState === 'frame'}
-      {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
-      {@const forceActive = activeState === 'active'}
-      <CollapsibleSection
-        variant={v}
-        label="Click to expand"
-        expanded={isExpanded}
-        active={forceActive}
-        class={forceClass}
-      >
-        <p style="margin: 0; color: var(--text-secondary);">
-          {#if isFrame}
-            (Frame) — outer chrome only; expand the section to see content area styling.
-          {:else}
-            This content is revealed when the section is expanded. Any content can go here.
-          {/if}
-        </p>
-      </CollapsibleSection>
-    </VariantGroup>
+      {#snippet children({ activeState })}
+            {@const isExpanded = activeState === 'expanded'}
+        {@const isFrame = activeState === 'frame'}
+        {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
+        {@const forceActive = activeState === 'active'}
+        <CollapsibleSection
+          variant={v}
+          label="Click to expand"
+          expanded={isExpanded}
+          active={forceActive}
+          class={forceClass}
+        >
+          <p style="margin: 0; color: var(--text-secondary);">
+            {#if isFrame}
+              (Frame) — outer chrome only; expand the section to see content area styling.
+            {:else}
+              This content is revealed when the section is expanded. Any content can go here.
+            {/if}
+          </p>
+        </CollapsibleSection>
+                {/snippet}
+        </VariantGroup>
   {/each}
 </ComponentEditorBase>

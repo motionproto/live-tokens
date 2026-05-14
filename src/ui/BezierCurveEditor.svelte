@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { stopPropagation } from 'svelte/legacy';
+
   import {
     type CurveAnchor, type CurveConfig,
     CURVE_H, CURVE_PAD_Y, CURVE_Y_PAD,
@@ -7,15 +9,29 @@
     serializeCurve, deserializeCurve,
   } from './curveEngine';
 
-  export let anchors: CurveAnchor[];
-  export let cfg: CurveConfig;
-  export let stepCount: number;
-  export let padX: number = 0;
-  export let offset: number = 0;
-  export let defaultAnchors: CurveAnchor[] | null = null;
-  export let lockedAnchorIndex: number | null = null;
-  export let onAnchorsChange: (anchors: CurveAnchor[]) => void = () => {};
-  export let onOffsetChange: (offset: number) => void = () => {};
+  interface Props {
+    anchors: CurveAnchor[];
+    cfg: CurveConfig;
+    stepCount: number;
+    padX?: number;
+    offset?: number;
+    defaultAnchors?: CurveAnchor[] | null;
+    lockedAnchorIndex?: number | null;
+    onAnchorsChange?: (anchors: CurveAnchor[]) => void;
+    onOffsetChange?: (offset: number) => void;
+  }
+
+  let {
+    anchors,
+    cfg,
+    stepCount,
+    padX = 0,
+    offset = 0,
+    defaultAnchors = null,
+    lockedAnchorIndex = null,
+    onAnchorsChange = () => {},
+    onOffsetChange = () => {}
+  }: Props = $props();
 
   function resetToDefault() {
     if (!defaultAnchors) return;
@@ -24,14 +40,14 @@
   }
 
   const CURVE_W_DEFAULT = 720;
-  let svgEl: SVGSVGElement | null = null;
-  let dims = CURVE_W_DEFAULT;
-  let shiftActive = false;
+  let svgEl: SVGSVGElement | null = $state(null);
+  let dims = $state(CURVE_W_DEFAULT);
+  let shiftActive = $state(false);
 
   const clipId = `curve-clip-${Math.random().toString(36).slice(2, 8)}`;
 
-  $: w = dims;
-  $: offsetPx = -(offset / ((cfg.yMax - cfg.yMin) * (1 + 2 * CURVE_Y_PAD))) * (CURVE_H - 2 * CURVE_PAD_Y);
+  let w = $derived(dims);
+  let offsetPx = $derived(-(offset / ((cfg.yMax - cfg.yMin) * (1 + 2 * CURVE_Y_PAD))) * (CURVE_H - 2 * CURVE_PAD_Y));
 
   function stepToX(index: number): number {
     return stepCount > 1 ? (index / (stepCount - 1)) * 100 : 50;
@@ -281,21 +297,21 @@
       <!-- Curve content group — offset vertically, clipped -->
       <g transform="translate(0,{offsetPx})" clip-path="url(#{clipId})">
         {#if shiftActive}
-          <!-- svelte-ignore a11y-no-static-element-interactions -->
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
           <rect
             x="0" y={-CURVE_H} width={w} height={CURVE_H * 3}
             class="shift-overlay"
-            on:pointerdown={handleShiftPointerDown}
-            on:pointermove={handleShiftPointerMove}
-            on:pointerup={handleShiftPointerUp}
+            onpointerdown={handleShiftPointerDown}
+            onpointermove={handleShiftPointerMove}
+            onpointerup={handleShiftPointerUp}
           />
         {:else}
-          <!-- svelte-ignore a11y-click-events-have-key-events -->
-          <!-- svelte-ignore a11y-no-static-element-interactions -->
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
           <path
             d={buildCurvePath(anchors, cfg, w, padX)}
             class="curve-hit"
-            on:click={insertPointOnPath}
+            onclick={insertPointOnPath}
           />
         {/if}
 
@@ -311,13 +327,13 @@
                 x2={curveXToSvg(pt.x + pt.inDx, w, padX)} y2={curveYToSvg(pt.y + pt.inDy, cfg)}
                 class="handle-line"
               />
-              <!-- svelte-ignore a11y-no-static-element-interactions -->
+              <!-- svelte-ignore a11y_no_static_element_interactions -->
               <circle
                 cx={curveXToSvg(pt.x + pt.inDx, w, padX)} cy={curveYToSvg(pt.y + pt.inDy, cfg)}
                 r="3.5" class="handle-grip"
-                on:pointerdown={(e) => handlePointerDown(e, { kind: 'handleIn', index: i })}
-                on:pointermove={handlePointerMove}
-                on:pointerup={handlePointerUp}
+                onpointerdown={(e) => handlePointerDown(e, { kind: 'handleIn', index: i })}
+                onpointermove={handlePointerMove}
+                onpointerup={handlePointerUp}
               />
             {/if}
             {#if i < anchors.length - 1 && !isCornerAnchor(pt)}
@@ -326,16 +342,16 @@
                 x2={curveXToSvg(pt.x + pt.outDx, w, padX)} y2={curveYToSvg(pt.y + pt.outDy, cfg)}
                 class="handle-line"
               />
-              <!-- svelte-ignore a11y-no-static-element-interactions -->
+              <!-- svelte-ignore a11y_no_static_element_interactions -->
               <circle
                 cx={curveXToSvg(pt.x + pt.outDx, w, padX)} cy={curveYToSvg(pt.y + pt.outDy, cfg)}
                 r="3.5" class="handle-grip"
-                on:pointerdown={(e) => handlePointerDown(e, { kind: 'handleOut', index: i })}
-                on:pointermove={handlePointerMove}
-                on:pointerup={handlePointerUp}
+                onpointerdown={(e) => handlePointerDown(e, { kind: 'handleOut', index: i })}
+                onpointermove={handlePointerMove}
+                onpointerup={handlePointerUp}
               />
             {/if}
-            <!-- svelte-ignore a11y-no-static-element-interactions -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
             {#if i === lockedAnchorIndex}
               <path
                 d="M{curveXToSvg(pt.x, w, padX)},{curveYToSvg(pt.y, cfg) - 6} l5,6 l-5,6 l-5,-6 Z"
@@ -346,19 +362,19 @@
                 x={curveXToSvg(pt.x, w, padX) - 4} y={curveYToSvg(pt.y, cfg) - 4}
                 width="8" height="8"
                 class="curve-handle corner"
-                on:pointerdown={(e) => handlePointerDown(e, { kind: 'anchor', index: i })}
-                on:pointermove={handlePointerMove}
-                on:pointerup={handlePointerUp}
-                on:dblclick|stopPropagation={() => toggleAnchorSmooth(i)}
+                onpointerdown={(e) => handlePointerDown(e, { kind: 'anchor', index: i })}
+                onpointermove={handlePointerMove}
+                onpointerup={handlePointerUp}
+                ondblclick={stopPropagation(() => toggleAnchorSmooth(i))}
               />
             {:else}
               <circle
                 cx={curveXToSvg(pt.x, w, padX)} cy={curveYToSvg(pt.y, cfg)}
                 r="5" class="curve-handle"
-                on:pointerdown={(e) => handlePointerDown(e, { kind: 'anchor', index: i })}
-                on:pointermove={handlePointerMove}
-                on:pointerup={handlePointerUp}
-                on:dblclick|stopPropagation={() => toggleAnchorSmooth(i)}
+                onpointerdown={(e) => handlePointerDown(e, { kind: 'anchor', index: i })}
+                onpointermove={handlePointerMove}
+                onpointerup={handlePointerUp}
+                ondblclick={stopPropagation(() => toggleAnchorSmooth(i))}
               />
             {/if}
           {/each}
@@ -373,7 +389,7 @@
         class:active={shiftActive}
         type="button"
         title="Vertical offset"
-        on:click={() => shiftActive = !shiftActive}
+        onclick={() => shiftActive = !shiftActive}
       >
         <svg viewBox="0 0 12 20" class="curve-tool-icon">
           <path d="M6,2 L10,7 L7,7 L7,13 L10,13 L6,18 L2,13 L5,13 L5,7 L2,7 Z" />
@@ -381,8 +397,8 @@
         <span>Offset{offset !== 0 ? ` ${offset > 0 ? '+' : ''}${offset}` : ''}</span>
       </button>
       <span class="curve-hint">&x2325;-click to remove point</span>
-      <button class="curve-tool-btn" type="button" title="Copy curve" on:click={copyToClipboard}>Copy</button>
-      <button class="curve-tool-btn" type="button" title="Paste curve" on:click={pasteFromClipboard}>Paste</button>
+      <button class="curve-tool-btn" type="button" title="Copy curve" onclick={copyToClipboard}>Copy</button>
+      <button class="curve-tool-btn" type="button" title="Paste curve" onclick={pasteFromClipboard}>Paste</button>
     </div>
     <div class="curve-templates">
       {#each curveTemplates as tpl}
@@ -390,7 +406,7 @@
           class="curve-template-btn"
           type="button"
           title={tpl.name}
-          on:click={() => applyTemplate(tpl)}
+          onclick={() => applyTemplate(tpl)}
         >
           <svg viewBox="0 0 20 12" class="curve-template-icon">
             <path d={tpl.icon} />
@@ -402,7 +418,7 @@
           class="curve-tool-btn"
           type="button"
           title="Reset to default"
-          on:click={resetToDefault}
+          onclick={resetToDefault}
         >Reset</button>
       {/if}
     </div>

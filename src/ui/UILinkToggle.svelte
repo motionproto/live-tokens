@@ -1,7 +1,11 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
 
-  export let linked: boolean = false;
+  interface Props {
+    linked?: boolean;
+  }
+
+  let { linked = false }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
@@ -16,7 +20,7 @@
   class="ui-link-toggle"
   class:linked
   title={linked ? 'Locked across variants — click to unlink' : 'Click to link across all variants'}
-  on:click={handleClick}
+  onclick={handleClick}
 >
   <i class="fas" class:fa-lock={linked} class:fa-lock-open={!linked} aria-hidden="true"></i>
   <span>{linked ? 'Unlink' : 'Link'}</span>

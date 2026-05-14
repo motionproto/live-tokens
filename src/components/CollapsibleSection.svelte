@@ -1,13 +1,28 @@
 <script lang="ts">
    import { createEventDispatcher } from 'svelte';
 
-   export let label: string;
-   export let expanded: boolean = false;
-   export let href: string | undefined = undefined;
-   export let active: boolean = false;
-   export let variant: 'chromeless' | 'divider' | 'container' = 'container';
-   let className: string = '';
-   export { className as class };
+   interface Props {
+      label: string;
+      expanded?: boolean;
+      href?: string | undefined;
+      active?: boolean;
+      variant?: 'chromeless' | 'divider' | 'container';
+      class?: string;
+      summary?: import('svelte').Snippet;
+      children?: import('svelte').Snippet;
+   }
+
+   let {
+      label,
+      expanded = false,
+      href = undefined,
+      active = false,
+      variant = 'container',
+      class: className = '',
+      summary,
+      children
+   }: Props = $props();
+   
 
    const dispatch = createEventDispatcher<{
       toggle: void;
@@ -23,26 +38,26 @@
 
 <section class="es-root variant-{variant} {className}">
    {#if href}
-      <a {href} class="section-header" class:expanded class:active on:click={handleHeaderClick}>
+      <a {href} class="section-header" class:expanded class:active onclick={handleHeaderClick}>
          <div class="section-toggle">
             <i class="fas fa-chevron-right toggle-icon"></i>
             <span class="section-label">{label}</span>
          </div>
-         <slot name="summary" />
+         {@render summary?.()}
       </a>
    {:else}
-      <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-noninteractive-element-interactions -->
-      <div class="section-header" class:expanded on:click={() => dispatch('toggle')}>
+      <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+      <div class="section-header" class:expanded onclick={() => dispatch('toggle')}>
          <div class="section-toggle">
             <i class="fas fa-chevron-right toggle-icon"></i>
             <span class="section-label">{label}</span>
          </div>
-         <slot name="summary" />
+         {@render summary?.()}
       </div>
    {/if}
-   {#if expanded && $$slots.default}
+   {#if expanded && children}
       <div class="section-content">
-         <slot />
+         {@render children?.()}
       </div>
    {/if}
 </section>

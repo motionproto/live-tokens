@@ -8,27 +8,51 @@
   import FieldsetWrapper from './FieldsetWrapper.svelte';
   import { BORDER_WIDTH } from '../../ui/variantScales';
 
-  export let colorVariable: string;
-  export let colorLabel: string = 'color';
-  export let familyVariable: string | undefined = undefined;
-  export let familyLabel: string = 'family';
-  export let sizeVariable: string | undefined = undefined;
-  export let sizeLabel: string = 'size';
-  export let weightVariable: string | undefined = undefined;
-  export let weightLabel: string = 'weight';
-  export let lineHeightVariable: string | undefined = undefined;
-  export let lineHeightLabel: string = 'line-h';
-  /** Optional outline rows rendered under the typography rows so a text-with-
+  
+  
+  
+  interface Props {
+    colorVariable: string;
+    colorLabel?: string;
+    familyVariable?: string | undefined;
+    familyLabel?: string;
+    sizeVariable?: string | undefined;
+    sizeLabel?: string;
+    weightVariable?: string | undefined;
+    weightLabel?: string;
+    lineHeightVariable?: string | undefined;
+    lineHeightLabel?: string;
+    /** Optional outline rows rendered under the typography rows so a text-with-
       stroke group keeps stroke controls visually nested with the type they
       drive (e.g. SectionDivider title outline). */
-  export let outlineWidthVariable: string | undefined = undefined;
-  export let outlineWidthLabel: string = 'outline thickness';
-  export let outlineColorVariable: string | undefined = undefined;
-  export let outlineColorLabel: string = 'outline color';
-  /** When set, writes persist through the editor store under this component. */
-  export let component: string | undefined = undefined;
-  /** Legend text for the fieldset. */
-  export let legend: string = 'type';
+    outlineWidthVariable?: string | undefined;
+    outlineWidthLabel?: string;
+    outlineColorVariable?: string | undefined;
+    outlineColorLabel?: string;
+    /** When set, writes persist through the editor store under this component. */
+    component?: string | undefined;
+    /** Legend text for the fieldset. */
+    legend?: string;
+  }
+
+  let {
+    colorVariable,
+    colorLabel = 'color',
+    familyVariable = undefined,
+    familyLabel = 'family',
+    sizeVariable = undefined,
+    sizeLabel = 'size',
+    weightVariable = undefined,
+    weightLabel = 'weight',
+    lineHeightVariable = undefined,
+    lineHeightLabel = 'line-h',
+    outlineWidthVariable = undefined,
+    outlineWidthLabel = 'outline thickness',
+    outlineColorVariable = undefined,
+    outlineColorLabel = 'outline color',
+    component = undefined,
+    legend = 'type'
+  }: Props = $props();
 </script>
 
 <FieldsetWrapper {legend}>

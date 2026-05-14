@@ -6,16 +6,29 @@
   import { BORDER_WIDTH, DIVIDER_HEIGHT } from '../../ui/variantScales';
   import FieldsetWrapper from './FieldsetWrapper.svelte';
 
-  export let colorVariable: string | undefined = undefined;
-  export let colorLabel: string | undefined = undefined;
-  export let widthVariable: string | undefined = undefined;
-  export let widthLabel: string | undefined = undefined;
-  export let heightVariable: string | undefined = undefined;
-  export let heightLabel: string | undefined = undefined;
-  /** When set, writes persist through the editor store under this component. */
-  export let component: string | undefined = undefined;
+  
+  interface Props {
+    colorVariable?: string | undefined;
+    colorLabel?: string | undefined;
+    widthVariable?: string | undefined;
+    widthLabel?: string | undefined;
+    heightVariable?: string | undefined;
+    heightLabel?: string | undefined;
+    /** When set, writes persist through the editor store under this component. */
+    component?: string | undefined;
+  }
 
-  let heightResolved = '';
+  let {
+    colorVariable = undefined,
+    colorLabel = undefined,
+    widthVariable = undefined,
+    widthLabel = undefined,
+    heightVariable = undefined,
+    heightLabel = undefined,
+    component = undefined
+  }: Props = $props();
+
+  let heightResolved = $state('');
 
   function readHeight() {
     if (!heightVariable) {
@@ -41,8 +54,8 @@
     document.removeEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
   });
 
-  $: heightIsZero = /^0+(?:\.0+)?(px|rem|em|%)?$/.test(heightResolved);
-  $: siblingDisabled = heightIsZero;
+  let heightIsZero = $derived(/^0+(?:\.0+)?(px|rem|em|%)?$/.test(heightResolved));
+  let siblingDisabled = $derived(heightIsZero);
 </script>
 
 <FieldsetWrapper legend="divider">

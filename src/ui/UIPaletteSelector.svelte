@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher } from 'svelte';
   import { slide } from 'svelte/transition';
   import { cubicOut, cubicIn } from 'svelte/easing';
@@ -31,11 +33,21 @@
 
   const dispatch = createEventDispatcher();
 
-  export let variable: string;
-  export let component: string | undefined = undefined;
-  export let canBeLinked: boolean = false;
-  export let disabled: boolean = false;
-  export let selectionsLocked: boolean = false;
+  interface Props {
+    variable: string;
+    component?: string | undefined;
+    canBeLinked?: boolean;
+    disabled?: boolean;
+    selectionsLocked?: boolean;
+  }
+
+  let {
+    variable,
+    component = undefined,
+    canBeLinked = false,
+    disabled = false,
+    selectionsLocked = false
+  }: Props = $props();
 
   type Category = 'palette' | 'surface' | 'border' | 'text';
 
@@ -95,9 +107,9 @@
     { id: 'text', label: 'Text' },
   ];
 
-  let selector: UITokenSelector;
-  let selectedFamily: string | null = null;
-  let selectedTab: Category = 'palette';
+  let selector: UITokenSelector = $state();
+  let selectedFamily: string | null = $state(null);
+  let selectedTab: Category = $state('palette');
 
   /** Compass-rose layout for the orientation grid. Angles follow the CSS
    *  linear-gradient convention (0° points up, 90° points right). */
@@ -114,24 +126,24 @@
 
   /** Numeric input value. Kept in sync with chosenAngle/token-default by the
    *  reactive block below; user edits flow back through `applyOrientation`. */
-  let angleInput: number = 0;
+  let angleInput: number = $state(0);
 
-  let chosenCategory: Category | null = null;
-  let chosenFamily: string | null = null;
-  let chosenStep: string | null = null;
-  let chosenNone: boolean = false;
-  let chosenGradient: string | null = null;
+  let chosenCategory: Category | null = $state(null);
+  let chosenFamily: string | null = $state(null);
+  let chosenStep: string | null = $state(null);
+  let chosenNone: boolean = $state(false);
+  let chosenGradient: string | null = $state(null);
   /** Per-slot angle override on the chosen linear gradient. Null means
    *  "no override" — the slot writes `var(--gradient-N)` and inherits the
    *  token's natural angle. Non-null means the slot writes a materialized
    *  `linear-gradient(<angle>, <token's stops>)` so the angle is locally
    *  pinned while stop colors keep flowing from the token's `var()` refs. */
-  let chosenAngle: number | null = null;
-  let opacity: number = 100;
+  let chosenAngle: number | null = $state(null);
+  let opacity: number = $state(100);
   let selfDefaultHex: string = '';
 
-  $: gradientsAllowed = acceptsGradient(variable);
-  $: gradientTokens = $editorState.gradients.tokens;
+  let gradientsAllowed = $derived(acceptsGradient(variable));
+  let gradientTokens = $derived($editorState.gradients.tokens);
 
   function captureSelfDefault() {
     const root = document.documentElement;
@@ -455,35 +467,41 @@
   // The wrapper UITokenSelector forwards `var-change` only for the currently
   // bound variable, so prop swaps wouldn't otherwise refresh `chosenCategory`
   // / `chosenFamily` / `chosenStep` and the meta label drifts from the swatch.
-  let lastSeenVariable: string | null = null;
-  $: if (variable !== lastSeenVariable) {
-    lastSeenVariable = variable;
-    initFromCurrent();
-    captureSelfDefault();
-  }
+  let lastSeenVariable: string | null = $state(null);
+  run(() => {
+    if (variable !== lastSeenVariable) {
+      lastSeenVariable = variable;
+      initFromCurrent();
+      captureSelfDefault();
+    }
+  });
 
-  $: chosenGradientToken = chosenGradient ? getGradientToken(chosenGradient) : undefined;
-  $: isLinearGradientChosen = !!chosenGradientToken && chosenGradientToken.type === 'linear';
-  $: effectiveAngle = chosenGradientToken
+  let chosenGradientToken = $derived(chosenGradient ? getGradientToken(chosenGradient) : undefined);
+  let isLinearGradientChosen = $derived(!!chosenGradientToken && chosenGradientToken.type === 'linear');
+  let effectiveAngle = $derived(chosenGradientToken
     ? (chosenAngle ?? chosenGradientToken.angle)
-    : 0;
-  $: angleInput = effectiveAngle;
+    : 0);
+  run(() => {
+    angleInput = effectiveAngle;
+  });
 
-  $: triggerMeta = chosenNone
+  let triggerMeta = $derived(chosenNone
     ? 'none'
     : chosenGradient
       ? chosenGradient.replace(/^--/, '') + (chosenAngle !== null ? ` (${effectiveAngle}°)` : '')
       : (chosenCategory && chosenFamily && chosenStep !== null
         ? getVarName(chosenCategory, chosenFamily, chosenStep).replace(/^--/, '') + (opacity < 100 ? ` (${opacity}%)` : '')
-        : '');
+        : ''));
 
-  $: availableTabs = selectedFamily
+  let availableTabs = $derived(selectedFamily
     ? allCategories.filter(c => c.id !== 'text' || familiesWithText.includes(selectedFamily!))
-    : allCategories;
+    : allCategories);
 
-  $: if (selectedFamily && !availableTabs.find(t => t.id === selectedTab)) {
-    selectedTab = 'palette';
-  }
+  run(() => {
+    if (selectedFamily && !availableTabs.find(t => t.id === selectedTab)) {
+      selectedTab = 'palette';
+    }
+  });
 </script>
 
 <UITokenSelector
@@ -500,121 +518,127 @@
   on:close={handleClose}
   on:var-change={initFromCurrent}
 >
+  <!-- @migration-task: migrate this slot by hand, `trigger-preview` is an invalid identifier -->
   <div slot="trigger-preview" class="swatch-wrap">
     <div class="swatch" style="background: var({variable});"></div>
   </div>
-  <div slot="subheader" class="opacity-control" class:hidden={chosenGradient !== null}>
-    <span class="opacity-label">opacity</span>
-    <input type="range" min="0" max="100" bind:value={opacity} class="opacity-slider" on:input={applyOpacity} />
-    <input type="number" min="0" max="100" bind:value={opacity} class="opacity-input" on:change={applyOpacity} />
-    <span class="opacity-unit">%</span>
-  </div>
+  {#snippet subheader()}
+    <div  class="opacity-control" class:hidden={chosenGradient !== null}>
+      <span class="opacity-label">opacity</span>
+      <input type="range" min="0" max="100" bind:value={opacity} class="opacity-slider" oninput={applyOpacity} />
+      <input type="number" min="0" max="100" bind:value={opacity} class="opacity-input" onchange={applyOpacity} />
+      <span class="opacity-unit">%</span>
+    </div>
+  {/snippet}
+  <!-- @migration-task: migrate this slot by hand, `trigger-meta` is an invalid identifier -->
   <svelte:fragment slot="trigger-meta">{triggerMeta}</svelte:fragment>
 
-  <svelte:fragment let:close>
-    {#if selectedFamily === null}
-      <div class="family-list">
-        <button class="family-item" class:active={chosenNone} on:click={() => selectNone(close)}>
-          <div class="family-swatches">
-            <div class="none-swatch"></div>
-          </div>
-          <span class="family-label">None</span>
-        </button>
-        {#each families as fam}
-          <button class="family-item" class:active={!chosenNone && chosenFamily === fam.name} on:click={() => selectFamily(fam.name)}>
+  {#snippet children({ close })}
+  
+      {#if selectedFamily === null}
+        <div class="family-list">
+          <button class="family-item" class:active={chosenNone} onclick={() => selectNone(close)}>
             <div class="family-swatches">
-              <div class="mini-swatch" style="background: var(--color-{fam.name}-300);"></div>
-              <div class="mini-swatch" style="background: var(--color-{fam.name}-500);"></div>
-              <div class="mini-swatch" style="background: var(--color-{fam.name}-700);"></div>
+              <div class="none-swatch"></div>
             </div>
-            <span class="family-label">{fam.label}</span>
-            <i class="fas fa-chevron-right family-arrow"></i>
+            <span class="family-label">None</span>
           </button>
-        {/each}
-        {#if gradientsAllowed && gradientTokens.length > 0}
-          <div class="family-divider">Gradients</div>
-          {#each gradientTokens as g}
-            <button class="family-item" class:active={chosenGradient === g.variable} on:click={() => selectGradient(g.variable, close)}>
+          {#each families as fam}
+            <button class="family-item" class:active={!chosenNone && chosenFamily === fam.name} onclick={() => selectFamily(fam.name)}>
               <div class="family-swatches">
-                <div class="gradient-swatch" style="background: var({g.variable});"></div>
+                <div class="mini-swatch" style="background: var(--color-{fam.name}-300);"></div>
+                <div class="mini-swatch" style="background: var(--color-{fam.name}-500);"></div>
+                <div class="mini-swatch" style="background: var(--color-{fam.name}-700);"></div>
               </div>
-              <span class="family-label">Gradient {g.variable.replace(/^--gradient-/, '')}</span>
+              <span class="family-label">{fam.label}</span>
+              <i class="fas fa-chevron-right family-arrow"></i>
             </button>
           {/each}
+          {#if gradientsAllowed && gradientTokens.length > 0}
+            <div class="family-divider">Gradients</div>
+            {#each gradientTokens as g}
+              <button class="family-item" class:active={chosenGradient === g.variable} onclick={() => selectGradient(g.variable, close)}>
+                <div class="family-swatches">
+                  <div class="gradient-swatch" style="background: var({g.variable});"></div>
+                </div>
+                <span class="family-label">Gradient {g.variable.replace(/^--gradient-/, '')}</span>
+              </button>
+            {/each}
+          {/if}
+        </div>
+      {:else}
+        <button class="dropdown-back" onclick={backToFamilies}>
+          <i class="fas fa-chevron-left"></i>
+          <span>{families.find(f => f.name === selectedFamily)?.label}</span>
+        </button>
+
+        <div class="tab-bar">
+          {#each availableTabs as tab}
+            <button
+              class="tab-btn"
+              class:selected={selectedTab === tab.id}
+              class:assigned={chosenCategory === tab.id && chosenFamily === selectedFamily}
+              onclick={() => selectedTab = tab.id}
+            >{tab.label}</button>
+          {/each}
+        </div>
+
+        {#if selectedTab === 'palette'}
+          <div class="step-grid">
+            {#each paletteSteps as step}
+              <button
+                class="step-item"
+                class:active={chosenCategory === 'palette' && chosenFamily === selectedFamily && chosenStep === step}
+                onclick={() => selectSwatch('palette', step, close)}
+              >
+                <div class="step-swatch" style="background: var(--color-{selectedFamily}-{step});"></div>
+                <span class="step-label">{step}</span>
+              </button>
+            {/each}
+          </div>
+        {:else if selectedTab === 'surface'}
+          <div class="step-grid">
+            {#each surfaceSteps as step}
+              <button
+                class="step-item"
+                class:active={chosenCategory === 'surface' && chosenFamily === selectedFamily && chosenStep === step.key}
+                onclick={() => selectSwatch('surface', step.key, close)}
+              >
+                <div class="step-swatch" style="background: {previewBg('surface', selectedFamily, step.key)};"></div>
+                <span class="step-label">{step.label}</span>
+              </button>
+            {/each}
+          </div>
+        {:else if selectedTab === 'border'}
+          <div class="step-grid">
+            {#each borderSteps as step}
+              <button
+                class="step-item"
+                class:active={chosenCategory === 'border' && chosenFamily === selectedFamily && chosenStep === step.key}
+                onclick={() => selectSwatch('border', step.key, close)}
+              >
+                <div class="step-swatch" style="background: {previewBg('border', selectedFamily, step.key)};"></div>
+                <span class="step-label">{step.label}</span>
+              </button>
+            {/each}
+          </div>
+        {:else if selectedTab === 'text'}
+          <div class="step-grid">
+            {#each textSteps as step}
+              <button
+                class="step-item"
+                class:active={chosenCategory === 'text' && chosenFamily === selectedFamily && chosenStep === step.key}
+                onclick={() => selectSwatch('text', step.key, close)}
+              >
+                <div class="step-swatch" style="background: {previewBg('text', selectedFamily, step.key)};"></div>
+                <span class="step-label">{step.label}</span>
+              </button>
+            {/each}
+          </div>
         {/if}
-      </div>
-    {:else}
-      <button class="dropdown-back" on:click={backToFamilies}>
-        <i class="fas fa-chevron-left"></i>
-        <span>{families.find(f => f.name === selectedFamily)?.label}</span>
-      </button>
-
-      <div class="tab-bar">
-        {#each availableTabs as tab}
-          <button
-            class="tab-btn"
-            class:selected={selectedTab === tab.id}
-            class:assigned={chosenCategory === tab.id && chosenFamily === selectedFamily}
-            on:click={() => selectedTab = tab.id}
-          >{tab.label}</button>
-        {/each}
-      </div>
-
-      {#if selectedTab === 'palette'}
-        <div class="step-grid">
-          {#each paletteSteps as step}
-            <button
-              class="step-item"
-              class:active={chosenCategory === 'palette' && chosenFamily === selectedFamily && chosenStep === step}
-              on:click={() => selectSwatch('palette', step, close)}
-            >
-              <div class="step-swatch" style="background: var(--color-{selectedFamily}-{step});"></div>
-              <span class="step-label">{step}</span>
-            </button>
-          {/each}
-        </div>
-      {:else if selectedTab === 'surface'}
-        <div class="step-grid">
-          {#each surfaceSteps as step}
-            <button
-              class="step-item"
-              class:active={chosenCategory === 'surface' && chosenFamily === selectedFamily && chosenStep === step.key}
-              on:click={() => selectSwatch('surface', step.key, close)}
-            >
-              <div class="step-swatch" style="background: {previewBg('surface', selectedFamily, step.key)};"></div>
-              <span class="step-label">{step.label}</span>
-            </button>
-          {/each}
-        </div>
-      {:else if selectedTab === 'border'}
-        <div class="step-grid">
-          {#each borderSteps as step}
-            <button
-              class="step-item"
-              class:active={chosenCategory === 'border' && chosenFamily === selectedFamily && chosenStep === step.key}
-              on:click={() => selectSwatch('border', step.key, close)}
-            >
-              <div class="step-swatch" style="background: {previewBg('border', selectedFamily, step.key)};"></div>
-              <span class="step-label">{step.label}</span>
-            </button>
-          {/each}
-        </div>
-      {:else if selectedTab === 'text'}
-        <div class="step-grid">
-          {#each textSteps as step}
-            <button
-              class="step-item"
-              class:active={chosenCategory === 'text' && chosenFamily === selectedFamily && chosenStep === step.key}
-              on:click={() => selectSwatch('text', step.key, close)}
-            >
-              <div class="step-swatch" style="background: {previewBg('text', selectedFamily, step.key)};"></div>
-              <span class="step-label">{step.label}</span>
-            </button>
-          {/each}
-        </div>
       {/if}
-    {/if}
-  </svelte:fragment>
+    
+  {/snippet}
 </UITokenSelector>
 
 <!--
@@ -640,7 +664,7 @@
             class="dir-btn"
             class:active={d.angle === ((effectiveAngle % 360) + 360) % 360}
             style="grid-column: {d.col}; grid-row: {d.row};"
-            on:click={() => applyOrientation(d.angle)}
+            onclick={() => applyOrientation(d.angle)}
             title="{d.label} ({d.angle}°)"
           >{d.glyph}</button>
         {/each}
@@ -652,7 +676,7 @@
           max="359"
           class="angle-input"
           bind:value={angleInput}
-          on:change={() => applyOrientation(angleInput)}
+          onchange={() => applyOrientation(angleInput)}
         />
         <span class="angle-unit">°</span>
       </div>
@@ -660,7 +684,7 @@
         type="button"
         class="orientation-reset"
         class:active={chosenAngle !== null}
-        on:click={resetOrientation}
+        onclick={resetOrientation}
         disabled={chosenAngle === null}
         title="Reset to gradient default"
       >

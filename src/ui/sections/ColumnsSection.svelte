@@ -44,46 +44,46 @@
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="Number of columns">Cols</span>
       <input type="range" min="1" max="24" value={$editorState.columns.count}
-        on:pointerdown={() => beginSliderGesture('drag columns count')}
-        on:input={(e) => setColumnsCount(+e.currentTarget.value)} />
+        onpointerdown={() => beginSliderGesture('drag columns count')}
+        oninput={(e) => setColumnsCount(+e.currentTarget.value)} />
       <input class="shadow-slider-input" type="number" min="1" max="24"
         value={$editorState.columns.count}
-        on:change={(e) => setColumnsCount(+e.currentTarget.value)} />
+        onchange={(e) => setColumnsCount(+e.currentTarget.value)} />
       <span class="shadow-slider-unit"></span>
     </div>
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="Maximum content width">Max-Width</span>
       <input type="range" min="480" max="2560" step="10" value={$editorState.columns.maxWidth}
-        on:pointerdown={() => beginSliderGesture('drag columns max-width')}
-        on:input={(e) => setColumnsMaxWidth(+e.currentTarget.value)} />
+        onpointerdown={() => beginSliderGesture('drag columns max-width')}
+        oninput={(e) => setColumnsMaxWidth(+e.currentTarget.value)} />
       <input class="shadow-slider-input columns-input-wide" type="number" min="320" max="2560"
         value={$editorState.columns.maxWidth}
-        on:change={(e) => setColumnsMaxWidth(+e.currentTarget.value)} />
+        onchange={(e) => setColumnsMaxWidth(+e.currentTarget.value)} />
       <span class="shadow-slider-unit">px</span>
     </div>
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="Space between columns">Gutter</span>
       <input type="range" min="0" max="80" value={$editorState.columns.gutter}
-        on:pointerdown={() => beginSliderGesture('drag columns gutter')}
-        on:input={(e) => setColumnsGutter(+e.currentTarget.value)} />
+        onpointerdown={() => beginSliderGesture('drag columns gutter')}
+        oninput={(e) => setColumnsGutter(+e.currentTarget.value)} />
       <input class="shadow-slider-input" type="number" min="0" max="200"
         value={$editorState.columns.gutter}
-        on:change={(e) => setColumnsGutter(+e.currentTarget.value)} />
+        onchange={(e) => setColumnsGutter(+e.currentTarget.value)} />
       <span class="shadow-slider-unit">px</span>
     </div>
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="Outer page margin (side gutters)">Margin</span>
       <input type="range" min="0" max="200" value={$editorState.columns.margin}
-        on:pointerdown={() => beginSliderGesture('drag columns margin')}
-        on:input={(e) => setColumnsMargin(+e.currentTarget.value)} />
+        onpointerdown={() => beginSliderGesture('drag columns margin')}
+        oninput={(e) => setColumnsMargin(+e.currentTarget.value)} />
       <input class="shadow-slider-input columns-input-wide" type="number" min="0" max="400"
         value={$editorState.columns.margin}
-        on:change={(e) => setColumnsMargin(+e.currentTarget.value)} />
+        onchange={(e) => setColumnsMargin(+e.currentTarget.value)} />
       <span class="shadow-slider-unit">px</span>
     </div>
 
     <div class="columns-controls-footer">
-      <button class="columns-reset" on:click={resetColumns} title="Restore values from when this editor session opened">
+      <button class="columns-reset" onclick={resetColumns} title="Restore values from when this editor session opened">
         <i class="fas fa-rotate-left"></i>
         Reset to initial
       </button>

@@ -40,21 +40,38 @@
 
   type Entry = { kind: Kind; token: Token };
 
-  export let title: string = '';
-  export let tokens: Token[];
-  /** Forwarded to each selector; when set, writes persist through the editor store. */
-  export let component: string | undefined = undefined;
-  /** Optional context labels per variable (shown below the selector). */
-  export let contexts: Record<string, string[]> = {};
-  /** Per-variable rank that overrides kind rank when sorting; lets linked tokens align with the top linked row. */
-  export let linkedOrder: Map<string, number> | undefined = undefined;
-  /** Set true on the linked-block instance so dimmed variant rows can scroll/flash to the matching anchor. */
-  export let isLinkedBlock: boolean = false;
-  /** Number of visual columns. >1 switches to a column-major grid (grid-auto-flow: column)
+  
+  
+  
+  
+  
+  interface Props {
+    title?: string;
+    tokens: Token[];
+    /** Forwarded to each selector; when set, writes persist through the editor store. */
+    component?: string | undefined;
+    /** Optional context labels per variable (shown below the selector). */
+    contexts?: Record<string, string[]>;
+    /** Per-variable rank that overrides kind rank when sorting; lets linked tokens align with the top linked row. */
+    linkedOrder?: Map<string, number> | undefined;
+    /** Set true on the linked-block instance so dimmed variant rows can scroll/flash to the matching anchor. */
+    isLinkedBlock?: boolean;
+    /** Number of visual columns. >1 switches to a column-major grid (grid-auto-flow: column)
       so the consumer can spread a long property list across the available width. In
       multi-col mode, the linked-first sort + zone divider are dropped — kind-grouped flow
       reads more naturally when columns themselves carry the visual grouping. */
-  export let columns: number = 1;
+    columns?: number;
+  }
+
+  let {
+    title = '',
+    tokens,
+    component = undefined,
+    contexts = {},
+    linkedOrder = undefined,
+    isLinkedBlock = false,
+    columns = 1
+  }: Props = $props();
 
   /** Suffix/prefix patterns mapped to kinds — single source of truth used by `categorize`.
       Order matters: `text` must run before `border`/`surface` because `--text-*` would
@@ -263,20 +280,20 @@
     hoveredLinkedVariable?.set(variable);
   }
 
-  $: hoveredVar = !isLinkedBlock && hoveredLinkedVariable ? $hoveredLinkedVariable : null;
-  $: isMultiCol = columns > 1;
-  $: linkedKinds = computeLinkedKinds(component, $editorState);
-  $: entries = buildEntries(tokens.filter((t) => !t.hidden), linkedOrder, linkedKinds, component, $editorState, isMultiCol);
+  let hoveredVar = $derived(!isLinkedBlock && hoveredLinkedVariable ? $hoveredLinkedVariable : null);
+  let isMultiCol = $derived(columns > 1);
+  let linkedKinds = $derived(computeLinkedKinds(component, $editorState));
+  let entries = $derived(buildEntries(tokens.filter((t) => !t.hidden), linkedOrder, linkedKinds, component, $editorState, isMultiCol));
   /** Index of the first independent (non-linked) entry; -1 when there are no linked entries or no boundary.
       Suppressed in multi-col mode (no divider — column structure is the grouping). */
-  $: firstIndependentIdx = (() => {
+  let firstIndependentIdx = $derived((() => {
     if (isMultiCol) return -1;
     const idx = entries.findIndex((e) => !linkedKinds.has(e.kind));
     if (idx <= 0) return -1;
     return idx;
-  })();
+  })());
   /** Rows per column for column-major flow; ceil so the last column may be short. */
-  $: rowsPerCol = isMultiCol ? Math.max(1, Math.ceil(entries.length / columns)) : entries.length;
+  let rowsPerCol = $derived(isMultiCol ? Math.max(1, Math.ceil(entries.length / columns)) : entries.length);
 
 </script>
 
@@ -320,21 +337,20 @@
       -->
       {@const isLinkedRow = linkedKinds.has(entry.kind)}
       {@const isHovered = !isLinkedBlock && isLinkedRow && hoveredVar === token.variable}
-      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         class="token-entry"
         class:token-row={!sel.standalone}
         class:has-contexts={!sel.standalone && !!ctxs?.length}
         class:linked-hovered={isHovered}
         class:non-first-set={isNonFirstSet}
-        on:mouseenter={isLinkedBlock || !isLinkedRow ? undefined : () => setHover(token.variable)}
-        on:mouseleave={isLinkedBlock || !isLinkedRow ? undefined : () => setHover(null)}
+        onmouseenter={isLinkedBlock || !isLinkedRow ? undefined : () => setHover(token.variable)}
+        onmouseleave={isLinkedBlock || !isLinkedRow ? undefined : () => setHover(null)}
       >
         {#if !sel.standalone}
           <span class="token-label">{token.label}</span>
         {/if}
-        <svelte:component
-          this={sel.component}
+        <sel.component
           {...sharedProps}
           {...extra}
           on:change={() => handleRowChange(token)}

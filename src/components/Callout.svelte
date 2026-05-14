@@ -1,15 +1,20 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   export const calloutVariants = ['info', 'success', 'warning', 'danger'] as const;
   export type CalloutVariant = typeof calloutVariants[number];
 </script>
 
 <script lang="ts">
-  export let variant: CalloutVariant = 'info';
-  export let label: string = '';
+  interface Props {
+    variant?: CalloutVariant;
+    label?: string;
+    children?: import('svelte').Snippet;
+  }
+
+  let { variant = 'info', label = '', children }: Props = $props();
 </script>
 
 <div class="callout callout-{variant}">
-  {#if label}<strong class="callout-label">{label}</strong>{' '}{/if}<span class="callout-message"><slot /></span>
+  {#if label}<strong class="callout-label">{label}</strong>{' '}{/if}<span class="callout-message">{@render children?.()}</span>
 </div>
 
 <style lang="scss">

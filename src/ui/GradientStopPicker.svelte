@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   /**
    * Color/opacity picker for a single gradient stop. Reuses UIPaletteSelector's
    * dropdown UI by mounting it against a per-stop "scratch" CSS variable; writes
@@ -9,9 +11,13 @@
   import UIPaletteSelector from './UIPaletteSelector.svelte';
   import { setCssVar, removeCssVar } from '../lib/cssVarSync';
 
-  export let stopId: string;        // unique key (e.g. gradient-var + stop index)
-  export let color: string;          // token name like '--color-brand-500'
-  export let opacity: number = 100;  // 0–100
+  interface Props {
+    stopId: string; // unique key (e.g. gradient-var + stop index)
+    color: string; // token name like '--color-brand-500'
+    opacity?: number; // 0–100
+  }
+
+  let { stopId, color, opacity = 100 }: Props = $props();
 
   const dispatch = createEventDispatcher<{ change: { color: string; opacity: number } }>();
 
@@ -59,8 +65,8 @@
 
   // When external state updates the stop (undo/redo, sibling-stop edits),
   // refresh the scratch so the picker reflects current values.
-  let lastSynced = `${color}|${opacity}`;
-  $: {
+  let lastSynced = $state(`${color}|${opacity}`);
+  run(() => {
     const sig = `${color}|${opacity}`;
     if (sig !== lastSynced) {
       lastSynced = sig;
@@ -68,7 +74,7 @@
         setCssVar(scratchVar, buildScratchValue(color, opacity));
       }
     }
-  }
+  });
 </script>
 
 <UIPaletteSelector variable={scratchVar} on:change={handleChange} />

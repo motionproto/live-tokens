@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { onMount, onDestroy } from 'svelte';
   import { get } from 'svelte/store';
   import VariablesTab from '../ui/VariablesTab.svelte';
@@ -28,18 +30,18 @@
 
   const componentNavItems = componentRegistryEntries.map(({ id, label, icon }) => ({ id, label, icon }));
 
-  let selectedTokenSection: string | null = null;
-  let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
+  let selectedTokenSection: string | null = $state(null);
+  let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = $state('idle');
 
-  let shellEl: HTMLElement | null = null;
-  let shellWidth = 1024;
+  let shellEl: HTMLElement | null = $state(null);
+  let shellWidth = $state(1024);
   const CONDENSE_BELOW = 520;
 
-  $: condensed = $sidebarCondensed === 'auto' ? shellWidth < CONDENSE_BELOW : $sidebarCondensed;
+  let condensed = $derived($sidebarCondensed === 'auto' ? shellWidth < CONDENSE_BELOW : $sidebarCondensed);
 
   const HINT_DELAY_MS = 80;
-  let hintLabel: string | null = null;
-  let hintTop = 0;
+  let hintLabel: string | null = $state(null);
+  let hintTop = $state(0);
   let hintTimer: ReturnType<typeof setTimeout> | null = null;
 
   function showHint(label: string, target: HTMLElement) {
@@ -60,7 +62,9 @@
     hintLabel = null;
   }
 
-  $: if (!condensed) hideHint();
+  run(() => {
+    if (!condensed) hideHint();
+  });
 
   function scrollToSection(sectionId: string) {
     selectedTokenSection = sectionId;
@@ -132,7 +136,7 @@
         class="rail-toggle"
         aria-label={condensed ? 'Expand sidebar' : 'Collapse sidebar'}
         aria-expanded={!condensed}
-        on:click={toggleCondensed}
+        onclick={toggleCondensed}
       >
         <i class="fas {condensed ? 'fa-arrow-right' : 'fa-arrow-left'}"></i>
       </button>
@@ -146,9 +150,9 @@
           <button
             class="nav-item"
             class:active={selectedTokenSection === item.id}
-            on:mouseenter={(e) => showHint(item.label, e.currentTarget)}
-            on:mouseleave={hideHint}
-            on:click={() => scrollToSection(item.id)}
+            onmouseenter={(e) => showHint(item.label, e.currentTarget)}
+            onmouseleave={hideHint}
+            onclick={() => scrollToSection(item.id)}
           >
             <i class={item.icon}></i>
             <span class="nav-label">{item.label}</span>
@@ -166,9 +170,9 @@
           <button
             class="nav-item"
             class:active={$selectedComponent === item.id}
-            on:mouseenter={(e) => showHint(item.label, e.currentTarget)}
-            on:mouseleave={hideHint}
-            on:click={() => selectComponent(item.id)}
+            onmouseenter={(e) => showHint(item.label, e.currentTarget)}
+            onmouseleave={hideHint}
+            onclick={() => selectComponent(item.id)}
           >
             <i class={item.icon}></i>
             <span class="nav-label">{item.label}</span>

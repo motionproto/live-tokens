@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   // __PROJECT_ROOT__ is injected by the themeFileApi Vite plugin as a `define`.
   // Consumers don't need to configure it themselves. We declare it locally so
   // this component's type-check passes in consumer projects that haven't added
@@ -12,6 +12,8 @@
 </script>
 
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { onMount, onDestroy } from 'svelte';
   import { fade } from 'svelte/transition';
   import { cubicInOut } from 'svelte/easing';
@@ -23,12 +25,23 @@
   import { postParentRoute } from './parentRouteStore';
   import type { NavLink } from './navLinkTypes';
 
-  export let open: boolean | undefined = undefined;
-  export let editorPath: string = '/editor';
-  export let navLinks: NavLink[] = [];
-  export let pageSources: Record<string, string> = {};
-  export let hidePageSourceOn: string[] = [];
-  export let projectRoot: string = INJECTED_PROJECT_ROOT;
+  interface Props {
+    open?: boolean | undefined;
+    editorPath?: string;
+    navLinks?: NavLink[];
+    pageSources?: Record<string, string>;
+    hidePageSourceOn?: string[];
+    projectRoot?: string;
+  }
+
+  let {
+    open = $bindable(undefined),
+    editorPath = '/editor',
+    navLinks = [],
+    pageSources = {},
+    hidePageSourceOn = [],
+    projectRoot = INJECTED_PROJECT_ROOT
+  }: Props = $props();
 
   // Self-gate: only render in dev, and never inside an iframe (the /editor
   // page embeds this same app in an iframe and would otherwise recursively
@@ -44,25 +57,33 @@
   if (!consumerControlsOpen) {
     open = enabled && quietGet(OPEN_KEY) === '1';
   }
-  $: if (!consumerControlsOpen && typeof window !== 'undefined') {
-    quietSet(OPEN_KEY, open ? '1' : '0');
-  }
-  $: overlayOpen.set(!!open);
+  run(() => {
+    if (!consumerControlsOpen && typeof window !== 'undefined') {
+      quietSet(OPEN_KEY, open ? '1' : '0');
+    }
+  });
+  run(() => {
+    overlayOpen.set(!!open);
+  });
 
   // Hide the overlay entirely when the user is already on the editor route
   // (the editor page has its own chrome).
-  $: onEditorPath = $route === editorPath;
-  $: sourceFile = pageSources[$route];
-  $: showSource = !!sourceFile && !!projectRoot && !hidePageSourceOn.includes($route);
+  let onEditorPath = $derived($route === editorPath);
+  let sourceFile = $derived(pageSources[$route]);
+  let showSource = $derived(!!sourceFile && !!projectRoot && !hidePageSourceOn.includes($route));
 
   // Mount the iframe the first time the editor is shown, then keep it mounted
   // across hide/show cycles so editor state (unsaved slider values, scroll
   // position, expanded sections) survives.
-  let hasBeenOpen: boolean = !!open;
-  $: if (open) hasBeenOpen = true;
+  let hasBeenOpen: boolean = $state(!!open);
+  run(() => {
+    if (open) hasBeenOpen = true;
+  });
 
-  let editorFrame: HTMLIFrameElement | undefined;
-  $: postParentRoute(editorFrame?.contentWindow, $route);
+  let editorFrame: HTMLIFrameElement | undefined = $state();
+  run(() => {
+    postParentRoute(editorFrame?.contentWindow, $route);
+  });
 
   type Mode = 'docked' | 'floating';
 
@@ -109,9 +130,9 @@
   }
 
   const initial = loadState();
-  let mode: Mode = initial.mode;
-  let dockedWidth: number = Math.max(MIN_WIDTH, initial.dockedWidth);
-  let floating = { ...initial.floating };
+  let mode: Mode = $state(initial.mode);
+  let dockedWidth: number = $state(Math.max(MIN_WIDTH, initial.dockedWidth));
+  let floating = $state({ ...initial.floating });
 
   // Approximate natural size of the collapsed pill (Editor title + columns toggle).
   // A few pixels of overshoot is fine — the panel has overflow:hidden.
@@ -125,11 +146,11 @@
 
   // Suppress CSS transitions during gestures and mode swaps so dragging doesn't
   // re-animate every frame, and floating↔docked swaps snap cleanly.
-  let suppressTransition = false;
+  let suppressTransition = $state(false);
 
   // Gesture state — a transparent scrim covers the iframe while any gesture is active
   // so pointer events land on the panel, not on content inside the iframe.
-  let gesturing: 'drag' | 'resize-left' | 'resize-se' | null = null;
+  let gesturing: 'drag' | 'resize-left' | 'resize-se' | null = $state(null);
 
   function startDrag(e: PointerEvent) {
     if (!open || mode !== 'floating') return;
@@ -244,15 +265,15 @@
     window.removeEventListener('lt-overlay-toggle', handleToggleRequest);
   });
 
-  $: panelStyle = !open
+  let panelStyle = $derived(!open
     ? `position: fixed; top: 12px; right: 12px; width: ${COLLAPSED_WIDTH}px; height: ${COLLAPSED_HEIGHT}px;`
     : mode === 'docked'
       ? `position: fixed; top: 0; right: 0; width: ${dockedWidth}px; height: 100vh;`
-      : `position: fixed; top: ${floating.y}px; left: ${floating.x}px; width: ${floating.width}px; height: ${floating.height}px;`;
+      : `position: fixed; top: ${floating.y}px; left: ${floating.x}px; width: ${floating.width}px; height: ${floating.height}px;`);
 </script>
 
 {#if enabled && !onEditorPath}
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   class="lt-overlay"
   style={panelStyle}
@@ -264,13 +285,13 @@
 >
   <div
     class="header"
-    on:pointerdown={startDrag}
-    on:dblclick={handleHeaderDblClick}
+    onpointerdown={startDrag}
+    ondblclick={handleHeaderDblClick}
     title={open ? 'Double-click to hide' : 'Double-click to show'}
   >
     <button
       class="hdr-btn text title"
-      on:click={toggleOpen}
+      onclick={toggleOpen}
       title={open ? 'Hide Editor' : 'Show Editor'}
     >
       <i class="fas {open ? 'fa-chevron-right' : 'fa-chevron-left'}"></i>
@@ -280,7 +301,7 @@
     <button
       class="hdr-btn icon"
       class:active={$columnsVisible}
-      on:click={toggleColumns}
+      onclick={toggleColumns}
       title="{$columnsVisible ? 'Hide' : 'Show'} columns"
     >
       <i class="fas fa-grip-lines-vertical"></i>
@@ -290,7 +311,7 @@
       <button
         class="hdr-btn icon"
         title={mode === 'docked' ? 'Float' : 'Dock to right'}
-        on:click={toggleMode}
+        onclick={toggleMode}
         transition:fade={BTN_FADE}
       >
         <i class={mode === 'docked' ? 'fas fa-up-right-from-square' : 'fas fa-thumbtack'}></i>
@@ -329,7 +350,7 @@
               class:active={$route === link.path}
               aria-selected={$route === link.path}
               disabled={link.disabled}
-              on:click={() => navigate(link.path)}
+              onclick={() => navigate(link.path)}
             >
               {#if link.icon}<i class="fas {link.icon}"></i>{/if}
               <span>{link.label}</span>
@@ -347,7 +368,7 @@
         title="Token editor"
         class="editor-frame"
         bind:this={editorFrame}
-        on:load={() => postParentRoute(editorFrame?.contentWindow, $route)}
+        onload={() => postParentRoute(editorFrame?.contentWindow, $route)}
       ></iframe>
       {#if gesturing}
         <div class="gesture-scrim"></div>
@@ -355,9 +376,9 @@
     </div>
 
     {#if mode === 'docked'}
-      <div class="resize-left" on:pointerdown={startDockedResize}></div>
+      <div class="resize-left" onpointerdown={startDockedResize}></div>
     {:else}
-      <div class="resize-se" on:pointerdown={startFloatingResize}></div>
+      <div class="resize-se" onpointerdown={startFloatingResize}></div>
     {/if}
   {/if}
 </div>

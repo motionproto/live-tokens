@@ -3,14 +3,29 @@
    import Button from './Button.svelte';
    import type { NotificationActions } from './types';
 
-   export let title: string;
-   export let description: string;
-   export let variant: 'info' | 'warning' | 'danger' | 'success' = 'info';
-   export let size: 'normal' | 'compact' = 'normal';
-   export let icon: string = '';
-   export let dismissible: boolean = false;
-   export let emphasis: boolean = false;
-   export let actions: NotificationActions = {};
+   interface Props {
+      title: string;
+      description: string;
+      variant?: 'info' | 'warning' | 'danger' | 'success';
+      size?: 'normal' | 'compact';
+      icon?: string;
+      dismissible?: boolean;
+      emphasis?: boolean;
+      actions?: NotificationActions;
+      children?: import('svelte').Snippet;
+   }
+
+   let {
+      title,
+      description,
+      variant = 'info',
+      size = 'normal',
+      icon = '',
+      dismissible = false,
+      emphasis = false,
+      actions = {},
+      children
+   }: Props = $props();
 
    const dispatch = createEventDispatcher();
 
@@ -22,7 +37,7 @@
       success: 'fas fa-check-circle'
    };
 
-   $: displayIcon = icon || defaultIcons[variant];
+   let displayIcon = $derived(icon || defaultIcons[variant]);
 
    function handleDismiss() {
       dispatch('dismiss');
@@ -41,7 +56,7 @@
          </div>
       {/if}
       {#if dismissible}
-         <button class="notification-close" on:click={handleDismiss} type="button" aria-label="Dismiss">
+         <button class="notification-close" onclick={handleDismiss} type="button" aria-label="Dismiss">
             <i class="fas fa-times"></i>
          </button>
       {/if}
@@ -67,7 +82,7 @@
          {/if}
       </div>
    {/if}
-   <slot />
+   {@render children?.()}
    {#if actions.inline}
       <div class="notification-actions-inline">
          {#if description}

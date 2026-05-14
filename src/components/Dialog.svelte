@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: This migration would change the name of a slot (footer-left to footer_left) making the component unusable -->
 <script lang="ts">
   import { createEventDispatcher, tick } from 'svelte';
   import Button from './Button.svelte';

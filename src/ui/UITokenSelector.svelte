@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: This migration would change the name of a slot (trigger-preview to trigger_preview) making the component unusable -->
 <script lang="ts">
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import { setCssVar, removeCssVar, CSS_VAR_CHANGE_EVENT } from '../lib/cssVarSync';

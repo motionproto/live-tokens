@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
   import { calloutVariants } from '../components/Callout.svelte';
@@ -76,8 +76,8 @@
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   import { buildSiblings } from './scaffolding/siblings';
 
-  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
-  $: visibleVariantTokens = (v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet);
+  let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
+  let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet));
 
   const sample: Record<Variant, { label: string; message: string }> = {
     info: { label: 'Note.', message: 'This is contextual information you should know about.' },

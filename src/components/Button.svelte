@@ -1,18 +1,36 @@
 <script lang="ts">
    import { createEventDispatcher } from 'svelte';
 
-   export let disabled: boolean = false;
-   export let type: 'button' | 'submit' | 'reset' = 'button';
-   export let variant: 'primary' | 'secondary' | 'outline' | 'success' | 'danger' | 'warning' = 'primary';
-   export let size: 'default' | 'small' = 'default';
-   export let ariaLabel: string | undefined = undefined;
-   export let tooltip: string | undefined = undefined;
-   export let icon: string | undefined = undefined;
-   export let iconPosition: 'left' | 'right' = 'left';
-   export let fullWidth: boolean = false;
-   export let buttonRef: HTMLButtonElement | undefined = undefined;
-   let className: string = '';
-   export { className as class };
+   interface Props {
+      disabled?: boolean;
+      type?: 'button' | 'submit' | 'reset';
+      variant?: 'primary' | 'secondary' | 'outline' | 'success' | 'danger' | 'warning';
+      size?: 'default' | 'small';
+      ariaLabel?: string | undefined;
+      tooltip?: string | undefined;
+      icon?: string | undefined;
+      iconPosition?: 'left' | 'right';
+      fullWidth?: boolean;
+      buttonRef?: HTMLButtonElement | undefined;
+      class?: string;
+      children?: import('svelte').Snippet;
+   }
+
+   let {
+      disabled = false,
+      type = 'button',
+      variant = 'primary',
+      size = 'default',
+      ariaLabel = undefined,
+      tooltip = undefined,
+      icon = undefined,
+      iconPosition = 'left',
+      fullWidth = false,
+      buttonRef = $bindable(undefined),
+      class: className = '',
+      children
+   }: Props = $props();
+   
 
    const dispatch = createEventDispatcher();
 
@@ -32,12 +50,12 @@
    {disabled}
    aria-label={ariaLabel}
    data-tooltip={tooltip}
-   on:click={handleClick}
+   onclick={handleClick}
 >
    {#if icon && iconPosition === 'left'}
       <i class={icon}></i>
    {/if}
-   <slot />
+   {@render children?.()}
    {#if icon && iconPosition === 'right'}
       <i class={icon}></i>
    {/if}

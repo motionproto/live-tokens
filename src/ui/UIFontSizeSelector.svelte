@@ -1,17 +1,29 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { onMount, onDestroy } from 'svelte';
   import { CSS_VAR_CHANGE_EVENT } from '../lib/cssVarSync';
   import UIVariantSelector from './UIVariantSelector.svelte';
 
-  export let variable: string;
-  export let component: string | undefined = undefined;
-  export let canBeLinked: boolean = false;
-  export let disabled: boolean = false;
-  export let selectionsLocked: boolean = false;
+  interface Props {
+    variable: string;
+    component?: string | undefined;
+    canBeLinked?: boolean;
+    disabled?: boolean;
+    selectionsLocked?: boolean;
+  }
+
+  let {
+    variable,
+    component = undefined,
+    canBeLinked = false,
+    disabled = false,
+    selectionsLocked = false
+  }: Props = $props();
 
   // Icon-size variables (e.g. --tabbar-default-icon-size) pick from the
   // --icon-size-* scale; everything else from --font-size-*.
-  $: scalePrefix = variable.endsWith('-icon-size') ? '--icon-size-' : '--font-size-';
+  let scalePrefix = $derived(variable.endsWith('-icon-size') ? '--icon-size-' : '--font-size-');
 
   const options = [
     { key: 'xs', label: 'XS' },
@@ -26,8 +38,8 @@
     { key: '6xl', label: '6XL' },
   ] as const;
 
-  let pxByKey: Record<string, string> = {};
-  let remByKey: Record<string, string> = {};
+  let pxByKey: Record<string, string> = $state({});
+  let remByKey: Record<string, string> = $state({});
 
   function formatRem(value: number): string {
     const rounded = Math.round(value * 1000) / 1000;
@@ -66,7 +78,9 @@
 
   // Re-read sizes when the target variable's scale changes
   // (mounting one selector, then opening another whose variable resolves to a different scale).
-  $: if (typeof document !== 'undefined' && scalePrefix) readPxValues();
+  run(() => {
+    if (typeof document !== 'undefined' && scalePrefix) readPxValues();
+  });
 
   onMount(() => {
     readPxValues();
@@ -88,16 +102,18 @@
   dropdownGridColumns="auto auto auto auto"
   on:change
 >
-  <svelte:fragment slot="option" let:opt let:active let:select>
-    <button class="font-size-row" class:active on:click={select}>
-      <span class="size-sample-cell">
-        <span class="size-sample" style="font-size: calc(var({scalePrefix}{opt.key}) * 1.5);">A</span>
-      </span>
-      <span class="size-label">{opt.label}</span>
-      <code class="size-measure">{pxByKey[opt.key] ?? ''}</code>
-      <code class="size-measure">{remByKey[opt.key] ?? ''}</code>
-    </button>
-  </svelte:fragment>
+  {#snippet option({ opt, active, select })}
+  
+      <button class="font-size-row" class:active onclick={select}>
+        <span class="size-sample-cell">
+          <span class="size-sample" style="font-size: calc(var({scalePrefix}{opt.key}) * 1.5);">A</span>
+        </span>
+        <span class="size-label">{opt.label}</span>
+        <code class="size-measure">{pxByKey[opt.key] ?? ''}</code>
+        <code class="size-measure">{remByKey[opt.key] ?? ''}</code>
+      </button>
+    
+  {/snippet}
 </UIVariantSelector>
 
 <style>

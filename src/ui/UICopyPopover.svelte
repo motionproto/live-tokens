@@ -1,25 +1,29 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { copyPopover } from '../lib/copyPopover';
 
-  let bubbleEl: HTMLDivElement | null = null;
-  let bubbleW = 0;
-  let bubbleH = 0;
+  let bubbleEl: HTMLDivElement | null = $state(null);
+  let bubbleW = $state(0);
+  let bubbleH = $state(0);
 
-  $: if (bubbleEl && $copyPopover.visible) {
-    const r = bubbleEl.getBoundingClientRect();
-    bubbleW = r.width;
-    bubbleH = r.height;
-  }
+  run(() => {
+    if (bubbleEl && $copyPopover.visible) {
+      const r = bubbleEl.getBoundingClientRect();
+      bubbleW = r.width;
+      bubbleH = r.height;
+    }
+  });
 
   const GAP = 8;
 
-  $: anchor = $copyPopover.anchor;
-  $: rawLeft = anchor ? anchor.left + anchor.width / 2 - bubbleW / 2 : 0;
-  $: rawTop = anchor ? anchor.top - bubbleH - GAP : 0;
-  $: maxLeft = typeof window !== 'undefined' ? window.innerWidth - bubbleW - 4 : rawLeft;
-  $: clampedLeft = Math.max(4, Math.min(rawLeft, maxLeft));
-  $: clampedTop = Math.max(4, rawTop);
-  $: arrowLeft = anchor ? anchor.left + anchor.width / 2 - clampedLeft : bubbleW / 2;
+  let anchor = $derived($copyPopover.anchor);
+  let rawLeft = $derived(anchor ? anchor.left + anchor.width / 2 - bubbleW / 2 : 0);
+  let rawTop = $derived(anchor ? anchor.top - bubbleH - GAP : 0);
+  let maxLeft = $derived(typeof window !== 'undefined' ? window.innerWidth - bubbleW - 4 : rawLeft);
+  let clampedLeft = $derived(Math.max(4, Math.min(rawLeft, maxLeft)));
+  let clampedTop = $derived(Math.max(4, rawTop));
+  let arrowLeft = $derived(anchor ? anchor.left + anchor.width / 2 - clampedLeft : bubbleW / 2);
 </script>
 
 {#if $copyPopover.visible && anchor}

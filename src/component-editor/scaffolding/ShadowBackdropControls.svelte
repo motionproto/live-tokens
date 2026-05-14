@@ -5,9 +5,14 @@
   import { setCssVar } from '../../lib/cssVarSync';
 
   type Mode = 'image' | 'color';
-  export let mode: Mode = 'image';
-  /** Editor-scoped CSS var the picker writes to (must end with `-surface` to allow gradients). */
-  export let colorVariable: string;
+  
+  interface Props {
+    mode?: Mode;
+    /** Editor-scoped CSS var the picker writes to (must end with `-surface` to allow gradients). */
+    colorVariable: string;
+  }
+
+  let { mode = $bindable('image'), colorVariable }: Props = $props();
 
   const options: ReadonlyArray<{ value: Mode; label: string }> = [
     { value: 'image', label: 'Image' },

@@ -3,7 +3,11 @@
   import Toggle from '../Toggle.svelte';
   import { beginSliderGesture } from '../../lib/editorStore';
 
-  /**
+  
+
+
+  interface Props {
+    /**
    * The header swatch + label + base-hex + (when active) the ColorEditPanel
    * for editing the palette's base colour. In chromatic mode the user picks
    * an arbitrary hex; in gray mode the user picks tint hue + chroma and the
@@ -13,51 +17,73 @@
    * fires callbacks (`onStartEdit`, `onConfirm`, `onCancel`, etc.). The
    * parent decides whether to apply the chromatic-vs-gray snapshot dance.
    */
+    label: string;
+    displayLabel?: string | null;
+    mode: 'chromatic' | 'gray';
+    baseColor: string;
+    gray500Hex: string;
+    tintHue: number;
+    tintChroma: number;
+    anchorToBase: boolean;
+    isEditingBase: boolean;
+    panelOpen: boolean;
+    editingColor: string | null;
+    editPanelTitle: string | null;
+    copiedKey: string | null;
+    onStartEdit: () => void;
+    onConfirm: () => void;
+    onCancel: () => void;
+    onColorChange: (hex: string) => void;
+    onTintChange: (hue: number, chroma: number) => void;
+    onAnchorToBaseChange: (next: boolean) => void;
+    onCopyBaseHex: (key: string, hex: string, event?: MouseEvent) => void;
+  }
 
-  export let label: string;
-  export let displayLabel: string | null = null;
-  export let mode: 'chromatic' | 'gray';
-  export let baseColor: string;
-  export let gray500Hex: string;
-  export let tintHue: number;
-  export let tintChroma: number;
-  export let anchorToBase: boolean;
-  export let isEditingBase: boolean;
-  export let panelOpen: boolean;
-  export let editingColor: string | null;
-  export let editPanelTitle: string | null;
-  export let copiedKey: string | null;
+  let {
+    label,
+    displayLabel = null,
+    mode,
+    baseColor,
+    gray500Hex,
+    tintHue,
+    tintChroma,
+    anchorToBase,
+    isEditingBase,
+    panelOpen,
+    editingColor,
+    editPanelTitle,
+    copiedKey,
+    onStartEdit,
+    onConfirm,
+    onCancel,
+    onColorChange,
+    onTintChange,
+    onAnchorToBaseChange,
+    onCopyBaseHex
+  }: Props = $props();
 
-  export let onStartEdit: () => void;
-  export let onConfirm: () => void;
-  export let onCancel: () => void;
-  export let onColorChange: (hex: string) => void;
-  export let onTintChange: (hue: number, chroma: number) => void;
-  export let onAnchorToBaseChange: (next: boolean) => void;
-  export let onCopyBaseHex: (key: string, hex: string, event?: MouseEvent) => void;
-
-  $: displayHex = mode === 'gray' ? gray500Hex : baseColor;
-  $: copyKey = mode === 'gray' ? 'gray-500' : '__base__';
+  let displayHex = $derived(mode === 'gray' ? gray500Hex : baseColor);
+  let copyKey = $derived(mode === 'gray' ? 'gray-500' : '__base__');
 </script>
 
 <div class="editor-top">
   <div class="editor-primary">
-    <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
     <div
       class="header-swatch"
       class:active={isEditingBase}
       style="background: {displayHex}"
-      on:click={onStartEdit}
+      onclick={onStartEdit}
       role="button"
       tabindex="0"
-      on:keydown={(e) => e.key === 'Enter' && onStartEdit()}
+      onkeydown={(e) => e.key === 'Enter' && onStartEdit()}
     ></div>
     <div class="primary-info">
       <span class="editor-label">{displayLabel ?? label}</span>
       <button
         class="base-hex clickable-hex"
         type="button"
-        on:click={(e) => onCopyBaseHex(copyKey, displayHex, e)}
+        onclick={(e) => onCopyBaseHex(copyKey, displayHex, e)}
       >{copiedKey === copyKey ? 'copied!' : displayHex}</button>
     </div>
   </div>
@@ -78,9 +104,11 @@
     onRemoveOverride={() => {}}
     onSliderStart={() => beginSliderGesture(`edit ${label} base`)}
   >
-    <span slot="actions" class:hidden={mode !== 'chromatic'}>
-      <Toggle checked={anchorToBase} on:change={(e) => onAnchorToBaseChange(e.detail ?? !anchorToBase)} label="Lock base color to position 500" />
-    </span>
+    {#snippet actions()}
+        <span  class:hidden={mode !== 'chromatic'}>
+        <Toggle checked={anchorToBase} on:change={(e) => onAnchorToBaseChange(e.detail ?? !anchorToBase)} label="Lock base color to position 500" />
+      </span>
+      {/snippet}
   </ColorEditPanel>
 {/if}
 

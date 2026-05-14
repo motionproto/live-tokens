@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   import type { Token } from './scaffolding/types';
 
   export const component = 'inlineeditactions';
@@ -45,11 +45,11 @@
   import { editorState } from '../lib/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
-  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
+  let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
 
-  $: visibleStatesByButton = (btn: Button) => Object.fromEntries(
+  let visibleStatesByButton = $derived((btn: Button) => Object.fromEntries(
     Object.entries(buttonStates(btn)).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
-  ) as Record<string, Token[]>;
+  ) as Record<string, Token[]>);
 </script>
 
 <ComponentEditorBase {component} title="Inline Edit Actions" description="Confirm/cancel button pair for inline editing. Import from <code>components/InlineEditActions.svelte</code>" tokens={allTokens} {linked}>
@@ -59,18 +59,20 @@
       title={btn === 'save' ? 'Save button' : 'Cancel button'}
       states={visibleStatesByButton(btn)}
       {component}
-      let:activeState
+      
     >
-      {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
-      <div class="inline-edit-demo-row">
-        <span style="color: var(--text-secondary);">Editing value...</span>
-        <InlineEditActions
-          onSave={() => {}}
-          onCancel={() => {}}
-          class={forceClass}
-        />
-      </div>
-    </VariantGroup>
+      {#snippet children({ activeState })}
+            {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
+        <div class="inline-edit-demo-row">
+          <span style="color: var(--text-secondary);">Editing value...</span>
+          <InlineEditActions
+            onSave={() => {}}
+            onCancel={() => {}}
+            class={forceClass}
+          />
+        </div>
+                {/snippet}
+        </VariantGroup>
   {/each}
 </ComponentEditorBase>
 

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   /**
    * Visual gradient editor. Stops are draggable diamond handles below a live
    * ribbon; only the selected stop exposes its position + color controls (the
@@ -19,7 +21,11 @@
   import GradientStopPicker from './GradientStopPicker.svelte';
   import AngleDial from '../component-editor/scaffolding/AngleDial.svelte';
 
-  export let variable: string;
+  interface Props {
+    variable: string;
+  }
+
+  let { variable }: Props = $props();
 
   const dispatch = createEventDispatcher<{ save: void; cancel: void }>();
 
@@ -38,12 +44,14 @@
     dispatch('cancel');
   }
 
-  $: gradient = $editorState.gradients.tokens.find((t) => t.variable === variable);
-  $: stopCount = gradient?.stops.length ?? 0;
+  let gradient = $derived($editorState.gradients.tokens.find((t) => t.variable === variable));
+  let stopCount = $derived(gradient?.stops.length ?? 0);
 
-  let selected = 0;
+  let selected = $state(0);
   // Keep `selected` in range as stops are added/removed.
-  $: if (selected >= stopCount) selected = Math.max(0, stopCount - 1);
+  run(() => {
+    if (selected >= stopCount) selected = Math.max(0, stopCount - 1);
+  });
 
   function setType(type: GradientType) {
     setGradientType(variable, type);
@@ -119,8 +127,8 @@
   }
 
   // ── Ribbon handle drag ─────────────────────────────────────────────────
-  let barEl: HTMLDivElement;
-  let dragIndex: number | null = null;
+  let barEl: HTMLDivElement = $state();
+  let dragIndex: number | null = $state(null);
 
   function pctFromEvent(e: PointerEvent): number {
     const rect = barEl.getBoundingClientRect();
@@ -145,11 +153,11 @@
   }
 
   // Stop colors rendered into the diamonds: token refs become var(...).
-  $: stopSwatches = (gradient?.stops ?? []).map((s) => {
+  let stopSwatches = $derived((gradient?.stops ?? []).map((s) => {
     const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
     const op = s.opacity ?? 100;
     return op >= 100 ? base : `color-mix(in srgb, ${base} ${Math.round(op)}%, transparent)`;
-  });
+  }));
 </script>
 
 {#if gradient}
@@ -159,7 +167,7 @@
         class="ribbon"
         bind:this={barEl}
         style="background: var({variable});"
-        on:click={onRibbonClick}
+        onclick={onRibbonClick}
         role="button"
         tabindex="-1"
         aria-label="Click to add a gradient stop"
@@ -172,10 +180,10 @@
             class:selected={selected === i}
             class:dragging={dragIndex === i}
             style="left: {stop.position}%; --stop-color: {stopSwatches[i]};"
-            on:pointerdown={(e) => onHandleDown(e, i)}
-            on:pointermove={onHandleMove}
-            on:pointerup={onHandleUp}
-            on:pointercancel={onHandleUp}
+            onpointerdown={(e) => onHandleDown(e, i)}
+            onpointermove={onHandleMove}
+            onpointerup={onHandleUp}
+            onpointercancel={onHandleUp}
             title={`Stop ${i + 1} (${stop.position}%)`}
             aria-label={`Gradient stop ${i + 1}`}
           >
@@ -190,12 +198,12 @@
         <button
           type="button"
           class:active={gradient.type === 'linear'}
-          on:click={() => setType('linear')}
+          onclick={() => setType('linear')}
         >Linear</button>
         <button
           type="button"
           class:active={gradient.type === 'radial'}
-          on:click={() => setType('radial')}
+          onclick={() => setType('radial')}
         >Radial</button>
       </div>
       {#if gradient.type === 'linear'}
@@ -207,7 +215,7 @@
       <button
         type="button"
         class="ghost-btn"
-        on:click={addStop}
+        onclick={addStop}
         title="Add stop"
       >
         <i class="fas fa-plus"></i> Add stop
@@ -215,7 +223,7 @@
       <button
         type="button"
         class="ghost-btn"
-        on:click={removeSelected}
+        onclick={removeSelected}
         disabled={gradient.stops.length <= 2}
         title={gradient.stops.length <= 2 ? 'Gradient needs at least two stops' : 'Remove selected stop'}
       >
@@ -233,7 +241,7 @@
             max="100"
             step="0.1"
             value={gradient.stops[selected].position}
-            on:change={onPositionInput}
+            onchange={onPositionInput}
           />
           <span class="suffix">%</span>
         </label>
@@ -249,8 +257,8 @@
     {/if}
 
     <div class="footer-row">
-      <button type="button" class="ghost-btn" on:click={cancel}>Cancel</button>
-      <button type="button" class="primary-btn" on:click={save}>Save</button>
+      <button type="button" class="ghost-btn" onclick={cancel}>Cancel</button>
+      <button type="button" class="primary-btn" onclick={save}>Save</button>
     </div>
   </div>
 {/if}

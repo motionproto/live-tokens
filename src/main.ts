@@ -9,6 +9,7 @@ import * as columnsOverlay from './lib/columnsOverlay';
 import * as router from './lib/router';
 import * as editorStore from './lib/editorStore';
 import App from './App.svelte';
+import { mount } from "svelte";
 
 /**
  * Single boot orchestration point — call each module's idempotent `init()`
@@ -27,7 +28,7 @@ async function boot() {
   if (import.meta.env.DEV) {
     await initializeTheme();
   }
-  new App({ target: document.getElementById('app')! });
+  mount(App, { target: document.getElementById('app')! });
 }
 
 boot();

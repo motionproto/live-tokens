@@ -8,11 +8,20 @@
     disabled?: boolean;
   }
 
-  export let tabs: Tab[] = [];
-  export let selectedTab: string = '';
-  export let iconOnly: boolean = false;
-  let className: string = '';
-  export { className as class };
+  interface Props {
+    tabs?: Tab[];
+    selectedTab?: string;
+    iconOnly?: boolean;
+    class?: string;
+  }
+
+  let {
+    tabs = [],
+    selectedTab = '',
+    iconOnly = false,
+    class: className = ''
+  }: Props = $props();
+  
 
   const dispatch = createEventDispatcher<{
     tabChange: string;
@@ -32,7 +41,7 @@
       class:active={selectedTab === tab.id}
       class:icon-only={iconOnly}
       disabled={tab.disabled}
-      on:click={() => selectTab(tab)}
+      onclick={() => selectTab(tab)}
     >
       {#if tab.icon}
         <i class={tab.icon}></i>

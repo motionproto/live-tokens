@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import { fade, fly, slide } from 'svelte/transition';
   import { cubicOut, cubicIn, cubicInOut } from 'svelte/easing';
@@ -21,17 +23,31 @@
 
   const dispatch = createEventDispatcher();
 
-  export let variable: string;
-  export let component: string | undefined = undefined;
-  export let canBeLinked: boolean = false;
-  export let disabled: boolean = false;
-  export let selectionsLocked: boolean = false;
-  /** When 'sides', renders the per-side rows alongside the link/merge header.
+  
+  
+  interface Props {
+    variable: string;
+    component?: string | undefined;
+    canBeLinked?: boolean;
+    disabled?: boolean;
+    selectionsLocked?: boolean;
+    /** When 'sides', renders the per-side rows alongside the link/merge header.
       The header occupies cols 2-3 of the parent token-row (sharing row 1 with
       TokenLayout's .token-label) and the side rows fill cols 1-3 of row 2. */
-  export let mode: 'single' | 'sides' = 'single';
-  /** When false, hide the split-to-sides affordance (e.g. for non-box spacing like gap). */
-  export let splittable: boolean = true;
+    mode?: 'single' | 'sides';
+    /** When false, hide the split-to-sides affordance (e.g. for non-box spacing like gap). */
+    splittable?: boolean;
+  }
+
+  let {
+    variable,
+    component = undefined,
+    canBeLinked = false,
+    disabled = false,
+    selectionsLocked = false,
+    mode = 'single',
+    splittable = true
+  }: Props = $props();
 
   type Side = 'top' | 'right' | 'bottom' | 'left';
   const SIDES: readonly Side[] = ['top', 'right', 'bottom', 'left'];
@@ -131,10 +147,10 @@
     }
   }
 
-  let chosenKey: string | null = null;
-  let resolvedSize = '';
-  let sideKeys: Record<Side, string | null> = { top: null, right: null, bottom: null, left: null };
-  let sideResolved: Record<Side, string> = { top: '', right: '', bottom: '', left: '' };
+  let chosenKey: string | null = $state(null);
+  let resolvedSize = $state('');
+  let sideKeys: Record<Side, string | null> = $state({ top: null, right: null, bottom: null, left: null });
+  let sideResolved: Record<Side, string> = $state({ top: '', right: '', bottom: '', left: '' });
 
   function refreshFromState() {
     chosenKey = parseKey(readAlias(variable));
@@ -202,32 +218,32 @@
 
   // Track `variable` alongside `$editorState` so a VariantGroup tabs view that
   // reuses this selector across states refreshes when the bound prop swaps.
-  $: { variable; if ($editorState) refreshFromState(); }
+  run(() => { variable; if ($editorState) refreshFromState(); });
 
-  $: activeKey = chosenKey ?? (options.find((o) => o.size === resolvedSize)?.key ?? null);
-  $: activeLabel = options.find((o) => o.key === activeKey)?.label ?? '';
-  $: sideActiveKey = {
+  let activeKey = $derived(chosenKey ?? (options.find((o) => o.size === resolvedSize)?.key ?? null));
+  let activeLabel = $derived(options.find((o) => o.key === activeKey)?.label ?? '');
+  let sideActiveKey = $derived({
     top: sideKeys.top ?? (options.find((o) => o.size === sideResolved.top)?.key ?? null),
     right: sideKeys.right ?? (options.find((o) => o.size === sideResolved.right)?.key ?? null),
     bottom: sideKeys.bottom ?? (options.find((o) => o.size === sideResolved.bottom)?.key ?? null),
     left: sideKeys.left ?? (options.find((o) => o.size === sideResolved.left)?.key ?? null),
-  } as Record<Side, string | null>;
-  $: sideLabels = {
+  } as Record<Side, string | null>);
+  let sideLabels = $derived({
     top: options.find((o) => o.key === sideActiveKey.top)?.label ?? '',
     right: options.find((o) => o.key === sideActiveKey.right)?.label ?? '',
     bottom: options.find((o) => o.key === sideActiveKey.bottom)?.label ?? '',
     left: options.find((o) => o.key === sideActiveKey.left)?.label ?? '',
-  } as Record<Side, string>;
+  } as Record<Side, string>);
 
   // Linkage state for the parent token. The split fieldset is a single
   // linkage unit — peers either share the parent (and their per-side state
   // mirrors via `writeAliasLinked`) or one peer has detached. Mirrors the
   // pop-bar/lock-toggle vocabulary used by `UITokenSelector` so the visual
   // and interaction language is the same at both scales.
-  $: hasParentSiblings = canBeLinked && component && $editorState
+  let hasParentSiblings = $derived(canBeLinked && component && $editorState
     ? getComponentPropertySiblings(component, variable).length >= 2
-    : false;
-  $: showLinkUI = canBeLinked && !!component && hasParentSiblings;
+    : false);
+  let showLinkUI = $derived(canBeLinked && !!component && hasParentSiblings);
   /** $editorState is referenced directly so this re-evaluates on every store
    *  update. isComponentPropertyLinked reads `get(store)` internally — Svelte
    *  can't see that as a dependency. Without the explicit reference, an
@@ -235,13 +251,13 @@
    *  would not re-run this expression: Svelte's $$invalidate skips marking
    *  a boolean dirty when the new value equals the old, so the dirty bit
    *  never propagates to isLinkedParent. */
-  $: isLinkedParent = !!$editorState
+  let isLinkedParent = $derived(!!$editorState
     && showLinkUI
     && !!component
-    && isComponentPropertyLinked(component, variable);
+    && isComponentPropertyLinked(component, variable));
 
-  let relinkOpen = false;
-  let relinkCandidates: { variable: string; alias: string }[] = [];
+  let relinkOpen = $state(false);
+  let relinkCandidates: { variable: string; alias: string }[] = $state([]);
 
   /** Adopt one peer's entire padding block (parent + four sides) onto every
    *  currently-linked peer. Padding is treated as a single shared unit — when
@@ -382,7 +398,7 @@
     <button
       type="button"
       class="merge-btn"
-      on:click={mergeToSingle}
+      onclick={mergeToSingle}
       title="Use the same value for all sides"
       disabled={disabled || selectionsLocked}
     >
@@ -408,22 +424,30 @@
         on:reset={() => handleResetSide(s)}
         on:var-change={handleVarChange}
       >
-        <svelte:fragment slot="trigger-title">{sideLabels[s] || '—'}</svelte:fragment>
-        <svelte:fragment slot="trigger-meta">{sideResolved[s] || '—'}</svelte:fragment>
+        <!-- @migration-task: migrate this slot by hand, `trigger-title` is an invalid identifier -->
+  <svelte:fragment slot="trigger-title">{sideLabels[s] || '—'}</svelte:fragment>
+        <!-- @migration-task: migrate this slot by hand, `trigger-meta` is an invalid identifier -->
+  <svelte:fragment slot="trigger-meta">{sideResolved[s] || '—'}</svelte:fragment>
 
-        <svelte:fragment let:close>
-          <UIOptionList>
-            {#each options as opt}
-              <UIOptionItem
-                active={sideActiveKey[s] === opt.key}
-                on:click={() => selectSide(s, opt.key, close)}
-              >
-                <svelte:fragment slot="label">{opt.label}</svelte:fragment>
-                <svelte:fragment slot="meta">{opt.size}</svelte:fragment>
-              </UIOptionItem>
-            {/each}
-          </UIOptionList>
-        </svelte:fragment>
+        {#snippet children({ close })}
+              
+            <UIOptionList>
+              {#each options as opt}
+                <UIOptionItem
+                  active={sideActiveKey[s] === opt.key}
+                  on:click={() => selectSide(s, opt.key, close)}
+                >
+                  {#snippet label()}
+                                {opt.label}
+                              {/snippet}
+                  {#snippet meta()}
+                                {opt.size}
+                              {/snippet}
+                </UIOptionItem>
+              {/each}
+            </UIOptionList>
+          
+              {/snippet}
       </UITokenSelector>
     {/each}
   </div>
@@ -453,27 +477,34 @@
       on:reset={handleResetAll}
       on:var-change={handleVarChange}
     >
-      <svelte:fragment slot="trigger-title">{activeLabel || '—'}</svelte:fragment>
+      <!-- @migration-task: migrate this slot by hand, `trigger-title` is an invalid identifier -->
+  <svelte:fragment slot="trigger-title">{activeLabel || '—'}</svelte:fragment>
 
-      <svelte:fragment let:close>
-        <UIOptionList>
-          {#each options as opt}
-            <UIOptionItem
-              active={activeKey === opt.key}
-              on:click={() => selectSingle(opt.key, close)}
-            >
-              <svelte:fragment slot="label">{opt.label}</svelte:fragment>
-              <svelte:fragment slot="meta">{opt.size}</svelte:fragment>
-            </UIOptionItem>
-          {/each}
-        </UIOptionList>
-      </svelte:fragment>
+      {#snippet children({ close })}
+          
+          <UIOptionList>
+            {#each options as opt}
+              <UIOptionItem
+                active={activeKey === opt.key}
+                on:click={() => selectSingle(opt.key, close)}
+              >
+                {#snippet label()}
+                            {opt.label}
+                          {/snippet}
+                {#snippet meta()}
+                            {opt.size}
+                          {/snippet}
+              </UIOptionItem>
+            {/each}
+          </UIOptionList>
+        
+          {/snippet}
     </UITokenSelector>
     {#if splittable}
       <button
         type="button"
         class="split-btn"
-        on:click={splitToSides}
+        onclick={splitToSides}
         title="Set each side independently"
         disabled={disabled || selectionsLocked}
         in:fly|local={{ x: 24, opacity: 1, duration: t(220), delay: t(320), easing: cubicOut }}

@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   import type { Token } from './scaffolding/types';
   import { badgeVariants } from '../components/Badge.svelte';
 
@@ -65,10 +65,10 @@
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   import demoImageUrl from '../assets/newspaper.webp';
 
-  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
-  $: visibleStates = Object.fromEntries(
+  let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
+  let visibleStates = $derived(Object.fromEntries(
     badgeVariants.map((v) => [v, withLinkedDisabled(variantTokens(v), linked.varSet)]),
-  ) as Record<string, Token[]>;
+  ) as Record<string, Token[]>);
 
   const bgVar = '--backdrop-cornerbadge-surface';
 
@@ -78,7 +78,7 @@
     }
   });
 
-  let anchor: CornerAnchor = 'bottom-right';
+  let anchor: CornerAnchor = $state('bottom-right');
   const anchorGrid: ReadonlyArray<{ value: CornerAnchor; icon: string; label: string }> = [
     { value: 'top-left',     icon: 'fas fa-arrow-up-left',     label: 'Top left' },
     { value: 'top-right',    icon: 'fas fa-arrow-up-right',    label: 'Top right' },
@@ -86,42 +86,44 @@
     { value: 'bottom-right', icon: 'fas fa-arrow-down-right',  label: 'Bottom right' },
   ];
 
-  let variant: BadgeVariant = 'accent';
+  let variant: BadgeVariant = $state('accent');
   const variantOptions = badgeVariants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
 </script>
 
 <ComponentEditorBase {component} title="Corner Badge" description="Badge pinned flush to a corner of a positioned ancestor. Composes <code>Badge</code>; adds offset + inner-radius tokens. Import from <code>components/CornerBadge.svelte</code>" tokens={allTokens} {linked}>
-  <svelte:fragment slot="config">
-    <label class="backdrop-config">
-      <span>Sample background</span>
-      <div class="picker-slot">
-        <UIPaletteSelector variable={bgVar} />
+  {#snippet config()}
+  
+      <label class="backdrop-config">
+        <span>Sample background</span>
+        <div class="picker-slot">
+          <UIPaletteSelector variable={bgVar} />
+        </div>
+      </label>
+      <div class="control-row">
+        <span>Anchor</span>
+        <div class="anchor-grid" role="radiogroup" aria-label="Corner badge anchor">
+          {#each anchorGrid as opt (opt.value)}
+            <button
+              type="button"
+              class="anchor-btn"
+              class:checked={anchor === opt.value}
+              role="radio"
+              aria-checked={anchor === opt.value}
+              aria-label={opt.label}
+              title={opt.label}
+              onclick={() => (anchor = opt.value)}
+            >
+              <i class={opt.icon} aria-hidden="true"></i>
+            </button>
+          {/each}
+        </div>
       </div>
-    </label>
-    <div class="control-row">
-      <span>Anchor</span>
-      <div class="anchor-grid" role="radiogroup" aria-label="Corner badge anchor">
-        {#each anchorGrid as opt (opt.value)}
-          <button
-            type="button"
-            class="anchor-btn"
-            class:checked={anchor === opt.value}
-            role="radio"
-            aria-checked={anchor === opt.value}
-            aria-label={opt.label}
-            title={opt.label}
-            on:click={() => (anchor = opt.value)}
-          >
-            <i class={opt.icon} aria-hidden="true"></i>
-          </button>
-        {/each}
+      <div class="control-row">
+        <span>Variant</span>
+        <UIRadioGroup bind:value={variant} name="corner-badge-variant" options={variantOptions} />
       </div>
-    </div>
-    <div class="control-row">
-      <span>Variant</span>
-      <UIRadioGroup bind:value={variant} name="corner-badge-variant" options={variantOptions} />
-    </div>
-  </svelte:fragment>
+    
+  {/snippet}
   <VariantGroup name="cornerbadge" title="Corner Badge" states={visibleStates} {component}>
     <ShadowBackdrop mode="color" colorVariable={bgVar}>
       <div class="corner-stage-wrap">

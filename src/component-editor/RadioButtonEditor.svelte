@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
@@ -88,13 +88,13 @@
   import { editorState } from '../lib/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
-  let selectedRadio = 'option-b';
+  let selectedRadio = $state('option-b');
 
-  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
+  let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
 
-  $: visibleStates = Object.fromEntries(
+  let visibleStates = $derived(Object.fromEntries(
     Object.entries(states).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
-  ) as Record<string, Token[]>;
+  ) as Record<string, Token[]>);
 </script>
 
 <ComponentEditorBase {component} title="Radio Button" description="Styled radio buttons with icon and color support. Import from <code>components/RadioButton.svelte</code>" tokens={allTokens} {linked}>
@@ -104,31 +104,33 @@
     states={visibleStates}
     {typeGroups}
     {component}
-    let:activeState
+    
   >
-    {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
-    {@const forceActive = activeState === 'active'}
-    <div class="radio-demo-row">
-      <RadioButton
-        label="Defense"
-        active={forceActive || selectedRadio === 'option-a'}
-        class={forceClass}
-        on:click={() => (selectedRadio = 'option-a')}
-      />
-      <RadioButton
-        label="Economy"
-        active={forceActive || selectedRadio === 'option-b'}
-        class={forceClass}
-        on:click={() => (selectedRadio = 'option-b')}
-      />
-      <RadioButton
-        label="Loyalty"
-        active={forceActive || selectedRadio === 'option-c'}
-        class={forceClass}
-        on:click={() => (selectedRadio = 'option-c')}
-      />
-    </div>
-  </VariantGroup>
+    {#snippet children({ activeState })}
+        {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
+      {@const forceActive = activeState === 'active'}
+      <div class="radio-demo-row">
+        <RadioButton
+          label="Defense"
+          active={forceActive || selectedRadio === 'option-a'}
+          class={forceClass}
+          on:click={() => (selectedRadio = 'option-a')}
+        />
+        <RadioButton
+          label="Economy"
+          active={forceActive || selectedRadio === 'option-b'}
+          class={forceClass}
+          on:click={() => (selectedRadio = 'option-b')}
+        />
+        <RadioButton
+          label="Loyalty"
+          active={forceActive || selectedRadio === 'option-c'}
+          class={forceClass}
+          on:click={() => (selectedRadio = 'option-c')}
+        />
+      </div>
+          {/snippet}
+    </VariantGroup>
 </ComponentEditorBase>
 
 <style>

@@ -126,7 +126,7 @@
     }
   ];
 
-  let copiedVar: string | null = null;
+  let copiedVar: string | null = $state(null);
   function copyVariable(v: string) {
     navigator.clipboard.writeText(v);
     copiedVar = v;
@@ -222,7 +222,7 @@
                     class="swatch-box"
                     style="background: var({swatch.variable});"
                   ></div>
-                  <button class="swatch-name copyable" class:copied={copiedVar === swatch.variable} on:click={() => copyVariable(swatch.variable)}>{copiedVar === swatch.variable ? 'copied!' : swatch.name}</button>
+                  <button class="swatch-name copyable" class:copied={copiedVar === swatch.variable} onclick={() => copyVariable(swatch.variable)}>{copiedVar === swatch.variable ? 'copied!' : swatch.name}</button>
                 {:else}
                   <div class="swatch-box empty"></div>
                   <div class="swatch-name">&nbsp;</div>
@@ -248,7 +248,7 @@
                   class="border-box"
                   style="border: 2px solid var({border.variable});"
                 ></div>
-                <button class="border-name copyable" class:copied={copiedVar === border.variable} on:click={() => copyVariable(border.variable)}>{copiedVar === border.variable ? 'copied!' : border.name}</button>
+                <button class="border-name copyable" class:copied={copiedVar === border.variable} onclick={() => copyVariable(border.variable)}>{copiedVar === border.variable ? 'copied!' : border.name}</button>
               </div>
             {/each}
           </div>

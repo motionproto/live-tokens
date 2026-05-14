@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   import { buildSiblings } from './scaffolding/siblings';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
@@ -133,9 +133,9 @@
   import { setCssVar } from '../lib/cssVarSync';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
-  let testTitle = 'Section Title';
-  let showDescription = true;
-  let descriptionText = 'This text is meant to provide additional context or meaning.';
+  let testTitle = $state('Section Title');
+  let showDescription = $state(true);
+  let descriptionText = $state('This text is meant to provide additional context or meaning.');
 
   const bgVar = '--backdrop-sectiondivider-surface';
 
@@ -145,34 +145,36 @@
     }
   });
 
-  $: linked = computeLinkedBlock(component, linkableContexts, allTokens, $editorState);
+  let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
   // The gradient tokens are owned by GradientCard, so the property grid only
   // shows the frame tokens (padding/radius/outline). Gradient tokens still
   // live in `allTokens` so they participate in reset and the registry.
-  $: visibleVariantTokens = (v: Variant) => withLinkedDisabled(frameTokens(v), linked.varSet);
+  let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(frameTokens(v), linked.varSet));
 </script>
 
 <ComponentEditorBase {component} title="Section Divider" description="Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>" tokens={allTokens} {linked} variants={variantOptions}>
-  <svelte:fragment slot="config">
-    <label class="text-field">
-      <span>Test title</span>
-      <input type="text" bind:value={testTitle} placeholder="Section Title" />
-    </label>
-    <label class="checkbox-field">
-      <input type="checkbox" bind:checked={showDescription} />
-      <span>Show description</span>
-    </label>
-    <label class="text-field text-field-wide">
-      <span>Description text</span>
-      <input type="text" bind:value={descriptionText} placeholder="Description text" />
-    </label>
-    <label class="backdrop-config">
-      <span>Sample background</span>
-      <div class="picker-slot">
-        <UIPaletteSelector variable={bgVar} />
-      </div>
-    </label>
-  </svelte:fragment>
+  {#snippet config()}
+  
+      <label class="text-field">
+        <span>Test title</span>
+        <input type="text" bind:value={testTitle} placeholder="Section Title" />
+      </label>
+      <label class="checkbox-field">
+        <input type="checkbox" bind:checked={showDescription} />
+        <span>Show description</span>
+      </label>
+      <label class="text-field text-field-wide">
+        <span>Description text</span>
+        <input type="text" bind:value={descriptionText} placeholder="Description text" />
+      </label>
+      <label class="backdrop-config">
+        <span>Sample background</span>
+        <div class="picker-slot">
+          <UIPaletteSelector variable={bgVar} />
+        </div>
+      </label>
+    
+  {/snippet}
   {#each variants as v}
     <VariantGroup
       name={v.key}
@@ -194,7 +196,8 @@
           description={showDescription ? descriptionText : undefined}
         />
       </ShadowBackdrop>
-      <svelte:fragment slot="composite-controls">
+      <!-- @migration-task: migrate this slot by hand, `composite-controls` is an invalid identifier -->
+  <svelte:fragment slot="composite-controls">
         <span class="gradient-section-label">Gradient</span>
         <GradientCard {component} prefix={`--sectiondivider-${v.key}`} />
       </svelte:fragment>

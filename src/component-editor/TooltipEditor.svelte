@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
@@ -59,14 +59,16 @@
 </script>
 
 <ComponentEditorBase {component} title="Tooltip" description="Hover tooltip with configurable position. Import from <code>components/Tooltip.svelte</code>" tokens={allTokens}>
-  <svelte:fragment slot="config">
-    <label class="backdrop-config">
-      <span>Sample background</span>
-      <div class="picker-slot">
-        <UIPaletteSelector variable={bgVar} />
-      </div>
-    </label>
-  </svelte:fragment>
+  {#snippet config()}
+  
+      <label class="backdrop-config">
+        <span>Sample background</span>
+        <div class="picker-slot">
+          <UIPaletteSelector variable={bgVar} />
+        </div>
+      </label>
+    
+  {/snippet}
   <VariantGroup
     name="tooltip"
     title="Tooltip"

@@ -1,10 +1,22 @@
 <script lang="ts">
-  export let icon: string = '';
-  export let iconColor: string = 'var(--text-secondary)';
-  export let title: string = '';
-  export let size: 'default' | 'compact' = 'default';
-  let className: string = '';
-  export { className as class };
+  interface Props {
+    icon?: string;
+    iconColor?: string;
+    title?: string;
+    size?: 'default' | 'compact';
+    class?: string;
+    children?: import('svelte').Snippet;
+  }
+
+  let {
+    icon = '',
+    iconColor = 'var(--text-secondary)',
+    title = '',
+    size = 'default',
+    class: className = '',
+    children
+  }: Props = $props();
+  
 </script>
 
 <div
@@ -23,7 +35,7 @@
     </div>
   {/if}
   <div class="card-body">
-    <slot />
+    {@render children?.()}
   </div>
 </div>
 

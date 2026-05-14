@@ -21,7 +21,11 @@
   } from '../../lib/editorStore';
   import type { ShadowToken, ShadowOverrideFlags, EditorState } from '../../lib/editorTypes';
 
-  export let copiedVar: string | null = null;
+  interface Props {
+    copiedVar?: string | null;
+  }
+
+  let { copiedVar = null }: Props = $props();
 
   const dispatch = createEventDispatcher<{ copy: string }>();
   function copy(v: string) { dispatch('copy', v); }
@@ -221,19 +225,19 @@
   }
 
   // HSL gradient helpers (read from globals for their background-color cues).
-  $: sg = $editorState.shadows.globals;
-  $: shadowHueGrad = `linear-gradient(to right, ${
+  let sg = $derived($editorState.shadows.globals);
+  let shadowHueGrad = $derived(`linear-gradient(to right, ${
     [0, 60, 120, 180, 240, 300, 360].map(h => `hsl(${h},${sg.saturation}%,${sg.lightness}%)`).join(',')
-  })`;
-  $: shadowSatGrad = `linear-gradient(to right, hsl(${sg.hue},0%,${sg.lightness}%), hsl(${sg.hue},100%,${sg.lightness}%))`;
-  $: shadowLightGrad = `linear-gradient(to right, hsl(${sg.hue},${sg.saturation}%,0%), hsl(${sg.hue},${sg.saturation}%,50%), hsl(${sg.hue},${sg.saturation}%,100%))`;
+  })`);
+  let shadowSatGrad = $derived(`linear-gradient(to right, hsl(${sg.hue},0%,${sg.lightness}%), hsl(${sg.hue},100%,${sg.lightness}%))`);
+  let shadowLightGrad = $derived(`linear-gradient(to right, hsl(${sg.hue},${sg.saturation}%,0%), hsl(${sg.hue},${sg.saturation}%,50%), hsl(${sg.hue},${sg.saturation}%,100%))`);
 
-  let editingShadow: string | null = null;
+  let editingShadow: string | null = $state(null);
 
-  $: shadowTokens = $editorState.shadows.tokens;
-  $: editingToken = editingShadow ? shadowTokens.find(t => t.variable === editingShadow) ?? null : null;
-  $: editingIdx = editingToken ? shadowTokens.indexOf(editingToken) : -1;
-  $: editingIsScale = editingToken ? SCALE_SHADOW_VARIABLES.has(editingToken.variable) : false;
+  let shadowTokens = $derived($editorState.shadows.tokens);
+  let editingToken = $derived(editingShadow ? shadowTokens.find(t => t.variable === editingShadow) ?? null : null);
+  let editingIdx = $derived(editingToken ? shadowTokens.indexOf(editingToken) : -1);
+  let editingIsScale = $derived(editingToken ? SCALE_SHADOW_VARIABLES.has(editingToken.variable) : false);
 
   function angleFromPointer(event: PointerEvent, dialEl: SVGSVGElement): number {
     const rect = dialEl.getBoundingClientRect();
@@ -383,9 +387,9 @@
     },
   ];
 
-  let shadowBg = 'var(--ui-surface-highest)';
-  let bgPickerOpen = false;
-  let expandedGroup: string | null = null;
+  let shadowBg = $state('var(--ui-surface-highest)');
+  let bgPickerOpen = $state(false);
+  let expandedGroup: string | null = $state(null);
 
   function pickBg(value: string) {
     shadowBg = value;
@@ -415,10 +419,10 @@
       <div class="shadow-item" class:active={editingShadow === token.variable}>
         <div class="shadow-box" style="box-shadow: {shadowTokenCss(token)};"></div>
         <div class="token-info">
-          <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copy(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
+          <button class="token-variable copyable" class:copied={copiedVar === token.variable} onclick={() => copy(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
           <span class="token-value">{shadowTokenValueLabel(token)}</span>
         </div>
-        <button class="shadow-edit-btn" on:click={() => editingShadow = editingShadow === token.variable ? null : token.variable}>
+        <button class="shadow-edit-btn" onclick={() => editingShadow = editingShadow === token.variable ? null : token.variable}>
           {editingShadow === token.variable ? 'Close' : 'Edit'}
         </button>
       </div>
@@ -430,10 +434,10 @@
       <div class="shadow-item" class:active={editingShadow === token.variable}>
         <div class="shadow-box" style="box-shadow: {shadowTokenCss(token)};"></div>
         <div class="token-info">
-          <button class="token-variable copyable" class:copied={copiedVar === token.variable} on:click={() => copy(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
+          <button class="token-variable copyable" class:copied={copiedVar === token.variable} onclick={() => copy(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
           <span class="token-value">{shadowTokenValueLabel(token)}</span>
         </div>
-        <button class="shadow-edit-btn" on:click={() => editingShadow = editingShadow === token.variable ? null : token.variable}>
+        <button class="shadow-edit-btn" onclick={() => editingShadow = editingShadow === token.variable ? null : token.variable}>
           {editingShadow === token.variable ? 'Close' : 'Edit'}
         </button>
       </div>
@@ -447,17 +451,17 @@
   {#if editingToken}
     <div class="editor-header">
       <h4 class="global-shadow-title">{editingToken.variable}</h4>
-      <button class="shadow-edit-btn" on:click={() => editingShadow = null}>Close</button>
+      <button class="shadow-edit-btn" onclick={() => editingShadow = null}>Close</button>
     </div>
     {#if editingIsScale}
-      <button class="reset-btn" on:click={resetToGlobal}>Reset to Global</button>
+      <button class="reset-btn" onclick={resetToGlobal}>Reset to Global</button>
     {/if}
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="Direction the light source is coming from — controls which side the shadow falls on">Angle</span>
       <svg class="angle-dial" viewBox="0 0 48 48" width="48" height="48"
-        on:pointerdown={(e) => handleDialDown(e, editingIdx)}
-        on:pointermove={(e) => handleDialMove(e, editingIdx)}
-        on:pointerup={handleDialUp}
+        onpointerdown={(e) => handleDialDown(e, editingIdx)}
+        onpointermove={(e) => handleDialMove(e, editingIdx)}
+        onpointerup={handleDialUp}
       >
         <circle cx="24" cy="24" r="20" class="dial-ring" />
         <line x1="24" y1="24"
@@ -471,47 +475,47 @@
       </svg>
       <input class="shadow-slider-input" type="number" min="0" max="360"
         value={editingToken.angle}
-        on:change={(e) => setTokenField(editingIdx, 'angle', +e.currentTarget.value)} />
+        onchange={(e) => setTokenField(editingIdx, 'angle', +e.currentTarget.value)} />
       <span class="shadow-slider-unit">&deg;</span>
     </div>
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="How far the shadow is cast from the element — simulates height off the surface">Dist</span>
       <input type="range" min="0" max="60" value={editingToken.distance}
-        on:pointerdown={() => beginSliderGesture('edit shadow distance')}
-        on:input={(e) => setTokenField(editingIdx, 'distance', +e.currentTarget.value)} />
+        onpointerdown={() => beginSliderGesture('edit shadow distance')}
+        oninput={(e) => setTokenField(editingIdx, 'distance', +e.currentTarget.value)} />
       <input class="shadow-slider-input" type="number" min="0" max="100"
         value={editingToken.distance}
-        on:change={(e) => setTokenField(editingIdx, 'distance', +e.currentTarget.value)} />
+        onchange={(e) => setTokenField(editingIdx, 'distance', +e.currentTarget.value)} />
       <span class="shadow-slider-unit">px</span>
     </div>
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="Grows or shrinks the shadow before blurring — positive makes it larger than the element, negative makes it smaller">Spread</span>
       <input type="range" min="-50" max="50" value={editingToken.spread}
-        on:pointerdown={() => beginSliderGesture('edit shadow spread')}
-        on:input={(e) => setTokenField(editingIdx, 'spread', +e.currentTarget.value)} />
+        onpointerdown={() => beginSliderGesture('edit shadow spread')}
+        oninput={(e) => setTokenField(editingIdx, 'spread', +e.currentTarget.value)} />
       <input class="shadow-slider-input" type="number" min="-50" max="50"
         value={editingToken.spread}
-        on:change={(e) => setTokenField(editingIdx, 'spread', +e.currentTarget.value)} />
+        onchange={(e) => setTokenField(editingIdx, 'spread', +e.currentTarget.value)} />
       <span class="shadow-slider-unit">px</span>
     </div>
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="How soft the shadow edge is — higher values make a wider, more diffused shadow">Blur</span>
       <input type="range" min="0" max="100" value={editingToken.blur}
-        on:pointerdown={() => beginSliderGesture('edit shadow blur')}
-        on:input={(e) => setTokenField(editingIdx, 'blur', +e.currentTarget.value)} />
+        onpointerdown={() => beginSliderGesture('edit shadow blur')}
+        oninput={(e) => setTokenField(editingIdx, 'blur', +e.currentTarget.value)} />
       <input class="shadow-slider-input" type="number" min="0" max="100"
         value={editingToken.blur}
-        on:change={(e) => setTokenField(editingIdx, 'blur', +e.currentTarget.value)} />
+        onchange={(e) => setTokenField(editingIdx, 'blur', +e.currentTarget.value)} />
       <span class="shadow-slider-unit">px</span>
     </div>
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="How visible the shadow is — 0% is invisible, 100% is fully opaque">Op.</span>
       <input type="range" min="0" max="100" value={Math.round(editingToken.opacity * 100)}
-        on:pointerdown={() => beginSliderGesture('edit shadow opacity')}
-        on:input={(e) => setTokenField(editingIdx, 'opacity', +e.currentTarget.value / 100)} />
+        onpointerdown={() => beginSliderGesture('edit shadow opacity')}
+        oninput={(e) => setTokenField(editingIdx, 'opacity', +e.currentTarget.value / 100)} />
       <input class="shadow-slider-input" type="number" min="0" max="100"
         value={Math.round(editingToken.opacity * 100)}
-        on:change={(e) => setTokenField(editingIdx, 'opacity', +e.currentTarget.value / 100)} />
+        onchange={(e) => setTokenField(editingIdx, 'opacity', +e.currentTarget.value / 100)} />
       <span class="shadow-slider-unit">%</span>
     </div>
     <div class="global-color-group">
@@ -521,43 +525,43 @@
           <span class="shadow-slider-label" title="Hue — the base color of the shadow (0°=red, 120°=green, 240°=blue)">H</span>
           <div class="slider-track" style="background: {shadowHueGrad}">
             <input type="range" min="0" max="360" value={editingToken.hue}
-              on:pointerdown={() => beginSliderGesture('edit shadow hue')}
-              on:input={(e) => setTokenColor(editingIdx, 'hue', +e.currentTarget.value)} />
+              onpointerdown={() => beginSliderGesture('edit shadow hue')}
+              oninput={(e) => setTokenColor(editingIdx, 'hue', +e.currentTarget.value)} />
           </div>
           <input class="shadow-slider-input" type="number" min="0" max="360"
             value={editingToken.hue}
-            on:change={(e) => setTokenColor(editingIdx, 'hue', +e.currentTarget.value)} />
+            onchange={(e) => setTokenColor(editingIdx, 'hue', +e.currentTarget.value)} />
           <span class="shadow-slider-unit">&deg;</span>
         </div>
         <div class="global-shadow-row">
           <span class="shadow-slider-label" title="Saturation — 0% is gray, 100% is full color intensity">S</span>
           <div class="slider-track" style="background: linear-gradient(to right, hsl({editingToken.hue},0%,{editingToken.lightness}%), hsl({editingToken.hue},100%,{editingToken.lightness}%))">
             <input type="range" min="0" max="100" value={editingToken.saturation}
-              on:pointerdown={() => beginSliderGesture('edit shadow saturation')}
-              on:input={(e) => setTokenColor(editingIdx, 'saturation', +e.currentTarget.value)} />
+              onpointerdown={() => beginSliderGesture('edit shadow saturation')}
+              oninput={(e) => setTokenColor(editingIdx, 'saturation', +e.currentTarget.value)} />
           </div>
           <input class="shadow-slider-input" type="number" min="0" max="100"
             value={editingToken.saturation}
-            on:change={(e) => setTokenColor(editingIdx, 'saturation', +e.currentTarget.value)} />
+            onchange={(e) => setTokenColor(editingIdx, 'saturation', +e.currentTarget.value)} />
           <span class="shadow-slider-unit">%</span>
         </div>
         <div class="global-shadow-row">
           <span class="shadow-slider-label" title="Lightness — 0% is black, 100% is white">L</span>
           <div class="slider-track" style="background: linear-gradient(to right, hsl({editingToken.hue},{editingToken.saturation}%,0%), hsl({editingToken.hue},{editingToken.saturation}%,50%), hsl({editingToken.hue},{editingToken.saturation}%,100%))">
             <input type="range" min="0" max="100" value={editingToken.lightness}
-              on:pointerdown={() => beginSliderGesture('edit shadow lightness')}
-              on:input={(e) => setTokenColor(editingIdx, 'lightness', +e.currentTarget.value)} />
+              onpointerdown={() => beginSliderGesture('edit shadow lightness')}
+              oninput={(e) => setTokenColor(editingIdx, 'lightness', +e.currentTarget.value)} />
           </div>
           <input class="shadow-slider-input" type="number" min="0" max="100"
             value={editingToken.lightness}
-            on:change={(e) => setTokenColor(editingIdx, 'lightness', +e.currentTarget.value)} />
+            onchange={(e) => setTokenColor(editingIdx, 'lightness', +e.currentTarget.value)} />
           <span class="shadow-slider-unit">%</span>
         </div>
       </div>
     </div>
     <div class="shadow-css-output">
       <code>{shadowTokenCss(editingToken)}</code>
-      <button class="shadow-copy-btn" on:click={() => copy(shadowTokenCss(editingToken))}>
+      <button class="shadow-copy-btn" onclick={() => copy(shadowTokenCss(editingToken))}>
         {copiedVar === shadowTokenCss(editingToken) ? 'Copied!' : 'Copy CSS'}
       </button>
     </div>
@@ -566,9 +570,9 @@
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="Direction the light source is coming from — controls which side the shadow falls on">Angle</span>
       <svg class="angle-dial" viewBox="0 0 48 48" width="48" height="48"
-        on:pointerdown={handleGlobalDialDown}
-        on:pointermove={handleGlobalDialMove}
-        on:pointerup={handleGlobalDialUp}
+        onpointerdown={handleGlobalDialDown}
+        onpointermove={handleGlobalDialMove}
+        onpointerup={handleGlobalDialUp}
       >
         <circle cx="24" cy="24" r="20" class="dial-ring" />
         <line x1="24" y1="24"
@@ -582,40 +586,40 @@
       </svg>
       <input class="shadow-slider-input" type="number" min="0" max="360"
         value={sg.angle}
-        on:change={(e) => setGlobalAngle(+e.currentTarget.value)} />
+        onchange={(e) => setGlobalAngle(+e.currentTarget.value)} />
       <span class="shadow-slider-unit">&deg;</span>
     </div>
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="How far the shadow is cast — simulates height off the surface">Dist Min</span>
       <input type="range" min="0" max="60" value={sg.distanceMin}
-        on:pointerdown={() => beginSliderGesture('drag global dist min')}
-        on:input={(e) => setGlobalDistance('distanceMin', +e.currentTarget.value)} />
+        onpointerdown={() => beginSliderGesture('drag global dist min')}
+        oninput={(e) => setGlobalDistance('distanceMin', +e.currentTarget.value)} />
       <input class="shadow-slider-input" type="number" min="0" max="100"
         value={sg.distanceMin}
-        on:change={(e) => setGlobalDistance('distanceMin', +e.currentTarget.value)} />
+        onchange={(e) => setGlobalDistance('distanceMin', +e.currentTarget.value)} />
       <span class="shadow-slider-unit">px</span>
     </div>
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="How far the shadow is cast — simulates height off the surface">Dist Max</span>
       <input type="range" min="0" max="60" value={sg.distanceMax}
-        on:pointerdown={() => beginSliderGesture('drag global dist max')}
-        on:input={(e) => setGlobalDistance('distanceMax', +e.currentTarget.value)} />
+        onpointerdown={() => beginSliderGesture('drag global dist max')}
+        oninput={(e) => setGlobalDistance('distanceMax', +e.currentTarget.value)} />
       <input class="shadow-slider-input" type="number" min="0" max="100"
         value={sg.distanceMax}
-        on:change={(e) => setGlobalDistance('distanceMax', +e.currentTarget.value)} />
+        onchange={(e) => setGlobalDistance('distanceMax', +e.currentTarget.value)} />
       <span class="shadow-slider-unit">px</span>
     </div>
     {#if sg.sizeLocked}
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="Grows or shrinks the shadow before blurring — positive makes it larger than the element, negative makes it smaller">Spread</span>
         <input type="range" min="-50" max="50" value={sg.sizeMin}
-          on:pointerdown={() => beginSliderGesture('drag global spread')}
-          on:input={(e) => setGlobalSize('sizeMin', +e.currentTarget.value)} />
+          onpointerdown={() => beginSliderGesture('drag global spread')}
+          oninput={(e) => setGlobalSize('sizeMin', +e.currentTarget.value)} />
         <input class="shadow-slider-input" type="number" min="-50" max="50"
           value={sg.sizeMin}
-          on:change={(e) => setGlobalSize('sizeMin', +e.currentTarget.value)} />
+          onchange={(e) => setGlobalSize('sizeMin', +e.currentTarget.value)} />
         <span class="shadow-slider-unit">px</span>
-        <button class="lock-btn" title="Unlock min/max" on:click={() => toggleLock('sizeLocked')}>
+        <button class="lock-btn" title="Unlock min/max" onclick={() => toggleLock('sizeLocked')}>
           <svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 7V5a4 4 0 118 0v2h1a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1h1zm2 0h4V5a2 2 0 10-4 0v2z" fill="currentColor"/></svg>
         </button>
       </div>
@@ -623,24 +627,24 @@
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="Grows or shrinks the shadow before blurring — positive makes it larger than the element, negative makes it smaller">Spread Min</span>
         <input type="range" min="-50" max="50" value={sg.sizeMin}
-          on:pointerdown={() => beginSliderGesture('drag global spread min')}
-          on:input={(e) => setGlobalSize('sizeMin', +e.currentTarget.value)} />
+          onpointerdown={() => beginSliderGesture('drag global spread min')}
+          oninput={(e) => setGlobalSize('sizeMin', +e.currentTarget.value)} />
         <input class="shadow-slider-input" type="number" min="-50" max="50"
           value={sg.sizeMin}
-          on:change={(e) => setGlobalSize('sizeMin', +e.currentTarget.value)} />
+          onchange={(e) => setGlobalSize('sizeMin', +e.currentTarget.value)} />
         <span class="shadow-slider-unit">px</span>
-        <button class="lock-btn unlocked" title="Lock to single value" on:click={() => toggleLock('sizeLocked')}>
+        <button class="lock-btn unlocked" title="Lock to single value" onclick={() => toggleLock('sizeLocked')}>
           <svg viewBox="0 0 16 16" width="14" height="14"><path d="M10 7V5a2 2 0 10-4 0v.5H4V5a4 4 0 118 0v2h1a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1h7z" fill="currentColor"/></svg>
         </button>
       </div>
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="Grows or shrinks the shadow before blurring — positive makes it larger than the element, negative makes it smaller">Spread Max</span>
         <input type="range" min="-50" max="50" value={sg.sizeMax}
-          on:pointerdown={() => beginSliderGesture('drag global spread max')}
-          on:input={(e) => setGlobalSize('sizeMax', +e.currentTarget.value)} />
+          onpointerdown={() => beginSliderGesture('drag global spread max')}
+          oninput={(e) => setGlobalSize('sizeMax', +e.currentTarget.value)} />
         <input class="shadow-slider-input" type="number" min="-50" max="50"
           value={sg.sizeMax}
-          on:change={(e) => setGlobalSize('sizeMax', +e.currentTarget.value)} />
+          onchange={(e) => setGlobalSize('sizeMax', +e.currentTarget.value)} />
         <span class="shadow-slider-unit">px</span>
       </div>
     {/if}
@@ -648,13 +652,13 @@
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="How soft the shadow edge is — higher values make a wider, more diffused shadow">Blur</span>
         <input type="range" min="0" max="100" value={sg.blurMin}
-          on:pointerdown={() => beginSliderGesture('drag global blur')}
-          on:input={(e) => setGlobalBlur('blurMin', +e.currentTarget.value)} />
+          onpointerdown={() => beginSliderGesture('drag global blur')}
+          oninput={(e) => setGlobalBlur('blurMin', +e.currentTarget.value)} />
         <input class="shadow-slider-input" type="number" min="0" max="100"
           value={sg.blurMin}
-          on:change={(e) => setGlobalBlur('blurMin', +e.currentTarget.value)} />
+          onchange={(e) => setGlobalBlur('blurMin', +e.currentTarget.value)} />
         <span class="shadow-slider-unit">px</span>
-        <button class="lock-btn" title="Unlock min/max" on:click={() => toggleLock('blurLocked')}>
+        <button class="lock-btn" title="Unlock min/max" onclick={() => toggleLock('blurLocked')}>
           <svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 7V5a4 4 0 118 0v2h1a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1h1zm2 0h4V5a2 2 0 10-4 0v2z" fill="currentColor"/></svg>
         </button>
       </div>
@@ -662,24 +666,24 @@
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="How soft the shadow edge is — higher values make a wider, more diffused shadow">Blur Min</span>
         <input type="range" min="0" max="100" value={sg.blurMin}
-          on:pointerdown={() => beginSliderGesture('drag global blur min')}
-          on:input={(e) => setGlobalBlur('blurMin', +e.currentTarget.value)} />
+          onpointerdown={() => beginSliderGesture('drag global blur min')}
+          oninput={(e) => setGlobalBlur('blurMin', +e.currentTarget.value)} />
         <input class="shadow-slider-input" type="number" min="0" max="100"
           value={sg.blurMin}
-          on:change={(e) => setGlobalBlur('blurMin', +e.currentTarget.value)} />
+          onchange={(e) => setGlobalBlur('blurMin', +e.currentTarget.value)} />
         <span class="shadow-slider-unit">px</span>
-        <button class="lock-btn unlocked" title="Lock to single value" on:click={() => toggleLock('blurLocked')}>
+        <button class="lock-btn unlocked" title="Lock to single value" onclick={() => toggleLock('blurLocked')}>
           <svg viewBox="0 0 16 16" width="14" height="14"><path d="M10 7V5a2 2 0 10-4 0v.5H4V5a4 4 0 118 0v2h1a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1h7z" fill="currentColor"/></svg>
         </button>
       </div>
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="How soft the shadow edge is — higher values make a wider, more diffused shadow">Blur Max</span>
         <input type="range" min="0" max="100" value={sg.blurMax}
-          on:pointerdown={() => beginSliderGesture('drag global blur max')}
-          on:input={(e) => setGlobalBlur('blurMax', +e.currentTarget.value)} />
+          onpointerdown={() => beginSliderGesture('drag global blur max')}
+          oninput={(e) => setGlobalBlur('blurMax', +e.currentTarget.value)} />
         <input class="shadow-slider-input" type="number" min="0" max="100"
           value={sg.blurMax}
-          on:change={(e) => setGlobalBlur('blurMax', +e.currentTarget.value)} />
+          onchange={(e) => setGlobalBlur('blurMax', +e.currentTarget.value)} />
         <span class="shadow-slider-unit">px</span>
       </div>
     {/if}
@@ -687,13 +691,13 @@
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="How visible the shadow is — 0% is invisible, 100% is fully opaque">Op.</span>
         <input type="range" min="0" max="100" value={Math.round(sg.opacityMin * 100)}
-          on:pointerdown={() => beginSliderGesture('drag global opacity')}
-          on:input={(e) => setGlobalOpacity('opacityMin', +e.currentTarget.value / 100)} />
+          onpointerdown={() => beginSliderGesture('drag global opacity')}
+          oninput={(e) => setGlobalOpacity('opacityMin', +e.currentTarget.value / 100)} />
         <input class="shadow-slider-input" type="number" min="0" max="100"
           value={Math.round(sg.opacityMin * 100)}
-          on:change={(e) => setGlobalOpacity('opacityMin', +e.currentTarget.value / 100)} />
+          onchange={(e) => setGlobalOpacity('opacityMin', +e.currentTarget.value / 100)} />
         <span class="shadow-slider-unit">%</span>
-        <button class="lock-btn" title="Unlock min/max" on:click={() => toggleLock('opacityLocked')}>
+        <button class="lock-btn" title="Unlock min/max" onclick={() => toggleLock('opacityLocked')}>
           <svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 7V5a4 4 0 118 0v2h1a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1h1zm2 0h4V5a2 2 0 10-4 0v2z" fill="currentColor"/></svg>
         </button>
       </div>
@@ -701,24 +705,24 @@
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="How visible the shadow is — 0% is invisible, 100% is fully opaque">Op. Min</span>
         <input type="range" min="0" max="100" value={Math.round(sg.opacityMin * 100)}
-          on:pointerdown={() => beginSliderGesture('drag global opacity min')}
-          on:input={(e) => setGlobalOpacity('opacityMin', +e.currentTarget.value / 100)} />
+          onpointerdown={() => beginSliderGesture('drag global opacity min')}
+          oninput={(e) => setGlobalOpacity('opacityMin', +e.currentTarget.value / 100)} />
         <input class="shadow-slider-input" type="number" min="0" max="100"
           value={Math.round(sg.opacityMin * 100)}
-          on:change={(e) => setGlobalOpacity('opacityMin', +e.currentTarget.value / 100)} />
+          onchange={(e) => setGlobalOpacity('opacityMin', +e.currentTarget.value / 100)} />
         <span class="shadow-slider-unit">%</span>
-        <button class="lock-btn unlocked" title="Lock to single value" on:click={() => toggleLock('opacityLocked')}>
+        <button class="lock-btn unlocked" title="Lock to single value" onclick={() => toggleLock('opacityLocked')}>
           <svg viewBox="0 0 16 16" width="14" height="14"><path d="M10 7V5a2 2 0 10-4 0v.5H4V5a4 4 0 118 0v2h1a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1h7z" fill="currentColor"/></svg>
         </button>
       </div>
       <div class="global-shadow-row">
         <span class="shadow-slider-label" title="How visible the shadow is — 0% is invisible, 100% is fully opaque">Op. Max</span>
         <input type="range" min="0" max="100" value={Math.round(sg.opacityMax * 100)}
-          on:pointerdown={() => beginSliderGesture('drag global opacity max')}
-          on:input={(e) => setGlobalOpacity('opacityMax', +e.currentTarget.value / 100)} />
+          onpointerdown={() => beginSliderGesture('drag global opacity max')}
+          oninput={(e) => setGlobalOpacity('opacityMax', +e.currentTarget.value / 100)} />
         <input class="shadow-slider-input" type="number" min="0" max="100"
           value={Math.round(sg.opacityMax * 100)}
-          on:change={(e) => setGlobalOpacity('opacityMax', +e.currentTarget.value / 100)} />
+          onchange={(e) => setGlobalOpacity('opacityMax', +e.currentTarget.value / 100)} />
         <span class="shadow-slider-unit">%</span>
       </div>
     {/if}
@@ -729,52 +733,52 @@
           <span class="shadow-slider-label" title="Hue — the base color of the shadow (0°=red, 120°=green, 240°=blue)">H</span>
           <div class="slider-track" style="background: {shadowHueGrad}">
             <input type="range" min="0" max="360" value={sg.hue}
-              on:pointerdown={() => beginSliderGesture('drag global hue')}
-              on:input={(e) => setGlobalColor('hue', +e.currentTarget.value)} />
+              onpointerdown={() => beginSliderGesture('drag global hue')}
+              oninput={(e) => setGlobalColor('hue', +e.currentTarget.value)} />
           </div>
           <input class="shadow-slider-input" type="number" min="0" max="360"
             value={sg.hue}
-            on:change={(e) => setGlobalColor('hue', +e.currentTarget.value)} />
+            onchange={(e) => setGlobalColor('hue', +e.currentTarget.value)} />
           <span class="shadow-slider-unit">&deg;</span>
         </div>
         <div class="global-shadow-row">
           <span class="shadow-slider-label" title="Saturation — 0% is gray, 100% is full color intensity">S</span>
           <div class="slider-track" style="background: {shadowSatGrad}">
             <input type="range" min="0" max="100" value={sg.saturation}
-              on:pointerdown={() => beginSliderGesture('drag global saturation')}
-              on:input={(e) => setGlobalColor('saturation', +e.currentTarget.value)} />
+              onpointerdown={() => beginSliderGesture('drag global saturation')}
+              oninput={(e) => setGlobalColor('saturation', +e.currentTarget.value)} />
           </div>
           <input class="shadow-slider-input" type="number" min="0" max="100"
             value={sg.saturation}
-            on:change={(e) => setGlobalColor('saturation', +e.currentTarget.value)} />
+            onchange={(e) => setGlobalColor('saturation', +e.currentTarget.value)} />
           <span class="shadow-slider-unit">%</span>
         </div>
         <div class="global-shadow-row">
           <span class="shadow-slider-label" title="Lightness — 0% is black, 100% is white">L</span>
           <div class="slider-track" style="background: {shadowLightGrad}">
             <input type="range" min="0" max="100" value={sg.lightness}
-              on:pointerdown={() => beginSliderGesture('drag global lightness')}
-              on:input={(e) => setGlobalColor('lightness', +e.currentTarget.value)} />
+              onpointerdown={() => beginSliderGesture('drag global lightness')}
+              oninput={(e) => setGlobalColor('lightness', +e.currentTarget.value)} />
           </div>
           <input class="shadow-slider-input" type="number" min="0" max="100"
             value={sg.lightness}
-            on:change={(e) => setGlobalColor('lightness', +e.currentTarget.value)} />
+            onchange={(e) => setGlobalColor('lightness', +e.currentTarget.value)} />
           <span class="shadow-slider-unit">%</span>
         </div>
       </div>
     </div>
-    <button class="bg-picker-btn" on:click={toggleBgPicker}>BG</button>
+    <button class="bg-picker-btn" onclick={toggleBgPicker}>BG</button>
     {#if bgPickerOpen}
       <div class="bg-picker-menu">
         {#each bgColorGroups as group}
-          <button class="bg-group-header" on:click={() => expandedGroup = expandedGroup === group.label ? null : group.label}>
+          <button class="bg-group-header" onclick={() => expandedGroup = expandedGroup === group.label ? null : group.label}>
             <span>{group.label}</span>
             <span class="bg-group-arrow">{expandedGroup === group.label ? '▴' : '▾'}</span>
           </button>
           {#if expandedGroup === group.label}
             <div class="bg-group-colors">
               {#each group.colors as color}
-                <button class="bg-color-option" on:click={() => pickBg(color.value)}>
+                <button class="bg-color-option" onclick={() => pickBg(color.value)}>
                   <span class="bg-color-swatch" style="background: {color.value};"></span>
                   <span>{color.label}</span>
                 </button>

@@ -1,9 +1,13 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
 
-  export let value: string;
-  export let options: ReadonlyArray<{ value: string; label: string }>;
-  export let name: string;
+  interface Props {
+    value: string;
+    options: ReadonlyArray<{ value: string; label: string }>;
+    name: string;
+  }
+
+  let { value = $bindable(), options, name }: Props = $props();
 
   const dispatch = createEventDispatcher<{ change: string }>();
 
@@ -22,7 +26,7 @@
         {name}
         value={opt.value}
         checked={value === opt.value}
-        on:change={() => select(opt.value)}
+        onchange={() => select(opt.value)}
       />
       <span>{opt.label}</span>
     </label>

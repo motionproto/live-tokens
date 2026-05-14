@@ -1,10 +1,19 @@
 <script lang="ts">
   import ComponentFileManager from './ComponentFileManager.svelte';
 
-  export let component: string;
-  export let title: string;
-  export let description: string = '';
-  export let resetVariables: string[] | null = null;
+  interface Props {
+    component: string;
+    title: string;
+    description?: string;
+    resetVariables?: string[] | null;
+  }
+
+  let {
+    component,
+    title,
+    description = '',
+    resetVariables = null
+  }: Props = $props();
 </script>
 
 <ComponentFileManager {component} {title} {resetVariables} />
