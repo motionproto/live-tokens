@@ -65,7 +65,7 @@
     --corner-badge-primary-text-font-family: var(--font-sans);
     --corner-badge-primary-text-font-size: var(--font-size-sm);
     --corner-badge-primary-text-font-weight: var(--font-weight-light);
-    --corner-badge-primary-text-line-height: var(--line-height-tight);
+    --corner-badge-primary-text-line-height: var(--line-height-xs);
 
     /* Accent */
     --corner-badge-accent-margin: var(--space-0);
@@ -77,7 +77,7 @@
     --corner-badge-accent-text-font-family: var(--font-sans);
     --corner-badge-accent-text-font-size: var(--font-size-sm);
     --corner-badge-accent-text-font-weight: var(--font-weight-light);
-    --corner-badge-accent-text-line-height: var(--line-height-tight);
+    --corner-badge-accent-text-line-height: var(--line-height-xs);
 
     /* Neutral */
     --corner-badge-neutral-margin: var(--space-0);
@@ -89,7 +89,7 @@
     --corner-badge-neutral-text-font-family: var(--font-sans);
     --corner-badge-neutral-text-font-size: var(--font-size-sm);
     --corner-badge-neutral-text-font-weight: var(--font-weight-light);
-    --corner-badge-neutral-text-line-height: var(--line-height-tight);
+    --corner-badge-neutral-text-line-height: var(--line-height-xs);
 
     /* Alternate */
     --corner-badge-alternate-margin: var(--space-0);
@@ -101,7 +101,7 @@
     --corner-badge-alternate-text-font-family: var(--font-sans);
     --corner-badge-alternate-text-font-size: var(--font-size-sm);
     --corner-badge-alternate-text-font-weight: var(--font-weight-light);
-    --corner-badge-alternate-text-line-height: var(--line-height-tight);
+    --corner-badge-alternate-text-line-height: var(--line-height-xs);
 
     /* Canvas */
     --corner-badge-canvas-margin: var(--space-0);
@@ -113,7 +113,7 @@
     --corner-badge-canvas-text-font-family: var(--font-sans);
     --corner-badge-canvas-text-font-size: var(--font-size-sm);
     --corner-badge-canvas-text-font-weight: var(--font-weight-light);
-    --corner-badge-canvas-text-line-height: var(--line-height-tight);
+    --corner-badge-canvas-text-line-height: var(--line-height-xs);
 
     /* Special */
     --corner-badge-special-margin: var(--space-0);
@@ -125,7 +125,7 @@
     --corner-badge-special-text-font-family: var(--font-sans);
     --corner-badge-special-text-font-size: var(--font-size-sm);
     --corner-badge-special-text-font-weight: var(--font-weight-light);
-    --corner-badge-special-text-line-height: var(--line-height-tight);
+    --corner-badge-special-text-line-height: var(--line-height-xs);
 
     /* Success */
     --corner-badge-success-margin: var(--space-0);
@@ -137,7 +137,7 @@
     --corner-badge-success-text-font-family: var(--font-sans);
     --corner-badge-success-text-font-size: var(--font-size-sm);
     --corner-badge-success-text-font-weight: var(--font-weight-light);
-    --corner-badge-success-text-line-height: var(--line-height-tight);
+    --corner-badge-success-text-line-height: var(--line-height-xs);
 
     /* Warning */
     --corner-badge-warning-margin: var(--space-0);
@@ -149,7 +149,7 @@
     --corner-badge-warning-text-font-family: var(--font-sans);
     --corner-badge-warning-text-font-size: var(--font-size-sm);
     --corner-badge-warning-text-font-weight: var(--font-weight-light);
-    --corner-badge-warning-text-line-height: var(--line-height-tight);
+    --corner-badge-warning-text-line-height: var(--line-height-xs);
 
     /* Danger */
     --corner-badge-danger-margin: var(--space-0);
@@ -161,7 +161,7 @@
     --corner-badge-danger-text-font-family: var(--font-sans);
     --corner-badge-danger-text-font-size: var(--font-size-sm);
     --corner-badge-danger-text-font-weight: var(--font-weight-light);
-    --corner-badge-danger-text-line-height: var(--line-height-tight);
+    --corner-badge-danger-text-line-height: var(--line-height-xs);
 
     /* Info */
     --corner-badge-info-margin: var(--space-0);
@@ -173,7 +173,7 @@
     --corner-badge-info-text-font-family: var(--font-sans);
     --corner-badge-info-text-font-size: var(--font-size-sm);
     --corner-badge-info-text-font-weight: var(--font-weight-light);
-    --corner-badge-info-text-line-height: var(--line-height-tight);
+    --corner-badge-info-text-line-height: var(--line-height-xs);
   }
 
   .corner-badge {

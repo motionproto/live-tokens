@@ -1,13 +1,6 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
 
-  import Home from './pages/Home.svelte';
-  import Demo from './pages/Demo.svelte';
-  import Editor from './pages/Editor.svelte';
-  // Same import path that consumers use via the package export
-  // (`@motion-proto/live-tokens/component-editor-page`); kept relative here
-  // because this file is inside the package source.
-  import ComponentEditorPage from './pages/ComponentEditorPage.svelte';
   import LiveEditorOverlay from './lib/LiveEditorOverlay.svelte';
   import ColumnsOverlay from './lib/ColumnsOverlay.svelte';
   import { route, navigate } from './lib/router';
@@ -45,6 +38,17 @@
   let isEditor = $derived(isDev && $route === '/editor');
   let isDemo = $derived(isDev && $route === '/demo');
   let isComponentEditor = $derived(isDev && $route === '/components');
+
+  // Pages are loaded dynamically so each route's module — and any CSS it
+  // side-effect-imports (e.g. site.css on Home/Demo) — only evaluates when that
+  // route is actually visited. Static imports at the top of this file would
+  // evaluate every page module at boot, leaking site.css into editor routes.
+  let pagePromise = $derived.by(() => {
+    if (isEditor) return import('./pages/Editor.svelte');
+    if (isDemo) return import('./pages/Demo.svelte');
+    if (isComponentEditor) return import('./pages/ComponentEditorPage.svelte');
+    return import('./pages/Home.svelte');
+  });
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions, a11y_no_static_element_interactions -->
@@ -61,15 +65,10 @@
   />
   <ColumnsOverlay />
 
-  {#if isEditor}
-    <Editor />
-  {:else if isDemo}
-    <Demo />
-  {:else if isComponentEditor}
-    <ComponentEditorPage />
-  {:else}
-    <Home />
-  {/if}
+  {#await pagePromise then m}
+    {@const PageComponent = m.default}
+    <PageComponent />
+  {/await}
 </div>
 
 <style>

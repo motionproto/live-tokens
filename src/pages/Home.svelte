@@ -1,4 +1,9 @@
 <script lang="ts">
+  // site.css carries the themed page typography (bare `h1`/`p`/`a` rules
+  // that consume theme tokens). It's imported here — not globally from
+  // main.ts — so editor pages (Editor.svelte, ComponentEditorPage.svelte)
+  // stay theme-immune. See src/styles/CONVENTIONS.md row for site.css.
+  import '../styles/site.css';
   import Card from '../components/Card.svelte';
   import Button from '../components/Button.svelte';
   import { navigate } from '../lib/router';

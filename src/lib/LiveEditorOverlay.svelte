@@ -334,7 +334,7 @@
         transition:fade={BTN_FADE}
       >
         <i class="fas fa-code"></i>
-        Show Source
+        Show page source
       </a>
     {/if}
 

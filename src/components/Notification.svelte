@@ -123,12 +123,12 @@
       --notification-info-title-font-family: var(--font-sans);
       --notification-info-title-font-size: var(--font-size-lg);
       --notification-info-title-font-weight: var(--font-weight-normal);
-      --notification-info-title-line-height: var(--line-height-snug);
+      --notification-info-title-line-height: var(--line-height-sm);
       --notification-info-text: var(--text-primary);
       --notification-info-text-font-family: var(--font-sans);
       --notification-info-text-font-size: var(--font-size-md);
       --notification-info-text-font-weight: var(--font-weight-extralight);
-      --notification-info-text-line-height: var(--line-height-normal);
+      --notification-info-text-line-height: var(--line-height-md);
 
       /* Success */
       --notification-success-surface: var(--surface-success);
@@ -142,12 +142,12 @@
       --notification-success-title-font-family: var(--font-sans);
       --notification-success-title-font-size: var(--font-size-lg);
       --notification-success-title-font-weight: var(--font-weight-normal);
-      --notification-success-title-line-height: var(--line-height-snug);
+      --notification-success-title-line-height: var(--line-height-sm);
       --notification-success-text: var(--text-primary);
       --notification-success-text-font-family: var(--font-sans);
       --notification-success-text-font-size: var(--font-size-md);
       --notification-success-text-font-weight: var(--font-weight-extralight);
-      --notification-success-text-line-height: var(--line-height-normal);
+      --notification-success-text-line-height: var(--line-height-md);
 
       /* Warning */
       --notification-warning-surface: var(--surface-warning);
@@ -161,12 +161,12 @@
       --notification-warning-title-font-family: var(--font-sans);
       --notification-warning-title-font-size: var(--font-size-lg);
       --notification-warning-title-font-weight: var(--font-weight-normal);
-      --notification-warning-title-line-height: var(--line-height-snug);
+      --notification-warning-title-line-height: var(--line-height-sm);
       --notification-warning-text: var(--text-primary);
       --notification-warning-text-font-family: var(--font-sans);
       --notification-warning-text-font-size: var(--font-size-md);
       --notification-warning-text-font-weight: var(--font-weight-extralight);
-      --notification-warning-text-line-height: var(--line-height-normal);
+      --notification-warning-text-line-height: var(--line-height-md);
 
       /* Danger */
       --notification-danger-surface: var(--surface-danger);
@@ -180,12 +180,12 @@
       --notification-danger-title-font-family: var(--font-sans);
       --notification-danger-title-font-size: var(--font-size-lg);
       --notification-danger-title-font-weight: var(--font-weight-normal);
-      --notification-danger-title-line-height: var(--line-height-snug);
+      --notification-danger-title-line-height: var(--line-height-sm);
       --notification-danger-text: var(--text-primary);
       --notification-danger-text-font-family: var(--font-sans);
       --notification-danger-text-font-size: var(--font-size-md);
       --notification-danger-text-font-weight: var(--font-weight-extralight);
-      --notification-danger-text-line-height: var(--line-height-normal);
+      --notification-danger-text-line-height: var(--line-height-md);
    }
 
    .notification {

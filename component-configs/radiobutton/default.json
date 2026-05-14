@@ -12,7 +12,7 @@
     "--radiobutton-default-label-font-family": "--font-sans",
     "--radiobutton-default-label-font-size": "--font-size-md",
     "--radiobutton-default-label-font-weight": "--font-weight-semibold",
-    "--radiobutton-default-label-line-height": "--line-height-tight",
+    "--radiobutton-default-label-line-height": "--line-height-xs",
     "--radiobutton-hover-dot-border-color": "--border-neutral",
     "--radiobutton-hover-dot-border-width": "--border-width-1",
     "--radiobutton-hover-dot-fill": "--surface-neutral-high",
@@ -21,7 +21,7 @@
     "--radiobutton-hover-label-font-family": "--font-sans",
     "--radiobutton-hover-label-font-size": "--font-size-md",
     "--radiobutton-hover-label-font-weight": "--font-weight-semibold",
-    "--radiobutton-hover-label-line-height": "--line-height-tight",
+    "--radiobutton-hover-label-line-height": "--line-height-xs",
     "--radiobutton-active-dot-border-color": "--border-brand-medium",
     "--radiobutton-active-dot-border-width": "--border-width-1",
     "--radiobutton-active-dot-fill": "--border-brand-medium",
@@ -30,7 +30,7 @@
     "--radiobutton-active-label-font-family": "--font-sans",
     "--radiobutton-active-label-font-size": "--font-size-md",
     "--radiobutton-active-label-font-weight": "--font-weight-semibold",
-    "--radiobutton-active-label-line-height": "--line-height-tight"
+    "--radiobutton-active-label-line-height": "--line-height-xs"
   },
   "config": {},
   "schemaVersion": 6

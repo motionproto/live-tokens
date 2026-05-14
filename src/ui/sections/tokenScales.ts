@@ -42,8 +42,8 @@ export const FONT_WEIGHT_VARS = [
 ] as const;
 
 export const LINE_HEIGHT_VARS = [
-  '--line-height-tight', '--line-height-snug', '--line-height-normal',
-  '--line-height-relaxed', '--line-height-loose',
+  '--line-height-xs', '--line-height-sm', '--line-height-md',
+  '--line-height-lg', '--line-height-xl',
 ] as const;
 
 export interface TokenItem {

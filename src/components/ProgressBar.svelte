@@ -52,12 +52,12 @@
     --progressbar-primary-label-font-family: var(--font-sans);
     --progressbar-primary-label-font-size: var(--font-size-sm);
     --progressbar-primary-label-font-weight: var(--font-weight-light);
-    --progressbar-primary-label-line-height: var(--line-height-normal);
+    --progressbar-primary-label-line-height: var(--line-height-md);
     --progressbar-primary-value: var(--text-tertiary);
     --progressbar-primary-value-font-family: var(--font-mono);
     --progressbar-primary-value-font-size: var(--font-size-xs);
     --progressbar-primary-value-font-weight: var(--font-weight-light);
-    --progressbar-primary-value-line-height: var(--line-height-normal);
+    --progressbar-primary-value-line-height: var(--line-height-md);
 
     /* Success */
     --progressbar-success-track-surface: var(--surface-neutral-low);
@@ -70,12 +70,12 @@
     --progressbar-success-label-font-family: var(--font-sans);
     --progressbar-success-label-font-size: var(--font-size-sm);
     --progressbar-success-label-font-weight: var(--font-weight-light);
-    --progressbar-success-label-line-height: var(--line-height-normal);
+    --progressbar-success-label-line-height: var(--line-height-md);
     --progressbar-success-value: var(--text-tertiary);
     --progressbar-success-value-font-family: var(--font-mono);
     --progressbar-success-value-font-size: var(--font-size-xs);
     --progressbar-success-value-font-weight: var(--font-weight-light);
-    --progressbar-success-value-line-height: var(--line-height-normal);
+    --progressbar-success-value-line-height: var(--line-height-md);
 
     /* Warning */
     --progressbar-warning-track-surface: var(--surface-neutral-low);
@@ -88,12 +88,12 @@
     --progressbar-warning-label-font-family: var(--font-sans);
     --progressbar-warning-label-font-size: var(--font-size-sm);
     --progressbar-warning-label-font-weight: var(--font-weight-light);
-    --progressbar-warning-label-line-height: var(--line-height-normal);
+    --progressbar-warning-label-line-height: var(--line-height-md);
     --progressbar-warning-value: var(--text-tertiary);
     --progressbar-warning-value-font-family: var(--font-mono);
     --progressbar-warning-value-font-size: var(--font-size-xs);
     --progressbar-warning-value-font-weight: var(--font-weight-light);
-    --progressbar-warning-value-line-height: var(--line-height-normal);
+    --progressbar-warning-value-line-height: var(--line-height-md);
 
     /* Danger */
     --progressbar-danger-track-surface: var(--surface-neutral-low);
@@ -106,12 +106,12 @@
     --progressbar-danger-label-font-family: var(--font-sans);
     --progressbar-danger-label-font-size: var(--font-size-sm);
     --progressbar-danger-label-font-weight: var(--font-weight-light);
-    --progressbar-danger-label-line-height: var(--line-height-normal);
+    --progressbar-danger-label-line-height: var(--line-height-md);
     --progressbar-danger-value: var(--text-tertiary);
     --progressbar-danger-value-font-family: var(--font-mono);
     --progressbar-danger-value-font-size: var(--font-size-xs);
     --progressbar-danger-value-font-weight: var(--font-weight-light);
-    --progressbar-danger-value-line-height: var(--line-height-normal);
+    --progressbar-danger-value-line-height: var(--line-height-md);
 
     /* Info */
     --progressbar-info-track-surface: var(--surface-neutral-low);
@@ -124,12 +124,12 @@
     --progressbar-info-label-font-family: var(--font-sans);
     --progressbar-info-label-font-size: var(--font-size-sm);
     --progressbar-info-label-font-weight: var(--font-weight-light);
-    --progressbar-info-label-line-height: var(--line-height-normal);
+    --progressbar-info-label-line-height: var(--line-height-md);
     --progressbar-info-value: var(--text-tertiary);
     --progressbar-info-value-font-family: var(--font-mono);
     --progressbar-info-value-font-size: var(--font-size-xs);
     --progressbar-info-value-font-weight: var(--font-weight-light);
-    --progressbar-info-value-line-height: var(--line-height-normal);
+    --progressbar-info-value-line-height: var(--line-height-md);
   }
 
   .progress {

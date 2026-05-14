@@ -66,6 +66,49 @@
   let productionUpdateStatus: ProductionStatus = $state('idle');
   let adoptFeedback = $state('');
 
+  let infoOpen = $state(false);
+  let infoBtnEl = $state<HTMLButtonElement | undefined>(undefined);
+  let infoPopoverEl = $state<HTMLDivElement | undefined>(undefined);
+  let infoPopoverReady = $state(false);
+
+  /** Anchor the fixed-position popover centered below the info button.
+      Uses position: fixed so it escapes the sticky header's stacking
+      context (which was letting the side panels paint over it). */
+  function positionInfoPopover(): void {
+    const btn = infoBtnEl;
+    const pop = infoPopoverEl;
+    if (!btn || !pop) return;
+    const br = btn.getBoundingClientRect();
+    const pr = pop.getBoundingClientRect();
+    const margin = 8;
+    let left = br.left + br.width / 2 - pr.width / 2;
+    const vw = window.innerWidth;
+    if (left < margin) left = margin;
+    if (left + pr.width > vw - margin) left = vw - margin - pr.width;
+    pop.style.left = `${left}px`;
+    pop.style.top = `${br.bottom + margin}px`;
+    infoPopoverReady = true;
+  }
+
+  $effect(() => {
+    if (!infoOpen) {
+      infoPopoverReady = false;
+      return;
+    }
+    // Two rAFs: first so Svelte mounts the popover and the bind: ref is set,
+    // second so its rendered width is measurable before we anchor it.
+    let raf1 = requestAnimationFrame(() => {
+      raf1 = requestAnimationFrame(positionInfoPopover);
+    });
+    window.addEventListener('scroll', positionInfoPopover, true);
+    window.addEventListener('resize', positionInfoPopover);
+    return () => {
+      cancelAnimationFrame(raf1);
+      window.removeEventListener('scroll', positionInfoPopover, true);
+      window.removeEventListener('resize', positionInfoPopover);
+    };
+  });
+
   /** Same idle-after-2s pattern for the production-update flash. */
   function flashProductionStatus(state: Exclude<ProductionStatus, 'idle'>) {
     productionUpdateStatus = state;
@@ -106,16 +149,28 @@
     await refreshFiles();
     await refreshProduction();
     window.addEventListener('keydown', handleKeydown);
+    document.addEventListener('mousedown', handleDocumentMousedown, true);
   });
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeydown);
+    document.removeEventListener('mousedown', handleDocumentMousedown, true);
   });
 
   function handleKeydown(e: KeyboardEvent) {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
       e.preventDefault();
       handleSave();
+    } else if (e.key === 'Escape' && infoOpen) {
+      infoOpen = false;
+    }
+  }
+
+  function handleDocumentMousedown(e: MouseEvent) {
+    if (!infoOpen) return;
+    const target = e.target as Element | null;
+    if (target && !target.closest('.cfm-info-btn, .cfm-info-popover')) {
+      infoOpen = false;
     }
   }
 
@@ -273,7 +328,7 @@
         title="Open {sourceFile} in VS Code"
       >
         <i class="fas fa-code"></i>
-        <span>Source</span>
+        <span>Show component source</span>
       </a>
     {/if}
   </div>
@@ -364,6 +419,50 @@
             {#if productionUpdateStatus === 'idle'}Adopt{:else if productionUpdateStatus === 'updating'}Adopting{:else if productionUpdateStatus === 'done'}Adopted{:else}Error{/if}
           </span>
         </button>
+        <button
+          type="button"
+          class="cfm-info-btn"
+          aria-label="About Save and Adopt"
+          aria-expanded={infoOpen}
+          bind:this={infoBtnEl}
+          onclick={() => (infoOpen = !infoOpen)}
+        >
+          <i class="fas fa-circle-info"></i>
+        </button>
+        {#if infoOpen}
+          <div
+            class="cfm-info-popover"
+            class:ready={infoPopoverReady}
+            role="dialog"
+            aria-label="About Save and Adopt"
+            bind:this={infoPopoverEl}
+          >
+            <header class="cfm-info-header">
+              <span class="cfm-info-title">Component Configuration</span>
+              <button
+                type="button"
+                class="cfm-info-close"
+                aria-label="Close"
+                onclick={() => (infoOpen = false)}
+              >
+                <i class="fas fa-xmark"></i>
+              </button>
+            </header>
+            <div class="cfm-info-body">
+              <p>
+                Editor and Prod both use a saved file. When they share the
+                <em>same</em> file, <strong>Saved changes</strong> go to into production
+                immediately. They are sharing the configuration.
+              </p>
+              <p>
+                To experiment without changing production,<strong>Save As</strong> a new file first.
+              </p>
+              <p>
+                When ready, click <strong>Adopt</strong> to use the new file on prod.
+              </p>
+            </div>
+          </div>
+        {/if}
         {#if adoptFeedback}
           <span class="cfm-feedback" aria-live="polite">{adoptFeedback}</span>
         {/if}
@@ -418,13 +517,15 @@
   .source-link {
     display: inline-flex;
     align-items: center;
-    gap: var(--ui-space-4);
-    padding: var(--ui-space-2) var(--ui-space-6);
+    gap: var(--ui-space-6);
+    height: 26px;
+    padding: 0 14px;
     font-size: var(--ui-font-size-xs);
+    font-weight: 500;
     color: var(--ui-text-secondary);
     text-decoration: none;
     border: 1px solid var(--ui-border-default);
-    border-radius: var(--ui-radius-sm);
+    border-radius: 999px;
     transition: all var(--ui-transition-fast);
   }
 
@@ -558,8 +659,10 @@
   }
 
   /* actions cluster — sits directly next to the filename pill so the
-     buttons stay near the input and don't drift under the open editor panel */
+     buttons stay near the input and don't drift under the open editor panel.
+     position: relative anchors the info popover below the cluster. */
   .cfm-actions {
+    position: relative;
     display: flex;
     align-items: center;
     gap: var(--ui-space-6);
@@ -677,6 +780,121 @@
   @keyframes cfm-pulse {
     0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-highlight) 22%, transparent); }
     50%      { box-shadow: 0 0 0 5px color-mix(in srgb, var(--ui-highlight) 10%, transparent); }
+  }
+
+  /* info button — naked icon, no chrome. The icon itself carries the
+     affordance; hover/active simply brighten its color. */
+  .cfm-info-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--ui-space-2) var(--ui-space-4);
+    background: transparent;
+    border: 0;
+    color: var(--ui-text-tertiary);
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color var(--ui-transition-fast);
+  }
+
+  .cfm-info-btn:hover,
+  .cfm-info-btn[aria-expanded='true'] {
+    color: var(--ui-text-primary);
+  }
+
+  .cfm-info-popover {
+    /* Fixed positioning escapes the sticky header's stacking context,
+       so the popover paints over the side panels. JS in this file
+       anchors it centered below the info button. */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 22rem;
+    max-width: calc(100vw - var(--ui-space-24));
+    padding: 0;
+    background: var(--ui-surface-higher);
+    border: 1px solid var(--ui-border-medium);
+    border-radius: var(--ui-radius-lg);
+    box-shadow: var(--ui-shadow-lg);
+    z-index: 1000;
+    color: var(--ui-text-secondary);
+    font-family: var(--ui-font-family, system-ui, sans-serif);
+    overflow: hidden;
+    visibility: hidden;
+    animation: cfm-info-in 140ms ease-out;
+  }
+
+  .cfm-info-popover.ready {
+    visibility: visible;
+  }
+
+  .cfm-info-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-10) var(--ui-space-12) var(--ui-space-10) var(--ui-space-16);
+    border-bottom: 1px solid var(--ui-border-subtle);
+  }
+
+  .cfm-info-title {
+    color: var(--ui-text-primary);
+    font-size: var(--ui-font-size-sm);
+    font-weight: var(--ui-font-weight-semibold);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  .cfm-info-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ui-space-24);
+    height: var(--ui-space-24);
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-tertiary);
+    font-size: var(--ui-font-size-xs);
+    line-height: 1;
+    cursor: pointer;
+    transition: color var(--ui-transition-fast), background var(--ui-transition-fast);
+  }
+
+  .cfm-info-close:hover {
+    color: var(--ui-text-primary);
+    background: var(--ui-hover);
+  }
+
+  .cfm-info-body {
+    padding: var(--ui-space-16);
+  }
+
+  .cfm-info-popover p {
+    margin: 0 0 var(--ui-space-12) 0;
+    font-size: var(--ui-font-size-xs);
+    line-height: 1.55;
+  }
+
+  .cfm-info-popover p:last-child {
+    margin-bottom: 0;
+  }
+
+  .cfm-info-popover strong {
+    color: var(--ui-text-primary);
+    font-weight: var(--ui-font-weight-semibold);
+  }
+
+  .cfm-info-popover em {
+    font-style: italic;
+    color: var(--ui-text-primary);
+  }
+
+  @keyframes cfm-info-in {
+    from { opacity: 0; transform: translateY(-3px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
   /* narrow viewports: hide button text, keep icons visible */

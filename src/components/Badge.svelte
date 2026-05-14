@@ -83,7 +83,7 @@
     --badge-primary-text-font-family: var(--font-sans);
     --badge-primary-text-font-size: var(--font-size-sm);
     --badge-primary-text-font-weight: var(--font-weight-light);
-    --badge-primary-text-line-height: var(--line-height-tight);
+    --badge-primary-text-line-height: var(--line-height-xs);
     --badge-primary-border-width: var(--border-width-1);
     --badge-primary-radius: var(--radius-full);
     --badge-primary-padding: var(--space-6);
@@ -98,7 +98,7 @@
     --badge-accent-text-font-family: var(--font-sans);
     --badge-accent-text-font-size: var(--font-size-sm);
     --badge-accent-text-font-weight: var(--font-weight-light);
-    --badge-accent-text-line-height: var(--line-height-tight);
+    --badge-accent-text-line-height: var(--line-height-xs);
     --badge-accent-border-width: var(--border-width-1);
     --badge-accent-radius: var(--radius-full);
     --badge-accent-padding: var(--space-6);
@@ -113,7 +113,7 @@
     --badge-neutral-text-font-family: var(--font-sans);
     --badge-neutral-text-font-size: var(--font-size-sm);
     --badge-neutral-text-font-weight: var(--font-weight-light);
-    --badge-neutral-text-line-height: var(--line-height-tight);
+    --badge-neutral-text-line-height: var(--line-height-xs);
     --badge-neutral-border-width: var(--border-width-1);
     --badge-neutral-radius: var(--radius-full);
     --badge-neutral-padding: var(--space-6);
@@ -128,7 +128,7 @@
     --badge-alternate-text-font-family: var(--font-sans);
     --badge-alternate-text-font-size: var(--font-size-sm);
     --badge-alternate-text-font-weight: var(--font-weight-light);
-    --badge-alternate-text-line-height: var(--line-height-tight);
+    --badge-alternate-text-line-height: var(--line-height-xs);
     --badge-alternate-border-width: var(--border-width-1);
     --badge-alternate-radius: var(--radius-full);
     --badge-alternate-padding: var(--space-6);
@@ -143,7 +143,7 @@
     --badge-canvas-text-font-family: var(--font-sans);
     --badge-canvas-text-font-size: var(--font-size-sm);
     --badge-canvas-text-font-weight: var(--font-weight-light);
-    --badge-canvas-text-line-height: var(--line-height-tight);
+    --badge-canvas-text-line-height: var(--line-height-xs);
     --badge-canvas-border-width: var(--border-width-1);
     --badge-canvas-radius: var(--radius-full);
     --badge-canvas-padding: var(--space-6);
@@ -158,7 +158,7 @@
     --badge-special-text-font-family: var(--font-sans);
     --badge-special-text-font-size: var(--font-size-sm);
     --badge-special-text-font-weight: var(--font-weight-light);
-    --badge-special-text-line-height: var(--line-height-tight);
+    --badge-special-text-line-height: var(--line-height-xs);
     --badge-special-border-width: var(--border-width-1);
     --badge-special-radius: var(--radius-full);
     --badge-special-padding: var(--space-6);
@@ -173,7 +173,7 @@
     --badge-success-text-font-family: var(--font-sans);
     --badge-success-text-font-size: var(--font-size-sm);
     --badge-success-text-font-weight: var(--font-weight-light);
-    --badge-success-text-line-height: var(--line-height-tight);
+    --badge-success-text-line-height: var(--line-height-xs);
     --badge-success-border-width: var(--border-width-1);
     --badge-success-radius: var(--radius-full);
     --badge-success-padding: var(--space-6);
@@ -188,7 +188,7 @@
     --badge-warning-text-font-family: var(--font-sans);
     --badge-warning-text-font-size: var(--font-size-sm);
     --badge-warning-text-font-weight: var(--font-weight-light);
-    --badge-warning-text-line-height: var(--line-height-tight);
+    --badge-warning-text-line-height: var(--line-height-xs);
     --badge-warning-border-width: var(--border-width-1);
     --badge-warning-radius: var(--radius-full);
     --badge-warning-padding: var(--space-6);
@@ -203,7 +203,7 @@
     --badge-danger-text-font-family: var(--font-sans);
     --badge-danger-text-font-size: var(--font-size-sm);
     --badge-danger-text-font-weight: var(--font-weight-light);
-    --badge-danger-text-line-height: var(--line-height-tight);
+    --badge-danger-text-line-height: var(--line-height-xs);
     --badge-danger-border-width: var(--border-width-1);
     --badge-danger-radius: var(--radius-full);
     --badge-danger-padding: var(--space-6);
@@ -218,7 +218,7 @@
     --badge-info-text-font-family: var(--font-sans);
     --badge-info-text-font-size: var(--font-size-sm);
     --badge-info-text-font-weight: var(--font-weight-light);
-    --badge-info-text-line-height: var(--line-height-tight);
+    --badge-info-text-line-height: var(--line-height-xs);
     --badge-info-border-width: var(--border-width-1);
     --badge-info-radius: var(--radius-full);
     --badge-info-padding: var(--space-6);
@@ -232,7 +232,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--space-6);
-    line-height: var(--line-height-tight);
+    line-height: var(--line-height-xs);
     white-space: nowrap;
     backdrop-filter: blur(var(--badge-blur, 0));
     -webkit-backdrop-filter: blur(var(--badge-blur, 0));

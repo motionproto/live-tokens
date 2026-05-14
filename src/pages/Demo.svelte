@@ -1,4 +1,5 @@
 <script lang="ts">
+  import '../styles/site.css';
   import Button from '../components/Button.svelte';
   import Card from '../components/Card.svelte';
   import Image from '../components/Image.svelte';

@@ -75,7 +75,7 @@
     --tabbar-default-text-font-family: var(--font-sans);
     --tabbar-default-text-font-size: var(--font-size-md);
     --tabbar-default-text-font-weight: var(--font-weight-light);
-    --tabbar-default-text-line-height: var(--line-height-normal);
+    --tabbar-default-text-line-height: var(--line-height-md);
     --tabbar-default-icon-size: var(--icon-size-md);
     --tabbar-default-padding: var(--space-8);
     --tabbar-default-border: var(--color-transparent);
@@ -91,7 +91,7 @@
     --tabbar-hover-text-font-family: var(--font-sans);
     --tabbar-hover-text-font-size: var(--font-size-md);
     --tabbar-hover-text-font-weight: var(--font-weight-light);
-    --tabbar-hover-text-line-height: var(--line-height-normal);
+    --tabbar-hover-text-line-height: var(--line-height-md);
     --tabbar-hover-icon-size: var(--icon-size-md);
     --tabbar-hover-padding: var(--space-8);
     --tabbar-hover-border: var(--color-transparent);
@@ -107,7 +107,7 @@
     --tabbar-active-text-font-family: var(--font-sans);
     --tabbar-active-text-font-size: var(--font-size-md);
     --tabbar-active-text-font-weight: var(--font-weight-light);
-    --tabbar-active-text-line-height: var(--line-height-normal);
+    --tabbar-active-text-line-height: var(--line-height-md);
     --tabbar-active-icon-size: var(--icon-size-md);
     --tabbar-active-padding: var(--space-8);
     --tabbar-active-tab-border-color: var(--color-transparent);
@@ -120,7 +120,7 @@
     --tabbar-disabled-text-font-family: var(--font-sans);
     --tabbar-disabled-text-font-size: var(--font-size-md);
     --tabbar-disabled-text-font-weight: var(--font-weight-light);
-    --tabbar-disabled-text-line-height: var(--line-height-normal);
+    --tabbar-disabled-text-line-height: var(--line-height-md);
     --tabbar-disabled-icon-size: var(--icon-size-md);
     --tabbar-disabled-padding: var(--space-8);
     --tabbar-disabled-border: var(--color-transparent);

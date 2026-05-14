@@ -79,7 +79,7 @@
       --button-primary-text-font-family: var(--font-sans);
       --button-primary-text-font-size: var(--font-size-sm);
       --button-primary-text-font-weight: var(--font-weight-light);
-      --button-primary-text-line-height: var(--line-height-snug);
+      --button-primary-text-line-height: var(--line-height-sm);
       --button-primary-border: var(--border-brand);
       --button-primary-border-width: var(--border-width-1);
       --button-primary-radius: var(--radius-md);
@@ -104,7 +104,7 @@
       --button-secondary-text-font-family: var(--font-sans);
       --button-secondary-text-font-size: var(--font-size-sm);
       --button-secondary-text-font-weight: var(--font-weight-light);
-      --button-secondary-text-line-height: var(--line-height-snug);
+      --button-secondary-text-line-height: var(--line-height-sm);
       --button-secondary-border: var(--border-neutral);
       --button-secondary-border-width: var(--border-width-1);
       --button-secondary-radius: var(--radius-md);
@@ -129,7 +129,7 @@
       --button-outline-text-font-family: var(--font-sans);
       --button-outline-text-font-size: var(--font-size-sm);
       --button-outline-text-font-weight: var(--font-weight-light);
-      --button-outline-text-line-height: var(--line-height-snug);
+      --button-outline-text-line-height: var(--line-height-sm);
       --button-outline-border: var(--border-neutral);
       --button-outline-border-width: var(--border-width-1);
       --button-outline-radius: var(--radius-md);
@@ -154,7 +154,7 @@
       --button-success-text-font-family: var(--font-sans);
       --button-success-text-font-size: var(--font-size-sm);
       --button-success-text-font-weight: var(--font-weight-light);
-      --button-success-text-line-height: var(--line-height-snug);
+      --button-success-text-line-height: var(--line-height-sm);
       --button-success-border: var(--border-success);
       --button-success-border-width: var(--border-width-2);
       --button-success-radius: var(--radius-md);
@@ -179,7 +179,7 @@
       --button-danger-text-font-family: var(--font-sans);
       --button-danger-text-font-size: var(--font-size-sm);
       --button-danger-text-font-weight: var(--font-weight-light);
-      --button-danger-text-line-height: var(--line-height-snug);
+      --button-danger-text-line-height: var(--line-height-sm);
       --button-danger-border: var(--border-danger);
       --button-danger-border-width: var(--border-width-2);
       --button-danger-radius: var(--radius-md);
@@ -204,7 +204,7 @@
       --button-warning-text-font-family: var(--font-sans);
       --button-warning-text-font-size: var(--font-size-sm);
       --button-warning-text-font-weight: var(--font-weight-light);
-      --button-warning-text-line-height: var(--line-height-snug);
+      --button-warning-text-line-height: var(--line-height-sm);
       --button-warning-border: var(--border-warning);
       --button-warning-border-width: var(--border-width-2);
       --button-warning-radius: var(--radius-md);
@@ -522,7 +522,7 @@
          padding: var(--space-6) var(--space-12);
          font-size: var(--font-size-xs);
          font-weight: var(--font-weight-normal);
-         line-height: var(--line-height-snug);
+         line-height: var(--line-height-sm);
       }
 
       &.small :global(i) {

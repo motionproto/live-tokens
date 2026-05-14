@@ -78,7 +78,7 @@
     --segmentedcontrol-option-text-font-family: var(--font-sans);
     --segmentedcontrol-option-text-font-size: var(--font-size-md);
     --segmentedcontrol-option-text-font-weight: var(--font-weight-normal);
-    --segmentedcontrol-option-text-line-height: var(--line-height-normal);
+    --segmentedcontrol-option-text-line-height: var(--line-height-md);
     --segmentedcontrol-option-icon: var(--text-secondary);
     --segmentedcontrol-option-icon-size: var(--icon-size-md);
 
@@ -88,7 +88,7 @@
     --segmentedcontrol-option-hover-text-font-family: var(--font-sans);
     --segmentedcontrol-option-hover-text-font-size: var(--font-size-md);
     --segmentedcontrol-option-hover-text-font-weight: var(--font-weight-normal);
-    --segmentedcontrol-option-hover-text-line-height: var(--line-height-normal);
+    --segmentedcontrol-option-hover-text-line-height: var(--line-height-md);
     --segmentedcontrol-option-hover-icon: var(--text-secondary);
     --segmentedcontrol-option-hover-icon-size: var(--icon-size-md);
 
@@ -98,7 +98,7 @@
     --segmentedcontrol-selected-text-font-family: var(--font-sans);
     --segmentedcontrol-selected-text-font-size: var(--font-size-md);
     --segmentedcontrol-selected-text-font-weight: var(--font-weight-semibold);
-    --segmentedcontrol-selected-text-line-height: var(--line-height-normal);
+    --segmentedcontrol-selected-text-line-height: var(--line-height-md);
     --segmentedcontrol-selected-icon: var(--text-secondary);
     --segmentedcontrol-selected-icon-size: var(--icon-size-md);
     --segmentedcontrol-selected-border: var(--border-success);
@@ -111,7 +111,7 @@
     --segmentedcontrol-disabled-text-font-family: var(--font-sans);
     --segmentedcontrol-disabled-text-font-size: var(--font-size-md);
     --segmentedcontrol-disabled-text-font-weight: var(--font-weight-light);
-    --segmentedcontrol-disabled-text-line-height: var(--line-height-normal);
+    --segmentedcontrol-disabled-text-line-height: var(--line-height-md);
     --segmentedcontrol-disabled-icon: var(--text-tertiary);
     --segmentedcontrol-disabled-icon-size: var(--icon-size-md);
   }
