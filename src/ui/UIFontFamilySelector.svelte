@@ -185,10 +185,8 @@
   on:reset={handleReset}
   on:var-change={initFromCurrent}
 >
-  <!-- @migration-task: migrate this slot by hand, `trigger-title` is an invalid identifier -->
-  <svelte:fragment slot="trigger-title">{activeLabel}</svelte:fragment>
-  <!-- @migration-task: migrate this slot by hand, `trigger-meta` is an invalid identifier -->
-  <svelte:fragment slot="trigger-meta">{displayFamily || '—'}</svelte:fragment>
+  {#snippet triggerTitle()}{activeLabel}{/snippet}
+  {#snippet triggerMeta()}{displayFamily || '—'}{/snippet}
 
   {#snippet children({ close })}
   

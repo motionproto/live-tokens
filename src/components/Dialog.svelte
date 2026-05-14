@@ -1,6 +1,6 @@
-<!-- @migration-task Error while migrating Svelte code: This migration would change the name of a slot (footer-left to footer_left) making the component unusable -->
 <script lang="ts">
   import { createEventDispatcher, tick } from 'svelte';
+  import type { Snippet } from 'svelte';
   import Button from './Button.svelte';
   import { editorState } from '../lib/editorStore';
   import type { ButtonVariant, DialogButtonSpec } from './types';
@@ -10,40 +10,58 @@
     return v && (BUTTON_VARIANTS as readonly string[]).includes(v) ? (v as ButtonVariant) : fallback;
   }
 
-  export let show: boolean = false;
-  export let title: string = '';
-  export let width: string = '500px';
-  /** When true, the dialog renders inline within its parent rather than as a fixed-position overlay. Used by the editor preview. */
-  export let inline: boolean = false;
-  /** Right footer button. Undefined hides it. `--dialog-confirm-variant` config drives the variant when `confirm.variant` is unset. */
-  export let confirm: DialogButtonSpec | undefined = undefined;
-  /** Left footer button. Undefined hides it. `--dialog-cancel-variant` config drives the variant when `cancel.variant` is unset. */
-  export let cancel: DialogButtonSpec | undefined = undefined;
+  interface Props {
+    show?: boolean;
+    title?: string;
+    width?: string;
+    /** When true, the dialog renders inline within its parent rather than as a fixed-position overlay. Used by the editor preview. */
+    inline?: boolean;
+    /** Right footer button. Undefined hides it. `--dialog-confirm-variant` config drives the variant when `confirm.variant` is unset. */
+    confirm?: DialogButtonSpec | undefined;
+    /** Left footer button. Undefined hides it. `--dialog-cancel-variant` config drives the variant when `cancel.variant` is unset. */
+    cancel?: DialogButtonSpec | undefined;
+    /** Left-aligned footer content. Renamed from `slot="footer-left"` in 0.5.0. */
+    footerLeft?: Snippet;
+    children?: Snippet;
+  }
 
-  $: configuredConfig = $editorState.components.dialog?.config ?? {};
-  $: effectiveConfirmVariant = confirm?.variant ?? asVariant(configuredConfig['--dialog-confirm-variant'] as string | undefined, 'primary');
-  $: effectiveCancelVariant = cancel?.variant ?? asVariant(configuredConfig['--dialog-cancel-variant'] as string | undefined, 'outline');
+  let {
+    show = $bindable(false),
+    title = '',
+    width = '500px',
+    inline = false,
+    confirm = undefined,
+    cancel = undefined,
+    footerLeft,
+    children,
+  }: Props = $props();
+
+  let configuredConfig = $derived($editorState.components.dialog?.config ?? {});
+  let effectiveConfirmVariant = $derived(confirm?.variant ?? asVariant(configuredConfig['--dialog-confirm-variant'] as string | undefined, 'primary'));
+  let effectiveCancelVariant = $derived(cancel?.variant ?? asVariant(configuredConfig['--dialog-cancel-variant'] as string | undefined, 'outline'));
 
   const dispatch = createEventDispatcher<{
     close: void;
   }>();
 
-  let confirmButtonRef: HTMLButtonElement;
-  let cancelButtonRef: HTMLButtonElement;
-  let closeButtonRef: HTMLButtonElement;
+  let confirmButtonRef: HTMLButtonElement = $state()!;
+  let cancelButtonRef: HTMLButtonElement = $state()!;
+  let closeButtonRef: HTMLButtonElement = $state()!;
 
   // Focus the primary button when dialog opens (skip in inline mode so the editor doesn't steal focus).
-  $: if (show && !inline) {
-    tick().then(() => {
-      if (confirm && confirmButtonRef && !confirm.disabled) {
-        confirmButtonRef.focus();
-      } else if (cancel && cancelButtonRef) {
-        cancelButtonRef.focus();
-      } else if (closeButtonRef) {
-        closeButtonRef.focus();
-      }
-    });
-  }
+  $effect(() => {
+    if (show && !inline) {
+      tick().then(() => {
+        if (confirm && confirmButtonRef && !confirm.disabled) {
+          confirmButtonRef.focus();
+        } else if (cancel && cancelButtonRef) {
+          cancelButtonRef.focus();
+        } else if (closeButtonRef) {
+          closeButtonRef.focus();
+        }
+      });
+    }
+  });
 
   function handleConfirm() {
     if (confirm && !confirm.disabled) {
@@ -71,7 +89,7 @@
             <button
               bind:this={closeButtonRef}
               class="dialog-close"
-              on:click={handleCancel}
+              onclick={handleCancel}
               aria-label="Close"
               tabindex="0"
             >
@@ -81,13 +99,13 @@
         {/if}
 
         <div class="dialog-body">
-          <slot />
+          {@render children?.()}
         </div>
 
         {#if confirm || cancel}
           <div class="dialog-footer">
             <div class="dialog-footer-left">
-              <slot name="footer-left" />
+              {@render footerLeft?.()}
             </div>
             <div class="dialog-footer-buttons">
               {#if cancel}

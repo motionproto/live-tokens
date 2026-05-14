@@ -485,7 +485,7 @@
     angleInput = effectiveAngle;
   });
 
-  let triggerMeta = $derived(chosenNone
+  let metaLabel = $derived(chosenNone
     ? 'none'
     : chosenGradient
       ? chosenGradient.replace(/^--/, '') + (chosenAngle !== null ? ` (${effectiveAngle}°)` : '')
@@ -518,10 +518,11 @@
   on:close={handleClose}
   on:var-change={initFromCurrent}
 >
-  <!-- @migration-task: migrate this slot by hand, `trigger-preview` is an invalid identifier -->
-  <div slot="trigger-preview" class="swatch-wrap">
-    <div class="swatch" style="background: var({variable});"></div>
-  </div>
+  {#snippet triggerPreview()}
+    <div class="swatch-wrap">
+      <div class="swatch" style="background: var({variable});"></div>
+    </div>
+  {/snippet}
   {#snippet subheader()}
     <div  class="opacity-control" class:hidden={chosenGradient !== null}>
       <span class="opacity-label">opacity</span>
@@ -530,8 +531,7 @@
       <span class="opacity-unit">%</span>
     </div>
   {/snippet}
-  <!-- @migration-task: migrate this slot by hand, `trigger-meta` is an invalid identifier -->
-  <svelte:fragment slot="trigger-meta">{triggerMeta}</svelte:fragment>
+  {#snippet triggerMeta()}{metaLabel}{/snippet}
 
   {#snippet children({ close })}
   

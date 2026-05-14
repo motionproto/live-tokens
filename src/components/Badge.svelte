@@ -1,4 +1,3 @@
-<!-- @migration-task Error while migrating Svelte code: This migration would change the name of a slot (icon to icon_1) making the component unusable -->
 <script context="module" lang="ts">
   export const badgeVariants = [
     'primary',
@@ -16,17 +15,36 @@
 </script>
 
 <script lang="ts">
-  export let variant: BadgeVariant = 'info';
-  export let size: 'default' | 'small' = 'default';
-  export let icon: string | undefined = undefined;
-  /** When true, badge is absolutely positioned. Requires the parent to be position: relative. */
-  export let floating: boolean = false;
-  /** Corner of the positioned parent to attach to when floating. */
-  export let anchor: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' = 'bottom-right';
-  /** CSS length to offset from the anchor edges. Defaults to --space-12 (or --space-8 when size='small'). */
-  export let offset: string | undefined = undefined;
-  /** When true, badge sits flush in the anchor corner: zero offset and squared corners. */
-  export let flush: boolean = false;
+  import type { Snippet } from 'svelte';
+
+  interface Props {
+    variant?: BadgeVariant;
+    size?: 'default' | 'small';
+    icon?: string | undefined;
+    /** When true, badge is absolutely positioned. Requires the parent to be position: relative. */
+    floating?: boolean;
+    /** Corner of the positioned parent to attach to when floating. */
+    anchor?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+    /** CSS length to offset from the anchor edges. Defaults to --space-12 (or --space-8 when size='small'). */
+    offset?: string | undefined;
+    /** When true, badge sits flush in the anchor corner: zero offset and squared corners. */
+    flush?: boolean;
+    /** Custom icon content. Falls back to `icon` prop's font-icon class. Renamed from `slot="icon"` in 0.5.0. */
+    iconSlot?: Snippet;
+    children?: Snippet;
+  }
+
+  let {
+    variant = 'info',
+    size = 'default',
+    icon = undefined,
+    floating = false,
+    anchor = 'bottom-right',
+    offset = undefined,
+    flush = false,
+    iconSlot,
+    children,
+  }: Props = $props();
 </script>
 
 <span
@@ -39,10 +57,10 @@
 >
   {#if icon}
     <span class="icon"><i class={icon}></i></span>
-  {:else}
-    <span class="icon"><slot name="icon" /></span>
+  {:else if iconSlot}
+    <span class="icon">{@render iconSlot()}</span>
   {/if}
-  <slot />
+  {@render children?.()}
 </span>
 
 <style lang="scss">

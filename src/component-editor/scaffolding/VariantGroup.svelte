@@ -1,6 +1,6 @@
-<!-- @migration-task Error while migrating Svelte code: This migration would change the name of a slot (state-actions to state_actions) making the component unusable -->
 <script lang="ts">
   import { writable } from 'svelte/store';
+  import type { Snippet } from 'svelte';
   import TokenLayout from './TokenLayout.svelte';
   import StateBlock from './StateBlock.svelte';
   import CopyFromMenu from './CopyFromMenu.svelte';
@@ -9,36 +9,62 @@
   import type { Token, TypeGroupConfig } from './types';
   import type { Sibling } from './siblings';
 
-  export let name: string;
-  export let title: string;
-  export let tokens: Token[] = [];
-  export let states: Record<string, Token[]> | null = null;
-  /** Per-state type groups; rendered as TypeEditor blocks alongside the state's TokenLayout. */
-  export let typeGroups: Record<string, TypeGroupConfig[]> = {};
-  /** When set, overrides are read from and cleared through the editor store. */
-  export let component: string | undefined = undefined;
-  /** Sibling variants of this component (excludes self). When non-empty,
-      a "Copy from" menu is rendered that lets the user pull token values from
-      a sibling's same-state into the current state. */
-  export let siblings: Sibling[] = [];
-  /** Forwarded to StateBlock → TokenLayout. >1 lays out the property grid
-      across multiple visual columns (column-major flow). Useful for
-      single-text components like Button whose 8-10 properties stretch the
-      panel vertically when stacked single-column. */
-  export let columns: number = 1;
-  /** Label rendered above the state-tab selector strip. Defaults to "Element"
-      because most strips mix structural parts (e.g. bar, frame) with
-      component states; "States" would mislabel the parts. Editors can override
-      when every tab on the strip really is a state. */
-  export let selectorLabel: string = 'Element';
+  interface Props {
+    name: string;
+    title: string;
+    tokens?: Token[];
+    states?: Record<string, Token[]> | null;
+    /** Per-state type groups; rendered as TypeEditor blocks alongside the state's TokenLayout. */
+    typeGroups?: Record<string, TypeGroupConfig[]>;
+    /** When set, overrides are read from and cleared through the editor store. */
+    component?: string | undefined;
+    /** Sibling variants of this component (excludes self). When non-empty,
+        a "Copy from" menu is rendered that lets the user pull token values from
+        a sibling's same-state into the current state. */
+    siblings?: Sibling[];
+    /** Forwarded to StateBlock → TokenLayout. >1 lays out the property grid
+        across multiple visual columns (column-major flow). Useful for
+        single-text components like Button whose 8-10 properties stretch the
+        panel vertically when stacked single-column. */
+    columns?: number;
+    /** Label rendered above the state-tab selector strip. Defaults to "Element"
+        because most strips mix structural parts (e.g. bar, frame) with
+        component states; "States" would mislabel the parts. Editors can override
+        when every tab on the strip really is a state. */
+    selectorLabel?: string;
+    /** Forwarded to StateBlock — fires when a token is mutated. */
+    onchange?: (e: CustomEvent) => void;
+    /** Default snippet: receives the active state name; renders the live preview. */
+    children?: Snippet<[{ activeState: string }]>;
+    /** Right-aligned controls in the state-tabs strip (e.g. per-state toggles). */
+    stateActions?: Snippet<[string]>;
+    /** Rendered above the property grid when a state is active. */
+    compositeControls?: Snippet<[string]>;
+  }
+
+  let {
+    name,
+    title,
+    tokens = [],
+    states = null,
+    typeGroups = {},
+    component = undefined,
+    siblings = [],
+    columns = 1,
+    selectorLabel = 'Element',
+    onchange,
+    children,
+    stateActions,
+    compositeControls,
+  }: Props = $props();
 
   const editorCtx = getEditorContext();
   const linkedOrderStore = editorCtx?.linkedOrder ?? writable<Map<string, number> | null>(null);
   const focusedVariantStore = editorCtx?.focusedVariant ?? writable<string | null>(null);
   const focusedStateStore = editorCtx?.focusedState ?? writable<string | null>(null);
-  $: linkedOrder = $linkedOrderStore ?? undefined;
+  let linkedOrder = $derived($linkedOrderStore ?? undefined);
 
-  let activeTab: string = '';
+  let activeTab: string = $state('');
 
   const TYPE_PROPS = ['colorVariable', 'familyVariable', 'sizeVariable', 'weightVariable', 'lineHeightVariable', 'outlineWidthVariable', 'outlineColorVariable'] as const;
 
@@ -74,7 +100,7 @@
     });
   }
 
-  $: copySources = (() => {
+  let copySources = $derived.by(() => {
     const fromSiblings = siblings.map((s) => ({
       name: s.name,
       label: s.label,
@@ -85,27 +111,33 @@
       return [{ name, label: title, states: ownStates }, ...fromSiblings];
     }
     return fromSiblings;
-  })();
+  });
 
-  $: stateNames = states ? Object.keys(states) : [];
-  $: tabsStripVisible = stateNames.length >= 2;
-  $: if (stateNames.length > 0 && !stateNames.includes(activeTab)) {
-    activeTab = stateNames[0];
-  }
+  let stateNames = $derived(states ? Object.keys(states) : []);
+  let tabsStripVisible = $derived(stateNames.length >= 2);
+  $effect(() => {
+    if (stateNames.length > 0 && !stateNames.includes(activeTab)) {
+      activeTab = stateNames[0];
+    }
+  });
   // Cross-group hint from chart row clicks: adopt it if it names one of our states.
-  $: if ($focusedStateStore && stateNames.includes($focusedStateStore) && activeTab !== $focusedStateStore) {
-    activeTab = $focusedStateStore;
-  }
+  $effect(() => {
+    if ($focusedStateStore && stateNames.includes($focusedStateStore) && activeTab !== $focusedStateStore) {
+      activeTab = $focusedStateStore;
+    }
+  });
 
-  $: inFocusMode = siblings.length > 0;
-  $: amIFocused = $focusedVariantStore === name;
-  $: shouldRender = !inFocusMode || amIFocused;
+  let inFocusMode = $derived(siblings.length > 0);
+  let amIFocused = $derived($focusedVariantStore === name);
+  let shouldRender = $derived(!inFocusMode || amIFocused);
   // Mirror this group's active state back to the shared store when this is the
   // focused variant, so the linked-block row + chart selection track the user's
   // state-tab clicks (not just chart-row clicks).
-  $: if (amIFocused && activeTab && stateNames.includes(activeTab) && $focusedStateStore !== activeTab) {
-    focusedStateStore.set(activeTab);
-  }
+  $effect(() => {
+    if (amIFocused && activeTab && stateNames.includes(activeTab) && $focusedStateStore !== activeTab) {
+      focusedStateStore.set(activeTab);
+    }
+  });
 
 </script>
 
@@ -121,7 +153,7 @@
     <!-- Preview at top, then state tabs + Copy from, then properties for active tab. -->
     <div class="tabs-preview">
       <span class="section-label">Preview</span>
-      <slot activeState={activeTab} />
+      {@render children?.({ activeState: activeTab })}
     </div>
 
     {#if tabsStripVisible || (copySources.length > 0 && activeTab)}
@@ -139,13 +171,13 @@
                   class:active={activeTab === s}
                   role="tab"
                   aria-selected={activeTab === s}
-                  on:click={() => { activeTab = s; focusedStateStore.set(s); }}
+                  onclick={() => { activeTab = s; focusedStateStore.set(s); }}
                 >{s}</button>
               {/each}
             </div>
           {/if}
           {#if activeTab}
-            <slot name="state-actions" stateName={activeTab} />
+            {@render stateActions?.(activeTab)}
           {/if}
           {#if copySources.length > 0 && activeTab}
             <CopyFromMenu
@@ -161,7 +193,7 @@
 
     {#if activeTab && states[activeTab]}
       {@const stateName = activeTab}
-      <slot name="composite-controls" {stateName} />
+      {@render compositeControls?.(stateName)}
       <span class="section-label">Properties</span>
       <StateBlock
         tokens={states[stateName]}
@@ -169,17 +201,17 @@
         {component}
         {linkedOrder}
         {columns}
-        on:change
+        on:change={onchange}
       />
     {/if}
   {:else}
-    <slot activeState="" />
+    {@render children?.({ activeState: '' })}
     <TokenLayout
       title={name}
       tokens={tokens}
       {component}
       {linkedOrder}
-      on:change
+      on:change={onchange}
     />
   {/if}
 

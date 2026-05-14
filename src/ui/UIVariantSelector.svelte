@@ -1,38 +1,65 @@
-<!-- @migration-task Error while migrating Svelte code: This migration would change the name of a slot (trigger-title to trigger_title) making the component unusable -->
 <script lang="ts" generics="T extends { key: string; label?: string; value?: string }">
   import { createEventDispatcher } from 'svelte';
+  import type { Snippet } from 'svelte';
   import { resolveAliasChain } from '../lib/tokenRegistry';
   import UITokenSelector from './UITokenSelector.svelte';
   import UIOptionList from './UIOptionList.svelte';
   import UIOptionItem from './UIOptionItem.svelte';
 
+  interface Props<O extends { key: string; label?: string; value?: string }> {
+    variable: string;
+    component?: string | undefined;
+    canBeLinked?: boolean;
+    disabled?: boolean;
+    selectionsLocked?: boolean;
+    dropdownMinWidth?: string;
+    dropdownMaxWidth?: string;
+    /** Forwarded to UIOptionList — when set, options render in a linked-column grid. */
+    dropdownGridColumns?: string;
+    /** CSS var prefix that, joined with an option `key`, forms the target var (e.g. `--font-weight-`). */
+    varPrefix: string;
+    /** Selectable options. Each must have a unique `key`. */
+    options: ReadonlyArray<O>;
+    /** Trigger title slot. Renamed from `slot="trigger-title"` in 0.5.0. */
+    triggerTitle?: Snippet<[{ activeOption: O | null }]>;
+    /** Trigger meta slot. Renamed from `slot="trigger-meta"` in 0.5.0. */
+    triggerMeta?: Snippet<[{ currentValue: string; activeOption: O | null }]>;
+    /** Per-option custom render. */
+    option?: Snippet<[{ opt: O; active: boolean; select: () => void }]>;
+    /** Trailing dropdown content (e.g. action buttons). */
+    extras?: Snippet<[{ close: () => void }]>;
+  }
+
+  let {
+    variable,
+    component = undefined,
+    canBeLinked = false,
+    disabled = false,
+    selectionsLocked = false,
+    dropdownMinWidth = '12rem',
+    dropdownMaxWidth = '',
+    dropdownGridColumns = '',
+    varPrefix,
+    options,
+    triggerTitle: callerTriggerTitle,
+    triggerMeta: callerTriggerMeta,
+    option: callerOption,
+    extras: callerExtras,
+  }: Props<T> = $props();
+
   const dispatch = createEventDispatcher<{
     change: void;
   }>();
 
-  export let variable: string;
-  export let component: string | undefined = undefined;
-  export let canBeLinked: boolean = false;
-  export let disabled: boolean = false;
-  export let selectionsLocked: boolean = false;
-  export let dropdownMinWidth: string = '12rem';
-  export let dropdownMaxWidth: string = '';
-  /** Forwarded to UIOptionList — when set, options render in a linked-column grid. */
-  export let dropdownGridColumns: string = '';
-  /** CSS var prefix that, joined with an option `key`, forms the target var (e.g. `--font-weight-`). */
-  export let varPrefix: string;
-  /** Selectable options. Each must have a unique `key`. */
-  export let options: ReadonlyArray<T>;
-
   let selector: UITokenSelector;
-  let chosenKey: string | null = null;
-  let currentValue: string = '';
+  let chosenKey: string | null = $state(null);
+  let currentValue: string = $state('');
 
-  $: validKeys = new Set(options.map((o) => o.key));
-  $: refMatcher = (() => {
+  let validKeys = $derived(new Set(options.map((o) => o.key)));
+  let refMatcher = $derived.by(() => {
     const escaped = varPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return new RegExp(`var\\((${escaped}[^)\\s]+)\\)`);
-  })();
+  });
 
   function parseRef(value: string): string | null {
     const m = value.match(refMatcher);
@@ -92,12 +119,14 @@
   // VariantGroup tabs view reuses the same selector across states). Without
   // this, prop swaps leave the trigger label stale.
   let lastSeenVariable: string | null = null;
-  $: if (variable !== lastSeenVariable) {
-    lastSeenVariable = variable;
-    initFromCurrent();
-  }
+  $effect(() => {
+    if (variable !== lastSeenVariable) {
+      lastSeenVariable = variable;
+      initFromCurrent();
+    }
+  });
 
-  $: activeOption = (options.find((o) => o.key === chosenKey) ?? null) as T | null;
+  let activeOption = $derived((options.find((o) => o.key === chosenKey) ?? null) as T | null);
 </script>
 
 <UITokenSelector
@@ -112,35 +141,30 @@
   on:reset={handleReset}
   on:var-change={initFromCurrent}
 >
-  <svelte:fragment slot="trigger-title">
-    <slot name="trigger-title" {activeOption}>{activeOption?.label ?? ''}</slot>
-  </svelte:fragment>
-  <svelte:fragment slot="trigger-meta">
-    <slot name="trigger-meta" {currentValue} {activeOption}>{currentValue || '—'}</slot>
-  </svelte:fragment>
+  {#snippet triggerTitle()}
+    {#if callerTriggerTitle}{@render callerTriggerTitle({ activeOption })}{:else}{activeOption?.label ?? ''}{/if}
+  {/snippet}
+  {#snippet triggerMeta()}
+    {#if callerTriggerMeta}{@render callerTriggerMeta({ currentValue, activeOption })}{:else}{currentValue || '—'}{/if}
+  {/snippet}
 
-  <svelte:fragment let:close>
+  {#snippet children({ close })}
     <UIOptionList gridColumns={dropdownGridColumns}>
       {#each options as opt (opt.key)}
-        <slot
-          name="option"
-          {opt}
-          active={chosenKey === opt.key}
-          select={() => selectKey(opt.key, close)}
-        >
-          {#if opt.value !== undefined}
-            <UIOptionItem active={chosenKey === opt.key} on:click={() => selectKey(opt.key, close)}>
-              <svelte:fragment slot="label">{opt.label ?? ''}</svelte:fragment>
-              <svelte:fragment slot="meta">{opt.value}</svelte:fragment>
-            </UIOptionItem>
-          {:else}
-            <UIOptionItem active={chosenKey === opt.key} on:click={() => selectKey(opt.key, close)}>
-              <svelte:fragment slot="label">{opt.label ?? ''}</svelte:fragment>
-            </UIOptionItem>
-          {/if}
-        </slot>
+        {#if callerOption}
+          {@render callerOption({ opt, active: chosenKey === opt.key, select: () => selectKey(opt.key, close) })}
+        {:else if opt.value !== undefined}
+          <UIOptionItem active={chosenKey === opt.key} on:click={() => selectKey(opt.key, close)}>
+            {#snippet label()}{opt.label ?? ''}{/snippet}
+            {#snippet meta()}{opt.value}{/snippet}
+          </UIOptionItem>
+        {:else}
+          <UIOptionItem active={chosenKey === opt.key} on:click={() => selectKey(opt.key, close)}>
+            {#snippet label()}{opt.label ?? ''}{/snippet}
+          </UIOptionItem>
+        {/if}
       {/each}
-      <slot name="extras" {close} />
+      {@render callerExtras?.({ close })}
     </UIOptionList>
-  </svelte:fragment>
+  {/snippet}
 </UITokenSelector>

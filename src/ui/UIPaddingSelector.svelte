@@ -424,10 +424,8 @@
         on:reset={() => handleResetSide(s)}
         on:var-change={handleVarChange}
       >
-        <!-- @migration-task: migrate this slot by hand, `trigger-title` is an invalid identifier -->
-  <svelte:fragment slot="trigger-title">{sideLabels[s] || '—'}</svelte:fragment>
-        <!-- @migration-task: migrate this slot by hand, `trigger-meta` is an invalid identifier -->
-  <svelte:fragment slot="trigger-meta">{sideResolved[s] || '—'}</svelte:fragment>
+        {#snippet triggerTitle()}{sideLabels[s] || '—'}{/snippet}
+        {#snippet triggerMeta()}{sideResolved[s] || '—'}{/snippet}
 
         {#snippet children({ close })}
               
@@ -477,8 +475,7 @@
       on:reset={handleResetAll}
       on:var-change={handleVarChange}
     >
-      <!-- @migration-task: migrate this slot by hand, `trigger-title` is an invalid identifier -->
-  <svelte:fragment slot="trigger-title">{activeLabel || '—'}</svelte:fragment>
+      {#snippet triggerTitle()}{activeLabel || '—'}{/snippet}
 
       {#snippet children({ close })}
           

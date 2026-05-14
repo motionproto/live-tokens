@@ -196,11 +196,10 @@
           description={showDescription ? descriptionText : undefined}
         />
       </ShadowBackdrop>
-      <!-- @migration-task: migrate this slot by hand, `composite-controls` is an invalid identifier -->
-  <svelte:fragment slot="composite-controls">
+      {#snippet compositeControls(_stateName)}
         <span class="gradient-section-label">Gradient</span>
         <GradientCard {component} prefix={`--sectiondivider-${v.key}`} />
-      </svelte:fragment>
+      {/snippet}
     </VariantGroup>
   {/each}
 </ComponentEditorBase>

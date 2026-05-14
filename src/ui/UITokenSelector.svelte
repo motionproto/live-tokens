@@ -1,6 +1,6 @@
-<!-- @migration-task Error while migrating Svelte code: This migration would change the name of a slot (trigger-preview to trigger_preview) making the component unusable -->
 <script lang="ts">
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+  import type { Snippet } from 'svelte';
   import { setCssVar, removeCssVar, CSS_VAR_CHANGE_EVENT } from '../lib/cssVarSync';
   import type { CssVarRef } from '../lib/editorTypes';
   import {
@@ -18,6 +18,61 @@
   import UIRelinkConfirmPopover from './UIRelinkConfirmPopover.svelte';
   import { keepInViewport } from './keepInViewport';
 
+  type DropdownContext = { close: () => void; handleReset: () => void };
+
+  interface Props {
+    variable: string;
+    /** When set, writes persist through the editor store under this component. */
+    component?: string | undefined;
+    /** When true, render a link toggle that lets the user share this value across all sibling variants. */
+    canBeLinked?: boolean;
+    /** Minimum width of the dropdown panel. */
+    dropdownMinWidth?: string;
+    /** Max width of the dropdown panel (useful for grids). */
+    dropdownMaxWidth?: string;
+    /** When true, the default dropdown header (variable name + reset) is omitted. */
+    hideDefaultHeader?: boolean;
+    /** When true, the trigger becomes non-interactive and visually dimmed. */
+    disabled?: boolean;
+    /** When true, the trigger opens normally but the dropdown's selection area is
+     *  dimmed and non-interactive. The lock toggle in the header stays active so
+     *  the user can re-engage editing by re-linking. Used by the linked block to
+     *  make the row openable even when currently unshared. */
+    selectionsLocked?: boolean;
+    /** Optional preview rendered before the trigger text (e.g. swatch). Renamed from `slot="trigger-preview"` in 0.5.0. */
+    triggerPreview?: Snippet;
+    /** Optional full trigger text replacement. Falls back to `triggerTitle`. Renamed from `slot="trigger-text"` in 0.5.0. */
+    triggerText?: Snippet;
+    /** Optional trigger title text. Renamed from `slot="trigger-title"` in 0.5.0. */
+    triggerTitle?: Snippet;
+    /** Optional meta text rendered after the trigger. Renamed from `slot="trigger-meta"` in 0.5.0. */
+    triggerMeta?: Snippet;
+    /** Optional dropdown header replacement. */
+    header?: Snippet;
+    /** Optional dropdown content above the selections. */
+    subheader?: Snippet;
+    /** Dropdown body content; receives `{ close, handleReset }`. */
+    children?: Snippet<[DropdownContext]>;
+  }
+
+  let {
+    variable,
+    component = undefined,
+    canBeLinked = false,
+    dropdownMinWidth = '14rem',
+    dropdownMaxWidth = '',
+    hideDefaultHeader = false,
+    disabled = false,
+    selectionsLocked = false,
+    triggerPreview,
+    triggerText,
+    triggerTitle,
+    triggerMeta,
+    header,
+    subheader,
+    children,
+  }: Props = $props();
+
   const dispatch = createEventDispatcher<{
     change: void;
     reset: void;
@@ -26,39 +81,20 @@
     'var-change': void;
   }>();
 
-  export let variable: string;
-  /** When set, writes persist through the editor store under this component. */
-  export let component: string | undefined = undefined;
-  /** When true, render a link toggle that lets the user share this value across all sibling variants. */
-  export let canBeLinked: boolean = false;
-  /** Minimum width of the dropdown panel. */
-  export let dropdownMinWidth: string = '14rem';
-  /** Max width of the dropdown panel (useful for grids). */
-  export let dropdownMaxWidth: string = '';
-  /** When true, the default dropdown header (variable name + reset) is omitted. */
-  export let hideDefaultHeader: boolean = false;
-  /** When true, the trigger becomes non-interactive and visually dimmed. */
-  export let disabled: boolean = false;
-  /** When true, the trigger opens normally but the dropdown's selection area is
-   *  dimmed and non-interactive. The lock toggle in the header stays active so
-   *  the user can re-engage editing by re-linking. Used by the linked block to
-   *  make the row openable even when currently unshared. */
-  export let selectionsLocked: boolean = false;
-
-  let open = false;
+  let open = $state(false);
   let container: HTMLElement;
-  let relinkOpen = false;
-  let relinkCandidates: { variable: string; alias: string }[] = [];
+  let relinkOpen = $state(false);
+  let relinkCandidates: { variable: string; alias: string }[] = $state([]);
 
-  $: isLinkedFromData = canBeLinked && component && $editorState
+  let isLinkedFromData = $derived(canBeLinked && component && $editorState
     ? isComponentPropertyLinked(component, variable)
-    : false;
-  $: isLinkedDisplay = canBeLinked && !!component && isLinkedFromData;
-  $: peerCount = canBeLinked && component && $editorState
+    : false);
+  let isLinkedDisplay = $derived(canBeLinked && !!component && isLinkedFromData);
+  let peerCount = $derived(canBeLinked && component && $editorState
     ? getComponentPropertySiblings(component, variable).length
-    : 0;
-  $: hasSiblings = peerCount >= 2;
-  $: showLinkToggle = canBeLinked && !!component && hasSiblings;
+    : 0);
+  let hasSiblings = $derived(peerCount >= 2);
+  let showLinkToggle = $derived(canBeLinked && !!component && hasSiblings);
 
   /** Persist a semantic CSS-var reference (or clear it when null). */
   export function writeOverride(semanticName: string | null): void {
@@ -100,7 +136,9 @@
     dispatch(open ? 'open' : 'close');
   }
 
-  $: if (disabled && open) close();
+  $effect(() => {
+    if (disabled && open) close();
+  });
 
   function toggleLinked() {
     if (!canBeLinked || !component) return;
@@ -218,21 +256,21 @@
       class="ui-ts-trigger"
       class:linked={isLinkedDisplay}
       class:unlinked={showLinkToggle && !isLinkedDisplay}
-      on:click={toggle}
+      onclick={toggle}
       {disabled}
     >
       <div class="ui-ts-content">
-        {#if $$slots['trigger-preview']}
+        {#if triggerPreview}
           <div class="ui-ts-preview">
-            <slot name="trigger-preview" />
+            {@render triggerPreview()}
           </div>
         {/if}
         <div class="ui-ts-text">
-          <slot name="trigger-text">
-            {#if $$slots['trigger-title']}
-              <span class="ui-ts-category"><slot name="trigger-title" /></span>
-            {/if}
-          </slot>
+          {#if triggerText}
+            {@render triggerText()}
+          {:else if triggerTitle}
+            <span class="ui-ts-category">{@render triggerTitle()}</span>
+          {/if}
         </div>
       </div>
       <i class="fas fa-chevron-down ui-ts-chevron" class:open></i>
@@ -255,7 +293,9 @@
         use:keepInViewport
       >
         {#if !hideDefaultHeader}
-          <slot name="header">
+          {#if header}
+            {@render header()}
+          {:else}
             <div class="ui-ts-header">
               {#if showLinkToggle}
                 <UILinkToggle linked={isLinkedDisplay} on:toggle={toggleLinked} />
@@ -263,7 +303,7 @@
               <button
                 type="button"
                 class="ui-ts-reset"
-                on:click={handleReset}
+                onclick={handleReset}
                 disabled={selectionsLocked}
                 title={selectionsLocked ? 'Unlock to reset' : 'Reset to default'}
               >
@@ -271,18 +311,18 @@
                 <span>Reset</span>
               </button>
             </div>
-          </slot>
+          {/if}
         {/if}
         <div class="ui-ts-selections" class:locked={selectionsLocked}>
-          <slot name="subheader" />
-          <slot {close} {handleReset} />
+          {@render subheader?.()}
+          {@render children?.({ close, handleReset })}
         </div>
       </div>
     {/if}
   </div>
 
-  {#if $$slots['trigger-meta']}
-    <span class="ui-ts-meta-text"><slot name="trigger-meta" /></span>
+  {#if triggerMeta}
+    <span class="ui-ts-meta-text">{@render triggerMeta()}</span>
   {/if}
 </div>
 

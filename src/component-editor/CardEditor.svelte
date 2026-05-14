@@ -152,15 +152,14 @@
     {component}
     
   >
-    <!-- @migration-task: migrate this slot by hand, `state-actions` is an invalid identifier -->
-  <svelte:fragment slot="state-actions" let:stateName>
+    {#snippet stateActions(stateName)}
       {#if stateName === 'hover'}
         <label class="hover-enable">
           <input type="checkbox" bind:checked={hoverEnabled} />
           <span>Use hover</span>
         </label>
       {/if}
-    </svelte:fragment>
+    {/snippet}
     {#snippet children({ activeState })}
         {@const previewClass = activeState === 'hover' ? 'force-hover' : (hoverEnabled ? '' : 'no-hover')}
       <ShadowBackdrop mode={bgMode} colorVariable={bgVar}>

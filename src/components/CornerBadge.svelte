@@ -1,21 +1,34 @@
-<!-- @migration-task Error while migrating Svelte code: This migration would change the name of a slot (icon to icon_1) making the component unusable -->
 <script context="module" lang="ts">
   export type CornerAnchor = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
 </script>
 
 <script lang="ts">
+  import type { Snippet } from 'svelte';
   import Badge, { type BadgeVariant } from './Badge.svelte';
 
-  export let variant: BadgeVariant = 'accent';
-  export let anchor: CornerAnchor = 'bottom-right';
-  export let size: 'default' | 'small' = 'default';
-  export let icon: string | undefined = undefined;
+  interface Props {
+    variant?: BadgeVariant;
+    anchor?: CornerAnchor;
+    size?: 'default' | 'small';
+    icon?: string | undefined;
+    /** Custom icon content. Falls back to `icon` prop's font-icon class. Renamed from `slot="icon"` in 0.5.0. */
+    iconSlot?: Snippet;
+    children?: Snippet;
+  }
+
+  let {
+    variant = 'accent',
+    anchor = 'bottom-right',
+    size = 'default',
+    icon = undefined,
+    iconSlot,
+    children,
+  }: Props = $props();
 </script>
 
 <span class="corner-badge corner-badge-{anchor} corner-badge-{variant}">
-  <Badge {variant} {size} {icon}>
-    <slot name="icon" slot="icon" />
-    <slot />
+  <Badge {variant} {size} {icon} {iconSlot}>
+    {@render children?.()}
   </Badge>
 </span>
 
