@@ -1,6 +1,6 @@
 # Live Tokens
 
-A foundational design system for quickly styling and building Svelte 4 + Vite microsites. **Edit your tokens and components in real time** — colors, typography, spacing, per-component aliases — and see the site update as you drag the slider. Save the result as a portable configuration you can carry from project to project.
+A foundational design system for quickly styling and building Svelte + Vite microsites. **Edit your tokens and components in real time** — colors, typography, spacing, per-component aliases — and see the site update as you drag the slider. Save the result as a portable configuration you can carry from project to project.
 
 `npm install @motion-proto/live-tokens` into your app — install once, style fast. The editor is dev-only; production builds get plain CSS variables and your chosen components, nothing else.
 
