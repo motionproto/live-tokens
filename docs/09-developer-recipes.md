@@ -358,17 +358,28 @@ If undo behaves unexpectedly:
 
 ## Publish the library
 
+Releases go through GitHub Actions: pushing a `v*` tag triggers
+`.github/workflows/publish.yml`, which runs `npm ci` + tests + a packaging
+dry-run, then `npm publish --provenance --access public` over OIDC. There
+is no `NPM_TOKEN`; npm trusts the workflow via Trusted Publisher.
+
 ```bash
-# 1. bump package.json version
-# 2. verify the tarball
+# 1. Edit package.json version + CHANGELOG entry
+# 2. Refresh the lockfile (see "Lockfile + optional deps" below — important)
+npm install --include=optional
+
+# 3. Local sanity check — exactly what CI will run
+rm -rf node_modules && npm ci
+npm test
 npm pack --dry-run
 
-# 3. publish (prepublishOnly rebuilds dist-plugin/)
-npm publish --access public
+# 4. Commit, tag, push
+git commit -am "Release 0.3.x — <summary>"
+git push origin main
+git tag v0.3.x && git push origin v0.3.x
 
-# 4. tag + push
-git tag v0.3.0
-git push origin main --tags
+# 5. Watch the publish workflow
+gh run watch $(gh run list --workflow=publish.yml --limit 1 --json databaseId -q '.[0].databaseId')
 ```
 
 `prepublishOnly` runs `build:lib` which runs `build:plugin` (tsup
@@ -381,7 +392,35 @@ ESM+CJS+dts). The `files` field in `package.json` controls what ships:
 
 What doesn't ship: `src/main.ts`, `src/App.svelte`, `src/pages/Home.svelte`,
 `src/pages/Demo.svelte`, `src/pages/ComponentEditorPage.svelte`, `index.html`,
-`themes/`. These are starter-only.
+`themes/`. These are starter-only. Tests are also excluded via the
+`!**/*.test.ts`, `!**/*.spec.ts`, `!**/__tests__/**` negation patterns.
+
+### Lockfile + optional deps (the one that's bitten us twice)
+
+`npm install` on a single platform skips optional native variants for other
+platforms — but their *sub-dependencies* still get listed in the lockfile.
+On macOS local, the install picks `@rolldown/binding-darwin-arm64` and
+ignores `@rolldown/binding-wasm32-wasi`; the lockfile still references
+`@emnapi/core` and `@emnapi/runtime` as deps of the skipped wasm32 binding,
+but their entries never get written. CI's Linux runner reads that lockfile
+and `npm ci` aborts with "Missing: @emnapi/core@1.10.0 from lock file."
+
+This blew up `0.3.3`–`0.3.5` (fixed in `0.3.6` with a clean regen) and
+again on the first `0.3.9`-as-`0.4.0` attempt.
+
+**Before tagging any release:**
+
+```bash
+rm -rf node_modules package-lock.json
+npm install --include=optional
+rm -rf node_modules && npm ci   # if this passes, CI will too
+```
+
+`--include=optional` forces npm to materialize the wasm32 (and other
+non-host) variants' sub-deps into the lockfile so `npm ci` finds them.
+
+The `verify.yml` workflow runs on every push/PR and catches this before
+tagging — if its "lockfile drift" job is red on `main`, do not tag.
 
 ## Force a fresh component-config seed
 
