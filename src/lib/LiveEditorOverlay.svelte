@@ -4,8 +4,11 @@
   // this component's type-check passes in consumer projects that haven't added
   // the ambient global to their tsconfig.
   declare const __PROJECT_ROOT__: string | undefined;
+  declare const __APP_VERSION__: string | undefined;
   const INJECTED_PROJECT_ROOT: string =
     typeof __PROJECT_ROOT__ !== 'undefined' ? (__PROJECT_ROOT__ ?? '') : '';
+  const APP_VERSION: string =
+    typeof __APP_VERSION__ !== 'undefined' ? (__APP_VERSION__ ?? '') : '';
 </script>
 
 <script lang="ts">
@@ -294,6 +297,10 @@
       </button>
     {/if}
 
+    {#if APP_VERSION}
+      <span class="version" title="live-tokens version">v{APP_VERSION}</span>
+    {/if}
+
     {#if open}
       <div class="spacer" transition:fade={BTN_FADE}></div>
     {/if}
@@ -453,6 +460,15 @@
   }
 
   .spacer { flex: 1; }
+
+  .version {
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.02em;
+    margin-left: 2px;
+    user-select: none;
+  }
 
   .hdr-btn {
     display: inline-flex;
