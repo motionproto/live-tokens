@@ -12,4 +12,8 @@ export default defineConfig({
     svelte({ preprocess: sveltePreprocess() }),
     themeFileApi({ themesDir: 'themes', tokensCssPath: 'src/styles/tokens.css' }),
   ],
+  // Force Svelte's browser-side exports under vitest (happy-dom). Without this,
+  // `import { createEventDispatcher } from 'svelte'` resolves to the SSR build
+  // where it is a no-op — and component event dispatch silently fails in tests.
+  resolve: process.env.VITEST ? { conditions: ['browser'] } : undefined,
 });
