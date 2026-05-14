@@ -11,6 +11,7 @@
     "editor"
   ],
   "license": "MIT",
+  "author": "Mark Pearce <mark@motionproto.com>",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/motionproto/live-tokens.git"
