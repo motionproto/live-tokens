@@ -127,13 +127,56 @@ The components carry their own design-token aliases (declared inside each `.svel
 
 ### Styles
 
+Editor chrome (`ui-editor.css`, `ui-form-controls.css`) and the icon font are
+**auto-loaded by the editor pages themselves**; you don't import them. The
+only stylesheet a consumer needs is a `tokens.css` declaring the design-token
+CSS variables on `:root`.
+
+You can use the package's default as a starting point:
+
 ```ts
-import '@motion-proto/live-tokens/styles/ui-editor.css';
-import '@motion-proto/live-tokens/styles/form-controls.css';
-import '@motion-proto/live-tokens/styles/fonts.css';
+import '@motion-proto/live-tokens/starter/tokens.css';
+import '@motion-proto/live-tokens/starter/site.css';   // optional: themed h1/p/a styles
+import '@motion-proto/live-tokens/starter/fonts.css';  // optional: Fraunces + Manrope @font-face
 ```
 
-You'll also need your own `src/styles/tokens.css` declaring your design tokens as CSS variables on `:root`. Start from the package's default (`node_modules/@motion-proto/live-tokens/src/styles/tokens.css`) and overlay your overrides — or let the editor seed `themes/default.json` on first run and promote it.
+…or copy `node_modules/@motion-proto/live-tokens/src/styles/tokens.css` into
+your project and edit. The editor will seed `themes/default.json` on first
+run and you can promote your edits back into the file.
+
+## Consuming live-tokens from scratch
+
+The minimum a consumer needs after `npm install @motion-proto/live-tokens`:
+
+```ts
+// src/main.ts
+import '@motion-proto/live-tokens/starter/tokens.css';
+import { mount } from 'svelte';
+import App from './App.svelte';
+
+mount(App, { target: document.getElementById('app')! });
+```
+
+```svelte
+<!-- src/App.svelte -->
+<script lang="ts">
+  import Editor from '@motion-proto/live-tokens/editor';
+</script>
+
+<Editor />
+```
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
+
+export default defineConfig({
+  plugins: [svelte()],
+});
+```
+
+No `css: 'injected'` workaround, no `optimizeDeps` excludes — `vite build` works as-is. (You'll want the full `themeFileApi` plugin from the Quick install section above when you're ready to persist edits to disk.)
 
 ## Greenfield? Use the starter
 

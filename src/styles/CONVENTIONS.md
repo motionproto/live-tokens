@@ -8,13 +8,24 @@ Each file plays a distinct role. Don't merge them without understanding why they
 
 | File | Scope | Tokens used | Loaded by | Notes |
 |---|---|---|---|---|
-| `tokens.css` | Themed pages | Defines `--color-*`, `--surface-*`, `--text-*`, `--space-*`, … | `main.ts` | **Runtime-edited.** The token editor rewrites this file via the `themeFileApi` Vite plugin. |
-| `ui-editor.css` | Editor chrome only | Defines `--ui-*` (opaque grayscale) | `@import`-ed by `Editor.svelte` and `ComponentEditorPage.svelte` | Deliberately isolated from the theme system so editor surfaces stay neutral while live theme edits flow through the components being edited. Never load globally. |
-| `site.css` | Themed pages | Consumes theme tokens | `main.ts` | Global typography for the landing/demo pages (unscoped `h1`, `p`, `a`, …). Avoid loading on editor pages. |
-| `form-controls.css` | Editor-only today | Currently consumes theme tokens (a known leak — should migrate to `--ui-*`) | `main.ts` | `.form-select` / `.form-input` / `.form-field-*` classes. Used by `ProjectFontsSection`, `FontStackEditor`, `DialogEditor`, `NotificationEditor`. |
-| `fonts.css` + `fonts/` | Both scopes | n/a (`@font-face` only) | `main.ts` | Build-special-cased: copied directly to `dist/` without processing so Vite doesn't inline woff2 files as base64. |
+| `tokens.css` | Themed pages | Defines `--color-*`, `--surface-*`, `--text-*`, `--space-*`, … | `main.ts` | **Runtime-edited.** The token editor rewrites this file via the `themeFileApi` Vite plugin. Starter content; consumers replace at will. |
+| `ui-editor.css` | Editor chrome only | Defines `--ui-*` (opaque grayscale, system fonts) | JS-imported by `Editor.svelte` and `ComponentEditorPage.svelte` | Deliberately isolated from the theme system so editor surfaces stay neutral while live theme edits flow through the components being edited. Never load globally. |
+| `ui-form-controls.css` | Editor chrome only | Consumes `--ui-*` only | JS-imported by `Editor.svelte` and `ComponentEditorPage.svelte` | `.ui-form-select` / `.ui-form-input` / `.ui-form-field-*` classes. Used by `ProjectFontsSection`, `FontStackEditor`, `DialogEditor`, `NotificationEditor`. Theme-immune — must not reference `--font-*`, `--surface-*`, etc. |
+| `site.css` | Themed pages | Consumes theme tokens | Page-imported by `Home.svelte` / `Demo.svelte` | Global typography for the landing/demo pages (unscoped `h1`, `p`, `a`, …). Never load on editor pages. Starter content. |
+| `fonts.css` + `fonts/` | Themed pages only | n/a (`@font-face` only) | `main.ts` | Build-special-cased: copied directly to `dist/` without processing so Vite doesn't inline woff2 files as base64. Starter content; editor's font invariant means these never affect chrome. |
 
-The library publishes `ui-editor.css`, `form-controls.css`, and `fonts.css` as separately importable subpaths under `@motion-proto/live-tokens/styles/<file>.css`. `tokens.css` and `site.css` are starter content — consumers bring their own.
+### Publishing layout
+
+The library publishes a small set of subpaths:
+
+- `./styles/ui-editor.css` — read-only window onto the editor's `--ui-*` token contract (for theming inspection or debugging). Consumers don't *need* to import this; the editor pages auto-load it.
+- `./starter/tokens.css`, `./starter/site.css`, `./starter/fonts.css` — replaceable starter content. Consumers can import as-is for a working default, or copy + edit.
+
+`ui-form-controls.css` is editor-internal and not exported — the editor pages script-import it themselves.
+
+### Editor font invariant
+
+Editor chrome uses **only** the `--ui-*` font namespace (`--ui-font-sans`, `--ui-font-mono`, `--ui-font-size-*`, etc.), which `ui-editor.css` defines as a pure system stack. No editor-namespace rule may reference `var(--font-sans)`, `var(--font-serif)`, `var(--font-display)`, or `var(--font-mono)` — those are the consumer's theme fonts and must not bleed into chrome. This invariant is what closes the "editor adopts consumer brand fonts" leak.
 
 ### When to put a rule where
 

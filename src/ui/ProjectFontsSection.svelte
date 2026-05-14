@@ -252,7 +252,7 @@
       {#if addMode === 'google'}
         <input
           type="text"
-          class="form-input"
+          class="ui-form-input"
           placeholder="Search Google Fonts (e.g. Inter)"
           bind:value={googleQuery}
         />
@@ -271,7 +271,7 @@
       {:else if addMode === 'url'}
         <input
           type="text"
-          class="form-input"
+          class="ui-form-input"
           placeholder="https://fonts.googleapis.com/css2?family=... or Typekit URL"
           bind:value={urlInput}
         />
@@ -310,7 +310,7 @@
           <div class="pf-detected">Couldn't auto-detect families (CORS or no metadata). Name them:</div>
           <input
             type="text"
-            class="form-input"
+            class="ui-form-input"
             placeholder="Comma-separated family names"
             bind:value={urlManualFamilies}
           />
@@ -318,7 +318,7 @@
         {/if}
       {:else if addMode === 'fontface'}
         <textarea
-          class="form-input pf-textarea"
+          class="ui-form-input pf-textarea"
           placeholder={'Paste one or more @font-face { ... } rules'}
           rows="6"
           bind:value={fontFaceText}

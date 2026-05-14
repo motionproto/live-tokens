@@ -117,7 +117,7 @@
   
       <label>
         <span>Cancel button (left)</span>
-        <select class="form-select" value={cancelVariant} onchange={setCancelVariant}>
+        <select class="ui-form-select" value={cancelVariant} onchange={setCancelVariant}>
           {#each BUTTON_VARIANTS as v}
             <option value={v}>{variantLabel(v)}</option>
           {/each}
@@ -125,7 +125,7 @@
       </label>
       <label>
         <span>Confirm button (right)</span>
-        <select class="form-select" value={confirmVariant} onchange={setConfirmVariant}>
+        <select class="ui-form-select" value={confirmVariant} onchange={setConfirmVariant}>
           {#each BUTTON_VARIANTS as v}
             <option value={v}>{variantLabel(v)}</option>
           {/each}

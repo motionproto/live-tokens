@@ -8,6 +8,14 @@
   import { componentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
   import { listComponents } from '../lib/componentConfigService';
   import { selectedComponent } from '../lib/editorViewStore';
+  // Editor chrome + form controls + icon font must be JS imports (not @import
+  // inside the style block) so Vite resolves them via the module graph
+  // regardless of how the consumer compiles Svelte CSS (external ?lang.css vs
+  // injected); otherwise the @import URLs leak to the browser and 404 against
+  // the consumer's root.
+  import '../styles/ui-editor.css';
+  import '../styles/ui-form-controls.css';
+  import '@fortawesome/fontawesome-free/css/all.min.css';
 
   let drawerOpen = $state(true);
 
@@ -167,7 +175,6 @@
 </div>
 
 <style>
-  @import '../styles/ui-editor.css';
   .components-shell {
     --rail-w: 48px;
     display: grid;

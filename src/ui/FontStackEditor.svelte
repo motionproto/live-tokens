@@ -189,7 +189,7 @@
                 style="font-family: {slotCssValue(slot)};{stack.variable === '--font-display' ? ' font-size: var(--ui-font-size-2xl);' : ''}"
               >The quick brown fox jumps over the lazy dog</span>
               <select
-                class="form-select slot-select"
+                class="ui-form-select slot-select"
                 value={slotKey(slot)}
                 onchange={(e) => onSelectChange(e, stack.variable, i)}
               >

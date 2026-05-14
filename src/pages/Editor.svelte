@@ -5,6 +5,14 @@
   import { installEditorKeybindings } from '../lib/editorKeybindings';
   import { initializeEditorStore } from '../lib/editorStore';
   import { storageKey } from '../lib/editorConfig';
+  // Editor chrome + form controls + icon font must be JS imports (not @import
+  // inside the style block) so Vite resolves them via the module graph
+  // regardless of how the consumer compiles Svelte CSS (external ?lang.css vs
+  // injected); otherwise the @import URLs leak to the browser and 404 against
+  // the consumer's root.
+  import '../styles/ui-editor.css';
+  import '../styles/ui-form-controls.css';
+  import '@fortawesome/fontawesome-free/css/all.min.css';
 
   const inOverlay = typeof window !== 'undefined' && window.parent !== window;
 
@@ -46,8 +54,6 @@
 </div>
 
 <style>
-  @import '../styles/ui-editor.css';
-
   .editor-page {
     min-height: 100vh;
     background: black;

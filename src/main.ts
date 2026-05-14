@@ -1,7 +1,10 @@
+// Dev server boot. Editor pages script-import their own chrome CSS
+// (ui-editor.css, ui-form-controls.css, fontawesome). What's left here is what
+// the non-editor surfaces (LiveEditorOverlay on every route, Home/Demo) need:
+// FA icons for the overlay, theme tokens, and starter fonts.
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import './styles/tokens.css';
 import './styles/fonts.css';
-import './styles/form-controls.css';
 import { initializeTheme } from './lib/themeInit';
 import * as cssVarSync from './lib/cssVarSync';
 import * as columnsOverlay from './lib/columnsOverlay';

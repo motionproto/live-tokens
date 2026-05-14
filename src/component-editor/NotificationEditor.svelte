@@ -122,7 +122,7 @@
       </label>
       <label>
         <span>Right button</span>
-        <select class="form-select" bind:value={rightOption}>
+        <select class="ui-form-select" bind:value={rightOption}>
           {#each BUTTON_VARIANT_OPTIONS as v}
             <option value={v}>{variantLabel(v)}</option>
           {/each}
@@ -130,7 +130,7 @@
       </label>
       <label>
         <span>Left button</span>
-        <select class="form-select" bind:value={leftOption}>
+        <select class="ui-form-select" bind:value={leftOption}>
           {#each BUTTON_VARIANT_OPTIONS as v}
             <option value={v}>{variantLabel(v)}</option>
           {/each}

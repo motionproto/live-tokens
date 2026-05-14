@@ -1298,3 +1298,27 @@
   --sectiondivider-special-description-font-weight: var(--font-weight-normal);
   --sectiondivider-special-description-line-height: var(--line-height-md);
 }
+
+/* component-aliases:start */
+:root:root {
+  /* button (default_01) */
+  --button-primary-radius: var(--radius-full);
+  --button-primary-hover-radius: var(--radius-full);
+  --button-primary-disabled-radius: var(--radius-full);
+  --button-secondary-radius: var(--radius-full);
+  --button-secondary-hover-radius: var(--radius-full);
+  --button-secondary-disabled-radius: var(--radius-full);
+  --button-outline-radius: var(--radius-full);
+  --button-outline-hover-radius: var(--radius-full);
+  --button-outline-disabled-radius: var(--radius-full);
+  --button-success-radius: var(--radius-full);
+  --button-success-hover-radius: var(--radius-full);
+  --button-success-disabled-radius: var(--radius-full);
+  --button-danger-radius: var(--radius-full);
+  --button-danger-hover-radius: var(--radius-full);
+  --button-danger-disabled-radius: var(--radius-full);
+  --button-warning-radius: var(--radius-full);
+  --button-warning-hover-radius: var(--radius-full);
+  --button-warning-disabled-radius: var(--radius-full);
+}
+/* component-aliases:end */

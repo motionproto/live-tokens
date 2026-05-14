@@ -1,6 +1,6 @@
 {
   "name": "@motion-proto/live-tokens",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "type": "module",
   "description": "Design token editor with live CSS variable editing. Svelte 5 + Vite 6/7.",
   "keywords": [
@@ -29,11 +29,12 @@
     "src/pages/ComponentEditorPage.svelte",
     "src/pages/ComponentEditorPage.svelte.d.ts",
     "src/styles/ui-editor.css",
-    "src/styles/form-controls.css",
+    "src/styles/ui-form-controls.css",
     "src/styles/fonts.css",
     "src/styles/fonts",
     "src/styles/_padding.scss",
     "src/styles/tokens.css",
+    "src/styles/site.css",
     "src/data",
     "src/assets",
     "dist-plugin",
@@ -77,8 +78,9 @@
       "require": "./dist-plugin/index.cjs"
     },
     "./styles/ui-editor.css": "./src/styles/ui-editor.css",
-    "./styles/form-controls.css": "./src/styles/form-controls.css",
-    "./styles/fonts.css": "./src/styles/fonts.css"
+    "./starter/tokens.css": "./src/styles/tokens.css",
+    "./starter/site.css": "./src/styles/site.css",
+    "./starter/fonts.css": "./src/styles/fonts.css"
   },
   "scripts": {
     "dev": "vite",
@@ -90,7 +92,10 @@
     "build:plugin": "tsup src/vite-plugin/index.ts --out-dir dist-plugin --format esm,cjs --dts --external vite --platform node --clean",
     "build:lib": "npm run build:plugin",
     "deploy:local": "bash scripts/deploy-local.sh",
-    "prepublishOnly": "npm run build:lib"
+    "check:no-style-imports": "node scripts/check-no-style-imports.mjs",
+    "check:editor-font-isolation": "node scripts/check-editor-font-isolation.mjs",
+    "check:smoke-install": "bash scripts/smoke-install.sh",
+    "prepublishOnly": "npm run check:no-style-imports && npm run check:editor-font-isolation && npm run build:lib && npm run check:smoke-install"
   },
   "peerDependencies": {
     "sass": "^1.0",

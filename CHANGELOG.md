@@ -1,5 +1,52 @@
 # Changelog
 
+## 0.6.0 — Editor CSS isolation
+
+The editor now self-contains its chrome. A second consumer can `npm install
+@motion-proto/live-tokens`, import only their own `tokens.css`, mount
+`<Editor />` or `<ComponentEditorPage />`, and have everything render — no
+remembered side-imports, no theme-token bleed into editor controls.
+
+### Changed (breaking)
+
+- **`form-controls.css` → `ui-form-controls.css`** with classes renamed
+  `.form-*` → `.ui-form-*` and every theme token re-tokened to the `--ui-*`
+  namespace. Consumers using `.form-input` / `.form-select` directly need to
+  rename. (The only known consumer is `runegoblin-site`, which uses these
+  only via `live-tokens`' own editor components, so no migration needed
+  there.)
+- **Editor pages auto-load their own CSS.** `Editor.svelte` and
+  `ComponentEditorPage.svelte` now script-import `ui-editor.css`,
+  `ui-form-controls.css`, and `@fortawesome/fontawesome-free/css/all.min.css`.
+  Consumers no longer need to import these in `main.ts`.
+- **Editor font invariant.** Editor chrome resolves only `--ui-font-*`
+  tokens (a pure system stack defined in `ui-editor.css`). Theme fonts
+  (`--font-sans`, `--font-serif`, `--font-display`, `--font-mono`) can no
+  longer leak into editor controls — `ui-form-controls.css` was the last
+  surface that referenced them.
+
+### Removed exports
+
+| Removed | Replacement |
+|---|---|
+| `./styles/form-controls.css` | Auto-loaded; not exported |
+| `./styles/fonts.css` | `./starter/fonts.css` |
+| *(implicit)* | `./starter/tokens.css`, `./starter/site.css` |
+
+`./styles/ui-editor.css` is kept as a read-only window onto the editor token
+contract; it's no longer a required consumer import.
+
+### Added
+
+- `scripts/check-no-style-imports.mjs` — fails the build if any published
+  `.svelte` `<style>` block contains an `@import`. (This regression killed
+  v0.5.0 under the consumer's `css: 'injected'` workaround.)
+- `scripts/check-editor-font-isolation.mjs` — fails the build if editor
+  chrome references theme-side font tokens.
+- `scripts/smoke-install.sh` — packs the library, installs into a temp
+  consumer, and runs `vite build` with no special config. Required to pass
+  in `prepublishOnly`.
+
 ## 0.5.0 — Svelte 5 migration
 
 ### Changed (breaking, but with deprecation bridges)
