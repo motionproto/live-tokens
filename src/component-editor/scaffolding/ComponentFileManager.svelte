@@ -499,7 +499,7 @@
 
   .cfm-title-row {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: var(--ui-space-12);
     flex-wrap: wrap;
   }
@@ -518,6 +518,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--ui-space-6);
+    margin-left: auto;
     height: 26px;
     padding: 0 14px;
     font-size: var(--ui-font-size-xs);
