@@ -111,7 +111,7 @@
    *  a sensible color rather than a default. */
   function onRibbonClick(e: MouseEvent) {
     if (!gradient || e.button !== 0) return;
-    const rect = barEl.getBoundingClientRect();
+    const rect = barEl!.getBoundingClientRect();
     const pct = ((e.clientX - rect.left) / rect.width) * 100;
     const nearest = gradient.stops.reduce(
       (best, s) => (Math.abs(s.position - pct) < Math.abs(best.position - pct) ? s : best),
@@ -127,11 +127,11 @@
   }
 
   // ── Ribbon handle drag ─────────────────────────────────────────────────
-  let barEl: HTMLDivElement = $state();
+  let barEl: HTMLDivElement | undefined = $state();
   let dragIndex: number | null = $state(null);
 
   function pctFromEvent(e: PointerEvent): number {
-    const rect = barEl.getBoundingClientRect();
+    const rect = barEl!.getBoundingClientRect();
     const x = e.clientX - rect.left;
     return (x / rect.width) * 100;
   }

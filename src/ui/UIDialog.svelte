@@ -27,9 +27,9 @@
 
   const dispatch = createEventDispatcher();
 
-  let closeButtonRef: HTMLButtonElement = $state();
-  let cancelButtonRef: HTMLButtonElement = $state();
-  let confirmButtonRef: HTMLButtonElement = $state();
+  let closeButtonRef: HTMLButtonElement | undefined = $state();
+  let cancelButtonRef: HTMLButtonElement | undefined = $state();
+  let confirmButtonRef: HTMLButtonElement | undefined = $state();
 
   run(() => {
     if (show) {

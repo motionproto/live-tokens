@@ -107,7 +107,7 @@
     { id: 'text', label: 'Text' },
   ];
 
-  let selector: UITokenSelector = $state();
+  let selector: UITokenSelector | undefined = $state();
   let selectedFamily: string | null = $state(null);
   let selectedTab: Category = $state('palette');
 
@@ -128,17 +128,17 @@
    *  reactive block below; user edits flow back through `applyOrientation`. */
   let angleInput: number = $state(0);
 
-  let chosenCategory: Category | null = $state(null);
-  let chosenFamily: string | null = $state(null);
-  let chosenStep: string | null = $state(null);
-  let chosenNone: boolean = $state(false);
-  let chosenGradient: string | null = $state(null);
+  let chosenCategory = $state<Category | null>(null);
+  let chosenFamily = $state<string | null>(null);
+  let chosenStep = $state<string | null>(null);
+  let chosenNone = $state(false);
+  let chosenGradient = $state<string | null>(null);
   /** Per-slot angle override on the chosen linear gradient. Null means
    *  "no override" — the slot writes `var(--gradient-N)` and inherits the
    *  token's natural angle. Non-null means the slot writes a materialized
    *  `linear-gradient(<angle>, <token's stops>)` so the angle is locally
    *  pinned while stop colors keep flowing from the token's `var()` refs. */
-  let chosenAngle: number | null = $state(null);
+  let chosenAngle = $state<number | null>(null);
   let opacity: number = $state(100);
   let selfDefaultHex: string = '';
 
@@ -248,7 +248,7 @@
     opacity = Math.max(0, Math.min(100, Math.round(opacity)));
     if (chosenCategory === null || chosenFamily === null || chosenStep === null) return;
     const varName = getVarName(chosenCategory, chosenFamily, chosenStep);
-    selector.writeOverride(buildValue(varName));
+    selector?.writeOverride(buildValue(varName));
     dispatch('change');
   }
 
@@ -263,9 +263,9 @@
     const normalized = ((Math.round(nextAngle) % 360) + 360) % 360;
     chosenAngle = normalized;
     if (normalized === token.angle) {
-      selector.writeOverride(chosenGradient);
+      selector?.writeOverride(chosenGradient);
     } else {
-      selector.writeOverride(materializeGradient(token, normalized));
+      selector?.writeOverride(materializeGradient(token, normalized));
     }
     dispatch('change');
   }
@@ -273,7 +273,7 @@
   function resetOrientation() {
     if (chosenGradient === null) return;
     chosenAngle = null;
-    selector.writeOverride(chosenGradient);
+    selector?.writeOverride(chosenGradient);
     dispatch('change');
   }
 
@@ -424,7 +424,7 @@
     chosenGradient = null;
     chosenAngle = null;
     opacity = 100;
-    selector.writeOverride('transparent');
+    selector?.writeOverride('transparent');
     selectedFamily = null;
     close();
     dispatch('change');
@@ -438,7 +438,7 @@
     chosenCategory = category;
     chosenFamily = selectedFamily;
     chosenStep = step;
-    selector.writeOverride(buildValue(varName));
+    selector?.writeOverride(buildValue(varName));
     selectedFamily = null;
     close();
     dispatch('change');
@@ -456,7 +456,7 @@
     chosenGradient = gradientVar;
     chosenAngle = null;
     opacity = 100;
-    selector.writeOverride(gradientVar);
+    selector?.writeOverride(gradientVar);
     selectedFamily = null;
     close();
     dispatch('change');

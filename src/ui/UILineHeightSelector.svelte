@@ -39,7 +39,7 @@
 >
   {#snippet option({ opt, active, select })}
   
-      <UIOptionItem {active} on:click={select}>
+      <UIOptionItem {active} onclick={select}>
         {#snippet preview()}
             <span  class="lh-sample" style="line-height: var(--line-height-{opt.key});">≡</span>
           {/snippet}

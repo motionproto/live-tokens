@@ -154,12 +154,12 @@
         {#if callerOption}
           {@render callerOption({ opt, active: chosenKey === opt.key, select: () => selectKey(opt.key, close) })}
         {:else if opt.value !== undefined}
-          <UIOptionItem active={chosenKey === opt.key} on:click={() => selectKey(opt.key, close)}>
+          <UIOptionItem active={chosenKey === opt.key} onclick={() => selectKey(opt.key, close)}>
             {#snippet label()}{opt.label ?? ''}{/snippet}
             {#snippet meta()}{opt.value}{/snippet}
           </UIOptionItem>
         {:else}
-          <UIOptionItem active={chosenKey === opt.key} on:click={() => selectKey(opt.key, close)}>
+          <UIOptionItem active={chosenKey === opt.key} onclick={() => selectKey(opt.key, close)}>
             {#snippet label()}{opt.label ?? ''}{/snippet}
           </UIOptionItem>
         {/if}

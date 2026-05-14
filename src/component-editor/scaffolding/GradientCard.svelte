@@ -89,11 +89,11 @@
   }
 
   // ── Position handle drag ────────────────────────────────────────────────
-  let barEl: HTMLDivElement = $state();
+  let barEl: HTMLDivElement | undefined = $state();
   let dragIndex: StopIndex | null = $state(null);
 
   function pctFromEvent(e: PointerEvent): number {
-    const rect = barEl.getBoundingClientRect();
+    const rect = barEl!.getBoundingClientRect();
     const x = e.clientX - rect.left;
     return (x / rect.width) * 100;
   }

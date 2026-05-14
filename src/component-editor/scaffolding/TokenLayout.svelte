@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher, type ComponentType } from 'svelte';
+  import { createEventDispatcher, type Component } from 'svelte';
   import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
   import UIVariantSelector from '../../ui/UIVariantSelector.svelte';
   import UIFontFamilySelector from '../../ui/UIFontFamilySelector.svelte';
@@ -151,7 +151,7 @@
   /** Selector registry: one entry per kind. `extra` props (e.g. UIPaddingSelector's
       `mode`/`splittable`/`rowLabel`) are forwarded alongside the linked props. */
   type SelectorEntry = {
-    component: ComponentType;
+    component: Component<any, any, any>;
     extra?: (token: Token) => Record<string, unknown>;
     /** When true, the row is rendered as a self-contained block (spans all grid columns,
         no .token-row wrapper, no contexts strip). Currently only `padding-split`. */

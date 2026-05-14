@@ -1,8 +1,8 @@
-import type { ComponentType } from 'svelte';
+import type { Component } from 'svelte';
 
 export type ComponentSection = {
   id: string;
   label: string;
-  component: ComponentType;
+  component: Component<any, any, any>;
   props?: Record<string, unknown>;
 };

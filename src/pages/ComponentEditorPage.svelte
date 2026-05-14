@@ -17,7 +17,7 @@
   const demoExists = Object.keys(import.meta.glob('./Demo.svelte')).length > 0;
 
   let pageMenuOpen = $state(false);
-  let pageMenuRoot: HTMLElement = $state();
+  let pageMenuRoot: HTMLElement | undefined = $state();
 
   const HINT_DELAY_MS = 80;
   let hintLabel: string | null = $state(null);

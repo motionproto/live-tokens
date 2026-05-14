@@ -25,7 +25,7 @@
   }>();
 
   let saveAsName = $state('');
-  let saveAsInput: HTMLInputElement = $state();
+  let saveAsInput: HTMLInputElement | undefined = $state();
 
 
 

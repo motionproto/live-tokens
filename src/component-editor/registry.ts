@@ -1,4 +1,4 @@
-import type { ComponentType, SvelteComponent } from 'svelte';
+import type { Component } from 'svelte';
 import type { Token } from './scaffolding/types';
 import { registerComponentSchema } from '../lib/editorStore';
 
@@ -49,7 +49,7 @@ export interface RegistryEntry {
   /** Path to the runtime component, relative to repo root. */
   sourceFile: string;
   /** The Svelte editor component to mount in the page. */
-  editorComponent: ComponentType<SvelteComponent>;
+  editorComponent: Component<any, any, any>;
   /** Flat token list — the editor's declarative description of its token surface. */
   schema: Token[];
 }

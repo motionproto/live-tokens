@@ -29,7 +29,7 @@
   }>();
 
   let fileMenuOpen = $state(false);
-  let fileMenuRoot: HTMLElement = $state();
+  let fileMenuRoot: HTMLElement | undefined = $state();
   let showFileList = $state(false);
 
   onMount(() => {

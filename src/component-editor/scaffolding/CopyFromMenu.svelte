@@ -20,7 +20,7 @@
   const dispatch = createEventDispatcher<{ select: { fromVariant: string; fromState: string } }>();
 
   let open = $state(false);
-  let root: HTMLElement = $state();
+  let root: HTMLElement | undefined = $state();
 
   function toggle() {
     open = !open;

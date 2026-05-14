@@ -1,23 +1,22 @@
 <script lang="ts">
-  import { createBubbler } from 'svelte/legacy';
-
-  const bubble = createBubbler();
   interface Props {
     active?: boolean;
     preview?: import('svelte').Snippet;
     label?: import('svelte').Snippet;
     meta?: import('svelte').Snippet;
+    onclick?: (event: MouseEvent) => void;
   }
 
   let {
     active = false,
     preview,
     label,
-    meta
+    meta,
+    onclick
   }: Props = $props();
 </script>
 
-<button class="ui-option-item" class:active onclick={bubble('click')}>
+<button class="ui-option-item" class:active {onclick}>
   {#if preview}
     <span class="ui-option-preview">
       {@render preview?.()}

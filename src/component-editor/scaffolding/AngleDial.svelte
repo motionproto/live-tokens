@@ -17,7 +17,7 @@
 
   const dispatch = createEventDispatcher<{ change: { value: number } }>();
 
-  let dialEl: HTMLDivElement = $state();
+  let dialEl: HTMLDivElement | undefined = $state();
   let dragging = $state(false);
 
   function normalize(deg: number): number {
@@ -33,7 +33,7 @@
   }
 
   function angleFromEvent(e: PointerEvent): number {
-    const rect = dialEl.getBoundingClientRect();
+    const rect = dialEl!.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const dx = e.clientX - cx;
@@ -45,7 +45,7 @@
 
   function onPointerDown(e: PointerEvent) {
     dragging = true;
-    dialEl.setPointerCapture(e.pointerId);
+    dialEl!.setPointerCapture(e.pointerId);
     emit(angleFromEvent(e));
   }
   function onPointerMove(e: PointerEvent) {
@@ -55,7 +55,7 @@
   function onPointerUp(e: PointerEvent) {
     if (!dragging) return;
     dragging = false;
-    dialEl.releasePointerCapture(e.pointerId);
+    dialEl!.releasePointerCapture(e.pointerId);
   }
 
   function onInputChange(e: Event) {

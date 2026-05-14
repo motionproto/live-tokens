@@ -433,7 +433,7 @@
               {#each options as opt}
                 <UIOptionItem
                   active={sideActiveKey[s] === opt.key}
-                  on:click={() => selectSide(s, opt.key, close)}
+                  onclick={() => selectSide(s, opt.key, close)}
                 >
                   {#snippet label()}
                                 {opt.label}
@@ -483,7 +483,7 @@
             {#each options as opt}
               <UIOptionItem
                 active={activeKey === opt.key}
-                on:click={() => selectSingle(opt.key, close)}
+                onclick={() => selectSingle(opt.key, close)}
               >
                 {#snippet label()}
                             {opt.label}

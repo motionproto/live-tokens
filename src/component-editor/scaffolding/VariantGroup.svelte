@@ -201,7 +201,7 @@
         {component}
         {linkedOrder}
         {columns}
-        on:change={onchange}
+        on:change={(e) => onchange?.(e)}
       />
     {/if}
   {:else}
@@ -211,7 +211,7 @@
       tokens={tokens}
       {component}
       {linkedOrder}
-      on:change={onchange}
+      on:change={(e) => onchange?.(e)}
     />
   {/if}
 

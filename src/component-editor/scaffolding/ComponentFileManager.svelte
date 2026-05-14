@@ -61,7 +61,7 @@
   let currentDisplayName = $state('Default');
   let saveAsDialog = $state(false);
 
-  let productionInfo: ComponentProductionInfo | null = $state(null);
+  let productionInfo = $state<ComponentProductionInfo | null>(null);
   type ProductionStatus = 'idle' | 'updating' | 'done' | 'error';
   let productionUpdateStatus: ProductionStatus = $state('idle');
   let adoptFeedback = $state('');

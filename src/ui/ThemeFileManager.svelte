@@ -24,7 +24,7 @@
   let showFileList = $state(false);
   let saveAsEditing = $state(false);
   let saveAsName = $state('');
-  let saveAsInput: HTMLInputElement = $state();
+  let saveAsInput: HTMLInputElement | undefined = $state();
   let currentDisplayName = $state('Default');
 
   // --- Production state ---

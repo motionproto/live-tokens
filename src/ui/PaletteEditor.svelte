@@ -914,8 +914,16 @@
     : editingStepInfo
       ? `${editingStepInfo.scale} \u203A ${editingStepInfo.step}`
       : null);
-  run(() => {
-    baseColor, scaleCurves, lightnessCurve, saturationCurve, curveOffset, snappedScales, resnapScales();
+  $effect(() => {
+    // Re-snap whenever any of the inputs change. Touch each so the effect
+    // tracks them explicitly (resnapScales() reads them indirectly).
+    void baseColor;
+    void scaleCurves;
+    void lightnessCurve;
+    void saturationCurve;
+    void curveOffset;
+    void snappedScales;
+    resnapScales();
   });
 </script>
 

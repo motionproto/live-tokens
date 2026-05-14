@@ -43,7 +43,7 @@
 >
   {#snippet option({ opt, active, select })}
   
-      <UIOptionItem {active} on:click={select}>
+      <UIOptionItem {active} onclick={select}>
         {#snippet preview()}
             <span  class="weight-sample" style="font-weight: var(--font-weight-{opt.key});">A</span>
           {/snippet}

@@ -35,7 +35,7 @@
     { key: 'mono', label: 'Mono' },
   ];
 
-  let selector: UITokenSelector = $state();
+  let selector: UITokenSelector | undefined = $state();
   let chosenKey: string | null = $state(null);
   let chosenFamilyId: string | null = $state(null);
   let currentStack: string = $state('');
@@ -129,10 +129,10 @@
   function selectOption(key: string, close: () => void) {
     const target = `--font-${key}`;
     if (target === variable) {
-      selector.writeOverride(null);
+      selector?.writeOverride(null);
       chosenKey = null;
     } else {
-      selector.writeOverride(target);
+      selector?.writeOverride(target);
       chosenKey = key;
     }
     chosenFamilyId = null;
@@ -143,7 +143,7 @@
 
   function selectProjectFamily(family: FontFamily, close: () => void) {
     const stack = `'${family.cssName}', ${genericFor(variable)}`;
-    selector.writeOverride(stack);
+    selector?.writeOverride(stack);
     chosenKey = null;
     chosenFamilyId = family.id;
     readResolved();
@@ -194,7 +194,7 @@
         {#each options as opt}
           <UIOptionItem
             active={chosenKey === opt.key}
-            on:click={() => selectOption(opt.key, close)}
+            onclick={() => selectOption(opt.key, close)}
           >
             {#snippet preview()}
                     <span  class="font-sample" style="font-family: var(--font-{opt.key});">Aa</span>
@@ -223,7 +223,7 @@
                   {#each source.families as fam (fam.id)}
                     <UIOptionItem
                       active={chosenFamilyId === fam.id}
-                      on:click={() => selectProjectFamily(fam, close)}
+                      onclick={() => selectProjectFamily(fam, close)}
                     >
                       {#snippet preview()}
                                         <span

@@ -66,7 +66,7 @@
     }
   }
 
-  let popoverEl: HTMLDivElement = $state();
+  let popoverEl: HTMLDivElement | undefined = $state();
 
   onMount(() => {
     popoverEl?.focus();

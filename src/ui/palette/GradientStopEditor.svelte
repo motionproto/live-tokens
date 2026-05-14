@@ -229,7 +229,7 @@
           class="gradient-stop-handle"
           class:selected={selectedStopIndex === i}
           style="left: {stop.position}%; --stop-color: {stopColor(stop)}"
-          onmousedown={stopPropagation((e) => handleStopHandleMouseDown(e, i))}
+          onmousedown={stopPropagation((e) => handleStopHandleMouseDown(e as MouseEvent, i))}
           role="button"
           tabindex="0"
           onkeydown={(e) => {
