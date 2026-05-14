@@ -20,6 +20,8 @@
     confirm?: DialogButtonSpec | undefined;
     /** Left footer button. Undefined hides it. `--dialog-cancel-variant` config drives the variant when `cancel.variant` is unset. */
     cancel?: DialogButtonSpec | undefined;
+    /** Close callback. Preferred over `on:close` from 0.5.0 onward. */
+    onclose?: () => void;
     /** Left-aligned footer content. Renamed from `slot="footer-left"` in 0.5.0. */
     footerLeft?: Snippet;
     children?: Snippet;
@@ -32,6 +34,7 @@
     inline = false,
     confirm = undefined,
     cancel = undefined,
+    onclose,
     footerLeft,
     children,
   }: Props = $props();
@@ -40,6 +43,7 @@
   let effectiveConfirmVariant = $derived(confirm?.variant ?? asVariant(configuredConfig['--dialog-confirm-variant'] as string | undefined, 'primary'));
   let effectiveCancelVariant = $derived(cancel?.variant ?? asVariant(configuredConfig['--dialog-cancel-variant'] as string | undefined, 'outline'));
 
+  // Dual-fire bridge — see Button.svelte for the deprecation timeline.
   const dispatch = createEventDispatcher<{
     close: void;
   }>();
@@ -73,6 +77,7 @@
     if (cancel) {
       cancel.onClick();
     } else {
+      onclose?.();
       dispatch('close');
       show = false;
     }

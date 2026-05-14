@@ -13,22 +13,26 @@
     selectedTab?: string;
     iconOnly?: boolean;
     class?: string;
+    /** Tab-change callback. Preferred over `on:tabChange` from 0.5.0 onward. */
+    ontabChange?: (id: string) => void;
   }
 
   let {
     tabs = [],
     selectedTab = '',
     iconOnly = false,
-    class: className = ''
+    class: className = '',
+    ontabChange
   }: Props = $props();
-  
 
+  // Dual-fire bridge — see Button.svelte for the deprecation timeline.
   const dispatch = createEventDispatcher<{
     tabChange: string;
   }>();
 
   function selectTab(tab: Tab) {
     if (!tab.disabled) {
+      ontabChange?.(tab.id);
       dispatch('tabChange', tab.id);
     }
   }

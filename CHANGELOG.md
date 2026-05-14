@@ -1,5 +1,63 @@
 # Changelog
 
+## 0.5.0 (unreleased — Svelte 5 migration)
+
+### Changed (breaking, but with deprecation bridges)
+
+- Components are now authored in Svelte 5 runes (`$props`, `$state`, `$derived`,
+  `$effect`, snippets). Existing consumer code on Svelte 4 idioms continues to
+  work for one release thanks to the bridges below; both forms are valid in
+  0.5.0, the legacy form is removed in 0.6.0.
+
+- **Event dispatch → callback props.** Each public component grew an
+  `oncamelcase` callback prop alongside its existing `createEventDispatcher`
+  event:
+
+  | Component            | Legacy `<Comp on:event={fn}>` | Preferred `<Comp onevent={fn}>` |
+  | -------------------- | ----------------------------- | -------------------------------- |
+  | `Button`             | `on:click`                    | `onclick(event: MouseEvent)`     |
+  | `SegmentedControl`   | `on:change`                   | `onchange(value: string)`        |
+  | `CollapsibleSection` | `on:toggle`                   | `ontoggle()`                     |
+  | `TabBar`             | `on:tabChange`                | `ontabChange(id: string)`        |
+  | `RadioButton`        | `on:click`                    | `onclick()`                      |
+  | `Notification`       | `on:dismiss`                  | `ondismiss()`                    |
+  | `Dialog`             | `on:close`                    | `onclose()`                      |
+
+  Both are fired in 0.5.0 (dual-fire). The `createEventDispatcher` calls and
+  the `on:event` legacy bridge are removed in 0.6.0.
+
+- **Slots → snippets.** Most slots translate one-to-one (default slot →
+  `children` snippet). The hyphenated slots that the `sv migrate` codemod
+  refused to rename automatically were hand-renamed to camelCase identifiers
+  (consumers must rename their `<svelte:fragment slot="x">` to
+  `{#snippet x()}` and update the slot name):
+
+  - `Badge` / `CornerBadge`: `slot="icon"` → `iconSlot` (the `icon` prop's
+    name was kept; the slot was renamed to resolve the collision)
+  - `Dialog`: `slot="footer-left"` → `footerLeft`
+  - `UITokenSelector`: `trigger-preview` → `triggerPreview`,
+    `trigger-text` → `triggerText`, `trigger-title` → `triggerTitle`,
+    `trigger-meta` → `triggerMeta`
+  - `VariantGroup` (component-editor): `state-actions` → `stateActions`,
+    `composite-controls` → `compositeControls`
+
+  Unlike the event bridge, the legacy `<slot>` form cannot coexist with
+  snippets in a runes-mode component, so this part is a hard rename in
+  0.5.0 — there's no compat window.
+
+### Peer ranges
+
+- `svelte`: `^4.2 || ^5` → `^5` (drops Svelte 4 entirely)
+- `vite`: `^5 || ^6 || ^7` (unchanged)
+
+### Internal
+
+- Toolchain bumped to `svelte@5.55+`, `vite@7`, `@sveltejs/vite-plugin-svelte@6`,
+  `svelte-check@4`. `compatibility.componentApi: 4` is enabled in
+  `svelte.config.js` so `new Component({ target, props })` (used by tests and
+  by consumers using the Svelte-4 imperative API) keeps working until 0.6.0.
+- `publicSurface.test.ts` (the green bar from 0.4.0) is still 27/27.
+
 ## 0.4.0
 
 ### Changed

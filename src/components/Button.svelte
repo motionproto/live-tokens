@@ -13,6 +13,8 @@
       fullWidth?: boolean;
       buttonRef?: HTMLButtonElement | undefined;
       class?: string;
+      /** Click callback. Preferred over `on:click` from 0.5.0 onward. */
+      onclick?: (event: MouseEvent) => void;
       children?: import('svelte').Snippet;
    }
 
@@ -28,14 +30,17 @@
       fullWidth = false,
       buttonRef = $bindable(undefined),
       class: className = '',
+      onclick,
       children
    }: Props = $props();
-   
 
+   // Dual-fire bridge: keeps Svelte-4-style `<Button on:click={fn}>` consumers
+   // working until 0.6.0. Remove the dispatcher and this comment in 0.6.0.
    const dispatch = createEventDispatcher();
 
    function handleClick(event: MouseEvent) {
       if (!disabled) {
+         onclick?.(event);
          dispatch('click', event);
       }
    }

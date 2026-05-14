@@ -8,6 +8,8 @@
       active?: boolean;
       variant?: 'chromeless' | 'divider' | 'container';
       class?: string;
+      /** Toggle callback. Preferred over `on:toggle` from 0.5.0 onward. */
+      ontoggle?: () => void;
       summary?: import('svelte').Snippet;
       children?: import('svelte').Snippet;
    }
@@ -19,19 +21,25 @@
       active = false,
       variant = 'container',
       class: className = '',
+      ontoggle,
       summary,
       children
    }: Props = $props();
-   
 
+   // Dual-fire bridge — see Button.svelte for the deprecation timeline.
    const dispatch = createEventDispatcher<{
       toggle: void;
    }>();
 
+   function fireToggle() {
+      ontoggle?.();
+      dispatch('toggle');
+   }
+
    function handleHeaderClick(e: MouseEvent) {
       if (href && active) {
          e.preventDefault();
-         dispatch('toggle');
+         fireToggle();
       }
    }
 </script>
@@ -47,7 +55,7 @@
       </a>
    {:else}
       <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
-      <div class="section-header" class:expanded onclick={() => dispatch('toggle')}>
+      <div class="section-header" class:expanded onclick={fireToggle}>
          <div class="section-toggle">
             <i class="fas fa-chevron-right toggle-icon"></i>
             <span class="section-label">{label}</span>

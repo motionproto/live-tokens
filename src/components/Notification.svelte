@@ -12,6 +12,8 @@
       dismissible?: boolean;
       emphasis?: boolean;
       actions?: NotificationActions;
+      /** Dismiss callback. Preferred over `on:dismiss` from 0.5.0 onward. */
+      ondismiss?: () => void;
       children?: import('svelte').Snippet;
    }
 
@@ -24,9 +26,11 @@
       dismissible = false,
       emphasis = false,
       actions = {},
+      ondismiss,
       children
    }: Props = $props();
 
+   // Dual-fire bridge — see Button.svelte for the deprecation timeline.
    const dispatch = createEventDispatcher();
 
    // Default icons based on variant
@@ -40,6 +44,7 @@
    let displayIcon = $derived(icon || defaultIcons[variant]);
 
    function handleDismiss() {
+      ondismiss?.();
       dispatch('dismiss');
    }
 </script>

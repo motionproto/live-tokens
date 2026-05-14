@@ -6,24 +6,32 @@
     label: string;
     color?: string;
     class?: string;
+    /** Click callback. Preferred over `on:click` from 0.5.0 onward. */
+    onclick?: () => void;
   }
 
   let {
     active = false,
     label,
     color = '',
-    class: className = ''
+    class: className = '',
+    onclick
   }: Props = $props();
-  
 
+  // Dual-fire bridge — see Button.svelte for the deprecation timeline.
   const dispatch = createEventDispatcher();
+
+  function fireClick() {
+    onclick?.();
+    dispatch('click');
+  }
 </script>
 
 <button
   class="radio-button {className}"
   class:active
   style={color ? `--radiobutton-color: ${color};` : ''}
-  onclick={() => dispatch('click')}
+  onclick={fireClick}
 >
   <span class="radio-dot"></span>
   <span class="radio-label">{label}</span>

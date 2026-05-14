@@ -13,19 +13,24 @@
     value?: string;
     disabled?: boolean;
     forceHoverValue?: string | null;
+    /** Selection callback. Preferred over `on:change` from 0.5.0 onward. */
+    onchange?: (value: string) => void;
   }
 
   let {
     segments = [],
     value = $bindable(''),
     disabled = false,
-    forceHoverValue = null
+    forceHoverValue = null,
+    onchange
   }: Props = $props();
 
+  // Dual-fire bridge — see Button.svelte for the deprecation timeline.
   const dispatch = createEventDispatcher<{ change: string }>();
 
   function select(v: string) {
     value = v;
+    onchange?.(v);
     dispatch('change', v);
   }
 </script>
