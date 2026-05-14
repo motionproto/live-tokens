@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.3.5
+## 0.3.6
 
-First release published via the GitHub Actions OIDC trusted publisher workflow. `0.3.3` and `0.3.4` were tagged but never reached npm — the publish job's `npm ci` step disagreed with the lockfile across npm versions. `0.3.5` pins CI to Node 24 (npm 11) so it matches the lockfile we ship.
+First release published via the GitHub Actions OIDC trusted publisher workflow. `0.3.3`–`0.3.5` were tagged but never reached npm — the lockfile carried stale resolutions from a non-clean local `npm install` and failed `npm ci` in CI. `0.3.6` regenerates the lockfile from a clean state and pins CI to Node 24.
 
 ### Fixed
 
