@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.9
+
+### Changed
+
+- **Peer ranges widened** so consumers can install on modern toolchains without `--legacy-peer-deps`:
+  - `svelte`: `^4.2` → `^4.2 || ^5`
+  - `vite`: `^5.0` → `^5 || ^6 || ^7`
+- Components remain authored in Svelte 4 idioms (`export let`, `createEventDispatcher`, `<slot>`). On Svelte 5 they compile in **legacy mode** — the consumer-facing API (`on:event`, named slots, `bind:value`) is preserved. A full migration to runes is planned for a future major.
+
+### Internal
+
+- Added a public-surface test (`src/components/__tests__/publicSurface.test.ts`) that pins the event-dispatch, slot, bind, and mount contracts for every shipped component. This is the green bar the upcoming Svelte 5 rune migration must keep passing.
+
 ## 0.3.7
 
 ### Internal
