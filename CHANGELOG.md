@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.0 (unreleased — Svelte 5 migration)
+## 0.5.0 — Svelte 5 migration
 
 ### Changed (breaking, but with deprecation bridges)
 
@@ -48,7 +48,7 @@
 ### Peer ranges
 
 - `svelte`: `^4.2 || ^5` → `^5` (drops Svelte 4 entirely)
-- `vite`: `^5 || ^6 || ^7` (unchanged)
+- `vite`: `^5 || ^6 || ^7` → `^6 || ^7` (the chosen `@sveltejs/vite-plugin-svelte@^6` peers Vite 6.3+)
 
 ### Internal
 
