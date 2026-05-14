@@ -7,7 +7,7 @@
    * to that scratch var get parsed back out and forwarded as a structured update
    * to gradient state, so we don't have to refactor UIPaletteSelector itself.
    */
-  import { onDestroy, createEventDispatcher } from 'svelte';
+  import { onDestroy } from 'svelte';
   import UIPaletteSelector from './UIPaletteSelector.svelte';
   import { setCssVar, removeCssVar } from '../lib/cssVarSync';
 
@@ -15,11 +15,10 @@
     stopId: string; // unique key (e.g. gradient-var + stop index)
     color: string; // token name like '--color-brand-500'
     opacity?: number; // 0–100
+    onchange?: (payload: { color: string; opacity: number }) => void;
   }
 
-  let { stopId, color, opacity = 100 }: Props = $props();
-
-  const dispatch = createEventDispatcher<{ change: { color: string; opacity: number } }>();
+  let { stopId, color, opacity = 100, onchange }: Props = $props();
 
   /** Scratch var the embedded picker reads/writes; isolated per stop. */
   const scratchVar = `--__grad-stop-${stopId}`;
@@ -56,7 +55,7 @@
     const parsed = parseScratch(raw);
     if (!parsed) return;
     if (parsed.color === color && parsed.opacity === opacity) return;
-    dispatch('change', parsed);
+    onchange?.(parsed);
   }
 
   onDestroy(() => {
@@ -77,4 +76,4 @@
   });
 </script>
 
-<UIPaletteSelector variable={scratchVar} on:change={handleChange} />
+<UIPaletteSelector variable={scratchVar} onchange={handleChange} />

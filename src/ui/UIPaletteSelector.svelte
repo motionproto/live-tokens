@@ -1,7 +1,6 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
 
-  import { createEventDispatcher } from 'svelte';
   import { slide } from 'svelte/transition';
   import { cubicOut, cubicIn } from 'svelte/easing';
   import { resolveAliasChain } from '../lib/tokenRegistry';
@@ -31,14 +30,13 @@
     return name.endsWith('-surface') || name.endsWith('-fill');
   }
 
-  const dispatch = createEventDispatcher();
-
   interface Props {
     variable: string;
     component?: string | undefined;
     canBeLinked?: boolean;
     disabled?: boolean;
     selectionsLocked?: boolean;
+    onchange?: () => void;
   }
 
   let {
@@ -46,7 +44,8 @@
     component = undefined,
     canBeLinked = false,
     disabled = false,
-    selectionsLocked = false
+    selectionsLocked = false,
+    onchange,
   }: Props = $props();
 
   type Category = 'palette' | 'surface' | 'border' | 'text';
@@ -249,7 +248,7 @@
     if (chosenCategory === null || chosenFamily === null || chosenStep === null) return;
     const varName = getVarName(chosenCategory, chosenFamily, chosenStep);
     selector?.writeOverride(buildValue(varName));
-    dispatch('change');
+    onchange?.();
   }
 
   /** Apply (or clear) a per-slot angle override on the chosen linear gradient.
@@ -267,14 +266,14 @@
     } else {
       selector?.writeOverride(materializeGradient(token, normalized));
     }
-    dispatch('change');
+    onchange?.();
   }
 
   function resetOrientation() {
     if (chosenGradient === null) return;
     chosenAngle = null;
     selector?.writeOverride(chosenGradient);
-    dispatch('change');
+    onchange?.();
   }
 
   function isGradientToken(name: string): boolean {
@@ -398,7 +397,7 @@
     chosenNone = false;
     initFromCurrent();
     selectedFamily = null;
-    dispatch('change');
+    onchange?.();
   }
 
   function handleClose() {
@@ -427,7 +426,7 @@
     selector?.writeOverride('transparent');
     selectedFamily = null;
     close();
-    dispatch('change');
+    onchange?.();
   }
 
   function selectSwatch(category: Category, step: string, close: () => void) {
@@ -441,7 +440,7 @@
     selector?.writeOverride(buildValue(varName));
     selectedFamily = null;
     close();
-    dispatch('change');
+    onchange?.();
   }
 
   // Picking any gradient is a fresh start: any prior angle override is
@@ -459,7 +458,7 @@
     selector?.writeOverride(gradientVar);
     selectedFamily = null;
     close();
-    dispatch('change');
+    onchange?.();
   }
 
   // Re-derive trigger state when the bound `variable` changes (e.g. when a
@@ -514,9 +513,9 @@
   dropdownMinWidth="14rem"
   dropdownMaxWidth="calc(100vw - 2rem)"
   hideDefaultHeader={!!selectedFamily}
-  on:reset={handleReset}
-  on:close={handleClose}
-  on:var-change={initFromCurrent}
+  onreset={handleReset}
+  onclose={handleClose}
+  onvarChange={initFromCurrent}
 >
   {#snippet triggerPreview()}
     <div class="swatch-wrap">

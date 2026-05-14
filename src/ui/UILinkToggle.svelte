@@ -1,17 +1,14 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-
   interface Props {
     linked?: boolean;
+    ontoggle?: () => void;
   }
 
-  let { linked = false }: Props = $props();
-
-  const dispatch = createEventDispatcher();
+  let { linked = false, ontoggle }: Props = $props();
 
   function handleClick(e: Event) {
     e.stopPropagation();
-    dispatch('toggle');
+    ontoggle?.();
   }
 </script>
 

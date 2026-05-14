@@ -29,9 +29,9 @@
       doesn't know if its rows are variants (top-level tab strip) or states (per-VariantGroup
       state tabs), so we set both stores; each consumer adopts the value only if it names
       one of its own tabs. */
-  function handleChartSelect(e: CustomEvent<string>) {
-    editorCtx?.focusedVariant.set(e.detail);
-    editorCtx?.focusedState.set(e.detail);
+  function handleChartSelect(label: string) {
+    editorCtx?.focusedVariant.set(label);
+    editorCtx?.focusedState.set(label);
   }
 
   /** Pick the sibling that backs the cell the user is currently focused on, so the row
@@ -158,7 +158,6 @@
                 {component}
                 linkedOrder={linked.linkedOrder}
                 isLinkedBlock
-                on:change
               />
             </div>
             <button
@@ -185,7 +184,7 @@
                   caption={card.caption}
                   selectedRow={focusedV}
                   selectedCol={focusedS}
-                  on:select={handleChartSelect}
+                  onselect={handleChartSelect}
                 />
               </div>
             {/if}

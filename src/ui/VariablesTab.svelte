@@ -65,9 +65,9 @@
   <section class="section" id="spacing">
     <h2 class="section-title">Spacing &amp; Borders</h2>
     <h3 class="subsection-title">Spacing</h3>
-    <TokenScaleTable kind="spacing" vars={SPACING_VARS} {liveVersion} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
+    <TokenScaleTable kind="spacing" vars={SPACING_VARS} {liveVersion} {copiedVar} oncopy={copyVariable} />
     <h3 class="subsection-title">Borders</h3>
-    <TokenScaleTable kind="border" vars={BORDER_WIDTH_VARS} {liveVersion} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
+    <TokenScaleTable kind="border" vars={BORDER_WIDTH_VARS} {liveVersion} {copiedVar} oncopy={copyVariable} />
   </section>
 
   <!-- Columns -->
@@ -76,7 +76,7 @@
   <!-- Border Radius -->
   <section class="section" id="border-radius">
     <h2 class="section-title">Border Radius</h2>
-    <TokenScaleTable kind="radius" vars={RADIUS_VARS} {liveVersion} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
+    <TokenScaleTable kind="radius" vars={RADIUS_VARS} {liveVersion} {copiedVar} oncopy={copyVariable} />
   </section>
 
   <!-- Typography -->
@@ -92,17 +92,17 @@
 
       <div class="typography-group">
         <h3 class="group-title">Font Sizes</h3>
-        <TokenScaleTable kind="font-size" vars={FONT_SIZE_VARS} {liveVersion} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
+        <TokenScaleTable kind="font-size" vars={FONT_SIZE_VARS} {liveVersion} {copiedVar} oncopy={copyVariable} />
       </div>
 
       <div class="typography-group">
         <h3 class="group-title">Font Weights</h3>
-        <TokenScaleTable kind="font-weight" vars={FONT_WEIGHT_VARS} {liveVersion} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
+        <TokenScaleTable kind="font-weight" vars={FONT_WEIGHT_VARS} {liveVersion} {copiedVar} oncopy={copyVariable} />
       </div>
 
       <div class="typography-group">
         <h3 class="group-title">Line Heights</h3>
-        <TokenScaleTable kind="line-height" vars={LINE_HEIGHT_VARS} {liveVersion} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
+        <TokenScaleTable kind="line-height" vars={LINE_HEIGHT_VARS} {liveVersion} {copiedVar} oncopy={copyVariable} />
       </div>
     </div>
   </section>
@@ -110,19 +110,19 @@
   <!-- Icon Sizes -->
   <section class="section" id="icon-sizes">
     <h2 class="section-title">Icon Sizes</h2>
-    <TokenScaleTable kind="icon-size" vars={ICON_SIZE_VARS} {liveVersion} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
+    <TokenScaleTable kind="icon-size" vars={ICON_SIZE_VARS} {liveVersion} {copiedVar} oncopy={copyVariable} />
   </section>
 
 
   <!-- Shadows -->
-  <ShadowsSection {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
+  <ShadowsSection {copiedVar} oncopy={copyVariable} />
 
 
   <!-- Overlays -->
-  <OverlaysSection {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
+  <OverlaysSection {copiedVar} oncopy={copyVariable} />
 
   <!-- Gradients -->
-  <GradientsSection {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
+  <GradientsSection {copiedVar} oncopy={copyVariable} />
 
   <!-- Utility Tokens -->
   <section class="section" id="utility-tokens">
@@ -130,17 +130,17 @@
     <div class="utility-columns">
       <div class="utility-group">
         <h3 class="group-title">Durations</h3>
-        <TokenScaleTable kind="line-height" tokens={DURATION_TOKENS} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
+        <TokenScaleTable kind="line-height" tokens={DURATION_TOKENS} {copiedVar} oncopy={copyVariable} />
       </div>
 
       <div class="utility-group">
         <h3 class="group-title">Z-Index Layers</h3>
-        <TokenScaleTable kind="line-height" tokens={Z_INDEX_TOKENS} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
+        <TokenScaleTable kind="line-height" tokens={Z_INDEX_TOKENS} {copiedVar} oncopy={copyVariable} />
       </div>
 
       <div class="utility-group">
         <h3 class="group-title">Opacity</h3>
-        <TokenScaleTable kind="line-height" tokens={OPACITY_TOKENS} {copiedVar} on:copy={(e) => copyVariable(e.detail)} />
+        <TokenScaleTable kind="line-height" tokens={OPACITY_TOKENS} {copiedVar} oncopy={copyVariable} />
       </div>
     </div>
   </section>

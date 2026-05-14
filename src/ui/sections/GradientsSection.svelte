@@ -7,18 +7,17 @@
    * direction, kind switch) lives in <GradientEditor>; this section is a
    * thin grid that toggles which gradient is being edited.
    */
-  import { createEventDispatcher } from 'svelte';
   import { editorState } from '../../lib/editorStore';
   import GradientEditor from '../GradientEditor.svelte';
 
   interface Props {
     copiedVar?: string | null;
+    oncopy?: (variable: string) => void;
   }
 
-  let { copiedVar = null }: Props = $props();
+  let { copiedVar = null, oncopy }: Props = $props();
 
-  const dispatch = createEventDispatcher<{ copy: string }>();
-  function copy(v: string) { dispatch('copy', v); }
+  function copy(v: string) { oncopy?.(v); }
 
   let editingGradient: string | null = $state(null);
 </script>
@@ -43,8 +42,8 @@
           <div class="gradient-editor-host">
             <GradientEditor
               variable={token.variable}
-              on:save={() => editingGradient = null}
-              on:cancel={() => editingGradient = null}
+              onsave={() => editingGradient = null}
+              oncancel={() => editingGradient = null}
             />
           </div>
         {/if}

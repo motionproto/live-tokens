@@ -7,7 +7,7 @@
    * old list of every stop is replaced by this single-row pattern, mirroring
    * GradientCard.svelte). Stops can be added/removed with a minimum of two.
    */
-  import { tick, onMount, createEventDispatcher } from 'svelte';
+  import { tick, onMount } from 'svelte';
   import {
     editorState,
     setGradient,
@@ -23,11 +23,11 @@
 
   interface Props {
     variable: string;
+    onsave?: () => void;
+    oncancel?: () => void;
   }
 
-  let { variable }: Props = $props();
-
-  const dispatch = createEventDispatcher<{ save: void; cancel: void }>();
+  let { variable, onsave, oncancel }: Props = $props();
 
   /** Deep snapshot of the gradient at editor open, used to restore on Cancel. */
   let snapshot: { type: GradientType; angle: number; stops: GradientTokenStop[] } | null = null;
@@ -38,10 +38,10 @@
     }
   });
 
-  function save() { dispatch('save'); }
+  function save() { onsave?.(); }
   function cancel() {
     if (snapshot) setGradient(variable, snapshot);
-    dispatch('cancel');
+    oncancel?.();
   }
 
   let gradient = $derived($editorState.gradients.tokens.find((t) => t.variable === variable));
@@ -57,8 +57,8 @@
     setGradientType(variable, type);
   }
 
-  function onAngleChange(e: CustomEvent<{ value: number }>) {
-    setGradientAngle(variable, e.detail.value);
+  function onAngleChange(detail: { value: number }) {
+    setGradientAngle(variable, detail.value);
   }
 
   function setPosition(i: number, pct: number) {
@@ -71,8 +71,8 @@
     if (Number.isFinite(v)) setPosition(selected, v);
   }
 
-  function handleStopChange(i: number, e: CustomEvent<{ color: string; opacity: number }>) {
-    setGradientStop(variable, i, { color: e.detail.color, opacity: e.detail.opacity });
+  function handleStopChange(i: number, payload: { color: string; opacity: number }) {
+    setGradientStop(variable, i, { color: payload.color, opacity: payload.opacity });
   }
 
   /** Insert a stop at the given percentage, inheriting color/opacity from the
@@ -208,7 +208,7 @@
       </div>
       {#if gradient.type === 'linear'}
         <div class="angle-slot">
-          <AngleDial value={gradient.angle} on:change={onAngleChange} />
+          <AngleDial value={gradient.angle} onchange={onAngleChange} />
         </div>
       {/if}
       <div class="spacer"></div>
@@ -250,7 +250,7 @@
             stopId={`${variable}-${selected}`}
             color={gradient.stops[selected].color}
             opacity={gradient.stops[selected].opacity ?? 100}
-            on:change={(e) => handleStopChange(selected, e)}
+            onchange={(payload) => handleStopChange(selected, payload)}
           />
         </div>
       </div>

@@ -6,18 +6,17 @@
    * rgba values out to :root, so this component only orchestrates mutations
    * and reads derived display state.
    */
-  import { createEventDispatcher } from 'svelte';
   import { editorState, mutate, beginSliderGesture } from '../../lib/editorStore';
   import type { OverlayToken, OverlayChannelGlobals, EditorState } from '../../lib/editorTypes';
 
   interface Props {
     copiedVar?: string | null;
+    oncopy?: (variable: string) => void;
   }
 
-  let { copiedVar = null }: Props = $props();
+  let { copiedVar = null, oncopy }: Props = $props();
 
-  const dispatch = createEventDispatcher<{ copy: string }>();
-  function copy(v: string) { dispatch('copy', v); }
+  function copy(v: string) { oncopy?.(v); }
 
   let editingOverlay: string | null = $state(null);
 

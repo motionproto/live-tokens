@@ -1,13 +1,10 @@
 <script lang="ts">
   import { stopPropagation } from 'svelte/legacy';
 
-  import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import type { ComponentConfigMeta } from '../../lib/themeTypes';
   import UIDialog from '../../ui/UIDialog.svelte';
 
-  
-  
-  
   interface Props {
     /** Component slug used in the load-dialog title (e.g. "button"). */
     component: string;
@@ -15,18 +12,24 @@
     files?: ComponentConfigMeta[];
     /** Currently active file — highlighted in the load list. */
     activeFileName?: string;
+    onsave?: () => void;
+    onsaveAs?: () => void;
+    /** Fired when the user clicks "Load…" in the menu — parent should refresh `files`. */
+    onopenLoad?: () => void;
+    onload?: (file: ComponentConfigMeta) => void;
+    ondelete?: (file: ComponentConfigMeta) => void;
   }
 
-  let { component, files = [], activeFileName = 'default' }: Props = $props();
-
-  const dispatch = createEventDispatcher<{
-    save: void;
-    saveAs: void;
-    /** Fired when the user clicks "Load…" in the menu — parent should refresh `files`. */
-    openLoad: void;
-    load: ComponentConfigMeta;
-    delete: ComponentConfigMeta;
-  }>();
+  let {
+    component,
+    files = [],
+    activeFileName = 'default',
+    onsave,
+    onsaveAs,
+    onopenLoad,
+    onload,
+    ondelete,
+  }: Props = $props();
 
   let fileMenuOpen = $state(false);
   let fileMenuRoot: HTMLElement | undefined = $state();
@@ -49,28 +52,28 @@
 
   function handleSave() {
     fileMenuOpen = false;
-    dispatch('save');
+    onsave?.();
   }
 
   function handleSaveAs() {
     fileMenuOpen = false;
-    dispatch('saveAs');
+    onsaveAs?.();
   }
 
   function handleOpenLoad() {
     fileMenuOpen = false;
     showFileList = true;
-    dispatch('openLoad');
+    onopenLoad?.();
   }
 
   function handleLoad(file: ComponentConfigMeta) {
     showFileList = false;
-    dispatch('load', file);
+    onload?.(file);
   }
 
   function handleDelete(file: ComponentConfigMeta) {
     if (file.fileName === 'default') return;
-    dispatch('delete', file);
+    ondelete?.(file);
   }
 </script>
 

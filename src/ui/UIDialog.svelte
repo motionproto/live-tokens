@@ -1,7 +1,7 @@
 <script lang="ts">
   import { run, self } from 'svelte/legacy';
 
-  import { tick, createEventDispatcher } from 'svelte';
+  import { tick } from 'svelte';
 
   interface Props {
     show?: boolean;
@@ -12,6 +12,7 @@
     confirmDisabled?: boolean;
     width?: string;
     children?: import('svelte').Snippet;
+    onconfirm?: () => void;
   }
 
   let {
@@ -22,10 +23,9 @@
     confirmLabel = '',
     confirmDisabled = false,
     width = '500px',
-    children
+    children,
+    onconfirm
   }: Props = $props();
-
-  const dispatch = createEventDispatcher();
 
   let closeButtonRef: HTMLButtonElement | undefined = $state();
   let cancelButtonRef: HTMLButtonElement | undefined = $state();
@@ -46,7 +46,7 @@
   }
 
   function handleConfirm() {
-    dispatch('confirm');
+    onconfirm?.();
   }
 </script>
 

@@ -173,8 +173,8 @@
     saveAsDialog = true;
   }
 
-  async function confirmSaveAs(e: CustomEvent<{ displayName: string; fileName: string }>) {
-    const { displayName, fileName } = e.detail;
+  async function confirmSaveAs(detail: { displayName: string; fileName: string }) {
+    const { displayName, fileName } = detail;
     saveStatus = 'saving';
     try {
       await persist(fileName, displayName);
@@ -185,8 +185,7 @@
     }
   }
 
-  async function handleLoad(e: CustomEvent<ComponentConfigMeta>) {
-    const file = e.detail;
+  async function handleLoad(file: ComponentConfigMeta) {
     // Multi-step service flow (load + set-active) — if any network call
     // fails, the dialog is already closed and the local state stays on the
     // previous selection. Silent by design; the same boot resilience that
@@ -202,8 +201,7 @@
     }
   }
 
-  async function handleDelete(e: CustomEvent<ComponentConfigMeta>) {
-    const file = e.detail;
+  async function handleDelete(file: ComponentConfigMeta) {
     if (file.fileName === 'default') return;
     // Multi-step service flow (delete + reload-default-on-active-removal).
     // Silent by design — see handleLoad.
@@ -307,11 +305,11 @@
           {component}
           {files}
           {activeFileName}
-          on:save={handleSave}
-          on:saveAs={openSaveAs}
-          on:openLoad={refreshFiles}
-          on:load={handleLoad}
-          on:delete={handleDelete}
+          onsave={handleSave}
+          onsaveAs={openSaveAs}
+          onopenLoad={refreshFiles}
+          onload={handleLoad}
+          ondelete={handleDelete}
         />
         {#if resetVariables}
           <button
@@ -378,7 +376,7 @@
   bind:show={saveAsDialog}
   {currentDisplayName}
   {files}
-  on:save={confirmSaveAs}
+  onsave={confirmSaveAs}
 />
 
 <style>

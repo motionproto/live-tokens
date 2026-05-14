@@ -161,7 +161,7 @@
       <UIPaletteSelector variable={stopColorVar(selected)} {component} />
     </div>
     <div class="angle-slot">
-      <AngleDial value={angleDeg} on:change={(e) => setAngle(e.detail.value)} />
+      <AngleDial value={angleDeg} onchange={(d) => setAngle(d.value)} />
     </div>
   </div>
 </div>

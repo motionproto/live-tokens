@@ -1,20 +1,17 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-
   interface Props {
     checked?: boolean;
     disabled?: boolean;
     label?: string;
+    onchange?: (checked: boolean) => void;
   }
 
-  let { checked = $bindable(false), disabled = false, label = '' }: Props = $props();
-
-  const dispatch = createEventDispatcher<{ change: boolean }>();
+  let { checked = $bindable(false), disabled = false, label = '', onchange }: Props = $props();
 
   function toggle() {
     if (disabled) return;
     checked = !checked;
-    dispatch('change', checked);
+    onchange?.(checked);
   }
 </script>
 

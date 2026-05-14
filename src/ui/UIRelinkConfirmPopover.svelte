@@ -2,25 +2,23 @@
   import { run, createBubbler, stopPropagation } from 'svelte/legacy';
 
   const bubble = createBubbler();
-  import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import UIRadio from './UIRadio.svelte';
   import { keepInViewport } from './keepInViewport';
 
   type Candidate = { variable: string; alias: string };
 
-  
-  
   interface Props {
     candidates: Candidate[];
     /** Variable whose lock was clicked — its alias is the default selection. */
     initialVariable: string;
     /** Component prefix to strip when rendering source labels. */
     prefixToStrip?: string;
+    onconfirm?: (payload: { alias: string }) => void;
+    oncancel?: () => void;
   }
 
-  let { candidates, initialVariable, prefixToStrip = '' }: Props = $props();
-
-  const dispatch = createEventDispatcher<{ confirm: { alias: string }; cancel: void }>();
+  let { candidates, initialVariable, prefixToStrip = '', onconfirm, oncancel }: Props = $props();
 
   type Option = { alias: string; sources: string[] };
 
@@ -48,11 +46,11 @@
 
   function handleConfirm() {
     if (!selected) return;
-    dispatch('confirm', { alias: selected });
+    onconfirm?.({ alias: selected });
   }
 
   function handleCancel() {
-    dispatch('cancel');
+    oncancel?.();
   }
 
   function handleKeydown(e: KeyboardEvent) {

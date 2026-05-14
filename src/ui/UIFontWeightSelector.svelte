@@ -8,6 +8,7 @@
     canBeLinked?: boolean;
     disabled?: boolean;
     selectionsLocked?: boolean;
+    onchange?: () => void;
   }
 
   let {
@@ -15,7 +16,8 @@
     component = undefined,
     canBeLinked = false,
     disabled = false,
-    selectionsLocked = false
+    selectionsLocked = false,
+    onchange,
   }: Props = $props();
 
   const options = [
@@ -39,7 +41,7 @@
   {selectionsLocked}
   varPrefix="--font-weight-"
   {options}
-  on:change
+  {onchange}
 >
   {#snippet option({ opt, active, select })}
   

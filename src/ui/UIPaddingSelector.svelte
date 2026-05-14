@@ -1,7 +1,7 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
 
-  import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { fade, fly, slide } from 'svelte/transition';
   import { cubicOut, cubicIn, cubicInOut } from 'svelte/easing';
   import UITokenSelector from './UITokenSelector.svelte';
@@ -21,10 +21,6 @@
   import UIRelinkConfirmPopover from './UIRelinkConfirmPopover.svelte';
   import UILinkToggle from './UILinkToggle.svelte';
 
-  const dispatch = createEventDispatcher();
-
-  
-  
   interface Props {
     variable: string;
     component?: string | undefined;
@@ -37,6 +33,7 @@
     mode?: 'single' | 'sides';
     /** When false, hide the split-to-sides affordance (e.g. for non-box spacing like gap). */
     splittable?: boolean;
+    onchange?: () => void;
   }
 
   let {
@@ -46,7 +43,8 @@
     disabled = false,
     selectionsLocked = false,
     mode = 'single',
-    splittable = true
+    splittable = true,
+    onchange,
   }: Props = $props();
 
   type Side = 'top' | 'right' | 'bottom' | 'left';
@@ -168,31 +166,31 @@
   function selectSingle(key: string, close: () => void) {
     writeAliasLinked(variable, tokenForKey(key));
     close();
-    dispatch('change');
+    onchange?.();
   }
 
   function selectSide(s: Side, key: string, close: () => void) {
     writeAliasLinked(sideVar(s), tokenForKey(key));
     close();
-    dispatch('change');
+    onchange?.();
   }
 
   function handleResetAll() {
     for (const s of SIDES) writeAliasLinked(sideVar(s), null);
     writeAliasLinked(variable, null);
-    dispatch('change');
+    onchange?.();
   }
 
   function handleResetSide(s: Side) {
     writeAliasLinked(sideVar(s), null);
-    dispatch('change');
+    onchange?.();
   }
 
   function splitToSides() {
     if (disabled) return;
     const seed = readAlias(variable) || tokenForKey('4');
     for (const s of SIDES) writeAliasLinked(sideVar(s), seed);
-    dispatch('change');
+    onchange?.();
   }
 
   function mergeToSingle() {
@@ -200,7 +198,7 @@
     const seed = readAlias(sideVar('top')) || readAlias(variable);
     if (seed && !readAlias(variable)) writeAliasLinked(variable, seed);
     for (const s of SIDES) writeAliasLinked(sideVar(s), null);
-    dispatch('change');
+    onchange?.();
   }
 
   function handleVarChange() {
@@ -309,7 +307,7 @@
     if (!showLinkUI || !component) return;
     if (isLinkedParent) {
       unlinkComponentProperty(component, variable);
-      dispatch('change');
+      onchange?.();
       return;
     }
     const slice = $editorState.components[component];
@@ -323,7 +321,7 @@
       const currentValue = slice.aliases[variable];
       if (currentValue) {
         adoptBlockFromPeer(variable);
-        dispatch('change');
+        onchange?.();
       }
       return;
     }
@@ -339,20 +337,20 @@
         ? definedCandidates[0].variable
         : variable;
       adoptBlockFromPeer(sourcePeer);
-      dispatch('change');
+      onchange?.();
       return;
     }
     relinkCandidates = candidates;
     relinkOpen = true;
   }
 
-  function handleRelinkConfirm(e: CustomEvent<{ alias: string }>) {
+  function handleRelinkConfirm(payload: { alias: string }) {
     if (!component) return;
     // Find the peer whose parent alias matches the chosen one — its full
     // block (split state + side values) becomes canonical.
-    const sourcePeer = relinkCandidates.find((c) => c.alias === e.detail.alias)?.variable ?? variable;
+    const sourcePeer = relinkCandidates.find((c) => c.alias === payload.alias)?.variable ?? variable;
     adoptBlockFromPeer(sourcePeer);
-    dispatch('change');
+    onchange?.();
     relinkOpen = false;
   }
 
@@ -383,14 +381,14 @@
   >
     {#if showLinkUI}
       <div class="link-toggle-wrap">
-        <UILinkToggle linked={isLinkedParent} on:toggle={toggleLinkPaddingGroup} />
+        <UILinkToggle linked={isLinkedParent} ontoggle={toggleLinkPaddingGroup} />
         {#if relinkOpen && component}
           <UIRelinkConfirmPopover
             candidates={relinkCandidates}
             initialVariable={variable}
             prefixToStrip={`--${component}-`}
-            on:confirm={handleRelinkConfirm}
-            on:cancel={handleRelinkCancel}
+            onconfirm={handleRelinkConfirm}
+            oncancel={handleRelinkCancel}
           />
         {/if}
       </div>
@@ -421,8 +419,8 @@
         canBeLinked={false}
         {disabled}
         {selectionsLocked}
-        on:reset={() => handleResetSide(s)}
-        on:var-change={handleVarChange}
+        onreset={() => handleResetSide(s)}
+        onvarChange={handleVarChange}
       >
         {#snippet triggerTitle()}{sideLabels[s] || '—'}{/snippet}
         {#snippet triggerMeta()}{sideResolved[s] || '—'}{/snippet}
@@ -472,8 +470,8 @@
       {canBeLinked}
       {disabled}
       {selectionsLocked}
-      on:reset={handleResetAll}
-      on:var-change={handleVarChange}
+      onreset={handleResetAll}
+      onvarChange={handleVarChange}
     >
       {#snippet triggerTitle()}{activeLabel || '—'}{/snippet}
 

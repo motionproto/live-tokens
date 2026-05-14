@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import type { Snippet } from 'svelte';
   import { setCssVar, removeCssVar, CSS_VAR_CHANGE_EVENT } from '../lib/cssVarSync';
   import type { CssVarRef } from '../lib/editorTypes';
@@ -53,6 +53,11 @@
     subheader?: Snippet;
     /** Dropdown body content; receives `{ close, handleReset }`. */
     children?: Snippet<[DropdownContext]>;
+    onchange?: () => void;
+    onreset?: () => void;
+    onopen?: () => void;
+    onclose?: () => void;
+    onvarChange?: () => void;
   }
 
   let {
@@ -71,15 +76,12 @@
     header,
     subheader,
     children,
+    onchange,
+    onreset,
+    onopen,
+    onclose,
+    onvarChange,
   }: Props = $props();
-
-  const dispatch = createEventDispatcher<{
-    change: void;
-    reset: void;
-    open: void;
-    close: void;
-    'var-change': void;
-  }>();
 
   let open = $state(false);
   let container: HTMLElement;
@@ -127,13 +129,14 @@
   export function close() {
     if (!open) return;
     open = false;
-    dispatch('close');
+    onclose?.();
   }
 
   function toggle() {
     if (disabled) return;
     open = !open;
-    dispatch(open ? 'open' : 'close');
+    if (open) onopen?.();
+    else onclose?.();
   }
 
   $effect(() => {
@@ -144,7 +147,7 @@
     if (!canBeLinked || !component) return;
     if (isLinkedDisplay) {
       unlinkComponentProperty(component, variable);
-      dispatch('change');
+      onchange?.();
       return;
     }
     const slice = $editorState.components[component];
@@ -165,7 +168,7 @@
       const currentValue = slice.aliases[variable];
       if (currentValue) {
         setComponentAliasLinked(component, variable, currentValue);
-        dispatch('change');
+        onchange?.();
       }
       return;
     }
@@ -189,7 +192,7 @@
         : slice.aliases[variable];
       if (adoptRef) setComponentAliasLinked(component, variable, adoptRef);
       else relinkComponentProperty(component, variable);
-      dispatch('change');
+      onchange?.();
       return;
     }
 
@@ -197,10 +200,10 @@
     relinkOpen = true;
   }
 
-  function handleRelinkConfirm(e: CustomEvent<{ alias: string }>) {
+  function handleRelinkConfirm(payload: { alias: string }) {
     if (!component) return;
-    setComponentAliasLinked(component, variable, { kind: 'token', name: e.detail.alias });
-    dispatch('change');
+    setComponentAliasLinked(component, variable, { kind: 'token', name: payload.alias });
+    onchange?.();
     relinkOpen = false;
   }
 
@@ -221,10 +224,10 @@
     // Per-peer resets while preserving the link are impossible by definition
     // (linked = peers share one value); a "reset just this one" intent is
     // really "unlink, then reset," which the user does in two visible steps.
-    dispatch('reset');
+    onreset?.();
     writeOverride(null);
     close();
-    dispatch('change');
+    onchange?.();
   }
 
   function handleClickOutside(e: MouseEvent) {
@@ -236,7 +239,7 @@
 
   function handleVarChange(e: Event) {
     const detail = (e as CustomEvent<{ name: string }>).detail;
-    if (detail?.name === variable) dispatch('var-change');
+    if (detail?.name === variable) onvarChange?.();
   }
 
   onMount(() => {
@@ -281,8 +284,8 @@
         candidates={relinkCandidates}
         initialVariable={variable}
         prefixToStrip={`--${component}-`}
-        on:confirm={handleRelinkConfirm}
-        on:cancel={handleRelinkCancel}
+        onconfirm={handleRelinkConfirm}
+        oncancel={handleRelinkCancel}
       />
     {/if}
 
@@ -298,7 +301,7 @@
           {:else}
             <div class="ui-ts-header">
               {#if showLinkToggle}
-                <UILinkToggle linked={isLinkedDisplay} on:toggle={toggleLinked} />
+                <UILinkToggle linked={isLinkedDisplay} ontoggle={toggleLinked} />
               {/if}
               <button
                 type="button"

@@ -61,19 +61,19 @@
 <FieldsetWrapper legend="divider">
   {#if colorVariable}
     <div class="entry">
-      <UIPaletteSelector variable={colorVariable} {component} disabled={siblingDisabled} on:change={readHeight} />
+      <UIPaletteSelector variable={colorVariable} {component} disabled={siblingDisabled} onchange={readHeight} />
       <span class="label">{colorLabel ?? ''}</span>
     </div>
   {/if}
   {#if widthVariable}
     <div class="entry">
-      <UIVariantSelector variable={widthVariable} {component} disabled={siblingDisabled} {...BORDER_WIDTH} on:change={readHeight} />
+      <UIVariantSelector variable={widthVariable} {component} disabled={siblingDisabled} {...BORDER_WIDTH} onchange={readHeight} />
       <span class="label">{widthLabel ?? ''}</span>
     </div>
   {/if}
   {#if heightVariable}
     <div class="entry">
-      <UIVariantSelector variable={heightVariable} {component} {...DIVIDER_HEIGHT} on:change={readHeight} />
+      <UIVariantSelector variable={heightVariable} {component} {...DIVIDER_HEIGHT} onchange={readHeight} />
       <span class="label">{heightLabel ?? ''}</span>
     </div>
   {/if}

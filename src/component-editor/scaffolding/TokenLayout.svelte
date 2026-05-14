@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher, type Component } from 'svelte';
+  import type { Component } from 'svelte';
   import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
   import UIVariantSelector from '../../ui/UIVariantSelector.svelte';
   import UIFontFamilySelector from '../../ui/UIFontFamilySelector.svelte';
@@ -61,6 +61,7 @@
       multi-col mode, the linked-first sort + zone divider are dropped — kind-grouped flow
       reads more naturally when columns themselves carry the visual grouping. */
     columns?: number;
+    onchange?: () => void;
   }
 
   let {
@@ -70,7 +71,8 @@
     contexts = {},
     linkedOrder = undefined,
     isLinkedBlock = false,
-    columns = 1
+    columns = 1,
+    onchange,
   }: Props = $props();
 
   /** Suffix/prefix patterns mapped to kinds — single source of truth used by `categorize`.
@@ -252,8 +254,6 @@
     return set;
   }
 
-  const dispatch = createEventDispatcher();
-
   /** When a row collapses several groupKey leads into one display, mirror the lead's
       new alias onto each peer (and its siblings) so the merged display stays in sync. */
   function handleRowChange(token: Token) {
@@ -265,7 +265,7 @@
         else clearComponentAliasLinked(component, peer);
       }
     }
-    dispatch('change');
+    onchange?.();
   }
 
   /** Bidirectional hover cue with the Linked-properties block. The upper grid
@@ -353,7 +353,7 @@
         <sel.component
           {...sharedProps}
           {...extra}
-          on:change={() => handleRowChange(token)}
+          onchange={() => handleRowChange(token)}
         />
         {#if !sel.standalone && ctxs?.length}
           <div class="token-contexts">

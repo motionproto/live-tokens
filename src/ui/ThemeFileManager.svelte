@@ -1,7 +1,7 @@
 <script lang="ts">
   import { stopPropagation } from 'svelte/legacy';
 
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { onMount } from 'svelte';
   import type { ThemeMeta } from '../lib/themeTypes';
   import { listThemes, deleteTheme, setActiveFile, sanitizeFileName, getProductionInfo, setProductionFile } from '../lib/themeService';
   import type { ProductionInfo } from '../lib/themeService';
@@ -9,16 +9,13 @@
   import { dirty } from '../lib/editorStore';
   import UIDialog from './UIDialog.svelte';
 
-  const dispatch = createEventDispatcher<{
-    save: { fileName: string; displayName: string };
-    load: { fileName: string };
-  }>();
-
   interface Props {
     saveStatus?: 'idle' | 'saving' | 'saved' | 'error';
+    onsave?: (payload: { fileName: string; displayName: string }) => void;
+    onload?: (payload: { fileName: string }) => void;
   }
 
-  let { saveStatus = 'idle' }: Props = $props();
+  let { saveStatus = 'idle', onsave, onload }: Props = $props();
 
   let files: ThemeMeta[] = $state([]);
   let showFileList = $state(false);
@@ -71,7 +68,7 @@
   });
 
   function handleSave() {
-    dispatch('save', { fileName: $activeFileName, displayName: currentDisplayName });
+    onsave?.({ fileName: $activeFileName, displayName: currentDisplayName });
   }
 
   function handleSaveIncrement() {
@@ -89,7 +86,7 @@
     const displayName = `${baseName}_${suffix}`;
     const fileName = `${baseFileName}_${suffix}`;
 
-    dispatch('save', { fileName, displayName });
+    onsave?.({ fileName, displayName });
     $activeFileName = fileName;
     currentDisplayName = displayName;
     setTimeout(() => refreshFiles(), 500);
@@ -112,7 +109,7 @@
       return;
     }
     saveAsEditing = false;
-    dispatch('save', { fileName, displayName });
+    onsave?.({ fileName, displayName });
     $activeFileName = fileName;
     currentDisplayName = displayName;
     setTimeout(() => refreshFiles(), 500);
@@ -128,7 +125,7 @@
     await setActiveFile(file.fileName);
     $activeFileName = file.fileName;
     currentDisplayName = file.name;
-    dispatch('load', { fileName: file.fileName });
+    onload?.({ fileName: file.fileName });
     // editorStore.loadFromFile clears history and resets dirty — no snapshot needed here.
   }
 
@@ -141,7 +138,7 @@
       if (file.fileName === $activeFileName) {
         $activeFileName = 'default';
         currentDisplayName = 'Default';
-        dispatch('load', { fileName: 'default' });
+        onload?.({ fileName: 'default' });
       }
     } catch {
       // silent

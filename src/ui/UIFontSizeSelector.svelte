@@ -11,6 +11,7 @@
     canBeLinked?: boolean;
     disabled?: boolean;
     selectionsLocked?: boolean;
+    onchange?: () => void;
   }
 
   let {
@@ -18,7 +19,8 @@
     component = undefined,
     canBeLinked = false,
     disabled = false,
-    selectionsLocked = false
+    selectionsLocked = false,
+    onchange,
   }: Props = $props();
 
   // Icon-size variables (e.g. --tabbar-default-icon-size) pick from the
@@ -100,7 +102,7 @@
   varPrefix={scalePrefix}
   {options}
   dropdownGridColumns="auto auto auto auto"
-  on:change
+  {onchange}
 >
   {#snippet option({ opt, active, select })}
   

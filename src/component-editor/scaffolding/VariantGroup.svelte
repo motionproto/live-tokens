@@ -33,7 +33,7 @@
         when every tab on the strip really is a state. */
     selectorLabel?: string;
     /** Forwarded to StateBlock — fires when a token is mutated. */
-    onchange?: (e: CustomEvent) => void;
+    onchange?: () => void;
     /** Default snippet: receives the active state name; renders the live preview. */
     children?: Snippet<[{ activeState: string }]>;
     /** Right-aligned controls in the state-tabs strip (e.g. per-state toggles). */
@@ -184,7 +184,7 @@
               toState={activeTab}
               variantName={name}
               {copySources}
-              on:select={(e) => pickCopySource(activeTab, e.detail.fromVariant, e.detail.fromState)}
+              onselect={(d) => pickCopySource(activeTab, d.fromVariant, d.fromState)}
             />
           {/if}
         </div>
@@ -201,7 +201,7 @@
         {component}
         {linkedOrder}
         {columns}
-        on:change={(e) => onchange?.(e)}
+        {onchange}
       />
     {/if}
   {:else}
@@ -211,7 +211,7 @@
       tokens={tokens}
       {component}
       {linkedOrder}
-      on:change={(e) => onchange?.(e)}
+      {onchange}
     />
   {/if}
 

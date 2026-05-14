@@ -5,17 +5,14 @@
    * gradient convention (0deg = pointing up, increasing clockwise) so the
    * displayed line orients the way the gradient axis will paint.
    */
-  import { createEventDispatcher } from 'svelte';
-
   interface Props {
     value?: number;
     label?: string;
     size?: number;
+    onchange?: (payload: { value: number }) => void;
   }
 
-  let { value = $bindable(0), label = 'Angle', size = 44 }: Props = $props();
-
-  const dispatch = createEventDispatcher<{ change: { value: number } }>();
+  let { value = $bindable(0), label = 'Angle', size = 44, onchange }: Props = $props();
 
   let dialEl: HTMLDivElement | undefined = $state();
   let dragging = $state(false);
@@ -29,7 +26,7 @@
     const n = normalize(next);
     if (n === value) return;
     value = n;
-    dispatch('change', { value: n });
+    onchange?.({ value: n });
   }
 
   function angleFromEvent(e: PointerEvent): number {

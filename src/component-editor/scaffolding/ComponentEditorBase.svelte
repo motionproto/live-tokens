@@ -78,7 +78,7 @@
   {/if}
   {@render children?.({ focusedVariant: $focusedVariant, })}
   {#if linked}
-    <LinkedBlock {component} {linked} on:change />
+    <LinkedBlock {component} {linked} />
   {/if}
 </div>
 

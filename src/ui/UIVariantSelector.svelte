@@ -1,5 +1,4 @@
 <script lang="ts" generics="T extends { key: string; label?: string; value?: string }">
-  import { createEventDispatcher } from 'svelte';
   import type { Snippet } from 'svelte';
   import { resolveAliasChain } from '../lib/tokenRegistry';
   import UITokenSelector from './UITokenSelector.svelte';
@@ -28,6 +27,7 @@
     option?: Snippet<[{ opt: O; active: boolean; select: () => void }]>;
     /** Trailing dropdown content (e.g. action buttons). */
     extras?: Snippet<[{ close: () => void }]>;
+    onchange?: () => void;
   }
 
   let {
@@ -45,11 +45,8 @@
     triggerMeta: callerTriggerMeta,
     option: callerOption,
     extras: callerExtras,
+    onchange,
   }: Props<T> = $props();
-
-  const dispatch = createEventDispatcher<{
-    change: void;
-  }>();
 
   let selector: UITokenSelector;
   let chosenKey: string | null = $state(null);
@@ -98,7 +95,7 @@
   function handleReset() {
     chosenKey = null;
     readResolved();
-    dispatch('change');
+    onchange?.();
   }
 
   function selectKey(key: string, close: () => void) {
@@ -112,7 +109,7 @@
     }
     readResolved();
     close();
-    dispatch('change');
+    onchange?.();
   }
 
   // Re-derive `chosenKey` when the bound `variable` changes (e.g. when a
@@ -138,8 +135,8 @@
   {selectionsLocked}
   {dropdownMinWidth}
   {dropdownMaxWidth}
-  on:reset={handleReset}
-  on:var-change={initFromCurrent}
+  onreset={handleReset}
+  onvarChange={initFromCurrent}
 >
   {#snippet triggerTitle()}
     {#if callerTriggerTitle}{@render callerTriggerTitle({ activeOption })}{:else}{activeOption?.label ?? ''}{/if}

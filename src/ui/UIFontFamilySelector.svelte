@@ -1,7 +1,7 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
 
-  import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { resolveAliasChain } from '../lib/tokenRegistry';
   import { editorState } from '../lib/editorStore';
   import { CSS_VAR_CHANGE_EVENT } from '../lib/cssVarSync';
@@ -10,14 +10,13 @@
   import UIOptionList from './UIOptionList.svelte';
   import UIOptionItem from './UIOptionItem.svelte';
 
-  const dispatch = createEventDispatcher();
-
   interface Props {
     variable: string;
     component?: string | undefined;
     canBeLinked?: boolean;
     disabled?: boolean;
     selectionsLocked?: boolean;
+    onchange?: () => void;
   }
 
   let {
@@ -25,7 +24,8 @@
     component = undefined,
     canBeLinked = false,
     disabled = false,
-    selectionsLocked = false
+    selectionsLocked = false,
+    onchange,
   }: Props = $props();
 
   const options = [
@@ -123,7 +123,7 @@
     chosenKey = null;
     chosenFamilyId = null;
     readResolved();
-    dispatch('change');
+    onchange?.();
   }
 
   function selectOption(key: string, close: () => void) {
@@ -138,7 +138,7 @@
     chosenFamilyId = null;
     readResolved();
     close();
-    dispatch('change');
+    onchange?.();
   }
 
   function selectProjectFamily(family: FontFamily, close: () => void) {
@@ -148,7 +148,7 @@
     chosenFamilyId = family.id;
     readResolved();
     close();
-    dispatch('change');
+    onchange?.();
   }
 
   // Re-derive `chosenKey` / `chosenFamilyId` when `variable` changes (the
@@ -182,8 +182,8 @@
   {disabled}
   {selectionsLocked}
   dropdownMinWidth="14rem"
-  on:reset={handleReset}
-  on:var-change={initFromCurrent}
+  onreset={handleReset}
+  onvarChange={initFromCurrent}
 >
   {#snippet triggerTitle()}{activeLabel}{/snippet}
   {#snippet triggerMeta()}{displayFamily || '—'}{/snippet}

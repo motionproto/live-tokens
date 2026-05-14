@@ -34,11 +34,6 @@
 </script>
 
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-
-  
-  
-  
   interface Props {
     contexts?: string[];
     broken?: string[];
@@ -54,6 +49,7 @@
     /** Currently focused state (matches a column in 2d). The cell at (selectedRow, selectedCol)
       gets an additional accent. Ignored in 1d charts. */
     selectedCol?: string | null;
+    onselect?: (label: string) => void;
   }
 
   let {
@@ -62,10 +58,9 @@
     singleAxisLabel = '',
     caption = 'Linked Properties',
     selectedRow = null,
-    selectedCol = null
+    selectedCol = null,
+    onselect
   }: Props = $props();
-
-  const dispatch = createEventDispatcher<{ select: string }>();
 
   let axes = $derived(deriveAxes(contexts));
   let status = $derived((() => {
@@ -78,7 +73,7 @@
   let hoveredRow: number = $state(-1);
 
   function key2d(r: string, c: string): string { return `${r} ${c}`; }
-  function selectRow(label: string) { dispatch('select', label); }
+  function selectRow(label: string) { onselect?.(label); }
   /** True when this 1d row's key matches focus — either as a bare label
       (`"primary"` matches focusedVariant `"primary"`) or as a compound
       `"variant state"` matching the focused pair. */

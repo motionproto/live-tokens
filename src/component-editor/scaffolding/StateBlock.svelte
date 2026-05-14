@@ -31,6 +31,7 @@
       (the two-col flex layout already partitions screen real estate when
       typeGroups are present). */
     columns?: number;
+    onchange?: () => void;
   }
 
   let {
@@ -38,7 +39,8 @@
     typeGroups = [],
     component = undefined,
     linkedOrder = undefined,
-    columns = 1
+    columns = 1,
+    onchange,
   }: Props = $props();
 
   let hasTypeGroups = $derived(typeGroups.length > 0);
@@ -65,7 +67,7 @@
           outlineColorVariable={tg.outlineColorVariable}
           outlineColorLabel={tg.outlineColorLabel ?? 'outline color'}
           {component}
-          on:change
+          {onchange}
         />
       {/each}
     </div>
@@ -76,7 +78,7 @@
     {component}
     {linkedOrder}
     {columns}
-    on:change
+    {onchange}
   />
 </div>
 

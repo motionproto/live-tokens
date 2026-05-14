@@ -84,8 +84,8 @@
     });
   }
 
-  async function handleSave(e: CustomEvent<{ fileName: string; displayName: string }>) {
-    const { fileName, displayName } = e.detail;
+  async function handleSave(detail: { fileName: string; displayName: string }) {
+    const { fileName, displayName } = detail;
     saveStatus = 'saving';
     try {
       await persistTheme(get(editorState), fileName, displayName);
@@ -97,9 +97,9 @@
     }
   }
 
-  async function handleLoad(e: CustomEvent<{ fileName: string }>) {
+  async function handleLoad(detail: { fileName: string }) {
     try {
-      await hydrateTheme(e.detail.fileName);
+      await hydrateTheme(detail.fileName);
     } catch {
       // silent
     }
@@ -161,7 +161,7 @@
       </div>
       {#if !condensed}
         <div class="sidebar-footer">
-          <ThemeFileManager {saveStatus} on:save={handleSave} on:load={handleLoad} />
+          <ThemeFileManager {saveStatus} onsave={handleSave} onload={handleLoad} />
         </div>
       {/if}
     {:else}

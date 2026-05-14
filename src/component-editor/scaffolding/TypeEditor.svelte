@@ -33,6 +33,7 @@
     component?: string | undefined;
     /** Legend text for the fieldset. */
     legend?: string;
+    onchange?: () => void;
   }
 
   let {
@@ -51,38 +52,39 @@
     outlineColorVariable = undefined,
     outlineColorLabel = 'outline color',
     component = undefined,
-    legend = 'type'
+    legend = 'type',
+    onchange,
   }: Props = $props();
 </script>
 
 <FieldsetWrapper {legend}>
   <div class="type-grid">
     <span class="row-label">{colorLabel}</span>
-    <UIPaletteSelector variable={colorVariable} {component} on:change />
+    <UIPaletteSelector variable={colorVariable} {component} {onchange} />
 
     {#if familyVariable}
       <span class="row-label">{familyLabel}</span>
-      <UIFontFamilySelector variable={familyVariable} {component} canBeLinked on:change />
+      <UIFontFamilySelector variable={familyVariable} {component} canBeLinked {onchange} />
     {/if}
     {#if weightVariable}
       <span class="row-label">{weightLabel}</span>
-      <UIFontWeightSelector variable={weightVariable} {component} canBeLinked on:change />
+      <UIFontWeightSelector variable={weightVariable} {component} canBeLinked {onchange} />
     {/if}
     {#if sizeVariable}
       <span class="row-label">{sizeLabel}</span>
-      <UIFontSizeSelector variable={sizeVariable} {component} canBeLinked on:change />
+      <UIFontSizeSelector variable={sizeVariable} {component} canBeLinked {onchange} />
     {/if}
     {#if lineHeightVariable}
       <span class="row-label">{lineHeightLabel}</span>
-      <UILineHeightSelector variable={lineHeightVariable} {component} canBeLinked on:change />
+      <UILineHeightSelector variable={lineHeightVariable} {component} canBeLinked {onchange} />
     {/if}
     {#if outlineWidthVariable}
       <span class="row-label">{outlineWidthLabel}</span>
-      <UIVariantSelector variable={outlineWidthVariable} {component} canBeLinked {...BORDER_WIDTH} on:change />
+      <UIVariantSelector variable={outlineWidthVariable} {component} canBeLinked {...BORDER_WIDTH} {onchange} />
     {/if}
     {#if outlineColorVariable}
       <span class="row-label">{outlineColorLabel}</span>
-      <UIPaletteSelector variable={outlineColorVariable} {component} canBeLinked on:change />
+      <UIPaletteSelector variable={outlineColorVariable} {component} canBeLinked {onchange} />
     {/if}
   </div>
 </FieldsetWrapper>

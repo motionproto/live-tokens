@@ -12,7 +12,6 @@
    * Values are read live via getComputedStyle (passed in by the parent through
    * `tokens`), so tokens.css remains the single source of truth.
    */
-  import { createEventDispatcher } from 'svelte';
   import { editorState } from '../../lib/editorStore';
 
   interface TokenItem {
@@ -47,6 +46,7 @@
     liveVersion?: number;
     /** When provided, the parent owns the copy-flash UI (pass copiedVar through). */
     copiedVar?: string | null;
+    oncopy?: (variable: string) => void;
   }
 
   let {
@@ -54,11 +54,11 @@
     vars = undefined,
     tokens = undefined,
     liveVersion = 0,
-    copiedVar = null
+    copiedVar = null,
+    oncopy
   }: Props = $props();
 
-  const dispatch = createEventDispatcher<{ copy: string }>();
-  function copy(v: string) { dispatch('copy', v); }
+  function copy(v: string) { oncopy?.(v); }
 
   function readVar(name: string): string {
     if (typeof document === 'undefined') return '';

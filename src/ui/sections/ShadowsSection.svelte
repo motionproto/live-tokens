@@ -12,7 +12,7 @@
    * captures coherent edits. The store's subscriber fans values to :root
    * via cssVarSync.
    */
-  import { onMount, createEventDispatcher } from 'svelte';
+  import { onMount } from 'svelte';
   import {
     editorState, mutate, beginScope, commitScope, beginSliderGesture,
     seedShadowsFromDom, shadowTokenCss, computeShadowXY,
@@ -23,12 +23,12 @@
 
   interface Props {
     copiedVar?: string | null;
+    oncopy?: (variable: string) => void;
   }
 
-  let { copiedVar = null }: Props = $props();
+  let { copiedVar = null, oncopy }: Props = $props();
 
-  const dispatch = createEventDispatcher<{ copy: string }>();
-  function copy(v: string) { dispatch('copy', v); }
+  function copy(v: string) { oncopy?.(v); }
 
   function getShadowOverride(s: EditorState, variable: string): ShadowOverrideFlags {
     let ov = s.shadows.overrides[variable];

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
 
   type Source = { name: string; label: string; states: string[] };
 
@@ -8,16 +8,16 @@
     variantName: string;
     copySources?: Source[];
     placement?: 'start' | 'end';
+    onselect?: (payload: { fromVariant: string; fromState: string }) => void;
   }
 
   let {
     toState,
     variantName,
     copySources = [],
-    placement = 'start'
+    placement = 'start',
+    onselect
   }: Props = $props();
-
-  const dispatch = createEventDispatcher<{ select: { fromVariant: string; fromState: string } }>();
 
   let open = $state(false);
   let root: HTMLElement | undefined = $state();
@@ -28,7 +28,7 @@
 
   function pick(fromVariant: string, fromState: string) {
     open = false;
-    dispatch('select', { fromVariant, fromState });
+    onselect?.({ fromVariant, fromState });
   }
 
   function handleDocClick(e: MouseEvent) {

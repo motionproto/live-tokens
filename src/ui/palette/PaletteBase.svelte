@@ -106,7 +106,7 @@
   >
     {#snippet actions()}
         <span  class:hidden={mode !== 'chromatic'}>
-        <Toggle checked={anchorToBase} on:change={(e) => onAnchorToBaseChange(e.detail ?? !anchorToBase)} label="Lock base color to position 500" />
+        <Toggle checked={anchorToBase} onchange={(v) => onAnchorToBaseChange(v ?? !anchorToBase)} label="Lock base color to position 500" />
       </span>
       {/snippet}
   </ColorEditPanel>

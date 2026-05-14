@@ -78,8 +78,8 @@
   let shimmerRef = $derived($editorState.components.button?.aliases['--button-shimmer']);
   let shimmerEnabled = $derived(!(shimmerRef?.kind === 'token' && shimmerRef.name === '--shimmer-off'));
 
-  function handleShimmerChange(e: CustomEvent<boolean>) {
-    setComponentAlias('button', '--button-shimmer', { kind: 'token', name: e.detail ? '--shimmer-on' : '--shimmer-off' });
+  function handleShimmerChange(checked: boolean) {
+    setComponentAlias('button', '--button-shimmer', { kind: 'token', name: checked ? '--shimmer-on' : '--shimmer-off' });
   }
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
@@ -94,7 +94,7 @@
   
       <label>
         <span>Hover shimmer</span>
-        <Toggle checked={shimmerEnabled} on:change={handleShimmerChange} />
+        <Toggle checked={shimmerEnabled} onchange={handleShimmerChange} />
       </label>
     
   {/snippet}

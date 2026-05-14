@@ -1,14 +1,10 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
 
-  import { createEventDispatcher } from 'svelte';
   import type { ComponentConfigMeta } from '../../lib/themeTypes';
   import { sanitizeFileName } from '../../lib/themeService';
   import UIDialog from '../../ui/UIDialog.svelte';
 
-  
-  
-  
   interface Props {
     /** Two-way bound: parent toggles to open/close. */
     show?: boolean;
@@ -16,13 +12,10 @@
     currentDisplayName?: string;
     /** Existing files used by the increment helper to find the next available `_NN` suffix. */
     files?: ComponentConfigMeta[];
+    onsave?: (payload: { displayName: string; fileName: string }) => void;
   }
 
-  let { show = $bindable(false), currentDisplayName = '', files = [] }: Props = $props();
-
-  const dispatch = createEventDispatcher<{
-    save: { displayName: string; fileName: string };
-  }>();
+  let { show = $bindable(false), currentDisplayName = '', files = [], onsave }: Props = $props();
 
   let saveAsName = $state('');
   let saveAsInput: HTMLInputElement | undefined = $state();
@@ -57,7 +50,7 @@
     if (!displayName || saveAsError) return;
     const fileName = sanitizeFileName(displayName);
     show = false;
-    dispatch('save', { displayName, fileName });
+    onsave?.({ displayName, fileName });
   }
 
   function handleKeydown(e: KeyboardEvent) {
@@ -92,7 +85,7 @@
   cancelLabel="Cancel"
   confirmLabel="Save"
   confirmDisabled={!saveAsName.trim() || !!saveAsError}
-  on:confirm={confirmSaveAs}
+  onconfirm={confirmSaveAs}
   width="360px"
 >
   <div class="save-as-dialog">

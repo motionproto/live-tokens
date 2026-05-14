@@ -1,20 +1,17 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-
   interface Props {
     value: string;
     options: ReadonlyArray<{ value: string; label: string }>;
     name: string;
+    onchange?: (value: string) => void;
   }
 
-  let { value = $bindable(), options, name }: Props = $props();
-
-  const dispatch = createEventDispatcher<{ change: string }>();
+  let { value = $bindable(), options, name, onchange }: Props = $props();
 
   function select(v: string) {
     if (v === value) return;
     value = v;
-    dispatch('change', v);
+    onchange?.(v);
   }
 </script>
 
