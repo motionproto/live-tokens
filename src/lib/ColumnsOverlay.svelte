@@ -104,7 +104,7 @@
 
   .columns-overlay__info {
     position: fixed;
-    left: 12px;
+    right: 12px;
     bottom: 12px;
     display: inline-flex;
     align-items: center;

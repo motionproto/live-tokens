@@ -2,7 +2,7 @@
   "name": "default_01",
   "component": "button",
   "createdAt": "2026-05-14T15:01:05.865Z",
-  "updatedAt": "2026-05-14T15:01:05.867Z",
+  "updatedAt": "2026-05-14T20:07:06.593Z",
   "aliases": {
     "--button-primary-surface": "--surface-brand-high",
     "--button-primary-text": "--text-primary",

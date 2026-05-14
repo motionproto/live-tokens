@@ -21,6 +21,7 @@
     loadComponentActive,
     markComponentSaved,
   } from '../../lib/editorStore';
+  import { bumpProductionRevision } from '../../lib/productionPulse';
   import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../lib/migrations';
   import type { CssVarRef } from '../../lib/editorTypes';
   import { safeFetch } from '../../lib/storage';
@@ -295,6 +296,7 @@
       }
       await setComponentProductionFile(component, activeFileName);
       await refreshProduction();
+      bumpProductionRevision();
       adoptFeedback = wasDirty
         ? `Saved "${adoptingName}" and adopted`
         : `Adopted "${adoptingName}"`;
@@ -518,7 +520,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--ui-space-6);
-    margin-left: auto;
+    margin-left: 2.5rem;
     height: 26px;
     padding: 0 14px;
     font-size: var(--ui-font-size-xs);

@@ -12,6 +12,7 @@
   import { scrollSectionIntoView } from '../lib/scrollSection';
   import { editorState } from '../lib/editorStore';
   import { editorView, sidebarCondensed, selectedComponent } from '../lib/editorViewStore';
+  import { componentDirty } from '../lib/editorStore';
   import { componentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
   import { listComponents } from '../lib/componentConfigService';
 
@@ -170,12 +171,16 @@
           <button
             class="nav-item"
             class:active={$selectedComponent === item.id}
+            class:dirty={$componentDirty[item.id]}
             onmouseenter={(e) => showHint(item.label, e.currentTarget)}
             onmouseleave={hideHint}
             onclick={() => selectComponent(item.id)}
           >
             <i class={item.icon}></i>
             <span class="nav-label">{item.label}</span>
+            {#if $componentDirty[item.id]}
+              <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
+            {/if}
           </button>
         {/each}
       </div>
@@ -262,6 +267,7 @@
   }
 
   .nav-item {
+    position: relative;
     display: grid;
     grid-template-columns: 48px 1fr;
     align-items: center;
@@ -284,6 +290,25 @@
     text-align: center;
     font-size: var(--ui-font-size-md);
     opacity: 0.85;
+  }
+
+  /* Amber dot indicating unsaved changes. Anchored to the top-right of the
+     icon column so it stays visible whether the sidebar is condensed
+     (icon-only) or expanded (icon + label). */
+  .dirty-dot {
+    position: absolute;
+    top: 8px;
+    left: 30px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ui-highlight);
+    box-shadow: 0 0 0 2px black;
+    pointer-events: none;
+  }
+
+  .nav-item.dirty {
+    color: var(--ui-text-secondary);
   }
 
   .nav-label {

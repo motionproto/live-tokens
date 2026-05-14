@@ -1,7 +1,6 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
 
-  import type { ComponentConfigMeta } from '../../lib/themeTypes';
   import { sanitizeFileName } from '../../lib/themeService';
   import UIDialog from '../../ui/UIDialog.svelte';
 
@@ -10,12 +9,30 @@
     show?: boolean;
     /** Display name to seed the input with when the dialog opens. */
     currentDisplayName?: string;
-    /** Existing files used by the increment helper to find the next available `_NN` suffix. */
-    files?: ComponentConfigMeta[];
+    /** Existing files used by the increment helper to find the next available `_NN` suffix.
+     *  Only `fileName` is read, so this accepts any shape with that field
+     *  (ComponentConfigMeta, PresetMeta, …). */
+    files?: { fileName: string }[];
+    /** Dialog title — defaults to "Save As". Overridable so callers can use
+     *  context-specific framing (e.g. "Save Preset As"). */
+    title?: string;
+    /** Placeholder shown in the empty input. */
+    placeholder?: string;
+    /** Error message shown when the user types the reserved "default" name.
+     *  Default copy references components; presets should override. */
+    reservedNameMessage?: string;
     onsave?: (payload: { displayName: string; fileName: string }) => void;
   }
 
-  let { show = $bindable(false), currentDisplayName = '', files = [], onsave }: Props = $props();
+  let {
+    show = $bindable(false),
+    currentDisplayName = '',
+    files = [],
+    title = 'Save As',
+    placeholder = 'Config name…',
+    reservedNameMessage = 'The name "default" is reserved for the core component definition.',
+    onsave,
+  }: Props = $props();
 
   let saveAsName = $state('');
   let saveAsInput: HTMLInputElement | undefined = $state();
@@ -73,7 +90,7 @@
     const trimmed = saveAsName.trim();
     if (!trimmed) return '';
     if (sanitizeFileName(trimmed) === 'default') {
-      return 'The name "default" is reserved for the core component definition.';
+      return reservedNameMessage;
     }
     return '';
   })());
@@ -81,7 +98,7 @@
 
 <UIDialog
   bind:show
-  title="Save As"
+  {title}
   cancelLabel="Cancel"
   confirmLabel="Save"
   confirmDisabled={!saveAsName.trim() || !!saveAsError}
@@ -97,7 +114,7 @@
         bind:value={saveAsName}
         bind:this={saveAsInput}
         onkeydown={handleKeydown}
-        placeholder="Config name…"
+        {placeholder}
       />
       <button
         type="button"

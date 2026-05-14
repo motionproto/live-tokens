@@ -61,7 +61,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     themesResource.ensureDir();
     if (!fs.existsSync(path.join(THEMES_DIR, 'default.json'))) {
       const defaultTheme = {
-        name: 'Default',
+        name: 'Default Theme',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         editorConfigs: {},
@@ -325,7 +325,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       }
       const now = new Date().toISOString();
       const defaultPreset = {
-        name: 'Default',
+        name: 'Default Preset',
         createdAt: now,
         updatedAt: now,
         theme: themesResource.getActiveName(),
@@ -424,6 +424,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const COMPONENT_CONFIGS_ROUTE = `${API_BASE}/component-configs`;
   const PRESETS_ROUTE = `${API_BASE}/presets`;
   const PRESETS_ACTIVE_ROUTE = `${API_BASE}/presets/active`;
+  const PRESETS_PRODUCTION_ROUTE = `${API_BASE}/presets/production`;
   const THEME_BY_NAME_REGEX = new RegExp(`^${escapedBase}/themes/([a-z0-9\\-_]+)$`);
   const COMP_LIST_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)$`);
   const COMP_ACTIVE_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/active$`);
@@ -779,6 +780,88 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     jsonResponse(res, 200, { ok: true, activeFile: fileName });
   }
 
+  async function handleGetProductionPreset({ res }: any) {
+    const prodFile = presetsResource.getProductionName();
+    const filePath = presetsResource.filePath(prodFile);
+    if (!fs.existsSync(filePath)) {
+      jsonResponse(res, 200, {
+        fileName: prodFile,
+        name: prodFile,
+        theme: 'default',
+        componentConfigs: {},
+        updatedAt: '',
+      });
+      return;
+    }
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    jsonResponse(res, 200, {
+      fileName: prodFile,
+      name: data.name || prodFile,
+      theme: data.theme || 'default',
+      componentConfigs: data.componentConfigs || {},
+      updatedAt: data.updatedAt || '',
+    });
+  }
+
+  /**
+   * Set the production preset: flip every per-artifact `_production.json`
+   * pointer to the file the preset names, update `presets/_production.json`,
+   * and re-bake tokens.css + fonts.css + the component overrides block.
+   * Parallel to handleSetProductionTheme but operating on the whole bundle.
+   * Unmentioned components keep their existing production pointer (matches
+   * the editor-side apply semantics — preset has no opinion about those).
+   */
+  async function handleSetProductionPreset({ req, res }: any) {
+    const body = JSON.parse(await readBody(req));
+    const fileName = sanitizeFileName(body.name || 'default');
+    const presetPath = presetsResource.filePath(fileName);
+    if (!fs.existsSync(presetPath)) {
+      jsonResponse(res, 404, { error: 'Preset not found' });
+      return;
+    }
+    const preset = JSON.parse(fs.readFileSync(presetPath, 'utf-8'));
+
+    const themeName = sanitizeFileName(preset.theme || 'default');
+    if (!fs.existsSync(themesResource.filePath(themeName))) {
+      jsonResponse(res, 422, { error: `Preset references missing theme: ${themeName}` });
+      return;
+    }
+
+    const knownComponents = new Set(listComponentNames());
+    const componentConfigs = preset.componentConfigs ?? {};
+    const apply: Array<[string, string]> = [];
+    for (const [comp, configFile] of Object.entries(componentConfigs)) {
+      if (!knownComponents.has(comp)) continue;
+      const sanitized = sanitizeFileName(String(configFile) || 'default');
+      if (!fs.existsSync(componentResource(comp).filePath(sanitized))) {
+        jsonResponse(res, 422, {
+          error: `Preset references missing config: ${comp}/${sanitized}`,
+        });
+        return;
+      }
+      apply.push([comp, sanitized]);
+    }
+
+    themesResource.setProductionName(themeName);
+    for (const [comp, configFile] of apply) {
+      componentResource(comp).setProductionName(configFile);
+    }
+    presetsResource.setProductionName(fileName);
+
+    syncTokensToCss(themeName);
+    syncFontsToCss(themeName);
+    syncComponentsToCss();
+
+    jsonResponse(res, 200, {
+      ok: true,
+      fileName,
+      name: preset.name || fileName,
+      theme: themeName,
+      componentConfigs: Object.fromEntries(apply),
+      updatedAt: preset.updatedAt || '',
+    });
+  }
+
   async function handlePresetByName({ params, req, res }: any) {
     const [fileName] = params;
     const filePath = presetsResource.filePath(fileName);
@@ -795,6 +878,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
 
     if (req.method === 'PUT') {
+      if (fileName === 'default') {
+        jsonResponse(res, 403, { error: 'Cannot overwrite the default preset' });
+        return;
+      }
       const body = JSON.parse(await readBody(req));
       body.updatedAt = new Date().toISOString();
       if (fs.existsSync(filePath)) {
@@ -957,10 +1044,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     { method: 'PUT',    pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
     { method: 'DELETE', pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
 
-    // Presets — list / active are exact strings, must run before regexes
-    { method: 'GET',    pattern: PRESETS_ROUTE,           handler: handleListPresets },
-    { method: 'GET',    pattern: PRESETS_ACTIVE_ROUTE,    handler: handleGetActivePreset },
-    { method: 'PUT',    pattern: PRESETS_ACTIVE_ROUTE,    handler: handleSetActivePreset },
+    // Presets — list / active / production are exact strings, must run before regexes
+    { method: 'GET',    pattern: PRESETS_ROUTE,            handler: handleListPresets },
+    { method: 'GET',    pattern: PRESETS_ACTIVE_ROUTE,     handler: handleGetActivePreset },
+    { method: 'PUT',    pattern: PRESETS_ACTIVE_ROUTE,     handler: handleSetActivePreset },
+    { method: 'GET',    pattern: PRESETS_PRODUCTION_ROUTE, handler: handleGetProductionPreset },
+    { method: 'PUT',    pattern: PRESETS_PRODUCTION_ROUTE, handler: handleSetProductionPreset },
 
     // Presets — :name/apply (more specific than :name)
     { method: 'PUT',    pattern: PRESET_APPLY_REGEX,      handler: handleApplyPreset },

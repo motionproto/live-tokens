@@ -1,13 +1,14 @@
 <script lang="ts">
   import { stopPropagation } from 'svelte/legacy';
 
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import type { ThemeMeta } from '../lib/themeTypes';
-  import { listThemes, deleteTheme, setActiveFile, sanitizeFileName, getProductionInfo, setProductionFile } from '../lib/themeService';
-  import type { ProductionInfo } from '../lib/themeService';
+  import { listThemes, deleteTheme, setActiveFile, getProductionInfo, setProductionFile } from '../lib/themeService';
   import { activeFileName } from '../lib/editorConfigStore';
   import { dirty } from '../lib/editorStore';
+  import { productionRevision, bumpProductionRevision, themeProductionInfo } from '../lib/productionPulse';
   import UIDialog from './UIDialog.svelte';
+  import SaveAsDialog from '../component-editor/scaffolding/SaveAsDialog.svelte';
 
   interface Props {
     saveStatus?: 'idle' | 'saving' | 'saved' | 'error';
@@ -19,19 +20,26 @@
 
   let files: ThemeMeta[] = $state([]);
   let showFileList = $state(false);
-  let saveAsEditing = $state(false);
-  let saveAsName = $state('');
-  let saveAsInput: HTMLInputElement | undefined = $state();
-  let currentDisplayName = $state('Default');
+  let saveAsDialog = $state(false);
+  let currentDisplayName = $state('Default Theme');
 
-  // --- Production state ---
-  let productionInfo: ProductionInfo | null = $state(null);
-  let productionUpdateStatus: 'idle' | 'updating' | 'done' | 'error' = $state('idle');
+  let prodApplyStatus: 'idle' | 'applying' | 'done' | 'error' = $state('idle');
+
+  let infoOpen = $state(false);
+  let infoBtnEl = $state<HTMLButtonElement | undefined>(undefined);
+  let infoPopoverEl = $state<HTMLDivElement | undefined>(undefined);
+  let infoPopoverReady = $state(false);
+
+  let prodIsInSync = $derived($themeProductionInfo?.fileName === $activeFileName);
+  let editorIsApplied = $derived(prodIsInSync && !$dirty);
+  let prodName = $derived($themeProductionInfo?.name ?? '—');
+
+  let isDefaultActive = $derived($activeFileName === 'default');
 
   async function refreshFiles() {
     try {
       files = await listThemes();
-      const active = files.find(f => f.isActive);
+      const active = files.find((f) => f.isActive);
       if (active) {
         $activeFileName = active.fileName;
         currentDisplayName = active.name;
@@ -43,90 +51,142 @@
 
   async function refreshProduction() {
     try {
-      productionInfo = await getProductionInfo();
+      const info = await getProductionInfo();
+      themeProductionInfo.set(info);
     } catch {
-      // silent
-    }
-  }
-
-  async function handleUpdateProduction() {
-    productionUpdateStatus = 'updating';
-    try {
-      await setProductionFile($activeFileName);
-      await refreshProduction();
-      productionUpdateStatus = 'done';
-      setTimeout(() => { productionUpdateStatus = 'idle'; }, 2000);
-    } catch {
-      productionUpdateStatus = 'error';
-      setTimeout(() => { productionUpdateStatus = 'idle'; }, 2000);
+      // silent — leave cached value in place
     }
   }
 
   onMount(async () => {
     await refreshFiles();
     await refreshProduction();
+    window.addEventListener('keydown', handleKeydown);
+    document.addEventListener('mousedown', handleDocumentMousedown, true);
+  });
+
+  onDestroy(() => {
+    window.removeEventListener('keydown', handleKeydown);
+    document.removeEventListener('mousedown', handleDocumentMousedown, true);
+  });
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape' && infoOpen) {
+      infoOpen = false;
+    }
+  }
+
+  function handleDocumentMousedown(e: MouseEvent) {
+    if (!infoOpen) return;
+    const target = e.target as Element | null;
+    if (target && !target.closest('.tfm-info-btn, .tfm-info-popover')) {
+      infoOpen = false;
+    }
+  }
+
+  /** Anchor the fixed-position popover to the right of the info button. The
+   *  sidebar lives on the left, so flow into the content area; flip up if the
+   *  button is near the bottom of the viewport. Mirrors the preset popover so
+   *  the two info surfaces feel identical. */
+  function positionInfoPopover(): void {
+    const btn = infoBtnEl;
+    const pop = infoPopoverEl;
+    if (!btn || !pop) return;
+    const br = btn.getBoundingClientRect();
+    const pr = pop.getBoundingClientRect();
+    const margin = 8;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    let left = br.right + margin;
+    if (left + pr.width > vw - margin) {
+      left = br.left + br.width / 2 - pr.width / 2;
+      if (left < margin) left = margin;
+      if (left + pr.width > vw - margin) left = vw - margin - pr.width;
+    }
+    let top = br.bottom + margin;
+    if (top + pr.height > vh - margin) {
+      top = br.top - margin - pr.height;
+      if (top < margin) top = margin;
+    }
+    pop.style.left = `${left}px`;
+    pop.style.top = `${top}px`;
+    infoPopoverReady = true;
+  }
+
+  $effect(() => {
+    if (!infoOpen) {
+      infoPopoverReady = false;
+      return;
+    }
+    let raf1 = requestAnimationFrame(() => {
+      raf1 = requestAnimationFrame(positionInfoPopover);
+    });
+    window.addEventListener('scroll', positionInfoPopover, true);
+    window.addEventListener('resize', positionInfoPopover);
+    return () => {
+      cancelAnimationFrame(raf1);
+      window.removeEventListener('scroll', positionInfoPopover, true);
+      window.removeEventListener('resize', positionInfoPopover);
+    };
+  });
+
+  // Refresh production state when any production pointer flips (e.g. a preset
+  // is adopted elsewhere). Skip the initial tick — onMount already loaded it.
+  let pulseInitialised = false;
+  $effect(() => {
+    void $productionRevision;
+    if (!pulseInitialised) {
+      pulseInitialised = true;
+      return;
+    }
+    refreshProduction();
   });
 
   function handleSave() {
+    if (isDefaultActive) return;
     onsave?.({ fileName: $activeFileName, displayName: currentDisplayName });
   }
 
-  function handleSaveIncrement() {
-    // Strip any existing _NN suffix, then find the next available number
-    const baseName = currentDisplayName.replace(/_\d+$/, '');
-    const baseFileName = sanitizeFileName(baseName);
-    const existingNums = files
-      .filter(f => f.fileName === baseFileName || f.fileName.match(new RegExp(`^${baseFileName}_\\d+$`)))
-      .map(f => {
-        const m = f.fileName.match(/_(\d+)$/);
-        return m ? parseInt(m[1], 10) : 0;
-      });
-    const next = (existingNums.length > 0 ? Math.max(...existingNums) : 0) + 1;
-    const suffix = String(next).padStart(2, '0');
-    const displayName = `${baseName}_${suffix}`;
-    const fileName = `${baseFileName}_${suffix}`;
-
-    onsave?.({ fileName, displayName });
-    $activeFileName = fileName;
-    currentDisplayName = displayName;
-    setTimeout(() => refreshFiles(), 500);
-  }
-
   function openSaveAs() {
-    saveAsName = currentDisplayName;
-    saveAsEditing = true;
     showFileList = false;
-    // Focus the input after Svelte renders it
-    setTimeout(() => saveAsInput?.select(), 0);
+    saveAsDialog = true;
   }
 
-  function confirmSaveAs() {
-    const displayName = saveAsName.trim();
-    if (!displayName) return;
-    const fileName = sanitizeFileName(displayName);
-    if (fileName === 'default') {
-      saveAsName = '';
-      return;
-    }
-    saveAsEditing = false;
+  function confirmSaveAs(detail: { displayName: string; fileName: string }) {
+    const { displayName, fileName } = detail;
     onsave?.({ fileName, displayName });
     $activeFileName = fileName;
     currentDisplayName = displayName;
     setTimeout(() => refreshFiles(), 500);
   }
 
-  function cancelSaveAs() {
-    saveAsEditing = false;
-    saveAsName = '';
+  async function handleApplyToProduction() {
+    if (prodIsInSync) return;
+    prodApplyStatus = 'applying';
+    try {
+      await setProductionFile($activeFileName);
+      await refreshProduction();
+      bumpProductionRevision();
+      prodApplyStatus = 'done';
+      setTimeout(() => { prodApplyStatus = 'idle'; }, 2000);
+    } catch {
+      prodApplyStatus = 'error';
+      setTimeout(() => { prodApplyStatus = 'idle'; }, 3000);
+    }
   }
 
   async function handleLoad(file: ThemeMeta) {
+    if ($dirty) {
+      const ok = window.confirm(
+        'Loading a theme will discard unsaved changes. Continue?',
+      );
+      if (!ok) return;
+    }
     showFileList = false;
     await setActiveFile(file.fileName);
     $activeFileName = file.fileName;
     currentDisplayName = file.name;
     onload?.({ fileName: file.fileName });
-    // editorStore.loadFromFile clears history and resets dirty — no snapshot needed here.
   }
 
   async function handleDelete(file: ThemeMeta) {
@@ -134,10 +194,9 @@
     try {
       await deleteTheme(file.fileName);
       await refreshFiles();
-      // If we deleted the active file, it reverts to default on the server
       if (file.fileName === $activeFileName) {
         $activeFileName = 'default';
-        currentDisplayName = 'Default';
+        currentDisplayName = 'Default Theme';
         onload?.({ fileName: 'default' });
       }
     } catch {
@@ -145,14 +204,8 @@
     }
   }
 
-  function handleSaveAsKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter') confirmSaveAs();
-    if (e.key === 'Escape') cancelSaveAs();
-  }
-
   function toggleFileList() {
     showFileList = !showFileList;
-    saveAsEditing = false;
     if (showFileList) refreshFiles();
   }
 
@@ -179,7 +232,6 @@
       sortDir = sortDir === 'asc' ? 'desc' : 'asc';
     } else {
       sortKey = key;
-      // Default: names asc, dates desc (most-recent first)
       sortDir = key === 'name' ? 'asc' : 'desc';
     }
   }
@@ -196,118 +248,152 @@
 </script>
 
 <div class="theme-file-manager">
-  <div class="active-file">
-    <span class="active-label">Theme</span>
-    <span class="active-name">{currentDisplayName}</span>
-  </div>
-
-
-  <div class="button-grid">
-    <div class="save-row">
-      <button
-        class="tfm-btn save-btn"
-        class:saving={saveStatus === 'saving'}
-        class:saved={saveStatus === 'saved'}
-        class:error={saveStatus === 'error'}
-        onclick={handleSave}
-        disabled={saveStatus === 'saving'}
-        title="Save to current file"
-      >
-        <i class="fas" class:fa-save={saveStatus === 'idle'} class:fa-spinner={saveStatus === 'saving'} class:fa-check={saveStatus === 'saved'} class:fa-times={saveStatus === 'error'}></i>
-        <span>
-          {#if saveStatus === 'idle'}Save{:else if saveStatus === 'saving'}Saving{:else if saveStatus === 'saved'}Saved{:else}Error{/if}
-        </span>
-      </button>
-      <button
-        class="tfm-btn increment-btn"
-        onclick={handleSaveIncrement}
-        disabled={saveStatus === 'saving'}
-        title="Save as incremented copy"
-      >
-        <i class="fas fa-plus"></i>
-      </button>
-    </div>
-
-    {#if saveAsEditing}
-      <div class="save-as-inline">
-        <input
-          class="save-as-input"
-          type="text"
-          bind:value={saveAsName}
-          bind:this={saveAsInput}
-          onkeydown={handleSaveAsKeydown}
-          placeholder="Theme name..."
-        />
-        <div class="save-as-actions">
-          <button class="inline-btn confirm-btn" onclick={confirmSaveAs} disabled={!saveAsName.trim()} title="Save">
-            <i class="fas fa-check"></i>
-          </button>
-          <button class="inline-btn cancel-btn" onclick={cancelSaveAs} title="Cancel">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-      </div>
-    {:else}
-      <button
-        class="tfm-btn"
-        onclick={openSaveAs}
-        title="Save as new file"
-      >
-        <i class="fas fa-copy"></i>
-        <span>Save As</span>
-      </button>
-    {/if}
-
+  <div class="tfm-header">
+    <span class="tfm-header-label">Theme</span>
     <button
-      class="tfm-btn"
-      class:active={showFileList}
-      onclick={toggleFileList}
-      title="Load a theme"
+      type="button"
+      class="tfm-info-btn"
+      aria-label="About themes"
+      aria-expanded={infoOpen}
+      bind:this={infoBtnEl}
+      onclick={() => (infoOpen = !infoOpen)}
     >
-      <i class="fas fa-folder-open"></i>
-      <span>Load</span>
+      <i class="fas fa-circle-info"></i>
     </button>
-
-
   </div>
 
-  <div class="status-labels">
-    <span class="status-label" class:dirty={$dirty} class:clean={!$dirty}>
-      {$dirty ? 'Unsaved changes' : 'Saved'}
-    </span>
-  </div>
-
-  <div class="production-section">
-    <div class="production-header">
-      <span class="production-label">Production</span>
-      {#if productionInfo}
-        <span class="production-name">{productionInfo.name}</span>
-      {/if}
+  <div class="tfm-cards" class:in-sync={prodIsInSync}>
+    <div
+      class="tfm-card tfm-card-editor"
+      class:dirty={$dirty}
+      class:applied={editorIsApplied}
+    >
+      <span class="tfm-rail" aria-hidden="true"></span>
+      <div class="tfm-card-head">
+        <span class="tfm-card-label">Editor</span>
+        <span
+          class="tfm-card-status"
+          class:dirty={$dirty}
+          class:applied={editorIsApplied}
+        >
+          <i class="tfm-status-dot" aria-hidden="true"></i>
+          <span>{$dirty ? 'unsaved' : editorIsApplied ? 'live' : 'saved'}</span>
+        </span>
+      </div>
+      <div class="tfm-pill" class:dirty={$dirty} class:applied={editorIsApplied}>
+        <span class="tfm-pill-name" title={currentDisplayName}>{currentDisplayName}</span>
+      </div>
+      <div class="tfm-card-actions tfm-card-actions-stack">
+        <button
+          class="tfm-btn tfm-btn-row save-btn"
+          class:saving={saveStatus === 'saving'}
+          class:saved={saveStatus === 'saved'}
+          class:error={saveStatus === 'error'}
+          onclick={handleSave}
+          disabled={saveStatus === 'saving' || isDefaultActive}
+          title={isDefaultActive
+            ? 'Default is read-only — use Save As to capture under a new name'
+            : 'Save to current file'}
+        >
+          <i
+            class="fas"
+            class:fa-save={saveStatus === 'idle'}
+            class:fa-spinner={saveStatus === 'saving'}
+            class:fa-check={saveStatus === 'saved'}
+            class:fa-times={saveStatus === 'error'}
+          ></i>
+          <span>
+            {#if saveStatus === 'idle'}Save{:else if saveStatus === 'saving'}Saving{:else if saveStatus === 'saved'}Saved{:else}Error{/if}
+          </span>
+        </button>
+        <button class="tfm-btn tfm-btn-row" onclick={openSaveAs} title="Save as new theme">
+          <i class="fas fa-copy"></i>
+          <span>Save As…</span>
+        </button>
+        <button
+          class="tfm-btn tfm-btn-row"
+          class:active={showFileList}
+          onclick={toggleFileList}
+          title="Load a theme"
+        >
+          <i class="fas fa-folder-open"></i>
+          <span>Load…</span>
+        </button>
+      </div>
     </div>
 
     <button
-      class="tfm-btn production-update-btn"
-      class:updating={productionUpdateStatus === 'updating'}
-      class:done={productionUpdateStatus === 'done'}
-      class:error={productionUpdateStatus === 'error'}
-      onclick={handleUpdateProduction}
-      disabled={productionUpdateStatus === 'updating' || (productionInfo?.fileName === $activeFileName)}
-      title={productionInfo?.fileName === $activeFileName ? 'Already in production' : `Set "${currentDisplayName}" as production`}
+      class="tfm-adopt-btn"
+      class:saving={prodApplyStatus === 'applying'}
+      class:saved={prodApplyStatus === 'done'}
+      class:error={prodApplyStatus === 'error'}
+      class:in-sync={prodIsInSync}
+      onclick={handleApplyToProduction}
+      disabled={prodApplyStatus === 'applying' || prodIsInSync}
+      title={prodIsInSync
+        ? 'This theme is already in production'
+        : `Adopt "${currentDisplayName}" as the production theme`}
     >
-      <i class="fas" class:fa-upload={productionUpdateStatus === 'idle'} class:fa-spinner={productionUpdateStatus === 'updating'} class:fa-check={productionUpdateStatus === 'done'} class:fa-times={productionUpdateStatus === 'error'}></i>
+      <i
+        class="fas"
+        class:fa-arrow-down={prodApplyStatus === 'idle'}
+        class:fa-spinner={prodApplyStatus === 'applying'}
+        class:fa-check={prodApplyStatus === 'done'}
+        class:fa-xmark={prodApplyStatus === 'error'}
+      ></i>
       <span>
-        {#if productionUpdateStatus === 'idle'}Apply Theme{:else if productionUpdateStatus === 'updating'}Applying{:else if productionUpdateStatus === 'done'}Applied{:else}Error{/if}
+        {#if prodApplyStatus === 'idle'}Adopt{:else if prodApplyStatus === 'applying'}Adopting{:else if prodApplyStatus === 'done'}Adopted{:else}Error{/if}
       </span>
     </button>
 
-    {#if productionInfo?.fileName === $activeFileName}
-      <span class="production-match">Active theme matches production</span>
-    {:else}
-      <span class="production-diff">Active theme differs from production</span>
-    {/if}
+    <div
+      class="tfm-card tfm-card-production"
+      class:in-sync={prodIsInSync}
+    >
+      <span class="tfm-rail" aria-hidden="true"></span>
+      <div class="tfm-card-head">
+        <span class="tfm-card-label">Production</span>
+        <span
+          class="tfm-card-status"
+          class:applied={prodIsInSync}
+        >
+          <i class="tfm-status-dot" aria-hidden="true"></i>
+          <span>{prodIsInSync ? 'live' : 'out of sync'}</span>
+        </span>
+      </div>
+      <div class="tfm-pill" class:applied={prodIsInSync}>
+        <span class="tfm-pill-name" title={prodName}>{prodName}</span>
+      </div>
+    </div>
   </div>
-
 </div>
+
+{#if infoOpen}
+  <div
+    class="tfm-info-popover"
+    class:ready={infoPopoverReady}
+    role="dialog"
+    aria-label="About themes"
+    bind:this={infoPopoverEl}
+  >
+    <header class="tfm-info-header">
+      <span class="tfm-info-title">Themes</span>
+      <button
+        type="button"
+        class="tfm-info-close"
+        aria-label="Close"
+        onclick={() => (infoOpen = false)}
+      >
+        <i class="fas fa-xmark"></i>
+      </button>
+    </header>
+    <div class="tfm-info-body">
+      <p>
+        A <strong>theme</strong> saves the design tokens for a site, components use these tokens to define their appearance.
+      </p>
+    </div>
+  </div>
+{/if}
 
 <UIDialog
   bind:show={showFileList}
@@ -365,69 +451,295 @@
   </div>
 </UIDialog>
 
+<SaveAsDialog
+  bind:show={saveAsDialog}
+  {currentDisplayName}
+  {files}
+  title="Save Theme As"
+  placeholder="Theme name…"
+  reservedNameMessage='The name "default" is reserved for the initial distribution.'
+  onsave={confirmSaveAs}
+/>
 
 <style>
   .theme-file-manager {
+    --tfm-applied: #5aa85e;
+    --tfm-rail-neutral: var(--ui-border-default);
+    --tfm-rail-dirty: var(--ui-highlight);
+    --tfm-rail-applied: var(--tfm-applied);
+
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-8);
   }
 
-  .active-file {
+  .tfm-header {
     display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-2);
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-4);
     padding: 0 var(--ui-space-4);
   }
 
-  .active-label {
+  .tfm-header-label {
     font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
-  .active-name {
-    font-size: var(--ui-font-size-md);
-    font-weight: var(--ui-font-weight-semibold);
+  .tfm-info-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    color: var(--ui-text-tertiary);
+    font-size: 0.95rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color var(--ui-transition-fast);
+  }
+
+  .tfm-info-btn:hover,
+  .tfm-info-btn[aria-expanded='true'] {
     color: var(--ui-text-primary);
   }
 
-  .button-grid {
+  /* Two-card pipeline (Editor → Production) — mirrors PresetFileManager so
+     theme and preset surfaces share one visual idiom. */
+  .tfm-cards {
     display: flex;
     flex-direction: column;
-    gap: var(--ui-space-4);
+    gap: var(--ui-space-6);
   }
 
-  .tfm-btn {
+  .tfm-card {
+    position: relative;
     display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-6);
+    padding: var(--ui-space-8) var(--ui-space-10) var(--ui-space-10) var(--ui-space-16);
+    background: var(--ui-surface-lower);
+    border: 1px solid var(--ui-border-subtle);
+    border-radius: var(--ui-radius-md);
+  }
+
+  .tfm-rail {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    border-radius: var(--ui-radius-md) 0 0 var(--ui-radius-md);
+    background: var(--tfm-rail-neutral);
+    transition: background var(--ui-transition-base);
+  }
+
+  .tfm-card-editor.dirty .tfm-rail { background: var(--tfm-rail-dirty); }
+  .tfm-card-editor.applied .tfm-rail { background: var(--tfm-rail-applied); }
+  .tfm-card-production.in-sync .tfm-rail { background: var(--tfm-rail-applied); }
+
+  .tfm-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--ui-space-8);
+  }
+
+  .tfm-card-label {
+    font-size: var(--ui-font-size-xs);
+    font-weight: var(--ui-font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ui-text-secondary);
+    line-height: 1.1;
+  }
+
+  .tfm-card-status {
+    display: inline-flex;
     align-items: center;
     gap: var(--ui-space-4);
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
+    color: var(--ui-text-muted);
+    line-height: 1;
+  }
+
+  .tfm-status-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.7;
+    flex-shrink: 0;
+  }
+
+  .tfm-card-status.dirty {
+    color: var(--ui-highlight);
+  }
+
+  .tfm-card-status.dirty .tfm-status-dot {
+    opacity: 1;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-highlight) 22%, transparent);
+    animation: tfm-pulse 1.6s ease-in-out infinite;
+  }
+
+  .tfm-card-status.applied {
+    color: var(--tfm-applied);
+  }
+  .tfm-card-status.applied .tfm-status-dot {
+    opacity: 1;
+  }
+
+  .tfm-pill {
+    display: flex;
+    align-items: center;
+    padding: var(--ui-space-6) var(--ui-space-10);
+    background: var(--ui-surface-lowest);
+    border: 1px solid var(--ui-border-subtle);
+    border-radius: var(--ui-radius-md);
+    transition: border-color var(--ui-transition-fast), box-shadow var(--ui-transition-fast);
+  }
+
+  .tfm-pill.dirty {
+    border-color: color-mix(in srgb, var(--ui-highlight) 60%, var(--ui-border-subtle));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ui-highlight) 35%, transparent);
+  }
+
+  .tfm-pill.applied {
+    border-color: color-mix(in srgb, var(--tfm-applied) 50%, var(--ui-border-subtle));
+  }
+
+  .tfm-pill-name {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--ui-font-size-md);
+    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tfm-card-actions {
+    display: flex;
+    gap: var(--ui-space-4);
+    flex-wrap: wrap;
+  }
+
+  .tfm-card-actions-stack {
+    flex-direction: column;
+  }
+
+  .tfm-btn-row {
     width: 100%;
-    padding: var(--ui-space-6) var(--ui-space-8);
-    background: var(--ui-surface-low);
+    justify-content: flex-start;
+    gap: var(--ui-space-8);
+    flex: 0 0 auto;
+    text-align: left;
+  }
+
+  .tfm-btn-row i {
+    width: 1rem;
+    text-align: center;
+    flex: 0 0 auto;
+  }
+
+  .tfm-btn-row span {
+    flex: 1 1 auto;
+    text-align: left;
+  }
+
+  /* Bridge button — sits between Editor and Production cards as the arrow that
+     promotes the editor theme into production. */
+  .tfm-adopt-btn {
+    align-self: stretch;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ui-space-6);
+    margin: calc(var(--ui-space-2) * -1) 0;
+    padding: var(--ui-space-6) var(--ui-space-12);
+    background: color-mix(in srgb, var(--tfm-applied) 18%, var(--ui-surface-high));
+    border: 1px solid color-mix(in srgb, var(--tfm-applied) 45%, var(--ui-border-medium));
+    border-radius: var(--ui-radius-md);
+    color: var(--ui-text-primary);
+    font-size: var(--ui-font-size-md);
+    font-weight: var(--ui-font-weight-medium);
+    cursor: pointer;
+    transition: all var(--ui-transition-fast);
+    white-space: nowrap;
+    position: relative;
+    z-index: 1;
+  }
+
+  .tfm-adopt-btn i {
+    width: 1rem;
+    text-align: center;
+    font-size: 0.85em;
+  }
+
+  .tfm-adopt-btn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--tfm-applied) 30%, var(--ui-surface-higher));
+    border-color: color-mix(in srgb, var(--tfm-applied) 70%, var(--ui-border-strong));
+  }
+
+  .tfm-adopt-btn:disabled {
+    cursor: not-allowed;
+  }
+
+  .tfm-adopt-btn.in-sync {
+    background: transparent;
+    border-color: var(--ui-border-subtle);
+    color: var(--ui-text-muted);
+    opacity: 0.7;
+  }
+
+  .tfm-adopt-btn.saving i { animation: spin 1s linear infinite; }
+  .tfm-adopt-btn.saved {
+    background: color-mix(in srgb, var(--tfm-applied) 30%, var(--ui-surface-high));
+    color: var(--tfm-applied);
+  }
+  .tfm-adopt-btn.error { color: var(--ui-text-muted); }
+
+  .tfm-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ui-space-4);
+    padding: var(--ui-space-6) var(--ui-space-10);
+    background: var(--ui-surface);
     border: 1px solid var(--ui-border-subtle);
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-md);
+    font-weight: var(--ui-font-weight-medium);
     cursor: pointer;
     transition: all var(--ui-transition-fast);
     white-space: nowrap;
+    flex: 1 1 0;
+    min-width: 0;
   }
 
   .tfm-btn i {
     width: 1rem;
     text-align: center;
+    font-size: 0.85em;
   }
 
   .tfm-btn:hover:not(:disabled) {
-    background: var(--ui-surface);
+    background: var(--ui-surface-high);
     color: var(--ui-text-primary);
     border-color: var(--ui-border-default);
   }
 
   .tfm-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
   }
 
@@ -435,25 +747,6 @@
     background: var(--ui-surface);
     border-color: var(--ui-border-default);
     color: var(--ui-text-primary);
-  }
-
-  .save-row {
-    display: flex;
-    gap: var(--ui-space-4);
-  }
-
-  .save-row .save-btn {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .increment-btn {
-    flex: 0 0 auto;
-    width: 34px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
   .save-btn {
@@ -468,73 +761,13 @@
   }
 
   .save-btn.saving i { animation: spin 1s linear infinite; }
-  .save-btn.saved { background: var(--ui-surface-highest); color: var(--ui-text-success); }
-  .save-btn.error { background: var(--ui-surface-high); color: var(--ui-text-muted); }
-
-  .save-as-inline {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-4);
+  .save-btn.saved {
+    background: var(--ui-surface-highest);
+    color: var(--ui-text-success);
   }
-
-  .save-as-actions {
-    display: flex;
-    gap: var(--ui-space-4);
-    justify-content: flex-end;
-  }
-
-  .save-as-input {
-    flex: 1;
-    min-width: 0;
-    padding: var(--ui-space-6) var(--ui-space-8);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    color: var(--ui-text-primary);
-    font-size: var(--ui-font-size-md);
-    outline: none;
-  }
-
-  .save-as-input:focus {
-    border-color: var(--ui-border-medium);
-  }
-
-  .save-as-input::placeholder {
-    color: var(--ui-text-muted);
-  }
-
-  .inline-btn {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    padding: 0;
-    background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    color: var(--ui-text-secondary);
-    font-size: var(--ui-font-size-sm);
-    cursor: pointer;
-    transition: all var(--ui-transition-fast);
-  }
-
-  .inline-btn:hover:not(:disabled) {
-    background: var(--ui-surface);
-    color: var(--ui-text-primary);
-    border-color: var(--ui-border-default);
-  }
-
-  .inline-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .inline-btn.confirm-btn {
+  .save-btn.error {
     background: var(--ui-surface-high);
-    border-color: var(--ui-border-medium);
-    color: var(--ui-text-primary);
+    color: var(--ui-text-muted);
   }
 
   .load-list {
@@ -597,7 +830,7 @@
 
   .header-spacer {
     flex-shrink: 0;
-    width: 24px; /* reserve space matching .file-delete-btn */
+    width: 24px;
   }
 
   .load-item {
@@ -685,82 +918,99 @@
     color: #ccc;
   }
 
-  .status-labels {
-    display: flex;
-    gap: var(--ui-space-8);
-    padding: 0 var(--ui-space-4);
-  }
-
-  .status-label {
-    font-size: var(--ui-font-size-xs);
-    letter-spacing: 0.02em;
-  }
-
-  .status-label.clean {
-    color: var(--ui-text-secondary);
-  }
-
-  .status-label.dirty {
-    color: var(--ui-highlight);
-  }
-
-  /* ── Production section ── */
-
-  .production-section {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-4);
-    padding-top: var(--ui-space-8);
-    border-top: 1px solid var(--ui-border-subtle);
-  }
-
-  .production-header {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-2);
-    padding: 0 var(--ui-space-4);
-  }
-
-  .production-label {
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .production-name {
-    font-size: var(--ui-font-size-md);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-primary);
-  }
-
-  .production-update-btn {
-    background: var(--ui-surface-high);
-    border-color: var(--ui-border-medium);
-    color: var(--ui-text-primary);
-  }
-
-  .production-update-btn:hover:not(:disabled) {
+  /* Info popover — fixed positioning escapes the sidebar's overflow and any
+     parent stacking context. JS in this file anchors it to the right of the
+     info button (the sidebar is on the left, so there's room to flow into
+     the main content area without obscuring the button). */
+  .tfm-info-popover {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 22rem;
+    max-width: calc(100vw - var(--ui-space-24));
+    padding: 0;
     background: var(--ui-surface-higher);
-    border-color: var(--ui-border-strong);
-  }
-
-  .production-update-btn.updating i { animation: spin 1s linear infinite; }
-  .production-update-btn.done { color: var(--ui-text-success); }
-  .production-update-btn.error { color: var(--ui-text-muted); }
-
-  .production-match {
-    font-size: var(--ui-font-size-xs);
+    border: 1px solid var(--ui-border-medium);
+    border-radius: var(--ui-radius-lg);
+    box-shadow: var(--ui-shadow-lg);
+    z-index: 1000;
     color: var(--ui-text-secondary);
-    padding: 0 var(--ui-space-4);
-    letter-spacing: 0.02em;
+    font-family: var(--ui-font-family, system-ui, sans-serif);
+    overflow: hidden;
+    visibility: hidden;
+    animation: tfm-info-in 140ms ease-out;
   }
 
-  .production-diff {
+  .tfm-info-popover.ready {
+    visibility: visible;
+  }
+
+  .tfm-info-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-10) var(--ui-space-12) var(--ui-space-10) var(--ui-space-16);
+    border-bottom: 1px solid var(--ui-border-subtle);
+  }
+
+  .tfm-info-title {
+    color: var(--ui-text-primary);
+    font-size: var(--ui-font-size-sm);
+    font-weight: var(--ui-font-weight-semibold);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  .tfm-info-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ui-space-24);
+    height: var(--ui-space-24);
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-tertiary);
     font-size: var(--ui-font-size-xs);
-    color: var(--ui-highlight);
-    padding: 0 var(--ui-space-4);
-    letter-spacing: 0.02em;
+    line-height: 1;
+    cursor: pointer;
+    transition: color var(--ui-transition-fast), background var(--ui-transition-fast);
+  }
+
+  .tfm-info-close:hover {
+    color: var(--ui-text-primary);
+    background: var(--ui-hover);
+  }
+
+  .tfm-info-body {
+    padding: var(--ui-space-16);
+  }
+
+  .tfm-info-popover p {
+    margin: 0 0 var(--ui-space-12) 0;
+    font-size: var(--ui-font-size-xs);
+    line-height: 1.55;
+  }
+
+  .tfm-info-popover p:last-child {
+    margin-bottom: 0;
+  }
+
+  .tfm-info-popover strong {
+    color: var(--ui-text-primary);
+    font-weight: var(--ui-font-weight-semibold);
+  }
+
+  @keyframes tfm-info-in {
+    from { opacity: 0; transform: translateY(-3px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes tfm-pulse {
+    0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-highlight) 22%, transparent); }
+    50%      { box-shadow: 0 0 0 5px color-mix(in srgb, var(--ui-highlight) 10%, transparent); }
   }
 
   @keyframes spin {
