@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.3.4
+## 0.3.5
 
-First release published via the GitHub Actions OIDC trusted publisher workflow. `0.3.3` was tagged but never reached npm (lockfile drift broke the publish job); `0.3.4` carries the same fix plus a synced `package-lock.json`.
+First release published via the GitHub Actions OIDC trusted publisher workflow. `0.3.3` and `0.3.4` were tagged but never reached npm — the publish job's `npm ci` step disagreed with the lockfile across npm versions. `0.3.5` pins CI to Node 24 (npm 11) so it matches the lockfile we ship.
 
 ### Fixed
 
