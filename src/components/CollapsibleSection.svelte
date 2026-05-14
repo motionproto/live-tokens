@@ -54,7 +54,7 @@
          {@render summary?.()}
       </a>
    {:else}
-      <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+      <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions, a11y_no_static_element_interactions -->
       <div class="section-header" class:expanded onclick={fireToggle}>
          <div class="section-toggle">
             <i class="fas fa-chevron-right toggle-icon"></i>
@@ -238,9 +238,10 @@
    .es-root.variant-chromeless {
       > .section-header {
          @include header-paint(chromeless, default);
-         &:hover, &.force-hover { @include header-paint(chromeless, hover); }
+         &:hover { @include header-paint(chromeless, hover); }
          &.active { @include header-paint(chromeless, active); }
       }
+      &.force-hover > .section-header { @include header-paint(chromeless, hover); }
       > .section-content {
          @include themed-padding(--collapsiblesection-chromeless-expanded-padding, $h: 2);
       }
@@ -250,7 +251,7 @@
       > .section-header {
          @include header-paint(divider, default);
          @include divider-bottom(default);
-         &:hover, &.force-hover {
+         &:hover {
             @include header-paint(divider, hover);
             @include divider-bottom(hover);
          }
@@ -258,6 +259,10 @@
             @include header-paint(divider, active);
             @include divider-bottom(active);
          }
+      }
+      &.force-hover > .section-header {
+         @include header-paint(divider, hover);
+         @include divider-bottom(hover);
       }
       > .section-content {
          @include themed-padding(--collapsiblesection-divider-expanded-padding, $h: 2);
@@ -272,9 +277,10 @@
 
       > .section-header {
          @include header-paint(container, default);
-         &:hover, &.force-hover { @include header-paint(container, hover); }
+         &:hover { @include header-paint(container, hover); }
          &.active { @include header-paint(container, active); }
       }
+      &.force-hover > .section-header { @include header-paint(container, hover); }
       > .section-content {
          background: var(--collapsiblesection-container-expanded-surface);
          @include themed-padding(--collapsiblesection-container-expanded-padding, $h: 2);

@@ -232,6 +232,7 @@
     {#if mode === 'hue-chroma'}
       <div class="hsl-slider-row">
         <span class="hsl-slider-label">H</span>
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="slider-track" style="background: {hueGradient}" onpointerdown={onSliderStart}>
           <input type="range" min="0" max="360" value={hue}
             oninput={(e) => onHueChromaChange(+e.currentTarget.value, chroma)} />
@@ -247,6 +248,7 @@
       </div>
       <div class="hsl-slider-row">
         <span class="hsl-slider-label">C</span>
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="slider-track" style="background: {chromaGradient}" onpointerdown={onSliderStart}>
           <input type="range" min="0" max={CHROMA_MAX} step="0.001" value={chroma}
             oninput={(e) => onHueChromaChange(hue, +e.currentTarget.value)} />
@@ -264,6 +266,7 @@
     {:else}
       <div class="hsl-slider-row">
         <span class="hsl-slider-label">H</span>
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="slider-track" style="background: {hueGrad(hsl[1], hsl[2])}" onpointerdown={onSliderStart}>
           <input type="range" min="0" max="360" value={hsl[0]}
             oninput={(e) => updateHsl(0, +e.currentTarget.value)} />
@@ -279,6 +282,7 @@
       </div>
       <div class="hsl-slider-row">
         <span class="hsl-slider-label">S</span>
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="slider-track" style="background: {satGrad(hsl[0], hsl[2])}" onpointerdown={onSliderStart}>
           <input type="range" min="0" max="100" value={hsl[1]}
             oninput={(e) => updateHsl(1, +e.currentTarget.value)} />
@@ -294,6 +298,7 @@
       </div>
       <div class="hsl-slider-row">
         <span class="hsl-slider-label">L</span>
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="slider-track" style="background: {lightGrad(hsl[0], hsl[1])}" onpointerdown={onSliderStart}>
           <input type="range" min="0" max="100" value={hsl[2]}
             oninput={(e) => updateHsl(2, +e.currentTarget.value)} />
@@ -498,6 +503,7 @@
     border-radius: var(--ui-radius-sm);
     padding: var(--ui-space-2) var(--ui-space-4);
     -moz-appearance: textfield;
+    appearance: textfield;
   }
 
   .hsl-slider-input.chroma-input {

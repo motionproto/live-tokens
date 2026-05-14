@@ -150,6 +150,7 @@
           {copiedLabelKey === k ? 'copied!' : step.name}
         </button>
         {#if scale.isText}
+          <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
           <div
             class="swatch derived text-swatch"
             class:dimmed={k in overrides}
@@ -177,6 +178,7 @@
             {/if}
           </div>
         {:else}
+          <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
           <div
             class="swatch derived"
             class:border-preview={scale.title === 'Borders'}

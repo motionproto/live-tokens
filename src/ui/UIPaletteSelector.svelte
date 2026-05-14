@@ -762,6 +762,7 @@
     font-family: var(--ui-font-mono);
     text-align: right;
     -moz-appearance: textfield;
+    appearance: textfield;
   }
 
   .opacity-input::-webkit-inner-spin-button,
@@ -1092,6 +1093,7 @@
     font-family: var(--ui-font-mono);
     text-align: right;
     -moz-appearance: textfield;
+    appearance: textfield;
   }
 
   .angle-input::-webkit-inner-spin-button,

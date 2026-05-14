@@ -167,6 +167,7 @@
       </div>
       <div class="font-stack-list">
         {#each stack.slots as slot, i (i + ':' + slotKey(slot))}
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
           <div
             class="slot-row"
             class:drop-on={dragOver?.variable === stack.variable && dragOver?.index === i && dragOver?.position === 'on'}

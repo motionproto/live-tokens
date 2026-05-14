@@ -458,6 +458,7 @@
     {/if}
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="Direction the light source is coming from — controls which side the shadow falls on">Angle</span>
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <svg class="angle-dial" viewBox="0 0 48 48" width="48" height="48"
         onpointerdown={(e) => handleDialDown(e, editingIdx)}
         onpointermove={(e) => handleDialMove(e, editingIdx)}
@@ -569,6 +570,7 @@
     <h4 class="global-shadow-title">Global Light</h4>
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="Direction the light source is coming from — controls which side the shadow falls on">Angle</span>
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <svg class="angle-dial" viewBox="0 0 48 48" width="48" height="48"
         onpointerdown={handleGlobalDialDown}
         onpointermove={handleGlobalDialMove}

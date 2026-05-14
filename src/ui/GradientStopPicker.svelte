@@ -1,13 +1,10 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
   /**
    * Color/opacity picker for a single gradient stop. Reuses UIPaletteSelector's
    * dropdown UI by mounting it against a per-stop "scratch" CSS variable; writes
    * to that scratch var get parsed back out and forwarded as a structured update
    * to gradient state, so we don't have to refactor UIPaletteSelector itself.
    */
-  import { onDestroy } from 'svelte';
   import UIPaletteSelector from './UIPaletteSelector.svelte';
   import { setCssVar, removeCssVar } from '../lib/cssVarSync';
 
@@ -21,7 +18,7 @@
   let { stopId, color, opacity = 100, onchange }: Props = $props();
 
   /** Scratch var the embedded picker reads/writes; isolated per stop. */
-  const scratchVar = `--__grad-stop-${stopId}`;
+  let scratchVar = $derived(`--__grad-stop-${stopId}`);
 
   function buildScratchValue(c: string, o: number): string {
     const base = c.startsWith('--') ? `var(${c})` : c;
@@ -44,11 +41,15 @@
     return null;
   }
 
-  // Seed the scratch var synchronously during script init so UIPaletteSelector
-  // (which mounts before its parent's onMount) reads the current stop value.
-  if (typeof document !== 'undefined') {
+  // Seed (and re-seed on external updates like undo/redo) the scratch var so
+  // UIPaletteSelector reads the current stop value. The effect's cleanup runs
+  // on dependency change AND unmount, so it removes the right key even if
+  // stopId changes mid-life.
+  $effect(() => {
     setCssVar(scratchVar, buildScratchValue(color, opacity));
-  }
+    const key = scratchVar;
+    return () => removeCssVar(key);
+  });
 
   function handleChange() {
     const raw = document.documentElement.style.getPropertyValue(scratchVar);
@@ -57,23 +58,6 @@
     if (parsed.color === color && parsed.opacity === opacity) return;
     onchange?.(parsed);
   }
-
-  onDestroy(() => {
-    removeCssVar(scratchVar);
-  });
-
-  // When external state updates the stop (undo/redo, sibling-stop edits),
-  // refresh the scratch so the picker reflects current values.
-  let lastSynced = $state(`${color}|${opacity}`);
-  run(() => {
-    const sig = `${color}|${opacity}`;
-    if (sig !== lastSynced) {
-      lastSynced = sig;
-      if (typeof document !== 'undefined') {
-        setCssVar(scratchVar, buildScratchValue(color, opacity));
-      }
-    }
-  });
 </script>
 
 <UIPaletteSelector variable={scratchVar} onchange={handleChange} />

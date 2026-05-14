@@ -163,6 +163,7 @@
 {#if gradient}
   <div class="gradient-editor">
     <div class="ribbon-wrap">
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
       <div
         class="ribbon"
         bind:this={barEl}

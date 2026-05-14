@@ -51,7 +51,7 @@
 </script>
 
 {#if show}
-  <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+  <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions, a11y_no_static_element_interactions -->
   <div class="ui-dialog-backdrop" onclick={self(handleClose)}>
     <div class="ui-dialog" style="width: {width}; max-width: {width};">
       {#if title}
