@@ -746,35 +746,35 @@
   // --- Store-sourced config (single source of truth) ---
   //
   // All persistent palette state lives in `$editorState.palettes[label]`.
-  // Local `$:` derivations below pull named fields with defaults; every
-  // handler writes via `edit()` / `patchPalette()` so the store is the only
-  // writer. No `let` mirrors, no round-trip sync reactives.
-  //
-  // The defaults fall back only when palettes[label] is undefined (brand-new
-  // install, never seeded). Production seeds via themeInit → seedPalettesFromTheme.
-  let paletteConfig = $derived($editorState.palettes[label]);
-  let baseColor = $derived(paletteConfig?.baseColor ?? initialColor);
-  let tintHue = $derived(paletteConfig?.tintHue ?? 240);
-  let tintChroma = $derived(paletteConfig?.tintChroma ?? DEFAULT_TINT_CHROMA);
-  let lightnessCurve = $derived(paletteConfig?.lightnessCurve ?? DEFAULT_PALETTE_LIGHTNESS());
-  let saturationCurve = $derived(paletteConfig?.saturationCurve ?? DEFAULT_PALETTE_SATURATION());
-  let grayLightnessCurve = $derived(paletteConfig?.grayLightnessCurve ?? DEFAULT_GRAY_LIGHTNESS());
-  let graySaturationCurve = $derived(paletteConfig?.graySaturationCurve ?? DEFAULT_GRAY_SATURATION());
-  let scaleCurves = $derived(paletteConfig?.scaleCurves ?? defaultScaleCurvesObject());
-  let curveOffset = $derived(paletteConfig?.curveOffset ?? { lightness: 0, saturation: 0 });
-  let overrides = $derived(paletteConfig?.overrides ?? {});
-  let snappedScales = $derived(new Set(paletteConfig?.snappedScales ?? []));
-  let anchorToBase = $derived(paletteConfig?.anchorToBase ?? true);
-  let emptyMode = $derived(paletteConfig?.emptyMode ?? 'solid');
-  let emptyStep = $derived(paletteConfig?.emptyStep ?? '850');
-  let gradientStyle = $derived(paletteConfig?.gradientStyle ?? 'linear');
-  let gradientAngle = $derived(paletteConfig?.gradientAngle ?? 180);
-  let gradientReverse = $derived(paletteConfig?.gradientReverse ?? false);
-  let gradientStops = $derived(paletteConfig?.gradientStops ?? [
+  // Each field reads `$editorState.palettes[label]` directly rather than going
+  // through an intermediate `paletteConfig` derived. Svelte 5's `$derived`
+  // uses strict `===` equality, so a chained `paletteConfig = $derived(
+  // $editorState.palettes[label])` would return the same object reference on
+  // every mutate-in-place store update and short-circuit the whole downstream
+  // chain — swatches would freeze even while the renderer's CSS-var subscribe
+  // continued to fire.
+  let baseColor = $derived($editorState.palettes[label]?.baseColor ?? initialColor);
+  let tintHue = $derived($editorState.palettes[label]?.tintHue ?? 240);
+  let tintChroma = $derived($editorState.palettes[label]?.tintChroma ?? DEFAULT_TINT_CHROMA);
+  let lightnessCurve = $derived($editorState.palettes[label]?.lightnessCurve ?? DEFAULT_PALETTE_LIGHTNESS());
+  let saturationCurve = $derived($editorState.palettes[label]?.saturationCurve ?? DEFAULT_PALETTE_SATURATION());
+  let grayLightnessCurve = $derived($editorState.palettes[label]?.grayLightnessCurve ?? DEFAULT_GRAY_LIGHTNESS());
+  let graySaturationCurve = $derived($editorState.palettes[label]?.graySaturationCurve ?? DEFAULT_GRAY_SATURATION());
+  let scaleCurves = $derived($editorState.palettes[label]?.scaleCurves ?? defaultScaleCurvesObject());
+  let curveOffset = $derived($editorState.palettes[label]?.curveOffset ?? { lightness: 0, saturation: 0 });
+  let overrides = $derived($editorState.palettes[label]?.overrides ?? {});
+  let snappedScales = $derived(new Set($editorState.palettes[label]?.snappedScales ?? []));
+  let anchorToBase = $derived($editorState.palettes[label]?.anchorToBase ?? true);
+  let emptyMode = $derived($editorState.palettes[label]?.emptyMode ?? 'solid');
+  let emptyStep = $derived($editorState.palettes[label]?.emptyStep ?? '850');
+  let gradientStyle = $derived($editorState.palettes[label]?.gradientStyle ?? 'linear');
+  let gradientAngle = $derived($editorState.palettes[label]?.gradientAngle ?? 180);
+  let gradientReverse = $derived($editorState.palettes[label]?.gradientReverse ?? false);
+  let gradientStops = $derived($editorState.palettes[label]?.gradientStops ?? [
     { position: 0, paletteLabel: '800' },
     { position: 100, paletteLabel: '950' },
   ]);
-  let gradientSize = $derived(paletteConfig?.gradientSize ?? 'page');
+  let gradientSize = $derived($editorState.palettes[label]?.gradientSize ?? 'page');
   // Read-side compat: existing `editingKey === ...` etc. comparisons keep
   // working. New code should narrow on `editing.kind` directly.
   let editingKey = $derived(editing.kind === 'idle' ? null : editing.kind === 'editingBase' ? BASE_KEY : editing.stepKey);

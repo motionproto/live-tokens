@@ -38,21 +38,22 @@ export type {
   FontStackVariable,
   SystemCascadePreset,
   GenericFamily,
-  Preset,
-  PresetMeta,
+  Manifest,
+  ManifestMeta,
 } from './themeTypes';
 
 export {
-  listPresets,
-  loadPreset,
-  savePreset,
-  deletePreset,
-  getActivePreset,
-  setActivePreset,
-  applyPreset,
-  captureCurrentAsPreset,
-} from './presetService';
-export type { ApplyPresetResult } from './presetService';
+  listManifests,
+  loadManifest,
+  saveManifest,
+  deleteManifest,
+  getActiveManifest,
+  setActiveManifest,
+  applyManifest,
+  saveAsManifest,
+  saveActiveManifest,
+} from './manifestService';
+export type { ApplyManifestResult } from './manifestService';
 
 export {
   applyFontSources,

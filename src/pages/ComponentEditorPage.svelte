@@ -3,7 +3,7 @@
 
   import { onMount, onDestroy } from 'svelte';
   import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
-  import PresetFileManager from '../ui/PresetFileManager.svelte';
+  import ManifestFileManager from '../ui/ManifestFileManager.svelte';
   import { navigate } from '../lib/router';
   import { componentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
   import { listComponents } from '../lib/componentConfigService';
@@ -165,7 +165,7 @@
     </div>
     {#if drawerOpen}
       <div class="sidebar-footer">
-        <PresetFileManager />
+        <ManifestFileManager />
       </div>
     {/if}
   </nav>

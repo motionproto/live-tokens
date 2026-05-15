@@ -260,21 +260,37 @@ export function mutate(label: string, fn: (draft: EditorState) => void): void {
   if (import.meta.env.DEV && !label) {
     console.warn('[editorStore] mutate() called without a label');
   }
+  // Svelte 5's `$derived` uses strict `===` for equality (see
+  // node_modules/svelte/src/internal/client/reactivity/deriveds.js → equality.js).
+  // If we mutated `s` in place and emitted the same top-level reference, any
+  // intermediate `$derived($editorState.someSlice.someObj)` in a component
+  // would return the same object reference and short-circuit the whole
+  // downstream chain — swatches and previews would freeze even while the
+  // renderer's direct `editorState.subscribe(...)` (which uses `safe_not_equal`,
+  // always-different for objects) continued to write CSS vars to :root.
+  //
+  // Cloning the draft before mutation guarantees every nested reference is
+  // fresh, so `$derived` chains everywhere propagate correctly. The previous
+  // live state (`current`) becomes the immutable history snapshot — no second
+  // structuredClone needed.
   if (transactionScope) {
-    // Inside a non-clipping scope: don't push individually; just mark the
-    // scope dirty and apply. The scope's commit pushes one collapsed entry.
     transactionScope.changed = true;
     if (clippingScope) clippingScope.changed = true;
-    store.update((s) => { fn(s); return s; });
+    store.update((s) => {
+      const next = structuredClone(s);
+      fn(next);
+      return next;
+    });
     return;
   }
-  // No transaction scope: each mutate is its own history entry. Inside a
-  // clipping scope this still pushes per-mutate entries (so undo within the
-  // scope walks them back), and the scope's commit will collapse them.
   if (clippingScope) clippingScope.changed = true;
   const current = get(store);
-  pushPast(structuredClone(current));
-  store.update((s) => { fn(s); return s; });
+  pushPast(current);
+  store.update((s) => {
+    const next = structuredClone(s);
+    fn(next);
+    return next;
+  });
   bumpTick();
   persistHook();
 }

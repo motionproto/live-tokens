@@ -1,0 +1,25 @@
+{
+  "name": "Untitled",
+  "createdAt": "2026-05-15T10:42:54.566Z",
+  "updatedAt": "2026-05-15T10:43:06.870Z",
+  "theme": "update",
+  "componentConfigs": {
+    "badge": "default",
+    "button": "default_01",
+    "callout": "default",
+    "card": "default",
+    "collapsiblesection": "default",
+    "cornerbadge": "default",
+    "dialog": "default",
+    "image": "default",
+    "inlineeditactions": "default",
+    "notification": "default",
+    "progressbar": "default",
+    "radiobutton": "default",
+    "sectiondivider": "default",
+    "segmentedcontrol": "default",
+    "tabbar": "default",
+    "table": "default",
+    "tooltip": "default"
+  }
+}

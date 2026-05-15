@@ -495,7 +495,7 @@
   --columns-margin: 0;
 
   /* Font Families */
-  --font-display: "Fraunces", serif;
+  --font-display: "Fraunces", serif, "Poppins";
   --font-sans: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, sans-serif;
   --font-serif: "Fraunces", serif;
   --font-mono: "fira-code", ui-monospace, "SF Mono", Menlo, Consolas, monospace, monospace;

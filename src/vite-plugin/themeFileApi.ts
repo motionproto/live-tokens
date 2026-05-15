@@ -36,7 +36,7 @@ export interface ThemeFileApiOptions {
   apiBase?: string;            // default: '/api'. Must be a simple '/path' without regex metacharacters.
   componentConfigsDir?: string; // default: 'component-configs'
   componentsSrcDir?: string;   // default: 'src/components'
-  presetsDir?: string;         // default: 'presets'
+  manifestsDir?: string;       // default: 'manifests'
 }
 
 export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
@@ -52,9 +52,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const COMPONENTS_SRC_DIR = opts.componentsSrcDir
     ? path.resolve(opts.componentsSrcDir)
     : path.resolve('src/components');
-  const PRESETS_DIR = opts.presetsDir
-    ? path.resolve(opts.presetsDir)
-    : path.resolve('presets');
+  const MANIFESTS_DIR = opts.manifestsDir
+    ? path.resolve(opts.manifestsDir)
+    : path.resolve('manifests');
+  const LEGACY_PRESETS_DIR = path.resolve('presets');
 
   // Themes resource — list/load/save/delete + active/production.
   const themesResource = versionedFileResourceServer({
@@ -73,9 +74,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     return r;
   }
 
-  // Presets resource — manifest files that pin one theme + one config per
-  // component. No production pointer in V1; presets are dev-time conveniences.
-  const presetsResource = versionedFileResourceServer({ dir: PRESETS_DIR });
+  // Manifests resource — files that pin one theme + one config per component.
+  // The active manifest is the single live snapshot; theme/component Adopts
+  // patch its refs (see `patchActiveManifest`). `_production.json` is unused
+  // for this resource — the new model has no separate Production slot.
+  const manifestsResource = versionedFileResourceServer({ dir: MANIFESTS_DIR });
 
   function ensureThemesDir() {
     themesResource.ensureDir();
@@ -328,32 +331,91 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
   }
 
-  // ── Presets helpers ───────────────────────────────────────────────────────
+  // ── Manifests helpers ─────────────────────────────────────────────────────
 
-  function ensurePresetsDir(): void {
-    presetsResource.ensureDir();
-    const defaultPath = path.join(PRESETS_DIR, 'default.json');
+  function ensureManifestsDir(): void {
+    // One-shot migration: rename legacy presets/ → manifests/ if the new
+    // directory doesn't exist yet. Drop the legacy `_production.json` pointer
+    // (the new model has no separate Production slot). Idempotent — guarded
+    // by directory existence.
+    if (!fs.existsSync(MANIFESTS_DIR) && fs.existsSync(LEGACY_PRESETS_DIR)) {
+      fs.renameSync(LEGACY_PRESETS_DIR, MANIFESTS_DIR);
+      const legacyProd = path.join(MANIFESTS_DIR, '_production.json');
+      if (fs.existsSync(legacyProd)) fs.unlinkSync(legacyProd);
+    }
+
+    manifestsResource.ensureDir();
+    const defaultPath = path.join(MANIFESTS_DIR, 'default.json');
     if (!fs.existsSync(defaultPath)) {
-      // The "default preset" should capture whatever is checked in as the
-      // current active state — the team's intended defaults — not a synthetic
-      // all-default manifest. Read each resource's `_active.json` pointer so a
-      // first run on a customized repo produces a Default preset that round-
-      // trips back to the same state.
+      // The default manifest captures whatever is checked in as the current
+      // active state — the team's intended defaults — not a synthetic all-
+      // default manifest. Read each resource's `_active.json` pointer so a
+      // first run on a customized repo produces a Default manifest that
+      // round-trips back to the same state.
       const componentConfigs: Record<string, string> = {};
       for (const comp of listComponentNames()) {
         componentConfigs[comp] = componentResource(comp).getActiveName();
       }
       const now = new Date().toISOString();
-      const defaultPreset = {
-        name: 'Default Preset',
+      const defaultManifest = {
+        name: 'Default',
         createdAt: now,
         updatedAt: now,
         theme: themesResource.getActiveName(),
         componentConfigs,
       };
-      fs.writeFileSync(defaultPath, JSON.stringify(defaultPreset, null, 2));
+      fs.writeFileSync(defaultPath, JSON.stringify(defaultManifest, null, 2));
     }
-    presetsResource.ensureMeta();
+
+    // Ensure `_active.json` exists; never write `_production.json` for this
+    // resource (it's not part of the manifest model). If a legacy one
+    // survived migration, scrub it.
+    if (!fs.existsSync(manifestsResource.activePath)) {
+      fs.writeFileSync(
+        manifestsResource.activePath,
+        JSON.stringify({ activeFile: 'default' }),
+      );
+    } else {
+      // Normalize: if the pointer references a missing file, fall back to default.
+      const activeName = manifestsResource.getActiveName();
+      if (!fs.existsSync(manifestsResource.filePath(activeName))) {
+        manifestsResource.setActiveName('default');
+      }
+    }
+    const stragglerProd = path.join(MANIFESTS_DIR, '_production.json');
+    if (fs.existsSync(stragglerProd)) fs.unlinkSync(stragglerProd);
+  }
+
+  /**
+   * Patch the currently-active manifest in response to a theme or component
+   * Adopt: rewrites the matching ref (`theme` or `componentConfigs[comp]`).
+   * Returns `false` if the active manifest is `default` (protected) so the
+   * caller can fail the Adopt with 409 ACTIVE_IS_PROTECTED.
+   */
+  function patchActiveManifest(
+    field: 'theme' | 'component',
+    comp: string | null,
+    fileName: string,
+  ): boolean {
+    const activeFile = manifestsResource.getActiveName();
+    if (activeFile === 'default') return false;
+    const manifestPath = manifestsResource.filePath(activeFile);
+    if (!fs.existsSync(manifestPath)) return false;
+    let manifest: any;
+    try {
+      manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+    } catch {
+      return false;
+    }
+    if (field === 'theme') {
+      manifest.theme = fileName;
+    } else if (field === 'component' && comp) {
+      manifest.componentConfigs = manifest.componentConfigs ?? {};
+      manifest.componentConfigs[comp] = fileName;
+    }
+    manifest.updatedAt = new Date().toISOString();
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    return true;
   }
 
   interface ComponentConfigRead {
@@ -442,16 +504,15 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const THEMES_ACTIVE_ROUTE = `${API_BASE}/themes/active`;
   const THEMES_PRODUCTION_ROUTE = `${API_BASE}/themes/production`;
   const COMPONENT_CONFIGS_ROUTE = `${API_BASE}/component-configs`;
-  const PRESETS_ROUTE = `${API_BASE}/presets`;
-  const PRESETS_ACTIVE_ROUTE = `${API_BASE}/presets/active`;
-  const PRESETS_PRODUCTION_ROUTE = `${API_BASE}/presets/production`;
+  const MANIFESTS_ROUTE = `${API_BASE}/manifests`;
+  const MANIFESTS_ACTIVE_ROUTE = `${API_BASE}/manifests/active`;
   const THEME_BY_NAME_REGEX = new RegExp(`^${escapedBase}/themes/([a-z0-9\\-_]+)$`);
   const COMP_LIST_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)$`);
   const COMP_ACTIVE_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/active$`);
   const COMP_PRODUCTION_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/production$`);
   const COMP_BY_NAME_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/([a-z0-9\\-_]+)$`);
-  const PRESET_APPLY_REGEX = new RegExp(`^${escapedBase}/presets/([a-z0-9\\-_]+)/apply$`);
-  const PRESET_BY_NAME_REGEX = new RegExp(`^${escapedBase}/presets/([a-z0-9\\-_]+)$`);
+  const MANIFEST_APPLY_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)/apply$`);
+  const MANIFEST_BY_NAME_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)$`);
 
   // ── Route handlers ────────────────────────────────────────────────────────
   // Each handler can throw — the route-table dispatcher centralises the 500
@@ -526,10 +587,20 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       jsonResponse(res, 404, { error: 'Theme not found' });
       return;
     }
+    // Reject before any destructive write if the active manifest is the
+    // protected default — the client recovers by prompting Save As.
+    if (manifestsResource.getActiveName() === 'default') {
+      jsonResponse(res, 409, {
+        error: 'Active manifest is protected. Save As first.',
+        code: 'ACTIVE_IS_PROTECTED',
+      });
+      return;
+    }
     themesResource.setProductionName(fileName);
     syncTokensToCss(fileName);
     syncFontsToCss(fileName);
     syncComponentsToCss();
+    patchActiveManifest('theme', null, fileName);
     const data = JSON.parse(fs.readFileSync(themesResource.filePath(fileName), 'utf-8'));
     jsonResponse(res, 200, {
       ok: true,
@@ -656,9 +727,17 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       jsonResponse(res, 404, { error: 'Config not found' });
       return;
     }
+    if (manifestsResource.getActiveName() === 'default') {
+      jsonResponse(res, 409, {
+        error: 'Active manifest is protected. Save As first.',
+        code: 'ACTIVE_IS_PROTECTED',
+      });
+      return;
+    }
     r.ensureDir();
     r.setProductionName(fileName);
     syncComponentsToCss();
+    patchActiveManifest('component', comp, fileName);
     const cfg = readComponentConfig(comp, fileName);
     jsonResponse(res, 200, {
       ok: true,
@@ -756,15 +835,15 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     jsonResponse(res, 200, { component: comp, files, activeFile, productionFile });
   }
 
-  // ── /api/presets ─────────────────────────────────────────────────────────
+  // ── /api/manifests ───────────────────────────────────────────────────────
 
-  async function handleListPresets({ res }: any) {
-    const activeFile = presetsResource.getActiveName();
+  async function handleListManifests({ res }: any) {
+    const activeFile = manifestsResource.getActiveName();
     const files = fs
-      .readdirSync(PRESETS_DIR)
+      .readdirSync(MANIFESTS_DIR)
       .filter((f) => f.endsWith('.json') && !f.startsWith('_'))
       .map((f) => {
-        const filePath = path.join(PRESETS_DIR, f);
+        const filePath = path.join(MANIFESTS_DIR, f);
         const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
         const fileName = f.replace('.json', '');
         return {
@@ -772,16 +851,17 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
           fileName,
           updatedAt: data.updatedAt || '',
           isActive: fileName === activeFile,
+          isProtected: fileName === 'default',
         };
       });
     jsonResponse(res, 200, { files, activeFile });
   }
 
-  async function handleGetActivePreset({ res }: any) {
-    const activeFile = presetsResource.getActiveName();
-    const filePath = presetsResource.filePath(activeFile);
+  async function handleGetActiveManifest({ res }: any) {
+    const activeFile = manifestsResource.getActiveName();
+    const filePath = manifestsResource.filePath(activeFile);
     if (!fs.existsSync(filePath)) {
-      jsonResponse(res, 404, { error: 'Active preset not found' });
+      jsonResponse(res, 404, { error: 'Active manifest not found' });
       return;
     }
     const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
@@ -789,102 +869,20 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     jsonResponse(res, 200, data);
   }
 
-  async function handleSetActivePreset({ req, res }: any) {
+  async function handleSetActiveManifest({ req, res }: any) {
     const body = JSON.parse(await readBody(req));
     const fileName = sanitizeFileName(body.name || 'default');
-    if (!fs.existsSync(presetsResource.filePath(fileName))) {
-      jsonResponse(res, 404, { error: 'Preset not found' });
+    if (!fs.existsSync(manifestsResource.filePath(fileName))) {
+      jsonResponse(res, 404, { error: 'Manifest not found' });
       return;
     }
-    presetsResource.setActiveName(fileName);
+    manifestsResource.setActiveName(fileName);
     jsonResponse(res, 200, { ok: true, activeFile: fileName });
   }
 
-  async function handleGetProductionPreset({ res }: any) {
-    const prodFile = presetsResource.getProductionName();
-    const filePath = presetsResource.filePath(prodFile);
-    if (!fs.existsSync(filePath)) {
-      jsonResponse(res, 200, {
-        fileName: prodFile,
-        name: prodFile,
-        theme: 'default',
-        componentConfigs: {},
-        updatedAt: '',
-      });
-      return;
-    }
-    const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-    jsonResponse(res, 200, {
-      fileName: prodFile,
-      name: data.name || prodFile,
-      theme: data.theme || 'default',
-      componentConfigs: data.componentConfigs || {},
-      updatedAt: data.updatedAt || '',
-    });
-  }
-
-  /**
-   * Set the production preset: flip every per-artifact `_production.json`
-   * pointer to the file the preset names, update `presets/_production.json`,
-   * and re-bake tokens.css + fonts.css + the component overrides block.
-   * Parallel to handleSetProductionTheme but operating on the whole bundle.
-   * Unmentioned components keep their existing production pointer (matches
-   * the editor-side apply semantics — preset has no opinion about those).
-   */
-  async function handleSetProductionPreset({ req, res }: any) {
-    const body = JSON.parse(await readBody(req));
-    const fileName = sanitizeFileName(body.name || 'default');
-    const presetPath = presetsResource.filePath(fileName);
-    if (!fs.existsSync(presetPath)) {
-      jsonResponse(res, 404, { error: 'Preset not found' });
-      return;
-    }
-    const preset = JSON.parse(fs.readFileSync(presetPath, 'utf-8'));
-
-    const themeName = sanitizeFileName(preset.theme || 'default');
-    if (!fs.existsSync(themesResource.filePath(themeName))) {
-      jsonResponse(res, 422, { error: `Preset references missing theme: ${themeName}` });
-      return;
-    }
-
-    const knownComponents = new Set(listComponentNames());
-    const componentConfigs = preset.componentConfigs ?? {};
-    const apply: Array<[string, string]> = [];
-    for (const [comp, configFile] of Object.entries(componentConfigs)) {
-      if (!knownComponents.has(comp)) continue;
-      const sanitized = sanitizeFileName(String(configFile) || 'default');
-      if (!fs.existsSync(componentResource(comp).filePath(sanitized))) {
-        jsonResponse(res, 422, {
-          error: `Preset references missing config: ${comp}/${sanitized}`,
-        });
-        return;
-      }
-      apply.push([comp, sanitized]);
-    }
-
-    themesResource.setProductionName(themeName);
-    for (const [comp, configFile] of apply) {
-      componentResource(comp).setProductionName(configFile);
-    }
-    presetsResource.setProductionName(fileName);
-
-    syncTokensToCss(themeName);
-    syncFontsToCss(themeName);
-    syncComponentsToCss();
-
-    jsonResponse(res, 200, {
-      ok: true,
-      fileName,
-      name: preset.name || fileName,
-      theme: themeName,
-      componentConfigs: Object.fromEntries(apply),
-      updatedAt: preset.updatedAt || '',
-    });
-  }
-
-  async function handlePresetByName({ params, req, res }: any) {
+  async function handleManifestByName({ params, req, res }: any) {
     const [fileName] = params;
-    const filePath = presetsResource.filePath(fileName);
+    const filePath = manifestsResource.filePath(fileName);
 
     if (req.method === 'GET') {
       if (!fs.existsSync(filePath)) {
@@ -899,7 +897,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
     if (req.method === 'PUT') {
       if (fileName === 'default') {
-        jsonResponse(res, 403, { error: 'Cannot overwrite the default preset' });
+        jsonResponse(res, 403, { error: 'Cannot overwrite the default manifest' });
         return;
       }
       const body = JSON.parse(await readBody(req));
@@ -918,13 +916,13 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
     if (req.method === 'DELETE') {
       if (fileName === 'default') {
-        jsonResponse(res, 403, { error: 'Cannot delete the default preset' });
+        jsonResponse(res, 403, { error: 'Cannot delete the default manifest' });
         return;
       }
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
-        if (presetsResource.getActiveName() === fileName) {
-          presetsResource.setActiveName('default');
+        if (manifestsResource.getActiveName() === fileName) {
+          manifestsResource.setActiveName('default');
         }
       }
       jsonResponse(res, 200, { ok: true });
@@ -933,36 +931,35 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Atomically apply a preset: validate that every referenced file exists,
-   * flip the theme + each component's `_active.json` pointers, mark the preset
-   * itself active, and return the resolved theme + component configs in one
-   * payload. The client uses this to hydrate the editor without N+1 round-trips.
+   * Atomically apply a manifest: validate that every referenced file exists,
+   * flip the theme + each component's `_active.json` pointers, mark the
+   * manifest itself active, and return the resolved theme + component configs
+   * in one payload. The client follows with a full page reload.
    */
-  async function handleApplyPreset({ params, res }: any) {
+  async function handleApplyManifest({ params, res }: any) {
     const [fileName] = params;
-    const presetPath = presetsResource.filePath(fileName);
-    if (!fs.existsSync(presetPath)) {
-      jsonResponse(res, 404, { error: 'Preset not found' });
+    const manifestPath = manifestsResource.filePath(fileName);
+    if (!fs.existsSync(manifestPath)) {
+      jsonResponse(res, 404, { error: 'Manifest not found' });
       return;
     }
-    const preset = JSON.parse(fs.readFileSync(presetPath, 'utf-8'));
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
 
-    // Validate theme exists.
-    const themeName = sanitizeFileName(preset.theme || 'default');
+    const themeName = sanitizeFileName(manifest.theme || 'default');
     const themePath = themesResource.filePath(themeName);
     if (!fs.existsSync(themePath)) {
-      jsonResponse(res, 422, { error: `Preset references missing theme: ${themeName}` });
+      jsonResponse(res, 422, { error: `Manifest references missing theme: ${themeName}` });
       return;
     }
 
     // Validate every referenced component config exists. Components in the
     // manifest that don't exist as components get skipped (component was
-    // removed since the preset was saved); missing config files for an
+    // removed since the manifest was saved); missing config files for an
     // existing component are a hard error.
     const knownComponents = new Set(listComponentNames());
-    const componentConfigs = preset.componentConfigs ?? {};
+    const componentConfigs = manifest.componentConfigs ?? {};
     const resolvedConfigs: Record<string, any> = {};
-    const apply: Array<[string, string]> = []; // [comp, fileName]
+    const apply: Array<[string, string]> = [];
     for (const [comp, configFile] of Object.entries(componentConfigs)) {
       if (!knownComponents.has(comp)) continue;
       const sanitized = sanitizeFileName(String(configFile) || 'default');
@@ -970,14 +967,13 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       const cfgPath = r.filePath(sanitized);
       if (!fs.existsSync(cfgPath)) {
         jsonResponse(res, 422, {
-          error: `Preset references missing config: ${comp}/${sanitized}`,
+          error: `Manifest references missing config: ${comp}/${sanitized}`,
         });
         return;
       }
       apply.push([comp, sanitized]);
     }
 
-    // All references valid — flip pointers and gather resolved JSON.
     themesResource.setActiveName(themeName);
     const themeData = JSON.parse(fs.readFileSync(themePath, 'utf-8'));
     themeData._fileName = themeName;
@@ -989,12 +985,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       if (cfg) resolvedConfigs[comp] = { ...cfg, _fileName: configFile };
     }
 
-    // Components on disk but not mentioned in the manifest: leave their active
-    // pointer alone. The preset has no opinion about them. Forcing every
-    // unmentioned component to 'default' would silently revert user state for
-    // components a preset wasn't trying to touch. If you want exhaustive
-    // restoration, save a preset via captureCurrentAsPreset — it captures
-    // every component's current active and writes a complete manifest.
+    // Components on disk but not mentioned in the manifest: leave their
+    // active pointer alone. The manifest has no opinion about them.
     for (const comp of knownComponents) {
       if (resolvedConfigs[comp]) continue;
       const activeName = componentResource(comp).getActiveName();
@@ -1002,11 +994,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       if (cfg) resolvedConfigs[comp] = { ...cfg, _fileName: activeName };
     }
 
-    presetsResource.setActiveName(fileName);
+    manifestsResource.setActiveName(fileName);
 
     jsonResponse(res, 200, {
       ok: true,
-      preset: { ...preset, _fileName: fileName },
+      manifest: { ...manifest, _fileName: fileName },
       theme: themeData,
       componentConfigs: resolvedConfigs,
     });
@@ -1064,23 +1056,21 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     { method: 'PUT',    pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
     { method: 'DELETE', pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
 
-    // Presets — list / active / production are exact strings, must run before regexes
-    { method: 'GET',    pattern: PRESETS_ROUTE,            handler: handleListPresets },
-    { method: 'GET',    pattern: PRESETS_ACTIVE_ROUTE,     handler: handleGetActivePreset },
-    { method: 'PUT',    pattern: PRESETS_ACTIVE_ROUTE,     handler: handleSetActivePreset },
-    { method: 'GET',    pattern: PRESETS_PRODUCTION_ROUTE, handler: handleGetProductionPreset },
-    { method: 'PUT',    pattern: PRESETS_PRODUCTION_ROUTE, handler: handleSetProductionPreset },
+    // Manifests — list / active are exact strings, must run before regexes
+    { method: 'GET',    pattern: MANIFESTS_ROUTE,         handler: handleListManifests },
+    { method: 'GET',    pattern: MANIFESTS_ACTIVE_ROUTE,  handler: handleGetActiveManifest },
+    { method: 'PUT',    pattern: MANIFESTS_ACTIVE_ROUTE,  handler: handleSetActiveManifest },
 
-    // Presets — :name/apply (more specific than :name)
-    { method: 'PUT',    pattern: PRESET_APPLY_REGEX,      handler: handleApplyPreset },
-    { method: 'POST',   pattern: PRESET_APPLY_REGEX,      handler: methodNotAllowed },
-    { method: 'GET',    pattern: PRESET_APPLY_REGEX,      handler: methodNotAllowed },
-    { method: 'DELETE', pattern: PRESET_APPLY_REGEX,      handler: methodNotAllowed },
+    // Manifests — :name/apply (more specific than :name)
+    { method: 'PUT',    pattern: MANIFEST_APPLY_REGEX,    handler: handleApplyManifest },
+    { method: 'POST',   pattern: MANIFEST_APPLY_REGEX,    handler: methodNotAllowed },
+    { method: 'GET',    pattern: MANIFEST_APPLY_REGEX,    handler: methodNotAllowed },
+    { method: 'DELETE', pattern: MANIFEST_APPLY_REGEX,    handler: methodNotAllowed },
 
-    // Presets — :name CRUD (broadest preset route, runs last)
-    { method: 'GET',    pattern: PRESET_BY_NAME_REGEX,    handler: handlePresetByName },
-    { method: 'PUT',    pattern: PRESET_BY_NAME_REGEX,    handler: handlePresetByName },
-    { method: 'DELETE', pattern: PRESET_BY_NAME_REGEX,    handler: handlePresetByName },
+    // Manifests — :name CRUD (broadest manifest route, runs last)
+    { method: 'GET',    pattern: MANIFEST_BY_NAME_REGEX,  handler: handleManifestByName },
+    { method: 'PUT',    pattern: MANIFEST_BY_NAME_REGEX,  handler: handleManifestByName },
+    { method: 'DELETE', pattern: MANIFEST_BY_NAME_REGEX,  handler: handleManifestByName },
   ];
 
   return {
@@ -1098,7 +1088,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     configureServer(server) {
       ensureThemesDir();
       ensureComponentConfigsDir();
-      ensurePresetsDir();
+      ensureManifestsDir();
 
       server.middlewares.use(async (req, res, next) => {
         const handled = await dispatch(req, res, routes);

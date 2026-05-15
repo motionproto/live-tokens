@@ -23,6 +23,8 @@
     markComponentSaved,
   } from '../../lib/editorStore';
   import { bumpProductionRevision } from '../../lib/productionPulse';
+  import { listManifests, saveAsManifest } from '../../lib/manifestService';
+  import type { ManifestMeta } from '../../lib/themeTypes';
   import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../lib/migrations';
   import type { CssVarRef } from '../../lib/editorTypes';
   import { safeFetch } from '../../lib/storage';
@@ -62,11 +64,21 @@
   let activeFileName = $state('default');
   let currentDisplayName = $state('Default');
   let saveAsDialog = $state(false);
+  // Title + description re-set per trigger so the auto-prompts (Save on
+  // default, Adopt on default+dirty) explain why they appeared, while the
+  // manual Save As button stays terse.
+  let saveAsTitle = $state('Save Component As');
+  let saveAsDescription = $state('');
 
   let productionInfo = $state<ComponentProductionInfo | null>(null);
   type ProductionStatus = 'idle' | 'updating' | 'done' | 'error';
   let productionUpdateStatus: ProductionStatus = $state('idle');
   let adoptFeedback = $state('');
+
+  // Manifest SaveAs prompt for the "Adopt while default manifest is active" case.
+  let manifestSaveAsDialog = $state(false);
+  let manifests: ManifestMeta[] = $state([]);
+  let retryAdoptAfterManifestSave = false;
 
   /** Same idle-after-2s pattern for the production-update flash. */
   function flashProductionStatus(state: Exclude<ProductionStatus, 'idle'>) {
@@ -158,6 +170,9 @@
   async function handleSave() {
     if (activeFileName === 'default') {
       // Default is regenerated from source — can't overwrite directly.
+      saveAsTitle = 'Save Component As';
+      saveAsDescription =
+        "The default config is regenerated from source and can't be overwritten. Save your edits as a new file.";
       saveAsDialog = true;
       return;
     }
@@ -172,6 +187,8 @@
   }
 
   function openSaveAs() {
+    saveAsTitle = 'Save Component As';
+    saveAsDescription = '';
     saveAsDialog = true;
   }
 
@@ -229,6 +246,9 @@
     // regenerated from source and can't be overwritten, so route to Save As
     // and bail; the user can re-trigger Adopt after the new file is saved.
     if (compDirty && activeFileName === 'default') {
+      saveAsTitle = 'Save Component As';
+      saveAsDescription =
+        'Adopting pushes this component to production. The default config is read-only, so save your edits to a new file first.';
       saveAsDialog = true;
       return;
     }
@@ -247,9 +267,37 @@
         ? `Saved "${adoptingName}" and adopted`
         : `Adopted "${adoptingName}"`;
       flashProductionStatus('done');
-    } catch {
+    } catch (err) {
+      const e = err as Error & { code?: string };
+      if (e.code === 'ACTIVE_IS_PROTECTED') {
+        adoptFeedback = '';
+        productionUpdateStatus = 'idle';
+        retryAdoptAfterManifestSave = true;
+        try {
+          manifests = await listManifests();
+        } catch {
+          manifests = [];
+        }
+        manifestSaveAsDialog = true;
+        return;
+      }
       adoptFeedback = '';
       flashProductionStatus('error');
+    }
+  }
+
+  async function onManifestSaveAs(detail: { displayName: string; fileName: string }) {
+    manifestSaveAsDialog = false;
+    try {
+      await saveAsManifest(detail.fileName, detail.displayName);
+    } catch (err) {
+      window.alert(`Failed to create manifest: ${(err as Error).message}`);
+      retryAdoptAfterManifestSave = false;
+      return;
+    }
+    if (retryAdoptAfterManifestSave) {
+      retryAdoptAfterManifestSave = false;
+      await handleUpdateProduction();
     }
   }
 
@@ -392,7 +440,22 @@
   bind:show={saveAsDialog}
   {currentDisplayName}
   {files}
+  title={saveAsTitle}
+  description={saveAsDescription}
+  placeholder="Component config name…"
+  branchFromDefaultName={`my-${(title || 'component').toLowerCase().trim().replace(/\s+/g, '-')}`}
   onsave={confirmSaveAs}
+/>
+
+<SaveAsDialog
+  bind:show={manifestSaveAsDialog}
+  currentDisplayName="my-manifest"
+  files={manifests}
+  title="Save Manifest As"
+  placeholder="Manifest name…"
+  description="Adopting a component change updates the active manifest, you're still on the default manifest which is locked. Name a new manifest for the site."
+  reservedNameMessage='The name "default" is reserved for the protected baseline.'
+  onsave={onManifestSaveAs}
 />
 
 <style>

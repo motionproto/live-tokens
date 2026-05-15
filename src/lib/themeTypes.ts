@@ -120,16 +120,17 @@ export interface ComponentConfigMeta {
 
 /**
  * Manifest that captures an entire site state — the active theme plus the
- * active config for every component. Loading a preset flips the relevant
+ * active config for every component. Loading a manifest flips the relevant
  * `_active.json` pointers; the underlying theme + component-config files stay
- * the source of truth, so editing them flows through any preset that
- * references them.
+ * the source of truth, so editing them flows through any manifest that
+ * references them. The currently-active manifest is the live snapshot: theme
+ * and component Adopts auto-patch its refs on the server.
  */
-export interface Preset {
+export interface Manifest {
   name: string;
   createdAt: string;
   updatedAt: string;
-  /** File basename (no `.json`) of the theme this preset pins. */
+  /** File basename (no `.json`) of the theme this manifest pins. */
   theme: string;
   /** Map of componentId → config file basename. Components omitted here fall
    *  back to "default" at apply time. */
@@ -138,9 +139,12 @@ export interface Preset {
   _fileName?: string;
 }
 
-export interface PresetMeta {
+export interface ManifestMeta {
   name: string;
   fileName: string;
   updatedAt: string;
   isActive: boolean;
+  /** `true` only for `default` — the protected baseline. Cannot be written
+   *  to or deleted, and theme/component Adopts cannot patch into it. */
+  isProtected: boolean;
 }

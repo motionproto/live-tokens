@@ -4,6 +4,8 @@
   import { onMount } from 'svelte';
   import type { ThemeMeta } from '../lib/themeTypes';
   import { listThemes, deleteTheme, setActiveFile, getProductionInfo, setProductionFile } from '../lib/themeService';
+  import { listManifests, saveAsManifest } from '../lib/manifestService';
+  import type { ManifestMeta } from '../lib/themeTypes';
   import { activeFileName } from '../lib/editorConfigStore';
   import { dirty } from '../lib/editorStore';
   import { productionRevision, bumpProductionRevision, themeProductionInfo } from '../lib/productionPulse';
@@ -25,6 +27,11 @@
   let currentDisplayName = $state('Default Theme');
 
   let prodApplyStatus: 'idle' | 'applying' | 'done' | 'error' = $state('idle');
+
+  // Manifest SaveAs prompt for the "Adopt while default manifest is active" case.
+  let manifestSaveAsDialog = $state(false);
+  let manifests: ManifestMeta[] = $state([]);
+  let retryAdoptAfterManifestSave = false;
 
   let prodIsInSync = $derived($themeProductionInfo?.fileName === $activeFileName);
   let editorIsApplied = $derived(prodIsInSync && !$dirty);
@@ -59,7 +66,7 @@
     await refreshProduction();
   });
 
-  // Refresh production state when any production pointer flips (e.g. a preset
+  // Refresh production state when any production pointer flips (e.g. a manifest
   // is adopted elsewhere). Skip the initial tick — onMount already loaded it.
   let pulseInitialised = false;
   $effect(() => {
@@ -98,9 +105,37 @@
       bumpProductionRevision();
       prodApplyStatus = 'done';
       setTimeout(() => { prodApplyStatus = 'idle'; }, 2000);
-    } catch {
+    } catch (err) {
+      const e = err as Error & { code?: string };
+      if (e.code === 'ACTIVE_IS_PROTECTED') {
+        // Default manifest is active — prompt a manifest SaveAs and retry.
+        prodApplyStatus = 'idle';
+        retryAdoptAfterManifestSave = true;
+        try {
+          manifests = await listManifests();
+        } catch {
+          manifests = [];
+        }
+        manifestSaveAsDialog = true;
+        return;
+      }
       prodApplyStatus = 'error';
       setTimeout(() => { prodApplyStatus = 'idle'; }, 3000);
+    }
+  }
+
+  async function onManifestSaveAs(detail: { displayName: string; fileName: string }) {
+    manifestSaveAsDialog = false;
+    try {
+      await saveAsManifest(detail.fileName, detail.displayName);
+    } catch (err) {
+      window.alert(`Failed to create manifest: ${(err as Error).message}`);
+      retryAdoptAfterManifestSave = false;
+      return;
+    }
+    if (retryAdoptAfterManifestSave) {
+      retryAdoptAfterManifestSave = false;
+      await handleApplyToProduction();
     }
   }
 
@@ -117,6 +152,51 @@
     currentDisplayName = file.name;
     onload?.({ fileName: file.fileName });
   }
+
+  // Two-step arm pattern. First click flips `revertArmed` so the button
+  // morphs into a "Discard?" affordance; second click commits. Click-out,
+  // Escape, a 3s timeout, or the dirty flag clearing all disarm.
+  let revertArmed = $state(false);
+  let revertTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function disarmRevert() {
+    revertArmed = false;
+    if (revertTimer) {
+      clearTimeout(revertTimer);
+      revertTimer = null;
+    }
+  }
+
+  function handleRevert() {
+    if (!$dirty) return;
+    if (!revertArmed) {
+      revertArmed = true;
+      revertTimer = setTimeout(disarmRevert, 3000);
+      return;
+    }
+    disarmRevert();
+    onload?.({ fileName: $activeFileName });
+  }
+
+  $effect(() => {
+    if (!$dirty && revertArmed) disarmRevert();
+  });
+
+  $effect(() => {
+    if (!revertArmed) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest('.tfm-revert-btn')) disarmRevert();
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') disarmRevert();
+    };
+    document.addEventListener('click', onDocClick, true);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('click', onDocClick, true);
+      document.removeEventListener('keydown', onKey);
+    };
+  });
 
   async function handleDelete(file: ThemeMeta) {
     if (file.fileName === 'default') return;
@@ -202,6 +282,21 @@
         >
           <i class="tfm-status-dot" aria-hidden="true"></i>
           <span>{$dirty ? 'unsaved' : editorIsApplied ? 'live' : 'saved'}</span>
+          {#if $dirty}
+            <button
+              type="button"
+              class="tfm-revert-btn"
+              class:armed={revertArmed}
+              onclick={handleRevert}
+              title={revertArmed
+                ? 'Click again to discard unsaved changes'
+                : 'Revert to last saved version'}
+              aria-label={revertArmed ? 'Confirm discard unsaved changes' : 'Revert unsaved changes'}
+            >
+              <i class="fas fa-rotate-left" aria-hidden="true"></i>
+              {#if revertArmed}<span class="tfm-revert-label">Discard?</span>{/if}
+            </button>
+          {/if}
         </span>
       </div>
       <div class="tfm-pill" class:dirty={$dirty} class:applied={editorIsApplied}>
@@ -355,7 +450,19 @@
   title="Save Theme As"
   placeholder="Theme name…"
   reservedNameMessage='The name "default" is reserved for the initial distribution.'
+  branchFromDefaultName="my-theme"
   onsave={confirmSaveAs}
+/>
+
+<SaveAsDialog
+  bind:show={manifestSaveAsDialog}
+  currentDisplayName="my-manifest"
+  files={manifests}
+  title="Save Manifest As"
+  placeholder="Manifest name…"
+  description="Adopting a theme change updates the active manifest, The default manifest is locked. Name a new manifest for the site."
+  reservedNameMessage='The name "default" is reserved for the protected baseline.'
+  onsave={onManifestSaveAs}
 />
 
 <style>
@@ -385,8 +492,9 @@
     letter-spacing: 0.05em;
   }
 
-  /* Two-card pipeline (Editor → Production) — mirrors PresetFileManager so
-     theme and preset surfaces share one visual idiom. */
+  /* Two-card pipeline (Editor → Production) — theme card + production card
+     surface the per-artifact pipeline. The manifest panel sits one level up
+     and tracks active vs default rather than editor vs production. */
   .tfm-cards {
     display: flex;
     flex-direction: column;
@@ -469,6 +577,89 @@
   }
   .tfm-card-status.applied .tfm-status-dot {
     opacity: 1;
+  }
+
+  /* Revert button — paired with the "unsaved" status label. Lives only when
+     dirty, in the highlight color so it reads as part of the status group
+     rather than a peer of the action stack below. Two-step arm: first click
+     adds .armed (label appears, fills with highlight), second click commits. */
+  .tfm-revert-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 18px;
+    margin-left: 2px;
+    padding: 0 4px;
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--ui-highlight) 35%, transparent);
+    border-radius: 4px;
+    color: var(--ui-highlight);
+    font-size: 0.65rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.85;
+    overflow: hidden;
+    transition:
+      background var(--ui-transition-fast),
+      border-color var(--ui-transition-fast),
+      color var(--ui-transition-fast),
+      opacity var(--ui-transition-fast),
+      padding var(--ui-transition-fast);
+  }
+
+  .tfm-revert-btn:hover {
+    background: color-mix(in srgb, var(--ui-highlight) 18%, transparent);
+    border-color: color-mix(in srgb, var(--ui-highlight) 65%, transparent);
+    opacity: 1;
+  }
+
+  .tfm-revert-btn:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--ui-highlight) 60%, transparent);
+    outline-offset: 1px;
+  }
+
+  .tfm-revert-btn i {
+    font-size: 0.65rem;
+    transition: transform var(--ui-transition-fast);
+  }
+
+  .tfm-revert-btn.armed {
+    background: var(--ui-highlight);
+    border-color: var(--ui-highlight);
+    color: var(--ui-surface-lowest, #111);
+    opacity: 1;
+    padding: 0 6px;
+  }
+
+  .tfm-revert-btn.armed i {
+    transform: rotate(-35deg);
+  }
+
+  .tfm-revert-label {
+    font-weight: var(--ui-font-weight-semibold, 600);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  /* Time-window cue — thin bar drains across the bottom edge as the 3s
+     auto-disarm window elapses. Pure CSS, runs once per arm cycle. */
+  .tfm-revert-btn.armed::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 100%;
+    background: color-mix(in srgb, var(--ui-surface-lowest, #111) 70%, transparent);
+    transform-origin: left center;
+    animation: tfm-revert-drain 3s linear forwards;
+  }
+
+  @keyframes tfm-revert-drain {
+    from { transform: scaleX(1); }
+    to   { transform: scaleX(0); }
   }
 
   .tfm-pill {

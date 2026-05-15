@@ -7,7 +7,7 @@
   import ThemeFileManager from '../ui/ThemeFileManager.svelte';
   import EditorViewSwitcher from '../ui/EditorViewSwitcher.svelte';
   import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
-  import PresetFileManager from '../ui/PresetFileManager.svelte';
+  import ManifestFileManager from '../ui/ManifestFileManager.svelte';
   import { persistTheme, hydrateTheme } from '../lib/themeService';
   import { scrollSectionIntoView } from '../lib/scrollSection';
   import { editorState } from '../lib/editorStore';
@@ -186,7 +186,7 @@
       </div>
       {#if !condensed}
         <div class="sidebar-footer">
-          <PresetFileManager />
+          <ManifestFileManager />
         </div>
       {/if}
     {/if}

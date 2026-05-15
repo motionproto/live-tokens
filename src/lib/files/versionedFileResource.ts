@@ -118,7 +118,14 @@ export function versionedFileResource<TItem, TMeta, TProductionInfo>(
       body: JSON.stringify({ name: fileName }),
     });
     if (!res.ok) {
-      throw new Error(await readJsonError(res, 'Set production failed'));
+      const body = await res.json().catch(() => ({}));
+      const err = new Error(body.error || 'Set production failed') as Error & {
+        status?: number;
+        code?: string;
+      };
+      err.status = res.status;
+      if (body.code) err.code = body.code;
+      throw err;
     }
     return res.json();
   }

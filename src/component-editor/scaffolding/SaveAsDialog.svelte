@@ -11,16 +11,26 @@
     currentDisplayName?: string;
     /** Existing files used by the increment helper to find the next available `_NN` suffix.
      *  Only `fileName` is read, so this accepts any shape with that field
-     *  (ComponentConfigMeta, PresetMeta, …). */
+     *  (ComponentConfigMeta, ManifestMeta, …). */
     files?: { fileName: string }[];
     /** Dialog title — defaults to "Save As". Overridable so callers can use
-     *  context-specific framing (e.g. "Save Preset As"). */
+     *  context-specific framing (e.g. "Save Manifest As"). */
     title?: string;
     /** Placeholder shown in the empty input. */
     placeholder?: string;
     /** Error message shown when the user types the reserved "default" name.
-     *  Default copy references components; presets should override. */
+     *  Default copy references components; manifests should override. */
     reservedNameMessage?: string;
+    /** Optional one-line explanation rendered above the name input. Use when
+     *  the dialog opens automatically (e.g. as a recovery prompt) so the user
+     *  understands what's about to be saved and why the prompt appeared. */
+    description?: string;
+    /** Seed value to use when branching off the protected `default` file.
+     *  Without this the dialog falls back to incrementing the default's display
+     *  name (e.g. "Default Theme_01"), which reads as a derivative of the
+     *  reserved name. Pass a fresh, neutral suggestion (e.g. "My Theme") so
+     *  the user's first save isn't named after the slot they can't overwrite. */
+    branchFromDefaultName?: string;
     onsave?: (payload: { displayName: string; fileName: string }) => void;
   }
 
@@ -31,6 +41,8 @@
     title = 'Save As',
     placeholder = 'Config name…',
     reservedNameMessage = 'The name "default" is reserved for the core component definition.',
+    description = '',
+    branchFromDefaultName = '',
     onsave,
   }: Props = $props();
 
@@ -79,10 +91,13 @@
   // ends up focused-and-selected, not the button.
   run(() => {
     if (show) {
-      saveAsName =
-        sanitizeFileName(currentDisplayName) === 'default'
-          ? nextIncrementName(currentDisplayName).displayName
-          : currentDisplayName;
+      if (sanitizeFileName(currentDisplayName) === 'default') {
+        saveAsName = branchFromDefaultName
+          ? branchFromDefaultName
+          : nextIncrementName(currentDisplayName).displayName;
+      } else {
+        saveAsName = currentDisplayName;
+      }
       setTimeout(() => saveAsInput?.select(), 0);
     }
   });
@@ -106,6 +121,9 @@
   width="360px"
 >
   <div class="save-as-dialog">
+    {#if description}
+      <p class="save-as-description">{description}</p>
+    {/if}
     <div class="save-as-row">
       <input
         class="save-as-input"
@@ -194,5 +212,12 @@
     margin: 0;
     font-size: var(--ui-font-size-xs);
     color: var(--ui-highlight);
+  }
+
+  .save-as-description {
+    margin: 0;
+    font-size: var(--ui-font-size-xs);
+    line-height: 1.5;
+    color: var(--ui-text-secondary);
   }
 </style>

@@ -12,7 +12,7 @@ import {
 /**
  * Save the current in-memory state of a component to its active file. Mirrors
  * the `persist` flow inside `ComponentFileManager.svelte` so callers without a
- * file-manager instance (e.g. the unsaved-components dialog in PresetFileManager)
+ * file-manager instance (e.g. an unsaved-components dialog upstream)
  * can save a dirty component without duplicating the schema-version + aliases
  * stringification logic.
  *

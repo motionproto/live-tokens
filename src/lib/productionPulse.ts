@@ -1,18 +1,16 @@
 import { writable } from 'svelte/store';
 import type { ProductionInfo } from './themeService';
-import type { ProductionComparison } from './presetService';
+import type { ManifestMeta } from './themeTypes';
 
 /**
  * Monotonic counter that ticks every time a production pointer flips —
- * theme production, a component's production, or a preset applied to
- * production. UI surfaces that compare against current production state
- * (notably `PresetFileManager`) subscribe to this so an Adopt click in a
- * sibling manager refreshes their derived status without per-pair wiring.
+ * theme production or a component's production. UI surfaces that need to
+ * react to a sibling Adopt subscribe to this so they refresh without
+ * per-pair wiring.
  *
  * Bumpers: `ThemeFileManager.handleApplyToProduction`,
- * `ComponentFileManager.handleUpdateProduction`,
- * `presetService.applyPresetToProduction` (called from `PresetFileManager`).
- * Anyone setting `_production.json` should bump.
+ * `ComponentFileManager.handleUpdateProduction`. Anyone setting
+ * `_production.json` should bump.
  */
 export const productionRevision = writable(0);
 
@@ -21,7 +19,7 @@ export function bumpProductionRevision(): void {
 }
 
 /**
- * Cached production-state stores. The Theme and Preset file managers live in
+ * Cached production-state stores. The Theme and Manifest file managers live in
  * the sidebar footer, swapping in/out of the DOM as the user toggles between
  * the tokens and components views. Keeping the last-known production state in
  * module-level Svelte stores means a remount renders the correct Adopt-button
@@ -29,4 +27,11 @@ export function bumpProductionRevision(): void {
  * fresh fetch resolves.
  */
 export const themeProductionInfo = writable<ProductionInfo | null>(null);
-export const presetProductionComparison = writable<ProductionComparison | null>(null);
+
+/**
+ * Last-known active manifest meta. Bumped by ManifestFileManager whenever the
+ * active manifest changes (load, save, save-as) and whenever a theme or
+ * component Adopt completes (the server patches the active manifest as a
+ * side-effect, so consumers re-read it on `productionRevision` ticks).
+ */
+export const activeManifest = writable<ManifestMeta | null>(null);
