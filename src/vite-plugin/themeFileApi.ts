@@ -8,12 +8,26 @@ import {
   type VersionedFileResourceServer,
 } from './files/versionedFileResource';
 import { dispatch, type Route } from './files/routeTable';
+import { fileURLToPath } from 'node:url';
 
-// __LIVE_TOKENS_PKG_VERSION__ is replaced at plugin build time by tsup
-// (see tsup.config.ts) with the live-tokens package version literal.
-declare const __LIVE_TOKENS_PKG_VERSION__: string;
-const PKG_VERSION: string =
-  typeof __LIVE_TOKENS_PKG_VERSION__ !== 'undefined' ? __LIVE_TOKENS_PKG_VERSION__ : '';
+// Read live-tokens' own package.json by walking up from this file. Works the
+// same in dev (plugin source) and built (dist-plugin/index.js) — single source.
+const PKG_VERSION: string = (() => {
+  try {
+    let dir = path.dirname(fileURLToPath(import.meta.url));
+    for (let i = 0; i < 4; i++) {
+      const p = path.join(dir, 'package.json');
+      if (fs.existsSync(p)) {
+        const json = JSON.parse(fs.readFileSync(p, 'utf-8'));
+        if (json?.name === '@motion-proto/live-tokens') return json.version ?? '';
+      }
+      const up = path.dirname(dir);
+      if (up === dir) break;
+      dir = up;
+    }
+  } catch { /* fall through */ }
+  return '';
+})();
 
 export interface ThemeFileApiOptions {
   themesDir: string;           // required, e.g. 'themes' (relative to cwd, resolved with path.resolve)
@@ -1072,10 +1086,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   return {
     name: 'theme-file-api',
     config() {
-      // Inject __PROJECT_ROOT__ so the editor overlay's "Page Source" link
-      // can build `vscode://file/<root>/<path>` URLs without each consumer
-      // having to wire their own `define` entry. __APP_VERSION__ ships the
-      // live-tokens package version to the overlay's header badge.
+      // __PROJECT_ROOT__ powers the overlay's "Page Source" vscode:// links;
+      // __APP_VERSION__ feeds the overlay's header version badge.
       return {
         define: {
           __PROJECT_ROOT__: JSON.stringify(process.cwd()),

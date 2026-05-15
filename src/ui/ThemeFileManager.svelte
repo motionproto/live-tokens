@@ -1,13 +1,14 @@
 <script lang="ts">
   import { stopPropagation } from 'svelte/legacy';
 
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
   import type { ThemeMeta } from '../lib/themeTypes';
   import { listThemes, deleteTheme, setActiveFile, getProductionInfo, setProductionFile } from '../lib/themeService';
   import { activeFileName } from '../lib/editorConfigStore';
   import { dirty } from '../lib/editorStore';
   import { productionRevision, bumpProductionRevision, themeProductionInfo } from '../lib/productionPulse';
   import UIDialog from './UIDialog.svelte';
+  import UIInfoPopover from './UIInfoPopover.svelte';
   import SaveAsDialog from '../component-editor/scaffolding/SaveAsDialog.svelte';
 
   interface Props {
@@ -24,11 +25,6 @@
   let currentDisplayName = $state('Default Theme');
 
   let prodApplyStatus: 'idle' | 'applying' | 'done' | 'error' = $state('idle');
-
-  let infoOpen = $state(false);
-  let infoBtnEl = $state<HTMLButtonElement | undefined>(undefined);
-  let infoPopoverEl = $state<HTMLDivElement | undefined>(undefined);
-  let infoPopoverReady = $state(false);
 
   let prodIsInSync = $derived($themeProductionInfo?.fileName === $activeFileName);
   let editorIsApplied = $derived(prodIsInSync && !$dirty);
@@ -61,73 +57,6 @@
   onMount(async () => {
     await refreshFiles();
     await refreshProduction();
-    window.addEventListener('keydown', handleKeydown);
-    document.addEventListener('mousedown', handleDocumentMousedown, true);
-  });
-
-  onDestroy(() => {
-    window.removeEventListener('keydown', handleKeydown);
-    document.removeEventListener('mousedown', handleDocumentMousedown, true);
-  });
-
-  function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape' && infoOpen) {
-      infoOpen = false;
-    }
-  }
-
-  function handleDocumentMousedown(e: MouseEvent) {
-    if (!infoOpen) return;
-    const target = e.target as Element | null;
-    if (target && !target.closest('.tfm-info-btn, .tfm-info-popover')) {
-      infoOpen = false;
-    }
-  }
-
-  /** Anchor the fixed-position popover to the right of the info button. The
-   *  sidebar lives on the left, so flow into the content area; flip up if the
-   *  button is near the bottom of the viewport. Mirrors the preset popover so
-   *  the two info surfaces feel identical. */
-  function positionInfoPopover(): void {
-    const btn = infoBtnEl;
-    const pop = infoPopoverEl;
-    if (!btn || !pop) return;
-    const br = btn.getBoundingClientRect();
-    const pr = pop.getBoundingClientRect();
-    const margin = 8;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    let left = br.right + margin;
-    if (left + pr.width > vw - margin) {
-      left = br.left + br.width / 2 - pr.width / 2;
-      if (left < margin) left = margin;
-      if (left + pr.width > vw - margin) left = vw - margin - pr.width;
-    }
-    let top = br.bottom + margin;
-    if (top + pr.height > vh - margin) {
-      top = br.top - margin - pr.height;
-      if (top < margin) top = margin;
-    }
-    pop.style.left = `${left}px`;
-    pop.style.top = `${top}px`;
-    infoPopoverReady = true;
-  }
-
-  $effect(() => {
-    if (!infoOpen) {
-      infoPopoverReady = false;
-      return;
-    }
-    let raf1 = requestAnimationFrame(() => {
-      raf1 = requestAnimationFrame(positionInfoPopover);
-    });
-    window.addEventListener('scroll', positionInfoPopover, true);
-    window.addEventListener('resize', positionInfoPopover);
-    return () => {
-      cancelAnimationFrame(raf1);
-      window.removeEventListener('scroll', positionInfoPopover, true);
-      window.removeEventListener('resize', positionInfoPopover);
-    };
   });
 
   // Refresh production state when any production pointer flips (e.g. a preset
@@ -250,16 +179,11 @@
 <div class="theme-file-manager">
   <div class="tfm-header">
     <span class="tfm-header-label">Theme</span>
-    <button
-      type="button"
-      class="tfm-info-btn"
-      aria-label="About themes"
-      aria-expanded={infoOpen}
-      bind:this={infoBtnEl}
-      onclick={() => (infoOpen = !infoOpen)}
-    >
-      <i class="fas fa-circle-info"></i>
-    </button>
+    <UIInfoPopover title="Themes" ariaLabel="About themes">
+      <p>
+        A <strong>theme</strong> saves the design tokens for a site, components use these tokens to define their appearance.
+      </p>
+    </UIInfoPopover>
   </div>
 
   <div class="tfm-cards" class:in-sync={prodIsInSync}>
@@ -368,33 +292,6 @@
   </div>
 </div>
 
-{#if infoOpen}
-  <div
-    class="tfm-info-popover"
-    class:ready={infoPopoverReady}
-    role="dialog"
-    aria-label="About themes"
-    bind:this={infoPopoverEl}
-  >
-    <header class="tfm-info-header">
-      <span class="tfm-info-title">Themes</span>
-      <button
-        type="button"
-        class="tfm-info-close"
-        aria-label="Close"
-        onclick={() => (infoOpen = false)}
-      >
-        <i class="fas fa-xmark"></i>
-      </button>
-    </header>
-    <div class="tfm-info-body">
-      <p>
-        A <strong>theme</strong> saves the design tokens for a site, components use these tokens to define their appearance.
-      </p>
-    </div>
-  </div>
-{/if}
-
 <UIDialog
   bind:show={showFileList}
   title="Load Theme"
@@ -486,27 +383,6 @@
     color: var(--ui-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-  }
-
-  .tfm-info-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    padding: 0;
-    background: transparent;
-    border: 0;
-    color: var(--ui-text-tertiary);
-    font-size: 0.95rem;
-    line-height: 1;
-    cursor: pointer;
-    transition: color var(--ui-transition-fast);
-  }
-
-  .tfm-info-btn:hover,
-  .tfm-info-btn[aria-expanded='true'] {
-    color: var(--ui-text-primary);
   }
 
   /* Two-card pipeline (Editor → Production) — mirrors PresetFileManager so
@@ -916,96 +792,6 @@
 
   .file-delete-btn:hover {
     color: #ccc;
-  }
-
-  /* Info popover — fixed positioning escapes the sidebar's overflow and any
-     parent stacking context. JS in this file anchors it to the right of the
-     info button (the sidebar is on the left, so there's room to flow into
-     the main content area without obscuring the button). */
-  .tfm-info-popover {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 22rem;
-    max-width: calc(100vw - var(--ui-space-24));
-    padding: 0;
-    background: var(--ui-surface-higher);
-    border: 1px solid var(--ui-border-medium);
-    border-radius: var(--ui-radius-lg);
-    box-shadow: var(--ui-shadow-lg);
-    z-index: 1000;
-    color: var(--ui-text-secondary);
-    font-family: var(--ui-font-family, system-ui, sans-serif);
-    overflow: hidden;
-    visibility: hidden;
-    animation: tfm-info-in 140ms ease-out;
-  }
-
-  .tfm-info-popover.ready {
-    visibility: visible;
-  }
-
-  .tfm-info-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--ui-space-8);
-    padding: var(--ui-space-10) var(--ui-space-12) var(--ui-space-10) var(--ui-space-16);
-    border-bottom: 1px solid var(--ui-border-subtle);
-  }
-
-  .tfm-info-title {
-    color: var(--ui-text-primary);
-    font-size: var(--ui-font-size-sm);
-    font-weight: var(--ui-font-weight-semibold);
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-  }
-
-  .tfm-info-close {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--ui-space-24);
-    height: var(--ui-space-24);
-    padding: 0;
-    background: transparent;
-    border: 0;
-    border-radius: var(--ui-radius-sm);
-    color: var(--ui-text-tertiary);
-    font-size: var(--ui-font-size-xs);
-    line-height: 1;
-    cursor: pointer;
-    transition: color var(--ui-transition-fast), background var(--ui-transition-fast);
-  }
-
-  .tfm-info-close:hover {
-    color: var(--ui-text-primary);
-    background: var(--ui-hover);
-  }
-
-  .tfm-info-body {
-    padding: var(--ui-space-16);
-  }
-
-  .tfm-info-popover p {
-    margin: 0 0 var(--ui-space-12) 0;
-    font-size: var(--ui-font-size-xs);
-    line-height: 1.55;
-  }
-
-  .tfm-info-popover p:last-child {
-    margin-bottom: 0;
-  }
-
-  .tfm-info-popover strong {
-    color: var(--ui-text-primary);
-    font-weight: var(--ui-font-weight-semibold);
-  }
-
-  @keyframes tfm-info-in {
-    from { opacity: 0; transform: translateY(-3px); }
-    to   { opacity: 1; transform: translateY(0); }
   }
 
   @keyframes tfm-pulse {

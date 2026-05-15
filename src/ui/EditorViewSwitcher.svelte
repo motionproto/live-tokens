@@ -36,7 +36,7 @@
   </button>
 {:else}
   <div class="seg-group">
-    <span class="seg-label">Editor</span>
+    <span class="seg-label">Editor Mode</span>
     <div class="seg" role="tablist" aria-label="Editor view">
       <button
         type="button"
@@ -77,19 +77,21 @@
   .seg-label {
     font-size: 10px;
     font-weight: var(--ui-font-weight-semibold);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     color: #fff;
     padding-left: var(--ui-space-2);
+    margin-bottom: 2px;
   }
 
   .seg {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    padding: 3px;
+    padding: 4px;
+    margin-bottom: 4px;
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-text-primary);
     border-radius: var(--ui-radius-lg);
     /* Fill the sidebar's content area so the box width is fixed by the rail,
        not by which label happens to be active. Buttons inherit this width via

@@ -39,17 +39,18 @@
 
 <style>
   .home {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: var(--space-40) var(--space-24);
-    max-width: 720px;
+    display: grid;
+    grid-template-columns: repeat(var(--columns-count), 1fr);
+    column-gap: var(--columns-gutter);
+    max-width: var(--columns-max-width);
     margin: 0 auto;
+    padding: var(--space-48) var(--space-32);
+    min-height: 100vh;
+    align-content: center;
   }
 
   .stub {
-    width: 100%;
+    grid-column: 5 / span 4;
   }
 
   .eyebrow {

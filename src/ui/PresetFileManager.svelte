@@ -1,7 +1,7 @@
 <script lang="ts">
   import { stopPropagation } from 'svelte/legacy';
 
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
   import type { Preset, PresetMeta } from '../lib/themeTypes';
   import {
     listPresets,
@@ -17,6 +17,7 @@
   import { dirty, componentDirty } from '../lib/editorStore';
   import { productionRevision, presetProductionComparison } from '../lib/productionPulse';
   import UIDialog from './UIDialog.svelte';
+  import UIInfoPopover from './UIInfoPopover.svelte';
   import UnsavedComponentsDialog from './UnsavedComponentsDialog.svelte';
   import SaveAsDialog from '../component-editor/scaffolding/SaveAsDialog.svelte';
 
@@ -39,11 +40,6 @@
    *  resolves to either "save the preset using current on-disk files" (proceed)
    *  or "user cancelled / closed". */
   let pendingCapture: { fileName: string; displayName: string } | null = null;
-
-  let infoOpen = $state(false);
-  let infoBtnEl = $state<HTMLButtonElement | undefined>(undefined);
-  let infoPopoverEl = $state<HTMLDivElement | undefined>(undefined);
-  let infoPopoverReady = $state(false);
 
   let dirtyComponentIds = $derived(
     Object.entries($componentDirty)
@@ -105,8 +101,6 @@
     await refreshActive();
     await refreshFiles();
     await refreshProductionComparison();
-    window.addEventListener('keydown', handleKeydown);
-    document.addEventListener('mousedown', handleDocumentMousedown, true);
   });
 
   // Re-compare when any production pointer ticks (per-component Adopt,
@@ -122,69 +116,6 @@
       return;
     }
     refreshProductionComparison();
-  });
-
-  onDestroy(() => {
-    window.removeEventListener('keydown', handleKeydown);
-    document.removeEventListener('mousedown', handleDocumentMousedown, true);
-  });
-
-  function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape' && infoOpen) {
-      infoOpen = false;
-    }
-  }
-
-  function handleDocumentMousedown(e: MouseEvent) {
-    if (!infoOpen) return;
-    const target = e.target as Element | null;
-    if (target && !target.closest('.pfm-info-btn, .pfm-info-popover')) {
-      infoOpen = false;
-    }
-  }
-
-  /** Anchor the fixed-position popover relative to the info button. Lives in
-   *  the sidebar footer, so flip-up when there's no room below. */
-  function positionInfoPopover(): void {
-    const btn = infoBtnEl;
-    const pop = infoPopoverEl;
-    if (!btn || !pop) return;
-    const br = btn.getBoundingClientRect();
-    const pr = pop.getBoundingClientRect();
-    const margin = 8;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    let left = br.right + margin;
-    if (left + pr.width > vw - margin) {
-      left = br.left + br.width / 2 - pr.width / 2;
-      if (left < margin) left = margin;
-      if (left + pr.width > vw - margin) left = vw - margin - pr.width;
-    }
-    let top = br.bottom + margin;
-    if (top + pr.height > vh - margin) {
-      top = br.top - margin - pr.height;
-      if (top < margin) top = margin;
-    }
-    pop.style.left = `${left}px`;
-    pop.style.top = `${top}px`;
-    infoPopoverReady = true;
-  }
-
-  $effect(() => {
-    if (!infoOpen) {
-      infoPopoverReady = false;
-      return;
-    }
-    let raf1 = requestAnimationFrame(() => {
-      raf1 = requestAnimationFrame(positionInfoPopover);
-    });
-    window.addEventListener('scroll', positionInfoPopover, true);
-    window.addEventListener('resize', positionInfoPopover);
-    return () => {
-      cancelAnimationFrame(raf1);
-      window.removeEventListener('scroll', positionInfoPopover, true);
-      window.removeEventListener('resize', positionInfoPopover);
-    };
   });
 
   /** Standard "save dirty editor first?" gate. If any component has unsaved
@@ -319,16 +250,11 @@
 <div class="preset-file-manager">
   <div class="pfm-header">
     <span class="pfm-header-label">Preset</span>
-    <button
-      type="button"
-      class="pfm-info-btn"
-      aria-label="About presets"
-      aria-expanded={infoOpen}
-      bind:this={infoBtnEl}
-      onclick={() => (infoOpen = !infoOpen)}
-    >
-      <i class="fas fa-circle-info"></i>
-    </button>
+    <UIInfoPopover title="Presets" ariaLabel="About presets">
+      <p>
+        A <strong>preset</strong> saves a theme plus all component configurations as one bundle.
+      </p>
+    </UIInfoPopover>
   </div>
 
   <div class="pfm-cards" class:in-sync={prodIsInSync}>
@@ -481,49 +407,6 @@
   {/if}
 </div>
 
-{#if infoOpen}
-  <div
-    class="pfm-info-popover"
-    class:ready={infoPopoverReady}
-    role="dialog"
-    aria-label="About presets"
-    bind:this={infoPopoverEl}
-  >
-    <header class="pfm-info-header">
-      <span class="pfm-info-title">Presets</span>
-      <button
-        type="button"
-        class="pfm-info-close"
-        aria-label="Close"
-        onclick={() => (infoOpen = false)}
-      >
-        <i class="fas fa-xmark"></i>
-      </button>
-    </header>
-    <div class="pfm-info-body">
-      <p>
-        A <strong>preset</strong> is a manifest naming one theme file and one
-        config file per component.
-      </p>
-      <p>
-        The <strong>Editor</strong> row is the preset you're working under.
-        <strong>Save</strong> captures the currently active files into its
-        manifest.
-      </p>
-      <p>
-        The <strong>Production</strong> row is the preset currently baked into
-        <code>tokens.css</code>. <strong>Adopt</strong> sets every component's
-        production file from the editor preset.
-      </p>
-      <p>
-        Adopting a single component elsewhere can leave production
-        <em>diverged</em> from any preset. <strong>Capture</strong> saves that
-        state under a new name.
-      </p>
-    </div>
-  </div>
-{/if}
-
 <UIDialog bind:show={showFileList} title="Load Preset" cancelLabel="Close" width="420px">
   <div class="load-list">
     {#each files as file}
@@ -602,28 +485,6 @@
     color: var(--ui-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-  }
-
-  /* Naked icon button — same affordance language as cfm-info-btn. */
-  .pfm-info-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    padding: 0;
-    background: transparent;
-    border: 0;
-    color: var(--ui-text-tertiary);
-    font-size: 0.95rem;
-    line-height: 1;
-    cursor: pointer;
-    transition: color var(--ui-transition-fast);
-  }
-
-  .pfm-info-btn:hover,
-  .pfm-info-btn[aria-expanded='true'] {
-    color: var(--ui-text-primary);
   }
 
   /* ── two-card pipeline (Editor → Production) ─────────────────────────────
@@ -1005,104 +866,9 @@
     letter-spacing: 0.02em;
   }
 
-  /* Info popover — fixed positioning escapes the sidebar's overflow and any
-     parent stacking context. JS in this file anchors it to the right of the
-     info button (the sidebar is on the left, so there's room to flow into
-     the main content area without obscuring the button). */
-  .pfm-info-popover {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 22rem;
-    max-width: calc(100vw - var(--ui-space-24));
-    padding: 0;
-    background: var(--ui-surface-higher);
-    border: 1px solid var(--ui-border-medium);
-    border-radius: var(--ui-radius-lg);
-    box-shadow: var(--ui-shadow-lg);
-    z-index: 1000;
-    color: var(--ui-text-secondary);
-    font-family: var(--ui-font-family, system-ui, sans-serif);
-    overflow: hidden;
-    visibility: hidden;
-    animation: pfm-info-in 140ms ease-out;
-  }
-
-  .pfm-info-popover.ready {
-    visibility: visible;
-  }
-
-  .pfm-info-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--ui-space-8);
-    padding: var(--ui-space-10) var(--ui-space-12) var(--ui-space-10) var(--ui-space-16);
-    border-bottom: 1px solid var(--ui-border-subtle);
-  }
-
-  .pfm-info-title {
-    color: var(--ui-text-primary);
-    font-size: var(--ui-font-size-sm);
-    font-weight: var(--ui-font-weight-semibold);
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-  }
-
-  .pfm-info-close {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--ui-space-24);
-    height: var(--ui-space-24);
-    padding: 0;
-    background: transparent;
-    border: 0;
-    border-radius: var(--ui-radius-sm);
-    color: var(--ui-text-tertiary);
-    font-size: var(--ui-font-size-xs);
-    line-height: 1;
-    cursor: pointer;
-    transition: color var(--ui-transition-fast), background var(--ui-transition-fast);
-  }
-
-  .pfm-info-close:hover {
-    color: var(--ui-text-primary);
-    background: var(--ui-hover);
-  }
-
-  .pfm-info-body {
-    padding: var(--ui-space-16);
-  }
-
-  .pfm-info-popover p {
-    margin: 0 0 var(--ui-space-12) 0;
-    font-size: var(--ui-font-size-xs);
-    line-height: 1.55;
-  }
-
-  .pfm-info-popover p:last-child {
-    margin-bottom: 0;
-  }
-
-  .pfm-info-popover strong {
-    color: var(--ui-text-primary);
-    font-weight: var(--ui-font-weight-semibold);
-  }
-
-  .pfm-info-popover em {
-    font-style: italic;
-    color: var(--ui-text-primary);
-  }
-
   @keyframes pfm-pulse {
     0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-highlight) 22%, transparent); }
     50%      { box-shadow: 0 0 0 5px color-mix(in srgb, var(--ui-highlight) 10%, transparent); }
-  }
-
-  @keyframes pfm-info-in {
-    from { opacity: 0; transform: translateY(-3px); }
-    to   { opacity: 1; transform: translateY(0); }
   }
 
   @keyframes spin {
