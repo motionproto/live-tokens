@@ -453,7 +453,7 @@
   files={manifests}
   title="Save Manifest As"
   placeholder="Manifest name…"
-  description="Adopting a component change updates the active manifest, you're still on the default manifest which is locked. Name a new manifest for the site."
+  description="Adopting a component change updates the active manifest, The default manifest is locked. Name a new manifest for the site."
   reservedNameMessage='The name "default" is reserved for the protected baseline.'
   onsave={onManifestSaveAs}
 />
