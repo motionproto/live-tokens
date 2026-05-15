@@ -39,9 +39,10 @@
   </div>
 </div>
 
-<style>
+<style lang="scss">
+  @use '../styles/padding' as *;
+
   :global(:root) {
-    /* Default */
     --card-default-surface: var(--surface-neutral-high);
     --card-default-border: var(--border-neutral);
     --card-default-border-width: var(--border-width-1);
@@ -66,30 +67,8 @@
     --card-default-body-font-weight: var(--font-weight-normal);
     --card-default-body-line-height: var(--line-height-md);
 
-    /* Hover */
-    --card-hover-surface: var(--surface-neutral-high);
     --card-hover-border: var(--border-neutral-strong);
-    --card-hover-border-width: var(--border-width-1);
-    --card-hover-radius: var(--radius-lg);
-    --card-hover-header-padding: var(--space-16);
-    --card-hover-body-padding: var(--space-16);
     --card-hover-shadow: var(--shadow-md);
-    --card-hover-blur: var(--blur-none);
-    --card-hover-header-surface: var(--color-transparent);
-
-    --card-hover-title: var(--text-primary);
-    --card-hover-title-font-family: var(--font-sans);
-    --card-hover-title-font-size: var(--font-size-lg);
-    --card-hover-title-font-weight: var(--font-weight-normal);
-    --card-hover-title-line-height: var(--line-height-sm);
-
-    --card-hover-icon-size: var(--icon-size-lg);
-
-    --card-hover-body: var(--text-secondary);
-    --card-hover-body-font-family: var(--font-sans);
-    --card-hover-body-font-size: var(--font-size-md);
-    --card-hover-body-font-weight: var(--font-weight-normal);
-    --card-hover-body-line-height: var(--line-height-md);
   }
 
   .card {
@@ -98,33 +77,25 @@
     border-radius: var(--card-default-radius);
     box-shadow: var(--card-default-shadow);
     backdrop-filter: blur(var(--card-default-blur));
-    transition: all var(--duration-150);
+    transition: border-color var(--duration-150), box-shadow var(--duration-150);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    letter-spacing: normal;
   }
 
   .card:not(.no-hover):hover,
   .card.force-hover {
-    background: var(--card-hover-surface);
-    border: var(--card-hover-border-width) solid var(--card-hover-border);
-    border-radius: var(--card-hover-radius);
+    border-color: var(--card-hover-border);
     box-shadow: var(--card-hover-shadow);
-    backdrop-filter: blur(var(--card-hover-blur));
   }
 
   .card-header {
     display: flex;
     align-items: center;
     gap: var(--space-8);
-    padding: var(--card-default-header-padding);
+    @include themed-padding(--card-default-header-padding);
     background: var(--card-default-header-surface);
-  }
-
-  .card:not(.no-hover):hover .card-header,
-  .card.force-hover .card-header {
-    padding: var(--card-hover-header-padding);
-    background: var(--card-hover-header-surface);
   }
 
   .card.compact .card-header,
@@ -135,12 +106,6 @@
   .card-icon {
     font-size: var(--card-default-icon-size);
     color: var(--card-color, var(--card-default-title));
-  }
-
-  .card:not(.no-hover):hover .card-icon,
-  .card.force-hover .card-icon {
-    font-size: var(--card-hover-icon-size);
-    color: var(--card-color, var(--card-hover-title));
   }
 
   .card.compact .card-icon {
@@ -155,15 +120,6 @@
     line-height: var(--card-default-title-line-height);
   }
 
-  .card:not(.no-hover):hover .card-title,
-  .card.force-hover .card-title {
-    color: var(--card-hover-title);
-    font-family: var(--card-hover-title-font-family);
-    font-size: var(--card-hover-title-font-size);
-    font-weight: var(--card-hover-title-font-weight);
-    line-height: var(--card-hover-title-line-height);
-  }
-
   .card.compact .card-title {
     font-size: var(--font-size-md);
   }
@@ -174,17 +130,7 @@
     font-size: var(--card-default-body-font-size);
     font-weight: var(--card-default-body-font-weight);
     line-height: var(--card-default-body-line-height);
-    padding: var(--card-default-body-padding);
-  }
-
-  .card:not(.no-hover):hover .card-body,
-  .card.force-hover .card-body {
-    color: var(--card-hover-body);
-    font-family: var(--card-hover-body-font-family);
-    font-size: var(--card-hover-body-font-size);
-    font-weight: var(--card-hover-body-font-weight);
-    line-height: var(--card-hover-body-line-height);
-    padding: var(--card-hover-body-padding);
+    @include themed-padding(--card-default-body-padding);
   }
 
   .card.compact .card-body {

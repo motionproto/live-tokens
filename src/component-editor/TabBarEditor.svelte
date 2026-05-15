@@ -37,7 +37,10 @@
       { label: 'divider thickness', groupKey: 'bar-divider-thickness', variable: '--tabbar-bar-divider-thickness' },
       { label: 'indicator thickness', groupKey: 'bar-indicator-thickness', variable: '--tabbar-bar-indicator-thickness' },
       { label: 'space above', groupKey: 'bar-top-margin', variable: '--tabbar-bar-top-margin' },
-      { label: 'space below tabs', groupKey: 'bar-bottom-padding', variable: '--tabbar-bar-bottom-padding' },
+      // Consumed via `padding-bottom: var(--tabbar-bar-bottom-padding)` — a
+      // one-axis read. Splitting would produce top/left/right values that have
+      // nowhere to render.
+      { label: 'space below tabs', groupKey: 'bar-bottom-padding', variable: '--tabbar-bar-bottom-padding', splittable: false },
       { label: 'space under divider', groupKey: 'bar-bottom-margin', variable: '--tabbar-bar-bottom-margin' },
       { label: 'tab gap', groupKey: 'tab-gap', variable: '--tabbar-tab-gap' },
     ],

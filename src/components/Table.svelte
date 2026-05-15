@@ -11,6 +11,8 @@
 </div>
 
 <style lang="scss">
+  @use '../styles/padding' as *;
+
   :global(:root) {
     /* Wrapper */
     --table-default-radius: var(--radius-md);
@@ -70,7 +72,7 @@
     font-size: var(--table-default-header-font-size);
     font-weight: var(--table-default-header-font-weight);
     line-height: var(--table-default-header-line-height);
-    padding: var(--table-default-header-padding);
+    @include themed-padding(--table-default-header-padding);
     text-align: left;
     border-bottom: var(--table-default-header-border-width) solid var(--table-default-header-border);
     border-right: var(--table-default-column-divider-width) solid var(--table-default-column-divider);

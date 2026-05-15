@@ -50,7 +50,7 @@
   }
 
   .stub {
-    grid-column: 5 / span 4;
+    grid-column: 4 / span 6;
   }
 
   .eyebrow {

@@ -1,121 +1,321 @@
 <script lang="ts">
   import '../styles/site.css';
+  import Badge from '../components/Badge.svelte';
   import Button from '../components/Button.svelte';
+  import Callout from '../components/Callout.svelte';
   import Card from '../components/Card.svelte';
-  import Image from '../components/Image.svelte';
-  import offeringImage from '../assets/offering.webp';
+  import CollapsibleSection from '../components/CollapsibleSection.svelte';
+  import Notification from '../components/Notification.svelte';
+  import ProgressBar from '../components/ProgressBar.svelte';
+  import SectionDivider from '../components/SectionDivider.svelte';
+  import SegmentedControl from '../components/SegmentedControl.svelte';
+  import Table from '../components/Table.svelte';
   import { navigate } from '../lib/router';
 
   const isDev = import.meta.env.DEV;
+
+  // Interactive playground — switches one preview slot between three real
+  // compositions so the same token table can be observed driving fills, shapes,
+  // and motion side-by-side.
+  let previewMode = $state('tone');
+  const previewSegments = [
+    { value: 'tone',   label: 'Tone',   icon: 'fas fa-droplet' },
+    { value: 'shape',  label: 'Shape',  icon: 'fas fa-shapes' },
+    { value: 'motion', label: 'Motion', icon: 'fas fa-wave-square' },
+  ];
+
+  const tones = ['primary', 'accent', 'success', 'warning', 'danger', 'info', 'special', 'neutral'] as const;
+
+  let openStep = $state('01');
+  function toggleStep(id: string) {
+    openStep = openStep === id ? '' : id;
+  }
 </script>
 
-<div class="kit-demo">
+<div class="kit">
+
+  <!-- ============================ HERO ============================ -->
   <header class="hero">
-    <span class="eyebrow">Live Tokens Kit</span>
-    <h1>A starter for token-driven UI.</h1>
-    <p class="tagline">
-      Built on Svelte and Vite. Edit colours, type, spacing, and motion in the
-      browser; ship the result as plain CSS.
-    </p>
+    <div class="hero-text">
+      <div class="hero-eyebrow">
+        <Badge variant="neutral" size="small" icon="fas fa-bolt">v0.6.2 &nbsp;·&nbsp; live tokens</Badge>
+      </div>
+
+      <h1 class="hero-title">
+        Design tokens<br />
+        <span class="hero-italic">you can hold.</span>
+      </h1>
+
+      <p class="hero-tagline">
+        A Svelte and Vite starter for token-driven UI. Edit colour, type, spacing,
+        radius, shadow, and motion in the browser. Ship the result as plain CSS.
+      </p>
+
+
+      <div class="hero-actions">
+        {#if isDev}
+          <Button onclick={() => navigate('/editor')} icon="fas fa-sliders" iconPosition="left">
+            Open Token Editor
+          </Button>
+          <Button variant="secondary" onclick={() => navigate('/components')} icon="fas fa-puzzle-piece" iconPosition="left">
+            Browse Components
+          </Button>
+        {:else}
+          <Button variant="outline" disabled>Editor &nbsp;·&nbsp; dev only</Button>
+        {/if}
+      </div>
+    </div>
+
+    <!-- Floating annotation badges — magazine-style margin notes -->
+    <aside class="hero-margin" aria-hidden="true">
+      <span class="hero-float hero-float-a">
+        <Badge variant="primary" icon="fas fa-circle" size="small">--color-brand-500</Badge>
+      </span>
+      <span class="hero-float hero-float-b">
+        <Badge variant="accent" icon="fas fa-ruler-horizontal" size="small">--space-16</Badge>
+      </span>
+      <span class="hero-float hero-float-c">
+        <Badge variant="canvas" icon="fas fa-vector-square" size="small">--radius-md</Badge>
+      </span>
+      <span class="hero-float hero-float-d">
+        <Badge variant="special" icon="fas fa-stopwatch" size="small">--duration-150</Badge>
+      </span>
+    </aside>
   </header>
 
-  <section class="styling">
-    <div class="styling-intro">
-      <span class="kicker">The styler</span>
-      <h2>Start styling</h2>
-      <p>
-        The editor overlay sits in the top-right corner during development. Open
-        it to edit colours, type, spacing, and motion — every change writes a
-        CSS variable and updates the page in real time.
-      </p>
-      {#if isDev}
-        <div class="actions">
-          <Button on:click={() => navigate('/editor')}>Open Token Editor</Button>
-          <Button variant="secondary" on:click={() => navigate('/components')}>Browse Components</Button>
+  <!-- ====================== CHAPTER 1 — The Kit ====================== -->
+  <SectionDivider
+    title="The Kit"
+    description="Tokens, components, and a live editor. One Svelte starter, all in the box."
+    variant="canvas"
+  />
+
+  <section class="kit-grid">
+    <Card icon="fas fa-palette" title="Design tokens">
+      <p>Over four hundred CSS variables for colour, type, spacing, radii, shadows, and motion. All editable in the browser.</p>
+    </Card>
+    <Card icon="fas fa-puzzle-piece" title="Component library">
+      <p>Seventeen primitives: buttons, cards, callouts, dialogs, tabs, badges, tooltips, tables. Every surface resolves to tokens.</p>
+    </Card>
+    <Card icon="fas fa-pen-ruler" title="Live editor">
+      <p>A side-panel overlay with tabs for every category. Each edit writes a CSS variable and the page reflows instantly.</p>
+    </Card>
+    <Card icon="fas fa-cube" title="Ships as CSS">
+      <p>Promote a theme to production. The editor flushes its values into <code>tokens.css</code>, and the build is pure CSS.</p>
+    </Card>
+  </section>
+
+  <!-- ====================== CHAPTER 2 — See it live ====================== -->
+  <SectionDivider
+    title="See it live."
+    description="Every component on this page resolves to the same token table. Open the editor; watch them change together."
+    variant="primary"
+  />
+
+  <section class="playground">
+    <div class="playground-control">
+      <SegmentedControl segments={previewSegments} bind:value={previewMode} />
+    </div>
+
+    <div class="playground-stage">
+      {#if previewMode === 'tone'}
+        <div class="stage-row">
+          {#each tones as v (v)}
+            <Badge variant={v} icon="fas fa-circle">{v}</Badge>
+          {/each}
         </div>
+        <p class="stage-caption">
+          Eight tones, one palette. <strong>{'--color-{tone}-500'}</strong> drives every fill above.
+        </p>
+      {:else if previewMode === 'shape'}
+        <div class="stage-row">
+          <Button>Primary</Button>
+          <Button variant="secondary">Secondary</Button>
+          <Button variant="outline">Outline</Button>
+          <Button variant="success" icon="fas fa-check">Success</Button>
+          <Button variant="warning" icon="fas fa-bolt">Warning</Button>
+          <Button variant="danger" icon="fas fa-xmark">Danger</Button>
+        </div>
+        <p class="stage-caption">
+          Six variants. <strong>{'--button-{variant}-radius'}</strong> and
+          <strong>{'--button-{variant}-padding'}</strong> shape every state.
+        </p>
       {:else}
-        <p class="note">
-          The editor runs in development only. Run <code>npm run dev</code> to start editing.
+        <div class="stage-stack">
+          <ProgressBar variant="primary" value={72} label="Build" />
+          <ProgressBar variant="success" value={100} label="Tests" />
+          <ProgressBar variant="warning" value={38} label="Coverage" />
+        </div>
+        <p class="stage-caption">
+          Three progress states. Easing curves resolve through
+          <strong>--duration-150</strong> and <strong>--duration-300</strong>.
         </p>
       {/if}
     </div>
-
-    <div class="features-grid">
-      <Card>
-        <h3>Design tokens</h3>
-        <p>Colour, type, spacing, radii, shadows, and motion — all editable in the browser.</p>
-      </Card>
-      <Card>
-        <h3>Component library</h3>
-        <p>Buttons, cards, dialogs, tooltips, badges, tabs, and toggles — every primitive resolves to tokens.</p>
-      </Card>
-      <Card>
-        <h3>Jump to source</h3>
-        <p>The overlay opens the current page's Svelte file in VS Code in one click.</p>
-      </Card>
-    </div>
   </section>
 
-  <section class="architecture">
-    <header class="section-header">
-      <h2>Two-layer architecture</h2>
+  <section class="tones-grid">
+    <Callout variant="info" label="In dev.">
+      The editor overlay runs in development only. Run <code>npm run dev</code> and look top-right.
+    </Callout>
+    <Callout variant="success" label="In prod.">
+      Production builds are pure CSS. Zero runtime weight from the editor reaches the bundle.
+    </Callout>
+    <Callout variant="warning" label="One canvas.">
+      All routes share one <code>:root</code>. Variable writes cascade everywhere instantly.
+    </Callout>
+    <Callout variant="danger" label="No magic.">
+      Token names describe values, not components. <code>--color-brand-500</code>, never <code>--button-bg</code>.
+    </Callout>
+  </section>
+
+  <!-- ====================== CHAPTER 3 — Two layers ====================== -->
+  <SectionDivider
+    title="Two layers, no surprises."
+    description="A base of raw tokens. An upper layer of components that consume them through semantic names."
+    variant="accent"
+
+  />
+
+  <section class="arch">
+    <Card class="arch-card arch-base" icon="fas fa-layer-group" title="Base layer · tokens.css">
       <p>
-        A base layer of raw tokens. An upper layer of components that consume
-        them through semantic names.
+        Raw CSS variables for every primitive. Colour, type, spacing, radii,
+        shadows, motion. Names describe values, not the components that use them.
       </p>
-    </header>
+      <pre class="code-block"><code>{`--color-brand-500: #eb0ad4;
+--space-16:        1rem;
+--radius-md:       0.25rem;
+--duration-150:    150ms;`}</code></pre>
+    </Card>
 
-    <div class="arch-grid">
-      <Card class="layer-component">
-        <h3>Upper layer — components</h3>
-        <p>
-          Each component declares its own semantic properties —
-          <code>--button-primary-surface</code>,
-          <code>--card-default-border</code>,
-          <code>--tooltip-radius</code> — and binds them to base tokens.
-          Component styles read the semantic names, never the raw tokens.
-          Edit a base token, and every component that resolves to it
-          updates instantly.
-        </p>
-      </Card>
+    <Card class="arch-card arch-component" icon="fas fa-shapes" title="Upper layer · components">
+      <p>
+        Each component declares its own semantic tokens and binds them to base
+        tokens. Edit a base token, and every consumer updates instantly.
+      </p>
 
-      <Card class="layer-base">
-        <h3>Base layer — tokens</h3>
-        <p>
-          Raw CSS variables for colour, type, spacing, radii, shadows, and
-          motion. They live in <code>src/styles/tokens.css</code>, the only
-          file the editor touches. Names describe values
-          (<code>--color-brand-500</code>, <code>--space-16</code>,
-          <code>--radius-md</code>), not the components that use them.
-        </p>
-      </Card>
+      <pre class="code-block"><code>{`--button-primary-surface:
+  var(--surface-brand-high);
 
-      <Card class="editor-note">
-        <h3>How the editor works</h3>
-        <p>
-          Click the overlay to open <code>/editor</code> in a side panel or
-          floating window. Tabs cover every category in the base layer: palette,
-          spacing, columns, radii, type, shadows, overlays, gradients, and
-          utilities. Each edit writes a CSS variable on <code>:root</code>, and
-          the page reflows instantly — no reload, no rebuild.
-        </p>
-        <p>
-          Save to persist the active theme as JSON under <code>themes/</code>.
-          Promote a theme to production, and the editor flushes its values into
-          <code>tokens.css</code>. The production build then ships as pure CSS
-          — no editor code reaches the bundle.
-        </p>
-      </Card>
+--surface-brand-high:
+  var(--color-brand-700);`}</code></pre>
+    </Card>
+
+    <div class="arch-table">
+      <header class="arch-table-header">
+        <span class="arch-eyebrow">A real resolution chain</span>
+        <h3>One base edit. Four touchpoints.</h3>
+      </header>
+      <Table>
+        <table>
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Resolves to</th>
+              <th>Layer</th>
+              <th>Used by</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>--button-primary-surface</code></td>
+              <td><code>var(--surface-brand-high)</code></td>
+              <td><Badge variant="neutral" size="small">Component</Badge></td>
+              <td>Button</td>
+            </tr>
+            <tr>
+              <td><code>--surface-brand-high</code></td>
+              <td><code>var(--color-brand-700)</code></td>
+              <td><Badge variant="accent" size="small">Semantic</Badge></td>
+              <td>Badge, Button, Card</td>
+            </tr>
+            <tr>
+              <td><code>--color-brand-700</code></td>
+              <td><code>#ac009b</code></td>
+              <td><Badge variant="primary" size="small">Base</Badge></td>
+              <td>10 components</td>
+            </tr>
+            <tr>
+              <td><code>--color-brand-500</code></td>
+              <td><code>#eb0ad4</code></td>
+              <td><Badge variant="primary" size="small">Base</Badge></td>
+              <td>11 components</td>
+            </tr>
+          </tbody>
+        </table>
+      </Table>
     </div>
   </section>
 
-  <section class="showcase">
-    <Image src={offeringImage} alt="Offering" variant="banner" />
+  <!-- ====================== CHAPTER 4 — Workflow ====================== -->
+  <SectionDivider
+    title="From edit to ship."
+    description="Three steps the editor takes, start to finish."
+    variant="special"
+  />
+
+  <section class="how">
+    <CollapsibleSection
+      variant="container"
+      label="01 · Edit in the overlay"
+      expanded={openStep === '01'}
+      ontoggle={() => toggleStep('01')}
+    >
+      <p>
+        Click the floating overlay (top-right in dev) to open <code>/editor</code>
+        in a side panel or floating window. Tabs cover every category in the base
+        layer: palette, spacing, columns, radii, type, shadows, overlays,
+        gradients, and utilities. Each edit writes a CSS variable on
+        <code>:root</code>, and the page reflows instantly. No reload, no rebuild.
+      </p>
+    </CollapsibleSection>
+
+    <CollapsibleSection
+      variant="container"
+      label="02 · Save themes as JSON"
+      expanded={openStep === '02'}
+      ontoggle={() => toggleStep('02')}
+    >
+      <p>
+        Save persists the active theme to <code>themes/active.json</code>. Each
+        theme is a flat key/value map, diff-friendly in git, easy to round-trip.
+        Switch themes from the overlay; per-session backups are kept automatically.
+      </p>
+    </CollapsibleSection>
+
+    <CollapsibleSection
+      variant="container"
+      label="03 · Promote to production CSS"
+      expanded={openStep === '03'}
+      ontoggle={() => toggleStep('03')}
+    >
+      <p>
+        Promote a theme to production and the editor flushes its values into
+        <code>tokens.css</code>. The production build then ships as pure CSS.
+        No editor code reaches the bundle, no runtime cost, no theme provider.
+      </p>
+    </CollapsibleSection>
+  </section>
+
+  <!-- ====================== CTA ====================== -->
+  <section class="cta">
+    <Notification
+      title="Ready when you are."
+      description="Run npm run dev to start the editor. The overlay appears in the top-right corner."
+      variant="info"
+      emphasis
+      icon="fas fa-rocket"
+      actions={isDev ? {
+        right: { label: 'Open Editor', icon: 'fas fa-arrow-right', onClick: () => navigate('/editor') },
+        left:  { label: 'Browse Components', variant: 'secondary', onClick: () => navigate('/components') },
+      } : {}}
+    />
   </section>
 </div>
 
 <style>
-  .kit-demo {
+  .kit {
     display: grid;
     grid-template-columns: repeat(var(--columns-count), 1fr);
     column-gap: var(--columns-gutter);
@@ -126,266 +326,342 @@
     min-height: 100vh;
   }
 
-  .hero,
-  .styling,
-  .architecture,
-  .showcase {
+  /* ============================ HERO ============================ */
+  .hero {
     grid-column: 1 / -1;
+    position: relative;
+    padding: var(--space-48) 0 var(--space-16);
+    display: grid;
+    grid-template-columns: repeat(var(--columns-count), 1fr);
+    column-gap: var(--columns-gutter);
+    isolation: isolate;
   }
 
-  /* HERO */
-  .hero {
-    grid-column: 3 / span 8;
-    text-align: center;
-    padding: var(--space-32) 0 var(--space-16);
+  .hero-text {
+    grid-column: 2 / span 8;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: var(--space-12);
+    gap: var(--space-16);
   }
 
-  .eyebrow {
-    display: inline-block;
-    font-family: var(--font-sans);
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-tertiary);
+  .hero-eyebrow {
+    margin-bottom: var(--space-4);
   }
 
-  .hero h1 {
+  .hero-title {
     font-family: var(--font-display);
-    font-size: var(--font-size-5xl, var(--font-size-4xl));
-    font-weight: 600;
+    font-size: var(--font-size-6xl);
+    font-weight: var(--font-weight-semibold);
     font-variation-settings: 'opsz' 144, 'SOFT' 30;
     color: var(--text-primary);
+    line-height: 0.95;
+    letter-spacing: -0.025em;
     margin: 0;
-    line-height: 1.02;
-    letter-spacing: -0.015em;
   }
 
-  .tagline {
+  .hero-italic {
+    font-style: italic;
+    font-weight: var(--font-weight-normal);
+    color: var(--text-brand);
+    font-variation-settings: 'opsz' 144, 'SOFT' 100;
+  }
+
+  .hero-tagline {
     font-family: var(--font-serif);
     font-style: italic;
     font-size: var(--font-size-lg);
     color: var(--text-secondary);
-    max-width: 540px;
-    margin: 0;
     line-height: 1.5;
+    max-width: 36rem;
+    margin: var(--space-8) 0 0;
   }
 
-  /* STYLING — intro + three feature cards */
-  .styling {
-    display: grid;
-    grid-template-columns: repeat(var(--columns-count), 1fr);
-    column-gap: var(--columns-gutter);
-    row-gap: var(--space-32);
-  }
-
-  .styling-intro {
-    grid-column: 2 / span 10;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-12);
-  }
-
-  .kicker {
-    font-family: var(--font-sans);
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-tertiary);
-  }
-
-  .styling-intro h2 {
-    font-family: var(--font-display);
-    font-size: var(--font-size-3xl);
-    font-weight: 600;
-    font-variation-settings: 'opsz' 96;
-    color: var(--text-primary);
-    margin: 0;
-    line-height: 1.1;
-    letter-spacing: -0.01em;
-  }
-
-  .styling-intro p {
-    font-family: var(--font-sans);
-    color: var(--text-secondary);
-    font-size: var(--font-size-md);
-    max-width: 640px;
-    margin: 0;
-    line-height: 1.55;
-  }
-
-  .actions {
+  .hero-actions {
     display: flex;
     gap: var(--space-12);
     flex-wrap: wrap;
-    margin-top: var(--space-8);
+    margin-top: var(--space-12);
   }
 
-  .note {
-    margin-top: var(--space-8);
-    color: var(--text-tertiary);
-    font-size: var(--font-size-sm);
+  .hero-margin {
+    grid-column: 10 / span 3;
+    position: relative;
+    min-height: 18rem;
   }
 
-  .note code {
-    background: var(--surface-neutral-high);
-    padding: 2px 6px;
+  .hero-float {
+    position: absolute;
+    z-index: 1;
+    animation: hero-bob 7s ease-in-out infinite;
+    transform-origin: center;
+  }
+  .hero-float-a { top: 4%;  right: 8%;  animation-delay: 0s;    transform: rotate(-3deg); }
+  .hero-float-b { top: 30%; right: 28%; animation-delay: -1.8s; transform: rotate(2deg); }
+  .hero-float-c { top: 58%; right: 4%;  animation-delay: -3.6s; transform: rotate(-2deg); }
+  .hero-float-d { top: 84%; right: 22%; animation-delay: -5.2s; transform: rotate(3deg); }
+
+  @keyframes hero-bob {
+    0%, 100% { translate: 0 0; }
+    50%      { translate: 0 -8px; }
+  }
+
+  /* === SECTION DIVIDERS span the content column === */
+  .kit > :global(.section-divider) {
+    grid-column: 2 / span 10;
+  }
+
+  /* ============================ KIT GRID ============================ */
+  .kit-grid {
+    grid-column: 2 / span 10;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-24);
+  }
+
+  /* ============================ PLAYGROUND ============================ */
+  .playground {
+    grid-column: 2 / span 10;
+    display: grid;
+    grid-template-columns: 1fr;
+    row-gap: var(--space-32);
+    background:
+      radial-gradient(120% 80% at 50% 0%, var(--surface-canvas) 0%, var(--surface-canvas-low) 70%),
+      var(--surface-canvas-low);
+    border: var(--border-width-1) solid var(--border-canvas-subtle);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-48) var(--space-32);
+    box-shadow: var(--shadow-md);
+  }
+
+  .playground-control {
+    justify-self: center;
+  }
+
+  .playground-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-20);
+    min-height: 11rem;
+    justify-content: center;
+  }
+
+  .stage-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-12);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .stage-stack {
+    width: 100%;
+    max-width: 32rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+
+  .stage-caption {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--text-canvas-secondary);
+    font-size: var(--font-size-md);
+    text-align: center;
+    margin: 0;
+    max-width: 32rem;
+  }
+
+  .stage-caption :global(strong) {
+    font-family: var(--font-mono);
+    font-style: normal;
+    font-size: 0.92em;
+    color: var(--text-primary);
+    font-weight: var(--font-weight-normal);
+    background: var(--overlay-low);
+    padding: 1px 6px;
     border-radius: var(--radius-sm);
-    font-family: var(--font-mono, monospace);
   }
 
-  /* Feature cards — three 3-col cards, equal 1-col gaps */
-  .features-grid {
-    grid-column: 1 / -1;
+  /* ============================ TONES (callouts) ============================ */
+  .tones-grid {
+    grid-column: 2 / span 10;
     display: grid;
-    grid-template-columns: repeat(var(--columns-count), 1fr);
-    column-gap: var(--columns-gutter);
-    row-gap: var(--space-24);
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-16);
   }
 
-  .features-grid > :global(*:nth-child(1)) { grid-column: 2 / span 3; }
-  .features-grid > :global(*:nth-child(2)) { grid-column: 6 / span 3; }
-  .features-grid > :global(*:nth-child(3)) { grid-column: 10 / span 3; }
-
-  /* ARCHITECTURE */
-  .architecture {
+  /* ============================ ARCHITECTURE ============================ */
+  .arch {
+    grid-column: 2 / span 10;
     display: grid;
-    grid-template-columns: repeat(var(--columns-count), 1fr);
+    grid-template-columns: repeat(2, 1fr);
     column-gap: var(--columns-gutter);
     row-gap: var(--space-32);
   }
 
-  .section-header {
-    grid-column: 3 / span 8;
-    text-align: center;
-    padding: var(--space-16) 0 var(--space-8);
+  .arch :global(.arch-card) {
+    height: 100%;
   }
 
-  .section-header h2 {
-    font-family: var(--font-display);
-    font-size: var(--font-size-3xl);
-    font-weight: 600;
-    font-variation-settings: 'opsz' 96;
-    color: var(--text-primary);
-    margin: 0 0 var(--space-12);
-    line-height: 1.1;
-    letter-spacing: -0.01em;
-  }
-
-  .section-header p {
-    font-family: var(--font-serif);
-    font-style: italic;
-    color: var(--text-secondary);
-    font-size: var(--font-size-md);
-    max-width: 560px;
-    margin: 0 auto;
-    line-height: 1.5;
-  }
-
-  /* arch-grid layout:
-     Left column (cols 1/span 6): Component layer (top), Base layer (bottom)
-     Right column (cols 8/span 5): How the editor works (full height) */
-  .arch-grid {
+  .arch-table {
     grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: repeat(var(--columns-count), 1fr);
-    grid-template-rows: auto auto;
-    column-gap: var(--columns-gutter);
-    row-gap: var(--space-24);
-    align-items: stretch;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
   }
 
-  .arch-grid > :global(.layer-component) {
-    grid-column: 1 / span 6;
-    grid-row: 1;
+  .arch-table-header {
+    padding: 0 var(--space-4);
   }
 
-  .arch-grid > :global(.layer-base) {
-    grid-column: 1 / span 6;
-    grid-row: 2;
+  .arch-eyebrow {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-accent);
+    margin-bottom: var(--space-4);
   }
 
-  .arch-grid > :global(.editor-note) {
-    grid-column: 8 / span 5;
-    grid-row: 1 / span 2;
-  }
-
-  .architecture :global(h3) {
+  .arch-table-header h3 {
     font-family: var(--font-display);
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    font-variation-settings: 'opsz' 36;
+    font-style: italic;
+    font-size: var(--font-size-2xl);
     color: var(--text-primary);
-    margin: 0 0 var(--space-8);
+    font-weight: var(--font-weight-semibold);
+    margin: 0;
+    line-height: 1.1;
     letter-spacing: -0.005em;
   }
 
-  .architecture :global(p) {
+  .arch-table :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .arch-table :global(th),
+  .arch-table :global(td) {
+    text-align: left;
+    padding: var(--space-12) var(--space-16);
+    vertical-align: middle;
+  }
+
+  .arch-table :global(th) {
+    background: var(--surface-canvas-low);
+    color: var(--text-primary);
     font-family: var(--font-sans);
-    line-height: 1.55;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    border-bottom: var(--border-width-1) solid var(--border-canvas-subtle);
   }
 
-  .architecture :global(p + p) {
-    margin-top: var(--space-12);
+  .arch-table :global(td) {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    border-bottom: var(--border-width-1) solid var(--border-canvas-faint);
   }
 
-  .architecture :global(code) {
+  .arch-table :global(tbody tr:last-child td) {
+    border-bottom: none;
+  }
+
+  .arch-table :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    color: var(--text-primary);
+    background: var(--overlay-low);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* === Code blocks inside arch cards === */
+  .arch :global(.code-block) {
+    margin: var(--space-16) 0 0;
+    padding: var(--space-12) var(--space-16);
+    background: var(--surface-neutral-lowest);
+    border: var(--border-width-1) solid var(--border-neutral-faint);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+  }
+
+  .arch :global(.code-block code) {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    color: var(--text-accent);
+    background: none;
+    padding: 0;
+    line-height: 1.7;
+    white-space: pre;
+  }
+
+  /* ============================ HOW ============================ */
+  .how {
+    grid-column: 2 / span 10;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  /* ============================ CTA ============================ */
+  .cta {
+    grid-column: 2 / span 10;
+  }
+
+  /* Inline code, default — scoped to the kit so we don't leak into components */
+  .kit :global(p > code),
+  .kit :global(.callout code) {
     background: var(--overlay-low);
     padding: 1px 6px;
     border-radius: var(--radius-sm);
-    font-family: var(--font-mono, monospace);
-    font-size: 0.9em;
+    font-family: var(--font-mono);
+    font-size: 0.88em;
     color: var(--text-primary);
   }
 
-  /* SHOWCASE — closer image */
-  .showcase {
-    grid-column: 2 / span 10;
-    margin-top: var(--space-16);
-  }
-
-  /* TABLET */
+  /* ============================ RESPONSIVE ============================ */
   @media (max-width: 960px) {
-    .hero,
-    .styling-intro,
-    .section-header,
-    .showcase {
+    .hero-text {
       grid-column: 1 / -1;
     }
-
-    .features-grid > :global(*:nth-child(1)) { grid-column: 1 / span 6; }
-    .features-grid > :global(*:nth-child(2)) { grid-column: 7 / span 6; }
-    .features-grid > :global(*:nth-child(3)) { grid-column: 1 / span 6; }
-
-    /* Arch collapses: left stack on top, editor-note below */
-    .arch-grid > :global(.layer-component) { grid-column: 1 / -1; grid-row: 1; }
-    .arch-grid > :global(.layer-base)      { grid-column: 1 / -1; grid-row: 2; }
-    .arch-grid > :global(.editor-note)     { grid-column: 1 / -1; grid-row: 3; }
+    .hero-margin {
+      display: none;
+    }
+    .kit > :global(.section-divider),
+    .kit-grid,
+    .playground,
+    .tones-grid,
+    .arch,
+    .how,
+    .cta {
+      grid-column: 1 / -1;
+    }
+    .kit-grid,
+    .tones-grid,
+    .arch {
+      grid-template-columns: 1fr;
+    }
   }
 
-  /* MOBILE */
   @media (max-width: 600px) {
-    .kit-demo {
+    .kit {
       padding: var(--space-32) var(--space-16);
       row-gap: var(--space-32);
     }
-
-    .features-grid > :global(*:nth-child(1)),
-    .features-grid > :global(*:nth-child(2)),
-    .features-grid > :global(*:nth-child(3)) {
-      grid-column: 1 / -1;
+    .hero-title {
+      font-size: var(--font-size-5xl);
     }
-
-    .styling,
-    .features-grid,
-    .architecture,
-    .arch-grid {
-      row-gap: var(--space-16);
+    .playground {
+      padding: var(--space-24) var(--space-16);
+    }
+    .arch-table :global(th),
+    .arch-table :global(td) {
+      padding: var(--space-8) var(--space-12);
     }
   }
 </style>

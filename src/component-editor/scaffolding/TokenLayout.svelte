@@ -139,9 +139,11 @@
     return sides.some((s) => !!document.documentElement.style.getPropertyValue(`${varName}-${s}`).trim());
   }
 
-  function categorize(v: string, comp: string | undefined, state: typeof $editorState): Kind {
-    const k = rawKind(v);
-    if (k === 'padding' && paddingIsSplit(v, comp, state)) return 'padding-split';
+  function categorize(token: Token, comp: string | undefined, state: typeof $editorState): Kind {
+    const k = rawKind(token.variable);
+    if (k === 'padding' && token.splittable !== false && paddingIsSplit(token.variable, comp, state)) {
+      return 'padding-split';
+    }
     return k;
   }
 
@@ -170,7 +172,7 @@
     'divider-height': { component: UIVariantSelector, extra: () => ({ ...DIVIDER_HEIGHT }) },
     'dot-size': { component: UIVariantSelector, extra: () => ({ ...DOT_SIZE }) },
     'radius': { component: UIVariantSelector, extra: () => ({ ...RADIUS }) },
-    'padding': { component: UIPaddingSelector, extra: () => ({ mode: 'single' }) },
+    'padding': { component: UIPaddingSelector, extra: (t) => ({ mode: 'single', splittable: t.splittable !== false }) },
     /* padding-split is NOT standalone: TokenLayout renders the .token-label
        (e.g. "padding") in col 1 and the wrapper provides the [label][trigger][value]
        subgrid. UIPaddingSelector's sides template fills cols 2-3 of row 1 with
@@ -217,7 +219,7 @@
   })();
 
   function buildEntries(list: Token[], order: Map<string, number> | undefined, linked: Set<Kind>, comp: string | undefined, state: typeof $editorState, multiCol: boolean): Entry[] {
-    const indexed = list.map((token, i) => ({ e: { kind: categorize(token.variable, comp, state), token }, i }));
+    const indexed = list.map((token, i) => ({ e: { kind: categorize(token, comp, state), token }, i }));
     const rank = multiCol ? multiColRank : orderRank;
     indexed.sort((a, b) => {
       if (!multiCol) {

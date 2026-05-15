@@ -491,11 +491,11 @@
      ═══════════════════════════════════════════════════════ */
   --columns-count: 12;
   --columns-max-width: 1440px;
-  --columns-gutter: clamp(0.5rem, 1.5vw, 1.5rem);
-  --columns-margin: 0;
+  --columns-gutter: 11px;
+  --columns-margin: 0px;
 
   /* Font Families */
-  --font-display: "Fraunces", serif, "Poppins";
+  --font-display: "Fraunces", serif;
   --font-sans: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, sans-serif;
   --font-serif: "Fraunces", serif;
   --font-mono: "fira-code", ui-monospace, "SF Mono", Menlo, Consolas, monospace, monospace;
@@ -666,16 +666,10 @@
   --card-default-title: var(--text-primary);
   --card-default-body: var(--text-secondary);
   --card-default-radius: var(--radius-lg);
-  --card-hover-surface: color-mix(in srgb, var(--surface-neutral-lower) 90%, transparent);
   --card-hover-border: var(--border-neutral);
-  --card-hover-title: var(--text-primary);
-  --card-hover-body: var(--text-secondary);
-  --card-hover-radius: var(--radius-lg);
   --card-hover-shadow: var(--shadow-sm);
   --card-default-shadow: var(--shadow-sm);
-  --card-hover-header-surface: var(--surface-neutral-high);
   --card-default-header-surface: var(--surface-neutral);
-  --card-hover-border-width: var(--border-width-1);
   --card-default-border-width: var(--border-width-1);
   --collapsiblesection-container-frame-surface: var(--surface-canvas-high);
   --collapsiblesection-container-frame-border-width: var(--border-width-3);
@@ -1320,5 +1314,13 @@
   --button-warning-radius: var(--radius-full);
   --button-warning-hover-radius: var(--radius-full);
   --button-warning-disabled-radius: var(--radius-full);
+  /* card (my-card) */
+  --card-default-surface: var(color-mix(in srgb, var(--surface-neutral) 95%, transparent));
+  --card-default-header-surface: var(color-mix(in srgb, var(--surface-neutral-low) 85%, transparent));
+  --card-default-body-font-size: var(--font-size-sm);
+  --card-default-header-padding-top: var(--space-8);
+  --card-default-header-padding-right: var(--space-16);
+  --card-default-header-padding-bottom: var(--space-8);
+  --card-default-header-padding-left: var(--space-16);
 }
 /* component-aliases:end */

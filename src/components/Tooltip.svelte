@@ -23,7 +23,9 @@
   {/if}
 </div>
 
-<style>
+<style lang="scss">
+  @use '../styles/padding' as *;
+
   :global(:root) {
     --tooltip-surface: var(--surface-neutral-highest);
     --tooltip-text: var(--text-primary);
@@ -50,7 +52,7 @@
     transform: translateX(-50%);
     background: var(--tooltip-surface);
     color: var(--tooltip-text);
-    padding: var(--tooltip-padding) calc(var(--tooltip-padding) * 2);
+    @include themed-padding(--tooltip-padding, $h: 2);
     border: var(--tooltip-border-width) solid var(--tooltip-border);
     border-radius: var(--tooltip-radius);
     font-family: var(--tooltip-text-font-family);

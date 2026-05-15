@@ -20,7 +20,10 @@
    *  per-state token grid. */
   function frameTokens(v: Variant): Token[] {
     return [
-      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--sectiondivider-${v}-padding` },
+      // Padding is routed through an internal `--_divider-padding` aggregator
+      // per variant — split mode would require per-side forwarding in every
+      // variant rule. Until that lands, present single-value only.
+      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--sectiondivider-${v}-padding`, splittable: false },
       { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--sectiondivider-${v}-radius` },
       { label: 'border color', canBeLinked: true, groupKey: 'border', variable: `--sectiondivider-${v}-border` },
       { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--sectiondivider-${v}-border-width` },

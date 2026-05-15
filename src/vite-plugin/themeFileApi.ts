@@ -652,6 +652,16 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         jsonResponse(res, 403, { error: 'Cannot delete the default theme' });
         return;
       }
+      // Reject deletion of the live production theme — removing it would
+      // leave _production.json pointing at a missing file and break the
+      // running site. The user must Adopt a different theme first.
+      if (themesResource.getProductionName() === fileName) {
+        jsonResponse(res, 403, {
+          error: 'Cannot delete the production theme. Adopt a different theme first.',
+          code: 'PRODUCTION_THEME',
+        });
+        return;
+      }
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
         // If this was the active theme, revert to default

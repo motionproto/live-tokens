@@ -3,9 +3,8 @@
 
   import { onMount } from 'svelte';
   import type { ThemeMeta } from '../lib/themeTypes';
-  import { listThemes, deleteTheme, setActiveFile, getProductionInfo, setProductionFile } from '../lib/themeService';
+  import { listThemes, deleteTheme, setActiveFile, getProductionInfo, setProductionFile, sanitizeFileName } from '../lib/themeService';
   import { listManifests, saveAsManifest } from '../lib/manifestService';
-  import type { ManifestMeta } from '../lib/themeTypes';
   import { activeFileName } from '../lib/editorConfigStore';
   import { dirty } from '../lib/editorStore';
   import { productionRevision, bumpProductionRevision, themeProductionInfo } from '../lib/productionPulse';
@@ -15,7 +14,7 @@
 
   interface Props {
     saveStatus?: 'idle' | 'saving' | 'saved' | 'error';
-    onsave?: (payload: { fileName: string; displayName: string }) => void;
+    onsave?: (payload: { fileName: string; displayName: string }) => void | Promise<void>;
     onload?: (payload: { fileName: string }) => void;
   }
 
@@ -28,10 +27,10 @@
 
   let prodApplyStatus: 'idle' | 'applying' | 'done' | 'error' = $state('idle');
 
-  // Manifest SaveAs prompt for the "Adopt while default manifest is active" case.
-  let manifestSaveAsDialog = $state(false);
-  let manifests: ManifestMeta[] = $state([]);
-  let retryAdoptAfterManifestSave = false;
+  // Set when Adopt is clicked on a dirty+default theme: the SaveAs dialog opens
+  // for the user to name their theme, and on confirm the Adopt resumes
+  // automatically so the user gets one flow ("save and adopt") from one click.
+  let adoptAfterSave = false;
 
   let prodIsInSync = $derived($themeProductionInfo?.fileName === $activeFileName);
   let editorIsApplied = $derived(prodIsInSync && !$dirty);
@@ -85,19 +84,56 @@
 
   function openSaveAs() {
     showFileList = false;
+    // Standalone Save As must not piggyback on an Adopt that was cancelled
+    // earlier — clear the latch so confirmSaveAs doesn't fire a stale Adopt.
+    adoptAfterSave = false;
     saveAsDialog = true;
   }
 
-  function confirmSaveAs(detail: { displayName: string; fileName: string }) {
+  async function confirmSaveAs(detail: { displayName: string; fileName: string }) {
     const { displayName, fileName } = detail;
-    onsave?.({ fileName, displayName });
+    await onsave?.({ fileName, displayName });
     $activeFileName = fileName;
     currentDisplayName = displayName;
-    setTimeout(() => refreshFiles(), 500);
+    await refreshFiles();
+    if (adoptAfterSave) {
+      adoptAfterSave = false;
+      await handleApplyToProduction();
+    }
+  }
+
+  // Pick a manifest filename that doesn't collide with anything on disk so
+  // auto-creating doesn't clobber a manifest the user customized earlier.
+  async function pickFreshManifestName(base: string): Promise<string> {
+    const baseFile = sanitizeFileName(base);
+    let manifests: { fileName: string }[];
+    try {
+      manifests = await listManifests();
+    } catch {
+      return baseFile;
+    }
+    const taken = new Set(manifests.map((m) => m.fileName));
+    if (!taken.has(baseFile)) return baseFile;
+    for (let n = 1; n < 1000; n++) {
+      const suffix = String(n).padStart(2, '0');
+      const candidate = `${baseFile}_${suffix}`;
+      if (!taken.has(candidate)) return candidate;
+    }
+    return `${baseFile}_${Date.now()}`;
   }
 
   async function handleApplyToProduction() {
     if (prodIsInSync) return;
+
+    // Dirty edits on the protected default theme can't be saved to that file,
+    // and adopting the on-disk default would silently strand the user's
+    // changes. Open the theme SaveAs dialog and resume Adopt after save.
+    if (isDefaultActive && $dirty) {
+      adoptAfterSave = true;
+      saveAsDialog = true;
+      return;
+    }
+
     prodApplyStatus = 'applying';
     try {
       await setProductionFile($activeFileName);
@@ -108,34 +144,24 @@
     } catch (err) {
       const e = err as Error & { code?: string };
       if (e.code === 'ACTIVE_IS_PROTECTED') {
-        // Default manifest is active — prompt a manifest SaveAs and retry.
+        // Default manifest is active — auto-create a user manifest and retry.
+        // No second dialog: the user clicked one button (Adopt) and gave the
+        // theme a name; the manifest is bookkeeping they shouldn't have to
+        // think about.
         prodApplyStatus = 'idle';
-        retryAdoptAfterManifestSave = true;
         try {
-          manifests = await listManifests();
+          const targetName = await pickFreshManifestName('my-manifest');
+          await saveAsManifest(targetName, targetName);
         } catch {
-          manifests = [];
+          prodApplyStatus = 'error';
+          setTimeout(() => { prodApplyStatus = 'idle'; }, 3000);
+          return;
         }
-        manifestSaveAsDialog = true;
+        await handleApplyToProduction();
         return;
       }
       prodApplyStatus = 'error';
       setTimeout(() => { prodApplyStatus = 'idle'; }, 3000);
-    }
-  }
-
-  async function onManifestSaveAs(detail: { displayName: string; fileName: string }) {
-    manifestSaveAsDialog = false;
-    try {
-      await saveAsManifest(detail.fileName, detail.displayName);
-    } catch (err) {
-      window.alert(`Failed to create manifest: ${(err as Error).message}`);
-      retryAdoptAfterManifestSave = false;
-      return;
-    }
-    if (retryAdoptAfterManifestSave) {
-      retryAdoptAfterManifestSave = false;
-      await handleApplyToProduction();
     }
   }
 
@@ -200,6 +226,7 @@
 
   async function handleDelete(file: ThemeMeta) {
     if (file.fileName === 'default') return;
+    if (file.fileName === $themeProductionInfo?.fileName) return;
     try {
       await deleteTheme(file.fileName);
       await refreshFiles();
@@ -426,7 +453,7 @@
         {#if file.fileName === $activeFileName}
           <span class="active-badge">active</span>
         {/if}
-        {#if file.fileName !== 'default'}
+        {#if file.fileName !== 'default' && file.fileName !== $themeProductionInfo?.fileName}
           <button
             class="file-delete-btn"
             onclick={stopPropagation(() => handleDelete(file))}
@@ -452,17 +479,6 @@
   reservedNameMessage='The name "default" is reserved for the initial distribution.'
   branchFromDefaultName="my-theme"
   onsave={confirmSaveAs}
-/>
-
-<SaveAsDialog
-  bind:show={manifestSaveAsDialog}
-  currentDisplayName="my-manifest"
-  files={manifests}
-  title="Save Manifest As"
-  placeholder="Manifest name…"
-  description="Adopting a theme change updates the active manifest, The default manifest is locked. Name a new manifest for the site."
-  reservedNameMessage='The name "default" is reserved for the protected baseline.'
-  onsave={onManifestSaveAs}
 />
 
 <style>

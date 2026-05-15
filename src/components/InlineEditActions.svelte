@@ -47,6 +47,8 @@
 </div>
 
 <style lang="scss">
+   @use '../styles/padding' as *;
+
    :global(:root) {
       /* Save (default) */
       --inlineeditactions-save-default-surface: var(--surface-success-low);
@@ -110,7 +112,7 @@
       color: var(--inlineeditactions-save-default-text);
       border: var(--inlineeditactions-save-default-border-width) solid var(--inlineeditactions-save-default-border);
       border-radius: var(--inlineeditactions-save-default-radius);
-      padding: var(--inlineeditactions-save-default-padding) calc(var(--inlineeditactions-save-default-padding) * 2);
+      @include themed-padding(--inlineeditactions-save-default-padding, $h: 2);
       font-size: var(--inlineeditactions-save-default-icon-size);
 
       &:hover:not(:disabled),
@@ -119,7 +121,7 @@
          color: var(--inlineeditactions-save-hover-text);
          border: var(--inlineeditactions-save-hover-border-width) solid var(--inlineeditactions-save-hover-border);
          border-radius: var(--inlineeditactions-save-hover-radius);
-         padding: var(--inlineeditactions-save-hover-padding) calc(var(--inlineeditactions-save-hover-padding) * 2);
+         @include themed-padding(--inlineeditactions-save-hover-padding, $h: 2);
          font-size: var(--inlineeditactions-save-hover-icon-size);
       }
    }
@@ -129,7 +131,7 @@
       color: var(--inlineeditactions-cancel-default-text);
       border: var(--inlineeditactions-cancel-default-border-width) solid var(--inlineeditactions-cancel-default-border);
       border-radius: var(--inlineeditactions-cancel-default-radius);
-      padding: var(--inlineeditactions-cancel-default-padding) calc(var(--inlineeditactions-cancel-default-padding) * 2);
+      @include themed-padding(--inlineeditactions-cancel-default-padding, $h: 2);
       font-size: var(--inlineeditactions-cancel-default-icon-size);
 
       &:hover:not(:disabled),
@@ -138,7 +140,7 @@
          color: var(--inlineeditactions-cancel-hover-text);
          border: var(--inlineeditactions-cancel-hover-border-width) solid var(--inlineeditactions-cancel-hover-border);
          border-radius: var(--inlineeditactions-cancel-hover-radius);
-         padding: var(--inlineeditactions-cancel-hover-padding) calc(var(--inlineeditactions-cancel-hover-padding) * 2);
+         @include themed-padding(--inlineeditactions-cancel-hover-padding, $h: 2);
          font-size: var(--inlineeditactions-cancel-hover-icon-size);
       }
    }

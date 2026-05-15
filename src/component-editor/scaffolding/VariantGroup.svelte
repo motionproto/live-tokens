@@ -67,6 +67,12 @@
   let activeTab: string = $state('');
 
   const TYPE_PROPS = ['colorVariable', 'familyVariable', 'sizeVariable', 'weightVariable', 'lineHeightVariable', 'outlineWidthVariable', 'outlineColorVariable'] as const;
+  // UIPaddingSelector in split mode writes per-side derived vars
+  // (`<var>-{top,right,bottom,left}`) alongside the parent. Copy carries them
+  // so a state that split its padding fully transfers. When the data model
+  // migrates to per-side-only storage this loop becomes redundant — but
+  // copying entries that don't exist is a no-op, so it stays safe either way.
+  const PADDING_SIDES = ['top', 'right', 'bottom', 'left'] as const;
 
   function pickCopySource(toState: string, fromVariant: string, fromState: string) {
     if (!component || !states) return;
@@ -80,13 +86,22 @@
 
     mutate(`copy ${fromVariant}/${fromState} → ${name}/${toState}`, (s) => {
       const slice = s.components[component!] ?? (s.components[component!] = { activeFile: 'default', aliases: {}, config: {} });
+      const dstVarsTouched: string[] = [];
       const apply = (srcVar: string, dstVar: string) => {
         if (srcVar === dstVar) return;
         if (srcVar in slice.aliases) slice.aliases[dstVar] = slice.aliases[srcVar];
         else delete slice.aliases[dstVar];
+        dstVarsTouched.push(dstVar);
       };
       const minLen = Math.min(srcTokens.length, dstTokens.length);
-      for (let i = 0; i < minLen; i++) apply(srcTokens[i].variable, dstTokens[i].variable);
+      for (let i = 0; i < minLen; i++) {
+        const srcVar = srcTokens[i].variable;
+        const dstVar = dstTokens[i].variable;
+        apply(srcVar, dstVar);
+        if (srcTokens[i].splittable !== false) {
+          for (const side of PADDING_SIDES) apply(`${srcVar}-${side}`, `${dstVar}-${side}`);
+        }
+      }
       const minTypeGroups = Math.min(srcTypeGroups.length, dstTypeGroups.length);
       for (let g = 0; g < minTypeGroups; g++) {
         const srcType = srcTypeGroups[g];
@@ -96,6 +111,16 @@
           const dstVar = dstType[prop];
           if (srcVar && dstVar) apply(srcVar, dstVar);
         }
+      }
+      // Destination vars rejoin their sibling groups — the user's intent was
+      // "make this state match", which conflicts with a stale opt-out marker
+      // that would otherwise render the LinkedBlock as broken despite agreeing
+      // values.
+      if (slice.unlinked && slice.unlinked.length > 0) {
+        const touched = new Set(dstVarsTouched);
+        const remaining = slice.unlinked.filter((v) => !touched.has(v));
+        if (remaining.length === 0) delete slice.unlinked;
+        else slice.unlinked = remaining;
       }
     });
   }

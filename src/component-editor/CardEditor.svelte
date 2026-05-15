@@ -5,40 +5,34 @@
   export const component = 'card';
 
   // The card is a single object across two states (default, hover).
-  // Within each state we keep object shape props (surface/border/border-width/radius/padding/shadow) together.
-  // Title and body are nested elements with their own typography.
+  // Hover only overrides border color and shadow; everything else is shared with default.
+  // Tokens are tagged with `element` so the editor groups them by the part of
+  // the card they affect (frame / header / body) instead of by property kind.
   const states: Record<string, Token[]> = {
     default: [
-      { label: 'surface color', groupKey: 'surface', variable: '--card-default-surface' },
-      { label: 'header color', groupKey: 'surface', variable: '--card-default-header-surface' },
-      { label: 'border color', groupKey: 'border', variable: '--card-default-border' },
-      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: '--card-default-border-width' },
-      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: '--card-default-radius' },
-      { label: 'header padding', canBeLinked: true, groupKey: 'header-padding', variable: '--card-default-header-padding' },
-      { label: 'body padding', canBeLinked: true, groupKey: 'body-padding', variable: '--card-default-body-padding' },
-      { label: 'card shadow', canBeLinked: true, groupKey: 'shadow', variable: '--card-default-shadow' },
-      { label: 'background blur', canBeLinked: true, groupKey: 'blur', variable: '--card-default-blur' },
-      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--card-default-icon-size' },
+      { label: 'surface color', groupKey: 'surface', variable: '--card-default-surface', element: 'frame' },
+      { label: 'border color', groupKey: 'border', variable: '--card-default-border', element: 'frame' },
+      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: '--card-default-border-width', element: 'frame' },
+      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: '--card-default-radius', element: 'frame' },
+      { label: 'card shadow', canBeLinked: true, groupKey: 'shadow', variable: '--card-default-shadow', element: 'frame' },
+      { label: 'background blur', canBeLinked: true, groupKey: 'blur', variable: '--card-default-blur', element: 'frame' },
+      { label: 'header color', groupKey: 'surface', variable: '--card-default-header-surface', element: 'header' },
+      { label: 'header padding', canBeLinked: true, groupKey: 'header-padding', variable: '--card-default-header-padding', element: 'header' },
+      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--card-default-icon-size', element: 'header' },
+      { label: 'body padding', canBeLinked: true, groupKey: 'body-padding', variable: '--card-default-body-padding', element: 'body' },
     ],
     hover: [
-      { label: 'surface color', groupKey: 'surface', variable: '--card-hover-surface' },
-      { label: 'header color', groupKey: 'surface', variable: '--card-hover-header-surface' },
       { label: 'border color', groupKey: 'border', variable: '--card-hover-border' },
-      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: '--card-hover-border-width' },
-      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: '--card-hover-radius' },
-      { label: 'header padding', canBeLinked: true, groupKey: 'header-padding', variable: '--card-hover-header-padding' },
-      { label: 'body padding', canBeLinked: true, groupKey: 'body-padding', variable: '--card-hover-body-padding' },
       { label: 'card shadow', canBeLinked: true, groupKey: 'shadow', variable: '--card-hover-shadow' },
-      { label: 'background blur', canBeLinked: true, groupKey: 'blur', variable: '--card-hover-blur' },
-      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--card-hover-icon-size' },
     ],
   };
 
-  // Two type groups per state: title and body. Linked across states (same nested object).
+  // Title and body typography are shared across states (no hover overrides).
   const typeGroups: Record<string, TypeGroupConfig[]> = {
     default: [
       {
-        legend: 'card title',
+        legend: 'title',
+        element: 'header',
         colorVariable: '--card-default-title',
         familyVariable: '--card-default-title-font-family',
         sizeVariable: '--card-default-title-font-size',
@@ -46,7 +40,8 @@
         lineHeightVariable: '--card-default-title-line-height',
       },
       {
-        legend: 'card body',
+        legend: 'body',
+        element: 'body',
         colorVariable: '--card-default-body',
         familyVariable: '--card-default-body-font-family',
         sizeVariable: '--card-default-body-font-size',
@@ -54,44 +49,17 @@
         lineHeightVariable: '--card-default-body-line-height',
       },
     ],
-    hover: [
-      {
-        legend: 'card title',
-        colorVariable: '--card-hover-title',
-        familyVariable: '--card-hover-title-font-family',
-        sizeVariable: '--card-hover-title-font-size',
-        weightVariable: '--card-hover-title-font-weight',
-        lineHeightVariable: '--card-hover-title-line-height',
-      },
-      {
-        legend: 'card body',
-        colorVariable: '--card-hover-body',
-        familyVariable: '--card-hover-body-font-family',
-        sizeVariable: '--card-hover-body-font-size',
-        weightVariable: '--card-hover-body-font-weight',
-        lineHeightVariable: '--card-hover-body-line-height',
-      },
-    ],
   };
 
-  // Title type tokens (linked across states, but title and body are different objects so they don't link to each other).
   const typeGroupTokens: Token[] = [
     { label: 'font family', canBeLinked: true, groupKey: 'title-font-family', variable: '--card-default-title-font-family' },
-    { label: 'font family', canBeLinked: true, groupKey: 'title-font-family', variable: '--card-hover-title-font-family' },
     { label: 'font size', canBeLinked: true, groupKey: 'title-font-size', variable: '--card-default-title-font-size' },
-    { label: 'font size', canBeLinked: true, groupKey: 'title-font-size', variable: '--card-hover-title-font-size' },
     { label: 'font weight', canBeLinked: true, groupKey: 'title-font-weight', variable: '--card-default-title-font-weight' },
-    { label: 'font weight', canBeLinked: true, groupKey: 'title-font-weight', variable: '--card-hover-title-font-weight' },
     { label: 'line height', canBeLinked: true, groupKey: 'title-line-height', variable: '--card-default-title-line-height' },
-    { label: 'line height', canBeLinked: true, groupKey: 'title-line-height', variable: '--card-hover-title-line-height' },
     { label: 'font family', canBeLinked: true, groupKey: 'body-font-family', variable: '--card-default-body-font-family' },
-    { label: 'font family', canBeLinked: true, groupKey: 'body-font-family', variable: '--card-hover-body-font-family' },
     { label: 'font size', canBeLinked: true, groupKey: 'body-font-size', variable: '--card-default-body-font-size' },
-    { label: 'font size', canBeLinked: true, groupKey: 'body-font-size', variable: '--card-hover-body-font-size' },
     { label: 'font weight', canBeLinked: true, groupKey: 'body-font-weight', variable: '--card-default-body-font-weight' },
-    { label: 'font weight', canBeLinked: true, groupKey: 'body-font-weight', variable: '--card-hover-body-font-weight' },
     { label: 'line height', canBeLinked: true, groupKey: 'body-line-height', variable: '--card-default-body-line-height' },
-    { label: 'line height', canBeLinked: true, groupKey: 'body-line-height', variable: '--card-hover-body-line-height' },
   ];
   // Cross-state linked block — present each linkable property from the default state.
   const linkableContexts = new Map<string, string>([
