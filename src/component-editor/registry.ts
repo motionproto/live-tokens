@@ -11,6 +11,7 @@ import CollapsibleSectionEditor, { allTokens as collapsibleSectionTokens } from 
 import DialogEditor, { allTokens as dialogTokens } from './DialogEditor.svelte';
 import ImageEditor, { allTokens as imageTokens } from './ImageEditor.svelte';
 import InlineEditActionsEditor, { allTokens as inlineEditActionsTokens } from './InlineEditActionsEditor.svelte';
+import MenuSelectEditor, { allTokens as menuSelectTokens } from './MenuSelectEditor.svelte';
 import NotificationEditor, { allTokens as notificationTokens } from './NotificationEditor.svelte';
 import ProgressBarEditor, { allTokens as progressBarTokens } from './ProgressBarEditor.svelte';
 import RadioButtonEditor, { allTokens as radioButtonTokens } from './RadioButtonEditor.svelte';
@@ -32,6 +33,7 @@ export type ComponentId =
   | 'cornerbadge'
   | 'image'
   | 'inlineeditactions'
+  | 'menuselect'
   | 'sectiondivider'
   | 'collapsiblesection'
   | 'table'
@@ -154,6 +156,14 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/components/InlineEditActions.svelte',
     editorComponent: InlineEditActionsEditor,
     schema: inlineEditActionsTokens,
+  },
+  menuselect: {
+    id: 'menuselect',
+    label: 'Menu Select',
+    icon: 'fas fa-list',
+    sourceFile: 'src/components/MenuSelect.svelte',
+    editorComponent: MenuSelectEditor,
+    schema: menuSelectTokens,
   },
   sectiondivider: {
     id: 'sectiondivider',

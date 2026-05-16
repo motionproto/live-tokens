@@ -419,52 +419,41 @@
   },
   "card": {
     "blur": [
-      "--card-default-blur",
-      "--card-hover-blur"
+      "--card-default-blur"
     ],
     "body": [
-      "--card-default-body",
-      "--card-hover-body"
+      "--card-default-body"
     ],
     "body-font-family": [
-      "--card-default-body-font-family",
-      "--card-hover-body-font-family"
+      "--card-default-body-font-family"
     ],
     "body-font-size": [
-      "--card-default-body-font-size",
-      "--card-hover-body-font-size"
+      "--card-default-body-font-size"
     ],
     "body-font-weight": [
-      "--card-default-body-font-weight",
-      "--card-hover-body-font-weight"
+      "--card-default-body-font-weight"
     ],
     "body-line-height": [
-      "--card-default-body-line-height",
-      "--card-hover-body-line-height"
+      "--card-default-body-line-height"
     ],
     "body-padding": [
-      "--card-default-body-padding",
-      "--card-hover-body-padding"
+      "--card-default-body-padding"
     ],
     "border": [
       "--card-default-border",
       "--card-hover-border"
     ],
     "border-width": [
-      "--card-default-border-width",
-      "--card-hover-border-width"
+      "--card-default-border-width"
     ],
     "header-padding": [
-      "--card-default-header-padding",
-      "--card-hover-header-padding"
+      "--card-default-header-padding"
     ],
     "icon-size": [
-      "--card-default-icon-size",
-      "--card-hover-icon-size"
+      "--card-default-icon-size"
     ],
     "radius": [
-      "--card-default-radius",
-      "--card-hover-radius"
+      "--card-default-radius"
     ],
     "shadow": [
       "--card-default-shadow",
@@ -472,29 +461,22 @@
     ],
     "surface": [
       "--card-default-header-surface",
-      "--card-default-surface",
-      "--card-hover-header-surface",
-      "--card-hover-surface"
+      "--card-default-surface"
     ],
     "title": [
-      "--card-default-title",
-      "--card-hover-title"
+      "--card-default-title"
     ],
     "title-font-family": [
-      "--card-default-title-font-family",
-      "--card-hover-title-font-family"
+      "--card-default-title-font-family"
     ],
     "title-font-size": [
-      "--card-default-title-font-size",
-      "--card-hover-title-font-size"
+      "--card-default-title-font-size"
     ],
     "title-font-weight": [
-      "--card-default-title-font-weight",
-      "--card-hover-title-font-weight"
+      "--card-default-title-font-weight"
     ],
     "title-line-height": [
-      "--card-default-title-line-height",
-      "--card-hover-title-line-height"
+      "--card-default-title-line-height"
     ]
   },
   "collapsiblesection": {
@@ -906,6 +888,102 @@
       "--inlineeditactions-cancel-hover-text",
       "--inlineeditactions-save-default-text",
       "--inlineeditactions-save-hover-text"
+    ]
+  },
+  "menuselect": {
+    "border": [
+      "--menuselect-menu-border"
+    ],
+    "font-family": [
+      "--menuselect-default-text-font-family",
+      "--menuselect-disabled-text-font-family",
+      "--menuselect-hover-text-font-family",
+      "--menuselect-selected-text-font-family"
+    ],
+    "font-size": [
+      "--menuselect-default-text-font-size",
+      "--menuselect-disabled-text-font-size",
+      "--menuselect-hover-text-font-size",
+      "--menuselect-selected-text-font-size"
+    ],
+    "font-weight": [
+      "--menuselect-default-text-font-weight",
+      "--menuselect-disabled-text-font-weight",
+      "--menuselect-hover-text-font-weight",
+      "--menuselect-selected-text-font-weight"
+    ],
+    "gap": [
+      "--menuselect-menu-gap"
+    ],
+    "icon": [
+      "--menuselect-default-icon",
+      "--menuselect-disabled-icon",
+      "--menuselect-hover-icon",
+      "--menuselect-selected-icon"
+    ],
+    "icon-size": [
+      "--menuselect-default-icon-size",
+      "--menuselect-disabled-icon-size",
+      "--menuselect-hover-icon-size",
+      "--menuselect-selected-icon-size"
+    ],
+    "indicator": [
+      "--menuselect-selected-indicator"
+    ],
+    "item-padding": [
+      "--menuselect-item-padding"
+    ],
+    "item-padding-bottom": [
+      "--menuselect-item-padding-bottom"
+    ],
+    "item-padding-left": [
+      "--menuselect-item-padding-left"
+    ],
+    "item-padding-right": [
+      "--menuselect-item-padding-right"
+    ],
+    "item-padding-top": [
+      "--menuselect-item-padding-top"
+    ],
+    "item-radius": [
+      "--menuselect-item-radius"
+    ],
+    "line-height": [
+      "--menuselect-default-text-line-height",
+      "--menuselect-disabled-text-line-height",
+      "--menuselect-hover-text-line-height",
+      "--menuselect-selected-text-line-height"
+    ],
+    "menu-padding": [
+      "--menuselect-menu-padding"
+    ],
+    "menu-padding-bottom": [
+      "--menuselect-menu-padding-bottom"
+    ],
+    "menu-padding-left": [
+      "--menuselect-menu-padding-left"
+    ],
+    "menu-padding-right": [
+      "--menuselect-menu-padding-right"
+    ],
+    "menu-padding-top": [
+      "--menuselect-menu-padding-top"
+    ],
+    "menu-radius": [
+      "--menuselect-menu-radius"
+    ],
+    "shadow": [
+      "--menuselect-menu-shadow"
+    ],
+    "surface": [
+      "--menuselect-default-surface",
+      "--menuselect-disabled-surface",
+      "--menuselect-hover-surface",
+      "--menuselect-menu-surface",
+      "--menuselect-selected-surface"
+    ],
+    "width": [
+      "--menuselect-menu-border-width"
     ]
   },
   "notification": {

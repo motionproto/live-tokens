@@ -5,8 +5,8 @@
   import Callout from '../components/Callout.svelte';
   import Card from '../components/Card.svelte';
   import CollapsibleSection from '../components/CollapsibleSection.svelte';
+  import FloatingTokenTags from '../components/FloatingTokenTags.svelte';
   import Notification from '../components/Notification.svelte';
-  import ProgressBar from '../components/ProgressBar.svelte';
   import SectionDivider from '../components/SectionDivider.svelte';
   import SegmentedControl from '../components/SegmentedControl.svelte';
   import Table from '../components/Table.svelte';
@@ -14,14 +14,13 @@
 
   const isDev = import.meta.env.DEV;
 
-  // Interactive playground — switches one preview slot between three real
-  // compositions so the same token table can be observed driving fills, shapes,
-  // and motion side-by-side.
+  // Interactive playground — switches one preview slot between two real
+  // compositions so the same token table can be observed driving fills and
+  // shapes side-by-side.
   let previewMode = $state('tone');
   const previewSegments = [
-    { value: 'tone',   label: 'Tone',   icon: 'fas fa-droplet' },
-    { value: 'shape',  label: 'Shape',  icon: 'fas fa-shapes' },
-    { value: 'motion', label: 'Motion', icon: 'fas fa-wave-square' },
+    { value: 'tone',  label: 'Tone',  icon: 'fas fa-droplet' },
+    { value: 'shape', label: 'Shape', icon: 'fas fa-shapes' },
   ];
 
   const tones = ['primary', 'accent', 'success', 'warning', 'danger', 'info', 'special', 'neutral'] as const;
@@ -36,6 +35,12 @@
 
   <!-- ============================ HERO ============================ -->
   <header class="hero">
+    <!-- Kite animation spans the full hero. Tags fan across the entire row,
+         the central component sits dead-centre. Text below overlaps freely. -->
+    <div class="hero-kite">
+      <FloatingTokenTags />
+    </div>
+
     <div class="hero-text">
       <div class="hero-eyebrow">
         <Badge variant="neutral" size="small" icon="fas fa-bolt">v0.6.2 &nbsp;·&nbsp; live tokens</Badge>
@@ -72,7 +77,7 @@
   <SectionDivider
     title="The Kit"
     description="Tokens, components, and a live editor. One Svelte starter, all in the box."
-    variant="canvas"
+    variant="accent"
   />
 
   <section class="kit-grid">
@@ -94,7 +99,7 @@
   <SectionDivider
     title="See it live."
     description="Every component on this page resolves to the same token table. Open the editor; watch them change together."
-    variant="primary"
+    variant="accent"
   />
 
   <section class="playground">
@@ -112,8 +117,8 @@
         <p class="stage-caption">
           Eight tones, one palette. <strong>{'--color-{tone}-500'}</strong> drives every fill above.
         </p>
-      {:else if previewMode === 'shape'}
-        <div class="stage-row">
+      {:else}
+        <div class="stage-row stage-shape">
           <Button>Primary</Button>
           <Button variant="secondary">Secondary</Button>
           <Button variant="outline">Outline</Button>
@@ -125,16 +130,6 @@
           Six variants. <strong>{'--button-{variant}-radius'}</strong> and
           <strong>{'--button-{variant}-padding'}</strong> shape every state.
         </p>
-      {:else}
-        <div class="stage-stack">
-          <ProgressBar variant="primary" value={72} label="Build" />
-          <ProgressBar variant="success" value={100} label="Tests" />
-          <ProgressBar variant="warning" value={38} label="Coverage" />
-        </div>
-        <p class="stage-caption">
-          Three progress states. Easing curves resolve through
-          <strong>--duration-150</strong> and <strong>--duration-300</strong>.
-        </p>
       {/if}
     </div>
   </section>
@@ -143,13 +138,13 @@
     <Callout variant="info" label="In dev.">
       The editor overlay runs in development only. Run <code>npm run dev</code> and look top-right.
     </Callout>
-    <Callout variant="success" label="In prod.">
+    <Callout variant="info" label="In prod.">
       Production builds are pure CSS. Zero runtime weight from the editor reaches the bundle.
     </Callout>
-    <Callout variant="warning" label="One canvas.">
+    <Callout variant="info" label="One canvas.">
       All routes share one <code>:root</code>. Variable writes cascade everywhere instantly.
     </Callout>
-    <Callout variant="danger" label="No magic.">
+    <Callout variant="info" label="No magic.">
       Token names describe values, not components. <code>--color-brand-500</code>, never <code>--button-bg</code>.
     </Callout>
   </section>
@@ -237,7 +232,7 @@
   <SectionDivider
     title="From edit to ship."
     description="Three steps the editor takes, start to finish."
-    variant="special"
+    variant="accent"
   />
 
   <section class="how">
@@ -323,10 +318,38 @@
   }
 
   .hero-text {
-    grid-column: 2 / span 10;
+    grid-column: 2 / span 4;
+    grid-row: 1;
+    align-self: center;
     display: flex;
     flex-direction: column;
     gap: var(--space-16);
+    position: relative;
+    z-index: 0; /* sits beneath the kite — overlap is intentional */
+  }
+
+  .hero-kite {
+    grid-column: 5 / span 8;
+    grid-row: 1;
+    height: 32rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Glow lives on a pseudo-element 3× the size of the kite so it can extend
+     past the host element. Nothing in the parent chain has overflow:hidden,
+     so this happily bleeds across the title and off the page edge. */
+  .hero-kite::before {
+    content: '';
+    position: absolute;
+    inset: -100% -100%;
+    background: radial-gradient(
+      ellipse 38% 48% at 50% 50%,
+      color-mix(in srgb, var(--color-brand-500) 26%, transparent) 0%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: -1;
   }
 
   .hero-eyebrow {
@@ -415,6 +438,26 @@
     gap: var(--space-12);
     justify-content: center;
     align-items: center;
+  }
+
+  /* Shape demo: square corners and white text on every variant so the row reads
+     as a shape study, not a tone study. The colored variants (success/warning/
+     danger) get a saturated fill so white text has contrast. */
+  .stage-shape :global(.button) {
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+  }
+  .stage-shape :global(.button.success) {
+    background: var(--color-success-600);
+    border-color: var(--color-success-700);
+  }
+  .stage-shape :global(.button.warning) {
+    background: var(--color-warning-600);
+    border-color: var(--color-warning-700);
+  }
+  .stage-shape :global(.button.danger) {
+    background: var(--color-danger-600);
+    border-color: var(--color-danger-700);
   }
 
   .stage-stack {
@@ -591,6 +634,9 @@
   @media (max-width: 960px) {
     .hero-text {
       grid-column: 1 / -1;
+    }
+    .hero-kite {
+      height: 28rem;
     }
     .kit > :global(.section-divider),
     .kit-grid,

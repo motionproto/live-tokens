@@ -2599,12 +2599,33 @@
           ]
         }
       ]
+    },
+    {
+      "id": "src_google_arvo",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_google_arvo:arvo",
+          "name": "Arvo",
+          "cssName": "\"Arvo\"",
+          "weights": [
+            400,
+            700
+          ]
+        }
+      ]
     }
   ],
   "fontStacks": [
     {
       "variable": "--font-display",
       "slots": [
+        {
+          "kind": "project",
+          "familyId": "src_google_arvo:arvo"
+        },
         {
           "kind": "project",
           "familyId": "src_fraunces_local:fraunces"

@@ -38,9 +38,12 @@
 
 <script lang="ts">
   import Badge from './Badge.svelte';
+  import MenuSelect from './MenuSelect.svelte';
   import { SvelteMap } from 'svelte/reactivity';
   // Playground chrome lives in its own CSS file so live token edits in the
-  // editor don't repaint our animation. See FloatingTokenTags.css.
+  // editor don't repaint our animation. The one exception is the dropdown
+  // panel — it renders through MenuSelect on purpose, so editing the
+  // menuselect-* tokens reshapes the in-flight UI. See FloatingTokenTags.css.
   import './FloatingTokenTags.css';
 
   interface Props {
@@ -63,9 +66,9 @@
   // Four candidate token values per control. Picked to span the visible
   // gamut so cycling produces noticeably different box states.
   const valueOptions: Record<TagControl, string[]> = {
-    'surface':      ['--surface-brand-high',  '--surface-canvas-high', '--surface-accent-high', '--surface-special-high'],
+    'surface':      ['--surface-brand-low',   '--surface-danger-low',  '--surface-accent-low',  '--surface-special-low'],
     'radius':       ['--radius-none',         '--radius-lg',           '--radius-2xl',          '--radius-full'],
-    'border-color': ['--border-brand',        '--border-canvas',       '--border-accent',       '--border-special'],
+    'border-color': ['--border-brand',        '--border-danger',       '--border-success',      '--border-special'],
     'border-width': ['--border-width-1',      '--border-width-2',      '--border-width-3',      '--border-width-5'],
     'font-family':  ['--font-display',        '--font-sans',           '--font-serif',          '--font-mono'],
   };
@@ -74,11 +77,15 @@
     // Layout: surface + border-color flank the box at mid-height (far sides);
     // font + corner-radius sit above near the box; border-width sits below
     // centred. Roughly mirrors the user's sketch.
+    // Tags spread outward (factor 1.25 from box centre) so the cluster fills
+    // the available stage. Kite anchors are computed each frame against the
+    // box's *measured* rect, so the central element can size itself like a
+    // normal div (intrinsic to content + padding) and the strings still land.
     {
       variant: 'primary',
       icon: 'fas fa-fill-drip',
-      label: '--surface-brand-high',
-      top: 35.9, left: 24.3, delay: 0,    rotate: 3,
+      label: '--surface-brand-low',
+      top: 42, left: 25, delay: 0,    rotate: -3,
       anchor: { side: 'inside', x: 10, y: 50 },
       controls: 'surface',
     },
@@ -86,7 +93,7 @@
       variant: 'success',
       icon: 'fas fa-font',
       label: '--font-display',
-      top: 18.9, left: 42.6, delay: -0.9, rotate: 2,
+      top: 11.1, left: 40.8, delay: -0.9, rotate: 2,
       anchor: { side: 'inside', x: 45, y: 28 },
       controls: 'font-family',
     },
@@ -94,7 +101,7 @@
       variant: 'accent',
       icon: 'fa-solid fa-bezier-curve',
       label: '--radius-2xl',
-      top: 25.8, left: 67.6, delay: -1.8, rotate: 2,
+      top: 19.8, left: 72.0, delay: -1.8, rotate: 2,
       anchor: { side: 'top', pos: 100 },
       controls: 'radius',
     },
@@ -102,7 +109,7 @@
       variant: 'canvas',
       icon: 'fas fa-paint-roller',
       label: '--border-brand',
-      top: 70.4, left: 73.6, delay: -3.6, rotate: -2,
+      top: 75.5, left: 79.5, delay: -3.6, rotate: -2,
       anchor: { side: 'right', pos: 55 },
       controls: 'border-color',
     },
@@ -110,7 +117,7 @@
       variant: 'special',
       icon: 'fas fa-grip-lines',
       label: '--border-width-3',
-      top: 77.7, left: 41.2, delay: -5.2, rotate: -3,
+      top: 84.6, left: 39.0, delay: -5.2, rotate: -3,
       anchor: { side: 'bottom', pos: 50 },
       controls: 'border-width',
     },
@@ -128,9 +135,14 @@
   // Tag values are modelled as defaults (derived from the `tags` prop) plus
   // user overrides. This keeps `currentValues` reactive to prop changes
   // without losing user picks, and avoids capturing only the initial `tags`.
+  // Two override layers, deliberately desynchronised: `overrides` drives the
+  // floating tag's badge label (commits at selection); `boxOverrides` drives
+  // the central component's style (commits only when the energy ball lands).
   const defaultLabels = $derived(tags.map(t => t.label));
   let overrides = $state<Record<number, string>>({});
+  let boxOverrides = $state<Record<number, string>>({});
   const currentValues = $derived(defaultLabels.map((d, i) => overrides[i] ?? d));
+  const boxValues     = $derived(defaultLabels.map((d, i) => boxOverrides[i] ?? d));
 
   let openIdx = $state<number | null>(null);
   let strobeIdx = $state<number | null>(null);
@@ -149,38 +161,52 @@
 
   // Energy balls are imperative — keyed by tag index. Updated each rAF tick.
   // SvelteMap so the template can react to in-flight state (line glow).
-  type BallState = { startedAt: number; duration: number };
+  // `pendingValue` is the token swap that commits on impact, not on launch —
+  // so the box visibly changes at the moment of the bloop.
+  type BallState = { startedAt: number; duration: number; pendingValue: string };
   const ballStates = new SvelteMap<number, BallState>();
   const ballEls: HTMLSpanElement[] = [];
 
   // --- Element refs --------------------------------------------------------
   let stageEl: HTMLDivElement | undefined;
+  let boxEl: HTMLDivElement | undefined;
   const tagEls: HTMLSpanElement[] = [];
   const lineEls: SVGLineElement[] = [];
+  const knotEls: HTMLSpanElement[] = [];
 
   // --- Anchor math ---------------------------------------------------------
-  function anchorPoint(anchor: Anchor) {
-    const cx = 50, cy = 50;
-    const halfW = boxSize.w / 2, halfH = boxSize.h / 2;
+  // `cx`/`cy`/`w`/`h` are the box's centre and dimensions in stage-% space.
+  // Defaults fall back to `boxSize` for the first paint (before syncFrame
+  // measures the actual box). Runtime calls in syncFrame pass the live rect.
+  function anchorPoint(
+    anchor: Anchor,
+    cx = 50,
+    cy = 50,
+    w = boxSize.w,
+    h = boxSize.h,
+  ): { x: number; y: number } {
+    const halfW = w / 2, halfH = h / 2;
     if (anchor.side === 'inside') {
       return {
-        x: cx - halfW + (anchor.x / 100) * boxSize.w,
-        y: cy - halfH + (anchor.y / 100) * boxSize.h,
+        x: cx - halfW + (anchor.x / 100) * w,
+        y: cy - halfH + (anchor.y / 100) * h,
       };
     }
     const t = anchor.pos / 100;
     switch (anchor.side) {
-      case 'top':    return { x: cx - halfW + t * boxSize.w, y: cy - halfH };
-      case 'bottom': return { x: cx - halfW + t * boxSize.w, y: cy + halfH };
-      case 'left':   return { x: cx - halfW,                 y: cy - halfH + t * boxSize.h };
-      case 'right':  return { x: cx + halfW,                 y: cy - halfH + t * boxSize.h };
+      case 'top':    return { x: cx - halfW + t * w, y: cy - halfH };
+      case 'bottom': return { x: cx - halfW + t * w, y: cy + halfH };
+      case 'left':   return { x: cx - halfW,         y: cy - halfH + t * h };
+      case 'right':  return { x: cx + halfW,         y: cy - halfH + t * h };
     }
   }
 
-  // Resolve the active CSS-var name for each control (reads `currentValues`).
+  // Resolve the active CSS-var name for each control. Reads `boxValues` (not
+  // `currentValues`) so the central component only repaints once the ball
+  // commits its payload at impact.
   function resolveControl(name: TagControl): string | undefined {
     const idx = tags.findIndex(t => t.controls === name);
-    return idx >= 0 ? currentValues[idx] : undefined;
+    return idx >= 0 ? boxValues[idx] : undefined;
   }
   const surfaceVar     = $derived(resolveControl('surface'));
   const radiusVar      = $derived(resolveControl('radius'));
@@ -197,6 +223,20 @@
     if (!stageEl) return;
     const stageRect = stageEl.getBoundingClientRect();
     if (stageRect.width === 0 || stageRect.height === 0) return;
+
+    // Box geometry in stage-% space — measured from the live rect so that
+    // intrinsic sizing (content + padding) drives anchor placement.
+    let boxCx = 50, boxCy = 50;
+    let boxW = boxSize.w, boxH = boxSize.h;
+    if (boxEl) {
+      const br = boxEl.getBoundingClientRect();
+      if (br.width > 0 && br.height > 0) {
+        boxCx = ((br.left + br.width / 2) - stageRect.left) / stageRect.width * 100;
+        boxCy = ((br.top  + br.height / 2) - stageRect.top)  / stageRect.height * 100;
+        boxW  = (br.width  / stageRect.width)  * 100;
+        boxH  = (br.height / stageRect.height) * 100;
+      }
+    }
 
     const now = performance.now();
 
@@ -228,6 +268,16 @@
       lineEl.setAttribute('x1', x1.toFixed(3));
       lineEl.setAttribute('y1', y1.toFixed(3));
 
+      // Box-side endpoint + knot — recomputed from live box geometry.
+      const a = anchorPoint(tags[i].anchor, boxCx, boxCy, boxW, boxH);
+      lineEl.setAttribute('x2', a.x.toFixed(3));
+      lineEl.setAttribute('y2', a.y.toFixed(3));
+      const knotEl = knotEls[i];
+      if (knotEl) {
+        knotEl.style.left = `${a.x.toFixed(3)}%`;
+        knotEl.style.top  = `${a.y.toFixed(3)}%`;
+      }
+
       // Energy ball traveling tag → box along the same line.
       const ballEl = ballEls[i];
       const state = ballStates.get(i);
@@ -239,6 +289,10 @@
       const elapsed = now - state.startedAt;
       const t = Math.min(1, elapsed / state.duration);
       if (t >= 1) {
+        // Commit the box's token swap at impact so its appearance changes in
+        // sync with the bloop (the "pops up and grows larger" beat). Until
+        // this point the box keeps rendering the previous value.
+        boxOverrides = { ...boxOverrides, [i]: state.pendingValue };
         ballStates.delete(i);
         ballEl.style.opacity = '0';
         triggerBloop();
@@ -269,19 +323,15 @@
   function pickValue(i: number, value: string) {
     openIdx = null;
     strobeIdx = null;
+    // Commit the tag's badge label immediately so the user gets a "you picked
+    // this" confirmation. The central box waits — its commit is carried by
+    // the energy ball and lands at impact.
     overrides = { ...overrides, [i]: value };
     flashingIdx = i;
     window.setTimeout(() => {
       if (flashingIdx === i) flashingIdx = null;
     }, 500);
-    // Spawn an energy ball; impact (and box bloop) fires at end of travel.
-    const tag = tags[i];
-    const variantColor = tag.variant ?? 'neutral';
-    const ballEl = ballEls[i];
-    if (ballEl) {
-      ballEl.style.setProperty('--ftt-ball-color', `var(--text-${variantColor})`);
-    }
-    ballStates.set(i, { startedAt: performance.now(), duration: 520 });
+    ballStates.set(i, { startedAt: performance.now(), duration: 520, pendingValue: value });
   }
 
   function triggerBloop() {
@@ -457,14 +507,16 @@
     {/each}
   </svg>
 
-  <!-- Central component — driven by the active token of each tag. The
-       inline style:background/border-* references design tokens on purpose
-       (this IS what should react to live token edits). -->
+  <!-- Central component — driven by the active token of each tag. Sized
+       intrinsically: width/height grow to fit content + padding. boxSize
+       is a baseline (min-width/min-height) so a short label can't shrink
+       the box past a sensible footprint. -->
   <div
+    bind:this={boxEl}
     class="ftt-box"
     class:ftt-bloop={bloopActive}
-    style:width="{boxSize.w}%"
-    style:height="{boxSize.h}%"
+    style:min-width="{boxSize.w}%"
+    style:min-height="{boxSize.h}%"
     style:background={surfaceVar ? `color-mix(in srgb, var(${surfaceVar}) 50%, transparent)` : undefined}
     style:border-radius={asVar(radiusVar)}
     style:border-color={asVar(borderColorVar)}
@@ -473,13 +525,20 @@
     <span
       class="ftt-box-label"
       style:font-family={asVar(fontFamilyVar)}
-    >live tokens</span>
+    >I'm a button</span>
   </div>
 
-  <!-- Anchor knots on the box. -->
+  <!-- Anchor knots on the box. Initial position uses anchorPoint() defaults;
+       syncFrame imperatively updates each frame from the box's live rect. -->
   {#each tags as tag, i (i)}
     {@const a = anchorPoint(tag.anchor)}
-    <span class="ftt-knot" style:left="{a.x}%" style:top="{a.y}%" aria-hidden="true"></span>
+    <span
+      bind:this={knotEls[i]}
+      class="ftt-knot"
+      style:left="{a.x}%"
+      style:top="{a.y}%"
+      aria-hidden="true"
+    ></span>
   {/each}
 
   <!-- Energy balls — positioned each frame by syncFrame() while in flight. -->
@@ -518,22 +577,16 @@
       </button>
 
       {#if openIdx === i && tag.controls}
-        <ul class="ftt-dropdown" role="listbox">
-          {#each valueOptions[tag.controls] as opt, k (opt)}
-            <li>
-              <button
-                type="button"
-                class="ftt-dropdown-item"
-                class:ftt-active={currentValues[i] === opt}
-                class:ftt-strobe={strobeIdx === k}
-                disabled={currentValues[i] === opt}
-                onclick={() => userPick(i, opt)}
-              >
-                {opt}
-              </button>
-            </li>
-          {/each}
-        </ul>
+        {@const opts = valueOptions[tag.controls]}
+        {@const strobeValue = strobeIdx !== null ? opts[strobeIdx] : null}
+        <div class="ftt-dropdown-wrap">
+          <MenuSelect
+            items={opts.map((opt) => ({ value: opt, label: opt }))}
+            value={currentValues[i]}
+            forceHoverValue={strobeValue}
+            onchange={(v) => userPick(i, v)}
+          />
+        </div>
       {/if}
     </span>
   {/each}
