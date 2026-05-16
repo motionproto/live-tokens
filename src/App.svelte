@@ -38,6 +38,9 @@
   let isEditor = $derived(isDev && $route === '/editor');
   let isDemo = $derived(isDev && $route === '/demo');
   let isComponentEditor = $derived(isDev && $route === '/components');
+  // Unlisted dev-only playgrounds for component iteration. Reachable only by
+  // typing the URL directly; intentionally absent from allNavLinks.
+  let isFloatingTagsPlayground = $derived(isDev && $route === '/playground/floating-tags');
 
   // Pages are loaded dynamically so each route's module — and any CSS it
   // side-effect-imports (e.g. site.css on Home/Demo) — only evaluates when that
@@ -47,6 +50,7 @@
     if (isEditor) return import('./pages/Editor.svelte');
     if (isDemo) return import('./pages/Demo.svelte');
     if (isComponentEditor) return import('./pages/ComponentEditorPage.svelte');
+    if (isFloatingTagsPlayground) return import('./pages/FloatingTagsPlayground.svelte');
     return import('./pages/Home.svelte');
   });
 </script>
@@ -60,6 +64,7 @@
       '/demo': 'src/pages/Demo.svelte',
       '/components': 'src/pages/ComponentEditorPage.svelte',
       '/editor': 'src/pages/Editor.svelte',
+      '/playground/floating-tags': 'src/pages/FloatingTagsPlayground.svelte',
     }}
     hidePageSourceOn={['/components']}
   />

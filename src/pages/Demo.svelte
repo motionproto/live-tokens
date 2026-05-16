@@ -66,21 +66,6 @@
       </div>
     </div>
 
-    <!-- Floating annotation badges — magazine-style margin notes -->
-    <aside class="hero-margin" aria-hidden="true">
-      <span class="hero-float hero-float-a">
-        <Badge variant="primary" icon="fas fa-circle" size="small">--color-brand-500</Badge>
-      </span>
-      <span class="hero-float hero-float-b">
-        <Badge variant="accent" icon="fas fa-ruler-horizontal" size="small">--space-16</Badge>
-      </span>
-      <span class="hero-float hero-float-c">
-        <Badge variant="canvas" icon="fas fa-vector-square" size="small">--radius-md</Badge>
-      </span>
-      <span class="hero-float hero-float-d">
-        <Badge variant="special" icon="fas fa-stopwatch" size="small">--duration-150</Badge>
-      </span>
-    </aside>
   </header>
 
   <!-- ====================== CHAPTER 1 — The Kit ====================== -->
@@ -338,7 +323,7 @@
   }
 
   .hero-text {
-    grid-column: 2 / span 8;
+    grid-column: 2 / span 10;
     display: flex;
     flex-direction: column;
     gap: var(--space-16);
@@ -381,28 +366,6 @@
     gap: var(--space-12);
     flex-wrap: wrap;
     margin-top: var(--space-12);
-  }
-
-  .hero-margin {
-    grid-column: 10 / span 3;
-    position: relative;
-    min-height: 18rem;
-  }
-
-  .hero-float {
-    position: absolute;
-    z-index: 1;
-    animation: hero-bob 7s ease-in-out infinite;
-    transform-origin: center;
-  }
-  .hero-float-a { top: 4%;  right: 8%;  animation-delay: 0s;    transform: rotate(-3deg); }
-  .hero-float-b { top: 30%; right: 28%; animation-delay: -1.8s; transform: rotate(2deg); }
-  .hero-float-c { top: 58%; right: 4%;  animation-delay: -3.6s; transform: rotate(-2deg); }
-  .hero-float-d { top: 84%; right: 22%; animation-delay: -5.2s; transform: rotate(3deg); }
-
-  @keyframes hero-bob {
-    0%, 100% { translate: 0 0; }
-    50%      { translate: 0 -8px; }
   }
 
   /* === SECTION DIVIDERS span the content column === */
@@ -628,9 +591,6 @@
   @media (max-width: 960px) {
     .hero-text {
       grid-column: 1 / -1;
-    }
-    .hero-margin {
-      display: none;
     }
     .kit > :global(.section-divider),
     .kit-grid,

@@ -1,0 +1,284 @@
+/*
+ * FloatingTokenTags — playground chrome
+ *
+ * Intentionally DECOUPLED from the design system. Every value below is
+ * hardcoded so that, as a player tweaks tokens in the live editor, the
+ * animation, dropdown, knots, and tag styling stay stable. The ONE thing
+ * still bound to design tokens is the central box's surface / radius /
+ * border-colour / border-width — that's set inline from the active tag
+ * values, which IS the demo.
+ *
+ * Selectors use an `ftt-` prefix because this file is global (not Svelte-
+ * scoped). Keep them prefixed when adding new rules.
+ */
+
+.ftt-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* No overflow clipping — the bottom tag's dropdown must be free to extend
+     past the stage edge without being cut off. */
+}
+
+/* --- Central box ---------------------------------------------------------- */
+.ftt-box {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Defaults — overridden inline from the active token bindings. */
+  background: color-mix(in srgb, #264542 50%, transparent);
+  border-style: solid;
+  border-color: #52726e;
+  border-width: 2px;
+  border-radius: 0.25rem;
+  box-shadow: 3px 3px 6px 0px hsla(237, 18%, 3%, 0.9);
+  transition:
+    background    300ms ease,
+    border-color  300ms ease,
+    border-width  300ms ease,
+    border-radius 300ms ease;
+  z-index: 1;
+}
+
+.ftt-box-label {
+  font-family: Manrope, system-ui, -apple-system, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.ftt-box.ftt-bloop {
+  animation: ftt-bloop 480ms ease-out;
+}
+
+@keyframes ftt-bloop {
+  0%   { scale: 1;    filter: brightness(1); }
+  30%  { scale: 1.08; filter: brightness(1.8) saturate(1.4); }
+  100% { scale: 1;    filter: brightness(1); }
+}
+
+/* --- Kite strings --------------------------------------------------------- */
+.ftt-strings {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.ftt-string {
+  stroke: #9b938e;
+  stroke-width: 2;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.7;
+  transition: opacity 150ms ease, stroke 150ms ease;
+}
+
+.ftt-string.ftt-live {
+  stroke: #ff8eeb;
+  opacity: 1;
+}
+
+/* --- Anchor knots --------------------------------------------------------- */
+.ftt-knot {
+  position: absolute;
+  width: 0.625rem;
+  height: 0.625rem;
+  translate: -50% -50%;
+  border-radius: 9999px;
+  background: #615954;
+  border: 1px solid #c4bcb6;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* --- Energy ball ---------------------------------------------------------- */
+.ftt-energy-ball {
+  position: absolute;
+  width: 0.875rem;
+  height: 0.875rem;
+  translate: -50% -50%;
+  border-radius: 9999px;
+  background: var(--ftt-ball-color, #fff5f0);
+  box-shadow:
+    0 0 8px  2px var(--ftt-ball-color, #fff5f0),
+    0 0 18px 4px var(--ftt-ball-color, #fff5f0);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 6;
+}
+
+/* --- Floating tag wrapper ------------------------------------------------- */
+.ftt-float {
+  position: absolute;
+  translate: -50% -50%;
+  rotate: var(--ftt-rot, 0deg);
+  animation: ftt-bob var(--ftt-bob-duration, 7s) ease-in-out infinite;
+  z-index: 4;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+
+  /* Silver-gradient override for the badge variants the floating tags use.
+     Hardcoded so token edits don't repaint our chrome. */
+  --ftt-silver-grad: linear-gradient(
+    135deg,
+    #cccdcd 0%,
+    #7c7d7d 38%,
+    #b1b2b2 62%,
+    #626363 100%
+  );
+  --ftt-silver-outline: rgba(255, 255, 255, 0.55);
+  --ftt-silver-text:    rgba(0, 0, 0, 0.88);
+
+  --badge-primary-surface: var(--ftt-silver-grad);
+  --badge-accent-surface:  var(--ftt-silver-grad);
+  --badge-canvas-surface:  var(--ftt-silver-grad);
+  --badge-special-surface: var(--ftt-silver-grad);
+  --badge-success-surface: var(--ftt-silver-grad);
+
+  --badge-primary-text: var(--ftt-silver-text);
+  --badge-accent-text:  var(--ftt-silver-text);
+  --badge-canvas-text:  var(--ftt-silver-text);
+  --badge-special-text: var(--ftt-silver-text);
+  --badge-success-text: var(--ftt-silver-text);
+
+  --badge-primary-border: var(--ftt-silver-outline);
+  --badge-accent-border:  var(--ftt-silver-outline);
+  --badge-canvas-border:  var(--ftt-silver-outline);
+  --badge-special-border: var(--ftt-silver-outline);
+  --badge-success-border: var(--ftt-silver-outline);
+}
+
+/* Lift the active tag's stacking context above its siblings so the dropdown
+   menu paints over every other floating token. */
+.ftt-float.ftt-open {
+  z-index: 20;
+}
+
+@keyframes ftt-bob {
+  0%, 100% { translate: -50% -50%; }
+  50%      { translate: -50% calc(-50% + var(--ftt-bob-distance, -8px)); }
+}
+
+/* --- Property label above each badge -------------------------------------- */
+.ftt-float-property {
+  font-family: Manrope, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #86817e;
+  white-space: nowrap;
+}
+
+/* --- Badge trigger -------------------------------------------------------- */
+.ftt-badge-trigger {
+  pointer-events: auto;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: grab;
+  touch-action: none;
+  transition: filter 150ms ease, scale 150ms ease;
+}
+.ftt-badge-trigger:hover {
+  filter: brightness(1.2);
+  scale: 1.04;
+}
+.ftt-float.ftt-dragging .ftt-badge-trigger {
+  cursor: grabbing;
+}
+.ftt-float.ftt-dragging {
+  animation: none; /* pause bob while dragging */
+  z-index: 30;
+}
+.ftt-badge-trigger:focus-visible {
+  outline: 2px solid #f31fdb;
+  outline-offset: 3px;
+  border-radius: 9999px;
+}
+
+.ftt-float.ftt-flash .ftt-badge-trigger {
+  animation: ftt-tag-flash 500ms ease-out;
+}
+
+@keyframes ftt-tag-flash {
+  0%   { scale: 1;    filter: brightness(1)   drop-shadow(0 0 0  transparent); }
+  25%  { scale: 1.14; filter: brightness(1.8) drop-shadow(0 0 14px #fff5f0); }
+  100% { scale: 1;    filter: brightness(1)   drop-shadow(0 0 0  transparent); }
+}
+
+/* --- Dropdown menu -------------------------------------------------------- */
+.ftt-dropdown {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 50%;
+  translate: -50% 0;
+
+  pointer-events: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  background: #443d39;
+  border: 1px solid #656b6f;
+  border-radius: 0.25rem;
+  box-shadow: 5px 5px 9px 0px hsla(237, 18%, 3%, 0.9);
+  z-index: 10;
+}
+
+.ftt-dropdown-item {
+  background: transparent;
+  border: none;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.125rem;
+  font-family: 'fira-code', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.875rem;
+  color: #b0a9a4;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  transition:
+    background 75ms linear,
+    color      75ms linear;
+}
+.ftt-dropdown-item:hover:not(:disabled),
+.ftt-dropdown-item.ftt-active {
+  background: #534c47;
+  color: #fff5f0;
+}
+.ftt-dropdown-item.ftt-strobe {
+  background: #6c0061;
+  color: #fff5f0;
+}
+.ftt-dropdown-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* --- Reduced motion ------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .ftt-float {
+    animation: none;
+  }
+  .ftt-box.ftt-bloop,
+  .ftt-float.ftt-flash .ftt-badge-trigger {
+    animation: none;
+  }
+}
