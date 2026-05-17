@@ -33,7 +33,7 @@ export default defineConfig({
     svelte(),
     themeFileApi({
       themesDir: 'themes',
-      tokensCssPath: 'src/styles/tokens.css',
+      tokensCssPath: 'src/system/styles/tokens.css',
     }),
   ],
   optimizeDeps: {
@@ -44,7 +44,7 @@ export default defineConfig({
 
 The `themeFileApi` plugin:
 - Seeds `themes/` with a default theme on first dev-server start.
-- Discovers components at `src/components/*.svelte` and seeds `component-configs/{comp}/default.json` from each component's `:global(:root)` block.
+- Discovers components at `src/system/components/*.svelte` and seeds `component-configs/{comp}/default.json` from each component's `:global(:root)` block.
 - Hosts the `/api/*` routes the editor uses to save and load themes + per-component configs.
 - Auto-injects `__PROJECT_ROOT__` for the overlay's "Page Source" link.
 
@@ -61,6 +61,7 @@ import {
   initEditorStore,
 } from '@motion-proto/live-tokens';
 import App from './App.svelte';
+import { mount } from 'svelte';
 
 configureEditor({ storagePrefix: 'my-app-' });
 
@@ -72,7 +73,7 @@ async function boot() {
   if (import.meta.env.DEV) {
     await initializeTheme();
   }
-  new App({ target: document.getElementById('app')! });
+  mount(App, { target: document.getElementById('app')! });
 }
 
 boot();
@@ -95,7 +96,7 @@ boot();
     { path: '/components', label: 'Components', icon: 'fa-puzzle-piece' },
   ]}
   pageSources={{
-    '/': 'src/pages/Home.svelte',
+    '/': 'src/app/Home.svelte',
   }}
 />
 <ColumnsOverlay />
@@ -135,12 +136,12 @@ CSS variables on `:root`.
 You can use the package's default as a starting point:
 
 ```ts
-import '@motion-proto/live-tokens/starter/tokens.css';
-import '@motion-proto/live-tokens/starter/site.css';   // optional: themed h1/p/a styles
-import '@motion-proto/live-tokens/starter/fonts.css';  // optional: Fraunces + Manrope @font-face
+import '@motion-proto/live-tokens/app/tokens.css';
+import '@motion-proto/live-tokens/app/site.css';   // optional: themed h1/p/a styles
+import '@motion-proto/live-tokens/app/fonts.css';  // optional: Fraunces + Manrope @font-face
 ```
 
-…or copy `node_modules/@motion-proto/live-tokens/src/styles/tokens.css` into
+…or copy `node_modules/@motion-proto/live-tokens/src/system/styles/tokens.css` into
 your project and edit. The editor will seed `themes/default.json` on first
 run and you can promote your edits back into the file.
 
@@ -150,7 +151,7 @@ The minimum a consumer needs after `npm install @motion-proto/live-tokens`:
 
 ```ts
 // src/main.ts
-import '@motion-proto/live-tokens/starter/tokens.css';
+import '@motion-proto/live-tokens/app/tokens.css';
 import { mount } from 'svelte';
 import App from './App.svelte';
 
@@ -189,12 +190,12 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173 and replace `src/pages/Home.svelte` with your content. The rest of the wiring is already done — it's the same code the npm package ships, just with the App-shell scaffolding included.
+Open http://localhost:5173 and replace `src/app/Home.svelte` with your content. The rest of the wiring is already done — it's the same code the npm package ships, just with the App-shell scaffolding included.
 
 ## How the editor ships changes to prod
 
 1. Edit in `/editor` or `/components`. Saves write to `themes/{name}.json` and `component-configs/{comp}/{name}.json`.
-2. Promote a theme to "production." Its variables are written into `src/styles/tokens.css` and backed up under `src/styles/_backups/`.
+2. Promote a theme to "production." Its variables are written into `src/system/styles/tokens.css` and backed up under `src/system/styles/_backups/`.
 3. `npm run build` bundles `tokens.css` as plain CSS. No editor code, no JSON lookups, no dev surfaces ship to prod.
 
 ## File ownership — what the plugin writes
@@ -213,8 +214,8 @@ Knowing which files the plugin touches matters when upgrading the package or wor
 **At dev-time editor actions, these files get rewritten by your explicit save/promote:**
 
 - `themes/{name}.json` — every save in the editor.
-- `src/styles/tokens.css` — fully regenerated when you save or promote the production theme. **Treat this as a build artifact.** Hand-edits get clobbered next time the production theme is saved; promote a theme instead.
-- `src/styles/fonts.css` — same rule: regenerated from the theme's font sources.
+- `src/system/styles/tokens.css` — fully regenerated when you save or promote the production theme. **Treat this as a build artifact.** Hand-edits get clobbered next time the production theme is saved; promote a theme instead.
+- `src/system/styles/fonts.css` — same rule: regenerated from the theme's font sources.
 - `component-configs/{comp}/{name}.json` — every save of a per-component config.
 
 ## Maintainer notes — publishing
