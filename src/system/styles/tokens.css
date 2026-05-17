@@ -1295,6 +1295,39 @@
 
 /* component-aliases:start */
 :root:root {
+  /* button (my-button) */
+  --button-primary-text-font-weight: var(--font-weight-medium);
+  --button-primary-radius: var(--radius-full);
+  --button-primary-hover-radius: var(--radius-full);
+  --button-primary-disabled-radius: var(--radius-full);
+  --button-secondary-text-font-weight: var(--font-weight-medium);
+  --button-secondary-radius: var(--radius-full);
+  --button-secondary-hover-radius: var(--radius-full);
+  --button-secondary-disabled-radius: var(--radius-full);
+  --button-outline-text-font-weight: var(--font-weight-medium);
+  --button-outline-radius: var(--radius-full);
+  --button-outline-hover-radius: var(--radius-full);
+  --button-outline-disabled-radius: var(--radius-full);
+  --button-success-text-font-weight: var(--font-weight-medium);
+  --button-success-radius: var(--radius-full);
+  --button-success-hover-radius: var(--radius-full);
+  --button-success-disabled-radius: var(--radius-full);
+  --button-danger-text-font-weight: var(--font-weight-medium);
+  --button-danger-radius: var(--radius-full);
+  --button-danger-hover-radius: var(--radius-full);
+  --button-danger-disabled-radius: var(--radius-full);
+  --button-warning-text-font-weight: var(--font-weight-medium);
+  --button-warning-radius: var(--radius-full);
+  --button-warning-hover-radius: var(--radius-full);
+  --button-warning-disabled-radius: var(--radius-full);
+  /* card (my-card) */
+  --card-default-surface: var(color-mix(in srgb, var(--surface-neutral) 95%, transparent));
+  --card-default-header-surface: var(color-mix(in srgb, var(--surface-neutral-low) 85%, transparent));
+  --card-default-body-font-size: var(--font-size-sm);
+  --card-default-header-padding-top: var(--space-8);
+  --card-default-header-padding-right: var(--space-16);
+  --card-default-header-padding-bottom: var(--space-8);
+  --card-default-header-padding-left: var(--space-16);
   /* sectiondivider (my-section-divider) */
   --sectiondivider-canvas-title-font-family: var(--font-sans);
   --sectiondivider-canvas-title-font-weight: var(--font-weight-bold);

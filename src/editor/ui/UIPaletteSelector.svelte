@@ -3,10 +3,10 @@
 
   import { slide } from 'svelte/transition';
   import { cubicOut, cubicIn } from 'svelte/easing';
-  import { resolveAliasChain } from '../lib/tokenRegistry';
-  import { editorState } from '../lib/editorStore';
-  import { formatGradientStops } from '../lib/slices/gradients';
-  import type { GradientToken } from '../lib/editorTypes';
+  import { resolveAliasChain } from '../core/palettes/tokenRegistry';
+  import { editorState } from '../core/store/editorStore';
+  import { formatGradientStops } from '../core/themes/slices/gradients';
+  import type { GradientToken } from '../core/store/editorTypes';
   import UITokenSelector from './UITokenSelector.svelte';
 
   /** Honor prefers-reduced-motion: `t()` zeroes durations when the OS asks for

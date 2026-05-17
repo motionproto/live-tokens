@@ -1,14 +1,14 @@
 <script lang="ts">
-  import type { FontSource } from '../lib/themeTypes';
-  import { editorState, setFontSources, transaction } from '../lib/editorStore';
-  import { applyFontSources, applyFontStacks } from '../lib/fontLoader';
+  import type { FontSource } from '../core/themes/themeTypes';
+  import { editorState, setFontSources, transaction } from '../core/store/editorStore';
+  import { applyFontSources, applyFontStacks } from '../core/fonts/fontLoader';
   import {
     buildSourceFromFontFaceText,
     buildSourceFromUrl,
     discoverFamiliesFromUrl,
     parseFontFaceText,
     type ParsedFamily,
-  } from '../lib/fontParse';
+  } from '../core/fonts/fontParse';
   import UIPillButton from './UIPillButton.svelte';
 
   type AddMode = 'closed' | 'url' | 'fontface';

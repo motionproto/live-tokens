@@ -18,8 +18,8 @@
     seedShadowsFromDom, shadowTokenCss, computeShadowXY,
     SCALE_SHADOW_VARIABLES, defaultShadowOverride,
     type Scope,
-  } from '../../lib/editorStore';
-  import type { ShadowToken, ShadowOverrideFlags, EditorState } from '../../lib/editorTypes';
+  } from '../../core/store/editorStore';
+  import type { ShadowToken, ShadowOverrideFlags, EditorState } from '../../core/store/editorTypes';
 
   interface Props {
     copiedVar?: string | null;

@@ -8,13 +8,13 @@
   import EditorViewSwitcher from '../ui/EditorViewSwitcher.svelte';
   import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
   import ManifestFileManager from '../ui/ManifestFileManager.svelte';
-  import { persistTheme, hydrateTheme } from '../lib/themeService';
-  import { scrollSectionIntoView } from '../lib/scrollSection';
-  import { editorState } from '../lib/editorStore';
-  import { editorView, sidebarCondensed, selectedComponent } from '../lib/editorViewStore';
-  import { componentDirty } from '../lib/editorStore';
+  import { persistTheme, hydrateTheme } from '../core/themes/themeService';
+  import { scrollSectionIntoView } from '../ui/scrollSection';
+  import { editorState } from '../core/store/editorStore';
+  import { editorView, sidebarCondensed, selectedComponent } from '../core/store/editorViewStore';
+  import { componentDirty } from '../core/store/editorStore';
   import { componentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
-  import { listComponents } from '../lib/componentConfigService';
+  import { listComponents } from '../core/components/componentConfigService';
 
   const tokenNavItems = [
     { id: 'palette-editor', label: 'Palette Editor', icon: 'fas fa-palette' },

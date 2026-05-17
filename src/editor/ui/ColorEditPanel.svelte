@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { hexToOklch, oklchToHex, gamutClamp } from '../lib/oklch';
-  import InlineEditActions from '../components/InlineEditActions.svelte';
-  import Button from '../components/Button.svelte';
+  import { hexToOklch, oklchToHex, gamutClamp } from '../core/palettes/oklch';
+  import InlineEditActions from '../../system/components/InlineEditActions.svelte';
+  import Button from '../../system/components/Button.svelte';
 
   
 

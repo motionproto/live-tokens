@@ -7,9 +7,9 @@
     FontStackVariable,
     GenericFamily,
     SystemCascadePreset,
-  } from '../lib/themeTypes';
-  import { editorState, setFontStacks } from '../lib/editorStore';
-  import { applyFontStacks, SYSTEM_CASCADES } from '../lib/fontLoader';
+  } from '../core/themes/themeTypes';
+  import { editorState, setFontStacks } from '../core/store/editorStore';
+  import { applyFontStacks, SYSTEM_CASCADES } from '../core/fonts/fontLoader';
 
   const SYSTEM_PRESETS: SystemCascadePreset[] = ['system-ui-sans', 'system-ui-serif', 'system-ui-mono'];
   const GENERIC_VALUES: GenericFamily[] = ['sans-serif', 'serif', 'monospace', 'cursive', 'fantasy'];

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { editorView } from '../lib/editorViewStore';
-  import { parentRoute } from '../lib/parentRouteStore';
+  import { editorView } from '../core/store/editorViewStore';
+  import { parentRoute } from '../core/routing/parentRouteStore';
 
   interface Props {
     condensed?: boolean;

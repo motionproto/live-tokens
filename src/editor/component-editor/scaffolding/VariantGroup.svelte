@@ -4,7 +4,7 @@
   import TokenLayout from './TokenLayout.svelte';
   import StateBlock from './StateBlock.svelte';
   import CopyFromMenu from './CopyFromMenu.svelte';
-  import { mutate } from '../../lib/editorStore';
+  import { mutate } from '../../core/store/editorStore';
   import { getEditorContext } from './editorContext';
   import type { Token, TypeGroupConfig } from './types';
   import type { Sibling } from './siblings';

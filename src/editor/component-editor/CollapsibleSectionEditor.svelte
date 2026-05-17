@@ -118,11 +118,11 @@
 </script>
 
 <script lang="ts">
-  import CollapsibleSection from '../components/CollapsibleSection.svelte';
+  import CollapsibleSection from '../../system/components/CollapsibleSection.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { buildSiblings } from './scaffolding/siblings';
-  import { editorState } from '../lib/editorStore';
+  import { editorState } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));

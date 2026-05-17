@@ -13,7 +13,7 @@
     getComponentPropertySiblings,
     setComponentAliasLinked,
     clearComponentAliasLinked,
-  } from '../../lib/editorStore';
+  } from '../../core/store/editorStore';
   import { getEditorContext } from './editorContext';
   import type { Token } from './types';
 

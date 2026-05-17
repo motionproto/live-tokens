@@ -16,7 +16,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { componentRegistryEntries } from './registry';
 
-const SNAPSHOT_PATH = path.resolve(__dirname, '../../temp/groupkey-snapshot.json');
+const SNAPSHOT_PATH = path.resolve(__dirname, '../../../temp/groupkey-snapshot.json');
 
 /** Mirrors the *post-migration* getGroupKey logic — schema only, no fallback. */
 function effectiveGroupKey(_component: string, _variable: string, explicit: string | undefined): string | null {

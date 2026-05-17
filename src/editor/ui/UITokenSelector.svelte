@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import type { Snippet } from 'svelte';
-  import { setCssVar, removeCssVar, CSS_VAR_CHANGE_EVENT } from '../lib/cssVarSync';
-  import type { CssVarRef } from '../lib/editorTypes';
+  import { setCssVar, removeCssVar, CSS_VAR_CHANGE_EVENT } from '../core/cssVarSync';
+  import type { CssVarRef } from '../core/store/editorTypes';
   import {
     editorState,
     setComponentAlias,
@@ -13,7 +13,7 @@
     unlinkComponentProperty,
     relinkComponentProperty,
     getComponentPropertySiblings,
-  } from '../lib/editorStore';
+  } from '../core/store/editorStore';
   import UILinkToggle from './UILinkToggle.svelte';
   import UIRelinkConfirmPopover from './UIRelinkConfirmPopover.svelte';
   import { keepInViewport } from './keepInViewport';

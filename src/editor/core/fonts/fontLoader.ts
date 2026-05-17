@@ -5,8 +5,8 @@ import type {
   FontStackSlot,
   FontStackVariable,
   SystemCascadePreset,
-} from './themeTypes';
-import { setCssVar, getSyncedDocuments } from './cssVarSync';
+} from '../themes/themeTypes';
+import { setCssVar, getSyncedDocuments } from '../cssVarSync';
 
 export const SYSTEM_CASCADES: Record<SystemCascadePreset, string> = {
   'system-ui-sans':

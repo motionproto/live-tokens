@@ -1,5 +1,5 @@
-import type { ComponentConfig, ComponentConfigMeta } from './themeTypes';
-import { versionedFileResource } from './files/versionedFileResource';
+import type { ComponentConfig, ComponentConfigMeta } from '../themes/themeTypes';
+import { versionedFileResource } from '../storage/files/versionedFileResourceClient';
 
 /**
  * REST client for per-component config files. Parallel to `themeService.ts`

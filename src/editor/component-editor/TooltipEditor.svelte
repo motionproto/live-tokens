@@ -41,12 +41,12 @@
 
 <script lang="ts">
   import { onMount } from 'svelte';
-  import Tooltip from '../components/Tooltip.svelte';
+  import Tooltip from '../../system/components/Tooltip.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
   import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
-  import { setCssVar } from '../lib/cssVarSync';
+  import { setCssVar } from '../core/cssVarSync';
 
   const bgVar = '--backdrop-tooltip-surface';
   const hintText = 'Helpful Hint';

@@ -68,11 +68,11 @@
 </script>
 
 <script lang="ts">
-  import Button from '../components/Button.svelte';
+  import Button from '../../system/components/Button.svelte';
   import Toggle from '../ui/Toggle.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, setComponentAlias } from '../lib/editorStore';
+  import { editorState, setComponentAlias } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
   let shimmerRef = $derived($editorState.components.button?.aliases['--button-shimmer']);

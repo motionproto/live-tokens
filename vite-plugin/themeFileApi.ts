@@ -1,12 +1,12 @@
 import type { Plugin } from 'vite';
 import fs from 'fs';
 import path from 'path';
-import { extractGlobalRootBody } from '../lib/parsers/globalRootBlock';
-import { sanitizeFileName } from '../lib/files/versionedFileResource';
+import { extractGlobalRootBody } from '../src/editor/core/themes/parsers/globalRootBlock';
+import { sanitizeFileName } from '../src/editor/core/storage/files/versionedFileResourceClient';
 import {
   versionedFileResourceServer,
   type VersionedFileResourceServer,
-} from './files/versionedFileResource';
+} from './files/versionedFileResourceServer';
 import { dispatch, type Route } from './files/routeTable';
 import { fileURLToPath } from 'node:url';
 
@@ -35,7 +35,7 @@ export interface ThemeFileApiOptions {
   fontsCssPath?: string;       // default: sibling of tokensCssPath named 'fonts.css'
   apiBase?: string;            // default: '/api'. Must be a simple '/path' without regex metacharacters.
   componentConfigsDir?: string; // default: 'component-configs'
-  componentsSrcDir?: string;   // default: 'src/components'
+  componentsSrcDir?: string;   // default: 'src/system/components'
   manifestsDir?: string;       // default: 'manifests'
 }
 
@@ -51,7 +51,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     : path.resolve('component-configs');
   const COMPONENTS_SRC_DIR = opts.componentsSrcDir
     ? path.resolve(opts.componentsSrcDir)
-    : path.resolve('src/components');
+    : path.resolve('src/system/components');
   const MANIFESTS_DIR = opts.manifestsDir
     ? path.resolve(opts.manifestsDir)
     : path.resolve('manifests');
@@ -63,7 +63,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   });
 
   // Per-component resources are constructed on demand because the set of
-  // components is discovered at runtime from `src/components/*.svelte`.
+  // components is discovered at runtime from `src/system/components/*.svelte`.
   const componentResourceCache = new Map<string, VersionedFileResourceServer>();
   function componentResource(comp: string): VersionedFileResourceServer {
     let r = componentResourceCache.get(comp);
@@ -237,7 +237,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   // ── Component-configs helpers ─────────────────────────────────────────────
   //
-  // Each component under `src/components/*.svelte` has an independent editor
+  // Each component under `src/system/components/*.svelte` has an independent editor
   // artifact: component-configs/{comp}/{default.json,_active.json,_production.json}.
   // default.json is regenerated from the component's `:global(:root)` block at
   // dev startup and on HMR; other files are user-authored.

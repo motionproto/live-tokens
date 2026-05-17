@@ -1,7 +1,7 @@
-import type { Manifest, ManifestMeta, Theme, ComponentConfig } from './themeTypes';
-import { versionedFileResource } from './files/versionedFileResource';
-import { listComponents } from './componentConfigService';
-import { getActiveTheme } from './themeService';
+import type { Manifest, ManifestMeta, Theme, ComponentConfig } from '../themes/themeTypes';
+import { versionedFileResource } from '../storage/files/versionedFileResourceClient';
+import { listComponents } from '../components/componentConfigService';
+import { getActiveTheme } from '../themes/themeService';
 
 /**
  * REST client for manifest files. A manifest references one theme file +

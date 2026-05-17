@@ -1,6 +1,6 @@
 <script lang="ts" generics="T extends { key: string; label?: string; value?: string }">
   import type { Snippet } from 'svelte';
-  import { resolveAliasChain } from '../lib/tokenRegistry';
+  import { resolveAliasChain } from '../core/palettes/tokenRegistry';
   import UITokenSelector from './UITokenSelector.svelte';
   import UIOptionList from './UIOptionList.svelte';
   import UIOptionItem from './UIOptionItem.svelte';

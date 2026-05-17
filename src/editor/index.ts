@@ -1,15 +1,15 @@
-export { default as LiveEditorOverlay } from './LiveEditorOverlay.svelte';
-export type { NavLink } from './navLinkTypes';
-export { default as ColumnsOverlay } from './ColumnsOverlay.svelte';
+export { default as LiveEditorOverlay } from './overlay/LiveEditorOverlay.svelte';
+export type { NavLink } from './core/routing/navLinkTypes';
+export { default as ColumnsOverlay } from './overlay/ColumnsOverlay.svelte';
 
-export { columnsVisible, toggleColumns, init as initColumnsOverlay } from './columnsOverlay';
-export { configureEditor, storageKey } from './editorConfig';
-export { activeFileName } from './editorConfigStore';
-export { init as initRouter, route, navigate } from './router';
-export { init as initCssVarSync } from './cssVarSync';
-export { init as initEditorStore } from './editorStore';
+export { columnsVisible, toggleColumns, init as initColumnsOverlay } from './overlay/columnsOverlay';
+export { configureEditor, storageKey } from './core/store/editorConfig';
+export { activeFileName } from './core/store/editorConfigStore';
+export { init as initRouter, route, navigate } from './core/routing/router';
+export { init as initCssVarSync } from './core/cssVarSync';
+export { init as initEditorStore } from './core/store/editorStore';
 
-export { setCssVar, removeCssVar } from './cssVarSync';
+export { setCssVar, removeCssVar } from './core/cssVarSync';
 
 export {
   listThemes,
@@ -21,8 +21,8 @@ export {
   getProductionInfo,
   setProductionFile,
   sanitizeFileName,
-} from './themeService';
-export type { ProductionInfo } from './themeService';
+} from './core/themes/themeService';
+export type { ProductionInfo } from './core/themes/themeService';
 
 export type {
   PaletteConfig,
@@ -40,7 +40,7 @@ export type {
   GenericFamily,
   Manifest,
   ManifestMeta,
-} from './themeTypes';
+} from './core/themes/themeTypes';
 
 export {
   listManifests,
@@ -52,18 +52,18 @@ export {
   applyManifest,
   saveAsManifest,
   saveActiveManifest,
-} from './manifestService';
-export type { ApplyManifestResult } from './manifestService';
+} from './core/manifests/manifestService';
+export type { ApplyManifestResult } from './core/manifests/manifestService';
 
 export {
   applyFontSources,
   applyFontStacks,
   resolveFontStackValues,
   SYSTEM_CASCADES,
-} from './fontLoader';
-export { migrateThemeFonts, defaultFontSources, defaultFontStacks } from './fontMigration';
+} from './core/fonts/fontLoader';
+export { migrateThemeFonts, defaultFontSources, defaultFontStacks } from './core/fonts/fontMigration';
 
-export { hexToOklch, oklchToHex, gamutClamp } from './oklch';
-export type { Oklch } from './oklch';
+export { hexToOklch, oklchToHex, gamutClamp } from './core/palettes/oklch';
+export type { Oklch } from './core/palettes/oklch';
 
-export { initializeTheme } from './themeInit';
+export { initializeTheme } from './core/themes/themeInit';

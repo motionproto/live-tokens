@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { editorState, mutate, beginSliderGesture } from '../../lib/editorStore';
-  import type { ColumnsState } from '../../lib/editorTypes';
+  import { editorState, mutate, beginSliderGesture } from '../../core/store/editorStore';
+  import type { ColumnsState } from '../../core/store/editorTypes';
 
   const STANDARD_COLS = 12;
   const COLS_MIN = 1;

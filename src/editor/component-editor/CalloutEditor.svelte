@@ -1,7 +1,7 @@
 <script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
-  import { calloutVariants } from '../components/Callout.svelte';
+  import { calloutVariants } from '../../system/components/Callout.svelte';
 
   export const component = 'callout';
   const variants = calloutVariants;
@@ -69,10 +69,10 @@
 </script>
 
 <script lang="ts">
-  import Callout from '../components/Callout.svelte';
+  import Callout from '../../system/components/Callout.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   import { buildSiblings } from './scaffolding/siblings';
 

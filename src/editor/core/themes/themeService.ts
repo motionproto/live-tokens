@@ -1,14 +1,14 @@
 import { tick } from 'svelte';
 import type { Theme, ThemeMeta } from './themeTypes';
-import type { EditorState } from './editorTypes';
+import type { EditorState } from '../store/editorTypes';
 import {
   versionedFileResource,
   sanitizeFileName as sanitizeFileNameImpl,
-} from './files/versionedFileResource';
-import { loadFromFile as loadEditorState, toTheme, markSaved } from './editorStore';
-import { activeFileName } from './editorConfigStore';
-import { applyFontSources, applyFontStacks } from './fontLoader';
-import { migrateThemeFonts } from './fontMigration';
+} from '../storage/files/versionedFileResourceClient';
+import { loadFromFile as loadEditorState, toTheme, markSaved } from '../store/editorStore';
+import { activeFileName } from '../store/editorConfigStore';
+import { applyFontSources, applyFontStacks } from '../fonts/fontLoader';
+import { migrateThemeFonts } from '../fonts/fontMigration';
 
 // ── API helpers ──────────────────────────────────────────────
 //

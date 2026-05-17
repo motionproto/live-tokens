@@ -19,24 +19,9 @@
   "homepage": "https://github.com/motionproto/live-tokens",
   "bugs": "https://github.com/motionproto/live-tokens/issues",
   "files": [
-    "src/lib",
-    "src/ui",
-    "src/component-editor",
-    "src/components",
-    "src/pages/Editor.svelte",
-    "src/pages/Editor.svelte.d.ts",
-    "src/pages/EditorShell.svelte",
-    "src/pages/ComponentEditorPage.svelte",
-    "src/pages/ComponentEditorPage.svelte.d.ts",
-    "src/styles/ui-editor.css",
-    "src/styles/ui-form-controls.css",
-    "src/styles/fonts.css",
-    "src/styles/fonts",
-    "src/styles/_padding.scss",
-    "src/styles/tokens.css",
-    "src/styles/site.css",
-    "src/data",
-    "src/assets",
+    "src/editor",
+    "src/system",
+    "src/app/site.css",
     "dist-plugin",
     "!**/*.test.ts",
     "!**/*.spec.ts",
@@ -44,43 +29,43 @@
   ],
   "exports": {
     ".": {
-      "svelte": "./src/lib/index.ts",
-      "types": "./src/lib/index.ts",
-      "default": "./src/lib/index.ts"
+      "svelte": "./src/editor/index.ts",
+      "types": "./src/editor/index.ts",
+      "default": "./src/editor/index.ts"
     },
     "./component-editor": {
-      "svelte": "./src/component-editor/index.ts",
-      "types": "./src/component-editor/index.ts",
-      "default": "./src/component-editor/index.ts"
+      "svelte": "./src/editor/component-editor/index.ts",
+      "types": "./src/editor/component-editor/index.ts",
+      "default": "./src/editor/component-editor/index.ts"
     },
     "./ui": {
-      "svelte": "./src/ui/index.ts",
-      "types": "./src/ui/index.ts",
-      "default": "./src/ui/index.ts"
+      "svelte": "./src/editor/ui/index.ts",
+      "types": "./src/editor/ui/index.ts",
+      "default": "./src/editor/ui/index.ts"
     },
     "./editor": {
-      "types": "./src/pages/Editor.svelte.d.ts",
-      "svelte": "./src/pages/Editor.svelte",
-      "default": "./src/pages/Editor.svelte"
+      "types": "./src/editor/pages/Editor.svelte.d.ts",
+      "svelte": "./src/editor/pages/Editor.svelte",
+      "default": "./src/editor/pages/Editor.svelte"
     },
     "./component-editor-page": {
-      "types": "./src/pages/ComponentEditorPage.svelte.d.ts",
-      "svelte": "./src/pages/ComponentEditorPage.svelte",
-      "default": "./src/pages/ComponentEditorPage.svelte"
+      "types": "./src/editor/pages/ComponentEditorPage.svelte.d.ts",
+      "svelte": "./src/editor/pages/ComponentEditorPage.svelte",
+      "default": "./src/editor/pages/ComponentEditorPage.svelte"
     },
     "./components/*": {
-      "svelte": "./src/components/*",
-      "default": "./src/components/*"
+      "svelte": "./src/system/components/*",
+      "default": "./src/system/components/*"
     },
     "./vite-plugin": {
       "types": "./dist-plugin/index.d.ts",
       "import": "./dist-plugin/index.js",
       "require": "./dist-plugin/index.cjs"
     },
-    "./styles/ui-editor.css": "./src/styles/ui-editor.css",
-    "./starter/tokens.css": "./src/styles/tokens.css",
-    "./starter/site.css": "./src/styles/site.css",
-    "./starter/fonts.css": "./src/styles/fonts.css"
+    "./styles/ui-editor.css": "./src/editor/styles/ui-editor.css",
+    "./app/tokens.css": "./src/system/styles/tokens.css",
+    "./app/site.css": "./src/app/site.css",
+    "./app/fonts.css": "./src/system/styles/fonts.css"
   },
   "scripts": {
     "dev": "vite",

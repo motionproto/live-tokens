@@ -1,7 +1,7 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
 
-  import { copyPopover } from '../lib/copyPopover';
+  import { copyPopover } from './copyPopover';
 
   let bubbleEl: HTMLDivElement | null = $state(null);
   let bubbleW = $state(0);

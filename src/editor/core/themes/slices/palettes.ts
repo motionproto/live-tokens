@@ -5,7 +5,7 @@
  * (palette derivation involves OKLCH + bezier curves) at render time.
  */
 import type { PaletteConfig } from '../themeTypes';
-import { store, mutate, persist } from '../editorCore';
+import { store, mutate, persist } from '../../store/editorCore';
 
 export function setPaletteConfig(label: string, config: PaletteConfig): void {
   mutate(`update palette ${label}`, (s) => {

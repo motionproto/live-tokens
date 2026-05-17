@@ -93,10 +93,10 @@
 </script>
 
 <script lang="ts">
-  import Table from '../components/Table.svelte';
+  import Table from '../../system/components/Table.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));

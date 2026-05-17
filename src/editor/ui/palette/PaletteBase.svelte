@@ -1,7 +1,7 @@
 <script lang="ts">
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import Toggle from '../Toggle.svelte';
-  import { beginSliderGesture } from '../../lib/editorStore';
+  import { beginSliderGesture } from '../../core/store/editorStore';
 
   
 

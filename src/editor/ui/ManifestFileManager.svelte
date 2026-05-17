@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { ManifestMeta } from '../lib/themeTypes';
+  import type { ManifestMeta } from '../core/themes/themeTypes';
   import {
     listManifests,
     deleteManifest,
@@ -8,10 +8,10 @@
     applyManifest,
     saveAsManifest,
     saveActiveManifest,
-  } from '../lib/manifestService';
-  import { dirty, componentDirty } from '../lib/editorStore';
-  import { productionRevision, activeManifest } from '../lib/productionPulse';
-  import { flashStatus } from '../lib/flashStatus';
+  } from '../core/manifests/manifestService';
+  import { dirty, componentDirty } from '../core/store/editorStore';
+  import { productionRevision, activeManifest } from '../core/productionPulse';
+  import { flashStatus } from '../core/flashStatus';
   import UIInfoPopover from './UIInfoPopover.svelte';
   import FileLoadList from './FileLoadList.svelte';
   import FilePill from './FilePill.svelte';

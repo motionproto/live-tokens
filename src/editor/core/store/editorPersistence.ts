@@ -17,9 +17,9 @@ import { get } from 'svelte/store';
 import type { EditorState } from './editorTypes';
 import { storageKey } from './editorConfig';
 import { store } from './editorCore';
-import { quietGet, quietSet } from './storage';
-import { makeDefaultGradients } from './slices/gradients';
-import { seedShadowsFromDom } from './slices/shadows';
+import { quietGet, quietSet } from '../storage/storage';
+import { makeDefaultGradients } from '../themes/slices/gradients';
+import { seedShadowsFromDom } from '../themes/slices/shadows';
 
 // Resolve the persist key lazily (per-call) so library consumers that invoke
 // `configureEditor({storagePrefix})` before the first store write get the

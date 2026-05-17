@@ -77,7 +77,7 @@ cat > "$SMOKE_DIR/src/main.ts" <<'EOF'
 // Minimum a consumer needs: theme tokens. The editor pages script-import
 // their own chrome + icons. Starter fonts.css is deliberately skipped — it's
 // optional and its `url()` paths point into the package's own source tree.
-import '@motion-proto/live-tokens/starter/tokens.css';
+import '@motion-proto/live-tokens/app/tokens.css';
 import { mount } from 'svelte';
 import App from './App.svelte';
 

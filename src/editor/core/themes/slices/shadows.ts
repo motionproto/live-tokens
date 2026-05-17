@@ -8,8 +8,8 @@
  * x/y/blur/spread/hsla fields.
  */
 import { get } from 'svelte/store';
-import type { EditorState, ShadowToken } from '../editorTypes';
-import { store, persist } from '../editorCore';
+import type { EditorState, ShadowToken } from '../../store/editorTypes';
+import { store, persist } from '../../store/editorCore';
 
 export const SHADOW_VAR_NAMES = [
   '--shadow-sm', '--shadow-md', '--shadow-lg', '--shadow-xl', '--shadow-2xl',
@@ -38,7 +38,7 @@ export function shadowTokenCss(t: ShadowToken): string {
   return `${t.x}px ${t.y}px ${t.blur}px ${t.spread}px hsla(${t.hue}, ${t.saturation}%, ${t.lightness}%, ${t.opacity})`;
 }
 
-export function defaultShadowOverride(): import('../editorTypes').ShadowOverrideFlags {
+export function defaultShadowOverride(): import('../../store/editorTypes').ShadowOverrideFlags {
   return { angle: false, opacity: false, color: false, distance: false, blur: false, size: false };
 }
 

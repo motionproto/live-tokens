@@ -30,8 +30,8 @@
  * pipeline.
  */
 import { writable, derived, get, type Readable } from 'svelte/store';
-import type { CssVarRef, EditorState } from '../editorTypes';
-import { store, mutate } from '../editorCore';
+import type { CssVarRef, EditorState } from '../../store/editorTypes';
+import { store, mutate } from '../../store/editorCore';
 
 const EMPTY_COMPONENT_BASELINE = JSON.stringify({ aliases: {}, config: {} });
 

@@ -18,13 +18,13 @@
 
 <script lang="ts">
   import { onMount } from 'svelte';
-  import Image from '../components/Image.svelte';
+  import Image from '../../system/components/Image.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import demoImageUrl from '../assets/offering.webp';
+  import demoImageUrl from '../../system/assets/offering.webp';
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
   import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
-  import { setCssVar } from '../lib/cssVarSync';
+  import { setCssVar } from '../core/cssVarSync';
 
   const bgVar = '--backdrop-image-surface';
 

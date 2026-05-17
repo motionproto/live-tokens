@@ -103,10 +103,10 @@
 </script>
 
 <script lang="ts">
-  import MenuSelect from '../components/MenuSelect.svelte';
+  import MenuSelect from '../../system/components/MenuSelect.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
   type Item = { value: string; label: string; icon?: string; disabled?: boolean };

@@ -14,7 +14,7 @@ import {
   undo,
   redo,
   __resetForTests,
-} from './editorStore';
+} from '../store/editorStore';
 
 const tokenRef = (name: string) => ({ kind: 'token' as const, name });
 

@@ -4,8 +4,8 @@
  * (`--color-brand-500`); the renderer wraps them in `var(...)` so palette
  * edits flow through.
  */
-import type { EditorState, GradientToken, GradientTokenStop, GradientType } from '../editorTypes';
-import { mutate } from '../editorCore';
+import type { EditorState, GradientToken, GradientTokenStop, GradientType } from '../../store/editorTypes';
+import { mutate } from '../../store/editorCore';
 
 export function makeDefaultGradients(): GradientToken[] {
   return [

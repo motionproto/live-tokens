@@ -101,10 +101,10 @@
 </script>
 
 <script lang="ts">
-  import SegmentedControl from '../components/SegmentedControl.svelte';
+  import SegmentedControl from '../../system/components/SegmentedControl.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
   type Segment = { value: string; label: string; icon?: string; disabled?: boolean };

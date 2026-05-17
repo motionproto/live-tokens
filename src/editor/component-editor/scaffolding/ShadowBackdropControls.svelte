@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import UIRadioGroup from '../../ui/UIRadioGroup.svelte';
   import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
-  import { setCssVar } from '../../lib/cssVarSync';
+  import { setCssVar } from '../../core/cssVarSync';
 
   type Mode = 'image' | 'color';
   

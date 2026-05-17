@@ -12,8 +12,8 @@ import {
   setPaletteConfig,
   undo,
   __resetForTests,
-} from '../lib/editorStore';
-import type { PaletteConfig } from '../lib/themeTypes';
+} from '../core/store/editorStore';
+import type { PaletteConfig } from '../core/themes/themeTypes';
 import { mount, unmount } from "svelte";
 
 function makePaletteConfig(baseColor: string): PaletteConfig {

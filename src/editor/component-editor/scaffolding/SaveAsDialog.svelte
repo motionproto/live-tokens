@@ -1,7 +1,7 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
 
-  import { sanitizeFileName } from '../../lib/themeService';
+  import { sanitizeFileName } from '../../core/themes/themeService';
   import UIDialog from '../../ui/UIDialog.svelte';
 
   interface Props {

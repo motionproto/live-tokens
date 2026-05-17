@@ -3,12 +3,12 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildTokenRegistry, extractGlobalRootBody } from '../lib/tokenRegistry';
+import { buildTokenRegistry, extractGlobalRootBody } from '../core/palettes/tokenRegistry';
 import { componentRegistryEntries } from './registry';
 
 const TEST_DIR = dirname(fileURLToPath(import.meta.url));
-const TOKENS_CSS = join(TEST_DIR, '..', 'styles', 'tokens.css');
-const COMPONENTS_DIR = join(TEST_DIR, '..', 'components');
+const TOKENS_CSS = join(TEST_DIR, '..', '..', 'system', 'styles', 'tokens.css');
+const COMPONENTS_DIR = join(TEST_DIR, '..', '..', 'system', 'components');
 
 // Vitest's CSS plugin swallows `?raw` imports for .css files, so we build the
 // registry from an fs-loaded snapshot rather than going through the default

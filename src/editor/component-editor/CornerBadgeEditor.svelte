@@ -1,6 +1,6 @@
 <script module lang="ts">
   import type { Token } from './scaffolding/types';
-  import { badgeVariants } from '../components/Badge.svelte';
+  import { badgeVariants } from '../../system/components/Badge.svelte';
 
   export const component = 'cornerbadge';
 
@@ -53,17 +53,17 @@
 
 <script lang="ts">
   import { onMount } from 'svelte';
-  import CornerBadge, { type CornerAnchor } from '../components/CornerBadge.svelte';
-  import type { BadgeVariant } from '../components/Badge.svelte';
+  import CornerBadge, { type CornerAnchor } from '../../system/components/CornerBadge.svelte';
+  import type { BadgeVariant } from '../../system/components/Badge.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
   import UIRadioGroup from '../ui/UIRadioGroup.svelte';
   import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
-  import { setCssVar } from '../lib/cssVarSync';
-  import { editorState } from '../lib/editorStore';
+  import { setCssVar } from '../core/cssVarSync';
+  import { editorState } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
-  import demoImageUrl from '../assets/newspaper.webp';
+  import demoImageUrl from '../../system/assets/newspaper.webp';
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
   let visibleStates = $derived(Object.fromEntries(

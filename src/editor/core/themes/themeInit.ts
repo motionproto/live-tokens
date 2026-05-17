@@ -1,10 +1,10 @@
 import type { Theme } from './themeTypes';
-import { activeFileName } from './editorConfigStore';
-import { migrateThemeFonts } from './fontMigration';
-import { applyFontSources, applyFontStacks } from './fontLoader';
-import { loadFromFile, seedComponentsFromApi } from './editorStore';
-import { getActiveComponentConfig } from './componentConfigService';
-import { safeFetch } from './storage';
+import { activeFileName } from '../store/editorConfigStore';
+import { migrateThemeFonts } from '../fonts/fontMigration';
+import { applyFontSources, applyFontStacks } from '../fonts/fontLoader';
+import { loadFromFile, seedComponentsFromApi } from '../store/editorStore';
+import { getActiveComponentConfig } from '../components/componentConfigService';
+import { safeFetch } from '../storage/storage';
 
 interface ComponentSummaryDto {
   name: string;

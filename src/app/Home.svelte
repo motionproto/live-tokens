@@ -3,11 +3,11 @@
   // that consume theme tokens). It's imported here — not globally from
   // main.ts — so editor pages (Editor.svelte, ComponentEditorPage.svelte)
   // stay theme-immune. See src/styles/CONVENTIONS.md row for site.css.
-  import '../styles/site.css';
-  import Card from '../components/Card.svelte';
-  import Button from '../components/Button.svelte';
-  import { navigate } from '../lib/router';
-  import { overlayOpen } from '../lib/overlayState';
+  import './site.css';
+  import Card from '../system/components/Card.svelte';
+  import Button from '../system/components/Button.svelte';
+  import { navigate } from '../editor/core/routing/router';
+  import { overlayOpen } from '../editor/overlay/overlayState';
 
   const isDev = import.meta.env.DEV;
 </script>

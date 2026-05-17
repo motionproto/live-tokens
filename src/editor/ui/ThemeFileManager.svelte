@@ -1,12 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { ThemeMeta } from '../lib/themeTypes';
-  import { listThemes, deleteTheme, setActiveFile, getProductionInfo, setProductionFile, sanitizeFileName } from '../lib/themeService';
-  import { listManifests, saveAsManifest } from '../lib/manifestService';
-  import { activeFileName } from '../lib/editorConfigStore';
-  import { dirty } from '../lib/editorStore';
-  import { productionRevision, bumpProductionRevision, themeProductionInfo } from '../lib/productionPulse';
-  import { flashStatus } from '../lib/flashStatus';
+  import type { ThemeMeta } from '../core/themes/themeTypes';
+  import { listThemes, deleteTheme, setActiveFile, getProductionInfo, setProductionFile, sanitizeFileName } from '../core/themes/themeService';
+  import { listManifests, saveAsManifest } from '../core/manifests/manifestService';
+  import { activeFileName } from '../core/store/editorConfigStore';
+  import { dirty } from '../core/store/editorStore';
+  import { productionRevision, bumpProductionRevision, themeProductionInfo } from '../core/productionPulse';
+  import { flashStatus } from '../core/flashStatus';
   import UIInfoPopover from './UIInfoPopover.svelte';
   import FileLoadList from './FileLoadList.svelte';
   import FilePill from './FilePill.svelte';

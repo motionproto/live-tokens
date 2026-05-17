@@ -12,7 +12,7 @@
    * Values are read live via getComputedStyle (passed in by the parent through
    * `tokens`), so tokens.css remains the single source of truth.
    */
-  import { editorState } from '../../lib/editorStore';
+  import { editorState } from '../../core/store/editorStore';
 
   interface TokenItem {
     variable: string;

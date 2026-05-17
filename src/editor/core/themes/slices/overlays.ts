@@ -4,7 +4,7 @@
  * and diverge from tokens.css by design: the editor starts with a neutral
  * palette and tokens.css continues to win until first edit.
  */
-import type { EditorState, OverlayToken } from '../editorTypes';
+import type { EditorState, OverlayToken } from '../../store/editorTypes';
 
 export function makeDefaultOverlayTokens(): OverlayToken[] {
   return [

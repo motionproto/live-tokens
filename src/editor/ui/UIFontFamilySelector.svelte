@@ -2,10 +2,10 @@
   import { run } from 'svelte/legacy';
 
   import { onMount, onDestroy } from 'svelte';
-  import { resolveAliasChain } from '../lib/tokenRegistry';
-  import { editorState } from '../lib/editorStore';
-  import { CSS_VAR_CHANGE_EVENT } from '../lib/cssVarSync';
-  import type { FontFamily, FontSource } from '../lib/themeTypes';
+  import { resolveAliasChain } from '../core/palettes/tokenRegistry';
+  import { editorState } from '../core/store/editorStore';
+  import { CSS_VAR_CHANGE_EVENT } from '../core/cssVarSync';
+  import type { FontFamily, FontSource } from '../core/themes/themeTypes';
   import UITokenSelector from './UITokenSelector.svelte';
   import UIOptionList from './UIOptionList.svelte';
   import UIOptionItem from './UIOptionItem.svelte';

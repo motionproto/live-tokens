@@ -14,8 +14,8 @@
  */
 
 import { hexToOklch, oklchToHex, gamutClamp } from './oklch';
-import { type CurveAnchor, sampleCurve, makeAnchor } from '../ui/curveEngine';
-import type { PaletteConfig } from './themeTypes';
+import { type CurveAnchor, sampleCurve, makeAnchor } from '../../ui/curveEngine';
+import type { PaletteConfig } from '../themes/themeTypes';
 
 export type PaletteMode = 'chromatic' | 'gray';
 

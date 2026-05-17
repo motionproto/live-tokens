@@ -2,7 +2,7 @@
   import { createEventDispatcher, tick } from 'svelte';
   import type { Snippet } from 'svelte';
   import Button from './Button.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState } from '../../editor/core/store/editorStore';
   import type { ButtonVariant, DialogButtonSpec } from './types';
 
   const BUTTON_VARIANTS: readonly ButtonVariant[] = ['primary', 'secondary', 'outline', 'success', 'danger', 'warning'];

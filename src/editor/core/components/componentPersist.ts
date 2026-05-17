@@ -1,8 +1,8 @@
 import { get } from 'svelte/store';
-import type { ComponentConfig } from './themeTypes';
-import { editorState, markComponentSaved } from './editorStore';
-import type { CssVarRef } from './editorTypes';
-import { CURRENT_COMPONENT_SCHEMA_VERSION } from './migrations';
+import type { ComponentConfig } from '../themes/themeTypes';
+import { editorState, markComponentSaved } from '../store/editorStore';
+import type { CssVarRef } from '../store/editorTypes';
+import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../themes/migrations';
 import {
   listComponentConfigs,
   saveComponentConfig,

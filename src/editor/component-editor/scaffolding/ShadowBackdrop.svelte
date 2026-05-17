@@ -1,5 +1,5 @@
 <script lang="ts">
-  import newspaperBg from '../../assets/newspaper.webp';
+  import newspaperBg from '../../../system/assets/newspaper.webp';
 
   
   

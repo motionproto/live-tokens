@@ -3,8 +3,8 @@ import {
   isComponentPropertyLinked,
   getComponentPropertySiblings,
   editorState,
-} from '../../lib/editorStore';
-import type { CssVarRef } from '../../lib/editorTypes';
+} from '../../core/store/editorStore';
+import type { CssVarRef } from '../../core/store/editorTypes';
 import type { Token } from './types';
 
 function aliasKey(ref: CssVarRef | undefined): string {

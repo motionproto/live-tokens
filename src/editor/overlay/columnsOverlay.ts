@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
-import { storageKey } from './editorConfig';
-import { quietGet, quietSet } from './storage';
+import { storageKey } from '../core/store/editorConfig';
+import { quietGet, quietSet } from '../core/storage/storage';
 
 function getStorageKey(): string {
   return storageKey('columns-visible');

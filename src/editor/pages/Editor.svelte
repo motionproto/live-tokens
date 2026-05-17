@@ -2,9 +2,9 @@
   import { onMount } from 'svelte';
   import EditorShell from './EditorShell.svelte';
   import UICopyPopover from '../ui/UICopyPopover.svelte';
-  import { installEditorKeybindings } from '../lib/editorKeybindings';
-  import { initializeEditorStore } from '../lib/editorStore';
-  import { storageKey } from '../lib/editorConfig';
+  import { installEditorKeybindings } from '../core/store/editorKeybindings';
+  import { initializeEditorStore } from '../core/store/editorStore';
+  import { storageKey } from '../core/store/editorConfig';
   // Editor chrome + form controls + icon font must be JS imports (not @import
   // inside the style block) so Vite resolves them via the module graph
   // regardless of how the consumer compiles Svelte CSS (external ?lang.css vs

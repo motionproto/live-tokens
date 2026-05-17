@@ -1,7 +1,7 @@
 <script lang="ts">
   import ScaleCurveEditor from './ScaleCurveEditor.svelte';
   import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig, textLightnessCurveConfig } from '../curveEngine';
-  import { scaleToCssVar } from '../../lib/paletteDerivation';
+  import { scaleToCssVar } from '../../core/palettes/paletteDerivation';
 
   /**
    * Per-scale derived swatch section used for Text, Surfaces, and Borders

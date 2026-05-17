@@ -1,7 +1,7 @@
 <script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
-  import { badgeVariants } from '../components/Badge.svelte';
+  import { badgeVariants } from '../../system/components/Badge.svelte';
 
   export const component = 'badge';
   const variants = badgeVariants;
@@ -59,10 +59,10 @@
 </script>
 
 <script lang="ts">
-  import Badge from '../components/Badge.svelte';
+  import Badge from '../../system/components/Badge.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   import { buildSiblings } from './scaffolding/siblings';
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';

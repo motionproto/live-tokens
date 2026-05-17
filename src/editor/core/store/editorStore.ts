@@ -19,14 +19,14 @@
  */
 
 import type { CssVarRef, EditorState } from './editorTypes';
-import type { Theme } from './themeTypes';
-import { KNOWN_COMPONENT_CONFIG_KEYS } from './componentConfigKeys';
+import type { Theme } from '../themes/themeTypes';
+import { KNOWN_COMPONENT_CONFIG_KEYS } from '../components/componentConfigKeys';
 import {
   CURRENT_THEME_SCHEMA_VERSION,
   CURRENT_COMPONENT_SCHEMA_VERSION,
   runMigrations,
-} from './migrations';
-import { renamePrimaryPaletteKey } from './migrations/2026-05-13-primary-to-brand';
+} from '../themes/migrations';
+import { renamePrimaryPaletteKey } from '../themes/migrations/2026-05-13-primary-to-brand';
 import { __resetRendererCacheForTests, installRenderer } from './editorRenderer';
 import {
   store,
@@ -47,25 +47,25 @@ import {
   columnsEqualsDefault,
   columnsToVars,
   loadColumnsFromVars,
-} from './slices/columns';
+} from '../themes/slices/columns';
 import {
   loadOverlaysFromVars,
   makeDefaultOverlaysState,
   overlaysEqualsDefault,
   overlaysToVars,
-} from './slices/overlays';
+} from '../themes/slices/overlays';
 import {
   loadShadowsFromVars,
   shadowsToVars,
-} from './slices/shadows';
-import { makeDefaultGradients } from './slices/gradients';
+} from '../themes/slices/shadows';
+import { makeDefaultGradients } from '../themes/slices/gradients';
 import {
   componentBaseline,
   loadComponentsFromVars,
   notifyComponentSavedChanged,
   setSavedComponentBaseline,
   __resetComponentsForTests,
-} from './slices/components';
+} from '../themes/slices/components';
 
 function emptyState(): EditorState {
   return {
@@ -121,7 +121,7 @@ store.set(emptyState());
 
 export {
   DOMAIN_VAR_NAMES,
-} from './slices/domainVars';
+} from '../themes/slices/domainVars';
 
 export {
   columnsToVars,
@@ -129,7 +129,7 @@ export {
   COLUMN_VAR_NAMES,
   DEFAULT_COLUMNS,
   parseColumnVars,
-} from './slices/columns';
+} from '../themes/slices/columns';
 
 export {
   overlaysToVars,
@@ -141,7 +141,7 @@ export {
   parseRgba,
   RGBA_RE,
   HEX_RE,
-} from './slices/overlays';
+} from '../themes/slices/overlays';
 
 export {
   shadowsToVars,
@@ -153,7 +153,7 @@ export {
   defaultShadowOverride,
   parseShadowCss,
   seedShadowsFromDom,
-} from './slices/shadows';
+} from '../themes/slices/shadows';
 
 export {
   gradientsToVars,
@@ -166,7 +166,7 @@ export {
   removeGradientStop,
   addGradientToken,
   removeGradientToken,
-} from './slices/gradients';
+} from '../themes/slices/gradients';
 
 export {
   componentsToVars,
@@ -184,18 +184,18 @@ export {
   unlinkComponentProperty,
   relinkComponentProperty,
   markComponentSaved,
-} from './slices/components';
+} from '../themes/slices/components';
 
 export {
   setFontSources,
   setFontStacks,
   seedFontsFromTheme,
-} from './slices/fonts';
+} from '../themes/slices/fonts';
 
 export {
   setPaletteConfig,
   seedPalettesFromTheme,
-} from './slices/palettes';
+} from '../themes/slices/palettes';
 
 // ── Component-config load orchestration ───────────────────────────────────
 //

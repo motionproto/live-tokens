@@ -7,7 +7,7 @@
   import UITokenSelector from './UITokenSelector.svelte';
   import UIOptionList from './UIOptionList.svelte';
   import UIOptionItem from './UIOptionItem.svelte';
-  import { setCssVar, removeCssVar, CSS_VAR_CHANGE_EVENT } from '../lib/cssVarSync';
+  import { setCssVar, removeCssVar, CSS_VAR_CHANGE_EVENT } from '../core/cssVarSync';
   import {
     editorState,
     setComponentAlias,
@@ -17,7 +17,7 @@
     setComponentAliasLinked,
     unlinkComponentProperty,
     relinkComponentProperty,
-  } from '../lib/editorStore';
+  } from '../core/store/editorStore';
   import UIRelinkConfirmPopover from './UIRelinkConfirmPopover.svelte';
   import UILinkToggle from './UILinkToggle.svelte';
 

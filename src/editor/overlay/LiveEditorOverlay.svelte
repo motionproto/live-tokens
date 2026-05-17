@@ -17,14 +17,14 @@
   import { onMount, onDestroy } from 'svelte';
   import { fade } from 'svelte/transition';
   import { cubicInOut } from 'svelte/easing';
-  import { route, navigate } from './router';
+  import { route, navigate } from '../core/routing/router';
   import { columnsVisible, toggleColumns } from './columnsOverlay';
-  import { storageKey } from './editorConfig';
+  import { storageKey } from '../core/store/editorConfig';
   import { overlayOpen } from './overlayState';
-  import { quietGet, quietSet } from './storage';
-  import { postParentRoute } from './parentRouteStore';
+  import { quietGet, quietSet } from '../core/storage/storage';
+  import { postParentRoute } from '../core/routing/parentRouteStore';
   import UIPillButton from '../ui/UIPillButton.svelte';
-  import type { NavLink } from './navLinkTypes';
+  import type { NavLink } from '../core/routing/navLinkTypes';
 
   interface Props {
     open?: boolean | undefined;

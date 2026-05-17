@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { CSS_VAR_CHANGE_EVENT } from '../../lib/cssVarSync';
+  import { CSS_VAR_CHANGE_EVENT } from '../../core/cssVarSync';
   import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
   import UIVariantSelector from '../../ui/UIVariantSelector.svelte';
   import { BORDER_WIDTH, DIVIDER_HEIGHT } from '../../ui/variantScales';

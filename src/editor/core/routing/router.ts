@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import { storageKey } from './editorConfig';
+import { storageKey } from '../store/editorConfig';
 
 function prevKey(): string {
   return storageKey('prev-route');

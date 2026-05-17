@@ -1,7 +1,7 @@
-import type { FontFamily, FontSource, FontStack, Theme } from './themeTypes';
-import frauncesRomanLatin from '../styles/fonts/Fraunces/Fraunces-roman-latin.woff2?url';
-import frauncesItalicLatin from '../styles/fonts/Fraunces/Fraunces-italic-latin.woff2?url';
-import manropeLatin from '../styles/fonts/Manrope/Manrope-latin.woff2?url';
+import type { FontFamily, FontSource, FontStack, Theme } from '../themes/themeTypes';
+import frauncesRomanLatin from '../../../system/styles/fonts/Fraunces/Fraunces-roman-latin.woff2?url';
+import frauncesItalicLatin from '../../../system/styles/fonts/Fraunces/Fraunces-italic-latin.woff2?url';
+import manropeLatin from '../../../system/styles/fonts/Manrope/Manrope-latin.woff2?url';
 
 function makeId(prefix: string): string {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;

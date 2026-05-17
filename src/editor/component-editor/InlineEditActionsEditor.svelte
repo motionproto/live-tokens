@@ -39,10 +39,10 @@
 </script>
 
 <script lang="ts">
-  import InlineEditActions from '../components/InlineEditActions.svelte';
+  import InlineEditActions from '../../system/components/InlineEditActions.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));

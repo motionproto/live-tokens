@@ -6,7 +6,7 @@
  * after mutating.
  */
 import type { FontSource, FontStack } from '../themeTypes';
-import { store, mutate, persist } from '../editorCore';
+import { store, mutate, persist } from '../../store/editorCore';
 
 export function setFontSources(sources: FontSource[]): void {
   mutate('update font sources', (s) => { s.fonts.sources = sources; });

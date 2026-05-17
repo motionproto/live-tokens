@@ -19,17 +19,17 @@
  */
 
 import { derived, type Readable } from 'svelte/store';
-import tokensCss from '../styles/tokens.css?raw';
-import { editorState } from './editorStore';
-import type { EditorState } from './editorTypes';
-import { extractGlobalRootBody } from './parsers/globalRootBlock';
+import tokensCss from '../../../system/styles/tokens.css?raw';
+import { editorState } from '../store/editorStore';
+import type { EditorState } from '../store/editorTypes';
+import { extractGlobalRootBody } from '../themes/parsers/globalRootBlock';
 
 // Re-exported for tests and downstream consumers that previously imported it
 // from this module. The canonical implementation lives in `./parsers/globalRootBlock`
 // so the dev-server vite plugin can share it.
 export { extractGlobalRootBody };
 
-const componentSources = import.meta.glob('../components/*.svelte', {
+const componentSources = import.meta.glob('../../../system/components/*.svelte', {
   query: '?raw',
   import: 'default',
   eager: true,

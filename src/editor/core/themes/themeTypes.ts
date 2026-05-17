@@ -1,4 +1,4 @@
-import type { CurveAnchor } from '../ui/curveEngine';
+import type { CurveAnchor } from '../../ui/curveEngine';
 
 export type GradientStyle = 'linear' | 'radial' | 'conic';
 

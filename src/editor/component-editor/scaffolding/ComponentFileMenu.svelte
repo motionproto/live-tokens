@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import type { ComponentConfigMeta } from '../../lib/themeTypes';
+  import type { ComponentConfigMeta } from '../../core/themes/themeTypes';
   import FileLoadList from '../../ui/FileLoadList.svelte';
 
   interface Props {

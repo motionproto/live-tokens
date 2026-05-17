@@ -6,7 +6,7 @@
    * to gradient state, so we don't have to refactor UIPaletteSelector itself.
    */
   import UIPaletteSelector from './UIPaletteSelector.svelte';
-  import { setCssVar, removeCssVar } from '../lib/cssVarSync';
+  import { setCssVar, removeCssVar } from '../core/cssVarSync';
 
   interface Props {
     stopId: string; // unique key (e.g. gradient-var + stop index)

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import '../styles/site.css';
-  import FloatingTokenTags from '../components/FloatingTokenTags.svelte';
-  import Badge from '../components/Badge.svelte';
+  import './demo.css';
+  import FloatingTokenTags from '../system/components/FloatingTokenTags.svelte';
+  import Badge from '../system/components/Badge.svelte';
 </script>
 
 <main class="playground">

@@ -1,16 +1,16 @@
 <script lang="ts">
-  import '../styles/site.css';
-  import Badge from '../components/Badge.svelte';
-  import Button from '../components/Button.svelte';
-  import Callout from '../components/Callout.svelte';
-  import Card from '../components/Card.svelte';
-  import CollapsibleSection from '../components/CollapsibleSection.svelte';
-  import FloatingTokenTags from '../components/FloatingTokenTags.svelte';
-  import Notification from '../components/Notification.svelte';
-  import SectionDivider from '../components/SectionDivider.svelte';
-  import SegmentedControl from '../components/SegmentedControl.svelte';
-  import Table from '../components/Table.svelte';
-  import { navigate } from '../lib/router';
+  import './demo.css';
+  import Badge from '../system/components/Badge.svelte';
+  import Button from '../system/components/Button.svelte';
+  import Callout from '../system/components/Callout.svelte';
+  import Card from '../system/components/Card.svelte';
+  import CollapsibleSection from '../system/components/CollapsibleSection.svelte';
+  import FloatingTokenTags from '../system/components/FloatingTokenTags.svelte';
+  import Notification from '../system/components/Notification.svelte';
+  import SectionDivider from '../system/components/SectionDivider.svelte';
+  import SegmentedControl from '../system/components/SegmentedControl.svelte';
+  import Table from '../system/components/Table.svelte';
+  import { navigate } from '../editor/core/routing/router';
 
   const isDev = import.meta.env.DEV;
 

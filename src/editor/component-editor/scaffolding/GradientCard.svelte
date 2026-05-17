@@ -11,8 +11,8 @@
    * UIPaletteSelector. Reads resolve through `tokenRegistry$` so values
    * authored as `var(--gradient-angle-diagonal)` show their resolved degrees.
    */
-  import { setComponentAlias } from '../../lib/editorStore';
-  import { tokenRegistry$ } from '../../lib/tokenRegistry';
+  import { setComponentAlias } from '../../core/store/editorStore';
+  import { tokenRegistry$ } from '../../core/palettes/tokenRegistry';
   import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
   import AngleDial from './AngleDial.svelte';
 

@@ -2,7 +2,7 @@
   import { run } from 'svelte/legacy';
 
   import { onMount, onDestroy } from 'svelte';
-  import { CSS_VAR_CHANGE_EVENT } from '../lib/cssVarSync';
+  import { CSS_VAR_CHANGE_EVENT } from '../core/cssVarSync';
   import UIVariantSelector from './UIVariantSelector.svelte';
 
   interface Props {

@@ -7,7 +7,7 @@
    * direction, kind switch) lives in <GradientEditor>; this section is a
    * thin grid that toggles which gradient is being edited.
    */
-  import { editorState } from '../../lib/editorStore';
+  import { editorState } from '../../core/store/editorStore';
   import GradientEditor from '../GradientEditor.svelte';
 
   interface Props {

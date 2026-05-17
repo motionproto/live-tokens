@@ -4,7 +4,7 @@
  * the default we leave tokens.css in charge so the `clamp()` in
  * `--columns-gutter` survives until the editor overrides it.
  */
-import type { ColumnsState } from '../editorTypes';
+import type { ColumnsState } from '../../store/editorTypes';
 
 export const DEFAULT_COLUMNS: ColumnsState = { count: 12, maxWidth: 1440, gutter: 16, margin: 0 };
 
@@ -50,7 +50,7 @@ export function parseColumnVars(vars: Record<string, string>): Partial<ColumnsSt
  * single-source. Mutates `next` and `rawVars` in place.
  */
 export function loadColumnsFromVars(
-  next: import('../editorTypes').EditorState,
+  next: import('../../store/editorTypes').EditorState,
   rawVars: Record<string, string>,
 ): void {
   const overrides = parseColumnVars(rawVars);

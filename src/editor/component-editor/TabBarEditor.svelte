@@ -84,10 +84,10 @@
 </script>
 
 <script lang="ts">
-  import TabBar from '../components/TabBar.svelte';
+  import TabBar from '../../system/components/TabBar.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
   let selectedDemoTab = $state('overview');

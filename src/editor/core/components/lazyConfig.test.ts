@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { get } from 'svelte/store';
-import { configureEditor, storageKey } from './editorConfig';
-import { route, navigate, init as initRouter } from './router';
+import { configureEditor, storageKey } from '../store/editorConfig';
+import { route, navigate, init as initRouter } from '../routing/router';
 
 describe('M8 — lazy storage prefix resolution', () => {
   it('storageKey() reflects the prefix at call time, not at module-load time', () => {

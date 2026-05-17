@@ -6,8 +6,8 @@
    * rgba values out to :root, so this component only orchestrates mutations
    * and reads derived display state.
    */
-  import { editorState, mutate, beginSliderGesture } from '../../lib/editorStore';
-  import type { OverlayToken, OverlayChannelGlobals, EditorState } from '../../lib/editorTypes';
+  import { editorState, mutate, beginSliderGesture } from '../../core/store/editorStore';
+  import type { OverlayToken, OverlayChannelGlobals, EditorState } from '../../core/store/editorTypes';
 
   interface Props {
     copiedVar?: string | null;

@@ -3,7 +3,7 @@
 
   const bubble = createBubbler();
   import { onMount, onDestroy, tick } from 'svelte';
-  import { hexToOklch } from '../lib/oklch';
+  import { hexToOklch } from '../core/palettes/oklch';
   import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig } from './curveEngine';
   import ColorEditPanel from './ColorEditPanel.svelte';
   import OverridesPanel from './palette/OverridesPanel.svelte';
@@ -25,9 +25,9 @@
     computeDerivedColor as computeDerivedColorPure,
     snapScaleToPalette as snapScaleToPalettePure,
   } from './palette/paletteMath';
-  import type { PaletteConfig, GradientStop } from '../lib/themeTypes';
-  import { editorState, mutate, setPaletteConfig, beginSliderGesture, beginScope, commitScope, cancelScope, type Scope } from '../lib/editorStore';
-  import { showCopyPopover } from '../lib/copyPopover';
+  import type { PaletteConfig, GradientStop } from '../core/themes/themeTypes';
+  import { editorState, mutate, setPaletteConfig, beginSliderGesture, beginScope, commitScope, cancelScope, type Scope } from '../core/store/editorStore';
+  import { showCopyPopover } from './copyPopover';
 
   interface Props {
     label: string;

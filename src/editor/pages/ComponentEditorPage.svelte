@@ -4,11 +4,11 @@
   import { onMount, onDestroy } from 'svelte';
   import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
   import ManifestFileManager from '../ui/ManifestFileManager.svelte';
-  import { navigate } from '../lib/router';
+  import { navigate } from '../core/routing/router';
   import { componentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
-  import { listComponents } from '../lib/componentConfigService';
-  import { selectedComponent } from '../lib/editorViewStore';
-  import { componentDirty } from '../lib/editorStore';
+  import { listComponents } from '../core/components/componentConfigService';
+  import { selectedComponent } from '../core/store/editorViewStore';
+  import { componentDirty } from '../core/store/editorStore';
   // Editor chrome + form controls + icon font must be JS imports (not @import
   // inside the style block) so Vite resolves them via the module graph
   // regardless of how the consumer compiles Svelte CSS (external ?lang.css vs

@@ -30,7 +30,7 @@ import TabBar from '../TabBar.svelte';
 import Table from '../Table.svelte';
 import Tooltip from '../Tooltip.svelte';
 import SlotProbe from './__fixtures__/SlotProbe.svelte';
-import { __resetForTests } from '../../lib/editorStore';
+import { __resetForTests } from '../../../editor/core/store/editorStore';
 import { mount, unmount } from "svelte";
 
 beforeEach(() => {

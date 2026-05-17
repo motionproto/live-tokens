@@ -88,17 +88,17 @@
 </script>
 
 <script lang="ts">
-  import Notification from '../components/Notification.svelte';
+  import Notification from '../../system/components/Notification.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../lib/editorStore';
+  import { editorState } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   import { buildSiblings } from './scaffolding/siblings';
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
   let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet));
 
-  import type { NotificationActions } from '../components/types';
+  import type { NotificationActions } from '../../system/components/types';
 
   let dismissible = $state(false);
   let rightOption: ButtonVariantOption = $state('none');

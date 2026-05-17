@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
-import type { ProductionInfo } from './themeService';
-import type { ManifestMeta } from './themeTypes';
+import type { ProductionInfo } from './themes/themeService';
+import type { ManifestMeta } from './themes/themeTypes';
 
 /**
  * Monotonic counter that ticks every time a production pointer flips —

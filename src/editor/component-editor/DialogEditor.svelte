@@ -88,10 +88,10 @@
 </script>
 
 <script lang="ts">
-  import Dialog from '../components/Dialog.svelte';
+  import Dialog from '../../system/components/Dialog.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, setComponentConfig } from '../lib/editorStore';
+  import { editorState, setComponentConfig } from '../core/store/editorStore';
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
   import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
 

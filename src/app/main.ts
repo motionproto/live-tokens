@@ -3,13 +3,13 @@
 // the non-editor surfaces (LiveEditorOverlay on every route, Home/Demo) need:
 // FA icons for the overlay, theme tokens, and starter fonts.
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import './styles/tokens.css';
-import './styles/fonts.css';
-import { initializeTheme } from './lib/themeInit';
-import * as cssVarSync from './lib/cssVarSync';
-import * as columnsOverlay from './lib/columnsOverlay';
-import * as router from './lib/router';
-import * as editorStore from './lib/editorStore';
+import '../system/styles/tokens.css';
+import '../system/styles/fonts.css';
+import { initializeTheme } from '../editor/core/themes/themeInit';
+import * as cssVarSync from '../editor/core/cssVarSync';
+import * as columnsOverlay from '../editor/overlay/columnsOverlay';
+import * as router from '../editor/core/routing/router';
+import * as editorStore from '../editor/core/store/editorStore';
 import App from './App.svelte';
 import { mount } from "svelte";
 

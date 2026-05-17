@@ -1,8 +1,8 @@
 <script lang="ts">
   import { stopPropagation } from 'svelte/legacy';
 
-  import type { GradientStyle, GradientStop } from '../../lib/themeTypes';
-  import { beginSliderGesture } from '../../lib/editorStore';
+  import type { GradientStyle, GradientStop } from '../../core/themes/themeTypes';
+  import { beginSliderGesture } from '../../core/store/editorStore';
 
   /**
    * Gradient style + stop editor (the bar, draggable handles, and selected-

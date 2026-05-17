@@ -16,8 +16,8 @@
     setGradientStop,
     addGradientStop,
     removeGradientStop,
-  } from '../lib/editorStore';
-  import type { GradientType, GradientTokenStop } from '../lib/editorTypes';
+  } from '../core/store/editorStore';
+  import type { GradientType, GradientTokenStop } from '../core/store/editorTypes';
   import GradientStopPicker from './GradientStopPicker.svelte';
   import AngleDial from '../component-editor/scaffolding/AngleDial.svelte';
 

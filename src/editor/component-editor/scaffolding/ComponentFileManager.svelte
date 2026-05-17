@@ -6,7 +6,7 @@
   import { onMount, onDestroy } from 'svelte';
   import UIInfoPopover from '../../ui/UIInfoPopover.svelte';
   import { get } from 'svelte/store';
-  import type { ComponentConfig, ComponentConfigMeta } from '../../lib/themeTypes';
+  import type { ComponentConfig, ComponentConfigMeta } from '../../core/themes/themeTypes';
   import { componentSourceFile } from './componentSources';
   import {
     loadComponentConfig,
@@ -15,20 +15,20 @@
     setActiveComponentFile,
     setComponentProductionFile,
     type ComponentProductionInfo,
-  } from '../../lib/componentConfigService';
+  } from '../../core/components/componentConfigService';
   import {
     editorState,
     componentDirty,
     loadComponentActive,
     markComponentSaved,
-  } from '../../lib/editorStore';
-  import { bumpProductionRevision } from '../../lib/productionPulse';
-  import { listManifests, saveAsManifest } from '../../lib/manifestService';
-  import type { ManifestMeta } from '../../lib/themeTypes';
-  import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../lib/migrations';
-  import type { CssVarRef } from '../../lib/editorTypes';
-  import { safeFetch } from '../../lib/storage';
-  import { flashStatus } from '../../lib/flashStatus';
+  } from '../../core/store/editorStore';
+  import { bumpProductionRevision } from '../../core/productionPulse';
+  import { listManifests, saveAsManifest } from '../../core/manifests/manifestService';
+  import type { ManifestMeta } from '../../core/themes/themeTypes';
+  import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../core/themes/migrations';
+  import type { CssVarRef } from '../../core/store/editorTypes';
+  import { safeFetch } from '../../core/storage/storage';
+  import { flashStatus } from '../../core/flashStatus';
   import ComponentFileMenu from './ComponentFileMenu.svelte';
   import SaveAsDialog from './SaveAsDialog.svelte';
   import FilePill from '../../ui/FilePill.svelte';

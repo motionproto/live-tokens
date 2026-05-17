@@ -30,7 +30,7 @@
  * edits don't open a panel.
  */
 
-import type { Scope } from '../../lib/editorStore';
+import type { Scope } from '../../core/store/editorStore';
 
 /** Sentinel key for the base swatch (used as `editingKey === BASE_KEY`). */
 export const BASE_KEY = '__base__';

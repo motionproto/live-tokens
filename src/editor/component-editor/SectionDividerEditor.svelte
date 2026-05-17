@@ -126,14 +126,14 @@
 
 <script lang="ts">
   import { onMount } from 'svelte';
-  import SectionDivider from '../components/SectionDivider.svelte';
+  import SectionDivider from '../../system/components/SectionDivider.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import GradientCard from './scaffolding/GradientCard.svelte';
   import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
   import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
-  import { editorState } from '../lib/editorStore';
-  import { setCssVar } from '../lib/cssVarSync';
+  import { editorState } from '../core/store/editorStore';
+  import { setCssVar } from '../core/cssVarSync';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
   let testTitle = $state('Section Title');

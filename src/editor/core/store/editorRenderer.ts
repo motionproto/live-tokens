@@ -12,8 +12,8 @@
  */
 
 import type { EditorState } from './editorTypes';
-import { setCssVar, removeCssVar } from './cssVarSync';
-import { palettesToVars } from './paletteDerivation';
+import { setCssVar, removeCssVar } from '../cssVarSync';
+import { palettesToVars } from '../palettes/paletteDerivation';
 import {
   editorState,
   columnsToVars,

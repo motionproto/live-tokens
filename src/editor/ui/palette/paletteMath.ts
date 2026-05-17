@@ -1,4 +1,4 @@
-import { hexToOklch, oklchToHex, gamutClamp } from '../../lib/oklch';
+import { hexToOklch, oklchToHex, gamutClamp } from '../../core/palettes/oklch';
 import { type CurveAnchor, makeAnchor, sampleCurve } from '../curveEngine';
 
 export const GRAY_FALLBACK = '#808080';
