@@ -135,7 +135,7 @@
     padding: var(--space-16);
     color: var(--ui-text-secondary);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-top: none;
     border-radius: 0 0 var(--radius-md) var(--radius-md);
   }

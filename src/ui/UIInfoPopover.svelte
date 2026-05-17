@@ -151,7 +151,7 @@
     max-width: calc(100vw - var(--ui-space-24));
     padding: 0;
     background: var(--ui-surface-higher);
-    border: 1px solid var(--ui-border-medium);
+    border: 1px solid var(--ui-border-high);
     border-radius: var(--ui-radius-lg);
     box-shadow: var(--ui-shadow-lg);
     z-index: 1000;
@@ -172,7 +172,7 @@
     justify-content: space-between;
     gap: var(--ui-space-8);
     padding: var(--ui-space-8) var(--ui-space-10) var(--ui-space-8) var(--ui-space-12);
-    border-bottom: 1px solid var(--ui-border-subtle);
+    border-bottom: 1px solid var(--ui-border-low);
   }
 
   /* Header sized to the body text (xs) so the title reads as a label, not

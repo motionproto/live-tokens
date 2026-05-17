@@ -49,7 +49,7 @@
     align-items: center;
     gap: var(--ui-space-16);
     padding: var(--ui-space-4) var(--ui-space-8);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-sm);
   }
   .picker-slot {

@@ -103,7 +103,7 @@
     padding: var(--space-8) var(--space-16);
     color: var(--ui-text-secondary);
     font-size: var(--font-size-sm);
-    border: 1px dashed var(--ui-border-subtle);
+    border: 1px dashed var(--ui-border-low);
     border-radius: var(--radius-sm);
     background: transparent;
   }

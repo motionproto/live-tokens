@@ -119,7 +119,7 @@
     position: relative;
     border-radius: 50%;
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-default);
+    border: 1px solid var(--ui-border);
     cursor: grab;
     flex: none;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
@@ -167,7 +167,7 @@
     width: 3.25rem;
     padding: var(--ui-space-2) var(--ui-space-6);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-primary);
     font-family: var(--ui-font-mono);

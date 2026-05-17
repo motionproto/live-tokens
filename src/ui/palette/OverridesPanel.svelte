@@ -291,7 +291,7 @@
     font-size: var(--ui-font-size-md);
     color: var(--ui-text-tertiary);
     background: none;
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     padding: var(--ui-space-2) var(--ui-space-6);
     cursor: pointer;
@@ -299,12 +299,12 @@
 
   .edit-toggle:hover {
     color: var(--ui-text-primary);
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
   }
 
   .edit-toggle.active {
     color: var(--ui-text-primary);
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
     background: var(--ui-surface-high);
   }
 
@@ -368,7 +368,7 @@
     width: 100%;
     height: 2rem;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
   }
 
   .swatch.text-swatch {
@@ -395,7 +395,7 @@
   }
 
   .swatch.derived.clickable:hover {
-    outline: 2px solid var(--ui-border-medium);
+    outline: 2px solid var(--ui-border-high);
     outline-offset: 1px;
   }
 
@@ -419,24 +419,24 @@
 
   .override-slot {
     border-style: dashed;
-    border-color: var(--ui-border-subtle);
+    border-color: var(--ui-border-low);
     cursor: pointer;
     position: relative;
     overflow: hidden;
   }
 
   .override-slot:hover {
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
   }
 
   .override-slot.active {
-    border-color: var(--ui-border-strong);
-    outline: 1px solid var(--ui-border-medium);
+    border-color: var(--ui-border-higher);
+    outline: 1px solid var(--ui-border-high);
     outline-offset: 1px;
   }
 
   .override-slot.populated {
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
   }
 
   .override-slot.matching::after {
@@ -486,7 +486,7 @@
     z-index: 10;
     margin-top: var(--ui-space-4);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-medium);
+    border: 1px solid var(--ui-border-high);
     border-radius: var(--ui-radius-md);
     padding: var(--ui-space-4);
     display: flex;
@@ -527,7 +527,7 @@
     width: 1rem;
     height: 1rem;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     flex-shrink: 0;
   }
 

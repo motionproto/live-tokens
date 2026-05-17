@@ -247,7 +247,7 @@
   .variant-group {
     padding: var(--ui-space-16);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-md);
     gap: var(--ui-space-12);
   }
@@ -290,7 +290,7 @@
     gap: var(--ui-space-4);
     padding: var(--ui-space-4);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-md);
   }
 
@@ -315,7 +315,7 @@
   .state-tab-btn.active {
     color: var(--ui-text-primary);
     background: var(--ui-surface-high);
-    box-shadow: 0 0 0 1px var(--ui-border-default);
+    box-shadow: 0 0 0 1px var(--ui-border);
   }
 
   .section-label {

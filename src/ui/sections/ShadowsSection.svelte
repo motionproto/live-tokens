@@ -803,12 +803,12 @@
   }
 
   .section-title {
-    font-size: var(--ui-font-size-lg);
+    font-size: var(--ui-font-size-2xl);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
     margin: 0;
     padding-bottom: var(--ui-space-8);
-    border-bottom: 1px solid var(--ui-border-subtle);
+    border-bottom: 2px solid var(--ui-border-high);
   }
 
   .token-info {
@@ -890,7 +890,7 @@
     color: var(--ui-text-muted);
     cursor: pointer;
     padding: var(--ui-space-4) var(--ui-space-8);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     text-align: center;
     transition: color var(--ui-transition-fast), border-color var(--ui-transition-fast);
@@ -898,7 +898,7 @@
 
   .reset-btn:hover {
     color: var(--ui-text-primary);
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
   }
 
   .shadow-box {
@@ -945,7 +945,7 @@
     text-align: right;
     flex-shrink: 0;
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     padding: var(--ui-space-2) var(--ui-space-4);
     -moz-appearance: textfield;
@@ -960,7 +960,7 @@
 
   .shadow-slider-input:focus {
     outline: none;
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
   }
 
   .shadow-slider-unit {
@@ -980,7 +980,7 @@
 
   .dial-ring {
     fill: none;
-    stroke: var(--ui-border-subtle);
+    stroke: var(--ui-border-low);
     stroke-width: 1.5;
   }
 
@@ -996,7 +996,7 @@
   }
 
   .angle-dial:hover .dial-ring {
-    stroke: var(--ui-border-medium);
+    stroke: var(--ui-border-high);
   }
 
   .angle-dial:hover .dial-handle {
@@ -1009,7 +1009,7 @@
     gap: var(--ui-space-4);
     margin-top: var(--ui-space-4);
     padding-top: var(--ui-space-8);
-    border-top: 1px solid var(--ui-border-faint);
+    border-top: 1px solid var(--ui-border-lower);
   }
 
   .shadow-css-output code {
@@ -1025,7 +1025,7 @@
     color: var(--ui-text-muted);
     cursor: pointer;
     padding: var(--ui-space-2) var(--ui-space-6);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     text-align: center;
     transition: color var(--ui-transition-fast), border-color var(--ui-transition-fast);
@@ -1033,7 +1033,7 @@
 
   .shadow-copy-btn:hover {
     color: var(--ui-text-primary);
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
   }
 
   /* Global shadow editor */
@@ -1046,7 +1046,7 @@
     gap: var(--ui-space-6);
     padding: var(--ui-space-12);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     width: 18rem;
   }
@@ -1103,7 +1103,7 @@
     position: relative;
     height: 12px;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
   }
 
   .slider-track input[type="range"] {
@@ -1125,7 +1125,7 @@
     height: 14px;
     border-radius: 2px;
     background: white;
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     box-shadow: 0 1px 3px rgba(0,0,0,0.4);
     cursor: pointer;
   }
@@ -1135,7 +1135,7 @@
     height: 14px;
     border-radius: 2px;
     background: white;
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     box-shadow: 0 1px 3px rgba(0,0,0,0.4);
     cursor: pointer;
   }
@@ -1155,7 +1155,7 @@
     width: 2rem;
     flex-shrink: 0;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
   }
 
   .global-color-sliders {
@@ -1172,7 +1172,7 @@
     color: var(--ui-text-muted);
     cursor: pointer;
     padding: var(--ui-space-4) var(--ui-space-8);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     background: var(--ui-surface-low);
     transition: color var(--ui-transition-fast), border-color var(--ui-transition-fast);
@@ -1180,7 +1180,7 @@
 
   .bg-picker-btn:hover {
     color: var(--ui-text-primary);
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
   }
 
   .bg-picker-menu {
@@ -1192,7 +1192,7 @@
     max-height: 24rem;
     overflow-y: auto;
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     padding: var(--ui-space-4);
     display: flex;
@@ -1250,7 +1250,7 @@
     width: 1rem;
     height: 1rem;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     flex-shrink: 0;
   }
 </style>

@@ -125,12 +125,12 @@
   }
 
   .group-title {
-    font-size: var(--ui-font-size-sm);
+    font-size: var(--ui-font-size-lg);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-secondary);
     margin: 0;
     padding-bottom: var(--ui-space-4);
-    border-bottom: 1px solid var(--ui-border-faint);
+    border-bottom: 1px solid var(--ui-border-lower);
   }
 
   .text-colors-grid {
@@ -141,7 +141,7 @@
 
   .text-color-card {
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     padding: var(--ui-space-12);
     display: flex;

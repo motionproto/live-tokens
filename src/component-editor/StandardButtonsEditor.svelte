@@ -150,7 +150,7 @@
 
   .size-divider {
     width: 1px;
-    background: var(--ui-border-faint);
+    background: var(--ui-border-lower);
     align-self: stretch;
   }
 

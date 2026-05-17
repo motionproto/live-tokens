@@ -1,8 +1,8 @@
 {
-  "name": "default_01",
+  "name": "my-button",
   "component": "button",
-  "createdAt": "2026-05-14T15:01:05.865Z",
-  "updatedAt": "2026-05-14T20:07:06.593Z",
+  "createdAt": "2026-05-17T15:29:05.801Z",
+  "updatedAt": "2026-05-17T15:31:23.459Z",
   "aliases": {
     "--button-primary-surface": "--surface-brand-high",
     "--button-primary-text": "--text-primary",

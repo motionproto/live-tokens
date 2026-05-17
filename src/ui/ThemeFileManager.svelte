@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { stopPropagation } from 'svelte/legacy';
-
   import { onMount } from 'svelte';
   import type { ThemeMeta } from '../lib/themeTypes';
   import { listThemes, deleteTheme, setActiveFile, getProductionInfo, setProductionFile, sanitizeFileName } from '../lib/themeService';
@@ -8,8 +6,10 @@
   import { activeFileName } from '../lib/editorConfigStore';
   import { dirty } from '../lib/editorStore';
   import { productionRevision, bumpProductionRevision, themeProductionInfo } from '../lib/productionPulse';
-  import UIDialog from './UIDialog.svelte';
+  import { flashStatus } from '../lib/flashStatus';
   import UIInfoPopover from './UIInfoPopover.svelte';
+  import FileLoadList from './FileLoadList.svelte';
+  import FilePill from './FilePill.svelte';
   import SaveAsDialog from '../component-editor/scaffolding/SaveAsDialog.svelte';
 
   interface Props {
@@ -25,7 +25,9 @@
   let saveAsDialog = $state(false);
   let currentDisplayName = $state('Default Theme');
 
-  let prodApplyStatus: 'idle' | 'applying' | 'done' | 'error' = $state('idle');
+  type ProdApplyStatus = 'idle' | 'applying' | 'done' | 'error';
+  let prodApplyStatus: ProdApplyStatus = $state('idle');
+  const setProdApplyStatus = (s: ProdApplyStatus) => (prodApplyStatus = s);
 
   // Set when Adopt is clicked on a dirty+default theme: the SaveAs dialog opens
   // for the user to name their theme, and on confirm the Adopt resumes
@@ -37,6 +39,14 @@
   let prodName = $derived($themeProductionInfo?.name ?? '—');
 
   let isDefaultActive = $derived($activeFileName === 'default');
+
+  // Display names already in use by protected files. Passed to SaveAsDialog so
+  // a user can't shadow the default by typing its label ("Default Theme"),
+  // which sanitizes to "default-theme" and would otherwise slip past the
+  // filename-only check.
+  let protectedDisplayNames = $derived(
+    files.filter((f) => f.fileName === 'default').map((f) => f.name),
+  );
 
   async function refreshFiles() {
     try {
@@ -78,7 +88,13 @@
   });
 
   function handleSave() {
-    if (isDefaultActive) return;
+    // Default is read-only — quietly redirect the first Save into Save As so the
+    // user gets one motion ("name it, save it") instead of bumping into a
+    // disabled button and having to find Save As themselves.
+    if (isDefaultActive) {
+      openSaveAs();
+      return;
+    }
     onsave?.({ fileName: $activeFileName, displayName: currentDisplayName });
   }
 
@@ -139,8 +155,7 @@
       await setProductionFile($activeFileName);
       await refreshProduction();
       bumpProductionRevision();
-      prodApplyStatus = 'done';
-      setTimeout(() => { prodApplyStatus = 'idle'; }, 2000);
+      flashStatus(setProdApplyStatus, 'done');
     } catch (err) {
       const e = err as Error & { code?: string };
       if (e.code === 'ACTIVE_IS_PROTECTED') {
@@ -153,15 +168,13 @@
           const targetName = await pickFreshManifestName('my-manifest');
           await saveAsManifest(targetName, targetName);
         } catch {
-          prodApplyStatus = 'error';
-          setTimeout(() => { prodApplyStatus = 'idle'; }, 3000);
+          flashStatus(setProdApplyStatus, 'error', { durationMs: 3000 });
           return;
         }
         await handleApplyToProduction();
         return;
       }
-      prodApplyStatus = 'error';
-      setTimeout(() => { prodApplyStatus = 'idle'; }, 3000);
+      flashStatus(setProdApplyStatus, 'error', { durationMs: 3000 });
     }
   }
 
@@ -228,9 +241,13 @@
     if (file.fileName === 'default') return;
     if (file.fileName === $themeProductionInfo?.fileName) return;
     try {
+      // Capture before refreshFiles() reads the server's reverted active back
+      // into local state — otherwise the "was this the active file?" check
+      // below sees the post-revert value and skips the reload.
+      const wasActive = file.fileName === $activeFileName;
       await deleteTheme(file.fileName);
       await refreshFiles();
-      if (file.fileName === $activeFileName) {
+      if (wasActive) {
         $activeFileName = 'default';
         currentDisplayName = 'Default Theme';
         onload?.({ fileName: 'default' });
@@ -245,42 +262,6 @@
     if (showFileList) refreshFiles();
   }
 
-  const dateFormatter = new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-
-  function formatUpdatedAt(iso: string): string {
-    if (!iso) return '';
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return '';
-    return dateFormatter.format(d);
-  }
-
-  type SortKey = 'name' | 'updatedAt';
-  let sortKey: SortKey = $state('updatedAt');
-  let sortDir: 'asc' | 'desc' = $state('desc');
-
-  function toggleSort(key: SortKey) {
-    if (sortKey === key) {
-      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-    } else {
-      sortKey = key;
-      sortDir = key === 'name' ? 'asc' : 'desc';
-    }
-  }
-
-  let sortedFiles = $derived([...files].sort((a, b) => {
-    let cmp = 0;
-    if (sortKey === 'name') {
-      cmp = a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
-    } else {
-      cmp = (a.updatedAt || '').localeCompare(b.updatedAt || '');
-    }
-    return sortDir === 'asc' ? cmp : -cmp;
-  }));
 </script>
 
 <div class="theme-file-manager">
@@ -326,9 +307,15 @@
           {/if}
         </span>
       </div>
-      <div class="tfm-pill" class:dirty={$dirty} class:applied={editorIsApplied}>
-        <span class="tfm-pill-name" title={currentDisplayName}>{currentDisplayName}</span>
-      </div>
+      <FilePill
+        name={currentDisplayName}
+        isProtected={isDefaultActive}
+        dirty={$dirty}
+        applied={editorIsApplied}
+        protectedTitle="Protected system theme"
+        title={currentDisplayName}
+        style="display: flex;"
+      />
       <div class="tfm-card-actions tfm-card-actions-stack">
         <button
           class="tfm-btn tfm-btn-row save-btn"
@@ -336,9 +323,9 @@
           class:saved={saveStatus === 'saved'}
           class:error={saveStatus === 'error'}
           onclick={handleSave}
-          disabled={saveStatus === 'saving' || isDefaultActive}
+          disabled={saveStatus === 'saving'}
           title={isDefaultActive
-            ? 'Default is read-only — use Save As to capture under a new name'
+            ? 'Save to a new theme file'
             : 'Save to current file'}
         >
           <i
@@ -407,84 +394,49 @@
           <span>{prodIsInSync ? 'live' : 'out of sync'}</span>
         </span>
       </div>
-      <div class="tfm-pill" class:applied={prodIsInSync}>
-        <span class="tfm-pill-name" title={prodName}>{prodName}</span>
-      </div>
+      <FilePill
+        name={prodName}
+        isProtected={$themeProductionInfo?.fileName === 'default'}
+        applied={prodIsInSync}
+        protectedTitle="Protected system theme"
+        title={prodName}
+        style="display: flex;"
+      />
     </div>
   </div>
 </div>
 
-<UIDialog
+<FileLoadList
   bind:show={showFileList}
   title="Load Theme"
-  cancelLabel="Close"
-  width="420px"
->
-  <div class="load-list">
-    <div class="load-header">
-      <button
-        class="sort-btn name-col"
-        class:active-sort={sortKey === 'name'}
-        onclick={() => toggleSort('name')}
-      >
-        <span>Name</span>
-        {#if sortKey === 'name'}
-          <i class="fas {sortDir === 'asc' ? 'fa-caret-up' : 'fa-caret-down'}"></i>
-        {/if}
-      </button>
-      <button
-        class="sort-btn date-col"
-        class:active-sort={sortKey === 'updatedAt'}
-        onclick={() => toggleSort('updatedAt')}
-      >
-        <span>Date</span>
-        {#if sortKey === 'updatedAt'}
-          <i class="fas {sortDir === 'asc' ? 'fa-caret-up' : 'fa-caret-down'}"></i>
-        {/if}
-      </button>
-      <span class="header-spacer"></span>
-    </div>
-    {#each sortedFiles as file}
-      <div class="load-item" class:active={file.fileName === $activeFileName}>
-        <button class="load-name-btn" onclick={() => handleLoad(file)}>
-          {file.name}
-        </button>
-        <span class="updated-at" title={file.updatedAt}>{formatUpdatedAt(file.updatedAt)}</span>
-        {#if file.fileName === $activeFileName}
-          <span class="active-badge">active</span>
-        {/if}
-        {#if file.fileName !== 'default' && file.fileName !== $themeProductionInfo?.fileName}
-          <button
-            class="file-delete-btn"
-            onclick={stopPropagation(() => handleDelete(file))}
-            title="Delete {file.name}"
-          >
-            <i class="fas fa-trash-alt"></i>
-          </button>
-        {/if}
-      </div>
-    {/each}
-    {#if files.length === 0}
-      <div class="load-item empty">No saved files</div>
-    {/if}
-  </div>
-</UIDialog>
+  {files}
+  activeFileName={$activeFileName}
+  sortable
+  showUpdatedAt
+  systemBadge={{ label: 'system', title: 'Protected system theme' }}
+  emptyMessage="No saved files"
+  canDelete={(file) => file.fileName !== 'default' && file.fileName !== $themeProductionInfo?.fileName}
+  onload={handleLoad}
+  ondelete={handleDelete}
+/>
 
 <SaveAsDialog
   bind:show={saveAsDialog}
   {currentDisplayName}
   {files}
+  currentFileName={$activeFileName}
+  reservedDisplayNames={protectedDisplayNames}
   title="Save Theme As"
   placeholder="Theme name…"
-  reservedNameMessage='The name "default" is reserved for the initial distribution.'
-  branchFromDefaultName="my-theme"
+  reservedNameMessage='That name is reserved for the protected default theme.'
+  branchFromDefaultName="My Theme"
   onsave={confirmSaveAs}
 />
 
 <style>
   .theme-file-manager {
     --tfm-applied: #5aa85e;
-    --tfm-rail-neutral: var(--ui-border-default);
+    --tfm-rail-neutral: var(--ui-border);
     --tfm-rail-dirty: var(--ui-highlight);
     --tfm-rail-applied: var(--tfm-applied);
 
@@ -524,7 +476,7 @@
     gap: var(--ui-space-6);
     padding: var(--ui-space-8) var(--ui-space-10) var(--ui-space-10) var(--ui-space-16);
     background: var(--ui-surface-lower);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
   }
 
@@ -678,36 +630,6 @@
     to   { transform: scaleX(0); }
   }
 
-  .tfm-pill {
-    display: flex;
-    align-items: center;
-    padding: var(--ui-space-6) var(--ui-space-10);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    transition: border-color var(--ui-transition-fast), box-shadow var(--ui-transition-fast);
-  }
-
-  .tfm-pill.dirty {
-    border-color: color-mix(in srgb, var(--ui-highlight) 60%, var(--ui-border-subtle));
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ui-highlight) 35%, transparent);
-  }
-
-  .tfm-pill.applied {
-    border-color: color-mix(in srgb, var(--tfm-applied) 50%, var(--ui-border-subtle));
-  }
-
-  .tfm-pill-name {
-    flex: 1;
-    min-width: 0;
-    font-size: var(--ui-font-size-md);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
   .tfm-card-actions {
     display: flex;
     gap: var(--ui-space-4);
@@ -749,7 +671,7 @@
     margin: calc(var(--ui-space-2) * -1) 0;
     padding: var(--ui-space-6) var(--ui-space-12);
     background: color-mix(in srgb, var(--tfm-applied) 18%, var(--ui-surface-high));
-    border: 1px solid color-mix(in srgb, var(--tfm-applied) 45%, var(--ui-border-medium));
+    border: 1px solid color-mix(in srgb, var(--tfm-applied) 45%, var(--ui-border-high));
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-primary);
     font-size: var(--ui-font-size-md);
@@ -769,7 +691,7 @@
 
   .tfm-adopt-btn:hover:not(:disabled) {
     background: color-mix(in srgb, var(--tfm-applied) 30%, var(--ui-surface-higher));
-    border-color: color-mix(in srgb, var(--tfm-applied) 70%, var(--ui-border-strong));
+    border-color: color-mix(in srgb, var(--tfm-applied) 70%, var(--ui-border-higher));
   }
 
   .tfm-adopt-btn:disabled {
@@ -778,7 +700,7 @@
 
   .tfm-adopt-btn.in-sync {
     background: transparent;
-    border-color: var(--ui-border-subtle);
+    border-color: var(--ui-border-low);
     color: var(--ui-text-muted);
     opacity: 0.7;
   }
@@ -797,7 +719,7 @@
     gap: var(--ui-space-4);
     padding: var(--ui-space-6) var(--ui-space-10);
     background: var(--ui-surface);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-md);
@@ -818,7 +740,7 @@
   .tfm-btn:hover:not(:disabled) {
     background: var(--ui-surface-high);
     color: var(--ui-text-primary);
-    border-color: var(--ui-border-default);
+    border-color: var(--ui-border);
   }
 
   .tfm-btn:disabled {
@@ -828,19 +750,19 @@
 
   .tfm-btn.active {
     background: var(--ui-surface);
-    border-color: var(--ui-border-default);
+    border-color: var(--ui-border);
     color: var(--ui-text-primary);
   }
 
   .save-btn {
     background: var(--ui-surface-high);
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
     color: var(--ui-text-primary);
   }
 
   .save-btn:hover:not(:disabled) {
     background: var(--ui-surface-higher);
-    border-color: var(--ui-border-strong);
+    border-color: var(--ui-border-higher);
   }
 
   .save-btn.saving i { animation: spin 1s linear infinite; }
@@ -851,154 +773,6 @@
   .save-btn.error {
     background: var(--ui-surface-high);
     color: var(--ui-text-muted);
-  }
-
-  .load-list {
-    display: flex;
-    flex-direction: column;
-    max-height: 60vh;
-    overflow-y: auto;
-  }
-
-  .load-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 6px;
-    border-bottom: 1px solid #3a3a3a;
-    position: sticky;
-    top: 0;
-    background: var(--ui-surface, #1a1a1a);
-    z-index: 1;
-  }
-
-  .sort-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 0;
-    background: none;
-    border: none;
-    color: #888;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    cursor: pointer;
-    text-align: left;
-  }
-
-  .sort-btn:hover {
-    color: #ccc;
-  }
-
-  .sort-btn.active-sort {
-    color: #e0e0e0;
-  }
-
-  .sort-btn i {
-    font-size: 10px;
-    opacity: 0.85;
-  }
-
-  .sort-btn.name-col {
-    flex: 1;
-    min-width: 0;
-    padding-left: 4px;
-  }
-
-  .sort-btn.date-col {
-    flex-shrink: 0;
-  }
-
-  .header-spacer {
-    flex-shrink: 0;
-    width: 24px;
-  }
-
-  .load-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 6px;
-    border-bottom: 1px solid #2a2a2a;
-  }
-
-  .load-item:last-child {
-    border-bottom: none;
-  }
-
-  .load-item.empty {
-    padding: 16px;
-    color: #888;
-    font-size: 14px;
-    text-align: center;
-  }
-
-  .load-name-btn {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    padding: 6px 4px;
-    background: none;
-    border: none;
-    color: #aaa;
-    font-size: 14px;
-    cursor: pointer;
-    text-align: left;
-    border-radius: 3px;
-  }
-
-  .load-name-btn:hover {
-    color: #e0e0e0;
-  }
-
-  .load-item.active .load-name-btn {
-    color: #e0e0e0;
-    font-weight: 600;
-  }
-
-  .updated-at {
-    flex-shrink: 0;
-    font-size: 12px;
-    color: #777;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-
-  .active-badge {
-    flex-shrink: 0;
-    font-size: 12px;
-    padding: 1px 6px;
-    border-radius: 3px;
-    background: #333;
-    color: #ccc;
-  }
-
-  .file-delete-btn {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    background: none;
-    border: none;
-    color: #555;
-    font-size: 12px;
-    cursor: pointer;
-    opacity: 0;
-  }
-
-  .load-item:hover .file-delete-btn {
-    opacity: 1;
-  }
-
-  .file-delete-btn:hover {
-    color: #ccc;
   }
 
   @keyframes tfm-pulse {

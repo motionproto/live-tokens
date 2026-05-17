@@ -43,17 +43,16 @@
 
     <div class="hero-text">
       <div class="hero-eyebrow">
-        <Badge variant="neutral" size="small" icon="fas fa-bolt">v0.6.2 &nbsp;·&nbsp; live tokens</Badge>
+        <Badge variant="neutral" size="small" >v0.6.2 </Badge>
       </div>
 
       <h1 class="hero-title">
-        Design tokens<br />
-        <span class="hero-italic">you can hold.</span>
+        Live Tokens<br />
+        <span class="hero-italic">The design system with an editor.</span>
       </h1>
 
       <p class="hero-tagline">
-        A Svelte and Vite starter for token-driven UI. Edit colour, type, spacing,
-        radius, shadow, and motion in the browser. Ship the result as plain CSS.
+        A Svelte starter kit for token-driven UI. Edit design tokens and UI components in realtime. Ship the result as plain CSS.
       </p>
 
 
@@ -362,21 +361,21 @@
     font-weight: var(--font-weight-semibold);
     font-variation-settings: 'opsz' 144, 'SOFT' 30;
     color: var(--text-primary);
-    line-height: 0.95;
+    line-height: 1.15;
     letter-spacing: -0.025em;
     margin: 0;
   }
 
   .hero-italic {
-    font-style: italic;
+    font-family: var(--font-serif);
     font-weight: var(--font-weight-normal);
     color: var(--text-brand);
     font-variation-settings: 'opsz' 144, 'SOFT' 100;
+    white-space: nowrap;
   }
 
   .hero-tagline {
     font-family: var(--font-serif);
-    font-style: italic;
     font-size: var(--font-size-lg);
     color: var(--text-secondary);
     line-height: 1.5;

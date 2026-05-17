@@ -173,7 +173,7 @@
     gap: var(--ui-space-12);
     padding: var(--ui-space-12);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-md);
   }
 
@@ -187,7 +187,7 @@
     position: relative;
     height: 2.25rem;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-default);
+    border: 1px solid var(--ui-border);
   }
 
   .handles {
@@ -218,7 +218,7 @@
     width: 0.7rem;
     height: 0.7rem;
     background: var(--stop-color, var(--ui-surface-high));
-    border: 1px solid var(--ui-border-default);
+    border: 1px solid var(--ui-border);
     transform: rotate(45deg);
     border-radius: 1px;
     transition: border-color var(--ui-transition-fast), box-shadow var(--ui-transition-fast);
@@ -274,7 +274,7 @@
     width: 4rem;
     padding: var(--ui-space-2) var(--ui-space-6);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-primary);
     font-family: var(--ui-font-mono);

@@ -354,7 +354,7 @@
   }
 
   .ui-token-selector.disabled .ui-ts-trigger:hover {
-    border-color: var(--ui-border-default);
+    border-color: var(--ui-border);
     background: var(--ui-surface-low);
   }
 
@@ -364,7 +364,7 @@
     gap: var(--ui-space-6);
     padding: var(--ui-space-2) var(--ui-space-8);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-default);
+    border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-md);
     cursor: pointer;
     transition: all var(--ui-transition-fast);
@@ -409,7 +409,7 @@
   }
 
   .ui-ts-trigger:hover {
-    border-color: var(--ui-border-strong);
+    border-color: var(--ui-border-higher);
     background: var(--ui-surface-high);
   }
 
@@ -499,7 +499,7 @@
     top: calc(100% + var(--ui-space-4));
     left: 0;
     background: var(--ui-surface-higher);
-    border: 1px solid var(--ui-border-medium);
+    border: 1px solid var(--ui-border-high);
     border-radius: var(--ui-radius-md);
     box-shadow: var(--ui-shadow-lg);
     z-index: 10;
@@ -511,7 +511,7 @@
     justify-content: flex-end;
     gap: var(--ui-space-6);
     padding: var(--ui-space-6) var(--ui-space-8);
-    border-bottom: 1px solid var(--ui-border-faint);
+    border-bottom: 1px solid var(--ui-border-lower);
   }
 
   .ui-ts-reset {
@@ -521,7 +521,7 @@
     height: 1.5rem;
     padding: var(--ui-space-2) var(--ui-space-8);
     background: none;
-    border: 1px solid var(--ui-border-default);
+    border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-secondary);
     font-family: inherit;
@@ -537,7 +537,7 @@
 
   .ui-ts-reset:hover:not(:disabled) {
     background: var(--ui-hover);
-    border-color: var(--ui-border-strong);
+    border-color: var(--ui-border-higher);
     color: var(--ui-text-primary);
   }
 

@@ -555,7 +555,7 @@
     height: 1.75rem;
     padding: 0;
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-default);
+    border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-sm);
@@ -565,7 +565,7 @@
   }
 
   .split-btn:hover:not(:disabled) {
-    border-color: var(--ui-border-strong);
+    border-color: var(--ui-border-higher);
     background: var(--ui-surface-high);
     color: var(--ui-text-primary);
   }
@@ -601,7 +601,7 @@
     padding: var(--ui-space-4) var(--ui-space-8);
     height: 1.5rem;
     background: none;
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-muted);
     font-family: inherit;
@@ -613,7 +613,7 @@
   .merge-btn:hover:not(:disabled) {
     background: var(--ui-hover);
     color: var(--ui-text-primary);
-    border-color: var(--ui-border-default);
+    border-color: var(--ui-border);
   }
 
   .merge-btn:disabled {

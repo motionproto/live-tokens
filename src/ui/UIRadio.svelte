@@ -1,6 +1,6 @@
 <!--
   Custom-styled radio that matches the editor's selection language: a quiet ring
-  in the unselected state (--ui-border-strong stroke, soft black inner fill) and
+  in the unselected state (--ui-border-higher stroke, soft black inner fill) and
   the highlight amber when selected (ring + dot, transparent inside).
 
   Usage:
@@ -50,7 +50,7 @@
     flex-shrink: 0;
     width: 14px;
     height: 14px;
-    border: 1.5px solid var(--ui-border-strong);
+    border: 1.5px solid var(--ui-border-higher);
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.3);
     cursor: pointer;

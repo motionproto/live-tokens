@@ -147,7 +147,7 @@
     left: 0;
     min-width: 12rem;
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-default);
+    border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-md);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     padding: var(--ui-space-4);
@@ -183,7 +183,7 @@
   .copy-menu-item:hover:not(:disabled) {
     background: var(--ui-surface-high);
     color: var(--ui-text-primary);
-    box-shadow: inset 0 0 0 1px var(--ui-border-faint);
+    box-shadow: inset 0 0 0 1px var(--ui-border-lower);
   }
 
   .copy-menu-item:disabled {
@@ -209,7 +209,7 @@
   .copy-menu-item-parent:hover > .copy-menu-item-trigger {
     background: var(--ui-surface-high);
     color: var(--ui-text-primary);
-    box-shadow: inset 0 0 0 1px var(--ui-border-faint);
+    box-shadow: inset 0 0 0 1px var(--ui-border-lower);
   }
 
   .copy-submenu {
@@ -219,7 +219,7 @@
     left: 100%;
     min-width: 10rem;
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-default);
+    border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-md);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     padding: var(--ui-space-4);

@@ -61,7 +61,7 @@
   padding: 0 var(--ui-space-16);
   min-height: 2.375rem;  /* ~38px to match button height */
   background: var(--ui-surface-lowest) !important;
-  border: 1px solid var(--ui-border-default) !important;
+  border: 1px solid var(--ui-border) !important;
   border-radius: var(--ui-radius-md);
   color: var(--ui-text-primary) !important;
   font-family: var(--ui-font-sans);
@@ -87,12 +87,12 @@
 
 .ui-form-select:hover:not(:disabled) {
   background-color: var(--ui-surface-low) !important;
-  border-color: var(--ui-border-medium) !important;
+  border-color: var(--ui-border-high) !important;
 }
 
 .ui-form-select:focus {
   outline: none;
-  border-color: var(--ui-border-strong) !important;
+  border-color: var(--ui-border-higher) !important;
   box-shadow: 0 0 0 2px hsla(0, 58%, 50%, 0.2);
 }
 
@@ -107,7 +107,7 @@
 
 .ui-form-select:disabled {
   background-color: var(--ui-surface-lowest) !important;
-  border-color: var(--ui-border-faint) !important;
+  border-color: var(--ui-border-lower) !important;
   color: var(--ui-text-disabled) !important;
   cursor: not-allowed;
 }
@@ -134,7 +134,7 @@
 .ui-form-input {
   padding: var(--ui-space-8);
   background: var(--ui-surface-lowest);
-  border: 1px solid var(--ui-border-default);
+  border: 1px solid var(--ui-border);
   border-radius: var(--ui-radius-md);
   color: var(--ui-text-primary);
   font-family: var(--ui-font-sans);
@@ -143,19 +143,19 @@
 }
 
 .ui-form-input:hover:not(:disabled) {
-  border-color: var(--ui-border-strong);
+  border-color: var(--ui-border-higher);
   background: var(--ui-surface-low);
 }
 
 .ui-form-input:focus {
   outline: none;
-  border-color: var(--ui-border-strong);
+  border-color: var(--ui-border-higher);
   box-shadow: 0 0 0 3px hsla(240, 5%, 38%, 0.2);
 }
 
 .ui-form-input:disabled {
   background: var(--ui-surface-lowest);
-  border-color: var(--ui-border-faint);
+  border-color: var(--ui-border-lower);
   color: var(--ui-text-disabled);
   cursor: not-allowed;
 }

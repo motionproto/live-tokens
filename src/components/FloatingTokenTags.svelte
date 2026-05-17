@@ -1,6 +1,4 @@
 <script module lang="ts">
-  import type { BadgeVariant } from './Badge.svelte';
-
   export type AnchorSide = 'top' | 'right' | 'bottom' | 'left';
 
   /** Which visual property of the central box this tag drives. */
@@ -18,7 +16,6 @@
     | { side: 'inside'; x: number; y: number };
 
   export interface FloatingTag {
-    variant?: BadgeVariant;
     icon?: string;
     /** Typically a CSS-variable name. Used as the initial value. */
     label: string;
@@ -37,13 +34,15 @@
 </script>
 
 <script lang="ts">
-  import Badge from './Badge.svelte';
   import MenuSelect from './MenuSelect.svelte';
   import { SvelteMap } from 'svelte/reactivity';
   // Playground chrome lives in its own CSS file so live token edits in the
-  // editor don't repaint our animation. The one exception is the dropdown
-  // panel — it renders through MenuSelect on purpose, so editing the
-  // menuselect-* tokens reshapes the in-flight UI. See FloatingTokenTags.css.
+  // editor don't repaint our animation. The floating tag pills are rendered
+  // with a self-contained `.ftt-tag` element (not the Badge component) so the
+  // demo stays visually stable while the user edits badge-* tokens. The one
+  // exception is the dropdown panel — it renders through MenuSelect on
+  // purpose, so editing the menuselect-* tokens reshapes the in-flight UI.
+  // See FloatingTokenTags.css.
   import './FloatingTokenTags.css';
 
   interface Props {
@@ -82,15 +81,13 @@
     // box's *measured* rect, so the central element can size itself like a
     // normal div (intrinsic to content + padding) and the strings still land.
     {
-      variant: 'primary',
       icon: 'fas fa-fill-drip',
       label: '--surface-brand-low',
-      top: 42, left: 25, delay: 0,    rotate: -3,
+      top: 28, left: 18, delay: 0,    rotate: -3,
       anchor: { side: 'inside', x: 10, y: 50 },
       controls: 'surface',
     },
     {
-      variant: 'success',
       icon: 'fas fa-font',
       label: '--font-display',
       top: 11.1, left: 40.8, delay: -0.9, rotate: 2,
@@ -98,7 +95,6 @@
       controls: 'font-family',
     },
     {
-      variant: 'accent',
       icon: 'fa-solid fa-bezier-curve',
       label: '--radius-2xl',
       top: 19.8, left: 72.0, delay: -1.8, rotate: 2,
@@ -106,7 +102,6 @@
       controls: 'radius',
     },
     {
-      variant: 'canvas',
       icon: 'fas fa-paint-roller',
       label: '--border-brand',
       top: 75.5, left: 79.5, delay: -3.6, rotate: -2,
@@ -114,10 +109,9 @@
       controls: 'border-color',
     },
     {
-      variant: 'special',
       icon: 'fas fa-grip-lines',
       label: '--border-width-3',
-      top: 84.6, left: 39.0, delay: -5.2, rotate: -3,
+      top: 78, left: 33, delay: -5.2, rotate: -3,
       anchor: { side: 'bottom', pos: 50 },
       controls: 'border-width',
     },
@@ -165,14 +159,17 @@
   // so the box visibly changes at the moment of the bloop.
   type BallState = { startedAt: number; duration: number; pendingValue: string };
   const ballStates = new SvelteMap<number, BallState>();
-  const ballEls: HTMLSpanElement[] = [];
+  // Element-ref arrays are `$state` so Svelte 5 considers
+  // `bind:this={ballEls[i]}` etc. a reactive binding target. They're only
+  // read imperatively from the rAF loop, so there's no extra reactivity cost.
+  const ballEls: HTMLSpanElement[] = $state([]);
 
   // --- Element refs --------------------------------------------------------
-  let stageEl: HTMLDivElement | undefined;
-  let boxEl: HTMLDivElement | undefined;
-  const tagEls: HTMLSpanElement[] = [];
-  const lineEls: SVGLineElement[] = [];
-  const knotEls: HTMLSpanElement[] = [];
+  let stageEl: HTMLDivElement | undefined = $state();
+  let boxEl: HTMLDivElement | undefined = $state();
+  const tagEls: HTMLSpanElement[] = $state([]);
+  const lineEls: SVGLineElement[] = $state([]);
+  const knotEls: HTMLSpanElement[] = $state([]);
 
   // --- Anchor math ---------------------------------------------------------
   // `cx`/`cy`/`w`/`h` are the box's centre and dimensions in stage-% space.
@@ -247,13 +244,13 @@
 
       // Tag-side endpoint: pill cap (corner-radius circle) center on the
       // side closest to the central component.
-      const badge = tagEl.querySelector('.badge') as HTMLElement | null;
-      const target = (badge ?? tagEl) as HTMLElement;
+      const pill = tagEl.querySelector('.ftt-tag') as HTMLElement | null;
+      const target = (pill ?? tagEl) as HTMLElement;
       const r = target.getBoundingClientRect();
 
       let radius = 0;
-      if (badge) {
-        const cs = getComputedStyle(badge);
+      if (pill) {
+        const cs = getComputedStyle(pill);
         const raw = parseFloat(cs.borderTopLeftRadius || '0') || 0;
         radius = Math.min(raw, r.height / 2);
       }
@@ -564,16 +561,17 @@
       {/if}
       <button
         type="button"
-        class="ftt-badge-trigger"
+        class="ftt-tag-trigger"
         onpointerdown={(e) => onTagPointerDown(i, e)}
         onpointermove={(e) => onTagPointerMove(i, e)}
         onpointerup={(e) => onTagPointerUp(i, e)}
         aria-haspopup="listbox"
         aria-expanded={openIdx === i}
       >
-        <Badge variant={tag.variant ?? 'neutral'} icon={tag.icon} size="small">
-          {currentValues[i]}
-        </Badge>
+        <span class="ftt-tag">
+          {#if tag.icon}<span class="ftt-tag-icon"><i class={tag.icon}></i></span>{/if}
+          <span class="ftt-tag-label">{currentValues[i]}</span>
+        </span>
       </button>
 
       {#if openIdx === i && tag.controls}

@@ -201,7 +201,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     background: black;
-    border-right: 1px solid var(--ui-border-faint);
+    border-right: 1px solid var(--ui-border-lower);
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -213,7 +213,7 @@
     grid-template-columns: 48px 1fr;
     align-items: center;
     padding: var(--ui-space-12) 0 var(--ui-space-12) 0;
-    border-bottom: 1px solid var(--ui-border-faint);
+    border-bottom: 1px solid var(--ui-border-lower);
   }
 
   .rail-toggle {
@@ -286,7 +286,7 @@
     left: 48px;
     right: var(--ui-space-8);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-default);
+    border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-md);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     padding: var(--ui-space-4);
@@ -335,7 +335,7 @@
     flex-shrink: 0;
     margin-top: auto;
     padding: var(--ui-space-12) var(--ui-space-8) var(--ui-space-16);
-    border-top: 1px solid var(--ui-border-faint);
+    border-top: 1px solid var(--ui-border-lower);
   }
 
   .nav-item {
@@ -409,7 +409,7 @@
     z-index: 50;
     padding: var(--ui-space-4) var(--ui-space-8);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-default);
+    border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-primary);
     font-size: var(--ui-font-size-sm);

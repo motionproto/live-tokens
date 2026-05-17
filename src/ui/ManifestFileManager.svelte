@@ -11,8 +11,10 @@
   } from '../lib/manifestService';
   import { dirty, componentDirty } from '../lib/editorStore';
   import { productionRevision, activeManifest } from '../lib/productionPulse';
-  import UIDialog from './UIDialog.svelte';
+  import { flashStatus } from '../lib/flashStatus';
   import UIInfoPopover from './UIInfoPopover.svelte';
+  import FileLoadList from './FileLoadList.svelte';
+  import FilePill from './FilePill.svelte';
   import SaveAsDialog from '../component-editor/scaffolding/SaveAsDialog.svelte';
 
   let files: ManifestMeta[] = $state([]);
@@ -23,6 +25,9 @@
   let activeFileName = $state('default');
   let currentDisplayName = $state('Default');
   let activeIsProtected = $derived(activeFileName === 'default');
+
+  type SaveState = 'idle' | 'saving' | 'saved' | 'error';
+  const setSaveStatus = (s: SaveState) => (saveStatus = s);
 
   let dirtyComponentCount = $derived(
     Object.values($componentDirty).filter(Boolean).length,
@@ -74,20 +79,15 @@
     refreshActive();
   });
 
-  function flashSave(state: Exclude<typeof saveStatus, 'idle'>) {
-    saveStatus = state;
-    setTimeout(() => { saveStatus = 'idle'; }, 2000);
-  }
-
   async function handleSave() {
     if (activeIsProtected) return;
     saveStatus = 'saving';
     try {
       await saveActiveManifest(currentDisplayName);
       await refreshActive();
-      flashSave('saved');
+      flashStatus(setSaveStatus, 'saved');
     } catch {
-      flashSave('error');
+      flashStatus(setSaveStatus, 'error');
     }
   }
 
@@ -102,9 +102,9 @@
       await saveAsManifest(detail.fileName, detail.displayName);
       await refreshFiles();
       await refreshActive();
-      flashSave('saved');
+      flashStatus(setSaveStatus, 'saved');
     } catch {
-      flashSave('error');
+      flashStatus(setSaveStatus, 'error');
     }
   }
 
@@ -175,9 +175,13 @@
         </span>
       {/if}
     </div>
-    <div class="mfm-pill">
-      <span class="mfm-pill-name" title={currentDisplayName}>{currentDisplayName}</span>
-    </div>
+    <FilePill
+      name={currentDisplayName}
+      isProtected={activeIsProtected}
+      protectedTitle="Protected default manifest"
+      title={currentDisplayName}
+      style="display: flex;"
+    />
     <div class="mfm-card-actions">
       <button
         class="mfm-btn mfm-btn-row save-btn"
@@ -218,32 +222,14 @@
   </div>
 </div>
 
-<UIDialog bind:show={showFileList} title="Load Manifest" cancelLabel="Close" width="420px">
-  <div class="load-list">
-    {#each files as file}
-      <div class="load-item" class:active={file.fileName === activeFileName}>
-        <button class="load-name-btn" onclick={() => handleApply(file)}>
-          {file.name}
-          {#if file.isProtected}
-            <i class="fas fa-lock load-lock" aria-hidden="true" title="Protected"></i>
-          {/if}
-        </button>
-        {#if file.fileName === activeFileName}
-          <span class="active-badge">active</span>
-        {/if}
-        {#if !file.isProtected}
-          <button
-            class="file-delete-btn"
-            onclick={() => handleDelete(file)}
-            title="Delete this manifest"
-          >
-            <i class="fas fa-trash"></i>
-          </button>
-        {/if}
-      </div>
-    {/each}
-  </div>
-</UIDialog>
+<FileLoadList
+  bind:show={showFileList}
+  title="Load Manifest"
+  {files}
+  {activeFileName}
+  onload={handleApply}
+  ondelete={handleDelete}
+/>
 
 <SaveAsDialog
   bind:show={saveAsDialog}
@@ -259,7 +245,7 @@
 <style>
   .manifest-file-manager {
     --mfm-active: #5aa85e;
-    --mfm-rail-neutral: var(--ui-border-default);
+    --mfm-rail-neutral: var(--ui-border);
     --mfm-rail-active: var(--mfm-active);
 
     display: flex;
@@ -289,7 +275,7 @@
     gap: var(--ui-space-6);
     padding: var(--ui-space-8) var(--ui-space-10) var(--ui-space-10) var(--ui-space-16);
     background: var(--ui-surface-lower);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
   }
 
@@ -335,24 +321,6 @@
     font-size: 0.8em;
   }
 
-  .mfm-pill {
-    display: flex;
-    align-items: center;
-    padding: var(--ui-space-6) var(--ui-space-10);
-    background: var(--ui-surface-high);
-    border: 1px solid var(--ui-border-faint);
-    border-radius: var(--ui-radius-sm);
-    overflow: hidden;
-  }
-
-  .mfm-pill-name {
-    font-size: var(--ui-font-size-sm);
-    color: var(--ui-text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
   .mfm-card-actions {
     display: flex;
     flex-direction: column;
@@ -366,7 +334,7 @@
     gap: var(--ui-space-8);
     padding: var(--ui-space-6) var(--ui-space-10);
     background: var(--ui-surface-high);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-primary);
     font-family: inherit;
@@ -394,73 +362,6 @@
 
   .mfm-btn .fa-spinner {
     animation: mfm-spin 0.8s linear infinite;
-  }
-
-  .load-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-4);
-    min-width: 320px;
-  }
-
-  .load-item {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-    padding: var(--ui-space-6) var(--ui-space-10);
-    background: var(--ui-surface-lower);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-sm);
-  }
-
-  .load-item.active {
-    border-color: var(--mfm-active);
-  }
-
-  .load-name-btn {
-    flex: 1;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    padding: 0;
-    background: transparent;
-    border: 0;
-    color: var(--ui-text-primary);
-    font-family: inherit;
-    font-size: var(--ui-font-size-sm);
-    text-align: left;
-    cursor: pointer;
-  }
-
-  .load-name-btn:hover {
-    color: var(--ui-highlight);
-  }
-
-  .load-lock {
-    font-size: 0.78em;
-    color: var(--ui-text-tertiary);
-  }
-
-  .active-badge {
-    font-size: var(--ui-font-size-xs);
-    color: var(--mfm-active);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .file-delete-btn {
-    padding: var(--ui-space-4) var(--ui-space-6);
-    background: transparent;
-    border: 0;
-    color: var(--ui-text-tertiary);
-    font-size: var(--ui-font-size-sm);
-    line-height: 1;
-    cursor: pointer;
-    transition: color var(--ui-transition-fast);
-  }
-
-  .file-delete-btn:hover {
-    color: var(--ui-text-primary);
   }
 
   @keyframes mfm-spin {

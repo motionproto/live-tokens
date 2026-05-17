@@ -243,7 +243,7 @@
     gap: var(--ui-space-6);
     padding: var(--ui-space-12);
     background: none;
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-md);
   }
 
@@ -270,7 +270,7 @@
     align-items: center;
     gap: var(--ui-space-6);
     padding: var(--ui-space-4) 0;
-    border-bottom: 1px solid var(--ui-border-faint);
+    border-bottom: 1px solid var(--ui-border-lower);
     position: relative;
   }
   .slot-row:last-child { border-bottom: none; }
@@ -329,7 +329,7 @@
 
   .slot-remove {
     background: none;
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     color: var(--ui-text-muted);
     font-size: var(--ui-font-size-md);
     line-height: 1;
@@ -347,7 +347,7 @@
   .add-fallback {
     align-self: flex-start;
     background: none;
-    border: 1px dashed var(--ui-border-faint);
+    border: 1px dashed var(--ui-border-lower);
     color: var(--ui-text-muted);
     font-size: var(--ui-font-size-sm);
     padding: var(--ui-space-4) var(--ui-space-8);

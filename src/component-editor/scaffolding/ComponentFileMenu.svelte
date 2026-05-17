@@ -1,9 +1,7 @@
 <script lang="ts">
-  import { stopPropagation } from 'svelte/legacy';
-
   import { onMount, onDestroy } from 'svelte';
   import type { ComponentConfigMeta } from '../../lib/themeTypes';
-  import UIDialog from '../../ui/UIDialog.svelte';
+  import FileLoadList from '../../ui/FileLoadList.svelte';
 
   interface Props {
     /** Component slug used in the load-dialog title (e.g. "button"). */
@@ -72,7 +70,6 @@
   }
 
   function handleDelete(file: ComponentConfigMeta) {
-    if (file.fileName === 'default') return;
     ondelete?.(file);
   }
 </script>
@@ -106,37 +103,16 @@
   {/if}
 </div>
 
-<UIDialog
+<FileLoadList
   bind:show={showFileList}
   title="Load {component} Config"
-  cancelLabel="Close"
-  width="420px"
->
-  <div class="load-list">
-    {#each files as file}
-      <div class="load-item" class:active={file.fileName === activeFileName}>
-        <button class="load-name-btn" onclick={() => handleLoad(file)}>
-          {file.name}
-        </button>
-        {#if file.fileName === activeFileName}
-          <span class="active-badge">active</span>
-        {/if}
-        {#if file.fileName !== 'default'}
-          <button
-            class="file-delete-btn"
-            onclick={stopPropagation(() => handleDelete(file))}
-            title="Delete {file.name}"
-          >
-            <i class="fas fa-trash-alt"></i>
-          </button>
-        {/if}
-      </div>
-    {/each}
-    {#if files.length === 0}
-      <div class="load-item empty">No saved files</div>
-    {/if}
-  </div>
-</UIDialog>
+  {files}
+  {activeFileName}
+  systemBadge={{ label: 'system', title: 'Protected system config' }}
+  emptyMessage="No saved files"
+  onload={handleLoad}
+  ondelete={handleDelete}
+/>
 
 <style>
   .cfm-btn {
@@ -145,7 +121,7 @@
     gap: var(--ui-space-6);
     padding: var(--ui-space-6) var(--ui-space-12);
     background: var(--ui-surface);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-md);
@@ -164,7 +140,7 @@
   .cfm-btn:hover:not(:disabled) {
     background: var(--ui-surface-high);
     color: var(--ui-text-primary);
-    border-color: var(--ui-border-default);
+    border-color: var(--ui-border);
   }
 
   .cfm-btn:disabled {
@@ -174,7 +150,7 @@
 
   .cfm-btn.active {
     background: var(--ui-surface-high);
-    border-color: var(--ui-border-default);
+    border-color: var(--ui-border);
     color: var(--ui-text-primary);
   }
 
@@ -202,7 +178,7 @@
     left: 0;
     min-width: 160px;
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-default);
+    border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-md);
     box-shadow: var(--shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.4));
     padding: var(--ui-space-4);
@@ -236,89 +212,5 @@
   .file-menu-item:hover {
     background: var(--ui-hover);
     color: var(--ui-text-primary);
-  }
-
-  .load-list {
-    display: flex;
-    flex-direction: column;
-    max-height: 60vh;
-    overflow-y: auto;
-  }
-
-  .load-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 6px;
-    border-bottom: 1px solid #2a2a2a;
-  }
-
-  .load-item:last-child {
-    border-bottom: none;
-  }
-
-  .load-item.empty {
-    padding: 16px;
-    color: #888;
-    font-size: 14px;
-    text-align: center;
-  }
-
-  .load-name-btn {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    padding: 6px 4px;
-    background: none;
-    border: none;
-    color: #aaa;
-    font-size: 14px;
-    cursor: pointer;
-    text-align: left;
-    border-radius: 3px;
-  }
-
-  .load-name-btn:hover {
-    color: #e0e0e0;
-  }
-
-  .load-item.active .load-name-btn {
-    color: #e0e0e0;
-    font-weight: 600;
-  }
-
-  .active-badge {
-    flex-shrink: 0;
-    font-size: 12px;
-    padding: 1px 6px;
-    border-radius: 3px;
-    background: #333;
-    color: #ccc;
-  }
-
-  .file-delete-btn {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    background: none;
-    border: none;
-    color: #555;
-    font-size: 12px;
-    cursor: pointer;
-    opacity: 0;
-  }
-
-  .load-item:hover .file-delete-btn {
-    opacity: 1;
-  }
-
-  .file-delete-btn:hover {
-    color: #ccc;
   }
 </style>

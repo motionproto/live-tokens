@@ -22,7 +22,7 @@
   .config-block {
     margin-top: var(--ui-space-12);
     padding: var(--ui-space-12);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-md);
     background: var(--ui-surface-low);
   }

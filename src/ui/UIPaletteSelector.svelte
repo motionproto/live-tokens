@@ -698,11 +698,11 @@
     align-self: stretch;
     flex: 1;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-faint);
-    background-image: linear-gradient(45deg, var(--ui-border-subtle) 25%, transparent 25%),
-      linear-gradient(-45deg, var(--ui-border-subtle) 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, var(--ui-border-subtle) 75%),
-      linear-gradient(-45deg, transparent 75%, var(--ui-border-subtle) 75%);
+    border: 1px solid var(--ui-border-lower);
+    background-image: linear-gradient(45deg, var(--ui-border-low) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--ui-border-low) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--ui-border-low) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--ui-border-low) 75%);
     background-size: 8px 8px;
     background-position: 0 0, 0 4px, 4px -4px, -4px 0;
     overflow: hidden;
@@ -718,7 +718,7 @@
     align-items: center;
     gap: var(--ui-space-6);
     padding: var(--ui-space-6) var(--ui-space-8);
-    border-bottom: 1px solid var(--ui-border-faint);
+    border-bottom: 1px solid var(--ui-border-lower);
   }
 
   .opacity-control.hidden {
@@ -736,7 +736,7 @@
     height: 4px;
     -webkit-appearance: none;
     appearance: none;
-    background: var(--ui-border-default);
+    background: var(--ui-border);
     border-radius: 2px;
     outline: none;
     cursor: pointer;
@@ -755,7 +755,7 @@
     width: 3rem;
     padding: var(--ui-space-2) var(--ui-space-4);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-primary);
     font-size: var(--ui-font-size-xs);
@@ -784,7 +784,7 @@
     padding: var(--ui-space-8) var(--ui-space-10);
     background: none;
     border: none;
-    border-bottom: 1px solid var(--ui-border-faint);
+    border-bottom: 1px solid var(--ui-border-lower);
     color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-sm);
     font-weight: var(--ui-font-weight-medium);
@@ -802,7 +802,7 @@
 
   .tab-bar {
     display: flex;
-    border-bottom: 1px solid var(--ui-border-faint);
+    border-bottom: 1px solid var(--ui-border-lower);
   }
 
   .tab-btn {
@@ -825,7 +825,7 @@
   }
 
   .tab-btn.assigned {
-    border-color: var(--ui-border-default);
+    border-color: var(--ui-border);
   }
 
   .tab-btn.selected {
@@ -881,7 +881,7 @@
     width: 2.5rem;
     height: 0.75rem;
     border-radius: 2px;
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     position: relative;
     overflow: hidden;
   }
@@ -890,7 +890,7 @@
     width: 2.5rem;
     height: 0.75rem;
     border-radius: 2px;
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
   }
 
   .family-divider {
@@ -901,7 +901,7 @@
     color: var(--ui-text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    border-top: 1px solid var(--ui-border-faint);
+    border-top: 1px solid var(--ui-border-lower);
   }
 
   .none-swatch::after {
@@ -915,8 +915,8 @@
       -45deg,
       transparent,
       transparent 3px,
-      var(--ui-border-subtle) 3px,
-      var(--ui-border-subtle) 4px
+      var(--ui-border-low) 3px,
+      var(--ui-border-low) 4px
     );
   }
 
@@ -954,7 +954,7 @@
 
   .step-item:hover {
     background: var(--ui-hover);
-    border-color: var(--ui-border-default);
+    border-color: var(--ui-border);
   }
 
   .step-item.active {
@@ -973,7 +973,7 @@
     width: 2rem;
     height: 1.5rem;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
   }
 
   .step-label {
@@ -1020,7 +1020,7 @@
 
   .orientation-reset.active {
     color: var(--ui-link-broken, var(--ui-text-secondary));
-    border-color: var(--ui-border-subtle);
+    border-color: var(--ui-border-low);
   }
 
   .orientation-reset:hover:not(:disabled) {
@@ -1055,7 +1055,7 @@
     justify-content: center;
     padding: 0;
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-secondary);
     font-size: 0.875rem;
@@ -1066,7 +1066,7 @@
 
   .dir-btn:hover {
     background: var(--ui-hover);
-    border-color: var(--ui-border-default);
+    border-color: var(--ui-border);
     color: var(--ui-text-primary);
   }
 
@@ -1086,7 +1086,7 @@
     width: 3rem;
     padding: var(--ui-space-2) var(--ui-space-4);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-primary);
     font-size: var(--ui-font-size-xs);

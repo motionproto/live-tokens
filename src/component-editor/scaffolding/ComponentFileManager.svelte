@@ -28,8 +28,10 @@
   import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../lib/migrations';
   import type { CssVarRef } from '../../lib/editorTypes';
   import { safeFetch } from '../../lib/storage';
+  import { flashStatus } from '../../lib/flashStatus';
   import ComponentFileMenu from './ComponentFileMenu.svelte';
   import SaveAsDialog from './SaveAsDialog.svelte';
+  import FilePill from '../../ui/FilePill.svelte';
 
   
   
@@ -53,13 +55,8 @@
 
   type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
   let saveStatus: SaveStatus = 'idle';
+  const setSaveStatus = (s: SaveStatus) => (saveStatus = s);
 
-  /** Show a transient saveStatus (saved/error) and revert to idle after 2s.
-      Centralises the timing so all flash sites stay in sync. */
-  function flashStatus(state: Exclude<SaveStatus, 'idle'>) {
-    saveStatus = state;
-    setTimeout(() => (saveStatus = 'idle'), 2000);
-  }
   let files: ComponentConfigMeta[] = $state([]);
   let activeFileName = $state('default');
   let currentDisplayName = $state('Default');
@@ -80,14 +77,7 @@
   let manifests: ManifestMeta[] = $state([]);
   let retryAdoptAfterManifestSave = false;
 
-  /** Same idle-after-2s pattern for the production-update flash. */
-  function flashProductionStatus(state: Exclude<ProductionStatus, 'idle'>) {
-    productionUpdateStatus = state;
-    setTimeout(() => {
-      productionUpdateStatus = 'idle';
-      adoptFeedback = '';
-    }, 2000);
-  }
+  const setProductionStatus = (s: ProductionStatus) => (productionUpdateStatus = s);
 
   let compDirty = $derived($componentDirty[component] ?? false);
   let isApplied = $derived(!!productionInfo && productionInfo.fileName === activeFileName && !compDirty);
@@ -169,20 +159,18 @@
 
   async function handleSave() {
     if (activeFileName === 'default') {
-      // Default is regenerated from source — can't overwrite directly.
-      saveAsTitle = 'Save Component As';
-      saveAsDescription =
-        "The default config is regenerated from source and can't be overwritten. Save your edits as a new file.";
-      saveAsDialog = true;
+      // Default is regenerated from source, so the first Save quietly opens
+      // Save As — same dialog as the Save As button, no scolding description.
+      openSaveAs();
       return;
     }
     saveStatus = 'saving';
     try {
       await persist(activeFileName, currentDisplayName);
-      flashStatus('saved');
+      flashStatus(setSaveStatus, 'saved');
       await refreshFiles();
     } catch {
-      flashStatus('error');
+      flashStatus(setSaveStatus, 'error');
     }
   }
 
@@ -197,10 +185,10 @@
     saveStatus = 'saving';
     try {
       await persist(fileName, displayName);
-      flashStatus('saved');
+      flashStatus(setSaveStatus, 'saved');
       await refreshFiles();
     } catch {
-      flashStatus('error');
+      flashStatus(setSaveStatus, 'error');
     }
   }
 
@@ -225,11 +213,16 @@
     // Multi-step service flow (delete + reload-default-on-active-removal).
     // Silent by design — see handleLoad.
     try {
+      // Capture before refreshFiles() reads the server's reverted active back
+      // into local state — otherwise the "was this the active file?" check
+      // below sees the post-revert value and skips the reload.
+      const wasActive = file.fileName === activeFileName;
       await deleteComponentConfig(component, file.fileName);
       await refreshFiles();
       await refreshProduction();
-      if (file.fileName === activeFileName) {
-        // Server reverts active to default; reload default aliases into the store.
+      if (wasActive) {
+        // Server reverts active to default; reload default aliases into the store
+        // so the deleted file's CSS vars are replaced by default's.
         const defaultCfg = await loadComponentConfig(component, 'default');
         loadComponentActive(component, 'default', defaultCfg.aliases, defaultCfg.config, defaultCfg.schemaVersion ?? 0);
         activeFileName = 'default';
@@ -266,7 +259,7 @@
       adoptFeedback = wasDirty
         ? `Saved "${adoptingName}" and adopted`
         : `Adopted "${adoptingName}"`;
-      flashProductionStatus('done');
+      flashStatus(setProductionStatus, 'done', { onIdle: () => (adoptFeedback = '') });
     } catch (err) {
       const e = err as Error & { code?: string };
       if (e.code === 'ACTIVE_IS_PROTECTED') {
@@ -282,7 +275,7 @@
         return;
       }
       adoptFeedback = '';
-      flashProductionStatus('error');
+      flashStatus(setProductionStatus, 'error', { onIdle: () => (adoptFeedback = '') });
     }
   }
 
@@ -339,18 +332,19 @@
           <span>{compDirty ? 'unsaved' : isApplied ? 'live' : 'saved'}</span>
         </span>
       </div>
-      <span
-        class="cfm-pill"
-        class:dirty={compDirty}
-        class:applied={isApplied}
+      <FilePill
+        name={currentDisplayName}
+        isProtected={activeFileName === 'default'}
+        dirty={compDirty}
+        applied={isApplied}
+        protectedTitle="Protected system config"
         title={compDirty
           ? 'Unsaved changes'
           : isApplied
             ? 'Active config is applied to production'
             : ''}
-      >
-        <span class="cfm-pill-name">{currentDisplayName}</span>
-      </span>
+        style="flex: 0 0 7.5rem; width: 7.5rem;"
+      />
       <div class="cfm-actions">
         <ComponentFileMenu
           {component}
@@ -389,9 +383,12 @@
           <span>live</span>
         </span>
       </div>
-      <span class="cfm-pill production">
-        <span class="cfm-pill-name">{productionInfo?.name ?? '—'}</span>
-      </span>
+      <FilePill
+        name={productionInfo?.name ?? '—'}
+        isProtected={productionInfo?.fileName === 'default'}
+        protectedTitle="Protected system config"
+        style="flex: 0 0 7.5rem; width: 7.5rem;"
+      />
       <div class="cfm-actions">
         <button
           class="cfm-btn primary apply-btn"
@@ -440,6 +437,8 @@
   bind:show={saveAsDialog}
   {currentDisplayName}
   {files}
+  currentFileName={activeFileName}
+  reservedDisplayNames={files.filter((f) => f.fileName === 'default').map((f) => f.name)}
   title={saveAsTitle}
   description={saveAsDescription}
   placeholder="Component config name…"
@@ -451,17 +450,18 @@
   bind:show={manifestSaveAsDialog}
   currentDisplayName="my-manifest"
   files={manifests}
+  reservedDisplayNames={manifests.filter((m) => m.fileName === 'default').map((m) => m.name)}
   title="Save Manifest As"
   placeholder="Manifest name…"
   description="Adopting a component change updates the active manifest, The default manifest is locked. Name a new manifest for the site."
-  reservedNameMessage='The name "default" is reserved for the protected baseline.'
+  reservedNameMessage='That name is reserved for the protected default manifest.'
   onsave={onManifestSaveAs}
 />
 
 <style>
   .cfm-bar {
     --cfm-applied: #5aa85e;
-    --cfm-rail-neutral: var(--ui-border-default);
+    --cfm-rail-neutral: var(--ui-border);
     --cfm-rail-dirty: var(--ui-highlight);
     --cfm-rail-applied: var(--cfm-applied);
 
@@ -473,7 +473,7 @@
     gap: var(--ui-space-8);
     padding: var(--ui-space-12);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-lg);
   }
 
@@ -505,14 +505,14 @@
     font-weight: 500;
     color: var(--ui-text-secondary);
     text-decoration: none;
-    border: 1px solid var(--ui-border-default);
+    border: 1px solid var(--ui-border);
     border-radius: 999px;
     transition: all var(--ui-transition-fast);
   }
 
   .source-link:hover {
     color: var(--ui-text-primary);
-    border-color: var(--ui-border-strong);
+    border-color: var(--ui-border-higher);
     background: var(--ui-hover);
   }
 
@@ -531,7 +531,7 @@
     gap: var(--ui-space-10);
     padding: var(--ui-space-8) var(--ui-space-10) var(--ui-space-8) var(--ui-space-16);
     background: var(--ui-surface-lower);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
   }
 
@@ -604,41 +604,6 @@
     opacity: 1;
   }
 
-  /* filename pill — fixed width so editor and production pills
-     stack with their left and right edges perfectly aligned. */
-  .cfm-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    flex: 0 0 7.5rem;
-    width: 7.5rem;
-    padding: var(--ui-space-6) var(--ui-space-10);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
-    border-radius: var(--ui-radius-md);
-    transition: border-color var(--ui-transition-fast), box-shadow var(--ui-transition-fast);
-  }
-
-  .cfm-pill.dirty {
-    border-color: color-mix(in srgb, var(--ui-highlight) 60%, var(--ui-border-subtle));
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ui-highlight) 35%, transparent);
-  }
-
-  .cfm-pill.applied {
-    border-color: color-mix(in srgb, var(--cfm-applied) 50%, var(--ui-border-subtle));
-  }
-
-  .cfm-pill-name {
-    flex: 1;
-    min-width: 0;
-    font-size: var(--ui-font-size-md);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
   /* actions cluster — sits directly next to the filename pill so the
      buttons stay near the input and don't drift under the open editor panel.
      position: relative anchors the info popover below the cluster. */
@@ -699,7 +664,7 @@
     gap: var(--ui-space-6);
     padding: var(--ui-space-6) var(--ui-space-12);
     background: var(--ui-surface);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-md);
@@ -718,7 +683,7 @@
   .cfm-btn:hover:not(:disabled) {
     background: var(--ui-surface-high);
     color: var(--ui-text-primary);
-    border-color: var(--ui-border-default);
+    border-color: var(--ui-border);
   }
 
   .cfm-btn:disabled {
@@ -728,18 +693,18 @@
 
   .cfm-btn.primary {
     background: color-mix(in srgb, var(--cfm-applied) 18%, var(--ui-surface-high));
-    border-color: color-mix(in srgb, var(--cfm-applied) 45%, var(--ui-border-medium));
+    border-color: color-mix(in srgb, var(--cfm-applied) 45%, var(--ui-border-high));
     color: var(--ui-text-primary);
   }
 
   .cfm-btn.primary:hover:not(:disabled) {
     background: color-mix(in srgb, var(--cfm-applied) 30%, var(--ui-surface-higher));
-    border-color: color-mix(in srgb, var(--cfm-applied) 70%, var(--ui-border-strong));
+    border-color: color-mix(in srgb, var(--cfm-applied) 70%, var(--ui-border-higher));
   }
 
   .cfm-btn.primary:disabled {
     background: var(--ui-surface);
-    border-color: var(--ui-border-subtle);
+    border-color: var(--ui-border-low);
     color: var(--ui-text-muted);
     opacity: 1;
   }

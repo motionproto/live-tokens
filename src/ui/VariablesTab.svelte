@@ -8,6 +8,7 @@
   import OverlaysSection from './sections/OverlaysSection.svelte';
   import GradientsSection from './sections/GradientsSection.svelte';
   import ShadowsSection from './sections/ShadowsSection.svelte';
+  import UIPillButton from './UIPillButton.svelte';
   import {
     SPACING_VARS, BORDER_WIDTH_VARS, RADIUS_VARS, FONT_SIZE_VARS,
     ICON_SIZE_VARS, FONT_WEIGHT_VARS, LINE_HEIGHT_VARS,
@@ -40,6 +41,9 @@
     copiedVar = v;
     setTimeout(() => { copiedVar = null; }, COPIED_FLASH_MS);
   }
+
+  type FontAddMode = 'closed' | 'url' | 'fontface';
+  let fontAddMode: FontAddMode = $state('closed');
 </script>
 
 <div class="variables-container">
@@ -81,11 +85,18 @@
 
   <!-- Typography -->
   <section class="section" id="typography">
-    <h2 class="section-title">Typography</h2>
+    <div class="typography-header">
+      <h2 class="section-title">Typography</h2>
+      <UIPillButton
+        variant="primary"
+        icon="fa-plus"
+        onclick={() => { fontAddMode = fontAddMode === 'closed' ? 'url' : 'closed'; }}
+      >Add Font</UIPillButton>
+    </div>
 
     <div class="typography-columns">
       <div class="typography-group font-families-group">
-        <ProjectFontsSection />
+        <ProjectFontsSection bind:addMode={fontAddMode} />
         <h3 class="group-title">Font Families</h3>
         <FontStackEditor />
       </div>
@@ -160,16 +171,16 @@
   }
 
   .section-title {
-    font-size: var(--ui-font-size-lg);
+    font-size: var(--ui-font-size-2xl);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
     margin: 0;
     padding-bottom: var(--ui-space-8);
-    border-bottom: 1px solid var(--ui-border-subtle);
+    border-bottom: 2px solid var(--ui-border-high);
   }
 
   .group-title {
-    font-size: var(--ui-font-size-md);
+    font-size: var(--ui-font-size-lg);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-secondary);
     margin: 0;
@@ -178,11 +189,11 @@
   /* Subsection title (used by Spacing & Borders) */
   .subsection-title {
     margin: var(--ui-space-16) 0 var(--ui-space-8);
-    font-size: var(--ui-font-size-sm);
+    font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-secondary);
+    color: var(--ui-text-tertiary);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
   }
 
   .subsection-title:first-child,
@@ -191,6 +202,18 @@
   }
 
   /* Typography */
+  .typography-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-12);
+    padding-bottom: var(--ui-space-8);
+    border-bottom: 2px solid var(--ui-border-high);
+  }
+  .typography-header .section-title {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
   .typography-columns {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(22rem, 100%), 1fr));

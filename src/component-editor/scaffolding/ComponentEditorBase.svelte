@@ -89,7 +89,7 @@
     gap: var(--ui-space-4);
     padding: var(--ui-space-4);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-md);
     align-self: flex-start;
   }
@@ -115,6 +115,6 @@
   .variant-tab-btn.active {
     color: var(--ui-text-primary);
     background: var(--ui-surface-high);
-    box-shadow: 0 0 0 1px var(--ui-border-default);
+    box-shadow: 0 0 0 1px var(--ui-border);
   }
 </style>

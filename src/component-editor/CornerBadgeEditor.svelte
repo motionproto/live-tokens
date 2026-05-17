@@ -189,7 +189,7 @@
     display: grid;
     place-items: center;
     padding: 0;
-    border: 1px solid var(--ui-border-subtle, rgba(255, 255, 255, 0.1));
+    border: 1px solid var(--ui-border-low, rgba(255, 255, 255, 0.1));
     border-radius: var(--ui-radius-sm);
     background: transparent;
     color: var(--ui-text-tertiary);
@@ -204,6 +204,6 @@
   .anchor-btn.checked {
     background: var(--ui-surface-active, rgba(255, 255, 255, 0.12));
     color: var(--ui-text-primary);
-    border-color: var(--ui-border-strong, rgba(255, 255, 255, 0.25));
+    border-color: var(--ui-border-higher, rgba(255, 255, 255, 0.25));
   }
 </style>

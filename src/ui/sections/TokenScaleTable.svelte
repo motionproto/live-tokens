@@ -263,7 +263,7 @@
     width: 3.5rem;
     height: 3.5rem;
     background: none;
-    border: 2px solid var(--ui-border-medium);
+    border: 2px solid var(--ui-border-high);
   }
 
   /* Font sizes / icon sizes */
@@ -339,7 +339,7 @@
     align-items: baseline;
     gap: var(--ui-space-12);
     padding: var(--ui-space-4) 0;
-    border-bottom: 1px solid var(--ui-border-faint);
+    border-bottom: 1px solid var(--ui-border-lower);
   }
 
   .token-row:last-child {

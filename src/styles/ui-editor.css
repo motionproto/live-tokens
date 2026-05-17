@@ -50,11 +50,11 @@
   --ui-link-broken:       #f0c34a;
   --ui-link-broken-glow:  rgba(240, 195, 74, 0.28);
 
-  --ui-border-faint:    var(--ui-gray-400);
-  --ui-border-subtle:   var(--ui-gray-500);
-  --ui-border-default:  var(--ui-gray-600);
-  --ui-border-medium:   var(--ui-gray-700);
-  --ui-border-strong:   var(--ui-gray-800);
+  --ui-border-lower:    var(--ui-gray-400);
+  --ui-border-low:      var(--ui-gray-500);
+  --ui-border:          var(--ui-gray-600);
+  --ui-border-high:     var(--ui-gray-700);
+  --ui-border-higher:   var(--ui-gray-800);
 
   --ui-surface-lowest:  var(--ui-gray-50);
   --ui-surface-lower:   var(--ui-gray-100);
@@ -91,14 +91,16 @@
   --ui-space-32: 2rem;
   --ui-space-48: 3rem;
 
-  --ui-font-size-xs:  0.8125rem;  /* 13px */
+
+=
+  --ui-font-size-xs:  0.75rem;    /* 12px */
   --ui-font-size-sm:  0.875rem;   /* 14px */
-  --ui-font-size-md:  0.9375rem;  /* 15px */
-  --ui-font-size-lg:  1.0625rem;  /* 17px */
-  --ui-font-size-xl:  1.1875rem;  /* 19px */
-  --ui-font-size-2xl: 1.3125rem;  /* 21px */
-  --ui-font-size-3xl: 1.625rem;   /* 26px */
-  --ui-font-size-4xl: 2rem;       /* 32px */
+  --ui-font-size-md:  1rem;       /* 16px — base */
+  --ui-font-size-lg:  1.125rem;   /* 18px */
+  --ui-font-size-xl:  1.25rem;    /* 20px */
+  --ui-font-size-2xl: 1.5rem;     /* 24px */
+  --ui-font-size-3xl: 1.75rem;    /* 28px */
+  --ui-font-size-4xl: 2.25rem;    /* 36px */
 
   --ui-font-weight-normal:    400;
   --ui-font-weight-medium:    500;

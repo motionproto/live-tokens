@@ -168,12 +168,12 @@
   }
 
   .section-title {
-    font-size: var(--ui-font-size-lg);
+    font-size: var(--ui-font-size-2xl);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
     margin: 0;
     padding-bottom: var(--ui-space-8);
-    border-bottom: 1px solid var(--ui-border-subtle);
+    border-bottom: 2px solid var(--ui-border-high);
   }
 
   .columns-intro {
@@ -194,7 +194,7 @@
     gap: var(--ui-space-8);
     padding: var(--ui-space-12) var(--ui-space-16);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-md);
   }
 
@@ -274,7 +274,7 @@
     justify-content: flex-end;
     padding-top: var(--ui-space-8);
     margin-top: var(--ui-space-4);
-    border-top: 1px solid var(--ui-border-faint);
+    border-top: 1px solid var(--ui-border-lower);
   }
 
   .columns-reset {
@@ -283,7 +283,7 @@
     gap: var(--ui-space-6);
     padding: var(--ui-space-4) var(--ui-space-10);
     background: transparent;
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-tertiary);
     font-family: inherit;
@@ -294,7 +294,7 @@
 
   .columns-reset:hover {
     color: var(--ui-text-primary);
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
   }
 
   .columns-reset i {
@@ -303,7 +303,7 @@
 
   .columns-preview {
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-md);
     padding: var(--ui-space-12) 0;
     overflow: hidden;
@@ -365,7 +365,7 @@
     text-align: right;
     flex-shrink: 0;
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     padding: var(--ui-space-2) var(--ui-space-4);
     -moz-appearance: textfield;
@@ -380,7 +380,7 @@
 
   .shadow-slider-input:focus {
     outline: none;
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
   }
 
   .shadow-slider-unit {

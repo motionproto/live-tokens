@@ -120,7 +120,7 @@
     top: calc(100% + var(--ui-space-4));
     right: 0;
     background: var(--ui-surface-higher);
-    border: 1px solid var(--ui-border-medium);
+    border: 1px solid var(--ui-border-high);
     border-radius: var(--ui-radius-md);
     box-shadow: var(--ui-shadow-lg);
     z-index: 20;
@@ -138,7 +138,7 @@
   }
 
   .ui-relink-header {
-    border-bottom: 1px solid var(--ui-border-faint);
+    border-bottom: 1px solid var(--ui-border-lower);
     padding-bottom: var(--ui-space-6);
   }
 
@@ -205,7 +205,7 @@
     justify-content: flex-end;
     gap: var(--ui-space-6);
     padding-top: var(--ui-space-4);
-    border-top: 1px solid var(--ui-border-faint);
+    border-top: 1px solid var(--ui-border-lower);
   }
 
   .ui-relink-btn {
@@ -219,7 +219,7 @@
 
   .ui-relink-btn-cancel {
     background: transparent;
-    border: 1px solid var(--ui-border-default);
+    border: 1px solid var(--ui-border);
     color: var(--ui-text-secondary);
   }
 

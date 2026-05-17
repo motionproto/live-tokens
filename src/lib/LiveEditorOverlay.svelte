@@ -23,6 +23,7 @@
   import { overlayOpen } from './overlayState';
   import { quietGet, quietSet } from './storage';
   import { postParentRoute } from './parentRouteStore';
+  import UIPillButton from '../ui/UIPillButton.svelte';
   import type { NavLink } from './navLinkTypes';
 
   interface Props {
@@ -327,15 +328,14 @@
     {/if}
 
     {#if open && showSource}
-      <a
-        class="hdr-btn text source"
-        href="vscode://file/{projectRoot}/{sourceFile}"
-        title="Open {sourceFile} in VS Code"
-        transition:fade={BTN_FADE}
-      >
-        <i class="fas fa-code"></i>
-        Show page source
-      </a>
+      <span class="source-pill" transition:fade={BTN_FADE}>
+        <UIPillButton
+          size="compact"
+          icon="fa-code"
+          href="vscode://file/{projectRoot}/{sourceFile}"
+          title="Open {sourceFile} in VS Code"
+        >Show page source</UIPillButton>
+      </span>
     {/if}
 
     {#if open && navLinks.length > 0}
@@ -517,23 +517,8 @@
     font-weight: 500;
   }
 
-  a.hdr-btn.source {
-    gap: 6px;
-    text-decoration: none;
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.45);
-    border-radius: 999px;
-    padding: 0 14px;
-    color: rgba(255, 255, 255, 0.92);
-  }
-
-  a.hdr-btn.source:hover {
-    background: rgba(255, 255, 255, 0.14);
-    border-color: rgba(255, 255, 255, 0.6);
-  }
-
-  a.hdr-btn.source i {
-    color: rgba(255, 255, 255, 0.6);
+  .source-pill {
+    display: inline-flex;
   }
 
   .hdr-btn.nav {

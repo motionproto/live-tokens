@@ -40,7 +40,7 @@
     color: var(--ui-text-primary);
     margin: 0;
     padding-bottom: var(--ui-space-8);
-    border-bottom: 1px solid var(--ui-border-subtle);
+    border-bottom: 1px solid var(--ui-border-low);
   }
 
   :global(.components-container .demo-description) {

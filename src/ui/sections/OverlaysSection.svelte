@@ -341,16 +341,16 @@
   }
 
   .section-title {
-    font-size: var(--ui-font-size-lg);
+    font-size: var(--ui-font-size-2xl);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
     margin: 0;
     padding-bottom: var(--ui-space-8);
-    border-bottom: 1px solid var(--ui-border-subtle);
+    border-bottom: 2px solid var(--ui-border-high);
   }
 
   .group-title {
-    font-size: var(--ui-font-size-md);
+    font-size: var(--ui-font-size-lg);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-secondary);
     margin: 0;
@@ -404,7 +404,7 @@
     border-radius: var(--ui-radius-md);
     position: relative;
     overflow: hidden;
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     background-image:
       linear-gradient(45deg, #ccc 25%, transparent 25%),
       linear-gradient(-45deg, #ccc 25%, transparent 25%),
@@ -442,7 +442,7 @@
     gap: var(--ui-space-8);
     padding: var(--ui-space-12);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     margin-top: var(--ui-space-8);
   }
@@ -517,7 +517,7 @@
     text-align: right;
     flex-shrink: 0;
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     padding: var(--ui-space-2) var(--ui-space-4);
     -moz-appearance: textfield;
@@ -532,7 +532,7 @@
 
   .shadow-slider-input:focus {
     outline: none;
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
   }
 
   .shadow-slider-unit {
@@ -564,7 +564,7 @@
     gap: var(--ui-space-8);
     padding: var(--ui-space-12);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     width: 100%;
     min-width: 14rem;
@@ -576,7 +576,7 @@
     gap: var(--ui-space-4);
     margin-top: var(--ui-space-4);
     padding-top: var(--ui-space-8);
-    border-top: 1px solid var(--ui-border-faint);
+    border-top: 1px solid var(--ui-border-lower);
   }
 
   .shadow-css-output code {
@@ -592,7 +592,7 @@
     color: var(--ui-text-muted);
     cursor: pointer;
     padding: var(--ui-space-2) var(--ui-space-6);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     text-align: center;
     transition: color var(--ui-transition-fast), border-color var(--ui-transition-fast);
@@ -600,7 +600,7 @@
 
   .shadow-copy-btn:hover {
     color: var(--ui-text-primary);
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
   }
 
   .slider-track {
@@ -609,7 +609,7 @@
     position: relative;
     height: 12px;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
   }
 
   .slider-track input[type="range"] {
@@ -631,7 +631,7 @@
     height: 14px;
     border-radius: 2px;
     background: white;
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     box-shadow: 0 1px 3px rgba(0,0,0,0.4);
     cursor: pointer;
   }
@@ -641,7 +641,7 @@
     height: 14px;
     border-radius: 2px;
     background: white;
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     box-shadow: 0 1px 3px rgba(0,0,0,0.4);
     cursor: pointer;
   }
@@ -661,7 +661,7 @@
     width: 2rem;
     flex-shrink: 0;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
   }
 
   .global-color-sliders {

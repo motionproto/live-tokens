@@ -1295,32 +1295,44 @@
 
 /* component-aliases:start */
 :root:root {
-  /* button (default_01) */
-  --button-primary-radius: var(--radius-full);
-  --button-primary-hover-radius: var(--radius-full);
-  --button-primary-disabled-radius: var(--radius-full);
-  --button-secondary-radius: var(--radius-full);
-  --button-secondary-hover-radius: var(--radius-full);
-  --button-secondary-disabled-radius: var(--radius-full);
-  --button-outline-radius: var(--radius-full);
-  --button-outline-hover-radius: var(--radius-full);
-  --button-outline-disabled-radius: var(--radius-full);
-  --button-success-radius: var(--radius-full);
-  --button-success-hover-radius: var(--radius-full);
-  --button-success-disabled-radius: var(--radius-full);
-  --button-danger-radius: var(--radius-full);
-  --button-danger-hover-radius: var(--radius-full);
-  --button-danger-disabled-radius: var(--radius-full);
-  --button-warning-radius: var(--radius-full);
-  --button-warning-hover-radius: var(--radius-full);
-  --button-warning-disabled-radius: var(--radius-full);
-  /* card (my-card) */
-  --card-default-surface: var(color-mix(in srgb, var(--surface-neutral) 95%, transparent));
-  --card-default-header-surface: var(color-mix(in srgb, var(--surface-neutral-low) 85%, transparent));
-  --card-default-body-font-size: var(--font-size-sm);
-  --card-default-header-padding-top: var(--space-8);
-  --card-default-header-padding-right: var(--space-16);
-  --card-default-header-padding-bottom: var(--space-8);
-  --card-default-header-padding-left: var(--space-16);
+  /* sectiondivider (my-section-divider) */
+  --sectiondivider-canvas-title-font-family: var(--font-sans);
+  --sectiondivider-canvas-title-font-weight: var(--font-weight-bold);
+  --sectiondivider-canvas-title-border-width: var(--border-width-6);
+  --sectiondivider-canvas-border: var(--border-accent-medium);
+  --sectiondivider-canvas-border-width: var(--border-width-2);
+  --sectiondivider-neutral-title-font-family: var(--font-sans);
+  --sectiondivider-neutral-title-font-weight: var(--font-weight-bold);
+  --sectiondivider-neutral-title-border-width: var(--border-width-6);
+  --sectiondivider-neutral-border: var(--border-accent-medium);
+  --sectiondivider-neutral-border-width: var(--border-width-2);
+  --sectiondivider-alternate-title-font-family: var(--font-sans);
+  --sectiondivider-alternate-title-font-weight: var(--font-weight-bold);
+  --sectiondivider-alternate-title-border-width: var(--border-width-6);
+  --sectiondivider-alternate-border: var(--border-accent-medium);
+  --sectiondivider-alternate-border-width: var(--border-width-2);
+  --sectiondivider-primary-title-font-family: var(--font-sans);
+  --sectiondivider-primary-title-font-weight: var(--font-weight-bold);
+  --sectiondivider-primary-title-border-width: var(--border-width-6);
+  --sectiondivider-primary-border: var(--border-accent-medium);
+  --sectiondivider-primary-border-width: var(--border-width-2);
+  --sectiondivider-accent-title-font-family: var(--font-sans);
+  --sectiondivider-accent-title-font-weight: var(--font-weight-bold);
+  --sectiondivider-accent-title-border-width: var(--border-width-6);
+  --sectiondivider-accent-title-stroke-color: var(color-mix(in srgb, var(--surface-accent-lowest) 30%, transparent));
+  --sectiondivider-accent-description: var(--text-accent);
+  --sectiondivider-accent-gradient-stop-1-color: var(color-mix(in srgb, var(--surface-accent-highest) 85%, transparent));
+  --sectiondivider-accent-gradient-stop-1-position: var(0.3%);
+  --sectiondivider-accent-gradient-stop-2-color: var(color-mix(in srgb, var(--surface-accent-higher) 60%, transparent));
+  --sectiondivider-accent-gradient-stop-2-position: var(33.7%);
+  --sectiondivider-accent-gradient-stop-3-color: var(color-mix(in srgb, var(--surface-accent-low) 75%, transparent));
+  --sectiondivider-accent-gradient-stop-3-position: var(100%);
+  --sectiondivider-accent-border: var(--border-accent-medium);
+  --sectiondivider-accent-border-width: var(--border-width-2);
+  --sectiondivider-special-title-font-family: var(--font-sans);
+  --sectiondivider-special-title-font-weight: var(--font-weight-bold);
+  --sectiondivider-special-title-border-width: var(--border-width-6);
+  --sectiondivider-special-border: var(--border-accent-medium);
+  --sectiondivider-special-border-width: var(--border-width-2);
 }
 /* component-aliases:end */

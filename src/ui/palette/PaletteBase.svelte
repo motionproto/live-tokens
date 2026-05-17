@@ -137,18 +137,18 @@
     width: 4rem;
     height: 4rem;
     border-radius: var(--ui-radius-md);
-    border: 2px solid var(--ui-border-default);
+    border: 2px solid var(--ui-border);
     flex-shrink: 0;
     cursor: pointer;
   }
 
   .header-swatch:hover {
-    border-color: var(--ui-border-strong);
+    border-color: var(--ui-border-higher);
   }
 
   .header-swatch.active {
-    border-color: var(--ui-border-strong);
-    outline: 2px solid var(--ui-border-medium);
+    border-color: var(--ui-border-higher);
+    outline: 2px solid var(--ui-border-high);
     outline-offset: 1px;
   }
 
@@ -165,14 +165,17 @@
   }
 
   .clickable-hex {
+    align-self: flex-start;
     background: none;
     border: none;
     cursor: pointer;
     padding: var(--ui-space-2) var(--ui-space-4);
+    margin-left: calc(-1 * var(--ui-space-4));
     border-radius: var(--ui-radius-sm);
     font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     font-family: var(--ui-font-mono);
+    text-align: left;
   }
 
   .clickable-hex:hover {

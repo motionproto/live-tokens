@@ -260,7 +260,7 @@
 
   .pfs-divider {
     height: 1px;
-    background: var(--ui-border-faint);
+    background: var(--ui-border-lower);
     margin: var(--ui-space-4) 0;
   }
 
@@ -312,7 +312,7 @@
     overflow-y: auto;
     padding: var(--ui-space-4);
     background: var(--ui-surface-higher);
-    border: 1px solid var(--ui-border-medium);
+    border: 1px solid var(--ui-border-high);
     border-radius: var(--ui-radius-md);
     box-shadow: var(--ui-shadow-lg);
     z-index: 1;

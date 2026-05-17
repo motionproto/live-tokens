@@ -31,6 +31,15 @@
      *  reserved name. Pass a fresh, neutral suggestion (e.g. "My Theme") so
      *  the user's first save isn't named after the slot they can't overwrite. */
     branchFromDefaultName?: string;
+    /** Active file's basename. Authoritative source for "are we branching from
+     *  the protected default?" — the displayName-based check below fails when
+     *  the default's display name doesn't sanitize to "default" (e.g. themes
+     *  whose default is named "Default Theme" → "default-theme"). */
+    currentFileName?: string;
+    /** Display names that already belong to protected/system files. Blocked
+     *  case-insensitively so a user can't shadow the default by reusing its
+     *  display label even when the sanitized filename would differ. */
+    reservedDisplayNames?: string[];
     onsave?: (payload: { displayName: string; fileName: string }) => void;
   }
 
@@ -43,6 +52,8 @@
     reservedNameMessage = 'The name "default" is reserved for the core component definition.',
     description = '',
     branchFromDefaultName = '',
+    currentFileName = '',
+    reservedDisplayNames = [],
     onsave,
   }: Props = $props();
 
@@ -91,7 +102,21 @@
   // ends up focused-and-selected, not the button.
   run(() => {
     if (show) {
-      if (sanitizeFileName(currentDisplayName) === 'default') {
+      const trimmedCurrent = currentDisplayName.trim().toLowerCase();
+      const isReservedDisplay = reservedDisplayNames.some(
+        (n) => n.trim().toLowerCase() === trimmedCurrent,
+      );
+      // Three paths funnel into the branch suggestion:
+      //   1. Active is the literal `default` file.
+      //   2. Current displayName itself sanitizes to "default".
+      //   3. Current displayName collides with a reserved label (e.g. a stray
+      //      user file already named "Default Theme") — re-seeding with their
+      //      old name would trip the validator on submit.
+      const isFromDefault =
+        currentFileName === 'default' ||
+        sanitizeFileName(currentDisplayName) === 'default' ||
+        isReservedDisplay;
+      if (isFromDefault) {
         saveAsName = branchFromDefaultName
           ? branchFromDefaultName
           : nextIncrementName(currentDisplayName).displayName;
@@ -105,6 +130,10 @@
     const trimmed = saveAsName.trim();
     if (!trimmed) return '';
     if (sanitizeFileName(trimmed) === 'default') {
+      return reservedNameMessage;
+    }
+    const lowered = trimmed.toLowerCase();
+    if (reservedDisplayNames.some((n) => n.trim().toLowerCase() === lowered)) {
       return reservedNameMessage;
     }
     return '';
@@ -167,7 +196,7 @@
     min-width: 0;
     padding: var(--ui-space-8) var(--ui-space-10);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-primary);
     font-size: var(--ui-font-size-md);
@@ -181,7 +210,7 @@
     width: 2.25rem;
     padding: 0;
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-md);
@@ -191,12 +220,12 @@
 
   .save-as-increment:hover {
     background: var(--ui-surface);
-    border-color: var(--ui-border-default);
+    border-color: var(--ui-border);
     color: var(--ui-text-primary);
   }
 
   .save-as-input:focus {
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
   }
 
   .save-as-input.invalid,

@@ -31,7 +31,7 @@
     padding: var(--ui-space-2) var(--ui-space-8);
     height: 1.5rem;
     background: none;
-    border: 1px solid var(--ui-border-default);
+    border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-secondary);
     font-family: inherit;
@@ -47,7 +47,7 @@
   .ui-link-toggle:hover {
     color: var(--ui-text-primary);
     background: var(--ui-hover);
-    border-color: var(--ui-border-strong);
+    border-color: var(--ui-border-higher);
   }
 
   .ui-link-toggle.linked {

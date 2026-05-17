@@ -323,7 +323,7 @@
     gap: var(--ui-space-12);
     padding: var(--ui-space-12);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
   }
 
@@ -338,7 +338,7 @@
     width: 1.5rem;
     height: 1.5rem;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     flex-shrink: 0;
   }
 
@@ -349,7 +349,7 @@
     width: 1.5rem;
     height: 1.5rem;
     padding: 0;
-    border: 1px solid var(--ui-border-default);
+    border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-sm);
     background: var(--ui-hover);
     color: var(--ui-text-secondary);
@@ -360,7 +360,7 @@
     &:hover {
       background: var(--ui-hover-high);
       color: var(--ui-text-primary);
-      border-color: var(--ui-border-strong);
+      border-color: var(--ui-border-higher);
     }
   }
 
@@ -383,7 +383,7 @@
   }
 
   .hsl-hex:hover {
-    border-color: var(--ui-border-default);
+    border-color: var(--ui-border);
     background: var(--ui-surface-low);
   }
 
@@ -392,7 +392,7 @@
     color: var(--ui-text-accent);
     font-family: var(--ui-font-mono);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-strong);
+    border: 1px solid var(--ui-border-higher);
     border-radius: var(--ui-radius-sm);
     padding: var(--ui-space-2) var(--ui-space-4);
     width: 5.5rem;
@@ -438,7 +438,7 @@
     position: relative;
     height: 1.25rem;
     border-radius: var(--ui-radius-md);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     flex: 1;
     min-width: 6rem;
   }
@@ -487,7 +487,7 @@
   }
 
   .slider-track input[type="range"]:focus-visible {
-    outline: 2px solid var(--ui-border-medium);
+    outline: 2px solid var(--ui-border-high);
     outline-offset: 2px;
   }
 
@@ -499,7 +499,7 @@
     text-align: right;
     flex-shrink: 0;
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     padding: var(--ui-space-2) var(--ui-space-4);
     -moz-appearance: textfield;
@@ -518,7 +518,7 @@
 
   .hsl-slider-input:focus {
     outline: none;
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
   }
 
   .hsl-slider-unit {

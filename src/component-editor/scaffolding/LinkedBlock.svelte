@@ -203,7 +203,7 @@
   .linked-block {
     margin-top: var(--ui-space-12);
     padding: var(--ui-space-12);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-md);
     background: var(--ui-surface-low);
   }
@@ -248,7 +248,7 @@
     color: var(--ui-text-tertiary);
   }
   .section-summary-sep {
-    color: var(--ui-border-default);
+    color: var(--ui-border);
   }
   .section-summary-count {
     font-family: var(--ui-font-mono);
@@ -279,7 +279,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-8);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-lg);
     padding: var(--ui-space-12) var(--ui-space-16);
     min-width: 14rem;
@@ -299,7 +299,7 @@
   }
   .linked-card.hovered {
     background: var(--ui-hover-lowest);
-    border-color: var(--ui-border-default);
+    border-color: var(--ui-border);
   }
   .linked-card.hovered.broken {
     border-color: var(--ui-link-broken);

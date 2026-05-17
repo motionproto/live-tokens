@@ -454,7 +454,7 @@
     width: 100%;
     height: 100%;
     background: transparent;
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     cursor: crosshair;
     display: block;
@@ -467,7 +467,7 @@
   }
 
   .curve-grid {
-    stroke: var(--ui-border-faint);
+    stroke: var(--ui-border-lower);
     stroke-width: 0.5;
     vector-effect: non-scaling-stroke;
   }
@@ -477,7 +477,7 @@
   }
 
   .curve-step-line {
-    stroke: var(--ui-border-faint);
+    stroke: var(--ui-border-lower);
     stroke-width: 0.5;
     vector-effect: non-scaling-stroke;
 
@@ -581,7 +581,7 @@
     align-items: center;
     gap: var(--ui-space-4);
     padding: var(--ui-space-2) var(--ui-space-6);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     background: var(--ui-surface-lowest);
     cursor: pointer;
@@ -590,13 +590,13 @@
   }
 
   .curve-tool-btn:hover {
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
     color: var(--ui-text-secondary);
     background: var(--ui-surface-high);
   }
 
   .curve-tool-btn.active {
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
     background: var(--ui-surface-highest);
     color: var(--ui-text-primary);
   }
@@ -634,14 +634,14 @@
     width: 1.5rem;
     height: 1rem;
     padding: 0;
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     background: var(--ui-surface-lowest);
     cursor: pointer;
   }
 
   .curve-template-btn:hover {
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
     background: var(--ui-surface-high);
   }
 

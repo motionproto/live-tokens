@@ -252,6 +252,6 @@
     letter-spacing: 0.04em;
     color: var(--ui-text-tertiary);
     padding-bottom: var(--ui-space-4);
-    border-bottom: 1px solid var(--ui-border-faint);
+    border-bottom: 1px solid var(--ui-border-lower);
   }
 </style>

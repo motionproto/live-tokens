@@ -296,7 +296,7 @@
     margin-top: var(--ui-space-8);
     padding: var(--ui-space-12);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-lg);
     display: flex;
     flex-direction: column;
@@ -324,7 +324,7 @@
   .style-btn {
     width: 28px;
     height: 28px;
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     background: var(--ui-surface-lowest);
     color: var(--ui-text-secondary);
@@ -343,7 +343,7 @@
   }
 
   .style-btn:hover {
-    border-color: var(--ui-border-medium);
+    border-color: var(--ui-border-high);
   }
 
   .size-btn {
@@ -357,7 +357,7 @@
     padding: 2px 6px;
     font-size: var(--ui-font-size-md);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-primary);
     text-align: center;
@@ -394,7 +394,7 @@
     padding: 2px 6px;
     font-size: var(--ui-font-size-md);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-primary);
   }
@@ -403,7 +403,7 @@
     width: 20px;
     height: 20px;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     flex-shrink: 0;
   }
 
@@ -423,7 +423,7 @@
     position: relative;
     height: 24px;
     border-radius: var(--ui-radius-md);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     cursor: crosshair;
   }
 
@@ -446,7 +446,7 @@
     width: 16px;
     height: 16px;
     border-radius: var(--ui-radius-sm);
-    border: 2px solid var(--ui-border-medium);
+    border: 2px solid var(--ui-border-high);
     flex-shrink: 0;
   }
 
@@ -463,7 +463,7 @@
     height: 0;
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
-    border-top: 6px solid var(--ui-border-medium);
+    border-top: 6px solid var(--ui-border-high);
   }
 
   .gradient-stop-handle.selected .stop-arrow {
@@ -481,7 +481,7 @@
   .stop-remove-btn {
     width: 20px;
     height: 20px;
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     background: var(--ui-surface-lowest);
     color: var(--ui-text-tertiary);
@@ -495,7 +495,7 @@
   }
 
   .stop-remove-btn:hover {
-    border-color: var(--ui-border-strong);
+    border-color: var(--ui-border-higher);
     color: var(--ui-text-primary);
   }
 </style>

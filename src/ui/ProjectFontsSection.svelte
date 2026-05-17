@@ -9,23 +9,13 @@
     parseFontFaceText,
     type ParsedFamily,
   } from '../lib/fontParse';
-  import googleFontsData from '../data/google-fonts.json';
+  import UIPillButton from './UIPillButton.svelte';
 
-  interface GoogleFontEntry { family: string; category: string; variants: number[] }
-  const GOOGLE_FONTS: GoogleFontEntry[] = (googleFontsData as any).fonts;
+  type AddMode = 'closed' | 'url' | 'fontface';
+  interface Props { addMode?: AddMode }
+  let { addMode = $bindable('closed') }: Props = $props();
 
-  type AddMode = 'closed' | 'google' | 'url' | 'fontface';
-  let addMode: AddMode = $state('closed');
-
-  // Google search
-  let googleQuery = $state('');
-  let googleMatches = $derived(googleQuery.trim().length >= 1
-    ? GOOGLE_FONTS
-        .filter((f) => f.family.toLowerCase().includes(googleQuery.toLowerCase()))
-        .slice(0, 20)
-    : GOOGLE_FONTS.slice(0, 10));
-
-  // URL paste
+  // URL paste — accepts a bare URL, a `<link>` tag, or an `@import url(...)` block.
   let urlInput = $state('');
   let urlError = $state('');
   let urlDiscovering = $state(false);
@@ -40,7 +30,6 @@
 
   function reset() {
     addMode = 'closed';
-    googleQuery = '';
     urlInput = '';
     urlError = '';
     urlDiscovering = false;
@@ -52,6 +41,21 @@
     fontFaceParsed = [];
   }
 
+  // Pull a fonts URL out of whatever the user pastes: bare URL, link tag,
+  // @import url(...), or a full style-tag wrapper around an @import.
+  function extractFontsUrl(raw: string): string | null {
+    const text = raw.trim();
+    if (!text) return null;
+    const href = text.match(/href\s*=\s*["']([^"']+)["']/i);
+    if (href) return href[1];
+    const importUrl = text.match(/@import\s+url\(\s*['"]?([^'")]+)['"]?\s*\)/i);
+    if (importUrl) return importUrl[1];
+    const importBare = text.match(/@import\s+['"]([^'"]+)['"]/i);
+    if (importBare) return importBare[1];
+    if (/^https?:\/\//i.test(text)) return text;
+    return null;
+  }
+
   let fontSourcesList = $derived($editorState.fonts.sources);
   let fontStacksList = $derived($editorState.fonts.stacks);
 
@@ -61,23 +65,15 @@
     applyFontStacks(fontStacksList, next);
   }
 
-  function addGoogleFont(entry: GoogleFontEntry) {
-    const weightList = entry.variants.length > 0 ? entry.variants : [400];
-    const weightSpec = weightList.length > 1
-      ? `wght@${weightList.join(';')}`
-      : `wght@${weightList[0]}`;
-    const url = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(entry.family).replace(/%20/g, '+')}:${weightSpec}&display=swap`;
-    const source = buildSourceFromUrl(url, [{ name: entry.family, weights: weightList }]);
-    commitSources([...fontSourcesList, source]);
-    reset();
-  }
-
   async function discoverUrl() {
     urlError = '';
     urlParsed = null;
     urlNeedsManualFamilies = false;
-    const url = urlInput.trim();
-    if (!url) return;
+    const url = extractFontsUrl(urlInput);
+    if (!url) {
+      urlError = "Couldn't find a fonts URL in that paste";
+      return;
+    }
     urlDiscovering = true;
     try {
       const found = await discoverFamiliesFromUrl(url);
@@ -95,8 +91,11 @@
   }
 
   function addUrlSource() {
-    const url = urlInput.trim();
-    if (!url) return;
+    const url = extractFontsUrl(urlInput);
+    if (!url) {
+      urlError = "Couldn't find a fonts URL in that paste";
+      return;
+    }
     let families: ParsedFamily[] = [];
     if (urlParsed) {
       families = urlParsed.filter((f) => urlPickedNames.has(f.name));
@@ -239,46 +238,33 @@
   </div>
 
   {#if addMode === 'closed'}
-    <button type="button" class="pf-add-toggle" onclick={() => (addMode = 'google')}>+ add font</button>
+    <div class="pf-add-toggle-row">
+      <UIPillButton icon="fa-plus" onclick={() => (addMode = 'url')}>Add Font</UIPillButton>
+    </div>
   {:else}
     <div class="pf-add-panel">
       <div class="pf-add-tabs">
-        <button type="button" class:active={addMode === 'google'} onclick={() => (addMode = 'google')}>Google search</button>
-        <button type="button" class:active={addMode === 'url'} onclick={() => (addMode = 'url')}>Paste URL</button>
+        <button type="button" class:active={addMode === 'url'} onclick={() => (addMode = 'url')}>Paste URL or embed</button>
         <button type="button" class:active={addMode === 'fontface'} onclick={() => (addMode = 'fontface')}>@font-face</button>
         <button type="button" class="pf-add-close" onclick={reset} aria-label="Cancel">×</button>
       </div>
 
-      {#if addMode === 'google'}
-        <input
-          type="text"
-          class="ui-form-input"
-          placeholder="Search Google Fonts (e.g. Inter)"
-          bind:value={googleQuery}
-        />
-        <ul class="pf-results">
-          {#each googleMatches as m (m.family)}
-            <li class="pf-result">
-              <span class="pf-result-preview" style="font-family: '{m.family}', {m.category};">{m.family}</span>
-              <span class="pf-result-meta">{m.category} · {m.variants.length}w</span>
-              <button type="button" class="pf-result-add" onclick={() => addGoogleFont(m)}>add</button>
-            </li>
-          {/each}
-          {#if googleMatches.length === 0}
-            <li class="pf-no-results">No matches</li>
-          {/if}
-        </ul>
-      {:else if addMode === 'url'}
-        <input
-          type="text"
-          class="ui-form-input"
-          placeholder="https://fonts.googleapis.com/css2?family=... or Typekit URL"
+      {#if addMode === 'url'}
+        <p class="pf-hint">
+          Pick fonts on
+          <a href="https://fonts.google.com/selection/embed" target="_blank" rel="noopener noreferrer">Google Fonts <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i></a>,
+          copy either the <code>&lt;link&gt;</code> tag or the <code>@import</code> block, and paste it below. Any CSS URL (Typekit, custom host) also works.
+        </p>
+        <textarea
+          class="ui-form-input pf-textarea pf-url-input"
+          placeholder={'<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">\n\nor\n\n@import url(\'https://fonts.googleapis.com/css2?...\');\n\nor just the URL'}
+          rows="4"
           bind:value={urlInput}
-        />
+        ></textarea>
         <div class="pf-row">
-          <button type="button" class="pf-btn" onclick={discoverUrl} disabled={!urlInput.trim() || urlDiscovering}>
+          <UIPillButton variant="secondary" onclick={discoverUrl} disabled={!urlInput.trim() || urlDiscovering}>
             {urlDiscovering ? 'Checking…' : 'Detect families'}
-          </button>
+          </UIPillButton>
         </div>
         {#if urlError}<div class="pf-error">{urlError}</div>{/if}
         {#if urlParsed}
@@ -305,7 +291,7 @@
               </li>
             {/each}
           </ul>
-          <button type="button" class="pf-btn primary" onclick={addUrlSource}>Add {urlPickedNames.size} selected</button>
+          <UIPillButton variant="primary" onclick={addUrlSource}>Add {urlPickedNames.size} selected</UIPillButton>
         {:else if urlNeedsManualFamilies}
           <div class="pf-detected">Couldn't auto-detect families (CORS or no metadata). Name them:</div>
           <input
@@ -314,7 +300,7 @@
             placeholder="Comma-separated family names"
             bind:value={urlManualFamilies}
           />
-          <button type="button" class="pf-btn primary" onclick={addUrlSource} disabled={!urlManualFamilies.trim()}>Add</button>
+          <UIPillButton variant="primary" onclick={addUrlSource} disabled={!urlManualFamilies.trim()}>Add</UIPillButton>
         {/if}
       {:else if addMode === 'fontface'}
         <textarea
@@ -327,7 +313,7 @@
         {#if fontFaceParsed.length > 0}
           <div class="pf-detected">Detected: {fontFaceParsed.map((f) => f.name).join(', ')}</div>
         {/if}
-        <button type="button" class="pf-btn primary" onclick={addFontFaceSource} disabled={fontFaceParsed.length === 0}>Add</button>
+        <UIPillButton variant="primary" onclick={addFontFaceSource} disabled={fontFaceParsed.length === 0}>Add</UIPillButton>
       {/if}
     </div>
   {/if}
@@ -338,6 +324,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-8);
+    max-width: 56rem;
   }
 
   .pf-header {
@@ -350,7 +337,8 @@
   .group-title {
     margin: 0;
     font-size: var(--ui-font-size-lg);
-    color: var(--ui-text-primary);
+    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-text-secondary);
   }
 
   .pf-empty {
@@ -367,7 +355,7 @@
   }
 
   .pf-source {
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-md);
     display: flex;
     flex-direction: column;
@@ -378,7 +366,7 @@
     align-items: center;
     gap: var(--ui-space-8);
     padding: var(--ui-space-8) var(--ui-space-12);
-    border-bottom: 1px solid var(--ui-border-faint);
+    border-bottom: 1px solid var(--ui-border-lower);
     background: var(--ui-surface-subtle, rgba(255,255,255,0.02));
     border-radius: var(--ui-radius-md) var(--ui-radius-md) 0 0;
   }
@@ -386,7 +374,7 @@
   .pf-kind-badge {
     font-size: var(--ui-font-size-xs);
     color: var(--ui-text-tertiary);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     padding: 0 var(--ui-space-4);
     border-radius: var(--ui-radius-sm);
     font-family: var(--ui-font-mono);
@@ -395,13 +383,13 @@
   .pf-source-label {
     font-size: var(--ui-font-size-lg);
     color: var(--ui-text-primary);
-    font-weight: 500;
+    font-weight: var(--ui-font-weight-medium);
   }
 
   .pf-source-url {
     font-family: var(--ui-font-mono);
     font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-tertiary);
+    color: var(--ui-text-secondary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -459,7 +447,7 @@
     background: var(--ui-surface-hover, rgba(255,255,255,0.06));
   }
   .pf-family-disclosure i {
-    transition: transform 0.12s ease;
+    transition: transform var(--ui-transition-fast);
   }
   .pf-family-disclosure.open i { transform: rotate(90deg); }
   .pf-family-disclosure-placeholder {
@@ -510,19 +498,8 @@
   }
   .pf-meta-weights { word-break: break-word; }
 
-  .pf-add-toggle {
-    align-self: flex-start;
-    background: none;
-    border: 1px dashed var(--ui-border-faint);
-    color: var(--ui-text-muted);
-    font-size: var(--ui-font-size-sm);
-    padding: var(--ui-space-4) var(--ui-space-8);
-    border-radius: var(--ui-radius-sm);
-    cursor: pointer;
-  }
-  .pf-add-toggle:hover {
-    color: var(--ui-text-primary);
-    border-color: var(--ui-border);
+  .pf-add-toggle-row {
+    display: flex;
   }
 
   .pf-add-panel {
@@ -530,7 +507,7 @@
     flex-direction: column;
     gap: var(--ui-space-8);
     padding: var(--ui-space-8);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-sm);
   }
 
@@ -540,16 +517,21 @@
   }
   .pf-add-tabs button {
     background: none;
-    border: 1px solid var(--ui-border-faint);
-    color: var(--ui-text-muted);
+    border: 1px solid var(--ui-border-low);
+    color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-sm);
     padding: var(--ui-space-4) var(--ui-space-8);
     border-radius: var(--ui-radius-sm);
     cursor: pointer;
   }
+  .pf-add-tabs button:hover {
+    color: var(--ui-text-primary);
+    border-color: var(--ui-border-high);
+  }
   .pf-add-tabs button.active {
     color: var(--ui-text-primary);
-    border-color: var(--ui-border);
+    background: var(--ui-surface-high);
+    border-color: var(--ui-border-higher);
   }
   .pf-add-tabs .pf-add-close {
     margin-left: auto;
@@ -561,26 +543,9 @@
     align-items: center;
   }
 
-  .pf-btn {
-    background: none;
-    border: 1px solid var(--ui-border-faint);
-    color: var(--ui-text-primary);
-    font-size: var(--ui-font-size-sm);
-    padding: var(--ui-space-4) var(--ui-space-8);
-    border-radius: var(--ui-radius-sm);
-    cursor: pointer;
-  }
-  .pf-btn:hover:not(:disabled) { border-color: var(--ui-border); }
-  .pf-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .pf-btn.primary {
-    background: var(--ui-focus, #5eb2ff);
-    border-color: var(--ui-focus, #5eb2ff);
-    color: #000;
-  }
-
   .pf-error { color: var(--ui-text-danger, #ff6b6b); font-size: var(--ui-font-size-sm); }
 
-  .pf-detected { color: var(--ui-text-tertiary); font-size: var(--ui-font-size-sm); }
+  .pf-detected { color: var(--ui-text-secondary); font-size: var(--ui-font-size-sm); }
 
   .pf-checklist {
     list-style: none;
@@ -600,46 +565,39 @@
   .pf-check-name { color: var(--ui-text-primary); }
   .pf-check-meta { color: var(--ui-text-tertiary); font-family: var(--ui-font-mono); font-size: var(--ui-font-size-xs); }
 
-  .pf-results {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-2);
-    max-height: 18rem;
-    overflow-y: auto;
-  }
-
-  .pf-result {
-    display: grid;
-    grid-template-columns: 1fr auto auto;
-    align-items: center;
-    gap: var(--ui-space-8);
-    padding: var(--ui-space-4);
-    border: 1px solid transparent;
-    border-radius: var(--ui-radius-sm);
-  }
-  .pf-result:hover { border-color: var(--ui-border-faint); }
-
-  .pf-result-preview { font-size: var(--ui-font-size-lg); color: var(--ui-text-primary); }
-  .pf-result-meta { font-size: var(--ui-font-size-xs); color: var(--ui-text-tertiary); font-family: var(--ui-font-mono); }
-  .pf-result-add {
-    background: none;
-    border: 1px solid var(--ui-border-faint);
-    color: var(--ui-text-muted);
-    font-size: var(--ui-font-size-sm);
-    padding: 2px var(--ui-space-6);
-    border-radius: var(--ui-radius-sm);
-    cursor: pointer;
-  }
-  .pf-result-add:hover { color: var(--ui-text-primary); border-color: var(--ui-border); }
-
-  .pf-no-results { color: var(--ui-text-muted); font-size: var(--ui-font-size-sm); padding: var(--ui-space-4); }
-
   .pf-textarea {
     font-family: var(--ui-font-mono);
     font-size: var(--ui-font-size-xs);
     resize: vertical;
+    color: var(--ui-text-primary);
+  }
+  .pf-textarea::placeholder { color: var(--ui-text-muted); opacity: 1; }
+
+  .pf-url-input {
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .pf-hint {
+    margin: 0;
+    color: var(--ui-text-tertiary);
+    font-size: var(--ui-font-size-sm);
+    line-height: 1.4;
+  }
+  .pf-hint a {
+    color: var(--ui-text-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+    white-space: nowrap;
+  }
+  .pf-hint a:hover { text-decoration-thickness: 2px; }
+  .pf-hint a i { font-size: 0.75em; margin-left: var(--ui-space-2); }
+  .pf-hint code {
+    font-family: var(--ui-font-mono);
+    font-size: 0.92em;
+    padding: 0 var(--ui-space-2);
+    background: var(--ui-surface-hover, rgba(255,255,255,0.06));
+    border-radius: var(--ui-radius-sm);
   }
 </style>

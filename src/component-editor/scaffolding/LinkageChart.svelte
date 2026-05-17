@@ -206,8 +206,8 @@
   .grid {
     display: grid;
     gap: 1px;
-    background: var(--ui-border-faint);
-    border: 1px solid var(--ui-border-faint);
+    background: var(--ui-border-lower);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-sm);
     overflow: hidden;
   }
@@ -242,7 +242,7 @@
     text-align: center;
   }
   button.row-target:focus-visible {
-    outline: 1px solid var(--ui-border-default, var(--ui-gray-700));
+    outline: 1px solid var(--ui-border, var(--ui-gray-700));
     outline-offset: -2px;
   }
 
@@ -265,7 +265,7 @@
   .grid .row-h.row-target.selected {
     background: var(--ui-surface-high);
     color: var(--ui-text-primary);
-    box-shadow: inset 0 0 0 1px var(--ui-border-default);
+    box-shadow: inset 0 0 0 1px var(--ui-border);
     z-index: 1;
   }
   .grid .cell.row-target.in-selected-row,
@@ -273,7 +273,7 @@
     background: var(--ui-surface-high);
   }
   .grid .cell.row-target.selected {
-    box-shadow: inset 0 0 0 1px var(--ui-border-default);
+    box-shadow: inset 0 0 0 1px var(--ui-border);
     z-index: 1;
   }
   .grid .cell.broken.row-target.in-selected-row,
@@ -300,7 +300,7 @@
   .absent {
     width: 5px;
     height: 1px;
-    background: var(--ui-border-subtle);
+    background: var(--ui-border-low);
     opacity: 0.6;
   }
 </style>

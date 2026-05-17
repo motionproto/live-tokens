@@ -231,7 +231,7 @@
     padding: var(--ui-space-4) var(--ui-space-8);
     background: var(--ui-surface-input);
     color: var(--ui-text-primary);
-    border: 1px solid var(--ui-border-subtle);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     font-family: var(--ui-font-mono);
     font-size: var(--ui-font-size-xs);

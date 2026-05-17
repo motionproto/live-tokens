@@ -283,7 +283,7 @@
     position: relative;
     height: 3rem;
     border-radius: var(--ui-radius-md);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     cursor: copy;
   }
 
@@ -314,7 +314,7 @@
     width: 0.7rem;
     height: 0.7rem;
     background: var(--stop-color, var(--ui-surface-high));
-    border: 1px solid var(--ui-border-default);
+    border: 1px solid var(--ui-border);
     transform: rotate(45deg);
     border-radius: 1px;
     transition: border-color var(--ui-transition-fast), box-shadow var(--ui-transition-fast);
@@ -348,7 +348,7 @@
 
   .type-toggle {
     display: inline-flex;
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-md);
     overflow: hidden;
   }
@@ -369,7 +369,7 @@
   }
 
   .type-toggle button + button {
-    border-left: 1px solid var(--ui-border-faint);
+    border-left: 1px solid var(--ui-border-lower);
   }
 
   .ghost-btn {
@@ -378,7 +378,7 @@
     gap: var(--ui-space-6);
     padding: var(--ui-space-4) var(--ui-space-10);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-sm);
@@ -388,7 +388,7 @@
 
   .ghost-btn:hover:not(:disabled) {
     color: var(--ui-text-primary);
-    border-color: var(--ui-border-default);
+    border-color: var(--ui-border);
   }
 
   .ghost-btn:disabled {
@@ -421,7 +421,7 @@
     width: 4.5rem;
     padding: var(--ui-space-2) var(--ui-space-6);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-faint);
+    border: 1px solid var(--ui-border-lower);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-primary);
     font-family: var(--ui-font-mono);
@@ -455,7 +455,7 @@
     gap: var(--ui-space-6);
     padding: var(--ui-space-4) var(--ui-space-12);
     background: var(--ui-surface-high);
-    border: 1px solid var(--ui-border-medium);
+    border: 1px solid var(--ui-border-high);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-primary);
     font-size: var(--ui-font-size-sm);
@@ -465,6 +465,6 @@
 
   .primary-btn:hover {
     background: var(--ui-surface-higher);
-    border-color: var(--ui-border-strong);
+    border-color: var(--ui-border-higher);
   }
 </style>

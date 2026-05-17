@@ -49,7 +49,7 @@
     padding: var(--ui-space-6) var(--ui-space-10);
     background: var(--ui-surface-highest);
     color: var(--ui-text-primary);
-    border: 1px solid var(--ui-border-medium);
+    border: 1px solid var(--ui-border-high);
     border-radius: var(--ui-radius-lg);
     box-shadow: var(--ui-shadow-lg);
     font-family: var(--ui-font-mono);
@@ -70,8 +70,8 @@
     width: 8px;
     height: 8px;
     background: var(--ui-surface-highest);
-    border-right: 1px solid var(--ui-border-medium);
-    border-bottom: 1px solid var(--ui-border-medium);
+    border-right: 1px solid var(--ui-border-high);
+    border-bottom: 1px solid var(--ui-border-high);
     transform: translateX(-50%) rotate(45deg);
   }
 
