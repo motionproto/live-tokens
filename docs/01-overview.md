@@ -2,57 +2,58 @@
 
 ## What this is
 
-Live Tokens is a **design-token editor** paired with a **runtime that drives CSS
-custom properties from that editor**. A designer-developer opens the host app, pops
-the editor overlay, and edits colors, typography, spacing, radii, shadows, motion,
-and per-component slots. The live page repaints on every change, no reload required.
-The editor itself runs in an iframe layered over the page, so editing happens
-in-context: the user sees what their app actually looks like, not a sandbox.
+Live Tokens is a **design-token editor** plus a **runtime that drives CSS
+custom properties from that editor**. A designer-developer opens the host app,
+pops the editor overlay, and edits colors, typography, spacing, radii,
+shadows, motion, and per-component slots. The page repaints on every change,
+no reload required. The editor runs in an iframe layered over the page, so
+editing happens in context: the user sees the real app, not a sandbox.
 
-When the user is satisfied, they **promote** a saved theme to "production." That
-writes the theme's variables straight into `src/styles/tokens.css` and regenerates
-`fonts.css` from the resolved font registry. Production builds bundle these CSS
-files as-is. The production bundle has no editor code, no JSON loader, and no
-runtime indirection.
+When the user is satisfied, they **promote** a saved theme to "production."
+That writes the theme's variables straight into `src/system/styles/tokens.css`
+and regenerates `fonts.css` from the resolved font registry. Production
+builds bundle those CSS files as-is. The production bundle ships no editor
+code, no JSON loader, and no runtime indirection.
 
 ## Shipping modes
 
-The package supports two consumption shapes that share a single source tree:
+The package supports two consumption shapes from a single source tree:
 
 ```
 @motion-proto/live-tokens
-├── starter mode — the repo itself, used as a degit template
-└── library mode — npm-installed into an existing Svelte 4 + Vite app
+├── starter mode — the repo itself, cloned as a degit template
+└── library mode — npm-installed into an existing Svelte 5 + Vite app
 ```
 
-**Starter.** `npx degit motionproto/live-tokens my-app`. The repo as-shipped is also
-a working app; `Home.svelte` is the only file the user is expected to replace.
+**Starter.** `npx degit motionproto/live-tokens my-app`. The repo is also a
+working app; `src/app/Home.svelte` is the only file the user needs to
+replace.
 
-**Library.** Install, register the Vite plugin, call `configureEditor`, mount
-`<LiveEditorOverlay />` and the `/editor` route. The library exports its surface
-through `src/lib/index.ts` (overlay, stores, theme service, font helpers, plugin
-entry).
+**Library.** Install, register the Vite plugin, call `configureEditor`,
+mount `<LiveEditorOverlay />` and the `/editor` route. The library exports
+its surface through `src/editor/index.ts` (overlay, stores, theme service,
+font helpers, plugin entry).
 
-Differences between the two modes live in `src/main.ts`, `src/App.svelte`, and the
-pages under `src/pages/`. Everything under `src/lib/`, `src/ui/`,
-`src/component-editor/`, and `src/components/` ships in both.
+The two modes differ only in `src/app/main.ts`, `src/app/App.svelte`, and
+`src/app/Home.svelte`. Everything under `src/editor/` and `src/system/`
+ships in both.
 
 ## What problem this solves
 
 Most token systems force a choice:
 
-- **Edit-in-Figma.** Rich tooling, but the values you ship come from an export
-  pipeline that's separate from the running app. The team you're collaborating with
-  can't see what the design actually looks like under real CSS, real fonts, real
-  responsive breakpoints, or real component states.
+- **Edit-in-Figma.** Rich tooling, but the values you ship come from an
+  export pipeline separate from the running app. Your team cannot see what
+  the design looks like under real CSS, real fonts, real responsive
+  breakpoints, or real component states.
 
-- **Edit-in-code.** Ship-accurate, but every iteration means editing CSS files,
-  saving, waiting for the build, and re-checking the page. Loop time runs five to
-  ten seconds per change, which kills exploratory work.
+- **Edit-in-code.** Ship-accurate, but every iteration means editing CSS
+  files, saving, waiting for the build, and re-checking the page. Loop time
+  runs five to ten seconds per change. That kills exploratory work.
 
-Live Tokens splits the difference. The editor lives next to the running app and
-writes the same CSS variables the app reads. Iteration is real-time; the artifact
-is plain CSS; production never imports the editor.
+Live Tokens splits the difference. The editor lives next to the running app
+and writes the same CSS variables the app reads. Iteration is real-time, the
+artifact is plain CSS, and production never imports the editor.
 
 ## The headline picture
 
@@ -60,7 +61,7 @@ is plain CSS; production never imports the editor.
 flowchart LR
     subgraph App["Host app (page being edited)"]
         Page["Page DOM<br/><small>uses var(--surface-*)</small>"]
-        Tokens["styles/tokens.css<br/><small>:root { --token: ... }</small>"]
+        Tokens["system/styles/tokens.css<br/><small>:root { --token: ... }</small>"]
     end
 
     subgraph Editor["Editor overlay (iframe)"]
@@ -70,8 +71,8 @@ flowchart LR
     end
 
     subgraph Server["Vite dev plugin"]
-        API["/api/themes<br/>/api/component-configs"]
-        FS[("themes/*.json<br/>component-configs/*/<br/>tokens.css")]
+        API["/api/themes<br/>/api/component-configs<br/>/api/manifests"]
+        FS[("themes/*.json<br/>component-configs/*/<br/>manifests/*.json<br/>tokens.css")]
     end
 
     Tokens -.applied at boot.-> Page
@@ -87,64 +88,64 @@ flowchart LR
 
 Three takeaways:
 
-1. **The runtime artifact is `:root` CSS variables.** Everything else sits upstream
-   of that. Palettes derive into vars, theme files merge into vars, component
-   aliases emit `var(...)` references that resolve to vars.
+1. **The runtime artifact is `:root` CSS variables.** Everything else sits
+   upstream of that. Palettes derive into vars, theme files merge into vars,
+   component aliases emit `var(...)` references that resolve to vars.
 
-2. **The editor iframe writes to *both* its own document and the parent's.** That's
-   how one editor running in an overlay can repaint the surrounding host page in
-   real time without postMessage plumbing. See `cssVarSync.ts` and chapter 07.
+2. **The editor iframe writes to *both* its own document and the parent's.**
+   That is how one editor running in an overlay can repaint the surrounding
+   host page in real time without postMessage plumbing. See `cssVarSync.ts`
+   and chapter 07.
 
-3. **The dev-server plugin (`themeFileApi`) is what turns "save" into a JSON file
-   on disk.** Production builds don't run the plugin and don't need it. By the time
-   you build, the chosen theme has been baked into `tokens.css`.
+3. **The dev-server plugin (`themeFileApi`) is what turns "save" into a
+   JSON file on disk.** Production builds never run the plugin and never
+   need it. By build time, the chosen theme has been baked into
+   `tokens.css`.
 
 ## Top-level directory map
 
 ```
 src/
-├── main.ts                 — boot orchestration (starter only)
-├── App.svelte              — top-level router shell (starter only)
-├── pages/                  — Home, Demo, Editor, ComponentEditorPage (starter only)
-├── lib/                    — runtime: store, theme service, overlay, router, parsers
-│   ├── editorStore.ts      — barrel + load/save orchestration + theme migrations
-│   ├── editorCore.ts       — writable + history + Scope primitive
-│   ├── editorRenderer.ts   — DOM subscriber (writes CSS vars)
-│   ├── editorPersistence.ts — debounced localStorage hydrate
-│   ├── slices/             — per-domain state factories (palettes, fonts, shadows…)
-│   ├── migrations/         — dated schema migrations + runner
-│   ├── parsers/            — :global(:root) extractor
-│   ├── files/              — versionedFileResource client
-│   ├── cssVarSync.ts       — single CSS-var writer (self + parent doc)
-│   ├── paletteDerivation.ts — pure palette → CSS-var function
-│   ├── themeService.ts     — /api/themes client wrappers
-│   ├── componentConfigService.ts — /api/component-configs client wrappers
-│   ├── themeInit.ts        — boot-time theme load
-│   ├── router.ts           — minimal pushState router
-│   ├── LiveEditorOverlay.svelte — pinned-to-corner overlay UI
-│   └── ColumnsOverlay.svelte — column-grid debugging overlay
-├── ui/                     — neutral primitives + design-system editor surfaces
-│   ├── VariablesTab.svelte / SurfacesTab.svelte / TextTab.svelte / VisualsTab.svelte
-│   ├── PaletteEditor.svelte / GradientEditor.svelte / ColorEditPanel.svelte
-│   ├── ThemeFileManager.svelte
-│   └── UI*Selector.svelte  — token-aware form controls
-├── component-editor/       — per-component editors + scaffolding
-│   ├── registry.ts         — single source of truth for the component list
-│   ├── scaffolding/        — ComponentEditorBase, VariantGroup, TokenLayout, …
-│   └── <Foo>Editor.svelte  — one per component
-├── components/             — runtime components (Button, Dialog, Tooltip, …)
-├── styles/                 — tokens.css, fonts.css, form-controls.css
-├── data/                   — google-fonts.json
-└── vite-plugin/            — themeFileApi entry + route table + file resources
-
-themes/                     — *.json theme files (active/production pointers)
-component-configs/<id>/     — *.json per-component alias/config files
+├── app/                       — boot orchestration (starter only)
+│   ├── main.ts                — calls each module's init()
+│   ├── App.svelte             — top-level router shell
+│   ├── Home.svelte            — placeholder home page
+│   └── site.css               — themed h1/p/a defaults
+├── demo/                      — Demo route content (starter only)
+├── editor/                    — the entire editor (ships in both modes)
+│   ├── core/                  — runtime: store, themes, persistence, routing
+│   │   ├── cssVarSync.ts      — single CSS-var writer (self + parent doc)
+│   │   ├── store/             — editorCore, editorStore, editorRenderer, editorPersistence
+│   │   ├── themes/            — themeService, themeInit, slices/*, migrations/*, parsers/*
+│   │   ├── components/        — componentConfigService, componentConfigKeys, componentPersist
+│   │   ├── manifests/         — manifestService (preset bundles)
+│   │   ├── palettes/          — oklch, paletteDerivation, tokenRegistry
+│   │   ├── fonts/             — fontLoader, fontMigration, fontParse
+│   │   ├── routing/           — minimal pushState router
+│   │   └── storage/           — versionedFileResourceClient, storage helpers
+│   ├── component-editor/      — per-component editors + scaffolding
+│   │   ├── registry.ts        — single source of truth for the component list
+│   │   ├── scaffolding/       — ComponentEditorBase, VariantGroup, LinkedBlock, …
+│   │   └── <Foo>Editor.svelte — one per component
+│   ├── ui/                    — neutral primitives + design-system editor surfaces
+│   ├── overlay/               — LiveEditorOverlay, ColumnsOverlay
+│   ├── pages/                 — Editor.svelte, ComponentEditorPage.svelte, EditorShell.svelte
+│   └── styles/                — ui-editor.css, ui-form-controls.css
+├── system/                    — the design system the library ships
+│   ├── components/            — runtime components (Button, Dialog, …)
+│   ├── styles/                — tokens.css, fonts.css, CONVENTIONS.md
+│   └── assets/                — fonts, icons
+vite-plugin/                   — themeFileApi entry + route table + file resources
+themes/                        — *.json theme files (active + production pointers)
+component-configs/<id>/        — *.json per-component alias/config files
+manifests/                     — *.json preset bundles (theme + per-component refs)
 ```
 
-The split between `lib/` and `ui/` is deliberate. `lib/` is plumbing: state,
-persistence, DOM sync, fetch helpers. `ui/` is the design-system-editor surface:
-the tabs, the palette editor, the color picker. `component-editor/` is the
-*component* editor surface: per-component slot editors and scaffolding for shared
+The split between `editor/core/` and `editor/ui/` is deliberate.
+`editor/core/` is plumbing: state, persistence, DOM sync, fetch helpers.
+`editor/ui/` is the design-system editor surface: the tabs, the palette
+editor, the color picker. `editor/component-editor/` is the *component*
+editor surface: per-component slot editors and scaffolding for linked
 blocks and variant groups.
 
 ## Where to go next
@@ -152,6 +153,6 @@ blocks and variant groups.
 - **You're consuming the library.** Read 01, 04, 07.
 - **You're adding a component.** Read 05, 08.
 - **You're touching state, history, or persistence.** Read 03.
-- **You're adding an `/api/*` route or a theme-format change.** Read 06 plus
-  chapter 04's migration section.
+- **You're adding an `/api/*` route or a theme-format change.** Read 06,
+  plus chapter 04's migration section.
 - **You hit a contract that surprised you.** Read 10 first.
