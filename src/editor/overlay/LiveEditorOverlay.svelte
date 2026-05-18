@@ -1,8 +1,5 @@
 <script module lang="ts">
-  // __PROJECT_ROOT__ is injected by the themeFileApi Vite plugin as a `define`.
-  // Consumers don't need to configure it themselves. We declare it locally so
-  // this component's type-check passes in consumer projects that haven't added
-  // the ambient global to their tsconfig.
+  // __PROJECT_ROOT__ / __APP_VERSION__ are Vite-injected defines.
   declare const __PROJECT_ROOT__: string | undefined;
   declare const __APP_VERSION__: string | undefined;
   const INJECTED_PROJECT_ROOT: string =
@@ -44,15 +41,12 @@
     projectRoot = INJECTED_PROJECT_ROOT
   }: Props = $props();
 
-  // Self-gate: only render in dev, and never inside an iframe (the /editor
-  // page embeds this same app in an iframe and would otherwise recursively
-  // mount another overlay).
+  // Dev-only; skip inside iframe (editor route embeds this app).
   const isDev = import.meta.env.DEV;
   const isInIframe = typeof window !== 'undefined' && window.parent !== window;
   const enabled = isDev && !isInIframe;
 
-  // Self-manage `open` when the consumer doesn't bind it. When they do, their
-  // binding wins and we skip our own persistence.
+  // Persist `open` only when consumer doesn't bind it.
   const OPEN_KEY = storageKey('overlay-open');
   const consumerControlsOpen = open !== undefined;
   if (!consumerControlsOpen) {
@@ -67,15 +61,12 @@
     overlayOpen.set(!!open);
   });
 
-  // Hide the overlay entirely when the user is already on the editor route
-  // (the editor page has its own chrome).
+  // Editor route has its own chrome — hide overlay there.
   let onEditorPath = $derived($route === editorPath);
   let sourceFile = $derived(pageSources[$route]);
   let showSource = $derived(!!sourceFile && !!projectRoot && !hidePageSourceOn.includes($route));
 
-  // Mount the iframe the first time the editor is shown, then keep it mounted
-  // across hide/show cycles so editor state (unsaved slider values, scroll
-  // position, expanded sections) survives.
+  // Mount iframe on first open, then keep it to preserve editor state across hide/show.
   let hasBeenOpen: boolean = $state(!!open);
   run(() => {
     if (open) hasBeenOpen = true;
@@ -135,22 +126,17 @@
   let dockedWidth: number = $state(Math.max(MIN_WIDTH, initial.dockedWidth));
   let floating = $state({ ...initial.floating });
 
-  // Approximate natural size of the collapsed pill (Editor title + columns toggle).
-  // A few pixels of overshoot is fine — the panel has overflow:hidden.
-  const COLLAPSED_WIDTH = 184;
-  const COLLAPSED_HEIGHT = 38;
+  // Collapsed-pill size; slight overshoot is fine (overflow:hidden).
+  const COLLAPSED_WIDTH = 200;
+  const COLLAPSED_HEIGHT = 44;
 
-  // Fade timing for the buttons that only render when open (float toggle, spacer,
-  // nav links, page-source). The bar's grow/shrink + iframe fade live in CSS vars
-  // at the top of the style block.
+  // Fade for open-only buttons (bar timing lives in CSS vars below).
   const BTN_FADE = { duration: 130, easing: cubicInOut };
 
-  // Suppress CSS transitions during gestures and mode swaps so dragging doesn't
-  // re-animate every frame, and floating↔docked swaps snap cleanly.
+  // Suppress CSS transitions during gestures + mode swaps.
   let suppressTransition = $state(false);
 
-  // Gesture state — a transparent scrim covers the iframe while any gesture is active
-  // so pointer events land on the panel, not on content inside the iframe.
+  // Scrim catches pointer events during gestures so they hit the panel, not the iframe.
   let gesturing: 'drag' | 'resize-left' | 'resize-se' | null = $state(null);
 
   function startDrag(e: PointerEvent) {
@@ -186,7 +172,7 @@
     const startX = e.clientX;
     const origWidth = dockedWidth;
     function move(ev: PointerEvent) {
-      // Dragging left increases width (panel is anchored to the right edge)
+      // Panel anchored right — drag left grows width.
       dockedWidth = clamp(origWidth + (startX - ev.clientX), MIN_WIDTH, window.innerWidth - 120);
     }
     function up() {
@@ -231,7 +217,7 @@
   function toggleMode() {
     suppressTransition = true;
     mode = mode === 'docked' ? 'floating' : 'docked';
-    // Snap the floating rect back inside the viewport if it drifted off-screen since last use
+    // Re-clamp floating rect into viewport in case it drifted off-screen.
     if (mode === 'floating') {
       floating = {
         x: clamp(floating.x, 0, window.innerWidth - MIN_WIDTH),
@@ -249,8 +235,7 @@
   }
 
   function handleHeaderDblClick(e: MouseEvent) {
-    // Ignore double-clicks on buttons so toggling mode/fullscreen/show-hide
-    // doesn't also fire the dblclick handler.
+    // Skip dblclick on buttons so their handlers don't double-fire.
     if ((e.target as HTMLElement).closest('button')) return;
     toggleOpen();
   }
@@ -330,7 +315,6 @@
     {#if open && showSource}
       <span class="source-pill" transition:fade={BTN_FADE}>
         <UIPillButton
-          size="compact"
           icon="fa-code"
           href="vscode://file/{projectRoot}/{sourceFile}"
           title="Open {sourceFile} in VS Code"
@@ -386,8 +370,7 @@
 
 <style>
   .lt-overlay {
-    /* Animation knobs. bar = panel grow/shrink, pane = iframe fade.
-       open = collapsed to expanded, close = expanded to collapsed. */
+    /* Animation knobs: bar = panel grow/shrink. */
     --bar-open-dur: 240ms;
     --bar-open-ease: cubic-bezier(0.65, 0, 0.35, 1);
     --bar-open-delay: 0ms;
@@ -395,22 +378,15 @@
     --bar-close-ease: cubic-bezier(0.65, 0, 0.35, 1);
     --bar-close-delay: 70ms;
 
-    --pane-open-dur: 140ms;
-    --pane-open-ease: cubic-bezier(0.65, 0, 0.35, 1);
-    --pane-open-delay: 140ms;
-    --pane-close-dur: 80ms;
-    --pane-close-ease: cubic-bezier(0.65, 0, 0.35, 1);
-    --pane-close-delay: 0ms;
-
     display: flex;
     flex-direction: column;
-    background: #0a0a0a;
+    background: var(--ui-surface-lower, #0a0a0a);
     border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
     z-index: 2000;
     overflow: hidden;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    color: #fff;
+    font-family: var(--ui-font-sans, system-ui, -apple-system, BlinkMacSystemFont, sans-serif);
+    color: var(--ui-text-primary, #fff);
     transition:
       width var(--bar-open-dur) var(--bar-open-ease) var(--bar-open-delay),
       height var(--bar-open-dur) var(--bar-open-ease) var(--bar-open-delay),
@@ -425,14 +401,12 @@
   }
 
   .lt-overlay.floating {
-    border-radius: 8px;
+    border-radius: var(--ui-radius-xl, 8px);
   }
 
-  /* Hidden state: the editor panel is collapsed to just the header bar,
-     pinned to the top-right. The iframe stays mounted; its container fades
-     to opacity 0 and the panel shrinks around it. */
+  /* Collapsed state: pinned top-right; iframe stays mounted, clipped by overflow:hidden. */
   .lt-overlay.hidden {
-    border-radius: 6px;
+    border-radius: var(--ui-radius-lg, 6px);
     transition:
       width var(--bar-close-dur) var(--bar-close-ease) var(--bar-close-delay),
       height var(--bar-close-dur) var(--bar-close-ease) var(--bar-close-delay),
@@ -454,9 +428,9 @@
   .header {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    background: #111;
+    gap: var(--ui-space-6, 6px);
+    padding: var(--ui-space-6, 6px) var(--ui-space-10, 10px);
+    background: var(--ui-surface-low, #111);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     cursor: default;
     flex-shrink: 0;
@@ -465,7 +439,7 @@
 
   .lt-overlay.hidden .header {
     border-bottom: none;
-    padding: 5px 8px;
+    padding: 5px var(--ui-space-8, 8px);
   }
 
   .lt-overlay.floating .header {
@@ -474,8 +448,8 @@
 
   .hdr-btn.title {
     gap: 7px;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: var(--ui-font-size-md, 16px);
+    font-weight: var(--ui-font-weight-semibold, 600);
     color: rgba(255, 255, 255, 0.85);
     letter-spacing: 0.02em;
   }
@@ -483,11 +457,11 @@
   .spacer { flex: 1; }
 
   .version {
-    font-size: 10px;
-    font-weight: 500;
+    font-size: var(--ui-font-size-md, 16px);
+    font-weight: var(--ui-font-weight-medium, 500);
     color: rgba(255, 255, 255, 0.4);
     letter-spacing: 0.02em;
-    margin-left: 2px;
+    margin-left: var(--ui-space-2, 2px);
     user-select: none;
   }
 
@@ -497,24 +471,23 @@
     justify-content: center;
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 4px;
+    border-radius: var(--ui-radius-md, 4px);
     color: rgba(255, 255, 255, 0.75);
     cursor: pointer;
-    transition: background 0.1s, color 0.1s;
+    transition: background var(--ui-transition-fast, 120ms ease), color var(--ui-transition-fast, 120ms ease);
     font-family: inherit;
   }
 
   .hdr-btn.icon {
-    width: 26px;
-    height: 26px;
-    font-size: 11px;
+    padding: var(--ui-space-6, 6px);
+    aspect-ratio: 1;
+    font-size: var(--ui-font-size-md, 16px);
   }
 
   .hdr-btn.text {
-    height: 26px;
-    padding: 0 10px;
-    font-size: 12px;
-    font-weight: 500;
+    padding: var(--ui-space-6, 6px) var(--ui-space-10, 10px);
+    font-size: var(--ui-font-size-md, 16px);
+    font-weight: var(--ui-font-weight-medium, 500);
   }
 
   .source-pill {
@@ -522,46 +495,46 @@
   }
 
   .hdr-btn.nav {
-    height: 26px;
-    padding: 0 9px;
-    gap: 5px;
-    font-size: 11px;
-    font-weight: 500;
+    padding: var(--ui-space-6, 6px) var(--ui-space-8, 8px);
+    gap: var(--ui-space-4, 4px);
+    font-size: var(--ui-font-size-md, 16px);
+    font-weight: var(--ui-font-weight-medium, 500);
   }
 
   .hdr-btn:hover {
     background: rgba(255, 255, 255, 0.08);
-    color: #fff;
+    color: var(--ui-text-primary, #fff);
   }
 
   .hdr-btn.active {
     background: rgba(255, 255, 255, 0.12);
-    color: #fff;
+    color: var(--ui-text-primary, #fff);
     border-color: rgba(255, 255, 255, 0.18);
   }
 
   .seg-group {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--ui-space-8, 8px);
     margin-left: 18px;
-    margin-right: 4px;
+    margin-right: var(--ui-space-4, 4px);
   }
 
   .seg-label {
-    font-size: 11px;
-    font-weight: 600;
+    font-size: var(--ui-font-size-md, 16px);
+    font-weight: var(--ui-font-weight-semibold, 600);
     letter-spacing: 0.02em;
-    color: #fff;
+    color: var(--ui-text-primary, #fff);
   }
 
   .seg-bar {
     display: inline-flex;
     align-items: center;
+    gap: var(--ui-space-4, 4px);
     padding: 3px;
     background: rgba(0, 0, 0, 0.55);
     border: 1px solid rgba(255, 255, 255, 0.28);
-    border-radius: 6px;
+    border-radius: var(--ui-radius-lg, 6px);
     box-shadow:
       inset 0 1px 0 rgba(0, 0, 0, 0.5),
       0 0 0 1px rgba(0, 0, 0, 0.4);
@@ -570,22 +543,24 @@
   .seg-pill {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    height: 22px;
-    padding: 0 9px;
+    gap: var(--ui-space-4, 4px);
+    padding: var(--ui-space-4, 4px) var(--ui-space-8, 8px);
     background: transparent;
     border: 1px solid transparent;
     border-radius: 3px;
     color: rgba(255, 255, 255, 0.6);
     font-family: inherit;
-    font-size: 11px;
-    font-weight: 500;
+    font-size: var(--ui-font-size-md, 16px);
+    font-weight: var(--ui-font-weight-medium, 500);
     cursor: pointer;
-    transition: background 0.1s, color 0.1s, border-color 0.1s;
+    transition:
+      background var(--ui-transition-fast, 120ms ease),
+      color var(--ui-transition-fast, 120ms ease),
+      border-color var(--ui-transition-fast, 120ms ease);
   }
 
   .seg-pill i {
-    font-size: 10px;
+    font-size: var(--ui-font-size-md, 16px);
     opacity: 0.85;
   }
 
@@ -602,13 +577,11 @@
     opacity: 0.5;
   }
 
-  /* Outlined active — quieter than the iframe's filled switcher, so the two
-     segmented controls read as siblings, not twins. */
+  /* Outlined (not filled) so this reads as sibling to iframe's switcher, not a twin. */
   .seg-pill.active {
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+    color: var(--ui-text-primary, #fff);
+    border-color: rgba(255, 255, 255, 0.5);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.25) 100%);
   }
 
   .frame-wrap {
@@ -616,14 +589,10 @@
     flex: 1;
     min-height: 0;
     background: #000;
-    transition: opacity var(--pane-open-dur) var(--pane-open-ease) var(--pane-open-delay);
-    opacity: 1;
   }
 
   .lt-overlay.hidden .frame-wrap {
-    opacity: 0;
     pointer-events: none;
-    transition: opacity var(--pane-close-dur) var(--pane-close-ease) var(--pane-close-delay);
   }
 
   .editor-frame {

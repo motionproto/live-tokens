@@ -58,19 +58,21 @@
   .ui-pill {
     display: inline-flex;
     align-items: center;
-    gap: var(--ui-space-6);
+    gap: var(--ui-space-6, 6px);
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.25) 100%);
     border: 1px solid rgba(255, 255, 255, 0.5);
-    color: var(--ui-text-primary);
+    color: var(--ui-text-primary, #fff);
     font-family: inherit;
-    font-size: var(--ui-font-size-md);
-    font-weight: var(--ui-font-weight-medium);
+    font-size: var(--ui-font-size-md, 16px);
+    font-weight: var(--ui-font-weight-medium, 500);
     line-height: 1;
-    padding: var(--ui-space-6) var(--ui-space-16);
-    border-radius: var(--ui-radius-full);
+    padding: var(--ui-space-6, 6px) var(--ui-space-16, 16px);
+    border-radius: var(--ui-radius-full, 9999px);
     cursor: pointer;
     text-decoration: none;
-    transition: background var(--ui-transition-fast), border-color var(--ui-transition-fast);
+    transition:
+      background var(--ui-transition-fast, 120ms ease),
+      border-color var(--ui-transition-fast, 120ms ease);
   }
 
   .ui-pill:hover:not(:disabled):not([aria-disabled='true']) {
@@ -82,7 +84,7 @@
   .ui-pill[aria-disabled='true'] {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.10) 100%);
     border-color: rgba(255, 255, 255, 0.22);
-    color: var(--ui-text-muted);
+    color: var(--ui-text-muted, #4d4d4d);
     cursor: not-allowed;
     pointer-events: none;
   }
@@ -104,7 +106,7 @@
   }
 
   .ui-pill i {
-    font-size: var(--ui-font-size-xs);
+    font-size: var(--ui-font-size-xs, 12px);
     color: rgba(255, 255, 255, 0.65);
   }
 
@@ -130,7 +132,7 @@
 
   /* Size: compact — for header bars / chrome rails */
   .ui-pill-compact {
-    font-size: var(--ui-font-size-sm);
-    padding: var(--ui-space-2) var(--ui-space-12);
+    font-size: var(--ui-font-size-sm, 14px);
+    padding: var(--ui-space-2, 2px) var(--ui-space-12, 12px);
   }
 </style>

@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import type { ComponentConfigMeta } from '../../core/themes/themeTypes';
   import FileLoadList from '../../ui/FileLoadList.svelte';
+  import UISquareButton from '../../ui/UISquareButton.svelte';
 
   interface Props {
     /** Component slug used in the load-dialog title (e.g. "button"). */
@@ -75,16 +76,15 @@
 </script>
 
 <div class="file-menu" bind:this={fileMenuRoot}>
-  <button
-    class="cfm-btn"
-    class:active={fileMenuOpen}
+  <UISquareButton
+    icon="fa-file"
+    active={fileMenuOpen}
     onclick={() => (fileMenuOpen = !fileMenuOpen)}
     title="File menu"
   >
-    <i class="fas fa-file"></i>
     <span>File</span>
     <i class="fas fa-chevron-down chevron" class:open={fileMenuOpen}></i>
-  </button>
+  </UISquareButton>
   {#if fileMenuOpen}
     <div class="file-menu-dropdown" role="menu">
       <button class="file-menu-item" onclick={handleSave} role="menuitem">
@@ -115,56 +115,12 @@
 />
 
 <style>
-  .cfm-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    padding: var(--ui-space-6) var(--ui-space-12);
-    background: var(--ui-surface);
-    border: 1px solid var(--ui-border-low);
-    border-radius: var(--ui-radius-md);
-    color: var(--ui-text-secondary);
-    font-size: var(--ui-font-size-md);
-    font-weight: var(--ui-font-weight-medium);
-    cursor: pointer;
-    transition: all var(--ui-transition-fast);
-    white-space: nowrap;
-  }
-
-  .cfm-btn i {
-    width: 1rem;
-    text-align: center;
-    font-size: 0.85em;
-  }
-
-  .cfm-btn:hover:not(:disabled) {
-    background: var(--ui-surface-high);
-    color: var(--ui-text-primary);
-    border-color: var(--ui-border);
-  }
-
-  .cfm-btn:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-
-  .cfm-btn.active {
-    background: var(--ui-surface-high);
-    border-color: var(--ui-border);
-    color: var(--ui-text-primary);
-  }
-
-  @media (max-width: 640px) {
-    .cfm-btn > span:not(.chevron) { display: none; }
-    .cfm-btn { padding: var(--ui-space-6) var(--ui-space-10); }
-  }
-
-  .chevron {
+  :global(.file-menu .chevron) {
     font-size: 0.7em;
     transition: transform var(--ui-transition-fast);
   }
 
-  .chevron.open {
+  :global(.file-menu .chevron.open) {
     transform: rotate(180deg);
   }
 

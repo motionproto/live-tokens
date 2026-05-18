@@ -21,14 +21,6 @@
     variant?: BadgeVariant;
     size?: 'default' | 'small';
     icon?: string | undefined;
-    /** When true, badge is absolutely positioned. Requires the parent to be position: relative. */
-    floating?: boolean;
-    /** Corner of the positioned parent to attach to when floating. */
-    anchor?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
-    /** CSS length to offset from the anchor edges. Defaults to --space-12 (or --space-8 when size='small'). */
-    offset?: string | undefined;
-    /** When true, badge sits flush in the anchor corner: zero offset and squared corners. */
-    flush?: boolean;
     /** Custom icon content. Falls back to `icon` prop's font-icon class. Renamed from `slot="icon"` in 0.5.0. */
     iconSlot?: Snippet;
     children?: Snippet;
@@ -38,10 +30,6 @@
     variant = 'info',
     size = 'default',
     icon = undefined,
-    floating = false,
-    anchor = 'bottom-right',
-    offset = undefined,
-    flush = false,
     iconSlot,
     children,
   }: Props = $props();
@@ -50,10 +38,6 @@
 <span
   class="badge badge-{variant}"
   class:badge-small={size === 'small'}
-  class:badge-floating={floating}
-  class:badge-flush={flush}
-  data-anchor={floating ? anchor : undefined}
-  style={floating && offset && !flush ? `--badge-offset: ${offset};` : undefined}
 >
   {#if icon}
     <span class="icon"><i class={icon}></i></span>
@@ -228,7 +212,6 @@
   }
 
   .badge {
-    --badge-offset: var(--space-12);
     display: inline-flex;
     align-items: center;
     gap: var(--space-6);
@@ -249,21 +232,8 @@
   }
 
   .badge-small {
-    --badge-offset: var(--space-8);
     gap: var(--space-4);
   }
-
-  .badge-floating {
-    position: absolute;
-    /* Floating badges are decorative overlays over other content — let clicks
-       pass through to whatever owns the underlying surface (links, buttons). */
-    pointer-events: none;
-  }
-
-  .badge-floating[data-anchor='top-left']     { top: var(--badge-offset); left: var(--badge-offset); }
-  .badge-floating[data-anchor='top-right']    { top: var(--badge-offset); right: var(--badge-offset); }
-  .badge-floating[data-anchor='bottom-left']  { bottom: var(--badge-offset); left: var(--badge-offset); }
-  .badge-floating[data-anchor='bottom-right'] { bottom: var(--badge-offset); right: var(--badge-offset); }
 
   @each $v in $variants {
     .badge-#{$v} {
@@ -280,11 +250,5 @@
       line-height: var(--badge-#{$v}-text-line-height);
       box-shadow: var(--badge-#{$v}-shadow);
     }
-  }
-
-  /* Flush wins over per-variant radius via source order — declared after @each. */
-  .badge-flush {
-    --badge-offset: 0;
-    border-radius: 0;
   }
 </style>

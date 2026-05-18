@@ -33,6 +33,7 @@
   import SaveAsDialog from './SaveAsDialog.svelte';
   import FilePill from '../../ui/FilePill.svelte';
   import UIPillButton from '../../ui/UIPillButton.svelte';
+  import UISquareButton from '../../ui/UISquareButton.svelte';
 
   
   
@@ -355,15 +356,12 @@
           ondelete={handleDelete}
         />
         {#if resetVariables}
-          <button
-            class="cfm-btn reset-btn"
+          <UISquareButton
+            icon="fa-rotate-left"
             onclick={handleReset}
             disabled={!resetDirty}
             title="Revert unsaved changes to {currentDisplayName}"
-          >
-            <i class="fas fa-rotate-left"></i>
-            <span>Reset</span>
-          </button>
+          >Reset</UISquareButton>
         {/if}
       </div>
     </div>
@@ -388,11 +386,15 @@
         style="flex: 0 0 11.25rem; width: 11.25rem;"
       />
       <div class="cfm-actions">
-        <button
-          class="cfm-btn primary apply-btn"
-          class:saving={productionUpdateStatus === 'updating'}
-          class:saved={productionUpdateStatus === 'done'}
-          class:error={productionUpdateStatus === 'error'}
+        <UISquareButton
+          variant="success"
+          icon={productionUpdateStatus === 'updating'
+            ? 'fa-spinner'
+            : productionUpdateStatus === 'done'
+              ? 'fa-check'
+              : productionUpdateStatus === 'error'
+                ? 'fa-xmark'
+                : 'fa-arrow-down'}
           onclick={handleUpdateProduction}
           disabled={productionUpdateStatus === 'updating' || !productionInfo || (productionInfo.fileName === activeFileName && !compDirty)}
           title={!productionInfo
@@ -405,11 +407,8 @@
                   ? `Save "${currentDisplayName}" and adopt`
                   : `Adopt "${currentDisplayName}" from editor`}
         >
-          <i class="fas" class:fa-arrow-down={productionUpdateStatus === 'idle'} class:fa-spinner={productionUpdateStatus === 'updating'} class:fa-check={productionUpdateStatus === 'done'} class:fa-xmark={productionUpdateStatus === 'error'}></i>
-          <span>
-            {#if productionUpdateStatus === 'idle'}Adopt{:else if productionUpdateStatus === 'updating'}Adopting{:else if productionUpdateStatus === 'done'}Adopted{:else}Error{/if}
-          </span>
-        </button>
+          {#if productionUpdateStatus === 'idle'}Adopt{:else if productionUpdateStatus === 'updating'}Adopting{:else if productionUpdateStatus === 'done'}Adopted{:else}Error{/if}
+        </UISquareButton>
         <UIInfoPopover title="Component Configuration" ariaLabel="About Save and Adopt">
           <p>
             Editor and Prod both use a saved file. When they share the
@@ -630,80 +629,8 @@
     line-height: 1;
   }
 
-  /* buttons */
-  .cfm-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    padding: var(--ui-space-6) var(--ui-space-12);
-    background: var(--ui-surface);
-    border: 1px solid var(--ui-border-low);
-    border-radius: var(--ui-radius-md);
-    color: var(--ui-text-secondary);
-    font-size: var(--ui-font-size-md);
-    font-weight: var(--ui-font-weight-medium);
-    cursor: pointer;
-    transition: all var(--ui-transition-fast);
-    white-space: nowrap;
-  }
-
-  .cfm-btn i {
-    width: 1rem;
-    text-align: center;
-    font-size: 0.85em;
-  }
-
-  .cfm-btn:hover:not(:disabled) {
-    background: var(--ui-surface-high);
-    color: var(--ui-text-primary);
-    border-color: var(--ui-border);
-  }
-
-  .cfm-btn:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-
-  .cfm-btn.primary {
-    background: color-mix(in srgb, var(--cfm-applied) 18%, var(--ui-surface-high));
-    border-color: color-mix(in srgb, var(--cfm-applied) 45%, var(--ui-border-high));
-    color: var(--ui-text-primary);
-  }
-
-  .cfm-btn.primary:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--cfm-applied) 30%, var(--ui-surface-higher));
-    border-color: color-mix(in srgb, var(--cfm-applied) 70%, var(--ui-border-higher));
-  }
-
-  .cfm-btn.primary:disabled {
-    background: var(--ui-surface);
-    border-color: var(--ui-border-low);
-    color: var(--ui-text-muted);
-    opacity: 1;
-  }
-
-  .cfm-btn.primary.saving i { animation: cfm-spin 1s linear infinite; }
-  .cfm-btn.primary.saved {
-    background: color-mix(in srgb, var(--cfm-applied) 30%, var(--ui-surface-high));
-    color: var(--cfm-applied);
-  }
-  .cfm-btn.primary.error {
-    color: var(--ui-text-muted);
-  }
-
-  @keyframes cfm-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
   @keyframes cfm-pulse {
     0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-highlight) 22%, transparent); }
     50%      { box-shadow: 0 0 0 5px color-mix(in srgb, var(--ui-highlight) 10%, transparent); }
-  }
-
-  /* narrow viewports: hide button text, keep icons visible */
-  @media (max-width: 640px) {
-    .cfm-btn span { display: none; }
-    .cfm-btn { padding: var(--ui-space-6) var(--ui-space-10); }
   }
 </style>
