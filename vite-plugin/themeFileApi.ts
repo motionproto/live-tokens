@@ -4,6 +4,10 @@ import path from 'path';
 import { extractGlobalRootBody } from '../src/editor/core/themes/parsers/globalRootBlock';
 import { sanitizeFileName } from '../src/editor/core/storage/files/versionedFileResourceClient';
 import {
+  palettesToVars,
+  reconcilePalettesFromCssVars,
+} from '../src/editor/core/palettes/paletteDerivation';
+import {
   versionedFileResourceServer,
   type VersionedFileResourceServer,
 } from './files/versionedFileResourceServer';
@@ -110,6 +114,32 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     res.end(JSON.stringify(data));
   }
 
+  /**
+   * Single-door theme normaliser. Runs the per-slice reconciler (palettes
+   * today; fonts/shadows/gradients later phases), then strips every variable
+   * the typed slices now own from the catch-all `cssVariables` bag.
+   *
+   * The reconciler is gated by `_imported` per palette — editor-authored
+   * themes are no-ops, importers opt in. Strip runs unconditionally because
+   * the renderer already overlays typed-slice derivations on top of
+   * cssVariables; stripped values were dead data.
+   *
+   * Call from every theme-read door. See temp/manifest-robustness-plan.md §10.
+   */
+  function normalizeTheme<T extends { cssVariables?: Record<string, string>; editorConfigs?: any } | null | undefined>(
+    theme: T,
+  ): T {
+    if (!theme || typeof theme !== 'object') return theme;
+    const palettes = theme.editorConfigs ?? {};
+    const cssVars = theme.cssVariables ?? {};
+    const { palettes: nextPalettes, consumed } = reconcilePalettesFromCssVars(palettes, cssVars);
+    const nextCssVars: Record<string, string> = {};
+    for (const [k, v] of Object.entries(cssVars)) {
+      if (!consumed.has(k)) nextCssVars[k] = v;
+    }
+    return { ...theme, editorConfigs: nextPalettes, cssVariables: nextCssVars };
+  }
+
   const SYSTEM_CASCADES_SSR: Record<string, string> = {
     'system-ui-sans':
       'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -145,10 +175,19 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Write a theme's CSS variables (plus resolved font stack values)
-   * into tokens.css. Called when the production theme is set or when the
-   * current production theme is saved, so tokens.css is always
-   * production-ready and the build can bundle it as-is.
+   * Write a theme's CSS variables (plus resolved font stack values and
+   * palette-derived values) into tokens.css. Called when the production
+   * theme is set or when the current production theme is saved, so
+   * tokens.css is always production-ready and the build can bundle it
+   * as-is.
+   *
+   * Mirrors the client renderer's overlay order in `editorRenderer.ts`:
+   * catch-all cssVariables first, then typed-slice derivations on top.
+   * After normalisation strips palette keys from cssVariables (see
+   * `normalizeTheme`), the palettesToVars overlay is what actually
+   * lands the palette ramps in tokens.css. Without it, applying a
+   * theme would leave the page on stale palette values even though
+   * editorConfigs had moved.
    */
   function syncTokensToCss(fileName: string): void {
     const themePath = path.join(THEMES_DIR, `${fileName}.json`);
@@ -156,6 +195,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
     const themeData = JSON.parse(fs.readFileSync(themePath, 'utf-8'));
     const cssVars: Record<string, string> = { ...(themeData.cssVariables || {}) };
+    Object.assign(cssVars, palettesToVars(themeData.editorConfigs ?? {}));
     const resolvedFontVars = resolveFontStacks(themeData);
     for (const [name, value] of Object.entries(resolvedFontVars)) {
       cssVars[name] = value;
@@ -470,7 +510,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       if (overrides.length === 0) continue;
       lines.push(`  /* ${comp} (${prod}) */`);
       for (const [varName, semanticName] of overrides) {
-        lines.push(`  ${varName}: var(${semanticName});`);
+        // Alias values can be either a custom-property name (wrap in var())
+        // or a literal CSS value like `transparent` or `color-mix(...)` —
+        // pass literals through unwrapped so they stay valid CSS.
+        const rhs = semanticName.startsWith('--') ? `var(${semanticName})` : semanticName;
+        lines.push(`  ${varName}: ${rhs};`);
       }
     }
 
@@ -548,7 +592,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       jsonResponse(res, 404, { error: 'Active theme not found' });
       return;
     }
-    const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    const data = normalizeTheme(JSON.parse(fs.readFileSync(filePath, 'utf-8')));
     data._fileName = activeFile;
     jsonResponse(res, 200, data);
   }
@@ -571,7 +615,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       jsonResponse(res, 200, { fileName: prodFile, name: prodFile, cssVariables: {} });
       return;
     }
-    const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    const data = normalizeTheme(JSON.parse(fs.readFileSync(filePath, 'utf-8')));
     jsonResponse(res, 200, {
       fileName: prodFile,
       name: data.name || prodFile,
@@ -619,7 +663,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         jsonResponse(res, 404, { error: 'Not found' });
         return;
       }
-      const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+      const data = normalizeTheme(JSON.parse(fs.readFileSync(filePath, 'utf-8')));
       data._fileName = fileName;
       jsonResponse(res, 200, data);
       return;
@@ -941,10 +985,13 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Atomically apply a manifest: validate that every referenced file exists,
-   * flip the theme + each component's `_active.json` pointers, mark the
-   * manifest itself active, and return the resolved theme + component configs
-   * in one payload. The client follows with a full page reload.
+   * Atomically apply a manifest: validate every referenced file exists, flip
+   * the theme + each component's `_active.json` and `_production.json`
+   * pointers, sync tokens.css/fonts.css from the new theme, mark the manifest
+   * itself active, and return the resolved theme + component configs in one
+   * payload. The client follows with a full page reload. Setting production
+   * here (not just active) means the running page picks up the new theme
+   * without the user having to Adopt theme + every component by hand.
    */
   async function handleApplyManifest({ params, res }: any) {
     const [fileName] = params;
@@ -984,25 +1031,36 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       apply.push([comp, sanitized]);
     }
 
+    // Flip theme: active drives the editor, production drives the running page
+    // (syncTokensToCss/syncFontsToCss write into tokens.css). Without setting
+    // production here the user would have to re-Adopt the theme by hand.
     themesResource.setActiveName(themeName);
-    const themeData = JSON.parse(fs.readFileSync(themePath, 'utf-8'));
+    themesResource.setProductionName(themeName);
+    syncTokensToCss(themeName);
+    syncFontsToCss(themeName);
+    const themeData = normalizeTheme(JSON.parse(fs.readFileSync(themePath, 'utf-8')));
     themeData._fileName = themeName;
 
     for (const [comp, configFile] of apply) {
       const r = componentResource(comp);
       r.setActiveName(configFile);
+      r.setProductionName(configFile);
       const cfg = readComponentConfig(comp, configFile);
       if (cfg) resolvedConfigs[comp] = { ...cfg, _fileName: configFile };
     }
 
     // Components on disk but not mentioned in the manifest: leave their
-    // active pointer alone. The manifest has no opinion about them.
+    // active and production pointers alone. The manifest has no opinion.
     for (const comp of knownComponents) {
       if (resolvedConfigs[comp]) continue;
       const activeName = componentResource(comp).getActiveName();
       const cfg = readComponentConfig(comp, activeName);
       if (cfg) resolvedConfigs[comp] = { ...cfg, _fileName: activeName };
     }
+
+    // One sync after all component production pointers are flipped so the
+    // tokens.css component-alias block lands in a single write.
+    syncComponentsToCss();
 
     manifestsResource.setActiveName(fileName);
 

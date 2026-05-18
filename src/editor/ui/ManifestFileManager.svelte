@@ -118,8 +118,9 @@
     showFileList = false;
     try {
       await applyManifest(file.fileName);
-      // applyManifest atomically flips active pointers; reload to rehydrate
-      // the editor from the now-active theme + component configs.
+      // applyManifest atomically flips active + production pointers and
+      // syncs tokens.css; reload to rehydrate the editor from the
+      // now-active theme + component configs.
       window.location.reload();
     } catch (err) {
       window.alert(`Failed to apply manifest: ${(err as Error).message}`);

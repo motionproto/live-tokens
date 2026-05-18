@@ -27,6 +27,19 @@ export interface PaletteConfig {
   gradientStops?: GradientStop[];
   gradientSize?: 'page' | 'window';
   anchorToBase?: boolean;
+  /**
+   * Set to true by importers when they overlay `cssVariables[--color-{ns}-*]`
+   * without owning the typed-state curves. The storage-layer reconciler uses
+   * it as an opt-in switch: snap `baseColor` (or `tintHue`+`tintChroma` for
+   * gray palettes) to the imported `--color-{ns}-500` anchor and clear the
+   * flag. Editor-authored themes never set this, so the reconciler is a
+   * strict no-op for them.
+   *
+   * Persists on disk for first-load reconciliation. After reconcile strips
+   * the palette-derived keys from `cssVariables`, subsequent reconciles find
+   * no anchor and become idempotent no-ops regardless of the flag's value.
+   */
+  _imported?: boolean;
 }
 
 export type FontSourceKind = 'google' | 'typekit' | 'css-url' | 'font-face';

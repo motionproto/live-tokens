@@ -40,8 +40,9 @@ export interface ApplyManifestResult {
 
 /**
  * Server-side atomic apply: validate every referenced file exists, flip the
- * theme + each component's `_active.json` pointer, mark the manifest active,
- * and return the resolved theme + component configs in one payload. Clients
+ * theme + each component's `_active.json` and `_production.json` pointers,
+ * sync tokens.css/fonts.css from the new theme, mark the manifest active, and
+ * return the resolved theme + component configs in one payload. Clients
  * usually follow with a full page reload — manifest load is a "blow up the
  * world" action.
  */

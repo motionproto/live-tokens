@@ -298,3 +298,72 @@ export function palettesToVars(palettes: Record<string, PaletteConfig>): Record<
   }
   return out;
 }
+
+const HEX_RE = /^#[0-9a-f]{6}$/i;
+
+/**
+ * Reconcile palette typed state against the catch-all `cssVariables` bag and
+ * report the set of variable names the typed slice now owns. Two operations:
+ *
+ *   - **Snap** (gated by `_imported`): for any palette whose `_imported` flag
+ *     is true, the imported `--color-{ns}-500` value is treated as the
+ *     authoritative anchor. Chromatic palettes get `baseColor` snapped to it;
+ *     gray palettes (Neutral/Alternate) get `tintHue` + `tintChroma` derived
+ *     from it via OKLCH. The flag is then cleared. Editor-authored palettes
+ *     (no `_imported`) are left untouched — see `temp/manifest-robustness-plan.md`
+ *     §9 for why "snap on any divergence" was wrong: it would have flipped
+ *     `themes/default.json`'s accent from teal to olive on first read.
+ *
+ *   - **Consume** (always): every variable the palette's derivation produces
+ *     is reported in `consumed` so the caller can strip it from
+ *     `cssVariables`. The renderer (`editorRenderer.ts:42`) overlays
+ *     `palettesToVars(palettes)` on top of `cssVariables` regardless, so
+ *     stripped keys were dead data anyway. Stripping makes the file
+ *     invariant explicit: catch-all carries only tokens no typed slice owns.
+ *
+ * Returns the updated palette map plus the two sets. Pure: no DOM, no I/O,
+ * no module state. Idempotent on second call with the same input (no anchor
+ * to snap to after first call's strip).
+ */
+export function reconcilePalettesFromCssVars(
+  palettes: Record<string, PaletteConfig>,
+  cssVars: Record<string, string>,
+): {
+  palettes: Record<string, PaletteConfig>;
+  consumed: ReadonlySet<string>;
+  snapped: ReadonlySet<string>;
+} {
+  const next: Record<string, PaletteConfig> = structuredClone(palettes);
+  const consumed = new Set<string>();
+  const snapped = new Set<string>();
+
+  for (const spec of PALETTE_SPECS) {
+    const current = next[spec.label];
+    if (current === undefined) continue;
+
+    if (current._imported === true) {
+      const anchorHex = cssVars[`--color-${spec.cssNamespace}-500`];
+      if (anchorHex && HEX_RE.test(anchorHex.trim())) {
+        const hex = anchorHex.trim();
+        if (spec.mode === 'gray') {
+          const { c, h } = hexToOklch(hex);
+          next[spec.label] = { ...current, tintHue: h, tintChroma: c, _imported: false };
+        } else {
+          next[spec.label] = { ...current, baseColor: hex, _imported: false };
+        }
+        snapped.add(spec.label);
+      } else {
+        // No anchor in cssVariables to snap to — flag has nothing to do; clear
+        // it so subsequent calls don't keep checking. Safe because the renderer
+        // is going to overlay palettesToVars anyway.
+        next[spec.label] = { ...current, _imported: false };
+      }
+    }
+
+    for (const k of Object.keys(derivePaletteVars(spec, next[spec.label]))) {
+      consumed.add(k);
+    }
+  }
+
+  return { palettes: next, consumed, snapped };
+}
