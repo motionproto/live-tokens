@@ -142,34 +142,66 @@ After that rename lands, `--text-primary-color` ceases to exist — it gets reab
 
 ---
 
-### 6. ✅ Resolve line-height duplicate and re-scale to the intended progression
+### 6. ✅ Rename line-height scale to t-shirt sizing (and re-scale)
 
-**Current:** `src/styles/tokens.css:533-537` declares a scale where `--line-height-relaxed` and `--line-height-loose` both equal 1.5, and the lower end is lighter than the editor's display suggests:
+**Status:** Done. Decisions taken: hard cut with no alias layer or runtime migration (project is pre-1.0 at 0.5.0, breaking renames are in-scope); `--line-height-relaxed → --line-height-md` (value unchanged at 1.5, so Callout + form-controls render identically). Sweep covered ~33 files + the two committed theme JSON snapshots in `themes/`; 0 svelte-check errors after.
 
-```
-tokens.css                     VariablesTab.svelte (what the editor shows)
---line-height-tight:    0.9    --line-height-tight:    1
---line-height-snug:     1      --line-height-snug:     1.2
---line-height-normal:   1.25   --line-height-normal:   1.4
---line-height-relaxed:  1.5    --line-height-relaxed:  1.5
---line-height-loose:    1.5    --line-height-loose:    2
-```
-
-**Reasoning:** The duplicate on `loose`/`relaxed` is clearly unintentional; a monotonic progression is the intent. The editor's display list happens to carry the sane scale — someone updated the intended values there but never pushed them down into `tokens.css`. (That drift itself is a separate bug — see new item #9.)
-
-**Action:** Overwrite `tokens.css:533-537` with the editor's scale:
+**Current:** `src/styles/tokens.css:589-593` declares density-named tokens with uneven spacing and an off-standard body default:
 
 ```
---line-height-tight:   1
---line-height-snug:    1.2
---line-height-normal:  1.4
---line-height-relaxed: 1.5
---line-height-loose:   2
+--line-height-tight:    1
+--line-height-snug:     1.2
+--line-height-normal:   1.4
+--line-height-relaxed:  1.5
+--line-height-loose:    1.75
 ```
 
-No consumer sweep needed — no names are changing. Existing `var(--line-height-*)` references pick up the new values automatically.
+Two problems:
+1. **Ambiguous ordering.** `tight` vs `snug` and `relaxed` vs `loose` are near-synonyms in English — only Tailwind's convention says which is tighter, so the scale carries a memorization tax.
+2. **Uneven jumps and a too-tight body default.** Steps are 0.2 / 0.2 / 0.1 / 0.25, and `normal: 1.4` is tighter than the cross-industry standard for body text (Tailwind, Material, Bootstrap all sit at 1.5).
 
-**Note:** font-weight values also drift between `tokens.css` and `VariablesTab.svelte` (`semibold: 400` vs `500`, `bold: 600` vs `800`), and neither matches standard CSS font-weight conventions. Out of scope for this item; flag for a separate discussion if we want to normalize.
+**Reasoning:** The project already uses t-shirt sizing on parallel scales (`--radius-*`, `--size-icon-*`, `--font-size-*`). Adopting it here makes line-height consistent with the rest of the system, gives a true semantic midpoint (`md` = body default with no memorization), and eliminates the synonym-ordering tax. Five steps with even 0.25 jumps keeps each step meaningfully distinct.
+
+**Action:**
+
+1. Replace `tokens.css:589-593` with:
+
+```
+--line-height-xs: 1      /* display, single-line headings */
+--line-height-sm: 1.25   /* large headings */
+--line-height-md: 1.5    /* body default */
+--line-height-lg: 1.75   /* comfortable reading */
+--line-height-xl: 2      /* airy / pull-quotes */
+```
+
+2. Sweep consumers per this mapping:
+
+| Old | Old value | New | New value | Notes |
+|---|---|---|---|---|
+| `--line-height-tight` | 1 | `--line-height-xs` | 1 | exact value match |
+| `--line-height-snug` | 1.2 | `--line-height-sm` | 1.25 | +0.05; intent preserved (large headings) |
+| `--line-height-normal` | 1.4 | `--line-height-md` | 1.5 | +0.1; **the body-text fix** |
+| `--line-height-relaxed` | 1.5 | `--line-height-md` | 1.5 | exact value; semantic shift onto body default |
+| `--line-height-loose` | 1.75 | `--line-height-lg` | 1.75 | exact value match |
+| (new) | — | `--line-height-xl` | 2 | new airy step, no migration |
+
+3. Files to edit — ~33 files, ~250 references:
+   - `src/styles/tokens.css` — 5 declarations + ~54 internal `var(--line-height-*)` references in component-level aliases
+   - `src/styles/form-controls.css` — 2 refs (`relaxed`)
+   - `src/styles/site.css` — 4 refs (`snug`, `normal`)
+   - `src/ui/sections/tokenScales.ts:45–46` — update editor registry
+   - `src/components/*.svelte` — 15 files, ~96 fallback refs
+   - `component-configs/*/default.json` — 15 files, ~92 preset references
+
+4. **Migration concern (open):** user-saved theme/config JSON in the wild references the old names. Two options, consistent with the migration pattern already planned for items #4 (`bg → canvas`) and #5 (`primary → brand`):
+   - **(a) Runtime migration in the theme/config loader** — rewrite old keys → new on load. Same approach already planned for the other renames; piggybacking on that infrastructure is the path of least friction. **Recommended.**
+   - **(b) Alias layer in `tokens.css`** for one release (declare both old + new, mark old deprecated), then drop in the following release. Friendlier to anyone hand-editing JSON, but leaves zombie tokens visible in the editor's variables tab.
+
+**Open questions:**
+- Confirm migration approach (recommend (a), bundled with items #4 and #5).
+- Confirm `relaxed → md` is the right landing for Callout (8 refs) and form-controls (2 refs). Both contexts are body-text-ish, so `md` semantically fits and the rendered value is unchanged at 1.5. Alternative would be routing those uses to `lg (1.75)` to preserve the "looser than body" intent, but that visibly changes spacing — a real design decision, not just a token rename.
+
+**Note:** font-weight values also drift between `tokens.css` and `VariablesTab.svelte` (`semibold: 400` vs `500`, `bold: 600` vs `800`), and neither matches standard CSS font-weight conventions. Out of scope for this item; tracked separately in item #10.
 
 ---
 

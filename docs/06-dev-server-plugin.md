@@ -1,12 +1,13 @@
 # Dev-server plugin
 
-The Vite plugin lives in `src/vite-plugin/`. It's what turns "save in the editor"
-into "JSON file on disk." Its entry point is `themeFileApi(opts)`, exported from
-`src/vite-plugin/index.ts` and consumed via the
-`@motion-proto/live-tokens/vite-plugin` subpath export.
+The Vite plugin lives in `vite-plugin/` at the repo root. It turns "save
+in the editor" into "JSON file on disk." Its entry point is
+`themeFileApi(opts)`, exported from `vite-plugin/index.ts` and consumed
+via the `@motion-proto/live-tokens/vite-plugin` subpath export.
 
-The plugin is **dev-only**. Production builds don't include it; production reads
-`tokens.css` and `fonts.css` as static CSS, with no `/api/*` routes involved.
+The plugin is **dev-only**. Production builds do not include it;
+production reads `tokens.css` and `fonts.css` as static CSS, with no
+`/api/*` routes involved.
 
 ## Configuration
 
@@ -19,12 +20,13 @@ export default defineConfig({
     svelte(),
     themeFileApi({
       themesDir: 'themes',
-      tokensCssPath: 'src/styles/tokens.css',
+      tokensCssPath: 'src/system/styles/tokens.css',
       // Optional overrides:
-      fontsCssPath: 'src/styles/fonts.css',           // default: sibling of tokensCssPath
-      apiBase: '/api',                                // default: '/api'
+      fontsCssPath: 'src/system/styles/fonts.css',     // default: sibling of tokensCssPath
+      apiBase: '/api',                                  // default: '/api'
       componentConfigsDir: 'component-configs',
-      componentsSrcDir: 'src/components',
+      componentsSrcDir: 'src/system/components',
+      manifestsDir: 'manifests',
     }),
   ],
 });
@@ -44,6 +46,7 @@ flowchart TB
     subgraph Boot["On dev-server start"]
         SeedThemes["ensureThemesDir<br/><small>seed default.json + meta files</small>"]
         SeedComps["ensureComponentConfigsDir<br/><small>generate default.json per component</small>"]
+        SeedMan["ensureManifestsDir<br/><small>seed default manifest</small>"]
     end
 
     subgraph Middleware["On every /api/* request"]
@@ -61,25 +64,27 @@ flowchart TB
 
 Three responsibilities:
 
-1. **Seed defaults.** On first start, write `themes/default.json` if missing and
-   regenerate `component-configs/<id>/default.json` from each component's
-   `:global(:root)` block.
-2. **Serve `/api/*`.** Themes CRUD and component-config CRUD.
-3. **Inject `__PROJECT_ROOT__`.** Vite `define` so `LiveEditorOverlay`'s "Page
-   Source" button can build `vscode://file/<root>/<path>` URLs without each
-   consumer adding their own `define`.
+1. **Seed defaults.** On first start, write `themes/default.json` if
+   missing, regenerate `component-configs/<id>/default.json` from each
+   component's `:global(:root)` block, and seed
+   `manifests/default.json`.
+2. **Serve `/api/*`.** Themes CRUD, component-config CRUD, manifests
+   CRUD.
+3. **Inject `__PROJECT_ROOT__`.** Vite `define` so `LiveEditorOverlay`'s
+   "Page Source" button can build `vscode://file/<root>/<path>` URLs
+   without each consumer adding their own `define`.
 
 ## Route table
 
-The middleware uses a route table dispatched by `dispatch(req, res, routes)`
-(`src/vite-plugin/files/routeTable.ts`). Each route is `{ method, pattern,
-handler }`; `pattern` is either a literal string for exact-match URLs or a
-`RegExp` for parameterized ones. The dispatcher walks the table in order, runs
-the first match, and **catches all throws → 500 JSON** so handlers can be linear
-and just throw on error.
+The middleware uses a route table dispatched by `dispatch(req, res,
+routes)` (`vite-plugin/files/routeTable.ts`). Each route is
+`{ method, pattern, handler }`; `pattern` is either a literal string for
+exact-match URLs or a `RegExp` for parameterized ones. The dispatcher
+walks the table in order, runs the first match, and **catches all
+throws → 500 JSON** so handlers can be linear and just throw on error.
 
-Order matters because the `RegExp`s overlap. The active/production patterns
-must come *before* the catch-all `:name` patterns:
+Order matters because the `RegExp`s overlap. The active/production
+patterns must come *before* the catch-all `:name` patterns:
 
 ```
 /api/component-configs/button/active     ← matches COMP_ACTIVE_REGEX
@@ -87,9 +92,10 @@ must come *before* the catch-all `:name` patterns:
 /api/component-configs/button/default_01  ← matches COMP_BY_NAME_REGEX
 ```
 
-Without explicit ordering, the third pattern would also match the first two
-with `name='active'` / `name='production'`. The route table is the explicit
-ordering; the previous code maintained order via comment warnings.
+Without explicit ordering, the third pattern would also match the first
+two with `name='active'` / `name='production'`. The route table is the
+explicit ordering; the previous code maintained order via comment
+warnings.
 
 ## Endpoints
 
@@ -104,7 +110,7 @@ ordering; the previous code maintained order via comment warnings.
 | `PUT` | `/api/themes/production` | Promote a theme to production — runs `syncTokensToCss + syncFontsToCss + syncComponentsToCss` |
 | `GET` | `/api/themes/:name` | Get a theme JSON |
 | `PUT` | `/api/themes/:name` | Save a theme; if `:name` is the production theme, also re-runs the syncs |
-| `DELETE` | `/api/themes/:name` | Delete (rejected for `default`); if it was active, fallback to `default` |
+| `DELETE` | `/api/themes/:name` | Delete (rejected for `default`); if it was active, fall back to `default` |
 
 ### Component configs
 
@@ -120,23 +126,39 @@ ordering; the previous code maintained order via comment warnings.
 | `DELETE` | `/api/component-configs/:comp/:name` | Delete (rejected for `default`); active/production fall back to `default` |
 | `GET` | `/api/component-configs/:comp` | List configs for one component |
 
+### Manifests
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/api/manifests` | List manifests |
+| `GET` | `/api/manifests/active` | Get the active manifest JSON |
+| `PUT` | `/api/manifests/active` | Set active — body: `{name}` |
+| `GET` | `/api/manifests/:name` | Get a manifest JSON |
+| `PUT` | `/api/manifests/:name` | Save (rejected for `default`) |
+| `DELETE` | `/api/manifests/:name` | Delete (rejected for `default`) |
+| `PUT` | `/api/manifests/:name/apply` | Atomic apply: flip theme + each component's `_active.json` pointer; return resolved theme + configs |
+
 ## `versionedFileResource`
 
-Both themes and per-component configs use the same active/production
-vocabulary. That vocabulary is implemented once, in two halves:
+Themes, per-component configs, and manifests use the same
+active/production vocabulary. That vocabulary is implemented once, in
+two halves:
 
-- **Server.** `src/vite-plugin/files/versionedFileResource.ts` exports
-  `versionedFileResourceServer({dir, defaultName?})`. Returns
+- **Server.** `vite-plugin/files/versionedFileResourceServer.ts`
+  exports `versionedFileResourceServer({dir, defaultName?})`. Returns
   `{ ensureDir, ensureMeta, filePath, getActiveName, getProductionName,
   setActiveName, setProductionName }`.
-- **Client.** `src/lib/files/versionedFileResource.ts` exports
-  `versionedFileResource<T, M, P>({baseUrl})`. Returns `{ list, load, save,
-  remove, getActive, setActive, getProductionInfo, setProduction }`.
+- **Client.**
+  `src/editor/core/storage/files/versionedFileResourceClient.ts` exports
+  `versionedFileResource<T, M, P>({baseUrl})`. Returns `{ list, load,
+  save, remove, getActive, setActive, getProductionInfo,
+  setProduction }`.
 
-The themes resource is constructed once at plugin init; per-component resources
-are **lazily** constructed on first access via the `componentResource(comp)`
-cache. That matters because the set of components is discovered at runtime from
-`src/components/*.svelte`; there's no static list.
+The themes resource and the manifests resource are constructed once at
+plugin init; per-component resources are **lazily** constructed on
+first access via the `componentResource(comp)` cache. That matters
+because the set of components is discovered at runtime from
+`src/system/components/*.svelte`; there is no static list.
 
 ## Sync functions
 
@@ -157,33 +179,34 @@ flowchart LR
 
 ### `syncTokensToCss(fileName)`
 
-Reads the named theme, walks `tokens.css` line-by-line with a regex that matches
-`--name: value;` declarations, and **replaces in place** the value of every
-variable the theme overrides. Variables in the theme that don't already appear
-in the file land in a trailing `/* Token additions */` block before the closing
-brace.
+Reads the named theme, walks `tokens.css` line-by-line with a regex
+that matches `--name: value;` declarations, and **replaces in place**
+the value of every variable the theme overrides. Variables in the theme
+that do not already appear in the file land in a trailing
+`/* Token additions */` block before the closing brace.
 
-The in-place rewriting is intentional. It keeps `tokens.css` diffs minimal and
-preserves the file's original ordering, comments, and category headers, so
-designers can hand-edit `tokens.css` and have their work survive a promote of
-the same theme.
+The in-place rewriting is intentional. It keeps `tokens.css` diffs
+minimal and preserves the file's original ordering, comments, and
+category headers, so designers can hand-edit `tokens.css` and have
+their work survive a promote of the same theme.
 
 ### `syncFontsToCss(fileName)`
 
-Regenerates `fonts.css` from the theme's `fontSources`. Each source emits one
-block:
+Regenerates `fonts.css` from the theme's `fontSources`. Each source
+emits one block:
 
 - `font-face` sources contribute their `cssText` verbatim.
 - `google` / `typekit` / `css-url` sources emit `@import url('<url>');`.
 
-The file is fully overwritten. Fonts are an opaque registry, not a hand-edited
-file.
+The file is fully overwritten. Fonts are an opaque registry, not a
+hand-edited file.
 
 ### `syncComponentsToCss()`
 
 Walks every component's `_production.json` and rebuilds a single
 `:root:root { … }` block in `tokens.css` between
-`/* component-aliases:start */` and `/* component-aliases:end */` markers:
+`/* component-aliases:start */` and `/* component-aliases:end */`
+markers:
 
 ```css
 /* component-aliases:start */
@@ -196,16 +219,16 @@ Walks every component's `_production.json` and rebuilds a single
 /* component-aliases:end */
 ```
 
-The `:root:root` selector has specificity (0,0,2). That's higher than each
-component's own `:global(:root)` declarations (0,0,1), so production overrides
-win deterministically regardless of CSS chunk ordering. When a component's
-production points to `default`, no overrides are emitted (the source `.svelte`
-is authoritative).
+The `:root:root` selector has specificity (0,0,2). That is higher than
+each component's own `:global(:root)` declarations (0,0,1), so
+production overrides win deterministically regardless of CSS chunk
+ordering. When a component's production points to `default`, no
+overrides are emitted (the source `.svelte` is authoritative).
 
 ## Hot-update: regenerating defaults
 
-`handleHotUpdate(ctx)` listens for changes to `src/components/*.svelte`. When a
-component's source changes:
+`handleHotUpdate(ctx)` listens for changes to
+`src/system/components/*.svelte`. When a component's source changes:
 
 ```mermaid
 sequenceDiagram
@@ -222,14 +245,14 @@ sequenceDiagram
     Plugin->>FS: write new default.json
 ```
 
-The editor doesn't need a full reload. `componentConfigService` re-fetches the
-new defaults on its next call, and runtime state owns the override layer
-regardless.
+The editor does not need a full reload. `componentConfigService`
+re-fetches the new defaults on its next call, and runtime state owns
+the override layer regardless.
 
 The HMR check uses `defaultStat.mtimeMs >= sourceStat.mtimeMs` to skip
-regeneration when the existing default is already newer (which happens on
-plugin restart against files that haven't changed). `createdAt` is preserved
-across regeneration.
+regeneration when the existing default is already newer (which happens
+on plugin restart against files that haven't changed). `createdAt` is
+preserved across regeneration.
 
 ## Project root injection
 
@@ -243,12 +266,12 @@ config() {
 }
 ```
 
-`LiveEditorOverlay` reads `__PROJECT_ROOT__` (with a `declare const` fallback
-so TypeScript-only consumers don't need an ambient global) to build the
-`vscode://` links for the "Page Source" button. The plugin handles the
-injection so library consumers don't need to add their own `define` entry. The
-README's `vite.config.ts` example explicitly notes "You don't need a `define`
-entry for this."
+`LiveEditorOverlay` reads `__PROJECT_ROOT__` (with a `declare const`
+fallback so TypeScript-only consumers do not need an ambient global) to
+build the `vscode://` links for the "Page Source" button. The plugin
+handles the injection so library consumers do not need to add their own
+`define` entry. The README's `vite.config.ts` example explicitly notes
+"You don't need a `define` entry for this."
 
 ## Sanitization & path safety
 
@@ -258,28 +281,29 @@ User-provided file names go through `sanitizeFileName(name)`:
 sanitizeFileName('My Theme!')  // → 'my_theme'
 ```
 
-Allowed characters are `[a-z0-9_]`; everything else collapses to `_`, then
-leading and trailing underscores trim. The same helper is used on the client
-(so the editor displays the post-sanitize name before saving) and on the server
-(so requests with unsanitized names get coerced). Both halves import from
-`src/lib/files/versionedFileResource.ts` (the canonical pure helper) so they
-can't drift.
+Allowed characters are `[a-z0-9_]`; everything else collapses to `_`,
+then leading and trailing underscores trim. The same helper is used on
+the client (so the editor displays the post-sanitize name before
+saving) and on the server (so requests with unsanitized names get
+coerced). Both halves import from
+`src/editor/core/storage/files/versionedFileResourceClient.ts` (the
+canonical pure helper) so they cannot drift.
 
-User-supplied path components (`:name`, `:comp`) are also constrained at the
-route-pattern level: every regex uses `[a-z0-9\-_]+`, so `..` and `/` never
-reach the handlers in the first place.
+User-supplied path components (`:name`, `:comp`) are also constrained
+at the route-pattern level: every regex uses `[a-z0-9\-_]+`, so `..`
+and `/` never reach the handlers in the first place.
 
 ## Summary
 
 - One Vite plugin, one route table, one dispatcher with centralized
   500-on-throw.
-- Themes and component configs share the `versionedFileResource` vocabulary:
-  server half (filesystem ops + active/production pointers) plus client half
-  (REST shape).
-- Promote-to-production triggers three syncs that rewrite `tokens.css` and
-  `fonts.css` in place; `tokens.css` ends up with a `:root:root` override block
-  for component aliases.
-- HMR regenerates per-component `default.json` from the Svelte source's
-  `:global(:root)` block on every save.
-- `__PROJECT_ROOT__` is injected by the plugin so the overlay's "Page Source"
-  link works without consumer config.
+- Themes, component configs, and manifests share the
+  `versionedFileResource` vocabulary: server half (filesystem ops +
+  active/production pointers) plus client half (REST shape).
+- Promote-to-production triggers three syncs that rewrite `tokens.css`
+  and `fonts.css` in place; `tokens.css` ends up with a `:root:root`
+  override block for component aliases.
+- HMR regenerates per-component `default.json` from the Svelte
+  source's `:global(:root)` block on every save.
+- `__PROJECT_ROOT__` is injected by the plugin so the overlay's "Page
+  Source" link works without consumer config.

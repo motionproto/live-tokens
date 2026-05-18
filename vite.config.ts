@@ -1,15 +1,15 @@
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import sveltePreprocess from 'svelte-preprocess';
-import { themeFileApi } from './src/vite-plugin';
-import pkg from './package.json' with { type: 'json' };
+import { themeFileApi } from './vite-plugin';
 
 export default defineConfig({
-  define: {
-    __APP_VERSION__: JSON.stringify(pkg.version),
-  },
   plugins: [
     svelte({ preprocess: sveltePreprocess() }),
-    themeFileApi({ themesDir: 'themes', tokensCssPath: 'src/styles/tokens.css' }),
+    themeFileApi({ themesDir: 'themes', tokensCssPath: 'src/system/styles/tokens.css' }),
   ],
+  // Force Svelte's browser-side exports under vitest (happy-dom). Without this,
+  // `import { createEventDispatcher } from 'svelte'` resolves to the SSR build
+  // where it is a no-op — and component event dispatch silently fails in tests.
+  resolve: process.env.VITEST ? { conditions: ['browser'] } : undefined,
 });
