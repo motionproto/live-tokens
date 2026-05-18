@@ -5,7 +5,7 @@
   "theme": "default",
   "componentConfigs": {
     "badge": "default",
-    "button": "default_01",
+    "button": "default",
     "callout": "default",
     "card": "default",
     "collapsiblesection": "default",
