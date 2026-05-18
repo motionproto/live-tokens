@@ -114,30 +114,6 @@
 </script>
 
 <ComponentEditorBase {component} title="Notification" description="Contextual feedback notifications with multiple variants." tokens={allTokens} {linked} variants={variantOptions}>
-  {#snippet config()}
-  
-      <label>
-        <input type="checkbox" bind:checked={dismissible} />
-        <span>Dismissible</span>
-      </label>
-      <label>
-        <span>Right button</span>
-        <select class="ui-form-select" bind:value={rightOption}>
-          {#each BUTTON_VARIANT_OPTIONS as v}
-            <option value={v}>{variantLabel(v)}</option>
-          {/each}
-        </select>
-      </label>
-      <label>
-        <span>Left button</span>
-        <select class="ui-form-select" bind:value={leftOption}>
-          {#each BUTTON_VARIANT_OPTIONS as v}
-            <option value={v}>{variantLabel(v)}</option>
-          {/each}
-        </select>
-      </label>
-    
-  {/snippet}
   {#each variants as v}
     <VariantGroup
       name={v}
@@ -147,6 +123,29 @@
       {component}
       siblings={buildSiblings(variants, v, (sv) => ({ [sv]: variantTokens(sv) }), (sv) => ({ [sv]: variantTypeGroups(sv) }))}
     >
+      {#snippet canvasToolbarExtras()}
+        <hr class="canvas-toolbar-divider" />
+        <label class="toolbar-check">
+          <input type="checkbox" bind:checked={dismissible} />
+          <span>Dismissible</span>
+        </label>
+        <label class="toolbar-field">
+          <span>Right button</span>
+          <select class="canvas-toolbar-select" bind:value={rightOption}>
+            {#each BUTTON_VARIANT_OPTIONS as opt}
+              <option value={opt}>{variantLabel(opt)}</option>
+            {/each}
+          </select>
+        </label>
+        <label class="toolbar-field">
+          <span>Left button</span>
+          <select class="canvas-toolbar-select" bind:value={leftOption}>
+            {#each BUTTON_VARIANT_OPTIONS as opt}
+              <option value={opt}>{variantLabel(opt)}</option>
+            {/each}
+          </select>
+        </label>
+      {/snippet}
       <div class="notification-demo">
         {#if v === 'info'}
           <Notification variant="info" title="Information" description="This is an informational message to keep you updated." {dismissible} {actions} />
@@ -165,7 +164,26 @@
 <style>
   .notification-demo {
     width: 100%;
-    max-width: 32rem;
+    max-width: 46rem;
   }
+
+  .toolbar-check {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    font-size: var(--ui-font-size-sm);
+    color: rgba(255, 255, 255, 0.78);
+    cursor: pointer;
+  }
+
+  /* Stack label above control so a 11rem-wide toolbar isn't crowded. */
+  .toolbar-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-4);
+    font-size: var(--ui-font-size-xs);
+    color: rgba(255, 255, 255, 0.6);
+  }
+
 </style>
 

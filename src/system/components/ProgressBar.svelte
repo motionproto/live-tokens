@@ -3,7 +3,6 @@
     value?: number;
     label?: string;
     variant?: 'primary' | 'success' | 'warning' | 'danger' | 'info';
-    size?: 'default' | 'compact';
     showIcon?: boolean;
   }
 
@@ -11,7 +10,6 @@
     value = 0,
     label = '',
     variant = 'primary',
-    size = 'default',
     showIcon = true
   }: Props = $props();
 
@@ -19,7 +17,7 @@
   let isComplete = $derived(clampedValue >= 100);
 </script>
 
-<div class="progress {variant}" class:compact={size === 'compact'}>
+<div class="progress {variant}" class:has-label={!!label} class:has-icon={showIcon && isComplete}>
   {#if label}
     <div class="progress-label">
       <span>{label}</span>
@@ -133,26 +131,44 @@
   }
 
   .progress {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "track";
+    row-gap: var(--space-6);
     width: 100%;
   }
 
+  .progress.has-label {
+    grid-template-areas:
+      "label"
+      "track";
+  }
+
+  .progress.has-icon {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--space-8);
+    grid-template-areas: "track icon";
+  }
+
+  .progress.has-label.has-icon {
+    grid-template-areas:
+      "label ."
+      "track icon";
+  }
+
   .progress-label {
+    grid-area: label;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
 
   .progress-track {
+    grid-area: track;
+    align-self: center;
     width: 100%;
     overflow: hidden;
     border-style: solid;
-  }
-
-  .compact .progress-track {
-    height: calc(var(--progress-track-height, var(--space-4)) * 0.5);
   }
 
   .progress-fill {
@@ -296,8 +312,10 @@
   }
 
   .progress-icon {
+    grid-area: icon;
+    align-self: center;
     color: var(--text-success);
     font-size: var(--icon-size-md);
-    text-align: right;
+    line-height: 1;
   }
 </style>

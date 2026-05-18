@@ -4,11 +4,7 @@
 
   export const component = 'cornerbadge';
 
-  // One state per Badge variant. Each variant carries the same five tokens, and
-  // every token has a role-specific groupKey so the LinkedBlock groups
-  // "outer-radius" across variants (not against inner/h-axis/v-axis). Changing
-  // a variant's outer corner radius propagates to the same role on every other
-  // variant when linked; roles within a variant stay independent.
+  // One state per variant; role-specific groupKeys link the same role across variants while keeping roles independent within a variant.
   function variantTokens(v: typeof badgeVariants[number]): Token[] {
     return [
       { label: 'offset from corner', canBeLinked: true, groupKey: 'margin', variable: `--corner-badge-${v}-margin` },
@@ -17,12 +13,7 @@
       { label: 'horizontal-axis radius', canBeLinked: true, groupKey: 'h-axis-radius', variable: `--corner-badge-${v}-h-axis-radius` },
       { label: 'vertical-axis radius', canBeLinked: true, groupKey: 'v-axis-radius', variable: `--corner-badge-${v}-v-axis-radius` },
       { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--corner-badge-${v}-padding` },
-      // Per-side overrides written by the UIPaddingSelector when the user splits
-      // padding. Declared (hidden) so the schema sees them as siblings across
-      // variants — `padding-top` on primary links to `padding-top` on accent, etc.
-      // The themed-padding mixin in CornerBadge.svelte reads them via
-      // `var(--corner-badge-${v}-padding-top, fallback)`; no `:root` default is
-      // needed (test skips `hidden: true` tokens by design — see editorTokens.test.ts).
+      // Hidden per-side overrides for UIPaddingSelector split mode; declared so siblings link across variants.
       { label: 'padding-top', canBeLinked: true, groupKey: 'padding-top', variable: `--corner-badge-${v}-padding-top`, hidden: true },
       { label: 'padding-right', canBeLinked: true, groupKey: 'padding-right', variable: `--corner-badge-${v}-padding-right`, hidden: true },
       { label: 'padding-bottom', canBeLinked: true, groupKey: 'padding-bottom', variable: `--corner-badge-${v}-padding-bottom`, hidden: true },
@@ -33,15 +24,9 @@
       { label: 'line height', canBeLinked: true, groupKey: 'text-line-height', variable: `--corner-badge-${v}-text-line-height` },
     ];
   }
-  const states: Record<string, Token[]> = Object.fromEntries(
-    badgeVariants.map((v) => [v, variantTokens(v)]),
-  );
+  export const allTokens: Token[] = badgeVariants.flatMap((v) => variantTokens(v));
 
-  export const allTokens: Token[] = Object.values(states).flat();
-
-  // Every linkable variable across variants — the LinkedBlock uses this to detect
-  // when ≥2 variants currently agree on an alias for the same groupKey. Variant
-  // name is the context label so the chart rows mirror the variant tab strip.
+  // Linkable vars across variants; variant name as context label so chart rows mirror the tab strip.
   const linkableContexts = new Map<string, string>(
     badgeVariants.flatMap((v) =>
       variantTokens(v)
@@ -49,22 +34,21 @@
         .map((t) => [t.variable, v] as [string, string]),
     ),
   );
+
+  const variantOptions = badgeVariants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
 </script>
 
 <script lang="ts">
   import CornerBadge, { type CornerAnchor } from '../../system/components/CornerBadge.svelte';
-  import type { BadgeVariant } from '../../system/components/Badge.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import UIRadioGroup from '../ui/UIRadioGroup.svelte';
   import { editorState } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
+  import { buildSiblings } from './scaffolding/siblings';
   import demoImageUrl from '../../system/assets/newspaper.webp';
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
-  let visibleStates = $derived(Object.fromEntries(
-    badgeVariants.map((v) => [v, withLinkedDisabled(variantTokens(v), linked.varSet)]),
-  ) as Record<string, Token[]>);
+  let visibleVariantTokens = $derived((v: typeof badgeVariants[number]) => withLinkedDisabled(variantTokens(v), linked.varSet));
 
   let anchor: CornerAnchor = $state('bottom-right');
   const anchorGrid: ReadonlyArray<{ value: CornerAnchor; icon: string; label: string }> = [
@@ -73,15 +57,19 @@
     { value: 'bottom-left',  icon: 'fas fa-arrow-down-left',   label: 'Bottom left' },
     { value: 'bottom-right', icon: 'fas fa-arrow-down-right',  label: 'Bottom right' },
   ];
-
-  let variant: BadgeVariant = $state('accent');
-  const variantOptions = badgeVariants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
 </script>
 
-<ComponentEditorBase {component} title="Corner Badge" description="Badge pinned flush to a corner of a positioned ancestor. Composes <code>Badge</code>; adds offset + inner-radius tokens." tokens={allTokens} {linked}>
-  {#snippet config()}
-      <div class="control-row">
-        <span>Anchor</span>
+<ComponentEditorBase {component} title="Corner Badge" description="Badge pinned flush to a corner of a positioned ancestor. Composes <code>Badge</code>; adds offset + inner-radius tokens." tokens={allTokens} {linked} variants={variantOptions}>
+  {#each badgeVariants as v}
+    <VariantGroup
+      name={v}
+      title={v.charAt(0).toUpperCase() + v.slice(1)}
+      states={{ [v]: visibleVariantTokens(v) }}
+      {component}
+      siblings={buildSiblings(badgeVariants, v, (sv) => ({ [sv]: variantTokens(sv) }))}
+    >
+      {#snippet canvasToolbarExtras()}
+        <span class="canvas-toolbar-eyebrow">Anchor</span>
         <div class="anchor-grid" role="radiogroup" aria-label="Corner badge anchor">
           {#each anchorGrid as opt (opt.value)}
             <button
@@ -98,33 +86,25 @@
             </button>
           {/each}
         </div>
+      {/snippet}
+      <div class="corner-stage-wrap">
+        <div class="corner-stage">
+          <img src={demoImageUrl} alt="" class="corner-stage-image" />
+          <CornerBadge variant={v} {anchor}>{v.charAt(0).toUpperCase() + v.slice(1)}</CornerBadge>
+        </div>
       </div>
-      <div class="control-row">
-        <span>Variant</span>
-        <UIRadioGroup bind:value={variant} name="corner-badge-variant" options={variantOptions} />
-      </div>
-  {/snippet}
-  <VariantGroup name="cornerbadge" title="Corner Badge" states={visibleStates} {component}>
-    <div class="corner-stage-wrap">
-      <div class="corner-stage">
-        <img src={demoImageUrl} alt="" class="corner-stage-image" />
-        <CornerBadge {variant} {anchor}>{variant.charAt(0).toUpperCase() + variant.slice(1)}</CornerBadge>
-      </div>
-    </div>
-  </VariantGroup>
+    </VariantGroup>
+  {/each}
 </ComponentEditorBase>
 
 <style>
-  /* Center the stage in the backdrop so the smaller surface doesn't stretch full-width. */
+  /* Center stage so it doesn't stretch full-width. */
   .corner-stage-wrap {
     display: grid;
     place-items: center;
   }
 
-  /* Anchor parent for the preview — gives CornerBadge a positioned ancestor so it
-     actually pins to a corner, and a visible surface so offset/radius are observable. */
-  /* No overflow:hidden here — the badge needs to be able to extend past the stage
-     (e.g. when the offset is 0 or negative). Rounded corners live on the image. */
+  /* Positioned ancestor for CornerBadge; no overflow:hidden so badge can extend past edges. */
   .corner-stage {
     position: relative;
     width: 380px;
@@ -135,14 +115,6 @@
     width: 100%;
     height: auto;
     border-radius: var(--ui-radius-md);
-  }
-
-  .control-row {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-    font-size: var(--ui-font-size-sm);
-    color: var(--ui-text-secondary);
   }
 
   .anchor-grid {

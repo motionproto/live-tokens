@@ -65,6 +65,12 @@
     gap: var(--ui-space-4);
   }
 
+  /* Reserve room for the swatch's absolute-positioned token-name caption so it
+     doesn't bleed onto whatever sits below the controls. */
+  .backdrop-grid:has(.picker-slot) {
+    padding-bottom: var(--ui-space-16);
+  }
+
   /* Each row keeps the same vertical rhythm; the trigger's height defines
      the line, so the radio-only rows match it via min-height. The whole row
      is clickable via the onclick handler — selecting on any pointer hit. */

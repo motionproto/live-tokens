@@ -112,17 +112,17 @@
   <VariantGroup name="dialog" title="Dialog" states={frameStates} typeGroups={frameTypeGroups} {component} backdropPadding="0">
     {#snippet extraPropertyRows(stateName)}
       {#if stateName === 'footer'}
-        <div class="property-row">
-          <span class="property-label">cancel button</span>
-          <select class="ui-form-select" value={cancelVariant} onchange={setCancelVariant}>
+        <div class="property-row button-variant-row">
+          <span class="property-label">right button</span>
+          <select class="ui-form-select compact" value={confirmVariant} onchange={setConfirmVariant}>
             {#each BUTTON_VARIANTS as v}
               <option value={v}>{variantLabel(v)}</option>
             {/each}
           </select>
         </div>
-        <div class="property-row">
-          <span class="property-label">confirm button</span>
-          <select class="ui-form-select" value={confirmVariant} onchange={setConfirmVariant}>
+        <div class="property-row button-variant-row">
+          <span class="property-label">left button</span>
+          <select class="ui-form-select compact" value={cancelVariant} onchange={setCancelVariant}>
             {#each BUTTON_VARIANTS as v}
               <option value={v}>{variantLabel(v)}</option>
             {/each}
@@ -147,6 +147,31 @@
     width: auto;
     box-sizing: border-box;
     padding: clamp(24px, 6vw, 128px);
+  }
+
+  /* Pull the button-variant rows into the same 3-column geometry the token
+     grid uses (label / 8rem selector / context) so they line up under
+     `padding`, `border width`, etc. Also shrink the native select to match
+     the visual weight of the `.ui-ts-trigger` chips used by the other
+     selectors on the row. */
+  :global(.extra-property-rows .property-row.button-variant-row) {
+    /* Col 1 min matches the typical max-content width of the token labels
+       above (`border color`, `border width`) so the select edge sits flush
+       with the selector column in the token grid even though the two grids
+       are independent. */
+    grid-template-columns: minmax(6.5rem, max-content) 8rem 1fr;
+    padding-left: var(--ui-space-12);
+    column-gap: var(--ui-space-10);
+  }
+
+  :global(.ui-form-select.compact) {
+    min-height: 1.75rem;
+    padding: 0 var(--ui-space-8) !important;
+    padding-right: var(--ui-space-24) !important;
+    background-color: var(--ui-surface-low) !important;
+    background-position: right var(--ui-space-8) center !important;
+    font-size: var(--ui-font-size-sm);
+    width: 100%;
   }
 </style>
 

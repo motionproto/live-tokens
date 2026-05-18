@@ -92,7 +92,7 @@
     { kind: 'shadow', matches: (v) => v.endsWith('-shadow') || v.startsWith('--shadow-') },
     { kind: 'padding', matches: (v) => v.endsWith('-padding') || v.endsWith('-margin') },
     { kind: 'gap', matches: (v) => v.endsWith('-gap') },
-    { kind: 'border-width', matches: (v) => v.endsWith('-border-width') || v.startsWith('--border-width-') },
+    { kind: 'border-width', matches: (v) => v.endsWith('-border-width') || v.endsWith('-accent-width') || v.startsWith('--border-width-') },
     { kind: 'border', matches: (v) => v.endsWith('-border') || v.startsWith('--border-') },
     { kind: 'surface', matches: (v) => v.endsWith('-surface') || v.startsWith('--surface-') },
   ];

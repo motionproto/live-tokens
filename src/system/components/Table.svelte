@@ -44,7 +44,7 @@
     --table-default-row-surface: transparent;
     --table-default-row-divider: var(--border-canvas-faint);
     --table-default-row-divider-width: var(--border-width-1);
-    --table-default-row-stripe-surface: var(--surface-canvas-lower);
+    --table-default-row-stripe-surface: transparent;
 
     /* Column */
     --table-default-column-divider: var(--border-canvas-faint);
@@ -103,8 +103,16 @@
     border-right: none;
   }
 
+  /* Stripe is layered over the base row surface as a background-image, so a
+     translucent stripe color blends with the base instead of replacing it.
+     An opaque stripe still covers the base (visually identical to the old
+     replacement behavior); a fully transparent stripe leaves the base
+     untouched, which is the default out of the box. */
   .table-wrapper :global(tr:nth-child(even) td) {
-    background: var(--table-default-row-stripe-surface);
+    background-image: linear-gradient(
+      var(--table-default-row-stripe-surface),
+      var(--table-default-row-stripe-surface)
+    );
   }
 
   .table-wrapper :global(tr:last-child td) {

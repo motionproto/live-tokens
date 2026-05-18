@@ -7,6 +7,8 @@
   import ShadowBackdrop from './ShadowBackdrop.svelte';
   import ShadowBackdropControls from './ShadowBackdropControls.svelte';
   import { mutate } from '../../core/store/editorStore';
+  import { getDeclaredValue } from '../../core/palettes/tokenRegistry';
+  import type { CssVarRef } from '../../core/store/editorTypes';
   import { getEditorContext } from './editorContext';
   import type { Token, TypeGroupConfig } from './types';
   import type { Sibling } from './siblings';
@@ -30,6 +32,11 @@
     compositeControls?: Snippet<[string]>;
     /** Each child should be a `.property-row` to match the token grid above. */
     extraPropertyRows?: Snippet<[string]>;
+    /** Extra sections appended below the Background controls inside the canvas
+        toolbar. Use `.canvas-toolbar-eyebrow` for section headings to match
+        Background. Lets per-instance display knobs (anchor, alignment, etc.)
+        live with the canvas rather than in a separate config block above. */
+    canvasToolbarExtras?: Snippet;
     /** Skip the default centered, padded stage when the editor brings its own backdrop. */
     unboxedPreview?: boolean;
     backdropPadding?: string;
@@ -52,6 +59,7 @@
     previewActions,
     compositeControls,
     extraPropertyRows,
+    canvasToolbarExtras,
     unboxedPreview = false,
     backdropPadding,
     backdropModes,
@@ -59,13 +67,13 @@
 
   let bgMode: 'default' | 'image' | 'color' = $state('default');
   let bgVar = $derived(`--backdrop-${component ?? name}-surface`);
-  let showBackdropControls = $derived(!unboxedPreview);
 
   const editorCtx = getEditorContext();
   const linkedOrderStore = editorCtx?.linkedOrder ?? writable<Map<string, number> | null>(null);
   const focusedVariantStore = editorCtx?.focusedVariant ?? writable<string | null>(null);
   const focusedStateStore = editorCtx?.focusedState ?? writable<string | null>(null);
   const variantsStore = editorCtx?.variants ?? writable<{ value: string; label: string }[]>([]);
+  const preserveColorFamilyStore = editorCtx?.preserveColorFamily ?? writable(false);
   let linkedOrder = $derived($linkedOrderStore ?? undefined);
 
   let activeTab: string = $state('');
@@ -74,7 +82,50 @@
   // Carry per-side derived vars so split padding fully transfers; no-op when absent.
   const PADDING_SIDES = ['top', 'right', 'bottom', 'left'] as const;
 
+  /** A token whose label contains "color" describes a color property. The
+      copy-from "Preserve color families" toggle skips these so the destination
+      keeps its existing palette family (e.g. button-primary stays on `brand`)
+      while still picking up shape/typography from the source variant. */
+  function isColorToken(t: Token): boolean {
+    return t.label.toLowerCase().includes('color');
+  }
+
+  /** Parse the right-hand side of a CSS declaration (e.g. `var(--surface-accent-lowest)`
+      or `#ff0000`) into a CssVarRef. Returns null for empty/unparseable input.
+      Used by copy-from when the source has no explicit override — we resolve
+      its declared default so the destination visually matches the source
+      instead of falling back to its own family's default. */
+  function declaredToRef(declared: string | null): CssVarRef | null {
+    if (!declared) return null;
+    const m = declared.match(/^\s*var\((--[a-z0-9-]+)\)\s*$/i);
+    if (m) return { kind: 'token', name: m[1] };
+    return { kind: 'literal', value: declared };
+  }
+
+  /** Extract a transparency percentage from a `color-mix(in srgb, var(--X) N%, transparent)`
+      wrapper, optionally itself wrapped in `var(...)`. Returns null if no
+      such wrapper is present. */
+  const ALPHA_RE = /color-mix\s*\(\s*in\s+srgb\s*,\s*var\(--[a-z0-9-]+\)\s+([\d.]+%)\s*,\s*transparent\s*\)/i;
+  function extractAlpha(value: string): string | null {
+    const m = value.match(ALPHA_RE);
+    return m ? m[1] : null;
+  }
+
+  /** Extract the inner var() base reference, whether the value is a bare
+      `var(--X)`, or wrapped by a transparency color-mix, or both. */
+  function extractBaseToken(value: string): string | null {
+    const mix = value.match(/color-mix\s*\(\s*in\s+srgb\s*,\s*var\((--[a-z0-9-]+)\)/i);
+    if (mix) return mix[1];
+    const bare = value.match(/var\((--[a-z0-9-]+)\)/i);
+    return bare ? bare[1] : null;
+  }
+
+  /** TypeGroup props whose values are color tokens; preserve-color-families
+      skips these in the typeGroups copy loop. */
+  const COLOR_TYPE_PROPS = new Set(['colorVariable', 'outlineColorVariable']);
+
   function pickCopySource(toState: string, fromVariant: string, fromState: string) {
+    const preserveColorFamily = $preserveColorFamilyStore;
     if (!component || !states) return;
     const isSelfVariant = fromVariant === name;
     const sibling = isSelfVariant ? null : siblings.find((s) => s.name === fromVariant);
@@ -87,16 +138,55 @@
     mutate(`copy ${fromVariant}/${fromState} → ${name}/${toState}`, (s) => {
       const slice = s.components[component!] ?? (s.components[component!] = { activeFile: 'default', aliases: {}, config: {} });
       const dstVarsTouched: string[] = [];
+      /** Resolve a variable's effective value as a CSS string: the override if
+          set, otherwise its declared default. Returns null if neither exists. */
+      const effectiveValue = (varName: string): string | null => {
+        const ref = slice.aliases[varName];
+        if (ref) return ref.kind === 'token' ? `var(${ref.name})` : ref.value;
+        return getDeclaredValue(varName);
+      };
+
       const apply = (srcVar: string, dstVar: string) => {
         if (srcVar === dstVar) return;
-        if (srcVar in slice.aliases) slice.aliases[dstVar] = slice.aliases[srcVar];
-        else delete slice.aliases[dstVar];
+        if (srcVar in slice.aliases) {
+          slice.aliases[dstVar] = slice.aliases[srcVar];
+        } else {
+          // Src is at its declared default. Materialize that default as dst's
+          // override so dst visually picks up src's value — otherwise dst
+          // falls back to its OWN family default and the copy is a visual no-op.
+          const ref = declaredToRef(getDeclaredValue(srcVar));
+          if (ref) slice.aliases[dstVar] = ref;
+          else delete slice.aliases[dstVar];
+        }
+        dstVarsTouched.push(dstVar);
+      };
+
+      /** Preserve-color-families variant of apply: copy src's transparency
+          wrapper (if any) over dst's existing base color so dst keeps its
+          palette family but picks up src's alpha. Source with no alpha = no-op
+          (leaves dst's color untouched). */
+      const applyColorPreserve = (srcVar: string, dstVar: string) => {
+        const srcVal = effectiveValue(srcVar);
+        if (!srcVal) return;
+        const alpha = extractAlpha(srcVal);
+        if (!alpha) return;
+        const dstVal = effectiveValue(dstVar);
+        const dstBase = dstVal ? extractBaseToken(dstVal) : null;
+        if (!dstBase) return;
+        slice.aliases[dstVar] = {
+          kind: 'literal',
+          value: `color-mix(in srgb, var(${dstBase}) ${alpha}, transparent)`,
+        };
         dstVarsTouched.push(dstVar);
       };
       const minLen = Math.min(srcTokens.length, dstTokens.length);
       for (let i = 0; i < minLen; i++) {
         const srcVar = srcTokens[i].variable;
         const dstVar = dstTokens[i].variable;
+        if (preserveColorFamily && isColorToken(srcTokens[i])) {
+          applyColorPreserve(srcVar, dstVar);
+          continue;
+        }
         apply(srcVar, dstVar);
         if (srcTokens[i].splittable !== false) {
           for (const side of PADDING_SIDES) apply(`${srcVar}-${side}`, `${dstVar}-${side}`);
@@ -109,7 +199,12 @@
         for (const prop of TYPE_PROPS) {
           const srcVar = srcType[prop];
           const dstVar = dstType[prop];
-          if (srcVar && dstVar) apply(srcVar, dstVar);
+          if (!srcVar || !dstVar) continue;
+          if (preserveColorFamily && COLOR_TYPE_PROPS.has(prop)) {
+            applyColorPreserve(srcVar, dstVar);
+            continue;
+          }
+          apply(srcVar, dstVar);
         }
       }
       // Copy intent "make this state match" clears stale unlinked markers on touched vars.
@@ -191,50 +286,37 @@
       {#if unboxedPreview}
         {@render children?.({ activeState: activeTab })}
       {:else}
-        <div class="canvas-with-controls">
-          {#if showBackdropControls}
+        <ShadowBackdrop mode={bgMode} colorVariable={bgVar} padding={backdropPadding}>
+          {#snippet controls()}
             <div class="canvas-toolbar">
               <span class="canvas-toolbar-eyebrow">Background</span>
               <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} modes={backdropModes ?? ['default', 'image', 'color']} />
+              {@render canvasToolbarExtras?.()}
             </div>
-          {/if}
-          <ShadowBackdrop mode={bgMode} colorVariable={bgVar} padding={backdropPadding}>
-            {@render children?.({ activeState: activeTab })}
-          </ShadowBackdrop>
-        </div>
+          {/snippet}
+          {@render children?.({ activeState: activeTab })}
+        </ShadowBackdrop>
       {/if}
     </div>
 
-    {#if tabsStripVisible || (copySources.length > 0 && activeTab)}
+    {#if tabsStripVisible}
       <div class="tabs-states-block">
-        {#if tabsStripVisible}
-          <span class="editor-subsection-title">{selectorLabel}</span>
-        {/if}
+        <span class="editor-subsection-title">{selectorLabel}</span>
         <div class="tabs-selectors">
-          {#if tabsStripVisible}
-            <div class="state-tabs" role="tablist">
-              {#each stateNames as s}
-                <button
-                  type="button"
-                  class="state-tab-btn"
-                  class:active={activeTab === s}
-                  role="tab"
-                  aria-selected={activeTab === s}
-                  onclick={() => { activeTab = s; focusedStateStore.set(s); }}
-                >{s}</button>
-              {/each}
-            </div>
-          {/if}
+          <div class="state-tabs" role="tablist">
+            {#each stateNames as s}
+              <button
+                type="button"
+                class="state-tab-btn"
+                class:active={activeTab === s}
+                role="tab"
+                aria-selected={activeTab === s}
+                onclick={() => { activeTab = s; focusedStateStore.set(s); }}
+              >{s}</button>
+            {/each}
+          </div>
           {#if activeTab}
             {@render stateActions?.(activeTab)}
-          {/if}
-          {#if copySources.length > 0 && activeTab}
-            <CopyFromMenu
-              toState={activeTab}
-              variantName={name}
-              {copySources}
-              onselect={(d) => pickCopySource(activeTab, d.fromVariant, d.fromState)}
-            />
           {/if}
         </div>
       </div>
@@ -243,7 +325,20 @@
     {#if activeTab && states[activeTab]}
       {@const stateName = activeTab}
       {@render compositeControls?.(stateName)}
-      <span class="editor-subsection-title properties-title">Properties</span>
+      <div class="properties-header">
+        <span class="editor-subsection-title properties-title">Properties</span>
+        {#if !tabsStripVisible && stateActions}
+          {@render stateActions(activeTab)}
+        {/if}
+        {#if copySources.length > 0}
+          <CopyFromMenu
+            toState={activeTab}
+            variantName={name}
+            {copySources}
+            onselect={(d) => pickCopySource(activeTab, d.fromVariant, d.fromState)}
+          />
+        {/if}
+      </div>
       <StateBlock
         tokens={states[stateName]}
         typeGroups={typeGroups[stateName] ?? []}
@@ -304,56 +399,108 @@
     gap: var(--ui-space-8);
   }
 
-  /* Positioned hull so the toolbar isn't clipped by the backdrop's overflow:hidden. */
-  .canvas-with-controls {
-    position: relative;
-  }
-
-  /* Floor backdrop height so the absolutely-positioned toolbar always fits with matched inset. */
-  .canvas-with-controls :global(.shadow-backdrop) {
-    min-height: 12rem;
-  }
-
+  /* Sits in the backdrop's right-rail column (ShadowBackdrop owns the two-column
+     split). Own border + raised surface so it reads as a distinct panel inside
+     the backdrop, regardless of which backdrop mode is active. */
   .canvas-toolbar {
-    position: absolute;
-    top: var(--ui-space-8);
-    right: var(--ui-space-8);
-    z-index: 2;
     width: 11rem;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    gap: var(--ui-space-10);
-    /* Extra bottom padding houses the picker's absolute-positioned caption. */
-    padding: var(--ui-space-10) var(--ui-space-12) var(--ui-space-24);
-    background: rgba(22, 22, 26, 0.94);
-    backdrop-filter: blur(12px) saturate(140%);
-    -webkit-backdrop-filter: blur(12px) saturate(140%);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    gap: var(--ui-space-12);
+    padding: var(--ui-space-10) var(--ui-space-12);
+    background: var(--ui-surface-low);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     color: var(--ui-text-primary);
+    box-sizing: border-box;
   }
 
-  .canvas-toolbar-eyebrow {
+  .canvas-toolbar :global(.canvas-toolbar-eyebrow) {
     font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-medium);
-    color: rgba(255, 255, 255, 0.6);
-    padding-bottom: var(--ui-space-6);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--ui-text-tertiary);
   }
 
-  /* Pill each option row so Default/Image match the swatch trigger's weight. */
+  /* Divider lives *between* sections, not under each eyebrow. First eyebrow
+     has no preceding sibling and stays flush. */
+  .canvas-toolbar > :global(* + .canvas-toolbar-eyebrow) {
+    padding-top: var(--ui-space-12);
+    border-top: 1px solid var(--ui-border-low);
+  }
+
+  /* Explicit separator for label-less sections in canvasToolbarExtras. */
+  .canvas-toolbar :global(.canvas-toolbar-divider) {
+    margin: 0;
+    border: 0;
+    border-top: 1px solid var(--ui-border-low);
+  }
+
+  /* Native <select> styled to match the property-row trigger chrome
+     (UITokenSelector) so toolbar selects don't read as a separate visual
+     vocabulary from the rest of the editor. */
+  .canvas-toolbar :global(.canvas-toolbar-select) {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0 var(--ui-space-24) 0 var(--ui-space-8);
+    min-height: 1.75rem;
+    background-color: var(--ui-surface-low);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='M3 5l3 3 3-3'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--ui-space-8) center;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-md);
+    color: var(--ui-text-primary);
+    font-family: var(--ui-font-sans);
+    font-size: var(--ui-font-size-sm);
+    cursor: pointer;
+    transition: background-color var(--ui-transition-fast), border-color var(--ui-transition-fast);
+  }
+  .canvas-toolbar :global(.canvas-toolbar-select:hover) {
+    background-color: var(--ui-surface-high);
+    border-color: var(--ui-border-higher);
+  }
+  .canvas-toolbar :global(.canvas-toolbar-select:focus-visible) {
+    outline: 2px solid var(--ui-highlight);
+    outline-offset: 2px;
+  }
+
+  /* Native <input> styled to match the toolbar's select chrome. */
+  .canvas-toolbar :global(.canvas-toolbar-input) {
+    width: 100%;
+    padding: 0 var(--ui-space-8);
+    min-height: 1.75rem;
+    background: var(--ui-surface-low);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-md);
+    color: var(--ui-text-primary);
+    font-family: var(--ui-font-sans);
+    font-size: var(--ui-font-size-sm);
+    transition: background-color var(--ui-transition-fast), border-color var(--ui-transition-fast);
+  }
+  .canvas-toolbar :global(.canvas-toolbar-input:hover) {
+    border-color: var(--ui-border-higher);
+  }
+  .canvas-toolbar :global(.canvas-toolbar-input:focus-visible) {
+    outline: 2px solid var(--ui-highlight);
+    outline-offset: 2px;
+  }
+
+  /* Pill each option row so Default/Image match the swatch trigger's weight.
+     One step below the toolbar's --ui-surface-low so option chrome stays visible
+     against the panel. */
   .canvas-toolbar :global(.backdrop-option) {
     padding: 0 var(--ui-space-8);
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: var(--ui-surface-lowest);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
-    color: rgba(255, 255, 255, 0.78);
+    color: var(--ui-text-secondary);
   }
   .canvas-toolbar :global(.backdrop-option.checked) {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.3);
-    color: #fff;
+    background: var(--ui-surface-high);
+    border-color: var(--ui-border);
+    color: var(--ui-text-primary);
   }
 
   /* Drop the swatch trigger's frame to avoid a double-border inside the option pill. */
@@ -364,15 +511,16 @@
     padding-right: 0;
   }
   .canvas-toolbar :global(.backdrop-option .ui-ts-trigger:hover) {
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--ui-hover);
     border-color: transparent;
   }
 
   .canvas-toolbar :global(.ui-ts-meta-text) {
-    color: rgba(255, 255, 255, 0.55);
+    color: var(--ui-text-tertiary);
   }
 
-  /* Anchor dropdown to trigger's right so it expands leftward, not off-canvas. */
+  /* Anchor dropdown to the trigger's right edge; the toolbar sits flush against
+     the editor's right gutter, so a left-anchored dropdown would clip. */
   .canvas-toolbar :global(.ui-ts-dropdown) {
     left: auto;
     right: 0;
@@ -459,9 +607,19 @@
   }
 
   /* Direct child of .variant-group; needs its own margin since flex gap doesn't apply across siblings. */
-  .properties-title {
+  .properties-header {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-16);
     margin-top: var(--ui-space-8);
     margin-bottom: var(--ui-space-8);
+  }
+
+  /* Tighten the title's line-height so its line-box matches its visual glyph
+     height — otherwise the inherited body line-height makes the heading sit
+     visually above the smaller CopyFromMenu trigger even with align-items:center. */
+  .properties-header .properties-title {
+    line-height: 1;
   }
 
   .extra-property-rows {

@@ -16,6 +16,10 @@ export type EditorContext = {
   focusedState: Writable<string | null>;
   /** Hovered variable in Properties grid or Linked block; bidirectional highlight. */
   hoveredLinkedVariable: Writable<string | null>;
+  /** Copy-from "Preserve color families" toggle, scoped to this editor. Lives
+      on context (not local to CopyFromMenu) so it survives VariantGroup remounts
+      when the user changes which variant is focused. */
+  preserveColorFamily: Writable<boolean>;
 };
 
 /** Mutable handle for ComponentEditorBase. */
@@ -30,12 +34,14 @@ export function createEditorContext(): EditorContextInternal {
   const focusedVariant = writable<string | null>(null);
   const focusedState = writable<string | null>(null);
   const hoveredLinkedVariable = writable<string | null>(null);
+  const preserveColorFamily = writable<boolean>(false);
   const ctx: EditorContextInternal = {
     linkedOrder: _linkedOrder,
     focusedVariant,
     variants: _variants,
     focusedState,
     hoveredLinkedVariable,
+    preserveColorFamily,
     _linkedOrder,
     _variants,
   };

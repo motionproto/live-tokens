@@ -140,91 +140,107 @@
     margin-bottom: var(--tabbar-bar-bottom-margin);
   }
 
+  /* Per-state tokens are bound to `--_*` custom properties below. The actual
+     layout-affecting declarations (padding, border, border-radius, font-*)
+     are written exactly once on `.tab`, so a hover/active state change can
+     only repaint, not relayout. When two states resolve to the same value,
+     the computed property is identical and no reshape is triggered. The
+     `transition: all` of the old rule has also been narrowed to paint-only
+     properties — otherwise it would try to animate layout changes between
+     states that happen to differ in tokens. */
   .tab {
+    --_text-color: var(--tabbar-default-text);
+    --_text-family: var(--tabbar-default-text-font-family);
+    --_text-size: var(--tabbar-default-text-font-size);
+    --_text-weight: var(--tabbar-default-text-font-weight);
+    --_text-line-height: var(--tabbar-default-text-line-height);
+    --_icon-size: var(--tabbar-default-icon-size);
+    --_surface: var(--tabbar-default-surface);
+    --_indicator-color: var(--tabbar-default-border);
+    --_padding: var(--tabbar-default-padding);
+    --_border-color: var(--tabbar-default-tab-border-color);
+    --_border-width: var(--tabbar-default-tab-border-width);
+    --_top-radius: var(--tabbar-default-tab-top-radius);
+    --_bottom-radius: var(--tabbar-default-tab-bottom-radius);
+
     display: inline-flex;
     align-items: center;
     gap: var(--space-6);
-    @include themed-padding(--tabbar-default-padding, $h: 2);
-    background: var(--tabbar-default-surface);
-    border: var(--tabbar-default-tab-border-width) solid var(--tabbar-default-tab-border-color);
-    /* indicator accent — owns the bottom edge */
-    border-bottom: var(--tabbar-bar-indicator-thickness) solid var(--tabbar-default-border);
-    border-radius: var(--tabbar-default-tab-top-radius) var(--tabbar-default-tab-top-radius) var(--tabbar-default-tab-bottom-radius) var(--tabbar-default-tab-bottom-radius);
-    color: var(--tabbar-default-text);
-    font-family: var(--tabbar-default-text-font-family);
-    font-size: var(--tabbar-default-text-font-size);
-    font-weight: var(--tabbar-default-text-font-weight);
-    line-height: var(--tabbar-default-text-line-height);
+    padding: var(--_padding) calc(var(--_padding) * 2);
+    background: var(--_surface);
+    border: var(--_border-width) solid var(--_border-color);
+    /* Indicator accent owns the bottom edge. Thickness is constant across
+       states (--tabbar-bar-indicator-thickness), only color rebinds. */
+    border-bottom: var(--tabbar-bar-indicator-thickness) solid var(--_indicator-color);
+    border-radius: var(--_top-radius) var(--_top-radius) var(--_bottom-radius) var(--_bottom-radius);
+    color: var(--_text-color);
+    font-family: var(--_text-family);
+    font-size: var(--_text-size);
+    font-weight: var(--_text-weight);
+    line-height: var(--_text-line-height);
     cursor: pointer;
-    transition: all var(--duration-150);
+    transition:
+      background var(--duration-150),
+      color var(--duration-150),
+      border-color var(--duration-150);
     position: relative;
+  }
+
+  .tab i {
+    font-size: var(--_icon-size);
   }
 
   .tab:hover:not(:disabled):not(.active),
   .tab-bar.force-hover .tab:not(:disabled):not(.active) {
-    color: var(--tabbar-hover-text);
-    background: var(--tabbar-hover-surface);
-    border-color: var(--tabbar-hover-tab-border-color);
-    border-width: var(--tabbar-hover-tab-border-width);
-    /* indicator accent owns the bottom edge */
-    border-bottom: var(--tabbar-bar-indicator-thickness) solid var(--tabbar-hover-border);
-    border-radius: var(--tabbar-hover-tab-top-radius) var(--tabbar-hover-tab-top-radius) var(--tabbar-hover-tab-bottom-radius) var(--tabbar-hover-tab-bottom-radius);
-    font-family: var(--tabbar-hover-text-font-family);
-    font-size: var(--tabbar-hover-text-font-size);
-    font-weight: var(--tabbar-hover-text-font-weight);
-    line-height: var(--tabbar-hover-text-line-height);
-    @include themed-padding(--tabbar-hover-padding, $h: 2);
+    --_text-color: var(--tabbar-hover-text);
+    --_text-family: var(--tabbar-hover-text-font-family);
+    --_text-size: var(--tabbar-hover-text-font-size);
+    --_text-weight: var(--tabbar-hover-text-font-weight);
+    --_text-line-height: var(--tabbar-hover-text-line-height);
+    --_icon-size: var(--tabbar-hover-icon-size);
+    --_surface: var(--tabbar-hover-surface);
+    --_indicator-color: var(--tabbar-hover-border);
+    --_padding: var(--tabbar-hover-padding);
+    --_border-color: var(--tabbar-hover-tab-border-color);
+    --_border-width: var(--tabbar-hover-tab-border-width);
+    --_top-radius: var(--tabbar-hover-tab-top-radius);
+    --_bottom-radius: var(--tabbar-hover-tab-bottom-radius);
   }
 
   .tab.active {
-    color: var(--tabbar-active-text);
-    background: var(--tabbar-active-surface);
-    border-color: var(--tabbar-active-tab-border-color);
-    border-width: var(--tabbar-active-tab-border-width);
-    /* indicator accent owns the bottom edge */
-    border-bottom: var(--tabbar-bar-indicator-thickness) solid var(--tabbar-active-border);
-    border-radius: var(--tabbar-active-tab-top-radius) var(--tabbar-active-tab-top-radius) var(--tabbar-active-tab-bottom-radius) var(--tabbar-active-tab-bottom-radius);
-    font-family: var(--tabbar-active-text-font-family);
-    font-size: var(--tabbar-active-text-font-size);
-    font-weight: var(--tabbar-active-text-font-weight);
-    line-height: var(--tabbar-active-text-line-height);
-    @include themed-padding(--tabbar-active-padding, $h: 2);
+    --_text-color: var(--tabbar-active-text);
+    --_text-family: var(--tabbar-active-text-font-family);
+    --_text-size: var(--tabbar-active-text-font-size);
+    --_text-weight: var(--tabbar-active-text-font-weight);
+    --_text-line-height: var(--tabbar-active-text-line-height);
+    --_icon-size: var(--tabbar-active-icon-size);
+    --_surface: var(--tabbar-active-surface);
+    --_indicator-color: var(--tabbar-active-border);
+    --_padding: var(--tabbar-active-padding);
+    --_border-color: var(--tabbar-active-tab-border-color);
+    --_border-width: var(--tabbar-active-tab-border-width);
+    --_top-radius: var(--tabbar-active-tab-top-radius);
+    --_bottom-radius: var(--tabbar-active-tab-bottom-radius);
   }
 
   .tab:disabled {
-    color: var(--tabbar-disabled-text);
-    background: var(--tabbar-disabled-surface);
-    border-color: var(--tabbar-disabled-tab-border-color);
-    border-width: var(--tabbar-disabled-tab-border-width);
-    /* indicator accent owns the bottom edge */
-    border-bottom: var(--tabbar-bar-indicator-thickness) solid var(--tabbar-disabled-border);
-    border-radius: var(--tabbar-disabled-tab-top-radius) var(--tabbar-disabled-tab-top-radius) var(--tabbar-disabled-tab-bottom-radius) var(--tabbar-disabled-tab-bottom-radius);
-    font-family: var(--tabbar-disabled-text-font-family);
-    font-size: var(--tabbar-disabled-text-font-size);
-    font-weight: var(--tabbar-disabled-text-font-weight);
-    line-height: var(--tabbar-disabled-text-line-height);
-    @include themed-padding(--tabbar-disabled-padding, $h: 2);
+    --_text-color: var(--tabbar-disabled-text);
+    --_text-family: var(--tabbar-disabled-text-font-family);
+    --_text-size: var(--tabbar-disabled-text-font-size);
+    --_text-weight: var(--tabbar-disabled-text-font-weight);
+    --_text-line-height: var(--tabbar-disabled-text-line-height);
+    --_icon-size: var(--tabbar-disabled-icon-size);
+    --_surface: var(--tabbar-disabled-surface);
+    --_indicator-color: var(--tabbar-disabled-border);
+    --_padding: var(--tabbar-disabled-padding);
+    --_border-color: var(--tabbar-disabled-tab-border-color);
+    --_border-width: var(--tabbar-disabled-tab-border-width);
+    --_top-radius: var(--tabbar-disabled-tab-top-radius);
+    --_bottom-radius: var(--tabbar-disabled-tab-bottom-radius);
     cursor: not-allowed;
   }
 
   .tab.icon-only {
     padding: var(--space-8) var(--space-12);
-  }
-
-  .tab:hover:not(:disabled):not(.active) i,
-  .tab-bar.force-hover .tab:not(:disabled):not(.active) i {
-    font-size: var(--tabbar-hover-icon-size);
-  }
-
-  .tab.active i {
-    font-size: var(--tabbar-active-icon-size);
-  }
-
-  .tab:disabled i {
-    font-size: var(--tabbar-disabled-icon-size);
-  }
-
-  .tab i {
-    font-size: var(--tabbar-default-icon-size);
   }
 </style>

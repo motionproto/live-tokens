@@ -70,7 +70,7 @@
   .tooltip::after {
     content: '';
     position: absolute;
-    bottom: calc(-4px - var(--tooltip-border-width) * 1px);
+    bottom: calc(-4px - var(--tooltip-border-width));
     left: 50%;
     width: 8px;
     height: 8px;
@@ -88,7 +88,7 @@
 
   .tooltip.bottom::after {
     bottom: auto;
-    top: calc(-4px - var(--tooltip-border-width) * 1px);
+    top: calc(-4px - var(--tooltip-border-width));
     border-right: none;
     border-bottom: none;
     border-left: var(--tooltip-border-width) solid var(--tooltip-border);

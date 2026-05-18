@@ -11,7 +11,7 @@
     anchor?: CornerAnchor;
     size?: 'default' | 'small';
     icon?: string | undefined;
-    /** Custom icon content. Falls back to `icon` prop's font-icon class. Renamed from `slot="icon"` in 0.5.0. */
+    /** Custom icon content; falls back to `icon` prop's font-icon class. */
     iconSlot?: Snippet;
     children?: Snippet;
   }
@@ -37,23 +37,10 @@
 
   $variants: primary, accent, neutral, alternate, canvas, special, success, warning, danger, info;
 
-  // Per-variant token block kept flat (not collapsed via SCSS @each) so the
-  // Layer-2 token-discovery parser (`extractGlobalRootBody` in
-  // src/lib/parsers/globalRootBlock.ts) can read the .svelte source verbatim;
-  // @each interpolation would make the parser see zero tokens here, even though
-  // the rendered DOM would be identical. Same pattern as Badge.svelte / Notification.svelte.
-  //
-  // Role-based radii: each variable follows the badge's geometry regardless of anchor.
-  //  - outer:  the corner flush with the parent's anchored corner
-  //  - inner:  the diagonally opposite corner (deepest into the parent)
-  //  - h-axis: the on-axis corner along the horizontal edge shared with `outer`
-  //  - v-axis: the on-axis corner along the vertical edge shared with `outer`
-  //
-  // Padding + font props are corner-badge-specific (not inherited from the
-  // sibling Badge variant), so corner-badge instances can carry their own
-  // typography and sizing without dragging the inline Badge along. They default
-  // to the same underlying global tokens Badge uses, so an unconfigured corner
-  // badge still matches its inline badge counterpart visually.
+  // Flat per-variant blocks (no @each) so extractGlobalRootBody can parse them verbatim.
+  // Role-based radii follow badge geometry regardless of anchor:
+  //   outer = flush corner, inner = diagonal, h-axis/v-axis = edges shared with outer.
+  // Padding + font are corner-badge-specific; defaults match Badge so unconfigured looks identical.
   :global(:root) {
     /* Primary */
     --corner-badge-primary-margin: var(--space-0);
@@ -182,11 +169,8 @@
     pointer-events: none;
   }
 
-  // Per-variant: pull the variant's public tokens into private vars so the
-  // anchor-based mappings below can read them without 4 × 10 explicit rules.
-  // Padding + font props are forwarded directly onto the inner Badge so the
-  // corner-badge tokens fully replace Badge's per-variant declarations
-  // (otherwise Badge's own `.badge-#{$v}` rule wins by source order).
+  // Pull public tokens into private vars so anchor mappings below stay generic (avoids 4×10 rules).
+  // Padding + font forwarded onto inner Badge to override Badge's own `.badge-#{$v}` rule.
   @each $v in $variants {
     .corner-badge-#{$v} {
       --_margin: var(--corner-badge-#{$v}-margin);
@@ -210,7 +194,7 @@
   .corner-badge-top-right    { top:    var(--_margin); right: var(--_margin); }
   .corner-badge-top-left     { top:    var(--_margin); left:  var(--_margin); }
 
-  /* Map logical corner roles → physical corners per anchor. */
+  /* Logical roles to physical corners, per anchor. */
   .corner-badge-bottom-right :global(.badge) {
     border-top-left-radius:     var(--_inner-radius);
     border-top-right-radius:    var(--_v-axis-radius);

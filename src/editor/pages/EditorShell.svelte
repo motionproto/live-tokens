@@ -1,7 +1,7 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
 
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
   import { get } from 'svelte/store';
   import VariablesTab from '../ui/VariablesTab.svelte';
   import ThemeFileManager from '../ui/ThemeFileManager.svelte';
@@ -34,11 +34,9 @@
   let selectedTokenSection: string | null = $state(null);
   let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = $state('idle');
 
-  let shellEl: HTMLElement | null = $state(null);
-  let shellWidth = $state(1024);
-  const CONDENSE_BELOW = 520;
-
-  let condensed = $derived($sidebarCondensed === 'auto' ? shellWidth < CONDENSE_BELOW : $sidebarCondensed);
+  // 'auto' = open by default. Auto-condensing on shellWidth caused a bounce
+  // as the overlay panel grew past the threshold mid-animation.
+  let condensed = $derived($sidebarCondensed === 'auto' ? false : $sidebarCondensed);
 
   const HINT_DELAY_MS = 80;
   let hintLabel: string | null = $state(null);
@@ -79,10 +77,7 @@
   }
 
   function toggleCondensed() {
-    sidebarCondensed.update((v) => {
-      const isCondensedNow = v === 'auto' ? shellWidth < CONDENSE_BELOW : v;
-      return !isCondensedNow;
-    });
+    sidebarCondensed.update((v) => !(v === true));
   }
 
   async function handleSave(detail: { fileName: string; displayName: string }) {
@@ -106,16 +101,7 @@
     }
   }
 
-  let ro: ResizeObserver | null = null;
   onMount(async () => {
-    if (shellEl && typeof ResizeObserver !== 'undefined') {
-      ro = new ResizeObserver((entries) => {
-        const w = entries[0]?.contentRect.width;
-        if (typeof w === 'number') shellWidth = w;
-      });
-      ro.observe(shellEl);
-      shellWidth = shellEl.clientWidth;
-    }
     try {
       const summaries = await listComponents();
       validateRegistryAgainstServerScan(summaries.map((s) => s.name));
@@ -123,13 +109,9 @@
       // server unreachable — skip validation
     }
   });
-
-  onDestroy(() => {
-    ro?.disconnect();
-  });
 </script>
 
-<div class="layout" class:condensed bind:this={shellEl}>
+<div class="layout" class:condensed>
   <nav class="sidebar" class:condensed>
     <div class="rail-toggle-row">
       <button

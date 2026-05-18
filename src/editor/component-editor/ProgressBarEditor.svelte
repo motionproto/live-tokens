@@ -100,7 +100,6 @@
       <div class="progress-demo-stack">
         {#if v === 'primary'}
           <ProgressBar value={25} label="Getting Started" variant="primary" />
-          <ProgressBar value={60} variant="primary" size="compact" />
         {:else if v === 'success'}
           <ProgressBar value={100} label="Complete" variant="success" />
         {:else if v === 'warning'}
@@ -120,5 +119,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-12);
+    width: 100%;
+    max-width: 32rem;
   }
 </style>

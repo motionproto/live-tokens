@@ -53,6 +53,20 @@
     return [...frameTokens(v), ...titleOutlineTokens(v), ...gradientTokens(v)];
   }
 
+  /** Token list passed to VariantGroup.states + sibling builder so Copy-from
+   *  iterates ALL tokens (frame + outline + gradient), not just the visible
+   *  frame. Outline + gradient are flagged `hidden` so the property grid still
+   *  shows only frame tokens — outline renders inside the title TypeEditor,
+   *  gradient renders in GradientCard. Mismatch between this list and the
+   *  sibling list would mis-align positional copy. */
+  function stateTokens(v: Variant): Token[] {
+    return [
+      ...frameTokens(v),
+      ...titleOutlineTokens(v).map((t) => ({ ...t, hidden: true })),
+      ...gradientTokens(v).map((t) => ({ ...t, hidden: true })),
+    ];
+  }
+
   /** Two type groups per variant: title and description. The TypeEditor
    *  fieldset visually groups each color with its font-shape props. The
    *  title fieldset also nests the SVG-text outline width + color so those
@@ -137,27 +151,13 @@
   let descriptionText = $state('This text is meant to provide additional context or meaning.');
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
-  // The gradient tokens are owned by GradientCard, so the property grid only
-  // shows the frame tokens (padding/radius/outline). Gradient tokens still
-  // live in `allTokens` so they participate in reset and the registry.
-  let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(frameTokens(v), linked.varSet));
+  // Pass the full stateTokens list (with outline/gradient hidden) so positional
+  // Copy-from covers every variable. TokenLayout filters hidden tokens from the
+  // grid render path, so the user still sees only frame tokens.
+  let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(stateTokens(v), linked.varSet));
 </script>
 
 <ComponentEditorBase {component} title="Section Divider" description="Full-width section banner with display font and palette variants." tokens={allTokens} {linked} variants={variantOptions}>
-  {#snippet config()}
-      <label class="text-field">
-        <span>Test title</span>
-        <input type="text" bind:value={testTitle} placeholder="Section Title" />
-      </label>
-      <label class="checkbox-field">
-        <input type="checkbox" bind:checked={showDescription} />
-        <span>Show description</span>
-      </label>
-      <label class="text-field text-field-wide">
-        <span>Description text</span>
-        <input type="text" bind:value={descriptionText} placeholder="Description text" />
-      </label>
-  {/snippet}
   {#each variants as v}
     <VariantGroup
       name={v.key}
@@ -168,16 +168,33 @@
       siblings={buildSiblings(
         variants.map((x) => x.key),
         v.key,
-        (sv) => ({ [sv]: variantTokens(sv) }),
+        (sv) => ({ [sv]: stateTokens(sv) }),
         (sv) => ({ [sv]: variantTypeGroups(sv) }),
       )}
       backdropPadding="32px"
     >
-      <SectionDivider
-        title={testTitle || v.title}
-        variant={v.key}
-        description={showDescription ? descriptionText : undefined}
-      />
+      {#snippet canvasToolbarExtras()}
+        <hr class="canvas-toolbar-divider" />
+        <label class="toolbar-field">
+          <span>Test title</span>
+          <input type="text" class="canvas-toolbar-input" bind:value={testTitle} placeholder="Section Title" />
+        </label>
+        <label class="toolbar-check">
+          <input type="checkbox" bind:checked={showDescription} />
+          <span>Show description</span>
+        </label>
+        <label class="toolbar-field">
+          <span>Description text</span>
+          <input type="text" class="canvas-toolbar-input" bind:value={descriptionText} placeholder="Description text" />
+        </label>
+      {/snippet}
+      <div class="section-divider-stage">
+        <SectionDivider
+          title={testTitle || v.title}
+          variant={v.key}
+          description={showDescription ? descriptionText : undefined}
+        />
+      </div>
       {#snippet compositeControls(_stateName)}
         <span class="gradient-section-label">Gradient</span>
         <GradientCard {component} prefix={`--sectiondivider-${v.key}`} />
@@ -187,38 +204,28 @@
 </ComponentEditorBase>
 
 <style>
-  .text-field,
-  .checkbox-field {
+  .toolbar-check {
     display: inline-flex;
     align-items: center;
-    gap: var(--ui-space-8);
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
-  }
-
-  .checkbox-field {
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .checkbox-field input {
-    margin: 0;
+    gap: var(--ui-space-6);
+    font-size: var(--ui-font-size-sm);
+    color: rgba(255, 255, 255, 0.78);
     cursor: pointer;
   }
 
-  .text-field input {
-    padding: var(--ui-space-4) var(--ui-space-8);
-    background: var(--ui-surface-input);
-    color: var(--ui-text-primary);
-    border: 1px solid var(--ui-border-low);
-    border-radius: var(--ui-radius-sm);
-    font-family: var(--ui-font-mono);
+  .toolbar-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-4);
     font-size: var(--ui-font-size-xs);
-    min-width: 16rem;
+    color: rgba(255, 255, 255, 0.6);
   }
 
-  .text-field-wide input {
-    min-width: 28rem;
+  /* Floor the preview width so the divider always reads as a banner, even
+     when the canvas gets cramped (e.g. on narrower editor viewports). */
+  .section-divider-stage {
+    width: 100%;
+    min-width: 32rem;
   }
 
   .gradient-section-label {

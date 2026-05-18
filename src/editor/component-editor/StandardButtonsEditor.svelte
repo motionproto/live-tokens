@@ -11,10 +11,8 @@
   function statePrefix(v: Variant, s: StateName): string {
     return s === 'default' ? `--button-${v}` : `--button-${v}-${s}`;
   }
-  /** Buttons have a single text slot, so its typography props live as peer
-   *  rows in the unified token grid (no TypeEditor fieldset). Default state
-   *  carries the full font shape (family/weight/size/line-height); hover and
-   *  disabled only override text color, so they keep just the color row. */
+  // Single text slot: typography props are peer rows, not a TypeEditor fieldset.
+  // Default carries the full font shape; hover/disabled only override text color.
   function variantStateTokens(v: Variant, s: StateName): Token[] {
     const p = statePrefix(v, s);
     const tokens: Token[] = [
@@ -46,9 +44,8 @@
     Object.values(variantStates(v)).flat(),
   );
 
-  // Linked block:
-  //   - shape props (border-width, radius, padding) link across every variant × state — buttons share one geometry.
-  //   - typography props link across all six variants.
+  // Shape props link across every variant × state (buttons share one geometry).
+  // Typography props link across all variants.
   const linkableContexts = new Map<string, string>([
     ...variants.flatMap((v) => stateNames.flatMap((s) => [
       [`${statePrefix(v, s)}-border-width`, `${v} ${s}`] as const,

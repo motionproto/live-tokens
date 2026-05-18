@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import { writable } from 'svelte/store';
+  import { getEditorContext } from './editorContext';
 
   type Source = { name: string; label: string; states: string[] };
 
@@ -21,6 +23,13 @@
 
   let open = $state(false);
   let root: HTMLElement | undefined = $state();
+  /** When true, copy rewrites the source variant segment in palette aliases
+      (e.g. `--surface-accent-high` → `--surface-primary-high`) so cross-variant
+      copies preserve color identity while picking up shape/typography choices.
+      Lifted to editor context so the toggle persists across VariantGroup
+      remounts (focus-mode swaps unmount the previous group). */
+  const editorCtx = getEditorContext();
+  const preserveColorFamilyStore = editorCtx?.preserveColorFamily ?? writable(false);
 
   function toggle() {
     open = !open;
@@ -64,6 +73,11 @@
   </button>
   {#if open}
     <div class="copy-menu" role="menu">
+      <label class="copy-menu-toggle">
+        <input type="checkbox" bind:checked={$preserveColorFamilyStore} />
+        <span>Preserve color families</span>
+      </label>
+      <div class="copy-menu-divider" aria-hidden="true"></div>
       {#each copySources as src}
         {#if src.states.length === 1}
           {@const onlyState = src.states[0]}
@@ -251,5 +265,31 @@
 
   .copy-menu-item-parent:hover > .copy-submenu {
     display: flex;
+  }
+
+  .copy-menu-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-6) var(--ui-space-10);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .copy-menu-toggle:hover {
+    color: var(--ui-text-primary);
+  }
+
+  .copy-menu-toggle input {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .copy-menu-divider {
+    height: 1px;
+    background: var(--ui-border-low);
+    margin: 2px 0;
   }
 </style>

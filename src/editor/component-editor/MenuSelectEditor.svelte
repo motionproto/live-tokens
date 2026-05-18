@@ -4,11 +4,7 @@
 
   export const component = 'menuselect';
 
-  // Non-text tokens per state. The text/font properties live in `typeGroups`
-  // below and are rendered through TypeEditor instead of TokenLayout.
-  // Item-shape tokens (radius, padding) sit under `menu` so they read as a
-  // single decision about how items present across every state — the same
-  // pattern SegmentedControl uses for `--selected-radius`.
+  // Non-text tokens per state; text/font lives in typeGroups. Item-shape tokens sit under `menu` so they read as one decision across states.
   const states: Record<string, Token[]> = {
     menu: [
       { label: 'surface color', groupKey: 'surface', variable: '--menuselect-menu-surface' },
@@ -52,9 +48,7 @@
     ],
   };
 
-  // Per-state typography for the item label. Four states share the same label
-  // surface, exposed via linkable groupKeys so a user can collapse them all
-  // onto one shared text style or diverge them per state.
+  // Per-state item-label typography; linkable groupKeys let users collapse or diverge across states.
   const typeGroups: Record<string, TypeGroupConfig[]> = {
     'default item': [{
       legend: 'item label',
@@ -128,12 +122,6 @@
 </script>
 
 <ComponentEditorBase {component} title="Menu Select" description="A select-style dropdown panel. Items support default, hover, selected, and disabled states." tokens={allTokens} {linked}>
-  {#snippet config()}
-    <label>
-      <input type="checkbox" bind:checked={showIcons} />
-      <span>Show icons</span>
-    </label>
-  {/snippet}
   <VariantGroup
     name="menuselect"
     title="Menu Select"
@@ -141,6 +129,13 @@
     {typeGroups}
     {component}
   >
+    {#snippet canvasToolbarExtras()}
+      <hr class="canvas-toolbar-divider" />
+      <label class="show-icons-row">
+        <input type="checkbox" bind:checked={showIcons} />
+        <span>Show icons</span>
+      </label>
+    {/snippet}
     {#snippet children({ activeState })}
       {@const previewValue = activeState === 'selected item' ? 'option-2' : ''}
       {@const previewForceHover = activeState === 'hover item' ? 'option-1' : null}
@@ -152,3 +147,14 @@
     {/snippet}
   </VariantGroup>
 </ComponentEditorBase>
+
+<style>
+  .show-icons-row {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    font-size: var(--ui-font-size-sm);
+    color: rgba(255, 255, 255, 0.78);
+    cursor: pointer;
+  }
+</style>
