@@ -2,9 +2,9 @@
   "name": "default",
   "component": "dialog",
   "createdAt": "2026-05-10T20:05:24.719Z",
-  "updatedAt": "2026-05-18T15:20:28.345Z",
+  "updatedAt": "2026-05-18T15:58:43.830Z",
   "aliases": {
-    "--dialog-overlay-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 65%, transparent)",
+    "--dialog-overlay-surface": "--overlay-high",
     "--dialog-surface": "--surface-neutral-lowest",
     "--dialog-border": "--border-neutral-strong",
     "--dialog-border-width": "--border-width-2",
@@ -31,7 +31,5 @@
     "--dialog-footer-border": "--border-neutral-subtle",
     "--dialog-footer-border-width": "--border-width-1",
     "--dialog-footer-padding": "--space-16"
-  },
-  "config": {},
-  "schemaVersion": 6
+  }
 }
