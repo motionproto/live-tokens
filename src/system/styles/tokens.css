@@ -43,43 +43,43 @@
   --color-alternate-950: #030101;
 
   /* Background */
-  --color-canvas-100: #fbebdf;
-  --color-canvas-200: #c4b5aa;
-  --color-canvas-300: #877a6f;
-  --color-canvas-400: #5b4e44;
-  --color-canvas-500: #483c32;
-  --color-canvas-600: #42362c;
-  --color-canvas-700: #362b21;
-  --color-canvas-800: #291e15;
-  --color-canvas-850: #1b1108;
-  --color-canvas-900: #0e0501;
-  --color-canvas-950: #050100;
+  --color-canvas-100: #ecedff;
+  --color-canvas-200: #b5b6d2;
+  --color-canvas-300: #797a94;
+  --color-canvas-400: #4e4e66;
+  --color-canvas-500: #3c3c53;
+  --color-canvas-600: #36364c;
+  --color-canvas-700: #2b2a40;
+  --color-canvas-800: #1e1d32;
+  --color-canvas-850: #111024;
+  --color-canvas-900: #060516;
+  --color-canvas-950: #02000b;
 
   /* Brand */
-  --color-brand-100: #ffeada;
-  --color-brand-200: #ffc698;
-  --color-brand-300: #f49c4e;
-  --color-brand-400: #da8433;
-  --color-brand-500: #ce7a25;
-  --color-brand-600: #be6b0b;
-  --color-brand-700: #9a5400;
-  --color-brand-800: #703c00;
-  --color-brand-850: #452300;
-  --color-brand-900: #1e0c00;
-  --color-brand-950: #050100;
+  --color-brand-100: #ffe7ef;
+  --color-brand-200: #ffbed5;
+  --color-brand-300: #ff86b8;
+  --color-brand-400: #ff4ba2;
+  --color-brand-500: #fb2898;
+  --color-brand-600: #e90089;
+  --color-brand-700: #bc006e;
+  --color-brand-800: #89004f;
+  --color-brand-850: #56002f;
+  --color-brand-900: #270012;
+  --color-brand-950: #070002;
 
   /* Accent */
-  --color-accent-100: #d8fa9f;
-  --color-accent-200: #c1e187;
-  --color-accent-300: #a2c268;
-  --color-accent-400: #82a243;
-  --color-accent-500: #628019;
-  --color-accent-600: #3c5200;
-  --color-accent-700: #2a3a00;
-  --color-accent-800: #1f2c00;
-  --color-accent-850: #172200;
-  --color-accent-900: #131d00;
-  --color-accent-950: #111a00;
+  --color-accent-100: #a2fffa;
+  --color-accent-200: #89e6e2;
+  --color-accent-300: #68c7c3;
+  --color-accent-400: #3fa7a3;
+  --color-accent-500: #008582;
+  --color-accent-600: #005553;
+  --color-accent-700: #003d3b;
+  --color-accent-800: #002e2c;
+  --color-accent-850: #002423;
+  --color-accent-900: #001e1d;
+  --color-accent-950: #001b1a;
 
   /* Special */
   --color-special-100: #efecff;
@@ -108,42 +108,42 @@
   --color-success-950: #000300;
 
   /* Warning */
-  --color-warning-100: #ffeadf;
-  --color-warning-200: #ffd2ba;
-  --color-warning-300: #ffb48c;
-  --color-warning-400: #ff9a63;
-  --color-warning-500: #ff8f4d;
-  --color-warning-600: #ee7b33;
-  --color-warning-700: #c85a00;
-  --color-warning-800: #913f00;
-  --color-warning-850: #5a2400;
-  --color-warning-900: #270b00;
-  --color-warning-950: #060000;
+  --color-warning-100: #ffebd4;
+  --color-warning-200: #ffd4a2;
+  --color-warning-300: #ffb85a;
+  --color-warning-400: #f8a319;
+  --color-warning-500: #f09c00;
+  --color-warning-600: #d98c00;
+  --color-warning-700: #ae7000;
+  --color-warning-800: #7e4f00;
+  --color-warning-850: #4d2f00;
+  --color-warning-900: #211100;
+  --color-warning-950: #040100;
 
   /* Info */
-  --color-info-100: #b0ccf9;
-  --color-info-200: #99b8e8;
-  --color-info-300: #81a3d7;
-  --color-info-400: #6a8ec6;
-  --color-info-500: #5479b4;
-  --color-info-600: #3d65a3;
-  --color-info-700: #275192;
-  --color-info-800: #103d81;
-  --color-info-850: #002a6c;
-  --color-info-900: #001c4d;
-  --color-info-950: #001135;
+  --color-info-100: #a9cdff;
+  --color-info-200: #85b9ff;
+  --color-info-300: #5ca2ff;
+  --color-info-400: #2b8afe;
+  --color-info-500: #0074e9;
+  --color-info-600: #0061c5;
+  --color-info-700: #004fa3;
+  --color-info-800: #003e82;
+  --color-info-850: #002e63;
+  --color-info-900: #001f47;
+  --color-info-950: #001330;
 
   /* Danger */
-  --color-danger-100: #ffe8e8;
-  --color-danger-200: #ffb0b2;
-  --color-danger-300: #ff5e6e;
-  --color-danger-400: #e02549;
-  --color-danger-500: #cf013c;
-  --color-danger-600: #bc0035;
-  --color-danger-700: #980029;
-  --color-danger-800: #70001c;
-  --color-danger-850: #47000e;
-  --color-danger-900: #220003;
+  --color-danger-100: #ffe9e6;
+  --color-danger-200: #ffb1ab;
+  --color-danger-300: #ff615e;
+  --color-danger-400: #e22632;
+  --color-danger-500: #d10023;
+  --color-danger-600: #bd001f;
+  --color-danger-700: #9a0017;
+  --color-danger-800: #71000e;
+  --color-danger-850: #480005;
+  --color-danger-900: #220001;
   --color-danger-950: #080000;
 
   /* Semantic color primitives (for component tokens that need the CSS
@@ -160,7 +160,7 @@
      Editor writes these via the Palette "empty selector".
      ═══════════════════════════════════════════════════════ */
 
-  --page-bg: #1b1108;
+  --page-bg: #111024;
   --page-bg-attachment: scroll;
 
   /* ═══════════════════════════════════════════════════════
@@ -186,31 +186,31 @@
   --surface-alternate-highest: #5f5957;
 
   /* Background */
-  --surface-canvas-lowest: #120903;
-  --surface-canvas-lower: #1e130b;
-  --surface-canvas-low: #2b2017;
-  --surface-canvas: #392e24;
-  --surface-canvas-high: #483c32;
-  --surface-canvas-higher: #574b41;
-  --surface-canvas-highest: #65584e;
+  --surface-canvas-lowest: #0a081b;
+  --surface-canvas-lower: #141327;
+  --surface-canvas-low: #202035;
+  --surface-canvas: #2e2e44;
+  --surface-canvas-high: #3c3c53;
+  --surface-canvas-higher: #4b4b63;
+  --surface-canvas-highest: #585871;
 
   /* Brand */
-  --surface-brand-lowest: #160700;
-  --surface-brand-lower: #2d1400;
-  --surface-brand-low: #492500;
-  --surface-brand: #683700;
-  --surface-brand-high: #864b0e;
-  --surface-brand-higher: #9b6637;
-  --surface-brand-highest: #ae7d56;
+  --surface-brand-lowest: #1d000c;
+  --surface-brand-lower: #39001d;
+  --surface-brand-low: #5a0032;
+  --surface-brand: #7f0049;
+  --surface-brand-high: #a40d60;
+  --surface-brand-higher: #ba3f78;
+  --surface-brand-highest: #cb5f8d;
 
   /* Accent */
-  --surface-accent-lowest: #080e00;
-  --surface-accent-lower: #101900;
-  --surface-accent-low: #1b2700;
-  --surface-accent: #273700;
-  --surface-accent-high: #334600;
-  --surface-accent-higher: #405700;
-  --surface-accent-highest: #4c6500;
+  --surface-accent-lowest: #000f0e;
+  --surface-accent-lower: #001b1a;
+  --surface-accent-low: #002928;
+  --surface-accent: #003937;
+  --surface-accent-high: #004947;
+  --surface-accent-higher: #005a57;
+  --surface-accent-highest: #006966;
 
   /* Special */
   --surface-special-lowest: #0f002b;
@@ -231,31 +231,31 @@
   --surface-success-highest: #006e2e;
 
   /* Warning */
-  --surface-warning-lowest: #190500;
-  --surface-warning-lower: #280c00;
-  --surface-warning-low: #3c1600;
-  --surface-warning: #512000;
-  --surface-warning-high: #662b00;
-  --surface-warning-higher: #7d3600;
-  --surface-warning-highest: #914000;
+  --surface-warning-lowest: #140800;
+  --surface-warning-lower: #221200;
+  --surface-warning-low: #331d00;
+  --surface-warning: #452900;
+  --surface-warning-high: #583600;
+  --surface-warning-higher: #6c4300;
+  --surface-warning-highest: #7e4f00;
 
   /* Info */
-  --surface-info-lowest: #000923;
-  --surface-info-lower: #05152f;
-  --surface-info-low: #11223e;
-  --surface-info: #1e304d;
-  --surface-info-high: #2c3f5d;
-  --surface-info-higher: #3a4e6d;
-  --surface-info-highest: #475c7b;
+  --surface-info-lowest: #000a21;
+  --surface-info-lower: #001434;
+  --surface-info-low: #00214b;
+  --surface-info: #002e64;
+  --surface-info-high: #073d7b;
+  --surface-info-higher: #1a4d8c;
+  --surface-info-highest: #295b9b;
 
   /* Danger */
-  --surface-danger-lowest: #1f0003;
-  --surface-danger-lower: #310007;
-  --surface-danger-low: #48000e;
-  --surface-danger: #600016;
-  --surface-danger-high: #7a001f;
-  --surface-danger-higher: #930028;
-  --surface-danger-highest: #ab002f;
+  --surface-danger-lowest: #1f0001;
+  --surface-danger-lower: #320003;
+  --surface-danger-low: #490006;
+  --surface-danger: #61000a;
+  --surface-danger-high: #7a0010;
+  --surface-danger-higher: #950016;
+  --surface-danger-highest: #ad001b;
 
   /* Semi-Transparent Overlays - 7-point scale */
   --overlay-lowest: rgba(20, 3, 0, 0.12);
@@ -285,25 +285,25 @@
   --border-alternate-strong: #c3bcb9;
 
   /* Background */
-  --border-canvas-faint: #2a1f16;
-  --border-canvas-subtle: #4c4036;
-  --border-canvas: #75675d;
-  --border-canvas-medium: #a09287;
-  --border-canvas-strong: #cabbaf;
+  --border-canvas-faint: #1f1f34;
+  --border-canvas-subtle: #404057;
+  --border-canvas: #676881;
+  --border-canvas-medium: #9292ad;
+  --border-canvas-strong: #babbd7;
 
   /* Brand */
-  --border-brand-faint: #361900;
-  --border-brand-subtle: #643500;
-  --border-brand: #9c5600;
-  --border-brand-medium: #d27d2a;
-  --border-brand-strong: #ffa659;
+  --border-brand-faint: #430024;
+  --border-brand-subtle: #7b0046;
+  --border-brand: #bf0070;
+  --border-brand-medium: #ff2f9c;
+  --border-brand-strong: #ff99c1;
 
   /* Accent */
-  --border-accent-faint: #1b2600;
-  --border-accent-subtle: #374b00;
-  --border-accent: #597607;
-  --border-accent-medium: #83a242;
-  --border-accent-strong: #aacc6c;
+  --border-accent-faint: #002827;
+  --border-accent-subtle: #004d4c;
+  --border-accent: #007a78;
+  --border-accent-medium: #3da7a4;
+  --border-accent-strong: #6cd2cd;
 
   /* Special */
   --border-special-faint: #29005c;
@@ -320,25 +320,25 @@
   --border-success-strong: #61db80;
 
   /* Warning */
-  --border-warning-faint: #3a1500;
-  --border-warning-subtle: #6c2e00;
-  --border-warning: #a84b00;
-  --border-warning-medium: #e27026;
-  --border-warning-strong: #ffa473;
+  --border-warning-faint: #321c00;
+  --border-warning-subtle: #5d3a00;
+  --border-warning: #925d00;
+  --border-warning-medium: #cb8300;
+  --border-warning-strong: #fea925;
 
   /* Info */
-  --border-info-faint: #002259;
-  --border-info-subtle: #003b90;
-  --border-info: #1c5dc2;
-  --border-info-medium: #3d82f0;
-  --border-info-strong: #71a8ff;
+  --border-info-faint: #002552;
+  --border-info-subtle: #004085;
+  --border-info: #0060c2;
+  --border-info-medium: #0d82ff;
+  --border-info-strong: #69a9ff;
 
   /* Danger */
-  --border-danger-faint: #46000e;
-  --border-danger-subtle: #800021;
-  --border-danger: #c70039;
-  --border-danger-medium: #fe4860;
-  --border-danger-strong: #ff9fa2;
+  --border-danger-faint: #470005;
+  --border-danger-subtle: #810011;
+  --border-danger: #c80021;
+  --border-danger-medium: #ff494b;
+  --border-danger-strong: #ffa099;
 
   /* ═══════════════════════════════════════════════════════
      TEXT — 5-point hierarchy (primary → disabled)
@@ -353,25 +353,25 @@
   --text-inverted: var(--color-neutral-900);
 
   /* Background */
-  --text-canvas: #b2a498;
-  --text-canvas-secondary: #9c9086;
-  --text-canvas-tertiary: #726a64;
-  --text-canvas-muted: #4a4744;
-  --text-canvas-disabled: #383634;
+  --text-canvas: #4f5068;
+  --text-canvas-secondary: #454559;
+  --text-canvas-tertiary: #31323e;
+  --text-canvas-muted: #1f1f25;
+  --text-canvas-disabled: #161619;
 
   /* Brand */
-  --text-brand: #d87900;
-  --text-brand-secondary: #b4650a;
-  --text-brand-tertiary: #8d541f;
-  --text-brand-muted: #68492f;
-  --text-brand-disabled: #443c37;
+  --text-brand: #ff67ab;
+  --text-brand-secondary: #ef2791;
+  --text-brand-tertiary: #bb3375;
+  --text-brand-muted: #86405d;
+  --text-brand-disabled: #524147;
 
   /* Accent */
-  --text-accent: #85a544;
-  --text-accent-secondary: #759041;
-  --text-accent-tertiary: #576938;
-  --text-accent-muted: #3b442e;
-  --text-accent-disabled: #2e3227;
+  --text-accent: #3da7a4;
+  --text-accent-secondary: #3c928f;
+  --text-accent-tertiary: #376a68;
+  --text-accent-muted: #2d4443;
+  --text-accent-disabled: #273231;
 
   /* Special */
   --text-special: #ab92ff;
@@ -388,25 +388,25 @@
   --text-success-disabled: #2d3a2f;
 
   /* Warning */
-  --text-warning: #f7833d;
-  --text-warning-secondary: #d7763d;
-  --text-warning-tertiary: #985b39;
-  --text-warning-muted: #5d4031;
-  --text-warning-disabled: #41332b;
+  --text-warning: #ffdbb0;
+  --text-warning-secondary: #ffb656;
+  --text-warning-tertiary: #b88950;
+  --text-warning-muted: #755f45;
+  --text-warning-disabled: #554a3e;
 
   /* Info */
-  --text-info: #246bda;
-  --text-info-secondary: #2d5aa2;
-  --text-info-tertiary: #2e476f;
-  --text-info-muted: #2a3444;
-  --text-info-disabled: #1e2126;
+  --text-info: #9cc6ff;
+  --text-info-secondary: #5aa1ff;
+  --text-info-tertiary: #397ed7;
+  --text-info-muted: #465f82;
+  --text-info-disabled: #39404a;
 
   /* Danger */
-  --text-danger: #ff757e;
-  --text-danger-secondary: #ef5766;
-  --text-danger-tertiary: #a84950;
-  --text-danger-muted: #65393b;
-  --text-danger-disabled: #463030;
+  --text-danger: #f94145;
+  --text-danger-secondary: #d74041;
+  --text-danger-tertiary: #963936;
+  --text-danger-muted: #592e2b;
+  --text-danger-disabled: #3c2725;
 
   /* Border Radius */
   --radius-none: 0;
@@ -495,9 +495,9 @@
   --columns-margin: 0;
 
   /* Font Families */
-  --font-display: "astounder-squared-bb", "astounder-squared-lc-bb", sans-serif;
-  --font-sans: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, sans-serif;
-  --font-serif: "Faculty Glyphic", "Domine", serif;
+  --font-display: "Arvo", "Fraunces", serif;
+  --font-sans: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, sans-serif;
+  --font-serif: "Fraunces", serif;
   --font-mono: "fira-code", ui-monospace, "SF Mono", Menlo, Consolas, monospace, monospace;
 
   /* Font Sizes */
@@ -539,8 +539,8 @@
   /* Gradients — runtime values come from the editor store; the static
      declarations below are fallbacks so the variables resolve before JS
      hydrates. Match the defaults seeded in `makeDefaultGradients()`. */
-  --gradient-1: linear-gradient(90deg, var(--color-primary-500) 0%, var(--color-accent-500) 100%);
-  --gradient-2: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-special-500) 100%);
+  --gradient-1: linear-gradient(90deg, var(--color-brand-500) 0%, var(--color-accent-500) 100%);
+  --gradient-2: linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-special-500) 100%);
   --gradient-3: linear-gradient(90deg, var(--color-success-500) 0%, var(--color-info-500) 100%);
   --gradient-4: linear-gradient(45deg, var(--color-danger-500) 0%, var(--color-warning-500) 100%);
 
@@ -650,13 +650,13 @@
   }
 
   /* Token additions */
-  --badge-trait-surface: var(--surface-primary);
-  --badge-trait-text: var(--text-primary-color);
+  --badge-trait-surface: var(--surface-brand);
+  --badge-trait-text: var(--text-brand);
   --badge-trait-text-font-family: var(--font-sans);
   --badge-trait-text-font-size: var(--font-size-sm);
   --badge-trait-text-font-weight: var(--font-weight-light);
-  --badge-trait-text-line-height: var(--line-height-tight);
-  --badge-trait-border: var(--border-primary-medium);
+  --badge-trait-text-line-height: var(--line-height-xs);
+  --badge-trait-border: var(--border-brand-medium);
   --badge-trait-border-width: var(--border-width-1);
   --badge-trait-radius: var(--radius-full);
   --badge-trait-padding: var(--space-6);
@@ -1061,14 +1061,14 @@
   --sectiondivider-title-font-family: var(--font-display);
   --sectiondivider-title-font-size: var(--font-size-5xl);
   --sectiondivider-title-font-weight: var(--font-weight-normal);
-  --sectiondivider-title-line-height: var(--line-height-tight);
+  --sectiondivider-title-line-height: var(--line-height-xs);
   --sectiondivider-title-border-width: var(--border-width-4);
   --sectiondivider-title-stroke-color: var(--surface-canvas-lowest);
   --sectiondivider-description: var(--text-secondary);
   --sectiondivider-description-font-family: var(--font-sans);
   --sectiondivider-description-font-size: var(--font-size-md);
   --sectiondivider-description-font-weight: var(--font-weight-normal);
-  --sectiondivider-description-line-height: var(--line-height-normal);
+  --sectiondivider-description-line-height: var(--line-height-md);
   --sectiondivider-canvas-gradient-stop-1: var(--surface-canvas-highest);
   --sectiondivider-canvas-gradient-stop-2: var(--surface-canvas-higher);
   --sectiondivider-canvas-gradient-stop-3: var(--surface-canvas-high);
@@ -1339,111 +1339,3 @@
   --card-hover-header-surface: var(--surface-neutral-high);
   --card-hover-border-width: var(--border-width-1);
 }
-
-/* component-aliases:start */
-:root:root {
-  /* badge (rg-badge) */
-  --badge-accent-blur: var(--blur-md);
-  /* button (rg-button) */
-  --button-primary-text-line-height: var(--line-height-snug);
-  --button-secondary-text-line-height: var(--line-height-snug);
-  --button-outline-text-line-height: var(--line-height-snug);
-  --button-success-text-line-height: var(--line-height-snug);
-  --button-success-border-width: var(--border-width-1);
-  --button-success-hover-border-width: var(--border-width-1);
-  --button-success-disabled-border-width: var(--border-width-1);
-  --button-danger-text-line-height: var(--line-height-snug);
-  --button-danger-border-width: var(--border-width-1);
-  --button-danger-hover-border-width: var(--border-width-1);
-  --button-danger-disabled-border-width: var(--border-width-1);
-  --button-warning-text-line-height: var(--line-height-snug);
-  --button-warning-border-width: var(--border-width-1);
-  --button-warning-hover-border-width: var(--border-width-1);
-  --button-warning-disabled-border-width: var(--border-width-1);
-  /* card (rg-card) */
-  --card-default-surface: var(--surface-neutral-lower);
-  --card-default-header-surface: var(--surface-neutral);
-  --card-hover-border: var(--border-neutral);
-  --card-hover-shadow: var(--shadow-sm);
-  /* collapsiblesection (rg-collapsiblesection) */
-  --collapsiblesection-container-frame-surface: var(--surface-canvas-high);
-  --collapsiblesection-container-default-surface: var(--surface-canvas-high);
-  --collapsiblesection-container-default-label-font-weight: var(--font-weight-bold);
-  --collapsiblesection-container-default-label-line-height: var(--line-height-normal);
-  --collapsiblesection-container-default-icon: var(--text-primary);
-  --collapsiblesection-container-hover-label-font-weight: var(--font-weight-bold);
-  --collapsiblesection-container-hover-label-line-height: var(--line-height-normal);
-  --collapsiblesection-container-active-label-font-weight: var(--font-weight-bold);
-  --collapsiblesection-container-active-label-line-height: var(--line-height-normal);
-  /* dialog (rg-dialog) */
-  --dialog-overlay-surface: var(--overlay-higher);
-  --dialog-header-surface: var(--surface-brand-low);
-  --dialog-header-border: var(--border-brand-subtle);
-  --dialog-title-line-height: var(--line-height-snug);
-  /* inlineeditactions (rg-inlineeditactions) */
-  --inlineeditactions-save-default-border-width: var(--border-width-1);
-  --inlineeditactions-save-hover-text: var(--text-primary);
-  --inlineeditactions-save-hover-border-width: var(--border-width-1);
-  --inlineeditactions-cancel-default-border-width: var(--border-width-1);
-  --inlineeditactions-cancel-hover-text: var(--text-primary);
-  --inlineeditactions-cancel-hover-border-width: var(--border-width-1);
-  /* notification (rg-notification) */
-  --notification-info-title-line-height: var(--line-height-snug);
-  --notification-info-text-line-height: var(--line-height-normal);
-  --notification-success-title-line-height: var(--line-height-snug);
-  --notification-success-text-line-height: var(--line-height-normal);
-  --notification-warning-title-line-height: var(--line-height-snug);
-  --notification-warning-text-line-height: var(--line-height-normal);
-  --notification-danger-title-line-height: var(--line-height-snug);
-  --notification-danger-text-line-height: var(--line-height-normal);
-  /* progressbar (rg-progressbar) */
-  --progressbar-primary-track-surface: var(--surface-neutral-lower);
-  --progressbar-primary-track-border: var(--border-neutral-subtle);
-  --progressbar-primary-track-height: var(--space-10);
-  --progressbar-primary-fill: var(--color-brand-700);
-  --progressbar-primary-label-line-height: var(--line-height-normal);
-  --progressbar-primary-value-line-height: var(--line-height-normal);
-  --progressbar-success-track-height: var(--space-10);
-  --progressbar-success-label-line-height: var(--line-height-normal);
-  --progressbar-success-value-line-height: var(--line-height-normal);
-  --progressbar-warning-track-height: var(--space-10);
-  --progressbar-warning-label-line-height: var(--line-height-normal);
-  --progressbar-warning-value-line-height: var(--line-height-normal);
-  --progressbar-danger-track-height: var(--space-10);
-  --progressbar-danger-label-line-height: var(--line-height-normal);
-  --progressbar-danger-value-line-height: var(--line-height-normal);
-  --progressbar-info-track-height: var(--space-10);
-  --progressbar-info-label-line-height: var(--line-height-normal);
-  --progressbar-info-value-line-height: var(--line-height-normal);
-  /* radiobutton (rg-radiobutton) */
-  --radiobutton-default-label-line-height: var(--line-height-tight);
-  --radiobutton-hover-dot-fill: var(--surface-neutral);
-  --radiobutton-hover-dot-size: var(--dot-size-100);
-  --radiobutton-hover-label-line-height: var(--line-height-tight);
-  --radiobutton-active-dot-fill: var(--color-brand-500);
-  --radiobutton-active-dot-size: var(--dot-size-75);
-  --radiobutton-active-label-line-height: var(--line-height-tight);
-  /* segmentedcontrol (rg-segmentedcontrol) */
-  --segmentedcontrol-bar-surface: var(--surface-neutral-lowest);
-  --segmentedcontrol-bar-radius: var(--radius-xl);
-  --segmentedcontrol-divider-height: var(--space-20);
-  --segmentedcontrol-option-text-font-size: var(--font-size-sm);
-  --segmentedcontrol-option-text-line-height: var(--line-height-normal);
-  --segmentedcontrol-option-hover-text-font-size: var(--font-size-sm);
-  --segmentedcontrol-option-hover-text-line-height: var(--line-height-normal);
-  --segmentedcontrol-selected-surface: var(--surface-brand);
-  --segmentedcontrol-selected-text-font-size: var(--font-size-sm);
-  --segmentedcontrol-selected-text-line-height: var(--line-height-normal);
-  --segmentedcontrol-selected-icon: var(--text-primary);
-  --segmentedcontrol-selected-border: var(--border-brand);
-  --segmentedcontrol-disabled-surface: var(--surface-neutral-low);
-  --segmentedcontrol-disabled-text-font-size: var(--font-size-sm);
-  --segmentedcontrol-disabled-text-line-height: var(--line-height-normal);
-  /* tabbar (rg-tabbar) */
-  --tabbar-default-text-line-height: var(--line-height-normal);
-  --tabbar-hover-text-line-height: var(--line-height-normal);
-  --tabbar-active-text-line-height: var(--line-height-normal);
-  /* tooltip (rg-tooltip) */
-  --tooltip-text-line-height: var(--line-height-normal);
-}
-/* component-aliases:end */

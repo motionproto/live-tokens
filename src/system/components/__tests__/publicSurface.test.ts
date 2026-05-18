@@ -205,7 +205,7 @@ describe('public components — event dispatch contract', () => {
     const target = fresh();
     const c = mount(Button, { target, props: {} });
     let received: CustomEvent | null = null;
-    c.$on('click', (e: CustomEvent) => { received = e; });
+    c.$on!('click', (e: CustomEvent) => { received = e; });
     target.querySelector<HTMLButtonElement>('button.button')!.click();
     expect(received).toBeTruthy();
     unmount(c);
@@ -215,7 +215,7 @@ describe('public components — event dispatch contract', () => {
     const target = fresh();
     const c = mount(Button, { target, props: { disabled: true } });
     let fired = false;
-    c.$on('click', () => { fired = true; });
+    c.$on!('click', () => { fired = true; });
     // The button has `disabled` attr so click() is a no-op at DOM level,
     // but we also dispatch a programmatic MouseEvent to be safe.
     target.querySelector<HTMLButtonElement>('button.button')!
@@ -237,7 +237,7 @@ describe('public components — event dispatch contract', () => {
           },
         });
     let detail: unknown = undefined;
-    c.$on('change', (e: CustomEvent<string>) => { detail = e.detail; });
+    c.$on!('change', (e: CustomEvent<string>) => { detail = e.detail; });
     const buttons = target.querySelectorAll<HTMLButtonElement>('button.segment');
     buttons[1].click();
     expect(detail).toBe('b');
@@ -257,7 +257,7 @@ describe('public components — event dispatch contract', () => {
           },
         });
     let detail: unknown = undefined;
-    c.$on('tabChange', (e: CustomEvent<string>) => { detail = e.detail; });
+    c.$on!('tabChange', (e: CustomEvent<string>) => { detail = e.detail; });
     const tabs = target.querySelectorAll<HTMLButtonElement>('.tab');
     tabs[1].click();
     expect(detail).toBe('two');
@@ -271,7 +271,7 @@ describe('public components — event dispatch contract', () => {
           props: { label: 'Section' },
         });
     let toggled = false;
-    c.$on('toggle', () => { toggled = true; });
+    c.$on!('toggle', () => { toggled = true; });
     target.querySelector<HTMLDivElement>('.section-header')!.click();
     expect(toggled).toBe(true);
     unmount(c);
@@ -281,7 +281,7 @@ describe('public components — event dispatch contract', () => {
     const target = fresh();
     const c = mount(RadioButton, { target, props: { label: 'R' } });
     let fired = false;
-    c.$on('click', () => { fired = true; });
+    c.$on!('click', () => { fired = true; });
     const clickable = target.querySelector<HTMLElement>('button, [role="radio"], .radio-button, label');
     expect(clickable).toBeTruthy();
     clickable!.click();

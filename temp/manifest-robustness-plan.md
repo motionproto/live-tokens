@@ -267,3 +267,67 @@ Six unit tests in `paletteDerivation.test.ts` cover: flagged-snaps, unflagged-no
 - No speculative generality: each piece is concretely demanded by the runegoblin case or the renderer-vs-sync mismatch we fixed along the way.
 
 The plan was about making "save a manifest and switch it" load-bearing. That now works for any theme an importer emits using the documented contract (`_imported: true` on overlaid palettes + writing the cssVariables anchor). Editor-authored themes stay round-trip-stable.
+
+## 11. Phase 1.5 — shareable bundles (2026-05-18)
+
+Manifest *switching* was settled in §10. This phase added the *transport* half: send a single file to someone, they import, everything materialises with no manual file shuffling. Approach was a deliberate compromise — keep the local manifest lightweight (pointer-only, as it has always been) and add a separate bundle format for sharing, so the local file never drifts and the transport artifact is always a fresh snapshot.
+
+### What shipped
+
+**New types** (`src/editor/core/themes/themeTypes.ts`):
+- `ManifestBundle` interface — `kind: "manifest-bundle"` discriminator, `schemaVersion: 1`, `liveTokensVersion`, `exportedAt`, inlined `manifest` + `theme` + `componentConfigs` (keyed by `${comp}/${configName}`, non-default only).
+- Existing `Manifest` interface — unchanged.
+
+**Server endpoints** (`vite-plugin/themeFileApi.ts`):
+- `GET /api/manifests/:name/export` — assembles the bundle from disk, returns JSON with `Content-Disposition: attachment` so browsers save rather than display.
+- `POST /api/manifests/import` — validates `kind` + `schemaVersion`, allocates fresh names for collisions, materialises files, rewrites manifest pointers through the rename map, writes the manifest. Returns `{ ok, manifest, renames }`. Does **not** auto-apply.
+
+**Collision strategy** — rename with numeric suffix via the new `vite-plugin/files/nameAllocator.ts` module (`nextAvailableName`). Receiver's local `runegoblin.json` is never overwritten; the inbound bundle's theme becomes `runegoblin-2.json` and the imported manifest's pointers are rewritten to match. Server returns the full rename map so the UI can surface what happened.
+
+**Client helpers** (`src/editor/core/manifests/manifestService.ts`):
+- `exportManifest(fileName)` — hidden-anchor download trick; no new infrastructure.
+- `importManifest(bundle)` — POSTs and returns the rename map.
+
+**UI** (`src/editor/ui/ManifestFileManager.svelte` + `FileLoadList.svelte`):
+- `FileLoadList` gained optional `onexport` + `exportTitle` props; renders a download icon per row (mirrors the per-row delete affordance).
+- Manifest panel passes `onexport={handleExport}` to the Load dialog and added an `Import…` button to the main action row. Import opens a file picker, reads JSON, validates the `kind` discriminator client-side, calls `importManifest`. On non-empty rename map, surfaces an alert listing what was renamed.
+
+**Tests** (`vite-plugin/files/nameAllocator.test.ts`):
+- 5 unit tests on the pure allocator: base case, first collision, occupied-suffix walk, gap handling, max-attempts safeguard.
+
+### End-to-end verification (live dev server)
+
+| Scenario | Outcome |
+|---|---|
+| Export runegoblin → bundle JSON | `kind: "manifest-bundle"`, 12 non-default component configs inlined, 5 `"default"` entries omitted from `componentConfigs`, theme + manifest fully embedded |
+| Backup → re-import same bundle | All files materialise with original names, rename map empty, apply produces orange brand (`--color-brand-500: #ce7a25`) |
+| Re-import with files present | Theme + 12 configs + manifest all renamed with `-2` suffix, pointer rewrites verified, apply against `runegoblin-2` works identically |
+| Validation: wrong `kind` | 400 with descriptive message |
+| Validation: wrong `schemaVersion` | 400 with descriptive message |
+| Validation: malformed JSON | 400 |
+| Validation: missing required fields | 400 |
+
+### Why bundle-as-separate-format and not always-inline `_embedded`
+
+Earlier in the same session I drafted (and the user revised) an alternative where every saved manifest would inline its referenced files in an `_embedded` envelope. We rejected it for two reasons documented in the plan revision:
+
+1. **Drift.** Inlined snapshots captured at save-time go stale if the user later edits the referenced theme directly. The light pointer-only manifest can't drift.
+2. **Mixing concerns.** Local manifest = working file; bundle = transport artifact. Different lifecycles, different sizes. One format per concern.
+
+The cost: two file formats. Conversion is one-directional at each boundary (export → bundle; import → unpack to manifest + files), so no data lives in two representations at the same time. Bundles never persist server-side.
+
+### What's intentionally not in scope
+
+- **Hash-merge on collision** (reuse existing file if content matches): YAGNI. Rename-with-suffix is the safest default and the rename map gives the UI all the information it needs.
+- **Live-tokens version mismatch warnings**: `liveTokensVersion` is captured in the bundle for future use, but the UI doesn't yet warn on mismatch. Add when version skew bites in practice.
+- **Server-handler unit tests with mocked fs**: skipped in favour of e2e verification against the live dev server. The handlers are short and linear; the algorithmically interesting piece (`nextAvailableName`) is unit-tested in isolation.
+- **Auto-apply on import**: the import flow stops at "manifest row appears in the list". Click Load explicitly. Keeps the import action reversible (user can delete the imported manifest if it's not what they wanted).
+- **Bundle versioning beyond v1**: stamped, not yet exercised. When `schemaVersion` needs to evolve, add a migration path through the same `runMigrations` machinery that themes already use.
+
+### Composition with Phase 1
+
+The Phase 1 `_imported` flag + normalize-on-read is what makes imported bundles render correctly. Bundle import writes the inlined theme to disk; the next GET runs `normalizeTheme`, which honours the bundle's `_imported: true` palette flags and snaps `baseColor` to the imported `--color-{ns}-500` anchors. Without Phase 1, an imported runegoblin theme would render in pink-and-teal default colours despite having orange values inlined. The two phases compose cleanly: import is the transport, normalize is the make-it-render-right step.
+
+### Net for "robust manifest switching"
+
+Save → switch → share → import → switch. Every step works. The flag, the normalize, the rename allocator, the bundle envelope — each is small in isolation and composes into the round-trip the user originally asked for.

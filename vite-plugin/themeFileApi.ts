@@ -12,6 +12,7 @@ import {
   type VersionedFileResourceServer,
 } from './files/versionedFileResourceServer';
 import { dispatch, type Route } from './files/routeTable';
+import { nextAvailableName as allocNextAvailableName } from './files/nameAllocator';
 import { fileURLToPath } from 'node:url';
 
 // Read live-tokens' own package.json by walking up from this file. Works the
@@ -556,6 +557,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const COMP_PRODUCTION_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/production$`);
   const COMP_BY_NAME_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/([a-z0-9\\-_]+)$`);
   const MANIFEST_APPLY_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)/apply$`);
+  const MANIFEST_EXPORT_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)/export$`);
+  const MANIFEST_IMPORT_ROUTE = `${API_BASE}/manifests/import`;
   const MANIFEST_BY_NAME_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)$`);
 
   // ── Route handlers ────────────────────────────────────────────────────────
@@ -1072,6 +1075,205 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     });
   }
 
+  /**
+   * Export a manifest as a self-contained `ManifestBundle` for sharing.
+   * Reads the manifest, inlines the referenced theme and every non-default
+   * component config, returns the bundle as JSON with a `Content-Disposition`
+   * attachment header so browsers save rather than display.
+   *
+   * Defaults are NOT inlined — the receiver's local default.json is the
+   * live-tokens package's canonical default. `liveTokensVersion` lets the
+   * UI warn on compatibility drift in a future iteration.
+   * See temp/manifest-robustness-plan.md §11.
+   */
+  async function handleExportManifest({ params, res }: any) {
+    const [fileName] = params;
+    const manifestPath = manifestsResource.filePath(fileName);
+    if (!fs.existsSync(manifestPath)) {
+      jsonResponse(res, 404, { error: 'Manifest not found' });
+      return;
+    }
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+    const themeName = sanitizeFileName(manifest.theme || 'default');
+    const themePath = themesResource.filePath(themeName);
+    if (!fs.existsSync(themePath)) {
+      jsonResponse(res, 422, { error: `Manifest references missing theme: ${themeName}` });
+      return;
+    }
+    const theme = JSON.parse(fs.readFileSync(themePath, 'utf-8'));
+
+    const knownComponents = new Set(listComponentNames());
+    const componentConfigs: Record<string, any> = {};
+    for (const [comp, configFile] of Object.entries(manifest.componentConfigs ?? {})) {
+      if (!knownComponents.has(comp)) continue;
+      const sanitized = sanitizeFileName(String(configFile) || 'default');
+      if (sanitized === 'default') continue; // receiver uses their own default
+      const cfgPath = componentResource(comp).filePath(sanitized);
+      if (!fs.existsSync(cfgPath)) {
+        jsonResponse(res, 422, {
+          error: `Manifest references missing config: ${comp}/${sanitized}`,
+        });
+        return;
+      }
+      const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8'));
+      componentConfigs[`${comp}/${sanitized}`] = cfg;
+    }
+
+    const bundle = {
+      kind: 'manifest-bundle' as const,
+      schemaVersion: 1 as const,
+      liveTokensVersion: PKG_VERSION,
+      exportedAt: new Date().toISOString(),
+      manifest,
+      theme,
+      componentConfigs,
+    };
+
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${fileName}.bundle.json"`,
+    );
+    res.end(JSON.stringify(bundle, null, 2));
+  }
+
+  /**
+   * Bind `nextAvailableName` (pure, in `./files/nameAllocator`) to a
+   * resource's filesystem layout: sanitise the base and check fs.existsSync
+   * for each candidate. Used by the import handler when a bundle's referenced
+   * name collides with an existing file.
+   */
+  function nextAvailableName(
+    resourceFilePath: (name: string) => string,
+    baseName: string,
+  ): string {
+    return allocNextAvailableName(
+      (n) => fs.existsSync(resourceFilePath(n)),
+      sanitizeFileName(baseName),
+    );
+  }
+
+  /**
+   * Import a `ManifestBundle`: materialise the inlined theme + component
+   * configs to disk under fresh (collision-renamed) names, rewrite the
+   * manifest's pointers to match, and write the resulting manifest. Returns
+   * the final manifest filename plus a rename map so the UI can surface
+   * what got renamed. Does not auto-apply — user clicks Load on the new row.
+   *
+   * Collision policy: rename with `-2` / `-3` suffixes (see
+   * temp/manifest-robustness-plan.md §11 for rationale).
+   */
+  async function handleImportManifest({ req, res }: any) {
+    let bundle: any;
+    try {
+      bundle = JSON.parse(await readBody(req));
+    } catch {
+      jsonResponse(res, 400, { error: 'Body is not valid JSON' });
+      return;
+    }
+    if (!bundle || bundle.kind !== 'manifest-bundle') {
+      jsonResponse(res, 400, {
+        error: 'Not a manifest bundle (kind discriminator missing or wrong)',
+      });
+      return;
+    }
+    if (bundle.schemaVersion !== 1) {
+      jsonResponse(res, 400, {
+        error: `Unsupported bundle schemaVersion: ${bundle.schemaVersion}`,
+      });
+      return;
+    }
+    if (!bundle.manifest || !bundle.theme || !bundle.componentConfigs) {
+      jsonResponse(res, 400, { error: 'Bundle missing manifest / theme / componentConfigs' });
+      return;
+    }
+
+    const renames: Record<string, string> = {};
+    const now = new Date().toISOString();
+
+    // Theme: write under a fresh name if the requested one is taken.
+    const originalThemeName = sanitizeFileName(bundle.manifest.theme || 'default');
+    const finalThemeName = nextAvailableName(
+      (n) => themesResource.filePath(n),
+      originalThemeName,
+    );
+    if (finalThemeName !== originalThemeName) {
+      renames[`theme:${originalThemeName}`] = finalThemeName;
+    }
+    const themeBody = { ...bundle.theme };
+    themeBody.updatedAt = now;
+    if (!themeBody.createdAt) themeBody.createdAt = now;
+    themesResource.ensureDir();
+    fs.writeFileSync(themesResource.filePath(finalThemeName), JSON.stringify(themeBody, null, 2));
+
+    // Component configs: each `${comp}/${name}` entry. Skip unknown
+    // components silently — the bundle may reference one the receiver doesn't
+    // ship (different live-tokens version).
+    const knownComponents = new Set(listComponentNames());
+    const componentRenames: Record<string, string> = {}; // `${comp}/${originalName}` → finalName
+    for (const [key, cfgValue] of Object.entries(bundle.componentConfigs)) {
+      const [comp, originalName] = key.split('/');
+      if (!comp || !originalName) continue;
+      if (!knownComponents.has(comp)) continue;
+      const r = componentResource(comp);
+      const finalName = nextAvailableName(
+        (n) => r.filePath(n),
+        originalName,
+      );
+      if (finalName !== originalName) {
+        renames[`componentConfig:${comp}/${originalName}`] = finalName;
+      }
+      componentRenames[`${comp}/${originalName}`] = finalName;
+      const cfgBody: any = { ...(cfgValue as any) };
+      cfgBody.component = comp;
+      cfgBody.name = finalName;
+      cfgBody.updatedAt = now;
+      if (!cfgBody.createdAt) cfgBody.createdAt = now;
+      r.ensureDir();
+      fs.writeFileSync(r.filePath(finalName), JSON.stringify(cfgBody, null, 2));
+    }
+
+    // Rewrite the manifest's pointers through the rename maps and write the
+    // manifest under its own fresh name.
+    const rewrittenManifest: Record<string, any> = {
+      ...bundle.manifest,
+      theme: finalThemeName,
+      componentConfigs: {} as Record<string, string>,
+    };
+    for (const [comp, configName] of Object.entries(bundle.manifest.componentConfigs ?? {})) {
+      const original = String(configName);
+      if (original === 'default') {
+        rewrittenManifest.componentConfigs[comp] = 'default';
+        continue;
+      }
+      const finalName = componentRenames[`${comp}/${original}`] ?? original;
+      rewrittenManifest.componentConfigs[comp] = finalName;
+    }
+    rewrittenManifest.updatedAt = now;
+    if (!rewrittenManifest.createdAt) rewrittenManifest.createdAt = now;
+
+    const originalManifestName = sanitizeFileName(bundle.manifest.name || 'imported');
+    const finalManifestName = nextAvailableName(
+      (n) => manifestsResource.filePath(n),
+      originalManifestName,
+    );
+    if (finalManifestName !== originalManifestName) {
+      renames[`manifest:${originalManifestName}`] = finalManifestName;
+    }
+    manifestsResource.ensureDir();
+    fs.writeFileSync(
+      manifestsResource.filePath(finalManifestName),
+      JSON.stringify(rewrittenManifest, null, 2),
+    );
+
+    jsonResponse(res, 200, {
+      ok: true,
+      manifest: finalManifestName,
+      renames,
+    });
+  }
+
   // ── Method-not-allowed shims ─────────────────────────────────────────────
   // Routes that match the URL pattern but were called with the wrong method
   // need to return 405 instead of falling through to next(). We register a
@@ -1129,11 +1331,23 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     { method: 'GET',    pattern: MANIFESTS_ACTIVE_ROUTE,  handler: handleGetActiveManifest },
     { method: 'PUT',    pattern: MANIFESTS_ACTIVE_ROUTE,  handler: handleSetActiveManifest },
 
+    // Manifests — exact import route runs before :name regexes
+    { method: 'POST',   pattern: MANIFEST_IMPORT_ROUTE,   handler: handleImportManifest },
+    { method: 'PUT',    pattern: MANIFEST_IMPORT_ROUTE,   handler: methodNotAllowed },
+    { method: 'GET',    pattern: MANIFEST_IMPORT_ROUTE,   handler: methodNotAllowed },
+    { method: 'DELETE', pattern: MANIFEST_IMPORT_ROUTE,   handler: methodNotAllowed },
+
     // Manifests — :name/apply (more specific than :name)
     { method: 'PUT',    pattern: MANIFEST_APPLY_REGEX,    handler: handleApplyManifest },
     { method: 'POST',   pattern: MANIFEST_APPLY_REGEX,    handler: methodNotAllowed },
     { method: 'GET',    pattern: MANIFEST_APPLY_REGEX,    handler: methodNotAllowed },
     { method: 'DELETE', pattern: MANIFEST_APPLY_REGEX,    handler: methodNotAllowed },
+
+    // Manifests — :name/export (more specific than :name)
+    { method: 'GET',    pattern: MANIFEST_EXPORT_REGEX,   handler: handleExportManifest },
+    { method: 'PUT',    pattern: MANIFEST_EXPORT_REGEX,   handler: methodNotAllowed },
+    { method: 'POST',   pattern: MANIFEST_EXPORT_REGEX,   handler: methodNotAllowed },
+    { method: 'DELETE', pattern: MANIFEST_EXPORT_REGEX,   handler: methodNotAllowed },
 
     // Manifests — :name CRUD (broadest manifest route, runs last)
     { method: 'GET',    pattern: MANIFEST_BY_NAME_REGEX,  handler: handleManifestByName },

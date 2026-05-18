@@ -1,4 +1,4 @@
-import type { Manifest, ManifestMeta, Theme, ComponentConfig } from '../themes/themeTypes';
+import type { Manifest, ManifestMeta, ManifestBundle, Theme, ComponentConfig } from '../themes/themeTypes';
 import { versionedFileResource } from '../storage/files/versionedFileResourceClient';
 import { listComponents } from '../components/componentConfigService';
 import { getActiveTheme } from '../themes/themeService';
@@ -114,4 +114,58 @@ export async function saveActiveManifest(displayName?: string): Promise<void> {
     componentConfigs,
   };
   await saveManifest(active._fileName, manifest);
+}
+
+export interface ImportManifestResult {
+  ok: boolean;
+  /** Final manifest filename (may be renamed if it collided with an existing one). */
+  manifest: string;
+  /** Keyed `theme:<orig>` / `componentConfig:<comp>/<orig>` / `manifest:<orig>` → final name. */
+  renames: Record<string, string>;
+}
+
+/**
+ * Fetch the manifest as a self-contained `ManifestBundle` and trigger a
+ * browser download. Hidden-anchor trick — no infrastructure beyond the
+ * existing GET `/api/manifests/:name/export` endpoint.
+ *
+ * See temp/manifest-robustness-plan.md §11.
+ */
+export async function exportManifest(fileName: string): Promise<void> {
+  const res = await fetch(`/api/manifests/${encodeURIComponent(fileName)}/export`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Export failed' }));
+    throw new Error(err.error || 'Export failed');
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  try {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${fileName}.bundle.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+/**
+ * POST a `ManifestBundle` to the import endpoint. Server materialises the
+ * inlined theme + component configs as fresh files (renaming on collision),
+ * rewrites the manifest's pointers, and returns the final manifest name plus
+ * the rename map so the UI can surface what got renamed.
+ */
+export async function importManifest(bundle: ManifestBundle): Promise<ImportManifestResult> {
+  const res = await fetch('/api/manifests/import', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(bundle),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Import failed' }));
+    throw new Error(err.error || 'Import failed');
+  }
+  return res.json();
 }

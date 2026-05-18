@@ -2,7 +2,7 @@
   "name": "rg-tooltip",
   "component": "tooltip",
   "createdAt": "2026-05-18T18:38:42.743Z",
-  "updatedAt": "2026-05-18T18:38:42.743Z",
+  "updatedAt": "2026-05-18T21:00:03.751Z",
   "aliases": {
     "--tooltip-surface": "--surface-neutral-highest",
     "--tooltip-text": "--text-primary",

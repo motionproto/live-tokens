@@ -8,6 +8,8 @@
     applyManifest,
     saveAsManifest,
     saveActiveManifest,
+    exportManifest,
+    importManifest,
   } from '../core/manifests/manifestService';
   import { dirty, componentDirty } from '../core/store/editorStore';
   import { productionRevision, activeManifest } from '../core/productionPulse';
@@ -127,6 +129,53 @@
     }
   }
 
+  async function handleExport(file: ManifestMeta) {
+    try {
+      await exportManifest(file.fileName);
+    } catch (err) {
+      window.alert(`Failed to export: ${(err as Error).message}`);
+    }
+  }
+
+  let importInput: HTMLInputElement | null = $state(null);
+
+  function openImport() {
+    importInput?.click();
+  }
+
+  async function handleImportFile(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // allow re-picking the same file later
+    if (!file) return;
+    let bundle: any;
+    try {
+      bundle = JSON.parse(await file.text());
+    } catch {
+      window.alert('Selected file is not valid JSON.');
+      return;
+    }
+    if (bundle?.kind !== 'manifest-bundle') {
+      window.alert('Not a manifest bundle (missing kind discriminator).');
+      return;
+    }
+    try {
+      const result = await importManifest(bundle);
+      await refreshFiles();
+      const renameCount = Object.keys(result.renames).length;
+      if (renameCount > 0) {
+        const summary = Object.entries(result.renames)
+          .map(([k, v]) => `${k} → ${v}`)
+          .join('\n');
+        window.alert(
+          `Imported as "${result.manifest}". ${renameCount} file(s) renamed to avoid collisions:\n\n${summary}`,
+        );
+      }
+    } catch (err) {
+      window.alert(`Failed to import: ${(err as Error).message}`);
+    }
+  }
+
   async function handleDelete(file: ManifestMeta) {
     if (file.isProtected) return;
     if (file.fileName === activeFileName) {
@@ -219,9 +268,26 @@
         <i class="fas fa-folder-open"></i>
         <span>Load…</span>
       </button>
+      <button
+        class="mfm-btn mfm-btn-row"
+        onclick={openImport}
+        title="Import a shared manifest bundle"
+      >
+        <i class="fas fa-file-import"></i>
+        <span>Import…</span>
+      </button>
     </div>
   </div>
 </div>
+
+<!-- Hidden file input for Import; clicked via openImport(). -->
+<input
+  bind:this={importInput}
+  type="file"
+  accept=".json,application/json"
+  onchange={handleImportFile}
+  style="display: none;"
+/>
 
 <FileLoadList
   bind:show={showFileList}
@@ -230,6 +296,8 @@
   {activeFileName}
   onload={handleApply}
   ondelete={handleDelete}
+  onexport={handleExport}
+  exportTitle={(f) => `Export "${f.name}" as a shareable bundle`}
 />
 
 <SaveAsDialog

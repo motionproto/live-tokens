@@ -152,6 +152,40 @@ export interface Manifest {
   _fileName?: string;
 }
 
+/**
+ * Transport artifact for sharing a manifest with someone else. Self-contained:
+ * the bundle inlines the referenced theme and every non-default component
+ * config so the receiver doesn't need anything else on disk to apply it.
+ *
+ * Bundles are *not* stored under `manifests/` — they're transient downloads /
+ * uploads. Local manifests stay lightweight pointer files; bundles are the
+ * import/export envelope. See temp/manifest-robustness-plan.md §11.
+ *
+ * `componentConfigs` is keyed by `${component}/${configName}` so a single map
+ * carries multiple components. Entries whose manifest value is `"default"`
+ * are deliberately omitted — the receiver's local `default.json` is the
+ * live-tokens package's canonical default, and shipping the sender's default
+ * would risk version-divergence with no clean conflict story.
+ */
+export interface ManifestBundle {
+  /** Discriminator for safe identification of bundle JSON files. */
+  kind: 'manifest-bundle';
+  /** Bumps when the bundle envelope shape changes. Start at 1. */
+  schemaVersion: 1;
+  /** Sender's `@motion-proto/live-tokens` package version. Receiver can
+   *  compare to its own to warn about compatibility drift. */
+  liveTokensVersion: string;
+  /** ISO timestamp of when the bundle was exported. */
+  exportedAt: string;
+  /** Full pointer-form manifest (same shape as on-disk manifest files). */
+  manifest: Manifest;
+  /** Full content of the theme that `manifest.theme` references. */
+  theme: Theme;
+  /** Full content of each non-default component config referenced by
+   *  `manifest.componentConfigs`, keyed by `${component}/${configName}`. */
+  componentConfigs: Record<string, ComponentConfig>;
+}
+
 export interface ManifestMeta {
   name: string;
   fileName: string;

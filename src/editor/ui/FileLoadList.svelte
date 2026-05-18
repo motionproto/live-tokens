@@ -22,6 +22,11 @@
     width?: string;
     onload: (file: F) => void;
     ondelete?: (file: F) => void;
+    /** Optional per-row export action — e.g. download a manifest bundle.
+     *  When omitted, no export button renders. */
+    onexport?: (file: F) => void;
+    /** Tooltip for the per-row export button. Falls back to "Export {name}". */
+    exportTitle?: (file: F) => string;
   }
 
   let {
@@ -38,6 +43,8 @@
     width = '420px',
     onload,
     ondelete,
+    onexport,
+    exportTitle,
   }: Props = $props();
 
   type SortKey = 'name' | 'updatedAt';
@@ -146,6 +153,15 @@
         {/if}
         {#if file.fileName === activeFileName}
           <span class="active-badge">active</span>
+        {/if}
+        {#if onexport}
+          <button
+            class="file-action-btn"
+            onclick={stopPropagation(() => onexport!(file))}
+            title={exportTitle ? exportTitle(file) : `Export ${file.name}`}
+          >
+            <i class="fas fa-download"></i>
+          </button>
         {/if}
         {#if shouldShowDelete(file)}
           <button
@@ -324,7 +340,8 @@
     color: #ccc;
   }
 
-  .file-delete-btn {
+  .file-delete-btn,
+  .file-action-btn {
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -340,11 +357,13 @@
     opacity: 0;
   }
 
-  .load-item:hover .file-delete-btn {
+  .load-item:hover .file-delete-btn,
+  .load-item:hover .file-action-btn {
     opacity: 1;
   }
 
-  .file-delete-btn:hover {
+  .file-delete-btn:hover,
+  .file-action-btn:hover {
     color: #ccc;
   }
 </style>
