@@ -16,7 +16,7 @@
   :global(:root) {
     /* Wrapper */
     --table-default-radius: var(--radius-md);
-    --table-default-surface: transparent;
+    --table-default-surface: var(--color-transparent);
     --table-default-border: var(--border-canvas-subtle);
     --table-default-border-width: var(--border-width-1);
     --table-default-shadow: var(--shadow-md);
@@ -41,10 +41,10 @@
     --table-default-cell-padding: var(--space-8);
 
     /* Row */
-    --table-default-row-surface: transparent;
+    --table-default-row-surface: var(--color-transparent);
     --table-default-row-divider: var(--border-canvas-faint);
     --table-default-row-divider-width: var(--border-width-1);
-    --table-default-row-stripe-surface: transparent;
+    --table-default-row-stripe-surface: var(--color-transparent);
 
     /* Column */
     --table-default-column-divider: var(--border-canvas-faint);

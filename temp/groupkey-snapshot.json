@@ -1670,6 +1670,9 @@
     "row-stripe-surface": [
       "--table-default-row-stripe-surface"
     ],
+    "row-surface": [
+      "--table-default-row-surface"
+    ],
     "shadow": [
       "--table-default-shadow"
     ],
@@ -1678,6 +1681,9 @@
       "--table-default-column-divider-width",
       "--table-default-header-border-width",
       "--table-default-row-divider-width"
+    ],
+    "wrapper-surface": [
+      "--table-default-surface"
     ]
   },
   "tooltip": {
