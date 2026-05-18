@@ -206,8 +206,8 @@
   .grid {
     display: grid;
     gap: 1px;
-    background: var(--ui-border-lower);
-    border: 1px solid var(--ui-border-lower);
+    background: var(--ui-border-low);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     overflow: hidden;
   }

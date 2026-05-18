@@ -65,7 +65,7 @@
     gap: var(--ui-space-16);
     padding: var(--ui-space-10) var(--ui-space-16);
     background: black;
-    border-bottom: 1px solid var(--ui-border-lower);
+    border-bottom: 1px solid var(--ui-border-low);
     min-height: 52px;
   }
 

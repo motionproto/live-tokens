@@ -87,7 +87,7 @@
   };
 </script>
 
-<ComponentEditorBase {component} title="Callout" description="Bordered callout box with semantic info / success / warning / danger variants, label + message text. Import from <code>components/Callout.svelte</code>" tokens={allTokens} {linked} variants={variantOptions}>
+<ComponentEditorBase {component} title="Callout" description="Bordered callout box with semantic info / success / warning / danger variants, label + message text." tokens={allTokens} {linked} variants={variantOptions}>
   {#each variants as v}
     <VariantGroup
       name={v}

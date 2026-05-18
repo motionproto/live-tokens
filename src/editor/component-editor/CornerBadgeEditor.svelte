@@ -52,15 +52,11 @@
 </script>
 
 <script lang="ts">
-  import { onMount } from 'svelte';
   import CornerBadge, { type CornerAnchor } from '../../system/components/CornerBadge.svelte';
   import type { BadgeVariant } from '../../system/components/Badge.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
   import UIRadioGroup from '../ui/UIRadioGroup.svelte';
-  import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
-  import { setCssVar } from '../core/cssVarSync';
   import { editorState } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   import demoImageUrl from '../../system/assets/newspaper.webp';
@@ -69,14 +65,6 @@
   let visibleStates = $derived(Object.fromEntries(
     badgeVariants.map((v) => [v, withLinkedDisabled(variantTokens(v), linked.varSet)]),
   ) as Record<string, Token[]>);
-
-  const bgVar = '--backdrop-cornerbadge-surface';
-
-  onMount(() => {
-    if (!document.documentElement.style.getPropertyValue(bgVar)) {
-      setCssVar(bgVar, 'var(--surface-canvas)');
-    }
-  });
 
   let anchor: CornerAnchor = $state('bottom-right');
   const anchorGrid: ReadonlyArray<{ value: CornerAnchor; icon: string; label: string }> = [
@@ -90,15 +78,8 @@
   const variantOptions = badgeVariants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
 </script>
 
-<ComponentEditorBase {component} title="Corner Badge" description="Badge pinned flush to a corner of a positioned ancestor. Composes <code>Badge</code>; adds offset + inner-radius tokens. Import from <code>components/CornerBadge.svelte</code>" tokens={allTokens} {linked}>
+<ComponentEditorBase {component} title="Corner Badge" description="Badge pinned flush to a corner of a positioned ancestor. Composes <code>Badge</code>; adds offset + inner-radius tokens." tokens={allTokens} {linked}>
   {#snippet config()}
-  
-      <label class="backdrop-config">
-        <span>Sample background</span>
-        <div class="picker-slot">
-          <UIPaletteSelector variable={bgVar} />
-        </div>
-      </label>
       <div class="control-row">
         <span>Anchor</span>
         <div class="anchor-grid" role="radiogroup" aria-label="Corner badge anchor">
@@ -122,17 +103,14 @@
         <span>Variant</span>
         <UIRadioGroup bind:value={variant} name="corner-badge-variant" options={variantOptions} />
       </div>
-    
   {/snippet}
   <VariantGroup name="cornerbadge" title="Corner Badge" states={visibleStates} {component}>
-    <ShadowBackdrop mode="color" colorVariable={bgVar}>
-      <div class="corner-stage-wrap">
-        <div class="corner-stage">
-          <img src={demoImageUrl} alt="" class="corner-stage-image" />
-          <CornerBadge {variant} {anchor}>{variant.charAt(0).toUpperCase() + variant.slice(1)}</CornerBadge>
-        </div>
+    <div class="corner-stage-wrap">
+      <div class="corner-stage">
+        <img src={demoImageUrl} alt="" class="corner-stage-image" />
+        <CornerBadge {variant} {anchor}>{variant.charAt(0).toUpperCase() + variant.slice(1)}</CornerBadge>
       </div>
-    </ShadowBackdrop>
+    </div>
   </VariantGroup>
 </ComponentEditorBase>
 
@@ -165,18 +143,6 @@
     gap: var(--ui-space-8);
     font-size: var(--ui-font-size-sm);
     color: var(--ui-text-secondary);
-  }
-
-  .backdrop-config {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-  }
-  .picker-slot {
-    min-width: 8rem;
-  }
-  .picker-slot :global(.ui-token-selector) {
-    width: 100%;
   }
 
   .anchor-grid {

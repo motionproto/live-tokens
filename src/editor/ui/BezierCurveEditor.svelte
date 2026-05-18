@@ -467,7 +467,7 @@
   }
 
   .curve-grid {
-    stroke: var(--ui-border-lower);
+    stroke: var(--ui-border-low);
     stroke-width: 0.5;
     vector-effect: non-scaling-stroke;
   }
@@ -477,7 +477,7 @@
   }
 
   .curve-step-line {
-    stroke: var(--ui-border-lower);
+    stroke: var(--ui-border-low);
     stroke-width: 0.5;
     vector-effect: non-scaling-stroke;
 

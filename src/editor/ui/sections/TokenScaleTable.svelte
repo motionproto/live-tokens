@@ -339,7 +339,7 @@
     align-items: baseline;
     gap: var(--ui-space-12);
     padding: var(--ui-space-4) 0;
-    border-bottom: 1px solid var(--ui-border-lower);
+    border-bottom: 1px solid var(--ui-border-low);
   }
 
   .token-row:last-child {

@@ -296,7 +296,7 @@
     margin-top: var(--ui-space-8);
     padding: var(--ui-space-12);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-lg);
     display: flex;
     flex-direction: column;

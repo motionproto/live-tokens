@@ -355,7 +355,7 @@
   }
 
   .pf-source {
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     display: flex;
     flex-direction: column;
@@ -366,7 +366,7 @@
     align-items: center;
     gap: var(--ui-space-8);
     padding: var(--ui-space-8) var(--ui-space-12);
-    border-bottom: 1px solid var(--ui-border-lower);
+    border-bottom: 1px solid var(--ui-border-low);
     background: var(--ui-surface-subtle, rgba(255,255,255,0.02));
     border-radius: var(--ui-radius-md) var(--ui-radius-md) 0 0;
   }
@@ -374,7 +374,7 @@
   .pf-kind-badge {
     font-size: var(--ui-font-size-xs);
     color: var(--ui-text-tertiary);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     padding: 0 var(--ui-space-4);
     border-radius: var(--ui-radius-sm);
     font-family: var(--ui-font-mono);
@@ -507,7 +507,7 @@
     flex-direction: column;
     gap: var(--ui-space-8);
     padding: var(--ui-space-8);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
   }
 

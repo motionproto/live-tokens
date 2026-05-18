@@ -32,6 +32,7 @@
   import ComponentFileMenu from './ComponentFileMenu.svelte';
   import SaveAsDialog from './SaveAsDialog.svelte';
   import FilePill from '../../ui/FilePill.svelte';
+  import UIPillButton from '../../ui/UIPillButton.svelte';
 
   
   
@@ -311,14 +312,11 @@
       <h2 class="cfm-title">{title}</h2>
     {/if}
     {#if sourceFile && projectRoot}
-      <a
-        class="source-link"
+      <UIPillButton
+        icon="fa-code"
         href="vscode://file/{projectRoot}/{sourceFile}"
         title="Open {sourceFile} in VS Code"
-      >
-        <i class="fas fa-code"></i>
-        <span>Show component source</span>
-      </a>
+      >Show component source</UIPillButton>
     {/if}
   </div>
 
@@ -343,7 +341,7 @@
           : isApplied
             ? 'Active config is applied to production'
             : ''}
-        style="flex: 0 0 7.5rem; width: 7.5rem;"
+        style="flex: 0 0 11.25rem; width: 11.25rem;"
       />
       <div class="cfm-actions">
         <ComponentFileMenu
@@ -387,7 +385,7 @@
         name={productionInfo?.name ?? '—'}
         isProtected={productionInfo?.fileName === 'default'}
         protectedTitle="Protected system config"
-        style="flex: 0 0 7.5rem; width: 7.5rem;"
+        style="flex: 0 0 11.25rem; width: 11.25rem;"
       />
       <div class="cfm-actions">
         <button
@@ -465,23 +463,19 @@
     --cfm-rail-dirty: var(--ui-highlight);
     --cfm-rail-applied: var(--cfm-applied);
 
-    position: sticky;
-    top: 0;
-    z-index: 5;
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-8);
-    padding: var(--ui-space-12);
-    background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-lower);
-    border-radius: var(--ui-radius-lg);
   }
 
   .cfm-title-row {
     display: flex;
     align-items: center;
-    gap: var(--ui-space-12);
+    justify-content: space-between;
+    gap: var(--ui-space-16);
     flex-wrap: wrap;
+    max-width: 34rem;
+    margin-bottom: var(--ui-space-16);
   }
 
   .cfm-title {
@@ -494,33 +488,12 @@
     line-height: 1.1;
   }
 
-  .source-link {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    margin-left: 2.5rem;
-    height: 26px;
-    padding: 0 14px;
-    font-size: var(--ui-font-size-xs);
-    font-weight: 500;
-    color: var(--ui-text-secondary);
-    text-decoration: none;
-    border: 1px solid var(--ui-border);
-    border-radius: 999px;
-    transition: all var(--ui-transition-fast);
-  }
-
-  .source-link:hover {
-    color: var(--ui-text-primary);
-    border-color: var(--ui-border-higher);
-    background: var(--ui-hover);
-  }
-
   /* ── two-row pipeline ─────────────────────────────────────── */
   .cfm-rows {
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-6);
+    max-width: 34rem;
   }
 
   .cfm-row {

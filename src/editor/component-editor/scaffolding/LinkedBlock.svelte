@@ -127,7 +127,7 @@
       onclick={toggleSection}
     >
       <i class="fas fa-chevron-right chevron"></i>
-      <span class="section-title">Linked properties</span>
+      <span class="editor-section-title">Linked properties</span>
       <span class="section-summary">
         <span class="section-summary-sep">·</span>
         <span class="section-summary-count">{cards.length}</span>
@@ -203,7 +203,7 @@
   .linked-block {
     margin-top: var(--ui-space-12);
     padding: var(--ui-space-12);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     background: var(--ui-surface-low);
   }
@@ -235,11 +235,6 @@
   .section-header.expanded .chevron {
     transform: rotate(90deg);
   }
-  .section-title {
-    font-size: var(--ui-font-size-md);
-    font-weight: 500;
-    color: var(--ui-text-primary);
-  }
   .section-summary {
     display: inline-flex;
     align-items: center;
@@ -268,7 +263,7 @@
     flex-wrap: wrap;
     align-items: flex-start;
     gap: var(--ui-space-12);
-    margin-top: var(--ui-space-16);
+    margin-top: var(--ui-space-20);
   }
 
   /* Card — vertical stack: label heading · control row · drill-down · chart.
@@ -279,7 +274,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-8);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-lg);
     padding: var(--ui-space-12) var(--ui-space-16);
     min-width: 14rem;

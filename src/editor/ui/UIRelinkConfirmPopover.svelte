@@ -138,7 +138,7 @@
   }
 
   .ui-relink-header {
-    border-bottom: 1px solid var(--ui-border-lower);
+    border-bottom: 1px solid var(--ui-border-low);
     padding-bottom: var(--ui-space-6);
   }
 
@@ -205,7 +205,7 @@
     justify-content: flex-end;
     gap: var(--ui-space-6);
     padding-top: var(--ui-space-4);
-    border-top: 1px solid var(--ui-border-lower);
+    border-top: 1px solid var(--ui-border-low);
   }
 
   .ui-relink-btn {

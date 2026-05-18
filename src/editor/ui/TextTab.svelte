@@ -130,7 +130,7 @@
     color: var(--ui-text-secondary);
     margin: 0;
     padding-bottom: var(--ui-space-4);
-    border-bottom: 1px solid var(--ui-border-lower);
+    border-bottom: 1px solid var(--ui-border-low);
   }
 
   .text-colors-grid {

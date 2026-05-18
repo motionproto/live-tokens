@@ -183,7 +183,7 @@
   .copy-menu-item:hover:not(:disabled) {
     background: var(--ui-surface-high);
     color: var(--ui-text-primary);
-    box-shadow: inset 0 0 0 1px var(--ui-border-lower);
+    box-shadow: inset 0 0 0 1px var(--ui-border-low);
   }
 
   .copy-menu-item:disabled {
@@ -209,7 +209,7 @@
   .copy-menu-item-parent:hover > .copy-menu-item-trigger {
     background: var(--ui-surface-high);
     color: var(--ui-text-primary);
-    box-shadow: inset 0 0 0 1px var(--ui-border-lower);
+    box-shadow: inset 0 0 0 1px var(--ui-border-low);
   }
 
   .copy-submenu {

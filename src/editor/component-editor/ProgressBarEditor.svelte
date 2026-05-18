@@ -87,7 +87,7 @@
   let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet));
 </script>
 
-<ComponentEditorBase {component} title="Progress Bar" description="Animated progress bar with variants. Import from <code>components/ProgressBar.svelte</code>" tokens={allTokens} {linked} variants={variantOptions}>
+<ComponentEditorBase {component} title="Progress Bar" description="Animated progress bar with variants." tokens={allTokens} {linked} variants={variantOptions}>
   {#each variants as v}
     <VariantGroup
       name={v}

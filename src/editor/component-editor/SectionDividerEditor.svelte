@@ -125,28 +125,16 @@
 </script>
 
 <script lang="ts">
-  import { onMount } from 'svelte';
   import SectionDivider from '../../system/components/SectionDivider.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import GradientCard from './scaffolding/GradientCard.svelte';
-  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
-  import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
   import { editorState } from '../core/store/editorStore';
-  import { setCssVar } from '../core/cssVarSync';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
   let testTitle = $state('Section Title');
   let showDescription = $state(true);
   let descriptionText = $state('This text is meant to provide additional context or meaning.');
-
-  const bgVar = '--backdrop-sectiondivider-surface';
-
-  onMount(() => {
-    if (!document.documentElement.style.getPropertyValue(bgVar)) {
-      setCssVar(bgVar, 'var(--surface-canvas)');
-    }
-  });
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
   // The gradient tokens are owned by GradientCard, so the property grid only
@@ -155,9 +143,8 @@
   let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(frameTokens(v), linked.varSet));
 </script>
 
-<ComponentEditorBase {component} title="Section Divider" description="Full-width section banner with display font and palette variants. Import from <code>components/SectionDivider.svelte</code>" tokens={allTokens} {linked} variants={variantOptions}>
+<ComponentEditorBase {component} title="Section Divider" description="Full-width section banner with display font and palette variants." tokens={allTokens} {linked} variants={variantOptions}>
   {#snippet config()}
-  
       <label class="text-field">
         <span>Test title</span>
         <input type="text" bind:value={testTitle} placeholder="Section Title" />
@@ -170,13 +157,6 @@
         <span>Description text</span>
         <input type="text" bind:value={descriptionText} placeholder="Description text" />
       </label>
-      <label class="backdrop-config">
-        <span>Sample background</span>
-        <div class="picker-slot">
-          <UIPaletteSelector variable={bgVar} />
-        </div>
-      </label>
-    
   {/snippet}
   {#each variants as v}
     <VariantGroup
@@ -191,14 +171,13 @@
         (sv) => ({ [sv]: variantTokens(sv) }),
         (sv) => ({ [sv]: variantTypeGroups(sv) }),
       )}
+      backdropPadding="32px"
     >
-      <ShadowBackdrop mode="color" colorVariable={bgVar} padding="32px">
-        <SectionDivider
-          title={testTitle || v.title}
-          variant={v.key}
-          description={showDescription ? descriptionText : undefined}
-        />
-      </ShadowBackdrop>
+      <SectionDivider
+        title={testTitle || v.title}
+        variant={v.key}
+        description={showDescription ? descriptionText : undefined}
+      />
       {#snippet compositeControls(_stateName)}
         <span class="gradient-section-label">Gradient</span>
         <GradientCard {component} prefix={`--sectiondivider-${v.key}`} />
@@ -240,22 +219,6 @@
 
   .text-field-wide input {
     min-width: 28rem;
-  }
-
-  .backdrop-config {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
-  }
-
-  .picker-slot {
-    min-width: 8rem;
-  }
-
-  .picker-slot :global(.ui-token-selector) {
-    width: 100%;
   }
 
   .gradient-section-label {

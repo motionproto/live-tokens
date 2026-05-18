@@ -103,7 +103,7 @@
     flex-direction: column;
     gap: var(--ui-space-8);
     padding: var(--ui-space-12);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-lg);
     background: var(--ui-surface-lowest);
     min-width: 0;
@@ -124,7 +124,7 @@
   .gradient-edit-btn {
     padding: var(--ui-space-2) var(--ui-space-10);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-xs);
@@ -140,7 +140,7 @@
   .gradient-editor-host {
     margin-top: var(--ui-space-8);
     padding-top: var(--ui-space-12);
-    border-top: 1px dashed var(--ui-border-lower);
+    border-top: 1px dashed var(--ui-border-low);
   }
 
   .gradient-box {

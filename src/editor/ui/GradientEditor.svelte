@@ -283,7 +283,7 @@
     position: relative;
     height: 3rem;
     border-radius: var(--ui-radius-md);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     cursor: copy;
   }
 
@@ -348,7 +348,7 @@
 
   .type-toggle {
     display: inline-flex;
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     overflow: hidden;
   }
@@ -369,7 +369,7 @@
   }
 
   .type-toggle button + button {
-    border-left: 1px solid var(--ui-border-lower);
+    border-left: 1px solid var(--ui-border-low);
   }
 
   .ghost-btn {
@@ -378,7 +378,7 @@
     gap: var(--ui-space-6);
     padding: var(--ui-space-4) var(--ui-space-10);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-sm);
@@ -421,7 +421,7 @@
     width: 4.5rem;
     padding: var(--ui-space-2) var(--ui-space-6);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-primary);
     font-family: var(--ui-font-mono);

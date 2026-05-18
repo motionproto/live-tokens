@@ -1,4 +1,5 @@
 <script module lang="ts">
+  import { buildSiblings } from './scaffolding/siblings';
   import type { Token } from './scaffolding/types';
 
   export const component = 'inlineeditactions';
@@ -8,6 +9,7 @@
   // Save and cancel are different objects, so they don't link to each other by default.
   const buttons = ['save', 'cancel'] as const;
   type Button = typeof buttons[number];
+  const variantOptions = buttons.map((b) => ({ value: b, label: b === 'save' ? 'Save button' : 'Cancel button' }));
   function buttonStateTokens(btn: Button, state: 'default' | 'hover'): Token[] {
     return [
       { label: 'surface color', groupKey: 'surface', variable: `--inlineeditactions-${btn}-${state}-surface` },
@@ -52,14 +54,14 @@
   ) as Record<string, Token[]>);
 </script>
 
-<ComponentEditorBase {component} title="Inline Edit Actions" description="Confirm/cancel button pair for inline editing. Import from <code>components/InlineEditActions.svelte</code>" tokens={allTokens} {linked}>
+<ComponentEditorBase {component} title="Inline Edit Actions" description="Confirm/cancel button pair for inline editing." tokens={allTokens} {linked} variants={variantOptions}>
   {#each buttons as btn}
     <VariantGroup
       name={btn}
       title={btn === 'save' ? 'Save button' : 'Cancel button'}
       states={visibleStatesByButton(btn)}
       {component}
-      
+      siblings={buildSiblings(buttons, btn, buttonStates)}
     >
       {#snippet children({ activeState })}
             {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}

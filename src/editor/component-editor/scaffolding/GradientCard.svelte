@@ -173,7 +173,7 @@
     gap: var(--ui-space-12);
     padding: var(--ui-space-12);
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
   }
 
@@ -274,7 +274,7 @@
     width: 4rem;
     padding: var(--ui-space-2) var(--ui-space-6);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-primary);
     font-family: var(--ui-font-mono);

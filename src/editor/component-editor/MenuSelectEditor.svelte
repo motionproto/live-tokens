@@ -127,7 +127,7 @@
   ) as Record<string, Token[]>);
 </script>
 
-<ComponentEditorBase {component} title="Menu Select" description="A select-style dropdown panel. Items support default, hover, selected, and disabled states. Import from <code>components/MenuSelect.svelte</code>" tokens={allTokens} {linked}>
+<ComponentEditorBase {component} title="Menu Select" description="A select-style dropdown panel. Items support default, hover, selected, and disabled states." tokens={allTokens} {linked}>
   {#snippet config()}
     <label>
       <input type="checkbox" bind:checked={showIcons} />

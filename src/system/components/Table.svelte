@@ -16,6 +16,7 @@
   :global(:root) {
     /* Wrapper */
     --table-default-radius: var(--radius-md);
+    --table-default-surface: transparent;
     --table-default-border: var(--border-canvas-subtle);
     --table-default-border-width: var(--border-width-1);
     --table-default-shadow: var(--shadow-md);
@@ -40,6 +41,7 @@
     --table-default-cell-padding: var(--space-8);
 
     /* Row */
+    --table-default-row-surface: transparent;
     --table-default-row-divider: var(--border-canvas-faint);
     --table-default-row-divider-width: var(--border-width-1);
     --table-default-row-stripe-surface: var(--surface-canvas-lower);
@@ -53,6 +55,7 @@
     overflow-x: auto;
     margin: var(--space-12) 0;
     -webkit-overflow-scrolling: touch;
+    background: var(--table-default-surface);
     border: var(--table-default-border-width) solid var(--table-default-border);
     border-radius: var(--table-default-radius);
     box-shadow: var(--table-default-shadow);
@@ -80,6 +83,7 @@
   }
 
   .table-wrapper :global(td) {
+    background: var(--table-default-row-surface);
     color: var(--table-default-cell-text);
     font-family: var(--table-default-cell-font-family);
     font-size: var(--table-default-cell-font-size);

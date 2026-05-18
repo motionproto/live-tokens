@@ -17,58 +17,14 @@
 </script>
 
 <script lang="ts">
-  import { onMount } from 'svelte';
   import Image from '../../system/components/Image.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import demoImageUrl from '../../system/assets/offering.webp';
-  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
-  import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
-  import { setCssVar } from '../core/cssVarSync';
-
-  const bgVar = '--backdrop-image-surface';
-
-  onMount(() => {
-    if (!document.documentElement.style.getPropertyValue(bgVar)) {
-      setCssVar(bgVar, 'var(--surface-canvas)');
-    }
-  });
 </script>
 
-<ComponentEditorBase {component} title="Image" description="Framed image with rounded corners, border, and shadow. Import from <code>components/Image.svelte</code>" tokens={allTokens}>
-  {#snippet config()}
-  
-      <label class="backdrop-config">
-        <span>Sample background</span>
-        <div class="picker-slot">
-          <UIPaletteSelector variable={bgVar} />
-        </div>
-      </label>
-    
-  {/snippet}
+<ComponentEditorBase {component} title="Image" description="Framed image with rounded corners, border, and shadow." tokens={allTokens}>
   <VariantGroup name="image" title="Image" {states} {component}>
-    <ShadowBackdrop mode="color" colorVariable={bgVar}>
-      <div class="image-demo-grid">
-        <Image src={demoImageUrl} alt="Demo" variant="banner" />
-      </div>
-    </ShadowBackdrop>
+    <Image src={demoImageUrl} alt="Demo" variant="banner" />
   </VariantGroup>
 </ComponentEditorBase>
-
-<style>
-  .image-demo-grid {
-    display: grid;
-    place-items: center;
-  }
-  .backdrop-config {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-  }
-  .picker-slot {
-    min-width: 8rem;
-  }
-  .picker-slot :global(.ui-token-selector) {
-    width: 100%;
-  }
-</style>

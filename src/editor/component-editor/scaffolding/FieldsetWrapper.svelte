@@ -21,7 +21,7 @@
 
 <style>
   .fieldset-wrapper {
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-lg);
     padding: 0 var(--ui-space-8) var(--ui-space-8);
     margin: 0;

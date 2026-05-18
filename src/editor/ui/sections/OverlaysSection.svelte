@@ -576,7 +576,7 @@
     gap: var(--ui-space-4);
     margin-top: var(--ui-space-4);
     padding-top: var(--ui-space-8);
-    border-top: 1px solid var(--ui-border-lower);
+    border-top: 1px solid var(--ui-border-low);
   }
 
   .shadow-css-output code {

@@ -3,37 +3,41 @@ import { writable, type Writable, type Readable } from 'svelte/store';
 
 const KEY = Symbol('editor-context');
 
+export type VariantOption = { value: string; label: string };
+
 export type EditorContext = {
-  /** Per-variable rank used by TokenLayout to align linked rows; null when no linked block. */
+  /** Per-variable rank for TokenLayout row alignment; null when no linked block. */
   linkedOrder: Readable<Map<string, number> | null>;
-  /** Variant currently focused in the preview when multiple sibling variants exist. */
+  /** Focused preview variant when siblings exist. */
   focusedVariant: Writable<string | null>;
-  /** Cross-group hint for which state tab to activate. VariantGroups whose `stateNames`
-      contain the value adopt it as their `activeTab`; others ignore it. Used to forward
-      LinkageChart row clicks to the state tab strip when the chart spans states. */
+  /** Variants for this editor; empty when single-variant. Focused VariantGroup renders the tab strip itself. */
+  variants: Readable<VariantOption[]>;
+  /** Cross-group state-tab hint; VariantGroups whose stateNames contain it adopt as activeTab. */
   focusedState: Writable<string | null>;
-  /** Variable currently hovered in either the per-state Properties grid or the
-      Linked-properties block. Bidirectional cue: a hover in one surface lights up
-      the matching row in the other so the user can see the linkage at a glance. */
+  /** Hovered variable in Properties grid or Linked block; bidirectional highlight. */
   hoveredLinkedVariable: Writable<string | null>;
 };
 
-/** Internal mutable handle used by ComponentEditorBase. */
+/** Mutable handle for ComponentEditorBase. */
 export type EditorContextInternal = EditorContext & {
   _linkedOrder: Writable<Map<string, number> | null>;
+  _variants: Writable<VariantOption[]>;
 };
 
 export function createEditorContext(): EditorContextInternal {
   const _linkedOrder = writable<Map<string, number> | null>(null);
+  const _variants = writable<VariantOption[]>([]);
   const focusedVariant = writable<string | null>(null);
   const focusedState = writable<string | null>(null);
   const hoveredLinkedVariable = writable<string | null>(null);
   const ctx: EditorContextInternal = {
     linkedOrder: _linkedOrder,
     focusedVariant,
+    variants: _variants,
     focusedState,
     hoveredLinkedVariable,
     _linkedOrder,
+    _variants,
   };
   setContext(KEY, ctx);
   return ctx;

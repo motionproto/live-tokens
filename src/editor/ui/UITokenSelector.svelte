@@ -511,7 +511,7 @@
     justify-content: flex-end;
     gap: var(--ui-space-6);
     padding: var(--ui-space-6) var(--ui-space-8);
-    border-bottom: 1px solid var(--ui-border-lower);
+    border-bottom: 1px solid var(--ui-border-low);
   }
 
   .ui-ts-reset {

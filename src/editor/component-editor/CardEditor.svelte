@@ -4,10 +4,7 @@
 
   export const component = 'card';
 
-  // The card is a single object across two states (default, hover).
-  // Hover only overrides border color and shadow; everything else is shared with default.
-  // Tokens are tagged with `element` so the editor groups them by the part of
-  // the card they affect (frame / header / body) instead of by property kind.
+  // Hover overrides only border + shadow; rest inherits default. `element` groups tokens by frame/header/body.
   const states: Record<string, Token[]> = {
     default: [
       { label: 'surface color', groupKey: 'surface', variable: '--card-default-surface', element: 'frame' },
@@ -27,7 +24,7 @@
     ],
   };
 
-  // Title and body typography are shared across states (no hover overrides).
+  // Typography shared across states (no hover overrides).
   const typeGroups: Record<string, TypeGroupConfig[]> = {
     default: [
       {
@@ -61,7 +58,7 @@
     { label: 'font weight', canBeLinked: true, groupKey: 'body-font-weight', variable: '--card-default-body-font-weight' },
     { label: 'line height', canBeLinked: true, groupKey: 'body-line-height', variable: '--card-default-body-line-height' },
   ];
-  // Cross-state linked block — present each linkable property from the default state.
+  // Cross-state linked block; linkable props sourced from default state.
   const linkableContexts = new Map<string, string>([
     ['--card-default-border-width', 'card'],
     ['--card-default-radius', 'card'],
@@ -92,9 +89,6 @@
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
-  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
-  import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
-
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
 
   let visibleStates = $derived(Object.fromEntries(
@@ -102,23 +96,15 @@
   ) as Record<string, Token[]>);
 
   let hoverEnabled = $state(true);
-  let bgMode: 'image' | 'color' = $state('image');
-  const bgVar = '--backdrop-card-surface';
 </script>
 
-<ComponentEditorBase {component} title="Card" description="Generic card with icon, title, and slotted body. Import from <code>components/Card.svelte</code>" tokens={allTokens} {linked}>
-  {#snippet config()}
-  
-      <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
-    
-  {/snippet}
+<ComponentEditorBase {component} title="Card" description="Generic card with icon, title, and slotted body." tokens={allTokens} {linked}>
   <VariantGroup
     name="card"
     title="Card"
     states={visibleStates}
     {typeGroups}
     {component}
-    
   >
     {#snippet stateActions(stateName)}
       {#if stateName === 'hover'}
@@ -129,16 +115,14 @@
       {/if}
     {/snippet}
     {#snippet children({ activeState })}
-        {@const previewClass = activeState === 'hover' ? 'force-hover' : (hoverEnabled ? '' : 'no-hover')}
-      <ShadowBackdrop mode={bgMode} colorVariable={bgVar}>
-        <div class="card-demo">
-          <Card title="Card title" class={previewClass}>
-            <p style="margin: 0;">Slotted body content. Hover the card (or switch the editor to the Hover state) to preview hover styling.</p>
-          </Card>
-        </div>
-      </ShadowBackdrop>
-          {/snippet}
-    </VariantGroup>
+      {@const previewClass = activeState === 'hover' ? 'force-hover' : (hoverEnabled ? '' : 'no-hover')}
+      <div class="card-demo">
+        <Card title="Card title" class={previewClass}>
+          <p style="margin: 0;">Slotted body content. Hover the card (or switch the editor to the Hover state) to preview hover styling.</p>
+        </Card>
+      </div>
+    {/snippet}
+  </VariantGroup>
 </ComponentEditorBase>
 
 <style>

@@ -92,8 +92,6 @@
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState, setComponentConfig } from '../core/store/editorStore';
-  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
-  import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
 
   let config = $derived($editorState.components.dialog?.config ?? {});
   let confirmVariant = $derived((BUTTON_VARIANTS.includes(config[CONFIRM_VAR] as ButtonVariant) ? config[CONFIRM_VAR] : DEFAULT_CONFIRM) as ButtonVariant);
@@ -108,64 +106,44 @@
     setComponentConfig(component, CANCEL_VAR, v);
   }
 
-  let bgMode: 'image' | 'color' = $state('image');
-  const bgVar = '--backdrop-dialog-surface';
 </script>
 
-<ComponentEditorBase {component} title="Dialog" description="Modal dialog with focus management and slide-in animation. Import from <code>components/Dialog.svelte</code>" tokens={allTokens}>
-  {#snippet config()}
-  
-      <label>
-        <span>Cancel button (left)</span>
-        <select class="ui-form-select" value={cancelVariant} onchange={setCancelVariant}>
-          {#each BUTTON_VARIANTS as v}
-            <option value={v}>{variantLabel(v)}</option>
-          {/each}
-        </select>
-      </label>
-      <label>
-        <span>Confirm button (right)</span>
-        <select class="ui-form-select" value={confirmVariant} onchange={setConfirmVariant}>
-          {#each BUTTON_VARIANTS as v}
-            <option value={v}>{variantLabel(v)}</option>
-          {/each}
-        </select>
-      </label>
-      <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
-    
-  {/snippet}
-  <div class="dialog-preview">
-    <ShadowBackdrop mode={bgMode} colorVariable={bgVar} padding="0">
-      <Dialog
-        show
-        inline
-        title="Sample Dialog"
-        confirm={{ label: 'Save', onClick: () => {} }}
-        cancel={{ label: 'Cancel', onClick: () => {} }}
-      >
-        <p style="margin: 0;">This is the dialog body content. It supports any slotted content including forms, lists, or other components.</p>
-      </Dialog>
-    </ShadowBackdrop>
-  </div>
-  <VariantGroup name="dialog" title="Dialog" states={frameStates} typeGroups={frameTypeGroups} {component} />
+<ComponentEditorBase {component} title="Dialog" description="Modal dialog with focus management and slide-in animation." tokens={allTokens}>
+  <VariantGroup name="dialog" title="Dialog" states={frameStates} typeGroups={frameTypeGroups} {component} backdropPadding="0">
+    {#snippet extraPropertyRows(stateName)}
+      {#if stateName === 'footer'}
+        <div class="property-row">
+          <span class="property-label">cancel button</span>
+          <select class="ui-form-select" value={cancelVariant} onchange={setCancelVariant}>
+            {#each BUTTON_VARIANTS as v}
+              <option value={v}>{variantLabel(v)}</option>
+            {/each}
+          </select>
+        </div>
+        <div class="property-row">
+          <span class="property-label">confirm button</span>
+          <select class="ui-form-select" value={confirmVariant} onchange={setConfirmVariant}>
+            {#each BUTTON_VARIANTS as v}
+              <option value={v}>{variantLabel(v)}</option>
+            {/each}
+          </select>
+        </div>
+      {/if}
+    {/snippet}
+    <Dialog
+      show
+      inline
+      title="Sample Dialog"
+      confirm={{ label: 'Save', onClick: () => {} }}
+      cancel={{ label: 'Cancel', onClick: () => {} }}
+    >
+      <p style="margin: 0;">This is the dialog body content. It supports any slotted content including forms, lists, or other components.</p>
+    </Dialog>
+  </VariantGroup>
 </ComponentEditorBase>
 
 <style>
-  .dialog-preview {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    min-width: 0;
-  }
-  .dialog-preview :global(.shadow-backdrop) {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    min-width: 0;
-  }
-  .dialog-preview :global(.dialog-backdrop.inline) {
+  :global(.dialog-backdrop.inline) {
     width: auto;
     box-sizing: border-box;
     padding: clamp(24px, 6vw, 128px);

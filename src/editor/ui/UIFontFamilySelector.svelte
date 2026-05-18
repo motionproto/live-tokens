@@ -260,7 +260,7 @@
 
   .pfs-divider {
     height: 1px;
-    background: var(--ui-border-lower);
+    background: var(--ui-border-low);
     margin: var(--ui-space-4) 0;
   }
 

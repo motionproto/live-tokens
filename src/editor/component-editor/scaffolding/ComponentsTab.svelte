@@ -44,7 +44,7 @@
   }
 
   :global(.components-container .demo-description) {
-    font-size: var(--ui-font-size-sm);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-tertiary);
     margin: 0;
   }

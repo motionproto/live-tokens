@@ -113,7 +113,7 @@
   })());
 </script>
 
-<ComponentEditorBase {component} title="Notification" description="Contextual feedback notifications with multiple variants. Import from <code>components/Notification.svelte</code>" tokens={allTokens} {linked} variants={variantOptions}>
+<ComponentEditorBase {component} title="Notification" description="Contextual feedback notifications with multiple variants." tokens={allTokens} {linked} variants={variantOptions}>
   {#snippet config()}
   
       <label>
@@ -147,16 +147,25 @@
       {component}
       siblings={buildSiblings(variants, v, (sv) => ({ [sv]: variantTokens(sv) }), (sv) => ({ [sv]: variantTypeGroups(sv) }))}
     >
-      {#if v === 'info'}
-        <Notification variant="info" title="Information" description="This is an informational message to keep you updated." {dismissible} {actions} />
-      {:else if v === 'success'}
-        <Notification variant="success" title="Success" description="Your action was completed successfully." {dismissible} {actions} />
-      {:else if v === 'warning'}
-        <Notification variant="warning" title="Warning" description="Caution: This action may have unintended consequences." {dismissible} {actions} />
-      {:else if v === 'danger'}
-        <Notification variant="danger" title="Danger" description="Critical error: Please address this issue immediately." {dismissible} {actions} />
-      {/if}
+      <div class="notification-demo">
+        {#if v === 'info'}
+          <Notification variant="info" title="Information" description="This is an informational message to keep you updated." {dismissible} {actions} />
+        {:else if v === 'success'}
+          <Notification variant="success" title="Success" description="Your action was completed successfully." {dismissible} {actions} />
+        {:else if v === 'warning'}
+          <Notification variant="warning" title="Warning" description="Caution: This action may have unintended consequences." {dismissible} {actions} />
+        {:else if v === 'danger'}
+          <Notification variant="danger" title="Danger" description="Critical error: Please address this issue immediately." {dismissible} {actions} />
+        {/if}
+      </div>
     </VariantGroup>
   {/each}
 </ComponentEditorBase>
+
+<style>
+  .notification-demo {
+    width: 100%;
+    max-width: 32rem;
+  }
+</style>
 

@@ -40,35 +40,14 @@
 </script>
 
 <script lang="ts">
-  import { onMount } from 'svelte';
   import Tooltip from '../../system/components/Tooltip.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
-  import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
-  import { setCssVar } from '../core/cssVarSync';
 
-  const bgVar = '--backdrop-tooltip-surface';
   const hintText = 'Helpful Hint';
-
-  onMount(() => {
-    if (!document.documentElement.style.getPropertyValue(bgVar)) {
-      setCssVar(bgVar, 'var(--surface-canvas)');
-    }
-  });
 </script>
 
-<ComponentEditorBase {component} title="Tooltip" description="Hover tooltip with configurable position. Import from <code>components/Tooltip.svelte</code>" tokens={allTokens}>
-  {#snippet config()}
-  
-      <label class="backdrop-config">
-        <span>Sample background</span>
-        <div class="picker-slot">
-          <UIPaletteSelector variable={bgVar} />
-        </div>
-      </label>
-    
-  {/snippet}
+<ComponentEditorBase {component} title="Tooltip" description="Hover tooltip with configurable position." tokens={allTokens}>
   <VariantGroup
     name="tooltip"
     title="Tooltip"
@@ -76,16 +55,14 @@
     {typeGroups}
     {component}
   >
-    <ShadowBackdrop mode="color" colorVariable={bgVar}>
-      <div class="tooltip-demo-row">
-        <Tooltip text={hintText} open>
-          <span class="tooltip-demo-target">Helpful Hint</span>
-        </Tooltip>
-        <Tooltip text={hintText} position="bottom">
-          <span class="tooltip-demo-target">Hover me</span>
-        </Tooltip>
-      </div>
-    </ShadowBackdrop>
+    <div class="tooltip-demo-row">
+      <Tooltip text={hintText} open>
+        <span class="tooltip-demo-target">Helpful Hint</span>
+      </Tooltip>
+      <Tooltip text={hintText} position="bottom">
+        <span class="tooltip-demo-target">Hover me</span>
+      </Tooltip>
+    </div>
   </VariantGroup>
 </ComponentEditorBase>
 
@@ -108,17 +85,4 @@
     background: transparent;
   }
 
-  .backdrop-config {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-  }
-
-  .picker-slot {
-    min-width: 8rem;
-  }
-
-  .picker-slot :global(.ui-token-selector) {
-    width: 100%;
-  }
 </style>

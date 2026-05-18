@@ -1,4 +1,4 @@
-/* Editor UI chrome — `--ui-*` tokens. Theme-immune; see CONVENTIONS.md. */
+/* `--ui-*` tokens, theme-immune. See CONVENTIONS.md. */
 
 .editor-page {
   --ui-font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -13,7 +13,7 @@
 }
 
 .editor-page {
-  /* Grayscale ramp — source of truth; lower number = darker. */
+  /* Grayscale ramp; lower number = darker. */
   --ui-gray-50:  #050505;
   --ui-gray-100: #0a0a0a;
   --ui-gray-150: #0f0f0f;
@@ -38,19 +38,15 @@
   --ui-text-accent:     var(--ui-gray-950);
   --ui-text-success:    var(--ui-gray-850);
 
-  /* Bright amber used for selection dots, focus halos, and "unsaved" / "dirty"
-     state indicators. Single token shared by all "this is the live thing"
-     surfaces so the editor speaks one selection language. */
+  /* Shared "this is live" amber: selection, focus, dirty state. */
   --ui-highlight:       #ffac28;
 
-  /* Link-state signals — bar attached to a control's left edge when its value
-     is shared with siblings (active), popped off into the column gap when the
-     control has broken away from its sibling group (broken). */
+  /* Link-state bar: active = attached to control edge, broken = popped into column gap. */
   --ui-link-active:       #6cd0c2;
   --ui-link-broken:       #f0c34a;
   --ui-link-broken-glow:  rgba(240, 195, 74, 0.28);
 
-  --ui-border-lower:    var(--ui-gray-400);
+  --ui-border-low:    var(--ui-gray-400);
   --ui-border-low:      var(--ui-gray-500);
   --ui-border:          var(--ui-gray-600);
   --ui-border-high:     var(--ui-gray-700);
@@ -91,8 +87,6 @@
   --ui-space-32: 2rem;
   --ui-space-48: 3rem;
 
-
-=
   --ui-font-size-xs:  0.75rem;    /* 12px */
   --ui-font-size-sm:  0.875rem;   /* 14px */
   --ui-font-size-md:  1rem;       /* 16px — base */
@@ -120,9 +114,33 @@
   --ui-opacity-disabled: 0.5;
 }
 
-/* Dev overlay tokens — scoped to .lt-app to reach chrome outside .editor-page. */
+/* Dev overlay tokens, scoped to .lt-app for chrome outside .editor-page. */
 .lt-app {
   --ui-overlay-fill:   rgba(128, 128, 128, 0.06);
   --ui-overlay-border: rgba(128, 128, 128, 0.32);
   --ui-overlay-num:    rgba(128, 128, 128, 0.75);
+}
+
+/* Section primitives: shared chrome for "named section in a bordered card". Body layout stays per-call-site. */
+.editor-section-card {
+  display: flex;
+  flex-direction: column;
+  padding: var(--ui-space-20);
+  background: var(--ui-surface-low);
+  border: 1px solid var(--ui-border-low);
+  border-radius: var(--ui-radius-md);
+}
+
+.editor-section-title {
+  margin: 0;
+  font-size: var(--ui-font-size-xl);
+  font-weight: var(--ui-font-weight-semibold);
+  color: var(--ui-text-primary);
+}
+
+.editor-subsection-title {
+  margin: 0;
+  font-size: var(--ui-font-size-lg);
+  font-weight: var(--ui-font-weight-semibold);
+  color: var(--ui-text-primary);
 }

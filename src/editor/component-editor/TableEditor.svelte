@@ -3,15 +3,10 @@
 
   export const component = 'table';
 
-  // Border colors and widths are linkable across wrapper/header/row/column so
-  // a user can lock "all lines on the table" to the same swatch + weight with
-  // one move, then break out individual surfaces when needed. Every other
-  // groupKey is slot-unique so header/cell/stripe stay independent — header bg
-  // vs zebra stripe, header pad vs cell pad, header text vs cell text all
-  // serve different visual roles. (Sharing a groupKey would silently declare
-  // them as siblings without surfacing the link in the LinkedBlock.)
+  // Shared border/width groupKeys link all table lines; other groupKeys are slot-unique to keep surfaces independent.
   const states: Record<string, Token[]> = {
     wrapper: [
+      { label: 'surface color', groupKey: 'wrapper-surface', variable: '--table-default-surface' },
       { label: 'border color', canBeLinked: true, groupKey: 'border', variable: '--table-default-border' },
       { label: 'border width', canBeLinked: true, groupKey: 'width', variable: '--table-default-border-width' },
       { label: 'corner radius', groupKey: 'radius', variable: '--table-default-radius' },
@@ -27,9 +22,10 @@
       { label: 'padding', groupKey: 'cell-padding', variable: '--table-default-cell-padding' },
     ],
     row: [
+      { label: 'surface color', groupKey: 'row-surface', variable: '--table-default-row-surface' },
+      { label: 'stripe surface', groupKey: 'row-stripe-surface', variable: '--table-default-row-stripe-surface' },
       { label: 'divider color', canBeLinked: true, groupKey: 'border', variable: '--table-default-row-divider' },
       { label: 'divider width', canBeLinked: true, groupKey: 'width', variable: '--table-default-row-divider-width' },
-      { label: 'stripe surface', groupKey: 'row-stripe-surface', variable: '--table-default-row-stripe-surface' },
     ],
     column: [
       { label: 'divider color', canBeLinked: true, groupKey: 'border', variable: '--table-default-column-divider' },
@@ -37,8 +33,7 @@
     ],
   };
 
-  // State name is the context label so the LinkageChart rows read as
-  // wrapper/header/row/column for each shared groupKey.
+  // State name as context label so LinkageChart rows read wrapper/header/row/column.
   const linkableContexts = new Map<string, string>(
     Object.entries(states).flatMap(([state, tokens]) =>
       tokens
@@ -65,11 +60,7 @@
       lineHeightVariable: '--table-default-cell-line-height',
     }],
   };
-  // Slot-unique groupKeys keep header text and cell text independent. The
-  // generic `buildTypeGroupColorTokens` helper isn't used here because it
-  // derives groupKey from the variable's last-dash suffix, which collapses
-  // both `--table-...-header-text` and `--table-...-cell-text` onto a shared
-  // `text` groupKey — phantom-linking the two slots.
+  // Hand-rolled (not buildTypeGroupColorTokens) because its suffix-derived groupKey would phantom-link header-text and cell-text.
   const typeGroupColorTokens: Token[] = [
     { label: 'color', groupKey: 'header-text', variable: '--table-default-header-text' },
     { label: 'color', groupKey: 'cell-text', variable: '--table-default-cell-text' },
@@ -105,7 +96,7 @@
   ) as Record<string, Token[]>);
 </script>
 
-<ComponentEditorBase {component} title="Table" description="Styled wrapper around <code>&lt;table&gt;</code> with horizontal scroll on narrow viewports. Import from <code>components/Table.svelte</code>" tokens={allTokens} {linked}>
+<ComponentEditorBase {component} title="Table" description="Styled wrapper around <code>&lt;table&gt;</code> with horizontal scroll on narrow viewports." tokens={allTokens} {linked}>
   <VariantGroup name="table" title="Table" states={visibleStates} {typeGroups} {component}>
     <Table>
       <table>

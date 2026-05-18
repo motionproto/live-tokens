@@ -338,7 +338,7 @@
     width: 1.5rem;
     height: 1.5rem;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     flex-shrink: 0;
   }
 
@@ -438,7 +438,7 @@
     position: relative;
     height: 1.25rem;
     border-radius: var(--ui-radius-md);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     flex: 1;
     min-width: 6rem;
   }

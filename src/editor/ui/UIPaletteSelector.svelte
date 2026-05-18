@@ -698,7 +698,7 @@
     align-self: stretch;
     flex: 1;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     background-image: linear-gradient(45deg, var(--ui-border-low) 25%, transparent 25%),
       linear-gradient(-45deg, var(--ui-border-low) 25%, transparent 25%),
       linear-gradient(45deg, transparent 75%, var(--ui-border-low) 75%),
@@ -718,7 +718,7 @@
     align-items: center;
     gap: var(--ui-space-6);
     padding: var(--ui-space-6) var(--ui-space-8);
-    border-bottom: 1px solid var(--ui-border-lower);
+    border-bottom: 1px solid var(--ui-border-low);
   }
 
   .opacity-control.hidden {
@@ -784,7 +784,7 @@
     padding: var(--ui-space-8) var(--ui-space-10);
     background: none;
     border: none;
-    border-bottom: 1px solid var(--ui-border-lower);
+    border-bottom: 1px solid var(--ui-border-low);
     color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-sm);
     font-weight: var(--ui-font-weight-medium);
@@ -802,7 +802,7 @@
 
   .tab-bar {
     display: flex;
-    border-bottom: 1px solid var(--ui-border-lower);
+    border-bottom: 1px solid var(--ui-border-low);
   }
 
   .tab-btn {
@@ -901,7 +901,7 @@
     color: var(--ui-text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    border-top: 1px solid var(--ui-border-lower);
+    border-top: 1px solid var(--ui-border-low);
   }
 
   .none-swatch::after {
@@ -973,7 +973,7 @@
     width: 2rem;
     height: 1.5rem;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
   }
 
   .step-label {

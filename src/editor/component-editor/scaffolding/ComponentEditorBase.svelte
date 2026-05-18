@@ -46,6 +46,9 @@
   run(() => {
     ctx._linkedOrder.set(linked?.linkedOrder ?? null);
   });
+  run(() => {
+    ctx._variants.set(variants);
+  });
   let showVariantTabs = $derived(variants.length >= 2);
   run(() => {
     if (showVariantTabs && ($focusedVariant === null || !variants.some((v) => v.value === $focusedVariant))) {
@@ -62,59 +65,8 @@
       {@render config?.()}
     </NonStylableConfig>
   {/if}
-  {#if showVariantTabs}
-    <div class="variant-tabs" role="tablist">
-      {#each variants as opt}
-        <button
-          type="button"
-          class="variant-tab-btn"
-          class:active={opt.value === $focusedVariant}
-          role="tab"
-          aria-selected={opt.value === $focusedVariant}
-          onclick={() => focusedVariant.set(opt.value)}
-        >{opt.label}</button>
-      {/each}
-    </div>
-  {/if}
   {@render children?.({ focusedVariant: $focusedVariant, })}
   {#if linked}
     <LinkedBlock {component} {linked} />
   {/if}
 </div>
-
-<style>
-  .variant-tabs {
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: var(--ui-space-4);
-    padding: var(--ui-space-4);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-lower);
-    border-radius: var(--ui-radius-md);
-    align-self: flex-start;
-  }
-
-  .variant-tab-btn {
-    padding: var(--ui-space-6) var(--ui-space-12);
-    background: none;
-    border: none;
-    border-radius: var(--ui-radius-sm);
-    color: var(--ui-text-secondary);
-    font-size: var(--ui-font-size-md);
-    font-weight: var(--ui-font-weight-semibold);
-    text-transform: capitalize;
-    cursor: pointer;
-    transition: color var(--ui-transition-fast), background var(--ui-transition-fast);
-  }
-
-  .variant-tab-btn:hover:not(.active) {
-    color: var(--ui-text-primary);
-    background: var(--ui-hover);
-  }
-
-  .variant-tab-btn.active {
-    color: var(--ui-text-primary);
-    background: var(--ui-surface-high);
-    box-shadow: 0 0 0 1px var(--ui-border);
-  }
-</style>

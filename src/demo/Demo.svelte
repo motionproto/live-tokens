@@ -324,7 +324,6 @@
     flex-direction: column;
     gap: var(--space-16);
     position: relative;
-    z-index: 0; /* sits beneath the kite — overlap is intentional */
   }
 
   .hero-kite {
@@ -332,12 +331,12 @@
     grid-row: 1;
     height: 32rem;
     position: relative;
-    z-index: 1;
+    /* No z-index: must NOT form a stacking context, or the ::before glow
+       below gets trapped inside the kite layer and paints over .hero-text.
+       Without a stacking context the glow's z-index:-1 escapes back to
+       .hero (isolation:isolate) and sits behind everything in the hero. */
   }
 
-  /* Glow lives on a pseudo-element 3× the size of the kite so it can extend
-     past the host element. Nothing in the parent chain has overflow:hidden,
-     so this happily bleeds across the title and off the page edge. */
   .hero-kite::before {
     content: '';
     position: absolute;

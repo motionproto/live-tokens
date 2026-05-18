@@ -194,7 +194,7 @@
     gap: var(--ui-space-8);
     padding: var(--ui-space-12) var(--ui-space-16);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
   }
 
@@ -274,7 +274,7 @@
     justify-content: flex-end;
     padding-top: var(--ui-space-8);
     margin-top: var(--ui-space-4);
-    border-top: 1px solid var(--ui-border-lower);
+    border-top: 1px solid var(--ui-border-low);
   }
 
   .columns-reset {
@@ -303,7 +303,7 @@
 
   .columns-preview {
     background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     padding: var(--ui-space-12) 0;
     overflow: hidden;

@@ -876,7 +876,7 @@
     padding: var(--ui-space-16) var(--ui-space-16) var(--ui-space-24);
     background: none;
     border: none;
-    border-bottom: 1px solid var(--ui-border-lower);
+    border-bottom: 1px solid var(--ui-border-low);
     font-family: var(--ui-font-sans);
     min-width: 0;
   }
@@ -1008,7 +1008,7 @@
     width: 100%;
     height: 2rem;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
   }
 
   /* Step hex values */

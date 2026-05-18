@@ -334,7 +334,7 @@
     gap: var(--ui-space-8);
     padding: var(--ui-space-6) var(--ui-space-10);
     background: var(--ui-surface-high);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
     color: var(--ui-text-primary);
     font-family: inherit;

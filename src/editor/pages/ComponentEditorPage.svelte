@@ -201,7 +201,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     background: black;
-    border-right: 1px solid var(--ui-border-lower);
+    border-right: 1px solid var(--ui-border-low);
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -213,7 +213,7 @@
     grid-template-columns: 48px 1fr;
     align-items: center;
     padding: var(--ui-space-12) 0 var(--ui-space-12) 0;
-    border-bottom: 1px solid var(--ui-border-lower);
+    border-bottom: 1px solid var(--ui-border-low);
   }
 
   .rail-toggle {
@@ -335,7 +335,7 @@
     flex-shrink: 0;
     margin-top: auto;
     padding: var(--ui-space-12) var(--ui-space-8) var(--ui-space-16);
-    border-top: 1px solid var(--ui-border-lower);
+    border-top: 1px solid var(--ui-border-low);
   }
 
   .nav-item {
@@ -395,7 +395,7 @@
   }
 
   .content {
-    padding: 0 var(--ui-space-32);
+    padding: 1rem var(--ui-space-32) 0;
     background: black;
     min-width: 0;
     height: 100vh;

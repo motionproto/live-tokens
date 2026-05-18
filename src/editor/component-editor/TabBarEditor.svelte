@@ -105,7 +105,7 @@
   ) as Record<string, Token[]>);
 </script>
 
-<ComponentEditorBase {component} title="Tab Bar" description="Tab navigation with icon support and disabled state. Import from <code>components/TabBar.svelte</code>" tokens={allTokens} {linked}>
+<ComponentEditorBase {component} title="Tab Bar" description="Tab navigation with icon support and disabled state." tokens={allTokens} {linked}>
   <VariantGroup
     name="tabbar"
     title="Tab Bar"
@@ -118,13 +118,7 @@
         {@const forceClass = activeState === 'hover tab' ? 'force-hover' : ''}
       <TabBar tabs={demoTabs} selectedTab={selectedDemoTab} class={forceClass} on:tabChange={(e) => (selectedDemoTab = e.detail)} />
       <div class="tab-content-demo">
-        {#if selectedDemoTab === 'overview'}
-          <p style="margin: 0;">Overview tab content</p>
-        {:else if selectedDemoTab === 'details'}
-          <p style="margin: 0;">Details tab content</p>
-        {:else if selectedDemoTab === 'settings'}
-          <p style="margin: 0;">Settings tab content</p>
-        {/if}
+        <p style="margin: 0;">placeholder tab content</p>
       </div>
           {/snippet}
     </VariantGroup>
@@ -132,11 +126,9 @@
 
 <style>
   .tab-content-demo {
+    width: 100%;
     padding: var(--space-16);
     color: var(--ui-text-secondary);
     background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-lower);
-    border-top: none;
-    border-radius: 0 0 var(--radius-md) var(--radius-md);
   }
 </style>

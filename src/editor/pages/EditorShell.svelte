@@ -228,7 +228,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     background: black;
-    border-right: 1px solid var(--ui-border-lower);
+    border-right: 1px solid var(--ui-border-low);
     display: flex;
     z-index: 1;
     flex-direction: column;
@@ -238,7 +238,7 @@
   .rail-toggle-row {
     display: flex;
     justify-content: flex-end;
-    border-bottom: 1px solid var(--ui-border-lower);
+    border-bottom: 1px solid var(--ui-border-low);
   }
 
   .rail-toggle {
@@ -356,7 +356,7 @@
     flex-shrink: 0;
     margin-top: auto;
     padding: var(--ui-space-12) var(--ui-space-8) var(--ui-space-16);
-    border-top: 1px solid var(--ui-border-lower);
+    border-top: 1px solid var(--ui-border-low);
   }
 
   .rail-hint {

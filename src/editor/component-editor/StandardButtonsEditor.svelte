@@ -89,15 +89,7 @@
   ) as Record<string, Token[]>);
 </script>
 
-<ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes. Import from <code>components/Button.svelte</code>" tokens={allTokens} {linked} variants={variantOptions}>
-  {#snippet config()}
-  
-      <label>
-        <span>Hover shimmer</span>
-        <Toggle checked={shimmerEnabled} onchange={handleShimmerChange} />
-      </label>
-    
-  {/snippet}
+<ComponentEditorBase {component} title="Button" description="Reusable button component with multiple variants and sizes." tokens={allTokens} {linked} variants={variantOptions}>
   {#each variants as v}
     <VariantGroup
       name={v}
@@ -106,8 +98,15 @@
       {component}
       columns={2}
       siblings={buildSiblings(variants, v, variantStates)}
-      
     >
+      {#snippet extraPropertyRows(stateName)}
+        {#if stateName === 'hover'}
+          <div class="property-row">
+            <span class="property-label">hover shimmer</span>
+            <Toggle checked={shimmerEnabled} onchange={handleShimmerChange} />
+          </div>
+        {/if}
+      {/snippet}
       {#snippet children({ activeState })}
             {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
         {@const isDisabled = activeState === 'disabled'}
@@ -150,7 +149,7 @@
 
   .size-divider {
     width: 1px;
-    background: var(--ui-border-lower);
+    background: var(--ui-border-low);
     align-self: stretch;
   }
 

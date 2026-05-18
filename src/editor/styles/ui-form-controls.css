@@ -107,7 +107,7 @@
 
 .ui-form-select:disabled {
   background-color: var(--ui-surface-lowest) !important;
-  border-color: var(--ui-border-lower) !important;
+  border-color: var(--ui-border-low) !important;
   color: var(--ui-text-disabled) !important;
   cursor: not-allowed;
 }
@@ -155,7 +155,7 @@
 
 .ui-form-input:disabled {
   background: var(--ui-surface-lowest);
-  border-color: var(--ui-border-lower);
+  border-color: var(--ui-border-low);
   color: var(--ui-text-disabled);
   cursor: not-allowed;
 }

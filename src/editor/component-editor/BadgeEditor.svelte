@@ -65,15 +65,10 @@
   import { editorState } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   import { buildSiblings } from './scaffolding/siblings';
-  import ShadowBackdrop from './scaffolding/ShadowBackdrop.svelte';
-  import ShadowBackdropControls from './scaffolding/ShadowBackdropControls.svelte';
   import UIRadioGroup from '../ui/UIRadioGroup.svelte';
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
   let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet));
-
-  let bgMode: 'image' | 'color' = $state('image');
-  const bgVar = '--backdrop-badge-surface';
 
   // Preview-only props for Badge's floating/anchor/flush features (not persisted).
   // For corner-anchored use, prefer the dedicated CornerBadge component; Badge.floating
@@ -89,10 +84,8 @@
   ];
 </script>
 
-<ComponentEditorBase {component} title="Badge" description="Pill-shaped badges with color variants. Import from <code>components/Badge.svelte</code>" tokens={allTokens} {linked} variants={variantOptions}>
+<ComponentEditorBase {component} title="Badge" description="Pill-shaped badges with color variants." tokens={allTokens} {linked} variants={variantOptions}>
   {#snippet config()}
-  
-      <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} />
       <label class="float-toggle">
         <input type="checkbox" bind:checked={floating} />
         <span>Floating preview</span>
@@ -107,7 +100,6 @@
           <UIRadioGroup bind:value={anchor} name="badge-anchor" options={anchorOptions} />
         </div>
       {/if}
-    
   {/snippet}
   {#each variants as v}
     <VariantGroup
@@ -118,18 +110,16 @@
       {component}
       siblings={buildSiblings(variants, v, (sv) => ({ [sv]: variantTokens(sv) }), (sv) => ({ [sv]: variantTypeGroups(sv) }))}
     >
-      <ShadowBackdrop mode={bgMode} colorVariable={bgVar}>
-        {#if floating}
-          <div class="floating-stage">
-            <Badge variant={v} {floating} {anchor} {flush}>{v.charAt(0).toUpperCase() + v.slice(1)}</Badge>
-          </div>
-        {:else}
-          <div class="badge-showcase-grid">
-            <Badge variant={v}>{v.charAt(0).toUpperCase() + v.slice(1)}</Badge>
-            <Badge variant={v} icon="fa-solid fa-dice-d20">With Icon</Badge>
-          </div>
-        {/if}
-      </ShadowBackdrop>
+      {#if floating}
+        <div class="floating-stage">
+          <Badge variant={v} {floating} {anchor} {flush}>{v.charAt(0).toUpperCase() + v.slice(1)}</Badge>
+        </div>
+      {:else}
+        <div class="badge-showcase-grid">
+          <Badge variant={v}>{v.charAt(0).toUpperCase() + v.slice(1)}</Badge>
+          <Badge variant={v} icon="fa-solid fa-dice-d20">With Icon</Badge>
+        </div>
+      {/if}
     </VariantGroup>
   {/each}
 </ComponentEditorBase>

@@ -368,7 +368,7 @@
     width: 100%;
     height: 2rem;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
   }
 
   .swatch.text-swatch {
@@ -527,7 +527,7 @@
     width: 1rem;
     height: 1rem;
     border-radius: var(--ui-radius-sm);
-    border: 1px solid var(--ui-border-lower);
+    border: 1px solid var(--ui-border-low);
     flex-shrink: 0;
   }
 
