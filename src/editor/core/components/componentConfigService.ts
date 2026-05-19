@@ -1,4 +1,4 @@
-import type { ComponentConfig, ComponentConfigMeta } from '../themes/themeTypes';
+import type { AliasDiskValue, ComponentConfig, ComponentConfigMeta } from '../themes/themeTypes';
 import { versionedFileResource } from '../storage/files/versionedFileResourceClient';
 
 /**
@@ -23,7 +23,7 @@ export interface ComponentSummary {
 export interface ComponentProductionInfo {
   fileName: string;
   name: string;
-  aliases: Record<string, string>;
+  aliases: Record<string, AliasDiskValue>;
 }
 
 export interface ComponentConfigList {

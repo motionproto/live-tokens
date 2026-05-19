@@ -1,4 +1,4 @@
-import type { Theme } from './themeTypes';
+import type { AliasDiskValue, Theme } from './themeTypes';
 import { activeFileName } from '../store/editorConfigStore';
 import { migrateThemeFonts } from '../fonts/fontMigration';
 import { applyFontSources, applyFontStacks } from '../fonts/fontLoader';
@@ -52,7 +52,7 @@ export async function initializeTheme(): Promise<void> {
   if (list && Array.isArray(list.components)) {
     const configs: Record<
       string,
-      { activeFile: string; aliases: Record<string, string>; config?: Record<string, unknown>; schemaVersion?: number }
+      { activeFile: string; aliases: Record<string, AliasDiskValue>; config?: Record<string, unknown>; schemaVersion?: number }
     > = {};
     await Promise.all(
       list.components.map(async (c) => {

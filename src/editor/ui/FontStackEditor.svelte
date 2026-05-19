@@ -14,7 +14,11 @@
   import { applyFontStacks, SYSTEM_CASCADES } from '../core/fonts/fontLoader';
 
   const SYSTEM_PRESETS: SystemCascadePreset[] = ['system-ui-sans', 'system-ui-serif', 'system-ui-mono'];
-  const GENERIC_VALUES: GenericFamily[] = ['sans-serif', 'serif', 'monospace', 'cursive', 'fantasy'];
+  // `cursive` and `fantasy` are CSS-spec generics whose rendering varies wildly
+  // across OSes (cursive → Comic Sans / Snell Roundhand; fantasy → Impact /
+  // Papyrus). They're rarely what a designer means by "fallback," so we don't
+  // offer them in the editor.
+  const GENERIC_VALUES: GenericFamily[] = ['sans-serif', 'serif', 'monospace'];
 
   const STACK_VARIABLES: FontStackVariable[] = [
     '--font-display',
@@ -23,14 +27,47 @@
     '--font-mono',
   ];
 
+  // Each stack's terminal fallback (bottom slot). It's locked to system or
+  // generic so text always renders even if every project font 404s. The
+  // fallback maps by stack variable; chosen to match the stack's purpose.
+  const TERMINAL_FALLBACK_BY_VAR: Record<FontStackVariable, GenericFamily> = {
+    '--font-display': 'serif',
+    '--font-sans': 'sans-serif',
+    '--font-serif': 'serif',
+    '--font-mono': 'monospace',
+  };
+
+  // The single matching System UI preset paired with each stack — the only two
+  // options offered in the terminal slot's dropdown.
+  const TERMINAL_SYSTEM_BY_VAR: Record<FontStackVariable, SystemCascadePreset> = {
+    '--font-display': 'system-ui-serif',
+    '--font-sans': 'system-ui-sans',
+    '--font-serif': 'system-ui-serif',
+    '--font-mono': 'system-ui-mono',
+  };
+
   let fontSourcesList = $derived($editorState.fonts.sources);
   let fontStacksList = $derived($editorState.fonts.stacks);
   let allFamilies = $derived((fontSourcesList as FontSource[]).flatMap((s) => s.families.map((f) => ({ ...f, sourceLabel: s.label ?? s.kind }))));
   let familyById = $derived(new Map<string, FontFamily>(allFamilies.map((f) => [f.id, f])));
 
+  /** Ensure the slot list ends in a system/generic terminal. If it doesn't,
+   *  append the variable's default generic so the stack is always renderable. */
+  function withTerminalFallback(variable: FontStackVariable, slots: FontStackSlot[]): FontStackSlot[] {
+    const fallback: FontStackSlot = { kind: 'generic', value: TERMINAL_FALLBACK_BY_VAR[variable] };
+    if (slots.length === 0) return [fallback];
+    const last = slots[slots.length - 1];
+    if (last.kind === 'project') return [...slots, fallback];
+    return slots;
+  }
+
   function ensureAllStacksPresent(current: FontStack[]): FontStack[] {
     const byVar = new Map(current.map((s) => [s.variable, s]));
-    return STACK_VARIABLES.map((v) => byVar.get(v) ?? { variable: v, slots: [{ kind: 'generic', value: 'sans-serif' } as FontStackSlot] });
+    return STACK_VARIABLES.map((v) => {
+      const stack = byVar.get(v);
+      const slots = withTerminalFallback(v, stack?.slots ?? []);
+      return stack ? { ...stack, slots } : { variable: v, slots };
+    });
   }
 
   let stacks = $derived(ensureAllStacksPresent(fontStacksList));
@@ -109,7 +146,10 @@
       newSlot = { kind: 'system', preset };
     }
     updateStack(variable, (slots) => {
-      slots.push(newSlot);
+      // Insert above the terminal fallback (always the last slot) so the
+      // terminal stays at the bottom.
+      const insertAt = Math.max(0, slots.length - 1);
+      slots.splice(insertAt, 0, newSlot);
       return slots;
     });
   }
@@ -117,7 +157,13 @@
   /* Drag UX: the source row lifts (opacity, shadow); a white insertion bar
      sits in the gap between rows at the projected drop position. The array
      is only mutated on drop. animate:flip then slides every row to its new
-     spot, so the commit doesn't snap. */
+     spot, so the commit doesn't snap.
+
+     Only the drag handle is `draggable="true"` — putting it on the whole row
+     swallowed clicks on the inner <button>/<select> in real browsers because
+     mousedown started a drag gesture before `click` could fire. The handle
+     starts the drag and calls setDragImage(rowEl, ...) so the visual drag
+     image is still the whole row. */
   let dragSource: { variable: FontStackVariable; index: number } | null = $state(null);
   let dragOver: { variable: FontStackVariable; index: number; position: 'before' | 'after' } | null = $state(null);
 
@@ -126,6 +172,11 @@
     dragSource = { variable, index };
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('application/x-font-slot', JSON.stringify({ variable, index }));
+    const rowEl = (e.currentTarget as HTMLElement).closest('.slot-row') as HTMLElement | null;
+    if (rowEl) {
+      const rect = rowEl.getBoundingClientRect();
+      e.dataTransfer.setDragImage(rowEl, e.clientX - rect.left, e.clientY - rect.top);
+    }
   }
 
   function onDragOver(e: DragEvent, variable: FontStackVariable, index: number) {
@@ -134,7 +185,12 @@
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const position: 'before' | 'after' = e.clientY - rect.top < rect.height / 2 ? 'before' : 'after';
+    let position: 'before' | 'after' = e.clientY - rect.top < rect.height / 2 ? 'before' : 'after';
+    // Terminal fallback stays at the bottom — never accept a drop after it.
+    const stack = stacks.find((s) => s.variable === variable);
+    if (stack && index === stack.slots.length - 1 && position === 'after') {
+      position = 'before';
+    }
     dragOver = { variable, index, position };
   }
 
@@ -175,14 +231,14 @@
       </div>
       <div class="font-stack-list">
         {#each stack.slots as slot, i (slotKey(slot))}
+          {@const isTerminal = i === stack.slots.length - 1}
           <!-- svelte-ignore a11y_no_static_element_interactions -->
           <div
             class="slot-row"
+            class:terminal={isTerminal}
             class:drop-before={dragOver?.variable === stack.variable && dragOver?.index === i && dragOver?.position === 'before'}
             class:drop-after={dragOver?.variable === stack.variable && dragOver?.index === i && dragOver?.position === 'after'}
             class:dragging={dragSource?.variable === stack.variable && dragSource?.index === i}
-            draggable="true"
-            ondragstart={(e) => onDragStart(e, stack.variable, i)}
             ondragover={(e) => onDragOver(e, stack.variable, i)}
             ondragleave={onDragLeave}
             ondrop={(e) => onDrop(e, stack.variable, i)}
@@ -190,39 +246,58 @@
             animate:flip={{ duration: 220, easing: cubicOut }}
           >
             <div class="slot-controls">
-              <span class="drag-handle" aria-hidden="true">⋮⋮</span>
+              {#if isTerminal}
+                <i class="fas fa-lock slot-locked-glyph" aria-hidden="true" title="Final fallback — can't be removed"></i>
+              {:else}
+                <span
+                  class="drag-handle"
+                  aria-hidden="true"
+                  draggable="true"
+                  ondragstart={(e) => onDragStart(e, stack.variable, i)}
+                >⋮⋮</span>
+              {/if}
               <span class="slot-position">{i + 1}.</span>
               <select
                 class="ui-form-select slot-select"
                 value={slotKey(slot)}
                 onchange={(e) => onSelectChange(e, stack.variable, i)}
               >
-                {#if allFamilies.length > 0}
-                  <optgroup label="Project fonts">
-                    {#each allFamilies as fam}
-                      <option value={`project:${fam.id}`}>{fam.name}</option>
+                {#if isTerminal}
+                  {@const sys = TERMINAL_SYSTEM_BY_VAR[stack.variable]}
+                  {@const gen = TERMINAL_FALLBACK_BY_VAR[stack.variable]}
+                  <option value={`system:${sys}`}>{sys === 'system-ui-sans' ? 'System UI (sans)' : sys === 'system-ui-serif' ? 'System UI (serif)' : 'System UI (mono)'}</option>
+                  <option value={`generic:${gen}`}>{gen}</option>
+                {:else}
+                  {#if allFamilies.length > 0}
+                    <optgroup label="Project fonts">
+                      {#each allFamilies as fam}
+                        <option value={`project:${fam.id}`}>{fam.name}</option>
+                      {/each}
+                    </optgroup>
+                  {/if}
+                  <optgroup label="System cascade">
+                    {#each SYSTEM_PRESETS as p}
+                      <option value={`system:${p}`}>{p === 'system-ui-sans' ? 'System UI (sans)' : p === 'system-ui-serif' ? 'System UI (serif)' : 'System UI (mono)'}</option>
+                    {/each}
+                  </optgroup>
+                  <optgroup label="Generic">
+                    {#each GENERIC_VALUES as g}
+                      <option value={`generic:${g}`}>{g}</option>
                     {/each}
                   </optgroup>
                 {/if}
-                <optgroup label="System cascade">
-                  {#each SYSTEM_PRESETS as p}
-                    <option value={`system:${p}`}>{p === 'system-ui-sans' ? 'System UI (sans)' : p === 'system-ui-serif' ? 'System UI (serif)' : 'System UI (mono)'}</option>
-                  {/each}
-                </optgroup>
-                <optgroup label="Generic">
-                  {#each GENERIC_VALUES as g}
-                    <option value={`generic:${g}`}>{g}</option>
-                  {/each}
-                </optgroup>
               </select>
-              <button
-                type="button"
-                class="slot-remove"
-                aria-label="Remove slot"
-                title="Remove"
-                onclick={() => removeSlot(stack.variable, i)}
-                disabled={stack.slots.length <= 1}
-              >×</button>
+              {#if isTerminal}
+                <span class="slot-remove-placeholder" aria-hidden="true"></span>
+              {:else}
+                <button
+                  type="button"
+                  class="slot-remove"
+                  aria-label="Remove slot"
+                  title="Remove"
+                  onclick={() => removeSlot(stack.variable, i)}
+                >×</button>
+              {/if}
             </div>
             <span
               class="slot-preview"
@@ -348,6 +423,25 @@
     line-height: 1;
   }
   .slot-row.dragging .drag-handle { cursor: grabbing; }
+
+  /* Terminal-row lock glyph sits in the drag-handle's grid track; the row's
+     right-hand X column is left empty (see .slot-remove-placeholder) so the
+     lock is the only chrome and reads as "this row is fixed." */
+  .slot-locked-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ui-text-muted);
+    font-size: var(--ui-font-size-sm);
+    opacity: 0.55;
+  }
+
+  /* Empty grid track on terminal rows where the X button sits on others,
+     so columns stay aligned. */
+  .slot-remove-placeholder {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
 
   .slot-position {
     font-size: var(--ui-font-size-md);

@@ -1258,14 +1258,6 @@
     ]
   },
   "sectiondivider": {
-    "angle": [
-      "--sectiondivider-accent-gradient-angle",
-      "--sectiondivider-alternate-gradient-angle",
-      "--sectiondivider-canvas-gradient-angle",
-      "--sectiondivider-neutral-gradient-angle",
-      "--sectiondivider-primary-gradient-angle",
-      "--sectiondivider-special-gradient-angle"
-    ],
     "border": [
       "--sectiondivider-accent-border",
       "--sectiondivider-alternate-border",
@@ -1281,26 +1273,6 @@
       "--sectiondivider-neutral-border-width",
       "--sectiondivider-primary-border-width",
       "--sectiondivider-special-border-width"
-    ],
-    "color": [
-      "--sectiondivider-accent-gradient-stop-1-color",
-      "--sectiondivider-accent-gradient-stop-2-color",
-      "--sectiondivider-accent-gradient-stop-3-color",
-      "--sectiondivider-alternate-gradient-stop-1-color",
-      "--sectiondivider-alternate-gradient-stop-2-color",
-      "--sectiondivider-alternate-gradient-stop-3-color",
-      "--sectiondivider-canvas-gradient-stop-1-color",
-      "--sectiondivider-canvas-gradient-stop-2-color",
-      "--sectiondivider-canvas-gradient-stop-3-color",
-      "--sectiondivider-neutral-gradient-stop-1-color",
-      "--sectiondivider-neutral-gradient-stop-2-color",
-      "--sectiondivider-neutral-gradient-stop-3-color",
-      "--sectiondivider-primary-gradient-stop-1-color",
-      "--sectiondivider-primary-gradient-stop-2-color",
-      "--sectiondivider-primary-gradient-stop-3-color",
-      "--sectiondivider-special-gradient-stop-1-color",
-      "--sectiondivider-special-gradient-stop-2-color",
-      "--sectiondivider-special-gradient-stop-3-color"
     ],
     "description-color": [
       "--sectiondivider-accent-description",
@@ -1342,6 +1314,14 @@
       "--sectiondivider-primary-description-line-height",
       "--sectiondivider-special-description-line-height"
     ],
+    "gradient": [
+      "--sectiondivider-accent-gradient",
+      "--sectiondivider-alternate-gradient",
+      "--sectiondivider-canvas-gradient",
+      "--sectiondivider-neutral-gradient",
+      "--sectiondivider-primary-gradient",
+      "--sectiondivider-special-gradient"
+    ],
     "padding": [
       "--sectiondivider-accent-padding",
       "--sectiondivider-alternate-padding",
@@ -1349,26 +1329,6 @@
       "--sectiondivider-neutral-padding",
       "--sectiondivider-primary-padding",
       "--sectiondivider-special-padding"
-    ],
-    "position": [
-      "--sectiondivider-accent-gradient-stop-1-position",
-      "--sectiondivider-accent-gradient-stop-2-position",
-      "--sectiondivider-accent-gradient-stop-3-position",
-      "--sectiondivider-alternate-gradient-stop-1-position",
-      "--sectiondivider-alternate-gradient-stop-2-position",
-      "--sectiondivider-alternate-gradient-stop-3-position",
-      "--sectiondivider-canvas-gradient-stop-1-position",
-      "--sectiondivider-canvas-gradient-stop-2-position",
-      "--sectiondivider-canvas-gradient-stop-3-position",
-      "--sectiondivider-neutral-gradient-stop-1-position",
-      "--sectiondivider-neutral-gradient-stop-2-position",
-      "--sectiondivider-neutral-gradient-stop-3-position",
-      "--sectiondivider-primary-gradient-stop-1-position",
-      "--sectiondivider-primary-gradient-stop-2-position",
-      "--sectiondivider-primary-gradient-stop-3-position",
-      "--sectiondivider-special-gradient-stop-1-position",
-      "--sectiondivider-special-gradient-stop-2-position",
-      "--sectiondivider-special-gradient-stop-3-position"
     ],
     "radius": [
       "--sectiondivider-accent-radius",
@@ -1425,6 +1385,14 @@
       "--sectiondivider-neutral-title-font-weight",
       "--sectiondivider-primary-title-font-weight",
       "--sectiondivider-special-title-font-weight"
+    ],
+    "title-letter-spacing": [
+      "--sectiondivider-accent-title-letter-spacing",
+      "--sectiondivider-alternate-title-letter-spacing",
+      "--sectiondivider-canvas-title-letter-spacing",
+      "--sectiondivider-neutral-title-letter-spacing",
+      "--sectiondivider-primary-title-letter-spacing",
+      "--sectiondivider-special-title-letter-spacing"
     ],
     "title-line-height": [
       "--sectiondivider-accent-title-line-height",

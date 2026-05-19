@@ -36,6 +36,11 @@
     canBeLinked?: boolean;
     disabled?: boolean;
     selectionsLocked?: boolean;
+    /** When set, restrict picker family choices to this family (one of the
+     *  entries in the `families` list). Other families render but are
+     *  rendered disabled and not clickable. Out-of-family already-set
+     *  choices still surface in the trigger meta. */
+    familyFilter?: string | null;
     onchange?: () => void;
   }
 
@@ -45,6 +50,7 @@
     canBeLinked = false,
     disabled = false,
     selectionsLocked = false,
+    familyFilter = null,
     onchange,
   }: Props = $props();
 
@@ -97,7 +103,7 @@
   const borderStepKeys = borderSteps.map(s => s.key);
   const textStepKeys = textSteps.map(s => s.key);
 
-  const familiesWithText = ['neutral', 'canvas', 'brand', 'accent', 'special', 'success', 'warning', 'info', 'danger'];
+  const familiesWithText = ['neutral', 'alternate', 'canvas', 'brand', 'accent', 'special', 'success', 'warning', 'info', 'danger'];
 
   const allCategories: { id: Category; label: string }[] = [
     { id: 'palette', label: 'Palette' },
@@ -405,6 +411,7 @@
   }
 
   function selectFamily(name: string) {
+    if (familyFilter && name !== familyFilter) return;
     selectedFamily = name;
     if (name === chosenFamily && chosenCategory) {
       selectedTab = chosenCategory;
@@ -543,14 +550,23 @@
             <span class="family-label">None</span>
           </button>
           {#each families as fam}
-            <button class="family-item" class:active={!chosenNone && chosenFamily === fam.name} onclick={() => selectFamily(fam.name)}>
+            {@const outOfFamily = familyFilter !== null && fam.name !== familyFilter}
+            <button
+              class="family-item"
+              class:active={!chosenNone && chosenFamily === fam.name}
+              class:out-of-family={outOfFamily}
+              disabled={outOfFamily}
+              onclick={() => selectFamily(fam.name)}
+            >
               <div class="family-swatches">
                 <div class="mini-swatch" style="background: var(--color-{fam.name}-300);"></div>
                 <div class="mini-swatch" style="background: var(--color-{fam.name}-500);"></div>
                 <div class="mini-swatch" style="background: var(--color-{fam.name}-700);"></div>
               </div>
               <span class="family-label">{fam.label}</span>
-              <i class="fas fa-chevron-right family-arrow"></i>
+              {#if !outOfFamily}
+                <i class="fas fa-chevron-right family-arrow"></i>
+              {/if}
             </button>
           {/each}
           {#if gradientsAllowed && gradientTokens.length > 0}
@@ -860,6 +876,18 @@
   .family-item.active {
     background: var(--ui-hover-high);
     box-shadow: inset 3px 0 0 var(--ui-text-accent);
+  }
+
+  /* Family is filtered out by `familyFilter`. Greyed and unselectable so
+     the picker scopes new picks to the variant's family while keeping the
+     full palette visible (it isn't gone, it just isn't this gradient's
+     business). Pointer cursor is suppressed to match :disabled. */
+  .family-item.out-of-family {
+    opacity: 0.32;
+    cursor: not-allowed;
+  }
+  .family-item.out-of-family:hover {
+    background: none;
   }
 
   .family-item.active .family-label {

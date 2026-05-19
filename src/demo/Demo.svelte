@@ -626,9 +626,5 @@
     .playground {
       padding: var(--space-24) var(--space-16);
     }
-    .arch-table :global(th),
-    .arch-table :global(td) {
-      padding: var(--space-8) var(--space-12);
-    }
   }
 </style>

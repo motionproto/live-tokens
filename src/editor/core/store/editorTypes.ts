@@ -43,17 +43,6 @@ export interface ColumnsState {
   margin: number;
 }
 
-export type CssVarRef =
-  | { kind: 'token'; name: string }
-  | { kind: 'literal'; value: string };
-
-export interface ComponentSlice {
-  activeFile: string;
-  aliases: Record<string, CssVarRef>;
-  config: Record<string, unknown>;
-  unlinked?: string[];
-}
-
 export type GradientType = 'linear' | 'radial';
 
 export interface GradientTokenStop {
@@ -72,6 +61,28 @@ export interface GradientToken {
   /** Degrees, applies to linear only. */
   angle: number;
   stops: GradientTokenStop[];
+}
+
+/** Structured gradient payload carried inline on a component alias.
+ *  Mirrors GradientToken minus `variable` (the alias key itself is the
+ *  binding). Used when a component owns a per-instance gradient that
+ *  doesn't share the theme-level `--gradient-N` library. */
+export interface GradientAliasValue {
+  type: GradientType;
+  angle: number;
+  stops: GradientTokenStop[];
+}
+
+export type CssVarRef =
+  | { kind: 'token'; name: string }
+  | { kind: 'literal'; value: string }
+  | { kind: 'gradient'; value: GradientAliasValue };
+
+export interface ComponentSlice {
+  activeFile: string;
+  aliases: Record<string, CssVarRef>;
+  config: Record<string, unknown>;
+  unlinked?: string[];
 }
 
 /**

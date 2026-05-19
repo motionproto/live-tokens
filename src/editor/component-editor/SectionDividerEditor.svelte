@@ -14,10 +14,23 @@
     { key: 'alternate', title: 'Alternate' },
   ];
 
-  /** Frame tokens for a variant. Gradient tokens are owned by GradientCard, and
-   *  outline thickness/color are rendered nested under the title TypeEditor;
-   *  both are emitted only for `allTokens` (reset/registry) — not for the
-   *  per-state token grid. */
+  /** Color-family prefix each variant scopes monochrome picks to. `primary`
+   *  is the brand family; the rest of the variant names match the palette
+   *  family directly. Used to drive the gradient editor's `familyFilter`. */
+  const VARIANT_FAMILY: Record<Variant, string> = {
+    canvas: 'canvas',
+    neutral: 'neutral',
+    alternate: 'alternate',
+    primary: 'brand',
+    accent: 'accent',
+    special: 'special',
+  };
+
+  /** Frame tokens for a variant. The gradient slot is the structured
+   *  `{ kind: 'gradient' }` alias edited via GradientEditor; outline
+   *  thickness/color are rendered nested under the title TypeEditor.
+   *  Both are emitted only for `allTokens` (reset/registry) — not for
+   *  the per-state token grid. */
   function frameTokens(v: Variant): Token[] {
     return [
       // Padding is routed through an internal `--_divider-padding` aggregator
@@ -40,13 +53,7 @@
   }
   function gradientTokens(v: Variant): Token[] {
     return [
-      { label: 'gradient angle', groupKey: 'angle', variable: `--sectiondivider-${v}-gradient-angle` },
-      { label: 'gradient stop 1 color', groupKey: 'color', variable: `--sectiondivider-${v}-gradient-stop-1-color` },
-      { label: 'gradient stop 1 position', groupKey: 'position', variable: `--sectiondivider-${v}-gradient-stop-1-position` },
-      { label: 'gradient stop 2 color', groupKey: 'color', variable: `--sectiondivider-${v}-gradient-stop-2-color` },
-      { label: 'gradient stop 2 position', groupKey: 'position', variable: `--sectiondivider-${v}-gradient-stop-2-position` },
-      { label: 'gradient stop 3 color', groupKey: 'color', variable: `--sectiondivider-${v}-gradient-stop-3-color` },
-      { label: 'gradient stop 3 position', groupKey: 'position', variable: `--sectiondivider-${v}-gradient-stop-3-position` },
+      { label: 'gradient', groupKey: 'gradient', variable: `--sectiondivider-${v}-gradient`, kind: 'gradient', family: VARIANT_FAMILY[v] },
     ];
   }
   function variantTokens(v: Variant): Token[] {
@@ -57,7 +64,7 @@
    *  iterates ALL tokens (frame + outline + gradient), not just the visible
    *  frame. Outline + gradient are flagged `hidden` so the property grid still
    *  shows only frame tokens — outline renders inside the title TypeEditor,
-   *  gradient renders in GradientCard. Mismatch between this list and the
+   *  gradient renders in GradientEditor. Mismatch between this list and the
    *  sibling list would mis-align positional copy. */
   function stateTokens(v: Variant): Token[] {
     return [
@@ -144,9 +151,21 @@
   import SectionDivider from '../../system/components/SectionDivider.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import GradientCard from './scaffolding/GradientCard.svelte';
-  import { editorState } from '../core/store/editorStore';
+  import GradientEditor from '../ui/GradientEditor.svelte';
+  import { editorState, mutate } from '../core/store/editorStore';
+  import { componentGradientSource } from '../core/store/gradientSource';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
+
+  /** Known color families the picker exposes — kept in sync with
+   *  `UIPaletteSelector.svelte`'s `families` list. Used to detect a stop's
+   *  current family so checking Monochrome can map it to the variant's. */
+  const KNOWN_FAMILIES = [
+    'neutral', 'alternate', 'canvas', 'brand',
+    'accent', 'special', 'success', 'warning', 'info', 'danger',
+  ] as const;
+
+  /** Step names on the text ramp. Mirrors UIPaletteSelector's `textSteps`. */
+  const TEXT_STEPS = ['primary', 'secondary', 'tertiary', 'muted', 'disabled'] as const;
 
   let testTitle = $state('Section Title');
   let showDescription = $state(true);
@@ -157,6 +176,127 @@
   // Copy-from covers every variable. TokenLayout filters hidden tokens from the
   // grid render path, so the user still sees only frame tokens.
   let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(stateTokens(v), linked.varSet));
+
+  /** Per-variant gradient sources, memoized by variant key so the adapter
+   *  identity stays stable for GradientEditor's snapshot/restore lifecycle. */
+  const gradientSources = Object.fromEntries(
+    variants.map((v) => [v.key, componentGradientSource(component, `--sectiondivider-${v.key}-gradient`)]),
+  ) as Record<Variant, ReturnType<typeof componentGradientSource>>;
+
+  /** Per-variant Monochrome toggles. Derived "on" when every current stop's
+   *  color sits within the variant's family. Checking the box also rewrites
+   *  any out-of-family stops to their family-equivalent (e.g. flipping
+   *  `--color-special-500` → `--color-accent-500` when the variant is
+   *  accent), so the gradient visibly snaps into the family. Unchecking
+   *  the box just widens the picker; existing stops are not touched. */
+  let monochrome = $state<Record<Variant, boolean>>({
+    canvas: true, neutral: true, alternate: true,
+    primary: true, accent: true, special: true,
+  });
+
+  /** Refresh `monochrome[v]` from current stop colors. Called once per
+   *  variant on mount; the user-toggleable state then drifts independently. */
+  function initMonochrome(v: Variant) {
+    const slice = $editorState.components[component];
+    const ref = slice?.aliases[`--sectiondivider-${v}-gradient`];
+    if (ref?.kind !== 'gradient') return;
+    const fam = VARIANT_FAMILY[v];
+    const allInFamily = ref.value.stops.every((s) => stopMatchesFamily(s.color, fam));
+    monochrome[v] = allInFamily;
+  }
+
+  /** Parse a text-ramp token into `{family, step}`. The text namespace has
+   *  three canonical shapes:
+   *    `--text-{step}`           — neutral (family segment elided)
+   *    `--text-{family}`         — non-neutral, primary step elided
+   *    `--text-{family}-{step}`  — non-neutral, explicit step
+   *  Returns null when the token isn't a text-ramp token. */
+  function parseTextToken(colorRef: string): { family: string; step: string } | null {
+    if (!colorRef.startsWith('--text-')) return null;
+    const rest = colorRef.slice('--text-'.length);
+    const parts = rest.split('-');
+    if (parts.length === 1) {
+      const p = parts[0];
+      if ((TEXT_STEPS as readonly string[]).includes(p)) return { family: 'neutral', step: p };
+      if ((KNOWN_FAMILIES as readonly string[]).includes(p)) return { family: p, step: 'primary' };
+      return null;
+    }
+    if (parts.length === 2) {
+      const [fam, step] = parts;
+      if ((KNOWN_FAMILIES as readonly string[]).includes(fam) && (TEXT_STEPS as readonly string[]).includes(step)) {
+        return { family: fam, step };
+      }
+    }
+    return null;
+  }
+
+  /** Build a text-ramp token name from `{family, step}`. Inverse of
+   *  `parseTextToken` — neutral elides the family segment; non-neutral
+   *  primary elides the step segment. */
+  function buildTextToken(family: string, step: string): string {
+    if (family === 'neutral') return `--text-${step}`;
+    return step === 'primary' ? `--text-${family}` : `--text-${family}-${step}`;
+  }
+
+  /** True when the stop's color token resolves to the named color family.
+   *  Text tokens go through the dedicated parser since neutral text elides
+   *  the family segment; everything else falls back to a segment scan. */
+  function stopMatchesFamily(colorRef: string, family: string): boolean {
+    if (!colorRef.startsWith('--')) return false;
+    const text = parseTextToken(colorRef);
+    if (text) return text.family === family;
+    const parts = colorRef.slice(2).split('-');
+    return parts.includes(family);
+  }
+
+  /** Find the first known color-family segment in a CSS-var token slug.
+   *  Returns null when no family segment is present (raw hex literal, or
+   *  text token — those go through `parseTextToken` instead). */
+  function detectFamily(colorRef: string): string | null {
+    if (!colorRef.startsWith('--')) return null;
+    const parts = colorRef.slice(2).split('-');
+    for (const p of parts) {
+      if ((KNOWN_FAMILIES as readonly string[]).includes(p)) return p;
+    }
+    return null;
+  }
+
+  /** Snap every out-of-family stop in variant `v` to the variant's family.
+   *  Text tokens take the canonical text-rebuild path (handles the neutral
+   *  elision asymmetry); everything else does a clean segment swap. Stops
+   *  whose color is a raw hex literal — no family info to work from — are
+   *  left untouched. */
+  function snapToFamily(v: Variant) {
+    const targetFamily = VARIANT_FAMILY[v];
+    const varName = `--sectiondivider-${v}-gradient`;
+    mutate(`monochrome snap ${varName}`, (s) => {
+      const slice = s.components[component];
+      const ref = slice?.aliases[varName];
+      if (!ref || ref.kind !== 'gradient') return;
+      const stops = ref.value.stops.map((stop) => {
+        const text = parseTextToken(stop.color);
+        if (text) {
+          if (text.family === targetFamily) return { ...stop };
+          return { ...stop, color: buildTextToken(targetFamily, text.step) };
+        }
+        const fromFamily = detectFamily(stop.color);
+        if (!fromFamily || fromFamily === targetFamily) return { ...stop };
+        const parts = stop.color.slice(2).split('-');
+        const idx = parts.indexOf(fromFamily);
+        if (idx < 0) return { ...stop };
+        parts[idx] = targetFamily;
+        return { ...stop, color: '--' + parts.join('-') };
+      });
+      slice!.aliases[varName] = {
+        kind: 'gradient',
+        value: { type: ref.value.type, angle: ref.value.angle, stops },
+      };
+    });
+  }
+
+  function onMonochromeToggle(v: Variant) {
+    if (monochrome[v]) snapToFamily(v);
+  }
 </script>
 
 <ComponentEditorBase {component} title="Section Divider" description="Full-width section banner with display font and palette variants." tokens={allTokens} {linked} variants={variantOptions}>
@@ -198,8 +338,23 @@
         />
       </div>
       {#snippet compositeControls(_stateName)}
-        <span class="gradient-section-label">Gradient</span>
-        <GradientCard {component} prefix={`--sectiondivider-${v.key}`} />
+        <div class="gradient-section-header">
+          <span class="gradient-section-label">Gradient</span>
+          <label class="monochrome-toggle">
+            <input
+              type="checkbox"
+              bind:checked={monochrome[v.key]}
+              onfocus={() => initMonochrome(v.key)}
+              onchange={() => onMonochromeToggle(v.key)}
+            />
+            <span>Monochrome</span>
+          </label>
+        </div>
+        <GradientEditor
+          source={gradientSources[v.key]}
+          stopIdPrefix={`sectiondivider-${v.key}`}
+          familyFilter={monochrome[v.key] ? VARIANT_FAMILY[v.key] : null}
+        />
       {/snippet}
     </VariantGroup>
   {/each}
@@ -230,11 +385,44 @@
     min-width: 32rem;
   }
 
+  /* Label + toggle sit as an inline pair. The toggle reads as a modifier
+     on the section heading, so we keep them adjacent (small gap) rather
+     than pushing the toggle to the row's far edge. */
+  .gradient-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: var(--ui-space-8);
+    gap: var(--ui-space-16);
+  }
+
   .gradient-section-label {
     display: block;
-    margin-top: var(--ui-space-8);
     font-size: var(--ui-font-size-md);
     font-weight: 500;
     color: var(--ui-text-primary);
+  }
+
+  /* Sits inline with the Gradient eyebrow on the right. Mirrors the
+     editor's "toolbar-check" look-and-feel without re-importing it (this
+     editor doesn't have those tokens in scope; the styles below stay
+     greyscale per the editor's color discipline). */
+  .monochrome-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .monochrome-toggle:hover {
+    color: var(--ui-text-primary);
+  }
+
+  .monochrome-toggle input {
+    margin: 0;
+    cursor: pointer;
   }
 </style>

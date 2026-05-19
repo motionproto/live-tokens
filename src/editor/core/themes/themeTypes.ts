@@ -105,12 +105,20 @@ export interface ThemeMeta {
   isActive: boolean;
 }
 
+/** On-disk shape of a single alias entry. Plain strings carry the bulk of
+ *  aliases (token refs like `--surface-canvas-low` or literal CSS like `4px`);
+ *  the gradient object shape is the structured payload for component-owned
+ *  gradients that can't compress to a single string. */
+export type AliasDiskValue =
+  | string
+  | { kind: 'gradient'; value: { type: 'linear' | 'radial'; angle: number; stops: { position: number; color: string; opacity?: number }[] } };
+
 export interface ComponentConfig {
   name: string;
   component: string;
   createdAt: string;
   updatedAt: string;
-  aliases: Record<string, string>;
+  aliases: Record<string, AliasDiskValue>;
   config?: Record<string, unknown>;
   /**
    * Server-attached file-name marker. Same role as `Theme._fileName`. Set by

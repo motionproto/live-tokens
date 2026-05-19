@@ -32,6 +32,7 @@
 import { writable, derived, get, type Readable } from 'svelte/store';
 import type { CssVarRef, EditorState } from '../../store/editorTypes';
 import { store, mutate } from '../../store/editorCore';
+import { formatGradientValue } from './gradients';
 
 const EMPTY_COMPONENT_BASELINE = JSON.stringify({ aliases: {}, config: {} });
 
@@ -43,7 +44,9 @@ export function componentsToVars(components: EditorState['components']): Record<
   const out: Record<string, string> = {};
   for (const slice of Object.values(components)) {
     for (const [varName, ref] of Object.entries(slice.aliases)) {
-      out[varName] = ref.kind === 'token' ? `var(${ref.name})` : ref.value;
+      if (ref.kind === 'token') out[varName] = `var(${ref.name})`;
+      else if (ref.kind === 'literal') out[varName] = ref.value;
+      else out[varName] = formatGradientValue(ref.value);
     }
   }
   return out;
@@ -239,9 +242,18 @@ export function getComponentPropertySiblings(component: string, varName: string)
 function cssVarRefEqual(a: CssVarRef | undefined, b: CssVarRef | undefined): boolean {
   if (!a || !b) return a === b;
   if (a.kind !== b.kind) return false;
-  return a.kind === 'token'
-    ? a.name === (b as { kind: 'token'; name: string }).name
-    : a.value === (b as { kind: 'literal'; value: string }).value;
+  if (a.kind === 'token') return a.name === (b as { kind: 'token'; name: string }).name;
+  if (a.kind === 'literal') return a.value === (b as { kind: 'literal'; value: string }).value;
+  // gradient: structural compare on type, angle, and stops.
+  const av = a.value;
+  const bv = (b as { kind: 'gradient'; value: typeof a.value }).value;
+  if (av.type !== bv.type || av.angle !== bv.angle || av.stops.length !== bv.stops.length) return false;
+  for (let i = 0; i < av.stops.length; i++) {
+    const sa = av.stops[i];
+    const sb = bv.stops[i];
+    if (sa.position !== sb.position || sa.color !== sb.color || (sa.opacity ?? 100) !== (sb.opacity ?? 100)) return false;
+  }
+  return true;
 }
 
 /** True iff `varName` is not individually opted out, has ≥2 declared siblings,

@@ -124,6 +124,25 @@
       skips these in the typeGroups copy loop. */
   const COLOR_TYPE_PROPS = new Set(['colorVariable', 'outlineColorVariable']);
 
+  /** True iff `colorRef` is a CSS-var token whose slug contains `family`
+      as a hyphen-delimited segment (e.g. `--surface-canvas-low` ∋ `canvas`). */
+  function stopMatchesFamily(colorRef: string, family: string): boolean {
+    if (!colorRef.startsWith('--')) return false;
+    return colorRef.slice(2).split('-').includes(family);
+  }
+
+  /** Replace the first `from` segment in a CSS-var token slug with `to`.
+      Used to swap stop colors across variant families on gradient copy
+      (e.g. `--surface-success-high` + (success → accent) → `--surface-accent-high`). */
+  function swapFamilyInToken(colorRef: string, from: string, to: string): string {
+    if (!colorRef.startsWith('--')) return colorRef;
+    const parts = colorRef.slice(2).split('-');
+    const idx = parts.indexOf(from);
+    if (idx < 0) return colorRef;
+    parts[idx] = to;
+    return '--' + parts.join('-');
+  }
+
   function pickCopySource(toState: string, fromVariant: string, fromState: string) {
     const preserveColorFamily = $preserveColorFamilyStore;
     if (!component || !states) return;
@@ -139,11 +158,15 @@
       const slice = s.components[component!] ?? (s.components[component!] = { activeFile: 'default', aliases: {}, config: {} });
       const dstVarsTouched: string[] = [];
       /** Resolve a variable's effective value as a CSS string: the override if
-          set, otherwise its declared default. Returns null if neither exists. */
+          set, otherwise its declared default. Returns null if neither exists.
+          Gradient refs short-circuit to null — the copy path for gradients
+          uses `applyGradient`, not the alpha-extract pipeline. */
       const effectiveValue = (varName: string): string | null => {
         const ref = slice.aliases[varName];
-        if (ref) return ref.kind === 'token' ? `var(${ref.name})` : ref.value;
-        return getDeclaredValue(varName);
+        if (!ref) return getDeclaredValue(varName);
+        if (ref.kind === 'token') return `var(${ref.name})`;
+        if (ref.kind === 'literal') return ref.value;
+        return null;
       };
 
       const apply = (srcVar: string, dstVar: string) => {
@@ -179,10 +202,49 @@
         };
         dstVarsTouched.push(dstVar);
       };
+      /** Copy a structured gradient ref. Stops carry source's positions +
+          opacities verbatim; out-of-family stop colors carry verbatim too.
+          With preserveColorFamily on, in-family stop colors swap to the
+          destination family — see plan §5 for the worked example. */
+      const applyGradient = (
+        srcVar: string,
+        dstVar: string,
+        srcFamily: string | undefined,
+        dstFamily: string | undefined,
+      ) => {
+        const srcRef = slice.aliases[srcVar];
+        if (!srcRef || srcRef.kind !== 'gradient') {
+          // Source has no override — clearing dst returns it to its own CSS
+          // default (which is dst's family by design), preserving the
+          // "destination keeps its family palette" invariant.
+          delete slice.aliases[dstVar];
+          dstVarsTouched.push(dstVar);
+          return;
+        }
+        const swapFamilies = preserveColorFamily
+          && !!srcFamily && !!dstFamily
+          && srcFamily !== dstFamily;
+        const newStops = srcRef.value.stops.map((s) => {
+          if (swapFamilies && stopMatchesFamily(s.color, srcFamily!)) {
+            return { ...s, color: swapFamilyInToken(s.color, srcFamily!, dstFamily!) };
+          }
+          return { ...s };
+        });
+        slice.aliases[dstVar] = {
+          kind: 'gradient',
+          value: { type: srcRef.value.type, angle: srcRef.value.angle, stops: newStops },
+        };
+        dstVarsTouched.push(dstVar);
+      };
+
       const minLen = Math.min(srcTokens.length, dstTokens.length);
       for (let i = 0; i < minLen; i++) {
         const srcVar = srcTokens[i].variable;
         const dstVar = dstTokens[i].variable;
+        if (srcTokens[i].kind === 'gradient' || dstTokens[i].kind === 'gradient') {
+          applyGradient(srcVar, dstVar, srcTokens[i].family, dstTokens[i].family);
+          continue;
+        }
         if (preserveColorFamily && isColorToken(srcTokens[i])) {
           applyColorPreserve(srcVar, dstVar);
           continue;

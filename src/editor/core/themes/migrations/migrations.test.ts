@@ -190,7 +190,13 @@ describe('migration runner — schemaVersion gating', () => {
     expect(migrated['--collapsiblesection-container-expanded-padding']).toBe('--space-4');
   });
 
-  it('component-config at version 4 → sectiondivider gradient stops migrate to angle + stop-{n}-{color,position}', () => {
+  it('component-config at version 4 → sectiondivider gradient stops strip end-to-end', () => {
+    // The full migration chain now ends at v7 which strips the 7 flat
+    // gradient tokens (they live in-memory as a structured gradient ref
+    // synthesized by `migrateComponentAliases` before the runner fires —
+    // see `editorStore.ts:synthesizeSectionDividerGradients`). Within the
+    // runner, the only externally observable post-condition is that the
+    // flat tokens are gone and unrelated tokens are preserved.
     const v4 = {
       '--sectiondivider-canvas-padding': '--space-16',
       '--sectiondivider-canvas-gradient-stop-1': '--surface-canvas-highest',
@@ -202,29 +208,19 @@ describe('migration runner — schemaVersion gating', () => {
       '--sectiondivider-primary-gradient-stop-4': '--color-primary-800',
     };
     const migrated = runMigrations('component-config', 4, v4, { component: 'sectiondivider' });
-    // Old keys gone
+    // Old v4 keys gone (stripped by v4→v5).
     expect(migrated['--sectiondivider-canvas-gradient-stop-1']).toBeUndefined();
     expect(migrated['--sectiondivider-canvas-gradient-stop-3']).toBeUndefined();
     expect(migrated['--sectiondivider-canvas-gradient-stop-4']).toBeUndefined();
-    // Unrelated tokens preserved
+    // Intermediate v5 keys (`-stop-{n}-color/position`, `-angle`) also gone — the
+    // v6→v7 strip pulls them out so the disk shape can carry the structured ref.
+    expect(migrated['--sectiondivider-canvas-gradient-angle']).toBeUndefined();
+    expect(migrated['--sectiondivider-canvas-gradient-stop-1-color']).toBeUndefined();
+    expect(migrated['--sectiondivider-canvas-gradient-stop-2-color']).toBeUndefined();
+    expect(migrated['--sectiondivider-canvas-gradient-stop-3-color']).toBeUndefined();
+    expect(migrated['--sectiondivider-primary-gradient-stop-1-color']).toBeUndefined();
+    // Unrelated tokens preserved.
     expect(migrated['--sectiondivider-canvas-padding']).toBe('--space-16');
-    // Canvas: colors mapped from old 1, 2, 4
-    expect(migrated['--sectiondivider-canvas-gradient-angle']).toBe('--gradient-angle-diagonal');
-    expect(migrated['--sectiondivider-canvas-gradient-stop-1-color']).toBe('--surface-canvas-highest');
-    expect(migrated['--sectiondivider-canvas-gradient-stop-1-position']).toBe('--gradient-stop-start');
-    expect(migrated['--sectiondivider-canvas-gradient-stop-2-color']).toBe('--surface-canvas-higher');
-    expect(migrated['--sectiondivider-canvas-gradient-stop-2-position']).toBe('--gradient-stop-mid');
-    expect(migrated['--sectiondivider-canvas-gradient-stop-3-color']).toBe('--surface-canvas');
-    expect(migrated['--sectiondivider-canvas-gradient-stop-3-position']).toBe('--gradient-stop-end');
-    // Primary variant: user-tuned colors carry across; v5→v6 also rewrites
-    // the brand-family value names.
-    expect(migrated['--sectiondivider-primary-gradient-stop-1-color']).toBe('--color-brand-300');
-    expect(migrated['--sectiondivider-primary-gradient-stop-2-color']).toBe('--color-brand-500');
-    expect(migrated['--sectiondivider-primary-gradient-stop-3-color']).toBe('--color-brand-800');
-    // Variants the file didn't set still gain default colors and angle/positions
-    expect(migrated['--sectiondivider-special-gradient-angle']).toBe('--gradient-angle-diagonal');
-    expect(migrated['--sectiondivider-special-gradient-stop-1-color']).toBe('--surface-special-highest');
-    expect(migrated['--sectiondivider-special-gradient-stop-3-position']).toBe('--gradient-stop-end');
   });
 
   it('component-config v4 sectiondivider migration only fires for sectiondivider', () => {
@@ -234,24 +230,30 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out).toEqual(v4);
   });
 
-  it('component-config v4 sectiondivider migration is idempotent on the new shape', () => {
-    const newShape = {
+  it('component-config v8 strip leaves non-gradient sectiondivider keys intact', () => {
+    // Run from v7 so the only applicable step is the v7→v8 gradient strip.
+    const v6 = {
+      '--sectiondivider-canvas-padding': '--space-16',
+      '--sectiondivider-canvas-title': '--text-primary',
       '--sectiondivider-canvas-gradient-angle': '--gradient-angle-horizontal',
-      '--sectiondivider-canvas-gradient-stop-1-color': '--color-primary-200',
+      '--sectiondivider-canvas-gradient-stop-1-color': '--color-brand-200',
       '--sectiondivider-canvas-gradient-stop-1-position': '10%',
-      '--sectiondivider-canvas-gradient-stop-2-color': '--color-primary-500',
+      '--sectiondivider-canvas-gradient-stop-2-color': '--color-brand-500',
       '--sectiondivider-canvas-gradient-stop-2-position': '40%',
-      '--sectiondivider-canvas-gradient-stop-3-color': '--color-primary-900',
+      '--sectiondivider-canvas-gradient-stop-3-color': '--color-brand-900',
       '--sectiondivider-canvas-gradient-stop-3-position': '85%',
     };
-    const out = runMigrations('component-config', 4, newShape, { component: 'sectiondivider' });
-    // User-tuned values for canvas survive structurally; v5→v6 rewrites
-    // brand-family value names from primary → brand at the tail of the chain.
-    expect(out['--sectiondivider-canvas-gradient-angle']).toBe('--gradient-angle-horizontal');
-    expect(out['--sectiondivider-canvas-gradient-stop-1-color']).toBe('--color-brand-200');
-    expect(out['--sectiondivider-canvas-gradient-stop-1-position']).toBe('10%');
-    expect(out['--sectiondivider-canvas-gradient-stop-2-position']).toBe('40%');
-    expect(out['--sectiondivider-canvas-gradient-stop-3-position']).toBe('85%');
+    const out = runMigrations('component-config', 7, v6, { component: 'sectiondivider' });
+    // Non-gradient knobs survive.
+    expect(out['--sectiondivider-canvas-padding']).toBe('--space-16');
+    expect(out['--sectiondivider-canvas-title']).toBe('--text-primary');
+    // The 7 flat gradient tokens are gone — they live in the structured
+    // ref synthesized upstream of the runner now.
+    expect(out['--sectiondivider-canvas-gradient-angle']).toBeUndefined();
+    expect(out['--sectiondivider-canvas-gradient-stop-1-color']).toBeUndefined();
+    expect(out['--sectiondivider-canvas-gradient-stop-1-position']).toBeUndefined();
+    expect(out['--sectiondivider-canvas-gradient-stop-2-color']).toBeUndefined();
+    expect(out['--sectiondivider-canvas-gradient-stop-3-position']).toBeUndefined();
   });
 
   it('component-config at current version → no migrations run', () => {

@@ -3,48 +3,77 @@
 
   /**
    * Visual gradient editor. Stops are draggable diamond handles below a live
-   * ribbon; only the selected stop exposes its position + color controls (the
-   * old list of every stop is replaced by this single-row pattern, mirroring
-   * GradientCard.svelte). Stops can be added/removed with a minimum of two.
+   * ribbon; only the selected stop exposes its position + color controls.
+   * Stops can be added/removed with a minimum of two.
+   *
+   * Backing store is supplied by a `GradientSource` adapter — defaults to the
+   * theme-level gradient library when only `variable` is provided, so the
+   * existing GradientsSection callsite keeps working. Pass `source` when
+   * editing a component-owned gradient (e.g. SectionDivider variant slot).
    */
   import { tick, onMount } from 'svelte';
-  import {
-    editorState,
-    setGradient,
-    setGradientType,
-    setGradientAngle,
-    setGradientStop,
-    addGradientStop,
-    removeGradientStop,
-  } from '../core/store/editorStore';
+  import { get } from 'svelte/store';
   import type { GradientType, GradientTokenStop } from '../core/store/editorTypes';
+  import {
+    themeGradientSource,
+    snapshotGradient,
+    type GradientSource,
+    type GradientSourceSnapshot,
+  } from '../core/store/gradientSource';
   import GradientStopPicker from './GradientStopPicker.svelte';
   import AngleDial from '../component-editor/scaffolding/AngleDial.svelte';
 
   interface Props {
-    variable: string;
+    /** Theme-gradient mode: variable name (e.g. `--gradient-1`). */
+    variable?: string;
+    /** Component-gradient mode: pass a source adapter directly. Takes
+     *  precedence over `variable` when both are provided. */
+    source?: GradientSource;
+    /** Stable id for per-stop GradientStopPicker scratch vars. Defaults to
+     *  `variable` when in theme mode. */
+    stopIdPrefix?: string;
+    /** When set, the stop color picker greys out tokens outside this family
+     *  prefix (e.g. `surface-accent`). Already-set out-of-family stops still
+     *  render as the chosen value — the filter only scopes new picks. */
+    familyFilter?: string | null;
     onsave?: () => void;
     oncancel?: () => void;
   }
 
-  let { variable, onsave, oncancel }: Props = $props();
+  let {
+    variable,
+    source,
+    stopIdPrefix,
+    familyFilter = null,
+    onsave,
+    oncancel,
+  }: Props = $props();
 
-  /** Deep snapshot of the gradient at editor open, used to restore on Cancel. */
-  let snapshot: { type: GradientType; angle: number; stops: GradientTokenStop[] } | null = null;
+  /** Resolved source — `source` prop wins; otherwise build a theme source.
+   *  `variable` MUST be provided when `source` is absent. Captured once at
+   *  mount: GradientEditor is keyed to one source for its whole lifetime,
+   *  callers remount when the target gradient changes (which is the typical
+   *  expand/collapse flow), so initial-value capture is the intended shape. */
+  // svelte-ignore state_referenced_locally
+  const gradientSource: GradientSource = source ?? themeGradientSource(variable!);
+  /** Local const so Svelte 5's `$<store>` auto-subscription picks it up. */
+  const gradientSourceCurrent = gradientSource.current;
+  // svelte-ignore state_referenced_locally
+  const stopKeyPrefix: string = stopIdPrefix ?? variable ?? 'gradient-edit';
+
+  /** Deep snapshot at editor open, used to restore on Cancel. */
+  let snapshot: GradientSourceSnapshot | null = null;
   onMount(() => {
-    const g = $editorState.gradients.tokens.find((t) => t.variable === variable);
-    if (g) {
-      snapshot = { type: g.type, angle: g.angle, stops: g.stops.map((s) => ({ ...s })) };
-    }
+    snapshot = snapshotGradient(gradientSource);
   });
 
   function save() { onsave?.(); }
   function cancel() {
-    if (snapshot) setGradient(variable, snapshot);
+    if (snapshot) gradientSource.setAll(snapshot);
     oncancel?.();
   }
 
-  let gradient = $derived($editorState.gradients.tokens.find((t) => t.variable === variable));
+  let gradient = $derived($gradientSourceCurrent);
   let stopCount = $derived(gradient?.stops.length ?? 0);
 
   let selected = $state(0);
@@ -54,16 +83,16 @@
   });
 
   function setType(type: GradientType) {
-    setGradientType(variable, type);
+    gradientSource.setType(type);
   }
 
   function onAngleChange(detail: { value: number }) {
-    setGradientAngle(variable, detail.value);
+    gradientSource.setAngle(detail.value);
   }
 
   function setPosition(i: number, pct: number) {
     const clamped = Math.max(0, Math.min(100, Math.round(pct * 10) / 10));
-    setGradientStop(variable, i, { position: clamped });
+    gradientSource.setStop(i, { position: clamped });
   }
 
   function onPositionInput(e: Event) {
@@ -72,23 +101,23 @@
   }
 
   function handleStopChange(i: number, payload: { color: string; opacity: number }) {
-    setGradientStop(variable, i, { color: payload.color, opacity: payload.opacity });
+    gradientSource.setStop(i, { color: payload.color, opacity: payload.opacity });
   }
 
   /** Insert a stop at the given percentage, inheriting color/opacity from the
    *  given source stop. Selects the newly inserted stop once the store sort
    *  settles. */
-  async function insertStopAt(pct: number, source: GradientTokenStop) {
+  async function insertStopAt(pct: number, sourceStop: GradientTokenStop) {
     const clamped = Math.max(0, Math.min(100, Math.round(pct * 10) / 10));
-    addGradientStop(variable, {
+    gradientSource.addStop({
       position: clamped,
-      color: source.color,
-      opacity: source.opacity ?? 100,
+      color: sourceStop.color,
+      opacity: sourceStop.opacity ?? 100,
     });
     await tick();
-    const after = $editorState.gradients.tokens.find((t) => t.variable === variable);
+    const after = get(gradientSource.current);
     if (after) {
-      const idx = after.stops.findIndex((s) => s.position === clamped && s.color === source.color);
+      const idx = after.stops.findIndex((s) => s.position === clamped && s.color === sourceStop.color);
       if (idx >= 0) selected = idx;
     }
   }
@@ -122,7 +151,7 @@
 
   function removeSelected() {
     if (!gradient || gradient.stops.length <= 2) return;
-    removeGradientStop(variable, selected);
+    gradientSource.removeStop(selected);
     if (selected > 0) selected -= 1;
   }
 
@@ -152,6 +181,28 @@
     dragIndex = null;
   }
 
+  // Live preview gradient — render the structured value here too so this
+  // component renders correctly even when bound to a component-owned slot
+  // whose CSS var hasn't been pushed to :root yet (the editor's renderer
+  // does the push, but $derived runs in the same tick so we synthesize
+  // the ribbon background from the snapshot for stability).
+  let ribbonBg = $derived.by(() => {
+    if (!gradient) return 'transparent';
+    const stopsCss = gradient.stops
+      .slice()
+      .sort((a, b) => a.position - b.position)
+      .map((s) => {
+        const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
+        const op = s.opacity ?? 100;
+        const c = op >= 100 ? base : `color-mix(in srgb, ${base} ${Math.round(op)}%, transparent)`;
+        return `${c} ${s.position}%`;
+      })
+      .join(', ');
+    return gradient.type === 'linear'
+      ? `linear-gradient(90deg, ${stopsCss})`
+      : `radial-gradient(${stopsCss})`;
+  });
+
   // Stop colors rendered into the diamonds: token refs become var(...).
   let stopSwatches = $derived((gradient?.stops ?? []).map((s) => {
     const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
@@ -167,7 +218,7 @@
       <div
         class="ribbon"
         bind:this={barEl}
-        style="background: var({variable});"
+        style="background: {ribbonBg};"
         onclick={onRibbonClick}
         role="button"
         tabindex="-1"
@@ -248,19 +299,22 @@
         </label>
         <div class="picker-slot">
           <GradientStopPicker
-            stopId={`${variable}-${selected}`}
+            stopId={`${stopKeyPrefix}-${selected}`}
             color={gradient.stops[selected].color}
             opacity={gradient.stops[selected].opacity ?? 100}
+            {familyFilter}
             onchange={(payload) => handleStopChange(selected, payload)}
           />
         </div>
       </div>
     {/if}
 
-    <div class="footer-row">
-      <button type="button" class="ghost-btn" onclick={cancel}>Cancel</button>
-      <button type="button" class="primary-btn" onclick={save}>Save</button>
-    </div>
+    {#if onsave || oncancel}
+      <div class="footer-row">
+        <button type="button" class="ghost-btn" onclick={cancel}>Cancel</button>
+        <button type="button" class="primary-btn" onclick={save}>Save</button>
+      </div>
+    {/if}
   </div>
 {/if}
 
@@ -293,7 +347,7 @@
   }
 
   /* Button is a generous (1.25rem) transparent hit target; the visible marker
-     lives in `.handle-diamond` inside. Mirrors GradientCard. */
+     lives in `.handle-diamond` inside. */
   .handle {
     position: absolute;
     top: 0;

@@ -29,7 +29,7 @@ function isLayer1TokenName(name: string): boolean {
   if (/^--surface-[a-z]+(-[a-z]+)?$/.test(name)) return true;
   if (/^--border-[a-z]+(-[a-z]+)?$/.test(name)) return true;
   if (/^--text-[a-z]+(-[a-z]+)?$/.test(name)) return true;
-  if (/^--(radius|space|font|line-height|shadow|ring|transition|overlay|hover|page-bg|border-width|gradient|icon-size|blur|dot-size)(-[a-z0-9]+)*$/.test(name)) return true;
+  if (/^--(radius|space|font|line-height|letter-spacing|shadow|ring|transition|overlay|hover|page-bg|border-width|gradient|icon-size|blur|dot-size)(-[a-z0-9]+)*$/.test(name)) return true;
   return false;
 }
 
@@ -46,6 +46,11 @@ for (const entry of componentRegistryEntries) {
     // per-side overrides used as `var(--x, fallback)` by the themed-padding
     // mixin) — they don't need a default declaration in tokens.css.
     if ((t as { hidden?: boolean }).hidden) continue;
+    // Structured-payload tokens (currently only `kind: 'gradient'`) are
+    // declared as literal CSS (e.g. `linear-gradient(...)`), not as a
+    // var() alias — they own a structured value the editor renders into
+    // the property directly. The layer-2 alias check below doesn't apply.
+    if ((t as { kind?: string }).kind === 'gradient') continue;
     editorTokenCases.push({ editor: entry.id, variable: t.variable });
   }
 }

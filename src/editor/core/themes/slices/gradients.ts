@@ -4,7 +4,7 @@
  * (`--color-brand-500`); the renderer wraps them in `var(...)` so palette
  * edits flow through.
  */
-import type { EditorState, GradientToken, GradientTokenStop, GradientType } from '../../store/editorTypes';
+import type { EditorState, GradientToken, GradientTokenStop, GradientType, GradientAliasValue } from '../../store/editorTypes';
 import { mutate } from '../../store/editorCore';
 
 export function makeDefaultGradients(): GradientToken[] {
@@ -64,10 +64,16 @@ export function formatGradientStops(t: GradientToken): string {
   return t.stops.map(formatGradientStop).join(', ');
 }
 
-function formatGradient(t: GradientToken): string {
-  const stops = formatGradientStops(t);
-  if (t.type === 'linear') return `linear-gradient(${t.angle}deg, ${stops})`;
+/** Serialize a structured gradient value (theme token or component-owned)
+ *  into a CSS `linear-gradient(...)` / `radial-gradient(...)` declaration. */
+export function formatGradientValue(v: GradientAliasValue): string {
+  const stops = v.stops.map(formatGradientStop).join(', ');
+  if (v.type === 'linear') return `linear-gradient(${v.angle}deg, ${stops})`;
   return `radial-gradient(${stops})`;
+}
+
+function formatGradient(t: GradientToken): string {
+  return formatGradientValue({ type: t.type, angle: t.angle, stops: t.stops });
 }
 
 export function gradientsToVars(g: EditorState['gradients']): Record<string, string> {

@@ -6,7 +6,7 @@
   import { onMount, onDestroy } from 'svelte';
   import UIInfoPopover from '../../ui/UIInfoPopover.svelte';
   import { get } from 'svelte/store';
-  import type { ComponentConfig, ComponentConfigMeta } from '../../core/themes/themeTypes';
+  import type { AliasDiskValue, ComponentConfig, ComponentConfigMeta } from '../../core/themes/themeTypes';
   import { componentSourceFile } from './componentSources';
   import {
     loadComponentConfig,
@@ -125,15 +125,17 @@
     }
   }
 
-  function refToString(ref: CssVarRef): string {
-    return ref.kind === 'token' ? ref.name : ref.value;
+  function refToDiskValue(ref: CssVarRef): AliasDiskValue {
+    if (ref.kind === 'token') return ref.name;
+    if (ref.kind === 'literal') return ref.value;
+    return { kind: 'gradient', value: ref.value };
   }
 
-  function currentAliases(): Record<string, string> {
+  function currentAliases(): Record<string, AliasDiskValue> {
     const slice = get(editorState).components[component];
     if (!slice) return {};
-    const out: Record<string, string> = {};
-    for (const [k, ref] of Object.entries(slice.aliases)) out[k] = refToString(ref);
+    const out: Record<string, AliasDiskValue> = {};
+    for (const [k, ref] of Object.entries(slice.aliases)) out[k] = refToDiskValue(ref);
     return out;
   }
 

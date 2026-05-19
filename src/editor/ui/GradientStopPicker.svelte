@@ -12,10 +12,13 @@
     stopId: string; // unique key (e.g. gradient-var + stop index)
     color: string; // token name like '--color-brand-500'
     opacity?: number; // 0–100
+    /** Forwarded to UIPaletteSelector to scope picks to a color family.
+     *  See UIPaletteSelector's `familyFilter` for accepted values. */
+    familyFilter?: string | null;
     onchange?: (payload: { color: string; opacity: number }) => void;
   }
 
-  let { stopId, color, opacity = 100, onchange }: Props = $props();
+  let { stopId, color, opacity = 100, familyFilter = null, onchange }: Props = $props();
 
   /** Scratch var the embedded picker reads/writes; isolated per stop. */
   let scratchVar = $derived(`--__grad-stop-${stopId}`);
@@ -60,4 +63,4 @@
   }
 </script>
 
-<UIPaletteSelector variable={scratchVar} onchange={handleChange} />
+<UIPaletteSelector variable={scratchVar} {familyFilter} onchange={handleChange} />

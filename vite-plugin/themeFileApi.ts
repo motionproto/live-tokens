@@ -469,13 +469,53 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     return true;
   }
 
+  /** Inline structured gradient on a component alias. Mirrors the client's
+   *  `AliasDiskValue` discriminant — kept inline here because the vite plugin
+   *  has no clean import path into `src/editor/core/themes`. */
+  type AliasDiskGradient = {
+    kind: 'gradient';
+    value: {
+      type: 'linear' | 'radial';
+      angle: number;
+      stops: { position: number; color: string; opacity?: number }[];
+    };
+  };
+  type AliasDiskValue = string | AliasDiskGradient;
+
   interface ComponentConfigRead {
     name?: string;
     component?: string;
     createdAt?: string;
     updatedAt?: string;
-    aliases?: Record<string, string>;
+    aliases?: Record<string, AliasDiskValue>;
     config?: Record<string, unknown>;
+  }
+
+  /** Server-side mirror of `formatGradientValue` from
+   *  `src/editor/core/themes/slices/gradients.ts`. Emits the same CSS the
+   *  client's renderer writes into `:root`, so production overrides stay in
+   *  sync with the live editor. */
+  function formatAliasGradient(v: AliasDiskGradient['value']): string {
+    const stops = v.stops.map((s) => {
+      const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
+      const opacity = s.opacity ?? 100;
+      const color = opacity >= 100 ? base : `color-mix(in srgb, ${base} ${opacity}%, transparent)`;
+      return `${color} ${s.position}%`;
+    }).join(', ');
+    if (v.type === 'linear') return `linear-gradient(${v.angle}deg, ${stops})`;
+    return `radial-gradient(${stops})`;
+  }
+
+  function aliasValueToCss(v: AliasDiskValue): string {
+    if (typeof v === 'string') return v.startsWith('--') ? `var(${v})` : v;
+    return formatAliasGradient(v.value);
+  }
+
+  function aliasValuesEqual(a: AliasDiskValue | undefined, b: AliasDiskValue | undefined): boolean {
+    if (a === undefined || b === undefined) return a === b;
+    if (typeof a === 'string' && typeof b === 'string') return a === b;
+    if (typeof a !== typeof b) return false;
+    return JSON.stringify(a) === JSON.stringify(b);
   }
 
   function readComponentConfig(comp: string, name: string): ComponentConfigRead | null {
@@ -512,20 +552,20 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       const prodCfg = readComponentConfig(comp, prod);
       const defaultCfg = readComponentConfig(comp, 'default');
       if (!prodCfg || !defaultCfg) continue;
-      const overrides: [string, string][] = [];
-      for (const [varName, semanticName] of Object.entries(prodCfg.aliases ?? {})) {
-        if ((defaultCfg.aliases ?? {})[varName] !== semanticName) {
-          overrides.push([varName, semanticName]);
+      const overrides: [string, AliasDiskValue][] = [];
+      const defaultAliases = (defaultCfg.aliases ?? {}) as Record<string, AliasDiskValue>;
+      for (const [varName, semanticValue] of Object.entries((prodCfg.aliases ?? {}) as Record<string, AliasDiskValue>)) {
+        if (!aliasValuesEqual(defaultAliases[varName], semanticValue)) {
+          overrides.push([varName, semanticValue]);
         }
       }
       if (overrides.length === 0) continue;
       lines.push(`  /* ${comp} (${prod}) */`);
-      for (const [varName, semanticName] of overrides) {
-        // Alias values can be either a custom-property name (wrap in var())
-        // or a literal CSS value like `transparent` or `color-mix(...)` —
-        // pass literals through unwrapped so they stay valid CSS.
-        const rhs = semanticName.startsWith('--') ? `var(${semanticName})` : semanticName;
-        lines.push(`  ${varName}: ${rhs};`);
+      for (const [varName, semanticValue] of overrides) {
+        // Alias values can be either a custom-property name (wrap in var()),
+        // a literal CSS value (transparent, color-mix, etc.), or a structured
+        // gradient object that serializes to a `linear-gradient(...)` literal.
+        lines.push(`  ${varName}: ${aliasValueToCss(semanticValue)};`);
       }
     }
 

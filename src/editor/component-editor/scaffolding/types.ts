@@ -24,6 +24,15 @@ export type Token = {
       StateBlock partitions the panel into labeled subsections — typography
       and properties for each element render together. */
   element?: string;
+  /** Hint to the editor that this token's alias is a structured payload
+      (currently only `kind: 'gradient'`). Drives Copy-from's per-kind
+      branch — gradient aliases need family-swap of in-family stop colors
+      rather than a verbatim ref copy. */
+  kind?: 'gradient';
+  /** Color-family slug for this token's owning variant (e.g. `brand`,
+      `accent`). Set on gradient-kind tokens so Copy-from's family-swap
+      can compute the src→dst family substitution. */
+  family?: string;
 };
 
 /** Editor type-group: a fieldset containing a coordinated set of typography tokens

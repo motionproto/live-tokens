@@ -23,6 +23,7 @@ import tokensCss from '../../../system/styles/tokens.css?raw';
 import { editorState } from '../store/editorStore';
 import type { EditorState } from '../store/editorTypes';
 import { extractGlobalRootBody } from '../themes/parsers/globalRootBlock';
+import { formatGradientValue } from '../themes/slices/gradients';
 
 // Re-exported for tests and downstream consumers that previously imported it
 // from this module. The canonical implementation lives in `./parsers/globalRootBlock`
@@ -111,7 +112,9 @@ function buildOverlayRegistry(
   const overrides = new Map<string, string>();
   for (const slice of Object.values(components)) {
     for (const [varName, ref] of Object.entries(slice.aliases)) {
-      overrides.set(varName, ref.kind === 'token' ? `var(${ref.name})` : ref.value);
+      if (ref.kind === 'token') overrides.set(varName, `var(${ref.name})`);
+      else if (ref.kind === 'literal') overrides.set(varName, ref.value);
+      else overrides.set(varName, formatGradientValue(ref.value));
     }
   }
   const getDeclared = (v: string): string | null =>
