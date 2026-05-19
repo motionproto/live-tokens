@@ -43,6 +43,8 @@ export type TypeGroupConfig = {
   weightLabel?: string;
   lineHeightVariable?: string;
   lineHeightLabel?: string;
+  letterSpacingVariable?: string;
+  letterSpacingLabel?: string;
   outlineWidthVariable?: string;
   outlineWidthLabel?: string;
   outlineColorVariable?: string;

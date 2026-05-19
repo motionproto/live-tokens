@@ -93,6 +93,8 @@
                 weightLabel={tg.weightLabel ?? 'font weight'}
                 lineHeightVariable={tg.lineHeightVariable}
                 lineHeightLabel={tg.lineHeightLabel ?? 'line height'}
+                letterSpacingVariable={tg.letterSpacingVariable}
+                letterSpacingLabel={tg.letterSpacingLabel ?? 'letter spacing'}
                 outlineWidthVariable={tg.outlineWidthVariable}
                 outlineWidthLabel={tg.outlineWidthLabel ?? 'outline thickness'}
                 outlineColorVariable={tg.outlineColorVariable}
@@ -133,6 +135,8 @@
           weightLabel={tg.weightLabel ?? 'font weight'}
           lineHeightVariable={tg.lineHeightVariable}
           lineHeightLabel={tg.lineHeightLabel ?? 'line height'}
+          letterSpacingVariable={tg.letterSpacingVariable}
+          letterSpacingLabel={tg.letterSpacingLabel ?? 'letter spacing'}
           outlineWidthVariable={tg.outlineWidthVariable}
           outlineWidthLabel={tg.outlineWidthLabel ?? 'outline thickness'}
           outlineColorVariable={tg.outlineColorVariable}

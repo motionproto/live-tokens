@@ -80,6 +80,7 @@
         sizeVariable: `--sectiondivider-${v}-title-font-size`,
         weightVariable: `--sectiondivider-${v}-title-font-weight`,
         lineHeightVariable: `--sectiondivider-${v}-title-line-height`,
+        letterSpacingVariable: `--sectiondivider-${v}-title-letter-spacing`,
         outlineWidthVariable: `--sectiondivider-${v}-title-border-width`,
         outlineColorVariable: `--sectiondivider-${v}-title-stroke-color`,
       },
@@ -105,6 +106,7 @@
       { label: 'title font size', canBeLinked: true, groupKey: 'title-font-size', variable: `--sectiondivider-${v}-title-font-size` },
       { label: 'title font weight', canBeLinked: true, groupKey: 'title-font-weight', variable: `--sectiondivider-${v}-title-font-weight` },
       { label: 'title line height', canBeLinked: true, groupKey: 'title-line-height', variable: `--sectiondivider-${v}-title-line-height` },
+      { label: 'title letter spacing', canBeLinked: true, groupKey: 'title-letter-spacing', variable: `--sectiondivider-${v}-title-letter-spacing` },
       { label: 'description color', canBeLinked: true, groupKey: 'description-color', variable: `--sectiondivider-${v}-description` },
       { label: 'description font family', canBeLinked: true, groupKey: 'description-font-family', variable: `--sectiondivider-${v}-description-font-family` },
       { label: 'description font size', canBeLinked: true, groupKey: 'description-font-size', variable: `--sectiondivider-${v}-description-font-size` },
@@ -124,7 +126,7 @@
     'padding', 'radius',
     'border', 'border-width', 'shadow',
     'title-border-width', 'title-stroke-color',
-    'title-color', 'title-font-family', 'title-font-size', 'title-font-weight', 'title-line-height',
+    'title-color', 'title-font-family', 'title-font-size', 'title-font-weight', 'title-line-height', 'title-letter-spacing',
     'description-color', 'description-font-family', 'description-font-size', 'description-font-weight', 'description-line-height',
   ] as const;
   const linkableContexts = new Map<string, string>(

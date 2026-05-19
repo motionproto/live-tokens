@@ -7,6 +7,7 @@ export const TYPE_FONT_PROPS = [
   { key: 'sizeVariable', label: 'font size', defaultGroupKey: 'font-size' },
   { key: 'weightVariable', label: 'font weight', defaultGroupKey: 'font-weight' },
   { key: 'lineHeightVariable', label: 'line height', defaultGroupKey: 'line-height' },
+  { key: 'letterSpacingVariable', label: 'letter spacing', defaultGroupKey: 'letter-spacing' },
 ] as const satisfies ReadonlyArray<{
   key: keyof TypeGroupConfig;
   label: string;

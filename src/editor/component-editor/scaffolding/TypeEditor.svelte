@@ -5,6 +5,7 @@
   import UIFontSizeSelector from '../../ui/UIFontSizeSelector.svelte';
   import UIFontWeightSelector from '../../ui/UIFontWeightSelector.svelte';
   import UILineHeightSelector from '../../ui/UILineHeightSelector.svelte';
+  import UILetterSpacingSelector from '../../ui/UILetterSpacingSelector.svelte';
   import FieldsetWrapper from './FieldsetWrapper.svelte';
   import { BORDER_WIDTH } from '../../ui/variantScales';
 
@@ -22,6 +23,8 @@
     weightLabel?: string;
     lineHeightVariable?: string | undefined;
     lineHeightLabel?: string;
+    letterSpacingVariable?: string | undefined;
+    letterSpacingLabel?: string;
     /** Optional outline rows rendered under the typography rows so a text-with-
       stroke group keeps stroke controls visually nested with the type they
       drive (e.g. SectionDivider title outline). */
@@ -47,6 +50,8 @@
     weightLabel = 'weight',
     lineHeightVariable = undefined,
     lineHeightLabel = 'line-h',
+    letterSpacingVariable = undefined,
+    letterSpacingLabel = 'letter-sp',
     outlineWidthVariable = undefined,
     outlineWidthLabel = 'outline thickness',
     outlineColorVariable = undefined,
@@ -77,6 +82,10 @@
     {#if lineHeightVariable}
       <span class="row-label">{lineHeightLabel}</span>
       <UILineHeightSelector variable={lineHeightVariable} {component} canBeLinked {onchange} />
+    {/if}
+    {#if letterSpacingVariable}
+      <span class="row-label">{letterSpacingLabel}</span>
+      <UILetterSpacingSelector variable={letterSpacingVariable} {component} canBeLinked {onchange} />
     {/if}
     {#if outlineWidthVariable}
       <span class="row-label">{outlineWidthLabel}</span>

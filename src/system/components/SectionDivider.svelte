@@ -117,6 +117,7 @@
     --sectiondivider-canvas-title-font-size: var(--font-size-5xl);
     --sectiondivider-canvas-title-font-weight: var(--font-weight-normal);
     --sectiondivider-canvas-title-line-height: var(--line-height-xs);
+    --sectiondivider-canvas-title-letter-spacing: var(--letter-spacing-normal);
     --sectiondivider-canvas-title-border-width: var(--border-width-4);
     --sectiondivider-canvas-title-stroke-color: var(--surface-canvas-lowest);
     /* Title stroke defaults intentionally diverge per variant — the property
@@ -146,6 +147,7 @@
     --sectiondivider-neutral-title-font-size: var(--font-size-5xl);
     --sectiondivider-neutral-title-font-weight: var(--font-weight-normal);
     --sectiondivider-neutral-title-line-height: var(--line-height-xs);
+    --sectiondivider-neutral-title-letter-spacing: var(--letter-spacing-normal);
     --sectiondivider-neutral-title-border-width: var(--border-width-4);
     --sectiondivider-neutral-title-stroke-color: var(--surface-neutral-lowest);
     --sectiondivider-neutral-description: var(--text-secondary);
@@ -172,6 +174,7 @@
     --sectiondivider-alternate-title-font-size: var(--font-size-5xl);
     --sectiondivider-alternate-title-font-weight: var(--font-weight-normal);
     --sectiondivider-alternate-title-line-height: var(--line-height-xs);
+    --sectiondivider-alternate-title-letter-spacing: var(--letter-spacing-normal);
     --sectiondivider-alternate-title-border-width: var(--border-width-4);
     --sectiondivider-alternate-title-stroke-color: var(--surface-alternate-lowest);
     --sectiondivider-alternate-description: var(--text-secondary);
@@ -198,6 +201,7 @@
     --sectiondivider-primary-title-font-size: var(--font-size-5xl);
     --sectiondivider-primary-title-font-weight: var(--font-weight-normal);
     --sectiondivider-primary-title-line-height: var(--line-height-xs);
+    --sectiondivider-primary-title-letter-spacing: var(--letter-spacing-normal);
     --sectiondivider-primary-title-border-width: var(--border-width-4);
     --sectiondivider-primary-title-stroke-color: var(--surface-brand-lowest);
     --sectiondivider-primary-description: var(--text-secondary);
@@ -224,6 +228,7 @@
     --sectiondivider-accent-title-font-size: var(--font-size-5xl);
     --sectiondivider-accent-title-font-weight: var(--font-weight-normal);
     --sectiondivider-accent-title-line-height: var(--line-height-xs);
+    --sectiondivider-accent-title-letter-spacing: var(--letter-spacing-normal);
     --sectiondivider-accent-title-border-width: var(--border-width-4);
     --sectiondivider-accent-title-stroke-color: var(--surface-accent-lowest);
     --sectiondivider-accent-description: var(--text-secondary);
@@ -250,6 +255,7 @@
     --sectiondivider-special-title-font-size: var(--font-size-5xl);
     --sectiondivider-special-title-font-weight: var(--font-weight-normal);
     --sectiondivider-special-title-line-height: var(--line-height-xs);
+    --sectiondivider-special-title-letter-spacing: var(--letter-spacing-normal);
     --sectiondivider-special-title-border-width: var(--border-width-4);
     --sectiondivider-special-title-stroke-color: var(--surface-special-lowest);
     --sectiondivider-special-description: var(--text-secondary);
@@ -305,6 +311,7 @@
     --_divider-title-font-size: var(--sectiondivider-canvas-title-font-size);
     --_divider-title-font-weight: var(--sectiondivider-canvas-title-font-weight);
     --_divider-title-line-height: var(--sectiondivider-canvas-title-line-height);
+    --_divider-title-letter-spacing: var(--sectiondivider-canvas-title-letter-spacing);
     --_divider-title-border-width: var(--sectiondivider-canvas-title-border-width);
     --_divider-title-stroke-color: var(--sectiondivider-canvas-title-stroke-color);
     --_divider-description: var(--sectiondivider-canvas-description);
@@ -332,6 +339,7 @@
     --_divider-title-font-size: var(--sectiondivider-neutral-title-font-size);
     --_divider-title-font-weight: var(--sectiondivider-neutral-title-font-weight);
     --_divider-title-line-height: var(--sectiondivider-neutral-title-line-height);
+    --_divider-title-letter-spacing: var(--sectiondivider-neutral-title-letter-spacing);
     --_divider-title-border-width: var(--sectiondivider-neutral-title-border-width);
     --_divider-title-stroke-color: var(--sectiondivider-neutral-title-stroke-color);
     --_divider-description: var(--sectiondivider-neutral-description);
@@ -359,6 +367,7 @@
     --_divider-title-font-size: var(--sectiondivider-alternate-title-font-size);
     --_divider-title-font-weight: var(--sectiondivider-alternate-title-font-weight);
     --_divider-title-line-height: var(--sectiondivider-alternate-title-line-height);
+    --_divider-title-letter-spacing: var(--sectiondivider-alternate-title-letter-spacing);
     --_divider-title-border-width: var(--sectiondivider-alternate-title-border-width);
     --_divider-title-stroke-color: var(--sectiondivider-alternate-title-stroke-color);
     --_divider-description: var(--sectiondivider-alternate-description);
@@ -386,6 +395,7 @@
     --_divider-title-font-size: var(--sectiondivider-primary-title-font-size);
     --_divider-title-font-weight: var(--sectiondivider-primary-title-font-weight);
     --_divider-title-line-height: var(--sectiondivider-primary-title-line-height);
+    --_divider-title-letter-spacing: var(--sectiondivider-primary-title-letter-spacing);
     --_divider-title-border-width: var(--sectiondivider-primary-title-border-width);
     --_divider-title-stroke-color: var(--sectiondivider-primary-title-stroke-color);
     --_divider-description: var(--sectiondivider-primary-description);
@@ -413,6 +423,7 @@
     --_divider-title-font-size: var(--sectiondivider-accent-title-font-size);
     --_divider-title-font-weight: var(--sectiondivider-accent-title-font-weight);
     --_divider-title-line-height: var(--sectiondivider-accent-title-line-height);
+    --_divider-title-letter-spacing: var(--sectiondivider-accent-title-letter-spacing);
     --_divider-title-border-width: var(--sectiondivider-accent-title-border-width);
     --_divider-title-stroke-color: var(--sectiondivider-accent-title-stroke-color);
     --_divider-description: var(--sectiondivider-accent-description);
@@ -440,6 +451,7 @@
     --_divider-title-font-size: var(--sectiondivider-special-title-font-size);
     --_divider-title-font-weight: var(--sectiondivider-special-title-font-weight);
     --_divider-title-line-height: var(--sectiondivider-special-title-line-height);
+    --_divider-title-letter-spacing: var(--sectiondivider-special-title-letter-spacing);
     --_divider-title-border-width: var(--sectiondivider-special-title-border-width);
     --_divider-title-stroke-color: var(--sectiondivider-special-title-stroke-color);
     --_divider-description: var(--sectiondivider-special-description);
@@ -463,6 +475,7 @@
     font-family: var(--_divider-title-font-family);
     font-size: var(--_divider-title-font-size);
     font-weight: var(--_divider-title-font-weight);
+    letter-spacing: var(--_divider-title-letter-spacing);
     fill: currentColor;
   }
 

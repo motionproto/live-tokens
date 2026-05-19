@@ -78,7 +78,7 @@
 
   let activeTab: string = $state('');
 
-  const TYPE_PROPS = ['colorVariable', 'familyVariable', 'sizeVariable', 'weightVariable', 'lineHeightVariable', 'outlineWidthVariable', 'outlineColorVariable'] as const;
+  const TYPE_PROPS = ['colorVariable', 'familyVariable', 'sizeVariable', 'weightVariable', 'lineHeightVariable', 'letterSpacingVariable', 'outlineWidthVariable', 'outlineColorVariable'] as const;
   // Carry per-side derived vars so split padding fully transfers; no-op when absent.
   const PADDING_SIDES = ['top', 'right', 'bottom', 'left'] as const;
 
