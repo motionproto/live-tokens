@@ -6,10 +6,12 @@
   const variants = ['info', 'success', 'warning', 'danger'] as const;
   type Variant = typeof variants[number];
 
-  // Per variant: notification frame (surface, border, border-width, radius, padding) + icon (color, size).
+  // Per variant: notification frame (surface, border, border-width, radius, padding) + icon (color, size)
+  // + action backdrop surface (paints behind the optional header action button).
   function variantTokens(v: Variant): Token[] {
     return [
       { label: 'surface color', groupKey: 'surface', variable: `--notification-${v}-surface` },
+      { label: 'action surface', groupKey: 'action-surface', variable: `--notification-${v}-action-surface` },
       { label: 'border color', groupKey: 'border', variable: `--notification-${v}-border` },
       { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--notification-${v}-border-width` },
       { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--notification-${v}-radius` },

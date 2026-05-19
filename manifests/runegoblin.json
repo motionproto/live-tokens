@@ -1,12 +1,12 @@
 {
   "name": "Runegoblin",
   "createdAt": "2026-05-18T18:38:42.743Z",
-  "updatedAt": "2026-05-18T21:00:03.751Z",
+  "updatedAt": "2026-05-19T13:45:58.526Z",
   "theme": "runegoblin",
   "componentConfigs": {
     "badge": "rg-badge",
     "button": "rg-button",
-    "callout": "default",
+    "callout": "my-callout",
     "card": "rg-card",
     "collapsiblesection": "rg-collapsiblesection",
     "cornerbadge": "default",

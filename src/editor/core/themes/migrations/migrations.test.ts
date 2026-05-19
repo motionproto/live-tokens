@@ -107,10 +107,10 @@ describe('migration runner — schemaVersion gating', () => {
     expect(migrated['--collapsiblesection-container-hover-icon']).toBe('--text-primary');
     expect(migrated['--collapsiblesection-container-default-label-font-family']).toBe('--font-sans');
     expect(migrated['--collapsiblesection-container-expanded-padding']).toBe('--space-4');
-    // v3→v4 drops container active-border (frame owns chrome now); the
-    // pre-existing default-surface is also seeded into the new frame namespace.
+    // v3→v4 drops container active-border (frame owns chrome now); v6→v7
+    // drops frame-surface (it only ever painted a confusing border ring).
     expect(migrated['--collapsiblesection-container-active-border']).toBeUndefined();
-    expect(migrated['--collapsiblesection-container-frame-surface']).toBe('--surface-canvas-high');
+    expect(migrated['--collapsiblesection-container-frame-surface']).toBeUndefined();
   });
 
   it('component-config v2 namespace migration only fires for collapsiblesection', () => {
@@ -152,10 +152,10 @@ describe('migration runner — schemaVersion gating', () => {
     const migrated = runMigrations('component-config', 3, v3, {
       component: 'collapsiblesection',
     });
-    // Container frame-* seeded from old default-state tokens. The
-    // v5→v6 primary→brand migration rewrites `--color-primary-*` values
-    // to `--color-brand-*` at the tail of the chain.
-    expect(migrated['--collapsiblesection-container-frame-surface']).toBe('--surface-canvas-high');
+    // Container frame-* seeded from old default-state tokens. v5→v6 rewrites
+    // `--color-primary-*` to `--color-brand-*`. v6→v7 drops frame-surface
+    // entirely (Frame is chrome-only now).
+    expect(migrated['--collapsiblesection-container-frame-surface']).toBeUndefined();
     expect(migrated['--collapsiblesection-container-frame-border']).toBe('--color-brand-400');
     expect(migrated['--collapsiblesection-container-frame-border-width']).toBe('--border-width-3');
     expect(migrated['--collapsiblesection-container-frame-radius']).toBe('--radius-md');

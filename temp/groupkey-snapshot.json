@@ -282,6 +282,7 @@
       "--button-danger-disabled-surface",
       "--button-danger-hover-surface",
       "--button-danger-surface",
+      "--button-outline-active-surface",
       "--button-outline-disabled-surface",
       "--button-outline-hover-surface",
       "--button-outline-surface",
@@ -591,7 +592,6 @@
       "--collapsiblesection-container-active-surface",
       "--collapsiblesection-container-default-surface",
       "--collapsiblesection-container-expanded-surface",
-      "--collapsiblesection-container-frame-surface",
       "--collapsiblesection-container-hover-surface",
       "--collapsiblesection-divider-active-surface",
       "--collapsiblesection-divider-default-surface",
@@ -987,6 +987,12 @@
     ]
   },
   "notification": {
+    "action-surface": [
+      "--notification-danger-action-surface",
+      "--notification-info-action-surface",
+      "--notification-success-action-surface",
+      "--notification-warning-action-surface"
+    ],
     "border": [
       "--notification-danger-border",
       "--notification-info-border",

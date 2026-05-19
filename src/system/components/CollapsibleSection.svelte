@@ -147,7 +147,6 @@
       --collapsiblesection-divider-expanded-padding: var(--space-4);
 
       /* Container — frame (always-on outer chrome) */
-      --collapsiblesection-container-frame-surface: var(--surface-canvas);
       --collapsiblesection-container-frame-border: var(--color-transparent);
       --collapsiblesection-container-frame-border-width: var(--border-width-3);
       --collapsiblesection-container-frame-radius: var(--radius-none);
@@ -270,7 +269,6 @@
    }
 
    .es-root.variant-container {
-      background: var(--collapsiblesection-container-frame-surface);
       border: var(--collapsiblesection-container-frame-border-width) solid var(--collapsiblesection-container-frame-border);
       border-radius: var(--collapsiblesection-container-frame-radius);
       overflow: hidden;

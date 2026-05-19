@@ -231,7 +231,45 @@
   });
 
   let stateNames = $derived(states ? Object.keys(states) : []);
+  /** Key-name convention: when ANY state name contains " / ", the strip switches
+      to two-tier rendering — top row is parts (unique left-hand sides), bottom
+      row is the active part's states (right-hand sides). Parts with no slash
+      have no sub-states and skip the bottom row when active. */
+  const PART_SEP = ' / ';
+  let isHierarchical = $derived(stateNames.some((n) => n.includes(PART_SEP)));
+  /** Ordered list of unique parts, preserving the order they first appear in `states`. */
+  let parts = $derived.by(() => {
+    const seen: string[] = [];
+    for (const n of stateNames) {
+      const part = n.includes(PART_SEP) ? n.split(PART_SEP)[0] : n;
+      if (!seen.includes(part)) seen.push(part);
+    }
+    return seen;
+  });
+  /** Sub-states of the currently active part (only meaningful in hierarchical mode). */
+  let activePart = $derived(activeTab.includes(PART_SEP) ? activeTab.split(PART_SEP)[0] : activeTab);
+  let activeSubState = $derived(activeTab.includes(PART_SEP) ? activeTab.split(PART_SEP)[1] : '');
+  let partSubStates = $derived(
+    isHierarchical
+      ? stateNames.filter((n) => n.startsWith(activePart + PART_SEP)).map((n) => n.split(PART_SEP)[1])
+      : [],
+  );
   let tabsStripVisible = $derived(stateNames.length >= 2);
+  let subStripVisible = $derived(isHierarchical && partSubStates.length >= 2);
+
+  /** Switch parts. If the new part has sub-states, jump to its first one; otherwise
+      activate the part itself. Keeps activeTab as a single canonical key so the
+      downstream property lookup, copy-from menus, and focusedStateStore stay simple. */
+  function selectPart(part: string) {
+    const firstSub = stateNames.find((n) => n.startsWith(part + PART_SEP));
+    activeTab = firstSub ?? part;
+    focusedStateStore.set(activeTab);
+  }
+  function selectSubState(sub: string) {
+    activeTab = `${activePart}${PART_SEP}${sub}`;
+    focusedStateStore.set(activeTab);
+  }
+
   $effect(() => {
     if (stateNames.length > 0 && !stateNames.includes(activeTab)) {
       activeTab = stateNames[0];
@@ -302,22 +340,54 @@
         <div class="tabs-states-block">
           <span class="editor-subsection-title">{selectorLabel}</span>
           <div class="tabs-selectors">
-            <div class="state-tabs" role="tablist">
-              {#each stateNames as s}
-                <button
-                  type="button"
-                  class="state-tab-btn"
-                  class:active={activeTab === s}
-                  role="tab"
-                  aria-selected={activeTab === s}
-                  onclick={() => { activeTab = s; focusedStateStore.set(s); }}
-                >{s}</button>
-              {/each}
-            </div>
+            {#if isHierarchical}
+              <div class="state-tabs" role="tablist">
+                {#each parts as p}
+                  <button
+                    type="button"
+                    class="state-tab-btn"
+                    class:active={activePart === p}
+                    role="tab"
+                    aria-selected={activePart === p}
+                    onclick={() => selectPart(p)}
+                  >{p}</button>
+                {/each}
+              </div>
+            {:else}
+              <div class="state-tabs" role="tablist">
+                {#each stateNames as s}
+                  <button
+                    type="button"
+                    class="state-tab-btn"
+                    class:active={activeTab === s}
+                    role="tab"
+                    aria-selected={activeTab === s}
+                    onclick={() => { activeTab = s; focusedStateStore.set(s); }}
+                  >{s}</button>
+                {/each}
+              </div>
+            {/if}
             {#if activeTab}
               {@render stateActions?.(activeTab)}
             {/if}
           </div>
+          {#if subStripVisible}
+            <div class="tabs-selectors substrip">
+              <span class="editor-subsection-title state-eyebrow">State</span>
+              <div class="state-tabs" role="tablist">
+                {#each partSubStates as s}
+                  <button
+                    type="button"
+                    class="state-tab-btn"
+                    class:active={activeSubState === s}
+                    role="tab"
+                    aria-selected={activeSubState === s}
+                    onclick={() => selectSubState(s)}
+                  >{s}</button>
+                {/each}
+              </div>
+            </div>
+          {/if}
         </div>
       {/if}
     </div>
@@ -602,6 +672,17 @@
     display: flex;
     align-items: center;
     gap: var(--ui-space-12);
+  }
+
+  /* Sub-strip sits flush under the parts strip when a part has interaction states.
+     The eyebrow label distinguishes it from the parts row above. */
+  .tabs-selectors.substrip {
+    margin-top: var(--ui-space-6);
+  }
+  .tabs-selectors.substrip .state-eyebrow {
+    color: var(--ui-text-tertiary);
+    font-size: var(--ui-font-size-xs);
+    min-width: 2.5rem;
   }
 
   .state-tabs {

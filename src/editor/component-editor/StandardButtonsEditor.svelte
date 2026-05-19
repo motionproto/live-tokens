@@ -37,8 +37,20 @@
     return tokens;
   }
 
+  // Outline is the only variant that paints a surface tint on :active; the rest
+  // express press feedback through transform/shadow only. Expose just the one
+  // tunable property here rather than adding an active state to every variant.
+  const outlineActiveTokens: Token[] = [
+    { label: 'surface color', groupKey: 'surface', variable: '--button-outline-active-surface' },
+  ];
+
   function variantStates(v: Variant): Record<string, Token[]> {
-    return Object.fromEntries(stateNames.map((s) => [s, variantStateTokens(v, s)]));
+    const out: Record<string, Token[]> = {};
+    out.default = variantStateTokens(v, 'default');
+    out.hover = variantStateTokens(v, 'hover');
+    if (v === 'outline') out.active = outlineActiveTokens;
+    out.disabled = variantStateTokens(v, 'disabled');
+    return out;
   }
   export const allTokens: Token[] = variants.flatMap((v) =>
     Object.values(variantStates(v)).flat(),

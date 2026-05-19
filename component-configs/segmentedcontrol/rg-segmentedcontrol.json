@@ -2,7 +2,7 @@
   "name": "rg-segmentedcontrol",
   "component": "segmentedcontrol",
   "createdAt": "2026-05-18T18:38:42.743Z",
-  "updatedAt": "2026-05-18T21:00:03.751Z",
+  "updatedAt": "2026-05-19T12:00:46.922Z",
   "aliases": {
     "--segmentedcontrol-bar-surface": "--surface-neutral-lowest",
     "--segmentedcontrol-bar-border": "--border-neutral",
@@ -18,7 +18,7 @@
     "--segmentedcontrol-option-text-font-size": "--font-size-sm",
     "--segmentedcontrol-option-text-font-weight": "--font-weight-normal",
     "--segmentedcontrol-option-text-line-height": "--line-height-normal",
-    "--segmentedcontrol-option-icon": "--text-secondary",
+    "--segmentedcontrol-option-icon": "--text-primary",
     "--segmentedcontrol-option-icon-size": "--icon-size-md",
     "--segmentedcontrol-option-hover-surface": "--surface-neutral-higher",
     "--segmentedcontrol-option-hover-text": "--text-primary",
@@ -47,5 +47,7 @@
     "--segmentedcontrol-disabled-text-line-height": "--line-height-normal",
     "--segmentedcontrol-disabled-icon": "--text-tertiary",
     "--segmentedcontrol-disabled-icon-size": "--icon-size-md"
-  }
+  },
+  "config": {},
+  "schemaVersion": 6
 }

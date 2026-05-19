@@ -34,7 +34,7 @@
 </script>
 
 <div class="shadow-backdrop" class:with-controls={!!controls} style={backgroundStyle}>
-  <div class="shadow-backdrop-content" style="padding: {padding};">
+  <div class="shadow-backdrop-content" style="padding: {padding} {padding} {padding} 1.5rem;">
     {@render children?.()}
   </div>
   {#if controls}
@@ -62,7 +62,8 @@
 
   .shadow-backdrop-content {
     display: grid;
-    place-items: center;
+    align-items: center;
+    justify-items: start;
     min-width: 0;
   }
 

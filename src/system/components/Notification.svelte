@@ -113,6 +113,7 @@
    :global(:root) {
       /* Info */
       --notification-info-surface: var(--surface-info);
+      --notification-info-action-surface: var(--surface-neutral-lowest);
       --notification-info-border: var(--border-info);
       --notification-info-border-width: var(--border-width-1);
       --notification-info-radius: var(--radius-md);
@@ -132,6 +133,7 @@
 
       /* Success */
       --notification-success-surface: var(--surface-success);
+      --notification-success-action-surface: var(--surface-neutral-lowest);
       --notification-success-border: var(--border-success);
       --notification-success-border-width: var(--border-width-1);
       --notification-success-radius: var(--radius-md);
@@ -151,6 +153,7 @@
 
       /* Warning */
       --notification-warning-surface: var(--surface-warning);
+      --notification-warning-action-surface: var(--surface-neutral-lowest);
       --notification-warning-border: var(--border-warning);
       --notification-warning-border-width: var(--border-width-1);
       --notification-warning-radius: var(--radius-md);
@@ -170,6 +173,7 @@
 
       /* Danger */
       --notification-danger-surface: var(--surface-danger);
+      --notification-danger-action-surface: var(--surface-neutral-lowest);
       --notification-danger-border: var(--border-danger);
       --notification-danger-border-width: var(--border-width-1);
       --notification-danger-radius: var(--radius-md);
@@ -240,6 +244,10 @@
                   font-weight: var(--notification-#{$variant}-title-font-weight);
                   line-height: var(--notification-#{$variant}-title-line-height);
                }
+
+               .action-button-backdrop {
+                  background: var(--notification-#{$variant}-action-surface);
+               }
             }
          }
       }
@@ -270,7 +278,6 @@
 
       .action-button-backdrop {
          flex-shrink: 0;
-         background: var(--surface-neutral-lowest);
          border-radius: var(--radius-md);
       }
 

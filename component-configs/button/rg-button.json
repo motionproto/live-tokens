@@ -66,6 +66,7 @@
     "--button-outline-hover-border-width": "--border-width-1",
     "--button-outline-hover-radius": "--radius-md",
     "--button-outline-hover-padding": "--space-8",
+    "--button-outline-active-surface": "--hover",
     "--button-outline-disabled-surface": "--color-transparent",
     "--button-outline-disabled-text": "--text-tertiary",
     "--button-outline-disabled-border": "--border-neutral-faint",

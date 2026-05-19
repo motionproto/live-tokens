@@ -40,6 +40,7 @@ import {
   themeMigration_2026_05_13_primaryToBrand,
   componentMigration_2026_05_13_primaryToBrand,
 } from './2026-05-13-primary-to-brand';
+import { componentMigration_2026_05_19_collapsiblesectionDropFrameSurface } from './2026-05-19-collapsiblesection-drop-frame-surface';
 
 /**
  * Registered migrations. Order in this array does not matter — the runner
@@ -54,6 +55,7 @@ export const MIGRATIONS: Migration[] = [
   componentMigration_2026_05_08_collapsiblesectionFrameAndCleanup,
   componentMigration_2026_05_10_sectiondividerGradientStops,
   componentMigration_2026_05_13_primaryToBrand,
+  componentMigration_2026_05_19_collapsiblesectionDropFrameSurface,
 ];
 
 function countFor(kind: 'theme' | 'component-config'): number {

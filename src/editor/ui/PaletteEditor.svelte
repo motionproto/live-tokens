@@ -1004,7 +1004,11 @@
     background: none;
     border: none;
     text-align: center;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
     min-width: 0;
+    margin-top: var(--ui-space-2);
     overflow: hidden;
     text-overflow: ellipsis;
   }

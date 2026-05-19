@@ -140,6 +140,7 @@
       --button-outline-hover-border-width: var(--border-width-1);
       --button-outline-hover-radius: var(--radius-md);
       --button-outline-hover-padding: var(--space-8);
+      --button-outline-active-surface: var(--hover);
       --button-outline-disabled-surface: var(--color-transparent);
       --button-outline-disabled-text: var(--text-tertiary);
       --button-outline-disabled-border: var(--border-neutral-faint);
@@ -384,7 +385,7 @@
          }
 
          &:active:not(:disabled) {
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--button-outline-active-surface);
          }
 
          &:disabled {

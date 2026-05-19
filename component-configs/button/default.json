@@ -2,7 +2,7 @@
   "name": "default",
   "component": "button",
   "createdAt": "2026-05-10T19:28:06.893Z",
-  "updatedAt": "2026-05-14T12:36:17.491Z",
+  "updatedAt": "2026-05-19T12:46:52.089Z",
   "aliases": {
     "--button-primary-surface": "--surface-brand-high",
     "--button-primary-text": "--text-primary",
@@ -66,6 +66,7 @@
     "--button-outline-hover-border-width": "--border-width-1",
     "--button-outline-hover-radius": "--radius-md",
     "--button-outline-hover-padding": "--space-8",
+    "--button-outline-active-surface": "--hover",
     "--button-outline-disabled-surface": "--color-transparent",
     "--button-outline-disabled-text": "--text-tertiary",
     "--button-outline-disabled-border": "--border-neutral-faint",

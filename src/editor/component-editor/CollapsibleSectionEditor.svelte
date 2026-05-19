@@ -6,12 +6,16 @@
 
   const VARIANTS = ['chromeless', 'divider', 'container'] as const;
   type Variant = typeof VARIANTS[number];
+  // CSS-layer state names (used in the var names) vs UI-layer labels (shown in
+  // the editor). The CSS keeps the historical `active` slug for compatibility;
+  // the UI surfaces it as "Current" because users read `:active` as click-press.
   const HEADER_STATES = ['default', 'hover', 'active'] as const;
   type HeaderState = typeof HEADER_STATES[number];
-
-  function capitalize(s: string): string {
-    return s.charAt(0).toUpperCase() + s.slice(1);
-  }
+  const HEADER_STATE_LABELS: Record<HeaderState, string> = {
+    default: 'Default',
+    hover: 'Hover',
+    active: 'Current',
+  };
 
   const VARIANT_LABELS: Record<Variant, string> = {
     chromeless: 'Chromeless',
@@ -21,7 +25,7 @@
 
   // Header tokens per variant. Chromeless has no chrome; divider exposes the
   // bottom-border (the divider line) per state; container's outer chrome lives
-  // in `frame` so the header strip itself just owns surface + padding + text.
+  // in the Container part so the header strip just owns surface + padding + text.
   function headerStateTokens(v: Variant, s: HeaderState): Token[] {
     const p = `--collapsiblesection-${v}-${s}`;
     const base: Token[] = [
@@ -39,17 +43,17 @@
     return base;
   }
 
-  // Container has a single Frame ruleset for the always-on outer chrome.
-  const frameTokens: Token[] = [
-    { label: 'surface color', groupKey: 'surface', variable: '--collapsiblesection-container-frame-surface' },
+  // Container part: the always-on outer chrome of the Container variant only.
+  const containerPartTokens: Token[] = [
     { label: 'border color', groupKey: 'border', variable: '--collapsiblesection-container-frame-border' },
     { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: '--collapsiblesection-container-frame-border-width' },
     { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: '--collapsiblesection-container-frame-radius' },
   ];
 
-  // Expanded panel: chromeless/divider only own padding; container also paints
-  // its own surface so the content area can read distinct from the header strip.
-  function expandedTokens(v: Variant): Token[] {
+  // Body: revealed content area. Chromeless/divider only own padding; container
+  // also paints its own surface so the body can read distinct from the header.
+  // (CSS var name keeps the `expanded` slug for backward compatibility.)
+  function bodyTokens(v: Variant): Token[] {
     const p = `--collapsiblesection-${v}-expanded`;
     const tokens: Token[] = [];
     if (v === 'container') tokens.push({ label: 'surface color', groupKey: 'surface', variable: `${p}-surface` });
@@ -57,21 +61,24 @@
     return tokens;
   }
 
-  // Single per-variant state map: frame (container only), default/hover/active,
-  // expanded. State-tab strip inside the VariantGroup walks this sequence so the
-  // user moves through the whole variant from one tabbed surface.
+  // Two-tier "Element / State" key convention. VariantGroup detects the " / "
+  // separator and renders a parts strip on top with a state sub-strip beneath
+  // when the active part has interaction states. Parts:
+  //   - Container: outer chrome (container variant only) — no sub-states
+  //   - Header: the always-visible bar — has Default/Hover/Current states
+  //   - Body: the revealed content panel — no sub-states
   function variantStates(v: Variant): Record<string, Token[]> {
     const out: Record<string, Token[]> = {};
-    if (v === 'container') out.frame = frameTokens;
-    for (const s of HEADER_STATES) out[s] = headerStateTokens(v, s);
-    out.expanded = expandedTokens(v);
+    if (v === 'container') out['Container'] = containerPartTokens;
+    for (const s of HEADER_STATES) out[`Header / ${HEADER_STATE_LABELS[s]}`] = headerStateTokens(v, s);
+    out['Body'] = bodyTokens(v);
     return out;
   }
 
-  // Label typography only attaches to header states; frame and expanded don't
-  // own text. VariantGroup tolerates a partial map.
+  // Label typography only attaches to header states; Container and Body don't
+  // own text. Keys match the corresponding entries in `variantStates`.
   function variantTypeGroups(v: Variant): Record<string, TypeGroupConfig[]> {
-    return Object.fromEntries(HEADER_STATES.map((s) => [s, [{
+    return Object.fromEntries(HEADER_STATES.map((s) => [`Header / ${HEADER_STATE_LABELS[s]}`, [{
       legend: 'label',
       colorVariable: `--collapsiblesection-${v}-${s}-label`,
       familyVariable: `--collapsiblesection-${v}-${s}-label-font-family`,
@@ -144,20 +151,20 @@
       
     >
       {#snippet children({ activeState })}
-            {@const isExpanded = activeState === 'expanded'}
-        {@const isFrame = activeState === 'frame'}
-        {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
-        {@const forceActive = activeState === 'active'}
+        {@const isContainerPart = activeState === 'Container'}
+        {@const isBody = activeState === 'Body'}
+        {@const forceClass = activeState === 'Header / Hover' ? 'force-hover' : ''}
+        {@const forceActive = activeState === 'Header / Current'}
         <CollapsibleSection
           variant={v}
           label="Click to expand"
-          expanded={isExpanded}
+          expanded={isBody}
           active={forceActive}
           class={forceClass}
         >
           <p style="margin: 0; color: var(--text-secondary);">
-            {#if isFrame}
-              (Frame) — outer chrome only; expand the section to see content area styling.
+            {#if isContainerPart}
+              (Container) — outer chrome only; switch to Body to see the content area.
             {:else}
               This content is revealed when the section is expanded. Any content can go here.
             {/if}

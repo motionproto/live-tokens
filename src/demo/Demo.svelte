@@ -538,39 +538,6 @@
     line-height: 1.1;
   }
 
-  .arch-table :global(table) {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .arch-table :global(th),
-  .arch-table :global(td) {
-    text-align: left;
-    padding: var(--space-12) var(--space-16);
-    vertical-align: middle;
-  }
-
-  .arch-table :global(th) {
-    background: var(--surface-canvas-low);
-    color: var(--text-primary);
-    font-family: var(--font-sans);
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
-    text-transform: uppercase;
-    border-bottom: var(--border-width-1) solid var(--border-canvas-subtle);
-  }
-
-  .arch-table :global(td) {
-    font-family: var(--font-sans);
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    border-bottom: var(--border-width-1) solid var(--border-canvas-faint);
-  }
-
-  .arch-table :global(tbody tr:last-child td) {
-    border-bottom: none;
-  }
-
   .arch-table :global(code) {
     font-family: var(--font-mono);
     font-size: 0.9em;
