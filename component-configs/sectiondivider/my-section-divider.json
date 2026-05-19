@@ -2,7 +2,7 @@
   "name": "my-section-divider",
   "component": "sectiondivider",
   "createdAt": "2026-05-19T12:01:57.271Z",
-  "updatedAt": "2026-05-19T12:01:57.274Z",
+  "updatedAt": "2026-05-19T14:40:12.040Z",
   "aliases": {
     "--sectiondivider-canvas-padding": "--space-16",
     "--sectiondivider-canvas-title": "--text-primary",
@@ -147,8 +147,14 @@
     "--sectiondivider-special-radius": "--radius-lg",
     "--sectiondivider-special-border": "--color-transparent",
     "--sectiondivider-special-border-width": "--border-width-0",
-    "--sectiondivider-special-shadow": "--shadow-none"
+    "--sectiondivider-special-shadow": "--shadow-none",
+    "--sectiondivider-primary-title-letter-spacing": "--letter-spacing-normal",
+    "--sectiondivider-accent-title-letter-spacing": "--letter-spacing-normal",
+    "--sectiondivider-neutral-title-letter-spacing": "--letter-spacing-normal",
+    "--sectiondivider-special-title-letter-spacing": "--letter-spacing-normal",
+    "--sectiondivider-canvas-title-letter-spacing": "--letter-spacing-normal",
+    "--sectiondivider-alternate-title-letter-spacing": "--letter-spacing-normal"
   },
   "config": {},
-  "schemaVersion": 6
+  "schemaVersion": 7
 }

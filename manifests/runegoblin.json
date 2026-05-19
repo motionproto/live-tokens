@@ -1,7 +1,7 @@
 {
   "name": "Runegoblin",
   "createdAt": "2026-05-18T18:38:42.743Z",
-  "updatedAt": "2026-05-19T13:45:58.526Z",
+  "updatedAt": "2026-05-19T14:40:12.065Z",
   "theme": "runegoblin",
   "componentConfigs": {
     "badge": "rg-badge",
@@ -16,7 +16,7 @@
     "notification": "rg-notification",
     "progressbar": "rg-progressbar",
     "radiobutton": "rg-radiobutton",
-    "sectiondivider": "default",
+    "sectiondivider": "my-section-divider",
     "segmentedcontrol": "rg-segmentedcontrol",
     "tabbar": "rg-tabbar",
     "table": "default",

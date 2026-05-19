@@ -1513,6 +1513,8 @@
   --radiobutton-active-dot-fill: var(--color-brand-500);
   --radiobutton-active-dot-size: var(--dot-size-75);
   --radiobutton-active-label-line-height: var(--line-height-tight);
+  /* sectiondivider (my-section-divider) */
+  --sectiondivider-primary-description: var(--text-primary);
   /* segmentedcontrol (rg-segmentedcontrol) */
   --segmentedcontrol-bar-surface: var(--surface-neutral-lowest);
   --segmentedcontrol-bar-radius: var(--radius-xl);
