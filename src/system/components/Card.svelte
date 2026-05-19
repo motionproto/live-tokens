@@ -81,7 +81,6 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    letter-spacing: normal;
   }
 
   .card:not(.no-hover):hover,

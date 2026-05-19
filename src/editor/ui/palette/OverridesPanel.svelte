@@ -1,5 +1,6 @@
 <script lang="ts">
   import ScaleCurveEditor from './ScaleCurveEditor.svelte';
+  import UIPillButton from '../UIPillButton.svelte';
   import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig, textLightnessCurveConfig } from '../curveEngine';
   import { scaleToCssVar } from '../../core/palettes/paletteDerivation';
 
@@ -126,19 +127,16 @@
   <div class="scale-header">
     <h4 class="scale-title">{scale.title}</h4>
     {#if supportsSnap}
-      <button
-        class="edit-toggle"
-        class:active={snapped}
-        type="button"
+      <UIPillButton
+        size="compact"
+        variant={snapped ? 'primary' : 'outline'}
         onclick={() => onToggleSnap(scale)}
-      >{snapped ? 'Unsnap' : 'Snap All'}</button>
+      >{snapped ? 'Unsnap' : 'Snap All'}</UIPillButton>
     {/if}
-    <button class="edit-toggle" type="button" onclick={() => onClearScaleOverrides(scale)}>Clear Overrides</button>
-    <button
-      class="edit-toggle"
-      type="button"
-      onclick={() => onToggleEditor(scale.title)}
-    >{editorOpen ? 'Close' : 'Edit'}</button>
+    <UIPillButton size="compact" variant="outline" onclick={() => onClearScaleOverrides(scale)}>Clear Overrides</UIPillButton>
+    <UIPillButton size="compact" variant="outline" onclick={() => onToggleEditor(scale.title)}>
+      {editorOpen ? 'Close' : 'Edit'}
+    </UIPillButton>
   </div>
   <div class="swatch-grid" style="--swatch-cols: {scale.steps.length}; --swatch-gap: var(--ui-space-8)">
     {#each scale.steps as step}
@@ -276,36 +274,15 @@
     display: flex;
     align-items: center;
     gap: var(--ui-space-8);
+    padding-bottom: 0.5rem;
   }
 
   .scale-title {
-    font-size: var(--ui-font-size-md);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-tertiary);
+    font-size: var(--ui-font-size-lg);
+    font-weight: var(--ui-font-weight-bold);
+    color: var(--ui-text-primary);
     margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .edit-toggle {
-    font-size: var(--ui-font-size-md);
-    color: var(--ui-text-tertiary);
-    background: none;
-    border: 1px solid var(--ui-border-low);
-    border-radius: var(--ui-radius-sm);
-    padding: var(--ui-space-2) var(--ui-space-6);
-    cursor: pointer;
-  }
-
-  .edit-toggle:hover {
-    color: var(--ui-text-primary);
-    border-color: var(--ui-border-high);
-  }
-
-  .edit-toggle.active {
-    color: var(--ui-text-primary);
-    border-color: var(--ui-border-high);
-    background: var(--ui-surface-high);
+    padding-right: 1rem;
   }
 
   .swatch-grid {

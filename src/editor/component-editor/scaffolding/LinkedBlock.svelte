@@ -311,7 +311,6 @@
     font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-medium);
     color: var(--ui-text-primary);
-    letter-spacing: 0.005em;
   }
 
   /* Control row hosts a single TokenLayout-rendered selector + resolved value.

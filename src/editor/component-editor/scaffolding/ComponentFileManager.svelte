@@ -483,7 +483,6 @@
     font-size: var(--ui-font-size-3xl);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
-    letter-spacing: -0.015em;
     line-height: 1.1;
   }
 
@@ -536,7 +535,6 @@
     font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
     color: var(--ui-text-secondary);
     line-height: 1.1;
   }
@@ -546,7 +544,6 @@
     align-items: center;
     gap: var(--ui-space-4);
     font-size: 0.75rem;
-    letter-spacing: 0.02em;
     color: var(--ui-text-muted);
     line-height: 1;
   }

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { flip } from 'svelte/animate';
+  import { cubicOut } from 'svelte/easing';
   import type {
     FontFamily,
     FontSource,
@@ -32,6 +34,10 @@
   }
 
   let stacks = $derived(ensureAllStacksPresent(fontStacksList));
+
+  function variableLabel(v: string): string {
+    return v.replace(/^--/, '').split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
 
   function slotKey(slot: FontStackSlot): string {
     if (slot.kind === 'project') return `project:${slot.familyId}`;
@@ -108,8 +114,12 @@
     });
   }
 
+  /* Drag UX: the source row lifts (opacity, shadow); a white insertion bar
+     sits in the gap between rows at the projected drop position. The array
+     is only mutated on drop. animate:flip then slides every row to its new
+     spot, so the commit doesn't snap. */
   let dragSource: { variable: FontStackVariable; index: number } | null = $state(null);
-  let dragOver: { variable: FontStackVariable; index: number; position: 'before' | 'on' | 'after' } | null = $state(null);
+  let dragOver: { variable: FontStackVariable; index: number; position: 'before' | 'after' } | null = $state(null);
 
   function onDragStart(e: DragEvent, variable: FontStackVariable, index: number) {
     if (!e.dataTransfer) return;
@@ -124,9 +134,7 @@
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const y = e.clientY - rect.top;
-    const third = rect.height / 3;
-    const position = y < third ? 'before' : y > rect.height - third ? 'after' : 'on';
+    const position: 'before' | 'after' = e.clientY - rect.top < rect.height / 2 ? 'before' : 'after';
     dragOver = { variable, index, position };
   }
 
@@ -137,12 +145,12 @@
   function onDrop(e: DragEvent, variable: FontStackVariable, index: number) {
     e.preventDefault();
     const slotPayload = e.dataTransfer?.getData('application/x-font-slot');
-    const position = dragOver?.position ?? 'on';
+    const position = dragOver?.position ?? 'before';
     dragOver = null;
     if (!slotPayload) return;
     const src = JSON.parse(slotPayload) as { variable: FontStackVariable; index: number };
     if (src.variable !== variable) return;
-    if (src.index === index && position === 'on') return;
+    if (src.index === index) return;
     updateStack(variable, (slots) => {
       const [moved] = slots.splice(src.index, 1);
       let target = index;
@@ -163,14 +171,13 @@
   {#each stacks as stack (stack.variable)}
     <div class="font-stack">
       <div class="stack-header">
-        <span class="stack-variable">{stack.variable}</span>
+        <span class="stack-variable">{variableLabel(stack.variable)}</span>
       </div>
       <div class="font-stack-list">
-        {#each stack.slots as slot, i (i + ':' + slotKey(slot))}
+        {#each stack.slots as slot, i (slotKey(slot))}
           <!-- svelte-ignore a11y_no_static_element_interactions -->
           <div
             class="slot-row"
-            class:drop-on={dragOver?.variable === stack.variable && dragOver?.index === i && dragOver?.position === 'on'}
             class:drop-before={dragOver?.variable === stack.variable && dragOver?.index === i && dragOver?.position === 'before'}
             class:drop-after={dragOver?.variable === stack.variable && dragOver?.index === i && dragOver?.position === 'after'}
             class:dragging={dragSource?.variable === stack.variable && dragSource?.index === i}
@@ -180,14 +187,11 @@
             ondragleave={onDragLeave}
             ondrop={(e) => onDrop(e, stack.variable, i)}
             ondragend={onDragEnd}
+            animate:flip={{ duration: 220, easing: cubicOut }}
           >
-            <span class="drag-handle" aria-hidden="true">⋮⋮</span>
-            <span class="slot-position">{i + 1}.</span>
-            <div class="slot-main">
-              <span
-                class="slot-preview"
-                style="font-family: {slotCssValue(slot)};{stack.variable === '--font-display' ? ' font-size: var(--ui-font-size-2xl);' : ''}"
-              >The quick brown fox jumps over the lazy dog</span>
+            <div class="slot-controls">
+              <span class="drag-handle" aria-hidden="true">⋮⋮</span>
+              <span class="slot-position">{i + 1}.</span>
               <select
                 class="ui-form-select slot-select"
                 value={slotKey(slot)}
@@ -211,15 +215,19 @@
                   {/each}
                 </optgroup>
               </select>
+              <button
+                type="button"
+                class="slot-remove"
+                aria-label="Remove slot"
+                title="Remove"
+                onclick={() => removeSlot(stack.variable, i)}
+                disabled={stack.slots.length <= 1}
+              >×</button>
             </div>
-            <button
-              type="button"
-              class="slot-remove"
-              aria-label="Remove slot"
-              title="Remove"
-              onclick={() => removeSlot(stack.variable, i)}
-              disabled={stack.slots.length <= 1}
-            >×</button>
+            <span
+              class="slot-preview"
+              style="font-family: {slotCssValue(slot)};{stack.variable === '--font-display' ? ' font-size: var(--ui-font-size-2xl);' : ''}"
+            >The quick brown fox jumps over the lazy dog</span>
           </div>
         {/each}
       </div>
@@ -233,47 +241,104 @@
 <style>
   .font-stacks-columns {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
-    gap: var(--ui-space-8);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ui-space-24);
   }
 
+  @media (max-width: 720px) {
+    .font-stacks-columns {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Track: each font family is a bordered channel that the slot cards drop into.
+     The interior sits a step deeper than the page surface, so the slot cards
+     (surface-low) read as raised inside the depression. */
   .font-stack {
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: var(--ui-space-6);
-    padding: var(--ui-space-12);
-    background: none;
+    gap: var(--ui-space-12);
+    padding: var(--ui-space-20) var(--ui-space-12) var(--ui-space-16);
+    background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-low);
-    border-radius: var(--ui-radius-md);
+    border-radius: var(--ui-radius-lg);
   }
 
+  /* Legend: knock through the top border like a native <fieldset>'s <legend>.
+     Editor content bg is solid black; the header paints over the border line
+     to cut it. */
   .stack-header {
+    position: absolute;
+    top: 0;
+    left: var(--ui-space-12);
+    transform: translateY(-50%);
     display: flex;
     align-items: center;
+    padding: 0 var(--ui-space-6);
+    background: black;
+    line-height: 1;
   }
 
   .stack-variable {
-    font-family: var(--ui-font-mono);
-    font-size: var(--ui-font-size-md);
+    font-size: var(--ui-font-size-lg);
+    font-weight: var(--ui-font-weight-bold);
     color: var(--ui-text-primary);
   }
 
   .font-stack-list {
     display: flex;
     flex-direction: column;
-    gap: var(--ui-space-4);
+    gap: var(--ui-space-8);
   }
 
   .slot-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-10);
+    border: 1px solid var(--ui-border-low);
+    border-radius: var(--ui-radius-md);
+    background: var(--ui-surface-low);
+    position: relative;
+    transition:
+      opacity var(--ui-transition-fast),
+      transform var(--ui-transition-fast),
+      border-color var(--ui-transition-fast);
+  }
+  .slot-row:hover { border-color: var(--ui-border); }
+
+  .slot-controls {
     display: grid;
     grid-template-columns: auto auto 1fr auto;
     align-items: center;
-    gap: var(--ui-space-6);
-    padding: var(--ui-space-4) 0;
-    border-bottom: 1px solid var(--ui-border-low);
-    position: relative;
+    gap: var(--ui-space-8);
   }
-  .slot-row:last-child { border-bottom: none; }
+
+  /* Reorder UX: a thin white bar sits in the existing 8px gap between rows
+     as the insertion indicator. The bar is absolutely positioned and consumes
+     no layout space, so the parent track stays the same height. On drop, the
+     array commits and animate:flip slides each row to its new position. */
+  .slot-row.drop-before::before,
+  .slot-row.drop-after::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--ui-text-primary);
+    border-radius: 1px;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.45);
+  }
+  .slot-row.drop-before::before { top: -5px; }
+  .slot-row.drop-after::after   { bottom: -5px; }
+
+  .slot-row.dragging {
+    opacity: 0.55;
+    z-index: 2;
+    border-color: var(--ui-border-high);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+  }
 
   .drag-handle {
     cursor: grab;
@@ -281,35 +346,14 @@
     color: var(--ui-text-muted);
     font-size: var(--ui-font-size-md);
     line-height: 1;
-    letter-spacing: -2px;
   }
   .slot-row.dragging .drag-handle { cursor: grabbing; }
-  .slot-row.dragging { opacity: 0.55; }
-
-  .slot-row.drop-on { outline: 2px solid var(--ui-focus, #5eb2ff); outline-offset: -2px; }
-  .slot-row.drop-before::before,
-  .slot-row.drop-after::after {
-    content: '';
-    position: absolute;
-    left: 0; right: 0;
-    height: 2px;
-    background: var(--ui-focus, #5eb2ff);
-  }
-  .slot-row.drop-before::before { top: -1px; }
-  .slot-row.drop-after::after { bottom: -1px; }
 
   .slot-position {
     font-size: var(--ui-font-size-md);
     color: var(--ui-text-muted);
     min-width: 1.25rem;
     text-align: right;
-  }
-
-  .slot-main {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-2);
-    min-width: 0;
   }
 
   .slot-preview {

@@ -297,30 +297,30 @@
           {@render children?.({ activeState: activeTab })}
         </ShadowBackdrop>
       {/if}
-    </div>
 
-    {#if tabsStripVisible}
-      <div class="tabs-states-block">
-        <span class="editor-subsection-title">{selectorLabel}</span>
-        <div class="tabs-selectors">
-          <div class="state-tabs" role="tablist">
-            {#each stateNames as s}
-              <button
-                type="button"
-                class="state-tab-btn"
-                class:active={activeTab === s}
-                role="tab"
-                aria-selected={activeTab === s}
-                onclick={() => { activeTab = s; focusedStateStore.set(s); }}
-              >{s}</button>
-            {/each}
+      {#if tabsStripVisible}
+        <div class="tabs-states-block">
+          <span class="editor-subsection-title">{selectorLabel}</span>
+          <div class="tabs-selectors">
+            <div class="state-tabs" role="tablist">
+              {#each stateNames as s}
+                <button
+                  type="button"
+                  class="state-tab-btn"
+                  class:active={activeTab === s}
+                  role="tab"
+                  aria-selected={activeTab === s}
+                  onclick={() => { activeTab = s; focusedStateStore.set(s); }}
+                >{s}</button>
+              {/each}
+            </div>
+            {#if activeTab}
+              {@render stateActions?.(activeTab)}
+            {/if}
           </div>
-          {#if activeTab}
-            {@render stateActions?.(activeTab)}
-          {/if}
         </div>
-      </div>
-    {/if}
+      {/if}
+    </div>
 
     {#if activeTab && states[activeTab]}
       {@const stateName = activeTab}
@@ -379,10 +379,42 @@
     gap: var(--ui-space-12);
   }
 
+  /* Pin the preview + state-tab strip to the top of the page scroll so
+     property edits stay visually connected to the preview without scrolling.
+     The card background extends through the sticky band so the property grid
+     scrolls cleanly behind it. The element-grouped property layout (see
+     StateBlock) fans out horizontally, which keeps the property section
+     short enough that the sticky preview rarely steals usable space. */
   .tabs-preview {
+    position: sticky;
+    top: 0;
+    z-index: 2;
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-20);
+    background: var(--ui-surface-low);
+    /* Bleed the background up through the card's top padding so content
+       scrolling behind doesn't peek between the viewport edge and the
+       pinned preview. The matching negative margin restores flow position.
+       Border-radius hugs the card's rounded top corners so the unpinned
+       state still reads as one continuous panel. */
+    margin: calc(-1 * var(--ui-space-20)) calc(-1 * var(--ui-space-20)) 0;
+    padding: var(--ui-space-20) var(--ui-space-20) 0;
+    border-radius: var(--ui-radius-md) var(--ui-radius-md) 0 0;
+  }
+
+  /* Soft fade at the bottom of the sticky band so property rows scrolling
+     up don't sharply cut against the pinned preview. Greyscale (no accent).
+     Sits below the preview body, above scrolling content. */
+  .tabs-preview::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(-1 * var(--ui-space-12));
+    height: var(--ui-space-12);
+    background: linear-gradient(to bottom, var(--ui-surface-low), transparent);
+    pointer-events: none;
   }
 
   .preview-header {

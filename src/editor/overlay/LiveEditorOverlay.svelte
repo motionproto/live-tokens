@@ -451,7 +451,6 @@
     font-size: var(--ui-font-size-md, 16px);
     font-weight: var(--ui-font-weight-semibold, 600);
     color: rgba(255, 255, 255, 0.85);
-    letter-spacing: 0.02em;
   }
 
   .spacer { flex: 1; }
@@ -460,7 +459,6 @@
     font-size: var(--ui-font-size-md, 16px);
     font-weight: var(--ui-font-weight-medium, 500);
     color: rgba(255, 255, 255, 0.4);
-    letter-spacing: 0.02em;
     margin-left: var(--ui-space-2, 2px);
     user-select: none;
   }
@@ -523,7 +521,6 @@
   .seg-label {
     font-size: var(--ui-font-size-md, 16px);
     font-weight: var(--ui-font-weight-semibold, 600);
-    letter-spacing: 0.02em;
     color: var(--ui-text-primary, #fff);
   }
 

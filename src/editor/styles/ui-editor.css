@@ -96,6 +96,7 @@
   --ui-font-size-3xl: 1.75rem;    /* 28px */
   --ui-font-size-4xl: 2.25rem;    /* 36px */
 
+  --ui-font-weight-light:     200;
   --ui-font-weight-normal:    400;
   --ui-font-weight-medium:    500;
   --ui-font-weight-semibold:  600;

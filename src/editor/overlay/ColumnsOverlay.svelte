@@ -118,7 +118,6 @@
     font-family: var(--ui-font-mono, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace);
     font-size: 10px;
     color: rgba(255, 255, 255, 0.75);
-    letter-spacing: 0.02em;
     white-space: nowrap;
   }
 

@@ -592,6 +592,15 @@
   --line-height-lg: 1.75;
   --line-height-xl: 2;
 
+  /* Letter Spacing
+     5-point scale, symmetric around normal (0). Provided for occasional
+     use at display sizes; intentionally not referenced from most rules. */
+  --letter-spacing-tighter: -0.04em;
+  --letter-spacing-tight:   -0.02em;
+  --letter-spacing-normal:   0;
+  --letter-spacing-wide:     0.04em;
+  --letter-spacing-wider:    0.08em;
+
   /* Exported token additions */
   --text-alternate: #a59e9b;
   --text-alternate-secondary: #908b89;
@@ -1339,3 +1348,102 @@
   --card-hover-header-surface: var(--surface-neutral-high);
   --card-hover-border-width: var(--border-width-1);
 }
+
+/* component-aliases:start */
+:root:root {
+  /* button (my-button) */
+  --button-primary-text-font-size: var(--font-size-md);
+  --button-primary-text-font-weight: var(--font-weight-medium);
+  --button-secondary-text-font-size: var(--font-size-md);
+  --button-secondary-text-font-weight: var(--font-weight-medium);
+  --button-outline-text-font-size: var(--font-size-md);
+  --button-outline-text-font-weight: var(--font-weight-medium);
+  --button-success-text-font-size: var(--font-size-md);
+  --button-success-text-font-weight: var(--font-weight-medium);
+  --button-danger-text-font-size: var(--font-size-md);
+  --button-danger-text-font-weight: var(--font-weight-medium);
+  --button-warning-text-font-size: var(--font-size-md);
+  --button-warning-text-font-weight: var(--font-weight-medium);
+  --button-primary-padding-top: var(--space-6);
+  --button-primary-hover-padding-top: var(--space-6);
+  --button-primary-disabled-padding-top: var(--space-6);
+  --button-secondary-padding-top: var(--space-6);
+  --button-secondary-hover-padding-top: var(--space-6);
+  --button-secondary-disabled-padding-top: var(--space-6);
+  --button-outline-padding-top: var(--space-6);
+  --button-outline-hover-padding-top: var(--space-6);
+  --button-outline-disabled-padding-top: var(--space-6);
+  --button-success-padding-top: var(--space-6);
+  --button-success-hover-padding-top: var(--space-6);
+  --button-success-disabled-padding-top: var(--space-6);
+  --button-danger-padding-top: var(--space-6);
+  --button-danger-hover-padding-top: var(--space-6);
+  --button-danger-disabled-padding-top: var(--space-6);
+  --button-warning-padding-top: var(--space-6);
+  --button-warning-hover-padding-top: var(--space-6);
+  --button-warning-disabled-padding-top: var(--space-6);
+  --button-primary-padding-right: var(--space-10);
+  --button-primary-hover-padding-right: var(--space-10);
+  --button-primary-disabled-padding-right: var(--space-10);
+  --button-secondary-padding-right: var(--space-10);
+  --button-secondary-hover-padding-right: var(--space-10);
+  --button-secondary-disabled-padding-right: var(--space-10);
+  --button-outline-padding-right: var(--space-10);
+  --button-outline-hover-padding-right: var(--space-10);
+  --button-outline-disabled-padding-right: var(--space-10);
+  --button-success-padding-right: var(--space-10);
+  --button-success-hover-padding-right: var(--space-10);
+  --button-success-disabled-padding-right: var(--space-10);
+  --button-danger-padding-right: var(--space-10);
+  --button-danger-hover-padding-right: var(--space-10);
+  --button-danger-disabled-padding-right: var(--space-10);
+  --button-warning-padding-right: var(--space-10);
+  --button-warning-hover-padding-right: var(--space-10);
+  --button-warning-disabled-padding-right: var(--space-10);
+  --button-primary-padding-bottom: var(--space-6);
+  --button-primary-hover-padding-bottom: var(--space-6);
+  --button-primary-disabled-padding-bottom: var(--space-6);
+  --button-secondary-padding-bottom: var(--space-6);
+  --button-secondary-hover-padding-bottom: var(--space-6);
+  --button-secondary-disabled-padding-bottom: var(--space-6);
+  --button-outline-padding-bottom: var(--space-6);
+  --button-outline-hover-padding-bottom: var(--space-6);
+  --button-outline-disabled-padding-bottom: var(--space-6);
+  --button-success-padding-bottom: var(--space-6);
+  --button-success-hover-padding-bottom: var(--space-6);
+  --button-success-disabled-padding-bottom: var(--space-6);
+  --button-danger-padding-bottom: var(--space-6);
+  --button-danger-hover-padding-bottom: var(--space-6);
+  --button-danger-disabled-padding-bottom: var(--space-6);
+  --button-warning-padding-bottom: var(--space-6);
+  --button-warning-hover-padding-bottom: var(--space-6);
+  --button-warning-disabled-padding-bottom: var(--space-6);
+  --button-primary-padding-left: var(--space-10);
+  --button-primary-hover-padding-left: var(--space-10);
+  --button-primary-disabled-padding-left: var(--space-10);
+  --button-secondary-padding-left: var(--space-10);
+  --button-secondary-hover-padding-left: var(--space-10);
+  --button-secondary-disabled-padding-left: var(--space-10);
+  --button-outline-padding-left: var(--space-10);
+  --button-outline-hover-padding-left: var(--space-10);
+  --button-outline-disabled-padding-left: var(--space-10);
+  --button-success-padding-left: var(--space-10);
+  --button-success-hover-padding-left: var(--space-10);
+  --button-success-disabled-padding-left: var(--space-10);
+  --button-danger-padding-left: var(--space-10);
+  --button-danger-hover-padding-left: var(--space-10);
+  --button-danger-disabled-padding-left: var(--space-10);
+  --button-warning-padding-left: var(--space-10);
+  --button-warning-hover-padding-left: var(--space-10);
+  --button-warning-disabled-padding-left: var(--space-10);
+  /* callout (my-callout) */
+  --callout-info-label-font-family: var(--font-sans);
+  --callout-info-text-font-family: var(--font-sans);
+  --callout-success-label-font-family: var(--font-sans);
+  --callout-success-text-font-family: var(--font-sans);
+  --callout-warning-label-font-family: var(--font-sans);
+  --callout-warning-text-font-family: var(--font-sans);
+  --callout-danger-label-font-family: var(--font-sans);
+  --callout-danger-text-font-family: var(--font-sans);
+}
+/* component-aliases:end */

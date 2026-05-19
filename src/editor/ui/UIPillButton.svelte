@@ -2,7 +2,7 @@
   import type { Snippet } from 'svelte';
 
   interface Props {
-    variant?: 'primary' | 'default' | 'secondary';
+    variant?: 'primary' | 'default' | 'secondary' | 'outline';
     size?: 'default' | 'compact';
     icon?: string;
     href?: string;
@@ -80,6 +80,12 @@
     border-color: rgba(255, 255, 255, 0.75);
   }
 
+  .ui-pill:focus-visible {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
+  }
+
   .ui-pill:disabled,
   .ui-pill[aria-disabled='true'] {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.10) 100%);
@@ -128,6 +134,21 @@
   .ui-pill-secondary:hover:not(:disabled):not([aria-disabled='true']) {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
     border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* Variant: outline — transparent fill, just a border; subtle fill on hover */
+  .ui-pill-outline {
+    background: none;
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+  .ui-pill-outline:hover:not(:disabled):not([aria-disabled='true']) {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.08) 100%);
+    border-color: rgba(255, 255, 255, 0.65);
+  }
+  .ui-pill-outline:disabled,
+  .ui-pill-outline[aria-disabled='true'] {
+    background: none;
+    border-color: rgba(255, 255, 255, 0.18);
   }
 
   /* Size: compact — for header bars / chrome rails */

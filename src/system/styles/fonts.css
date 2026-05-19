@@ -4,6 +4,9 @@
 /* Adobe Typekit — fira-code */
 @import url('https://use.typekit.net/jes8oow.css');
 
+/* Google Fonts — Arvo */
+@import url('https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
 /* Local — Fraunces */
 @font-face {
   font-family: "Fraunces";
@@ -28,6 +31,3 @@
   font-style: normal;
   font-display: swap;
 }
-
-/* Google Fonts — Arvo */
-@import url('https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&display=swap');

@@ -77,7 +77,6 @@
   .seg-label {
     font-size: 10px;
     font-weight: var(--ui-font-weight-semibold);
-    letter-spacing: 0.04em;
     text-transform: uppercase;
     color: #fff;
     padding-left: var(--ui-space-2);

@@ -164,7 +164,7 @@
   .section {
     display: flex;
     flex-direction: column;
-    gap: var(--ui-space-16);
+    gap: var(--ui-space-24);
   }
 
   .section-title {
@@ -244,7 +244,6 @@
     font-size: 9px;
     font-family: var(--ui-font-mono);
     color: var(--ui-text-muted);
-    letter-spacing: 0.04em;
     pointer-events: none;
     line-height: 1;
   }

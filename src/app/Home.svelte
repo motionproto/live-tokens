@@ -57,7 +57,6 @@
     display: block;
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-normal);
-    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-tertiary);
     margin-bottom: var(--space-8);

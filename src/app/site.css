@@ -24,7 +24,7 @@ h2 {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
-  letter-spacing: 0.01em;
+  letter-spacing: var(--letter-spacing-normal);
   margin: var(--space-32) 0 var(--space-12);
   line-height: var(--line-height-sm);
   overflow-wrap: break-word;

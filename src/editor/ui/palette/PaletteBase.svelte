@@ -153,13 +153,13 @@
   }
 
   .editor-label {
-    font-size: var(--ui-font-size-lg);
+    font-size: var(--ui-font-size-xl);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-primary);
   }
 
   .base-hex {
-    font-size: var(--ui-font-size-xs);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-secondary);
     font-family: var(--ui-font-mono);
   }
@@ -172,7 +172,7 @@
     padding: var(--ui-space-2) var(--ui-space-4);
     margin-left: calc(-1 * var(--ui-space-4));
     border-radius: var(--ui-radius-sm);
-    font-size: var(--ui-font-size-xs);
+    font-size: var(--ui-font-size-md);
     color: var(--ui-text-secondary);
     font-family: var(--ui-font-mono);
     text-align: left;

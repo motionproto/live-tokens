@@ -334,7 +334,6 @@
     font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
   }
 
   .mfm-card {
@@ -373,7 +372,6 @@
   .mfm-card-label {
     font-size: 10px;
     font-weight: var(--ui-font-weight-semibold);
-    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ui-text-tertiary);
   }

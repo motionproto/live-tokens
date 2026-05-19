@@ -211,7 +211,6 @@
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
     cursor: pointer;
     text-align: left;
   }
@@ -320,7 +319,6 @@
     border: 1px solid #3a3a3a;
     color: #888;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
   }
 
   .updated-at {

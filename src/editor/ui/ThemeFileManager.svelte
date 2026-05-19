@@ -457,7 +457,6 @@
     font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
   }
 
   /* Two-card pipeline (Editor → Production) — theme card + production card
@@ -506,7 +505,6 @@
     font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
     color: var(--ui-text-secondary);
     line-height: 1.1;
   }
@@ -516,7 +514,6 @@
     align-items: center;
     gap: var(--ui-space-4);
     font-size: 0.7rem;
-    letter-spacing: 0.02em;
     color: var(--ui-text-muted);
     line-height: 1;
   }
@@ -607,7 +604,6 @@
 
   .tfm-revert-label {
     font-weight: var(--ui-font-weight-semibold, 600);
-    letter-spacing: 0.02em;
     white-space: nowrap;
   }
 

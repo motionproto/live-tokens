@@ -181,7 +181,6 @@
     color: var(--ui-text-primary);
     font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
-    letter-spacing: 0.02em;
     line-height: 1.2;
   }
 

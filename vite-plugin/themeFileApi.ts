@@ -256,15 +256,25 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     lines.push('/* Both fonts.css and fonts/ are in dist/, so relative paths work at runtime. */');
     lines.push('');
 
-    for (const source of sources) {
+    // CSS requires all @import rules to precede other statements, so emit
+    // URL-based sources first and font-face rules after, regardless of the
+    // order they appear in fontSources.
+    const urlSources = sources.filter((s) => s.kind !== 'font-face' && s.url);
+    const faceSources = sources.filter((s) => s.kind === 'font-face' && s.cssText);
+
+    for (const source of urlSources) {
       const familyNames = source.families.map((f) => f.name).join(', ');
       const label = source.label ? `${source.label} — ${familyNames}` : familyNames;
       lines.push(`/* ${label} */`);
-      if (source.kind === 'font-face') {
-        if (source.cssText) lines.push(source.cssText);
-      } else if (source.url) {
-        lines.push(`@import url('${source.url}');`);
-      }
+      lines.push(`@import url('${source.url}');`);
+      lines.push('');
+    }
+
+    for (const source of faceSources) {
+      const familyNames = source.families.map((f) => f.name).join(', ');
+      const label = source.label ? `${source.label} — ${familyNames}` : familyNames;
+      lines.push(`/* ${label} */`);
+      lines.push(source.cssText!);
       lines.push('');
     }
 

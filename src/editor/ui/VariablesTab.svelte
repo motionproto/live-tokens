@@ -8,7 +8,6 @@
   import OverlaysSection from './sections/OverlaysSection.svelte';
   import GradientsSection from './sections/GradientsSection.svelte';
   import ShadowsSection from './sections/ShadowsSection.svelte';
-  import UIPillButton from './UIPillButton.svelte';
   import {
     SPACING_VARS, BORDER_WIDTH_VARS, RADIUS_VARS, FONT_SIZE_VARS,
     ICON_SIZE_VARS, FONT_WEIGHT_VARS, LINE_HEIGHT_VARS,
@@ -42,8 +41,6 @@
     setTimeout(() => { copiedVar = null; }, COPIED_FLASH_MS);
   }
 
-  type FontAddMode = 'closed' | 'url' | 'fontface';
-  let fontAddMode: FontAddMode = $state('closed');
 </script>
 
 <div class="variables-container">
@@ -68,10 +65,16 @@
   <!-- Spacing & Borders -->
   <section class="section" id="spacing">
     <h2 class="section-title">Spacing &amp; Borders</h2>
-    <h3 class="subsection-title">Spacing</h3>
-    <TokenScaleTable kind="spacing" vars={SPACING_VARS} {liveVersion} {copiedVar} oncopy={copyVariable} />
-    <h3 class="subsection-title">Borders</h3>
-    <TokenScaleTable kind="border" vars={BORDER_WIDTH_VARS} {liveVersion} {copiedVar} oncopy={copyVariable} />
+    <div class="spacing-borders-columns">
+      <div class="spacing-borders-group">
+        <h3 class="subsection-title">Spacing</h3>
+        <TokenScaleTable kind="spacing" vars={SPACING_VARS} {liveVersion} {copiedVar} oncopy={copyVariable} />
+      </div>
+      <div class="spacing-borders-group">
+        <h3 class="subsection-title">Borders</h3>
+        <TokenScaleTable kind="border" vars={BORDER_WIDTH_VARS} {liveVersion} {copiedVar} oncopy={copyVariable} />
+      </div>
+    </div>
   </section>
 
   <!-- Columns -->
@@ -85,18 +88,11 @@
 
   <!-- Typography -->
   <section class="section" id="typography">
-    <div class="typography-header">
-      <h2 class="section-title">Typography</h2>
-      <UIPillButton
-        variant="primary"
-        icon="fa-plus"
-        onclick={() => { fontAddMode = fontAddMode === 'closed' ? 'url' : 'closed'; }}
-      >Add Font</UIPillButton>
-    </div>
+    <h2 class="section-title">Typography</h2>
 
     <div class="typography-columns">
       <div class="typography-group font-families-group">
-        <ProjectFontsSection bind:addMode={fontAddMode} />
+        <ProjectFontsSection />
         <h3 class="group-title">Font Families</h3>
         <FontStackEditor />
       </div>
@@ -161,13 +157,13 @@
   .variables-container {
     display: flex;
     flex-direction: column;
-    gap: var(--ui-space-32);
+    gap: var(--ui-space-48);
   }
 
   .section {
     display: flex;
     flex-direction: column;
-    gap: var(--ui-space-16);
+    gap: var(--ui-space-24);
   }
 
   .section-title {
@@ -179,10 +175,12 @@
     border-bottom: 2px solid var(--ui-border-high);
   }
 
+  /* Tier-2 group header: xl bold white. No divider — vertical rhythm carries the
+     separation, matching the palette section's title style at a smaller size. */
   .group-title {
-    font-size: var(--ui-font-size-lg);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-xl);
+    font-weight: var(--ui-font-weight-bold);
+    color: var(--ui-text-primary);
     margin: 0;
   }
 
@@ -193,27 +191,32 @@
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
   }
 
-  .subsection-title:first-child,
-  .section-title + .subsection-title {
+  .subsection-title:first-child {
     margin-top: 0;
   }
 
-  /* Typography */
-  .typography-header {
+  /* Spacing & Borders columns */
+  .spacing-borders-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
+    gap: var(--ui-space-24);
+    align-items: start;
+  }
+
+  .spacing-borders-group {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--ui-space-12);
-    padding-bottom: var(--ui-space-8);
-    border-bottom: 2px solid var(--ui-border-high);
+    flex-direction: column;
+    gap: var(--ui-space-8);
+    min-width: 0;
   }
-  .typography-header .section-title {
-    padding-bottom: 0;
-    border-bottom: none;
+
+  .spacing-borders-group .subsection-title {
+    margin: 0;
   }
+
+  /* Typography */
   .typography-columns {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(22rem, 100%), 1fr));
@@ -224,12 +227,15 @@
   .typography-group {
     display: flex;
     flex-direction: column;
-    gap: var(--ui-space-8);
+    gap: var(--ui-space-12);
     min-width: 0;
   }
 
   .font-families-group {
     grid-column: 1 / -1;
+    /* Two logical groups stacked here (Project Fonts + Font Families); space them
+       further apart than peers inside a single group. */
+    gap: var(--ui-space-32);
   }
 
   /* Utility Tokens */

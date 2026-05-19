@@ -202,14 +202,19 @@
     padding-top: calc(var(--ui-font-size-xs) + var(--ui-space-4));
   }
 
-  /* Element-grouped mode: vertical stack of subsections, each labeled by the
-     element it targets (e.g. Frame / Header / Body). Within a section the
-     two-col split (typography fieldsets + property grid) still applies when
-     the section has both. */
+  /* Element-grouped mode: subsections fan out across available width, each
+     labeled by the element it targets (e.g. Frame / Header / Body). Three
+     columns at typical editor widths, dropping to two then one as the panel
+     narrows — the auto-fit + minmax does the responsive work without media
+     queries. `align-items: start` keeps columns of different heights aligned
+     to their top edge instead of stretching the shorter ones.
+     Within a section the two-col split (typography fieldsets + property grid)
+     still applies when the section has both. */
   .state-controls.element-grouped {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-16);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    gap: var(--ui-space-20) var(--ui-space-28);
+    align-items: start;
   }
 
   /* Each element section stacks typography fieldset(s) above the property
@@ -249,7 +254,6 @@
     font-size: var(--ui-font-size-sm);
     font-weight: var(--ui-font-weight-semibold);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
     color: var(--ui-text-tertiary);
     padding-bottom: var(--ui-space-4);
     border-bottom: 1px solid var(--ui-border-low);

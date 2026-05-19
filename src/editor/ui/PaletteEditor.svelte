@@ -7,6 +7,7 @@
   import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig } from './curveEngine';
   import ColorEditPanel from './ColorEditPanel.svelte';
   import OverridesPanel from './palette/OverridesPanel.svelte';
+  import UIPillButton from './UIPillButton.svelte';
   import GradientStopEditor from './palette/GradientStopEditor.svelte';
   import ScaleCurveEditor from './palette/ScaleCurveEditor.svelte';
   import PaletteBase from './palette/PaletteBase.svelte';
@@ -606,12 +607,10 @@
             <span>Gradient</span>
           </label>
         {/if}
-        <button class="edit-toggle" type="button" onclick={clearPaletteOverrides}>Clear Overrides</button>
-        <button
-          class="edit-toggle"
-          type="button"
-          onclick={() => paletteEditorOpen = !paletteEditorOpen}
-        >{paletteEditorOpen ? 'Close' : 'Edit'}</button>
+        <UIPillButton size="compact" variant="outline" onclick={clearPaletteOverrides}>Clear Overrides</UIPillButton>
+        <UIPillButton size="compact" variant="outline" onclick={() => paletteEditorOpen = !paletteEditorOpen}>
+          {paletteEditorOpen ? 'Close' : 'Edit'}
+        </UIPillButton>
       </div>
       <div class="swatch-grid" style="--swatch-cols: {paletteStepLightness.length + 2}">
         <div class="step-column">
@@ -718,12 +717,10 @@
   <div class="scale-section">
     <div class="scale-header">
       <h4 class="scale-title">{displayLabel ?? label}</h4>
-      <button class="edit-toggle" type="button" onclick={clearPaletteOverrides}>Clear Overrides</button>
-      <button
-        class="edit-toggle"
-        type="button"
-        onclick={() => grayEditorOpen = !grayEditorOpen}
-      >{grayEditorOpen ? 'Close' : 'Edit'}</button>
+      <UIPillButton size="compact" variant="outline" onclick={clearPaletteOverrides}>Clear Overrides</UIPillButton>
+      <UIPillButton size="compact" variant="outline" onclick={() => grayEditorOpen = !grayEditorOpen}>
+        {grayEditorOpen ? 'Close' : 'Edit'}
+      </UIPillButton>
     </div>
     <div class="swatch-grid" style="--swatch-cols: {graySteps.length + 2}">
       <div class="step-column">
@@ -891,21 +888,7 @@
     display: flex;
     align-items: center;
     gap: var(--ui-space-8);
-  }
-
-  .edit-toggle {
-    font-size: var(--ui-font-size-md);
-    color: var(--ui-text-tertiary);
-    background: none;
-    border: 1px solid var(--ui-border-low);
-    border-radius: var(--ui-radius-sm);
-    padding: var(--ui-space-2) var(--ui-space-6);
-    cursor: pointer;
-  }
-
-  .edit-toggle:hover {
-    color: var(--ui-text-primary);
-    border-color: var(--ui-border-high);
+    padding-bottom: 0.5rem;
   }
 
   .derived-toggle {
@@ -915,17 +898,15 @@
     padding: var(--ui-space-6) var(--ui-space-4);
     background: none;
     border: none;
-    color: var(--ui-text-tertiary);
-    font-size: var(--ui-font-size-sm);
-    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-lg);
+    font-weight: var(--ui-font-weight-light);
     cursor: pointer;
     transition: color var(--ui-transition-fast);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
   }
 
   .derived-toggle:hover {
-    color: var(--ui-text-secondary);
+    color: var(--ui-text-primary);
   }
 
   .derived-toggle i {
@@ -952,12 +933,11 @@
   }
 
   .scale-title {
-    font-size: var(--ui-font-size-md);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-tertiary);
+    font-size: var(--ui-font-size-lg);
+    font-weight: var(--ui-font-weight-bold);
+    color: var(--ui-text-primary);
     margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    padding-right: 1rem;
   }
 
   /* Step columns */

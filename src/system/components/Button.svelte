@@ -226,7 +226,6 @@
 
    .button {
       cursor: pointer;
-      letter-spacing: 0.0125rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;

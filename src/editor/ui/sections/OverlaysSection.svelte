@@ -337,7 +337,7 @@
   .section {
     display: flex;
     flex-direction: column;
-    gap: var(--ui-space-16);
+    gap: var(--ui-space-24);
   }
 
   .section-title {

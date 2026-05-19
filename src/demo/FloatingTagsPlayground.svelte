@@ -52,7 +52,6 @@
     font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
     line-height: 1;
-    letter-spacing: -0.015em;
     margin: 0;
   }
 

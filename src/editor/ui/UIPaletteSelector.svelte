@@ -900,7 +900,6 @@
     font-family: var(--ui-font-mono);
     color: var(--ui-text-tertiary);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
     border-top: 1px solid var(--ui-border-low);
   }
 

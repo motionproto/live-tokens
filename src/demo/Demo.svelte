@@ -361,7 +361,6 @@
     font-variation-settings: 'opsz' 144, 'SOFT' 30;
     color: var(--text-primary);
     line-height: 1.15;
-    letter-spacing: -0.025em;
     margin: 0;
   }
 
@@ -524,7 +523,6 @@
     font-family: var(--font-sans);
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-semibold);
-    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--text-accent);
     margin-bottom: var(--space-4);
@@ -538,7 +536,6 @@
     font-weight: var(--font-weight-semibold);
     margin: 0;
     line-height: 1.1;
-    letter-spacing: -0.005em;
   }
 
   .arch-table :global(table) {
@@ -560,7 +557,6 @@
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-semibold);
     text-transform: uppercase;
-    letter-spacing: 0.12em;
     border-bottom: var(--border-width-1) solid var(--border-canvas-subtle);
   }
 
