@@ -422,7 +422,7 @@
 
   .lt-overlay.no-transition,
   .lt-overlay.no-transition .frame-wrap {
-    transition: none !important;
+    transition: none;
   }
 
   .header {

@@ -1,7 +1,7 @@
 {
   "name": "My Theme",
   "createdAt": "2026-05-19T15:35:49.317Z",
-  "updatedAt": "2026-05-20T10:21:01.721Z",
+  "updatedAt": "2026-05-20T13:34:24.788Z",
   "editorConfigs": {
     "Neutral": {
       "baseColor": "#808080",
@@ -1448,7 +1448,7 @@
       "anchorToBase": true
     },
     "Warning": {
-      "baseColor": "#f09c00",
+      "baseColor": "#ffb01f",
       "tintHue": 240,
       "tintChroma": 0.04,
       "lightnessCurve": [
@@ -1536,7 +1536,7 @@
             },
             {
               "x": 100,
-              "y": 67,
+              "y": 89,
               "inDx": 0,
               "inDy": 0,
               "outDx": 0,
@@ -1546,7 +1546,7 @@
           "saturation": [
             {
               "x": 0,
-              "y": 156,
+              "y": 116,
               "inDx": 0,
               "inDy": 0,
               "outDx": 0,
@@ -1554,7 +1554,7 @@
             },
             {
               "x": 100,
-              "y": 65,
+              "y": 180,
               "inDx": 0,
               "inDy": 0,
               "outDx": 0,

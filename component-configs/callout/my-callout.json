@@ -2,9 +2,9 @@
   "name": "my-callout",
   "component": "callout",
   "createdAt": "2026-05-18T23:15:00.687Z",
-  "updatedAt": "2026-05-19T11:45:49.123Z",
+  "updatedAt": "2026-05-20T13:01:40.374Z",
   "aliases": {
-    "--callout-info-surface": "color-mix(in srgb, var(--surface-info-lower) 75%, transparent)",
+    "--callout-info-surface": "--surface-info-lowest",
     "--callout-info-border": "--border-info-subtle",
     "--callout-info-border-width": "--border-width-1",
     "--callout-info-accent-width": "--border-width-4",
@@ -20,7 +20,7 @@
     "--callout-info-text-font-size": "--font-size-md",
     "--callout-info-text-font-weight": "--font-weight-normal",
     "--callout-info-text-line-height": "--line-height-md",
-    "--callout-success-surface": "color-mix(in srgb, var(--surface-success-lower) 75%, transparent)",
+    "--callout-success-surface": "--surface-success-lowest",
     "--callout-success-border": "--border-success-subtle",
     "--callout-success-border-width": "--border-width-1",
     "--callout-success-accent-width": "--border-width-4",
@@ -36,7 +36,7 @@
     "--callout-success-text-font-size": "--font-size-md",
     "--callout-success-text-font-weight": "--font-weight-normal",
     "--callout-success-text-line-height": "--line-height-md",
-    "--callout-warning-surface": "color-mix(in srgb, var(--surface-warning-lowest) 75%, transparent)",
+    "--callout-warning-surface": "--surface-warning-lowest",
     "--callout-warning-border": "--border-warning-subtle",
     "--callout-warning-border-width": "--border-width-1",
     "--callout-warning-accent-width": "--border-width-4",
@@ -52,7 +52,7 @@
     "--callout-warning-text-font-size": "--font-size-md",
     "--callout-warning-text-font-weight": "--font-weight-normal",
     "--callout-warning-text-line-height": "--line-height-md",
-    "--callout-danger-surface": "color-mix(in srgb, var(--surface-danger-lowest) 75%, transparent)",
+    "--callout-danger-surface": "--surface-danger-lowest",
     "--callout-danger-border": "--border-danger-subtle",
     "--callout-danger-border-width": "--border-width-1",
     "--callout-danger-accent-width": "--border-width-4",
@@ -70,5 +70,5 @@
     "--callout-danger-text-line-height": "--line-height-md"
   },
   "config": {},
-  "schemaVersion": 6
+  "schemaVersion": 8
 }

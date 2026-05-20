@@ -43,7 +43,7 @@
   let isFloatingTagsPlayground = $derived(isDev && $route === '/playground/floating-tags');
 
   // Pages are loaded dynamically so each route's module — and any CSS it
-  // side-effect-imports (e.g. site.css on Home/Demo) — only evaluates when that
+  // side-effect-imports (e.g. site.css on Home) — only evaluates when that
   // route is actually visited. Static imports at the top of this file would
   // evaluate every page module at boot, leaking site.css into editor routes.
   let pagePromise = $derived.by(() => {

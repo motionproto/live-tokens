@@ -132,6 +132,35 @@
     @include themed-padding(--card-default-body-padding);
   }
 
+  /* Slot content inherits the card's body typography so consumer-side global
+     element rules (e.g. site.css `p { font-family: serif }`) don't override
+     the card-body-font-family alias. */
+  .card-body :global(p),
+  .card-body :global(ul),
+  .card-body :global(ol),
+  .card-body :global(li) {
+    font: inherit;
+    color: inherit;
+  }
+
+  .card-body :global(p) {
+    margin: 0 0 var(--space-12);
+  }
+
+  .card-body :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .card-body :global(ul),
+  .card-body :global(ol) {
+    margin: var(--space-12) 0;
+    padding-left: var(--space-24);
+  }
+
+  .card-body :global(li) {
+    margin-bottom: var(--space-4);
+  }
+
   .card.compact .card-body {
     font-size: var(--font-size-sm);
   }

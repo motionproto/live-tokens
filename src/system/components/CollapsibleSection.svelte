@@ -284,4 +284,29 @@
          @include themed-padding(--collapsiblesection-container-expanded-padding, $h: 2);
       }
    }
+
+   .section-content {
+      color: var(--text-secondary);
+      font-size: var(--font-size-md);
+      line-height: var(--line-height-md);
+   }
+
+   /* Slot content inherits the section's body typography so consumer-side
+      global element rules (e.g. site.css `p { font-family: serif }`) don't
+      override the collapsible's intended type styling. */
+   .section-content :global(p),
+   .section-content :global(ul),
+   .section-content :global(ol),
+   .section-content :global(li) {
+      font: inherit;
+      color: inherit;
+   }
+
+   .section-content :global(p) {
+      margin: 0 0 var(--space-12);
+   }
+
+   .section-content :global(p:last-child) {
+      margin-bottom: 0;
+   }
 </style>

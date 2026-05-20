@@ -23,7 +23,7 @@
   box-sizing: border-box;
   padding: 0.75rem 1.5rem;
   display: inline-flex;
-  width: max-content;
+  width: 12rem;
   align-items: center;
   justify-content: center;
   /* Defaults; overridden inline from the active token bindings. */
@@ -77,7 +77,7 @@
   stroke-width: 2;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
-  opacity: 1;
+  opacity: 0.5;
   transition: opacity 150ms ease, stroke 150ms ease;
 }
 
@@ -129,6 +129,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
+  width: 14rem;
 }
 
 /* Lift open tag so its dropdown paints over sibling tags. */

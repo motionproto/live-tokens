@@ -166,10 +166,10 @@
 
   :global(.ui-form-select.compact) {
     min-height: 1.75rem;
-    padding: 0 var(--ui-space-8) !important;
-    padding-right: var(--ui-space-24) !important;
-    background-color: var(--ui-surface-low) !important;
-    background-position: right var(--ui-space-8) center !important;
+    padding: 0 var(--ui-space-8);
+    padding-right: var(--ui-space-24);
+    background-color: var(--ui-surface-low);
+    background-position: right var(--ui-space-8) center;
     font-size: var(--ui-font-size-sm);
     width: 100%;
   }

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import './demo.css';
   import Badge from '../system/components/Badge.svelte';
   import Button from '../system/components/Button.svelte';
   import Callout from '../system/components/Callout.svelte';
@@ -48,7 +47,8 @@
       </h1>
 
       <p class="hero-tagline">
-        Design system authoring for Svelte. Edit tokens and components directly in the browser. Ship plain CSS.
+        Design system authoring for Svelte.<br />
+        Edit tokens and components directly in the browser.<br />Ship plain CSS.
       </p>
 
 
@@ -371,7 +371,7 @@
     font-family: var(--font-serif);
     font-size: var(--font-size-2xl);
     color: var(--text-secondary);
-    line-height: var(--line-height-md);
+    line-height: 1.2;
     max-width: 48rem;
     margin: var(--space-8) 0 0;
   }

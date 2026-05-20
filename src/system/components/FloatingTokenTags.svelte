@@ -77,12 +77,17 @@
 
   // Four candidate token values per control. Picked to span the visible
   // gamut so cycling produces noticeably different box states.
+  // Surfaces use the `-high` step and borders the `-strong` step so the hero
+  // box reads as the figure against the dark canvas; the four picks span the
+  // hue wheel (no two share a family) so each cycle is a visibly different
+  // state. `special` is intentionally absent — its purple sits too close to
+  // the background to pull weight here.
   const valueOptions: Record<TagControl, string[]> = {
-    'surface':      ['--surface-brand-low',   '--surface-danger-low',  '--surface-accent-low',  '--surface-special-low'],
-    'radius':       ['--radius-none',         '--radius-lg',           '--radius-2xl',          '--radius-full'],
-    'border-color': ['--border-brand',        '--border-danger',       '--border-success',      '--border-special'],
-    'border-width': ['--border-width-1',      '--border-width-2',      '--border-width-3',      '--border-width-5'],
-    'font-family':  ['--font-display',        '--font-sans',           '--font-serif',          '--font-mono'],
+    'surface':      ['--surface-brand-high',  '--surface-accent-high', '--surface-warning-high', '--surface-success-high'],
+    'radius':       ['--radius-none',         '--radius-lg',           '--radius-2xl',           '--radius-full'],
+    'border-color': ['--border-brand-strong', '--border-accent-strong','--border-warning-strong','--border-info-strong'],
+    'border-width': ['--border-width-1',      '--border-width-2',      '--border-width-3',       '--border-width-5'],
+    'font-family':  ['--font-display',        '--font-sans',           '--font-serif',           '--font-mono'],
   };
 
   const defaultTags: FloatingTag[] = [
@@ -94,7 +99,7 @@
     // content + padding) and the strings still land.
     {
       icon: 'fas fa-fill-drip',
-      label: '--surface-brand-low',
+      label: '--surface-brand-high',
       top: 15, left: 20, delay: 0,    rotate: 3,
       anchor: { side: 'inside', x: 10, y: 40 },
       controls: 'surface',
@@ -104,7 +109,7 @@
     {
       icon: 'fas fa-font',
       label: '--font-display',
-      top: 5, left: 42, delay: -0.9, rotate: 2,
+      top: 5, left: 45, delay: -0.9, rotate: 2,
       anchor: { side: 'inside', x: 78, y: 28 },
       controls: 'font-family',
       placement: 'top',
@@ -119,7 +124,7 @@
     },
     {
       icon: 'fas fa-paint-roller',
-      label: '--border-brand',
+      label: '--border-brand-strong',
       top: 79, left: 72, delay: -3.6, rotate: -2,
       anchor: { side: 'bottom', pos: 75 },
       controls: 'border-color',
@@ -532,7 +537,7 @@
     class:ftt-bloop={bloopActive}
     style:min-width="{boxSize.w}%"
     style:min-height="{boxSize.h}%"
-    style:background={surfaceVar ? `color-mix(in srgb, var(${surfaceVar}) 50%, transparent)` : undefined}
+    style:background={asVar(surfaceVar)}
     style:border-radius={asVar(radiusVar)}
     style:border-color={asVar(borderColorVar)}
     style:border-width={asVar(borderWidthVar)}
