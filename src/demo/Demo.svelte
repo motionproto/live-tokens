@@ -6,9 +6,9 @@
   import CollapsibleSection from '../system/components/CollapsibleSection.svelte';
   import FloatingTokenTags from '../system/components/FloatingTokenTags.svelte';
   import Notification from '../system/components/Notification.svelte';
-  import SectionDivider from '../system/components/SectionDivider.svelte';
   import SegmentedControl from '../system/components/SegmentedControl.svelte';
   import Table from '../system/components/Table.svelte';
+  import Section from './Section.svelte';
   import { navigate } from '../editor/core/routing/router';
 
   const isDev = import.meta.env.DEV;
@@ -68,91 +68,89 @@
 
   </header>
 
-  <!-- ====================== CHAPTER 1 — The Kit ====================== -->
-  <SectionDivider
+  <!-- ====================== KIT ====================== -->
+  <Section
     title="The Kit"
     description="Tokens, components, and a live editor. One Svelte starter, all in the box."
-    variant="accent"
-  />
+    gap="var(--space-24)"
+  >
+    <div class="kit-grid">
+      <Card icon="fas fa-palette" title="Design tokens">
+        <p>Over four hundred CSS variables for colour, type, spacing, radii, shadows, and motion. All editable in the browser.</p>
+      </Card>
+      <Card icon="fas fa-puzzle-piece" title="Component library">
+        <p>Seventeen primitives: buttons, cards, callouts, dialogs, tabs, badges, tooltips, tables. Every surface resolves to tokens.</p>
+      </Card>
+      <Card icon="fas fa-pen-ruler" title="Live editor">
+        <p>A side-panel overlay with tabs for every category. Each edit writes a CSS variable and the page reflows instantly.</p>
+      </Card>
+      <Card icon="fas fa-cube" title="Ships as CSS">
+        <p>Promote a theme to production. The editor flushes its values into <code>tokens.css</code>, and the build is pure CSS.</p>
+      </Card>
+    </div>
+  </Section>
 
-  <section class="kit-grid">
-    <Card icon="fas fa-palette" title="Design tokens">
-      <p>Over four hundred CSS variables for colour, type, spacing, radii, shadows, and motion. All editable in the browser.</p>
-    </Card>
-    <Card icon="fas fa-puzzle-piece" title="Component library">
-      <p>Seventeen primitives: buttons, cards, callouts, dialogs, tabs, badges, tooltips, tables. Every surface resolves to tokens.</p>
-    </Card>
-    <Card icon="fas fa-pen-ruler" title="Live editor">
-      <p>A side-panel overlay with tabs for every category. Each edit writes a CSS variable and the page reflows instantly.</p>
-    </Card>
-    <Card icon="fas fa-cube" title="Ships as CSS">
-      <p>Promote a theme to production. The editor flushes its values into <code>tokens.css</code>, and the build is pure CSS.</p>
-    </Card>
-  </section>
-
-  <!-- ====================== CHAPTER 2 — See it live ====================== -->
-  <SectionDivider
+  <!-- ====================== LIVE ====================== -->
+  <Section
     title="See it live."
     description="Every component on this page resolves to the same token table. Open the editor; watch them change together."
-    variant="accent"
-  />
+    gap="var(--space-24)"
+  >
+    <div class="playground">
+      <div class="playground-control">
+        <SegmentedControl segments={previewSegments} bind:value={previewMode} />
+      </div>
 
-  <section class="playground">
-    <div class="playground-control">
-      <SegmentedControl segments={previewSegments} bind:value={previewMode} />
+      <div class="playground-stage">
+        {#if previewMode === 'tone'}
+          <div class="stage-row">
+            {#each tones as v (v)}
+              <Badge variant={v} icon="fas fa-circle">{v}</Badge>
+            {/each}
+          </div>
+          <p class="stage-caption">
+            Eight tones, one palette. <strong>{'--color-{tone}-500'}</strong> drives every fill above.
+          </p>
+        {:else}
+          <div class="stage-row stage-shape">
+            <Button>Primary</Button>
+            <Button variant="secondary">Secondary</Button>
+            <Button variant="outline">Outline</Button>
+            <Button variant="success" icon="fas fa-check">Success</Button>
+            <Button variant="warning" icon="fas fa-bolt">Warning</Button>
+            <Button variant="danger" icon="fas fa-xmark">Danger</Button>
+          </div>
+          <p class="stage-caption">
+            Six variants. <strong>{'--button-{variant}-radius'}</strong> and
+            <strong>{'--button-{variant}-padding'}</strong> shape every state.
+          </p>
+        {/if}
+      </div>
     </div>
 
-    <div class="playground-stage">
-      {#if previewMode === 'tone'}
-        <div class="stage-row">
-          {#each tones as v (v)}
-            <Badge variant={v} icon="fas fa-circle">{v}</Badge>
-          {/each}
-        </div>
-        <p class="stage-caption">
-          Eight tones, one palette. <strong>{'--color-{tone}-500'}</strong> drives every fill above.
-        </p>
-      {:else}
-        <div class="stage-row stage-shape">
-          <Button>Primary</Button>
-          <Button variant="secondary">Secondary</Button>
-          <Button variant="outline">Outline</Button>
-          <Button variant="success" icon="fas fa-check">Success</Button>
-          <Button variant="warning" icon="fas fa-bolt">Warning</Button>
-          <Button variant="danger" icon="fas fa-xmark">Danger</Button>
-        </div>
-        <p class="stage-caption">
-          Six variants. <strong>{'--button-{variant}-radius'}</strong> and
-          <strong>{'--button-{variant}-padding'}</strong> shape every state.
-        </p>
-      {/if}
+    <div class="tones-grid">
+      <Callout variant="info" label="In dev.">
+        The editor overlay runs in development only. Run <code>npm run dev</code> and look top-right.
+      </Callout>
+      <Callout variant="info" label="In prod.">
+        Production builds are pure CSS. Zero runtime weight from the editor reaches the bundle.
+      </Callout>
+      <Callout variant="info" label="One canvas.">
+        All routes share one <code>:root</code>. Variable writes cascade everywhere instantly.
+      </Callout>
+      <Callout variant="info" label="No magic.">
+        Token names describe values, not components. <code>--color-brand-500</code>, never <code>--button-bg</code>.
+      </Callout>
     </div>
-  </section>
+  </Section>
 
-  <section class="tones-grid">
-    <Callout variant="info" label="In dev.">
-      The editor overlay runs in development only. Run <code>npm run dev</code> and look top-right.
-    </Callout>
-    <Callout variant="info" label="In prod.">
-      Production builds are pure CSS. Zero runtime weight from the editor reaches the bundle.
-    </Callout>
-    <Callout variant="info" label="One canvas.">
-      All routes share one <code>:root</code>. Variable writes cascade everywhere instantly.
-    </Callout>
-    <Callout variant="info" label="No magic.">
-      Token names describe values, not components. <code>--color-brand-500</code>, never <code>--button-bg</code>.
-    </Callout>
-  </section>
-
-  <!-- ====================== CHAPTER 3 — Two layers ====================== -->
-  <SectionDivider
+  <!-- ====================== LAYERS ====================== -->
+  <Section
     title="Two layers, no surprises."
     description="A base of raw tokens. An upper layer of components that consume them through semantic names."
-    variant="accent"
-
-  />
-
-  <section class="arch">
+    gap="var(--space-32)"
+  >
+    <div class="arch">
     <Card class="arch-card arch-base" icon="fas fa-layer-group" title="Base layer · tokens.css">
       <p>
         Raw CSS variables for every primitive. Colour, type, spacing, radii,
@@ -221,57 +219,58 @@
         </table>
       </Table>
     </div>
-  </section>
+    </div>
+  </Section>
 
-  <!-- ====================== CHAPTER 4 — Workflow ====================== -->
-  <SectionDivider
+  <!-- ====================== DELIVERY ====================== -->
+  <Section
     title="From edit to ship."
     description="Three steps the editor takes, start to finish."
-    variant="accent"
-  />
+    gap="var(--space-16)"
+  >
+    <div class="how">
+      <CollapsibleSection
+        variant="container"
+        label="01 · Edit in the overlay"
+        expanded={openStep === '01'}
+        ontoggle={() => toggleStep('01')}
+      >
+        <p>
+          Click the floating overlay (top-right in dev) to open <code>/editor</code>
+          in a side panel or floating window. Tabs cover every category in the base
+          layer: palette, spacing, columns, radii, type, shadows, overlays,
+          gradients, and utilities. Each edit writes a CSS variable on
+          <code>:root</code>, and the page reflows instantly. No reload, no rebuild.
+        </p>
+      </CollapsibleSection>
 
-  <section class="how">
-    <CollapsibleSection
-      variant="container"
-      label="01 · Edit in the overlay"
-      expanded={openStep === '01'}
-      ontoggle={() => toggleStep('01')}
-    >
-      <p>
-        Click the floating overlay (top-right in dev) to open <code>/editor</code>
-        in a side panel or floating window. Tabs cover every category in the base
-        layer: palette, spacing, columns, radii, type, shadows, overlays,
-        gradients, and utilities. Each edit writes a CSS variable on
-        <code>:root</code>, and the page reflows instantly. No reload, no rebuild.
-      </p>
-    </CollapsibleSection>
+      <CollapsibleSection
+        variant="container"
+        label="02 · Save themes as JSON"
+        expanded={openStep === '02'}
+        ontoggle={() => toggleStep('02')}
+      >
+        <p>
+          Save persists the active theme to <code>themes/active.json</code>. Each
+          theme is a flat key/value map, diff-friendly in git, easy to round-trip.
+          Switch themes from the overlay; per-session backups are kept automatically.
+        </p>
+      </CollapsibleSection>
 
-    <CollapsibleSection
-      variant="container"
-      label="02 · Save themes as JSON"
-      expanded={openStep === '02'}
-      ontoggle={() => toggleStep('02')}
-    >
-      <p>
-        Save persists the active theme to <code>themes/active.json</code>. Each
-        theme is a flat key/value map, diff-friendly in git, easy to round-trip.
-        Switch themes from the overlay; per-session backups are kept automatically.
-      </p>
-    </CollapsibleSection>
-
-    <CollapsibleSection
-      variant="container"
-      label="03 · Promote to production CSS"
-      expanded={openStep === '03'}
-      ontoggle={() => toggleStep('03')}
-    >
-      <p>
-        Promote a theme to production and the editor flushes its values into
-        <code>tokens.css</code>. The production build then ships as pure CSS.
-        No editor code reaches the bundle, no runtime cost, no theme provider.
-      </p>
-    </CollapsibleSection>
-  </section>
+      <CollapsibleSection
+        variant="container"
+        label="03 · Promote to production CSS"
+        expanded={openStep === '03'}
+        ontoggle={() => toggleStep('03')}
+      >
+        <p>
+          Promote a theme to production and the editor flushes its values into
+          <code>tokens.css</code>. The production build then ships as pure CSS.
+          No editor code reaches the bundle, no runtime cost, no theme provider.
+        </p>
+      </CollapsibleSection>
+    </div>
+  </Section>
 
   <!-- ====================== CTA ====================== -->
   <section class="cta">
@@ -381,17 +380,11 @@
     gap: var(--space-12);
     flex-wrap: wrap;
     margin-top: auto;
-    padding-top: var(--space-24);
-  }
-
-  /* === SECTION DIVIDERS span the content column === */
-  .kit > :global(.section-divider) {
-    grid-column: 2 / span 10;
+    padding-top: var(--space-12);
   }
 
   /* ============================ KIT GRID ============================ */
   .kit-grid {
-    grid-column: 2 / span 10;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-24);
@@ -399,7 +392,6 @@
 
   /* ============================ PLAYGROUND ============================ */
   .playground {
-    grid-column: 2 / span 10;
     display: grid;
     grid-template-columns: 1fr;
     row-gap: var(--space-32);
@@ -481,7 +473,6 @@
 
   /* ============================ TONES (callouts) ============================ */
   .tones-grid {
-    grid-column: 2 / span 10;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-16);
@@ -489,7 +480,6 @@
 
   /* ============================ ARCHITECTURE ============================ */
   .arch {
-    grid-column: 2 / span 10;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     column-gap: var(--columns-gutter);
@@ -562,7 +552,6 @@
 
   /* ============================ HOW ============================ */
   .how {
-    grid-column: 2 / span 10;
     display: flex;
     flex-direction: column;
     gap: var(--space-12);
@@ -598,12 +587,6 @@
     .hero-kite {
       height: 28rem;
     }
-    .kit > :global(.section-divider),
-    .kit-grid,
-    .playground,
-    .tones-grid,
-    .arch,
-    .how,
     .cta {
       grid-column: 1 / -1;
     }
