@@ -58,6 +58,7 @@
 
   .shadow-backdrop.with-controls {
     grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "preview controls";
   }
 
   .shadow-backdrop-content {
@@ -65,9 +66,20 @@
     align-items: center;
     justify-items: start;
     min-width: 0;
+    grid-area: preview;
   }
 
   .shadow-backdrop-controls {
     padding: var(--ui-space-8);
+    grid-area: controls;
+  }
+
+  @container variant-group (max-width: 32rem) {
+    .shadow-backdrop.with-controls {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        "controls"
+        "preview";
+    }
   }
 </style>

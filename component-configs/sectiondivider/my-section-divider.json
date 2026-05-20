@@ -2,7 +2,7 @@
   "name": "my-section-divider",
   "component": "sectiondivider",
   "createdAt": "2026-05-19T12:01:57.271Z",
-  "updatedAt": "2026-05-19T17:07:28.725Z",
+  "updatedAt": "2026-05-20T01:06:13.101Z",
   "aliases": {
     "--sectiondivider-canvas-padding": "--space-16",
     "--sectiondivider-canvas-title": "--text-primary",
@@ -18,13 +18,18 @@
     "--sectiondivider-canvas-description-font-size": "--font-size-md",
     "--sectiondivider-canvas-description-font-weight": "--font-weight-normal",
     "--sectiondivider-canvas-description-line-height": "--line-height-md",
-    "--sectiondivider-canvas-gradient-angle": "--gradient-angle-diagonal",
-    "--sectiondivider-canvas-gradient-stop-1-color": "--surface-canvas-highest",
-    "--sectiondivider-canvas-gradient-stop-1-position": "--gradient-stop-start",
-    "--sectiondivider-canvas-gradient-stop-2-color": "--surface-canvas-higher",
-    "--sectiondivider-canvas-gradient-stop-2-position": "--gradient-stop-mid",
-    "--sectiondivider-canvas-gradient-stop-3-color": "--surface-canvas",
-    "--sectiondivider-canvas-gradient-stop-3-position": "--gradient-stop-end",
+    "--sectiondivider-canvas-gradient": {
+      "kind": "gradient",
+      "value": {
+        "type": "linear",
+        "angle": 135,
+        "stops": [
+          { "position": 0, "color": "--surface-canvas-highest" },
+          { "position": 50, "color": "--surface-canvas-higher" },
+          { "position": 100, "color": "--surface-canvas" }
+        ]
+      }
+    },
     "--sectiondivider-canvas-radius": "--radius-lg",
     "--sectiondivider-canvas-border": "--color-transparent",
     "--sectiondivider-canvas-border-width": "--border-width-0",
@@ -43,13 +48,18 @@
     "--sectiondivider-neutral-description-font-size": "--font-size-md",
     "--sectiondivider-neutral-description-font-weight": "--font-weight-normal",
     "--sectiondivider-neutral-description-line-height": "--line-height-md",
-    "--sectiondivider-neutral-gradient-angle": "--gradient-angle-diagonal",
-    "--sectiondivider-neutral-gradient-stop-1-color": "--surface-neutral-highest",
-    "--sectiondivider-neutral-gradient-stop-1-position": "--gradient-stop-start",
-    "--sectiondivider-neutral-gradient-stop-2-color": "--surface-neutral-higher",
-    "--sectiondivider-neutral-gradient-stop-2-position": "--gradient-stop-mid",
-    "--sectiondivider-neutral-gradient-stop-3-color": "--surface-neutral",
-    "--sectiondivider-neutral-gradient-stop-3-position": "--gradient-stop-end",
+    "--sectiondivider-neutral-gradient": {
+      "kind": "gradient",
+      "value": {
+        "type": "linear",
+        "angle": 135,
+        "stops": [
+          { "position": 0, "color": "--surface-neutral-highest" },
+          { "position": 50, "color": "--surface-neutral-higher" },
+          { "position": 100, "color": "--surface-neutral" }
+        ]
+      }
+    },
     "--sectiondivider-neutral-radius": "--radius-lg",
     "--sectiondivider-neutral-border": "--color-transparent",
     "--sectiondivider-neutral-border-width": "--border-width-0",
@@ -63,18 +73,23 @@
     "--sectiondivider-alternate-title-letter-spacing": "--letter-spacing-normal",
     "--sectiondivider-alternate-title-border-width": "--border-width-4",
     "--sectiondivider-alternate-title-stroke-color": "--surface-alternate-lowest",
-    "--sectiondivider-alternate-description": "--text-primary",
+    "--sectiondivider-alternate-description": "--text-secondary",
     "--sectiondivider-alternate-description-font-family": "--font-sans",
     "--sectiondivider-alternate-description-font-size": "--font-size-md",
     "--sectiondivider-alternate-description-font-weight": "--font-weight-normal",
     "--sectiondivider-alternate-description-line-height": "--line-height-md",
-    "--sectiondivider-alternate-gradient-angle": "--gradient-angle-diagonal",
-    "--sectiondivider-alternate-gradient-stop-1-color": "--surface-alternate-highest",
-    "--sectiondivider-alternate-gradient-stop-1-position": "--gradient-stop-start",
-    "--sectiondivider-alternate-gradient-stop-2-color": "--surface-alternate-higher",
-    "--sectiondivider-alternate-gradient-stop-2-position": "--gradient-stop-mid",
-    "--sectiondivider-alternate-gradient-stop-3-color": "--surface-alternate",
-    "--sectiondivider-alternate-gradient-stop-3-position": "--gradient-stop-end",
+    "--sectiondivider-alternate-gradient": {
+      "kind": "gradient",
+      "value": {
+        "type": "linear",
+        "angle": 135,
+        "stops": [
+          { "position": 0, "color": "--surface-alternate-highest" },
+          { "position": 50, "color": "--surface-alternate-higher" },
+          { "position": 100, "color": "--surface-alternate" }
+        ]
+      }
+    },
     "--sectiondivider-alternate-radius": "--radius-lg",
     "--sectiondivider-alternate-border": "--color-transparent",
     "--sectiondivider-alternate-border-width": "--border-width-0",
@@ -87,19 +102,24 @@
     "--sectiondivider-primary-title-line-height": "--line-height-xs",
     "--sectiondivider-primary-title-letter-spacing": "--letter-spacing-normal",
     "--sectiondivider-primary-title-border-width": "--border-width-4",
-    "--sectiondivider-primary-title-stroke-color": "--surface-brand-lowest",
-    "--sectiondivider-primary-description": "--text-secondary",
+    "--sectiondivider-primary-title-stroke-color": "color-mix(in srgb, var(--surface-brand-lowest) 35%, transparent)",
+    "--sectiondivider-primary-description": "--text-primary",
     "--sectiondivider-primary-description-font-family": "--font-sans",
     "--sectiondivider-primary-description-font-size": "--font-size-md",
     "--sectiondivider-primary-description-font-weight": "--font-weight-normal",
     "--sectiondivider-primary-description-line-height": "--line-height-md",
-    "--sectiondivider-primary-gradient-angle": "--gradient-angle-diagonal",
-    "--sectiondivider-primary-gradient-stop-1-color": "--surface-brand-highest",
-    "--sectiondivider-primary-gradient-stop-1-position": "--gradient-stop-start",
-    "--sectiondivider-primary-gradient-stop-2-color": "--surface-brand-higher",
-    "--sectiondivider-primary-gradient-stop-2-position": "--gradient-stop-mid",
-    "--sectiondivider-primary-gradient-stop-3-color": "--surface-brand",
-    "--sectiondivider-primary-gradient-stop-3-position": "--gradient-stop-end",
+    "--sectiondivider-primary-gradient": {
+      "kind": "gradient",
+      "value": {
+        "type": "linear",
+        "angle": 135,
+        "stops": [
+          { "position": 0, "color": "--surface-brand-highest" },
+          { "position": 50, "color": "--surface-brand-higher" },
+          { "position": 100, "color": "--surface-brand" }
+        ]
+      }
+    },
     "--sectiondivider-primary-radius": "--radius-lg",
     "--sectiondivider-primary-border": "--color-transparent",
     "--sectiondivider-primary-border-width": "--border-width-0",
@@ -118,13 +138,18 @@
     "--sectiondivider-accent-description-font-size": "--font-size-md",
     "--sectiondivider-accent-description-font-weight": "--font-weight-normal",
     "--sectiondivider-accent-description-line-height": "--line-height-md",
-    "--sectiondivider-accent-gradient-angle": "--gradient-angle-diagonal",
-    "--sectiondivider-accent-gradient-stop-1-color": "--surface-accent-highest",
-    "--sectiondivider-accent-gradient-stop-1-position": "--gradient-stop-start",
-    "--sectiondivider-accent-gradient-stop-2-color": "--surface-accent-higher",
-    "--sectiondivider-accent-gradient-stop-2-position": "--gradient-stop-mid",
-    "--sectiondivider-accent-gradient-stop-3-color": "--surface-accent",
-    "--sectiondivider-accent-gradient-stop-3-position": "--gradient-stop-end",
+    "--sectiondivider-accent-gradient": {
+      "kind": "gradient",
+      "value": {
+        "type": "linear",
+        "angle": 135,
+        "stops": [
+          { "position": 0, "color": "--surface-accent-highest" },
+          { "position": 50, "color": "--surface-accent-higher" },
+          { "position": 100, "color": "--surface-accent" }
+        ]
+      }
+    },
     "--sectiondivider-accent-radius": "--radius-lg",
     "--sectiondivider-accent-border": "--color-transparent",
     "--sectiondivider-accent-border-width": "--border-width-0",
@@ -143,18 +168,23 @@
     "--sectiondivider-special-description-font-size": "--font-size-md",
     "--sectiondivider-special-description-font-weight": "--font-weight-normal",
     "--sectiondivider-special-description-line-height": "--line-height-md",
-    "--sectiondivider-special-gradient-angle": "--gradient-angle-diagonal",
-    "--sectiondivider-special-gradient-stop-1-color": "--surface-special-highest",
-    "--sectiondivider-special-gradient-stop-1-position": "--gradient-stop-start",
-    "--sectiondivider-special-gradient-stop-2-color": "--surface-special-higher",
-    "--sectiondivider-special-gradient-stop-2-position": "--gradient-stop-mid",
-    "--sectiondivider-special-gradient-stop-3-color": "--surface-special",
-    "--sectiondivider-special-gradient-stop-3-position": "--gradient-stop-end",
+    "--sectiondivider-special-gradient": {
+      "kind": "gradient",
+      "value": {
+        "type": "linear",
+        "angle": 135,
+        "stops": [
+          { "position": 0, "color": "--surface-special-highest" },
+          { "position": 50, "color": "--surface-special-higher" },
+          { "position": 100, "color": "--surface-special" }
+        ]
+      }
+    },
     "--sectiondivider-special-radius": "--radius-lg",
     "--sectiondivider-special-border": "--color-transparent",
     "--sectiondivider-special-border-width": "--border-width-0",
     "--sectiondivider-special-shadow": "--shadow-none"
   },
   "config": {},
-  "schemaVersion": 7
+  "schemaVersion": 8
 }

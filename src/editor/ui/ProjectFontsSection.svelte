@@ -114,8 +114,10 @@
   }
 
   /** Build a Google Fonts CSS2 URL for a family name, requesting a wide
-   *  weight range with italics. Google returns only the variants the family
-   *  actually supports, so over-requesting is safe. */
+   *  weight range with italics. Works for variable fonts and most static
+   *  multi-weight families. Single-weight static fonts (e.g. GFS Didot) will
+   *  reject the range axis with 400 Bad Request — Chrome then CORBs the
+   *  response. Such fonts must be persisted as `?family=Name&display=swap`. */
   function googleUrlForName(name: string): string {
     const family = name.trim().replace(/\s+/g, '+');
     return `https://fonts.googleapis.com/css2?family=${family}:ital,wght@0,100..900;1,100..900&display=swap`;

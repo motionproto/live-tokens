@@ -39,7 +39,7 @@
     aria-disabled={disabled ? 'true' : undefined}
   >
     {#if icon}<i class="fas {icon}" aria-hidden="true"></i>{/if}
-    {#if children}{@render children()}{/if}
+    {#if children}<span class="ui-pill-label">{@render children()}</span>{/if}
   </a>
 {:else}
   <button
@@ -50,7 +50,7 @@
     {onclick}
   >
     {#if icon}<i class="fas {icon}" aria-hidden="true"></i>{/if}
-    {#if children}{@render children()}{/if}
+    {#if children}<span class="ui-pill-label">{@render children()}</span>{/if}
   </button>
 {/if}
 
@@ -59,6 +59,8 @@
     display: inline-flex;
     align-items: center;
     gap: var(--ui-space-6, 6px);
+    max-width: 100%;
+    min-width: 0;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.25) 100%);
     border: 1px solid rgba(255, 255, 255, 0.5);
     color: var(--ui-text-primary, #fff);
@@ -73,6 +75,13 @@
     transition:
       background var(--ui-transition-fast, 120ms ease),
       border-color var(--ui-transition-fast, 120ms ease);
+  }
+
+  .ui-pill-label {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   .ui-pill:hover:not(:disabled):not([aria-disabled='true']) {

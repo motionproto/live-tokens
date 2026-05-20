@@ -344,7 +344,7 @@
           : isApplied
             ? 'Active config is applied to production'
             : ''}
-        style="flex: 0 0 11.25rem; width: 11.25rem;"
+        style="flex: 0 1 11.25rem; min-width: 0; max-width: 11.25rem;"
       />
       <div class="cfm-actions">
         <ComponentFileMenu
@@ -385,7 +385,7 @@
         name={productionInfo?.name ?? '—'}
         isProtected={productionInfo?.fileName === 'default'}
         protectedTitle="Protected system config"
-        style="flex: 0 0 11.25rem; width: 11.25rem;"
+        style="flex: 0 1 11.25rem; min-width: 0; max-width: 11.25rem;"
       />
       <div class="cfm-actions">
         <UISquareButton

@@ -129,13 +129,6 @@
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-
-  /* Black, not page-tinted: the tinted variant produces visible banding in
-     the soft outer halo. Composed into hover/flash filters below. */
-  --ftt-tag-shadow:
-    drop-shadow(0 10px 28px rgba(0, 0, 0, 0.55))
-    drop-shadow(0 6px 60px  rgba(0, 0, 0, 0.4))
-    drop-shadow(0 0  120px  rgba(0, 0, 0, 0.3));
 }
 
 /* Lift open tag so its dropdown paints over sibling tags. */
@@ -201,11 +194,10 @@
   margin: 0;
   cursor: grab;
   touch-action: none;
-  filter: var(--ftt-tag-shadow);
   transition: filter 150ms ease, scale 150ms ease;
 }
 .ftt-tag-trigger:hover {
-  filter: var(--ftt-tag-shadow) brightness(1.2);
+  filter: brightness(1.2);
   scale: 1.04;
 }
 .ftt-float.ftt-dragging .ftt-tag-trigger {
@@ -226,9 +218,9 @@
 }
 
 @keyframes ftt-tag-flash {
-  0%   { scale: 1;    filter: var(--ftt-tag-shadow) brightness(1)   drop-shadow(0 0 0  transparent); }
-  25%  { scale: 1.14; filter: var(--ftt-tag-shadow) brightness(1.8) drop-shadow(0 0 14px #fff5f0); }
-  100% { scale: 1;    filter: var(--ftt-tag-shadow) brightness(1)   drop-shadow(0 0 0  transparent); }
+  0%   { scale: 1;    filter: brightness(1)   drop-shadow(0 0 0  transparent); }
+  25%  { scale: 1.14; filter: brightness(1.8) drop-shadow(0 0 14px #fff5f0); }
+  100% { scale: 1;    filter: brightness(1)   drop-shadow(0 0 0  transparent); }
 }
 
 /* --- Dropdown menu -------------------------------------------------------- */

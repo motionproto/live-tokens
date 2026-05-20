@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { run, stopPropagation, createBubbler } from 'svelte/legacy';
+  import { stopPropagation, createBubbler } from 'svelte/legacy';
 
   const bubble = createBubbler();
-  import { onMount, onDestroy, tick } from 'svelte';
+  import { onMount, onDestroy, tick, untrack } from 'svelte';
   import { hexToOklch } from '../core/palettes/oklch';
   import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig } from './curveEngine';
   import ColorEditPanel from './ColorEditPanel.svelte';
@@ -80,8 +80,18 @@
     });
   }
 
-  let lockedLightnessIdx: number | null = $state(null);
-  let lockedSaturationIdx: number | null = $state(null);
+  let lockedLightnessIdx: number | null = $derived.by(() => {
+    if (!anchorToBase) return null;
+    const x500 = stepIndexToX(4);
+    const idx = lightnessCurve.findIndex(a => Math.abs(a.x - x500) < 0.5);
+    return idx >= 0 ? idx : null;
+  });
+  let lockedSaturationIdx: number | null = $derived.by(() => {
+    if (!anchorToBase) return null;
+    const x500 = stepIndexToX(4);
+    const idx = saturationCurve.findIndex(a => Math.abs(a.x - x500) < 0.5);
+    return idx >= 0 ? idx : null;
+  });
 
   // Held at component scope so inline header-swatch handlers and the function
   // handlers share one handle for commit/cancel.
@@ -95,10 +105,6 @@
     const ps = pc?.find(p => p.label === stop.paletteLabel);
     return ps ? ps.effective : '#000000';
   }
-
-  let gradientColorStops = $state('');
-  let gradientCssValue = $state('');
-  let gradientBarPreview = $state('');
 
   function onEmptyModeChange(e: Event) {
     edit('emptyMode', (e.currentTarget as HTMLInputElement).checked ? 'gradient' : 'solid');
@@ -465,28 +471,21 @@
   let gray500Hex = $derived(mode === 'gray'
     ? (grayComputed.find(g => g.step.label === '500')?.hex ?? GRAY_FALLBACK)
     : baseColor);
-  run(() => {
-    if (anchorToBase) {
-      const x500 = stepIndexToX(4);
-      const lIdx = lightnessCurve.findIndex(a => Math.abs(a.x - x500) < 0.5);
-      lockedLightnessIdx = lIdx >= 0 ? lIdx : null;
-      const sIdx = saturationCurve.findIndex(a => Math.abs(a.x - x500) < 0.5);
-      lockedSaturationIdx = sIdx >= 0 ? sIdx : null;
-    } else {
-      lockedLightnessIdx = null;
-      lockedSaturationIdx = null;
-    }
-  });
   // Keep the locked lightness anchor y in sync with baseColor. Idempotent.
-  // During a baseColor drag the curve edit merges into the same history entry;
-  // on undo/redo the curve already has the correct y, so this is a no-op.
-  run(() => {
-    if (anchorToBase && lockedLightnessIdx !== null && baseColor) {
-      const targetY = hexToOklch(baseColor).l * 100;
-      if (lightnessCurve[lockedLightnessIdx] && Math.abs(lightnessCurve[lockedLightnessIdx].y - targetY) > 0.01) {
-        edit('lightnessCurve', lightnessCurve.map((a, i) => i === lockedLightnessIdx ? { ...a, y: targetY } : a));
+  // `lightnessCurve` is read via `untrack` so writing it back via `edit` does
+  // not retrigger this effect (Svelte 5 flags the read+write pattern as
+  // recursive).
+  $effect(() => {
+    if (!anchorToBase || lockedLightnessIdx === null || !baseColor) return;
+    const targetY = hexToOklch(baseColor).l * 100;
+    untrack(() => {
+      const idx = lockedLightnessIdx;
+      if (idx === null) return;
+      const curve = lightnessCurve;
+      if (curve[idx] && Math.abs(curve[idx].y - targetY) > 0.01) {
+        edit('lightnessCurve', curve.map((a, i) => i === idx ? { ...a, y: targetY } : a));
       }
-    }
+    });
   });
   let paletteComputed = $derived((() => {
     const _bc = baseColor, _lc = lightnessCurve, _sc = saturationCurve, _co = curveOffset, _ed = editingDraft, _ek = editingKey, _ov = overrides, _ab = anchorToBase;
@@ -504,21 +503,11 @@
       };
     });
   })());
-  // Gradient reactives — must follow paletteComputed
-  run(() => {
+  let gradientBarPreview = $derived.by(() => {
     const pc = paletteComputed;
     const sorted = [...gradientStops].sort((a, b) => gradientReverse ? b.position - a.position : a.position - b.position);
-    gradientColorStops = sorted.map(s => `${stopColor(s, pc)} ${s.position}%`).join(', ');
-    gradientBarPreview = `linear-gradient(to right, ${gradientColorStops})`;
-    if (emptySelector && emptyMode === 'gradient') {
-      switch (gradientStyle) {
-        case 'radial': gradientCssValue = `radial-gradient(circle, ${gradientColorStops})`; break;
-        case 'conic': gradientCssValue = `conic-gradient(from ${gradientAngle}deg, ${gradientColorStops})`; break;
-        default: gradientCssValue = `linear-gradient(${gradientAngle}deg, ${gradientColorStops})`;
-      }
-    } else {
-      gradientCssValue = '';
-    }
+    const stops = sorted.map(s => `${stopColor(s, pc)} ${s.position}%`).join(', ');
+    return `linear-gradient(to right, ${stops})`;
   });
   let grayScales = $derived(mode === 'gray' ? scales : []);
   let curveVersion = $derived(JSON.stringify(scaleCurves) + JSON.stringify(curveOffset) + gray500Hex);

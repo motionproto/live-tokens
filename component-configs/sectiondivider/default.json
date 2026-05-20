@@ -18,6 +18,18 @@
     "--sectiondivider-canvas-description-font-size": "--font-size-md",
     "--sectiondivider-canvas-description-font-weight": "--font-weight-normal",
     "--sectiondivider-canvas-description-line-height": "--line-height-md",
+    "--sectiondivider-canvas-gradient": {
+      "kind": "gradient",
+      "value": {
+        "type": "linear",
+        "angle": 135,
+        "stops": [
+          { "position": 0, "color": "--surface-canvas-highest" },
+          { "position": 50, "color": "--surface-canvas-higher" },
+          { "position": 100, "color": "--surface-canvas" }
+        ]
+      }
+    },
     "--sectiondivider-canvas-radius": "--radius-lg",
     "--sectiondivider-canvas-border": "--color-transparent",
     "--sectiondivider-canvas-border-width": "--border-width-0",
@@ -36,6 +48,18 @@
     "--sectiondivider-neutral-description-font-size": "--font-size-md",
     "--sectiondivider-neutral-description-font-weight": "--font-weight-normal",
     "--sectiondivider-neutral-description-line-height": "--line-height-md",
+    "--sectiondivider-neutral-gradient": {
+      "kind": "gradient",
+      "value": {
+        "type": "linear",
+        "angle": 135,
+        "stops": [
+          { "position": 0, "color": "--surface-neutral-highest" },
+          { "position": 50, "color": "--surface-neutral-higher" },
+          { "position": 100, "color": "--surface-neutral" }
+        ]
+      }
+    },
     "--sectiondivider-neutral-radius": "--radius-lg",
     "--sectiondivider-neutral-border": "--color-transparent",
     "--sectiondivider-neutral-border-width": "--border-width-0",
@@ -54,6 +78,18 @@
     "--sectiondivider-alternate-description-font-size": "--font-size-md",
     "--sectiondivider-alternate-description-font-weight": "--font-weight-normal",
     "--sectiondivider-alternate-description-line-height": "--line-height-md",
+    "--sectiondivider-alternate-gradient": {
+      "kind": "gradient",
+      "value": {
+        "type": "linear",
+        "angle": 135,
+        "stops": [
+          { "position": 0, "color": "--surface-alternate-highest" },
+          { "position": 50, "color": "--surface-alternate-higher" },
+          { "position": 100, "color": "--surface-alternate" }
+        ]
+      }
+    },
     "--sectiondivider-alternate-radius": "--radius-lg",
     "--sectiondivider-alternate-border": "--color-transparent",
     "--sectiondivider-alternate-border-width": "--border-width-0",
@@ -72,6 +108,18 @@
     "--sectiondivider-primary-description-font-size": "--font-size-md",
     "--sectiondivider-primary-description-font-weight": "--font-weight-normal",
     "--sectiondivider-primary-description-line-height": "--line-height-md",
+    "--sectiondivider-primary-gradient": {
+      "kind": "gradient",
+      "value": {
+        "type": "linear",
+        "angle": 135,
+        "stops": [
+          { "position": 0, "color": "--surface-brand-highest" },
+          { "position": 50, "color": "--surface-brand-higher" },
+          { "position": 100, "color": "--surface-brand" }
+        ]
+      }
+    },
     "--sectiondivider-primary-radius": "--radius-lg",
     "--sectiondivider-primary-border": "--color-transparent",
     "--sectiondivider-primary-border-width": "--border-width-0",
@@ -90,6 +138,18 @@
     "--sectiondivider-accent-description-font-size": "--font-size-md",
     "--sectiondivider-accent-description-font-weight": "--font-weight-normal",
     "--sectiondivider-accent-description-line-height": "--line-height-md",
+    "--sectiondivider-accent-gradient": {
+      "kind": "gradient",
+      "value": {
+        "type": "linear",
+        "angle": 135,
+        "stops": [
+          { "position": 0, "color": "--surface-accent-highest" },
+          { "position": 50, "color": "--surface-accent-higher" },
+          { "position": 100, "color": "--surface-accent" }
+        ]
+      }
+    },
     "--sectiondivider-accent-radius": "--radius-lg",
     "--sectiondivider-accent-border": "--color-transparent",
     "--sectiondivider-accent-border-width": "--border-width-0",
@@ -108,6 +168,18 @@
     "--sectiondivider-special-description-font-size": "--font-size-md",
     "--sectiondivider-special-description-font-weight": "--font-weight-normal",
     "--sectiondivider-special-description-line-height": "--line-height-md",
+    "--sectiondivider-special-gradient": {
+      "kind": "gradient",
+      "value": {
+        "type": "linear",
+        "angle": 135,
+        "stops": [
+          { "position": 0, "color": "--surface-special-highest" },
+          { "position": 50, "color": "--surface-special-higher" },
+          { "position": 100, "color": "--surface-special" }
+        ]
+      }
+    },
     "--sectiondivider-special-radius": "--radius-lg",
     "--sectiondivider-special-border": "--color-transparent",
     "--sectiondivider-special-border-width": "--border-width-0",

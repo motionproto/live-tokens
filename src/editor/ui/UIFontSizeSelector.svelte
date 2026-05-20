@@ -104,6 +104,9 @@
   dropdownGridColumns="auto auto auto auto"
   {onchange}
 >
+  {#snippet triggerMeta({ currentValue, activeOption })}
+    {activeOption ? (pxByKey[activeOption.key] ?? '—') : (currentValue || '—')}
+  {/snippet}
   {#snippet option({ opt, active, select })}
   
       <button class="font-size-row" class:active onclick={select}>

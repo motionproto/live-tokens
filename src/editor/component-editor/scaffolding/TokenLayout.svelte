@@ -414,13 +414,13 @@
     padding-left: var(--ui-space-20);
   }
 
-  @container (max-width: 480px) {
+  @container variant-group (max-width: 480px) {
     .token-grid { --token-selector-w: 6rem; }
   }
 
   /* Narrow multi-col: shrink selector + inter-set gap further before giving
      up the second column. Targets the overlay's typical docked width range. */
-  @container (max-width: 640px) {
+  @container variant-group (max-width: 640px) {
     .token-grid.multi-col {
       --token-selector-w: 6rem;
       column-gap: var(--ui-space-6);
@@ -436,7 +436,7 @@
      `1fr` so the lone column fills the panel like single-col mode, and the
      inter-set padding is suppressed so wrapped "set 2" rows don't sit
      indented. */
-  @container (max-width: 520px) {
+  @container variant-group (max-width: 520px) {
     .token-grid.multi-col {
       --columns: 1;
       grid-template-columns: max-content var(--token-selector-w) 1fr;
@@ -449,7 +449,7 @@
     }
   }
 
-  @container (max-width: 380px) {
+  @container variant-group (max-width: 380px) {
     .token-grid {
       grid-template-columns: max-content 1fr;
       column-gap: var(--ui-space-6);

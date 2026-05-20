@@ -509,6 +509,8 @@
   /* Card chrome lives on .editor-section-card in ui-editor.css. */
   .variant-group {
     gap: var(--ui-space-12);
+    container-type: inline-size;
+    container-name: variant-group;
   }
 
   /* Pin the preview + state-tab strip to the top of the page scroll so
@@ -578,6 +580,13 @@
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-primary);
     box-sizing: border-box;
+  }
+
+  @container variant-group (max-width: 32rem) {
+    .canvas-toolbar {
+      width: 100%;
+      height: auto;
+    }
   }
 
   .canvas-toolbar :global(.canvas-toolbar-eyebrow) {

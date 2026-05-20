@@ -324,6 +324,7 @@
     flex-direction: column;
     gap: var(--space-16);
     position: relative;
+    transform: translateY(calc(-1 * var(--space-32)));
   }
 
   .hero-kite {
