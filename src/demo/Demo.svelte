@@ -48,17 +48,17 @@
       </h1>
 
       <p class="hero-tagline">
-        A Svelte starter kit for token-driven interfaces. Edit design tokens and components in realtime. Ship the result as plain CSS.
+        Design system authoring for Svelte. Edit tokens and components directly in the browser. Ship plain CSS.
       </p>
 
 
       <div class="hero-actions">
         {#if isDev}
-          <Button onclick={() => navigate('/editor')} icon="fas fa-sliders" iconPosition="left">
-            Open Token Editor
-          </Button>
           <Button variant="secondary" onclick={() => navigate('/components')} icon="fas fa-puzzle-piece" iconPosition="left">
             Browse Components
+          </Button>
+          <Button onclick={() => navigate('/editor')} icon="fas fa-sliders" iconPosition="left">
+            Open Token Editor
           </Button>
         {:else}
           <Button variant="outline" disabled>Editor &nbsp;·&nbsp; dev only</Button>
@@ -315,12 +315,12 @@
   .hero-text {
     grid-column: 2 / span 5;
     grid-row: 1;
-    align-self: center;
+    align-self: stretch;
     display: flex;
     flex-direction: column;
     gap: var(--space-16);
     position: relative;
-    transform: translateY(calc(-1 * var(--space-32)));
+    padding: var(--space-96) 0 var(--space-48);
   }
 
   .hero-kite {
@@ -350,16 +350,17 @@
 
   .hero-title {
     font-family: var(--font-display);
-    font-size: var(--font-size-6xl);
+    font-size: var(--font-size-7xl);
     font-weight: var(--font-weight-semibold);
     font-variation-settings: 'opsz' 144, 'SOFT' 30;
     color: var(--text-primary);
-    line-height: 1.15;
+    line-height: 0.9;
     margin: 0;
   }
 
   .hero-italic {
     font-family: var(--font-serif);
+    font-size: var(--font-size-6xl);
     font-weight: var(--font-weight-normal);
     color: var(--text-brand);
     font-variation-settings: 'opsz' 144, 'SOFT' 100;
@@ -368,9 +369,9 @@
 
   .hero-tagline {
     font-family: var(--font-serif);
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-2xl);
     color: var(--text-secondary);
-    line-height: var(--line-height-sm);
+    line-height: var(--line-height-md);
     max-width: 48rem;
     margin: var(--space-8) 0 0;
   }
@@ -379,7 +380,8 @@
     display: flex;
     gap: var(--space-12);
     flex-wrap: wrap;
-    margin-top: var(--space-12);
+    margin-top: auto;
+    padding-top: var(--space-24);
   }
 
   /* === SECTION DIVIDERS span the content column === */
@@ -586,6 +588,12 @@
   @media (max-width: 960px) {
     .hero-text {
       grid-column: 1 / -1;
+      align-self: center;
+      padding: 0;
+    }
+    .hero-actions {
+      margin-top: var(--space-12);
+      padding-top: 0;
     }
     .hero-kite {
       height: 28rem;

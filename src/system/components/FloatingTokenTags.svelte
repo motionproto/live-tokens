@@ -95,7 +95,7 @@
     {
       icon: 'fas fa-fill-drip',
       label: '--surface-brand-low',
-      top: 15, left: 17, delay: 0,    rotate: 3,
+      top: 15, left: 20, delay: 0,    rotate: 3,
       anchor: { side: 'inside', x: 10, y: 40 },
       controls: 'surface',
       placement: 'top',
@@ -104,7 +104,7 @@
     {
       icon: 'fas fa-font',
       label: '--font-display',
-      top: 5, left: 47, delay: -0.9, rotate: 2,
+      top: 5, left: 42, delay: -0.9, rotate: 2,
       anchor: { side: 'inside', x: 78, y: 28 },
       controls: 'font-family',
       placement: 'top',
@@ -112,7 +112,7 @@
     {
       icon: 'fa-solid fa-bezier-curve',
       label: '--radius-2xl',
-      top: 23, left: 79, delay: -1.8, rotate: 2,
+      top: 23, left: 75, delay: -1.8, rotate: 2,
       anchor: { side: 'top', pos: 100 },
       controls: 'radius',
       placement: 'top',

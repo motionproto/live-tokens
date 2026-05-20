@@ -437,6 +437,9 @@
   --space-24: 1.5rem;     /* 24px */
   --space-32: 2rem;       /* 32px */
   --space-48: 3rem;       /* 48px */
+  --space-64: 4rem;       /* 64px */
+  --space-80: 5rem;       /* 80px */
+  --space-96: 6rem;       /* 96px */
   --space-full: 100%;
 
   /* Dot fill ratios — inner-dot as % of outer ring (radio/checkbox). */
@@ -479,6 +482,7 @@
   --font-size-4xl: 2.25rem;   /* 36px */
   --font-size-5xl: 3rem;      /* 48px */
   --font-size-6xl: 3.5rem;    /* 56px */
+  --font-size-7xl: 4.5rem;    /* 72px */
 
   /* Icon glyph sizes — parallel to the type scale. */
   --icon-size-xs: 0.875rem;    /* 14px */
@@ -581,6 +585,7 @@
     --font-size-4xl: 1.875rem;   /* 30px */
     --font-size-5xl: 2.25rem;    /* 36px */
     --font-size-6xl: 2.5rem;     /* 40px */
+    --font-size-7xl: 3rem;       /* 48px */
   }
 }
 
@@ -591,5 +596,6 @@
     --font-size-4xl: 1.75rem;    /* 28px */
     --font-size-5xl: 2rem;       /* 32px */
     --font-size-6xl: 2.25rem;    /* 36px */
+    --font-size-7xl: 2.625rem;   /* 42px */
   }
 }
