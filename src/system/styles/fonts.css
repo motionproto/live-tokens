@@ -4,21 +4,11 @@
 /* Adobe Typekit — fira-code */
 @import url('https://use.typekit.net/jes8oow.css');
 
-/* Local — Fraunces */
-@font-face {
-  font-family: "Fraunces";
-  src: url('/src/system/styles/fonts/Fraunces/Fraunces-roman-latin.woff2') format('woff2');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Fraunces";
-  src: url('/src/system/styles/fonts/Fraunces/Fraunces-italic-latin.woff2') format('woff2');
-  font-weight: 100 900;
-  font-style: italic;
-  font-display: swap;
-}
+/* Google Fonts — Arvo */
+@import url('https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+/* Google Fonts — GFS Didot */
+@import url('https://fonts.googleapis.com/css2?family=GFS+Didot:ital,wght@0,100..900;1,100..900&display=swap');
 
 /* Local — Manrope */
 @font-face {

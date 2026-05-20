@@ -1,7 +1,7 @@
 {
   "name": "My Theme",
   "createdAt": "2026-05-19T15:35:49.317Z",
-  "updatedAt": "2026-05-19T15:35:49.322Z",
+  "updatedAt": "2026-05-20T00:13:59.402Z",
   "editorConfigs": {
     "Neutral": {
       "baseColor": "#808080",
@@ -400,10 +400,10 @@
           "lightness": [
             {
               "x": 0,
-              "y": 120,
-              "inDx": -30,
+              "y": 145,
+              "inDx": 0,
               "inDy": 0,
-              "outDx": 30,
+              "outDx": 0,
               "outDy": 0
             },
             {
@@ -418,10 +418,10 @@
           "saturation": [
             {
               "x": 0,
-              "y": 100,
-              "inDx": -30,
+              "y": 121,
+              "inDx": 0,
               "inDy": 0,
-              "outDx": 30,
+              "outDx": 0,
               "outDy": 0
             },
             {
@@ -616,10 +616,10 @@
           "lightness": [
             {
               "x": 0,
-              "y": 120,
-              "inDx": -30,
+              "y": 160,
+              "inDx": 0,
               "inDy": 0,
-              "outDx": 30,
+              "outDx": 0,
               "outDy": 0
             },
             {
@@ -634,7 +634,7 @@
           "saturation": [
             {
               "x": 0,
-              "y": 100,
+              "y": 122,
               "inDx": -30,
               "inDy": 0,
               "outDx": 30,
@@ -682,52 +682,36 @@
       "lightnessCurve": [
         {
           "x": 0,
-          "y": 95,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        },
-        {
-          "x": 40,
-          "y": 65.72274549769725,
-          "inDx": -15,
-          "inDy": 0,
-          "outDx": 15,
-          "outDy": 0
+          "y": 86,
+          "inDx": -16.188139217854378,
+          "inDy": 19,
+          "outDx": 16.188139217854378,
+          "outDy": -19
         },
         {
           "x": 100,
-          "y": 8,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
+          "y": 11,
+          "inDx": -45.49158094126201,
+          "inDy": 19,
+          "outDx": 45.49158094126201,
+          "outDy": -19
         }
       ],
       "saturationCurve": [
         {
           "x": 0,
-          "y": 100,
-          "inDx": -30,
+          "y": 76,
+          "inDx": 0,
           "inDy": 0,
-          "outDx": 30,
-          "outDy": 0
-        },
-        {
-          "x": 40,
-          "y": 100,
-          "inDx": -15,
-          "inDy": 0,
-          "outDx": 15,
+          "outDx": 0,
           "outDy": 0
         },
         {
           "x": 100,
-          "y": 100,
-          "inDx": -30,
+          "y": 123,
+          "inDx": 0,
           "inDy": 0,
-          "outDx": 30,
+          "outDx": 0,
           "outDy": 0
         }
       ],
@@ -773,24 +757,6 @@
             {
               "x": 0,
               "y": 15,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 63,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            }
-          ],
-          "saturation": [
-            {
-              "x": 0,
-              "y": 108,
               "inDx": 0,
               "inDy": 0,
               "outDx": 0,
@@ -798,7 +764,25 @@
             },
             {
               "x": 100,
-              "y": 58,
+              "y": 67,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ],
+          "saturation": [
+            {
+              "x": 0,
+              "y": 156,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 0,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 65,
               "inDx": 0,
               "inDy": 0,
               "outDx": 0,
@@ -811,17 +795,17 @@
             {
               "x": 0,
               "y": 25,
-              "inDx": -5,
+              "inDx": 0,
               "inDy": 0,
-              "outDx": 5,
+              "outDx": 0,
               "outDy": 0
             },
             {
               "x": 100,
-              "y": 80,
-              "inDx": -5,
+              "y": 73,
+              "inDx": 0,
               "inDy": 0,
-              "outDx": 5,
+              "outDx": 0,
               "outDy": 0
             }
           ],
@@ -848,15 +832,7 @@
           "lightness": [
             {
               "x": 0,
-              "y": 110,
-              "inDx": 0,
-              "inDy": 0,
-              "outDx": 0,
-              "outDy": 0
-            },
-            {
-              "x": 50,
-              "y": 83,
+              "y": 113,
               "inDx": 0,
               "inDy": 0,
               "outDx": 0,
@@ -864,25 +840,17 @@
             },
             {
               "x": 100,
-              "y": 60,
-              "inDx": 0,
+              "y": 51,
+              "inDx": -30,
               "inDy": 0,
-              "outDx": 0,
+              "outDx": 30,
               "outDy": 0
             }
           ],
           "saturation": [
             {
               "x": 0,
-              "y": 120,
-              "inDx": 0,
-              "inDy": 0,
-              "outDx": 0,
-              "outDy": 0
-            },
-            {
-              "x": 50,
-              "y": 72,
+              "y": 127,
               "inDx": 0,
               "inDy": 0,
               "outDx": 0,
@@ -890,18 +858,20 @@
             },
             {
               "x": 100,
-              "y": 10,
-              "inDx": 0,
-              "inDy": 0,
-              "outDx": 0,
-              "outDy": 0
+              "y": 2,
+              "inDx": -37.749916095522494,
+              "inDy": 2,
+              "outDx": 37.749916095522494,
+              "outDy": -2
             }
           ]
         }
       },
       "curveOffset": {
         "lightness": 0,
-        "saturation": 0
+        "saturation": 0,
+        "Text-saturation": 6,
+        "Text-lightness": 0
       },
       "overrides": {},
       "snappedScales": [],
@@ -914,52 +884,36 @@
       "lightnessCurve": [
         {
           "x": 0,
-          "y": 94,
-          "inDx": -5,
+          "y": 93,
+          "inDx": 0,
           "inDy": 0,
-          "outDx": 5,
+          "outDx": 0,
           "outDy": 0
         },
         {
-          "x": 40,
-          "y": 55.724652427861876,
-          "inDx": -0.15005988575639861,
-          "inDy": 0.8375145169699039,
-          "outDx": 13.207918739635154,
-          "outDy": -32.162485483030096
-        },
-        {
           "x": 100,
-          "y": 20,
-          "inDx": -5,
+          "y": 13,
+          "inDx": -30,
           "inDy": 0,
-          "outDx": 5,
+          "outDx": 30,
           "outDy": 0
         }
       ],
       "saturationCurve": [
         {
           "x": 0,
-          "y": 93,
-          "inDx": -30,
+          "y": 158,
+          "inDx": 0,
           "inDy": 0,
-          "outDx": 30,
-          "outDy": 0
-        },
-        {
-          "x": 40,
-          "y": 100,
-          "inDx": -15,
-          "inDy": 0,
-          "outDx": 15,
+          "outDx": 0,
           "outDy": 0
         },
         {
           "x": 100,
-          "y": 130,
-          "inDx": -30,
+          "y": 126,
+          "inDx": 0,
           "inDy": 0,
-          "outDx": 30,
+          "outDx": 0,
           "outDy": 0
         }
       ],
@@ -1080,10 +1034,10 @@
           "lightness": [
             {
               "x": 0,
-              "y": 120,
-              "inDx": -30,
+              "y": 141,
+              "inDx": 0,
               "inDy": 0,
-              "outDx": 30,
+              "outDx": 0,
               "outDy": 0
             },
             {
@@ -1296,10 +1250,10 @@
           "lightness": [
             {
               "x": 0,
-              "y": 120,
-              "inDx": -30,
+              "y": 129,
+              "inDx": 0,
               "inDy": 0,
-              "outDx": 30,
+              "outDx": 0,
               "outDy": 0
             },
             {
@@ -1314,10 +1268,10 @@
           "saturation": [
             {
               "x": 0,
-              "y": 100,
-              "inDx": -30,
+              "y": 119,
+              "inDx": 0,
               "inDy": 0,
-              "outDx": 30,
+              "outDx": 0,
               "outDy": 0
             },
             {
@@ -1512,10 +1466,10 @@
           "lightness": [
             {
               "x": 0,
-              "y": 120,
-              "inDx": -30,
+              "y": 151,
+              "inDx": 0,
               "inDy": 0,
-              "outDx": 30,
+              "outDx": 0,
               "outDy": 0
             },
             {
@@ -1530,19 +1484,19 @@
           "saturation": [
             {
               "x": 0,
-              "y": 100,
-              "inDx": -30,
+              "y": 103,
+              "inDx": 0,
               "inDy": 0,
-              "outDx": 30,
+              "outDx": 0,
               "outDy": 0
             },
             {
               "x": 100,
-              "y": 15,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
+              "y": 1,
+              "inDx": -28.48086020199318,
+              "inDy": 5,
+              "outDx": 28.48086020199318,
+              "outDy": -5
             }
           ]
         }
@@ -1728,17 +1682,17 @@
           "lightness": [
             {
               "x": 0,
-              "y": 120,
+              "y": 118,
               "inDx": -30,
               "inDy": 0,
-              "outDx": 30,
+              "outDx": 1.4839696884155273,
               "outDy": 0
             },
             {
               "x": 100,
-              "y": 55,
-              "inDx": -30,
-              "inDy": 0,
+              "y": 44,
+              "inDx": -11.376058510895476,
+              "inDy": 4,
               "outDx": 30,
               "outDy": 0
             }
@@ -1746,15 +1700,15 @@
           "saturation": [
             {
               "x": 0,
-              "y": 100,
-              "inDx": -30,
+              "y": 141,
+              "inDx": 0,
               "inDy": 0,
-              "outDx": 30,
+              "outDx": 0,
               "outDy": 0
             },
             {
               "x": 100,
-              "y": 15,
+              "y": 13,
               "inDx": -30,
               "inDy": 0,
               "outDx": 30,
@@ -1946,7 +1900,7 @@
           "saturation": [
             {
               "x": 0,
-              "y": 179,
+              "y": 159,
               "inDx": -7.209619573895974,
               "inDy": 13,
               "outDx": 7.209619573895974,
@@ -2146,15 +2100,15 @@
           "lightness": [
             {
               "x": 0,
-              "y": 120,
-              "inDx": -30,
+              "y": 124,
+              "inDx": 0,
               "inDy": 0,
-              "outDx": 30,
+              "outDx": 0,
               "outDy": 0
             },
             {
               "x": 100,
-              "y": 55,
+              "y": 56,
               "inDx": -30,
               "inDy": 0,
               "outDx": 30,
@@ -2164,15 +2118,15 @@
           "saturation": [
             {
               "x": 0,
-              "y": 100,
-              "inDx": -30,
+              "y": 122,
+              "inDx": 0,
               "inDy": 0,
-              "outDx": 30,
+              "outDx": 0,
               "outDy": 0
             },
             {
               "x": 100,
-              "y": 15,
+              "y": 0,
               "inDx": -30,
               "inDy": 0,
               "outDx": 30,
@@ -2273,30 +2227,6 @@
       ]
     },
     {
-      "id": "src_fraunces_local",
-      "kind": "font-face",
-      "cssText": "@font-face {\n  font-family: \"Fraunces\";\n  src: url('/src/system/styles/fonts/Fraunces/Fraunces-roman-latin.woff2') format('woff2');\n  font-weight: 100 900;\n  font-style: normal;\n  font-display: swap;\n}\n@font-face {\n  font-family: \"Fraunces\";\n  src: url('/src/system/styles/fonts/Fraunces/Fraunces-italic-latin.woff2') format('woff2');\n  font-weight: 100 900;\n  font-style: italic;\n  font-display: swap;\n}",
-      "label": "Local",
-      "families": [
-        {
-          "id": "src_fraunces_local:fraunces",
-          "name": "Fraunces",
-          "cssName": "\"Fraunces\"",
-          "weights": [
-            100,
-            200,
-            300,
-            400,
-            500,
-            600,
-            700,
-            800,
-            900
-          ]
-        }
-      ]
-    },
-    {
       "id": "src_manrope_local",
       "kind": "font-face",
       "cssText": "@font-face {\n  font-family: \"Manrope\";\n  src: url('/src/system/styles/fonts/Manrope/Manrope-latin.woff2') format('woff2');\n  font-weight: 200 800;\n  font-style: normal;\n  font-display: swap;\n}",
@@ -2336,21 +2266,27 @@
       ]
     },
     {
-      "id": "src_google_a8w9ljvw",
+      "id": "src_google_eck6qp6s",
       "kind": "google",
-      "url": "https://fonts.googleapis.com/css2?family=Domine:wght@400..700&family=Fjord+One&family=Geist:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap",
+      "url": "https://fonts.googleapis.com/css2?family=GFS+Didot:ital,wght@0,100..900;1,100..900&display=swap",
       "label": "Google Fonts",
       "families": [
         {
-          "id": "src_google_a8w9ljvw:domine",
-          "name": "Domine",
-          "cssName": "\"Domine\"",
+          "id": "src_google_eck6qp6s:gfs-didot",
+          "name": "GFS Didot",
+          "cssName": "\"GFS Didot\"",
           "weights": [
+            100,
+            200,
+            300,
             400,
             500,
             600,
-            700
-          ]
+            700,
+            800,
+            900
+          ],
+          "italics": true
         }
       ]
     }
@@ -2362,10 +2298,6 @@
         {
           "kind": "project",
           "familyId": "src_google_arvo:arvo"
-        },
-        {
-          "kind": "project",
-          "familyId": "src_fraunces_local:fraunces"
         },
         {
           "kind": "generic",
@@ -2395,7 +2327,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_fraunces_local:fraunces"
+          "familyId": "src_google_eck6qp6s:gfs-didot"
         },
         {
           "kind": "generic",

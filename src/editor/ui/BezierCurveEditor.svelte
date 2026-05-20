@@ -8,6 +8,7 @@
     evalBezier, buildCurvePath, curveTemplates,
     serializeCurve, deserializeCurve,
   } from './curveEngine';
+  import UIPillButton from './UIPillButton.svelte';
 
   interface Props {
     anchors: CurveAnchor[];
@@ -257,8 +258,31 @@
 <div class="curve-panel">
   <div class="curve-panel-header">
     <span class="curve-panel-label">{cfg.label}</span>
+    <div class="curve-help">
+      <button class="curve-help-badge" type="button" aria-label="Curve editor help">
+        <i class="fas fa-circle-info" aria-hidden="true"></i>
+      </button>
+      <div class="curve-help-popover" role="tooltip">
+        <div><strong>Click</strong> path to add a point</div>
+        <div><strong>&#x2325; Click</strong> a point to remove</div>
+        <div><strong>Double-click</strong> a point to toggle smooth/corner</div>
+      </div>
+    </div>
   </div>
-  <div class="curve-container" style="padding-inline: calc(50% / {stepCount})">
+  <div class="curve-container">
+    <div class="curve-chart-overlay">
+      <UIPillButton
+        size="compact"
+        variant={shiftActive ? 'default' : 'outline'}
+        title="Vertical offset"
+        onclick={() => shiftActive = !shiftActive}
+      >
+        <svg viewBox="0 0 12 20" class="curve-tool-icon">
+          <path d="M6,2 L10,7 L7,7 L7,13 L10,13 L6,18 L2,13 L5,13 L5,7 L2,7 Z" />
+        </svg>
+        <span>Offset{offset !== 0 ? ` ${offset > 0 ? '+' : ''}${offset}` : ''}</span>
+      </UIPillButton>
+    </div>
     <svg
       bind:this={svgEl}
       class="curve-svg"
@@ -383,22 +407,9 @@
     </svg>
   </div>
   <div class="curve-toolbar">
-    <div class="curve-toolbar-left">
-      <button
-        class="curve-tool-btn"
-        class:active={shiftActive}
-        type="button"
-        title="Vertical offset"
-        onclick={() => shiftActive = !shiftActive}
-      >
-        <svg viewBox="0 0 12 20" class="curve-tool-icon">
-          <path d="M6,2 L10,7 L7,7 L7,13 L10,13 L6,18 L2,13 L5,13 L5,7 L2,7 Z" />
-        </svg>
-        <span>Offset{offset !== 0 ? ` ${offset > 0 ? '+' : ''}${offset}` : ''}</span>
-      </button>
-      <span class="curve-hint">&x2325;-click to remove point</span>
-      <button class="curve-tool-btn" type="button" title="Copy curve" onclick={copyToClipboard}>Copy</button>
-      <button class="curve-tool-btn" type="button" title="Paste curve" onclick={pasteFromClipboard}>Paste</button>
+    <div class="curve-toolbar-group">
+      <UIPillButton size="compact" variant="outline" title="Copy curve" onclick={copyToClipboard}>Copy</UIPillButton>
+      <UIPillButton size="compact" variant="outline" title="Paste curve" onclick={pasteFromClipboard}>Paste</UIPillButton>
     </div>
     <div class="curve-templates">
       {#each curveTemplates as tpl}
@@ -413,13 +424,12 @@
           </svg>
         </button>
       {/each}
+    </div>
+    <div class="curve-toolbar-group">
       {#if defaultAnchors}
-        <button
-          class="curve-tool-btn"
-          type="button"
-          title="Reset to default"
-          onclick={resetToDefault}
-        >Reset</button>
+        <UIPillButton size="compact" variant="outline" title="Reset to default" onclick={resetToDefault}>
+          Reset
+        </UIPillButton>
       {/if}
     </div>
   </div>
@@ -435,7 +445,7 @@
   .curve-panel-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: var(--ui-space-6);
   }
 
   .curve-panel-label {
@@ -445,9 +455,87 @@
   }
 
   .curve-container {
+    position: relative;
     width: 100%;
     height: 250px;
     box-sizing: border-box;
+  }
+
+  .curve-chart-overlay {
+    position: absolute;
+    inset: var(--ui-space-8);
+    display: flex;
+    align-items: flex-end;
+    pointer-events: none;
+  }
+
+  .curve-chart-overlay > :global(*) {
+    pointer-events: auto;
+  }
+
+  .curve-help {
+    position: relative;
+    margin-left: auto;
+  }
+
+  .curve-help-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--ui-text-muted);
+    cursor: help;
+    border-radius: var(--ui-radius-full);
+    transition: color var(--ui-transition-fast, 120ms ease);
+  }
+
+  .curve-help-badge:hover,
+  .curve-help-badge:focus-visible {
+    color: var(--ui-text-primary);
+    outline: none;
+  }
+
+  .curve-help-badge i {
+    font-size: var(--ui-font-size-md);
+  }
+
+  .curve-help-popover {
+    position: absolute;
+    top: calc(100% + var(--ui-space-4));
+    right: 0;
+    display: grid;
+    gap: var(--ui-space-4);
+    min-width: 14rem;
+    padding: var(--ui-space-8) var(--ui-space-12);
+    background: var(--ui-surface-highest);
+    border: 1px solid var(--ui-border-low);
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-sm);
+    line-height: 1.4;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transform: translateY(-2px);
+    pointer-events: none;
+    transition:
+      opacity var(--ui-transition-fast, 120ms ease),
+      transform var(--ui-transition-fast, 120ms ease);
+    z-index: 2;
+  }
+
+  .curve-help-popover strong {
+    color: var(--ui-text-primary);
+    font-weight: var(--ui-font-weight-medium);
+  }
+
+  .curve-help:hover .curve-help-popover,
+  .curve-help:focus-within .curve-help-popover {
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .curve-svg {
@@ -565,46 +653,15 @@
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: var(--ui-space-2);
+    gap: var(--ui-space-8);
     padding-top: var(--ui-space-2);
   }
 
-  .curve-toolbar-left {
+  .curve-toolbar-group {
     display: flex;
     align-items: center;
     gap: var(--ui-space-4);
     flex-wrap: wrap;
-  }
-
-  .curve-tool-btn {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-4);
-    padding: var(--ui-space-2) var(--ui-space-6);
-    border: 1px solid var(--ui-border-low);
-    border-radius: var(--ui-radius-sm);
-    background: var(--ui-surface-lowest);
-    cursor: pointer;
-    color: var(--ui-text-muted);
-    font-size: var(--ui-font-size-md);
-  }
-
-  .curve-tool-btn:hover {
-    border-color: var(--ui-border-high);
-    color: var(--ui-text-secondary);
-    background: var(--ui-surface-high);
-  }
-
-  .curve-tool-btn.active {
-    border-color: var(--ui-border-high);
-    background: var(--ui-surface-highest);
-    color: var(--ui-text-primary);
-  }
-
-  .curve-tool-btn:disabled {
-    opacity: 0.35;
-    cursor: default;
-    pointer-events: none;
   }
 
   .curve-tool-icon {
@@ -614,12 +671,6 @@
 
   .curve-tool-icon path {
     fill: currentColor;
-  }
-
-  .curve-hint {
-    font-size: var(--ui-font-size-md);
-    color: var(--ui-text-muted);
-    opacity: 0.6;
   }
 
   .curve-templates {

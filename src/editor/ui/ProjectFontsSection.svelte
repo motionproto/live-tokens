@@ -144,10 +144,32 @@
 
   function addNameSource() {
     if (!nameParsed || nameParsed.length === 0) return;
-    const source = buildSourceFromUrl(googleUrlForName(nameInput), nameParsed);
+    if (nameDuplicate) return;
+    // $state.snapshot() unwraps the reactive proxy. Without it the FontSource
+    // we hand to the store carries proxy arrays (weights, etc.) and the next
+    // `mutate()` call fails with DataCloneError inside structuredClone.
+    const families = $state.snapshot(nameParsed) as ParsedFamily[];
+    const source = buildSourceFromUrl(googleUrlForName(nameInput), families);
     commitSources([...fontSourcesList, source]);
     reset();
   }
+
+  /** Case-insensitive family-name match against existing sources. Used to
+   *  block duplicate adds and surface a notice under the Add button. */
+  function findExistingFamilyByName(name: string): string | null {
+    const lower = name.trim().toLowerCase();
+    if (!lower) return null;
+    for (const src of fontSourcesList) {
+      for (const fam of src.families) {
+        if (fam.name.toLowerCase() === lower) return fam.name;
+      }
+    }
+    return null;
+  }
+
+  let nameDuplicate = $derived(
+    nameParsed && nameParsed.length > 0 ? findExistingFamilyByName(nameParsed[0].name) : null,
+  );
 
   function addUrlSource() {
     const url = extractFontsUrl(pasteInput);
@@ -157,7 +179,8 @@
     }
     let families: ParsedFamily[] = [];
     if (urlParsed) {
-      families = urlParsed.filter((f) => urlPickedNames.has(f.name));
+      // Snapshot to drop the $state proxy — see comment in addNameSource.
+      families = ($state.snapshot(urlParsed) as ParsedFamily[]).filter((f) => urlPickedNames.has(f.name));
     } else if (urlNeedsManualFamilies) {
       families = urlManualFamilies
         .split(',')
@@ -176,7 +199,8 @@
 
   function addFontFaceSource() {
     if (fontFaceParsed.length === 0) return;
-    const source = buildSourceFromFontFaceText(pasteInput, fontFaceParsed);
+    const families = $state.snapshot(fontFaceParsed) as ParsedFamily[];
+    const source = buildSourceFromFontFaceText(pasteInput, families);
     commitSources([...fontSourcesList, source]);
     reset();
   }
@@ -320,7 +344,7 @@
             onkeydown={(e) => { if (e.key === 'Enter' && !nameParsed) discoverByName(); }}
           />
           {#if nameParsed}
-            <UIPillButton variant="primary" onclick={addNameSource}>Add</UIPillButton>
+            <UIPillButton variant="primary" onclick={addNameSource} disabled={!!nameDuplicate}>Add</UIPillButton>
           {:else}
             <UIPillButton variant="secondary" onclick={discoverByName} disabled={!nameInput.trim() || nameDiscovering}>
               {nameDiscovering ? 'Checking…' : 'Find'}
@@ -329,12 +353,18 @@
         </div>
         {#if nameError}<div class="pf-error">{nameError}</div>{/if}
         {#if nameParsed}
-          <div class="pf-detected">
-            Found <strong>{nameParsed[0].name}</strong>
-            {#if nameParsed[0].weights && nameParsed[0].weights.length > 0}
-              <span class="pf-check-meta">({nameParsed[0].weights.length} weights)</span>
-            {/if}
-          </div>
+          {#if nameDuplicate}
+            <div class="pf-notice">
+              <strong>{nameDuplicate}</strong> is already in your project fonts.
+            </div>
+          {:else}
+            <div class="pf-detected">
+              Found <strong>{nameParsed[0].name}</strong>
+              {#if nameParsed[0].weights && nameParsed[0].weights.length > 0}
+                <span class="pf-check-meta">({nameParsed[0].weights.length} weights)</span>
+              {/if}
+            </div>
+          {/if}
         {/if}
       {:else if addMode === 'paste'}
         <textarea
@@ -564,6 +594,12 @@
   .pf-error { color: var(--ui-text-danger, #ff6b6b); font-size: var(--ui-font-size-sm); }
 
   .pf-detected { color: var(--ui-text-secondary); font-size: var(--ui-font-size-sm); }
+
+  .pf-notice {
+    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-sm);
+  }
+  .pf-notice strong { color: var(--ui-text-primary); }
 
   .pf-checklist {
     list-style: none;
