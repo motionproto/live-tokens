@@ -1,15 +1,11 @@
 <script module lang="ts">
   export type AnchorSide = 'top' | 'right' | 'bottom' | 'left';
 
-  /** Which visual property of the central box this tag drives. */
   export type TagControl = 'surface' | 'radius' | 'border-color' | 'border-width' | 'font-family';
 
   /**
-   * Where the kite string ties to the central box.
-   * - Edge anchor: a point along one of the four box edges (`pos` 0..100).
-   *   A corner is just `pos: 0` or `pos: 100` on an adjacent edge.
-   * - Inside anchor: a point on the box surface, expressed as % of the
-   *   box's own footprint (x: 0=left edge, 100=right edge).
+   * Where the kite string ties to the box. `inside` anchors are % of the
+   * box's footprint; edge anchors are `pos` 0..100 along the named side.
    */
   export type Anchor =
     | { side: AnchorSide; pos: number }
@@ -17,31 +13,21 @@
 
   export interface FloatingTag {
     icon?: string;
-    /** Typically a CSS-variable name. Used as the initial value. */
+    /** Initial value; typically a CSS-variable name. */
     label: string;
     /** Tag center, in % of the stage. */
     top: number;
     left: number;
     /** Bob delay, seconds. Negative values offset the start. */
     delay?: number;
-    /** Static tilt of the tag, degrees. */
+    /** Static tilt, degrees. */
     rotate?: number;
-    /** Where this tag's string ties to the central box. */
     anchor: Anchor;
-    /** Property of the central box this tag drives (live preview of the token). */
+    /** Visual property of the central box this tag drives. */
     controls?: TagControl;
-    /**
-     * Vertical placement relative to the box. 'top' (default) sits the chip
-     * above with the eyebrow on the outer (upper) side and the dropdown
-     * opening downward. 'bottom' mirrors: chip below, eyebrow on the outer
-     * (lower) side, dropdown opening upward toward the box.
-     */
+    /** `top` chip sits above the box and opens down; `bottom` mirrors. */
     placement?: 'top' | 'bottom';
-    /**
-     * Pivot point for the `rotate` tilt. Default rotates around the wrapper
-     * center. `'right-cap'` pivots around the chip's right semicircular cap
-     * so the right end stays put while the rest of the tag swings.
-     */
+    /** `right-cap` pivots the tilt around the chip's right cap. */
     pivot?: 'center' | 'right-cap';
   }
 </script>
@@ -49,13 +35,8 @@
 <script lang="ts">
   import MenuSelect from './MenuSelect.svelte';
   import { SvelteMap } from 'svelte/reactivity';
-  // Playground chrome lives in its own CSS file so live token edits in the
-  // editor don't repaint our animation. The floating tag pills are rendered
-  // with a self-contained `.ftt-tag` element (not the Badge component) so the
-  // demo stays visually stable while the user edits badge-* tokens. The one
-  // exception is the dropdown panel — it renders through MenuSelect on
-  // purpose, so editing the menuselect-* tokens reshapes the in-flight UI.
-  // See FloatingTokenTags.css.
+  // `.ftt-tag` is hand-rolled (not Badge) so editing badge-* tokens doesn't
+  // repaint the playground. The dropdown uses MenuSelect on purpose.
   import './FloatingTokenTags.css';
 
   interface Props {
@@ -63,7 +44,6 @@
     duration?: number;
     distance?: number;
     boxSize?: { w: number; h: number };
-    /** Auto-cycle through values when idle. */
     autoplay?: boolean;
   }
 
@@ -75,28 +55,18 @@
     'font-family':  'Font family',
   };
 
-  // Four candidate token values per control. Picked to span the visible
-  // gamut so cycling produces noticeably different box states.
-  // Surfaces use the `-high` step and borders the `-strong` step so the hero
-  // box reads as the figure against the dark canvas; the four picks span the
-  // hue wheel (no two share a family) so each cycle is a visibly different
-  // state. `special` is intentionally absent — its purple sits too close to
-  // the background to pull weight here.
+  // Surfaces use the `-high` step and borders the `-strong` step so the box
+  // reads as the figure against the dark canvas. Picks span the hue wheel;
+  // `special` is too close to the background to pull weight here.
   const valueOptions: Record<TagControl, string[]> = {
-    'surface':      ['--surface-brand-high',  '--surface-accent-high', '--surface-warning-high', '--surface-success-high'],
+    'surface':      ['--surface-brand-high',  '--surface-accent-high', '--surface-success-high', '--surface-info-high'],
     'radius':       ['--radius-none',         '--radius-lg',           '--radius-2xl',           '--radius-full'],
-    'border-color': ['--border-brand-strong', '--border-accent-strong','--border-warning-strong','--border-info-strong'],
+    'border-color': ['--border-brand-strong', '--border-accent-strong','--border-success-strong','--border-info-strong'],
     'border-width': ['--border-width-1',      '--border-width-2',      '--border-width-3',       '--border-width-5'],
     'font-family':  ['--font-display',        '--font-sans',           '--font-serif',           '--font-mono'],
   };
 
   const defaultTags: FloatingTag[] = [
-    // Layout: three chips arc across the top above the box, two chips mirror
-    // them below. Upper chips carry the eyebrow on the outer (upper) side and
-    // open their dropdown downward toward the box; lower chips invert both.
-    // Kite anchors are computed each frame against the box's *measured* rect,
-    // so the central element can size itself like a normal div (intrinsic to
-    // content + padding) and the strings still land.
     {
       icon: 'fas fa-fill-drip',
       label: '--surface-brand-high',
@@ -148,13 +118,9 @@
     autoplay = true,
   }: Props = $props();
 
-  // --- Per-tag mutable state ----------------------------------------------
-  // Tag values are modelled as defaults (derived from the `tags` prop) plus
-  // user overrides. This keeps `currentValues` reactive to prop changes
-  // without losing user picks, and avoids capturing only the initial `tags`.
-  // Two override layers, deliberately desynchronised: `overrides` drives the
-  // floating tag's badge label (commits at selection); `boxOverrides` drives
-  // the central component's style (commits only when the energy ball lands).
+  // Two override layers, deliberately desynchronised: `overrides` commits at
+  // selection (drives the tag label); `boxOverrides` commits at impact
+  // (drives the box's style) so the box swaps in sync with the bloop.
   const defaultLabels = $derived(tags.map(t => t.label));
   let overrides = $state<Record<number, string>>({});
   let boxOverrides = $state<Record<number, string>>({});
@@ -166,8 +132,6 @@
   let flashingIdx = $state<number | null>(null);
   let bloopActive = $state(false);
 
-  // Drag state — per-tag overrides for {top, left} in stage % space. Click vs
-  // drag is distinguished by a small pixel threshold on pointer movement.
   let dragOverrides = $state<Record<number, { top: number; left: number }>>({});
   let draggingIdx = $state<number | null>(null);
   const DRAG_THRESHOLD_PX = 4;
@@ -176,28 +140,17 @@
   function tagTop(i: number): number  { return dragOverrides[i]?.top  ?? tags[i].top; }
   function tagLeft(i: number): number { return dragOverrides[i]?.left ?? tags[i].left; }
 
-  // Energy balls are imperative — keyed by tag index. Updated each rAF tick.
-  // SvelteMap so the template can react to in-flight state (line glow).
-  // `pendingValue` is the token swap that commits on impact, not on launch —
-  // so the box visibly changes at the moment of the bloop.
   type BallState = { startedAt: number; duration: number; pendingValue: string };
   const ballStates = new SvelteMap<number, BallState>();
-  // Element-ref arrays are `$state` so Svelte 5 considers
-  // `bind:this={ballEls[i]}` etc. a reactive binding target. They're only
-  // read imperatively from the rAF loop, so there's no extra reactivity cost.
+  // `$state` so `bind:this={ballEls[i]}` is a reactive binding target.
   const ballEls: HTMLSpanElement[] = $state([]);
 
-  // --- Element refs --------------------------------------------------------
   let stageEl: HTMLDivElement | undefined = $state();
   let boxEl: HTMLDivElement | undefined = $state();
   const tagEls: HTMLSpanElement[] = $state([]);
   const lineEls: SVGLineElement[] = $state([]);
   const knotEls: HTMLSpanElement[] = $state([]);
 
-  // --- Anchor math ---------------------------------------------------------
-  // `cx`/`cy`/`w`/`h` are the box's centre and dimensions in stage-% space.
-  // Defaults fall back to `boxSize` for the first paint (before syncFrame
-  // measures the actual box). Runtime calls in syncFrame pass the live rect.
   function anchorPoint(
     anchor: Anchor,
     cx = 50,
@@ -221,9 +174,7 @@
     }
   }
 
-  // Resolve the active CSS-var name for each control. Reads `boxValues` (not
-  // `currentValues`) so the central component only repaints once the ball
-  // commits its payload at impact.
+  // Reads `boxValues` (not `currentValues`) so the box repaints at impact.
   function resolveControl(name: TagControl): string | undefined {
     const idx = tags.findIndex(t => t.controls === name);
     return idx >= 0 ? boxValues[idx] : undefined;
@@ -238,14 +189,13 @@
     return name ? `var(${name})` : undefined;
   }
 
-  // --- Animation loop: kite strings + energy balls ------------------------
+  // Kite strings and energy balls are recomputed each frame from the box's
+  // measured rect so intrinsic sizing drives anchor placement.
   function syncFrame() {
     if (!stageEl) return;
     const stageRect = stageEl.getBoundingClientRect();
     if (stageRect.width === 0 || stageRect.height === 0) return;
 
-    // Box geometry in stage-% space — measured from the live rect so that
-    // intrinsic sizing (content + padding) drives anchor placement.
     let boxCx = 50, boxCy = 50;
     let boxW = boxSize.w, boxH = boxSize.h;
     if (boxEl) {
@@ -265,8 +215,7 @@
       const lineEl = lineEls[i];
       if (!tagEl || !lineEl) continue;
 
-      // Tag-side endpoint: pill cap (corner-radius circle) center on the
-      // side closest to the central component.
+      // Tag endpoint: center of the pill's rounded cap on the box-facing side.
       const pill = tagEl.querySelector('.ftt-tag') as HTMLElement | null;
       const target = (pill ?? tagEl) as HTMLElement;
       const r = target.getBoundingClientRect();
@@ -288,7 +237,6 @@
       lineEl.setAttribute('x1', x1.toFixed(3));
       lineEl.setAttribute('y1', y1.toFixed(3));
 
-      // Box-side endpoint + knot — recomputed from live box geometry.
       const a = anchorPoint(tags[i].anchor, boxCx, boxCy, boxW, boxH);
       lineEl.setAttribute('x2', a.x.toFixed(3));
       lineEl.setAttribute('y2', a.y.toFixed(3));
@@ -298,7 +246,6 @@
         knotEl.style.top  = `${a.y.toFixed(3)}%`;
       }
 
-      // Energy ball traveling tag → box along the same line.
       const ballEl = ballEls[i];
       const state = ballStates.get(i);
       if (!ballEl) continue;
@@ -309,9 +256,7 @@
       const elapsed = now - state.startedAt;
       const t = Math.min(1, elapsed / state.duration);
       if (t >= 1) {
-        // Commit the box's token swap at impact so its appearance changes in
-        // sync with the bloop (the "pops up and grows larger" beat). Until
-        // this point the box keeps rendering the previous value.
+        // Commit at impact so the box's appearance changes with the bloop.
         boxOverrides = { ...boxOverrides, [i]: state.pendingValue };
         ballStates.delete(i);
         ballEl.style.opacity = '0';
@@ -320,7 +265,7 @@
       }
       const x2 = parseFloat(lineEl.getAttribute('x2') || '0');
       const y2 = parseFloat(lineEl.getAttribute('y2') || '0');
-      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      const eased = 1 - Math.pow(1 - t, 3);
       const bx = x1 + (x2 - x1) * eased;
       const by = y1 + (y2 - y1) * eased;
       ballEl.style.left = `${bx.toFixed(3)}%`;
@@ -339,13 +284,9 @@
     return () => cancelAnimationFrame(rafId);
   });
 
-  // --- Selection / fire sequence ------------------------------------------
   function pickValue(i: number, value: string) {
     openIdx = null;
     strobeIdx = null;
-    // Commit the tag's badge label immediately so the user gets a "you picked
-    // this" confirmation. The central box waits — its commit is carried by
-    // the energy ball and lands at impact.
     overrides = { ...overrides, [i]: value };
     flashingIdx = i;
     window.setTimeout(() => {
@@ -359,8 +300,7 @@
     window.setTimeout(() => { bloopActive = false; }, 480);
   }
 
-  // User-interaction cooldown: any click pauses the auto-loop for at least
-  // USER_HOLD_MS so the user can play without being interrupted.
+  // Any click pauses auto-cycle for at least this long.
   const USER_HOLD_MS = 4000;
   let lastUserActionAt = 0;
   function noteUserAction() {
@@ -374,14 +314,12 @@
   }
 
   function userPick(i: number, value: string) {
-    // The current value can never be re-picked — the dropdown item is also
-    // rendered disabled, this guard is a safety net.
+    // The matching dropdown item is also rendered disabled; this is a safety net.
     if (currentValues[i] === value) return;
     noteUserAction();
     pickValue(i, value);
   }
 
-  // --- Drag handlers ------------------------------------------------------
   function onTagPointerDown(i: number, e: PointerEvent) {
     dragStart.px = e.clientX;
     dragStart.py = e.clientY;
@@ -398,7 +336,7 @@
       dragStart.moved = true;
       draggingIdx = i;
       openIdx = null;
-      noteUserAction(); // pause auto-cycle while dragging
+      noteUserAction();
     }
     if (dragStart.moved) {
       const r = stageEl.getBoundingClientRect();
@@ -425,7 +363,6 @@
     dragStart.moved = false;
   }
 
-  // --- Auto-cycle ----------------------------------------------------------
   let autoAlive = false;
   let lastAutoTagIdx: number | null = null;
   const sleep = (ms: number) => new Promise(r => window.setTimeout(r, ms));
@@ -438,8 +375,7 @@
       await sleep(2400 + Math.random() * 2400);
       if (!autoAlive) break;
 
-      // Hold off if the user clicked anything recently. Re-check after each
-      // partial sleep so a fresh click resets the wait.
+      // Hold off while the user is interacting; re-check on each fresh click.
       while (autoAlive) {
         const sinceUser = performance.now() - lastUserActionAt;
         if (sinceUser >= USER_HOLD_MS) break;
@@ -447,7 +383,7 @@
       }
       if (!autoAlive) break;
 
-      if (openIdx !== null) continue; // user is interacting
+      if (openIdx !== null) continue;
 
       // Never the same tag twice in a row.
       const tagCandidates = tags
@@ -458,8 +394,7 @@
       const tag = tags[i];
       const opts = valueOptions[tag.controls!];
 
-      // Never the same token twice in a row: exclude the currently-active
-      // value from the candidate set.
+      // Never the same token twice in a row.
       const currentIdx = opts.indexOf(currentValues[i]);
       const candidates = opts
         .map((_, k) => k)
@@ -469,13 +404,11 @@
 
       openIdx = i;
 
-      // Breath: open menu, let it sit before any highlight appears.
+      // Let the menu sit open before any highlight appears.
       await sleep(BREATH_MS);
       if (!autoAlive || openIdx !== i) continue;
 
-      // Step from the top down to the chosen item, one step per STROBE_STEP_MS.
-      // Landing position is wherever finalIdx lands — could be the first item
-      // (no stepping), could be the fourth.
+      // Step from the top down to the chosen item.
       for (let k = 0; k <= finalIdx; k++) {
         if (!autoAlive || openIdx !== i) break;
         strobeIdx = k;
@@ -483,7 +416,7 @@
       }
       if (!autoAlive || openIdx !== i) continue;
 
-      // Blink twice on the selection (off/on x2).
+      // Blink twice on the selection.
       for (let blink = 0; blink < 2; blink++) {
         if (!autoAlive || openIdx !== i) break;
         strobeIdx = null;
@@ -513,7 +446,6 @@
   style:--ftt-bob-duration="{duration}s"
   style:--ftt-bob-distance="{-distance}px"
 >
-  <!-- Kite strings -->
   <svg class="ftt-strings" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
     {#each tags as tag, i (i)}
       {@const a = anchorPoint(tag.anchor)}
@@ -527,10 +459,7 @@
     {/each}
   </svg>
 
-  <!-- Central component — driven by the active token of each tag. Sized
-       intrinsically: width/height grow to fit content + padding. boxSize
-       is a baseline (min-width/min-height) so a short label can't shrink
-       the box past a sensible footprint. -->
+  <!-- Box is intrinsically sized to content + padding; boxSize is a floor. -->
   <div
     bind:this={boxEl}
     class="ftt-box"
@@ -548,8 +477,6 @@
     >I'm a button</span>
   </div>
 
-  <!-- Anchor knots on the box. Initial position uses anchorPoint() defaults;
-       syncFrame imperatively updates each frame from the box's live rect. -->
   {#each tags as tag, i (i)}
     {@const a = anchorPoint(tag.anchor)}
     <span
@@ -561,12 +488,10 @@
     ></span>
   {/each}
 
-  <!-- Energy balls — positioned each frame by syncFrame() while in flight. -->
   {#each tags as _t, i (i)}
     <span class="ftt-energy-ball" bind:this={ballEls[i]} aria-hidden="true"></span>
   {/each}
 
-  <!-- Floating tags. -->
   {#each tags as tag, i (i)}
     <span
       bind:this={tagEls[i]}
@@ -616,4 +541,3 @@
     </span>
   {/each}
 </div>
-

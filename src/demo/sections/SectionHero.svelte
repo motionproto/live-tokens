@@ -56,7 +56,7 @@
     flex-direction: column;
     gap: var(--space-16);
     position: relative;
-    padding: var(--space-96) 0 var(--space-48);
+    padding: var(--space-96) 0 0;
   }
 
   .hero-kite {
@@ -113,21 +113,24 @@
     gap: var(--space-12);
     flex-wrap: wrap;
     margin-top: auto;
-    padding-top: var(--space-12);
+    padding-top: var(--space-24);
   }
 
   @media (max-width: 960px) {
+    .hero-kite {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      height: 28rem;
+    }
     .hero-text {
       grid-column: 1 / -1;
+      grid-row: 2;
       align-self: center;
       padding: 0;
     }
     .hero-actions {
       margin-top: var(--space-12);
       padding-top: 0;
-    }
-    .hero-kite {
-      height: 28rem;
     }
   }
 

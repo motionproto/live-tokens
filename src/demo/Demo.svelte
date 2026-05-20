@@ -21,11 +21,16 @@
     display: grid;
     grid-template-columns: repeat(var(--columns-count), 1fr);
     column-gap: var(--columns-gutter);
-    row-gap: var(--space-48);
+    row-gap: var(--space-24);
     max-width: var(--columns-max-width);
     margin: 0 auto;
     padding: var(--space-48) var(--space-32);
     min-height: 100vh;
+  }
+
+  /* Per-section gap overrides (added on top of .kit row-gap). */
+  .kit > :global(.hero) {
+    margin-bottom: 0;
   }
 
   /* Inline code styling cascades into every section via :global descendants. */

@@ -5,7 +5,7 @@
 
 <Section
   title="The Kit"
-  description="Tokens, components, and a live editor. One Svelte starter, all in the box."
+  description="A basic set of design system components connected to Token library ."
   gap="var(--space-8)"
 >
   <div class="kit-grid">
