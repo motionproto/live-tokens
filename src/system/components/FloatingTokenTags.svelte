@@ -30,6 +30,19 @@
     anchor: Anchor;
     /** Property of the central box this tag drives (live preview of the token). */
     controls?: TagControl;
+    /**
+     * Vertical placement relative to the box. 'top' (default) sits the chip
+     * above with the eyebrow on the outer (upper) side and the dropdown
+     * opening downward. 'bottom' mirrors: chip below, eyebrow on the outer
+     * (lower) side, dropdown opening upward toward the box.
+     */
+    placement?: 'top' | 'bottom';
+    /**
+     * Pivot point for the `rotate` tilt. Default rotates around the wrapper
+     * center. `'right-cap'` pivots around the chip's right semicircular cap
+     * so the right end stays put while the rest of the tag swings.
+     */
+    pivot?: 'center' | 'right-cap';
   }
 </script>
 
@@ -73,47 +86,52 @@
   };
 
   const defaultTags: FloatingTag[] = [
-    // Layout: surface + border-color flank the box at mid-height (far sides);
-    // font + corner-radius sit above near the box; border-width sits below
-    // centred. Roughly mirrors the user's sketch.
-    // Tags spread outward (factor 1.25 from box centre) so the cluster fills
-    // the available stage. Kite anchors are computed each frame against the
-    // box's *measured* rect, so the central element can size itself like a
-    // normal div (intrinsic to content + padding) and the strings still land.
+    // Layout: three chips arc across the top above the box, two chips mirror
+    // them below. Upper chips carry the eyebrow on the outer (upper) side and
+    // open their dropdown downward toward the box; lower chips invert both.
+    // Kite anchors are computed each frame against the box's *measured* rect,
+    // so the central element can size itself like a normal div (intrinsic to
+    // content + padding) and the strings still land.
     {
       icon: 'fas fa-fill-drip',
       label: '--surface-brand-low',
-      top: 28, left: 18, delay: 0,    rotate: -3,
-      anchor: { side: 'inside', x: 10, y: 50 },
+      top: 15, left: 17, delay: 0,    rotate: 3,
+      anchor: { side: 'inside', x: 10, y: 40 },
       controls: 'surface',
+      placement: 'top',
+      pivot: 'right-cap',
     },
     {
       icon: 'fas fa-font',
       label: '--font-display',
-      top: 11.1, left: 40.8, delay: -0.9, rotate: 2,
-      anchor: { side: 'inside', x: 45, y: 28 },
+      top: 5, left: 47, delay: -0.9, rotate: 2,
+      anchor: { side: 'inside', x: 78, y: 28 },
       controls: 'font-family',
+      placement: 'top',
     },
     {
       icon: 'fa-solid fa-bezier-curve',
       label: '--radius-2xl',
-      top: 19.8, left: 72.0, delay: -1.8, rotate: 2,
+      top: 23, left: 79, delay: -1.8, rotate: 2,
       anchor: { side: 'top', pos: 100 },
       controls: 'radius',
+      placement: 'top',
     },
     {
       icon: 'fas fa-paint-roller',
       label: '--border-brand',
-      top: 75.5, left: 79.5, delay: -3.6, rotate: -2,
-      anchor: { side: 'right', pos: 55 },
+      top: 79, left: 72, delay: -3.6, rotate: -2,
+      anchor: { side: 'bottom', pos: 75 },
       controls: 'border-color',
+      placement: 'top',
     },
     {
       icon: 'fas fa-grip-lines',
       label: '--border-width-3',
-      top: 78, left: 33, delay: -5.2, rotate: -3,
-      anchor: { side: 'bottom', pos: 50 },
+      top: 79, left: 28, delay: -5.2, rotate: -4,
+      anchor: { side: 'bottom', pos: 25 },
       controls: 'border-width',
+      placement: 'top',
     },
   ];
 
@@ -551,6 +569,8 @@
       class:ftt-flash={flashingIdx === i}
       class:ftt-open={openIdx === i}
       class:ftt-dragging={draggingIdx === i}
+      data-placement={tag.placement ?? 'top'}
+      data-pivot={tag.pivot ?? 'center'}
       style:top="{tagTop(i)}%"
       style:left="{tagLeft(i)}%"
       style:animation-delay="{tag.delay ?? 0}s"
@@ -559,33 +579,35 @@
       {#if tag.controls}
         <span class="ftt-float-property">{controlLabels[tag.controls]}</span>
       {/if}
-      <button
-        type="button"
-        class="ftt-tag-trigger"
-        onpointerdown={(e) => onTagPointerDown(i, e)}
-        onpointermove={(e) => onTagPointerMove(i, e)}
-        onpointerup={(e) => onTagPointerUp(i, e)}
-        aria-haspopup="listbox"
-        aria-expanded={openIdx === i}
-      >
-        <span class="ftt-tag">
-          {#if tag.icon}<span class="ftt-tag-icon"><i class={tag.icon}></i></span>{/if}
-          <span class="ftt-tag-label">{currentValues[i]}</span>
-        </span>
-      </button>
+      <span class="ftt-chip-host">
+        <button
+          type="button"
+          class="ftt-tag-trigger"
+          onpointerdown={(e) => onTagPointerDown(i, e)}
+          onpointermove={(e) => onTagPointerMove(i, e)}
+          onpointerup={(e) => onTagPointerUp(i, e)}
+          aria-haspopup="listbox"
+          aria-expanded={openIdx === i}
+        >
+          <span class="ftt-tag">
+            {#if tag.icon}<span class="ftt-tag-icon"><i class={tag.icon}></i></span>{/if}
+            <span class="ftt-tag-label">{currentValues[i]}</span>
+          </span>
+        </button>
 
-      {#if openIdx === i && tag.controls}
-        {@const opts = valueOptions[tag.controls]}
-        {@const strobeValue = strobeIdx !== null ? opts[strobeIdx] : null}
-        <div class="ftt-dropdown-wrap">
-          <MenuSelect
-            items={opts.map((opt) => ({ value: opt, label: opt }))}
-            value={currentValues[i]}
-            forceHoverValue={strobeValue}
-            onchange={(v) => userPick(i, v)}
-          />
-        </div>
-      {/if}
+        {#if openIdx === i && tag.controls}
+          {@const opts = valueOptions[tag.controls]}
+          {@const strobeValue = strobeIdx !== null ? opts[strobeIdx] : null}
+          <div class="ftt-dropdown-wrap">
+            <MenuSelect
+              items={opts.map((opt) => ({ value: opt, label: opt }))}
+              value={currentValues[i]}
+              forceHoverValue={strobeValue}
+              onchange={(v) => userPick(i, v)}
+            />
+          </div>
+        {/if}
+      </span>
     </span>
   {/each}
 </div>

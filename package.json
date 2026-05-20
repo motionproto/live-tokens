@@ -64,6 +64,7 @@
     },
     "./styles/ui-editor.css": "./src/editor/styles/ui-editor.css",
     "./app/tokens.css": "./src/system/styles/tokens.css",
+    "./app/tokens.generated.css": "./src/system/styles/tokens.generated.css",
     "./app/site.css": "./src/app/site.css",
     "./app/fonts.css": "./src/system/styles/fonts.css"
   },

@@ -4,6 +4,10 @@
 // FA icons for the overlay, theme tokens, and starter fonts.
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import '../system/styles/tokens.css';
+// Editor-owned sidecar with production-theme + component-alias overrides.
+// Loaded AFTER tokens.css so its `:root:root` selectors (specificity 0,0,2)
+// win over the developer-authored defaults (0,0,1).
+import '../system/styles/tokens.generated.css';
 import '../system/styles/fonts.css';
 import { initializeTheme } from '../editor/core/themes/themeInit';
 import * as cssVarSync from '../editor/core/cssVarSync';

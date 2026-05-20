@@ -42,17 +42,13 @@
     </div>
 
     <div class="hero-text">
-      <div class="hero-eyebrow">
-        <Badge variant="neutral" size="small" >v0.6.2 </Badge>
-      </div>
-
       <h1 class="hero-title">
         Live Tokens<br />
         <span class="hero-italic">The design system with an editor.</span>
       </h1>
 
       <p class="hero-tagline">
-        A Svelte starter kit for token-driven UI. Edit design tokens and UI components in realtime. Ship the result as plain CSS.
+        A Svelte starter kit for token-driven interfaces. Edit design tokens and components in realtime. Ship the result as plain CSS.
       </p>
 
 
@@ -317,7 +313,7 @@
   }
 
   .hero-text {
-    grid-column: 2 / span 4;
+    grid-column: 2 / span 5;
     grid-row: 1;
     align-self: center;
     display: flex;
@@ -331,11 +327,8 @@
     grid-column: 5 / span 8;
     grid-row: 1;
     height: 32rem;
+    margin-top: 1rem;
     position: relative;
-    /* No z-index: must NOT form a stacking context, or the ::before glow
-       below gets trapped inside the kite layer and paints over .hero-text.
-       Without a stacking context the glow's z-index:-1 escapes back to
-       .hero (isolation:isolate) and sits behind everything in the hero. */
   }
 
   .hero-kite::before {
@@ -375,10 +368,10 @@
 
   .hero-tagline {
     font-family: var(--font-serif);
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-xl);
     color: var(--text-secondary);
-    line-height: 1.5;
-    max-width: 36rem;
+    line-height: var(--line-height-sm);
+    max-width: 48rem;
     margin: var(--space-8) 0 0;
   }
 
@@ -438,9 +431,6 @@
     align-items: center;
   }
 
-  /* Shape demo: square corners and white text on every variant so the row reads
-     as a shape study, not a tone study. The colored variants (success/warning/
-     danger) get a saturated fill so white text has contrast. */
   .stage-shape :global(.button) {
     border-radius: var(--radius-sm);
     color: var(--text-primary);

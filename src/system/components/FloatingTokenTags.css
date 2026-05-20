@@ -73,11 +73,11 @@
 }
 
 .ftt-string {
-  stroke: #9b938e;
+  stroke: #d4ccc6;
   stroke-width: 2;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
-  opacity: 0.7;
+  opacity: 1;
   transition: opacity 150ms ease, stroke 150ms ease;
 }
 
@@ -93,8 +93,8 @@
   height: 0.625rem;
   translate: -50% -50%;
   border-radius: 9999px;
-  background: #615954;
-  border: 1px solid #c4bcb6;
+  background: #c4bcb6;
+  border: 1px solid #f0eae4;
   pointer-events: none;
   z-index: 3;
 }
@@ -136,18 +136,35 @@
   z-index: 20;
 }
 
+/* Bottom-placement chips mirror the top arc: chip first, eyebrow on the
+   outer (lower) side. Dropdown opens upward toward the box so the menu
+   doesn't fall off the stage. */
+.ftt-float[data-placement="bottom"] {
+  flex-direction: column-reverse;
+}
+
+/* Pivot the tilt around the chip's right semicircular cap. The chip is
+   ~1.84rem tall so the cap center sits ~0.9rem from the chip's right edge
+   and ~0.9rem above its bottom — which (since the chip is the widest, last
+   in-flow element of the wrapper) coincides with `calc(100% - 0.9rem)` on
+   both axes of the wrapper. */
+.ftt-float[data-pivot="right-cap"] {
+  transform-origin: calc(100% - 0.9rem) calc(100% - 0.9rem);
+}
+
 @keyframes ftt-bob {
   0%, 100% { translate: -50% -50%; }
   50%      { translate: -50% calc(-50% + var(--ftt-bob-distance, -8px)); }
 }
 
-/* --- Property label above each tag ---------------------------------------- */
+/* --- Property label paired with each tag ---------------------------------- */
+/* Sits on the outer side of the chip: above for top-placement chips, below
+   for bottom-placement chips (see `.ftt-float[data-placement="bottom"]`). */
 .ftt-float-property {
   font-family: Manrope, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 0.875rem;
   font-weight: 700;
-  text-transform: uppercase;
-  color: #ffffffb6;
+  color: #ff8eeb;
   white-space: nowrap;
 }
 
@@ -170,7 +187,7 @@
   border-radius: 9999px;
   font-family: Manrope, system-ui, -apple-system, sans-serif;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.1;
   white-space: nowrap;
 }
@@ -223,9 +240,19 @@
   100% { scale: 1;    filter: brightness(1)   drop-shadow(0 0 0  transparent); }
 }
 
+/* --- Chip host ------------------------------------------------------------ */
+/* Wraps the chip-trigger and (when open) the dropdown so the dropdown can
+   anchor directly to the chip's edges, not the float wrapper's. Without
+   this, `top: 100%` lands at the wrapper bottom — which is the eyebrow for
+   `data-placement="bottom"` — and the menu drifts off the chip. */
+.ftt-chip-host {
+  position: relative;
+  display: inline-flex;
+}
+
 /* --- Dropdown menu -------------------------------------------------------- */
-/* Wrapper handles position/stacking only; surface lives on <MenuSelect> so
-   menuselect-* token edits reshape the in-flight UI (this is intentional). */
+/* The wrap handles position/stacking only; the surface lives on
+   <MenuSelect> so menuselect-* token edits reshape the in-flight UI. */
 .ftt-dropdown-wrap {
   position: absolute;
   top: calc(100% + 0.25rem);
