@@ -325,7 +325,10 @@
   </div>
 
   {#if triggerMeta}
-    <span class="ui-ts-meta-text">{@render triggerMeta()}</span>
+    <span
+      class="ui-ts-meta-text"
+      onmouseenter={(e) => { e.currentTarget.title = e.currentTarget.textContent ?? ''; }}
+    >{@render triggerMeta()}</span>
   {/if}
 </div>
 

@@ -1273,6 +1273,11 @@
       "--sectiondivider-md-border-width",
       "--sectiondivider-sm-border-width"
     ],
+    "container-padding": [
+      "--sectiondivider-lg-padding",
+      "--sectiondivider-md-padding",
+      "--sectiondivider-sm-padding"
+    ],
     "description-color": [
       "--sectiondivider-lg-description",
       "--sectiondivider-md-description",
@@ -1292,6 +1297,11 @@
       "--sectiondivider-lg-description-line-height",
       "--sectiondivider-md-description-line-height",
       "--sectiondivider-sm-description-line-height"
+    ],
+    "description-padding": [
+      "--sectiondivider-lg-description-padding",
+      "--sectiondivider-md-description-padding",
+      "--sectiondivider-sm-description-padding"
     ],
     "eyebrow-color": [
       "--sectiondivider-lg-eyebrow",
@@ -1313,6 +1323,11 @@
       "--sectiondivider-md-eyebrow-letter-spacing",
       "--sectiondivider-sm-eyebrow-letter-spacing"
     ],
+    "eyebrow-padding": [
+      "--sectiondivider-lg-eyebrow-padding",
+      "--sectiondivider-md-eyebrow-padding",
+      "--sectiondivider-sm-eyebrow-padding"
+    ],
     "hairline-color": [
       "--sectiondivider-lg-hairline-color",
       "--sectiondivider-md-hairline-color",
@@ -1332,11 +1347,6 @@
       "--sectiondivider-lg-shadow",
       "--sectiondivider-md-shadow",
       "--sectiondivider-sm-shadow"
-    ],
-    "spacing": [
-      "--sectiondivider-lg-spacing",
-      "--sectiondivider-md-spacing",
-      "--sectiondivider-sm-spacing"
     ],
     "title-color": [
       "--sectiondivider-lg-title",
@@ -1372,6 +1382,11 @@
       "--sectiondivider-lg-title-outline-width",
       "--sectiondivider-md-title-outline-width",
       "--sectiondivider-sm-title-outline-width"
+    ],
+    "title-padding": [
+      "--sectiondivider-lg-title-padding",
+      "--sectiondivider-md-title-padding",
+      "--sectiondivider-sm-title-padding"
     ]
   },
   "segmentedcontrol": {

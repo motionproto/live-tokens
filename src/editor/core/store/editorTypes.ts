@@ -56,6 +56,12 @@ export interface GradientTokenStop {
   position: number;
   /** CSS variable name the stop resolves through (e.g. '--color-brand-500'). */
   color: string;
+  /** When `false`, this stop is an explicit off-palette override: the stop
+   *  picker opens to any color (not family-filtered), and the stop is skipped
+   *  by family-swap rewrites so its color survives a variant family change.
+   *  Defaults to true (follow family) on read; absence is the same as `true`.
+   *  Only meaningful for gradients rendered inside a family-aware context. */
+  monochrome?: boolean;
   /** 0–100 alpha applied to the stop's color. Defaults to 100 (fully opaque). */
   opacity?: number;
 }

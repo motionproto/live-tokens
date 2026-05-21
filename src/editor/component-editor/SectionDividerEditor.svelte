@@ -14,21 +14,32 @@
     { key: 'sm', title: 'Small', family: 'canvas' },
   ];
 
-  function frameTokens(v: Variant): Token[] {
+  function containerTokens(v: Variant): Token[] {
     return [
-      { label: 'spacing', canBeLinked: true, groupKey: 'spacing', variable: `--sectiondivider-${v}-spacing`, splittable: false },
-      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--sectiondivider-${v}-radius` },
-      { label: 'border color', canBeLinked: true, groupKey: 'border', variable: `--sectiondivider-${v}-border` },
-      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--sectiondivider-${v}-border-width` },
-      { label: 'drop shadow', canBeLinked: true, groupKey: 'shadow', variable: `--sectiondivider-${v}-shadow` },
-      { label: 'hairline color', canBeLinked: true, groupKey: 'hairline-color', variable: `--sectiondivider-${v}-hairline-color` },
-      { label: 'hairline thickness', canBeLinked: true, groupKey: 'hairline-thickness', variable: `--sectiondivider-${v}-hairline-thickness` },
+      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--sectiondivider-${v}-radius`, element: 'Container' },
+      { label: 'drop shadow', canBeLinked: true, groupKey: 'shadow', variable: `--sectiondivider-${v}-shadow`, element: 'Container' },
+      { label: 'padding', canBeLinked: true, groupKey: 'container-padding', variable: `--sectiondivider-${v}-padding`, element: 'Container' },
+      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--sectiondivider-${v}-border-width`, element: 'Container' },
+      { label: 'border color', canBeLinked: true, groupKey: 'border', variable: `--sectiondivider-${v}-border`, element: 'Container' },
+    ];
+  }
+  function typePaddingTokens(v: Variant): Token[] {
+    return [
+      { label: 'padding', canBeLinked: true, groupKey: 'title-padding', variable: `--sectiondivider-${v}-title-padding`, element: 'title' },
+      { label: 'padding', canBeLinked: true, groupKey: 'description-padding', variable: `--sectiondivider-${v}-description-padding`, element: 'description' },
+      { label: 'padding', canBeLinked: true, groupKey: 'eyebrow-padding', variable: `--sectiondivider-${v}-eyebrow-padding`, element: 'eyebrow' },
+    ];
+  }
+  function hairlineTokens(v: Variant): Token[] {
+    return [
+      { label: 'hairline color', canBeLinked: true, groupKey: 'hairline-color', variable: `--sectiondivider-${v}-hairline-color`, element: 'hairline' },
+      { label: 'hairline thickness', canBeLinked: true, groupKey: 'hairline-thickness', variable: `--sectiondivider-${v}-hairline-thickness`, element: 'hairline' },
     ];
   }
   function titleOutlineTokens(v: Variant): Token[] {
     return [
-      { label: 'outline thickness', canBeLinked: true, groupKey: 'title-outline-width', variable: `--sectiondivider-${v}-title-outline-width` },
-      { label: 'outline color', canBeLinked: true, groupKey: 'title-outline-color', variable: `--sectiondivider-${v}-title-outline-color` },
+      { label: 'outline thickness', canBeLinked: true, groupKey: 'title-outline-width', variable: `--sectiondivider-${v}-title-outline-width`, element: 'title' },
+      { label: 'outline color', canBeLinked: true, groupKey: 'title-outline-color', variable: `--sectiondivider-${v}-title-outline-color`, element: 'title' },
     ];
   }
   function backgroundTokens(v: Variant): Token[] {
@@ -37,20 +48,23 @@
     ];
   }
   function variantTokens(v: Variant): Token[] {
-    return [...frameTokens(v), ...titleOutlineTokens(v), ...backgroundTokens(v)];
+    return [...containerTokens(v), ...hairlineTokens(v), ...titleOutlineTokens(v), ...backgroundTokens(v), ...typePaddingTokens(v)];
   }
   function stateTokens(v: Variant): Token[] {
     return [
-      ...frameTokens(v),
+      ...containerTokens(v),
+      ...hairlineTokens(v),
       ...titleOutlineTokens(v).map((t) => ({ ...t, hidden: true })),
       ...backgroundTokens(v).map((t) => ({ ...t, hidden: true })),
+      ...typePaddingTokens(v),
     ];
   }
 
   function variantTypeGroups(v: Variant): TypeGroupConfig[] {
     return [
       {
-        legend: 'title',
+        legend: '',
+        element: 'title',
         colorVariable: `--sectiondivider-${v}-title`,
         familyVariable: `--sectiondivider-${v}-title-font-family`,
         sizeVariable: `--sectiondivider-${v}-title-font-size`,
@@ -61,7 +75,8 @@
         outlineColorVariable: `--sectiondivider-${v}-title-outline-color`,
       },
       {
-        legend: 'description',
+        legend: '',
+        element: 'description',
         colorVariable: `--sectiondivider-${v}-description`,
         familyVariable: `--sectiondivider-${v}-description-font-family`,
         sizeVariable: `--sectiondivider-${v}-description-font-size`,
@@ -69,7 +84,8 @@
         lineHeightVariable: `--sectiondivider-${v}-description-line-height`,
       },
       {
-        legend: 'eyebrow',
+        legend: '',
+        element: 'eyebrow',
         colorVariable: `--sectiondivider-${v}-eyebrow`,
         familyVariable: `--sectiondivider-${v}-eyebrow-font-family`,
         sizeVariable: `--sectiondivider-${v}-eyebrow-font-size`,
@@ -106,10 +122,11 @@
   ]);
 
   const LINKED_GROUP_KEYS = [
-    'spacing', 'radius', 'border', 'border-width', 'shadow',
+    'container-padding', 'radius', 'border', 'border-width', 'shadow',
     'hairline-color', 'hairline-thickness',
     'title-outline-width', 'title-outline-color',
     'title-color', 'description-color', 'eyebrow-color',
+    'title-padding', 'description-padding', 'eyebrow-padding',
     'title-font-family', 'title-font-weight', 'title-line-height', 'title-letter-spacing',
     'description-font-family', 'description-font-weight', 'description-line-height',
     'eyebrow-font-family', 'eyebrow-font-weight', 'eyebrow-letter-spacing',
@@ -132,7 +149,6 @@
     | 'above-description'
     | 'through-description'
     | 'below-description';
-  type HairlineChoice = 'off' | HairlinePosition;
 </script>
 
 <script lang="ts">
@@ -143,13 +159,15 @@
   import { editorState, mutate, setComponentConfig } from '../core/store/editorStore';
   import { componentGradientSource } from '../core/store/gradientSource';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
+  import { KNOWN_FAMILIES, swapTokenFamily } from '../core/palettes/familySwap';
 
-  const KNOWN_FAMILIES = [
-    'neutral', 'alternate', 'canvas', 'brand',
-    'accent', 'special', 'success', 'warning', 'info', 'danger',
-  ] as const;
-
-  const TEXT_STEPS = ['primary', 'secondary', 'tertiary', 'muted', 'disabled'] as const;
+  // Variants list above carries a default family ('canvas') used as the starting
+  // value for new presets. Live family is per-variant config so the user can
+  // swap a divider's color world without touching the variants array.
+  const FAMILY_OPTIONS: { value: string; label: string }[] = KNOWN_FAMILIES.map((f) => ({
+    value: f,
+    label: f.charAt(0).toUpperCase() + f.slice(1),
+  }));
 
   // Sample content lives in the canvas toolbar (per-variant editor state).
   // It's not persisted — it drives the preview's text content only. The
@@ -176,13 +194,35 @@
     const raw = cfg[`--sectiondivider-${v}-align`];
     return raw === 'start' ? 'start' : 'center';
   }
-  function getHairline(v: Variant): HairlineChoice {
+  function getColorFamily(v: Variant): string {
+    const raw = cfg[`--sectiondivider-${v}-color-family`];
+    if (typeof raw === 'string' && (KNOWN_FAMILIES as readonly string[]).includes(raw)) return raw;
+    return variants.find((x) => x.key === v)!.family;
+  }
+  function getHairlinePosition(v: Variant): HairlinePosition {
     const raw = cfg[`--sectiondivider-${v}-hairline`];
-    const positions: HairlineChoice[] = ['off', 'above-label', 'through-label', 'below-label', 'above-description', 'through-description', 'below-description'];
-    return (positions as string[]).includes(raw as string) ? (raw as HairlineChoice) : 'off';
+    // 'above-description' renders identically to 'below-label' (both place the
+    // hairline in the gap between title and description), so the dropdown only
+    // exposes one. Coerce legacy data here so the select stays selected.
+    if (raw === 'above-description') return 'below-label';
+    const positions: HairlinePosition[] = ['above-label', 'through-label', 'below-label', 'through-description', 'below-description'];
+    return (positions as string[]).includes(raw as string) ? (raw as HairlinePosition) : 'above-label';
+  }
+  function getShowHairline(v: Variant): boolean {
+    const raw = cfg[`--sectiondivider-${v}-show-hairline`];
+    // Migrate legacy `hairline = 'off'` data: if explicit show key is unset,
+    // infer from whether the legacy choice was a real position.
+    if (raw === undefined) {
+      const h = cfg[`--sectiondivider-${v}-hairline`];
+      return typeof h === 'string' && h !== 'off' && h !== '';
+    }
+    return raw === '1';
   }
   function getShowEyebrow(v: Variant): boolean {
     return cfg[`--sectiondivider-${v}-show-eyebrow`] === '1';
+  }
+  function getEyebrowUppercase(v: Variant): boolean {
+    return cfg[`--sectiondivider-${v}-eyebrow-uppercase`] === '1';
   }
   function getShowDescription(v: Variant): boolean {
     const raw = cfg[`--sectiondivider-${v}-show-description`];
@@ -201,91 +241,53 @@
     variants.map((v) => [v.key, componentGradientSource(component, `--sectiondivider-${v.key}-background`)]),
   ) as Record<Variant, ReturnType<typeof componentGradientSource>>;
 
-  let monochrome = $state<Record<Variant, boolean>>({ lg: true, md: true, sm: true });
-
-  function initMonochrome(v: Variant) {
-    const slice = $editorState.components[component];
-    const ref = slice?.aliases[`--sectiondivider-${v}-background`];
-    if (ref?.kind !== 'gradient') return;
-    const fam = variants.find((x) => x.key === v)!.family;
-    monochrome[v] = ref.value.stops.every((s) => stopMatchesFamily(s.color, fam));
-  }
-
-  function parseTextToken(colorRef: string): { family: string; step: string } | null {
-    if (!colorRef.startsWith('--text-')) return null;
-    const rest = colorRef.slice('--text-'.length);
-    const parts = rest.split('-');
-    if (parts.length === 1) {
-      const p = parts[0];
-      if ((TEXT_STEPS as readonly string[]).includes(p)) return { family: 'neutral', step: p };
-      if ((KNOWN_FAMILIES as readonly string[]).includes(p)) return { family: p, step: 'primary' };
-      return null;
-    }
-    if (parts.length === 2) {
-      const [fam, step] = parts;
-      if ((KNOWN_FAMILIES as readonly string[]).includes(fam) && (TEXT_STEPS as readonly string[]).includes(step)) {
-        return { family: fam, step };
-      }
-    }
-    return null;
-  }
-
-  function buildTextToken(family: string, step: string): string {
-    if (family === 'neutral') return `--text-${step}`;
-    return step === 'primary' ? `--text-${family}` : `--text-${family}-${step}`;
-  }
-
-  function stopMatchesFamily(colorRef: string, family: string): boolean {
-    if (!colorRef.startsWith('--')) return false;
-    const text = parseTextToken(colorRef);
-    if (text) return text.family === family;
-    return colorRef.slice(2).split('-').includes(family);
-  }
-
-  function detectFamily(colorRef: string): string | null {
-    if (!colorRef.startsWith('--')) return null;
-    const parts = colorRef.slice(2).split('-');
-    for (const p of parts) {
-      if ((KNOWN_FAMILIES as readonly string[]).includes(p)) return p;
-    }
-    return null;
-  }
-
-  function snapToFamily(v: Variant) {
-    const targetFamily = variants.find((x) => x.key === v)!.family;
-    const varName = `--sectiondivider-${v}-background`;
-    mutate(`monochrome snap ${varName}`, (s) => {
+  // Family swap on color-family change: for every alias under this variant
+  // that currently references `oldFamily`, rewrite the reference to
+  // `newFamily`. Aliases targeting other families are left alone so an
+  // intentionally-cross-family border doesn't get swept along. Gradient stops
+  // flagged `monochrome: false` are off-palette overrides — those skip the
+  // rewrite so the user's deliberate non-family stop survives the swap.
+  function remapFamily(v: Variant, oldFamily: string, newFamily: string) {
+    if (oldFamily === newFamily) return;
+    const prefix = `--sectiondivider-${v}-`;
+    mutate(`color-family remap ${v} ${oldFamily}->${newFamily}`, (s) => {
       const slice = s.components[component];
-      const ref = slice?.aliases[varName];
-      if (!ref || ref.kind !== 'gradient') return;
-      const stops = ref.value.stops.map((stop) => {
-        const text = parseTextToken(stop.color);
-        if (text) {
-          if (text.family === targetFamily) return { ...stop };
-          return { ...stop, color: buildTextToken(targetFamily, text.step) };
+      if (!slice) return;
+      for (const [key, ref] of Object.entries(slice.aliases)) {
+        if (!key.startsWith(prefix)) continue;
+        if (ref.kind === 'token') {
+          const swapped = swapTokenFamily(ref.name, oldFamily, newFamily);
+          if (swapped !== ref.name) {
+            slice.aliases[key] = { kind: 'token', name: swapped };
+          }
+        } else if (ref.kind === 'gradient') {
+          let changed = false;
+          const stops = ref.value.stops.map((stop) => {
+            if (stop.monochrome === false) return stop;
+            const swapped = swapTokenFamily(stop.color, oldFamily, newFamily);
+            if (swapped === stop.color) return stop;
+            changed = true;
+            return { ...stop, color: swapped };
+          });
+          if (changed) {
+            slice.aliases[key] = {
+              kind: 'gradient',
+              value: {
+                type: ref.value.type,
+                angle: ref.value.angle,
+                ...(ref.value.radius !== undefined ? { radius: ref.value.radius } : {}),
+                ...(ref.value.centerX !== undefined ? { centerX: ref.value.centerX } : {}),
+                stops,
+              },
+            };
+          }
         }
-        const fromFamily = detectFamily(stop.color);
-        if (!fromFamily || fromFamily === targetFamily) return { ...stop };
-        const parts = stop.color.slice(2).split('-');
-        const idx = parts.indexOf(fromFamily);
-        if (idx < 0) return { ...stop };
-        parts[idx] = targetFamily;
-        return { ...stop, color: '--' + parts.join('-') };
-      });
-      slice!.aliases[varName] = {
-        kind: 'gradient',
-        value: { type: ref.value.type, angle: ref.value.angle, ...(ref.value.radius !== undefined ? { radius: ref.value.radius } : {}), stops },
-      };
+      }
     });
   }
 
-  function onMonochromeToggle(v: Variant) {
-    if (monochrome[v]) snapToFamily(v);
-  }
-
-  function hairlineOptions(v: Variant): { value: HairlineChoice; label: string }[] {
-    const base: { value: HairlineChoice; label: string }[] = [
-      { value: 'off', label: 'Off' },
+  function hairlineOptions(v: Variant): { value: HairlinePosition; label: string }[] {
+    const base: { value: HairlinePosition; label: string }[] = [
       { value: 'above-label', label: 'Above title' },
       { value: 'through-label', label: 'Through title' },
       { value: 'below-label', label: 'Below title' },
@@ -293,28 +295,47 @@
     if (!getShowDescription(v)) return base;
     return [
       ...base,
-      { value: 'above-description', label: 'Above description' },
       { value: 'through-description', label: 'Through description' },
       { value: 'below-description', label: 'Below description' },
     ];
   }
 
   function hairlineProp(v: Variant): { position: HairlinePosition } | undefined {
-    const choice = getHairline(v);
-    return choice === 'off' ? undefined : { position: choice };
+    if (!getShowHairline(v)) return undefined;
+    return { position: getHairlinePosition(v) };
   }
 
   // If a variant's description gets turned off while a description-targeted
-  // hairline was selected, reset the hairline to off so the preview stays
-  // consistent.
+  // hairline was selected, snap the position back to a title-targeted choice
+  // so the dropdown's options stay consistent with the rendered preview.
   $effect(() => {
     for (const v of variants) {
-      const ch = getHairline(v.key);
-      if (!getShowDescription(v.key) && ch !== 'off' && ch.endsWith('-description')) {
-        setCfg(v.key, 'hairline', 'off');
+      const pos = getHairlinePosition(v.key);
+      if (!getShowDescription(v.key) && pos.endsWith('-description')) {
+        setCfg(v.key, 'hairline', 'above-label');
       }
     }
   });
+
+  function elementTogglesFor(v: Variant) {
+    return {
+      description: {
+        checked: getShowDescription(v),
+        label: 'Show description',
+        onchange: (c: boolean) => setCfg(v, 'show-description', c ? '1' : ''),
+      },
+      eyebrow: {
+        checked: getShowEyebrow(v),
+        label: 'Show eyebrow',
+        onchange: (c: boolean) => setCfg(v, 'show-eyebrow', c ? '1' : ''),
+      },
+      hairline: {
+        checked: getShowHairline(v),
+        label: 'Show',
+        onchange: (c: boolean) => setCfg(v, 'show-hairline', c ? '1' : ''),
+      },
+    };
+  }
 </script>
 
 <ComponentEditorBase {component} title="Section Divider" description="Full-width section banner. Each variant (lg/md/sm) is a full preset: its own size, typography, colors, AND intrinsic properties (alignment, hairline, eyebrow/description visibility)." tokens={allTokens} {linked} variants={variantOptions}>
@@ -332,9 +353,10 @@
         (sv) => ({ [sv]: variantTypeGroups(sv) }),
       )}
       backdropPadding="32px"
+      elementToggles={elementTogglesFor(v.key)}
+      elementOrder={['Container', 'title', 'description', 'eyebrow', 'hairline']}
     >
       {#snippet canvasToolbarExtras()}
-        <hr class="canvas-toolbar-divider" />
         <label class="toolbar-field">
           <span>Test title</span>
           <input type="text" class="canvas-toolbar-input" bind:value={testTitle[v.key]} placeholder={v.title} />
@@ -360,28 +382,20 @@
           eyebrow={getShowEyebrow(v.key) ? eyebrowText[v.key] : undefined}
           align={getAlign(v.key)}
           hairline={hairlineProp(v.key)}
+          eyebrowUppercase={getEyebrowUppercase(v.key)}
         />
       </div>
       {#snippet compositeControls(_stateName)}
-        <div class="gradient-section-header">
+        <div class="gradient-bg-section">
           <span class="gradient-section-label">Background</span>
-          <label class="monochrome-toggle">
-            <input
-              type="checkbox"
-              bind:checked={monochrome[v.key]}
-              onfocus={() => initMonochrome(v.key)}
-              onchange={() => onMonochromeToggle(v.key)}
-            />
-            <span>Monochrome</span>
-          </label>
+          <GradientEditor
+            source={gradientSources[v.key]}
+            stopIdPrefix={`sectiondivider-${v.key}`}
+            familyFilter={getColorFamily(v.key)}
+          />
         </div>
-        <GradientEditor
-          source={gradientSources[v.key]}
-          stopIdPrefix={`sectiondivider-${v.key}`}
-          familyFilter={monochrome[v.key] ? v.family : null}
-        />
       {/snippet}
-      {#snippet extraPropertyRows(_stateName)}
+      {#snippet extraPropertyRowsTop(_stateName)}
         <div class="property-row sd-intrinsic-row">
           <span class="property-label">alignment</span>
           <select
@@ -394,39 +408,48 @@
           </select>
         </div>
         <div class="property-row sd-intrinsic-row">
-          <span class="property-label">hairline</span>
+          <span class="property-label">color family</span>
           <select
             class="sd-intrinsic-select"
-            value={getHairline(v.key)}
-            onchange={(e) => setCfg(v.key, 'hairline', (e.currentTarget as HTMLSelectElement).value)}
+            value={getColorFamily(v.key)}
+            onchange={(e) => {
+              const next = (e.currentTarget as HTMLSelectElement).value;
+              const prev = getColorFamily(v.key);
+              setCfg(v.key, 'color-family', next);
+              remapFamily(v.key, prev, next);
+            }}
           >
-            {#each hairlineOptions(v.key) as opt (opt.value)}
+            {#each FAMILY_OPTIONS as opt (opt.value)}
               <option value={opt.value}>{opt.label}</option>
             {/each}
           </select>
         </div>
-        <div class="property-row sd-intrinsic-row">
-          <span class="property-label">eyebrow</span>
-          <label class="sd-intrinsic-check">
+      {/snippet}
+      {#snippet elementExtras(elementName)}
+        {#if elementName === 'eyebrow'}
+          <label class="sd-element-check">
             <input
               type="checkbox"
-              checked={getShowEyebrow(v.key)}
-              onchange={(e) => setCfg(v.key, 'show-eyebrow', (e.currentTarget as HTMLInputElement).checked ? '1' : '')}
+              checked={getEyebrowUppercase(v.key)}
+              onchange={(e) => setCfg(v.key, 'eyebrow-uppercase', (e.currentTarget as HTMLInputElement).checked ? '1' : '')}
             />
-            <span>Show eyebrow</span>
+            <span>All caps</span>
           </label>
-        </div>
-        <div class="property-row sd-intrinsic-row">
-          <span class="property-label">description</span>
-          <label class="sd-intrinsic-check">
-            <input
-              type="checkbox"
-              checked={getShowDescription(v.key)}
-              onchange={(e) => setCfg(v.key, 'show-description', (e.currentTarget as HTMLInputElement).checked ? '1' : '')}
-            />
-            <span>Show description</span>
-          </label>
-        </div>
+        {/if}
+        {#if elementName === 'hairline'}
+          <div class="property-row sd-intrinsic-row sd-hairline-position-row">
+            <span class="property-label">position</span>
+            <select
+              class="sd-intrinsic-select"
+              value={getHairlinePosition(v.key)}
+              onchange={(e) => setCfg(v.key, 'hairline', (e.currentTarget as HTMLSelectElement).value)}
+            >
+              {#each hairlineOptions(v.key) as opt (opt.value)}
+                <option value={opt.value}>{opt.label}</option>
+              {/each}
+            </select>
+          </div>
+        {/if}
       {/snippet}
     </VariantGroup>
   {/each}
@@ -446,22 +469,39 @@
     min-width: 32rem;
   }
 
-  .gradient-section-header {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    margin-top: var(--ui-space-8);
-    gap: var(--ui-space-16);
-  }
-
   .gradient-section-label {
     display: block;
+    margin-top: var(--ui-space-8);
     font-size: var(--ui-font-size-md);
     font-weight: 500;
     color: var(--ui-text-primary);
   }
 
-  .monochrome-toggle {
+  /* Align the background gradient editor with the preview container above so
+     they read as a single column. Mirrors ShadowBackdrop's two-column grid:
+     left inset matches backdrop-content's padding-left (1.5rem); right inset
+     reserves the canvas-toolbar column (11rem) + its shadow-backdrop-controls
+     padding (16px) + backdrop-content's right padding (32px). When the
+     variant-group collapses below 32rem the canvas-toolbar stacks above and
+     the controls column disappears — drop the right reservation to match. */
+  .gradient-bg-section {
+    padding-left: 1.5rem;
+    padding-right: calc(11rem + 16px + 32px);
+    box-sizing: border-box;
+  }
+  @container variant-group (max-width: 32rem) {
+    .gradient-bg-section {
+      padding-right: 32px;
+    }
+  }
+
+  /* Intrinsic-property rows. Sit in the Properties section under the token
+     grid (via VariantGroup.extraPropertyRows). The grid columns are inherited
+     from the parent so labels line up with token labels above. */
+  /* Inline boolean control inside an element-section (e.g. "All caps" under
+     the eyebrow heading). Sits flush-left so it reads as a section property
+     rather than aligning with the token grid below. */
+  :global(.sd-element-check) {
     display: inline-flex;
     align-items: center;
     gap: var(--ui-space-6);
@@ -469,16 +509,33 @@
     color: var(--ui-text-secondary);
     cursor: pointer;
     user-select: none;
+    margin-bottom: var(--ui-space-4);
   }
-  .monochrome-toggle:hover { color: var(--ui-text-primary); }
-  .monochrome-toggle input { margin: 0; cursor: pointer; }
+  :global(.sd-element-check:hover) { color: var(--ui-text-primary); }
+  :global(.sd-element-check input) { margin: 0; cursor: pointer; }
 
-  /* Intrinsic-property rows. Sit in the Properties section under the token
-     grid (via VariantGroup.extraPropertyRows). The grid columns are inherited
-     from the parent so labels line up with token labels above. */
+  /* Property-row inside an element-section (e.g. hairline position) — the
+     extra-property-rows grid lives in VariantGroup and only applies above
+     the token list. Mirror its column layout here so the position row's
+     label/select reads consistent with the alignment + color family rows. */
+  :global(.sd-hairline-position-row.property-row) {
+    display: grid;
+    grid-template-columns: minmax(8rem, max-content) 1fr;
+    column-gap: var(--ui-space-16);
+    align-items: center;
+    min-height: 1.75rem;
+    margin-bottom: var(--ui-space-4);
+  }
+  :global(.sd-hairline-position-row .property-label) {
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+  }
+
   :global(.sd-intrinsic-select) {
     appearance: none;
     -webkit-appearance: none;
+    justify-self: start;
+    width: max-content;
     min-width: 8rem;
     padding: 0 var(--ui-space-24) 0 var(--ui-space-8);
     min-height: 1.75rem;
@@ -502,16 +559,4 @@
     outline-offset: 2px;
   }
 
-  :global(.sd-intrinsic-check) {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    font-size: var(--ui-font-size-sm);
-    color: var(--ui-text-secondary);
-    cursor: pointer;
-  }
-  :global(.sd-intrinsic-check input) {
-    margin: 0;
-    cursor: pointer;
-  }
 </style>

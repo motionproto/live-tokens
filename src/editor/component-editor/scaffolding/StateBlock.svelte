@@ -8,6 +8,7 @@
    * tab strip). This component owns the duplicated inner block so a per-state
    * control change happens in exactly one place.
    */
+  import type { Snippet } from 'svelte';
   import TokenLayout from './TokenLayout.svelte';
   import TypeEditor from './TypeEditor.svelte';
   import type { Token, TypeGroupConfig } from './types';
@@ -17,6 +18,12 @@
   
   
   
+  interface ElementToggle {
+    checked: boolean;
+    label?: string;
+    onchange: (checked: boolean) => void;
+  }
+
   interface Props {
     /** Tokens for this state, fed to `<TokenLayout>`. */
     tokens: Token[];
@@ -31,6 +38,21 @@
       (the two-col flex layout already partitions screen real estate when
       typeGroups are present). */
     columns?: number;
+    /** Per-element Show toggle. When provided for an element in element-grouped
+        mode, renders a checkbox next to that section's heading. The token rows
+        below stay visible regardless — the toggle drives preview visibility,
+        not editor visibility. */
+    elementToggles?: Record<string, ElementToggle>;
+    /** Explicit element ordering. Defaults to first-encounter across tokens
+        then typeGroups, which works when structural elements (frame, container)
+        come before named typography elements. Pass an explicit order when the
+        natural first-encounter wouldn't produce the right reading order. */
+    elementOrder?: string[];
+    /** Element-keyed snippet rendered between the section heading and the
+        section's typography/tokens. Lets callers inject per-element controls
+        (e.g. a hairline position dropdown that conceptually belongs in the
+        hairline section but isn't a CSS token). */
+    elementExtras?: Snippet<[string]>;
     onchange?: () => void;
   }
 
@@ -40,6 +62,9 @@
     component = undefined,
     linkedOrder = undefined,
     columns = 1,
+    elementToggles = {},
+    elementOrder,
+    elementExtras,
     onchange,
   }: Props = $props();
 
@@ -50,8 +75,13 @@
       "Frame", "Header", "Body"). Element order = first-encounter across the
       combined tokens + type-groups list. */
   let elementSections = $derived.by(() => {
-    const order: string[] = [];
     const seen = new Set<string>();
+    const order: string[] = [];
+    if (elementOrder) {
+      for (const el of elementOrder) {
+        if (!seen.has(el)) { seen.add(el); order.push(el); }
+      }
+    }
     for (const t of tokens) {
       if (t.element && !seen.has(t.element)) {
         seen.add(t.element);
@@ -76,13 +106,27 @@
 {#if elementSections}
   <div class="state-controls element-grouped">
     {#each elementSections as section}
+      {@const toggle = elementToggles[section.element]}
       <section class="element-section">
-        <h4 class="element-heading">{section.element}</h4>
+        <div class="element-heading-row">
+          <h4 class="element-heading">{section.element}</h4>
+          {#if toggle}
+            <label class="element-show-toggle">
+              <input
+                type="checkbox"
+                checked={toggle.checked}
+                onchange={(e) => toggle.onchange((e.currentTarget as HTMLInputElement).checked)}
+              />
+              <span>{toggle.label ?? `Show ${section.element}`}</span>
+            </label>
+          {/if}
+        </div>
+        {@render elementExtras?.(section.element)}
         {#if section.typeGroups.length > 0}
           <div class="state-type-groups">
             {#each section.typeGroups as tg}
               <TypeEditor
-                legend={tg.legend ?? 'type'}
+                legend={tg.legend ?? ''}
                 colorVariable={tg.colorVariable}
                 colorLabel={tg.colorLabel ?? 'text color'}
                 familyVariable={tg.familyVariable}
@@ -217,7 +261,7 @@
   .state-controls.element-grouped {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
-    gap: var(--ui-space-20) var(--ui-space-28);
+    gap: var(--ui-space-20) var(--ui-space-32);
     align-items: start;
   }
 
@@ -253,13 +297,33 @@
     padding: 0 var(--ui-space-4) var(--ui-space-4);
   }
 
-  .element-heading {
-    margin: 0;
-    font-size: var(--ui-font-size-sm);
-    font-weight: var(--ui-font-weight-semibold);
-    text-transform: uppercase;
-    color: var(--ui-text-tertiary);
+  .element-heading-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-12);
     padding-bottom: var(--ui-space-4);
     border-bottom: 1px solid var(--ui-border-low);
   }
+
+  .element-heading {
+    margin: 0;
+    font-size: var(--ui-font-size-sm);
+    font-weight: var(--ui-font-weight-medium);
+    color: var(--ui-text-tertiary);
+  }
+
+  /* Show toggle next to the section heading — drives preview visibility for
+     the element. Property rows below stay visible so users can still tune the
+     hidden element's tokens. */
+  .element-show-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+    cursor: pointer;
+    user-select: none;
+  }
+  .element-show-toggle:hover { color: var(--ui-text-primary); }
+  .element-show-toggle input { margin: 0; cursor: pointer; }
 </style>

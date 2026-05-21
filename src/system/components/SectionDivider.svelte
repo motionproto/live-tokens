@@ -30,6 +30,9 @@
     variant?: Variant;
     align?: Align;
     hairline?: HairlineConfig | undefined;
+    /** Force the eyebrow to uppercase. Off by default so authored case is
+     *  honored; the editor exposes a per-variant toggle that flips this on. */
+    eyebrowUppercase?: boolean;
   }
 
   let {
@@ -39,6 +42,7 @@
     variant = 'md',
     align = 'center',
     hairline = undefined,
+    eyebrowUppercase = false,
   }: Props = $props();
 
   let svgEl: SVGSVGElement | undefined = $state();
@@ -117,14 +121,14 @@
   style={hairlineStyle(hairline)}
 >
   {#if eyebrow}
-    <span class="divider-eyebrow">{eyebrow}</span>
+    <span class="divider-eyebrow" class:uppercase={eyebrowUppercase}>{eyebrow}</span>
   {/if}
   {#if aboveLabel}
     <span class="sd-hairline sd-hairline--row" aria-hidden="true"></span>
   {/if}
   <div class="title-row" class:has-line={throughLabel}>
     {#if throughLabel}
-      <span class="sd-hairline sd-hairline--through" aria-hidden="true"></span>
+      <span class="sd-hairline sd-hairline--side" aria-hidden="true"></span>
     {/if}
     <span class="title-inline">
       <svg
@@ -153,6 +157,9 @@
         >{title}</text>
       </svg>
     </span>
+    {#if throughLabel}
+      <span class="sd-hairline sd-hairline--side" aria-hidden="true"></span>
+    {/if}
   </div>
   {#if belowLabel}
     <span class="sd-hairline sd-hairline--row" aria-hidden="true"></span>
@@ -163,11 +170,14 @@
     {/if}
     <div class="description-row" class:has-line={throughDesc}>
       {#if throughDesc}
-        <span class="sd-hairline sd-hairline--through" aria-hidden="true"></span>
+        <span class="sd-hairline sd-hairline--side" aria-hidden="true"></span>
       {/if}
       <span class="description-inline">
         <p class="divider-description">{description}</p>
       </span>
+      {#if throughDesc}
+        <span class="sd-hairline sd-hairline--side" aria-hidden="true"></span>
+      {/if}
     </div>
     {#if belowDesc}
       <span class="sd-hairline sd-hairline--row" aria-hidden="true"></span>
@@ -196,7 +206,10 @@
     --sectiondivider-lg-eyebrow-font-weight: var(--font-weight-medium);
     --sectiondivider-lg-eyebrow-font-size: var(--font-size-md);
     --sectiondivider-lg-eyebrow-letter-spacing: var(--letter-spacing-wide);
-    --sectiondivider-lg-spacing: var(--space-16);
+    --sectiondivider-lg-padding: var(--space-16);
+    --sectiondivider-lg-title-padding: var(--space-0);
+    --sectiondivider-lg-description-padding: var(--space-0);
+    --sectiondivider-lg-eyebrow-padding: var(--space-0);
     --sectiondivider-lg-radius: var(--radius-lg);
     --sectiondivider-lg-border-width: var(--border-width-0);
     --sectiondivider-lg-shadow: var(--shadow-none);
@@ -224,7 +237,10 @@
     --sectiondivider-md-eyebrow-font-weight: var(--font-weight-medium);
     --sectiondivider-md-eyebrow-font-size: var(--font-size-sm);
     --sectiondivider-md-eyebrow-letter-spacing: var(--letter-spacing-wide);
-    --sectiondivider-md-spacing: var(--space-12);
+    --sectiondivider-md-padding: var(--space-12);
+    --sectiondivider-md-title-padding: var(--space-0);
+    --sectiondivider-md-description-padding: var(--space-0);
+    --sectiondivider-md-eyebrow-padding: var(--space-0);
     --sectiondivider-md-radius: var(--radius-md);
     --sectiondivider-md-border-width: var(--border-width-0);
     --sectiondivider-md-shadow: var(--shadow-none);
@@ -252,7 +268,10 @@
     --sectiondivider-sm-eyebrow-font-weight: var(--font-weight-medium);
     --sectiondivider-sm-eyebrow-font-size: var(--font-size-xs);
     --sectiondivider-sm-eyebrow-letter-spacing: var(--letter-spacing-wide);
-    --sectiondivider-sm-spacing: var(--space-8);
+    --sectiondivider-sm-padding: var(--space-8);
+    --sectiondivider-sm-title-padding: var(--space-0);
+    --sectiondivider-sm-description-padding: var(--space-0);
+    --sectiondivider-sm-eyebrow-padding: var(--space-0);
     --sectiondivider-sm-radius: var(--radius-sm);
     --sectiondivider-sm-border-width: var(--border-width-0);
     --sectiondivider-sm-shadow: var(--shadow-none);
@@ -269,14 +288,17 @@
   .section-divider {
     position: relative;
     margin: var(--space-24) 0;
-    padding: var(--_divider-spacing) calc(var(--_divider-spacing) * 1.5);
+    padding:
+      var(--_divider-padding-top)
+      var(--_divider-padding-right)
+      var(--_divider-padding-bottom)
+      var(--_divider-padding-left);
     border-radius: var(--_divider-radius);
     border: var(--_divider-border-width) solid var(--_divider-border);
     box-shadow: var(--_divider-shadow);
     background: var(--_divider-bg);
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
   }
 
   .section-divider.align-start { align-items: flex-start; text-align: start; --_divider-justify: flex-start; }
@@ -298,7 +320,10 @@
     --_divider-eyebrow-font-weight: var(--sectiondivider-lg-eyebrow-font-weight);
     --_divider-eyebrow-font-size: var(--sectiondivider-lg-eyebrow-font-size);
     --_divider-eyebrow-letter-spacing: var(--sectiondivider-lg-eyebrow-letter-spacing);
-    --_divider-spacing: var(--sectiondivider-lg-spacing);
+    --_divider-padding-top: var(--sectiondivider-lg-padding-top, var(--sectiondivider-lg-padding));
+    --_divider-padding-right: var(--sectiondivider-lg-padding-right, calc(var(--sectiondivider-lg-padding) * 1.5));
+    --_divider-padding-bottom: var(--sectiondivider-lg-padding-bottom, var(--sectiondivider-lg-padding));
+    --_divider-padding-left: var(--sectiondivider-lg-padding-left, calc(var(--sectiondivider-lg-padding) * 1.5));
     --_divider-radius: var(--sectiondivider-lg-radius);
     --_divider-border-width: var(--sectiondivider-lg-border-width);
     --_divider-shadow: var(--sectiondivider-lg-shadow);
@@ -327,7 +352,10 @@
     --_divider-eyebrow-font-weight: var(--sectiondivider-md-eyebrow-font-weight);
     --_divider-eyebrow-font-size: var(--sectiondivider-md-eyebrow-font-size);
     --_divider-eyebrow-letter-spacing: var(--sectiondivider-md-eyebrow-letter-spacing);
-    --_divider-spacing: var(--sectiondivider-md-spacing);
+    --_divider-padding-top: var(--sectiondivider-md-padding-top, var(--sectiondivider-md-padding));
+    --_divider-padding-right: var(--sectiondivider-md-padding-right, calc(var(--sectiondivider-md-padding) * 1.5));
+    --_divider-padding-bottom: var(--sectiondivider-md-padding-bottom, var(--sectiondivider-md-padding));
+    --_divider-padding-left: var(--sectiondivider-md-padding-left, calc(var(--sectiondivider-md-padding) * 1.5));
     --_divider-radius: var(--sectiondivider-md-radius);
     --_divider-border-width: var(--sectiondivider-md-border-width);
     --_divider-shadow: var(--sectiondivider-md-shadow);
@@ -356,7 +384,10 @@
     --_divider-eyebrow-font-weight: var(--sectiondivider-sm-eyebrow-font-weight);
     --_divider-eyebrow-font-size: var(--sectiondivider-sm-eyebrow-font-size);
     --_divider-eyebrow-letter-spacing: var(--sectiondivider-sm-eyebrow-letter-spacing);
-    --_divider-spacing: var(--sectiondivider-sm-spacing);
+    --_divider-padding-top: var(--sectiondivider-sm-padding-top, var(--sectiondivider-sm-padding));
+    --_divider-padding-right: var(--sectiondivider-sm-padding-right, calc(var(--sectiondivider-sm-padding) * 1.5));
+    --_divider-padding-bottom: var(--sectiondivider-sm-padding-bottom, var(--sectiondivider-sm-padding));
+    --_divider-padding-left: var(--sectiondivider-sm-padding-left, calc(var(--sectiondivider-sm-padding) * 1.5));
     --_divider-radius: var(--sectiondivider-sm-radius);
     --_divider-border-width: var(--sectiondivider-sm-border-width);
     --_divider-shadow: var(--sectiondivider-sm-shadow);
@@ -368,6 +399,75 @@
     --_divider-border: var(--sectiondivider-sm-border);
     --_divider-title-outline-color: var(--sectiondivider-sm-title-outline-color);
     --_divider-hairline-color: var(--sectiondivider-sm-hairline-color);
+  }
+
+  /* Per-element padding. Each type element (title / description / eyebrow) owns
+     its own padding tokens, replacing the section-level `gap`. The user gets
+     explicit per-side control via the editor's padding selector. Falls back
+     through: side var → single-value var → 0. Variant-scoped so each preset
+     can carry its own per-element rhythm. */
+  .variant-lg .title-row {
+    padding:
+      var(--sectiondivider-lg-title-padding-top, var(--sectiondivider-lg-title-padding, 0))
+      var(--sectiondivider-lg-title-padding-right, var(--sectiondivider-lg-title-padding, 0))
+      var(--sectiondivider-lg-title-padding-bottom, var(--sectiondivider-lg-title-padding, 0))
+      var(--sectiondivider-lg-title-padding-left, var(--sectiondivider-lg-title-padding, 0));
+  }
+  .variant-lg .description-row {
+    padding:
+      var(--sectiondivider-lg-description-padding-top, var(--sectiondivider-lg-description-padding, 0))
+      var(--sectiondivider-lg-description-padding-right, var(--sectiondivider-lg-description-padding, 0))
+      var(--sectiondivider-lg-description-padding-bottom, var(--sectiondivider-lg-description-padding, 0))
+      var(--sectiondivider-lg-description-padding-left, var(--sectiondivider-lg-description-padding, 0));
+  }
+  .variant-lg .divider-eyebrow {
+    padding:
+      var(--sectiondivider-lg-eyebrow-padding-top, var(--sectiondivider-lg-eyebrow-padding, 0))
+      var(--sectiondivider-lg-eyebrow-padding-right, var(--sectiondivider-lg-eyebrow-padding, 0))
+      var(--sectiondivider-lg-eyebrow-padding-bottom, var(--sectiondivider-lg-eyebrow-padding, 0))
+      var(--sectiondivider-lg-eyebrow-padding-left, var(--sectiondivider-lg-eyebrow-padding, 0));
+  }
+  .variant-md .title-row {
+    padding:
+      var(--sectiondivider-md-title-padding-top, var(--sectiondivider-md-title-padding, 0))
+      var(--sectiondivider-md-title-padding-right, var(--sectiondivider-md-title-padding, 0))
+      var(--sectiondivider-md-title-padding-bottom, var(--sectiondivider-md-title-padding, 0))
+      var(--sectiondivider-md-title-padding-left, var(--sectiondivider-md-title-padding, 0));
+  }
+  .variant-md .description-row {
+    padding:
+      var(--sectiondivider-md-description-padding-top, var(--sectiondivider-md-description-padding, 0))
+      var(--sectiondivider-md-description-padding-right, var(--sectiondivider-md-description-padding, 0))
+      var(--sectiondivider-md-description-padding-bottom, var(--sectiondivider-md-description-padding, 0))
+      var(--sectiondivider-md-description-padding-left, var(--sectiondivider-md-description-padding, 0));
+  }
+  .variant-md .divider-eyebrow {
+    padding:
+      var(--sectiondivider-md-eyebrow-padding-top, var(--sectiondivider-md-eyebrow-padding, 0))
+      var(--sectiondivider-md-eyebrow-padding-right, var(--sectiondivider-md-eyebrow-padding, 0))
+      var(--sectiondivider-md-eyebrow-padding-bottom, var(--sectiondivider-md-eyebrow-padding, 0))
+      var(--sectiondivider-md-eyebrow-padding-left, var(--sectiondivider-md-eyebrow-padding, 0));
+  }
+  .variant-sm .title-row {
+    padding:
+      var(--sectiondivider-sm-title-padding-top, var(--sectiondivider-sm-title-padding, 0))
+      var(--sectiondivider-sm-title-padding-right, var(--sectiondivider-sm-title-padding, 0))
+      var(--sectiondivider-sm-title-padding-bottom, var(--sectiondivider-sm-title-padding, 0))
+      var(--sectiondivider-sm-title-padding-left, var(--sectiondivider-sm-title-padding, 0));
+  }
+  .variant-sm .description-row {
+    padding:
+      var(--sectiondivider-sm-description-padding-top, var(--sectiondivider-sm-description-padding, 0))
+      var(--sectiondivider-sm-description-padding-right, var(--sectiondivider-sm-description-padding, 0))
+      var(--sectiondivider-sm-description-padding-bottom, var(--sectiondivider-sm-description-padding, 0))
+      var(--sectiondivider-sm-description-padding-left, var(--sectiondivider-sm-description-padding, 0));
+  }
+  .variant-sm .divider-eyebrow {
+    padding:
+      var(--sectiondivider-sm-eyebrow-padding-top, var(--sectiondivider-sm-eyebrow-padding, 0))
+      var(--sectiondivider-sm-eyebrow-padding-right, var(--sectiondivider-sm-eyebrow-padding, 0))
+      var(--sectiondivider-sm-eyebrow-padding-bottom, var(--sectiondivider-sm-eyebrow-padding, 0))
+      var(--sectiondivider-sm-eyebrow-padding-left, var(--sectiondivider-sm-eyebrow-padding, 0));
   }
 
   /* Title rendered as a single <text> through a feMorphology dilate + flood +
@@ -390,46 +490,35 @@
   .title-row {
     display: flex;
     width: 100%;
-    position: relative;
     justify-content: var(--_divider-justify);
     align-items: center;
+    gap: 0.75em;
   }
   .title-inline {
     display: inline-flex;
-    position: relative;
-    z-index: 1;
-  }
-  /* When a "through-label" hairline is active, give the title a backdrop +
-     inline padding so the line visually breaks where the text sits. */
-  .title-row.has-line .title-inline {
-    background: var(--_divider-bg);
-    padding-inline: 0.75em;
   }
 
   .divider-eyebrow {
+    display: block;
     font-family: var(--_divider-eyebrow-font-family);
     font-weight: var(--_divider-eyebrow-font-weight);
     font-size: var(--_divider-eyebrow-font-size);
     letter-spacing: var(--_divider-eyebrow-letter-spacing);
-    text-transform: uppercase;
     color: var(--_divider-eyebrow);
+  }
+  .divider-eyebrow.uppercase {
+    text-transform: uppercase;
   }
 
   .description-row {
     display: flex;
     width: 100%;
-    position: relative;
     justify-content: var(--_divider-justify);
     align-items: center;
+    gap: 0.75em;
   }
   .description-inline {
     display: inline-flex;
-    position: relative;
-    z-index: 1;
-  }
-  .description-row.has-line .description-inline {
-    background: var(--_divider-bg);
-    padding-inline: 0.75em;
   }
   .divider-description {
     margin: 0;
@@ -449,18 +538,15 @@
   .sd-hairline--row {
     width: 100%;
   }
-  .sd-hairline--through {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 0;
+  .sd-hairline--side {
+    flex: 1;
+    min-width: 0;
+  }
+  /* In start alignment the text hugs the left edge, so the leading segment
+     would have zero width anyway — hide it and let the trailing segment
+     stretch to the right edge. */
+  .section-divider.align-start .sd-hairline--side:first-child {
+    display: none;
   }
 
-  @media (max-width: 600px) {
-    .section-divider {
-      padding: var(--space-12) var(--space-16);
-    }
-  }
 </style>

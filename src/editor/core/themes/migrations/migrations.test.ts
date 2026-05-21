@@ -221,9 +221,9 @@ describe('migration runner — schemaVersion gating', () => {
     expect(migrated['--sectiondivider-primary-gradient-stop-1-color']).toBeUndefined();
     // v8→v9 collapses families to size variants; canvas's padding seeds all three.
     expect(migrated['--sectiondivider-canvas-padding']).toBeUndefined();
-    expect(migrated['--sectiondivider-lg-spacing']).toBe('--space-16');
-    expect(migrated['--sectiondivider-md-spacing']).toBe('--space-16');
-    expect(migrated['--sectiondivider-sm-spacing']).toBe('--space-16');
+    expect(migrated['--sectiondivider-lg-padding']).toBe('--space-16');
+    expect(migrated['--sectiondivider-md-padding']).toBe('--space-16');
+    expect(migrated['--sectiondivider-sm-padding']).toBe('--space-16');
   });
 
   it('component-config v4 sectiondivider migration only fires for sectiondivider', () => {
@@ -247,10 +247,10 @@ describe('migration runner — schemaVersion gating', () => {
       '--sectiondivider-canvas-gradient-stop-3-position': '85%',
     };
     const out = runMigrations('component-config', 7, v6, { component: 'sectiondivider' });
-    // Padding renames to spacing and fans across the three new size variants;
+    // Padding fans across the three new size variants;
     // canvas's text colors seed all three variants' title color.
     expect(out['--sectiondivider-canvas-padding']).toBeUndefined();
-    expect(out['--sectiondivider-md-spacing']).toBe('--space-16');
+    expect(out['--sectiondivider-md-padding']).toBe('--space-16');
     expect(out['--sectiondivider-md-title']).toBe('--text-primary');
     // The 7 flat gradient tokens are gone — they live in the structured
     // ref synthesized upstream of the runner now.
@@ -372,7 +372,7 @@ describe('migration runner — schemaVersion gating', () => {
 
     // Canvas's values are fanned across lg/md/sm with the suffix renames applied.
     for (const v of ['lg', 'md', 'sm']) {
-      expect(out[`--sectiondivider-${v}-spacing`]).toBe('--space-16'); // renamed from -padding
+      expect(out[`--sectiondivider-${v}-padding`]).toBe('--space-16'); // v8→v9 intermediate -spacing, then v9→v10 back to -padding
       expect(out[`--sectiondivider-${v}-title`]).toBe('--text-primary');
       expect(out[`--sectiondivider-${v}-title-font-family`]).toBe('--font-display');
       expect(out[`--sectiondivider-${v}-title-font-size`]).toBe('--font-size-5xl');

@@ -22,6 +22,7 @@
   } from '../core/store/gradientSource';
   import GradientStopPicker from './GradientStopPicker.svelte';
   import AngleDial from '../component-editor/scaffolding/AngleDial.svelte';
+  import { snapTokenToFamily } from '../core/palettes/familySwap';
 
   interface Props {
     /** Theme-gradient mode: variable name (e.g. `--gradient-1`). */
@@ -102,6 +103,31 @@
 
   function handleStopChange(i: number, payload: { color: string; opacity: number }) {
     gradientSource.setStop(i, { color: payload.color, opacity: payload.opacity });
+  }
+
+  /** Per-stop Monochrome toggle. On → snap the stop's color into the active
+   *  family (uses `snapTokenToFamily`, no-op when the slug has no family
+   *  marker). Off → mark the stop as an off-palette override; color stays put
+   *  and future family swaps skip it. */
+  function handleMonoToggle(i: number, mono: boolean) {
+    if (mono && familyFilter) {
+      const stop = gradient?.stops[i];
+      if (stop) {
+        const snapped = snapTokenToFamily(stop.color, familyFilter);
+        gradientSource.setStop(i, { monochrome: true, color: snapped });
+        return;
+      }
+    }
+    gradientSource.setStop(i, { monochrome: mono });
+  }
+
+  /** Display label for the stop's current value. Mirrors the picker's meta
+   *  format (`category-family-step` with optional opacity suffix) so the row
+   *  reads consistently with other property rows. */
+  function stopValueLabel(stop: GradientTokenStop): string {
+    const op = stop.opacity ?? 100;
+    const base = stop.color.startsWith('--') ? stop.color.slice(2) : stop.color;
+    return op < 100 ? `${base} (${Math.round(op)}%)` : base;
   }
 
   /** Insert a stop at the given percentage, inheriting color/opacity from the
@@ -298,6 +324,8 @@
     </div>
 
     {#if gradient.stops[selected]}
+      {@const stop = gradient.stops[selected]}
+      {@const stopMono = stop.monochrome !== false}
       <div class="stop-edit-row">
         <span class="row-label">{isSolid ? 'Color' : `Stop ${selected + 1}`}</span>
         {#if !isSolid}
@@ -307,21 +335,34 @@
               min="0"
               max="100"
               step="0.1"
-              value={gradient.stops[selected].position}
+              value={stop.position}
               onchange={onPositionInput}
             />
             <span class="suffix">%</span>
           </label>
         {/if}
-        <div class="picker-slot">
-          <GradientStopPicker
-            stopId={`${stopKeyPrefix}-${selected}`}
-            color={gradient.stops[selected].color}
-            opacity={gradient.stops[selected].opacity ?? 100}
-            {familyFilter}
-            onchange={(payload) => handleStopChange(selected, payload)}
-          />
+        <div class="picker-column">
+          <div class="picker-slot">
+            <GradientStopPicker
+              stopId={`${stopKeyPrefix}-${selected}`}
+              color={stop.color}
+              opacity={stop.opacity ?? 100}
+              familyFilter={stopMono ? familyFilter : null}
+              onchange={(payload) => handleStopChange(selected, payload)}
+            />
+          </div>
+          {#if familyFilter !== null}
+            <label class="stop-mono-check">
+              <input
+                type="checkbox"
+                checked={stopMono}
+                onchange={(e) => handleMonoToggle(selected, (e.currentTarget as HTMLInputElement).checked)}
+              />
+              <span>Monochrome</span>
+            </label>
+          {/if}
         </div>
+        <span class="stop-value-text" title={stopValueLabel(stop)}>{stopValueLabel(stop)}</span>
       </div>
     {/if}
 
@@ -472,12 +513,65 @@
     cursor: not-allowed;
   }
 
+  /* Two-row layout: row 1 holds label / percent / picker chrome / slug; row 2
+     holds the per-stop Monochrome checkbox stacked under the picker. The
+     other row-1 items get an explicit line-height matching the picker
+     trigger's min-height so they top-align visually with the chrome instead
+     of riding above it. */
   .stop-edit-row {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--ui-space-12);
   }
+  .stop-edit-row > .row-label,
+  .stop-edit-row > .pos-input,
+  .stop-edit-row > .stop-value-text {
+    line-height: 1.75rem;
+  }
+
+  .picker-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ui-space-6);
+    flex: 0 0 auto;
+  }
+
+  /* The picker carries its own meta label via subgrid, but in this row the
+     picker-slot isn't laid out as a subgrid parent — the meta wraps awkwardly
+     under the chrome. We render the slug ourselves (`.stop-value-text`) and
+     keep the picker's internal copy hidden so the row stays single-line. */
+  .stop-edit-row :global(.ui-ts-meta-text) {
+    display: none;
+  }
+
+  /* Stop slug — mirrors UITokenSelector's meta typography so this row reads
+     consistently with property rows elsewhere. Grows to fill remaining row
+     space and ellipsizes on overflow. */
+  .stop-value-text {
+    flex: 1 1 0;
+    min-width: 0;
+    color: var(--ui-text-tertiary);
+    font-family: var(--ui-font-mono);
+    font-size: var(--ui-font-size-sm);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .stop-mono-check {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+    cursor: pointer;
+    user-select: none;
+    flex: 0 0 auto;
+  }
+  .stop-mono-check:hover { color: var(--ui-text-primary); }
+  .stop-mono-check input { margin: 0; cursor: pointer; }
 
   .row-label {
     font-size: var(--ui-font-size-xs);

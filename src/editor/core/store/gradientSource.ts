@@ -120,6 +120,13 @@ export function componentGradientSource(component: string, varName: string): Gra
       if (p.position !== undefined) stop.position = p.position;
       if (p.color !== undefined) stop.color = p.color;
       if (p.opacity !== undefined) stop.opacity = p.opacity;
+      // `monochrome: true` is the implicit default — drop the field on write
+      // so the persisted shape stays minimal. Only the explicit override
+      // (`false`) needs to live on the stop.
+      if (p.monochrome !== undefined) {
+        if (p.monochrome === false) stop.monochrome = false;
+        else delete stop.monochrome;
+      }
     }),
     addStop: (s) => update(`add gradient stop ${varName}`, (g) => {
       g.stops.push({ ...s });

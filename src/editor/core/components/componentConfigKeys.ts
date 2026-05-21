@@ -32,4 +32,13 @@ export const KNOWN_COMPONENT_CONFIG_KEYS: ReadonlySet<string> = new Set([
   '--sectiondivider-lg-show-description',
   '--sectiondivider-md-show-description',
   '--sectiondivider-sm-show-description',
+  '--sectiondivider-lg-show-hairline',
+  '--sectiondivider-md-show-hairline',
+  '--sectiondivider-sm-show-hairline',
+  '--sectiondivider-lg-color-family',
+  '--sectiondivider-md-color-family',
+  '--sectiondivider-sm-color-family',
+  '--sectiondivider-lg-eyebrow-uppercase',
+  '--sectiondivider-md-eyebrow-uppercase',
+  '--sectiondivider-sm-eyebrow-uppercase',
 ]);

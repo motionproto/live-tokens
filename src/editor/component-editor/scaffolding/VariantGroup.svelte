@@ -30,6 +30,10 @@
     stateActions?: Snippet<[string]>;
     previewActions?: Snippet;
     compositeControls?: Snippet<[string]>;
+    /** Each child should be a `.property-row`. Rendered above the token grid
+        so per-variant display knobs (alignment, hairline, etc.) lead the list
+        before the typography and token rows. */
+    extraPropertyRowsTop?: Snippet<[string]>;
     /** Each child should be a `.property-row` to match the token grid above. */
     extraPropertyRows?: Snippet<[string]>;
     /** Extra sections appended below the Background controls inside the canvas
@@ -37,6 +41,13 @@
         Background. Lets per-instance display knobs (anchor, alignment, etc.)
         live with the canvas rather than in a separate config block above. */
     canvasToolbarExtras?: Snippet;
+    /** Per-element Show toggles, forwarded to StateBlock. Keyed by element name. */
+    elementToggles?: Record<string, { checked: boolean; label?: string; onchange: (checked: boolean) => void }>;
+    /** Explicit order for element-grouped sections, forwarded to StateBlock. */
+    elementOrder?: string[];
+    /** Per-element extras snippet, forwarded to StateBlock. Receives the
+        element name and renders between the section heading and its content. */
+    elementExtras?: Snippet<[string]>;
     /** Skip the default centered, padded stage when the editor brings its own backdrop. */
     unboxedPreview?: boolean;
     backdropPadding?: string;
@@ -58,8 +69,12 @@
     stateActions,
     previewActions,
     compositeControls,
+    extraPropertyRowsTop,
     extraPropertyRows,
     canvasToolbarExtras,
+    elementToggles,
+    elementOrder,
+    elementExtras,
     unboxedPreview = false,
     backdropPadding,
     backdropModes,
@@ -471,12 +486,20 @@
           />
         {/if}
       </div>
+      {#if extraPropertyRowsTop}
+        <div class="extra-property-rows extra-property-rows--top">
+          {@render extraPropertyRowsTop(stateName)}
+        </div>
+      {/if}
       <StateBlock
         tokens={states[stateName]}
         typeGroups={typeGroups[stateName] ?? []}
         {component}
         {linkedOrder}
         {columns}
+        {elementToggles}
+        {elementOrder}
+        {elementExtras}
         {onchange}
       />
       {#if extraPropertyRows}
@@ -614,6 +637,7 @@
      vocabulary from the rest of the editor. */
   .canvas-toolbar :global(.canvas-toolbar-select) {
     width: 100%;
+    box-sizing: border-box;
     appearance: none;
     -webkit-appearance: none;
     padding: 0 var(--ui-space-24) 0 var(--ui-space-8);
@@ -639,9 +663,14 @@
     outline-offset: 2px;
   }
 
-  /* Native <input> styled to match the toolbar's select chrome. */
+  /* Native <input> styled to match the toolbar's select chrome. Long values
+     ellipsize when blurred so the input doesn't grow or scroll-bleed past
+     the toolbar's 11rem column; focus restores native caret-driven scroll. */
   .canvas-toolbar :global(.canvas-toolbar-input) {
     width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
     padding: 0 var(--ui-space-8);
     min-height: 1.75rem;
     background: var(--ui-surface-low);
@@ -650,6 +679,7 @@
     color: var(--ui-text-primary);
     font-family: var(--ui-font-sans);
     font-size: var(--ui-font-size-sm);
+    text-overflow: ellipsis;
     transition: background-color var(--ui-transition-fast), border-color var(--ui-transition-fast);
   }
   .canvas-toolbar :global(.canvas-toolbar-input:hover) {
