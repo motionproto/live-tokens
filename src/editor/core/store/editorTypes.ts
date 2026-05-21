@@ -43,7 +43,13 @@ export interface ColumnsState {
   margin: number;
 }
 
-export type GradientType = 'linear' | 'radial';
+/** Gradient render mode.
+ *  - `linear` / `radial`: real gradients with N stops + angle (linear) or radius (radial).
+ *  - `solid`: collapses to the first stop's color. Angle/radius/extra stops carried in
+ *    the payload but ignored by the renderer; toggling back restores the prior shape.
+ *  - `none`: transparent. Same carry-forward semantics — payload retained for
+ *    round-trip when the user toggles back to a real gradient. */
+export type GradientType = 'linear' | 'radial' | 'solid' | 'none';
 
 export interface GradientTokenStop {
   /** 0–100 percentage along the gradient axis. */
@@ -60,6 +66,11 @@ export interface GradientToken {
   type: GradientType;
   /** Degrees, applies to linear only. */
   angle: number;
+  /** Pixel radius for radial gradients. When absent or zero, the renderer
+   *  emits CSS's default ellipse/farthest-corner shape. */
+  radius?: number;
+  /** Horizontal center position for radial gradients, 0–100. Defaults to 50. */
+  centerX?: number;
   stops: GradientTokenStop[];
 }
 
@@ -70,6 +81,10 @@ export interface GradientToken {
 export interface GradientAliasValue {
   type: GradientType;
   angle: number;
+  /** See GradientToken.radius. */
+  radius?: number;
+  /** See GradientToken.centerX. */
+  centerX?: number;
   stops: GradientTokenStop[];
 }
 

@@ -545,14 +545,23 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    *  client's renderer writes into `:root`, so production overrides stay in
    *  sync with the live editor. */
   function formatAliasGradient(v: AliasDiskGradient['value']): string {
-    const stops = v.stops.map((s) => {
+    const stopColor = (s: { color: string; opacity?: number }): string => {
       const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
       const opacity = s.opacity ?? 100;
-      const color = opacity >= 100 ? base : `color-mix(in srgb, ${base} ${opacity}%, transparent)`;
-      return `${color} ${s.position}%`;
-    }).join(', ');
+      return opacity >= 100 ? base : `color-mix(in srgb, ${base} ${opacity}%, transparent)`;
+    };
+    if (v.type === 'none') return 'transparent';
+    if (v.type === 'solid') {
+      const first = v.stops[0];
+      if (!first) return 'transparent';
+      return stopColor(first);
+    }
+    const stops = v.stops.map((s) => `${stopColor(s)} ${s.position}%`).join(', ');
     if (v.type === 'linear') return `linear-gradient(${v.angle}deg, ${stops})`;
-    return `radial-gradient(${stops})`;
+    const radial = v.radius && v.radius > 0
+      ? `circle ${v.radius}px at center`
+      : 'circle';
+    return `radial-gradient(${radial}, ${stops})`;
   }
 
   function aliasValueToCss(v: AliasDiskValue): string {

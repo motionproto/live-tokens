@@ -4,80 +4,49 @@
 
   export const component = 'sectiondivider';
 
-  type Variant = 'canvas' | 'neutral' | 'alternate' | 'primary' | 'accent' | 'special';
-  const variants: { key: Variant; title: string }[] = [
-    { key: 'primary', title: 'Primary' },
-    { key: 'accent', title: 'Accent' },
-    { key: 'neutral', title: 'Neutral' },
-    { key: 'special', title: 'Special' },
-    { key: 'canvas', title: 'Canvas' },
-    { key: 'alternate', title: 'Alternate' },
+  /** Variant axis = full presets. Each variant owns its size/typography +
+   *  colors/background, AND its intrinsic display properties (align,
+   *  hairline, eyebrow + description visibility). */
+  type Variant = 'lg' | 'md' | 'sm';
+  const variants: { key: Variant; title: string; family: string }[] = [
+    { key: 'lg', title: 'Large', family: 'canvas' },
+    { key: 'md', title: 'Medium', family: 'canvas' },
+    { key: 'sm', title: 'Small', family: 'canvas' },
   ];
 
-  /** Color-family prefix each variant scopes monochrome picks to. `primary`
-   *  is the brand family; the rest of the variant names match the palette
-   *  family directly. Used to drive the gradient editor's `familyFilter`. */
-  const VARIANT_FAMILY: Record<Variant, string> = {
-    canvas: 'canvas',
-    neutral: 'neutral',
-    alternate: 'alternate',
-    primary: 'brand',
-    accent: 'accent',
-    special: 'special',
-  };
-
-  /** Frame tokens for a variant. The gradient slot is the structured
-   *  `{ kind: 'gradient' }` alias edited via GradientEditor; outline
-   *  thickness/color are rendered nested under the title TypeEditor.
-   *  Both are emitted only for `allTokens` (reset/registry) — not for
-   *  the per-state token grid. */
   function frameTokens(v: Variant): Token[] {
     return [
-      // Padding is routed through an internal `--_divider-padding` aggregator
-      // per variant — split mode would require per-side forwarding in every
-      // variant rule. Until that lands, present single-value only.
-      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--sectiondivider-${v}-padding`, splittable: false },
+      { label: 'spacing', canBeLinked: true, groupKey: 'spacing', variable: `--sectiondivider-${v}-spacing`, splittable: false },
       { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--sectiondivider-${v}-radius` },
       { label: 'border color', canBeLinked: true, groupKey: 'border', variable: `--sectiondivider-${v}-border` },
       { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--sectiondivider-${v}-border-width` },
       { label: 'drop shadow', canBeLinked: true, groupKey: 'shadow', variable: `--sectiondivider-${v}-shadow` },
+      { label: 'hairline color', canBeLinked: true, groupKey: 'hairline-color', variable: `--sectiondivider-${v}-hairline-color` },
+      { label: 'hairline thickness', canBeLinked: true, groupKey: 'hairline-thickness', variable: `--sectiondivider-${v}-hairline-thickness` },
     ];
   }
-  /** Title outline tokens — rendered inside the title TypeEditor (not the
-   *  property grid) but registered here so reset/linkage still see them. */
   function titleOutlineTokens(v: Variant): Token[] {
     return [
-      { label: 'outline thickness', canBeLinked: true, groupKey: 'title-border-width', variable: `--sectiondivider-${v}-title-border-width` },
-      { label: 'outline color', canBeLinked: true, groupKey: 'title-stroke-color', variable: `--sectiondivider-${v}-title-stroke-color` },
+      { label: 'outline thickness', canBeLinked: true, groupKey: 'title-outline-width', variable: `--sectiondivider-${v}-title-outline-width` },
+      { label: 'outline color', canBeLinked: true, groupKey: 'title-outline-color', variable: `--sectiondivider-${v}-title-outline-color` },
     ];
   }
-  function gradientTokens(v: Variant): Token[] {
+  function backgroundTokens(v: Variant): Token[] {
     return [
-      { label: 'gradient', groupKey: 'gradient', variable: `--sectiondivider-${v}-gradient`, kind: 'gradient', family: VARIANT_FAMILY[v] },
+      { label: 'background', groupKey: 'background', variable: `--sectiondivider-${v}-background`, kind: 'gradient', family: variants.find((x) => x.key === v)!.family },
     ];
   }
   function variantTokens(v: Variant): Token[] {
-    return [...frameTokens(v), ...titleOutlineTokens(v), ...gradientTokens(v)];
+    return [...frameTokens(v), ...titleOutlineTokens(v), ...backgroundTokens(v)];
   }
-
-  /** Token list passed to VariantGroup.states + sibling builder so Copy-from
-   *  iterates ALL tokens (frame + outline + gradient), not just the visible
-   *  frame. Outline + gradient are flagged `hidden` so the property grid still
-   *  shows only frame tokens — outline renders inside the title TypeEditor,
-   *  gradient renders in GradientEditor. Mismatch between this list and the
-   *  sibling list would mis-align positional copy. */
   function stateTokens(v: Variant): Token[] {
     return [
       ...frameTokens(v),
       ...titleOutlineTokens(v).map((t) => ({ ...t, hidden: true })),
-      ...gradientTokens(v).map((t) => ({ ...t, hidden: true })),
+      ...backgroundTokens(v).map((t) => ({ ...t, hidden: true })),
     ];
   }
 
-  /** Two type groups per variant: title and description. The TypeEditor
-   *  fieldset visually groups each color with its font-shape props. The
-   *  title fieldset also nests the SVG-text outline width + color so those
-   *  controls sit with the typography that drives them. */
   function variantTypeGroups(v: Variant): TypeGroupConfig[] {
     return [
       {
@@ -88,8 +57,8 @@
         weightVariable: `--sectiondivider-${v}-title-font-weight`,
         lineHeightVariable: `--sectiondivider-${v}-title-line-height`,
         letterSpacingVariable: `--sectiondivider-${v}-title-letter-spacing`,
-        outlineWidthVariable: `--sectiondivider-${v}-title-border-width`,
-        outlineColorVariable: `--sectiondivider-${v}-title-stroke-color`,
+        outlineWidthVariable: `--sectiondivider-${v}-title-outline-width`,
+        outlineColorVariable: `--sectiondivider-${v}-title-outline-color`,
       },
       {
         legend: 'description',
@@ -99,26 +68,35 @@
         weightVariable: `--sectiondivider-${v}-description-font-weight`,
         lineHeightVariable: `--sectiondivider-${v}-description-line-height`,
       },
+      {
+        legend: 'eyebrow',
+        colorVariable: `--sectiondivider-${v}-eyebrow`,
+        familyVariable: `--sectiondivider-${v}-eyebrow-font-family`,
+        sizeVariable: `--sectiondivider-${v}-eyebrow-font-size`,
+        weightVariable: `--sectiondivider-${v}-eyebrow-font-weight`,
+        letterSpacingVariable: `--sectiondivider-${v}-eyebrow-letter-spacing`,
+      },
     ];
   }
 
-  /** Token registry entries for the type-group properties. Colors are emitted
-   *  with canBeLinked so the LinkedBlock keeps the cross-variant linkage they
-   *  ship with (title/description colors share the same theme defaults across
-   *  every variant). */
   function variantTypeGroupTokens(v: Variant): Token[] {
     return [
       { label: 'title color', canBeLinked: true, groupKey: 'title-color', variable: `--sectiondivider-${v}-title` },
       { label: 'title font family', canBeLinked: true, groupKey: 'title-font-family', variable: `--sectiondivider-${v}-title-font-family` },
-      { label: 'title font size', canBeLinked: true, groupKey: 'title-font-size', variable: `--sectiondivider-${v}-title-font-size` },
       { label: 'title font weight', canBeLinked: true, groupKey: 'title-font-weight', variable: `--sectiondivider-${v}-title-font-weight` },
+      { label: 'title font size', variable: `--sectiondivider-${v}-title-font-size` },
       { label: 'title line height', canBeLinked: true, groupKey: 'title-line-height', variable: `--sectiondivider-${v}-title-line-height` },
       { label: 'title letter spacing', canBeLinked: true, groupKey: 'title-letter-spacing', variable: `--sectiondivider-${v}-title-letter-spacing` },
       { label: 'description color', canBeLinked: true, groupKey: 'description-color', variable: `--sectiondivider-${v}-description` },
       { label: 'description font family', canBeLinked: true, groupKey: 'description-font-family', variable: `--sectiondivider-${v}-description-font-family` },
-      { label: 'description font size', canBeLinked: true, groupKey: 'description-font-size', variable: `--sectiondivider-${v}-description-font-size` },
       { label: 'description font weight', canBeLinked: true, groupKey: 'description-font-weight', variable: `--sectiondivider-${v}-description-font-weight` },
+      { label: 'description font size', variable: `--sectiondivider-${v}-description-font-size` },
       { label: 'description line height', canBeLinked: true, groupKey: 'description-line-height', variable: `--sectiondivider-${v}-description-line-height` },
+      { label: 'eyebrow color', canBeLinked: true, groupKey: 'eyebrow-color', variable: `--sectiondivider-${v}-eyebrow` },
+      { label: 'eyebrow font family', canBeLinked: true, groupKey: 'eyebrow-font-family', variable: `--sectiondivider-${v}-eyebrow-font-family` },
+      { label: 'eyebrow font weight', canBeLinked: true, groupKey: 'eyebrow-font-weight', variable: `--sectiondivider-${v}-eyebrow-font-weight` },
+      { label: 'eyebrow font size', variable: `--sectiondivider-${v}-eyebrow-font-size` },
+      { label: 'eyebrow letter spacing', canBeLinked: true, groupKey: 'eyebrow-letter-spacing', variable: `--sectiondivider-${v}-eyebrow-letter-spacing` },
     ];
   }
 
@@ -127,14 +105,14 @@
     ...variantTypeGroupTokens(v.key),
   ]);
 
-  // Linked block contexts: every linkable token registers under its variant name.
-  // Gradient stops are intentionally absent — they're variant-defining and never link.
   const LINKED_GROUP_KEYS = [
-    'padding', 'radius',
-    'border', 'border-width', 'shadow',
-    'title-border-width', 'title-stroke-color',
-    'title-color', 'title-font-family', 'title-font-size', 'title-font-weight', 'title-line-height', 'title-letter-spacing',
-    'description-color', 'description-font-family', 'description-font-size', 'description-font-weight', 'description-line-height',
+    'spacing', 'radius', 'border', 'border-width', 'shadow',
+    'hairline-color', 'hairline-thickness',
+    'title-outline-width', 'title-outline-color',
+    'title-color', 'description-color', 'eyebrow-color',
+    'title-font-family', 'title-font-weight', 'title-line-height', 'title-letter-spacing',
+    'description-font-family', 'description-font-weight', 'description-line-height',
+    'eyebrow-font-family', 'eyebrow-font-weight', 'eyebrow-letter-spacing',
   ] as const;
   const linkableContexts = new Map<string, string>(
     variants.flatMap((v) =>
@@ -145,6 +123,16 @@
   );
 
   const variantOptions = variants.map((v) => ({ value: v.key, label: v.title }));
+
+  type Align = 'start' | 'center';
+  type HairlinePosition =
+    | 'above-label'
+    | 'through-label'
+    | 'below-label'
+    | 'above-description'
+    | 'through-description'
+    | 'below-description';
+  type HairlineChoice = 'off' | HairlinePosition;
 </script>
 
 <script lang="ts">
@@ -152,65 +140,77 @@
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import GradientEditor from '../ui/GradientEditor.svelte';
-  import { editorState, mutate } from '../core/store/editorStore';
+  import { editorState, mutate, setComponentConfig } from '../core/store/editorStore';
   import { componentGradientSource } from '../core/store/gradientSource';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
-  /** Known color families the picker exposes — kept in sync with
-   *  `UIPaletteSelector.svelte`'s `families` list. Used to detect a stop's
-   *  current family so checking Monochrome can map it to the variant's. */
   const KNOWN_FAMILIES = [
     'neutral', 'alternate', 'canvas', 'brand',
     'accent', 'special', 'success', 'warning', 'info', 'danger',
   ] as const;
 
-  /** Step names on the text ramp. Mirrors UIPaletteSelector's `textSteps`. */
   const TEXT_STEPS = ['primary', 'secondary', 'tertiary', 'muted', 'disabled'] as const;
 
-  let testTitle = $state('Section Title');
-  let showDescription = $state(true);
-  let descriptionText = $state('This text is meant to provide additional context or meaning.');
-
-  let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
-  // Pass the full stateTokens list (with outline/gradient hidden) so positional
-  // Copy-from covers every variable. TokenLayout filters hidden tokens from the
-  // grid render path, so the user still sees only frame tokens.
-  let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(stateTokens(v), linked.varSet));
-
-  /** Per-variant gradient sources, memoized by variant key so the adapter
-   *  identity stays stable for GradientEditor's snapshot/restore lifecycle. */
-  const gradientSources = Object.fromEntries(
-    variants.map((v) => [v.key, componentGradientSource(component, `--sectiondivider-${v.key}-gradient`)]),
-  ) as Record<Variant, ReturnType<typeof componentGradientSource>>;
-
-  /** Per-variant Monochrome toggles. Derived "on" when every current stop's
-   *  color sits within the variant's family. Checking the box also rewrites
-   *  any out-of-family stops to their family-equivalent (e.g. flipping
-   *  `--color-special-500` → `--color-accent-500` when the variant is
-   *  accent), so the gradient visibly snaps into the family. Unchecking
-   *  the box just widens the picker; existing stops are not touched. */
-  let monochrome = $state<Record<Variant, boolean>>({
-    canvas: true, neutral: true, alternate: true,
-    primary: true, accent: true, special: true,
+  // Sample content lives in the canvas toolbar (per-variant editor state).
+  // It's not persisted — it drives the preview's text content only. The
+  // user keys it differently per-variant so each card has its own preview text.
+  let testTitle: Record<Variant, string> = $state({
+    lg: 'Large Section',
+    md: 'Medium Section',
+    sm: 'Small Section',
+  });
+  let eyebrowText: Record<Variant, string> = $state({
+    lg: 'SECTION', md: 'SECTION', sm: 'SECTION',
+  });
+  let descriptionText: Record<Variant, string> = $state({
+    lg: 'This text is meant to provide additional context or meaning.',
+    md: 'This text is meant to provide additional context or meaning.',
+    sm: 'This text is meant to provide additional context or meaning.',
   });
 
-  /** Refresh `monochrome[v]` from current stop colors. Called once per
-   *  variant on mount; the user-toggleable state then drifts independently. */
-  function initMonochrome(v: Variant) {
-    const slice = $editorState.components[component];
-    const ref = slice?.aliases[`--sectiondivider-${v}-gradient`];
-    if (ref?.kind !== 'gradient') return;
-    const fam = VARIANT_FAMILY[v];
-    const allInFamily = ref.value.stops.every((s) => stopMatchesFamily(s.color, fam));
-    monochrome[v] = allInFamily;
+  // Intrinsic per-variant properties — persisted in the component config bucket.
+  // Read live from the editor state so the property-row controls reflect saves.
+  let cfg = $derived(($editorState.components[component]?.config ?? {}) as Record<string, unknown>);
+
+  function getAlign(v: Variant): Align {
+    const raw = cfg[`--sectiondivider-${v}-align`];
+    return raw === 'start' ? 'start' : 'center';
+  }
+  function getHairline(v: Variant): HairlineChoice {
+    const raw = cfg[`--sectiondivider-${v}-hairline`];
+    const positions: HairlineChoice[] = ['off', 'above-label', 'through-label', 'below-label', 'above-description', 'through-description', 'below-description'];
+    return (positions as string[]).includes(raw as string) ? (raw as HairlineChoice) : 'off';
+  }
+  function getShowEyebrow(v: Variant): boolean {
+    return cfg[`--sectiondivider-${v}-show-eyebrow`] === '1';
+  }
+  function getShowDescription(v: Variant): boolean {
+    const raw = cfg[`--sectiondivider-${v}-show-description`];
+    // Default to true if unset, '' or '1' otherwise (legacy data may carry no key at all).
+    if (raw === undefined) return true;
+    return raw === '1';
+  }
+  function setCfg(v: Variant, prop: string, value: string) {
+    setComponentConfig(component, `--sectiondivider-${v}-${prop}`, value);
   }
 
-  /** Parse a text-ramp token into `{family, step}`. The text namespace has
-   *  three canonical shapes:
-   *    `--text-{step}`           — neutral (family segment elided)
-   *    `--text-{family}`         — non-neutral, primary step elided
-   *    `--text-{family}-{step}`  — non-neutral, explicit step
-   *  Returns null when the token isn't a text-ramp token. */
+  let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
+  let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(stateTokens(v), linked.varSet));
+
+  const gradientSources = Object.fromEntries(
+    variants.map((v) => [v.key, componentGradientSource(component, `--sectiondivider-${v.key}-background`)]),
+  ) as Record<Variant, ReturnType<typeof componentGradientSource>>;
+
+  let monochrome = $state<Record<Variant, boolean>>({ lg: true, md: true, sm: true });
+
+  function initMonochrome(v: Variant) {
+    const slice = $editorState.components[component];
+    const ref = slice?.aliases[`--sectiondivider-${v}-background`];
+    if (ref?.kind !== 'gradient') return;
+    const fam = variants.find((x) => x.key === v)!.family;
+    monochrome[v] = ref.value.stops.every((s) => stopMatchesFamily(s.color, fam));
+  }
+
   function parseTextToken(colorRef: string): { family: string; step: string } | null {
     if (!colorRef.startsWith('--text-')) return null;
     const rest = colorRef.slice('--text-'.length);
@@ -230,28 +230,18 @@
     return null;
   }
 
-  /** Build a text-ramp token name from `{family, step}`. Inverse of
-   *  `parseTextToken` — neutral elides the family segment; non-neutral
-   *  primary elides the step segment. */
   function buildTextToken(family: string, step: string): string {
     if (family === 'neutral') return `--text-${step}`;
     return step === 'primary' ? `--text-${family}` : `--text-${family}-${step}`;
   }
 
-  /** True when the stop's color token resolves to the named color family.
-   *  Text tokens go through the dedicated parser since neutral text elides
-   *  the family segment; everything else falls back to a segment scan. */
   function stopMatchesFamily(colorRef: string, family: string): boolean {
     if (!colorRef.startsWith('--')) return false;
     const text = parseTextToken(colorRef);
     if (text) return text.family === family;
-    const parts = colorRef.slice(2).split('-');
-    return parts.includes(family);
+    return colorRef.slice(2).split('-').includes(family);
   }
 
-  /** Find the first known color-family segment in a CSS-var token slug.
-   *  Returns null when no family segment is present (raw hex literal, or
-   *  text token — those go through `parseTextToken` instead). */
   function detectFamily(colorRef: string): string | null {
     if (!colorRef.startsWith('--')) return null;
     const parts = colorRef.slice(2).split('-');
@@ -261,14 +251,9 @@
     return null;
   }
 
-  /** Snap every out-of-family stop in variant `v` to the variant's family.
-   *  Text tokens take the canonical text-rebuild path (handles the neutral
-   *  elision asymmetry); everything else does a clean segment swap. Stops
-   *  whose color is a raw hex literal — no family info to work from — are
-   *  left untouched. */
   function snapToFamily(v: Variant) {
-    const targetFamily = VARIANT_FAMILY[v];
-    const varName = `--sectiondivider-${v}-gradient`;
+    const targetFamily = variants.find((x) => x.key === v)!.family;
+    const varName = `--sectiondivider-${v}-background`;
     mutate(`monochrome snap ${varName}`, (s) => {
       const slice = s.components[component];
       const ref = slice?.aliases[varName];
@@ -289,7 +274,7 @@
       });
       slice!.aliases[varName] = {
         kind: 'gradient',
-        value: { type: ref.value.type, angle: ref.value.angle, stops },
+        value: { type: ref.value.type, angle: ref.value.angle, ...(ref.value.radius !== undefined ? { radius: ref.value.radius } : {}), stops },
       };
     });
   }
@@ -297,9 +282,42 @@
   function onMonochromeToggle(v: Variant) {
     if (monochrome[v]) snapToFamily(v);
   }
+
+  function hairlineOptions(v: Variant): { value: HairlineChoice; label: string }[] {
+    const base: { value: HairlineChoice; label: string }[] = [
+      { value: 'off', label: 'Off' },
+      { value: 'above-label', label: 'Above title' },
+      { value: 'through-label', label: 'Through title' },
+      { value: 'below-label', label: 'Below title' },
+    ];
+    if (!getShowDescription(v)) return base;
+    return [
+      ...base,
+      { value: 'above-description', label: 'Above description' },
+      { value: 'through-description', label: 'Through description' },
+      { value: 'below-description', label: 'Below description' },
+    ];
+  }
+
+  function hairlineProp(v: Variant): { position: HairlinePosition } | undefined {
+    const choice = getHairline(v);
+    return choice === 'off' ? undefined : { position: choice };
+  }
+
+  // If a variant's description gets turned off while a description-targeted
+  // hairline was selected, reset the hairline to off so the preview stays
+  // consistent.
+  $effect(() => {
+    for (const v of variants) {
+      const ch = getHairline(v.key);
+      if (!getShowDescription(v.key) && ch !== 'off' && ch.endsWith('-description')) {
+        setCfg(v.key, 'hairline', 'off');
+      }
+    }
+  });
 </script>
 
-<ComponentEditorBase {component} title="Section Divider" description="Full-width section banner with display font and palette variants." tokens={allTokens} {linked} variants={variantOptions}>
+<ComponentEditorBase {component} title="Section Divider" description="Full-width section banner. Each variant (lg/md/sm) is a full preset: its own size, typography, colors, AND intrinsic properties (alignment, hairline, eyebrow/description visibility)." tokens={allTokens} {linked} variants={variantOptions}>
   {#each variants as v}
     <VariantGroup
       name={v.key}
@@ -319,27 +337,34 @@
         <hr class="canvas-toolbar-divider" />
         <label class="toolbar-field">
           <span>Test title</span>
-          <input type="text" class="canvas-toolbar-input" bind:value={testTitle} placeholder="Section Title" />
+          <input type="text" class="canvas-toolbar-input" bind:value={testTitle[v.key]} placeholder={v.title} />
         </label>
-        <label class="toolbar-check">
-          <input type="checkbox" bind:checked={showDescription} />
-          <span>Show description</span>
-        </label>
-        <label class="toolbar-field">
-          <span>Description text</span>
-          <input type="text" class="canvas-toolbar-input" bind:value={descriptionText} placeholder="Description text" />
-        </label>
+        {#if getShowEyebrow(v.key)}
+          <label class="toolbar-field">
+            <span>Eyebrow text</span>
+            <input type="text" class="canvas-toolbar-input" bind:value={eyebrowText[v.key]} placeholder="SECTION" />
+          </label>
+        {/if}
+        {#if getShowDescription(v.key)}
+          <label class="toolbar-field">
+            <span>Description text</span>
+            <input type="text" class="canvas-toolbar-input" bind:value={descriptionText[v.key]} placeholder="Description" />
+          </label>
+        {/if}
       {/snippet}
       <div class="section-divider-stage">
         <SectionDivider
-          title={testTitle || v.title}
+          title={testTitle[v.key] || v.title}
           variant={v.key}
-          description={showDescription ? descriptionText : undefined}
+          description={getShowDescription(v.key) ? descriptionText[v.key] : undefined}
+          eyebrow={getShowEyebrow(v.key) ? eyebrowText[v.key] : undefined}
+          align={getAlign(v.key)}
+          hairline={hairlineProp(v.key)}
         />
       </div>
       {#snippet compositeControls(_stateName)}
         <div class="gradient-section-header">
-          <span class="gradient-section-label">Gradient</span>
+          <span class="gradient-section-label">Background</span>
           <label class="monochrome-toggle">
             <input
               type="checkbox"
@@ -353,23 +378,61 @@
         <GradientEditor
           source={gradientSources[v.key]}
           stopIdPrefix={`sectiondivider-${v.key}`}
-          familyFilter={monochrome[v.key] ? VARIANT_FAMILY[v.key] : null}
+          familyFilter={monochrome[v.key] ? v.family : null}
         />
+      {/snippet}
+      {#snippet extraPropertyRows(_stateName)}
+        <div class="property-row sd-intrinsic-row">
+          <span class="property-label">alignment</span>
+          <select
+            class="sd-intrinsic-select"
+            value={getAlign(v.key)}
+            onchange={(e) => setCfg(v.key, 'align', (e.currentTarget as HTMLSelectElement).value)}
+          >
+            <option value="center">Center</option>
+            <option value="start">Start</option>
+          </select>
+        </div>
+        <div class="property-row sd-intrinsic-row">
+          <span class="property-label">hairline</span>
+          <select
+            class="sd-intrinsic-select"
+            value={getHairline(v.key)}
+            onchange={(e) => setCfg(v.key, 'hairline', (e.currentTarget as HTMLSelectElement).value)}
+          >
+            {#each hairlineOptions(v.key) as opt (opt.value)}
+              <option value={opt.value}>{opt.label}</option>
+            {/each}
+          </select>
+        </div>
+        <div class="property-row sd-intrinsic-row">
+          <span class="property-label">eyebrow</span>
+          <label class="sd-intrinsic-check">
+            <input
+              type="checkbox"
+              checked={getShowEyebrow(v.key)}
+              onchange={(e) => setCfg(v.key, 'show-eyebrow', (e.currentTarget as HTMLInputElement).checked ? '1' : '')}
+            />
+            <span>Show eyebrow</span>
+          </label>
+        </div>
+        <div class="property-row sd-intrinsic-row">
+          <span class="property-label">description</span>
+          <label class="sd-intrinsic-check">
+            <input
+              type="checkbox"
+              checked={getShowDescription(v.key)}
+              onchange={(e) => setCfg(v.key, 'show-description', (e.currentTarget as HTMLInputElement).checked ? '1' : '')}
+            />
+            <span>Show description</span>
+          </label>
+        </div>
       {/snippet}
     </VariantGroup>
   {/each}
 </ComponentEditorBase>
 
 <style>
-  .toolbar-check {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    font-size: var(--ui-font-size-sm);
-    color: rgba(255, 255, 255, 0.78);
-    cursor: pointer;
-  }
-
   .toolbar-field {
     display: flex;
     flex-direction: column;
@@ -378,16 +441,11 @@
     color: rgba(255, 255, 255, 0.6);
   }
 
-  /* Floor the preview width so the divider always reads as a banner, even
-     when the canvas gets cramped (e.g. on narrower editor viewports). */
   .section-divider-stage {
     width: 100%;
     min-width: 32rem;
   }
 
-  /* Label + toggle sit as an inline pair. The toggle reads as a modifier
-     on the section heading, so we keep them adjacent (small gap) rather
-     than pushing the toggle to the row's far edge. */
   .gradient-section-header {
     display: flex;
     align-items: center;
@@ -403,10 +461,6 @@
     color: var(--ui-text-primary);
   }
 
-  /* Sits inline with the Gradient eyebrow on the right. Mirrors the
-     editor's "toolbar-check" look-and-feel without re-importing it (this
-     editor doesn't have those tokens in scope; the styles below stay
-     greyscale per the editor's color discipline). */
   .monochrome-toggle {
     display: inline-flex;
     align-items: center;
@@ -416,12 +470,47 @@
     cursor: pointer;
     user-select: none;
   }
+  .monochrome-toggle:hover { color: var(--ui-text-primary); }
+  .monochrome-toggle input { margin: 0; cursor: pointer; }
 
-  .monochrome-toggle:hover {
+  /* Intrinsic-property rows. Sit in the Properties section under the token
+     grid (via VariantGroup.extraPropertyRows). The grid columns are inherited
+     from the parent so labels line up with token labels above. */
+  :global(.sd-intrinsic-select) {
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 8rem;
+    padding: 0 var(--ui-space-24) 0 var(--ui-space-8);
+    min-height: 1.75rem;
+    background-color: var(--ui-surface-lowest);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='M3 5l3 3 3-3'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--ui-space-8) center;
+    border: 1px solid var(--ui-border-low);
+    border-radius: var(--ui-radius-sm);
     color: var(--ui-text-primary);
+    font-family: var(--ui-font-sans);
+    font-size: var(--ui-font-size-sm);
+    cursor: pointer;
+  }
+  :global(.sd-intrinsic-select:hover) {
+    background-color: var(--ui-surface-low);
+    border-color: var(--ui-border);
+  }
+  :global(.sd-intrinsic-select:focus-visible) {
+    outline: 2px solid var(--ui-highlight);
+    outline-offset: 2px;
   }
 
-  .monochrome-toggle input {
+  :global(.sd-intrinsic-check) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+    cursor: pointer;
+  }
+  :global(.sd-intrinsic-check input) {
     margin: 0;
     cursor: pointer;
   }

@@ -1,10 +1,13 @@
 <script lang="ts">
   import SectionDivider from '../system/components/SectionDivider.svelte';
 
+  /** Section wrapper. `variant` picks a SectionDivider preset (lg/md/sm).
+   *  Each preset is fully configured in the editor — typography, colors,
+   *  background, geometry are all owned by the variant. */
   interface Props {
     title: string;
     description?: string;
-    variant?: 'canvas' | 'neutral' | 'alternate' | 'primary' | 'accent' | 'special';
+    variant?: 'lg' | 'md' | 'sm';
     gap?: string;
     children: () => unknown;
   }
@@ -12,7 +15,7 @@
   let {
     title,
     description,
-    variant = 'accent',
+    variant = 'md',
     gap = 'var(--space-24)',
     children,
   }: Props = $props();

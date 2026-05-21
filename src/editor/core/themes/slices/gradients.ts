@@ -49,12 +49,7 @@ export function makeDefaultGradients(): GradientToken[] {
 }
 
 function formatGradientStop(s: GradientTokenStop): string {
-  const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
-  const opacity = s.opacity ?? 100;
-  const color = opacity >= 100
-    ? base
-    : `color-mix(in srgb, ${base} ${opacity}%, transparent)`;
-  return `${color} ${s.position}%`;
+  return `${formatGradientStopColor(s)} ${s.position}%`;
 }
 
 /** Stops portion only — used by the palette selector to materialize a
@@ -65,15 +60,39 @@ export function formatGradientStops(t: GradientToken): string {
 }
 
 /** Serialize a structured gradient value (theme token or component-owned)
- *  into a CSS `linear-gradient(...)` / `radial-gradient(...)` declaration. */
+ *  into a CSS background declaration.
+ *  - `none`   → `transparent` (no background paint).
+ *  - `solid`  → the first stop's color (no gradient function).
+ *  - `linear` → `linear-gradient(<angle>, <stops>)`.
+ *  - `radial` → `radial-gradient(circle [radius] at <centerX>% 50%, <stops>)`.
+ *               centerX defaults to 50; radius (if set) constrains the size. */
 export function formatGradientValue(v: GradientAliasValue): string {
+  if (v.type === 'none') return 'transparent';
+  if (v.type === 'solid') {
+    const first = v.stops[0];
+    if (!first) return 'transparent';
+    return formatGradientStopColor(first);
+  }
   const stops = v.stops.map(formatGradientStop).join(', ');
   if (v.type === 'linear') return `linear-gradient(${v.angle}deg, ${stops})`;
-  return `radial-gradient(${stops})`;
+  const cx = v.centerX ?? 50;
+  const size = v.radius && v.radius > 0 ? `circle ${v.radius}px` : 'circle';
+  return `radial-gradient(${size} at ${cx}% 50%, ${stops})`;
+}
+
+/** Resolve a stop's color + opacity into a CSS color value without the
+ *  trailing `${position}%`. Shared by the gradient-stop formatter (which
+ *  appends the position) and the solid path (which doesn't). */
+function formatGradientStopColor(s: GradientTokenStop): string {
+  const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
+  const opacity = s.opacity ?? 100;
+  return opacity >= 100
+    ? base
+    : `color-mix(in srgb, ${base} ${opacity}%, transparent)`;
 }
 
 function formatGradient(t: GradientToken): string {
-  return formatGradientValue({ type: t.type, angle: t.angle, stops: t.stops });
+  return formatGradientValue({ type: t.type, angle: t.angle, centerX: t.centerX, stops: t.stops });
 }
 
 export function gradientsToVars(g: EditorState['gradients']): Record<string, string> {
@@ -86,17 +105,18 @@ function findGradient(s: EditorState, variable: string): GradientToken | undefin
   return s.gradients.tokens.find((t) => t.variable === variable);
 }
 
-/** Replace a gradient's type, angle, and stops in one shot. Used by the editor
- *  to restore a pre-edit snapshot on Cancel. */
+/** Replace a gradient's type, angle, centerX, and stops in one shot. Used by
+ *  the editor to restore a pre-edit snapshot on Cancel. */
 export function setGradient(
   variable: string,
-  next: { type: GradientType; angle: number; stops: GradientTokenStop[] },
+  next: { type: GradientType; angle: number; centerX?: number; stops: GradientTokenStop[] },
 ): void {
   mutate(`replace gradient ${variable}`, (s) => {
     const t = findGradient(s, variable);
     if (!t) return;
     t.type = next.type;
     t.angle = next.angle;
+    t.centerX = next.centerX;
     t.stops = next.stops.map((st) => ({ ...st }));
   });
 }
@@ -112,6 +132,13 @@ export function setGradientAngle(variable: string, angle: number): void {
   mutate(`set gradient angle ${variable}`, (s) => {
     const t = findGradient(s, variable);
     if (t) t.angle = angle;
+  });
+}
+
+export function setGradientCenterX(variable: string, centerX: number): void {
+  mutate(`set gradient center ${variable}`, (s) => {
+    const t = findGradient(s, variable);
+    if (t) t.centerX = centerX;
   });
 }
 

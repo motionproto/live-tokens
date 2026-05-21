@@ -16,4 +16,20 @@
 export const KNOWN_COMPONENT_CONFIG_KEYS: ReadonlySet<string> = new Set([
   '--dialog-confirm-variant',
   '--dialog-cancel-variant',
+  // SectionDivider per-variant intrinsic properties — align / hairline /
+  // eyebrow visibility / description visibility per size variant. These are
+  // intent metadata the designer sets per-variant; the live divider in the
+  // editor preview passes them as runtime props.
+  '--sectiondivider-lg-align',
+  '--sectiondivider-md-align',
+  '--sectiondivider-sm-align',
+  '--sectiondivider-lg-hairline',
+  '--sectiondivider-md-hairline',
+  '--sectiondivider-sm-hairline',
+  '--sectiondivider-lg-show-eyebrow',
+  '--sectiondivider-md-show-eyebrow',
+  '--sectiondivider-sm-show-eyebrow',
+  '--sectiondivider-lg-show-description',
+  '--sectiondivider-md-show-description',
+  '--sectiondivider-sm-show-description',
 ]);

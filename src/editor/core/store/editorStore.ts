@@ -234,7 +234,77 @@ function migrateComponentAliases(
     synthesizeSectionDividerGradients(stringPart, objectPart);
   }
   const migratedString = runMigrations('component-config', fileVersion, stringPart, { component });
-  return { ...migratedString, ...objectPart };
+  const migratedObject = component === 'sectiondivider'
+    ? renameSectionDividerObjectSlots(objectPart)
+    : objectPart;
+  return { ...migratedString, ...migratedObject };
+}
+
+/**
+ * v8→v9 companion to `componentMigration_2026_05_20_sectiondividerSlimVariants`:
+ * the structured background payload is reshaped from six color families →
+ * three size variants (lg/md/sm). Canvas's gradient is taken as the canonical
+ * seed and fanned across all three new variants; other families' gradients
+ * are dropped. Idempotent — keys already at the final shape pass through.
+ *
+ * Sources accepted (in priority order, first-found wins for canvas's slot):
+ *   --sectiondivider-canvas-background  (current/in-progress shape)
+ *   --sectiondivider-canvas-gradient    (v7-era shape)
+ *   --sectiondivider-color-canvas-background  (intermediate shape that landed
+ *                                              briefly during the color-prop pivot)
+ *
+ * The migration runner only sees string keys, so this object-shape rename
+ * has to live alongside the runner call.
+ */
+const FAMILIES = ['canvas', 'neutral', 'alternate', 'primary', 'accent', 'special'] as const;
+const SIZE_VARIANTS = ['lg', 'md', 'sm'] as const;
+function renameSectionDividerObjectSlots(
+  objectPart: Record<string, AliasDiskValue>,
+): Record<string, AliasDiskValue> {
+  // Find canvas's gradient under any historical key shape.
+  const canvasSourceKeys = [
+    '--sectiondivider-canvas-background',
+    '--sectiondivider-canvas-gradient',
+    '--sectiondivider-color-canvas-background',
+  ];
+  let canvasGradient: AliasDiskValue | undefined;
+  for (const key of canvasSourceKeys) {
+    if (objectPart[key] !== undefined) {
+      canvasGradient = objectPart[key];
+      break;
+    }
+  }
+
+  // If we found a canvas gradient (any era), fan it into the three new
+  // per-variant background slots and drop every other family's gradient.
+  // If no canvas gradient is found, pass through non-family keys verbatim
+  // so non-migration data (theme tokens, other components) isn't touched.
+  const out: Record<string, AliasDiskValue> = {};
+  for (const [key, value] of Object.entries(objectPart)) {
+    // Skip any sectiondivider per-family gradient; the canvas fan-out emits
+    // the canonical set below.
+    let isFamilyGradient = false;
+    for (const f of FAMILIES) {
+      if (
+        key === `--sectiondivider-${f}-background`
+        || key === `--sectiondivider-${f}-gradient`
+        || key === `--sectiondivider-color-${f}-background`
+      ) {
+        isFamilyGradient = true;
+        break;
+      }
+    }
+    // Pass through anything that's already at the final lg/md/sm shape so
+    // re-running the migration is idempotent.
+    if (isFamilyGradient) continue;
+    out[key] = value;
+  }
+  if (canvasGradient !== undefined) {
+    for (const v of SIZE_VARIANTS) {
+      out[`--sectiondivider-${v}-background`] = canvasGradient;
+    }
+  }
+  return out;
 }
 
 /** SectionDivider variants that ship gradient aliases. */

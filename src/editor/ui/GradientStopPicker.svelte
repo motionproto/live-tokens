@@ -29,10 +29,15 @@
     return `color-mix(in srgb, ${base} ${Math.round(o)}%, transparent)`;
   }
 
-  /** Parse a scratch var write back into structured stop fields. */
+  /** Parse a scratch var write back into structured stop fields. UIPaletteSelector's
+   *  "None" choice writes the literal `transparent`; we round-trip it as a stop
+   *  whose color is the keyword itself — `formatGradientStopColor` already passes
+   *  non-`--` colors through verbatim, so the gradient (or solid first-stop) ends
+   *  up painting `transparent`. */
   function parseScratch(raw: string): { color: string; opacity: number } | null {
     const trimmed = raw.trim();
     if (!trimmed) return null;
+    if (trimmed === 'transparent') return { color: 'transparent', opacity: 100 };
     const mixMatch = trimmed.match(/^color-mix\(in srgb,\s*var\((--[a-z0-9-]+)\)\s+(\d+(?:\.\d+)?)%,\s*transparent\)$/i);
     if (mixMatch) {
       return { color: mixMatch[1], opacity: parseFloat(mixMatch[2]) };

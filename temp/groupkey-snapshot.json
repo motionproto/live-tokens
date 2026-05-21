@@ -1258,157 +1258,120 @@
     ]
   },
   "sectiondivider": {
+    "background": [
+      "--sectiondivider-lg-background",
+      "--sectiondivider-md-background",
+      "--sectiondivider-sm-background"
+    ],
     "border": [
-      "--sectiondivider-accent-border",
-      "--sectiondivider-alternate-border",
-      "--sectiondivider-canvas-border",
-      "--sectiondivider-neutral-border",
-      "--sectiondivider-primary-border",
-      "--sectiondivider-special-border"
+      "--sectiondivider-lg-border",
+      "--sectiondivider-md-border",
+      "--sectiondivider-sm-border"
     ],
     "border-width": [
-      "--sectiondivider-accent-border-width",
-      "--sectiondivider-alternate-border-width",
-      "--sectiondivider-canvas-border-width",
-      "--sectiondivider-neutral-border-width",
-      "--sectiondivider-primary-border-width",
-      "--sectiondivider-special-border-width"
+      "--sectiondivider-lg-border-width",
+      "--sectiondivider-md-border-width",
+      "--sectiondivider-sm-border-width"
     ],
     "description-color": [
-      "--sectiondivider-accent-description",
-      "--sectiondivider-alternate-description",
-      "--sectiondivider-canvas-description",
-      "--sectiondivider-neutral-description",
-      "--sectiondivider-primary-description",
-      "--sectiondivider-special-description"
+      "--sectiondivider-lg-description",
+      "--sectiondivider-md-description",
+      "--sectiondivider-sm-description"
     ],
     "description-font-family": [
-      "--sectiondivider-accent-description-font-family",
-      "--sectiondivider-alternate-description-font-family",
-      "--sectiondivider-canvas-description-font-family",
-      "--sectiondivider-neutral-description-font-family",
-      "--sectiondivider-primary-description-font-family",
-      "--sectiondivider-special-description-font-family"
-    ],
-    "description-font-size": [
-      "--sectiondivider-accent-description-font-size",
-      "--sectiondivider-alternate-description-font-size",
-      "--sectiondivider-canvas-description-font-size",
-      "--sectiondivider-neutral-description-font-size",
-      "--sectiondivider-primary-description-font-size",
-      "--sectiondivider-special-description-font-size"
+      "--sectiondivider-lg-description-font-family",
+      "--sectiondivider-md-description-font-family",
+      "--sectiondivider-sm-description-font-family"
     ],
     "description-font-weight": [
-      "--sectiondivider-accent-description-font-weight",
-      "--sectiondivider-alternate-description-font-weight",
-      "--sectiondivider-canvas-description-font-weight",
-      "--sectiondivider-neutral-description-font-weight",
-      "--sectiondivider-primary-description-font-weight",
-      "--sectiondivider-special-description-font-weight"
+      "--sectiondivider-lg-description-font-weight",
+      "--sectiondivider-md-description-font-weight",
+      "--sectiondivider-sm-description-font-weight"
     ],
     "description-line-height": [
-      "--sectiondivider-accent-description-line-height",
-      "--sectiondivider-alternate-description-line-height",
-      "--sectiondivider-canvas-description-line-height",
-      "--sectiondivider-neutral-description-line-height",
-      "--sectiondivider-primary-description-line-height",
-      "--sectiondivider-special-description-line-height"
+      "--sectiondivider-lg-description-line-height",
+      "--sectiondivider-md-description-line-height",
+      "--sectiondivider-sm-description-line-height"
     ],
-    "gradient": [
-      "--sectiondivider-accent-gradient",
-      "--sectiondivider-alternate-gradient",
-      "--sectiondivider-canvas-gradient",
-      "--sectiondivider-neutral-gradient",
-      "--sectiondivider-primary-gradient",
-      "--sectiondivider-special-gradient"
+    "eyebrow-color": [
+      "--sectiondivider-lg-eyebrow",
+      "--sectiondivider-md-eyebrow",
+      "--sectiondivider-sm-eyebrow"
     ],
-    "padding": [
-      "--sectiondivider-accent-padding",
-      "--sectiondivider-alternate-padding",
-      "--sectiondivider-canvas-padding",
-      "--sectiondivider-neutral-padding",
-      "--sectiondivider-primary-padding",
-      "--sectiondivider-special-padding"
+    "eyebrow-font-family": [
+      "--sectiondivider-lg-eyebrow-font-family",
+      "--sectiondivider-md-eyebrow-font-family",
+      "--sectiondivider-sm-eyebrow-font-family"
+    ],
+    "eyebrow-font-weight": [
+      "--sectiondivider-lg-eyebrow-font-weight",
+      "--sectiondivider-md-eyebrow-font-weight",
+      "--sectiondivider-sm-eyebrow-font-weight"
+    ],
+    "eyebrow-letter-spacing": [
+      "--sectiondivider-lg-eyebrow-letter-spacing",
+      "--sectiondivider-md-eyebrow-letter-spacing",
+      "--sectiondivider-sm-eyebrow-letter-spacing"
+    ],
+    "hairline-color": [
+      "--sectiondivider-lg-hairline-color",
+      "--sectiondivider-md-hairline-color",
+      "--sectiondivider-sm-hairline-color"
+    ],
+    "hairline-thickness": [
+      "--sectiondivider-lg-hairline-thickness",
+      "--sectiondivider-md-hairline-thickness",
+      "--sectiondivider-sm-hairline-thickness"
     ],
     "radius": [
-      "--sectiondivider-accent-radius",
-      "--sectiondivider-alternate-radius",
-      "--sectiondivider-canvas-radius",
-      "--sectiondivider-neutral-radius",
-      "--sectiondivider-primary-radius",
-      "--sectiondivider-special-radius"
+      "--sectiondivider-lg-radius",
+      "--sectiondivider-md-radius",
+      "--sectiondivider-sm-radius"
     ],
     "shadow": [
-      "--sectiondivider-accent-shadow",
-      "--sectiondivider-alternate-shadow",
-      "--sectiondivider-canvas-shadow",
-      "--sectiondivider-neutral-shadow",
-      "--sectiondivider-primary-shadow",
-      "--sectiondivider-special-shadow"
+      "--sectiondivider-lg-shadow",
+      "--sectiondivider-md-shadow",
+      "--sectiondivider-sm-shadow"
     ],
-    "title-border-width": [
-      "--sectiondivider-accent-title-border-width",
-      "--sectiondivider-alternate-title-border-width",
-      "--sectiondivider-canvas-title-border-width",
-      "--sectiondivider-neutral-title-border-width",
-      "--sectiondivider-primary-title-border-width",
-      "--sectiondivider-special-title-border-width"
+    "spacing": [
+      "--sectiondivider-lg-spacing",
+      "--sectiondivider-md-spacing",
+      "--sectiondivider-sm-spacing"
     ],
     "title-color": [
-      "--sectiondivider-accent-title",
-      "--sectiondivider-alternate-title",
-      "--sectiondivider-canvas-title",
-      "--sectiondivider-neutral-title",
-      "--sectiondivider-primary-title",
-      "--sectiondivider-special-title"
+      "--sectiondivider-lg-title",
+      "--sectiondivider-md-title",
+      "--sectiondivider-sm-title"
     ],
     "title-font-family": [
-      "--sectiondivider-accent-title-font-family",
-      "--sectiondivider-alternate-title-font-family",
-      "--sectiondivider-canvas-title-font-family",
-      "--sectiondivider-neutral-title-font-family",
-      "--sectiondivider-primary-title-font-family",
-      "--sectiondivider-special-title-font-family"
-    ],
-    "title-font-size": [
-      "--sectiondivider-accent-title-font-size",
-      "--sectiondivider-alternate-title-font-size",
-      "--sectiondivider-canvas-title-font-size",
-      "--sectiondivider-neutral-title-font-size",
-      "--sectiondivider-primary-title-font-size",
-      "--sectiondivider-special-title-font-size"
+      "--sectiondivider-lg-title-font-family",
+      "--sectiondivider-md-title-font-family",
+      "--sectiondivider-sm-title-font-family"
     ],
     "title-font-weight": [
-      "--sectiondivider-accent-title-font-weight",
-      "--sectiondivider-alternate-title-font-weight",
-      "--sectiondivider-canvas-title-font-weight",
-      "--sectiondivider-neutral-title-font-weight",
-      "--sectiondivider-primary-title-font-weight",
-      "--sectiondivider-special-title-font-weight"
+      "--sectiondivider-lg-title-font-weight",
+      "--sectiondivider-md-title-font-weight",
+      "--sectiondivider-sm-title-font-weight"
     ],
     "title-letter-spacing": [
-      "--sectiondivider-accent-title-letter-spacing",
-      "--sectiondivider-alternate-title-letter-spacing",
-      "--sectiondivider-canvas-title-letter-spacing",
-      "--sectiondivider-neutral-title-letter-spacing",
-      "--sectiondivider-primary-title-letter-spacing",
-      "--sectiondivider-special-title-letter-spacing"
+      "--sectiondivider-lg-title-letter-spacing",
+      "--sectiondivider-md-title-letter-spacing",
+      "--sectiondivider-sm-title-letter-spacing"
     ],
     "title-line-height": [
-      "--sectiondivider-accent-title-line-height",
-      "--sectiondivider-alternate-title-line-height",
-      "--sectiondivider-canvas-title-line-height",
-      "--sectiondivider-neutral-title-line-height",
-      "--sectiondivider-primary-title-line-height",
-      "--sectiondivider-special-title-line-height"
+      "--sectiondivider-lg-title-line-height",
+      "--sectiondivider-md-title-line-height",
+      "--sectiondivider-sm-title-line-height"
     ],
-    "title-stroke-color": [
-      "--sectiondivider-accent-title-stroke-color",
-      "--sectiondivider-alternate-title-stroke-color",
-      "--sectiondivider-canvas-title-stroke-color",
-      "--sectiondivider-neutral-title-stroke-color",
-      "--sectiondivider-primary-title-stroke-color",
-      "--sectiondivider-special-title-stroke-color"
+    "title-outline-color": [
+      "--sectiondivider-lg-title-outline-color",
+      "--sectiondivider-md-title-outline-color",
+      "--sectiondivider-sm-title-outline-color"
+    ],
+    "title-outline-width": [
+      "--sectiondivider-lg-title-outline-width",
+      "--sectiondivider-md-title-outline-width",
+      "--sectiondivider-sm-title-outline-width"
     ]
   },
   "segmentedcontrol": {

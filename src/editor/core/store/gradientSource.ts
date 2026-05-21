@@ -19,6 +19,7 @@ import {
   setGradient,
   setGradientType,
   setGradientAngle,
+  setGradientCenterX,
   setGradientStop,
   addGradientStop,
   removeGradientStop,
@@ -29,6 +30,8 @@ import { mutate } from './editorCore';
 export interface GradientSourceSnapshot {
   type: GradientType;
   angle: number;
+  /** Horizontal center for radial gradients, 0–100. */
+  centerX?: number;
   stops: GradientTokenStop[];
 }
 
@@ -38,6 +41,7 @@ export interface GradientSource {
   setAll(next: GradientSourceSnapshot): void;
   setType(type: GradientType): void;
   setAngle(angle: number): void;
+  setCenterX(centerX: number): void;
   setStop(index: number, partial: Partial<GradientTokenStop>): void;
   addStop(stop: GradientTokenStop): void;
   removeStop(index: number): void;
@@ -48,13 +52,14 @@ export function themeGradientSource(variable: string): GradientSource {
   const current = derived(editorState, ($s) => {
     const t = $s.gradients.tokens.find((g) => g.variable === variable);
     if (!t) return undefined;
-    return { type: t.type, angle: t.angle, stops: t.stops.map((s) => ({ ...s })) };
+    return { type: t.type, angle: t.angle, centerX: t.centerX, stops: t.stops.map((s) => ({ ...s })) };
   });
   return {
     current,
     setAll: (next) => setGradient(variable, next),
     setType: (t) => setGradientType(variable, t),
     setAngle: (a) => setGradientAngle(variable, a),
+    setCenterX: (x) => setGradientCenterX(variable, x),
     setStop: (i, p) => setGradientStop(variable, i, p),
     addStop: (s) => addGradientStop(variable, s),
     removeStop: (i) => removeGradientStop(variable, i),
@@ -76,7 +81,7 @@ export function componentGradientSource(component: string, varName: string): Gra
   const current = derived(editorState, ($s) => {
     const ref = $s.components[component]?.aliases[varName];
     if (ref?.kind !== 'gradient') return undefined;
-    return { type: ref.value.type, angle: ref.value.angle, stops: ref.value.stops.map((s) => ({ ...s })) };
+    return { type: ref.value.type, angle: ref.value.angle, centerX: ref.value.centerX, stops: ref.value.stops.map((s) => ({ ...s })) };
   });
   /** Read-modify-write through `mutate` so each edit is one history entry
    *  and the renderer + persistence cycle pick it up uniformly with the
@@ -87,7 +92,12 @@ export function componentGradientSource(component: string, varName: string): Gra
       const ref = slice.aliases[varName];
       const base: GradientAliasValue =
         ref?.kind === 'gradient'
-          ? { type: ref.value.type, angle: ref.value.angle, stops: ref.value.stops.map((st) => ({ ...st })) }
+          ? {
+              type: ref.value.type,
+              angle: ref.value.angle,
+              ...(ref.value.centerX !== undefined ? { centerX: ref.value.centerX } : {}),
+              stops: ref.value.stops.map((st) => ({ ...st })),
+            }
           : { type: 'linear', angle: 135, stops: [] };
       mutator(base);
       slice.aliases[varName] = { kind: 'gradient', value: base };
@@ -98,10 +108,12 @@ export function componentGradientSource(component: string, varName: string): Gra
     setAll: (next) => writeComponentGradient(component, varName, {
       type: next.type,
       angle: next.angle,
+      ...(next.centerX !== undefined ? { centerX: next.centerX } : {}),
       stops: next.stops.map((s) => ({ ...s })),
     }),
     setType: (t) => update(`set gradient type ${varName}`, (g) => { g.type = t; }),
     setAngle: (a) => update(`set gradient angle ${varName}`, (g) => { g.angle = a; }),
+    setCenterX: (x) => update(`set gradient center ${varName}`, (g) => { g.centerX = x; }),
     setStop: (i, p) => update(`set gradient stop ${varName}[${i}]`, (g) => {
       const stop = g.stops[i];
       if (!stop) return;
@@ -124,7 +136,12 @@ export function componentGradientSource(component: string, varName: string): Gra
 export function snapshotGradient(source: GradientSource): GradientSourceSnapshot | null {
   const cur = get(source.current);
   if (!cur) return null;
-  return { type: cur.type, angle: cur.angle, stops: cur.stops.map((s) => ({ ...s })) };
+  return {
+    type: cur.type,
+    angle: cur.angle,
+    ...(cur.centerX !== undefined ? { centerX: cur.centerX } : {}),
+    stops: cur.stops.map((s) => ({ ...s })),
+  };
 }
 
 /** Read the component-side current gradient value used to seed UI defaults

@@ -219,8 +219,11 @@ describe('migration runner — schemaVersion gating', () => {
     expect(migrated['--sectiondivider-canvas-gradient-stop-2-color']).toBeUndefined();
     expect(migrated['--sectiondivider-canvas-gradient-stop-3-color']).toBeUndefined();
     expect(migrated['--sectiondivider-primary-gradient-stop-1-color']).toBeUndefined();
-    // Unrelated tokens preserved.
-    expect(migrated['--sectiondivider-canvas-padding']).toBe('--space-16');
+    // v8→v9 collapses families to size variants; canvas's padding seeds all three.
+    expect(migrated['--sectiondivider-canvas-padding']).toBeUndefined();
+    expect(migrated['--sectiondivider-lg-spacing']).toBe('--space-16');
+    expect(migrated['--sectiondivider-md-spacing']).toBe('--space-16');
+    expect(migrated['--sectiondivider-sm-spacing']).toBe('--space-16');
   });
 
   it('component-config v4 sectiondivider migration only fires for sectiondivider', () => {
@@ -244,9 +247,11 @@ describe('migration runner — schemaVersion gating', () => {
       '--sectiondivider-canvas-gradient-stop-3-position': '85%',
     };
     const out = runMigrations('component-config', 7, v6, { component: 'sectiondivider' });
-    // Non-gradient knobs survive.
-    expect(out['--sectiondivider-canvas-padding']).toBe('--space-16');
-    expect(out['--sectiondivider-canvas-title']).toBe('--text-primary');
+    // Padding renames to spacing and fans across the three new size variants;
+    // canvas's text colors seed all three variants' title color.
+    expect(out['--sectiondivider-canvas-padding']).toBeUndefined();
+    expect(out['--sectiondivider-md-spacing']).toBe('--space-16');
+    expect(out['--sectiondivider-md-title']).toBe('--text-primary');
     // The 7 flat gradient tokens are gone — they live in the structured
     // ref synthesized upstream of the runner now.
     expect(out['--sectiondivider-canvas-gradient-angle']).toBeUndefined();
@@ -339,5 +344,49 @@ describe('migration runner — schemaVersion gating', () => {
     const before = { ...input };
     runMigrations('theme', 0, input);
     expect(input).toEqual(before);
+  });
+
+  it('component-config v8 → v9 sectiondivider: collapse 6 color families to 3 size variants seeded from canvas', () => {
+    const v8 = {
+      '--sectiondivider-canvas-padding': '--space-16',
+      '--sectiondivider-canvas-title': '--text-primary',
+      '--sectiondivider-canvas-title-font-family': '--font-display',
+      '--sectiondivider-canvas-title-font-size': '--font-size-5xl',
+      '--sectiondivider-canvas-title-border-width': '--border-width-4',
+      '--sectiondivider-canvas-title-stroke-color': '--surface-canvas-lowest',
+      '--sectiondivider-canvas-description': '--text-secondary',
+      '--sectiondivider-canvas-radius': '--radius-lg',
+      '--sectiondivider-canvas-shadow': '--shadow-none',
+      // Non-canvas family customisations are dropped — the new variant axis
+      // is size, not color, and canvas is the canonical seed.
+      '--sectiondivider-accent-title': '--text-brand',
+      '--sectiondivider-special-radius': '--radius-3xl',
+    };
+    const out = runMigrations('component-config', 8, v8, { component: 'sectiondivider' });
+
+    // Every per-family token is gone (canvas included — replaced by per-variant entries).
+    expect(out['--sectiondivider-canvas-title']).toBeUndefined();
+    expect(out['--sectiondivider-canvas-padding']).toBeUndefined();
+    expect(out['--sectiondivider-accent-title']).toBeUndefined();
+    expect(out['--sectiondivider-special-radius']).toBeUndefined();
+
+    // Canvas's values are fanned across lg/md/sm with the suffix renames applied.
+    for (const v of ['lg', 'md', 'sm']) {
+      expect(out[`--sectiondivider-${v}-spacing`]).toBe('--space-16'); // renamed from -padding
+      expect(out[`--sectiondivider-${v}-title`]).toBe('--text-primary');
+      expect(out[`--sectiondivider-${v}-title-font-family`]).toBe('--font-display');
+      expect(out[`--sectiondivider-${v}-title-font-size`]).toBe('--font-size-5xl');
+      expect(out[`--sectiondivider-${v}-title-outline-width`]).toBe('--border-width-4'); // renamed from -title-border-width
+      expect(out[`--sectiondivider-${v}-title-outline-color`]).toBe('--surface-canvas-lowest'); // renamed from -title-stroke-color
+      expect(out[`--sectiondivider-${v}-description`]).toBe('--text-secondary');
+      expect(out[`--sectiondivider-${v}-radius`]).toBe('--radius-lg');
+      expect(out[`--sectiondivider-${v}-shadow`]).toBe('--shadow-none');
+    }
+  });
+
+  it('component-config v8 → v9 only fires for sectiondivider', () => {
+    const v8 = { '--badge-trait-title-border-width': '--border-width-2' };
+    const out = runMigrations('component-config', 8, v8, { component: 'badge' });
+    expect(out).toEqual(v8);
   });
 });

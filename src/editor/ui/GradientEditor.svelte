@@ -186,22 +186,31 @@
   // whose CSS var hasn't been pushed to :root yet (the editor's renderer
   // does the push, but $derived runs in the same tick so we synthesize
   // the ribbon background from the snapshot for stability).
+  //
+  // Radial data still rendered on the consumer element (formatGradientValue
+  // emits the real radial-gradient CSS), but radial *editing* is removed —
+  // any leftover radial values are previewed as a linear sweep so the user
+  // can still see and edit their stops, then switch the type.
   let ribbonBg = $derived.by(() => {
     if (!gradient) return 'transparent';
+    const stopColor = (s: GradientTokenStop): string => {
+      const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
+      const op = s.opacity ?? 100;
+      return op >= 100 ? base : `color-mix(in srgb, ${base} ${Math.round(op)}%, transparent)`;
+    };
+    if (gradient.type === 'solid') {
+      const first = gradient.stops[0];
+      return first ? stopColor(first) : 'transparent';
+    }
     const stopsCss = gradient.stops
       .slice()
       .sort((a, b) => a.position - b.position)
-      .map((s) => {
-        const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
-        const op = s.opacity ?? 100;
-        const c = op >= 100 ? base : `color-mix(in srgb, ${base} ${Math.round(op)}%, transparent)`;
-        return `${c} ${s.position}%`;
-      })
+      .map((s) => `${stopColor(s)} ${s.position}%`)
       .join(', ');
-    return gradient.type === 'linear'
-      ? `linear-gradient(90deg, ${stopsCss})`
-      : `radial-gradient(${stopsCss})`;
+    return `linear-gradient(90deg, ${stopsCss})`;
   });
+
+  let isSolid = $derived(gradient?.type === 'solid');
 
   // Stop colors rendered into the diamonds: token refs become var(...).
   let stopSwatches = $derived((gradient?.stops ?? []).map((s) => {
@@ -217,46 +226,49 @@
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <div
         class="ribbon"
+        class:solid={isSolid}
         bind:this={barEl}
         style="background: {ribbonBg};"
-        onclick={onRibbonClick}
-        role="button"
+        onclick={isSolid ? undefined : onRibbonClick}
+        role={isSolid ? 'presentation' : 'button'}
         tabindex="-1"
-        aria-label="Click to add a gradient stop"
+        aria-label={isSolid ? 'Solid color preview' : 'Click to add a gradient stop'}
       ></div>
-      <div class="handles">
-        {#each gradient.stops as stop, i (i)}
-          <button
-            type="button"
-            class="handle"
-            class:selected={selected === i}
-            class:dragging={dragIndex === i}
-            style="left: {stop.position}%; --stop-color: {stopSwatches[i]};"
-            onpointerdown={(e) => onHandleDown(e, i)}
-            onpointermove={onHandleMove}
-            onpointerup={onHandleUp}
-            onpointercancel={onHandleUp}
-            title={`Stop ${i + 1} (${stop.position}%)`}
-            aria-label={`Gradient stop ${i + 1}`}
-          >
-            <span class="handle-diamond"></span>
-          </button>
-        {/each}
-      </div>
+      {#if !isSolid}
+        <div class="handles">
+          {#each gradient.stops as stop, i (i)}
+            <button
+              type="button"
+              class="handle"
+              class:selected={selected === i}
+              class:dragging={dragIndex === i}
+              style="left: {stop.position}%; --stop-color: {stopSwatches[i]};"
+              onpointerdown={(e) => onHandleDown(e, i)}
+              onpointermove={onHandleMove}
+              onpointerup={onHandleUp}
+              onpointercancel={onHandleUp}
+              title={`Stop ${i + 1} (${stop.position}%)`}
+              aria-label={`Gradient stop ${i + 1}`}
+            >
+              <span class="handle-diamond"></span>
+            </button>
+          {/each}
+        </div>
+      {/if}
     </div>
 
     <div class="controls-row">
       <div class="type-toggle" role="radiogroup">
         <button
           type="button"
+          class:active={gradient.type === 'solid'}
+          onclick={() => setType('solid')}
+        >Solid</button>
+        <button
+          type="button"
           class:active={gradient.type === 'linear'}
           onclick={() => setType('linear')}
         >Linear</button>
-        <button
-          type="button"
-          class:active={gradient.type === 'radial'}
-          onclick={() => setType('radial')}
-        >Radial</button>
       </div>
       {#if gradient.type === 'linear'}
         <div class="angle-slot">
@@ -264,39 +276,43 @@
         </div>
       {/if}
       <div class="spacer"></div>
-      <button
-        type="button"
-        class="ghost-btn"
-        onclick={addStop}
-        title="Add stop"
-      >
-        <i class="fas fa-plus"></i> Add stop
-      </button>
-      <button
-        type="button"
-        class="ghost-btn"
-        onclick={removeSelected}
-        disabled={gradient.stops.length <= 2}
-        title={gradient.stops.length <= 2 ? 'Gradient needs at least two stops' : 'Remove selected stop'}
-      >
-        <i class="fas fa-times"></i> Remove
-      </button>
+      {#if !isSolid}
+        <button
+          type="button"
+          class="ghost-btn"
+          onclick={addStop}
+          title="Add stop"
+        >
+          <i class="fas fa-plus"></i> Add stop
+        </button>
+        <button
+          type="button"
+          class="ghost-btn"
+          onclick={removeSelected}
+          disabled={gradient.stops.length <= 2}
+          title={gradient.stops.length <= 2 ? 'Gradient needs at least two stops' : 'Remove selected stop'}
+        >
+          <i class="fas fa-times"></i> Remove
+        </button>
+      {/if}
     </div>
 
     {#if gradient.stops[selected]}
       <div class="stop-edit-row">
-        <span class="row-label">Stop {selected + 1}</span>
-        <label class="pos-input">
-          <input
-            type="number"
-            min="0"
-            max="100"
-            step="0.1"
-            value={gradient.stops[selected].position}
-            onchange={onPositionInput}
-          />
-          <span class="suffix">%</span>
-        </label>
+        <span class="row-label">{isSolid ? 'Color' : `Stop ${selected + 1}`}</span>
+        {#if !isSolid}
+          <label class="pos-input">
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="0.1"
+              value={gradient.stops[selected].position}
+              onchange={onPositionInput}
+            />
+            <span class="suffix">%</span>
+          </label>
+        {/if}
         <div class="picker-slot">
           <GradientStopPicker
             stopId={`${stopKeyPrefix}-${selected}`}
@@ -328,6 +344,7 @@
   }
 
   .ribbon-wrap {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-8);
@@ -339,6 +356,11 @@
     border-radius: var(--ui-radius-md);
     border: 1px solid var(--ui-border-low);
     cursor: copy;
+  }
+
+  /* Solid mode: ribbon is a passive swatch, no handles to click into. */
+  .ribbon.solid {
+    cursor: default;
   }
 
   .handles {
@@ -491,9 +513,12 @@
     color: var(--ui-text-tertiary);
   }
 
+  /* Match the property-row token-selector width (8rem, see TokenLayout) so
+     the picker reads as a normal property control rather than expanding to
+     fill the row. */
   .picker-slot {
-    flex: 1 1 12rem;
-    min-width: 8rem;
+    flex: 0 0 auto;
+    width: 8rem;
   }
 
   .footer-row {

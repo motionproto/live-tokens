@@ -3,13 +3,43 @@
 
   import { onMount, tick } from 'svelte';
 
+  /** Size variant. Each variant owns everything that defines its look:
+   *  typography, geometry, AND colors / background. No separate color axis. */
+  type Variant = 'lg' | 'md' | 'sm';
+  type Align = 'start' | 'center';
+  type HairlinePosition =
+    | 'above-label'
+    | 'through-label'
+    | 'below-label'
+    | 'above-description'
+    | 'through-description'
+    | 'below-description';
+
+  interface HairlineConfig {
+    position: HairlinePosition;
+    /** CSS length (e.g. `2px`). Overrides the size variant's hairline thickness. */
+    thickness?: string;
+    /** Optional CSS gradient. Overrides the variant's hairline color. */
+    gradient?: string;
+  }
+
   interface Props {
     title: string;
     description?: string | undefined;
-    variant?: 'canvas' | 'neutral' | 'alternate' | 'primary' | 'accent' | 'special';
+    eyebrow?: string | undefined;
+    variant?: Variant;
+    align?: Align;
+    hairline?: HairlineConfig | undefined;
   }
 
-  let { title, description = undefined, variant = 'canvas' }: Props = $props();
+  let {
+    title,
+    description = undefined,
+    eyebrow = undefined,
+    variant = 'md',
+    align = 'center',
+    hairline = undefined,
+  }: Props = $props();
 
   let svgEl: SVGSVGElement | undefined = $state();
   let svgTextEl: SVGTextElement | undefined = $state();
@@ -18,37 +48,25 @@
   let svgX = $state(0);
   let svgY = $state(0);
 
-  // feMorphology radius and feFlood flood-color are non-presentation attributes:
-  // they can't read CSS vars. We read the resolved values off the SVG element
-  // and push them onto the filter primitives, refreshing whenever the editor
-  // mutates inline CSS vars on documentElement. Reading the variant-scoped
-  // internal `--_divider-title-*` vars (set by the .variant-{v} class) keeps
-  // this independent of the variant prop.
+  // feMorphology radius and feFlood flood-color are non-presentation attributes
+  // and can't read CSS vars. Read resolved values off the SVG element and push
+  // them onto the filter primitives, refreshing on doc-level inline-var changes.
   let outlineRadius = $state('0');
   let outlineColor = $state('#000');
-  // Stable per-instance id so multiple SectionDividers on the same page each
-  // bind their <text> to their own filter.
   const filterId = `sd-outline-${Math.random().toString(36).slice(2, 10)}`;
 
   function syncFilter(): void {
     if (!svgEl) return;
     const cs = getComputedStyle(svgEl);
-    const wPx = parseFloat(cs.getPropertyValue('--_divider-title-border-width'));
-    // SVG stroke extends `width/2` on each side; feMorphology radius dilates
-    // by `radius` outward — so radius = width/2 gives the same visible outline.
+    const wPx = parseFloat(cs.getPropertyValue('--_divider-title-outline-width'));
     outlineRadius = String(Number.isFinite(wPx) ? wPx / 2 : 0);
-    const c = cs.getPropertyValue('--_divider-title-stroke-color').trim();
+    const c = cs.getPropertyValue('--_divider-title-outline-color').trim();
     outlineColor = c || '#000';
   }
 
   function measure(): void {
     if (!svgTextEl) return;
     const bb = svgTextEl.getBBox();
-    // Size the SVG to the glyph bbox exactly and map that bbox onto the
-    // canvas via viewBox. Otherwise svgH = bb.y + bb.height carries any
-    // empty band between y=0 and the glyph top (and any extra at the
-    // bottom of the bbox), leaving the title vertically unbalanced inside
-    // the container's symmetric top/bottom padding.
     svgX = bb.x;
     svgY = bb.y;
     svgW = Math.ceil(bb.width);
@@ -64,334 +82,298 @@
   onMount(() => {
     measure();
     syncFilter();
-    // CSS-var edits (font-size/family/weight) change the rendered bbox but
-    // never change the `title` prop — so re-measure on every style mutation
-    // alongside the filter sync.
     const obs = new MutationObserver(() => { measure(); syncFilter(); });
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
     return () => obs.disconnect();
   });
+
+  let activeHairlinePos = $derived.by((): HairlinePosition | null => {
+    if (!hairline) return null;
+    if (description === undefined && hairline.position.endsWith('-description')) return null;
+    return hairline.position;
+  });
+
+  let aboveLabel = $derived(activeHairlinePos === 'above-label');
+  let throughLabel = $derived(activeHairlinePos === 'through-label');
+  let belowLabel = $derived(activeHairlinePos === 'below-label');
+  let aboveDesc = $derived(activeHairlinePos === 'above-description');
+  let throughDesc = $derived(activeHairlinePos === 'through-description');
+  let belowDesc = $derived(activeHairlinePos === 'below-description');
+
+  function hairlineStyle(h: HairlineConfig | undefined): string {
+    if (!h) return '';
+    const parts: string[] = [];
+    if (h.thickness) parts.push(`--_sd-hairline-thickness: ${h.thickness}`);
+    if (h.gradient) parts.push(`--_sd-hairline-background: ${h.gradient}`);
+    return parts.join('; ');
+  }
 </script>
 
-<div class="section-divider variant-{variant}">
-  <svg
-    bind:this={svgEl}
-    class="divider-label"
-    width={svgW || undefined}
-    height={svgH || undefined}
-    viewBox={svgW && svgH ? `${svgX} ${svgY} ${svgW} ${svgH}` : undefined}
-    aria-label={title}
-    role="img"
-  >
-    <defs>
-      <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
-        <feMorphology in="SourceAlpha" operator="dilate" radius={outlineRadius} result="dilated" />
-        <feFlood flood-color={outlineColor} result="color" />
-        <feComposite in="color" in2="dilated" operator="in" result="outline" />
-        <feComposite in="SourceGraphic" in2="outline" operator="over" />
-      </filter>
-    </defs>
-    <text
-      bind:this={svgTextEl}
-      x="0"
-      y="0"
-      dominant-baseline="hanging"
-      filter="url(#{filterId})"
-    >{title}</text>
-  </svg>
-  {#if description}
-    <p class="divider-description">{description}</p>
+<div
+  class="section-divider variant-{variant} align-{align}"
+  class:has-eyebrow={!!eyebrow}
+  class:has-description={description !== undefined}
+  class:has-hairline={!!activeHairlinePos}
+  style={hairlineStyle(hairline)}
+>
+  {#if eyebrow}
+    <span class="divider-eyebrow">{eyebrow}</span>
+  {/if}
+  {#if aboveLabel}
+    <span class="sd-hairline sd-hairline--row" aria-hidden="true"></span>
+  {/if}
+  <div class="title-row" class:has-line={throughLabel}>
+    {#if throughLabel}
+      <span class="sd-hairline sd-hairline--through" aria-hidden="true"></span>
+    {/if}
+    <span class="title-inline">
+      <svg
+        bind:this={svgEl}
+        class="divider-label"
+        width={svgW || undefined}
+        height={svgH || undefined}
+        viewBox={svgW && svgH ? `${svgX} ${svgY} ${svgW} ${svgH}` : undefined}
+        aria-label={title}
+        role="img"
+      >
+        <defs>
+          <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
+            <feMorphology in="SourceAlpha" operator="dilate" radius={outlineRadius} result="dilated" />
+            <feFlood flood-color={outlineColor} result="color" />
+            <feComposite in="color" in2="dilated" operator="in" result="outline" />
+            <feComposite in="SourceGraphic" in2="outline" operator="over" />
+          </filter>
+        </defs>
+        <text
+          bind:this={svgTextEl}
+          x="0"
+          y="0"
+          dominant-baseline="hanging"
+          filter="url(#{filterId})"
+        >{title}</text>
+      </svg>
+    </span>
+  </div>
+  {#if belowLabel}
+    <span class="sd-hairline sd-hairline--row" aria-hidden="true"></span>
+  {/if}
+  {#if description !== undefined}
+    {#if aboveDesc}
+      <span class="sd-hairline sd-hairline--row" aria-hidden="true"></span>
+    {/if}
+    <div class="description-row" class:has-line={throughDesc}>
+      {#if throughDesc}
+        <span class="sd-hairline sd-hairline--through" aria-hidden="true"></span>
+      {/if}
+      <span class="description-inline">
+        <p class="divider-description">{description}</p>
+      </span>
+    </div>
+    {#if belowDesc}
+      <span class="sd-hairline sd-hairline--row" aria-hidden="true"></span>
+    {/if}
   {/if}
 </div>
 
 <style>
-  /* Per-variant slots. Properties the editor links across variants
-     (typography, padding, outline, radius) ship with identical defaults so
-     they read as one linked group out of the box; the gradient is authored
-     per variant as one structured token (`--sectiondivider-{v}-gradient`)
-     and is not linked. The editor writes this slot as a literal CSS
-     `linear-gradient(...)` declaration; this `:global(:root)` block is the
-     baseline the cascade falls back to when no override is set. */
+  /* Each size variant owns its full token set: typography, geometry, AND
+     colors (background + text + border + hairline + title-outline). There is
+     no separate color axis — variants are full presets the designer composes
+     in the editor. The instance picks one variant; that's it. */
   :global(:root) {
-    /* Canvas */
-    --sectiondivider-canvas-padding: var(--space-16);
-    --sectiondivider-canvas-title: var(--text-primary);
-    --sectiondivider-canvas-title-font-family: var(--font-display);
-    --sectiondivider-canvas-title-font-size: var(--font-size-5xl);
-    --sectiondivider-canvas-title-font-weight: var(--font-weight-normal);
-    --sectiondivider-canvas-title-line-height: var(--line-height-xs);
-    --sectiondivider-canvas-title-letter-spacing: var(--letter-spacing-normal);
-    --sectiondivider-canvas-title-border-width: var(--border-width-4);
-    --sectiondivider-canvas-title-stroke-color: var(--surface-canvas-lowest);
-    /* Title stroke defaults intentionally diverge per variant — the property
-       is linkable but ships unlinked, with each variant matching its own
-       surface-lowest so stroke + gradient read as one family. */
-    --sectiondivider-canvas-description: var(--text-secondary);
-    --sectiondivider-canvas-description-font-family: var(--font-sans);
-    --sectiondivider-canvas-description-font-size: var(--font-size-md);
-    --sectiondivider-canvas-description-font-weight: var(--font-weight-normal);
-    --sectiondivider-canvas-description-line-height: var(--line-height-md);
-    --sectiondivider-canvas-gradient: linear-gradient(135deg, var(--surface-canvas-highest) 0%, var(--surface-canvas-higher) 50%, var(--surface-canvas) 100%);
-    --sectiondivider-canvas-radius: var(--radius-lg);
-    --sectiondivider-canvas-border: var(--color-transparent);
-    --sectiondivider-canvas-border-width: var(--border-width-0);
-    --sectiondivider-canvas-shadow: var(--shadow-none);
+    /* Large */
+    --sectiondivider-lg-title-font-family: var(--font-display);
+    --sectiondivider-lg-title-font-weight: var(--font-weight-normal);
+    --sectiondivider-lg-title-font-size: var(--font-size-5xl);
+    --sectiondivider-lg-title-line-height: var(--line-height-xs);
+    --sectiondivider-lg-title-letter-spacing: var(--letter-spacing-normal);
+    --sectiondivider-lg-title-outline-width: var(--border-width-4);
+    --sectiondivider-lg-description-font-family: var(--font-sans);
+    --sectiondivider-lg-description-font-weight: var(--font-weight-normal);
+    --sectiondivider-lg-description-font-size: var(--font-size-lg);
+    --sectiondivider-lg-description-line-height: var(--line-height-md);
+    --sectiondivider-lg-eyebrow-font-family: var(--font-sans);
+    --sectiondivider-lg-eyebrow-font-weight: var(--font-weight-medium);
+    --sectiondivider-lg-eyebrow-font-size: var(--font-size-md);
+    --sectiondivider-lg-eyebrow-letter-spacing: var(--letter-spacing-wide);
+    --sectiondivider-lg-spacing: var(--space-16);
+    --sectiondivider-lg-radius: var(--radius-lg);
+    --sectiondivider-lg-border-width: var(--border-width-0);
+    --sectiondivider-lg-shadow: var(--shadow-none);
+    --sectiondivider-lg-hairline-thickness: var(--border-width-1);
+    --sectiondivider-lg-background: linear-gradient(135deg, var(--surface-canvas-highest) 0%, var(--surface-canvas-higher) 50%, var(--surface-canvas) 100%);
+    --sectiondivider-lg-title: var(--text-primary);
+    --sectiondivider-lg-description: var(--text-secondary);
+    --sectiondivider-lg-eyebrow: var(--text-tertiary);
+    --sectiondivider-lg-border: var(--color-transparent);
+    --sectiondivider-lg-title-outline-color: var(--surface-canvas-lowest);
+    --sectiondivider-lg-hairline-color: var(--border-canvas-medium);
 
-    /* Neutral */
-    --sectiondivider-neutral-padding: var(--space-16);
-    --sectiondivider-neutral-title: var(--text-primary);
-    --sectiondivider-neutral-title-font-family: var(--font-display);
-    --sectiondivider-neutral-title-font-size: var(--font-size-5xl);
-    --sectiondivider-neutral-title-font-weight: var(--font-weight-normal);
-    --sectiondivider-neutral-title-line-height: var(--line-height-xs);
-    --sectiondivider-neutral-title-letter-spacing: var(--letter-spacing-normal);
-    --sectiondivider-neutral-title-border-width: var(--border-width-4);
-    --sectiondivider-neutral-title-stroke-color: var(--surface-neutral-lowest);
-    --sectiondivider-neutral-description: var(--text-secondary);
-    --sectiondivider-neutral-description-font-family: var(--font-sans);
-    --sectiondivider-neutral-description-font-size: var(--font-size-md);
-    --sectiondivider-neutral-description-font-weight: var(--font-weight-normal);
-    --sectiondivider-neutral-description-line-height: var(--line-height-md);
-    --sectiondivider-neutral-gradient: linear-gradient(135deg, var(--surface-neutral-highest) 0%, var(--surface-neutral-higher) 50%, var(--surface-neutral) 100%);
-    --sectiondivider-neutral-radius: var(--radius-lg);
-    --sectiondivider-neutral-border: var(--color-transparent);
-    --sectiondivider-neutral-border-width: var(--border-width-0);
-    --sectiondivider-neutral-shadow: var(--shadow-none);
+    /* Medium */
+    --sectiondivider-md-title-font-family: var(--font-display);
+    --sectiondivider-md-title-font-weight: var(--font-weight-normal);
+    --sectiondivider-md-title-font-size: var(--font-size-4xl);
+    --sectiondivider-md-title-line-height: var(--line-height-xs);
+    --sectiondivider-md-title-letter-spacing: var(--letter-spacing-normal);
+    --sectiondivider-md-title-outline-width: var(--border-width-3);
+    --sectiondivider-md-description-font-family: var(--font-sans);
+    --sectiondivider-md-description-font-weight: var(--font-weight-normal);
+    --sectiondivider-md-description-font-size: var(--font-size-md);
+    --sectiondivider-md-description-line-height: var(--line-height-md);
+    --sectiondivider-md-eyebrow-font-family: var(--font-sans);
+    --sectiondivider-md-eyebrow-font-weight: var(--font-weight-medium);
+    --sectiondivider-md-eyebrow-font-size: var(--font-size-sm);
+    --sectiondivider-md-eyebrow-letter-spacing: var(--letter-spacing-wide);
+    --sectiondivider-md-spacing: var(--space-12);
+    --sectiondivider-md-radius: var(--radius-md);
+    --sectiondivider-md-border-width: var(--border-width-0);
+    --sectiondivider-md-shadow: var(--shadow-none);
+    --sectiondivider-md-hairline-thickness: var(--border-width-1);
+    --sectiondivider-md-background: linear-gradient(135deg, var(--surface-canvas-highest) 0%, var(--surface-canvas-higher) 50%, var(--surface-canvas) 100%);
+    --sectiondivider-md-title: var(--text-primary);
+    --sectiondivider-md-description: var(--text-secondary);
+    --sectiondivider-md-eyebrow: var(--text-tertiary);
+    --sectiondivider-md-border: var(--color-transparent);
+    --sectiondivider-md-title-outline-color: var(--surface-canvas-lowest);
+    --sectiondivider-md-hairline-color: var(--border-canvas-medium);
 
-    /* Alternate */
-    --sectiondivider-alternate-padding: var(--space-16);
-    --sectiondivider-alternate-title: var(--text-primary);
-    --sectiondivider-alternate-title-font-family: var(--font-display);
-    --sectiondivider-alternate-title-font-size: var(--font-size-5xl);
-    --sectiondivider-alternate-title-font-weight: var(--font-weight-normal);
-    --sectiondivider-alternate-title-line-height: var(--line-height-xs);
-    --sectiondivider-alternate-title-letter-spacing: var(--letter-spacing-normal);
-    --sectiondivider-alternate-title-border-width: var(--border-width-4);
-    --sectiondivider-alternate-title-stroke-color: var(--surface-alternate-lowest);
-    --sectiondivider-alternate-description: var(--text-secondary);
-    --sectiondivider-alternate-description-font-family: var(--font-sans);
-    --sectiondivider-alternate-description-font-size: var(--font-size-md);
-    --sectiondivider-alternate-description-font-weight: var(--font-weight-normal);
-    --sectiondivider-alternate-description-line-height: var(--line-height-md);
-    --sectiondivider-alternate-gradient: linear-gradient(135deg, var(--surface-alternate-highest) 0%, var(--surface-alternate-higher) 50%, var(--surface-alternate) 100%);
-    --sectiondivider-alternate-radius: var(--radius-lg);
-    --sectiondivider-alternate-border: var(--color-transparent);
-    --sectiondivider-alternate-border-width: var(--border-width-0);
-    --sectiondivider-alternate-shadow: var(--shadow-none);
-
-    /* Primary */
-    --sectiondivider-primary-padding: var(--space-16);
-    --sectiondivider-primary-title: var(--text-primary);
-    --sectiondivider-primary-title-font-family: var(--font-display);
-    --sectiondivider-primary-title-font-size: var(--font-size-5xl);
-    --sectiondivider-primary-title-font-weight: var(--font-weight-normal);
-    --sectiondivider-primary-title-line-height: var(--line-height-xs);
-    --sectiondivider-primary-title-letter-spacing: var(--letter-spacing-normal);
-    --sectiondivider-primary-title-border-width: var(--border-width-4);
-    --sectiondivider-primary-title-stroke-color: var(--surface-brand-lowest);
-    --sectiondivider-primary-description: var(--text-secondary);
-    --sectiondivider-primary-description-font-family: var(--font-sans);
-    --sectiondivider-primary-description-font-size: var(--font-size-md);
-    --sectiondivider-primary-description-font-weight: var(--font-weight-normal);
-    --sectiondivider-primary-description-line-height: var(--line-height-md);
-    --sectiondivider-primary-gradient: linear-gradient(135deg, var(--surface-brand-highest) 0%, var(--surface-brand-higher) 50%, var(--surface-brand) 100%);
-    --sectiondivider-primary-radius: var(--radius-lg);
-    --sectiondivider-primary-border: var(--color-transparent);
-    --sectiondivider-primary-border-width: var(--border-width-0);
-    --sectiondivider-primary-shadow: var(--shadow-none);
-
-    /* Accent */
-    --sectiondivider-accent-padding: var(--space-16);
-    --sectiondivider-accent-title: var(--text-primary);
-    --sectiondivider-accent-title-font-family: var(--font-display);
-    --sectiondivider-accent-title-font-size: var(--font-size-5xl);
-    --sectiondivider-accent-title-font-weight: var(--font-weight-normal);
-    --sectiondivider-accent-title-line-height: var(--line-height-xs);
-    --sectiondivider-accent-title-letter-spacing: var(--letter-spacing-normal);
-    --sectiondivider-accent-title-border-width: var(--border-width-4);
-    --sectiondivider-accent-title-stroke-color: var(--surface-accent-lowest);
-    --sectiondivider-accent-description: var(--text-secondary);
-    --sectiondivider-accent-description-font-family: var(--font-sans);
-    --sectiondivider-accent-description-font-size: var(--font-size-md);
-    --sectiondivider-accent-description-font-weight: var(--font-weight-normal);
-    --sectiondivider-accent-description-line-height: var(--line-height-md);
-    --sectiondivider-accent-gradient: linear-gradient(135deg, var(--surface-accent-highest) 0%, var(--surface-accent-higher) 50%, var(--surface-accent) 100%);
-    --sectiondivider-accent-radius: var(--radius-lg);
-    --sectiondivider-accent-border: var(--color-transparent);
-    --sectiondivider-accent-border-width: var(--border-width-0);
-    --sectiondivider-accent-shadow: var(--shadow-none);
-
-    /* Special */
-    --sectiondivider-special-padding: var(--space-16);
-    --sectiondivider-special-title: var(--text-primary);
-    --sectiondivider-special-title-font-family: var(--font-display);
-    --sectiondivider-special-title-font-size: var(--font-size-5xl);
-    --sectiondivider-special-title-font-weight: var(--font-weight-normal);
-    --sectiondivider-special-title-line-height: var(--line-height-xs);
-    --sectiondivider-special-title-letter-spacing: var(--letter-spacing-normal);
-    --sectiondivider-special-title-border-width: var(--border-width-4);
-    --sectiondivider-special-title-stroke-color: var(--surface-special-lowest);
-    --sectiondivider-special-description: var(--text-secondary);
-    --sectiondivider-special-description-font-family: var(--font-sans);
-    --sectiondivider-special-description-font-size: var(--font-size-md);
-    --sectiondivider-special-description-font-weight: var(--font-weight-normal);
-    --sectiondivider-special-description-line-height: var(--line-height-md);
-    --sectiondivider-special-gradient: linear-gradient(135deg, var(--surface-special-highest) 0%, var(--surface-special-higher) 50%, var(--surface-special) 100%);
-    --sectiondivider-special-radius: var(--radius-lg);
-    --sectiondivider-special-border: var(--color-transparent);
-    --sectiondivider-special-border-width: var(--border-width-0);
-    --sectiondivider-special-shadow: var(--shadow-none);
+    /* Small */
+    --sectiondivider-sm-title-font-family: var(--font-display);
+    --sectiondivider-sm-title-font-weight: var(--font-weight-normal);
+    --sectiondivider-sm-title-font-size: var(--font-size-3xl);
+    --sectiondivider-sm-title-line-height: var(--line-height-xs);
+    --sectiondivider-sm-title-letter-spacing: var(--letter-spacing-normal);
+    --sectiondivider-sm-title-outline-width: var(--border-width-2);
+    --sectiondivider-sm-description-font-family: var(--font-sans);
+    --sectiondivider-sm-description-font-weight: var(--font-weight-normal);
+    --sectiondivider-sm-description-font-size: var(--font-size-sm);
+    --sectiondivider-sm-description-line-height: var(--line-height-md);
+    --sectiondivider-sm-eyebrow-font-family: var(--font-sans);
+    --sectiondivider-sm-eyebrow-font-weight: var(--font-weight-medium);
+    --sectiondivider-sm-eyebrow-font-size: var(--font-size-xs);
+    --sectiondivider-sm-eyebrow-letter-spacing: var(--letter-spacing-wide);
+    --sectiondivider-sm-spacing: var(--space-8);
+    --sectiondivider-sm-radius: var(--radius-sm);
+    --sectiondivider-sm-border-width: var(--border-width-0);
+    --sectiondivider-sm-shadow: var(--shadow-none);
+    --sectiondivider-sm-hairline-thickness: var(--border-width-1);
+    --sectiondivider-sm-background: linear-gradient(135deg, var(--surface-canvas-highest) 0%, var(--surface-canvas-higher) 50%, var(--surface-canvas) 100%);
+    --sectiondivider-sm-title: var(--text-primary);
+    --sectiondivider-sm-description: var(--text-secondary);
+    --sectiondivider-sm-eyebrow: var(--text-tertiary);
+    --sectiondivider-sm-border: var(--color-transparent);
+    --sectiondivider-sm-title-outline-color: var(--surface-canvas-lowest);
+    --sectiondivider-sm-hairline-color: var(--border-canvas-medium);
   }
 
   .section-divider {
+    position: relative;
     margin: var(--space-24) 0;
-    padding: var(--_divider-padding) calc(var(--_divider-padding) * 1.5);
+    padding: var(--_divider-spacing) calc(var(--_divider-spacing) * 1.5);
     border-radius: var(--_divider-radius);
     border: var(--_divider-border-width) solid var(--_divider-border);
     box-shadow: var(--_divider-shadow);
-    background: var(--_divider-gradient);
+    background: var(--_divider-bg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
   }
 
-  /* Each variant class collapses its per-variant slots onto one set of
-     internal `--_divider-*` vars; the rest of the styles only consume those,
-     so adding a variant means adding a class and a :root block. */
-  .variant-canvas {
-    --_divider-padding: var(--sectiondivider-canvas-padding);
-    --_divider-radius: var(--sectiondivider-canvas-radius);
-    --_divider-border: var(--sectiondivider-canvas-border);
-    --_divider-border-width: var(--sectiondivider-canvas-border-width);
-    --_divider-shadow: var(--sectiondivider-canvas-shadow);
-    --_divider-gradient: var(--sectiondivider-canvas-gradient);
-    --_divider-title: var(--sectiondivider-canvas-title);
-    --_divider-title-font-family: var(--sectiondivider-canvas-title-font-family);
-    --_divider-title-font-size: var(--sectiondivider-canvas-title-font-size);
-    --_divider-title-font-weight: var(--sectiondivider-canvas-title-font-weight);
-    --_divider-title-line-height: var(--sectiondivider-canvas-title-line-height);
-    --_divider-title-letter-spacing: var(--sectiondivider-canvas-title-letter-spacing);
-    --_divider-title-border-width: var(--sectiondivider-canvas-title-border-width);
-    --_divider-title-stroke-color: var(--sectiondivider-canvas-title-stroke-color);
-    --_divider-description: var(--sectiondivider-canvas-description);
-    --_divider-description-font-family: var(--sectiondivider-canvas-description-font-family);
-    --_divider-description-font-size: var(--sectiondivider-canvas-description-font-size);
-    --_divider-description-font-weight: var(--sectiondivider-canvas-description-font-weight);
-    --_divider-description-line-height: var(--sectiondivider-canvas-description-line-height);
+  .section-divider.align-start { align-items: flex-start; text-align: start; --_divider-justify: flex-start; }
+  .section-divider.align-center { align-items: center; text-align: center; --_divider-justify: center; }
+
+  /* Variant pipes — one full token set per variant. */
+  .variant-lg {
+    --_divider-title-font-family: var(--sectiondivider-lg-title-font-family);
+    --_divider-title-font-weight: var(--sectiondivider-lg-title-font-weight);
+    --_divider-title-font-size: var(--sectiondivider-lg-title-font-size);
+    --_divider-title-line-height: var(--sectiondivider-lg-title-line-height);
+    --_divider-title-letter-spacing: var(--sectiondivider-lg-title-letter-spacing);
+    --_divider-title-outline-width: var(--sectiondivider-lg-title-outline-width);
+    --_divider-description-font-family: var(--sectiondivider-lg-description-font-family);
+    --_divider-description-font-weight: var(--sectiondivider-lg-description-font-weight);
+    --_divider-description-font-size: var(--sectiondivider-lg-description-font-size);
+    --_divider-description-line-height: var(--sectiondivider-lg-description-line-height);
+    --_divider-eyebrow-font-family: var(--sectiondivider-lg-eyebrow-font-family);
+    --_divider-eyebrow-font-weight: var(--sectiondivider-lg-eyebrow-font-weight);
+    --_divider-eyebrow-font-size: var(--sectiondivider-lg-eyebrow-font-size);
+    --_divider-eyebrow-letter-spacing: var(--sectiondivider-lg-eyebrow-letter-spacing);
+    --_divider-spacing: var(--sectiondivider-lg-spacing);
+    --_divider-radius: var(--sectiondivider-lg-radius);
+    --_divider-border-width: var(--sectiondivider-lg-border-width);
+    --_divider-shadow: var(--sectiondivider-lg-shadow);
+    --_divider-hairline-thickness: var(--sectiondivider-lg-hairline-thickness);
+    --_divider-bg: var(--sectiondivider-lg-background);
+    --_divider-title: var(--sectiondivider-lg-title);
+    --_divider-description: var(--sectiondivider-lg-description);
+    --_divider-eyebrow: var(--sectiondivider-lg-eyebrow);
+    --_divider-border: var(--sectiondivider-lg-border);
+    --_divider-title-outline-color: var(--sectiondivider-lg-title-outline-color);
+    --_divider-hairline-color: var(--sectiondivider-lg-hairline-color);
   }
 
-  .variant-neutral {
-    --_divider-padding: var(--sectiondivider-neutral-padding);
-    --_divider-radius: var(--sectiondivider-neutral-radius);
-    --_divider-border: var(--sectiondivider-neutral-border);
-    --_divider-border-width: var(--sectiondivider-neutral-border-width);
-    --_divider-shadow: var(--sectiondivider-neutral-shadow);
-    --_divider-gradient: var(--sectiondivider-neutral-gradient);
-    --_divider-title: var(--sectiondivider-neutral-title);
-    --_divider-title-font-family: var(--sectiondivider-neutral-title-font-family);
-    --_divider-title-font-size: var(--sectiondivider-neutral-title-font-size);
-    --_divider-title-font-weight: var(--sectiondivider-neutral-title-font-weight);
-    --_divider-title-line-height: var(--sectiondivider-neutral-title-line-height);
-    --_divider-title-letter-spacing: var(--sectiondivider-neutral-title-letter-spacing);
-    --_divider-title-border-width: var(--sectiondivider-neutral-title-border-width);
-    --_divider-title-stroke-color: var(--sectiondivider-neutral-title-stroke-color);
-    --_divider-description: var(--sectiondivider-neutral-description);
-    --_divider-description-font-family: var(--sectiondivider-neutral-description-font-family);
-    --_divider-description-font-size: var(--sectiondivider-neutral-description-font-size);
-    --_divider-description-font-weight: var(--sectiondivider-neutral-description-font-weight);
-    --_divider-description-line-height: var(--sectiondivider-neutral-description-line-height);
+  .variant-md {
+    --_divider-title-font-family: var(--sectiondivider-md-title-font-family);
+    --_divider-title-font-weight: var(--sectiondivider-md-title-font-weight);
+    --_divider-title-font-size: var(--sectiondivider-md-title-font-size);
+    --_divider-title-line-height: var(--sectiondivider-md-title-line-height);
+    --_divider-title-letter-spacing: var(--sectiondivider-md-title-letter-spacing);
+    --_divider-title-outline-width: var(--sectiondivider-md-title-outline-width);
+    --_divider-description-font-family: var(--sectiondivider-md-description-font-family);
+    --_divider-description-font-weight: var(--sectiondivider-md-description-font-weight);
+    --_divider-description-font-size: var(--sectiondivider-md-description-font-size);
+    --_divider-description-line-height: var(--sectiondivider-md-description-line-height);
+    --_divider-eyebrow-font-family: var(--sectiondivider-md-eyebrow-font-family);
+    --_divider-eyebrow-font-weight: var(--sectiondivider-md-eyebrow-font-weight);
+    --_divider-eyebrow-font-size: var(--sectiondivider-md-eyebrow-font-size);
+    --_divider-eyebrow-letter-spacing: var(--sectiondivider-md-eyebrow-letter-spacing);
+    --_divider-spacing: var(--sectiondivider-md-spacing);
+    --_divider-radius: var(--sectiondivider-md-radius);
+    --_divider-border-width: var(--sectiondivider-md-border-width);
+    --_divider-shadow: var(--sectiondivider-md-shadow);
+    --_divider-hairline-thickness: var(--sectiondivider-md-hairline-thickness);
+    --_divider-bg: var(--sectiondivider-md-background);
+    --_divider-title: var(--sectiondivider-md-title);
+    --_divider-description: var(--sectiondivider-md-description);
+    --_divider-eyebrow: var(--sectiondivider-md-eyebrow);
+    --_divider-border: var(--sectiondivider-md-border);
+    --_divider-title-outline-color: var(--sectiondivider-md-title-outline-color);
+    --_divider-hairline-color: var(--sectiondivider-md-hairline-color);
   }
 
-  .variant-alternate {
-    --_divider-padding: var(--sectiondivider-alternate-padding);
-    --_divider-radius: var(--sectiondivider-alternate-radius);
-    --_divider-border: var(--sectiondivider-alternate-border);
-    --_divider-border-width: var(--sectiondivider-alternate-border-width);
-    --_divider-shadow: var(--sectiondivider-alternate-shadow);
-    --_divider-gradient: var(--sectiondivider-alternate-gradient);
-    --_divider-title: var(--sectiondivider-alternate-title);
-    --_divider-title-font-family: var(--sectiondivider-alternate-title-font-family);
-    --_divider-title-font-size: var(--sectiondivider-alternate-title-font-size);
-    --_divider-title-font-weight: var(--sectiondivider-alternate-title-font-weight);
-    --_divider-title-line-height: var(--sectiondivider-alternate-title-line-height);
-    --_divider-title-letter-spacing: var(--sectiondivider-alternate-title-letter-spacing);
-    --_divider-title-border-width: var(--sectiondivider-alternate-title-border-width);
-    --_divider-title-stroke-color: var(--sectiondivider-alternate-title-stroke-color);
-    --_divider-description: var(--sectiondivider-alternate-description);
-    --_divider-description-font-family: var(--sectiondivider-alternate-description-font-family);
-    --_divider-description-font-size: var(--sectiondivider-alternate-description-font-size);
-    --_divider-description-font-weight: var(--sectiondivider-alternate-description-font-weight);
-    --_divider-description-line-height: var(--sectiondivider-alternate-description-line-height);
-  }
-
-  .variant-primary {
-    --_divider-padding: var(--sectiondivider-primary-padding);
-    --_divider-radius: var(--sectiondivider-primary-radius);
-    --_divider-border: var(--sectiondivider-primary-border);
-    --_divider-border-width: var(--sectiondivider-primary-border-width);
-    --_divider-shadow: var(--sectiondivider-primary-shadow);
-    --_divider-gradient: var(--sectiondivider-primary-gradient);
-    --_divider-title: var(--sectiondivider-primary-title);
-    --_divider-title-font-family: var(--sectiondivider-primary-title-font-family);
-    --_divider-title-font-size: var(--sectiondivider-primary-title-font-size);
-    --_divider-title-font-weight: var(--sectiondivider-primary-title-font-weight);
-    --_divider-title-line-height: var(--sectiondivider-primary-title-line-height);
-    --_divider-title-letter-spacing: var(--sectiondivider-primary-title-letter-spacing);
-    --_divider-title-border-width: var(--sectiondivider-primary-title-border-width);
-    --_divider-title-stroke-color: var(--sectiondivider-primary-title-stroke-color);
-    --_divider-description: var(--sectiondivider-primary-description);
-    --_divider-description-font-family: var(--sectiondivider-primary-description-font-family);
-    --_divider-description-font-size: var(--sectiondivider-primary-description-font-size);
-    --_divider-description-font-weight: var(--sectiondivider-primary-description-font-weight);
-    --_divider-description-line-height: var(--sectiondivider-primary-description-line-height);
-  }
-
-  .variant-accent {
-    --_divider-padding: var(--sectiondivider-accent-padding);
-    --_divider-radius: var(--sectiondivider-accent-radius);
-    --_divider-border: var(--sectiondivider-accent-border);
-    --_divider-border-width: var(--sectiondivider-accent-border-width);
-    --_divider-shadow: var(--sectiondivider-accent-shadow);
-    --_divider-gradient: var(--sectiondivider-accent-gradient);
-    --_divider-title: var(--sectiondivider-accent-title);
-    --_divider-title-font-family: var(--sectiondivider-accent-title-font-family);
-    --_divider-title-font-size: var(--sectiondivider-accent-title-font-size);
-    --_divider-title-font-weight: var(--sectiondivider-accent-title-font-weight);
-    --_divider-title-line-height: var(--sectiondivider-accent-title-line-height);
-    --_divider-title-letter-spacing: var(--sectiondivider-accent-title-letter-spacing);
-    --_divider-title-border-width: var(--sectiondivider-accent-title-border-width);
-    --_divider-title-stroke-color: var(--sectiondivider-accent-title-stroke-color);
-    --_divider-description: var(--sectiondivider-accent-description);
-    --_divider-description-font-family: var(--sectiondivider-accent-description-font-family);
-    --_divider-description-font-size: var(--sectiondivider-accent-description-font-size);
-    --_divider-description-font-weight: var(--sectiondivider-accent-description-font-weight);
-    --_divider-description-line-height: var(--sectiondivider-accent-description-line-height);
-  }
-
-  .variant-special {
-    --_divider-padding: var(--sectiondivider-special-padding);
-    --_divider-radius: var(--sectiondivider-special-radius);
-    --_divider-border: var(--sectiondivider-special-border);
-    --_divider-border-width: var(--sectiondivider-special-border-width);
-    --_divider-shadow: var(--sectiondivider-special-shadow);
-    --_divider-gradient: var(--sectiondivider-special-gradient);
-    --_divider-title: var(--sectiondivider-special-title);
-    --_divider-title-font-family: var(--sectiondivider-special-title-font-family);
-    --_divider-title-font-size: var(--sectiondivider-special-title-font-size);
-    --_divider-title-font-weight: var(--sectiondivider-special-title-font-weight);
-    --_divider-title-line-height: var(--sectiondivider-special-title-line-height);
-    --_divider-title-letter-spacing: var(--sectiondivider-special-title-letter-spacing);
-    --_divider-title-border-width: var(--sectiondivider-special-title-border-width);
-    --_divider-title-stroke-color: var(--sectiondivider-special-title-stroke-color);
-    --_divider-description: var(--sectiondivider-special-description);
-    --_divider-description-font-family: var(--sectiondivider-special-description-font-family);
-    --_divider-description-font-size: var(--sectiondivider-special-description-font-size);
-    --_divider-description-font-weight: var(--sectiondivider-special-description-font-weight);
-    --_divider-description-line-height: var(--sectiondivider-special-description-line-height);
+  .variant-sm {
+    --_divider-title-font-family: var(--sectiondivider-sm-title-font-family);
+    --_divider-title-font-weight: var(--sectiondivider-sm-title-font-weight);
+    --_divider-title-font-size: var(--sectiondivider-sm-title-font-size);
+    --_divider-title-line-height: var(--sectiondivider-sm-title-line-height);
+    --_divider-title-letter-spacing: var(--sectiondivider-sm-title-letter-spacing);
+    --_divider-title-outline-width: var(--sectiondivider-sm-title-outline-width);
+    --_divider-description-font-family: var(--sectiondivider-sm-description-font-family);
+    --_divider-description-font-weight: var(--sectiondivider-sm-description-font-weight);
+    --_divider-description-font-size: var(--sectiondivider-sm-description-font-size);
+    --_divider-description-line-height: var(--sectiondivider-sm-description-line-height);
+    --_divider-eyebrow-font-family: var(--sectiondivider-sm-eyebrow-font-family);
+    --_divider-eyebrow-font-weight: var(--sectiondivider-sm-eyebrow-font-weight);
+    --_divider-eyebrow-font-size: var(--sectiondivider-sm-eyebrow-font-size);
+    --_divider-eyebrow-letter-spacing: var(--sectiondivider-sm-eyebrow-letter-spacing);
+    --_divider-spacing: var(--sectiondivider-sm-spacing);
+    --_divider-radius: var(--sectiondivider-sm-radius);
+    --_divider-border-width: var(--sectiondivider-sm-border-width);
+    --_divider-shadow: var(--sectiondivider-sm-shadow);
+    --_divider-hairline-thickness: var(--sectiondivider-sm-hairline-thickness);
+    --_divider-bg: var(--sectiondivider-sm-background);
+    --_divider-title: var(--sectiondivider-sm-title);
+    --_divider-description: var(--sectiondivider-sm-description);
+    --_divider-eyebrow: var(--sectiondivider-sm-eyebrow);
+    --_divider-border: var(--sectiondivider-sm-border);
+    --_divider-title-outline-color: var(--sectiondivider-sm-title-outline-color);
+    --_divider-hairline-color: var(--sectiondivider-sm-hairline-color);
   }
 
   /* Title rendered as a single <text> through a feMorphology dilate + flood +
      composite filter. Dilating the alpha treats all glyphs as one combined
      shape, so neighbor-glyph overlaps (CQ, AC etc.) merge into a single
-     outline instead of double-stacking. Filter values are pushed onto
-     <feMorphology>/<feFlood> from JS — those attrs can't read CSS vars. */
+     outline instead of double-stacking. */
   svg.divider-label {
     display: block;
     overflow: visible;
@@ -399,19 +381,81 @@
   }
   svg.divider-label text {
     font-family: var(--_divider-title-font-family);
-    font-size: var(--_divider-title-font-size);
     font-weight: var(--_divider-title-font-weight);
+    font-size: var(--_divider-title-font-size);
     letter-spacing: var(--_divider-title-letter-spacing);
     fill: currentColor;
   }
 
+  .title-row {
+    display: flex;
+    width: 100%;
+    position: relative;
+    justify-content: var(--_divider-justify);
+    align-items: center;
+  }
+  .title-inline {
+    display: inline-flex;
+    position: relative;
+    z-index: 1;
+  }
+  /* When a "through-label" hairline is active, give the title a backdrop +
+     inline padding so the line visually breaks where the text sits. */
+  .title-row.has-line .title-inline {
+    background: var(--_divider-bg);
+    padding-inline: 0.75em;
+  }
+
+  .divider-eyebrow {
+    font-family: var(--_divider-eyebrow-font-family);
+    font-weight: var(--_divider-eyebrow-font-weight);
+    font-size: var(--_divider-eyebrow-font-size);
+    letter-spacing: var(--_divider-eyebrow-letter-spacing);
+    text-transform: uppercase;
+    color: var(--_divider-eyebrow);
+  }
+
+  .description-row {
+    display: flex;
+    width: 100%;
+    position: relative;
+    justify-content: var(--_divider-justify);
+    align-items: center;
+  }
+  .description-inline {
+    display: inline-flex;
+    position: relative;
+    z-index: 1;
+  }
+  .description-row.has-line .description-inline {
+    background: var(--_divider-bg);
+    padding-inline: 0.75em;
+  }
   .divider-description {
-    margin: var(--space-4) 0 0;
+    margin: 0;
     font-family: var(--_divider-description-font-family);
-    font-size: var(--_divider-description-font-size);
     font-weight: var(--_divider-description-font-weight);
+    font-size: var(--_divider-description-font-size);
     line-height: var(--_divider-description-line-height);
     color: var(--_divider-description);
+    font-style: italic;
+  }
+
+  .sd-hairline {
+    display: block;
+    background: var(--_sd-hairline-background, var(--_divider-hairline-color));
+    height: var(--_sd-hairline-thickness, var(--_divider-hairline-thickness));
+  }
+  .sd-hairline--row {
+    width: 100%;
+  }
+  .sd-hairline--through {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 0;
   }
 
   @media (max-width: 600px) {
