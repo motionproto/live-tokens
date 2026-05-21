@@ -101,7 +101,10 @@
 <style>
   .type-grid {
     display: grid;
-    grid-template-columns: max-content 8rem 1fr;
+    /* Label column tracks the editor-wide `--editor-label-col` when an
+       ancestor (e.g. StateBlock's `.element-section`) sets one, so this
+       grid lines up with sibling `.token-grid`s in the same section. */
+    grid-template-columns: var(--editor-label-col, max-content) 8rem 1fr;
     column-gap: var(--ui-space-10);
     row-gap: var(--ui-space-6);
     align-items: center;

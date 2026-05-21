@@ -37,6 +37,14 @@
      *  prefix (e.g. `surface-accent`). Already-set out-of-family stops still
      *  render as the chosen value — the filter only scopes new picks. */
     familyFilter?: string | null;
+    /** Show the "None" segment alongside Solid / Linear. Use when the editor
+     *  is driving a container background that the user should be able to clear
+     *  outright rather than dialing into a transparent solid. */
+    showNone?: boolean;
+    /** Called when the user picks "None". Lets the parent zero out any
+     *  ancillary tokens that should follow the cleared background (e.g.
+     *  border color); the editor itself only flips the gradient type. */
+    onNone?: () => void;
     onsave?: () => void;
     oncancel?: () => void;
   }
@@ -46,6 +54,8 @@
     source,
     stopIdPrefix,
     familyFilter = null,
+    showNone = false,
+    onNone,
     onsave,
     oncancel,
   }: Props = $props();
@@ -102,6 +112,13 @@
   }
 
   function handleStopChange(i: number, payload: { color: string; opacity: number }) {
+    // Picking any real color while in `none` promotes the gradient back to
+    // `solid` so the user doesn't have to flip the segment manually. Picking
+    // the literal `transparent` (the picker's "None" choice) leaves the type
+    // alone — that's still the no-fill state.
+    if (gradient?.type === 'none' && payload.color !== 'transparent') {
+      gradientSource.setType('solid');
+    }
     gradientSource.setStop(i, { color: payload.color, opacity: payload.opacity });
   }
 
@@ -219,6 +236,7 @@
   // can still see and edit their stops, then switch the type.
   let ribbonBg = $derived.by(() => {
     if (!gradient) return 'transparent';
+    if (gradient.type === 'none') return 'transparent';
     const stopColor = (s: GradientTokenStop): string => {
       const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
       const op = s.opacity ?? 100;
@@ -236,7 +254,10 @@
     return `linear-gradient(90deg, ${stopsCss})`;
   });
 
-  let isSolid = $derived(gradient?.type === 'solid');
+  // `none` and `solid` share the single-stop UI: passive ribbon, no handles,
+  // no add/remove. Only `linear` shows the multi-stop chrome.
+  let isFlat = $derived(gradient?.type === 'solid' || gradient?.type === 'none');
+  let isNone = $derived(gradient?.type === 'none');
 
   // Stop colors rendered into the diamonds: token refs become var(...).
   let stopSwatches = $derived((gradient?.stops ?? []).map((s) => {
@@ -252,15 +273,16 @@
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <div
         class="ribbon"
-        class:solid={isSolid}
+        class:solid={isFlat}
+        class:none={isNone}
         bind:this={barEl}
         style="background: {ribbonBg};"
-        onclick={isSolid ? undefined : onRibbonClick}
-        role={isSolid ? 'presentation' : 'button'}
+        onclick={isFlat ? undefined : onRibbonClick}
+        role={isFlat ? 'presentation' : 'button'}
         tabindex="-1"
-        aria-label={isSolid ? 'Solid color preview' : 'Click to add a gradient stop'}
+        aria-label={isNone ? 'No fill' : isFlat ? 'Solid color preview' : 'Click to add a gradient stop'}
       ></div>
-      {#if !isSolid}
+      {#if !isFlat}
         <div class="handles">
           {#each gradient.stops as stop, i (i)}
             <button
@@ -285,6 +307,13 @@
 
     <div class="controls-row">
       <div class="type-toggle" role="radiogroup">
+        {#if showNone}
+          <button
+            type="button"
+            class:active={gradient.type === 'none'}
+            onclick={() => { setType('none'); onNone?.(); }}
+          >None</button>
+        {/if}
         <button
           type="button"
           class:active={gradient.type === 'solid'}
@@ -302,7 +331,7 @@
         </div>
       {/if}
       <div class="spacer"></div>
-      {#if !isSolid}
+      {#if !isFlat}
         <button
           type="button"
           class="ghost-btn"
@@ -327,8 +356,8 @@
       {@const stop = gradient.stops[selected]}
       {@const stopMono = stop.monochrome !== false}
       <div class="stop-edit-row">
-        <span class="row-label">{isSolid ? 'Color' : `Stop ${selected + 1}`}</span>
-        {#if !isSolid}
+        <span class="row-label">{isFlat ? 'Color' : `Stop ${selected + 1}`}</span>
+        {#if !isFlat}
           <label class="pos-input">
             <input
               type="number"

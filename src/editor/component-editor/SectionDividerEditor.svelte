@@ -156,7 +156,7 @@
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import GradientEditor from '../ui/GradientEditor.svelte';
-  import { editorState, mutate, setComponentConfig } from '../core/store/editorStore';
+  import { editorState, mutate, setComponentAlias, setComponentConfig } from '../core/store/editorStore';
   import { componentGradientSource } from '../core/store/gradientSource';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   import { KNOWN_FAMILIES, swapTokenFamily } from '../core/palettes/familySwap';
@@ -286,6 +286,16 @@
     });
   }
 
+  // "None" on the background segmented control clears the container outright:
+  // the gradient flips to `type: 'none'` (handled inside GradientEditor) and
+  // we follow through here by clearing the border color too — a convenience
+  // so the user doesn't have to chase the residual outline. The user can
+  // re-set the border independently afterwards; changing border alone never
+  // bounces the background back to solid.
+  function clearContainerBorder(v: Variant) {
+    setComponentAlias(component, `--sectiondivider-${v}-border`, { kind: 'literal', value: 'transparent' });
+  }
+
   function hairlineOptions(v: Variant): { value: HairlinePosition; label: string }[] {
     const base: { value: HairlinePosition; label: string }[] = [
       { value: 'above-label', label: 'Above title' },
@@ -392,6 +402,8 @@
             source={gradientSources[v.key]}
             stopIdPrefix={`sectiondivider-${v.key}`}
             familyFilter={getColorFamily(v.key)}
+            showNone
+            onNone={() => clearContainerBorder(v.key)}
           />
         </div>
       {/snippet}

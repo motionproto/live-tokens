@@ -387,7 +387,10 @@
     --token-selector-w: 8rem;
     --columns: 1;
     display: grid;
-    grid-template-columns: repeat(var(--columns), max-content var(--token-selector-w) 1fr);
+    /* Label column tracks `--editor-label-col` when an ancestor sets one
+       (e.g. StateBlock's `.element-section`), so this grid lines up with a
+       sibling `.type-grid` whose `max-content` would otherwise differ. */
+    grid-template-columns: repeat(var(--columns), var(--editor-label-col, max-content) var(--token-selector-w) 1fr);
     column-gap: var(--ui-space-10);
     row-gap: var(--ui-space-6);
     align-items: center;

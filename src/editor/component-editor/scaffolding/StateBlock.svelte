@@ -297,6 +297,22 @@
     padding: 0 var(--ui-space-4) var(--ui-space-4);
   }
 
+  /* TypeEditor's `.type-grid` and TokenLayout's `.token-grid` are independent
+     grids stacked inside the same element-section. Each sizes its label
+     column from its own `max-content`, so when one grid has long labels
+     ("letter spacing") and the other has short ones ("padding") their
+     dropdowns land at different x positions. Both grids honour
+     `--editor-label-col` for their first column track; setting it here pins
+     the label column to a shared minimum so short labels pad out and the
+     dropdowns line up across the section. The `max-content` upper bound
+     still lets exceptionally long labels grow.
+     Cascades into the inner grids; @container narrow-width overrides in
+     TokenLayout (which redefine `grid-template-columns` wholesale) still
+     win when the panel is too tight to honour the wider track. */
+  .element-section {
+    --editor-label-col: minmax(7.5rem, max-content);
+  }
+
   .element-heading-row {
     display: flex;
     align-items: center;

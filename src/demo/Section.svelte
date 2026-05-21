@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
   import SectionDivider from '../system/components/SectionDivider.svelte';
 
   /** Section wrapper. `variant` picks a SectionDivider preset (lg/md/sm).
@@ -9,7 +10,7 @@
     description?: string;
     variant?: 'lg' | 'md' | 'sm';
     gap?: string;
-    children: () => unknown;
+    children: Snippet;
   }
 
   let {

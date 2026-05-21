@@ -169,9 +169,10 @@
     return null;
   }
 
-  let nameDuplicate = $derived(
-    nameParsed && nameParsed.length > 0 ? findExistingFamilyByName(nameParsed[0].name) : null,
-  );
+  let nameDuplicate = $derived.by(() => {
+    if (!nameParsed || nameParsed.length === 0) return null;
+    return findExistingFamilyByName(nameParsed[0].name);
+  });
 
   function addUrlSource() {
     const url = extractFontsUrl(pasteInput);
