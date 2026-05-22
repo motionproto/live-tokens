@@ -8,6 +8,7 @@
   interface Props {
     title: string;
     description?: string;
+    eyebrow?: string;
     variant?: 'lg' | 'md' | 'sm';
     gap?: string;
     children: Snippet;
@@ -16,6 +17,7 @@
   let {
     title,
     description,
+    eyebrow,
     variant = 'md',
     gap = 'var(--space-24)',
     children,
@@ -23,7 +25,7 @@
 </script>
 
 <section class="demo-section" style:gap>
-  <SectionDivider {title} {description} {variant} />
+  <SectionDivider {title} {description} {eyebrow} {variant} />
   {@render children()}
 </section>
 

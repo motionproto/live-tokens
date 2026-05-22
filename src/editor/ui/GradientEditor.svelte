@@ -1,7 +1,7 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
 
-  // Visual gradient editor: draggable stop diamonds on a live ribbon.
+    // Visual gradient editor: draggable stop diamonds on a live ribbon.
   // Bound to a GradientSource (theme via `variable`, or component via `source`).
   import { tick, onMount } from 'svelte';
   import { get } from 'svelte/store';

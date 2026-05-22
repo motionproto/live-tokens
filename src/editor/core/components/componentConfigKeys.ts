@@ -16,29 +16,12 @@
 export const KNOWN_COMPONENT_CONFIG_KEYS: ReadonlySet<string> = new Set([
   '--dialog-confirm-variant',
   '--dialog-cancel-variant',
-  // SectionDivider per-variant intrinsic properties — align / hairline /
-  // eyebrow visibility / description visibility per size variant. These are
-  // intent metadata the designer sets per-variant; the live divider in the
-  // editor preview passes them as runtime props.
-  '--sectiondivider-lg-align',
-  '--sectiondivider-md-align',
-  '--sectiondivider-sm-align',
-  '--sectiondivider-lg-hairline',
-  '--sectiondivider-md-hairline',
-  '--sectiondivider-sm-hairline',
-  '--sectiondivider-lg-show-eyebrow',
-  '--sectiondivider-md-show-eyebrow',
-  '--sectiondivider-sm-show-eyebrow',
-  '--sectiondivider-lg-show-description',
-  '--sectiondivider-md-show-description',
-  '--sectiondivider-sm-show-description',
-  '--sectiondivider-lg-show-hairline',
-  '--sectiondivider-md-show-hairline',
-  '--sectiondivider-sm-show-hairline',
+  // SectionDivider per-variant `color-family` is editor metadata that drives
+  // the family-swap rewrite on aliases. It is not a runtime CSS value, so it
+  // stays in the config bucket. The other intrinsics (align, hairline,
+  // eyebrow/description visibility, eyebrow text-transform) now flow through
+  // the alias bucket as cascading CSS vars — see the 2026-05-22 migration.
   '--sectiondivider-lg-color-family',
   '--sectiondivider-md-color-family',
   '--sectiondivider-sm-color-family',
-  '--sectiondivider-lg-eyebrow-uppercase',
-  '--sectiondivider-md-eyebrow-uppercase',
-  '--sectiondivider-sm-eyebrow-uppercase',
 ]);

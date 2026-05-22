@@ -177,49 +177,65 @@
   const SAMPLE_EYEBROW = 'Section Eyebrow';
   const SAMPLE_DESCRIPTION = 'This text is meant to provide additional context or meaning.';
 
-  // Intrinsic per-variant properties — persisted in the component config bucket.
-  // Read live from the editor state so the property-row controls reflect saves.
+  // Intrinsic per-variant properties live in the aliases bucket as literal
+  // CssVarRefs, so they cascade to `:root` via cssVarSync and reach every
+  // live consumer instance. `color-family` is editor metadata (drives the
+  // family-swap rewrite, not a runtime CSS value) and stays in the config
+  // bucket.
+  let aliases = $derived(($editorState.components[component]?.aliases ?? {}) as Record<string, import('../core/store/editorTypes').CssVarRef>);
   let cfg = $derived(($editorState.components[component]?.config ?? {}) as Record<string, unknown>);
 
+  function readLiteral(key: string): string | undefined {
+    const ref = aliases[key];
+    if (!ref || ref.kind !== 'literal') return undefined;
+    return ref.value;
+  }
+
   function getAlign(v: Variant): Align {
-    const raw = cfg[`--sectiondivider-${v}-align`];
-    return raw === 'start' ? 'start' : 'center';
+    return readLiteral(`--sectiondivider-${v}-align`) === 'start' ? 'start' : 'center';
   }
   function getColorFamily(v: Variant): string {
     const raw = cfg[`--sectiondivider-${v}-color-family`];
     if (typeof raw === 'string' && (KNOWN_FAMILIES as readonly string[]).includes(raw)) return raw;
     return variants.find((x) => x.key === v)!.family;
   }
-  function getHairlinePosition(v: Variant): HairlinePosition {
-    const raw = cfg[`--sectiondivider-${v}-hairline`];
-    // 'above-description' renders identically to 'below-label' (both place the
-    // hairline in the gap between title and description), so the dropdown only
-    // exposes one. Coerce legacy data here so the select stays selected.
+  /** Active hairline position OR `'none'` (= hidden). */
+  function getHairlineValue(v: Variant): HairlinePosition | 'none' {
+    const raw = readLiteral(`--sectiondivider-${v}-hairline`);
+    if (raw === undefined || raw === 'none') return 'none';
+    // 'above-description' renders identically to 'below-label' — coerce on read
+    // so the dropdown's option list (which omits 'above-description') stays valid.
     if (raw === 'above-description') return 'below-label';
     const positions: HairlinePosition[] = ['above-label', 'through-label', 'below-label', 'through-description', 'below-description'];
-    return (positions as string[]).includes(raw as string) ? (raw as HairlinePosition) : 'above-label';
+    return (positions as string[]).includes(raw) ? (raw as HairlinePosition) : 'none';
   }
   function getShowHairline(v: Variant): boolean {
-    const raw = cfg[`--sectiondivider-${v}-show-hairline`];
-    // Migrate legacy `hairline = 'off'` data: if explicit show key is unset,
-    // infer from whether the legacy choice was a real position.
-    if (raw === undefined) {
-      const h = cfg[`--sectiondivider-${v}-hairline`];
-      return typeof h === 'string' && h !== 'off' && h !== '';
-    }
-    return raw === '1';
+    return getHairlineValue(v) !== 'none';
+  }
+  /** Position bound to the position select. Falls back to 'above-label' when
+   *  hairline is hidden, so the dropdown displays a sensible value while
+   *  toggled off. */
+  function getHairlinePosition(v: Variant): HairlinePosition {
+    const val = getHairlineValue(v);
+    return val === 'none' ? 'above-label' : val;
   }
   function getShowEyebrow(v: Variant): boolean {
-    return cfg[`--sectiondivider-${v}-show-eyebrow`] === '1';
+    return readLiteral(`--sectiondivider-${v}-eyebrow-display`) === 'block';
   }
   function getEyebrowUppercase(v: Variant): boolean {
-    return cfg[`--sectiondivider-${v}-eyebrow-uppercase`] === '1';
+    return readLiteral(`--sectiondivider-${v}-eyebrow-text-transform`) === 'uppercase';
   }
   function getShowDescription(v: Variant): boolean {
-    const raw = cfg[`--sectiondivider-${v}-show-description`];
-    // Default to true if unset, '' or '1' otherwise (legacy data may carry no key at all).
+    const raw = readLiteral(`--sectiondivider-${v}-description-display`);
+    // Default: shown (flex) when unset. Matches the :root default and the
+    // legacy `getShowDescription` semantics for files that never set the key.
     if (raw === undefined) return true;
-    return raw === '1';
+    return raw === 'flex';
+  }
+  /** Write an intrinsic to the aliases bucket as a literal so it cascades
+   *  through cssVarSync to `:root` on both the editor iframe and host page. */
+  function setIntrinsic(v: Variant, prop: string, value: string) {
+    setComponentAlias(component, `--sectiondivider-${v}-${prop}`, { kind: 'literal', value });
   }
   function setCfg(v: Variant, prop: string, value: string) {
     setComponentConfig(component, `--sectiondivider-${v}-${prop}`, value);
@@ -303,39 +319,27 @@
     ];
   }
 
-  function hairlineProp(v: Variant): { position: HairlinePosition } | undefined {
-    if (!getShowHairline(v)) return undefined;
-    return { position: getHairlinePosition(v) };
-  }
-
-  // If a variant's description gets turned off while a description-targeted
-  // hairline was selected, snap the position back to a title-targeted choice
-  // so the dropdown's options stay consistent with the rendered preview.
-  $effect(() => {
-    for (const v of variants) {
-      const pos = getHairlinePosition(v.key);
-      if (!getShowDescription(v.key) && pos.endsWith('-description')) {
-        setCfg(v.key, 'hairline', 'above-label');
-      }
-    }
-  });
-
+  // Hairline show + position are now one var. Toggle off → 'none'; toggle on
+  // → restore the position currently displayed in the dropdown (or
+  // 'above-label' default). Description-targeted hairlines are suppressed by
+  // a container style query when description-display is 'none', so no
+  // editor-side snap is needed at runtime.
   function elementTogglesFor(v: Variant) {
     return {
       description: {
         checked: getShowDescription(v),
         label: 'Show description',
-        onchange: (c: boolean) => setCfg(v, 'show-description', c ? '1' : ''),
+        onchange: (c: boolean) => setIntrinsic(v, 'description-display', c ? 'flex' : 'none'),
       },
       eyebrow: {
         checked: getShowEyebrow(v),
         label: 'Show eyebrow',
-        onchange: (c: boolean) => setCfg(v, 'show-eyebrow', c ? '1' : ''),
+        onchange: (c: boolean) => setIntrinsic(v, 'eyebrow-display', c ? 'block' : 'none'),
       },
       hairline: {
         checked: getShowHairline(v),
         label: 'Show',
-        onchange: (c: boolean) => setCfg(v, 'show-hairline', c ? '1' : ''),
+        onchange: (c: boolean) => setIntrinsic(v, 'hairline', c ? getHairlinePosition(v) : 'none'),
       },
     };
   }
@@ -363,11 +367,8 @@
         <SectionDivider
           title={SAMPLE_TITLE[v.key]}
           variant={v.key}
-          description={getShowDescription(v.key) ? SAMPLE_DESCRIPTION : undefined}
-          eyebrow={getShowEyebrow(v.key) ? SAMPLE_EYEBROW : undefined}
-          align={getAlign(v.key)}
-          hairline={hairlineProp(v.key)}
-          eyebrowUppercase={getEyebrowUppercase(v.key)}
+          description={SAMPLE_DESCRIPTION}
+          eyebrow={SAMPLE_EYEBROW}
         />
       </div>
       {#snippet compositeControls(_stateName)}
@@ -388,7 +389,7 @@
           <select
             class="sd-intrinsic-select"
             value={getAlign(v.key)}
-            onchange={(e) => setCfg(v.key, 'align', (e.currentTarget as HTMLSelectElement).value)}
+            onchange={(e) => setIntrinsic(v.key, 'align', (e.currentTarget as HTMLSelectElement).value)}
           >
             <option value="center">Center</option>
             <option value="start">Start</option>
@@ -418,7 +419,7 @@
             <input
               type="checkbox"
               checked={getEyebrowUppercase(v.key)}
-              onchange={(e) => setCfg(v.key, 'eyebrow-uppercase', (e.currentTarget as HTMLInputElement).checked ? '1' : '')}
+              onchange={(e) => setIntrinsic(v.key, 'eyebrow-text-transform', (e.currentTarget as HTMLInputElement).checked ? 'uppercase' : 'none')}
             />
             <span>All caps</span>
           </label>
@@ -429,7 +430,7 @@
             <select
               class="sd-intrinsic-select"
               value={getHairlinePosition(v.key)}
-              onchange={(e) => setCfg(v.key, 'hairline', (e.currentTarget as HTMLSelectElement).value)}
+              onchange={(e) => setIntrinsic(v.key, 'hairline', (e.currentTarget as HTMLSelectElement).value)}
             >
               {#each hairlineOptions(v.key) as opt (opt.value)}
                 <option value={opt.value}>{opt.label}</option>

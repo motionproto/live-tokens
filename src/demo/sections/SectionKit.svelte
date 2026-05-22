@@ -5,6 +5,7 @@
 
 <Section
   title="The Kit"
+  eyebrow="What's inside"
   description="A basic set of design system components connected to Token library ."
   gap="var(--space-8)"
 >

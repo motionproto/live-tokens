@@ -4,35 +4,17 @@
   import { onMount, tick } from 'svelte';
 
   /** Size variant. Each variant owns everything that defines its look:
-   *  typography, geometry, AND colors / background. No separate color axis. */
+   *  typography, geometry, colors AND the intrinsic display properties
+   *  (alignment, eyebrow visibility, description visibility, hairline
+   *  position). Every intrinsic flows through `:root` CSS vars so a designer
+   *  edit cascades to every consumer instance without per-call wiring. */
   type Variant = 'lg' | 'md' | 'sm';
-  type Align = 'start' | 'center';
-  type HairlinePosition =
-    | 'above-label'
-    | 'through-label'
-    | 'below-label'
-    | 'above-description'
-    | 'through-description'
-    | 'below-description';
-
-  interface HairlineConfig {
-    position: HairlinePosition;
-    /** CSS length (e.g. `2px`). Overrides the size variant's hairline thickness. */
-    thickness?: string;
-    /** Optional CSS gradient. Overrides the variant's hairline color. */
-    gradient?: string;
-  }
 
   interface Props {
     title: string;
     description?: string | undefined;
     eyebrow?: string | undefined;
     variant?: Variant;
-    align?: Align;
-    hairline?: HairlineConfig | undefined;
-    /** Force the eyebrow to uppercase. Off by default so authored case is
-     *  honored; the editor exposes a per-variant toggle that flips this on. */
-    eyebrowUppercase?: boolean;
   }
 
   let {
@@ -40,9 +22,6 @@
     description = undefined,
     eyebrow = undefined,
     variant = 'md',
-    align = 'center',
-    hairline = undefined,
-    eyebrowUppercase = false,
   }: Props = $props();
 
   let svgEl: SVGSVGElement | undefined = $state();
@@ -90,46 +69,13 @@
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
     return () => obs.disconnect();
   });
-
-  let activeHairlinePos = $derived.by((): HairlinePosition | null => {
-    if (!hairline) return null;
-    if (description === undefined && hairline.position.endsWith('-description')) return null;
-    return hairline.position;
-  });
-
-  let aboveLabel = $derived(activeHairlinePos === 'above-label');
-  let throughLabel = $derived(activeHairlinePos === 'through-label');
-  let belowLabel = $derived(activeHairlinePos === 'below-label');
-  let aboveDesc = $derived(activeHairlinePos === 'above-description');
-  let throughDesc = $derived(activeHairlinePos === 'through-description');
-  let belowDesc = $derived(activeHairlinePos === 'below-description');
-
-  function hairlineStyle(h: HairlineConfig | undefined): string {
-    if (!h) return '';
-    const parts: string[] = [];
-    if (h.thickness) parts.push(`--_sd-hairline-thickness: ${h.thickness}`);
-    if (h.gradient) parts.push(`--_sd-hairline-background: ${h.gradient}`);
-    return parts.join('; ');
-  }
 </script>
 
-<div
-  class="section-divider variant-{variant} align-{align}"
-  class:has-eyebrow={!!eyebrow}
-  class:has-description={description !== undefined}
-  class:has-hairline={!!activeHairlinePos}
-  style={hairlineStyle(hairline)}
->
-  {#if eyebrow}
-    <span class="divider-eyebrow" class:uppercase={eyebrowUppercase}>{eyebrow}</span>
-  {/if}
-  {#if aboveLabel}
-    <span class="sd-hairline sd-hairline--row" aria-hidden="true"></span>
-  {/if}
-  <div class="title-row" class:has-line={throughLabel}>
-    {#if throughLabel}
-      <span class="sd-hairline sd-hairline--side" aria-hidden="true"></span>
-    {/if}
+<div class="section-divider variant-{variant}">
+  <span class="divider-eyebrow">{eyebrow ?? ''}</span>
+  <span class="sd-hairline sd-hairline--row sd-hairline-above-label" aria-hidden="true"></span>
+  <div class="title-row">
+    <span class="sd-hairline sd-hairline--side sd-hairline-through-label" aria-hidden="true"></span>
     <span class="title-inline">
       <svg
         bind:this={svgEl}
@@ -157,38 +103,25 @@
         >{title}</text>
       </svg>
     </span>
-    {#if throughLabel}
-      <span class="sd-hairline sd-hairline--side" aria-hidden="true"></span>
-    {/if}
+    <span class="sd-hairline sd-hairline--side sd-hairline-through-label" aria-hidden="true"></span>
   </div>
-  {#if belowLabel}
-    <span class="sd-hairline sd-hairline--row" aria-hidden="true"></span>
-  {/if}
-  {#if description !== undefined}
-    {#if aboveDesc}
-      <span class="sd-hairline sd-hairline--row" aria-hidden="true"></span>
-    {/if}
-    <div class="description-row" class:has-line={throughDesc}>
-      {#if throughDesc}
-        <span class="sd-hairline sd-hairline--side" aria-hidden="true"></span>
-      {/if}
-      <span class="description-inline">
-        <p class="divider-description">{description}</p>
-      </span>
-      {#if throughDesc}
-        <span class="sd-hairline sd-hairline--side" aria-hidden="true"></span>
-      {/if}
-    </div>
-    {#if belowDesc}
-      <span class="sd-hairline sd-hairline--row" aria-hidden="true"></span>
-    {/if}
-  {/if}
+  <span class="sd-hairline sd-hairline--row sd-hairline-below-label" aria-hidden="true"></span>
+  <span class="sd-hairline sd-hairline--row sd-hairline-above-description" aria-hidden="true"></span>
+  <div class="description-row">
+    <span class="sd-hairline sd-hairline--side sd-hairline-through-description" aria-hidden="true"></span>
+    <span class="description-inline">
+      <p class="divider-description">{description ?? ''}</p>
+    </span>
+    <span class="sd-hairline sd-hairline--side sd-hairline-through-description" aria-hidden="true"></span>
+  </div>
+  <span class="sd-hairline sd-hairline--row sd-hairline-below-description" aria-hidden="true"></span>
 </div>
 
 <style>
-  /* Each size variant owns its full token set: typography, geometry, AND
-     colors (background + text + border + hairline + title-outline). There is
-     no separate color axis — variants are full presets the designer composes
+  /* Each size variant owns its full token set: typography, geometry, colors
+     AND intrinsic display properties (alignment, eyebrow/description
+     visibility, hairline position, eyebrow text-transform). There is no
+     separate color axis — variants are full presets the designer composes
      in the editor. The instance picks one variant; that's it. */
   :global(:root) {
     /* Large */
@@ -283,9 +216,34 @@
     --sectiondivider-sm-border: var(--color-transparent);
     --sectiondivider-sm-title-outline-color: var(--surface-canvas-lowest);
     --sectiondivider-sm-hairline-color: var(--border-canvas-medium);
+
+    /* Intrinsic defaults. These keys cascade to `:root` via the editor's
+       alias bucket; un-edited variants fall back to these. The defaults
+       match the legacy "config bucket" semantics: center alignment, hidden
+       eyebrow, visible description, hidden hairline, normal-case eyebrow. */
+    --sectiondivider-lg-align: center;
+    --sectiondivider-md-align: center;
+    --sectiondivider-sm-align: center;
+    --sectiondivider-lg-eyebrow-display: none;
+    --sectiondivider-md-eyebrow-display: none;
+    --sectiondivider-sm-eyebrow-display: none;
+    --sectiondivider-lg-description-display: flex;
+    --sectiondivider-md-description-display: flex;
+    --sectiondivider-sm-description-display: flex;
+    --sectiondivider-lg-hairline: none;
+    --sectiondivider-md-hairline: none;
+    --sectiondivider-sm-hairline: none;
+    --sectiondivider-lg-eyebrow-text-transform: none;
+    --sectiondivider-md-eyebrow-text-transform: none;
+    --sectiondivider-sm-eyebrow-text-transform: none;
   }
 
   .section-divider {
+    /* `container-name` lets the per-variant intrinsic vars below drive
+       style-query rules that reveal exactly one hairline and react to the
+       align/description-display values. No `container-type` is set so the
+       column layout stays in normal flow — style queries don't require it. */
+    container-name: sd;
     position: relative;
     margin: var(--space-24) 0;
     padding:
@@ -299,12 +257,13 @@
     background: var(--_divider-bg);
     display: flex;
     flex-direction: column;
+    align-items: var(--_divider-align);
+    text-align: var(--_divider-align);
+    --_divider-justify: var(--_divider-align);
   }
 
-  .section-divider.align-start { align-items: flex-start; text-align: start; --_divider-justify: flex-start; }
-  .section-divider.align-center { align-items: center; text-align: center; --_divider-justify: center; }
-
-  /* Variant pipes — one full token set per variant. */
+  /* Variant pipes — one full token set per variant, including the intrinsics
+     that now cascade through CSS vars instead of runtime props. */
   .variant-lg {
     --_divider-title-font-family: var(--sectiondivider-lg-title-font-family);
     --_divider-title-font-weight: var(--sectiondivider-lg-title-font-weight);
@@ -335,6 +294,11 @@
     --_divider-border: var(--sectiondivider-lg-border);
     --_divider-title-outline-color: var(--sectiondivider-lg-title-outline-color);
     --_divider-hairline-color: var(--sectiondivider-lg-hairline-color);
+    --_divider-align: var(--sectiondivider-lg-align);
+    --_divider-eyebrow-display: var(--sectiondivider-lg-eyebrow-display);
+    --_divider-description-display: var(--sectiondivider-lg-description-display);
+    --_divider-hairline: var(--sectiondivider-lg-hairline);
+    --_divider-eyebrow-text-transform: var(--sectiondivider-lg-eyebrow-text-transform);
   }
 
   .variant-md {
@@ -367,6 +331,11 @@
     --_divider-border: var(--sectiondivider-md-border);
     --_divider-title-outline-color: var(--sectiondivider-md-title-outline-color);
     --_divider-hairline-color: var(--sectiondivider-md-hairline-color);
+    --_divider-align: var(--sectiondivider-md-align);
+    --_divider-eyebrow-display: var(--sectiondivider-md-eyebrow-display);
+    --_divider-description-display: var(--sectiondivider-md-description-display);
+    --_divider-hairline: var(--sectiondivider-md-hairline);
+    --_divider-eyebrow-text-transform: var(--sectiondivider-md-eyebrow-text-transform);
   }
 
   .variant-sm {
@@ -399,6 +368,11 @@
     --_divider-border: var(--sectiondivider-sm-border);
     --_divider-title-outline-color: var(--sectiondivider-sm-title-outline-color);
     --_divider-hairline-color: var(--sectiondivider-sm-hairline-color);
+    --_divider-align: var(--sectiondivider-sm-align);
+    --_divider-eyebrow-display: var(--sectiondivider-sm-eyebrow-display);
+    --_divider-description-display: var(--sectiondivider-sm-description-display);
+    --_divider-hairline: var(--sectiondivider-sm-hairline);
+    --_divider-eyebrow-text-transform: var(--sectiondivider-sm-eyebrow-text-transform);
   }
 
   /* Per-element padding. Each type element (title / description / eyebrow) owns
@@ -498,20 +472,22 @@
     display: inline-flex;
   }
 
+  /* Eyebrow visibility + uppercase flow from per-variant CSS vars. */
   .divider-eyebrow {
-    display: block;
+    display: var(--_divider-eyebrow-display);
     font-family: var(--_divider-eyebrow-font-family);
     font-weight: var(--_divider-eyebrow-font-weight);
     font-size: var(--_divider-eyebrow-font-size);
     letter-spacing: var(--_divider-eyebrow-letter-spacing);
     color: var(--_divider-eyebrow);
-  }
-  .divider-eyebrow.uppercase {
-    text-transform: uppercase;
+    text-transform: var(--_divider-eyebrow-text-transform);
   }
 
+  /* Description visibility from the per-variant `description-display` var.
+     The row keeps its flex layout when shown; `none` removes it from the
+     flow entirely. */
   .description-row {
-    display: flex;
+    display: var(--_divider-description-display);
     width: 100%;
     justify-content: var(--_divider-justify);
     align-items: center;
@@ -530,10 +506,12 @@
     font-style: italic;
   }
 
+  /* Hairlines: all six render unconditionally; container style queries
+     reveal exactly one per the variant's `--_divider-hairline` value. */
   .sd-hairline {
-    display: block;
-    background: var(--_sd-hairline-background, var(--_divider-hairline-color));
-    height: var(--_sd-hairline-thickness, var(--_divider-hairline-thickness));
+    display: none;
+    background: var(--_divider-hairline-color);
+    height: var(--_divider-hairline-thickness);
   }
   .sd-hairline--row {
     width: 100%;
@@ -542,11 +520,41 @@
     flex: 1;
     min-width: 0;
   }
-  /* In start alignment the text hugs the left edge, so the leading segment
-     would have zero width anyway — hide it and let the trailing segment
-     stretch to the right edge. */
-  .section-divider.align-start .sd-hairline--side:first-child {
-    display: none;
+
+  @container sd style(--_divider-hairline: above-label) {
+    .sd-hairline-above-label { display: block; }
+  }
+  @container sd style(--_divider-hairline: through-label) {
+    .sd-hairline-through-label { display: block; }
+  }
+  @container sd style(--_divider-hairline: below-label) {
+    .sd-hairline-below-label { display: block; }
+  }
+  @container sd style(--_divider-hairline: above-description) {
+    .sd-hairline-above-description { display: block; }
+  }
+  @container sd style(--_divider-hairline: through-description) {
+    .sd-hairline-through-description { display: block; }
+  }
+  @container sd style(--_divider-hairline: below-description) {
+    .sd-hairline-below-description { display: block; }
   }
 
+  /* When description is hidden, any description-targeted hairline is hidden
+     too — the gap follows the description. No editor-side snap logic needed. */
+  @container sd style(--_divider-description-display: none) {
+    .sd-hairline-above-description,
+    .sd-hairline-through-description,
+    .sd-hairline-below-description { display: none; }
+  }
+
+  /* In start alignment the text hugs the left edge, so the leading side
+     hairline would have zero width — hide it and let the trailing one
+     stretch to the right edge. Container style query rather than a class. */
+  @container sd style(--_divider-align: start) {
+    .title-row .sd-hairline--side:first-child,
+    .description-row .sd-hairline--side:first-child {
+      display: none;
+    }
+  }
 </style>

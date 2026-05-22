@@ -222,13 +222,29 @@ export {
 function migrateComponentAliases(
   component: string,
   aliasesIn: Record<string, AliasDiskValue>,
+  rawConfig: Record<string, unknown> | undefined,
   fileVersion: number,
-): Record<string, AliasDiskValue> {
+): { aliases: Record<string, AliasDiskValue>; config: Record<string, unknown> } {
   const stringPart: Record<string, string> = {};
   const objectPart: Record<string, AliasDiskValue> = {};
   for (const [k, v] of Object.entries(aliasesIn)) {
     if (typeof v === 'string') stringPart[k] = v;
     else objectPart[k] = v;
+  }
+  // String-valued config entries join the migration input so a migration can
+  // rename or relocate them. After migration the bag flows through
+  // `splitAliasesAndConfig` which routes KNOWN keys back to config and the
+  // rest to aliases — this is what lets a migration *move* a key from the
+  // config bucket to the aliases bucket by also removing it from KNOWN.
+  // Config wins over an aliases-bucket collision on the same key: the legacy
+  // single-bucket → split-bucket move preserved "explicit config field beats
+  // legacy alias-bucketed value", and that contract still holds.
+  // Non-string config values (rare; reserved for future structured payloads)
+  // pass through untouched.
+  const configOut: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rawConfig ?? {})) {
+    if (typeof v === 'string') stringPart[k] = v;
+    else configOut[k] = v;
   }
   if (component === 'sectiondivider') {
     synthesizeSectionDividerGradients(stringPart, objectPart);
@@ -237,7 +253,10 @@ function migrateComponentAliases(
   const migratedObject = component === 'sectiondivider'
     ? renameSectionDividerObjectSlots(objectPart)
     : objectPart;
-  return { ...migratedString, ...migratedObject };
+  return {
+    aliases: { ...migratedString, ...migratedObject },
+    config: configOut,
+  };
 }
 
 /**
@@ -428,8 +447,8 @@ export function loadComponentActive(
   config?: Record<string, unknown>,
   schemaVersion: number = 0,
 ): void {
-  const migrated = migrateComponentAliases(component, aliases, schemaVersion);
-  const split = splitAliasesAndConfig(migrated, config);
+  const migrated = migrateComponentAliases(component, aliases, config, schemaVersion);
+  const split = splitAliasesAndConfig(migrated.aliases, migrated.config);
   mutate(`load ${component}/${activeFile}`, (s) => {
     s.components[component] = { activeFile, aliases: { ...split.aliases }, config: { ...split.config } };
   });
@@ -457,8 +476,8 @@ export function seedComponentsFromApi(
   store.update((s) => {
     s.components = {};
     for (const [comp, cfg] of Object.entries(configs)) {
-      const migrated = migrateComponentAliases(comp, cfg.aliases, cfg.schemaVersion ?? 0);
-      const split = splitAliasesAndConfig(migrated, cfg.config);
+      const migrated = migrateComponentAliases(comp, cfg.aliases, cfg.config, cfg.schemaVersion ?? 0);
+      const split = splitAliasesAndConfig(migrated.aliases, migrated.config);
       s.components[comp] = { activeFile: cfg.activeFile, aliases: { ...split.aliases }, config: { ...split.config } };
       setSavedComponentBaseline(comp, componentBaseline(split));
     }
