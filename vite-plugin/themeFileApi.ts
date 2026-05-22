@@ -524,8 +524,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   type AliasDiskGradient = {
     kind: 'gradient';
     value: {
-      type: 'linear' | 'radial';
+      type: 'linear' | 'radial' | 'solid' | 'none';
       angle: number;
+      radius?: number;
+      centerX?: number;
+      aspectX?: number;
+      aspectY?: number;
       stops: { position: number; color: string; opacity?: number }[];
     };
   };
