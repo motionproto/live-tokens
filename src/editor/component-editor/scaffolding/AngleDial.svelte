@@ -94,7 +94,7 @@
     <div class="indicator" style="transform: {indicatorTransform}"></div>
     <div class="hub"></div>
   </div>
-  <div class="num-row">
+  <div class="num-row" style={orientation === 'vertical' ? `width: ${size}px;` : ''}>
     <input
       class="num"
       type="number"
@@ -103,7 +103,6 @@
       step="1"
       value={value}
       onchange={onInputChange}
-      style={orientation === 'vertical' ? `width: ${size}px;` : ''}
     />
     <span class="suffix">°</span>
   </div>
@@ -129,6 +128,26 @@
     display: inline-flex;
     align-items: center;
     gap: var(--ui-space-8);
+  }
+
+  /* Vertical mode: lock the row to the dial's width and overlay the degree
+     mark inside the input's right padding so the input fills the column
+     instead of the row growing past the dial. */
+  .angle-dial-row.vertical .num-row {
+    position: relative;
+    display: block;
+  }
+  .angle-dial-row.vertical .num {
+    width: 100%;
+    box-sizing: border-box;
+    padding-right: 1.25rem;
+  }
+  .angle-dial-row.vertical .suffix {
+    position: absolute;
+    right: var(--ui-space-6);
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
   }
 
   .dial-label {

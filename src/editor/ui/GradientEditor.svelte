@@ -1,16 +1,8 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
 
-  /**
-   * Visual gradient editor. Stops are draggable diamond handles below a live
-   * ribbon; only the selected stop exposes its position + color controls.
-   * Stops can be added/removed with a minimum of two.
-   *
-   * Backing store is supplied by a `GradientSource` adapter — defaults to the
-   * theme-level gradient library when only `variable` is provided, so the
-   * existing GradientsSection callsite keeps working. Pass `source` when
-   * editing a component-owned gradient (e.g. SectionDivider variant slot).
-   */
+  // Visual gradient editor: draggable stop diamonds on a live ribbon.
+  // Bound to a GradientSource (theme via `variable`, or component via `source`).
   import { tick, onMount } from 'svelte';
   import { get } from 'svelte/store';
   import type { GradientType, GradientTokenStop } from '../core/store/editorTypes';
@@ -30,27 +22,17 @@
   interface Props {
     /** Theme-gradient mode: variable name (e.g. `--gradient-1`). */
     variable?: string;
-    /** Component-gradient mode: pass a source adapter directly. Takes
-     *  precedence over `variable` when both are provided. */
+    /** Component-gradient mode: source adapter. Wins over `variable`. */
     source?: GradientSource;
-    /** Optional section header rendered above the ribbon, e.g. "Background".
-     *  When set, the editor lays out as a 2-column grid so this label and
-     *  the radial-only "Gradient shape" label sit at the same baseline. */
+    /** Header label above the ribbon; turns the editor into a 2-col grid. */
     sectionLabel?: string;
-    /** Stable id for per-stop GradientStopPicker scratch vars. Defaults to
-     *  `variable` when in theme mode. */
+    /** Stable id for per-stop picker scratch vars. */
     stopIdPrefix?: string;
-    /** When set, the stop color picker greys out tokens outside this family
-     *  prefix (e.g. `surface-accent`). Already-set out-of-family stops still
-     *  render as the chosen value — the filter only scopes new picks. */
+    /** Greys out tokens outside this family prefix in the stop picker. */
     familyFilter?: string | null;
-    /** Show the "None" segment alongside Solid / Linear. Use when the editor
-     *  is driving a container background that the user should be able to clear
-     *  outright rather than dialing into a transparent solid. */
+    /** Show the "None" segment so the user can clear the fill outright. */
     showNone?: boolean;
-    /** Called when the user picks "None". Lets the parent zero out any
-     *  ancillary tokens that should follow the cleared background (e.g.
-     *  border color); the editor itself only flips the gradient type. */
+    /** Called when the user picks "None" so the parent can zero ancillary tokens. */
     onNone?: () => void;
     onsave?: () => void;
     oncancel?: () => void;
@@ -68,19 +50,15 @@
     oncancel,
   }: Props = $props();
 
-  /** Resolved source — `source` prop wins; otherwise build a theme source.
-   *  `variable` MUST be provided when `source` is absent. Captured once at
-   *  mount: GradientEditor is keyed to one source for its whole lifetime,
-   *  callers remount when the target gradient changes (which is the typical
-   *  expand/collapse flow), so initial-value capture is the intended shape. */
+  // Captured once: callers remount when the target gradient changes.
   // svelte-ignore state_referenced_locally
   const gradientSource: GradientSource = source ?? themeGradientSource(variable!);
-  /** Local const so Svelte 5's `$<store>` auto-subscription picks it up. */
+  // Local const so Svelte 5's `$<store>` auto-subscription works.
   const gradientSourceCurrent = gradientSource.current;
   // svelte-ignore state_referenced_locally
   const stopKeyPrefix: string = stopIdPrefix ?? variable ?? 'gradient-edit';
 
-  /** Deep snapshot at editor open, used to restore on Cancel. */
+  // Snapshot at open, restored on Cancel.
   let snapshot: GradientSourceSnapshot | null = null;
   onMount(() => {
     snapshot = snapshotGradient(gradientSource);
@@ -124,20 +102,14 @@
   }
 
   function handleStopChange(i: number, payload: { color: string; opacity: number }) {
-    // Picking any real color while in `none` promotes the gradient back to
-    // `solid` so the user doesn't have to flip the segment manually. Picking
-    // the literal `transparent` (the picker's "None" choice) leaves the type
-    // alone — that's still the no-fill state.
+    // Picking a real color while `none` promotes to `solid`; `transparent` keeps `none`.
     if (gradient?.type === 'none' && payload.color !== 'transparent') {
       gradientSource.setType('solid');
     }
     gradientSource.setStop(i, { color: payload.color, opacity: payload.opacity });
   }
 
-  /** Per-stop Monochrome toggle. On → snap the stop's color into the active
-   *  family (uses `snapTokenToFamily`, no-op when the slug has no family
-   *  marker). Off → mark the stop as an off-palette override; color stays put
-   *  and future family swaps skip it. */
+  // Mono on: snap to family. Mono off: mark off-palette so family swaps skip it.
   function handleMonoToggle(i: number, mono: boolean) {
     if (mono && familyFilter) {
       const stop = gradient?.stops[i];
@@ -150,18 +122,13 @@
     gradientSource.setStop(i, { monochrome: mono });
   }
 
-  /** Display label for the stop's current value. Mirrors the picker's meta
-   *  format (`category-family-step` with optional opacity suffix) so the row
-   *  reads consistently with other property rows. */
   function stopValueLabel(stop: GradientTokenStop): string {
     const op = stop.opacity ?? 100;
     const base = stop.color.startsWith('--') ? stop.color.slice(2) : stop.color;
     return op < 100 ? `${base} (${Math.round(op)}%)` : base;
   }
 
-  /** Insert a stop at the given percentage, inheriting color/opacity from the
-   *  given source stop. Selects the newly inserted stop once the store sort
-   *  settles. */
+  // Inserts at pct inheriting from source stop, then selects after the sort settles.
   async function insertStopAt(pct: number, sourceStop: GradientTokenStop) {
     const clamped = Math.max(0, Math.min(100, Math.round(pct * 10) / 10));
     gradientSource.addStop({
@@ -180,8 +147,7 @@
   function addStop() {
     if (!gradient) return;
     const stops = gradient.stops;
-    // Insert after the currently-selected stop, midway to its right neighbour
-    // (or to 100% if it's the last stop).
+    // Midway to the right neighbour, or to 100% if last.
     const anchor = stops[selected] ?? stops[stops.length - 1];
     const next = stops[selected + 1];
     const newPos = next
@@ -190,17 +156,14 @@
     insertStopAt(newPos, anchor);
   }
 
-  /** Click on the ribbon body inserts a stop at that position, picking up the
-   *  color/opacity of the closest existing stop so the new handle starts from
-   *  a sensible color rather than a default. */
+  // Inserts a stop at click position, inheriting from the nearest existing stop.
   function onRibbonClick(e: MouseEvent) {
     if (!gradient || e.button !== 0) return;
     const rect = barEl!.getBoundingClientRect();
     const x = e.clientX - rect.left;
     let pct: number;
     if (gradient.type === 'radial') {
-      // Linked pair: clicks on either side map to the same radial distance
-      // from center via abs(). A one-shot click doesn't need side tracking.
+      // Radial: both halves map to the same distance from center.
       const half = rect.width / 2;
       pct = (Math.abs(x - half) / half) * 100;
     } else {
@@ -219,14 +182,10 @@
     if (selected > 0) selected -= 1;
   }
 
-  // ── Ribbon handle drag ─────────────────────────────────────────────────
+  // Ribbon handle drag
   let barEl: HTMLDivElement | undefined = $state();
   let dragIndex: number | null = $state(null);
-  /** Which side of the radial ribbon the drag originated on. Lets us
-   *  translate pointer x → stop position symmetrically: dragging the left
-   *  handle right toward center decreases position, dragging the right
-   *  handle left toward center also decreases position. Past-center drags
-   *  clamp at 0 (via setPosition) instead of wrapping to the other side. */
+  // Drag origin side on radial ribbon: lets pointer x map symmetrically to stop position.
   let dragSide: 'left' | 'right' | null = $state(null);
 
   function pctFromEvent(e: PointerEvent): number {
@@ -259,16 +218,8 @@
     dragSide = null;
   }
 
-  // Live preview gradient — render the structured value here so the editor
-  // renders correctly even when bound to a component-owned slot whose CSS var
-  // hasn't been pushed to :root yet (the editor's renderer does the push, but
-  // $derived runs in the same tick so we synthesize the ribbon background
-  // from the snapshot for stability).
-  //
-  // Radial: ribbon is a symmetric linear-gradient — each stop emits two
-  // entries (50 ± position/2). The right half is the editor, the left half
-  // is a read-only mirror so the user can see what the radial preview's
-  // horizontal slice looks like aligned under the editor strip.
+  // Synthesise ribbon background from the snapshot so it renders before the
+  // CSS var has been pushed to :root. Radial mirrors stops across 50%.
   function stopColorCss(s: GradientTokenStop): string {
     const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
     const op = s.opacity ?? 100;
@@ -292,26 +243,20 @@
     return `linear-gradient(90deg, ${stopsCss})`;
   });
 
-  // `none` and `solid` share the single-stop UI: passive ribbon, no handles,
-  // no add/remove. `linear` and `radial` both show the multi-stop chrome;
-  // `radial` adds the circle preview + mirrored ribbon layout.
+  // Flat (solid/none) = single-stop passive UI. Linear/radial show full chrome.
   let isFlat = $derived(gradient?.type === 'solid' || gradient?.type === 'none');
   let isNone = $derived(gradient?.type === 'none');
   let isRadial = $derived(gradient?.type === 'radial');
   let isLinear = $derived(gradient?.type === 'linear');
-  // Two-column layout when the right column has a payload: radial shape pad
-  // OR linear angle dial. Solid/none stay single-column.
+  // Right column carries the radial pad or angle dial.
   let hasAside = $derived(isRadial || isLinear);
 
-  // Stop colors rendered into the diamonds: token refs become var(...).
   let stopSwatches = $derived((gradient?.stops ?? []).map((s) => {
     const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
     const op = s.opacity ?? 100;
     return op >= 100 ? base : `color-mix(in srgb, ${base} ${Math.round(op)}%, transparent)`;
   }));
 
-  /** Segmented-control options. `None` is conditional, so the array is
-   *  rebuilt when `showNone` flips. Values match GradientType + 'none'. */
   type TypeChoice = 'none' | 'solid' | 'linear' | 'radial';
   let typeOptions = $derived(
     [
@@ -491,11 +436,7 @@
 {/if}
 
 <style>
-  /* Outer grid. One column when there's no radial pad (linear/solid/none);
-     two columns when there is, with the pad sitting in the right column
-     beside the ribbon. The header labels (section + "Gradient shape")
-     live in row 1 of the SAME grid so they share column tracks with the
-     ribbon and pad below — that's what makes them "straight across". */
+  /* Header labels share grid tracks with the ribbon + pad below them. */
   .gradient-editor {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -508,8 +449,6 @@
     column-gap: var(--ui-space-16);
   }
 
-  /* Section header labels. Styled to match SectionDivider's "Background"
-     wording so the right-column "Gradient shape" reads as a peer header. */
   .editor-section-label {
     font-size: var(--ui-font-size-md);
     font-weight: 500;
@@ -519,10 +458,7 @@
   .editor-section-left { grid-column: 1; }
   .editor-section-right { grid-column: 2; }
 
-  /* Section header doubles as a toolbar: section label on the left,
-     list-level actions (Add stop / Remove) flush to the right edge of the
-     ribbon column above the ribbon itself. Baseline-aligned so the pill
-     row sits on the same optical line as the label. */
+  /* Header doubles as a toolbar: label left, Add/Remove flush right. */
   .editor-header {
     display: flex;
     align-items: center;
@@ -539,17 +475,12 @@
     min-width: 0;
   }
 
-  /* Right-column slot for the radial shape pad / linear angle dial. The
-     min-height reserves the radial pad's natural height (80px pad + 14px
-     bottom slider) so switching gradient type between radial and linear
-     doesn't shift the lower row vertically. */
+  /* min-height reserves the radial pad's full height so swapping types doesn't shift the lower row. */
   .ribbon-pad {
     grid-column: 2;
     align-self: start;
     min-height: 94px;
   }
-  /* Center the smaller angle dial cluster within the reserved height so it
-     sits visually in the same band as the radial pad above its baseline. */
   .ribbon-pad-linear {
     display: flex;
     justify-content: center;
@@ -563,22 +494,17 @@
     cursor: copy;
   }
 
-  /* Solid mode: ribbon is a passive swatch, no handles to click into. */
+  /* Flat ribbon: passive swatch, no click affordance. */
   .ribbon.solid {
     cursor: default;
   }
 
-  /* Radial mode: only the right half accepts clicks (the left is a mirror),
-     so the copy cursor would be misleading over the left half. We keep the
-     default cursor on the whole ribbon — the right-half affordance is the
-     existing handle hover + the center divider line. */
+  /* Radial: left half is a mirror, so suppress the copy cursor across the whole ribbon. */
   .ribbon.radial {
     cursor: default;
   }
 
-  /* Thin vertical line at the join between mirror and editor halves —
-     reads as the radial center (position 0) and helps the user line up the
-     ribbon with the circle's center above. */
+  /* Marks the radial center (position 0). */
   .center-divider {
     position: absolute;
     top: 0;
@@ -596,8 +522,7 @@
     height: 1.25rem;
   }
 
-  /* Button is a generous (1.25rem) transparent hit target; the visible marker
-     lives in `.handle-diamond` inside. */
+  /* 1.25rem hit target; visible marker is the inner .handle-diamond. */
   .handle {
     position: absolute;
     top: 0;
@@ -642,10 +567,7 @@
   }
 
 
-  /* One row carries every per-gradient control beneath the ribbon: type
-     segmented control on the left, optional angle dial (linear only),
-     stop-edit row (grows to fill), and Add stop / Remove pinned to the
-     right. The radial shape pad lives up beside the ribbon, not here. */
+  /* Per-gradient controls under the ribbon: type selector + stop edit row. */
   .lower-row {
     grid-column: 1 / -1;
     display: flex;
@@ -654,9 +576,6 @@
     flex-wrap: wrap;
   }
 
-  /* Add stop / Remove pair sitting in the editor header beside the section
-     label. Compact pills keep the toolbar slim so the header row's vertical
-     footprint matches a single label baseline. */
   .stop-actions {
     display: inline-flex;
     align-items: center;
@@ -664,11 +583,7 @@
     flex: 0 0 auto;
   }
 
-  /* Two-row layout: row 1 holds label / percent / picker chrome / slug; row 2
-     holds the per-stop Monochrome checkbox stacked under the picker. The
-     other row-1 items get an explicit line-height matching the picker
-     trigger's min-height so they top-align visually with the chrome instead
-     of riding above it. */
+  /* Row 1: label / percent / picker / slug. Row 2: Monochrome under picker. */
   .stop-edit-row {
     display: flex;
     flex-wrap: wrap;
@@ -691,17 +606,12 @@
     flex: 0 0 auto;
   }
 
-  /* The picker carries its own meta label via subgrid, but in this row the
-     picker-slot isn't laid out as a subgrid parent — the meta wraps awkwardly
-     under the chrome. We render the slug ourselves (`.stop-value-text`) and
-     keep the picker's internal copy hidden so the row stays single-line. */
+  /* Hide picker's built-in meta; we render the slug ourselves. */
   .stop-edit-row :global(.ui-ts-meta-text) {
     display: none;
   }
 
-  /* Stop slug — mirrors UITokenSelector's meta typography so this row reads
-     consistently with property rows elsewhere. Grows to fill remaining row
-     space and ellipsizes on overflow. */
+  /* Stop slug, mirrors UITokenSelector meta typography. */
   .stop-value-text {
     flex: 1 1 0;
     min-width: 0;
@@ -726,9 +636,7 @@
   .stop-mono-check:hover { color: var(--ui-text-primary); }
   .stop-mono-check input { margin: 0; cursor: pointer; }
 
-  /* Match .editor-section-label (the "Background" header) so the stop label
-     reads as a peer heading. 1.5rem left padding indents it inside the lower
-     row so it sits aligned with the ribbon's content edge above. */
+  /* Peers the section label; 1.5rem left-pad aligns with the ribbon's content edge. */
   .row-label {
     font-size: var(--ui-font-size-md);
     font-weight: 500;
@@ -766,9 +674,7 @@
     color: var(--ui-text-tertiary);
   }
 
-  /* Match the property-row token-selector width (8rem, see TokenLayout) so
-     the picker reads as a normal property control rather than expanding to
-     fill the row. */
+  /* 8rem matches the property-row token selector width (see TokenLayout). */
   .picker-slot {
     flex: 0 0 auto;
     width: 8rem;
