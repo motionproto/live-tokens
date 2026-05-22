@@ -33,6 +33,10 @@
     /** Component-gradient mode: pass a source adapter directly. Takes
      *  precedence over `variable` when both are provided. */
     source?: GradientSource;
+    /** Optional section header rendered above the ribbon, e.g. "Background".
+     *  When set, the editor lays out as a 2-column grid so this label and
+     *  the radial-only "Gradient shape" label sit at the same baseline. */
+    sectionLabel?: string;
     /** Stable id for per-stop GradientStopPicker scratch vars. Defaults to
      *  `variable` when in theme mode. */
     stopIdPrefix?: string;
@@ -55,6 +59,7 @@
   let {
     variable,
     source,
+    sectionLabel,
     stopIdPrefix,
     familyFilter = null,
     showNone = false,
@@ -293,6 +298,10 @@
   let isFlat = $derived(gradient?.type === 'solid' || gradient?.type === 'none');
   let isNone = $derived(gradient?.type === 'none');
   let isRadial = $derived(gradient?.type === 'radial');
+  let isLinear = $derived(gradient?.type === 'linear');
+  // Two-column layout when the right column has a payload: radial shape pad
+  // OR linear angle dial. Solid/none stay single-column.
+  let hasAside = $derived(isRadial || isLinear);
 
   // Stop colors rendered into the diamonds: token refs become var(...).
   let stopSwatches = $derived((gradient?.stops ?? []).map((s) => {
@@ -320,9 +329,37 @@
 </script>
 
 {#if gradient}
-  <div class="gradient-editor">
-    <div class="ribbon-wrap">
-      <div class="ribbon-stack">
+  <div class="gradient-editor" class:has-pad={hasAside}>
+    {#if sectionLabel || hasAside}
+      <div class="editor-header editor-section-left">
+        <span class="editor-section-label">{sectionLabel ?? ''}</span>
+        {#if !isFlat}
+          <div class="stop-actions">
+            <UIPillButton
+              variant="secondary"
+              size="compact"
+              icon="fa-plus"
+              title="Add stop"
+              onclick={addStop}
+            >Add stop</UIPillButton>
+            <UIPillButton
+              variant="secondary"
+              size="compact"
+              icon="fa-times"
+              title={gradient.stops.length <= 2 ? 'Gradient needs at least two stops' : 'Remove selected stop'}
+              disabled={gradient.stops.length <= 2}
+              onclick={removeSelected}
+            >Remove stop</UIPillButton>
+          </div>
+        {/if}
+      </div>
+      {#if isRadial}
+        <span class="editor-section-label editor-section-right">Gradient shape</span>
+      {:else if isLinear}
+        <span class="editor-section-label editor-section-right">Gradient angle</span>
+      {/if}
+    {/if}
+    <div class="ribbon-stack">
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <div
           class="ribbon"
@@ -379,16 +416,19 @@
           </div>
         {/if}
       </div>
-      {#if gradient.type === 'radial'}
-        <div class="ribbon-pad">
-          <RadialShapePad
-            x={gradient.aspectX ?? 1}
-            y={gradient.aspectY ?? 1}
-            onchange={onAspectChange}
-          />
-        </div>
-      {/if}
-    </div>
+    {#if gradient.type === 'radial'}
+      <div class="ribbon-pad">
+        <RadialShapePad
+          x={gradient.aspectX ?? 1}
+          y={gradient.aspectY ?? 1}
+          onchange={onAspectChange}
+        />
+      </div>
+    {:else if gradient.type === 'linear'}
+      <div class="ribbon-pad ribbon-pad-linear">
+        <AngleDial value={gradient.angle} size={64} orientation="vertical" label="" onchange={onAngleChange} />
+      </div>
+    {/if}
 
     <div class="lower-row">
       <UISegmentedControl
@@ -397,11 +437,6 @@
         ariaLabel="Gradient fill type"
         onchange={onTypeSelect}
       />
-      {#if gradient.type === 'linear'}
-        <div class="angle-slot">
-          <AngleDial value={gradient.angle} onchange={onAngleChange} />
-        </div>
-      {/if}
       {#if gradient.stops[selected]}
         {@const stop = gradient.stops[selected]}
         {@const stopMono = stop.monochrome !== false}
@@ -444,23 +479,6 @@
           <span class="stop-value-text" title={stopValueLabel(stop)}>{stopValueLabel(stop)}</span>
         </div>
       {/if}
-      {#if !isFlat}
-        <div class="stop-actions">
-          <UIPillButton
-            variant="secondary"
-            icon="fa-plus"
-            title="Add stop"
-            onclick={addStop}
-          >Add stop</UIPillButton>
-          <UIPillButton
-            variant="secondary"
-            icon="fa-times"
-            title={gradient.stops.length <= 2 ? 'Gradient needs at least two stops' : 'Remove selected stop'}
-            disabled={gradient.stops.length <= 2}
-            onclick={removeSelected}
-          >Remove</UIPillButton>
-        </div>
-      {/if}
     </div>
 
     {#if onsave || oncancel}
@@ -473,39 +491,68 @@
 {/if}
 
 <style>
+  /* Outer grid. One column when there's no radial pad (linear/solid/none);
+     two columns when there is, with the pad sitting in the right column
+     beside the ribbon. The header labels (section + "Gradient shape")
+     live in row 1 of the SAME grid so they share column tracks with the
+     ribbon and pad below — that's what makes them "straight across". */
   .gradient-editor {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-12);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--ui-space-12);
     width: 100%;
     min-width: 0;
   }
-
-  /* Ribbon + handles on the left (flexes to fill); the radial shape pad
-     drops into a fixed-width column on the right. With the pad living up
-     here next to the ribbon, the editor's vertical footprint collapses —
-     the only thing under the ribbon is the controls row that's already
-     dense with type-toggle, stop-edit, and the action buttons. */
-  .ribbon-wrap {
-    position: relative;
-    display: grid;
+  .gradient-editor.has-pad {
     grid-template-columns: minmax(0, 1fr) max-content;
     column-gap: var(--ui-space-16);
-    align-items: start;
+  }
+
+  /* Section header labels. Styled to match SectionDivider's "Background"
+     wording so the right-column "Gradient shape" reads as a peer header. */
+  .editor-section-label {
+    font-size: var(--ui-font-size-md);
+    font-weight: 500;
+    color: var(--ui-text-primary);
+    line-height: 1;
+  }
+  .editor-section-left { grid-column: 1; }
+  .editor-section-right { grid-column: 2; }
+
+  /* Section header doubles as a toolbar: section label on the left,
+     list-level actions (Add stop / Remove) flush to the right edge of the
+     ribbon column above the ribbon itself. Baseline-aligned so the pill
+     row sits on the same optical line as the label. */
+  .editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-12);
+    min-width: 0;
   }
 
   .ribbon-stack {
+    grid-column: 1;
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-8);
     min-width: 0;
   }
 
-  /* Right-column slot for the radial shape pad. Top-aligned with the
-     ribbon so the pad's heading sits at the same baseline as the
-     Background label above. */
+  /* Right-column slot for the radial shape pad / linear angle dial. The
+     min-height reserves the radial pad's natural height (80px pad + 14px
+     bottom slider) so switching gradient type between radial and linear
+     doesn't shift the lower row vertically. */
   .ribbon-pad {
+    grid-column: 2;
     align-self: start;
+    min-height: 94px;
+  }
+  /* Center the smaller angle dial cluster within the reserved height so it
+     sits visually in the same band as the radial pad above its baseline. */
+  .ribbon-pad-linear {
+    display: flex;
+    justify-content: center;
   }
 
   .ribbon {
@@ -600,20 +647,20 @@
      stop-edit row (grows to fill), and Add stop / Remove pinned to the
      right. The radial shape pad lives up beside the ribbon, not here. */
   .lower-row {
+    grid-column: 1 / -1;
     display: flex;
     align-items: flex-start;
     gap: var(--ui-space-12);
     flex-wrap: wrap;
   }
 
-  /* Trailing action pair — small horizontal cluster on the right end of
-     the row. Margin-left:auto holds them flush right even when the
-     stop-edit-row's flex-basis doesn't quite fill the band. */
+  /* Add stop / Remove pair sitting in the editor header beside the section
+     label. Compact pills keep the toolbar slim so the header row's vertical
+     footprint matches a single label baseline. */
   .stop-actions {
     display: inline-flex;
     align-items: center;
     gap: var(--ui-space-6);
-    margin-left: auto;
     flex: 0 0 auto;
   }
 
@@ -679,9 +726,15 @@
   .stop-mono-check:hover { color: var(--ui-text-primary); }
   .stop-mono-check input { margin: 0; cursor: pointer; }
 
+  /* Match .editor-section-label (the "Background" header) so the stop label
+     reads as a peer heading. 1.5rem left padding indents it inside the lower
+     row so it sits aligned with the ribbon's content edge above. */
   .row-label {
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-md);
+    font-weight: 500;
+    color: var(--ui-text-primary);
+    line-height: 1;
+    padding-left: 1.5rem;
     white-space: nowrap;
   }
 
@@ -694,7 +747,7 @@
   }
 
   .pos-input input {
-    width: 4.5rem;
+    width: 2.25rem;
     padding: var(--ui-space-2) var(--ui-space-6);
     background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-low);
@@ -722,6 +775,7 @@
   }
 
   .footer-row {
+    grid-column: 1 / -1;
     display: flex;
     justify-content: flex-end;
     gap: var(--ui-space-8);

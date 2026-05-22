@@ -176,7 +176,6 @@
 <svelte:window onpointermove={onMove} onpointerup={onUp} onpointercancel={onUp} />
 
 <div class="shape-pad">
-  <span class="pad-heading">Gradient aspect ratio</span>
   <div class="pad-body">
     <div class="grid">
     <div
@@ -290,38 +289,29 @@
       <UIPillButton
         variant="secondary"
         size="compact"
+        icon="fa-arrows-rotate"
         title="Reset to circle (1 : 1)"
         disabled={x === 1 && y === 1}
         onclick={() => emit(1, 1)}
-      >Reset</UIPillButton>
+      />
     </div>
   </div>
 </div>
 
 <style>
-  /* Header on top, body row beneath: pad + sliders on the left, W / H /
-     Reset stacked on the right. The header spans the body's full width
-     so the section reads as "label → controls" top-to-bottom. */
+  /* Two-column body: pad + sliders on the left, W/H/Reset on the right.
+     The section header ("Gradient shape") is owned by GradientEditor so it
+     can sit on the same baseline as the parent's section label. */
   .shape-pad {
     display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--ui-space-8);
     color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-sm);
-  }
-
-  .pad-heading {
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
-    line-height: 1;
-    white-space: nowrap;
   }
 
   .pad-body {
     display: inline-flex;
     align-items: flex-start;
-    gap: var(--ui-space-16);
+    gap: var(--ui-space-12);
   }
 
   /* Pad in the top-left, Y slider snugged to its right edge, X slider

@@ -9,10 +9,14 @@
     value?: number;
     label?: string;
     size?: number;
+    /** 'horizontal' (default) lays the label, dial, input, and degree mark on a
+     *  single line. 'vertical' stacks the dial above the input — used when the
+     *  dial sits in its own column with a section header providing the label. */
+    orientation?: 'horizontal' | 'vertical';
     onchange?: (payload: { value: number }) => void;
   }
 
-  let { value = $bindable(0), label = 'Angle', size = 44, onchange }: Props = $props();
+  let { value = $bindable(0), label = 'Angle', size = 44, orientation = 'horizontal', onchange }: Props = $props();
 
   let dialEl: HTMLDivElement | undefined = $state();
   let dragging = $state(false);
@@ -63,8 +67,8 @@
   let indicatorTransform = $derived(`rotate(${value}deg)`);
 </script>
 
-<div class="angle-dial-row">
-  {#if label}
+<div class="angle-dial-row" class:vertical={orientation === 'vertical'}>
+  {#if label && orientation === 'horizontal'}
     <span class="dial-label">{label}:</span>
   {/if}
   <div
@@ -90,16 +94,19 @@
     <div class="indicator" style="transform: {indicatorTransform}"></div>
     <div class="hub"></div>
   </div>
-  <input
-    class="num"
-    type="number"
-    min="0"
-    max="360"
-    step="1"
-    value={value}
-    onchange={onInputChange}
-  />
-  <span class="suffix">°</span>
+  <div class="num-row">
+    <input
+      class="num"
+      type="number"
+      min="0"
+      max="360"
+      step="1"
+      value={value}
+      onchange={onInputChange}
+      style={orientation === 'vertical' ? `width: ${size}px;` : ''}
+    />
+    <span class="suffix">°</span>
+  </div>
 </div>
 
 <style>
@@ -109,6 +116,19 @@
     gap: var(--ui-space-8);
     font-size: var(--ui-font-size-sm);
     color: var(--ui-text-secondary);
+  }
+  /* Stacked layout: dial centered, input + degree mark on the row below. Used
+     when the dial sits in its own grid column with an external section label. */
+  .angle-dial-row.vertical {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ui-space-6);
+  }
+
+  .num-row {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-8);
   }
 
   .dial-label {

@@ -169,22 +169,13 @@
     label: f.charAt(0).toUpperCase() + f.slice(1),
   }));
 
-  // Sample content lives in the canvas toolbar (per-variant editor state).
-  // It's not persisted — it drives the preview's text content only. The
-  // user keys it differently per-variant so each card has its own preview text.
-  let testTitle: Record<Variant, string> = $state({
+  const SAMPLE_TITLE: Record<Variant, string> = {
     lg: 'Large Section',
     md: 'Medium Section',
     sm: 'Small Section',
-  });
-  let eyebrowText: Record<Variant, string> = $state({
-    lg: 'SECTION', md: 'SECTION', sm: 'SECTION',
-  });
-  let descriptionText: Record<Variant, string> = $state({
-    lg: 'This text is meant to provide additional context or meaning.',
-    md: 'This text is meant to provide additional context or meaning.',
-    sm: 'This text is meant to provide additional context or meaning.',
-  });
+  };
+  const SAMPLE_EYEBROW = 'Section Eyebrow';
+  const SAMPLE_DESCRIPTION = 'This text is meant to provide additional context or meaning.';
 
   // Intrinsic per-variant properties — persisted in the component config bucket.
   // Read live from the editor state so the property-row controls reflect saves.
@@ -364,34 +355,16 @@
         (sv) => ({ [sv]: stateTokens(sv) }),
         (sv) => ({ [sv]: variantTypeGroups(sv) }),
       )}
-      backdropPadding="32px"
+      backdropPadding="20px"
       elementToggles={elementTogglesFor(v.key)}
       elementOrder={['Container', 'title', 'description', 'eyebrow', 'hairline']}
     >
-      {#snippet canvasToolbarExtras()}
-        <label class="toolbar-field">
-          <span>Test title</span>
-          <input type="text" class="canvas-toolbar-input" bind:value={testTitle[v.key]} placeholder={v.title} />
-        </label>
-        {#if getShowEyebrow(v.key)}
-          <label class="toolbar-field">
-            <span>Eyebrow text</span>
-            <input type="text" class="canvas-toolbar-input" bind:value={eyebrowText[v.key]} placeholder="SECTION" />
-          </label>
-        {/if}
-        {#if getShowDescription(v.key)}
-          <label class="toolbar-field">
-            <span>Description text</span>
-            <input type="text" class="canvas-toolbar-input" bind:value={descriptionText[v.key]} placeholder="Description" />
-          </label>
-        {/if}
-      {/snippet}
       <div class="section-divider-stage">
         <SectionDivider
-          title={testTitle[v.key] || v.title}
+          title={SAMPLE_TITLE[v.key]}
           variant={v.key}
-          description={getShowDescription(v.key) ? descriptionText[v.key] : undefined}
-          eyebrow={getShowEyebrow(v.key) ? eyebrowText[v.key] : undefined}
+          description={getShowDescription(v.key) ? SAMPLE_DESCRIPTION : undefined}
+          eyebrow={getShowEyebrow(v.key) ? SAMPLE_EYEBROW : undefined}
           align={getAlign(v.key)}
           hairline={hairlineProp(v.key)}
           eyebrowUppercase={getEyebrowUppercase(v.key)}
@@ -399,8 +372,8 @@
       </div>
       {#snippet compositeControls(_stateName)}
         <div class="gradient-bg-section">
-          <span class="gradient-section-label">Background</span>
           <GradientEditor
+            sectionLabel="Background"
             source={gradientSources[v.key]}
             stopIdPrefix={`sectiondivider-${v.key}`}
             familyFilter={getColorFamily(v.key)}
@@ -470,46 +443,57 @@
 </ComponentEditorBase>
 
 <style>
-  .toolbar-field {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-4);
-    font-size: var(--ui-font-size-xs);
-    color: rgba(255, 255, 255, 0.6);
-  }
-
   .section-divider-stage {
     width: 100%;
     min-width: 32rem;
   }
-
-  .gradient-section-label {
-    display: block;
-    margin-top: var(--ui-space-8);
-    margin-bottom: var(--ui-space-12);
-    font-size: var(--ui-font-size-md);
-    font-weight: 500;
-    color: var(--ui-text-primary);
+  /* The shipped SectionDivider carries a 24px block margin so it breathes
+     inside a real page. In the editor preview the backdrop already supplies
+     framing space, so collapse the margin here to keep the stage tight. */
+  .section-divider-stage :global(.section-divider) {
+    margin-block: 0;
   }
 
-  /* Match the preview's content area above so the ribbon's left/right
-     edges line up end-to-end with the section divider preview. Mirrors
-     ShadowBackdrop's two-column grid:
-     - padding-left: matches backdrop-content's left padding (1.5rem)
-     - padding-right: reserves the canvas-toolbar column to the right
-       (11rem + its shadow-backdrop-controls padding 16px + backdrop-
-       content's right padding 32px).
-     When the variant-group collapses below 32rem the canvas-toolbar
-     stacks above and the right column disappears — drop the right
-     reservation to match. */
+
+  /* Mirror ShadowBackdrop's preview/controls grid so the ribbon's left/right
+     edges land on the preview-stage edges above AND the radial pad lands in
+     the same column as the canvas-toolbar above.
+     - col 1 (1fr) = preview-stage area; its content sits at left = 1.5rem
+       and right edge = parent right - 11rem - 48px
+     - col 2 (11rem) = canvas-toolbar area; left edge = parent right - 11rem - 8px
+     - gap = 40px (32px backdrop-content right padding + 8px controls-cell left padding)
+     - parent padding-right = 8px (matches the controls-cell's right inset)
+     For non-radial gradients the editor occupies col 1 only; col 2 stays
+     empty. For radial (has-pad), the editor uses subgrid so its inner ribbon
+     and pad align with the outer columns. */
   .gradient-bg-section {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 11rem;
+    column-gap: 40px;
     padding-left: 1.5rem;
-    padding-right: calc(11rem + 16px + 32px);
+    padding-right: 8px;
+    margin-top: var(--ui-space-16);
     box-sizing: border-box;
+  }
+  .gradient-bg-section > :global(.gradient-editor) {
+    grid-column: 1;
+  }
+  .gradient-bg-section > :global(.gradient-editor.has-pad) {
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    column-gap: 40px;
   }
   @container variant-group (max-width: 32rem) {
     .gradient-bg-section {
+      grid-template-columns: minmax(0, 1fr);
       padding-right: 32px;
+    }
+    /* Collapsed: parent is 1-col. Drop subgrid and let the editor fall back to
+       its native 2-col (ribbon | pad) layout within the single column. */
+    .gradient-bg-section > :global(.gradient-editor.has-pad) {
+      grid-column: 1;
+      grid-template-columns: minmax(0, 1fr) max-content;
+      column-gap: var(--ui-space-16);
     }
   }
 
