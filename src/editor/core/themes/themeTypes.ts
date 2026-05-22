@@ -111,7 +111,7 @@ export interface ThemeMeta {
  *  gradients that can't compress to a single string. */
 export type AliasDiskValue =
   | string
-  | { kind: 'gradient'; value: { type: 'linear' | 'radial' | 'solid' | 'none'; angle: number; radius?: number; centerX?: number; stops: { position: number; color: string; opacity?: number }[] } };
+  | { kind: 'gradient'; value: { type: 'linear' | 'radial' | 'solid' | 'none'; angle: number; radius?: number; centerX?: number; aspectX?: number; aspectY?: number; stops: { position: number; color: string; opacity?: number }[] } };
 
 export interface ComponentConfig {
   name: string;

@@ -77,6 +77,13 @@ export interface GradientToken {
   radius?: number;
   /** Horizontal center position for radial gradients, 0–100. Defaults to 50. */
   centerX?: number;
+  /** Horizontal stretch factor for the radial ellipse (1–8). Defaults to 1.
+   *  With aspectY, the rendered semi-axes are `radius * aspect*`, so both
+   *  shape (ratio) and size are encoded together. Both = 1 keeps the legacy
+   *  `circle` render path verbatim. */
+  aspectX?: number;
+  /** Vertical stretch factor for the radial ellipse (1–8). Defaults to 1. */
+  aspectY?: number;
   stops: GradientTokenStop[];
 }
 
@@ -91,6 +98,10 @@ export interface GradientAliasValue {
   radius?: number;
   /** See GradientToken.centerX. */
   centerX?: number;
+  /** See GradientToken.aspectX. */
+  aspectX?: number;
+  /** See GradientToken.aspectY. */
+  aspectY?: number;
   stops: GradientTokenStop[];
 }
 

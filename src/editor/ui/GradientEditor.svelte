@@ -22,6 +22,9 @@
   } from '../core/store/gradientSource';
   import GradientStopPicker from './GradientStopPicker.svelte';
   import AngleDial from '../component-editor/scaffolding/AngleDial.svelte';
+  import RadialShapePad from '../component-editor/scaffolding/RadialShapePad.svelte';
+  import UISegmentedControl from './UISegmentedControl.svelte';
+  import UIPillButton from './UIPillButton.svelte';
   import { snapTokenToFamily } from '../core/palettes/familySwap';
 
   interface Props {
@@ -99,6 +102,10 @@
 
   function onAngleChange(detail: { value: number }) {
     gradientSource.setAngle(detail.value);
+  }
+
+  function onAspectChange(detail: { x: number; y: number }) {
+    gradientSource.setAspect(detail);
   }
 
   function setPosition(i: number, pct: number) {
@@ -184,7 +191,16 @@
   function onRibbonClick(e: MouseEvent) {
     if (!gradient || e.button !== 0) return;
     const rect = barEl!.getBoundingClientRect();
-    const pct = ((e.clientX - rect.left) / rect.width) * 100;
+    const x = e.clientX - rect.left;
+    let pct: number;
+    if (gradient.type === 'radial') {
+      // Linked pair: clicks on either side map to the same radial distance
+      // from center via abs(). A one-shot click doesn't need side tracking.
+      const half = rect.width / 2;
+      pct = (Math.abs(x - half) / half) * 100;
+    } else {
+      pct = (x / rect.width) * 100;
+    }
     const nearest = gradient.stops.reduce(
       (best, s) => (Math.abs(s.position - pct) < Math.abs(best.position - pct) ? s : best),
       gradient.stops[0],
@@ -201,16 +217,29 @@
   // ── Ribbon handle drag ─────────────────────────────────────────────────
   let barEl: HTMLDivElement | undefined = $state();
   let dragIndex: number | null = $state(null);
+  /** Which side of the radial ribbon the drag originated on. Lets us
+   *  translate pointer x → stop position symmetrically: dragging the left
+   *  handle right toward center decreases position, dragging the right
+   *  handle left toward center also decreases position. Past-center drags
+   *  clamp at 0 (via setPosition) instead of wrapping to the other side. */
+  let dragSide: 'left' | 'right' | null = $state(null);
 
   function pctFromEvent(e: PointerEvent): number {
     const rect = barEl!.getBoundingClientRect();
     const x = e.clientX - rect.left;
+    if (gradient?.type === 'radial') {
+      const half = rect.width / 2;
+      return dragSide === 'left'
+        ? ((half - x) / half) * 100
+        : ((x - half) / half) * 100;
+    }
     return (x / rect.width) * 100;
   }
 
-  function onHandleDown(e: PointerEvent, i: number) {
+  function onHandleDown(e: PointerEvent, i: number, side: 'left' | 'right' | null = null) {
     selected = i;
     dragIndex = i;
+    dragSide = side;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     setPosition(i, pctFromEvent(e));
   }
@@ -222,42 +251,48 @@
     if (dragIndex === null) return;
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     dragIndex = null;
+    dragSide = null;
   }
 
-  // Live preview gradient — render the structured value here too so this
-  // component renders correctly even when bound to a component-owned slot
-  // whose CSS var hasn't been pushed to :root yet (the editor's renderer
-  // does the push, but $derived runs in the same tick so we synthesize
-  // the ribbon background from the snapshot for stability).
+  // Live preview gradient — render the structured value here so the editor
+  // renders correctly even when bound to a component-owned slot whose CSS var
+  // hasn't been pushed to :root yet (the editor's renderer does the push, but
+  // $derived runs in the same tick so we synthesize the ribbon background
+  // from the snapshot for stability).
   //
-  // Radial data still rendered on the consumer element (formatGradientValue
-  // emits the real radial-gradient CSS), but radial *editing* is removed —
-  // any leftover radial values are previewed as a linear sweep so the user
-  // can still see and edit their stops, then switch the type.
+  // Radial: ribbon is a symmetric linear-gradient — each stop emits two
+  // entries (50 ± position/2). The right half is the editor, the left half
+  // is a read-only mirror so the user can see what the radial preview's
+  // horizontal slice looks like aligned under the editor strip.
+  function stopColorCss(s: GradientTokenStop): string {
+    const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
+    const op = s.opacity ?? 100;
+    return op >= 100 ? base : `color-mix(in srgb, ${base} ${Math.round(op)}%, transparent)`;
+  }
+
   let ribbonBg = $derived.by(() => {
     if (!gradient) return 'transparent';
     if (gradient.type === 'none') return 'transparent';
-    const stopColor = (s: GradientTokenStop): string => {
-      const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
-      const op = s.opacity ?? 100;
-      return op >= 100 ? base : `color-mix(in srgb, ${base} ${Math.round(op)}%, transparent)`;
-    };
     if (gradient.type === 'solid') {
       const first = gradient.stops[0];
-      return first ? stopColor(first) : 'transparent';
+      return first ? stopColorCss(first) : 'transparent';
     }
-    const stopsCss = gradient.stops
-      .slice()
-      .sort((a, b) => a.position - b.position)
-      .map((s) => `${stopColor(s)} ${s.position}%`)
-      .join(', ');
+    const sorted = gradient.stops.slice().sort((a, b) => a.position - b.position);
+    if (gradient.type === 'radial') {
+      const leftStops = sorted.slice().reverse().map((s) => `${stopColorCss(s)} ${50 - s.position / 2}%`);
+      const rightStops = sorted.map((s) => `${stopColorCss(s)} ${50 + s.position / 2}%`);
+      return `linear-gradient(90deg, ${[...leftStops, ...rightStops].join(', ')})`;
+    }
+    const stopsCss = sorted.map((s) => `${stopColorCss(s)} ${s.position}%`).join(', ');
     return `linear-gradient(90deg, ${stopsCss})`;
   });
 
   // `none` and `solid` share the single-stop UI: passive ribbon, no handles,
-  // no add/remove. Only `linear` shows the multi-stop chrome.
+  // no add/remove. `linear` and `radial` both show the multi-stop chrome;
+  // `radial` adds the circle preview + mirrored ribbon layout.
   let isFlat = $derived(gradient?.type === 'solid' || gradient?.type === 'none');
   let isNone = $derived(gradient?.type === 'none');
+  let isRadial = $derived(gradient?.type === 'radial');
 
   // Stop colors rendered into the diamonds: token refs become var(...).
   let stopSwatches = $derived((gradient?.stops ?? []).map((s) => {
@@ -265,140 +300,173 @@
     const op = s.opacity ?? 100;
     return op >= 100 ? base : `color-mix(in srgb, ${base} ${Math.round(op)}%, transparent)`;
   }));
+
+  /** Segmented-control options. `None` is conditional, so the array is
+   *  rebuilt when `showNone` flips. Values match GradientType + 'none'. */
+  type TypeChoice = 'none' | 'solid' | 'linear' | 'radial';
+  let typeOptions = $derived(
+    [
+      ...(showNone ? [{ value: 'none' as TypeChoice, label: 'None' }] : []),
+      { value: 'solid' as TypeChoice, label: 'Solid' },
+      { value: 'linear' as TypeChoice, label: 'Linear' },
+      { value: 'radial' as TypeChoice, label: 'Radial' },
+    ],
+  );
+
+  function onTypeSelect(next: TypeChoice) {
+    setType(next as GradientType);
+    if (next === 'none') onNone?.();
+  }
 </script>
 
 {#if gradient}
   <div class="gradient-editor">
     <div class="ribbon-wrap">
-      <!-- svelte-ignore a11y_click_events_have_key_events -->
-      <div
-        class="ribbon"
-        class:solid={isFlat}
-        class:none={isNone}
-        bind:this={barEl}
-        style="background: {ribbonBg};"
-        onclick={isFlat ? undefined : onRibbonClick}
-        role={isFlat ? 'presentation' : 'button'}
-        tabindex="-1"
-        aria-label={isNone ? 'No fill' : isFlat ? 'Solid color preview' : 'Click to add a gradient stop'}
-      ></div>
-      {#if !isFlat}
-        <div class="handles">
-          {#each gradient.stops as stop, i (i)}
-            <button
-              type="button"
-              class="handle"
-              class:selected={selected === i}
-              class:dragging={dragIndex === i}
-              style="left: {stop.position}%; --stop-color: {stopSwatches[i]};"
-              onpointerdown={(e) => onHandleDown(e, i)}
-              onpointermove={onHandleMove}
-              onpointerup={onHandleUp}
-              onpointercancel={onHandleUp}
-              title={`Stop ${i + 1} (${stop.position}%)`}
-              aria-label={`Gradient stop ${i + 1}`}
-            >
-              <span class="handle-diamond"></span>
-            </button>
-          {/each}
+      <div class="ribbon-stack">
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <div
+          class="ribbon"
+          class:solid={isFlat}
+          class:none={isNone}
+          class:radial={isRadial}
+          bind:this={barEl}
+          style="background: {ribbonBg};"
+          onclick={isFlat ? undefined : onRibbonClick}
+          role={isFlat ? 'presentation' : 'button'}
+          tabindex="-1"
+          aria-label={isNone ? 'No fill' : isFlat ? 'Solid color preview' : isRadial ? 'Click the right side to add a gradient stop' : 'Click to add a gradient stop'}
+        >
+          {#if isRadial}<span class="center-divider" aria-hidden="true"></span>{/if}
+        </div>
+        {#if !isFlat}
+          <div class="handles" class:radial={isRadial}>
+            {#if isRadial}
+              {#each gradient.stops as stop, i (`mirror-${i}`)}
+                <button
+                  type="button"
+                  class="handle"
+                  class:selected={selected === i}
+                  class:dragging={dragIndex === i && dragSide === 'left'}
+                  style="left: {50 - stop.position / 2}%; --stop-color: {stopSwatches[i]};"
+                  onpointerdown={(e) => onHandleDown(e, i, 'left')}
+                  onpointermove={onHandleMove}
+                  onpointerup={onHandleUp}
+                  onpointercancel={onHandleUp}
+                  title={`Stop ${i + 1} (${stop.position}%) — linked pair`}
+                  aria-label={`Gradient stop ${i + 1}, mirrored side`}
+                >
+                  <span class="handle-diamond"></span>
+                </button>
+              {/each}
+            {/if}
+            {#each gradient.stops as stop, i (i)}
+              <button
+                type="button"
+                class="handle"
+                class:selected={selected === i}
+                class:dragging={dragIndex === i && dragSide !== 'left'}
+                style="left: {isRadial ? 50 + stop.position / 2 : stop.position}%; --stop-color: {stopSwatches[i]};"
+                onpointerdown={(e) => onHandleDown(e, i, isRadial ? 'right' : null)}
+                onpointermove={onHandleMove}
+                onpointerup={onHandleUp}
+                onpointercancel={onHandleUp}
+                title={`Stop ${i + 1} (${stop.position}%)`}
+                aria-label={`Gradient stop ${i + 1}`}
+              >
+                <span class="handle-diamond"></span>
+              </button>
+            {/each}
+          </div>
+        {/if}
+      </div>
+      {#if gradient.type === 'radial'}
+        <div class="ribbon-pad">
+          <RadialShapePad
+            x={gradient.aspectX ?? 1}
+            y={gradient.aspectY ?? 1}
+            onchange={onAspectChange}
+          />
         </div>
       {/if}
     </div>
 
-    <div class="controls-row">
-      <div class="type-toggle" role="radiogroup">
-        {#if showNone}
-          <button
-            type="button"
-            class:active={gradient.type === 'none'}
-            onclick={() => { setType('none'); onNone?.(); }}
-          >None</button>
-        {/if}
-        <button
-          type="button"
-          class:active={gradient.type === 'solid'}
-          onclick={() => setType('solid')}
-        >Solid</button>
-        <button
-          type="button"
-          class:active={gradient.type === 'linear'}
-          onclick={() => setType('linear')}
-        >Linear</button>
-      </div>
+    <div class="lower-row">
+      <UISegmentedControl
+        value={gradient.type as TypeChoice}
+        options={typeOptions}
+        ariaLabel="Gradient fill type"
+        onchange={onTypeSelect}
+      />
       {#if gradient.type === 'linear'}
         <div class="angle-slot">
           <AngleDial value={gradient.angle} onchange={onAngleChange} />
         </div>
       {/if}
-      <div class="spacer"></div>
+      {#if gradient.stops[selected]}
+        {@const stop = gradient.stops[selected]}
+        {@const stopMono = stop.monochrome !== false}
+        <div class="stop-edit-row">
+          <span class="row-label">{isFlat ? 'Color' : `Stop ${selected + 1}`}</span>
+          {#if !isFlat}
+            <label class="pos-input">
+              <input
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={stop.position}
+                onchange={onPositionInput}
+              />
+              <span class="suffix">%</span>
+            </label>
+          {/if}
+          <div class="picker-column">
+            <div class="picker-slot">
+              <GradientStopPicker
+                stopId={`${stopKeyPrefix}-${selected}`}
+                color={stop.color}
+                opacity={stop.opacity ?? 100}
+                familyFilter={stopMono ? familyFilter : null}
+                onchange={(payload) => handleStopChange(selected, payload)}
+              />
+            </div>
+            {#if familyFilter !== null}
+              <label class="stop-mono-check">
+                <input
+                  type="checkbox"
+                  checked={stopMono}
+                  onchange={(e) => handleMonoToggle(selected, (e.currentTarget as HTMLInputElement).checked)}
+                />
+                <span>Monochrome</span>
+              </label>
+            {/if}
+          </div>
+          <span class="stop-value-text" title={stopValueLabel(stop)}>{stopValueLabel(stop)}</span>
+        </div>
+      {/if}
       {#if !isFlat}
-        <button
-          type="button"
-          class="ghost-btn"
-          onclick={addStop}
-          title="Add stop"
-        >
-          <i class="fas fa-plus"></i> Add stop
-        </button>
-        <button
-          type="button"
-          class="ghost-btn"
-          onclick={removeSelected}
-          disabled={gradient.stops.length <= 2}
-          title={gradient.stops.length <= 2 ? 'Gradient needs at least two stops' : 'Remove selected stop'}
-        >
-          <i class="fas fa-times"></i> Remove
-        </button>
+        <div class="stop-actions">
+          <UIPillButton
+            variant="secondary"
+            icon="fa-plus"
+            title="Add stop"
+            onclick={addStop}
+          >Add stop</UIPillButton>
+          <UIPillButton
+            variant="secondary"
+            icon="fa-times"
+            title={gradient.stops.length <= 2 ? 'Gradient needs at least two stops' : 'Remove selected stop'}
+            disabled={gradient.stops.length <= 2}
+            onclick={removeSelected}
+          >Remove</UIPillButton>
+        </div>
       {/if}
     </div>
 
-    {#if gradient.stops[selected]}
-      {@const stop = gradient.stops[selected]}
-      {@const stopMono = stop.monochrome !== false}
-      <div class="stop-edit-row">
-        <span class="row-label">{isFlat ? 'Color' : `Stop ${selected + 1}`}</span>
-        {#if !isFlat}
-          <label class="pos-input">
-            <input
-              type="number"
-              min="0"
-              max="100"
-              step="0.1"
-              value={stop.position}
-              onchange={onPositionInput}
-            />
-            <span class="suffix">%</span>
-          </label>
-        {/if}
-        <div class="picker-column">
-          <div class="picker-slot">
-            <GradientStopPicker
-              stopId={`${stopKeyPrefix}-${selected}`}
-              color={stop.color}
-              opacity={stop.opacity ?? 100}
-              familyFilter={stopMono ? familyFilter : null}
-              onchange={(payload) => handleStopChange(selected, payload)}
-            />
-          </div>
-          {#if familyFilter !== null}
-            <label class="stop-mono-check">
-              <input
-                type="checkbox"
-                checked={stopMono}
-                onchange={(e) => handleMonoToggle(selected, (e.currentTarget as HTMLInputElement).checked)}
-              />
-              <span>Monochrome</span>
-            </label>
-          {/if}
-        </div>
-        <span class="stop-value-text" title={stopValueLabel(stop)}>{stopValueLabel(stop)}</span>
-      </div>
-    {/if}
-
     {#if onsave || oncancel}
       <div class="footer-row">
-        <button type="button" class="ghost-btn" onclick={cancel}>Cancel</button>
-        <button type="button" class="primary-btn" onclick={save}>Save</button>
+        <UIPillButton variant="secondary" size="compact" onclick={cancel}>Cancel</UIPillButton>
+        <UIPillButton variant="primary" size="compact" onclick={save}>Save</UIPillButton>
       </div>
     {/if}
   </div>
@@ -413,11 +481,31 @@
     min-width: 0;
   }
 
+  /* Ribbon + handles on the left (flexes to fill); the radial shape pad
+     drops into a fixed-width column on the right. With the pad living up
+     here next to the ribbon, the editor's vertical footprint collapses —
+     the only thing under the ribbon is the controls row that's already
+     dense with type-toggle, stop-edit, and the action buttons. */
   .ribbon-wrap {
     position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    column-gap: var(--ui-space-16);
+    align-items: start;
+  }
+
+  .ribbon-stack {
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-8);
+    min-width: 0;
+  }
+
+  /* Right-column slot for the radial shape pad. Top-aligned with the
+     ribbon so the pad's heading sits at the same baseline as the
+     Background label above. */
+  .ribbon-pad {
+    align-self: start;
   }
 
   .ribbon {
@@ -432,6 +520,29 @@
   .ribbon.solid {
     cursor: default;
   }
+
+  /* Radial mode: only the right half accepts clicks (the left is a mirror),
+     so the copy cursor would be misleading over the left half. We keep the
+     default cursor on the whole ribbon — the right-half affordance is the
+     existing handle hover + the center divider line. */
+  .ribbon.radial {
+    cursor: default;
+  }
+
+  /* Thin vertical line at the join between mirror and editor halves —
+     reads as the radial center (position 0) and helps the user line up the
+     ribbon with the circle's center above. */
+  .center-divider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: var(--ui-border);
+    pointer-events: none;
+    transform: translateX(-0.5px);
+  }
+
 
   .handles {
     position: relative;
@@ -483,63 +594,27 @@
     box-shadow: 0 0 0 2px var(--ui-text-primary);
   }
 
-  .controls-row {
+
+  /* One row carries every per-gradient control beneath the ribbon: type
+     segmented control on the left, optional angle dial (linear only),
+     stop-edit row (grows to fill), and Add stop / Remove pinned to the
+     right. The radial shape pad lives up beside the ribbon, not here. */
+  .lower-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--ui-space-12);
     flex-wrap: wrap;
   }
 
-  .spacer { flex: 1 1 auto; }
-
-  .type-toggle {
-    display: inline-flex;
-    border: 1px solid var(--ui-border-low);
-    border-radius: var(--ui-radius-md);
-    overflow: hidden;
-  }
-
-  .type-toggle button {
-    padding: var(--ui-space-4) var(--ui-space-12);
-    background: transparent;
-    border: none;
-    color: var(--ui-text-secondary);
-    font-size: var(--ui-font-size-sm);
-    cursor: pointer;
-    font-family: inherit;
-  }
-
-  .type-toggle button.active {
-    background: var(--ui-surface-high);
-    color: var(--ui-text-primary);
-  }
-
-  .type-toggle button + button {
-    border-left: 1px solid var(--ui-border-low);
-  }
-
-  .ghost-btn {
+  /* Trailing action pair — small horizontal cluster on the right end of
+     the row. Margin-left:auto holds them flush right even when the
+     stop-edit-row's flex-basis doesn't quite fill the band. */
+  .stop-actions {
     display: inline-flex;
     align-items: center;
     gap: var(--ui-space-6);
-    padding: var(--ui-space-4) var(--ui-space-10);
-    background: var(--ui-surface-low);
-    border: 1px solid var(--ui-border-low);
-    border-radius: var(--ui-radius-sm);
-    color: var(--ui-text-secondary);
-    font-size: var(--ui-font-size-sm);
-    cursor: pointer;
-    font-family: inherit;
-  }
-
-  .ghost-btn:hover:not(:disabled) {
-    color: var(--ui-text-primary);
-    border-color: var(--ui-border);
-  }
-
-  .ghost-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+    margin-left: auto;
+    flex: 0 0 auto;
   }
 
   /* Two-row layout: row 1 holds label / percent / picker chrome / slug; row 2
@@ -552,6 +627,8 @@
     flex-wrap: wrap;
     align-items: flex-start;
     gap: var(--ui-space-12);
+    flex: 1 1 18rem;
+    min-width: 0;
   }
   .stop-edit-row > .row-label,
   .stop-edit-row > .pos-input,
@@ -649,24 +726,5 @@
     justify-content: flex-end;
     gap: var(--ui-space-8);
     padding-top: var(--ui-space-4);
-  }
-
-  .primary-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    padding: var(--ui-space-4) var(--ui-space-12);
-    background: var(--ui-surface-high);
-    border: 1px solid var(--ui-border-high);
-    border-radius: var(--ui-radius-sm);
-    color: var(--ui-text-primary);
-    font-size: var(--ui-font-size-sm);
-    cursor: pointer;
-    font-family: inherit;
-  }
-
-  .primary-btn:hover {
-    background: var(--ui-surface-higher);
-    border-color: var(--ui-border-higher);
   }
 </style>

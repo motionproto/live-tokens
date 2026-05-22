@@ -20,6 +20,7 @@ import {
   setGradientType,
   setGradientAngle,
   setGradientCenterX,
+  setGradientAspect,
   setGradientStop,
   addGradientStop,
   removeGradientStop,
@@ -32,6 +33,9 @@ export interface GradientSourceSnapshot {
   angle: number;
   /** Horizontal center for radial gradients, 0–100. */
   centerX?: number;
+  /** Per-axis stretch factors for the radial ellipse (1 = unscaled). */
+  aspectX?: number;
+  aspectY?: number;
   stops: GradientTokenStop[];
 }
 
@@ -42,6 +46,7 @@ export interface GradientSource {
   setType(type: GradientType): void;
   setAngle(angle: number): void;
   setCenterX(centerX: number): void;
+  setAspect(aspect: { x: number; y: number }): void;
   setStop(index: number, partial: Partial<GradientTokenStop>): void;
   addStop(stop: GradientTokenStop): void;
   removeStop(index: number): void;
@@ -52,7 +57,14 @@ export function themeGradientSource(variable: string): GradientSource {
   const current = derived(editorState, ($s) => {
     const t = $s.gradients.tokens.find((g) => g.variable === variable);
     if (!t) return undefined;
-    return { type: t.type, angle: t.angle, centerX: t.centerX, stops: t.stops.map((s) => ({ ...s })) };
+    return {
+      type: t.type,
+      angle: t.angle,
+      centerX: t.centerX,
+      aspectX: t.aspectX,
+      aspectY: t.aspectY,
+      stops: t.stops.map((s) => ({ ...s })),
+    };
   });
   return {
     current,
@@ -60,6 +72,7 @@ export function themeGradientSource(variable: string): GradientSource {
     setType: (t) => setGradientType(variable, t),
     setAngle: (a) => setGradientAngle(variable, a),
     setCenterX: (x) => setGradientCenterX(variable, x),
+    setAspect: (a) => setGradientAspect(variable, a),
     setStop: (i, p) => setGradientStop(variable, i, p),
     addStop: (s) => addGradientStop(variable, s),
     removeStop: (i) => removeGradientStop(variable, i),
@@ -81,7 +94,14 @@ export function componentGradientSource(component: string, varName: string): Gra
   const current = derived(editorState, ($s) => {
     const ref = $s.components[component]?.aliases[varName];
     if (ref?.kind !== 'gradient') return undefined;
-    return { type: ref.value.type, angle: ref.value.angle, centerX: ref.value.centerX, stops: ref.value.stops.map((s) => ({ ...s })) };
+    return {
+      type: ref.value.type,
+      angle: ref.value.angle,
+      centerX: ref.value.centerX,
+      aspectX: ref.value.aspectX,
+      aspectY: ref.value.aspectY,
+      stops: ref.value.stops.map((s) => ({ ...s })),
+    };
   });
   /** Read-modify-write through `mutate` so each edit is one history entry
    *  and the renderer + persistence cycle pick it up uniformly with the
@@ -96,6 +116,8 @@ export function componentGradientSource(component: string, varName: string): Gra
               type: ref.value.type,
               angle: ref.value.angle,
               ...(ref.value.centerX !== undefined ? { centerX: ref.value.centerX } : {}),
+              ...(ref.value.aspectX !== undefined ? { aspectX: ref.value.aspectX } : {}),
+              ...(ref.value.aspectY !== undefined ? { aspectY: ref.value.aspectY } : {}),
               stops: ref.value.stops.map((st) => ({ ...st })),
             }
           : { type: 'linear', angle: 135, stops: [] };
@@ -109,11 +131,21 @@ export function componentGradientSource(component: string, varName: string): Gra
       type: next.type,
       angle: next.angle,
       ...(next.centerX !== undefined ? { centerX: next.centerX } : {}),
+      ...(next.aspectX !== undefined ? { aspectX: next.aspectX } : {}),
+      ...(next.aspectY !== undefined ? { aspectY: next.aspectY } : {}),
       stops: next.stops.map((s) => ({ ...s })),
     }),
     setType: (t) => update(`set gradient type ${varName}`, (g) => { g.type = t; }),
     setAngle: (a) => update(`set gradient angle ${varName}`, (g) => { g.angle = a; }),
     setCenterX: (x) => update(`set gradient center ${varName}`, (g) => { g.centerX = x; }),
+    setAspect: (a) => update(`set gradient aspect ${varName}`, (g) => {
+      // Drop axes that equal 1 so persisted JSON stays minimal and pre-aspect
+      // data round-trips unchanged.
+      if (a.x === 1) delete g.aspectX;
+      else g.aspectX = a.x;
+      if (a.y === 1) delete g.aspectY;
+      else g.aspectY = a.y;
+    }),
     setStop: (i, p) => update(`set gradient stop ${varName}[${i}]`, (g) => {
       const stop = g.stops[i];
       if (!stop) return;
@@ -147,6 +179,8 @@ export function snapshotGradient(source: GradientSource): GradientSourceSnapshot
     type: cur.type,
     angle: cur.angle,
     ...(cur.centerX !== undefined ? { centerX: cur.centerX } : {}),
+    ...(cur.aspectX !== undefined ? { aspectX: cur.aspectX } : {}),
+    ...(cur.aspectY !== undefined ? { aspectY: cur.aspectY } : {}),
     stops: cur.stops.map((s) => ({ ...s })),
   };
 }

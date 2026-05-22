@@ -244,10 +244,12 @@ function cssVarRefEqual(a: CssVarRef | undefined, b: CssVarRef | undefined): boo
   if (a.kind !== b.kind) return false;
   if (a.kind === 'token') return a.name === (b as { kind: 'token'; name: string }).name;
   if (a.kind === 'literal') return a.value === (b as { kind: 'literal'; value: string }).value;
-  // gradient: structural compare on type, angle, and stops.
+  // gradient: structural compare on type, angle, aspect axes, and stops.
   const av = a.value;
   const bv = (b as { kind: 'gradient'; value: typeof a.value }).value;
   if (av.type !== bv.type || av.angle !== bv.angle || av.stops.length !== bv.stops.length) return false;
+  if ((av.aspectX ?? 1) !== (bv.aspectX ?? 1)) return false;
+  if ((av.aspectY ?? 1) !== (bv.aspectY ?? 1)) return false;
   for (let i = 0; i < av.stops.length; i++) {
     const sa = av.stops[i];
     const sb = bv.stops[i];

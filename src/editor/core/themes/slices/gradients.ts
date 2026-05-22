@@ -64,8 +64,11 @@ export function formatGradientStops(t: GradientToken): string {
  *  - `none`   → `transparent` (no background paint).
  *  - `solid`  → the first stop's color (no gradient function).
  *  - `linear` → `linear-gradient(<angle>, <stops>)`.
- *  - `radial` → `radial-gradient(circle [radius] at <centerX>% 50%, <stops>)`.
- *               centerX defaults to 50; radius (if set) constrains the size. */
+ *  - `radial` → `radial-gradient(<shape> at <centerX>% 50%, <stops>)`.
+ *               centerX defaults to 50. Shape is `circle [radius]` when the
+ *               aspect ratio is 1 (or absent); for aspect ≠ 1 we emit
+ *               `ellipse rx ry` anchored to `radius || 100px`, area-preserved
+ *               so the R=1 boundary is continuous with the legacy circle. */
 export function formatGradientValue(v: GradientAliasValue): string {
   if (v.type === 'none') return 'transparent';
   if (v.type === 'solid') {
@@ -76,8 +79,25 @@ export function formatGradientValue(v: GradientAliasValue): string {
   const stops = v.stops.map(formatGradientStop).join(', ');
   if (v.type === 'linear') return `linear-gradient(${v.angle}deg, ${stops})`;
   const cx = v.centerX ?? 50;
-  const size = v.radius && v.radius > 0 ? `circle ${v.radius}px` : 'circle';
-  return `radial-gradient(${size} at ${cx}% 50%, ${stops})`;
+  return `radial-gradient(${formatRadialShape(v)} at ${cx}% 50%, ${stops})`;
+}
+
+/** Default base radius (px) when the gradient has no explicit `radius` but
+ *  needs concrete dimensions to express its aspect ratio. Chosen as a
+ *  pleasant-looking mid-size that reads as a "soft glow" inside typical
+ *  component containers; the user can dial `radius` to override. */
+const DEFAULT_RADIAL_BASE_PX = 100;
+
+function formatRadialShape(v: GradientAliasValue): string {
+  const ax = v.aspectX ?? 1;
+  const ay = v.aspectY ?? 1;
+  if (ax === 1 && ay === 1) {
+    return v.radius && v.radius > 0 ? `circle ${v.radius}px` : 'circle';
+  }
+  const base = v.radius && v.radius > 0 ? v.radius : DEFAULT_RADIAL_BASE_PX;
+  const rx = base * ax;
+  const ry = base * ay;
+  return `ellipse ${rx.toFixed(2)}px ${ry.toFixed(2)}px`;
 }
 
 /** Resolve a stop's color + opacity into a CSS color value without the
@@ -92,7 +112,14 @@ function formatGradientStopColor(s: GradientTokenStop): string {
 }
 
 function formatGradient(t: GradientToken): string {
-  return formatGradientValue({ type: t.type, angle: t.angle, centerX: t.centerX, stops: t.stops });
+  return formatGradientValue({
+    type: t.type,
+    angle: t.angle,
+    centerX: t.centerX,
+    aspectX: t.aspectX,
+    aspectY: t.aspectY,
+    stops: t.stops,
+  });
 }
 
 export function gradientsToVars(g: EditorState['gradients']): Record<string, string> {
@@ -105,11 +132,11 @@ function findGradient(s: EditorState, variable: string): GradientToken | undefin
   return s.gradients.tokens.find((t) => t.variable === variable);
 }
 
-/** Replace a gradient's type, angle, centerX, and stops in one shot. Used by
- *  the editor to restore a pre-edit snapshot on Cancel. */
+/** Replace a gradient's type, angle, centerX, aspect, and stops in one shot.
+ *  Used by the editor to restore a pre-edit snapshot on Cancel. */
 export function setGradient(
   variable: string,
-  next: { type: GradientType; angle: number; centerX?: number; stops: GradientTokenStop[] },
+  next: { type: GradientType; angle: number; centerX?: number; aspectX?: number; aspectY?: number; stops: GradientTokenStop[] },
 ): void {
   mutate(`replace gradient ${variable}`, (s) => {
     const t = findGradient(s, variable);
@@ -117,6 +144,8 @@ export function setGradient(
     t.type = next.type;
     t.angle = next.angle;
     t.centerX = next.centerX;
+    t.aspectX = next.aspectX;
+    t.aspectY = next.aspectY;
     t.stops = next.stops.map((st) => ({ ...st }));
   });
 }
@@ -139,6 +168,19 @@ export function setGradientCenterX(variable: string, centerX: number): void {
   mutate(`set gradient center ${variable}`, (s) => {
     const t = findGradient(s, variable);
     if (t) t.centerX = centerX;
+  });
+}
+
+export function setGradientAspect(variable: string, aspect: { x: number; y: number }): void {
+  mutate(`set gradient aspect ${variable}`, (s) => {
+    const t = findGradient(s, variable);
+    if (!t) return;
+    // Drop axes that equal 1 (the legacy circle baseline) so the persisted
+    // shape stays minimal and old data round-trips unchanged.
+    if (aspect.x === 1) delete t.aspectX;
+    else t.aspectX = aspect.x;
+    if (aspect.y === 1) delete t.aspectY;
+    else t.aspectY = aspect.y;
   });
 }
 

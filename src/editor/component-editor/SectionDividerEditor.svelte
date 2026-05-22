@@ -277,6 +277,8 @@
                 angle: ref.value.angle,
                 ...(ref.value.radius !== undefined ? { radius: ref.value.radius } : {}),
                 ...(ref.value.centerX !== undefined ? { centerX: ref.value.centerX } : {}),
+                ...(ref.value.aspectX !== undefined ? { aspectX: ref.value.aspectX } : {}),
+                ...(ref.value.aspectY !== undefined ? { aspectY: ref.value.aspectY } : {}),
                 stops,
               },
             };
@@ -484,18 +486,22 @@
   .gradient-section-label {
     display: block;
     margin-top: var(--ui-space-8);
+    margin-bottom: var(--ui-space-12);
     font-size: var(--ui-font-size-md);
     font-weight: 500;
     color: var(--ui-text-primary);
   }
 
-  /* Align the background gradient editor with the preview container above so
-     they read as a single column. Mirrors ShadowBackdrop's two-column grid:
-     left inset matches backdrop-content's padding-left (1.5rem); right inset
-     reserves the canvas-toolbar column (11rem) + its shadow-backdrop-controls
-     padding (16px) + backdrop-content's right padding (32px). When the
-     variant-group collapses below 32rem the canvas-toolbar stacks above and
-     the controls column disappears — drop the right reservation to match. */
+  /* Match the preview's content area above so the ribbon's left/right
+     edges line up end-to-end with the section divider preview. Mirrors
+     ShadowBackdrop's two-column grid:
+     - padding-left: matches backdrop-content's left padding (1.5rem)
+     - padding-right: reserves the canvas-toolbar column to the right
+       (11rem + its shadow-backdrop-controls padding 16px + backdrop-
+       content's right padding 32px).
+     When the variant-group collapses below 32rem the canvas-toolbar
+     stacks above and the right column disappears — drop the right
+     reservation to match. */
   .gradient-bg-section {
     padding-left: 1.5rem;
     padding-right: calc(11rem + 16px + 32px);
