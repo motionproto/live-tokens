@@ -42,7 +42,6 @@ cat > "$SMOKE_DIR/package.json" <<EOF
     "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "sass": "^1.98.0",
     "svelte": "^5.55.5",
-    "svelte-preprocess": "^6.0.3",
     "typescript": "~5.9.3",
     "vite": "^7.3.3"
   }
@@ -51,13 +50,12 @@ EOF
 
 cat > "$SMOKE_DIR/vite.config.ts" <<'EOF'
 import { defineConfig } from 'vite';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
-import preprocess from 'svelte-preprocess';
+import { svelte, vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 // Deliberately NO `css: 'injected'` workaround — a fresh consumer should not
 // need it. If the build fails here, the library's CSS isolation is broken.
 export default defineConfig({
-  plugins: [svelte({ preprocess: preprocess() })],
+  plugins: [svelte({ preprocess: vitePreprocess() })],
 });
 EOF
 
