@@ -71,51 +71,125 @@
   });
 </script>
 
-<div class="section-divider variant-{variant}">
-  <span class="divider-eyebrow">{eyebrow ?? ''}</span>
-  <span class="sd-hairline sd-hairline--row sd-hairline-above-label" aria-hidden="true"></span>
-  <div class="title-row">
-    <span class="sd-hairline sd-hairline--side sd-hairline-through-label" aria-hidden="true"></span>
-    <span class="title-inline">
-      <svg
-        bind:this={svgEl}
-        class="divider-label"
-        width={svgW || undefined}
-        height={svgH || undefined}
-        viewBox={svgW && svgH ? `${svgX} ${svgY} ${svgW} ${svgH}` : undefined}
-        aria-label={title}
-        role="img"
-      >
-        <defs>
-          <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
-            <feMorphology in="SourceAlpha" operator="dilate" radius={outlineRadius} result="dilated" />
-            <feFlood flood-color={outlineColor} result="color" />
-            <feComposite in="color" in2="dilated" operator="in" result="outline" />
-            <feComposite in="SourceGraphic" in2="outline" operator="over" />
-          </filter>
-        </defs>
-        <text
-          bind:this={svgTextEl}
-          x="0"
-          y="0"
-          dominant-baseline="hanging"
-          filter="url(#{filterId})"
-        >{title}</text>
-      </svg>
-    </span>
-    <span class="sd-hairline sd-hairline--side sd-hairline-through-label" aria-hidden="true"></span>
+<!-- In dev, render every variant-controlled block so the editor can flip
+     intrinsics live; CSS hides the unused ones via container style queries.
+     In prod, Vite folds `import.meta.env.DEV` to `false` and strips the dev
+     branch; the else branch's PRUNE_FOR markers are resolved by the
+     `buildPruneReplace` preprocessor (vite-plugin/pruneMarkers/) into static
+     `{#if variant === ...}` guards driven by the production component-config. -->
+{#if import.meta.env.DEV}
+  <div class="section-divider variant-{variant}">
+    <span class="divider-eyebrow">{eyebrow ?? ''}</span>
+    <span class="sd-hairline sd-hairline--row sd-hairline-above-label" aria-hidden="true"></span>
+    <div class="title-row">
+      <span class="sd-hairline sd-hairline--side sd-hairline-through-label" aria-hidden="true"></span>
+      <span class="title-inline">
+        <svg
+          bind:this={svgEl}
+          class="divider-label"
+          width={svgW || undefined}
+          height={svgH || undefined}
+          viewBox={svgW && svgH ? `${svgX} ${svgY} ${svgW} ${svgH}` : undefined}
+          aria-label={title}
+          role="img"
+        >
+          <defs>
+            <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
+              <feMorphology in="SourceAlpha" operator="dilate" radius={outlineRadius} result="dilated" />
+              <feFlood flood-color={outlineColor} result="color" />
+              <feComposite in="color" in2="dilated" operator="in" result="outline" />
+              <feComposite in="SourceGraphic" in2="outline" operator="over" />
+            </filter>
+          </defs>
+          <text
+            bind:this={svgTextEl}
+            x="0"
+            y="0"
+            dominant-baseline="hanging"
+            filter="url(#{filterId})"
+          >{title}</text>
+        </svg>
+      </span>
+      <span class="sd-hairline sd-hairline--side sd-hairline-through-label" aria-hidden="true"></span>
+    </div>
+    <span class="sd-hairline sd-hairline--row sd-hairline-below-label" aria-hidden="true"></span>
+    <span class="sd-hairline sd-hairline--row sd-hairline-above-description" aria-hidden="true"></span>
+    <div class="description-row">
+      <span class="sd-hairline sd-hairline--side sd-hairline-through-description" aria-hidden="true"></span>
+      <span class="description-inline">
+        <p class="divider-description">{description ?? ''}</p>
+      </span>
+      <span class="sd-hairline sd-hairline--side sd-hairline-through-description" aria-hidden="true"></span>
+    </div>
+    <span class="sd-hairline sd-hairline--row sd-hairline-below-description" aria-hidden="true"></span>
   </div>
-  <span class="sd-hairline sd-hairline--row sd-hairline-below-label" aria-hidden="true"></span>
-  <span class="sd-hairline sd-hairline--row sd-hairline-above-description" aria-hidden="true"></span>
-  <div class="description-row">
-    <span class="sd-hairline sd-hairline--side sd-hairline-through-description" aria-hidden="true"></span>
-    <span class="description-inline">
-      <p class="divider-description">{description ?? ''}</p>
-    </span>
-    <span class="sd-hairline sd-hairline--side sd-hairline-through-description" aria-hidden="true"></span>
+{:else}
+  <div class="section-divider variant-{variant}">
+    <!--PRUNE_FOR sectiondivider eyebrow-display != none default=none-->
+    <span class="divider-eyebrow">{eyebrow ?? ''}</span>
+    <!--END_PRUNE-->
+    <!--PRUNE_FOR sectiondivider hairline == above-label default=none-->
+    <span class="sd-hairline sd-hairline--row sd-hairline-above-label" aria-hidden="true"></span>
+    <!--END_PRUNE-->
+    <div class="title-row">
+      <!--PRUNE_FOR sectiondivider hairline == through-label default=none-->
+      <span class="sd-hairline sd-hairline--side sd-hairline-through-label" aria-hidden="true"></span>
+      <!--END_PRUNE-->
+      <span class="title-inline">
+        <svg
+          bind:this={svgEl}
+          class="divider-label"
+          width={svgW || undefined}
+          height={svgH || undefined}
+          viewBox={svgW && svgH ? `${svgX} ${svgY} ${svgW} ${svgH}` : undefined}
+          aria-label={title}
+          role="img"
+        >
+          <defs>
+            <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
+              <feMorphology in="SourceAlpha" operator="dilate" radius={outlineRadius} result="dilated" />
+              <feFlood flood-color={outlineColor} result="color" />
+              <feComposite in="color" in2="dilated" operator="in" result="outline" />
+              <feComposite in="SourceGraphic" in2="outline" operator="over" />
+            </filter>
+          </defs>
+          <text
+            bind:this={svgTextEl}
+            x="0"
+            y="0"
+            dominant-baseline="hanging"
+            filter="url(#{filterId})"
+          >{title}</text>
+        </svg>
+      </span>
+      <!--PRUNE_FOR sectiondivider hairline == through-label default=none-->
+      <span class="sd-hairline sd-hairline--side sd-hairline-through-label" aria-hidden="true"></span>
+      <!--END_PRUNE-->
+    </div>
+    <!--PRUNE_FOR sectiondivider hairline == below-label default=none-->
+    <span class="sd-hairline sd-hairline--row sd-hairline-below-label" aria-hidden="true"></span>
+    <!--END_PRUNE-->
+    <!--PRUNE_FOR sectiondivider hairline == above-description default=none-->
+    <span class="sd-hairline sd-hairline--row sd-hairline-above-description" aria-hidden="true"></span>
+    <!--END_PRUNE-->
+    <!--PRUNE_FOR sectiondivider description-display != none default=flex-->
+    <div class="description-row">
+      <!--PRUNE_FOR sectiondivider hairline == through-description default=none-->
+      <span class="sd-hairline sd-hairline--side sd-hairline-through-description" aria-hidden="true"></span>
+      <!--END_PRUNE-->
+      <span class="description-inline">
+        <p class="divider-description">{description ?? ''}</p>
+      </span>
+      <!--PRUNE_FOR sectiondivider hairline == through-description default=none-->
+      <span class="sd-hairline sd-hairline--side sd-hairline-through-description" aria-hidden="true"></span>
+      <!--END_PRUNE-->
+    </div>
+    <!--END_PRUNE-->
+    <!--PRUNE_FOR sectiondivider hairline == below-description default=none-->
+    <span class="sd-hairline sd-hairline--row sd-hairline-below-description" aria-hidden="true"></span>
+    <!--END_PRUNE-->
   </div>
-  <span class="sd-hairline sd-hairline--row sd-hairline-below-description" aria-hidden="true"></span>
-</div>
+{/if}
 
 <style>
   /* Each size variant owns its full token set: typography, geometry, colors

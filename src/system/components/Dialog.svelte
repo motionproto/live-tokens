@@ -2,13 +2,24 @@
   import { createEventDispatcher, tick } from 'svelte';
   import type { Snippet } from 'svelte';
   import Button from './Button.svelte';
-  import { editorState } from '../../editor/core/store/editorStore';
   import type { ButtonVariant, DialogButtonSpec } from './types';
 
   const BUTTON_VARIANTS: readonly ButtonVariant[] = ['primary', 'secondary', 'outline', 'success', 'danger', 'warning'];
   function asVariant(v: string | undefined, fallback: ButtonVariant): ButtonVariant {
     return v && (BUTTON_VARIANTS as readonly string[]).includes(v) ? (v as ButtonVariant) : fallback;
   }
+
+  // Read the configured Button variants from :root. The editor mutates these
+  // inline on documentElement via cssVarSync; a MutationObserver picks the
+  // changes up without coupling this component to the editor module graph.
+  // In production the var lives in the generated stylesheet and never
+  // changes, so the observer registers but never fires.
+  function readCssVar(name: string): string {
+    if (typeof document === 'undefined') return '';
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+  let confirmVarValue = $state(readCssVar('--dialog-confirm-variant'));
+  let cancelVarValue = $state(readCssVar('--dialog-cancel-variant'));
 
   interface Props {
     show?: boolean;
@@ -39,9 +50,8 @@
     children,
   }: Props = $props();
 
-  let configuredConfig = $derived($editorState.components.dialog?.config ?? {});
-  let effectiveConfirmVariant = $derived(confirm?.variant ?? asVariant(configuredConfig['--dialog-confirm-variant'] as string | undefined, 'primary'));
-  let effectiveCancelVariant = $derived(cancel?.variant ?? asVariant(configuredConfig['--dialog-cancel-variant'] as string | undefined, 'outline'));
+  let effectiveConfirmVariant = $derived(confirm?.variant ?? asVariant(confirmVarValue, 'primary'));
+  let effectiveCancelVariant = $derived(cancel?.variant ?? asVariant(cancelVarValue, 'outline'));
 
   // Dual-fire bridge — see Button.svelte for the deprecation timeline.
   const dispatch = createEventDispatcher<{
@@ -51,6 +61,16 @@
   let confirmButtonRef: HTMLButtonElement = $state()!;
   let cancelButtonRef: HTMLButtonElement = $state()!;
   let closeButtonRef: HTMLButtonElement = $state()!;
+
+  $effect(() => {
+    if (typeof document === 'undefined') return;
+    const obs = new MutationObserver(() => {
+      confirmVarValue = readCssVar('--dialog-confirm-variant');
+      cancelVarValue = readCssVar('--dialog-cancel-variant');
+    });
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
+    return () => obs.disconnect();
+  });
 
   // Focus the primary button when dialog opens (skip in inline mode so the editor doesn't steal focus).
   $effect(() => {

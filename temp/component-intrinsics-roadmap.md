@@ -94,12 +94,64 @@ Combined: components carry a dev branch (`{#if import.meta.env.DEV}` — full ma
 
 ## Phase 3 — Pattern extension (optional, later)
 
-After phase 2 the pattern exists. We apply it where it adds value:
+After phase 2 the pattern exists. Phase 3 is where it spreads. Two threads sit underneath: a one-shot Dialog refactor that retires the last live `editorState` subscription, and an ongoing playbook for any future component that needs per-variant intrinsics.
 
-- **Dialog audit.** Today `Dialog.svelte:5,42-44` is the only other live component that pulls intrinsics from `editorState` — the `confirm-variant` / `cancel-variant` fallback. The category is the same anti-pattern phase 1 retired for SectionDivider, but the shape is different (Button variant is a CSS class, not a CSS property). Worth its own audit doc before rewriting. **Not gating phase 2** — Dialog works today, just via the subscription pattern we now consider a smell.
-- **Future components.** Any new component that needs per-variant structural variation (show/hide elements, mutually exclusive positions, etc.) follows the same playbook: encode as CSS vars + markup-always-rendered + `display: var(...)` in phase 1; add `PRUNE_FOR` markers when shipping. No invention required per component.
+### Phase 3a — Dialog audit and refactor (~1 day)
 
-**Time:** Dialog audit + refactor ~1 day. Other components case by case.
+**Detail doc:** to be written. Proposed path `temp/dialog-intrinsics-audit.md`. Per the audit-doc-first workflow, write and discuss the audit before touching code.
+
+**Goal:** retire the last `editorState` subscription on a live component path. `Dialog.svelte:5,42-44` pulls `--dialog-confirm-variant` and `--dialog-cancel-variant` from `editorState`. Same anti-pattern phase 1 retired for SectionDivider, but with a structural twist that needs its own design.
+
+**Why it can't reuse SectionDivider's playbook directly:** SectionDivider's intrinsics map to CSS properties (`display`, `text-align`). Dialog's intrinsics map to Button variant *names*, strings consumed by `<Button variant={...} />` that expand into CSS classes inside Button.svelte. CSS vars can carry the string on `:root`, but Dialog still has to read that string in JS to pass it to a child. The pipeline:
+
+1. CSS var carries the variant name on `:root`, written by the editor mutator the same way phase 1 writes display/alignment vars.
+2. Dialog reads the variant name in a `$derived` and forwards it to `<Button>`.
+3. The read replaces the `$editorState` subscription. The cascade is the bus; CSS is the storage. Iframe fan-out via `cssVarSync` is already covered by the existing infrastructure.
+
+**Open audit questions** (to settle in the audit doc, not here):
+
+1. **How does Dialog read the CSS var reactively?** `getComputedStyle` is not reactive on its own. Three candidates: (a) a small invalidation signal alongside `cssVarSync` that Dialog subscribes to; (b) a `MutationObserver` on `:root`'s `style` attribute; (c) read once at mount and accept that the editor preview continues to use `editorState` directly while production reads CSS. Option (c) is the cleanest split if we accept the editor preview as its own thing.
+2. **Scope of intrinsics covered.** Beyond confirm/cancel variant, are there other Dialog properties worth encoding the same way (close-button visibility, header alignment, footer layout)? Settle upfront so the migration covers them in one pass instead of trickling.
+3. **`asVariant` fallback.** Today `Dialog.svelte:9-11` validates the string against `BUTTON_VARIANTS`. Keep that validation, or trust the editor to write only valid values? Probably keep, but flag it.
+
+**Specific work** (after the audit doc lands and questions resolve):
+
+1. New migration `2026-MM-DD-dialog-intrinsics-to-css.ts` that maps `--dialog-confirm-variant` / `--dialog-cancel-variant` from the editor's `components.dialog.config` slice onto `:root` CSS vars. Same shape as the phase 1 migration.
+2. `Dialog.svelte` rewrite: drop the `editorState` import, replace lines 42-44 with the chosen reactive read.
+3. `DialogEditor.svelte` mutator rewrite to write the new keys.
+4. `KNOWN_COMPONENT_CONFIG_KEYS` (componentConfigKeys.ts) update.
+5. Verify on `/demo`: edit the confirm variant in the editor, see every Dialog instance pick up the new variant live.
+
+**What ships:** Dialog joins SectionDivider on the cascading-vars pipeline. The `editorState` import in `Dialog.svelte` is gone. No live component path subscribes to `editorState` for intrinsics. The anti-pattern is fully retired across the component set, which is the credibility moment the roadmap exists to reach.
+
+**Out of scope for 3a:** Generalizing the CSS-var-string-read into a shared helper. Build-time pruning for Dialog (it does not hide markup per variant, so `PRUNE_FOR` does not apply). Refactoring `cssVarSync` itself.
+
+### Phase 3b — Future components (case-by-case)
+
+**Goal:** when a new component needs per-variant intrinsics, the playbook is in place. No bespoke design per component.
+
+**The playbook** (one-page reference doc, written once 3a lands, proposed path `docs/component-intrinsics-playbook.md`):
+
+| Intrinsic shape | Pattern | Reference component |
+|---|---|---|
+| Visual property (`display`, `text-align`, position) | Phase 1 pattern. Encode as CSS var on `:root`, render markup unconditionally, switch via `display: var(...)` etc. | SectionDivider |
+| String consumed by a child component (variant name, class) | Phase 3a pattern. Same `:root` storage, reactive read in JS, forward to child. | Dialog |
+| Markup that must not ship in prod for that variant | Phase 2 markers. `<!--PRUNE_FOR ...-->` ... `<!--END_PRUNE-->` around the block. | SectionDivider (per-variant hairline markup) |
+
+A new component picks one or more of the three patterns based on intrinsic shape. No new infrastructure per component.
+
+**Specific work** (per future component, when one arrives):
+
+1. Identify which intrinsics are per-variant and classify each by row above.
+2. Add config keys to `KNOWN_COMPONENT_CONFIG_KEYS`.
+3. Author the component using the matching pattern(s).
+4. If using row 3, add `PRUNE_FOR` markers and verify the prod bundle.
+
+**What ships:** a documented, repeatable path. Estimated cost per component: a few hours to a day depending on intrinsic count. No invention.
+
+**Out of scope for 3b:** preemptively retrofitting components that do not need it today. The playbook is pull, not push. Existing components that work fine stay as they are.
+
+**Time:** Phase 3a ~1 day. Phase 3b is per-component when triggered; no standing time.
 
 ---
 
@@ -119,17 +171,25 @@ Phase 2 (Build-time pruning)
    └─ SHIPS: clean prod DOM, pattern reusable
               │
               ▼
-Phase 3 (Dialog audit, future components)
-   └─ Optional, applied per-need
+Phase 3a (Dialog audit + refactor)
+   ├─ Audit doc settles 3 questions
+   ├─ ~1 day
+   └─ SHIPS: Dialog off subscription; anti-pattern retired across live components
+              │
+              ▼
+Phase 3b (Future components)
+   └─ Playbook reference doc; applied per-need
 ```
 
 **Hard dependencies:**
 - Phase 2 depends on phase 1's CSS-var encoding (the prod-config keys it reads are written by phase 1's mutators).
-- Phase 3 depends on phase 2 having proven the pattern. Until then Dialog stays on its current subscription path.
+- Phase 3a depends on phase 1's CSS-var pipeline being in place. It does *not* depend on phase 2 (Dialog has no markup to prune), so if priorities shift, 3a can run directly after phase 1.
+- Phase 3b depends on 3a and phase 2 both having shipped, so the playbook can point at concrete reference implementations for all three intrinsic shapes.
 
 **Soft pause points:**
 - After phase 1: the user-visible problem is solved. Pausing here leaves `display: none` ghosts in the DOM but doesn't break anything.
 - After phase 2: the package's promises are delivered. Pausing here leaves Dialog on its legacy subscription path, but that path works and is well-isolated.
+- After phase 3a: every live component reads intrinsics from the cascade. Pausing here is the natural stopping point; 3b is reactive to future component needs.
 
 ---
 
@@ -139,9 +199,12 @@ Phase 3 (Dialog audit, future components)
 |---|---|---|---|
 | Phase 1 | 6 hrs | 1 day | 1 day |
 | Phase 2 | 1 day | 1.5 days | 3 days |
-| **Total** | **~1.5 days** | **~2.5 days** | **~4 days** |
+| Phase 3a | 6 hrs | 1 day | 1 day |
+| **Total (1 + 2 + 3a)** | **~2 days** | **~3.5 days** | **~5 days** |
 
-I'd budget **3 days** to be honest. That covers both phases at realistic pace, plus a half-day buffer for the kind of incidental fixes that surface when you actually edit live code (a migration that needs an extra case, a CSS specificity surprise, etc.).
+I'd budget **3 days** for phases 1 and 2, the work the roadmap was written to scope. That covers both at realistic pace, plus a half-day buffer for the kind of incidental fixes that surface when you actually edit live code (a migration that needs an extra case, a CSS specificity surprise, etc.).
+
+Phase 3a adds roughly another day on top, and is the natural follow-up once phase 1's pipeline has settled. Phase 3b has no standing time; it activates per component, when one needs it.
 
 The two verification spikes at the start of phase 2 are the biggest uncertainty. If either fails, phase 2 grows by ~1.5 days. Worth running those spikes early in phase 1 if you want to surface that risk sooner — it costs an hour and resolves the time variance.
 

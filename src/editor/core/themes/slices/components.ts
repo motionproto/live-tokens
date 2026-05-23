@@ -33,6 +33,7 @@ import { writable, derived, get, type Readable } from 'svelte/store';
 import type { CssVarRef, EditorState } from '../../store/editorTypes';
 import { store, mutate } from '../../store/editorCore';
 import { formatGradientValue } from './gradients';
+import { CASCADING_COMPONENT_CONFIG_KEYS } from '../../components/componentConfigKeys';
 
 const EMPTY_COMPONENT_BASELINE = JSON.stringify({ aliases: {}, config: {} });
 
@@ -48,6 +49,11 @@ export function componentsToVars(components: EditorState['components']): Record<
       else if (ref.kind === 'literal') out[varName] = ref.value;
       else out[varName] = formatGradientValue(ref.value);
     }
+    for (const [key, value] of Object.entries(slice.config)) {
+      if (CASCADING_COMPONENT_CONFIG_KEYS.has(key) && typeof value === 'string') {
+        out[key] = value;
+      }
+    }
   }
   return out;
 }
@@ -56,6 +62,9 @@ export function getComponentOwnedVarNames(state: EditorState): string[] {
   const names: string[] = [];
   for (const slice of Object.values(state.components)) {
     for (const name of Object.keys(slice.aliases)) names.push(name);
+    for (const key of Object.keys(slice.config)) {
+      if (CASCADING_COMPONENT_CONFIG_KEYS.has(key)) names.push(key);
+    }
   }
   return names;
 }
