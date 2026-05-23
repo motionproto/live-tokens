@@ -21,7 +21,8 @@ import TableEditor, { allTokens as tableTokens } from './TableEditor.svelte';
 import TabBarEditor, { allTokens as tabBarTokens } from './TabBarEditor.svelte';
 import TooltipEditor, { allTokens as tooltipTokens } from './TooltipEditor.svelte';
 
-export type ComponentId =
+/** Internal narrowed union of the first-party component ids. Not exposed publicly. */
+type BuiltInComponentId =
   | 'segmentedcontrol'
   | 'button'
   | 'notification'
@@ -41,6 +42,13 @@ export type ComponentId =
   | 'tooltip'
   | 'progressbar';
 
+/**
+ * Public component id type. Widened to `string` because consumers can register
+ * their own components at runtime via `registerComponent()`. Internal code that
+ * needs to narrow to first-party ids can reference `BuiltInComponentId`.
+ */
+export type ComponentId = string;
+
 export interface RegistryEntry {
   /** Canonical id — lowercase, matches the runtime component filename + server scan + `setComponentAlias` key. */
   id: ComponentId;
@@ -54,21 +62,18 @@ export interface RegistryEntry {
   editorComponent: Component<any, any, any>;
   /** Flat token list — the editor's declarative description of its token surface. */
   schema: Token[];
+  /** `'system'` for first-party entries; `'custom'` for entries added via `registerComponent()`. */
+  origin: 'system' | 'custom';
 }
 
 /**
- * Single source of truth for every component editor. Each entry binds the
- * canonical id to its label, icon, source file, editor component, and token
- * schema. Display order in the nav rail is sorted alphabetically by label
- * (see `componentRegistryEntries` below) — order in this object literal does
- * not affect the UI.
- *
- * Adding a component:
- *   1. Author `src/components/<Name>.svelte` (declares CSS vars in `:global(:root)`)
- *   2. Author `src/component-editor/<Name>Editor.svelte` (exports `allTokens` from a `<script context="module">` block)
+ * First-party registry. Frozen; runtime additions go in `customRegistry`.
+ * Adding a first-party component:
+ *   1. Author `src/system/components/<Name>.svelte` (declares CSS vars in `:global(:root)`)
+ *   2. Author `src/editor/component-editor/<Name>Editor.svelte` (exports `allTokens`)
  *   3. Add an entry below.
  */
-export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = Object.freeze({
+const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Object.freeze({
   segmentedcontrol: {
     id: 'segmentedcontrol',
     label: 'Segmented Control',
@@ -76,6 +81,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/SegmentedControl.svelte',
     editorComponent: SegmentedControlEditor,
     schema: segmentedControlTokens,
+    origin: 'system',
   },
   button: {
     id: 'button',
@@ -84,6 +90,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/Button.svelte',
     editorComponent: StandardButtonsEditor,
     schema: buttonTokens,
+    origin: 'system',
   },
   notification: {
     id: 'notification',
@@ -92,6 +99,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/Notification.svelte',
     editorComponent: NotificationEditor,
     schema: notificationTokens,
+    origin: 'system',
   },
   dialog: {
     id: 'dialog',
@@ -100,6 +108,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/Dialog.svelte',
     editorComponent: DialogEditor,
     schema: dialogTokens,
+    origin: 'system',
   },
   radiobutton: {
     id: 'radiobutton',
@@ -108,6 +117,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/RadioButton.svelte',
     editorComponent: RadioButtonEditor,
     schema: radioButtonTokens,
+    origin: 'system',
   },
   card: {
     id: 'card',
@@ -116,6 +126,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/Card.svelte',
     editorComponent: CardEditor,
     schema: cardTokens,
+    origin: 'system',
   },
   badge: {
     id: 'badge',
@@ -124,6 +135,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/Badge.svelte',
     editorComponent: BadgeEditor,
     schema: badgeTokens,
+    origin: 'system',
   },
   callout: {
     id: 'callout',
@@ -132,6 +144,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/Callout.svelte',
     editorComponent: CalloutEditor,
     schema: calloutTokens,
+    origin: 'system',
   },
   cornerbadge: {
     id: 'cornerbadge',
@@ -140,6 +153,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/CornerBadge.svelte',
     editorComponent: CornerBadgeEditor,
     schema: cornerBadgeTokens,
+    origin: 'system',
   },
   image: {
     id: 'image',
@@ -148,6 +162,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/Image.svelte',
     editorComponent: ImageEditor,
     schema: imageTokens,
+    origin: 'system',
   },
   inlineeditactions: {
     id: 'inlineeditactions',
@@ -156,6 +171,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/InlineEditActions.svelte',
     editorComponent: InlineEditActionsEditor,
     schema: inlineEditActionsTokens,
+    origin: 'system',
   },
   menuselect: {
     id: 'menuselect',
@@ -164,6 +180,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/MenuSelect.svelte',
     editorComponent: MenuSelectEditor,
     schema: menuSelectTokens,
+    origin: 'system',
   },
   sectiondivider: {
     id: 'sectiondivider',
@@ -172,6 +189,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/SectionDivider.svelte',
     editorComponent: SectionDividerEditor,
     schema: sectionDividerTokens,
+    origin: 'system',
   },
   collapsiblesection: {
     id: 'collapsiblesection',
@@ -180,6 +198,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/CollapsibleSection.svelte',
     editorComponent: CollapsibleSectionEditor,
     schema: collapsibleSectionTokens,
+    origin: 'system',
   },
   table: {
     id: 'table',
@@ -188,6 +207,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/Table.svelte',
     editorComponent: TableEditor,
     schema: tableTokens,
+    origin: 'system',
   },
   tabbar: {
     id: 'tabbar',
@@ -196,6 +216,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/TabBar.svelte',
     editorComponent: TabBarEditor,
     schema: tabBarTokens,
+    origin: 'system',
   },
   tooltip: {
     id: 'tooltip',
@@ -204,6 +225,7 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/Tooltip.svelte',
     editorComponent: TooltipEditor,
     schema: tooltipTokens,
+    origin: 'system',
   },
   progressbar: {
     id: 'progressbar',
@@ -212,34 +234,89 @@ export const componentRegistry: Readonly<Record<ComponentId, RegistryEntry>> = O
     sourceFile: 'src/system/components/ProgressBar.svelte',
     editorComponent: ProgressBarEditor,
     schema: progressBarTokens,
+    origin: 'system',
   },
 });
 
-/** Display-ordered list of registry entries — sorted alphabetically by label. Iteration order matches the nav rail. */
-export const componentRegistryEntries: ReadonlyArray<RegistryEntry> = Object.freeze(
-  Object.values(componentRegistry).sort((a, b) => a.label.localeCompare(b.label)),
-);
+/** Mutable map of consumer-registered components, populated by `registerComponent()`. */
+const customRegistry = new Map<string, RegistryEntry>();
 
-/** All canonical component ids, in display order. */
-export const componentIds: ReadonlyArray<ComponentId> = Object.freeze(
-  componentRegistryEntries.map((e) => e.id),
-);
+/** Argument shape for `registerComponent()`. `origin` is set internally to `'custom'`. */
+export type RegisterComponentEntry = Omit<RegistryEntry, 'origin'>;
 
-// Eager schema registration. Replaces the side-effect-on-import pattern that
-// each editor module previously used (top-of-script `registerComponentSchema(...)`).
-// Runs once at module load, before any editor instance mounts.
-for (const entry of componentRegistryEntries) {
+/**
+ * Register a consumer-authored component at runtime. Call from `main.ts`
+ * before app mount.
+ *
+ * Collision rule: if `entry.id` matches a built-in id, a warning is logged and
+ * the custom entry wins (the custom editor and schema replace the built-in for
+ * the rest of the session).
+ *
+ * Side effect: registers the schema with the editor store so reset-to-default
+ * and sibling-group resolution work for the new component.
+ */
+export function registerComponent(entry: RegisterComponentEntry): void {
+  if (entry.id in builtInRegistry) {
+    console.warn(
+      `[registerComponent] custom component "${entry.id}" overrides a built-in. The custom editor will be used.`,
+    );
+  }
+  const stored: RegistryEntry = { ...entry, origin: 'custom' };
+  customRegistry.set(entry.id, stored);
   registerComponentSchema(entry.id, entry.schema);
 }
 
 /**
- * Validate that the server's filesystem scan matches the registry's id list.
+ * Merged registry: built-ins overlaid with customs (custom wins on id collision).
+ * Recomputed on each call so callers see runtime registrations made after their
+ * own module-load order.
+ */
+export function getComponentRegistry(): Readonly<Record<string, RegistryEntry>> {
+  const merged: Record<string, RegistryEntry> = { ...builtInRegistry };
+  for (const [id, entry] of customRegistry) {
+    merged[id] = entry;
+  }
+  return merged;
+}
+
+/**
+ * Display-ordered entries: system first (alphabetical by label), then custom
+ * (alphabetical by label). Iteration order matches the nav rail's grouping.
+ * The nav rail renders a divider between the two groups when customs exist.
+ */
+export function getComponentRegistryEntries(): ReadonlyArray<RegistryEntry> {
+  const merged = getComponentRegistry();
+  const system: RegistryEntry[] = [];
+  const custom: RegistryEntry[] = [];
+  for (const entry of Object.values(merged)) {
+    (entry.origin === 'system' ? system : custom).push(entry);
+  }
+  system.sort((a, b) => a.label.localeCompare(b.label));
+  custom.sort((a, b) => a.label.localeCompare(b.label));
+  return [...system, ...custom];
+}
+
+/** All component ids, in display order. */
+export function getComponentIds(): ReadonlyArray<string> {
+  return getComponentRegistryEntries().map((e) => e.id);
+}
+
+// Eager schema registration for built-ins. Customs register lazily inside
+// `registerComponent()` so the store knows about every component before any
+// editor instance mounts.
+for (const entry of Object.values(builtInRegistry)) {
+  registerComponentSchema(entry.id, entry.schema);
+}
+
+/**
+ * Validate that the server's filesystem scan matches the merged registry's id list.
  * Logs a warning when ids drift. Called at boot from the editor page.
  */
 export function validateRegistryAgainstServerScan(serverIds: ReadonlyArray<string>): void {
-  const registrySet = new Set<string>(componentIds);
+  const ids = getComponentIds();
+  const registrySet = new Set<string>(ids);
   const serverSet = new Set<string>(serverIds);
-  const missingOnServer = componentIds.filter((id) => !serverSet.has(id));
+  const missingOnServer = ids.filter((id) => !serverSet.has(id));
   const extraOnServer = serverIds.filter((id) => !registrySet.has(id));
   if (missingOnServer.length > 0) {
     console.warn(

@@ -7,7 +7,13 @@ export { configureEditor, storageKey } from './core/store/editorConfig';
 export { activeFileName } from './core/store/editorConfigStore';
 export { init as initRouter, route, navigate } from './core/routing/router';
 export { init as initCssVarSync } from './core/cssVarSync';
-export { init as initEditorStore } from './core/store/editorStore';
+export {
+  init as initEditorStore,
+  editorState,
+  setComponentAlias,
+  setComponentConfig,
+  registerComponentSchema,
+} from './core/store/editorStore';
 
 export { setCssVar, removeCssVar } from './core/cssVarSync';
 
@@ -67,3 +73,6 @@ export { hexToOklch, oklchToHex, gamutClamp } from './core/palettes/oklch';
 export type { Oklch } from './core/palettes/oklch';
 
 export { initializeTheme } from './core/themes/themeInit';
+
+export { registerComponent } from './component-editor/registry';
+export type { RegisterComponentEntry, RegistryEntry, ComponentId } from './component-editor/registry';

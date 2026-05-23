@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildTokenRegistry, extractGlobalRootBody } from '../core/palettes/tokenRegistry';
-import { componentRegistryEntries } from './registry';
+import { getComponentRegistryEntries } from './registry';
 
 const TEST_DIR = dirname(fileURLToPath(import.meta.url));
 const TOKENS_CSS = join(TEST_DIR, '..', '..', 'system', 'styles', 'tokens.css');
@@ -40,7 +40,7 @@ function isLayer1TokenName(name: string): boolean {
 // missed. See registry.ts for how each editor exports its full token list via
 // `<script context="module">`.
 const editorTokenCases: Array<{ editor: string; variable: string }> = [];
-for (const entry of componentRegistryEntries) {
+for (const entry of getComponentRegistryEntries()) {
   for (const t of entry.schema) {
     // `hidden: true` tokens are optional override slots (e.g. split-padding's
     // per-side overrides used as `var(--x, fallback)` by the themed-padding

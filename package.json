@@ -23,9 +23,12 @@
     "src/system",
     "src/app/site.css",
     "dist-plugin",
+    ".claude/skills",
     "!**/*.test.ts",
     "!**/*.spec.ts",
-    "!**/__tests__/**"
+    "!**/__tests__/**",
+    "!src/system/components/Stat.svelte",
+    "!src/system/components/StatEditor.svelte"
   ],
   "exports": {
     ".": {

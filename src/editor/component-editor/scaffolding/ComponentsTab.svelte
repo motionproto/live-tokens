@@ -1,13 +1,13 @@
 <script lang="ts">
   import type { ComponentSection } from './componentSectionType';
-  import { defaultSections } from './defaultSections';
+  import { getDefaultSections } from './defaultSections';
 
   interface Props {
     sections?: ComponentSection[];
     selectedComponent?: string;
   }
 
-  let { sections = defaultSections, selectedComponent = sections[0]?.id ?? '' }: Props = $props();
+  let { sections = getDefaultSections(), selectedComponent = sections[0]?.id ?? '' }: Props = $props();
 </script>
 
 <div class="components-container">

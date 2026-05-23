@@ -17,6 +17,12 @@ import * as editorStore from '../editor/core/store/editorStore';
 import App from './App.svelte';
 import { mount } from "svelte";
 
+// Smoke-test custom component. Registered DEV-only so it appears in /components
+// under the CUSTOM group without shipping in production builds. Stat.svelte and
+// StatEditor.svelte are also excluded from the published npm tarball.
+import { registerComponent } from '@motion-proto/live-tokens';
+import StatEditor, { allTokens as statTokens } from '../system/components/StatEditor.svelte';
+
 /**
  * Single boot orchestration point — call each module's idempotent `init()`
  * once. Module-load side effects (DOM reads, storage subscriptions, eager
@@ -32,6 +38,14 @@ async function boot() {
   editorStore.init();
 
   if (import.meta.env.DEV) {
+    registerComponent({
+      id: 'stat',
+      label: 'Stat',
+      icon: 'fas fa-chart-simple',
+      sourceFile: 'src/system/components/Stat.svelte',
+      editorComponent: StatEditor,
+      schema: statTokens,
+    });
     await initializeTheme();
   }
   mount(App, { target: document.getElementById('app')! });

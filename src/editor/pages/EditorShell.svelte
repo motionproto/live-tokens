@@ -13,7 +13,7 @@
   import { editorState } from '../core/store/editorStore';
   import { editorView, sidebarCondensed, selectedComponent } from '../core/store/editorViewStore';
   import { componentDirty } from '../core/store/editorStore';
-  import { componentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
+  import { getComponentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
   import { listComponents } from '../core/components/componentConfigService';
 
   const tokenNavItems = [
@@ -29,7 +29,9 @@
     { id: 'utility-tokens', label: 'Utility Tokens', icon: 'fas fa-sliders' }
   ];
 
-  const componentNavItems = componentRegistryEntries.map(({ id, label, icon }) => ({ id, label, icon }));
+  const allComponentNavItems = getComponentRegistryEntries().map(({ id, label, icon, origin }) => ({ id, label, icon, origin }));
+  const systemNavItems = allComponentNavItems.filter((i) => i.origin === 'system');
+  const customNavItems = allComponentNavItems.filter((i) => i.origin === 'custom');
 
   let selectedTokenSection: string | null = $state(null);
   let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = $state('idle');
@@ -149,7 +151,7 @@
       {/if}
     {:else}
       <div class="nav-items">
-        {#each componentNavItems as item}
+        {#each systemNavItems as item}
           <button
             class="nav-item"
             class:active={$selectedComponent === item.id}
@@ -165,6 +167,27 @@
             {/if}
           </button>
         {/each}
+        {#if customNavItems.length > 0}
+          <div class="nav-divider">
+            <span class="nav-divider-label">Custom</span>
+          </div>
+          {#each customNavItems as item}
+            <button
+              class="nav-item"
+              class:active={$selectedComponent === item.id}
+              class:dirty={$componentDirty[item.id]}
+              onmouseenter={(e) => showHint(item.label, e.currentTarget)}
+              onmouseleave={hideHint}
+              onclick={() => selectComponent(item.id)}
+            >
+              <i class={item.icon}></i>
+              <span class="nav-label">{item.label}</span>
+              {#if $componentDirty[item.id]}
+                <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
+              {/if}
+            </button>
+          {/each}
+        {/if}
       </div>
       {#if !condensed}
         <div class="sidebar-footer">
@@ -246,6 +269,33 @@
     gap: var(--ui-space-2);
     padding: var(--ui-space-4) 0 var(--ui-space-16);
     flex-shrink: 0;
+  }
+
+  /* Divider between SYSTEM and CUSTOM groups. The horizontal line uses the
+     dimmer border token (sub-element separator), with an uppercase eyebrow
+     label that fades out when the rail is condensed so the line still reads. */
+  .nav-divider {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    align-items: center;
+    height: 28px;
+    margin-top: var(--ui-space-8);
+    border-top: 1px solid var(--ui-border-low);
+  }
+
+  .nav-divider-label {
+    grid-column: 2;
+    font-size: var(--ui-font-size-xs);
+    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 1;
+    transition: opacity 180ms ease;
+  }
+
+  .layout.condensed .nav-divider-label {
+    opacity: 0;
   }
 
   .nav-item {

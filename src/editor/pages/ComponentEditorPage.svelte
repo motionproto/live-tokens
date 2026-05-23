@@ -5,7 +5,7 @@
   import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
   import ManifestFileManager from '../ui/ManifestFileManager.svelte';
   import { navigate } from '../core/routing/router';
-  import { componentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
+  import { getComponentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
   import { listComponents } from '../core/components/componentConfigService';
   import { selectedComponent } from '../core/store/editorViewStore';
   import { componentDirty } from '../core/store/editorStore';
@@ -96,7 +96,9 @@
     window.removeEventListener('keydown', handleKeydown);
   });
 
-  const componentNavItems = componentRegistryEntries.map(({ id, label, icon }) => ({ id, label, icon }));
+  const allComponentNavItems = getComponentRegistryEntries().map(({ id, label, icon, origin }) => ({ id, label, icon, origin }));
+  const systemNavItems = allComponentNavItems.filter((i) => i.origin === 'system');
+  const customNavItems = allComponentNavItems.filter((i) => i.origin === 'custom');
 </script>
 
 <!--
@@ -146,7 +148,7 @@
       {/if}
     </div>
     <div class="nav-items">
-      {#each componentNavItems as item}
+      {#each systemNavItems as item}
         <button
           class="nav-item"
           class:active={$selectedComponent === item.id}
@@ -162,6 +164,27 @@
           {/if}
         </button>
       {/each}
+      {#if customNavItems.length > 0}
+        <div class="nav-divider">
+          <span class="nav-divider-label">Custom</span>
+        </div>
+        {#each customNavItems as item}
+          <button
+            class="nav-item"
+            class:active={$selectedComponent === item.id}
+            class:dirty={$componentDirty[item.id]}
+            onmouseenter={(e) => showHint(item.label, e.currentTarget)}
+            onmouseleave={hideHint}
+            onclick={() => selectComponent(item.id)}
+          >
+            <i class={item.icon}></i>
+            <span class="rail-label">{item.label}</span>
+            {#if $componentDirty[item.id]}
+              <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
+            {/if}
+          </button>
+        {/each}
+      {/if}
     </div>
     {#if drawerOpen}
       <div class="sidebar-footer">
@@ -329,6 +352,33 @@
     gap: var(--ui-space-2);
     padding: 0 0 var(--ui-space-16);
     background: black;
+  }
+
+  /* Divider between SYSTEM and CUSTOM groups. The horizontal line uses the
+     dimmer border token (sub-element separator), with an uppercase eyebrow
+     label that fades out when the rail is collapsed so the line still reads. */
+  .nav-divider {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    align-items: center;
+    height: 28px;
+    margin-top: var(--ui-space-8);
+    border-top: 1px solid var(--ui-border-low);
+  }
+
+  .nav-divider-label {
+    grid-column: 2;
+    font-size: var(--ui-font-size-xs);
+    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0;
+    transition: opacity 180ms ease;
+  }
+
+  .components-shell.rail-expanded .nav-divider-label {
+    opacity: 1;
   }
 
   .sidebar-footer {

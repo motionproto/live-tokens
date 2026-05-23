@@ -14,7 +14,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { componentRegistryEntries } from './registry';
+import { getComponentRegistryEntries } from './registry';
 
 const SNAPSHOT_PATH = path.resolve(__dirname, '../../../temp/groupkey-snapshot.json');
 
@@ -25,7 +25,7 @@ function effectiveGroupKey(_component: string, _variable: string, explicit: stri
 
 function computeSnapshot(): Record<string, Record<string, string[]>> {
   const out: Record<string, Record<string, string[]>> = {};
-  for (const entry of componentRegistryEntries) {
+  for (const entry of getComponentRegistryEntries()) {
     const groups: Record<string, string[]> = {};
     for (const t of entry.schema as Array<{ variable: string; groupKey?: string }>) {
       const gk = effectiveGroupKey(entry.id, t.variable, t.groupKey);

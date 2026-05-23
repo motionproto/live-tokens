@@ -22,7 +22,7 @@
 // the commit that introduced this test for context.
 
 import { describe, it, expect } from 'vitest';
-import { componentRegistryEntries } from './registry';
+import { getComponentRegistryEntries } from './registry';
 
 const TYPOGRAPHY_PROP_SUFFIXES = ['font-family', 'font-size', 'font-weight', 'line-height'] as const;
 
@@ -39,7 +39,7 @@ function typographySlotOf(varName: string): string | null {
 }
 
 describe('editor groupKey slot invariant', () => {
-  for (const entry of componentRegistryEntries) {
+  for (const entry of getComponentRegistryEntries()) {
     it(`${entry.id}: no typography groupKey straddles multiple slots`, () => {
       const byKey = new Map<string, string[]>();
       for (const t of entry.schema as Array<{ variable: string; groupKey?: string }>) {

@@ -192,6 +192,40 @@ npm run dev
 
 Open http://localhost:5173 and replace `src/app/Home.svelte` with your content. The rest of the wiring is already done — it's the same code the npm package ships, just with the App-shell scaffolding included.
 
+## Consumer-authored components
+
+The shipped components are first-party by default, but you can author your own and get the same real-time editing experience via `registerComponent()`. Co-locate runtime and editor files in `src/system/components/` and register the pair before mounting:
+
+```ts
+// src/main.ts
+import { registerComponent } from '@motion-proto/live-tokens';
+import MyWidgetEditor, { allTokens as myWidgetTokens } from './system/components/MyWidgetEditor.svelte';
+
+registerComponent({
+  id: 'mywidget',
+  label: 'My Widget',
+  icon: 'fas fa-magic',
+  sourceFile: 'src/system/components/MyWidget.svelte',
+  editorComponent: MyWidgetEditor,
+  schema: myWidgetTokens,
+});
+
+// then mount(App, ...)
+```
+
+The component appears in the `/components` page under a **CUSTOM** group in the nav rail. Token rows, linked-block sharing, per-component config persistence, and reset-to-default work identically to the built-in set. All imports must come from `@motion-proto/live-tokens` or `@motion-proto/live-tokens/component-editor`; never deep-import from `src/`.
+
+### Skill (Claude-assisted authoring)
+
+The package bundles a Claude Code skill at `node_modules/@motion-proto/live-tokens/.claude/skills/live-tokens-add-component/`. It teaches the token-naming conventions, state model, editor patterns, and the public-imports rule. To make it active in your project, copy or symlink it into your `.claude/skills/` directory:
+
+```bash
+mkdir -p .claude/skills
+ln -s ../../node_modules/@motion-proto/live-tokens/.claude/skills/live-tokens-add-component .claude/skills/
+```
+
+Once linked, asking Claude to "add a Stat component to my live-tokens project" triggers the skill, which walks the runtime file, editor file, and registration step.
+
 ## How the editor ships changes to prod
 
 1. Edit in `/editor` or `/components`. Saves write to `themes/{name}.json` and `component-configs/{comp}/{name}.json`.
