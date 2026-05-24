@@ -2,8 +2,12 @@
   interface Props {
     value?: number;
     label?: string;
-    /** Design-system var name (e.g. `--gradient-1`, `--color-brand-500`). When omitted,
-        the themed `--progressbar-fill` default is used. Invalid input falls back to the default. */
+    /** Bar fill. Accepts either a design-system var name (`--gradient-1`,
+        `--color-brand-500`) or a literal CSS value (`red`, `#ff0000`,
+        `linear-gradient(...)`, etc.). When omitted, the themed
+        `--progressbar-fill` default is used. Values containing characters that
+        could break out of the inline style attribute or inject extra CSS rules
+        are dropped and the default is used instead. */
     fill?: string;
   }
 
@@ -14,8 +18,16 @@
   }: Props = $props();
 
   let clampedValue = $derived(Math.min(100, Math.max(0, value)));
-  // Restrict to a CSS custom-property identifier to prevent style injection.
-  let fillStyle = $derived(fill && /^--[\w-]+$/.test(fill) ? `background: var(${fill});` : '');
+  // Inline-style injection guard: reject chars that could escape the value
+  // context (quotes, backslashes, newlines) or terminate the declaration to
+  // smuggle another property (`;`, `{`, `}`, `<`, `>`). Everything else —
+  // including `(`/`)` for gradient/rgb syntax — is safe inside `background:`.
+  let fillStyle = $derived.by(() => {
+    if (!fill) return '';
+    if (/^--[\w-]+$/.test(fill)) return `background: var(${fill});`;
+    if (/["'\\;{}<>\n\r]/.test(fill)) return '';
+    return `background: ${fill};`;
+  });
 </script>
 
 <div class="progress" class:has-label={!!label}>
