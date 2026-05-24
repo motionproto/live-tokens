@@ -106,3 +106,21 @@ export const DIVIDER_HEIGHT: VariantScaleEntry = {
     { key: 'full', label: 'Full', value: '100%' },
   ],
 };
+
+/** Used by `*-divider-inset` variables (margin-block trimmed off a stretched
+ *  divider). Labels describe the resulting divider, not the inset value: 0
+ *  inset = bar-height divider ("Full"); larger insets = shorter divider.
+ *  Replaces the percentage-height approach that collapsed to 0 in
+ *  auto-height flex parents. */
+export const DIVIDER_INSET: VariantScaleEntry = {
+  varPrefix: '--space-',
+  options: [
+    { key: '0', label: 'Full', value: '0px' },
+    { key: '2', label: 'Tall', value: '0.125rem' },
+    { key: '4', label: 'Large', value: '0.25rem' },
+    { key: '6', label: 'Medium', value: '0.375rem' },
+    { key: '8', label: 'Short', value: '0.5rem' },
+    { key: '12', label: 'XS', value: '0.75rem' },
+    { key: '16', label: 'Tiny', value: '1rem' },
+  ],
+};

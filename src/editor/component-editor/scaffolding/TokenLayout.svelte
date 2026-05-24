@@ -7,7 +7,7 @@
   import UIFontSizeSelector from '../../ui/UIFontSizeSelector.svelte';
   import UILineHeightSelector from '../../ui/UILineHeightSelector.svelte';
   import UIPaddingSelector from '../../ui/UIPaddingSelector.svelte';
-  import { BLUR, BORDER_WIDTH, DOT_SIZE, RADIUS, SHADOW, DIVIDER_HEIGHT } from '../../ui/variantScales';
+  import { BLUR, BORDER_WIDTH, DOT_SIZE, RADIUS, SHADOW, DIVIDER_HEIGHT, DIVIDER_INSET } from '../../ui/variantScales';
   import {
     editorState,
     getComponentPropertySiblings,
@@ -26,6 +26,7 @@
     | 'radius'
     | 'divider-width'
     | 'divider-height'
+    | 'divider-inset'
     | 'dot-size'
     | 'blur'
     | 'shadow'
@@ -87,6 +88,7 @@
     { kind: 'radius', matches: (v) => v.endsWith('-radius') || v.startsWith('--radius-') },
     { kind: 'divider-width', matches: (v) => v.endsWith('-divider-width') || v.endsWith('-divider-thickness') },
     { kind: 'divider-height', matches: (v) => v.endsWith('-divider-height') || v.endsWith('-track-height') },
+    { kind: 'divider-inset', matches: (v) => v.endsWith('-divider-inset') },
     { kind: 'dot-size', matches: (v) => v.endsWith('-dot-size') },
     { kind: 'blur', matches: (v) => v.endsWith('-blur') || v.startsWith('--blur-') },
     { kind: 'shadow', matches: (v) => v.endsWith('-shadow') || v.startsWith('--shadow-') },
@@ -105,6 +107,7 @@
     'line-height',
     'divider-width',
     'divider-height',
+    'divider-inset',
     'dot-size',
     'radius',
     'padding',
@@ -170,6 +173,7 @@
     'border-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
     'divider-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
     'divider-height': { component: UIVariantSelector, extra: () => ({ ...DIVIDER_HEIGHT }) },
+    'divider-inset': { component: UIVariantSelector, extra: () => ({ ...DIVIDER_INSET }) },
     'dot-size': { component: UIVariantSelector, extra: () => ({ ...DOT_SIZE }) },
     'radius': { component: UIVariantSelector, extra: () => ({ ...RADIUS }) },
     'padding': { component: UIPaddingSelector, extra: (t) => ({ mode: 'single', splittable: t.splittable !== false }) },
@@ -204,6 +208,7 @@
       'extras',
       'divider-width',
       'divider-height',
+      'divider-inset',
       'dot-size',
       'radius',
       'padding',

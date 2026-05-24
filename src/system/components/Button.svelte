@@ -87,15 +87,9 @@
       --button-primary-hover-surface: var(--surface-brand-higher);
       --button-primary-hover-text: var(--text-primary);
       --button-primary-hover-border: var(--border-brand-strong);
-      --button-primary-hover-border-width: var(--border-width-1);
-      --button-primary-hover-radius: var(--radius-md);
-      --button-primary-hover-padding: var(--space-8);
       --button-primary-disabled-surface: var(--color-neutral-700);
       --button-primary-disabled-text: var(--text-tertiary);
       --button-primary-disabled-border: var(--border-neutral-faint);
-      --button-primary-disabled-border-width: var(--border-width-1);
-      --button-primary-disabled-radius: var(--radius-md);
-      --button-primary-disabled-padding: var(--space-8);
       --button-primary-icon-size: var(--icon-size-sm);
 
       /* Secondary */
@@ -112,15 +106,9 @@
       --button-secondary-hover-surface: var(--surface-neutral-higher);
       --button-secondary-hover-text: var(--text-primary);
       --button-secondary-hover-border: var(--border-neutral-strong);
-      --button-secondary-hover-border-width: var(--border-width-1);
-      --button-secondary-hover-radius: var(--radius-md);
-      --button-secondary-hover-padding: var(--space-8);
       --button-secondary-disabled-surface: var(--color-neutral-700);
       --button-secondary-disabled-text: var(--text-tertiary);
       --button-secondary-disabled-border: var(--border-neutral-faint);
-      --button-secondary-disabled-border-width: var(--border-width-1);
-      --button-secondary-disabled-radius: var(--radius-md);
-      --button-secondary-disabled-padding: var(--space-8);
       --button-secondary-icon-size: var(--icon-size-sm);
 
       /* Outline */
@@ -137,16 +125,10 @@
       --button-outline-hover-surface: var(--surface-neutral-lower);
       --button-outline-hover-text: var(--text-primary);
       --button-outline-hover-border: var(--border-neutral-strong);
-      --button-outline-hover-border-width: var(--border-width-1);
-      --button-outline-hover-radius: var(--radius-md);
-      --button-outline-hover-padding: var(--space-8);
       --button-outline-active-surface: var(--hover);
       --button-outline-disabled-surface: var(--color-transparent);
       --button-outline-disabled-text: var(--text-tertiary);
       --button-outline-disabled-border: var(--border-neutral-faint);
-      --button-outline-disabled-border-width: var(--border-width-1);
-      --button-outline-disabled-radius: var(--radius-md);
-      --button-outline-disabled-padding: var(--space-8);
       --button-outline-icon-size: var(--icon-size-sm);
 
       /* Success */
@@ -163,15 +145,9 @@
       --button-success-hover-surface: var(--surface-success-higher);
       --button-success-hover-text: var(--text-primary);
       --button-success-hover-border: var(--border-success-strong);
-      --button-success-hover-border-width: var(--border-width-2);
-      --button-success-hover-radius: var(--radius-md);
-      --button-success-hover-padding: var(--space-8);
       --button-success-disabled-surface: var(--color-neutral-700);
       --button-success-disabled-text: var(--text-tertiary);
       --button-success-disabled-border: var(--border-neutral-faint);
-      --button-success-disabled-border-width: var(--border-width-2);
-      --button-success-disabled-radius: var(--radius-md);
-      --button-success-disabled-padding: var(--space-8);
       --button-success-icon-size: var(--icon-size-sm);
 
       /* Danger */
@@ -188,15 +164,9 @@
       --button-danger-hover-surface: var(--surface-danger-high);
       --button-danger-hover-text: var(--text-primary);
       --button-danger-hover-border: var(--border-danger-medium);
-      --button-danger-hover-border-width: var(--border-width-2);
-      --button-danger-hover-radius: var(--radius-md);
-      --button-danger-hover-padding: var(--space-8);
       --button-danger-disabled-surface: var(--color-neutral-700);
       --button-danger-disabled-text: var(--text-tertiary);
       --button-danger-disabled-border: var(--border-neutral-faint);
-      --button-danger-disabled-border-width: var(--border-width-2);
-      --button-danger-disabled-radius: var(--radius-md);
-      --button-danger-disabled-padding: var(--space-8);
       --button-danger-icon-size: var(--icon-size-sm);
 
       /* Warning */
@@ -213,16 +183,20 @@
       --button-warning-hover-surface: var(--surface-warning-high);
       --button-warning-hover-text: var(--text-primary);
       --button-warning-hover-border: var(--border-warning-medium);
-      --button-warning-hover-border-width: var(--border-width-2);
-      --button-warning-hover-radius: var(--radius-md);
-      --button-warning-hover-padding: var(--space-8);
       --button-warning-disabled-surface: var(--color-neutral-700);
       --button-warning-disabled-text: var(--text-tertiary);
       --button-warning-disabled-border: var(--border-neutral-faint);
-      --button-warning-disabled-border-width: var(--border-width-2);
-      --button-warning-disabled-radius: var(--radius-md);
-      --button-warning-disabled-padding: var(--space-8);
       --button-warning-icon-size: var(--icon-size-sm);
+
+      /* Small size — shared across all variants. The `.small` rule below reads
+         these tokens directly (no per-variant rebind needed, since small
+         currently looks the same regardless of variant). Per-side padding
+         overrides power split-padding edits at small. */
+      --button-small-padding: var(--space-6);
+      --button-small-text-font-size: var(--font-size-xs);
+      --button-small-text-font-weight: var(--font-weight-normal);
+      --button-small-text-line-height: var(--line-height-sm);
+      --button-small-icon-size: var(--font-size-xs);
    }
 
    .button {
@@ -298,9 +272,7 @@
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
             background: var(--button-primary-hover-surface);
-            border: var(--button-primary-hover-border-width) solid var(--button-primary-hover-border);
-            border-radius: var(--button-primary-hover-radius);
-            @include themed-padding(--button-primary-hover-padding, $h: 2);
+            border-color: var(--button-primary-hover-border);
             color: var(--button-primary-hover-text);
          }
 
@@ -310,9 +282,7 @@
 
          &:disabled {
             background: var(--button-primary-disabled-surface);
-            border: var(--button-primary-disabled-border-width) solid var(--button-primary-disabled-border);
-            border-radius: var(--button-primary-disabled-radius);
-            @include themed-padding(--button-primary-disabled-padding, $h: 2);
+            border-color: var(--button-primary-disabled-border);
             color: var(--button-primary-disabled-text);
          }
       }
@@ -340,17 +310,13 @@
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
             background: var(--button-secondary-hover-surface);
-            border: var(--button-secondary-hover-border-width) solid var(--button-secondary-hover-border);
-            border-radius: var(--button-secondary-hover-radius);
-            @include themed-padding(--button-secondary-hover-padding, $h: 2);
+            border-color: var(--button-secondary-hover-border);
             color: var(--button-secondary-hover-text);
          }
 
          &:disabled {
             background: var(--button-secondary-disabled-surface);
-            border: var(--button-secondary-disabled-border-width) solid var(--button-secondary-disabled-border);
-            border-radius: var(--button-secondary-disabled-radius);
-            @include themed-padding(--button-secondary-disabled-padding, $h: 2);
+            border-color: var(--button-secondary-disabled-border);
             color: var(--button-secondary-disabled-text);
          }
       }
@@ -378,9 +344,7 @@
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
             background: var(--button-outline-hover-surface);
-            border: var(--button-outline-hover-border-width) solid var(--button-outline-hover-border);
-            border-radius: var(--button-outline-hover-radius);
-            @include themed-padding(--button-outline-hover-padding, $h: 2);
+            border-color: var(--button-outline-hover-border);
             color: var(--button-outline-hover-text);
          }
 
@@ -390,9 +354,7 @@
 
          &:disabled {
             background: var(--button-outline-disabled-surface);
-            border: var(--button-outline-disabled-border-width) solid var(--button-outline-disabled-border);
-            border-radius: var(--button-outline-disabled-radius);
-            @include themed-padding(--button-outline-disabled-padding, $h: 2);
+            border-color: var(--button-outline-disabled-border);
             color: var(--button-outline-disabled-text);
          }
       }
@@ -420,17 +382,13 @@
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
             background: var(--button-success-hover-surface);
-            border: var(--button-success-hover-border-width) solid var(--button-success-hover-border);
-            border-radius: var(--button-success-hover-radius);
-            @include themed-padding(--button-success-hover-padding, $h: 2);
+            border-color: var(--button-success-hover-border);
             color: var(--button-success-hover-text);
          }
 
          &:disabled {
             background: var(--button-success-disabled-surface);
-            border: var(--button-success-disabled-border-width) solid var(--button-success-disabled-border);
-            border-radius: var(--button-success-disabled-radius);
-            @include themed-padding(--button-success-disabled-padding, $h: 2);
+            border-color: var(--button-success-disabled-border);
             color: var(--button-success-disabled-text);
          }
       }
@@ -458,17 +416,13 @@
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
             background: var(--button-danger-hover-surface);
-            border: var(--button-danger-hover-border-width) solid var(--button-danger-hover-border);
-            border-radius: var(--button-danger-hover-radius);
-            @include themed-padding(--button-danger-hover-padding, $h: 2);
+            border-color: var(--button-danger-hover-border);
             color: var(--button-danger-hover-text);
          }
 
          &:disabled {
             background: var(--button-danger-disabled-surface);
-            border: var(--button-danger-disabled-border-width) solid var(--button-danger-disabled-border);
-            border-radius: var(--button-danger-disabled-radius);
-            @include themed-padding(--button-danger-disabled-padding, $h: 2);
+            border-color: var(--button-danger-disabled-border);
             color: var(--button-danger-disabled-text);
          }
       }
@@ -496,37 +450,32 @@
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
             background: var(--button-warning-hover-surface);
-            border: var(--button-warning-hover-border-width) solid var(--button-warning-hover-border);
-            border-radius: var(--button-warning-hover-radius);
-            @include themed-padding(--button-warning-hover-padding, $h: 2);
+            border-color: var(--button-warning-hover-border);
             color: var(--button-warning-hover-text);
          }
 
          &:disabled {
             background: var(--button-warning-disabled-surface);
-            border: var(--button-warning-disabled-border-width) solid var(--button-warning-disabled-border);
-            border-radius: var(--button-warning-disabled-radius);
-            @include themed-padding(--button-warning-disabled-padding, $h: 2);
+            border-color: var(--button-warning-disabled-border);
             color: var(--button-warning-disabled-text);
          }
       }
 
-      // Small size modifier (applies to any variant).
-      // Declared after variants so equal-specificity rules win on source order;
-      // :hover/.force-hover/:disabled are listed so variant state-padding
-      // doesn't clobber .small in those states.
-      &.small,
-      &.small:hover:not(:disabled),
-      &.small.force-hover:not(:disabled),
-      &.small:disabled {
-         padding: var(--space-6) var(--space-12);
-         font-size: var(--font-size-xs);
-         font-weight: var(--font-weight-normal);
-         line-height: var(--line-height-sm);
+      // Small size modifier (applies to any variant). Variants only set padding
+      // once in their base rule and never override per-state, so a single
+      // selector here is enough — `.small` declared after the variant block
+      // wins on source order. themed-padding with $h: 2 mirrors the variant
+      // base rule; per-side `--button-small-padding-*` tokens (registered by
+      // the editor) feed split edits through the mixin.
+      &.small {
+         @include themed-padding(--button-small-padding, $h: 2);
+         font-size: var(--button-small-text-font-size);
+         font-weight: var(--button-small-text-font-weight);
+         line-height: var(--button-small-text-line-height);
       }
 
       &.small :global(i) {
-         font-size: var(--font-size-xs);
+         font-size: var(--button-small-icon-size);
          font-weight: var(--font-weight-semibold);
       }
 

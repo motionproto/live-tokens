@@ -180,23 +180,11 @@
     ],
     "border-width": [
       "--button-danger-border-width",
-      "--button-danger-disabled-border-width",
-      "--button-danger-hover-border-width",
       "--button-outline-border-width",
-      "--button-outline-disabled-border-width",
-      "--button-outline-hover-border-width",
       "--button-primary-border-width",
-      "--button-primary-disabled-border-width",
-      "--button-primary-hover-border-width",
       "--button-secondary-border-width",
-      "--button-secondary-disabled-border-width",
-      "--button-secondary-hover-border-width",
       "--button-success-border-width",
-      "--button-success-disabled-border-width",
-      "--button-success-hover-border-width",
-      "--button-warning-border-width",
-      "--button-warning-disabled-border-width",
-      "--button-warning-hover-border-width"
+      "--button-warning-border-width"
     ],
     "font-family": [
       "--button-danger-text-font-family",
@@ -239,44 +227,79 @@
       "--button-warning-text-line-height"
     ],
     "padding": [
-      "--button-danger-disabled-padding",
-      "--button-danger-hover-padding",
       "--button-danger-padding",
-      "--button-outline-disabled-padding",
-      "--button-outline-hover-padding",
       "--button-outline-padding",
-      "--button-primary-disabled-padding",
-      "--button-primary-hover-padding",
       "--button-primary-padding",
-      "--button-secondary-disabled-padding",
-      "--button-secondary-hover-padding",
       "--button-secondary-padding",
-      "--button-success-disabled-padding",
-      "--button-success-hover-padding",
       "--button-success-padding",
-      "--button-warning-disabled-padding",
-      "--button-warning-hover-padding",
       "--button-warning-padding"
     ],
+    "padding-bottom": [
+      "--button-danger-padding-bottom",
+      "--button-outline-padding-bottom",
+      "--button-primary-padding-bottom",
+      "--button-secondary-padding-bottom",
+      "--button-success-padding-bottom",
+      "--button-warning-padding-bottom"
+    ],
+    "padding-left": [
+      "--button-danger-padding-left",
+      "--button-outline-padding-left",
+      "--button-primary-padding-left",
+      "--button-secondary-padding-left",
+      "--button-success-padding-left",
+      "--button-warning-padding-left"
+    ],
+    "padding-right": [
+      "--button-danger-padding-right",
+      "--button-outline-padding-right",
+      "--button-primary-padding-right",
+      "--button-secondary-padding-right",
+      "--button-success-padding-right",
+      "--button-warning-padding-right"
+    ],
+    "padding-top": [
+      "--button-danger-padding-top",
+      "--button-outline-padding-top",
+      "--button-primary-padding-top",
+      "--button-secondary-padding-top",
+      "--button-success-padding-top",
+      "--button-warning-padding-top"
+    ],
     "radius": [
-      "--button-danger-disabled-radius",
-      "--button-danger-hover-radius",
       "--button-danger-radius",
-      "--button-outline-disabled-radius",
-      "--button-outline-hover-radius",
       "--button-outline-radius",
-      "--button-primary-disabled-radius",
-      "--button-primary-hover-radius",
       "--button-primary-radius",
-      "--button-secondary-disabled-radius",
-      "--button-secondary-hover-radius",
       "--button-secondary-radius",
-      "--button-success-disabled-radius",
-      "--button-success-hover-radius",
       "--button-success-radius",
-      "--button-warning-disabled-radius",
-      "--button-warning-hover-radius",
       "--button-warning-radius"
+    ],
+    "small-font-size": [
+      "--button-small-text-font-size"
+    ],
+    "small-font-weight": [
+      "--button-small-text-font-weight"
+    ],
+    "small-icon-size": [
+      "--button-small-icon-size"
+    ],
+    "small-line-height": [
+      "--button-small-text-line-height"
+    ],
+    "small-padding": [
+      "--button-small-padding"
+    ],
+    "small-padding-bottom": [
+      "--button-small-padding-bottom"
+    ],
+    "small-padding-left": [
+      "--button-small-padding-left"
+    ],
+    "small-padding-right": [
+      "--button-small-padding-right"
+    ],
+    "small-padding-top": [
+      "--button-small-padding-top"
     ],
     "surface": [
       "--button-danger-disabled-surface",
@@ -890,6 +913,128 @@
       "--inlineeditactions-save-hover-text"
     ]
   },
+  "input": {
+    "border": [
+      "--input-default-border",
+      "--input-disabled-border",
+      "--input-error-border",
+      "--input-focused-border"
+    ],
+    "border-width": [
+      "--input-border-width",
+      "--input-error-border-width",
+      "--input-focused-border-width"
+    ],
+    "error": [
+      "--input-error"
+    ],
+    "error-font-family": [
+      "--input-error-font-family"
+    ],
+    "error-font-size": [
+      "--input-error-font-size"
+    ],
+    "error-font-weight": [
+      "--input-error-font-weight"
+    ],
+    "error-line-height": [
+      "--input-error-line-height"
+    ],
+    "gap": [
+      "--input-gap"
+    ],
+    "hint": [
+      "--input-hint"
+    ],
+    "hint-font-family": [
+      "--input-hint-font-family"
+    ],
+    "hint-font-size": [
+      "--input-hint-font-size"
+    ],
+    "hint-font-weight": [
+      "--input-hint-font-weight"
+    ],
+    "hint-line-height": [
+      "--input-hint-line-height"
+    ],
+    "icon": [
+      "--input-default-icon",
+      "--input-disabled-icon",
+      "--input-focused-icon"
+    ],
+    "icon-size": [
+      "--input-default-icon-size",
+      "--input-disabled-icon-size",
+      "--input-focused-icon-size"
+    ],
+    "input-text-font-family": [
+      "--input-default-text-font-family",
+      "--input-disabled-text-font-family",
+      "--input-focused-text-font-family"
+    ],
+    "input-text-font-size": [
+      "--input-default-text-font-size",
+      "--input-disabled-text-font-size",
+      "--input-focused-text-font-size"
+    ],
+    "input-text-font-weight": [
+      "--input-default-text-font-weight",
+      "--input-disabled-text-font-weight",
+      "--input-focused-text-font-weight"
+    ],
+    "input-text-line-height": [
+      "--input-default-text-line-height",
+      "--input-disabled-text-line-height",
+      "--input-focused-text-line-height"
+    ],
+    "label": [
+      "--input-label"
+    ],
+    "label-font-family": [
+      "--input-label-font-family"
+    ],
+    "label-font-size": [
+      "--input-label-font-size"
+    ],
+    "label-font-weight": [
+      "--input-label-font-weight"
+    ],
+    "label-line-height": [
+      "--input-label-line-height"
+    ],
+    "padding": [
+      "--input-padding"
+    ],
+    "padding-bottom": [
+      "--input-padding-bottom"
+    ],
+    "padding-left": [
+      "--input-padding-left"
+    ],
+    "padding-right": [
+      "--input-padding-right"
+    ],
+    "padding-top": [
+      "--input-padding-top"
+    ],
+    "placeholder": [
+      "--input-default-placeholder"
+    ],
+    "radius": [
+      "--input-radius"
+    ],
+    "surface": [
+      "--input-default-surface",
+      "--input-disabled-surface",
+      "--input-focused-surface"
+    ],
+    "text": [
+      "--input-default-text",
+      "--input-disabled-text",
+      "--input-focused-text"
+    ]
+  },
   "menuselect": {
     "border": [
       "--menuselect-menu-border"
@@ -1098,116 +1243,55 @@
   },
   "progressbar": {
     "border": [
-      "--progressbar-danger-track-border",
-      "--progressbar-info-track-border",
-      "--progressbar-primary-track-border",
-      "--progressbar-success-track-border",
-      "--progressbar-warning-track-border"
+      "--progressbar-track-border"
     ],
     "fill": [
-      "--progressbar-danger-fill",
-      "--progressbar-info-fill",
-      "--progressbar-primary-fill",
-      "--progressbar-success-fill",
-      "--progressbar-warning-fill"
+      "--progressbar-fill"
     ],
     "label": [
-      "--progressbar-danger-label",
-      "--progressbar-info-label",
-      "--progressbar-primary-label",
-      "--progressbar-success-label",
-      "--progressbar-warning-label"
+      "--progressbar-label"
     ],
     "label-font-family": [
-      "--progressbar-danger-label-font-family",
-      "--progressbar-info-label-font-family",
-      "--progressbar-primary-label-font-family",
-      "--progressbar-success-label-font-family",
-      "--progressbar-warning-label-font-family"
+      "--progressbar-label-font-family"
     ],
     "label-font-size": [
-      "--progressbar-danger-label-font-size",
-      "--progressbar-info-label-font-size",
-      "--progressbar-primary-label-font-size",
-      "--progressbar-success-label-font-size",
-      "--progressbar-warning-label-font-size"
+      "--progressbar-label-font-size"
     ],
     "label-font-weight": [
-      "--progressbar-danger-label-font-weight",
-      "--progressbar-info-label-font-weight",
-      "--progressbar-primary-label-font-weight",
-      "--progressbar-success-label-font-weight",
-      "--progressbar-warning-label-font-weight"
+      "--progressbar-label-font-weight"
+    ],
+    "label-gap": [
+      "--progressbar-label-gap"
     ],
     "label-line-height": [
-      "--progressbar-danger-label-line-height",
-      "--progressbar-info-label-line-height",
-      "--progressbar-primary-label-line-height",
-      "--progressbar-success-label-line-height",
-      "--progressbar-warning-label-line-height"
+      "--progressbar-label-line-height"
     ],
     "radius": [
-      "--progressbar-danger-radius",
-      "--progressbar-info-radius",
-      "--progressbar-primary-radius",
-      "--progressbar-success-radius",
-      "--progressbar-warning-radius"
+      "--progressbar-radius"
     ],
     "surface": [
-      "--progressbar-danger-track-surface",
-      "--progressbar-info-track-surface",
-      "--progressbar-primary-track-surface",
-      "--progressbar-success-track-surface",
-      "--progressbar-warning-track-surface"
+      "--progressbar-track-surface"
     ],
     "track-border-width": [
-      "--progressbar-danger-track-border-width",
-      "--progressbar-info-track-border-width",
-      "--progressbar-primary-track-border-width",
-      "--progressbar-success-track-border-width",
-      "--progressbar-warning-track-border-width"
+      "--progressbar-track-border-width"
     ],
     "track-height": [
-      "--progressbar-danger-track-height",
-      "--progressbar-info-track-height",
-      "--progressbar-primary-track-height",
-      "--progressbar-success-track-height",
-      "--progressbar-warning-track-height"
+      "--progressbar-track-height"
     ],
     "value": [
-      "--progressbar-danger-value",
-      "--progressbar-info-value",
-      "--progressbar-primary-value",
-      "--progressbar-success-value",
-      "--progressbar-warning-value"
+      "--progressbar-value"
     ],
     "value-font-family": [
-      "--progressbar-danger-value-font-family",
-      "--progressbar-info-value-font-family",
-      "--progressbar-primary-value-font-family",
-      "--progressbar-success-value-font-family",
-      "--progressbar-warning-value-font-family"
+      "--progressbar-value-font-family"
     ],
     "value-font-size": [
-      "--progressbar-danger-value-font-size",
-      "--progressbar-info-value-font-size",
-      "--progressbar-primary-value-font-size",
-      "--progressbar-success-value-font-size",
-      "--progressbar-warning-value-font-size"
+      "--progressbar-value-font-size"
     ],
     "value-font-weight": [
-      "--progressbar-danger-value-font-weight",
-      "--progressbar-info-value-font-weight",
-      "--progressbar-primary-value-font-weight",
-      "--progressbar-success-value-font-weight",
-      "--progressbar-warning-value-font-weight"
+      "--progressbar-value-font-weight"
     ],
     "value-line-height": [
-      "--progressbar-danger-value-line-height",
-      "--progressbar-info-value-line-height",
-      "--progressbar-primary-value-line-height",
-      "--progressbar-success-value-line-height",
-      "--progressbar-warning-value-line-height"
+      "--progressbar-value-line-height"
     ]
   },
   "radiobutton": {
@@ -1405,12 +1489,30 @@
     "bar-padding-top": [
       "--segmentedcontrol-bar-padding-top"
     ],
+    "bar-small-padding": [
+      "--segmentedcontrol-bar-small-padding"
+    ],
+    "bar-small-padding-bottom": [
+      "--segmentedcontrol-bar-small-padding-bottom"
+    ],
+    "bar-small-padding-left": [
+      "--segmentedcontrol-bar-small-padding-left"
+    ],
+    "bar-small-padding-right": [
+      "--segmentedcontrol-bar-small-padding-right"
+    ],
+    "bar-small-padding-top": [
+      "--segmentedcontrol-bar-small-padding-top"
+    ],
     "border": [
       "--segmentedcontrol-bar-border",
       "--segmentedcontrol-selected-border"
     ],
     "color": [
       "--segmentedcontrol-divider-color"
+    ],
+    "divider-inset": [
+      "--segmentedcontrol-divider-inset"
     ],
     "font-family": [
       "--segmentedcontrol-disabled-text-font-family",
@@ -1433,9 +1535,6 @@
     "gap": [
       "--segmentedcontrol-bar-gap"
     ],
-    "height": [
-      "--segmentedcontrol-divider-height"
-    ],
     "icon": [
       "--segmentedcontrol-disabled-icon",
       "--segmentedcontrol-option-hover-icon",
@@ -1443,10 +1542,7 @@
       "--segmentedcontrol-selected-icon"
     ],
     "icon-size": [
-      "--segmentedcontrol-disabled-icon-size",
-      "--segmentedcontrol-option-hover-icon-size",
-      "--segmentedcontrol-option-icon-size",
-      "--segmentedcontrol-selected-icon-size"
+      "--segmentedcontrol-option-icon-size"
     ],
     "line-height": [
       "--segmentedcontrol-disabled-text-line-height",
@@ -1454,9 +1550,64 @@
       "--segmentedcontrol-option-text-line-height",
       "--segmentedcontrol-selected-text-line-height"
     ],
+    "option-gap": [
+      "--segmentedcontrol-option-gap"
+    ],
+    "option-padding": [
+      "--segmentedcontrol-option-padding"
+    ],
+    "option-padding-bottom": [
+      "--segmentedcontrol-option-padding-bottom"
+    ],
+    "option-padding-left": [
+      "--segmentedcontrol-option-padding-left"
+    ],
+    "option-padding-right": [
+      "--segmentedcontrol-option-padding-right"
+    ],
+    "option-padding-top": [
+      "--segmentedcontrol-option-padding-top"
+    ],
+    "option-small-gap": [
+      "--segmentedcontrol-option-small-gap"
+    ],
+    "option-small-padding": [
+      "--segmentedcontrol-option-small-padding"
+    ],
+    "option-small-padding-bottom": [
+      "--segmentedcontrol-option-small-padding-bottom"
+    ],
+    "option-small-padding-left": [
+      "--segmentedcontrol-option-small-padding-left"
+    ],
+    "option-small-padding-right": [
+      "--segmentedcontrol-option-small-padding-right"
+    ],
+    "option-small-padding-top": [
+      "--segmentedcontrol-option-small-padding-top"
+    ],
     "radius": [
       "--segmentedcontrol-bar-radius",
       "--segmentedcontrol-selected-radius"
+    ],
+    "small-divider-inset": [
+      "--segmentedcontrol-divider-small-inset"
+    ],
+    "small-icon-size": [
+      "--segmentedcontrol-option-small-icon-size"
+    ],
+    "small-radius": [
+      "--segmentedcontrol-bar-small-radius",
+      "--segmentedcontrol-selected-small-radius"
+    ],
+    "small-text-font-size": [
+      "--segmentedcontrol-option-small-text-font-size"
+    ],
+    "small-text-line-height": [
+      "--segmentedcontrol-option-small-text-line-height"
+    ],
+    "small-thickness": [
+      "--segmentedcontrol-divider-small-thickness"
     ],
     "surface": [
       "--segmentedcontrol-bar-surface",

@@ -2,22 +2,23 @@
   interface Props {
     value?: number;
     label?: string;
-    variant?: 'primary' | 'success' | 'warning' | 'danger' | 'info';
-    showIcon?: boolean;
+    /** Design-system var name (e.g. `--gradient-1`, `--color-brand-500`). When omitted,
+        the themed `--progressbar-fill` default is used. Invalid input falls back to the default. */
+    fill?: string;
   }
 
   let {
     value = 0,
     label = '',
-    variant = 'primary',
-    showIcon = true
+    fill,
   }: Props = $props();
 
   let clampedValue = $derived(Math.min(100, Math.max(0, value)));
-  let isComplete = $derived(clampedValue >= 100);
+  // Restrict to a CSS custom-property identifier to prevent style injection.
+  let fillStyle = $derived(fill && /^--[\w-]+$/.test(fill) ? `background: var(${fill});` : '');
 </script>
 
-<div class="progress {variant}" class:has-label={!!label} class:has-icon={showIcon && isComplete}>
+<div class="progress" class:has-label={!!label}>
   {#if label}
     <div class="progress-label">
       <span>{label}</span>
@@ -26,115 +27,38 @@
   {/if}
   <div class="progress-track">
     <div
-      class="progress-fill {variant}"
-      style="width: {clampedValue}%;"
+      class="progress-fill"
+      style="width: {clampedValue}%; {fillStyle}"
     ></div>
   </div>
-  {#if showIcon && isComplete}
-    <div class="progress-icon">
-      <i class="fas fa-check-circle"></i>
-    </div>
-  {/if}
 </div>
 
 <style>
   :global(:root) {
-    /* Primary */
-    --progressbar-primary-track-surface: var(--surface-neutral-low);
-    --progressbar-primary-track-border: var(--border-neutral-faint);
-    --progressbar-primary-track-border-width: var(--border-width-1);
-    --progressbar-primary-track-height: var(--space-8);
-    --progressbar-primary-radius: var(--radius-full);
-    --progressbar-primary-fill: var(--gradient-1);
-    --progressbar-primary-label: var(--text-secondary);
-    --progressbar-primary-label-font-family: var(--font-sans);
-    --progressbar-primary-label-font-size: var(--font-size-sm);
-    --progressbar-primary-label-font-weight: var(--font-weight-light);
-    --progressbar-primary-label-line-height: var(--line-height-md);
-    --progressbar-primary-value: var(--text-tertiary);
-    --progressbar-primary-value-font-family: var(--font-mono);
-    --progressbar-primary-value-font-size: var(--font-size-xs);
-    --progressbar-primary-value-font-weight: var(--font-weight-light);
-    --progressbar-primary-value-line-height: var(--line-height-md);
-
-    /* Success */
-    --progressbar-success-track-surface: var(--surface-neutral-low);
-    --progressbar-success-track-border: var(--border-neutral-faint);
-    --progressbar-success-track-border-width: var(--border-width-1);
-    --progressbar-success-track-height: var(--space-8);
-    --progressbar-success-radius: var(--radius-full);
-    --progressbar-success-fill: var(--border-success);
-    --progressbar-success-label: var(--text-secondary);
-    --progressbar-success-label-font-family: var(--font-sans);
-    --progressbar-success-label-font-size: var(--font-size-sm);
-    --progressbar-success-label-font-weight: var(--font-weight-light);
-    --progressbar-success-label-line-height: var(--line-height-md);
-    --progressbar-success-value: var(--text-tertiary);
-    --progressbar-success-value-font-family: var(--font-mono);
-    --progressbar-success-value-font-size: var(--font-size-xs);
-    --progressbar-success-value-font-weight: var(--font-weight-light);
-    --progressbar-success-value-line-height: var(--line-height-md);
-
-    /* Warning */
-    --progressbar-warning-track-surface: var(--surface-neutral-low);
-    --progressbar-warning-track-border: var(--border-neutral-faint);
-    --progressbar-warning-track-border-width: var(--border-width-1);
-    --progressbar-warning-track-height: var(--space-8);
-    --progressbar-warning-radius: var(--radius-full);
-    --progressbar-warning-fill: var(--border-warning);
-    --progressbar-warning-label: var(--text-secondary);
-    --progressbar-warning-label-font-family: var(--font-sans);
-    --progressbar-warning-label-font-size: var(--font-size-sm);
-    --progressbar-warning-label-font-weight: var(--font-weight-light);
-    --progressbar-warning-label-line-height: var(--line-height-md);
-    --progressbar-warning-value: var(--text-tertiary);
-    --progressbar-warning-value-font-family: var(--font-mono);
-    --progressbar-warning-value-font-size: var(--font-size-xs);
-    --progressbar-warning-value-font-weight: var(--font-weight-light);
-    --progressbar-warning-value-line-height: var(--line-height-md);
-
-    /* Danger */
-    --progressbar-danger-track-surface: var(--surface-neutral-low);
-    --progressbar-danger-track-border: var(--border-neutral-faint);
-    --progressbar-danger-track-border-width: var(--border-width-1);
-    --progressbar-danger-track-height: var(--space-8);
-    --progressbar-danger-radius: var(--radius-full);
-    --progressbar-danger-fill: var(--border-danger);
-    --progressbar-danger-label: var(--text-secondary);
-    --progressbar-danger-label-font-family: var(--font-sans);
-    --progressbar-danger-label-font-size: var(--font-size-sm);
-    --progressbar-danger-label-font-weight: var(--font-weight-light);
-    --progressbar-danger-label-line-height: var(--line-height-md);
-    --progressbar-danger-value: var(--text-tertiary);
-    --progressbar-danger-value-font-family: var(--font-mono);
-    --progressbar-danger-value-font-size: var(--font-size-xs);
-    --progressbar-danger-value-font-weight: var(--font-weight-light);
-    --progressbar-danger-value-line-height: var(--line-height-md);
-
-    /* Info */
-    --progressbar-info-track-surface: var(--surface-neutral-low);
-    --progressbar-info-track-border: var(--border-neutral-faint);
-    --progressbar-info-track-border-width: var(--border-width-1);
-    --progressbar-info-track-height: var(--space-8);
-    --progressbar-info-radius: var(--radius-full);
-    --progressbar-info-fill: var(--border-info);
-    --progressbar-info-label: var(--text-secondary);
-    --progressbar-info-label-font-family: var(--font-sans);
-    --progressbar-info-label-font-size: var(--font-size-sm);
-    --progressbar-info-label-font-weight: var(--font-weight-light);
-    --progressbar-info-label-line-height: var(--line-height-md);
-    --progressbar-info-value: var(--text-tertiary);
-    --progressbar-info-value-font-family: var(--font-mono);
-    --progressbar-info-value-font-size: var(--font-size-xs);
-    --progressbar-info-value-font-weight: var(--font-weight-light);
-    --progressbar-info-value-line-height: var(--line-height-md);
+    --progressbar-track-surface: var(--surface-neutral-low);
+    --progressbar-track-border: var(--border-neutral-faint);
+    --progressbar-track-border-width: var(--border-width-1);
+    --progressbar-track-height: var(--space-8);
+    --progressbar-radius: var(--radius-full);
+    --progressbar-fill: var(--gradient-1);
+    --progressbar-label-gap: var(--space-6);
+    --progressbar-label: var(--text-secondary);
+    --progressbar-label-font-family: var(--font-sans);
+    --progressbar-label-font-size: var(--font-size-sm);
+    --progressbar-label-font-weight: var(--font-weight-light);
+    --progressbar-label-line-height: var(--line-height-md);
+    --progressbar-value: var(--text-tertiary);
+    --progressbar-value-font-family: var(--font-mono);
+    --progressbar-value-font-size: var(--font-size-xs);
+    --progressbar-value-font-weight: var(--font-weight-light);
+    --progressbar-value-line-height: var(--line-height-md);
   }
 
   .progress {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "track";
-    row-gap: var(--space-6);
+    row-gap: var(--progressbar-label-gap);
     width: 100%;
   }
 
@@ -144,23 +68,27 @@
       "track";
   }
 
-  .progress.has-icon {
-    grid-template-columns: minmax(0, 1fr) auto;
-    column-gap: var(--space-8);
-    grid-template-areas: "track icon";
-  }
-
-  .progress.has-label.has-icon {
-    grid-template-areas:
-      "label ."
-      "track icon";
-  }
-
   .progress-label {
     grid-area: label;
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+
+  .progress-label > span {
+    color: var(--progressbar-label);
+    font-family: var(--progressbar-label-font-family);
+    font-size: var(--progressbar-label-font-size);
+    font-weight: var(--progressbar-label-font-weight);
+    line-height: var(--progressbar-label-line-height);
+  }
+
+  .progress-label > .progress-value {
+    color: var(--progressbar-value);
+    font-family: var(--progressbar-value-font-family);
+    font-size: var(--progressbar-value-font-size);
+    font-weight: var(--progressbar-value-font-weight);
+    line-height: var(--progressbar-value-line-height);
   }
 
   .progress-track {
@@ -169,153 +97,17 @@
     width: 100%;
     overflow: hidden;
     border-style: solid;
+    background: var(--progressbar-track-surface);
+    border-color: var(--progressbar-track-border);
+    border-width: var(--progressbar-track-border-width);
+    border-radius: var(--progressbar-radius);
+    height: var(--progressbar-track-height);
   }
 
   .progress-fill {
     height: 100%;
+    background: var(--progressbar-fill);
+    border-radius: var(--progressbar-radius);
     transition: width 0.4s ease;
-  }
-
-  /* Primary */
-  .progress.primary .progress-label > span {
-    color: var(--progressbar-primary-label);
-    font-family: var(--progressbar-primary-label-font-family);
-    font-size: var(--progressbar-primary-label-font-size);
-    font-weight: var(--progressbar-primary-label-font-weight);
-    line-height: var(--progressbar-primary-label-line-height);
-  }
-  .progress.primary .progress-value {
-    color: var(--progressbar-primary-value);
-    font-family: var(--progressbar-primary-value-font-family);
-    font-size: var(--progressbar-primary-value-font-size);
-    font-weight: var(--progressbar-primary-value-font-weight);
-    line-height: var(--progressbar-primary-value-line-height);
-  }
-  .progress.primary .progress-track {
-    background: var(--progressbar-primary-track-surface);
-    border-color: var(--progressbar-primary-track-border);
-    border-width: var(--progressbar-primary-track-border-width);
-    border-radius: var(--progressbar-primary-radius);
-    height: var(--progressbar-primary-track-height);
-  }
-  .progress-fill.primary {
-    background: var(--progressbar-primary-fill);
-    border-radius: var(--progressbar-primary-radius);
-  }
-
-  /* Success */
-  .progress.success .progress-label > span {
-    color: var(--progressbar-success-label);
-    font-family: var(--progressbar-success-label-font-family);
-    font-size: var(--progressbar-success-label-font-size);
-    font-weight: var(--progressbar-success-label-font-weight);
-    line-height: var(--progressbar-success-label-line-height);
-  }
-  .progress.success .progress-value {
-    color: var(--progressbar-success-value);
-    font-family: var(--progressbar-success-value-font-family);
-    font-size: var(--progressbar-success-value-font-size);
-    font-weight: var(--progressbar-success-value-font-weight);
-    line-height: var(--progressbar-success-value-line-height);
-  }
-  .progress.success .progress-track {
-    background: var(--progressbar-success-track-surface);
-    border-color: var(--progressbar-success-track-border);
-    border-width: var(--progressbar-success-track-border-width);
-    border-radius: var(--progressbar-success-radius);
-    height: var(--progressbar-success-track-height);
-  }
-  .progress-fill.success {
-    background: var(--progressbar-success-fill);
-    border-radius: var(--progressbar-success-radius);
-  }
-
-  /* Warning */
-  .progress.warning .progress-label > span {
-    color: var(--progressbar-warning-label);
-    font-family: var(--progressbar-warning-label-font-family);
-    font-size: var(--progressbar-warning-label-font-size);
-    font-weight: var(--progressbar-warning-label-font-weight);
-    line-height: var(--progressbar-warning-label-line-height);
-  }
-  .progress.warning .progress-value {
-    color: var(--progressbar-warning-value);
-    font-family: var(--progressbar-warning-value-font-family);
-    font-size: var(--progressbar-warning-value-font-size);
-    font-weight: var(--progressbar-warning-value-font-weight);
-    line-height: var(--progressbar-warning-value-line-height);
-  }
-  .progress.warning .progress-track {
-    background: var(--progressbar-warning-track-surface);
-    border-color: var(--progressbar-warning-track-border);
-    border-width: var(--progressbar-warning-track-border-width);
-    border-radius: var(--progressbar-warning-radius);
-    height: var(--progressbar-warning-track-height);
-  }
-  .progress-fill.warning {
-    background: var(--progressbar-warning-fill);
-    border-radius: var(--progressbar-warning-radius);
-  }
-
-  /* Danger */
-  .progress.danger .progress-label > span {
-    color: var(--progressbar-danger-label);
-    font-family: var(--progressbar-danger-label-font-family);
-    font-size: var(--progressbar-danger-label-font-size);
-    font-weight: var(--progressbar-danger-label-font-weight);
-    line-height: var(--progressbar-danger-label-line-height);
-  }
-  .progress.danger .progress-value {
-    color: var(--progressbar-danger-value);
-    font-family: var(--progressbar-danger-value-font-family);
-    font-size: var(--progressbar-danger-value-font-size);
-    font-weight: var(--progressbar-danger-value-font-weight);
-    line-height: var(--progressbar-danger-value-line-height);
-  }
-  .progress.danger .progress-track {
-    background: var(--progressbar-danger-track-surface);
-    border-color: var(--progressbar-danger-track-border);
-    border-width: var(--progressbar-danger-track-border-width);
-    border-radius: var(--progressbar-danger-radius);
-    height: var(--progressbar-danger-track-height);
-  }
-  .progress-fill.danger {
-    background: var(--progressbar-danger-fill);
-    border-radius: var(--progressbar-danger-radius);
-  }
-
-  /* Info */
-  .progress.info .progress-label > span {
-    color: var(--progressbar-info-label);
-    font-family: var(--progressbar-info-label-font-family);
-    font-size: var(--progressbar-info-label-font-size);
-    font-weight: var(--progressbar-info-label-font-weight);
-    line-height: var(--progressbar-info-label-line-height);
-  }
-  .progress.info .progress-value {
-    color: var(--progressbar-info-value);
-    font-family: var(--progressbar-info-value-font-family);
-    font-size: var(--progressbar-info-value-font-size);
-    font-weight: var(--progressbar-info-value-font-weight);
-    line-height: var(--progressbar-info-value-line-height);
-  }
-  .progress.info .progress-track {
-    background: var(--progressbar-info-track-surface);
-    border-color: var(--progressbar-info-track-border);
-    border-width: var(--progressbar-info-track-border-width);
-    border-radius: var(--progressbar-info-radius);
-    height: var(--progressbar-info-track-height);
-  }
-  .progress-fill.info {
-    background: var(--progressbar-info-fill);
-    border-radius: var(--progressbar-info-radius);
-  }
-
-  .progress-icon {
-    grid-area: icon;
-    align-self: center;
-    color: var(--text-success);
-    font-size: var(--icon-size-md);
-    line-height: 1;
   }
 </style>

@@ -4,16 +4,18 @@
 
   export const component = 'segmentedcontrol';
 
-  // Non-text tokens per state. Text/font properties live in `typeGroups` below
-  // and are rendered via TypeEditor instead of TokenLayout.
-  const states: Record<string, Token[]> = {
+  // Default-size schema. Non-text tokens per state; typography lives in
+  // `typeGroups` below and is rendered via TypeEditor. Per-option shape +
+  // icon-size are promoted into "option base" (one source of truth) since
+  // they don't vary per state in the runtime.
+  const defaultStates: Record<string, Token[]> = {
     'control bar': [
       { label: 'surface color', groupKey: 'surface', variable: '--segmentedcontrol-bar-surface' },
       { label: 'border color', groupKey: 'border', variable: '--segmentedcontrol-bar-border' },
       { label: 'border width', groupKey: 'width', variable: '--segmentedcontrol-bar-border-width' },
       { label: 'divider color', groupKey: 'color', variable: '--segmentedcontrol-divider-color' },
       { label: 'divider width', groupKey: 'thickness', variable: '--segmentedcontrol-divider-thickness' },
-      { label: 'divider height', groupKey: 'height', variable: '--segmentedcontrol-divider-height' },
+      { label: 'divider inset', groupKey: 'divider-inset', variable: '--segmentedcontrol-divider-inset' },
       { label: 'corner radius', groupKey: 'radius', variable: '--segmentedcontrol-bar-radius' },
       { label: 'option gap', groupKey: 'gap', variable: '--segmentedcontrol-bar-gap' },
       { label: 'padding', variable: '--segmentedcontrol-bar-padding', groupKey: 'bar-padding' },
@@ -22,14 +24,21 @@
       { label: 'padding-bottom', variable: '--segmentedcontrol-bar-padding-bottom', groupKey: 'bar-padding-bottom', hidden: true },
       { label: 'padding-left', variable: '--segmentedcontrol-bar-padding-left', groupKey: 'bar-padding-left', hidden: true },
     ],
+    'option base': [
+      { label: 'padding', variable: '--segmentedcontrol-option-padding', groupKey: 'option-padding' },
+      { label: 'padding-top', variable: '--segmentedcontrol-option-padding-top', groupKey: 'option-padding-top', hidden: true },
+      { label: 'padding-right', variable: '--segmentedcontrol-option-padding-right', groupKey: 'option-padding-right', hidden: true },
+      { label: 'padding-bottom', variable: '--segmentedcontrol-option-padding-bottom', groupKey: 'option-padding-bottom', hidden: true },
+      { label: 'padding-left', variable: '--segmentedcontrol-option-padding-left', groupKey: 'option-padding-left', hidden: true },
+      { label: 'icon gap', groupKey: 'option-gap', variable: '--segmentedcontrol-option-gap' },
+      { label: 'icon size', groupKey: 'icon-size', variable: '--segmentedcontrol-option-icon-size' },
+    ],
     'default option': [
       { label: 'icon color', groupKey: 'icon', variable: '--segmentedcontrol-option-icon' },
-      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--segmentedcontrol-option-icon-size' },
     ],
     'selected option': [
       { label: 'surface color', groupKey: 'surface', variable: '--segmentedcontrol-selected-surface' },
       { label: 'icon color', groupKey: 'icon', variable: '--segmentedcontrol-selected-icon' },
-      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--segmentedcontrol-selected-icon-size' },
       { label: 'border color', groupKey: 'border', variable: '--segmentedcontrol-selected-border' },
       { label: 'border width', groupKey: 'width', variable: '--segmentedcontrol-selected-border-width' },
       { label: 'corner radius', groupKey: 'radius', variable: '--segmentedcontrol-selected-radius' },
@@ -37,18 +46,46 @@
     'hover option': [
       { label: 'surface color', groupKey: 'surface', variable: '--segmentedcontrol-option-hover-surface' },
       { label: 'icon color', groupKey: 'icon', variable: '--segmentedcontrol-option-hover-icon' },
-      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--segmentedcontrol-option-hover-icon-size' },
     ],
     'disabled option': [
       { label: 'surface color', groupKey: 'surface', variable: '--segmentedcontrol-disabled-surface' },
       { label: 'icon color', groupKey: 'icon', variable: '--segmentedcontrol-disabled-icon' },
-      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--segmentedcontrol-disabled-icon-size' },
     ],
   };
 
-  // Per-state typography groups for the option text element. All five
-  // properties are exposed and individually share-able via groupKey across
-  // the four states.
+  // Small-size schema. Thin delta layer — only the size-driven properties.
+  // Per-state colors, borders, font-family/weight stay shared with default.
+  // States with no small overrides are omitted entirely so they don't render
+  // empty fieldsets. Typography is regular rows (no typeGroups at small)
+  // since family/weight/color don't differ.
+  const smallStates: Record<string, Token[]> = {
+    'control bar': [
+      { label: 'divider inset', groupKey: 'small-divider-inset', variable: '--segmentedcontrol-divider-small-inset' },
+      { label: 'divider width', groupKey: 'small-thickness', variable: '--segmentedcontrol-divider-small-thickness' },
+      { label: 'corner radius', groupKey: 'small-radius', variable: '--segmentedcontrol-bar-small-radius' },
+      { label: 'padding', variable: '--segmentedcontrol-bar-small-padding', groupKey: 'bar-small-padding' },
+      { label: 'padding-top', variable: '--segmentedcontrol-bar-small-padding-top', groupKey: 'bar-small-padding-top', hidden: true },
+      { label: 'padding-right', variable: '--segmentedcontrol-bar-small-padding-right', groupKey: 'bar-small-padding-right', hidden: true },
+      { label: 'padding-bottom', variable: '--segmentedcontrol-bar-small-padding-bottom', groupKey: 'bar-small-padding-bottom', hidden: true },
+      { label: 'padding-left', variable: '--segmentedcontrol-bar-small-padding-left', groupKey: 'bar-small-padding-left', hidden: true },
+    ],
+    'option base': [
+      { label: 'icon size', groupKey: 'small-icon-size', variable: '--segmentedcontrol-option-small-icon-size' },
+      { label: 'font size', groupKey: 'small-text-font-size', variable: '--segmentedcontrol-option-small-text-font-size' },
+      { label: 'line height', groupKey: 'small-text-line-height', variable: '--segmentedcontrol-option-small-text-line-height' },
+      { label: 'padding', variable: '--segmentedcontrol-option-small-padding', groupKey: 'option-small-padding' },
+      { label: 'padding-top', variable: '--segmentedcontrol-option-small-padding-top', groupKey: 'option-small-padding-top', hidden: true },
+      { label: 'padding-right', variable: '--segmentedcontrol-option-small-padding-right', groupKey: 'option-small-padding-right', hidden: true },
+      { label: 'padding-bottom', variable: '--segmentedcontrol-option-small-padding-bottom', groupKey: 'option-small-padding-bottom', hidden: true },
+      { label: 'padding-left', variable: '--segmentedcontrol-option-small-padding-left', groupKey: 'option-small-padding-left', hidden: true },
+      { label: 'icon gap', groupKey: 'option-small-gap', variable: '--segmentedcontrol-option-small-gap' },
+    ],
+    'selected option': [
+      { label: 'corner radius', groupKey: 'small-radius', variable: '--segmentedcontrol-selected-small-radius' },
+    ],
+  };
+
+  // Per-state typography groups (default size only).
   const typeGroups: Record<string, TypeGroupConfig[]> = {
     'default option': [{
       legend: 'option text',
@@ -84,20 +121,23 @@
     }],
   };
 
-  // Schema entries for the type-group variables — registered for groupKey
-  // resolution but not rendered through TokenLayout. Derived from `typeGroups`
-  // so the four font props × four states stay in lockstep with the per-state
-  // TypeGroupConfig declarations above.
-  const typeGroupTokens: Token[] = buildTypeGroupTokens(typeGroups);
-  export const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
+  const emptyTypeGroups: Record<string, TypeGroupConfig[]> = {};
 
-  const linkableContexts = new Map<string, string>([
-    ...buildTypeGroupShareableContexts(typeGroups),
-    ['--segmentedcontrol-option-icon-size', 'default option'],
-    ['--segmentedcontrol-selected-icon-size', 'selected option'],
-    ['--segmentedcontrol-option-hover-icon-size', 'hover option'],
-    ['--segmentedcontrol-disabled-icon-size', 'disabled option'],
-  ]);
+  // allTokens unions BOTH sizes so the store registers every editable variable.
+  // The visibleStates filter is purely UI (which subset to render now).
+  const typeGroupTokens: Token[] = buildTypeGroupTokens(typeGroups);
+  export const allTokens: Token[] = [
+    ...Object.values(defaultStates).flat(),
+    ...Object.values(smallStates).flat(),
+    ...typeGroupTokens,
+  ];
+
+  // Cross-size linkage is intentionally not declared: small lives in its own
+  // namespace. The per-state icon-size links are gone now that icon-size is a
+  // single source-of-truth token in "option base".
+  const linkableContexts = new Map<string, string>(
+    buildTypeGroupShareableContexts(typeGroups),
+  );
 </script>
 
 <script lang="ts">
@@ -114,34 +154,45 @@
     { value: 'option-3', label: 'Option 3', icon: 'fas fa-heart' },
   ];
   let showIcons = $state(true);
+  let previewSize = $state<'default' | 'small'>('default');
   let previewSegments = $derived(showIcons ? segments : segments.map((s) => ({ ...s, icon: undefined })));
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
 
+  let activeStates = $derived(previewSize === 'small' ? smallStates : defaultStates);
+  let activeTypeGroups = $derived(previewSize === 'small' ? emptyTypeGroups : typeGroups);
+
   let visibleStates = $derived(Object.fromEntries(
-    Object.entries(states).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
+    Object.entries(activeStates).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
   ) as Record<string, Token[]>);
 </script>
 
 <ComponentEditorBase {component} title="Segmented Control" description="A connected set of buttons for toggling between mutually exclusive options." tokens={allTokens} {linked}>
-  {#snippet config()}
-  
-      <label>
-        <input type="checkbox" bind:checked={showIcons} />
-        <span>Show icons</span>
-      </label>
-    
-  {/snippet}
   <VariantGroup
     name="segmentedcontrol"
     title="Segmented Control"
     states={visibleStates}
-    {typeGroups}
+    typeGroups={activeTypeGroups}
     {component}
-    
   >
+    {#snippet previewActions()}
+      <label class="sc-preview-field">
+        <span>Size</span>
+        <select bind:value={previewSize}>
+          <option value="default">Default</option>
+          <option value="small">Small</option>
+        </select>
+      </label>
+    {/snippet}
+    {#snippet canvasToolbarExtras()}
+      <hr class="canvas-toolbar-divider" />
+      <label class="sc-preview-check">
+        <input type="checkbox" bind:checked={showIcons} />
+        <span>Show icons</span>
+      </label>
+    {/snippet}
     {#snippet children({ activeState })}
-        {@const previewValue = activeState === 'selected option' ? 'option-2' : ''}
+      {@const previewValue = activeState === 'selected option' ? 'option-2' : ''}
       {@const previewForceHover = activeState === 'hover option' ? 'option-1' : null}
       {@const previewDisabled = activeState === 'disabled option'}
       <div>
@@ -150,9 +201,20 @@
           value={previewValue}
           forceHoverValue={previewForceHover}
           disabled={previewDisabled}
+          size={previewSize}
         />
       </div>
-          {/snippet}
-    </VariantGroup>
+    {/snippet}
+  </VariantGroup>
 </ComponentEditorBase>
 
+<style>
+  .sc-preview-field,
+  .sc-preview-check {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+  }
+</style>

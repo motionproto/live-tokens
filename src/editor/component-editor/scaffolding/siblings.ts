@@ -13,8 +13,8 @@ export type Sibling = {
 
     `variantStates(v)` and `variantTypeGroups(v)` return the same shape the
     parent VariantGroup gets for its own `states` / `typeGroups` props — a map
-    keyed by state name. For single-state-per-variant editors (Badge, Notification,
-    ProgressBar), wrap the single-state builders inline:
+    keyed by state name. For single-state-per-variant editors (Badge,
+    Notification), wrap the single-state builders inline:
       `(v) => ({ [v]: variantTokens(v) })`. */
 export function buildSiblings<V extends string>(
   variants: readonly V[],

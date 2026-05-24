@@ -45,6 +45,9 @@ import { componentMigration_2026_05_19_sectiondividerRichGradient } from './2026
 import { componentMigration_2026_05_20_sectiondividerSlimVariants } from './2026-05-20-sectiondivider-slim-variants';
 import { componentMigration_2026_05_21_sectiondividerSpacingToPadding } from './2026-05-21-sectiondivider-spacing-to-padding';
 import { componentMigration_2026_05_22_sectiondividerIntrinsicsToCss } from './2026-05-22-sectiondivider-intrinsics-to-css';
+import { componentMigration_2026_05_24_segmentedcontrolDividerInset } from './2026-05-24-segmentedcontrol-divider-inset';
+import { componentMigration_2026_05_24_promoteStateSharedTokens } from './2026-05-24-promote-state-shared-tokens';
+import { componentMigration_2026_05_24_progressbarCollapseVariants } from './2026-05-24-progressbar-collapse-variants';
 
 /**
  * Registered migrations. Order in this array does not matter — the runner
@@ -64,6 +67,9 @@ export const MIGRATIONS: Migration[] = [
   componentMigration_2026_05_20_sectiondividerSlimVariants,
   componentMigration_2026_05_21_sectiondividerSpacingToPadding,
   componentMigration_2026_05_22_sectiondividerIntrinsicsToCss,
+  componentMigration_2026_05_24_segmentedcontrolDividerInset,
+  componentMigration_2026_05_24_promoteStateSharedTokens,
+  componentMigration_2026_05_24_progressbarCollapseVariants,
 ];
 
 function countFor(kind: 'theme' | 'component-config'): number {

@@ -3,76 +3,72 @@
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
   export const component = 'progressbar';
-  const variants = ['primary', 'success', 'warning', 'danger', 'info'] as const;
-  type Variant = typeof variants[number];
 
-  // Per variant: track (surface, border, border-width, radius, height) + fill (color).
-  function variantTokens(v: Variant): Token[] {
-    return [
-      { label: 'fill color', groupKey: 'fill', variable: `--progressbar-${v}-fill` },
-      { label: 'track surface color', groupKey: 'surface', variable: `--progressbar-${v}-track-surface` },
-      { label: 'track border color', groupKey: 'border', variable: `--progressbar-${v}-track-border` },
-      { label: 'track border width', canBeLinked: true, groupKey: 'track-border-width', variable: `--progressbar-${v}-track-border-width` },
-      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--progressbar-${v}-radius` },
-      { label: 'track height', canBeLinked: true, groupKey: 'track-height', variable: `--progressbar-${v}-track-height` },
-    ];
-  }
+  // Single-variant component: fill color is a runtime prop on the consumer side,
+  // not a per-variant token namespace.
+  const states: Record<string, Token[]> = {
+    default: [
+      { label: 'fill color', groupKey: 'fill', variable: '--progressbar-fill' },
+      { label: 'track surface color', groupKey: 'surface', variable: '--progressbar-track-surface' },
+      { label: 'track border color', groupKey: 'border', variable: '--progressbar-track-border' },
+      { label: 'track border width', canBeLinked: true, groupKey: 'track-border-width', variable: '--progressbar-track-border-width' },
+      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: '--progressbar-radius' },
+      { label: 'track height', canBeLinked: true, groupKey: 'track-height', variable: '--progressbar-track-height' },
+      { label: 'label gap', groupKey: 'label-gap', variable: '--progressbar-label-gap' },
+    ],
+  };
 
-  // Two type groups per variant: label and value.
-  function variantTypeGroups(v: Variant): TypeGroupConfig[] {
-    return [
+  const typeGroups: Record<string, TypeGroupConfig[]> = {
+    default: [
       {
         legend: 'label',
-        colorVariable: `--progressbar-${v}-label`,
-        familyVariable: `--progressbar-${v}-label-font-family`,
-        sizeVariable: `--progressbar-${v}-label-font-size`,
-        weightVariable: `--progressbar-${v}-label-font-weight`,
-        lineHeightVariable: `--progressbar-${v}-label-line-height`,
+        colorVariable: '--progressbar-label',
+        familyVariable: '--progressbar-label-font-family',
+        sizeVariable: '--progressbar-label-font-size',
+        weightVariable: '--progressbar-label-font-weight',
+        lineHeightVariable: '--progressbar-label-line-height',
       },
       {
         legend: 'value',
-        colorVariable: `--progressbar-${v}-value`,
-        familyVariable: `--progressbar-${v}-value-font-family`,
-        sizeVariable: `--progressbar-${v}-value-font-size`,
-        weightVariable: `--progressbar-${v}-value-font-weight`,
-        lineHeightVariable: `--progressbar-${v}-value-line-height`,
+        colorVariable: '--progressbar-value',
+        familyVariable: '--progressbar-value-font-family',
+        sizeVariable: '--progressbar-value-font-size',
+        weightVariable: '--progressbar-value-font-weight',
+        lineHeightVariable: '--progressbar-value-line-height',
       },
-    ];
-  }
-  function variantTypeGroupTokens(v: Variant): Token[] {
-    return [
-      { label: 'font family', canBeLinked: true, groupKey: 'label-font-family', variable: `--progressbar-${v}-label-font-family` },
-      { label: 'font size', canBeLinked: true, groupKey: 'label-font-size', variable: `--progressbar-${v}-label-font-size` },
-      { label: 'font weight', canBeLinked: true, groupKey: 'label-font-weight', variable: `--progressbar-${v}-label-font-weight` },
-      { label: 'line height', canBeLinked: true, groupKey: 'label-line-height', variable: `--progressbar-${v}-label-line-height` },
-      { label: 'font family', canBeLinked: true, groupKey: 'value-font-family', variable: `--progressbar-${v}-value-font-family` },
-      { label: 'font size', canBeLinked: true, groupKey: 'value-font-size', variable: `--progressbar-${v}-value-font-size` },
-      { label: 'font weight', canBeLinked: true, groupKey: 'value-font-weight', variable: `--progressbar-${v}-value-font-weight` },
-      { label: 'line height', canBeLinked: true, groupKey: 'value-line-height', variable: `--progressbar-${v}-value-line-height` },
-    ];
-  }
-  export const allTokens: Token[] = variants.flatMap((v) => [
-    ...variantTokens(v),
-    ...buildTypeGroupColorTokens(variantTypeGroups(v)),
-    ...variantTypeGroupTokens(v),
+    ],
+  };
+
+  const typeGroupTokens: Token[] = [
+    { label: 'font family', canBeLinked: true, groupKey: 'label-font-family', variable: '--progressbar-label-font-family' },
+    { label: 'font size', canBeLinked: true, groupKey: 'label-font-size', variable: '--progressbar-label-font-size' },
+    { label: 'font weight', canBeLinked: true, groupKey: 'label-font-weight', variable: '--progressbar-label-font-weight' },
+    { label: 'line height', canBeLinked: true, groupKey: 'label-line-height', variable: '--progressbar-label-line-height' },
+    { label: 'font family', canBeLinked: true, groupKey: 'value-font-family', variable: '--progressbar-value-font-family' },
+    { label: 'font size', canBeLinked: true, groupKey: 'value-font-size', variable: '--progressbar-value-font-size' },
+    { label: 'font weight', canBeLinked: true, groupKey: 'value-font-weight', variable: '--progressbar-value-font-weight' },
+    { label: 'line height', canBeLinked: true, groupKey: 'value-line-height', variable: '--progressbar-value-line-height' },
+  ];
+
+  const linkableContexts = new Map<string, string>([
+    ['--progressbar-track-border-width', 'progressbar'],
+    ['--progressbar-radius', 'progressbar'],
+    ['--progressbar-track-height', 'progressbar'],
+    ['--progressbar-label-font-family', 'label'],
+    ['--progressbar-label-font-size', 'label'],
+    ['--progressbar-label-font-weight', 'label'],
+    ['--progressbar-label-line-height', 'label'],
+    ['--progressbar-value-font-family', 'value'],
+    ['--progressbar-value-font-size', 'value'],
+    ['--progressbar-value-font-weight', 'value'],
+    ['--progressbar-value-line-height', 'value'],
   ]);
 
-  // Cross-variant linked block surfaces shape and font props that may be linked.
-  const linkableContexts = new Map<string, string>(variants.flatMap((v) => [
-    [`--progressbar-${v}-track-border-width`, v] as const,
-    [`--progressbar-${v}-radius`, v] as const,
-    [`--progressbar-${v}-track-height`, v] as const,
-    [`--progressbar-${v}-label-font-family`, v] as const,
-    [`--progressbar-${v}-label-font-size`, v] as const,
-    [`--progressbar-${v}-label-font-weight`, v] as const,
-    [`--progressbar-${v}-label-line-height`, v] as const,
-    [`--progressbar-${v}-value-font-family`, v] as const,
-    [`--progressbar-${v}-value-font-size`, v] as const,
-    [`--progressbar-${v}-value-font-weight`, v] as const,
-    [`--progressbar-${v}-value-line-height`, v] as const,
-  ]));
-
-  const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
+  export const allTokens: Token[] = [
+    ...Object.values(states).flat(),
+    ...buildTypeGroupColorTokens(typeGroups),
+    ...typeGroupTokens,
+  ];
 </script>
 
 <script lang="ts">
@@ -81,37 +77,25 @@
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { editorState } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
-  import { buildSiblings } from './scaffolding/siblings';
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
-  let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet));
+  let visibleStates = $derived(Object.fromEntries(
+    Object.entries(states).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
+  ) as Record<string, Token[]>);
 </script>
 
-<ComponentEditorBase {component} title="Progress Bar" description="Animated progress bar with variants." tokens={allTokens} {linked} variants={variantOptions}>
-  {#each variants as v}
-    <VariantGroup
-      name={v}
-      title={v.charAt(0).toUpperCase() + v.slice(1)}
-      states={{ [v]: visibleVariantTokens(v) }}
-      typeGroups={{ [v]: variantTypeGroups(v) }}
-      {component}
-      siblings={buildSiblings(variants, v, (sv) => ({ [sv]: variantTokens(sv) }), (sv) => ({ [sv]: variantTypeGroups(sv) }))}
-    >
-      <div class="progress-demo-stack">
-        {#if v === 'primary'}
-          <ProgressBar value={25} label="Getting Started" variant="primary" />
-        {:else if v === 'success'}
-          <ProgressBar value={100} label="Complete" variant="success" />
-        {:else if v === 'warning'}
-          <ProgressBar value={75} label="Almost Done" variant="warning" />
-        {:else if v === 'danger'}
-          <ProgressBar value={33} label="Danger Zone" variant="danger" />
-        {:else if v === 'info'}
-          <ProgressBar value={50} label="Halfway There" variant="info" />
-        {/if}
-      </div>
-    </VariantGroup>
-  {/each}
+<ComponentEditorBase {component} title="Progress Bar" description="Animated progress bar; consumers pass a fill color via the fill prop." tokens={allTokens} {linked}>
+  <VariantGroup
+    name="progressbar"
+    title="Progress Bar"
+    states={visibleStates}
+    {typeGroups}
+    {component}
+  >
+    <div class="progress-demo-stack">
+      <ProgressBar value={75} label="Loading" />
+    </div>
+  </VariantGroup>
 </ComponentEditorBase>
 
 <style>
