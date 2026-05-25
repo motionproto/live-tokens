@@ -184,7 +184,7 @@
     --sidenavigation-panel-border-width: var(--border-width-1);
     --sidenavigation-panel-padding: var(--space-16);
     --sidenavigation-panel-section-gap: var(--space-4);
-    --sidenavigation-panel-item-indent: var(--space-32);
+    --sidenavigation-panel-item-padding: var(--space-32);
     --sidenavigation-panel-footer-gap: var(--space-16);
 
     /* Title — default */
@@ -500,7 +500,7 @@
     background: var(--_surface);
     border-left: var(--_indicator-width) solid var(--_indicator);
     @include themed-padding(--_padding);
-    padding-left: var(--sidenavigation-panel-item-indent);
+    padding-left: var(--sidenavigation-panel-item-padding);
     color: var(--_text);
     font-family: var(--_text-family);
     font-size: var(--_text-size);

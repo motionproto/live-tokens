@@ -26,7 +26,7 @@
     { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: '--sidenavigation-panel-border-width' },
     { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: '--sidenavigation-panel-padding' },
     { label: 'section gap', groupKey: 'panel-section-gap', variable: '--sidenavigation-panel-section-gap' },
-    { label: 'item indent', groupKey: 'panel-item-indent', variable: '--sidenavigation-panel-item-indent' },
+    { label: 'item indent', splittable: false, groupKey: 'panel-item-padding', variable: '--sidenavigation-panel-item-padding' },
     { label: 'footer gap', groupKey: 'panel-footer-gap', variable: '--sidenavigation-panel-footer-gap' },
   ];
 

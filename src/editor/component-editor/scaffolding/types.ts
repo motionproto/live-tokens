@@ -27,7 +27,8 @@ export type Token = {
   /** Hint to the editor that this token's alias is a structured payload
       (currently only `kind: 'gradient'`). Drives Copy-from's per-kind
       branch — gradient aliases need family-swap of in-family stop colors
-      rather than a verbatim ref copy. */
+      rather than a verbatim ref copy. Distinct from `picker`: `kind`
+      marks the value's data shape; `picker` selects the editor control. */
   kind?: 'gradient';
   /** Color-family slug for this token's owning variant (e.g. `brand`,
       `accent`). Set on gradient-kind tokens so Copy-from's family-swap

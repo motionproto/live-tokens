@@ -356,3 +356,24 @@
   --font-serif: "GFS Didot", serif;
   --font-mono: "fira-code", ui-monospace, "SF Mono", Menlo, Consolas, monospace, monospace;
 }
+
+/* Component aliases (production configs differing from defaults) */
+:root:root {
+  /* sidenavigation (my-side-navigation) */
+  --sidenavigation-title-default-padding-top: var(--space-0);
+  --sidenavigation-title-hover-padding-top: var(--space-0);
+  --sidenavigation-title-active-padding-top: var(--space-0);
+  --sidenavigation-title-default-padding-right: var(--space-12);
+  --sidenavigation-title-hover-padding-right: var(--space-12);
+  --sidenavigation-title-active-padding-right: var(--space-12);
+  --sidenavigation-title-default-padding-bottom: var(--space-12);
+  --sidenavigation-title-hover-padding-bottom: var(--space-12);
+  --sidenavigation-title-active-padding-bottom: var(--space-12);
+  --sidenavigation-title-default-padding-left: var(--space-0);
+  --sidenavigation-title-hover-padding-left: var(--space-0);
+  --sidenavigation-title-active-padding-left: var(--space-0);
+  --sidenavigation-panel-padding-top: var(--space-0);
+  --sidenavigation-panel-padding-right: var(--space-0);
+  --sidenavigation-panel-padding-bottom: var(--space-16);
+  --sidenavigation-panel-padding-left: var(--space-0);
+}

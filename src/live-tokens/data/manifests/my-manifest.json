@@ -1,0 +1,31 @@
+{
+  "name": "my-manifest",
+  "createdAt": "2026-05-25T21:49:55.471Z",
+  "updatedAt": "2026-05-25T21:49:55.488Z",
+  "theme": "default",
+  "componentConfigs": {
+    "badge": "default",
+    "button": "default",
+    "callout": "default",
+    "card": "default",
+    "collapsiblesection": "default",
+    "cornerbadge": "default",
+    "dialog": "default",
+    "floatingtokentags": "default",
+    "image": "default",
+    "inlineeditactions": "default",
+    "input": "default",
+    "menuselect": "default",
+    "notification": "default",
+    "progressbar": "default",
+    "radiobutton": "default",
+    "sectiondivider": "default",
+    "segmentedcontrol": "default",
+    "sidenavigation": "my-side-navigation",
+    "stat": "default",
+    "stateditor": "default",
+    "tabbar": "default",
+    "table": "default",
+    "tooltip": "default"
+  }
+}

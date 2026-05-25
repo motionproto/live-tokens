@@ -1,8 +1,8 @@
 {
-  "name": "default",
+  "name": "my-side-navigation",
   "component": "sidenavigation",
-  "createdAt": "2026-05-25T19:34:09.771Z",
-  "updatedAt": "2026-05-25T21:35:09.577Z",
+  "createdAt": "2026-05-25T19:50:20.348Z",
+  "updatedAt": "2026-05-25T21:49:53.960Z",
   "aliases": {
     "--sidenavigation-panel-surface": "--surface-canvas-lower",
     "--sidenavigation-panel-border": "--border-canvas-faint",
@@ -120,6 +120,24 @@
     "--sidenavigation-footer-active-text-font-family": "--font-sans",
     "--sidenavigation-footer-active-text-font-size": "--font-size-sm",
     "--sidenavigation-footer-active-text-font-weight": "--font-weight-normal",
-    "--sidenavigation-footer-active-text-line-height": "--line-height-md"
-  }
+    "--sidenavigation-footer-active-text-line-height": "--line-height-md",
+    "--sidenavigation-title-default-padding-top": "--space-0",
+    "--sidenavigation-title-hover-padding-top": "--space-0",
+    "--sidenavigation-title-active-padding-top": "--space-0",
+    "--sidenavigation-title-default-padding-right": "--space-12",
+    "--sidenavigation-title-hover-padding-right": "--space-12",
+    "--sidenavigation-title-active-padding-right": "--space-12",
+    "--sidenavigation-title-default-padding-bottom": "--space-12",
+    "--sidenavigation-title-hover-padding-bottom": "--space-12",
+    "--sidenavigation-title-active-padding-bottom": "--space-12",
+    "--sidenavigation-title-default-padding-left": "--space-0",
+    "--sidenavigation-title-hover-padding-left": "--space-0",
+    "--sidenavigation-title-active-padding-left": "--space-0",
+    "--sidenavigation-panel-padding-top": "--space-0",
+    "--sidenavigation-panel-padding-right": "--space-0",
+    "--sidenavigation-panel-padding-bottom": "--space-16",
+    "--sidenavigation-panel-padding-left": "--space-0"
+  },
+  "config": {},
+  "schemaVersion": 16
 }

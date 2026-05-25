@@ -7,6 +7,7 @@
   import UIFontSizeSelector from '../../ui/UIFontSizeSelector.svelte';
   import UILineHeightSelector from '../../ui/UILineHeightSelector.svelte';
   import UIPaddingSelector from '../../ui/UIPaddingSelector.svelte';
+  import UILetterSpacingSelector from '../../ui/UILetterSpacingSelector.svelte';
   import { BLUR, BORDER_WIDTH, DOT_SIZE, RADIUS, SHADOW, DIVIDER_HEIGHT, DIVIDER_INSET } from '../../ui/variantScales';
   import {
     editorState,
@@ -34,10 +35,11 @@
     | 'font-weight'
     | 'font-size'
     | 'line-height'
+    | 'letter-spacing'
     | 'padding'
     | 'padding-split'
     | 'gap'
-    | 'extras';
+    | 'text-color';
 
   type Entry = { kind: Kind; token: Token };
 
@@ -76,28 +78,38 @@
     onchange,
   }: Props = $props();
 
-  /** Suffix/prefix patterns mapped to kinds — single source of truth used by `categorize`.
-      Order matters: `text` must run before `border`/`surface` because `--text-*` would
-      otherwise match `surface` checks if any pattern overlapped. */
+  /** Suffix/prefix patterns mapped to kinds — single source of truth used by `rawKind`.
+      Order matters: `-text` must run before `-border`/`-surface` because `--text-*`
+      would otherwise match `surface`/`border` if any pattern overlapped. Variables
+      that don't match any pattern fall through to `text-color` (renders as a palette
+      picker). Tokens with unconventional suffixes should be renamed. */
   const KIND_PATTERNS: Array<{ kind: Kind; matches: (v: string) => boolean }> = [
-    { kind: 'font-family', matches: (v) => v.endsWith('-font-family') },
-    { kind: 'font-weight', matches: (v) => v.endsWith('-font-weight') },
-    { kind: 'font-size', matches: (v) => v.endsWith('-font-size') || v.endsWith('-icon-size') },
-    { kind: 'line-height', matches: (v) => v.endsWith('-line-height') },
-    { kind: 'extras', matches: (v) => v.endsWith('-text') || v.startsWith('--text-') },
-    { kind: 'radius', matches: (v) => v.endsWith('-radius') || v.startsWith('--radius-') },
-    { kind: 'divider-width', matches: (v) => v.endsWith('-divider-width') || v.endsWith('-divider-thickness') },
+    { kind: 'font-family',    matches: (v) => v.endsWith('-font-family') },
+    { kind: 'font-weight',    matches: (v) => v.endsWith('-font-weight') },
+    { kind: 'font-size',      matches: (v) => v.endsWith('-font-size') || v.endsWith('-icon-size') },
+    { kind: 'line-height',    matches: (v) => v.endsWith('-line-height') },
+    { kind: 'letter-spacing', matches: (v) => v.endsWith('-letter-spacing') },
+    { kind: 'text-color',     matches: (v) => v.endsWith('-text') || v.startsWith('--text-') },
+    { kind: 'radius',         matches: (v) => v.endsWith('-radius') || v.startsWith('--radius-') },
+    { kind: 'divider-width',  matches: (v) => v.endsWith('-divider-width') || v.endsWith('-divider-thickness') },
     { kind: 'divider-height', matches: (v) => v.endsWith('-divider-height') || v.endsWith('-track-height') },
-    { kind: 'divider-inset', matches: (v) => v.endsWith('-divider-inset') },
-    { kind: 'dot-size', matches: (v) => v.endsWith('-dot-size') },
-    { kind: 'blur', matches: (v) => v.endsWith('-blur') || v.startsWith('--blur-') },
-    { kind: 'shadow', matches: (v) => v.endsWith('-shadow') || v.startsWith('--shadow-') },
-    { kind: 'padding', matches: (v) => v.endsWith('-padding') || v.endsWith('-margin') },
-    { kind: 'gap', matches: (v) => v.endsWith('-gap') },
-    { kind: 'border-width', matches: (v) => v.endsWith('-border-width') || v.endsWith('-accent-width') || v.endsWith('-hairline-thickness') || v.startsWith('--border-width-') },
-    { kind: 'border', matches: (v) => v.endsWith('-border') || v.startsWith('--border-') },
-    { kind: 'surface', matches: (v) => v.endsWith('-surface') || v.startsWith('--surface-') },
+    { kind: 'divider-inset',  matches: (v) => v.endsWith('-divider-inset') },
+    { kind: 'dot-size',       matches: (v) => v.endsWith('-dot-size') },
+    { kind: 'blur',           matches: (v) => v.endsWith('-blur') || v.startsWith('--blur-') },
+    { kind: 'shadow',         matches: (v) => v.endsWith('-shadow') || v.startsWith('--shadow-') },
+    { kind: 'padding',        matches: (v) => v.endsWith('-padding') || v.endsWith('-margin') },
+    { kind: 'gap',            matches: (v) => v.endsWith('-gap') },
+    { kind: 'border-width',   matches: (v) => v.endsWith('-border-width') || v.endsWith('-accent-width') || v.endsWith('-hairline-thickness') || v.startsWith('--border-width-') },
+    { kind: 'border',         matches: (v) => v.endsWith('-border') || v.startsWith('--border-') },
+    { kind: 'surface',        matches: (v) => v.endsWith('-surface') || v.startsWith('--surface-') },
   ];
+
+  function rawKind(variable: string): Kind {
+    for (const { kind, matches } of KIND_PATTERNS) {
+      if (matches(variable)) return kind;
+    }
+    return 'text-color';
+  }
 
   /** Fixed internal order for tokens within a layout. `padding-split` co-orders with `padding`. */
   const baseKindOrder: Kind[] = [
@@ -105,6 +117,7 @@
     'font-weight',
     'font-size',
     'line-height',
+    'letter-spacing',
     'divider-width',
     'divider-height',
     'divider-inset',
@@ -115,7 +128,7 @@
     'gap',
     'blur',
     'shadow',
-    'extras',
+    'text-color',
     'surface',
     'border-width',
     'border',
@@ -123,13 +136,6 @@
   const orderRank: Record<Kind, number> = Object.fromEntries(
     baseKindOrder.map((k, i) => [k, i]),
   ) as Record<Kind, number>;
-
-  function rawKind(v: string): Kind {
-    for (const { kind, matches } of KIND_PATTERNS) {
-      if (matches(v)) return kind;
-    }
-    return 'extras';
-  }
 
   /** A padding token is "split" when its per-side variables exist for this component. */
   function paddingIsSplit(varName: string, comp: string | undefined, state: typeof $editorState): boolean {
@@ -151,8 +157,8 @@
   }
 
   /** For sibling/grouping checks we want the canonical kind, not the split-vs-single distinction. */
-  function groupingKind(v: string): Kind {
-    return rawKind(v);
+  function groupingKind(variable: string): Kind {
+    return rawKind(variable);
   }
 
   /** Selector registry: one entry per kind. `extra` props (e.g. UIPaddingSelector's
@@ -170,6 +176,7 @@
     'font-weight': { component: UIFontWeightSelector },
     'font-size': { component: UIFontSizeSelector },
     'line-height': { component: UILineHeightSelector },
+    'letter-spacing': { component: UILetterSpacingSelector },
     'border-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
     'divider-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
     'divider-height': { component: UIVariantSelector, extra: () => ({ ...DIVIDER_HEIGHT }) },
@@ -192,20 +199,21 @@
     'shadow': { component: UIVariantSelector, extra: () => ({ ...SHADOW }) },
     'surface': { component: UIPaletteSelector },
     'border': { component: UIPaletteSelector },
-    'extras': { component: UIPaletteSelector },
+    'text-color': { component: UIPaletteSelector },
   };
 
-  /** Multi-col rank: same as `orderRank` but with `extras` (text-color-like) hoisted
-      between `line-height` and `border-width` so typography reads as one logical
-      block in column flow. Single-col mode keeps `orderRank` (linked-first sort
-      already segregates extras to the bottom). */
+  /** Multi-col rank: same as `orderRank` but with `text-color` hoisted between
+      `line-height` and `divider-width` so typography reads as one logical block
+      in column flow. Single-col mode keeps `orderRank` (linked-first sort
+      already segregates text-color to the bottom). */
   const multiColRank: Record<Kind, number> = (() => {
     const reordered: Kind[] = [
       'font-family',
       'font-weight',
       'font-size',
       'line-height',
-      'extras',
+      'letter-spacing',
+      'text-color',
       'divider-width',
       'divider-height',
       'divider-inset',

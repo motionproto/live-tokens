@@ -1617,8 +1617,8 @@
     "panel-footer-gap": [
       "--sidenavigation-panel-footer-gap"
     ],
-    "panel-item-indent": [
-      "--sidenavigation-panel-item-indent"
+    "panel-item-padding": [
+      "--sidenavigation-panel-item-padding"
     ],
     "panel-section-gap": [
       "--sidenavigation-panel-section-gap"
