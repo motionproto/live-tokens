@@ -176,7 +176,7 @@
     {component}
   >
     {#snippet previewActions()}
-      <label class="sc-preview-field">
+      <label>
         <span>Size</span>
         <select bind:value={previewSize}>
           <option value="default">Default</option>
@@ -209,7 +209,6 @@
 </ComponentEditorBase>
 
 <style>
-  .sc-preview-field,
   .sc-preview-check {
     display: inline-flex;
     align-items: center;

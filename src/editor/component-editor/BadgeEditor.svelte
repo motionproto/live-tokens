@@ -1,58 +1,59 @@
 <script module lang="ts">
-  import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
-  import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import type { Token } from './scaffolding/types';
   import { badgeVariants } from '../../system/components/Badge.svelte';
 
   export const component = 'badge';
   const variants = badgeVariants;
   type Variant = typeof variants[number];
 
-  // Each variant is its own visual presentation; surface/text/border colors are unique.
-  // Shape props (radius/border-width/padding/shadow) and font props can be linked across variants.
-  function variantTokens(variant: Variant): Token[] {
+  // Base part: shape, spacing, and typography props that almost never differ
+  // between variants. Defaults are identical across the palette; the linked
+  // block surfaces that equality so authors edit one value and it co-applies.
+  // Tagged with `element` so StateBlock partitions the panel into labeled
+  // `frame` and `text` subsections instead of one long column.
+  function variantBaseTokens(v: Variant): Token[] {
     return [
-      { label: 'surface color', groupKey: 'surface', variable: `--badge-${variant}-surface` },
-      { label: 'border color', groupKey: 'border', variable: `--badge-${variant}-border` },
-      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--badge-${variant}-border-width` },
-      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--badge-${variant}-radius` },
-      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--badge-${variant}-padding` },
-      { label: 'badge shadow', canBeLinked: true, groupKey: 'shadow', variable: `--badge-${variant}-shadow` },
-      { label: 'backdrop blur', canBeLinked: true, groupKey: 'blur', variable: `--badge-${variant}-blur` },
-      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: `--badge-${variant}-icon-size` },
+      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--badge-${v}-padding`, element: 'frame' },
+      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--badge-${v}-radius`, element: 'frame' },
+      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--badge-${v}-border-width`, element: 'frame' },
+      { label: 'badge shadow', canBeLinked: true, groupKey: 'shadow', variable: `--badge-${v}-shadow`, element: 'frame' },
+      { label: 'backdrop blur', canBeLinked: true, groupKey: 'blur', variable: `--badge-${v}-blur`, element: 'frame' },
+      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: `--badge-${v}-icon-size`, element: 'frame' },
+      { label: 'font family', canBeLinked: true, groupKey: 'font-family', variable: `--badge-${v}-text-font-family`, element: 'text' },
+      { label: 'font size', canBeLinked: true, groupKey: 'font-size', variable: `--badge-${v}-text-font-size`, element: 'text' },
+      { label: 'font weight', canBeLinked: true, groupKey: 'font-weight', variable: `--badge-${v}-text-font-weight`, element: 'text' },
+      { label: 'line height', canBeLinked: true, groupKey: 'line-height', variable: `--badge-${v}-text-line-height`, element: 'text' },
     ];
   }
-  function variantTypeGroups(variant: Variant): TypeGroupConfig[] {
-    return [{
-      legend: `${variant} text`,
-      colorVariable: `--badge-${variant}-text`,
-      familyVariable: `--badge-${variant}-text-font-family`,
-      sizeVariable: `--badge-${variant}-text-font-size`,
-      weightVariable: `--badge-${variant}-text-font-weight`,
-      lineHeightVariable: `--badge-${variant}-text-line-height`,
-    }];
-  }
-  function variantTypeGroupTokens(variant: Variant): Token[] {
+
+  // Colors part: the shade triple that actually distinguishes one variant from
+  // another. groupKey keys siblings across variants so a user can opt into a
+  // shared value via the link UI, but they default divergent (variant = palette).
+  function variantColorTokens(v: Variant): Token[] {
     return [
-      { label: 'font family', canBeLinked: true, groupKey: 'font-family', variable: `--badge-${variant}-text-font-family` },
-      { label: 'font size', canBeLinked: true, groupKey: 'font-size', variable: `--badge-${variant}-text-font-size` },
-      { label: 'font weight', canBeLinked: true, groupKey: 'font-weight', variable: `--badge-${variant}-text-font-weight` },
-      { label: 'line height', canBeLinked: true, groupKey: 'line-height', variable: `--badge-${variant}-text-line-height` },
+      { label: 'surface color', groupKey: 'surface', variable: `--badge-${v}-surface` },
+      { label: 'border color', groupKey: 'border', variable: `--badge-${v}-border` },
+      { label: 'text color', groupKey: 'text', variable: `--badge-${v}-text` },
     ];
   }
+
+  function variantStates(v: Variant): Record<string, Token[]> {
+    return { base: variantBaseTokens(v), colors: variantColorTokens(v) };
+  }
+
   export const allTokens: Token[] = variants.flatMap((v) => [
-    ...variantTokens(v),
-    ...buildTypeGroupColorTokens(variantTypeGroups(v)),
-    ...variantTypeGroupTokens(v),
+    ...variantBaseTokens(v),
+    ...variantColorTokens(v),
   ]);
 
-  // Cross-variant sharing: any token with canBeLinked+groupKey participates in
-  // the linked block when ≥2 variants currently agree on its alias.
-  const linkableProps = [
-    'border-width', 'radius', 'padding', 'shadow', 'blur', 'icon-size',
-    'text-font-family', 'text-font-size', 'text-font-weight', 'text-line-height',
-  ] as const;
+  // Only base props join the linked block — colors are intentionally per-variant
+  // so each shade can be retuned without dragging shape/type behind it.
   const linkableContexts = new Map<string, string>(
-    variants.flatMap((v) => linkableProps.map((p) => [`--badge-${v}-${p}`, v] as [string, string]))
+    variants.flatMap((v) =>
+      variantBaseTokens(v)
+        .filter((t) => t.canBeLinked)
+        .map((t) => [t.variable, `${v} base`] as [string, string]),
+    ),
   );
 
   const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
@@ -67,7 +68,9 @@
   import { buildSiblings } from './scaffolding/siblings';
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
-  let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet));
+  let visibleVariantStates = $derived((v: Variant) => Object.fromEntries(
+    Object.entries(variantStates(v)).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
+  ) as Record<string, Token[]>);
 </script>
 
 <ComponentEditorBase {component} title="Badge" description="Pill-shaped badges with color variants." tokens={allTokens} {linked} variants={variantOptions}>
@@ -75,10 +78,9 @@
     <VariantGroup
       name={v}
       title={v.charAt(0).toUpperCase() + v.slice(1)}
-      states={{ [v]: visibleVariantTokens(v) }}
-      typeGroups={{ [v]: variantTypeGroups(v) }}
+      states={visibleVariantStates(v)}
       {component}
-      siblings={buildSiblings(variants, v, (sv) => ({ [sv]: variantTokens(sv) }), (sv) => ({ [sv]: variantTypeGroups(sv) }))}
+      siblings={buildSiblings(variants, v, variantStates)}
     >
       <div class="badge-showcase-grid">
         <Badge variant={v}>{v.charAt(0).toUpperCase() + v.slice(1)}</Badge>

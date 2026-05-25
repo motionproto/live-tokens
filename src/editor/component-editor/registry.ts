@@ -5,7 +5,7 @@ import { registerComponentSchema } from '../core/store/editorStore';
 import BadgeEditor, { allTokens as badgeTokens } from './BadgeEditor.svelte';
 import CalloutEditor, { allTokens as calloutTokens } from './CalloutEditor.svelte';
 import CornerBadgeEditor, { allTokens as cornerBadgeTokens } from './CornerBadgeEditor.svelte';
-import StandardButtonsEditor, { allTokens as buttonTokens } from './StandardButtonsEditor.svelte';
+import ButtonEditor, { allTokens as buttonTokens } from './ButtonEditor.svelte';
 import CardEditor, { allTokens as cardTokens } from './CardEditor.svelte';
 import CollapsibleSectionEditor, { allTokens as collapsibleSectionTokens } from './CollapsibleSectionEditor.svelte';
 import DialogEditor, { allTokens as dialogTokens } from './DialogEditor.svelte';
@@ -90,7 +90,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     label: 'Button',
     icon: 'fas fa-square',
     sourceFile: 'src/system/components/Button.svelte',
-    editorComponent: StandardButtonsEditor,
+    editorComponent: ButtonEditor,
     schema: buttonTokens,
     origin: 'system',
   },

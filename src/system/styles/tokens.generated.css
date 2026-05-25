@@ -425,57 +425,111 @@
   --button-primary-text-font-size: var(--font-size-md);
   --button-primary-text-font-weight: var(--font-weight-semibold);
   --button-primary-radius: var(--radius-xl);
-  --button-primary-hover-border-width: var(--border-width-1);
-  --button-primary-hover-radius: var(--radius-xl);
-  --button-primary-hover-padding: var(--space-8);
-  --button-primary-disabled-border-width: var(--border-width-1);
-  --button-primary-disabled-radius: var(--radius-xl);
-  --button-primary-disabled-padding: var(--space-8);
   --button-secondary-text-font-size: var(--font-size-md);
   --button-secondary-text-font-weight: var(--font-weight-semibold);
   --button-secondary-radius: var(--radius-xl);
-  --button-secondary-hover-border-width: var(--border-width-1);
-  --button-secondary-hover-radius: var(--radius-xl);
-  --button-secondary-hover-padding: var(--space-8);
-  --button-secondary-disabled-border-width: var(--border-width-1);
-  --button-secondary-disabled-radius: var(--radius-xl);
-  --button-secondary-disabled-padding: var(--space-8);
   --button-outline-text-font-size: var(--font-size-md);
   --button-outline-text-font-weight: var(--font-weight-semibold);
   --button-outline-radius: var(--radius-xl);
-  --button-outline-hover-border-width: var(--border-width-1);
-  --button-outline-hover-radius: var(--radius-xl);
-  --button-outline-hover-padding: var(--space-8);
-  --button-outline-disabled-border-width: var(--border-width-1);
-  --button-outline-disabled-radius: var(--radius-xl);
-  --button-outline-disabled-padding: var(--space-8);
   --button-success-text-font-size: var(--font-size-md);
   --button-success-text-font-weight: var(--font-weight-semibold);
   --button-success-radius: var(--radius-xl);
-  --button-success-hover-border-width: var(--border-width-2);
-  --button-success-hover-radius: var(--radius-xl);
-  --button-success-hover-padding: var(--space-8);
-  --button-success-disabled-border-width: var(--border-width-2);
-  --button-success-disabled-radius: var(--radius-xl);
-  --button-success-disabled-padding: var(--space-8);
   --button-danger-text-font-size: var(--font-size-md);
   --button-danger-text-font-weight: var(--font-weight-semibold);
   --button-danger-radius: var(--radius-xl);
-  --button-danger-hover-border-width: var(--border-width-2);
-  --button-danger-hover-radius: var(--radius-xl);
-  --button-danger-hover-padding: var(--space-8);
-  --button-danger-disabled-border-width: var(--border-width-2);
-  --button-danger-disabled-radius: var(--radius-xl);
-  --button-danger-disabled-padding: var(--space-8);
   --button-warning-text-font-size: var(--font-size-md);
   --button-warning-text-font-weight: var(--font-weight-semibold);
   --button-warning-radius: var(--radius-xl);
-  --button-warning-hover-border-width: var(--border-width-2);
-  --button-warning-hover-radius: var(--radius-xl);
-  --button-warning-hover-padding: var(--space-8);
-  --button-warning-disabled-border-width: var(--border-width-2);
-  --button-warning-disabled-radius: var(--radius-xl);
-  --button-warning-disabled-padding: var(--space-8);
+  --button-small-text-font-size: var(--font-size-sm);
+
+  /* callout (my-callout) */
+  --callout-info-label-font-family: var(--font-sans);
+  --callout-info-text-font-family: var(--font-sans);
+  --callout-success-label-font-family: var(--font-sans);
+  --callout-success-text-font-family: var(--font-sans);
+  --callout-warning-label-font-family: var(--font-sans);
+  --callout-warning-text-font-family: var(--font-sans);
+  --callout-danger-label-font-family: var(--font-sans);
+  --callout-danger-text-font-family: var(--font-sans);
+
+  /* card (my-card) */
+  --card-default-surface: color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent);
+  --card-default-header-surface: color-mix(in srgb, var(--surface-neutral-lowest) 80%, transparent);
+  --card-default-title-font-weight: var(--font-weight-medium);
+  --card-default-header-padding-top: var(--space-12);
+  --card-default-header-padding-right: var(--space-16);
+  --card-default-header-padding-bottom: var(--space-12);
+  --card-default-header-padding-left: var(--space-16);
+  --card-default-body-padding-top: var(--space-12);
+  --card-default-body-padding-right: var(--space-16);
+  --card-default-body-padding-bottom: var(--space-16);
+  --card-default-body-padding-left: var(--space-16);
+
+  /* collapsiblesection (my-collapsible-section) */
+  --collapsiblesection-chromeless-default-icon: var(--text-primary);
+  --collapsiblesection-divider-default-border: var(--border-brand);
+  --collapsiblesection-divider-default-icon: var(--text-primary);
+  --collapsiblesection-container-frame-border: var(--border-neutral);
+  --collapsiblesection-container-frame-border-width: var(--border-width-1);
+  --collapsiblesection-container-frame-radius: var(--radius-md);
+  --collapsiblesection-container-default-surface: var(--surface-neutral);
+  --collapsiblesection-container-default-icon: var(--text-primary);
+  --collapsiblesection-container-hover-surface: var(--surface-neutral-high);
+  --collapsiblesection-container-hover-icon: var(--text-primary);
+  --collapsiblesection-container-expanded-surface: var(--surface-neutral-higher);
+  --collapsiblesection-chromeless-default-padding-top: var(--space-4);
+  --collapsiblesection-chromeless-hover-padding-top: var(--space-4);
+  --collapsiblesection-chromeless-expanded-padding-top: var(--space-4);
+  --collapsiblesection-divider-default-padding-top: var(--space-4);
+  --collapsiblesection-divider-hover-padding-top: var(--space-4);
+  --collapsiblesection-divider-expanded-padding-top: var(--space-4);
+  --collapsiblesection-container-default-padding-top: var(--space-4);
+  --collapsiblesection-container-hover-padding-top: var(--space-4);
+  --collapsiblesection-container-expanded-padding-top: var(--space-4);
+  --collapsiblesection-chromeless-default-padding-right: var(--space-20);
+  --collapsiblesection-chromeless-hover-padding-right: var(--space-20);
+  --collapsiblesection-chromeless-expanded-padding-right: var(--space-20);
+  --collapsiblesection-divider-default-padding-right: var(--space-20);
+  --collapsiblesection-divider-hover-padding-right: var(--space-20);
+  --collapsiblesection-divider-expanded-padding-right: var(--space-20);
+  --collapsiblesection-container-default-padding-right: var(--space-20);
+  --collapsiblesection-container-hover-padding-right: var(--space-20);
+  --collapsiblesection-container-expanded-padding-right: var(--space-20);
+  --collapsiblesection-chromeless-default-padding-bottom: var(--space-4);
+  --collapsiblesection-chromeless-hover-padding-bottom: var(--space-4);
+  --collapsiblesection-chromeless-expanded-padding-bottom: var(--space-4);
+  --collapsiblesection-divider-default-padding-bottom: var(--space-4);
+  --collapsiblesection-divider-hover-padding-bottom: var(--space-4);
+  --collapsiblesection-divider-expanded-padding-bottom: var(--space-4);
+  --collapsiblesection-container-default-padding-bottom: var(--space-4);
+  --collapsiblesection-container-hover-padding-bottom: var(--space-4);
+  --collapsiblesection-container-expanded-padding-bottom: var(--space-4);
+  --collapsiblesection-chromeless-default-padding-left: var(--space-4);
+  --collapsiblesection-chromeless-hover-padding-left: var(--space-4);
+  --collapsiblesection-chromeless-expanded-padding-left: var(--space-4);
+  --collapsiblesection-divider-default-padding-left: var(--space-4);
+  --collapsiblesection-divider-hover-padding-left: var(--space-4);
+  --collapsiblesection-divider-expanded-padding-left: var(--space-4);
+  --collapsiblesection-container-default-padding-left: var(--space-4);
+  --collapsiblesection-container-hover-padding-left: var(--space-4);
+  --collapsiblesection-container-expanded-padding-left: var(--space-4);
+
+  /* cornerbadge (my-corner-badge) */
+  --corner-badge-text-font-weight: var(--font-weight-medium);
+
+  /* menuselect (my-menu-select) */
+  --menuselect-menu-surface: color-mix(in srgb, var(--surface-neutral-lower) 85%, transparent);
+  --menuselect-menu-border: var(--border-neutral-medium);
+
+  /* progressbar (my-progress-bar) */
+  --progressbar-track-surface: var(--surface-neutral-lowest);
+  --progressbar-track-border: var(--border-neutral-subtle);
+  --progressbar-track-height: var(--space-16);
+  --progressbar-fill: var(--surface-special-highest);
+  --progressbar-label-font-size: var(--font-size-md);
+  --progressbar-label-font-weight: var(--font-weight-normal);
+  --progressbar-value-font-size: var(--font-size-md);
+  --progressbar-value-font-weight: var(--font-weight-normal);
 
   /* sectiondivider (my-section-divider) */
   --sectiondivider-lg-padding: var(--space-4);
@@ -546,9 +600,6 @@
   --sectiondivider-md-description-display: none;
   --sectiondivider-sm-description-display: none;
   --sectiondivider-sm-hairline: below-label;
-  --sectiondivider-lg-background: transparent;
-  --sectiondivider-md-background: transparent;
-  --sectiondivider-sm-background: transparent;
   --sectiondivider-md-hairline: below-label;
   --sectiondivider-lg-title-padding: var(--space-2);
   --sectiondivider-md-title-padding: var(--space-2);
@@ -565,4 +616,7 @@
   --sectiondivider-lg-title-padding-left: var(--space-2);
   --sectiondivider-md-title-padding-left: var(--space-0);
   --sectiondivider-sm-title-padding-left: var(--space-2);
+  --sectiondivider-lg-background: transparent;
+  --sectiondivider-md-background: transparent;
+  --sectiondivider-sm-background: transparent;
 }

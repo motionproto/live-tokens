@@ -48,6 +48,8 @@ import { componentMigration_2026_05_22_sectiondividerIntrinsicsToCss } from './2
 import { componentMigration_2026_05_24_segmentedcontrolDividerInset } from './2026-05-24-segmentedcontrol-divider-inset';
 import { componentMigration_2026_05_24_promoteStateSharedTokens } from './2026-05-24-promote-state-shared-tokens';
 import { componentMigration_2026_05_24_progressbarCollapseVariants } from './2026-05-24-progressbar-collapse-variants';
+import { componentMigration_2026_05_24_collapsiblesectionDropActiveState } from './2026-05-24-collapsiblesection-drop-active-state';
+import { componentMigration_2026_05_25_cornerbadgeFlattenVariants } from './2026-05-25-cornerbadge-flatten-variants';
 
 /**
  * Registered migrations. Order in this array does not matter — the runner
@@ -70,6 +72,8 @@ export const MIGRATIONS: Migration[] = [
   componentMigration_2026_05_24_segmentedcontrolDividerInset,
   componentMigration_2026_05_24_promoteStateSharedTokens,
   componentMigration_2026_05_24_progressbarCollapseVariants,
+  componentMigration_2026_05_24_collapsiblesectionDropActiveState,
+  componentMigration_2026_05_25_cornerbadgeFlattenVariants,
 ];
 
 function countFor(kind: 'theme' | 'component-config'): number {

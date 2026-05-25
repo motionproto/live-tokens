@@ -5,7 +5,6 @@
       label: string;
       expanded?: boolean;
       href?: string | undefined;
-      active?: boolean;
       variant?: 'chromeless' | 'divider' | 'container';
       class?: string;
       /** Toggle callback. Preferred over `on:toggle` from 0.5.0 onward. */
@@ -18,7 +17,6 @@
       label,
       expanded = false,
       href = undefined,
-      active = false,
       variant = 'container',
       class: className = '',
       ontoggle,
@@ -35,18 +33,11 @@
       ontoggle?.();
       dispatch('toggle');
    }
-
-   function handleHeaderClick(e: MouseEvent) {
-      if (href && active) {
-         e.preventDefault();
-         fireToggle();
-      }
-   }
 </script>
 
 <section class="es-root variant-{variant} {className}">
    {#if href}
-      <a {href} class="section-header" class:expanded class:active onclick={handleHeaderClick}>
+      <a {href} class="section-header" class:expanded>
          <div class="section-toggle">
             <i class="fas fa-chevron-right toggle-icon"></i>
             <span class="section-label">{label}</span>
@@ -94,16 +85,6 @@
       --collapsiblesection-chromeless-hover-label-line-height: var(--line-height-md);
       --collapsiblesection-chromeless-hover-icon: var(--text-primary);
       --collapsiblesection-chromeless-hover-icon-size: var(--icon-size-xs);
-      /* Chromeless — active */
-      --collapsiblesection-chromeless-active-surface: var(--color-transparent);
-      --collapsiblesection-chromeless-active-padding: var(--space-4);
-      --collapsiblesection-chromeless-active-label: var(--text-primary);
-      --collapsiblesection-chromeless-active-label-font-family: var(--font-sans);
-      --collapsiblesection-chromeless-active-label-font-size: var(--font-size-md);
-      --collapsiblesection-chromeless-active-label-font-weight: var(--font-weight-normal);
-      --collapsiblesection-chromeless-active-label-line-height: var(--line-height-md);
-      --collapsiblesection-chromeless-active-icon: var(--text-muted);
-      --collapsiblesection-chromeless-active-icon-size: var(--icon-size-xs);
       /* Chromeless — expanded */
       --collapsiblesection-chromeless-expanded-padding: var(--space-4);
 
@@ -131,18 +112,6 @@
       --collapsiblesection-divider-hover-label-line-height: var(--line-height-md);
       --collapsiblesection-divider-hover-icon: var(--text-primary);
       --collapsiblesection-divider-hover-icon-size: var(--icon-size-xs);
-      /* Divider — active */
-      --collapsiblesection-divider-active-surface: var(--color-transparent);
-      --collapsiblesection-divider-active-border: var(--color-brand-400);
-      --collapsiblesection-divider-active-border-width: var(--border-width-1);
-      --collapsiblesection-divider-active-padding: var(--space-4);
-      --collapsiblesection-divider-active-label: var(--text-primary);
-      --collapsiblesection-divider-active-label-font-family: var(--font-sans);
-      --collapsiblesection-divider-active-label-font-size: var(--font-size-md);
-      --collapsiblesection-divider-active-label-font-weight: var(--font-weight-normal);
-      --collapsiblesection-divider-active-label-line-height: var(--line-height-md);
-      --collapsiblesection-divider-active-icon: var(--text-muted);
-      --collapsiblesection-divider-active-icon-size: var(--icon-size-xs);
       /* Divider — expanded */
       --collapsiblesection-divider-expanded-padding: var(--space-4);
 
@@ -170,16 +139,6 @@
       --collapsiblesection-container-hover-label-line-height: var(--line-height-md);
       --collapsiblesection-container-hover-icon: var(--text-muted);
       --collapsiblesection-container-hover-icon-size: var(--icon-size-xs);
-      /* Container — active header strip */
-      --collapsiblesection-container-active-surface: var(--surface-canvas-low);
-      --collapsiblesection-container-active-padding: var(--space-4);
-      --collapsiblesection-container-active-label: var(--text-primary);
-      --collapsiblesection-container-active-label-font-family: var(--font-sans);
-      --collapsiblesection-container-active-label-font-size: var(--font-size-md);
-      --collapsiblesection-container-active-label-font-weight: var(--font-weight-normal);
-      --collapsiblesection-container-active-label-line-height: var(--line-height-md);
-      --collapsiblesection-container-active-icon: var(--text-muted);
-      --collapsiblesection-container-active-icon-size: var(--icon-size-xs);
       /* Container — expanded content area */
       --collapsiblesection-container-expanded-surface: var(--surface-canvas-low);
       --collapsiblesection-container-expanded-padding: var(--space-4);
@@ -238,7 +197,6 @@
       > .section-header {
          @include header-paint(chromeless, default);
          &:hover { @include header-paint(chromeless, hover); }
-         &.active { @include header-paint(chromeless, active); }
       }
       &.force-hover > .section-header { @include header-paint(chromeless, hover); }
       > .section-content {
@@ -253,10 +211,6 @@
          &:hover {
             @include header-paint(divider, hover);
             @include divider-bottom(hover);
-         }
-         &.active {
-            @include header-paint(divider, active);
-            @include divider-bottom(active);
          }
       }
       &.force-hover > .section-header {
@@ -276,7 +230,6 @@
       > .section-header {
          @include header-paint(container, default);
          &:hover { @include header-paint(container, hover); }
-         &.active { @include header-paint(container, active); }
       }
       &.force-hover > .section-header { @include header-paint(container, hover); }
       > .section-content {

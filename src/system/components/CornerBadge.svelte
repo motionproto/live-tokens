@@ -37,155 +37,89 @@
 
   $variants: primary, accent, neutral, alternate, canvas, special, success, warning, danger, info;
 
-  // Flat per-variant blocks (no @each) so extractGlobalRootBody can parse them verbatim.
-  // Role-based radii follow badge geometry regardless of anchor:
-  //   outer = flush corner, inner = diagonal, h-axis/v-axis = edges shared with outer.
-  // Padding + font are corner-badge-specific; defaults match Badge so unconfigured looks identical.
+  // Shape, offset, and type are uniform across variants — one flat token set
+  // owns them. Colors are per-variant so authors can tune CornerBadge to read
+  // distinct from the inner Badge (e.g. lower contrast inside the corner).
+  // Defaults mirror Badge's per-variant base values; the editor's `colors` tab
+  // re-targets the previewed variant so authors only see 3 color rows at a
+  // time, scoped to whatever variant they're previewing.
   :global(:root) {
-    /* Primary */
-    --corner-badge-primary-margin: var(--space-0);
-    --corner-badge-primary-outer-radius: var(--radius-none);
-    --corner-badge-primary-inner-radius: var(--radius-none);
-    --corner-badge-primary-h-axis-radius: var(--radius-none);
-    --corner-badge-primary-v-axis-radius: var(--radius-none);
-    --corner-badge-primary-padding: var(--space-6);
-    --corner-badge-primary-text-font-family: var(--font-sans);
-    --corner-badge-primary-text-font-size: var(--font-size-sm);
-    --corner-badge-primary-text-font-weight: var(--font-weight-light);
-    --corner-badge-primary-text-line-height: var(--line-height-xs);
+    --corner-badge-margin: var(--space-0);
+    --corner-badge-outer-radius: var(--radius-none);
+    --corner-badge-inner-radius: var(--radius-none);
+    --corner-badge-h-axis-radius: var(--radius-none);
+    --corner-badge-v-axis-radius: var(--radius-none);
+    --corner-badge-padding: var(--space-6);
+    --corner-badge-text-font-family: var(--font-sans);
+    --corner-badge-text-font-size: var(--font-size-sm);
+    --corner-badge-text-font-weight: var(--font-weight-light);
+    --corner-badge-text-line-height: var(--line-height-xs);
 
-    /* Accent */
-    --corner-badge-accent-margin: var(--space-0);
-    --corner-badge-accent-outer-radius: var(--radius-none);
-    --corner-badge-accent-inner-radius: var(--radius-none);
-    --corner-badge-accent-h-axis-radius: var(--radius-none);
-    --corner-badge-accent-v-axis-radius: var(--radius-none);
-    --corner-badge-accent-padding: var(--space-6);
-    --corner-badge-accent-text-font-family: var(--font-sans);
-    --corner-badge-accent-text-font-size: var(--font-size-sm);
-    --corner-badge-accent-text-font-weight: var(--font-weight-light);
-    --corner-badge-accent-text-line-height: var(--line-height-xs);
-
-    /* Neutral */
-    --corner-badge-neutral-margin: var(--space-0);
-    --corner-badge-neutral-outer-radius: var(--radius-none);
-    --corner-badge-neutral-inner-radius: var(--radius-none);
-    --corner-badge-neutral-h-axis-radius: var(--radius-none);
-    --corner-badge-neutral-v-axis-radius: var(--radius-none);
-    --corner-badge-neutral-padding: var(--space-6);
-    --corner-badge-neutral-text-font-family: var(--font-sans);
-    --corner-badge-neutral-text-font-size: var(--font-size-sm);
-    --corner-badge-neutral-text-font-weight: var(--font-weight-light);
-    --corner-badge-neutral-text-line-height: var(--line-height-xs);
-
-    /* Alternate */
-    --corner-badge-alternate-margin: var(--space-0);
-    --corner-badge-alternate-outer-radius: var(--radius-none);
-    --corner-badge-alternate-inner-radius: var(--radius-none);
-    --corner-badge-alternate-h-axis-radius: var(--radius-none);
-    --corner-badge-alternate-v-axis-radius: var(--radius-none);
-    --corner-badge-alternate-padding: var(--space-6);
-    --corner-badge-alternate-text-font-family: var(--font-sans);
-    --corner-badge-alternate-text-font-size: var(--font-size-sm);
-    --corner-badge-alternate-text-font-weight: var(--font-weight-light);
-    --corner-badge-alternate-text-line-height: var(--line-height-xs);
-
-    /* Canvas */
-    --corner-badge-canvas-margin: var(--space-0);
-    --corner-badge-canvas-outer-radius: var(--radius-none);
-    --corner-badge-canvas-inner-radius: var(--radius-none);
-    --corner-badge-canvas-h-axis-radius: var(--radius-none);
-    --corner-badge-canvas-v-axis-radius: var(--radius-none);
-    --corner-badge-canvas-padding: var(--space-6);
-    --corner-badge-canvas-text-font-family: var(--font-sans);
-    --corner-badge-canvas-text-font-size: var(--font-size-sm);
-    --corner-badge-canvas-text-font-weight: var(--font-weight-light);
-    --corner-badge-canvas-text-line-height: var(--line-height-xs);
-
-    /* Special */
-    --corner-badge-special-margin: var(--space-0);
-    --corner-badge-special-outer-radius: var(--radius-none);
-    --corner-badge-special-inner-radius: var(--radius-none);
-    --corner-badge-special-h-axis-radius: var(--radius-none);
-    --corner-badge-special-v-axis-radius: var(--radius-none);
-    --corner-badge-special-padding: var(--space-6);
-    --corner-badge-special-text-font-family: var(--font-sans);
-    --corner-badge-special-text-font-size: var(--font-size-sm);
-    --corner-badge-special-text-font-weight: var(--font-weight-light);
-    --corner-badge-special-text-line-height: var(--line-height-xs);
-
-    /* Success */
-    --corner-badge-success-margin: var(--space-0);
-    --corner-badge-success-outer-radius: var(--radius-none);
-    --corner-badge-success-inner-radius: var(--radius-none);
-    --corner-badge-success-h-axis-radius: var(--radius-none);
-    --corner-badge-success-v-axis-radius: var(--radius-none);
-    --corner-badge-success-padding: var(--space-6);
-    --corner-badge-success-text-font-family: var(--font-sans);
-    --corner-badge-success-text-font-size: var(--font-size-sm);
-    --corner-badge-success-text-font-weight: var(--font-weight-light);
-    --corner-badge-success-text-line-height: var(--line-height-xs);
-
-    /* Warning */
-    --corner-badge-warning-margin: var(--space-0);
-    --corner-badge-warning-outer-radius: var(--radius-none);
-    --corner-badge-warning-inner-radius: var(--radius-none);
-    --corner-badge-warning-h-axis-radius: var(--radius-none);
-    --corner-badge-warning-v-axis-radius: var(--radius-none);
-    --corner-badge-warning-padding: var(--space-6);
-    --corner-badge-warning-text-font-family: var(--font-sans);
-    --corner-badge-warning-text-font-size: var(--font-size-sm);
-    --corner-badge-warning-text-font-weight: var(--font-weight-light);
-    --corner-badge-warning-text-line-height: var(--line-height-xs);
-
-    /* Danger */
-    --corner-badge-danger-margin: var(--space-0);
-    --corner-badge-danger-outer-radius: var(--radius-none);
-    --corner-badge-danger-inner-radius: var(--radius-none);
-    --corner-badge-danger-h-axis-radius: var(--radius-none);
-    --corner-badge-danger-v-axis-radius: var(--radius-none);
-    --corner-badge-danger-padding: var(--space-6);
-    --corner-badge-danger-text-font-family: var(--font-sans);
-    --corner-badge-danger-text-font-size: var(--font-size-sm);
-    --corner-badge-danger-text-font-weight: var(--font-weight-light);
-    --corner-badge-danger-text-line-height: var(--line-height-xs);
-
-    /* Info */
-    --corner-badge-info-margin: var(--space-0);
-    --corner-badge-info-outer-radius: var(--radius-none);
-    --corner-badge-info-inner-radius: var(--radius-none);
-    --corner-badge-info-h-axis-radius: var(--radius-none);
-    --corner-badge-info-v-axis-radius: var(--radius-none);
-    --corner-badge-info-padding: var(--space-6);
-    --corner-badge-info-text-font-family: var(--font-sans);
-    --corner-badge-info-text-font-size: var(--font-size-sm);
-    --corner-badge-info-text-font-weight: var(--font-weight-light);
-    --corner-badge-info-text-line-height: var(--line-height-xs);
+    /* Per-variant color overrides. Default = inherit the same family/level the
+       inner Badge uses; author can swap to a different level (e.g. -low) to
+       reduce contrast against the host surface. */
+    --corner-badge-primary-surface: var(--surface-brand);
+    --corner-badge-primary-border: var(--border-brand);
+    --corner-badge-primary-text: var(--text-brand);
+    --corner-badge-accent-surface: var(--surface-accent);
+    --corner-badge-accent-border: var(--border-accent);
+    --corner-badge-accent-text: var(--text-accent);
+    --corner-badge-neutral-surface: var(--surface-neutral);
+    --corner-badge-neutral-border: var(--border-neutral);
+    --corner-badge-neutral-text: var(--text-primary);
+    --corner-badge-alternate-surface: var(--surface-alternate);
+    --corner-badge-alternate-border: var(--border-alternate);
+    --corner-badge-alternate-text: var(--text-alternate);
+    --corner-badge-canvas-surface: var(--surface-canvas);
+    --corner-badge-canvas-border: var(--border-canvas);
+    --corner-badge-canvas-text: var(--text-canvas);
+    --corner-badge-special-surface: var(--surface-special);
+    --corner-badge-special-border: var(--border-special);
+    --corner-badge-special-text: var(--text-special);
+    --corner-badge-success-surface: var(--surface-success);
+    --corner-badge-success-border: var(--border-success);
+    --corner-badge-success-text: var(--text-success);
+    --corner-badge-warning-surface: var(--surface-warning);
+    --corner-badge-warning-border: var(--border-warning);
+    --corner-badge-warning-text: var(--text-warning);
+    --corner-badge-danger-surface: var(--surface-danger);
+    --corner-badge-danger-border: var(--border-danger);
+    --corner-badge-danger-text: var(--text-danger);
+    --corner-badge-info-surface: var(--surface-info);
+    --corner-badge-info-border: var(--border-info);
+    --corner-badge-info-text: var(--text-info);
   }
 
   .corner-badge {
     position: absolute;
     z-index: 1;
     pointer-events: none;
+    // Pull public tokens into private vars so anchor mappings below stay generic.
+    --_margin: var(--corner-badge-margin);
+    --_outer-radius: var(--corner-badge-outer-radius);
+    --_inner-radius: var(--corner-badge-inner-radius);
+    --_h-axis-radius: var(--corner-badge-h-axis-radius);
+    --_v-axis-radius: var(--corner-badge-v-axis-radius);
+
+    // Forward padding + font onto the inner Badge to override Badge's own
+    // `.badge-#{$v}` rule. Specificity (0,2,0) beats Badge's (0,1,0).
+    :global(.badge) {
+      @include themed-padding(--corner-badge-padding, $h: 2);
+      font-family: var(--corner-badge-text-font-family);
+      font-size: var(--corner-badge-text-font-size);
+      font-weight: var(--corner-badge-text-font-weight);
+      line-height: var(--corner-badge-text-line-height);
+    }
   }
 
-  // Pull public tokens into private vars so anchor mappings below stay generic (avoids 4×10 rules).
-  // Padding + font forwarded onto inner Badge to override Badge's own `.badge-#{$v}` rule.
+  // Per-variant color overrides: rebind Badge's per-variant CSS vars inside
+  // the corner-badge scope so the inner Badge picks up CornerBadge's color
+  // tokens without CornerBadge having to re-implement the painting rules.
   @each $v in $variants {
     .corner-badge-#{$v} {
-      --_margin: var(--corner-badge-#{$v}-margin);
-      --_outer-radius: var(--corner-badge-#{$v}-outer-radius);
-      --_inner-radius: var(--corner-badge-#{$v}-inner-radius);
-      --_h-axis-radius: var(--corner-badge-#{$v}-h-axis-radius);
-      --_v-axis-radius: var(--corner-badge-#{$v}-v-axis-radius);
-
-      :global(.badge-#{$v}) {
-        @include themed-padding(--corner-badge-#{$v}-padding, $h: 2);
-        font-family: var(--corner-badge-#{$v}-text-font-family);
-        font-size: var(--corner-badge-#{$v}-text-font-size);
-        font-weight: var(--corner-badge-#{$v}-text-font-weight);
-        line-height: var(--corner-badge-#{$v}-text-line-height);
-      }
+      --badge-#{$v}-surface: var(--corner-badge-#{$v}-surface);
+      --badge-#{$v}-border: var(--corner-badge-#{$v}-border);
+      --badge-#{$v}-text: var(--corner-badge-#{$v}-text);
     }
   }
 

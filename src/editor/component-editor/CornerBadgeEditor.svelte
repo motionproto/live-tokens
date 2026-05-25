@@ -3,37 +3,45 @@
   import { badgeVariants } from '../../system/components/Badge.svelte';
 
   export const component = 'cornerbadge';
+  type Variant = typeof badgeVariants[number];
 
-  // One state per variant; role-specific groupKeys link the same role across variants while keeping roles independent within a variant.
-  function variantTokens(v: typeof badgeVariants[number]): Token[] {
+  // Shape, spacing, type — uniform across variants, one flat token set.
+  // Authored from any variant's panel; edits write the same flat keys.
+  const baseTokens: Token[] = [
+    { label: 'offset from corner', canBeLinked: true, groupKey: 'margin', variable: '--corner-badge-margin', element: 'frame' },
+    { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: '--corner-badge-padding', element: 'frame' },
+    { label: 'padding-top', canBeLinked: true, groupKey: 'padding-top', variable: '--corner-badge-padding-top', hidden: true, element: 'frame' },
+    { label: 'padding-right', canBeLinked: true, groupKey: 'padding-right', variable: '--corner-badge-padding-right', hidden: true, element: 'frame' },
+    { label: 'padding-bottom', canBeLinked: true, groupKey: 'padding-bottom', variable: '--corner-badge-padding-bottom', hidden: true, element: 'frame' },
+    { label: 'padding-left', canBeLinked: true, groupKey: 'padding-left', variable: '--corner-badge-padding-left', hidden: true, element: 'frame' },
+    { label: 'outer corner radius', canBeLinked: true, groupKey: 'outer-radius', variable: '--corner-badge-outer-radius', element: 'frame' },
+    { label: 'inner corner radius', canBeLinked: true, groupKey: 'inner-radius', variable: '--corner-badge-inner-radius', element: 'frame' },
+    { label: 'horizontal-axis radius', canBeLinked: true, groupKey: 'h-axis-radius', variable: '--corner-badge-h-axis-radius', element: 'frame' },
+    { label: 'vertical-axis radius', canBeLinked: true, groupKey: 'v-axis-radius', variable: '--corner-badge-v-axis-radius', element: 'frame' },
+    { label: 'font family', canBeLinked: true, groupKey: 'text-font-family', variable: '--corner-badge-text-font-family', element: 'text' },
+    { label: 'font size', canBeLinked: true, groupKey: 'text-font-size', variable: '--corner-badge-text-font-size', element: 'text' },
+    { label: 'font weight', canBeLinked: true, groupKey: 'text-font-weight', variable: '--corner-badge-text-font-weight', element: 'text' },
+    { label: 'line height', canBeLinked: true, groupKey: 'text-line-height', variable: '--corner-badge-text-line-height', element: 'text' },
+  ];
+
+  // Per-variant color slots — surface, border, text — rebind the inner Badge's
+  // colors inside .corner-badge-{v} scope.
+  function variantColorTokens(v: Variant): Token[] {
     return [
-      { label: 'offset from corner', canBeLinked: true, groupKey: 'margin', variable: `--corner-badge-${v}-margin` },
-      { label: 'outer corner radius', canBeLinked: true, groupKey: 'outer-radius', variable: `--corner-badge-${v}-outer-radius` },
-      { label: 'inner corner radius', canBeLinked: true, groupKey: 'inner-radius', variable: `--corner-badge-${v}-inner-radius` },
-      { label: 'horizontal-axis radius', canBeLinked: true, groupKey: 'h-axis-radius', variable: `--corner-badge-${v}-h-axis-radius` },
-      { label: 'vertical-axis radius', canBeLinked: true, groupKey: 'v-axis-radius', variable: `--corner-badge-${v}-v-axis-radius` },
-      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--corner-badge-${v}-padding` },
-      // Hidden per-side overrides for UIPaddingSelector split mode; declared so siblings link across variants.
-      { label: 'padding-top', canBeLinked: true, groupKey: 'padding-top', variable: `--corner-badge-${v}-padding-top`, hidden: true },
-      { label: 'padding-right', canBeLinked: true, groupKey: 'padding-right', variable: `--corner-badge-${v}-padding-right`, hidden: true },
-      { label: 'padding-bottom', canBeLinked: true, groupKey: 'padding-bottom', variable: `--corner-badge-${v}-padding-bottom`, hidden: true },
-      { label: 'padding-left', canBeLinked: true, groupKey: 'padding-left', variable: `--corner-badge-${v}-padding-left`, hidden: true },
-      { label: 'font family', canBeLinked: true, groupKey: 'text-font-family', variable: `--corner-badge-${v}-text-font-family` },
-      { label: 'font size', canBeLinked: true, groupKey: 'text-font-size', variable: `--corner-badge-${v}-text-font-size` },
-      { label: 'font weight', canBeLinked: true, groupKey: 'text-font-weight', variable: `--corner-badge-${v}-text-font-weight` },
-      { label: 'line height', canBeLinked: true, groupKey: 'text-line-height', variable: `--corner-badge-${v}-text-line-height` },
+      { label: 'surface color', groupKey: 'surface', variable: `--corner-badge-${v}-surface` },
+      { label: 'border color', groupKey: 'border', variable: `--corner-badge-${v}-border` },
+      { label: 'text color', groupKey: 'text', variable: `--corner-badge-${v}-text` },
     ];
   }
-  export const allTokens: Token[] = badgeVariants.flatMap((v) => variantTokens(v));
 
-  // Linkable vars across variants; variant name as context label so chart rows mirror the tab strip.
-  const linkableContexts = new Map<string, string>(
-    badgeVariants.flatMap((v) =>
-      variantTokens(v)
-        .filter((t) => t.canBeLinked)
-        .map((t) => [t.variable, v] as [string, string]),
-    ),
-  );
+  function variantStates(v: Variant): Record<string, Token[]> {
+    return { base: baseTokens, colors: variantColorTokens(v) };
+  }
+
+  export const allTokens: Token[] = [
+    ...baseTokens,
+    ...badgeVariants.flatMap((v) => variantColorTokens(v)),
+  ];
 
   const variantOptions = badgeVariants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
 </script>
@@ -42,15 +50,11 @@
   import CornerBadge, { type CornerAnchor } from '../../system/components/CornerBadge.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../core/store/editorStore';
-  import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   import { buildSiblings } from './scaffolding/siblings';
   import demoImageUrl from '../../system/assets/newspaper.webp';
 
-  let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
-  let visibleVariantTokens = $derived((v: typeof badgeVariants[number]) => withLinkedDisabled(variantTokens(v), linked.varSet));
-
   let anchor: CornerAnchor = $state('bottom-right');
+
   const anchorGrid: ReadonlyArray<{ value: CornerAnchor; icon: string; label: string }> = [
     { value: 'top-left',     icon: 'fas fa-arrow-up-left',     label: 'Top left' },
     { value: 'top-right',    icon: 'fas fa-arrow-up-right',    label: 'Top right' },
@@ -59,14 +63,20 @@
   ];
 </script>
 
-<ComponentEditorBase {component} title="Corner Badge" description="Badge pinned flush to a corner of a positioned ancestor. Composes <code>Badge</code>; adds offset + inner-radius tokens." tokens={allTokens} {linked} variants={variantOptions}>
+<ComponentEditorBase
+  {component}
+  title="Corner Badge"
+  description="Badge pinned flush to a corner of a positioned ancestor. Composes <code>Badge</code>; carries its own per-variant color tokens that override the inner Badge inside the corner scope."
+  tokens={allTokens}
+  variants={variantOptions}
+>
   {#each badgeVariants as v}
     <VariantGroup
       name={v}
       title={v.charAt(0).toUpperCase() + v.slice(1)}
-      states={{ [v]: visibleVariantTokens(v) }}
+      states={variantStates(v)}
       {component}
-      siblings={buildSiblings(badgeVariants, v, (sv) => ({ [sv]: variantTokens(sv) }))}
+      siblings={buildSiblings(badgeVariants, v, variantStates)}
     >
       {#snippet canvasToolbarExtras()}
         <span class="canvas-toolbar-eyebrow">Anchor</span>

@@ -1,0 +1,20 @@
+{
+  "name": "my-corner-badge",
+  "component": "cornerbadge",
+  "createdAt": "2026-05-25T00:56:47.122Z",
+  "updatedAt": "2026-05-25T00:56:47.124Z",
+  "aliases": {
+    "--corner-badge-margin": "--space-0",
+    "--corner-badge-outer-radius": "--radius-none",
+    "--corner-badge-inner-radius": "--radius-none",
+    "--corner-badge-h-axis-radius": "--radius-none",
+    "--corner-badge-v-axis-radius": "--radius-none",
+    "--corner-badge-padding": "--space-6",
+    "--corner-badge-text-font-family": "--font-sans",
+    "--corner-badge-text-font-size": "--font-size-sm",
+    "--corner-badge-text-font-weight": "--font-weight-medium",
+    "--corner-badge-text-line-height": "--line-height-xs"
+  },
+  "config": {},
+  "schemaVersion": 16
+}

@@ -14,20 +14,22 @@
 
   // Shape + type. These don't change per state in the runtime — promoted into
   // their own "base" part so state panels carry only what genuinely varies.
+  // Tagged with `element` so StateBlock partitions base into labeled `frame`
+  // and `text` subsections, matching the Badge editor's layout.
   function variantBaseTokens(v: Variant): Token[] {
     return [
-      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--button-${v}-padding` },
-      { label: 'padding-top', canBeLinked: true, groupKey: 'padding-top', variable: `--button-${v}-padding-top`, hidden: true },
-      { label: 'padding-right', canBeLinked: true, groupKey: 'padding-right', variable: `--button-${v}-padding-right`, hidden: true },
-      { label: 'padding-bottom', canBeLinked: true, groupKey: 'padding-bottom', variable: `--button-${v}-padding-bottom`, hidden: true },
-      { label: 'padding-left', canBeLinked: true, groupKey: 'padding-left', variable: `--button-${v}-padding-left`, hidden: true },
-      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--button-${v}-radius` },
-      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--button-${v}-border-width` },
-      { label: 'font family', canBeLinked: true, groupKey: 'font-family', variable: `--button-${v}-text-font-family` },
-      { label: 'font size', canBeLinked: true, groupKey: 'font-size', variable: `--button-${v}-text-font-size` },
-      { label: 'font weight', canBeLinked: true, groupKey: 'font-weight', variable: `--button-${v}-text-font-weight` },
-      { label: 'line height', canBeLinked: true, groupKey: 'line-height', variable: `--button-${v}-text-line-height` },
-      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: `--button-${v}-icon-size` },
+      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--button-${v}-padding`, element: 'frame' },
+      { label: 'padding-top', canBeLinked: true, groupKey: 'padding-top', variable: `--button-${v}-padding-top`, hidden: true, element: 'frame' },
+      { label: 'padding-right', canBeLinked: true, groupKey: 'padding-right', variable: `--button-${v}-padding-right`, hidden: true, element: 'frame' },
+      { label: 'padding-bottom', canBeLinked: true, groupKey: 'padding-bottom', variable: `--button-${v}-padding-bottom`, hidden: true, element: 'frame' },
+      { label: 'padding-left', canBeLinked: true, groupKey: 'padding-left', variable: `--button-${v}-padding-left`, hidden: true, element: 'frame' },
+      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--button-${v}-radius`, element: 'frame' },
+      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--button-${v}-border-width`, element: 'frame' },
+      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: `--button-${v}-icon-size`, element: 'frame' },
+      { label: 'font family', canBeLinked: true, groupKey: 'font-family', variable: `--button-${v}-text-font-family`, element: 'text' },
+      { label: 'font size', canBeLinked: true, groupKey: 'font-size', variable: `--button-${v}-text-font-size`, element: 'text' },
+      { label: 'font weight', canBeLinked: true, groupKey: 'font-weight', variable: `--button-${v}-text-font-weight`, element: 'text' },
+      { label: 'line height', canBeLinked: true, groupKey: 'line-height', variable: `--button-${v}-text-line-height`, element: 'text' },
     ];
   }
 
@@ -61,17 +63,18 @@
   // Small-size schema. One shared spec across all variants (matches the runtime
   // `.small` rule, which is variant-agnostic). Per-side padding rows are hidden
   // and surface only when the editor splits the padding control.
+  // Same frame/text element split as the default-size base for visual parity.
   const smallStates: Record<string, Token[]> = {
     small: [
-      { label: 'padding', groupKey: 'small-padding', variable: '--button-small-padding' },
-      { label: 'padding-top', groupKey: 'small-padding-top', variable: '--button-small-padding-top', hidden: true },
-      { label: 'padding-right', groupKey: 'small-padding-right', variable: '--button-small-padding-right', hidden: true },
-      { label: 'padding-bottom', groupKey: 'small-padding-bottom', variable: '--button-small-padding-bottom', hidden: true },
-      { label: 'padding-left', groupKey: 'small-padding-left', variable: '--button-small-padding-left', hidden: true },
-      { label: 'font size', groupKey: 'small-font-size', variable: '--button-small-text-font-size' },
-      { label: 'font weight', groupKey: 'small-font-weight', variable: '--button-small-text-font-weight' },
-      { label: 'line height', groupKey: 'small-line-height', variable: '--button-small-text-line-height' },
-      { label: 'icon size', groupKey: 'small-icon-size', variable: '--button-small-icon-size' },
+      { label: 'padding', groupKey: 'small-padding', variable: '--button-small-padding', element: 'frame' },
+      { label: 'padding-top', groupKey: 'small-padding-top', variable: '--button-small-padding-top', hidden: true, element: 'frame' },
+      { label: 'padding-right', groupKey: 'small-padding-right', variable: '--button-small-padding-right', hidden: true, element: 'frame' },
+      { label: 'padding-bottom', groupKey: 'small-padding-bottom', variable: '--button-small-padding-bottom', hidden: true, element: 'frame' },
+      { label: 'padding-left', groupKey: 'small-padding-left', variable: '--button-small-padding-left', hidden: true, element: 'frame' },
+      { label: 'icon size', groupKey: 'small-icon-size', variable: '--button-small-icon-size', element: 'frame' },
+      { label: 'font size', groupKey: 'small-font-size', variable: '--button-small-text-font-size', element: 'text' },
+      { label: 'font weight', groupKey: 'small-font-weight', variable: '--button-small-text-font-weight', element: 'text' },
+      { label: 'line height', groupKey: 'small-line-height', variable: '--button-small-text-line-height', element: 'text' },
     ],
   };
   const smallTokensFlat: Token[] = Object.values(smallStates).flat();
@@ -133,7 +136,7 @@
 </script>
 
 {#snippet sizeAction()}
-  <label class="preview-size-field">
+  <label>
     <span>Size</span>
     <select bind:value={previewSize}>
       <option value="default">Default</option>
@@ -150,7 +153,6 @@
         title={v.charAt(0).toUpperCase() + v.slice(1)}
         states={visibleVariantStates(v)}
         {component}
-        columns={2}
         siblings={buildSiblings(variants, v, variantStates)}
         previewActions={sizeAction}
       >
@@ -182,7 +184,6 @@
       title="Small"
       states={visibleSmallStates}
       {component}
-      columns={2}
       previewActions={sizeAction}
     >
       {#snippet children()}
@@ -200,14 +201,6 @@
 </ComponentEditorBase>
 
 <style>
-  .preview-size-field {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    font-size: var(--ui-font-size-sm);
-    color: var(--ui-text-secondary);
-  }
-
   .button-showcase-grid {
     display: flex;
     flex-wrap: wrap;

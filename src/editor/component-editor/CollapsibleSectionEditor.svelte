@@ -6,15 +6,11 @@
 
   const VARIANTS = ['chromeless', 'divider', 'container'] as const;
   type Variant = typeof VARIANTS[number];
-  // CSS-layer state names (used in the var names) vs UI-layer labels (shown in
-  // the editor). The CSS keeps the historical `active` slug for compatibility;
-  // the UI surfaces it as "Current" because users read `:active` as click-press.
-  const HEADER_STATES = ['default', 'hover', 'active'] as const;
+  const HEADER_STATES = ['default', 'hover'] as const;
   type HeaderState = typeof HEADER_STATES[number];
   const HEADER_STATE_LABELS: Record<HeaderState, string> = {
     default: 'Default',
     hover: 'Hover',
-    active: 'Current',
   };
 
   const VARIANT_LABELS: Record<Variant, string> = {
@@ -154,12 +150,10 @@
         {@const isContainerPart = activeState === 'Container'}
         {@const isBody = activeState === 'Body'}
         {@const forceClass = activeState === 'Header / Hover' ? 'force-hover' : ''}
-        {@const forceActive = activeState === 'Header / Current'}
         <CollapsibleSection
           variant={v}
           label="Click to expand"
           expanded={isBody}
-          active={forceActive}
           class={forceClass}
         >
           <p style="margin: 0; color: var(--text-secondary);">

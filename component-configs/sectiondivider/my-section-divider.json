@@ -2,7 +2,7 @@
   "name": "my-section-divider",
   "component": "sectiondivider",
   "createdAt": "2026-05-19T12:01:57.271Z",
-  "updatedAt": "2026-05-22T21:20:59.253Z",
+  "updatedAt": "2026-05-25T00:50:59.598Z",
   "aliases": {
     "--sectiondivider-lg-padding": "--space-4",
     "--sectiondivider-md-padding": "--space-4",
@@ -99,6 +99,22 @@
     "--sectiondivider-md-description-display": "none",
     "--sectiondivider-sm-description-display": "none",
     "--sectiondivider-sm-hairline": "below-label",
+    "--sectiondivider-md-hairline": "below-label",
+    "--sectiondivider-lg-title-padding": "--space-2",
+    "--sectiondivider-md-title-padding": "--space-2",
+    "--sectiondivider-sm-title-padding": "--space-2",
+    "--sectiondivider-lg-title-padding-top": "--space-2",
+    "--sectiondivider-md-title-padding-top": "--space-2",
+    "--sectiondivider-sm-title-padding-top": "--space-2",
+    "--sectiondivider-lg-title-padding-right": "--space-2",
+    "--sectiondivider-md-title-padding-right": "--space-2",
+    "--sectiondivider-sm-title-padding-right": "--space-2",
+    "--sectiondivider-lg-title-padding-bottom": "--space-2",
+    "--sectiondivider-md-title-padding-bottom": "--space-2",
+    "--sectiondivider-sm-title-padding-bottom": "--space-2",
+    "--sectiondivider-lg-title-padding-left": "--space-2",
+    "--sectiondivider-md-title-padding-left": "--space-0",
+    "--sectiondivider-sm-title-padding-left": "--space-2",
     "--sectiondivider-lg-background": {
       "kind": "gradient",
       "value": {
@@ -167,26 +183,10 @@
           }
         ]
       }
-    },
-    "--sectiondivider-md-hairline": "below-label",
-    "--sectiondivider-lg-title-padding": "--space-2",
-    "--sectiondivider-md-title-padding": "--space-2",
-    "--sectiondivider-sm-title-padding": "--space-2",
-    "--sectiondivider-lg-title-padding-top": "--space-2",
-    "--sectiondivider-md-title-padding-top": "--space-2",
-    "--sectiondivider-sm-title-padding-top": "--space-2",
-    "--sectiondivider-lg-title-padding-right": "--space-2",
-    "--sectiondivider-md-title-padding-right": "--space-2",
-    "--sectiondivider-sm-title-padding-right": "--space-2",
-    "--sectiondivider-lg-title-padding-bottom": "--space-2",
-    "--sectiondivider-md-title-padding-bottom": "--space-2",
-    "--sectiondivider-sm-title-padding-bottom": "--space-2",
-    "--sectiondivider-lg-title-padding-left": "--space-2",
-    "--sectiondivider-md-title-padding-left": "--space-0",
-    "--sectiondivider-sm-title-padding-left": "--space-2"
+    }
   },
   "config": {
     "--sectiondivider-md-color-family": "accent"
   },
-  "schemaVersion": 11
+  "schemaVersion": 16
 }

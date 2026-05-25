@@ -582,10 +582,47 @@
   }
 
   .preview-actions {
-    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-12);
+  }
+
+  /* Labels inside previewActions read at the UI body size, matching the
+     variant tab strip they sit beside. Greyscale only. */
+  .preview-actions :global(label) {
     display: inline-flex;
     align-items: center;
     gap: var(--ui-space-8);
+    font-size: var(--ui-font-size-md);
+    color: var(--ui-text-secondary);
+  }
+
+  /* Native <select> styled to match the property-row trigger chrome so
+     toolbar selects share one visual vocabulary with property dropdowns. */
+  .preview-actions :global(select) {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0 var(--ui-space-24) 0 var(--ui-space-10);
+    min-height: 1.75rem;
+    background-color: var(--ui-surface-low);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='M3 5l3 3 3-3'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--ui-space-8) center;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-md);
+    color: var(--ui-text-primary);
+    font-family: var(--ui-font-sans);
+    font-size: var(--ui-font-size-md);
+    cursor: pointer;
+    transition: background-color var(--ui-transition-fast), border-color var(--ui-transition-fast);
+  }
+  .preview-actions :global(select:hover) {
+    background-color: var(--ui-surface-high);
+    border-color: var(--ui-border-higher);
+  }
+  .preview-actions :global(select:focus-visible) {
+    outline: 2px solid var(--ui-highlight);
+    outline-offset: 2px;
   }
 
   /* Sits in the backdrop's right-rail column (ShadowBackdrop owns the two-column

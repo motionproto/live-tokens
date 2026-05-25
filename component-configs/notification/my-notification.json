@@ -2,7 +2,7 @@
   "name": "my-notification",
   "component": "notification",
   "createdAt": "2026-05-20T01:02:08.068Z",
-  "updatedAt": "2026-05-20T01:02:08.070Z",
+  "updatedAt": "2026-05-25T01:39:14.583Z",
   "aliases": {
     "--notification-info-surface": "--surface-info",
     "--notification-info-action-surface": "--surface-neutral-lowest",
@@ -15,7 +15,7 @@
     "--notification-info-title": "--text-info",
     "--notification-info-title-font-family": "--font-sans",
     "--notification-info-title-font-size": "--font-size-lg",
-    "--notification-info-title-font-weight": "--font-weight-semibold",
+    "--notification-info-title-font-weight": "--font-weight-bold",
     "--notification-info-title-line-height": "--line-height-sm",
     "--notification-info-text": "--text-primary",
     "--notification-info-text-font-family": "--font-sans",
@@ -33,7 +33,7 @@
     "--notification-success-title": "--text-success",
     "--notification-success-title-font-family": "--font-sans",
     "--notification-success-title-font-size": "--font-size-lg",
-    "--notification-success-title-font-weight": "--font-weight-semibold",
+    "--notification-success-title-font-weight": "--font-weight-bold",
     "--notification-success-title-line-height": "--line-height-sm",
     "--notification-success-text": "--text-primary",
     "--notification-success-text-font-family": "--font-sans",
@@ -51,7 +51,7 @@
     "--notification-warning-title": "--text-warning",
     "--notification-warning-title-font-family": "--font-sans",
     "--notification-warning-title-font-size": "--font-size-lg",
-    "--notification-warning-title-font-weight": "--font-weight-semibold",
+    "--notification-warning-title-font-weight": "--font-weight-bold",
     "--notification-warning-title-line-height": "--line-height-sm",
     "--notification-warning-text": "--text-primary",
     "--notification-warning-text-font-family": "--font-sans",
@@ -69,7 +69,7 @@
     "--notification-danger-title": "--text-danger",
     "--notification-danger-title-font-family": "--font-sans",
     "--notification-danger-title-font-size": "--font-size-lg",
-    "--notification-danger-title-font-weight": "--font-weight-semibold",
+    "--notification-danger-title-font-weight": "--font-weight-bold",
     "--notification-danger-title-line-height": "--line-height-sm",
     "--notification-danger-text": "--text-primary",
     "--notification-danger-text-font-family": "--font-sans",
@@ -78,5 +78,5 @@
     "--notification-danger-text-line-height": "--line-height-md"
   },
   "config": {},
-  "schemaVersion": 8
+  "schemaVersion": 16
 }

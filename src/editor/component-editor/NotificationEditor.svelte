@@ -1,80 +1,60 @@
 <script module lang="ts">
-  import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
-  import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import type { Token } from './scaffolding/types';
 
   export const component = 'notification';
   const variants = ['info', 'success', 'warning', 'danger'] as const;
   type Variant = typeof variants[number];
 
-  // Per variant: notification frame (surface, border, border-width, radius, padding) + icon (color, size)
-  // + action backdrop surface (paints behind the optional header action button).
-  function variantTokens(v: Variant): Token[] {
+  // Base part: notification chrome, icon sizing, and both typography stacks.
+  // Tagged with `element` so StateBlock partitions the panel into labeled
+  // `frame`, `title`, and `body` subsections — the title/body split mirrors the
+  // runtime's two type stacks. Section labels mean per-row labels can stay short
+  // ('font family', not 'title font family').
+  function variantBaseTokens(v: Variant): Token[] {
+    return [
+      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--notification-${v}-padding`, element: 'frame' },
+      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--notification-${v}-radius`, element: 'frame' },
+      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--notification-${v}-border-width`, element: 'frame' },
+      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: `--notification-${v}-icon-size`, element: 'frame' },
+      { label: 'font family', canBeLinked: true, groupKey: 'title-font-family', variable: `--notification-${v}-title-font-family`, element: 'title' },
+      { label: 'font size', canBeLinked: true, groupKey: 'title-font-size', variable: `--notification-${v}-title-font-size`, element: 'title' },
+      { label: 'font weight', canBeLinked: true, groupKey: 'title-font-weight', variable: `--notification-${v}-title-font-weight`, element: 'title' },
+      { label: 'line height', canBeLinked: true, groupKey: 'title-line-height', variable: `--notification-${v}-title-line-height`, element: 'title' },
+      { label: 'font family', canBeLinked: true, groupKey: 'text-font-family', variable: `--notification-${v}-text-font-family`, element: 'body' },
+      { label: 'font size', canBeLinked: true, groupKey: 'text-font-size', variable: `--notification-${v}-text-font-size`, element: 'body' },
+      { label: 'font weight', canBeLinked: true, groupKey: 'text-font-weight', variable: `--notification-${v}-text-font-weight`, element: 'body' },
+      { label: 'line height', canBeLinked: true, groupKey: 'text-line-height', variable: `--notification-${v}-text-line-height`, element: 'body' },
+    ];
+  }
+
+  // Colors part: the six shades that distinguish info/success/warning/danger.
+  function variantColorTokens(v: Variant): Token[] {
     return [
       { label: 'surface color', groupKey: 'surface', variable: `--notification-${v}-surface` },
       { label: 'action surface', groupKey: 'action-surface', variable: `--notification-${v}-action-surface` },
       { label: 'border color', groupKey: 'border', variable: `--notification-${v}-border` },
-      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--notification-${v}-border-width` },
-      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--notification-${v}-radius` },
-      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--notification-${v}-padding` },
       { label: 'icon color', groupKey: 'icon', variable: `--notification-${v}-icon` },
-      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: `--notification-${v}-icon-size` },
+      { label: 'title color', groupKey: 'title', variable: `--notification-${v}-title` },
+      { label: 'body color', groupKey: 'text', variable: `--notification-${v}-text` },
     ];
   }
 
-  // Two type groups per variant: title and body text.
-  function variantTypeGroups(v: Variant): TypeGroupConfig[] {
-    return [
-      {
-        legend: 'title',
-        colorVariable: `--notification-${v}-title`,
-        familyVariable: `--notification-${v}-title-font-family`,
-        sizeVariable: `--notification-${v}-title-font-size`,
-        weightVariable: `--notification-${v}-title-font-weight`,
-        lineHeightVariable: `--notification-${v}-title-line-height`,
-      },
-      {
-        legend: 'body text',
-        colorVariable: `--notification-${v}-text`,
-        familyVariable: `--notification-${v}-text-font-family`,
-        sizeVariable: `--notification-${v}-text-font-size`,
-        weightVariable: `--notification-${v}-text-font-weight`,
-        lineHeightVariable: `--notification-${v}-text-line-height`,
-      },
-    ];
+  function variantStates(v: Variant): Record<string, Token[]> {
+    return { base: variantBaseTokens(v), colors: variantColorTokens(v) };
   }
-  function variantTypeGroupTokens(v: Variant): Token[] {
-    return [
-      { label: 'font family', canBeLinked: true, groupKey: 'title-font-family', variable: `--notification-${v}-title-font-family` },
-      { label: 'font size', canBeLinked: true, groupKey: 'title-font-size', variable: `--notification-${v}-title-font-size` },
-      { label: 'font weight', canBeLinked: true, groupKey: 'title-font-weight', variable: `--notification-${v}-title-font-weight` },
-      { label: 'line height', canBeLinked: true, groupKey: 'title-line-height', variable: `--notification-${v}-title-line-height` },
-      { label: 'font family', canBeLinked: true, groupKey: 'text-font-family', variable: `--notification-${v}-text-font-family` },
-      { label: 'font size', canBeLinked: true, groupKey: 'text-font-size', variable: `--notification-${v}-text-font-size` },
-      { label: 'font weight', canBeLinked: true, groupKey: 'text-font-weight', variable: `--notification-${v}-text-font-weight` },
-      { label: 'line height', canBeLinked: true, groupKey: 'text-line-height', variable: `--notification-${v}-text-line-height` },
-    ];
-  }
+
   export const allTokens: Token[] = variants.flatMap((v) => [
-    ...variantTokens(v),
-    ...buildTypeGroupColorTokens(variantTypeGroups(v)),
-    ...variantTypeGroupTokens(v),
+    ...variantBaseTokens(v),
+    ...variantColorTokens(v),
   ]);
 
-  // Linked block surfaces shape and font props that may be linked across variants.
-  const linkableContexts = new Map<string, string>(variants.flatMap((v) => [
-    [`--notification-${v}-border-width`, v] as const,
-    [`--notification-${v}-radius`, v] as const,
-    [`--notification-${v}-padding`, v] as const,
-    [`--notification-${v}-icon-size`, v] as const,
-    [`--notification-${v}-title-font-family`, v] as const,
-    [`--notification-${v}-title-font-size`, v] as const,
-    [`--notification-${v}-title-font-weight`, v] as const,
-    [`--notification-${v}-title-line-height`, v] as const,
-    [`--notification-${v}-text-font-family`, v] as const,
-    [`--notification-${v}-text-font-size`, v] as const,
-    [`--notification-${v}-text-font-weight`, v] as const,
-    [`--notification-${v}-text-line-height`, v] as const,
-  ]));
+  const linkableContexts = new Map<string, string>(
+    variants.flatMap((v) =>
+      variantBaseTokens(v)
+        .filter((t) => t.canBeLinked)
+        .map((t) => [t.variable, `${v} base`] as [string, string]),
+    ),
+  );
 
   const BUTTON_VARIANT_OPTIONS = ['none', 'primary', 'secondary', 'outline', 'success', 'danger', 'warning'] as const;
   type ButtonVariantOption = typeof BUTTON_VARIANT_OPTIONS[number];
@@ -98,7 +78,9 @@
   import { buildSiblings } from './scaffolding/siblings';
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
-  let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(variantTokens(v), linked.varSet));
+  let visibleVariantStates = $derived((v: Variant) => Object.fromEntries(
+    Object.entries(variantStates(v)).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
+  ) as Record<string, Token[]>);
 
   import type { NotificationActions } from '../../system/components/types';
 
@@ -120,10 +102,9 @@
     <VariantGroup
       name={v}
       title={v.charAt(0).toUpperCase() + v.slice(1)}
-      states={{ [v]: visibleVariantTokens(v) }}
-      typeGroups={{ [v]: variantTypeGroups(v) }}
+      states={visibleVariantStates(v)}
       {component}
-      siblings={buildSiblings(variants, v, (sv) => ({ [sv]: variantTokens(sv) }), (sv) => ({ [sv]: variantTypeGroups(sv) }))}
+      siblings={buildSiblings(variants, v, variantStates)}
     >
       {#snippet canvasToolbarExtras()}
         <hr class="canvas-toolbar-divider" />
@@ -186,6 +167,4 @@
     font-size: var(--ui-font-size-xs);
     color: rgba(255, 255, 255, 0.6);
   }
-
 </style>
-

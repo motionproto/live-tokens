@@ -31,7 +31,7 @@ export type BuildTypeGroupTokensOptions = {
     out of the linked block while still appearing in the editor's full token surface
     (used by the reset-button and the design-token resolution test).
 
-    Mirrors the `flatMap`/loop pattern in StandardButtonsEditor and RadioButtonEditor so
+    Mirrors the `flatMap`/loop pattern in ButtonEditor and RadioButtonEditor so
     editors don't have to hand-list 16+ near-identical Token entries. */
 export function buildTypeGroupTokens(
   typeGroups: Record<string, TypeGroupConfig[]>,

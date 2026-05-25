@@ -170,8 +170,8 @@ describe('migration runner — schemaVersion gating', () => {
     expect(migrated['--collapsiblesection-container-hover-border']).toBeUndefined();
     expect(migrated['--collapsiblesection-container-hover-border-width']).toBeUndefined();
     expect(migrated['--collapsiblesection-container-active-radius']).toBeUndefined();
-    // Container hover/active surface survives (header strip)
-    expect(migrated['--collapsiblesection-container-active-surface']).toBe('--surface-canvas-low');
+    // Active state was dropped entirely at v14→v15; the active-surface token goes with it.
+    expect(migrated['--collapsiblesection-container-active-surface']).toBeUndefined();
     // Chromeless per-state border / radius dropped; padding stays
     expect(migrated['--collapsiblesection-chromeless-default-border']).toBeUndefined();
     expect(migrated['--collapsiblesection-chromeless-hover-border-width']).toBeUndefined();
@@ -259,6 +259,66 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out['--sectiondivider-canvas-gradient-stop-1-position']).toBeUndefined();
     expect(out['--sectiondivider-canvas-gradient-stop-2-color']).toBeUndefined();
     expect(out['--sectiondivider-canvas-gradient-stop-3-position']).toBeUndefined();
+  });
+
+  it('component-config v14 → collapsiblesection active state strips across all variants; other states pass through', () => {
+    const v14 = {
+      '--collapsiblesection-chromeless-active-surface': '--color-transparent',
+      '--collapsiblesection-chromeless-active-label': '--text-primary',
+      '--collapsiblesection-divider-active-border': '--color-brand-400',
+      '--collapsiblesection-divider-active-padding': '--space-4',
+      '--collapsiblesection-container-active-surface': '--surface-canvas-low',
+      '--collapsiblesection-container-active-icon': '--text-muted',
+      // Survivors — only `-active-` segment should be touched.
+      '--collapsiblesection-chromeless-default-surface': '--color-transparent',
+      '--collapsiblesection-container-hover-icon': '--text-muted',
+      '--collapsiblesection-container-frame-border': '--color-brand-400',
+    };
+    const out = runMigrations('component-config', 14, v14, { component: 'collapsiblesection' });
+    expect(out['--collapsiblesection-chromeless-active-surface']).toBeUndefined();
+    expect(out['--collapsiblesection-chromeless-active-label']).toBeUndefined();
+    expect(out['--collapsiblesection-divider-active-border']).toBeUndefined();
+    expect(out['--collapsiblesection-divider-active-padding']).toBeUndefined();
+    expect(out['--collapsiblesection-container-active-surface']).toBeUndefined();
+    expect(out['--collapsiblesection-container-active-icon']).toBeUndefined();
+    expect(out['--collapsiblesection-chromeless-default-surface']).toBe('--color-transparent');
+    expect(out['--collapsiblesection-container-hover-icon']).toBe('--text-muted');
+    expect(out['--collapsiblesection-container-frame-border']).toBe('--color-brand-400');
+  });
+
+  it('component-config v14 collapsiblesection-drop-active migration only fires for collapsiblesection', () => {
+    const v14 = { '--button-active-surface': '--surface-accent' };
+    const out = runMigrations('component-config', 14, v14, { component: 'button' });
+    expect(out).toEqual(v14);
+  });
+
+  it('component-config v15 → cornerbadge per-variant tokens collapse into flat keys; non-cornerbadge passes through', () => {
+    const v15 = {
+      '--corner-badge-primary-margin': '--space-0',
+      '--corner-badge-primary-padding': '--space-6',
+      '--corner-badge-accent-margin': '--space-0',
+      '--corner-badge-accent-padding': '--space-6',
+      '--corner-badge-success-margin': '--space-2',  // tuned away from default to verify first-wins
+      '--corner-badge-success-padding': '--space-6',
+      '--corner-badge-info-text-font-family': '--font-sans',
+      // Non-variant key passes through untouched.
+      '--corner-badge-unrelated': '--foo',
+    };
+    const migrated = runMigrations('component-config', 15, v15, { component: 'cornerbadge' });
+    expect(migrated['--corner-badge-margin']).toBe('--space-0');
+    expect(migrated['--corner-badge-padding']).toBe('--space-6');
+    expect(migrated['--corner-badge-text-font-family']).toBe('--font-sans');
+    expect(migrated['--corner-badge-unrelated']).toBe('--foo');
+    // Per-variant keys are gone.
+    expect(migrated['--corner-badge-primary-margin']).toBeUndefined();
+    expect(migrated['--corner-badge-success-margin']).toBeUndefined();
+    expect(migrated['--corner-badge-info-text-font-family']).toBeUndefined();
+  });
+
+  it('component-config v15 cornerbadge-flatten migration only fires for cornerbadge', () => {
+    const v15 = { '--badge-primary-padding': '--space-6' };
+    const out = runMigrations('component-config', 15, v15, { component: 'badge' });
+    expect(out).toEqual(v15);
   });
 
   it('component-config at current version → no migrations run', () => {

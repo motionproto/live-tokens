@@ -2,9 +2,9 @@
   "name": "my-menu-select",
   "component": "menuselect",
   "createdAt": "2026-05-20T12:02:45.303Z",
-  "updatedAt": "2026-05-20T12:02:45.306Z",
+  "updatedAt": "2026-05-25T01:40:44.539Z",
   "aliases": {
-    "--menuselect-menu-surface": "color-mix(in srgb, var(--surface-neutral) 85%, transparent)",
+    "--menuselect-menu-surface": "color-mix(in srgb, var(--surface-neutral-lower) 85%, transparent)",
     "--menuselect-menu-border": "--border-neutral-medium",
     "--menuselect-menu-border-width": "--border-width-1",
     "--menuselect-menu-radius": "--radius-md",
@@ -48,5 +48,5 @@
     "--menuselect-disabled-icon-size": "--icon-size-sm"
   },
   "config": {},
-  "schemaVersion": 8
+  "schemaVersion": 16
 }
