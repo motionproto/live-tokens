@@ -4,14 +4,22 @@ export interface Chapter {
 }
 
 export const chapters: Chapter[] = [
+  /* Manual: how to use Live Tokens */
   { id: '01-overview',                    title: 'Overview' },
+  { id: 'getting-started',                title: 'Getting started' },
+  { id: 'editing-tokens',                 title: 'Editing tokens' },
+  { id: 'themes-workflow',                title: 'Themes workflow' },
+  { id: 'adding-components',              title: 'Adding components' },
+  { id: 'token-naming',                   title: 'Token naming' },
+
+  /* Reference: how Live Tokens works under the hood. Read when extending
+     the package itself. */
   { id: '02-architecture',                title: 'Architecture' },
   { id: '03-state-and-history',           title: 'State and history' },
-  { id: '04-tokens-and-themes',           title: 'Tokens and themes' },
-  { id: '05-component-system',            title: 'Component system' },
+  { id: '04-tokens-and-themes',           title: 'Tokens and themes (deep)' },
+  { id: '05-component-system',            title: 'Component system (deep)' },
   { id: '06-dev-server-plugin',           title: 'Dev-server plugin' },
   { id: '07-overlay-and-routing',         title: 'Overlay and routing' },
-  { id: '08-add-new-component',           title: 'Add a new component' },
   { id: '09-developer-recipes',           title: 'Developer recipes' },
   { id: '10-conventions-and-invariants',  title: 'Conventions and invariants' },
 ];

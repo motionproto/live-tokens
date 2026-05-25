@@ -71,7 +71,7 @@ Consumer-authored components appear under a **CUSTOM** group in the
 `registerComponent` invokes `registerComponentSchema` for you, so you
 don't call the latter directly.
 
-See chapter 08 for the full recipe, and the bundled Claude skill
+See the [Adding components](adding-components.md) chapter for the full recipe and the bundled Claude skill
 (`live-tokens-add-component`) for an automated version.
 
 ### Boot-time validation

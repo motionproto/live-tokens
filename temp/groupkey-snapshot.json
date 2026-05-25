@@ -1504,6 +1504,215 @@
       "--segmentedcontrol-selected-border-width"
     ]
   },
+  "sidenavigation": {
+    "border-width": [
+      "--sidenavigation-panel-border-width"
+    ],
+    "footer-gap": [
+      "--sidenavigation-footer-active-gap",
+      "--sidenavigation-footer-default-gap",
+      "--sidenavigation-footer-hover-gap"
+    ],
+    "footer-icon": [
+      "--sidenavigation-footer-active-icon",
+      "--sidenavigation-footer-default-icon",
+      "--sidenavigation-footer-hover-icon"
+    ],
+    "footer-icon-size": [
+      "--sidenavigation-footer-active-icon-size",
+      "--sidenavigation-footer-default-icon-size",
+      "--sidenavigation-footer-hover-icon-size"
+    ],
+    "footer-indicator": [
+      "--sidenavigation-footer-active-indicator",
+      "--sidenavigation-footer-default-indicator",
+      "--sidenavigation-footer-hover-indicator"
+    ],
+    "footer-indicator-width": [
+      "--sidenavigation-footer-active-indicator-width",
+      "--sidenavigation-footer-default-indicator-width",
+      "--sidenavigation-footer-hover-indicator-width"
+    ],
+    "footer-padding": [
+      "--sidenavigation-footer-active-padding",
+      "--sidenavigation-footer-default-padding",
+      "--sidenavigation-footer-hover-padding"
+    ],
+    "footer-surface": [
+      "--sidenavigation-footer-active-surface",
+      "--sidenavigation-footer-default-surface",
+      "--sidenavigation-footer-hover-surface"
+    ],
+    "footer-text-font-family": [
+      "--sidenavigation-footer-active-text-font-family",
+      "--sidenavigation-footer-default-text-font-family",
+      "--sidenavigation-footer-hover-text-font-family"
+    ],
+    "footer-text-font-size": [
+      "--sidenavigation-footer-active-text-font-size",
+      "--sidenavigation-footer-default-text-font-size",
+      "--sidenavigation-footer-hover-text-font-size"
+    ],
+    "footer-text-font-weight": [
+      "--sidenavigation-footer-active-text-font-weight",
+      "--sidenavigation-footer-default-text-font-weight",
+      "--sidenavigation-footer-hover-text-font-weight"
+    ],
+    "footer-text-line-height": [
+      "--sidenavigation-footer-active-text-line-height",
+      "--sidenavigation-footer-default-text-line-height",
+      "--sidenavigation-footer-hover-text-line-height"
+    ],
+    "item-indicator": [
+      "--sidenavigation-item-active-indicator",
+      "--sidenavigation-item-default-indicator",
+      "--sidenavigation-item-hover-indicator"
+    ],
+    "item-indicator-width": [
+      "--sidenavigation-item-active-indicator-width",
+      "--sidenavigation-item-default-indicator-width",
+      "--sidenavigation-item-hover-indicator-width"
+    ],
+    "item-padding": [
+      "--sidenavigation-item-active-padding",
+      "--sidenavigation-item-default-padding",
+      "--sidenavigation-item-hover-padding"
+    ],
+    "item-surface": [
+      "--sidenavigation-item-active-surface",
+      "--sidenavigation-item-default-surface",
+      "--sidenavigation-item-hover-surface"
+    ],
+    "item-text-font-family": [
+      "--sidenavigation-item-active-text-font-family",
+      "--sidenavigation-item-default-text-font-family",
+      "--sidenavigation-item-hover-text-font-family"
+    ],
+    "item-text-font-size": [
+      "--sidenavigation-item-active-text-font-size",
+      "--sidenavigation-item-default-text-font-size",
+      "--sidenavigation-item-hover-text-font-size"
+    ],
+    "item-text-font-weight": [
+      "--sidenavigation-item-active-text-font-weight",
+      "--sidenavigation-item-default-text-font-weight",
+      "--sidenavigation-item-hover-text-font-weight"
+    ],
+    "item-text-line-height": [
+      "--sidenavigation-item-active-text-line-height",
+      "--sidenavigation-item-default-text-line-height",
+      "--sidenavigation-item-hover-text-line-height"
+    ],
+    "label": [
+      "--sidenavigation-title-active-label",
+      "--sidenavigation-title-default-label",
+      "--sidenavigation-title-hover-label"
+    ],
+    "padding": [
+      "--sidenavigation-panel-padding"
+    ],
+    "panel-border": [
+      "--sidenavigation-panel-border"
+    ],
+    "panel-footer-gap": [
+      "--sidenavigation-panel-footer-gap"
+    ],
+    "panel-item-indent": [
+      "--sidenavigation-panel-item-indent"
+    ],
+    "panel-section-gap": [
+      "--sidenavigation-panel-section-gap"
+    ],
+    "panel-surface": [
+      "--sidenavigation-panel-surface"
+    ],
+    "text": [
+      "--sidenavigation-footer-active-text",
+      "--sidenavigation-footer-default-text",
+      "--sidenavigation-footer-hover-text",
+      "--sidenavigation-item-active-text",
+      "--sidenavigation-item-default-text",
+      "--sidenavigation-item-hover-text"
+    ],
+    "title-border": [
+      "--sidenavigation-title-active-border",
+      "--sidenavigation-title-default-border",
+      "--sidenavigation-title-hover-border"
+    ],
+    "title-border-width": [
+      "--sidenavigation-title-active-border-width",
+      "--sidenavigation-title-default-border-width",
+      "--sidenavigation-title-hover-border-width"
+    ],
+    "title-indicator": [
+      "--sidenavigation-title-active-indicator",
+      "--sidenavigation-title-default-indicator",
+      "--sidenavigation-title-hover-indicator"
+    ],
+    "title-indicator-width": [
+      "--sidenavigation-title-active-indicator-width",
+      "--sidenavigation-title-default-indicator-width",
+      "--sidenavigation-title-hover-indicator-width"
+    ],
+    "title-label-font-family": [
+      "--sidenavigation-title-active-label-font-family",
+      "--sidenavigation-title-default-label-font-family",
+      "--sidenavigation-title-hover-label-font-family"
+    ],
+    "title-label-font-size": [
+      "--sidenavigation-title-active-label-font-size",
+      "--sidenavigation-title-default-label-font-size",
+      "--sidenavigation-title-hover-label-font-size"
+    ],
+    "title-label-font-weight": [
+      "--sidenavigation-title-active-label-font-weight",
+      "--sidenavigation-title-default-label-font-weight",
+      "--sidenavigation-title-hover-label-font-weight"
+    ],
+    "title-label-line-height": [
+      "--sidenavigation-title-active-label-line-height",
+      "--sidenavigation-title-default-label-line-height",
+      "--sidenavigation-title-hover-label-line-height"
+    ],
+    "title-padding": [
+      "--sidenavigation-title-active-padding",
+      "--sidenavigation-title-default-padding",
+      "--sidenavigation-title-hover-padding"
+    ],
+    "title-surface": [
+      "--sidenavigation-title-active-surface",
+      "--sidenavigation-title-default-surface",
+      "--sidenavigation-title-hover-surface"
+    ],
+    "toggle-border": [
+      "--sidenavigation-toggle-default-border",
+      "--sidenavigation-toggle-hover-border"
+    ],
+    "toggle-border-width": [
+      "--sidenavigation-toggle-default-border-width",
+      "--sidenavigation-toggle-hover-border-width"
+    ],
+    "toggle-icon": [
+      "--sidenavigation-toggle-default-icon",
+      "--sidenavigation-toggle-hover-icon"
+    ],
+    "toggle-icon-size": [
+      "--sidenavigation-toggle-default-icon-size",
+      "--sidenavigation-toggle-hover-icon-size"
+    ],
+    "toggle-padding": [
+      "--sidenavigation-toggle-default-padding",
+      "--sidenavigation-toggle-hover-padding"
+    ],
+    "toggle-radius": [
+      "--sidenavigation-toggle-default-radius",
+      "--sidenavigation-toggle-hover-radius"
+    ],
+    "toggle-surface": [
+      "--sidenavigation-toggle-default-surface",
+      "--sidenavigation-toggle-hover-surface"
+    ]
+  },
   "tabbar": {
     "bar-bottom-margin": [
       "--tabbar-bar-bottom-margin"

@@ -104,63 +104,18 @@ Three takeaways:
    `tokens.generated.css` (a sibling of the developer-authored
    `tokens.css`, which the plugin never writes).
 
-## Top-level directory map
-
-```
-src/
-├── app/                       # boot orchestration (starter only)
-│   ├── main.ts                # calls each module's init()
-│   ├── App.svelte             # top-level router shell
-│   ├── Home.svelte            # placeholder home page
-│   └── site.css               # themed h1/p/a defaults
-├── demo/                      # Demo route content (starter only)
-├── editor/                    # the entire editor (ships in both modes)
-│   ├── core/                  # runtime: store, themes, persistence, routing
-│   │   ├── cssVarSync.ts      # single CSS-var writer (self + parent doc)
-│   │   ├── store/             # editorCore, editorStore, editorRenderer, editorPersistence
-│   │   ├── themes/            # themeService, themeInit, slices, migrations, parsers
-│   │   ├── components/        # componentConfigService, componentConfigKeys, componentPersist
-│   │   ├── manifests/         # manifestService (preset bundles)
-│   │   ├── palettes/          # oklch, paletteDerivation, tokenRegistry
-│   │   ├── fonts/             # fontLoader, fontMigration, fontParse
-│   │   ├── routing/           # minimal pushState router
-│   │   └── storage/           # versionedFileResourceClient, storage helpers
-│   ├── component-editor/      # per-component editors + scaffolding
-│   │   ├── registry.ts        # single source of truth for the component list
-│   │   ├── scaffolding/       # ComponentEditorBase, VariantGroup, LinkedBlock, ...
-│   │   └── <Foo>Editor.svelte # one per component
-│   ├── ui/                    # neutral primitives + design-system editor surfaces
-│   ├── overlay/               # LiveEditorOverlay, ColumnsOverlay
-│   ├── pages/                 # Editor.svelte, ComponentEditorPage.svelte, EditorShell.svelte
-│   └── styles/                # ui-editor.css, ui-form-controls.css
-├── system/                    # the design system the library ships
-│   ├── components/            # runtime components (Button, Dialog, ...)
-│   ├── styles/                # tokens.css, tokens.generated.css, fonts.css, CONVENTIONS.md
-│   └── assets/                # fonts, icons
-└── live-tokens/data/          # plugin-owned data (themes, configs, manifests)
-    ├── themes/                # *.json theme files (active + production pointers)
-    ├── component-configs/<id>/ # *.json per-component alias/config files
-    └── manifests/             # *.json preset bundles (theme + per-component refs)
-vite-plugin/                   # themeFileApi entry + route table + file resources
-```
-
-The `src/live-tokens/data/` location is the default. Consumers can move
-it via `live-tokens.config.json` or `themeFileApi({ dataDir: '...' })`.
-See chapter 06.
-
-The split between `editor/core/` and `editor/ui/` is deliberate.
-`editor/core/` is plumbing: state, persistence, DOM sync, fetch helpers.
-`editor/ui/` is the design-system editor surface: the tabs, the palette
-editor, the colour picker. `editor/component-editor/` is the *component*
-editor surface: per-component slot editors and scaffolding for linked
-blocks and variant groups.
-
 ## Where to go next
 
-- **Consuming the library.** Read 01, 04, 07.
-- **Adding a component.** Read 05, 08. A Claude skill
-  (`live-tokens-add-component`) automates the recipe; see chapter 08.
-- **Touching state, history, or persistence.** Read 03.
-- **Adding an `/api/*` route or a theme-format change.** Read 06, plus
-  chapter 04's migration section.
-- **Hit a contract that surprised you.** Read 10 first.
+The user manual chapters cover the consumer-facing workflow:
+
+- **[Getting started](getting-started.md)**: install, run, first edit.
+- **[Editing tokens](editing-tokens.md)**: tour the editor's tabs.
+- **[Themes workflow](themes-workflow.md)**: save, switch, promote.
+- **[Adding components](adding-components.md)**: the Claude skill walks
+  you through making your own component editable.
+- **[Token naming](token-naming.md)**: the naming pattern.
+
+The reference chapters (architecture, state, dev-server plugin,
+overlay, component-system internals, conventions) are the appendix
+material. Read them when you are extending the package itself, not
+when you are using it.

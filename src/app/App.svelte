@@ -10,6 +10,7 @@
     { path: '/', label: 'Site', icon: 'fa-home' },
     { path: '/demo', label: 'Demo', icon: 'fa-box-open' },
     { path: '/components', label: 'Components', icon: 'fa-puzzle-piece' },
+    { path: '/docs', label: 'Docs', icon: 'fa-book' },
   ];
 
   let visibleNavLinks = $derived(allNavLinks);
@@ -38,18 +39,20 @@
   let isEditor = $derived(isDev && $route === '/editor');
   let isDemo = $derived(isDev && $route === '/demo');
   let isComponentEditor = $derived(isDev && $route === '/components');
+  let isDocs = $derived(isDev && $route === '/docs');
   // Unlisted dev-only playgrounds for component iteration. Reachable only by
   // typing the URL directly; intentionally absent from allNavLinks.
   let isFloatingTagsPlayground = $derived(isDev && $route === '/playground/floating-tags');
 
-  // Pages are loaded dynamically so each route's module — and any CSS it
-  // side-effect-imports (e.g. site.css on Home) — only evaluates when that
+  // Pages are loaded dynamically so each route's module, and any CSS it
+  // side-effect-imports (e.g. site.css on Home), only evaluates when that
   // route is actually visited. Static imports at the top of this file would
   // evaluate every page module at boot, leaking site.css into editor routes.
   let pagePromise = $derived.by(() => {
     if (isEditor) return import('../editor/pages/Editor.svelte');
     if (isDemo) return import('../demo/Demo.svelte');
     if (isComponentEditor) return import('../editor/pages/ComponentEditorPage.svelte');
+    if (isDocs) return import('./docs/Docs.svelte');
     if (isFloatingTagsPlayground) return import('../demo/FloatingTagsPlayground.svelte');
     return import('./Home.svelte');
   });
@@ -64,6 +67,7 @@
       '/demo': 'src/demo/Demo.svelte',
       '/components': 'src/editor/pages/ComponentEditorPage.svelte',
       '/editor': 'src/editor/pages/Editor.svelte',
+      '/docs': 'src/app/docs/Docs.svelte',
       '/playground/floating-tags': 'src/demo/FloatingTagsPlayground.svelte',
     }}
     hidePageSourceOn={['/components']}

@@ -18,6 +18,7 @@ import ProgressBarEditor, { allTokens as progressBarTokens } from './ProgressBar
 import RadioButtonEditor, { allTokens as radioButtonTokens } from './RadioButtonEditor.svelte';
 import SectionDividerEditor, { allTokens as sectionDividerTokens } from './SectionDividerEditor.svelte';
 import SegmentedControlEditor, { allTokens as segmentedControlTokens } from './SegmentedControlEditor.svelte';
+import SideNavigationEditor, { allTokens as sideNavigationTokens } from './SideNavigationEditor.svelte';
 import TableEditor, { allTokens as tableTokens } from './TableEditor.svelte';
 import TabBarEditor, { allTokens as tabBarTokens } from './TabBarEditor.svelte';
 import TooltipEditor, { allTokens as tooltipTokens } from './TooltipEditor.svelte';
@@ -39,6 +40,7 @@ type BuiltInComponentId =
   | 'menuselect'
   | 'sectiondivider'
   | 'collapsiblesection'
+  | 'sidenavigation'
   | 'table'
   | 'tabbar'
   | 'tooltip'
@@ -209,6 +211,15 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/CollapsibleSection.svelte',
     editorComponent: CollapsibleSectionEditor,
     schema: collapsibleSectionTokens,
+    origin: 'system',
+  },
+  sidenavigation: {
+    id: 'sidenavigation',
+    label: 'Side Navigation',
+    icon: 'fas fa-bars-staggered',
+    sourceFile: 'src/system/components/SideNavigation.svelte',
+    editorComponent: SideNavigationEditor,
+    schema: sideNavigationTokens,
     origin: 'system',
   },
   table: {
