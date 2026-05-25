@@ -13,6 +13,7 @@ import {
 } from './files/versionedFileResourceServer';
 import { dispatch, type Route } from './files/routeTable';
 import { nextAvailableName as allocNextAvailableName } from './files/nameAllocator';
+import { resolveDataDirs } from './files/dataPaths';
 import { fileURLToPath } from 'node:url';
 
 // Read live-tokens' own package.json by walking up from this file. Works the
@@ -35,18 +36,30 @@ const PKG_VERSION: string = (() => {
 })();
 
 export interface ThemeFileApiOptions {
-  themesDir: string;           // required, e.g. 'themes' (relative to cwd, resolved with path.resolve)
   tokensCssPath: string;       // required, e.g. 'src/styles/tokens.css'. Developer-authored, never written.
   tokensGeneratedCssPath?: string; // default: sibling of tokensCssPath named 'tokens.generated.css'. Editor-owned.
   fontsCssPath?: string;       // default: sibling of tokensCssPath named 'fonts.css'
-  apiBase?: string;            // default: '/api'. Must be a simple '/path' without regex metacharacters.
-  componentConfigsDir?: string; // default: 'component-configs'
+  apiBase?: string;            // default: '/api/live-tokens'. Plain '/path' — regex metacharacters are escaped at use site.
+  // Data directories. Per-folder resolution order: explicit option >
+  // `live-tokens.config.json` at cwd > `<dataDir>/<sub>` where dataDir comes
+  // from opts > config file > package default `src/live-tokens/data`.
+  dataDir?: string;            // default: 'src/live-tokens/data'
+  themesDir?: string;          // default: `<dataDir>/themes`
+  componentConfigsDir?: string; // default: `<dataDir>/component-configs`
+  manifestsDir?: string;       // default: `<dataDir>/manifests`
   componentsSrcDir?: string;   // default: 'src/system/components'
-  manifestsDir?: string;       // default: 'manifests'
 }
 
 export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
-  const THEMES_DIR = path.resolve(opts.themesDir);
+  const dataDirs = resolveDataDirs({
+    dataDir: opts.dataDir,
+    themesDir: opts.themesDir,
+    componentConfigsDir: opts.componentConfigsDir,
+    manifestsDir: opts.manifestsDir,
+  });
+  const THEMES_DIR = dataDirs.themesDir;
+  const COMPONENT_CONFIGS_DIR = dataDirs.componentConfigsDir;
+  const MANIFESTS_DIR = dataDirs.manifestsDir;
   const CSS_PATH = path.resolve(opts.tokensCssPath);
   const GENERATED_CSS_PATH = opts.tokensGeneratedCssPath
     ? path.resolve(opts.tokensGeneratedCssPath)
@@ -54,16 +67,14 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const FONTS_CSS_PATH = opts.fontsCssPath
     ? path.resolve(opts.fontsCssPath)
     : path.join(path.dirname(CSS_PATH), 'fonts.css');
-  const API_BASE = opts.apiBase ?? '/api';
-  const COMPONENT_CONFIGS_DIR = opts.componentConfigsDir
-    ? path.resolve(opts.componentConfigsDir)
-    : path.resolve('component-configs');
+  // Default keeps live-tokens' REST routes under a single namespace so they
+  // can't collide with the consumer's own `/api/themes` or `/api/manifests`.
+  // The client side reads the same value via the `__LIVE_TOKENS_API_BASE__`
+  // define injected in `config()` below.
+  const API_BASE = opts.apiBase ?? '/api/live-tokens';
   const COMPONENTS_SRC_DIR = opts.componentsSrcDir
     ? path.resolve(opts.componentsSrcDir)
     : path.resolve('src/system/components');
-  const MANIFESTS_DIR = opts.manifestsDir
-    ? path.resolve(opts.manifestsDir)
-    : path.resolve('manifests');
   const LEGACY_PRESETS_DIR = path.resolve('presets');
 
   // Themes resource — list/load/save/delete + active/production.
@@ -1415,11 +1426,14 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     name: 'theme-file-api',
     config() {
       // __PROJECT_ROOT__ powers the overlay's "Page Source" vscode:// links;
-      // __APP_VERSION__ feeds the overlay's header version badge.
+      // __APP_VERSION__ feeds the overlay's header version badge;
+      // __LIVE_TOKENS_API_BASE__ keeps the client's REST URLs in sync with
+      // whatever `apiBase` the plugin was constructed with.
       return {
         define: {
           __PROJECT_ROOT__: JSON.stringify(process.cwd()),
           __APP_VERSION__: JSON.stringify(PKG_VERSION),
+          __LIVE_TOKENS_API_BASE__: JSON.stringify(API_BASE),
         },
       };
     },

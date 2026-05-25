@@ -5,6 +5,7 @@ import { applyFontSources, applyFontStacks } from '../fonts/fontLoader';
 import { loadFromFile, seedComponentsFromApi } from '../store/editorStore';
 import { getActiveComponentConfig } from '../components/componentConfigService';
 import { safeFetch } from '../storage/storage';
+import { API_BASE } from '../storage/apiBase';
 
 interface ComponentSummaryDto {
   name: string;
@@ -34,7 +35,7 @@ interface ListComponentsDto {
  * `safeFetch` (instead of empty try/catch) to make the silence intentional.
  */
 export async function initializeTheme(): Promise<void> {
-  const theme = await safeFetch<Theme>('/api/themes/active');
+  const theme = await safeFetch<Theme>(`${API_BASE}/themes/active`);
   if (theme) {
     migrateThemeFonts(theme);
     loadFromFile(theme);
@@ -48,7 +49,7 @@ export async function initializeTheme(): Promise<void> {
     activeFileName.set(fileName);
   }
 
-  const list = await safeFetch<ListComponentsDto>('/api/component-configs');
+  const list = await safeFetch<ListComponentsDto>(`${API_BASE}/component-configs`);
   if (list && Array.isArray(list.components)) {
     const configs: Record<
       string,

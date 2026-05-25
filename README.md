@@ -12,7 +12,7 @@ A foundational design system for quickly styling and building Svelte + Vite micr
 - **Per-component editor** (`/components` route, dev-only) — the home of real-time component-alias editing. Pick token aliases per component without writing CSS.
 - **Live editor overlay** — pins to the top-right of every dev page. Opens the editor in a side panel or floating window so you edit *on the page you're styling*, not in a separate tab. Includes a "Page Source" button that opens the current page's `.svelte` file in VS Code.
 - **Preset bundles** — capture a whole site configuration (active theme + every component's active config) as a single portable artifact. Drop a preset into a new project to restore the full styling in one step.
-- **Vite plugin** — hosts the `/api/themes/*`, `/api/component-configs/*`, and `/api/presets/*` routes that persist your edits to disk as you make them.
+- **Vite plugin** — hosts the `/api/live-tokens/{themes,component-configs,manifests}/*` routes that persist your edits to disk as you make them. The single namespace keeps live-tokens' routes from colliding with anything your app serves under `/api`.
 
 ## Quick install
 
@@ -32,21 +32,42 @@ export default defineConfig({
   plugins: [
     svelte(),
     themeFileApi({
-      themesDir: 'themes',
       tokensCssPath: 'src/system/styles/tokens.css',
     }),
   ],
-  optimizeDeps: {
-    exclude: ['@motion-proto/live-tokens'],
-  },
 });
 ```
 
 The `themeFileApi` plugin:
-- Seeds `themes/` with a default theme on first dev-server start.
-- Discovers components at `src/system/components/*.svelte` and seeds `component-configs/{comp}/default.json` from each component's `:global(:root)` block.
-- Hosts the `/api/*` routes the editor uses to save and load themes + per-component configs.
-- Auto-injects `__PROJECT_ROOT__` for the overlay's "Page Source" link.
+- Seeds `src/live-tokens/data/themes/` with a default theme on first dev-server start.
+- Discovers components at `src/system/components/*.svelte` and seeds `src/live-tokens/data/component-configs/{comp}/default.json` from each component's `:global(:root)` block.
+- Hosts the `/api/live-tokens/*` routes the editor uses to save and load themes + per-component configs.
+- Auto-injects `__PROJECT_ROOT__` for the overlay's "Page Source" link and `__LIVE_TOKENS_API_BASE__` so the client uses whatever `apiBase` you configured.
+
+### Where data lands — and how to move it
+
+By default, the plugin reads and writes under one folder: `src/live-tokens/data/`. Inside that folder live three subdirectories — `themes/`, `manifests/`, `component-configs/` — each owned by the plugin.
+
+To move them, create a `live-tokens.config.json` at your project root:
+
+```json
+{
+  "dataDir": "src/live-tokens/data"
+}
+```
+
+All four keys are optional. `dataDir` is the headline knob — it relocates all three subfolders at once. The per-folder overrides exist for unusual layouts (e.g. a monorepo where themes are shared across packages but component-configs aren't):
+
+```json
+{
+  "dataDir": "src/live-tokens/data",
+  "themesDir": "../shared/themes",
+  "componentConfigsDir": "src/live-tokens/data/component-configs",
+  "manifestsDir": "src/live-tokens/data/manifests"
+}
+```
+
+Resolution order, per folder: explicit `themeFileApi(opts)` argument > matching key in `live-tokens.config.json` > `<dataDir>/<sub>`. The dev server reads the file once at startup — restart vite to pick up changes.
 
 ### Bootstrap in `main.ts`
 
@@ -228,38 +249,38 @@ Once linked, asking Claude to "add a Stat component to my live-tokens project" t
 
 ## How the editor ships changes to prod
 
-1. Edit in `/editor` or `/components`. Saves write to `themes/{name}.json` and `component-configs/{comp}/{name}.json`.
-2. Promote a theme to "production." Its variables are written into `src/system/styles/tokens.css` and backed up under `src/system/styles/_backups/`.
-3. `npm run build` bundles `tokens.css` as plain CSS. No editor code, no JSON lookups, no dev surfaces ship to prod.
+1. Edit in `/editor` or `/components`. Saves write to `<dataDir>/themes/{name}.json` and `<dataDir>/component-configs/{comp}/{name}.json`.
+2. Promote a theme to "production." Its variables are written into `tokens.generated.css` next to your authored `tokens.css`.
+3. `npm run build` bundles both as plain CSS. No editor code, no JSON lookups, no dev surfaces ship to prod.
 
 ## File ownership — what the plugin writes
 
 Knowing which files the plugin touches matters when upgrading the package or working in a repo you don't want overwritten.
 
-**On `npm install` or `npm update`: nothing outside `node_modules/`.** No install hooks. Upgrading versions never touches your `themes/`, `component-configs/`, `presets/`, or any file in `src/`.
+**On `npm install` or `npm update`: nothing outside `node_modules/`.** No install hooks. Upgrading versions never touches your `src/live-tokens/data/`, or any file in `src/` outside it.
+
+**The plugin only writes inside two locations on disk:**
+
+- `src/live-tokens/data/` (configurable via `live-tokens.config.json` — see "Where data lands").
+- The CSS sidecars next to your `tokensCssPath` (`tokens.generated.css`, `fonts.css`).
+
+It never writes to your project root, your `src/` outside the data folder, or anywhere else.
 
 **At dev-server startup, the plugin only fills gaps — it never overwrites authored files:**
 
-- `themes/default.json` — written **only if missing**.
-- `themes/_active.json` and `themes/_production.json` — written **only if missing**.
-- `component-configs/{comp}/_active.json` and `_production.json` — same: only if missing.
-- `component-configs/{comp}/default.json` — regenerated from the component's `:global(:root)` block **only when the `.svelte` source is newer than the existing default**. This file is a build artifact of the source; don't hand-edit it.
+- `<dataDir>/themes/default.json` — written **only if missing**.
+- `<dataDir>/themes/_active.json` and `_production.json` — written **only if missing**.
+- `<dataDir>/component-configs/{comp}/_active.json` and `_production.json` — same: only if missing.
+- `<dataDir>/component-configs/{comp}/default.json` — regenerated from the component's `:global(:root)` block **only when the `.svelte` source is newer than the existing default**. This file is a build artifact of the source; don't hand-edit it.
 
 **At dev-time editor actions, these files get rewritten by your explicit save/promote:**
 
-- `themes/{name}.json` — every save in the editor.
-- `src/system/styles/tokens.css` — fully regenerated when you save or promote the production theme. **Treat this as a build artifact.** Hand-edits get clobbered next time the production theme is saved; promote a theme instead.
-- `src/system/styles/fonts.css` — same rule: regenerated from the theme's font sources.
-- `component-configs/{comp}/{name}.json` — every save of a per-component config.
+- `<dataDir>/themes/{name}.json` — every save in the editor.
+- `<tokensCssPath sibling>/tokens.generated.css` — fully regenerated when you save or promote the production theme.
+- `<tokensCssPath sibling>/fonts.css` — same rule: regenerated from the theme's font sources.
+- `<dataDir>/component-configs/{comp}/{name}.json` — every save of a per-component config.
 
-## Maintainer notes — publishing
-
-The package publishes to npm as `@motion-proto/live-tokens`.
-
-1. Bump the version in `package.json`.
-2. Verify tarball contents: `npm pack --dry-run`.
-3. `npm publish`. `prepublishOnly` rebuilds `dist-plugin/`.
-4. Tag and push: `git tag vX.Y.Z && git push origin main vX.Y.Z`.
+The developer-authored `tokens.css` itself is **never written** by the plugin — it holds defaults you're free to hand-edit. The editor's overrides land in the sidecar `tokens.generated.css`, which the package imports immediately after `tokens.css`.
 
 ## License
 

@@ -13,6 +13,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { resolveDataDirs } from '../files/dataPaths';
 
 interface ProductionConfigOnDisk {
   aliases?: Record<string, unknown>;
@@ -28,7 +29,10 @@ export interface ProductionConfig {
 const cache = new Map<string, ProductionConfig>();
 
 export interface LoadProductionConfigOptions {
-  /** Project-root-relative or absolute path to the component-configs root. */
+  /** Project-root-relative or absolute path to the component-configs root.
+   * When omitted, resolved through `live-tokens.config.json` / the package
+   * default `src/live-tokens/data/component-configs` — same resolution
+   * `themeFileApi` uses, so build-time pruning and the dev-server stay in sync. */
   componentConfigsDir?: string;
 }
 
@@ -47,7 +51,7 @@ export function loadProductionConfig(
 
   const baseDir = opts.componentConfigsDir
     ? path.resolve(opts.componentConfigsDir)
-    : path.resolve('component-configs');
+    : resolveDataDirs().componentConfigsDir;
   const componentDir = path.join(baseDir, component);
 
   if (!fs.existsSync(componentDir)) {

@@ -1,5 +1,6 @@
 import type { Manifest, ManifestMeta, ManifestBundle, Theme, ComponentConfig } from '../themes/themeTypes';
 import { versionedFileResource } from '../storage/files/versionedFileResourceClient';
+import { API_BASE } from '../storage/apiBase';
 import { listComponents } from '../components/componentConfigService';
 import { getActiveTheme } from '../themes/themeService';
 
@@ -13,7 +14,7 @@ import { getActiveTheme } from '../themes/themeService';
  */
 
 const manifestsResource = versionedFileResource<Manifest, ManifestMeta, never>({
-  baseUrl: '/api/manifests',
+  baseUrl: `${API_BASE}/manifests`,
 });
 
 export const listManifests = async (): Promise<ManifestMeta[]> => {
@@ -47,7 +48,7 @@ export interface ApplyManifestResult {
  * world" action.
  */
 export async function applyManifest(fileName: string): Promise<ApplyManifestResult> {
-  const res = await fetch(`/api/manifests/${encodeURIComponent(fileName)}/apply`, {
+  const res = await fetch(`${API_BASE}/manifests/${encodeURIComponent(fileName)}/apply`, {
     method: 'PUT',
   });
   if (!res.ok) {
@@ -132,7 +133,7 @@ export interface ImportManifestResult {
  * See temp/manifest-robustness-plan.md §11.
  */
 export async function exportManifest(fileName: string): Promise<void> {
-  const res = await fetch(`/api/manifests/${encodeURIComponent(fileName)}/export`);
+  const res = await fetch(`${API_BASE}/manifests/${encodeURIComponent(fileName)}/export`);
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Export failed' }));
     throw new Error(err.error || 'Export failed');
@@ -158,7 +159,7 @@ export async function exportManifest(fileName: string): Promise<void> {
  * the rename map so the UI can surface what got renamed.
  */
 export async function importManifest(bundle: ManifestBundle): Promise<ImportManifestResult> {
-  const res = await fetch('/api/manifests/import', {
+  const res = await fetch(`${API_BASE}/manifests/import`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(bundle),

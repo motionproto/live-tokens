@@ -12,7 +12,7 @@
  */
 
 export interface VersionedFileResourceClientOptions {
-  /** REST endpoint root, e.g. `/api/themes` or `/api/component-configs/button`. */
+  /** REST endpoint root, e.g. `${API_BASE}/themes` or `${API_BASE}/component-configs/button`. */
   baseUrl: string;
 }
 

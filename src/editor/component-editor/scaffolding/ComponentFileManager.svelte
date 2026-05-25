@@ -28,6 +28,7 @@
   import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../core/themes/migrations';
   import type { CssVarRef } from '../../core/store/editorTypes';
   import { safeFetch } from '../../core/storage/storage';
+  import { API_BASE } from '../../core/storage/apiBase';
   import { flashStatus } from '../../core/flashStatus';
   import ComponentFileMenu from './ComponentFileMenu.svelte';
   import SaveAsDialog from './SaveAsDialog.svelte';
@@ -91,7 +92,7 @@
     const data = await safeFetch<{
       files: ComponentConfigMeta[];
       activeFile: string;
-    }>(`/api/component-configs/${encodeURIComponent(component)}`);
+    }>(`${API_BASE}/component-configs/${encodeURIComponent(component)}`);
     if (!data) return;
     files = data.files;
     activeFileName = data.activeFile;
@@ -103,7 +104,7 @@
     // Preserve existing productionInfo on transient fetch failure rather than
     // clobbering it to null — same behaviour as the previous empty catch.
     const info = await safeFetch<ComponentProductionInfo>(
-      `/api/component-configs/${encodeURIComponent(component)}/production`,
+      `${API_BASE}/component-configs/${encodeURIComponent(component)}/production`,
     );
     if (info) productionInfo = info;
   }

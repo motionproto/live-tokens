@@ -1,7 +1,7 @@
 # Developer recipes
 
-Common tasks. Each recipe assumes you have read chapters 02–05 and know
-what "slice", "scope", and "registry" mean.
+Common tasks. Each recipe assumes you have read chapters 02 to 05 and
+know what "slice", "scope", and "registry" mean.
 
 ## Run tests
 
@@ -20,11 +20,11 @@ The test suites:
 | `src/editor/core/components/lazyConfig.test.ts` | `configureEditor` storage prefix observed lazily |
 | `src/editor/core/themes/migrations/migrations.test.ts` | Migration runner: legacy → current, gating, purity |
 | `src/editor/component-editor/editorTokens.test.ts` | Each editor's token list resolves to declared `:global(:root)` slots |
-| `src/editor/ui/PaletteEditor.test.ts` | Palette derivation behavior |
+| `src/editor/ui/PaletteEditor.test.ts` | Palette derivation behaviour |
 
-If any of these fail, find the cause before touching code that depends
-on them. Use `npm run test 2>&1 | grep '✓\|×'` to see deltas, not the
-absolute count.
+If any of these fail, find the cause before touching code that
+depends on them. Use `npm run test 2>&1 | grep '✓\|×'` to see which
+tests changed, not the absolute count.
 
 ## Add a CSS-var domain (a new "slice")
 
@@ -79,7 +79,7 @@ export function setMotionEasing(easing: string): void {
 
 ```ts
 export interface EditorState {
-  /* …existing… */
+  /* ...existing... */
   motion: MotionState;
 }
 ```
@@ -94,13 +94,13 @@ import { DEFAULT_MOTION, motionToVars, motionEqualsDefault, loadMotionFromVars }
 
 function emptyState(): EditorState {
   return {
-    /* …existing… */
+    /* ...existing... */
     motion: { ...DEFAULT_MOTION },
   };
 }
 
 const domainLoaders: Record<string, DomainLoader> = {
-  /* …existing… */
+  /* ...existing... */
   motion: loadMotionFromVars,
 };
 
@@ -115,7 +115,7 @@ export { setMotionDuration, setMotionEasing, motionToVars, motionEqualsDefault }
 ```ts
 export function deriveCssVars(state: EditorState): Record<string, string> {
   const out: Record<string, string> = { ...state.cssVars };
-  /* …existing… */
+  /* ...existing... */
   if (!motionEqualsDefault(state.motion)) {
     Object.assign(out, motionToVars(state.motion));
   }
@@ -129,35 +129,36 @@ export function deriveCssVars(state: EditorState): Record<string, string> {
 
 ```ts
 export function toTheme(state: EditorState, meta: { name: string }): Theme {
-  /* …existing… */
+  /* ...existing... */
   if (!motionEqualsDefault(state.motion)) {
     Object.assign(cssVariables, motionToVars(state.motion));
   }
-  /* … */
+  /* ... */
 }
 ```
 
 ### 6. Add UI
 
-Wire a tab in `src/editor/ui/` (e.g., a `MotionTab.svelte`) that calls
-`setMotionDuration` and reads `$editorState.motion`. Mount it in
-`Editor.svelte` alongside the existing tabs.
+Wire a tab in `src/editor/ui/` (e.g., a `MotionTab.svelte`) that
+calls `setMotionDuration` and reads `$editorState.motion`. Mount it
+in `Editor.svelte` alongside the existing tabs.
 
 That is the full integration. Existing themes load with `motion:
-DEFAULT_MOTION` (the `loadMotionFromVars` loader claims the vars from
-the catch-all bag if present). New saves include motion vars whenever
-they diverge from the default.
+DEFAULT_MOTION` (the `loadMotionFromVars` loader claims the vars
+from the catch-all bag if present). New saves include motion vars
+whenever they diverge from the default.
 
 ## Add a schema migration
 
-You renamed a token, removed a deprecated key, or restructured a config
-shape.
+You renamed a token, removed a deprecated key, or restructured a
+config shape.
 
 ### 1. Decide the kind
 
-Theme migrations apply to `themes/*.json` files; component-config
-migrations apply to `component-configs/<id>/*.json` files. Pick one. A
-single migration cannot straddle both kinds.
+Theme migrations apply to `<dataDir>/themes/*.json` files;
+component-config migrations apply to
+`<dataDir>/component-configs/<id>/*.json` files. Pick one. A single
+migration cannot straddle both kinds.
 
 ### 2. Write the migration file
 
@@ -183,8 +184,8 @@ export const themeMigration_2026_05_10_motionPresetRename: Migration = {
 ```
 
 `fromVersion` is the file-stamp this applies to; `toVersion` is the
-post-application stamp. Migrations are pure: return a new map, do not
-mutate input.
+post-application stamp. Migrations are pure: return a new map, do
+not mutate input.
 
 ### 3. Register it
 
@@ -194,7 +195,7 @@ mutate input.
 import { themeMigration_2026_05_10_motionPresetRename } from './2026-05-10-motion-preset-rename';
 
 export const MIGRATIONS: Migration[] = [
-  /* …existing… */
+  /* ...existing... */
   themeMigration_2026_05_10_motionPresetRename,
 ];
 ```
@@ -271,7 +272,7 @@ const MOTION_PRODUCTION = `${API_BASE}/motion-presets/production`;
 const MOTION_BY_NAME = new RegExp(`^${escapedBase}/motion-presets/([a-z0-9\\-_]+)$`);
 
 const routes: Route[] = [
-  /* …existing… */
+  /* ...existing... */
   { method: 'GET',    pattern: MOTION_ROUTE,       handler: handleListMotion },
   { method: 'GET',    pattern: MOTION_ACTIVE,      handler: handleGetMotionActive },
   { method: 'PUT',    pattern: MOTION_ACTIVE,      handler: handleSetMotionActive },
@@ -306,17 +307,15 @@ const motion = versionedFileResource<MotionPreset, MotionPresetMeta, MotionProdu
 export const listMotion = () => motion.list().then((d) => d.files);
 export const loadMotion = motion.load;
 export const saveMotion = motion.save;
-/* … */
+/* ... */
 ```
 
 ### 5. Mirror the file-manager UI
 
 Use `ComponentFileManager` as a template, or extract a generic
 `<FileManager service={...} />` wrapper if this is the second copy.
-
-The audit's M2 fix collapsed two copies of this code; if you are
-adding a third, factor the file-manager UI now rather than letting it
-drift.
+If you find yourself writing a third file-manager UI, factor it
+out; do not let it drift further.
 
 ## Add a token category
 
@@ -326,27 +325,27 @@ suppose you want `--motion-*`).
 1. Add the tokens to `src/system/styles/tokens.css` under a category
    section header. Pick a name that fits the existing vocabulary;
    do not invent a new scale shape if numeric or t-shirt fits.
-2. Update `src/system/styles/CONVENTIONS.md` to list the new category
-   in the table.
+2. Update `src/system/styles/CONVENTIONS.md` to list the new
+   category in the table.
 3. If the category needs typed state in `EditorState`, follow the
-   slice recipe above. Otherwise it lives in the catch-all `cssVars`
-   bag and works automatically.
+   slice recipe above. Otherwise it lives in the catch-all
+   `cssVars` bag and works automatically.
 4. If the category needs a UI editor, add a tab to `src/editor/ui/`.
 
 ## Promote a theme to production from the CLI
 
-There is no CLI today; promotion is only through the editor UI. If
-you need non-interactive promotion (CI flows, scripted previews),
-call the API:
+There is no CLI today; promotion is only through the editor UI. For
+non-interactive promotion (CI flows, scripted previews), call the
+API:
 
 ```bash
-curl -X PUT http://localhost:5173/api/themes/production \
+curl -X PUT http://localhost:5173/api/live-tokens/themes/production \
   -H 'Content-Type: application/json' \
   -d '{"name": "green_goblin"}'
 ```
 
-That runs `syncTokensToCss + syncFontsToCss + syncComponentsToCss`
-server-side, just like the UI button.
+That runs `regenerateTokensCss + syncFontsToCss` server-side, just
+like the UI button.
 
 ## Debug undo
 
@@ -356,74 +355,49 @@ If undo behaves unexpectedly:
   lines for `commitScope` (clipping path), `cancelScope` (clipping
   path), and `undo`. These show `pastLen`, `floor`, the palette
   snapshot, and whether a clipping scope is open.
-- **Check `__getHistoryLengths()`.** Test-only export; in dev you can
-  paste `editorCore.__getHistoryLengths()` in the console to see
-  `{past, future}`.
+- **Check `__getHistoryLengths()`.** Test-only export; in dev you
+  can paste `editorCore.__getHistoryLengths()` in the console to
+  see `{past, future}`.
 - **Check the scope ownership.** Two scopes can be open
-  simultaneously: one non-clipping (transaction / slider gesture)
+  simultaneously: one non-clipping (transaction or slider gesture)
   and one clipping (palette session). Each occupies its own slot.
   If you opened a third, the prior one in the same slot was
   auto-aborted with a `[editorStore]` warning.
 
 ## Publish the library
 
-Releases go through GitHub Actions: pushing a `v*` tag triggers
-`.github/workflows/publish.yml`, which runs `npm ci` + tests + a packaging
-dry-run, then `npm publish --provenance --access public` over OIDC. There
-is no `NPM_TOKEN`; npm trusts the workflow via Trusted Publisher.
+See [`RELEASING.md`](../RELEASING.md) at the repo root. It covers
+the full checklist: versioning policy, CHANGELOG curation, the four
+`prepublishOnly` checks, tarball inspection (what should and
+shouldn't ship), `npm publish` flow, git tagging, and recovery if a
+release goes wrong.
 
-```bash
-# 1. Edit package.json version + CHANGELOG entry
-# 2. Refresh the lockfile (see "Lockfile + optional deps" below — important)
-npm install --include=optional
-
-# 3. Local sanity check — exactly what CI will run
-rm -rf node_modules && npm ci
-npm test
-npm pack --dry-run
-
-# 4. Commit, tag, push
-git commit -am "Release 0.3.x — <summary>"
-git push origin main
-git tag v0.3.x && git push origin v0.3.x
-
-# 4. tag + push
-git tag v0.6.3
-git push origin main --tags
-```
-
-`prepublishOnly` runs `build:lib` which runs `build:plugin` (tsup
-ESM+CJS+dts). The `files` field in `package.json` controls what
-ships:
-
-- `src/editor/` (everything under it)
-- `src/system/` (runtime components, tokens.css, fonts.css, assets)
-- `src/app/site.css`
-- `dist-plugin/` (compiled plugin)
-
-What does not ship: `src/app/main.ts`, `src/app/App.svelte`,
-`src/app/Home.svelte`, `src/demo/`, `index.html`, `themes/`,
-`component-configs/`, `manifests/`. These are starter-only.
+The npm publish runs `prepublishOnly` automatically; if any check
+fails, nothing hits npm. Releases can also go through a GitHub
+Actions `v*`-tag-triggered workflow that uses OIDC (no
+`NPM_TOKEN`); `RELEASING.md` describes the manual path that the
+workflow mirrors.
 
 ## Force a fresh component-config seed
 
-If `component-configs/<id>/default.json` got out of sync with the
-runtime component (you renamed a slot but the seed still has the old
-name):
+If `<dataDir>/component-configs/<id>/default.json` got out of sync
+with the runtime component (you renamed a slot but the seed still
+has the old name):
 
 ```bash
-rm component-configs/<id>/default.json
+rm <dataDir>/component-configs/<id>/default.json
 # touch the runtime to trigger HMR's regenerate path
 touch src/system/components/<Name>.svelte
 ```
 
-The dev plugin's `handleHotUpdate` regenerates `default.json` on the
-touch. `createdAt` is preserved if there was a previous default.
+The dev plugin's `handleHotUpdate` regenerates `default.json` on
+the touch. `createdAt` is preserved if there was a previous default.
 
 ## Skip migrations when manually editing a theme JSON
 
-You hand-edited `themes/foo.json` and do not want migrations to run
-on next load. Stamp the file with the current schema version:
+You hand-edited `<dataDir>/themes/foo.json` and do not want
+migrations to run on next load. Stamp the file with the current
+schema version:
 
 ```bash
 # look up current
@@ -434,5 +408,5 @@ node -e "import('./src/editor/core/themes/migrations/index.js').then(m => consol
 "schemaVersion": 7
 ```
 
-Migrations gate by `fromVersion >= file.schemaVersion`, so a file at
-the current version skips all migrations.
+Migrations gate by `fromVersion >= file.schemaVersion`, so a file
+at the current version skips all migrations.

@@ -15,7 +15,10 @@ export default defineConfig({
         replace: buildPruneReplace(),
       }),
     }),
-    themeFileApi({ themesDir: 'themes', tokensCssPath: 'src/system/styles/tokens.css' }),
+    // Data folders default to `src/live-tokens/data/{themes,manifests,
+    // component-configs}`. Override per-folder here or via
+    // `live-tokens.config.json` at the project root.
+    themeFileApi({ tokensCssPath: 'src/system/styles/tokens.css' }),
   ],
   // Force Svelte's browser-side exports under vitest (happy-dom). Without this,
   // `import { createEventDispatcher } from 'svelte'` resolves to the SSR build

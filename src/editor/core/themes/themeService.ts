@@ -5,6 +5,7 @@ import {
   versionedFileResource,
   sanitizeFileName as sanitizeFileNameImpl,
 } from '../storage/files/versionedFileResourceClient';
+import { API_BASE } from '../storage/apiBase';
 import { loadFromFile as loadEditorState, toTheme, markSaved } from '../store/editorStore';
 import { activeFileName } from '../store/editorConfigStore';
 import { applyFontSources, applyFontStacks } from '../fonts/fontLoader';
@@ -12,7 +13,7 @@ import { migrateThemeFonts } from '../fonts/fontMigration';
 
 // ── API helpers ──────────────────────────────────────────────
 //
-// All theme CRUD goes through `versionedFileResource('/api/themes')` —
+// All theme CRUD goes through `versionedFileResource(`${API_BASE}/themes`)` —
 // shared with `componentConfigService`'s per-component clients. Theme-specific
 // response shapes (ThemeMeta list payload, ProductionInfo) are layered on top
 // via the generic type parameters.
@@ -25,7 +26,7 @@ export interface ProductionInfo {
 }
 
 const themeResource = versionedFileResource<Theme, ThemeMeta, ProductionInfo>({
-  baseUrl: '/api/themes',
+  baseUrl: `${API_BASE}/themes`,
 });
 
 export async function listThemes(): Promise<ThemeMeta[]> {

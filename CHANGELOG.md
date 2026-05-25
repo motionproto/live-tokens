@@ -1,5 +1,65 @@
 # Changelog
 
+## Unreleased — Plugin acts like a dev tool, not a co-tenant
+
+Live Tokens no longer squats on multiple top-level folders at a consumer's
+repo root. By default, all data (`themes/`, `manifests/`, `component-configs/`)
+lives under one folder: `src/live-tokens/data/`. A consumer's root looks like
+a normal project root again.
+
+### Changed (breaking for consumers passing no data-folder options)
+
+- **`themesDir` is no longer required.** It joins `componentConfigsDir` and
+  `manifestsDir` as optional. Zero-config consumers now get
+  `src/live-tokens/data/{themes,manifests,component-configs}` instead of the
+  previous root-level defaults.
+- **New `dataDir` option** on `themeFileApi(opts)`. Sets the parent directory
+  for all three subfolders. Default: `src/live-tokens/data`.
+- **New `live-tokens.config.json`** (optional, at project root). Accepts the
+  same four data-folder keys. Resolution order per folder: explicit
+  `themeFileApi(opts)` argument > matching key in `live-tokens.config.json` >
+  `<dataDir>/<sub>` where dataDir comes from opts > config file > package
+  default. Read once at plugin construction; restart vite to pick up changes.
+- **Build-time pruning shares the same resolution.** `loadProductionConfig`
+  (used by `buildPruneReplace`) reads through the shared resolver, so
+  `componentConfigsDir` stays consistent across the dev plugin and the
+  preprocessor.
+- **API routes namespaced.** The default `apiBase` moved from `/api` to
+  `/api/live-tokens`, so the plugin's routes can't collide with the consumer's
+  own `/api/themes` / `/api/manifests`. The client side picks up the
+  resolved base via a `__LIVE_TOKENS_API_BASE__` Vite define so client and
+  server can't drift. Consumers who explicitly passed `apiBase: '/api'` are
+  unaffected.
+- **Unknown-key warning** on `live-tokens.config.json`. The reader now logs
+  one warning per unrecognised key so `themesDr` doesn't silently degrade to
+  defaults. `$schema` is ignored.
+
+### Migration for existing consumers
+
+Either keep your current root-level layout by passing explicit options, or
+relocate your data folders and let defaults take over.
+
+Keep root layout (one-line config file or explicit option):
+
+```json
+// live-tokens.config.json
+{ "dataDir": "." }
+```
+
+Or move to the new default and drop any data-folder options from
+`themeFileApi(opts)`:
+
+```bash
+mkdir -p src/live-tokens/data
+git mv themes src/live-tokens/data/themes
+git mv manifests src/live-tokens/data/manifests
+git mv component-configs src/live-tokens/data/component-configs
+```
+
+Stop the vite dev server first — its HMR will pre-create the destination
+dirs if it picks up the plugin reload mid-move. The source repo itself ships
+with data at the new default location.
+
 ## 0.6.0 — Editor CSS isolation
 
 The editor now self-contains its chrome. A second consumer can `npm install
