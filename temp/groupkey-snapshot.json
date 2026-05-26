@@ -470,6 +470,9 @@
     "border-width": [
       "--card-default-border-width"
     ],
+    "header-gap": [
+      "--card-default-header-gap"
+    ],
     "header-padding": [
       "--card-default-header-padding"
     ],

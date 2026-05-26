@@ -1,9 +1,18 @@
 <script lang="ts">
+  import { get } from 'svelte/store';
   import Button from '../../system/components/Button.svelte';
   import FloatingTokenTags from '../../system/components/FloatingTokenTags.svelte';
-  import { navigate } from '../../editor/core/routing/router';
+  import { setEditorView } from '../../editor/core/store/editorViewStore';
+  import { overlayOpen } from '../../editor/overlay/overlayState';
 
   const isDev = import.meta.env.DEV;
+
+  function openOverlay(view: 'tokens' | 'components') {
+    setEditorView(view);
+    if (!get(overlayOpen)) {
+      window.dispatchEvent(new CustomEvent('lt-overlay-toggle'));
+    }
+  }
 </script>
 
 <header class="hero">
@@ -24,10 +33,10 @@
 
     <div class="hero-actions">
       {#if isDev}
-        <Button variant="secondary" onclick={() => navigate('/components')} icon="fas fa-puzzle-piece" iconPosition="left">
+        <Button variant="secondary" onclick={() => openOverlay('components')} icon="fas fa-puzzle-piece" iconPosition="left">
           Browse Components
         </Button>
-        <Button onclick={() => navigate('/editor')} icon="fas fa-sliders" iconPosition="left">
+        <Button onclick={() => openOverlay('tokens')} icon="fas fa-sliders" iconPosition="left">
           Open Token Editor
         </Button>
       {:else}
