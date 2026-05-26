@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.11.0 — Overlay scale trim and release pipeline cleanup
+
+The overlay scale drops from seven stops to three. CI is now the only thing
+that publishes to npm; local `npm publish` is no longer part of the flow.
+
+### Changed (breaking for direct consumers of the dropped overlay tokens; auto-migrated for saved configs)
+
+- **`--overlay-lowest` / `--overlay-lower` / `--overlay-higher` / `--overlay-highest` removed.**
+  The kept stops are `--overlay-low`, `--overlay`, and `--overlay-high`.
+  Saved theme files and component aliases are rebound automatically by
+  `2026-05-26-drop-overlay-extra-stops` (theme v2 to v3, component-config v16 to v17).
+  Consumers who reference the dropped tokens in their own CSS need to point
+  at the nearest kept stop (`-lowest` and `-lower` to `-low`, `-higher` and
+  `-highest` to `-high`).
+
+### Added
+
+- **`--color-white` and `--color-black` invariants** in `tokens.css`. Hard
+  constants outside any ramp; never themed.
+
+### Changed (internal, no consumer-visible API impact)
+
+- Overlays editor section rewritten; `OverlaysSection.svelte` net 550
+  lines lighter.
+- `UIPaletteSelector` and `UIRelinkConfirmPopover` refactored internally;
+  the latter renamed to `UIRelinkConfirmDialog` (not part of any public export).
+- Release pipeline migrated to OIDC Trusted Publishing. `RELEASING.md`
+  rewritten so the local steps stop at `git push --tags`; CI handles
+  `npm publish` with provenance attestation. See the new "Publishing (how it
+  actually happens)" section for the full picture.
+
 ## 0.10.0 — Plugin acts like a dev tool, not a co-tenant
 
 Live Tokens no longer squats on multiple top-level folders at a consumer's
