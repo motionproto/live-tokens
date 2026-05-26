@@ -48,6 +48,7 @@
     --card-default-border-width: var(--border-width-1);
     --card-default-radius: var(--radius-lg);
     --card-default-header-padding: var(--space-16);
+    --card-default-header-gap: var(--space-8);
     --card-default-body-padding: var(--space-16);
     --card-default-shadow: var(--shadow-sm);
     --card-default-blur: var(--blur-none);
@@ -92,7 +93,7 @@
   .card-header {
     display: flex;
     align-items: center;
-    gap: var(--space-8);
+    gap: var(--card-default-header-gap);
     @include themed-padding(--card-default-header-padding);
     background: var(--card-default-header-surface);
   }

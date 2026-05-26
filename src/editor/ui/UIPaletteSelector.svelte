@@ -146,6 +146,9 @@
   let chosenFamily = $state<string | null>(null);
   let chosenStep = $state<string | null>(null);
   let chosenNone = $state(false);
+  /** Picked one of the invariants. Bypasses category/family/step — these are
+   *  not part of any ramp and always resolve to pure white/black. */
+  let chosenStatic = $state<'white' | 'black' | null>(null);
   let chosenGradient = $state<string | null>(null);
   /** Per-slot angle override on the chosen linear gradient. Null means
    *  "no override" — the slot writes `var(--gradient-N)` and inherits the
@@ -252,6 +255,14 @@
     return { inner: m[1], opacity: parseInt(m[2]) };
   }
 
+  function parseStatic(raw: string): { name: 'white' | 'black'; opacity: number } | null {
+    const direct = raw.match(/^var\(--color-(white|black)\)$/);
+    if (direct) return { name: direct[1] as 'white' | 'black', opacity: 100 };
+    const wrapped = raw.match(/^color-mix\(in srgb,\s*var\(--color-(white|black)\)\s+(\d+)%,\s*transparent\)$/);
+    if (wrapped) return { name: wrapped[1] as 'white' | 'black', opacity: parseInt(wrapped[2]) };
+    return null;
+  }
+
   function buildValue(varName: string): string | null {
     if (varName === variable && opacity >= 100) return null;
     if (opacity >= 100) return varName;
@@ -260,6 +271,11 @@
 
   function applyOpacity() {
     opacity = Math.max(0, Math.min(100, Math.round(opacity)));
+    if (chosenStatic !== null) {
+      selector?.writeOverride(buildValue(`--color-${chosenStatic}`));
+      onchange?.();
+      return;
+    }
     if (chosenCategory === null || chosenFamily === null || chosenStep === null) return;
     const varName = getVarName(chosenCategory, chosenFamily, chosenStep);
     selector?.writeOverride(buildValue(varName));
@@ -332,6 +348,7 @@
 
     if (raw === 'transparent') {
       chosenNone = true;
+      chosenStatic = null;
       chosenCategory = null;
       chosenFamily = null;
       chosenStep = null;
@@ -370,6 +387,17 @@
     }
     chosenGradient = null;
     chosenAngle = null;
+
+    const staticParsed = parseStatic(raw);
+    if (staticParsed) {
+      chosenStatic = staticParsed.name;
+      chosenCategory = null;
+      chosenFamily = null;
+      chosenStep = null;
+      opacity = staticParsed.opacity;
+      return;
+    }
+    chosenStatic = null;
 
     const opacityParsed = parseOpacity(raw);
     if (opacityParsed) {
@@ -433,6 +461,7 @@
 
   function selectNone(close: () => void) {
     chosenNone = true;
+    chosenStatic = null;
     chosenCategory = null;
     chosenFamily = null;
     chosenStep = null;
@@ -445,9 +474,24 @@
     onchange?.();
   }
 
+  function selectStatic(name: 'white' | 'black', close: () => void) {
+    chosenNone = false;
+    chosenStatic = name;
+    chosenCategory = null;
+    chosenFamily = null;
+    chosenStep = null;
+    chosenGradient = null;
+    chosenAngle = null;
+    selector?.writeOverride(buildValue(`--color-${name}`));
+    selectedFamily = null;
+    close();
+    onchange?.();
+  }
+
   function selectSwatch(category: Category, step: string, close: () => void) {
     const varName = getVarName(category, selectedFamily!, step);
     chosenNone = false;
+    chosenStatic = null;
     chosenGradient = null;
     chosenAngle = null;
     chosenCategory = category;
@@ -465,6 +509,7 @@
   // token's default angle but with no local override active.
   function selectGradient(gradientVar: string, close: () => void) {
     chosenNone = false;
+    chosenStatic = null;
     chosenCategory = null;
     chosenFamily = null;
     chosenStep = null;
@@ -502,11 +547,13 @@
 
   let metaLabel = $derived(chosenNone
     ? 'none'
-    : chosenGradient
-      ? chosenGradient.replace(/^--/, '') + (chosenAngle !== null ? ` (${effectiveAngle}°)` : '')
-      : (chosenCategory && chosenFamily && chosenStep !== null
-        ? getVarName(chosenCategory, chosenFamily, chosenStep).replace(/^--/, '') + (opacity < 100 ? ` (${opacity}%)` : '')
-        : ''));
+    : chosenStatic
+      ? `color-${chosenStatic}` + (opacity < 100 ? ` (${opacity}%)` : '')
+      : chosenGradient
+        ? chosenGradient.replace(/^--/, '') + (chosenAngle !== null ? ` (${effectiveAngle}°)` : '')
+        : (chosenCategory && chosenFamily && chosenStep !== null
+          ? getVarName(chosenCategory, chosenFamily, chosenStep).replace(/^--/, '') + (opacity < 100 ? ` (${opacity}%)` : '')
+          : ''));
 
   let availableTabs = $derived(selectedFamily
     ? allCategories.filter(c => c.id !== 'text' || familiesWithText.includes(selectedFamily!))
@@ -552,15 +599,23 @@
   {#snippet children({ close })}
   
       {#if selectedFamily === null}
-        <div class="family-list">
+        <div class="static-band">
+          <button class="static-chip" class:active={chosenStatic === 'white'} onclick={() => selectStatic('white', close)}>
+            <div class="static-swatch static-swatch--white"></div>
+            <span class="static-label">White</span>
+          </button>
+          <button class="static-chip" class:active={chosenStatic === 'black'} onclick={() => selectStatic('black', close)}>
+            <div class="static-swatch static-swatch--black"></div>
+            <span class="static-label">Black</span>
+          </button>
           {#if showNone}
-            <button class="family-item" class:active={chosenNone} onclick={() => selectNone(close)}>
-              <div class="family-swatches">
-                <div class="none-swatch"></div>
-              </div>
-              <span class="family-label">None</span>
+            <button class="static-chip" class:active={chosenNone} onclick={() => selectNone(close)}>
+              <div class="static-swatch static-swatch--none"></div>
+              <span class="static-label">None</span>
             </button>
           {/if}
+        </div>
+        <div class="family-list">
           {#each families as fam}
             {@const outOfFamily = familyFilter !== null && fam.name !== familyFilter}
             <button
@@ -862,6 +917,79 @@
     background: var(--ui-hover);
   }
 
+  /* Inline band of instant-apply atoms (White / Black / None) above the
+     family list. Same swatch+label vocabulary as `.step-item`, scaled to
+     fit three across so the eye groups them as peer one-clicks distinct
+     from the multi-step family rows below. */
+  .static-band {
+    display: flex;
+    gap: var(--ui-space-4);
+    padding: var(--ui-space-8);
+    border-bottom: 1px solid var(--ui-border-low);
+  }
+
+  .static-chip {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ui-space-2);
+    padding: var(--ui-space-4);
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--ui-radius-sm);
+    cursor: pointer;
+    transition: all var(--ui-transition-fast);
+  }
+
+  .static-chip:hover {
+    background: var(--ui-hover);
+    border-color: var(--ui-border);
+  }
+
+  .static-chip.active {
+    border-color: var(--ui-text-accent);
+    border-width: 2px;
+    background: var(--ui-hover-high);
+    padding: 3px;
+  }
+
+  .static-chip.active .static-label {
+    color: var(--ui-text-accent);
+    font-weight: var(--ui-font-weight-semibold);
+  }
+
+  .static-swatch {
+    width: 2rem;
+    height: 1.5rem;
+    border-radius: var(--ui-radius-sm);
+    border: 1px solid var(--ui-border-low);
+  }
+
+  .static-swatch--white {
+    background: var(--color-white);
+  }
+
+  .static-swatch--black {
+    background: var(--color-black);
+  }
+
+  .static-swatch--none {
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 3px,
+      var(--ui-border-low) 3px,
+      var(--ui-border-low) 4px
+    );
+  }
+
+  .static-label {
+    font-size: var(--ui-font-size-xs);
+    color: var(--ui-text-secondary);
+    font-family: var(--ui-font-mono);
+  }
+
   .family-list {
     display: flex;
     flex-direction: column;
@@ -917,15 +1045,6 @@
     border-radius: 2px;
   }
 
-  .none-swatch {
-    width: 2.5rem;
-    height: 0.75rem;
-    border-radius: 2px;
-    border: 1px solid var(--ui-border-low);
-    position: relative;
-    overflow: hidden;
-  }
-
   .gradient-swatch {
     width: 2.5rem;
     height: 0.75rem;
@@ -941,22 +1060,6 @@
     color: var(--ui-text-tertiary);
     text-transform: uppercase;
     border-top: 1px solid var(--ui-border-low);
-  }
-
-  .none-swatch::after {
-    content: '';
-    position: absolute;
-    top: -1px;
-    left: -1px;
-    right: -1px;
-    bottom: -1px;
-    background: repeating-linear-gradient(
-      -45deg,
-      transparent,
-      transparent 3px,
-      var(--ui-border-low) 3px,
-      var(--ui-border-low) 4px
-    );
   }
 
   .family-label {

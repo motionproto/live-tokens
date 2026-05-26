@@ -1,53 +1,136 @@
 <script lang="ts">
-  import Badge from '../../system/components/Badge.svelte';
   import Button from '../../system/components/Button.svelte';
   import Callout from '../../system/components/Callout.svelte';
   import SegmentedControl from '../../system/components/SegmentedControl.svelte';
   import Section from '../Section.svelte';
 
-  let previewMode = $state('tone');
-  const previewSegments = [
-    { value: 'tone',  label: 'Tone',  icon: 'fas fa-droplet' },
-    { value: 'shape', label: 'Shape', icon: 'fas fa-shapes' },
+  type Override = 'shape' | 'color';
+
+  let shape = $state(false);
+  let color = $state(false);
+  // Tracks the most-recently-applied override so the SegmentedControl can
+  // single-highlight it while the underlying applied set stays additive.
+  let lastApplied = $state<Override | null>(null);
+
+  const segments = [
+    { value: 'default', label: 'Default', icon: 'fas fa-circle' },
+    { value: 'shape',   label: 'Shape',   icon: 'fas fa-shapes' },
+    { value: 'color',   label: 'Color',   icon: 'fas fa-droplet' },
   ];
 
-  const tones = ['primary', 'accent', 'success', 'warning', 'danger', 'info', 'special', 'neutral'] as const;
+  const variants = ['primary', 'secondary', 'outline', 'success', 'danger', 'warning'] as const;
+
+  const shapeOverride: Record<string, string> = (() => {
+    const out: Record<string, string> = {};
+    for (const v of variants) {
+      out[`--button-${v}-radius`] = 'var(--radius-sm)';
+      out[`--button-${v}-border-width`] = 'var(--border-width-2)';
+      out[`--button-${v}-text-font-family`] = 'var(--font-serif)';
+      out[`--button-${v}-text-font-size`] = 'var(--font-size-2xl)';
+      out[`--button-${v}-padding`] = 'var(--space-6)';
+    }
+    return out;
+  })();
+
+  const colorOverride: Record<string, string> = {
+    '--button-primary-surface': 'var(--surface-special-high)',
+    '--button-primary-border': 'var(--border-special)',
+    '--button-primary-hover-surface': 'var(--surface-special-higher)',
+    '--button-primary-hover-border': 'var(--border-special-strong)',
+
+    '--button-outline-border': 'var(--border-special)',
+    '--button-outline-text': 'var(--text-special)',
+    '--button-outline-hover-border': 'var(--border-special-strong)',
+
+    '--button-success-surface': 'var(--surface-accent-low)',
+    '--button-success-border': 'var(--border-accent)',
+    '--button-success-text': 'var(--text-accent)',
+    '--button-success-hover-surface': 'var(--surface-accent-higher)',
+    '--button-success-hover-border': 'var(--border-accent-strong)',
+
+    '--button-warning-surface': 'var(--surface-info-low)',
+    '--button-warning-border': 'var(--border-info)',
+    '--button-warning-text': 'var(--text-info)',
+    '--button-warning-hover-surface': 'var(--surface-info-high)',
+    '--button-warning-hover-border': 'var(--border-info-medium)',
+
+    '--button-danger-surface': 'var(--surface-brand-low)',
+    '--button-danger-border': 'var(--border-brand)',
+    '--button-danger-text': 'var(--text-brand)',
+    '--button-danger-hover-surface': 'var(--surface-brand-high)',
+    '--button-danger-hover-border': 'var(--border-brand-medium)',
+  };
+
+  let stageStyle = $derived.by(() => {
+    const merged: Record<string, string> = {};
+    if (shape) Object.assign(merged, shapeOverride);
+    if (color) Object.assign(merged, colorOverride);
+    return Object.entries(merged)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join('; ');
+  });
+
+  // The highlighted segment tracks the most-recently-applied override that
+  // is still on. When the last-applied override gets toggled off, the
+  // highlight falls back to whatever else is still on, or Default.
+  let activeSegment = $derived.by(() => {
+    if (lastApplied === 'shape' && shape) return 'shape';
+    if (lastApplied === 'color' && color) return 'color';
+    if (shape) return 'shape';
+    if (color) return 'color';
+    return 'default';
+  });
+
+  let stageCaption = $derived.by(() => {
+    if (!shape && !color) return 'Default config.';
+    if (shape && !color) return 'Larger serif. Square corners. Tighter padding.';
+    if (!shape && color) return 'Each variant takes a new tone.';
+    return 'Shape and color stacked.';
+  });
+
+  function handleSelect(v: string) {
+    if (v === 'default') {
+      shape = false;
+      color = false;
+      lastApplied = null;
+      return;
+    }
+    if (v === 'shape') {
+      shape = !shape;
+      lastApplied = shape ? 'shape' : color ? 'color' : null;
+      return;
+    }
+    if (v === 'color') {
+      color = !color;
+      lastApplied = color ? 'color' : shape ? 'shape' : null;
+    }
+  }
 </script>
 
 <Section
   title="See it live."
-  description="Every component on this page resolves to the same token table. Open the editor; watch them change together."
+  description="One button component. Two overrides. Toggle Shape and Color independently. The tokens cascade through every variant instantly."
   gap="var(--space-8)"
 >
-  <div class="playground">
+  <div class="stage-wrap">
     <div class="playground-control">
-      <SegmentedControl segments={previewSegments} bind:value={previewMode} />
+      <SegmentedControl
+        {segments}
+        value={activeSegment}
+        onchange={handleSelect}
+      />
     </div>
 
-    <div class="playground-stage">
-      {#if previewMode === 'tone'}
-        <div class="stage-row">
-          {#each tones as v (v)}
-            <Badge variant={v} icon="fas fa-circle">{v}</Badge>
-          {/each}
-        </div>
-        <p class="stage-caption">
-          Eight tones, one palette. <strong>{'--color-{tone}-500'}</strong> drives every fill above.
-        </p>
-      {:else}
-        <div class="stage-row stage-shape">
-          <Button>Primary</Button>
-          <Button variant="secondary">Secondary</Button>
-          <Button variant="outline">Outline</Button>
-          <Button variant="success" icon="fas fa-check">Success</Button>
-          <Button variant="warning" icon="fas fa-bolt">Warning</Button>
-          <Button variant="danger" icon="fas fa-xmark">Danger</Button>
-        </div>
-        <p class="stage-caption">
-          Six variants. <strong>{'--button-{variant}-radius'}</strong> and
-          <strong>{'--button-{variant}-padding'}</strong> shape every state.
-        </p>
-      {/if}
+    <div class="playground" style={stageStyle}>
+      <div class="stage-row">
+        <div class="stage-cell"><Button>Primary</Button></div>
+        <div class="stage-cell"><Button variant="secondary">Secondary</Button></div>
+        <div class="stage-cell"><Button variant="outline">Outline</Button></div>
+        <div class="stage-cell"><Button variant="success" icon="fas fa-check">Success</Button></div>
+        <div class="stage-cell"><Button variant="warning" icon="fas fa-bolt">Warning</Button></div>
+        <div class="stage-cell"><Button variant="danger" icon="fas fa-xmark">Danger</Button></div>
+      </div>
+      <p class="stage-caption">{stageCaption}</p>
     </div>
   </div>
 
@@ -68,30 +151,48 @@
 </Section>
 
 <style>
-  .playground {
-    display: grid;
-    grid-template-columns: 1fr;
-    row-gap: var(--space-32);
-    background:
-      radial-gradient(120% 80% at 50% 0%, var(--surface-canvas) 0%, var(--surface-canvas-low) 70%),
-      var(--surface-canvas-low);
-    border: var(--border-width-1) solid var(--border-canvas-subtle);
-    border-radius: var(--radius-2xl);
-    padding: var(--space-48) var(--space-32);
-    box-shadow: var(--shadow-md);
-  }
-
-  .playground-control {
-    justify-self: center;
-  }
-
-  .playground-stage {
+  .stage-wrap {
+    --picker-overlap: 1.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--space-20);
-    min-height: 11rem;
+  }
+
+  .playground-control {
+    display: flex;
     justify-content: center;
+    position: relative;
+    z-index: 2;
+    margin-bottom: calc(-1 * var(--picker-overlap));
+  }
+
+  .playground {
+    --notch-width: 22.5rem;
+    --notch-height: calc(var(--picker-overlap) + 0.5rem);
+
+    display: grid;
+    grid-template-rows: 1fr auto;
+    row-gap: var(--space-16);
+    justify-items: center;
+    box-sizing: border-box;
+    width: 100%;
+    height: 12rem;
+    background: var(--surface-neutral-lowest);
+    border: var(--border-width-4) solid var(--border-neutral);
+    border-radius: var(--radius-2xl);
+    padding: calc(var(--space-24) + var(--picker-overlap)) var(--space-32) var(--space-24);
+    box-shadow:
+      inset 0 var(--space-4) var(--space-20) hsla(237, 18%, 2%, 0.7),
+      inset 0 -1px 0 hsla(0, 0%, 100%, 0.03);
+
+    -webkit-mask:
+      linear-gradient(#000, #000) 0 0 / 100% 100% no-repeat,
+      linear-gradient(#000, #000) center top / var(--notch-width) var(--notch-height) no-repeat;
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000, #000) 0 0 / 100% 100% no-repeat,
+      linear-gradient(#000, #000) center top / var(--notch-width) var(--notch-height) no-repeat;
+    mask-composite: exclude;
   }
 
   .stage-row {
@@ -100,44 +201,25 @@
     gap: var(--space-12);
     justify-content: center;
     align-items: center;
+    align-self: center;
   }
 
-  .stage-shape :global(.button) {
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
-  }
-  .stage-shape :global(.button.success) {
-    background: var(--color-success-600);
-    border-color: var(--color-success-700);
-  }
-  .stage-shape :global(.button.warning) {
-    background: var(--color-warning-600);
-    border-color: var(--color-warning-700);
-  }
-  .stage-shape :global(.button.danger) {
-    background: var(--color-danger-600);
-    border-color: var(--color-danger-700);
+  .stage-cell {
+    width: 8.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .stage-caption {
     font-family: var(--font-serif);
-    font-style: italic;
-    color: var(--text-canvas-secondary);
-    font-size: var(--font-size-md);
+    color: var(--text-primary);
+    font-size: var(--font-size-3xl);
+    line-height: var(--line-height-sm);
     text-align: center;
     margin: 0;
-    max-width: 32rem;
-  }
-
-  .stage-caption :global(strong) {
-    font-family: var(--font-mono);
-    font-style: normal;
-    font-size: 0.92em;
-    color: var(--text-primary);
-    font-weight: var(--font-weight-normal);
-    background: var(--overlay-low);
-    padding: 1px 6px;
-    border-radius: var(--radius-sm);
+    max-width: none;
+    align-self: stretch;
   }
 
   .tones-grid {

@@ -53,7 +53,6 @@
     min-height: 12rem;
     border-radius: var(--ui-radius-md);
     box-sizing: border-box;
-    overflow: hidden;
   }
 
   .shadow-backdrop.with-controls {
@@ -61,12 +60,22 @@
     grid-template-areas: "preview controls";
   }
 
+  /* Clip slotted children (e.g. Dialog's full-bleed overlay in padding=0 mode)
+     to the backdrop's rounded corners here rather than on the wrapper, so the
+     controls cell's dropdowns can escape vertically. The wrapper's image/color
+     background is still clipped naturally by its own border-radius. */
   .shadow-backdrop-content {
     display: grid;
     align-items: center;
     justify-items: start;
     min-width: 0;
     grid-area: preview;
+    border-radius: var(--ui-radius-md);
+    overflow: hidden;
+  }
+
+  .shadow-backdrop.with-controls .shadow-backdrop-content {
+    border-radius: var(--ui-radius-md) 0 0 var(--ui-radius-md);
   }
 
   .shadow-backdrop-controls {

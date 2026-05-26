@@ -7,6 +7,10 @@
 }
 
 :root {
+  /* Invariants. Never themed; not part of any ramp. */
+  --color-white: #ffffff;
+  --color-black: #000000;
+
   /* COLOR RAMPS — palette swatches 100–950. Editor overrides at runtime. */
 
   /* Neutral */

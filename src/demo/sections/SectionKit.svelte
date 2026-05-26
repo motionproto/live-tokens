@@ -11,16 +11,16 @@
 >
   <div class="kit-grid">
     <Card icon="fas fa-palette" title="Design tokens">
-      <p>A complete set of CSS variables for colour, type, spacing, radii, shadows, and motion.</p>
+      <p>A complete set of atomic CSS variables for styling.</p>
     </Card>
     <Card icon="fas fa-puzzle-piece" title="Component library">
-      <p>A Customizable set of components built with semantic properties linked to the tokens. .</p>
+      <p>A customizable set of components linked to the tokens. .</p>
     </Card>
     <Card icon="fas fa-pen-ruler" title="Live editor">
-      <p>A developer side-panel overlay for live editing of tokens and components.</p>
+      <p>Edit tokens and components, with instant updates.</p>
     </Card>
     <Card icon="fas fa-cube" title="Ships as CSS">
-      <p>Your theme saves to a static CSS file. The editor stays out of production.</p>
+      <p>Standard output, The editor stays in development.</p>
     </Card>
   </div>
 </Section>
