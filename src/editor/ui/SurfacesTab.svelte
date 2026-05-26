@@ -31,13 +31,9 @@
     {
       title: 'Overlays',
       swatches: [
-        { name: 'Lowest', variable: '--overlay-lowest', description: 'Barely visible tint' },
-        { name: 'Lower', variable: '--overlay-lower', description: 'Very subtle overlay' },
-        { name: 'Low', variable: '--overlay-low', description: 'Light overlay' },
-        { name: 'Overlay', variable: '--overlay', description: 'Standard overlay' },
-        { name: 'High', variable: '--overlay-high', description: 'Heavy overlay' },
-        { name: 'Higher', variable: '--overlay-higher', description: 'Modal backdrop' },
-        { name: 'Highest', variable: '--overlay-highest', description: 'Nearly opaque' }
+        { name: 'Low', variable: '--overlay-low', description: 'Light backdrop / pressed wash' },
+        { name: 'Overlay', variable: '--overlay', description: 'Standard backdrop' },
+        { name: 'High', variable: '--overlay-high', description: 'Strong backdrop' }
       ]
     },
     {

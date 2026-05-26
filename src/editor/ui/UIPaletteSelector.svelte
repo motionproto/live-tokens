@@ -41,7 +41,14 @@
      *  rendered disabled and not clickable. Out-of-family already-set
      *  choices still surface in the trigger meta. */
     familyFilter?: string | null;
+    /** When false, omit the "None" (transparent) option from the family list.
+     *  Slots that must always paint something (e.g. overlay backdrops) opt
+     *  out — picking None would just degenerate to opacity 0. */
+    showNone?: boolean;
     onchange?: () => void;
+    /** Forwarded to UITokenSelector — when set, writes route through this
+     *  callback instead of the DOM. See UITokenSelector.onwrite. */
+    onwrite?: (value: string | null) => void;
   }
 
   let {
@@ -51,7 +58,9 @@
     disabled = false,
     selectionsLocked = false,
     familyFilter = null,
+    showNone = true,
     onchange,
+    onwrite,
   }: Props = $props();
 
   type Category = 'palette' | 'surface' | 'border' | 'text';
@@ -517,6 +526,7 @@
   {canBeLinked}
   {disabled}
   {selectionsLocked}
+  {onwrite}
   dropdownMinWidth="14rem"
   dropdownMaxWidth="calc(100vw - 2rem)"
   hideDefaultHeader={!!selectedFamily}
@@ -543,12 +553,14 @@
   
       {#if selectedFamily === null}
         <div class="family-list">
-          <button class="family-item" class:active={chosenNone} onclick={() => selectNone(close)}>
-            <div class="family-swatches">
-              <div class="none-swatch"></div>
-            </div>
-            <span class="family-label">None</span>
-          </button>
+          {#if showNone}
+            <button class="family-item" class:active={chosenNone} onclick={() => selectNone(close)}>
+              <div class="family-swatches">
+                <div class="none-swatch"></div>
+              </div>
+              <span class="family-label">None</span>
+            </button>
+          {/if}
           {#each families as fam}
             {@const outOfFamily = familyFilter !== null && fam.name !== familyFilter}
             <button

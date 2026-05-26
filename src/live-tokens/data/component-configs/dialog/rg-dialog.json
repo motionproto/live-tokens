@@ -4,7 +4,7 @@
   "createdAt": "2026-05-18T18:38:42.743Z",
   "updatedAt": "2026-05-18T21:00:03.751Z",
   "aliases": {
-    "--dialog-overlay-surface": "--overlay-higher",
+    "--dialog-overlay-surface": "--overlay-high",
     "--dialog-surface": "--surface-neutral-lowest",
     "--dialog-border": "--border-neutral-strong",
     "--dialog-border-width": "--border-width-2",

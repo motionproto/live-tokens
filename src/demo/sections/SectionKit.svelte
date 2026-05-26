@@ -6,21 +6,21 @@
 <Section
   title="The Kit"
   eyebrow="What's inside"
-  description="A basic set of design system components connected to Token library ."
+  description="A basic set of design system components connected to a token library ."
   gap="var(--space-8)"
 >
   <div class="kit-grid">
     <Card icon="fas fa-palette" title="Design tokens">
-      <p>Over four hundred CSS variables for colour, type, spacing, radii, shadows, and motion. All editable in the browser.</p>
+      <p>A complete set of CSS variables for colour, type, spacing, radii, shadows, and motion.</p>
     </Card>
     <Card icon="fas fa-puzzle-piece" title="Component library">
-      <p>Seventeen primitives: buttons, cards, callouts, dialogs, tabs, badges, tooltips, tables. Every surface resolves to tokens.</p>
+      <p>A Customizable set of components built with semantic properties linked to the tokens. .</p>
     </Card>
     <Card icon="fas fa-pen-ruler" title="Live editor">
-      <p>A side-panel overlay with tabs for every category. Each edit writes a CSS variable and the page reflows instantly.</p>
+      <p>A developer side-panel overlay for live editing of tokens and components.</p>
     </Card>
     <Card icon="fas fa-cube" title="Ships as CSS">
-      <p>Promote a theme to production. The editor flushes its values into <code>tokens.css</code>, and the build is pure CSS.</p>
+      <p>Your theme saves to a static CSS file. The editor stays out of production.</p>
     </Card>
   </div>
 </Section>

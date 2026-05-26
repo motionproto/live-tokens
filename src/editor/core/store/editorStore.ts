@@ -51,7 +51,6 @@ import {
 import {
   loadOverlaysFromVars,
   makeDefaultOverlaysState,
-  overlaysEqualsDefault,
   overlaysToVars,
 } from '../themes/slices/overlays';
 import {
@@ -133,14 +132,13 @@ export {
 
 export {
   overlaysToVars,
-  overlaysEqualsDefault,
   OVERLAY_VAR_NAMES,
   applyOverlayVarsToState,
   makeDefaultOverlaysState,
-  overlayTokenToRgba,
-  parseRgba,
-  RGBA_RE,
-  HEX_RE,
+  makeDefaultOverlayTokens,
+  makeDefaultHoverTokens,
+  overlayTokenToCss,
+  parseOverlayCss,
 } from '../themes/slices/overlays';
 
 export {
@@ -548,9 +546,7 @@ export function toTheme(state: EditorState, meta: { name: string }): Theme {
   if (!columnsEqualsDefault(state.columns)) {
     Object.assign(cssVariables, columnsToVars(state.columns));
   }
-  if (!overlaysEqualsDefault(state.overlays)) {
-    Object.assign(cssVariables, overlaysToVars(state.overlays));
-  }
+  Object.assign(cssVariables, overlaysToVars(state.overlays));
   if (state.shadows.tokens.length > 0) {
     Object.assign(cssVariables, shadowsToVars(state.shadows));
   }

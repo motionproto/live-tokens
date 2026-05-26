@@ -1,28 +1,28 @@
 /**
- * Overlays slice — overlay + hover RGBA tokens. Defaults are editor-defined
- * (mirror what `VariablesTab` historically initialised into local let state)
- * and diverge from tokens.css by design: the editor starts with a neutral
- * palette and tokens.css continues to win until first edit.
+ * Overlays slice — overlay + hover stops, each stored as `{alias, opacity}`.
+ * Emits as `color-mix(in srgb, var(<alias>) <pct>%, transparent)` so the
+ * overlay tints automatically follow the aliased source token (a brand-color
+ * shift propagates without re-editing every overlay).
+ *
+ * Defaults diverge from tokens.css by design: the editor starts from a
+ * neutral alias and tokens.css continues to win until first edit (see
+ * `overlaysEqualsDefault`).
  */
 import type { EditorState, OverlayToken } from '../../store/editorTypes';
 
 export function makeDefaultOverlayTokens(): OverlayToken[] {
   return [
-    { variable: '--overlay-lowest', label: 'Lowest', r: 0, g: 0, b: 0, opacity: 0.05 },
-    { variable: '--overlay-lower',  label: 'Lower',  r: 0, g: 0, b: 0, opacity: 0.1  },
-    { variable: '--overlay-low',    label: 'Low',    r: 0, g: 0, b: 0, opacity: 0.2  },
-    { variable: '--overlay',        label: 'Base',   r: 0, g: 0, b: 0, opacity: 0.3  },
-    { variable: '--overlay-high',   label: 'High',   r: 0, g: 0, b: 0, opacity: 0.5  },
-    { variable: '--overlay-higher', label: 'Higher', r: 0, g: 0, b: 0, opacity: 0.7  },
-    { variable: '--overlay-highest',label: 'Highest',r: 0, g: 0, b: 0, opacity: 0.95 },
+    { variable: '--overlay-low',  label: 'Low',  alias: '--surface-neutral-lowest', opacity: 0.38 },
+    { variable: '--overlay',      label: 'Base', alias: '--surface-neutral-lowest', opacity: 0.51 },
+    { variable: '--overlay-high', label: 'High', alias: '--surface-neutral-lowest', opacity: 0.64 },
   ];
 }
 
 export function makeDefaultHoverTokens(): OverlayToken[] {
   return [
-    { variable: '--hover-low',  label: 'Low',  r: 255, g: 255, b: 255, opacity: 0.05 },
-    { variable: '--hover',      label: 'Base', r: 255, g: 255, b: 255, opacity: 0.1  },
-    { variable: '--hover-high', label: 'High', r: 255, g: 255, b: 255, opacity: 0.15 },
+    { variable: '--hover-low',  label: 'Low',  alias: '--text-primary', opacity: 0.05 },
+    { variable: '--hover',      label: 'Base', alias: '--text-primary', opacity: 0.1  },
+    { variable: '--hover-high', label: 'High', alias: '--text-primary', opacity: 0.15 },
   ];
 }
 
@@ -30,78 +30,41 @@ export function makeDefaultOverlaysState(): EditorState['overlays'] {
   return {
     tokens: makeDefaultOverlayTokens(),
     hoverTokens: makeDefaultHoverTokens(),
-    globals: {
-      overlay: { hue: 0, saturation: 0, lightness: 0, opacityMin: 0.05, opacityMax: 0.95 },
-      hover:   { hue: 0, saturation: 0, lightness: 100, opacityMin: 0.05, opacityMax: 0.15 },
-    },
   };
 }
 
 export const OVERLAY_VAR_NAMES = [
-  '--overlay-lowest', '--overlay-lower', '--overlay-low', '--overlay',
-  '--overlay-high', '--overlay-higher', '--overlay-highest',
+  '--overlay-low', '--overlay', '--overlay-high',
   '--hover-low', '--hover', '--hover-high',
 ] as const;
 
-// Accepts rgb(), rgba(), and #rrggbb[aa] — themes saved by the editor
-// always use rgba(), but loading hand-written files shouldn't break.
-export const RGBA_RE = /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)/i;
-export const HEX_RE = /^#([0-9a-f]{6})([0-9a-f]{2})?$/i;
-
-export function parseRgba(raw: string): { r: number; g: number; b: number; opacity: number } | null {
-  const s = raw.trim();
-  const m = s.match(RGBA_RE);
-  if (m) {
-    const r = parseInt(m[1], 10);
-    const g = parseInt(m[2], 10);
-    const b = parseInt(m[3], 10);
-    const a = m[4] !== undefined ? parseFloat(m[4]) : 1;
-    if (![r, g, b].every((n) => Number.isFinite(n) && n >= 0 && n <= 255)) return null;
-    return { r, g, b, opacity: Number.isFinite(a) ? a : 1 };
-  }
-  const h = s.match(HEX_RE);
-  if (h) {
-    const hex = h[1];
-    const alpha = h[2] !== undefined ? parseInt(h[2], 16) / 255 : 1;
-    return {
-      r: parseInt(hex.slice(0, 2), 16),
-      g: parseInt(hex.slice(2, 4), 16),
-      b: parseInt(hex.slice(4, 6), 16),
-      opacity: Math.round(alpha * 100) / 100,
-    };
-  }
-  return null;
+export function overlayTokenToCss(t: OverlayToken): string {
+  const pct = Math.round(t.opacity * 100);
+  if (pct >= 100) return `var(${t.alias})`;
+  return `color-mix(in srgb, var(${t.alias}) ${pct}%, transparent)`;
 }
 
-export function overlayTokenToRgba(t: OverlayToken): string {
-  return `rgba(${t.r}, ${t.g}, ${t.b}, ${t.opacity})`;
+const COLOR_MIX_RE = /^color-mix\(in srgb,\s*var\((--[a-z0-9-]+)\)\s+(\d+)%,\s*transparent\)$/i;
+const PLAIN_VAR_RE = /^var\((--[a-z0-9-]+)\)$/i;
+
+export function parseOverlayCss(raw: string): { alias: string; opacity: number } | null {
+  const s = raw.trim();
+  const mix = s.match(COLOR_MIX_RE);
+  if (mix) {
+    const pct = parseInt(mix[2], 10);
+    if (!Number.isFinite(pct)) return null;
+    return { alias: mix[1], opacity: Math.max(0, Math.min(100, pct)) / 100 };
+  }
+  const plain = s.match(PLAIN_VAR_RE);
+  if (plain) return { alias: plain[1], opacity: 1 };
+  return null;
 }
 
 export function overlaysToVars(o: EditorState['overlays']): Record<string, string> {
   const out: Record<string, string> = {};
-  for (const t of o.tokens) out[t.variable] = overlayTokenToRgba(t);
-  for (const t of o.hoverTokens) out[t.variable] = overlayTokenToRgba(t);
+  for (const t of o.tokens) out[t.variable] = overlayTokenToCss(t);
+  for (const t of o.hoverTokens) out[t.variable] = overlayTokenToCss(t);
   return out;
-}
-
-function tokensEqualDefault(tokens: OverlayToken[], defaults: OverlayToken[]): boolean {
-  if (tokens.length !== defaults.length) return false;
-  for (let i = 0; i < tokens.length; i++) {
-    const a = tokens[i]; const b = defaults[i];
-    if (a.variable !== b.variable || a.r !== b.r || a.g !== b.g || a.b !== b.b || a.opacity !== b.opacity) return false;
-  }
-  return true;
-}
-
-/**
- * Same pattern as columns: only emit overlay CSS vars once state diverges
- * from the editor defaults. tokens.css owns the rgba values until the
- * user touches any overlay control (or loads a theme that already
- * contains overrides).
- */
-export function overlaysEqualsDefault(o: EditorState['overlays']): boolean {
-  return tokensEqualDefault(o.tokens, makeDefaultOverlayTokens())
-    && tokensEqualDefault(o.hoverTokens, makeDefaultHoverTokens());
 }
 
 export function applyOverlayVarsToState(overlays: EditorState['overlays'], vars: Record<string, string>): void {
@@ -109,9 +72,10 @@ export function applyOverlayVarsToState(overlays: EditorState['overlays'], vars:
     for (const t of list) {
       const raw = vars[t.variable];
       if (!raw) continue;
-      const parsed = parseRgba(raw);
+      const parsed = parseOverlayCss(raw);
       if (!parsed) continue;
-      t.r = parsed.r; t.g = parsed.g; t.b = parsed.b; t.opacity = parsed.opacity;
+      t.alias = parsed.alias;
+      t.opacity = parsed.opacity;
     }
   };
   applyTo(overlays.tokens);
@@ -120,13 +84,18 @@ export function applyOverlayVarsToState(overlays: EditorState['overlays'], vars:
 
 /**
  * Loader: route overlay/hover entries from a freshly-loaded theme's vars
- * bag into `next.overlays` and remove them from the bag. Mutates `next`
- * and `rawVars` in place.
+ * bag into `next.overlays` and remove them from the bag — but only when the
+ * value parses as the new format (color-mix / plain var). Legacy rgba values
+ * pass through to the cssVars bag so the DOM still paints them; the user's
+ * next edit in the picker promotes them to the typed slice.
  */
 export function loadOverlaysFromVars(
   next: EditorState,
   rawVars: Record<string, string>,
 ): void {
   applyOverlayVarsToState(next.overlays, rawVars);
-  for (const name of OVERLAY_VAR_NAMES) delete rawVars[name];
+  for (const name of OVERLAY_VAR_NAMES) {
+    const raw = rawVars[name];
+    if (raw && parseOverlayCss(raw) !== null) delete rawVars[name];
+  }
 }

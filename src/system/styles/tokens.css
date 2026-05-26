@@ -242,14 +242,10 @@
   --surface-danger-higher: #cf4443;
   --surface-danger-highest: #df6e68;
 
-  /* Overlays — 7-point semi-transparent scale. */
-  --overlay-lowest: rgba(20, 3, 0, 0.12);
-  --overlay-lower: rgba(20, 3, 0, 0.25);
+  /* Overlays — semi-transparent washes for backdrops and pressed-state fills. */
   --overlay-low: rgba(20, 3, 0, 0.38);
   --overlay: rgba(20, 3, 0, 0.51);
   --overlay-high: rgba(20, 3, 0, 0.64);
-  --overlay-higher: rgba(20, 3, 0, 0.77);
-  --overlay-highest: rgba(20, 3, 0, 0.9);
 
   /* BORDERS — 5-point scales, faint → strong. */
 

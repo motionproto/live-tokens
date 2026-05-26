@@ -21,19 +21,13 @@ export interface ShadowOverrideFlags {
   distance: boolean; blur: boolean; size: boolean;
 }
 
+/** Overlay stop: an aliased color token + an opacity. Emits as
+ *  `color-mix(in srgb, var(<alias>) <opacity%>, transparent)`. */
 export interface OverlayToken {
-  variable: string; label: string;
-  r: number; g: number; b: number; opacity: number;
-}
-
-export interface OverlayChannelGlobals {
-  hue: number; saturation: number; lightness: number;
-  opacityMin: number; opacityMax: number;
-}
-
-export interface OverlayGlobals {
-  overlay: OverlayChannelGlobals;
-  hover: OverlayChannelGlobals;
+  variable: string;
+  label: string;
+  alias: string;
+  opacity: number;
 }
 
 export interface ColumnsState {
@@ -134,7 +128,6 @@ export interface EditorState {
   overlays: {
     tokens: OverlayToken[];
     hoverTokens: OverlayToken[];
-    globals: OverlayGlobals;
   };
   columns: ColumnsState;
   components: Record<string, ComponentSlice>;

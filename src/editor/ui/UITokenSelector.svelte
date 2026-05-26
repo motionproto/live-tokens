@@ -58,6 +58,14 @@
     onopen?: () => void;
     onclose?: () => void;
     onvarChange?: () => void;
+    /** When provided, writes route through this callback instead of touching
+     *  the DOM or component aliases. Caller owns persistence (typically into
+     *  a typed slice). The callback receives the same payload `writeOverride`
+     *  would have written: a bare `--token-name`, a CSS expression like
+     *  `color-mix(...)` or `transparent`, or `null` to reset. Caller is
+     *  responsible for re-emitting the var so the picker's DOM read-back
+     *  reflects the new state. */
+    onwrite?: (value: string | null) => void;
   }
 
   let {
@@ -81,6 +89,7 @@
     onopen,
     onclose,
     onvarChange,
+    onwrite,
   }: Props = $props();
 
   let open = $state(false);
@@ -100,6 +109,10 @@
 
   /** Persist a semantic CSS-var reference (or clear it when null). */
   export function writeOverride(semanticName: string | null): void {
+    if (onwrite) {
+      onwrite(semanticName);
+      return;
+    }
     if (component) {
       const useLinked = isLinkedDisplay;
       if (semanticName) {

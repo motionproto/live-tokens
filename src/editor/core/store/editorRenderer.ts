@@ -19,7 +19,6 @@ import {
   columnsToVars,
   columnsEqualsDefault,
   overlaysToVars,
-  overlaysEqualsDefault,
   shadowsToVars,
   gradientsToVars,
   componentsToVars,
@@ -30,9 +29,7 @@ export function deriveCssVars(state: EditorState): Record<string, string> {
   if (!columnsEqualsDefault(state.columns)) {
     Object.assign(out, columnsToVars(state.columns));
   }
-  if (!overlaysEqualsDefault(state.overlays)) {
-    Object.assign(out, overlaysToVars(state.overlays));
-  }
+  Object.assign(out, overlaysToVars(state.overlays));
   if (state.shadows.tokens.length > 0) {
     Object.assign(out, shadowsToVars(state.shadows));
   }

@@ -412,7 +412,7 @@
     --imagelightbox-overlay-surface:       var(--overlay-high);
 
     /* chrome (toolbar + close button) */
-    --imagelightbox-chrome-surface:        var(--overlay-higher);
+    --imagelightbox-chrome-surface:        var(--surface-neutral-low);
     --imagelightbox-chrome-border:         var(--border-brand);
     --imagelightbox-chrome-border-width:   var(--border-width-1);
     --imagelightbox-chrome-radius:         var(--radius-full);

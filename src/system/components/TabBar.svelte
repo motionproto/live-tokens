@@ -103,7 +103,7 @@
     /* Active tab */
     --tabbar-active-text: var(--text-primary);
     --tabbar-active-border: var(--color-brand-500);
-    --tabbar-active-surface: var(--overlay-lowest);
+    --tabbar-active-surface: var(--overlay-low);
     --tabbar-active-text-font-family: var(--font-sans);
     --tabbar-active-text-font-size: var(--font-size-md);
     --tabbar-active-text-font-weight: var(--font-weight-light);
