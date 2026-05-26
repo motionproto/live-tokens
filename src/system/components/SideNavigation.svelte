@@ -116,62 +116,68 @@
   class:force-footer-hover={forceHoverPart === 'footer'}
   class:force-footer-active={forceActivePart === 'footer'}
 >
-  <!-- Title header. Toggle lives inside it (anchored to the right edge of the
-       header) so the two read as one component. The header itself stays
-       mounted at all widths so the toggle remains clickable when collapsed;
-       the label fades + clips as the panel narrows. -->
-  <header class="sn-title" class:active={titleActive}>
-    <a href={titleHref} class="sn-title-label">{titleLabel}</a>
-    <button
-      type="button"
-      class="sn-toggle"
-      onclick={fireToggle}
-      aria-label={open ? 'Collapse sidebar' : 'Expand sidebar'}
-      aria-expanded={open}
-    >
-      <i class="fa-solid {open ? 'fa-angles-left' : 'fa-angles-right'}" aria-hidden="true"></i>
-    </button>
-  </header>
+  <!-- Toggle is a single persistent element. Its `left` position is
+       calc'd from the panel-width tokens so it transitions smoothly
+       between right-of-title (open) and centre-of-rail (closed) using
+       the same duration/easing tokens as the rail width. -->
+  <button
+    type="button"
+    class="sn-toggle"
+    onclick={fireToggle}
+    aria-label={open ? 'Collapse sidebar' : 'Expand sidebar'}
+    aria-expanded={open}
+  >
+    <i class="fa-solid fa-angles-right" aria-hidden="true"></i>
+  </button>
 
-  <div class="sn-menu" aria-hidden={!open}>
-    {#each sections as section (section.path)}
-      <div class="sn-section">
-        <CollapsibleSection
-          variant="chromeless"
-          label={section.title}
-          href={sectionHref(section)}
-          expanded={expandedSections[section.path] || false}
-          ontoggle={() => toggleSection(section.path)}
-        />
+  {#if open}
+    <!-- Open layout. Title bar reserves space for the persistent toggle on
+         the right; the menu is locked at the open-width so it can't reflow
+         while the rail expands around it. -->
+    <header class="sn-title" class:active={titleActive}>
+      <a href={titleHref} class="sn-title-label">{titleLabel}</a>
+    </header>
 
-        {#if expandedSections[section.path]}
-          <div class="sn-items">
-            {#each section.items as item (item.path)}
-              <a
-                href={buildHref(item.path)}
-                class="sn-item"
-                class:active={item.path === currentPath || item.path === activeItemKey()}
-                class:force-hover={item.path === hoverItemKey()}
-              >
-                {item.title}
-              </a>
-            {/each}
-          </div>
-        {/if}
-      </div>
-    {/each}
+    <div class="sn-menu">
+      {#each sections as section (section.path)}
+        <div class="sn-section">
+          <CollapsibleSection
+            variant="chromeless"
+            label={section.title}
+            href={sectionHref(section)}
+            expanded={expandedSections[section.path] || false}
+            ontoggle={() => toggleSection(section.path)}
+          />
 
-    {#if footer}
-      <a
-        href={buildHref(footer.path)}
-        class="sn-footer"
-        class:active={currentPath === footer.path}
-      >
-        {#if footer.icon}<i class={footer.icon} aria-hidden="true"></i>{/if}
-        <span>{footer.title}</span>
-      </a>
-    {/if}
-  </div>
+          {#if expandedSections[section.path]}
+            <div class="sn-items">
+              {#each section.items as item (item.path)}
+                <a
+                  href={buildHref(item.path)}
+                  class="sn-item"
+                  class:active={item.path === currentPath || item.path === activeItemKey()}
+                  class:force-hover={item.path === hoverItemKey()}
+                >
+                  {item.title}
+                </a>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      {/each}
+
+      {#if footer}
+        <a
+          href={buildHref(footer.path)}
+          class="sn-footer"
+          class:active={currentPath === footer.path}
+        >
+          {#if footer.icon}<i class={footer.icon} aria-hidden="true"></i>{/if}
+          <span>{footer.title}</span>
+        </a>
+      {/if}
+    </div>
+  {/if}
 </aside>
 
 <style lang="scss">
@@ -186,6 +192,12 @@
     --sidenavigation-panel-section-gap: var(--space-4);
     --sidenavigation-panel-item-padding: var(--space-32);
     --sidenavigation-panel-footer-gap: var(--space-16);
+    --sidenavigation-panel-open-width: 16rem;
+    --sidenavigation-panel-closed-width: 3rem;
+    --sidenavigation-open-duration: var(--duration-200);
+    --sidenavigation-open-easing: var(--ease-out-quart);
+    --sidenavigation-close-duration: var(--duration-150);
+    --sidenavigation-close-easing: var(--ease-out-quart);
 
     /* Title — default */
     --sidenavigation-title-default-surface: var(--color-transparent);
@@ -328,6 +340,21 @@
     border-right: var(--sidenavigation-panel-border-width) solid var(--sidenavigation-panel-border);
     @include themed-padding(--sidenavigation-panel-padding, $h: 0);
     scrollbar-width: thin;
+    width: var(--sidenavigation-panel-open-width);
+    /* Opening uses the open-* timing tokens; the .collapsed rule below
+       overrides with the close-* tokens for the reverse direction. */
+    transition: width var(--sidenavigation-open-duration) var(--sidenavigation-open-easing);
+  }
+  .sidenavigation.collapsed {
+    width: var(--sidenavigation-panel-closed-width);
+    transition: width var(--sidenavigation-close-duration) var(--sidenavigation-close-easing);
+  }
+
+  /* The .sidenavigation needs to be the positioning context for the
+     absolutely-anchored toggle. Set on the outer aside so the toggle's
+     `left` calc is relative to the rail's left edge. */
+  .sidenavigation {
+    position: relative;
   }
 
   /* Per-state token rebinds — layout-affecting properties are written exactly
@@ -349,6 +376,12 @@
     /* Positioning context for the absolutely-anchored toggle button. */
     position: relative;
     flex: 0 0 auto;
+    /* Lock to the open-width so the title doesn't reflow during the rail
+       expansion (3rem → 16rem on open). border-box keeps the outer width
+       equal to the token value (otherwise padding + border would push the
+       toggle past the rail's right edge). */
+    box-sizing: border-box;
+    width: var(--sidenavigation-panel-open-width);
     display: flex;
     align-items: center;
     gap: var(--space-12);
@@ -403,15 +436,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: clip;
-    /* Cross-fades with the menu when the panel collapses. Slight delay on
-       reopen so the slide-out is well underway before the label re-appears. */
-    opacity: 1;
-    transition: opacity var(--duration-200, 200ms) ease 80ms;
-  }
-  .sidenavigation.collapsed .sn-title-label {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--duration-150, 150ms) ease;
   }
 
   .sn-toggle {
@@ -423,13 +447,27 @@
     --_icon: var(--sidenavigation-toggle-default-icon);
     --_icon-size: var(--sidenavigation-toggle-default-icon-size);
 
-    /* Anchored to the title header's right edge so the button rides the
-       panel's right edge as it slides open/closed. */
+    /* Persistent element anchored to the panel (not the title). Open-state
+       `left` puts it near the right edge of the open-width title; collapsed
+       `left` centres it in the closed-width rail. Both calc'd from the
+       same width tokens so they stay in sync if the consumer overrides. */
     position: absolute;
-    top: 50%;
-    right: var(--space-8);
-    transform: translateY(-50%);
+    /* Toggle's outer width is derived from its constituent tokens — icon
+       + padding (both sides) + border (both sides). Stays accurate when a
+       consumer customizes any of those without re-hardcoding here. */
+    --_toggle-width: calc(
+      var(--sidenavigation-toggle-default-icon-size)
+      + 2 * var(--sidenavigation-toggle-default-padding)
+      + 2 * var(--sidenavigation-toggle-default-border-width)
+    );
+    top: var(--space-12);
+    left: calc(var(--sidenavigation-panel-open-width) - var(--_toggle-width) - var(--space-8));
     z-index: 1;
+    transition:
+      left var(--sidenavigation-open-duration) var(--sidenavigation-open-easing),
+      background var(--duration-150),
+      border-color var(--duration-150),
+      color var(--duration-150);
 
     display: inline-flex;
     align-items: center;
@@ -441,12 +479,32 @@
     color: var(--_icon);
     @include themed-padding(--_padding);
     cursor: pointer;
-    transition: background var(--duration-150), border-color var(--duration-150), color var(--duration-150);
   }
 
   .sn-toggle i {
     font-size: var(--_icon-size);
     line-height: 1;
+    /* Icon points right by default (expand). Open state flips it to point
+       left (collapse). Rotation tweens with the position so the affordance
+       morphs smoothly between the two states. */
+    transition: transform var(--sidenavigation-open-duration) var(--sidenavigation-open-easing);
+  }
+  .sidenavigation:not(.collapsed) .sn-toggle i {
+    transform: rotate(180deg);
+  }
+
+  /* Collapsed: centre the toggle in the rail, and swap to close-* timing
+     tokens so the leftward slide matches the rail's shrink. */
+  .sidenavigation.collapsed .sn-toggle {
+    left: calc((var(--sidenavigation-panel-closed-width) - var(--_toggle-width)) / 2);
+    transition:
+      left var(--sidenavigation-close-duration) var(--sidenavigation-close-easing),
+      background var(--duration-150),
+      border-color var(--duration-150),
+      color var(--duration-150);
+  }
+  .sidenavigation.collapsed .sn-toggle i {
+    transition: transform var(--sidenavigation-close-duration) var(--sidenavigation-close-easing);
   }
 
   .sn-toggle:hover,
@@ -461,18 +519,17 @@
   }
 
   /* Menu wraps everything below the title header. Scroll lives here so the
-     title (with its toggle) stays pinned while a tall menu list scrolls. */
+     title (with its toggle) stays pinned while a tall menu list scrolls.
+     Locked to the open-width (matching .sn-title) so the menu's intrinsic
+     layout doesn't shift as the rail expands on open — items can't wrap
+     and re-flow if their container width never changes. The rail's
+     `overflow: hidden` clips them on the right until the rail catches up. */
   .sn-menu {
     flex: 1 1 auto;
+    box-sizing: border-box;
+    width: var(--sidenavigation-panel-open-width);
     overflow-y: auto;
     overflow-x: hidden;
-    opacity: 1;
-    transition: opacity var(--duration-200, 200ms) ease 80ms;
-  }
-  .sidenavigation.collapsed .sn-menu {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--duration-150, 150ms) ease;
   }
 
   .sn-section {

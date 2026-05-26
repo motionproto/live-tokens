@@ -1508,6 +1508,12 @@
     "border-width": [
       "--sidenavigation-panel-border-width"
     ],
+    "close-duration": [
+      "--sidenavigation-close-duration"
+    ],
+    "close-easing": [
+      "--sidenavigation-close-easing"
+    ],
     "footer-gap": [
       "--sidenavigation-footer-active-gap",
       "--sidenavigation-footer-default-gap",
@@ -1607,6 +1613,12 @@
       "--sidenavigation-title-active-label",
       "--sidenavigation-title-default-label",
       "--sidenavigation-title-hover-label"
+    ],
+    "open-duration": [
+      "--sidenavigation-open-duration"
+    ],
+    "open-easing": [
+      "--sidenavigation-open-easing"
     ],
     "padding": [
       "--sidenavigation-panel-padding"

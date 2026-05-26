@@ -360,6 +360,7 @@
 /* Component aliases (production configs differing from defaults) */
 :root:root {
   /* sidenavigation (my-side-navigation) */
+  --sidenavigation-close-duration: var(--duration-200);
   --sidenavigation-title-default-padding-top: var(--space-0);
   --sidenavigation-title-hover-padding-top: var(--space-0);
   --sidenavigation-title-active-padding-top: var(--space-0);

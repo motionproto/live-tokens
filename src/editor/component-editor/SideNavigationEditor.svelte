@@ -30,6 +30,14 @@
     { label: 'footer gap', groupKey: 'panel-footer-gap', variable: '--sidenavigation-panel-footer-gap' },
   ];
 
+  // --- Animation ----------------------------------------------------------
+  const animationTokens: Token[] = [
+    { label: 'open duration', groupKey: 'open-duration', variable: '--sidenavigation-open-duration' },
+    { label: 'open easing', groupKey: 'open-easing', variable: '--sidenavigation-open-easing' },
+    { label: 'close duration', groupKey: 'close-duration', variable: '--sidenavigation-close-duration' },
+    { label: 'close easing', groupKey: 'close-easing', variable: '--sidenavigation-close-easing' },
+  ];
+
   // --- Title --------------------------------------------------------------
   function titleStateTokens(s: StatefulState): Token[] {
     return [
@@ -133,6 +141,7 @@
     ...Object.fromEntries(TOGGLE_STATES.map((s) => [`Toggle / ${STATE_LABELS[s]}`, toggleStateTokens(s)])),
     ...Object.fromEntries(STATEFUL_STATES.map((s) => [`Item / ${STATE_LABELS[s]}`, itemStateTokens(s)])),
     ...Object.fromEntries(STATEFUL_STATES.map((s) => [`Footer / ${STATE_LABELS[s]}`, footerStateTokens(s)])),
+    'Animation': animationTokens,
   };
   const typeGroups: Record<string, TypeGroupConfig[]> = {
     ...Object.fromEntries(STATEFUL_STATES.map((s) => [`Title / ${STATE_LABELS[s]}`, titleStateTypeGroups(s)])),
@@ -221,6 +230,7 @@
   };
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
+  let previewOpen = $state(true);
 
   let visibleStates = $derived(Object.fromEntries(
     Object.entries(states).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
@@ -267,7 +277,8 @@
           titleLabel="Reignmaker"
           titleHref="#"
           currentPath="learn/setup"
-          open={true}
+          open={previewOpen}
+          ontoggle={() => (previewOpen = !previewOpen)}
           {forceHoverPart}
           {forceActivePart}
         />
@@ -277,16 +288,16 @@
 </ComponentEditorBase>
 
 <style>
-  /* Bound the preview to a sidebar-shaped column so the panel's flex layout
-     resolves to a realistic width inside the canvas. */
+  /* Frame reserves room for the panel at its widest (so collapse animates into
+     empty space rather than reshaping the canvas), and lets the panel manage
+     its own width via the open/closed tokens. */
   .sn-preview-frame {
-    width: 16rem;
+    min-width: 16rem;
     min-height: 26rem;
     display: flex;
     align-items: stretch;
   }
   .sn-preview-frame :global(.sidenavigation) {
-    flex: 1;
     height: auto;
   }
 </style>

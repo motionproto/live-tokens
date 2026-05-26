@@ -8,7 +8,8 @@
   import UILineHeightSelector from '../../ui/UILineHeightSelector.svelte';
   import UIPaddingSelector from '../../ui/UIPaddingSelector.svelte';
   import UILetterSpacingSelector from '../../ui/UILetterSpacingSelector.svelte';
-  import { BLUR, BORDER_WIDTH, DOT_SIZE, RADIUS, SHADOW, DIVIDER_HEIGHT, DIVIDER_INSET } from '../../ui/variantScales';
+  import UIEasingSelector from '../../ui/UIEasingSelector.svelte';
+  import { BLUR, BORDER_WIDTH, DOT_SIZE, DURATION, RADIUS, SHADOW, DIVIDER_HEIGHT, DIVIDER_INSET } from '../../ui/variantScales';
   import {
     editorState,
     getComponentPropertySiblings,
@@ -39,6 +40,8 @@
     | 'padding'
     | 'padding-split'
     | 'gap'
+    | 'duration'
+    | 'easing'
     | 'text-color';
 
   type Entry = { kind: Kind; token: Token };
@@ -99,6 +102,8 @@
     { kind: 'shadow',         matches: (v) => v.endsWith('-shadow') || v.startsWith('--shadow-') },
     { kind: 'padding',        matches: (v) => v.endsWith('-padding') || v.endsWith('-margin') },
     { kind: 'gap',            matches: (v) => v.endsWith('-gap') },
+    { kind: 'duration',       matches: (v) => v.endsWith('-duration') || v.startsWith('--duration-') },
+    { kind: 'easing',         matches: (v) => v.endsWith('-easing') || v.startsWith('--ease-') },
     { kind: 'border-width',   matches: (v) => v.endsWith('-border-width') || v.endsWith('-accent-width') || v.endsWith('-hairline-thickness') || v.startsWith('--border-width-') },
     { kind: 'border',         matches: (v) => v.endsWith('-border') || v.startsWith('--border-') },
     { kind: 'surface',        matches: (v) => v.endsWith('-surface') || v.startsWith('--surface-') },
@@ -126,6 +131,8 @@
     'padding',
     'padding-split',
     'gap',
+    'duration',
+    'easing',
     'blur',
     'shadow',
     'text-color',
@@ -195,6 +202,8 @@
       extra: () => ({ mode: 'sides' }),
     },
     'gap': { component: UIPaddingSelector, extra: () => ({ mode: 'single', splittable: false }) },
+    'duration': { component: UIVariantSelector, extra: () => ({ ...DURATION }) },
+    'easing': { component: UIEasingSelector },
     'blur': { component: UIVariantSelector, extra: () => ({ ...BLUR }) },
     'shadow': { component: UIVariantSelector, extra: () => ({ ...SHADOW }) },
     'surface': { component: UIPaletteSelector },
@@ -222,6 +231,8 @@
       'padding',
       'padding-split',
       'gap',
+      'duration',
+      'easing',
       'blur',
       'shadow',
       'surface',

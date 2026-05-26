@@ -107,6 +107,22 @@ export const DIVIDER_HEIGHT: VariantScaleEntry = {
   ],
 };
 
+/** Used by `*-duration` variables (CSS transition timing). Pulls keys directly
+ *  from the shared `--duration-*` scale in tokens.css — labels mirror the token
+ *  slugs so the picker reflects the utility token namespace, no synthetic names. */
+export const DURATION: VariantScaleEntry = {
+  varPrefix: '--duration-',
+  options: [
+    { key: '75',   label: '75',   value: '75ms' },
+    { key: '150',  label: '150',  value: '150ms' },
+    { key: '200',  label: '200',  value: '200ms' },
+    { key: '300',  label: '300',  value: '300ms' },
+    { key: '500',  label: '500',  value: '500ms' },
+    { key: '750',  label: '750',  value: '750ms' },
+    { key: '1000', label: '1000', value: '1000ms' },
+  ],
+};
+
 /** Used by `*-divider-inset` variables (margin-block trimmed off a stretched
  *  divider). Labels describe the resulting divider, not the inset value: 0
  *  inset = bar-height divider ("Full"); larger insets = shorter divider.
