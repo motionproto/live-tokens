@@ -359,6 +359,13 @@
 
 /* Component aliases (production configs differing from defaults) */
 :root:root {
+  /* imagelightbox (my-image-lightbox) */
+  --imagelightbox-tile-border: transparent;
+  --imagelightbox-overlay-surface: color-mix(in srgb, var(--color-neutral-950) 76%, transparent);
+
+  /* segmentedcontrol (my-segmented-control) */
+  --segmentedcontrol-bar-surface: color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent);
+
   /* sidenavigation (my-side-navigation) */
   --sidenavigation-close-duration: var(--duration-200);
   --sidenavigation-title-default-accent-width: var(--border-width-4);

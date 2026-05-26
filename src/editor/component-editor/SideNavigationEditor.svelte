@@ -246,28 +246,25 @@
 
   const demoSections: SideNavSection[] = [
     {
-      path: 'learn',
-      title: 'Learn to Play',
+      path: 'section-1',
+      title: 'Section 1',
       hasIndexPage: true,
       items: [
-        { path: 'learn/overview', title: 'Overview' },
-        { path: 'learn/setup', title: 'Setup' },
-        { path: 'learn/first-turn', title: 'Your First Turn' },
+        { path: 'section-1/item-1', title: 'Item 1' },
+        { path: 'section-1/item-2', title: 'Item 2' },
+        { path: 'section-1/item-3', title: 'Item 3' },
       ],
     },
     {
-      path: 'rules',
-      title: 'Rules Reference',
+      path: 'section-2',
+      title: 'Section 2',
       hasIndexPage: true,
-      items: [
-        { path: 'rules/combat', title: 'Combat' },
-        { path: 'rules/movement', title: 'Movement' },
-      ],
+      items: [],
     },
   ];
   const demoFooter: SideNavFooter = {
-    path: 'license',
-    title: 'License',
+    path: 'footer',
+    title: 'Footer',
     icon: 'fa-solid fa-file-lines',
   };
 
@@ -316,9 +313,9 @@
         <SideNavigation
           sections={demoSections}
           footer={demoFooter}
-          titleLabel="Reignmaker"
+          titleLabel="Title"
           titleHref="#"
-          currentPath="learn/setup"
+          currentPath="section-1/item-2"
           open={previewOpen}
           ontoggle={() => (previewOpen = !previewOpen)}
           {forceHoverPart}

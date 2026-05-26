@@ -10,6 +10,7 @@ import CardEditor, { allTokens as cardTokens } from './CardEditor.svelte';
 import CollapsibleSectionEditor, { allTokens as collapsibleSectionTokens } from './CollapsibleSectionEditor.svelte';
 import DialogEditor, { allTokens as dialogTokens } from './DialogEditor.svelte';
 import ImageEditor, { allTokens as imageTokens } from './ImageEditor.svelte';
+import ImageLightboxEditor, { allTokens as imageLightboxTokens } from './ImageLightboxEditor.svelte';
 import InlineEditActionsEditor, { allTokens as inlineEditActionsTokens } from './InlineEditActionsEditor.svelte';
 import InputEditor, { allTokens as inputTokens } from './InputEditor.svelte';
 import MenuSelectEditor, { allTokens as menuSelectTokens } from './MenuSelectEditor.svelte';
@@ -35,6 +36,7 @@ type BuiltInComponentId =
   | 'callout'
   | 'cornerbadge'
   | 'image'
+  | 'imagelightbox'
   | 'inlineeditactions'
   | 'input'
   | 'menuselect'
@@ -166,6 +168,15 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Image.svelte',
     editorComponent: ImageEditor,
     schema: imageTokens,
+    origin: 'system',
+  },
+  imagelightbox: {
+    id: 'imagelightbox',
+    label: 'Image Lightbox',
+    icon: 'fas fa-expand',
+    sourceFile: 'src/system/components/ImageLightbox.svelte',
+    editorComponent: ImageLightboxEditor,
+    schema: imageLightboxTokens,
     origin: 'system',
   },
   inlineeditactions: {
