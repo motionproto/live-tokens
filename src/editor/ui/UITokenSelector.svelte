@@ -15,7 +15,7 @@
     getComponentPropertySiblings,
   } from '../core/store/editorStore';
   import UILinkToggle from './UILinkToggle.svelte';
-  import UIRelinkConfirmPopover from './UIRelinkConfirmPopover.svelte';
+  import UIRelinkConfirmDialog from './UIRelinkConfirmDialog.svelte';
   import { keepInViewport } from './keepInViewport';
 
   type DropdownContext = { close: () => void; handleReset: () => void };
@@ -293,7 +293,7 @@
     </button>
 
     {#if relinkOpen && component}
-      <UIRelinkConfirmPopover
+      <UIRelinkConfirmDialog
         candidates={relinkCandidates}
         initialVariable={variable}
         prefixToStrip={`--${component}-`}

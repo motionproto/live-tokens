@@ -1,10 +1,7 @@
 <script lang="ts">
-  import { run, createBubbler, stopPropagation } from 'svelte/legacy';
-
-  const bubble = createBubbler();
   import { onMount, onDestroy } from 'svelte';
+  import { self } from 'svelte/legacy';
   import UIRadio from './UIRadio.svelte';
-  import { keepInViewport } from './keepInViewport';
 
   type Candidate = { variable: string; alias: string };
 
@@ -40,7 +37,7 @@
 
   let options = $derived(distinctOptions(candidates, initialVariable));
   let selected = $state('');
-  run(() => {
+  $effect(() => {
     if (selected === '' && options.length > 0) selected = options[0].alias;
   });
 
@@ -64,10 +61,10 @@
     }
   }
 
-  let popoverEl: HTMLDivElement | undefined = $state();
+  let confirmBtn: HTMLButtonElement | undefined = $state();
 
   onMount(() => {
-    popoverEl?.focus();
+    confirmBtn?.focus();
     document.addEventListener('keydown', handleKeydown, true);
   });
 
@@ -76,70 +73,93 @@
   });
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<div
-  class="ui-relink-popover"
-  role="dialog"
-  aria-label="Confirm link"
-  tabindex="-1"
-  bind:this={popoverEl}
-  use:keepInViewport
-  onclick={stopPropagation(bubble('click'))}
->
-  <div class="ui-relink-header">
-    {#if options.length > 1}
-      <span class="ui-relink-title">{candidates.length} variants disagree — pick one to broadcast</span>
-    {:else}
-      <span class="ui-relink-title">Link this property across {candidates.length} variants?</span>
-    {/if}
-  </div>
+<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions a11y_no_static_element_interactions -->
+<div class="ui-relink-backdrop" onclick={self(handleCancel)}>
+  <div
+    class="ui-relink-dialog"
+    role="dialog"
+    aria-label="Confirm link"
+    aria-modal="true"
+    tabindex="-1"
+  >
+    <div class="ui-relink-header">
+      {#if options.length > 1}
+        <span class="ui-relink-title">{candidates.length} variants disagree — pick one to broadcast</span>
+      {:else}
+        <span class="ui-relink-title">Link this property across {candidates.length} variants?</span>
+      {/if}
+      <button
+        type="button"
+        class="ui-relink-close"
+        onclick={handleCancel}
+        aria-label="Close"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
 
-  <div class="ui-relink-body">
-    {#each options as opt}
-      <label class="ui-relink-row">
-        <UIRadio bind:group={selected} value={opt.alias} />
-        <div class="ui-relink-row-info">
-          <code class="ui-relink-alias">{opt.alias}</code>
-          <span class="ui-relink-sources">
-            from {opt.sources.join(', ')}
-          </span>
-        </div>
-      </label>
-    {/each}
-  </div>
+    <div class="ui-relink-body" role="radiogroup">
+      {#each options as opt}
+        <label class="ui-relink-row" class:selected={selected === opt.alias}>
+          <UIRadio bind:group={selected} value={opt.alias} />
+          <div class="ui-relink-row-info">
+            <code class="ui-relink-alias">{opt.alias}</code>
+            <span class="ui-relink-sources">
+              from {opt.sources.join(', ')}
+            </span>
+          </div>
+        </label>
+      {/each}
+    </div>
 
-  <div class="ui-relink-footer">
-    <button type="button" class="ui-relink-btn ui-relink-btn-cancel" onclick={handleCancel}>Cancel</button>
-    <button type="button" class="ui-relink-btn ui-relink-btn-confirm" onclick={handleConfirm}>Link</button>
+    <div class="ui-relink-footer">
+      <button type="button" class="ui-relink-btn ui-relink-btn-cancel" onclick={handleCancel}>Cancel</button>
+      <button
+        type="button"
+        class="ui-relink-btn ui-relink-btn-confirm"
+        onclick={handleConfirm}
+        bind:this={confirmBtn}
+      >Link</button>
+    </div>
   </div>
 </div>
 
 <style>
-  .ui-relink-popover {
-    position: absolute;
-    top: calc(100% + var(--ui-space-4));
-    right: 0;
+  .ui-relink-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+  }
+
+  .ui-relink-dialog {
     background: var(--ui-surface-higher);
     border: 1px solid var(--ui-border-high);
     border-radius: var(--ui-radius-md);
     box-shadow: var(--ui-shadow-lg);
-    z-index: 20;
-    min-width: 18rem;
-    max-width: 24rem;
-    padding: var(--ui-space-8);
+    min-width: 22rem;
+    max-width: 28rem;
     display: flex;
     flex-direction: column;
-    gap: var(--ui-space-8);
-    animation: uiRelinkPopoverIn 120ms ease-out;
+    animation: uiRelinkDialogIn 140ms ease-out;
   }
+  .ui-relink-dialog:focus { outline: none; }
 
-  .ui-relink-popover:focus {
-    outline: none;
+  @keyframes uiRelinkDialogIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
   .ui-relink-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-8) var(--ui-space-12);
     border-bottom: 1px solid var(--ui-border-low);
-    padding-bottom: var(--ui-space-6);
   }
 
   .ui-relink-title {
@@ -148,31 +168,52 @@
     font-weight: var(--ui-font-weight-medium);
   }
 
+  .ui-relink-close {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: none;
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-tertiary);
+    cursor: pointer;
+    font-size: var(--ui-font-size-xs);
+    transition: background var(--ui-transition-fast), color var(--ui-transition-fast);
+  }
+  .ui-relink-close:hover {
+    background: var(--ui-hover);
+    color: var(--ui-text-primary);
+  }
+
   .ui-relink-body {
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-4);
+    padding: var(--ui-space-8) var(--ui-space-8);
   }
 
   .ui-relink-row {
     display: flex;
     align-items: flex-start;
     gap: var(--ui-space-8);
-    padding: var(--ui-space-4);
+    padding: var(--ui-space-6) var(--ui-space-8);
+    border: 1px solid transparent;
     border-radius: var(--ui-radius-sm);
     cursor: pointer;
-    transition: background var(--ui-transition-fast);
+    transition:
+      background var(--ui-transition-fast),
+      border-color var(--ui-transition-fast);
   }
-
-  .ui-relink-row:hover {
+  .ui-relink-row:hover { background: var(--ui-hover); }
+  .ui-relink-row.selected {
     background: var(--ui-hover);
+    border-color: var(--ui-border-high);
   }
 
-  /* Lift the radio slightly so it visually aligns with the first line of the
-     two-line row label. Selection styling lives in UIRadio. */
-  .ui-relink-row :global(.ui-radio) {
-    margin-top: 0.2rem;
-  }
+  /* Lift the radio so it visually aligns with the first line of the row label. */
+  .ui-relink-row :global(.ui-radio) { margin-top: 0.2rem; }
 
   .ui-relink-row-info {
     display: flex;
@@ -204,7 +245,7 @@
     display: flex;
     justify-content: flex-end;
     gap: var(--ui-space-6);
-    padding-top: var(--ui-space-4);
+    padding: var(--ui-space-8) var(--ui-space-12);
     border-top: 1px solid var(--ui-border-low);
   }
 
@@ -222,7 +263,6 @@
     border: 1px solid var(--ui-border);
     color: var(--ui-text-secondary);
   }
-
   .ui-relink-btn-cancel:hover {
     background: var(--ui-hover);
     color: var(--ui-text-primary);
@@ -233,13 +273,5 @@
     border: 1px solid var(--ui-text-accent);
     color: var(--ui-surface-lowest);
   }
-
-  .ui-relink-btn-confirm:hover {
-    filter: brightness(1.1);
-  }
-
-  @keyframes uiRelinkPopoverIn {
-    from { opacity: 0; transform: translateY(-2px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+  .ui-relink-btn-confirm:hover { filter: brightness(1.1); }
 </style>

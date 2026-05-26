@@ -18,7 +18,7 @@
     unlinkComponentProperty,
     relinkComponentProperty,
   } from '../core/store/editorStore';
-  import UIRelinkConfirmPopover from './UIRelinkConfirmPopover.svelte';
+  import UIRelinkConfirmDialog from './UIRelinkConfirmDialog.svelte';
   import UILinkToggle from './UILinkToggle.svelte';
 
   interface Props {
@@ -383,7 +383,7 @@
       <div class="link-toggle-wrap">
         <UILinkToggle linked={isLinkedParent} ontoggle={toggleLinkPaddingGroup} />
         {#if relinkOpen && component}
-          <UIRelinkConfirmPopover
+          <UIRelinkConfirmDialog
             candidates={relinkCandidates}
             initialVariable={variable}
             prefixToStrip={`--${component}-`}

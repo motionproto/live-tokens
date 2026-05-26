@@ -10,7 +10,6 @@
     { path: '/', label: 'Site', icon: 'fa-home' },
     { path: '/demo', label: 'Demo', icon: 'fa-box-open' },
     { path: '/components', label: 'Components', icon: 'fa-puzzle-piece' },
-    { path: '/docs', label: 'Docs', icon: 'fa-book' },
   ];
 
   let visibleNavLinks = $derived(allNavLinks);

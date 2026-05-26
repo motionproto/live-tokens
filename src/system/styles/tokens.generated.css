@@ -375,4 +375,18 @@
   /* imagelightbox (my-image-lightbox) */
   --imagelightbox-tile-border: transparent;
   --imagelightbox-overlay-surface: color-mix(in srgb, var(--color-neutral-950) 76%, transparent);
+
+  /* table (my-table) */
+  --table-default-surface: color-mix(in srgb, var(--surface-neutral-lower) 57%, transparent);
+  --table-default-border: var(--border-neutral);
+  --table-default-border-width: var(--border-width-2);
+  --table-default-header-surface: var(--surface-neutral-lowest);
+  --table-default-header-font-size: var(--font-size-lg);
+  --table-default-header-font-weight: var(--font-weight-semibold);
+  --table-default-header-border: var(--border-neutral);
+  --table-default-cell-font-size: var(--font-size-md);
+  --table-default-cell-font-weight: var(--font-weight-medium);
+  --table-default-row-divider: var(--border-neutral-subtle);
+  --table-default-column-divider: var(--border-neutral-faint);
+  --table-default-column-divider-width: var(--border-width-1);
 }

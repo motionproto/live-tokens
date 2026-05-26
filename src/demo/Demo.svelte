@@ -3,8 +3,7 @@
   import SectionKit from './sections/SectionKit.svelte';
   import SectionLive from './sections/SectionLive.svelte';
   import SectionLayers from './sections/SectionLayers.svelte';
-  import SectionDelivery from './sections/SectionDelivery.svelte';
-  import SectionCta from './sections/SectionCta.svelte';
+  import SectionOffering from './sections/SectionOffering.svelte';
 </script>
 
 <div class="kit">
@@ -12,8 +11,7 @@
   <SectionKit />
   <SectionLive />
   <SectionLayers />
-  <SectionDelivery />
-  <SectionCta />
+  <SectionOffering />
 </div>
 
 <style>
@@ -21,7 +19,7 @@
     display: grid;
     grid-template-columns: repeat(var(--columns-count), 1fr);
     column-gap: var(--columns-gutter);
-    row-gap: var(--space-24);
+    row-gap: var(--space-64);
     max-width: var(--columns-max-width);
     margin: 0 auto;
     padding: var(--space-48) var(--space-32);
@@ -47,7 +45,7 @@
   @media (max-width: 600px) {
     .kit {
       padding: var(--space-32) var(--space-16);
-      row-gap: var(--space-32);
+      row-gap: var(--space-48);
     }
   }
 </style>
