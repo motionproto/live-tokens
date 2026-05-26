@@ -2,9 +2,9 @@
   "name": "default",
   "component": "segmentedcontrol",
   "createdAt": "2026-04-28T21:13:17.669Z",
-  "updatedAt": "2026-05-25T01:43:35.000Z",
+  "updatedAt": "2026-05-26T00:00:00.000Z",
   "aliases": {
-    "--segmentedcontrol-bar-surface": "--surface-neutral-lower",
+    "--segmentedcontrol-bar-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent)",
     "--segmentedcontrol-bar-border": "--border-neutral",
     "--segmentedcontrol-bar-border-width": "--border-width-1",
     "--segmentedcontrol-bar-radius": "--radius-lg",
