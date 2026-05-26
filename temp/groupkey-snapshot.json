@@ -742,6 +742,28 @@
       "--image-default-border-width"
     ]
   },
+  "imagelightbox": {
+    "border": [
+      "--imagelightbox-chrome-border",
+      "--imagelightbox-tile-border"
+    ],
+    "icon": [
+      "--imagelightbox-chrome-icon"
+    ],
+    "radius": [
+      "--imagelightbox-chrome-radius",
+      "--imagelightbox-tile-radius"
+    ],
+    "surface": [
+      "--imagelightbox-chrome-hover-surface",
+      "--imagelightbox-chrome-surface",
+      "--imagelightbox-overlay-surface"
+    ],
+    "width": [
+      "--imagelightbox-chrome-border-width",
+      "--imagelightbox-tile-border-width"
+    ]
+  },
   "inlineeditactions": {
     "border": [
       "--inlineeditactions-cancel-default-border",
@@ -1514,6 +1536,16 @@
     "close-easing": [
       "--sidenavigation-close-easing"
     ],
+    "footer-accent": [
+      "--sidenavigation-footer-active-accent",
+      "--sidenavigation-footer-default-accent",
+      "--sidenavigation-footer-hover-accent"
+    ],
+    "footer-accent-width": [
+      "--sidenavigation-footer-active-accent-width",
+      "--sidenavigation-footer-default-accent-width",
+      "--sidenavigation-footer-hover-accent-width"
+    ],
     "footer-gap": [
       "--sidenavigation-footer-active-gap",
       "--sidenavigation-footer-default-gap",
@@ -1528,16 +1560,6 @@
       "--sidenavigation-footer-active-icon-size",
       "--sidenavigation-footer-default-icon-size",
       "--sidenavigation-footer-hover-icon-size"
-    ],
-    "footer-accent": [
-      "--sidenavigation-footer-active-accent",
-      "--sidenavigation-footer-default-accent",
-      "--sidenavigation-footer-hover-accent"
-    ],
-    "footer-accent-width": [
-      "--sidenavigation-footer-active-accent-width",
-      "--sidenavigation-footer-default-accent-width",
-      "--sidenavigation-footer-hover-accent-width"
     ],
     "footer-padding": [
       "--sidenavigation-footer-active-padding",
@@ -1653,23 +1675,36 @@
       "--sidenavigation-section-default-surface",
       "--sidenavigation-section-hover-surface"
     ],
+    "section-text-font-family": [
+      "--sidenavigation-section-active-text-font-family",
+      "--sidenavigation-section-default-text-font-family",
+      "--sidenavigation-section-hover-text-font-family"
+    ],
+    "section-text-font-size": [
+      "--sidenavigation-section-active-text-font-size",
+      "--sidenavigation-section-default-text-font-size",
+      "--sidenavigation-section-hover-text-font-size"
+    ],
+    "section-text-font-weight": [
+      "--sidenavigation-section-active-text-font-weight",
+      "--sidenavigation-section-default-text-font-weight",
+      "--sidenavigation-section-hover-text-font-weight"
+    ],
+    "section-text-line-height": [
+      "--sidenavigation-section-active-text-line-height",
+      "--sidenavigation-section-default-text-line-height",
+      "--sidenavigation-section-hover-text-line-height"
+    ],
     "text": [
       "--sidenavigation-footer-active-text",
       "--sidenavigation-footer-default-text",
       "--sidenavigation-footer-hover-text",
       "--sidenavigation-item-active-text",
       "--sidenavigation-item-default-text",
-      "--sidenavigation-item-hover-text"
-    ],
-    "title-border": [
-      "--sidenavigation-title-active-border",
-      "--sidenavigation-title-default-border",
-      "--sidenavigation-title-hover-border"
-    ],
-    "title-border-width": [
-      "--sidenavigation-title-active-border-width",
-      "--sidenavigation-title-default-border-width",
-      "--sidenavigation-title-hover-border-width"
+      "--sidenavigation-item-hover-text",
+      "--sidenavigation-section-active-text",
+      "--sidenavigation-section-default-text",
+      "--sidenavigation-section-hover-text"
     ],
     "title-accent": [
       "--sidenavigation-title-active-accent",
@@ -1680,6 +1715,16 @@
       "--sidenavigation-title-active-accent-width",
       "--sidenavigation-title-default-accent-width",
       "--sidenavigation-title-hover-accent-width"
+    ],
+    "title-border": [
+      "--sidenavigation-title-active-border",
+      "--sidenavigation-title-default-border",
+      "--sidenavigation-title-hover-border"
+    ],
+    "title-border-width": [
+      "--sidenavigation-title-active-border-width",
+      "--sidenavigation-title-default-border-width",
+      "--sidenavigation-title-hover-border-width"
     ],
     "title-label-font-family": [
       "--sidenavigation-title-active-label-font-family",

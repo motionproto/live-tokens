@@ -1,11 +1,32 @@
 # Changelog
 
-## Unreleased — Plugin acts like a dev tool, not a co-tenant
+## 0.10.0 — Plugin acts like a dev tool, not a co-tenant
 
 Live Tokens no longer squats on multiple top-level folders at a consumer's
 repo root. By default, all data (`themes/`, `manifests/`, `component-configs/`)
 lives under one folder: `src/live-tokens/data/`. A consumer's root looks like
-a normal project root again.
+a normal project root again. This release also adds three new system
+components (`Input`, `SideNavigation`, `ImageLightbox`), a full set of named
+easing tokens, and several component-config schema cleanups (auto-migrated).
+
+### Added
+
+- **`Input` component** (`src/system/components/Input.svelte` + editor).
+  Supports `text` / `number` / `search` / `password` types, with `label`,
+  `hint`, `error`, password reveal, search-clear, and a `forceFocus` preview
+  hook for the editor.
+- **`SideNavigation` component** (`src/system/components/SideNavigation.svelte`
+  + editor). Tokenised side-nav with collapsible groups, item icons, and
+  active/hover states.
+- **`ImageLightbox` component** (`src/system/components/ImageLightbox.svelte`
+  + editor). Click-to-zoom image with backdrop, escape-to-close, and
+  tokenised overlay/chrome.
+- **Named easing tokens.** 28 curves added to `tokens.css` covering
+  easings.net (`--ease-in-sine` through `--ease-in-out-back`, plus
+  `linear()`-based `--ease-{in,out,in-out}-{elastic,bounce}` and
+  `--ease-linear`).
+- **`UIEasingSelector`** editor control for picking from the named easing
+  tokens.
 
 ### Changed (breaking for consumers passing no data-folder options)
 
@@ -33,6 +54,41 @@ a normal project root again.
 - **Unknown-key warning** on `live-tokens.config.json`. The reader now logs
   one warning per unrecognised key so `themesDr` doesn't silently degrade to
   defaults. `$schema` is ignored.
+
+### Changed (breaking for saved component configs; auto-migrated on load)
+
+Five component schemas were tightened. Migrations ship in the same release
+and run automatically when a stored config is first read, so consumers don't
+need to edit JSON by hand. Any per-state customisations on the dropped axes
+are discarded; the default-state value remains authoritative.
+
+- **Button.** `StandardButtonsEditor` renamed to `ButtonEditor`. Per-state
+  shape tokens (`padding`, `radius`, `border-width`) dropped for `hover` and
+  `disabled` across all variants. They were always linked to the default
+  state at runtime, so the per-state rows in the editor were dead UI.
+  Migration: `2026-05-24-promote-state-shared-tokens`.
+- **ProgressBar.** Collapsed from a per-variant token namespace
+  (`primary` / `success` / `warning` / `danger` / `info`) to a single flat
+  token set. Fill color is now a runtime `fill` prop on the consumer side,
+  not a variant axis. The `primary` namespace's values become the canonical
+  defaults; non-primary customisations are dropped.
+  Migration: `2026-05-24-progressbar-collapse-variants`.
+- **SegmentedControl.** `--segmentedcontrol-divider-height` retired in
+  favour of `--segmentedcontrol-divider-inset` (margin-block on a stretched
+  divider, so `Full` = 0 inset = bar-height). Value semantic flipped, so
+  saved customisations are dropped rather than copied. Per-state icon-size
+  tokens for `selected` / `option-hover` / `disabled` also dropped (always
+  linked at runtime).
+  Migrations: `2026-05-24-segmentedcontrol-divider-inset`,
+  `2026-05-24-promote-state-shared-tokens`.
+- **CollapsibleSection.** Dropped the `active` header state and the matching
+  `&.active` CSS branch. No consumer was using it.
+  Migration: `2026-05-24-collapsiblesection-drop-active-state`.
+- **CornerBadge.** Per-variant token axis collapsed to a single flat set.
+  Variants only ever carried shape/spacing/type aliases (never colours),
+  and every variant's defaults were identical, so the strip was 10×
+  duplication with no semantic gain.
+  Migration: `2026-05-25-cornerbadge-flatten-variants`.
 
 ### Migration for existing consumers
 
