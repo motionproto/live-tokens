@@ -1529,15 +1529,15 @@
       "--sidenavigation-footer-default-icon-size",
       "--sidenavigation-footer-hover-icon-size"
     ],
-    "footer-indicator": [
-      "--sidenavigation-footer-active-indicator",
-      "--sidenavigation-footer-default-indicator",
-      "--sidenavigation-footer-hover-indicator"
+    "footer-accent": [
+      "--sidenavigation-footer-active-accent",
+      "--sidenavigation-footer-default-accent",
+      "--sidenavigation-footer-hover-accent"
     ],
-    "footer-indicator-width": [
-      "--sidenavigation-footer-active-indicator-width",
-      "--sidenavigation-footer-default-indicator-width",
-      "--sidenavigation-footer-hover-indicator-width"
+    "footer-accent-width": [
+      "--sidenavigation-footer-active-accent-width",
+      "--sidenavigation-footer-default-accent-width",
+      "--sidenavigation-footer-hover-accent-width"
     ],
     "footer-padding": [
       "--sidenavigation-footer-active-padding",
@@ -1569,15 +1569,15 @@
       "--sidenavigation-footer-default-text-line-height",
       "--sidenavigation-footer-hover-text-line-height"
     ],
-    "item-indicator": [
-      "--sidenavigation-item-active-indicator",
-      "--sidenavigation-item-default-indicator",
-      "--sidenavigation-item-hover-indicator"
+    "item-accent": [
+      "--sidenavigation-item-active-accent",
+      "--sidenavigation-item-default-accent",
+      "--sidenavigation-item-hover-accent"
     ],
-    "item-indicator-width": [
-      "--sidenavigation-item-active-indicator-width",
-      "--sidenavigation-item-default-indicator-width",
-      "--sidenavigation-item-hover-indicator-width"
+    "item-accent-width": [
+      "--sidenavigation-item-active-accent-width",
+      "--sidenavigation-item-default-accent-width",
+      "--sidenavigation-item-hover-accent-width"
     ],
     "item-padding": [
       "--sidenavigation-item-active-padding",
@@ -1638,6 +1638,21 @@
     "panel-surface": [
       "--sidenavigation-panel-surface"
     ],
+    "section-accent": [
+      "--sidenavigation-section-active-accent",
+      "--sidenavigation-section-default-accent",
+      "--sidenavigation-section-hover-accent"
+    ],
+    "section-accent-width": [
+      "--sidenavigation-section-active-accent-width",
+      "--sidenavigation-section-default-accent-width",
+      "--sidenavigation-section-hover-accent-width"
+    ],
+    "section-surface": [
+      "--sidenavigation-section-active-surface",
+      "--sidenavigation-section-default-surface",
+      "--sidenavigation-section-hover-surface"
+    ],
     "text": [
       "--sidenavigation-footer-active-text",
       "--sidenavigation-footer-default-text",
@@ -1656,15 +1671,15 @@
       "--sidenavigation-title-default-border-width",
       "--sidenavigation-title-hover-border-width"
     ],
-    "title-indicator": [
-      "--sidenavigation-title-active-indicator",
-      "--sidenavigation-title-default-indicator",
-      "--sidenavigation-title-hover-indicator"
+    "title-accent": [
+      "--sidenavigation-title-active-accent",
+      "--sidenavigation-title-default-accent",
+      "--sidenavigation-title-hover-accent"
     ],
-    "title-indicator-width": [
-      "--sidenavigation-title-active-indicator-width",
-      "--sidenavigation-title-default-indicator-width",
-      "--sidenavigation-title-hover-indicator-width"
+    "title-accent-width": [
+      "--sidenavigation-title-active-accent-width",
+      "--sidenavigation-title-default-accent-width",
+      "--sidenavigation-title-hover-accent-width"
     ],
     "title-label-font-family": [
       "--sidenavigation-title-active-label-font-family",

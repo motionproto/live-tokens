@@ -361,6 +361,28 @@
 :root:root {
   /* sidenavigation (my-side-navigation) */
   --sidenavigation-close-duration: var(--duration-200);
+  --sidenavigation-title-default-accent-width: var(--border-width-4);
+  --sidenavigation-title-hover-accent-width: var(--border-width-4);
+  --sidenavigation-title-active-accent-width: var(--border-width-4);
+  --sidenavigation-item-default-accent-width: var(--border-width-4);
+  --sidenavigation-item-default-text: var(--text-secondary);
+  --sidenavigation-item-default-text-font-size: var(--font-size-md);
+  --sidenavigation-item-default-text-font-weight: var(--font-weight-normal);
+  --sidenavigation-item-hover-accent-width: var(--border-width-4);
+  --sidenavigation-item-hover-text-font-size: var(--font-size-md);
+  --sidenavigation-item-hover-text-font-weight: var(--font-weight-normal);
+  --sidenavigation-item-active-accent-width: var(--border-width-4);
+  --sidenavigation-item-active-text-font-size: var(--font-size-md);
+  --sidenavigation-footer-default-icon: var(--text-secondary);
+  --sidenavigation-footer-default-icon-size: var(--icon-size-sm);
+  --sidenavigation-footer-default-text: var(--text-secondary);
+  --sidenavigation-footer-default-text-font-size: var(--font-size-md);
+  --sidenavigation-footer-default-text-font-weight: var(--font-weight-normal);
+  --sidenavigation-footer-hover-icon-size: var(--icon-size-sm);
+  --sidenavigation-footer-hover-text-font-size: var(--font-size-md);
+  --sidenavigation-footer-hover-text-font-weight: var(--font-weight-normal);
+  --sidenavigation-footer-active-icon-size: var(--icon-size-sm);
+  --sidenavigation-footer-active-text-font-size: var(--font-size-md);
   --sidenavigation-title-default-padding-top: var(--space-0);
   --sidenavigation-title-hover-padding-top: var(--space-0);
   --sidenavigation-title-active-padding-top: var(--space-0);

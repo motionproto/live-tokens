@@ -45,8 +45,8 @@
       { label: 'divider color', groupKey: 'title-border', variable: `--sidenavigation-title-${s}-border` },
       { label: 'divider width', canBeLinked: true, groupKey: 'title-border-width', variable: `--sidenavigation-title-${s}-border-width` },
       { label: 'padding', canBeLinked: true, groupKey: 'title-padding', variable: `--sidenavigation-title-${s}-padding` },
-      { label: 'indicator color', groupKey: 'title-indicator', variable: `--sidenavigation-title-${s}-indicator` },
-      { label: 'indicator width', canBeLinked: true, groupKey: 'title-indicator-width', variable: `--sidenavigation-title-${s}-indicator-width` },
+      { label: 'indicator color', groupKey: 'title-accent', variable: `--sidenavigation-title-${s}-accent` },
+      { label: 'indicator width', canBeLinked: true, groupKey: 'title-accent-width', variable: `--sidenavigation-title-${s}-accent-width` },
     ];
   }
   function titleStateTypeGroups(s: StatefulState): TypeGroupConfig[] {
@@ -79,13 +79,43 @@
     ];
   }
 
+  // --- Section ------------------------------------------------------------
+  // Section header is a CollapsibleSection wrapped in `.sn-section-header`;
+  // the wrapper paints surface + left indicator and forwards section text
+  // tokens into the inner CollapsibleSection (chromeless variant) by
+  // shadowing its slots, so section typography is editable per-state
+  // without modifying CollapsibleSection itself.
+  function sectionStateTokens(s: StatefulState): Token[] {
+    return [
+      { label: 'surface color', groupKey: 'section-surface', variable: `--sidenavigation-section-${s}-surface` },
+      { label: 'indicator color', groupKey: 'section-accent', variable: `--sidenavigation-section-${s}-accent` },
+      { label: 'indicator width', canBeLinked: true, groupKey: 'section-accent-width', variable: `--sidenavigation-section-${s}-accent-width` },
+    ];
+  }
+  function sectionStateTypeGroups(s: StatefulState): TypeGroupConfig[] {
+    return [{
+      legend: 'section text',
+      colorVariable: `--sidenavigation-section-${s}-text`,
+      familyVariable: `--sidenavigation-section-${s}-text-font-family`,
+      sizeVariable: `--sidenavigation-section-${s}-text-font-size`,
+      weightVariable: `--sidenavigation-section-${s}-text-font-weight`,
+      lineHeightVariable: `--sidenavigation-section-${s}-text-line-height`,
+    }];
+  }
+  const sectionTypographyTokens: Token[] = STATEFUL_STATES.flatMap((s) => [
+    { label: 'font family', canBeLinked: true, groupKey: 'section-text-font-family', variable: `--sidenavigation-section-${s}-text-font-family` },
+    { label: 'font size', canBeLinked: true, groupKey: 'section-text-font-size', variable: `--sidenavigation-section-${s}-text-font-size` },
+    { label: 'font weight', canBeLinked: true, groupKey: 'section-text-font-weight', variable: `--sidenavigation-section-${s}-text-font-weight` },
+    { label: 'line height', canBeLinked: true, groupKey: 'section-text-line-height', variable: `--sidenavigation-section-${s}-text-line-height` },
+  ]);
+
   // --- Item ---------------------------------------------------------------
   function itemStateTokens(s: StatefulState): Token[] {
     return [
       { label: 'surface color', groupKey: 'item-surface', variable: `--sidenavigation-item-${s}-surface` },
       { label: 'padding', canBeLinked: true, groupKey: 'item-padding', variable: `--sidenavigation-item-${s}-padding` },
-      { label: 'indicator color', groupKey: 'item-indicator', variable: `--sidenavigation-item-${s}-indicator` },
-      { label: 'indicator width', canBeLinked: true, groupKey: 'item-indicator-width', variable: `--sidenavigation-item-${s}-indicator-width` },
+      { label: 'indicator color', groupKey: 'item-accent', variable: `--sidenavigation-item-${s}-accent` },
+      { label: 'indicator width', canBeLinked: true, groupKey: 'item-accent-width', variable: `--sidenavigation-item-${s}-accent-width` },
     ];
   }
   function itemStateTypeGroups(s: StatefulState): TypeGroupConfig[] {
@@ -111,8 +141,8 @@
       { label: 'surface color', groupKey: 'footer-surface', variable: `--sidenavigation-footer-${s}-surface` },
       { label: 'padding', canBeLinked: true, groupKey: 'footer-padding', variable: `--sidenavigation-footer-${s}-padding` },
       { label: 'icon gap', groupKey: 'footer-gap', variable: `--sidenavigation-footer-${s}-gap` },
-      { label: 'indicator color', groupKey: 'footer-indicator', variable: `--sidenavigation-footer-${s}-indicator` },
-      { label: 'indicator width', canBeLinked: true, groupKey: 'footer-indicator-width', variable: `--sidenavigation-footer-${s}-indicator-width` },
+      { label: 'indicator color', groupKey: 'footer-accent', variable: `--sidenavigation-footer-${s}-accent` },
+      { label: 'indicator width', canBeLinked: true, groupKey: 'footer-accent-width', variable: `--sidenavigation-footer-${s}-accent-width` },
       { label: 'icon color', groupKey: 'footer-icon', variable: `--sidenavigation-footer-${s}-icon` },
       { label: 'icon size', canBeLinked: true, groupKey: 'footer-icon-size', variable: `--sidenavigation-footer-${s}-icon-size` },
     ];
@@ -139,12 +169,14 @@
     'Panel': panelTokens,
     ...Object.fromEntries(STATEFUL_STATES.map((s) => [`Title / ${STATE_LABELS[s]}`, titleStateTokens(s)])),
     ...Object.fromEntries(TOGGLE_STATES.map((s) => [`Toggle / ${STATE_LABELS[s]}`, toggleStateTokens(s)])),
+    ...Object.fromEntries(STATEFUL_STATES.map((s) => [`Section / ${STATE_LABELS[s]}`, sectionStateTokens(s)])),
     ...Object.fromEntries(STATEFUL_STATES.map((s) => [`Item / ${STATE_LABELS[s]}`, itemStateTokens(s)])),
     ...Object.fromEntries(STATEFUL_STATES.map((s) => [`Footer / ${STATE_LABELS[s]}`, footerStateTokens(s)])),
     'Animation': animationTokens,
   };
   const typeGroups: Record<string, TypeGroupConfig[]> = {
     ...Object.fromEntries(STATEFUL_STATES.map((s) => [`Title / ${STATE_LABELS[s]}`, titleStateTypeGroups(s)])),
+    ...Object.fromEntries(STATEFUL_STATES.map((s) => [`Section / ${STATE_LABELS[s]}`, sectionStateTypeGroups(s)])),
     ...Object.fromEntries(STATEFUL_STATES.map((s) => [`Item / ${STATE_LABELS[s]}`, itemStateTypeGroups(s)])),
     ...Object.fromEntries(STATEFUL_STATES.map((s) => [`Footer / ${STATE_LABELS[s]}`, footerStateTypeGroups(s)])),
   };
@@ -153,6 +185,7 @@
     ...Object.values(states).flat(),
     ...buildTypeGroupColorTokens(typeGroups),
     ...titleTypographyTokens,
+    ...sectionTypographyTokens,
     ...itemTypographyTokens,
     ...footerTypographyTokens,
   ];
@@ -163,7 +196,7 @@
     ...STATEFUL_STATES.flatMap((s): Array<[string, string]> => [
       [`--sidenavigation-title-${s}-border-width`, `title ${s}`],
       [`--sidenavigation-title-${s}-padding`, `title ${s}`],
-      [`--sidenavigation-title-${s}-indicator-width`, `title ${s}`],
+      [`--sidenavigation-title-${s}-accent-width`, `title ${s}`],
       [`--sidenavigation-title-${s}-label-font-family`, `title ${s}`],
       [`--sidenavigation-title-${s}-label-font-size`, `title ${s}`],
       [`--sidenavigation-title-${s}-label-font-weight`, `title ${s}`],
@@ -176,8 +209,15 @@
       [`--sidenavigation-toggle-${s}-icon-size`, `toggle ${s}`],
     ]),
     ...STATEFUL_STATES.flatMap((s): Array<[string, string]> => [
+      [`--sidenavigation-section-${s}-accent-width`, `section ${s}`],
+      [`--sidenavigation-section-${s}-text-font-family`, `section ${s}`],
+      [`--sidenavigation-section-${s}-text-font-size`, `section ${s}`],
+      [`--sidenavigation-section-${s}-text-font-weight`, `section ${s}`],
+      [`--sidenavigation-section-${s}-text-line-height`, `section ${s}`],
+    ]),
+    ...STATEFUL_STATES.flatMap((s): Array<[string, string]> => [
       [`--sidenavigation-item-${s}-padding`, `item ${s}`],
-      [`--sidenavigation-item-${s}-indicator-width`, `item ${s}`],
+      [`--sidenavigation-item-${s}-accent-width`, `item ${s}`],
       [`--sidenavigation-item-${s}-text-font-family`, `item ${s}`],
       [`--sidenavigation-item-${s}-text-font-size`, `item ${s}`],
       [`--sidenavigation-item-${s}-text-font-weight`, `item ${s}`],
@@ -185,7 +225,7 @@
     ]),
     ...STATEFUL_STATES.flatMap((s): Array<[string, string]> => [
       [`--sidenavigation-footer-${s}-padding`, `footer ${s}`],
-      [`--sidenavigation-footer-${s}-indicator-width`, `footer ${s}`],
+      [`--sidenavigation-footer-${s}-accent-width`, `footer ${s}`],
       [`--sidenavigation-footer-${s}-icon-size`, `footer ${s}`],
       [`--sidenavigation-footer-${s}-text-font-family`, `footer ${s}`],
       [`--sidenavigation-footer-${s}-text-font-size`, `footer ${s}`],
@@ -208,6 +248,7 @@
     {
       path: 'learn',
       title: 'Learn to Play',
+      hasIndexPage: true,
       items: [
         { path: 'learn/overview', title: 'Overview' },
         { path: 'learn/setup', title: 'Setup' },
@@ -217,6 +258,7 @@
     {
       path: 'rules',
       title: 'Rules Reference',
+      hasIndexPage: true,
       items: [
         { path: 'rules/combat', title: 'Combat' },
         { path: 'rules/movement', title: 'Movement' },
@@ -242,11 +284,11 @@
     const [part, sub] = activeState.includes(' / ') ? activeState.split(' / ') : [activeState, ''];
     const partKey = part.toLowerCase();
     const subKey = sub.toLowerCase();
-    let forceHoverPart: 'title' | 'toggle' | 'item' | 'footer' | null = null;
-    let forceActivePart: 'title' | 'item' | 'footer' | null = null;
-    if (subKey === 'hover' && (partKey === 'title' || partKey === 'toggle' || partKey === 'item' || partKey === 'footer')) {
+    let forceHoverPart: 'title' | 'toggle' | 'item' | 'footer' | 'section' | null = null;
+    let forceActivePart: 'title' | 'item' | 'footer' | 'section' | null = null;
+    if (subKey === 'hover' && (partKey === 'title' || partKey === 'toggle' || partKey === 'item' || partKey === 'footer' || partKey === 'section')) {
       forceHoverPart = partKey;
-    } else if (subKey === 'active' && (partKey === 'title' || partKey === 'item' || partKey === 'footer')) {
+    } else if (subKey === 'active' && (partKey === 'title' || partKey === 'item' || partKey === 'footer' || partKey === 'section')) {
       forceActivePart = partKey;
     }
     return { forceHoverPart, forceActivePart };

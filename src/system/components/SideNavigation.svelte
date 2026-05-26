@@ -35,9 +35,9 @@
     /** Builds the href for a section/item/footer path. Default returns `#${path}`. */
     hrefFor?: (path: string) => string;
     /** Force-hover one part for editor previews. */
-    forceHoverPart?: 'title' | 'toggle' | 'item' | 'footer' | null;
+    forceHoverPart?: 'title' | 'toggle' | 'item' | 'footer' | 'section' | null;
     /** Force-active one part for editor previews. */
-    forceActivePart?: 'title' | 'item' | 'footer' | null;
+    forceActivePart?: 'title' | 'item' | 'footer' | 'section' | null;
     class?: string;
     /** Toggle callback. Preferred over `on:toggle` from 0.5.0 onward. */
     ontoggle?: () => void;
@@ -106,6 +106,29 @@
   });
 
   let titleActive = $derived(forceActivePart === 'title' || currentPath === '');
+
+  // When the editor force-activates the "section" part, pick the first section
+  // that's a valid route (hasIndexPage) so the active styling has somewhere
+  // to land in the preview.
+  let activeSectionKey = $derived(() => {
+    if (forceActivePart !== 'section') return null;
+    const s = sections.find((sec) => sec.hasIndexPage) ?? sections[0];
+    return s?.path ?? null;
+  });
+  let hoverSectionKey = $derived(() => {
+    if (forceHoverPart !== 'section') return null;
+    const s = sections.find((sec) => sec.hasIndexPage) ?? sections[0];
+    return s?.path ?? null;
+  });
+
+  function isSectionActive(section: SideNavSection): boolean {
+    if (!section.hasIndexPage) return false;
+    if (activeSectionKey() === section.path) return true;
+    return currentPath === section.path;
+  }
+  function isSectionHover(section: SideNavSection): boolean {
+    return hoverSectionKey() === section.path;
+  }
 </script>
 
 <aside
@@ -141,13 +164,19 @@
     <div class="sn-menu">
       {#each sections as section (section.path)}
         <div class="sn-section">
-          <CollapsibleSection
-            variant="chromeless"
-            label={section.title}
-            href={sectionHref(section)}
-            expanded={expandedSections[section.path] || false}
-            ontoggle={() => toggleSection(section.path)}
-          />
+          <div
+            class="sn-section-header"
+            class:active={isSectionActive(section)}
+            class:force-hover={isSectionHover(section)}
+          >
+            <CollapsibleSection
+              variant="chromeless"
+              label={section.title}
+              href={sectionHref(section)}
+              expanded={expandedSections[section.path] || false}
+              ontoggle={() => toggleSection(section.path)}
+            />
+          </div>
 
           {#if expandedSections[section.path]}
             <div class="sn-items">
@@ -204,8 +233,8 @@
     --sidenavigation-title-default-border: var(--border-canvas-faint);
     --sidenavigation-title-default-border-width: var(--border-width-1);
     --sidenavigation-title-default-padding: var(--space-12);
-    --sidenavigation-title-default-indicator: var(--color-transparent);
-    --sidenavigation-title-default-indicator-width: var(--border-width-3);
+    --sidenavigation-title-default-accent: var(--color-transparent);
+    --sidenavigation-title-default-accent-width: var(--border-width-3);
     --sidenavigation-title-default-label: var(--text-primary);
     --sidenavigation-title-default-label-font-family: var(--font-display);
     --sidenavigation-title-default-label-font-size: var(--font-size-2xl);
@@ -217,8 +246,8 @@
     --sidenavigation-title-hover-border: var(--border-canvas-faint);
     --sidenavigation-title-hover-border-width: var(--border-width-1);
     --sidenavigation-title-hover-padding: var(--space-12);
-    --sidenavigation-title-hover-indicator: var(--color-transparent);
-    --sidenavigation-title-hover-indicator-width: var(--border-width-3);
+    --sidenavigation-title-hover-accent: var(--color-transparent);
+    --sidenavigation-title-hover-accent-width: var(--border-width-3);
     --sidenavigation-title-hover-label: var(--text-primary);
     --sidenavigation-title-hover-label-font-family: var(--font-display);
     --sidenavigation-title-hover-label-font-size: var(--font-size-2xl);
@@ -230,8 +259,8 @@
     --sidenavigation-title-active-border: var(--border-canvas-faint);
     --sidenavigation-title-active-border-width: var(--border-width-1);
     --sidenavigation-title-active-padding: var(--space-12);
-    --sidenavigation-title-active-indicator: var(--border-brand-medium);
-    --sidenavigation-title-active-indicator-width: var(--border-width-3);
+    --sidenavigation-title-active-accent: var(--border-brand-medium);
+    --sidenavigation-title-active-accent-width: var(--border-width-3);
     --sidenavigation-title-active-label: var(--text-primary);
     --sidenavigation-title-active-label-font-family: var(--font-display);
     --sidenavigation-title-active-label-font-size: var(--font-size-2xl);
@@ -256,11 +285,45 @@
     --sidenavigation-toggle-hover-icon: var(--text-brand);
     --sidenavigation-toggle-hover-icon-size: var(--icon-size-md);
 
+    /* Section header — default. The wrapper paints surface + indicator; the
+       text tokens below are forwarded into the inner CollapsibleSection
+       (chromeless variant) by shadowing its slots in `.sn-section-header`,
+       so section typography can be edited per-state without touching the
+       generic chromeless variant used elsewhere. */
+    --sidenavigation-section-default-surface: var(--color-transparent);
+    --sidenavigation-section-default-accent: var(--color-transparent);
+    --sidenavigation-section-default-accent-width: var(--border-width-3);
+    --sidenavigation-section-default-text: var(--text-primary);
+    --sidenavigation-section-default-text-font-family: var(--font-sans);
+    --sidenavigation-section-default-text-font-size: var(--font-size-md);
+    --sidenavigation-section-default-text-font-weight: var(--font-weight-normal);
+    --sidenavigation-section-default-text-line-height: var(--line-height-md);
+
+    /* Section header — hover */
+    --sidenavigation-section-hover-surface: var(--surface-canvas);
+    --sidenavigation-section-hover-accent: var(--color-transparent);
+    --sidenavigation-section-hover-accent-width: var(--border-width-3);
+    --sidenavigation-section-hover-text: var(--text-primary);
+    --sidenavigation-section-hover-text-font-family: var(--font-sans);
+    --sidenavigation-section-hover-text-font-size: var(--font-size-md);
+    --sidenavigation-section-hover-text-font-weight: var(--font-weight-normal);
+    --sidenavigation-section-hover-text-line-height: var(--line-height-md);
+
+    /* Section header — active (this section's page is the current route) */
+    --sidenavigation-section-active-surface: var(--surface-canvas-low);
+    --sidenavigation-section-active-accent: var(--border-brand-medium);
+    --sidenavigation-section-active-accent-width: var(--border-width-3);
+    --sidenavigation-section-active-text: var(--text-primary);
+    --sidenavigation-section-active-text-font-family: var(--font-sans);
+    --sidenavigation-section-active-text-font-size: var(--font-size-md);
+    --sidenavigation-section-active-text-font-weight: var(--font-weight-normal);
+    --sidenavigation-section-active-text-line-height: var(--line-height-md);
+
     /* Item — default */
     --sidenavigation-item-default-surface: var(--color-transparent);
     --sidenavigation-item-default-padding: var(--space-6);
-    --sidenavigation-item-default-indicator: var(--color-transparent);
-    --sidenavigation-item-default-indicator-width: var(--border-width-3);
+    --sidenavigation-item-default-accent: var(--color-transparent);
+    --sidenavigation-item-default-accent-width: var(--border-width-3);
     --sidenavigation-item-default-text: var(--text-tertiary);
     --sidenavigation-item-default-text-font-family: var(--font-sans);
     --sidenavigation-item-default-text-font-size: var(--font-size-sm);
@@ -270,8 +333,8 @@
     /* Item — hover */
     --sidenavigation-item-hover-surface: var(--surface-canvas);
     --sidenavigation-item-hover-padding: var(--space-6);
-    --sidenavigation-item-hover-indicator: var(--color-transparent);
-    --sidenavigation-item-hover-indicator-width: var(--border-width-3);
+    --sidenavigation-item-hover-accent: var(--color-transparent);
+    --sidenavigation-item-hover-accent-width: var(--border-width-3);
     --sidenavigation-item-hover-text: var(--text-secondary);
     --sidenavigation-item-hover-text-font-family: var(--font-sans);
     --sidenavigation-item-hover-text-font-size: var(--font-size-sm);
@@ -281,8 +344,8 @@
     /* Item — active */
     --sidenavigation-item-active-surface: var(--surface-canvas-low);
     --sidenavigation-item-active-padding: var(--space-6);
-    --sidenavigation-item-active-indicator: var(--border-brand-medium);
-    --sidenavigation-item-active-indicator-width: var(--border-width-3);
+    --sidenavigation-item-active-accent: var(--border-brand-medium);
+    --sidenavigation-item-active-accent-width: var(--border-width-3);
     --sidenavigation-item-active-text: var(--text-primary);
     --sidenavigation-item-active-text-font-family: var(--font-sans);
     --sidenavigation-item-active-text-font-size: var(--font-size-sm);
@@ -293,8 +356,8 @@
     --sidenavigation-footer-default-surface: var(--color-transparent);
     --sidenavigation-footer-default-padding: var(--space-8);
     --sidenavigation-footer-default-gap: var(--space-8);
-    --sidenavigation-footer-default-indicator: var(--color-transparent);
-    --sidenavigation-footer-default-indicator-width: var(--border-width-3);
+    --sidenavigation-footer-default-accent: var(--color-transparent);
+    --sidenavigation-footer-default-accent-width: var(--border-width-3);
     --sidenavigation-footer-default-icon: var(--text-muted);
     --sidenavigation-footer-default-icon-size: var(--icon-size-xs);
     --sidenavigation-footer-default-text: var(--text-tertiary);
@@ -307,8 +370,8 @@
     --sidenavigation-footer-hover-surface: var(--surface-canvas);
     --sidenavigation-footer-hover-padding: var(--space-8);
     --sidenavigation-footer-hover-gap: var(--space-8);
-    --sidenavigation-footer-hover-indicator: var(--color-transparent);
-    --sidenavigation-footer-hover-indicator-width: var(--border-width-3);
+    --sidenavigation-footer-hover-accent: var(--color-transparent);
+    --sidenavigation-footer-hover-accent-width: var(--border-width-3);
     --sidenavigation-footer-hover-icon: var(--text-secondary);
     --sidenavigation-footer-hover-icon-size: var(--icon-size-xs);
     --sidenavigation-footer-hover-text: var(--text-secondary);
@@ -321,8 +384,8 @@
     --sidenavigation-footer-active-surface: var(--surface-canvas-low);
     --sidenavigation-footer-active-padding: var(--space-8);
     --sidenavigation-footer-active-gap: var(--space-8);
-    --sidenavigation-footer-active-indicator: var(--border-brand-medium);
-    --sidenavigation-footer-active-indicator-width: var(--border-width-3);
+    --sidenavigation-footer-active-accent: var(--border-brand-medium);
+    --sidenavigation-footer-active-accent-width: var(--border-width-3);
     --sidenavigation-footer-active-icon: var(--text-primary);
     --sidenavigation-footer-active-icon-size: var(--icon-size-xs);
     --sidenavigation-footer-active-text: var(--text-primary);
@@ -365,8 +428,8 @@
     --_border: var(--sidenavigation-title-default-border);
     --_border-width: var(--sidenavigation-title-default-border-width);
     --_padding: var(--sidenavigation-title-default-padding);
-    --_indicator: var(--sidenavigation-title-default-indicator);
-    --_indicator-width: var(--sidenavigation-title-default-indicator-width);
+    --_indicator: var(--sidenavigation-title-default-accent);
+    --_indicator-width: var(--sidenavigation-title-default-accent-width);
     --_label: var(--sidenavigation-title-default-label);
     --_label-family: var(--sidenavigation-title-default-label-font-family);
     --_label-size: var(--sidenavigation-title-default-label-font-size);
@@ -401,8 +464,8 @@
     --_border: var(--sidenavigation-title-hover-border);
     --_border-width: var(--sidenavigation-title-hover-border-width);
     --_padding: var(--sidenavigation-title-hover-padding);
-    --_indicator: var(--sidenavigation-title-hover-indicator);
-    --_indicator-width: var(--sidenavigation-title-hover-indicator-width);
+    --_indicator: var(--sidenavigation-title-hover-accent);
+    --_indicator-width: var(--sidenavigation-title-hover-accent-width);
     --_label: var(--sidenavigation-title-hover-label);
     --_label-family: var(--sidenavigation-title-hover-label-font-family);
     --_label-size: var(--sidenavigation-title-hover-label-font-size);
@@ -415,8 +478,8 @@
     --_border: var(--sidenavigation-title-active-border);
     --_border-width: var(--sidenavigation-title-active-border-width);
     --_padding: var(--sidenavigation-title-active-padding);
-    --_indicator: var(--sidenavigation-title-active-indicator);
-    --_indicator-width: var(--sidenavigation-title-active-indicator-width);
+    --_indicator: var(--sidenavigation-title-active-accent);
+    --_indicator-width: var(--sidenavigation-title-active-accent-width);
     --_label: var(--sidenavigation-title-active-label);
     --_label-family: var(--sidenavigation-title-active-label-font-family);
     --_label-size: var(--sidenavigation-title-active-label-font-size);
@@ -536,6 +599,58 @@
     margin-top: var(--sidenavigation-panel-section-gap);
   }
 
+  /* Section header wrapper. Paints background + left indicator around the
+     CollapsibleSection so a section that's also a route can show an active
+     state matching the panel's item/footer treatment. Section text tokens
+     are forwarded into the inner CollapsibleSection by shadowing its
+     chromeless slots — section typography can then be edited per-state
+     without touching the generic chromeless variant. */
+  .sn-section-header {
+    --_surface: var(--sidenavigation-section-default-surface);
+    --_indicator: var(--sidenavigation-section-default-accent);
+    --_indicator-width: var(--sidenavigation-section-default-accent-width);
+
+    --collapsiblesection-chromeless-default-label: var(--sidenavigation-section-default-text);
+    --collapsiblesection-chromeless-default-label-font-family: var(--sidenavigation-section-default-text-font-family);
+    --collapsiblesection-chromeless-default-label-font-size: var(--sidenavigation-section-default-text-font-size);
+    --collapsiblesection-chromeless-default-label-font-weight: var(--sidenavigation-section-default-text-font-weight);
+    --collapsiblesection-chromeless-default-label-line-height: var(--sidenavigation-section-default-text-line-height);
+    --collapsiblesection-chromeless-hover-label: var(--sidenavigation-section-hover-text);
+    --collapsiblesection-chromeless-hover-label-font-family: var(--sidenavigation-section-hover-text-font-family);
+    --collapsiblesection-chromeless-hover-label-font-size: var(--sidenavigation-section-hover-text-font-size);
+    --collapsiblesection-chromeless-hover-label-font-weight: var(--sidenavigation-section-hover-text-font-weight);
+    --collapsiblesection-chromeless-hover-label-line-height: var(--sidenavigation-section-hover-text-line-height);
+
+    background: var(--_surface);
+    border-left: var(--_indicator-width) solid var(--_indicator);
+    transition: background var(--duration-150), border-color var(--duration-150);
+  }
+  .sn-section-header:hover:not(.active),
+  .sn-section-header.force-hover:not(.active) {
+    --_surface: var(--sidenavigation-section-hover-surface);
+    --_indicator: var(--sidenavigation-section-hover-accent);
+    --_indicator-width: var(--sidenavigation-section-hover-accent-width);
+  }
+  .sn-section-header.active {
+    --_surface: var(--sidenavigation-section-active-surface);
+    --_indicator: var(--sidenavigation-section-active-accent);
+    --_indicator-width: var(--sidenavigation-section-active-accent-width);
+
+    /* Inner CollapsibleSection has no "active" state — shadow both the
+       default-slot and hover-slot with the active text values so the section
+       header keeps painting active typography whether or not it's hovered. */
+    --collapsiblesection-chromeless-default-label: var(--sidenavigation-section-active-text);
+    --collapsiblesection-chromeless-default-label-font-family: var(--sidenavigation-section-active-text-font-family);
+    --collapsiblesection-chromeless-default-label-font-size: var(--sidenavigation-section-active-text-font-size);
+    --collapsiblesection-chromeless-default-label-font-weight: var(--sidenavigation-section-active-text-font-weight);
+    --collapsiblesection-chromeless-default-label-line-height: var(--sidenavigation-section-active-text-line-height);
+    --collapsiblesection-chromeless-hover-label: var(--sidenavigation-section-active-text);
+    --collapsiblesection-chromeless-hover-label-font-family: var(--sidenavigation-section-active-text-font-family);
+    --collapsiblesection-chromeless-hover-label-font-size: var(--sidenavigation-section-active-text-font-size);
+    --collapsiblesection-chromeless-hover-label-font-weight: var(--sidenavigation-section-active-text-font-weight);
+    --collapsiblesection-chromeless-hover-label-line-height: var(--sidenavigation-section-active-text-line-height);
+  }
+
   .sn-items {
     display: flex;
     flex-direction: column;
@@ -545,8 +660,8 @@
   .sn-item {
     --_surface: var(--sidenavigation-item-default-surface);
     --_padding: var(--sidenavigation-item-default-padding);
-    --_indicator: var(--sidenavigation-item-default-indicator);
-    --_indicator-width: var(--sidenavigation-item-default-indicator-width);
+    --_indicator: var(--sidenavigation-item-default-accent);
+    --_indicator-width: var(--sidenavigation-item-default-accent-width);
     --_text: var(--sidenavigation-item-default-text);
     --_text-family: var(--sidenavigation-item-default-text-font-family);
     --_text-size: var(--sidenavigation-item-default-text-font-size);
@@ -571,8 +686,8 @@
   .sn-item.force-hover:not(.active) {
     --_surface: var(--sidenavigation-item-hover-surface);
     --_padding: var(--sidenavigation-item-hover-padding);
-    --_indicator: var(--sidenavigation-item-hover-indicator);
-    --_indicator-width: var(--sidenavigation-item-hover-indicator-width);
+    --_indicator: var(--sidenavigation-item-hover-accent);
+    --_indicator-width: var(--sidenavigation-item-hover-accent-width);
     --_text: var(--sidenavigation-item-hover-text);
     --_text-family: var(--sidenavigation-item-hover-text-font-family);
     --_text-size: var(--sidenavigation-item-hover-text-font-size);
@@ -583,8 +698,8 @@
   .sn-item.active {
     --_surface: var(--sidenavigation-item-active-surface);
     --_padding: var(--sidenavigation-item-active-padding);
-    --_indicator: var(--sidenavigation-item-active-indicator);
-    --_indicator-width: var(--sidenavigation-item-active-indicator-width);
+    --_indicator: var(--sidenavigation-item-active-accent);
+    --_indicator-width: var(--sidenavigation-item-active-accent-width);
     --_text: var(--sidenavigation-item-active-text);
     --_text-family: var(--sidenavigation-item-active-text-font-family);
     --_text-size: var(--sidenavigation-item-active-text-font-size);
@@ -596,8 +711,8 @@
     --_surface: var(--sidenavigation-footer-default-surface);
     --_padding: var(--sidenavigation-footer-default-padding);
     --_gap: var(--sidenavigation-footer-default-gap);
-    --_indicator: var(--sidenavigation-footer-default-indicator);
-    --_indicator-width: var(--sidenavigation-footer-default-indicator-width);
+    --_indicator: var(--sidenavigation-footer-default-accent);
+    --_indicator-width: var(--sidenavigation-footer-default-accent-width);
     --_icon: var(--sidenavigation-footer-default-icon);
     --_icon-size: var(--sidenavigation-footer-default-icon-size);
     --_text: var(--sidenavigation-footer-default-text);
@@ -633,8 +748,8 @@
     --_surface: var(--sidenavigation-footer-hover-surface);
     --_padding: var(--sidenavigation-footer-hover-padding);
     --_gap: var(--sidenavigation-footer-hover-gap);
-    --_indicator: var(--sidenavigation-footer-hover-indicator);
-    --_indicator-width: var(--sidenavigation-footer-hover-indicator-width);
+    --_indicator: var(--sidenavigation-footer-hover-accent);
+    --_indicator-width: var(--sidenavigation-footer-hover-accent-width);
     --_icon: var(--sidenavigation-footer-hover-icon);
     --_icon-size: var(--sidenavigation-footer-hover-icon-size);
     --_text: var(--sidenavigation-footer-hover-text);
@@ -649,8 +764,8 @@
     --_surface: var(--sidenavigation-footer-active-surface);
     --_padding: var(--sidenavigation-footer-active-padding);
     --_gap: var(--sidenavigation-footer-active-gap);
-    --_indicator: var(--sidenavigation-footer-active-indicator);
-    --_indicator-width: var(--sidenavigation-footer-active-indicator-width);
+    --_indicator: var(--sidenavigation-footer-active-accent);
+    --_indicator-width: var(--sidenavigation-footer-active-accent-width);
     --_icon: var(--sidenavigation-footer-active-icon);
     --_icon-size: var(--sidenavigation-footer-active-icon-size);
     --_text: var(--sidenavigation-footer-active-text);
