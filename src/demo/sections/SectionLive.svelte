@@ -135,17 +135,17 @@
   </div>
 
   <div class="tones-grid">
-    <Callout variant="info" label="In dev.">
-      The editor overlay runs in development only. Run <code>npm run dev</code> and look top-right.
+    <Callout variant="info" label="Development">
+      Edit tokens and components directly in the browser. No rebuild step, no context switch.
     </Callout>
-    <Callout variant="info" label="In prod.">
-      Production builds are pure CSS. Zero runtime weight from the editor reaches the bundle.
+    <Callout variant="info" label="Production">
+      Ship pure CSS to your users. The editor stays on the development side.
     </Callout>
-    <Callout variant="info" label="One canvas.">
-      All routes share one <code>:root</code>. Variable writes cascade everywhere instantly.
+    <Callout variant="info" label="Foundational Tokens">
+      One vocabulary for colors, spacing, and type. Update a value and the whole system follows.
     </Callout>
-    <Callout variant="info" label="No magic.">
-      Token names describe values, not components. <code>--color-brand-500</code>, never <code>--button-bg</code>.
+    <Callout variant="info" label="Semantic Properties">
+      Restyle any part of a component without touching the rest.
     </Callout>
   </div>
 </Section>
@@ -223,9 +223,14 @@
   }
 
   .tones-grid {
+    margin-top: var(--space-16);
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-16);
+    gap: var(--space-24);
+  }
+
+  .tones-grid :global(.callout) {
+    margin: 0;
   }
 
   @media (max-width: 960px) {

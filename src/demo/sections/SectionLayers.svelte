@@ -6,33 +6,23 @@
 </script>
 
 <Section
-  title="Two layers, no surprises."
-  description="A base of raw tokens. An upper layer of components that consume them through semantic names."
+  title="Two composable layers."
+  description="Tokens are the base layer. Components build with them."
   gap="var(--space-8)"
 >
   <div class="arch">
-    <Card class="arch-card arch-base" icon="fas fa-layer-group" title="Base layer · tokens.css">
+    <Card class="arch-card arch-base" icon="fas fa-layer-group" title="Tokens make the foundation">
       <p>
-        Raw CSS variables for every primitive. Colour, type, spacing, radii,
-        shadows, motion. Names describe values, not the components that use them.
+        Raw CSS variables for every primitive, grouped by family and function.
+        Names describe identity. Edit a value and every consumer updates.
       </p>
-      <pre class="code-block"><code>{`--color-brand-500: #eb0ad4;
---space-16:        1rem;
---radius-md:       0.25rem;
---duration-150:    150ms;`}</code></pre>
     </Card>
 
-    <Card class="arch-card arch-component" icon="fas fa-shapes" title="Upper layer · components">
+    <Card class="arch-card arch-component" icon="fas fa-shapes" title="Components build upon it">
       <p>
-        Each component declares its own semantic tokens and binds them to base
-        tokens. Edit a base token, and every consumer updates instantly.
+        Each component declares its own semantic properties, linked to base tokens.
+        Names describe purpose. Swap the assigned token and the component updates.
       </p>
-
-      <pre class="code-block"><code>{`--button-primary-surface:
-  var(--surface-brand-high);
-
---surface-brand-high:
-  var(--color-brand-700);`}</code></pre>
     </Card>
 
     <div class="arch-table">
@@ -132,25 +122,6 @@
     background: var(--overlay-low);
     padding: 2px 6px;
     border-radius: var(--radius-sm);
-  }
-
-  .arch :global(.code-block) {
-    margin: var(--space-16) 0 0;
-    padding: var(--space-12) var(--space-16);
-    background: var(--surface-neutral-lowest);
-    border: var(--border-width-1) solid var(--border-neutral-faint);
-    border-radius: var(--radius-md);
-    overflow-x: auto;
-  }
-
-  .arch :global(.code-block code) {
-    font-family: var(--font-mono);
-    font-size: var(--font-size-sm);
-    color: var(--text-accent);
-    background: none;
-    padding: 0;
-    line-height: 1.7;
-    white-space: pre;
   }
 
   @media (max-width: 960px) {

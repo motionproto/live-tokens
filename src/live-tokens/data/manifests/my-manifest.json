@@ -1,13 +1,13 @@
 {
   "name": "my-manifest",
   "createdAt": "2026-05-25T21:49:55.471Z",
-  "updatedAt": "2026-05-26T07:24:12.759Z",
+  "updatedAt": "2026-05-26T14:29:17.085Z",
   "theme": "default",
   "componentConfigs": {
     "badge": "default",
     "button": "default",
     "callout": "default",
-    "card": "default",
+    "card": "my-card",
     "collapsiblesection": "default",
     "cornerbadge": "default",
     "dialog": "default",

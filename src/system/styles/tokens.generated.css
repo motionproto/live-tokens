@@ -355,6 +355,23 @@
 
 /* Component aliases (production configs differing from defaults) */
 :root:root {
+  /* card (my-card) */
+  --card-default-surface: color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent);
+  --card-default-header-surface: color-mix(in srgb, var(--surface-neutral-lowest) 80%, transparent);
+  --card-default-title-font-size: var(--font-size-2xl);
+  --card-default-title-font-weight: var(--font-weight-medium);
+  --card-default-title-line-height: var(--line-height-md);
+  --card-default-icon-size: var(--icon-size-2xl);
+  --card-default-body-font-size: var(--font-size-xl);
+  --card-default-header-padding-top: var(--space-12);
+  --card-default-header-padding-right: var(--space-20);
+  --card-default-header-padding-bottom: var(--space-12);
+  --card-default-header-padding-left: var(--space-20);
+  --card-default-body-padding-top: var(--space-16);
+  --card-default-body-padding-right: var(--space-20);
+  --card-default-body-padding-bottom: var(--space-16);
+  --card-default-body-padding-left: var(--space-20);
+
   /* imagelightbox (my-image-lightbox) */
   --imagelightbox-tile-border: transparent;
   --imagelightbox-overlay-surface: color-mix(in srgb, var(--color-neutral-950) 76%, transparent);
