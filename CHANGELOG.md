@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.13.2 — Fix font 404s for consumers
+
+The bundled `fonts.css` and the default `fontSources[].cssText` both used
+absolute URLs like `/src/system/styles/fonts/Manrope/Manrope-latin.woff2`,
+resolved via Vite `?url` imports against the live-tokens repo layout. Those
+paths only existed in this repo's own dev server; for any consumer importing
+`@motion-proto/live-tokens/app/fonts.css`, the browser asked for them at the
+consumer's server root and got back the dev HTML fallback (visible as `OTS
+parsing error: invalid sfntVersion` in the console).
+
+### Fixed
+
+- **Bundled `fonts.css` and default font sources now use package-relative
+  paths** (`./fonts/Fraunces/...`, `./fonts/Manrope/...`). The css file and
+  the `fonts/` directory ship colocated under `src/system/styles/` in the
+  package, so the relative url() resolves correctly whether served from
+  `node_modules` in a consumer, from this repo's dev server, or as a hashed
+  asset in a production build.
+- **`migrateThemeFonts` auto-rewrites legacy absolute font paths.** Themes
+  saved before this change (with `fontSources[].cssText` containing
+  `/src/system/styles/fonts/...` or `/src/live-tokens/system/styles/fonts/...`)
+  are normalised to `./fonts/...` on next theme load and re-saved by the
+  editor. No consumer action required.
+
 ## 0.13.1 — Fix /components route pairing flicker
 
 The pairing rule introduced in 0.12.1 fired on every `editorView` change, not

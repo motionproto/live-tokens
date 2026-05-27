@@ -1,7 +1,15 @@
 import type { FontFamily, FontSource, FontStack, Theme } from '../themes/themeTypes';
-import frauncesRomanLatin from '../../../system/styles/fonts/Fraunces/Fraunces-roman-latin.woff2?url';
-import frauncesItalicLatin from '../../../system/styles/fonts/Fraunces/Fraunces-italic-latin.woff2?url';
-import manropeLatin from '../../../system/styles/fonts/Manrope/Manrope-latin.woff2?url';
+
+// Stable relative paths. fonts.css and fonts/ ship colocated under
+// src/system/styles/ in this package, so `./fonts/...` resolves correctly
+// whether the css is served from the repo's own dev server, from inside
+// node_modules in a consumer, or from a hashed asset in a production build.
+// (Previously these were Vite `?url` imports — those resolved to absolute
+// paths like `/src/system/styles/fonts/...` that worked inside live-tokens
+// but 404'd for any consumer importing the bundled fonts.css.)
+const FRAUNCES_ROMAN_LATIN = './fonts/Fraunces/Fraunces-roman-latin.woff2';
+const FRAUNCES_ITALIC_LATIN = './fonts/Fraunces/Fraunces-italic-latin.woff2';
+const MANROPE_LATIN = './fonts/Manrope/Manrope-latin.woff2';
 
 function makeId(prefix: string): string {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
@@ -43,7 +51,7 @@ export function defaultFontSources(): FontSource[] {
     {
       id: frauncesId,
       kind: 'font-face',
-      cssText: `@font-face {\n  font-family: "Fraunces";\n  src: url('${frauncesRomanLatin}') format('woff2');\n  font-weight: 100 900;\n  font-style: normal;\n  font-display: swap;\n}\n@font-face {\n  font-family: "Fraunces";\n  src: url('${frauncesItalicLatin}') format('woff2');\n  font-weight: 100 900;\n  font-style: italic;\n  font-display: swap;\n}`,
+      cssText: `@font-face {\n  font-family: "Fraunces";\n  src: url('${FRAUNCES_ROMAN_LATIN}') format('woff2');\n  font-weight: 100 900;\n  font-style: normal;\n  font-display: swap;\n}\n@font-face {\n  font-family: "Fraunces";\n  src: url('${FRAUNCES_ITALIC_LATIN}') format('woff2');\n  font-weight: 100 900;\n  font-style: italic;\n  font-display: swap;\n}`,
       label: 'Local',
       families: [
         fam(frauncesId, 'Fraunces', '"Fraunces"', [100, 200, 300, 400, 500, 600, 700, 800, 900]),
@@ -52,7 +60,7 @@ export function defaultFontSources(): FontSource[] {
     {
       id: manropeId,
       kind: 'font-face',
-      cssText: `@font-face {\n  font-family: "Manrope";\n  src: url('${manropeLatin}') format('woff2');\n  font-weight: 200 800;\n  font-style: normal;\n  font-display: swap;\n}`,
+      cssText: `@font-face {\n  font-family: "Manrope";\n  src: url('${MANROPE_LATIN}') format('woff2');\n  font-weight: 200 800;\n  font-style: normal;\n  font-display: swap;\n}`,
       label: 'Local',
       families: [
         fam(manropeId, 'Manrope', '"Manrope"', [200, 300, 400, 500, 600, 700, 800]),
@@ -116,11 +124,28 @@ export function defaultFontStacks(sources: FontSource[]): FontStack[] {
  * only when missing; safe to call on already-migrated themes. Also strips any
  * stale --font-* entries from cssVariables since those are now derived.
  */
+// Older themes (built before relative font paths) baked absolute Vite-resolved
+// URLs into fontSources[].cssText, e.g. `/src/system/styles/fonts/...` or
+// `/src/live-tokens/system/styles/fonts/...`. Those paths only resolve inside
+// the live-tokens repo or a consumer that vendored the source; in any package
+// consumer they 404. Normalise to the package-relative `./fonts/...` form on
+// theme load.
+const ABSOLUTE_FONT_PATH_PATTERN = /'\/src\/(?:live-tokens\/)?system\/styles\/fonts\//g;
+
 export function migrateThemeFonts(theme: Theme): { migrated: boolean } {
   let migrated = false;
   if (!theme.fontSources || theme.fontSources.length === 0) {
     theme.fontSources = defaultFontSources();
     migrated = true;
+  } else {
+    for (const src of theme.fontSources) {
+      if (!src.cssText) continue;
+      const rewritten = src.cssText.replace(ABSOLUTE_FONT_PATH_PATTERN, "'./fonts/");
+      if (rewritten !== src.cssText) {
+        src.cssText = rewritten;
+        migrated = true;
+      }
+    }
   }
   if (!theme.fontStacks || theme.fontStacks.length === 0) {
     theme.fontStacks = defaultFontStacks(theme.fontSources);
