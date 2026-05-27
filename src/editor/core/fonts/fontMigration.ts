@@ -1,15 +1,15 @@
 import type { FontFamily, FontSource, FontStack, Theme } from '../themes/themeTypes';
 
-// Stable relative paths. fonts.css and fonts/ ship colocated under
-// src/system/styles/ in this package, so `./fonts/...` resolves correctly
-// whether the css is served from the repo's own dev server, from inside
-// node_modules in a consumer, or from a hashed asset in a production build.
-// (Previously these were Vite `?url` imports — those resolved to absolute
-// paths like `/src/system/styles/fonts/...` that worked inside live-tokens
-// but 404'd for any consumer importing the bundled fonts.css.)
-const FRAUNCES_ROMAN_LATIN = './fonts/Fraunces/Fraunces-roman-latin.woff2';
-const FRAUNCES_ITALIC_LATIN = './fonts/Fraunces/Fraunces-italic-latin.woff2';
-const MANROPE_LATIN = './fonts/Manrope/Manrope-latin.woff2';
+// Google Fonts CDN URLs for the default font families. We used to ship local
+// woff2 files and emit @font-face blocks pointing at them, but Vite's url()
+// rewriting for @font-face refs from CSS bundled inside node_modules turned
+// out to be brittle in consumer setups (paths leaked through unrewritten and
+// resolved against the consumer's server root). Switching to Google Fonts
+// CDN imports sidesteps the rewriting entirely.
+const MANROPE_GFONTS_URL =
+  'https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap';
+const FRAUNCES_GFONTS_URL =
+  'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap';
 
 function makeId(prefix: string): string {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
@@ -30,13 +30,12 @@ function fam(sourceId: string, name: string, cssName?: string, weights?: number[
 }
 
 /**
- * Build the default fontSources that match the hand-written src/styles/fonts.css.
- * Used when a theme has no fontSources yet.
+ * Build the default fontSources. Used when a theme has no fontSources yet.
  */
 export function defaultFontSources(): FontSource[] {
   const typekitId = 'src_typekit_jes8oow';
-  const frauncesId = 'src_fraunces_local';
-  const manropeId = 'src_manrope_local';
+  const frauncesId = 'src_fraunces_gfonts';
+  const manropeId = 'src_manrope_gfonts';
 
   return [
     {
@@ -50,18 +49,18 @@ export function defaultFontSources(): FontSource[] {
     },
     {
       id: frauncesId,
-      kind: 'font-face',
-      cssText: `@font-face {\n  font-family: "Fraunces";\n  src: url('${FRAUNCES_ROMAN_LATIN}') format('woff2');\n  font-weight: 100 900;\n  font-style: normal;\n  font-display: swap;\n}\n@font-face {\n  font-family: "Fraunces";\n  src: url('${FRAUNCES_ITALIC_LATIN}') format('woff2');\n  font-weight: 100 900;\n  font-style: italic;\n  font-display: swap;\n}`,
-      label: 'Local',
+      kind: 'google',
+      url: FRAUNCES_GFONTS_URL,
+      label: 'Google Fonts',
       families: [
         fam(frauncesId, 'Fraunces', '"Fraunces"', [100, 200, 300, 400, 500, 600, 700, 800, 900]),
       ],
     },
     {
       id: manropeId,
-      kind: 'font-face',
-      cssText: `@font-face {\n  font-family: "Manrope";\n  src: url('${MANROPE_LATIN}') format('woff2');\n  font-weight: 200 800;\n  font-style: normal;\n  font-display: swap;\n}`,
-      label: 'Local',
+      kind: 'google',
+      url: MANROPE_GFONTS_URL,
+      label: 'Google Fonts',
       families: [
         fam(manropeId, 'Manrope', '"Manrope"', [200, 300, 400, 500, 600, 700, 800]),
       ],
@@ -119,19 +118,36 @@ export function defaultFontStacks(sources: FontSource[]): FontStack[] {
   ];
 }
 
+// Older themes have `kind: 'font-face'` sources with embedded cssText that
+// references local woff2 files. The url() resolution for those embedded refs
+// is fragile in consumers, so swap any font-face source whose cssText is for
+// Manrope or Fraunces over to the Google Fonts URL equivalent. Source ids
+// and family ids are preserved so downstream fontStacks keep working.
+function migrateLegacyLocalFonts(src: FontSource): boolean {
+  if (src.kind !== 'font-face' || !src.cssText) return false;
+  if (/font-family:\s*["']Manrope["']/.test(src.cssText)) {
+    (src as FontSource).kind = 'google';
+    src.url = MANROPE_GFONTS_URL;
+    src.label = 'Google Fonts';
+    delete src.cssText;
+    return true;
+  }
+  if (/font-family:\s*["']Fraunces["']/.test(src.cssText)) {
+    (src as FontSource).kind = 'google';
+    src.url = FRAUNCES_GFONTS_URL;
+    src.label = 'Google Fonts';
+    delete src.cssText;
+    return true;
+  }
+  return false;
+}
+
 /**
  * Ensure the loaded Theme has fontSources and fontStacks. Mutates in place
  * only when missing; safe to call on already-migrated themes. Also strips any
- * stale --font-* entries from cssVariables since those are now derived.
+ * stale --font-* entries from cssVariables since those are now derived, and
+ * migrates legacy local-font sources to Google Fonts URL sources.
  */
-// Older themes (built before relative font paths) baked absolute Vite-resolved
-// URLs into fontSources[].cssText, e.g. `/src/system/styles/fonts/...` or
-// `/src/live-tokens/system/styles/fonts/...`. Those paths only resolve inside
-// the live-tokens repo or a consumer that vendored the source; in any package
-// consumer they 404. Normalise to the package-relative `./fonts/...` form on
-// theme load.
-const ABSOLUTE_FONT_PATH_PATTERN = /'\/src\/(?:live-tokens\/)?system\/styles\/fonts\//g;
-
 export function migrateThemeFonts(theme: Theme): { migrated: boolean } {
   let migrated = false;
   if (!theme.fontSources || theme.fontSources.length === 0) {
@@ -139,12 +155,7 @@ export function migrateThemeFonts(theme: Theme): { migrated: boolean } {
     migrated = true;
   } else {
     for (const src of theme.fontSources) {
-      if (!src.cssText) continue;
-      const rewritten = src.cssText.replace(ABSOLUTE_FONT_PATH_PATTERN, "'./fonts/");
-      if (rewritten !== src.cssText) {
-        src.cssText = rewritten;
-        migrated = true;
-      }
+      if (migrateLegacyLocalFonts(src)) migrated = true;
     }
   }
   if (!theme.fontStacks || theme.fontStacks.length === 0) {

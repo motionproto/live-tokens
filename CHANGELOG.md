@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.14.0 — Multi-dir component scan, Google Fonts for defaults
+
+### Changed (breaking — automatic migration on theme load)
+
+- **Default font sources moved to Google Fonts.** Manrope and Fraunces were
+  shipped as local woff2 files with `@font-face` blocks pointing at them. The
+  url() resolution for those refs was fragile when consumed via the published
+  package (paths leaked through Vite's CSS pipeline unrewritten). Defaults now
+  use Google Fonts CDN URL imports (`@import url('https://fonts.googleapis.com/...')`),
+  which sidesteps the rewriting entirely. Local woff2 font files are no longer
+  published with the package; consumers who depended on them via direct path
+  references will need to vendor their own or switch to Google Fonts too.
+- **`migrateThemeFonts` auto-converts legacy local-font sources.** Any
+  `fontSources` entry with `kind: 'font-face'` whose cssText is a font-face
+  block for `Manrope` or `Fraunces` is rewritten to a Google Fonts URL source
+  on next theme load. Source ids and family ids are preserved so existing
+  fontStacks keep working.
+- **Plugin `componentsSrcDir` scan now auto-includes the package's first-party
+  components dir.** Previously the scan only walked the consumer-provided dir,
+  so the editor's "registered components vs disk scan" validator would warn on
+  every first-party component (Badge, Button, …) when a consumer pointed
+  `componentsSrcDir` at their own components folder. Both dirs are scanned
+  now; consumer entries shadow first-party ones on name collision. The option
+  remains a single string for consumer code.
+
 ## 0.13.3 — Diagnostic logging (temporary)
 
 Adds `console.log` traces inside `LiveEditorOverlay` for the route↔editorView

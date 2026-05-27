@@ -1,5 +1,4 @@
 /* Generated from the production theme by syncFontsToCss. Do not edit. */
-/* Both fonts.css and fonts/ are in dist/, so relative paths work at runtime. */
 
 /* Adobe Typekit — fira-code */
 @import url('https://use.typekit.net/jes8oow.css');
@@ -10,11 +9,8 @@
 /* Google Fonts — GFS Didot */
 @import url('https://fonts.googleapis.com/css2?family=GFS+Didot&display=swap');
 
-/* Local — Manrope */
-@font-face {
-  font-family: "Manrope";
-  src: url('./fonts/Manrope/Manrope-latin.woff2') format('woff2');
-  font-weight: 200 800;
-  font-style: normal;
-  font-display: swap;
-}
+/* Google Fonts — Fraunces */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap');
+
+/* Google Fonts — Manrope */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');

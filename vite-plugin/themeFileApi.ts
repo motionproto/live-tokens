@@ -72,9 +72,32 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // The client side reads the same value via the `__LIVE_TOKENS_API_BASE__`
   // define injected in `config()` below.
   const API_BASE = opts.apiBase ?? '/api/live-tokens';
-  const COMPONENTS_SRC_DIR = opts.componentsSrcDir
+  const consumerComponentsDir = opts.componentsSrcDir
     ? path.resolve(opts.componentsSrcDir)
     : path.resolve('src/system/components');
+
+  // First-party components ship in the package at <package>/src/system/components/.
+  // Both the source plugin (vite-plugin/themeFileApi.ts) and the built plugin
+  // (dist-plugin/index.js) live one directory above that, so the same `../src/system/components`
+  // relative path resolves correctly in either case — live-tokens own dev or
+  // any consumer that depends on the published package.
+  const packageComponentsDir = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    '..',
+    'src',
+    'system',
+    'components',
+  );
+
+  // Union of dirs to scan for component .svelte files. Consumer dir first so
+  // a consumer-authored component shadows a first-party one when names collide.
+  const COMPONENTS_SCAN_DIRS: string[] = [consumerComponentsDir];
+  if (
+    packageComponentsDir !== consumerComponentsDir &&
+    fs.existsSync(packageComponentsDir)
+  ) {
+    COMPONENTS_SCAN_DIRS.push(packageComponentsDir);
+  }
   const LEGACY_PRESETS_DIR = path.resolve('presets');
 
   // Themes resource — list/load/save/delete + active/production.
@@ -366,11 +389,18 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   function listComponentSourcePaths(): string[] {
-    if (!fs.existsSync(COMPONENTS_SRC_DIR)) return [];
-    return fs
-      .readdirSync(COMPONENTS_SRC_DIR)
-      .filter((f) => f.endsWith('.svelte'))
-      .map((f) => path.join(COMPONENTS_SRC_DIR, f));
+    const byName = new Map<string, string>();
+    // Earlier dirs (consumer) win over later (package) on name collision —
+    // see COMPONENTS_SCAN_DIRS ordering.
+    for (const dir of COMPONENTS_SCAN_DIRS) {
+      if (!fs.existsSync(dir)) continue;
+      for (const f of fs.readdirSync(dir)) {
+        if (!f.endsWith('.svelte')) continue;
+        const name = componentNameFromFile(f);
+        if (!byName.has(name)) byName.set(name, path.join(dir, f));
+      }
+    }
+    return Array.from(byName.values());
   }
 
   function listComponentNames(): string[] {
@@ -1457,7 +1487,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       // next fetch; a full reload is not required since runtime state owns
       // the override layer.
       const normalized = path.resolve(ctx.file);
-      if (!normalized.startsWith(COMPONENTS_SRC_DIR)) return;
+      if (!COMPONENTS_SCAN_DIRS.some((d) => normalized.startsWith(d))) return;
       if (!normalized.endsWith('.svelte')) return;
       const comp = componentNameFromFile(normalized);
       generateDefaultConfig(comp, normalized);
