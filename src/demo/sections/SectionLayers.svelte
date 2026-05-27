@@ -13,8 +13,6 @@
       <p>
         Raw CSS variables for every primitive, grouped by family and function.
         Names describe identity. Edit a value and every consumer updates.
-        Promotion flushes to <code>tokens.css</code>, so production ships as
-        pure CSS. No runtime cost, no theme provider.
       </p>
     </Card>
 

@@ -152,7 +152,7 @@
 
 <style>
   .stage-wrap {
-    --picker-overlap: 1.5rem;
+    --picker-overlap: 1.8rem;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -168,19 +168,19 @@
 
   .playground {
     --notch-width: 22.5rem;
-    --notch-height: calc(var(--picker-overlap) + 0.5rem);
+    --notch-height: calc(var(--picker-overlap));
+    --stage-gap: var(--space-32);
 
     display: grid;
-    grid-template-rows: 1fr auto;
-    row-gap: var(--space-16);
+    grid-template-rows: auto auto;
+    row-gap: var(--stage-gap);
     justify-items: center;
     box-sizing: border-box;
     width: 100%;
-    height: 12rem;
     background: var(--surface-neutral-lowest);
     border: var(--border-width-4) solid var(--border-neutral);
     border-radius: var(--radius-2xl);
-    padding: calc(var(--space-24) + var(--picker-overlap)) var(--space-32) var(--space-24);
+    padding: calc(var(--stage-gap) + var(--picker-overlap)) var(--space-32) var(--stage-gap);
     box-shadow:
       inset 0 var(--space-4) var(--space-20) hsla(237, 18%, 2%, 0.7),
       inset 0 -1px 0 hsla(0, 0%, 100%, 0.03);
@@ -201,7 +201,6 @@
     gap: var(--space-12);
     justify-content: center;
     align-items: center;
-    align-self: center;
   }
 
   .stage-cell {

@@ -13,6 +13,7 @@ A foundational design system for quickly styling and building Svelte + Vite micr
 - **Live editor overlay** — pins to the top-right of every dev page. Opens the editor in a side panel or floating window so you edit *on the page you're styling*, not in a separate tab. Includes a "Page Source" button that opens the current page's `.svelte` file in VS Code.
 - **Preset bundles** — capture a whole site configuration (active theme + every component's active config) as a single portable artifact. Drop a preset into a new project to restore the full styling in one step.
 - **Vite plugin** — hosts the `/api/live-tokens/{themes,component-configs,manifests}/*` routes that persist your edits to disk as you make them. The single namespace keeps live-tokens' routes from colliding with anything your app serves under `/api`.
+- **Claude Code skill suite** — four bundled skills so you can drive the package in plain English. `setup-project` wires a new project from scratch. `build-page` composes pages from the shipped components. `pick-component` decides between confusing pairs (TabBar vs SegmentedControl, Card vs CollapsibleSection). `add-component` authors a new editable component against the project's naming, state-model, and import rules. One command to install all four: `npx @motion-proto/live-tokens setup-claude`. See [Claude Code skills](#claude-code-skills) below.
 
 ## Quick install
 
@@ -236,16 +237,40 @@ registerComponent({
 
 The component appears in the `/components` page under a **CUSTOM** group in the nav rail. Token rows, linked-block sharing, per-component config persistence, and reset-to-default work identically to the built-in set. All imports must come from `@motion-proto/live-tokens` or `@motion-proto/live-tokens/component-editor`; never deep-import from `src/`.
 
-### Skill (Claude-assisted authoring)
+## Claude Code skills
 
-The package bundles a Claude Code skill at `node_modules/@motion-proto/live-tokens/.claude/skills/live-tokens-add-component/`. It teaches the token-naming conventions, state model, editor patterns, and the public-imports rule. To make it active in your project, copy or symlink it into your `.claude/skills/` directory:
+The package ships a suite of Claude Code skills that encode the project's conventions so Claude can drive the package in plain English. They cover the four jobs a consumer actually does: set up the project, build pages, pick the right component, and (for the long-tail case) author a new editable component. Each skill auto-triggers from natural-language requests — no slash commands.
+
+| Skill                          | Triggers on                                                          | What it knows                                                                                                                  |
+|--------------------------------|----------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| `live-tokens-setup-project`    | "install live-tokens in this project"                                | vite-plugin wiring, `main.ts` boot order, `App.svelte` overlay + route mount, dev data folder layout                            |
+| `live-tokens-build-page`       | "build a pricing page using live-tokens components"                  | shipped-component catalogue, column grid, `pageSources` registration, token-only styling rule                                   |
+| `live-tokens-pick-component`   | "what's the difference between TabBar and SegmentedControl?"         | decision trees for confusing pairs (selection family, container family, messaging family); when to author a new one instead    |
+| `live-tokens-add-component`    | "author a new Toggle component for my live-tokens project"           | runtime + editor + `registerComponent()` recipe, naming scheme, state model, public-imports rule, verification checklist        |
+
+### Install
 
 ```bash
-mkdir -p .claude/skills
-ln -s ../../node_modules/@motion-proto/live-tokens/.claude/skills/live-tokens-add-component .claude/skills/
+npx @motion-proto/live-tokens setup-claude
 ```
 
-Once linked, asking Claude to "add a Stat component to my live-tokens project" triggers the skill, which walks the runtime file, editor file, and registration step.
+Copies every bundled skill into `./.claude/skills/` in the current directory. Re-run after upgrading the package to pick up new or updated skills (pass `--force` to overwrite). macOS/Linux only.
+
+If you'd rather avoid the CLI, the equivalent one-liner:
+
+```bash
+mkdir -p .claude/skills && cp -R node_modules/@motion-proto/live-tokens/.claude/skills/. .claude/skills/
+```
+
+### Validate authored components
+
+The same CLI ships a static validator that turns the `add-component` skill's verification checklist into a runnable command:
+
+```bash
+npx @motion-proto/live-tokens check-component <id>
+```
+
+It enforces the file layout, `:global(:root)` block, token-suffix vocabulary, the state-before-property rule, the no-raw-colour-defaults rule, the public-imports rule, and the `registerComponent({ id })` call. Exit code 0 means the static contract is met. Useful both as a self-check after Claude generates a component and as a pre-commit guard on human-authored ones.
 
 ## How the editor ships changes to prod
 

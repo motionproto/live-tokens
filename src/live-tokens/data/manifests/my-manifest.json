@@ -1,7 +1,7 @@
 {
   "name": "my-manifest",
   "createdAt": "2026-05-25T21:49:55.471Z",
-  "updatedAt": "2026-05-26T19:18:46.296Z",
+  "updatedAt": "2026-05-27T02:07:37.745Z",
   "theme": "default",
   "componentConfigs": {
     "badge": "default",
@@ -12,7 +12,7 @@
     "cornerbadge": "default",
     "dialog": "default",
     "floatingtokentags": "default",
-    "image": "default",
+    "image": "my-image",
     "inlineeditactions": "default",
     "input": "default",
     "menuselect": "default",

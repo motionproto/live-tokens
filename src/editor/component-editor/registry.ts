@@ -22,6 +22,7 @@ import SegmentedControlEditor, { allTokens as segmentedControlTokens } from './S
 import SideNavigationEditor, { allTokens as sideNavigationTokens } from './SideNavigationEditor.svelte';
 import TableEditor, { allTokens as tableTokens } from './TableEditor.svelte';
 import TabBarEditor, { allTokens as tabBarTokens } from './TabBarEditor.svelte';
+import ToggleEditor, { allTokens as toggleTokens } from './ToggleEditor.svelte';
 import TooltipEditor, { allTokens as tooltipTokens } from './TooltipEditor.svelte';
 
 /** Internal narrowed union of the first-party component ids. Not exposed publicly. */
@@ -45,6 +46,7 @@ type BuiltInComponentId =
   | 'sidenavigation'
   | 'table'
   | 'tabbar'
+  | 'toggle'
   | 'tooltip'
   | 'progressbar';
 
@@ -249,6 +251,15 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/TabBar.svelte',
     editorComponent: TabBarEditor,
     schema: tabBarTokens,
+    origin: 'system',
+  },
+  toggle: {
+    id: 'toggle',
+    label: 'Toggle',
+    icon: 'fas fa-toggle-on',
+    sourceFile: 'src/system/components/Toggle.svelte',
+    editorComponent: ToggleEditor,
+    schema: toggleTokens,
     origin: 'system',
   },
   tooltip: {

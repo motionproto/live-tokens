@@ -1,17 +1,47 @@
 ---
 name: live-tokens-add-component
-description: Author a new component for a project that uses @motion-proto/live-tokens. Covers the runtime Svelte file, the editor Svelte file, registerComponent() wiring, public-imports rule, naming conventions, state model, and verification. Use when the user asks to add a component to a live-tokens project, make a Svelte component editable in the live-tokens editor, extend the live-tokens system with a new tokenized component, or create a tokenized [Thing] component.
+description: Author a brand-new editable component for a @motion-proto/live-tokens project when nothing in the shipped catalogue fits. Covers the runtime Svelte file with :global(:root) tokens, the editor Svelte file with allTokens + VariantGroup, the registerComponent() call, naming conventions, state model, public-imports rule, and verification. Use when the user asks to author / create / build / extend a new tokenized component, make an existing Svelte component editable in the live-tokens editor, add a new component to the catalogue, register a custom component with the editor, or build a [Thing] component that does not exist in the shipped set. Not for placing an existing shipped component (Button, Card, etc.) on a page (see live-tokens-build-page); read live-tokens-pick-component first to confirm nothing in the catalogue fits.
 ---
 
 # Authoring a component for a live-tokens project
 
-This skill teaches how to add a new editable component to a project that consumes `@motion-proto/live-tokens`. The end state: a runtime Svelte component, an editor Svelte component, one `registerComponent()` call, and a `/components` page entry under the **CUSTOM** group with full token editing, linked-block sharing, and persistence.
+This skill teaches you how to add a new editable component to a project that consumes `@motion-proto/live-tokens`. The end state: a runtime Svelte file, an editor Svelte file, one `registerComponent()` call, and a `/components` page entry under the **CUSTOM** group with full token editing, linked-block sharing, and persistence.
 
-The skill has two pillars. Read both before writing any code.
+## Worked examples ship inside the package
 
-## Pillar 1 — Token discipline
+For pattern reference, read any shipped component's source directly from the consumer's `node_modules`:
 
-Every editable property is a CSS custom property declared in `:global(:root)` inside the runtime component's `<style>` block. Defaults reference theme tokens; never raw values. The token surface is *meaningful*: one row per state, per part, per property. The dev plugin parses `:global(:root)` to seed `component-configs/<id>/default.json` on first save. Variables not declared in `:global(:root)` cannot be edited.
+- Runtime files: `node_modules/@motion-proto/live-tokens/src/system/components/<Name>.svelte`.
+  - Simplest reads (no state, no linked-block): `Card` (single variant with parts), `Badge` and `Callout` (multi-variant).
+  - Multi-state (hover, disabled, focus): `Button`, `Input`.
+  - Multi-part (overlay / header / body / footer): `Dialog`.
+  - Multi-variant with linked siblings (`canBeLinked` + `groupKey`): `SegmentedControl`, `TabBar`.
+- Editor files: `node_modules/@motion-proto/live-tokens/src/editor/component-editor/<Name>Editor.svelte`.
+
+**File-location note.** Shipped editors live in `src/editor/component-editor/` because they're library-internal. For *your* component, **co-locate** both files in `src/system/components/` per the recipe below. Read the shipped files for pattern, ignore their location.
+
+## 4-step recipe
+
+1. **Runtime file** — `src/system/components/MyWidget.svelte`. Declare every editable slot as a CSS custom property inside `:global(:root)`, defaulting to a theme token (never a raw value). The plugin parses `:global(:root)` to seed `component-configs/<id>/default.json`; variables declared anywhere else can't be edited.
+2. **Editor file** — `src/system/components/MyWidgetEditor.svelte`. In a `<script module>` block, declare `const component = 'mywidget'`, build the `Token[]` list for each variant × state, export `allTokens: Token[]` (flat union), and build a `linkableContexts: Map<string, string>` for cross-variant link rows. In the runtime `<script>` block, mount `ComponentEditorBase` with one `VariantGroup` per variant.
+3. **Register** — in `src/main.ts` before `mount(App, ...)`:
+   ```ts
+   import { registerComponent } from '@motion-proto/live-tokens';
+   import MyWidgetEditor, { allTokens as myWidgetTokens } from './system/components/MyWidgetEditor.svelte';
+
+   registerComponent({
+     id: 'mywidget',
+     label: 'My Widget',
+     icon: 'fas fa-magic',
+     sourceFile: 'src/system/components/MyWidget.svelte',
+     editorComponent: MyWidgetEditor,
+     schema: myWidgetTokens,
+   });
+   ```
+   The schema side-effect happens inside `registerComponent`, so you don't call `registerComponentSchema` separately.
+4. **Verify** — open `/components` and run the verification checklist at the bottom of this file.
+
+## Token discipline
 
 ### Naming scheme
 
@@ -19,80 +49,81 @@ Every editable property is a CSS custom property declared in `:global(:root)` in
 --<componentId>-<part>[-<state>][-<element>]-<property>
 ```
 
-- **`componentId`** — the literal id passed to `registerComponent()`. Lowercase, no dashes, no abbreviations. The component file id matches: `MyWidget.svelte` → id `mywidget`.
-- **`part`** — which sub-region of the component. Examples: `bar`, `option`, `selected`, `track`, `header`, `body`, `footer`, `overlay`, `value`, `label`.
-- **`state`** — optional interaction or component state. State comes **before** the property, never after. Examples: `hover`, `disabled`, `selected`, `focus`.
-- **`element`** — optional sub-element within a part. Examples: `dot`, `icon`, `label`, `text`.
-- **`property`** — always last. Either a theme role (`surface`, `border`, `text`, `icon`, `label`, `fill`) or a CSS property name (`radius`, `border-width`, `padding`, `font-family`, `font-weight`, `font-size`).
+- `componentId` — the literal id passed to `registerComponent()`. Lowercase, no dashes, no abbreviations (`segmentedcontrol` not `sc`). The file id matches: `MyWidget.svelte` → id `mywidget`.
+- `part` — sub-region (`bar`, `option`, `track`, `header`, `body`, `footer`, `overlay`, `value`, `label`).
+- `state` (optional) — interaction or component state (`hover`, `disabled`, `selected`, `focus`). **Always before the property.**
+- `element` (optional) — sub-element inside the part (`dot`, `icon`, `label`, `text`).
+- `property` — theme role or CSS property. Always last.
 
-### No abbreviations
+### Suffix vocabulary
 
-- `bg` → `surface`. `fg` → `text`. Component ids are never abbreviated: `segmentedcontrol` not `sc`, `mywidget` not `mw`.
+The editor picker is chosen by suffix. There is no per-token override; if a token renders with the wrong picker, rename it to one of these suffixes.
 
-### Property suffix vocabulary
+**Color and surface**
 
-| Suffix         | Meaning                                                      |
-|----------------|--------------------------------------------------------------|
-| `-surface`     | Fill / background color                                       |
-| `-border`      | Border color                                                 |
-| `-text`        | Text color                                                   |
-| `-icon`        | Icon color                                                   |
-| `-label`       | Label text color                                             |
-| `-fill`        | Inner fill (distinct from outer surface)                     |
-| `-radius`      | Corner radius                                                |
-| `-border-width`| Stroke thickness                                             |
-| `-font-family` | Font family reference                                        |
-| `-font-weight` | Font weight reference                                        |
-| `-font-size`   | Font size reference                                          |
-| `-thickness`   | Alternative to `-width` when fallback siblings would collide |
+| Suffix      | Meaning                                                       |
+|-------------|---------------------------------------------------------------|
+| `-surface`  | Fill / background color                                        |
+| `-border`   | Border color                                                  |
+| `-text`     | Text color                                                    |
+| `-icon`     | Icon color                                                    |
+| `-label`    | Label text color                                              |
+| `-fill`     | Inner fill (distinct from outer surface)                      |
+| `-divider`  | Divider / separator color                                     |
+| `-color`    | Generic color, when none of the above name the role           |
+| `-shadow`   | Box-shadow                                                    |
+| `-opacity`  | Opacity (0–1)                                                 |
+| `-blur`     | Backdrop or filter blur radius                                |
 
-### State order matters
+**Geometry**
 
-State comes **before** the property:
+| Suffix          | Meaning                                                       |
+|-----------------|---------------------------------------------------------------|
+| `-radius`       | Corner radius                                                 |
+| `-border-width` | Stroke thickness (used even when CSS uses `outline:`)         |
+| `-thickness`    | Alternative to `-width` when fallback siblings would collide  |
+| `-width`        | Width dimension                                               |
+| `-size`         | Square / uniform dimension                                    |
+| `-padding`      | Internal spacing                                              |
+| `-gap`          | Spacing between sibling elements                              |
 
-```
---mywidget-button-hover-surface   ✓  state before property; siblings on `-surface`
---mywidget-button-surface-hover   ✗  breaks sibling matching and reads oddly
-```
+**Typography**
 
-### Default values reference theme tokens
+| Suffix             | Meaning                  |
+|--------------------|--------------------------|
+| `-font-family`     | Font family reference    |
+| `-font-weight`     | Font weight reference    |
+| `-font-size`       | Font size reference      |
+| `-line-height`     | Line height              |
+| `-letter-spacing`  | Letter spacing           |
 
-```
---mywidget-primary-surface: var(--surface-primary);     ✓
---mywidget-primary-surface: #6a4ce8;                    ✗  raw value, can't be re-pointed
-```
+The authoritative recognised list lives in `bin/check-component.mjs` (`KNOWN_SUFFIXES`). If you need a suffix that isn't listed, either rename to one that is, or open an issue against `@motion-proto/live-tokens` to add it. Don't invent suffixes; the editor falls back to a plain text input and your token won't get a real picker.
 
-Text token aliases use the neutral text scale by default: `--text-primary`, `--text-secondary`, `--text-tertiary`, `--text-muted`, `--text-disabled`. Family-tinted text is `--text-primary-color`, `--text-accent`, `--text-success`, etc. There is no `--text-neutral` — neutral text is `--text-primary`.
+### Rules that bite
 
-### Linked siblings (the link toggle)
+- **State before property.** `--mywidget-button-hover-surface` ✓ — `--mywidget-button-surface-hover` ✗ (breaks sibling matching).
+- **Defaults reference theme tokens, never raw values.** `var(--surface-primary)` ✓ — `#6a4ce8` ✗.
+- **No abbreviations.** `bg` → `surface`; `fg` → `text`; component ids are never abbreviated.
+- **Text aliases.** Neutral scale is `--text-primary` / `--text-secondary` / `--text-tertiary` / `--text-muted` / `--text-disabled`. Family-tinted is `--text-primary-color`, `--text-accent`, `--text-success`. There is no `--text-neutral`.
+- **Typography `groupKey` on multi-slot components must include the slot prefix.** `groupKey: 'value-font-family'` and `groupKey: 'label-font-family'` ✓ — bare `groupKey: 'font-family'` silently merges them into one link tree ✗. Single-slot components can use a bare typography `groupKey`; add the slot prefix the moment a second slot appears.
 
-Tokens that share a `groupKey` form a sibling set. Declaring `canBeLinked: true` plus a `groupKey` in the editor's token list creates a link toggle that broadcasts one value across every sibling. Linkage is **dev-declared**: you author it when you build the component; users opt out of an existing link per-property, never add or reshape links. Do not expose UI for users to add siblings or mark properties as linkable.
+### Linked siblings
 
-For typography on multi-slot components, the `groupKey` must include the slot prefix:
+Tokens that share a `groupKey` and declare `canBeLinked: true` form a sibling set with a link toggle in the editor. Linkage is **dev-declared** — you author it when building the component. Users opt out of an existing link per-property; they never add or reshape links. Do not expose UI for users to add siblings or mark properties as linkable.
 
-```
-groupKey: 'value-font-family', 'label-font-family'   ✓  separate link trees per slot
-groupKey: 'font-family'                              ✗  silently links value and label together
-```
-
-Single-slot components can use a bare typography `groupKey` (`font-family`). Add the slot prefix the moment a second typography slot appears.
-
-## Pillar 2 — Editor patterns
-
-The editor file mounts inside `ComponentEditorBase` and lays out tokens via `VariantGroup` per variant. Use the shared scaffolding components from `@motion-proto/live-tokens/component-editor`.
-
-### State model
+## State model
 
 Components have two state axes. Don't mix them.
 
 - **Component states** — mutually exclusive top-level fieldsets: `default`, `selected`, `disabled` (names vary by component). One fieldset per component state.
-- **Interaction states** — a select inside each component-state fieldset: `default`, `hover`. (Add `focus`/`active` later if needed.)
+- **Interaction states** — a select *inside* each component-state fieldset: `default`, `hover`. Add `focus`/`active` later if needed.
 
 Rules:
 
 - **Disabled is terminal.** A disabled component can't be hovered or focused. The `disabled` fieldset is flat — no interaction selector.
 - **`selected-disabled` is impossible.** Don't author tokens or fieldsets for it.
-- **Don't call interaction states "option states" or "selected states"** in the UI. `selected` is a *component* state. Interaction states are interaction states.
+- **Parts ≠ states.** Dialog's `overlay | header | body | footer` are *parts* (all present simultaneously), not states. The VariantGroup tab strip defaults its label to "Element" (neutral). If you label tabs anywhere, use **part** for structure and **state** for runtime conditions. Never call a footer a state.
+- **Don't call interaction states "option states" or "selected states"** in the UI. `selected` is a *component* state.
 
 Token naming consequence:
 
@@ -104,385 +135,294 @@ Token naming consequence:
 --mywidget-selected-disabled-text    ✗  selected-disabled doesn't exist
 ```
 
-### Parts vs states
+## Editor chrome
 
-A component's structural sub-regions (Dialog's `overlay | header | body | footer`) are **parts**, not states. All present simultaneously. The VariantGroup tab strip defaults its label to "Element" — a neutral noun that fits both — but if you label individual tabs anywhere, use **part** when describing structure and **state** when describing runtime conditions. Never call a footer a state.
+The editor chrome is **greyscale only**. Never introduce accent colors (blue, etc.) for buttons, links, or hover states. The sole exception is file-state indicators. Buttons in editor chrome are pill-shaped with a subtle white gradient. Section underlines bright (`--ui-border-high`); sub-element outlines dim (`--ui-border-faint`).
 
-### Editor chrome (greyscale, pill buttons, no em-dashes)
+Heading scale (semantic; never hardcode pixel sizes):
 
-The editor chrome is greyscale only. Never introduce accent colors (blue, etc.) for buttons, links, or hover states. The sole exception is file-state indicators. Buttons in editor chrome are pill-shaped with a subtle white gradient. Section underlines are bright (`--ui-border-high`); sub-element outlines stay dim (`--ui-border-faint`).
+| Role    | Token                | Treatment                                                      |
+|---------|----------------------|----------------------------------------------------------------|
+| Body    | `--ui-font-size-md`  | —                                                              |
+| Eyebrow | `--ui-font-size-xs`  | semibold tertiary, uppercase, letter-spacing                    |
+| Group   | `--ui-font-size-lg`  | semibold secondary                                              |
+| Section | `--ui-font-size-2xl` | semibold primary, 2px `--ui-border-high` underline              |
 
-Editor heading scale (semantic):
-
-| Role | Token | Treatment |
-|---|---|---|
-| Body | `--ui-font-size-md` | — |
-| Section | `--ui-font-size-2xl` | semibold primary, 2px `--ui-border-high` underline |
-| Group | `--ui-font-size-lg` | semibold secondary |
-| Eyebrow | `--ui-font-size-xs` | semibold tertiary, uppercase, letter-spacing |
-
-Reference tokens by role; never hardcode pixel sizes.
-
-**User-facing copy uses periods and commas, no em-dashes.** Em-dashes read as an AI tell. Restructure sentences. This applies to titles, descriptions, info popovers, button labels, and dialog body text. (Code comments are unaffected.)
-
-## Project structure
-
-Co-locate the runtime and editor files in `src/system/components/` in the consumer project:
-
-```
-src/system/components/
-  MyWidget.svelte          # runtime — declares CSS vars in :global(:root)
-  MyWidgetEditor.svelte    # editor — exports `allTokens`, mounts via ComponentEditorBase
-```
-
-Register the component in `src/main.ts` before `mount(App, ...)`:
-
-```ts
-import { registerComponent } from '@motion-proto/live-tokens';
-import MyWidgetEditor, { allTokens as myWidgetTokens } from './system/components/MyWidgetEditor.svelte';
-
-registerComponent({
-  id: 'mywidget',
-  label: 'My Widget',
-  icon: 'fas fa-magic',
-  sourceFile: 'src/system/components/MyWidget.svelte',
-  editorComponent: MyWidgetEditor,
-  schema: myWidgetTokens,
-});
-```
-
-The plugin's `componentsSrcDir` defaults to `src/system/components/` and scans runtime `.svelte` files. The scanner ignores editors because they don't declare `:global(:root)`. On first save in the editor, `component-configs/<id>/default.json` is seeded automatically from the runtime file.
+**User-facing copy uses periods and commas, no em-dashes.** Em-dashes read as an AI tell. Restructure sentences. This applies to titles, descriptions, info popovers, button labels, dialog body text. (Code comments are unaffected.)
 
 ## Public imports only
 
 Imports in your runtime, editor, and `main.ts` must come from exactly two paths:
 
-- `@motion-proto/live-tokens`
-- `@motion-proto/live-tokens/component-editor`
-
-Never deep-import `node_modules/@motion-proto/live-tokens/src/...`. Doing so couples your project to internal refactors and is not a supported API.
-
-### Legal imports from `@motion-proto/live-tokens`
-
 ```ts
+// From @motion-proto/live-tokens
 import {
-  registerComponent,
-  editorState,
-  setComponentAlias,
-  setComponentConfig,
-  registerComponentSchema,
-  // plus the wider editor init API: configureEditor, initEditorStore, etc.
+  registerComponent, editorState, setComponentAlias, setComponentConfig,
+  registerComponentSchema, configureEditor, initEditorStore,
 } from '@motion-proto/live-tokens';
-
 import type {
-  RegisterComponentEntry,
-  RegistryEntry,
-  ComponentId,
+  RegisterComponentEntry, RegistryEntry, ComponentId,
 } from '@motion-proto/live-tokens';
-```
 
-### Legal imports from `@motion-proto/live-tokens/component-editor`
-
-```ts
+// From @motion-proto/live-tokens/component-editor
 import {
-  ComponentEditorBase,
-  VariantGroup,
-  LinkedBlock,
-  TypeEditor,
-  TokenLayout,
-  buildSiblings,
-  computeLinkedBlock,
-  withLinkedDisabled,
-  buildTypeGroupTokens,
+  ComponentEditorBase, VariantGroup, LinkedBlock, TypeEditor, TokenLayout,
+  buildSiblings, computeLinkedBlock, withLinkedDisabled, buildTypeGroupTokens,
 } from '@motion-proto/live-tokens/component-editor';
-
 import type {
-  Token,
-  Sibling,
-  LinkedToken,
-  LinkedGroup,
-  LinkedBlockResult,
-  ComponentSection,
+  Token, Sibling, LinkedToken, LinkedGroup, LinkedBlockResult, ComponentSection,
 } from '@motion-proto/live-tokens/component-editor';
 ```
 
-If you find yourself needing something not in this list, stop. Either restructure the component to avoid the dependency, or file an issue against `@motion-proto/live-tokens` to add the export. Do not deep-import.
+**Never deep-import `node_modules/@motion-proto/live-tokens/src/...`.** (Reading those files for pattern reference is fine; importing them at runtime is not.) If you need something not exported here, restructure to avoid the dependency or file an issue against `@motion-proto/live-tokens` to add the export.
 
-## 4-step recipe
+## Worked example: shipped Toggle, end-to-end
 
-### Step 1 — Runtime component
+Toggle ships in the package and exercises every rule above. For your own component, copy this pattern and substitute your id; just don't reuse `toggle` itself (registrations against a built-in id win with a console warning, but the right call is a unique id).
 
-Write `src/system/components/MyWidget.svelte`. Declare every editable slot in `:global(:root)` with a default that references a theme token.
-
-### Step 2 — Editor component
-
-Write `src/system/components/MyWidgetEditor.svelte`. In a `<script module>` block:
-
-- Declare `const component = 'mywidget';`
-- Build the `Token[]` list for each variant × state combination.
-- Export `allTokens: Token[]` (flat union of every token, used by `registerComponentSchema` and the linked-block).
-- Build the `linkableContexts: Map<string, string>` for cross-variant link rows.
-
-In the `<script>` block, mount `ComponentEditorBase` with one `VariantGroup` per variant.
-
-### Step 3 — Register
-
-Add a `registerComponent({ ... })` call to `src/main.ts` before `mount(App, ...)`. The schema-side-effect happens inside `registerComponent`, so you don't call `registerComponentSchema` separately.
-
-### Step 4 — Verify
-
-Open `/components`. The new component appears under the **CUSTOM** group in the nav rail. Token rows render. Aliases persist. Boot validation is clean.
-
-## Worked example: Stat
-
-A small `Stat` component with two variants (`primary`, `subtle`) and two interaction states (`default`, `hover`). Renders a number value above a label.
-
-### Runtime: `src/system/components/Stat.svelte`
+### Runtime: `src/system/components/Toggle.svelte`
 
 ```svelte
 <script lang="ts">
   interface Props {
-    variant?: 'primary' | 'subtle';
-    value: string;
-    label: string;
+    checked?: boolean;
+    disabled?: boolean;
+    label?: string;
+    /** Editor preview hook. Paints hover tokens without a real pointer. */
+    class?: string;
+    onchange?: (checked: boolean) => void;
   }
-  let { variant = 'primary', value, label }: Props = $props();
+  let {
+    checked = false, disabled = false, label = '',
+    class: className = '', onchange,
+  }: Props = $props();
+  function toggle() {
+    if (disabled) return;
+    onchange?.(!checked);
+  }
 </script>
 
-<div class="stat stat-{variant}">
-  <span class="value">{value}</span>
-  <span class="label">{label}</span>
-</div>
+<button
+  type="button" role="switch" aria-checked={checked}
+  class="toggle {className}" class:on={checked}
+  {disabled} onclick={toggle}
+>
+  <span class="track"><span class="thumb"></span></span>
+  {#if label}<span class="label">{label}</span>{/if}
+</button>
 
 <style>
   :global(:root) {
-    /* primary */
-    --stat-primary-surface: var(--surface-primary);
-    --stat-primary-border: var(--border-primary);
-    --stat-primary-radius: var(--radius-md);
-    --stat-primary-padding: var(--space-16);
-    --stat-primary-value-text: var(--text-primary);
-    --stat-primary-value-font-family: var(--font-display);
-    --stat-primary-value-font-size: var(--font-size-2xl);
-    --stat-primary-value-font-weight: var(--font-weight-bold);
-    --stat-primary-label-text: var(--text-secondary);
-    --stat-primary-label-font-family: var(--font-sans);
-    --stat-primary-label-font-size: var(--font-size-sm);
-    --stat-primary-hover-surface: var(--surface-primary-high);
+    /* Default (off resting). Carries geometry + label typography for every state. */
+    --toggle-track-surface: var(--surface-neutral);
+    --toggle-track-border: var(--border-neutral);
+    --toggle-track-border-width: var(--border-width-1);
+    --toggle-track-radius: var(--radius-full);
+    --toggle-track-width: var(--space-32);
+    --toggle-track-thickness: var(--space-16);
+    --toggle-thumb-surface: var(--surface-neutral-highest);
+    --toggle-thumb-border: var(--border-neutral-strong);
+    --toggle-thumb-size: var(--space-12);
+    --toggle-label-text: var(--text-primary);
+    --toggle-label-font-family: var(--font-sans);
+    --toggle-label-font-size: var(--font-size-sm);
+    --toggle-label-font-weight: var(--font-weight-normal);
+    --toggle-gap: var(--space-8);
 
-    /* subtle */
-    --stat-subtle-surface: var(--surface-neutral);
-    --stat-subtle-border: var(--border-neutral);
-    --stat-subtle-radius: var(--radius-md);
-    --stat-subtle-padding: var(--space-16);
-    --stat-subtle-value-text: var(--text-primary);
-    --stat-subtle-value-font-family: var(--font-display);
-    --stat-subtle-value-font-size: var(--font-size-2xl);
-    --stat-subtle-value-font-weight: var(--font-weight-bold);
-    --stat-subtle-label-text: var(--text-tertiary);
-    --stat-subtle-label-font-family: var(--font-sans);
-    --stat-subtle-label-font-size: var(--font-size-sm);
-    --stat-subtle-hover-surface: var(--surface-neutral-high);
-  }
+    /* Hover (default + hover interaction). */
+    --toggle-hover-track-surface: var(--surface-neutral-high);
+    --toggle-hover-thumb-surface: var(--text-primary);
 
-  .stat {
-    display: inline-flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    border: 1px solid;
-    transition: background 120ms ease;
-  }
+    /* On (component state). */
+    --toggle-on-track-surface: var(--surface-brand-high);
+    --toggle-on-track-border: var(--border-brand);
+    --toggle-on-thumb-surface: var(--text-primary);
+    --toggle-on-thumb-border: var(--border-brand-strong);
 
-  .stat-primary {
-    background: var(--stat-primary-surface);
-    border-color: var(--stat-primary-border);
-    border-radius: var(--stat-primary-radius);
-    padding: var(--stat-primary-padding);
-  }
-  .stat-primary:hover { background: var(--stat-primary-hover-surface); }
-  .stat-primary .value {
-    color: var(--stat-primary-value-text);
-    font-family: var(--stat-primary-value-font-family);
-    font-size: var(--stat-primary-value-font-size);
-    font-weight: var(--stat-primary-value-font-weight);
-  }
-  .stat-primary .label {
-    color: var(--stat-primary-label-text);
-    font-family: var(--stat-primary-label-font-family);
-    font-size: var(--stat-primary-label-font-size);
+    /* On + hover. */
+    --toggle-on-hover-track-surface: var(--surface-brand-higher);
+    --toggle-on-hover-thumb-surface: var(--text-primary);
+
+    /* Disabled (terminal, applies regardless of on/off). */
+    --toggle-disabled-track-surface: var(--surface-neutral-lower);
+    --toggle-disabled-thumb-surface: var(--surface-neutral);
+    --toggle-disabled-label-text: var(--text-disabled);
   }
 
-  .stat-subtle {
-    background: var(--stat-subtle-surface);
-    border-color: var(--stat-subtle-border);
-    border-radius: var(--stat-subtle-radius);
-    padding: var(--stat-subtle-padding);
+  .toggle { display: inline-flex; align-items: center; gap: var(--toggle-gap); }
+  .track {
+    width: var(--toggle-track-width); height: var(--toggle-track-thickness);
+    background: var(--toggle-track-surface);
+    border: var(--toggle-track-border-width) solid var(--toggle-track-border);
+    border-radius: var(--toggle-track-radius);
   }
-  .stat-subtle:hover { background: var(--stat-subtle-hover-surface); }
-  .stat-subtle .value {
-    color: var(--stat-subtle-value-text);
-    font-family: var(--stat-subtle-value-font-family);
-    font-size: var(--stat-subtle-value-font-size);
-    font-weight: var(--stat-subtle-value-font-weight);
+  .thumb {
+    width: var(--toggle-thumb-size); height: var(--toggle-thumb-size);
+    background: var(--toggle-thumb-surface);
+    border: var(--toggle-track-border-width) solid var(--toggle-thumb-border);
   }
-  .stat-subtle .label {
-    color: var(--stat-subtle-label-text);
-    font-family: var(--stat-subtle-label-font-family);
-    font-size: var(--stat-subtle-label-font-size);
+  .label {
+    color: var(--toggle-label-text);
+    font-family: var(--toggle-label-font-family);
+    font-size: var(--toggle-label-font-size);
+    font-weight: var(--toggle-label-font-weight);
   }
+
+  .toggle:hover:not(:disabled) .track,
+  .toggle.force-hover:not(:disabled) .track { background: var(--toggle-hover-track-surface); }
+  .toggle:hover:not(:disabled) .thumb,
+  .toggle.force-hover:not(:disabled) .thumb { background: var(--toggle-hover-thumb-surface); }
+
+  .toggle.on .track {
+    background: var(--toggle-on-track-surface);
+    border-color: var(--toggle-on-track-border);
+  }
+  .toggle.on .thumb {
+    background: var(--toggle-on-thumb-surface);
+    border-color: var(--toggle-on-thumb-border);
+  }
+
+  .toggle.on:hover:not(:disabled) .track,
+  .toggle.on.force-hover:not(:disabled) .track { background: var(--toggle-on-hover-track-surface); }
+  .toggle.on:hover:not(:disabled) .thumb,
+  .toggle.on.force-hover:not(:disabled) .thumb { background: var(--toggle-on-hover-thumb-surface); }
+
+  .toggle:disabled .track { background: var(--toggle-disabled-track-surface); }
+  .toggle:disabled .thumb { background: var(--toggle-disabled-thumb-surface); }
+  .toggle:disabled .label { color: var(--toggle-disabled-label-text); }
 </style>
 ```
 
-Things to notice:
+What to notice:
 
-- Every editable slot lives in `:global(:root)` with a default that references a theme token.
-- `--stat-<v>-value-font-family` and `--stat-<v>-label-font-family` are slot-prefixed because there are two typography slots (`value` and `label`). The same applies to `-font-size`. The bare typography groupKey (`font-family`) would silently link them together.
-- `--stat-<v>-hover-surface` is one row, one state. The hover background is one editable property; we don't author a full hover copy of every slot.
+- The `:global(:root)` block declares every editable variable. Variables in scoped selectors don't get edited; the plugin only parses `:global(:root)`.
+- Every default references a theme token; no raw values.
+- Component states (`on`, `disabled`) name themselves in the token: `--toggle-on-*`, `--toggle-disabled-*`.
+- Interaction states layer on top: `--toggle-hover-*` for default+hover, `--toggle-on-hover-*` for on+hover.
+- Disabled is terminal: no `--toggle-disabled-hover-*`, no `--toggle-on-disabled-*`.
+- The `force-hover` class pairs with the editor's preview hook so hover tokens paint without a real pointer. Each `:hover` selector has a matching `.force-hover` sibling.
 
-### Editor: `src/system/components/StatEditor.svelte`
+### Editor: `src/system/components/ToggleEditor.svelte`
 
 ```svelte
 <script module lang="ts">
-  import { buildSiblings, type Token } from '@motion-proto/live-tokens/component-editor';
+  import type { Token } from '@motion-proto/live-tokens/component-editor';
+  export const component = 'toggle';
 
-  export const component = 'stat';
-  const variants = ['primary', 'subtle'] as const;
-  type Variant = typeof variants[number];
-  const stateNames = ['default', 'hover'] as const;
-  type StateName = typeof stateNames[number];
-
-  function variantStateTokens(v: Variant, s: StateName): Token[] {
-    if (s === 'default') {
-      return [
-        { label: 'surface',         variable: `--stat-${v}-surface` },
-        { label: 'border',          variable: `--stat-${v}-border` },
-        { label: 'corner radius',   variable: `--stat-${v}-radius`,  canBeLinked: true, groupKey: 'radius' },
-        { label: 'padding',         variable: `--stat-${v}-padding`, canBeLinked: true, groupKey: 'padding' },
-        { label: 'value text',      variable: `--stat-${v}-value-text` },
-        { label: 'value font family', variable: `--stat-${v}-value-font-family`, canBeLinked: true, groupKey: 'value-font-family' },
-        { label: 'value font size',   variable: `--stat-${v}-value-font-size`,   canBeLinked: true, groupKey: 'value-font-size' },
-        { label: 'value font weight', variable: `--stat-${v}-value-font-weight`, canBeLinked: true, groupKey: 'value-font-weight' },
-        { label: 'label text',      variable: `--stat-${v}-label-text` },
-        { label: 'label font family', variable: `--stat-${v}-label-font-family`, canBeLinked: true, groupKey: 'label-font-family' },
-        { label: 'label font size',   variable: `--stat-${v}-label-font-size`,   canBeLinked: true, groupKey: 'label-font-size' },
-      ];
-    }
-    // hover: one slot. No selected/disabled, so the hover fieldset is flat.
-    return [
-      { label: 'surface', variable: `--stat-${v}-hover-surface` },
-    ];
-  }
-
-  function variantStates(v: Variant): Record<StateName, Token[]> {
-    return Object.fromEntries(stateNames.map((s) => [s, variantStateTokens(v, s)])) as Record<StateName, Token[]>;
-  }
-
-  export const allTokens: Token[] = variants.flatMap((v) => Object.values(variantStates(v)).flat());
-
-  // Linkable contexts: which variables anchor cross-variant link rows.
-  // The slot prefix on typography groupKeys (value-* vs label-*) keeps the two
-  // typography slots from merging into one link tree.
-  const linkableContexts = new Map<string, string>([
-    ['--stat-primary-radius', 'primary'],
-    ['--stat-subtle-radius',  'subtle'],
-    ['--stat-primary-padding','primary'],
-    ['--stat-subtle-padding', 'subtle'],
-    ['--stat-primary-value-font-family', 'primary'],
-    ['--stat-subtle-value-font-family',  'subtle'],
-    ['--stat-primary-value-font-size',   'primary'],
-    ['--stat-subtle-value-font-size',    'subtle'],
-    ['--stat-primary-value-font-weight', 'primary'],
-    ['--stat-subtle-value-font-weight',  'subtle'],
-    ['--stat-primary-label-font-family', 'primary'],
-    ['--stat-subtle-label-font-family',  'subtle'],
-    ['--stat-primary-label-font-size',   'primary'],
-    ['--stat-subtle-label-font-size',    'subtle'],
-  ]);
-
-  const variantOptions = variants.map((v) => ({
-    value: v,
-    label: v.charAt(0).toUpperCase() + v.slice(1),
-  }));
+  const states: Record<string, Token[]> = {
+    default: [
+      { label: 'track surface',      variable: '--toggle-track-surface' },
+      { label: 'track border',       variable: '--toggle-track-border' },
+      { label: 'track border width', variable: '--toggle-track-border-width' },
+      { label: 'track radius',       variable: '--toggle-track-radius' },
+      { label: 'track width',        variable: '--toggle-track-width' },
+      { label: 'track thickness',    variable: '--toggle-track-thickness' },
+      { label: 'thumb surface',      variable: '--toggle-thumb-surface' },
+      { label: 'thumb border',       variable: '--toggle-thumb-border' },
+      { label: 'thumb size',         variable: '--toggle-thumb-size' },
+      { label: 'label text',         variable: '--toggle-label-text' },
+      { label: 'label font family',  variable: '--toggle-label-font-family' },
+      { label: 'label font size',    variable: '--toggle-label-font-size' },
+      { label: 'label font weight',  variable: '--toggle-label-font-weight' },
+      { label: 'gap',                variable: '--toggle-gap' },
+    ],
+    hover: [
+      { label: 'track surface', variable: '--toggle-hover-track-surface' },
+      { label: 'thumb surface', variable: '--toggle-hover-thumb-surface' },
+    ],
+    on: [
+      { label: 'track surface', variable: '--toggle-on-track-surface' },
+      { label: 'track border',  variable: '--toggle-on-track-border' },
+      { label: 'thumb surface', variable: '--toggle-on-thumb-surface' },
+      { label: 'thumb border',  variable: '--toggle-on-thumb-border' },
+    ],
+    'on hover': [
+      { label: 'track surface', variable: '--toggle-on-hover-track-surface' },
+      { label: 'thumb surface', variable: '--toggle-on-hover-thumb-surface' },
+    ],
+    disabled: [
+      { label: 'track surface', variable: '--toggle-disabled-track-surface' },
+      { label: 'thumb surface', variable: '--toggle-disabled-thumb-surface' },
+      { label: 'label text',    variable: '--toggle-disabled-label-text' },
+    ],
+  };
+  export const allTokens: Token[] = Object.values(states).flat();
 </script>
 
 <script lang="ts">
+  import Toggle from './Toggle.svelte';
   import {
-    ComponentEditorBase,
-    VariantGroup,
-    computeLinkedBlock,
-    withLinkedDisabled,
+    VariantGroup, ComponentEditorBase,
   } from '@motion-proto/live-tokens/component-editor';
-  import { editorState } from '@motion-proto/live-tokens';
-  import Stat from './Stat.svelte';
 
-  let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
-  let visibleVariantStates = $derived((v: Variant) => Object.fromEntries(
-    Object.entries(variantStates(v)).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
-  ) as Record<StateName, Token[]>);
+  function previewProps(state: string) {
+    return {
+      checked: state === 'on' || state === 'on hover',
+      disabled: state === 'disabled',
+      forceClass: state === 'hover' || state === 'on hover' ? 'force-hover' : '',
+    };
+  }
 </script>
 
 <ComponentEditorBase
   {component}
-  title="Stat"
-  description="A number above a label. Import from system/components/Stat.svelte."
+  title="Toggle"
+  description="On/off switch with sliding thumb."
   tokens={allTokens}
-  {linked}
-  variants={variantOptions}
 >
-  {#each variants as v}
-    <VariantGroup
-      name={v}
-      title={v.charAt(0).toUpperCase() + v.slice(1)}
-      states={visibleVariantStates(v)}
-      {component}
-      siblings={buildSiblings(variants, v, variantStates)}
-    >
-      <div class="stat-preview">
-        <Stat variant={v} value="248" label="Active users" />
-      </div>
-    </VariantGroup>
-  {/each}
+  <VariantGroup name="toggle" title="Toggle" {states} {component}>
+    {#snippet children({ activeState })}
+      {@const p = previewProps(activeState)}
+      <Toggle checked={p.checked} disabled={p.disabled} class={p.forceClass} label="Enable feature" />
+    {/snippet}
+  </VariantGroup>
 </ComponentEditorBase>
-
-<style>
-  .stat-preview {
-    display: flex;
-    gap: var(--ui-space-16);
-    padding: var(--ui-space-16);
-  }
-</style>
 ```
 
-### Registration: `src/main.ts`
+What to notice:
+
+- `component` is the string id; must match `registerComponent({ id })` exactly.
+- `states` keys become the VariantGroup tab labels the user sees. Multi-word keys (`'on hover'`) need quoting.
+- `allTokens` is a flat union of every state's tokens. The editor store needs it for reset-to-default and sibling resolution.
+- `previewProps` translates the active editor tab into runtime props (`checked`, `disabled`, `force-hover` class).
+
+### Register: `src/main.ts`
 
 ```ts
 import { registerComponent } from '@motion-proto/live-tokens';
-import StatEditor, { allTokens as statTokens } from './system/components/StatEditor.svelte';
-
-// ... existing initEditorStore, initCssVarSync, configureEditor, etc.
+import ToggleEditor, { allTokens as toggleTokens } from './system/components/ToggleEditor.svelte';
 
 registerComponent({
-  id: 'stat',
-  label: 'Stat',
-  icon: 'fas fa-chart-simple',
-  sourceFile: 'src/system/components/Stat.svelte',
-  editorComponent: StatEditor,
-  schema: statTokens,
+  id: 'mytoggle',                                // unique id; don't reuse 'toggle'
+  label: 'My Toggle',
+  icon: 'fas fa-toggle-on',
+  sourceFile: 'src/system/components/Toggle.svelte',
+  editorComponent: ToggleEditor,
+  schema: toggleTokens,
 });
 
-// ... mount(App, ...)
+// then mount(App, ...)
 ```
+
+If you do this with `id: 'toggle'`, the consumer's component wins over the built-in (with a console warning). The collision rule protects you, but for a fresh component pick an id that doesn't collide.
 
 ## Verification checklist
 
-After saving, navigate to `/components`:
+After saving, run the static validator first:
 
-- [ ] `Stat` appears in the nav rail under the **CUSTOM** group (system entries above, custom below the labeled divider).
-- [ ] The token rows render. Color pickers, radius selectors, and font selectors all work.
-- [ ] Linked-block: the `corner radius`, `padding`, and font typography rows appear with the link toggle. Changing the linked value broadcasts across both variants.
-- [ ] Save creates `component-configs/stat/default.json`. Subsequent saves write `_active.json` plus any named files.
+```bash
+npx live-tokens check-component <id>
+# or: npx @motion-proto/live-tokens check-component <id>
+```
+
+It enforces the file layout, the `:global(:root)` block, token-suffix vocabulary, state-before-property rule, theme-token defaults (no raw colour literals), public-imports rule, and the `registerComponent({ id })` call. Exit code 0 means the static contract is met.
+
+Then navigate to `/components` and confirm the runtime behaviours the static check can't see:
+
+- [ ] The new component appears in the nav rail under the **CUSTOM** group (system entries above, custom below the labeled divider).
+- [ ] Token rows render. Color pickers, radius selectors, font selectors all work.
+- [ ] Linked-block: shared rows appear with the link toggle. Changing the linked value broadcasts across every variant.
+- [ ] First save creates `component-configs/<id>/default.json`. Subsequent saves write `_active.json` plus any named files.
 - [ ] Reset returns each variable to its `:global(:root)` default.
-- [ ] Boot validation is clean (no warnings about `stat` being missing from the server scan or about disk-vs-registry drift).
-- [ ] Imports in `Stat.svelte`, `StatEditor.svelte`, and `main.ts` come from only `@motion-proto/live-tokens` and `@motion-proto/live-tokens/component-editor`. No `../../node_modules/...` and no deep-imports.
-
-If anything fails this checklist, fix it before declaring done. The verification checklist is the contract; the rest of this skill is how to satisfy it.
+- [ ] Boot validation is clean (no warnings about the component being missing from the server scan, or about disk-vs-registry drift).
+- [ ] All imports in your runtime, editor, and `main.ts` come from only `@motion-proto/live-tokens` and `@motion-proto/live-tokens/component-editor`. No `../../node_modules/...` and no deep-imports.

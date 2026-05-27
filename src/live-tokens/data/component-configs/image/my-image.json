@@ -1,0 +1,14 @@
+{
+  "name": "my-image",
+  "component": "image",
+  "createdAt": "2026-05-27T02:07:34.247Z",
+  "updatedAt": "2026-05-27T02:07:34.249Z",
+  "aliases": {
+    "--image-default-radius": "--radius-2xl",
+    "--image-default-border": "--border-neutral",
+    "--image-default-border-width": "--border-width-1",
+    "--image-default-shadow": "--shadow-md"
+  },
+  "config": {},
+  "schemaVersion": 17
+}

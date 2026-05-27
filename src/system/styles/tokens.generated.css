@@ -372,6 +372,9 @@
   --card-default-body-padding-bottom: var(--space-16);
   --card-default-body-padding-left: var(--space-20);
 
+  /* image (my-image) */
+  --image-default-radius: var(--radius-2xl);
+
   /* imagelightbox (my-image-lightbox) */
   --imagelightbox-tile-border: transparent;
   --imagelightbox-overlay-surface: color-mix(in srgb, var(--color-neutral-950) 76%, transparent);

@@ -3,6 +3,7 @@
   import SectionKit from './sections/SectionKit.svelte';
   import SectionLive from './sections/SectionLive.svelte';
   import SectionLayers from './sections/SectionLayers.svelte';
+  import SectionClaude from './sections/SectionClaude.svelte';
   import SectionOffering from './sections/SectionOffering.svelte';
 </script>
 
@@ -11,6 +12,7 @@
   <SectionKit />
   <SectionLive />
   <SectionLayers />
+  <SectionClaude />
   <SectionOffering />
 </div>
 

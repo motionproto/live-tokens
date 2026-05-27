@@ -24,12 +24,16 @@
     "src/app/site.css",
     "dist-plugin",
     ".claude/skills",
+    "bin",
     "!**/*.test.ts",
     "!**/*.spec.ts",
     "!**/__tests__/**",
     "!src/system/components/Stat.svelte",
     "!src/system/components/StatEditor.svelte"
   ],
+  "bin": {
+    "live-tokens": "./bin/cli.mjs"
+  },
   "exports": {
     ".": {
       "svelte": "./src/editor/index.ts",
