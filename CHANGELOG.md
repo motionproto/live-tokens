@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.13.1 — Fix /components route pairing flicker
+
+The pairing rule introduced in 0.12.1 fired on every `editorView` change, not
+just on route change. Combined with the cross-window `storage` sync between
+parent and overlay iframe, a single click on the components toggle would
+trigger a feedback cascade: store write → storage event → handler runs
+subscribers → rule re-fires → another store write, etc. Each step pulled
+heavy editor re-renders along with it (the storage handler regularly took
+>1s in practice), producing a visible bounce as the view flickered between
+tokens and components.
+
+### Fixed
+
+- **`LiveEditorOverlay` route pairing now fires once per route change.** The
+  rule still sets the initial pairing when entering `/components` (overlay
+  flips to tokens to avoid stacking with the full-page editor), but does not
+  re-fire when the user toggles `editorView` while on that route. The user
+  can interact with the overlay's view switcher freely, no flicker.
+
 ## 0.13.0 — Generated CSS lives with editor data
 
 The plugin now writes `tokens.generated.css` to `<dataDir>/tokens.generated.css`

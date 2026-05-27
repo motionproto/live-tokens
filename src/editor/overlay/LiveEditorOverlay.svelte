@@ -63,11 +63,20 @@
   });
 
   // The /components route renders the same component-editor surface as the
-  // overlay's components view. Pair them: when the page is /components, flip
-  // the overlay to tokens so the two surfaces don't stack.
+  // overlay's components view. Pair them: on entering /components, flip the
+  // overlay to tokens so the two surfaces don't stack. Fires only on route
+  // change, not on every editorView change — otherwise cross-window storage
+  // sync re-triggers the rule, which writes editorView, which fires another
+  // storage event, which fires the rule again. The result is heavy re-render
+  // cascades (the storage handler regularly took >1s in practice) and a
+  // visible flicker as the view bounces.
+  let prevRoute: string | undefined;
   run(() => {
-    if ($route === '/components' && $editorView === 'components') {
-      editorView.set('tokens');
+    const r = $route;
+    if (r === prevRoute) return;
+    prevRoute = r;
+    if (r === '/components') {
+      editorView.update((v) => (v === 'components' ? 'tokens' : v));
     }
   });
 
