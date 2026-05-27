@@ -37,7 +37,7 @@ const PKG_VERSION: string = (() => {
 
 export interface ThemeFileApiOptions {
   tokensCssPath: string;       // required, e.g. 'src/styles/tokens.css'. Developer-authored, never written.
-  tokensGeneratedCssPath?: string; // default: sibling of tokensCssPath named 'tokens.generated.css'. Editor-owned.
+  tokensGeneratedCssPath?: string; // default: '<dataDir>/tokens.generated.css'. Editor-owned content.
   fontsCssPath?: string;       // default: sibling of tokensCssPath named 'fonts.css'
   apiBase?: string;            // default: '/api/live-tokens'. Plain '/path' — regex metacharacters are escaped at use site.
   // Data directories. Per-folder resolution order: explicit option >
@@ -63,7 +63,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const CSS_PATH = path.resolve(opts.tokensCssPath);
   const GENERATED_CSS_PATH = opts.tokensGeneratedCssPath
     ? path.resolve(opts.tokensGeneratedCssPath)
-    : path.join(path.dirname(CSS_PATH), 'tokens.generated.css');
+    : path.join(dataDirs.dataDir, 'tokens.generated.css');
   const FONTS_CSS_PATH = opts.fontsCssPath
     ? path.resolve(opts.fontsCssPath)
     : path.join(path.dirname(CSS_PATH), 'fonts.css');

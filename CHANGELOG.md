@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.13.0 — Generated CSS lives with editor data
+
+The plugin now writes `tokens.generated.css` to `<dataDir>/tokens.generated.css`
+by default, alongside themes, manifests, and component-configs. Previously it
+defaulted to `<tokensCssPath dir>/tokens.generated.css`, which silently landed
+inside `node_modules/` for any consumer that pointed `tokensCssPath` at the
+installed package — a path `npm ci` would happily wipe.
+
+The generated file is editor-managed user content, conceptually the same as
+themes and manifests, so it belongs in the data directory rather than coupled
+to the read-only base tokens.css location.
+
+### Changed (breaking — one-line config or file move)
+
+- **`tokensGeneratedCssPath` default moved from `<tokensCssPath dir>` to
+  `<dataDir>`.** No automatic migration; pick one:
+  - **Move the file** (recommended): relocate your existing
+    `tokens.generated.css` from wherever it lived (often
+    `src/system/styles/tokens.generated.css`) to `<dataDir>/tokens.generated.css`
+    and update your `main.ts` import to match.
+  - **Pin the old path**: pass
+    `tokensGeneratedCssPath: 'src/system/styles/tokens.generated.css'` (or your
+    previous location) explicitly to `themeFileApi()` in `vite.config.ts`.
+- **Bundled `tokens.generated.css` relocated inside the package.** The
+  `@motion-proto/live-tokens/app/tokens.generated.css` export now resolves to
+  `./src/live-tokens/data/tokens.generated.css` (was
+  `./src/system/styles/tokens.generated.css`). Consumers importing via the
+  package export are unaffected; only the on-disk path inside `node_modules`
+  changed.
+
 ## 0.12.1 — Overlay owns the /components route pairing
 
 The mutual-exclusion rule that flips the overlay to Tokens view whenever the
