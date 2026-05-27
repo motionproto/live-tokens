@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.14.1 — Drop unused local font files
+
+Cleanup of leftover state from the Google Fonts switch in 0.14.0.
+
+### Changed
+
+- **Local `.woff2` font files removed.** 0.14.0 already excluded them from the
+  published package via the `files` list, so this is a repository cleanup
+  rather than a consumer-facing change. The `!src/system/styles/fonts/**`
+  exclusion is dropped (no longer needed). Published bundle size is unchanged
+  versus 0.14.0.
+- **"Add local font" instruction updated.** The editor's font-add help text
+  used to direct users to drop `.woff2` files into
+  `src/system/styles/fonts/<Family>/` and claim the folder shipped with the
+  production build, which was the exact assumption that broke for consumers
+  pre-0.14.0. New copy points at `public/fonts/<Family>/`, a portable Vite
+  convention that works the same whether you're in a consumer or in this repo.
+
 ## 0.14.0 — Multi-dir component scan, Google Fonts for defaults
 
 ### Changed (breaking — automatic migration on theme load)
