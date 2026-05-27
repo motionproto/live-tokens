@@ -1,5 +1,45 @@
 # Changelog
 
+## 0.12.0 — Toggle, CodeSnippet, and a Claude skill suite
+
+Two new shipped components (`Toggle`, `CodeSnippet`) and a `live-tokens` CLI
+that installs the bundled Claude Code skills into a consumer project in one
+command. The single `live-tokens-add-component` skill is replaced by three
+focused skills covering page composition, component selection, and new-component
+authoring.
+
+### Added
+
+- **`Toggle` component** (`src/system/components/Toggle.svelte` + editor).
+  On/off switch with tokenised track, thumb, label, and disabled state.
+- **`CodeSnippet` component** (`src/system/components/CodeSnippet.svelte` +
+  editor). Syntax-highlighted code block with tokenised chrome and copy button.
+- **`live-tokens` CLI** (`bin/cli.mjs`). Two subcommands:
+  - `npx @motion-proto/live-tokens setup-claude` — copies all bundled skills
+    into `./.claude/skills/` in the consumer project. `--force` overwrites
+    existing skill directories.
+  - `npx @motion-proto/live-tokens check-component <id>` — static validator
+    that enforces file layout, `:global(:root)` block, token-suffix vocabulary,
+    state-before-property rule, no-raw-colour-defaults rule, public-imports
+    rule, and `registerComponent({ id })` call. Useful as a post-authoring
+    check or pre-commit guard.
+
+### Changed
+
+- **Claude Code skill suite reshaped.** The single `live-tokens-add-component`
+  skill is removed; three focused skills take its place:
+  - `live-tokens-build-page` — composes pages from the shipped components.
+  - `live-tokens-pick-component` — decides between confusable pairs (TabBar
+    vs SegmentedControl, Card vs CollapsibleSection, Callout vs Notification,
+    etc.) with decision tables per family.
+  - `live-tokens-create-component` — authors a new editable component against
+    the naming, state-model, and public-imports rules.
+  Each auto-triggers from natural-language requests; no slash commands.
+- **Docs.** `docs/adding-components.md` renamed to `docs/creating-components.md`
+  to align with the new skill name; cross-references updated.
+- **README.** Component count bumped from ~19 to ~24; new "Claude Code skills"
+  section documents the suite and CLI install path.
+
 ## 0.11.0 — Overlay scale trim and release pipeline cleanup
 
 The overlay scale drops from seven stops to three. CI is now the only thing
