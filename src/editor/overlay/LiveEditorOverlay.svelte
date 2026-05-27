@@ -71,13 +71,23 @@
   // cascades (the storage handler regularly took >1s in practice) and a
   // visible flicker as the view bounces.
   let prevRoute: string | undefined;
+  const dbgCtx = isInIframe ? 'iframe' : 'parent';
   run(() => {
     const r = $route;
+    console.log(`[lt-debug:${dbgCtx}] route-pair fired`, { route: r, prevRoute, editorView: $editorView });
     if (r === prevRoute) return;
     prevRoute = r;
     if (r === '/components') {
-      editorView.update((v) => (v === 'components' ? 'tokens' : v));
+      editorView.update((v) => {
+        const next = v === 'components' ? 'tokens' : v;
+        console.log(`[lt-debug:${dbgCtx}] route-pair → set editorView`, { from: v, to: next });
+        return next;
+      });
     }
+  });
+
+  editorView.subscribe((v) => {
+    console.log(`[lt-debug:${dbgCtx}] editorView subscribe`, { value: v });
   });
 
   // Editor route has its own chrome — hide overlay there.

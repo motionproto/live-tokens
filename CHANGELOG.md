@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.13.3 — Diagnostic logging (temporary)
+
+Adds `console.log` traces inside `LiveEditorOverlay` for the route↔editorView
+pairing rule and for editorView subscriptions, prefixed `[lt-debug:parent]` /
+`[lt-debug:iframe]`. Will be removed in 0.13.4. Use this only if you're
+helping diagnose the components-view flicker reported on 0.13.1/0.13.2.
+
 ## 0.13.2 — Fix font 404s for consumers
 
 The bundled `fonts.css` and the default `fontSources[].cssText` both used
