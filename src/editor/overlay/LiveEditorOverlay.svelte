@@ -15,6 +15,7 @@
   import { fade } from 'svelte/transition';
   import { cubicInOut } from 'svelte/easing';
   import { route, navigate } from '../core/routing/router';
+  import { editorView } from '../core/store/editorViewStore';
   import { columnsVisible, toggleColumns } from './columnsOverlay';
   import { storageKey } from '../core/store/editorConfig';
   import { overlayOpen } from './overlayState';
@@ -59,6 +60,15 @@
   });
   run(() => {
     overlayOpen.set(!!open);
+  });
+
+  // The /components route renders the same component-editor surface as the
+  // overlay's components view. Pair them: when the page is /components, flip
+  // the overlay to tokens so the two surfaces don't stack.
+  run(() => {
+    if ($route === '/components' && $editorView === 'components') {
+      editorView.set('tokens');
+    }
   });
 
   // Editor route has its own chrome — hide overlay there.

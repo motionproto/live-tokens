@@ -1,10 +1,7 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
   import LiveEditorOverlay from '../editor/overlay/LiveEditorOverlay.svelte';
   import ColumnsOverlay from '../editor/overlay/ColumnsOverlay.svelte';
   import { route, navigate } from '../editor/core/routing/router';
-  import { editorView } from '../editor/core/store/editorViewStore';
 
   const allNavLinks = [
     { path: '/', label: 'Site', icon: 'fa-home' },
@@ -13,16 +10,6 @@
   ];
 
   let visibleNavLinks = $derived(allNavLinks);
-
-  // The /components page and the overlay's components view are the same surface.
-  // Keep them mutually exclusive by flipping the overlay to tokens whenever the
-  // underlying page is /components, so they pair as page+overlay instead of
-  // stacking on top of each other.
-  run(() => {
-    if ($route === '/components' && $editorView === 'components') {
-      editorView.set('tokens');
-    }
-  });
 
   function handleClick(e: MouseEvent) {
     const anchor = (e.target as HTMLElement).closest('a[href]');

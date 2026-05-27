@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.12.1 — Overlay owns the /components route pairing
+
+The mutual-exclusion rule that flips the overlay to Tokens view whenever the
+page route is `/components` now lives inside `LiveEditorOverlay` itself.
+Consumer App shells no longer need to import `editorView` or wire up the
+pairing block by hand.
+
+### Changed
+
+- **`LiveEditorOverlay` self-handles the /components route pairing.** Previously
+  each consumer's `App.svelte` had to subscribe to `route` + `editorView` and
+  force `editorView.set('tokens')` when the route hit `/components`, otherwise
+  the full-page component editor and the overlay's components view would stack.
+  The rule now fires from inside the overlay component, so any host that mounts
+  `<LiveEditorOverlay />` gets the behaviour for free. The starter's
+  `src/app/App.svelte` is updated to drop the duplicated block.
+
 ## 0.12.0 — Toggle, CodeSnippet, and a Claude skill suite
 
 Two new shipped components (`Toggle`, `CodeSnippet`) and a `live-tokens` CLI
