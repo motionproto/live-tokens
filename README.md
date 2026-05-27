@@ -7,13 +7,13 @@ A foundational design system for quickly styling and building Svelte + Vite micr
 ## What you get
 
 - **Real-time token editing.** Pick a color, drag a hue slider, retype a font size — the page repaints on every input event via CSS-variable writes. No reload, no save-and-refresh, no build step. Works across colors, typography, spacing, radii, shadows, motion, palettes, and gradients.
-- **Real-time component editing.** Each of ~19 shipped Svelte components (Button, Card, Dialog, Badge, Callout, Table, Tooltip, Toggle, Tabs, SegmentedControl, ProgressBar, CornerBadge, SectionDivider, CollapsibleSection, and more) declares its own design-token aliases in a `:global(:root)` block. Rewire any alias from a per-component picker and see that component update everywhere it's used — live, on your real pages, not in a Storybook sandbox.
+- **Real-time component editing.** Each of ~24 shipped Svelte components (Button, Input, Card, Dialog, Badge, Callout, Table, Tooltip, Toggle, TabBar, SegmentedControl, RadioButton, MenuSelect, ProgressBar, CornerBadge, SectionDivider, CollapsibleSection, Notification, Image, ImageLightbox, CodeSnippet, SideNavigation, and more) declares its own design-token aliases in a `:global(:root)` block. Rewire any alias from a per-component picker and see that component update everywhere it's used — live, on your real pages, not in a Storybook sandbox.
 - **Theme editor** (`/editor` route, dev-only) — the home of real-time token editing. Save themes to disk as JSON, promote one to "production" to bake it into a static `tokens.css` for the build.
 - **Per-component editor** (`/components` route, dev-only) — the home of real-time component-alias editing. Pick token aliases per component without writing CSS.
 - **Live editor overlay** — pins to the top-right of every dev page. Opens the editor in a side panel or floating window so you edit *on the page you're styling*, not in a separate tab. Includes a "Page Source" button that opens the current page's `.svelte` file in VS Code.
 - **Preset bundles** — capture a whole site configuration (active theme + every component's active config) as a single portable artifact. Drop a preset into a new project to restore the full styling in one step.
 - **Vite plugin** — hosts the `/api/live-tokens/{themes,component-configs,manifests}/*` routes that persist your edits to disk as you make them. The single namespace keeps live-tokens' routes from colliding with anything your app serves under `/api`.
-- **Claude Code skill suite** — three bundled skills so you can drive the package in plain English. `build-page` composes pages from the shipped components. `pick-component` decides between confusing pairs (TabBar vs SegmentedControl, Card vs CollapsibleSection). `add-component` authors a new editable component against the project's naming, state-model, and import rules. One command to install all three: `npx @motion-proto/live-tokens setup-claude`. See [Claude Code skills](#claude-code-skills) below.
+- **Claude Code skill suite** — three bundled skills so you can drive the package in plain English. `build-page` composes pages from the shipped components. `pick-component` decides between confusing pairs (TabBar vs SegmentedControl, Card vs CollapsibleSection). `create-component` authors a new editable component against the project's naming, state-model, and import rules. One command to install all three: `npx @motion-proto/live-tokens setup-claude`. See [Claude Code skills](#claude-code-skills) below.
 
 ## Quick install
 
@@ -244,7 +244,7 @@ The package ships a suite of Claude Code skills that encode the project's conven
 | Skill                          | Triggers on                                                          | What it knows                                                                                                                  |
 |--------------------------------|----------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
 | `live-tokens-build-page`       | "build a pricing page using live-tokens components"                  | shipped-component catalogue, column grid, `pageSources` registration, token-only styling rule                                   |
-| `live-tokens-pick-component`   | "what's the difference between TabBar and SegmentedControl?"         | decision trees for confusing pairs (selection family, container family, messaging family); when to author a new one instead    |
+| `live-tokens-pick-component`   | "what's the difference between TabBar and SegmentedControl?"         | decision tables for each confusable family (selection, container, messaging, on/off); when to author a new one instead         |
 | `live-tokens-create-component` | "author a new Toggle component for my live-tokens project"           | runtime + editor + `registerComponent()` recipe, naming scheme, state model, public-imports rule, verification checklist        |
 
 ### Install
@@ -263,7 +263,7 @@ mkdir -p .claude/skills && cp -R node_modules/@motion-proto/live-tokens/.claude/
 
 ### Validate authored components
 
-The same CLI ships a static validator that turns the `add-component` skill's verification checklist into a runnable command:
+The same CLI ships a static validator that turns the `create-component` skill's verification checklist into a runnable command:
 
 ```bash
 npx @motion-proto/live-tokens check-component <id>
