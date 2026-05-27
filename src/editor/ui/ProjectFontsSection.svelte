@@ -262,10 +262,10 @@
           with a fonts URL, a <code>&lt;link&gt;</code> tag, or an <code>@import url(...)</code> line.
         </p>
         <p>
-          <strong>Local files</strong> — drop your <code>.woff2</code> files into
-          <code>src/system/styles/fonts/&lt;Family&gt;/</code>, then paste the matching
-          <code>@font-face &#123; ... &#125;</code> rules into <em>Paste</em>. The folder ships
-          with the production build, so <code>src/...</code> paths resolve at runtime.
+          <strong>Local files</strong> — drop your <code>.woff2</code> files somewhere
+          Vite can serve (typically <code>public/fonts/&lt;Family&gt;/</code>), then paste
+          the matching <code>@font-face &#123; ... &#125;</code> rules into <em>Paste</em>
+          with <code>url('/fonts/&lt;Family&gt;/&lt;file&gt;.woff2')</code>.
         </p>
       </UIInfoPopover>
     </div>

@@ -30,8 +30,7 @@
     "!**/*.spec.ts",
     "!**/__tests__/**",
     "!src/system/components/Stat.svelte",
-    "!src/system/components/StatEditor.svelte",
-    "!src/system/styles/fonts/**"
+    "!src/system/components/StatEditor.svelte"
   ],
   "bin": {
     "live-tokens": "./bin/cli.mjs"
