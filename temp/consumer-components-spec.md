@@ -21,7 +21,7 @@ Memory update is task #8.
 
 **Pillar 2: Editor patterns.** Use `ComponentEditorBase` as the page shell, `VariantGroup` per variant with a state map, dev-declared linked-block (`canBeLinked: true` + `groupKey` + `linkableContexts` + `siblings`), and the established state model (component states are default/selected/disabled, mutually exclusive, disabled terminal; interaction states are default/hover; selected-disabled and hovered-disabled are impossible). Parts are not states (Dialog's overlay/header/body/footer). Editor chrome stays greyscale (file-state indicators are the only color), pill buttons, no em-dashes in copy.
 
-Both pillars get expanded in `.claude/skills/live-tokens-add-component/SKILL.md`. This spec only summarizes for orientation.
+Both pillars get expanded in `.claude/skills/live-tokens-create-component/SKILL.md`. This spec only summarizes for orientation.
 
 ## API design
 
@@ -135,7 +135,7 @@ Same pattern in the overlay's components view if it has its own nav rail.
 
 ## Skill outline
 
-`.claude/skills/live-tokens-add-component/SKILL.md` contents:
+`.claude/skills/live-tokens-create-component/SKILL.md` contents:
 
 1. **Frontmatter / trigger.** Triggers on "add a component to a live-tokens project", "make X editable in the live-tokens editor", "extend the live-tokens system with...", "create a tokenized [Thing] component", etc.
 2. **Pillar 1** (token discipline) with the rules from the section above, plus the full naming vocabulary copied from `src/system/styles/CONVENTIONS.md` so the skill is self-contained.
@@ -156,10 +156,10 @@ Pull rules verbatim from these existing feedback memories where they apply:
 
 ## Skill bundling and activation
 
-- Skill lives at `.claude/skills/live-tokens-add-component/SKILL.md` in this repo.
+- Skill lives at `.claude/skills/live-tokens-create-component/SKILL.md` in this repo.
 - Add `.claude/skills/` to the `files:` array in `package.json` so it rides along in the tarball.
 - Verify with `npm pack --dry-run` that the SKILL.md is in the output.
-- Document activation in README: one-line copy or symlink from `node_modules/@motion-proto/live-tokens/.claude/skills/live-tokens-add-component` into the consumer's `.claude/skills/`. No install hooks; opt-in.
+- Document activation in README: one-line copy or symlink from `node_modules/@motion-proto/live-tokens/.claude/skills/live-tokens-create-component` into the consumer's `.claude/skills/`. No install hooks; opt-in.
 
 ## Smoke test (task #7)
 

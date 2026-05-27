@@ -25,6 +25,7 @@
     display: grid;
     grid-template-columns: repeat(var(--columns-count), 1fr);
     column-gap: var(--columns-gutter);
+    margin-top: var(--space-32);
   }
 
   .offering-frame {

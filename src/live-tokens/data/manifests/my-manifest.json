@@ -1,8 +1,8 @@
 {
   "name": "my-manifest",
   "createdAt": "2026-05-25T21:49:55.471Z",
-  "updatedAt": "2026-05-27T02:07:37.745Z",
-  "theme": "default",
+  "updatedAt": "2026-05-27T15:34:14.854Z",
+  "theme": "my-theme",
   "componentConfigs": {
     "badge": "default",
     "button": "default",
@@ -26,7 +26,8 @@
     "stateditor": "default",
     "tabbar": "default",
     "table": "my-table",
-    "tooltip": "default",
-    "imagelightbox": "my-image-lightbox"
+    "tooltip": "my-tooltip",
+    "imagelightbox": "my-image-lightbox",
+    "codesnippet": "my-code-snippet"
   }
 }

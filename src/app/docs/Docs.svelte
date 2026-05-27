@@ -93,7 +93,7 @@
         { path: 'getting-started',  title: 'Getting started' },
         { path: 'editing-tokens',   title: 'Editing tokens' },
         { path: 'themes-workflow',  title: 'Themes workflow' },
-        { path: 'adding-components', title: 'Adding components' },
+        { path: 'creating-components', title: 'Creating components' },
         { path: 'token-naming',     title: 'Token naming' },
       ],
     },

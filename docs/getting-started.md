@@ -111,7 +111,7 @@ production.
   editor.
 - **[Themes workflow](themes-workflow.md)**: save, switch, promote,
   manifests.
-- **[Adding components](adding-components.md)**: the Claude skill
+- **[Creating components](creating-components.md)**: the Claude skill
   walks you through making your own component editable.
 - **[Token naming](token-naming.md)**: the naming pattern, so your
   custom components fit the system.

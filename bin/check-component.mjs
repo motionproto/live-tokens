@@ -1,7 +1,7 @@
 // Static validator for a live-tokens component.
 //
 // Asserts that an authored component (runtime + editor + registration) satisfies
-// the contract described in the live-tokens-add-component skill:
+// the contract described in the live-tokens-create-component skill:
 //
 //   - runtime file at src/system/components/<Id>.svelte with :global(:root) block
 //   - editor file at src/system/components/<Id>Editor.svelte exporting `component` + `allTokens`
@@ -229,7 +229,7 @@ export function checkComponent(id, root = process.cwd()) {
 export function formatReport(id, result) {
   const lines = [];
   if (result.errors.length === 0 && result.warnings.length === 0) {
-    lines.push(`✓ ${id}: passes the live-tokens-add-component contract.`);
+    lines.push(`✓ ${id}: passes the live-tokens-create-component contract.`);
   } else {
     if (result.errors.length > 0) {
       lines.push(`✗ ${id}: ${result.errors.length} error(s)`);

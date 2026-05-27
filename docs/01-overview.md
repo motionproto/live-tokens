@@ -111,7 +111,7 @@ The user manual chapters cover the consumer-facing workflow:
 - **[Getting started](getting-started.md)**: install, run, first edit.
 - **[Editing tokens](editing-tokens.md)**: tour the editor's tabs.
 - **[Themes workflow](themes-workflow.md)**: save, switch, promote.
-- **[Adding components](adding-components.md)**: the Claude skill walks
+- **[Creating components](creating-components.md)**: the Claude skill walks
   you through making your own component editable.
 - **[Token naming](token-naming.md)**: the naming pattern.
 

@@ -9,7 +9,7 @@ export const chapters: Chapter[] = [
   { id: 'getting-started',                title: 'Getting started' },
   { id: 'editing-tokens',                 title: 'Editing tokens' },
   { id: 'themes-workflow',                title: 'Themes workflow' },
-  { id: 'adding-components',              title: 'Adding components' },
+  { id: 'creating-components',            title: 'Creating components' },
   { id: 'token-naming',                   title: 'Token naming' },
 
   /* Reference: how Live Tokens works under the hood. Read when extending

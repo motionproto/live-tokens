@@ -46,6 +46,11 @@ export const LINE_HEIGHT_VARS = [
   '--line-height-lg', '--line-height-xl',
 ] as const;
 
+export const LETTER_SPACING_VARS = [
+  '--letter-spacing-tighter', '--letter-spacing-tight', '--letter-spacing-normal',
+  '--letter-spacing-wide', '--letter-spacing-wider',
+] as const;
+
 export interface TokenItem {
   variable: string;
   value: string;

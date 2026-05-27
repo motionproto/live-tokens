@@ -101,7 +101,7 @@ What should be in the tarball:
 - `src/system/**` (token components and `tokens.css`)
 - `src/app/site.css` (optional starter typography)
 - `dist-plugin/**` (built vite plugin)
-- `.claude/skills/live-tokens-add-component/**` (Claude skill)
+- `.claude/skills/live-tokens-create-component/**` (Claude skill)
 - `package.json`, `README.md`, `LICENSE*`, `CHANGELOG.md`
 
 What should NEVER be in the tarball:

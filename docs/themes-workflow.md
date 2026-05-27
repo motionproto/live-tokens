@@ -151,7 +151,7 @@ always switch back to the previous theme via the file menu.
 
 ## Where to go next
 
-- [Adding components](adding-components.md): make your own components
+- [Creating components](creating-components.md): make your own components
   editable in the same surface.
 - [Token naming](token-naming.md): the naming pattern your custom
   components should follow.

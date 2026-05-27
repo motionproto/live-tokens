@@ -14,7 +14,7 @@ The overlay has two top-level views:
   system.
 
 This chapter covers **Tokens**. Components have their own chapter
-(see [Adding components](adding-components.md) and the reference
+(see [Creating components](creating-components.md) and the reference
 chapter on the component system).
 
 ## Palettes
@@ -131,4 +131,4 @@ A few things happen automatically and you do not have to manage them:
 
 For the workflow of saving, switching, and shipping themes, continue
 to [Themes workflow](themes-workflow.md). To add a new component to
-the editor, see [Adding components](adding-components.md).
+the editor, see [Creating components](creating-components.md).

@@ -170,9 +170,10 @@
     --notch-width: 22.5rem;
     --notch-height: calc(var(--picker-overlap));
     --stage-gap: var(--space-32);
+    --stage-row-height: 4rem;
 
     display: grid;
-    grid-template-rows: auto auto;
+    grid-template-rows: var(--stage-row-height) auto;
     row-gap: var(--stage-gap);
     justify-items: center;
     box-sizing: border-box;

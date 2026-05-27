@@ -1,5 +1,5 @@
 ---
-name: live-tokens-add-component
+name: live-tokens-create-component
 description: Author a brand-new editable component for a @motion-proto/live-tokens project when nothing in the shipped catalogue fits. Covers the runtime Svelte file with :global(:root) tokens, the editor Svelte file with allTokens + VariantGroup, the registerComponent() call, naming conventions, state model, public-imports rule, and verification. Use when the user asks to author / create / build / extend a new tokenized component, make an existing Svelte component editable in the live-tokens editor, add a new component to the catalogue, register a custom component with the editor, or build a [Thing] component that does not exist in the shipped set. Not for placing an existing shipped component (Button, Card, etc.) on a page (see live-tokens-build-page); read live-tokens-pick-component first to confirm nothing in the catalogue fits.
 ---
 
@@ -16,6 +16,7 @@ For pattern reference, read any shipped component's source directly from the con
   - Multi-state (hover, disabled, focus): `Button`, `Input`.
   - Multi-part (overlay / header / body / footer): `Dialog`.
   - Multi-variant with linked siblings (`canBeLinked` + `groupKey`): `SegmentedControl`, `TabBar`.
+  - Composes another shipped component: `CodeSnippet` (renders a `Tooltip` for the copy-confirmation popover).
 - Editor files: `node_modules/@motion-proto/live-tokens/src/editor/component-editor/<Name>Editor.svelte`.
 
 **File-location note.** Shipped editors live in `src/editor/component-editor/` because they're library-internal. For *your* component, **co-locate** both files in `src/system/components/` per the recipe below. Read the shipped files for pattern, ignore their location.
@@ -23,7 +24,7 @@ For pattern reference, read any shipped component's source directly from the con
 ## 4-step recipe
 
 1. **Runtime file** — `src/system/components/MyWidget.svelte`. Declare every editable slot as a CSS custom property inside `:global(:root)`, defaulting to a theme token (never a raw value). The plugin parses `:global(:root)` to seed `component-configs/<id>/default.json`; variables declared anywhere else can't be edited.
-2. **Editor file** — `src/system/components/MyWidgetEditor.svelte`. In a `<script module>` block, declare `const component = 'mywidget'`, build the `Token[]` list for each variant × state, export `allTokens: Token[]` (flat union), and build a `linkableContexts: Map<string, string>` for cross-variant link rows. In the runtime `<script>` block, mount `ComponentEditorBase` with one `VariantGroup` per variant.
+2. **Editor file** — `src/system/components/MyWidgetEditor.svelte`. In a `<script module>` block, declare `const component = 'mywidget'`, build a `states: Record<string, Token[]>` for each VariantGroup, and export the flat union as `allTokens: Token[]`. Components with linked siblings also build a `linkableContexts: Map<string, string>` (see the linked-siblings extension below). In the runtime `<script>` block, mount `ComponentEditorBase` with one `VariantGroup` per variant.
 3. **Register** — in `src/main.ts` before `mount(App, ...)`:
    ```ts
    import { registerComponent } from '@motion-proto/live-tokens';
@@ -39,7 +40,8 @@ For pattern reference, read any shipped component's source directly from the con
    });
    ```
    The schema side-effect happens inside `registerComponent`, so you don't call `registerComponentSchema` separately.
-4. **Verify** — open `/components` and run the verification checklist at the bottom of this file.
+4. **Tell the picker** — open `.claude/skills/live-tokens-pick-component/SKILL.md` and add your new component to the **Catalogue** line under the family it belongs to (Action / Input / Selection / Containers / Messaging / Display). If it's confusable with an existing component (a second selection control, a competing container), add a row to that family's decision table explaining the use-case it owns. Without this step, the component exists but [[live-tokens-pick-component]] can't recommend it when a user asks "which component should I use?" — the same rule applies whether the component is first-party (update the picker shipped in this package) or consumer-authored (update the local copy at `.claude/skills/live-tokens-pick-component/SKILL.md` that `setup-claude` placed in your project).
+5. **Verify** — open `/components` and run the verification checklist at the bottom of this file.
 
 ## Token discipline
 
@@ -113,7 +115,9 @@ Tokens that share a `groupKey` and declare `canBeLinked: true` form a sibling se
 
 ## State model
 
-Components have two state axes. Don't mix them.
+Components *can* have two state axes. Many don't: container and messaging components (Card, Badge, Callout, CollapsibleSection) have only variants, no hover/disabled. Skip the rest of this section for those.
+
+When a component does have states, don't mix the two axes:
 
 - **Component states** — mutually exclusive top-level fieldsets: `default`, `selected`, `disabled` (names vary by component). One fieldset per component state.
 - **Interaction states** — a select *inside* each component-state fieldset: `default`, `hover`. Add `focus`/`active` later if needed.
@@ -135,46 +139,28 @@ Token naming consequence:
 --mywidget-selected-disabled-text    ✗  selected-disabled doesn't exist
 ```
 
-## Editor chrome
+## User-facing copy
 
-The editor chrome is **greyscale only**. Never introduce accent colors (blue, etc.) for buttons, links, or hover states. The sole exception is file-state indicators. Buttons in editor chrome are pill-shaped with a subtle white gradient. Section underlines bright (`--ui-border-high`); sub-element outlines dim (`--ui-border-faint`).
+Strings you author for the editor UI use periods and commas, never em-dashes. Em-dashes read as an AI tell. This applies to `title=` and `description=` on `ComponentEditorBase`, token row labels, info popovers, and any text inside `previewActions` / `canvasToolbarExtras` snippets. Code comments are unaffected.
 
-Heading scale (semantic; never hardcode pixel sizes):
-
-| Role    | Token                | Treatment                                                      |
-|---------|----------------------|----------------------------------------------------------------|
-| Body    | `--ui-font-size-md`  | —                                                              |
-| Eyebrow | `--ui-font-size-xs`  | semibold tertiary, uppercase, letter-spacing                    |
-| Group   | `--ui-font-size-lg`  | semibold secondary                                              |
-| Section | `--ui-font-size-2xl` | semibold primary, 2px `--ui-border-high` underline              |
-
-**User-facing copy uses periods and commas, no em-dashes.** Em-dashes read as an AI tell. Restructure sentences. This applies to titles, descriptions, info popovers, button labels, dialog body text. (Code comments are unaffected.)
+If you add custom chrome inside an editor snippet (rare — `ComponentEditorBase` and `VariantGroup` carry the standard chrome), keep it greyscale (no accent colors) and reference heading sizes via `--ui-font-size-md` / `-lg` / `-2xl` rather than pixel literals.
 
 ## Public imports only
 
-Imports in your runtime, editor, and `main.ts` must come from exactly two paths:
+Imports in your runtime, editor, and `main.ts` come from exactly two paths:
 
 ```ts
-// From @motion-proto/live-tokens
+import { registerComponent, editorState } from '@motion-proto/live-tokens';
 import {
-  registerComponent, editorState, setComponentAlias, setComponentConfig,
-  registerComponentSchema, configureEditor, initEditorStore,
-} from '@motion-proto/live-tokens';
-import type {
-  RegisterComponentEntry, RegistryEntry, ComponentId,
-} from '@motion-proto/live-tokens';
-
-// From @motion-proto/live-tokens/component-editor
-import {
-  ComponentEditorBase, VariantGroup, LinkedBlock, TypeEditor, TokenLayout,
-  buildSiblings, computeLinkedBlock, withLinkedDisabled, buildTypeGroupTokens,
+  ComponentEditorBase, VariantGroup,
+  computeLinkedBlock, withLinkedDisabled, buildSiblings,
 } from '@motion-proto/live-tokens/component-editor';
-import type {
-  Token, Sibling, LinkedToken, LinkedGroup, LinkedBlockResult, ComponentSection,
-} from '@motion-proto/live-tokens/component-editor';
+import type { Token } from '@motion-proto/live-tokens/component-editor';
 ```
 
-**Never deep-import `node_modules/@motion-proto/live-tokens/src/...`.** (Reading those files for pattern reference is fine; importing them at runtime is not.) If you need something not exported here, restructure to avoid the dependency or file an issue against `@motion-proto/live-tokens` to add the export.
+That covers everything the worked examples use. Additional primitives (`LinkedBlock`, `TypeEditor`, `TokenLayout`, `buildTypeGroupTokens`, more types) are exported from the same paths for advanced cases.
+
+**Never deep-import `node_modules/@motion-proto/live-tokens/src/...`.** Reading those files for pattern reference is fine; importing them at runtime is not. If you need something not exported, file an issue rather than reaching in.
 
 ## Worked example: shipped Toggle, end-to-end
 
@@ -324,7 +310,7 @@ What to notice:
       { label: 'label font family',  variable: '--toggle-label-font-family' },
       { label: 'label font size',    variable: '--toggle-label-font-size' },
       { label: 'label font weight',  variable: '--toggle-label-font-weight' },
-      { label: 'gap',                variable: '--toggle-gap' },
+      { label: 'label gap',          variable: '--toggle-gap' },
     ],
     hover: [
       { label: 'track surface', variable: '--toggle-hover-track-surface' },
@@ -385,6 +371,7 @@ What to notice:
 - `states` keys become the VariantGroup tab labels the user sees. Multi-word keys (`'on hover'`) need quoting.
 - `allTokens` is a flat union of every state's tokens. The editor store needs it for reset-to-default and sibling resolution.
 - `previewProps` translates the active editor tab into runtime props (`checked`, `disabled`, `force-hover` class).
+- No `groupKey`, no `canBeLinked`: Toggle has no linked siblings. For components that share base properties across variants, see the linked-siblings extension below.
 
 ### Register: `src/main.ts`
 
@@ -406,6 +393,75 @@ registerComponent({
 
 If you do this with `id: 'toggle'`, the consumer's component wins over the built-in (with a console warning). The collision rule protects you, but for a fresh component pick an id that doesn't collide.
 
+## Extension: linked siblings
+
+Toggle's tokens are flat per state. Most multi-variant components (Badge, Card, SegmentedControl) share base properties across variants and surface that equality via a *linked block*: one edit propagates to every variant, while per-variant properties stay independent. Five additions to the Toggle pattern; see `BadgeEditor.svelte` in `node_modules` for the full file.
+
+1. **Mark linkable tokens** with `canBeLinked: true` + a `groupKey`. Peers sharing a `groupKey` form a link set across variants.
+
+   ```ts
+   function variantBaseTokens(v: Variant): Token[] {
+     return [
+       { label: 'padding',       canBeLinked: true, groupKey: 'padding', variable: `--badge-${v}-padding` },
+       { label: 'corner radius', canBeLinked: true, groupKey: 'radius',  variable: `--badge-${v}-radius` },
+     ];
+   }
+   // Colors omit canBeLinked. Per-variant by design.
+   function variantColorTokens(v: Variant): Token[] {
+     return [
+       { label: 'surface color', groupKey: 'surface', variable: `--badge-${v}-surface` },
+       { label: 'text color',    groupKey: 'text',    variable: `--badge-${v}-text` },
+     ];
+   }
+   ```
+
+2. **Build a `linkableContexts: Map<variable, contextLabel>`** in `<script module>`. The label (e.g. `"success base"`) is how the LinkageChart row identifies this variable. Plain literal Map, no helper needed.
+
+   ```ts
+   const linkableContexts = new Map<string, string>(
+     variants.flatMap((v) =>
+       variantBaseTokens(v)
+         .filter((t) => t.canBeLinked)
+         .map((t) => [t.variable, `${v} base`] as [string, string]),
+     ),
+   );
+   ```
+
+3. **Compute `linked` and mask currently-linked rows** out of per-state lists, so they render once inside the LinkedBlock instead of twice.
+
+   ```ts
+   import { editorState } from '@motion-proto/live-tokens';
+   import { computeLinkedBlock, withLinkedDisabled, buildSiblings }
+     from '@motion-proto/live-tokens/component-editor';
+
+   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
+   let visibleVariantStates = $derived((v: Variant) => Object.fromEntries(
+     Object.entries(variantStates(v)).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
+   ));
+   ```
+
+4. **Pass `{linked}` to `ComponentEditorBase`** so the LinkedBlock renders above the variant groups.
+
+5. **Multi-variant editors iterate VariantGroups** with `buildSiblings` so cross-variant link rows resolve to their peers.
+
+   ```svelte
+   <ComponentEditorBase {component} title="Badge" tokens={allTokens} {linked} variants={variantOptions}>
+     {#each variants as v}
+       <VariantGroup
+         name={v}
+         title={v}
+         states={visibleVariantStates(v)}
+         {component}
+         siblings={buildSiblings(variants, v, variantStates)}
+       >
+         ...preview snippet
+       </VariantGroup>
+     {/each}
+   </ComponentEditorBase>
+   ```
+
+Single-variant components with multi-state linked tokens still set `canBeLinked` + `linkableContexts`, but skip `buildSiblings` and the `{#each}` loop. Components with no linked tokens (Toggle, SectionDivider) skip all five steps — `ComponentEditorBase` renders fine without a `{linked}` prop.
+
 ## Verification checklist
 
 After saving, run the static validator first:
@@ -421,8 +477,7 @@ Then navigate to `/components` and confirm the runtime behaviours the static che
 
 - [ ] The new component appears in the nav rail under the **CUSTOM** group (system entries above, custom below the labeled divider).
 - [ ] Token rows render. Color pickers, radius selectors, font selectors all work.
-- [ ] Linked-block: shared rows appear with the link toggle. Changing the linked value broadcasts across every variant.
+- [ ] Linked-block (if your component has linked siblings): shared rows appear with the link toggle. Changing the linked value broadcasts across every variant.
 - [ ] First save creates `component-configs/<id>/default.json`. Subsequent saves write `_active.json` plus any named files.
 - [ ] Reset returns each variable to its `:global(:root)` default.
 - [ ] Boot validation is clean (no warnings about the component being missing from the server scan, or about disk-vs-registry drift).
-- [ ] All imports in your runtime, editor, and `main.ts` come from only `@motion-proto/live-tokens` and `@motion-proto/live-tokens/component-editor`. No `../../node_modules/...` and no deep-imports.

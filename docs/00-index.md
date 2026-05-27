@@ -24,7 +24,7 @@ it matters.
 | [05-component-system.md](05-component-system.md) | Component authors | Registry, alias vs config, scaffolding, sibling linking |
 | [06-dev-server-plugin.md](06-dev-server-plugin.md) | Plugin devs | `themeFileApi`, route table, versioned file resources |
 | [07-overlay-and-routing.md](07-overlay-and-routing.md) | UI devs | LiveEditorOverlay, columns overlay, router, iframe fan-out |
-| [adding-components.md](adding-components.md) | Component authors | Step-by-step: Claude skill plus manual recipe |
+| [creating-components.md](creating-components.md) | Component authors | Step-by-step: Claude skill plus manual recipe |
 | [09-developer-recipes.md](09-developer-recipes.md) | All | Add tokens, add migrations, run tests, publish |
 | [10-conventions-and-invariants.md](10-conventions-and-invariants.md) | All | State model, parts vs states, linking, fan-out |
 

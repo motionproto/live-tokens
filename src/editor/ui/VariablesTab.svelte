@@ -10,7 +10,7 @@
   import ShadowsSection from './sections/ShadowsSection.svelte';
   import {
     SPACING_VARS, BORDER_WIDTH_VARS, RADIUS_VARS, FONT_SIZE_VARS,
-    ICON_SIZE_VARS, FONT_WEIGHT_VARS, LINE_HEIGHT_VARS,
+    ICON_SIZE_VARS, FONT_WEIGHT_VARS, LINE_HEIGHT_VARS, LETTER_SPACING_VARS,
     DURATION_TOKENS, Z_INDEX_TOKENS, OPACITY_TOKENS,
   } from './sections/tokenScales';
 
@@ -110,6 +110,11 @@
       <div class="typography-group">
         <h3 class="group-title">Line Heights</h3>
         <TokenScaleTable kind="line-height" vars={LINE_HEIGHT_VARS} {liveVersion} {copiedVar} oncopy={copyVariable} />
+      </div>
+
+      <div class="typography-group">
+        <h3 class="group-title">Letter Spacings</h3>
+        <TokenScaleTable kind="letter-spacing" vars={LETTER_SPACING_VARS} {liveVersion} {copiedVar} oncopy={copyVariable} />
       </div>
     </div>
   </section>

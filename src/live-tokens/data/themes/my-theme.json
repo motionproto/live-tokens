@@ -1,7 +1,7 @@
 {
   "name": "My Theme",
   "createdAt": "2026-05-27T02:25:00.339Z",
-  "updatedAt": "2026-05-27T02:25:00.342Z",
+  "updatedAt": "2026-05-27T15:34:32.061Z",
   "editorConfigs": {
     "Neutral": {
       "baseColor": "#808080",
@@ -634,6 +634,14 @@
           "outDy": -19
         },
         {
+          "x": 40,
+          "y": 65.72274549769725,
+          "inDx": -15,
+          "inDy": 0,
+          "outDx": 15,
+          "outDy": 0
+        },
+        {
           "x": 100,
           "y": 11,
           "inDx": -45.49158094126201,
@@ -649,6 +657,14 @@
           "inDx": 0,
           "inDy": 0,
           "outDx": 0,
+          "outDy": 0
+        },
+        {
+          "x": 40,
+          "y": 100,
+          "inDx": -15,
+          "inDy": 0,
+          "outDx": 15,
           "outDy": 0
         },
         {
@@ -2127,6 +2143,10 @@
     "--dialog-secondary-hover-border-width": "var(--border-width-1)",
     "--dialog-secondary-hover-radius": "var(--radius-md)",
     "--dialog-secondary-hover-padding": "var(--space-8)",
+    "--columns-count": "12",
+    "--columns-max-width": "1440px",
+    "--columns-gutter": "32px",
+    "--columns-margin": "0px",
     "--overlay-low": "color-mix(in srgb, var(--surface-neutral-lowest) 38%, transparent)",
     "--overlay": "color-mix(in srgb, var(--surface-neutral-lowest) 51%, transparent)",
     "--overlay-high": "color-mix(in srgb, var(--surface-neutral-lowest) 64%, transparent)",

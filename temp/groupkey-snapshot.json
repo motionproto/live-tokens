@@ -506,6 +506,7 @@
       "--card-default-title-line-height"
     ]
   },
+  "codesnippet": {},
   "collapsiblesection": {
     "border": [
       "--collapsiblesection-container-frame-border",
@@ -1954,6 +1955,7 @@
       "--table-default-surface"
     ]
   },
+  "toggle": {},
   "tooltip": {
     "family": [
       "--tooltip-text-font-family"

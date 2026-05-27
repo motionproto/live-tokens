@@ -151,7 +151,7 @@ reference chapter has the full state-model invariants.
 
 ## Where to go next
 
-- [Adding components](adding-components.md): how to use this in a new
+- [Creating components](creating-components.md): how to use this in a new
   component, with the Claude skill or manually.
 - For the comprehensive list of theme-side categories, scale shapes,
   and edge cases, see `src/system/styles/CONVENTIONS.md` in the

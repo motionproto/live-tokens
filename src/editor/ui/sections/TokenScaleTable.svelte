@@ -22,13 +22,14 @@
   /** Visual layout variant. Each variant matches one of the seven scales the
    *  parent renders; the markup differs only in the preview swatch. */
   type ScaleKind =
-    | 'spacing'      // horizontal bar sized by width: var(--xx)
-    | 'border'       // horizontal bar sized by height: var(--xx)
-    | 'radius'       // square box with border-radius: var(--xx)
-    | 'font-size'    // "Ag" text sized by font-size: var(--xx)
-    | 'font-weight'  // "Ag" text weighted by font-weight: var(--xx)
-    | 'line-height'  // no preview, table-only rows
-    | 'icon-size';   // star icon sized by font-size: var(--xx)
+    | 'spacing'         // horizontal bar sized by width: var(--xx)
+    | 'border'          // horizontal bar sized by height: var(--xx)
+    | 'radius'          // square box with border-radius: var(--xx)
+    | 'font-size'       // "Ag" text sized by font-size: var(--xx)
+    | 'font-weight'     // "Ag" text weighted by font-weight: var(--xx)
+    | 'line-height'     // no preview, table-only rows
+    | 'letter-spacing'  // "AV" text spaced by letter-spacing: var(--xx)
+    | 'icon-size';      // star icon sized by font-size: var(--xx)
 
   
   
@@ -159,6 +160,18 @@
       <div class="token-row">
         <button class="token-variable copyable" class:copied={copiedVar === token.variable} onclick={() => copy(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
         <span class="token-value">{token.value}</span>
+      </div>
+    {/each}
+  </div>
+{:else if kind === 'letter-spacing'}
+  <div class="font-weight-demos">
+    {#each resolved as token}
+      <div class="font-weight-item">
+        <span class="letter-spacing-preview" style="letter-spacing: var({token.variable});">AV</span>
+        <div class="token-info">
+          <button class="token-variable copyable" class:copied={copiedVar === token.variable} onclick={() => copy(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
+          <span class="token-value">{token.value}</span>
+        </div>
       </div>
     {/each}
   </div>
@@ -319,6 +332,14 @@
     color: var(--ui-text-primary);
     line-height: 1;
     min-width: 2rem;
+  }
+
+  .letter-spacing-preview {
+    font-size: var(--ui-font-size-xl);
+    font-family: var(--ui-font-sans);
+    color: var(--ui-text-primary);
+    line-height: 1;
+    min-width: 2.5rem;
   }
 
   .font-weight-item .token-info {

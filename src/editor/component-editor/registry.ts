@@ -7,6 +7,7 @@ import CalloutEditor, { allTokens as calloutTokens } from './CalloutEditor.svelt
 import CornerBadgeEditor, { allTokens as cornerBadgeTokens } from './CornerBadgeEditor.svelte';
 import ButtonEditor, { allTokens as buttonTokens } from './ButtonEditor.svelte';
 import CardEditor, { allTokens as cardTokens } from './CardEditor.svelte';
+import CodeSnippetEditor, { allTokens as codeSnippetTokens } from './CodeSnippetEditor.svelte';
 import CollapsibleSectionEditor, { allTokens as collapsibleSectionTokens } from './CollapsibleSectionEditor.svelte';
 import DialogEditor, { allTokens as dialogTokens } from './DialogEditor.svelte';
 import ImageEditor, { allTokens as imageTokens } from './ImageEditor.svelte';
@@ -35,6 +36,7 @@ type BuiltInComponentId =
   | 'card'
   | 'badge'
   | 'callout'
+  | 'codesnippet'
   | 'cornerbadge'
   | 'image'
   | 'imagelightbox'
@@ -152,6 +154,15 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Callout.svelte',
     editorComponent: CalloutEditor,
     schema: calloutTokens,
+    origin: 'system',
+  },
+  codesnippet: {
+    id: 'codesnippet',
+    label: 'Code Snippet',
+    icon: 'fas fa-code',
+    sourceFile: 'src/system/components/CodeSnippet.svelte',
+    editorComponent: CodeSnippetEditor,
+    schema: codeSnippetTokens,
     origin: 'system',
   },
   cornerbadge: {

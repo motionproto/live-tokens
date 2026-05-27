@@ -13,7 +13,7 @@ A foundational design system for quickly styling and building Svelte + Vite micr
 - **Live editor overlay** — pins to the top-right of every dev page. Opens the editor in a side panel or floating window so you edit *on the page you're styling*, not in a separate tab. Includes a "Page Source" button that opens the current page's `.svelte` file in VS Code.
 - **Preset bundles** — capture a whole site configuration (active theme + every component's active config) as a single portable artifact. Drop a preset into a new project to restore the full styling in one step.
 - **Vite plugin** — hosts the `/api/live-tokens/{themes,component-configs,manifests}/*` routes that persist your edits to disk as you make them. The single namespace keeps live-tokens' routes from colliding with anything your app serves under `/api`.
-- **Claude Code skill suite** — four bundled skills so you can drive the package in plain English. `setup-project` wires a new project from scratch. `build-page` composes pages from the shipped components. `pick-component` decides between confusing pairs (TabBar vs SegmentedControl, Card vs CollapsibleSection). `add-component` authors a new editable component against the project's naming, state-model, and import rules. One command to install all four: `npx @motion-proto/live-tokens setup-claude`. See [Claude Code skills](#claude-code-skills) below.
+- **Claude Code skill suite** — three bundled skills so you can drive the package in plain English. `build-page` composes pages from the shipped components. `pick-component` decides between confusing pairs (TabBar vs SegmentedControl, Card vs CollapsibleSection). `add-component` authors a new editable component against the project's naming, state-model, and import rules. One command to install all three: `npx @motion-proto/live-tokens setup-claude`. See [Claude Code skills](#claude-code-skills) below.
 
 ## Quick install
 
@@ -239,14 +239,13 @@ The component appears in the `/components` page under a **CUSTOM** group in the 
 
 ## Claude Code skills
 
-The package ships a suite of Claude Code skills that encode the project's conventions so Claude can drive the package in plain English. They cover the four jobs a consumer actually does: set up the project, build pages, pick the right component, and (for the long-tail case) author a new editable component. Each skill auto-triggers from natural-language requests — no slash commands.
+The package ships a suite of Claude Code skills that encode the project's conventions so Claude can drive the package in plain English. They cover the three jobs the README itself can't carry well: deciding which shipped component fits a need, composing a page from the catalogue, and (for the long-tail case) authoring a new editable component. Each skill auto-triggers from natural-language requests — no slash commands. (Plain `npm install` plus the README handle first-time setup.)
 
 | Skill                          | Triggers on                                                          | What it knows                                                                                                                  |
 |--------------------------------|----------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
-| `live-tokens-setup-project`    | "install live-tokens in this project"                                | vite-plugin wiring, `main.ts` boot order, `App.svelte` overlay + route mount, dev data folder layout                            |
 | `live-tokens-build-page`       | "build a pricing page using live-tokens components"                  | shipped-component catalogue, column grid, `pageSources` registration, token-only styling rule                                   |
 | `live-tokens-pick-component`   | "what's the difference between TabBar and SegmentedControl?"         | decision trees for confusing pairs (selection family, container family, messaging family); when to author a new one instead    |
-| `live-tokens-add-component`    | "author a new Toggle component for my live-tokens project"           | runtime + editor + `registerComponent()` recipe, naming scheme, state model, public-imports rule, verification checklist        |
+| `live-tokens-create-component` | "author a new Toggle component for my live-tokens project"           | runtime + editor + `registerComponent()` recipe, naming scheme, state model, public-imports rule, verification checklist        |
 
 ### Install
 

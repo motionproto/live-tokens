@@ -1,4 +1,4 @@
-# Adding components
+# Creating components
 
 Making a Svelte component editable means: someone using the editor
 can change its colours, type, spacing, and other slots without
@@ -12,13 +12,13 @@ are not using Claude.
 
 ## Path 1: The Claude skill (recommended)
 
-A skill named `live-tokens-add-component` ships in the npm tarball at
-`.claude/skills/live-tokens-add-component/SKILL.md`. After you
+A skill named `live-tokens-create-component` ships in the npm tarball at
+`.claude/skills/live-tokens-create-component/SKILL.md`. After you
 install the package, Claude Code can see it.
 
 ### What the skill does
 
-When you ask Claude to add a component, the skill drives the work:
+When you ask Claude to create a component, the skill drives the work:
 
 1. Writes `src/system/components/<Name>.svelte` (the runtime), with
    every editable slot declared in `:global(:root)` and pointing at
@@ -138,7 +138,7 @@ by hand:
 ```
 your-project/
 └── node_modules/@motion-proto/live-tokens/
-    └── .claude/skills/live-tokens-add-component/
+    └── .claude/skills/live-tokens-create-component/
         └── SKILL.md
 ```
 

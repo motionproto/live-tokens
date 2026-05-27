@@ -15,7 +15,7 @@ const USAGE = `Usage: npx @motion-proto/live-tokens <command> [options]
 Commands:
   setup-claude [--force]   Install bundled Claude Code skills into ./.claude/skills/
   check-component <id>     Validate <id>'s runtime, editor, and registration
-                           against the live-tokens-add-component contract
+                           against the live-tokens-create-component contract
 `;
 
 function fail(message, code = 1) {
@@ -84,10 +84,9 @@ for (const skill of skills) {
 console.log(`\n${installed} installed, ${skipped} skipped → ${destSkills}`);
 
 const SAMPLE_PROMPTS = {
-  'live-tokens-setup-project': 'install live-tokens in this project',
   'live-tokens-build-page': 'build a pricing page using live-tokens components',
   'live-tokens-pick-component': "what's the difference between TabBar and SegmentedControl?",
-  'live-tokens-add-component': 'author a new Toggle component for my live-tokens project',
+  'live-tokens-create-component': 'author a new Toggle component for my live-tokens project',
 };
 
 const installedSamples = skills
