@@ -382,6 +382,94 @@ Because migrations are dated and isolated, the lifecycle is
 mechanical: delete the file (and its import in `index.ts`), and
 `CURRENT_*_SCHEMA_VERSION` adjusts itself.
 
+## tokens.css migrations (Layer-1)
+
+The schema migrations above run in the browser and rewrite the
+**JSON data files** (themes, component-configs) as the editor loads
+them. They never touch `tokens.css` — that file is developer-authored
+and the plugin never writes it.
+
+But `tokens.css` drifts too. When the package evolves its Layer-1
+vocabulary — adds a `--line-height-*` scale, a `--letter-spacing-*`
+scale, an easing token — a consumer's forked `tokens.css` falls behind
+the components that now reference those primitives. The `var(--…)`
+references resolve to nothing, and the editor renders blank / `—`
+slots for the affected properties.
+
+**`tokens-css` migrations** close that gap. They are a sibling system
+to the in-browser data migrations, living in
+`vite-plugin/tokensCssMigrations/`:
+
+```
+vite-plugin/tokensCssMigrations/
+├── index.ts                                  # registry + runner + validator
+├── types.ts                                  # TokensCssMigration interface
+├── cssTokenOps.ts                            # idempotent ensure / rename / remove
+└── migrations/
+    └── 2026-05-29-typography-scale-additions.ts
+```
+
+Three things differ from the JSON migrations:
+
+- They run in **Node**, not the browser — invoked by the `live-tokens
+  migrate` CLI and (read-only) by the dev-plugin guardrail. They build
+  as their own vite-free tsup entry so the CLI can import them without
+  pulling in `vite`.
+- They operate on **CSS text**, preserving comments and formatting
+  (`cssTokenOps` does line-level inserts/renames, not parse-and-
+  reserialize).
+- They carry **no `schemaVersion`** — CSS has nowhere to stamp one.
+  Instead every migration is **idempotent by presence**: `ensureScale`
+  skips a token that already exists, `renameToken` only fires when the
+  old name is present and the new one absent. Re-running the whole set
+  is always safe, so the runner just folds them left-to-right.
+
+```ts
+export interface TokensCssMigration {
+  id: string;                 // 'YYYY-MM-DD-<short-name>'
+  description: string;
+  apply(css: string): string; // pure, idempotent
+}
+```
+
+### The CLI: `live-tokens migrate`
+
+After upgrading the package, a consumer reconciles their `tokens.css`
+with one command:
+
+```bash
+npx live-tokens migrate          # applies pending migrations, writes the file
+npx live-tokens migrate --check  # reports without writing; exit 1 if changes are pending (CI)
+```
+
+The CLI locates `tokens.css` via `--tokens <path>`, then the
+`tokensCssPath` key in `live-tokens.config.json`, then a short default
+scan. It writes in place and prints the applied migration ids plus the
+added lines, so the change lands as a reviewable git diff. The "plugin
+never writes `tokens.css`" invariant is preserved — the only writer is
+this explicit, opt-in command.
+
+### The guardrail
+
+So drift never goes unnoticed, `themeFileApi.configureServer` runs a
+read-only check on boot (`validateTokensCss`): it scans every
+component's `:global(:root)` block for `var(--…)` references and warns
+about any primitive not defined in `tokens.css`, the generated sidecar,
+or another component. The warning names the tokens and points at `npx
+live-tokens migrate`. It never writes anything.
+
+### Authoring a new one
+
+1. Add `vite-plugin/tokensCssMigrations/migrations/YYYY-MM-DD-<name>.ts`
+   exporting a `TokensCssMigration` built from `cssTokenOps` helpers.
+2. Register it in the `TOKENS_CSS_MIGRATIONS` array in `index.ts`.
+3. Add a case to `index.test.ts`.
+
+Because the operations are idempotent, there is no TTL bookkeeping to
+retire — a migration can stay registered indefinitely at near-zero
+cost, or be removed once every consuming project is known to be past
+it.
+
 ## Save round-trip
 
 Saving the active theme through the editor:
@@ -435,3 +523,8 @@ surfaces meaningful diffs in version control.
 - Migrations are dated, isolated, and self-bumping. The runner gates
   by `fromVersion >= file.schemaVersion`, so resaved files skip past
   migrations.
+- `tokens-css` migrations (`vite-plugin/tokensCssMigrations/`) are the
+  Layer-1 counterpart: idempotent CSS-text transforms run in Node via
+  `npx live-tokens migrate`, with a read-only `themeFileApi` boot
+  guardrail that warns when components reference primitives the
+  consumer's `tokens.css` doesn't define.

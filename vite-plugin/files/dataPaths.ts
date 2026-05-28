@@ -6,6 +6,12 @@ export interface LiveTokensFileConfig {
   themesDir?: string;
   componentConfigsDir?: string;
   manifestsDir?: string;
+  /**
+   * Path to the developer-authored `tokens.css`. The dev plugin takes this from
+   * its `themeFileApi({ tokensCssPath })` option; the standalone `live-tokens
+   * migrate` CLI has no plugin options, so it reads this key to locate the file.
+   */
+  tokensCssPath?: string;
 }
 
 export interface ResolveDataDirsInput {
@@ -29,6 +35,7 @@ const KNOWN_CONFIG_KEYS = new Set<keyof LiveTokensFileConfig>([
   'themesDir',
   'componentConfigsDir',
   'manifestsDir',
+  'tokensCssPath',
 ]);
 
 /**
