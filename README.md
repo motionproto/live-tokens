@@ -112,11 +112,10 @@ bootLiveTokens(App, '#app', {
 <!-- App.svelte -->
 <script lang="ts">
   import { LiveTokensRouter } from '@motion-proto/live-tokens';
-  import Home from './Home.svelte';
 </script>
 
 <LiveTokensRouter pages={{
-  '/': { component: Home, label: 'Home', icon: 'fa-home', source: 'src/Home.svelte' },
+  '/': { lazy: () => import('./Home.svelte'), label: 'Home', icon: 'fa-home', source: 'src/Home.svelte' },
 }} />
 ```
 
@@ -124,9 +123,16 @@ bootLiveTokens(App, '#app', {
 `<ColumnsOverlay>`), the editor routes (`/editor`, `/components`), the
 in-app link-click interception, and the nav-rail/page-source plumbing the
 overlay needs. Each entry in `pages` is one of your routes; entries with a
-`label` appear in the overlay's nav rail. The editor routes are
-dispatched internally — you don't have to dynamic-import the library's
-editor pages yourself.
+`label` appear in the overlay's nav rail. Pass pages as `lazy: () => import('./Page.svelte')`
+so each page's stylesheet side-effects only evaluate when that route is
+visited; pass `component: PageComponent` instead for an eagerly-imported
+page. The editor routes are dispatched internally, so you don't have to
+dynamic-import the library's editor pages yourself.
+
+You can also relocate or disable a default editor route via the
+`editorRoutes` prop: `<LiveTokensRouter pages={…} editorRoutes={{ editor: '/admin/editor', components: false }} />`.
+Pass a string to move a route; pass `false` to remove the route entirely
+(no dispatch and, for `components`, no auto-injected nav-rail entry).
 
 The whole overlay surface is dev-only and tree-shakes out of production
 builds — no `{#if import.meta.env.DEV}` guards needed.

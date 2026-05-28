@@ -6,9 +6,15 @@
    * overlay's nav rail; `source` powers the "Page Source" button. Omit
    * `label` to keep the route reachable by URL but absent from the rail
    * (matches the existing playground/unlisted route pattern).
+   *
+   * Provide either `component` (eager) or `lazy` (code-split). Use `lazy`
+   * for any page that side-effect-imports a stylesheet at the top of its
+   * module, so those imports only evaluate when the route is visited and
+   * don't leak into unrelated routes (most importantly the editor pages).
    */
   export interface RouteEntry {
-    component: Component<any, any, any>;
+    component?: Component<any, any, any>;
+    lazy?: () => Promise<{ default: Component<any, any, any> }>;
     label?: string;
     icon?: string;
     source?: string;
@@ -16,10 +22,14 @@
     hidePageSource?: boolean;
   }
 
-  /** Override the default editor routes ('/editor', '/components') if a host needs them elsewhere. */
+  /**
+   * Override the default editor routes (`/editor`, `/components`). Pass a
+   * string to relocate the route; pass `false` to disable it entirely (no
+   * dispatch and, for `components`, no auto-injected nav-rail entry).
+   */
   export interface EditorRouteOverrides {
-    editor?: string;
-    components?: string;
+    editor?: string | false;
+    components?: string | false;
   }
 </script>
 
@@ -35,12 +45,14 @@
 
   let { pages, editorRoutes = {} }: Props = $props();
 
-  let editorPath = $derived(editorRoutes.editor ?? '/editor');
-  let componentsPath = $derived(editorRoutes.components ?? '/components');
+  let editorEnabled = $derived(editorRoutes.editor !== false);
+  let componentsEnabled = $derived(editorRoutes.components !== false);
+  let editorPath = $derived(typeof editorRoutes.editor === 'string' ? editorRoutes.editor : '/editor');
+  let componentsPath = $derived(typeof editorRoutes.components === 'string' ? editorRoutes.components : '/components');
 
   const isDev = import.meta.env.DEV;
-  let isEditor = $derived(isDev && $route === editorPath);
-  let isComponentEditor = $derived(isDev && $route === componentsPath);
+  let isEditor = $derived(isDev && editorEnabled && $route === editorPath);
+  let isComponentEditor = $derived(isDev && componentsEnabled && $route === componentsPath);
 
   // Pages with a label show up in the nav rail, in declaration order. In dev,
   // the components-editor route is auto-appended so it's reachable from every
@@ -49,7 +61,7 @@
     ...Object.entries(pages)
       .filter(([, e]) => !!e.label)
       .map(([path, e]) => ({ path, label: e.label!, icon: e.icon ?? '' })),
-    ...(isDev
+    ...(isDev && componentsEnabled
       ? [{ path: componentsPath, label: 'Components', icon: 'fa-puzzle-piece' }]
       : []),
   ]);
@@ -68,20 +80,21 @@
     ...Object.entries(pages)
       .filter(([, e]) => e.hidePageSource)
       .map(([path]) => path),
-    componentsPath,
+    ...(componentsEnabled ? [componentsPath] : []),
   ]);
 
   // Dispatch the current route. Editor pages are dynamically imported so they
-  // don't ship in non-editor route bundles. Consumer pages are passed as
-  // already-imported Svelte components, so no dynamic import is needed for
-  // those — `pagePromise` resolves synchronously to keep the await/then shape.
+  // don't ship in non-editor route bundles. Consumer pages dispatch via
+  // `entry.lazy()` when provided (so each page's CSS side-effect imports stay
+  // out of other routes), or via the eagerly-imported `entry.component`.
   let pagePromise = $derived.by(() => {
     if (isEditor) return import('../pages/Editor.svelte');
     if (isComponentEditor) return import('../pages/ComponentEditorPage.svelte');
     const entry = pages[$route] ?? pages['/'];
-    return entry
-      ? Promise.resolve({ default: entry.component })
-      : Promise.resolve({ default: null as unknown as Component<any, any, any> });
+    if (!entry) return Promise.resolve({ default: null as unknown as Component<any, any, any> });
+    if (entry.lazy) return entry.lazy();
+    if (entry.component) return Promise.resolve({ default: entry.component });
+    return Promise.resolve({ default: null as unknown as Component<any, any, any> });
   });
 
   // In-app link interception: turn left-clicks on internal `/...` anchors into

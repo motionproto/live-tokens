@@ -26,10 +26,16 @@ been migrated to use the new wrappers as a dogfooded reference.
   `/components` (so editor chrome stays out of non-editor route
   bundles), auto-injects `Components` into the dev nav rail and the
   page-source hide list, intercepts in-app `<a href="/…">` clicks for
-  client-side routing. Pages without a `label` are reachable by URL but
-  absent from the nav rail (matches the existing playground pattern).
-  Exported from the package root along with `RouteEntry` and
-  `EditorRouteOverrides` types.
+  client-side routing. Page entries can be eager (`component:
+  PageComponent`) or code-split (`lazy: () => import('./Page.svelte')`);
+  use `lazy` for any page that side-effect-imports a stylesheet at the
+  top of its module so those side effects stay out of the editor routes.
+  Pages without a `label` are reachable by URL but absent from the nav
+  rail (matches the existing playground pattern). `editorRoutes.editor`
+  and `editorRoutes.components` accept a string to relocate the default
+  route or `false` to disable it entirely (no dispatch and, for
+  `components`, no auto-injected nav-rail entry). Exported from the
+  package root along with `RouteEntry` and `EditorRouteOverrides` types.
 
 ### Changed
 
