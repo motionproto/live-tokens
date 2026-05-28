@@ -1,5 +1,60 @@
 # Changelog
 
+## 0.16.0 — SideNavigation header restructure
+
+The SideNavigation title bar is now a single flex card hosting the label
+box and the persistent toggle button as siblings. Previously the toggle
+was an absolutely-positioned child of the rail with calc'd left/top
+coordinates derived from the panel-width tokens. The new structure
+removes that coupling: the header's `justify-content` plus `flex:1` on
+the label naturally positions the toggle to the right of the label when
+open and centres it in the rail when collapsed.
+
+### Changed (breaking)
+
+- **SideNavigation title indicator and divider no longer render.** The
+  `border-left` accent strip and `border-bottom` divider on the title
+  bar were removed in favour of a card-shaped header driven by per-state
+  `surface` + `border` + `radius` chrome. Consumers who set
+  `--sidenavigation-title-<state>-accent` /
+  `--sidenavigation-title-<state>-accent-width` will see no rendered
+  effect; the tokens remain in shipped configs for backward compatibility
+  but no longer drive any pixels. Move customizations onto
+  `--sidenavigation-title-<state>-surface` /
+  `-border` / `-border-width` instead. The editor's "Title" sections
+  surface these (relabeled from "divider color / divider width /
+  indicator color / indicator width" to "border color / border width";
+  the two indicator rows are gone).
+
+### Added
+
+- **Stateless Title Layout tokens.**
+  `--sidenavigation-title-gap` (space between label box and toggle box)
+  and `--sidenavigation-title-radius` (outer card corner radius). Exposed
+  in the editor under a new "Title Layout" section.
+- **Stateless Title Label tokens.**
+  `--sidenavigation-title-label-surface`,
+  `--sidenavigation-title-label-radius`, and
+  `--sidenavigation-title-label-padding` style the inner label box that
+  sits beside the toggle in the open state. Exposed in the editor under
+  a new "Title Label" section.
+
+### Changed
+
+- **Shipped `sidenavigation/default.json` tightened.** Drops the legacy
+  split `padding-top/right/bottom/left` keys (superseded by the
+  four-tuple `padding` tokens) and adjusts default text sizes (item and
+  footer text → `--font-size-sm` + `--font-weight-light` for
+  default/hover), icon sizes (footer → `--icon-size-xs`), and accent
+  widths (`--border-width-3` instead of `4`). Consumers with their own
+  `default.json` are unaffected; consumers relying on the shipped
+  default see a denser nav rail.
+
+### CI
+
+- Bumped `actions/checkout` and `actions/setup-node` to `v6` in
+  `publish.yml` and `verify.yml`.
+
 ## 0.15.0 — One-call boot + router wrapper
 
 The library now provides two opt-in wrappers that collapse the boilerplate
