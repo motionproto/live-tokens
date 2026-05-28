@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.16.0 — SideNavigation header restructure
+## 0.16.1 — SideNavigation header restructure
 
 The SideNavigation title bar is now a single flex card hosting the label
 box and the persistent toggle button as siblings. Previously the toggle
