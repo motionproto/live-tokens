@@ -1,6 +1,10 @@
 export { default as LiveEditorOverlay } from './overlay/LiveEditorOverlay.svelte';
 export type { NavLink } from './core/routing/navLinkTypes';
 export { default as ColumnsOverlay } from './overlay/ColumnsOverlay.svelte';
+export { default as LiveTokensRouter } from './overlay/LiveTokensRouter.svelte';
+export type { RouteEntry, EditorRouteOverrides } from './overlay/LiveTokensRouter.svelte';
+export { bootLiveTokens } from './bootstrap';
+export type { BootLiveTokensOptions } from './bootstrap';
 
 export { columnsVisible, toggleColumns, init as initColumnsOverlay } from './overlay/columnsOverlay';
 export { configureEditor, storageKey } from './core/store/editorConfig';

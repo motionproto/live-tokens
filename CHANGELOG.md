@@ -1,5 +1,69 @@
 # Changelog
 
+## 0.15.0 — One-call boot + router wrapper
+
+The library now provides two opt-in wrappers that collapse the boilerplate
+every consumer used to copy out of the README: a single `bootLiveTokens`
+call for `main.ts` and a `<LiveTokensRouter>` component for `App.svelte`.
+Together they take a typical consumer's integration from ~80 lines of
+hand-orchestrated init + overlay + route-dispatch to ~12 lines.
+
+The library's own demo app (`src/app/main.ts`, `src/app/App.svelte`) has
+been migrated to use the new wrappers as a dogfooded reference.
+
+### Added
+
+- **`bootLiveTokens(App, target, opts?)`** — one-call bootstrap. Runs the
+  five idempotent `init*` hooks in the documented order, fetches the
+  active theme in dev, registers any consumer-authored components passed
+  via `opts.components` (dev-only), and mounts the app. Side-effect-
+  imports FontAwesome so the overlay's icons are present without the
+  consumer having to remember a separate import. Exported from the
+  package root.
+- **`<LiveTokensRouter pages={…}>`** — overlay + columns + route
+  dispatch in one component. Drives `<LiveEditorOverlay>` and
+  `<ColumnsOverlay>` automatically, dynamic-imports `/editor` and
+  `/components` (so editor chrome stays out of non-editor route
+  bundles), auto-injects `Components` into the dev nav rail and the
+  page-source hide list, intercepts in-app `<a href="/…">` clicks for
+  client-side routing. Pages without a `label` are reachable by URL but
+  absent from the nav rail (matches the existing playground pattern).
+  Exported from the package root along with `RouteEntry` and
+  `EditorRouteOverrides` types.
+
+### Changed
+
+- **`themeFileApi` default `componentsSrcDir` now scans both
+  `src/components` and `src/system/components`** when no explicit option
+  is passed. The Vite/Svelte convention is `src/components`, so new
+  consumers don't need an override; existing consumers with components in
+  `src/system/components` keep working without changes.
+- **The component scanner skips `.svelte` files without a
+  `:global(:root) {}` block.** Previously any `.svelte` file in the scan
+  dir was treated as a runtime component, which meant editor companion
+  files (e.g. `Foo.editor.svelte` or `FooEditor.svelte`) co-located with
+  their runtime sibling would get a spurious `component-configs/foo.editor/`
+  entry and show up in the editor's components list. Theme-aware
+  components declare their tokens in a `:global(:root)` block; the
+  presence of that block is now the marker for "register as a component."
+  No filename convention required.
+
+### Lower-level APIs unchanged
+
+`LiveEditorOverlay`, `ColumnsOverlay`, `initCssVarSync`, `initRouter`,
+`initColumnsOverlay`, `initEditorStore`, `initializeTheme`,
+`registerComponent`, and the editor page exports
+(`@motion-proto/live-tokens/editor`,
+`@motion-proto/live-tokens/component-editor-page`) all remain exported.
+The new wrappers are pure composition over them — use them directly if
+you need a custom shell or non-standard route dispatch.
+
+### README
+
+The Quick install section now leads with `bootLiveTokens` +
+`<LiveTokensRouter>`. The manual-orchestration pattern is documented
+under a "Lower-level API" heading for consumers who need it.
+
 ## 0.14.1 — Drop unused local font files
 
 Cleanup of leftover state from the Google Fonts switch in 0.14.0.

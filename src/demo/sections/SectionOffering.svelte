@@ -47,16 +47,20 @@
     bottom: var(--space-24);
     margin: 0;
     padding: 1rem 2rem;
-    background: color-mix(in srgb, var(--surface-canvas) 62%, transparent);
+    background: color-mix(in srgb, var(--color-canvas-950) 55%, transparent);
     backdrop-filter: blur(18px) saturate(140%);
     -webkit-backdrop-filter: blur(18px) saturate(140%);
-    border: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
     border-radius: var(--radius-md);
-    box-shadow: 0 18px 48px -24px color-mix(in srgb, var(--color-canvas-950) 50%, transparent);
   }
 
   .offering-quote blockquote {
     margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    border-radius: 0;
+    color: inherit;
+    font-style: normal;
   }
 
   .offering-quote p {

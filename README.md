@@ -41,7 +41,7 @@ export default defineConfig({
 
 The `themeFileApi` plugin:
 - Seeds `src/live-tokens/data/themes/` with a default theme on first dev-server start.
-- Discovers components at `src/system/components/*.svelte` and seeds `src/live-tokens/data/component-configs/{comp}/default.json` from each component's `:global(:root)` block.
+- Discovers components at `src/components/*.svelte` (and `src/system/components/*.svelte` for back-compat) and seeds `src/live-tokens/data/component-configs/{comp}/default.json` from each component's `:global(:root)` block.
 - Hosts the `/api/live-tokens/*` routes the editor uses to save and load themes + per-component configs.
 - Auto-injects `__PROJECT_ROOT__` for the overlay's "Page Source" link and `__LIVE_TOKENS_API_BASE__` so the client uses whatever `apiBase` you configured.
 
@@ -73,66 +73,73 @@ Resolution order, per folder: explicit `themeFileApi(opts)` argument > matching 
 ### Bootstrap in `main.ts`
 
 ```ts
-import './styles/tokens.css';
-import {
-  configureEditor,
-  initializeTheme,
-  initCssVarSync,
-  initRouter,
-  initColumnsOverlay,
-  initEditorStore,
-} from '@motion-proto/live-tokens';
+// main.ts
+import '@motion-proto/live-tokens/app/tokens.css';
+import './live-tokens/data/tokens.generated.css';
+import '@motion-proto/live-tokens/app/fonts.css';
+import { bootLiveTokens } from '@motion-proto/live-tokens';
 import App from './App.svelte';
-import { mount } from 'svelte';
 
-configureEditor({ storagePrefix: 'my-app-' });
-
-async function boot() {
-  initCssVarSync();
-  initRouter();
-  initColumnsOverlay();
-  initEditorStore();
-  if (import.meta.env.DEV) {
-    await initializeTheme();
-  }
-  mount(App, { target: document.getElementById('app')! });
-}
-
-boot();
+bootLiveTokens(App, '#app');
 ```
 
-### Mount overlay + editor pages
+`bootLiveTokens` orchestrates the editor's idempotent init hooks, fetches the
+active theme in dev, optionally registers consumer-authored components, and
+mounts the app. FontAwesome is side-effect-imported by the bootstrap (the dev
+overlay always needs icons). The three token-CSS imports stay with the
+consumer because order matters and `tokens.generated.css` is project-local.
+
+Pass `components` to register consumer-authored editable components:
+
+```ts
+import MyWidgetEditor, { allTokens as myWidgetTokens } from './components/MyWidgetEditor.svelte';
+
+bootLiveTokens(App, '#app', {
+  components: [{
+    id: 'mywidget',
+    label: 'My Widget',
+    icon: 'fas fa-magic',
+    sourceFile: 'src/components/MyWidget.svelte',
+    editorComponent: MyWidgetEditor,
+    schema: myWidgetTokens,
+  }],
+});
+```
+
+### Mount routes with `<LiveTokensRouter>`
 
 ```svelte
 <!-- App.svelte -->
 <script lang="ts">
-  import { LiveEditorOverlay, ColumnsOverlay } from '@motion-proto/live-tokens';
-  import Editor from '@motion-proto/live-tokens/editor';
-  import ComponentEditorPage from '@motion-proto/live-tokens/component-editor-page';
-  import { route } from './router';
+  import { LiveTokensRouter } from '@motion-proto/live-tokens';
+  import Home from './Home.svelte';
 </script>
 
-<LiveEditorOverlay
-  navLinks={[
-    { path: '/', label: 'Home', icon: 'fa-home' },
-    { path: '/components', label: 'Components', icon: 'fa-puzzle-piece' },
-  ]}
-  pageSources={{
-    '/': 'src/app/Home.svelte',
-  }}
-/>
-<ColumnsOverlay />
-
-{#if $route === '/editor'}
-  <Editor />
-{:else if $route === '/components'}
-  <ComponentEditorPage />
-{:else}
-  <!-- your routes -->
-{/if}
+<LiveTokensRouter pages={{
+  '/': { component: Home, label: 'Home', icon: 'fa-home', source: 'src/Home.svelte' },
+}} />
 ```
 
-`<LiveEditorOverlay />` self-gates: it only renders in dev, never inside an iframe, and never on the editor route. No need to wrap in `{#if import.meta.env.DEV}` guards.
+`<LiveTokensRouter>` owns the dev overlay (`<LiveEditorOverlay>` +
+`<ColumnsOverlay>`), the editor routes (`/editor`, `/components`), the
+in-app link-click interception, and the nav-rail/page-source plumbing the
+overlay needs. Each entry in `pages` is one of your routes; entries with a
+`label` appear in the overlay's nav rail. The editor routes are
+dispatched internally — you don't have to dynamic-import the library's
+editor pages yourself.
+
+The whole overlay surface is dev-only and tree-shakes out of production
+builds — no `{#if import.meta.env.DEV}` guards needed.
+
+### Lower-level API (when you need it)
+
+`bootLiveTokens` and `<LiveTokensRouter>` are convenience wrappers. The
+individual init functions (`initCssVarSync`, `initRouter`,
+`initColumnsOverlay`, `initEditorStore`, `initializeTheme`),
+`<LiveEditorOverlay>`, `<ColumnsOverlay>`, and the editor page exports
+(`@motion-proto/live-tokens/editor`,
+`@motion-proto/live-tokens/component-editor-page`) all stay exported. Use
+them directly if you need a custom shell or non-standard route dispatch.
 
 ### Use components
 
@@ -199,7 +206,7 @@ export default defineConfig({
 });
 ```
 
-No `css: 'injected'` workaround, no `optimizeDeps` excludes — `vite build` works as-is. (You'll want the full `themeFileApi` plugin from the Quick install section above when you're ready to persist edits to disk.)
+No `css: 'injected'` workaround, no `optimizeDeps` excludes — `vite build` works as-is. (You'll want the full `themeFileApi` plugin and `bootLiveTokens` / `<LiveTokensRouter>` from the Quick install section above when you're ready to persist edits to disk and ship a real app.)
 
 ## Greenfield? Use the starter
 
@@ -216,24 +223,27 @@ Open http://localhost:5173 and replace `src/app/Home.svelte` with your content. 
 
 ## Consumer-authored components
 
-The shipped components are first-party by default, but you can author your own and get the same real-time editing experience via `registerComponent()`. Co-locate runtime and editor files in `src/system/components/` and register the pair before mounting:
+The shipped components are first-party by default, but you can author your own and get the same real-time editing experience. Co-locate runtime and editor files in `src/components/` (or `src/system/components/`, both are scanned by default) and pass them to `bootLiveTokens`:
 
 ```ts
 // src/main.ts
-import { registerComponent } from '@motion-proto/live-tokens';
-import MyWidgetEditor, { allTokens as myWidgetTokens } from './system/components/MyWidgetEditor.svelte';
+import { bootLiveTokens } from '@motion-proto/live-tokens';
+import App from './App.svelte';
+import MyWidgetEditor, { allTokens as myWidgetTokens } from './components/MyWidgetEditor.svelte';
 
-registerComponent({
-  id: 'mywidget',
-  label: 'My Widget',
-  icon: 'fas fa-magic',
-  sourceFile: 'src/system/components/MyWidget.svelte',
-  editorComponent: MyWidgetEditor,
-  schema: myWidgetTokens,
+bootLiveTokens(App, '#app', {
+  components: [{
+    id: 'mywidget',
+    label: 'My Widget',
+    icon: 'fas fa-magic',
+    sourceFile: 'src/components/MyWidget.svelte',
+    editorComponent: MyWidgetEditor,
+    schema: myWidgetTokens,
+  }],
 });
-
-// then mount(App, ...)
 ```
+
+(`bootLiveTokens` calls `registerComponent` internally for each entry, gated on `import.meta.env.DEV` so the registration tree-shakes out of production builds. Call `registerComponent` directly if you need finer control over timing.)
 
 The component appears in the `/components` page under a **CUSTOM** group in the nav rail. Token rows, linked-block sharing, per-component config persistence, and reset-to-default work identically to the built-in set. All imports must come from `@motion-proto/live-tokens` or `@motion-proto/live-tokens/component-editor`; never deep-import from `src/`.
 

@@ -47,7 +47,7 @@ export interface ThemeFileApiOptions {
   themesDir?: string;          // default: `<dataDir>/themes`
   componentConfigsDir?: string; // default: `<dataDir>/component-configs`
   manifestsDir?: string;       // default: `<dataDir>/manifests`
-  componentsSrcDir?: string;   // default: 'src/system/components'
+  componentsSrcDir?: string;   // default: scans both 'src/components' and 'src/system/components'
 }
 
 export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
@@ -72,9 +72,13 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // The client side reads the same value via the `__LIVE_TOKENS_API_BASE__`
   // define injected in `config()` below.
   const API_BASE = opts.apiBase ?? '/api/live-tokens';
-  const consumerComponentsDir = opts.componentsSrcDir
-    ? path.resolve(opts.componentsSrcDir)
-    : path.resolve('src/system/components');
+  // Consumer-side dirs to scan for components. With no explicit option, both
+  // `src/components` (the Vite/Svelte convention) and `src/system/components`
+  // (the historical default) are scanned — whichever the consumer uses works
+  // out of the box and an existing consumer doesn't break on upgrade.
+  const consumerComponentDirs: string[] = opts.componentsSrcDir
+    ? [path.resolve(opts.componentsSrcDir)]
+    : [path.resolve('src/components'), path.resolve('src/system/components')];
 
   // First-party components ship in the package at <package>/src/system/components/.
   // Both the source plugin (vite-plugin/themeFileApi.ts) and the built plugin
@@ -89,11 +93,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     'components',
   );
 
-  // Union of dirs to scan for component .svelte files. Consumer dir first so
+  // Union of dirs to scan for component .svelte files. Consumer dirs first so
   // a consumer-authored component shadows a first-party one when names collide.
-  const COMPONENTS_SCAN_DIRS: string[] = [consumerComponentsDir];
+  const COMPONENTS_SCAN_DIRS: string[] = [...consumerComponentDirs];
   if (
-    packageComponentsDir !== consumerComponentsDir &&
+    !COMPONENTS_SCAN_DIRS.includes(packageComponentsDir) &&
     fs.existsSync(packageComponentsDir)
   ) {
     COMPONENTS_SCAN_DIRS.push(packageComponentsDir);
@@ -388,6 +392,24 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     return path.basename(filePath, '.svelte').toLowerCase();
   }
 
+  /**
+   * A `.svelte` file is a theme-aware runtime component iff it declares its
+   * tokens in a `:global(:root) { ... }` block. Editor companion files
+   * (e.g. `Foo.editor.svelte` or `FooEditor.svelte`) and plain utility
+   * components don't have that block, so they're skipped. This is the
+   * cheapest, most semantic way to distinguish — no filename convention is
+   * imposed on the consumer beyond what's already required for theme
+   * awareness.
+   */
+  function isThemeAwareComponent(filePath: string): boolean {
+    try {
+      const source = fs.readFileSync(filePath, 'utf-8');
+      return /:global\(:root\)\s*\{/.test(source);
+    } catch {
+      return false;
+    }
+  }
+
   function listComponentSourcePaths(): string[] {
     const byName = new Map<string, string>();
     // Earlier dirs (consumer) win over later (package) on name collision —
@@ -396,8 +418,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       if (!fs.existsSync(dir)) continue;
       for (const f of fs.readdirSync(dir)) {
         if (!f.endsWith('.svelte')) continue;
+        const full = path.join(dir, f);
+        if (!isThemeAwareComponent(full)) continue;
         const name = componentNameFromFile(f);
-        if (!byName.has(name)) byName.set(name, path.join(dir, f));
+        if (!byName.has(name)) byName.set(name, full);
       }
     }
     return Array.from(byName.values());
@@ -1489,6 +1513,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       const normalized = path.resolve(ctx.file);
       if (!COMPONENTS_SCAN_DIRS.some((d) => normalized.startsWith(d))) return;
       if (!normalized.endsWith('.svelte')) return;
+      // Editor companion files and utility components don't declare a
+      // `:global(:root)` block; skip them the same way the boot scan does.
+      if (!isThemeAwareComponent(normalized)) return;
       const comp = componentNameFromFile(normalized);
       generateDefaultConfig(comp, normalized);
     },
