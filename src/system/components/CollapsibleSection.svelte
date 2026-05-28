@@ -37,13 +37,25 @@
 
 <section class="es-root variant-{variant} {className}">
    {#if href}
-      <a {href} class="section-header" class:expanded>
-         <div class="section-toggle">
+      <!-- Linked header: the chevron is a standalone toggle button so the
+           section can still be collapsed even when the label is a link. Both
+           live inside the same `.section-header` flex row so paint (hover,
+           background, indicator) continues to land on the row as a whole. -->
+      <div class="section-header section-header--linked" class:expanded>
+         <button
+            type="button"
+            class="section-toggle-button"
+            onclick={fireToggle}
+            aria-label={expanded ? 'Collapse section' : 'Expand section'}
+            aria-expanded={expanded}
+         >
             <i class="fas fa-chevron-right toggle-icon"></i>
+         </button>
+         <a {href} class="section-link">
             <span class="section-label">{label}</span>
-         </div>
+         </a>
          {@render summary?.()}
-      </a>
+      </div>
    {:else}
       <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions, a11y_no_static_element_interactions -->
       <div class="section-header" class:expanded onclick={fireToggle}>
@@ -168,6 +180,37 @@
       align-items: center;
       gap: var(--space-8);
       flex-shrink: 0;
+   }
+
+   /* Linked header: chevron is a sibling button next to the label link, not a
+      child of an enveloping <a>. Use the tighter gap that the inner
+      `.section-toggle` wrapper provides in the no-href branch, so both
+      layouts read the same visually. */
+   .section-header.section-header--linked {
+      gap: var(--space-8);
+   }
+
+   .section-toggle-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin: 0;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+   }
+
+   .section-link {
+      display: inline-flex;
+      align-items: center;
+      min-width: 0;
+      color: inherit;
+      text-decoration: none;
+      flex: 1 1 auto;
    }
 
    @mixin header-paint($variant, $state) {

@@ -1,6 +1,6 @@
 {
   "name": "@motion-proto/live-tokens",
-  "version": "0.16.1",
+  "version": "0.16.2",
   "type": "module",
   "description": "Design token editor with live CSS variable editing. Svelte 5 + Vite 6/7.",
   "keywords": [
