@@ -14,6 +14,7 @@ import {
 import { dispatch, type Route } from './files/routeTable';
 import { nextAvailableName as allocNextAvailableName } from './files/nameAllocator';
 import { resolveDataDirs } from './files/dataPaths';
+import { validateTokensCss } from './tokensCssMigrations';
 import { fileURLToPath } from 'node:url';
 
 // Read live-tokens' own package.json by walking up from this file. Works the
@@ -429,6 +430,45 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   function listComponentNames(): string[] {
     return listComponentSourcePaths().map(componentNameFromFile);
+  }
+
+  /**
+   * Boot-time drift guardrail. Components reference Layer-1 primitives through
+   * `var(--…)`; when the package's token vocabulary moves ahead of the
+   * consumer's developer-authored `tokens.css`, those references resolve to
+   * nothing and the editor renders blank/`—` slots. We never auto-write
+   * `tokens.css` (that invariant stands), so the fix is to surface the drift
+   * loudly and point at `npx live-tokens migrate`.
+   */
+  function warnOnTokenDrift(log: (msg: string) => void): void {
+    let tokensCss = '';
+    try {
+      tokensCss = fs.readFileSync(CSS_PATH, 'utf-8');
+    } catch {
+      return; // No tokens.css to validate against — nothing to say.
+    }
+    let generatedCss = '';
+    try {
+      generatedCss = fs.readFileSync(GENERATED_CSS_PATH, 'utf-8');
+    } catch {
+      /* sidecar optional */
+    }
+    const componentSources = listComponentSourcePaths().map((p) => ({
+      name: componentNameFromFile(p),
+      source: fs.readFileSync(p, 'utf-8'),
+    }));
+
+    const missing = validateTokensCss({ tokensCss, generatedCss, componentSources });
+    if (missing.length === 0) return;
+
+    const lines = missing.map(
+      (m) => `  ${m.token}  (referenced by ${m.referencedBy.join(', ')})`,
+    );
+    log(
+      `[live-tokens] ${missing.length} token(s) referenced by components are not defined in ` +
+        `${path.relative(process.cwd(), CSS_PATH)}:\n${lines.join('\n')}\n` +
+        `  These render as blank/empty editor slots. Run \`npx live-tokens migrate\` to reconcile.`,
+    );
   }
 
   /**
@@ -1499,6 +1539,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       // production state before the first request lands. Without this, a
       // fresh checkout would import a stale (or missing) generated file.
       regenerateTokensCss();
+
+      // Surface Layer-1 token drift (consumer tokens.css behind the package's
+      // component vocabulary) before the editor loads, so blank slots have an
+      // explanation and a one-command fix.
+      warnOnTokenDrift((msg) => server.config.logger.warn(msg));
 
       server.middlewares.use(async (req, res, next) => {
         const handled = await dispatch(req, res, routes);

@@ -9,13 +9,18 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { checkComponent, formatReport } from './check-component.mjs';
+import { runMigrate, formatMigrateResult } from './migrate.mjs';
 
 const USAGE = `Usage: npx @motion-proto/live-tokens <command> [options]
 
 Commands:
-  setup-claude [--force]   Install bundled Claude Code skills into ./.claude/skills/
-  check-component <id>     Validate <id>'s runtime, editor, and registration
-                           against the live-tokens-create-component contract
+  setup-claude [--force]      Install bundled Claude Code skills into ./.claude/skills/
+  check-component <id>        Validate <id>'s runtime, editor, and registration
+                              against the live-tokens-create-component contract
+  migrate [--check] [--tokens <path>]
+                              Reconcile your tokens.css with the installed
+                              package's Layer-1 token vocabulary. --check reports
+                              without writing (exit 1 if changes are needed).
 `;
 
 function fail(message, code = 1) {
@@ -36,6 +41,23 @@ if (command === 'check-component') {
   const result = checkComponent(id);
   console.log(formatReport(id, result));
   process.exit(result.errors.length === 0 ? 0 : 1);
+}
+
+if (command === 'migrate') {
+  const check = rest.includes('--check');
+  const tokensIdx = rest.indexOf('--tokens');
+  const tokensArg = tokensIdx !== -1 ? rest[tokensIdx + 1] : undefined;
+  if (tokensIdx !== -1 && !tokensArg) fail(`--tokens requires a path`);
+  try {
+    const result = await runMigrate({ tokensArg, check });
+    console.log(formatMigrateResult(result, { check }));
+    // Exit 1 when --check finds pending changes (CI-friendly) or on no-path.
+    if (result.status === 'no-path') process.exit(1);
+    if (check && result.status === 'would-change') process.exit(1);
+    process.exit(0);
+  } catch (err) {
+    fail(`migrate failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
 }
 
 if (command !== 'setup-claude') {
