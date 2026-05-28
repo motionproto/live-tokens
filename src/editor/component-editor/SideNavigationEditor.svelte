@@ -39,16 +39,22 @@
   ];
 
   // --- Title --------------------------------------------------------------
+  // Title is a flex card containing the label box + toggle box. Per-state
+  // tokens drive the card chrome (surface, border, padding); stateless gap
+  // and radius live in `titleLayoutTokens` since they don't vary across
+  // default/hover/active.
   function titleStateTokens(s: StatefulState): Token[] {
     return [
       { label: 'surface color', groupKey: 'title-surface', variable: `--sidenavigation-title-${s}-surface` },
-      { label: 'divider color', groupKey: 'title-border', variable: `--sidenavigation-title-${s}-border` },
-      { label: 'divider width', canBeLinked: true, groupKey: 'title-border-width', variable: `--sidenavigation-title-${s}-border-width` },
+      { label: 'border color', groupKey: 'title-border', variable: `--sidenavigation-title-${s}-border` },
+      { label: 'border width', canBeLinked: true, groupKey: 'title-border-width', variable: `--sidenavigation-title-${s}-border-width` },
       { label: 'padding', canBeLinked: true, groupKey: 'title-padding', variable: `--sidenavigation-title-${s}-padding` },
-      { label: 'indicator color', groupKey: 'title-accent', variable: `--sidenavigation-title-${s}-accent` },
-      { label: 'indicator width', canBeLinked: true, groupKey: 'title-accent-width', variable: `--sidenavigation-title-${s}-accent-width` },
     ];
   }
+  const titleLayoutTokens: Token[] = [
+    { label: 'gap', canBeLinked: true, groupKey: 'title-gap', variable: '--sidenavigation-title-gap' },
+    { label: 'corner radius', canBeLinked: true, groupKey: 'title-radius', variable: '--sidenavigation-title-radius' },
+  ];
   function titleStateTypeGroups(s: StatefulState): TypeGroupConfig[] {
     return [{
       legend: 'title label',
@@ -59,6 +65,14 @@
       lineHeightVariable: `--sidenavigation-title-${s}-label-line-height`,
     }];
   }
+  // Title label — structural inner box (stateless, like Panel). Sits inside
+  // the title bar so the header reads as: outer bar → [label box] [toggle box].
+  const titleLabelTokens: Token[] = [
+    { label: 'surface color', groupKey: 'title-label-surface', variable: '--sidenavigation-title-label-surface' },
+    { label: 'corner radius', canBeLinked: true, groupKey: 'title-label-radius', variable: '--sidenavigation-title-label-radius' },
+    { label: 'padding', canBeLinked: true, groupKey: 'title-label-padding', variable: '--sidenavigation-title-label-padding' },
+  ];
+
   const titleTypographyTokens: Token[] = STATEFUL_STATES.flatMap((s) => [
     { label: 'font family', canBeLinked: true, groupKey: 'title-label-font-family', variable: `--sidenavigation-title-${s}-label-font-family` },
     { label: 'font size', canBeLinked: true, groupKey: 'title-label-font-size', variable: `--sidenavigation-title-${s}-label-font-size` },
@@ -168,6 +182,8 @@
   const states: Record<string, Token[]> = {
     'Panel': panelTokens,
     ...Object.fromEntries(STATEFUL_STATES.map((s) => [`Title / ${STATE_LABELS[s]}`, titleStateTokens(s)])),
+    'Title Layout': titleLayoutTokens,
+    'Title Label': titleLabelTokens,
     ...Object.fromEntries(TOGGLE_STATES.map((s) => [`Toggle / ${STATE_LABELS[s]}`, toggleStateTokens(s)])),
     ...Object.fromEntries(STATEFUL_STATES.map((s) => [`Section / ${STATE_LABELS[s]}`, sectionStateTokens(s)])),
     ...Object.fromEntries(STATEFUL_STATES.map((s) => [`Item / ${STATE_LABELS[s]}`, itemStateTokens(s)])),
@@ -196,7 +212,6 @@
     ...STATEFUL_STATES.flatMap((s): Array<[string, string]> => [
       [`--sidenavigation-title-${s}-border-width`, `title ${s}`],
       [`--sidenavigation-title-${s}-padding`, `title ${s}`],
-      [`--sidenavigation-title-${s}-accent-width`, `title ${s}`],
       [`--sidenavigation-title-${s}-label-font-family`, `title ${s}`],
       [`--sidenavigation-title-${s}-label-font-size`, `title ${s}`],
       [`--sidenavigation-title-${s}-label-font-weight`, `title ${s}`],

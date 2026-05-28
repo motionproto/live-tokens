@@ -139,28 +139,28 @@
   class:force-footer-hover={forceHoverPart === 'footer'}
   class:force-footer-active={forceActivePart === 'footer'}
 >
-  <!-- Toggle is a single persistent element. Its `left` position is
-       calc'd from the panel-width tokens so it transitions smoothly
-       between right-of-title (open) and centre-of-rail (closed) using
-       the same duration/easing tokens as the rail width. -->
-  <button
-    type="button"
-    class="sn-toggle"
-    onclick={fireToggle}
-    aria-label={open ? 'Collapse sidebar' : 'Expand sidebar'}
-    aria-expanded={open}
-  >
-    <i class="fa-solid fa-angles-right" aria-hidden="true"></i>
-  </button>
+  <!-- Header is always rendered so the toggle (a child here) survives the
+       collapsed state. The label is the only conditional child — when the
+       rail is closed, the header reduces to just the toggle, centred via the
+       toggle's own `left` calc. Header stays locked to open-width regardless;
+       the aside's overflow clips it during the close animation. -->
+  <header class="sn-title" class:active={titleActive}>
+    {#if open}
+      <a href={titleHref} class="sn-title-label">{titleLabel}</a>
+    {/if}
+
+    <button
+      type="button"
+      class="sn-toggle"
+      onclick={fireToggle}
+      aria-label={open ? 'Collapse sidebar' : 'Expand sidebar'}
+      aria-expanded={open}
+    >
+      <i class="fa-solid fa-angles-right" aria-hidden="true"></i>
+    </button>
+  </header>
 
   {#if open}
-    <!-- Open layout. Title bar reserves space for the persistent toggle on
-         the right; the menu is locked at the open-width so it can't reflow
-         while the rail expands around it. -->
-    <header class="sn-title" class:active={titleActive}>
-      <a href={titleHref} class="sn-title-label">{titleLabel}</a>
-    </header>
-
     <div class="sn-menu">
       {#each sections as section (section.path)}
         <div class="sn-section">
@@ -228,6 +228,22 @@
     --sidenavigation-close-duration: var(--duration-150);
     --sidenavigation-close-easing: var(--ease-out-quart);
 
+    /* Title — layout (stateless). The header is a flex container that hosts
+       the label box and the toggle box side-by-side; gap and radius drive
+       the card-like outer shell. */
+    --sidenavigation-title-gap: var(--space-8);
+    --sidenavigation-title-radius: var(--radius-md);
+
+    /* Title label — structural inner box (stateless). Renders as a row inside
+       the title bar so the header reads as: outer card → [label box] [toggle
+       box]. align-items: stretch on the header equalises its height with the
+       toggle's. */
+    --sidenavigation-title-label-surface: var(--color-transparent);
+    --sidenavigation-title-label-border: var(--border-canvas-faint);
+    --sidenavigation-title-label-border-width: var(--border-width-1);
+    --sidenavigation-title-label-radius: var(--radius-md);
+    --sidenavigation-title-label-padding: var(--space-6);
+
     /* Title — default */
     --sidenavigation-title-default-surface: var(--color-transparent);
     --sidenavigation-title-default-border: var(--border-canvas-faint);
@@ -242,7 +258,7 @@
     --sidenavigation-title-default-label-line-height: var(--line-height-sm);
 
     /* Title — hover */
-    --sidenavigation-title-hover-surface: var(--surface-canvas);
+    --sidenavigation-title-hover-surface: var(--color-transparent);
     --sidenavigation-title-hover-border: var(--border-canvas-faint);
     --sidenavigation-title-hover-border-width: var(--border-width-1);
     --sidenavigation-title-hover-padding: var(--space-12);
@@ -428,34 +444,27 @@
     --_border: var(--sidenavigation-title-default-border);
     --_border-width: var(--sidenavigation-title-default-border-width);
     --_padding: var(--sidenavigation-title-default-padding);
-    --_indicator: var(--sidenavigation-title-default-accent);
-    --_indicator-width: var(--sidenavigation-title-default-accent-width);
     --_label: var(--sidenavigation-title-default-label);
     --_label-family: var(--sidenavigation-title-default-label-font-family);
     --_label-size: var(--sidenavigation-title-default-label-font-size);
     --_label-weight: var(--sidenavigation-title-default-label-font-weight);
     --_label-line-height: var(--sidenavigation-title-default-label-line-height);
 
-    /* Positioning context for the absolutely-anchored toggle button. */
-    position: relative;
+    /* The header is a pure flex row: card-like outer with the label box and
+       toggle box as siblings. No absolute positioning — the label fills with
+       flex:1, the toggle is a fixed-size sibling. justify-content: center
+       takes over when the label is removed in the collapsed state and the
+       toggle becomes the only child. */
     flex: 0 0 auto;
-    /* Lock to the open-width so the title doesn't reflow during the rail
-       expansion (3rem → 16rem on open). border-box keeps the outer width
-       equal to the token value (otherwise padding + border would push the
-       toggle past the rail's right edge). */
     box-sizing: border-box;
-    width: var(--sidenavigation-panel-open-width);
     display: flex;
-    align-items: center;
-    gap: var(--space-12);
+    align-items: stretch;
+    justify-content: center;
+    gap: var(--sidenavigation-title-gap);
     background: var(--_surface);
-    border-bottom: var(--_border-width) solid var(--_border);
-    border-left: var(--_indicator-width) solid var(--_indicator);
+    border-radius: var(--sidenavigation-title-radius);
     @include themed-padding(--_padding);
-    /* Right padding clears the absolutely-positioned toggle inside this
-       header (toggle width ~36px + 8px breathing room). */
-    padding-right: calc(var(--space-12) + 44px);
-    transition: background var(--duration-150), border-color var(--duration-150);
+    transition: background var(--duration-150);
   }
 
   .sn-title:hover:not(.active),
@@ -464,8 +473,6 @@
     --_border: var(--sidenavigation-title-hover-border);
     --_border-width: var(--sidenavigation-title-hover-border-width);
     --_padding: var(--sidenavigation-title-hover-padding);
-    --_indicator: var(--sidenavigation-title-hover-accent);
-    --_indicator-width: var(--sidenavigation-title-hover-accent-width);
     --_label: var(--sidenavigation-title-hover-label);
     --_label-family: var(--sidenavigation-title-hover-label-font-family);
     --_label-size: var(--sidenavigation-title-hover-label-font-size);
@@ -478,8 +485,6 @@
     --_border: var(--sidenavigation-title-active-border);
     --_border-width: var(--sidenavigation-title-active-border-width);
     --_padding: var(--sidenavigation-title-active-padding);
-    --_indicator: var(--sidenavigation-title-active-accent);
-    --_indicator-width: var(--sidenavigation-title-active-accent-width);
     --_label: var(--sidenavigation-title-active-label);
     --_label-family: var(--sidenavigation-title-active-label-font-family);
     --_label-size: var(--sidenavigation-title-active-label-font-size);
@@ -487,7 +492,18 @@
     --_label-line-height: var(--sidenavigation-title-active-label-line-height);
   }
 
+  /* In the collapsed state the header narrows with the rail. Drop horizontal
+     padding so the toggle (single remaining flex child) still fits in the
+     closed-width aside — open-state padding alone would push it out. */
+  .sidenavigation.collapsed .sn-title {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
   .sn-title-label {
+    background: var(--sidenavigation-title-label-surface);
+    border-radius: var(--sidenavigation-title-label-radius);
+    @include themed-padding(--sidenavigation-title-label-padding);
     color: var(--_label);
     font-family: var(--_label-family);
     font-size: var(--_label-size);
@@ -495,6 +511,8 @@
     line-height: var(--_label-line-height);
     text-decoration: none;
     flex: 1 1 auto;
+    display: flex;
+    align-items: center;
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -510,61 +528,37 @@
     --_icon: var(--sidenavigation-toggle-default-icon);
     --_icon-size: var(--sidenavigation-toggle-default-icon-size);
 
-    /* Persistent element anchored to the panel (not the title). Open-state
-       `left` puts it near the right edge of the open-width title; collapsed
-       `left` centres it in the closed-width rail. Both calc'd from the
-       same width tokens so they stay in sync if the consumer overrides. */
-    position: absolute;
-    /* Toggle's outer width is derived from its constituent tokens — icon
-       + padding (both sides) + border (both sides). Stays accurate when a
-       consumer customizes any of those without re-hardcoding here. */
-    --_toggle-width: calc(
-      var(--sidenavigation-toggle-default-icon-size)
-      + 2 * var(--sidenavigation-toggle-default-padding)
-      + 2 * var(--sidenavigation-toggle-default-border-width)
-    );
-    top: var(--space-12);
-    left: calc(var(--sidenavigation-panel-open-width) - var(--_toggle-width) - var(--space-8));
-    z-index: 1;
-    transition:
-      left var(--sidenavigation-open-duration) var(--sidenavigation-open-easing),
-      background var(--duration-150),
-      border-color var(--duration-150),
-      color var(--duration-150);
-
+    /* Regular flex child of .sn-title — no absolute positioning. The header
+       row's justify-content+flex:1-on-label combo puts the toggle at the
+       right edge when the label is present and centres it when the label
+       is removed in the collapsed state. */
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
+    flex: 0 0 auto;
+    box-sizing: border-box;
     background: var(--_surface);
     border: var(--_border-width) solid var(--_border);
     border-radius: var(--_radius);
     color: var(--_icon);
     @include themed-padding(--_padding);
     cursor: pointer;
+    transition:
+      background var(--duration-150),
+      border-color var(--duration-150),
+      color var(--duration-150);
   }
 
   .sn-toggle i {
     font-size: var(--_icon-size);
     line-height: 1;
     /* Icon points right by default (expand). Open state flips it to point
-       left (collapse). Rotation tweens with the position so the affordance
-       morphs smoothly between the two states. */
+       left (collapse). Rotation tweens with the rail's width transition so
+       the affordance morphs smoothly between the two states. */
     transition: transform var(--sidenavigation-open-duration) var(--sidenavigation-open-easing);
   }
   .sidenavigation:not(.collapsed) .sn-toggle i {
     transform: rotate(180deg);
-  }
-
-  /* Collapsed: centre the toggle in the rail, and swap to close-* timing
-     tokens so the leftward slide matches the rail's shrink. */
-  .sidenavigation.collapsed .sn-toggle {
-    left: calc((var(--sidenavigation-panel-closed-width) - var(--_toggle-width)) / 2);
-    transition:
-      left var(--sidenavigation-close-duration) var(--sidenavigation-close-easing),
-      background var(--duration-150),
-      border-color var(--duration-150),
-      color var(--duration-150);
   }
   .sidenavigation.collapsed .sn-toggle i {
     transition: transform var(--sidenavigation-close-duration) var(--sidenavigation-close-easing);
