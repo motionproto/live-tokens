@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.18.0 — Vite 8 / TypeScript 6 toolchain bump
+
+### Changed
+
+- **Peer dependency: `vite` is now `^8`** (was `^6 || ^7`). Consumers
+  must upgrade to Vite 8 before installing this version. The
+  `@sveltejs/vite-plugin-svelte` v7 peer enforces this — v7 requires
+  Vite 8, and Vite 8's CSS pipeline (rolldown + lightningcss by default)
+  may surface latent CSS issues that the v7 pipeline tolerated.
+- **Dev toolchain bumped to current majors:** `vite ^8.0.14`,
+  `@sveltejs/vite-plugin-svelte ^7.1.2`, `typescript ~6.0.3`,
+  `@types/node ^25.9.1`. Smoke-install consumer in
+  `scripts/smoke-install.sh` follows the same versions so the test
+  exercises the declared peer.
+- **`tsconfig.json` adds `"ignoreDeprecations": "6.0"`** to silence the
+  TypeScript 6 deprecation warning emitted by `tsup`'s internal DTS
+  build (which injects `baseUrl`). Cosmetic only; no behaviour change.
+
 ## 0.17.1 — SideNavigation re-toggles on current page
 
 ### Fixed

@@ -39,11 +39,11 @@ cat > "$SMOKE_DIR/package.json" <<EOF
     "$PKG_NAME": "file:$TARBALL_PATH"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^6.2.4",
+    "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "sass": "^1.98.0",
     "svelte": "^5.55.5",
-    "typescript": "~5.9.3",
-    "vite": "^7.3.3"
+    "typescript": "~6.0.3",
+    "vite": "^8.0.14"
   }
 }
 EOF
