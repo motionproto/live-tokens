@@ -90,6 +90,56 @@ describe('ensureScale', () => {
     expect(out).toContain('--ease-out-quart:');
     expect(out.indexOf('--ease-out-quart')).toBeLessThan(out.indexOf('}'));
   });
+
+  // Regression: a tokens.css whose anchor token is *also* redeclared inside a
+  // trailing responsive `@media { :root { … } }` override must not capture the
+  // anchor — inserting there would float declarations directly inside @media,
+  // which lightningcss (Vite 8's default minifier) rejects.
+  it('anchors in the top-level :root, never inside a nested @media block', () => {
+    const css = `:root {
+  --font-size-md: 1rem;
+  --font-size-6xl: 3rem;
+}
+
+@media (max-width: 480px) {
+  :root {
+    --font-size-6xl: 2.125rem;
+  }
+}
+`;
+    const out = ensureScale(css, {
+      sectionComment: 'Line height',
+      anchorPrefixes: ['--line-height-', '--font-size-'],
+      entries: [{ name: '--line-height-md', value: '1.5' }],
+    });
+
+    // Inserted before the top-level :root closes, i.e. before the @media block.
+    expect(out.indexOf('--line-height-md')).toBeLessThan(out.indexOf('@media'));
+
+    // And the @media block is left structurally intact: its only declaration is
+    // still the responsive font-size override.
+    const media = out.slice(out.indexOf('@media'));
+    expect(media).not.toContain('--line-height-md');
+    expect(media).toContain('--font-size-6xl: 2.125rem;');
+  });
+
+  it('inserts into the top-level :root even when it follows other rules', () => {
+    const css = `:where(*) { font-family: sans-serif; }
+
+:root {
+  --font-size-md: 1rem;
+}
+`;
+    const out = ensureScale(css, {
+      anchorPrefixes: ['--font-size-'],
+      entries: [{ name: '--line-height-md', value: '1.5' }],
+    });
+    expect(out).toContain('--line-height-md: 1.5;');
+    expect(out.indexOf('--line-height-md')).toBeGreaterThan(out.indexOf('--font-size-md'));
+    // Lands inside the :root block (before its closing brace), not appended at EOF.
+    const rootClose = out.indexOf('}', out.indexOf(':root'));
+    expect(out.indexOf('--line-height-md')).toBeLessThan(rootClose);
+  });
 });
 
 describe('renameToken', () => {
