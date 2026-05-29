@@ -127,8 +127,8 @@
        values so existing state-specific cascades flow through unchanged. */
     --segmentedcontrol-bar-small-padding: var(--space-2);
     --segmentedcontrol-bar-small-radius: var(--radius-md);
-    --segmentedcontrol-divider-small-inset: var(--space-4);
-    --segmentedcontrol-divider-small-thickness: var(--border-width-1);
+    --segmentedcontrol-small-divider-inset: var(--space-4);
+    --segmentedcontrol-small-divider-thickness: var(--border-width-1);
     --segmentedcontrol-option-small-padding: var(--space-6);
     --segmentedcontrol-option-small-gap: var(--space-6);
     --segmentedcontrol-option-small-icon-size: var(--icon-size-sm);
@@ -163,8 +163,8 @@
     --segmentedcontrol-bar-padding-left: var(--segmentedcontrol-bar-small-padding-left);
     --segmentedcontrol-bar-radius: var(--segmentedcontrol-bar-small-radius);
 
-    --segmentedcontrol-divider-inset: var(--segmentedcontrol-divider-small-inset);
-    --segmentedcontrol-divider-thickness: var(--segmentedcontrol-divider-small-thickness);
+    --segmentedcontrol-divider-inset: var(--segmentedcontrol-small-divider-inset);
+    --segmentedcontrol-divider-thickness: var(--segmentedcontrol-small-divider-thickness);
 
     --segmentedcontrol-option-padding: var(--segmentedcontrol-option-small-padding);
     --segmentedcontrol-option-padding-top: var(--segmentedcontrol-option-small-padding-top);

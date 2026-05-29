@@ -64,7 +64,6 @@
     /* Bar */
     --tabbar-bar-divider: var(--border-neutral-subtle);
     --tabbar-bar-divider-thickness: var(--border-width-1);
-    --tabbar-bar-indicator-thickness: var(--border-width-2);
     --tabbar-bar-top-margin: var(--space-0);
     --tabbar-bar-bottom-padding: var(--space-0);
     --tabbar-bar-bottom-margin: var(--space-0);
@@ -84,6 +83,7 @@
     --tabbar-default-tab-border-width: var(--border-width-0);
     --tabbar-default-tab-top-radius: var(--radius-none);
     --tabbar-default-tab-bottom-radius: var(--radius-none);
+    --tabbar-default-indicator-border-width: var(--border-width-2);
 
     /* Hover tab */
     --tabbar-hover-text: var(--text-secondary);
@@ -99,6 +99,7 @@
     --tabbar-hover-tab-border-width: var(--border-width-0);
     --tabbar-hover-tab-top-radius: var(--radius-none);
     --tabbar-hover-tab-bottom-radius: var(--radius-none);
+    --tabbar-hover-indicator-border-width: var(--border-width-2);
 
     /* Active tab */
     --tabbar-active-text: var(--text-primary);
@@ -114,6 +115,7 @@
     --tabbar-active-tab-border-width: var(--border-width-0);
     --tabbar-active-tab-top-radius: var(--radius-none);
     --tabbar-active-tab-bottom-radius: var(--radius-none);
+    --tabbar-active-indicator-border-width: var(--border-width-2);
 
     /* Disabled tab */
     --tabbar-disabled-text: var(--text-disabled);
@@ -129,6 +131,7 @@
     --tabbar-disabled-tab-border-width: var(--border-width-0);
     --tabbar-disabled-tab-top-radius: var(--radius-none);
     --tabbar-disabled-tab-bottom-radius: var(--radius-none);
+    --tabbar-disabled-indicator-border-width: var(--border-width-2);
   }
 
   .tab-bar {
@@ -157,6 +160,7 @@
     --_icon-size: var(--tabbar-default-icon-size);
     --_surface: var(--tabbar-default-surface);
     --_indicator-color: var(--tabbar-default-border);
+    --_indicator-width: var(--tabbar-default-indicator-border-width);
     --_padding: var(--tabbar-default-padding);
     --_border-color: var(--tabbar-default-tab-border-color);
     --_border-width: var(--tabbar-default-tab-border-width);
@@ -169,9 +173,10 @@
     padding: var(--_padding) calc(var(--_padding) * 2);
     background: var(--_surface);
     border: var(--_border-width) solid var(--_border-color);
-    /* Indicator accent owns the bottom edge. Thickness is constant across
-       states (--tabbar-bar-indicator-thickness), only color rebinds. */
-    border-bottom: var(--tabbar-bar-indicator-thickness) solid var(--_indicator-color);
+    /* Indicator accent owns the bottom edge. Both width and color rebind
+       per state — `--tabbar-{state}-indicator-border-width` and
+       `--tabbar-{state}-border` (the indicator color slot). */
+    border-bottom: var(--_indicator-width) solid var(--_indicator-color);
     border-radius: var(--_top-radius) var(--_top-radius) var(--_bottom-radius) var(--_bottom-radius);
     color: var(--_text-color);
     font-family: var(--_text-family);
@@ -200,6 +205,7 @@
     --_icon-size: var(--tabbar-hover-icon-size);
     --_surface: var(--tabbar-hover-surface);
     --_indicator-color: var(--tabbar-hover-border);
+    --_indicator-width: var(--tabbar-hover-indicator-border-width);
     --_padding: var(--tabbar-hover-padding);
     --_border-color: var(--tabbar-hover-tab-border-color);
     --_border-width: var(--tabbar-hover-tab-border-width);
@@ -216,6 +222,7 @@
     --_icon-size: var(--tabbar-active-icon-size);
     --_surface: var(--tabbar-active-surface);
     --_indicator-color: var(--tabbar-active-border);
+    --_indicator-width: var(--tabbar-active-indicator-border-width);
     --_padding: var(--tabbar-active-padding);
     --_border-color: var(--tabbar-active-tab-border-color);
     --_border-width: var(--tabbar-active-tab-border-width);
@@ -232,6 +239,7 @@
     --_icon-size: var(--tabbar-disabled-icon-size);
     --_surface: var(--tabbar-disabled-surface);
     --_indicator-color: var(--tabbar-disabled-border);
+    --_indicator-width: var(--tabbar-disabled-indicator-border-width);
     --_padding: var(--tabbar-disabled-padding);
     --_border-color: var(--tabbar-disabled-tab-border-color);
     --_border-width: var(--tabbar-disabled-tab-border-width);

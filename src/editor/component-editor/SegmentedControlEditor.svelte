@@ -52,8 +52,8 @@
   // since family/weight/color don't differ.
   const smallStates: Record<string, Token[]> = {
     'control bar': [
-      { label: 'divider inset', groupKey: 'small-divider-inset', variable: '--segmentedcontrol-divider-small-inset' },
-      { label: 'divider width', groupKey: 'small-thickness', variable: '--segmentedcontrol-divider-small-thickness' },
+      { label: 'divider inset', groupKey: 'small-divider-inset', variable: '--segmentedcontrol-small-divider-inset' },
+      { label: 'divider width', groupKey: 'small-divider-thickness', variable: '--segmentedcontrol-small-divider-thickness' },
       { label: 'corner radius', groupKey: 'small-radius', variable: '--segmentedcontrol-bar-small-radius' },
       { label: 'padding', variable: '--segmentedcontrol-bar-small-padding', groupKey: 'bar-small-padding' },
     ],

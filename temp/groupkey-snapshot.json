@@ -1402,7 +1402,10 @@
       "--segmentedcontrol-selected-radius"
     ],
     "small-divider-inset": [
-      "--segmentedcontrol-divider-small-inset"
+      "--segmentedcontrol-small-divider-inset"
+    ],
+    "small-divider-thickness": [
+      "--segmentedcontrol-small-divider-thickness"
     ],
     "small-icon-size": [
       "--segmentedcontrol-option-small-icon-size"
@@ -1416,9 +1419,6 @@
     ],
     "small-text-line-height": [
       "--segmentedcontrol-option-small-text-line-height"
-    ],
-    "small-thickness": [
-      "--segmentedcontrol-divider-small-thickness"
     ],
     "surface": [
       "--segmentedcontrol-bar-surface",
@@ -1711,9 +1711,6 @@
     "bar-divider-thickness": [
       "--tabbar-bar-divider-thickness"
     ],
-    "bar-indicator-thickness": [
-      "--tabbar-bar-indicator-thickness"
-    ],
     "bar-top-margin": [
       "--tabbar-bar-top-margin"
     ],
@@ -1740,6 +1737,12 @@
       "--tabbar-default-icon-size",
       "--tabbar-disabled-icon-size",
       "--tabbar-hover-icon-size"
+    ],
+    "indicator-border-width": [
+      "--tabbar-active-indicator-border-width",
+      "--tabbar-default-indicator-border-width",
+      "--tabbar-disabled-indicator-border-width",
+      "--tabbar-hover-indicator-border-width"
     ],
     "indicator-color": [
       "--tabbar-active-border"

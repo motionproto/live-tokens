@@ -16,6 +16,7 @@
       { label: 'bottom radius', canBeLinked: true, groupKey: 'tab-bottom-radius', variable: `--tabbar-${s}-tab-bottom-radius` },
       { label: 'border color', canBeLinked: true, groupKey: 'tab-border-color', variable: `--tabbar-${s}-tab-border-color` },
       { label: 'border width', canBeLinked: true, groupKey: 'tab-border-width', variable: `--tabbar-${s}-tab-border-width` },
+      { label: 'indicator width', canBeLinked: true, groupKey: 'indicator-border-width', variable: `--tabbar-${s}-indicator-border-width` },
     ];
   }
   function tabStateTypeGroups(s: TabState): TypeGroupConfig[] {
@@ -35,7 +36,6 @@
     bar: [
       { label: 'divider color', groupKey: 'bar-divider', variable: '--tabbar-bar-divider' },
       { label: 'divider thickness', groupKey: 'bar-divider-thickness', variable: '--tabbar-bar-divider-thickness' },
-      { label: 'indicator thickness', groupKey: 'bar-indicator-thickness', variable: '--tabbar-bar-indicator-thickness' },
       { label: 'space above', groupKey: 'bar-top-margin', variable: '--tabbar-bar-top-margin' },
       // Consumed via `padding-bottom: var(--tabbar-bar-bottom-padding)` — a
       // one-axis read. Splitting would produce top/left/right values that have

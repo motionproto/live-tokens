@@ -89,7 +89,7 @@
   const KIND_PATTERNS: Array<{ kind: Kind; matches: (v: string) => boolean }> = [
     { kind: 'font-family',    matches: (v) => v.endsWith('-font-family') },
     { kind: 'font-weight',    matches: (v) => v.endsWith('-font-weight') },
-    { kind: 'font-size',      matches: (v) => v.endsWith('-font-size') || v.endsWith('-icon-size') },
+    { kind: 'font-size',      matches: (v) => v.endsWith('-font-size') || v.endsWith('-icon-size') || v.endsWith('-thumb-size') },
     { kind: 'line-height',    matches: (v) => v.endsWith('-line-height') },
     { kind: 'letter-spacing', matches: (v) => v.endsWith('-letter-spacing') },
     { kind: 'text-color',     matches: (v) => v.endsWith('-text') || v.startsWith('--text-') },

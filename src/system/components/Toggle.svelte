@@ -55,11 +55,10 @@
     --toggle-track-border: var(--border-neutral);
     --toggle-track-border-width: var(--border-width-1);
     --toggle-track-radius: var(--radius-full);
-    --toggle-track-width: var(--space-32);
-    --toggle-track-thickness: var(--space-16);
+    --toggle-track-padding: var(--space-2);
     --toggle-thumb-surface: var(--surface-neutral-highest);
     --toggle-thumb-border: var(--border-neutral-strong);
-    --toggle-thumb-size: var(--space-12);
+    --toggle-thumb-size: var(--font-size-md);
     --toggle-label-text: var(--text-primary);
     --toggle-label-font-family: var(--font-sans);
     --toggle-label-font-size: var(--font-size-sm);
@@ -97,12 +96,16 @@
   }
   .toggle:disabled { cursor: not-allowed; }
 
+  /* Track geometry derives from the thumb. Width fits two thumb-widths plus
+     padding on each side; height fits one thumb plus the same padding. The
+     thumb's "on" travel is then exactly one thumb-width, regardless of
+     thumb-size or padding. Border sits outside (content-box default). */
   .track {
     position: relative;
     flex: none;
     display: inline-block;
-    width: var(--toggle-track-width);
-    height: var(--toggle-track-thickness);
+    width: calc(var(--toggle-thumb-size) * 2 + var(--toggle-track-padding) * 2);
+    height: calc(var(--toggle-thumb-size) + var(--toggle-track-padding) * 2);
     background: var(--toggle-track-surface);
     border: var(--toggle-track-border-width) solid var(--toggle-track-border);
     border-radius: var(--toggle-track-radius);
@@ -112,7 +115,7 @@
   .thumb {
     position: absolute;
     top: 50%;
-    left: var(--space-2);
+    left: var(--toggle-track-padding);
     width: var(--toggle-thumb-size);
     height: var(--toggle-thumb-size);
     transform: translateY(-50%);
@@ -145,8 +148,8 @@
     border-color: var(--toggle-on-track-border);
   }
   .toggle.on .thumb {
-    /* Calc keeps thumb flush with the right edge as track width and thumb size change. */
-    left: calc(var(--toggle-track-width) - var(--toggle-thumb-size) - var(--space-2) - (var(--toggle-track-border-width) * 2));
+    /* Mirror of the off-position calc: travel is exactly one thumb-width. */
+    left: calc(var(--toggle-thumb-size) + var(--toggle-track-padding));
     background: var(--toggle-on-thumb-surface);
     border-color: var(--toggle-on-thumb-border);
   }

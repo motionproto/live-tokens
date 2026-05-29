@@ -54,6 +54,9 @@ import {
   themeMigration_2026_05_26_dropOverlayExtraStops,
   componentMigration_2026_05_26_dropOverlayExtraStops,
 } from './2026-05-26-drop-overlay-extra-stops';
+import { componentMigration_2026_05_29_tabbarIndicatorThicknessToPerStateWidth } from './2026-05-29-tabbar-indicator-thickness-to-per-state-width';
+import { componentMigration_2026_05_29_segmentedcontrolSmallDividerRename } from './2026-05-29-segmentedcontrol-small-divider-rename';
+import { componentMigration_2026_05_29_toggleDeriveTrackFromThumb } from './2026-05-29-toggle-derive-track-from-thumb';
 
 /**
  * Registered migrations. Order in this array does not matter — the runner
@@ -80,6 +83,9 @@ export const MIGRATIONS: Migration[] = [
   componentMigration_2026_05_25_cornerbadgeFlattenVariants,
   themeMigration_2026_05_26_dropOverlayExtraStops,
   componentMigration_2026_05_26_dropOverlayExtraStops,
+  componentMigration_2026_05_29_tabbarIndicatorThicknessToPerStateWidth,
+  componentMigration_2026_05_29_segmentedcontrolSmallDividerRename,
+  componentMigration_2026_05_29_toggleDeriveTrackFromThumb,
 ];
 
 function countFor(kind: 'theme' | 'component-config'): number {

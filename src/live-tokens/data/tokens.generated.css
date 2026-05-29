@@ -368,6 +368,17 @@
   --button-small-text-line-height: var(--line-height-sm);
   --button-small-icon-size: var(--font-size-xs);
 
+  /* callout (my-callout) */
+  --callout-info-border: var(--border-info-medium);
+  --callout-info-label-font-size: var(--font-size-lg);
+  --callout-info-text-font-size: var(--font-size-lg);
+  --callout-success-label-font-size: var(--font-size-lg);
+  --callout-success-text-font-size: var(--font-size-lg);
+  --callout-warning-label-font-size: var(--font-size-lg);
+  --callout-warning-text-font-size: var(--font-size-lg);
+  --callout-danger-label-font-size: var(--font-size-lg);
+  --callout-danger-text-font-size: var(--font-size-lg);
+
   /* card (my-card) */
   --card-default-surface: color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent);
   --card-default-header-surface: color-mix(in srgb, var(--surface-neutral-lowest) 80%, transparent);

@@ -8,15 +8,14 @@
   // on top of that baseline.
   const states: Record<string, Token[]> = {
     default: [
-      { label: 'track surface',     variable: '--toggle-track-surface' },
-      { label: 'track border',      variable: '--toggle-track-border' },
-      { label: 'track border width',variable: '--toggle-track-border-width' },
-      { label: 'track radius',      variable: '--toggle-track-radius' },
-      { label: 'track width',       variable: '--toggle-track-width' },
-      { label: 'track thickness',   variable: '--toggle-track-thickness' },
-      { label: 'thumb surface',     variable: '--toggle-thumb-surface' },
-      { label: 'thumb border',      variable: '--toggle-thumb-border' },
       { label: 'thumb size',        variable: '--toggle-thumb-size' },
+      { label: 'track padding',     variable: '--toggle-track-padding' },
+      { label: 'track radius',      variable: '--toggle-track-radius' },
+      { label: 'track border width',variable: '--toggle-track-border-width' },
+      { label: 'track border',      variable: '--toggle-track-border' },
+      { label: 'track surface',     variable: '--toggle-track-surface' },
+      { label: 'thumb border',      variable: '--toggle-thumb-border' },
+      { label: 'thumb surface',     variable: '--toggle-thumb-surface' },
       { label: 'label text',        variable: '--toggle-label-text' },
       { label: 'label font family', variable: '--toggle-label-font-family' },
       { label: 'label font size',   variable: '--toggle-label-font-size' },

@@ -1,6 +1,6 @@
 # SectionDivider refactor — implementation plan
 
-Working directory: `/Users/mark/Documents/repos/runegoblin/live-tokens`. A fresh Claude can execute this end-to-end after reading this file. The proposal was worked out in `/tmp/section-divider-explorations.html` (visual mockup of the target model) and `temp/divider props` (Mark's note on prop shape).
+Working directory: `/Users/mark/Documents/repos/motionproto-repos/live-tokens`. A fresh Claude can execute this end-to-end after reading this file. The proposal was worked out in `/tmp/section-divider-explorations.html` (visual mockup of the target model) and `temp/divider props` (Mark's note on prop shape).
 
 The goal: one `SectionDivider` component, with the rule and the interleaf rebuilt as compositions of primitives, not separate surfaces. Per-variant tokens collapse from ~22 to ~8 — color decisions only. Typography, sizes, spacing become project-global. The editor's per-variant view gets dramatically shorter as a consequence.
 

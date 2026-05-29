@@ -321,6 +321,91 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out).toEqual(v15);
   });
 
+  it('component-config v17 → v18 tabbar: bar-level indicator-thickness fans out into per-state border-widths', () => {
+    const v17 = {
+      '--tabbar-bar-indicator-thickness': '--border-width-3',
+      // Unrelated bar/tab keys pass through.
+      '--tabbar-bar-divider-thickness': '--border-width-1',
+      '--tabbar-active-text': '--text-primary',
+    };
+    const out = runMigrations('component-config', 17, v17, { component: 'tabbar' });
+    expect(out['--tabbar-bar-indicator-thickness']).toBeUndefined();
+    // Seed value fans out unchanged across all four states.
+    for (const s of ['default', 'hover', 'active', 'disabled']) {
+      expect(out[`--tabbar-${s}-indicator-border-width`]).toBe('--border-width-3');
+    }
+    expect(out['--tabbar-bar-divider-thickness']).toBe('--border-width-1');
+    expect(out['--tabbar-active-text']).toBe('--text-primary');
+  });
+
+  it('component-config v17 → v18 tabbar: absent bar key seeds states with the runtime fallback', () => {
+    const out = runMigrations('component-config', 17, {}, { component: 'tabbar' });
+    for (const s of ['default', 'hover', 'active', 'disabled']) {
+      expect(out[`--tabbar-${s}-indicator-border-width`]).toBe('--border-width-2');
+    }
+  });
+
+  it('component-config v17 → v18 tabbar migration only fires for tabbar', () => {
+    const v17 = { '--segmentedcontrol-bar-indicator-thickness': '--border-width-3' };
+    const out = runMigrations('component-config', 17, v17, { component: 'segmentedcontrol' });
+    expect(out['--segmentedcontrol-bar-indicator-thickness']).toBe('--border-width-3');
+    expect(out['--tabbar-default-indicator-border-width']).toBeUndefined();
+  });
+
+  it('component-config v18 → v19 segmentedcontrol: small-divider tokens reorder so the suffix matches the picker', () => {
+    const v18 = {
+      '--segmentedcontrol-divider-small-thickness': '--border-width-1',
+      '--segmentedcontrol-divider-small-inset': '--space-4',
+      // Unrelated keys (including the non-small divider) pass through.
+      '--segmentedcontrol-divider-thickness': '--border-width-1',
+      '--segmentedcontrol-bar-small-padding': '--space-2',
+    };
+    const out = runMigrations('component-config', 18, v18, { component: 'segmentedcontrol' });
+    expect(out['--segmentedcontrol-small-divider-thickness']).toBe('--border-width-1');
+    expect(out['--segmentedcontrol-small-divider-inset']).toBe('--space-4');
+    expect(out['--segmentedcontrol-divider-small-thickness']).toBeUndefined();
+    expect(out['--segmentedcontrol-divider-small-inset']).toBeUndefined();
+    expect(out['--segmentedcontrol-divider-thickness']).toBe('--border-width-1');
+    expect(out['--segmentedcontrol-bar-small-padding']).toBe('--space-2');
+  });
+
+  it('component-config v18 → v19 segmentedcontrol small-divider migration only fires for segmentedcontrol', () => {
+    const v18 = { '--tabbar-divider-small-thickness': '--border-width-1' };
+    const out = runMigrations('component-config', 18, v18, { component: 'tabbar' });
+    expect(out).toEqual(v18);
+  });
+
+  it('component-config v19 → v20 toggle: track-width and track-thickness drop, track-padding seeded if absent', () => {
+    const v19 = {
+      '--toggle-track-width': '--space-32',
+      '--toggle-track-thickness': '--space-16',
+      '--toggle-thumb-size': '--space-12',
+      '--toggle-track-surface': '--surface-neutral',
+    };
+    const out = runMigrations('component-config', 19, v19, { component: 'toggle' });
+    expect(out['--toggle-track-width']).toBeUndefined();
+    expect(out['--toggle-track-thickness']).toBeUndefined();
+    expect(out['--toggle-track-padding']).toBe('--space-2');
+    // thumb-size is left as the user had it; the new picker just won't pre-select it.
+    expect(out['--toggle-thumb-size']).toBe('--space-12');
+    expect(out['--toggle-track-surface']).toBe('--surface-neutral');
+  });
+
+  it('component-config v19 → v20 toggle: pre-existing track-padding survives the migration', () => {
+    const v19 = {
+      '--toggle-track-width': '--space-32',
+      '--toggle-track-padding': '--space-4',
+    };
+    const out = runMigrations('component-config', 19, v19, { component: 'toggle' });
+    expect(out['--toggle-track-padding']).toBe('--space-4');
+  });
+
+  it('component-config v19 → v20 toggle migration only fires for toggle', () => {
+    const v19 = { '--badge-track-width': '--space-32' };
+    const out = runMigrations('component-config', 19, v19, { component: 'badge' });
+    expect(out).toEqual(v19);
+  });
+
   it('component-config at current version → no migrations run', () => {
     const current = { '--button-primary-surface': '--surface-success' };
     const out = runMigrations(

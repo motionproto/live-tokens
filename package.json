@@ -99,7 +99,6 @@
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
-    "@tsconfig/svelte": "^5.0.8",
     "@types/node": "^25.9.1",
     "happy-dom": "^20.9.0",
     "highlight.js": "^11.11.1",

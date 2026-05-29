@@ -2,7 +2,7 @@
 
 This plan finishes the component-linkage cleanup. Most schema-level work was already applied in a prior session; this plan **verifies the applied changes are in place**, **fixes any drift**, **updates the audit HTML** to reflect the final state, and **runs tests** to confirm nothing broke.
 
-A fresh Claude can execute this end-to-end without prior context. Working directory: `/Users/mark/Documents/repos/runegoblin/live-tokens`. Read this file first, then proceed.
+A fresh Claude can execute this end-to-end without prior context. Working directory: `/Users/mark/Documents/repos/motionproto-repos/live-tokens`. Read this file first, then proceed.
 
 ---
 
