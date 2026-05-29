@@ -48,7 +48,15 @@ jobs:
             exit 1
           fi
 
-      - run: npm ci
+      # `npm install` (not `npm ci`) because `package-lock.json` is
+      # generated on macOS during local releases and cannot capture the
+      # linux-only optional binaries that rolldown (bundled with vite 8+)
+      # pulls in for the wasm32-wasi fallback path. `npm ci` would exit
+      # EUSAGE on the missing @emnapi/* nodes. `npm install` resolves the
+      # tree per-platform from package.json. We still gate the publish on
+      # the `--frozen` semantics via `Verify tag matches package.json`
+      # earlier in the workflow.
+      - run: npm install --include=optional --no-audit --no-fund
 
       - run: npm test --if-present
 

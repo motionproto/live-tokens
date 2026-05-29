@@ -1,15 +1,18 @@
 # Changelog
 
-## 0.18.1 — Lockfile completeness for cross-platform CI
+## 0.18.2 — Publish workflow switches to `npm install`
 
 ### Fixed
 
-- **`package-lock.json` now includes the `@emnapi/*` runtime entries**
-  pulled in transitively by `@rolldown/binding-linux-*` (rolldown
-  bundled with Vite 8). Regenerated with `npm install --include=optional
-  --force` on macOS so the lockfile resolves correctly under `npm ci`
-  on Linux CI runners. 0.18.0 tagged but never reached the publish step
-  for this reason.
+- **Publish workflow uses `npm install --include=optional` instead of
+  `npm ci`.** Releases are tagged from macOS, where `package-lock.json`
+  cannot capture the linux-only optional binaries that rolldown
+  (bundled with Vite 8) pulls in for the wasm32-wasi fallback path.
+  `npm ci` strict-checked the lockfile and exited EUSAGE on missing
+  `@emnapi/*` nodes; `npm install` resolves the tree per-platform from
+  `package.json`. Tag-matches-package.json gate remains the source of
+  truth for the publish identity. 0.18.0 and 0.18.1 both tagged but
+  never reached the publish step because of this.
 
 ## 0.18.0 — Vite 8 / TypeScript 6 toolchain bump
 
