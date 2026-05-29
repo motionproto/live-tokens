@@ -107,7 +107,11 @@
     "--button-warning-disabled-text": "--text-tertiary",
     "--button-warning-disabled-border": "--border-neutral-faint",
     "--button-warning-icon-size": "--icon-size-sm",
-    "--button-small-text-font-size": "--font-size-sm"
+    "--button-small-text-font-size": "--font-size-sm",
+    "--button-small-padding": "--space-6",
+    "--button-small-text-font-weight": "--font-weight-normal",
+    "--button-small-text-line-height": "--line-height-sm",
+    "--button-small-icon-size": "--font-size-xs"
   },
   "config": {},
   "schemaVersion": 17

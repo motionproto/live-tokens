@@ -473,7 +473,17 @@ npx live-tokens check-component <id>
 
 It enforces the file layout, the `:global(:root)` block, token-suffix vocabulary, state-before-property rule, theme-token defaults (no raw colour literals), public-imports rule, and the `registerComponent({ id })` call. Exit code 0 means the static contract is met.
 
-Then navigate to `/components` and confirm the runtime behaviours the static check can't see:
+**Then run the registry contract test.** If you're authoring inside the package itself, `src/editor/component-editor/registryContract.test.ts` runs `describe.each(getComponentRegistryEntries())` and verifies, per component:
+
+1. Registration resolves to a real `sourceFile` and a non-empty schema.
+2. Schema variables are unique within the component.
+3. Every editable token (excluding `hidden: true`, `kind: 'gradient'`, and padding-side suffixes) is declared in the runtime `<style>` block.
+4. Every editable token is seeded in the production-pointed config under `src/live-tokens/data/component-configs/<id>/`.
+5. `setComponentAlias` round-trips the alias through the slice.
+
+A new first-party component is auto-covered the moment it lands in `builtInRegistry` — `npm test` will fail if any of the five checks miss. For a consumer-authored component, mirror this pattern in your own test suite if you want the same drift protection (the same test logic works against any `registerComponent` registration; iterate `getComponentRegistryEntries()` after your `main.ts` has run).
+
+Finally navigate to `/components` and confirm the runtime behaviours no static check can see:
 
 - [ ] The new component appears in the nav rail under the **CUSTOM** group (system entries above, custom below the labeled divider).
 - [ ] Token rows render. Color pickers, radius selectors, font selectors all work.

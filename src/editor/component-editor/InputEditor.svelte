@@ -12,10 +12,6 @@
       { label: 'corner radius', groupKey: 'radius', variable: '--input-radius' },
       { label: 'border width', groupKey: 'border-width', variable: '--input-border-width' },
       { label: 'padding', variable: '--input-padding', groupKey: 'padding' },
-      { label: 'padding-top', variable: '--input-padding-top', groupKey: 'padding-top', hidden: true },
-      { label: 'padding-right', variable: '--input-padding-right', groupKey: 'padding-right', hidden: true },
-      { label: 'padding-bottom', variable: '--input-padding-bottom', groupKey: 'padding-bottom', hidden: true },
-      { label: 'padding-left', variable: '--input-padding-left', groupKey: 'padding-left', hidden: true },
       { label: 'message gap', groupKey: 'gap', variable: '--input-gap' },
     ],
     default: [

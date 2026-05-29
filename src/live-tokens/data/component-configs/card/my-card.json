@@ -9,6 +9,7 @@
     "--card-default-border-width": "--border-width-1",
     "--card-default-radius": "--radius-lg",
     "--card-default-header-padding": "--space-16",
+    "--card-default-header-gap": "--space-8",
     "--card-default-body-padding": "--space-16",
     "--card-default-shadow": "--shadow-sm",
     "--card-default-blur": "--blur-none",

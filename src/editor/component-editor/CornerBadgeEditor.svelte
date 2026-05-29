@@ -10,10 +10,6 @@
   const baseTokens: Token[] = [
     { label: 'offset from corner', canBeLinked: true, groupKey: 'margin', variable: '--corner-badge-margin', element: 'frame' },
     { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: '--corner-badge-padding', element: 'frame' },
-    { label: 'padding-top', canBeLinked: true, groupKey: 'padding-top', variable: '--corner-badge-padding-top', hidden: true, element: 'frame' },
-    { label: 'padding-right', canBeLinked: true, groupKey: 'padding-right', variable: '--corner-badge-padding-right', hidden: true, element: 'frame' },
-    { label: 'padding-bottom', canBeLinked: true, groupKey: 'padding-bottom', variable: '--corner-badge-padding-bottom', hidden: true, element: 'frame' },
-    { label: 'padding-left', canBeLinked: true, groupKey: 'padding-left', variable: '--corner-badge-padding-left', hidden: true, element: 'frame' },
     { label: 'outer corner radius', canBeLinked: true, groupKey: 'outer-radius', variable: '--corner-badge-outer-radius', element: 'frame' },
     { label: 'inner corner radius', canBeLinked: true, groupKey: 'inner-radius', variable: '--corner-badge-inner-radius', element: 'frame' },
     { label: 'horizontal-axis radius', canBeLinked: true, groupKey: 'h-axis-radius', variable: '--corner-badge-h-axis-radius', element: 'frame' },

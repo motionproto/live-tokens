@@ -624,18 +624,6 @@
     "padding": [
       "--corner-badge-padding"
     ],
-    "padding-bottom": [
-      "--corner-badge-padding-bottom"
-    ],
-    "padding-left": [
-      "--corner-badge-padding-left"
-    ],
-    "padding-right": [
-      "--corner-badge-padding-right"
-    ],
-    "padding-top": [
-      "--corner-badge-padding-top"
-    ],
     "surface": [
       "--corner-badge-accent-surface",
       "--corner-badge-alternate-surface",
@@ -913,18 +901,6 @@
     "padding": [
       "--input-padding"
     ],
-    "padding-bottom": [
-      "--input-padding-bottom"
-    ],
-    "padding-left": [
-      "--input-padding-left"
-    ],
-    "padding-right": [
-      "--input-padding-right"
-    ],
-    "padding-top": [
-      "--input-padding-top"
-    ],
     "placeholder": [
       "--input-default-placeholder"
     ],
@@ -985,18 +961,6 @@
     "item-padding": [
       "--menuselect-item-padding"
     ],
-    "item-padding-bottom": [
-      "--menuselect-item-padding-bottom"
-    ],
-    "item-padding-left": [
-      "--menuselect-item-padding-left"
-    ],
-    "item-padding-right": [
-      "--menuselect-item-padding-right"
-    ],
-    "item-padding-top": [
-      "--menuselect-item-padding-top"
-    ],
     "item-radius": [
       "--menuselect-item-radius"
     ],
@@ -1008,18 +972,6 @@
     ],
     "menu-padding": [
       "--menuselect-menu-padding"
-    ],
-    "menu-padding-bottom": [
-      "--menuselect-menu-padding-bottom"
-    ],
-    "menu-padding-left": [
-      "--menuselect-menu-padding-left"
-    ],
-    "menu-padding-right": [
-      "--menuselect-menu-padding-right"
-    ],
-    "menu-padding-top": [
-      "--menuselect-menu-padding-top"
     ],
     "menu-radius": [
       "--menuselect-menu-radius"
@@ -1384,32 +1336,8 @@
     "bar-padding": [
       "--segmentedcontrol-bar-padding"
     ],
-    "bar-padding-bottom": [
-      "--segmentedcontrol-bar-padding-bottom"
-    ],
-    "bar-padding-left": [
-      "--segmentedcontrol-bar-padding-left"
-    ],
-    "bar-padding-right": [
-      "--segmentedcontrol-bar-padding-right"
-    ],
-    "bar-padding-top": [
-      "--segmentedcontrol-bar-padding-top"
-    ],
     "bar-small-padding": [
       "--segmentedcontrol-bar-small-padding"
-    ],
-    "bar-small-padding-bottom": [
-      "--segmentedcontrol-bar-small-padding-bottom"
-    ],
-    "bar-small-padding-left": [
-      "--segmentedcontrol-bar-small-padding-left"
-    ],
-    "bar-small-padding-right": [
-      "--segmentedcontrol-bar-small-padding-right"
-    ],
-    "bar-small-padding-top": [
-      "--segmentedcontrol-bar-small-padding-top"
     ],
     "border": [
       "--segmentedcontrol-bar-border",
@@ -1463,35 +1391,11 @@
     "option-padding": [
       "--segmentedcontrol-option-padding"
     ],
-    "option-padding-bottom": [
-      "--segmentedcontrol-option-padding-bottom"
-    ],
-    "option-padding-left": [
-      "--segmentedcontrol-option-padding-left"
-    ],
-    "option-padding-right": [
-      "--segmentedcontrol-option-padding-right"
-    ],
-    "option-padding-top": [
-      "--segmentedcontrol-option-padding-top"
-    ],
     "option-small-gap": [
       "--segmentedcontrol-option-small-gap"
     ],
     "option-small-padding": [
       "--segmentedcontrol-option-small-padding"
-    ],
-    "option-small-padding-bottom": [
-      "--segmentedcontrol-option-small-padding-bottom"
-    ],
-    "option-small-padding-left": [
-      "--segmentedcontrol-option-small-padding-left"
-    ],
-    "option-small-padding-right": [
-      "--segmentedcontrol-option-small-padding-right"
-    ],
-    "option-small-padding-top": [
-      "--segmentedcontrol-option-small-padding-top"
     ],
     "radius": [
       "--segmentedcontrol-bar-radius",

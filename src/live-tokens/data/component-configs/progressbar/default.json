@@ -11,6 +11,7 @@
     "--progressbar-radius": "--radius-full",
     "--progressbar-fill": "--surface-special-highest",
     "--progressbar-label": "--text-secondary",
+    "--progressbar-label-gap": "--space-6",
     "--progressbar-label-font-family": "--font-sans",
     "--progressbar-label-font-size": "--font-size-md",
     "--progressbar-label-font-weight": "--font-weight-normal",

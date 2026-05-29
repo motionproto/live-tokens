@@ -363,6 +363,10 @@
   --button-success-border-width: var(--border-width-1);
   --button-danger-border-width: var(--border-width-1);
   --button-warning-border-width: var(--border-width-1);
+  --button-small-padding: var(--space-6);
+  --button-small-text-font-weight: var(--font-weight-normal);
+  --button-small-text-line-height: var(--line-height-sm);
+  --button-small-icon-size: var(--font-size-xs);
 
   /* card (my-card) */
   --card-default-surface: color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent);
