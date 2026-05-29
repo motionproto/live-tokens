@@ -359,6 +359,11 @@
 
 /* Component aliases (production configs differing from defaults) */
 :root:root {
+  /* button (my-button) */
+  --button-success-border-width: var(--border-width-1);
+  --button-danger-border-width: var(--border-width-1);
+  --button-warning-border-width: var(--border-width-1);
+
   /* card (my-card) */
   --card-default-surface: color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent);
   --card-default-header-surface: color-mix(in srgb, var(--surface-neutral-lowest) 80%, transparent);

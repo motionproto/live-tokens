@@ -1,11 +1,11 @@
 {
   "name": "my-manifest",
   "createdAt": "2026-05-25T21:49:55.471Z",
-  "updatedAt": "2026-05-27T15:34:14.854Z",
+  "updatedAt": "2026-05-29T13:06:09.418Z",
   "theme": "my-theme",
   "componentConfigs": {
     "badge": "default",
-    "button": "default",
+    "button": "my-button",
     "callout": "default",
     "card": "my-card",
     "collapsiblesection": "default",

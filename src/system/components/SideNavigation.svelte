@@ -76,6 +76,19 @@
     expandedSections[path] = !expandedSections[path];
   }
 
+  // Clicking a section label whose route is already current would otherwise be
+  // a no-op navigation. Make it a toggle in that case so the user can collapse
+  // the section they just opened without having to chase the chevron. The
+  // chevron's own onclick is unaffected — its event target isn't inside an <a>.
+  function maybeInterceptLabel(e: MouseEvent, section: SideNavSection) {
+    if (!section.hasIndexPage || currentPath !== section.path) return;
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const target = e.target as Element | null;
+    if (!target?.closest('a')) return;
+    e.preventDefault();
+    toggleSection(section.path);
+  }
+
   function fireToggle() {
     ontoggle?.();
     dispatch('toggle');
@@ -164,10 +177,12 @@
     <div class="sn-menu">
       {#each sections as section (section.path)}
         <div class="sn-section">
+          <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions, a11y_no_static_element_interactions -->
           <div
             class="sn-section-header"
             class:active={isSectionActive(section)}
             class:force-hover={isSectionHover(section)}
+            onclick={(e) => maybeInterceptLabel(e, section)}
           >
             <CollapsibleSection
               variant="chromeless"
