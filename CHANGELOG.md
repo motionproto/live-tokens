@@ -1,5 +1,59 @@
 # Changelog
 
+## 0.17.0 — tokens.css migrations for Layer-1 drift
+
+Layer-1 primitives live in the consumer's developer-authored
+`tokens.css`, which the in-browser JSON migration system deliberately
+never touches. When the package evolves its token vocabulary, a forked
+`tokens.css` falls behind and components reference primitives that
+resolve to nothing, surfacing as blank or `—` editor slots. This release
+adds a Node-side, idempotent migration system that reconciles
+`tokens.css` on demand, plus a boot guardrail that flags drift before it
+shows up as empty slots.
+
+### Added
+
+- **`live-tokens migrate` CLI.** `npx live-tokens migrate` applies
+  pending `tokens.css` migrations and writes the file in place as a
+  reviewable git diff. `npx live-tokens migrate --check` reports without
+  writing and exits 1 when changes are pending, so CI can gate on it.
+  The file is located via `--tokens <path>`, then the `tokensCssPath`
+  key in `live-tokens.config.json`, then a short default scan.
+- **`tokensCssPath` config key.** Added to `live-tokens.config.json` so
+  the CLI can locate `tokens.css` without plugin options.
+- **Boot guardrail.** The dev-server plugin (`themeFileApi`) runs a
+  read-only `validateTokensCss` check on boot. It scans every
+  component's `:global(:root)` block for `var(--…)` references and warns
+  about any primitive not defined in `tokens.css`, the generated
+  sidecar, or another component, naming the tokens and pointing at `npx
+  live-tokens migrate`. It never writes anything, so the "plugin never
+  writes `tokens.css`" invariant is preserved.
+- **First migrations.** Add `--line-height-{xs..xl}`,
+  `--letter-spacing-*`, and `--ease-out-quart`. Remove legacy
+  `--sectiondivider-*` tokens that are not on the `lg`/`md`/`sm` axis.
+  Migrations are idempotent by presence (no `schemaVersion` to stamp on
+  CSS), so re-running the whole set is always safe.
+
+### Docs
+
+- `docs/04-tokens-and-themes.md` gains a "tokens.css migrations
+  (Layer-1)" section covering the engine, the CLI, the guardrail, and
+  how to author a new migration.
+
+## 0.16.2 — CollapsibleSection collapses linked headers
+
+### Fixed
+
+- **`CollapsibleSection` with `href` can now collapse.** When `href` was
+  set, the header rendered as a single `<a>` with no toggle handler, so
+  consumers like SideNavigation lost the ability to collapse sections
+  that were also routes. Click only ever navigated, and the chevron's
+  rotate was decorative. The `href` branch now renders the chevron as a
+  standalone `<button>` that fires `ontoggle`, with the label as a
+  sibling `<a>` link inside the same flex row. Hover, indicator, and
+  expanded paint still land on the row. The no-`href` branch is
+  unchanged.
+
 ## 0.16.1 — SideNavigation header restructure
 
 The SideNavigation title bar is now a single flex card hosting the label
