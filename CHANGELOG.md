@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.19.0 — Toggle, TabBar, SegmentedControl token model updates
+
+### Changed (breaking)
+
+- **`Toggle` track dimensions are derived, not authored.** The runtime
+  now computes `track-width = thumb-size * 2 + track-padding * 2` and
+  `track-height = thumb-size + track-padding * 2`, so the explicit
+  `--toggle-track-width` and `--toggle-track-thickness` tokens are gone.
+  A new `--toggle-track-padding` knob controls the gap between thumb and
+  track edge. Auto-migrated: the `2026-05-29-toggle-derive-track-from-thumb`
+  component-config migration drops the two old tokens and seeds
+  `--toggle-track-padding` with `--space-2` when absent. Consumers who
+  customised track width will see geometry derive from their
+  `--toggle-thumb-size` after upgrade.
+- **`TabBar` indicator stroke width is now per-state.** The bar-level
+  `--tabbar-bar-indicator-thickness` is replaced by
+  `--tabbar-{default,hover,active,disabled}-indicator-border-width`,
+  mirroring how indicator color already rebinds per state. The
+  `-border-width` suffix also lets the editor's picker classify the
+  token correctly (the old `-thickness` suffix rendered as a colour
+  picker). Auto-migrated by
+  `2026-05-29-tabbar-indicator-thickness-to-per-state-width`: the old
+  bar-level value seeds all four states, so the visual default is
+  preserved. Unset falls back to `--border-width-2`.
+- **`SegmentedControl` small-size divider tokens renamed.**
+  `--segmentedcontrol-divider-small-thickness` →
+  `--segmentedcontrol-small-divider-thickness`, and the matching
+  `-inset` token. The picker recognises the value by suffix, so the
+  rename puts `-thickness` / `-inset` at the tail where the editor
+  classifies them as stroke width and inset instead of colour. Auto-
+  migrated by `2026-05-29-segmentedcontrol-small-divider-rename`.
+
+### Added
+
+- **Three new component-config migrations** covering the renames above,
+  with regression tests in `migrations.test.ts`.
+
 ## 0.18.2 — Publish workflow switches to `npm install`
 
 ### Fixed
