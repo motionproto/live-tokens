@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.18.1 — Lockfile completeness for cross-platform CI
+
+### Fixed
+
+- **`package-lock.json` now includes the `@emnapi/*` runtime entries**
+  pulled in transitively by `@rolldown/binding-linux-*` (rolldown
+  bundled with Vite 8). Regenerated with `npm install --include=optional
+  --force` on macOS so the lockfile resolves correctly under `npm ci`
+  on Linux CI runners. 0.18.0 tagged but never reached the publish step
+  for this reason.
+
 ## 0.18.0 — Vite 8 / TypeScript 6 toolchain bump
 
 ### Changed
