@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.17.1 — SideNavigation re-toggles on current page
+
+### Fixed
+
+- **`SideNavigation` collapses when its label is clicked on the current
+  page.** Previously, clicking a section label whose route was already
+  current produced a no-op navigation, so users had to chase the chevron
+  to collapse the section they had just opened. The label now intercepts
+  that click and toggles the section instead. Modified-click
+  (cmd/ctrl/shift/alt) and middle-click still fall through to the link,
+  and the chevron's own click is untouched.
+
+### Changed
+
+- **Editor: removed hidden per-side padding entries** from
+  `CornerBadgeEditor`, `InputEditor`, `MenuSelectEditor`, and
+  `SegmentedControlEditor`. Each editor previously declared a `padding`
+  token alongside four `padding-top` / `-right` / `-bottom` / `-left`
+  entries flagged `hidden: true`. The hidden entries never reached the UI
+  and their `--*-padding-{top,right,bottom,left}` variables are not
+  referenced by the shipped components, so this is a cleanup of dead
+  configuration with no consumer-visible effect.
+
 ## 0.17.0 — tokens.css migrations for Layer-1 drift
 
 Layer-1 primitives live in the consumer's developer-authored
