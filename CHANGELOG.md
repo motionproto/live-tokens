@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.20.0 — Refreshed shipped component defaults
+
+### Changed
+
+- **Baked-in component defaults updated across the shipped set.** The
+  `:global(:root)` defaults inside `src/system/components/*.svelte` (what a
+  fresh consumer sees before they touch the editor) were refreshed. This is a
+  visual default change: components installed at this version look different out
+  of the box, but no token names, aliases, or APIs changed, so existing themes
+  and component-configs keep overriding exactly as before.
+  - **Button** (`Button.svelte`): primary/secondary/outline/success/danger/warning
+    text steps up to `--font-size-md` / `--font-weight-semibold`, radius to
+    `--radius-xl`, and success/danger/warning border width drops to
+    `--border-width-1`. Small variant font size moves to `--font-size-sm`.
+  - **Callout** (`Callout.svelte`): label and body switch from `--font-serif` to
+    `--font-sans` at `--font-size-lg`; info border firms up to
+    `--border-info-medium`.
+  - **Card** (`Card.svelte`): translucent `color-mix` surfaces, per-side header
+    and body padding, larger title (`--font-size-2xl` / `--font-weight-medium`)
+    and body (`--font-size-xl`), icon at `--icon-size-2xl`.
+  - **CodeSnippet** (`CodeSnippet.svelte`): translucent surface, neutral border,
+    code text in `--text-brand-secondary` at `--font-size-md`.
+  - **Image** (`Image.svelte`): radius to `--radius-2xl`.
+  - **ImageLightbox** (`ImageLightbox.svelte`): overlay surface to a translucent
+    `color-mix` of `--color-neutral-950`.
+  - **Table** (`Table.svelte`): translucent neutral wrapper/header surfaces,
+    heavier wrapper border, larger header (`--font-size-lg` / semibold) and cell
+    (`--font-size-md` / medium) type, visible column dividers.
+  - **Tooltip** (`Tooltip.svelte`): translucent surface, visible
+    `--border-width-1` border.
+
+### Migration
+
+- Consumers who want the previous look can pin their theme or component-config
+  values; nothing is removed, so no edits are required to keep an existing
+  setup working. The change only affects components rendered with the shipped
+  defaults.
+
 ## 0.19.1 — Fresh install no longer needs `--legacy-peer-deps`
 
 ### Fixed
