@@ -26,7 +26,7 @@
   import { listManifests, saveAsManifest } from '../../core/manifests/manifestService';
   import type { ManifestMeta } from '../../core/themes/themeTypes';
   import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../core/themes/migrations';
-  import type { CssVarRef } from '../../core/store/editorTypes';
+  import { refToDiskValue } from '../../core/store/cssVarRef';
   import { safeFetch } from '../../core/storage/storage';
   import { API_BASE } from '../../core/storage/apiBase';
   import { flashStatus } from '../../core/flashStatus';
@@ -124,12 +124,6 @@
       e.preventDefault();
       handleSave();
     }
-  }
-
-  function refToDiskValue(ref: CssVarRef): AliasDiskValue {
-    if (ref.kind === 'token') return ref.name;
-    if (ref.kind === 'literal') return ref.value;
-    return { kind: 'gradient', value: ref.value };
   }
 
   function currentAliases(): Record<string, AliasDiskValue> {

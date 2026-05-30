@@ -2,6 +2,7 @@ import type { Plugin } from 'vite';
 import fs from 'fs';
 import path from 'path';
 import { extractGlobalRootBody } from '../src/editor/core/themes/parsers/globalRootBlock';
+import { parseColorOpacity } from '../src/editor/core/themes/parsers/colorOpacity';
 import { sanitizeFileName } from '../src/editor/core/storage/files/versionedFileResourceClient';
 import {
   palettesToVars,
@@ -386,17 +387,19 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     // A component property is either a plain alias to a design token
     // (`--v: var(--token);`) or that token carried at reduced opacity
     // (`--v: color-mix(in srgb, var(--token) NN%, transparent);`) — the form the
-    // color picker emits below 100% opacity. Plain aliases are stored as the
-    // bare token name (the editor's disk convention); opacity declarations are
-    // stored as the full color-mix string, matching the production configs the
-    // editor writes. Any other literal is intentionally ignored — a property
-    // must bind a design token, not a raw color.
-    const re =
-      /(--[a-z0-9-]+)\s*:\s*(var\(--[a-z0-9-]+\)|color-mix\(in srgb,\s*var\(--[a-z0-9-]+\)\s+\d+%,\s*transparent\))\s*;/gi;
+    // color picker emits below 100% opacity (see parsers/colorOpacity, the one
+    // place that knows that shape). Plain aliases are stored as the bare token
+    // name (the editor's disk convention); opacity declarations are stored as
+    // the full color-mix string, matching the production configs the editor
+    // writes. Any other literal is intentionally ignored — a property must bind
+    // a design token, not a raw color.
+    const re = /(--[a-z0-9-]+)\s*:\s*([^;]+);/gi;
     let m: RegExpExecArray | null;
     while ((m = re.exec(body)) !== null) {
-      const plain = m[2].match(/^var\((--[a-z0-9-]+)\)$/i);
-      aliases[m[1]] = plain ? plain[1] : m[2];
+      const value = m[2].trim();
+      const plain = value.match(/^var\((--[a-z0-9-]+)\)$/i);
+      if (plain) aliases[m[1]] = plain[1];
+      else if (parseColorOpacity(value)) aliases[m[1]] = value;
     }
     return aliases;
   }

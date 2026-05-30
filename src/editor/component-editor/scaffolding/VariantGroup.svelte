@@ -9,6 +9,7 @@
   import { mutate } from '../../core/store/editorStore';
   import { getDeclaredValue } from '../../core/palettes/tokenRegistry';
   import type { CssVarRef } from '../../core/store/editorTypes';
+  import { cssStringToRef, refToCss } from '../../core/store/cssVarRef';
   import { getEditorContext } from './editorContext';
   import type { Token, TypeGroupConfig } from './types';
   import type { Sibling } from './siblings';
@@ -112,9 +113,7 @@
       instead of falling back to its own family's default. */
   function declaredToRef(declared: string | null): CssVarRef | null {
     if (!declared) return null;
-    const m = declared.match(/^\s*var\((--[a-z0-9-]+)\)\s*$/i);
-    if (m) return { kind: 'token', name: m[1] };
-    return { kind: 'literal', value: declared };
+    return cssStringToRef(declared.trim());
   }
 
   /** Extract a transparency percentage from a `color-mix(in srgb, var(--X) N%, transparent)`
@@ -179,9 +178,8 @@
       const effectiveValue = (varName: string): string | null => {
         const ref = slice.aliases[varName];
         if (!ref) return getDeclaredValue(varName);
-        if (ref.kind === 'token') return `var(${ref.name})`;
-        if (ref.kind === 'literal') return ref.value;
-        return null;
+        if (ref.kind === 'gradient') return null;
+        return refToCss(ref);
       };
 
       const apply = (srcVar: string, dstVar: string) => {

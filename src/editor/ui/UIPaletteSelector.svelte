@@ -6,6 +6,7 @@
   import { resolveAliasChain } from '../core/palettes/tokenRegistry';
   import { editorState } from '../core/store/editorStore';
   import { formatGradientStops } from '../core/themes/slices/gradients';
+  import { formatColorOpacity, parseColorOpacity } from '../core/themes/parsers/colorOpacity';
   import type { GradientToken } from '../core/store/editorTypes';
   import UITokenSelector from './UITokenSelector.svelte';
 
@@ -249,24 +250,19 @@
     return null;
   }
 
-  function parseOpacity(raw: string): { inner: string; opacity: number } | null {
-    const m = raw.match(/^color-mix\(in srgb,\s*(var\(--[a-z0-9-]+\))\s+(\d+)%,\s*transparent\)$/);
-    if (!m) return null;
-    return { inner: m[1], opacity: parseInt(m[2]) };
-  }
-
   function parseStatic(raw: string): { name: 'white' | 'black'; opacity: number } | null {
     const direct = raw.match(/^var\(--color-(white|black)\)$/);
     if (direct) return { name: direct[1] as 'white' | 'black', opacity: 100 };
-    const wrapped = raw.match(/^color-mix\(in srgb,\s*var\(--color-(white|black)\)\s+(\d+)%,\s*transparent\)$/);
-    if (wrapped) return { name: wrapped[1] as 'white' | 'black', opacity: parseInt(wrapped[2]) };
+    const op = parseColorOpacity(raw);
+    const m = op?.name.match(/^--color-(white|black)$/);
+    if (op && m) return { name: m[1] as 'white' | 'black', opacity: op.opacity };
     return null;
   }
 
   function buildValue(varName: string): string | null {
     if (varName === variable && opacity >= 100) return null;
     if (opacity >= 100) return varName;
-    return `color-mix(in srgb, var(${varName}) ${opacity}%, transparent)`;
+    return formatColorOpacity(varName, opacity);
   }
 
   function applyOpacity() {
@@ -399,9 +395,9 @@
     }
     chosenStatic = null;
 
-    const opacityParsed = parseOpacity(raw);
+    const opacityParsed = parseColorOpacity(raw);
     if (opacityParsed) {
-      const parsed = parseRef(opacityParsed.inner);
+      const parsed = parseRef(`var(${opacityParsed.name})`);
       if (parsed) {
         chosenCategory = parsed.category;
         chosenFamily = parsed.family;

@@ -4,6 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildTokenRegistry, extractGlobalRootBody } from '../core/palettes/tokenRegistry';
+import { parseColorOpacity } from '../core/themes/parsers/colorOpacity';
 import { getComponentRegistryEntries } from './registry';
 
 const TEST_DIR = dirname(fileURLToPath(import.meta.url));
@@ -82,10 +83,9 @@ describe('design-token architecture', () => {
   //   1. `var(--token)`                                        — opaque alias
   //   2. `color-mix(in srgb, var(--token) NN%, transparent)`   — alias + opacity
   // Form 2 is what the color picker emits for any color token below 100%
-  // opacity (see UIPaletteSelector's toRef/parseOpacity). It still references a
-  // design token and only applies alpha, so it satisfies the same invariant —
-  // it does not rebind a primitive to an arbitrary color.
-  const OPACITY_ALIAS = /^color-mix\(in srgb, var\(--[a-z0-9-]+\) \d+%, transparent\)$/;
+  // opacity; `parseColorOpacity` is the single source of truth for that shape.
+  // It still references a design token and only applies alpha, so it satisfies
+  // the same invariant — it does not rebind a primitive to an arbitrary color.
   describe('every editor follows the component-token pattern', () => {
     for (const { editor, variable } of editorTokenCases) {
       it(`${editor}: ${variable} is a layer-2 component token (alias to a design token)`, () => {
@@ -95,7 +95,7 @@ describe('design-token architecture', () => {
           `${variable} is referenced by ${editor} but not declared in tokens.css`,
         ).not.toBeNull();
         expect(
-          declared!.startsWith('var(') || OPACITY_ALIAS.test(declared!),
+          declared!.startsWith('var(') || parseColorOpacity(declared!) !== null,
           `${variable} should be a component-scoped alias — either var(--token) or ` +
             `color-mix(in srgb, var(--token) NN%, transparent); got "${declared}". ` +
             `Component properties must not rebind shared primitives directly.`,

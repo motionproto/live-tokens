@@ -101,6 +101,10 @@ export interface GradientAliasValue {
 
 export type CssVarRef =
   | { kind: 'token'; name: string }
+  /** A design-token colour carried at reduced opacity (< 100%). Serializes to
+   *  `color-mix(in srgb, var(name) opacity%, transparent)`. Fully opaque
+   *  colours are `kind: 'token'`, never `kind: 'color'` at opacity 100. */
+  | { kind: 'color'; name: string; opacity: number }
   | { kind: 'literal'; value: string }
   | { kind: 'gradient'; value: GradientAliasValue };
 

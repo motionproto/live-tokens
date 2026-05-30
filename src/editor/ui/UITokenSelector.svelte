@@ -3,6 +3,7 @@
   import type { Snippet } from 'svelte';
   import { setCssVar, removeCssVar, CSS_VAR_CHANGE_EVENT } from '../core/cssVarSync';
   import type { CssVarRef } from '../core/store/editorTypes';
+  import { cssStringToRef } from '../core/store/cssVarRef';
   import {
     editorState,
     setComponentAlias,
@@ -116,14 +117,13 @@
     if (component) {
       const useLinked = isLinkedDisplay;
       if (semanticName) {
-        // Mirror splitAliasesAndConfig: a `--…` reference becomes a token
-        // (rendered as `var(name)`); anything else (color-mix expressions,
-        // `transparent`, gradient tokens already wrapped) is a literal whose
-        // value is emitted as-is. Storing complex CSS as a token would render
+        // Same classifier as the disk loader (cssStringToRef): a `--…`
+        // reference becomes a token (rendered as `var(name)`); a
+        // `color-mix(... var(--token) NN%, transparent)` becomes a colour ref;
+        // anything else (`transparent`, a materialized gradient) is a literal
+        // emitted as-is. Storing complex CSS as a token would render
         // `var(color-mix(...))`, which is invalid and breaks the preview.
-        const ref: CssVarRef = semanticName.startsWith('--')
-          ? { kind: 'token', name: semanticName }
-          : { kind: 'literal', value: semanticName };
+        const ref: CssVarRef = cssStringToRef(semanticName);
         if (useLinked) setComponentAliasLinked(component, variable, ref);
         else setComponentAlias(component, variable, ref);
       } else {

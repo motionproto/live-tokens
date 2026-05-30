@@ -5,11 +5,14 @@ import {
   editorState,
 } from '../../core/store/editorStore';
 import type { CssVarRef } from '../../core/store/editorTypes';
+import { refToCss } from '../../core/store/cssVarRef';
 import type { Token } from './types';
 
+/** Stable per-ref identity key: refs that render to the same CSS share a key,
+ *  so siblings with equal values bucket together regardless of ref kind. */
 function aliasKey(ref: CssVarRef | undefined): string {
   if (!ref) return '';
-  return ref.kind === 'token' ? `t:${ref.name}` : `v:${ref.value}`;
+  return refToCss(ref);
 }
 
 const TYPOGRAPHY_PROP_SUFFIXES = ['font-family', 'font-size', 'font-weight', 'line-height'] as const;

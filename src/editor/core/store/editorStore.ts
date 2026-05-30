@@ -21,6 +21,7 @@
 import type { CssVarRef, EditorState, GradientAliasValue } from './editorTypes';
 import type { AliasDiskValue, Theme } from '../themes/themeTypes';
 import { KNOWN_COMPONENT_CONFIG_KEYS } from '../components/componentConfigKeys';
+import { cssStringToRef } from './cssVarRef';
 import {
   CURRENT_THEME_SCHEMA_VERSION,
   CURRENT_COMPONENT_SCHEMA_VERSION,
@@ -421,9 +422,7 @@ function splitAliasesAndConfig(
       if (config[key] === undefined) config[key] = value;
       continue;
     }
-    aliases[key] = value.startsWith('--')
-      ? { kind: 'token', name: value }
-      : { kind: 'literal', value };
+    aliases[key] = cssStringToRef(value);
   }
   return { aliases, config };
 }

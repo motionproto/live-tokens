@@ -1,7 +1,7 @@
 import { get } from 'svelte/store';
 import type { AliasDiskValue, ComponentConfig } from '../themes/themeTypes';
 import { editorState, markComponentSaved } from '../store/editorStore';
-import type { CssVarRef } from '../store/editorTypes';
+import { refToDiskValue } from '../store/cssVarRef';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../themes/migrations';
 import {
   listComponentConfigs,
@@ -24,11 +24,6 @@ export type SaveActiveComponentResult =
   | { ok: true; fileName: string; displayName: string }
   | { ok: false; reason: 'default' | 'no-state' | 'error'; error?: unknown };
 
-function refToDiskValue(ref: CssVarRef): AliasDiskValue {
-  if (ref.kind === 'token') return ref.name;
-  if (ref.kind === 'literal') return ref.value;
-  return { kind: 'gradient', value: ref.value };
-}
 
 export async function saveActiveComponentConfig(
   component: string,
