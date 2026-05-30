@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.20.1 — Color opacity is a property of a token
+
+### Changed
+
+- **Internal: translucent colors are modeled as a token plus an optional
+  opacity, not a separate value kind.** The editor's `CssVarRef` now has three
+  kinds (`token`, `literal`, `gradient`); a color below 100% is a `token`
+  carrying an `opacity`, and one serialize/parse pair
+  (`color-mix(in srgb, var(--token) NN%, transparent)`) backs every read and
+  write of a color value. No change to the on-disk config format, the generated
+  CSS, or any public API, so no migration is needed.
+
+### Fixed
+
+- **Linked-block grouping no longer collapses distinct gradients into one
+  bucket.** Gradient refs were keyed by a stringified object, so every gradient
+  hashed to the same key; refs are now bucketed by their rendered CSS value.
+
 ## 0.20.0 — Refreshed shipped component defaults
 
 ### Changed
