@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.19.1 — Fresh install no longer needs `--legacy-peer-deps`
+
+### Fixed
+
+- **`npm install @motion-proto/live-tokens` resolves cleanly on a fresh
+  machine.** `vite@8` declares an optional `sugarss@^5` peer while
+  `svelte-preprocess@6` declares `sugarss@^2 || ^3 || ^4`. The ranges don't
+  overlap, so npm rejected the whole tree with `ERESOLVE` even though `sugarss`
+  is never installed. We no longer depend on `svelte-preprocess`, so the
+  conflict is gone — no `--legacy-peer-deps`, no `.npmrc` workaround.
+
+### Changed
+
+- **Preprocessing moved from `svelte-preprocess` to `vitePreprocess`** (bundled
+  in `@sveltejs/vite-plugin-svelte`). `svelte-preprocess` is removed from
+  `peerDependencies`; `@sveltejs/vite-plugin-svelte` (`^7.0`) is now a declared
+  peer. `sass` stays a peer — it compiles the components' `<style lang="scss">`
+  blocks under `vitePreprocess` exactly as before. The build-time PRUNE_FOR
+  pass that relied on svelte-preprocess's `replace` option now runs through a
+  local `replacePreprocess` helper (`vite-plugin/pruneMarkers/`).
+
+### Migration
+
+- **Consumer `vite.config.ts`:** preprocess with `vitePreprocess()` instead of
+  a bare `svelte()`. The bare form never compiled the shipped components' scss
+  blocks, so this also closes a latent gap. Keep `sass` installed.
+
+  ```ts
+  import { svelte, vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+  // ...
+  plugins: [svelte({ preprocess: vitePreprocess() }), themeFileApi({ /* ... */ })]
+  ```
+
+  Consumers who explicitly configured `svelte-preprocess` themselves can keep
+  it — nothing forces the switch — but it's no longer required or installed for
+  you.
+
 ## 0.19.0 — Toggle, TabBar, SegmentedControl token model updates
 
 ### Changed (breaking)
