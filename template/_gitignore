@@ -1,0 +1,15 @@
+node_modules
+dist
+dist-ssr
+*.local
+*.log
+
+# Editor-written backups stay local to each machine; the live JSON/CSS commit.
+src/live-tokens/data/themes/_backups/
+src/live-tokens/data/manifests/_backups/
+src/live-tokens/data/component-configs/*/_backups/
+src/system/styles/_backups/
+
+.DS_Store
+.vscode/*
+!.vscode/extensions.json

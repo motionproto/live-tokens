@@ -1,6 +1,6 @@
 {
   "name": "@motion-proto/live-tokens",
-  "version": "0.20.1",
+  "version": "0.21.0",
   "type": "module",
   "description": "Design token editor with live CSS variable editing. Svelte 5 + Vite 8.",
   "keywords": [
@@ -26,6 +26,7 @@
     "dist-plugin",
     ".claude/skills",
     "bin",
+    "template",
     "!**/*.test.ts",
     "!**/*.spec.ts",
     "!**/__tests__/**",
@@ -89,7 +90,8 @@
     "check:no-style-imports": "node scripts/check-no-style-imports.mjs",
     "check:editor-font-isolation": "node scripts/check-editor-font-isolation.mjs",
     "check:smoke-install": "bash scripts/smoke-install.sh",
-    "prepublishOnly": "npm run check:no-style-imports && npm run check:editor-font-isolation && npm run build:lib && npm run check:smoke-install"
+    "check:smoke-create": "bash scripts/smoke-create.sh",
+    "prepublishOnly": "npm run check:no-style-imports && npm run check:editor-font-isolation && npm run build:lib && npm run check:smoke-install && npm run check:smoke-create"
   },
   "peerDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0",

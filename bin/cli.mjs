@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // CLI for @motion-proto/live-tokens.
 // Subcommands:
+//   create <dir>             Scaffold a new app that depends on this package.
 //   setup-claude [--force]   Copy bundled Claude Code skills into ./.claude/skills/.
 //   check-component <id>     Validate a component against the add-component skill contract.
 
@@ -10,10 +11,13 @@ import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { checkComponent, formatReport } from './check-component.mjs';
 import { runMigrate, formatMigrateResult } from './migrate.mjs';
+import { runCreate, formatCreateResult } from './create.mjs';
 
 const USAGE = `Usage: npx @motion-proto/live-tokens <command> [options]
 
 Commands:
+  create <dir> [--force]      Scaffold a new Svelte + Vite app wired up with
+                              live-tokens (editor, components, theme tokens)
   setup-claude [--force]      Install bundled Claude Code skills into ./.claude/skills/
   check-component <id>        Validate <id>'s runtime, editor, and registration
                               against the live-tokens-create-component contract
@@ -33,6 +37,24 @@ const [, , command, ...rest] = process.argv;
 if (!command || command === '--help' || command === '-h') {
   console.log(USAGE);
   process.exit(0);
+}
+
+const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+
+if (command === 'create' || command === 'init') {
+  const targetArg = rest.find((a) => !a.startsWith('-'));
+  if (!targetArg) {
+    fail(`Usage: npx @motion-proto/live-tokens create <project-directory>`);
+  }
+  const force = rest.includes('--force');
+  const targetDir = resolve(process.cwd(), targetArg);
+  try {
+    const result = runCreate({ targetDir, pkgRoot, force });
+    console.log(formatCreateResult(result, targetArg));
+    process.exit(0);
+  } catch (err) {
+    fail(err instanceof Error ? err.message : String(err));
+  }
 }
 
 if (command === 'check-component') {
@@ -70,7 +92,6 @@ if (process.platform === 'win32') {
 
 const force = rest.includes('--force');
 
-const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const srcSkills = join(pkgRoot, '.claude', 'skills');
 
 if (!existsSync(srcSkills)) {

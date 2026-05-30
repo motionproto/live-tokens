@@ -216,18 +216,20 @@ export default defineConfig({
 
 No `css: 'injected'` workaround, no `optimizeDeps` excludes — `vite build` works as-is. (You'll want the full `themeFileApi` plugin and `bootLiveTokens` / `<LiveTokensRouter>` from the Quick install section above when you're ready to persist edits to disk and ship a real app.)
 
-## Greenfield? Use the starter
+## Greenfield? Scaffold a new app
 
-If you're starting from scratch, skip the manual wiring and clone the repo as a template — `App.svelte`, `main.ts`, the router, and a placeholder `Home.svelte` saying "put your content here" are all pre-wired.
+If you're starting from scratch, skip the manual wiring:
 
 ```bash
-npx degit motionproto/live-tokens my-app
+npx @motion-proto/live-tokens create my-app
 cd my-app
 npm install
 npm run dev
 ```
 
-Open http://localhost:5173 and replace `src/app/Home.svelte` with your content. The rest of the wiring is already done — it's the same code the npm package ships, just with the App-shell scaffolding included.
+This generates a Svelte + Vite app that **depends on** the package — `vite.config.ts`, `main.ts`, `App.svelte`, the `themeFileApi` plugin, and a placeholder `src/pages/Home.svelte` are all pre-wired. The token CSS is seeded from the version you scaffolded against, so it never drifts. Open http://localhost:5173 and replace `Home.svelte` with your content; upgrade the package later with `npm update`.
+
+(The older `npx degit motionproto/live-tokens` route cloned this whole repo as your app — the package's source, tests, and all. `create` gives you a thin consumer app instead.)
 
 ## Consumer-authored components
 

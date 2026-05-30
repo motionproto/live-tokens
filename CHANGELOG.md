@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.21.0 — Scaffold a new app with `create`
+
+### Added
+
+- **`npx @motion-proto/live-tokens create <dir>` scaffolds a working app.**
+  It generates a thin Svelte + Vite project that *depends on* the package
+  (`vite.config.ts` with `themeFileApi`, `main.ts` calling `bootLiveTokens`,
+  an `App.svelte` using `<LiveTokensRouter>`, and a placeholder
+  `src/pages/Home.svelte`), then seeds `tokens.css`, `tokens.generated.css`,
+  and `site.css` from the installed package so they never drift from the
+  version you scaffolded against. `init` is an alias. Replaces the old
+  `npx degit motionproto/live-tokens` route, which cloned the entire package
+  repo (source, tests, and all) instead of producing a consumer app.
+- **`check:smoke-create` release gate.** Packs the tarball, runs the shipped
+  `create`, installs the generated app against the tarball with no
+  `--legacy-peer-deps`, and builds it. Wired into `prepublishOnly`, so a
+  broken scaffold or a template missing from the tarball cannot ship.
+
 ## 0.20.1 — Color opacity is a property of a token
 
 ### Changed
