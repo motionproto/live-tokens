@@ -16,39 +16,39 @@
   :global(:root) {
     /* Wrapper */
     --table-default-radius: var(--radius-md);
-    --table-default-surface: var(--color-transparent);
-    --table-default-border: var(--border-canvas-subtle);
-    --table-default-border-width: var(--border-width-1);
+    --table-default-surface: color-mix(in srgb, var(--surface-neutral-lower) 57%, transparent);
+    --table-default-border: var(--border-neutral);
+    --table-default-border-width: var(--border-width-2);
     --table-default-shadow: var(--shadow-md);
 
     /* Header */
-    --table-default-header-surface: var(--surface-canvas-low);
+    --table-default-header-surface: var(--surface-neutral-lowest);
     --table-default-header-text: var(--text-primary);
     --table-default-header-font-family: var(--font-sans);
-    --table-default-header-font-size: var(--font-size-sm);
-    --table-default-header-font-weight: var(--font-weight-normal);
+    --table-default-header-font-size: var(--font-size-lg);
+    --table-default-header-font-weight: var(--font-weight-semibold);
     --table-default-header-line-height: var(--line-height-xs);
     --table-default-header-padding: var(--space-12);
-    --table-default-header-border: var(--border-canvas-subtle);
+    --table-default-header-border: var(--border-neutral);
     --table-default-header-border-width: var(--border-width-1);
 
     /* Cell */
     --table-default-cell-text: var(--text-secondary);
     --table-default-cell-font-family: var(--font-sans);
-    --table-default-cell-font-size: var(--font-size-sm);
-    --table-default-cell-font-weight: var(--font-weight-normal);
+    --table-default-cell-font-size: var(--font-size-md);
+    --table-default-cell-font-weight: var(--font-weight-medium);
     --table-default-cell-line-height: var(--line-height-md);
     --table-default-cell-padding: var(--space-8);
 
     /* Row */
     --table-default-row-surface: var(--color-transparent);
-    --table-default-row-divider: var(--border-canvas-faint);
+    --table-default-row-divider: var(--border-neutral-subtle);
     --table-default-row-divider-width: var(--border-width-1);
     --table-default-row-stripe-surface: var(--color-transparent);
 
     /* Column */
-    --table-default-column-divider: var(--border-canvas-faint);
-    --table-default-column-divider-width: var(--border-width-0);
+    --table-default-column-divider: var(--border-neutral-faint);
+    --table-default-column-divider-width: var(--border-width-1);
   }
 
   .table-wrapper {

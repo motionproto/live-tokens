@@ -409,7 +409,7 @@
     --imagelightbox-tile-shadow:           var(--shadow-md);
 
     /* overlay */
-    --imagelightbox-overlay-surface:       var(--overlay-high);
+    --imagelightbox-overlay-surface:       color-mix(in srgb, var(--color-neutral-950) 76%, transparent);
 
     /* chrome (toolbar + close button) */
     --imagelightbox-chrome-surface:        var(--surface-neutral-low);

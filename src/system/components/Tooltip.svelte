@@ -27,14 +27,14 @@
   @use '../styles/padding' as *;
 
   :global(:root) {
-    --tooltip-surface: var(--surface-neutral-highest);
+    --tooltip-surface: color-mix(in srgb, var(--surface-canvas-lowest) 75%, transparent);
     --tooltip-text: var(--text-primary);
     --tooltip-text-font-family: var(--font-sans);
     --tooltip-text-font-size: var(--font-size-sm);
     --tooltip-text-font-weight: var(--font-weight-normal);
     --tooltip-text-line-height: var(--line-height-md);
     --tooltip-border: var(--border-neutral);
-    --tooltip-border-width: var(--border-width-0);
+    --tooltip-border-width: var(--border-width-1);
     --tooltip-radius: var(--radius-md);
     --tooltip-padding: var(--space-6);
     --tooltip-shadow: var(--shadow-md);

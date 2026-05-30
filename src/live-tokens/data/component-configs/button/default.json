@@ -2,7 +2,7 @@
   "name": "default",
   "component": "button",
   "createdAt": "2026-05-10T19:28:06.893Z",
-  "updatedAt": "2026-05-25T01:43:35.000Z",
+  "updatedAt": "2026-05-30T11:49:02.842Z",
   "aliases": {
     "--button-primary-surface": "--surface-brand-high",
     "--button-primary-text": "--text-primary",
@@ -63,7 +63,7 @@
     "--button-success-text-font-weight": "--font-weight-semibold",
     "--button-success-text-line-height": "--line-height-sm",
     "--button-success-border": "--border-success",
-    "--button-success-border-width": "--border-width-2",
+    "--button-success-border-width": "--border-width-1",
     "--button-success-radius": "--radius-xl",
     "--button-success-padding": "--space-8",
     "--button-success-hover-surface": "--surface-success-higher",
@@ -80,7 +80,7 @@
     "--button-danger-text-font-weight": "--font-weight-semibold",
     "--button-danger-text-line-height": "--line-height-sm",
     "--button-danger-border": "--border-danger",
-    "--button-danger-border-width": "--border-width-2",
+    "--button-danger-border-width": "--border-width-1",
     "--button-danger-radius": "--radius-xl",
     "--button-danger-padding": "--space-8",
     "--button-danger-hover-surface": "--surface-danger-high",
@@ -97,7 +97,7 @@
     "--button-warning-text-font-weight": "--font-weight-semibold",
     "--button-warning-text-line-height": "--line-height-sm",
     "--button-warning-border": "--border-warning",
-    "--button-warning-border-width": "--border-width-2",
+    "--button-warning-border-width": "--border-width-1",
     "--button-warning-radius": "--radius-xl",
     "--button-warning-padding": "--space-8",
     "--button-warning-hover-surface": "--surface-warning-high",
@@ -107,8 +107,10 @@
     "--button-warning-disabled-text": "--text-tertiary",
     "--button-warning-disabled-border": "--border-neutral-faint",
     "--button-warning-icon-size": "--icon-size-sm",
-    "--button-small-text-font-size": "--font-size-sm"
-  },
-  "config": {},
-  "schemaVersion": 16
+    "--button-small-padding": "--space-6",
+    "--button-small-text-font-size": "--font-size-sm",
+    "--button-small-text-font-weight": "--font-weight-normal",
+    "--button-small-text-line-height": "--line-height-sm",
+    "--button-small-icon-size": "--font-size-xs"
+  }
 }

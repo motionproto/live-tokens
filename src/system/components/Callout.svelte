@@ -27,19 +27,19 @@
   :global(:root) {
     /* Info */
     --callout-info-surface: var(--surface-info-lowest);
-    --callout-info-border: var(--border-info-subtle);
+    --callout-info-border: var(--border-info-medium);
     --callout-info-border-width: var(--border-width-1);
     --callout-info-accent-width: var(--border-width-4);
     --callout-info-radius: var(--radius-lg);
     --callout-info-padding: var(--space-12);
     --callout-info-label: var(--text-primary);
-    --callout-info-label-font-family: var(--font-serif);
-    --callout-info-label-font-size: var(--font-size-md);
+    --callout-info-label-font-family: var(--font-sans);
+    --callout-info-label-font-size: var(--font-size-lg);
     --callout-info-label-font-weight: var(--font-weight-bold);
     --callout-info-label-line-height: var(--line-height-md);
     --callout-info-text: var(--text-info);
-    --callout-info-text-font-family: var(--font-serif);
-    --callout-info-text-font-size: var(--font-size-md);
+    --callout-info-text-font-family: var(--font-sans);
+    --callout-info-text-font-size: var(--font-size-lg);
     --callout-info-text-font-weight: var(--font-weight-normal);
     --callout-info-text-line-height: var(--line-height-md);
 
@@ -51,13 +51,13 @@
     --callout-success-radius: var(--radius-lg);
     --callout-success-padding: var(--space-12);
     --callout-success-label: var(--text-primary);
-    --callout-success-label-font-family: var(--font-serif);
-    --callout-success-label-font-size: var(--font-size-md);
+    --callout-success-label-font-family: var(--font-sans);
+    --callout-success-label-font-size: var(--font-size-lg);
     --callout-success-label-font-weight: var(--font-weight-bold);
     --callout-success-label-line-height: var(--line-height-md);
     --callout-success-text: var(--text-success);
-    --callout-success-text-font-family: var(--font-serif);
-    --callout-success-text-font-size: var(--font-size-md);
+    --callout-success-text-font-family: var(--font-sans);
+    --callout-success-text-font-size: var(--font-size-lg);
     --callout-success-text-font-weight: var(--font-weight-normal);
     --callout-success-text-line-height: var(--line-height-md);
 
@@ -69,13 +69,13 @@
     --callout-warning-radius: var(--radius-lg);
     --callout-warning-padding: var(--space-12);
     --callout-warning-label: var(--text-primary);
-    --callout-warning-label-font-family: var(--font-serif);
-    --callout-warning-label-font-size: var(--font-size-md);
+    --callout-warning-label-font-family: var(--font-sans);
+    --callout-warning-label-font-size: var(--font-size-lg);
     --callout-warning-label-font-weight: var(--font-weight-bold);
     --callout-warning-label-line-height: var(--line-height-md);
     --callout-warning-text: var(--text-warning);
-    --callout-warning-text-font-family: var(--font-serif);
-    --callout-warning-text-font-size: var(--font-size-md);
+    --callout-warning-text-font-family: var(--font-sans);
+    --callout-warning-text-font-size: var(--font-size-lg);
     --callout-warning-text-font-weight: var(--font-weight-normal);
     --callout-warning-text-line-height: var(--line-height-md);
 
@@ -87,13 +87,13 @@
     --callout-danger-radius: var(--radius-lg);
     --callout-danger-padding: var(--space-12);
     --callout-danger-label: var(--text-primary);
-    --callout-danger-label-font-family: var(--font-serif);
-    --callout-danger-label-font-size: var(--font-size-md);
+    --callout-danger-label-font-family: var(--font-sans);
+    --callout-danger-label-font-size: var(--font-size-lg);
     --callout-danger-label-font-weight: var(--font-weight-bold);
     --callout-danger-label-line-height: var(--line-height-md);
     --callout-danger-text: var(--text-danger);
-    --callout-danger-text-font-family: var(--font-serif);
-    --callout-danger-text-font-size: var(--font-size-md);
+    --callout-danger-text-font-family: var(--font-sans);
+    --callout-danger-text-font-size: var(--font-size-lg);
     --callout-danger-text-font-weight: var(--font-weight-normal);
     --callout-danger-text-line-height: var(--line-height-md);
   }

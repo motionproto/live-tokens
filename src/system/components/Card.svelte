@@ -43,28 +43,36 @@
   @use '../styles/padding' as *;
 
   :global(:root) {
-    --card-default-surface: var(--surface-neutral-high);
+    --card-default-surface: color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent);
     --card-default-border: var(--border-neutral);
     --card-default-border-width: var(--border-width-1);
     --card-default-radius: var(--radius-lg);
     --card-default-header-padding: var(--space-16);
+    --card-default-header-padding-top: var(--space-12);
+    --card-default-header-padding-right: var(--space-20);
+    --card-default-header-padding-bottom: var(--space-12);
+    --card-default-header-padding-left: var(--space-20);
     --card-default-header-gap: var(--space-8);
     --card-default-body-padding: var(--space-16);
+    --card-default-body-padding-top: var(--space-16);
+    --card-default-body-padding-right: var(--space-20);
+    --card-default-body-padding-bottom: var(--space-16);
+    --card-default-body-padding-left: var(--space-20);
     --card-default-shadow: var(--shadow-sm);
     --card-default-blur: var(--blur-none);
-    --card-default-header-surface: var(--color-transparent);
+    --card-default-header-surface: color-mix(in srgb, var(--surface-neutral-lowest) 80%, transparent);
 
     --card-default-title: var(--text-primary);
     --card-default-title-font-family: var(--font-sans);
-    --card-default-title-font-size: var(--font-size-lg);
-    --card-default-title-font-weight: var(--font-weight-normal);
-    --card-default-title-line-height: var(--line-height-sm);
+    --card-default-title-font-size: var(--font-size-2xl);
+    --card-default-title-font-weight: var(--font-weight-medium);
+    --card-default-title-line-height: var(--line-height-md);
 
-    --card-default-icon-size: var(--icon-size-lg);
+    --card-default-icon-size: var(--icon-size-2xl);
 
     --card-default-body: var(--text-secondary);
     --card-default-body-font-family: var(--font-sans);
-    --card-default-body-font-size: var(--font-size-md);
+    --card-default-body-font-size: var(--font-size-xl);
     --card-default-body-font-weight: var(--font-weight-normal);
     --card-default-body-line-height: var(--line-height-md);
 

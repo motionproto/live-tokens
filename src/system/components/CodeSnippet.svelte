@@ -53,17 +53,17 @@
 <style>
   :global(:root) {
     /* Container. */
-    --codesnippet-surface: var(--surface-neutral-lower);
-    --codesnippet-border: var(--border-neutral-subtle);
+    --codesnippet-surface: color-mix(in srgb, var(--surface-neutral-lowest) 76%, transparent);
+    --codesnippet-border: var(--border-neutral);
     --codesnippet-border-width: var(--border-width-1);
     --codesnippet-radius: var(--radius-md);
     --codesnippet-padding: var(--space-16);
     --codesnippet-gap: var(--space-16);
 
     /* Code text. */
-    --codesnippet-code-text: var(--text-primary);
+    --codesnippet-code-text: var(--text-brand-secondary);
     --codesnippet-code-font-family: var(--font-mono);
-    --codesnippet-code-font-size: var(--font-size-sm);
+    --codesnippet-code-font-size: var(--font-size-md);
     --codesnippet-code-font-weight: var(--font-weight-normal);
     --codesnippet-code-line-height: var(--line-height-md);
 
