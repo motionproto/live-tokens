@@ -383,9 +383,21 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   function extractAliasDeclarations(body: string): Record<string, string> {
     const aliases: Record<string, string> = {};
-    const re = /(--[a-z0-9-]+)\s*:\s*var\((--[a-z0-9-]+)\)\s*;/gi;
+    // A component property is either a plain alias to a design token
+    // (`--v: var(--token);`) or that token carried at reduced opacity
+    // (`--v: color-mix(in srgb, var(--token) NN%, transparent);`) — the form the
+    // color picker emits below 100% opacity. Plain aliases are stored as the
+    // bare token name (the editor's disk convention); opacity declarations are
+    // stored as the full color-mix string, matching the production configs the
+    // editor writes. Any other literal is intentionally ignored — a property
+    // must bind a design token, not a raw color.
+    const re =
+      /(--[a-z0-9-]+)\s*:\s*(var\(--[a-z0-9-]+\)|color-mix\(in srgb,\s*var\(--[a-z0-9-]+\)\s+\d+%,\s*transparent\))\s*;/gi;
     let m: RegExpExecArray | null;
-    while ((m = re.exec(body)) !== null) aliases[m[1]] = m[2];
+    while ((m = re.exec(body)) !== null) {
+      const plain = m[2].match(/^var\((--[a-z0-9-]+)\)$/i);
+      aliases[m[1]] = plain ? plain[1] : m[2];
+    }
     return aliases;
   }
 

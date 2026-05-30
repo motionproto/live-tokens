@@ -31,6 +31,16 @@
   - **Tooltip** (`Tooltip.svelte`): translucent surface, visible
     `--border-width-1` border.
 
+### Fixed
+
+- **Dev-server plugin now round-trips translucent surfaces.** When a component's
+  `:global(:root)` declares a color at reduced opacity
+  (`color-mix(in srgb, var(--token) NN%, transparent)`, the form the color
+  picker emits below 100% opacity), the plugin's `default.json` regeneration
+  preserves it. Previously only plain `var(--token)` aliases were captured, so
+  regeneration silently dropped translucent properties from the seed config,
+  leaving them blank in the editor and absent from adopt defaults.
+
 ### Migration
 
 - Consumers who want the previous look can pin their theme or component-config
