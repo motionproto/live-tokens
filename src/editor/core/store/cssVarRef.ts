@@ -1,26 +1,29 @@
 /**
  * The single classifier + renderer for `CssVarRef`. Every place that turns a
  * CSS value string into a ref, or a ref back into CSS, routes through here so
- * the four ref kinds (`token`, `color`, `literal`, `gradient`) are interpreted
+ * the three ref kinds (`token`, `literal`, `gradient`) are interpreted
  * identically across the disk loader, the live-edit path, the registry, and the
  * component renderer.
  *
- * Colour opacity specifically is delegated to `parsers/colorOpacity`, the one
- * place that knows the `color-mix(in srgb, var(--token) NN%, transparent)`
- * shape.
+ * A `token` may carry an optional `opacity` (a colour below 100%). Opacity
+ * serialization is delegated to `parsers/colorOpacity`, the one place that knows
+ * the `color-mix(in srgb, var(--token) NN%, transparent)` shape.
  */
 import type { CssVarRef } from './editorTypes';
 import type { AliasDiskValue } from '../themes/themeTypes';
 import { formatGradientValue } from '../themes/slices/gradients';
 import { formatColorOpacity, parseColorOpacity } from '../themes/parsers/colorOpacity';
 
+/** True when a token carries a non-trivial opacity (a colour below 100%). */
+function hasOpacity(opacity: number | undefined): opacity is number {
+  return opacity != null && opacity < 100;
+}
+
 /** Render a ref to the CSS value string written to a custom property. */
 export function refToCss(ref: CssVarRef): string {
   switch (ref.kind) {
     case 'token':
-      return `var(${ref.name})`;
-    case 'color':
-      return formatColorOpacity(ref.name, ref.opacity);
+      return hasOpacity(ref.opacity) ? formatColorOpacity(ref.name, ref.opacity) : `var(${ref.name})`;
     case 'literal':
       return ref.value;
     case 'gradient':
@@ -36,7 +39,7 @@ export function refToCss(ref: CssVarRef): string {
  */
 export function cssStringToRef(value: string): CssVarRef {
   const op = parseColorOpacity(value);
-  if (op) return { kind: 'color', name: op.name, opacity: op.opacity };
+  if (op) return { kind: 'token', name: op.name, opacity: op.opacity };
   if (value.startsWith('--')) return { kind: 'token', name: value };
   const wrapped = value.match(/^var\((--[a-z0-9-]+)\)$/);
   if (wrapped) return { kind: 'token', name: wrapped[1] };
@@ -51,9 +54,7 @@ export function cssStringToRef(value: string): CssVarRef {
 export function refToDiskValue(ref: CssVarRef): AliasDiskValue {
   switch (ref.kind) {
     case 'token':
-      return ref.name;
-    case 'color':
-      return formatColorOpacity(ref.name, ref.opacity);
+      return hasOpacity(ref.opacity) ? formatColorOpacity(ref.name, ref.opacity) : ref.name;
     case 'literal':
       return ref.value;
     case 'gradient':
@@ -65,10 +66,9 @@ export function refToDiskValue(ref: CssVarRef): AliasDiskValue {
 export function cssVarRefEqual(a: CssVarRef | undefined, b: CssVarRef | undefined): boolean {
   if (!a || !b) return a === b;
   if (a.kind !== b.kind) return false;
-  if (a.kind === 'token') return a.name === (b as { kind: 'token'; name: string }).name;
-  if (a.kind === 'color') {
-    const bc = b as { kind: 'color'; name: string; opacity: number };
-    return a.name === bc.name && a.opacity === bc.opacity;
+  if (a.kind === 'token') {
+    const bt = b as { kind: 'token'; name: string; opacity?: number };
+    return a.name === bt.name && (a.opacity ?? 100) === (bt.opacity ?? 100);
   }
   if (a.kind === 'literal') return a.value === (b as { kind: 'literal'; value: string }).value;
   const av = a.value;

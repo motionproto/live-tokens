@@ -20,15 +20,19 @@ describe('colorOpacity serialize/parse pair', () => {
 });
 
 describe('cssStringToRef classifies every value form', () => {
-  it('bare token name → token', () => {
-    expect(cssStringToRef('--surface-brand')).toEqual({ kind: 'token', name: '--surface-brand' });
+  it('bare token name → opaque token (no opacity field)', () => {
+    const ref = cssStringToRef('--surface-brand');
+    expect(ref).toEqual({ kind: 'token', name: '--surface-brand' });
+    expect('opacity' in ref).toBe(false);
   });
-  it('wrapped var() → token', () => {
-    expect(cssStringToRef('var(--surface-brand)')).toEqual({ kind: 'token', name: '--surface-brand' });
+  it('wrapped var() → opaque token (no opacity field)', () => {
+    const ref = cssStringToRef('var(--surface-brand)');
+    expect(ref).toEqual({ kind: 'token', name: '--surface-brand' });
+    expect('opacity' in ref).toBe(false);
   });
-  it('color-mix opacity → color', () => {
+  it('color-mix opacity → token with opacity', () => {
     expect(cssStringToRef('color-mix(in srgb, var(--surface-brand) 40%, transparent)')).toEqual({
-      kind: 'color',
+      kind: 'token',
       name: '--surface-brand',
       opacity: 40,
     });
@@ -39,34 +43,44 @@ describe('cssStringToRef classifies every value form', () => {
 });
 
 describe('refToCss / refToDiskValue render every kind', () => {
-  const cases: Array<{ ref: CssVarRef; css: string; disk: unknown }> = [
-    { ref: { kind: 'token', name: '--surface-brand' }, css: 'var(--surface-brand)', disk: '--surface-brand' },
+  const cases: Array<{ label: string; ref: CssVarRef; css: string; disk: unknown }> = [
+    { label: 'opaque token', ref: { kind: 'token', name: '--surface-brand' }, css: 'var(--surface-brand)', disk: '--surface-brand' },
     {
-      ref: { kind: 'color', name: '--surface-brand', opacity: 40 },
+      label: 'token with opacity',
+      ref: { kind: 'token', name: '--surface-brand', opacity: 40 },
       css: 'color-mix(in srgb, var(--surface-brand) 40%, transparent)',
       disk: 'color-mix(in srgb, var(--surface-brand) 40%, transparent)',
     },
-    { ref: { kind: 'literal', value: 'transparent' }, css: 'transparent', disk: 'transparent' },
+    { label: 'literal', ref: { kind: 'literal', value: 'transparent' }, css: 'transparent', disk: 'transparent' },
   ];
-  for (const { ref, css, disk } of cases) {
-    it(`${ref.kind} → css`, () => expect(refToCss(ref)).toBe(css));
-    it(`${ref.kind} → disk`, () => expect(refToDiskValue(ref)).toEqual(disk));
+  for (const { label, ref, css, disk } of cases) {
+    it(`${label} → css`, () => expect(refToCss(ref)).toBe(css));
+    it(`${label} → disk`, () => expect(refToDiskValue(ref)).toEqual(disk));
   }
 
-  it('a color ref survives disk → ref → css unchanged', () => {
+  it('a translucent colour survives disk → ref → css unchanged', () => {
     const disk = 'color-mix(in srgb, var(--surface-neutral-lower) 57%, transparent)';
     const ref = cssStringToRef(disk);
-    expect(ref).toEqual({ kind: 'color', name: '--surface-neutral-lower', opacity: 57 });
+    expect(ref).toEqual({ kind: 'token', name: '--surface-neutral-lower', opacity: 57 });
     expect(refToCss(ref)).toBe(disk);
     expect(refToDiskValue(ref)).toBe(disk);
+  });
+
+  it('opacity 100 collapses to a bare token (never color-mix at 100%)', () => {
+    const ref: CssVarRef = { kind: 'token', name: '--surface-brand', opacity: 100 };
+    expect(refToCss(ref)).toBe('var(--surface-brand)');
+    expect(refToDiskValue(ref)).toBe('--surface-brand');
   });
 });
 
 describe('cssVarRefEqual', () => {
-  it('compares color refs by name and opacity', () => {
-    const a: CssVarRef = { kind: 'color', name: '--x', opacity: 50 };
-    expect(cssVarRefEqual(a, { kind: 'color', name: '--x', opacity: 50 })).toBe(true);
-    expect(cssVarRefEqual(a, { kind: 'color', name: '--x', opacity: 51 })).toBe(false);
+  it('compares token refs by name and opacity', () => {
+    const a: CssVarRef = { kind: 'token', name: '--x', opacity: 50 };
+    expect(cssVarRefEqual(a, { kind: 'token', name: '--x', opacity: 50 })).toBe(true);
+    expect(cssVarRefEqual(a, { kind: 'token', name: '--x', opacity: 51 })).toBe(false);
     expect(cssVarRefEqual(a, { kind: 'token', name: '--x' })).toBe(false);
+  });
+  it('treats absent opacity as opaque (100)', () => {
+    expect(cssVarRefEqual({ kind: 'token', name: '--x' }, { kind: 'token', name: '--x', opacity: 100 })).toBe(true);
   });
 });
