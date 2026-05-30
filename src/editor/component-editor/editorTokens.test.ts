@@ -75,21 +75,29 @@ describe('design-token architecture', () => {
   });
 
   // Every variable an editor binds must be declared in tokens.css (or a
-  // component <style> :global(:root) block) as a var() alias — not a literal,
-  // not a raw primitive. Component properties bind to component-scoped Layer-2
+  // component <style> :global(:root) block) as an alias to a design token — not
+  // a raw literal color. Component properties bind to component-scoped Layer-2
   // aliases so editing one component never rebinds a shared primitive used
-  // elsewhere.
+  // elsewhere. Two forms are valid:
+  //   1. `var(--token)`                                        — opaque alias
+  //   2. `color-mix(in srgb, var(--token) NN%, transparent)`   — alias + opacity
+  // Form 2 is what the color picker emits for any color token below 100%
+  // opacity (see UIPaletteSelector's toRef/parseOpacity). It still references a
+  // design token and only applies alpha, so it satisfies the same invariant —
+  // it does not rebind a primitive to an arbitrary color.
+  const OPACITY_ALIAS = /^color-mix\(in srgb, var\(--[a-z0-9-]+\) \d+%, transparent\)$/;
   describe('every editor follows the component-token pattern', () => {
     for (const { editor, variable } of editorTokenCases) {
-      it(`${editor}: ${variable} is a layer-2 component token (declared as var() alias)`, () => {
+      it(`${editor}: ${variable} is a layer-2 component token (alias to a design token)`, () => {
         const declared = registry.getDeclaredValue(variable);
         expect(
           declared,
           `${variable} is referenced by ${editor} but not declared in tokens.css`,
         ).not.toBeNull();
         expect(
-          declared!.startsWith('var('),
-          `${variable} should be a component-scoped alias declared as var(--primitive); got "${declared}". ` +
+          declared!.startsWith('var(') || OPACITY_ALIAS.test(declared!),
+          `${variable} should be a component-scoped alias — either var(--token) or ` +
+            `color-mix(in srgb, var(--token) NN%, transparent); got "${declared}". ` +
             `Component properties must not rebind shared primitives directly.`,
         ).toBe(true);
       });

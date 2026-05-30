@@ -4,6 +4,7 @@
   "createdAt": "2026-05-12T00:00:00.000Z",
   "updatedAt": "2026-05-30T11:49:02.844Z",
   "aliases": {
+    "--table-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 57%, transparent)",
     "--table-default-radius": "--radius-md",
     "--table-default-border": "--border-neutral",
     "--table-default-border-width": "--border-width-2",

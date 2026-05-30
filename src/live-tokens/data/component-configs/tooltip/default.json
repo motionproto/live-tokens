@@ -4,6 +4,7 @@
   "createdAt": "2026-04-18T02:43:11.333Z",
   "updatedAt": "2026-05-30T11:49:02.845Z",
   "aliases": {
+    "--tooltip-surface": "color-mix(in srgb, var(--surface-canvas-lowest) 75%, transparent)",
     "--tooltip-text": "--text-primary",
     "--tooltip-text-font-family": "--font-sans",
     "--tooltip-text-font-size": "--font-size-sm",

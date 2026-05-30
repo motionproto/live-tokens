@@ -4,6 +4,7 @@
   "createdAt": "2026-05-27T13:22:54.228Z",
   "updatedAt": "2026-05-30T11:49:02.843Z",
   "aliases": {
+    "--codesnippet-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 76%, transparent)",
     "--codesnippet-border": "--border-neutral",
     "--codesnippet-border-width": "--border-width-1",
     "--codesnippet-radius": "--radius-md",
