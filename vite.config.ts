@@ -1,19 +1,18 @@
 import { defineConfig } from 'vite';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
-import sveltePreprocess from 'svelte-preprocess';
+import { svelte, vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { themeFileApi } from './vite-plugin';
-import { buildPruneReplace } from './vite-plugin/pruneMarkers';
+import { buildPruneReplace, replacePreprocess } from './vite-plugin/pruneMarkers';
 
 export default defineConfig({
   plugins: [
     svelte({
-      preprocess: sveltePreprocess({
-        // PRUNE_FOR markers — see vite-plugin/pruneMarkers/pruneReplace.ts.
-        // The dev branch (`{#if import.meta.env.DEV}`) renders everything;
-        // Vite constant-folds it out in prod, leaving the marked else branch
-        // which the replace pass below resolves to variant-guarded markup.
-        replace: buildPruneReplace(),
-      }),
+      // PRUNE_FOR markers — see vite-plugin/pruneMarkers/pruneReplace.ts.
+      // The dev branch (`{#if import.meta.env.DEV}`) renders everything;
+      // Vite constant-folds it out in prod, leaving the marked else branch
+      // which the replace pass below resolves to variant-guarded markup.
+      // The prune pass must run first (on raw markup), then vitePreprocess
+      // handles TypeScript + scss.
+      preprocess: [replacePreprocess(buildPruneReplace()), vitePreprocess()],
     }),
     // Data folders default to `src/live-tokens/data/{themes,manifests,
     // component-configs}`. Override per-folder here or via

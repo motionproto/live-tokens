@@ -26,12 +26,14 @@ npm install @motion-proto/live-tokens
 ```ts
 // vite.config.ts
 import { defineConfig } from 'vite';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { svelte, vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { themeFileApi } from '@motion-proto/live-tokens/vite-plugin';
 
 export default defineConfig({
   plugins: [
-    svelte(),
+    // vitePreprocess compiles the shipped components' `<style lang="scss">`
+    // blocks — install `sass` alongside it.
+    svelte({ preprocess: vitePreprocess() }),
     themeFileApi({
       tokensCssPath: 'src/system/styles/tokens.css',
     }),
@@ -205,10 +207,10 @@ mount(App, { target: document.getElementById('app')! });
 ```ts
 // vite.config.ts
 import { defineConfig } from 'vite';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { svelte, vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 export default defineConfig({
-  plugins: [svelte()],
+  plugins: [svelte({ preprocess: vitePreprocess() })],
 });
 ```
 

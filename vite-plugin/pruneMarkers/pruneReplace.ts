@@ -1,8 +1,10 @@
 /**
  * Build-time pruning preprocessor entry point.
  *
- * Returns a `[RegExp, ReplaceFn][]` array suitable for `svelte-preprocess`'s
- * `replace` option. The single regex matches a trigger comment and the
+ * Returns a `[RegExp, ReplaceFn][]` array consumed by `replacePreprocess`
+ * (our local stand-in for svelte-preprocess's old `replace` option, since we
+ * now preprocess with `vitePreprocess`). The single regex matches a trigger
+ * comment and the
  * replacer hands off to a stack-based scanner that resolves arbitrarily
  * nested `<!--PRUNE_FOR ...-->...<!--END_PRUNE-->` blocks. For each block
  * we look up the production config and emit either:

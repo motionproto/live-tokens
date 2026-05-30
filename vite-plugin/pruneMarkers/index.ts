@@ -1,4 +1,5 @@
 export { buildPruneReplace, type BuildPruneReplaceOptions } from './pruneReplace';
+export { replacePreprocess } from './replacePreprocess';
 export {
   loadProductionConfig,
   _resetProductionConfigCache,

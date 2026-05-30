@@ -106,10 +106,10 @@ cat > "$SMOKE_DIR/tsconfig.json" <<'EOF'
 EOF
 
 echo "→ Installing tarball + deps…"
-# --legacy-peer-deps: svelte-preprocess and vite 7 each declare an optional
-# peer on different sugarss majors. Real consumers hit the same conflict and
-# resolve it the same way; this isn't masking a library bug.
-(cd "$SMOKE_DIR" && npm install --silent --no-audit --no-fund --loglevel=error --legacy-peer-deps)
+# No --legacy-peer-deps: a fresh consumer must resolve cleanly. (We dropped the
+# svelte-preprocess peer whose stale optional sugarss range clashed with vite's;
+# if this install starts failing on peers again, that regression is back.)
+(cd "$SMOKE_DIR" && npm install --silent --no-audit --no-fund --loglevel=error)
 
 echo "→ Building consumer…"
 (cd "$SMOKE_DIR" && npx --no-install vite build)
