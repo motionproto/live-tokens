@@ -231,6 +231,33 @@ This generates a Svelte + Vite app that **depends on** the package — `vite.con
 
 (The older `npx degit motionproto/live-tokens` route cloned this whole repo as your app — the package's source, tests, and all. `create` gives you a thin consumer app instead.)
 
+## Recommended project layout
+
+`create` scaffolds the preferred integration surface. Whether you scaffolded or wired up by hand, conforming to this layout keeps upgrades non-destructive and consistent across projects.
+
+```
+src/
+  main.ts                         # token CSS chain → bootLiveTokens(App, '#app')
+  App.svelte                      # routes (e.g. <LiveTokensRouter {pages} />)
+  pages/                          # your pages
+  styles/site.css                 # your themed page typography (yours to edit)
+  system/styles/tokens.css        # vendored Layer-1 tokens — committed
+  live-tokens/data/               # editor state — committed
+    tokens.generated.css          #   editor output
+    themes/ manifests/ component-configs/
+    **/_backups/                  #   gitignored (local-only snapshots)
+vite.config.ts                    # svelte({ preprocess: vitePreprocess() }) + themeFileApi
+svelte.config.js                  # vitePreprocess()
+```
+
+Conventions that make this work:
+
+- **Vendor `tokens.css` into `src/` and commit it.** Point `themeFileApi({ tokensCssPath })` at that file, not at one inside `node_modules`. The dev server writes your edits there; a copy under `node_modules` is wiped on every `npm install`.
+- **All editable state lives under `src/` and is committed** — `tokens.css`, `tokens.generated.css`, and everything in `live-tokens/data/`. This is the invariant that makes upgrades safe: `npm install` only ever touches `node_modules` + `package.json` + the lockfile, never your `src/`.
+- **`_backups/` is gitignored.** The dev server snapshots a file before overwriting it; those snapshots are local working state, not source.
+- **Preprocess with `vitePreprocess()`** (bundled in `@sveltejs/vite-plugin-svelte`), keeping `sass` installed for the components' `scss`. No `svelte-preprocess`, no `legacy-peer-deps` `.npmrc` — the dependency tree resolves cleanly on its own (since 0.19.1).
+- **Import only from the public surface** — `@motion-proto/live-tokens`, `/components/*`, `/vite-plugin`, `/app/*`.
+
 ## Consumer-authored components
 
 The shipped components are first-party by default, but you can author your own and get the same real-time editing experience. Co-locate runtime and editor files in `src/components/` (or `src/system/components/`, both are scanned by default) and pass them to `bootLiveTokens`:

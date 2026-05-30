@@ -11,6 +11,8 @@ Open http://localhost:5173.
 
 ## What you have
 
+This project follows the package's [recommended layout](https://github.com/motionproto/live-tokens#recommended-project-layout): all editable state lives under `src/` and is committed, so `npm install` and upgrades never touch your styles.
+
 - `src/pages/Home.svelte` — the starter page. Replace it with your own content.
 - `src/App.svelte` — your routes. `<LiveTokensRouter>` adds the dev-only
   `/editor` (theme tokens) and `/components` (per-component aliases) routes.

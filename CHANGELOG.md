@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.21.1 — Recommended project layout
+
+### Added
+
+- **README "Recommended project layout" section.** Documents the integration
+  surface `create` produces (vendored `tokens.css`, editor state under `src/`,
+  `vitePreprocess`, clean peer resolution with no `legacy-peer-deps`) and the
+  invariant that keeps upgrades non-destructive: all editable state is committed
+  under `src/`, never inside `node_modules`. The `create` template's README
+  links to it.
+
 ## 0.21.0 — Scaffold a new app with `create`
 
 ### Added
