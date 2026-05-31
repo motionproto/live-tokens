@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.22.0 — Component defaults synced to the reference demo
+
+### Changed
+
+- **Baked-in component defaults refreshed to match the reference demo.** The
+  `:global(:root)` defaults in 8 shipped components (Badge, CollapsibleSection,
+  CornerBadge, MenuSelect, Notification, ProgressBar, SectionDivider,
+  SegmentedControl) had drifted from the project's tuned config; they now match,
+  so a fresh install renders like the demo. Visual default change only — no
+  token names, aliases, or APIs changed, so existing themes and
+  component-configs keep overriding exactly as before.
+  - **SegmentedControl**: selected pill uses brand surface/border (was success
+    green); disabled surface is transparent; hover surface softened.
+  - **SectionDivider**: backgrounds are transparent (the demo's gradients are
+    `type: none`); titles, eyebrows, and hairlines retuned.
+
+### Added
+
+- **`sync:component-defaults` + `check:component-defaults`.** The sync script
+  pushes editor-tuned config values back into the component `.svelte` source
+  (the "adopt to source" step), and `check:component-defaults` — wired into
+  `prepublishOnly` — fails the release if any component's baked default drifts
+  from its config. The `.svelte` default and the editor config stay one source.
+
 ## 0.21.2 — Export the scaffolding engine
 
 ### Added
