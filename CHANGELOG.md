@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.24.2 — Demo cosmetic tweaks
+
+### Changed
+
+- Minor color tweaks to the demo landing page (hero tagline contrast and the
+  floating token-tag text color). No catalogue component, token, or API change.
+
 ## 0.24.1 — Section Divider editor controls match rendered defaults
 
 ### Fixed
