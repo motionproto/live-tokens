@@ -8,7 +8,7 @@
 export const SPACING_VARS = [
   '--space-2', '--space-4', '--space-6', '--space-8', '--space-10',
   '--space-12', '--space-16', '--space-20', '--space-24', '--space-32',
-  '--space-48',
+  '--space-40', '--space-48', '--space-64', '--space-96', '--space-128',
 ] as const;
 
 export const BORDER_WIDTH_VARS = [

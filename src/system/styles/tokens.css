@@ -436,10 +436,11 @@
   --space-20: 1.25rem;    /* 20px */
   --space-24: 1.5rem;     /* 24px */
   --space-32: 2rem;       /* 32px */
+  --space-40: 2.5rem;     /* 40px */
   --space-48: 3rem;       /* 48px */
   --space-64: 4rem;       /* 64px */
-  --space-80: 5rem;       /* 80px */
   --space-96: 6rem;       /* 96px */
+  --space-128: 8rem;      /* 128px */
   --space-full: 100%;
 
   /* Dot fill ratios — inner-dot as % of outer ring (radio/checkbox). */

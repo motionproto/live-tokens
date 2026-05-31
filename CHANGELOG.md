@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.23.0 — Extend the spacing scale at the top end
+
+### Added
+
+- **`--space-40` (2.5rem) and `--space-128` (8rem).** The spacing scale gained a
+  step between 32 and 48, and a new large value above 96, for section- and
+  page-level layout. `--space-64` and `--space-96` (already defined but not
+  surfaced) now appear in the editor's Spacing panel too. Displayed scale is now
+  `2 4 6 8 10 12 16 20 24 32 40 48 64 96 128`.
+
+### Removed
+
+- **`--space-80` (5rem).** Defined but unused and never surfaced in the editor;
+  it broke the monotonic step growth at the top of the scale. Direct consumers
+  of `--space-80` should remap to `--space-64`, `--space-96`, or `--space-128`.
+
 ## 0.22.1 — Add LICENSE files
 
 ### Added
