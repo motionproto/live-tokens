@@ -11,6 +11,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // npm strips dotfiles from published tarballs, so the template ships them
 // renamed; `create` restores the leading dot on scaffold.
@@ -86,4 +87,13 @@ export function formatCreateResult({ appName, targetDir }, targetArg) {
     ``,
     `Then open http://localhost:5173 and edit src/pages/Home.svelte.`,
   ].join('\n');
+}
+
+// Entry point for the `@motion-proto/create-live-tokens` initializer: it
+// derives pkgRoot from this module's own location (i.e. wherever this package
+// is installed), so the template + seed CSS always come from this exact
+// version. The initializer stays a thin shim with no template of its own.
+export function createApp({ targetDir, force = false } = {}) {
+  const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+  return runCreate({ targetDir, pkgRoot, force });
 }

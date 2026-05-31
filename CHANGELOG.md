@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.21.2 — Export the scaffolding engine
+
+### Added
+
+- **`@motion-proto/live-tokens/create` export** exposing `createApp`
+  (plus `runCreate` / `formatCreateResult`), the engine behind the `create`
+  subcommand. This lets the `@motion-proto/create-live-tokens` initializer
+  reuse the exact template and version-matched token seeds without duplicating
+  them — the groundwork for `npm create @motion-proto/live-tokens`. No change
+  to the `create` subcommand itself.
+
 ## 0.21.1 — Recommended project layout
 
 ### Added
