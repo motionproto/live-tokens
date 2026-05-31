@@ -36,6 +36,31 @@ export type Token = {
   family?: string;
 };
 
+/** An intrinsic: a structural/display property (alignment, hairline position,
+    element visibility) driven by a bespoke editor control rather than the
+    generic token grid. Unlike a Token it carries the default twice — once in
+    the runtime component's `:global(:root)` and once in the editor's read-back
+    (`default` below, which the getters fall back to when unset). Those two
+    copies must agree or the control displays a state the page doesn't render
+    (the SectionDivider align bug). The intrinsics contract test pins them. */
+export type IntrinsicSpec = {
+  /** Stable id, used in diagnostics and to key getters off the spec. */
+  key: string;
+  /** Variant keys this intrinsic spans (e.g. ['lg','md','sm']). */
+  variants: string[];
+  /** Per-variant CSS custom property. */
+  variable: (variant: string) => string;
+  /** Allowed raw values; the runtime `:root` default must be one of these. */
+  values: string[];
+  /** Editor's unset-default raw value per variant — the read-back getters
+      source their default from here. Pinned to the runtime `:global(:root)`
+      default by the intrinsics contract test. */
+  default: Record<string, string>;
+  /** Folds render-equivalent raw values to one canonical form before
+      comparison (e.g. SectionDivider's 'above-description' ≡ 'below-label'). */
+  normalize?: (raw: string) => string;
+};
+
 /** Editor type-group: a fieldset containing a coordinated set of typography tokens
     (text color + font-family/size/weight/line-height) for a piece of content
     (e.g. a card title, notification body). Optional outline rows let

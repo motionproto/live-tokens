@@ -24,7 +24,7 @@ For pattern reference, read any shipped component's source directly from the con
 ## 4-step recipe
 
 1. **Runtime file** — `src/system/components/MyWidget.svelte`. Declare every editable slot as a CSS custom property inside `:global(:root)`, defaulting to a theme token (never a raw value). The plugin parses `:global(:root)` to seed `component-configs/<id>/default.json`; variables declared anywhere else can't be edited.
-2. **Editor file** — `src/system/components/MyWidgetEditor.svelte`. In a `<script module>` block, declare `const component = 'mywidget'`, build a `states: Record<string, Token[]>` for each VariantGroup, and export the flat union as `allTokens: Token[]`. Components with linked siblings also build a `linkableContexts: Map<string, string>` (see the linked-siblings extension below). In the runtime `<script>` block, mount `ComponentEditorBase` with one `VariantGroup` per variant.
+2. **Editor file** — `src/system/components/MyWidgetEditor.svelte`. In a `<script module>` block, declare `const component = 'mywidget'`, build a `states: Record<string, Token[]>` for each VariantGroup, and export the flat union as `allTokens: Token[]`. Components with linked siblings also build a `linkableContexts: Map<string, string>` (see the linked-siblings extension below). Components with structural/display controls that aren't token values (alignment, element visibility, layout position) also export an `intrinsics: IntrinsicSpec[]` (see the intrinsics extension below). In the runtime `<script>` block, mount `ComponentEditorBase` with one `VariantGroup` per variant.
 3. **Register** — in `src/main.ts` before `mount(App, ...)`:
    ```ts
    import { registerComponent } from '@motion-proto/live-tokens';
@@ -462,6 +462,65 @@ Toggle's tokens are flat per state. Most multi-variant components (Badge, Card, 
 
 Single-variant components with multi-state linked tokens still set `canBeLinked` + `linkableContexts`, but skip `buildSiblings` and the `{#each}` loop. Components with no linked tokens (Toggle, SectionDivider) skip all five steps — `ComponentEditorBase` renders fine without a `{linked}` prop.
 
+## Extension: intrinsics
+
+Some components expose **structural or display choices** that aren't token values: an alignment (start / center), an element's visibility (show / hide), a layout position. These ride a bespoke `<select>` or checkbox you author in an editor snippet, not the generic token grid, so they don't belong in `allTokens`. Toggle and most components have none. SectionDivider is the worked example (alignment, hairline position, eyebrow / description visibility).
+
+An intrinsic still cascades through a CSS custom property with a default in the runtime `:global(:root)`. The trap: that default now lives in two places, the runtime `:global(:root)` AND the editor's read-back getter. When they disagree the control displays a state the page never renders, and a native `<select>` won't even fire `onchange` to write the "change" the user thinks they made. `:global(:root)` is the source of truth.
+
+Declare intrinsics so the editor and the contract test stay honest:
+
+1. **Runtime `:global(:root)`** carries the per-variant default like any other variable:
+
+   ```css
+   --mywidget-lg-align: start;
+   --mywidget-lg-eyebrow-display: block;
+   ```
+
+2. **Editor `<script module>`** exports `intrinsics: IntrinsicSpec[]`, one entry per structural property, each `default` mirroring `:global(:root)` per variant:
+
+   ```ts
+   import type { IntrinsicSpec } from '@motion-proto/live-tokens/component-editor';
+
+   export const intrinsics: IntrinsicSpec[] = [
+     {
+       key: 'align',
+       variants: ['lg', 'md', 'sm'],
+       variable: (v) => `--mywidget-${v}-align`,
+       values: ['start', 'center'],
+       default: { lg: 'start', md: 'start', sm: 'start' },
+     },
+   ];
+   ```
+
+3. **Read-back getters fall back to the spec default**, never a hard-coded constant. This is the rule that keeps the control's displayed default in step with what an unedited instance renders:
+
+   ```ts
+   const byKey = new Map(intrinsics.map((i) => [i.key, i]));
+   function readIntrinsic(key: string, v: string): string {
+     const spec = byKey.get(key)!;
+     const raw = readLiteral(spec.variable(v)) ?? spec.default[v];   // store override, else runtime default
+     return spec.normalize ? spec.normalize(raw) : raw;
+   }
+   function getAlign(v: string) {
+     return readIntrinsic('align', v) === 'center' ? 'center' : 'start';
+   }
+   ```
+
+   Writes go through `setComponentAlias(component, spec.variable(v), { kind: 'literal', value })` so the choice cascades to `:root` like any token.
+
+4. **Pass `intrinsics` to `registerComponent`** so the contract test can see it:
+
+   ```ts
+   registerComponent({
+     id: 'mywidget',
+     // ...label, icon, sourceFile, editorComponent, schema...
+     intrinsics: myWidgetIntrinsics,
+   });
+   ```
+
+Use `normalize` only when two raw values render identically and the dropdown lists just one (SectionDivider folds `above-description` into `below-label`). Properties that look like intrinsics but aren't: preview-only props with no persistence (a size selector that only changes the demo), `setComponentConfig` editor metadata (Dialog's button variants), and token-valued selects (a control choosing between two tokens). None carry a duplicated runtime default, so none need an `IntrinsicSpec`.
+
 ## Verification checklist
 
 After saving, run the static validator first:
@@ -482,6 +541,8 @@ It enforces the file layout, the `:global(:root)` block, token-suffix vocabulary
 5. `setComponentAlias` round-trips the alias through the slice.
 
 A new first-party component is auto-covered the moment it lands in `builtInRegistry` — `npm test` will fail if any of the five checks miss. For a consumer-authored component, mirror this pattern in your own test suite if you want the same drift protection (the same test logic works against any `registerComponent` registration; iterate `getComponentRegistryEntries()` after your `main.ts` has run).
+
+**If your component declares `intrinsics`, the intrinsics contract test covers it too.** `src/editor/component-editor/intrinsicsContract.test.ts` iterates every entry with an `intrinsics` array and asserts, per (intrinsic, variant), that the runtime `:global(:root)` declares a default, the default is one of the spec's `values`, and the editor's `default` equals the runtime default. This is what would have caught a getter defaulting to `center` while `:global(:root)` says `start`. Same auto-coverage rule: declare `intrinsics` on the registry entry and the test picks it up.
 
 Finally navigate to `/components` and confirm the runtime behaviours no static check can see:
 

@@ -1,5 +1,5 @@
 import type { Component } from 'svelte';
-import type { Token } from './scaffolding/types';
+import type { Token, IntrinsicSpec } from './scaffolding/types';
 import { registerComponentSchema } from '../core/store/editorStore';
 
 import BadgeEditor, { allTokens as badgeTokens } from './BadgeEditor.svelte';
@@ -18,7 +18,7 @@ import MenuSelectEditor, { allTokens as menuSelectTokens } from './MenuSelectEdi
 import NotificationEditor, { allTokens as notificationTokens } from './NotificationEditor.svelte';
 import ProgressBarEditor, { allTokens as progressBarTokens } from './ProgressBarEditor.svelte';
 import RadioButtonEditor, { allTokens as radioButtonTokens } from './RadioButtonEditor.svelte';
-import SectionDividerEditor, { allTokens as sectionDividerTokens } from './SectionDividerEditor.svelte';
+import SectionDividerEditor, { allTokens as sectionDividerTokens, intrinsics as sectionDividerIntrinsics } from './SectionDividerEditor.svelte';
 import SegmentedControlEditor, { allTokens as segmentedControlTokens } from './SegmentedControlEditor.svelte';
 import SideNavigationEditor, { allTokens as sideNavigationTokens } from './SideNavigationEditor.svelte';
 import TableEditor, { allTokens as tableTokens } from './TableEditor.svelte';
@@ -72,6 +72,10 @@ export interface RegistryEntry {
   editorComponent: Component<any, any, any>;
   /** Flat token list — the editor's declarative description of its token surface. */
   schema: Token[];
+  /** Structural/display properties controlled outside the token grid. Optional —
+      most components have none. When present, each spec's per-variant default is
+      pinned to the runtime `:global(:root)` by intrinsicsContract.test. */
+  intrinsics?: IntrinsicSpec[];
   /** `'system'` for first-party entries; `'custom'` for entries added via `registerComponent()`. */
   origin: 'system' | 'custom';
 }
@@ -226,6 +230,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/SectionDivider.svelte',
     editorComponent: SectionDividerEditor,
     schema: sectionDividerTokens,
+    intrinsics: sectionDividerIntrinsics,
     origin: 'system',
   },
   collapsiblesection: {

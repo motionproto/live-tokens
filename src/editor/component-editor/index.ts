@@ -18,3 +18,7 @@ export { buildTypeGroupTokens } from './scaffolding/buildTypeGroupTokens';
 
 // Token schema type — the shape of an entry in an editor's `allTokens` array.
 export type { Token } from './scaffolding/types';
+
+// Intrinsic spec — structural/display props an editor drives outside the token
+// grid (alignment, visibility). Pass an array as `registerComponent({ intrinsics })`.
+export type { IntrinsicSpec } from './scaffolding/types';

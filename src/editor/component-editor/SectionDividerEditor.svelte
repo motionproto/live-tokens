@@ -1,6 +1,6 @@
 <script module lang="ts">
   import { buildSiblings } from './scaffolding/siblings';
-  import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import type { Token, TypeGroupConfig, IntrinsicSpec } from './scaffolding/types';
 
   export const component = 'sectiondivider';
 
@@ -149,6 +149,57 @@
     | 'above-description'
     | 'through-description'
     | 'below-description';
+
+  // Structural/display properties driven by the bespoke selects + element
+  // toggles below, not the token grid. Each `default` mirrors the runtime
+  // SectionDivider's `:global(:root)`; the read-back getters fall back to it
+  // when a variant is unedited, and intrinsicsContract.test pins the two
+  // copies together. Defaults are per-variant: lg ships eyebrow + description
+  // + a description-anchored hairline; md/sm ship the title alone.
+  const HAIRLINE_POSITIONS = [
+    'above-label', 'through-label', 'below-label', 'through-description', 'below-description',
+  ] as const;
+  export const intrinsics: IntrinsicSpec[] = [
+    {
+      key: 'align',
+      variants: ['lg', 'md', 'sm'],
+      variable: (v) => `--sectiondivider-${v}-align`,
+      values: ['start', 'center'],
+      default: { lg: 'start', md: 'start', sm: 'start' },
+    },
+    {
+      key: 'eyebrow-display',
+      variants: ['lg', 'md', 'sm'],
+      variable: (v) => `--sectiondivider-${v}-eyebrow-display`,
+      values: ['block', 'none'],
+      default: { lg: 'block', md: 'none', sm: 'none' },
+    },
+    {
+      key: 'description-display',
+      variants: ['lg', 'md', 'sm'],
+      variable: (v) => `--sectiondivider-${v}-description-display`,
+      values: ['flex', 'none'],
+      default: { lg: 'flex', md: 'none', sm: 'none' },
+    },
+    {
+      key: 'eyebrow-text-transform',
+      variants: ['lg', 'md', 'sm'],
+      variable: (v) => `--sectiondivider-${v}-eyebrow-text-transform`,
+      values: ['uppercase', 'none'],
+      default: { lg: 'none', md: 'none', sm: 'none' },
+    },
+    {
+      key: 'hairline',
+      variants: ['lg', 'md', 'sm'],
+      variable: (v) => `--sectiondivider-${v}-hairline`,
+      values: ['none', ...HAIRLINE_POSITIONS],
+      default: { lg: 'below-description', md: 'below-label', sm: 'below-label' },
+      // 'above-description' renders identically to 'below-label'; the position
+      // dropdown omits it, so coerce on read to keep the control's value valid.
+      normalize: (raw) => (raw === 'above-description' ? 'below-label' : raw),
+    },
+  ];
+  const INTRINSIC_BY_KEY = new Map(intrinsics.map((i) => [i.key, i]));
 </script>
 
 <script lang="ts">
@@ -191,8 +242,19 @@
     return ref.value;
   }
 
+  // Resolved raw intrinsic value: the stored override, else the spec's
+  // per-variant default (which mirrors the runtime :root). Normalized so the
+  // getters below branch on a canonical value. Falling back to the spec
+  // default — not a hard-coded constant — is what keeps each control's
+  // displayed default in step with what the unedited divider actually renders.
+  function readIntrinsic(key: string, v: Variant): string {
+    const spec = INTRINSIC_BY_KEY.get(key)!;
+    const raw = readLiteral(spec.variable(v)) ?? spec.default[v];
+    return spec.normalize ? spec.normalize(raw) : raw;
+  }
+
   function getAlign(v: Variant): Align {
-    return readLiteral(`--sectiondivider-${v}-align`) === 'start' ? 'start' : 'center';
+    return readIntrinsic('align', v) === 'center' ? 'center' : 'start';
   }
   function getColorFamily(v: Variant): string {
     const raw = cfg[`--sectiondivider-${v}-color-family`];
@@ -201,13 +263,9 @@
   }
   /** Active hairline position OR `'none'` (= hidden). */
   function getHairlineValue(v: Variant): HairlinePosition | 'none' {
-    const raw = readLiteral(`--sectiondivider-${v}-hairline`);
-    if (raw === undefined || raw === 'none') return 'none';
-    // 'above-description' renders identically to 'below-label' — coerce on read
-    // so the dropdown's option list (which omits 'above-description') stays valid.
-    if (raw === 'above-description') return 'below-label';
-    const positions: HairlinePosition[] = ['above-label', 'through-label', 'below-label', 'through-description', 'below-description'];
-    return (positions as string[]).includes(raw) ? (raw as HairlinePosition) : 'none';
+    const raw = readIntrinsic('hairline', v);
+    if (raw === 'none') return 'none';
+    return (HAIRLINE_POSITIONS as readonly string[]).includes(raw) ? (raw as HairlinePosition) : 'none';
   }
   function getShowHairline(v: Variant): boolean {
     return getHairlineValue(v) !== 'none';
@@ -220,17 +278,13 @@
     return val === 'none' ? 'above-label' : val;
   }
   function getShowEyebrow(v: Variant): boolean {
-    return readLiteral(`--sectiondivider-${v}-eyebrow-display`) === 'block';
+    return readIntrinsic('eyebrow-display', v) === 'block';
   }
   function getEyebrowUppercase(v: Variant): boolean {
-    return readLiteral(`--sectiondivider-${v}-eyebrow-text-transform`) === 'uppercase';
+    return readIntrinsic('eyebrow-text-transform', v) === 'uppercase';
   }
   function getShowDescription(v: Variant): boolean {
-    const raw = readLiteral(`--sectiondivider-${v}-description-display`);
-    // Default: shown (flex) when unset. Matches the :root default and the
-    // legacy `getShowDescription` semantics for files that never set the key.
-    if (raw === undefined) return true;
-    return raw === 'flex';
+    return readIntrinsic('description-display', v) !== 'none';
   }
   /** Write an intrinsic to the aliases bucket as a literal so it cascades
    *  through cssVarSync to `:root` on both the editor iframe and host page. */
@@ -391,8 +445,8 @@
             value={getAlign(v.key)}
             onchange={(e) => setIntrinsic(v.key, 'align', (e.currentTarget as HTMLSelectElement).value)}
           >
-            <option value="center">Center</option>
             <option value="start">Start</option>
+            <option value="center">Center</option>
           </select>
         </div>
         <div class="property-row sd-intrinsic-row">
