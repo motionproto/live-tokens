@@ -1,0 +1,50 @@
+name: GitHub Release
+
+# Mirror the CHANGELOG into a GitHub Release on every version tag.
+# CHANGELOG.md is the single source of truth; this just restates the
+# matching section on the Releases page. Runs independently of the npm
+# publish workflow (publish.yml).
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  github-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract CHANGELOG section
+        id: changelog
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          title=$(awk -v ver="$version" '$0 ~ "^## " ver "( |$)" { sub(/^## /, ""); print; exit }' CHANGELOG.md)
+          if [ -z "$title" ]; then
+            echo "::error::No CHANGELOG.md section found for version $version" >&2
+            exit 1
+          fi
+          echo "title=$title" >> "$GITHUB_OUTPUT"
+          awk -v ver="$version" '
+            $0 ~ "^## " ver "( |$)" { flag=1; next }
+            flag && /^## / { flag=0 }
+            flag { print }
+          ' CHANGELOG.md > release-notes.md
+          echo "--- extracted release notes ---"
+          cat release-notes.md
+
+      - name: Create or update the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: ${{ steps.changelog.outputs.title }}
+        run: |
+          tag="$GITHUB_REF_NAME"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release edit "$tag" --title "$TITLE" --notes-file release-notes.md
+          else
+            gh release create "$tag" --title "$TITLE" --notes-file release-notes.md
+          fi
