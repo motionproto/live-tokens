@@ -72,8 +72,8 @@
 
   :global(:root) {
     /* Menu panel */
-    --menuselect-menu-surface: var(--surface-neutral-lower);
-    --menuselect-menu-border: var(--border-neutral-faint);
+    --menuselect-menu-surface: color-mix(in srgb, var(--surface-neutral-lower) 85%, transparent);
+    --menuselect-menu-border: var(--border-neutral-medium);
     --menuselect-menu-border-width: var(--border-width-1);
     --menuselect-menu-radius: var(--radius-md);
     --menuselect-menu-padding: var(--space-4);

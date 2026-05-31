@@ -65,7 +65,7 @@
 
   :global(:root) {
     /* Bar (outer wrapper) */
-    --segmentedcontrol-bar-surface: var(--surface-neutral-high);
+    --segmentedcontrol-bar-surface: color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent);
     --segmentedcontrol-bar-border: var(--border-neutral);
     --segmentedcontrol-bar-border-width: var(--border-width-1);
     --segmentedcontrol-bar-radius: var(--radius-lg);
@@ -92,34 +92,34 @@
     --segmentedcontrol-option-icon-size: var(--icon-size-md);
 
     /* Option — hover */
-    --segmentedcontrol-option-hover-surface: var(--surface-neutral-higher);
+    --segmentedcontrol-option-hover-surface: var(--surface-neutral);
     --segmentedcontrol-option-hover-text: var(--text-primary);
     --segmentedcontrol-option-hover-text-font-family: var(--font-sans);
     --segmentedcontrol-option-hover-text-font-size: var(--font-size-md);
     --segmentedcontrol-option-hover-text-font-weight: var(--font-weight-normal);
     --segmentedcontrol-option-hover-text-line-height: var(--line-height-md);
-    --segmentedcontrol-option-hover-icon: var(--text-secondary);
+    --segmentedcontrol-option-hover-icon: var(--text-primary);
 
     /* Selected (inner pill) — looks the same hovered or not */
-    --segmentedcontrol-selected-surface: var(--surface-success-high);
+    --segmentedcontrol-selected-surface: var(--surface-brand);
     --segmentedcontrol-selected-text: var(--text-primary);
     --segmentedcontrol-selected-text-font-family: var(--font-sans);
     --segmentedcontrol-selected-text-font-size: var(--font-size-md);
-    --segmentedcontrol-selected-text-font-weight: var(--font-weight-semibold);
+    --segmentedcontrol-selected-text-font-weight: var(--font-weight-normal);
     --segmentedcontrol-selected-text-line-height: var(--line-height-md);
     --segmentedcontrol-selected-icon: var(--text-secondary);
-    --segmentedcontrol-selected-border: var(--border-success);
+    --segmentedcontrol-selected-border: var(--border-brand);
     --segmentedcontrol-selected-border-width: var(--border-width-1);
     --segmentedcontrol-selected-radius: var(--radius-md);
 
     /* Disabled (whole component state — overrides both option and selected styling) */
-    --segmentedcontrol-disabled-surface: var(--surface-neutral-high);
-    --segmentedcontrol-disabled-text: var(--text-tertiary);
+    --segmentedcontrol-disabled-surface: var(--color-transparent);
+    --segmentedcontrol-disabled-text: var(--text-secondary);
     --segmentedcontrol-disabled-text-font-family: var(--font-sans);
     --segmentedcontrol-disabled-text-font-size: var(--font-size-md);
-    --segmentedcontrol-disabled-text-font-weight: var(--font-weight-light);
+    --segmentedcontrol-disabled-text-font-weight: var(--font-weight-normal);
     --segmentedcontrol-disabled-text-line-height: var(--line-height-md);
-    --segmentedcontrol-disabled-icon: var(--text-tertiary);
+    --segmentedcontrol-disabled-icon: var(--text-secondary);
 
     /* Small size — overrides for geometry + typography. Per-state colors and
        font-weight stay shared with default; only the size-driven properties

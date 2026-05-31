@@ -52,7 +52,7 @@
     --corner-badge-padding: var(--space-6);
     --corner-badge-text-font-family: var(--font-sans);
     --corner-badge-text-font-size: var(--font-size-sm);
-    --corner-badge-text-font-weight: var(--font-weight-light);
+    --corner-badge-text-font-weight: var(--font-weight-medium);
     --corner-badge-text-line-height: var(--line-height-xs);
 
     /* Per-variant color overrides. Default = inherit the same family/level the

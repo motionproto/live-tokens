@@ -85,7 +85,7 @@
       --collapsiblesection-chromeless-default-label-font-size: var(--font-size-md);
       --collapsiblesection-chromeless-default-label-font-weight: var(--font-weight-normal);
       --collapsiblesection-chromeless-default-label-line-height: var(--line-height-md);
-      --collapsiblesection-chromeless-default-icon: var(--text-muted);
+      --collapsiblesection-chromeless-default-icon: var(--text-primary);
       --collapsiblesection-chromeless-default-icon-size: var(--icon-size-xs);
       /* Chromeless — hover */
       --collapsiblesection-chromeless-hover-surface: var(--color-transparent);
@@ -102,7 +102,7 @@
 
       /* Divider — default */
       --collapsiblesection-divider-default-surface: var(--color-transparent);
-      --collapsiblesection-divider-default-border: var(--border-neutral-faint);
+      --collapsiblesection-divider-default-border: var(--border-brand);
       --collapsiblesection-divider-default-border-width: var(--border-width-1);
       --collapsiblesection-divider-default-padding: var(--space-4);
       --collapsiblesection-divider-default-label: var(--text-primary);
@@ -110,7 +110,7 @@
       --collapsiblesection-divider-default-label-font-size: var(--font-size-md);
       --collapsiblesection-divider-default-label-font-weight: var(--font-weight-normal);
       --collapsiblesection-divider-default-label-line-height: var(--line-height-md);
-      --collapsiblesection-divider-default-icon: var(--text-muted);
+      --collapsiblesection-divider-default-icon: var(--text-primary);
       --collapsiblesection-divider-default-icon-size: var(--icon-size-xs);
       /* Divider — hover */
       --collapsiblesection-divider-hover-surface: var(--color-transparent);
@@ -128,31 +128,31 @@
       --collapsiblesection-divider-expanded-padding: var(--space-4);
 
       /* Container — frame (always-on outer chrome) */
-      --collapsiblesection-container-frame-border: var(--color-transparent);
-      --collapsiblesection-container-frame-border-width: var(--border-width-3);
-      --collapsiblesection-container-frame-radius: var(--radius-none);
+      --collapsiblesection-container-frame-border: var(--border-neutral);
+      --collapsiblesection-container-frame-border-width: var(--border-width-1);
+      --collapsiblesection-container-frame-radius: var(--radius-md);
       /* Container — default header strip */
-      --collapsiblesection-container-default-surface: var(--surface-canvas);
+      --collapsiblesection-container-default-surface: var(--surface-neutral);
       --collapsiblesection-container-default-padding: var(--space-4);
       --collapsiblesection-container-default-label: var(--text-primary);
       --collapsiblesection-container-default-label-font-family: var(--font-sans);
       --collapsiblesection-container-default-label-font-size: var(--font-size-md);
       --collapsiblesection-container-default-label-font-weight: var(--font-weight-normal);
       --collapsiblesection-container-default-label-line-height: var(--line-height-md);
-      --collapsiblesection-container-default-icon: var(--text-muted);
+      --collapsiblesection-container-default-icon: var(--text-primary);
       --collapsiblesection-container-default-icon-size: var(--icon-size-xs);
       /* Container — hover header strip */
-      --collapsiblesection-container-hover-surface: var(--surface-canvas);
+      --collapsiblesection-container-hover-surface: var(--surface-neutral-high);
       --collapsiblesection-container-hover-padding: var(--space-4);
       --collapsiblesection-container-hover-label: var(--text-primary);
       --collapsiblesection-container-hover-label-font-family: var(--font-sans);
       --collapsiblesection-container-hover-label-font-size: var(--font-size-md);
       --collapsiblesection-container-hover-label-font-weight: var(--font-weight-normal);
       --collapsiblesection-container-hover-label-line-height: var(--line-height-md);
-      --collapsiblesection-container-hover-icon: var(--text-muted);
+      --collapsiblesection-container-hover-icon: var(--text-primary);
       --collapsiblesection-container-hover-icon-size: var(--icon-size-xs);
       /* Container — expanded content area */
-      --collapsiblesection-container-expanded-surface: var(--surface-canvas-low);
+      --collapsiblesection-container-expanded-surface: var(--surface-neutral-higher);
       --collapsiblesection-container-expanded-padding: var(--space-4);
    }
 

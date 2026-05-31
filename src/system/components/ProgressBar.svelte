@@ -47,22 +47,22 @@
 
 <style>
   :global(:root) {
-    --progressbar-track-surface: var(--surface-neutral-low);
-    --progressbar-track-border: var(--border-neutral-faint);
+    --progressbar-track-surface: var(--surface-neutral-lowest);
+    --progressbar-track-border: var(--border-neutral-subtle);
     --progressbar-track-border-width: var(--border-width-1);
-    --progressbar-track-height: var(--space-8);
+    --progressbar-track-height: var(--space-16);
     --progressbar-radius: var(--radius-full);
-    --progressbar-fill: var(--gradient-1);
+    --progressbar-fill: var(--surface-special-highest);
     --progressbar-label-gap: var(--space-6);
     --progressbar-label: var(--text-secondary);
     --progressbar-label-font-family: var(--font-sans);
-    --progressbar-label-font-size: var(--font-size-sm);
-    --progressbar-label-font-weight: var(--font-weight-light);
+    --progressbar-label-font-size: var(--font-size-md);
+    --progressbar-label-font-weight: var(--font-weight-normal);
     --progressbar-label-line-height: var(--line-height-md);
     --progressbar-value: var(--text-tertiary);
     --progressbar-value-font-family: var(--font-mono);
-    --progressbar-value-font-size: var(--font-size-xs);
-    --progressbar-value-font-weight: var(--font-weight-light);
+    --progressbar-value-font-size: var(--font-size-md);
+    --progressbar-value-font-weight: var(--font-weight-normal);
     --progressbar-value-line-height: var(--line-height-md);
   }
 

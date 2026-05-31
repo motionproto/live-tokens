@@ -90,9 +90,11 @@
     "deploy:local": "bash scripts/deploy-local.sh",
     "check:no-style-imports": "node scripts/check-no-style-imports.mjs",
     "check:editor-font-isolation": "node scripts/check-editor-font-isolation.mjs",
+    "check:component-defaults": "node scripts/sync-component-defaults.mjs --check",
+    "sync:component-defaults": "node scripts/sync-component-defaults.mjs --write",
     "check:smoke-install": "bash scripts/smoke-install.sh",
     "check:smoke-create": "bash scripts/smoke-create.sh",
-    "prepublishOnly": "npm run check:no-style-imports && npm run check:editor-font-isolation && npm run build:lib && npm run check:smoke-install && npm run check:smoke-create"
+    "prepublishOnly": "npm run check:no-style-imports && npm run check:editor-font-isolation && npm run check:component-defaults && npm run build:lib && npm run check:smoke-install && npm run check:smoke-create"
   },
   "peerDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0",
