@@ -11,7 +11,7 @@
     "directory": "create-live-tokens"
   },
   "bin": {
-    "create-live-tokens": "./index.mjs"
+    "create-live-tokens": "index.mjs"
   },
   "files": [
     "index.mjs"
