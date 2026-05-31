@@ -1,0 +1,22 @@
+{
+  "name": "@motion-proto/create-live-tokens",
+  "version": "0.1.0",
+  "description": "Scaffold a new @motion-proto/live-tokens app. Run via `npm create @motion-proto/live-tokens`.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Mark Pearce <mark@motionproto.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/motionproto/live-tokens.git",
+    "directory": "create-live-tokens"
+  },
+  "bin": {
+    "create-live-tokens": "./index.mjs"
+  },
+  "files": [
+    "index.mjs"
+  ],
+  "dependencies": {
+    "@motion-proto/live-tokens": "latest"
+  }
+}
