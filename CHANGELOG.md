@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.24.0 — Grouped editor token lists; CodeSnippet horizontal scroll
+
+### Added
+
+- **CodeSnippet scrolls long lines horizontally.** Long code no longer truncates
+  with an ellipsis; it scrolls on the x-axis behind a thin styled scrollbar, and
+  the copy button stays pinned to the top-right. Two new tokens style the
+  scrollbar, both editable in the CodeSnippet panel:
+  `--codesnippet-scrollbar-thumb` (thumb color) and
+  `--codesnippet-scrollbar-border-width` (scrollbar thickness).
+
+### Changed
+
+- **Editor token lists are now split into labeled element groups.** Ten
+  component editors (Callout, CodeSnippet, InlineEditActions, Input, MenuSelect,
+  ProgressBar, SegmentedControl, TabBar, Toggle, Tooltip) group their tokens
+  into labeled sections (frame / text / icon and structural parts like track,
+  thumb, divider, indicator, scrollbar) via the `element` field instead of one
+  flat list per state. Editor-only change: rendered output for existing tokens,
+  token names, and component APIs are unchanged, so existing themes and
+  component-configs are unaffected.
+
 ## 0.23.0 — Extend the spacing scale at the top end
 
 ### Added
