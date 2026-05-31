@@ -8,20 +8,21 @@
   // not a per-variant token namespace.
   const states: Record<string, Token[]> = {
     default: [
-      { label: 'fill color', groupKey: 'fill', variable: '--progressbar-fill' },
-      { label: 'track surface color', groupKey: 'surface', variable: '--progressbar-track-surface' },
-      { label: 'track border color', groupKey: 'border', variable: '--progressbar-track-border' },
-      { label: 'track border width', canBeLinked: true, groupKey: 'track-border-width', variable: '--progressbar-track-border-width' },
-      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: '--progressbar-radius' },
-      { label: 'track height', canBeLinked: true, groupKey: 'track-height', variable: '--progressbar-track-height' },
-      { label: 'label gap', groupKey: 'label-gap', variable: '--progressbar-label-gap' },
+      { label: 'color', element: 'fill', groupKey: 'fill', variable: '--progressbar-fill' },
+      { label: 'surface', element: 'frame', groupKey: 'surface', variable: '--progressbar-track-surface' },
+      { label: 'border', element: 'frame', groupKey: 'border', variable: '--progressbar-track-border' },
+      { label: 'border width', element: 'frame', canBeLinked: true, groupKey: 'track-border-width', variable: '--progressbar-track-border-width' },
+      { label: 'corner radius', element: 'frame', canBeLinked: true, groupKey: 'radius', variable: '--progressbar-radius' },
+      { label: 'height', element: 'frame', canBeLinked: true, groupKey: 'track-height', variable: '--progressbar-track-height' },
+      { label: 'label gap', element: 'frame', groupKey: 'label-gap', variable: '--progressbar-label-gap' },
     ],
   };
 
   const typeGroups: Record<string, TypeGroupConfig[]> = {
     default: [
       {
-        legend: 'label',
+        legend: '',
+        element: 'label',
         colorVariable: '--progressbar-label',
         familyVariable: '--progressbar-label-font-family',
         sizeVariable: '--progressbar-label-font-size',
@@ -29,7 +30,8 @@
         lineHeightVariable: '--progressbar-label-line-height',
       },
       {
-        legend: 'value',
+        legend: '',
+        element: 'value',
         colorVariable: '--progressbar-value',
         familyVariable: '--progressbar-value-font-family',
         sizeVariable: '--progressbar-value-font-size',

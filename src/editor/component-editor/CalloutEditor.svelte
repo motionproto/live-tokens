@@ -9,19 +9,20 @@
 
   function variantTokens(v: Variant): Token[] {
     return [
-      { label: 'surface color', groupKey: 'surface', variable: `--callout-${v}-surface` },
-      { label: 'border color', groupKey: 'border', variable: `--callout-${v}-border` },
-      { label: 'border width', canBeLinked: true, groupKey: 'border-width', variable: `--callout-${v}-border-width` },
-      { label: 'accent edge width', canBeLinked: true, groupKey: 'accent-width', variable: `--callout-${v}-accent-width` },
-      { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: `--callout-${v}-radius` },
-      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--callout-${v}-padding` },
+      { label: 'surface color', element: 'frame', groupKey: 'surface', variable: `--callout-${v}-surface` },
+      { label: 'border color', element: 'frame', groupKey: 'border', variable: `--callout-${v}-border` },
+      { label: 'border width', element: 'frame', canBeLinked: true, groupKey: 'border-width', variable: `--callout-${v}-border-width` },
+      { label: 'accent edge width', element: 'frame', canBeLinked: true, groupKey: 'accent-width', variable: `--callout-${v}-accent-width` },
+      { label: 'corner radius', element: 'frame', canBeLinked: true, groupKey: 'radius', variable: `--callout-${v}-radius` },
+      { label: 'padding', element: 'frame', canBeLinked: true, groupKey: 'padding', variable: `--callout-${v}-padding` },
     ];
   }
   // Two type groups per variant: label (e.g. "Warning.") and message body.
   function variantTypeGroups(v: Variant): TypeGroupConfig[] {
     return [
       {
-        legend: `${v} label`,
+        legend: '',
+        element: 'label',
         colorVariable: `--callout-${v}-label`,
         familyVariable: `--callout-${v}-label-font-family`,
         sizeVariable: `--callout-${v}-label-font-size`,
@@ -29,7 +30,8 @@
         lineHeightVariable: `--callout-${v}-label-line-height`,
       },
       {
-        legend: `${v} message`,
+        legend: '',
+        element: 'message',
         colorVariable: `--callout-${v}-text`,
         familyVariable: `--callout-${v}-text-font-family`,
         sizeVariable: `--callout-${v}-text-font-size`,

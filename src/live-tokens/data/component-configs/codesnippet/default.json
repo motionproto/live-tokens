@@ -2,7 +2,7 @@
   "name": "default",
   "component": "codesnippet",
   "createdAt": "2026-05-27T13:22:54.228Z",
-  "updatedAt": "2026-05-30T11:49:02.843Z",
+  "updatedAt": "2026-05-31T14:15:31.049Z",
   "aliases": {
     "--codesnippet-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 76%, transparent)",
     "--codesnippet-border": "--border-neutral",
@@ -17,6 +17,8 @@
     "--codesnippet-code-line-height": "--line-height-md",
     "--codesnippet-icon": "--text-secondary",
     "--codesnippet-icon-size": "--font-size-md",
-    "--codesnippet-hover-icon": "--text-primary"
+    "--codesnippet-hover-icon": "--text-primary",
+    "--codesnippet-scrollbar-border-width": "--border-width-6",
+    "--codesnippet-scrollbar-thumb": "--text-tertiary"
   }
 }

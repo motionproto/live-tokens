@@ -7,21 +7,25 @@
   // The tab object — four states (default/hover/active/disabled) of the same tab button.
   const tabStateNames = ['default', 'hover', 'active', 'disabled'] as const;
   type TabState = typeof tabStateNames[number];
+  // `element` tags split each tab state into frame / icon / indicator / text.
+  // No elementOrder: it would force the flat `bar` state into grouped mode.
+  // Frame tokens lead so sections read frame → icon → indicator → text (typeGroup last).
   function tabStateTokens(s: TabState): Token[] {
     return [
-      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: `--tabbar-${s}-icon-size` },
-      { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `--tabbar-${s}-padding` },
-      { label: 'surface color', groupKey: 'surface', variable: `--tabbar-${s}-surface` },
-      { label: 'top radius', canBeLinked: true, groupKey: 'tab-top-radius', variable: `--tabbar-${s}-tab-top-radius` },
-      { label: 'bottom radius', canBeLinked: true, groupKey: 'tab-bottom-radius', variable: `--tabbar-${s}-tab-bottom-radius` },
-      { label: 'border color', canBeLinked: true, groupKey: 'tab-border-color', variable: `--tabbar-${s}-tab-border-color` },
-      { label: 'border width', canBeLinked: true, groupKey: 'tab-border-width', variable: `--tabbar-${s}-tab-border-width` },
-      { label: 'indicator width', canBeLinked: true, groupKey: 'indicator-border-width', variable: `--tabbar-${s}-indicator-border-width` },
+      { label: 'surface color', element: 'frame', groupKey: 'surface', variable: `--tabbar-${s}-surface` },
+      { label: 'top radius', element: 'frame', canBeLinked: true, groupKey: 'tab-top-radius', variable: `--tabbar-${s}-tab-top-radius` },
+      { label: 'bottom radius', element: 'frame', canBeLinked: true, groupKey: 'tab-bottom-radius', variable: `--tabbar-${s}-tab-bottom-radius` },
+      { label: 'border color', element: 'frame', canBeLinked: true, groupKey: 'tab-border-color', variable: `--tabbar-${s}-tab-border-color` },
+      { label: 'border width', element: 'frame', canBeLinked: true, groupKey: 'tab-border-width', variable: `--tabbar-${s}-tab-border-width` },
+      { label: 'padding', element: 'frame', canBeLinked: true, groupKey: 'padding', variable: `--tabbar-${s}-padding` },
+      { label: 'size', element: 'icon', canBeLinked: true, groupKey: 'icon-size', variable: `--tabbar-${s}-icon-size` },
+      { label: 'width', element: 'indicator', canBeLinked: true, groupKey: 'indicator-border-width', variable: `--tabbar-${s}-indicator-border-width` },
     ];
   }
   function tabStateTypeGroups(s: TabState): TypeGroupConfig[] {
     return [{
-      legend: 'tab text',
+      legend: '',
+      element: 'text',
       colorVariable: `--tabbar-${s}-text`,
       familyVariable: `--tabbar-${s}-text-font-family`,
       sizeVariable: `--tabbar-${s}-text-font-size`,
@@ -48,7 +52,7 @@
   };
   states['active tab'] = [
     ...states['active tab'],
-    { label: 'indicator color', groupKey: 'indicator-color', variable: '--tabbar-active-border' },
+    { label: 'color', element: 'indicator', groupKey: 'indicator-color', variable: '--tabbar-active-border' },
   ];
   const typeGroups: Record<string, TypeGroupConfig[]> = Object.fromEntries(
     tabStateNames.map((s) => [`${s} tab`, tabStateTypeGroups(s)]),

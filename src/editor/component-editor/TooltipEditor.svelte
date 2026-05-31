@@ -4,21 +4,22 @@
 
   export const component = 'tooltip';
 
-  // Tooltip is a single object — surface/border/padding/radius/shadow live together.
+  // Element tags split the panel into frame + text via StateBlock.
   const states: Record<string, Token[]> = {
     tooltip: [
-      { label: 'surface color', variable: '--tooltip-surface' },
-      { label: 'border color', variable: '--tooltip-border' },
-      { label: 'border width', groupKey: 'width', variable: '--tooltip-border-width' },
-      { label: 'corner radius', variable: '--tooltip-radius' },
-      { label: 'padding', variable: '--tooltip-padding' },
-      { label: 'tooltip shadow', variable: '--tooltip-shadow' },
+      { label: 'surface color', element: 'frame', variable: '--tooltip-surface' },
+      { label: 'border color', element: 'frame', variable: '--tooltip-border' },
+      { label: 'border width', element: 'frame', groupKey: 'width', variable: '--tooltip-border-width' },
+      { label: 'corner radius', element: 'frame', variable: '--tooltip-radius' },
+      { label: 'padding', element: 'frame', variable: '--tooltip-padding' },
+      { label: 'shadow', element: 'frame', variable: '--tooltip-shadow' },
     ],
   };
 
   const typeGroups: Record<string, TypeGroupConfig[]> = {
     tooltip: [{
-      legend: 'tooltip text',
+      legend: '',
+      element: 'text',
       colorVariable: '--tooltip-text',
       familyVariable: '--tooltip-text-font-family',
       sizeVariable: '--tooltip-text-font-size',

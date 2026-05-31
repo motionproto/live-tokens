@@ -10,15 +10,15 @@
   // they don't vary per state in the runtime.
   const defaultStates: Record<string, Token[]> = {
     'control bar': [
-      { label: 'surface color', groupKey: 'surface', variable: '--segmentedcontrol-bar-surface' },
-      { label: 'border color', groupKey: 'border', variable: '--segmentedcontrol-bar-border' },
-      { label: 'border width', groupKey: 'width', variable: '--segmentedcontrol-bar-border-width' },
-      { label: 'divider color', groupKey: 'color', variable: '--segmentedcontrol-divider-color' },
-      { label: 'divider width', groupKey: 'thickness', variable: '--segmentedcontrol-divider-thickness' },
-      { label: 'divider inset', groupKey: 'divider-inset', variable: '--segmentedcontrol-divider-inset' },
-      { label: 'corner radius', groupKey: 'radius', variable: '--segmentedcontrol-bar-radius' },
-      { label: 'option gap', groupKey: 'gap', variable: '--segmentedcontrol-bar-gap' },
-      { label: 'padding', variable: '--segmentedcontrol-bar-padding', groupKey: 'bar-padding' },
+      { label: 'surface color', element: 'frame', groupKey: 'surface', variable: '--segmentedcontrol-bar-surface' },
+      { label: 'border color', element: 'frame', groupKey: 'border', variable: '--segmentedcontrol-bar-border' },
+      { label: 'border width', element: 'frame', groupKey: 'width', variable: '--segmentedcontrol-bar-border-width' },
+      { label: 'color', element: 'divider', groupKey: 'color', variable: '--segmentedcontrol-divider-color' },
+      { label: 'width', element: 'divider', groupKey: 'thickness', variable: '--segmentedcontrol-divider-thickness' },
+      { label: 'inset', element: 'divider', groupKey: 'divider-inset', variable: '--segmentedcontrol-divider-inset' },
+      { label: 'corner radius', element: 'frame', groupKey: 'radius', variable: '--segmentedcontrol-bar-radius' },
+      { label: 'option gap', element: 'frame', groupKey: 'gap', variable: '--segmentedcontrol-bar-gap' },
+      { label: 'padding', element: 'frame', variable: '--segmentedcontrol-bar-padding', groupKey: 'bar-padding' },
     ],
     'option base': [
       { label: 'padding', variable: '--segmentedcontrol-option-padding', groupKey: 'option-padding' },
@@ -29,11 +29,11 @@
       { label: 'icon color', groupKey: 'icon', variable: '--segmentedcontrol-option-icon' },
     ],
     'selected option': [
-      { label: 'surface color', groupKey: 'surface', variable: '--segmentedcontrol-selected-surface' },
-      { label: 'icon color', groupKey: 'icon', variable: '--segmentedcontrol-selected-icon' },
-      { label: 'border color', groupKey: 'border', variable: '--segmentedcontrol-selected-border' },
-      { label: 'border width', groupKey: 'width', variable: '--segmentedcontrol-selected-border-width' },
-      { label: 'corner radius', groupKey: 'radius', variable: '--segmentedcontrol-selected-radius' },
+      { label: 'surface color', element: 'frame', groupKey: 'surface', variable: '--segmentedcontrol-selected-surface' },
+      { label: 'color', element: 'icon', groupKey: 'icon', variable: '--segmentedcontrol-selected-icon' },
+      { label: 'border color', element: 'frame', groupKey: 'border', variable: '--segmentedcontrol-selected-border' },
+      { label: 'border width', element: 'frame', groupKey: 'width', variable: '--segmentedcontrol-selected-border-width' },
+      { label: 'corner radius', element: 'frame', groupKey: 'radius', variable: '--segmentedcontrol-selected-radius' },
     ],
     'hover option': [
       { label: 'surface color', groupKey: 'surface', variable: '--segmentedcontrol-option-hover-surface' },
@@ -52,10 +52,10 @@
   // since family/weight/color don't differ.
   const smallStates: Record<string, Token[]> = {
     'control bar': [
-      { label: 'divider inset', groupKey: 'small-divider-inset', variable: '--segmentedcontrol-small-divider-inset' },
-      { label: 'divider width', groupKey: 'small-divider-thickness', variable: '--segmentedcontrol-small-divider-thickness' },
-      { label: 'corner radius', groupKey: 'small-radius', variable: '--segmentedcontrol-bar-small-radius' },
-      { label: 'padding', variable: '--segmentedcontrol-bar-small-padding', groupKey: 'bar-small-padding' },
+      { label: 'corner radius', element: 'frame', groupKey: 'small-radius', variable: '--segmentedcontrol-bar-small-radius' },
+      { label: 'padding', element: 'frame', variable: '--segmentedcontrol-bar-small-padding', groupKey: 'bar-small-padding' },
+      { label: 'inset', element: 'divider', groupKey: 'small-divider-inset', variable: '--segmentedcontrol-small-divider-inset' },
+      { label: 'width', element: 'divider', groupKey: 'small-divider-thickness', variable: '--segmentedcontrol-small-divider-thickness' },
     ],
     'option base': [
       { label: 'icon size', groupKey: 'small-icon-size', variable: '--segmentedcontrol-option-small-icon-size' },
@@ -80,7 +80,8 @@
       lineHeightVariable: '--segmentedcontrol-option-text-line-height',
     }],
     'selected option': [{
-      legend: 'option text',
+      legend: '',
+      element: 'text',
       colorVariable: '--segmentedcontrol-selected-text',
       familyVariable: '--segmentedcontrol-selected-text-font-family',
       sizeVariable: '--segmentedcontrol-selected-text-font-size',

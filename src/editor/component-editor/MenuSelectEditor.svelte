@@ -7,43 +7,44 @@
   // Non-text tokens per state; text/font lives in typeGroups. Item-shape tokens sit under `menu` so they read as one decision across states.
   const states: Record<string, Token[]> = {
     menu: [
-      { label: 'surface color', groupKey: 'surface', variable: '--menuselect-menu-surface' },
-      { label: 'border color', groupKey: 'border', variable: '--menuselect-menu-border' },
-      { label: 'border width', groupKey: 'width', variable: '--menuselect-menu-border-width' },
-      { label: 'corner radius', groupKey: 'menu-radius', variable: '--menuselect-menu-radius' },
-      { label: 'padding', variable: '--menuselect-menu-padding', groupKey: 'menu-padding' },
-      { label: 'item gap', groupKey: 'gap', variable: '--menuselect-menu-gap' },
-      { label: 'shadow', groupKey: 'shadow', variable: '--menuselect-menu-shadow' },
-      { label: 'item radius', groupKey: 'item-radius', variable: '--menuselect-item-radius' },
-      { label: 'item padding', variable: '--menuselect-item-padding', groupKey: 'item-padding' },
+      { label: 'surface color', element: 'frame', groupKey: 'surface', variable: '--menuselect-menu-surface' },
+      { label: 'border color', element: 'frame', groupKey: 'border', variable: '--menuselect-menu-border' },
+      { label: 'border width', element: 'frame', groupKey: 'width', variable: '--menuselect-menu-border-width' },
+      { label: 'corner radius', element: 'frame', groupKey: 'menu-radius', variable: '--menuselect-menu-radius' },
+      { label: 'padding', element: 'frame', variable: '--menuselect-menu-padding', groupKey: 'menu-padding' },
+      { label: 'item gap', element: 'frame', groupKey: 'gap', variable: '--menuselect-menu-gap' },
+      { label: 'shadow', element: 'frame', groupKey: 'shadow', variable: '--menuselect-menu-shadow' },
+      { label: 'radius', element: 'item', groupKey: 'item-radius', variable: '--menuselect-item-radius' },
+      { label: 'padding', element: 'item', variable: '--menuselect-item-padding', groupKey: 'item-padding' },
     ],
     'default item': [
-      { label: 'surface color', groupKey: 'surface', variable: '--menuselect-default-surface' },
-      { label: 'icon color', groupKey: 'icon', variable: '--menuselect-default-icon' },
-      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--menuselect-default-icon-size' },
+      { label: 'surface color', element: 'frame', groupKey: 'surface', variable: '--menuselect-default-surface' },
+      { label: 'color', element: 'icon', groupKey: 'icon', variable: '--menuselect-default-icon' },
+      { label: 'size', element: 'icon', canBeLinked: true, groupKey: 'icon-size', variable: '--menuselect-default-icon-size' },
     ],
     'hover item': [
-      { label: 'surface color', groupKey: 'surface', variable: '--menuselect-hover-surface' },
-      { label: 'icon color', groupKey: 'icon', variable: '--menuselect-hover-icon' },
-      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--menuselect-hover-icon-size' },
+      { label: 'surface color', element: 'frame', groupKey: 'surface', variable: '--menuselect-hover-surface' },
+      { label: 'color', element: 'icon', groupKey: 'icon', variable: '--menuselect-hover-icon' },
+      { label: 'size', element: 'icon', canBeLinked: true, groupKey: 'icon-size', variable: '--menuselect-hover-icon-size' },
     ],
     'selected item': [
-      { label: 'surface color', groupKey: 'surface', variable: '--menuselect-selected-surface' },
-      { label: 'icon color', groupKey: 'icon', variable: '--menuselect-selected-icon' },
-      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--menuselect-selected-icon-size' },
-      { label: 'indicator color', groupKey: 'indicator', variable: '--menuselect-selected-indicator' },
+      { label: 'surface color', element: 'frame', groupKey: 'surface', variable: '--menuselect-selected-surface' },
+      { label: 'color', element: 'icon', groupKey: 'icon', variable: '--menuselect-selected-icon' },
+      { label: 'size', element: 'icon', canBeLinked: true, groupKey: 'icon-size', variable: '--menuselect-selected-icon-size' },
+      { label: 'color', element: 'indicator', groupKey: 'indicator', variable: '--menuselect-selected-indicator' },
     ],
     'disabled item': [
-      { label: 'surface color', groupKey: 'surface', variable: '--menuselect-disabled-surface' },
-      { label: 'icon color', groupKey: 'icon', variable: '--menuselect-disabled-icon' },
-      { label: 'icon size', canBeLinked: true, groupKey: 'icon-size', variable: '--menuselect-disabled-icon-size' },
+      { label: 'surface color', element: 'frame', groupKey: 'surface', variable: '--menuselect-disabled-surface' },
+      { label: 'color', element: 'icon', groupKey: 'icon', variable: '--menuselect-disabled-icon' },
+      { label: 'size', element: 'icon', canBeLinked: true, groupKey: 'icon-size', variable: '--menuselect-disabled-icon-size' },
     ],
   };
 
   // Per-state item-label typography; linkable groupKeys let users collapse or diverge across states.
   const typeGroups: Record<string, TypeGroupConfig[]> = {
     'default item': [{
-      legend: 'item label',
+      legend: '',
+      element: 'text',
       colorVariable: '--menuselect-default-text',
       familyVariable: '--menuselect-default-text-font-family',
       sizeVariable: '--menuselect-default-text-font-size',
@@ -51,7 +52,8 @@
       lineHeightVariable: '--menuselect-default-text-line-height',
     }],
     'hover item': [{
-      legend: 'item label',
+      legend: '',
+      element: 'text',
       colorVariable: '--menuselect-hover-text',
       familyVariable: '--menuselect-hover-text-font-family',
       sizeVariable: '--menuselect-hover-text-font-size',
@@ -59,7 +61,8 @@
       lineHeightVariable: '--menuselect-hover-text-line-height',
     }],
     'selected item': [{
-      legend: 'item label',
+      legend: '',
+      element: 'text',
       colorVariable: '--menuselect-selected-text',
       familyVariable: '--menuselect-selected-text-font-family',
       sizeVariable: '--menuselect-selected-text-font-size',
@@ -67,7 +70,8 @@
       lineHeightVariable: '--menuselect-selected-text-line-height',
     }],
     'disabled item': [{
-      legend: 'item label',
+      legend: '',
+      element: 'text',
       colorVariable: '--menuselect-disabled-text',
       familyVariable: '--menuselect-disabled-text-font-family',
       sizeVariable: '--menuselect-disabled-text-font-size',

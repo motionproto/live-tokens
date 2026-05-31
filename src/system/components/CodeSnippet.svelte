@@ -1,6 +1,6 @@
 <!--
-  CodeSnippet.svelte — single-line code display with a copy button. Click the
-  button to copy `code` to the clipboard; a Tooltip-rendered confirmation
+  CodeSnippet.svelte — code display with a copy button pinned top-right. Click
+  the button to copy `code` to the clipboard; a Tooltip-rendered confirmation
   ("Copied") flashes briefly above the button.
 -->
 <script lang="ts">
@@ -71,11 +71,15 @@
     --codesnippet-icon: var(--text-secondary);
     --codesnippet-icon-size: var(--font-size-md);
     --codesnippet-hover-icon: var(--text-primary);
+
+    /* Horizontal-scroll scrollbar. */
+    --codesnippet-scrollbar-border-width: var(--border-width-6);
+    --codesnippet-scrollbar-thumb: var(--text-tertiary);
   }
 
   .codesnippet {
     display: inline-flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--codesnippet-gap);
     max-width: 100%;
     padding: var(--codesnippet-padding);
@@ -93,8 +97,22 @@
     font-weight: var(--codesnippet-code-font-weight);
     line-height: var(--codesnippet-code-line-height);
     white-space: pre;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--codesnippet-scrollbar-thumb) transparent;
+  }
+
+  .code::-webkit-scrollbar {
+    height: var(--codesnippet-scrollbar-border-width);
+  }
+
+  .code::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .code::-webkit-scrollbar-thumb {
+    background: var(--codesnippet-scrollbar-thumb);
+    border-radius: var(--radius-full);
   }
 
   .copy {
