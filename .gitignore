@@ -18,6 +18,7 @@ src/live-tokens/data/themes/_backups/
 src/system/styles/_backups/
 
 .env*
+.npmrc
 
 # Editor directories and files
 .vscode/*

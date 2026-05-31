@@ -3,6 +3,7 @@ dist
 dist-ssr
 *.local
 *.log
+.npmrc
 
 # Editor-written backups stay local to each machine; the live JSON/CSS commit.
 src/live-tokens/data/themes/_backups/
