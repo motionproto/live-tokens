@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.22.1 — Add LICENSE files
+
+### Added
+
+- **`LICENSE` (MIT).** The package already declared `"license": "MIT"` in
+  `package.json` but shipped without the license text. Both
+  `@motion-proto/live-tokens` and `@motion-proto/create-live-tokens` now include
+  an MIT `LICENSE` file in their published tarballs. No code changes.
+
 ## 0.22.0 — Component defaults synced to the reference demo
 
 ### Changed
