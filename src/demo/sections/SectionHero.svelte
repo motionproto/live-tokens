@@ -111,7 +111,7 @@
   .hero-tagline {
     font-family: var(--font-serif);
     font-size: var(--font-size-2xl);
-    color: var(--text-secondary);
+    color: var(--text-primary);
     line-height: 1.2;
     max-width: 48rem;
     margin: var(--space-8) 0 0;
