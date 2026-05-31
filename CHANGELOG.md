@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.24.1 — Section Divider editor controls match rendered defaults
+
+### Fixed
+
+- **Section Divider editor controls no longer default to a state the component
+  never renders.** The alignment dropdown defaulted to "Center" while an
+  unedited divider rendered left-aligned, so choosing "Center" fired no change
+  event and appeared to do nothing. The eyebrow / description visibility and
+  hairline controls had the same per-variant disagreement. The editor's
+  read-back now sources each per-variant default from the runtime
+  `:global(:root)`, so the controls reflect what the page actually shows.
+
+### Added
+
+- **Intrinsics are now a tested surface.** Structural / display properties an
+  editor drives outside the token grid (alignment, visibility, position) are
+  declared as `intrinsics: IntrinsicSpec[]` and pinned to the runtime
+  `:global(:root)` defaults by a universal contract test, so an editor default
+  can't silently drift from what the component renders. `IntrinsicSpec` is
+  exported from `@motion-proto/live-tokens/component-editor`.
+
 ## 0.24.0 — Grouped editor token lists; CodeSnippet horizontal scroll
 
 ### Added
