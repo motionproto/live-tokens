@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.25.1 — Drop unused Mermaid dependency
+
+### Removed
+
+- **`mermaid` devDependency and `MermaidDiagram.svelte`.** The docs site stopped
+  rendering Mermaid when the developer-reference chapters moved to
+  `docs/archive/` (off the non-recursive `docs/*.md` glob in `chapters.ts`). The
+  only remaining ` ```mermaid ` fences live in those archived chapters, which no
+  longer load, so the lazy-loaded `mermaid` package (~700kB) was unreachable.
+  Removed the dependency, the `MermaidDiagram` component, and the mermaid
+  handling in `Docs.svelte`. No consumer impact: `mermaid` was a
+  devDependency and never shipped in the tarball.
+
 ## 0.25.0 — Panel component; structural group-key derivation
 
 ### Added
