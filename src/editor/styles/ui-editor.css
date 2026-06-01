@@ -7,8 +7,14 @@
   font-family: var(--ui-font-sans);
 }
 
-/* Override tokens.css's global :where(*) font-family. */
-.editor-page *:not([class*="fa-"]) {
+/* Pull editor chrome onto --ui-font-sans, overriding tokens.css's global
+   :where(*) theme-font baseline. The element matcher stays inside :where() so
+   this override computes to (0,1,0) — above the zero-specificity baseline but
+   below a component's single-class scoped font rule (`.sn-item.svelte-HASH` =
+   (0,2,0)). Without :where() it would tie those component rules and, winning on
+   source order, freeze every preview on --ui-font-sans (font-token edits write
+   the variable but the preview never repaints). */
+.editor-page :where(*:not([class*="fa-"])) {
   font-family: inherit;
 }
 

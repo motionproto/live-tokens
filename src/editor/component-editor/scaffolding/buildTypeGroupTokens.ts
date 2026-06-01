@@ -64,16 +64,26 @@ export function buildTypeGroupTokens(
     suffix (e.g. `--badge-primary-text` → `text`) so that all variants/states of
     the same slot are siblings and can be linked in the editor. They start out
     divergent (one value per variant) and the user can opt in to a single shared
-    value via the link UI. */
+    value via the link UI.
+
+    The last-dash default only holds when that suffix uniquely names the slot
+    (one `text` slot, linked across variants). A component with several
+    independent text slots that all end in `-text` (SideNavigation's section /
+    item / footer) would collapse them into one phantom link group — pass
+    `groupKeyFor` to scope the key per slot, mirroring the hand-rolled font-shape
+    groupKeys so `editor color/font link-group parity` stays satisfied. */
 export function buildTypeGroupColorTokens(
   typeGroups: Record<string, TypeGroupConfig[]> | TypeGroupConfig[],
+  groupKeyFor?: (group: TypeGroupConfig) => string,
 ): Token[] {
   const groups: TypeGroupConfig[] = Array.isArray(typeGroups)
     ? typeGroups
     : Object.values(typeGroups).flat();
   return groups.map((g) => {
     const lastDash = g.colorVariable.lastIndexOf('-');
-    const groupKey = lastDash >= 0 ? g.colorVariable.slice(lastDash + 1) : g.colorVariable;
+    const groupKey = groupKeyFor
+      ? groupKeyFor(g)
+      : lastDash >= 0 ? g.colorVariable.slice(lastDash + 1) : g.colorVariable;
     return { label: g.colorLabel ?? 'color', variable: g.colorVariable, groupKey };
   });
 }
