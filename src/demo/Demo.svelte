@@ -1,7 +1,6 @@
 <script lang="ts">
   import SectionHero from './sections/SectionHero.svelte';
   import SectionKit from './sections/SectionKit.svelte';
-  import SectionLive from './sections/SectionLive.svelte';
   import SectionLayers from './sections/SectionLayers.svelte';
   import SectionGetStarted from './sections/SectionGetStarted.svelte';
   import SectionClaude from './sections/SectionClaude.svelte';
@@ -12,11 +11,10 @@
 <div class="kit">
   <SectionHero />
   <SectionKit />
-  <SectionLive />
   <SectionLayers />
-  <SectionGetStarted />
-  <SectionClaude />
   <SectionOffering />
+  <SectionGetStarted />
+    <SectionClaude />
   <SectionFooter />
 </div>
 
@@ -37,6 +35,14 @@
     margin-bottom: 0;
   }
 
+  /* Overlap the offering image up into Layers (top) and butt Get Started
+     against its bottom. -space-64 cancels the grid row-gap; the extra
+     -space-64 on top is the actual overlap — tune that second term to taste. */
+  .kit > :global(.offering) {
+    margin-top: calc(var(--space-64) * -2 + 0.5rem);
+    margin-bottom: calc(var(--space-64) * -1);
+  }
+
   /* Inline code styling cascades into every section via :global descendants. */
   .kit :global(p > code),
   .kit :global(.callout code) {
@@ -52,6 +58,10 @@
     .kit {
       padding: var(--space-32) var(--space-16);
       row-gap: var(--space-48);
+    }
+    .kit > :global(.offering) {
+      margin-top: calc(var(--space-48) * -2);
+      margin-bottom: calc(var(--space-48) * -1);
     }
   }
 </style>

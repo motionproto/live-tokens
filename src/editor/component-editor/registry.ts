@@ -16,6 +16,7 @@ import InlineEditActionsEditor, { allTokens as inlineEditActionsTokens } from '.
 import InputEditor, { allTokens as inputTokens } from './InputEditor.svelte';
 import MenuSelectEditor, { allTokens as menuSelectTokens } from './MenuSelectEditor.svelte';
 import NotificationEditor, { allTokens as notificationTokens } from './NotificationEditor.svelte';
+import PanelEditor, { allTokens as panelTokens } from './PanelEditor.svelte';
 import ProgressBarEditor, { allTokens as progressBarTokens } from './ProgressBarEditor.svelte';
 import RadioButtonEditor, { allTokens as radioButtonTokens } from './RadioButtonEditor.svelte';
 import SectionDividerEditor, { allTokens as sectionDividerTokens, intrinsics as sectionDividerIntrinsics } from './SectionDividerEditor.svelte';
@@ -43,6 +44,7 @@ type BuiltInComponentId =
   | 'inlineeditactions'
   | 'input'
   | 'menuselect'
+  | 'panel'
   | 'sectiondivider'
   | 'collapsiblesection'
   | 'sidenavigation'
@@ -221,6 +223,15 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/MenuSelect.svelte',
     editorComponent: MenuSelectEditor,
     schema: menuSelectTokens,
+    origin: 'system',
+  },
+  panel: {
+    id: 'panel',
+    label: 'Panel',
+    icon: 'fas fa-window-maximize',
+    sourceFile: 'src/system/components/Panel.svelte',
+    editorComponent: PanelEditor,
+    schema: panelTokens,
     origin: 'system',
   },
   sectiondivider: {

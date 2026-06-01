@@ -61,7 +61,7 @@
     --codesnippet-gap: var(--space-16);
 
     /* Code text. */
-    --codesnippet-code-text: var(--text-brand-secondary);
+    --codesnippet-code-text: var(--text-brand);
     --codesnippet-code-font-family: var(--font-mono);
     --codesnippet-code-font-size: var(--font-size-md);
     --codesnippet-code-font-weight: var(--font-weight-normal);

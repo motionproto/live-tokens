@@ -165,7 +165,7 @@
       variants: ['lg', 'md', 'sm'],
       variable: (v) => `--sectiondivider-${v}-align`,
       values: ['start', 'center'],
-      default: { lg: 'start', md: 'start', sm: 'start' },
+      default: { lg: 'start', md: 'start', sm: 'center' },
     },
     {
       key: 'eyebrow-display',
@@ -193,7 +193,7 @@
       variants: ['lg', 'md', 'sm'],
       variable: (v) => `--sectiondivider-${v}-hairline`,
       values: ['none', ...HAIRLINE_POSITIONS],
-      default: { lg: 'below-description', md: 'below-label', sm: 'below-label' },
+      default: { lg: 'below-description', md: 'below-label', sm: 'none' },
       // 'above-description' renders identically to 'below-label'; the position
       // dropdown omits it, so coerce on read to keep the control's value valid.
       normalize: (raw) => (raw === 'above-description' ? 'below-label' : raw),

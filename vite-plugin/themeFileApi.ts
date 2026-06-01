@@ -503,20 +503,32 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
     const source = fs.readFileSync(sourcePath, 'utf-8');
     const body = extractGlobalRootBody(source);
-    const aliases = extractAliasDeclarations(body);
+    const aliases: Record<string, unknown> = extractAliasDeclarations(body);
     const now = new Date().toISOString();
     let createdAt = now;
     let existingUpdatedAt: string | undefined;
-    let existingAliases: Record<string, string> | undefined;
+    let existingAliases: Record<string, unknown> | undefined;
     if (fs.existsSync(defaultPath)) {
       try {
         const existing = JSON.parse(fs.readFileSync(defaultPath, 'utf-8'));
         if (existing.createdAt) createdAt = existing.createdAt;
         if (typeof existing.updatedAt === 'string') existingUpdatedAt = existing.updatedAt;
         if (existing.aliases && typeof existing.aliases === 'object') {
-          existingAliases = existing.aliases as Record<string, string>;
+          existingAliases = existing.aliases as Record<string, unknown>;
         }
       } catch { /* overwrite */ }
+    }
+    // Structured aliases (e.g. a `kind:'gradient'` object) bake into :root as a
+    // gradient literal, which extractAliasDeclarations can't reverse into an
+    // alias — it only recovers var()/color-mix forms. Carry any prior
+    // structured alias forward so regenerating from source doesn't silently
+    // drop a component's gradient default.
+    if (existingAliases) {
+      for (const [token, val] of Object.entries(existingAliases)) {
+        if (val !== null && typeof val === 'object' && !(token in aliases)) {
+          aliases[token] = val;
+        }
+      }
     }
     const aliasesUnchanged =
       existingAliases !== undefined &&

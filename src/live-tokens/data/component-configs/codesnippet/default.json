@@ -2,7 +2,7 @@
   "name": "default",
   "component": "codesnippet",
   "createdAt": "2026-05-27T13:22:54.228Z",
-  "updatedAt": "2026-05-31T14:15:31.049Z",
+  "updatedAt": "2026-05-30T23:35:06.635Z",
   "aliases": {
     "--codesnippet-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 76%, transparent)",
     "--codesnippet-border": "--border-neutral",
@@ -10,7 +10,7 @@
     "--codesnippet-radius": "--radius-md",
     "--codesnippet-padding": "--space-16",
     "--codesnippet-gap": "--space-16",
-    "--codesnippet-code-text": "--text-brand-secondary",
+    "--codesnippet-code-text": "--text-brand",
     "--codesnippet-code-font-family": "--font-mono",
     "--codesnippet-code-font-size": "--font-size-md",
     "--codesnippet-code-font-weight": "--font-weight-normal",

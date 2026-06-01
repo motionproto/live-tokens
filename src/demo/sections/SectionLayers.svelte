@@ -5,21 +5,20 @@
 
 <Section
   title="Two composable layers."
-  description="Tokens are the base layer. Components build with them."
+  eyebrow="Under the hood"
+  description="The same two layers you just saw move — now with the wiring that connects them."
   gap="var(--space-8)"
 >
   <div class="arch">
-    <Card class="arch-card arch-base" icon="fas fa-layer-group" title="Tokens make the foundation">
+    <Card class="arch-card arch-base no-hover" icon="fas fa-layer-group" title="Tokens make the foundation">
       <p>
-        Raw CSS variables for every primitive, grouped by family and function.
-        Names describe identity. Edit a value and every consumer updates.
+        Raw CSS variables for every primitive, grouped by family and function. Edit one value and every consumer updates at once.
       </p>
     </Card>
 
-    <Card class="arch-card arch-component" icon="fas fa-shapes" title="Components build upon it">
+    <Card class="arch-card arch-component no-hover" icon="fas fa-shapes" title="Components build upon it">
       <p>
-        Each component declares its own semantic properties, linked to base tokens.
-        Names describe purpose. Swap the assigned token and the component updates.
+        Each component property is assigned a token. Property names describe purpose. Assign a new token and the component changes.
       </p>
     </Card>
   </div>

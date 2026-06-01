@@ -77,7 +77,7 @@
       --button-primary-surface: var(--surface-brand-high);
       --button-primary-text: var(--text-primary);
       --button-primary-text-font-family: var(--font-sans);
-      --button-primary-text-font-size: var(--font-size-md);
+      --button-primary-text-font-size: var(--font-size-lg);
       --button-primary-text-font-weight: var(--font-weight-semibold);
       --button-primary-text-line-height: var(--line-height-sm);
       --button-primary-border: var(--border-brand);
@@ -90,13 +90,13 @@
       --button-primary-disabled-surface: var(--color-neutral-700);
       --button-primary-disabled-text: var(--text-tertiary);
       --button-primary-disabled-border: var(--border-neutral-faint);
-      --button-primary-icon-size: var(--icon-size-sm);
+      --button-primary-icon-size: var(--icon-size-md);
 
       /* Secondary */
       --button-secondary-surface: var(--surface-neutral-high);
       --button-secondary-text: var(--text-primary);
       --button-secondary-text-font-family: var(--font-sans);
-      --button-secondary-text-font-size: var(--font-size-md);
+      --button-secondary-text-font-size: var(--font-size-lg);
       --button-secondary-text-font-weight: var(--font-weight-semibold);
       --button-secondary-text-line-height: var(--line-height-sm);
       --button-secondary-border: var(--border-neutral);
@@ -109,13 +109,13 @@
       --button-secondary-disabled-surface: var(--color-neutral-700);
       --button-secondary-disabled-text: var(--text-tertiary);
       --button-secondary-disabled-border: var(--border-neutral-faint);
-      --button-secondary-icon-size: var(--icon-size-sm);
+      --button-secondary-icon-size: var(--icon-size-md);
 
       /* Outline */
       --button-outline-surface: var(--color-transparent);
       --button-outline-text: var(--text-primary);
       --button-outline-text-font-family: var(--font-sans);
-      --button-outline-text-font-size: var(--font-size-md);
+      --button-outline-text-font-size: var(--font-size-lg);
       --button-outline-text-font-weight: var(--font-weight-semibold);
       --button-outline-text-line-height: var(--line-height-sm);
       --button-outline-border: var(--border-neutral);
@@ -129,13 +129,13 @@
       --button-outline-disabled-surface: var(--color-transparent);
       --button-outline-disabled-text: var(--text-tertiary);
       --button-outline-disabled-border: var(--border-neutral-faint);
-      --button-outline-icon-size: var(--icon-size-sm);
+      --button-outline-icon-size: var(--icon-size-md);
 
       /* Success */
       --button-success-surface: var(--surface-success-low);
       --button-success-text: var(--text-success);
       --button-success-text-font-family: var(--font-sans);
-      --button-success-text-font-size: var(--font-size-md);
+      --button-success-text-font-size: var(--font-size-lg);
       --button-success-text-font-weight: var(--font-weight-semibold);
       --button-success-text-line-height: var(--line-height-sm);
       --button-success-border: var(--border-success);
@@ -148,13 +148,13 @@
       --button-success-disabled-surface: var(--color-neutral-700);
       --button-success-disabled-text: var(--text-tertiary);
       --button-success-disabled-border: var(--border-neutral-faint);
-      --button-success-icon-size: var(--icon-size-sm);
+      --button-success-icon-size: var(--icon-size-md);
 
       /* Danger */
       --button-danger-surface: var(--surface-danger-low);
       --button-danger-text: var(--text-danger);
       --button-danger-text-font-family: var(--font-sans);
-      --button-danger-text-font-size: var(--font-size-md);
+      --button-danger-text-font-size: var(--font-size-lg);
       --button-danger-text-font-weight: var(--font-weight-semibold);
       --button-danger-text-line-height: var(--line-height-sm);
       --button-danger-border: var(--border-danger);
@@ -167,13 +167,13 @@
       --button-danger-disabled-surface: var(--color-neutral-700);
       --button-danger-disabled-text: var(--text-tertiary);
       --button-danger-disabled-border: var(--border-neutral-faint);
-      --button-danger-icon-size: var(--icon-size-sm);
+      --button-danger-icon-size: var(--icon-size-md);
 
       /* Warning */
       --button-warning-surface: var(--surface-warning-low);
       --button-warning-text: var(--text-warning);
       --button-warning-text-font-family: var(--font-sans);
-      --button-warning-text-font-size: var(--font-size-md);
+      --button-warning-text-font-size: var(--font-size-lg);
       --button-warning-text-font-weight: var(--font-weight-semibold);
       --button-warning-text-line-height: var(--line-height-sm);
       --button-warning-border: var(--border-warning);
@@ -186,7 +186,7 @@
       --button-warning-disabled-surface: var(--color-neutral-700);
       --button-warning-disabled-text: var(--text-tertiary);
       --button-warning-disabled-border: var(--border-neutral-faint);
-      --button-warning-icon-size: var(--icon-size-sm);
+      --button-warning-icon-size: var(--icon-size-md);
 
       /* Small size — shared across all variants. The `.small` rule below reads
          these tokens directly (no per-variant rebind needed, since small

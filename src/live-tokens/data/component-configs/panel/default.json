@@ -1,0 +1,33 @@
+{
+  "name": "default",
+  "component": "panel",
+  "createdAt": "2026-06-01T09:34:52.417Z",
+  "updatedAt": "2026-06-01T12:38:47.484Z",
+  "aliases": {
+    "--panel-frame-border": "--border-neutral",
+    "--panel-frame-border-width": "--border-width-1",
+    "--panel-frame-radius": "--radius-2xl",
+    "--panel-stage-padding": "--space-16",
+    "--panel-stage-inline-padding": "--space-32",
+    "--panel-stage-gap": "--space-16",
+    "--panel-stage-surface": {
+      "kind": "gradient",
+      "value": {
+        "type": "linear",
+        "angle": 0,
+        "stops": [
+          {
+            "position": 0.5,
+            "color": "--surface-neutral-low",
+            "opacity": 40
+          },
+          {
+            "position": 100,
+            "color": "--surface-neutral-lowest",
+            "opacity": 75
+          }
+        ]
+      }
+    }
+  }
+}

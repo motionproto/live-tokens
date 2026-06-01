@@ -34,7 +34,7 @@
   .provenance {
     grid-column: 2 / -2;
     padding-top: var(--space-24);
-    border-top: var(--border-width-1) solid var(--border-neutral);
+    border-top: var(--border-width-2) solid var(--border-neutral);
     display: flex;
     align-items: center;
     justify-content: space-between;

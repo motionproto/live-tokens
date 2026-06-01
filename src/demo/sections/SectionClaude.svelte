@@ -1,7 +1,13 @@
 <script lang="ts">
-  import Card from '../../system/components/Card.svelte';
   import CodeSnippet from '../../system/components/CodeSnippet.svelte';
   import SectionDivider from '../../system/components/SectionDivider.svelte';
+  import Panel from '../../system/components/Panel.svelte';
+
+  const skills = [
+    { icon: 'fas fa-list-check', name: 'pick-component' },
+    { icon: 'fas fa-table-columns', name: 'build-page' },
+    { icon: 'fas fa-cube', name: 'create-component' }
+  ];
 </script>
 
 <section class="claude">
@@ -10,33 +16,27 @@
     eyebrow="Pairs with Claude Code"
   />
 
-  <p class="intro">
-    Claude is my AI buddy. I use it to build everything. Live Tokens has three Claude skills, each loading on demand.
-  </p>
-
-  <div class="install">
-    <CodeSnippet code="npx @motion-proto/live-tokens setup-claude" />
-    <p class="install-caption">
-      After installing the package, run this once to copy the skills into your project.
-    </p>
+  <div class="panel-col">
+    <Panel>
+      <ul class="skills">
+        {#each skills as skill}
+          <li class="skill">
+            <i class="{skill.icon} skill-icon"></i>
+            <span class="skill-name">{skill.name}</span>
+          </li>
+        {/each}
+      </ul>
+    </Panel>
   </div>
 
-  <div class="cards">
-    <Card icon="fas fa-list-check" title="pick-component">
-      <p>
-        Gives Claude a list of components and helps it select what to use. 
-      </p>
-    </Card>
-    <Card icon="fas fa-table-columns" title="build-page">
-      <p>
-        Guides Claude's use of components, tokens, and the column layout 
-      </p>
-    </Card>
-    <Card icon="fas fa-cube" title="create-component">
-      <p>
-        Helps Claude create custom components with live tokens.
-      </p>
-    </Card>
+  <div class="copy">
+    <p class="intro">
+      After installing the package, run this once to copy the skills into your project.
+    </p>
+
+    <div class="install">
+      <CodeSnippet code="npx @motion-proto/live-tokens setup-claude" />
+    </div>
   </div>
 </section>
 
@@ -48,28 +48,42 @@
     column-gap: var(--columns-gutter);
     row-gap: var(--space-8);
     align-items: start;
+    margin-bottom: var(--space-96);
   }
 
   .claude :global(.section-divider) {
     grid-column: 2 / -2;
   }
 
-  /* Content rows live in cols 2 through (count-1). Each row splits or
-     subdivides the remaining (count-2) tracks, so the layout grows with
-     --columns-count instead of pretending the grid is always 12. */
+  /* Panel sits on page columns 2, 3, 4; copy takes columns 6–10. Column 5 is
+     left empty as a one-column gap between them; column 11 stays empty. */
+  .panel-col {
+    grid-column: 2 / 5;
+    grid-row: 2;
+    align-self: start;
+    margin-top: var(--space-16);
+  }
+
+  .copy {
+    grid-column: 6 / 11;
+    grid-row: 2;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    margin-top: var(--space-16);
+  }
+
   .intro {
-    grid-column: 2 / span calc((var(--columns-count) - 2) / 2);
-    font-family: var(--font-serif);
-    font-size: var(--font-size-2xl);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-xl);
     line-height: var(--line-height-sm);
     font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
     margin: 0;
-    margin-bottom: var(--space-24);
   }
 
   .install {
-    grid-column: calc((var(--columns-count) + 2) / 2) / -2;
     display: flex;
     flex-direction: column;
     gap: var(--space-8);
@@ -83,28 +97,61 @@
     color: var(--text-secondary);
   }
 
-  /* Wrapper claims the 10-track content area on the page grid (cols 2 / -2),
-     then splits its own width into thirds for the three cards. The wrapper
-     is the page-grid citizen; the cards trust the wrapper. */
-  .cards {
-    grid-column: 2 / -2;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    column-gap: var(--columns-gutter);
-    row-gap: var(--space-24);
-    margin-top: var(--space-16);
+  /* No global border-box reset here, so the snippet's own padding+border would
+     overflow its column under content-box. Pin it to border-box to fit exactly. */
+  .install :global(.codesnippet) {
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  /* `.code` sets overflow-x: auto with overflow-y: visible, which the spec
+     promotes to overflow-y: auto — a 1px line-height rounding then trips a
+     spurious vertical scrollbar. Clamp the vertical axis; horizontal scroll
+     for long lines still works. */
+  .install :global(.codesnippet .code) {
+    overflow-y: hidden;
+  }
+
+  .skills {
+    width: 100%;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+  }
+
+  .skill {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  /* Icon + name match the old card header sizing so the skills read identically. */
+  .skill-icon {
+    font-size: var(--icon-size-2xl);
+    color: var(--text-secondary);
+  }
+
+  .skill-name {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-md);
+    color: var(--text-primary);
   }
 
   @media (max-width: 960px) {
     .claude :global(.section-divider),
-    .intro,
-    .install,
-    .cards {
+    .panel-col,
+    .copy {
       grid-column: 1 / -1;
     }
 
-    .cards {
-      grid-template-columns: 1fr;
+    .panel-col,
+    .copy {
+      grid-row: auto;
     }
   }
 </style>

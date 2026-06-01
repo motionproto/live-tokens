@@ -33,11 +33,11 @@
 
     <div class="hero-actions">
       {#if isDev}
-        <Button variant="secondary" onclick={() => openOverlay('components')} icon="fas fa-puzzle-piece" iconPosition="left">
-          Browse Components
-        </Button>
         <Button onclick={() => openOverlay('tokens')} icon="fas fa-sliders" iconPosition="left">
           Open Token Editor
+        </Button>
+        <Button variant="secondary" onclick={() => openOverlay('components')} icon="fas fa-puzzle-piece" iconPosition="left">
+          Browse Components
         </Button>
       {:else}
         <Button variant="outline" disabled>Editor &nbsp;·&nbsp; dev only</Button>

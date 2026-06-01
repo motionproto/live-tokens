@@ -146,7 +146,7 @@
   let floating = $state({ ...initial.floating });
 
   // Collapsed-pill size; slight overshoot is fine (overflow:hidden).
-  const COLLAPSED_WIDTH = 200;
+  const COLLAPSED_WIDTH = 232;
   const COLLAPSED_HEIGHT = 44;
 
   // Fade for open-only buttons (bar timing lives in CSS vars below).
@@ -426,6 +426,7 @@
   /* Collapsed state: pinned top-right; iframe stays mounted, clipped by overflow:hidden. */
   .lt-overlay.hidden {
     border-radius: var(--ui-radius-lg, 6px);
+    border-color: rgba(255, 255, 255, 0.32);
     transition:
       width var(--bar-close-dur) var(--bar-close-ease) var(--bar-close-delay),
       height var(--bar-close-dur) var(--bar-close-ease) var(--bar-close-delay),

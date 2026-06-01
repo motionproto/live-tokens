@@ -213,7 +213,7 @@
     --sectiondivider-lg-eyebrow-font-weight: var(--font-weight-medium);
     --sectiondivider-lg-eyebrow-font-size: var(--font-size-md);
     --sectiondivider-lg-eyebrow-letter-spacing: var(--letter-spacing-wide);
-    --sectiondivider-lg-padding: var(--space-4);
+    --sectiondivider-lg-padding: var(--space-0);
     --sectiondivider-lg-title-padding: var(--space-2);
     --sectiondivider-lg-description-padding: var(--space-0);
     --sectiondivider-lg-eyebrow-padding: var(--space-0);
@@ -244,7 +244,7 @@
     --sectiondivider-md-eyebrow-font-weight: var(--font-weight-medium);
     --sectiondivider-md-eyebrow-font-size: var(--font-size-sm);
     --sectiondivider-md-eyebrow-letter-spacing: var(--letter-spacing-wide);
-    --sectiondivider-md-padding: var(--space-4);
+    --sectiondivider-md-padding: var(--space-0);
     --sectiondivider-md-title-padding: var(--space-2);
     --sectiondivider-md-description-padding: var(--space-0);
     --sectiondivider-md-eyebrow-padding: var(--space-0);
@@ -262,8 +262,8 @@
 
     /* Small */
     --sectiondivider-sm-title-font-family: var(--font-display);
-    --sectiondivider-sm-title-font-weight: var(--font-weight-bold);
-    --sectiondivider-sm-title-font-size: var(--font-size-2xl);
+    --sectiondivider-sm-title-font-weight: var(--font-weight-medium);
+    --sectiondivider-sm-title-font-size: var(--font-size-3xl);
     --sectiondivider-sm-title-line-height: var(--line-height-md);
     --sectiondivider-sm-title-letter-spacing: var(--letter-spacing-normal);
     --sectiondivider-sm-title-outline-width: var(--border-width-4);
@@ -275,7 +275,7 @@
     --sectiondivider-sm-eyebrow-font-weight: var(--font-weight-medium);
     --sectiondivider-sm-eyebrow-font-size: var(--font-size-xs);
     --sectiondivider-sm-eyebrow-letter-spacing: var(--letter-spacing-wide);
-    --sectiondivider-sm-padding: var(--space-4);
+    --sectiondivider-sm-padding: var(--space-0);
     --sectiondivider-sm-title-padding: var(--space-2);
     --sectiondivider-sm-description-padding: var(--space-0);
     --sectiondivider-sm-eyebrow-padding: var(--space-0);
@@ -284,12 +284,12 @@
     --sectiondivider-sm-shadow: var(--shadow-none);
     --sectiondivider-sm-hairline-thickness: var(--border-width-1);
     --sectiondivider-sm-background: var(--color-transparent);
-    --sectiondivider-sm-title: var(--text-primary);
+    --sectiondivider-sm-title: var(--text-brand);
     --sectiondivider-sm-description: var(--text-secondary);
     --sectiondivider-sm-eyebrow: var(--text-tertiary);
     --sectiondivider-sm-border: var(--color-transparent);
-    --sectiondivider-sm-title-outline-color: var(--surface-canvas-lowest);
-    --sectiondivider-sm-hairline-color: var(--border-brand-medium);
+    --sectiondivider-sm-title-outline-color: color-mix(in srgb, var(--surface-neutral-lowest) 25%, transparent);
+    --sectiondivider-sm-hairline-color: color-mix(in srgb, var(--border-brand-medium) 50%, transparent);
 
     /* Intrinsic defaults. These keys cascade to `:root` via the editor's
        alias bucket; un-edited variants fall back to these. The defaults
@@ -297,7 +297,7 @@
        eyebrow, visible description, hidden hairline, normal-case eyebrow. */
     --sectiondivider-lg-align: start;
     --sectiondivider-md-align: start;
-    --sectiondivider-sm-align: start;
+    --sectiondivider-sm-align: center;
     --sectiondivider-lg-eyebrow-display: block;
     --sectiondivider-md-eyebrow-display: none;
     --sectiondivider-sm-eyebrow-display: none;
@@ -306,7 +306,7 @@
     --sectiondivider-sm-description-display: none;
     --sectiondivider-lg-hairline: below-description;
     --sectiondivider-md-hairline: below-label;
-    --sectiondivider-sm-hairline: below-label;
+    --sectiondivider-sm-hairline: none;
     --sectiondivider-lg-eyebrow-text-transform: none;
     --sectiondivider-md-eyebrow-text-transform: none;
     --sectiondivider-sm-eyebrow-text-transform: none;
