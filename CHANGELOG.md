@@ -1,5 +1,69 @@
 # Changelog
 
+## 0.25.0 — Panel component; structural group-key derivation
+
+### Added
+
+- **New `Panel` component.** A bordered, centered stage for showcasing other
+  components against a subtle gradient surface. Registered in the catalogue and
+  editable in the editor (frame border/radius, stage surface/padding/gap). Props
+  are `style`, an optional `minHeight` to fix the stage height so it never
+  reflows, and a `children` snippet.
+- **`SideNavigation` gains `lead` and `actions` snippets.** `lead` renders at
+  the top of the rail above the title (e.g. a logo or company name); `actions`
+  renders at the foot of the nav list. Both hide while the rail is collapsed and
+  impose no spacing of their own — the consumer controls it.
+- **New scaffolding exports** from `@motion-proto/live-tokens/component-editor`:
+  `buildTypeGroupColorTokens`, `buildTypeGroupFontTokens`,
+  `buildTypeGroupShareableContexts`, `structuralGroupKey`, and the
+  `TypeGroupConfig` type. Custom-component authors can now reach the individual
+  pieces of the type-group scaffolding instead of only the bundled
+  `buildTypeGroupTokens`.
+
+### Changed
+
+- **Group-key derivation is now structural.** `buildTypeGroupTokens` no longer
+  infers a token's group from its last dash-segment; it derives the key by
+  stripping the component prefix and the variant/state segments declared in the
+  new `{ component, variants }` config. All 11 type-group editors were migrated
+  to pass this config, and the bespoke SideNavigation/Table workarounds were
+  removed. Existing editors' sibling partitions are verified unchanged; this
+  matters only for a custom editor that relied on the old last-dash fallback —
+  a token with no derivable group now resolves to a solo color token instead of
+  being silently grouped.
+- `bin/check-component` now warns (non-fatal) when a component uses a bare font
+  helper across multiple slots.
+
+### Changed (breaking)
+
+These shift the rendered defaults of shipped components. Consumers who edited
+the affected tokens keep their values; unedited tokens fall through to the new
+defaults on upgrade.
+
+- **Button text and icon scale up.** Default text font-size `md → lg` and icon
+  size `sm → md` across every variant (primary, secondary, outline, success,
+  danger, warning).
+- **Section Divider small variant restyled.** Title is now brand-colored and
+  center-aligned, the hairline is off by default, title font-size `2xl → 3xl`
+  at medium (was bold) weight, and the outer padding is removed. The large and
+  medium variants are unchanged apart from dropping their `space-4` outer
+  padding.
+
+### Fixed
+
+- **CodeSnippet no longer shows a spurious horizontal scrollbar.** Added a
+  `box-sizing: border-box` reset so the snippet's own padding and border stay
+  inside `max-width: 100%`. Its code text now uses `--text-brand` (was
+  `--text-brand-secondary`).
+
+### Docs
+
+- Documentation reorganized: the numbered chapter set moved under
+  `docs/archive/`, and the consumer-facing guides (`getting-started`,
+  `creating-components`, `editing-tokens`, `themes-workflow`, `01-overview`)
+  were rewritten. The demo landing page was restructured (new footer and
+  get-started sections; the old "live" section removed).
+
 ## 0.24.2 — Demo cosmetic tweaks
 
 ### Changed
