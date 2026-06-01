@@ -139,8 +139,6 @@
   }
 
   async function handleApplyToProduction() {
-    if (prodIsInSync) return;
-
     // Dirty edits on the protected default theme can't be saved to that file,
     // and adopting the on-disk default would silently strand the user's
     // changes. Open the theme SaveAs dialog and resume Adopt after save.
@@ -150,8 +148,14 @@
       return;
     }
 
+    // Already adopted with nothing unsaved to push.
+    if (prodIsInSync && !$dirty) return;
+
     prodApplyStatus = 'applying';
     try {
+      // Flush unsaved edits to the active theme file first, so production adopts
+      // the current editor state rather than a stale on-disk snapshot.
+      if ($dirty) await onsave?.({ fileName: $activeFileName, displayName: currentDisplayName });
       await setProductionFile($activeFileName);
       await refreshProduction();
       bumpProductionRevision();

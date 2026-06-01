@@ -81,8 +81,21 @@
     refreshActive();
   });
 
+  // A manifest snapshots saved file pointers, not the editor's live state. Warn
+  // before capturing if there are unsaved theme/component edits, since those
+  // won't make it into the manifest until they're saved (and adopted).
+  function confirmUnsavedExclusion(): boolean {
+    if (!editorDirty) return true;
+    return window.confirm(
+      'You have unsaved theme or component changes. A manifest captures only saved, ' +
+        'adopted files, so these edits will not be included. Save and adopt them first ' +
+        'to capture them. Save the manifest anyway?',
+    );
+  }
+
   async function handleSave() {
     if (activeIsProtected) return;
+    if (!confirmUnsavedExclusion()) return;
     saveStatus = 'saving';
     try {
       await saveActiveManifest(currentDisplayName);
@@ -94,6 +107,7 @@
   }
 
   function openSaveAs() {
+    if (!confirmUnsavedExclusion()) return;
     showFileList = false;
     saveAsDialog = true;
   }
