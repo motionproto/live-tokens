@@ -115,9 +115,7 @@
       </div>
       <div class="kit-body">
         <p>
-          Edit tokens and components right on the page and watch every change apply
-          instantly &mdash; no rebuild, no round-trip. The editor is how you author;
-          plain CSS is what you ship.
+          Edit tokens and components on top of the page and watch every change cascade immediately.
         </p>
       </div>
     </div>

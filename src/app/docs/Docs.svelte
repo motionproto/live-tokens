@@ -77,6 +77,10 @@
      `ontoggle`; this parent owns the actual boolean so layout reflows beside it. */
   let sidebarOpen = $state(true);
 
+  /* On desktop the content column is the scroll region (the page is locked to
+     the viewport), so navigation resets its scrollTop — see the scroll effect. */
+  let scrollPane: HTMLElement | undefined;
+
   /* Item paths match the chapter id verbatim so
      `currentPath={parsedHash.chapter}` lights up the active row. */
   const navSections: SideNavSection[] = [
@@ -201,7 +205,11 @@
     fetchChapter(id);
   });
 
-  /* After segments render, scroll to anchor (or top of content). */
+  /* After segments render, scroll to the anchor (deep link) or hard-reset to
+     the top. Resetting the pane's own scrollTop is deterministic where the old
+     scrollIntoView on <main> was not. Reset both the pane (desktop scroller)
+     and the window (mobile, where the page scrolls) — the inactive one is a
+     no-op. Every plain link lands on the masthead, the constant "top of page". */
   $effect(() => {
     const anchor = parsedHash.anchor;
     if (segments.length === 0) return;
@@ -213,8 +221,8 @@
           return;
         }
       }
-      const top = document.getElementById('docs-content-top');
-      if (top) top.scrollIntoView({ behavior: 'instant', block: 'start' });
+      if (scrollPane) scrollPane.scrollTop = 0;
+      window.scrollTo({ top: 0, behavior: 'instant' });
     });
   });
 
@@ -226,19 +234,18 @@
   });
 </script>
 
-<div class="docs-page">
-  <header class="docs-page-header">
-    <div class="title-block">
-      <p class="eyebrow">Live Tokens</p>
-      <h1>Documentation</h1>
-      <p class="lede">
-        Set up a project, edit your tokens live, and ship a theme. A short
-        guide to styling and building with Live Tokens.
-      </p>
-    </div>
-  </header>
+<svelte:head>
+  <!-- Inter is not part of the theme's font set; load it just for the brand wordmark. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap"
+  />
+</svelte:head>
 
-  <div class="docs-layout" class:collapsed={!sidebarOpen}>
+<div class="docs-page">
+  <div class="docs-shell" class:collapsed={!sidebarOpen}>
     <SideNavigation
       class="docs-sidebar"
       sections={navSections}
@@ -247,7 +254,38 @@
       currentPath={parsedHash.chapter}
       open={sidebarOpen}
       ontoggle={() => (sidebarOpen = !sidebarOpen)}
-    />
+    >
+      {#snippet lead()}
+        <a class="rail-brand" href="https://motionproto.com/#top">MotionProto</a>
+      {/snippet}
+
+      {#snippet actions()}
+        <div class="rail-actions">
+          <a href="/demo" class="rail-action">
+            <Button variant="outline" size="small" icon="fas fa-box-open" fullWidth>
+              Demo Site
+            </Button>
+          </a>
+          <a href="/components" class="rail-action">
+            <Button variant="outline" size="small" icon="fas fa-puzzle-piece" fullWidth>
+              Components
+            </Button>
+          </a>
+        </div>
+      {/snippet}
+    </SideNavigation>
+
+    <div class="docs-main" bind:this={scrollPane}>
+    <header class="docs-page-header">
+      <div class="title-block">
+        <p class="eyebrow">Live Tokens</p>
+        <h1>Documentation</h1>
+        <p class="lede">
+          Set up a project, edit your tokens live, and ship a theme. A short
+          guide to styling and building with Live Tokens.
+        </p>
+      </div>
+    </header>
 
     <main class="docs-content" id="docs-content-top" tabindex="-1">
       {#if chapterMeta}
@@ -304,21 +342,44 @@
         </nav>
       {/if}
     </main>
+    </div>
   </div>
 </div>
 
 <style>
+  /* Full-bleed dark surface fills the viewport; the centered shell inside
+     matches the demo page's 1440px band so navigating between docs and demo
+     doesn't shift the content block left/right. On desktop the docs surface is
+     locked to the viewport and only the content column scrolls (see the
+     min-width: 961px block); below that it reverts to natural page scroll. */
   .docs-page {
     background: var(--surface-neutral-lowest, #040c13);
     color: var(--text-primary);
     min-height: 100vh;
+  }
+  .docs-shell {
+    display: grid;
+    grid-template-columns: var(--sidenavigation-panel-open-width, 16rem) minmax(0, 1fr);
+    max-width: var(--columns-max-width, 1440px);
+    margin: 0 auto;
+    padding: 0 var(--space-32, 2rem);
+    transition: grid-template-columns var(--duration-200, 200ms) var(--ease-in-out-sine, ease);
+  }
+  /* The rail's own width tween (its width tokens) drives the column; keep the
+     grid track locked to the closed width so content reflows in step. */
+  .docs-shell.collapsed {
+    grid-template-columns: var(--sidenavigation-panel-closed-width, 3rem) minmax(0, 1fr);
+  }
+
+  .docs-main {
+    min-width: 0;
     padding-bottom: var(--space-96, 6rem);
   }
 
   /* -------------------------------------------------------------- Top header */
   .docs-page-header {
     border-bottom: var(--border-width-1, 1px) solid var(--border-neutral-faint, #1c2327);
-    padding: var(--space-48, 3rem) var(--space-24, 1.5rem) var(--space-32, 2rem);
+    padding: var(--space-48, 3rem) 0 var(--space-32, 2rem) var(--space-32, 2rem);
     background: linear-gradient(
       180deg,
       color-mix(in srgb, var(--surface-neutral-lower, #162027) 50%, transparent),
@@ -326,9 +387,7 @@
     );
   }
   .title-block {
-    max-width: 1320px;
-    margin: 0 auto;
-    padding-left: 280px;
+    margin: 0;
   }
   .title-block .eyebrow {
     font-size: var(--font-size-xs, 0.75rem);
@@ -353,30 +412,46 @@
     margin: 0;
   }
 
-  /* -------------------------------------------------------------- Layout */
-  .docs-layout {
-    display: grid;
-    grid-template-columns: 280px minmax(0, 1fr);
-    gap: var(--space-48, 3rem);
-    max-width: 1320px;
-    margin: 0 auto;
-    padding: var(--space-32, 2rem) var(--space-24, 1.5rem) 0;
-    transition: grid-template-columns var(--duration-200, 200ms) var(--ease-in-out-sine, ease);
+  /* -------------------------------------------------------------- Sidebar */
+  /* Footer actions injected via SideNavigation's `actions` slot — the component
+     owns the panel chrome and placement; this owns the gap below the nav and
+     the button stacking. :global because the snippet renders inside the child. */
+  :global(.rail-actions) {
+    margin-top: var(--space-96, 6rem);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8, 0.5rem);
+    padding: 0 var(--space-16, 1rem) var(--space-16, 1rem);
   }
-  /* When the rail collapses to its toggle strip, the article reclaims the column. */
-  .docs-layout.collapsed {
-    grid-template-columns: 56px minmax(0, 1fr);
-    gap: var(--space-24, 1.5rem);
+  :global(.rail-action) {
+    display: block;
+    text-decoration: none;
   }
 
-  /* -------------------------------------------------------------- Sidebar */
-  /* SideNavigation owns its chrome; this wrapper rule just pins the rail to
-     the viewport while the article scrolls. */
-  :global(.docs-sidebar) {
-    position: sticky;
-    top: var(--space-24, 1.5rem);
-    align-self: start;
-    max-height: calc(100vh - var(--space-48, 3rem));
+  /* MotionProto brand wordmark in the lead slot, matching the site's
+     `text-lg sm:text-xl font-bold tracking-wide hover:text-primary
+     transition-colors`. Inter and the literal Tailwind metrics (line-height,
+     tracking) are deliberate brand exceptions; Inter is loaded in <svelte:head>. */
+  :global(.rail-brand) {
+    display: block;
+    padding: var(--space-16, 1rem) var(--space-16, 1rem) var(--space-12, 0.75rem);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: var(--font-size-lg, 1.125rem);
+    line-height: 1.75rem;
+    font-weight: var(--font-weight-bold, 700);
+    letter-spacing: 0.025em;
+    color: var(--text-primary);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color var(--duration-150, 150ms) cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @media (min-width: 640px) {
+    :global(.rail-brand) {
+      font-size: var(--font-size-xl, 1.25rem);
+    }
+  }
+  :global(.rail-brand:hover) {
+    color: var(--text-brand);
   }
 
   /* -------------------------------------------------------------- Content */
@@ -384,6 +459,7 @@
     min-width: 0;
     max-width: 760px;
     outline: none;
+    padding: var(--space-32, 2rem) 0 0 var(--space-32, 2rem);
   }
 
   .loading-row {
@@ -540,12 +616,33 @@
   .chapter-link { text-decoration: none; }
 
   /* -------------------------------------------------------------- Responsive */
-  @media (max-width: 960px) {
-    .title-block { padding-left: 0; }
-    .docs-layout { grid-template-columns: 1fr; }
-    :global(.docs-sidebar) {
-      position: static;
-      max-height: none;
+  /* Desktop: lock the docs surface to the viewport so only the content column
+     scrolls — the rail is full-height and immovable, and there is never an
+     empty band under the page. The router wrapper (.lt-app) assumes window-
+     scroll pages (min-height + a 12rem bottom pad); neutralise that here, for
+     the docs route only, via :has. The doubled .lt-app outranks the wrapper's
+     own scoped rule on a specificity tie. */
+  @media (min-width: 961px) {
+    :global(.lt-app.lt-app:has(.docs-page)) {
+      height: 100vh;
+      min-height: 0;
+      padding-bottom: 0;
+      overflow: hidden;
     }
+    .docs-page { height: 100%; overflow: hidden; }
+    /* minmax(0, 1fr) pins the row to the viewport height so the pane below can
+       scroll; an auto row would grow to content and break the scroll. */
+    .docs-shell { height: 100%; grid-template-rows: minmax(0, 1fr); }
+    .docs-main { height: 100%; overflow-y: auto; }
+    .docs-shell :global(.docs-sidebar) { height: 100%; }
+  }
+
+  /* Below 960px the rail stacks above the content; the page scrolls naturally. */
+  @media (max-width: 960px) {
+    .docs-shell,
+    .docs-shell.collapsed { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .docs-shell { padding: 0 var(--space-16, 1rem); }
   }
 </style>

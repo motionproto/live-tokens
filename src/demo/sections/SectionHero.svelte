@@ -43,6 +43,11 @@
         <Button variant="outline" disabled>Editor &nbsp;·&nbsp; dev only</Button>
       {/if}
     </div>
+
+    <p class="hero-byline">
+      by <a href="mailto:hello@motionproto.com">Mark</a> at
+      <a href="https://motionproto.com/" target="_blank" rel="noopener">MotionProto</a>
+    </p>
   </div>
 </header>
 
@@ -123,6 +128,24 @@
     flex-wrap: wrap;
     margin-top: auto;
     padding-top: var(--space-24);
+  }
+
+  .hero-byline {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-md);
+    color: var(--text-secondary);
+    margin: var(--space-12) 0 0;
+  }
+
+  .hero-byline a {
+    color: var(--text-brand);
+    text-decoration: none;
+  }
+
+  .hero-byline a:hover {
+    text-decoration: underline;
   }
 
   @media (max-width: 960px) {

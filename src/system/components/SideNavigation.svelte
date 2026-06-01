@@ -41,6 +41,13 @@
     class?: string;
     /** Toggle callback. Preferred over `on:toggle` from 0.5.0 onward. */
     ontoggle?: () => void;
+    /** Optional content rendered at the top of the rail, above the title
+        (e.g. a logo or company name). Hidden while collapsed. No spacing is
+        imposed — the consumer controls it. */
+    lead?: import('svelte').Snippet;
+    /** Optional content rendered at the foot of the nav list, inside the panel.
+        Hidden while collapsed. No spacing is imposed — the consumer controls it. */
+    actions?: import('svelte').Snippet;
   }
 
   let {
@@ -55,6 +62,8 @@
     forceActivePart = null,
     class: className = '',
     ontoggle,
+    lead,
+    actions,
   }: Props = $props();
 
   // Dual-fire bridge — see Button.svelte for the deprecation timeline.
@@ -152,6 +161,8 @@
   class:force-footer-hover={forceHoverPart === 'footer'}
   class:force-footer-active={forceActivePart === 'footer'}
 >
+  {#if open && lead}{@render lead()}{/if}
+
   <!-- Header is always rendered so the toggle (a child here) survives the
        collapsed state. The label is the only conditional child — when the
        rail is closed, the header reduces to just the toggle, centred via the
@@ -220,6 +231,8 @@
           <span>{footer.title}</span>
         </a>
       {/if}
+
+      {#if actions}{@render actions()}{/if}
     </div>
   {/if}
 </aside>
