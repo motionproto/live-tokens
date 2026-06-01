@@ -3,8 +3,10 @@
   import SectionKit from './sections/SectionKit.svelte';
   import SectionLive from './sections/SectionLive.svelte';
   import SectionLayers from './sections/SectionLayers.svelte';
+  import SectionGetStarted from './sections/SectionGetStarted.svelte';
   import SectionClaude from './sections/SectionClaude.svelte';
   import SectionOffering from './sections/SectionOffering.svelte';
+  import SectionFooter from './sections/SectionFooter.svelte';
 </script>
 
 <div class="kit">
@@ -12,8 +14,10 @@
   <SectionKit />
   <SectionLive />
   <SectionLayers />
+  <SectionGetStarted />
   <SectionClaude />
   <SectionOffering />
+  <SectionFooter />
 </div>
 
 <style>

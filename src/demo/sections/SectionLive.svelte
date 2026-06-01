@@ -108,6 +108,7 @@
 </script>
 
 <Section
+  variant="sm"
   title="See it live."
   description="One button component. Two overrides. Toggle Shape and Color independently. The tokens cascade through every variant instantly."
   gap="var(--space-8)"

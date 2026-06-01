@@ -78,6 +78,9 @@
   }
 
   .codesnippet {
+    /* Without a global border-box reset, content-box would let the snippet's own
+       padding + border overflow max-width: 100%, tripping a spurious side scroll. */
+    box-sizing: border-box;
     display: inline-flex;
     align-items: flex-start;
     gap: var(--codesnippet-gap);
