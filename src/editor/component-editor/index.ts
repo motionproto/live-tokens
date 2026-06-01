@@ -14,7 +14,14 @@ export { buildSiblings } from './scaffolding/siblings';
 export type { Sibling } from './scaffolding/siblings';
 export { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 export type { LinkedToken, LinkedGroup, LinkedBlockResult } from './scaffolding/linkedBlock';
-export { buildTypeGroupTokens } from './scaffolding/buildTypeGroupTokens';
+export {
+  buildTypeGroupTokens,
+  buildTypeGroupColorTokens,
+  buildTypeGroupFontTokens,
+  buildTypeGroupShareableContexts,
+  structuralGroupKey,
+} from './scaffolding/buildTypeGroupTokens';
+export type { TypeGroupConfig } from './scaffolding/types';
 
 // Token schema type — the shape of an entry in an editor's `allTokens` array.
 export type { Token } from './scaffolding/types';

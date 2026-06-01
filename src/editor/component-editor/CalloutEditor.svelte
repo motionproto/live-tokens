@@ -54,7 +54,7 @@
   }
   export const allTokens: Token[] = variants.flatMap((v) => [
     ...variantTokens(v),
-    ...buildTypeGroupColorTokens(variantTypeGroups(v)),
+    ...buildTypeGroupColorTokens(variantTypeGroups(v), { component, variants: [...variants] }),
     ...variantTypeGroupTokens(v),
   ]);
 

@@ -88,6 +88,28 @@ function detectStateAfterProperty(token) {
   return null;
 }
 
+// True if `source` calls `fnName(` at least once with a single argument (no
+// top-level comma before the matching close paren). Brackets/braces are balanced
+// so commas inside nested objects/arrays/calls don't count.
+function hasBareCall(source, fnName) {
+  const needle = fnName + '(';
+  let idx = 0;
+  while ((idx = source.indexOf(needle, idx)) !== -1) {
+    let i = idx + needle.length;
+    let depth = 1;
+    let topComma = false;
+    for (; i < source.length && depth > 0; i++) {
+      const c = source[i];
+      if (c === '(' || c === '[' || c === '{') depth++;
+      else if (c === ')' || c === ']' || c === '}') depth--;
+      else if (c === ',' && depth === 1) topComma = true;
+    }
+    if (!topComma) return true;
+    idx = i;
+  }
+  return false;
+}
+
 function findFilesRecursive(dir, exts) {
   if (!existsSync(dir)) return [];
   const out = [];
@@ -182,6 +204,27 @@ export function checkComponent(id, root = process.cwd()) {
   // Editor: exports allTokens.
   if (!/\bexport\s+const\s+allTokens\b/.test(editor)) {
     errors.push(`${relative(root, editorPath)}: missing 'export const allTokens'`);
+  }
+
+  // Editor: phantom-link guard. The font type-group helpers fall back to bare
+  // `font-family`/`font-size`/… keys when called with a single argument (no
+  // derivation). Across more than one slot that silently links every slot's fonts
+  // into one tree. Passing `{ component, variants }` (a second arg) opts into
+  // distinct, structural keys and suppresses the check, so this only fires on the
+  // silent inference path. (The color helper no longer infers — a bare call there
+  // emits solo, un-grouped colors, which can't phantom-link.)
+  const colorPatterns = new Set();
+  for (const m of editor.matchAll(/colorVariable\s*:\s*[`'"]([^`'"]+)[`'"]/g)) {
+    colorPatterns.add(m[1].replace(/\$\{[^}]*\}/g, '*'));
+  }
+  const slots = colorPatterns.size;
+  const fontBare =
+    hasBareCall(editor, 'buildTypeGroupFontTokens') || hasBareCall(editor, 'buildTypeGroupTokens');
+  if (slots > 1 && fontBare) {
+    warnings.push(
+      `${relative(root, editorPath)}: a type-group font helper is called across ${slots} slots without a derivation; ` +
+        `its bare font-family/font-size/… keys would phantom-link every slot's fonts. Pass { component, variants } to buildTypeGroupTokens/buildTypeGroupFontTokens.`,
+    );
   }
 
   // Imports across runtime + editor: reject deep imports into the package.

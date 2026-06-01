@@ -76,7 +76,7 @@
   ]);
   export const allTokens: Token[] = [
     ...Object.values(states).flat(),
-    ...buildTypeGroupColorTokens(typeGroups),
+    ...buildTypeGroupColorTokens(typeGroups, { component, variants: Object.keys(states) }),
     ...typeGroupTokens,
   ];
 </script>

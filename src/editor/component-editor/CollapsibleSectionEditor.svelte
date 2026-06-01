@@ -93,7 +93,7 @@
 
   export const allTokens: Token[] = [
     ...VARIANTS.flatMap((v) => Object.values(variantStates(v)).flat()),
-    ...VARIANTS.flatMap((v) => buildTypeGroupColorTokens(variantTypeGroups(v))),
+    ...VARIANTS.flatMap((v) => buildTypeGroupColorTokens(variantTypeGroups(v), { component, variants: [...VARIANTS, ...HEADER_STATES] })),
     ...headerTypeGroupTokens,
   ];
 

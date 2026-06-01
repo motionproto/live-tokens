@@ -110,7 +110,17 @@ The authoritative recognised list lives in `bin/check-component.mjs` (`KNOWN_SUF
 - **Defaults reference theme tokens, never raw values.** `var(--surface-primary)` ✓ — `#6a4ce8` ✗.
 - **No abbreviations.** `bg` → `surface`; `fg` → `text`; component ids are never abbreviated.
 - **Text aliases.** Neutral scale is `--text-primary` / `--text-secondary` / `--text-tertiary` / `--text-muted` / `--text-disabled`. Family-tinted is `--text-primary-color`, `--text-accent`, `--text-success`. There is no `--text-neutral`.
-- **Typography `groupKey` on multi-slot components must include the slot prefix.** `groupKey: 'value-font-family'` and `groupKey: 'label-font-family'` ✓ — bare `groupKey: 'font-family'` silently merges them into one link tree ✗. Single-slot components can use a bare typography `groupKey`; add the slot prefix the moment a second slot appears.
+- **Typography `groupKey` on multi-slot components must include the slot prefix.** `groupKey: 'value-font-family'` and `groupKey: 'label-font-family'` ✓ — bare `groupKey: 'font-family'` silently merges them into one link tree ✗. Single-slot components can use a bare typography `groupKey`; add the slot prefix the moment a second slot appears. The same trap applies to type-group **colors** (two slots ending in `-text` collapsing to one `text` key). Let the helpers handle both: see "Deriving groupKeys" below.
+- **Let the type-group helpers derive slot-scoped keys; never rely on the bare last-dash default.** When you build typography tokens with `buildTypeGroupColorTokens` / `buildTypeGroupTokens` / `buildTypeGroupFontTokens`, **pass `{ component, variants }`** so each slot gets a distinct, structural `groupKey`:
+
+  ```ts
+  // variants = the variant/state segment strings as they appear in the variable name
+  const VARIANTS = ['default', 'hover'] as const;
+  ...buildTypeGroupColorTokens(typeGroups, { component, variants: [...VARIANTS] }),
+  ...buildTypeGroupFontTokens(typeGroups, { component, variants: [...VARIANTS] }),
+  ```
+
+  The helper strips the `--<component>-` prefix and those segments, keeping the rest: `--mywidget-header-default-text` → `header-text`, `--mywidget-header-default-text-font-family` → `header-text-font-family`. Two parts ending in the same word stay distinct; one slot across variants collapses to one key. To override a single derived key, set `colorGroupKey` on that type-group config — it wins and is never recomputed, so your fix survives. There is no name-based fallback: a bare `buildTypeGroupColorTokens` call emits un-grouped (solo) colors rather than guessing, and a bare *font* helper across multiple slots is a `check-component` warning (its default `font-family`/… keys would merge the slots' fonts).
 
 ### Linked siblings
 
@@ -161,7 +171,7 @@ import {
 import type { Token } from '@motion-proto/live-tokens/component-editor';
 ```
 
-That covers everything the worked examples use. Additional primitives (`LinkedBlock`, `TypeEditor`, `TokenLayout`, `buildTypeGroupTokens`, more types) are exported from the same paths for advanced cases.
+That covers everything the worked examples use. Additional primitives (`LinkedBlock`, `TypeEditor`, `TokenLayout`, `buildTypeGroupTokens`, `buildTypeGroupColorTokens`, `buildTypeGroupFontTokens`, `buildTypeGroupShareableContexts`, the `TypeGroupConfig` type, more types) are exported from the same paths for advanced cases.
 
 **Never deep-import `node_modules/@motion-proto/live-tokens/src/...`.** Reading those files for pattern reference is fine; importing them at runtime is not. If you need something not exported, file an issue rather than reaching in.
 
@@ -534,7 +544,7 @@ npx live-tokens check-component <id>
 # or: npx @motion-proto/live-tokens check-component <id>
 ```
 
-It enforces the file layout, the `:global(:root)` block, token-suffix vocabulary, state-before-property rule, theme-token defaults (no raw colour literals), public-imports rule, and that the id is registered — via either `bootLiveTokens({ components: [{ id }] })` or a direct `registerComponent({ id })` call. Exit code 0 means the static contract is met.
+It enforces the file layout, the `:global(:root)` block, token-suffix vocabulary, state-before-property rule, theme-token defaults (no raw colour literals), public-imports rule, and that the id is registered — via either `bootLiveTokens({ components: [{ id }] })` or a direct `registerComponent({ id })` call. It also *warns* (non-fatal) when a type-group font helper is called bare across multiple slots, which would merge their fonts into one link tree. Exit code 0 means the static contract is met; resolve warnings before shipping.
 
 **Then run the registry contract test.** If you're authoring inside the package itself, `src/editor/component-editor/registryContract.test.ts` runs `describe.each(getComponentRegistryEntries())` and verifies, per component:
 

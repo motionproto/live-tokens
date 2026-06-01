@@ -84,6 +84,10 @@ export type TypeGroupConfig = {
   outlineWidthLabel?: string;
   outlineColorVariable?: string;
   outlineColorLabel?: string;
+  /** Explicit groupKey for this group's color token. Wins over every derivation
+      (structural or `groupKeyFor`) and is never recomputed — the durable, one-line
+      fix when the derived key is wrong. */
+  colorGroupKey?: string;
   /** See `Token.element` — when present, StateBlock groups this fieldset under
       the matching element subsection. */
   element?: string;

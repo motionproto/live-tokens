@@ -195,19 +195,14 @@
     ...Object.fromEntries(STATEFUL_STATES.map((s) => [`Footer / ${STATE_LABELS[s]}`, footerStateTypeGroups(s)])),
   };
 
-  // Scope each type-group color groupKey to its part+role (e.g. `section-text`,
-  // `title-label`) so the section/item/footer text colors don't collapse into
-  // one inferred `text` link group — they'd phantom-link parts the per-part font
-  // groupKeys deliberately keep apart. Mirrors the font-shape groupKeys above.
-  // --sidenavigation-<part>-<state>-<role>  →  <part>-<role>
-  function colorGroupKey({ colorVariable }: TypeGroupConfig): string {
-    const segs = colorVariable.replace('--sidenavigation-', '').split('-');
-    return `${segs[0]}-${segs[segs.length - 1]}`;
-  }
-
+  // Color groupKeys derive structurally from the part+role: stripping the
+  // `--sidenavigation-` prefix and the state segment leaves `section-text`,
+  // `item-text`, `footer-text`, `title-label` — so the per-part text colors stay
+  // distinct instead of collapsing into one inferred `text` link group (which
+  // would phantom-link parts the per-part font groupKeys deliberately keep apart).
   export const allTokens: Token[] = [
     ...Object.values(states).flat(),
-    ...buildTypeGroupColorTokens(typeGroups, colorGroupKey),
+    ...buildTypeGroupColorTokens(typeGroups, { component, variants: [...STATEFUL_STATES] }),
     ...titleTypographyTokens,
     ...sectionTypographyTokens,
     ...itemTypographyTokens,

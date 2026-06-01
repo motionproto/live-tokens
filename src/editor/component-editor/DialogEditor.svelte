@@ -78,7 +78,7 @@
 
   export const allTokens: Token[] = [
     ...Object.values(frameStates).flat(),
-    ...buildTypeGroupColorTokens(frameTypeGroups),
+    ...buildTypeGroupColorTokens(frameTypeGroups, { component }),
     ...frameTypeGroupTokens,
   ];
 

@@ -135,7 +135,7 @@ Tokens that share a `groupKey` form a **sibling set**. A property declared `canB
 - `--segmentedcontrol-bar-border-width` and `--segmentedcontrol-selected-border-width` share `groupKey: 'border-width'`.
 - `--segmentedcontrol-option-text-font-weight`, `--segmentedcontrol-option-disabled-text-font-weight`, and `--segmentedcontrol-selected-text-font-weight` share `groupKey: 'font-weight'`.
 
-Editor authors declare `groupKey` per token in the editor's token list (and call `registerComponentSchema(component, tokens)` once at module load). The store consults the schema first; for unmigrated editors with no schema entry, it falls back to matching the last `-<property>` segment. Tokens with neither a `groupKey` nor a colliding name suffix are solo.
+Editor authors declare `groupKey` per token in the editor's token list (and call `registerComponentSchema(component, tokens)` once at module load). The contract is explicit: the store reads each token's declared `groupKey` and nothing else. A token with no `groupKey` has no siblings. (Inference happens only at *build time* inside the `buildTypeGroup*` helpers, which bake a concrete `groupKey` into the schema before it is registered — see "Deriving groupKeys with the type-group helpers".)
 
 Linkage is **dev-declared** — the editor schema is the source of truth for which variables share a `groupKey`. Users only choose whether to opt out of an existing link (per-property), never to add or reshape one.
 
@@ -152,15 +152,22 @@ groupKey: 'font-family'                              ✗  silently links title a
 
 A bare typography `groupKey` like `'font-family'` is fine when the component has only one typography slot (Button has only `text`; RadioButton only `label`; CollapsibleSection only `label`). Add a slot prefix the moment the component grows a second slot.
 
-`registerComponentSchema` emits a console warning at runtime if a single `groupKey` covers variables whose name-derived slots differ. Treat that warning as a build-time error.
+`registerComponentSchema` emits a console warning at runtime if a single `groupKey` covers variables whose name-derived slots differ; the `editor groupKey slot invariant` test (`groupKeySlots.test.ts`) and `npx live-tokens check-component <id>` both fail on it too. Treat any of them as a hard error.
 
-### When the last-dash fallback surprises you
+### Deriving groupKeys with the type-group helpers
 
-For tokens without an explicit `groupKey`, the store derives one by splitting on the last dash:
+`buildTypeGroupColorTokens`, `buildTypeGroupTokens`, and `buildTypeGroupFontTokens` generate the per-slot `groupKey`s for you so editors don't hand-list 16+ near-identical entries. **Pass a derivation** so the key is slot-scoped:
 
-- `--segmentedcontrol-option-text-font-weight` → fallback groupKey `weight`.
+```ts
+buildTypeGroupColorTokens(typeGroups, { component, variants: ['default', 'hover'] })
+buildTypeGroupTokens(typeGroups, { component, variants })
+```
 
-So the fallback property is always the literal last segment. If you don't want a token to participate in the fallback grouping, declare an explicit `groupKey` (or omit `canBeLinked`).
+The helper strips the `--<component>-` prefix and the variant/state segments, keeping the rest: `--sidenavigation-section-default-text` → `section-text`, `--card-default-title-font-family` → `title-font-family`. Two parts ending in the same word (`section-text`, `item-text`) stay distinct; the same slot across variants (`--badge-primary-text`, `--badge-accent-text`) collapses to one key. This is correct by construction — it cannot phantom-link independent slots.
+
+Precedence, most specific first: a per-group `colorGroupKey` (the durable one-line fix; never recomputed) > a `groupKeyFor` callback > the structural derivation (`{ component, variants }`). There is **no name-based fallback**: call `buildTypeGroupColorTokens` with none of these and its color tokens are emitted solo (no `groupKey`), never inferred from the last dash. The font helpers (`buildTypeGroupTokens`, `buildTypeGroupFontTokens`) still default to the bare `font-family`/`font-size`/… keys, which is correct for a single slot but merges fonts across multiple slots — `check-component` warns when a font helper is called bare across more than one slot.
+
+Linking *across* slots on purpose (Table links `border`/`width` across wrapper/header/row/column) is done with an **explicit shared `groupKey`**, a deliberate authored choice distinct from the accidental merge the structural derivation prevents.
 
 ## Checklist for adding a new component token
 

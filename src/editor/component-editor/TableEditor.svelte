@@ -1,4 +1,5 @@
 <script module lang="ts">
+  import { buildTypeGroupColorTokens, buildTypeGroupFontTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
 
   export const component = 'table';
@@ -60,26 +61,16 @@
       lineHeightVariable: '--table-default-cell-line-height',
     }],
   };
-  // Hand-rolled (not buildTypeGroupColorTokens) because its suffix-derived groupKey would phantom-link header-text and cell-text.
-  const typeGroupColorTokens: Token[] = [
-    { label: 'color', groupKey: 'header-text', variable: '--table-default-header-text' },
-    { label: 'color', groupKey: 'cell-text', variable: '--table-default-cell-text' },
-  ];
-  const typeGroupTokens: Token[] = [
-    { label: 'font family', groupKey: 'header-font-family', variable: '--table-default-header-font-family' },
-    { label: 'font size', groupKey: 'header-font-size', variable: '--table-default-header-font-size' },
-    { label: 'font weight', groupKey: 'header-font-weight', variable: '--table-default-header-font-weight' },
-    { label: 'line height', groupKey: 'header-line-height', variable: '--table-default-header-line-height' },
-    { label: 'font family', groupKey: 'cell-font-family', variable: '--table-default-cell-font-family' },
-    { label: 'font size', groupKey: 'cell-font-size', variable: '--table-default-cell-font-size' },
-    { label: 'font weight', groupKey: 'cell-font-weight', variable: '--table-default-cell-font-weight' },
-    { label: 'line height', groupKey: 'cell-line-height', variable: '--table-default-cell-line-height' },
-  ];
+  // Structural derivation keeps header / cell text apart: stripping the `--table-`
+  // prefix and the `default` state segment leaves `header-text` / `cell-text` (and
+  // `header-font-family`, `cell-line-height`, …). A bare last-dash key would
+  // phantom-link header-text and cell-text into one `text` group.
+  const derivation = { component, variants: ['default'] } as const;
 
   export const allTokens: Token[] = [
     ...Object.values(states).flat(),
-    ...typeGroupColorTokens,
-    ...typeGroupTokens,
+    ...buildTypeGroupColorTokens(typeGroups, derivation),
+    ...buildTypeGroupFontTokens(typeGroups, derivation),
   ];
 </script>
 
