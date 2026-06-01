@@ -27,6 +27,13 @@
   hljs.registerLanguage('html',       xml);
   hljs.registerLanguage('svelte',     xml);
   hljs.registerLanguage('plaintext',  plaintext);
+
+  /* Shell command blocks render with the shipped CodeSnippet (copy button);
+     other languages keep the syntax-highlighted CodeBlock. */
+  const SHELL_LANGS = new Set(['bash', 'sh', 'shell']);
+  function isShell(lang: string | undefined): boolean {
+    return lang != null && SHELL_LANGS.has(lang);
+  }
 </script>
 
 <script lang="ts">
@@ -34,6 +41,7 @@
   import { marked, type Tokens } from 'marked';
 
   import Button from '../../system/components/Button.svelte';
+  import CodeSnippet from '../../system/components/CodeSnippet.svelte';
   import Notification from '../../system/components/Notification.svelte';
   import SectionDivider from '../../system/components/SectionDivider.svelte';
   import SideNavigation, { type SideNavSection } from '../../system/components/SideNavigation.svelte';
@@ -304,7 +312,13 @@
             {#if seg.kind === 'html'}
               <div class="md-html">{@html seg.html}</div>
             {:else if seg.kind === 'code'}
-              <CodeBlock lang={seg.lang} text={seg.text} />
+              {#if isShell(seg.lang)}
+                <div class="md-snippet">
+                  <CodeSnippet code={seg.text} />
+                </div>
+              {:else}
+                <CodeBlock lang={seg.lang} text={seg.text} />
+              {/if}
             {:else if seg.kind === 'table'}
               <Table>{@html seg.html}</Table>
             {/if}
@@ -477,6 +491,9 @@
     font-size: var(--font-size-md, 1rem);
     line-height: var(--line-height-lg, 1.65);
   }
+  .md-snippet {
+    margin: 0 0 var(--space-20, 1.25rem);
+  }
   .prose :global(p),
   .prose :global(ul),
   .prose :global(ol) {
@@ -550,7 +567,7 @@
     border-bottom-color: currentColor;
   }
 
-  .prose :global(:not(pre) > code) {
+  .prose :global(.md-html :not(pre) > code) {
     font-family: var(--font-mono, monospace);
     font-size: 0.875em;
     background: var(--surface-neutral-lower, #162027);

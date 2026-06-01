@@ -101,6 +101,10 @@
     line-height: var(--codesnippet-code-line-height);
     white-space: pre;
     overflow-x: auto;
+    /* overflow-x: auto alone makes the browser compute overflow-y to auto too,
+       so the horizontal scrollbar's gutter trips a spurious vertical scrollbar
+       on multi-line snippets. Pin overflow-y so only horizontal scroll exists. */
+    overflow-y: hidden;
     scrollbar-width: thin;
     scrollbar-color: var(--codesnippet-scrollbar-thumb) transparent;
   }
