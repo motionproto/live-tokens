@@ -25,21 +25,24 @@ For pattern reference, read any shipped component's source directly from the con
 
 1. **Runtime file** — `src/system/components/MyWidget.svelte`. Declare every editable slot as a CSS custom property inside `:global(:root)`, defaulting to a theme token (never a raw value). The plugin parses `:global(:root)` to seed `component-configs/<id>/default.json`; variables declared anywhere else can't be edited.
 2. **Editor file** — `src/system/components/MyWidgetEditor.svelte`. In a `<script module>` block, declare `const component = 'mywidget'`, build a `states: Record<string, Token[]>` for each VariantGroup, and export the flat union as `allTokens: Token[]`. Components with linked siblings also build a `linkableContexts: Map<string, string>` (see the linked-siblings extension below). Components with structural/display controls that aren't token values (alignment, element visibility, layout position) also export an `intrinsics: IntrinsicSpec[]` (see the intrinsics extension below). In the runtime `<script>` block, mount `ComponentEditorBase` with one `VariantGroup` per variant.
-3. **Register** — in `src/main.ts` before `mount(App, ...)`:
+3. **Register** — pass the component to `bootLiveTokens` in `src/main.ts`. This is the standard boot the scaffold generates and the README documents; `bootLiveTokens` calls `registerComponent` internally at the right point — after its editor init hooks (`cssVarSync.init`, `editorStore.init`), before it seeds configs and mounts the app:
    ```ts
-   import { registerComponent } from '@motion-proto/live-tokens';
+   import { bootLiveTokens } from '@motion-proto/live-tokens';
+   import App from './App.svelte';
    import MyWidgetEditor, { allTokens as myWidgetTokens } from './system/components/MyWidgetEditor.svelte';
 
-   registerComponent({
-     id: 'mywidget',
-     label: 'My Widget',
-     icon: 'fas fa-magic',
-     sourceFile: 'src/system/components/MyWidget.svelte',
-     editorComponent: MyWidgetEditor,
-     schema: myWidgetTokens,
+   bootLiveTokens(App, '#app', {
+     components: [{
+       id: 'mywidget',
+       label: 'My Widget',
+       icon: 'fas fa-magic',
+       sourceFile: 'src/system/components/MyWidget.svelte',
+       editorComponent: MyWidgetEditor,
+       schema: myWidgetTokens,
+     }],
    });
    ```
-   The schema side-effect happens inside `registerComponent`, so you don't call `registerComponentSchema` separately.
+   The schema side-effect happens inside `registerComponent` (which `bootLiveTokens` calls for you), so you don't call `registerComponentSchema` separately. **Do not place a standalone `registerComponent(...)` *before* `bootLiveTokens`** — that registers before the editor's init hooks run, which is the wrong window and can leave editor changes disconnected from the live page. Only call `registerComponent` directly if your app mounts manually (no `bootLiveTokens`), in which case call it before `mount(App, ...)`.
 4. **Tell the picker** — open `.claude/skills/live-tokens-pick-component/SKILL.md` and add your new component to the **Catalogue** line under the family it belongs to (Action / Input / Selection / Containers / Messaging / Display). If it's confusable with an existing component (a second selection control, a competing container), add a row to that family's decision table explaining the use-case it owns. Without this step, the component exists but [[live-tokens-pick-component]] can't recommend it when a user asks "which component should I use?" — the same rule applies whether the component is first-party (update the picker shipped in this package) or consumer-authored (update the local copy at `.claude/skills/live-tokens-pick-component/SKILL.md` that `setup-claude` placed in your project).
 5. **Verify** — open `/components` and run the verification checklist at the bottom of this file.
 
@@ -376,22 +379,23 @@ What to notice:
 ### Register: `src/main.ts`
 
 ```ts
-import { registerComponent } from '@motion-proto/live-tokens';
+import { bootLiveTokens } from '@motion-proto/live-tokens';
+import App from './App.svelte';
 import ToggleEditor, { allTokens as toggleTokens } from './system/components/ToggleEditor.svelte';
 
-registerComponent({
-  id: 'mytoggle',                                // unique id; don't reuse 'toggle'
-  label: 'My Toggle',
-  icon: 'fas fa-toggle-on',
-  sourceFile: 'src/system/components/Toggle.svelte',
-  editorComponent: ToggleEditor,
-  schema: toggleTokens,
+bootLiveTokens(App, '#app', {
+  components: [{
+    id: 'mytoggle',                                // unique id; don't reuse 'toggle'
+    label: 'My Toggle',
+    icon: 'fas fa-toggle-on',
+    sourceFile: 'src/system/components/Toggle.svelte',
+    editorComponent: ToggleEditor,
+    schema: toggleTokens,
+  }],
 });
-
-// then mount(App, ...)
 ```
 
-If you do this with `id: 'toggle'`, the consumer's component wins over the built-in (with a console warning). The collision rule protects you, but for a fresh component pick an id that doesn't collide.
+If your app mounts manually instead of via `bootLiveTokens`, call `registerComponent({ id: 'mytoggle', ... })` yourself before `mount(App, ...)`. If you reuse `id: 'toggle'`, the consumer's component wins over the built-in (with a console warning). The collision rule protects you, but for a fresh component pick an id that doesn't collide.
 
 ## Extension: linked siblings
 
@@ -530,7 +534,7 @@ npx live-tokens check-component <id>
 # or: npx @motion-proto/live-tokens check-component <id>
 ```
 
-It enforces the file layout, the `:global(:root)` block, token-suffix vocabulary, state-before-property rule, theme-token defaults (no raw colour literals), public-imports rule, and the `registerComponent({ id })` call. Exit code 0 means the static contract is met.
+It enforces the file layout, the `:global(:root)` block, token-suffix vocabulary, state-before-property rule, theme-token defaults (no raw colour literals), public-imports rule, and that the id is registered — via either `bootLiveTokens({ components: [{ id }] })` or a direct `registerComponent({ id })` call. Exit code 0 means the static contract is met.
 
 **Then run the registry contract test.** If you're authoring inside the package itself, `src/editor/component-editor/registryContract.test.ts` runs `describe.each(getComponentRegistryEntries())` and verifies, per component:
 

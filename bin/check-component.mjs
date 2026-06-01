@@ -195,13 +195,18 @@ export function checkComponent(id, root = process.cwd()) {
     }
   }
 
-  // Registration: registerComponent({ id: '<id>', ... }) somewhere under src/.
+  // Registration: either a direct registerComponent({ id }) call or the id
+  // passed through bootLiveTokens({ components: [{ id }] }) — the standard
+  // scaffold boot. Accept both, somewhere under src/.
   const srcFiles = findFilesRecursive(join(root, 'src'), ['.ts', '.js', '.svelte', '.mjs']);
-  const regPattern = new RegExp(`registerComponent\\s*\\(\\s*\\{[^}]*id\\s*:\\s*['"]${id}['"]`, 's');
+  const idLiteral = `id\\s*:\\s*['"]${id}['"]`;
+  const directPattern = new RegExp(`registerComponent\\s*\\(\\s*\\{[^}]*${idLiteral}`, 's');
+  const bootPattern = new RegExp(`bootLiveTokens\\s*\\([\\s\\S]*?components\\s*:\\s*\\[[\\s\\S]*?${idLiteral}`, 's');
   let registrationFile = null;
   for (const file of srcFiles) {
     try {
-      if (regPattern.test(readFileSync(file, 'utf8'))) {
+      const src = readFileSync(file, 'utf8');
+      if (directPattern.test(src) || bootPattern.test(src)) {
         registrationFile = file;
         break;
       }
@@ -210,7 +215,7 @@ export function checkComponent(id, root = process.cwd()) {
     }
   }
   if (!registrationFile) {
-    errors.push(`registerComponent({ id: '${id}', ... }) not found anywhere under src/`);
+    errors.push(`no registration for '${id}' under src/ — expected registerComponent({ id: '${id}', ... }) or bootLiveTokens({ components: [{ id: '${id}', ... }] })`);
   } else {
     // Check the registration file's imports too.
     const regSource = readFileSync(registrationFile, 'utf8');
