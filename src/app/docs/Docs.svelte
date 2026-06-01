@@ -40,7 +40,6 @@
   import Table from '../../system/components/Table.svelte';
 
   import CodeBlock from './CodeBlock.svelte';
-  import MermaidDiagram from './MermaidDiagram.svelte';
   import {
     chapters,
     chapterIds,
@@ -52,7 +51,6 @@
   type Segment =
     | { kind: 'html';     html: string }
     | { kind: 'code';     lang: string | undefined; text: string }
-    | { kind: 'mermaid';  source: string }
     | { kind: 'table';    html: string };
 
   /* ------------------------------------------------------------------ State */
@@ -164,10 +162,7 @@
     };
 
     for (const t of filtered) {
-      if (t.type === 'code' && (t as Tokens.Code).lang === 'mermaid') {
-        flush();
-        out.push({ kind: 'mermaid', source: (t as Tokens.Code).text });
-      } else if (t.type === 'code') {
+      if (t.type === 'code') {
         flush();
         out.push({ kind: 'code', lang: (t as Tokens.Code).lang, text: (t as Tokens.Code).text });
       } else if (t.type === 'table') {
@@ -310,8 +305,6 @@
               <div class="md-html">{@html seg.html}</div>
             {:else if seg.kind === 'code'}
               <CodeBlock lang={seg.lang} text={seg.text} />
-            {:else if seg.kind === 'mermaid'}
-              <MermaidDiagram source={seg.source} />
             {:else if seg.kind === 'table'}
               <Table>{@html seg.html}</Table>
             {/if}
