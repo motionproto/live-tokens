@@ -152,8 +152,42 @@
   // Fade for open-only buttons (bar timing lives in CSS vars below).
   const BTN_FADE = { duration: 130, easing: cubicInOut };
 
+  // Mirrors --bar-open-dur; used for the fallback that clears `opening` if no
+  // transitionend fires (reduced motion, suppressed transitions, no size delta).
+  const OPEN_DUR = 240;
+
   // Suppress CSS transitions during gestures + mode swaps.
   let suppressTransition = $state(false);
+
+  // True only while the panel is growing pill → full. Masks the iframe so the
+  // user never sees the editor route reflow (side-nav scrollbar, white body)
+  // at intermediate widths; content fades in once the size transition settles.
+  let opening = $state(false);
+  let prevOpen = open;
+  let openTimer: ReturnType<typeof setTimeout> | undefined;
+  run(() => {
+    if (open === prevOpen) return;
+    prevOpen = open;
+    clearTimeout(openTimer);
+    if (open) {
+      opening = true;
+      if (gesturing || suppressTransition) {
+        // .no-transition path: no transitionend will fire, so reveal next frame.
+        requestAnimationFrame(() => { opening = false; });
+      } else {
+        openTimer = setTimeout(() => { opening = false; }, OPEN_DUR + 60);
+      }
+    } else {
+      opening = false;
+    }
+  });
+
+  function onPanelTransitionEnd(e: TransitionEvent) {
+    if (e.target !== e.currentTarget) return;
+    if (e.propertyName !== 'width' && e.propertyName !== 'height') return;
+    clearTimeout(openTimer);
+    opening = false;
+  }
 
   // Scrim catches pointer events during gestures so they hit the panel, not the iframe.
   let gesturing: 'drag' | 'resize-left' | 'resize-se' | null = $state(null);
@@ -268,6 +302,7 @@
   });
   onDestroy(() => {
     window.removeEventListener('lt-overlay-toggle', handleToggleRequest);
+    clearTimeout(openTimer);
   });
 
   let panelStyle = $derived(!open
@@ -286,7 +321,9 @@
   class:hidden={!open}
   class:docked={open && mode === 'docked'}
   class:floating={open && mode === 'floating'}
+  class:opening={open && opening}
   class:no-transition={!!gesturing || suppressTransition}
+  ontransitionend={onPanelTransitionEnd}
 >
   <div
     class="header"
@@ -617,6 +654,15 @@
     height: 100%;
     border: 0;
     display: block;
+    transition: opacity 200ms ease;
+  }
+
+  /* While the panel grows pill → full, hide the iframe over the #000 frame-wrap
+     so the editor route's intermediate reflow (side-nav scrollbar, white body)
+     never shows; it fades in once the size transition settles. */
+  .lt-overlay.opening .editor-frame {
+    opacity: 0;
+    pointer-events: none;
   }
 
   .gesture-scrim {
@@ -654,5 +700,13 @@
       rgba(255, 255, 255, 0.35) 55%,
       transparent 55%
     );
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lt-overlay,
+    .lt-overlay.hidden,
+    .editor-frame {
+      transition: none;
+    }
   }
 </style>

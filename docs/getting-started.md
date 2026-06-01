@@ -1,121 +1,68 @@
 # Getting started
 
-This page gets you from zero to a live token edit in about five minutes.
+Zero to a live token edit in a few minutes. You need Node 20 or later, a
+package manager (npm, pnpm, or yarn), and a browser. No Figma plugin, no
+account, no SaaS.
 
-## What you need
-
-- Node 20 or later
-- npm (or pnpm, yarn)
-- A terminal and a browser
-
-That's it. No Figma plugin, no account, no SaaS.
-
-## Two ways to start
-
-### A. Try the starter
-
-The fastest path. Clone the repo as a working app, edit one home page,
-keep everything else.
+## Scaffold a new app
 
 ```bash
-npx degit motionproto/live-tokens my-app
+npm create @motion-proto/live-tokens@latest my-app
 cd my-app
 npm install
 npm run dev
 ```
 
-Open the URL Vite prints (usually `http://localhost:5173`). You'll see
-a starter home page. Look at the **top-right corner** of the page:
-there is a small pill labelled with the project name. That is the
-Live Editor overlay.
+Open the URL Vite prints (usually `http://localhost:5173`). You get a
+one-page Svelte + Vite app that depends on the published package, with the
+editor wired up and the full component set ready to import.
 
-### B. Install into an existing Svelte 5 + Vite app
+`npx @motion-proto/live-tokens create my-app` runs the same scaffold without
+the initialiser package.
 
-Use this when you already have a project.
+### What the scaffold gives you
 
-```bash
-npm install @motion-proto/live-tokens
-```
+Every editable file lives under `src/` and is committed, so `npm install` and
+version upgrades never touch your styles. The package code stays in
+`node_modules`.
 
-Wire the Vite plugin and the overlay in three places:
-
-```ts
-// vite.config.ts
-import { themeFileApi } from '@motion-proto/live-tokens/vite-plugin';
-
-export default defineConfig({
-  plugins: [
-    svelte(),
-    themeFileApi({ tokensCssPath: 'src/system/styles/tokens.css' }),
-  ],
-});
-```
-
-```ts
-// src/main.ts
-import '@motion-proto/live-tokens/src/system/styles/tokens.css';
-import { initEditorStore, initCssVarSync, initRouter } from '@motion-proto/live-tokens';
-
-initCssVarSync();
-initRouter();
-initEditorStore();
-```
-
-```svelte
-<!-- src/App.svelte -->
-<script>
-  import { LiveEditorOverlay } from '@motion-proto/live-tokens';
-</script>
-
-<LiveEditorOverlay />
-<!-- your app -->
-```
-
-The README at the repo root has the longer version, including the
-optional `live-tokens.config.json` for relocating where saved themes
-live on disk.
+| Path | What it is |
+|------|------------|
+| `src/pages/Home.svelte` | The starter page. Replace it with your own content. |
+| `src/App.svelte` | Your routes. `<LiveTokensRouter>` adds the dev-only `/editor` and `/components` routes. |
+| `src/system/styles/tokens.css` | Your base token vocabulary, hand-authored. |
+| `src/styles/site.css` | Themed page typography, yours to edit. |
 
 ## Your first edit
 
-1. **Open the editor.** Click the pill in the top-right. It expands
-   into a panel docked to the right of the page.
-2. **Switch to Tokens.** The default view. You'll see tabs for
-   *Palettes, Type, Spacing, Radius, Shadows, Overlays, Gradients,
-   Columns*.
-3. **Drag a palette base.** Open *Palettes*, pick **Brand**, drag the
-   colour swatch or change the hex. The page behind the editor
-   repaints as you drag.
-4. **Save.** Click the file icon in the editor header, choose
-   **Save as**, name the theme. You'll see the file appear in
+1. Run `npm run dev` and open the home page.
+2. Click **Open Token Editor**, or visit `/editor`. The editor opens beside
+   the page.
+3. Open **Palettes**, pick **Brand**, and change the base hex. The page
+   repaints as you type.
+4. Open the file menu and choose **Save as**. A theme appears as JSON under
    `src/live-tokens/data/themes/`.
-5. **Reload the page.** Your saved theme is the active theme; the page
-   comes back exactly as you left it.
+5. Reload. Your saved theme is the active theme, so the page returns as you
+   left it.
 
 ## What you just changed
 
-Every edit writes to CSS custom properties on `:root`. Components in
-your app read those properties through `var(--...)` references. There
-is no separate build step, no AST transform, no preprocessor doing
-magic in the background. The page renders against plain CSS variables
-that the editor swaps live.
+Every edit sets a CSS custom property on `:root`. Your components read those
+properties through `var(--...)`. There is no token build step and no
+preprocessor rewriting your code: the page renders against plain CSS variables
+the editor swaps live.
 
-When you eventually want to ship, the editor *promotes* a theme to
-production: it writes the theme's variables into
-`src/system/styles/tokens.generated.css` and your build bundles that
-file alongside `tokens.css`. The editor itself never ships to
-production.
+To ship, promote a theme to production in the editor. That bakes the theme's
+variables into `src/live-tokens/data/tokens.generated.css`, which your build
+bundles alongside `tokens.css`. The editor itself never reaches production.
+
+Already have a Svelte 5 + Vite app? The
+[README](https://github.com/motionproto/live-tokens#readme) covers installing
+into an existing project.
 
 ## Where to go next
 
-- **[Editing tokens](editing-tokens.md)**: a tour of every tab in the
-  editor.
-- **[Themes workflow](themes-workflow.md)**: save, switch, promote,
-  manifests.
-- **[Creating components](creating-components.md)**: the Claude skill
-  walks you through making your own component editable.
-- **[Token naming](token-naming.md)**: the naming pattern, so your
-  custom components fit the system.
-
-The chapters under **Reference** later in the sidebar cover the
-internals (architecture, state machine, dev-server plugin). You do
-not need any of them to use the editor.
+- **[Editing tokens](editing-tokens.md)**: a tour of the editor.
+- **[Themes](themes-workflow.md)**: save, switch, and ship.
+- **[Creating components](creating-components.md)**: make your own component
+  editable.

@@ -62,7 +62,7 @@
   let error = $state<string | null>(null);
   let chapterMeta = $state<Chapter | null>(null);
 
-  /* Parse `/docs#02-architecture~layers` → chapter `02-architecture`, anchor `layers`.
+  /* Parse `/docs#editing-tokens~palettes` → chapter `editing-tokens`, anchor `palettes`.
      Using `~` as the delimiter keeps each part valid for an HTML id. */
   let parsedHash = $derived.by(() => {
     const raw = hash.replace(/^#/, '');
@@ -77,50 +77,18 @@
      `ontoggle`; this parent owns the actual boolean so layout reflows beside it. */
   let sidebarOpen = $state(true);
 
-  /* Sidebar groupings. Section paths are unique keys (no `hasIndexPage`, so
-     headers are toggle-only). Item paths match the chapter id verbatim so
-     `currentPath={parsedHash.chapter}` lights up the active row.
-
-     Two-tier structure: a user-facing manual at the top, technical
-     reference below. The reference chapters are the package internals,
-     useful when you're extending Live Tokens, not when you're using it. */
+  /* Item paths match the chapter id verbatim so
+     `currentPath={parsedHash.chapter}` lights up the active row. */
   const navSections: SideNavSection[] = [
     {
-      path: 'manual',
-      title: 'User manual',
+      path: 'guide',
+      title: 'Guide',
       items: [
-        { path: '01-overview',      title: 'Overview' },
-        { path: 'getting-started',  title: 'Getting started' },
-        { path: 'editing-tokens',   title: 'Editing tokens' },
-        { path: 'themes-workflow',  title: 'Themes workflow' },
+        { path: '01-overview',         title: 'Overview' },
+        { path: 'getting-started',     title: 'Getting started' },
+        { path: 'editing-tokens',      title: 'Editing tokens' },
+        { path: 'themes-workflow',     title: 'Themes' },
         { path: 'creating-components', title: 'Creating components' },
-        { path: 'token-naming',     title: 'Token naming' },
-      ],
-    },
-    {
-      path: 'reference-core',
-      title: 'Reference · Core',
-      items: [
-        { path: '02-architecture',      title: 'Architecture' },
-        { path: '03-state-and-history', title: 'State and history' },
-        { path: '04-tokens-and-themes', title: 'Tokens and themes (deep)' },
-        { path: '05-component-system',  title: 'Component system (deep)' },
-      ],
-    },
-    {
-      path: 'reference-tooling',
-      title: 'Reference · Tooling',
-      items: [
-        { path: '06-dev-server-plugin',    title: 'Dev-server plugin' },
-        { path: '07-overlay-and-routing',  title: 'Overlay and routing' },
-      ],
-    },
-    {
-      path: 'reference-contracts',
-      title: 'Reference · Contracts',
-      items: [
-        { path: '09-developer-recipes',          title: 'Developer recipes' },
-        { path: '10-conventions-and-invariants', title: 'Conventions and invariants' },
       ],
     },
   ];
@@ -260,9 +228,8 @@
       <p class="eyebrow">Live Tokens</p>
       <h1>Documentation</h1>
       <p class="lede">
-        Architecture, contracts, and recipes for the design-token system and
-        its editor. Same content as <code>docs/*.md</code>, rendered with the
-        project's own components and tokens.
+        Set up a project, edit your tokens live, and ship a theme. A short
+        guide to styling and building with Live Tokens.
       </p>
     </div>
   </header>
@@ -280,11 +247,7 @@
 
     <main class="docs-content" id="docs-content-top" tabindex="-1">
       {#if chapterMeta}
-        <SectionDivider
-          title={chapterMeta.title}
-          eyebrow={`Chapter ${String(chapterIds.indexOf(chapterMeta.id) + 1).padStart(2, '0')}`}
-          variant="lg"
-        />
+        <SectionDivider title={chapterMeta.title} variant="lg" />
       {/if}
 
       {#if error}
@@ -384,11 +347,6 @@
     color: var(--text-secondary);
     font-size: var(--font-size-md, 1rem);
     margin: 0;
-  }
-  .title-block .lede code {
-    font-family: var(--font-mono, monospace);
-    font-size: 0.9em;
-    color: var(--text-accent);
   }
 
   /* -------------------------------------------------------------- Layout */

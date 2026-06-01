@@ -4,14 +4,16 @@ Live Tokens is a design-token system with an in-browser editor that drives
 CSS custom properties at runtime. This guide covers the architecture and
 the workflows for extending it.
 
-The package ships two ways:
+The package is consumed two ways:
 
-- **Starter.** Clone the repo, replace `Home.svelte`, edit tokens live.
-- **Library.** `npm install @motion-proto/live-tokens` and mount the
-  overlay plus the editor route inside an existing Svelte 5 + Vite app.
+- **Scaffold.** `npm create @motion-proto/live-tokens@latest my-app` generates a
+  minimal app that depends on the published package.
+- **Library.** `npm install @motion-proto/live-tokens` into an existing
+  Svelte 5 + Vite app, then boot with `bootLiveTokens` and mount
+  `<LiveTokensRouter>`.
 
-Both modes share one source tree. Chapters call out the difference where
-it matters.
+Either way your editable files live under `src/`. Chapters call out the
+difference where it matters.
 
 ## Reading order
 
