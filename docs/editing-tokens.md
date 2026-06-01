@@ -7,7 +7,7 @@ The editor has two views:
 
 - **Tokens**: the design-system primitives (colour, type, spacing, and so on).
   They apply everywhere your site uses them.
-- **Components**: per-component editors. Re-point what one component uses
+- **Components**: per-component editors. Re-Assign what tokens a component uses
   without changing the underlying system.
 
 This page covers **Tokens**. For components, see

@@ -1,9 +1,7 @@
 # Overview
 
 Live Tokens is a design system for building Svelte microsites quickly. You
-style your site by editing tokens, the colours, type, spacing, radii, and
-shadows that define its look, in a live editor and watching the page update as
-you drag. When it looks right, you save the result as a theme and ship it.
+style your site by editing tokens and components in a live editor. When it looks right, you save the manifest and ship it.
 
 ## How it works
 
@@ -21,8 +19,7 @@ you drag. When it looks right, you save the result as a theme and ship it.
 - **Tokens**: the design-system primitives, colour palettes, type, spacing,
   radius, shadow, and gradients, that apply across your whole site.
 - **Components**: the package ships about 25 editable components (Button, Card,
-  Dialog, Table, and more). Re-point any component's colours and type to
-  different tokens, live, on your real pages.
+  Dialog, Table, and more).You style components by changing the tokens assigned to each property.
 
 ## Where to go next
 

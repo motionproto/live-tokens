@@ -1,8 +1,7 @@
 # Getting started
 
-Zero to a live token edit in a few minutes. You need Node 20 or later, a
-package manager (npm, pnpm, or yarn), and a browser. No Figma plugin, no
-account, no SaaS.
+Scaffold a live token site in a moments. You need Node 20 or later, a
+package manager (npm, pnpm, or yarn), and a browser. Open claude code in your repo and start building.
 
 ## Scaffold a new app
 
