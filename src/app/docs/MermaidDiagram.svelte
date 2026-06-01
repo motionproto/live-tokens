@@ -84,7 +84,7 @@
 <style>
   .mermaid-frame {
     background: color-mix(in srgb, var(--surface-neutral-lower, #162027) 70%, transparent);
-    border: 1px solid var(--border-neutral-subtle, #3a4146);
+    border: var(--border-width-1, 1px) solid var(--border-neutral-subtle, #3a4146);
     border-radius: var(--radius-xl, 0.5rem);
     padding: var(--space-20, 1.25rem);
     margin: 0 0 var(--space-24, 1.5rem);

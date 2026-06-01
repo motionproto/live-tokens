@@ -121,8 +121,12 @@
       link(token: Tokens.Link): string {
         const text = (this as any).parser.parseInline(token.tokens);
         let rewritten = token.href ?? '';
-        if (/^\d{2}-[a-z0-9-]+\.md(#.*)?$/.test(rewritten)) {
-          rewritten = '#' + rewritten.replace(/\.md/, '');
+        /* Rewrite intra-doc links to the hash router: `chapter.md` → `#chapter`,
+           `chapter.md#anchor` → `#chapter~anchor` (the page joins chapter and
+           anchor with `~`, not `#`). Chapter ids may be numbered or not. */
+        const intra = rewritten.match(/^([a-z0-9-]+)\.md(?:#(.+))?$/i);
+        if (intra) {
+          rewritten = `#${intra[1]}${intra[2] ? `~${intra[2]}` : ''}`;
         }
         const isExt = /^https?:\/\//.test(rewritten);
         const attrs = isExt ? ' target="_blank" rel="noopener"' : '';
@@ -313,7 +317,7 @@
 
   /* -------------------------------------------------------------- Top header */
   .docs-page-header {
-    border-bottom: 1px solid var(--border-neutral-faint, #1c2327);
+    border-bottom: var(--border-width-1, 1px) solid var(--border-neutral-faint, #1c2327);
     padding: var(--space-48, 3rem) var(--space-24, 1.5rem) var(--space-32, 2rem);
     background: linear-gradient(
       180deg,
@@ -331,14 +335,14 @@
     font-weight: var(--font-weight-semibold, 600);
     color: var(--text-accent, #009d9a);
     text-transform: uppercase;
-    letter-spacing: 0.12em;
+    letter-spacing: var(--letter-spacing-wider, 0.12em);
     margin: 0 0 var(--space-8, 0.5rem);
   }
   .title-block h1 {
     font-family: var(--font-display, var(--font-sans));
-    font-size: clamp(2rem, 4vw, 3rem);
-    line-height: 1.1;
-    letter-spacing: -0.02em;
+    font-size: var(--font-size-5xl, 3rem);
+    line-height: var(--line-height-xs, 1.1);
+    letter-spacing: var(--letter-spacing-tight, -0.02em);
     margin: 0 0 var(--space-12, 0.75rem);
     color: var(--text-primary);
   }
@@ -357,7 +361,7 @@
     max-width: 1320px;
     margin: 0 auto;
     padding: var(--space-32, 2rem) var(--space-24, 1.5rem) 0;
-    transition: grid-template-columns var(--duration-200, 200ms) ease;
+    transition: grid-template-columns var(--duration-200, 200ms) var(--ease-in-out-sine, ease);
   }
   /* When the rail collapses to its toggle strip, the article reclaims the column. */
   .docs-layout.collapsed {
@@ -393,16 +397,16 @@
     display: inline-block;
     width: 14px;
     height: 14px;
-    border: 2px solid var(--border-neutral-subtle, #3a4146);
+    border: var(--border-width-2, 2px) solid var(--border-neutral-subtle, #3a4146);
     border-top-color: var(--text-accent, #009d9a);
     border-radius: var(--radius-full, 9999px);
-    animation: spin 720ms linear infinite;
+    animation: spin var(--duration-750, 720ms) var(--ease-linear, linear) infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .prose {
     font-size: var(--font-size-md, 1rem);
-    line-height: 1.65;
+    line-height: var(--line-height-lg, 1.65);
   }
   .prose :global(p),
   .prose :global(ul),
@@ -428,16 +432,16 @@
   .prose :global(h4) {
     font-family: var(--font-display, var(--font-sans));
     font-weight: var(--font-weight-semibold, 600);
-    letter-spacing: -0.015em;
-    line-height: 1.2;
+    letter-spacing: var(--letter-spacing-tight, -0.015em);
+    line-height: var(--line-height-sm, 1.2);
     color: var(--text-primary);
     position: relative;
   }
   .prose :global(h2) {
-    font-size: clamp(1.4rem, 2.2vw, 1.7rem);
+    font-size: var(--font-size-2xl, 1.5rem);
     margin: var(--space-48, 3rem) 0 var(--space-16, 1rem);
     padding-top: var(--space-12, 0.75rem);
-    border-top: 1px solid var(--border-neutral-faint, #1c2327);
+    border-top: var(--border-width-1, 1px) solid var(--border-neutral-faint, #1c2327);
   }
   .prose :global(h3) {
     font-size: var(--font-size-xl, 1.25rem);
@@ -456,7 +460,8 @@
     font-weight: var(--font-weight-normal);
     font-size: 0.7em;
     opacity: 0;
-    transition: opacity 120ms ease, color 120ms ease;
+    transition: opacity var(--duration-150, 120ms) var(--ease-in-out-sine, ease),
+                color var(--duration-150, 120ms) var(--ease-in-out-sine, ease);
   }
   .prose :global(h1:hover .heading-anchor),
   .prose :global(h2:hover .heading-anchor),
@@ -467,11 +472,12 @@
   .prose :global(a:not(.heading-anchor)) {
     color: var(--text-accent, #009d9a);
     text-decoration: none;
-    border-bottom: 1px solid color-mix(in srgb, var(--text-accent, #009d9a) 35%, transparent);
-    transition: color 120ms ease, border-color 120ms ease;
+    border-bottom: var(--border-width-1, 1px) solid color-mix(in srgb, var(--text-accent, #009d9a) 35%, transparent);
+    transition: color var(--duration-150, 120ms) var(--ease-in-out-sine, ease),
+                border-color var(--duration-150, 120ms) var(--ease-in-out-sine, ease);
   }
   .prose :global(a:not(.heading-anchor):hover) {
-    color: color-mix(in srgb, var(--text-accent, #009d9a) 75%, #fff);
+    color: color-mix(in srgb, var(--text-accent, #009d9a) 75%, var(--color-white, #fff));
     border-bottom-color: currentColor;
   }
 
@@ -482,14 +488,14 @@
     color: var(--text-accent, #009d9a);
     padding: 0.15em 0.45em;
     border-radius: var(--radius-md, 0.25rem);
-    border: 1px solid var(--border-neutral-faint, #1c2327);
+    border: var(--border-width-1, 1px) solid var(--border-neutral-faint, #1c2327);
     white-space: nowrap;
   }
 
   .prose :global(blockquote) {
     margin: 0 0 var(--space-20, 1.25rem);
     padding: var(--space-12, 0.75rem) var(--space-20, 1.25rem);
-    border-left: 3px solid var(--text-accent, #009d9a);
+    border-left: var(--border-width-3, 3px) solid var(--text-accent, #009d9a);
     background: color-mix(in srgb, var(--surface-neutral-lower, #162027) 60%, transparent);
     border-radius: 0 var(--radius-md, 0.25rem) var(--radius-md, 0.25rem) 0;
     color: var(--text-secondary);
@@ -497,11 +503,11 @@
 
   .prose :global(hr) {
     border: 0;
-    border-top: 1px solid var(--border-neutral-faint, #1c2327);
+    border-top: var(--border-width-1, 1px) solid var(--border-neutral-faint, #1c2327);
     margin: var(--space-32, 2rem) 0;
   }
 
-  /* GFM task lists (the verification checklists in chapter 08) */
+  /* GFM task lists (the verification checklists in archived chapters) */
   .prose :global(ul.contains-task-list) { list-style: none; padding-left: var(--space-4); }
   .prose :global(li.task-list-item) {
     display: flex;
@@ -517,7 +523,7 @@
   .chapter-footer {
     margin-top: var(--space-48, 3rem);
     padding-top: var(--space-24, 1.5rem);
-    border-top: 1px solid var(--border-neutral-faint, #1c2327);
+    border-top: var(--border-width-1, 1px) solid var(--border-neutral-faint, #1c2327);
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--space-16, 1rem);
@@ -529,7 +535,7 @@
     font-size: var(--font-size-xs, 0.75rem);
     color: var(--text-tertiary);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--letter-spacing-wider, 0.08em);
   }
   .chapter-link { text-decoration: none; }
 

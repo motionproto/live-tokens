@@ -152,41 +152,53 @@
   // Fade for open-only buttons (bar timing lives in CSS vars below).
   const BTN_FADE = { duration: 130, easing: cubicInOut };
 
-  // Mirrors --bar-open-dur; used for the fallback that clears `opening` if no
-  // transitionend fires (reduced motion, suppressed transitions, no size delta).
+  // Mirror the CSS bar timings; used for the fallback that clears the mask if
+  // no transitionend fires (reduced motion, suppressed transitions, no delta).
   const OPEN_DUR = 240;
+  const CLOSE_DUR = 240;
+  const CLOSE_DELAY = 120; // matches --bar-close-delay: collapse waits for the fade-out
 
   // Suppress CSS transitions during gestures + mode swaps.
   let suppressTransition = $state(false);
 
-  // True only while the panel is growing pill → full. Masks the iframe so the
-  // user never sees the editor route reflow (side-nav scrollbar, white body)
-  // at intermediate widths; content fades in once the size transition settles.
+  // Mask the iframe during the pill↔full size change so the editor route's
+  // reflow (side-nav scrollbar, white body) never shows. On open, content fades
+  // in once the panel settles; on close, content fades out first, then the
+  // panel collapses (the shrink is delayed by --bar-close-delay to wait for it).
   let opening = $state(false);
+  let closing = $state(false);
   let prevOpen = open;
-  let openTimer: ReturnType<typeof setTimeout> | undefined;
+  let maskTimer: ReturnType<typeof setTimeout> | undefined;
   run(() => {
     if (open === prevOpen) return;
     prevOpen = open;
-    clearTimeout(openTimer);
+    clearTimeout(maskTimer);
     if (open) {
+      closing = false;
       opening = true;
       if (gesturing || suppressTransition) {
         // .no-transition path: no transitionend will fire, so reveal next frame.
         requestAnimationFrame(() => { opening = false; });
       } else {
-        openTimer = setTimeout(() => { opening = false; }, OPEN_DUR + 60);
+        maskTimer = setTimeout(() => { opening = false; }, OPEN_DUR + 60);
       }
     } else {
       opening = false;
+      closing = true;
+      if (gesturing || suppressTransition) {
+        requestAnimationFrame(() => { closing = false; });
+      } else {
+        maskTimer = setTimeout(() => { closing = false; }, CLOSE_DELAY + CLOSE_DUR + 60);
+      }
     }
   });
 
   function onPanelTransitionEnd(e: TransitionEvent) {
     if (e.target !== e.currentTarget) return;
     if (e.propertyName !== 'width' && e.propertyName !== 'height') return;
-    clearTimeout(openTimer);
+    clearTimeout(maskTimer);
     opening = false;
+    closing = false;
   }
 
   // Scrim catches pointer events during gestures so they hit the panel, not the iframe.
@@ -302,7 +314,7 @@
   });
   onDestroy(() => {
     window.removeEventListener('lt-overlay-toggle', handleToggleRequest);
-    clearTimeout(openTimer);
+    clearTimeout(maskTimer);
   });
 
   let panelStyle = $derived(!open
@@ -322,6 +334,7 @@
   class:docked={open && mode === 'docked'}
   class:floating={open && mode === 'floating'}
   class:opening={open && opening}
+  class:closing={!open && closing}
   class:no-transition={!!gesturing || suppressTransition}
   ontransitionend={onPanelTransitionEnd}
 >
@@ -431,8 +444,8 @@
     --bar-open-ease: cubic-bezier(0.65, 0, 0.35, 1);
     --bar-open-delay: 0ms;
     --bar-close-dur: 240ms;
-    --bar-close-ease: cubic-bezier(0.65, 0, 0.35, 1);
-    --bar-close-delay: 70ms;
+    --bar-close-ease: cubic-bezier(0, 0, 0.2, 1); /* ease-out */
+    --bar-close-delay: 120ms; /* let the iframe fade out before the panel shrinks */
 
     display: flex;
     flex-direction: column;
@@ -654,7 +667,7 @@
     height: 100%;
     border: 0;
     display: block;
-    transition: opacity 200ms ease;
+    transition: opacity 200ms ease-in;
   }
 
   /* While the panel grows pill → full, hide the iframe over the #000 frame-wrap
@@ -663,6 +676,14 @@
   .lt-overlay.opening .editor-frame {
     opacity: 0;
     pointer-events: none;
+  }
+
+  /* On collapse, fade the iframe out quickly first (the panel shrink is held
+     back by --bar-close-delay), so the reflow during shrink stays masked. */
+  .lt-overlay.closing .editor-frame {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease-in;
   }
 
   .gesture-scrim {
