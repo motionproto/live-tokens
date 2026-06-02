@@ -14,6 +14,7 @@ import { collectDefinedTokens, collectReferencedTokens } from './cssTokenOps';
 import type { TokensCssMigration } from './types';
 import { tokensCssMigration_2026_05_29_typographyScaleAdditions } from './migrations/2026-05-29-typography-scale-additions';
 import { tokensCssMigration_2026_05_29_sectiondividerLegacyAxisCleanup } from './migrations/2026-05-29-sectiondivider-legacy-axis-cleanup';
+import { tokensCssMigration_2026_06_03_transformScaleAdditions } from './migrations/2026-06-03-transform-scale-additions';
 
 export type { TokensCssMigration } from './types';
 export {
@@ -34,6 +35,7 @@ export { readLiveTokensConfig } from '../files/dataPaths';
 export const TOKENS_CSS_MIGRATIONS: TokensCssMigration[] = [
   tokensCssMigration_2026_05_29_typographyScaleAdditions,
   tokensCssMigration_2026_05_29_sectiondividerLegacyAxisCleanup,
+  tokensCssMigration_2026_06_03_transformScaleAdditions,
 ];
 
 export interface RunResult {

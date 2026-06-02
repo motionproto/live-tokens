@@ -33,6 +33,18 @@ export const BLUR: VariantScaleEntry = {
   ],
 };
 
+/** Transform-scale multipliers (e.g. image zoom-on-hover). 5% per step. */
+export const SCALE: VariantScaleEntry = {
+  varPrefix: '--scale-',
+  options: [
+    { key: 'sm', label: 'Small', value: '1.05' },
+    { key: 'md', label: 'Medium', value: '1.1' },
+    { key: 'lg', label: 'Large', value: '1.15' },
+    { key: 'xl', label: 'X-Large', value: '1.2' },
+    { key: '2xl', label: '2X-Large', value: '1.25' },
+  ],
+};
+
 export const BORDER_WIDTH: VariantScaleEntry = {
   varPrefix: '--border-width-',
   options: [

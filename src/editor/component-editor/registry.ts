@@ -6,11 +6,11 @@ import BadgeEditor, { allTokens as badgeTokens } from './BadgeEditor.svelte';
 import CalloutEditor, { allTokens as calloutTokens } from './CalloutEditor.svelte';
 import CornerBadgeEditor, { allTokens as cornerBadgeTokens } from './CornerBadgeEditor.svelte';
 import ButtonEditor, { allTokens as buttonTokens } from './ButtonEditor.svelte';
-import CardEditor, { allTokens as cardTokens } from './CardEditor.svelte';
+import CardEditor, { allTokens as cardTokens, intrinsics as cardIntrinsics } from './CardEditor.svelte';
 import CodeSnippetEditor, { allTokens as codeSnippetTokens } from './CodeSnippetEditor.svelte';
 import CollapsibleSectionEditor, { allTokens as collapsibleSectionTokens } from './CollapsibleSectionEditor.svelte';
 import DialogEditor, { allTokens as dialogTokens } from './DialogEditor.svelte';
-import ImageEditor, { allTokens as imageTokens } from './ImageEditor.svelte';
+import ImageEditor, { allTokens as imageTokens, intrinsics as imageIntrinsics } from './ImageEditor.svelte';
 import ImageLightboxEditor, { allTokens as imageLightboxTokens } from './ImageLightboxEditor.svelte';
 import InlineEditActionsEditor, { allTokens as inlineEditActionsTokens } from './InlineEditActionsEditor.svelte';
 import InputEditor, { allTokens as inputTokens } from './InputEditor.svelte';
@@ -142,6 +142,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Card.svelte',
     editorComponent: CardEditor,
     schema: cardTokens,
+    intrinsics: cardIntrinsics,
     origin: 'system',
   },
   badge: {
@@ -187,6 +188,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Image.svelte',
     editorComponent: ImageEditor,
     schema: imageTokens,
+    intrinsics: imageIntrinsics,
     origin: 'system',
   },
   imagelightbox: {

@@ -10,13 +10,13 @@
   gap="var(--space-8)"
 >
   <div class="arch">
-    <Card class="arch-card arch-base no-hover" icon="fas fa-layer-group" title="Tokens make the foundation">
+    <Card class="arch-card arch-base" hover={false} icon="fas fa-layer-group" title="Tokens make the foundation">
       <p>
         Raw CSS variables for every primitive, grouped by family and function. Edit one value and every consumer updates at once.
       </p>
     </Card>
 
-    <Card class="arch-card arch-component no-hover" icon="fas fa-shapes" title="Components build upon it">
+    <Card class="arch-card arch-component" hover={false} icon="fas fa-shapes" title="Components build upon it">
       <p>
         Each component property is assigned a token. Property names describe purpose. Assign a new token and the component changes.
       </p>

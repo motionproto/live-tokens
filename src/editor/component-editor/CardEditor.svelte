@@ -1,6 +1,6 @@
 <script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
-  import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import type { Token, TypeGroupConfig, IntrinsicSpec } from './scaffolding/types';
 
   export const component = 'card';
 
@@ -83,13 +83,34 @@
     ...buildTypeGroupColorTokens(typeGroups, { component, variants: ['default'] }),
     ...typeGroupTokens,
   ];
+
+  // Global "Use hover" default. The two `*-active` vars flip together: off = resting
+  // tokens (no visible hover), on = the `--card-hover-*` tokens. Stored per-component.
+  const HOVER_OFF = { border: 'var(--card-default-border)', shadow: 'var(--card-default-shadow)' };
+  const HOVER_ON = { border: 'var(--card-hover-border)', shadow: 'var(--card-hover-shadow)' };
+  export const intrinsics: IntrinsicSpec[] = [
+    {
+      key: 'hover-border',
+      variants: ['default'],
+      variable: () => '--card-hover-border-active',
+      values: [HOVER_OFF.border, HOVER_ON.border],
+      default: { default: HOVER_OFF.border },
+    },
+    {
+      key: 'hover-shadow',
+      variants: ['default'],
+      variable: () => '--card-hover-shadow-active',
+      values: [HOVER_OFF.shadow, HOVER_ON.shadow],
+      default: { default: HOVER_OFF.shadow },
+    },
+  ];
 </script>
 
 <script lang="ts">
   import Card from '../../system/components/Card.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../core/store/editorStore';
+  import { editorState, setComponentAlias } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
 
@@ -97,7 +118,20 @@
     Object.entries(states).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
   ) as Record<string, Token[]>);
 
-  let hoverEnabled = $state(true);
+  let aliases = $derived(
+    ($editorState.components[component]?.aliases ?? {}) as Record<string, import('../core/store/editorTypes').CssVarRef>,
+  );
+  let hoverEnabled = $derived.by(() => {
+    const ref = aliases['--card-hover-border-active'];
+    const raw = ref?.kind === 'literal' ? ref.value : HOVER_OFF.border;
+    return raw === HOVER_ON.border;
+  });
+
+  function setHoverEnabled(checked: boolean) {
+    const v = checked ? HOVER_ON : HOVER_OFF;
+    setComponentAlias(component, '--card-hover-border-active', { kind: 'literal', value: v.border });
+    setComponentAlias(component, '--card-hover-shadow-active', { kind: 'literal', value: v.shadow });
+  }
 </script>
 
 <ComponentEditorBase {component} title="Card" description="Generic card with icon, title, and slotted body." tokens={allTokens} {linked}>
@@ -110,14 +144,20 @@
   >
     {#snippet stateActions(stateName)}
       {#if stateName === 'hover'}
-        <label class="hover-enable">
-          <input type="checkbox" bind:checked={hoverEnabled} />
-          <span>Use hover</span>
-        </label>
+        <div class="hover-control">
+          <label class="hover-enable">
+            <input type="checkbox" checked={hoverEnabled} onchange={(e) => setHoverEnabled(e.currentTarget.checked)} />
+            <span>Use hover</span>
+          </label>
+          <p class="hover-help">
+            Checked: every card lifts on hover. Unchecked: hover is off by default and a page turns it on
+            per card with the <code>hover</code> prop.
+          </p>
+        </div>
       {/if}
     {/snippet}
     {#snippet children({ activeState })}
-      {@const previewClass = activeState === 'hover' ? 'force-hover' : (hoverEnabled ? '' : 'no-hover')}
+      {@const previewClass = activeState === 'hover' ? 'force-hover' : ''}
       <div class="card-demo">
         <Card title="Card title" class={previewClass}>
           <p style="margin: 0;">Slotted body content. Hover the card (or switch the editor to the Hover state) to preview hover styling.</p>
@@ -138,5 +178,13 @@
     font-size: var(--ui-font-size-sm);
     color: var(--ui-text-secondary);
     cursor: pointer;
+  }
+  .hover-help {
+    margin: var(--ui-space-4) 0 0;
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-tertiary);
+  }
+  .hover-help code {
+    font-family: var(--ui-font-mono);
   }
 </style>

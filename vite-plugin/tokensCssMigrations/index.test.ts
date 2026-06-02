@@ -27,6 +27,14 @@ describe('runTokensCssMigrations', () => {
     expect(css).toContain('--line-height-tight: 0.9;');
   });
 
+  it('adds the --scale-* transform scale an old tokens.css lacks', () => {
+    const { css, applied } = runTokensCssMigrations(LEGACY_TOKENS_CSS);
+    expect(applied).toContain('2026-06-03-transform-scale-additions');
+    for (const t of ['--scale-sm', '--scale-md', '--scale-lg', '--scale-xl', '--scale-2xl']) {
+      expect(css).toContain(t);
+    }
+  });
+
   it('is idempotent — a second run changes nothing', () => {
     const first = runTokensCssMigrations(LEGACY_TOKENS_CSS).css;
     const second = runTokensCssMigrations(first);

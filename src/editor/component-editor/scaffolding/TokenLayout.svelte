@@ -9,7 +9,7 @@
   import UIPaddingSelector from '../../ui/UIPaddingSelector.svelte';
   import UILetterSpacingSelector from '../../ui/UILetterSpacingSelector.svelte';
   import UIEasingSelector from '../../ui/UIEasingSelector.svelte';
-  import { BLUR, BORDER_WIDTH, DOT_SIZE, DURATION, RADIUS, SHADOW, DIVIDER_HEIGHT, DIVIDER_INSET } from '../../ui/variantScales';
+  import { BLUR, BORDER_WIDTH, DOT_SIZE, DURATION, RADIUS, SCALE, SHADOW, DIVIDER_HEIGHT, DIVIDER_INSET } from '../../ui/variantScales';
   import {
     editorState,
     getComponentPropertySiblings,
@@ -31,6 +31,7 @@
     | 'divider-inset'
     | 'dot-size'
     | 'blur'
+    | 'scale'
     | 'shadow'
     | 'font-family'
     | 'font-weight'
@@ -99,6 +100,7 @@
     { kind: 'divider-inset',  matches: (v) => v.endsWith('-divider-inset') },
     { kind: 'dot-size',       matches: (v) => v.endsWith('-dot-size') },
     { kind: 'blur',           matches: (v) => v.endsWith('-blur') || v.startsWith('--blur-') },
+    { kind: 'scale',          matches: (v) => v.endsWith('-scale') || v.startsWith('--scale-') },
     { kind: 'shadow',         matches: (v) => v.endsWith('-shadow') || v.startsWith('--shadow-') },
     { kind: 'padding',        matches: (v) => v.endsWith('-padding') || v.endsWith('-margin') },
     { kind: 'gap',            matches: (v) => v.endsWith('-gap') },
@@ -134,6 +136,7 @@
     'duration',
     'easing',
     'blur',
+    'scale',
     'shadow',
     'text-color',
     'surface',
@@ -205,6 +208,7 @@
     'duration': { component: UIVariantSelector, extra: () => ({ ...DURATION }) },
     'easing': { component: UIEasingSelector },
     'blur': { component: UIVariantSelector, extra: () => ({ ...BLUR }) },
+    'scale': { component: UIVariantSelector, extra: () => ({ ...SCALE }) },
     'shadow': { component: UIVariantSelector, extra: () => ({ ...SHADOW }) },
     'surface': { component: UIPaletteSelector },
     'border': { component: UIPaletteSelector },
@@ -234,6 +238,7 @@
       'duration',
       'easing',
       'blur',
+      'scale',
       'shadow',
       'surface',
       'border-width',

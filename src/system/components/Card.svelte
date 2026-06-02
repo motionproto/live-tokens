@@ -4,6 +4,11 @@
     iconColor?: string;
     title?: string;
     size?: 'default' | 'compact';
+    /** false → the card stops pinning body typography so the consumer fully owns slotted content's styling. */
+    prose?: boolean;
+    /** Apply hover styling on pointer-over. `undefined` inherits the editor's global "Use hover"
+        default; `true`/`false` force this instance on/off. */
+    hover?: boolean | undefined;
     class?: string;
     children?: import('svelte').Snippet;
   }
@@ -13,16 +18,27 @@
     iconColor = 'var(--text-secondary)',
     title = '',
     size = 'default',
+    prose = true,
+    hover = undefined,
     class: className = '',
     children
   }: Props = $props();
-  
+
+  // Per-instance override of the global hover intrinsic; undefined leaves :root in charge.
+  let hoverBorder = $derived(
+    hover === undefined ? undefined : hover ? 'var(--card-hover-border)' : 'var(--card-default-border)',
+  );
+  let hoverShadow = $derived(
+    hover === undefined ? undefined : hover ? 'var(--card-hover-shadow)' : 'var(--card-default-shadow)',
+  );
 </script>
 
 <div
   class="card {className}"
   class:compact={size === 'compact'}
-  style="--card-color: {iconColor};"
+  style:--card-color={iconColor}
+  style:--card-hover-border-active={hoverBorder}
+  style:--card-hover-shadow-active={hoverShadow}
 >
   {#if icon || title}
     <div class="card-header">
@@ -34,7 +50,7 @@
       {/if}
     </div>
   {/if}
-  <div class="card-body">
+  <div class="card-body" class:prose>
     {@render children?.()}
   </div>
 </div>
@@ -78,6 +94,12 @@
 
     --card-hover-border: var(--border-neutral-strong);
     --card-hover-shadow: var(--shadow-md);
+
+    /* Global "Use hover" intrinsic: the active hover values default to the resting
+       tokens (hover off). The editor checkbox / a per-instance `hover` prop swap
+       these to the `--card-hover-*` tokens to turn hover on. */
+    --card-hover-border-active: var(--card-default-border);
+    --card-hover-shadow-active: var(--card-default-shadow);
   }
 
   .card {
@@ -92,7 +114,12 @@
     overflow: hidden;
   }
 
-  .card:not(.no-hover):hover,
+  .card:hover {
+    border-color: var(--card-hover-border-active);
+    box-shadow: var(--card-hover-shadow-active);
+  }
+
+  /* Editor preview hook: paint hover tokens directly, ignoring the on/off gate. */
   .card.force-hover {
     border-color: var(--card-hover-border);
     box-shadow: var(--card-hover-shadow);
@@ -141,32 +168,39 @@
     @include themed-padding(--card-default-body-padding);
   }
 
-  /* Slot content inherits the card's body typography so consumer-side global
-     element rules (e.g. site.css `p { font-family: serif }`) don't override
-     the card-body-font-family alias. */
-  .card-body :global(p),
-  .card-body :global(ul),
-  .card-body :global(ol),
-  .card-body :global(li) {
-    font: inherit;
+  /* In prose mode the card pins its owned type axes onto slotted flowing
+     content, so a consumer's global element rules (e.g. site.css's
+     `p { font-family: serif }` and `ul li {…}`, the latter specificity 0,0,2)
+     can't override the card-body aliases. Only the axes the card's tokens
+     define are pinned — font-style, letter-spacing, text-transform, etc. stay
+     free for the consumer. `prose={false}` drops the pinning entirely; the
+     `.card-body` baseline above still gives unstyled content a sane default. */
+  .card-body.prose :global(p),
+  .card-body.prose :global(ul),
+  .card-body.prose :global(ol),
+  .card-body.prose :global(li) {
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
     color: inherit;
   }
 
-  .card-body :global(p) {
+  .card-body.prose :global(p) {
     margin: 0 0 var(--space-12);
   }
 
-  .card-body :global(p:last-child) {
+  .card-body.prose :global(p:last-child) {
     margin-bottom: 0;
   }
 
-  .card-body :global(ul),
-  .card-body :global(ol) {
+  .card-body.prose :global(ul),
+  .card-body.prose :global(ol) {
     margin: var(--space-12) 0;
     padding-left: var(--space-24);
   }
 
-  .card-body :global(li) {
+  .card-body.prose :global(li) {
     margin-bottom: var(--space-4);
   }
 

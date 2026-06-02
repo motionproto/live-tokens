@@ -458,6 +458,13 @@
   --blur-xl: 24px;
   --blur-2xl: 32px;
 
+  /* Transform-scale multipliers (e.g. hover zoom). 5% per step. */
+  --scale-sm: 1.05;
+  --scale-md: 1.1;
+  --scale-lg: 1.15;
+  --scale-xl: 1.2;
+  --scale-2xl: 1.25;
+
   /* COLUMN LAYOUT — 12-col grid. Drives the dev overlay; consume via
      grid-template-columns: repeat(var(--columns-count), 1fr) etc.
      --columns-margin = side gutters (0 = flush). */
