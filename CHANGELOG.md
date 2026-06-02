@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.26.0 — Default theme + manifest live from the package
+
+### Changed
+
+- **The default theme and default manifest now resolve live from the installed
+  package** instead of a vendored local copy. The dev plugin's resource server
+  gained a read-only package-directory fallback, so a consumer whose pointer is
+  `default` picks up the library's updated defaults on `npm upgrade`, while a
+  consumer on a custom theme or manifest is left untouched and keeps a current
+  baseline to restore to. Component defaults are unchanged: they still derive
+  from each component's shipped `.svelte` `:global(:root)` block.
+- **`themes/default` is now read-only (PUT returns 403)**, symmetric with the
+  existing manifest and component-config guards. The default is owned by the
+  package, not the consumer.
+
+### Added
+
+- Ship `themes/default.json` and `manifests/default.json` in the package tarball
+  (the live source for the fallback above).
+- `check:production-is-default` publish gate: the shipped production baseline
+  (theme, manifest, and every component) must resolve to `default`, so a
+  production-only consumer never inherits a maintainer's custom palette.
+
+### Removed
+
+- The empty-seed writers that wrote a local `themes/default.json` and
+  `manifests/default.json` on first dev-server start. Those would shadow the
+  package default under the new model. Also removed the dead `presets/` to
+  `manifests/` one-shot migration.
+
 ## 0.25.1 — Drop unused Mermaid dependency
 
 ### Removed
