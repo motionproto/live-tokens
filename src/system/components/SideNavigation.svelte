@@ -282,7 +282,7 @@
     --sidenavigation-title-default-label: var(--text-primary);
     --sidenavigation-title-default-label-font-family: var(--font-display);
     --sidenavigation-title-default-label-font-size: var(--font-size-2xl);
-    --sidenavigation-title-default-label-font-weight: var(--font-weight-normal);
+    --sidenavigation-title-default-label-font-weight: var(--font-weight-bold);
     --sidenavigation-title-default-label-line-height: var(--line-height-sm);
 
     /* Title — hover */
@@ -295,7 +295,7 @@
     --sidenavigation-title-hover-label: var(--text-primary);
     --sidenavigation-title-hover-label-font-family: var(--font-display);
     --sidenavigation-title-hover-label-font-size: var(--font-size-2xl);
-    --sidenavigation-title-hover-label-font-weight: var(--font-weight-normal);
+    --sidenavigation-title-hover-label-font-weight: var(--font-weight-bold);
     --sidenavigation-title-hover-label-line-height: var(--line-height-sm);
 
     /* Title — active */
@@ -308,7 +308,7 @@
     --sidenavigation-title-active-label: var(--text-primary);
     --sidenavigation-title-active-label-font-family: var(--font-display);
     --sidenavigation-title-active-label-font-size: var(--font-size-2xl);
-    --sidenavigation-title-active-label-font-weight: var(--font-weight-normal);
+    --sidenavigation-title-active-label-font-weight: var(--font-weight-bold);
     --sidenavigation-title-active-label-line-height: var(--line-height-sm);
 
     /* Toggle — default */
@@ -339,8 +339,8 @@
     --sidenavigation-section-default-accent-width: var(--border-width-3);
     --sidenavigation-section-default-text: var(--text-primary);
     --sidenavigation-section-default-text-font-family: var(--font-sans);
-    --sidenavigation-section-default-text-font-size: var(--font-size-md);
-    --sidenavigation-section-default-text-font-weight: var(--font-weight-normal);
+    --sidenavigation-section-default-text-font-size: var(--font-size-lg);
+    --sidenavigation-section-default-text-font-weight: var(--font-weight-medium);
     --sidenavigation-section-default-text-line-height: var(--line-height-md);
 
     /* Section header — hover */
@@ -349,8 +349,8 @@
     --sidenavigation-section-hover-accent-width: var(--border-width-3);
     --sidenavigation-section-hover-text: var(--text-primary);
     --sidenavigation-section-hover-text-font-family: var(--font-sans);
-    --sidenavigation-section-hover-text-font-size: var(--font-size-md);
-    --sidenavigation-section-hover-text-font-weight: var(--font-weight-normal);
+    --sidenavigation-section-hover-text-font-size: var(--font-size-lg);
+    --sidenavigation-section-hover-text-font-weight: var(--font-weight-medium);
     --sidenavigation-section-hover-text-line-height: var(--line-height-md);
 
     /* Section header — active (this section's page is the current route) */
@@ -359,8 +359,8 @@
     --sidenavigation-section-active-accent-width: var(--border-width-3);
     --sidenavigation-section-active-text: var(--text-primary);
     --sidenavigation-section-active-text-font-family: var(--font-sans);
-    --sidenavigation-section-active-text-font-size: var(--font-size-md);
-    --sidenavigation-section-active-text-font-weight: var(--font-weight-normal);
+    --sidenavigation-section-active-text-font-size: var(--font-size-lg);
+    --sidenavigation-section-active-text-font-weight: var(--font-weight-medium);
     --sidenavigation-section-active-text-line-height: var(--line-height-md);
 
     /* Item — default */
@@ -370,8 +370,8 @@
     --sidenavigation-item-default-accent-width: var(--border-width-3);
     --sidenavigation-item-default-text: var(--text-tertiary);
     --sidenavigation-item-default-text-font-family: var(--font-sans);
-    --sidenavigation-item-default-text-font-size: var(--font-size-sm);
-    --sidenavigation-item-default-text-font-weight: var(--font-weight-light);
+    --sidenavigation-item-default-text-font-size: var(--font-size-md);
+    --sidenavigation-item-default-text-font-weight: var(--font-weight-semibold);
     --sidenavigation-item-default-text-line-height: var(--line-height-md);
 
     /* Item — hover */
@@ -381,7 +381,7 @@
     --sidenavigation-item-hover-accent-width: var(--border-width-3);
     --sidenavigation-item-hover-text: var(--text-secondary);
     --sidenavigation-item-hover-text-font-family: var(--font-sans);
-    --sidenavigation-item-hover-text-font-size: var(--font-size-sm);
+    --sidenavigation-item-hover-text-font-size: var(--font-size-md);
     --sidenavigation-item-hover-text-font-weight: var(--font-weight-light);
     --sidenavigation-item-hover-text-line-height: var(--line-height-md);
 
@@ -392,7 +392,7 @@
     --sidenavigation-item-active-accent-width: var(--border-width-3);
     --sidenavigation-item-active-text: var(--text-primary);
     --sidenavigation-item-active-text-font-family: var(--font-sans);
-    --sidenavigation-item-active-text-font-size: var(--font-size-sm);
+    --sidenavigation-item-active-text-font-size: var(--font-size-md);
     --sidenavigation-item-active-text-font-weight: var(--font-weight-normal);
     --sidenavigation-item-active-text-line-height: var(--line-height-md);
 

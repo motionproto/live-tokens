@@ -1,7 +1,7 @@
 {
   "name": "Default Theme",
   "createdAt": "2026-04-01T11:00:38.342Z",
-  "updatedAt": "2026-05-30T00:00:00.000Z",
+  "updatedAt": "2026-06-01T23:57:08.090Z",
   "editorConfigs": {
     "Neutral": {
       "baseColor": "#808080",
@@ -995,7 +995,7 @@
           "lightness": [
             {
               "x": 0,
-              "y": 113,
+              "y": 157,
               "inDx": 0,
               "inDy": 0,
               "outDx": 0,
@@ -1003,7 +1003,7 @@
             },
             {
               "x": 100,
-              "y": 51,
+              "y": 57,
               "inDx": -30,
               "inDy": 0,
               "outDx": 30,
@@ -2143,6 +2143,10 @@
     "--dialog-secondary-hover-border-width": "var(--border-width-1)",
     "--dialog-secondary-hover-radius": "var(--radius-md)",
     "--dialog-secondary-hover-padding": "var(--space-8)",
+    "--columns-count": "12",
+    "--columns-max-width": "1440px",
+    "--columns-gutter": "32px",
+    "--columns-margin": "0px",
     "--overlay-low": "color-mix(in srgb, var(--surface-neutral-lowest) 38%, transparent)",
     "--overlay": "color-mix(in srgb, var(--surface-neutral-lowest) 51%, transparent)",
     "--overlay-high": "color-mix(in srgb, var(--surface-neutral-lowest) 64%, transparent)",
@@ -2153,11 +2157,7 @@
     "--shadow-md": "3px 3px 6px 0px hsla(237, 18%, 3%, 0.9)",
     "--shadow-lg": "5px 5px 9px 0px hsla(237, 18%, 3%, 0.9)",
     "--shadow-xl": "6px 7px 13px 0px hsla(237, 18%, 3%, 0.9)",
-    "--shadow-2xl": "8px 9px 16px 0px hsla(237, 18%, 3%, 0.9)",
-    "--columns-count": "12",
-    "--columns-max-width": "1440px",
-    "--columns-gutter": "32px",
-    "--columns-margin": "0px"
+    "--shadow-2xl": "8px 9px 16px 0px hsla(237, 18%, 3%, 0.9)"
   },
   "fontSources": [
     {

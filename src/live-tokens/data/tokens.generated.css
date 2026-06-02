@@ -54,6 +54,10 @@
   --dialog-secondary-hover-border-width: var(--border-width-1);
   --dialog-secondary-hover-radius: var(--radius-md);
   --dialog-secondary-hover-padding: var(--space-8);
+  --columns-count: 12;
+  --columns-max-width: 1440px;
+  --columns-gutter: 32px;
+  --columns-margin: 0px;
   --overlay-low: color-mix(in srgb, var(--surface-neutral-lowest) 38%, transparent);
   --overlay: color-mix(in srgb, var(--surface-neutral-lowest) 51%, transparent);
   --overlay-high: color-mix(in srgb, var(--surface-neutral-lowest) 64%, transparent);
@@ -65,10 +69,6 @@
   --shadow-lg: 5px 5px 9px 0px hsla(237, 18%, 3%, 0.9);
   --shadow-xl: 6px 7px 13px 0px hsla(237, 18%, 3%, 0.9);
   --shadow-2xl: 8px 9px 16px 0px hsla(237, 18%, 3%, 0.9);
-  --columns-count: 12;
-  --columns-max-width: 1440px;
-  --columns-gutter: 32px;
-  --columns-margin: 0px;
   --color-neutral-100: #dde6ec;
   --color-neutral-200: #c4cdd3;
   --color-neutral-300: #a8b1b7;
@@ -206,11 +206,11 @@
   --border-accent: #006f6d;
   --border-accent-medium: #259592;
   --border-accent-strong: #54bbb7;
-  --text-accent: #009d9a;
-  --text-accent-secondary: #1f7673;
-  --text-accent-tertiary: #2d5351;
-  --text-accent-muted: #2c3837;
-  --text-accent-disabled: #292a2a;
+  --text-accent: #62efea;
+  --text-accent-secondary: #5baba8;
+  --text-accent-tertiary: #4d7371;
+  --text-accent-muted: #3c4847;
+  --text-accent-disabled: #313232;
   --color-special-100: #d2c8ff;
   --color-special-200: #b19cff;
   --color-special-300: #9673f5;
@@ -355,22 +355,4 @@
   --font-sans: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, sans-serif;
   --font-serif: "GFS Didot", serif;
   --font-mono: "fira-code", ui-monospace, "SF Mono", Menlo, Consolas, monospace, monospace;
-}
-
-/* Component aliases (production configs differing from defaults) */
-:root:root {
-  /* sidenavigation (my-side-navigation) */
-  --sidenavigation-title-default-label-font-weight: var(--font-weight-bold);
-  --sidenavigation-title-hover-label-font-weight: var(--font-weight-bold);
-  --sidenavigation-title-active-label-font-weight: var(--font-weight-bold);
-  --sidenavigation-section-default-text-font-size: var(--font-size-lg);
-  --sidenavigation-section-default-text-font-weight: var(--font-weight-medium);
-  --sidenavigation-section-hover-text-font-size: var(--font-size-lg);
-  --sidenavigation-section-hover-text-font-weight: var(--font-weight-medium);
-  --sidenavigation-section-active-text-font-size: var(--font-size-lg);
-  --sidenavigation-section-active-text-font-weight: var(--font-weight-medium);
-  --sidenavigation-item-default-text-font-size: var(--font-size-md);
-  --sidenavigation-item-default-text-font-weight: var(--font-weight-semibold);
-  --sidenavigation-item-hover-text-font-size: var(--font-size-md);
-  --sidenavigation-item-active-text-font-size: var(--font-size-md);
 }

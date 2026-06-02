@@ -49,11 +49,7 @@
       const active = await getActiveManifest();
       if (active) {
         activeFileName = active._fileName ?? 'default';
-        // Default is always labeled "Default" regardless of what the on-disk
-        // name field says (older default.json files may have "Default Preset").
-        currentDisplayName = activeFileName === 'default'
-          ? 'Default'
-          : (active.name ?? activeFileName);
+        currentDisplayName = active.name ?? activeFileName;
         const meta = (await listManifests()).find((f) => f.fileName === activeFileName) ?? null;
         activeManifest.set(meta);
       }
