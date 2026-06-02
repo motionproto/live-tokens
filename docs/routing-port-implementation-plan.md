@@ -7,6 +7,31 @@ Companion to
 `docs/routing-architecture-exploration.md`, which holds the root-cause analysis
 and the full design of the routing port. This document is the build sequence.
 
+## Completion status (2026-06-02)
+
+Phase 1 is built, tested, and documented on `main`. It is not yet released, and
+its consumer-migration exit criterion is still outstanding.
+
+Done:
+
+- [x] `props` on `RouteEntry`, spread into the dispatched page (`<Page {...entry.props} />`).
+- [x] `resolve?: (route) => RouteEntry | null` prop; precedence `pages[route]`, then `resolve(route)`, then `pages['/']` (exported as `resolveRoute`).
+- [x] Page-source resolves from the matched entry's `source`, so dynamic routes get "Page Source" and it cannot desync from the page.
+- [x] Precedence documented at the API surface (the `resolve` prop, `RouteEntry.props`, and the `resolveRoute` JSDoc).
+- [x] Back-compat: `pages`-only consumers unchanged (`resolveRoute(pages, undefined, route)` equals today's `pages[route] ?? pages['/']`).
+- [x] Test `LiveTokensRouter.test.ts`: a `/module/:id` resolve (asserts component, props, source) plus the `null`-falls-through-to-`pages['/']` case. Full suite green (2705 tests); typecheck and build clean.
+- [x] Present defect: removed the dead `/demo` glob and stale comment in `ComponentEditorPage.svelte`.
+- [x] Developer docs: README routing section, `CHANGELOG` 0.28.0, build-page skill, template README, getting-started.
+
+Outstanding:
+
+- [ ] Consumer migration: move runegoblin onto `<LiveTokensRouter {pages} {resolve} />`. This is Phase 1's exit criterion and lives in that repo, not this one.
+- [ ] Release 0.28.0: version bump plus tag/publish via CI. The CHANGELOG entry is ready.
+
+Commits: `ec40596` (router `resolve`/`props`, test, present-defect cleanup) and
+`4b9090e` (docs). The routing port and all rung-3 machinery remain deferred,
+unchanged.
+
 Per a YAGNI call (no full-router adoption is planned), the only **scheduled**
 work is the no-router dynamic tier (`resolve` + `props`), which has a real
 consumer today. The routing port and all full-router (rung-3) machinery are
