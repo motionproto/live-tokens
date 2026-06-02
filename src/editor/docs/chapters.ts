@@ -1,3 +1,5 @@
+import { docContent } from './content.generated';
+
 export interface Chapter {
   id: string;
   title: string;
@@ -17,21 +19,17 @@ export const chapters: Chapter[] = [
 
 export const chapterIds = chapters.map((c) => c.id);
 
-/* Vite resolves this glob at build time. The `?raw` query loads each .md
-   file as a string, so the markdown lives next to the runtime page module
-   and reloads on edit via HMR. */
-const docModules = import.meta.glob<string>(
-  './content/*.md',
-  { query: '?raw', import: 'default' },
-);
-
+/* Bodies come from the generated module, NOT `import.meta.glob('./content/*.md',
+   '?raw')`: that glob is a Vite compile-time transform, and esbuild's
+   optimizeDeps doesn't expand it inside a pre-bundled node_modules dep, so the
+   guide threw "Chapter not found" in tarball consumers. Edit ./content/*.md
+   then run `npm run sync:docs` to regenerate. */
 export async function loadChapter(id: string): Promise<string> {
-  const key = `./content/${id}.md`;
-  const loader = docModules[key];
-  if (!loader) {
-    throw new Error(`Chapter not found: ${id} (expected at ${key}).`);
+  const md = docContent[id];
+  if (md === undefined) {
+    throw new Error(`Chapter not found: ${id}`);
   }
-  return loader();
+  return md;
 }
 
 export function chapterNeighbours(id: string): { prev: Chapter | null; next: Chapter | null } {

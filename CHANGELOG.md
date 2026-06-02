@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.28.1 — Docs load from the published package
+
+### Fixed
+
+- **Guide chapters no longer fail to load in tarball consumers.** The `/docs`
+  page loaded chapter bodies with `import.meta.glob('./content/*.md', '?raw')`,
+  a Vite compile-time transform that esbuild's `optimizeDeps` leaves unexpanded
+  inside a pre-bundled `node_modules` dependency. Installed-package consumers
+  got an empty module, so every chapter threw "Chapter not found" (the package's
+  own demo app and `npm link`ed consumers were unaffected, which is why it
+  surfaced only once a consumer ran the package-owned `/docs` from the tarball).
+  Bodies now ship as a generated ES module (`content.generated.ts`) built from
+  the same `src/editor/docs/content/*.md` sources via `npm run sync:docs`, with
+  `check:docs-content` gating drift in CI. No consumer action required.
+
 ## 0.28.0 — Dynamic routes without a router
 
 ### Added

@@ -1,6 +1,6 @@
 {
   "name": "@motion-proto/live-tokens",
-  "version": "0.28.0",
+  "version": "0.28.1",
   "type": "module",
   "description": "Design token editor with live CSS variable editing. Svelte 5 + Vite 8.",
   "keywords": [
@@ -31,9 +31,7 @@
     "template",
     "!**/*.test.ts",
     "!**/*.spec.ts",
-    "!**/__tests__/**",
-    "!src/system/components/Stat.svelte",
-    "!src/system/components/StatEditor.svelte"
+    "!**/__tests__/**"
   ],
   "bin": {
     "live-tokens": "./bin/cli.mjs"
@@ -99,11 +97,13 @@
     "check:editor-font-isolation": "node scripts/check-editor-font-isolation.mjs",
     "check:component-defaults": "node scripts/sync-component-defaults.mjs --check",
     "check:production-is-default": "node scripts/check-production-is-default.mjs",
+    "check:docs-content": "node scripts/sync-docs.mjs --check",
     "sync:component-defaults": "node scripts/sync-component-defaults.mjs --write",
+    "sync:docs": "node scripts/sync-docs.mjs --write",
     "collapse:manifest": "node scripts/collapse-manifest-to-default.mjs",
     "check:smoke-install": "bash scripts/smoke-install.sh",
     "check:smoke-create": "bash scripts/smoke-create.sh",
-    "prepublishOnly": "npm run check:no-style-imports && npm run check:editor-font-isolation && npm run check:component-defaults && npm run check:production-is-default && npm run build:lib && npm run check:smoke-install && npm run check:smoke-create"
+    "prepublishOnly": "npm run check:no-style-imports && npm run check:editor-font-isolation && npm run check:component-defaults && npm run check:production-is-default && npm run check:docs-content && npm run build:lib && npm run check:smoke-install && npm run check:smoke-create"
   },
   "peerDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0",
