@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.28.0 — Dynamic routes without a router
+
+### Added
+
+- **`<LiveTokensRouter>` gains a `resolve` prop for routes you can't enumerate.**
+  Pass `resolve: (path) => RouteEntry | null` to match params (`/module/:id`),
+  prefixes, or conditionally-gated paths in plain code, with no route syntax to
+  learn. Resolution order is `pages[path]`, then `resolve(path)`, then the
+  `pages['/']` fallback, so existing `pages`-only consumers are unaffected.
+- **`RouteEntry` gains `props`.** A static or resolved entry can pass props to
+  its page, so one component can serve many paths (for example the matched id
+  or slug). The entry's `source` now drives "Page Source" on dynamic routes
+  too, so it can't desync from the dispatched page.
+
 ## 0.27.0 — Docs ship with the package
 
 ### Added

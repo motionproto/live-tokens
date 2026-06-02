@@ -1,6 +1,6 @@
 ---
 name: live-tokens-build-page
-description: Apply the @motion-proto/live-tokens project conventions when building a page: use shipped components from the catalogue, reference theme tokens (never hex/pixel literals), mount routes dynamically, register pageSources, and import site.css per-page. Use when the user asks to build / create / lay out a page, route, hero, marketing page, landing page, dashboard, settings screen, or pricing page; add a route; place / drop / use an existing component on a page; or assemble a screen from the live-tokens catalogue. For component-choice decisions, see live-tokens-pick-component. For authoring a brand-new component, see live-tokens-create-component.
+description: Apply the @motion-proto/live-tokens project conventions when building a page: use shipped components from the catalogue, reference theme tokens (never hex/pixel literals), mount routes dynamically, register each route's page source, and import site.css per-page. Use when the user asks to build / create / lay out a page, route, hero, marketing page, landing page, dashboard, settings screen, or pricing page; add a route; place / drop / use an existing component on a page; or assemble a screen from the live-tokens catalogue. For component-choice decisions, see live-tokens-pick-component. For authoring a brand-new component, see live-tokens-create-component.
 ---
 
 # Building pages in a live-tokens project
@@ -18,8 +18,10 @@ To place children at specific page-column positions, span the parent grid (`grid
 
 ## Wiring
 
-- Mount routes dynamically in `App.svelte` with `$derived.by(() => import(...))`. Static top-level imports evaluate every page module at boot and leak page CSS into editor routes.
-- Register each route in `<LiveEditorOverlay pageSources={...} />` so the "Page Source" button opens the file in VS Code.
+- Add the route the way `App.svelte` already wires routes:
+  - **`<LiveTokensRouter pages={...}>`** (the usual case): add a `pages` entry as `lazy: () => import('./YourPage.svelte')` with a `source: 'src/...'` (and a `label`/`icon` to show it in the nav rail). For a route you can't enumerate (a `/:id`, a path prefix, a gated page), add a `resolve(path) => RouteEntry | null` instead of a `pages` key; same entry shape, so `props` and `source` (hence "Page Source") work identically.
+  - **Manual `<LiveEditorOverlay>`**: dispatch with `$derived.by(() => import(...))` and register the route's source in `pageSources={...}`.
+  Either way use `lazy`, not a static top-level import: static imports evaluate every page module at boot and leak page CSS into the editor routes.
 - Import `site.css` from each page's `<script>` block, never from `main.ts` (would leak into editor routes).
 
 ## Avoid
@@ -32,4 +34,4 @@ To place children at specific page-column positions, span the parent grid (`grid
 
 ## Verify
 
-In dev: change a colour in `/editor` and confirm your page repaints (proves token usage). The overlay's "Page Source" button on the new route opens the page in VS Code (proves the `pageSources` entry). `ColumnsOverlay` (Cmd+G) shows content sitting inside `--columns-max-width`.
+In dev: change a colour in `/editor` and confirm your page repaints (proves token usage). The overlay's "Page Source" button on the new route opens the page in VS Code (proves the route's `source`). `ColumnsOverlay` (Cmd+G) shows content sitting inside `--columns-max-width`.

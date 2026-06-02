@@ -28,7 +28,7 @@ version upgrades never touch your styles. The package code stays in
 | Path | What it is |
 |------|------------|
 | `src/pages/Home.svelte` | The starter page. Replace it with your own content. |
-| `src/App.svelte` | Your routes. `<LiveTokensRouter>` adds the dev-only `/editor` and `/components` routes. |
+| `src/App.svelte` | Your routes. `<LiveTokensRouter>` adds the dev-only `/editor`, `/components`, and `/docs` routes. |
 | `src/system/styles/tokens.css` | Your base token vocabulary, hand-authored. |
 | `src/styles/site.css` | Themed page typography, yours to edit. |
 

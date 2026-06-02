@@ -15,7 +15,8 @@ This project follows the package's [recommended layout](https://github.com/motio
 
 - `src/pages/Home.svelte` — the starter page. Replace it with your own content.
 - `src/App.svelte` — your routes. `<LiveTokensRouter>` adds the dev-only
-  `/editor` (theme tokens) and `/components` (per-component aliases) routes.
+  `/editor` (theme tokens), `/components` (per-component aliases), and `/docs`
+  (the user guide) routes.
 - `src/system/styles/tokens.css` — your theme token vocabulary. The dev server
   writes edits here when you use the in-browser editor.
 - `src/styles/site.css` — themed page typography. Yours to edit.

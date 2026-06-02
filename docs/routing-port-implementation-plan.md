@@ -1,6 +1,9 @@
 # Routing port: implementation plan
 
-Status: plan (not yet started). Companion to
+Status: Phase 1 (`resolve` + `props`) implemented and on `main`, targeting release
+0.28.0 (not yet published). Its exit criterion, migrating a real consumer like
+runegoblin onto the new prop, is not yet done. Rung-3 work remains deferred.
+Companion to
 `docs/routing-architecture-exploration.md`, which holds the root-cause analysis
 and the full design of the routing port. This document is the build sequence.
 
@@ -62,7 +65,7 @@ designed but not built.
   microsite scale, where dynamic-route props are typically one id or slug.
   Documented so the trade is deliberate, not silent.
 
-## Phase 1 (scheduled): the no-router dynamic tier
+## Phase 1 (implemented, targets 0.28.0): the no-router dynamic tier
 
 Goal: rung 2. A growing microsite expresses dynamic and gated routes without a
 router; the existing default `route` store still owns location (the port is not
@@ -172,7 +175,7 @@ not wait.
 | --- | --- | --- | --- | --- |
 | 0 single page | default store | one `pages` entry | `<LiveTokensRouter {pages} />` | shipped |
 | 1 microsite | default store | `pages` map | `<LiveTokensRouter {pages} />` | shipped |
-| 2 dynamic, no router | default store | `pages` + `resolve` | `<LiveTokensRouter {pages} {resolve} />` | Phase 1 |
+| 2 dynamic, no router | default store | `pages` + `resolve` | `<LiveTokensRouter {pages} {resolve} />` | implemented (0.28.0, unreleased) |
 | 3 own router | consumer adapter | consumer's router | adapter + provider + mount owned routes + shell | designed, deferred |
 
 Acceptance for now: a consumer can move from rung 0 or 1 to rung 2 with a single

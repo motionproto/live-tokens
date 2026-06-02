@@ -122,7 +122,7 @@ bootLiveTokens(App, '#app', {
 ```
 
 `<LiveTokensRouter>` owns the dev overlay (`<LiveEditorOverlay>` +
-`<ColumnsOverlay>`), the editor routes (`/editor`, `/components`), the
+`<ColumnsOverlay>`), the editor routes (`/editor`, `/components`, `/docs`), the
 in-app link-click interception, and the nav-rail/page-source plumbing the
 overlay needs. Each entry in `pages` is one of your routes; entries with a
 `label` appear in the overlay's nav rail. Pass pages as `lazy: () => import('./Page.svelte')`
@@ -130,6 +130,28 @@ so each page's stylesheet side-effects only evaluate when that route is
 visited; pass `component: PageComponent` instead for an eagerly-imported
 page. The editor routes are dispatched internally, so you don't have to
 dynamic-import the library's editor pages yourself.
+
+For routes you can't enumerate ahead of time (a `/:id` or `/:slug`, a path
+prefix, or a page shown only when some condition holds), add a `resolve`
+function from the current path to a `RouteEntry`; return `null` to fall
+through. It's plain code, so params, prefixes, and gating are a regex and an
+`if`, and the package ships no route syntax of its own. Resolution order is
+`pages[path]`, then `resolve(path)`, then the `pages['/']` fallback, so adding
+`resolve` never changes how existing `pages` entries match. A resolved entry
+can carry `props`, letting one page component serve many paths (such as the
+matched id), and its `source` gives the dynamic route a working "Page Source"
+button just like a static one.
+
+```svelte
+<LiveTokensRouter
+  pages={{ '/': { lazy: () => import('./Home.svelte'), label: 'Home' } }}
+  resolve={(path) => {
+    const m = path.match(/^\/module\/(.+)$/);
+    if (!m) return null;
+    return { lazy: () => import('./ModulePage.svelte'), props: { id: m[1] }, source: 'src/ModulePage.svelte' };
+  }}
+/>
+```
 
 You can also relocate or disable a default editor route via the
 `editorRoutes` prop: `<LiveTokensRouter pages={…} editorRoutes={{ editor: '/admin/editor', components: false }} />`.
@@ -147,7 +169,10 @@ individual init functions (`initCssVarSync`, `initRouter`,
 `<LiveEditorOverlay>`, `<ColumnsOverlay>`, and the editor page exports
 (`@motion-proto/live-tokens/editor`,
 `@motion-proto/live-tokens/component-editor-page`) all stay exported. Use
-them directly if you need a custom shell or non-standard route dispatch.
+them directly to build a custom shell: render arbitrary markup per route, host
+a foreign matcher, or drive the overlay yourself. You do **not** need this for
+dynamic or gated routes; reach for `resolve` above, which keeps the overlay,
+nav rail, and page-source intact.
 
 ### Use components
 
