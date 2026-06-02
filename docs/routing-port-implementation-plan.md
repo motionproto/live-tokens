@@ -1,16 +1,15 @@
 # Routing port: implementation plan
 
-Status: Phase 1 (`resolve` + `props`) implemented and on `main`, targeting release
-0.28.0 (not yet published). Its exit criterion, migrating a real consumer like
-runegoblin onto the new prop, is not yet done. Rung-3 work remains deferred.
-Companion to
+Status: Phase 1 (`resolve` + `props`) shipped in 0.28.0, validated first against a
+real consumer (runegoblin migrated off its manual tier and verified against the
+release). Rung-3 work remains deferred. Companion to
 `docs/routing-architecture-exploration.md`, which holds the root-cause analysis
 and the full design of the routing port. This document is the build sequence.
 
 ## Completion status (2026-06-02)
 
-Phase 1 is built, tested, and documented on `main`. It is not yet released, and
-its consumer-migration exit criterion is still outstanding.
+Phase 1 is built, tested, documented, validated against the runegoblin consumer,
+and released as 0.28.0. Only rung-3 work remains deferred.
 
 Done:
 
@@ -23,14 +22,14 @@ Done:
 - [x] Present defect: removed the dead `/demo` glob and stale comment in `ComponentEditorPage.svelte`.
 - [x] Developer docs: README routing section, `CHANGELOG` 0.28.0, build-page skill, template README, getting-started.
 
-Outstanding:
+Done (post-release):
 
-- [ ] Consumer migration: move runegoblin onto `<LiveTokensRouter {pages} {resolve} />`. This is Phase 1's exit criterion and lives in that repo, not this one.
-- [ ] Release 0.28.0: version bump plus tag/publish via CI. The CHANGELOG entry is ready.
+- [x] Consumer migration validated: runegoblin migrated off its manual tier and verified (typecheck + build + browser) against published 0.28.0. The branch lands in that repo, not this one.
+- [x] Released as 0.28.0 via CI Trusted Publishing (provenance; `latest`).
 
-Commits: `ec40596` (router `resolve`/`props`, test, present-defect cleanup) and
-`4b9090e` (docs). The routing port and all rung-3 machinery remain deferred,
-unchanged.
+Commits: `ec40596` (router `resolve`/`props`, test, present-defect cleanup),
+`4b9090e` + `101b759` (docs), `a5a1dce` (release 0.28.0). The routing port and
+all rung-3 machinery remain deferred, unchanged.
 
 Per a YAGNI call (no full-router adoption is planned), the only **scheduled**
 work is the no-router dynamic tier (`resolve` + `props`), which has a real
@@ -90,7 +89,7 @@ designed but not built.
   microsite scale, where dynamic-route props are typically one id or slug.
   Documented so the trade is deliberate, not silent.
 
-## Phase 1 (implemented, targets 0.28.0): the no-router dynamic tier
+## Phase 1 (shipped in 0.28.0): the no-router dynamic tier
 
 Goal: rung 2. A growing microsite expresses dynamic and gated routes without a
 router; the existing default `route` store still owns location (the port is not
@@ -200,7 +199,7 @@ not wait.
 | --- | --- | --- | --- | --- |
 | 0 single page | default store | one `pages` entry | `<LiveTokensRouter {pages} />` | shipped |
 | 1 microsite | default store | `pages` map | `<LiveTokensRouter {pages} />` | shipped |
-| 2 dynamic, no router | default store | `pages` + `resolve` | `<LiveTokensRouter {pages} {resolve} />` | implemented (0.28.0, unreleased) |
+| 2 dynamic, no router | default store | `pages` + `resolve` | `<LiveTokensRouter {pages} {resolve} />` | shipped (0.28.0) |
 | 3 own router | consumer adapter | consumer's router | adapter + provider + mount owned routes + shell | designed, deferred |
 
 Acceptance for now: a consumer can move from rung 0 or 1 to rung 2 with a single
