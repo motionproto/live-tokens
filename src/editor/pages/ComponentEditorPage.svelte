@@ -20,11 +20,6 @@
 
   let drawerOpen = $state(true);
 
-  // Demo page is statically imported from `./Demo.svelte` in App.svelte; the
-  // glob resolves to an empty object if the file has been deleted, in which
-  // case we hide the demo option from the page-switcher.
-  const demoExists = Object.keys(import.meta.glob('./Demo.svelte')).length > 0;
-
   let pageMenuOpen = $state(false);
   let pageMenuRoot: HTMLElement | undefined = $state();
 
@@ -138,12 +133,6 @@
             <i class="fas fa-home"></i>
             <span>Main site</span>
           </button>
-          {#if demoExists}
-            <button class="page-menu-item" role="menuitem" onclick={() => selectPage('/demo')}>
-              <i class="fas fa-box-open"></i>
-              <span>Demo page</span>
-            </button>
-          {/if}
         </div>
       {/if}
     </div>

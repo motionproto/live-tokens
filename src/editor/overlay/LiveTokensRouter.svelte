@@ -11,10 +11,15 @@
    * for any page that side-effect-imports a stylesheet at the top of its
    * module, so those imports only evaluate when the route is visited and
    * don't leak into unrelated routes (most importantly the editor pages).
+   *
+   * `props` lets one page component serve many paths: a `resolve()` match can
+   * hand the page the matched segment (an id or slug) so a single component
+   * renders each dynamic route.
    */
   export interface RouteEntry {
     component?: Component<any, any, any>;
     lazy?: () => Promise<{ default: Component<any, any, any> }>;
+    props?: Record<string, unknown>;
     label?: string;
     icon?: string;
     source?: string;
@@ -32,6 +37,29 @@
     components?: string | false;
     docs?: string | false;
   }
+
+  /**
+   * Resolve a path to the single entry that renders it. Precedence, after the
+   * package-owned routes (`/editor`, `/components`, `/docs`) have already been
+   * matched by the component:
+   *
+   *   1. `pages[route]` — exact static match.
+   *   2. `resolve(route)` — consumer code, where params / prefixes / gating
+   *      live; returning `null` means "not mine" and resolution falls through.
+   *   3. `pages['/']` — final fallback (return your own entry from `resolve`
+   *      for a real 404 instead).
+   *
+   * With only `pages` passed this is exactly today's `pages[route] ?? pages['/']`.
+   * One resolved entry drives both dispatch and "Page Source", so a dynamic
+   * route's source can never desync from its page.
+   */
+  export function resolveRoute(
+    pages: Record<string, RouteEntry>,
+    resolve: ((route: string) => RouteEntry | null) | undefined,
+    route: string,
+  ): RouteEntry | null {
+    return pages[route] ?? resolve?.(route) ?? pages['/'] ?? null;
+  }
 </script>
 
 <script lang="ts">
@@ -41,10 +69,17 @@
 
   interface Props {
     pages: Record<string, RouteEntry>;
+    /**
+     * Compute an entry for paths not in `pages` — this is where params,
+     * prefixes, and conditional gating live. See `resolveRoute` for the full
+     * precedence: `pages` wins over `resolve`, and `pages['/']` is the final
+     * fallback.
+     */
+    resolve?: (route: string) => RouteEntry | null;
     editorRoutes?: EditorRouteOverrides;
   }
 
-  let { pages, editorRoutes = {} }: Props = $props();
+  let { pages, resolve, editorRoutes = {} }: Props = $props();
 
   let editorEnabled = $derived(editorRoutes.editor !== false);
   let componentsEnabled = $derived(editorRoutes.components !== false);
@@ -57,6 +92,14 @@
   let isEditor = $derived(isDev && editorEnabled && $route === editorPath);
   let isComponentEditor = $derived(isDev && componentsEnabled && $route === componentsPath);
   let isDocs = $derived(isDev && docsEnabled && $route === docsPath);
+
+  // The single entry that renders the current route. Owned routes are handled
+  // by the isEditor/isComponentEditor/isDocs branches, so they resolve to null
+  // here; everything else flows through resolveRoute and drives both dispatch
+  // (component + props) and page-source from this one value.
+  let resolvedEntry = $derived(
+    isEditor || isComponentEditor || isDocs ? null : resolveRoute(pages, resolve, $route),
+  );
 
   // Pages with a label show up in the nav rail, in declaration order. In dev,
   // the components-editor and docs routes are auto-appended so they're reachable
@@ -74,13 +117,17 @@
       : []),
   ]);
 
-  let pageSources = $derived(
-    Object.fromEntries(
+  // Static-page sources, plus the resolved entry's source for the current
+  // route — so a resolve()-matched dynamic route gets "Page Source" too, keyed
+  // on the live path ($route) the overlay looks up.
+  let pageSources = $derived({
+    ...Object.fromEntries(
       Object.entries(pages)
         .filter(([, e]) => !!e.source)
         .map(([path, e]) => [path, e.source!]),
     ),
-  );
+    ...(resolvedEntry?.source ? { [$route]: resolvedEntry.source } : {}),
+  });
 
   // The package-owned components and docs routes hide the page-source button
   // (no consumer source file backs them).
@@ -88,6 +135,7 @@
     ...Object.entries(pages)
       .filter(([, e]) => e.hidePageSource)
       .map(([path]) => path),
+    ...(resolvedEntry?.hidePageSource ? [$route] : []),
     ...(componentsEnabled ? [componentsPath] : []),
     ...(docsEnabled ? [docsPath] : []),
   ]);
@@ -100,7 +148,7 @@
     if (isEditor) return import('../pages/Editor.svelte');
     if (isComponentEditor) return import('../pages/ComponentEditorPage.svelte');
     if (isDocs) return import('../docs/Docs.svelte');
-    const entry = pages[$route] ?? pages['/'];
+    const entry = resolvedEntry;
     if (!entry) return Promise.resolve({ default: null as unknown as Component<any, any, any> });
     if (entry.lazy) return entry.lazy();
     if (entry.component) return Promise.resolve({ default: entry.component });
@@ -134,7 +182,7 @@
   {#await pagePromise then m}
     {@const PageComponent = m.default}
     {#if PageComponent}
-      <PageComponent />
+      <PageComponent {...resolvedEntry?.props ?? {}} />
     {/if}
   {/await}
 </div>
