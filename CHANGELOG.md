@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.27.0 — Docs ship with the package
+
+### Added
+
+- **The user guide now ships with the package and renders in the editor
+  overlay.** `LiveTokensRouter` auto-owns a dev-only `/docs` route and adds a
+  "Docs" tab to the overlay nav (alongside "Components"), so every consumer can
+  reference the guide while building without vendoring a copy. A new
+  `@motion-proto/live-tokens/docs` export lets manual-overlay consumers mount
+  the same page. Disable or relocate via `editorRoutes={{ docs: false }}` (or a
+  string path), matching the existing `editor` / `components` overrides.
+
+### Changed
+
+- The docs renderer and markdown content moved from the demo app into the
+  package at `src/editor/docs/` (chapters under `src/editor/docs/content/`), so
+  the guide is a single source of truth that ships in the tarball.
+- `marked` and `highlight.js` are now runtime dependencies (the docs renderer
+  needs them at the consumer).
+
 ## 0.26.0 — Default theme + manifest live from the package
 
 ### Changed

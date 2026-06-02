@@ -65,6 +65,28 @@ function migrateGradients(state: EditorState): EditorState {
   return { ...state, gradients: { tokens: makeDefaultGradients() } };
 }
 
+// `hydrate` shallow-merges the persisted `components` bag over the default, so
+// a slice serialized by an older build can lack fields added since (e.g.
+// `config`, added with the two-field alias/config split). `componentsToVars`
+// calls `Object.entries(slice.config)` unconditionally, so backfill the
+// required fields and drop any non-object slice before the state reaches the
+// renderer. Spread preserves optional fields like `unlinked`.
+export function normalizeComponents(state: EditorState): EditorState {
+  const raw = state.components;
+  if (!raw || typeof raw !== 'object') return { ...state, components: {} };
+  const components: EditorState['components'] = {};
+  for (const [name, slice] of Object.entries(raw)) {
+    if (!slice || typeof slice !== 'object') continue;
+    components[name] = {
+      ...slice,
+      activeFile: typeof slice.activeFile === 'string' ? slice.activeFile : 'default',
+      aliases: slice.aliases && typeof slice.aliases === 'object' ? slice.aliases : {},
+      config: slice.config && typeof slice.config === 'object' ? slice.config : {},
+    };
+  }
+  return { ...state, components };
+}
+
 export function hydrate(): void {
   // Corrupt state, missing key, or unavailable storage all return null;
   // the editor falls through to the empty default in that case.
@@ -73,7 +95,7 @@ export function hydrate(): void {
     // Shallow-merge onto default shape so older persisted state missing
     // newly-added domain fields still loads.
     const merged = { ...emptyStateFactory(), ...(parsed as object) } as EditorState;
-    store.set(migrateGradients(merged));
+    store.set(normalizeComponents(migrateGradients(merged)));
   }
   // m13 fix: seed shadows from the DOM at hydrate time so the editor
   // captures the tokens.css baseline regardless of whether the user opens

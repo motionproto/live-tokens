@@ -3,9 +3,10 @@ export interface Chapter {
   title: string;
 }
 
-/* The user-facing guide. The original developer-reference chapters were moved
-   to docs/archive/ (off the non-recursive docs/*.md glob below), so they no
-   longer render on the site. */
+/* The user-facing guide, shipped with the package so consumers reference it in
+   the editor while building. Markdown lives in ./content/; the original
+   developer-reference chapters stay in the repo's docs/archive/ and don't
+   ship. */
 export const chapters: Chapter[] = [
   { id: '01-overview',         title: 'Overview' },
   { id: 'getting-started',     title: 'Getting started' },
@@ -20,12 +21,12 @@ export const chapterIds = chapters.map((c) => c.id);
    file as a string, so the markdown lives next to the runtime page module
    and reloads on edit via HMR. */
 const docModules = import.meta.glob<string>(
-  '../../../docs/*.md',
+  './content/*.md',
   { query: '?raw', import: 'default' },
 );
 
 export async function loadChapter(id: string): Promise<string> {
-  const key = `../../../docs/${id}.md`;
+  const key = `./content/${id}.md`;
   const loader = docModules[key];
   if (!loader) {
     throw new Error(`Chapter not found: ${id} (expected at ${key}).`);

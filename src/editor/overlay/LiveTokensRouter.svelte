@@ -23,13 +23,14 @@
   }
 
   /**
-   * Override the default editor routes (`/editor`, `/components`). Pass a
-   * string to relocate the route; pass `false` to disable it entirely (no
-   * dispatch and, for `components`, no auto-injected nav-rail entry).
+   * Override the default editor routes (`/editor`, `/components`, `/docs`).
+   * Pass a string to relocate the route; pass `false` to disable it entirely
+   * (no dispatch and, for `components`/`docs`, no auto-injected nav-rail entry).
    */
   export interface EditorRouteOverrides {
     editor?: string | false;
     components?: string | false;
+    docs?: string | false;
   }
 </script>
 
@@ -47,22 +48,29 @@
 
   let editorEnabled = $derived(editorRoutes.editor !== false);
   let componentsEnabled = $derived(editorRoutes.components !== false);
+  let docsEnabled = $derived(editorRoutes.docs !== false);
   let editorPath = $derived(typeof editorRoutes.editor === 'string' ? editorRoutes.editor : '/editor');
   let componentsPath = $derived(typeof editorRoutes.components === 'string' ? editorRoutes.components : '/components');
+  let docsPath = $derived(typeof editorRoutes.docs === 'string' ? editorRoutes.docs : '/docs');
 
   const isDev = import.meta.env.DEV;
   let isEditor = $derived(isDev && editorEnabled && $route === editorPath);
   let isComponentEditor = $derived(isDev && componentsEnabled && $route === componentsPath);
+  let isDocs = $derived(isDev && docsEnabled && $route === docsPath);
 
   // Pages with a label show up in the nav rail, in declaration order. In dev,
-  // the components-editor route is auto-appended so it's reachable from every
-  // page (the convention every existing live-tokens consumer has settled on).
+  // the components-editor and docs routes are auto-appended so they're reachable
+  // from every page. Docs ship from the package, so consumers reference the
+  // guide in the editor while building without vendoring a copy.
   let navLinks = $derived([
     ...Object.entries(pages)
       .filter(([, e]) => !!e.label)
       .map(([path, e]) => ({ path, label: e.label!, icon: e.icon ?? '' })),
     ...(isDev && componentsEnabled
       ? [{ path: componentsPath, label: 'Components', icon: 'fa-puzzle-piece' }]
+      : []),
+    ...(isDev && docsEnabled
+      ? [{ path: docsPath, label: 'Docs', icon: 'fa-book' }]
       : []),
   ]);
 
@@ -74,13 +82,14 @@
     ),
   );
 
-  // Components-editor route always hides the page-source button (matches the
-  // convention from the original consumer pattern).
+  // The package-owned components and docs routes hide the page-source button
+  // (no consumer source file backs them).
   let hidePageSourceOn = $derived([
     ...Object.entries(pages)
       .filter(([, e]) => e.hidePageSource)
       .map(([path]) => path),
     ...(componentsEnabled ? [componentsPath] : []),
+    ...(docsEnabled ? [docsPath] : []),
   ]);
 
   // Dispatch the current route. Editor pages are dynamically imported so they
@@ -90,6 +99,7 @@
   let pagePromise = $derived.by(() => {
     if (isEditor) return import('../pages/Editor.svelte');
     if (isComponentEditor) return import('../pages/ComponentEditorPage.svelte');
+    if (isDocs) return import('../docs/Docs.svelte');
     const entry = pages[$route] ?? pages['/'];
     if (!entry) return Promise.resolve({ default: null as unknown as Component<any, any, any> });
     if (entry.lazy) return entry.lazy();

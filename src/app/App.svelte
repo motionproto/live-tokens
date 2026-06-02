@@ -19,12 +19,6 @@
       icon: 'fa-box-open',
       source: 'src/demo/Demo.svelte',
     },
-    '/docs': {
-      lazy: () => import('./docs/Docs.svelte'),
-      label: 'Docs',
-      icon: 'fa-book',
-      source: 'src/app/docs/Docs.svelte',
-    },
     '/playground/floating-tags': {
       lazy: () => import('../demo/FloatingTagsPlayground.svelte'),
       source: 'src/demo/FloatingTagsPlayground.svelte',
