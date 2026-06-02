@@ -23,6 +23,8 @@
     "src/system",
     "src/app/site.css",
     "src/live-tokens/data/tokens.generated.css",
+    "src/live-tokens/data/themes/default.json",
+    "src/live-tokens/data/manifests/default.json",
     "dist-plugin",
     ".claude/skills",
     "bin",
@@ -91,11 +93,12 @@
     "check:no-style-imports": "node scripts/check-no-style-imports.mjs",
     "check:editor-font-isolation": "node scripts/check-editor-font-isolation.mjs",
     "check:component-defaults": "node scripts/sync-component-defaults.mjs --check",
+    "check:production-is-default": "node scripts/check-production-is-default.mjs",
     "sync:component-defaults": "node scripts/sync-component-defaults.mjs --write",
     "collapse:manifest": "node scripts/collapse-manifest-to-default.mjs",
     "check:smoke-install": "bash scripts/smoke-install.sh",
     "check:smoke-create": "bash scripts/smoke-create.sh",
-    "prepublishOnly": "npm run check:no-style-imports && npm run check:editor-font-isolation && npm run check:component-defaults && npm run build:lib && npm run check:smoke-install && npm run check:smoke-create"
+    "prepublishOnly": "npm run check:no-style-imports && npm run check:editor-font-isolation && npm run check:component-defaults && npm run check:production-is-default && npm run build:lib && npm run check:smoke-install && npm run check:smoke-create"
   },
   "peerDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0",

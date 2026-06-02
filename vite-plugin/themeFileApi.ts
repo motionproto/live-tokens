@@ -95,6 +95,23 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     'components',
   );
 
+  // Package-shipped default data lives at <package>/src/live-tokens/data/. Same
+  // `..`-from-this-file resolution as packageComponentsDir, so it works in
+  // library-dev, in a consumer's node_modules, and from dist-plugin/. Only
+  // themes/default.json and manifests/default.json actually ship (package.json
+  // `files`); the resource server's read-only fallback resolves a consumer's
+  // `default` to these when they have no local copy.
+  const packageDataDir = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    '..',
+    'src',
+    'live-tokens',
+    'data',
+  );
+  const packageThemesDir = path.join(packageDataDir, 'themes');
+  const packageManifestsDir = path.join(packageDataDir, 'manifests');
+  const packageComponentConfigsDir = path.join(packageDataDir, 'component-configs');
+
   // Union of dirs to scan for component .svelte files. Consumer dirs first so
   // a consumer-authored component shadows a first-party one when names collide.
   const COMPONENTS_SCAN_DIRS: string[] = [...consumerComponentDirs];
@@ -104,11 +121,13 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   ) {
     COMPONENTS_SCAN_DIRS.push(packageComponentsDir);
   }
-  const LEGACY_PRESETS_DIR = path.resolve('presets');
 
-  // Themes resource — list/load/save/delete + active/production.
+  // Themes resource — list/load/save/delete + active/production. The package
+  // fallback ships the real default theme so a consumer always has one to load
+  // / restore to, and picks up an upgraded default on `npm upgrade`.
   const themesResource = versionedFileResourceServer({
     dir: THEMES_DIR,
+    packageDir: packageThemesDir,
   });
 
   // Per-component resources are constructed on demand because the set of
@@ -117,7 +136,19 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   function componentResource(comp: string): VersionedFileResourceServer {
     let r = componentResourceCache.get(comp);
     if (!r) {
-      r = versionedFileResourceServer({ dir: path.join(COMPONENT_CONFIGS_DIR, comp) });
+      // The package ships NO component-config JSON by design — component
+      // defaults derive from the shipped `.svelte` `:global(:root)` via
+      // generateDefaultConfig, re-derived locally on dev start / HMR. This
+      // packageDir is therefore inert for consumers (the dir doesn't exist) and
+      // self-referential in library-dev (local === package); it's wired only
+      // for construction symmetry with themes/manifests, and existingPath /
+      // listNames no-op on a missing dir. Do NOT "fix" the asymmetry by shipping
+      // component JSON — it becomes a second source of truth that drifts and is
+      // shadowed on first dev-start anyway.
+      r = versionedFileResourceServer({
+        dir: path.join(COMPONENT_CONFIGS_DIR, comp),
+        packageDir: path.join(packageComponentConfigsDir, comp),
+      });
       componentResourceCache.set(comp, r);
     }
     return r;
@@ -127,20 +158,17 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // The active manifest is the single live snapshot; theme/component Adopts
   // patch its refs (see `patchActiveManifest`). `_production.json` is unused
   // for this resource — the new model has no separate Production slot.
-  const manifestsResource = versionedFileResourceServer({ dir: MANIFESTS_DIR });
+  const manifestsResource = versionedFileResourceServer({
+    dir: MANIFESTS_DIR,
+    packageDir: packageManifestsDir,
+  });
 
   function ensureThemesDir() {
+    // No local default.json is written: `default` resolves to the shipped
+    // package theme via the resource server's read-only fallback. Writing an
+    // empty local default here would shadow it. A missing package default fails
+    // loudly downstream (caught by npm pack verification), not papered over.
     themesResource.ensureDir();
-    if (!fs.existsSync(path.join(THEMES_DIR, 'default.json'))) {
-      const defaultTheme = {
-        name: 'Default Theme',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        editorConfigs: {},
-        cssVariables: {},
-      };
-      fs.writeFileSync(path.join(THEMES_DIR, 'default.json'), JSON.stringify(defaultTheme, null, 2));
-    }
     themesResource.ensureMeta();
   }
 
@@ -242,10 +270,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
     // Section 1: production-theme overrides (palette ramps, font stacks, custom vars).
     const productionThemeName = themesResource.getProductionName();
-    const themePath = path.join(THEMES_DIR, `${productionThemeName}.json`);
+    const themeData = themesResource.readJson(productionThemeName) as any;
     let themeVarCount = 0;
-    if (fs.existsSync(themePath)) {
-      const themeData = JSON.parse(fs.readFileSync(themePath, 'utf-8'));
+    if (themeData) {
       const cssVars: Record<string, string> = { ...(themeData.cssVariables || {}) };
       Object.assign(cssVars, palettesToVars(themeData.editorConfigs ?? {}));
       const resolvedFontVars = resolveFontStacks(themeData);
@@ -327,9 +354,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    * matches the registry the editor last promoted.
    */
   function syncFontsToCss(fileName: string): void {
-    const themePath = path.join(THEMES_DIR, `${fileName}.json`);
-    if (!fs.existsSync(themePath)) return;
-    const themeData = JSON.parse(fs.readFileSync(themePath, 'utf-8'));
+    const themeData = themesResource.readJson(fileName) as any;
+    if (!themeData) return;
     const sources = themeData.fontSources as Array<{
       id: string;
       kind: string;
@@ -566,56 +592,26 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // ── Manifests helpers ─────────────────────────────────────────────────────
 
   function ensureManifestsDir(): void {
-    // One-shot migration: rename legacy presets/ → manifests/ if the new
-    // directory doesn't exist yet. Drop the legacy `_production.json` pointer
-    // (the new model has no separate Production slot). Idempotent — guarded
-    // by directory existence.
-    if (!fs.existsSync(MANIFESTS_DIR) && fs.existsSync(LEGACY_PRESETS_DIR)) {
-      fs.renameSync(LEGACY_PRESETS_DIR, MANIFESTS_DIR);
-      const legacyProd = path.join(MANIFESTS_DIR, '_production.json');
-      if (fs.existsSync(legacyProd)) fs.unlinkSync(legacyProd);
-    }
-
     manifestsResource.ensureDir();
-    const defaultPath = path.join(MANIFESTS_DIR, 'default.json');
-    if (!fs.existsSync(defaultPath)) {
-      // The default manifest captures whatever is checked in as the current
-      // active state — the team's intended defaults — not a synthetic all-
-      // default manifest. Read each resource's `_active.json` pointer so a
-      // first run on a customized repo produces a Default manifest that
-      // round-trips back to the same state.
-      const componentConfigs: Record<string, string> = {};
-      for (const comp of listComponentNames()) {
-        componentConfigs[comp] = componentResource(comp).getActiveName();
-      }
-      const now = new Date().toISOString();
-      const defaultManifest = {
-        name: 'Default',
-        createdAt: now,
-        updatedAt: now,
-        theme: themesResource.getActiveName(),
-        componentConfigs,
-      };
-      fs.writeFileSync(defaultPath, JSON.stringify(defaultManifest, null, 2));
-    }
+    // No synthetic local default.json is written: `default` resolves to the
+    // shipped package manifest via the read-only fallback. A local copy would
+    // shadow it and freeze a consumer's "restore to" baseline at create time.
 
-    // Ensure `_active.json` exists; never write `_production.json` for this
-    // resource (it's not part of the manifest model). If a legacy one
-    // survived migration, scrub it.
+    // Ensure `_active.json` exists; the manifest model has no Production slot,
+    // so `_production.json` is never written for this resource.
     if (!fs.existsSync(manifestsResource.activePath)) {
       fs.writeFileSync(
         manifestsResource.activePath,
         JSON.stringify({ activeFile: 'default' }),
       );
     } else {
-      // Normalize: if the pointer references a missing file, fall back to default.
+      // Normalize: if the pointer references a name that resolves neither
+      // locally nor in the package, fall back to default.
       const activeName = manifestsResource.getActiveName();
-      if (!fs.existsSync(manifestsResource.filePath(activeName))) {
+      if (manifestsResource.existingPath(activeName) === null) {
         manifestsResource.setActiveName('default');
       }
     }
-    const stragglerProd = path.join(MANIFESTS_DIR, '_production.json');
-    if (fs.existsSync(stragglerProd)) fs.unlinkSync(stragglerProd);
   }
 
   /**
@@ -713,10 +709,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   function readComponentConfig(comp: string, name: string): ComponentConfigRead | null {
-    const filePath = componentResource(comp).filePath(name);
-    if (!fs.existsSync(filePath)) return null;
     try {
-      return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+      return componentResource(comp).readJson(name) as ComponentConfigRead | null;
     } catch {
       return null;
     }
@@ -759,31 +753,26 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   async function handleListThemes(_ctx: any) {
     const activeFile = themesResource.getActiveName();
-    const files = fs
-      .readdirSync(THEMES_DIR)
-      .filter((f) => f.endsWith('.json') && !f.startsWith('_'))
-      .map((f) => {
-        const filePath = path.join(THEMES_DIR, f);
-        const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-        const fileName = f.replace('.json', '');
-        return {
-          name: data.name || fileName,
-          fileName,
-          updatedAt: data.updatedAt || '',
-          isActive: fileName === activeFile,
-        };
-      });
+    const files = themesResource.listNames().map((fileName) => {
+      const data = themesResource.readJson(fileName) as any;
+      return {
+        name: data?.name || fileName,
+        fileName,
+        updatedAt: data?.updatedAt || '',
+        isActive: fileName === activeFile,
+      };
+    });
     jsonResponse(_ctx.res, 200, { files });
   }
 
   async function handleGetActiveTheme({ res }: any) {
     const activeFile = themesResource.getActiveName();
-    const filePath = themesResource.filePath(activeFile);
-    if (!fs.existsSync(filePath)) {
+    const raw = themesResource.readJson(activeFile);
+    if (!raw) {
       jsonResponse(res, 404, { error: 'Active theme not found' });
       return;
     }
-    const data = normalizeTheme(JSON.parse(fs.readFileSync(filePath, 'utf-8')));
+    const data = normalizeTheme(raw as any);
     data._fileName = activeFile;
     jsonResponse(res, 200, data);
   }
@@ -791,7 +780,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   async function handleSetActiveTheme({ req, res }: any) {
     const body = JSON.parse(await readBody(req));
     const fileName = sanitizeFileName(body.name || 'default');
-    if (!fs.existsSync(themesResource.filePath(fileName))) {
+    if (themesResource.existingPath(fileName) === null) {
       jsonResponse(res, 404, { error: 'Theme not found' });
       return;
     }
@@ -801,12 +790,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   async function handleGetProductionTheme({ res }: any) {
     const prodFile = themesResource.getProductionName();
-    const filePath = themesResource.filePath(prodFile);
-    if (!fs.existsSync(filePath)) {
+    const raw = themesResource.readJson(prodFile);
+    if (!raw) {
       jsonResponse(res, 200, { fileName: prodFile, name: prodFile, cssVariables: {} });
       return;
     }
-    const data = normalizeTheme(JSON.parse(fs.readFileSync(filePath, 'utf-8')));
+    const data = normalizeTheme(raw as any);
     jsonResponse(res, 200, {
       fileName: prodFile,
       name: data.name || prodFile,
@@ -818,7 +807,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   async function handleSetProductionTheme({ req, res }: any) {
     const body = JSON.parse(await readBody(req));
     const fileName = sanitizeFileName(body.name || 'default');
-    if (!fs.existsSync(themesResource.filePath(fileName))) {
+    if (themesResource.existingPath(fileName) === null) {
       jsonResponse(res, 404, { error: 'Theme not found' });
       return;
     }
@@ -836,12 +825,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     syncFontsToCss(fileName);
     syncComponentsToCss();
     patchActiveManifest('theme', null, fileName);
-    const data = JSON.parse(fs.readFileSync(themesResource.filePath(fileName), 'utf-8'));
+    const data = themesResource.readJson(fileName) as any;
     jsonResponse(res, 200, {
       ok: true,
       fileName,
-      name: data.name || fileName,
-      updatedAt: data.updatedAt || '',
+      name: data?.name || fileName,
+      updatedAt: data?.updatedAt || '',
     });
   }
 
@@ -850,17 +839,28 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const filePath = themesResource.filePath(fileName);
 
     if (req.method === 'GET') {
-      if (!fs.existsSync(filePath)) {
+      const raw = themesResource.readJson(fileName);
+      if (!raw) {
         jsonResponse(res, 404, { error: 'Not found' });
         return;
       }
-      const data = normalizeTheme(JSON.parse(fs.readFileSync(filePath, 'utf-8')));
+      const data = normalizeTheme(raw as any);
       data._fileName = fileName;
       jsonResponse(res, 200, data);
       return;
     }
 
     if (req.method === 'PUT') {
+      // `default` is live from the package and immutable, symmetric with
+      // component-config and manifest PUT. Without this guard a client could
+      // write themes/default.json locally and fork the default the
+      // live-from-package model treats as read-only. The editor's save flow
+      // already redirects a Save on the active default into Save As, so no
+      // legitimate client PUTs this path.
+      if (fileName === 'default') {
+        jsonResponse(res, 403, { error: 'Cannot overwrite the default theme (live from package)' });
+        return;
+      }
       const body = JSON.parse(await readBody(req));
       body.updatedAt = new Date().toISOString();
       // Preserve createdAt from existing file
@@ -940,8 +940,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const body = JSON.parse(await readBody(req));
     const fileName = sanitizeFileName(body.name || 'default');
     const r = componentResource(comp);
-    const configPath = r.filePath(fileName);
-    if (!fs.existsSync(configPath)) {
+    if (r.existingPath(fileName) === null) {
       jsonResponse(res, 404, { error: 'Config not found' });
       return;
     }
@@ -967,8 +966,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const body = JSON.parse(await readBody(req));
     const fileName = sanitizeFileName(body.name || 'default');
     const r = componentResource(comp);
-    const configPath = r.filePath(fileName);
-    if (!fs.existsSync(configPath)) {
+    if (r.existingPath(fileName) === null) {
       jsonResponse(res, 404, { error: 'Config not found' });
       return;
     }
@@ -998,11 +996,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const configPath = r.filePath(name);
 
     if (req.method === 'GET') {
-      if (!fs.existsSync(configPath)) {
+      const raw = r.readJson(name);
+      if (!raw) {
         jsonResponse(res, 404, { error: 'Not found' });
         return;
       }
-      const data = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      const data = raw as any;
       data._fileName = name;
       jsonResponse(res, 200, data);
       return;
@@ -1056,27 +1055,24 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   async function handleListComponentConfigs({ params, res }: any) {
     const [comp] = params;
     const r = componentResource(comp);
+    // Local dir is authoritative for "is this a real component" — it's derived
+    // on boot by ensureComponentConfigsDir; the package ships no component JSON.
     if (!fs.existsSync(r.dir)) {
       jsonResponse(res, 404, { error: 'Component not found' });
       return;
     }
     const activeFile = r.getActiveName();
     const productionFile = r.getProductionName();
-    const files = fs
-      .readdirSync(r.dir)
-      .filter((f) => f.endsWith('.json') && !f.startsWith('_'))
-      .map((f) => {
-        const filePath = path.join(r.dir, f);
-        const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-        const fileName = f.replace('.json', '');
-        return {
-          name: data.name || fileName,
-          fileName,
-          updatedAt: data.updatedAt || '',
-          isActive: fileName === activeFile,
-          isProduction: fileName === productionFile,
-        };
-      });
+    const files = r.listNames().map((fileName) => {
+      const data = r.readJson(fileName) as any;
+      return {
+        name: data?.name || fileName,
+        fileName,
+        updatedAt: data?.updatedAt || '',
+        isActive: fileName === activeFile,
+        isProduction: fileName === productionFile,
+      };
+    });
     jsonResponse(res, 200, { component: comp, files, activeFile, productionFile });
   }
 
@@ -1084,32 +1080,27 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   async function handleListManifests({ res }: any) {
     const activeFile = manifestsResource.getActiveName();
-    const files = fs
-      .readdirSync(MANIFESTS_DIR)
-      .filter((f) => f.endsWith('.json') && !f.startsWith('_'))
-      .map((f) => {
-        const filePath = path.join(MANIFESTS_DIR, f);
-        const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-        const fileName = f.replace('.json', '');
-        return {
-          name: data.name || fileName,
-          fileName,
-          updatedAt: data.updatedAt || '',
-          isActive: fileName === activeFile,
-          isProtected: fileName === 'default',
-        };
-      });
+    const files = manifestsResource.listNames().map((fileName) => {
+      const data = manifestsResource.readJson(fileName) as any;
+      return {
+        name: data?.name || fileName,
+        fileName,
+        updatedAt: data?.updatedAt || '',
+        isActive: fileName === activeFile,
+        isProtected: fileName === 'default',
+      };
+    });
     jsonResponse(res, 200, { files, activeFile });
   }
 
   async function handleGetActiveManifest({ res }: any) {
     const activeFile = manifestsResource.getActiveName();
-    const filePath = manifestsResource.filePath(activeFile);
-    if (!fs.existsSync(filePath)) {
+    const raw = manifestsResource.readJson(activeFile);
+    if (!raw) {
       jsonResponse(res, 404, { error: 'Active manifest not found' });
       return;
     }
-    const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    const data = raw as any;
     data._fileName = activeFile;
     jsonResponse(res, 200, data);
   }
@@ -1117,7 +1108,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   async function handleSetActiveManifest({ req, res }: any) {
     const body = JSON.parse(await readBody(req));
     const fileName = sanitizeFileName(body.name || 'default');
-    if (!fs.existsSync(manifestsResource.filePath(fileName))) {
+    if (manifestsResource.existingPath(fileName) === null) {
       jsonResponse(res, 404, { error: 'Manifest not found' });
       return;
     }
@@ -1130,11 +1121,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const filePath = manifestsResource.filePath(fileName);
 
     if (req.method === 'GET') {
-      if (!fs.existsSync(filePath)) {
+      const raw = manifestsResource.readJson(fileName);
+      if (!raw) {
         jsonResponse(res, 404, { error: 'Not found' });
         return;
       }
-      const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+      const data = raw as any;
       data._fileName = fileName;
       jsonResponse(res, 200, data);
       return;
@@ -1186,16 +1178,14 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    */
   async function handleApplyManifest({ params, res }: any) {
     const [fileName] = params;
-    const manifestPath = manifestsResource.filePath(fileName);
-    if (!fs.existsSync(manifestPath)) {
+    const manifest = manifestsResource.readJson(fileName) as any;
+    if (!manifest) {
       jsonResponse(res, 404, { error: 'Manifest not found' });
       return;
     }
-    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
 
     const themeName = sanitizeFileName(manifest.theme || 'default');
-    const themePath = themesResource.filePath(themeName);
-    if (!fs.existsSync(themePath)) {
+    if (themesResource.existingPath(themeName) === null) {
       jsonResponse(res, 422, { error: `Manifest references missing theme: ${themeName}` });
       return;
     }
@@ -1212,8 +1202,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       if (!knownComponents.has(comp)) continue;
       const sanitized = sanitizeFileName(String(configFile) || 'default');
       const r = componentResource(comp);
-      const cfgPath = r.filePath(sanitized);
-      if (!fs.existsSync(cfgPath)) {
+      if (r.existingPath(sanitized) === null) {
         jsonResponse(res, 422, {
           error: `Manifest references missing config: ${comp}/${sanitized}`,
         });
@@ -1229,7 +1218,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     themesResource.setProductionName(themeName);
     syncTokensToCss(themeName);
     syncFontsToCss(themeName);
-    const themeData = normalizeTheme(JSON.parse(fs.readFileSync(themePath, 'utf-8')));
+    const themeData = normalizeTheme(themesResource.readJson(themeName) as any);
     themeData._fileName = themeName;
 
     for (const [comp, configFile] of apply) {
@@ -1276,19 +1265,17 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    */
   async function handleExportManifest({ params, res }: any) {
     const [fileName] = params;
-    const manifestPath = manifestsResource.filePath(fileName);
-    if (!fs.existsSync(manifestPath)) {
+    const manifest = manifestsResource.readJson(fileName) as any;
+    if (!manifest) {
       jsonResponse(res, 404, { error: 'Manifest not found' });
       return;
     }
-    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
     const themeName = sanitizeFileName(manifest.theme || 'default');
-    const themePath = themesResource.filePath(themeName);
-    if (!fs.existsSync(themePath)) {
+    const theme = themesResource.readJson(themeName);
+    if (!theme) {
       jsonResponse(res, 422, { error: `Manifest references missing theme: ${themeName}` });
       return;
     }
-    const theme = JSON.parse(fs.readFileSync(themePath, 'utf-8'));
 
     const knownComponents = new Set(listComponentNames());
     const componentConfigs: Record<string, any> = {};
@@ -1296,14 +1283,13 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       if (!knownComponents.has(comp)) continue;
       const sanitized = sanitizeFileName(String(configFile) || 'default');
       if (sanitized === 'default') continue; // receiver uses their own default
-      const cfgPath = componentResource(comp).filePath(sanitized);
-      if (!fs.existsSync(cfgPath)) {
+      const cfg = componentResource(comp).readJson(sanitized);
+      if (!cfg) {
         jsonResponse(res, 422, {
           error: `Manifest references missing config: ${comp}/${sanitized}`,
         });
         return;
       }
-      const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8'));
       componentConfigs[`${comp}/${sanitized}`] = cfg;
     }
 
@@ -1327,19 +1313,18 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Bind `nextAvailableName` (pure, in `./files/nameAllocator`) to a
-   * resource's filesystem layout: sanitise the base and check fs.existsSync
-   * for each candidate. Used by the import handler when a bundle's referenced
-   * name collides with an existing file.
+   * Bind `nextAvailableName` (pure, in `./files/nameAllocator`) to a resource's
+   * existence predicate: sanitise the base and walk suffixes until one is free.
+   * Used by the import handler on name collision. Callers pass a package-aware
+   * predicate (`existingPath(n) !== null`) so an imported file named `default`
+   * is renamed (`default-2`) rather than written locally, where it would shadow
+   * the read-only package default.
    */
   function nextAvailableName(
-    resourceFilePath: (name: string) => string,
+    exists: (name: string) => boolean,
     baseName: string,
   ): string {
-    return allocNextAvailableName(
-      (n) => fs.existsSync(resourceFilePath(n)),
-      sanitizeFileName(baseName),
-    );
+    return allocNextAvailableName(exists, sanitizeFileName(baseName));
   }
 
   /**
@@ -1383,7 +1368,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     // Theme: write under a fresh name if the requested one is taken.
     const originalThemeName = sanitizeFileName(bundle.manifest.theme || 'default');
     const finalThemeName = nextAvailableName(
-      (n) => themesResource.filePath(n),
+      (n) => themesResource.existingPath(n) !== null,
       originalThemeName,
     );
     if (finalThemeName !== originalThemeName) {
@@ -1406,7 +1391,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       if (!knownComponents.has(comp)) continue;
       const r = componentResource(comp);
       const finalName = nextAvailableName(
-        (n) => r.filePath(n),
+        (n) => r.existingPath(n) !== null,
         originalName,
       );
       if (finalName !== originalName) {
@@ -1443,7 +1428,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
     const originalManifestName = sanitizeFileName(bundle.manifest.name || 'imported');
     const finalManifestName = nextAvailableName(
-      (n) => manifestsResource.filePath(n),
+      (n) => manifestsResource.existingPath(n) !== null,
       originalManifestName,
     );
     if (finalManifestName !== originalManifestName) {
