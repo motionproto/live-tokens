@@ -356,3 +356,10 @@
   --font-serif: "GFS Didot", serif;
   --font-mono: "fira-code", ui-monospace, "SF Mono", Menlo, Consolas, monospace, monospace;
 }
+
+/* Component aliases (production configs differing from defaults) */
+:root:root {
+  /* card (my-card) */
+  --card-hover-border-active: var(--card-hover-border);
+  --card-hover-shadow-active: var(--card-hover-shadow);
+}

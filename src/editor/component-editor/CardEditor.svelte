@@ -160,7 +160,7 @@
       {@const previewClass = activeState === 'hover' ? 'force-hover' : ''}
       <div class="card-demo">
         <Card title="Card title" class={previewClass}>
-          <p style="margin: 0;">Slotted body content. Hover the card (or switch the editor to the Hover state) to preview hover styling.</p>
+          <div class="content-placeholder">Content Placeholder</div>
         </Card>
       </div>
     {/snippet}
@@ -169,6 +169,21 @@
 
 <style>
   .card-demo {
+    min-width: 16rem;
+    max-width: 28rem;
+  }
+  .content-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 6rem;
+    background: color-mix(in srgb, white 8%, transparent);
+    border-radius: var(--ui-radius-sm);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+  }
+  .hover-control {
     max-width: 28rem;
   }
   .hover-enable {

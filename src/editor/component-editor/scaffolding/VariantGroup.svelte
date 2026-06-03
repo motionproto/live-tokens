@@ -804,15 +804,20 @@
     gap: var(--ui-space-8);
   }
 
+  /* Baseline (not center) so a tall stateActions block — e.g. a checkbox with a
+     wrapping help paragraph — keeps the part strip and its first line pinned at
+     the top and grows downward, pushing Properties down rather than recentering
+     the strip and shifting it on every state switch. */
   .tabs-selectors {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: var(--ui-space-12);
   }
 
   /* Sub-strip sits flush under the parts strip when a part has interaction states.
      The eyebrow label distinguishes it from the parts row above. */
   .tabs-selectors.substrip {
+    align-items: center;
     margin-top: var(--ui-space-6);
   }
   .tabs-selectors.substrip .state-eyebrow {

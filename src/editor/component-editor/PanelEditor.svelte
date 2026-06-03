@@ -58,8 +58,7 @@
     {#snippet children()}
       <div class="panel-demo">
         <Panel minHeight="6rem">
-          <span class="demo-chip">Stage content</span>
-          <span class="demo-chip">Stage content</span>
+          <div class="content-placeholder">Content Placeholder</div>
         </Panel>
       </div>
     {/snippet}
@@ -71,9 +70,13 @@
     width: 100%;
     max-width: 34rem;
   }
-  .demo-chip {
-    padding: var(--ui-space-4) var(--ui-space-8);
-    border: 1px solid var(--ui-border);
+  .content-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    width: 100%;
+    background: color-mix(in srgb, white 8%, transparent);
     border-radius: var(--ui-radius-sm);
     font-size: var(--ui-font-size-sm);
     color: var(--ui-text-secondary);
