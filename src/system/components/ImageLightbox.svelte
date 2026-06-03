@@ -93,8 +93,11 @@
   let navigating = false;
 
   // Measured from the loaded <img>, so a consumer needn't supply width/height;
-  // explicit dimensions (when given) win and avoid the pre-load reflow.
-  let naturalAspect = $state<number | undefined>(undefined);
+  // explicit dimensions (when given) win and avoid the pre-load reflow. The
+  // inline thumbnail and the open modal measure separately, so paging a gallery
+  // never resizes the thumbnail to the current modal image's ratio.
+  let naturalAspect = $state<number | undefined>(undefined);       // current modal image
+  let coverNaturalAspect = $state<number | undefined>(undefined);  // inline thumbnail (items[0])
   let reducedMotion = $state(false);
   const dur = (ms = TRANSITION_MS) => (reducedMotion ? 0 : ms);
 
@@ -102,8 +105,18 @@
   let dragState: { startX: number; startY: number; baseX: number; baseY: number; pointerId: number } | null = null;
   let didDrag = false;
 
+  // Inline thumbnail box: always the cover image's ratio, independent of which
+  // gallery image the open modal currently shows.
+  const coverAspect = $derived(
+    cover?.width && cover?.height ? cover.width / cover.height : coverNaturalAspect,
+  );
+  // Open modal box: the currently displayed image's ratio. Falls back to the
+  // cover ratio so the first open (and a reopen before the modal image loads)
+  // morphs to a sensible box instead of the viewport-fill placeholder.
   const aspect = $derived(
-    current?.width && current?.height ? current.width / current.height : naturalAspect,
+    current?.width && current?.height
+      ? current.width / current.height
+      : naturalAspect ?? coverNaturalAspect,
   );
 
   function viewportTarget() {
@@ -271,6 +284,9 @@
       scale = 1;
       offset = { x: 0, y: 0 };
       index = 0;
+      // Drop the stale modal measurement so the next open morphs to the cover
+      // ratio until the reopened modal image reports its own.
+      naturalAspect = undefined;
       open = false;
       mounted = false;
       document.body.style.overflow = '';
@@ -315,8 +331,8 @@
     navigating = false;
   }
 
-  // dir: +1 when paging via the right chevron (content exits right, the next
-  // image enters from the left), -1 for the left chevron.
+  // dir: +1 when paging via the right chevron (content exits left, the next
+  // image enters from the right), -1 for the left chevron.
   async function goTo(target: number, dir: number) {
     if (!isGallery) return;
     const n = ((target % items.length) + items.length) % items.length;
@@ -332,7 +348,7 @@
     navigating = true;
     await tick();
 
-    const exit = NAV_SHIFT_PX * dir;
+    const exit = -NAV_SHIFT_PX * dir;
     outgoingEl?.animate(
       [
         { transform: 'translateX(0) scale(1)', opacity: 1 },
@@ -359,6 +375,13 @@
 
   const next = () => goTo(index + 1, 1);
   const prev = () => goTo(index - 1, -1);
+
+  function onCoverLoad(e: Event) {
+    const img = e.currentTarget as HTMLImageElement;
+    if (img.naturalWidth && img.naturalHeight) {
+      coverNaturalAspect = img.naturalWidth / img.naturalHeight;
+    }
+  }
 
   function onImgLoad(e: Event) {
     const img = e.currentTarget as HTMLImageElement;
@@ -478,7 +501,7 @@
 <div
   bind:this={wrapperEl}
   class="image-lightbox-wrapper"
-  style:aspect-ratio={aspect ? `${aspect}` : undefined}
+  style:aspect-ratio={coverAspect ? `${coverAspect}` : undefined}
   style:max-width={typeof maxWidth === 'number' ? `${maxWidth}px` : maxWidth}
 >
   <button
@@ -489,7 +512,7 @@
     aria-label={`Expand image: ${cover?.alt}`}
     onclick={openLightbox}
   >
-    <img src={cover?.src} alt={cover?.alt} draggable="false" onload={onImgLoad} />
+    <img src={cover?.src} alt={cover?.alt} draggable="false" onload={onCoverLoad} />
   </button>
 </div>
 
