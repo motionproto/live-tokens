@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.30.0 — Images lazy-load and stay responsive; card titles truncate
+
+### Added
+
+- **`Image` forwards the responsive-image attributes.** New optional props
+  `srcset`, `sizes`, `loading`, and `decoding` pass straight through to the
+  underlying `<img>`. `loading` defaults to `'lazy'` and `decoding` to
+  `'async'`, so content images defer off-screen work with no consumer change.
+  Pass `loading="eager"` for an above-the-fold hero.
+
+### Changed
+
+- **`Card` titles truncate instead of wrapping.** The title now clips to a
+  single line with an ellipsis (`overflow: hidden; white-space: nowrap;
+  text-overflow: ellipsis`, plus `min-width: 0` so it can shrink inside the
+  flex header), keeping card headers to a fixed height regardless of title
+  length.
+
 ## 0.29.0 — Image zoom-on-hover and a single slot-prose pin
 
 ### Added
