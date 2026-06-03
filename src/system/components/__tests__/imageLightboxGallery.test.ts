@@ -79,6 +79,13 @@ const modalImg = () =>
   document.querySelector<HTMLImageElement>('.image-lightbox-layer:not(.image-lightbox-layer-exit)')!;
 const navNext = () => document.querySelector<HTMLButtonElement>('.image-lightbox-nav-next')!;
 const navPrev = () => document.querySelector<HTMLButtonElement>('.image-lightbox-nav-prev')!;
+const dialog = () => document.querySelector<HTMLElement>('[role="dialog"]');
+const closeBtn = () => document.querySelector<HTMLButtonElement>('.image-lightbox-close')!;
+const liveRegion = () => document.querySelector<HTMLElement>('.image-lightbox-sr');
+
+function key(name: string, opts: KeyboardEventInit = {}) {
+  document.dispatchEvent(new KeyboardEvent('keydown', { key: name, bubbles: true, cancelable: true, ...opts }));
+}
 
 const THREE = [
   { src: 'a.png', alt: 'A' },
@@ -193,6 +200,73 @@ describe('ImageLightbox gallery — thumbnail aspect independence (guards B1)', 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     await settle();
     expect(wrapper().style.aspectRatio).toBe('1.6 / 1');
+
+    unmount(c);
+  });
+});
+
+describe('ImageLightbox gallery — accessibility (guards S4)', () => {
+  it('the open modal is a labelled dialog and focus moves inside it', async () => {
+    const target = fresh();
+    const c = mount(ImageLightbox, { target, props: { images: THREE } });
+    flushSync();
+    await open(target);
+
+    const d = dialog()!;
+    expect(d).not.toBeNull();
+    expect(d.getAttribute('aria-modal')).toBe('true');
+    expect(d.getAttribute('aria-label')).toContain('Image 1 of 3');
+
+    // Focus landed on the close button (the modal's first control).
+    expect(document.activeElement).toBe(closeBtn());
+
+    unmount(c);
+  });
+
+  it('closing restores focus to the thumbnail trigger', async () => {
+    const target = fresh();
+    const c = mount(ImageLightbox, { target, props: { images: THREE } });
+    flushSync();
+    await open(target);
+    expect(document.activeElement).toBe(closeBtn());
+
+    key('Escape');
+    await settle();
+    expect(document.activeElement).toBe(thumb());
+
+    unmount(c);
+  });
+
+  it('Tab wraps within the dialog at both ends', async () => {
+    const target = fresh();
+    const c = mount(ImageLightbox, { target, props: { images: THREE } });
+    flushSync();
+    await open(target);
+
+    // Non-extended gallery chrome, in DOM order: close, prev, next.
+    closeBtn().focus();
+    key('Tab', { shiftKey: true }); // back from the first wraps to the last
+    expect(document.activeElement).toBe(navNext());
+
+    navNext().focus();
+    key('Tab'); // forward from the last wraps to the first
+    expect(document.activeElement).toBe(closeBtn());
+
+    unmount(c);
+  });
+
+  it('a polite live region reports the current position and updates on nav', async () => {
+    const target = fresh();
+    const c = mount(ImageLightbox, { target, props: { images: THREE } });
+    flushSync();
+    await open(target);
+
+    expect(liveRegion()?.getAttribute('aria-live')).toBe('polite');
+    expect(liveRegion()?.textContent?.trim()).toBe('Image 1 of 3');
+
+    navNext().click();
+    await settle();
+    expect(liveRegion()?.textContent?.trim()).toBe('Image 2 of 3');
 
     unmount(c);
   });

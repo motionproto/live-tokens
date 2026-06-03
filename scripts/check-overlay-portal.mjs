@@ -13,6 +13,12 @@
 // This guards the contract: every component whose `<style>` has
 // `position: fixed` must use the portal action. Tooltip is exempt — it is
 // `position: absolute`, anchored to its trigger by design, not a fixed overlay.
+//
+// Scope: this is a coarse, FILE-LEVEL tripwire, not a proof. It catches the
+// common mistake — adding a fixed overlay and forgetting `use:portal` entirely.
+// It does NOT verify the *right* element is portaled (any `use:portal` in the
+// file satisfies it) and it misses `position: fixed` set via inline/JS style or
+// in a child component. Read a pass as "didn't obviously forget", not "correct".
 
 import { readdir, readFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';

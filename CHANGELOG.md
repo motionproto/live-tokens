@@ -8,14 +8,16 @@
   (two or more) and the open modal gains left/right chevrons, an `i / n` counter
   (bottom-right, mono), and `←`/`→` keyboard navigation. A single-entry array (or a
   lone `src`) behaves exactly as before — no chevrons, no counter. Navigation runs a
-  directional slide+scale+crossfade: the outgoing image shifts 32px toward the pressed
-  chevron, scales to 0.95 and fades out (250ms, ease-in); the incoming image enters from
-  the opposite side and settles to rest (250ms, ease-out, 125ms stagger). Differing
-  aspect ratios resize the stage underneath the crossfade.
+  directional slide+scale+crossfade: the incoming image enters from the side of the
+  pressed chevron (right/next → from the right), shifting 32px as it scales from 0.95 and
+  fades in (250ms, ease-out, 125ms stagger); the outgoing image leaves the opposite way
+  (250ms, ease-in). Differing aspect ratios resize the stage underneath the crossfade.
 - **`ImageLightbox` self-measures.** `width`/`height` are now optional. The aspect ratio
   is read from the loaded `<img>` (`naturalWidth`/`naturalHeight`); explicit dimensions,
   when given, still win and avoid the pre-load reflow. Consumers without dimension
-  metadata no longer need glue.
+  metadata no longer need glue. Until a dimensionless image loads, the thumbnail reserves
+  a 3:2 fallback box so it stays visible and clickable. The inline thumbnail measures the
+  cover image independently of the open modal, so paging a gallery never resizes it.
 - **`ImageLightbox` `fit` prop.** `fit="cover"` crops the closed thumbnail to fill its
   box (the expanded modal always uses `contain`, so the whole image stays visible).
   Backed by a new `--imagelightbox-tile-object-fit` token (default `contain`). `cover`
@@ -34,7 +36,11 @@
   `contain` / `will-change` ancestor (common on real pages, and present on the editor's
   own preview pane) silently traps it. `ImageLightbox`'s modal and `Dialog`'s backdrop
   now portal to `<body>` (`use:portal`), escaping such ancestors. `Dialog`'s `inline`
-  preview variant stays in flow (`use:portal={!inline}`).
+  preview variant stays in flow (`use:portal={!inline}`), and toggling `inline` at
+  runtime now moves the backdrop out and back. Because the layer lives at `<body>`: DOM
+  events from it no longer bubble to a consumer ancestor; a subtree-scoped CSS-variable
+  theme no longer reaches it (this library themes via `:root`, so unaffected in practice);
+  and an SSR `show=true` renders in flow on the server, then relocates on hydration.
 
 ### Changed
 
@@ -43,6 +49,10 @@
   separate body-portaled layer. The zoom-from-thumbnail open/close morph, drag/zoom
   panning, and `extended` toolbar are unchanged. `prefers-reduced-motion` is now honored
   (all transitions collapse to an instant swap).
+- **`ImageLightbox` modal is now an accessible dialog.** It exposes `role="dialog"` +
+  `aria-modal` with a label (the image's `alt`, or `Image N of M` in a gallery), moves
+  focus into the modal on open and restores it to the thumbnail on close, traps `Tab`
+  within the modal, and announces the gallery position via a polite live region.
 
 ## 0.30.0 — Images lazy-load and stay responsive; card titles truncate
 

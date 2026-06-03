@@ -37,7 +37,9 @@
   import newspaperUrl from '../../system/assets/newspaper.webp';
 
   const demoImages = [
-    { src: offeringUrl, alt: 'Offering' },
+    // Offering carries explicit dimensions (the no-reflow path); Newspaper omits
+    // them to exercise self-measure from the loaded image.
+    { src: offeringUrl, alt: 'Offering', width: 1455, height: 970 },
     { src: newspaperUrl, alt: 'Newspaper' },
   ];
 

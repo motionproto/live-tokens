@@ -52,6 +52,12 @@
   const cover = $derived(items[0]);
   const isGallery = $derived(items.length > 1);
 
+  const dialogLabel = $derived(
+    isGallery
+      ? `Image ${index + 1} of ${items.length}${current?.alt ? `: ${current.alt}` : ''}`
+      : current?.alt || 'Image',
+  );
+
   const MIN_SCALE = 1;
   const MAX_SCALE = 5;
   const ZOOM_STEP = 1.5;
@@ -67,8 +73,8 @@
   const EASE_IN = 'cubic-bezier(0.32, 0, 0.67, 0)';
   const EASE_OUT = 'cubic-bezier(0.33, 1, 0.68, 1)';
 
-  let wrapperEl: HTMLDivElement;
   let thumbEl: HTMLButtonElement | undefined = $state();
+  let modalEl: HTMLDivElement | undefined = $state();
   let stageEl: HTMLDivElement | undefined = $state();
   let transformEl: HTMLDivElement | undefined = $state();
   let overlayEl: HTMLDivElement | undefined = $state();
@@ -229,6 +235,10 @@
         delay: 80,
       });
     }
+
+    // Move focus into the modal so keyboard users land inside the dialog; the
+    // stage (tabindex -1) is the fallback when there is no chrome to focus.
+    (closeBtnEl ?? stageEl)?.focus();
   }
 
   // Close button, gallery chevrons, and counter all share a plain opacity fade;
@@ -291,6 +301,7 @@
       mounted = false;
       document.body.style.overflow = '';
       restoreEditorOverlay();
+      thumbEl?.focus();
     };
   }
 
@@ -466,11 +477,38 @@
     if (!extended && !isGallery) closeLightbox();
   }
 
+  // Keep Tab inside the open dialog. The stage (tabindex -1) is excluded, so an
+  // image-only lightbox with no chrome simply holds focus on the stage.
+  function trapTab(e: KeyboardEvent) {
+    if (!modalEl) return;
+    const f = [
+      ...modalEl.querySelectorAll<HTMLElement>('button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'),
+    ];
+    if (f.length === 0) {
+      e.preventDefault();
+      stageEl?.focus();
+      return;
+    }
+    const first = f[0];
+    const last = f[f.length - 1];
+    const active = document.activeElement as HTMLElement | null;
+    const inside = active && modalEl.contains(active);
+    if (e.shiftKey && (!inside || active === first)) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && (!inside || active === last)) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
   onMount(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!open) return;
       if (e.key === 'Escape') {
         closeLightbox();
+      } else if (e.key === 'Tab') {
+        trapTab(e);
       } else if (isGallery && e.key === 'ArrowRight') {
         e.preventDefault();
         next();
@@ -499,7 +537,6 @@
 </script>
 
 <div
-  bind:this={wrapperEl}
   class="image-lightbox-wrapper"
   style:aspect-ratio={coverAspect ? `${coverAspect}` : undefined}
   style:max-width={typeof maxWidth === 'number' ? `${maxWidth}px` : maxWidth}
@@ -509,7 +546,7 @@
     class="image-lightbox-thumb"
     style:--imagelightbox-tile-object-fit={fit}
     type="button"
-    aria-label={`Expand image: ${cover?.alt}`}
+    aria-label={cover?.alt ? `Expand image: ${cover.alt}` : 'Expand image'}
     onclick={openLightbox}
   >
     <img src={cover?.src} alt={cover?.alt} draggable="false" onload={onCoverLoad} />
@@ -517,7 +554,14 @@
 </div>
 
 {#if mounted}
-  <div class="image-lightbox-modal" use:portal>
+  <div
+    bind:this={modalEl}
+    class="image-lightbox-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-label={dialogLabel}
+    use:portal
+  >
     <div
       bind:this={overlayEl}
       class="image-lightbox-overlay"
@@ -527,10 +571,15 @@
       role="presentation"
     ></div>
 
+    {#if isGallery}
+      <div class="image-lightbox-sr" aria-live="polite">{`Image ${index + 1} of ${items.length}`}</div>
+    {/if}
+
     <div
       bind:this={stageEl}
       class="image-lightbox-stage"
       role="presentation"
+      tabindex="-1"
       onclick={onStageClick}
       onpointerdown={onPointerDown}
       onpointermove={onPointerMove}
@@ -571,7 +620,7 @@
         class:active={open}
         type="button"
         aria-label="Previous image"
-        onclick={(e) => { e.stopPropagation(); prev(); }}
+        onclick={prev}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M15 18l-6-6 6-6" />
@@ -583,7 +632,7 @@
         class:active={open}
         type="button"
         aria-label="Next image"
-        onclick={(e) => { e.stopPropagation(); next(); }}
+        onclick={next}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M9 6l6 6-6 6" />
@@ -649,6 +698,10 @@
   .image-lightbox-wrapper {
     position: relative;
     width: 100%;
+    /* Fallback box so the absolutely-positioned thumbnail is visible and
+       clickable before a dimensionless image loads; the inline aspect-ratio
+       (explicit or measured) overrides this the moment it is known. */
+    aspect-ratio: 3 / 2;
   }
 
   .image-lightbox-thumb {
@@ -684,6 +737,18 @@
 
   .image-lightbox-modal {
     display: contents;
+  }
+
+  .image-lightbox-sr {
+    position: fixed;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .image-lightbox-stage {

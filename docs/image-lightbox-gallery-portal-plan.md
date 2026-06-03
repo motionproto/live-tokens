@@ -55,7 +55,7 @@ new image enters from the right, old leaves left.
   Update the `:318-319` direction comment to match.
 - Acceptance: T1 direction assertion + manual eyeball.
 
-### [ ] S2 — Pre-load collapse / lost CLS guard; demo no longer exercises explicit dims
+### [x] S2 — Pre-load collapse / lost CLS guard; demo no longer exercises explicit dims
 With no `width`/`height` and no measured aspect yet, the wrapper has no `aspect-ratio`
 and collapses to 0 height, so the absolutely-positioned thumb is invisible/unclickable
 until load, then reflows. The demo passes neither dimension, so the "explicit
@@ -69,7 +69,7 @@ dimensions, no reflow" path is no longer demoed.
 - Acceptance: thumb is visible and clickable before the image loads; no full-height
   jump on load for an image with explicit dimensions.
 
-### [ ] S3 — `portal` action never moves a node back; reactive `inline` toggle is latent-broken
+### [x] S3 — `portal` action never moves a node back; reactive `inline` toggle is latent-broken
 `moved` only goes `false → true`; `update(false)` is a no-op, so toggling Dialog
 `inline: false → true` at runtime strands the backdrop in `<body>`. The file comment
 claims disabled "leaves the node where Svelte put it", true only at init.
@@ -81,7 +81,7 @@ claims disabled "leaves the node where Svelte put it", true only at init.
 - Acceptance: a Dialog whose `inline` flips true→false→true ends in flow, correctly
   styled. Covered by T2.
 
-### [ ] S4 — Modal a11y gaps vs. a standard dialog
+### [x] S4 — Modal a11y gaps vs. a standard dialog
 Overlay/stage are `role="presentation"`; no `role="dialog"`/`aria-modal`, no accessible
 name, focus never enters the modal or returns to the thumb, no focus trap (modal is at
 end of `<body>`, so Tab leaks into the background page), counter is `aria-hidden`.
@@ -100,21 +100,21 @@ end of `<body>`, so Tab leaks into the background page), counter is `aria-hidden
 
 ## Nits
 
-### [ ] N1 — Remove dead `wrapperEl`
+### [x] N1 — Remove dead `wrapperEl`
 No longer read after `closeLightbox` switched to `thumbEl`.
 - Files: `ImageLightbox.svelte:70`, `:479`. Drop the `let` and the `bind:this`.
 
-### [ ] N2 — Tokenize new chrome sizes (low priority)
+### [-] N2 — Tokenize new chrome sizes (low priority)
 New `.image-lightbox-nav` `2.75rem` and counter literals join pre-existing hardcoded
 sizes. Not a regression; align with the "tokenize design values" leaning if cheap.
 - Files: `ImageLightbox.svelte:762-763`, `:782-798`.
 
-### [ ] N3 — Drop dead `stopPropagation` on nav clicks
+### [x] N3 — Drop dead `stopPropagation` on nav clicks
 Nav buttons are siblings of overlay/stage (under the `display:contents` wrapper), so
 clicks never bubble to either close handler.
 - Files: `ImageLightbox.svelte:551`, `:563`.
 
-### [ ] N4 — Empty-alt aria-label
+### [x] N4 — Empty-alt aria-label
 `aria-label="Expand image: ${cover?.alt}"` reads "Expand image: " when alt is empty.
 - Files: `ImageLightbox.svelte:489`. Fall back to a generic label when alt is blank.
 
@@ -122,7 +122,7 @@ clicks never bubble to either close handler.
 
 ## Approach / guardrail / docs
 
-### [ ] A1 — Document `check-overlay-portal` as a file-level tripwire, not a proof
+### [x] A1 — Document `check-overlay-portal` as a file-level tripwire, not a proof
 It's coarse: misses `position: fixed` set via JS/inline style or in a child component
 and `position : fixed` (space before colon); passes if `use:portal` appears *anywhere*
 in the file (comment, unrelated element, or only one of several fixed layers). Runs only
@@ -131,7 +131,7 @@ in `prepublishOnly`, not `npm run check`.
 - Fix: add a header note stating it's file-level not element-level so reviewers don't
   over-trust it. Optional: also wire it into `npm run check` so dev sees failures early.
 
-### [ ] A2 — CHANGELOG: add the consumer-visible portal surprises
+### [x] A2 — CHANGELOG: add the consumer-visible portal surprises
 Entry is accurate but omits: DOM events from the backdrop no longer bubble to a
 consumer's wrapper; a subtree-scoped CSS-variable theme no longer reaches an overlay
 portaled to `<body>` (this project themes via `documentElement`, so fine in practice);
@@ -139,7 +139,7 @@ SSR `show=true` renders in-flow on the server and relocates on hydration; `inlin
 init-only (until S3 lands).
 - Files: `CHANGELOG.md` (Unreleased).
 
-### [ ] A3 — SKILL.md portal note: add the scoped-theme / event-bubbling caveat
+### [x] A3 — SKILL.md portal note: add the scoped-theme / event-bubbling caveat
 The new "Fixed overlays must portal" rule is good; add one line on the two side-effects
 so future component authors expect them.
 - Files: `.claude/skills/live-tokens-create-component/SKILL.md` (the new bullet).
@@ -158,7 +158,7 @@ verified each B1/S1 assertion fails against the unfixed code before landing.
 - [x] slide direction matches the chevron (guards S1).
 - [x] single-image array renders no gallery chrome.
 
-### [ ] T2 — Portal action tests
+### [x] T2 — Portal action tests
 - `enabled=true` appends to `<body>`; `destroy()` removes it.
 - `enabled` toggled true→false→true returns the node to flow (guards S3).
 - `enabled=false` at init leaves the node in place.

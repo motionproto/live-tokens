@@ -5,16 +5,22 @@
 // component that renders a fixed overlay uses this — see check-overlay-portal.
 //
 // `enabled` lets a component opt out per-instance (Dialog's `inline` preview
-// stays in flow). When disabled the node is left exactly where Svelte put it.
+// stays in flow). Toggling `enabled` reactively moves the node out to <body>
+// and back: an `anchor` comment marks the node's original slot so it can return.
 
 export function portal(node: HTMLElement, enabled: boolean = true) {
+  const anchor = document.createComment('portal');
+  node.before(anchor);
   let moved = false;
 
   function apply(on: boolean) {
-    if (on && !moved) {
+    if (on === moved) return;
+    if (on) {
       document.body.appendChild(node);
-      moved = true;
+    } else {
+      anchor.before(node);
     }
+    moved = on;
   }
 
   apply(enabled);
@@ -23,6 +29,7 @@ export function portal(node: HTMLElement, enabled: boolean = true) {
     update: apply,
     destroy() {
       if (moved) node.remove();
+      anchor.remove();
     },
   };
 }
