@@ -33,18 +33,32 @@
   import ImageLightbox from '../../system/components/ImageLightbox.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import demoImageUrl from '../../system/assets/offering.webp';
+  import offeringUrl from '../../system/assets/offering.webp';
+  import newspaperUrl from '../../system/assets/newspaper.webp';
+
+  const demoImages = [
+    { src: offeringUrl, alt: 'Offering' },
+    { src: newspaperUrl, alt: 'Newspaper' },
+  ];
+
+  let multiple = $state(true);
 </script>
 
 <ComponentEditorBase
   {component}
   title="Image Lightbox"
-  description="Click an inline image to expand it into a centered modal with a backdrop. Extended mode adds zoom controls and drag panning."
+  description="Click an inline image to expand it into a centered modal with a backdrop. Pass multiple images for a gallery (chevrons + counter). Extended mode adds zoom controls and drag panning."
   tokens={allTokens}
 >
   <VariantGroup name="imagelightbox" title="Image Lightbox" {states} {component}>
+    {#snippet stateActions()}
+      <label class="preview-toggle">
+        <input type="checkbox" checked={multiple} onchange={(e) => (multiple = e.currentTarget.checked)} />
+        <span>Multiple images</span>
+      </label>
+    {/snippet}
     <div class="preview-frame">
-      <ImageLightbox src={demoImageUrl} alt="Demo image" width={1024} height={640} extended />
+      <ImageLightbox images={multiple ? demoImages : [demoImages[0]]} extended />
     </div>
   </VariantGroup>
 </ComponentEditorBase>
@@ -54,5 +68,13 @@
     width: 100%;
     max-width: 28rem;
     margin: 0 auto;
+  }
+  .preview-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-4);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+    cursor: pointer;
   }
 </style>

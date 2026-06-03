@@ -1,24 +1,56 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
+  import { portal } from '../internal/portal';
 
-  interface Props {
+  interface GalleryImage {
     src: string;
     alt: string;
+    width?: number;
+    height?: number;
+  }
+
+  interface Props {
+    src?: string;
+    alt?: string;
     width?: number | undefined;
     height?: number | undefined;
+    /** Pass two or more to turn the lightbox into a gallery: left/right chevrons
+        and an `i / n` counter appear once open, plus arrow-key navigation. A
+        single-entry array behaves exactly like a lone `src`. */
+    images?: GalleryImage[];
     maxWidth?: number | string | undefined;
+    /** Closed-thumbnail object-fit. `cover` crops the thumbnail to fill its box;
+        the expanded modal always uses `contain` so the whole image stays visible.
+        `cover` only crops when the thumbnail has its own box (an aspect from
+        `width`/`height`, or a CSS-constrained container). */
+    fit?: 'contain' | 'cover';
     /** When true, shows a bottom toolbar (zoom in/out + percent) and a top-right close button, and enables wheel/drag zoom inside the open modal. When false, click anywhere closes. */
     extended?: boolean;
   }
 
   let {
-    src,
-    alt,
+    src = undefined,
+    alt = undefined,
     width = undefined,
     height = undefined,
+    images = undefined,
     maxWidth = undefined,
+    fit = 'contain',
     extended = false,
   }: Props = $props();
+
+  const items = $derived(
+    images && images.length
+      ? images
+      : src != null
+        ? [{ src, alt: alt ?? '', width, height }]
+        : [],
+  );
+
+  let index = $state(0);
+  const current = $derived(items[index] ?? items[0]);
+  const cover = $derived(items[0]);
+  const isGallery = $derived(items.length > 1);
 
   const MIN_SCALE = 1;
   const MAX_SCALE = 5;
@@ -26,22 +58,53 @@
   const TRANSITION_MS = 350;
   const TRANSITION_EASE = 'cubic-bezier(0.65, 0, 0.35, 1)';
 
+  // Gallery navigation: outgoing slides out + shrinks + fades; incoming slides
+  // in from the opposite side, staggered. Easings mirror --ease-in/out-cubic.
+  const NAV_MS = 250;
+  const NAV_STAGGER_MS = 125;
+  const NAV_SHIFT_PX = 32;
+  const NAV_SCALE = 0.95;
+  const EASE_IN = 'cubic-bezier(0.32, 0, 0.67, 0)';
+  const EASE_OUT = 'cubic-bezier(0.33, 1, 0.68, 1)';
+
   let wrapperEl: HTMLDivElement;
-  let tileEl: HTMLDivElement;
-  let transformEl: HTMLDivElement;
-  let overlayEl: HTMLDivElement;
+  let thumbEl: HTMLButtonElement | undefined = $state();
+  let stageEl: HTMLDivElement | undefined = $state();
+  let transformEl: HTMLDivElement | undefined = $state();
+  let overlayEl: HTMLDivElement | undefined = $state();
   let toolbarEl: HTMLDivElement | undefined = $state();
   let closeBtnEl: HTMLButtonElement | undefined = $state();
+  let prevBtnEl: HTMLButtonElement | undefined = $state();
+  let nextBtnEl: HTMLButtonElement | undefined = $state();
+  let counterEl: HTMLDivElement | undefined = $state();
+  let incomingEl: HTMLImageElement | undefined = $state();
+  let outgoingEl: HTMLImageElement | undefined = $state();
 
+  // `mounted` keeps the portaled modal in the DOM through the close animation;
+  // `open` is the visual state the chrome reacts to.
+  let mounted = $state(false);
   let open = $state(false);
   let scale = $state(1);
   let offset = { x: 0, y: 0 };
+
+  // The image leaving during a gallery transition; rendered as a second layer
+  // until its slide-out finishes, then dropped.
+  let outgoing = $state<GalleryImage | null>(null);
+  let navigating = false;
+
+  // Measured from the loaded <img>, so a consumer needn't supply width/height;
+  // explicit dimensions (when given) win and avoid the pre-load reflow.
+  let naturalAspect = $state<number | undefined>(undefined);
+  let reducedMotion = $state(false);
+  const dur = (ms = TRANSITION_MS) => (reducedMotion ? 0 : ms);
 
   // Pointer drag for pan (extended + zoomed only).
   let dragState: { startX: number; startY: number; baseX: number; baseY: number; pointerId: number } | null = null;
   let didDrag = false;
 
-  const aspect = $derived(width && height ? width / height : undefined);
+  const aspect = $derived(
+    current?.width && current?.height ? current.width / current.height : naturalAspect,
+  );
 
   function viewportTarget() {
     const vw = window.innerWidth;
@@ -62,8 +125,8 @@
   }
 
   function clampOffset(x: number, y: number, s: number) {
-    if (!tileEl) return { x: 0, y: 0 };
-    const r = tileEl.getBoundingClientRect();
+    if (!stageEl) return { x: 0, y: 0 };
+    const r = stageEl.getBoundingClientRect();
     const maxX = Math.max(0, (r.width * s - r.width) / 2);
     const maxY = Math.max(0, (r.height * s - r.height) / 2);
     return {
@@ -101,10 +164,8 @@
   function cancelAnimations() {
     // Commit each animation's current value to inline styles before cancelling,
     // so a mid-flight cancel doesn't visually snap the element back to its
-    // pre-animation state. After cancel, the WAAPI effect is gone and the
-    // committed inline values are what we'll either animate from next or
-    // clear via cssText = ''.
-    for (const el of [tileEl, overlayEl, toolbarEl, closeBtnEl]) {
+    // pre-animation state.
+    for (const el of [stageEl, overlayEl, toolbarEl, closeBtnEl, prevBtnEl, nextBtnEl, counterEl]) {
       if (!el) continue;
       for (const a of el.getAnimations()) {
         try { a.commitStyles(); } catch {}
@@ -114,48 +175,42 @@
   }
 
   async function openLightbox() {
-    if (open || !tileEl) return;
-    cancelAnimations();
-    const start = tileEl.getBoundingClientRect();
-    const target = viewportTarget();
+    if (open || !thumbEl) return;
+    const start = thumbEl.getBoundingClientRect();
 
+    mounted = true;
     open = true;
     document.body.style.overflow = 'hidden';
     hideEditorOverlay();
     await tick();
+    if (!stageEl || !overlayEl) return;
 
-    Object.assign(tileEl.style, {
-      position: 'fixed',
+    const target = viewportTarget();
+    Object.assign(stageEl.style, {
       top: `${start.top}px`,
       left: `${start.left}px`,
       width: `${start.width}px`,
       height: `${start.height}px`,
-      zIndex: 'var(--z-modal)',
     });
 
-    tileEl.animate(
+    stageEl.animate(
       [
         { top: `${start.top}px`, left: `${start.left}px`, width: `${start.width}px`, height: `${start.height}px` },
         { top: `${target.top}px`, left: `${target.left}px`, width: `${target.width}px`, height: `${target.height}px` },
       ],
-      { duration: TRANSITION_MS, easing: TRANSITION_EASE, fill: 'forwards' },
+      { duration: dur(), easing: TRANSITION_EASE, fill: 'forwards' },
     );
 
     overlayEl.animate([{ opacity: 0 }, { opacity: 1 }], {
-      duration: TRANSITION_MS,
+      duration: dur(),
       easing: TRANSITION_EASE,
       fill: 'forwards',
     });
 
+    fadeChrome(true);
     if (extended) {
       toolbarEl?.animate([{ opacity: 0, transform: 'translate(-50%, 16px)' }, { opacity: 1, transform: 'translate(-50%, 0)' }], {
-        duration: TRANSITION_MS,
-        easing: TRANSITION_EASE,
-        fill: 'forwards',
-        delay: 80,
-      });
-      closeBtnEl?.animate([{ opacity: 0 }, { opacity: 1 }], {
-        duration: TRANSITION_MS,
+        duration: dur(),
         easing: TRANSITION_EASE,
         fill: 'forwards',
         delay: 80,
@@ -163,50 +218,163 @@
     }
   }
 
-  function closeLightbox() {
-    if (!open || !tileEl || !wrapperEl) return;
-    cancelAnimations();
-    const target = wrapperEl.getBoundingClientRect();
-    const current = tileEl.getBoundingClientRect();
+  // Close button, gallery chevrons, and counter all share a plain opacity fade;
+  // the zoom toolbar keeps its bespoke slide so it's handled separately.
+  function chromeFadeEls(): HTMLElement[] {
+    const els: (HTMLElement | undefined)[] = [];
+    if (extended || isGallery) els.push(closeBtnEl);
+    if (isGallery) els.push(prevBtnEl, nextBtnEl, counterEl);
+    return els.filter((el): el is HTMLElement => !!el);
+  }
 
-    const anim = tileEl.animate(
+  function fadeChrome(showing: boolean) {
+    for (const el of chromeFadeEls()) {
+      el.animate([{ opacity: showing ? 0 : 1 }, { opacity: showing ? 1 : 0 }], {
+        duration: dur(),
+        easing: TRANSITION_EASE,
+        fill: 'forwards',
+        delay: showing ? 80 : 0,
+      });
+    }
+  }
+
+  function closeLightbox() {
+    if (!open || !stageEl || !thumbEl || !overlayEl) return;
+    cancelAnimations();
+    const target = thumbEl.getBoundingClientRect();
+    const from = stageEl.getBoundingClientRect();
+
+    const anim = stageEl.animate(
       [
-        { top: `${current.top}px`, left: `${current.left}px`, width: `${current.width}px`, height: `${current.height}px` },
+        { top: `${from.top}px`, left: `${from.left}px`, width: `${from.width}px`, height: `${from.height}px` },
         { top: `${target.top}px`, left: `${target.left}px`, width: `${target.width}px`, height: `${target.height}px` },
       ],
-      { duration: TRANSITION_MS, easing: TRANSITION_EASE, fill: 'forwards' },
+      { duration: dur(), easing: TRANSITION_EASE, fill: 'forwards' },
     );
 
     overlayEl.animate([{ opacity: 1 }, { opacity: 0 }], {
-      duration: TRANSITION_MS,
+      duration: dur(),
       easing: TRANSITION_EASE,
       fill: 'forwards',
     });
 
+    fadeChrome(false);
     if (extended) {
       toolbarEl?.animate([{ opacity: 1 }, { opacity: 0 }], {
-        duration: TRANSITION_MS,
-        easing: TRANSITION_EASE,
-        fill: 'forwards',
-      });
-      closeBtnEl?.animate([{ opacity: 1 }, { opacity: 0 }], {
-        duration: TRANSITION_MS,
+        duration: dur(),
         easing: TRANSITION_EASE,
         fill: 'forwards',
       });
     }
 
     anim.onfinish = () => {
-      cancelAnimations();
-      tileEl.style.cssText = '';
-      transformEl.style.transform = '';
       scale = 1;
       offset = { x: 0, y: 0 };
+      index = 0;
       open = false;
+      mounted = false;
       document.body.style.overflow = '';
       restoreEditorOverlay();
     };
   }
+
+  // Re-fit the open modal to the viewport — used on resize (snap) and when the
+  // gallery image or its measured aspect changes (animated morph).
+  function fitToViewport(animate: boolean) {
+    if (!open || !stageEl) return;
+    const target = viewportTarget();
+    if (animate) {
+      const from = stageEl.getBoundingClientRect();
+      for (const a of stageEl.getAnimations()) {
+        try { a.commitStyles(); } catch {}
+        a.cancel();
+      }
+      stageEl.animate(
+        [
+          { top: `${from.top}px`, left: `${from.left}px`, width: `${from.width}px`, height: `${from.height}px` },
+          { top: `${target.top}px`, left: `${target.left}px`, width: `${target.width}px`, height: `${target.height}px` },
+        ],
+        { duration: dur(), easing: TRANSITION_EASE, fill: 'forwards' },
+      );
+    } else {
+      Object.assign(stageEl.style, {
+        top: `${target.top}px`,
+        left: `${target.left}px`,
+        width: `${target.width}px`,
+        height: `${target.height}px`,
+      });
+    }
+    offset = clampOffset(offset.x, offset.y, scale);
+    applyTransform(scale, offset);
+  }
+
+  function settleNav() {
+    incomingEl?.getAnimations().forEach((a) => a.cancel());
+    outgoingEl?.getAnimations().forEach((a) => a.cancel());
+    outgoing = null;
+    navigating = false;
+  }
+
+  // dir: +1 when paging via the right chevron (content exits right, the next
+  // image enters from the left), -1 for the left chevron.
+  async function goTo(target: number, dir: number) {
+    if (!isGallery) return;
+    const n = ((target % items.length) + items.length) % items.length;
+    if (n === index) return;
+    if (navigating) settleNav();
+
+    scale = 1;
+    offset = { x: 0, y: 0 };
+    applyTransform(scale, offset);
+
+    outgoing = current;
+    index = n;
+    navigating = true;
+    await tick();
+
+    const exit = NAV_SHIFT_PX * dir;
+    outgoingEl?.animate(
+      [
+        { transform: 'translateX(0) scale(1)', opacity: 1 },
+        { transform: `translateX(${exit}px) scale(${NAV_SCALE})`, opacity: 0 },
+      ],
+      { duration: dur(NAV_MS), easing: EASE_IN, fill: 'forwards' },
+    );
+
+    const enter = incomingEl?.animate(
+      [
+        { transform: `translateX(${-exit}px) scale(${NAV_SCALE})`, opacity: 0 },
+        { transform: 'translateX(0) scale(1)', opacity: 1 },
+      ],
+      // `fill: both` holds the opacity-0 start state through the stagger delay,
+      // otherwise the incoming image flashes at full opacity before sliding in.
+      { duration: dur(NAV_MS), easing: EASE_OUT, fill: 'both', delay: dur(NAV_STAGGER_MS) },
+    );
+
+    fitToViewport(true); // resize the stage if the incoming aspect differs; a no-op when it matches
+
+    if (enter) enter.onfinish = settleNav;
+    else settleNav();
+  }
+
+  const next = () => goTo(index + 1, 1);
+  const prev = () => goTo(index - 1, -1);
+
+  function onImgLoad(e: Event) {
+    const img = e.currentTarget as HTMLImageElement;
+    if (img.naturalWidth && img.naturalHeight) {
+      naturalAspect = img.naturalWidth / img.naturalHeight;
+    }
+    if (open) fitToViewport(true);
+  }
+
+  $effect(() => {
+    if (!isGallery || typeof Image === 'undefined') return;
+    for (const d of [index + 1, index - 1]) {
+      const it = items[((d % items.length) + items.length) % items.length];
+      if (it) new Image().src = it.src;
+    }
+  });
 
   function zoomTo(nextScale: number, anchor?: { x: number; y: number }) {
     const s = Math.max(MIN_SCALE, Math.min(MAX_SCALE, nextScale));
@@ -216,18 +384,18 @@
       applyTransform(scale, offset);
       return;
     }
-    let next: { x: number; y: number };
-    if (anchor && tileEl) {
-      const r = tileEl.getBoundingClientRect();
+    let nextOffset: { x: number; y: number };
+    if (anchor && stageEl) {
+      const r = stageEl.getBoundingClientRect();
       const dx = anchor.x - (r.left + r.width / 2);
       const dy = anchor.y - (r.top + r.height / 2);
       const ratio = scale > 0 ? s / scale : 1;
-      next = clampOffset(dx * (1 - ratio) + offset.x * ratio, dy * (1 - ratio) + offset.y * ratio, s);
+      nextOffset = clampOffset(dx * (1 - ratio) + offset.x * ratio, dy * (1 - ratio) + offset.y * ratio, s);
     } else {
-      next = clampOffset(offset.x, offset.y, s);
+      nextOffset = clampOffset(offset.x, offset.y, s);
     }
     scale = s;
-    offset = next;
+    offset = nextOffset;
     applyTransform(scale, offset);
   }
 
@@ -267,44 +435,36 @@
     }
   }
 
-  function onTileClick() {
+  function onStageClick() {
     if (didDrag) {
       didDrag = false;
       return;
     }
-    if (!open) {
-      openLightbox();
-    } else if (!extended) {
-      closeLightbox();
-    }
-  }
-
-  function onTileKeyDown(e: KeyboardEvent) {
-    if (e.key === 'Enter' || e.code === 'Space') {
-      e.preventDefault();
-      onTileClick();
-    }
+    if (!extended && !isGallery) closeLightbox();
   }
 
   onMount(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && open) closeLightbox();
+      if (!open) return;
+      if (e.key === 'Escape') {
+        closeLightbox();
+      } else if (isGallery && e.key === 'ArrowRight') {
+        e.preventDefault();
+        next();
+      } else if (isGallery && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        prev();
+      }
     };
-    const onResize = () => {
-      if (!open || !tileEl) return;
-      const target = viewportTarget();
-      Object.assign(tileEl.style, {
-        top: `${target.top}px`,
-        left: `${target.left}px`,
-        width: `${target.width}px`,
-        height: `${target.height}px`,
-      });
-      offset = clampOffset(offset.x, offset.y, scale);
-      applyTransform(scale, offset);
-    };
+    const onResize = () => fitToViewport(false);
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    reducedMotion = motionQuery.matches;
+    const onMotionChange = (e: MediaQueryListEvent) => { reducedMotion = e.matches; };
+    motionQuery.addEventListener('change', onMotionChange);
     document.addEventListener('keydown', onKey);
     window.addEventListener('resize', onResize);
     return () => {
+      motionQuery.removeEventListener('change', onMotionChange);
       document.removeEventListener('keydown', onKey);
       window.removeEventListener('resize', onResize);
       document.body.style.overflow = '';
@@ -318,95 +478,138 @@
 <div
   bind:this={wrapperEl}
   class="image-lightbox-wrapper"
-  style:aspect-ratio={aspect ? `${width} / ${height}` : undefined}
+  style:aspect-ratio={aspect ? `${aspect}` : undefined}
   style:max-width={typeof maxWidth === 'number' ? `${maxWidth}px` : maxWidth}
 >
-  <div
-    bind:this={tileEl}
-    class="image-lightbox-tile"
-    class:open
-    role="button"
-    tabindex="0"
-    aria-label={open ? `Close image: ${alt}` : `Expand image: ${alt}`}
-    onclick={onTileClick}
-    onkeydown={onTileKeyDown}
-    onpointerdown={onPointerDown}
-    onpointermove={onPointerMove}
-    onpointerup={onPointerUp}
-    onpointercancel={onPointerUp}
-    onwheel={onWheel}
+  <button
+    bind:this={thumbEl}
+    class="image-lightbox-thumb"
+    style:--imagelightbox-tile-object-fit={fit}
+    type="button"
+    aria-label={`Expand image: ${cover?.alt}`}
+    onclick={openLightbox}
   >
-    <div class="image-lightbox-clip">
-      <div bind:this={transformEl} class="image-lightbox-transform">
-        <img {src} {alt} draggable="false" />
-      </div>
-    </div>
-  </div>
+    <img src={cover?.src} alt={cover?.alt} draggable="false" onload={onImgLoad} />
+  </button>
 </div>
 
-<div
-  bind:this={overlayEl}
-  class="image-lightbox-overlay"
-  class:active={open}
-  aria-hidden="true"
-  onclick={closeLightbox}
-  role="presentation"
-></div>
+{#if mounted}
+  <div class="image-lightbox-modal" use:portal>
+    <div
+      bind:this={overlayEl}
+      class="image-lightbox-overlay"
+      class:active={open}
+      aria-hidden="true"
+      onclick={closeLightbox}
+      role="presentation"
+    ></div>
 
-{#if extended}
-  <button
-    bind:this={closeBtnEl}
-    class="image-lightbox-chrome image-lightbox-close"
-    class:active={open}
-    type="button"
-    aria-label="Close"
-    onclick={closeLightbox}
-  >
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M18 6L6 18" />
-      <path d="M6 6l12 12" />
-    </svg>
-  </button>
+    <div
+      bind:this={stageEl}
+      class="image-lightbox-stage"
+      role="presentation"
+      onclick={onStageClick}
+      onpointerdown={onPointerDown}
+      onpointermove={onPointerMove}
+      onpointerup={onPointerUp}
+      onpointercancel={onPointerUp}
+      onwheel={onWheel}
+    >
+      <div class="image-lightbox-clip">
+        <div bind:this={transformEl} class="image-lightbox-transform">
+          {#if outgoing}
+            <img bind:this={outgoingEl} class="image-lightbox-layer image-lightbox-layer-exit" src={outgoing.src} alt="" draggable="false" />
+          {/if}
+          <img bind:this={incomingEl} class="image-lightbox-layer" src={current?.src} alt={current?.alt} draggable="false" onload={onImgLoad} />
+        </div>
+      </div>
+    </div>
 
-  <div
-    bind:this={toolbarEl}
-    class="image-lightbox-toolbar"
-    class:active={open}
-  >
-    <button
-      class="image-lightbox-chrome-button"
-      type="button"
-      aria-label="Zoom out"
-      disabled={scale <= MIN_SCALE + 0.001}
-      onclick={() => zoomTo(scale / ZOOM_STEP)}
-    >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M5 12h14" />
-      </svg>
-    </button>
-    <span class="image-lightbox-toolbar-label">{percentLabel}</span>
-    <button
-      class="image-lightbox-chrome-button"
-      type="button"
-      aria-label="Zoom in"
-      disabled={scale >= MAX_SCALE - 0.001}
-      onclick={() => zoomTo(scale * ZOOM_STEP)}
-    >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M12 5v14" />
-        <path d="M5 12h14" />
-      </svg>
-    </button>
+    {#if extended || isGallery}
+      <button
+        bind:this={closeBtnEl}
+        class="image-lightbox-chrome image-lightbox-close"
+        class:active={open}
+        type="button"
+        aria-label="Close"
+        onclick={closeLightbox}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 6L6 18" />
+          <path d="M6 6l12 12" />
+        </svg>
+      </button>
+    {/if}
+
+    {#if isGallery}
+      <button
+        bind:this={prevBtnEl}
+        class="image-lightbox-chrome image-lightbox-nav image-lightbox-nav-prev"
+        class:active={open}
+        type="button"
+        aria-label="Previous image"
+        onclick={(e) => { e.stopPropagation(); prev(); }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+      </button>
+      <button
+        bind:this={nextBtnEl}
+        class="image-lightbox-chrome image-lightbox-nav image-lightbox-nav-next"
+        class:active={open}
+        type="button"
+        aria-label="Next image"
+        onclick={(e) => { e.stopPropagation(); next(); }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 6l6 6-6 6" />
+        </svg>
+      </button>
+      <div bind:this={counterEl} class="image-lightbox-counter" aria-hidden="true">
+        {index + 1} / {items.length}
+      </div>
+    {/if}
+
+    {#if extended}
+      <div bind:this={toolbarEl} class="image-lightbox-toolbar" class:active={open}>
+        <button
+          class="image-lightbox-chrome-button"
+          type="button"
+          aria-label="Zoom out"
+          disabled={scale <= MIN_SCALE + 0.001}
+          onclick={() => zoomTo(scale / ZOOM_STEP)}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14" />
+          </svg>
+        </button>
+        <span class="image-lightbox-toolbar-label">{percentLabel}</span>
+        <button
+          class="image-lightbox-chrome-button"
+          type="button"
+          aria-label="Zoom in"
+          disabled={scale >= MAX_SCALE - 0.001}
+          onclick={() => zoomTo(scale * ZOOM_STEP)}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 5v14" />
+            <path d="M5 12h14" />
+          </svg>
+        </button>
+      </div>
+    {/if}
   </div>
 {/if}
 
 <style>
   :global(:root) {
-    /* tile (closed inline + animated modal surface) */
+    /* thumbnail (closed inline) + animated modal stage */
     --imagelightbox-tile-radius:           var(--radius-2xl);
     --imagelightbox-tile-border:           var(--color-transparent);
     --imagelightbox-tile-border-width:     var(--border-width-0);
     --imagelightbox-tile-shadow:           var(--shadow-md);
+    --imagelightbox-tile-object-fit:       contain;
 
     /* overlay */
     --imagelightbox-overlay-surface:       color-mix(in srgb, var(--color-neutral-950) 76%, transparent);
@@ -425,29 +628,49 @@
     width: 100%;
   }
 
-  .image-lightbox-tile {
+  .image-lightbox-thumb {
     position: absolute;
     inset: 0;
+    padding: 0;
     cursor: zoom-in;
     border: var(--imagelightbox-tile-border-width) solid var(--imagelightbox-tile-border);
     border-radius: var(--imagelightbox-tile-radius);
     box-shadow: var(--imagelightbox-tile-shadow);
     background: transparent;
-    overflow: visible;
+    overflow: hidden;
     transition: transform 250ms ease;
   }
 
-  .image-lightbox-tile:hover:not(.open) {
+  .image-lightbox-thumb:hover {
     transform: scale(1.02);
   }
 
-  .image-lightbox-tile.open {
-    cursor: zoom-out;
-  }
-
-  .image-lightbox-tile:focus-visible {
+  .image-lightbox-thumb:focus-visible {
     outline: 2px solid var(--border-brand-medium);
     outline-offset: 2px;
+  }
+
+  .image-lightbox-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: var(--imagelightbox-tile-object-fit);
+    object-position: center;
+    user-select: none;
+    display: block;
+  }
+
+  .image-lightbox-modal {
+    display: contents;
+  }
+
+  .image-lightbox-stage {
+    position: fixed;
+    z-index: var(--z-modal);
+    cursor: zoom-out;
+    border: var(--imagelightbox-tile-border-width) solid var(--imagelightbox-tile-border);
+    border-radius: var(--imagelightbox-tile-radius);
+    box-shadow: var(--imagelightbox-tile-shadow);
+    background: transparent;
   }
 
   .image-lightbox-clip {
@@ -464,14 +687,26 @@
     transform-origin: center center;
   }
 
-  .image-lightbox-transform img {
+  .image-lightbox-layer {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: contain;
     object-position: center;
+    transform-origin: center center;
     user-select: none;
     pointer-events: none;
     display: block;
+    /* Incoming layer sits above the exiting one so the new image fades in over
+       the old; own compositor layer keeps the crossfade from flickering. */
+    z-index: 1;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+  }
+
+  .image-lightbox-layer-exit {
+    z-index: 0;
   }
 
   .image-lightbox-overlay {
@@ -519,6 +754,47 @@
 
   .image-lightbox-close:hover {
     background: var(--imagelightbox-chrome-hover-surface);
+  }
+
+  .image-lightbox-nav {
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2.75rem;
+    height: 2.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .image-lightbox-nav-prev {
+    left: var(--space-24);
+  }
+
+  .image-lightbox-nav-next {
+    right: var(--space-24);
+  }
+
+  .image-lightbox-nav:hover {
+    background: var(--imagelightbox-chrome-hover-surface);
+  }
+
+  .image-lightbox-counter {
+    position: fixed;
+    right: var(--space-24);
+    bottom: var(--space-24);
+    z-index: var(--z-modal);
+    padding: var(--space-8) var(--space-16);
+    background: var(--imagelightbox-chrome-surface);
+    border: var(--imagelightbox-chrome-border-width) solid var(--imagelightbox-chrome-border);
+    border-radius: var(--imagelightbox-chrome-radius);
+    color: var(--imagelightbox-chrome-icon);
+    backdrop-filter: blur(var(--blur-md));
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    letter-spacing: var(--letter-spacing-wider);
+    opacity: 0;
+    pointer-events: none;
   }
 
   .image-lightbox-toolbar {

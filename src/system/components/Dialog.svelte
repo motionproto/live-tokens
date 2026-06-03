@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher, tick } from 'svelte';
   import type { Snippet } from 'svelte';
+  import { portal } from '../internal/portal';
   import Button from './Button.svelte';
   import type { ButtonVariant, DialogButtonSpec } from './types';
 
@@ -105,7 +106,9 @@
 </script>
 
 {#if show}
-  <div class="dialog-backdrop" class:inline>
+  <!-- The fixed backdrop portals to <body> to escape transformed/isolated
+       ancestors; the inline preview variant stays in flow. -->
+  <div class="dialog-backdrop" class:inline use:portal={!inline}>
     <div class="dialog" style="width: {width}; max-width: {width};">
       <div class="dialog-content">
         {#if title}

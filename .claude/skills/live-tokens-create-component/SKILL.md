@@ -106,6 +106,7 @@ The authoritative recognised list lives in `bin/check-component.mjs` (`KNOWN_SUF
 
 ### Rules that bite
 
+- **Fixed overlays must portal to `<body>`.** Any `position: fixed` layer (modal, lightbox, full-screen backdrop) is trapped — clipped or painted under other chrome — by a transformed / `isolation` / `contain` / `will-change` ancestor, which real consumer pages (and the editor's own preview pane) commonly have. Render the fixed layer with `use:portal` from `src/system/internal/portal.ts` so it escapes to `<body>`; pass `use:portal={enabled}` to keep an in-flow preview variant in place (see `Dialog`). `check:overlay-portal` fails the build if a component has `position: fixed` without it. Anchored popovers (`position: absolute` relative to a trigger, like `Tooltip`) are exempt.
 - **State before property.** `--mywidget-button-hover-surface` ✓ — `--mywidget-button-surface-hover` ✗ (breaks sibling matching).
 - **Defaults reference theme tokens, never raw values.** `var(--surface-primary)` ✓ — `#6a4ce8` ✗.
 - **No abbreviations.** `bg` → `surface`; `fg` → `text`; component ids are never abbreviated.

@@ -1,5 +1,49 @@
 # Changelog
 
+## Unreleased — Image Lightbox galleries; fixed overlays escape their ancestors
+
+### Added
+
+- **`ImageLightbox` gallery mode.** Pass `images={[{ src, alt, width?, height? }]}`
+  (two or more) and the open modal gains left/right chevrons, an `i / n` counter
+  (bottom-right, mono), and `←`/`→` keyboard navigation. A single-entry array (or a
+  lone `src`) behaves exactly as before — no chevrons, no counter. Navigation runs a
+  directional slide+scale+crossfade: the outgoing image shifts 32px toward the pressed
+  chevron, scales to 0.95 and fades out (250ms, ease-in); the incoming image enters from
+  the opposite side and settles to rest (250ms, ease-out, 125ms stagger). Differing
+  aspect ratios resize the stage underneath the crossfade.
+- **`ImageLightbox` self-measures.** `width`/`height` are now optional. The aspect ratio
+  is read from the loaded `<img>` (`naturalWidth`/`naturalHeight`); explicit dimensions,
+  when given, still win and avoid the pre-load reflow. Consumers without dimension
+  metadata no longer need glue.
+- **`ImageLightbox` `fit` prop.** `fit="cover"` crops the closed thumbnail to fill its
+  box (the expanded modal always uses `contain`, so the whole image stays visible).
+  Backed by a new `--imagelightbox-tile-object-fit` token (default `contain`). `cover`
+  only crops when the thumbnail has its own box (an aspect from `width`/`height`, or a
+  CSS-constrained container).
+- **Shared `portal` action** (`src/system/internal/portal.ts`) and a
+  **`check:overlay-portal`** publish gate. Any component whose `<style>` declares
+  `position: fixed` must portal that layer via `use:portal`, or the build fails. Anchored
+  `position: absolute` popovers (`Tooltip`) are exempt.
+
+### Fixed
+
+- **Fixed-position overlays no longer get clipped or painted under other content.** A
+  `position: fixed` modal is only window-relative while no ancestor establishes a
+  containing block or stacking context for it; a transformed / `isolation: isolate` /
+  `contain` / `will-change` ancestor (common on real pages, and present on the editor's
+  own preview pane) silently traps it. `ImageLightbox`'s modal and `Dialog`'s backdrop
+  now portal to `<body>` (`use:portal`), escaping such ancestors. `Dialog`'s `inline`
+  preview variant stays in flow (`use:portal={!inline}`).
+
+### Changed
+
+- **`ImageLightbox` internals restructured.** The inline thumbnail is now its own
+  `<button>` that stays in flow; the overlay, morphing stage, and chrome render in a
+  separate body-portaled layer. The zoom-from-thumbnail open/close morph, drag/zoom
+  panning, and `extended` toolbar are unchanged. `prefers-reduced-motion` is now honored
+  (all transitions collapse to an instant swap).
+
 ## 0.30.0 — Images lazy-load and stay responsive; card titles truncate
 
 ### Added
