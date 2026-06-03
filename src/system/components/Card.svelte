@@ -154,6 +154,10 @@
     font-size: var(--card-default-title-font-size);
     font-weight: var(--card-default-title-font-weight);
     line-height: var(--card-default-title-line-height);
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   .card.compact .card-title {

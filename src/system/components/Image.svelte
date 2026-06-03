@@ -7,6 +7,11 @@
     /** Zoom the contents on hover (frame stays fixed). `undefined` inherits the editor's
         global "Use zoom" default; `true`/`false` force this instance on/off. */
     zoom?: boolean | undefined;
+    srcset?: string | undefined;
+    sizes?: string | undefined;
+    /** Content images default to lazy; pass `'eager'` for above-the-fold heroes. */
+    loading?: 'lazy' | 'eager';
+    decoding?: 'async' | 'sync' | 'auto';
   }
 
   let {
@@ -14,7 +19,11 @@
     alt,
     variant = 'default',
     height = undefined,
-    zoom = undefined
+    zoom = undefined,
+    srcset = undefined,
+    sizes = undefined,
+    loading = 'lazy',
+    decoding = 'async'
   }: Props = $props();
 
   const variantHeights: Record<string, string | undefined> = {
@@ -33,7 +42,7 @@
 </script>
 
 <div class="image" style:height={resolvedHeight} style:--image-zoom-hover={zoomOverride}>
-  <img {src} {alt} />
+  <img {src} {alt} {srcset} {sizes} {loading} {decoding} />
 </div>
 
 <style>
