@@ -1,5 +1,47 @@
 # Changelog
 
+## 0.29.0 — Image zoom-on-hover and a single slot-prose pin
+
+### Added
+
+- **Images can zoom their contents on hover.** `Image` gains an optional `zoom`
+  prop and a global "Use zoom" editor intrinsic (the same gate-var + tri-state
+  pattern as Card hover): `zoom={undefined}` inherits the editor default,
+  `true`/`false` force one instance on or off. The frame stays fixed; only the
+  `<img>` scales, via `transform: scale(var(--image-zoom-scale))` with a
+  `--duration-300`/`--ease-out-cubic` transition. `CardEditor` and `ImageEditor`
+  now export `intrinsics`, registered in the component registry.
+- **`--scale-{sm..2xl}` transform-multiplier scale in `tokens.css`** (1.05 → 1.25,
+  5% per step), consumed by the image zoom above and surfaced in the editor as
+  the `SCALE` variant. Ships with a paired `tokens.css` migration
+  (`2026-06-03-transform-scale-additions`): run `npx live-tokens migrate` to add
+  the scale to a vendored `tokens.css`, or the picker shows a blank slot for
+  `--image-zoom-scale`.
+- **`check:slot-prose` publish gate.** Fails the build if a slot-rendering
+  component hand-rolls the slot-typography pin (a `:global(p|ul|ol|li)` rule set
+  to the literal `inherit`) instead of `@include slot-prose`. Added to
+  `prepublishOnly`.
+
+### Fixed
+
+- **Consumer global element rules no longer repaint slotted content.** Components
+  render the consumer's raw HTML in the same light-DOM tree, so a consumer's
+  global `p` / `ul li` rules (for example in `site.css`) matched slotted elements
+  and beat the container's body typography (the serif-card bug). The pin now
+  lives in one place, `src/system/styles/_slot-prose.scss`, applied via
+  `@include slot-prose` on `Card`, `CollapsibleSection`, and `Image`. Three
+  diverging hand-copies had shipped before; `check:slot-prose` keeps them out.
+
+### Changed
+
+- **The slot-prose pin is per-axis, not `font: inherit`.** It pins only the axes
+  a component owns (family, size, weight, line-height, colour, plus spacing
+  rhythm) and leaves `font-style`, `letter-spacing`, and `text-transform` free,
+  so a consumer's italics or tracking survive inside a card or section.
+- **`Card` and `CollapsibleSection` gain a `prose` prop (default `true`).** Set
+  `prose={false}` to drop the pin and fully own slotted-content styling.
+- `fonts.css` (generated from the production theme) swaps Fraunces for Manrope.
+
 ## 0.28.1 — Docs load from the published package
 
 ### Fixed
