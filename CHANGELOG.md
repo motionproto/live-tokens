@@ -15,9 +15,10 @@
 - **`ImageLightbox` self-measures.** `width`/`height` are now optional. The aspect ratio
   is read from the loaded `<img>` (`naturalWidth`/`naturalHeight`); explicit dimensions,
   when given, still win and avoid the pre-load reflow. Consumers without dimension
-  metadata no longer need glue. Until a dimensionless image loads, the thumbnail reserves
-  a 3:2 fallback box so it stays visible and clickable. The inline thumbnail measures the
-  cover image independently of the open modal, so paging a gallery never resizes it.
+  metadata no longer need glue. The inline thumbnail measures the cover image
+  independently of the open modal (aspect ratios are tracked per image), so paging a
+  gallery never resizes the thumbnail. A dimensionless image still has a brief pre-load
+  reflow; pass `width`/`height` to reserve its box.
 - **`ImageLightbox` `fit` prop.** `fit="cover"` crops the closed thumbnail to fill its
   box (the expanded modal always uses `contain`, so the whole image stays visible).
   Backed by a new `--imagelightbox-tile-object-fit` token (default `contain`). `cover`
@@ -36,11 +37,11 @@
   `contain` / `will-change` ancestor (common on real pages, and present on the editor's
   own preview pane) silently traps it. `ImageLightbox`'s modal and `Dialog`'s backdrop
   now portal to `<body>` (`use:portal`), escaping such ancestors. `Dialog`'s `inline`
-  preview variant stays in flow (`use:portal={!inline}`), and toggling `inline` at
-  runtime now moves the backdrop out and back. Because the layer lives at `<body>`: DOM
-  events from it no longer bubble to a consumer ancestor; a subtree-scoped CSS-variable
-  theme no longer reaches it (this library themes via `:root`, so unaffected in practice);
-  and an SSR `show=true` renders in flow on the server, then relocates on hydration.
+  preview variant stays in flow (`use:portal={!inline}`); `enabled` is read once at mount.
+  Because the layer lives at `<body>`: DOM events from it no longer bubble to a consumer
+  ancestor; a subtree-scoped CSS-variable theme no longer reaches it (this library themes
+  via `:root`, so unaffected in practice); and an SSR `show=true` renders in flow on the
+  server, then relocates on hydration.
 
 ### Changed
 

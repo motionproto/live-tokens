@@ -56,6 +56,13 @@ new image enters from the right, old leaves left.
 - Acceptance: T1 direction assertion + manual eyeball.
 
 ### [x] S2 — Pre-load collapse / lost CLS guard; demo no longer exercises explicit dims
+> Done, then reconsidered. The first pass added a magic `aspect-ratio: 3/2` fallback box;
+> that is a suspender (papers the unknown-aspect window with an arbitrary ratio, causing a
+> *different* shift). Removed it. The honest contract stands: pass `width`/`height` to
+> reserve the box; a dimensionless image has a brief pre-load reflow as the (eager) thumb
+> loads and measures. The demo now gives Offering real dims (1455×970) and lets Newspaper
+> self-measure, exercising both paths. Aspect is tracked per image (see B1 rework).
+
 With no `width`/`height` and no measured aspect yet, the wrapper has no `aspect-ratio`
 and collapses to 0 height, so the absolutely-positioned thumb is invisible/unclickable
 until load, then reflows. The demo passes neither dimension, so the "explicit
@@ -70,6 +77,12 @@ dimensions, no reflow" path is no longer demoed.
   jump on load for an image with explicit dimensions.
 
 ### [x] S3 — `portal` action never moves a node back; reactive `inline` toggle is latent-broken
+> Done, then reconsidered. First pass added anchor + move-back machinery so `inline` could
+> toggle reactively. But `inline` is used in exactly one place (`DialogEditor.svelte:135`,
+> static) and no code toggles it — the "latent bug" never fires. The machinery was a
+> suspender. Reverted to a minimal init-only action (`enabled` read once at mount) and
+> documented that constraint. If a consumer ever needs reactive `inline`, add it then.
+
 `moved` only goes `false → true`; `update(false)` is a no-op, so toggling Dialog
 `inline: false → true` at runtime strands the backdrop in `<body>`. The file comment
 claims disabled "leaves the node where Svelte put it", true only at init.
@@ -104,10 +117,17 @@ end of `<body>`, so Tab leaks into the background page), counter is `aria-hidden
 No longer read after `closeLightbox` switched to `thumbEl`.
 - Files: `ImageLightbox.svelte:70`, `:479`. Drop the `let` and the `bind:this`.
 
-### [-] N2 — Tokenize new chrome sizes (low priority)
-New `.image-lightbox-nav` `2.75rem` and counter literals join pre-existing hardcoded
-sizes. Not a regression; align with the "tokenize design values" leaning if cheap.
-- Files: `ImageLightbox.svelte:762-763`, `:782-798`.
+### [-] N2 — Tokenize new chrome sizes — won't, no token fits
+Investigated. The system has `--space-*` (spacing) and `--icon-size-*`; there is **no
+control-size token scale**. Mapping: `2.5rem` (zoom buttons) = `--space-40` exactly, but
+`2.75rem` (close + nav = 44px, the min touch target) has **no** token — the scale skips
+40→48 — and `3.5ch` is a text measure. Reusing `--space-*` for button width/height
+conflates spacing with sizing (Dialog's own close button is a `2.25rem` literal for the
+same reason). Snapping 44px to a spacing token would change the hit target — a real
+change, not cosmetic. Leaving the literals as-is is the correct call; control hit-area is
+structural geometry. Mint a `--imagelightbox-chrome-size` token only if these ever need
+to be editor-tunable.
+- Files: `ImageLightbox.svelte` `.image-lightbox-close` / `-nav` / `-chrome-button`.
 
 ### [x] N3 — Drop dead `stopPropagation` on nav clicks
 Nav buttons are siblings of overlay/stage (under the `display:contents` wrapper), so
@@ -158,7 +178,11 @@ verified each B1/S1 assertion fails against the unfixed code before landing.
 - [x] slide direction matches the chevron (guards S1).
 - [x] single-image array renders no gallery chrome.
 
-### [x] T2 — Portal action tests
+### [x] T2 — Portal action tests → folded into Dialog wiring test
+> The portal action is now ~6 trivial lines (init-only); standalone unit tests for it were
+> low-value, so they were removed. Coverage is one integration test
+> (`dialogPortal.test.ts`): backdrop portals to `<body>` when not inline, stays in flow
+> when inline — which is the wiring (`use:portal={!inline}`) that can actually regress.
 - `enabled=true` appends to `<body>`; `destroy()` removes it.
 - `enabled` toggled true→false→true returns the node to flow (guards S3).
 - `enabled=false` at init leaves the node in place.

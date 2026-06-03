@@ -48,7 +48,7 @@
   );
 
   let index = $state(0);
-  const current = $derived(items[index] ?? items[0]);
+  const current = $derived(items[index]);
   const cover = $derived(items[0]);
   const isGallery = $derived(items.length > 1);
 
@@ -98,12 +98,10 @@
   let outgoing = $state<GalleryImage | null>(null);
   let navigating = false;
 
-  // Measured from the loaded <img>, so a consumer needn't supply width/height;
-  // explicit dimensions (when given) win and avoid the pre-load reflow. The
-  // inline thumbnail and the open modal measure separately, so paging a gallery
-  // never resizes the thumbnail to the current modal image's ratio.
-  let naturalAspect = $state<number | undefined>(undefined);       // current modal image
-  let coverNaturalAspect = $state<number | undefined>(undefined);  // inline thumbnail (items[0])
+  // Aspect ratio per image, keyed by src: explicit width/height when given, else
+  // measured from the loaded <img>. The thumbnail reads the cover's entry and the
+  // modal reads the current image's, so they are never confused for each other.
+  let measured = $state<Record<string, number>>({});
   let reducedMotion = $state(false);
   const dur = (ms = TRANSITION_MS) => (reducedMotion ? 0 : ms);
 
@@ -111,19 +109,10 @@
   let dragState: { startX: number; startY: number; baseX: number; baseY: number; pointerId: number } | null = null;
   let didDrag = false;
 
-  // Inline thumbnail box: always the cover image's ratio, independent of which
-  // gallery image the open modal currently shows.
-  const coverAspect = $derived(
-    cover?.width && cover?.height ? cover.width / cover.height : coverNaturalAspect,
-  );
-  // Open modal box: the currently displayed image's ratio. Falls back to the
-  // cover ratio so the first open (and a reopen before the modal image loads)
-  // morphs to a sensible box instead of the viewport-fill placeholder.
-  const aspect = $derived(
-    current?.width && current?.height
-      ? current.width / current.height
-      : naturalAspect ?? coverNaturalAspect,
-  );
+  const aspectOf = (it?: GalleryImage) =>
+    it ? (it.width && it.height ? it.width / it.height : measured[it.src]) : undefined;
+  const coverAspect = $derived(aspectOf(cover)); // inline thumbnail box
+  const aspect = $derived(aspectOf(current)); // open modal box
 
   function viewportTarget() {
     const vw = window.innerWidth;
@@ -294,9 +283,6 @@
       scale = 1;
       offset = { x: 0, y: 0 };
       index = 0;
-      // Drop the stale modal measurement so the next open morphs to the cover
-      // ratio until the reopened modal image reports its own.
-      naturalAspect = undefined;
       open = false;
       mounted = false;
       document.body.style.overflow = '';
@@ -387,18 +373,17 @@
   const next = () => goTo(index + 1, 1);
   const prev = () => goTo(index - 1, -1);
 
-  function onCoverLoad(e: Event) {
+  function record(src: string, e: Event) {
     const img = e.currentTarget as HTMLImageElement;
-    if (img.naturalWidth && img.naturalHeight) {
-      coverNaturalAspect = img.naturalWidth / img.naturalHeight;
-    }
+    if (img.naturalWidth && img.naturalHeight) measured[src] = img.naturalWidth / img.naturalHeight;
+  }
+
+  function onCoverLoad(e: Event) {
+    if (cover) record(cover.src, e);
   }
 
   function onImgLoad(e: Event) {
-    const img = e.currentTarget as HTMLImageElement;
-    if (img.naturalWidth && img.naturalHeight) {
-      naturalAspect = img.naturalWidth / img.naturalHeight;
-    }
+    if (current) record(current.src, e);
     if (open) fitToViewport(true);
   }
 
@@ -698,10 +683,6 @@
   .image-lightbox-wrapper {
     position: relative;
     width: 100%;
-    /* Fallback box so the absolutely-positioned thumbnail is visible and
-       clickable before a dimensionless image loads; the inline aspect-ratio
-       (explicit or measured) overrides this the moment it is known. */
-    aspect-ratio: 3 / 2;
   }
 
   .image-lightbox-thumb {
