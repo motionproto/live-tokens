@@ -5,6 +5,8 @@
   import Panel from '../../system/components/Panel.svelte';
   import Section from '../Section.svelte';
 
+  let { prose = true }: { prose?: boolean } = $props();
+
   type Override = 'shape' | 'color';
 
   let shape = $state(false);
@@ -113,7 +115,7 @@
         <i class="fas fa-pen-ruler kit-icon"></i>
         <span class="kit-title">Live editor</span>
       </div>
-      <div class="kit-body">
+      <div class="kit-body" class:prose>
         <p>
           Edit tokens and components on top of the page and watch every change cascade immediately.
         </p>
@@ -125,7 +127,7 @@
         <i class="fas fa-palette kit-icon"></i>
         <span class="kit-title">Design tokens</span>
       </div>
-      <div class="kit-body"><p>A complete set of atomic CSS variables for styling.</p></div>
+      <div class="kit-body" class:prose><p>A complete set of atomic CSS variables for styling.</p></div>
     </div>
 
     <div class="kit-item">
@@ -133,7 +135,7 @@
         <i class="fas fa-puzzle-piece kit-icon"></i>
         <span class="kit-title">Component library</span>
       </div>
-      <div class="kit-body"><p>A customizable set of components linked to the tokens.</p></div>
+      <div class="kit-body" class:prose><p>A customizable set of components linked to the tokens.</p></div>
     </div>
 
     <div class="kit-item">
@@ -141,7 +143,7 @@
         <i class="fas fa-cube kit-icon"></i>
         <span class="kit-title">Ships as CSS</span>
       </div>
-      <div class="kit-body"><p>Standard output. The editor stays in development.</p></div>
+      <div class="kit-body" class:prose><p>Standard output. The editor stays in development.</p></div>
     </div>
   </div>
 
@@ -169,7 +171,9 @@
   </div>
 </Section>
 
-<style>
+<style lang="scss">
+  @use '../../system/styles/slot-prose' as *;
+
   /* 10 tracks reproduce the section's slice of the page grid (it spans page
      columns 2–11), so each item lands on exactly three of those columns and the
      row stops at column 9, leaving column 10 open on the right. */
@@ -214,14 +218,8 @@
     line-height: var(--line-height-md);
     font-weight: var(--font-weight-normal);
     color: var(--text-secondary);
-  }
 
-  /* site.css sets `p { font-family: serif }` at element level, which beats the
-     font-family inherited from .kit-body. Force the paragraph to inherit. */
-  .kit-body :global(p) {
-    margin: 0;
-    font: inherit;
-    color: inherit;
+    @include slot-prose;
   }
 
   /* The pink hairline is the section's whole structural device: a horizontal

@@ -1,0 +1,52 @@
+// Slot-prose defense.
+//
+// Components render the consumer's raw HTML as slot content in the *same* light
+// DOM tree, so a consumer's global element rules (site.css `p`, `ul li`, …)
+// directly match the slotted `<p>`/`<li>` and beat the container's inherited
+// body typography. Svelte's scope class never reaches slotted content, so there
+// is no automatic protection — the container must pin the type axes it owns.
+//
+// This mixin is the single definition of that pin. It covers p/ul/ol/li and
+// pins ONLY the axes the component owns: font-family, font-size, font-weight,
+// line-height, color, plus the component's spacing rhythm. font-style,
+// letter-spacing and text-transform stay free, so a consumer's italics or
+// tracking survive; `a` and `strong` are left untouched, so links keep looking
+// like links inside a card. `&.prose` gates the whole thing: `prose={false}`
+// drops the pin and the consumer fully owns the slot's content styling.
+//
+// Usage:
+//   .card-body { /* owns the baseline axes */ @include slot-prose; }
+//   <div class="card-body" class:prose>…</div>
+
+@mixin slot-prose {
+  &.prose {
+    :global(p),
+    :global(ul),
+    :global(ol),
+    :global(li) {
+      font-family: inherit;
+      font-size: inherit;
+      font-weight: inherit;
+      line-height: inherit;
+      color: inherit;
+    }
+
+    :global(p) {
+      margin: 0 0 var(--space-12);
+    }
+
+    :global(p:last-child) {
+      margin-bottom: 0;
+    }
+
+    :global(ul),
+    :global(ol) {
+      margin: var(--space-12) 0;
+      padding-left: var(--space-24);
+    }
+
+    :global(li) {
+      margin-bottom: var(--space-4);
+    }
+  }
+}

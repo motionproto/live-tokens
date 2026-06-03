@@ -6,6 +6,8 @@
       expanded?: boolean;
       href?: string | undefined;
       variant?: 'chromeless' | 'divider' | 'container';
+      /** false → the section stops pinning body typography so the consumer fully owns slotted content's styling. */
+      prose?: boolean;
       class?: string;
       /** Toggle callback. Preferred over `on:toggle` from 0.5.0 onward. */
       ontoggle?: () => void;
@@ -18,6 +20,7 @@
       expanded = false,
       href = undefined,
       variant = 'container',
+      prose = true,
       class: className = '',
       ontoggle,
       summary,
@@ -67,7 +70,7 @@
       </div>
    {/if}
    {#if expanded && children}
-      <div class="section-content">
+      <div class="section-content" class:prose>
          {@render children?.()}
       </div>
    {/if}
@@ -75,6 +78,7 @@
 
 <style lang="scss">
    @use '../styles/padding' as *;
+   @use '../styles/slot-prose' as *;
 
    :global(:root) {
       /* Chromeless — default */
@@ -285,24 +289,7 @@
       color: var(--text-secondary);
       font-size: var(--font-size-md);
       line-height: var(--line-height-md);
-   }
 
-   /* Slot content inherits the section's body typography so consumer-side
-      global element rules (e.g. site.css `p { font-family: serif }`) don't
-      override the collapsible's intended type styling. */
-   .section-content :global(p),
-   .section-content :global(ul),
-   .section-content :global(ol),
-   .section-content :global(li) {
-      font: inherit;
-      color: inherit;
-   }
-
-   .section-content :global(p) {
-      margin: 0 0 var(--space-12);
-   }
-
-   .section-content :global(p:last-child) {
-      margin-bottom: 0;
+      @include slot-prose;
    }
 </style>

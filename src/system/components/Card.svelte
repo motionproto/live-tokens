@@ -57,6 +57,7 @@
 
 <style lang="scss">
   @use '../styles/padding' as *;
+  @use '../styles/slot-prose' as *;
 
   :global(:root) {
     --card-default-surface: color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent);
@@ -166,42 +167,8 @@
     font-weight: var(--card-default-body-font-weight);
     line-height: var(--card-default-body-line-height);
     @include themed-padding(--card-default-body-padding);
-  }
 
-  /* In prose mode the card pins its owned type axes onto slotted flowing
-     content, so a consumer's global element rules (e.g. site.css's
-     `p { font-family: serif }` and `ul li {…}`, the latter specificity 0,0,2)
-     can't override the card-body aliases. Only the axes the card's tokens
-     define are pinned — font-style, letter-spacing, text-transform, etc. stay
-     free for the consumer. `prose={false}` drops the pinning entirely; the
-     `.card-body` baseline above still gives unstyled content a sane default. */
-  .card-body.prose :global(p),
-  .card-body.prose :global(ul),
-  .card-body.prose :global(ol),
-  .card-body.prose :global(li) {
-    font-family: inherit;
-    font-size: inherit;
-    font-weight: inherit;
-    line-height: inherit;
-    color: inherit;
-  }
-
-  .card-body.prose :global(p) {
-    margin: 0 0 var(--space-12);
-  }
-
-  .card-body.prose :global(p:last-child) {
-    margin-bottom: 0;
-  }
-
-  .card-body.prose :global(ul),
-  .card-body.prose :global(ol) {
-    margin: var(--space-12) 0;
-    padding-left: var(--space-24);
-  }
-
-  .card-body.prose :global(li) {
-    margin-bottom: var(--space-4);
+    @include slot-prose;
   }
 
   .card.compact .card-body {
