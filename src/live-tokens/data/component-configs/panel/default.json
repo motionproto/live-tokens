@@ -8,7 +8,7 @@
     "--panel-frame-border-width": "--border-width-1",
     "--panel-frame-radius": "--radius-2xl",
     "--panel-stage-padding": "--space-16",
-    "--panel-stage-inline-padding": "--space-32",
+    "--panel-stage-inline-padding": "--space-16",
     "--panel-stage-gap": "--space-16",
     "--panel-stage-surface": {
       "kind": "gradient",

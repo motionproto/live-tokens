@@ -24,7 +24,7 @@
 
     --panel-stage-surface: linear-gradient(0deg, color-mix(in srgb, var(--surface-neutral-low) 40%, transparent) 0.5%, color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent) 100%);
     --panel-stage-padding: var(--space-16);
-    --panel-stage-inline-padding: var(--space-32);
+    --panel-stage-inline-padding: var(--space-16);
     --panel-stage-gap: var(--space-16);
   }
 
