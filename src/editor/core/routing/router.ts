@@ -13,6 +13,17 @@ function rememberPrev(current: string) {
 
 export const route = writable<string>('/');
 
+// Scroll reset on navigation. The default jumps the native viewport to the top,
+// which is invisible to consumers that drive scrolling with a smooth-scroll
+// library (Lenis, Locomotive): their internal scroll position is decoupled from
+// the window, so `window.scrollTo` leaves the rendered page where it was.
+// `setScrollReset` lets such hosts route the reset through their own provider.
+let scrollReset = () => window.scrollTo(0, 0);
+
+export function setScrollReset(fn: () => void) {
+  scrollReset = fn;
+}
+
 let initialised = false;
 
 /**
@@ -43,7 +54,7 @@ export function navigate(path: string) {
     rememberPrev(window.location.pathname || '/');
     history.pushState(null, '', path);
     if (!path.includes('#')) {
-      window.scrollTo(0, 0);
+      scrollReset();
     }
   }
   route.set(pathname);

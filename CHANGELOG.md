@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.38.0 — Overridable scroll reset for smooth-scroll hosts
+
+### Added
+
+- **`setScrollReset(fn)` lets a host route navigation's scroll reset through its
+  own scroll system.** On a non-hash `navigate()` the router resets the viewport
+  to the top. That default calls `window.scrollTo(0, 0)`, which is invisible to
+  consumers driving scroll with a smooth-scroll library (Lenis, Locomotive):
+  their scroll position is decoupled from the window, so the rendered page stays
+  put — most visibly when `LiveTokensRouter` intercepts an in-page link (e.g. a
+  card) and the new page opens mid-scroll instead of at the top. Register a reset
+  that drives your provider (`setScrollReset(() => lenis.scrollTo(0, { immediate: true }))`)
+  and both the overlay's nav and intercepted links reset correctly. Hash targets
+  still skip the reset so in-page anchors are unaffected. Backward compatible —
+  unset, the native `window.scrollTo` behavior is unchanged.
+
 ## 0.37.0 — ImageLightbox `capNatural` accepts a multiple
 
 ### Added

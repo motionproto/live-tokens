@@ -9,7 +9,7 @@ export type { BootLiveTokensOptions } from './bootstrap';
 export { columnsVisible, toggleColumns, init as initColumnsOverlay } from './overlay/columnsOverlay';
 export { configureEditor, storageKey } from './core/store/editorConfig';
 export { activeFileName } from './core/store/editorConfigStore';
-export { init as initRouter, route, navigate } from './core/routing/router';
+export { init as initRouter, route, navigate, setScrollReset } from './core/routing/router';
 export { init as initCssVarSync } from './core/cssVarSync';
 export {
   init as initEditorStore,
