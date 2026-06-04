@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.36.0 — ImageLightbox `capNatural`: stop upscaling small sources
+
+### Added
+
+- **`ImageLightbox` gains a `capNatural` prop.** By default the modal opens
+  fitted to the viewport, which upscales a small source (e.g. a low-res GIF or
+  screenshot) until it looks soft. Set `capNatural` and the open fit is clamped
+  to the source's natural resolution (100%, 1 source px = 1 screen px), so small
+  images stay crisp while larger ones fit the viewport exactly as before. It only
+  bounds the initial open; pair it with `maxZoom={1}` to also stop the `extended`
+  zoom controls from magnifying past 100%. Needs the natural pixel size (from
+  `width`/`height` or the loaded image) — until that's known the image fits the
+  viewport, then snaps to the cap once measured.
+
 ## 0.35.0 — Dev routes moved to a reserved `/live-tokens/*` namespace
 
 ### Changed (breaking)

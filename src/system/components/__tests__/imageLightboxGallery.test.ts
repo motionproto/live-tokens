@@ -338,6 +338,49 @@ describe('ImageLightbox — maxZoom cap (natural-size)', () => {
   });
 });
 
+describe('ImageLightbox — capNatural (open-fit cap)', () => {
+  // happy-dom reports a real window.innerWidth/Height, so viewportTarget()
+  // yields concrete geometry: the stage's open animation ends at the fitted
+  // width, which capNatural clamps to the source's natural width.
+  const SMALL = { src: 'small.png', alt: 'Small', width: 200, height: 100 };
+  const BIG = { src: 'big.png', alt: 'Big', width: 6000, height: 3000 };
+
+  function openWidth(): number {
+    const call = animCalls
+      .filter((a) => a.el instanceof HTMLElement && a.el.classList.contains('image-lightbox-stage'))
+      .at(-1)!;
+    const to = call.keyframes.at(-1)!;
+    return Number(/(-?\d+(?:\.\d+)?)px/.exec(String(to.width))![1]);
+  }
+
+  it('without capNatural a small source is upscaled to fill the viewport', async () => {
+    const target = fresh();
+    const c = mount(ImageLightbox, { target, props: { images: [SMALL], extended: true } });
+    flushSync();
+    await open(target);
+    expect(openWidth()).toBeGreaterThan(SMALL.width);
+    unmount(c);
+  });
+
+  it('capNatural caps the open width at the source natural width', async () => {
+    const target = fresh();
+    const c = mount(ImageLightbox, { target, props: { images: [SMALL], extended: true, capNatural: true } });
+    flushSync();
+    await open(target);
+    expect(openWidth()).toBe(SMALL.width);
+    unmount(c);
+  });
+
+  it('capNatural leaves a large source fitting the viewport (no effect)', async () => {
+    const target = fresh();
+    const c = mount(ImageLightbox, { target, props: { images: [BIG], extended: true, capNatural: true } });
+    flushSync();
+    await open(target);
+    expect(openWidth()).toBeLessThan(BIG.width);
+    unmount(c);
+  });
+});
+
 describe('ImageLightbox gallery — slide direction (guards S1)', () => {
   it('next enters from the right and exits to the left', async () => {
     const target = fresh();

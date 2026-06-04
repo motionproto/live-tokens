@@ -28,12 +28,22 @@
     extended?: boolean;
     /** Maximum zoom, as a multiple of the image's natural resolution: `1` = 100%
         of the source's real pixels (1 source px = 1 screen px), `2` = 200%. The
-        modal always opens fitted to the viewport; this only caps how far the
-        `extended` zoom controls can magnify. Unset = the default 5x-the-fit cap.
-        An image whose fitted size already exceeds the cap simply can't be zoomed
-        in. Needs the natural pixel size (from `width`/`height`, or the loaded
-        image); until that's known the default cap applies. */
+        modal opens fitted to the viewport (or to natural size when `capNatural`
+        is set); this only caps how far the `extended` zoom controls can magnify.
+        Unset = the default 5x-the-fit cap. An image whose fitted size already
+        exceeds the cap simply can't be zoomed in. Needs the natural pixel size
+        (from `width`/`height`, or the loaded image); until that's known the
+        default cap applies. */
     maxZoom?: number | undefined;
+    /** Cap the opened image at its natural resolution (100%): the modal still
+        opens centered, but never scales the source above 1:1, so a small source
+        (e.g. a low-res GIF) stays crisp instead of being upscaled to fill the
+        viewport. Larger images are unaffected — they fit the viewport as usual.
+        Only bounds the initial open fit; pair with `maxZoom={1}` to also stop the
+        `extended` controls zooming past 100%. Needs the natural pixel size (from
+        `width`/`height`, or the loaded image); until that's known the image fits
+        the viewport, then snaps to the cap once measured. */
+    capNatural?: boolean;
   }
 
   let {
@@ -46,6 +56,7 @@
     fit = 'contain',
     extended = false,
     maxZoom = undefined,
+    capNatural = false,
   }: Props = $props();
 
   const items = $derived(
@@ -151,7 +162,11 @@
     if (!aspect) {
       return { top: vh * 0.04, left: vw * 0.03, width: capW, height: capH };
     }
-    const tileW = Math.min(capW, capH * aspect);
+    let tileW = Math.min(capW, capH * aspect);
+    if (capNatural) {
+      const nw = naturalWidthOf(current);
+      if (nw) tileW = Math.min(tileW, nw);
+    }
     const tileH = tileW / aspect;
     return {
       top: (vh - tileH) / 2,
