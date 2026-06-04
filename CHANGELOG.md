@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.33.1 — Ship the changelog in the package
+
+### Fixed
+
+- **`CHANGELOG.md` now ships in the published package.** The `files` allowlist in
+  `package.json` omitted it, and npm only auto-includes `package.json` / `README` /
+  `LICENSE` on top of an allowlist, so every tarball through 0.33.0 shipped without a
+  changelog. Added it to `files`. Consumer tooling that diffs changelogs across versions
+  could not see one before this.
+
 ## 0.33.0 — ImageLightbox maxZoom cap
 
 ### Added
