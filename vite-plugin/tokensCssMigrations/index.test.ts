@@ -58,6 +58,19 @@ describe('runTokensCssMigrations', () => {
     expect(css).not.toContain('--sectiondivider-accent-padding');
   });
 
+  it('removes the dead --size-icon-* scale but keeps live --icon-size-*', () => {
+    const legacy = `:root {
+  --size-icon-sm: 1rem;
+  --size-icon-4xl: 8rem;
+  --icon-size-md: 1.125rem;
+}
+`;
+    const { css } = runTokensCssMigrations(legacy);
+    expect(css).not.toContain('--size-icon-sm');
+    expect(css).not.toContain('--size-icon-4xl');
+    expect(css).toContain('--icon-size-md');
+  });
+
   it('every registered migration has a unique dated id', () => {
     const ids = TOKENS_CSS_MIGRATIONS.map((m) => m.id);
     expect(new Set(ids).size).toBe(ids.length);

@@ -813,6 +813,7 @@
   .image-lightbox-close {
     top: var(--space-24);
     right: var(--space-24);
+    /* 2.75rem = 44px, the min touch-target floor for primary nav. */
     width: 2.75rem;
     height: 2.75rem;
     display: flex;
@@ -828,6 +829,7 @@
   .image-lightbox-nav {
     top: 50%;
     transform: translateY(-50%);
+    /* 2.75rem = 44px, the min touch-target floor for primary nav. */
     width: 2.75rem;
     height: 2.75rem;
     display: flex;

@@ -415,15 +415,6 @@
   --border-width-20: 20px;
   --border-width-24: 24px;
 
-  /* Icon sizing (square) */
-  --size-icon-sm: 1rem;     /* 16px */
-  --size-icon-md: 1.25rem;  /* 20px */
-  --size-icon-lg: 1.5rem;   /* 24px */
-  --size-icon-xl: 2rem;     /* 32px */
-  --size-icon-2xl: 4rem;    /* 64px */
-  --size-icon-3xl: 6rem;    /* 96px */
-  --size-icon-4xl: 8rem;    /* 128px */
-
   /* Spacing */
   --space-0: 0;
   --space-2: 0.125rem;    /* 2px */

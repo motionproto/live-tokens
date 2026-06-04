@@ -160,7 +160,7 @@ Two problems:
 1. **Ambiguous ordering.** `tight` vs `snug` and `relaxed` vs `loose` are near-synonyms in English — only Tailwind's convention says which is tighter, so the scale carries a memorization tax.
 2. **Uneven jumps and a too-tight body default.** Steps are 0.2 / 0.2 / 0.1 / 0.25, and `normal: 1.4` is tighter than the cross-industry standard for body text (Tailwind, Material, Bootstrap all sit at 1.5).
 
-**Reasoning:** The project already uses t-shirt sizing on parallel scales (`--radius-*`, `--size-icon-*`, `--font-size-*`). Adopting it here makes line-height consistent with the rest of the system, gives a true semantic midpoint (`md` = body default with no memorization), and eliminates the synonym-ordering tax. Five steps with even 0.25 jumps keeps each step meaningfully distinct.
+**Reasoning:** The project already uses t-shirt sizing on parallel scales (`--radius-*`, `--icon-size-*`, `--font-size-*`). Adopting it here makes line-height consistent with the rest of the system, gives a true semantic midpoint (`md` = body default with no memorization), and eliminates the synonym-ordering tax. Five steps with even 0.25 jumps keeps each step meaningfully distinct.
 
 **Action:**
 
