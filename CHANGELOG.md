@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.32.0 — Image grow-vs-mask zoom; canonical easing/color/type primitives
+
+### Added
+
+- **`Image` `overflowScaling` prop.** When hover zoom is active, `overflowScaling`
+  decides what the scale grows. `true` (default) scales the content inside the fixed
+  frame, masked by overflow (the existing behavior). `false` scales the whole framed
+  image so it grows past its layout box. `undefined` inherits the editor's global
+  default. Set on its own (without `zoom`) it forces zoom on in the chosen mode. Backed
+  by a new `--image-grow-hover` token; at most one of `--image-zoom-hover` /
+  `--image-grow-hover` is ever active. The Image editor gains an "Overflow scaling (mask
+  zoom to frame)" checkbox alongside "Use zoom on hover".
+- **Canonical Layer-1 primitives now ship in `tokens.css`** and are carried to vendored
+  copies by a paired migration (`2026-06-04-easing-color-and-typescale-additions`): the
+  full `--ease-*` easing scale (sine/quad/cubic/quart/quint/expo/circ/back plus
+  `linear()` elastic and bounce curves), the `--color-white` / `--color-black`
+  invariants, and `--font-size-7xl`. The migration is idempotent by presence (retuned
+  steps are kept; only absent ones are inserted) — run `npx live-tokens migrate` to
+  backfill a forked `tokens.css`. Fixes 0.31's Image zoom snapping with no ease when a
+  vendored `tokens.css` lacked `--ease-out-cubic`.
+- **`--scale-*` tokens surfaced in the editor's Variables tab** (new "Scale" group).
+
 ## 0.31.0 — Image Lightbox galleries; fixed overlays escape their ancestors
 
 ### Added
