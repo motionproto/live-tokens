@@ -3,7 +3,7 @@
 Status: exploration seed (not a decision). Written after shipping the v0.27.0
 "docs ship from the package" feature, which surfaced the problem below.
 
-Implementation status (2026-06): see `docs/routing-port-implementation-plan.md`.
+Implementation status (2026-06): see `plans/routing-port-implementation-plan.md`.
 Per a YAGNI call (no full-router adoption is planned), only the no-router dynamic
 tier (`resolve` + `props`) is scheduled. The routing port and the full-router
 machinery designed below are deferred until a real router consumer exists, so the

@@ -8,7 +8,7 @@
 //      not resolve the cascade, so a computed-style test would be unreliable).
 //   2. the `prose` prop wires the `.prose` class the mixin keys on, so
 //      `prose={false}` drops the pin and the consumer's page styles win.
-// See docs/slot-typography-isolation-plan.md.
+// See plans/slot-typography-isolation-plan.md.
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { fileURLToPath } from 'node:url';

@@ -3,7 +3,7 @@
 Status: Phase 1 (`resolve` + `props`) shipped in 0.28.0, validated first against a
 real consumer (runegoblin migrated off its manual tier and verified against the
 release). Rung-3 work remains deferred. Companion to
-`docs/routing-architecture-exploration.md`, which holds the root-cause analysis
+`plans/routing-architecture-exploration.md`, which holds the root-cause analysis
 and the full design of the routing port. This document is the build sequence.
 
 ## Completion status (2026-06-02)
