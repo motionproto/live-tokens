@@ -26,6 +26,14 @@
     fit?: 'contain' | 'cover';
     /** When true, shows a bottom toolbar (zoom in/out + percent) and a top-right close button, and enables wheel/drag zoom inside the open modal. When false, click anywhere closes. */
     extended?: boolean;
+    /** Maximum zoom, as a multiple of the image's natural resolution: `1` = 100%
+        of the source's real pixels (1 source px = 1 screen px), `2` = 200%. The
+        modal always opens fitted to the viewport; this only caps how far the
+        `extended` zoom controls can magnify. Unset = the default 5x-the-fit cap.
+        An image whose fitted size already exceeds the cap simply can't be zoomed
+        in. Needs the natural pixel size (from `width`/`height`, or the loaded
+        image); until that's known the default cap applies. */
+    maxZoom?: number | undefined;
   }
 
   let {
@@ -37,6 +45,7 @@
     maxWidth = undefined,
     fit = 'contain',
     extended = false,
+    maxZoom = undefined,
   }: Props = $props();
 
   const items = $derived(
@@ -59,7 +68,7 @@
   );
 
   const MIN_SCALE = 1;
-  const MAX_SCALE = 5;
+  const DEFAULT_MAX_SCALE = 5;
   const ZOOM_STEP = 1.5;
   const TRANSITION_MS = 350;
   const TRANSITION_EASE = 'cubic-bezier(0.65, 0, 0.35, 1)';
@@ -98,25 +107,45 @@
   let outgoing = $state<GalleryImage | null>(null);
   let navigating = false;
 
-  // Aspect ratio per image, keyed by src: explicit width/height when given, else
-  // measured from the loaded <img>. The thumbnail reads the cover's entry and the
-  // modal reads the current image's, so they are never confused for each other.
-  let measured = $state<Record<string, number>>({});
+  // Natural pixel size per image, keyed by src: explicit width/height when given,
+  // else measured from the loaded <img>. The thumbnail reads the cover's entry and
+  // the modal reads the current image's, so they are never confused for each other.
+  // Aspect ratio derives from it; natural width drives the `maxZoom` cap.
+  let measured = $state<Record<string, { w: number; h: number }>>({});
   let reducedMotion = $state(false);
   const dur = (ms = TRANSITION_MS) => (reducedMotion ? 0 : ms);
+
+  // Reactive viewport so the fitted-stage geometry and the maxZoom cap recompute
+  // on resize (set in onMount + the resize handler).
+  let vw = $state(0);
+  let vh = $state(0);
 
   // Pointer drag for pan (extended + zoomed only).
   let dragState: { startX: number; startY: number; baseX: number; baseY: number; pointerId: number } | null = null;
   let didDrag = false;
 
-  const aspectOf = (it?: GalleryImage) =>
-    it ? (it.width && it.height ? it.width / it.height : measured[it.src]) : undefined;
+  const aspectOf = (it?: GalleryImage) => {
+    if (!it) return undefined;
+    if (it.width && it.height) return it.width / it.height;
+    const m = measured[it.src];
+    return m ? m.w / m.h : undefined;
+  };
+  const naturalWidthOf = (it?: GalleryImage) => (it ? (it.width ?? measured[it.src]?.w) : undefined);
   const coverAspect = $derived(aspectOf(cover)); // inline thumbnail box
   const aspect = $derived(aspectOf(current)); // open modal box
 
+  // Internal `scale` is relative to the fitted stage, so a natural-size cap is
+  // converted: maxZoom × naturalWidth ÷ fittedWidth. Floored at MIN_SCALE so an
+  // image already displayed larger than the cap just can't be zoomed in.
+  const maxScale = $derived.by(() => {
+    if (maxZoom == null) return DEFAULT_MAX_SCALE;
+    const nw = naturalWidthOf(current);
+    const fitW = viewportTarget().width;
+    if (!nw || !fitW) return DEFAULT_MAX_SCALE;
+    return Math.max(MIN_SCALE, (maxZoom * nw) / fitW);
+  });
+
   function viewportTarget() {
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
     const capW = vw * 0.94;
     const capH = vh * 0.92;
     if (!aspect) {
@@ -317,6 +346,7 @@
         height: `${target.height}px`,
       });
     }
+    if (scale > maxScale) scale = maxScale; // a larger viewport lowers the natural-size cap
     offset = clampOffset(offset.x, offset.y, scale);
     applyTransform(scale, offset);
   }
@@ -375,7 +405,7 @@
 
   function record(src: string, e: Event) {
     const img = e.currentTarget as HTMLImageElement;
-    if (img.naturalWidth && img.naturalHeight) measured[src] = img.naturalWidth / img.naturalHeight;
+    if (img.naturalWidth && img.naturalHeight) measured[src] = { w: img.naturalWidth, h: img.naturalHeight };
   }
 
   function onCoverLoad(e: Event) {
@@ -396,7 +426,7 @@
   });
 
   function zoomTo(nextScale: number, anchor?: { x: number; y: number }) {
-    const s = Math.max(MIN_SCALE, Math.min(MAX_SCALE, nextScale));
+    const s = Math.max(MIN_SCALE, Math.min(maxScale, nextScale));
     if (s <= MIN_SCALE) {
       scale = MIN_SCALE;
       offset = { x: 0, y: 0 };
@@ -502,7 +532,13 @@
         prev();
       }
     };
-    const onResize = () => fitToViewport(false);
+    vw = window.innerWidth;
+    vh = window.innerHeight;
+    const onResize = () => {
+      vw = window.innerWidth;
+      vh = window.innerHeight;
+      fitToViewport(false);
+    };
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     reducedMotion = motionQuery.matches;
     const onMotionChange = (e: MediaQueryListEvent) => { reducedMotion = e.matches; };
@@ -646,7 +682,7 @@
           class="image-lightbox-chrome-button"
           type="button"
           aria-label="Zoom in"
-          disabled={scale >= MAX_SCALE - 0.001}
+          disabled={scale >= maxScale - 0.001}
           onclick={() => zoomTo(scale * ZOOM_STEP)}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

@@ -82,6 +82,10 @@ const navPrev = () => document.querySelector<HTMLButtonElement>('.image-lightbox
 const dialog = () => document.querySelector<HTMLElement>('[role="dialog"]');
 const closeBtn = () => document.querySelector<HTMLButtonElement>('.image-lightbox-close')!;
 const liveRegion = () => document.querySelector<HTMLElement>('.image-lightbox-sr');
+const zoomInBtn = () =>
+  document.querySelector<HTMLButtonElement>('.image-lightbox-toolbar button[aria-label="Zoom in"]')!;
+const zoomPercent = () =>
+  Number(/(\d+)%/.exec(document.querySelector('.image-lightbox-toolbar-label')!.textContent ?? '')![1]);
 
 function key(name: string, opts: KeyboardEventInit = {}) {
   document.dispatchEvent(new KeyboardEvent('keydown', { key: name, bubbles: true, cancelable: true, ...opts }));
@@ -269,6 +273,68 @@ describe('ImageLightbox gallery — accessibility (guards S4)', () => {
     expect(liveRegion()?.textContent?.trim()).toBe('Image 2 of 3');
 
     unmount(c);
+  });
+});
+
+describe('ImageLightbox — maxZoom cap (natural-size)', () => {
+  // The fitted modal width depends only on the (large) viewport caps and the 2:1
+  // aspect, so a 200px-wide source is shown well above 100% at fit: maxZoom={1}
+  // means it can't be zoomed in at all.
+  const SMALL = { src: 'small.png', alt: 'Small', width: 200, height: 100 };
+  const BIG = { src: 'big.png', alt: 'Big', width: 6000, height: 3000 };
+
+  function maxOut() {
+    // zoomTo always clamps to the cap, so over-clicking lands exactly at it.
+    for (let i = 0; i < 12; i++) zoomInBtn().click();
+    flushSync();
+  }
+
+  it('without maxZoom a small image can still zoom (default 5x-fit cap)', async () => {
+    const target = fresh();
+    const c = mount(ImageLightbox, { target, props: { images: [SMALL], extended: true } });
+    flushSync();
+    await open(target);
+
+    expect(zoomInBtn().disabled).toBe(false);
+
+    unmount(c);
+  });
+
+  it('maxZoom={1} forbids zooming in when the fitted image already exceeds native', async () => {
+    const target = fresh();
+    const c = mount(ImageLightbox, { target, props: { images: [SMALL], extended: true, maxZoom: 1 } });
+    flushSync();
+    await open(target);
+
+    expect(zoomInBtn().disabled).toBe(true);
+
+    unmount(c);
+  });
+
+  it('the cap scales linearly with maxZoom and halts further zoom-in', async () => {
+    const t1 = fresh();
+    const c1 = mount(ImageLightbox, { target: t1, props: { images: [BIG], extended: true, maxZoom: 1 } });
+    flushSync();
+    await open(t1);
+    maxOut();
+    const at1x = zoomPercent();
+    expect(zoomInBtn().disabled).toBe(true);
+    zoomInBtn().click(); // a click past the cap is a no-op
+    flushSync();
+    expect(zoomPercent()).toBe(at1x);
+    unmount(c1);
+
+    document.body.innerHTML = '';
+    const t2 = fresh();
+    const c2 = mount(ImageLightbox, { target: t2, props: { images: [BIG], extended: true, maxZoom: 2 } });
+    flushSync();
+    await open(t2);
+    maxOut();
+    const at2x = zoomPercent();
+    unmount(c2);
+
+    // maxZoom={2} permits twice the magnification of maxZoom={1} (±1% rounding).
+    expect(Math.abs(at2x - 2 * at1x)).toBeLessThanOrEqual(1);
   });
 });
 

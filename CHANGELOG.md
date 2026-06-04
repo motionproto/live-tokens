@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.33.0 — ImageLightbox maxZoom cap
+
+### Added
+
+- **`ImageLightbox` `maxZoom` prop.** Caps how far the `extended` zoom controls can
+  magnify, as a multiple of the image's natural resolution: `maxZoom={1}` = 100% of the
+  source's real pixels (1 source px = 1 screen px), `maxZoom={2}` = 200%. The modal
+  always opens fitted to the viewport; this only bounds zoom-in. An image whose fitted
+  size already exceeds the cap can't be zoomed in (the control disables). Per image in a
+  gallery. Reads the natural pixel size from `width`/`height` or the loaded image; until
+  that's known the previous 5×-the-fit cap applies. The toolbar percent stays
+  fit-relative (fit = 100%).
+
 ## 0.32.0 — Image grow-vs-mask zoom; canonical easing/color/type primitives
 
 ### Added
