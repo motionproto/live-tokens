@@ -35,6 +35,32 @@ describe('runTokensCssMigrations', () => {
     }
   });
 
+  it('adds the full easing scale, color invariants and --font-size-7xl an old tokens.css lacks', () => {
+    const { css, applied } = runTokensCssMigrations(LEGACY_TOKENS_CSS);
+    expect(applied).toContain('2026-06-04-easing-color-and-typescale-additions');
+    // The step Image's zoom transition references, plus a representative spread.
+    for (const t of ['--ease-out-cubic', '--ease-linear', '--ease-in-out-back', '--ease-out-bounce']) {
+      expect(css).toContain(t);
+    }
+    expect(css).toContain('--color-white: #ffffff;');
+    expect(css).toContain('--color-black: #000000;');
+    expect(css).toContain('--font-size-7xl: 4.5rem;');
+    // The whole easing family sits under one "Easing" header, not two.
+    expect((css.match(/\/\* Easing \*\//g) ?? []).length).toBe(1);
+  });
+
+  it('keeps a consumer-retuned easing value instead of overwriting it', () => {
+    const tuned = `:root {
+  /* Easing */
+  --ease-out-cubic: cubic-bezier(0.1, 0.2, 0.3, 0.4);
+}
+`;
+    const { css } = runTokensCssMigrations(tuned);
+    expect(css).toContain('--ease-out-cubic: cubic-bezier(0.1, 0.2, 0.3, 0.4);');
+    expect(css).not.toContain('--ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);');
+    expect(css).toContain('--ease-in-sine'); // siblings still backfilled
+  });
+
   it('is idempotent — a second run changes nothing', () => {
     const first = runTokensCssMigrations(LEGACY_TOKENS_CSS).css;
     const second = runTokensCssMigrations(first);

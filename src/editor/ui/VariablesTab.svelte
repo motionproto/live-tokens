@@ -11,7 +11,7 @@
   import {
     SPACING_VARS, BORDER_WIDTH_VARS, RADIUS_VARS, FONT_SIZE_VARS,
     ICON_SIZE_VARS, FONT_WEIGHT_VARS, LINE_HEIGHT_VARS, LETTER_SPACING_VARS,
-    DURATION_TOKENS, Z_INDEX_TOKENS, OPACITY_TOKENS,
+    SCALE_VARS, DURATION_TOKENS, Z_INDEX_TOKENS, OPACITY_TOKENS,
   } from './sections/tokenScales';
 
   /** Visual flash for the copy-to-clipboard chip, kept short enough to
@@ -153,6 +153,11 @@
       <div class="utility-group">
         <h3 class="group-title">Opacity</h3>
         <TokenScaleTable kind="line-height" tokens={OPACITY_TOKENS} {copiedVar} oncopy={copyVariable} />
+      </div>
+
+      <div class="utility-group">
+        <h3 class="group-title">Scale</h3>
+        <TokenScaleTable kind="line-height" vars={SCALE_VARS} {liveVersion} {copiedVar} oncopy={copyVariable} />
       </div>
     </div>
   </section>

@@ -51,6 +51,10 @@ export const LETTER_SPACING_VARS = [
   '--letter-spacing-wide', '--letter-spacing-wider',
 ] as const;
 
+export const SCALE_VARS = [
+  '--scale-sm', '--scale-md', '--scale-lg', '--scale-xl', '--scale-2xl',
+] as const;
+
 export interface TokenItem {
   variable: string;
   value: string;

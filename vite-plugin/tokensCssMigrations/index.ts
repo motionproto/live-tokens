@@ -16,6 +16,7 @@ import { tokensCssMigration_2026_05_29_typographyScaleAdditions } from './migrat
 import { tokensCssMigration_2026_05_29_sectiondividerLegacyAxisCleanup } from './migrations/2026-05-29-sectiondivider-legacy-axis-cleanup';
 import { tokensCssMigration_2026_06_03_transformScaleAdditions } from './migrations/2026-06-03-transform-scale-additions';
 import { tokensCssMigration_2026_06_04_removeDeadSizeIconScale } from './migrations/2026-06-04-remove-dead-size-icon-scale';
+import { tokensCssMigration_2026_06_04_easingColorAndTypescaleAdditions } from './migrations/2026-06-04-easing-color-and-typescale-additions';
 
 export type { TokensCssMigration } from './types';
 export {
@@ -38,6 +39,7 @@ export const TOKENS_CSS_MIGRATIONS: TokensCssMigration[] = [
   tokensCssMigration_2026_05_29_sectiondividerLegacyAxisCleanup,
   tokensCssMigration_2026_06_03_transformScaleAdditions,
   tokensCssMigration_2026_06_04_removeDeadSizeIconScale,
+  tokensCssMigration_2026_06_04_easingColorAndTypescaleAdditions,
 ];
 
 export interface RunResult {
