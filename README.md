@@ -351,7 +351,7 @@ It enforces the file layout, `:global(:root)` block, token-suffix vocabulary, th
 
 ## File ownership — what the plugin writes
 
-Knowing which files the plugin touches matters when upgrading the package or working in a repo you don't want overwritten.
+Knowing which files the plugin touches matters when upgrading the package or working in a repo you don't want overwritten. For a plain-language version of how your saved look stays safe across upgrades while `tokens.css` holds the building blocks, see [TOKENS.md](./TOKENS.md).
 
 **On `npm install` or `npm update`: nothing outside `node_modules/`.** No install hooks. Upgrading versions never touches your `src/live-tokens/data/`, or any file in `src/` outside it.
 
