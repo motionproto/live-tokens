@@ -53,9 +53,25 @@ export interface RunResult {
 
 /** Fold every registered migration over `css`. Pure and idempotent. */
 export function runTokensCssMigrations(css: string): RunResult {
+  return foldMigrations(css, () => true);
+}
+
+/**
+ * Fold only the `additive` migrations. Additive changes only insert new token
+ * names, so applying them to a consumer's vendored `tokens.css` is always
+ * backward-compatible — this is what the dev plugin's `autoMigrate` runs. The
+ * `breaking` migrations (rename/remove) are deliberately skipped; they ride an
+ * explicit `live-tokens migrate` during a major upgrade.
+ */
+export function runAdditiveTokensCssMigrations(css: string): RunResult {
+  return foldMigrations(css, (m) => m.kind === 'additive');
+}
+
+function foldMigrations(css: string, include: (m: TokensCssMigration) => boolean): RunResult {
   let out = css;
   const applied: string[] = [];
   for (const m of TOKENS_CSS_MIGRATIONS) {
+    if (!include(m)) continue;
     const next = m.apply(out);
     if (next !== out) {
       applied.push(m.id);
@@ -63,6 +79,90 @@ export function runTokensCssMigrations(css: string): RunResult {
     }
   }
   return { css: out, applied, changed: out !== css };
+}
+
+export interface ContractViolation {
+  id: string;
+  /** Token names the migration removed or renamed away despite declaring `additive`. */
+  removed: string[];
+}
+
+/**
+ * Guardrail for the token-as-API contract: an `additive` migration must never
+ * remove or rename a token. We verify behaviorally rather than trusting the
+ * label — apply each additive migration to the package's own canonical
+ * `tokens.css` (which defines the full current vocabulary) and flag any token
+ * that disappears. A rename surfaces as the removal of its old name, so it is
+ * caught too. This catches the dangerous direction: a breaking change shipped as
+ * a backward-compatible one. (Over-labeling a no-op as `breaking` is harmless
+ * and not checked.)
+ */
+export function findContractViolations(canonicalCss: string): ContractViolation[] {
+  const violations: ContractViolation[] = [];
+  for (const m of TOKENS_CSS_MIGRATIONS) {
+    if (m.kind !== 'additive') continue;
+    const before = collectDefinedTokens(canonicalCss);
+    const after = collectDefinedTokens(m.apply(canonicalCss));
+    const removed = [...before].filter((t) => !after.has(t)).sort();
+    if (removed.length) violations.push({ id: m.id, removed });
+  }
+  return violations;
+}
+
+export type SemverBump = 'major' | 'minor' | 'patch' | 'none';
+
+/** Classify the bump from `prev` to `next` (leading `v` and pre-release tags ignored). */
+export function semverBumpType(prev: string, next: string): SemverBump {
+  const p = parseSemver(prev);
+  const n = parseSemver(next);
+  if (n.major > p.major) return 'major';
+  if (n.major === p.major && n.minor > p.minor) return 'minor';
+  if (n.major === p.major && n.minor === p.minor && n.patch > p.patch) return 'patch';
+  return 'none';
+}
+
+function parseSemver(v: string): { major: number; minor: number; patch: number } {
+  const [core] = v.replace(/^v/, '').split(/[-+]/);
+  const [major = 0, minor = 0, patch = 0] = core.split('.').map((n) => Number(n) || 0);
+  return { major, minor, patch };
+}
+
+export interface BreakingGateResult {
+  level: 'ok' | 'warn' | 'error';
+  breakingIds: string[];
+  bump: SemverBump;
+  message: string;
+}
+
+/**
+ * The version side of the token contract: a `breaking` migration introduced in a
+ * release requires a major version bump. Pre-1.0 (next major is 0) this is only
+ * a warning, since semver permits breaking changes in 0.x minors; from 1.0.0 on
+ * it is an error. Pure so the release check and its tests share one rule.
+ */
+export function enforceBreakingRequiresMajor(args: {
+  newMigrations: TokensCssMigration[];
+  prevVersion: string;
+  nextVersion: string;
+}): BreakingGateResult {
+  const breakingIds = args.newMigrations.filter((m) => m.kind === 'breaking').map((m) => m.id);
+  const bump = semverBumpType(args.prevVersion, args.nextVersion);
+  if (breakingIds.length === 0 || bump === 'major') {
+    return { level: 'ok', breakingIds, bump, message: '' };
+  }
+  const pre1 = parseSemver(args.nextVersion).major < 1;
+  const ids = breakingIds.join(', ');
+  return {
+    level: pre1 ? 'warn' : 'error',
+    breakingIds,
+    bump,
+    message:
+      `Breaking token migration(s) [${ids}] are shipping in a ${bump} bump ` +
+      `(${args.prevVersion} -> ${args.nextVersion}). Token names are public API; ` +
+      (pre1
+        ? `pre-1.0 this is allowed, but the CHANGELOG must flag it under "Changed (breaking)".`
+        : `from 1.0.0 a breaking token change requires a major bump.`),
+  };
 }
 
 export interface ComponentSource {

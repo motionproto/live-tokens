@@ -378,6 +378,8 @@ It never writes to your project root, your `src/` outside the data folder, or an
 
 The developer-authored `tokens.css` itself is **never written** by the plugin — it holds defaults you're free to hand-edit. The editor's overrides land in the sidecar `tokens.generated.css`, which the package imports immediately after `tokens.css`.
 
+The one exception is the opt-in `themeFileApi({ autoMigrate: true })` option. When enabled, the dev server applies pending **additive** token migrations (new token names only) to your `tokens.css` at startup and writes the file, so it stays current with the package as you upgrade. The change shows up in git for review. Breaking migrations (rename/remove) are never auto-applied; run `npx live-tokens migrate` for those during a deliberate upgrade. Off by default, so the "never written" rule holds unless you turn it on. See [TOKENS.md](./TOKENS.md).
+
 ## License
 
 MIT. Originally extracted from [RuneGoblin](https://www.runegoblin.com/).

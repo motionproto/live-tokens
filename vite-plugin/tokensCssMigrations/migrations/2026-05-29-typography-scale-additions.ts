@@ -20,6 +20,7 @@ import { ensureScale } from '../cssTokenOps';
  */
 export const tokensCssMigration_2026_05_29_typographyScaleAdditions: TokensCssMigration = {
   id: '2026-05-29-typography-scale-additions',
+  kind: 'additive',
   description: 'Add --line-height-{xs..xl}, --letter-spacing-* and --ease-out-quart scales',
   apply(css) {
     let out = css;

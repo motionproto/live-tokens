@@ -12,6 +12,7 @@ import { ensureScale } from '../cssTokenOps';
  */
 export const tokensCssMigration_2026_06_03_transformScaleAdditions: TokensCssMigration = {
   id: '2026-06-03-transform-scale-additions',
+  kind: 'additive',
   description: 'Add the --scale-{sm..2xl} transform-multiplier scale',
   apply(css) {
     return ensureScale(css, {

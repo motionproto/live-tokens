@@ -58,6 +58,22 @@ tape measure never repaints your walls.
   package code only. Changing your `tokens.css` is a separate, deliberate step
   you run with `migrate` when you are ready, then you review the change in git
   like any other edit.
+- **You can opt in to automatic refresh.** Set `autoMigrate: true` on the dev
+  plugin and the dev server applies the safe (additive) refreshes for you at
+  startup, still shown in git. It never auto-applies a removal or rename.
+
+## How token changes are versioned
+
+Token names are a promise. Once a name ships, the package keeps it. That makes
+the building blocks a stable contract, not a moving target.
+
+- **Adding a name** is safe and arrives in a normal (minor) update.
+- **Renaming or removing a name** is a breaking change. It is called out in the
+  changelog, and once the package reaches version 1.0 it only happens in a major
+  version, which you choose to take and read the notes for.
+
+So a routine upgrade can bring you new building blocks, but it will not pull one
+out from under you without a clear, labeled version step.
 
 ## In short
 

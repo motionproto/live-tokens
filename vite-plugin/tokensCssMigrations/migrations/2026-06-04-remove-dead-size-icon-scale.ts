@@ -12,6 +12,7 @@ import { removeTokensMatching } from '../cssTokenOps';
  */
 export const tokensCssMigration_2026_06_04_removeDeadSizeIconScale: TokensCssMigration = {
   id: '2026-06-04-remove-dead-size-icon-scale',
+  kind: 'breaking',
   description: 'Remove the unused --size-icon-* scale (live scale is --icon-size-*)',
   apply(css) {
     return removeTokensMatching(css, (name) => name.startsWith('--size-icon-'));

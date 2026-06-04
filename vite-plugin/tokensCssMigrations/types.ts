@@ -16,6 +16,16 @@
 export interface TokensCssMigration {
   /** Unique id; convention: `YYYY-MM-DD-<short-name>`. */
   id: string;
+  /**
+   * Whether this migration is backward-compatible.
+   *
+   * Token names are public API (see TOKENS.md). `'additive'` only ever inserts
+   * new names, so it is safe to auto-apply to a consumer's vendored `tokens.css`
+   * (the dev plugin's `autoMigrate`). `'breaking'` renames or removes a name a
+   * consumer may reference, so it ships only with a major version (post-1.0) and
+   * is never auto-applied — it rides an explicit `live-tokens migrate`.
+   */
+  kind: 'additive' | 'breaking';
   /** One-line summary shown by the CLI when the migration applies. */
   description: string;
   /** Pure, idempotent transform on the `tokens.css` source. */

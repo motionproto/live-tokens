@@ -25,6 +25,7 @@ import { ensureScale } from '../cssTokenOps';
  */
 export const tokensCssMigration_2026_06_04_easingColorAndTypescaleAdditions: TokensCssMigration = {
   id: '2026-06-04-easing-color-and-typescale-additions',
+  kind: 'additive',
   description: 'Add the full --ease-* scale, --color-white/black, and --font-size-7xl',
   apply(css) {
     let out = css;

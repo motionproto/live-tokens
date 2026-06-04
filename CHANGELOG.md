@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.34.0 — Token-as-API contract guardrail; opt-in autoMigrate
+
+### Added
+
+- **Token names are now a versioned API contract, with a guardrail.** Each
+  `tokens.css` migration declares `kind: 'additive' | 'breaking'`. A new
+  `check:token-contract` (wired into `prepublishOnly`, plus
+  `tokensCssMigrations/contract.test.ts`) verifies behaviorally that an additive
+  migration never removes or renames a token (catches a breaking change shipped
+  as backward-compatible), and gates breaking migrations on a major bump from
+  1.0.0 (pre-1.0 it warns). See TOKENS.md and RELEASING.md.
+- **`themeFileApi({ autoMigrate: true })`.** Opt-in: the dev server applies
+  pending **additive** token migrations to your `tokens.css` at startup and
+  writes the file (shown in git), so it stays current with the package without a
+  manual step. Breaking migrations are never auto-applied. Off by default, which
+  preserves the invariant that the plugin never writes `tokensCssPath` unless you
+  enable it.
+
+### Docs
+
+- **`TOKENS.md`** gained a plain-language section on how token changes are
+  versioned (additive vs breaking, what an upgrade can and cannot change).
+
 ## 0.33.1 — Ship the changelog in the package
 
 ### Fixed

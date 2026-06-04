@@ -15,7 +15,7 @@ import {
 import { dispatch, type Route } from './files/routeTable';
 import { nextAvailableName as allocNextAvailableName } from './files/nameAllocator';
 import { resolveDataDirs } from './files/dataPaths';
-import { validateTokensCss } from './tokensCssMigrations';
+import { validateTokensCss, runAdditiveTokensCssMigrations } from './tokensCssMigrations';
 import { fileURLToPath } from 'node:url';
 
 // Read live-tokens' own package.json by walking up from this file. Works the
@@ -50,6 +50,12 @@ export interface ThemeFileApiOptions {
   componentConfigsDir?: string; // default: `<dataDir>/component-configs`
   manifestsDir?: string;       // default: `<dataDir>/manifests`
   componentsSrcDir?: string;   // default: scans both 'src/components' and 'src/system/components'
+  // When true, the dev server applies pending *additive* tokens.css migrations
+  // (new token names only) to `tokensCssPath` at boot and writes the file; the
+  // change shows up in git for review. Off by default: with it off the plugin
+  // never writes tokensCssPath (a pre-1.0 invariant). Breaking migrations
+  // (rename/remove) are never auto-applied — run `npx live-tokens migrate`.
+  autoMigrate?: boolean;
 }
 
 export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
@@ -509,6 +515,29 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       `[live-tokens] ${missing.length} token(s) referenced by components are not defined in ` +
         `${path.relative(process.cwd(), CSS_PATH)}:\n${lines.join('\n')}\n` +
         `  These render as blank/empty editor slots. Run \`npx live-tokens migrate\` to reconcile.`,
+    );
+  }
+
+  /**
+   * Opt-in (`autoMigrate`) boot step: apply pending *additive* migrations to the
+   * developer-authored `tokens.css` and write it. Additive changes only add new
+   * token names, so this stays backward-compatible; breaking migrations are left
+   * for `warnOnTokenDrift` to surface and an explicit `live-tokens migrate`. This
+   * is the one sanctioned path by which the plugin writes `tokensCssPath`.
+   */
+  function autoMigrateAdditive(log: (msg: string) => void): void {
+    let before = '';
+    try {
+      before = fs.readFileSync(CSS_PATH, 'utf-8');
+    } catch {
+      return; // No tokens.css to migrate.
+    }
+    const { css, applied, changed } = runAdditiveTokensCssMigrations(before);
+    if (!changed) return;
+    fs.writeFileSync(CSS_PATH, css);
+    log(
+      `[live-tokens] autoMigrate applied ${applied.length} additive migration(s) to ` +
+        `${path.relative(process.cwd(), CSS_PATH)}: ${applied.join(', ')}. Review the diff in git.`,
     );
   }
 
@@ -1551,6 +1580,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       // production state before the first request lands. Without this, a
       // fresh checkout would import a stale (or missing) generated file.
       regenerateTokensCss();
+
+      // Opt-in: bring tokens.css up to date with additive migrations first, so
+      // the drift warning below only fires for genuinely breaking gaps.
+      if (opts.autoMigrate) autoMigrateAdditive((msg) => server.config.logger.info(msg));
 
       // Surface Layer-1 token drift (consumer tokens.css behind the package's
       // component vocabulary) before the editor loads, so blank slots have an

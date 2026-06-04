@@ -23,6 +23,7 @@ const KEEP_SEGMENTS = new Set(['lg', 'md', 'sm']);
 
 export const tokensCssMigration_2026_05_29_sectiondividerLegacyAxisCleanup: TokensCssMigration = {
   id: '2026-05-29-sectiondivider-legacy-axis-cleanup',
+  kind: 'breaking',
   description: 'Remove legacy --sectiondivider-* tokens not on the lg/md/sm axis',
   apply(css) {
     return removeTokensMatching(css, (name) => {

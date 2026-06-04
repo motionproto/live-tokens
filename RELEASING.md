@@ -27,11 +27,20 @@ Semver. While we're on `0.x`, breaking changes can land in a minor bump — but
 the CHANGELOG must call them out clearly under a **"Changed (breaking)"**
 heading so consumers know to read it before upgrading.
 
+**Token names are public API** (see TOKENS.md). Adding a token name is additive;
+renaming or removing one is breaking, because a consumer (or their own CSS) may
+reference it. Each `tokens.css` migration declares `kind: 'additive' | 'breaking'`,
+and `check:token-contract` enforces the rule: an additive migration that removes
+a token fails the build, and (from 1.0.0) a breaking migration without a major
+bump fails too. Pre-1.0 the breaking case only warns.
+
 | Change | Bump |
 |---|---|
 | New optional plugin option, new component, new editor surface | minor |
+| Add a token name (additive migration) | minor |
 | Bug fix, doc tweak, dependency bump within range | patch |
 | Required-option removed, default behaviour changed, API path moved | minor *with breaking heading* |
+| Rename/remove a token name (breaking migration) | minor *with breaking heading* (pre-1.0); major (1.0.0+) |
 | `1.0.0`+ would be major | major |
 
 If a release ships only a CHANGELOG/README change, prefer a patch over no
@@ -198,4 +207,7 @@ should not ship:
   editor with only `tokens.css` imported. Enforced by `check:smoke-install`.
 - The dev-server plugin only writes inside `<dataDir>/` and the
   `tokensCssPath`-sibling CSS files. Anything that breaks this invariant is
-  a release blocker, not a normal change.
+  a release blocker, not a normal change. The sole exception is the opt-in
+  `autoMigrate` option, which writes `tokensCssPath` itself (additive-only
+  migrations). It is off by default, so the invariant holds unless a consumer
+  deliberately enables it.
