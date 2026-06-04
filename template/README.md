@@ -14,9 +14,10 @@ Open http://localhost:5173.
 This project follows the package's [recommended layout](https://github.com/motionproto/live-tokens#recommended-project-layout): all editable state lives under `src/` and is committed, so `npm install` and upgrades never touch your styles.
 
 - `src/pages/Home.svelte` — the starter page. Replace it with your own content.
-- `src/App.svelte` — your routes. `<LiveTokensRouter>` adds the dev-only
-  `/editor` (theme tokens), `/components` (per-component aliases), and `/docs`
-  (the user guide) routes.
+- `src/App.svelte` — your routes. `<LiveTokensRouter>` adds dev-only routes under
+  a reserved `/live-tokens/*` namespace (so they never collide with your pages):
+  `/live-tokens/editor` (theme tokens), `/live-tokens/components` (per-component
+  aliases), and `/live-tokens/docs` (the user guide).
 - `src/system/styles/tokens.css` — your theme token vocabulary. The dev server
   writes edits here when you use the in-browser editor.
 - `src/styles/site.css` — themed page typography. Yours to edit.
@@ -24,7 +25,7 @@ This project follows the package's [recommended layout](https://github.com/motio
 ## Editing live
 
 Run `npm run dev`, then click **Open Token Editor** on the home page (or visit
-`/editor`). Changes persist to `src/system/styles/tokens.css` and the JSON under
+`/live-tokens/editor`). Changes persist to `src/system/styles/tokens.css` and the JSON under
 `src/live-tokens/data/`. The editor is dev-only — `npm run build` ships plain
 CSS variables and the components you used, nothing else.
 

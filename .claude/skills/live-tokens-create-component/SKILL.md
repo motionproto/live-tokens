@@ -5,7 +5,7 @@ description: Author a brand-new editable component for a @motion-proto/live-toke
 
 # Authoring a component for a live-tokens project
 
-This skill teaches you how to add a new editable component to a project that consumes `@motion-proto/live-tokens`. The end state: a runtime Svelte file, an editor Svelte file, one `registerComponent()` call, and a `/components` page entry under the **CUSTOM** group with full token editing, linked-block sharing, and persistence.
+This skill teaches you how to add a new editable component to a project that consumes `@motion-proto/live-tokens`. The end state: a runtime Svelte file, an editor Svelte file, one `registerComponent()` call, and a `/live-tokens/components` page entry under the **CUSTOM** group with full token editing, linked-block sharing, and persistence.
 
 ## Worked examples ship inside the package
 
@@ -44,7 +44,7 @@ For pattern reference, read any shipped component's source directly from the con
    ```
    The schema side-effect happens inside `registerComponent` (which `bootLiveTokens` calls for you), so you don't call `registerComponentSchema` separately. **Do not place a standalone `registerComponent(...)` *before* `bootLiveTokens`** — that registers before the editor's init hooks run, which is the wrong window and can leave editor changes disconnected from the live page. Only call `registerComponent` directly if your app mounts manually (no `bootLiveTokens`), in which case call it before `mount(App, ...)`.
 4. **Tell the picker** — open `.claude/skills/live-tokens-pick-component/SKILL.md` and add your new component to the **Catalogue** line under the family it belongs to (Action / Input / Selection / Containers / Messaging / Display). If it's confusable with an existing component (a second selection control, a competing container), add a row to that family's decision table explaining the use-case it owns. Without this step, the component exists but [[live-tokens-pick-component]] can't recommend it when a user asks "which component should I use?" — the same rule applies whether the component is first-party (update the picker shipped in this package) or consumer-authored (update the local copy at `.claude/skills/live-tokens-pick-component/SKILL.md` that `setup-claude` placed in your project).
-5. **Verify** — open `/components` and run the verification checklist at the bottom of this file.
+5. **Verify** — open `/live-tokens/components` and run the verification checklist at the bottom of this file.
 
 ## Token discipline
 
@@ -559,7 +559,7 @@ A new first-party component is auto-covered the moment it lands in `builtInRegis
 
 **If your component declares `intrinsics`, the intrinsics contract test covers it too.** `src/editor/component-editor/intrinsicsContract.test.ts` iterates every entry with an `intrinsics` array and asserts, per (intrinsic, variant), that the runtime `:global(:root)` declares a default, the default is one of the spec's `values`, and the editor's `default` equals the runtime default. This is what would have caught a getter defaulting to `center` while `:global(:root)` says `start`. Same auto-coverage rule: declare `intrinsics` on the registry entry and the test picks it up.
 
-Finally navigate to `/components` and confirm the runtime behaviours no static check can see:
+Finally navigate to `/live-tokens/components` and confirm the runtime behaviours no static check can see:
 
 - [ ] The new component appears in the nav rail under the **CUSTOM** group (system entries above, custom below the labeled divider).
 - [ ] Token rows render. Color pickers, radius selectors, font selectors all work.

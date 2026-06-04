@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.35.0 — Dev routes moved to a reserved `/live-tokens/*` namespace
+
+### Changed (breaking)
+
+- **The package's dev-only routes moved under a reserved `/live-tokens/*`
+  namespace:** `/editor` → `/live-tokens/editor`, `/components` →
+  `/live-tokens/components`, `/docs` → `/live-tokens/docs`. These routes are
+  `import.meta.env.DEV`-only and never appear in production, so the longer paths
+  cost nothing where users actually see URLs. Reserving a namespace means a
+  consumer's own `/docs` or `/components` page no longer collides with a package
+  route, and any owned route added in a future release stays inside the namespace
+  (no surprise collisions on a version bump). Relocate or disable any of them via
+  the `editorRoutes` prop exactly as before.
+
+### Fixed
+
+- **A consumer page at `/docs` or `/components` no longer crashes the app.** The
+  package auto-injected nav entries at those paths; a consumer page at the same
+  path produced a duplicate key in the overlay's keyed nav list and threw an
+  uncaught error, and silently shadowed the consumer's page at dispatch. With the
+  reserved namespace the collision cannot occur, so `editorRoutes.docs = false`
+  is no longer needed to dodge it.
+- **`editorRoutes.components` relocation now also moves the overlay's
+  components-view pairing**, which previously compared a hardcoded `/components`.
+
+### Migrating
+
+- **`npx live-tokens migrate` now flags hardcoded route references.** If your
+  source navigates to the old paths (e.g. `navigate('/editor')` from the old
+  scaffold, or `<a href="/components">`), `migrate` reports each one with its
+  file, line, and suggested `/live-tokens/*` replacement. Add `--write` to
+  rewrite the unambiguous ones automatically. `/docs` is never auto-rewritten
+  (you likely own that route), and any path you declare in `pages` or relocate
+  via `editorRoutes` is left for manual review. The editor stays reachable via
+  the dev overlay regardless, so this only affects hardcoded shortcut links.
+
 ## 0.34.0 — Token-as-API contract guardrail; opt-in autoMigrate
 
 ### Added

@@ -8,7 +8,7 @@ description: Apply the @motion-proto/live-tokens project conventions when buildi
 Two rules above all else:
 
 1. **Use a shipped component if one fits.** Import from `@motion-proto/live-tokens/components/<Name>.svelte`. See [[live-tokens-pick-component]] for the catalogue and the confusing-pair decisions. Author custom markup only when nothing fits, and then consider [[live-tokens-create-component]] so the new piece is editable too.
-2. **Use theme tokens for every value.** Every color, spacing, radius, font-size, and font-family in page CSS is a `var(--token-*)`. No hex literals. No pixel literals. A change in `/editor` should repaint your page.
+2. **Use theme tokens for every value.** Every color, spacing, radius, font-size, and font-family in page CSS is a `var(--token-*)`. No hex literals. No pixel literals. A change in `/live-tokens/editor` should repaint your page.
 
 ## Layout
 
@@ -28,10 +28,10 @@ To place children at specific page-column positions, span the parent grid (`grid
 
 - Hex or pixel literals in page CSS.
 - Hardcoded column counts (`repeat(10, 1fr)`). Use `repeat(var(--columns-count), 1fr)`.
-- Utility classes overriding shipped components. Extend via the `/components` editor instead.
+- Utility classes overriding shipped components. Extend via the `/live-tokens/components` editor instead.
 - Deep imports from `node_modules/@motion-proto/live-tokens/src/...`. Use public entry points only.
 - Mounting `Editor` or `ComponentEditorPage` outside their dedicated routes.
 
 ## Verify
 
-In dev: change a colour in `/editor` and confirm your page repaints (proves token usage). The overlay's "Page Source" button on the new route opens the page in VS Code (proves the route's `source`). `ColumnsOverlay` (Cmd+G) shows content sitting inside `--columns-max-width`.
+In dev: change a colour in `/live-tokens/editor` and confirm your page repaints (proves token usage). The overlay's "Page Source" button on the new route opens the page in VS Code (proves the route's `source`). `ColumnsOverlay` (Cmd+G) shows content sitting inside `--columns-max-width`.

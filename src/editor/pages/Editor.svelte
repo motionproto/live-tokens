@@ -5,6 +5,7 @@
   import { installEditorKeybindings } from '../core/store/editorKeybindings';
   import { initializeEditorStore } from '../core/store/editorStore';
   import { storageKey } from '../core/store/editorConfig';
+  import { DEFAULT_EDITOR_PATH } from '../core/routing/ownedRoutes';
   // Editor chrome + form controls + icon font must be JS imports (not @import
   // inside the style block) so Vite resolves them via the module graph
   // regardless of how the consumer compiles Svelte CSS (external ?lang.css vs
@@ -23,7 +24,7 @@
   function pickBackHref(): string {
     try {
       const prev = sessionStorage.getItem(storageKey('prev-route'));
-      if (prev && prev !== '/editor') return prev;
+      if (prev && prev !== DEFAULT_EDITOR_PATH) return prev;
     } catch {
       // ignore
     }

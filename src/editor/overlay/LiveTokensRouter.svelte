@@ -28,9 +28,11 @@
   }
 
   /**
-   * Override the default editor routes (`/editor`, `/components`, `/docs`).
-   * Pass a string to relocate the route; pass `false` to disable it entirely
-   * (no dispatch and, for `components`/`docs`, no auto-injected nav-rail entry).
+   * Override the package's dev-only routes, which default to the reserved
+   * `/live-tokens/*` namespace (`/live-tokens/editor`, `/live-tokens/components`,
+   * `/live-tokens/docs`) so they never collide with consumer pages. Pass a
+   * string to relocate a route; pass `false` to disable it entirely (no
+   * dispatch and, for `components`/`docs`, no auto-injected nav-rail entry).
    */
   export interface EditorRouteOverrides {
     editor?: string | false;
@@ -40,8 +42,8 @@
 
   /**
    * Resolve a path to the single entry that renders it. Precedence, after the
-   * package-owned routes (`/editor`, `/components`, `/docs`) have already been
-   * matched by the component:
+   * package-owned `/live-tokens/*` routes (editor, components, docs) have
+   * already been matched by the component:
    *
    *   1. `pages[route]` — exact static match.
    *   2. `resolve(route)` — consumer code, where params / prefixes / gating
@@ -66,6 +68,7 @@
   import LiveEditorOverlay from './LiveEditorOverlay.svelte';
   import ColumnsOverlay from './ColumnsOverlay.svelte';
   import { route, navigate } from '../core/routing/router';
+  import { DEFAULT_EDITOR_PATH, DEFAULT_COMPONENTS_PATH, DEFAULT_DOCS_PATH } from '../core/routing/ownedRoutes';
 
   interface Props {
     pages: Record<string, RouteEntry>;
@@ -84,9 +87,9 @@
   let editorEnabled = $derived(editorRoutes.editor !== false);
   let componentsEnabled = $derived(editorRoutes.components !== false);
   let docsEnabled = $derived(editorRoutes.docs !== false);
-  let editorPath = $derived(typeof editorRoutes.editor === 'string' ? editorRoutes.editor : '/editor');
-  let componentsPath = $derived(typeof editorRoutes.components === 'string' ? editorRoutes.components : '/components');
-  let docsPath = $derived(typeof editorRoutes.docs === 'string' ? editorRoutes.docs : '/docs');
+  let editorPath = $derived(typeof editorRoutes.editor === 'string' ? editorRoutes.editor : DEFAULT_EDITOR_PATH);
+  let componentsPath = $derived(typeof editorRoutes.components === 'string' ? editorRoutes.components : DEFAULT_COMPONENTS_PATH);
+  let docsPath = $derived(typeof editorRoutes.docs === 'string' ? editorRoutes.docs : DEFAULT_DOCS_PATH);
 
   const isDev = import.meta.env.DEV;
   let isEditor = $derived(isDev && editorEnabled && $route === editorPath);
@@ -176,7 +179,7 @@
   class:is-component-editor={isComponentEditor}
   onclick={handleClick}
 >
-  <LiveEditorOverlay {navLinks} {pageSources} {hidePageSourceOn} {editorPath} />
+  <LiveEditorOverlay {navLinks} {pageSources} {hidePageSourceOn} {editorPath} {componentsPath} />
   <ColumnsOverlay />
 
   {#await pagePromise then m}

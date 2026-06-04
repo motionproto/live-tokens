@@ -1,6 +1,7 @@
 <script lang="ts">
   import { editorView } from '../core/store/editorViewStore';
   import { parentRoute } from '../core/routing/parentRouteStore';
+  import { DEFAULT_COMPONENTS_PATH } from '../core/routing/ownedRoutes';
 
   interface Props {
     condensed?: boolean;
@@ -8,11 +9,13 @@
 
   let { condensed = false }: Props = $props();
 
-  // On /components the host page is already the components editor — the
-  // overlay's components view would just stack on top of it, so disable the
+  // On the components route the host page is already the components editor —
+  // the overlay's components view would just stack on top, so disable the
   // switch. The switcher renders inside the editor iframe, so we read the
-  // *parent* route, not this iframe's own route.
-  let componentsDisabled = $derived($parentRoute === '/components');
+  // *parent* route, not this iframe's own. Compares the default path:
+  // editorRoutes.components relocation isn't plumbed across the iframe, so a
+  // relocated route won't disable the switch.
+  let componentsDisabled = $derived($parentRoute === DEFAULT_COMPONENTS_PATH);
 
   function set(v: 'tokens' | 'components') {
     editorView.set(v);

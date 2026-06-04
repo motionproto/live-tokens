@@ -39,6 +39,7 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
   import { marked, type Tokens } from 'marked';
+  import { DEFAULT_COMPONENTS_PATH } from '../core/routing/ownedRoutes';
 
   import Button from '../../system/components/Button.svelte';
   import CodeSnippet from '../../system/components/CodeSnippet.svelte';
@@ -68,7 +69,7 @@
   let error = $state<string | null>(null);
   let chapterMeta = $state<Chapter | null>(null);
 
-  /* Parse `/docs#editing-tokens~palettes` → chapter `editing-tokens`, anchor `palettes`.
+  /* Parse `/live-tokens/docs#editing-tokens~palettes` → chapter `editing-tokens`, anchor `palettes`.
      Using `~` as the delimiter keeps each part valid for an HTML id. */
   let parsedHash = $derived.by(() => {
     const raw = hash.replace(/^#/, '');
@@ -269,7 +270,7 @@
               Demo Site
             </Button>
           </a>
-          <a href="/components" class="rail-action">
+          <a href={DEFAULT_COMPONENTS_PATH} class="rail-action">
             <Button variant="outline" size="small" icon="fas fa-puzzle-piece" fullWidth>
               Components
             </Button>

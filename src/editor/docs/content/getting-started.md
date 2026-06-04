@@ -28,14 +28,14 @@ version upgrades never touch your styles. The package code stays in
 | Path | What it is |
 |------|------------|
 | `src/pages/Home.svelte` | The starter page. Replace it with your own content. |
-| `src/App.svelte` | Your routes. `<LiveTokensRouter>` adds the dev-only `/editor`, `/components`, and `/docs` routes. |
+| `src/App.svelte` | Your routes. `<LiveTokensRouter>` adds dev-only routes under a reserved `/live-tokens/*` namespace: `/live-tokens/editor`, `/live-tokens/components`, and `/live-tokens/docs`. |
 | `src/system/styles/tokens.css` | Your base token vocabulary, hand-authored. |
 | `src/styles/site.css` | Themed page typography, yours to edit. |
 
 ## Your first edit
 
 1. Run `npm run dev` and open the home page.
-2. Click **Open Token Editor**, or visit `/editor`. The editor opens beside
+2. Click **Open Token Editor**, or visit `/live-tokens/editor`. The editor opens beside
    the page.
 3. Open **Palettes**, pick **Brand**, and change the base hex. The page
    repaints as you type.

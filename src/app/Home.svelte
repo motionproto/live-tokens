@@ -7,6 +7,7 @@
   import Card from '../system/components/Card.svelte';
   import Button from '../system/components/Button.svelte';
   import { navigate } from '../editor/core/routing/router';
+  import { DEFAULT_COMPONENTS_PATH } from '../editor/core/routing/ownedRoutes';
   import { overlayOpen } from '../editor/overlay/overlayState';
 
   const isDev = import.meta.env.DEV;
@@ -25,7 +26,7 @@
       {#if isDev}
         <div class="actions">
           <Button on:click={() => navigate('/demo')}>Demo page</Button>
-          <Button variant="secondary" on:click={() => navigate('/components')}>Components</Button>
+          <Button variant="secondary" on:click={() => navigate(DEFAULT_COMPONENTS_PATH)}>Components</Button>
           <Button
             variant="secondary"
             class="push-right"

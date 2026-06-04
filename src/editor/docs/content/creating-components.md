@@ -26,13 +26,13 @@ Describe what you want in plain English. Phrases like these trigger the skill:
 
 Claude asks any clarifying questions it needs (which variants, which states,
 which parts), then writes the component, registers it with the editor, and runs
-its verification checklist. When it finishes, open `/components` to see your new
+its verification checklist. When it finishes, open `/live-tokens/components` to see your new
 component in the editor and confirm everything works.
 
 ## What you get
 
 - A runtime component whose editable properties default to your theme tokens.
-- An editor entry that appears under **Custom** in the `/components` view.
+- An editor entry that appears under **Custom** in the `/live-tokens/components` view.
 - The naming and wiring handled for you, so the component fits the system.
 
 Advanced authors who want to write a component by hand can read the naming and

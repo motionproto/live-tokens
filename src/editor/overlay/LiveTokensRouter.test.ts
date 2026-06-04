@@ -2,8 +2,9 @@
 //
 // Resolution contract for LiveTokensRouter's dispatch: the precedence that
 // turns a path into the one RouteEntry driving both the rendered page and its
-// "Page Source". Owned routes (/editor, /components, /docs) are matched by the
-// component before resolveRoute runs, so they're out of scope here.
+// "Page Source". The package's /live-tokens/* routes (editor, components, docs)
+// are matched by the component before resolveRoute runs, so they're out of
+// scope here.
 
 import { describe, expect, it } from 'vitest';
 import { resolveRoute, type RouteEntry } from './LiveTokensRouter.svelte';

@@ -1,12 +1,13 @@
 import { writable } from 'svelte/store';
 import { storageKey } from '../store/editorConfig';
+import { DEFAULT_EDITOR_PATH } from './ownedRoutes';
 
 function prevKey(): string {
   return storageKey('prev-route');
 }
 
 function rememberPrev(current: string) {
-  if (current === '/editor') return;
+  if (current === DEFAULT_EDITOR_PATH) return;
   try { sessionStorage.setItem(prevKey(), current); } catch { /* ignore */ }
 }
 

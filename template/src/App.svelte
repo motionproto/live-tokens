@@ -1,9 +1,10 @@
 <script lang="ts">
   import { LiveTokensRouter } from '@motion-proto/live-tokens';
 
-  // <LiveTokensRouter> owns the dev-only /editor and /components routes.
-  // Declare your own pages here. Lazy imports keep each page's CSS
-  // side-effects out of the editor routes; omit `label` to keep a route
+  // <LiveTokensRouter> owns the dev-only /live-tokens/editor and
+  // /live-tokens/components routes (a reserved namespace, so they never collide
+  // with your pages). Declare your own pages here. Lazy imports keep each page's
+  // CSS side-effects out of the editor routes; omit `label` to keep a route
   // reachable by URL but hidden from the overlay nav rail.
   const pages = {
     '/': {

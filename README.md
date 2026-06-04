@@ -8,8 +8,8 @@ A foundational design system for quickly styling and building Svelte + Vite micr
 
 - **Real-time token editing.** Pick a color, drag a hue slider, retype a font size — the page repaints on every input event via CSS-variable writes. No reload, no save-and-refresh, no build step. Works across colors, typography, spacing, radii, shadows, motion, palettes, and gradients.
 - **Real-time component editing.** Each of ~24 shipped Svelte components (Button, Input, Card, Dialog, Badge, Callout, Table, Tooltip, Toggle, TabBar, SegmentedControl, RadioButton, MenuSelect, ProgressBar, CornerBadge, SectionDivider, CollapsibleSection, Notification, Image, ImageLightbox, CodeSnippet, SideNavigation, and more) declares its own design-token aliases in a `:global(:root)` block. Rewire any alias from a per-component picker and see that component update everywhere it's used — live, on your real pages, not in a Storybook sandbox.
-- **Theme editor** (`/editor` route, dev-only) — the home of real-time token editing. Save themes to disk as JSON, promote one to "production" to bake it into a static `tokens.css` for the build.
-- **Per-component editor** (`/components` route, dev-only) — the home of real-time component-alias editing. Pick token aliases per component without writing CSS.
+- **Theme editor** (`/live-tokens/editor` route, dev-only) — the home of real-time token editing. Save themes to disk as JSON, promote one to "production" to bake it into a static `tokens.css` for the build.
+- **Per-component editor** (`/live-tokens/components` route, dev-only) — the home of real-time component-alias editing. Pick token aliases per component without writing CSS.
 - **Live editor overlay** — pins to the top-right of every dev page. Opens the editor in a side panel or floating window so you edit *on the page you're styling*, not in a separate tab. Includes a "Page Source" button that opens the current page's `.svelte` file in VS Code.
 - **Manifests** — a manifest captures a whole site configuration as one portable artifact: the theme in one slot, every component in its own slot, each holding either the shipped default or a custom file. Export it as a bundle and import it into another project to restore the full styling in one step.
 - **Vite plugin** — hosts the `/api/live-tokens/{themes,component-configs,manifests}/*` routes that persist your edits to disk as you make them. The single namespace keeps live-tokens' routes from colliding with anything your app serves under `/api`.
@@ -122,7 +122,7 @@ bootLiveTokens(App, '#app', {
 ```
 
 `<LiveTokensRouter>` owns the dev overlay (`<LiveEditorOverlay>` +
-`<ColumnsOverlay>`), the editor routes (`/editor`, `/components`, `/docs`), the
+`<ColumnsOverlay>`), the editor routes (`/live-tokens/editor`, `/live-tokens/components`, `/live-tokens/docs`), the
 in-app link-click interception, and the nav-rail/page-source plumbing the
 overlay needs. Each entry in `pages` is one of your routes; entries with a
 `label` appear in the overlay's nav rail. Pass pages as `lazy: () => import('./Page.svelte')`
@@ -307,7 +307,7 @@ bootLiveTokens(App, '#app', {
 
 (`bootLiveTokens` calls `registerComponent` internally for each entry, gated on `import.meta.env.DEV` so the registration tree-shakes out of production builds. Call `registerComponent` directly if you need finer control over timing.)
 
-The component appears in the `/components` page under a **CUSTOM** group in the nav rail. Token rows, linked-block sharing, per-component config persistence, and reset-to-default work identically to the built-in set. All imports must come from `@motion-proto/live-tokens` or `@motion-proto/live-tokens/component-editor`; never deep-import from `src/`.
+The component appears in the `/live-tokens/components` page under a **CUSTOM** group in the nav rail. Token rows, linked-block sharing, per-component config persistence, and reset-to-default work identically to the built-in set. All imports must come from `@motion-proto/live-tokens` or `@motion-proto/live-tokens/component-editor`; never deep-import from `src/`.
 
 ## Claude Code skills
 
@@ -345,7 +345,7 @@ It enforces the file layout, `:global(:root)` block, token-suffix vocabulary, th
 
 ## How the editor ships changes to prod
 
-1. Edit in `/editor` or `/components`. Saves write to `<dataDir>/themes/{name}.json` and `<dataDir>/component-configs/{comp}/{name}.json`.
+1. Edit in `/live-tokens/editor` or `/live-tokens/components`. Saves write to `<dataDir>/themes/{name}.json` and `<dataDir>/component-configs/{comp}/{name}.json`.
 2. Promote a theme to "production." Its variables are written into `tokens.generated.css` next to your authored `tokens.css`.
 3. `npm run build` bundles both as plain CSS. No editor code, no JSON lookups, no dev surfaces ship to prod.
 

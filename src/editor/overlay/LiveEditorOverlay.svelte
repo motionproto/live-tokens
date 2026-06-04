@@ -15,6 +15,7 @@
   import { fade } from 'svelte/transition';
   import { cubicInOut } from 'svelte/easing';
   import { route, navigate } from '../core/routing/router';
+  import { DEFAULT_EDITOR_PATH, DEFAULT_COMPONENTS_PATH } from '../core/routing/ownedRoutes';
   import { editorView } from '../core/store/editorViewStore';
   import { columnsVisible, toggleColumns } from './columnsOverlay';
   import { storageKey } from '../core/store/editorConfig';
@@ -27,6 +28,7 @@
   interface Props {
     open?: boolean | undefined;
     editorPath?: string;
+    componentsPath?: string;
     navLinks?: NavLink[];
     pageSources?: Record<string, string>;
     hidePageSourceOn?: string[];
@@ -35,7 +37,8 @@
 
   let {
     open = $bindable(undefined),
-    editorPath = '/editor',
+    editorPath = DEFAULT_EDITOR_PATH,
+    componentsPath = DEFAULT_COMPONENTS_PATH,
     navLinks = [],
     pageSources = {},
     hidePageSourceOn = [],
@@ -62,9 +65,9 @@
     overlayOpen.set(!!open);
   });
 
-  // The /components route renders the same component-editor surface as the
-  // overlay's components view. Pair them: on entering /components, flip the
-  // overlay to tokens so the two surfaces don't stack. Fires only on route
+  // The components route renders the same component-editor surface as the
+  // overlay's components view. Pair them: on entering it, flip the overlay to
+  // tokens so the two surfaces don't stack. Fires only on route
   // change, not on every editorView change — otherwise cross-window storage
   // sync re-triggers the rule, which writes editorView, which fires another
   // storage event, which fires the rule again. The result is heavy re-render
@@ -75,7 +78,7 @@
     const r = $route;
     if (r === prevRoute) return;
     prevRoute = r;
-    if (r === '/components') {
+    if (r === componentsPath) {
       editorView.update((v) => (v === 'components' ? 'tokens' : v));
     }
   });

@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { checkComponent, formatReport } from './check-component.mjs';
 import { runMigrate, formatMigrateResult } from './migrate.mjs';
+import { runMigrateRoutes, formatRouteResult } from './migrate-routes.mjs';
 import { runCreate, formatCreateResult } from './create.mjs';
 
 const USAGE = `Usage: npx @motion-proto/live-tokens <command> [options]
@@ -21,10 +22,15 @@ Commands:
   setup-claude [--force]      Install bundled Claude Code skills into ./.claude/skills/
   check-component <id>        Validate <id>'s runtime, editor, and registration
                               against the live-tokens-create-component contract
-  migrate [--check] [--tokens <path>]
-                              Reconcile your tokens.css with the installed
-                              package's Layer-1 token vocabulary. --check reports
-                              without writing (exit 1 if changes are needed).
+  migrate [--check] [--write] [--tokens <path>]
+                              Reconcile your project with the installed package:
+                              applies additive tokens.css migrations (unless
+                              --check), and reports source references to the
+                              editor/components/docs routes that moved to
+                              /live-tokens/* in 0.35.0. --write also rewrites the
+                              unambiguous route references (never /docs). --check
+                              reports without writing (exit 1 if token migrations
+                              are pending; route findings are advisory).
 `;
 
 function fail(message, code = 1) {
@@ -67,13 +73,21 @@ if (command === 'check-component') {
 
 if (command === 'migrate') {
   const check = rest.includes('--check');
+  const write = rest.includes('--write');
   const tokensIdx = rest.indexOf('--tokens');
   const tokensArg = tokensIdx !== -1 ? rest[tokensIdx + 1] : undefined;
   if (tokensIdx !== -1 && !tokensArg) fail(`--tokens requires a path`);
   try {
     const result = await runMigrate({ tokensArg, check });
     console.log(formatMigrateResult(result, { check }));
-    // Exit 1 when --check finds pending changes (CI-friendly) or on no-path.
+
+    // Route-reference pass: advisory by default, rewrites the unambiguous hits
+    // only with --write (and never under --check).
+    const routes = runMigrateRoutes({ root: process.cwd(), apply: write && !check });
+    const routeOut = formatRouteResult(routes, { check });
+    if (routeOut) console.log('\n' + routeOut);
+
+    // Route findings are advisory; only token migrations gate the exit code.
     if (result.status === 'no-path') process.exit(1);
     if (check && result.status === 'would-change') process.exit(1);
     process.exit(0);
