@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.37.0 — ImageLightbox `capNatural` accepts a multiple
+
+### Added
+
+- **`ImageLightbox`'s `capNatural` now takes a number as well as a boolean.**
+  `true` still caps the open fit at 1:1 (100%); a number caps at that multiple of
+  the source's natural resolution (`capNatural={2}` = up to 200%). This allows a
+  small source to open a little larger than native without being upscaled all the
+  way to the viewport. Backward compatible — the boolean form is unchanged.
+
 ## 0.36.0 — ImageLightbox `capNatural`: stop upscaling small sources
 
 ### Added

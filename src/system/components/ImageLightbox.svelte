@@ -28,22 +28,23 @@
     extended?: boolean;
     /** Maximum zoom, as a multiple of the image's natural resolution: `1` = 100%
         of the source's real pixels (1 source px = 1 screen px), `2` = 200%. The
-        modal opens fitted to the viewport (or to natural size when `capNatural`
-        is set); this only caps how far the `extended` zoom controls can magnify.
+        modal opens fitted to the viewport (or to a `capNatural`-capped size when
+        that's set); this only caps how far the `extended` zoom controls magnify.
         Unset = the default 5x-the-fit cap. An image whose fitted size already
         exceeds the cap simply can't be zoomed in. Needs the natural pixel size
         (from `width`/`height`, or the loaded image); until that's known the
         default cap applies. */
     maxZoom?: number | undefined;
-    /** Cap the opened image at its natural resolution (100%): the modal still
-        opens centered, but never scales the source above 1:1, so a small source
-        (e.g. a low-res GIF) stays crisp instead of being upscaled to fill the
-        viewport. Larger images are unaffected — they fit the viewport as usual.
-        Only bounds the initial open fit; pair with `maxZoom={1}` to also stop the
-        `extended` controls zooming past 100%. Needs the natural pixel size (from
-        `width`/`height`, or the loaded image); until that's known the image fits
-        the viewport, then snaps to the cap once measured. */
-    capNatural?: boolean;
+    /** Cap the opened image's fit relative to its natural resolution, so a small
+        source (e.g. a low-res GIF) isn't upscaled to fill the viewport until it
+        looks soft. `true` caps at 1:1 (100%); a number caps at that multiple
+        (`2` = up to 200% of native). The modal still opens centered and never
+        below the viewport fit, so larger sources are unaffected. Only bounds the
+        initial open fit — the `extended` zoom controls still run up to `maxZoom`
+        (pair with `maxZoom` to also bound zoom). Needs the natural pixel size
+        (from `width`/`height`, or the loaded image); until that's known the image
+        fits the viewport, then snaps to the cap once measured. */
+    capNatural?: boolean | number;
   }
 
   let {
@@ -165,7 +166,8 @@
     let tileW = Math.min(capW, capH * aspect);
     if (capNatural) {
       const nw = naturalWidthOf(current);
-      if (nw) tileW = Math.min(tileW, nw);
+      const mult = capNatural === true ? 1 : capNatural;
+      if (nw) tileW = Math.min(tileW, nw * mult);
     }
     const tileH = tileW / aspect;
     return {

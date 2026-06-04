@@ -371,6 +371,15 @@ describe('ImageLightbox — capNatural (open-fit cap)', () => {
     unmount(c);
   });
 
+  it('a numeric capNatural caps the open width at that multiple of native', async () => {
+    const target = fresh();
+    const c = mount(ImageLightbox, { target, props: { images: [SMALL], extended: true, capNatural: 2 } });
+    flushSync();
+    await open(target);
+    expect(openWidth()).toBe(SMALL.width * 2);
+    unmount(c);
+  });
+
   it('capNatural leaves a large source fitting the viewport (no effect)', async () => {
     const target = fresh();
     const c = mount(ImageLightbox, { target, props: { images: [BIG], extended: true, capNatural: true } });
