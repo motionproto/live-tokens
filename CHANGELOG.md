@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — Image Lightbox galleries; fixed overlays escape their ancestors
+## 0.31.0 — Image Lightbox galleries; fixed overlays escape their ancestors
 
 ### Added
 
