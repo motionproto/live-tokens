@@ -2,20 +2,27 @@
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import Toggle from '../Toggle.svelte';
   import { beginSliderGesture } from '../../core/store/editorStore';
+  import { hexToOklch } from '../../core/palettes/oklch';
+
+  // Full sRGB chroma range (gamutClamp trims per hue/lightness). Neutrals default
+  // low but are not capped; their calm character comes from defaults, not a ceiling.
+  const CHROMA_MAX = 0.4;
+  // Where a typical neutral's chroma sits, marked on the slider as a soft nudge.
+  const NEUTRAL_CALM_CHROMA = 0.05;
 
   
 
 
   interface Props {
     /**
-   * The header swatch + label + base-hex + (when active) the ColorEditPanel
-   * for editing the palette's base colour. In chromatic mode the user picks
-   * an arbitrary hex; in gray mode the user picks tint hue + chroma and the
-   * hex is derived.
+   * The header swatch + label + base-hex + (when active) the OKLCH ColorEditPanel
+   * for editing the palette's base colour. Both modes edit hue/chroma/lightness;
+   * chromatic maps them straight to the base hex, gray maps lightness to the
+   * neutral ramp midpoint (the gray-lightness offset).
    *
    * State (`editing`, scope handle) is owned by the parent — this component
    * fires callbacks (`onStartEdit`, `onConfirm`, `onCancel`, etc.). The
-   * parent decides whether to apply the chromatic-vs-gray snapshot dance.
+   * parent decides how to apply each channel per mode.
    */
     label: string;
     displayLabel?: string | null;
@@ -24,6 +31,7 @@
     gray500Hex: string;
     tintHue: number;
     tintChroma: number;
+    tintLightness: number;
     anchorToBase: boolean;
     isEditingBase: boolean;
     panelOpen: boolean;
@@ -33,8 +41,7 @@
     onStartEdit: () => void;
     onConfirm: () => void;
     onCancel: () => void;
-    onColorChange: (hex: string) => void;
-    onTintChange: (hue: number, chroma: number) => void;
+    onTintChange: (hue: number, chroma: number, lightness: number) => void;
     onAnchorToBaseChange: (next: boolean) => void;
     onCopyBaseHex: (key: string, hex: string, event?: MouseEvent) => void;
   }
@@ -47,6 +54,7 @@
     gray500Hex,
     tintHue,
     tintChroma,
+    tintLightness,
     anchorToBase,
     isEditingBase,
     panelOpen,
@@ -56,7 +64,6 @@
     onStartEdit,
     onConfirm,
     onCancel,
-    onColorChange,
     onTintChange,
     onAnchorToBaseChange,
     onCopyBaseHex
@@ -64,6 +71,14 @@
 
   let displayHex = $derived(mode === 'gray' ? gray500Hex : baseColor);
   let copyKey = $derived(mode === 'gray' ? 'gray-500' : '__base__');
+
+  // Gray edits the tint (hue/chroma) + ramp midpoint (lightness); chromatic
+  // edits the base hex directly, so its channels come from decomposing it.
+  let baseOklch = $derived(hexToOklch(baseColor));
+  let pickerHue = $derived(mode === 'gray' ? tintHue : baseOklch.h);
+  let pickerChroma = $derived(mode === 'gray' ? tintChroma : baseOklch.c);
+  let pickerLightness = $derived(mode === 'gray' ? tintLightness : baseOklch.l * 100);
+  let pickerChromaHint = $derived(mode === 'gray' ? NEUTRAL_CALM_CHROMA : undefined);
 </script>
 
 <div class="editor-top">
@@ -91,14 +106,14 @@
 
 {#if isEditingBase && panelOpen && editingColor}
   <ColorEditPanel
-    color={editingColor}
     title={editPanelTitle}
     showRemoveOverride={false}
-    mode={mode === 'gray' ? 'hue-chroma' : 'hsl'}
-    hue={tintHue}
-    chroma={tintChroma}
+    hue={pickerHue}
+    chroma={pickerChroma}
+    lightness={pickerLightness}
+    chromaMax={CHROMA_MAX}
+    chromaHint={pickerChromaHint}
     onHueChromaChange={onTintChange}
-    onColorChange={onColorChange}
     onConfirm={onConfirm}
     onCancel={onCancel}
     onRemoveOverride={() => {}}

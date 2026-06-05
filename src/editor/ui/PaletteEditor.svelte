@@ -3,8 +3,8 @@
 
   const bubble = createBubbler();
   import { onMount, onDestroy, tick, untrack } from 'svelte';
-  import { hexToOklch } from '../core/palettes/oklch';
-  import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig } from './curveEngine';
+  import { hexToOklch, oklchToHex, gamutClamp } from '../core/palettes/oklch';
+  import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig, sampleCurve } from './curveEngine';
   import ColorEditPanel from './ColorEditPanel.svelte';
   import OverridesPanel from './palette/OverridesPanel.svelte';
   import UIPillButton from './UIPillButton.svelte';
@@ -19,7 +19,7 @@
     defaultScaleCurves, defaultScaleCurvesObject,
     paletteStepLightness, graySteps, scales,
     paletteStepKey, grayStepKey, stepKey, scaleCurveKey as getScaleCurveKey,
-    stepIndexToX,
+    stepIndexToX, grayStepToX,
     injectLockedAnchor, removeLockedAnchor,
     computeGrayColor as computeGrayColorPure,
     computePaletteColor as computePaletteColorPure,
@@ -48,6 +48,8 @@
     emptySelector = false
   }: Props = $props();
 
+
+  const GRAY_500_X = grayStepToX(graySteps.findIndex(g => g.label === '500'));
 
   function defaultPaletteConfig(): PaletteConfig {
     return {
@@ -210,17 +212,17 @@
   }
 
   function handleColorChange(hex: string) {
-    if (isEditingBase) {
-      // Gray mode's base is derived from tintHue/tintChroma; raw hex only applies to chromatic.
-      if (mode === 'chromatic') edit('baseColor', hex);
-      return;
-    }
     if (editing.kind === 'editingStep') {
       editing = { ...editing, draft: hex };
       if (editing.stepKey in overrides) {
         edit('overrides', { ...overrides, [editing.stepKey]: hex });
       }
     }
+  }
+
+  function oklchHex(hue: number, chroma: number, lightness: number): string {
+    const c = gamutClamp(lightness / 100, chroma, hue);
+    return oklchToHex(c.l, c.c, c.h);
   }
 
   function resetOverride(k: string) {
@@ -471,6 +473,11 @@
   let gray500Hex = $derived(mode === 'gray'
     ? (grayComputed.find(g => g.step.label === '500')?.hex ?? GRAY_FALLBACK)
     : baseColor);
+  // The neutral midpoint (500) lightness the base picker edits: curve value at
+  // 500 plus the gray-lightness offset. Dragging the picker's L writes the
+  // offset so the whole ramp shifts to land 500 on the chosen lightness.
+  let tintLightness = $derived(Math.max(0, Math.min(100,
+    sampleCurve(grayLightnessCurve, GRAY_500_X) + (curveOffset['gray-lightness'] ?? 0))));
   // Keep the locked lightness anchor y in sync with baseColor. Idempotent.
   // `lightnessCurve` is read via `untrack` so writing it back via `edit` does
   // not retrigger this effect (Svelte 5 flags the read+write pattern as
@@ -565,6 +572,7 @@
     {gray500Hex}
     {tintHue}
     {tintChroma}
+    {tintLightness}
     {anchorToBase}
     {isEditingBase}
     {panelOpen}
@@ -574,8 +582,13 @@
     onStartEdit={startBaseEdit}
     onConfirm={confirmEdit}
     onCancel={cancelEdit}
-    onColorChange={handleColorChange}
-    onTintChange={(h, c) => patchPalette({ tintHue: h, tintChroma: c }, 'tint hue/chroma')}
+    onTintChange={(h, c, l) => {
+      if (mode === 'chromatic') { edit('baseColor', oklchHex(h, c, l)); return; }
+      // Gray: hue/chroma are the tint; lightness re-anchors the ramp midpoint
+      // via the gray-lightness offset (offset = chosen L − curve value at 500).
+      const baseL = sampleCurve(grayLightnessCurve, GRAY_500_X);
+      patchPalette({ tintHue: h, tintChroma: c, curveOffset: { ...curveOffset, 'gray-lightness': l - baseL } }, 'tint hue/chroma/lightness');
+    }}
     onAnchorToBaseChange={setAnchorToBase}
     onCopyBaseHex={copyHex}
   />
@@ -837,15 +850,14 @@
 
   <!-- Color Edit Panel (non-base edits) -->
   {#if !isEditingBase && panelOpen && editingColor}
+    {@const oc = hexToOklch(editingColor)}
     <ColorEditPanel
-      color={editingColor}
       title={editPanelTitle}
       showRemoveOverride={!!editingKey}
-      mode={'hsl'}
-      hue={tintHue}
-      chroma={tintChroma}
-      onHueChromaChange={(h, c) => patchPalette({ tintHue: h, tintChroma: c }, 'tint hue/chroma')}
-      onColorChange={handleColorChange}
+      hue={oc.h}
+      chroma={oc.c}
+      lightness={oc.l * 100}
+      onHueChromaChange={(h, c, l) => handleColorChange(oklchHex(h, c, l))}
       onConfirm={confirmEdit}
       onCancel={cancelEdit}
       onRemoveOverride={() => editingKey && removeOverride(editingKey)}
