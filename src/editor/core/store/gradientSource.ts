@@ -84,6 +84,31 @@ function readComponentGradient(component: string, varName: string): GradientAlia
   return ref?.kind === 'gradient' ? ref.value : undefined;
 }
 
+const TRANSPARENT_TOKEN = '--color-transparent';
+
+/** The flat colour an alias resolves to, or `null` when it reads as "no fill"
+ *  (a transparent token/literal, or no alias at all). */
+function flatAliasColor(ref: CssVarRef | undefined): { color: string; opacity: number } | null {
+  if (ref === undefined) return null;
+  if (ref.kind === 'token') {
+    return ref.name === TRANSPARENT_TOKEN ? null : { color: ref.name, opacity: ref.opacity ?? 100 };
+  }
+  if (ref.kind === 'literal') {
+    return ref.value === 'transparent' ? null : { color: ref.value, opacity: 100 };
+  }
+  return null; // gradient refs are handled by the caller
+}
+
+/** Lift a flat-colour (or empty) alias into a single-stop gradient payload so
+ *  the editor renders — a flat fill reads as `solid`, an empty/transparent one
+ *  as `none`. The user can then promote it to a real gradient. */
+function flatAliasToGradient(ref: CssVarRef | undefined): GradientAliasValue {
+  const flat = flatAliasColor(ref);
+  return flat
+    ? { type: 'solid', angle: 135, stops: [{ position: 50, color: flat.color, opacity: flat.opacity }] }
+    : { type: 'none', angle: 135, stops: [{ position: 50, color: TRANSPARENT_TOKEN, opacity: 0 }] };
+}
+
 function writeComponentGradient(component: string, varName: string, value: GradientAliasValue): void {
   const ref: CssVarRef = { kind: 'gradient', value };
   setComponentAlias(component, varName, ref);
@@ -93,14 +118,18 @@ function writeComponentGradient(component: string, varName: string, value: Gradi
 export function componentGradientSource(component: string, varName: string): GradientSource {
   const current = derived(editorState, ($s) => {
     const ref = $s.components[component]?.aliases[varName];
-    if (ref?.kind !== 'gradient') return undefined;
+    // A flat-colour (or absent) alias still yields a snapshot — synthesised as
+    // a solid/none single-stop fill — so the editor always renders and offers
+    // the type picker. Without this the whole section vanished for any
+    // non-gradient background (e.g. the default transparent divider fill).
+    const value = ref?.kind === 'gradient' ? ref.value : flatAliasToGradient(ref);
     return {
-      type: ref.value.type,
-      angle: ref.value.angle,
-      centerX: ref.value.centerX,
-      aspectX: ref.value.aspectX,
-      aspectY: ref.value.aspectY,
-      stops: ref.value.stops.map((s) => ({ ...s })),
+      type: value.type,
+      angle: value.angle,
+      centerX: value.centerX,
+      aspectX: value.aspectX,
+      aspectY: value.aspectY,
+      stops: value.stops.map((s) => ({ ...s })),
     };
   });
   /** Read-modify-write through `mutate` so each edit is one history entry
@@ -110,6 +139,9 @@ export function componentGradientSource(component: string, varName: string): Gra
     mutate(label, (s) => {
       const slice = s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {}, config: {} });
       const ref = slice.aliases[varName];
+      // Seed the editable base from the existing gradient, or lift the current
+      // flat-colour alias into one so the first edit promotes (rather than
+      // discards) whatever fill was already there.
       const base: GradientAliasValue =
         ref?.kind === 'gradient'
           ? {
@@ -120,7 +152,7 @@ export function componentGradientSource(component: string, varName: string): Gra
               ...(ref.value.aspectY !== undefined ? { aspectY: ref.value.aspectY } : {}),
               stops: ref.value.stops.map((st) => ({ ...st })),
             }
-          : { type: 'linear', angle: 135, stops: [] };
+          : flatAliasToGradient(ref);
       mutator(base);
       slice.aliases[varName] = { kind: 'gradient', value: base };
     });
@@ -135,7 +167,15 @@ export function componentGradientSource(component: string, varName: string): Gra
       ...(next.aspectY !== undefined ? { aspectY: next.aspectY } : {}),
       stops: next.stops.map((s) => ({ ...s })),
     }),
-    setType: (t) => update(`set gradient type ${varName}`, (g) => { g.type = t; }),
+    setType: (t) => update(`set gradient type ${varName}`, (g) => {
+      // Linear/radial need two endpoints; a flat fill carries only one, so
+      // mirror it into a 0→100 pair the user can then shape.
+      if ((t === 'linear' || t === 'radial') && g.stops.length < 2) {
+        const seed = g.stops[0] ?? { position: 0, color: TRANSPARENT_TOKEN, opacity: 100 };
+        g.stops = [{ ...seed, position: 0 }, { ...seed, position: 100 }];
+      }
+      g.type = t;
+    }),
     setAngle: (a) => update(`set gradient angle ${varName}`, (g) => { g.angle = a; }),
     setCenterX: (x) => update(`set gradient center ${varName}`, (g) => { g.centerX = x; }),
     setAspect: (a) => update(`set gradient aspect ${varName}`, (g) => {

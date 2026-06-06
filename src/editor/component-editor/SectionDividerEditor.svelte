@@ -428,7 +428,7 @@
       {#snippet compositeControls(_stateName)}
         <div class="gradient-bg-section">
           <GradientEditor
-            sectionLabel="Background"
+            sectionLabel="Surface"
             source={gradientSources[v.key]}
             stopIdPrefix={`sectiondivider-${v.key}`}
             familyFilter={getColorFamily(v.key)}
