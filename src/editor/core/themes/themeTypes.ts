@@ -9,12 +9,8 @@ export interface GradientStop {
 
 export interface PaletteConfig {
   baseColor: string;
-  tintHue: number;
-  tintChroma?: number;
   lightnessCurve: CurveAnchor[];
   saturationCurve: CurveAnchor[];
-  grayLightnessCurve: CurveAnchor[];
-  graySaturationCurve: CurveAnchor[];
   scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }>;
   curveOffset: Record<string, number>;
   overrides: Record<string, string>;
@@ -30,10 +26,9 @@ export interface PaletteConfig {
   /**
    * Set to true by importers when they overlay `cssVariables[--color-{ns}-*]`
    * without owning the typed-state curves. The storage-layer reconciler uses
-   * it as an opt-in switch: snap `baseColor` (or `tintHue`+`tintChroma` for
-   * gray palettes) to the imported `--color-{ns}-500` anchor and clear the
-   * flag. Editor-authored themes never set this, so the reconciler is a
-   * strict no-op for them.
+   * it as an opt-in switch: snap `baseColor` to the imported
+   * `--color-{ns}-500` anchor and clear the flag. Editor-authored themes
+   * never set this, so the reconciler is a strict no-op for them.
    *
    * Persists on disk for first-load reconciliation. After reconcile strips
    * the palette-derived keys from `cssVariables`, subsequent reconciles find

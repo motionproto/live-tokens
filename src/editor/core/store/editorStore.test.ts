@@ -21,12 +21,8 @@ import {
 function makePaletteConfig(baseColor: string): PaletteConfig {
   return {
     baseColor,
-    tintHue: 0,
-    tintChroma: 0.04,
     lightnessCurve: [],
     saturationCurve: [],
-    grayLightnessCurve: [],
-    graySaturationCurve: [],
     scaleCurves: {},
     curveOffset: {},
     overrides: {},

@@ -4,46 +4,8 @@
   "updatedAt": "2026-06-01T23:57:08.090Z",
   "editorConfigs": {
     "Neutral": {
-      "baseColor": "#808080",
-      "tintHue": 236,
-      "tintChroma": 0.067,
+      "baseColor": "#70787e",
       "lightnessCurve": [
-        {
-          "x": 0,
-          "y": 86,
-          "inDx": -16.188139217854378,
-          "inDy": 19,
-          "outDx": 16.188139217854378,
-          "outDy": -19
-        },
-        {
-          "x": 100,
-          "y": 11,
-          "inDx": -45.49158094126201,
-          "inDy": 19,
-          "outDx": 45.49158094126201,
-          "outDy": -19
-        }
-      ],
-      "saturationCurve": [
-        {
-          "x": 0,
-          "y": 76,
-          "inDx": 0,
-          "inDy": 0,
-          "outDx": 0,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 123,
-          "inDx": 0,
-          "inDy": 0,
-          "outDx": 0,
-          "outDy": 0
-        }
-      ],
-      "grayLightnessCurve": [
         {
           "x": 0,
           "y": 92,
@@ -61,10 +23,10 @@
           "outDy": 0
         }
       ],
-      "graySaturationCurve": [
+      "saturationCurve": [
         {
           "x": 0,
-          "y": 20,
+          "y": 100,
           "inDx": -30,
           "inDy": 0,
           "outDx": 30,
@@ -72,7 +34,7 @@
         },
         {
           "x": 100,
-          "y": 20,
+          "y": 100,
           "inDx": -30,
           "inDy": 0,
           "outDx": 30,
@@ -204,46 +166,8 @@
       "anchorToBase": true
     },
     "Alternate": {
-      "baseColor": "#808080",
-      "tintHue": 53,
-      "tintChroma": 0.041,
+      "baseColor": "#817b78",
       "lightnessCurve": [
-        {
-          "x": 0,
-          "y": 86,
-          "inDx": -16.188139217854378,
-          "inDy": 19,
-          "outDx": 16.188139217854378,
-          "outDy": -19
-        },
-        {
-          "x": 100,
-          "y": 11,
-          "inDx": -45.49158094126201,
-          "inDy": 19,
-          "outDx": 45.49158094126201,
-          "outDy": -19
-        }
-      ],
-      "saturationCurve": [
-        {
-          "x": 0,
-          "y": 76,
-          "inDx": 0,
-          "inDy": 0,
-          "outDx": 0,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 123,
-          "inDx": 0,
-          "inDy": 0,
-          "outDx": 0,
-          "outDy": 0
-        }
-      ],
-      "grayLightnessCurve": [
         {
           "x": 0,
           "y": 92,
@@ -261,10 +185,10 @@
           "outDy": 0
         }
       ],
-      "graySaturationCurve": [
+      "saturationCurve": [
         {
           "x": 0,
-          "y": 20,
+          "y": 100,
           "inDx": -30,
           "inDy": 0,
           "outDx": 30,
@@ -272,7 +196,7 @@
         },
         {
           "x": 100,
-          "y": 20,
+          "y": 100,
           "inDx": -30,
           "inDy": 0,
           "outDx": 30,
@@ -396,9 +320,9 @@
         }
       },
       "curveOffset": {
+        "Text-lightness": 0,
         "lightness": 0,
-        "saturation": 0,
-        "Text-lightness": 0
+        "saturation": 0
       },
       "overrides": {},
       "snappedScales": [],
@@ -406,8 +330,6 @@
     },
     "Background": {
       "baseColor": "#3c3c53",
-      "tintHue": 240,
-      "tintChroma": 0.04,
       "lightnessCurve": [
         {
           "x": 0,
@@ -441,42 +363,6 @@
           "inDx": 0,
           "inDy": 0,
           "outDx": 0,
-          "outDy": 0
-        }
-      ],
-      "grayLightnessCurve": [
-        {
-          "x": 0,
-          "y": 92,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 3,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        }
-      ],
-      "graySaturationCurve": [
-        {
-          "x": 0,
-          "y": 20,
-          "inDx": -30,
-          "inDy": 0,
-          "outDx": 30,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 20,
-          "inDx": -30,
-          "inDy": 0,
-          "outDx": 30,
           "outDy": 0
         }
       ],
@@ -622,8 +508,6 @@
     },
     "Brand": {
       "baseColor": "#fb2898",
-      "tintHue": 240,
-      "tintChroma": 0.04,
       "lightnessCurve": [
         {
           "x": 0,
@@ -673,42 +557,6 @@
           "inDx": 0,
           "inDy": 0,
           "outDx": 0,
-          "outDy": 0
-        }
-      ],
-      "grayLightnessCurve": [
-        {
-          "x": 0,
-          "y": 92,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 3,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        }
-      ],
-      "graySaturationCurve": [
-        {
-          "x": 0,
-          "y": 20,
-          "inDx": -30,
-          "inDy": 0,
-          "outDx": 30,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 20,
-          "inDx": -30,
-          "inDy": 0,
-          "outDx": 30,
           "outDy": 0
         }
       ],
@@ -840,8 +688,6 @@
     },
     "Accent": {
       "baseColor": "#008582",
-      "tintHue": 240,
-      "tintChroma": 0.04,
       "lightnessCurve": [
         {
           "x": 0,
@@ -875,42 +721,6 @@
           "inDx": 0,
           "inDy": 0,
           "outDx": 0,
-          "outDy": 0
-        }
-      ],
-      "grayLightnessCurve": [
-        {
-          "x": 0,
-          "y": 92,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 3,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        }
-      ],
-      "graySaturationCurve": [
-        {
-          "x": 0,
-          "y": 20,
-          "inDx": -30,
-          "inDy": 0,
-          "outDx": 30,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 20,
-          "inDx": -30,
-          "inDy": 0,
-          "outDx": 30,
           "outDy": 0
         }
       ],
@@ -1040,8 +850,6 @@
     },
     "Special": {
       "baseColor": "#8b5cf6",
-      "tintHue": 240,
-      "tintChroma": 0.04,
       "lightnessCurve": [
         {
           "x": 0,
@@ -1075,42 +883,6 @@
           "inDx": 0,
           "inDy": 0,
           "outDx": 0,
-          "outDy": 0
-        }
-      ],
-      "grayLightnessCurve": [
-        {
-          "x": 0,
-          "y": 92,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 3,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        }
-      ],
-      "graySaturationCurve": [
-        {
-          "x": 0,
-          "y": 20,
-          "inDx": -30,
-          "inDy": 0,
-          "outDx": 30,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 20,
-          "inDx": -30,
-          "inDy": 0,
-          "outDx": 30,
           "outDy": 0
         }
       ],
@@ -1248,8 +1020,6 @@
     },
     "Success": {
       "baseColor": "#009c45",
-      "tintHue": 240,
-      "tintChroma": 0.04,
       "lightnessCurve": [
         {
           "x": 0,
@@ -1283,42 +1053,6 @@
           "inDx": 0,
           "inDy": 0,
           "outDx": 0,
-          "outDy": 0
-        }
-      ],
-      "grayLightnessCurve": [
-        {
-          "x": 0,
-          "y": 92,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 3,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        }
-      ],
-      "graySaturationCurve": [
-        {
-          "x": 0,
-          "y": 20,
-          "inDx": -30,
-          "inDy": 0,
-          "outDx": 30,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 20,
-          "inDx": -30,
-          "inDy": 0,
-          "outDx": 30,
           "outDy": 0
         }
       ],
@@ -1465,8 +1199,6 @@
     },
     "Warning": {
       "baseColor": "#ffb01f",
-      "tintHue": 240,
-      "tintChroma": 0.04,
       "lightnessCurve": [
         {
           "x": 0,
@@ -1500,42 +1232,6 @@
           "inDx": 0,
           "inDy": 0,
           "outDx": 0,
-          "outDy": 0
-        }
-      ],
-      "grayLightnessCurve": [
-        {
-          "x": 0,
-          "y": 92,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 3,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        }
-      ],
-      "graySaturationCurve": [
-        {
-          "x": 0,
-          "y": 20,
-          "inDx": -30,
-          "inDy": 0,
-          "outDx": 30,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 20,
-          "inDx": -30,
-          "inDy": 0,
-          "outDx": 30,
           "outDy": 0
         }
       ],
@@ -1665,8 +1361,6 @@
     },
     "Info": {
       "baseColor": "#00bbff",
-      "tintHue": 240,
-      "tintChroma": 0.04,
       "lightnessCurve": [
         {
           "x": 0,
@@ -1700,42 +1394,6 @@
           "inDx": 0,
           "inDy": 0,
           "outDx": 0,
-          "outDy": 0
-        }
-      ],
-      "grayLightnessCurve": [
-        {
-          "x": 0,
-          "y": 92,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 3,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        }
-      ],
-      "graySaturationCurve": [
-        {
-          "x": 0,
-          "y": 20,
-          "inDx": -30,
-          "inDy": 0,
-          "outDx": 30,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 20,
-          "inDx": -30,
-          "inDy": 0,
-          "outDx": 30,
           "outDy": 0
         }
       ],
@@ -1876,8 +1534,6 @@
     },
     "Danger": {
       "baseColor": "#d10023",
-      "tintHue": 240,
-      "tintChroma": 0.04,
       "lightnessCurve": [
         {
           "x": 0,
@@ -1911,42 +1567,6 @@
           "inDx": 0,
           "inDy": 0,
           "outDx": 0,
-          "outDy": 0
-        }
-      ],
-      "grayLightnessCurve": [
-        {
-          "x": 0,
-          "y": 92,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 3,
-          "inDx": -5,
-          "inDy": 0,
-          "outDx": 5,
-          "outDy": 0
-        }
-      ],
-      "graySaturationCurve": [
-        {
-          "x": 0,
-          "y": 20,
-          "inDx": -30,
-          "inDy": 0,
-          "outDx": 30,
-          "outDy": 0
-        },
-        {
-          "x": 100,
-          "y": 20,
-          "inDx": -30,
-          "inDy": 0,
-          "outDx": 30,
           "outDy": 0
         }
       ],

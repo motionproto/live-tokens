@@ -16,22 +16,17 @@
   interface Props {
     /**
    * The header swatch + label + base-hex + (when active) the OKLCH ColorEditPanel
-   * for editing the palette's base colour. Both modes edit hue/chroma/lightness;
-   * chromatic maps them straight to the base hex, gray maps lightness to the
-   * neutral ramp midpoint (the gray-lightness offset).
+   * for editing the palette's base colour. The picker edits hue/chroma/lightness
+   * and maps them straight to the base hex. `neutral` only nudges the picker
+   * (a calm-chroma hint on the slider); it does not change behaviour.
    *
    * State (`editing`, scope handle) is owned by the parent — this component
-   * fires callbacks (`onStartEdit`, `onConfirm`, `onCancel`, etc.). The
-   * parent decides how to apply each channel per mode.
+   * fires callbacks (`onStartEdit`, `onConfirm`, `onCancel`, etc.).
    */
     label: string;
     displayLabel?: string | null;
-    mode: 'chromatic' | 'gray';
+    neutral?: boolean;
     baseColor: string;
-    gray500Hex: string;
-    tintHue: number;
-    tintChroma: number;
-    tintLightness: number;
     anchorToBase: boolean;
     isEditingBase: boolean;
     panelOpen: boolean;
@@ -41,7 +36,7 @@
     onStartEdit: () => void;
     onConfirm: () => void;
     onCancel: () => void;
-    onTintChange: (hue: number, chroma: number, lightness: number) => void;
+    onBaseChange: (hue: number, chroma: number, lightness: number) => void;
     onAnchorToBaseChange: (next: boolean) => void;
     onCopyBaseHex: (key: string, hex: string, event?: MouseEvent) => void;
   }
@@ -49,12 +44,8 @@
   let {
     label,
     displayLabel = null,
-    mode,
+    neutral = false,
     baseColor,
-    gray500Hex,
-    tintHue,
-    tintChroma,
-    tintLightness,
     anchorToBase,
     isEditingBase,
     panelOpen,
@@ -64,21 +55,13 @@
     onStartEdit,
     onConfirm,
     onCancel,
-    onTintChange,
+    onBaseChange,
     onAnchorToBaseChange,
     onCopyBaseHex
   }: Props = $props();
 
-  let displayHex = $derived(mode === 'gray' ? gray500Hex : baseColor);
-  let copyKey = $derived(mode === 'gray' ? 'gray-500' : '__base__');
-
-  // Gray edits the tint (hue/chroma) + ramp midpoint (lightness); chromatic
-  // edits the base hex directly, so its channels come from decomposing it.
   let baseOklch = $derived(hexToOklch(baseColor));
-  let pickerHue = $derived(mode === 'gray' ? tintHue : baseOklch.h);
-  let pickerChroma = $derived(mode === 'gray' ? tintChroma : baseOklch.c);
-  let pickerLightness = $derived(mode === 'gray' ? tintLightness : baseOklch.l * 100);
-  let pickerChromaHint = $derived(mode === 'gray' ? NEUTRAL_CALM_CHROMA : undefined);
+  let pickerChromaHint = $derived(neutral ? NEUTRAL_CALM_CHROMA : undefined);
 </script>
 
 <div class="editor-top">
@@ -87,7 +70,7 @@
     <div
       class="header-swatch"
       class:active={isEditingBase}
-      style="background: {displayHex}"
+      style="background: {baseColor}"
       onclick={onStartEdit}
       role="button"
       tabindex="0"
@@ -98,8 +81,8 @@
       <button
         class="base-hex clickable-hex"
         type="button"
-        onclick={(e) => onCopyBaseHex(copyKey, displayHex, e)}
-      >{copiedKey === copyKey ? 'copied!' : displayHex}</button>
+        onclick={(e) => onCopyBaseHex('__base__', baseColor, e)}
+      >{copiedKey === '__base__' ? 'copied!' : baseColor}</button>
     </div>
   </div>
 </div>
@@ -108,22 +91,20 @@
   <ColorEditPanel
     title={editPanelTitle}
     showRemoveOverride={false}
-    hue={pickerHue}
-    chroma={pickerChroma}
-    lightness={pickerLightness}
+    hue={baseOklch.h}
+    chroma={baseOklch.c}
+    lightness={baseOklch.l * 100}
     chromaMax={CHROMA_MAX}
     chromaHint={pickerChromaHint}
-    onHueChromaChange={onTintChange}
+    onHueChromaChange={onBaseChange}
     onConfirm={onConfirm}
     onCancel={onCancel}
     onRemoveOverride={() => {}}
     onSliderStart={() => beginSliderGesture(`edit ${label} base`)}
   >
     {#snippet actions()}
-        <span  class:hidden={mode !== 'chromatic'}>
-        <Toggle checked={anchorToBase} onchange={(v) => onAnchorToBaseChange(v ?? !anchorToBase)} label="Lock base color to position 500" />
-      </span>
-      {/snippet}
+      <Toggle checked={anchorToBase} onchange={(v) => onAnchorToBaseChange(v ?? !anchorToBase)} label="Lock base color to position 500" />
+    {/snippet}
   </ColorEditPanel>
 {/if}
 
@@ -196,10 +177,6 @@
   .clickable-hex:hover {
     background: var(--ui-surface-highest);
     color: var(--ui-text-primary);
-  }
-
-  .hidden {
-    display: none;
   }
 
   @media (max-width: 1280px) {

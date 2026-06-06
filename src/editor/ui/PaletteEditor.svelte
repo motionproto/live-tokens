@@ -4,7 +4,7 @@
   const bubble = createBubbler();
   import { onMount, onDestroy, tick, untrack } from 'svelte';
   import { hexToOklch, oklchToHex, gamutClamp } from '../core/palettes/oklch';
-  import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig, sampleCurve } from './curveEngine';
+  import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig } from './curveEngine';
   import ColorEditPanel from './ColorEditPanel.svelte';
   import OverridesPanel from './palette/OverridesPanel.svelte';
   import UIPillButton from './UIPillButton.svelte';
@@ -13,15 +13,14 @@
   import PaletteBase from './palette/PaletteBase.svelte';
   import { type EditingState, idleState, BASE_KEY, isEditingBase as isBaseEdit } from './palette/paletteEditorState';
   import {
-    type Step, type Scale, type GrayStep, type CurveOffset, type ScaleCurves,
-    GRAY_FALLBACK, DEFAULT_TINT_CHROMA,
-    DEFAULT_PALETTE_LIGHTNESS, DEFAULT_PALETTE_SATURATION, DEFAULT_GRAY_LIGHTNESS, DEFAULT_GRAY_SATURATION,
-    defaultScaleCurves, defaultScaleCurvesObject,
-    paletteStepLightness, graySteps, scales,
-    paletteStepKey, grayStepKey, stepKey, scaleCurveKey as getScaleCurveKey,
-    stepIndexToX, grayStepToX,
+    type Step, type Scale,
+    GRAY_FALLBACK,
+    DEFAULT_PALETTE_LIGHTNESS, DEFAULT_PALETTE_SATURATION,
+    defaultScaleCurves, defaultScaleCurvesObject, defaultPaletteConfig,
+    paletteStepLightness, scales,
+    paletteStepKey, stepKey, scaleCurveKey as getScaleCurveKey,
+    stepIndexToX,
     injectLockedAnchor, removeLockedAnchor,
-    computeGrayColor as computeGrayColorPure,
     computePaletteColor as computePaletteColorPure,
     computeDerivedColor as computeDerivedColorPure,
     snapScaleToPalette as snapScaleToPalettePure,
@@ -34,7 +33,7 @@
     label: string;
     displayLabel?: string | null;
     initialColor?: string;
-    mode?: 'chromatic' | 'gray';
+    neutral?: boolean;
     cssNamespace?: string | null;
     emptySelector?: boolean;
   }
@@ -43,41 +42,23 @@
     label,
     displayLabel = null,
     initialColor = GRAY_FALLBACK,
-    mode = 'chromatic',
+    neutral = false,
     cssNamespace = null,
     emptySelector = false
   }: Props = $props();
 
-
-  const GRAY_500_X = grayStepToX(graySteps.findIndex(g => g.label === '500'));
-
-  function defaultPaletteConfig(): PaletteConfig {
-    return {
-      baseColor: initialColor,
-      tintHue: 240,
-      tintChroma: DEFAULT_TINT_CHROMA,
-      lightnessCurve: DEFAULT_PALETTE_LIGHTNESS(),
-      saturationCurve: DEFAULT_PALETTE_SATURATION(),
-      grayLightnessCurve: DEFAULT_GRAY_LIGHTNESS(),
-      graySaturationCurve: DEFAULT_GRAY_SATURATION(),
-      scaleCurves: defaultScaleCurvesObject(),
-      curveOffset: { lightness: 0, saturation: 0 },
-      overrides: {},
-      snappedScales: [],
-      anchorToBase: true,
-    };
-  }
+  const seedConfig = () => defaultPaletteConfig({ baseColor: initialColor, neutral });
 
   function edit<K extends keyof PaletteConfig>(field: K, value: PaletteConfig[K]): void {
     mutate(`${label}: ${String(field)}`, (s) => {
-      if (!s.palettes[label]) s.palettes[label] = defaultPaletteConfig();
+      if (!s.palettes[label]) s.palettes[label] = seedConfig();
       (s.palettes[label] as any)[field] = value;
     });
   }
 
   function patchPalette(patch: Partial<PaletteConfig>, historyLabel: string): void {
     mutate(`${label}: ${historyLabel}`, (s) => {
-      if (!s.palettes[label]) s.palettes[label] = defaultPaletteConfig();
+      if (!s.palettes[label]) s.palettes[label] = seedConfig();
       Object.assign(s.palettes[label], patch);
     });
   }
@@ -112,14 +93,11 @@
     edit('emptyMode', (e.currentTarget as HTMLInputElement).checked ? 'gradient' : 'solid');
   }
 
-  let grayEditorOpen = $state(false);
   let showDerived = $state(false);
   let paletteEditorOpen = $state(false);
 
   function setLightnessCurve(a: CurveAnchor[]) { edit('lightnessCurve', a); }
   function setSaturationCurve(a: CurveAnchor[]) { edit('saturationCurve', a); }
-  function setGrayLightnessCurve(a: CurveAnchor[]) { edit('grayLightnessCurve', a); }
-  function setGraySaturationCurve(a: CurveAnchor[]) { edit('graySaturationCurve', a); }
 
   function handleOffset(key: string, value: number) {
     edit('curveOffset', { ...curveOffset, [key]: value });
@@ -129,10 +107,6 @@
 
   let injectedLightness = false;
   let injectedSaturation = false;
-
-  function computeGrayColor(index: number, hue: number, chroma: number = tintChroma): string {
-    return computeGrayColorPure(index, hue, chroma, grayLightnessCurve, graySaturationCurve, curveOffset);
-  }
 
   function computePaletteColor(index: number, base: string): string {
     return computePaletteColorPure(index, base, lightnessCurve, saturationCurve, curveOffset);
@@ -182,9 +156,7 @@
 
   function startBaseEdit() {
     if (editing.kind === 'editingBase') { confirmEdit(); return; }
-    editing = mode === 'gray'
-      ? { kind: 'editingBase', snapshotHex: gray500Hex, snapshotTintHue: tintHue, snapshotTintChroma: tintChroma }
-      : { kind: 'editingBase', snapshotHex: baseColor, snapshotTintHue: null, snapshotTintChroma: null };
+    editing = { kind: 'editingBase' };
     openSession();
   }
 
@@ -236,18 +208,7 @@
       confirmEdit();
       return;
     }
-    const current = (k in overrides) ? overrides[k] : computeDerivedColor(step, gray500Hex, scaleTitle);
-    editing = { kind: 'editingStep', stepKey: k, snapshot: current, draft: current };
-    openSession();
-  }
-
-  function handleGrayClick(gStep: GrayStep, index: number) {
-    const k = grayStepKey(gStep.label);
-    if (editingKey === k) {
-      confirmEdit();
-      return;
-    }
-    const current = (k in overrides) ? overrides[k] : computeGrayColor(index, tintHue, tintChroma);
+    const current = (k in overrides) ? overrides[k] : computeDerivedColor(step, baseColor, scaleTitle);
     editing = { kind: 'editingStep', stepKey: k, snapshot: current, draft: current };
     openSession();
   }
@@ -284,7 +245,7 @@
 
   function cancelEdit() {
     editing = idleState;
-    // Restoring the session snapshot pulls baseColor/tintHue/overrides/… back to pre-open.
+    // Restoring the session snapshot pulls baseColor/overrides/… back to pre-open.
     if (paletteEditScope) { cancelScope(paletteEditScope); paletteEditScope = null; }
   }
 
@@ -300,12 +261,10 @@
       const idx = paletteStepLightness.indexOf(ps);
       return computePaletteColor(idx, baseColor);
     }
-    const gi = graySteps.findIndex(g => grayStepKey(g.label) === key);
-    if (gi >= 0) return computeGrayColor(gi, tintHue, tintChroma);
     for (const scale of scales) {
       for (const step of scale.steps) {
         if (stepKey(scale.title, step.name) === key) {
-          return computeDerivedColor(step, gray500Hex, scale.title);
+          return computeDerivedColor(step, baseColor, scale.title);
         }
       }
     }
@@ -314,7 +273,7 @@
 
   function effectiveColor(k: string, step: Step, scaleTitle: string, _version?: string): string {
     if (editingKey === k && editingDraft !== null) return editingDraft;
-    return (k in overrides) ? overrides[k] : computeDerivedColor(step, gray500Hex, scaleTitle);
+    return (k in overrides) ? overrides[k] : computeDerivedColor(step, baseColor, scaleTitle);
   }
 
   let copiedKey: string | null = $state(null);
@@ -358,11 +317,7 @@
 
   function clearPaletteOverrides() {
     const next = { ...overrides };
-    if (mode === 'gray') {
-      for (const step of graySteps) delete next[grayStepKey(step.label)];
-    } else {
-      for (const ps of paletteStepLightness) delete next[paletteStepKey(ps.label)];
-    }
+    for (const ps of paletteStepLightness) delete next[paletteStepKey(ps.label)];
     edit('overrides', next);
   }
 
@@ -429,12 +384,8 @@
   // every mutate-in-place store update (Svelte 5 uses `===` equality) and
   // short-circuit the downstream chain — swatches would freeze.
   let baseColor = $derived($editorState.palettes[label]?.baseColor ?? initialColor);
-  let tintHue = $derived($editorState.palettes[label]?.tintHue ?? 240);
-  let tintChroma = $derived($editorState.palettes[label]?.tintChroma ?? DEFAULT_TINT_CHROMA);
   let lightnessCurve = $derived($editorState.palettes[label]?.lightnessCurve ?? DEFAULT_PALETTE_LIGHTNESS());
   let saturationCurve = $derived($editorState.palettes[label]?.saturationCurve ?? DEFAULT_PALETTE_SATURATION());
-  let grayLightnessCurve = $derived($editorState.palettes[label]?.grayLightnessCurve ?? DEFAULT_GRAY_LIGHTNESS());
-  let graySaturationCurve = $derived($editorState.palettes[label]?.graySaturationCurve ?? DEFAULT_GRAY_SATURATION());
   let scaleCurves = $derived($editorState.palettes[label]?.scaleCurves ?? defaultScaleCurvesObject());
   let curveOffset = $derived($editorState.palettes[label]?.curveOffset ?? { lightness: 0, saturation: 0 });
   let overrides = $derived($editorState.palettes[label]?.overrides ?? {});
@@ -452,32 +403,6 @@
   let gradientSize = $derived($editorState.palettes[label]?.gradientSize ?? 'page');
   let editingKey = $derived(editing.kind === 'idle' ? null : editing.kind === 'editingBase' ? BASE_KEY : editing.stepKey);
   let editingDraft = $derived(editing.kind === 'editingStep' ? editing.draft : null);
-  let grayComputed = $derived((() => {
-    const _gl = grayLightnessCurve, _gs = graySaturationCurve, _co = curveOffset, _tc = tintChroma, _th = tintHue;
-    return graySteps.map((step, index) => ({
-      step,
-      index,
-      key: grayStepKey(step.label),
-      hex: computeGrayColor(index, _th, _tc),
-    }));
-  })());
-  let grayEffective = $derived((() => {
-    const _ed = editingDraft, _ek = editingKey, _ov = overrides;
-    return grayComputed.map(g => ({
-      ...g,
-      effective: (_ek === g.key && _ed !== null) ? _ed : (g.key in _ov) ? _ov[g.key] : g.hex,
-    }));
-  })());
-  // Always use the computed (curve-derived) value so derived scales update in
-  // realtime when tint changes.
-  let gray500Hex = $derived(mode === 'gray'
-    ? (grayComputed.find(g => g.step.label === '500')?.hex ?? GRAY_FALLBACK)
-    : baseColor);
-  // The neutral midpoint (500) lightness the base picker edits: curve value at
-  // 500 plus the gray-lightness offset. Dragging the picker's L writes the
-  // offset so the whole ramp shifts to land 500 on the chosen lightness.
-  let tintLightness = $derived(Math.max(0, Math.min(100,
-    sampleCurve(grayLightnessCurve, GRAY_500_X) + (curveOffset['gray-lightness'] ?? 0))));
   // Keep the locked lightness anchor y in sync with baseColor. Idempotent.
   // `lightnessCurve` is read via `untrack` so writing it back via `edit` does
   // not retrigger this effect (Svelte 5 flags the read+write pattern as
@@ -516,24 +441,14 @@
     const stops = sorted.map(s => `${stopColor(s, pc)} ${s.position}%`).join(', ');
     return `linear-gradient(to right, ${stops})`;
   });
-  let grayScales = $derived(mode === 'gray' ? scales : []);
-  let curveVersion = $derived(JSON.stringify(scaleCurves) + JSON.stringify(curveOffset) + gray500Hex);
-  // Chromatic vs gray distinction is only for the `derivedHex` ("Ag" preview /
-  // border-color base); `effectiveColor` always uses `gray500Hex` for non-override derivation.
+  let curveVersion = $derived(JSON.stringify(scaleCurves) + JSON.stringify(curveOffset) + baseColor);
   let derivedHexForBase = $derived((step: Step, scaleTitle: string) => computeDerivedColor(step, baseColor, scaleTitle));
-  let derivedHexForGray = $derived((step: Step, scaleTitle: string) => computeDerivedColor(step, gray500Hex, scaleTitle));
   let effectiveHexAny = $derived((k: string, step: Step, scaleTitle: string) => effectiveColor(k, step, scaleTitle, curveVersion));
 
   let isEditingBase = $derived(isBaseEdit(editing));
-  let editingColor = $derived(isEditingBase
-    ? (mode === 'gray' ? gray500Hex : baseColor)
-    : editingDraft);
+  let editingColor = $derived(isEditingBase ? baseColor : editingDraft);
   let editingStepInfo = $derived((() => {
     if (!editingKey || isEditingBase) return null;
-    if (mode === 'gray') {
-      const gs = graySteps.find(s => grayStepKey(s.label) === editingKey);
-      if (gs) return { scale: 'Gray', step: gs.label };
-    }
     const ps = paletteStepLightness.find(p => paletteStepKey(p.label) === editingKey);
     if (ps) return { scale: 'Palette', step: ps.label };
     for (const scale of scales) {
@@ -563,16 +478,12 @@
   });
 </script>
 
-<div class="palette-editor" style="--editor-base: {mode === 'gray' ? gray500Hex : baseColor}">
+<div class="palette-editor" style="--editor-base: {baseColor}">
   <PaletteBase
     {label}
     {displayLabel}
-    {mode}
+    {neutral}
     {baseColor}
-    {gray500Hex}
-    {tintHue}
-    {tintChroma}
-    {tintLightness}
     {anchorToBase}
     {isEditingBase}
     {panelOpen}
@@ -582,18 +493,11 @@
     onStartEdit={startBaseEdit}
     onConfirm={confirmEdit}
     onCancel={cancelEdit}
-    onTintChange={(h, c, l) => {
-      if (mode === 'chromatic') { edit('baseColor', oklchHex(h, c, l)); return; }
-      // Gray: hue/chroma are the tint; lightness re-anchors the ramp midpoint
-      // via the gray-lightness offset (offset = chosen L − curve value at 500).
-      const baseL = sampleCurve(grayLightnessCurve, GRAY_500_X);
-      patchPalette({ tintHue: h, tintChroma: c, curveOffset: { ...curveOffset, 'gray-lightness': l - baseL } }, 'tint hue/chroma/lightness');
-    }}
+    onBaseChange={(h, c, l) => edit('baseColor', oklchHex(h, c, l))}
     onAnchorToBaseChange={setAnchorToBase}
     onCopyBaseHex={copyHex}
   />
 
-  {#if mode === 'chromatic'}
   <!-- Palette + Text row -->
   <div class="scales-row">
     <div class="scale-section">
@@ -713,87 +617,6 @@
 
   </div>
 
-  {:else}
-  <!-- Gray mode: palette + text row -->
-  <div class="scales-row">
-  <div class="scale-section">
-    <div class="scale-header">
-      <h4 class="scale-title">{displayLabel ?? label}</h4>
-      <UIPillButton size="compact" variant="outline" onclick={clearPaletteOverrides}>Clear Overrides</UIPillButton>
-      <UIPillButton size="compact" variant="outline" onclick={() => grayEditorOpen = !grayEditorOpen}>
-        {grayEditorOpen ? 'Close' : 'Edit'}
-      </UIPillButton>
-    </div>
-    <div class="swatch-grid" style="--swatch-cols: {graySteps.length + 2}">
-      <div class="step-column">
-        <button class="step-label copyable-label" class:copied={copiedLabelKey === 'gray-white'} type="button" onclick={(e) => copyVarName('gray-white', `--color-${cssNamespace}-white`, e)}>
-          {copiedLabelKey === 'gray-white' ? 'copied!' : 'white'}
-        </button>
-        <div class="swatch gray-swatch bookend" style="background: #ffffff"></div>
-      </div>
-      {#each grayEffective as g}
-        <div class="step-column">
-          <button class="step-label copyable-label" class:copied={copiedLabelKey === g.key} type="button" onclick={(e) => copyVarName(g.key, `--color-${cssNamespace}-${g.step.label}`, e)}>
-            {copiedLabelKey === g.key ? 'copied!' : g.step.label}
-          </button>
-          <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-          <div
-            class="swatch gray-swatch"
-            class:active={editingKey === g.key}
-            class:overridden={g.key in overrides}
-            style="background: {g.effective}"
-            onclick={() => handleGrayClick(g.step, g.index)}
-            role="button"
-            tabindex="0"
-            onkeydown={(e) => e.key === 'Enter' && handleGrayClick(g.step, g.index)}
-          >
-            {#if g.key in overrides}
-              <span class="override-dot" title="Palette override"></span>
-            {/if}
-          </div>
-          <button
-            class="step-hex"
-            class:copied={copiedKey === g.key}
-            type="button"
-            onclick={(e) => copyHex(g.key, g.effective, e)}
-          >{copiedKey === g.key ? 'copied!' : g.effective}</button>
-        </div>
-      {/each}
-      <div class="step-column">
-        <button class="step-label copyable-label" class:copied={copiedLabelKey === 'gray-black'} type="button" onclick={(e) => copyVarName('gray-black', `--color-${cssNamespace}-black`, e)}>
-          {copiedLabelKey === 'gray-black' ? 'copied!' : 'black'}
-        </button>
-        <div class="swatch gray-swatch bookend" style="background: #000000"></div>
-      </div>
-    {#if grayEditorOpen}
-      <div class="curve-grid-span" style="grid-column: 2 / {graySteps.length + 2}">
-        <ScaleCurveEditor
-          curveKey="gray-lightness"
-          anchors={grayLightnessCurve}
-          cfg={lightnessCurveConfig}
-          stepCount={graySteps.length}
-          defaults={DEFAULT_GRAY_LIGHTNESS()}
-          offset={curveOffset['gray-lightness'] ?? 0}
-          onAnchorsChange={setGrayLightnessCurve}
-          onOffsetChange={handleOffset}
-        />
-        <ScaleCurveEditor
-          curveKey="gray-saturation"
-          anchors={graySaturationCurve}
-          cfg={saturationCurveConfig}
-          stepCount={graySteps.length}
-          defaults={DEFAULT_GRAY_SATURATION()}
-          offset={curveOffset['gray-saturation'] ?? 0}
-          onAnchorsChange={setGraySaturationCurve}
-          onOffsetChange={handleOffset}
-        />
-      </div>
-    {/if}
-    </div>
-  </div>
-  </div>
-  {/if}
-
   {#snippet overridesPanel(scale: Scale, canSnap: boolean, derivedHexFor: (step: Step, scaleTitle: string) => string)}
     <OverridesPanel
       {scale}
@@ -834,16 +657,14 @@
   </button>
 
   {#if showDerived}
-    {@const activeScales = mode === 'gray' ? grayScales : scales}
-    {@const derivedHexFor = mode === 'gray' ? derivedHexForGray : derivedHexForBase}
     <div class="scales-row">
-      {#each activeScales.filter(s => s.isText) as scale}
-        {@render overridesPanel(scale, true, derivedHexFor)}
+      {#each scales.filter(s => s.isText) as scale}
+        {@render overridesPanel(scale, true, derivedHexForBase)}
       {/each}
     </div>
     <div class="scales-row">
-      {#each activeScales.filter(s => !s.isText) as scale}
-        {@render overridesPanel(scale, mode !== 'gray', derivedHexFor)}
+      {#each scales.filter(s => !s.isText) as scale}
+        {@render overridesPanel(scale, true, derivedHexForBase)}
       {/each}
     </div>
   {/if}

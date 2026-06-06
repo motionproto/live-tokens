@@ -17,14 +17,14 @@ import { hexToOklch, oklchToHex, gamutClamp } from './oklch';
 import { type CurveAnchor, sampleCurve, makeAnchor } from '../../ui/curveEngine';
 import type { PaletteConfig } from '../themes/themeTypes';
 
-export type PaletteMode = 'chromatic' | 'gray';
-
 export interface PaletteSpec {
   label: string;
   cssNamespace: string;
-  mode: PaletteMode;
   emptySelector?: boolean;
   initialColor: string;
+  /** Seed-default role only: neutrals start with a calm low-chroma base and
+   *  the neutral lightness ramp. The derivation path is identical for all. */
+  neutral?: boolean;
 }
 
 /**
@@ -33,25 +33,19 @@ export interface PaletteSpec {
  * here lets the store seed boot-time vars without depending on the UI tree.
  */
 export const PALETTE_SPECS: readonly PaletteSpec[] = [
-  { label: 'Neutral',    cssNamespace: 'neutral',   mode: 'gray',      initialColor: '#808080' },
-  { label: 'Alternate',  cssNamespace: 'alternate', mode: 'gray',      initialColor: '#808080' },
-  { label: 'Background', cssNamespace: 'canvas',    mode: 'chromatic', emptySelector: true, initialColor: '#1a1a2e' },
-  { label: 'Brand',      cssNamespace: 'brand',     mode: 'chromatic', initialColor: '#c93636' },
-  { label: 'Accent',     cssNamespace: 'accent',    mode: 'chromatic', initialColor: '#f49e0b' },
-  { label: 'Special',    cssNamespace: 'special',   mode: 'chromatic', initialColor: '#8b5cf6' },
-  { label: 'Info',       cssNamespace: 'info',      mode: 'chromatic', initialColor: '#3077e8' },
-  { label: 'Success',    cssNamespace: 'success',   mode: 'chromatic', initialColor: '#21c45d' },
-  { label: 'Warning',    cssNamespace: 'warning',   mode: 'chromatic', initialColor: '#e66e1a' },
-  { label: 'Danger',     cssNamespace: 'danger',    mode: 'chromatic', initialColor: '#e8304f' },
+  { label: 'Neutral',    cssNamespace: 'neutral',   neutral: true, initialColor: '#70787e' },
+  { label: 'Alternate',  cssNamespace: 'alternate', neutral: true, initialColor: '#817b78' },
+  { label: 'Background', cssNamespace: 'canvas',    emptySelector: true, initialColor: '#1a1a2e' },
+  { label: 'Brand',      cssNamespace: 'brand',     initialColor: '#c93636' },
+  { label: 'Accent',     cssNamespace: 'accent',    initialColor: '#f49e0b' },
+  { label: 'Special',    cssNamespace: 'special',   initialColor: '#8b5cf6' },
+  { label: 'Info',       cssNamespace: 'info',      initialColor: '#3077e8' },
+  { label: 'Success',    cssNamespace: 'success',   initialColor: '#21c45d' },
+  { label: 'Warning',    cssNamespace: 'warning',   initialColor: '#e66e1a' },
+  { label: 'Danger',     cssNamespace: 'danger',    initialColor: '#e8304f' },
 ] as const;
 
 const PALETTE_STEPS = [
-  { label: '100' }, { label: '200' }, { label: '300' }, { label: '400' },
-  { label: '500' }, { label: '600' }, { label: '700' }, { label: '800' },
-  { label: '850' }, { label: '900' }, { label: '950' },
-];
-
-const GRAY_STEPS = [
   { label: '100' }, { label: '200' }, { label: '300' }, { label: '400' },
   { label: '500' }, { label: '600' }, { label: '700' }, { label: '800' },
   { label: '850' }, { label: '900' }, { label: '950' },
@@ -97,9 +91,6 @@ const SCALES: readonly Scale[] = [
 
 export const DEFAULT_PALETTE_LIGHTNESS = (): CurveAnchor[] => [makeAnchor(0, 95, 5), makeAnchor(100, 8, 5)];
 export const DEFAULT_PALETTE_SATURATION = (): CurveAnchor[] => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)];
-export const DEFAULT_GRAY_LIGHTNESS = (): CurveAnchor[] => [makeAnchor(0, 92, 5), makeAnchor(100, 3, 5)];
-export const DEFAULT_GRAY_SATURATION = (): CurveAnchor[] => [makeAnchor(0, 20, 30), makeAnchor(100, 20, 30)];
-export const DEFAULT_TINT_CHROMA = 0.04;
 
 export const defaultScaleCurves = {
   Surfaces: {
@@ -117,7 +108,6 @@ export const defaultScaleCurves = {
 } as const;
 
 function paletteStepKey(label: string): string { return `Palette-${label}`; }
-function grayStepKey(label: string): string { return `gray-${label}`; }
 function stepKey(scaleTitle: string, stepName: string): string { return `${scaleTitle}-${stepName}`; }
 
 function stepIndexToX(index: number, total: number): number {
@@ -137,24 +127,6 @@ function computePaletteColor(
   const satMul = Math.max(0, Math.min(2, (sampleCurve(saturationCurve, xPos) + (curveOffset.saturation ?? 0)) / 100));
   const targetC = baseC * satMul;
   const clamped = gamutClamp(targetL, targetC, h);
-  return oklchToHex(clamped.l, clamped.c, clamped.h);
-}
-
-function computeGrayColor(
-  index: number,
-  hue: number,
-  chroma: number,
-  grayLightnessCurve: CurveAnchor[],
-  graySaturationCurve: CurveAnchor[],
-  curveOffset: Record<string, number>,
-): string {
-  const xPos = stepIndexToX(index, GRAY_STEPS.length);
-  const lOff = curveOffset['gray-lightness'] ?? 0;
-  const sOff = curveOffset['gray-saturation'] ?? 0;
-  const targetL = Math.max(0, Math.min(100, sampleCurve(grayLightnessCurve, xPos) + lOff)) / 100;
-  const satMul = Math.max(0, Math.min(2, (sampleCurve(graySaturationCurve, xPos) + sOff) / 100));
-  const targetC = chroma * satMul;
-  const clamped = gamutClamp(targetL, targetC, hue);
   return oklchToHex(clamped.l, clamped.c, clamped.h);
 }
 
@@ -212,43 +184,22 @@ export function derivePaletteVars(spec: PaletteSpec, config: PaletteConfig | und
   const overrides = config.overrides ?? {};
   const curveOffset = config.curveOffset ?? {};
   const scaleCurves = config.scaleCurves ?? {};
+  const lightnessCurve = config.lightnessCurve ?? DEFAULT_PALETTE_LIGHTNESS();
+  const saturationCurve = config.saturationCurve ?? DEFAULT_PALETTE_SATURATION();
 
-  let baseForScales: string;
-
-  if (spec.mode === 'gray') {
-    const grayLightnessCurve = config.grayLightnessCurve ?? DEFAULT_GRAY_LIGHTNESS();
-    const graySaturationCurve = config.graySaturationCurve ?? DEFAULT_GRAY_SATURATION();
-    const tintHue = config.tintHue ?? 240;
-    const tintChroma = config.tintChroma ?? DEFAULT_TINT_CHROMA;
-
-    let gray500 = '#808080';
-    GRAY_STEPS.forEach((step, index) => {
-      const k = grayStepKey(step.label);
-      const hex = computeGrayColor(index, tintHue, tintChroma, grayLightnessCurve, graySaturationCurve, curveOffset);
-      const effective = (k in overrides) ? overrides[k] : hex;
-      out[`--color-${spec.cssNamespace}-${step.label}`] = effective;
-      if (step.label === '500') gray500 = hex;
-    });
-    baseForScales = gray500;
-  } else {
-    const lightnessCurve = config.lightnessCurve ?? DEFAULT_PALETTE_LIGHTNESS();
-    const saturationCurve = config.saturationCurve ?? DEFAULT_PALETTE_SATURATION();
-
-    PALETTE_STEPS.forEach((ps, index) => {
-      const k = paletteStepKey(ps.label);
-      const hex = computePaletteColor(index, baseColor, lightnessCurve, saturationCurve, curveOffset);
-      const effective = (k in overrides) ? overrides[k] : hex;
-      out[`--color-${spec.cssNamespace}-${ps.label}`] = effective;
-    });
-    baseForScales = baseColor;
-  }
+  PALETTE_STEPS.forEach((ps, index) => {
+    const k = paletteStepKey(ps.label);
+    const hex = computePaletteColor(index, baseColor, lightnessCurve, saturationCurve, curveOffset);
+    const effective = (k in overrides) ? overrides[k] : hex;
+    out[`--color-${spec.cssNamespace}-${ps.label}`] = effective;
+  });
 
   for (const scale of SCALES) {
     for (const step of scale.steps) {
       const k = stepKey(scale.title, step.name);
       const hex = (k in overrides)
         ? overrides[k]
-        : computeDerivedColor(step, baseForScales, scale.title, scaleCurves, curveOffset);
+        : computeDerivedColor(step, baseColor, scale.title, scaleCurves, curveOffset);
       const varName = scaleToCssVar(scale.title, step.name, spec.cssNamespace);
       if (varName) out[varName] = hex;
     }
@@ -307,12 +258,11 @@ const HEX_RE = /^#[0-9a-f]{6}$/i;
  *
  *   - **Snap** (gated by `_imported`): for any palette whose `_imported` flag
  *     is true, the imported `--color-{ns}-500` value is treated as the
- *     authoritative anchor. Chromatic palettes get `baseColor` snapped to it;
- *     gray palettes (Neutral/Alternate) get `tintHue` + `tintChroma` derived
- *     from it via OKLCH. The flag is then cleared. Editor-authored palettes
- *     (no `_imported`) are left untouched — see `temp/manifest-robustness-plan.md`
- *     §9 for why "snap on any divergence" was wrong: it would have flipped
- *     `themes/default.json`'s accent from teal to olive on first read.
+ *     authoritative anchor and `baseColor` is snapped to it. The flag is then
+ *     cleared. Editor-authored palettes (no `_imported`) are left untouched —
+ *     see `temp/manifest-robustness-plan.md` §9 for why "snap on any
+ *     divergence" was wrong: it would have flipped `themes/default.json`'s
+ *     accent from teal to olive on first read.
  *
  *   - **Consume** (always): every variable the palette's derivation produces
  *     is reported in `consumed` so the caller can strip it from
@@ -345,12 +295,7 @@ export function reconcilePalettesFromCssVars(
       const anchorHex = cssVars[`--color-${spec.cssNamespace}-500`];
       if (anchorHex && HEX_RE.test(anchorHex.trim())) {
         const hex = anchorHex.trim();
-        if (spec.mode === 'gray') {
-          const { c, h } = hexToOklch(hex);
-          next[spec.label] = { ...current, tintHue: h, tintChroma: c, _imported: false };
-        } else {
-          next[spec.label] = { ...current, baseColor: hex, _imported: false };
-        }
+        next[spec.label] = { ...current, baseColor: hex, _imported: false };
         snapped.add(spec.label);
       } else {
         // No anchor in cssVariables to snap to — flag has nothing to do; clear

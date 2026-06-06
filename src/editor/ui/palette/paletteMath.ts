@@ -1,8 +1,8 @@
 import { hexToOklch, oklchToHex, gamutClamp } from '../../core/palettes/oklch';
 import { type CurveAnchor, makeAnchor, sampleCurve } from '../curveEngine';
+import type { PaletteConfig } from '../../core/themes/themeTypes';
 
 export const GRAY_FALLBACK = '#808080';
-export const DEFAULT_TINT_CHROMA = 0.04;
 
 export interface Step {
   name: string;
@@ -17,13 +17,6 @@ export interface Scale {
   steps: Step[];
 }
 
-export interface GrayStep {
-  label: string;
-  hue: number;
-  saturation: number;
-  lightness: number;
-}
-
 export interface PaletteStepDef {
   label: string;
   lightness: number;
@@ -34,8 +27,27 @@ export type ScaleCurves = Record<string, { lightness: CurveAnchor[]; saturation:
 
 export const DEFAULT_PALETTE_LIGHTNESS = (): CurveAnchor[] => [makeAnchor(0, 95, 5), makeAnchor(100, 8, 5)];
 export const DEFAULT_PALETTE_SATURATION = (): CurveAnchor[] => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)];
-export const DEFAULT_GRAY_LIGHTNESS = (): CurveAnchor[] => [makeAnchor(0, 92, 5), makeAnchor(100, 3, 5)];
-export const DEFAULT_GRAY_SATURATION = (): CurveAnchor[] => [makeAnchor(0, 20, 30), makeAnchor(100, 20, 30)];
+// Neutrals seed a calmer, wider lightness ramp than accents; the saturation
+// curve is the same flat 100 (chroma comes from a low-chroma base, not a cap).
+export const DEFAULT_NEUTRAL_LIGHTNESS = (): CurveAnchor[] => [makeAnchor(0, 92, 5), makeAnchor(100, 3, 5)];
+
+/**
+ * Seed config for a palette. The derivation path is unified; the only
+ * per-role difference is the seed: neutrals get the wider neutral lightness
+ * ramp, accents the standard one. Everything is editable afterward.
+ */
+export function defaultPaletteConfig(opts: { baseColor: string; neutral?: boolean }): PaletteConfig {
+  return {
+    baseColor: opts.baseColor,
+    lightnessCurve: opts.neutral ? DEFAULT_NEUTRAL_LIGHTNESS() : DEFAULT_PALETTE_LIGHTNESS(),
+    saturationCurve: DEFAULT_PALETTE_SATURATION(),
+    scaleCurves: defaultScaleCurvesObject(),
+    curveOffset: { lightness: 0, saturation: 0 },
+    overrides: {},
+    snappedScales: [],
+    anchorToBase: true,
+  };
+}
 
 export const defaultScaleCurves: Record<string, { lightness: () => CurveAnchor[]; saturation: () => CurveAnchor[] }> = {
   Surfaces: {
@@ -72,20 +84,6 @@ export const paletteStepLightness: PaletteStepDef[] = [
   { label: '850', lightness: 25 },
   { label: '900', lightness: 17 },
   { label: '950', lightness: 8 },
-];
-
-export const graySteps: GrayStep[] = [
-  { label: '100', hue: 240, saturation: 5,  lightness: 92 },
-  { label: '200', hue: 220, saturation: 13, lightness: 84 },
-  { label: '300', hue: 216, saturation: 12, lightness: 72 },
-  { label: '400', hue: 240, saturation: 5,  lightness: 61 },
-  { label: '500', hue: 240, saturation: 5,  lightness: 50 },
-  { label: '600', hue: 240, saturation: 5,  lightness: 42 },
-  { label: '700', hue: 240, saturation: 5,  lightness: 34 },
-  { label: '800', hue: 240, saturation: 10, lightness: 25 },
-  { label: '850', hue: 229, saturation: 20, lightness: 18 },
-  { label: '900', hue: 240, saturation: 30, lightness: 10 },
-  { label: '950', hue: 229, saturation: 34, lightness: 3 },
 ];
 
 export const scales: Scale[] = [
@@ -127,16 +125,11 @@ export const scales: Scale[] = [
 ];
 
 export const paletteStepKey = (label: string) => `Palette-${label}`;
-export const grayStepKey = (label: string) => `gray-${label}`;
 export const stepKey = (scaleTitle: string, stepName: string) => `${scaleTitle}-${stepName}`;
 export const scaleCurveKey = (scaleTitle: string, channel: 'lightness' | 'saturation') => `${scaleTitle}-${channel}`;
 
 export function stepIndexToX(index: number): number {
   return (index / (paletteStepLightness.length - 1)) * 100;
-}
-
-export function grayStepToX(index: number): number {
-  return graySteps.length > 1 ? (index / (graySteps.length - 1)) * 100 : 50;
 }
 
 export function scaleStepToX(step: Step, scale: Scale): number {
@@ -158,26 +151,6 @@ export function injectLockedAnchor(curve: CurveAnchor[], x: number, y: number): 
 export function removeLockedAnchor(curve: CurveAnchor[], idx: number | null): CurveAnchor[] {
   if (idx === null || idx === 0 || idx === curve.length - 1) return curve;
   return curve.filter((_, i) => i !== idx);
-}
-
-export function computeGrayColor(
-  index: number,
-  hue: number,
-  chroma: number,
-  lightnessCurve: CurveAnchor[],
-  saturationCurve: CurveAnchor[],
-  curveOffset: CurveOffset
-): string {
-  const xPos = grayStepToX(index);
-  const lOff = curveOffset['gray-lightness'] ?? 0;
-  const sOff = curveOffset['gray-saturation'] ?? 0;
-
-  const targetL = Math.max(0, Math.min(100, sampleCurve(lightnessCurve, xPos) + lOff)) / 100;
-  const satMul = Math.max(0, Math.min(2, (sampleCurve(saturationCurve, xPos) + sOff) / 100));
-  const targetC = chroma * satMul;
-
-  const clamped = gamutClamp(targetL, targetC, hue);
-  return oklchToHex(clamped.l, clamped.c, clamped.h);
 }
 
 export function computePaletteColor(

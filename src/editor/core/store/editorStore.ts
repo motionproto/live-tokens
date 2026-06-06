@@ -28,6 +28,7 @@ import {
   runMigrations,
 } from '../themes/migrations';
 import { renamePrimaryPaletteKey } from '../themes/migrations/2026-05-13-primary-to-brand';
+import { unifyGrayPalettes } from '../themes/migrations/2026-06-05-palette-unification';
 import { __resetRendererCacheForTests, installRenderer } from './editorRenderer';
 import {
   store,
@@ -511,7 +512,7 @@ const domainLoaders: Record<string, DomainLoader> = {
  */
 export function loadFromFile(theme: Theme): void {
   const next = emptyState();
-  next.palettes = renamePrimaryPaletteKey(structuredClone(theme.editorConfigs ?? {}));
+  next.palettes = unifyGrayPalettes(renamePrimaryPaletteKey(structuredClone(theme.editorConfigs ?? {})));
   next.fonts.sources = structuredClone(theme.fontSources ?? []);
   next.fonts.stacks  = structuredClone(theme.fontStacks  ?? []);
   const rawVars = runMigrations(

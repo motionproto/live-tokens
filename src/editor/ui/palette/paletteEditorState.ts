@@ -1,33 +1,25 @@
 /**
  * Editing-state machine for the PaletteEditor.
  *
- * Replaces five independent `let` decls (`editingKey`, `editingSnapshot`,
- * `editingDraft`, `snapshotTintHue`, `snapshotTintChroma`) with a single
- * discriminated union. The type-checker now enforces field validity per
- * mode — e.g. `snapshotTintHue` only exists when `kind === 'editingBase'`,
- * making it impossible to leak the gray-mode tint snapshot into a
- * step-edit cancel path.
+ * A single discriminated union replaces several independent `let` decls so
+ * the type-checker enforces field validity per mode.
  *
  * Modes:
  * - `idle` — no edit panel open.
- * - `editingBase` — header swatch is active; the user is dragging the
- *   base hex (chromatic) or tint hue/chroma (gray). Snapshot is the
- *   original hex used to render the swatch; the tint snapshots are only
- *   relevant in gray mode and are nullable.
- * - `editingStep` — a non-base swatch is active (palette / gray-step /
- *   derived-scale step / override slot). `stepKey` is the dot-keyed
- *   identifier; `snapshot` is the value at panel-open; `draft` is the
- *   live working colour (drives the swatch preview before commit).
+ * - `editingBase` — header swatch is active; the user is dragging the base
+ *   hex. No payload: the swatch renders from `baseColor` and cancel restores
+ *   via the session scope.
+ * - `editingStep` — a non-base swatch is active (palette step / derived-scale
+ *   step / override slot). `stepKey` is the dot-keyed identifier; `snapshot`
+ *   is the value at panel-open; `draft` is the live working colour (drives
+ *   the swatch preview before commit).
  *
  * Locked-anchor state (`lockedLightnessIdx`, `lockedSaturationIdx`) and
  * the per-toggle injected flags (`injectedLightness`, `injectedSaturation`)
  * remain separate `let` decls in the parent because they are anchor-
  * management state, not edit-session state — they persist across
  * idle/edit transitions and have their own lifecycle tied to
- * `setAnchorToBase()`. Folding them into this union (per the audit's
- * `editingScale` sketch) would conflate two orthogonal axes; the audit's
- * "scale" mode does not correspond to a user-visible state since curve
- * edits don't open a panel.
+ * `setAnchorToBase()`.
  */
 
 import type { Scope } from '../../core/store/editorStore';
@@ -37,12 +29,7 @@ export const BASE_KEY = '__base__';
 
 export type EditingState =
   | { kind: 'idle' }
-  | {
-      kind: 'editingBase';
-      snapshotHex: string;
-      snapshotTintHue: number | null;
-      snapshotTintChroma: number | null;
-    }
+  | { kind: 'editingBase' }
   | {
       kind: 'editingStep';
       stepKey: string;
@@ -75,7 +62,7 @@ export function activeKey(s: EditingState): string | null {
   return s.stepKey;
 }
 
-/** The current draft hex (for editingStep) or null. Editingbase draws from baseColor/gray500Hex directly. */
+/** The current draft hex (for editingStep) or null. editingBase draws from baseColor directly. */
 export function activeDraft(s: EditingState): string | null {
   return s.kind === 'editingStep' ? s.draft : null;
 }

@@ -19,12 +19,8 @@ import { mount, unmount } from "svelte";
 function makePaletteConfig(baseColor: string): PaletteConfig {
   return {
     baseColor,
-    tintHue: 0,
-    tintChroma: 0.04,
     lightnessCurve: [],
     saturationCurve: [],
-    grayLightnessCurve: [],
-    graySaturationCurve: [],
     scaleCurves: {},
     curveOffset: {},
     overrides: {},
@@ -53,7 +49,7 @@ describe('PaletteEditor — store-first integration', () => {
 
     const component = mount(PaletteEditor, {
           target,
-          props: { label: 'Background', initialColor: '#8d7f74', mode: 'chromatic' },
+          props: { label: 'Background', initialColor: '#8d7f74' },
         });
 
     expect(get(editorState).palettes.Background.baseColor).toBe('#8d7f74');
@@ -67,7 +63,7 @@ describe('PaletteEditor — store-first integration', () => {
     document.body.appendChild(target);
     const component = mount(PaletteEditor, {
           target,
-          props: { label: 'Background', initialColor: '#8d7f74', mode: 'chromatic' },
+          props: { label: 'Background', initialColor: '#8d7f74' },
         });
 
     const session = beginScope({ ...sessionOpts });
@@ -96,7 +92,7 @@ describe('PaletteEditor — store-first integration', () => {
     document.body.appendChild(target);
     const component = mount(PaletteEditor, {
           target,
-          props: { label: 'Background', initialColor: '#8d7f74', mode: 'chromatic' },
+          props: { label: 'Background', initialColor: '#8d7f74' },
         });
 
     const session = beginScope({ ...sessionOpts });

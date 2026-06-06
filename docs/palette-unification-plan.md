@@ -1,5 +1,15 @@
 # Palette unification: one editor, no enforced gray
 
+> **Status: implemented (2026-06-05).** The gray "mode" is gone; one unified
+> derivation path serves every palette. Structured `editorConfigs` migrate via
+> `unifyGrayPalettes` (migrations/2026-06-05-palette-unification.ts, run in
+> `loadFromFile` after `renamePrimaryPaletteKey`). `default.json` regenerated;
+> the neutral shift is sub-1-LSB per channel and derived surface/text/border
+> tokens are byte-identical. Reconciler simplified to a `baseColor` snap (kept,
+> not removed — it remains the import path's reconciliation hook though nothing
+> sets `_imported` yet). `npm run check` clean, 2771 tests green incl. a
+> step-500 closeness test, `check:token-contract` OK.
+
 ## Goal
 
 Collapse the `chromatic` / `gray` palette split into a single palette model and a
