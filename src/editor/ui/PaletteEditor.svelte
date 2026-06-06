@@ -186,9 +186,12 @@
   function handleColorChange(hex: string) {
     if (editing.kind === 'editingStep') {
       editing = { ...editing, draft: hex };
-      if (editing.stepKey in overrides) {
-        edit('overrides', { ...overrides, [editing.stepKey]: hex });
-      }
+      // Write every drag tick to the store (not just pre-existing overrides) so
+      // the live page and the derived-scale preview swatches update in realtime.
+      // The open session collapses these to one undo entry; cancel restores the
+      // snapshot, and confirmEdit drops the override if the draft equals the
+      // computed value, so a no-op edit leaves nothing behind.
+      edit('overrides', { ...overrides, [editing.stepKey]: hex });
     }
   }
 
@@ -441,7 +444,10 @@
     const stops = sorted.map(s => `${stopColor(s, pc)} ${s.position}%`).join(', ');
     return `linear-gradient(to right, ${stops})`;
   });
-  let curveVersion = $derived(JSON.stringify(scaleCurves) + JSON.stringify(curveOffset) + baseColor);
+  // `editingDraft` is folded in so the effective-hex closure passed to
+  // OverridesPanel re-derives on every drag tick (the per-step hex text would
+  // otherwise lag the live swatch during an override edit).
+  let curveVersion = $derived(JSON.stringify(scaleCurves) + JSON.stringify(curveOffset) + baseColor + (editingDraft ?? ''));
   let derivedHexForBase = $derived((step: Step, scaleTitle: string) => computeDerivedColor(step, baseColor, scaleTitle));
   let effectiveHexAny = $derived((k: string, step: Step, scaleTitle: string) => effectiveColor(k, step, scaleTitle, curveVersion));
 
