@@ -1,5 +1,55 @@
 # Changelog
 
+## 0.39.0 — One unified palette model (no gray "mode")
+
+### Changed (breaking)
+
+- **The chromatic/gray palette split collapses into a single OKLCH (Lightness /
+  Chroma / Hue) model.** A neutral is no longer a special "mode"; it is an
+  ordinary low-chroma palette with calm defaults (a low but non-zero base chroma,
+  a wider neutral lightness ramp). One derivation path (`computePaletteColor`)
+  now serves every palette, and the Neutral / Alternate editors show the same
+  full L/C/H picker, lock-to-500 toggle, and derived-scale snapping as accents.
+  `PaletteConfig` drops its gray vocabulary (`tintHue`, `tintChroma`,
+  `grayLightnessCurve`, `graySaturationCurve`); `baseColor`, `lightnessCurve`,
+  and `saturationCurve` are now universal, and the internal `mode` prop is
+  removed from the palette editors.
+- **Token names are unchanged** — this is a theme-config schema change, not a
+  `tokens.css` migration, so no consumer CSS or token references are affected.
+  The shipped `default.json` was regenerated; the neutral shift is sub-1-LSB per
+  channel and every derived `--surface-*` / `--text-*` / `--color-*` token is
+  byte-identical.
+
+### Fixed
+
+- **A component's surface control no longer vanishes when its fill is a flat
+  colour.** `componentGradientSource` returned `undefined` for any non-gradient
+  alias and `GradientEditor` renders only `{#if gradient}`, so the surface editor
+  disappeared whenever a fill was a plain colour (e.g. SectionDivider's default
+  transparent). The editor now synthesizes a none/solid single-stop snapshot from
+  a flat (or absent) alias so the type picker always renders, and promotes the
+  flat alias to a real gradient on first edit. SectionDivider's section heading is
+  renamed "Background" → "Surface" to match Panel and disambiguate it from the
+  preview backdrop control.
+- **Palette colour overrides now apply live while you drag.** A new Text /
+  Surfaces / Borders override previously reached neither the live page nor the
+  preview swatch until commit — `handleColorChange` only wrote to the store when
+  the key was already an override. Every drag tick now writes (the open session
+  collapses to one undo entry; cancel/confirm clean up no-ops), and the per-step
+  hex text tracks the live colour too.
+
+### Migration
+
+- **Consumer themes migrate automatically on load.** `unifyGrayPalettes` (run in
+  `loadFromFile` after `renamePrimaryPaletteKey`) close-maps existing neutrals to
+  the unified form: `baseColor` snaps to the effective step-500 colour (preserving
+  the subtle tint and the neutral lightness ramp), the saturation curve becomes
+  flat-100, and the palette is locked to base. Every palette drops the four
+  vestigial gray fields, and the `gray-lightness` / `gray-saturation` curve-offset
+  keys fold into `lightness` / `saturation`. Default and flat-saturation neutrals
+  are visually identical; only a hand-shaped gray *saturation* curve migrates
+  approximately and may want a quick manual retune.
+
 ## 0.38.0 — Overridable scroll reset for smooth-scroll hosts
 
 ### Added
