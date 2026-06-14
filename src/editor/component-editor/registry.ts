@@ -6,6 +6,7 @@ import BadgeEditor, { allTokens as badgeTokens } from './BadgeEditor.svelte';
 import CalloutEditor, { allTokens as calloutTokens } from './CalloutEditor.svelte';
 import CornerBadgeEditor, { allTokens as cornerBadgeTokens } from './CornerBadgeEditor.svelte';
 import ButtonEditor, { allTokens as buttonTokens } from './ButtonEditor.svelte';
+import IconButtonEditor, { allTokens as iconButtonTokens } from './IconButtonEditor.svelte';
 import CardEditor, { allTokens as cardTokens, intrinsics as cardIntrinsics } from './CardEditor.svelte';
 import CodeSnippetEditor, { allTokens as codeSnippetTokens } from './CodeSnippetEditor.svelte';
 import CollapsibleSectionEditor, { allTokens as collapsibleSectionTokens } from './CollapsibleSectionEditor.svelte';
@@ -31,6 +32,7 @@ import TooltipEditor, { allTokens as tooltipTokens } from './TooltipEditor.svelt
 type BuiltInComponentId =
   | 'segmentedcontrol'
   | 'button'
+  | 'iconbutton'
   | 'notification'
   | 'dialog'
   | 'radiobutton'
@@ -106,6 +108,15 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Button.svelte',
     editorComponent: ButtonEditor,
     schema: buttonTokens,
+    origin: 'system',
+  },
+  iconbutton: {
+    id: 'iconbutton',
+    label: 'Icon Button',
+    icon: 'fas fa-square-plus',
+    sourceFile: 'src/system/components/IconButton.svelte',
+    editorComponent: IconButtonEditor,
+    schema: iconButtonTokens,
     origin: 'system',
   },
   notification: {
