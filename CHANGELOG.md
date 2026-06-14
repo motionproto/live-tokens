@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.40.0 — New IconButton component
+
+### Added
+
+- **`IconButton`, an icon-only sibling of `Button`.** It shares Button's six
+  variants (primary, secondary, outline, success, danger, warning), three states
+  (default, hover, disabled), and two sizes (default, small), but renders a
+  single icon with no text. It is square (symmetric padding plus `aspect-ratio`),
+  exposes the icon colour as a first-class per-variant, per-state token, and
+  drops Button's text-typography properties. Its tokens live in their own
+  `--iconbutton-*` namespace, so styling it never affects Button. Because the
+  control has no visible text, `ariaLabel` is required. Editable in the editor
+  under Components, with the same linked base block (padding, radius, border
+  width, icon size) that links across variants.
+
+### Notes
+
+- Additive only. No token renames or `tokens.css` migration, so existing
+  consumers are unaffected; the new component ships its defaults in its
+  `:global(:root)` block like every other.
+
 ## 0.39.0 — One unified palette model (no gray "mode")
 
 ### Changed (breaking)

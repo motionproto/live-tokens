@@ -11,9 +11,17 @@ For composing a page once you've picked components, see [[live-tokens-build-page
 
 ## Catalogue
 
-Action: `Button`. Input: `Input`. Selection: `SegmentedControl`, `TabBar`, `RadioButton`, `MenuSelect`, `Toggle`. Containers: `Card`, `CollapsibleSection`, `Dialog`. Messaging: `Callout`, `Notification`, `Tooltip`, `Badge`, `CornerBadge`. Display: `Table`, `Image`, `ImageLightbox`, `ProgressBar`, `SectionDivider`, `SideNavigation`, `CodeSnippet`.
+Action: `Button`, `IconButton`. Input: `Input`. Selection: `SegmentedControl`, `TabBar`, `RadioButton`, `MenuSelect`, `Toggle`. Containers: `Card`, `CollapsibleSection`, `Dialog`. Messaging: `Callout`, `Notification`, `Tooltip`, `Badge`, `CornerBadge`. Display: `Table`, `Image`, `ImageLightbox`, `ProgressBar`, `SectionDivider`, `SideNavigation`, `CodeSnippet`.
 
 `CodeSnippet` is for a single-line command or value the user is meant to copy and paste back into a terminal (install commands, generated keys, ids). Click-to-copy with a brief "Copied" popover. Use it whenever your page asks the reader to *run* something, rather than just *read* it.
+
+## Action family: Button vs IconButton
+
+Both trigger an action and share the same six variants (primary, secondary, outline, success, danger, warning), three states (default, hover, disabled) and two sizes (default, small). They differ only in content.
+
+- `Button` carries a text label, optionally with a leading or trailing icon. Use it whenever the action needs a word to be unambiguous.
+- `IconButton` is icon-only and square. Use it for compact, space-constrained actions whose meaning is obvious from the glyph alone (toolbar controls, close/edit/delete affordances, card overflow menus). It has no text slot, so an `ariaLabel` is required for accessibility.
+- **Don't reach for `IconButton` when the icon's meaning isn't self-evident.** A labelled `Button` (or a `Button` with an icon) avoids the guessing game.
 
 ## Single-selection family: SegmentedControl vs TabBar vs RadioButton vs MenuSelect
 

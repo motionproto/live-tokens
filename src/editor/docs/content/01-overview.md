@@ -18,8 +18,9 @@ style your site by editing tokens and components in a live editor. When it looks
 
 - **Tokens**: the design-system primitives, colour palettes, type, spacing,
   radius, shadow, and gradients, that apply across your whole site.
-- **Components**: the package ships about 25 editable components (Button, Card,
-  Dialog, Table, and more).You style components by changing the tokens assigned to each property.
+- **Components**: the package ships about 25 editable components (Button,
+  IconButton, Card, Dialog, Table, and more). You style components by changing
+  the tokens assigned to each property.
 
 ## Where to go next
 
