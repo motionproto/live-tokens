@@ -165,7 +165,7 @@
   font-family: Manrope, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 0.875rem;
   font-weight: 700;
-  color: #ff8eeb;
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
