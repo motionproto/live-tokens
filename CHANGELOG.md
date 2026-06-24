@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.40.1 — Floating token-tag labels follow the theme
+
+### Fixed
+
+- **The property label on each floating token tag no longer paints a hardcoded
+  pink.** `.ftt-float-property` in `FloatingTokenTags.css` hardcoded
+  `color: #ff8eeb`; it now references `var(--text-secondary)`, so the overlay
+  label tracks the neutral text scale like the rest of the editor chrome instead
+  of standing out in an off-theme accent.
+
 ## 0.40.0 — New IconButton component
 
 ### Added
