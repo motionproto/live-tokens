@@ -25,19 +25,22 @@ export interface PaletteSpec {
   /** Seed-default role only: neutrals start with a calm low-chroma base and
    *  the neutral lightness ramp. The derivation path is identical for all. */
   neutral?: boolean;
+  /** Editor-only heading override (Alternate reads "Alternate (neutral)"). */
+  displayLabel?: string | null;
 }
 
 /**
  * Single source of truth for which palettes exist and how their CSS namespaces
  * map. Was previously hardcoded inside `VariablesTab.svelte`; centralising it
- * here lets the store seed boot-time vars without depending on the UI tree.
+ * here lets the store seed boot-time vars without depending on the UI tree, and
+ * drives the editor's palette-editor order + (Waves 4/5) the Colors swatch row.
  */
 export const PALETTE_SPECS: readonly PaletteSpec[] = [
-  { label: 'Neutral',    cssNamespace: 'neutral',   neutral: true, initialColor: '#70787e' },
-  { label: 'Alternate',  cssNamespace: 'alternate', neutral: true, initialColor: '#817b78' },
-  { label: 'Background', cssNamespace: 'canvas',    emptySelector: true, initialColor: '#1a1a2e' },
   { label: 'Brand',      cssNamespace: 'brand',     initialColor: '#c93636' },
   { label: 'Accent',     cssNamespace: 'accent',    initialColor: '#f49e0b' },
+  { label: 'Background', cssNamespace: 'canvas',    emptySelector: true, initialColor: '#1a1a2e' },
+  { label: 'Neutral',    cssNamespace: 'neutral',   neutral: true, initialColor: '#70787e' },
+  { label: 'Alternate',  cssNamespace: 'alternate', neutral: true, displayLabel: 'Alternate (neutral)', initialColor: '#817b78' },
   { label: 'Special',    cssNamespace: 'special',   initialColor: '#8b5cf6' },
   { label: 'Info',       cssNamespace: 'info',      initialColor: '#3077e8' },
   { label: 'Success',    cssNamespace: 'success',   initialColor: '#21c45d' },
@@ -101,20 +104,58 @@ export const SCALES: readonly Scale[] = [
 export const DEFAULT_PALETTE_LIGHTNESS = (): CurveAnchor[] => [makeAnchor(0, 95, 5), makeAnchor(100, 8, 5)];
 export const DEFAULT_PALETTE_SATURATION = (): CurveAnchor[] => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)];
 
-export const defaultScaleCurves = {
-  Surfaces: {
-    lightness:  () => [makeAnchor(0, 15, 5),   makeAnchor(100, 47, 5)],
-    saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)],
-  },
-  Borders: {
-    lightness:  () => [makeAnchor(0, 25, 5),   makeAnchor(100, 80, 5)],
-    saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)],
-  },
-  Text: {
-    lightness:  () => [makeAnchor(0, 120, 30), makeAnchor(100, 55, 30)],
-    saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 15, 30)],
-  },
-} as const;
+export type SchemeDirection = 'light' | 'dark';
+
+export type ScaleCurveDefaults = Record<
+  string,
+  { lightness: () => CurveAnchor[]; saturation: () => CurveAnchor[] }
+>;
+
+/**
+ * Scheme-parameterized seed anchors for the Surfaces/Borders/Text scales.
+ * `'dark'` is the historical default (dark surfaces, light text); `'light'`
+ * inverts the lightness bands (light surfaces, dark text). Saturation curves
+ * are scheme-independent. Derivation math is untouched — only these seed
+ * defaults differ, so saved themes (which carry explicit `scaleCurves`) render
+ * identically regardless of scheme.
+ *
+ * Light-scheme anchors are proposed values, tunable during QA. The dark anchors
+ * are frozen: existing themes depend on them via the `defaultScaleCurves` alias.
+ */
+export function scaleCurveDefaults(scheme: SchemeDirection = 'dark'): ScaleCurveDefaults {
+  if (scheme === 'light') {
+    return {
+      Surfaces: {
+        lightness:  () => [makeAnchor(0, 98, 5),   makeAnchor(100, 82, 5)],
+        saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)],
+      },
+      Borders: {
+        lightness:  () => [makeAnchor(0, 92, 5),   makeAnchor(100, 45, 5)],
+        saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)],
+      },
+      Text: {
+        lightness:  () => [makeAnchor(0, 30, 30),  makeAnchor(100, 120, 30)],
+        saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 15, 30)],
+      },
+    };
+  }
+  return {
+    Surfaces: {
+      lightness:  () => [makeAnchor(0, 15, 5),   makeAnchor(100, 47, 5)],
+      saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)],
+    },
+    Borders: {
+      lightness:  () => [makeAnchor(0, 25, 5),   makeAnchor(100, 80, 5)],
+      saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)],
+    },
+    Text: {
+      lightness:  () => [makeAnchor(0, 120, 30), makeAnchor(100, 55, 30)],
+      saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 15, 30)],
+    },
+  };
+}
+
+export const defaultScaleCurves: ScaleCurveDefaults = scaleCurveDefaults('dark');
 
 export function paletteStepKey(label: string): string { return `Palette-${label}`; }
 export function stepKey(scaleTitle: string, stepName: string): string { return `${scaleTitle}-${stepName}`; }
@@ -153,7 +194,7 @@ export function computeDerivedColor(
 ): string {
   const scale = SCALES.find((s) => s.title === scaleTitle)!;
   const xPos = scaleStepToX(step, scale);
-  const defs = defaultScaleCurves[scaleTitle as keyof typeof defaultScaleCurves];
+  const defs = defaultScaleCurves[scaleTitle];
   const lCurve = scaleCurves[scaleTitle]?.lightness ?? defs.lightness();
   const sCurve = scaleCurves[scaleTitle]?.saturation ?? defs.saturation();
   const lOff = curveOffset[`${scaleTitle}-lightness`] ?? 0;

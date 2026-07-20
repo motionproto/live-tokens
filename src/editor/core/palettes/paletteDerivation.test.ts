@@ -7,7 +7,14 @@ import {
   DEFAULT_PALETTE_LIGHTNESS,
   DEFAULT_PALETTE_SATURATION,
   defaultScaleCurves,
+  scaleCurveDefaults,
+  computeDerivedColor,
+  stepKey,
+  SCALES,
+  type ScaleCurveDefaults,
 } from './paletteDerivation';
+import { hexToOklch, oklchToHex } from './oklch';
+import { makeAnchor, type CurveAnchor } from '../../ui/curveEngine';
 import type { PaletteConfig } from '../themes/themeTypes';
 import defaultTheme from '../../../live-tokens/data/themes/default.json';
 
@@ -107,6 +114,8 @@ describe('paletteMath re-exports resolve to the core implementations', () => {
     expect(ui.stepKey).toBe(core.stepKey);
     expect(ui.DEFAULT_PALETTE_LIGHTNESS).toBe(core.DEFAULT_PALETTE_LIGHTNESS);
     expect(ui.DEFAULT_PALETTE_SATURATION).toBe(core.DEFAULT_PALETTE_SATURATION);
+    expect(ui.defaultScaleCurves).toBe(core.defaultScaleCurves);
+    expect(ui.scaleCurveDefaults).toBe(core.scaleCurveDefaults);
   });
 });
 
@@ -125,5 +134,113 @@ describe('derivation is byte-stable (Global invariant 1)', () => {
     expect(out['--surface-brand']).toBe('#89004e');
     expect(out['--border-brand']).toBe('#ae0065');
     expect(out['--text-brand']).toBe('#ff75b1');
+  });
+});
+
+describe('scaleCurveDefaults (Global invariant 1: dark anchors frozen)', () => {
+  const resolve = (defs: ScaleCurveDefaults) => ({
+    Surfaces: { lightness: defs.Surfaces.lightness(), saturation: defs.Surfaces.saturation() },
+    Borders:  { lightness: defs.Borders.lightness(),  saturation: defs.Borders.saturation()  },
+    Text:     { lightness: defs.Text.lightness(),     saturation: defs.Text.saturation()      },
+  });
+
+  const LEGACY_DARK = {
+    Surfaces: { lightness: [makeAnchor(0, 15, 5),   makeAnchor(100, 47, 5)],  saturation: [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)] },
+    Borders:  { lightness: [makeAnchor(0, 25, 5),   makeAnchor(100, 80, 5)],  saturation: [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)] },
+    Text:     { lightness: [makeAnchor(0, 120, 30), makeAnchor(100, 55, 30)], saturation: [makeAnchor(0, 100, 30), makeAnchor(100, 15, 30)] },
+  };
+
+  it('scaleCurveDefaults("dark") deep-equals the pinned legacy anchors', () => {
+    expect(resolve(scaleCurveDefaults('dark'))).toEqual(LEGACY_DARK);
+  });
+
+  it('defaultScaleCurves is an alias for the dark defaults', () => {
+    expect(resolve(defaultScaleCurves)).toEqual(LEGACY_DARK);
+  });
+
+  it('the default scheme is dark', () => {
+    expect(resolve(scaleCurveDefaults())).toEqual(resolve(scaleCurveDefaults('dark')));
+  });
+});
+
+describe('scaleCurveDefaults("light") — proposed light-scheme anchors (tunable)', () => {
+  const light = () => scaleCurveDefaults('light');
+
+  it('Surfaces lightness descends 98 → 82', () => {
+    const s = light().Surfaces.lightness();
+    expect(s[0].y).toBe(98);
+    expect(s[s.length - 1].y).toBe(82);
+    expect(s[0].y).toBeGreaterThan(s[s.length - 1].y);
+  });
+
+  it('Borders lightness descends 92 → 45', () => {
+    const b = light().Borders.lightness();
+    expect(b[0].y).toBe(92);
+    expect(b[b.length - 1].y).toBe(45);
+  });
+
+  it('Text lightness ascends 30 → 120 (primary darkest, multiplier semantics)', () => {
+    const t = light().Text.lightness();
+    expect(t[0].y).toBe(30);
+    expect(t[t.length - 1].y).toBe(120);
+  });
+
+  it('saturation curves are scheme-independent (match dark)', () => {
+    const l = light();
+    const d = scaleCurveDefaults('dark');
+    expect(l.Surfaces.saturation()).toEqual(d.Surfaces.saturation());
+    expect(l.Borders.saturation()).toEqual(d.Borders.saturation());
+    expect(l.Text.saturation()).toEqual(d.Text.saturation());
+  });
+});
+
+describe('snapScaleToPalette is direction-agnostic', () => {
+  const surfaces = SCALES.find(s => s.title === 'Surfaces')!;
+  const flatSat: CurveAnchor[] = [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)];
+  // Natural order is light → dark (steps 100 … 950), mirroring the runtime paletteComputed.
+  const paletteL = [0.95, 0.87, 0.79, 0.70, 0.61, 0.52, 0.43, 0.34, 0.27, 0.18, 0.10];
+  const paletteComputed = paletteL.map((l) => ({ hex: oklchToHex(l, 0, 0) }));
+  const L = (hex: string) => hexToOklch(hex).l;
+
+  // The pre-Wave-2 algorithm: score only the dark-first (ascending L) ordering.
+  function legacyDarkFirstSnap(
+    scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }>,
+  ): Record<string, string> {
+    const n = surfaces.steps.length;
+    const stepL = surfaces.steps.map((step) => L(computeDerivedColor(step, '#808080', surfaces.title, scaleCurves, {})));
+    const palDarkFirst = [...paletteComputed].reverse();
+    const palL = palDarkFirst.map((ps) => L(ps.hex));
+    let bestStart = 0;
+    let bestCost = Infinity;
+    for (let start = 0; start <= palDarkFirst.length - n; start++) {
+      let cost = 0;
+      for (let i = 0; i < n; i++) { const d = stepL[i] - palL[start + i]; cost += d * d; }
+      if (cost < bestCost) { bestCost = cost; bestStart = start; }
+    }
+    const assigned: Record<string, string> = {};
+    for (let i = 0; i < n; i++) assigned[stepKey(surfaces.title, surfaces.steps[i].name)] = palDarkFirst[bestStart + i].hex;
+    return assigned;
+  }
+
+  it('ascending (dark-style) curve returns the same window as the legacy dark-first pass', () => {
+    const ascending = { Surfaces: { lightness: [makeAnchor(0, 10, 5), makeAnchor(100, 90, 5)], saturation: flatSat } };
+    const assigned = ui.snapScaleToPalette(surfaces, '#808080', ascending, {}, paletteComputed);
+    expect(assigned).toEqual(legacyDarkFirstSnap(ascending));
+
+    const ls = surfaces.steps.map((s) => L(assigned[stepKey('Surfaces', s.name)]));
+    for (let i = 0; i + 1 < ls.length; i++) expect(ls[i]).toBeLessThanOrEqual(ls[i + 1]);
+  });
+
+  it('descending (light-style) curve picks a descending window from the reversed ordering', () => {
+    const descending = { Surfaces: { lightness: [makeAnchor(0, 90, 5), makeAnchor(100, 10, 5)], saturation: flatSat } };
+    const assigned = ui.snapScaleToPalette(surfaces, '#808080', descending, {}, paletteComputed);
+
+    const ls = surfaces.steps.map((s) => L(assigned[stepKey('Surfaces', s.name)]));
+    // Dark-first alone can only produce ascending windows; a descending result proves the reversed ordering won.
+    for (let i = 0; i + 1 < ls.length; i++) expect(ls[i]).toBeGreaterThanOrEqual(ls[i + 1]);
+    expect(assigned).not.toEqual(legacyDarkFirstSnap(descending));
+
+    const palSet = new Set(paletteComputed.map((p) => p.hex));
+    for (const hex of Object.values(assigned)) expect(palSet.has(hex)).toBe(true);
   });
 });

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import PaletteEditor from './PaletteEditor.svelte';
+  import { PALETTE_SPECS } from '../core/palettes/paletteDerivation';
   import FontStackEditor from './FontStackEditor.svelte';
   import ProjectFontsSection from './ProjectFontsSection.svelte';
   import ColumnsSection from './sections/ColumnsSection.svelte';
@@ -49,16 +50,16 @@
     <h2 class="section-title">Palette Editor</h2>
     <p class="editor-intro">Derived palettes via <code>color-mix(in oklch)</code>. Change a base color to update all derived steps. Click any derived swatch to add a manual override.</p>
     <div class="palette-editors">
-      <PaletteEditor label="Brand" initialColor="#c93636" cssNamespace="brand" />
-      <PaletteEditor label="Accent" initialColor="#f49e0b" cssNamespace="accent" />
-      <PaletteEditor label="Background" initialColor="#1a1a2e" cssNamespace="canvas" emptySelector />
-      <PaletteEditor neutral label="Neutral" initialColor="#70787e" cssNamespace="neutral"/>
-      <PaletteEditor neutral label="Alternate" displayLabel="Alternate (neutral)" initialColor="#817b78" cssNamespace="alternate" />
-      <PaletteEditor label="Special" initialColor="#8b5cf6" cssNamespace="special" />
-      <PaletteEditor label="Info" initialColor="#3077e8" cssNamespace="info" />
-      <PaletteEditor label="Success" initialColor="#21c45d" cssNamespace="success" />
-      <PaletteEditor label="Warning" initialColor="#e66e1a" cssNamespace="warning" />
-      <PaletteEditor label="Danger" initialColor="#e8304f" cssNamespace="danger" />
+      {#each PALETTE_SPECS as spec (spec.label)}
+        <PaletteEditor
+          label={spec.label}
+          displayLabel={spec.displayLabel ?? null}
+          initialColor={spec.initialColor}
+          neutral={spec.neutral ?? false}
+          cssNamespace={spec.cssNamespace}
+          emptySelector={spec.emptySelector ?? false}
+        />
+      {/each}
     </div>
   </section>
 

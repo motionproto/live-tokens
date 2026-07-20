@@ -4,10 +4,13 @@ import type { PaletteConfig } from '../../core/themes/themeTypes';
 import {
   type Step,
   type Scale,
+  type SchemeDirection,
   SCALES,
   PALETTE_STEPS,
   DEFAULT_PALETTE_LIGHTNESS,
   DEFAULT_PALETTE_SATURATION,
+  defaultScaleCurves,
+  scaleCurveDefaults,
   computePaletteColor,
   computeDerivedColor,
   stepIndexToX,
@@ -21,11 +24,14 @@ import {
 export {
   type Step,
   type Scale,
+  type SchemeDirection,
   SCALES,
   SCALES as scales,
   PALETTE_STEPS,
   DEFAULT_PALETTE_LIGHTNESS,
   DEFAULT_PALETTE_SATURATION,
+  defaultScaleCurves,
+  scaleCurveDefaults,
   computePaletteColor,
   computeDerivedColor,
   stepIndexToX,
@@ -53,12 +59,12 @@ export const DEFAULT_NEUTRAL_LIGHTNESS = (): CurveAnchor[] => [makeAnchor(0, 92,
  * per-role difference is the seed: neutrals get the wider neutral lightness
  * ramp, accents the standard one. Everything is editable afterward.
  */
-export function defaultPaletteConfig(opts: { baseColor: string; neutral?: boolean }): PaletteConfig {
+export function defaultPaletteConfig(opts: { baseColor: string; neutral?: boolean; scheme?: SchemeDirection }): PaletteConfig {
   return {
     baseColor: opts.baseColor,
     lightnessCurve: opts.neutral ? DEFAULT_NEUTRAL_LIGHTNESS() : DEFAULT_PALETTE_LIGHTNESS(),
     saturationCurve: DEFAULT_PALETTE_SATURATION(),
-    scaleCurves: defaultScaleCurvesObject(),
+    scaleCurves: defaultScaleCurvesObject(opts.scheme ?? 'dark'),
     curveOffset: { lightness: 0, saturation: 0 },
     overrides: {},
     snappedScales: [],
@@ -66,26 +72,12 @@ export function defaultPaletteConfig(opts: { baseColor: string; neutral?: boolea
   };
 }
 
-export const defaultScaleCurves: Record<string, { lightness: () => CurveAnchor[]; saturation: () => CurveAnchor[] }> = {
-  Surfaces: {
-    lightness: () => [makeAnchor(0, 15, 5), makeAnchor(100, 47, 5)],
-    saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)],
-  },
-  Borders: {
-    lightness: () => [makeAnchor(0, 25, 5), makeAnchor(100, 80, 5)],
-    saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)],
-  },
-  Text: {
-    lightness: () => [makeAnchor(0, 120, 30), makeAnchor(100, 55, 30)],
-    saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 15, 30)],
-  },
-};
-
-export function defaultScaleCurvesObject(): ScaleCurves {
+export function defaultScaleCurvesObject(scheme: SchemeDirection = 'dark'): ScaleCurves {
+  const defs = scaleCurveDefaults(scheme);
   return {
-    Surfaces: { lightness: defaultScaleCurves.Surfaces.lightness(), saturation: defaultScaleCurves.Surfaces.saturation() },
-    Borders: { lightness: defaultScaleCurves.Borders.lightness(), saturation: defaultScaleCurves.Borders.saturation() },
-    Text: { lightness: defaultScaleCurves.Text.lightness(), saturation: defaultScaleCurves.Text.saturation() },
+    Surfaces: { lightness: defs.Surfaces.lightness(), saturation: defs.Surfaces.saturation() },
+    Borders:  { lightness: defs.Borders.lightness(),  saturation: defs.Borders.saturation()  },
+    Text:     { lightness: defs.Text.lightness(),     saturation: defs.Text.saturation()      },
   };
 }
 
@@ -125,8 +117,12 @@ interface PaletteComputed {
   hex: string;
 }
 
-// Pick the contiguous window of palette steps (dark-first) whose lightness
-// curve best matches this scale's derived lightness curve.
+// Pick the contiguous window of palette steps whose lightness curve best
+// matches this scale's derived lightness curve. Scores both orderings —
+// dark-first (ascending L, historical) and its reverse (light-first,
+// descending L) — so a light-scheme scale (surfaces descend) snaps as
+// naturally as a dark one. Ties prefer dark-first (byte-stable for existing
+// dark themes).
 export function snapScaleToPalette(
   scale: Scale,
   baseColor: string,
@@ -141,26 +137,33 @@ export function snapScaleToPalette(
     return hexToOklch(derived).l;
   });
 
-  const palDarkFirst = [...paletteComputed].reverse();
-  const palLDarkFirst = palDarkFirst.map(ps => hexToOklch(ps.hex).l);
+  const bestWindow = (pal: ReadonlyArray<PaletteComputed>): { cost: number; start: number } => {
+    const palL = pal.map(ps => hexToOklch(ps.hex).l);
+    let start = 0;
+    let cost = Infinity;
+    for (let s = 0; s <= pal.length - n; s++) {
+      let c = 0;
+      for (let i = 0; i < n; i++) {
+        const d = stepL[i] - palL[s + i];
+        c += d * d;
+      }
+      if (c < cost) { cost = c; start = s; }
+    }
+    return { cost, start };
+  };
 
-  let bestStart = 0;
-  let bestCost = Infinity;
-  for (let start = 0; start <= palDarkFirst.length - n; start++) {
-    let cost = 0;
-    for (let i = 0; i < n; i++) {
-      const d = stepL[i] - palLDarkFirst[start + i];
-      cost += d * d;
-    }
-    if (cost < bestCost) {
-      bestCost = cost;
-      bestStart = start;
-    }
-  }
+  const palDarkFirst = [...paletteComputed].reverse();
+  const palLightFirst = [...palDarkFirst].reverse();
+  const dark = bestWindow(palDarkFirst);
+  const light = bestWindow(palLightFirst);
+
+  const useLight = light.cost < dark.cost;
+  const pal = useLight ? palLightFirst : palDarkFirst;
+  const start = useLight ? light.start : dark.start;
 
   const assigned: Record<string, string> = {};
   for (let i = 0; i < n; i++) {
-    assigned[stepKey(scale.title, scale.steps[i].name)] = palDarkFirst[bestStart + i].hex;
+    assigned[stepKey(scale.title, scale.steps[i].name)] = pal[start + i].hex;
   }
   return assigned;
 }
