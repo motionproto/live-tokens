@@ -204,3 +204,12 @@ blockquote {
   line-height: var(--body-sm-line-height);
   letter-spacing: var(--body-sm-letter-spacing);
 }
+
+.eyebrow {
+  font-family: var(--eyebrow-font-family);
+  font-size: var(--eyebrow-font-size);
+  font-weight: var(--eyebrow-font-weight);
+  line-height: var(--eyebrow-line-height);
+  letter-spacing: var(--eyebrow-letter-spacing);
+  text-transform: var(--eyebrow-text-transform);
+}
