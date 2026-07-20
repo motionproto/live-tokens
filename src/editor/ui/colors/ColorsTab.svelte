@@ -37,7 +37,7 @@
         <h2 class="title">Color Wheel</h2>
       </header>
 
-      <ColorWheel {selected} onSelect={select} />
+      <ColorWheel {selected} onSelect={select} discLightness={selectedOklch.l} />
 
       <!-- Wave 5 seam: harmony mode row (complementary / triadic / … ). -->
       <div class="seam" data-wave5="harmony-row">
