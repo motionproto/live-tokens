@@ -1,21 +1,40 @@
-import { hexToOklch, oklchToHex, gamutClamp } from '../../core/palettes/oklch';
-import { type CurveAnchor, makeAnchor, sampleCurve } from '../curveEngine';
+import { hexToOklch } from '../../core/palettes/oklch';
+import { type CurveAnchor, makeAnchor } from '../curveEngine';
 import type { PaletteConfig } from '../../core/themes/themeTypes';
+import {
+  type Step,
+  type Scale,
+  SCALES,
+  PALETTE_STEPS,
+  DEFAULT_PALETTE_LIGHTNESS,
+  DEFAULT_PALETTE_SATURATION,
+  computePaletteColor,
+  computeDerivedColor,
+  stepIndexToX,
+  scaleStepToX,
+  paletteStepKey,
+  stepKey,
+} from '../../core/palettes/paletteDerivation';
+
+// Single source of truth is `core/palettes/paletteDerivation`; these are the
+// derivation symbols re-exported so existing UI import sites keep resolving.
+export {
+  type Step,
+  type Scale,
+  SCALES,
+  SCALES as scales,
+  PALETTE_STEPS,
+  DEFAULT_PALETTE_LIGHTNESS,
+  DEFAULT_PALETTE_SATURATION,
+  computePaletteColor,
+  computeDerivedColor,
+  stepIndexToX,
+  scaleStepToX,
+  paletteStepKey,
+  stepKey,
+};
 
 export const GRAY_FALLBACK = '#808080';
-
-export interface Step {
-  name: string;
-  position: number;
-  lightness?: number;
-  saturation?: number;
-}
-
-export interface Scale {
-  title: string;
-  isText: boolean;
-  steps: Step[];
-}
 
 export interface PaletteStepDef {
   label: string;
@@ -25,8 +44,6 @@ export interface PaletteStepDef {
 export type CurveOffset = Record<string, number>;
 export type ScaleCurves = Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }>;
 
-export const DEFAULT_PALETTE_LIGHTNESS = (): CurveAnchor[] => [makeAnchor(0, 95, 5), makeAnchor(100, 8, 5)];
-export const DEFAULT_PALETTE_SATURATION = (): CurveAnchor[] => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)];
 // Neutrals seed a calmer, wider lightness ramp than accents; the saturation
 // curve is the same flat 100 (chroma comes from a low-chroma base, not a cap).
 export const DEFAULT_NEUTRAL_LIGHTNESS = (): CurveAnchor[] => [makeAnchor(0, 92, 5), makeAnchor(100, 3, 5)];
@@ -86,56 +103,7 @@ export const paletteStepLightness: PaletteStepDef[] = [
   { label: '950', lightness: 8 },
 ];
 
-export const scales: Scale[] = [
-  {
-    title: 'Surfaces',
-    isText: false,
-    steps: [
-      { name: 'lowest',  position: -1 },
-      { name: 'lower',   position: -2/3 },
-      { name: 'low',     position: -1/3 },
-      { name: 'default', position: 0 },
-      { name: 'high',    position: 1/3 },
-      { name: 'higher',  position: 2/3 },
-      { name: 'highest', position: 1 },
-    ]
-  },
-  {
-    title: 'Borders',
-    isText: false,
-    steps: [
-      { name: 'faint',   position: -1 },
-      { name: 'subtle',  position: -0.5 },
-      { name: 'default', position: 0 },
-      { name: 'medium',  position: 0.5 },
-      { name: 'strong',  position: 1 },
-    ]
-  },
-  {
-    title: 'Text',
-    isText: true,
-    steps: [
-      { name: 'primary',   position: 0 },
-      { name: 'secondary', position: 0 },
-      { name: 'tertiary',  position: 0 },
-      { name: 'muted',     position: 0 },
-      { name: 'disabled',  position: 0 },
-    ]
-  }
-];
-
-export const paletteStepKey = (label: string) => `Palette-${label}`;
-export const stepKey = (scaleTitle: string, stepName: string) => `${scaleTitle}-${stepName}`;
 export const scaleCurveKey = (scaleTitle: string, channel: 'lightness' | 'saturation') => `${scaleTitle}-${channel}`;
-
-export function stepIndexToX(index: number): number {
-  return (index / (paletteStepLightness.length - 1)) * 100;
-}
-
-export function scaleStepToX(step: Step, scale: Scale): number {
-  const idx = scale.steps.indexOf(step);
-  return scale.steps.length > 1 ? (idx / (scale.steps.length - 1)) * 100 : 50;
-}
 
 export function injectLockedAnchor(curve: CurveAnchor[], x: number, y: number): { curve: CurveAnchor[]; idx: number; injected: boolean } {
   const existing = curve.findIndex(a => Math.abs(a.x - x) < 0.5);
@@ -151,56 +119,6 @@ export function injectLockedAnchor(curve: CurveAnchor[], x: number, y: number): 
 export function removeLockedAnchor(curve: CurveAnchor[], idx: number | null): CurveAnchor[] {
   if (idx === null || idx === 0 || idx === curve.length - 1) return curve;
   return curve.filter((_, i) => i !== idx);
-}
-
-export function computePaletteColor(
-  index: number,
-  base: string,
-  lightnessCurve: CurveAnchor[],
-  saturationCurve: CurveAnchor[],
-  curveOffset: CurveOffset
-): string {
-  const { c: baseC, h } = hexToOklch(base);
-  const xPos = stepIndexToX(index);
-
-  const targetL = Math.max(0, Math.min(100, sampleCurve(lightnessCurve, xPos) + (curveOffset['lightness'] ?? 0))) / 100;
-  const satMul = Math.max(0, Math.min(2, (sampleCurve(saturationCurve, xPos) + (curveOffset['saturation'] ?? 0)) / 100));
-  const targetC = baseC * satMul;
-
-  const clamped = gamutClamp(targetL, targetC, h);
-  return oklchToHex(clamped.l, clamped.c, clamped.h);
-}
-
-export function computeDerivedColor(
-  step: Step,
-  base: string,
-  scaleTitle: string,
-  scaleCurves: ScaleCurves,
-  curveOffset: CurveOffset
-): string {
-  const { l: baseL, c: baseC, h: baseH } = hexToOklch(base);
-  const scale = scales.find(s => s.title === scaleTitle)!;
-  const xPos = scaleStepToX(step, scale);
-
-  const lCurve = scaleCurves[scaleTitle]?.lightness ?? [];
-  const sCurve = scaleCurves[scaleTitle]?.saturation ?? [];
-  const lOff = curveOffset[scaleCurveKey(scaleTitle, 'lightness')] ?? 0;
-  const sOff = curveOffset[scaleCurveKey(scaleTitle, 'saturation')] ?? 0;
-
-  let targetL: number;
-  if (scale.isText) {
-    // Text: lightness curve is a multiplier (100 = 1x base lightness)
-    const lMul = Math.max(0, Math.min(2, (sampleCurve(lCurve, xPos) + lOff) / 100));
-    targetL = Math.max(0, Math.min(1, baseL * lMul));
-  } else {
-    targetL = Math.max(0, Math.min(100, sampleCurve(lCurve, xPos) + lOff)) / 100;
-  }
-
-  const satMul = Math.max(0, Math.min(2, (sampleCurve(sCurve, xPos) + sOff) / 100));
-  const targetC = baseC * satMul;
-
-  const clamped = gamutClamp(targetL, targetC, baseH);
-  return oklchToHex(clamped.l, clamped.c, clamped.h);
 }
 
 interface PaletteComputed {

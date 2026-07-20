@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import * as core from './paletteDerivation';
+import * as ui from '../../ui/palette/paletteMath';
 import {
   reconcilePalettesFromCssVars,
+  palettesToVars,
   DEFAULT_PALETTE_LIGHTNESS,
   DEFAULT_PALETTE_SATURATION,
   defaultScaleCurves,
 } from './paletteDerivation';
 import type { PaletteConfig } from '../themes/themeTypes';
+import defaultTheme from '../../../live-tokens/data/themes/default.json';
 
 // Keeps each test case explicit about which fields a palette starts with so
 // the reconciler's behaviour is unambiguous.
@@ -87,5 +91,39 @@ describe('reconcilePalettesFromCssVars', () => {
     expect(second.palettes.Brand.baseColor).toBe(first.palettes.Brand.baseColor);
     expect(second.palettes.Brand._imported).toBe(false);
     expect(second.snapped.size).toBe(0);
+  });
+});
+
+describe('paletteMath re-exports resolve to the core implementations', () => {
+  it('every moved symbol is the same binding as core', () => {
+    expect(ui.SCALES).toBe(core.SCALES);
+    expect(ui.scales).toBe(core.SCALES);
+    expect(ui.PALETTE_STEPS).toBe(core.PALETTE_STEPS);
+    expect(ui.computePaletteColor).toBe(core.computePaletteColor);
+    expect(ui.computeDerivedColor).toBe(core.computeDerivedColor);
+    expect(ui.stepIndexToX).toBe(core.stepIndexToX);
+    expect(ui.scaleStepToX).toBe(core.scaleStepToX);
+    expect(ui.paletteStepKey).toBe(core.paletteStepKey);
+    expect(ui.stepKey).toBe(core.stepKey);
+    expect(ui.DEFAULT_PALETTE_LIGHTNESS).toBe(core.DEFAULT_PALETTE_LIGHTNESS);
+    expect(ui.DEFAULT_PALETTE_SATURATION).toBe(core.DEFAULT_PALETTE_SATURATION);
+  });
+});
+
+describe('derivation is byte-stable (Global invariant 1)', () => {
+  const editorConfigs = defaultTheme.editorConfigs as unknown as Record<string, PaletteConfig>;
+
+  it('palettesToVars(default.json editorConfigs) is unchanged', () => {
+    expect(palettesToVars(editorConfigs)).toMatchSnapshot();
+  });
+
+  it('pins exact hexes for the default Brand config', () => {
+    const out = palettesToVars({ Brand: editorConfigs.Brand });
+    expect(out['--color-brand-500']).toBe('#fb2898');
+    expect(out['--color-brand-100']).toBe('#ffbad3');
+    expect(out['--color-brand-950']).toBe('#100005');
+    expect(out['--surface-brand']).toBe('#89004e');
+    expect(out['--border-brand']).toBe('#ae0065');
+    expect(out['--text-brand']).toBe('#ff75b1');
   });
 });

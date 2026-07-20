@@ -45,16 +45,25 @@ export const PALETTE_SPECS: readonly PaletteSpec[] = [
   { label: 'Danger',     cssNamespace: 'danger',    initialColor: '#e8304f' },
 ] as const;
 
-const PALETTE_STEPS = [
+export const PALETTE_STEPS = [
   { label: '100' }, { label: '200' }, { label: '300' }, { label: '400' },
   { label: '500' }, { label: '600' }, { label: '700' }, { label: '800' },
   { label: '850' }, { label: '900' }, { label: '950' },
 ];
 
-interface ScaleStep { name: string; position: number; }
-interface Scale { title: string; isText: boolean; steps: ScaleStep[]; }
+export interface Step {
+  name: string;
+  position: number;
+  lightness?: number;
+  saturation?: number;
+}
+export interface Scale {
+  title: string;
+  isText: boolean;
+  steps: Step[];
+}
 
-const SCALES: readonly Scale[] = [
+export const SCALES: readonly Scale[] = [
   {
     title: 'Surfaces', isText: false,
     steps: [
@@ -107,14 +116,19 @@ export const defaultScaleCurves = {
   },
 } as const;
 
-function paletteStepKey(label: string): string { return `Palette-${label}`; }
-function stepKey(scaleTitle: string, stepName: string): string { return `${scaleTitle}-${stepName}`; }
+export function paletteStepKey(label: string): string { return `Palette-${label}`; }
+export function stepKey(scaleTitle: string, stepName: string): string { return `${scaleTitle}-${stepName}`; }
 
-function stepIndexToX(index: number, total: number): number {
-  return total > 1 ? (index / (total - 1)) * 100 : 50;
+export function stepIndexToX(index: number): number {
+  return (index / (PALETTE_STEPS.length - 1)) * 100;
 }
 
-function computePaletteColor(
+export function scaleStepToX(step: Step, scale: Scale): number {
+  const idx = scale.steps.indexOf(step);
+  return scale.steps.length > 1 ? (idx / (scale.steps.length - 1)) * 100 : 50;
+}
+
+export function computePaletteColor(
   index: number,
   base: string,
   lightnessCurve: CurveAnchor[],
@@ -122,7 +136,7 @@ function computePaletteColor(
   curveOffset: Record<string, number>,
 ): string {
   const { c: baseC, h } = hexToOklch(base);
-  const xPos = stepIndexToX(index, PALETTE_STEPS.length);
+  const xPos = stepIndexToX(index);
   const targetL = Math.max(0, Math.min(100, sampleCurve(lightnessCurve, xPos) + (curveOffset.lightness ?? 0))) / 100;
   const satMul = Math.max(0, Math.min(2, (sampleCurve(saturationCurve, xPos) + (curveOffset.saturation ?? 0)) / 100));
   const targetC = baseC * satMul;
@@ -130,16 +144,15 @@ function computePaletteColor(
   return oklchToHex(clamped.l, clamped.c, clamped.h);
 }
 
-function computeDerivedColor(
-  step: ScaleStep,
+export function computeDerivedColor(
+  step: Step,
   base: string,
   scaleTitle: string,
   scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }>,
   curveOffset: Record<string, number>,
 ): string {
   const scale = SCALES.find((s) => s.title === scaleTitle)!;
-  const idx = scale.steps.indexOf(step);
-  const xPos = stepIndexToX(idx, scale.steps.length);
+  const xPos = scaleStepToX(step, scale);
   const defs = defaultScaleCurves[scaleTitle as keyof typeof defaultScaleCurves];
   const lCurve = scaleCurves[scaleTitle]?.lightness ?? defs.lightness();
   const sCurve = scaleCurves[scaleTitle]?.saturation ?? defs.saturation();
