@@ -26,7 +26,7 @@ export const RADIUS_VARS = [
 export const FONT_SIZE_VARS = [
   '--font-size-xs', '--font-size-sm', '--font-size-md', '--font-size-lg',
   '--font-size-xl', '--font-size-2xl', '--font-size-3xl', '--font-size-4xl',
-  '--font-size-5xl', '--font-size-6xl',
+  '--font-size-5xl', '--font-size-6xl', '--font-size-7xl',
 ] as const;
 
 export const ICON_SIZE_VARS = [
