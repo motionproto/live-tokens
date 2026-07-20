@@ -9,6 +9,9 @@
   interface Props {
     title?: string | null;
     showRemoveOverride?: boolean;
+    /** Hide the confirm/cancel actions for live-apply consumers (Colors view
+     *  readout) where edits commit through the store as they happen. */
+    hideActions?: boolean;
     onConfirm?: () => void;
     onCancel?: () => void;
     onRemoveOverride?: () => void;
@@ -32,6 +35,7 @@
   let {
     title = null,
     showRemoveOverride = false,
+    hideActions = false,
     onConfirm = () => {},
     onCancel = () => {},
     onRemoveOverride = () => {},
@@ -154,22 +158,24 @@
     {/if}
     <code class="hsl-values">oklch({(lPct / 100).toFixed(2)}, {chroma.toFixed(3)}, {Math.round(hue)})</code>
     {@render actions?.()}
-    <div class="hsl-panel-actions">
-      {#if showRemoveOverride}
-        <Button
-          variant="danger"
-          size="small"
-          icon="fas fa-trash"
-          on:click={onRemoveOverride}
-        >Remove override</Button>
-      {/if}
-      <InlineEditActions
-        onSave={onConfirm}
-        onCancel={onCancel}
-        saveTitle="Apply changes"
-        cancelTitle="Discard changes"
-      />
-    </div>
+    {#if !hideActions}
+      <div class="hsl-panel-actions">
+        {#if showRemoveOverride}
+          <Button
+            variant="danger"
+            size="small"
+            icon="fas fa-trash"
+            on:click={onRemoveOverride}
+          >Remove override</Button>
+        {/if}
+        <InlineEditActions
+          onSave={onConfirm}
+          onCancel={onCancel}
+          saveTitle="Apply changes"
+          cancelTitle="Discard changes"
+        />
+      </div>
+    {/if}
   </div>
   <div class="hsl-sliders">
     <div class="hsl-slider-row">

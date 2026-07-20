@@ -4,6 +4,7 @@
   import { onMount } from 'svelte';
   import { get } from 'svelte/store';
   import VariablesTab from '../ui/VariablesTab.svelte';
+  import ColorsTab from '../ui/colors/ColorsTab.svelte';
   import ThemeFileManager from '../ui/ThemeFileManager.svelte';
   import EditorViewSwitcher from '../ui/EditorViewSwitcher.svelte';
   import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
@@ -27,6 +28,11 @@
     { id: 'overlays', label: 'Overlays', icon: 'fas fa-layer-group' },
     { id: 'gradients', label: 'Gradients', icon: 'fas fa-droplet' },
     { id: 'utility-tokens', label: 'Utility Tokens', icon: 'fas fa-sliders' }
+  ];
+
+  const colorsNavItems = [
+    { id: 'colors-wheel', label: 'Wheel', icon: 'fas fa-palette' },
+    { id: 'colors-story', label: 'Story', icon: 'fas fa-layer-group' }
   ];
 
   const allComponentNavItems = getComponentRegistryEntries().map(({ id, label, icon, origin }) => ({ id, label, icon, origin }));
@@ -131,7 +137,27 @@
 
     {#if $editorView === 'tokens'}
       <div class="nav-items">
-        {#each tokenNavItems as item}
+        {#each tokenNavItems as item (item.id)}
+          <button
+            class="nav-item"
+            class:active={selectedTokenSection === item.id}
+            onmouseenter={(e) => showHint(item.label, e.currentTarget)}
+            onmouseleave={hideHint}
+            onclick={() => scrollToSection(item.id)}
+          >
+            <i class={item.icon}></i>
+            <span class="nav-label">{item.label}</span>
+          </button>
+        {/each}
+      </div>
+      {#if !condensed}
+        <div class="sidebar-footer">
+          <ThemeFileManager {saveStatus} onsave={handleSave} onload={handleLoad} />
+        </div>
+      {/if}
+    {:else if $editorView === 'colors'}
+      <div class="nav-items">
+        {#each colorsNavItems as item (item.id)}
           <button
             class="nav-item"
             class:active={selectedTokenSection === item.id}
@@ -151,7 +177,7 @@
       {/if}
     {:else}
       <div class="nav-items">
-        {#each systemNavItems as item}
+        {#each systemNavItems as item (item.id)}
           <button
             class="nav-item"
             class:active={$selectedComponent === item.id}
@@ -171,7 +197,7 @@
           <div class="nav-divider">
             <span class="nav-divider-label">Custom</span>
           </div>
-          {#each customNavItems as item}
+          {#each customNavItems as item (item.id)}
             <button
               class="nav-item"
               class:active={$selectedComponent === item.id}
@@ -200,6 +226,8 @@
   <main class="content">
     {#if $editorView === 'tokens'}
       <VariablesTab />
+    {:else if $editorView === 'colors'}
+      <ColorsTab />
     {:else}
       <ComponentsTab selectedComponent={$selectedComponent} />
     {/if}

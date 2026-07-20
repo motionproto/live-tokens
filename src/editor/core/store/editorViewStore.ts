@@ -1,15 +1,19 @@
 import { writable } from 'svelte/store';
 
-export type EditorView = 'tokens' | 'components';
+export type EditorView = 'tokens' | 'components' | 'colors';
 export type SidebarCondensed = boolean | 'auto';
 
 const VIEW_KEY = 'lt.editorView';
 const CONDENSED_KEY = 'lt.sidebarCondensed';
 
+function isEditorView(v: unknown): v is EditorView {
+  return v === 'tokens' || v === 'components' || v === 'colors';
+}
+
 function readView(): EditorView {
   try {
     const v = localStorage.getItem(VIEW_KEY);
-    if (v === 'components' || v === 'tokens') return v;
+    if (isEditorView(v)) return v;
   } catch {}
   return 'tokens';
 }
@@ -41,7 +45,7 @@ sidebarCondensed.subscribe((v) => {
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e) => {
     if (e.key === VIEW_KEY) {
-      if (e.newValue === 'tokens' || e.newValue === 'components') editorView.set(e.newValue);
+      if (isEditorView(e.newValue)) editorView.set(e.newValue);
     } else if (e.key === CONDENSED_KEY) {
       if (e.newValue === 'true') sidebarCondensed.set(true);
       else if (e.newValue === 'false') sidebarCondensed.set(false);

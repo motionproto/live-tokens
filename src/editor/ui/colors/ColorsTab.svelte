@@ -1,0 +1,232 @@
+<script lang="ts">
+  import { hexToOklch } from '../../core/palettes/oklch';
+  import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
+  import { editorState, beginSliderGesture } from '../../core/store/editorStore';
+  import ColorEditPanel from '../ColorEditPanel.svelte';
+  import ColorWheel from './ColorWheel.svelte';
+  import ColorReadouts from './ColorReadouts.svelte';
+  import { setBaseColor, oklchToHexClamped } from './paletteBaseColor';
+
+  const WHEEL_LABELS = ['Brand', 'Accent', 'Background', 'Neutral', 'Alternate'];
+
+  let selected = $state('Brand');
+
+  function select(label: string) {
+    selected = label;
+  }
+
+  let swatches = $derived(
+    PALETTE_SPECS.map((spec) => ({
+      label: spec.label,
+      display: spec.displayLabel ?? spec.label,
+      hex: $editorState.palettes[spec.label]?.baseColor ?? spec.initialColor,
+      onWheel: WHEEL_LABELS.includes(spec.label),
+    })),
+  );
+
+  let selectedSpec = $derived(PALETTE_SPECS.find((s) => s.label === selected) ?? PALETTE_SPECS[0]);
+  let selectedHex = $derived($editorState.palettes[selected]?.baseColor ?? selectedSpec.initialColor);
+  let selectedOklch = $derived(hexToOklch(selectedHex));
+</script>
+
+<div class="colors-tab">
+  <div class="pane">
+    <section id="colors-wheel" class="block">
+      <header class="block-head">
+        <span class="eyebrow">Theme</span>
+        <h2 class="title">Color Wheel</h2>
+      </header>
+
+      <ColorWheel {selected} onSelect={select} />
+
+      <!-- Wave 5 seam: harmony mode row (complementary / triadic / … ). -->
+      <div class="seam" data-wave5="harmony-row">
+        <i class="fas fa-shapes" aria-hidden="true"></i>
+        <span>Harmony modes — Wave 5</span>
+      </div>
+
+      <div class="group">
+        <span class="eyebrow">Swatches</span>
+        <div class="swatch-row">
+          {#each swatches as sw (sw.label)}
+            <button
+              type="button"
+              class="swatch"
+              class:active={selected === sw.label}
+              style="--swatch-fill: {sw.hex}"
+              title={sw.display}
+              aria-label={`Select ${sw.display}`}
+              aria-pressed={selected === sw.label}
+              onclick={() => select(sw.label)}
+            >
+              <span class="chip"></span>
+              <span class="swatch-label">{sw.label}</span>
+              {#if sw.onWheel}<span class="wheel-dot" title="On the wheel" aria-hidden="true"></span>{/if}
+            </button>
+          {/each}
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="eyebrow">{selectedSpec.displayLabel ?? selected}</span>
+        <ColorEditPanel
+          title={selectedSpec.displayLabel ?? selected}
+          hideActions
+          hue={selectedOklch.h}
+          chroma={selectedOklch.c}
+          lightness={selectedOklch.l * 100}
+          onHueChromaChange={(h, c, l) => setBaseColor(selected, oklchToHexClamped(h, c, l))}
+          onSliderStart={() => beginSliderGesture(`colors: ${selected} base`)}
+        />
+        <ColorReadouts hex={selectedHex} />
+      </div>
+    </section>
+  </div>
+
+  <div class="pane">
+    <section id="colors-story" class="block">
+      <header class="block-head">
+        <span class="eyebrow">Proportional preview</span>
+        <h2 class="title">Color Story</h2>
+      </header>
+      <!-- Wave 5 seam: proportional 60-30-10 story bands + live AA readouts. -->
+      <div class="seam seam-tall" data-wave5="color-story">
+        <i class="fas fa-layer-group" aria-hidden="true"></i>
+        <span>Color Story — Wave 5</span>
+      </div>
+    </section>
+  </div>
+</div>
+
+<style>
+  .colors-tab {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: var(--ui-space-32);
+    align-items: start;
+  }
+
+  .pane {
+    min-width: 0;
+  }
+
+  .block {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-20);
+    min-width: 0;
+  }
+
+  .block-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-2);
+  }
+
+  .eyebrow {
+    font-size: var(--ui-font-size-xs);
+    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .title {
+    font-size: var(--ui-font-size-2xl);
+    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-text-primary);
+    margin: 0;
+  }
+
+  .group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-8);
+    min-width: 0;
+  }
+
+  .seam {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-16);
+    border: 1px dashed var(--ui-border);
+    border-radius: var(--ui-radius-md);
+    color: var(--ui-text-tertiary);
+    font-size: var(--ui-font-size-sm);
+    background: var(--ui-surface-lowest);
+  }
+
+  .seam-tall {
+    min-height: 24rem;
+  }
+
+  .swatch-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr));
+    gap: var(--ui-space-8);
+  }
+
+  .swatch {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--ui-space-4);
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .chip {
+    display: block;
+    height: 2.75rem;
+    border-radius: var(--ui-radius-sm);
+    background: var(--swatch-fill);
+    border: 1px solid var(--ui-border-low);
+    transition: border-color var(--ui-transition-fast);
+  }
+
+  .swatch:hover .chip {
+    border-color: var(--ui-border-high);
+  }
+
+  .swatch.active .chip {
+    border-color: var(--ui-border-higher);
+    outline: 2px solid var(--ui-text-primary);
+    outline-offset: 1px;
+  }
+
+  .swatch-label {
+    font-size: var(--ui-font-size-xs);
+    color: var(--ui-text-secondary);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .swatch.active .swatch-label {
+    color: var(--ui-text-primary);
+  }
+
+  .wheel-dot {
+    position: absolute;
+    top: var(--ui-space-4);
+    right: var(--ui-space-4);
+    width: 6px;
+    height: 6px;
+    border-radius: var(--ui-radius-full);
+    background: var(--ui-text-primary);
+    box-shadow: 0 0 0 1.5px var(--ui-surface-lowest);
+  }
+
+  @media (max-width: 1024px) {
+    .colors-tab {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--ui-space-24);
+    }
+  }
+</style>

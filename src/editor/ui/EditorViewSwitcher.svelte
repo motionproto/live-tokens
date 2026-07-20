@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { editorView } from '../core/store/editorViewStore';
+  import { editorView, type EditorView } from '../core/store/editorViewStore';
   import { parentRoute } from '../core/routing/parentRouteStore';
   import { DEFAULT_COMPONENTS_PATH } from '../core/routing/ownedRoutes';
 
@@ -17,13 +17,36 @@
   // relocated route won't disable the switch.
   let componentsDisabled = $derived($parentRoute === DEFAULT_COMPONENTS_PATH);
 
-  function set(v: 'tokens' | 'components') {
+  // Editing flow order: Tokens → Colors → Components. The condensed rail cycles
+  // through these; Components is skipped while it's disabled (already on that
+  // page) so the cycle never lands on a dead view.
+  const CYCLE: readonly EditorView[] = ['tokens', 'colors', 'components'];
+  const ICONS: Record<EditorView, string> = {
+    tokens: 'fa-sliders',
+    colors: 'fa-palette',
+    components: 'fa-cubes',
+  };
+  const LABELS: Record<EditorView, string> = {
+    tokens: 'Tokens',
+    colors: 'Colors',
+    components: 'Components',
+  };
+
+  function set(v: EditorView) {
     editorView.set(v);
   }
 
-  function toggle() {
-    if (componentsDisabled) return;
-    editorView.update((v) => (v === 'tokens' ? 'components' : 'tokens'));
+  function cycle() {
+    editorView.update((current) => {
+      let i = CYCLE.indexOf(current);
+      for (let n = 0; n < CYCLE.length; n++) {
+        i = (i + 1) % CYCLE.length;
+        const next = CYCLE[i];
+        if (next === 'components' && componentsDisabled) continue;
+        return next;
+      }
+      return current;
+    });
   }
 </script>
 
@@ -31,11 +54,11 @@
   <button
     type="button"
     class="compact"
-    aria-label={$editorView === 'tokens' ? 'Switch to components' : 'Switch to tokens'}
-    title={$editorView === 'tokens' ? 'Tokens (click for components)' : 'Components (click for tokens)'}
-    onclick={toggle}
+    aria-label={`Editor view: ${LABELS[$editorView]} (click to cycle)`}
+    title={`${LABELS[$editorView]} (click to cycle views)`}
+    onclick={cycle}
   >
-    <i class="fas {$editorView === 'tokens' ? 'fa-palette' : 'fa-cubes'}"></i>
+    <i class="fas {ICONS[$editorView]}"></i>
   </button>
 {:else}
   <div class="seg-group">
@@ -51,6 +74,17 @@
       >
         <span class="radio" aria-hidden="true"></span>
         <span>Tokens</span>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="seg-btn"
+        class:active={$editorView === 'colors'}
+        aria-selected={$editorView === 'colors'}
+        onclick={() => set('colors')}
+      >
+        <span class="radio" aria-hidden="true"></span>
+        <span>Colors</span>
       </button>
       <button
         type="button"
