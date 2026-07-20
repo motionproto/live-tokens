@@ -15,12 +15,12 @@
     "--progressbar-label-font-family": "--font-sans",
     "--progressbar-label-font-size": "--font-size-md",
     "--progressbar-label-font-weight": "--font-weight-normal",
-    "--progressbar-label-line-height": "--line-height-md",
+    "--progressbar-label-line-height": "--line-height-normal",
     "--progressbar-value": "--text-tertiary",
     "--progressbar-value-font-family": "--font-mono",
     "--progressbar-value-font-size": "--font-size-md",
     "--progressbar-value-font-weight": "--font-weight-normal",
-    "--progressbar-value-line-height": "--line-height-md"
+    "--progressbar-value-line-height": "--line-height-normal"
   },
   "config": {},
   "schemaVersion": 14

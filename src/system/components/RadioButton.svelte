@@ -48,7 +48,7 @@
     --radiobutton-default-label-font-family: var(--font-sans);
     --radiobutton-default-label-font-size: var(--font-size-md);
     --radiobutton-default-label-font-weight: var(--font-weight-semibold);
-    --radiobutton-default-label-line-height: var(--line-height-xs);
+    --radiobutton-default-label-line-height: var(--line-height-none);
 
     /* Hover */
     --radiobutton-hover-dot-border-color: var(--border-neutral);
@@ -59,7 +59,7 @@
     --radiobutton-hover-label-font-family: var(--font-sans);
     --radiobutton-hover-label-font-size: var(--font-size-md);
     --radiobutton-hover-label-font-weight: var(--font-weight-semibold);
-    --radiobutton-hover-label-line-height: var(--line-height-xs);
+    --radiobutton-hover-label-line-height: var(--line-height-none);
 
     /* Active */
     --radiobutton-active-dot-border-color: var(--border-neutral);
@@ -70,7 +70,7 @@
     --radiobutton-active-label-font-family: var(--font-sans);
     --radiobutton-active-label-font-size: var(--font-size-md);
     --radiobutton-active-label-font-weight: var(--font-weight-semibold);
-    --radiobutton-active-label-line-height: var(--line-height-xs);
+    --radiobutton-active-label-line-height: var(--line-height-none);
   }
 
   .radio-button {
@@ -82,7 +82,7 @@
     border: none;
     cursor: pointer;
     transition: all var(--duration-200);
-    line-height: var(--line-height-xs);
+    line-height: var(--line-height-none);
 
     &:hover,
     &.force-hover {

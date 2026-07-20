@@ -595,12 +595,13 @@
   --z-popover: 1200;
   --z-tooltip: 1300;
 
-  /* Line Heights */
-  --line-height-xs: 1;
-  --line-height-sm: 1.25;
-  --line-height-md: 1.5;
-  --line-height-lg: 1.75;
-  --line-height-xl: 2;
+  /* Line Heights — leading vocabulary (ratios), named by effect. */
+  --line-height-none: 1;
+  --line-height-tighter: 1.1;
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-loose: 1.75;
+  --line-height-looser: 2;
 
   /* Letter Spacing — 5-point, symmetric around normal (0). */
   --letter-spacing-tighter: -0.04em;

@@ -153,7 +153,7 @@
     --input-default-text-font-family: var(--font-sans);
     --input-default-text-font-size: var(--font-size-sm);
     --input-default-text-font-weight: var(--font-weight-normal);
-    --input-default-text-line-height: var(--line-height-sm);
+    --input-default-text-line-height: var(--line-height-tight);
     --input-default-icon: var(--text-tertiary);
     --input-default-icon-size: var(--icon-size-sm);
     --input-default-placeholder: var(--text-tertiary);
@@ -166,7 +166,7 @@
     --input-focused-text-font-family: var(--font-sans);
     --input-focused-text-font-size: var(--font-size-sm);
     --input-focused-text-font-weight: var(--font-weight-normal);
-    --input-focused-text-line-height: var(--line-height-sm);
+    --input-focused-text-line-height: var(--line-height-tight);
     --input-focused-icon: var(--text-secondary);
     --input-focused-icon-size: var(--icon-size-sm);
 
@@ -177,7 +177,7 @@
     --input-disabled-text-font-family: var(--font-sans);
     --input-disabled-text-font-size: var(--font-size-sm);
     --input-disabled-text-font-weight: var(--font-weight-normal);
-    --input-disabled-text-line-height: var(--line-height-sm);
+    --input-disabled-text-line-height: var(--line-height-tight);
     --input-disabled-icon: var(--text-tertiary);
     --input-disabled-icon-size: var(--icon-size-sm);
 
@@ -186,14 +186,14 @@
     --input-label-font-family: var(--font-sans);
     --input-label-font-size: var(--font-size-sm);
     --input-label-font-weight: var(--font-weight-semibold);
-    --input-label-line-height: var(--line-height-sm);
+    --input-label-line-height: var(--line-height-tight);
 
     /* Hint */
     --input-hint: var(--text-tertiary);
     --input-hint-font-family: var(--font-sans);
     --input-hint-font-size: var(--font-size-xs);
     --input-hint-font-weight: var(--font-weight-normal);
-    --input-hint-line-height: var(--line-height-sm);
+    --input-hint-line-height: var(--line-height-tight);
 
     /* Error — outline mirrors the focused state so width changes don't reflow the field */
     --input-error-border: var(--border-danger);
@@ -202,7 +202,7 @@
     --input-error-font-family: var(--font-sans);
     --input-error-font-size: var(--font-size-xs);
     --input-error-font-weight: var(--font-weight-medium);
-    --input-error-line-height: var(--line-height-sm);
+    --input-error-line-height: var(--line-height-tight);
   }
 
   .input-field {

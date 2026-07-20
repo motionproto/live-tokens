@@ -69,7 +69,7 @@ npm run dev`;
   .intro {
     font-family: var(--font-sans);
     font-size: var(--font-size-xl);
-    line-height: var(--line-height-sm);
+    line-height: var(--line-height-tight);
     font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
     margin: 0;

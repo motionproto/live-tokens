@@ -208,14 +208,14 @@
     font-family: var(--font-sans);
     font-size: var(--font-size-2xl);
     font-weight: var(--font-weight-medium);
-    line-height: var(--line-height-md);
+    line-height: var(--line-height-normal);
   }
 
   .kit-body {
     padding: var(--space-12) 0 0;
     font-family: var(--font-sans);
     font-size: var(--font-size-xl);
-    line-height: var(--line-height-md);
+    line-height: var(--line-height-normal);
     font-weight: var(--font-weight-normal);
     color: var(--text-secondary);
 

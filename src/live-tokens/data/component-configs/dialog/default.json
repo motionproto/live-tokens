@@ -19,7 +19,7 @@
     "--dialog-title-font-family": "--font-sans",
     "--dialog-title-font-size": "--font-size-2xl",
     "--dialog-title-font-weight": "--font-weight-normal",
-    "--dialog-title-line-height": "--line-height-sm",
+    "--dialog-title-line-height": "--line-height-tight",
     "--dialog-close-icon": "--text-secondary",
     "--dialog-close-icon-size": "--icon-size-xl",
     "--dialog-body-padding": "--space-16",
@@ -27,7 +27,7 @@
     "--dialog-body-font-family": "--font-sans",
     "--dialog-body-font-size": "--font-size-md",
     "--dialog-body-font-weight": "--font-weight-normal",
-    "--dialog-body-line-height": "--line-height-md",
+    "--dialog-body-line-height": "--line-height-normal",
     "--dialog-footer-border": "--border-neutral-subtle",
     "--dialog-footer-border-width": "--border-width-1",
     "--dialog-footer-padding": "--space-16"

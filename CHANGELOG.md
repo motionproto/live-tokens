@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Changed (breaking)
+
+- **The line-height scale is renamed from size vocabulary to leading
+  vocabulary.** `--line-height-xs/sm/md/lg/xl` become
+  `--line-height-none/tight/normal/loose/looser` (values unchanged: 1, 1.25,
+  1.5, 1.75, 2), and a new `--line-height-tighter: 1.1` step fills the gap
+  between `none` and `tight`. Line-height now names by effect, matching the
+  letter-spacing scale. Token names are public API, so this ships with the
+  paired migration `2026-07-20-line-height-rename` (`kind: 'breaking'`); a
+  consumer applies it via `npx live-tokens migrate`, which rewrites their
+  vendored `tokens.css` declarations and every `var()` reference.
+
 ## 0.40.1 — Floating token-tag labels follow the theme
 
 ### Fixed

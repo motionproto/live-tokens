@@ -408,7 +408,7 @@
   .title-block h1 {
     font-family: var(--font-display, var(--font-sans));
     font-size: var(--font-size-5xl, 3rem);
-    line-height: var(--line-height-xs, 1.1);
+    line-height: var(--line-height-none, 1.1);
     letter-spacing: var(--letter-spacing-tight, -0.02em);
     margin: 0 0 var(--space-12, 0.75rem);
     color: var(--text-primary);
@@ -490,7 +490,7 @@
 
   .prose {
     font-size: var(--font-size-md, 1rem);
-    line-height: var(--line-height-lg, 1.65);
+    line-height: var(--line-height-loose, 1.65);
   }
   .md-snippet {
     margin: 0 0 var(--space-20, 1.25rem);
@@ -520,7 +520,7 @@
     font-family: var(--font-display, var(--font-sans));
     font-weight: var(--font-weight-semibold, 600);
     letter-spacing: var(--letter-spacing-tight, -0.015em);
-    line-height: var(--line-height-sm, 1.2);
+    line-height: var(--line-height-tight, 1.2);
     color: var(--text-primary);
     position: relative;
   }

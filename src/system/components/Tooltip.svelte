@@ -32,7 +32,7 @@
     --tooltip-text-font-family: var(--font-sans);
     --tooltip-text-font-size: var(--font-size-sm);
     --tooltip-text-font-weight: var(--font-weight-normal);
-    --tooltip-text-line-height: var(--line-height-md);
+    --tooltip-text-line-height: var(--line-height-normal);
     --tooltip-border: var(--border-neutral);
     --tooltip-border-width: var(--border-width-1);
     --tooltip-radius: var(--radius-md);

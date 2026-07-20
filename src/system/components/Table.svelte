@@ -27,7 +27,7 @@
     --table-default-header-font-family: var(--font-sans);
     --table-default-header-font-size: var(--font-size-lg);
     --table-default-header-font-weight: var(--font-weight-semibold);
-    --table-default-header-line-height: var(--line-height-xs);
+    --table-default-header-line-height: var(--line-height-none);
     --table-default-header-padding: var(--space-12);
     --table-default-header-border: var(--border-neutral);
     --table-default-header-border-width: var(--border-width-1);
@@ -37,7 +37,7 @@
     --table-default-cell-font-family: var(--font-sans);
     --table-default-cell-font-size: var(--font-size-md);
     --table-default-cell-font-weight: var(--font-weight-medium);
-    --table-default-cell-line-height: var(--line-height-md);
+    --table-default-cell-line-height: var(--line-height-normal);
     --table-default-cell-padding: var(--space-8);
 
     /* Row */

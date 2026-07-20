@@ -58,12 +58,12 @@
     --progressbar-label-font-family: var(--font-sans);
     --progressbar-label-font-size: var(--font-size-md);
     --progressbar-label-font-weight: var(--font-weight-normal);
-    --progressbar-label-line-height: var(--line-height-md);
+    --progressbar-label-line-height: var(--line-height-normal);
     --progressbar-value: var(--text-tertiary);
     --progressbar-value-font-family: var(--font-mono);
     --progressbar-value-font-size: var(--font-size-md);
     --progressbar-value-font-weight: var(--font-weight-normal);
-    --progressbar-value-line-height: var(--line-height-md);
+    --progressbar-value-line-height: var(--line-height-normal);
   }
 
   .progress {

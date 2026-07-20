@@ -13,7 +13,7 @@
     "--corner-badge-text-font-family": "--font-sans",
     "--corner-badge-text-font-size": "--font-size-sm",
     "--corner-badge-text-font-weight": "--font-weight-medium",
-    "--corner-badge-text-line-height": "--line-height-xs",
+    "--corner-badge-text-line-height": "--line-height-none",
     "--corner-badge-primary-surface": "--surface-brand",
     "--corner-badge-primary-border": "--border-brand",
     "--corner-badge-primary-text": "--text-brand",

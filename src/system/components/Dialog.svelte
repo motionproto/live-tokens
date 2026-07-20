@@ -188,7 +188,7 @@
     --dialog-title-font-family: var(--font-sans);
     --dialog-title-font-size: var(--font-size-2xl);
     --dialog-title-font-weight: var(--font-weight-normal);
-    --dialog-title-line-height: var(--line-height-sm);
+    --dialog-title-line-height: var(--line-height-tight);
 
     /* Close icon */
     --dialog-close-icon: var(--text-secondary);
@@ -200,7 +200,7 @@
     --dialog-body-font-family: var(--font-sans);
     --dialog-body-font-size: var(--font-size-md);
     --dialog-body-font-weight: var(--font-weight-normal);
-    --dialog-body-line-height: var(--line-height-md);
+    --dialog-body-line-height: var(--line-height-normal);
 
     /* Footer */
     --dialog-footer-border: var(--border-neutral-subtle);

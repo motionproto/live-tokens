@@ -134,7 +134,7 @@
     font-family: var(--font-sans);
     font-size: var(--font-size-xl);
     font-weight: var(--font-weight-normal);
-    line-height: var(--line-height-md);
+    line-height: var(--line-height-normal);
     color: var(--text-secondary);
     margin: var(--space-12) 0 0;
   }

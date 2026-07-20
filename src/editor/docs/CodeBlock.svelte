@@ -47,7 +47,7 @@
     padding: var(--space-16, 1rem) var(--space-20, 1.25rem);
     overflow-x: auto;
     font-size: var(--font-size-sm, 0.875rem);
-    line-height: var(--line-height-md, 1.6);
+    line-height: var(--line-height-normal, 1.6);
   }
 
   pre code {
