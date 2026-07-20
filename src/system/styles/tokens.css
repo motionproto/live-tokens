@@ -610,6 +610,58 @@
   --letter-spacing-wide: 0.04em;
   --letter-spacing-wider: 0.08em;
 
+  /* Text styles — semantic typography roles. Bundles of aliases into the
+     primitive scales; site.css maps elements to styles. */
+  --heading-xl-font-family: var(--font-display);
+  --heading-xl-font-size: var(--font-size-4xl);
+  --heading-xl-font-weight: var(--font-weight-semibold);
+  --heading-xl-line-height: var(--line-height-tight);
+  --heading-xl-letter-spacing: var(--letter-spacing-normal);
+
+  --heading-lg-font-family: var(--font-display);
+  --heading-lg-font-size: var(--font-size-2xl);
+  --heading-lg-font-weight: var(--font-weight-semibold);
+  --heading-lg-line-height: var(--line-height-tight);
+  --heading-lg-letter-spacing: var(--letter-spacing-normal);
+
+  --heading-md-font-family: var(--font-display);
+  --heading-md-font-size: var(--font-size-xl);
+  --heading-md-font-weight: var(--font-weight-semibold);
+  --heading-md-line-height: var(--line-height-tight);
+  --heading-md-letter-spacing: var(--letter-spacing-normal);
+
+  --heading-sm-font-family: var(--font-sans);
+  --heading-sm-font-size: var(--font-size-lg);
+  --heading-sm-font-weight: var(--font-weight-semibold);
+  --heading-sm-line-height: var(--line-height-tight);
+  --heading-sm-letter-spacing: var(--letter-spacing-normal);
+
+  --body-md-font-family: var(--font-sans);
+  --body-md-font-size: var(--font-size-md);
+  --body-md-font-weight: var(--font-weight-normal);
+  --body-md-line-height: var(--line-height-normal);
+  --body-md-letter-spacing: var(--letter-spacing-normal);
+
+  --body-sm-font-family: var(--font-sans);
+  --body-sm-font-size: var(--font-size-sm);
+  --body-sm-font-weight: var(--font-weight-normal);
+  --body-sm-line-height: var(--line-height-normal);
+  --body-sm-letter-spacing: var(--letter-spacing-normal);
+
+  --code-font-family: var(--font-mono);
+  --code-font-size: var(--font-size-sm);
+  --code-font-weight: var(--font-weight-normal);
+  --code-line-height: var(--line-height-normal);
+  --code-letter-spacing: var(--letter-spacing-normal);
+
+  /* Eyebrow — values track the existing .eyebrow class in src/app/Home.svelte. */
+  --eyebrow-font-family: var(--font-sans);
+  --eyebrow-font-size: var(--font-size-sm);
+  --eyebrow-font-weight: var(--font-weight-normal);
+  --eyebrow-line-height: var(--line-height-normal);
+  --eyebrow-letter-spacing: var(--letter-spacing-normal);
+  --eyebrow-text-transform: uppercase;
+
   /* Text alternate */
   --text-alternate: #ffffff;
   --text-alternate-secondary: #d6d0ce;
@@ -629,6 +681,11 @@
     --font-size-5xl: 2.25rem;    /* 36px */
     --font-size-6xl: 2.5rem;     /* 40px */
     --font-size-7xl: 3rem;       /* 48px */
+
+    /* Display-size headings want tighter leading than the scale's smallest
+       ratio (1.25); re-point here so the style token stays the single source. */
+    --heading-xl-line-height: var(--line-height-tighter);
+    --heading-lg-line-height: var(--line-height-tighter);
   }
 }
 

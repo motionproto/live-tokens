@@ -18,12 +18,14 @@ import { tokensCssMigration_2026_06_03_transformScaleAdditions } from './migrati
 import { tokensCssMigration_2026_06_04_removeDeadSizeIconScale } from './migrations/2026-06-04-remove-dead-size-icon-scale';
 import { tokensCssMigration_2026_06_04_easingColorAndTypescaleAdditions } from './migrations/2026-06-04-easing-color-and-typescale-additions';
 import { tokensCssMigration_2026_07_20_lineHeightRename } from './migrations/2026-07-20-line-height-rename';
+import { tokensCssMigration_2026_07_20_semanticTextStyles } from './migrations/2026-07-20-semantic-text-styles';
 
 export type { TokensCssMigration } from './types';
 export {
   collectDefinedTokens,
   collectReferencedTokens,
   ensureScale,
+  appendMediaOverride,
   renameToken,
   removeToken,
   removeTokensMatching,
@@ -42,6 +44,7 @@ export const TOKENS_CSS_MIGRATIONS: TokensCssMigration[] = [
   tokensCssMigration_2026_06_04_removeDeadSizeIconScale,
   tokensCssMigration_2026_06_04_easingColorAndTypescaleAdditions,
   tokensCssMigration_2026_07_20_lineHeightRename,
+  tokensCssMigration_2026_07_20_semanticTextStyles,
 ];
 
 export interface RunResult {

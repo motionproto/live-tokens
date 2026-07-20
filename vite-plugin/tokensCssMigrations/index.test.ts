@@ -51,6 +51,33 @@ describe('runTokensCssMigrations', () => {
     expect(runTokensCssMigrations(css).changed).toBe(false);
   });
 
+  it('adds the semantic text-style bundles and appends the responsive heading re-points', () => {
+    const { css, applied } = runTokensCssMigrations(LEGACY_TOKENS_CSS);
+    expect(applied).toContain('2026-07-20-semantic-text-styles');
+    for (const decl of [
+      '--heading-xl-font-family: var(--font-display);',
+      '--heading-sm-font-family: var(--font-sans);',
+      '--body-md-line-height: var(--line-height-normal);',
+      '--code-font-family: var(--font-mono);',
+      '--eyebrow-font-size: var(--font-size-sm);',
+      '--eyebrow-text-transform: uppercase;',
+    ]) {
+      expect(css).toContain(decl);
+    }
+
+    // The base leading sits in the top-level :root; the tightening lands only in
+    // an appended @media block, not at all viewport widths.
+    const mediaAt = css.indexOf('@media');
+    expect(mediaAt).toBeGreaterThan(-1);
+    expect(css.slice(0, mediaAt)).toContain('--heading-xl-line-height: var(--line-height-tight);');
+    const media = css.slice(mediaAt);
+    expect(media).toContain('--heading-xl-line-height: var(--line-height-tighter);');
+    expect(media).toContain('--heading-lg-line-height: var(--line-height-tighter);');
+
+    // Full fold twice = no change.
+    expect(runTokensCssMigrations(css).changed).toBe(false);
+  });
+
   it('adds the --scale-* transform scale an old tokens.css lacks', () => {
     const { css, applied } = runTokensCssMigrations(LEGACY_TOKENS_CSS);
     expect(applied).toContain('2026-06-03-transform-scale-additions');

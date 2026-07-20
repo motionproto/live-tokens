@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Added
+
+- **Semantic text styles: a role layer over the type primitives.** Eight named
+  style bundles ship in `tokens.css` — `heading-xl/lg/md/sm`, `body-md/sm`,
+  `code`, and `eyebrow` — each a set of per-axis aliases (`--heading-xl-font-family`,
+  `--heading-xl-font-size`, `-font-weight`, `-line-height`, `-letter-spacing`, and
+  `--eyebrow-text-transform`). Every value aliases an existing primitive scale, so
+  editing a style re-points an alias rather than minting a raw value, and the
+  responsive size shrink carries through for free. Display-size headings tighten
+  their leading at `≤768px` via a paired `@media` re-point in the token layer, so
+  a style's `line-height` token stays the single source of truth at every
+  viewport. Additive migration `2026-07-20-semantic-text-styles` (`kind:
+  'additive'`) inserts the bundle block and the responsive re-point into a
+  consumer's vendored `tokens.css`.
+
 ### Changed (breaking)
 
 - **The line-height scale is renamed from size vocabulary to leading
