@@ -3,100 +3,123 @@
   import { hexToOklch, oklchToHex, gamutClamp } from '../../core/palettes/oklch';
   import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
   import { editorState, beginScope, commitScope, cancelScope, type Scope } from '../../core/store/editorStore';
-  import { setBaseHueChroma } from './paletteBaseColor';
+  import { setBaseHue, setBaseChroma, setBaseColors } from './paletteBaseColor';
 
   interface Props {
     selected: string | null;
     onSelect: (label: string) => void;
-    /** Lightness (0..1) the disc is painted at — the selected color's L, so the
-     *  field shows the real colors available at that lightness (a dark seed gets
-     *  a dark disc, not a generic bright wheel). */
+    /** Lightness (0..1) the disc is painted at — the selected color's L. */
     discLightness: number;
+    /** Called when a per-axis edit detaches the trio from its harmony geometry,
+     *  so the parent can flip the active mode to 'custom'. */
+    onCustomize: () => void;
   }
 
-  let { selected, onSelect, discLightness }: Props = $props();
+  let { selected, onSelect, discLightness, onCustomize }: Props = $props();
 
-  // Radial saturation: chroma 0 at centre → the in-gamut maximum at the rim, per
-  // hue, at the current disc L (Canva-style field, but painted at the selected
-  // L). There is NO chroma cap on selection — the rim IS the gamut boundary, so
-  // any in-gamut colour at this L is reachable and the handle never gets clamped
-  // out from under the cursor. `gamutClamp` is display-only (invariant 6).
-  const GAMUT_PROBE = 0.5; // safely above sRGB's OKLCH chroma ceiling
-  // Reserved judgment call: keyboard nudge increments.
+  // The harmony trio, anchored on Brand. Neutral/Alternate/Special stay off the
+  // wheel this pass (swatch row only).
+  const TRIO_LABELS = ['Brand', 'Background', 'Accent'];
+  const TRIO_SPECS: PaletteSpec[] = TRIO_LABELS
+    .map((l) => PALETTE_SPECS.find((s) => s.label === l))
+    .filter((s): s is PaletteSpec => !!s);
+
+  // Radial saturation to the in-gamut boundary per hue (invariant 6: gamut is
+  // display-only). Reserved judgment call: keyboard nudge increments.
+  const GAMUT_PROBE = 0.5;
   const HUE_STEP = 2;
   const CHROMA_STEP = 0.005;
-  // Decorative low-chroma "neutral zone" hint near centre — visual only, never clamps.
-  const NEUTRAL_ZONE_FRACTION = 0.2;
-  const MIN_SIZE = 200;
-  const MAX_SIZE = 320;
-
-  const WHEEL_LABELS = ['Brand', 'Accent', 'Background', 'Neutral', 'Alternate'];
-  const WHEEL_SPECS = PALETTE_SPECS.filter((s) => WHEEL_LABELS.includes(s.label));
-  const SPEC_BY_LABEL: Record<string, PaletteSpec> = Object.fromEntries(WHEEL_SPECS.map((s) => [s.label, s]));
+  const MARGIN = 30;      // ring-to-edge gap that houses the external handles
+  const EXT_OFFSET = 15;  // external handle radius beyond the disc rim
+  const GLOBAL_HOME = 135; // idle angle of the global rotate handle (top-left)
+  const MIN_SIZE = 240;
+  const MAX_SIZE = 360;
 
   const normDeg = (d: number) => ((d % 360) + 360) % 360;
   const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
   const maxChroma = (l: number, hue: number) => gamutClamp(l, GAMUT_PROBE, hue).c;
+  const rad = (deg: number) => (deg * Math.PI) / 180;
+  // Shortest signed angular delta in (-180, 180], so a spin accumulates cleanly.
+  const angleDelta = (cur: number, prev: number) => ((cur - prev + 540) % 360) - 180;
 
-  let size = $state(280);
+  let wrapperSize = $state(300);
   let wrapper: HTMLDivElement | undefined = $state();
   let canvas: HTMLCanvasElement | undefined = $state();
 
-  // In-gamut max chroma per integer hue at the disc's lightness. Drives the
-  // radial paint (rim = this) and recomputes when the selected L changes.
+  let center = $derived(wrapperSize / 2);
+  let discRadius = $derived(wrapperSize / 2 - MARGIN);
+  let extRadius = $derived(discRadius + EXT_OFFSET);
+  let discDiameter = $derived(Math.max(1, wrapperSize - 2 * MARGIN));
+
+  // ── Transient drag state (POSITION only — the VALUE always rides the store) ──
+  type Drag =
+    | { kind: 'axis'; label: string; angle: number }
+    | { kind: 'global'; startHues: Record<string, number>; delta: number; lastAngle: number; angle: number }
+    | { kind: 'chroma'; label: string; rFrac: number };
+  let drag: Drag | null = $state(null);
+  let dragScope: Scope | null = null;
+
+  let trio = $derived(
+    TRIO_SPECS.map((spec) => {
+      const hex = $editorState.palettes[spec.label]?.baseColor ?? spec.initialColor;
+      const { l, c, h } = hexToOklch(hex);
+      const mc = maxChroma(l, h) || 1e-6;
+      return { label: spec.label, hex, hue: h, chroma: c, lightness: l, rFrac: clamp(c / mc, 0, 1) };
+    }),
+  );
+
+  // Overlay the transient drag onto the store-derived trio so the active rail /
+  // dot / handle tracks the pointer with no store round-trip (the twitch fix).
+  let trioRender = $derived(
+    trio.map((t) => {
+      let hue = t.hue;
+      let rFrac = t.rFrac;
+      const d = drag;
+      if (d?.kind === 'axis' && d.label === t.label) hue = d.angle;
+      else if (d?.kind === 'chroma' && d.label === t.label) rFrac = d.rFrac;
+      else if (d?.kind === 'global') hue = normDeg(d.startHues[t.label] + d.delta);
+      const dotR = rFrac * discRadius;
+      return {
+        ...t,
+        hue,
+        selected: selected === t.label,
+        dot: { x: center + dotR * Math.cos(rad(hue)), y: center - dotR * Math.sin(rad(hue)) },
+        ext: { x: center + extRadius * Math.cos(rad(hue)), y: center - extRadius * Math.sin(rad(hue)) },
+      };
+    }),
+  );
+
+  let globalHandle = $derived.by(() => {
+    const d = drag;
+    const angle = d?.kind === 'global' ? d.angle : GLOBAL_HOME;
+    return { x: center + extRadius * Math.cos(rad(angle)), y: center - extRadius * Math.sin(rad(angle)) };
+  });
+
   let discMaxByHue = $derived.by(() => {
     const arr = new Float64Array(360);
     for (let h = 0; h < 360; h++) arr[h] = maxChroma(discLightness, h);
     return arr;
   });
 
-  // Handle marker positions derive from the store. Each family's radius is its
-  // chroma as a fraction of the in-gamut max at ITS OWN lightness, so markers
-  // stay put when the selection (disc L) changes; the active family's own L
-  // equals the disc L, so its marker shares the field's radial scale and lands
-  // exactly where a drag/click leaves the cursor.
-  let handles = $derived(
-    WHEEL_SPECS.map((spec) => {
-      const hex = $editorState.palettes[spec.label]?.baseColor ?? spec.initialColor;
-      const { l, c, h } = hexToOklch(hex);
-      const mc = maxChroma(l, h) || 1e-6;
-      const r = clamp(c / mc, 0, 1) * (size / 2);
-      const rad = (h * Math.PI) / 180;
-      return {
-        label: spec.label,
-        hex,
-        hue: h,
-        chroma: c,
-        lightness: l,
-        x: size / 2 + r * Math.cos(rad),
-        y: size / 2 - r * Math.sin(rad),
-      };
-    }),
-  );
-
-  let neutralRingDiameter = $derived(size * NEUTRAL_ZONE_FRACTION);
-
   $effect(() => {
     const el = wrapper;
     if (!el || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver((entries) => {
       const w = entries[0]?.contentRect.width ?? 0;
-      if (w > 0) size = clamp(Math.round(w), MIN_SIZE, MAX_SIZE);
+      if (w > 0) wrapperSize = clamp(Math.round(w), MIN_SIZE, MAX_SIZE);
     });
     ro.observe(el);
     return () => ro.disconnect();
   });
 
-  // Repaint when size or the disc lightness changes (via selection or the
-  // readout L slider). Reads only size + discMaxByHue + discLightness — never
-  // handle positions — so a hue/chroma drag never repaints the disc.
+  // Repaint only on size or disc-L change — never on hue/chroma drags.
   $effect(() => {
     const cv = canvas;
     if (!cv) return;
     const maxByHue = discMaxByHue;
     const L = discLightness;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const px = Math.max(1, Math.round(size * dpr));
+    const px = Math.max(1, Math.round(discDiameter * dpr));
     cv.width = px;
     cv.height = px;
     const ctx = cv.getContext('2d');
@@ -119,8 +142,6 @@
           continue;
         }
         const hue = normDeg((Math.atan2(-dy, dx) * 180) / Math.PI);
-        // Rim = in-gamut max at this hue+L; chroma stays valid, so a plain
-        // conversion suffices (oklchToHex still clamps sRGB defensively).
         const chroma = (dist / R) * maxByHue[Math.round(hue) % 360];
         const hex = oklchToHex(L, chroma, hue);
         data[i] = parseInt(hex.slice(1, 3), 16);
@@ -132,94 +153,134 @@
     ctx.putImageData(img, 0, 0);
   }
 
-  // Wheel edits reuse the PaletteEditor session pattern: one clipping scope per
-  // gesture → one undo; Escape cancels to the pre-drag snapshot. The colour VALUE
-  // has a single store path (setBaseHueChroma via mutate, seed L preserved —
-  // invariant 5). Only the ephemeral pointer POSITION is held locally during the
-  // drag (`dragPos`), so the active handle tracks the cursor 1:1 instead of
-  // snapping back through a store round-trip.
-  let dragLabel: string | null = $state(null);
-  let dragPos: { x: number; y: number } | null = $state(null);
-  let dragScope: Scope | null = null;
-
-  function beginDrag(e: PointerEvent, label: string) {
-    if (e.button !== 0) return;
-    e.preventDefault();
-    onSelect(label);
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    dragLabel = label;
-    dragScope = beginScope({ label: `colors: ${label} wheel`, collapseToOne: true, clipUndoFloor: true });
-    window.addEventListener('keydown', onDragKey, true);
-    applyPointer(e);
+  function pointerAngle(e: PointerEvent): number {
+    const r = wrapper!.getBoundingClientRect();
+    const dx = e.clientX - (r.left + r.width / 2);
+    const dy = e.clientY - (r.top + r.height / 2);
+    return normDeg((Math.atan2(-dy, dx) * 180) / Math.PI);
   }
 
-  function startHandleDrag(e: PointerEvent, label: string) {
-    beginDrag(e, label);
-  }
-
-  function startDiscDrag(e: PointerEvent) {
-    const label = selected && WHEEL_LABELS.includes(selected) ? selected : null;
-    if (!label) return;
-    const rect = wrapper!.getBoundingClientRect();
-    const dx = e.clientX - (rect.left + rect.width / 2);
-    const dy = e.clientY - (rect.top + rect.height / 2);
-    if (Math.hypot(dx, dy) > rect.width / 2) return; // clicks outside the disc are inert
-    beginDrag(e, label);
-  }
-
-  function applyPointer(e: PointerEvent) {
-    if (dragLabel === null) return;
-    const rect = wrapper!.getBoundingClientRect();
-    dragPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    const dx = dragPos.x - rect.width / 2;
-    const dy = dragPos.y - rect.height / 2;
-    const hue = normDeg((Math.atan2(-dy, dx) * 180) / Math.PI);
-    const f = clamp(Math.hypot(dx, dy) / (rect.width / 2), 0, 1);
-    // Seed L is preserved; scale radius→chroma by the in-gamut max at that L so
-    // the written value is always reachable (no clamp, no snap-back).
-    const base = $editorState.palettes[dragLabel]?.baseColor ?? SPEC_BY_LABEL[dragLabel].initialColor;
-    const seedL = hexToOklch(base).l;
-    setBaseHueChroma(dragLabel, hue, f * maxChroma(seedL, hue));
-  }
-
-  function moveDrag(e: PointerEvent) {
-    if (dragScope) applyPointer(e);
+  // ── Gesture lifecycle: one clipping scope = one undo; Escape cancels ──
+  function openGesture(label: string) {
+    dragScope = beginScope({ label, collapseToOne: true, clipUndoFloor: true });
+    window.addEventListener('keydown', onGestureKey, true);
   }
 
   function endDrag() {
     if (!dragScope) return;
     commitScope(dragScope);
     dragScope = null;
-    dragLabel = null;
-    dragPos = null;
-    window.removeEventListener('keydown', onDragKey, true);
+    drag = null;
+    window.removeEventListener('keydown', onGestureKey, true);
   }
 
-  function onDragKey(e: KeyboardEvent) {
+  function onGestureKey(e: KeyboardEvent) {
     if (e.key !== 'Escape' || !dragScope) return;
     e.preventDefault();
     cancelScope(dragScope);
     dragScope = null;
-    dragLabel = null;
-    dragPos = null;
-    window.removeEventListener('keydown', onDragKey, true);
+    drag = null;
+    window.removeEventListener('keydown', onGestureKey, true);
   }
 
-  function nudge(e: KeyboardEvent, label: string) {
-    let dh = 0;
-    let dc = 0;
-    switch (e.key) {
-      case 'ArrowLeft': dh = -HUE_STEP; break;
-      case 'ArrowRight': dh = HUE_STEP; break;
-      case 'ArrowUp': dc = CHROMA_STEP; break;
-      case 'ArrowDown': dc = -CHROMA_STEP; break;
-      default: return;
-    }
+  function capture(e: PointerEvent) {
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }
+
+  // Per-axis rotate — hue only, detaches harmony to custom.
+  function startAxisDrag(e: PointerEvent, label: string) {
+    if (e.button !== 0) return;
     e.preventDefault();
-    const hd = handles.find((h) => h.label === label);
-    if (!hd) return;
-    const hue = normDeg(hd.hue + dh);
-    setBaseHueChroma(label, hue, clamp(hd.chroma + dc, 0, maxChroma(hd.lightness, hue)));
+    onSelect(label);
+    onCustomize();
+    capture(e);
+    openGesture(`colors: ${label} rotate`);
+    drag = { kind: 'axis', label, angle: pointerAngle(e) };
+    applyAxis(e);
+  }
+  function applyAxis(e: PointerEvent) {
+    if (drag?.kind !== 'axis') return;
+    const angle = pointerAngle(e);
+    drag.angle = angle;
+    setBaseHue(drag.label, angle);
+  }
+
+  // Global rotate — all trio hues by the same accumulated delta (mode kept).
+  function startGlobalDrag(e: PointerEvent) {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    capture(e);
+    openGesture('colors: rotate all');
+    const startHues: Record<string, number> = {};
+    for (const t of trio) startHues[t.label] = t.hue;
+    const a = pointerAngle(e);
+    drag = { kind: 'global', startHues, delta: 0, lastAngle: a, angle: a };
+  }
+  function applyGlobal(e: PointerEvent) {
+    if (drag?.kind !== 'global') return;
+    const a = pointerAngle(e);
+    drag.delta += angleDelta(a, drag.lastAngle);
+    drag.lastAngle = a;
+    drag.angle = a;
+    for (const label of TRIO_LABELS) setBaseHue(label, drag.startHues[label] + drag.delta);
+  }
+
+  // Rail-constrained chroma — 1D radial along the fixed-hue rail.
+  function startChromaDrag(e: PointerEvent, label: string) {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    onSelect(label);
+    capture(e);
+    openGesture(`colors: ${label} chroma`);
+    const t = trio.find((x) => x.label === label);
+    drag = { kind: 'chroma', label, rFrac: t?.rFrac ?? 0 };
+    applyChroma(e);
+  }
+  function applyChroma(e: PointerEvent) {
+    if (drag?.kind !== 'chroma') return;
+    const label = drag.label;
+    const t = trio.find((x) => x.label === label);
+    if (!t) return;
+    const r = wrapper!.getBoundingClientRect();
+    const dx = e.clientX - (r.left + r.width / 2);
+    const dy = e.clientY - (r.top + r.height / 2);
+    const proj = dx * Math.cos(rad(t.hue)) - dy * Math.sin(rad(t.hue)); // onto the rail
+    const rFrac = clamp(proj / (r.width / 2 - MARGIN), 0, 1);
+    drag.rFrac = rFrac;
+    setBaseChroma(label, rFrac * maxChroma(t.lightness, t.hue));
+  }
+
+  function moveDrag(e: PointerEvent) {
+    if (!drag) return;
+    if (drag.kind === 'axis') applyAxis(e);
+    else if (drag.kind === 'global') applyGlobal(e);
+    else applyChroma(e);
+  }
+
+  function rotateAll(delta: number) {
+    const patch: Record<string, string> = {};
+    for (const t of trio) {
+      const { l, c } = hexToOklch(t.hex);
+      patch[t.label] = oklchToHex(l, c, normDeg(t.hue + delta));
+    }
+    setBaseColors(patch, 'colors: rotate all');
+  }
+
+  function axisKey(e: KeyboardEvent, label: string) {
+    const t = trio.find((x) => x.label === label);
+    if (!t) return;
+    if (e.key === 'ArrowLeft') { e.preventDefault(); onCustomize(); setBaseHue(label, t.hue - HUE_STEP); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); onCustomize(); setBaseHue(label, t.hue + HUE_STEP); }
+  }
+  function dotKey(e: KeyboardEvent, label: string) {
+    const t = trio.find((x) => x.label === label);
+    if (!t) return;
+    if (e.key === 'ArrowUp') { e.preventDefault(); setBaseChroma(label, t.chroma + CHROMA_STEP); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); setBaseChroma(label, t.chroma - CHROMA_STEP); }
+  }
+  function globalKey(e: KeyboardEvent) {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); rotateAll(-HUE_STEP); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); rotateAll(HUE_STEP); }
   }
 
   onDestroy(() => {
@@ -227,40 +288,68 @@
       cancelScope(dragScope);
       dragScope = null;
     }
-    if (typeof window !== 'undefined') window.removeEventListener('keydown', onDragKey, true);
+    if (typeof window !== 'undefined') window.removeEventListener('keydown', onGestureKey, true);
   });
 </script>
 
 <div class="wheel" bind:this={wrapper} style="max-width: {MAX_SIZE}px">
-  <canvas
-    class="disc"
-    bind:this={canvas}
-    aria-hidden="true"
-    onpointerdown={startDiscDrag}
-    onpointermove={moveDrag}
-    onpointerup={endDrag}
-    onpointercancel={endDrag}
-    onlostpointercapture={endDrag}
-  ></canvas>
-  <div class="neutral-ring" style="width: {neutralRingDiameter}px; height: {neutralRingDiameter}px" aria-hidden="true"></div>
-  {#each handles as hd (hd.label)}
-    {@const dp = dragLabel === hd.label ? dragPos : null}
+  <canvas class="disc" bind:this={canvas} aria-hidden="true" style="width: {discDiameter}px; height: {discDiameter}px"></canvas>
+
+  <svg class="rails" viewBox="0 0 {wrapperSize} {wrapperSize}" width={wrapperSize} height={wrapperSize} aria-hidden="true">
+    {#each trioRender as t (t.label)}
+      <line class="rail" x1={center} y1={center} x2={t.dot.x} y2={t.dot.y} />
+    {/each}
+  </svg>
+
+  {#each trioRender as t (t.label)}
     <button
       type="button"
-      class="handle"
-      class:selected={selected === hd.label}
-      style="left: {dp ? dp.x : hd.x}px; top: {dp ? dp.y : hd.y}px; --handle-fill: {hd.hex}"
-      aria-label={`${hd.label} seed — hue ${Math.round(hd.hue)}°, chroma ${hd.chroma.toFixed(3)}`}
-      title={hd.label}
-      onpointerdown={(e) => startHandleDrag(e, hd.label)}
+      class="dot"
+      class:selected={t.selected}
+      style="left: {t.dot.x}px; top: {t.dot.y}px; --fill: {t.hex}"
+      aria-label={`${t.label} — drag along rail to adjust chroma`}
+      title={`${t.label} (drag for chroma)`}
+      onpointerdown={(e) => startChromaDrag(e, t.label)}
       onpointermove={moveDrag}
       onpointerup={endDrag}
       onpointercancel={endDrag}
       onlostpointercapture={endDrag}
-      onkeydown={(e) => nudge(e, hd.label)}
-      onclick={() => onSelect(hd.label)}
+      onkeydown={(e) => dotKey(e, t.label)}
+      onclick={() => onSelect(t.label)}
     ></button>
   {/each}
+
+  {#each trioRender as t (t.label)}
+    <button
+      type="button"
+      class="ext-handle"
+      class:selected={t.selected}
+      style="left: {t.ext.x}px; top: {t.ext.y}px"
+      aria-label={`Rotate ${t.label} hue`}
+      title={`Rotate ${t.label} hue`}
+      onpointerdown={(e) => startAxisDrag(e, t.label)}
+      onpointermove={moveDrag}
+      onpointerup={endDrag}
+      onpointercancel={endDrag}
+      onlostpointercapture={endDrag}
+      onkeydown={(e) => axisKey(e, t.label)}
+      onclick={() => onSelect(t.label)}
+    ><i class="fas fa-arrows-left-right" aria-hidden="true"></i></button>
+  {/each}
+
+  <button
+    type="button"
+    class="global-handle"
+    style="left: {globalHandle.x}px; top: {globalHandle.y}px"
+    aria-label="Rotate all harmony colors together"
+    title="Rotate all together"
+    onpointerdown={startGlobalDrag}
+    onpointermove={moveDrag}
+    onpointerup={endDrag}
+    onpointercancel={endDrag}
+    onlostpointercapture={endDrag}
+    onkeydown={globalKey}
+  ><i class="fas fa-arrows-rotate" aria-hidden="true"></i></button>
 </div>
 
 <style>
@@ -273,57 +362,106 @@
   }
 
   .disc {
-    display: block;
-    width: 100%;
-    height: 100%;
-    border-radius: var(--ui-radius-full);
-    border: 1px solid var(--ui-border-low);
-    cursor: crosshair;
-  }
-
-  /* Visual guide only — the low-chroma "neutral zone". Never clamps. */
-  .neutral-ring {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     border-radius: var(--ui-radius-full);
-    border: 1px dashed var(--ui-border);
-    opacity: 0.4;
+    border: 1px solid var(--ui-border-low);
+  }
+
+  .rails {
+    position: absolute;
+    inset: 0;
     pointer-events: none;
   }
 
-  /* Clean white-ringed dots (Canva-style), fill = the actual seed colour. */
-  .handle {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    width: 0.85rem;
-    height: 0.85rem;
-    padding: 0;
-    border-radius: var(--ui-radius-full);
-    background: var(--handle-fill);
-    border: 2px solid var(--ui-text-primary);
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.5);
-    cursor: grab;
-    touch-action: none;
-    transition: width var(--ui-transition-fast), height var(--ui-transition-fast);
+  .rail {
+    stroke: var(--ui-text-primary);
+    stroke-width: 1.5;
+    opacity: 0.65;
   }
 
-  .handle:active {
+  /* Inner color dots — the only elements that carry actual palette colour. */
+  .dot {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 1rem;
+    height: 1rem;
+    padding: 0;
+    border-radius: var(--ui-radius-full);
+    background: var(--fill);
+    border: 2px solid var(--ui-text-primary);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.5);
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .dot.selected {
+    width: 1.35rem;
+    height: 1.35rem;
+    border-width: 3px;
+    z-index: 2;
+  }
+
+  .dot:active {
     cursor: grabbing;
   }
 
-  .handle:focus-visible {
-    outline: 2px solid var(--ui-border-higher);
-    outline-offset: 2px;
+  /* External rotate handles — greyscale chrome. */
+  .ext-handle,
+  .global-handle {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: var(--ui-radius-full);
+    background: var(--ui-surface-low);
+    color: var(--ui-text-secondary);
+    border: 1px solid var(--ui-border-high);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+    cursor: grab;
+    touch-action: none;
+    z-index: 3;
   }
 
-  /* Selected/base family: larger, emphasised ring. */
-  .handle.selected {
-    width: 1.4rem;
-    height: 1.4rem;
-    border-width: 3px;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.55);
-    z-index: 1;
+  .ext-handle {
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: var(--ui-font-size-xs);
+  }
+
+  .global-handle {
+    width: 1.6rem;
+    height: 1.6rem;
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-primary);
+    border-color: var(--ui-border-higher);
+  }
+
+  .ext-handle:hover,
+  .global-handle:hover {
+    color: var(--ui-text-primary);
+    border-color: var(--ui-border-higher);
+    background: var(--ui-surface-high);
+  }
+
+  .ext-handle:active,
+  .global-handle:active {
+    cursor: grabbing;
+  }
+
+  .ext-handle.selected {
+    color: var(--ui-text-primary);
+    border-color: var(--ui-text-primary);
+  }
+
+  .dot:focus-visible,
+  .ext-handle:focus-visible,
+  .global-handle:focus-visible {
+    outline: 2px solid var(--ui-border-higher);
+    outline-offset: 2px;
   }
 </style>

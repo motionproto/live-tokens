@@ -14,11 +14,13 @@
 import { hexToOklch, oklchToHex, gamutClamp } from '../../core/palettes/oklch';
 import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
 import { defaultPaletteConfig } from '../palette/paletteMath';
-import { mutate } from '../../core/store/editorStore';
+import { mutate, transaction } from '../../core/store/editorStore';
 import type { EditorState } from '../../core/store/editorTypes';
 import type { PaletteConfig } from '../../core/themes/themeTypes';
 
 const SPEC_BY_LABEL: Record<string, PaletteSpec> = Object.fromEntries(PALETTE_SPECS.map((s) => [s.label, s]));
+
+const normHue = (d: number) => ((d % 360) + 360) % 360;
 
 function ensureConfig(s: EditorState, label: string): PaletteConfig {
   let cfg = s.palettes[label];
@@ -49,5 +51,34 @@ export function setBaseHueChroma(label: string, hue: number, chroma: number): vo
     const { l } = hexToOklch(cfg.baseColor);
     const g = gamutClamp(l, chroma, hue);
     cfg.baseColor = oklchToHex(g.l, g.c, g.h);
+  });
+}
+
+/** Rotate a seed's hue only — chroma and lightness preserved (harmony rotation,
+ *  external rotate handles). Mirrors colorHarmony's `reHue`. */
+export function setBaseHue(label: string, hue: number): void {
+  mutate(`colors: ${label} hue`, (s) => {
+    const cfg = ensureConfig(s, label);
+    const { l, c } = hexToOklch(cfg.baseColor);
+    cfg.baseColor = oklchToHex(l, c, normHue(hue));
+  });
+}
+
+/** Set a seed's chroma only — hue and lightness preserved (rail-constrained drag). */
+export function setBaseChroma(label: string, chroma: number): void {
+  mutate(`colors: ${label} chroma`, (s) => {
+    const cfg = ensureConfig(s, label);
+    const { l, h } = hexToOklch(cfg.baseColor);
+    const g = gamutClamp(l, Math.max(0, chroma), h);
+    cfg.baseColor = oklchToHex(g.l, g.c, g.h);
+  });
+}
+
+/** Set several seed colors in ONE undo entry (harmony apply, global rotate). */
+export function setBaseColors(patch: Record<string, string>, historyLabel = 'colors: harmony'): void {
+  transaction(historyLabel, (s) => {
+    for (const [label, hex] of Object.entries(patch)) {
+      ensureConfig(s, label).baseColor = hex;
+    }
   });
 }

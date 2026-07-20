@@ -2,17 +2,35 @@
   import { hexToOklch } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginSliderGesture } from '../../core/store/editorStore';
+  import { applyHarmony, type HarmonyMode } from '../../core/palettes/colorHarmony';
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import ColorWheel from './ColorWheel.svelte';
   import ColorReadouts from './ColorReadouts.svelte';
-  import { setBaseColor, oklchToHexClamped } from './paletteBaseColor';
+  import { setBaseColor, setBaseColors, oklchToHexClamped } from './paletteBaseColor';
 
   const WHEEL_LABELS = ['Brand', 'Accent', 'Background', 'Neutral', 'Alternate'];
 
+  // Greyscale glyphs approximating the Adobe harmony row (trio = Brand/Background/Accent).
+  const MODES: { mode: HarmonyMode; icon: string; label: string }[] = [
+    { mode: 'analogous', icon: 'fa-grip-lines-vertical', label: 'Analogous' },
+    { mode: 'monochromatic', icon: 'fa-circle', label: 'Monochromatic' },
+    { mode: 'complementary', icon: 'fa-circle-half-stroke', label: 'Complementary' },
+    { mode: 'split-complementary', icon: 'fa-code-branch', label: 'Split complementary' },
+    { mode: 'triadic', icon: 'fa-caret-up', label: 'Triadic' },
+    { mode: 'square', icon: 'fa-square', label: 'Square' },
+  ];
+
   let selected = $state('Brand');
+  let activeMode = $state<HarmonyMode>('custom');
 
   function select(label: string) {
     selected = label;
+  }
+
+  function applyMode(mode: HarmonyMode) {
+    activeMode = mode;
+    const patch = applyHarmony(mode, $editorState.palettes);
+    if (Object.keys(patch).length) setBaseColors(patch, `colors: harmony ${mode}`);
   }
 
   let swatches = $derived(
@@ -37,12 +55,28 @@
         <h2 class="title">Color Wheel</h2>
       </header>
 
-      <ColorWheel {selected} onSelect={select} discLightness={selectedOklch.l} />
+      <ColorWheel
+        {selected}
+        onSelect={select}
+        discLightness={selectedOklch.l}
+        onCustomize={() => (activeMode = 'custom')}
+      />
 
-      <!-- Wave 5 seam: harmony mode row (complementary / triadic / … ). -->
-      <div class="seam" data-wave5="harmony-row">
-        <i class="fas fa-shapes" aria-hidden="true"></i>
-        <span>Harmony modes — Wave 5</span>
+      <div class="group">
+        <span class="eyebrow">Harmony{#if activeMode === 'custom'} · custom{/if}</span>
+        <div class="mode-row" role="group" aria-label="Harmony mode">
+          {#each MODES as m (m.mode)}
+            <button
+              type="button"
+              class="mode-btn"
+              class:active={activeMode === m.mode}
+              title={m.label}
+              aria-label={m.label}
+              aria-pressed={activeMode === m.mode}
+              onclick={() => applyMode(m.mode)}
+            ><i class="fas {m.icon}" aria-hidden="true"></i></button>
+          {/each}
+        </div>
       </div>
 
       <div class="group">
@@ -143,6 +177,40 @@
     flex-direction: column;
     gap: var(--ui-space-8);
     min-width: 0;
+  }
+
+  .mode-row {
+    display: flex;
+    gap: var(--ui-space-6);
+    flex-wrap: wrap;
+  }
+
+  .mode-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    background: var(--ui-surface-lowest);
+    border: 1px solid var(--ui-border-low);
+    border-radius: var(--ui-radius-md);
+    color: var(--ui-text-secondary);
+    cursor: pointer;
+    font-size: var(--ui-font-size-md);
+    transition: background var(--ui-transition-fast), border-color var(--ui-transition-fast), color var(--ui-transition-fast);
+  }
+
+  .mode-btn:hover {
+    background: var(--ui-surface-low);
+    border-color: var(--ui-border);
+    color: var(--ui-text-primary);
+  }
+
+  .mode-btn.active {
+    border-color: var(--ui-text-primary);
+    color: var(--ui-text-primary);
+    background: var(--ui-surface-high);
   }
 
   .seam {
