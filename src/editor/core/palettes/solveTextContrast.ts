@@ -6,14 +6,17 @@
 // window (passed as `lMax`) and emits a 5-anchor lightness curve whose sample
 // at each step x reproduces the solved L; a companion saturation curve pins the
 // solved (possibly chroma-decayed) chroma so the round-trip is exact. Surface
-// and page hexes come from the real `palettesToVars` derivation.
+// and page colors come from the real `palettesToValues` derivation (numeric
+// OKLCH); the solver converts to hex only at its own sRGB (WCAG) boundary.
 
-import { hexToOklch } from './oklch';
+import { hexToOklch, oklchToHex } from './oklch';
 import {
-  palettesToVars,
+  palettesToValues,
+  serializeDerivedValue,
   PALETTE_SPECS,
   scaleToCssVar,
   defaultScaleCurves,
+  type DerivedValue,
   type SchemeDirection,
 } from './paletteDerivation';
 import { findLForContrast, contrastRatio } from './contrast';
@@ -38,8 +41,6 @@ export interface TextSolveResult {
   cssVarOverrides: Record<string, string>;
   report: ContrastPairing[];
 }
-
-const HEX_RE = /^#[0-9a-f]{6}$/i;
 
 const TEXT_STEPS: { name: string; x: number }[] = [
   { name: 'primary', x: 0 },
@@ -86,19 +87,30 @@ const CHROMATIC_PLAN: Record<string, StepPlan> = {
 
 interface Surface {
   var: string;
-  hex: string;
+  l: number;
+  c: number;
+  h: number;
+}
+
+function colorSurface(varName: string, value: DerivedValue | undefined): Surface | null {
+  return value?.kind === 'color' ? { var: varName, l: value.l, c: value.c, h: value.h } : null;
+}
+
+// The solver terminates in sRGB (WCAG luminance is sRGB-defined); convert the
+// numeric surface to hex only at this boundary.
+function surfaceHex(s: Surface): string {
+  return oklchToHex(s.l, s.c, s.h);
 }
 
 // The hardest surface to clear: for lighter text the highest-luminance surface,
 // for darker text the lowest.
 function pickAdverse(surfaces: Surface[], direction: 'lighter' | 'darker'): Surface {
   let best = surfaces[0];
-  let bestL = hexToOklch(best.hex).l;
+  let bestL = best.l;
   for (const s of surfaces.slice(1)) {
-    const l = hexToOklch(s.hex).l;
-    if (direction === 'lighter' ? l > bestL : l < bestL) {
+    if (direction === 'lighter' ? s.l > bestL : s.l < bestL) {
       best = s;
-      bestL = l;
+      bestL = s.l;
     }
   }
   return best;
@@ -108,18 +120,18 @@ export function solveTextCurves(
   palettes: Record<string, PaletteConfig>,
   scheme?: SchemeDirection,
 ): TextSolveResult {
-  const vars = palettesToVars(palettes);
-  const surfaceDefault: Surface = { var: '--surface-neutral', hex: vars['--surface-neutral'] };
-  const rawPageBg = vars['--page-bg'];
-  const pageBg: Surface = HEX_RE.test(rawPageBg ?? '')
-    ? { var: '--page-bg', hex: rawPageBg }
+  const values = palettesToValues(palettes);
+  const surfaceDefault = colorSurface('--surface-neutral', values['--surface-neutral'])!;
+  const rawPageBg = values['--page-bg'];
+  const pageBg: Surface = rawPageBg?.kind === 'color'
+    ? colorSurface('--page-bg', rawPageBg)!
     : surfaceDefault;
   const band: Surface[] = NEUTRAL_BAND
-    .map((v) => ({ var: v, hex: vars[v] }))
-    .filter((s) => HEX_RE.test(s.hex ?? ''));
+    .map((v) => colorSurface(v, values[v]))
+    .filter((s): s is Surface => s !== null);
 
   const resolvedScheme: SchemeDirection =
-    scheme ?? (hexToOklch(pageBg.hex).l >= 0.5 ? 'light' : 'dark');
+    scheme ?? (pageBg.l >= 0.5 ? 'light' : 'dark');
   const direction: 'lighter' | 'darker' = resolvedScheme === 'light' ? 'darker' : 'lighter';
 
   const bandAdverse = pickAdverse(band, direction);
@@ -159,7 +171,7 @@ export function solveTextCurves(
       const stepChroma = baseC * origSatMul;
 
       const solved = findLForContrast({
-        against: against.hex,
+        against: surfaceHex(against),
         ratio: stepPlan.ratio,
         direction,
         c: stepChroma,
@@ -181,7 +193,7 @@ export function solveTextCurves(
 
   // Report against the actually-derived text hexes (post-round-trip verification
   // at the solver level, mirroring Global invariant 8).
-  const derivedVars = palettesToVars(applyPatches(palettes, patches));
+  const derivedValues = palettesToValues(applyPatches(palettes, patches));
   for (const spec of PALETTE_SPECS) {
     if (!patches[spec.label]) continue;
     const isNeutral = spec.label === 'Neutral';
@@ -193,9 +205,10 @@ export function solveTextCurves(
       const against =
         stepPlan.target === 'band' ? bandAdverse :
         stepPlan.target === 'worst' ? worstAdverse : surfaceDefault;
-      const textHex = derivedVars[textVar];
-      const againstHex = derivedVars[against.var] ?? against.hex;
-      const achieved = HEX_RE.test(textHex ?? '') ? contrastRatio(textHex, againstHex) : 1;
+      const textValue = derivedValues[textVar];
+      const againstValue = derivedValues[against.var];
+      const againstHex = againstValue?.kind === 'color' ? serializeDerivedValue(againstValue) : surfaceHex(against);
+      const achieved = textValue?.kind === 'color' ? contrastRatio(serializeDerivedValue(textValue), againstHex) : 1;
       report.push({
         family: spec.label,
         step: step.name,

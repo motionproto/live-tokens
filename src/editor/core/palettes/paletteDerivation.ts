@@ -13,7 +13,7 @@
  * derives the same CSS vars from the persisted config.
  */
 
-import { hexToOklch, oklchToHex, gamutClamp } from './oklch';
+import { hexToOklch, oklchToHex, gamutClamp, type Oklch } from './oklch';
 import { type CurveAnchor, sampleCurve, makeAnchor } from '../../ui/curveEngine';
 import type { PaletteConfig } from '../themes/themeTypes';
 
@@ -169,29 +169,47 @@ export function scaleStepToX(step: Step, scale: Scale): number {
   return scale.steps.length > 1 ? (idx / (scale.steps.length - 1)) * 100 : 50;
 }
 
-export function computePaletteColor(
+/**
+ * Typed intermediate representation for a derived CSS-variable value. The
+ * derived-vars map is heterogeneous — colors, but also gradient strings
+ * (`--page-bg`) and keywords (`--page-bg-attachment`) — so derivation and
+ * serialization are split: derivation yields this IR (`palettesToValues`),
+ * `serializeDerivedValue` renders it to a CSS string. `color` carries numeric
+ * OKLCH intent (gamut-clamped at derivation, the projection-only clamp point);
+ * `raw` carries a verbatim CSS string.
+ */
+export type DerivedValue =
+  | { kind: 'color'; l: number; c: number; h: number }
+  | { kind: 'raw'; css: string };
+
+/** The single color → CSS-string projection. Hex this wave; `oklch()` after
+ *  Part B. `raw` passes through untouched. */
+export function serializeDerivedValue(value: DerivedValue): string {
+  return value.kind === 'raw' ? value.css : oklchToHex(value.l, value.c, value.h);
+}
+
+export function computePaletteOklch(
   index: number,
   base: string,
   lightnessCurve: CurveAnchor[],
   saturationCurve: CurveAnchor[],
   curveOffset: Record<string, number>,
-): string {
+): Oklch {
   const { c: baseC, h } = hexToOklch(base);
   const xPos = stepIndexToX(index);
   const targetL = Math.max(0, Math.min(100, sampleCurve(lightnessCurve, xPos) + (curveOffset.lightness ?? 0))) / 100;
   const satMul = Math.max(0, Math.min(2, (sampleCurve(saturationCurve, xPos) + (curveOffset.saturation ?? 0)) / 100));
   const targetC = baseC * satMul;
-  const clamped = gamutClamp(targetL, targetC, h);
-  return oklchToHex(clamped.l, clamped.c, clamped.h);
+  return gamutClamp(targetL, targetC, h);
 }
 
-export function computeDerivedColor(
+export function computeDerivedOklch(
   step: Step,
   base: string,
   scaleTitle: string,
   scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }>,
   curveOffset: Record<string, number>,
-): string {
+): Oklch {
   const scale = SCALES.find((s) => s.title === scaleTitle)!;
   const xPos = scaleStepToX(step, scale);
   const defs = defaultScaleCurves[scaleTitle];
@@ -209,8 +227,27 @@ export function computeDerivedColor(
   }
   const satMul = Math.max(0, Math.min(2, (sampleCurve(sCurve, xPos) + sOff) / 100));
   const targetC = baseC * satMul;
-  const clamped = gamutClamp(targetL, targetC, baseH);
-  return oklchToHex(clamped.l, clamped.c, clamped.h);
+  return gamutClamp(targetL, targetC, baseH);
+}
+
+export function computePaletteColor(
+  index: number,
+  base: string,
+  lightnessCurve: CurveAnchor[],
+  saturationCurve: CurveAnchor[],
+  curveOffset: Record<string, number>,
+): string {
+  return serializeDerivedValue({ kind: 'color', ...computePaletteOklch(index, base, lightnessCurve, saturationCurve, curveOffset) });
+}
+
+export function computeDerivedColor(
+  step: Step,
+  base: string,
+  scaleTitle: string,
+  scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }>,
+  curveOffset: Record<string, number>,
+): string {
+  return serializeDerivedValue({ kind: 'color', ...computeDerivedOklch(step, base, scaleTitle, scaleCurves, curveOffset) });
 }
 
 export function scaleToCssVar(scaleTitle: string, stepName: string, cssNamespace: string | null): string | null {
@@ -230,8 +267,8 @@ export function scaleToCssVar(scaleTitle: string, stepName: string, cssNamespace
   return null;
 }
 
-export function derivePaletteVars(spec: PaletteSpec, config: PaletteConfig | undefined): Record<string, string> {
-  const out: Record<string, string> = {};
+export function derivePaletteValues(spec: PaletteSpec, config: PaletteConfig | undefined): Record<string, DerivedValue> {
+  const out: Record<string, DerivedValue> = {};
   if (!config) return out;
 
   const baseColor = config.baseColor ?? spec.initialColor;
@@ -243,19 +280,21 @@ export function derivePaletteVars(spec: PaletteSpec, config: PaletteConfig | und
 
   PALETTE_STEPS.forEach((ps, index) => {
     const k = paletteStepKey(ps.label);
-    const hex = computePaletteColor(index, baseColor, lightnessCurve, saturationCurve, curveOffset);
-    const effective = (k in overrides) ? overrides[k] : hex;
-    out[`--color-${spec.cssNamespace}-${ps.label}`] = effective;
+    // Overrides are hex strings this wave; parse to color-kind at the boundary.
+    const value: DerivedValue = (k in overrides)
+      ? { kind: 'color', ...hexToOklch(overrides[k]) }
+      : { kind: 'color', ...computePaletteOklch(index, baseColor, lightnessCurve, saturationCurve, curveOffset) };
+    out[`--color-${spec.cssNamespace}-${ps.label}`] = value;
   });
 
   for (const scale of SCALES) {
     for (const step of scale.steps) {
       const k = stepKey(scale.title, step.name);
-      const hex = (k in overrides)
-        ? overrides[k]
-        : computeDerivedColor(step, baseColor, scale.title, scaleCurves, curveOffset);
+      const value: DerivedValue = (k in overrides)
+        ? { kind: 'color', ...hexToOklch(overrides[k]) }
+        : { kind: 'color', ...computeDerivedOklch(step, baseColor, scale.title, scaleCurves, curveOffset) };
       const varName = scaleToCssVar(scale.title, step.name, spec.cssNamespace);
-      if (varName) out[varName] = hex;
+      if (varName) out[varName] = value;
     }
   }
 
@@ -272,15 +311,21 @@ export function derivePaletteVars(spec: PaletteSpec, config: PaletteConfig | und
     ];
 
     if (emptyMode === 'solid') {
-      const stepHex = out[`--color-${spec.cssNamespace}-${emptyStep}`];
-      if (stepHex) out['--page-bg'] = stepHex;
-      out['--page-bg-attachment'] = 'scroll';
+      const stepValue = out[`--color-${spec.cssNamespace}-${emptyStep}`];
+      if (stepValue) out['--page-bg'] = stepValue;
+      out['--page-bg-attachment'] = { kind: 'raw', css: 'scroll' };
     } else {
+      // `--page-bg` is a raw kind composed from the already-serialized step
+      // colors — the gradient string is a projection, not a basis value.
       const sortedStops = [...gradientStops].sort((a, b) =>
         gradientReverse ? b.position - a.position : a.position - b.position,
       );
       const stopsCss = sortedStops
-        .map((s) => `${out[`--color-${spec.cssNamespace}-${s.paletteLabel}`] ?? '#000000'} ${s.position}%`)
+        .map((s) => {
+          const stopValue = out[`--color-${spec.cssNamespace}-${s.paletteLabel}`];
+          const hex = stopValue ? serializeDerivedValue(stopValue) : '#000000';
+          return `${hex} ${s.position}%`;
+        })
         .join(', ');
       let gradient: string;
       switch (gradientStyle) {
@@ -288,18 +333,34 @@ export function derivePaletteVars(spec: PaletteSpec, config: PaletteConfig | und
         case 'conic':  gradient = `conic-gradient(from ${gradientAngle}deg, ${stopsCss})`; break;
         default:       gradient = `linear-gradient(${gradientAngle}deg, ${stopsCss})`;
       }
-      out['--page-bg'] = gradient;
-      out['--page-bg-attachment'] = gradientSize === 'window' ? 'fixed' : 'scroll';
+      out['--page-bg'] = { kind: 'raw', css: gradient };
+      out['--page-bg-attachment'] = { kind: 'raw', css: gradientSize === 'window' ? 'fixed' : 'scroll' };
     }
   }
 
   return out;
 }
 
+export function derivePaletteVars(spec: PaletteSpec, config: PaletteConfig | undefined): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(derivePaletteValues(spec, config))) {
+    out[k] = serializeDerivedValue(v);
+  }
+  return out;
+}
+
+export function palettesToValues(palettes: Record<string, PaletteConfig>): Record<string, DerivedValue> {
+  const out: Record<string, DerivedValue> = {};
+  for (const spec of PALETTE_SPECS) {
+    Object.assign(out, derivePaletteValues(spec, palettes[spec.label]));
+  }
+  return out;
+}
+
 export function palettesToVars(palettes: Record<string, PaletteConfig>): Record<string, string> {
   const out: Record<string, string> = {};
-  for (const spec of PALETTE_SPECS) {
-    Object.assign(out, derivePaletteVars(spec, palettes[spec.label]));
+  for (const [k, v] of Object.entries(palettesToValues(palettes))) {
+    out[k] = serializeDerivedValue(v);
   }
   return out;
 }
