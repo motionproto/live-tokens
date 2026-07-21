@@ -3,7 +3,7 @@
   import { hexToOklch, oklchToHex, gamutClamp } from '../../core/palettes/oklch';
   import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
   import { editorState, beginScope, commitScope, cancelScope, type Scope } from '../../core/store/editorStore';
-  import { setBaseHue, setBaseChroma, setBaseColors } from './paletteBaseColor';
+  import { setBaseHue, setBaseHueChroma, setBaseChroma, setBaseColors } from './paletteBaseColor';
 
   interface Props {
     selected: string | null;
@@ -13,9 +13,12 @@
     /** Called when a per-axis edit detaches the trio from its harmony geometry,
      *  so the parent can flip the active mode to 'custom'. */
     onCustomize: () => void;
+    /** Rotation semantics: off (default) preserves relative saturation (constant
+     *  render radius); on preserves absolute chroma (the dot drifts in/out). */
+    absoluteChroma: boolean;
   }
 
-  let { selected, onSelect, discLightness, onCustomize }: Props = $props();
+  let { selected, onSelect, discLightness, onCustomize, absoluteChroma }: Props = $props();
 
   // The harmony trio, anchored on Brand. Neutral/Alternate/Special stay off the
   // wheel this pass (swatch row only).
@@ -52,9 +55,12 @@
   let discDiameter = $derived(Math.max(1, wrapperSize - 2 * MARGIN));
 
   // ── Transient drag state (POSITION only — the VALUE always rides the store) ──
+  // Rotations capture each family's start hue, gamut-fraction and lightness so a
+  // constant-radius (relative-saturation) rotation can re-fractionalize chroma.
+  type RotateStart = { hue: number; rFrac0: number; l0: number };
   type Drag =
-    | { kind: 'axis'; label: string; angle: number }
-    | { kind: 'global'; startHues: Record<string, number>; delta: number; lastAngle: number; angle: number }
+    | { kind: 'axis'; label: string; angle: number; rFrac0: number; l0: number }
+    | { kind: 'global'; start: Record<string, RotateStart>; delta: number; lastAngle: number; angle: number }
     | { kind: 'chroma'; label: string; rFrac: number };
   let drag: Drag | null = $state(null);
   let dragScope: Scope | null = null;
@@ -75,9 +81,15 @@
       let hue = t.hue;
       let rFrac = t.rFrac;
       const d = drag;
-      if (d?.kind === 'axis' && d.label === t.label) hue = d.angle;
-      else if (d?.kind === 'chroma' && d.label === t.label) rFrac = d.rFrac;
-      else if (d?.kind === 'global') hue = normDeg(d.startHues[t.label] + d.delta);
+      if (d?.kind === 'axis' && d.label === t.label) {
+        hue = d.angle;
+        if (!absoluteChroma) rFrac = d.rFrac0;
+      } else if (d?.kind === 'chroma' && d.label === t.label) {
+        rFrac = d.rFrac;
+      } else if (d?.kind === 'global') {
+        hue = normDeg(d.start[t.label].hue + d.delta);
+        if (!absoluteChroma) rFrac = d.start[t.label].rFrac0;
+      }
       const dotR = rFrac * discRadius;
       return {
         ...t,
@@ -187,7 +199,19 @@
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   }
 
-  // Per-axis rotate — hue only, detaches harmony to custom.
+  const rFracOf = (t: { chroma: number; lightness: number; hue: number }) =>
+    clamp(t.chroma / (maxChroma(t.lightness, t.hue) || 1e-6), 0, 1);
+
+  // The one rotation write. Default (absoluteChroma off) holds the color's
+  // fraction of the gamut constant, so chroma = rFrac0·maxChroma(L, newHue) and
+  // the render radius stays fixed while hue orbits. On preserves absolute chroma
+  // (setBaseHue). Both keep L and ride the single store path; gamut display-only.
+  function writeRotation(label: string, newHue: number, rFrac0: number, l0: number) {
+    if (absoluteChroma) setBaseHue(label, newHue);
+    else setBaseHueChroma(label, newHue, rFrac0 * maxChroma(l0, newHue));
+  }
+
+  // Per-axis rotate — detaches harmony to custom.
   function startAxisDrag(e: PointerEvent, label: string) {
     if (e.button !== 0) return;
     e.preventDefault();
@@ -195,14 +219,15 @@
     onCustomize();
     capture(e);
     openGesture(`colors: ${label} rotate`);
-    drag = { kind: 'axis', label, angle: pointerAngle(e) };
+    const t = trio.find((x) => x.label === label);
+    drag = { kind: 'axis', label, angle: pointerAngle(e), rFrac0: t ? rFracOf(t) : 0, l0: t?.lightness ?? discLightness };
     applyAxis(e);
   }
   function applyAxis(e: PointerEvent) {
     if (drag?.kind !== 'axis') return;
     const angle = pointerAngle(e);
     drag.angle = angle;
-    setBaseHue(drag.label, angle);
+    writeRotation(drag.label, angle, drag.rFrac0, drag.l0);
   }
 
   // Global rotate — all trio hues by the same accumulated delta (mode kept).
@@ -211,10 +236,10 @@
     e.preventDefault();
     capture(e);
     openGesture('colors: rotate all');
-    const startHues: Record<string, number> = {};
-    for (const t of trio) startHues[t.label] = t.hue;
+    const start: Record<string, RotateStart> = {};
+    for (const t of trio) start[t.label] = { hue: t.hue, rFrac0: rFracOf(t), l0: t.lightness };
     const a = pointerAngle(e);
-    drag = { kind: 'global', startHues, delta: 0, lastAngle: a, angle: a };
+    drag = { kind: 'global', start, delta: 0, lastAngle: a, angle: a };
   }
   function applyGlobal(e: PointerEvent) {
     if (drag?.kind !== 'global') return;
@@ -222,7 +247,9 @@
     drag.delta += angleDelta(a, drag.lastAngle);
     drag.lastAngle = a;
     drag.angle = a;
-    for (const label of TRIO_LABELS) setBaseHue(label, drag.startHues[label] + drag.delta);
+    for (const [label, s] of Object.entries(drag.start)) {
+      writeRotation(label, s.hue + drag.delta, s.rFrac0, s.l0);
+    }
   }
 
   // Rail-constrained chroma — 1D radial along the fixed-hue rail.
@@ -260,8 +287,14 @@
   function rotateAll(delta: number) {
     const patch: Record<string, string> = {};
     for (const t of trio) {
-      const { l, c } = hexToOklch(t.hex);
-      patch[t.label] = oklchToHex(l, c, normDeg(t.hue + delta));
+      const newHue = normDeg(t.hue + delta);
+      if (absoluteChroma) {
+        const { l, c } = hexToOklch(t.hex);
+        patch[t.label] = oklchToHex(l, c, newHue);
+      } else {
+        const g = gamutClamp(t.lightness, rFracOf(t) * maxChroma(t.lightness, newHue), newHue);
+        patch[t.label] = oklchToHex(g.l, g.c, g.h);
+      }
     }
     setBaseColors(patch, 'colors: rotate all');
   }
@@ -269,8 +302,13 @@
   function axisKey(e: KeyboardEvent, label: string) {
     const t = trio.find((x) => x.label === label);
     if (!t) return;
-    if (e.key === 'ArrowLeft') { e.preventDefault(); onCustomize(); setBaseHue(label, t.hue - HUE_STEP); }
-    else if (e.key === 'ArrowRight') { e.preventDefault(); onCustomize(); setBaseHue(label, t.hue + HUE_STEP); }
+    let dir = 0;
+    if (e.key === 'ArrowLeft') dir = -1;
+    else if (e.key === 'ArrowRight') dir = 1;
+    else return;
+    e.preventDefault();
+    onCustomize();
+    writeRotation(label, t.hue + dir * HUE_STEP, rFracOf(t), t.lightness);
   }
   function dotKey(e: KeyboardEvent, label: string) {
     const t = trio.find((x) => x.label === label);

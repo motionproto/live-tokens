@@ -22,10 +22,29 @@
 
   let selected = $state('Brand');
   let activeMode = $state<HarmonyMode>('custom');
+  // Local UI only — deliberately NOT stored in PaletteConfig (shape unchanged).
+  let absoluteChroma = $state(false);
+  let infoOpen = $state(false);
+  let infoWrap: HTMLElement | undefined = $state();
 
   function select(label: string) {
     selected = label;
   }
+
+  function toggleInfo() {
+    infoOpen = !infoOpen;
+  }
+
+  // Dismiss the info popover on an outside click. The listener is added after
+  // the opening click has finished propagating, so it never self-closes.
+  $effect(() => {
+    if (!infoOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (infoWrap && !infoWrap.contains(e.target as Node)) infoOpen = false;
+    };
+    document.addEventListener('click', onDoc);
+    return () => document.removeEventListener('click', onDoc);
+  });
 
   function applyMode(mode: HarmonyMode) {
     activeMode = mode;
@@ -57,6 +76,7 @@
 
       <ColorWheel
         {selected}
+        {absoluteChroma}
         onSelect={select}
         discLightness={selectedOklch.l}
         onCustomize={() => (activeMode = 'custom')}
@@ -76,6 +96,30 @@
               onclick={() => applyMode(m.mode)}
             ><i class="fas {m.icon}" aria-hidden="true"></i></button>
           {/each}
+        </div>
+
+        <div class="wheel-opts">
+          <label class="opt">
+            <input type="checkbox" bind:checked={absoluteChroma} />
+            <span>Absolute Chroma</span>
+          </label>
+          <div class="info" bind:this={infoWrap}>
+            <button
+              type="button"
+              class="info-btn"
+              aria-expanded={infoOpen}
+              aria-label="About Absolute Chroma"
+              title="About Absolute Chroma"
+              onclick={toggleInfo}
+            ><i class="fas fa-circle-info" aria-hidden="true"></i></button>
+            {#if infoOpen}
+              <div class="info-box" role="region" aria-label="Absolute Chroma">
+                <strong class="info-title">Absolute Chroma</strong>
+                <p>When on, rotating a color keeps its exact chroma, its colorfulness. The reachable chroma changes from hue to hue, so the handle moves in and out as it orbits.</p>
+                <p>When off, rotating keeps the color's relative saturation, its fraction of the available gamut. The handle stays a constant distance from the center, and colorfulness shifts a little across hues to stay in gamut.</p>
+              </div>
+            {/if}
+          </div>
         </div>
       </div>
 
@@ -211,6 +255,83 @@
     border-color: var(--ui-text-primary);
     color: var(--ui-text-primary);
     background: var(--ui-surface-high);
+  }
+
+  .wheel-opts {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+  }
+
+  .opt {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .opt input {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .info {
+    position: relative;
+    display: flex;
+  }
+
+  .info-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: var(--ui-radius-full);
+    color: var(--ui-text-tertiary);
+    cursor: pointer;
+    font-size: var(--ui-font-size-md);
+    transition: color var(--ui-transition-fast);
+  }
+
+  .info-btn:hover,
+  .info-btn[aria-expanded='true'] {
+    color: var(--ui-text-primary);
+  }
+
+  .info-box {
+    position: absolute;
+    top: calc(100% + var(--ui-space-6));
+    left: 0;
+    z-index: 10;
+    width: 20rem;
+    max-width: 80vw;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-6);
+    padding: var(--ui-space-12);
+    background: var(--ui-surface-low);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-md);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  }
+
+  .info-title {
+    font-size: var(--ui-font-size-md);
+    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-text-primary);
+  }
+
+  .info-box p {
+    margin: 0;
+    font-size: var(--ui-font-size-sm);
+    line-height: 1.5;
+    color: var(--ui-text-secondary);
   }
 
   .seam {
