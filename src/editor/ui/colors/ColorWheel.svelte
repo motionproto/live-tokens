@@ -451,7 +451,7 @@
 
   .rail {
     stroke: var(--ui-text-primary);
-    stroke-width: 1.5;
+    stroke-width: 2;
     opacity: 0.65;
   }
 
