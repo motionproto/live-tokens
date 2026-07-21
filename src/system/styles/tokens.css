@@ -597,11 +597,11 @@
 
   /* Line Heights — leading vocabulary (ratios), named by effect. */
   --line-height-none: 1;
-  --line-height-tighter: 1.1;
-  --line-height-tight: 1.25;
+  --line-height-tightest: 1.1;
+  --line-height-tighter: 1.25;
+  --line-height-tight: 1.35;
   --line-height-normal: 1.5;
-  --line-height-loose: 1.75;
-  --line-height-looser: 2;
+  --line-height-relaxed: 1.75;
 
   /* Letter Spacing — 5-point, symmetric around normal (0). */
   --letter-spacing-tighter: -0.04em;
@@ -615,25 +615,25 @@
   --heading-xl-font-family: var(--font-display);
   --heading-xl-font-size: var(--font-size-4xl);
   --heading-xl-font-weight: var(--font-weight-semibold);
-  --heading-xl-line-height: var(--line-height-tight);
+  --heading-xl-line-height: var(--line-height-tightest);
   --heading-xl-letter-spacing: var(--letter-spacing-normal);
 
   --heading-lg-font-family: var(--font-display);
   --heading-lg-font-size: var(--font-size-2xl);
   --heading-lg-font-weight: var(--font-weight-semibold);
-  --heading-lg-line-height: var(--line-height-tight);
+  --heading-lg-line-height: var(--line-height-tightest);
   --heading-lg-letter-spacing: var(--letter-spacing-normal);
 
   --heading-md-font-family: var(--font-display);
   --heading-md-font-size: var(--font-size-xl);
   --heading-md-font-weight: var(--font-weight-semibold);
-  --heading-md-line-height: var(--line-height-tight);
+  --heading-md-line-height: var(--line-height-tighter);
   --heading-md-letter-spacing: var(--letter-spacing-normal);
 
   --heading-sm-font-family: var(--font-sans);
   --heading-sm-font-size: var(--font-size-lg);
   --heading-sm-font-weight: var(--font-weight-semibold);
-  --heading-sm-line-height: var(--line-height-tight);
+  --heading-sm-line-height: var(--line-height-tighter);
   --heading-sm-letter-spacing: var(--letter-spacing-normal);
 
   --body-md-font-family: var(--font-sans);
@@ -660,7 +660,7 @@
   --eyebrow-font-weight: var(--font-weight-normal);
   --eyebrow-line-height: var(--line-height-normal);
   --eyebrow-letter-spacing: var(--letter-spacing-normal);
-  --eyebrow-text-transform: uppercase;
+  --eyebrow-text-transform: none;
 
   /* Text alternate */
   --text-alternate: #ffffff;
@@ -681,11 +681,6 @@
     --font-size-5xl: 2.25rem;    /* 36px */
     --font-size-6xl: 2.5rem;     /* 40px */
     --font-size-7xl: 3rem;       /* 48px */
-
-    /* Display-size headings want tighter leading than the scale's smallest
-       ratio (1.25); re-point here so the style token stays the single source. */
-    --heading-xl-line-height: var(--line-height-tighter);
-    --heading-lg-line-height: var(--line-height-tighter);
   }
 }
 

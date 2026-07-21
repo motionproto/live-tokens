@@ -492,7 +492,7 @@
 
   .prose {
     font-size: var(--font-size-md, 1rem);
-    line-height: var(--line-height-loose, 1.65);
+    line-height: var(--line-height-relaxed, 1.65);
   }
   .md-snippet {
     margin: 0 0 var(--space-20, 1.25rem);

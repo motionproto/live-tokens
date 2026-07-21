@@ -25,7 +25,7 @@ describe('runTokensCssMigrations', () => {
     }
   });
 
-  it('renames the size-vocabulary line-height scale to leading vocabulary and adds tighter', () => {
+  it('reshapes the size-vocabulary line-height scale to leading vocabulary and retires the 2.0 slot', () => {
     // Old names built dynamically so the deprecated vocabulary never appears as
     // a literal here (Wave 1 invariant: no stale --line-height-{xs..xl} in src).
     const oldSteps = ['xs', 'sm', 'md', 'lg', 'xl'];
@@ -38,20 +38,23 @@ describe('runTokensCssMigrations', () => {
     expect(applied).toContain('2026-07-20-line-height-rename');
     for (const decl of [
       '--line-height-none: 1;',
-      '--line-height-tighter: 1.1;',
-      '--line-height-tight: 1.25;',
+      '--line-height-tightest: 1.1;',
+      '--line-height-tighter: 1.25;',
+      '--line-height-tight: 1.35;',
       '--line-height-normal: 1.5;',
-      '--line-height-loose: 1.75;',
-      '--line-height-looser: 2;',
+      '--line-height-relaxed: 1.75;',
     ]) {
       expect(css).toContain(decl);
     }
     for (const s of oldSteps) expect(css).not.toContain(`--line-height-${s}`);
+    // The old loose/looser names are gone too — the 2.0 slot has no successor.
+    expect(css).not.toContain('--line-height-loose');
+    expect(css).not.toContain('--line-height-looser');
 
     expect(runTokensCssMigrations(css).changed).toBe(false);
   });
 
-  it('adds the semantic text-style bundles and appends the responsive heading re-points', () => {
+  it('adds the semantic text-style bundles with fixed heading leading', () => {
     const { css, applied } = runTokensCssMigrations(LEGACY_TOKENS_CSS);
     expect(applied).toContain('2026-07-20-semantic-text-styles');
     for (const decl of [
@@ -60,19 +63,15 @@ describe('runTokensCssMigrations', () => {
       '--body-md-line-height: var(--line-height-normal);',
       '--code-font-family: var(--font-mono);',
       '--eyebrow-font-size: var(--font-size-sm);',
-      '--eyebrow-text-transform: uppercase;',
+      '--eyebrow-text-transform: none;',
     ]) {
       expect(css).toContain(decl);
     }
 
-    // The base leading sits in the top-level :root; the tightening lands only in
-    // an appended @media block, not at all viewport widths.
-    const mediaAt = css.indexOf('@media');
-    expect(mediaAt).toBeGreaterThan(-1);
-    expect(css.slice(0, mediaAt)).toContain('--heading-xl-line-height: var(--line-height-tight);');
-    const media = css.slice(mediaAt);
-    expect(media).toContain('--heading-xl-line-height: var(--line-height-tighter);');
-    expect(media).toContain('--heading-lg-line-height: var(--line-height-tighter);');
+    // Headings pin their leading at every viewport (no responsive re-point): xl/lg
+    // at `tightest` (1.1), md/sm at `tighter` (1.25).
+    expect(css).toContain('--heading-xl-line-height: var(--line-height-tightest);');
+    expect(css).toContain('--heading-md-line-height: var(--line-height-tighter);');
 
     // Full fold twice = no change.
     expect(runTokensCssMigrations(css).changed).toBe(false);

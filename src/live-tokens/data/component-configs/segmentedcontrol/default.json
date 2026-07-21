@@ -54,7 +54,7 @@
     "--segmentedcontrol-option-small-gap": "--space-6",
     "--segmentedcontrol-option-small-icon-size": "--icon-size-sm",
     "--segmentedcontrol-option-small-text-font-size": "--font-size-sm",
-    "--segmentedcontrol-option-small-text-line-height": "--line-height-tight",
+    "--segmentedcontrol-option-small-text-line-height": "--line-height-tighter",
     "--segmentedcontrol-selected-small-radius": "--radius-sm"
   },
   "config": {},

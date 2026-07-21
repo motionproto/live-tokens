@@ -133,7 +133,7 @@
     --segmentedcontrol-option-small-gap: var(--space-6);
     --segmentedcontrol-option-small-icon-size: var(--icon-size-sm);
     --segmentedcontrol-option-small-text-font-size: var(--font-size-sm);
-    --segmentedcontrol-option-small-text-line-height: var(--line-height-tight);
+    --segmentedcontrol-option-small-text-line-height: var(--line-height-tighter);
     --segmentedcontrol-selected-small-radius: var(--radius-sm);
   }
 

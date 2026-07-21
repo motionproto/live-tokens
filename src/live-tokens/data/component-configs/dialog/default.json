@@ -19,7 +19,7 @@
     "--dialog-title-font-family": "--font-sans",
     "--dialog-title-font-size": "--font-size-2xl",
     "--dialog-title-font-weight": "--font-weight-normal",
-    "--dialog-title-line-height": "--line-height-tight",
+    "--dialog-title-line-height": "--line-height-tighter",
     "--dialog-close-icon": "--text-secondary",
     "--dialog-close-icon-size": "--icon-size-xl",
     "--dialog-body-padding": "--space-16",

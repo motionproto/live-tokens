@@ -100,7 +100,7 @@
 
       <div class="typography-group text-styles-group">
         <h3 class="group-title">Text Styles</h3>
-        <TextStylesSection {liveVersion} />
+        <TextStylesSection />
       </div>
 
       <div class="typography-group">

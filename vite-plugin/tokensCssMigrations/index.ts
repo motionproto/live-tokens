@@ -25,7 +25,6 @@ export {
   collectDefinedTokens,
   collectReferencedTokens,
   ensureScale,
-  appendMediaOverride,
   renameToken,
   removeToken,
   removeTokensMatching,

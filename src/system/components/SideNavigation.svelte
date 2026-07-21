@@ -283,7 +283,7 @@
     --sidenavigation-title-default-label-font-family: var(--font-display);
     --sidenavigation-title-default-label-font-size: var(--font-size-2xl);
     --sidenavigation-title-default-label-font-weight: var(--font-weight-bold);
-    --sidenavigation-title-default-label-line-height: var(--line-height-tight);
+    --sidenavigation-title-default-label-line-height: var(--line-height-tighter);
 
     /* Title — hover */
     --sidenavigation-title-hover-surface: var(--color-transparent);
@@ -296,7 +296,7 @@
     --sidenavigation-title-hover-label-font-family: var(--font-display);
     --sidenavigation-title-hover-label-font-size: var(--font-size-2xl);
     --sidenavigation-title-hover-label-font-weight: var(--font-weight-bold);
-    --sidenavigation-title-hover-label-line-height: var(--line-height-tight);
+    --sidenavigation-title-hover-label-line-height: var(--line-height-tighter);
 
     /* Title — active */
     --sidenavigation-title-active-surface: var(--surface-canvas-low);
@@ -309,7 +309,7 @@
     --sidenavigation-title-active-label-font-family: var(--font-display);
     --sidenavigation-title-active-label-font-size: var(--font-size-2xl);
     --sidenavigation-title-active-label-font-weight: var(--font-weight-bold);
-    --sidenavigation-title-active-label-line-height: var(--line-height-tight);
+    --sidenavigation-title-active-label-line-height: var(--line-height-tighter);
 
     /* Toggle — default */
     --sidenavigation-toggle-default-surface: var(--color-transparent);

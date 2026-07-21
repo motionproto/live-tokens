@@ -188,7 +188,7 @@
     --dialog-title-font-family: var(--font-sans);
     --dialog-title-font-size: var(--font-size-2xl);
     --dialog-title-font-weight: var(--font-weight-normal);
-    --dialog-title-line-height: var(--line-height-tight);
+    --dialog-title-line-height: var(--line-height-tighter);
 
     /* Close icon */
     --dialog-close-icon: var(--text-secondary);

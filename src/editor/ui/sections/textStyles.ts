@@ -4,19 +4,10 @@
  * joins with a kind suffix (`-font-family`, `-font-size`, …) to form each
  * axis variable the editor's pickers target.
  *
- * Editable axes (family/size/weight/letter-spacing) are constant across every
- * style and always get a picker. `lockedAxes` names the axes rendered
- * read-only: line-height is locked in v1 for every style; eyebrow additionally
- * locks text-transform, the only axis that exists on just one style.
+ * Family/size/weight/letter-spacing/line-height are editable on every style.
+ * `hasTextTransform` marks the one style (eyebrow) that also exposes a
+ * text-transform picker — the only axis that exists on just one style.
  */
-
-export type TextStyleAxis =
-  | 'font-family'
-  | 'font-size'
-  | 'font-weight'
-  | 'letter-spacing'
-  | 'line-height'
-  | 'text-transform';
 
 export interface TextStyle {
   name: string;
@@ -26,7 +17,8 @@ export interface TextStyle {
   /** Element (or class) this style is the default for. */
   defaultElement: string;
   preview: string;
-  lockedAxes: TextStyleAxis[];
+  /** Whether this style exposes an editable `-text-transform` axis. */
+  hasTextTransform?: boolean;
 }
 
 export const TEXT_STYLES: TextStyle[] = [
@@ -36,7 +28,6 @@ export const TEXT_STYLES: TextStyle[] = [
     prefix: '--heading-xl',
     defaultElement: 'h1',
     preview: 'Page title',
-    lockedAxes: ['line-height'],
   },
   {
     name: 'heading-lg',
@@ -44,7 +35,6 @@ export const TEXT_STYLES: TextStyle[] = [
     prefix: '--heading-lg',
     defaultElement: 'h2',
     preview: 'Section heading',
-    lockedAxes: ['line-height'],
   },
   {
     name: 'heading-md',
@@ -52,7 +42,6 @@ export const TEXT_STYLES: TextStyle[] = [
     prefix: '--heading-md',
     defaultElement: 'h3',
     preview: 'Subsection heading',
-    lockedAxes: ['line-height'],
   },
   {
     name: 'heading-sm',
@@ -60,7 +49,6 @@ export const TEXT_STYLES: TextStyle[] = [
     prefix: '--heading-sm',
     defaultElement: 'h4',
     preview: 'Minor heading',
-    lockedAxes: ['line-height'],
   },
   {
     name: 'body-md',
@@ -68,7 +56,6 @@ export const TEXT_STYLES: TextStyle[] = [
     prefix: '--body-md',
     defaultElement: 'p',
     preview: 'Body copy for comfortable reading.',
-    lockedAxes: ['line-height'],
   },
   {
     name: 'body-sm',
@@ -76,7 +63,6 @@ export const TEXT_STYLES: TextStyle[] = [
     prefix: '--body-sm',
     defaultElement: 'small',
     preview: 'Captions and secondary text.',
-    lockedAxes: ['line-height'],
   },
   {
     name: 'code',
@@ -84,7 +70,6 @@ export const TEXT_STYLES: TextStyle[] = [
     prefix: '--code',
     defaultElement: 'code',
     preview: 'const total = sum(items);',
-    lockedAxes: ['line-height'],
   },
   {
     name: 'eyebrow',
@@ -92,6 +77,6 @@ export const TEXT_STYLES: TextStyle[] = [
     prefix: '--eyebrow',
     defaultElement: 'eyebrow',
     preview: 'Overline label',
-    lockedAxes: ['line-height', 'text-transform'],
+    hasTextTransform: true,
   },
 ];

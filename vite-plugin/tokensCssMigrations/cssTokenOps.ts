@@ -74,54 +74,6 @@ export function ensureScale(css: string, opts: EnsureScaleOptions): string {
   return lines.join('\n');
 }
 
-export interface MediaOverrideOptions {
-  /** The media query, without the `@media` keyword, e.g. `(max-width: 768px)`. */
-  query: string;
-  /** Declarations to place inside the appended `@media <query> { :root { … } }`. */
-  entries: ScaleEntry[];
-}
-
-/**
- * Append a standalone `@media <query> { :root { … } }` block at end of file.
- *
- * The deliberate counterpart to `ensureScale`, which refuses to write inside an
- * at-rule (see `findInsertionPoint`). This op exists for *responsive re-points*
- * of tokens that already hold a base value in the top-level `:root`: their names
- * are globally "defined", so `ensureScale`'s presence guard would skip them, and
- * even if it didn't it would land the re-point at all viewport widths. A separate
- * same-query `@media` block is valid CSS and simply cascades over the consumer's
- * own responsive block.
- *
- * Idempotent by presence *inside an at-rule*: if any target name is already
- * declared within an `@media` block (a prior run, or a consumer's own override),
- * this is a no-op — so it never duplicates the block or clobbers a consumer value.
- */
-export function appendMediaOverride(css: string, opts: MediaOverrideOptions): string {
-  const inMedia = collectDefinedTokens(collectAtRuleRegions(css));
-  if (opts.entries.some((e) => inMedia.has(e.name))) return css;
-
-  const body = opts.entries.map((e) => `    ${e.name}: ${e.value};`).join('\n');
-  const block = `@media ${opts.query} {\n  :root {\n${body}\n  }\n}\n`;
-  return `${css}${css.endsWith('\n') ? '' : '\n'}\n${block}`;
-}
-
-/** Concatenated source of every `@media { … }` block, for at-rule-scoped scans. */
-function collectAtRuleRegions(css: string): string {
-  let out = '';
-  const re = /@media[^{]*\{/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(css))) {
-    let depth = 1;
-    let i = m.index + m[0].length;
-    for (; i < css.length && depth > 0; i++) {
-      if (css[i] === '{') depth++;
-      else if (css[i] === '}') depth--;
-    }
-    out += css.slice(m.index, i);
-  }
-  return out;
-}
-
 /**
  * Rename a token: rewrites its declaration and every `var()` reference to it.
  * No-op unless the old name is present and the new name is absent (so a

@@ -3,7 +3,6 @@ import {
   collectDefinedTokens,
   collectReferencedTokens,
   ensureScale,
-  appendMediaOverride,
   renameToken,
   removeToken,
   removeTokensMatching,
@@ -140,57 +139,6 @@ describe('ensureScale', () => {
     // Lands inside the :root block (before its closing brace), not appended at EOF.
     const rootClose = out.indexOf('}', out.indexOf(':root'));
     expect(out.indexOf('--line-height-normal')).toBeLessThan(rootClose);
-  });
-});
-
-describe('appendMediaOverride', () => {
-  const opts = {
-    query: '(max-width: 768px)',
-    entries: [
-      { name: '--heading-xl-line-height', value: 'var(--line-height-tighter)' },
-      { name: '--heading-lg-line-height', value: 'var(--line-height-tighter)' },
-    ],
-  };
-
-  it('appends a nested @media :root block, never a top-level declaration', () => {
-    const out = appendMediaOverride(ROOT, opts);
-    const media = out.slice(out.indexOf('@media'));
-    expect(media).toContain('@media (max-width: 768px) {');
-    expect(media).toContain('--heading-xl-line-height: var(--line-height-tighter);');
-    expect(media).toContain('--heading-lg-line-height: var(--line-height-tighter);');
-    // The re-points exist only inside the @media block, not the top-level :root.
-    expect(out.slice(0, out.indexOf('@media'))).not.toContain('--heading-xl-line-height');
-  });
-
-  it('is idempotent — running twice equals running once', () => {
-    const once = appendMediaOverride(ROOT, opts);
-    expect(appendMediaOverride(once, opts)).toBe(once);
-  });
-
-  // The base value in the top-level :root must NOT count as the responsive
-  // re-point; only a declaration already inside an @media block blocks the append.
-  it('ignores a same-named base declaration in the top-level :root', () => {
-    const css = `:root {\n  --heading-xl-line-height: var(--line-height-tight);\n}\n`;
-    const out = appendMediaOverride(css, opts);
-    expect(out).not.toBe(css);
-    expect(out.slice(out.indexOf('@media'))).toContain(
-      '--heading-xl-line-height: var(--line-height-tighter);',
-    );
-  });
-
-  it('no-ops when a target name already lives in an @media block', () => {
-    const css = `:root {
-  --heading-xl-line-height: var(--line-height-tight);
-}
-
-@media (max-width: 768px) {
-  :root {
-    --heading-xl-line-height: var(--line-height-tighter);
-    --heading-lg-line-height: var(--line-height-tighter);
-  }
-}
-`;
-    expect(appendMediaOverride(css, opts)).toBe(css);
   });
 });
 

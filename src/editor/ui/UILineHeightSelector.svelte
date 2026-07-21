@@ -21,11 +21,12 @@
   }: Props = $props();
 
   const options = [
-    { key: 'xs', label: 'Extra Small', value: '1' },
-    { key: 'sm', label: 'Small', value: '1.25' },
-    { key: 'md', label: 'Medium', value: '1.5' },
-    { key: 'lg', label: 'Large', value: '1.75' },
-    { key: 'xl', label: 'Extra Large', value: '2' },
+    { key: 'none', label: 'None', value: '1' },
+    { key: 'tightest', label: 'Tightest', value: '1.1' },
+    { key: 'tighter', label: 'Tighter', value: '1.25' },
+    { key: 'tight', label: 'Tight', value: '1.35' },
+    { key: 'normal', label: 'Normal', value: '1.5' },
+    { key: 'relaxed', label: 'Relaxed', value: '1.75' },
   ] as const;
 </script>
 

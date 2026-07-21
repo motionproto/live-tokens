@@ -79,7 +79,7 @@
       --button-primary-text-font-family: var(--font-sans);
       --button-primary-text-font-size: var(--font-size-lg);
       --button-primary-text-font-weight: var(--font-weight-semibold);
-      --button-primary-text-line-height: var(--line-height-tight);
+      --button-primary-text-line-height: var(--line-height-tighter);
       --button-primary-border: var(--border-brand);
       --button-primary-border-width: var(--border-width-1);
       --button-primary-radius: var(--radius-xl);
@@ -98,7 +98,7 @@
       --button-secondary-text-font-family: var(--font-sans);
       --button-secondary-text-font-size: var(--font-size-lg);
       --button-secondary-text-font-weight: var(--font-weight-semibold);
-      --button-secondary-text-line-height: var(--line-height-tight);
+      --button-secondary-text-line-height: var(--line-height-tighter);
       --button-secondary-border: var(--border-neutral);
       --button-secondary-border-width: var(--border-width-1);
       --button-secondary-radius: var(--radius-xl);
@@ -117,7 +117,7 @@
       --button-outline-text-font-family: var(--font-sans);
       --button-outline-text-font-size: var(--font-size-lg);
       --button-outline-text-font-weight: var(--font-weight-semibold);
-      --button-outline-text-line-height: var(--line-height-tight);
+      --button-outline-text-line-height: var(--line-height-tighter);
       --button-outline-border: var(--border-neutral);
       --button-outline-border-width: var(--border-width-1);
       --button-outline-radius: var(--radius-xl);
@@ -137,7 +137,7 @@
       --button-success-text-font-family: var(--font-sans);
       --button-success-text-font-size: var(--font-size-lg);
       --button-success-text-font-weight: var(--font-weight-semibold);
-      --button-success-text-line-height: var(--line-height-tight);
+      --button-success-text-line-height: var(--line-height-tighter);
       --button-success-border: var(--border-success);
       --button-success-border-width: var(--border-width-1);
       --button-success-radius: var(--radius-xl);
@@ -156,7 +156,7 @@
       --button-danger-text-font-family: var(--font-sans);
       --button-danger-text-font-size: var(--font-size-lg);
       --button-danger-text-font-weight: var(--font-weight-semibold);
-      --button-danger-text-line-height: var(--line-height-tight);
+      --button-danger-text-line-height: var(--line-height-tighter);
       --button-danger-border: var(--border-danger);
       --button-danger-border-width: var(--border-width-1);
       --button-danger-radius: var(--radius-xl);
@@ -175,7 +175,7 @@
       --button-warning-text-font-family: var(--font-sans);
       --button-warning-text-font-size: var(--font-size-lg);
       --button-warning-text-font-weight: var(--font-weight-semibold);
-      --button-warning-text-line-height: var(--line-height-tight);
+      --button-warning-text-line-height: var(--line-height-tighter);
       --button-warning-border: var(--border-warning);
       --button-warning-border-width: var(--border-width-1);
       --button-warning-radius: var(--radius-xl);
@@ -195,7 +195,7 @@
       --button-small-padding: var(--space-6);
       --button-small-text-font-size: var(--font-size-sm);
       --button-small-text-font-weight: var(--font-weight-normal);
-      --button-small-text-line-height: var(--line-height-tight);
+      --button-small-text-line-height: var(--line-height-tighter);
       --button-small-icon-size: var(--font-size-xs);
    }
 

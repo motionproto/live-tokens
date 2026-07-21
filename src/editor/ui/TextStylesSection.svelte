@@ -1,35 +1,11 @@
 <script lang="ts">
-  import { editorState } from '../core/store/editorStore';
   import UIFontFamilySelector from './UIFontFamilySelector.svelte';
   import UIFontSizeSelector from './UIFontSizeSelector.svelte';
   import UIFontWeightSelector from './UIFontWeightSelector.svelte';
   import UILetterSpacingSelector from './UILetterSpacingSelector.svelte';
+  import UILineHeightSelector from './UILineHeightSelector.svelte';
+  import UITextTransformSelector from './UITextTransformSelector.svelte';
   import { TEXT_STYLES } from './sections/textStyles';
-
-  interface Props {
-    /** Bumped by the parent on breakpoint flips so locked values re-resolve
-     *  (heading-xl/lg line-height tightens at ≤768px). */
-    liveVersion?: number;
-  }
-
-  let { liveVersion = 0 }: Props = $props();
-
-  // Locked axes read live from the resolved cascade. liveVersion + $editorState
-  // are touched so the values re-resolve on breakpoint flips and editor edits.
-  let locked = $derived.by(() => {
-    void liveVersion;
-    void $editorState;
-    const out: Record<string, { lineHeight: string; textTransform: string }> = {};
-    if (typeof document === 'undefined') return out;
-    const cs = getComputedStyle(document.documentElement);
-    for (const s of TEXT_STYLES) {
-      out[s.prefix] = {
-        lineHeight: cs.getPropertyValue(`${s.prefix}-line-height`).trim(),
-        textTransform: cs.getPropertyValue(`${s.prefix}-text-transform`).trim(),
-      };
-    }
-    return out;
-  });
 </script>
 
 <div class="text-styles-table">
@@ -40,12 +16,11 @@
     <span class="ts-h h-span2">Size</span>
     <span class="ts-h h-span2">Weight</span>
     <span class="ts-h h-span2">Letter spacing</span>
-    <span class="ts-h">Line height</span>
-    <span class="ts-h">Transform</span>
+    <span class="ts-h h-span2">Line height</span>
+    <span class="ts-h h-span2">Transform</span>
   </div>
 
   {#each TEXT_STYLES as style (style.prefix)}
-    {@const ro = locked[style.prefix]}
     <div class="ts-row">
       <div class="ts-style">
         <code class="ts-name">{style.name}</code>
@@ -54,24 +29,17 @@
 
       <div
         class="ts-preview"
-        style="font-family: var({style.prefix}-font-family); font-size: var({style.prefix}-font-size); font-weight: var({style.prefix}-font-weight); line-height: var({style.prefix}-line-height); letter-spacing: var({style.prefix}-letter-spacing);{style.lockedAxes.includes('text-transform') ? ` text-transform: var(${style.prefix}-text-transform);` : ''}"
+        style="font-family: var({style.prefix}-font-family); font-size: var({style.prefix}-font-size); font-weight: var({style.prefix}-font-weight); line-height: var({style.prefix}-line-height); letter-spacing: var({style.prefix}-letter-spacing);{style.hasTextTransform ? ` text-transform: var(${style.prefix}-text-transform);` : ''}"
       >{style.preview}</div>
 
       <UIFontFamilySelector variable={`${style.prefix}-font-family`} />
       <UIFontSizeSelector variable={`${style.prefix}-font-size`} />
       <UIFontWeightSelector variable={`${style.prefix}-font-weight`} />
       <UILetterSpacingSelector variable={`${style.prefix}-letter-spacing`} />
+      <UILineHeightSelector variable={`${style.prefix}-line-height`} />
 
-      <div class="ts-locked" title="Line height is locked in v1">
-        <i class="fas fa-lock ts-lock-glyph" aria-hidden="true"></i>
-        <span class="ts-locked-value">{ro?.lineHeight ?? ''}</span>
-      </div>
-
-      {#if style.lockedAxes.includes('text-transform')}
-        <div class="ts-locked" title="Text transform is part of the eyebrow style">
-          <i class="fas fa-lock ts-lock-glyph" aria-hidden="true"></i>
-          <span class="ts-locked-value">{ro?.textTransform ?? ''}</span>
-        </div>
+      {#if style.hasTextTransform}
+        <UITextTransformSelector variable={`${style.prefix}-text-transform`} />
       {:else}
         <span class="ts-empty" aria-hidden="true"></span>
       {/if}
@@ -81,7 +49,7 @@
 
 <style>
   /* Single grid template shared by the header and every row (custom prop so
-     the row grids and the header stay column-aligned). Each font picker is a
+     the row grids and the header stay column-aligned). Each picker is a
      subgrid spanning two tracks — trigger + resolved-value meta. */
   .text-styles-table {
     --ts-grid:
@@ -91,8 +59,8 @@
       minmax(4rem, 0.7fr) minmax(2.5rem, max-content)
       minmax(5.5rem, 0.9fr) minmax(2.5rem, max-content)
       minmax(5rem, 0.8fr) minmax(2.5rem, max-content)
-      4.5rem
-      5rem;
+      minmax(5rem, 0.8fr) minmax(2.5rem, max-content)
+      minmax(5rem, 0.8fr) minmax(2.5rem, max-content);
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-6);
@@ -158,29 +126,6 @@
   .ts-preview {
     color: var(--ui-text-primary);
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .ts-locked {
-    display: inline-flex;
-    align-items: baseline;
-    gap: var(--ui-space-6);
-    min-width: 0;
-  }
-
-  .ts-lock-glyph {
-    align-self: center;
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-muted);
-    opacity: 0.55;
-  }
-
-  .ts-locked-value {
-    font-family: var(--ui-font-mono);
-    font-size: var(--ui-font-size-sm);
-    color: var(--ui-text-tertiary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

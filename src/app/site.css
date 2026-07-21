@@ -114,7 +114,7 @@ ul li {
   font-family: var(--font-serif);
   font-size: var(--font-size-md);
   color: var(--text-secondary);
-  line-height: var(--line-height-loose);
+  line-height: var(--line-height-relaxed);
   margin-bottom: var(--space-4);
 }
 

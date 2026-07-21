@@ -42,8 +42,8 @@ export const FONT_WEIGHT_VARS = [
 ] as const;
 
 export const LINE_HEIGHT_VARS = [
-  '--line-height-none', '--line-height-tighter', '--line-height-tight',
-  '--line-height-normal', '--line-height-loose', '--line-height-looser',
+  '--line-height-none', '--line-height-tightest', '--line-height-tighter',
+  '--line-height-tight', '--line-height-normal', '--line-height-relaxed',
 ] as const;
 
 export const LETTER_SPACING_VARS = [
