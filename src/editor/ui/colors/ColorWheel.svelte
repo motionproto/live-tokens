@@ -34,7 +34,6 @@
   const CHROMA_STEP = 0.005;
   const MARGIN = 30;      // ring-to-edge gap that houses the external handles
   const EXT_OFFSET = 20;  // external handle radius beyond the disc rim (room for the dotted tether)
-  const GLOBAL_HOME = 135; // idle angle of the global rotate handle (top-left)
   const MIN_SIZE = 240;
   const MAX_SIZE = 360;
 
@@ -48,6 +47,10 @@
   let wrapperSize = $state(300);
   let wrapper: HTMLDivElement | undefined = $state();
   let canvas: HTMLCanvasElement | undefined = $state();
+  // Parked angle of the global rotate handle — starts top-left, then stays
+  // wherever it was last dragged (session-local). Cosmetic grab-point only:
+  // it never feeds the color math.
+  let globalAngle = $state(135);
 
   let center = $derived(wrapperSize / 2);
   let discRadius = $derived(wrapperSize / 2 - MARGIN);
@@ -111,7 +114,7 @@
 
   let globalHandle = $derived.by(() => {
     const d = drag;
-    const angle = d?.kind === 'global' ? d.angle : GLOBAL_HOME;
+    const angle = d?.kind === 'global' ? d.angle : globalAngle;
     return { x: center + extRadius * Math.cos(rad(angle)), y: center - extRadius * Math.sin(rad(angle)) };
   });
 
@@ -188,6 +191,9 @@
 
   function endDrag() {
     if (!dragScope) return;
+    // Park the global handle where it was dragged (Escape/cancel doesn't reach
+    // here, so a cancelled spin leaves it at its prior spot).
+    if (drag?.kind === 'global') globalAngle = drag.angle;
     commitScope(dragScope);
     dragScope = null;
     drag = null;
