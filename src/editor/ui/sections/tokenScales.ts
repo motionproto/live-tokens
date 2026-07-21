@@ -26,7 +26,7 @@ export const RADIUS_VARS = [
 export const FONT_SIZE_VARS = [
   '--font-size-xs', '--font-size-sm', '--font-size-md', '--font-size-lg',
   '--font-size-xl', '--font-size-2xl', '--font-size-3xl', '--font-size-4xl',
-  '--font-size-5xl', '--font-size-6xl',
+  '--font-size-5xl', '--font-size-6xl', '--font-size-7xl',
 ] as const;
 
 export const ICON_SIZE_VARS = [
@@ -42,8 +42,8 @@ export const FONT_WEIGHT_VARS = [
 ] as const;
 
 export const LINE_HEIGHT_VARS = [
-  '--line-height-xs', '--line-height-sm', '--line-height-md',
-  '--line-height-lg', '--line-height-xl',
+  '--line-height-none', '--line-height-tightest', '--line-height-tighter',
+  '--line-height-tight', '--line-height-normal', '--line-height-relaxed',
 ] as const;
 
 export const LETTER_SPACING_VARS = [

@@ -40,22 +40,22 @@ describe('ensureScale', () => {
       sectionComment: 'Line height',
       anchorPrefixes: ['--line-height-', '--font-size-'],
       entries: [
-        { name: '--line-height-xs', value: '1' },
-        { name: '--line-height-sm', value: '1.25' },
+        { name: '--line-height-none', value: '1' },
+        { name: '--line-height-tight', value: '1.25' },
       ],
     });
-    expect(out).toContain('--line-height-xs: 1;');
-    expect(out).toContain('--line-height-sm: 1.25;');
+    expect(out).toContain('--line-height-none: 1;');
+    expect(out).toContain('--line-height-tight: 1.25;');
     expect(out).toContain('/* Line height */');
     // Placed after the font-size block (the matched anchor), before font-weight.
-    expect(out.indexOf('--line-height-xs')).toBeGreaterThan(out.indexOf('--font-size-lg'));
-    expect(out.indexOf('--line-height-xs')).toBeLessThan(out.indexOf('--font-weight-normal'));
+    expect(out.indexOf('--line-height-none')).toBeGreaterThan(out.indexOf('--font-size-lg'));
+    expect(out.indexOf('--line-height-none')).toBeLessThan(out.indexOf('--font-weight-normal'));
   });
 
   it('is idempotent — running twice equals running once', () => {
     const opts = {
       anchorPrefixes: ['--font-size-'],
-      entries: [{ name: '--line-height-xs', value: '1' }],
+      entries: [{ name: '--line-height-none', value: '1' }],
     };
     const once = ensureScale(ROOT, opts);
     const twice = ensureScale(once, opts);
@@ -110,16 +110,16 @@ describe('ensureScale', () => {
     const out = ensureScale(css, {
       sectionComment: 'Line height',
       anchorPrefixes: ['--line-height-', '--font-size-'],
-      entries: [{ name: '--line-height-md', value: '1.5' }],
+      entries: [{ name: '--line-height-normal', value: '1.5' }],
     });
 
     // Inserted before the top-level :root closes, i.e. before the @media block.
-    expect(out.indexOf('--line-height-md')).toBeLessThan(out.indexOf('@media'));
+    expect(out.indexOf('--line-height-normal')).toBeLessThan(out.indexOf('@media'));
 
     // And the @media block is left structurally intact: its only declaration is
     // still the responsive font-size override.
     const media = out.slice(out.indexOf('@media'));
-    expect(media).not.toContain('--line-height-md');
+    expect(media).not.toContain('--line-height-normal');
     expect(media).toContain('--font-size-6xl: 2.125rem;');
   });
 
@@ -132,13 +132,13 @@ describe('ensureScale', () => {
 `;
     const out = ensureScale(css, {
       anchorPrefixes: ['--font-size-'],
-      entries: [{ name: '--line-height-md', value: '1.5' }],
+      entries: [{ name: '--line-height-normal', value: '1.5' }],
     });
-    expect(out).toContain('--line-height-md: 1.5;');
-    expect(out.indexOf('--line-height-md')).toBeGreaterThan(out.indexOf('--font-size-md'));
+    expect(out).toContain('--line-height-normal: 1.5;');
+    expect(out.indexOf('--line-height-normal')).toBeGreaterThan(out.indexOf('--font-size-md'));
     // Lands inside the :root block (before its closing brace), not appended at EOF.
     const rootClose = out.indexOf('}', out.indexOf(':root'));
-    expect(out.indexOf('--line-height-md')).toBeLessThan(rootClose);
+    expect(out.indexOf('--line-height-normal')).toBeLessThan(rootClose);
   });
 });
 

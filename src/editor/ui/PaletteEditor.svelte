@@ -883,7 +883,12 @@
     position: relative;
   }
 
-  .swatch.gray-swatch:hover {
+  /* Bookends (white/black endpoints) are display-only, not clickable. */
+  .swatch.gray-swatch.bookend {
+    cursor: default;
+  }
+
+  .swatch.gray-swatch:not(.bookend):hover {
     border-color: var(--ui-border-high);
   }
 

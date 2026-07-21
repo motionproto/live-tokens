@@ -53,7 +53,7 @@
     --corner-badge-text-font-family: var(--font-sans);
     --corner-badge-text-font-size: var(--font-size-sm);
     --corner-badge-text-font-weight: var(--font-weight-medium);
-    --corner-badge-text-line-height: var(--line-height-xs);
+    --corner-badge-text-line-height: var(--line-height-none);
 
     /* Per-variant color overrides. Default = inherit the same family/level the
        inner Badge uses; author can swap to a different level (e.g. -low) to

@@ -283,7 +283,7 @@
     --sidenavigation-title-default-label-font-family: var(--font-display);
     --sidenavigation-title-default-label-font-size: var(--font-size-2xl);
     --sidenavigation-title-default-label-font-weight: var(--font-weight-bold);
-    --sidenavigation-title-default-label-line-height: var(--line-height-sm);
+    --sidenavigation-title-default-label-line-height: var(--line-height-tighter);
 
     /* Title — hover */
     --sidenavigation-title-hover-surface: var(--color-transparent);
@@ -296,7 +296,7 @@
     --sidenavigation-title-hover-label-font-family: var(--font-display);
     --sidenavigation-title-hover-label-font-size: var(--font-size-2xl);
     --sidenavigation-title-hover-label-font-weight: var(--font-weight-bold);
-    --sidenavigation-title-hover-label-line-height: var(--line-height-sm);
+    --sidenavigation-title-hover-label-line-height: var(--line-height-tighter);
 
     /* Title — active */
     --sidenavigation-title-active-surface: var(--surface-canvas-low);
@@ -309,7 +309,7 @@
     --sidenavigation-title-active-label-font-family: var(--font-display);
     --sidenavigation-title-active-label-font-size: var(--font-size-2xl);
     --sidenavigation-title-active-label-font-weight: var(--font-weight-bold);
-    --sidenavigation-title-active-label-line-height: var(--line-height-sm);
+    --sidenavigation-title-active-label-line-height: var(--line-height-tighter);
 
     /* Toggle — default */
     --sidenavigation-toggle-default-surface: var(--color-transparent);
@@ -341,7 +341,7 @@
     --sidenavigation-section-default-text-font-family: var(--font-sans);
     --sidenavigation-section-default-text-font-size: var(--font-size-lg);
     --sidenavigation-section-default-text-font-weight: var(--font-weight-medium);
-    --sidenavigation-section-default-text-line-height: var(--line-height-md);
+    --sidenavigation-section-default-text-line-height: var(--line-height-normal);
 
     /* Section header — hover */
     --sidenavigation-section-hover-surface: var(--surface-canvas);
@@ -351,7 +351,7 @@
     --sidenavigation-section-hover-text-font-family: var(--font-sans);
     --sidenavigation-section-hover-text-font-size: var(--font-size-lg);
     --sidenavigation-section-hover-text-font-weight: var(--font-weight-medium);
-    --sidenavigation-section-hover-text-line-height: var(--line-height-md);
+    --sidenavigation-section-hover-text-line-height: var(--line-height-normal);
 
     /* Section header — active (this section's page is the current route) */
     --sidenavigation-section-active-surface: var(--surface-canvas-low);
@@ -361,7 +361,7 @@
     --sidenavigation-section-active-text-font-family: var(--font-sans);
     --sidenavigation-section-active-text-font-size: var(--font-size-lg);
     --sidenavigation-section-active-text-font-weight: var(--font-weight-medium);
-    --sidenavigation-section-active-text-line-height: var(--line-height-md);
+    --sidenavigation-section-active-text-line-height: var(--line-height-normal);
 
     /* Item — default */
     --sidenavigation-item-default-surface: var(--color-transparent);
@@ -372,7 +372,7 @@
     --sidenavigation-item-default-text-font-family: var(--font-sans);
     --sidenavigation-item-default-text-font-size: var(--font-size-md);
     --sidenavigation-item-default-text-font-weight: var(--font-weight-semibold);
-    --sidenavigation-item-default-text-line-height: var(--line-height-md);
+    --sidenavigation-item-default-text-line-height: var(--line-height-normal);
 
     /* Item — hover */
     --sidenavigation-item-hover-surface: var(--surface-canvas);
@@ -383,7 +383,7 @@
     --sidenavigation-item-hover-text-font-family: var(--font-sans);
     --sidenavigation-item-hover-text-font-size: var(--font-size-md);
     --sidenavigation-item-hover-text-font-weight: var(--font-weight-light);
-    --sidenavigation-item-hover-text-line-height: var(--line-height-md);
+    --sidenavigation-item-hover-text-line-height: var(--line-height-normal);
 
     /* Item — active */
     --sidenavigation-item-active-surface: var(--surface-canvas-low);
@@ -394,7 +394,7 @@
     --sidenavigation-item-active-text-font-family: var(--font-sans);
     --sidenavigation-item-active-text-font-size: var(--font-size-md);
     --sidenavigation-item-active-text-font-weight: var(--font-weight-normal);
-    --sidenavigation-item-active-text-line-height: var(--line-height-md);
+    --sidenavigation-item-active-text-line-height: var(--line-height-normal);
 
     /* Footer — default */
     --sidenavigation-footer-default-surface: var(--color-transparent);
@@ -408,7 +408,7 @@
     --sidenavigation-footer-default-text-font-family: var(--font-sans);
     --sidenavigation-footer-default-text-font-size: var(--font-size-sm);
     --sidenavigation-footer-default-text-font-weight: var(--font-weight-light);
-    --sidenavigation-footer-default-text-line-height: var(--line-height-md);
+    --sidenavigation-footer-default-text-line-height: var(--line-height-normal);
 
     /* Footer — hover */
     --sidenavigation-footer-hover-surface: var(--surface-canvas);
@@ -422,7 +422,7 @@
     --sidenavigation-footer-hover-text-font-family: var(--font-sans);
     --sidenavigation-footer-hover-text-font-size: var(--font-size-sm);
     --sidenavigation-footer-hover-text-font-weight: var(--font-weight-light);
-    --sidenavigation-footer-hover-text-line-height: var(--line-height-md);
+    --sidenavigation-footer-hover-text-line-height: var(--line-height-normal);
 
     /* Footer — active */
     --sidenavigation-footer-active-surface: var(--surface-canvas-low);
@@ -436,7 +436,7 @@
     --sidenavigation-footer-active-text-font-family: var(--font-sans);
     --sidenavigation-footer-active-text-font-size: var(--font-size-sm);
     --sidenavigation-footer-active-text-font-weight: var(--font-weight-normal);
-    --sidenavigation-footer-active-text-line-height: var(--line-height-md);
+    --sidenavigation-footer-active-text-line-height: var(--line-height-normal);
   }
 
   .sidenavigation {

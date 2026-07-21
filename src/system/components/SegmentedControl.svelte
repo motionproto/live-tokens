@@ -87,7 +87,7 @@
     --segmentedcontrol-option-text-font-family: var(--font-sans);
     --segmentedcontrol-option-text-font-size: var(--font-size-md);
     --segmentedcontrol-option-text-font-weight: var(--font-weight-normal);
-    --segmentedcontrol-option-text-line-height: var(--line-height-md);
+    --segmentedcontrol-option-text-line-height: var(--line-height-normal);
     --segmentedcontrol-option-icon: var(--text-secondary);
     --segmentedcontrol-option-icon-size: var(--icon-size-md);
 
@@ -97,7 +97,7 @@
     --segmentedcontrol-option-hover-text-font-family: var(--font-sans);
     --segmentedcontrol-option-hover-text-font-size: var(--font-size-md);
     --segmentedcontrol-option-hover-text-font-weight: var(--font-weight-normal);
-    --segmentedcontrol-option-hover-text-line-height: var(--line-height-md);
+    --segmentedcontrol-option-hover-text-line-height: var(--line-height-normal);
     --segmentedcontrol-option-hover-icon: var(--text-primary);
 
     /* Selected (inner pill) — looks the same hovered or not */
@@ -106,7 +106,7 @@
     --segmentedcontrol-selected-text-font-family: var(--font-sans);
     --segmentedcontrol-selected-text-font-size: var(--font-size-md);
     --segmentedcontrol-selected-text-font-weight: var(--font-weight-normal);
-    --segmentedcontrol-selected-text-line-height: var(--line-height-md);
+    --segmentedcontrol-selected-text-line-height: var(--line-height-normal);
     --segmentedcontrol-selected-icon: var(--text-secondary);
     --segmentedcontrol-selected-border: var(--border-brand);
     --segmentedcontrol-selected-border-width: var(--border-width-1);
@@ -118,7 +118,7 @@
     --segmentedcontrol-disabled-text-font-family: var(--font-sans);
     --segmentedcontrol-disabled-text-font-size: var(--font-size-md);
     --segmentedcontrol-disabled-text-font-weight: var(--font-weight-normal);
-    --segmentedcontrol-disabled-text-line-height: var(--line-height-md);
+    --segmentedcontrol-disabled-text-line-height: var(--line-height-normal);
     --segmentedcontrol-disabled-icon: var(--text-secondary);
 
     /* Small size — overrides for geometry + typography. Per-state colors and
@@ -133,7 +133,7 @@
     --segmentedcontrol-option-small-gap: var(--space-6);
     --segmentedcontrol-option-small-icon-size: var(--icon-size-sm);
     --segmentedcontrol-option-small-text-font-size: var(--font-size-sm);
-    --segmentedcontrol-option-small-text-line-height: var(--line-height-sm);
+    --segmentedcontrol-option-small-text-line-height: var(--line-height-tighter);
     --segmentedcontrol-selected-small-radius: var(--radius-sm);
   }
 

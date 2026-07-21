@@ -90,7 +90,7 @@
     --menuselect-default-text-font-family: var(--font-sans);
     --menuselect-default-text-font-size: var(--font-size-sm);
     --menuselect-default-text-font-weight: var(--font-weight-normal);
-    --menuselect-default-text-line-height: var(--line-height-sm);
+    --menuselect-default-text-line-height: var(--line-height-tighter);
     --menuselect-default-icon: var(--text-tertiary);
     --menuselect-default-icon-size: var(--icon-size-sm);
 
@@ -100,7 +100,7 @@
     --menuselect-hover-text-font-family: var(--font-sans);
     --menuselect-hover-text-font-size: var(--font-size-sm);
     --menuselect-hover-text-font-weight: var(--font-weight-normal);
-    --menuselect-hover-text-line-height: var(--line-height-sm);
+    --menuselect-hover-text-line-height: var(--line-height-tighter);
     --menuselect-hover-icon: var(--text-primary);
     --menuselect-hover-icon-size: var(--icon-size-sm);
 
@@ -110,7 +110,7 @@
     --menuselect-selected-text-font-family: var(--font-sans);
     --menuselect-selected-text-font-size: var(--font-size-sm);
     --menuselect-selected-text-font-weight: var(--font-weight-semibold);
-    --menuselect-selected-text-line-height: var(--line-height-sm);
+    --menuselect-selected-text-line-height: var(--line-height-tighter);
     --menuselect-selected-icon: var(--text-brand);
     --menuselect-selected-icon-size: var(--icon-size-sm);
     --menuselect-selected-indicator: var(--text-brand);
@@ -121,7 +121,7 @@
     --menuselect-disabled-text-font-family: var(--font-sans);
     --menuselect-disabled-text-font-size: var(--font-size-sm);
     --menuselect-disabled-text-font-weight: var(--font-weight-normal);
-    --menuselect-disabled-text-line-height: var(--line-height-sm);
+    --menuselect-disabled-text-line-height: var(--line-height-tighter);
     --menuselect-disabled-icon: var(--text-tertiary);
     --menuselect-disabled-icon-size: var(--icon-size-sm);
   }

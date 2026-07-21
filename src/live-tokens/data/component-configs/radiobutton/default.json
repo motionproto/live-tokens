@@ -12,7 +12,7 @@
     "--radiobutton-default-label-font-family": "--font-sans",
     "--radiobutton-default-label-font-size": "--font-size-md",
     "--radiobutton-default-label-font-weight": "--font-weight-semibold",
-    "--radiobutton-default-label-line-height": "--line-height-xs",
+    "--radiobutton-default-label-line-height": "--line-height-none",
     "--radiobutton-hover-dot-border-color": "--border-neutral",
     "--radiobutton-hover-dot-border-width": "--border-width-2",
     "--radiobutton-hover-dot-fill": "--text-secondary",
@@ -21,7 +21,7 @@
     "--radiobutton-hover-label-font-family": "--font-sans",
     "--radiobutton-hover-label-font-size": "--font-size-md",
     "--radiobutton-hover-label-font-weight": "--font-weight-semibold",
-    "--radiobutton-hover-label-line-height": "--line-height-xs",
+    "--radiobutton-hover-label-line-height": "--line-height-none",
     "--radiobutton-active-dot-border-color": "--border-neutral",
     "--radiobutton-active-dot-border-width": "--border-width-2",
     "--radiobutton-active-dot-fill": "--text-secondary",
@@ -30,6 +30,6 @@
     "--radiobutton-active-label-font-family": "--font-sans",
     "--radiobutton-active-label-font-size": "--font-size-md",
     "--radiobutton-active-label-font-weight": "--font-weight-semibold",
-    "--radiobutton-active-label-line-height": "--line-height-xs"
+    "--radiobutton-active-label-line-height": "--line-height-none"
   }
 }

@@ -36,12 +36,12 @@
     --callout-info-label-font-family: var(--font-sans);
     --callout-info-label-font-size: var(--font-size-lg);
     --callout-info-label-font-weight: var(--font-weight-bold);
-    --callout-info-label-line-height: var(--line-height-md);
+    --callout-info-label-line-height: var(--line-height-normal);
     --callout-info-text: var(--text-info);
     --callout-info-text-font-family: var(--font-sans);
     --callout-info-text-font-size: var(--font-size-lg);
     --callout-info-text-font-weight: var(--font-weight-normal);
-    --callout-info-text-line-height: var(--line-height-md);
+    --callout-info-text-line-height: var(--line-height-normal);
 
     /* Success */
     --callout-success-surface: var(--surface-success-lowest);
@@ -54,12 +54,12 @@
     --callout-success-label-font-family: var(--font-sans);
     --callout-success-label-font-size: var(--font-size-lg);
     --callout-success-label-font-weight: var(--font-weight-bold);
-    --callout-success-label-line-height: var(--line-height-md);
+    --callout-success-label-line-height: var(--line-height-normal);
     --callout-success-text: var(--text-success);
     --callout-success-text-font-family: var(--font-sans);
     --callout-success-text-font-size: var(--font-size-lg);
     --callout-success-text-font-weight: var(--font-weight-normal);
-    --callout-success-text-line-height: var(--line-height-md);
+    --callout-success-text-line-height: var(--line-height-normal);
 
     /* Warning */
     --callout-warning-surface: var(--surface-warning-lowest);
@@ -72,12 +72,12 @@
     --callout-warning-label-font-family: var(--font-sans);
     --callout-warning-label-font-size: var(--font-size-lg);
     --callout-warning-label-font-weight: var(--font-weight-bold);
-    --callout-warning-label-line-height: var(--line-height-md);
+    --callout-warning-label-line-height: var(--line-height-normal);
     --callout-warning-text: var(--text-warning);
     --callout-warning-text-font-family: var(--font-sans);
     --callout-warning-text-font-size: var(--font-size-lg);
     --callout-warning-text-font-weight: var(--font-weight-normal);
-    --callout-warning-text-line-height: var(--line-height-md);
+    --callout-warning-text-line-height: var(--line-height-normal);
 
     /* Danger */
     --callout-danger-surface: var(--surface-danger-lowest);
@@ -90,12 +90,12 @@
     --callout-danger-label-font-family: var(--font-sans);
     --callout-danger-label-font-size: var(--font-size-lg);
     --callout-danger-label-font-weight: var(--font-weight-bold);
-    --callout-danger-label-line-height: var(--line-height-md);
+    --callout-danger-label-line-height: var(--line-height-normal);
     --callout-danger-text: var(--text-danger);
     --callout-danger-text-font-family: var(--font-sans);
     --callout-danger-text-font-size: var(--font-size-lg);
     --callout-danger-text-font-weight: var(--font-weight-normal);
-    --callout-danger-text-line-height: var(--line-height-md);
+    --callout-danger-text-line-height: var(--line-height-normal);
   }
 
   .callout {

@@ -398,17 +398,19 @@
     margin: 0;
   }
   .title-block .eyebrow {
-    font-size: var(--font-size-xs, 0.75rem);
-    font-weight: var(--font-weight-semibold, 600);
+    font-family: var(--eyebrow-font-family);
+    font-size: var(--eyebrow-font-size);
+    font-weight: var(--eyebrow-font-weight);
+    line-height: var(--eyebrow-line-height);
+    letter-spacing: var(--eyebrow-letter-spacing);
+    text-transform: var(--eyebrow-text-transform);
     color: var(--text-accent, #009d9a);
-    text-transform: uppercase;
-    letter-spacing: var(--letter-spacing-wider, 0.12em);
     margin: 0 0 var(--space-8, 0.5rem);
   }
   .title-block h1 {
     font-family: var(--font-display, var(--font-sans));
     font-size: var(--font-size-5xl, 3rem);
-    line-height: var(--line-height-xs, 1.1);
+    line-height: var(--line-height-none, 1.1);
     letter-spacing: var(--letter-spacing-tight, -0.02em);
     margin: 0 0 var(--space-12, 0.75rem);
     color: var(--text-primary);
@@ -490,7 +492,7 @@
 
   .prose {
     font-size: var(--font-size-md, 1rem);
-    line-height: var(--line-height-lg, 1.65);
+    line-height: var(--line-height-relaxed, 1.65);
   }
   .md-snippet {
     margin: 0 0 var(--space-20, 1.25rem);
@@ -517,25 +519,40 @@
   .prose :global(h2),
   .prose :global(h3),
   .prose :global(h4) {
-    font-family: var(--font-display, var(--font-sans));
-    font-weight: var(--font-weight-semibold, 600);
-    letter-spacing: var(--letter-spacing-tight, -0.015em);
-    line-height: var(--line-height-sm, 1.2);
     color: var(--text-primary);
     position: relative;
   }
+  .prose :global(h1) {
+    font-family: var(--heading-xl-font-family);
+    font-size: var(--heading-xl-font-size);
+    font-weight: var(--heading-xl-font-weight);
+    line-height: var(--heading-xl-line-height);
+    letter-spacing: var(--heading-xl-letter-spacing);
+  }
   .prose :global(h2) {
-    font-size: var(--font-size-2xl, 1.5rem);
+    font-family: var(--heading-lg-font-family);
+    font-size: var(--heading-lg-font-size);
+    font-weight: var(--heading-lg-font-weight);
+    line-height: var(--heading-lg-line-height);
+    letter-spacing: var(--heading-lg-letter-spacing);
     margin: var(--space-48, 3rem) 0 var(--space-16, 1rem);
     padding-top: var(--space-12, 0.75rem);
     border-top: var(--border-width-1, 1px) solid var(--border-neutral-faint, #1c2327);
   }
   .prose :global(h3) {
-    font-size: var(--font-size-xl, 1.25rem);
+    font-family: var(--heading-md-font-family);
+    font-size: var(--heading-md-font-size);
+    font-weight: var(--heading-md-font-weight);
+    line-height: var(--heading-md-line-height);
+    letter-spacing: var(--heading-md-letter-spacing);
     margin: var(--space-32, 2rem) 0 var(--space-12, 0.75rem);
   }
   .prose :global(h4) {
-    font-size: var(--font-size-lg, 1.125rem);
+    font-family: var(--heading-sm-font-family);
+    font-size: var(--heading-sm-font-size);
+    font-weight: var(--heading-sm-font-weight);
+    line-height: var(--heading-sm-line-height);
+    letter-spacing: var(--heading-sm-letter-spacing);
     margin: var(--space-24, 1.5rem) 0 var(--space-8, 0.5rem);
     color: var(--text-secondary);
   }

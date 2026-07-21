@@ -83,7 +83,7 @@
     --card-default-title-font-family: var(--font-sans);
     --card-default-title-font-size: var(--font-size-2xl);
     --card-default-title-font-weight: var(--font-weight-medium);
-    --card-default-title-line-height: var(--line-height-md);
+    --card-default-title-line-height: var(--line-height-normal);
 
     --card-default-icon-size: var(--icon-size-2xl);
 
@@ -91,7 +91,7 @@
     --card-default-body-font-family: var(--font-sans);
     --card-default-body-font-size: var(--font-size-xl);
     --card-default-body-font-weight: var(--font-weight-normal);
-    --card-default-body-line-height: var(--line-height-md);
+    --card-default-body-line-height: var(--line-height-normal);
 
     --card-hover-border: var(--border-neutral-strong);
     --card-hover-shadow: var(--shadow-md);

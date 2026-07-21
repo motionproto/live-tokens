@@ -14,7 +14,7 @@
     "--codesnippet-code-font-family": "--font-mono",
     "--codesnippet-code-font-size": "--font-size-md",
     "--codesnippet-code-font-weight": "--font-weight-normal",
-    "--codesnippet-code-line-height": "--line-height-md",
+    "--codesnippet-code-line-height": "--line-height-normal",
     "--codesnippet-icon": "--text-secondary",
     "--codesnippet-icon-size": "--font-size-md",
     "--codesnippet-hover-icon": "--text-primary",

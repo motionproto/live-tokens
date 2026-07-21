@@ -88,7 +88,7 @@
       --collapsiblesection-chromeless-default-label-font-family: var(--font-sans);
       --collapsiblesection-chromeless-default-label-font-size: var(--font-size-md);
       --collapsiblesection-chromeless-default-label-font-weight: var(--font-weight-normal);
-      --collapsiblesection-chromeless-default-label-line-height: var(--line-height-md);
+      --collapsiblesection-chromeless-default-label-line-height: var(--line-height-normal);
       --collapsiblesection-chromeless-default-icon: var(--text-primary);
       --collapsiblesection-chromeless-default-icon-size: var(--icon-size-xs);
       /* Chromeless — hover */
@@ -98,7 +98,7 @@
       --collapsiblesection-chromeless-hover-label-font-family: var(--font-sans);
       --collapsiblesection-chromeless-hover-label-font-size: var(--font-size-md);
       --collapsiblesection-chromeless-hover-label-font-weight: var(--font-weight-normal);
-      --collapsiblesection-chromeless-hover-label-line-height: var(--line-height-md);
+      --collapsiblesection-chromeless-hover-label-line-height: var(--line-height-normal);
       --collapsiblesection-chromeless-hover-icon: var(--text-primary);
       --collapsiblesection-chromeless-hover-icon-size: var(--icon-size-xs);
       /* Chromeless — expanded */
@@ -113,7 +113,7 @@
       --collapsiblesection-divider-default-label-font-family: var(--font-sans);
       --collapsiblesection-divider-default-label-font-size: var(--font-size-md);
       --collapsiblesection-divider-default-label-font-weight: var(--font-weight-normal);
-      --collapsiblesection-divider-default-label-line-height: var(--line-height-md);
+      --collapsiblesection-divider-default-label-line-height: var(--line-height-normal);
       --collapsiblesection-divider-default-icon: var(--text-primary);
       --collapsiblesection-divider-default-icon-size: var(--icon-size-xs);
       /* Divider — hover */
@@ -125,7 +125,7 @@
       --collapsiblesection-divider-hover-label-font-family: var(--font-sans);
       --collapsiblesection-divider-hover-label-font-size: var(--font-size-md);
       --collapsiblesection-divider-hover-label-font-weight: var(--font-weight-normal);
-      --collapsiblesection-divider-hover-label-line-height: var(--line-height-md);
+      --collapsiblesection-divider-hover-label-line-height: var(--line-height-normal);
       --collapsiblesection-divider-hover-icon: var(--text-primary);
       --collapsiblesection-divider-hover-icon-size: var(--icon-size-xs);
       /* Divider — expanded */
@@ -142,7 +142,7 @@
       --collapsiblesection-container-default-label-font-family: var(--font-sans);
       --collapsiblesection-container-default-label-font-size: var(--font-size-md);
       --collapsiblesection-container-default-label-font-weight: var(--font-weight-normal);
-      --collapsiblesection-container-default-label-line-height: var(--line-height-md);
+      --collapsiblesection-container-default-label-line-height: var(--line-height-normal);
       --collapsiblesection-container-default-icon: var(--text-primary);
       --collapsiblesection-container-default-icon-size: var(--icon-size-xs);
       /* Container — hover header strip */
@@ -152,7 +152,7 @@
       --collapsiblesection-container-hover-label-font-family: var(--font-sans);
       --collapsiblesection-container-hover-label-font-size: var(--font-size-md);
       --collapsiblesection-container-hover-label-font-weight: var(--font-weight-normal);
-      --collapsiblesection-container-hover-label-line-height: var(--line-height-md);
+      --collapsiblesection-container-hover-label-line-height: var(--line-height-normal);
       --collapsiblesection-container-hover-icon: var(--text-primary);
       --collapsiblesection-container-hover-icon-size: var(--icon-size-xs);
       /* Container — expanded content area */
@@ -288,7 +288,7 @@
    .section-content {
       color: var(--text-secondary);
       font-size: var(--font-size-md);
-      line-height: var(--line-height-md);
+      line-height: var(--line-height-normal);
 
       @include slot-prose;
    }

@@ -4,6 +4,7 @@
   import { PALETTE_SPECS } from '../core/palettes/paletteDerivation';
   import FontStackEditor from './FontStackEditor.svelte';
   import ProjectFontsSection from './ProjectFontsSection.svelte';
+  import TextStylesSection from './TextStylesSection.svelte';
   import ColumnsSection from './sections/ColumnsSection.svelte';
   import TokenScaleTable from './sections/TokenScaleTable.svelte';
   import OverlaysSection from './sections/OverlaysSection.svelte';
@@ -96,6 +97,11 @@
         <ProjectFontsSection />
         <h3 class="group-title">Font Families</h3>
         <FontStackEditor />
+      </div>
+
+      <div class="typography-group text-styles-group">
+        <h3 class="group-title">Text Styles</h3>
+        <TextStylesSection />
       </div>
 
       <div class="typography-group">
@@ -247,6 +253,12 @@
     /* Two logical groups stacked here (Project Fonts + Font Families); space them
        further apart than peers inside a single group. */
     gap: var(--ui-space-32);
+  }
+
+  /* The definition table is wide (four pickers + preview per row); give it the
+     full row so it isn't squeezed into an auto-fill column. */
+  .text-styles-group {
+    grid-column: 1 / -1;
   }
 
   /* Utility Tokens */

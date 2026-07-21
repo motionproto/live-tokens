@@ -381,7 +381,6 @@
       transform var(--ui-transition-fast),
       border-color var(--ui-transition-fast);
   }
-  .slot-row:hover { border-color: var(--ui-border); }
 
   .slot-controls {
     display: grid;

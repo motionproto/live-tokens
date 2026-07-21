@@ -16,15 +16,65 @@ const LEGACY_TOKENS_CSS = `:root {
 `;
 
 describe('runTokensCssMigrations', () => {
-  it('adds the typography + motion scales an old tokens.css lacks', () => {
+  it('adds the letter-spacing and easing scales an old tokens.css lacks', () => {
     const { css, applied, changed } = runTokensCssMigrations(LEGACY_TOKENS_CSS);
     expect(changed).toBe(true);
     expect(applied).toContain('2026-05-29-typography-scale-additions');
-    for (const t of ['--line-height-xs', '--line-height-md', '--letter-spacing-normal', '--ease-out-quart']) {
+    for (const t of ['--letter-spacing-normal', '--ease-out-quart']) {
       expect(css).toContain(t);
     }
-    // Leaves the legacy named scale in place (other tokens may reference it).
-    expect(css).toContain('--line-height-tight: 0.9;');
+  });
+
+  it('reshapes the size-vocabulary line-height scale to leading vocabulary and retires the 2.0 slot', () => {
+    // Old names built dynamically so the deprecated vocabulary never appears as
+    // a literal here (Wave 1 invariant: no stale --line-height-{xs..xl} in src).
+    const oldSteps = ['xs', 'sm', 'md', 'lg', 'xl'];
+    const values = ['1', '1.25', '1.5', '1.75', '2'];
+    const modern = `:root {\n${oldSteps
+      .map((s, i) => `  --line-height-${s}: ${values[i]};`)
+      .join('\n')}\n}\n`;
+
+    const { css, applied } = runTokensCssMigrations(modern);
+    expect(applied).toContain('2026-07-20-line-height-rename');
+    for (const decl of [
+      '--line-height-none: 1;',
+      '--line-height-tightest: 1.1;',
+      '--line-height-tighter: 1.25;',
+      '--line-height-tight: 1.35;',
+      '--line-height-normal: 1.5;',
+      '--line-height-relaxed: 1.75;',
+    ]) {
+      expect(css).toContain(decl);
+    }
+    for (const s of oldSteps) expect(css).not.toContain(`--line-height-${s}`);
+    // The old loose/looser names are gone too — the 2.0 slot has no successor.
+    expect(css).not.toContain('--line-height-loose');
+    expect(css).not.toContain('--line-height-looser');
+
+    expect(runTokensCssMigrations(css).changed).toBe(false);
+  });
+
+  it('adds the semantic text-style bundles with fixed heading leading', () => {
+    const { css, applied } = runTokensCssMigrations(LEGACY_TOKENS_CSS);
+    expect(applied).toContain('2026-07-20-semantic-text-styles');
+    for (const decl of [
+      '--heading-xl-font-family: var(--font-display);',
+      '--heading-sm-font-family: var(--font-sans);',
+      '--body-md-line-height: var(--line-height-normal);',
+      '--code-font-family: var(--font-mono);',
+      '--eyebrow-font-size: var(--font-size-sm);',
+      '--eyebrow-text-transform: none;',
+    ]) {
+      expect(css).toContain(decl);
+    }
+
+    // Headings pin their leading at every viewport (no responsive re-point): xl/lg
+    // at `tightest` (1.1), md/sm at `tighter` (1.25).
+    expect(css).toContain('--heading-xl-line-height: var(--line-height-tightest);');
+    expect(css).toContain('--heading-md-line-height: var(--line-height-tighter);');
+
+    // Full fold twice = no change.
+    expect(runTokensCssMigrations(css).changed).toBe(false);
   });
 
   it('adds the --scale-* transform scale an old tokens.css lacks', () => {
@@ -109,7 +159,7 @@ describe('validateTokensCss', () => {
     {
       name: 'sectiondivider',
       source: `<style>:global(:root) {
-        --sectiondivider-lg-title-line-height: var(--line-height-xs);
+        --sectiondivider-lg-title-line-height: var(--line-height-none);
         --sectiondivider-lg-title-letter-spacing: var(--letter-spacing-normal);
         --sectiondivider-lg-title-color: var(--text-primary);
       }</style>`,
@@ -122,10 +172,10 @@ describe('validateTokensCss', () => {
       componentSources,
     });
     const tokens = missing.map((m) => m.token);
-    expect(tokens).toContain('--line-height-xs');
+    expect(tokens).toContain('--line-height-none');
     expect(tokens).toContain('--letter-spacing-normal');
     expect(tokens).not.toContain('--text-primary'); // defined → fine
-    expect(missing.find((m) => m.token === '--line-height-xs')?.referencedBy).toEqual([
+    expect(missing.find((m) => m.token === '--line-height-none')?.referencedBy).toEqual([
       'sectiondivider',
     ]);
   });
@@ -133,7 +183,7 @@ describe('validateTokensCss', () => {
   it('treats generated-sidecar definitions as defined', () => {
     const missing = validateTokensCss({
       tokensCss: `:root { --text-primary: #fff; }`,
-      generatedCss: `:root:root { --line-height-xs: 1; --letter-spacing-normal: 0; }`,
+      generatedCss: `:root:root { --line-height-none: 1; --letter-spacing-normal: 0; }`,
       componentSources,
     });
     expect(missing).toEqual([]);

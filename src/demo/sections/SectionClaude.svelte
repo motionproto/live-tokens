@@ -77,7 +77,7 @@
   .intro {
     font-family: var(--font-sans);
     font-size: var(--font-size-xl);
-    line-height: var(--line-height-sm);
+    line-height: var(--line-height-tighter);
     font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
     margin: 0;
@@ -93,7 +93,7 @@
     margin: 0;
     font-family: var(--font-sans);
     font-size: var(--font-size-md);
-    line-height: var(--line-height-md);
+    line-height: var(--line-height-normal);
     color: var(--text-secondary);
   }
 
@@ -138,7 +138,7 @@
     font-family: var(--font-sans);
     font-size: var(--font-size-2xl);
     font-weight: var(--font-weight-medium);
-    line-height: var(--line-height-md);
+    line-height: var(--line-height-normal);
     color: var(--text-primary);
   }
 

@@ -65,7 +65,7 @@
     --codesnippet-code-font-family: var(--font-mono);
     --codesnippet-code-font-size: var(--font-size-md);
     --codesnippet-code-font-weight: var(--font-weight-normal);
-    --codesnippet-code-line-height: var(--line-height-md);
+    --codesnippet-code-line-height: var(--line-height-normal);
 
     /* Copy icon (default + hover). */
     --codesnippet-icon: var(--text-secondary);
