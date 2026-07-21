@@ -5,6 +5,7 @@
   import { applyHarmony, type HarmonyMode } from '../../core/palettes/colorHarmony';
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import ColorWheel from './ColorWheel.svelte';
+  import LightnessBar from './LightnessBar.svelte';
   import ColorReadouts from './ColorReadouts.svelte';
   import { setBaseColor, setBaseColors, oklchToHexClamped } from './paletteBaseColor';
 
@@ -82,6 +83,8 @@
         onCustomize={() => (activeMode = 'custom')}
       />
 
+      <LightnessBar {selected} {absoluteChroma} />
+
       <div class="group">
         <span class="eyebrow">Harmony{#if activeMode === 'custom'} · custom{/if}</span>
         <div class="mode-row" role="group" aria-label="Harmony mode">
@@ -150,6 +153,7 @@
         <ColorEditPanel
           title={selectedSpec.displayLabel ?? selected}
           hideActions
+          hideLightness
           hue={selectedOklch.h}
           chroma={selectedOklch.c}
           lightness={selectedOklch.l * 100}

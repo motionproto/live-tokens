@@ -64,6 +64,18 @@ export function setBaseHue(label: string, hue: number): void {
   });
 }
 
+/** Set a seed's lightness and chroma at an explicit (pinned) hue. Used by the
+ *  lightness bar: hue is passed in from pristine gesture intent rather than
+ *  re-read from the store, so a near-grey hex at an L extreme (where chroma
+ *  clamps to ~0 and its hue is numerically unstable) can never feed a spurious
+ *  hue back into the next frame's write. */
+export function setBaseLightnessChroma(label: string, hue: number, lightness: number, chroma: number): void {
+  mutate(`colors: ${label} lightness`, (s) => {
+    const g = gamutClamp(lightness, Math.max(0, chroma), hue);
+    ensureConfig(s, label).baseColor = oklchToHex(g.l, g.c, g.h);
+  });
+}
+
 /** Set a seed's chroma only — hue and lightness preserved (rail-constrained drag). */
 export function setBaseChroma(label: string, chroma: number): void {
   mutate(`colors: ${label} chroma`, (s) => {

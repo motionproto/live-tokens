@@ -4,6 +4,7 @@
   import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
   import { editorState, beginScope, commitScope, cancelScope, type Scope } from '../../core/store/editorStore';
   import { setBaseHueChroma, setBaseChroma, setBaseColors } from './paletteBaseColor';
+  import { maxChroma } from './colorWheelMath';
 
   interface Props {
     selected: string | null;
@@ -27,9 +28,7 @@
     .map((l) => PALETTE_SPECS.find((s) => s.label === l))
     .filter((s): s is PaletteSpec => !!s);
 
-  // Radial saturation to the in-gamut boundary per hue (invariant 6: gamut is
-  // display-only). Reserved judgment call: keyboard nudge increments.
-  const GAMUT_PROBE = 0.5;
+  // Reserved judgment call: keyboard nudge increments.
   const HUE_STEP = 2;
   const CHROMA_STEP = 0.005;
   const MARGIN = 30;      // ring-to-edge gap that houses the external handles
@@ -39,7 +38,6 @@
 
   const normDeg = (d: number) => ((d % 360) + 360) % 360;
   const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
-  const maxChroma = (l: number, hue: number) => gamutClamp(l, GAMUT_PROBE, hue).c;
   const rad = (deg: number) => (deg * Math.PI) / 180;
   // Shortest signed angular delta in (-180, 180], so a spin accumulates cleanly.
   const angleDelta = (cur: number, prev: number) => ((cur - prev + 540) % 360) - 180;
