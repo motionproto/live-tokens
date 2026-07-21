@@ -1,12 +1,15 @@
 <script lang="ts">
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
-  import { editorState, beginSliderGesture } from '../../core/store/editorStore';
-  import { applyHarmony, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import { editorState, beginSliderGesture, transaction } from '../../core/store/editorStore';
+  import { applyHarmony, tintNeutralsFromBrand, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import { solveTextCurves } from '../../core/palettes/solveTextContrast';
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import ColorWheel from './ColorWheel.svelte';
   import LightnessBar from './LightnessBar.svelte';
   import ColorReadouts from './ColorReadouts.svelte';
+  import ColorStory from './ColorStory.svelte';
+  import UIPillButton from '../UIPillButton.svelte';
   import { setBaseColor, setBaseColors } from './paletteBaseColor';
 
   const WHEEL_LABELS = ['Brand', 'Accent', 'Background', 'Neutral', 'Alternate'];
@@ -51,6 +54,22 @@
     activeMode = mode;
     const patch = applyHarmony(mode, $editorState.palettes);
     if (Object.keys(patch).length) setBaseColors(patch, `colors: harmony ${mode}`);
+  }
+
+  function tintNeutrals() {
+    const patch = tintNeutralsFromBrand($editorState.palettes);
+    if (Object.keys(patch).length) setBaseColors(patch, 'colors: tint neutrals from brand');
+  }
+
+  function deriveAccessibleText() {
+    const { patches, cssVarOverrides } = solveTextCurves($editorState.palettes);
+    transaction('derive accessible text', (s) => {
+      for (const [label, patch] of Object.entries(patches)) {
+        const cfg = s.palettes[label];
+        if (cfg) cfg.scaleCurves = { ...cfg.scaleCurves, ...patch.scaleCurves };
+      }
+      Object.assign(s.cssVars, cssVarOverrides);
+    });
   }
 
   let swatches = $derived(
@@ -101,6 +120,15 @@
               onclick={() => applyMode(m.mode)}
             ><i class="fas {m.icon}" aria-hidden="true"></i></button>
           {/each}
+        </div>
+
+        <div class="harmony-actions">
+          <UIPillButton
+            size="compact"
+            icon="fa-fill-drip"
+            title="Re-hue Neutral and Alternate to the Brand hue (their own chroma and lightness kept)"
+            onclick={tintNeutrals}
+          >Tint neutrals from brand</UIPillButton>
         </div>
 
         <div class="wheel-opts">
@@ -168,15 +196,18 @@
 
   <div class="pane">
     <section id="colors-story" class="block">
-      <header class="block-head">
-        <span class="eyebrow">Proportional preview</span>
-        <h2 class="title">Color Story</h2>
-      </header>
-      <!-- Wave 5 seam: proportional 60-30-10 story bands + live AA readouts. -->
-      <div class="seam seam-tall" data-wave5="color-story">
-        <i class="fas fa-layer-group" aria-hidden="true"></i>
-        <span>Color Story — Wave 5</span>
+      <div class="head-row">
+        <header class="block-head">
+          <span class="eyebrow">Proportional preview</span>
+          <h2 class="title">Color Story</h2>
+        </header>
+        <UIPillButton
+          icon="fa-wand-magic-sparkles"
+          title="Solve each family's Text lightness curve so derived text meets WCAG AA against its surfaces (one undo)"
+          onclick={deriveAccessibleText}
+        >Derive accessible text</UIPillButton>
       </div>
+      <ColorStory />
     </section>
   </div>
 </div>
@@ -339,21 +370,17 @@
     color: var(--ui-text-secondary);
   }
 
-  .seam {
+  .head-row {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--ui-space-8);
-    padding: var(--ui-space-16);
-    border: 1px dashed var(--ui-border);
-    border-radius: var(--ui-radius-md);
-    color: var(--ui-text-tertiary);
-    font-size: var(--ui-font-size-sm);
-    background: var(--ui-surface-lowest);
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--ui-space-12);
+    flex-wrap: wrap;
   }
 
-  .seam-tall {
-    min-height: 24rem;
+  .harmony-actions {
+    display: flex;
+    gap: var(--ui-space-8);
   }
 
   .swatch-row {
