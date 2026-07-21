@@ -3,7 +3,7 @@
   import { hexToOklch, oklchToHex, gamutClamp } from '../../core/palettes/oklch';
   import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
   import { editorState, beginScope, commitScope, cancelScope, type Scope } from '../../core/store/editorStore';
-  import { setBaseHue, setBaseHueChroma, setBaseChroma, setBaseColors } from './paletteBaseColor';
+  import { setBaseHueChroma, setBaseChroma, setBaseColors } from './paletteBaseColor';
 
   interface Props {
     selected: string | null;
@@ -54,14 +54,16 @@
   let extRadius = $derived(discRadius + EXT_OFFSET);
   let discDiameter = $derived(Math.max(1, wrapperSize - 2 * MARGIN));
 
-  // ── Transient drag state (POSITION only — the VALUE always rides the store) ──
-  // Rotations capture each family's start hue, gamut-fraction and lightness so a
-  // constant-radius (relative-saturation) rotation can re-fractionalize chroma.
-  type RotateStart = { hue: number; rFrac0: number; l0: number };
+  // ── Transient drag state ──────────────────────────────────────────────────
+  // The ACTIVE family renders from PRISTINE gesture-start intent captured once
+  // here, never re-derived from the just-written 8-bit hex (that round-trip is
+  // lossy and makes the non-dragged coordinate wobble). Writes also use the
+  // pristine hue0/L0, so nothing accumulates across frames.
+  type RotateStart = { hue0: number; chroma0: number; rFrac0: number; l0: number };
   type Drag =
-    | { kind: 'axis'; label: string; angle: number; rFrac0: number; l0: number }
+    | { kind: 'axis'; label: string; angle: number; start: RotateStart }
     | { kind: 'global'; start: Record<string, RotateStart>; delta: number; lastAngle: number; angle: number }
-    | { kind: 'chroma'; label: string; rFrac: number };
+    | { kind: 'chroma'; label: string; hue0: number; l0: number; maxC0: number; rFrac: number };
   let drag: Drag | null = $state(null);
   let dragScope: Scope | null = null;
 
@@ -74,8 +76,10 @@
     }),
   );
 
-  // Overlay the transient drag onto the store-derived trio so the active rail /
-  // dot / handle tracks the pointer with no store round-trip (the twitch fix).
+  // Overlay the transient intent onto the store-derived trio so the active rail
+  // / dot / handle tracks the pointer with no store round-trip. The dragged
+  // coordinate follows the pointer; the OTHER is locked to gesture-start intent
+  // (rotation → radius; chroma → angle) — neither is re-read from the hex.
   let trioRender = $derived(
     trio.map((t) => {
       let hue = t.hue;
@@ -83,12 +87,13 @@
       const d = drag;
       if (d?.kind === 'axis' && d.label === t.label) {
         hue = d.angle;
-        if (!absoluteChroma) rFrac = d.rFrac0;
+        rFrac = rotateRadius(d.start, hue);
       } else if (d?.kind === 'chroma' && d.label === t.label) {
+        hue = d.hue0;
         rFrac = d.rFrac;
-      } else if (d?.kind === 'global') {
-        hue = normDeg(d.start[t.label].hue + d.delta);
-        if (!absoluteChroma) rFrac = d.start[t.label].rFrac0;
+      } else if (d?.kind === 'global' && d.start[t.label]) {
+        hue = normDeg(d.start[t.label].hue0 + d.delta);
+        rFrac = rotateRadius(d.start[t.label], hue);
       }
       const dotR = rFrac * discRadius;
       return {
@@ -202,13 +207,24 @@
   const rFracOf = (t: { chroma: number; lightness: number; hue: number }) =>
     clamp(t.chroma / (maxChroma(t.lightness, t.hue) || 1e-6), 0, 1);
 
-  // The one rotation write. Default (absoluteChroma off) holds the color's
-  // fraction of the gamut constant, so chroma = rFrac0·maxChroma(L, newHue) and
-  // the render radius stays fixed while hue orbits. On preserves absolute chroma
-  // (setBaseHue). Both keep L and ride the single store path; gamut display-only.
-  function writeRotation(label: string, newHue: number, rFrac0: number, l0: number) {
-    if (absoluteChroma) setBaseHue(label, newHue);
-    else setBaseHueChroma(label, newHue, rFrac0 * maxChroma(l0, newHue));
+  const startOf = (t: { hue: number; chroma: number; lightness: number }): RotateStart =>
+    ({ hue0: t.hue, chroma0: t.chroma, rFrac0: rFracOf(t), l0: t.lightness });
+
+  // Render radius for a rotating family, from pristine intent (not the hex).
+  // Off: relative saturation held constant (rFrac0). On: absolute chroma0
+  // re-fractionalized against the transient hue's gamut (the intended drift,
+  // computed cleanly), clamped to the rim for display.
+  function rotateRadius(s: RotateStart, renderHue: number): number {
+    if (!absoluteChroma) return s.rFrac0;
+    return clamp(s.chroma0 / (maxChroma(s.l0, renderHue) || 1e-6), 0, 1);
+  }
+
+  // The one rotation write, from pristine gesture-start intent. Off holds the
+  // gamut fraction (chroma = rFrac0·maxChroma(L0, newHue)); on holds absolute
+  // chroma0 (gamut-clamped for display only). L preserved; single store path.
+  function writeRotation(label: string, newHue: number, s: RotateStart) {
+    if (absoluteChroma) setBaseHueChroma(label, newHue, s.chroma0);
+    else setBaseHueChroma(label, newHue, s.rFrac0 * maxChroma(s.l0, newHue));
   }
 
   // Per-axis rotate — detaches harmony to custom.
@@ -220,14 +236,15 @@
     capture(e);
     openGesture(`colors: ${label} rotate`);
     const t = trio.find((x) => x.label === label);
-    drag = { kind: 'axis', label, angle: pointerAngle(e), rFrac0: t ? rFracOf(t) : 0, l0: t?.lightness ?? discLightness };
+    const start = t ? startOf(t) : { hue0: pointerAngle(e), chroma0: 0, rFrac0: 0, l0: discLightness };
+    drag = { kind: 'axis', label, angle: pointerAngle(e), start };
     applyAxis(e);
   }
   function applyAxis(e: PointerEvent) {
     if (drag?.kind !== 'axis') return;
     const angle = pointerAngle(e);
     drag.angle = angle;
-    writeRotation(drag.label, angle, drag.rFrac0, drag.l0);
+    writeRotation(drag.label, angle, drag.start);
   }
 
   // Global rotate — all trio hues by the same accumulated delta (mode kept).
@@ -237,7 +254,7 @@
     capture(e);
     openGesture('colors: rotate all');
     const start: Record<string, RotateStart> = {};
-    for (const t of trio) start[t.label] = { hue: t.hue, rFrac0: rFracOf(t), l0: t.lightness };
+    for (const t of trio) start[t.label] = startOf(t);
     const a = pointerAngle(e);
     drag = { kind: 'global', start, delta: 0, lastAngle: a, angle: a };
   }
@@ -248,11 +265,12 @@
     drag.lastAngle = a;
     drag.angle = a;
     for (const [label, s] of Object.entries(drag.start)) {
-      writeRotation(label, s.hue + drag.delta, s.rFrac0, s.l0);
+      writeRotation(label, s.hue0 + drag.delta, s);
     }
   }
 
-  // Rail-constrained chroma — 1D radial along the fixed-hue rail.
+  // Rail-constrained chroma — 1D radial along the rail, hue PINNED to hue0 for
+  // the whole gesture (render + write) so the axis can't wobble off the hex.
   function startChromaDrag(e: PointerEvent, label: string) {
     if (e.button !== 0) return;
     e.preventDefault();
@@ -260,21 +278,20 @@
     capture(e);
     openGesture(`colors: ${label} chroma`);
     const t = trio.find((x) => x.label === label);
-    drag = { kind: 'chroma', label, rFrac: t?.rFrac ?? 0 };
+    const hue0 = t?.hue ?? 0;
+    const l0 = t?.lightness ?? discLightness;
+    drag = { kind: 'chroma', label, hue0, l0, maxC0: maxChroma(l0, hue0) || 1e-6, rFrac: t?.rFrac ?? 0 };
     applyChroma(e);
   }
   function applyChroma(e: PointerEvent) {
     if (drag?.kind !== 'chroma') return;
-    const label = drag.label;
-    const t = trio.find((x) => x.label === label);
-    if (!t) return;
     const r = wrapper!.getBoundingClientRect();
     const dx = e.clientX - (r.left + r.width / 2);
     const dy = e.clientY - (r.top + r.height / 2);
-    const proj = dx * Math.cos(rad(t.hue)) - dy * Math.sin(rad(t.hue)); // onto the rail
+    const proj = dx * Math.cos(rad(drag.hue0)) - dy * Math.sin(rad(drag.hue0)); // onto the pinned rail
     const rFrac = clamp(proj / (r.width / 2 - MARGIN), 0, 1);
     drag.rFrac = rFrac;
-    setBaseChroma(label, rFrac * maxChroma(t.lightness, t.hue));
+    setBaseHueChroma(drag.label, drag.hue0, rFrac * drag.maxC0);
   }
 
   function moveDrag(e: PointerEvent) {
@@ -308,7 +325,7 @@
     else return;
     e.preventDefault();
     onCustomize();
-    writeRotation(label, t.hue + dir * HUE_STEP, rFracOf(t), t.lightness);
+    writeRotation(label, t.hue + dir * HUE_STEP, startOf(t));
   }
   function dotKey(e: KeyboardEvent, label: string) {
     const t = trio.find((x) => x.label === label);
