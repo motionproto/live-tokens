@@ -1,4 +1,5 @@
 import type { CurveAnchor } from '../../ui/curveEngine';
+import type { Oklch } from '../palettes/oklch';
 
 export type GradientStyle = 'linear' | 'radial' | 'conic';
 
@@ -8,12 +9,15 @@ export interface GradientStop {
 }
 
 export interface PaletteConfig {
-  baseColor: string;
+  /** Numeric OKLCH intent — the single stored basis. Unclamped: the store holds
+   *  what the user meant; gamut clamping is projection-only (derivation output,
+   *  swatch/canvas painting, hex/CSS serialization). */
+  baseColor: Oklch;
   lightnessCurve: CurveAnchor[];
   saturationCurve: CurveAnchor[];
   scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }>;
   curveOffset: Record<string, number>;
-  overrides: Record<string, string>;
+  overrides: Record<string, Oklch>;
   snappedScales: string[];
   emptyMode?: 'solid' | 'gradient';
   emptyStep?: string;

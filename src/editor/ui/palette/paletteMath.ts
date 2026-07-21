@@ -1,4 +1,4 @@
-import { hexToOklch } from '../../core/palettes/oklch';
+import type { Oklch } from '../../core/palettes/oklch';
 import { type CurveAnchor, makeAnchor } from '../curveEngine';
 import type { PaletteConfig } from '../../core/themes/themeTypes';
 import {
@@ -11,8 +11,8 @@ import {
   DEFAULT_PALETTE_SATURATION,
   defaultScaleCurves,
   scaleCurveDefaults,
-  computePaletteColor,
-  computeDerivedColor,
+  computePaletteOklch,
+  computeDerivedOklch,
   stepIndexToX,
   scaleStepToX,
   paletteStepKey,
@@ -32,15 +32,15 @@ export {
   DEFAULT_PALETTE_SATURATION,
   defaultScaleCurves,
   scaleCurveDefaults,
-  computePaletteColor,
-  computeDerivedColor,
+  computePaletteOklch,
+  computeDerivedOklch,
   stepIndexToX,
   scaleStepToX,
   paletteStepKey,
   stepKey,
 };
 
-export const GRAY_FALLBACK = '#808080';
+export const GRAY_FALLBACK: Oklch = { l: 0.5999, c: 0, h: 89.88 };
 
 export interface PaletteStepDef {
   label: string;
@@ -59,7 +59,7 @@ export const DEFAULT_NEUTRAL_LIGHTNESS = (): CurveAnchor[] => [makeAnchor(0, 92,
  * per-role difference is the seed: neutrals get the wider neutral lightness
  * ramp, accents the standard one. Everything is editable afterward.
  */
-export function defaultPaletteConfig(opts: { baseColor: string; neutral?: boolean; scheme?: SchemeDirection }): PaletteConfig {
+export function defaultPaletteConfig(opts: { baseColor: Oklch; neutral?: boolean; scheme?: SchemeDirection }): PaletteConfig {
   return {
     baseColor: opts.baseColor,
     lightnessCurve: opts.neutral ? DEFAULT_NEUTRAL_LIGHTNESS() : DEFAULT_PALETTE_LIGHTNESS(),
@@ -114,7 +114,7 @@ export function removeLockedAnchor(curve: CurveAnchor[], idx: number | null): Cu
 }
 
 interface PaletteComputed {
-  hex: string;
+  oklch: Oklch;
 }
 
 // Pick the contiguous window of palette steps whose lightness curve best
@@ -125,20 +125,19 @@ interface PaletteComputed {
 // dark themes).
 export function snapScaleToPalette(
   scale: Scale,
-  baseColor: string,
+  baseColor: Oklch,
   scaleCurves: ScaleCurves,
   curveOffset: CurveOffset,
   paletteComputed: ReadonlyArray<PaletteComputed>
-): Record<string, string> {
+): Record<string, Oklch> {
   const n = scale.steps.length;
 
-  const stepL = scale.steps.map(step => {
-    const derived = computeDerivedColor(step, baseColor, scale.title, scaleCurves, curveOffset);
-    return hexToOklch(derived).l;
-  });
+  const stepL = scale.steps.map(step =>
+    computeDerivedOklch(step, baseColor, scale.title, scaleCurves, curveOffset).l,
+  );
 
   const bestWindow = (pal: ReadonlyArray<PaletteComputed>): { cost: number; start: number } => {
-    const palL = pal.map(ps => hexToOklch(ps.hex).l);
+    const palL = pal.map(ps => ps.oklch.l);
     let start = 0;
     let cost = Infinity;
     for (let s = 0; s <= pal.length - n; s++) {
@@ -161,9 +160,9 @@ export function snapScaleToPalette(
   const pal = useLight ? palLightFirst : palDarkFirst;
   const start = useLight ? light.start : dark.start;
 
-  const assigned: Record<string, string> = {};
+  const assigned: Record<string, Oklch> = {};
   for (let i = 0; i < n; i++) {
-    assigned[stepKey(scale.title, scale.steps[i].name)] = pal[start + i].hex;
+    assigned[stepKey(scale.title, scale.steps[i].name)] = pal[start + i].oklch;
   }
   return assigned;
 }

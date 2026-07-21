@@ -23,6 +23,7 @@
  */
 
 import type { Scope } from '../../core/store/editorStore';
+import type { Oklch } from '../../core/palettes/oklch';
 
 /** Sentinel key for the base swatch (used as `editingKey === BASE_KEY`). */
 export const BASE_KEY = '__base__';
@@ -33,8 +34,8 @@ export type EditingState =
   | {
       kind: 'editingStep';
       stepKey: string;
-      snapshot: string;
-      draft: string;
+      snapshot: Oklch;
+      draft: Oklch;
     };
 
 export const idleState: EditingState = { kind: 'idle' };
@@ -62,8 +63,8 @@ export function activeKey(s: EditingState): string | null {
   return s.stepKey;
 }
 
-/** The current draft hex (for editingStep) or null. editingBase draws from baseColor directly. */
-export function activeDraft(s: EditingState): string | null {
+/** The current draft OKLCH (for editingStep) or null. editingBase draws from baseColor directly. */
+export function activeDraft(s: EditingState): Oklch | null {
   return s.kind === 'editingStep' ? s.draft : null;
 }
 

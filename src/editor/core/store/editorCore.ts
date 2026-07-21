@@ -412,7 +412,8 @@ export function __getPastAt(idx: number): EditorState | undefined {
 function paletteSnapshot(s: EditorState): Record<string, { base: string; overrides: number }> {
   const out: Record<string, { base: string; overrides: number }> = {};
   for (const [k, v] of Object.entries(s.palettes ?? {})) {
-    out[k] = { base: v.baseColor, overrides: Object.keys(v.overrides).length };
+    const { l, c, h } = v.baseColor;
+    out[k] = { base: `oklch(${l} ${c} ${h})`, overrides: Object.keys(v.overrides).length };
   }
   return out;
 }

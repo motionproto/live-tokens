@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { get } from 'svelte/store';
 import type { PaletteConfig } from '../themes/themeTypes';
+import { hexToOklch as c } from '../palettes/oklch';
 import {
   editorState,
   mutate,
@@ -20,7 +21,7 @@ import {
 
 function makePaletteConfig(baseColor: string): PaletteConfig {
   return {
-    baseColor,
+    baseColor: c(baseColor),
     lightnessCurve: [],
     saturationCurve: [],
     scaleCurves: {},
@@ -45,9 +46,9 @@ describe('editorStore — mutate() outside a scope', () => {
     setPaletteConfig('Background', makePaletteConfig('#222222'));
     expect(__getHistoryLengths().past).toBe(2);
 
-    expect(get(editorState).palettes.Background.baseColor).toBe('#222222');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#222222'));
     expect(undo()).toBe(true);
-    expect(get(editorState).palettes.Background.baseColor).toBe('#111111');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#111111'));
     expect(undo()).toBe(true);
     expect(get(editorState).palettes.Background).toBeUndefined();
     expect(undo()).toBe(false);
@@ -61,19 +62,19 @@ describe('editorStore — non-clipping scopes group gestures', () => {
     const preGesture = structuredClone(get(editorState));
 
     const scope = beginScope({ label: 'drag hue', collapseToOne: true, clipUndoFloor: false });
-    mutate('hue step 1', (s) => { s.palettes.Background.baseColor = '#222222'; });
-    mutate('hue step 2', (s) => { s.palettes.Background.baseColor = '#333333'; });
-    mutate('hue step 3', (s) => { s.palettes.Background.baseColor = '#444444'; });
+    mutate('hue step 1', (s) => { s.palettes.Background.baseColor = c('#222222'); });
+    mutate('hue step 2', (s) => { s.palettes.Background.baseColor = c('#333333'); });
+    mutate('hue step 3', (s) => { s.palettes.Background.baseColor = c('#444444'); });
     commitScope(scope);
 
     expect(__getHistoryLengths().past).toBe(baselinePast + 1);
     const lastEntry = __getPastAt(__getHistoryLengths().past - 1)!;
-    expect(lastEntry.palettes.Background.baseColor).toBe(preGesture.palettes.Background.baseColor);
-    expect(get(editorState).palettes.Background.baseColor).toBe('#444444');
+    expect(lastEntry.palettes.Background.baseColor).toEqual(preGesture.palettes.Background.baseColor);
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#444444'));
 
     // One undo rolls the whole gesture back
     undo();
-    expect(get(editorState).palettes.Background.baseColor).toBe('#111111');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#111111'));
   });
 
   it('beginSliderGesture opens a scope that groups updates into one entry', () => {
@@ -81,13 +82,13 @@ describe('editorStore — non-clipping scopes group gestures', () => {
     const baselinePast = __getHistoryLengths().past;
 
     beginSliderGesture('drag');
-    mutate('step', (s) => { s.palettes.Background.baseColor = '#222222'; });
-    mutate('step', (s) => { s.palettes.Background.baseColor = '#333333'; });
+    mutate('step', (s) => { s.palettes.Background.baseColor = c('#222222'); });
+    mutate('step', (s) => { s.palettes.Background.baseColor = c('#333333'); });
     // Simulate pointerup
     window.dispatchEvent(new Event('pointerup'));
 
     expect(__getHistoryLengths().past).toBe(baselinePast + 1);
-    expect(get(editorState).palettes.Background.baseColor).toBe('#333333');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#333333'));
   });
 
   it('empty scope (no mutate calls) does not push history', () => {
@@ -102,11 +103,11 @@ describe('editorStore — non-clipping scopes group gestures', () => {
     const baselinePast = __getHistoryLengths().past;
 
     const scope = beginScope({ ...txOpts, label: 'drag' });
-    mutate('step', (s) => { s.palettes.Background.baseColor = '#999999'; });
+    mutate('step', (s) => { s.palettes.Background.baseColor = c('#999999'); });
     cancelScope(scope, { silent: true });
 
     expect(__getHistoryLengths().past).toBe(baselinePast);
-    expect(get(editorState).palettes.Background.baseColor).toBe('#111111');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#111111'));
   });
 });
 
@@ -129,13 +130,13 @@ describe('editorStore — clipping scopes (palette edit sessions)', () => {
     expect(__getHistoryLengths().past).toBe(floor + 2);
 
     expect(undo()).toBe(true);
-    expect(get(editorState).palettes.Background.baseColor).toBe('#333333');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#333333'));
     expect(undo()).toBe(true);
-    expect(get(editorState).palettes.Background.baseColor).toBe('#222222');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#222222'));
 
     // Floor reached — further undo returns false, state unchanged
     expect(undo()).toBe(false);
-    expect(get(editorState).palettes.Background.baseColor).toBe('#222222');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#222222'));
   });
 
   it('commitScope on a clipping scope collapses intra-scope history into one entry equal to the snapshot', () => {
@@ -151,12 +152,12 @@ describe('editorStore — clipping scopes (palette edit sessions)', () => {
     expect(__getHistoryLengths().past).toBe(preSessionPastLen + 1);
 
     const committedEntry = __getPastAt(__getHistoryLengths().past - 1)!;
-    expect(committedEntry.palettes.Background.baseColor).toBe('#111111');
-    expect(get(editorState).palettes.Background.baseColor).toBe('#444444');
+    expect(committedEntry.palettes.Background.baseColor).toEqual(c('#111111'));
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#444444'));
 
     // One undo restores pre-scope state
     undo();
-    expect(get(editorState).palettes.Background.baseColor).toBe('#111111');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#111111'));
   });
 
   it('commitScope on a clipping scope with no net change pushes nothing', () => {
@@ -170,7 +171,7 @@ describe('editorStore — clipping scopes (palette edit sessions)', () => {
     commitScope(session);
 
     expect(__getHistoryLengths().past).toBe(preSessionPastLen);
-    expect(get(editorState).palettes.Background.baseColor).toBe('#111111');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#111111'));
   });
 
   it('cancelScope on a clipping scope restores snapshot, drops intra-scope entries, clears future', () => {
@@ -186,7 +187,7 @@ describe('editorStore — clipping scopes (palette edit sessions)', () => {
 
     expect(__getHistoryLengths().past).toBe(preSessionPastLen);
     expect(__getHistoryLengths().future).toBe(0);
-    expect(get(editorState).palettes.Background.baseColor).toBe('#111111');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#111111'));
   });
 
   it('nested clipping beginScope auto-commits the prior scope', () => {
@@ -206,11 +207,11 @@ describe('editorStore — clipping scopes (palette edit sessions)', () => {
     expect(__getHistoryLengths().past).toBe(preSessionPastLen + 2);
     // One undo: revert Accent to pre-scope value
     undo();
-    expect(get(editorState).palettes.Accent.baseColor).toBe('#aaaaaa');
-    expect(get(editorState).palettes.Background.baseColor).toBe('#222222');
+    expect(get(editorState).palettes.Accent.baseColor).toEqual(c('#aaaaaa'));
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#222222'));
     // Another undo: revert Background to pre-scope value
     undo();
-    expect(get(editorState).palettes.Background.baseColor).toBe('#111111');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#111111'));
   });
 
   it('undo() with a pending non-clipping scope cancels it first (drag-in-flight is discarded)', () => {
@@ -218,7 +219,7 @@ describe('editorStore — clipping scopes (palette edit sessions)', () => {
     const pastLenBefore = __getHistoryLengths().past;
 
     beginScope({ ...txOpts, label: 'drag' });
-    mutate('step', (s) => { s.palettes.Background.baseColor = '#ffffff'; });
+    mutate('step', (s) => { s.palettes.Background.baseColor = c('#ffffff'); });
     // An in-flight drag holds pre-drag state in the scope's snapshot;
     // `undo()` cancels it (restoring that snapshot) before consulting history.
     undo();
@@ -227,7 +228,7 @@ describe('editorStore — clipping scopes (palette edit sessions)', () => {
     // cross-boundary behavior is a separate concern tracked in the plan.)
     expect(__getHistoryLengths().past).toBe(pastLenBefore - 1);
     // The pending mutation did not survive: '#ffffff' is not current.
-    expect(get(editorState).palettes.Background?.baseColor).not.toBe('#ffffff');
+    expect(get(editorState).palettes.Background?.baseColor).not.toEqual(c('#ffffff'));
   });
 });
 
@@ -245,11 +246,11 @@ describe('editorStore — apply + undo matches spec end-to-end', () => {
     }
     commitScope(session);
 
-    expect(get(editorState).palettes.Background.baseColor).toBe('#205090');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#205090'));
 
     const undone = undo();
     expect(undone).toBe(true);
-    expect(get(editorState).palettes.Background.baseColor).toBe(preSessionState.palettes.Background.baseColor);
+    expect(get(editorState).palettes.Background.baseColor).toEqual(preSessionState.palettes.Background.baseColor);
     expect(JSON.stringify(get(editorState))).toBe(JSON.stringify(preSessionState));
   });
 
@@ -286,19 +287,19 @@ describe('editorStore — intra-session slider-drag tracking', () => {
 
     const tickHexes = ['#8c7f73', '#8b7f72', '#8a7f71', '#897f70', '#887f6f'];
     for (const hex of tickHexes) {
-      mutate('drag tick', (s) => { s.palettes.Background.baseColor = hex; });
+      mutate('drag tick', (s) => { s.palettes.Background.baseColor = c(hex); });
       // Each tick must be visible on read — no stale pre-session value
-      expect(get(editorState).palettes.Background.baseColor).toBe(hex);
+      expect(get(editorState).palettes.Background.baseColor).toEqual(c(hex));
     }
 
     window.dispatchEvent(new Event('pointerup'));
     commitScope(session);
 
-    expect(get(editorState).palettes.Background.baseColor).toBe('#887f6f');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#887f6f'));
 
     // One undo after Apply restores to pre-session
     undo();
-    expect(get(editorState).palettes.Background.baseColor).toBe('#8d7f74');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#8d7f74'));
   });
 
   it('Cmd+Z during a session walks one tick back per press', () => {
@@ -307,17 +308,17 @@ describe('editorStore — intra-session slider-drag tracking', () => {
     beginScope({ ...sessionOpts });
     for (const hex of ['#702030', '#503090', '#205090']) {
       const drag = beginScope({ ...txOpts, label: `drag ${hex}` });
-      mutate('tick', (s) => { s.palettes.Background.baseColor = hex; });
+      mutate('tick', (s) => { s.palettes.Background.baseColor = c(hex); });
       commitScope(drag);
     }
 
-    expect(get(editorState).palettes.Background.baseColor).toBe('#205090');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#205090'));
     undo();
-    expect(get(editorState).palettes.Background.baseColor).toBe('#503090');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#503090'));
     undo();
-    expect(get(editorState).palettes.Background.baseColor).toBe('#702030');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#702030'));
     undo();
-    expect(get(editorState).palettes.Background.baseColor).toBe('#8d7f74');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#8d7f74'));
     // Session floor reached — further undo no-ops
     expect(undo()).toBe(false);
   });

@@ -11,10 +11,10 @@ import {
 } from './paletteDerivation';
 import type { PaletteConfig } from '../themes/themeTypes';
 
-function mkP(baseColor: string, scheme: SchemeDirection, extra: Partial<PaletteConfig> = {}): PaletteConfig {
+function mkP(baseColorHex: string, scheme: SchemeDirection, extra: Partial<PaletteConfig> = {}): PaletteConfig {
   const d = scaleCurveDefaults(scheme);
   return {
-    baseColor,
+    baseColor: hexToOklch(baseColorHex),
     lightnessCurve: DEFAULT_PALETTE_LIGHTNESS(),
     saturationCurve: DEFAULT_PALETTE_SATURATION(),
     scaleCurves: {

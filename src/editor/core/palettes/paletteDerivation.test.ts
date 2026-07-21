@@ -8,21 +8,23 @@ import {
   DEFAULT_PALETTE_SATURATION,
   defaultScaleCurves,
   scaleCurveDefaults,
-  computeDerivedColor,
+  computeDerivedOklch,
   stepKey,
   SCALES,
   type ScaleCurveDefaults,
 } from './paletteDerivation';
-import { hexToOklch, oklchToHex } from './oklch';
+import { hexToOklch, type Oklch } from './oklch';
+import { migratePaletteColorsToOklch, type PreOklchPaletteConfig } from '../themes/migrations/2026-07-21-palette-oklch-basis';
 import { makeAnchor, type CurveAnchor } from '../../ui/curveEngine';
 import type { PaletteConfig } from '../themes/themeTypes';
 import defaultTheme from '../../../live-tokens/data/themes/default.json';
 
 // Keeps each test case explicit about which fields a palette starts with so
-// the reconciler's behaviour is unambiguous.
-function palette(baseColor: string, extra: Partial<PaletteConfig> = {}): PaletteConfig {
+// the reconciler's behaviour is unambiguous. Takes hex for readability and
+// stores the OKLCH basis.
+function palette(baseColorHex: string, extra: Partial<PaletteConfig> = {}): PaletteConfig {
   return {
-    baseColor,
+    baseColor: hexToOklch(baseColorHex),
     lightnessCurve: DEFAULT_PALETTE_LIGHTNESS(),
     saturationCurve: DEFAULT_PALETTE_SATURATION(),
     scaleCurves: {
@@ -44,7 +46,7 @@ describe('reconcilePalettesFromCssVars', () => {
     const { palettes: next, snapped } = reconcilePalettesFromCssVars(palettes, {
       '--color-brand-500': '#bd6a08',
     });
-    expect(next.Brand.baseColor).toBe('#bd6a08');
+    expect(next.Brand.baseColor).toEqual(hexToOklch('#bd6a08'));
     expect(next.Brand._imported).toBe(false);
     expect(snapped.has('Brand')).toBe(true);
   });
@@ -57,7 +59,7 @@ describe('reconcilePalettesFromCssVars', () => {
     const { palettes: next, snapped } = reconcilePalettesFromCssVars(palettes, {
       '--color-accent-500': '#9d7f00',
     });
-    expect(next.Accent.baseColor).toBe('#008582');
+    expect(next.Accent.baseColor).toEqual(hexToOklch('#008582'));
     expect(snapped.size).toBe(0);
   });
 
@@ -66,7 +68,7 @@ describe('reconcilePalettesFromCssVars', () => {
     const { palettes: next, snapped } = reconcilePalettesFromCssVars(palettes, {
       '--color-neutral-500': '#7d7570',
     });
-    expect(next.Neutral.baseColor).toBe('#7d7570');
+    expect(next.Neutral.baseColor).toEqual(hexToOklch('#7d7570'));
     expect(next.Neutral._imported).toBe(false);
     expect(snapped.has('Neutral')).toBe(true);
   });
@@ -74,7 +76,7 @@ describe('reconcilePalettesFromCssVars', () => {
   it('clears _imported even when no anchor is present (flag has nothing to do)', () => {
     const palettes = { Brand: palette('#fb2898', { _imported: true }) };
     const { palettes: next } = reconcilePalettesFromCssVars(palettes, {});
-    expect(next.Brand.baseColor).toBe('#fb2898');
+    expect(next.Brand.baseColor).toEqual(hexToOklch('#fb2898'));
     expect(next.Brand._imported).toBe(false);
   });
 
@@ -95,7 +97,7 @@ describe('reconcilePalettesFromCssVars', () => {
     // After the first call cleared _imported, the second call has nothing
     // to snap to. Equal output ↔ idempotent.
     const second = reconcilePalettesFromCssVars(first.palettes, cssVars);
-    expect(second.palettes.Brand.baseColor).toBe(first.palettes.Brand.baseColor);
+    expect(second.palettes.Brand.baseColor).toEqual(first.palettes.Brand.baseColor);
     expect(second.palettes.Brand._imported).toBe(false);
     expect(second.snapped.size).toBe(0);
   });
@@ -106,8 +108,8 @@ describe('paletteMath re-exports resolve to the core implementations', () => {
     expect(ui.SCALES).toBe(core.SCALES);
     expect(ui.scales).toBe(core.SCALES);
     expect(ui.PALETTE_STEPS).toBe(core.PALETTE_STEPS);
-    expect(ui.computePaletteColor).toBe(core.computePaletteColor);
-    expect(ui.computeDerivedColor).toBe(core.computeDerivedColor);
+    expect(ui.computePaletteOklch).toBe(core.computePaletteOklch);
+    expect(ui.computeDerivedOklch).toBe(core.computeDerivedOklch);
     expect(ui.stepIndexToX).toBe(core.stepIndexToX);
     expect(ui.scaleStepToX).toBe(core.scaleStepToX);
     expect(ui.paletteStepKey).toBe(core.paletteStepKey);
@@ -120,7 +122,11 @@ describe('paletteMath re-exports resolve to the core implementations', () => {
 });
 
 describe('derivation is byte-stable (Global invariant 1)', () => {
-  const editorConfigs = defaultTheme.editorConfigs as unknown as Record<string, PaletteConfig>;
+  // default.json is still hex on disk; loadFromFile migrates it to the OKLCH
+  // basis, so mirror that here before deriving.
+  const editorConfigs = migratePaletteColorsToOklch(
+    defaultTheme.editorConfigs as unknown as Record<string, PreOklchPaletteConfig>,
+  );
 
   it('palettesToVars(default.json editorConfigs) is unchanged', () => {
     expect(palettesToVars(editorConfigs)).toMatchSnapshot();
@@ -199,17 +205,17 @@ describe('snapScaleToPalette is direction-agnostic', () => {
   const flatSat: CurveAnchor[] = [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)];
   // Natural order is light → dark (steps 100 … 950), mirroring the runtime paletteComputed.
   const paletteL = [0.95, 0.87, 0.79, 0.70, 0.61, 0.52, 0.43, 0.34, 0.27, 0.18, 0.10];
-  const paletteComputed = paletteL.map((l) => ({ hex: oklchToHex(l, 0, 0) }));
-  const L = (hex: string) => hexToOklch(hex).l;
+  const paletteComputed = paletteL.map((l): { oklch: Oklch } => ({ oklch: { l, c: 0, h: 0 } }));
+  const GRAY = hexToOklch('#808080');
 
   // The pre-Wave-2 algorithm: score only the dark-first (ascending L) ordering.
   function legacyDarkFirstSnap(
     scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }>,
-  ): Record<string, string> {
+  ): Record<string, Oklch> {
     const n = surfaces.steps.length;
-    const stepL = surfaces.steps.map((step) => L(computeDerivedColor(step, '#808080', surfaces.title, scaleCurves, {})));
+    const stepL = surfaces.steps.map((step) => computeDerivedOklch(step, GRAY, surfaces.title, scaleCurves, {}).l);
     const palDarkFirst = [...paletteComputed].reverse();
-    const palL = palDarkFirst.map((ps) => L(ps.hex));
+    const palL = palDarkFirst.map((ps) => ps.oklch.l);
     let bestStart = 0;
     let bestCost = Infinity;
     for (let start = 0; start <= palDarkFirst.length - n; start++) {
@@ -217,30 +223,30 @@ describe('snapScaleToPalette is direction-agnostic', () => {
       for (let i = 0; i < n; i++) { const d = stepL[i] - palL[start + i]; cost += d * d; }
       if (cost < bestCost) { bestCost = cost; bestStart = start; }
     }
-    const assigned: Record<string, string> = {};
-    for (let i = 0; i < n; i++) assigned[stepKey(surfaces.title, surfaces.steps[i].name)] = palDarkFirst[bestStart + i].hex;
+    const assigned: Record<string, Oklch> = {};
+    for (let i = 0; i < n; i++) assigned[stepKey(surfaces.title, surfaces.steps[i].name)] = palDarkFirst[bestStart + i].oklch;
     return assigned;
   }
 
   it('ascending (dark-style) curve returns the same window as the legacy dark-first pass', () => {
     const ascending = { Surfaces: { lightness: [makeAnchor(0, 10, 5), makeAnchor(100, 90, 5)], saturation: flatSat } };
-    const assigned = ui.snapScaleToPalette(surfaces, '#808080', ascending, {}, paletteComputed);
+    const assigned = ui.snapScaleToPalette(surfaces, GRAY, ascending, {}, paletteComputed);
     expect(assigned).toEqual(legacyDarkFirstSnap(ascending));
 
-    const ls = surfaces.steps.map((s) => L(assigned[stepKey('Surfaces', s.name)]));
+    const ls = surfaces.steps.map((s) => assigned[stepKey('Surfaces', s.name)].l);
     for (let i = 0; i + 1 < ls.length; i++) expect(ls[i]).toBeLessThanOrEqual(ls[i + 1]);
   });
 
   it('descending (light-style) curve picks a descending window from the reversed ordering', () => {
     const descending = { Surfaces: { lightness: [makeAnchor(0, 90, 5), makeAnchor(100, 10, 5)], saturation: flatSat } };
-    const assigned = ui.snapScaleToPalette(surfaces, '#808080', descending, {}, paletteComputed);
+    const assigned = ui.snapScaleToPalette(surfaces, GRAY, descending, {}, paletteComputed);
 
-    const ls = surfaces.steps.map((s) => L(assigned[stepKey('Surfaces', s.name)]));
+    const ls = surfaces.steps.map((s) => assigned[stepKey('Surfaces', s.name)].l);
     // Dark-first alone can only produce ascending windows; a descending result proves the reversed ordering won.
     for (let i = 0; i + 1 < ls.length; i++) expect(ls[i]).toBeGreaterThanOrEqual(ls[i + 1]);
     expect(assigned).not.toEqual(legacyDarkFirstSnap(descending));
 
-    const palSet = new Set(paletteComputed.map((p) => p.hex));
-    for (const hex of Object.values(assigned)) expect(palSet.has(hex)).toBe(true);
+    const palSet = new Set(paletteComputed.map((p) => p.oklch));
+    for (const color of Object.values(assigned)) expect(palSet.has(color)).toBe(true);
   });
 });

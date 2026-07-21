@@ -19,23 +19,25 @@
  */
 
 import { type CurveAnchor, sampleCurve } from '../../../ui/curveEngine';
-import { hexToOklch, oklchToHex, gamutClamp } from '../../palettes/oklch';
+import { oklchToHex, gamutClamp } from '../../palettes/oklch';
 import { DEFAULT_PALETTE_SATURATION } from '../../palettes/paletteDerivation';
-import type { PaletteConfig } from '../themeTypes';
+import type { PreOklchPaletteConfig } from './2026-07-21-palette-oklch-basis';
 
 const NEUTRAL_LABELS = new Set(['Neutral', 'Alternate']);
 
 const GRAY_STEP_COUNT = 11;
 const GRAY_500_X = (4 / (GRAY_STEP_COUNT - 1)) * 100;
 
-/** Legacy shape: the gray fields union'd onto every saved palette config. */
+/** Legacy shape: the gray fields union'd onto every saved palette config. This
+ *  migration runs before the OKLCH-basis conversion, so color channels here are
+ *  still hex strings. */
 type LegacyGrayFields = {
   tintHue?: number;
   tintChroma?: number;
   grayLightnessCurve?: CurveAnchor[];
   graySaturationCurve?: CurveAnchor[];
 };
-type LegacyPaletteConfig = PaletteConfig & LegacyGrayFields;
+type LegacyPaletteConfig = PreOklchPaletteConfig & LegacyGrayFields;
 
 /** Reproduces the deleted `computeGrayColor` at step 500. */
 function effectiveGray500(cfg: LegacyPaletteConfig): string {
@@ -51,13 +53,13 @@ function effectiveGray500(cfg: LegacyPaletteConfig): string {
   return oklchToHex(clamped.l, clamped.c, clamped.h);
 }
 
-function stripGrayFields(cfg: LegacyPaletteConfig): PaletteConfig {
+function stripGrayFields(cfg: LegacyPaletteConfig): PreOklchPaletteConfig {
   const { tintHue, tintChroma, grayLightnessCurve, graySaturationCurve, ...rest } = cfg;
   return rest;
 }
 
 /** Precondition: `cfg.grayLightnessCurve` is defined (caller-guarded). */
-function unifyNeutral(cfg: LegacyPaletteConfig): PaletteConfig {
+function unifyNeutral(cfg: LegacyPaletteConfig): PreOklchPaletteConfig {
   const {
     'gray-lightness': grayLightnessOffset,
     'gray-saturation': _graySaturationOffset,
@@ -77,9 +79,9 @@ function unifyNeutral(cfg: LegacyPaletteConfig): PaletteConfig {
 }
 
 export function unifyGrayPalettes(
-  editorConfigs: Record<string, PaletteConfig>,
-): Record<string, PaletteConfig> {
-  const out: Record<string, PaletteConfig> = {};
+  editorConfigs: Record<string, PreOklchPaletteConfig>,
+): Record<string, PreOklchPaletteConfig> {
+  const out: Record<string, PreOklchPaletteConfig> = {};
   for (const [label, cfg] of Object.entries(editorConfigs)) {
     const legacy = cfg as LegacyPaletteConfig;
     out[label] = NEUTRAL_LABELS.has(label) && legacy.grayLightnessCurve !== undefined

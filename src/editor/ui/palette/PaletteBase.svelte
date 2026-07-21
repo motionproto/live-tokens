@@ -2,7 +2,7 @@
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import Toggle from '../Toggle.svelte';
   import { beginSliderGesture } from '../../core/store/editorStore';
-  import { hexToOklch } from '../../core/palettes/oklch';
+  import { oklchToHexClamped, type Oklch } from '../../core/palettes/oklch';
 
   // Full sRGB chroma range (gamutClamp trims per hue/lightness). Neutrals default
   // low but are not capped; their calm character comes from defaults, not a ceiling.
@@ -26,11 +26,11 @@
     label: string;
     displayLabel?: string | null;
     neutral?: boolean;
-    baseColor: string;
+    baseColor: Oklch;
     anchorToBase: boolean;
     isEditingBase: boolean;
     panelOpen: boolean;
-    editingColor: string | null;
+    editingColor: Oklch | null;
     editPanelTitle: string | null;
     copiedKey: string | null;
     onStartEdit: () => void;
@@ -60,7 +60,8 @@
     onCopyBaseHex
   }: Props = $props();
 
-  let baseOklch = $derived(hexToOklch(baseColor));
+  let baseOklch = $derived(baseColor);
+  let baseHex = $derived(oklchToHexClamped(baseColor.l, baseColor.c, baseColor.h));
   let pickerChromaHint = $derived(neutral ? NEUTRAL_CALM_CHROMA : undefined);
 </script>
 
@@ -70,7 +71,7 @@
     <div
       class="header-swatch"
       class:active={isEditingBase}
-      style="background: {baseColor}"
+      style="background: {baseHex}"
       onclick={onStartEdit}
       role="button"
       tabindex="0"
@@ -81,8 +82,8 @@
       <button
         class="base-hex clickable-hex"
         type="button"
-        onclick={(e) => onCopyBaseHex('__base__', baseColor, e)}
-      >{copiedKey === '__base__' ? 'copied!' : baseColor}</button>
+        onclick={(e) => onCopyBaseHex('__base__', baseHex, e)}
+      >{copiedKey === '__base__' ? 'copied!' : baseHex}</button>
     </div>
   </div>
 </div>

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { unifyGrayPalettes } from './2026-06-05-palette-unification';
+import { migratePaletteColorsToOklch, type PreOklchPaletteConfig } from './2026-07-21-palette-oklch-basis';
 import { derivePaletteVars, PALETTE_SPECS, DEFAULT_PALETTE_LIGHTNESS, DEFAULT_PALETTE_SATURATION } from '../../palettes/paletteDerivation';
 import { hexToOklch, oklchToHex, gamutClamp } from '../../palettes/oklch';
 import { type CurveAnchor, makeAnchor, sampleCurve } from '../../../ui/curveEngine';
-import type { PaletteConfig } from '../themeTypes';
 
 type LegacyGray = {
   tintHue: number;
@@ -25,7 +25,7 @@ function legacyGrayFields(over: Partial<LegacyGray> = {}): LegacyGray {
   };
 }
 
-function legacyConfig(base: Partial<PaletteConfig> = {}, gray: Partial<LegacyGray> = {}): PaletteConfig {
+function legacyConfig(base: Partial<PreOklchPaletteConfig> = {}, gray: Partial<LegacyGray> = {}): PreOklchPaletteConfig {
   return {
     baseColor: '#808080',
     lightnessCurve: DEFAULT_PALETTE_LIGHTNESS(),
@@ -37,13 +37,13 @@ function legacyConfig(base: Partial<PaletteConfig> = {}, gray: Partial<LegacyGra
     anchorToBase: true,
     ...base,
     ...legacyGrayFields(gray),
-  } as PaletteConfig;
+  } as PreOklchPaletteConfig;
 }
 
 /** Reproduces the deleted `computeGrayColor` at step 500 — the reference the
  *  close-mapping must match for default / flat-saturation neutrals. */
-function oldGray500(cfg: PaletteConfig): string {
-  const g = cfg as PaletteConfig & LegacyGray;
+function oldGray500(cfg: PreOklchPaletteConfig): string {
+  const g = cfg as PreOklchPaletteConfig & LegacyGray;
   const x = 40; // step 500 of 11 → (4/10)*100
   const lOff = cfg.curveOffset['gray-lightness'] ?? 0;
   const sOff = cfg.curveOffset['gray-saturation'] ?? 0;
@@ -97,7 +97,7 @@ describe('unifyGrayPalettes', () => {
 
   it('step 500 of the migrated neutral matches the old gray-500 (flat-saturation neutral)', () => {
     const before = legacyConfig();
-    const migrated = unifyGrayPalettes({ Neutral: before }).Neutral;
+    const migrated = migratePaletteColorsToOklch(unifyGrayPalettes({ Neutral: before })).Neutral;
     const spec = PALETTE_SPECS.find((s) => s.label === 'Neutral')!;
     const derived500 = derivePaletteVars(spec, migrated)['--color-neutral-500'];
 

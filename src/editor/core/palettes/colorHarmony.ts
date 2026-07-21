@@ -3,7 +3,7 @@
 // relationship with the Brand anchor. No chroma clamp or cap lives here — a
 // saturated background is a legitimate choice, not something to correct.
 
-import { hexToOklch, oklchToHex } from './oklch';
+import type { Oklch } from './oklch';
 import type { PaletteConfig } from '../themes/themeTypes';
 
 export type HarmonyMode =
@@ -34,9 +34,9 @@ export function harmonyHues(mode: HarmonyMode, anchorHue: number): number[] {
   }
 }
 
-function reHue(config: PaletteConfig, hue: number): string {
-  const { l, c } = hexToOklch(config.baseColor);
-  return oklchToHex(l, c, norm(hue));
+function reHue(config: PaletteConfig, hue: number): Oklch {
+  const { l, c } = config.baseColor;
+  return { l, c, h: norm(hue) };
 }
 
 /**
@@ -49,12 +49,12 @@ function reHue(config: PaletteConfig, hue: number): string {
 export function applyHarmony(
   mode: HarmonyMode,
   palettes: Record<string, PaletteConfig>,
-): Record<string, string> {
+): Record<string, Oklch> {
   if (mode === 'custom') return {};
   const brand = palettes.Brand;
   if (!brand) return {};
-  const hues = harmonyHues(mode, hexToOklch(brand.baseColor).h);
-  const out: Record<string, string> = {};
+  const hues = harmonyHues(mode, brand.baseColor.h);
+  const out: Record<string, Oklch> = {};
   TRIO.forEach((label, i) => {
     const config = palettes[label];
     if (config) out[label] = reHue(config, hues[i]);
@@ -65,11 +65,11 @@ export function applyHarmony(
 /** Re-hue Neutral and Alternate to the Brand hue, own chroma + lightness kept. */
 export function tintNeutralsFromBrand(
   palettes: Record<string, PaletteConfig>,
-): Record<string, string> {
+): Record<string, Oklch> {
   const brand = palettes.Brand;
   if (!brand) return {};
-  const hue = hexToOklch(brand.baseColor).h;
-  const out: Record<string, string> = {};
+  const hue = brand.baseColor.h;
+  const out: Record<string, Oklch> = {};
   for (const label of ['Neutral', 'Alternate']) {
     const config = palettes[label];
     if (config) out[label] = reHue(config, hue);

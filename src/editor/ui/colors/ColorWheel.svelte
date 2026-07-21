@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
-  import { hexToOklch, oklchToHex, gamutClamp } from '../../core/palettes/oklch';
+  import { oklchToHex, oklchToHexClamped, type Oklch } from '../../core/palettes/oklch';
   import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
   import { editorState, beginScope, commitScope, cancelScope, type Scope } from '../../core/store/editorStore';
   import { setBaseHueChroma, setBaseChroma, setBaseColors } from './paletteBaseColor';
-  import { maxChroma, type LiveColorEdit } from './colorWheelMath';
+  import { maxChroma } from './colorWheelMath';
 
   interface Props {
     selected: string | null;
@@ -17,14 +17,9 @@
     /** Rotation semantics: off (default) preserves relative saturation (constant
      *  render radius); on preserves absolute chroma (the dot drifts in/out). */
     absoluteChroma: boolean;
-    /** Live drag intent from the lightness bar. When set (and the wheel isn't
-     *  itself dragging), the active family renders from this pristine
-     *  hue/chroma/L instead of the round-tripped hex — so an absolute-mode L
-     *  drag drifts the dot smoothly rather than jittering. */
-    liveEdit?: LiveColorEdit | null;
   }
 
-  let { selected, onSelect, discLightness, onCustomize, absoluteChroma, liveEdit = null }: Props = $props();
+  let { selected, onSelect, discLightness, onCustomize, absoluteChroma }: Props = $props();
 
   // The harmony trio, anchored on Brand. Neutral/Alternate/Special stay off the
   // wheel this pass (swatch row only).
@@ -75,10 +70,10 @@
 
   let trio = $derived(
     TRIO_SPECS.map((spec) => {
-      const hex = $editorState.palettes[spec.label]?.baseColor ?? spec.initialColor;
-      const { l, c, h } = hexToOklch(hex);
+      const { l, c, h } = $editorState.palettes[spec.label]?.baseColor ?? spec.initialColor;
       const mc = maxChroma(l, h) || 1e-6;
-      return { label: spec.label, hex, hue: h, chroma: c, lightness: l, rFrac: clamp(c / mc, 0, 1) };
+      // `hex` is the clamped sRGB projection painting the dot fill only.
+      return { label: spec.label, hex: oklchToHexClamped(l, c, h), hue: h, chroma: c, lightness: l, rFrac: clamp(c / mc, 0, 1) };
     }),
   );
 
@@ -100,12 +95,6 @@
       } else if (d?.kind === 'global' && d.start[t.label]) {
         hue = normDeg(d.start[t.label].hue0 + d.delta);
         rFrac = rotateRadius(d.start[t.label], hue);
-      } else if (!d && liveEdit && liveEdit.label === t.label) {
-        // Lightness-bar drag: render from its pristine intent, not the hex.
-        // Absolute mode holds chroma while maxChroma(L) changes → the dot drifts
-        // smoothly; relative mode's chroma tracks maxChroma(L) → rFrac holds.
-        hue = liveEdit.hue;
-        rFrac = clamp(liveEdit.chroma / (maxChroma(liveEdit.l, liveEdit.hue) || 1e-6), 0, 1);
       }
       const dotR = rFrac * discRadius;
       return {
@@ -320,16 +309,13 @@
   }
 
   function rotateAll(delta: number) {
-    const patch: Record<string, string> = {};
+    const patch: Record<string, Oklch> = {};
     for (const t of trio) {
       const newHue = normDeg(t.hue + delta);
-      if (absoluteChroma) {
-        const { l, c } = hexToOklch(t.hex);
-        patch[t.label] = oklchToHex(l, c, newHue);
-      } else {
-        const g = gamutClamp(t.lightness, rFracOf(t) * maxChroma(t.lightness, newHue), newHue);
-        patch[t.label] = oklchToHex(g.l, g.c, g.h);
-      }
+      // Unclamped intent: off holds the gamut fraction, on holds absolute chroma.
+      patch[t.label] = absoluteChroma
+        ? { l: t.lightness, c: t.chroma, h: newHue }
+        : { l: t.lightness, c: rFracOf(t) * maxChroma(t.lightness, newHue), h: newHue };
     }
     setBaseColors(patch, 'colors: rotate all');
   }

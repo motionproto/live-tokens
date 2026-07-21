@@ -9,7 +9,7 @@
 // and page colors come from the real `palettesToValues` derivation (numeric
 // OKLCH); the solver converts to hex only at its own sRGB (WCAG) boundary.
 
-import { hexToOklch, oklchToHex } from './oklch';
+import { oklchToHexClamped } from './oklch';
 import {
   palettesToValues,
   serializeDerivedValue,
@@ -97,9 +97,10 @@ function colorSurface(varName: string, value: DerivedValue | undefined): Surface
 }
 
 // The solver terminates in sRGB (WCAG luminance is sRGB-defined); convert the
-// numeric surface to hex only at this boundary.
+// numeric surface to hex only at this boundary. Clamp so contrast math sees the
+// same chroma-reduced projection the CSS ships (unclamped override surfaces).
 function surfaceHex(s: Surface): string {
-  return oklchToHex(s.l, s.c, s.h);
+  return oklchToHexClamped(s.l, s.c, s.h);
 }
 
 // The hardest surface to clear: for lighter text the highest-luminance surface,
@@ -144,7 +145,7 @@ export function solveTextCurves(
     const config = palettes[spec.label];
     if (!config) continue;
 
-    const seed = hexToOklch(config.baseColor);
+    const seed = config.baseColor;
     const seedL = Math.max(seed.l, 1e-4);
     const baseC = Math.max(seed.c, 1e-9);
     const baseH = seed.h;

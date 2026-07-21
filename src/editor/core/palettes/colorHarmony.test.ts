@@ -4,9 +4,9 @@ import { hexToOklch, oklchToHex } from './oklch';
 import { DEFAULT_PALETTE_LIGHTNESS, DEFAULT_PALETTE_SATURATION, defaultScaleCurves } from './paletteDerivation';
 import type { PaletteConfig } from '../themes/themeTypes';
 
-function mkP(baseColor: string): PaletteConfig {
+function mkP(baseColorHex: string): PaletteConfig {
   return {
-    baseColor,
+    baseColor: hexToOklch(baseColorHex),
     lightnessCurve: DEFAULT_PALETTE_LIGHTNESS(),
     saturationCurve: DEFAULT_PALETTE_SATURATION(),
     scaleCurves: {
@@ -54,11 +54,11 @@ describe('applyHarmony', () => {
     expect('Special' in out).toBe(false);
     expect('Neutral' in out).toBe(false);
 
-    const hues = harmonyHues('triadic', hexToOklch(palettes.Brand.baseColor).h);
+    const hues = harmonyHues('triadic', palettes.Brand.baseColor.h);
     (['Brand', 'Background', 'Accent'] as const).forEach((label, i) => {
-      const before = hexToOklch(palettes[label].baseColor);
+      const before = palettes[label].baseColor;
       // Exact: only the hue moves; L and C are the seed's own, unclamped.
-      expect(out[label]).toBe(oklchToHex(before.l, before.c, hues[i]));
+      expect(out[label]).toEqual({ l: before.l, c: before.c, h: hues[i] });
     });
   });
 
@@ -74,10 +74,10 @@ describe('applyHarmony', () => {
     const modes: HarmonyMode[] = ['complementary', 'split-complementary', 'triadic', 'square', 'analogous', 'monochromatic'];
     for (const mode of modes) {
       const out = applyHarmony(mode, palettes);
-      const hues = harmonyHues(mode, hexToOklch(palettes.Brand.baseColor).h);
+      const hues = harmonyHues(mode, palettes.Brand.baseColor.h);
       (['Brand', 'Background', 'Accent'] as const).forEach((label, i) => {
-        const before = hexToOklch(palettes[label].baseColor);
-        expect(out[label]).toBe(oklchToHex(before.l, before.c, hues[i]));
+        const before = palettes[label].baseColor;
+        expect(out[label]).toEqual({ l: before.l, c: before.c, h: hues[i] });
       });
     }
   });
@@ -94,10 +94,10 @@ describe('tintNeutralsFromBrand', () => {
     const out = tintNeutralsFromBrand(palettes);
     expect(Object.keys(out).sort()).toEqual(['Alternate', 'Neutral']);
 
-    const brandHue = hexToOklch(palettes.Brand.baseColor).h;
+    const brandHue = palettes.Brand.baseColor.h;
     for (const label of ['Neutral', 'Alternate']) {
-      const before = hexToOklch(palettes[label].baseColor);
-      expect(out[label]).toBe(oklchToHex(before.l, before.c, brandHue));
+      const before = palettes[label].baseColor;
+      expect(out[label]).toEqual({ l: before.l, c: before.c, h: brandHue });
     }
     expect('Special' in out).toBe(false);
     expect('Brand' in out).toBe(false);

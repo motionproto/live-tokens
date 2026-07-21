@@ -3,7 +3,7 @@
 
   const bubble = createBubbler();
   import { onMount, onDestroy, tick, untrack } from 'svelte';
-  import { hexToOklch, oklchToHex, gamutClamp } from '../core/palettes/oklch';
+  import { oklchToHexClamped, type Oklch } from '../core/palettes/oklch';
   import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig } from './curveEngine';
   import ColorEditPanel from './ColorEditPanel.svelte';
   import OverridesPanel from './palette/OverridesPanel.svelte';
@@ -21,8 +21,8 @@
     paletteStepKey, stepKey, scaleCurveKey as getScaleCurveKey,
     stepIndexToX,
     injectLockedAnchor, removeLockedAnchor,
-    computePaletteColor as computePaletteColorPure,
-    computeDerivedColor as computeDerivedColorPure,
+    computePaletteOklch as computePaletteOklchPure,
+    computeDerivedOklch as computeDerivedOklchPure,
     snapScaleToPalette as snapScaleToPalettePure,
   } from './palette/paletteMath';
   import type { PaletteConfig, GradientStop } from '../core/themes/themeTypes';
@@ -32,7 +32,7 @@
   interface Props {
     label: string;
     displayLabel?: string | null;
-    initialColor?: string;
+    initialColor?: Oklch;
     neutral?: boolean;
     cssNamespace?: string | null;
     emptySelector?: boolean;
@@ -46,6 +46,8 @@
     cssNamespace = null,
     emptySelector = false
   }: Props = $props();
+
+  const toHex = (o: Oklch): string => oklchToHexClamped(o.l, o.c, o.h);
 
   const seedConfig = () => defaultPaletteConfig({ baseColor: initialColor, neutral });
 
@@ -108,12 +110,12 @@
   let injectedLightness = false;
   let injectedSaturation = false;
 
-  function computePaletteColor(index: number, base: string): string {
-    return computePaletteColorPure(index, base, lightnessCurve, saturationCurve, curveOffset);
+  function computePaletteOklch(index: number, base: Oklch): Oklch {
+    return computePaletteOklchPure(index, base, lightnessCurve, saturationCurve, curveOffset);
   }
 
-  function computeDerivedColor(step: Step, base: string, scaleTitle: string): string {
-    return computeDerivedColorPure(step, base, scaleTitle, scaleCurves, curveOffset);
+  function computeDerivedOklch(step: Step, base: Oklch, scaleTitle: string): Oklch {
+    return computeDerivedOklchPure(step, base, scaleTitle, scaleCurves, curveOffset);
   }
 
   /**
@@ -128,7 +130,7 @@
     if (next === anchorToBase) return;
     if (next) {
       const x500 = stepIndexToX(4);
-      const lResult = injectLockedAnchor(lightnessCurve, x500, hexToOklch(baseColor).l * 100);
+      const lResult = injectLockedAnchor(lightnessCurve, x500, baseColor.l * 100);
       const sResult = injectLockedAnchor(saturationCurve, x500, 100);
       injectedLightness = lResult.injected;
       injectedSaturation = sResult.injected;
@@ -166,7 +168,7 @@
       confirmEdit();
       return;
     }
-    const current = (k in overrides) ? overrides[k] : computePaletteColor(ps.index, baseColor);
+    const current = (k in overrides) ? overrides[k] : computePaletteOklch(ps.index, baseColor);
     editing = { kind: 'editingStep', stepKey: k, snapshot: current, draft: current };
     openSession();
   }
@@ -183,21 +185,16 @@
     edit('scaleCurves', { ...scaleCurves, [title]: { ...cur, [channel]: a } });
   }
 
-  function handleColorChange(hex: string) {
+  function handleColorChange(color: Oklch) {
     if (editing.kind === 'editingStep') {
-      editing = { ...editing, draft: hex };
+      editing = { ...editing, draft: color };
       // Write every drag tick to the store (not just pre-existing overrides) so
       // the live page and the derived-scale preview swatches update in realtime.
       // The open session collapses these to one undo entry; cancel restores the
       // snapshot, and confirmEdit drops the override if the draft equals the
       // computed value, so a no-op edit leaves nothing behind.
-      edit('overrides', { ...overrides, [editing.stepKey]: hex });
+      edit('overrides', { ...overrides, [editing.stepKey]: color });
     }
-  }
-
-  function oklchHex(hue: number, chroma: number, lightness: number): string {
-    const c = gamutClamp(lightness / 100, chroma, hue);
-    return oklchToHex(c.l, c.c, c.h);
   }
 
   function resetOverride(k: string) {
@@ -211,7 +208,7 @@
       confirmEdit();
       return;
     }
-    const current = (k in overrides) ? overrides[k] : computeDerivedColor(step, baseColor, scaleTitle);
+    const current = (k in overrides) ? overrides[k] : computeDerivedOklch(step, baseColor, scaleTitle);
     editing = { kind: 'editingStep', stepKey: k, snapshot: current, draft: current };
     openSession();
   }
@@ -223,9 +220,13 @@
       let nextOverrides = { ...overrides };
       if (editingDraft !== null) {
         const computed = computedValueForKey(editingKey);
-        if (computed !== null && editingDraft !== computed) {
+        // Compare via the sRGB projection: an override that renders identically
+        // to the computed default is dropped (same rule as the pre-Wave-2 hex
+        // compare); the stored value stays the lossless numeric draft.
+        const draftHex = toHex(editingDraft);
+        if (computed !== null && draftHex !== toHex(computed)) {
           nextOverrides[editingKey] = editingDraft;
-        } else if (computed !== null && editingKey in nextOverrides && editingDraft === computed) {
+        } else if (computed !== null && editingKey in nextOverrides && draftHex === toHex(computed)) {
           delete nextOverrides[editingKey];
         }
       }
@@ -258,16 +259,16 @@
     if (editingKey === k) { editing = idleState; }
   }
 
-  function computedValueForKey(key: string): string | null {
+  function computedValueForKey(key: string): Oklch | null {
     const ps = paletteStepLightness.find(p => paletteStepKey(p.label) === key);
     if (ps) {
       const idx = paletteStepLightness.indexOf(ps);
-      return computePaletteColor(idx, baseColor);
+      return computePaletteOklch(idx, baseColor);
     }
     for (const scale of scales) {
       for (const step of scale.steps) {
         if (stepKey(scale.title, step.name) === key) {
-          return computeDerivedColor(step, baseColor, scale.title);
+          return computeDerivedOklch(step, baseColor, scale.title);
         }
       }
     }
@@ -275,8 +276,8 @@
   }
 
   function effectiveColor(k: string, step: Step, scaleTitle: string, _version?: string): string {
-    if (editingKey === k && editingDraft !== null) return editingDraft;
-    return (k in overrides) ? overrides[k] : computeDerivedColor(step, baseColor, scaleTitle);
+    if (editingKey === k && editingDraft !== null) return toHex(editingDraft);
+    return (k in overrides) ? toHex(overrides[k]) : toHex(computeDerivedOklch(step, baseColor, scaleTitle));
   }
 
   let copiedKey: string | null = $state(null);
@@ -295,7 +296,7 @@
     setTimeout(() => { copiedLabelKey = null; }, 1500);
   }
 
-  function snapScaleToPalette(scale: Scale): Record<string, string> {
+  function snapScaleToPalette(scale: Scale): Record<string, Oklch> {
     return snapScaleToPalettePure(scale, baseColor, scaleCurves, curveOffset, paletteComputed);
   }
 
@@ -348,8 +349,8 @@
   onMount(() => document.addEventListener('click', handleDocClick, true));
   onDestroy(() => document.removeEventListener('click', handleDocClick, true));
 
-  function selectSnapValue(k: string, paletteHex: string, _scaleTitle: string) {
-    edit('overrides', { ...overrides, [k]: paletteHex });
+  function selectSnapValue(k: string, value: Oklch, _scaleTitle: string) {
+    edit('overrides', { ...overrides, [k]: value });
     snapPickerKey = null;
   }
 
@@ -368,9 +369,12 @@
     for (const scale of scales.filter(s => !s.isText)) {
       if (!snappedScales.has(scale.title)) continue;
       const assigned = snapScaleToPalette(scale);
-      for (const [k, hex] of Object.entries(assigned)) {
-        if (next[k] !== hex) {
-          next[k] = hex;
+      for (const [k, color] of Object.entries(assigned)) {
+        // Value compare, not reference: the recompute yields fresh objects, so a
+        // reference test would always fire and loop the resnap effect.
+        const prev = next[k];
+        if (!prev || prev.l !== color.l || prev.c !== color.c || prev.h !== color.h) {
+          next[k] = color;
           changed = true;
         }
       }
@@ -412,7 +416,7 @@
   // recursive).
   $effect(() => {
     if (!anchorToBase || lockedLightnessIdx === null || !baseColor) return;
-    const targetY = hexToOklch(baseColor).l * 100;
+    const targetY = baseColor.l * 100;
     untrack(() => {
       const idx = lockedLightnessIdx;
       if (idx === null) return;
@@ -426,15 +430,18 @@
     const _bc = baseColor, _lc = lightnessCurve, _sc = saturationCurve, _co = curveOffset, _ed = editingDraft, _ek = editingKey, _ov = overrides, _ab = anchorToBase;
     return paletteStepLightness.map((ps, index) => {
       const k = paletteStepKey(ps.label);
-      const hex = computePaletteColor(index, baseColor);
-      const effective = (_ek === k && _ed !== null) ? _ed : (k in _ov) ? _ov[k] : hex;
+      const oklch = computePaletteOklch(index, baseColor);
+      const effOklch = (_ek === k && _ed !== null) ? _ed : (k in _ov) ? _ov[k] : oklch;
       return {
         label: ps.label,
         lightness: ps.lightness,
         index,
         key: k,
-        hex,
-        effective,
+        // `oklch` is the numeric step (feeds snap); `hex`/`effective` are the
+        // sRGB projections that paint swatches and copy to the clipboard.
+        oklch,
+        hex: toHex(oklch),
+        effective: toHex(effOklch),
       };
     });
   })());
@@ -447,9 +454,11 @@
   // `editingDraft` is folded in so the effective-hex closure passed to
   // OverridesPanel re-derives on every drag tick (the per-step hex text would
   // otherwise lag the live swatch during an override edit).
-  let curveVersion = $derived(JSON.stringify(scaleCurves) + JSON.stringify(curveOffset) + baseColor + (editingDraft ?? ''));
-  let derivedHexForBase = $derived((step: Step, scaleTitle: string) => computeDerivedColor(step, baseColor, scaleTitle));
+  let curveVersion = $derived(JSON.stringify(scaleCurves) + JSON.stringify(curveOffset) + JSON.stringify(baseColor) + JSON.stringify(editingDraft));
+  let derivedHexForBase = $derived((step: Step, scaleTitle: string) => toHex(computeDerivedOklch(step, baseColor, scaleTitle)));
   let effectiveHexAny = $derived((k: string, step: Step, scaleTitle: string) => effectiveColor(k, step, scaleTitle, curveVersion));
+  // Projected hex view of the numeric overrides for the display-only panels.
+  let overridesHex = $derived(Object.fromEntries(Object.entries(overrides).map(([k, v]) => [k, toHex(v)])));
 
   let isEditingBase = $derived(isBaseEdit(editing));
   let editingColor = $derived(isEditingBase ? baseColor : editingDraft);
@@ -484,7 +493,7 @@
   });
 </script>
 
-<div class="palette-editor" style="--editor-base: {baseColor}">
+<div class="palette-editor" style="--editor-base: {toHex(baseColor)}">
   <PaletteBase
     {label}
     {displayLabel}
@@ -499,7 +508,7 @@
     onStartEdit={startBaseEdit}
     onConfirm={confirmEdit}
     onCancel={cancelEdit}
-    onBaseChange={(h, c, l) => edit('baseColor', oklchHex(h, c, l))}
+    onBaseChange={(h, c, l) => edit('baseColor', { l: l / 100, c, h })}
     onAnchorToBaseChange={setAnchorToBase}
     onCopyBaseHex={copyHex}
   />
@@ -633,7 +642,7 @@
       {scaleCurves}
       {curveOffset}
       {defaultScaleCurves}
-      {overrides}
+      overrides={overridesHex}
       {editingKey}
       {snapPickerKey}
       {copiedKey}
@@ -677,14 +686,13 @@
 
   <!-- Color Edit Panel (non-base edits) -->
   {#if !isEditingBase && panelOpen && editingColor}
-    {@const oc = hexToOklch(editingColor)}
     <ColorEditPanel
       title={editPanelTitle}
       showRemoveOverride={!!editingKey}
-      hue={oc.h}
-      chroma={oc.c}
-      lightness={oc.l * 100}
-      onHueChromaChange={(h, c, l) => handleColorChange(oklchHex(h, c, l))}
+      hue={editingColor.h}
+      chroma={editingColor.c}
+      lightness={editingColor.l * 100}
+      onHueChromaChange={(h, c, l) => handleColorChange({ l: l / 100, c, h })}
       onConfirm={confirmEdit}
       onCancel={cancelEdit}
       onRemoveOverride={() => editingKey && removeOverride(editingKey)}

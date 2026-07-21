@@ -3,6 +3,7 @@
   import UIPillButton from '../UIPillButton.svelte';
   import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig, textLightnessCurveConfig } from '../curveEngine';
   import { scaleToCssVar } from '../../core/palettes/paletteDerivation';
+  import type { Oklch } from '../../core/palettes/oklch';
 
   /**
    * Per-scale derived swatch section used for Text, Surfaces, and Borders
@@ -35,7 +36,9 @@
     saturation: () => CurveAnchor[];
   }
 
-  interface PaletteStep { label: string; hex: string }
+  // `hex` is the sRGB projection for swatch/compare; `oklch` is the numeric
+  // value a snap write stores. `overrides` arrives pre-projected to hex.
+  interface PaletteStep { label: string; hex: string; oklch: Oklch }
 
 
 
@@ -64,7 +67,7 @@
     onResetOverride: (key: string) => void;
     onOverrideClick: (key: string, step: Step, scaleTitle: string) => void;
     onSnappedClick: (key: string) => void;
-    onSelectSnapValue: (key: string, paletteHex: string, scaleTitle: string) => void;
+    onSelectSnapValue: (key: string, value: Oklch, scaleTitle: string) => void;
     onCopyHex: (key: string, hex: string, event?: MouseEvent) => void;
     onCopyVarName: (key: string, varName: string, event?: MouseEvent) => void;
     onSetScaleCurve: (scaleTitle: string, channel: Channel, anchors: CurveAnchor[]) => void;
@@ -224,7 +227,7 @@
                     class="snap-picker-item"
                     class:selected={overrides[k] === ps.hex}
                     type="button"
-                    onclick={() => onSelectSnapValue(k, ps.hex, scale.title)}
+                    onclick={() => onSelectSnapValue(k, ps.oklch, scale.title)}
                   >
                     <span class="snap-picker-swatch" style="background: {ps.hex}"></span>
                     <span class="snap-picker-label">{ps.label}</span>

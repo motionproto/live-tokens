@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
-  import { hexToOklch, oklchToHex, gamutClamp } from '../../core/palettes/oklch';
+  import { oklchToHex, gamutClamp } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginScope, commitScope, cancelScope, type Scope } from '../../core/store/editorStore';
-  import { maxChroma, type LiveColorEdit } from './colorWheelMath';
+  import { maxChroma } from './colorWheelMath';
   import { setBaseLightnessChroma } from './paletteBaseColor';
 
   interface Props {
@@ -12,12 +12,9 @@
      *  (wheel dot holds radius); on preserves absolute chroma (dot drifts,
      *  desaturates at the L extremes where that chroma leaves gamut). */
     absoluteChroma: boolean;
-    /** Publish pristine drag intent so the wheel can render the active family
-     *  from it (not the round-tripped hex). Null clears it when the drag ends. */
-    onLiveEdit?: (edit: LiveColorEdit | null) => void;
   }
 
-  let { selected, absoluteChroma, onLiveEdit = () => {} }: Props = $props();
+  let { selected, absoluteChroma }: Props = $props();
 
   const L_STEP = 0.02;
   const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
@@ -26,32 +23,22 @@
   let canvas: HTMLCanvasElement | undefined = $state();
   let trackWidth = $state(300);
 
+  // The store holds unclamped OKLCH intent, so the thumb, strip, and every write
+  // read straight from it — no gesture-start pinning. A lossless write means the
+  // re-derived value doesn't twitch, which is what let the old workaround go.
   let selectedColor = $derived.by(() => {
     const spec = PALETTE_SPECS.find((s) => s.label === selected) ?? PALETTE_SPECS[0];
-    const hex = (selected != null && $editorState.palettes[selected]?.baseColor) || spec.initialColor;
-    return hexToOklch(hex);
+    return (selected != null && $editorState.palettes[selected]?.baseColor) || spec.initialColor;
   });
 
-  // ── Transient L-drag intent ────────────────────────────────────────────────
-  // Pristine gesture-start coords, captured once at pointerdown. The gradient
-  // and every write are computed from these + the live pointer L, NEVER
-  // re-derived from the just-written 8-bit hex (that round-trip is lossy and
-  // makes the thumb / hue twitch). `gesture` identity changes only at the
-  // gesture boundaries, so the strip repaints on start/end, not on each move.
-  type Gesture = { hue0: number; chroma0: number; rFrac0: number };
-  let gesture = $state<Gesture | null>(null);
-  let pointerL = $state(0);
   let dragScope: Scope | null = null;
 
   const rFracOf = (l: number, c: number, h: number) => clamp(c / (maxChroma(l, h) || 1e-6), 0, 1);
 
-  // Hue + saturation intent driving the strip: pristine during a drag, store
-  // value at rest. Hue is fixed for the whole L gesture.
-  let barHue = $derived(gesture ? gesture.hue0 : selectedColor.h);
-  let barChroma0 = $derived(gesture ? gesture.chroma0 : selectedColor.c);
-  let barRFrac0 = $derived(gesture ? gesture.rFrac0 : rFracOf(selectedColor.l, selectedColor.c, selectedColor.h));
-  // Thumb position: pointer intent mid-drag, store L at rest.
-  let renderL = $derived(gesture ? pointerL : selectedColor.l);
+  let barHue = $derived(selectedColor.h);
+  let barChroma0 = $derived(selectedColor.c);
+  let barRFrac0 = $derived(rFracOf(selectedColor.l, selectedColor.c, selectedColor.h));
+  let renderL = $derived(selectedColor.l);
 
   $effect(() => {
     const el = track;
@@ -64,8 +51,7 @@
     return () => ro.disconnect();
   });
 
-  // Repaint the strip only when the fixed axes (hue, saturation intent, mode,
-  // width) change — never on pointerL, so an L drag doesn't re-render it.
+  // L 0→1 swept at the store hue, gamut-clamped per column for painting.
   $effect(() => {
     const cv = canvas;
     if (!cv) return;
@@ -116,8 +102,6 @@
   function startDrag(e: PointerEvent) {
     if (e.button !== 0 || selected == null) return;
     e.preventDefault();
-    const sc = selectedColor;
-    gesture = { hue0: sc.h, chroma0: sc.c, rFrac0: rFracOf(sc.l, sc.c, sc.h) };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     dragScope = beginScope({ label: `colors: ${selected} lightness`, collapseToOne: true, clipUndoFloor: true });
     window.addEventListener('keydown', onGestureKey, true);
@@ -125,20 +109,17 @@
   }
 
   function applyDrag(e: PointerEvent) {
-    if (!gesture || selected == null) return;
+    if (!dragScope || selected == null) return;
     const L = lFromEvent(e);
-    pointerL = L;
-    const chroma = absoluteChroma ? gesture.chroma0 : gesture.rFrac0 * maxChroma(L, gesture.hue0);
-    setBaseLightnessChroma(selected, gesture.hue0, L, chroma);
-    onLiveEdit({ label: selected, hue: gesture.hue0, chroma, l: L });
+    const sc = selectedColor;
+    const chroma = absoluteChroma ? sc.c : rFracOf(sc.l, sc.c, sc.h) * maxChroma(L, sc.h);
+    setBaseLightnessChroma(selected, L, chroma);
   }
 
   function endDrag() {
     if (!dragScope) return;
     commitScope(dragScope);
     dragScope = null;
-    gesture = null;
-    onLiveEdit(null);
     window.removeEventListener('keydown', onGestureKey, true);
   }
 
@@ -147,8 +128,6 @@
     e.preventDefault();
     cancelScope(dragScope);
     dragScope = null;
-    gesture = null;
-    onLiveEdit(null);
     window.removeEventListener('keydown', onGestureKey, true);
   }
 
@@ -163,14 +142,13 @@
     const sc = selectedColor;
     const newL = clamp(sc.l + dir * L_STEP, 0, 1);
     const chroma = absoluteChroma ? sc.c : rFracOf(sc.l, sc.c, sc.h) * maxChroma(newL, sc.h);
-    setBaseLightnessChroma(selected, sc.h, newL, chroma);
+    setBaseLightnessChroma(selected, newL, chroma);
   }
 
   onDestroy(() => {
     if (dragScope) {
       cancelScope(dragScope);
       dragScope = null;
-      onLiveEdit(null);
     }
     if (typeof window !== 'undefined') window.removeEventListener('keydown', onGestureKey, true);
   });

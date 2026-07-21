@@ -6,12 +6,17 @@
  * caller has opened (a wheel drag's clipping session, a slider gesture, or none
  * for a discrete edit); this module never opens or commits scopes itself.
  *
+ * The store holds unclamped OKLCH intent: setters write channels directly, with
+ * no gamut clamp and no hex round-trip. Clamping is projection-only (derivation
+ * output, canvas painting, hex/CSS serialization), which is what lets a drag
+ * past an L extreme recover its chroma and keep its hue through grey.
+ *
  * The seed-if-missing branch mirrors `PaletteEditor.edit` — in a loaded theme
  * every palette already exists, but keeping the write self-sufficient means a
  * handle can never silently drop an edit.
  */
 
-import { hexToOklch, oklchToHex, gamutClamp } from '../../core/palettes/oklch';
+import type { Oklch } from '../../core/palettes/oklch';
 import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
 import { defaultPaletteConfig } from '../palette/paletteMath';
 import { mutate, transaction } from '../../core/store/editorStore';
@@ -31,16 +36,10 @@ function ensureConfig(s: EditorState, label: string): PaletteConfig {
   return cfg;
 }
 
-/** Gamut-clamp (h, c, l%) and return the sRGB hex. Mirrors PaletteEditor's `oklchHex`. */
-export function oklchToHexClamped(hue: number, chroma: number, lightnessPct: number): string {
-  const g = gamutClamp(lightnessPct / 100, chroma, hue);
-  return oklchToHex(g.l, g.c, g.h);
-}
-
 /** Set the full seed color (H, C and L). Used by the readout panel. */
-export function setBaseColor(label: string, hex: string): void {
+export function setBaseColor(label: string, color: Oklch): void {
   mutate(`colors: ${label} base`, (s) => {
-    ensureConfig(s, label).baseColor = hex;
+    ensureConfig(s, label).baseColor = color;
   });
 }
 
@@ -48,9 +47,7 @@ export function setBaseColor(label: string, hex: string): void {
 export function setBaseHueChroma(label: string, hue: number, chroma: number): void {
   mutate(`colors: ${label} base`, (s) => {
     const cfg = ensureConfig(s, label);
-    const { l } = hexToOklch(cfg.baseColor);
-    const g = gamutClamp(l, chroma, hue);
-    cfg.baseColor = oklchToHex(g.l, g.c, g.h);
+    cfg.baseColor = { l: cfg.baseColor.l, c: Math.max(0, chroma), h: normHue(hue) };
   });
 }
 
@@ -59,20 +56,17 @@ export function setBaseHueChroma(label: string, hue: number, chroma: number): vo
 export function setBaseHue(label: string, hue: number): void {
   mutate(`colors: ${label} hue`, (s) => {
     const cfg = ensureConfig(s, label);
-    const { l, c } = hexToOklch(cfg.baseColor);
-    cfg.baseColor = oklchToHex(l, c, normHue(hue));
+    cfg.baseColor = { l: cfg.baseColor.l, c: cfg.baseColor.c, h: normHue(hue) };
   });
 }
 
-/** Set a seed's lightness and chroma at an explicit (pinned) hue. Used by the
- *  lightness bar: hue is passed in from pristine gesture intent rather than
- *  re-read from the store, so a near-grey hex at an L extreme (where chroma
- *  clamps to ~0 and its hue is numerically unstable) can never feed a spurious
- *  hue back into the next frame's write. */
-export function setBaseLightnessChroma(label: string, hue: number, lightness: number, chroma: number): void {
+/** Set a seed's lightness and chroma, hue preserved from the store. Used by the
+ *  lightness bar. No pinned-hue parameter: numeric storage keeps hue stable even
+ *  at c≈0, so it can be read straight from the store. */
+export function setBaseLightnessChroma(label: string, lightness: number, chroma: number): void {
   mutate(`colors: ${label} lightness`, (s) => {
-    const g = gamutClamp(lightness, Math.max(0, chroma), hue);
-    ensureConfig(s, label).baseColor = oklchToHex(g.l, g.c, g.h);
+    const cfg = ensureConfig(s, label);
+    cfg.baseColor = { l: lightness, c: Math.max(0, chroma), h: cfg.baseColor.h };
   });
 }
 
@@ -80,17 +74,15 @@ export function setBaseLightnessChroma(label: string, hue: number, lightness: nu
 export function setBaseChroma(label: string, chroma: number): void {
   mutate(`colors: ${label} chroma`, (s) => {
     const cfg = ensureConfig(s, label);
-    const { l, h } = hexToOklch(cfg.baseColor);
-    const g = gamutClamp(l, Math.max(0, chroma), h);
-    cfg.baseColor = oklchToHex(g.l, g.c, g.h);
+    cfg.baseColor = { l: cfg.baseColor.l, c: Math.max(0, chroma), h: cfg.baseColor.h };
   });
 }
 
 /** Set several seed colors in ONE undo entry (harmony apply, global rotate). */
-export function setBaseColors(patch: Record<string, string>, historyLabel = 'colors: harmony'): void {
+export function setBaseColors(patch: Record<string, Oklch>, historyLabel = 'colors: harmony'): void {
   transaction(historyLabel, (s) => {
-    for (const [label, hex] of Object.entries(patch)) {
-      ensureConfig(s, label).baseColor = hex;
+    for (const [label, color] of Object.entries(patch)) {
+      ensureConfig(s, label).baseColor = color;
     }
   });
 }

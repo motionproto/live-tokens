@@ -13,7 +13,7 @@
  * derives the same CSS vars from the persisted config.
  */
 
-import { hexToOklch, oklchToHex, gamutClamp, type Oklch } from './oklch';
+import { hexToOklch, oklchToHexClamped, gamutClamp, type Oklch } from './oklch';
 import { type CurveAnchor, sampleCurve, makeAnchor } from '../../ui/curveEngine';
 import type { PaletteConfig } from '../themes/themeTypes';
 
@@ -21,7 +21,9 @@ export interface PaletteSpec {
   label: string;
   cssNamespace: string;
   emptySelector?: boolean;
-  initialColor: string;
+  /** Seed OKLCH intent used only when a config carries no `baseColor` (never
+   *  for a loaded theme). Numeric so it composes with the OKLCH basis. */
+  initialColor: Oklch;
   /** Seed-default role only: neutrals start with a calm low-chroma base and
    *  the neutral lightness ramp. The derivation path is identical for all. */
   neutral?: boolean;
@@ -36,16 +38,16 @@ export interface PaletteSpec {
  * drives the editor's palette-editor order + (Waves 4/5) the Colors swatch row.
  */
 export const PALETTE_SPECS: readonly PaletteSpec[] = [
-  { label: 'Brand',      cssNamespace: 'brand',     initialColor: '#c93636' },
-  { label: 'Accent',     cssNamespace: 'accent',    initialColor: '#f49e0b' },
-  { label: 'Background', cssNamespace: 'canvas',    emptySelector: true, initialColor: '#1a1a2e' },
-  { label: 'Neutral',    cssNamespace: 'neutral',   neutral: true, initialColor: '#70787e' },
-  { label: 'Alternate',  cssNamespace: 'alternate', neutral: true, displayLabel: 'Alternate (neutral)', initialColor: '#817b78' },
-  { label: 'Special',    cssNamespace: 'special',   initialColor: '#8b5cf6' },
-  { label: 'Info',       cssNamespace: 'info',      initialColor: '#3077e8' },
-  { label: 'Success',    cssNamespace: 'success',   initialColor: '#21c45d' },
-  { label: 'Warning',    cssNamespace: 'warning',   initialColor: '#e66e1a' },
-  { label: 'Danger',     cssNamespace: 'danger',    initialColor: '#e8304f' },
+  { label: 'Brand',      cssNamespace: 'brand',     initialColor: { l: 0.5573, c: 0.1841, h: 25.49 } },
+  { label: 'Accent',     cssNamespace: 'accent',    initialColor: { l: 0.7674, c: 0.164, h: 70.44 } },
+  { label: 'Background', cssNamespace: 'canvas',    emptySelector: true, initialColor: { l: 0.2284, c: 0.0384, h: 282.93 } },
+  { label: 'Neutral',    cssNamespace: 'neutral',   neutral: true, initialColor: { l: 0.5679, c: 0.0134, h: 240.07 } },
+  { label: 'Alternate',  cssNamespace: 'alternate', neutral: true, displayLabel: 'Alternate (neutral)', initialColor: { l: 0.5873, c: 0.0087, h: 48.57 } },
+  { label: 'Special',    cssNamespace: 'special',   initialColor: { l: 0.6056, c: 0.2189, h: 292.72 } },
+  { label: 'Info',       cssNamespace: 'info',      initialColor: { l: 0.5871, c: 0.1855, h: 259.56 } },
+  { label: 'Success',    cssNamespace: 'success',   initialColor: { l: 0.7198, c: 0.1918, h: 149.52 } },
+  { label: 'Warning',    cssNamespace: 'warning',   initialColor: { l: 0.6704, c: 0.1716, h: 48.75 } },
+  { label: 'Danger',     cssNamespace: 'danger',    initialColor: { l: 0.6103, c: 0.2165, h: 18.1 } },
 ] as const;
 
 export const PALETTE_STEPS = [
@@ -182,20 +184,22 @@ export type DerivedValue =
   | { kind: 'color'; l: number; c: number; h: number }
   | { kind: 'raw'; css: string };
 
-/** The single color → CSS-string projection. Hex this wave; `oklch()` after
- *  Part B. `raw` passes through untouched. */
+/** The single color → CSS-string projection, and the single clamp point for
+ *  derived color: unclamped stored intent is chroma-reduced into sRGB gamut,
+ *  then serialized (hex this wave; `oklch()` after Part B). Idempotent on the
+ *  already-in-gamut per-step derivation output. `raw` passes through untouched. */
 export function serializeDerivedValue(value: DerivedValue): string {
-  return value.kind === 'raw' ? value.css : oklchToHex(value.l, value.c, value.h);
+  return value.kind === 'raw' ? value.css : oklchToHexClamped(value.l, value.c, value.h);
 }
 
 export function computePaletteOklch(
   index: number,
-  base: string,
+  base: Oklch,
   lightnessCurve: CurveAnchor[],
   saturationCurve: CurveAnchor[],
   curveOffset: Record<string, number>,
 ): Oklch {
-  const { c: baseC, h } = hexToOklch(base);
+  const { c: baseC, h } = base;
   const xPos = stepIndexToX(index);
   const targetL = Math.max(0, Math.min(100, sampleCurve(lightnessCurve, xPos) + (curveOffset.lightness ?? 0))) / 100;
   const satMul = Math.max(0, Math.min(2, (sampleCurve(saturationCurve, xPos) + (curveOffset.saturation ?? 0)) / 100));
@@ -205,7 +209,7 @@ export function computePaletteOklch(
 
 export function computeDerivedOklch(
   step: Step,
-  base: string,
+  base: Oklch,
   scaleTitle: string,
   scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }>,
   curveOffset: Record<string, number>,
@@ -217,7 +221,7 @@ export function computeDerivedOklch(
   const sCurve = scaleCurves[scaleTitle]?.saturation ?? defs.saturation();
   const lOff = curveOffset[`${scaleTitle}-lightness`] ?? 0;
   const sOff = curveOffset[`${scaleTitle}-saturation`] ?? 0;
-  const { l: baseL, c: baseC, h: baseH } = hexToOklch(base);
+  const { l: baseL, c: baseC, h: baseH } = base;
   let targetL: number;
   if (scale.isText) {
     const lMul = Math.max(0, Math.min(2, (sampleCurve(lCurve, xPos) + lOff) / 100));
@@ -228,26 +232,6 @@ export function computeDerivedOklch(
   const satMul = Math.max(0, Math.min(2, (sampleCurve(sCurve, xPos) + sOff) / 100));
   const targetC = baseC * satMul;
   return gamutClamp(targetL, targetC, baseH);
-}
-
-export function computePaletteColor(
-  index: number,
-  base: string,
-  lightnessCurve: CurveAnchor[],
-  saturationCurve: CurveAnchor[],
-  curveOffset: Record<string, number>,
-): string {
-  return serializeDerivedValue({ kind: 'color', ...computePaletteOklch(index, base, lightnessCurve, saturationCurve, curveOffset) });
-}
-
-export function computeDerivedColor(
-  step: Step,
-  base: string,
-  scaleTitle: string,
-  scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }>,
-  curveOffset: Record<string, number>,
-): string {
-  return serializeDerivedValue({ kind: 'color', ...computeDerivedOklch(step, base, scaleTitle, scaleCurves, curveOffset) });
 }
 
 export function scaleToCssVar(scaleTitle: string, stepName: string, cssNamespace: string | null): string | null {
@@ -280,9 +264,9 @@ export function derivePaletteValues(spec: PaletteSpec, config: PaletteConfig | u
 
   PALETTE_STEPS.forEach((ps, index) => {
     const k = paletteStepKey(ps.label);
-    // Overrides are hex strings this wave; parse to color-kind at the boundary.
+    // Overrides are numeric OKLCH intent; pass straight through as color-kind.
     const value: DerivedValue = (k in overrides)
-      ? { kind: 'color', ...hexToOklch(overrides[k]) }
+      ? { kind: 'color', ...overrides[k] }
       : { kind: 'color', ...computePaletteOklch(index, baseColor, lightnessCurve, saturationCurve, curveOffset) };
     out[`--color-${spec.cssNamespace}-${ps.label}`] = value;
   });
@@ -291,7 +275,7 @@ export function derivePaletteValues(spec: PaletteSpec, config: PaletteConfig | u
     for (const step of scale.steps) {
       const k = stepKey(scale.title, step.name);
       const value: DerivedValue = (k in overrides)
-        ? { kind: 'color', ...hexToOklch(overrides[k]) }
+        ? { kind: 'color', ...overrides[k] }
         : { kind: 'color', ...computeDerivedOklch(step, baseColor, scale.title, scaleCurves, curveOffset) };
       const varName = scaleToCssVar(scale.title, step.name, spec.cssNamespace);
       if (varName) out[varName] = value;
@@ -409,8 +393,9 @@ export function reconcilePalettesFromCssVars(
     if (current._imported === true) {
       const anchorHex = cssVars[`--color-${spec.cssNamespace}-500`];
       if (anchorHex && HEX_RE.test(anchorHex.trim())) {
-        const hex = anchorHex.trim();
-        next[spec.label] = { ...current, baseColor: hex, _imported: false };
+        // Input boundary: the imported cssVariables anchor is a hex string;
+        // parse it to the OKLCH basis exactly once, here.
+        next[spec.label] = { ...current, baseColor: hexToOklch(anchorHex.trim()), _imported: false };
         snapped.add(spec.label);
       } else {
         // No anchor in cssVariables to snap to — flag has nothing to do; clear

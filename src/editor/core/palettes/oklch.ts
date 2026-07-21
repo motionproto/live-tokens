@@ -102,6 +102,14 @@ function isInGamut(r: number, g: number, b: number): boolean {
   return r >= -eps && r <= 1 + eps && g >= -eps && g <= 1 + eps && b >= -eps && b <= 1 + eps;
 }
 
+/** The clamped sRGB projection: reduce chroma into gamut, then serialize to hex.
+ *  This is the correct projection for unclamped stored intent — naive
+ *  `oklchToHex` per-channel clips (shifting hue), this preserves hue and L. */
+export function oklchToHexClamped(l: number, c: number, h: number): string {
+  const g = gamutClamp(l, c, h);
+  return oklchToHex(g.l, g.c, g.h);
+}
+
 export function gamutClamp(l: number, c: number, h: number): Oklch {
   // Clamp lightness
   if (l <= 0) return { l: 0, c: 0, h };

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { hexToOklch } from '../../core/palettes/oklch';
+  import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginSliderGesture } from '../../core/store/editorStore';
   import { applyHarmony, type HarmonyMode } from '../../core/palettes/colorHarmony';
@@ -7,8 +7,7 @@
   import ColorWheel from './ColorWheel.svelte';
   import LightnessBar from './LightnessBar.svelte';
   import ColorReadouts from './ColorReadouts.svelte';
-  import { setBaseColor, setBaseColors, oklchToHexClamped } from './paletteBaseColor';
-  import type { LiveColorEdit } from './colorWheelMath';
+  import { setBaseColor, setBaseColors } from './paletteBaseColor';
 
   const WHEEL_LABELS = ['Brand', 'Accent', 'Background', 'Neutral', 'Alternate'];
 
@@ -26,10 +25,6 @@
   let activeMode = $state<HarmonyMode>('custom');
   // Local UI only — deliberately NOT stored in PaletteConfig (shape unchanged).
   let absoluteChroma = $state(false);
-  // Transient bar→wheel render intent during a lightness drag (render-only; the
-  // value still writes through the store). Lets the wheel dot track the bar's
-  // clean intent instead of the round-tripped hex.
-  let liveEdit = $state<LiveColorEdit | null>(null);
   let infoOpen = $state(false);
   let infoWrap: HTMLElement | undefined = $state();
 
@@ -59,17 +54,19 @@
   }
 
   let swatches = $derived(
-    PALETTE_SPECS.map((spec) => ({
-      label: spec.label,
-      display: spec.displayLabel ?? spec.label,
-      hex: $editorState.palettes[spec.label]?.baseColor ?? spec.initialColor,
-      onWheel: WHEEL_LABELS.includes(spec.label),
-    })),
+    PALETTE_SPECS.map((spec) => {
+      const { l, c, h } = $editorState.palettes[spec.label]?.baseColor ?? spec.initialColor;
+      return {
+        label: spec.label,
+        display: spec.displayLabel ?? spec.label,
+        hex: oklchToHexClamped(l, c, h),
+        onWheel: WHEEL_LABELS.includes(spec.label),
+      };
+    }),
   );
 
   let selectedSpec = $derived(PALETTE_SPECS.find((s) => s.label === selected) ?? PALETTE_SPECS[0]);
-  let selectedHex = $derived($editorState.palettes[selected]?.baseColor ?? selectedSpec.initialColor);
-  let selectedOklch = $derived(hexToOklch(selectedHex));
+  let selectedOklch = $derived($editorState.palettes[selected]?.baseColor ?? selectedSpec.initialColor);
 </script>
 
 <div class="colors-tab">
@@ -83,13 +80,12 @@
       <ColorWheel
         {selected}
         {absoluteChroma}
-        {liveEdit}
         onSelect={select}
         discLightness={selectedOklch.l}
         onCustomize={() => (activeMode = 'custom')}
       />
 
-      <LightnessBar {selected} {absoluteChroma} onLiveEdit={(e) => (liveEdit = e)} />
+      <LightnessBar {selected} {absoluteChroma} />
 
       <div class="group">
         <span class="eyebrow">Harmony{#if activeMode === 'custom'} · custom{/if}</span>
@@ -162,10 +158,10 @@
           hue={selectedOklch.h}
           chroma={selectedOklch.c}
           lightness={selectedOklch.l * 100}
-          onHueChromaChange={(h, c, l) => setBaseColor(selected, oklchToHexClamped(h, c, l))}
+          onHueChromaChange={(h, c, l) => setBaseColor(selected, { l: l / 100, c, h })}
           onSliderStart={() => beginSliderGesture(`colors: ${selected} base`)}
         />
-        <ColorReadouts hex={selectedHex} />
+        <ColorReadouts color={selectedOklch} />
       </div>
     </section>
   </div>

@@ -14,11 +14,12 @@ import {
   __resetForTests,
 } from '../core/store/editorStore';
 import type { PaletteConfig } from '../core/themes/themeTypes';
+import { hexToOklch as c } from '../core/palettes/oklch';
 import { mount, unmount } from "svelte";
 
 function makePaletteConfig(baseColor: string): PaletteConfig {
   return {
-    baseColor,
+    baseColor: c(baseColor),
     lightnessCurve: [],
     saturationCurve: [],
     scaleCurves: {},
@@ -49,10 +50,10 @@ describe('PaletteEditor — store-first integration', () => {
 
     const component = mount(PaletteEditor, {
           target,
-          props: { label: 'Background', initialColor: '#8d7f74' },
+          props: { label: 'Background', initialColor: c('#8d7f74') },
         });
 
-    expect(get(editorState).palettes.Background.baseColor).toBe('#8d7f74');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#8d7f74'));
     unmount(component);
   });
 
@@ -63,24 +64,24 @@ describe('PaletteEditor — store-first integration', () => {
     document.body.appendChild(target);
     const component = mount(PaletteEditor, {
           target,
-          props: { label: 'Background', initialColor: '#8d7f74' },
+          props: { label: 'Background', initialColor: c('#8d7f74') },
         });
 
     const session = beginScope({ ...sessionOpts });
     beginSliderGesture('drag base');
 
     for (const hex of ['#8c7f73', '#8b7f72', '#8a7f71']) {
-      mutate('drag tick', (s) => { s.palettes.Background.baseColor = hex; });
-      expect(get(editorState).palettes.Background.baseColor).toBe(hex);
+      mutate('drag tick', (s) => { s.palettes.Background.baseColor = c(hex); });
+      expect(get(editorState).palettes.Background.baseColor).toEqual(c(hex));
     }
 
     window.dispatchEvent(new Event('pointerup'));
     commitScope(session);
 
-    expect(get(editorState).palettes.Background.baseColor).toBe('#8a7f71');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#8a7f71'));
 
     undo();
-    expect(get(editorState).palettes.Background.baseColor).toBe('#8d7f74');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#8d7f74'));
 
     unmount(component);
   });
@@ -92,14 +93,14 @@ describe('PaletteEditor — store-first integration', () => {
     document.body.appendChild(target);
     const component = mount(PaletteEditor, {
           target,
-          props: { label: 'Background', initialColor: '#8d7f74' },
+          props: { label: 'Background', initialColor: c('#8d7f74') },
         });
 
     const session = beginScope({ ...sessionOpts });
-    mutate('drag', (s) => { s.palettes.Background.baseColor = '#112233'; });
+    mutate('drag', (s) => { s.palettes.Background.baseColor = c('#112233'); });
     cancelScope(session);
 
-    expect(get(editorState).palettes.Background.baseColor).toBe('#8d7f74');
+    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#8d7f74'));
     unmount(component);
   });
 });

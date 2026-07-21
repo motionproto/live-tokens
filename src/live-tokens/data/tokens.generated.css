@@ -109,7 +109,7 @@
   --color-alternate-900: #0f0b08;
   --color-alternate-950: #030101;
   --surface-alternate-lowest: #100907;
-  --surface-alternate-lower: #231d19;
+  --surface-alternate-lower: #241d19;
   --surface-alternate-low: #39322f;
   --surface-alternate: #4f4946;
   --surface-alternate-high: #66615e;
@@ -119,9 +119,9 @@
   --border-alternate-subtle: #443e3c;
   --border-alternate: #655f5c;
   --border-alternate-medium: #88827f;
-  --border-alternate-strong: #aca6a3;
+  --border-alternate-strong: #ada6a3;
   --text-alternate: #ffffff;
-  --text-alternate-secondary: #d6d0ce;
+  --text-alternate-secondary: #d6d0cd;
   --text-alternate-tertiary: #8a8786;
   --text-alternate-muted: #545352;
   --text-alternate-disabled: #3b3b3b;
@@ -158,7 +158,7 @@
   --color-brand-100: #ffbad3;
   --color-brand-200: #ff7fb5;
   --color-brand-300: #ff49a1;
-  --color-brand-400: #fb3199;
+  --color-brand-400: #fa3199;
   --color-brand-500: #fb2898;
   --color-brand-600: #df0083;
   --color-brand-700: #930055;
@@ -205,10 +205,10 @@
   --border-accent-subtle: #004a48;
   --border-accent: #006f6d;
   --border-accent-medium: #259592;
-  --border-accent-strong: #54bbb7;
+  --border-accent-strong: #53bbb7;
   --text-accent: #62efea;
   --text-accent-secondary: #5baba8;
-  --text-accent-tertiary: #4d7371;
+  --text-accent-tertiary: #4d7271;
   --text-accent-muted: #3c4847;
   --text-accent-disabled: #313232;
   --color-special-100: #d2c8ff;
@@ -288,10 +288,10 @@
   --border-success-faint: #002a0d;
   --border-success-subtle: #004e1f;
   --border-success: #007532;
-  --border-success-medium: #069e46;
+  --border-success-medium: #059e46;
   --border-success-strong: #47c46b;
   --text-success: #88f2a0;
-  --text-success-secondary: #2f974e;
+  --text-success-secondary: #2e974e;
   --text-success-tertiary: #31673e;
   --text-success-muted: #2c4530;
   --text-success-disabled: #263429;
@@ -336,7 +336,7 @@
   --color-danger-950: #110000;
   --surface-danger-lowest: #1f0001;
   --surface-danger-lower: #410004;
-  --surface-danger-low: #67000b;
+  --surface-danger-low: #67000c;
   --surface-danger: #8f0014;
   --surface-danger-high: #ba001e;
   --surface-danger-higher: #cf4443;

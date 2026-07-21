@@ -29,6 +29,7 @@ import {
 } from '../themes/migrations';
 import { renamePrimaryPaletteKey } from '../themes/migrations/2026-05-13-primary-to-brand';
 import { unifyGrayPalettes } from '../themes/migrations/2026-06-05-palette-unification';
+import { migratePaletteColorsToOklch, type PreOklchPaletteConfig } from '../themes/migrations/2026-07-21-palette-oklch-basis';
 import { __resetRendererCacheForTests, installRenderer } from './editorRenderer';
 import {
   store,
@@ -512,7 +513,11 @@ const domainLoaders: Record<string, DomainLoader> = {
  */
 export function loadFromFile(theme: Theme): void {
   const next = emptyState();
-  next.palettes = unifyGrayPalettes(renamePrimaryPaletteKey(structuredClone(theme.editorConfigs ?? {})));
+  // Structural palette migrations, innermost → outermost: rename Primary→Brand,
+  // drop the gray "mode", then convert every color channel to the numeric OKLCH
+  // basis. The clone is still pre-basis (hex or already-numeric) on disk.
+  const raw = structuredClone(theme.editorConfigs ?? {}) as Record<string, PreOklchPaletteConfig>;
+  next.palettes = migratePaletteColorsToOklch(unifyGrayPalettes(renamePrimaryPaletteKey(raw)));
   next.fonts.sources = structuredClone(theme.fontSources ?? []);
   next.fonts.stacks  = structuredClone(theme.fontStacks  ?? []);
   const rawVars = runMigrations(

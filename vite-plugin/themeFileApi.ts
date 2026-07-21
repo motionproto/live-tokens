@@ -8,6 +8,7 @@ import {
   palettesToVars,
   reconcilePalettesFromCssVars,
 } from '../src/editor/core/palettes/paletteDerivation';
+import { migratePaletteColorsToOklch } from '../src/editor/core/themes/migrations/2026-07-21-palette-oklch-basis';
 import {
   versionedFileResourceServer,
   type VersionedFileResourceServer,
@@ -280,7 +281,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     let themeVarCount = 0;
     if (themeData) {
       const cssVars: Record<string, string> = { ...(themeData.cssVariables || {}) };
-      Object.assign(cssVars, palettesToVars(themeData.editorConfigs ?? {}));
+      // On-disk theme JSON is a pre-basis (hex or already-numeric) input; convert
+      // to the OKLCH basis at this boundary before deriving, mirroring loadFromFile.
+      Object.assign(cssVars, palettesToVars(migratePaletteColorsToOklch(themeData.editorConfigs ?? {})));
       const resolvedFontVars = resolveFontStacks(themeData);
       for (const [name, value] of Object.entries(resolvedFontVars)) {
         cssVars[name] = value;

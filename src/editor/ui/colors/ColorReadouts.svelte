@@ -1,12 +1,15 @@
 <script lang="ts">
-  import { hexToOklch } from '../../core/palettes/oklch';
+  import { oklchToHexClamped, type Oklch } from '../../core/palettes/oklch';
   import { showCopyPopover } from '../copyPopover';
 
   interface Props {
-    hex: string;
+    color: Oklch;
   }
 
-  let { hex }: Props = $props();
+  let { color }: Props = $props();
+
+  // The basis is numeric OKLCH; hex/RGB/HSL are clamped sRGB projections off it.
+  let hex = $derived(oklchToHexClamped(color.l, color.c, color.h));
 
   function toRgb(h: string): [number, number, number] {
     return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
@@ -33,12 +36,11 @@
   let rows = $derived.by(() => {
     const [r, g, b] = toRgb(hex);
     const [hh, ss, ll] = toHsl(r, g, b);
-    const ok = hexToOklch(hex);
     return [
       { label: 'HEX', value: hex },
       { label: 'RGB', value: `rgb(${r}, ${g}, ${b})` },
       { label: 'HSL', value: `hsl(${hh}, ${ss}%, ${ll}%)` },
-      { label: 'OKLCH', value: `oklch(${Math.round(ok.l * 100)}% ${ok.c.toFixed(3)} ${Math.round(ok.h)})` },
+      { label: 'OKLCH', value: `oklch(${Math.round(color.l * 100)}% ${color.c.toFixed(3)} ${Math.round(color.h)})` },
     ];
   });
 
