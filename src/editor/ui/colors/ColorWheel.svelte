@@ -4,7 +4,7 @@
   import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
   import { editorState, beginScope, commitScope, cancelScope, type Scope } from '../../core/store/editorStore';
   import { setBaseHueChroma, setBaseChroma, setBaseColors } from './paletteBaseColor';
-  import { maxChroma } from './colorWheelMath';
+  import { maxChroma, type LiveColorEdit } from './colorWheelMath';
 
   interface Props {
     selected: string | null;
@@ -17,9 +17,14 @@
     /** Rotation semantics: off (default) preserves relative saturation (constant
      *  render radius); on preserves absolute chroma (the dot drifts in/out). */
     absoluteChroma: boolean;
+    /** Live drag intent from the lightness bar. When set (and the wheel isn't
+     *  itself dragging), the active family renders from this pristine
+     *  hue/chroma/L instead of the round-tripped hex — so an absolute-mode L
+     *  drag drifts the dot smoothly rather than jittering. */
+    liveEdit?: LiveColorEdit | null;
   }
 
-  let { selected, onSelect, discLightness, onCustomize, absoluteChroma }: Props = $props();
+  let { selected, onSelect, discLightness, onCustomize, absoluteChroma, liveEdit = null }: Props = $props();
 
   // The harmony trio, anchored on Brand. Neutral/Alternate/Special stay off the
   // wheel this pass (swatch row only).
@@ -95,6 +100,12 @@
       } else if (d?.kind === 'global' && d.start[t.label]) {
         hue = normDeg(d.start[t.label].hue0 + d.delta);
         rFrac = rotateRadius(d.start[t.label], hue);
+      } else if (!d && liveEdit && liveEdit.label === t.label) {
+        // Lightness-bar drag: render from its pristine intent, not the hex.
+        // Absolute mode holds chroma while maxChroma(L) changes → the dot drifts
+        // smoothly; relative mode's chroma tracks maxChroma(L) → rFrac holds.
+        hue = liveEdit.hue;
+        rFrac = clamp(liveEdit.chroma / (maxChroma(liveEdit.l, liveEdit.hue) || 1e-6), 0, 1);
       }
       const dotR = rFrac * discRadius;
       return {

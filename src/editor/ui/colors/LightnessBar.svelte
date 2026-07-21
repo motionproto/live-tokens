@@ -3,7 +3,7 @@
   import { hexToOklch, oklchToHex, gamutClamp } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginScope, commitScope, cancelScope, type Scope } from '../../core/store/editorStore';
-  import { maxChroma } from './colorWheelMath';
+  import { maxChroma, type LiveColorEdit } from './colorWheelMath';
   import { setBaseLightnessChroma } from './paletteBaseColor';
 
   interface Props {
@@ -12,9 +12,12 @@
      *  (wheel dot holds radius); on preserves absolute chroma (dot drifts,
      *  desaturates at the L extremes where that chroma leaves gamut). */
     absoluteChroma: boolean;
+    /** Publish pristine drag intent so the wheel can render the active family
+     *  from it (not the round-tripped hex). Null clears it when the drag ends. */
+    onLiveEdit?: (edit: LiveColorEdit | null) => void;
   }
 
-  let { selected, absoluteChroma }: Props = $props();
+  let { selected, absoluteChroma, onLiveEdit = () => {} }: Props = $props();
 
   const L_STEP = 0.02;
   const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
@@ -127,6 +130,7 @@
     pointerL = L;
     const chroma = absoluteChroma ? gesture.chroma0 : gesture.rFrac0 * maxChroma(L, gesture.hue0);
     setBaseLightnessChroma(selected, gesture.hue0, L, chroma);
+    onLiveEdit({ label: selected, hue: gesture.hue0, chroma, l: L });
   }
 
   function endDrag() {
@@ -134,6 +138,7 @@
     commitScope(dragScope);
     dragScope = null;
     gesture = null;
+    onLiveEdit(null);
     window.removeEventListener('keydown', onGestureKey, true);
   }
 
@@ -143,6 +148,7 @@
     cancelScope(dragScope);
     dragScope = null;
     gesture = null;
+    onLiveEdit(null);
     window.removeEventListener('keydown', onGestureKey, true);
   }
 
@@ -164,6 +170,7 @@
     if (dragScope) {
       cancelScope(dragScope);
       dragScope = null;
+      onLiveEdit(null);
     }
     if (typeof window !== 'undefined') window.removeEventListener('keydown', onGestureKey, true);
   });

@@ -12,9 +12,6 @@
     /** Hide the confirm/cancel actions for live-apply consumers (Colors view
      *  readout) where edits commit through the store as they happen. */
     hideActions?: boolean;
-    /** Hide the L slider — the Colors view owns lightness via its dedicated
-     *  lightness bar, so the readout panel shows only H/C + EyeDropper. */
-    hideLightness?: boolean;
     onConfirm?: () => void;
     onCancel?: () => void;
     onRemoveOverride?: () => void;
@@ -39,7 +36,6 @@
     title = null,
     showRemoveOverride = false,
     hideActions = false,
-    hideLightness = false,
     onConfirm = () => {},
     onCancel = () => {},
     onRemoveOverride = () => {},
@@ -218,24 +214,22 @@
         onchange={(e) => onHueChromaChange(hue, Math.min(chromaMax, Math.max(0, +e.currentTarget.value)), lPct)}
       />
     </div>
-    {#if !hideLightness}
-      <div class="hsl-slider-row">
-        <span class="hsl-slider-label">L</span>
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div class="slider-track" style="background: {lightnessGradient}" onpointerdown={onSliderStart}>
-          <input type="range" min="0" max="100" value={lPct}
-            oninput={(e) => onHueChromaChange(hue, chroma, +e.currentTarget.value)} />
-        </div>
-        <input
-          class="hsl-slider-input"
-          type="number"
-          min="0"
-          max="100"
-          value={Math.round(lPct)}
-          onchange={(e) => onHueChromaChange(hue, chroma, Math.min(100, Math.max(0, +e.currentTarget.value)))}
-        /><span class="hsl-slider-unit">%</span>
+    <div class="hsl-slider-row">
+      <span class="hsl-slider-label">L</span>
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div class="slider-track" style="background: {lightnessGradient}" onpointerdown={onSliderStart}>
+        <input type="range" min="0" max="100" value={lPct}
+          oninput={(e) => onHueChromaChange(hue, chroma, +e.currentTarget.value)} />
       </div>
-    {/if}
+      <input
+        class="hsl-slider-input"
+        type="number"
+        min="0"
+        max="100"
+        value={Math.round(lPct)}
+        onchange={(e) => onHueChromaChange(hue, chroma, Math.min(100, Math.max(0, +e.currentTarget.value)))}
+      /><span class="hsl-slider-unit">%</span>
+    </div>
   </div>
 </div>
 

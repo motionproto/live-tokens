@@ -8,6 +8,7 @@
   import LightnessBar from './LightnessBar.svelte';
   import ColorReadouts from './ColorReadouts.svelte';
   import { setBaseColor, setBaseColors, oklchToHexClamped } from './paletteBaseColor';
+  import type { LiveColorEdit } from './colorWheelMath';
 
   const WHEEL_LABELS = ['Brand', 'Accent', 'Background', 'Neutral', 'Alternate'];
 
@@ -25,6 +26,10 @@
   let activeMode = $state<HarmonyMode>('custom');
   // Local UI only — deliberately NOT stored in PaletteConfig (shape unchanged).
   let absoluteChroma = $state(false);
+  // Transient bar→wheel render intent during a lightness drag (render-only; the
+  // value still writes through the store). Lets the wheel dot track the bar's
+  // clean intent instead of the round-tripped hex.
+  let liveEdit = $state<LiveColorEdit | null>(null);
   let infoOpen = $state(false);
   let infoWrap: HTMLElement | undefined = $state();
 
@@ -78,12 +83,13 @@
       <ColorWheel
         {selected}
         {absoluteChroma}
+        {liveEdit}
         onSelect={select}
         discLightness={selectedOklch.l}
         onCustomize={() => (activeMode = 'custom')}
       />
 
-      <LightnessBar {selected} {absoluteChroma} />
+      <LightnessBar {selected} {absoluteChroma} onLiveEdit={(e) => (liveEdit = e)} />
 
       <div class="group">
         <span class="eyebrow">Harmony{#if activeMode === 'custom'} · custom{/if}</span>
@@ -153,7 +159,6 @@
         <ColorEditPanel
           title={selectedSpec.displayLabel ?? selected}
           hideActions
-          hideLightness
           hue={selectedOklch.h}
           chroma={selectedOklch.c}
           lightness={selectedOklch.l * 100}
