@@ -33,7 +33,7 @@
   const HUE_STEP = 2;
   const CHROMA_STEP = 0.005;
   const MARGIN = 30;      // ring-to-edge gap that houses the external handles
-  const EXT_OFFSET = 15;  // external handle radius beyond the disc rim
+  const EXT_OFFSET = 20;  // external handle radius beyond the disc rim (room for the dotted tether)
   const GLOBAL_HOME = 135; // idle angle of the global rotate handle (top-left)
   const MIN_SIZE = 240;
   const MAX_SIZE = 360;
@@ -102,6 +102,9 @@
         selected: selected === t.label,
         dot: { x: center + dotR * Math.cos(rad(hue)), y: center - dotR * Math.sin(rad(hue)) },
         ext: { x: center + extRadius * Math.cos(rad(hue)), y: center - extRadius * Math.sin(rad(hue)) },
+        // Orient the glyph tangent to the ring (perpendicular to the radius).
+        // Screen y-down: the radius sits at CSS-angle -hue, so the tangent is 90 - hue.
+        iconRot: 90 - hue,
       };
     }),
   );
@@ -351,6 +354,12 @@
   <canvas class="disc" bind:this={canvas} aria-hidden="true" style="width: {discDiameter}px; height: {discDiameter}px"></canvas>
 
   <svg class="rails" viewBox="0 0 {wrapperSize} {wrapperSize}" width={wrapperSize} height={wrapperSize} aria-hidden="true">
+    <!-- Dotted tether center→icon, drawn first so the solid rail below covers
+         its inner half — reads as one axis that extends outward as dots to the
+         external handle. Same angle as the handle, so it tracks live. -->
+    {#each trioRender as t (t.label)}
+      <line class="tether" x1={center} y1={center} x2={t.ext.x} y2={t.ext.y} />
+    {/each}
     {#each trioRender as t (t.label)}
       <line class="rail" x1={center} y1={center} x2={t.dot.x} y2={t.dot.y} />
     {/each}
@@ -379,7 +388,7 @@
       type="button"
       class="ext-handle"
       class:selected={t.selected}
-      style="left: {t.ext.x}px; top: {t.ext.y}px"
+      style="left: {t.ext.x}px; top: {t.ext.y}px; transform: translate(-50%, -50%) rotate({t.iconRot}deg)"
       aria-label={`Rotate ${t.label} hue`}
       title={`Rotate ${t.label} hue`}
       onpointerdown={(e) => startAxisDrag(e, t.label)}
@@ -435,6 +444,15 @@
     stroke: var(--ui-text-primary);
     stroke-width: 1.5;
     opacity: 0.65;
+  }
+
+  /* Dotted continuation of the axis out to the external handle. Greyscale. */
+  .tether {
+    stroke: var(--ui-text-tertiary);
+    stroke-width: 1;
+    stroke-dasharray: 1.5 2.5;
+    stroke-linecap: round;
+    opacity: 0.8;
   }
 
   /* Inner color dots — the only elements that carry actual palette colour. */
