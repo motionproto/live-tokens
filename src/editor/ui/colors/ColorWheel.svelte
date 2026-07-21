@@ -354,6 +354,9 @@
   <canvas class="disc" bind:this={canvas} aria-hidden="true" style="width: {discDiameter}px; height: {discDiameter}px"></canvas>
 
   <svg class="rails" viewBox="0 0 {wrapperSize} {wrapperSize}" width={wrapperSize} height={wrapperSize} aria-hidden="true">
+    <!-- Faint track the external axis handles ride along (their centers sit on
+         this radius). Decorative chrome, beneath the handles. -->
+    <circle class="track" cx={center} cy={center} r={extRadius} />
     <!-- Dotted tether center→icon, drawn first so the solid rail below covers
          its inner half — reads as one axis that extends outward as dots to the
          external handle. Same angle as the handle, so it tracks live. -->
@@ -448,11 +451,19 @@
 
   /* Dotted continuation of the axis out to the external handle. Greyscale. */
   .tether {
-    stroke: var(--ui-text-tertiary);
-    stroke-width: 1;
-    stroke-dasharray: 1.5 2.5;
+    stroke: var(--ui-text-secondary);
+    stroke-width: 1.5;
+    stroke-dasharray: 2 4;
     stroke-linecap: round;
-    opacity: 0.8;
+    opacity: 0.9;
+  }
+
+  /* Faint ring the external axis handles ride along. Decorative. */
+  .track {
+    fill: none;
+    stroke: var(--ui-border);
+    stroke-width: 1;
+    opacity: 0.6;
   }
 
   /* Inner color dots — the only elements that carry actual palette colour. */
