@@ -645,7 +645,7 @@
   --body-sm-font-family: var(--font-sans);
   --body-sm-font-size: var(--font-size-sm);
   --body-sm-font-weight: var(--font-weight-normal);
-  --body-sm-line-height: var(--line-height-normal);
+  --body-sm-line-height: var(--line-height-tight);
   --body-sm-letter-spacing: var(--letter-spacing-normal);
 
   --code-font-family: var(--font-mono);

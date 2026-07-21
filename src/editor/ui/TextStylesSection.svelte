@@ -8,21 +8,10 @@
   import { TEXT_STYLES } from './sections/textStyles';
 </script>
 
-<div class="text-styles-table">
-  <div class="ts-header">
-    <span class="ts-h">Style</span>
-    <span class="ts-h">Preview</span>
-    <span class="ts-h h-span2">Family</span>
-    <span class="ts-h h-span2">Size</span>
-    <span class="ts-h h-span2">Weight</span>
-    <span class="ts-h h-span2">Letter spacing</span>
-    <span class="ts-h h-span2">Line height</span>
-    <span class="ts-h h-span2">Transform</span>
-  </div>
-
+<div class="text-styles">
   {#each TEXT_STYLES as style (style.prefix)}
-    <div class="ts-row">
-      <div class="ts-style">
+    <div class="ts-card">
+      <div class="ts-id">
         <code class="ts-name">{style.name}</code>
         <span class="ts-el">{style.defaultElement}</span>
       </div>
@@ -32,77 +21,67 @@
         style="font-family: var({style.prefix}-font-family); font-size: var({style.prefix}-font-size); font-weight: var({style.prefix}-font-weight); line-height: var({style.prefix}-line-height); letter-spacing: var({style.prefix}-letter-spacing);{style.hasTextTransform ? ` text-transform: var(${style.prefix}-text-transform);` : ''}"
       >{style.preview}</div>
 
-      <UIFontFamilySelector variable={`${style.prefix}-font-family`} />
-      <UIFontSizeSelector variable={`${style.prefix}-font-size`} />
-      <UIFontWeightSelector variable={`${style.prefix}-font-weight`} />
-      <UILetterSpacingSelector variable={`${style.prefix}-letter-spacing`} />
-      <UILineHeightSelector variable={`${style.prefix}-line-height`} />
-
-      {#if style.hasTextTransform}
-        <UITextTransformSelector variable={`${style.prefix}-text-transform`} />
-      {:else}
-        <span class="ts-empty" aria-hidden="true"></span>
-      {/if}
+      <div class="ts-controls">
+        <div class="ts-field">
+          <span class="ts-label">family</span>
+          <UIFontFamilySelector variable={`${style.prefix}-font-family`} />
+        </div>
+        <div class="ts-field">
+          <span class="ts-label">size</span>
+          <UIFontSizeSelector variable={`${style.prefix}-font-size`} />
+        </div>
+        <div class="ts-field">
+          <span class="ts-label">weight</span>
+          <UIFontWeightSelector variable={`${style.prefix}-font-weight`} />
+        </div>
+        <div class="ts-field">
+          <span class="ts-label">letter spacing</span>
+          <UILetterSpacingSelector variable={`${style.prefix}-letter-spacing`} />
+        </div>
+        <div class="ts-field">
+          <span class="ts-label">line height</span>
+          <UILineHeightSelector variable={`${style.prefix}-line-height`} />
+        </div>
+        {#if style.hasTextTransform}
+          <div class="ts-field">
+            <span class="ts-label">transform</span>
+            <UITextTransformSelector variable={`${style.prefix}-text-transform`} />
+          </div>
+        {/if}
+      </div>
     </div>
   {/each}
 </div>
 
 <style>
-  /* Single grid template shared by the header and every row (custom prop so
-     the row grids and the header stay column-aligned). Each picker is a
-     subgrid spanning two tracks — trigger + resolved-value meta. */
-  .text-styles-table {
-    --ts-grid:
-      9rem
-      minmax(9rem, 1.4fr)
-      minmax(5.5rem, 0.9fr) minmax(2.5rem, max-content)
-      minmax(4rem, 0.7fr) minmax(2.5rem, max-content)
-      minmax(5.5rem, 0.9fr) minmax(2.5rem, max-content)
-      minmax(5rem, 0.8fr) minmax(2.5rem, max-content)
-      minmax(5rem, 0.8fr) minmax(2.5rem, max-content)
-      minmax(5rem, 0.8fr) minmax(2.5rem, max-content);
+  /* One frame around the stacked list; cards butt together and are separated
+     by a faint rule rather than each being its own box. No overflow clipping —
+     the pickers' dropdowns must be free to spill past the frame. */
+  .text-styles {
     display: flex;
     flex-direction: column;
-    gap: var(--ui-space-6);
-    overflow-x: auto;
+    border: 1px solid var(--ui-border);
   }
 
-  .ts-header,
-  .ts-row {
+  /* Two columns: a fixed identity rail and the content column holding the
+     preview (top) then the controls (below). The rail spans both rows so a
+     stack of cards reads as one continuous, scannable left column. */
+  .ts-card {
     display: grid;
-    grid-template-columns: var(--ts-grid);
-    column-gap: var(--ui-space-10);
-    align-items: center;
-    min-width: max-content;
-  }
-
-  .ts-header {
-    padding: 0 var(--ui-space-8) var(--ui-space-6);
+    grid-template-columns: 8rem minmax(0, 1fr);
+    column-gap: var(--ui-space-12);
+    row-gap: var(--ui-space-8);
+    padding: var(--ui-space-12) var(--ui-space-10);
     border-bottom: 1px solid var(--ui-border-low);
   }
 
-  .ts-h {
-    font-size: var(--ui-font-size-xs);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-tertiary);
-    text-transform: uppercase;
+  .ts-card:last-child {
+    border-bottom: none;
   }
 
-  .h-span2 {
-    grid-column: span 2;
-  }
-
-  .ts-row {
-    padding: var(--ui-space-6) var(--ui-space-8);
-    border-radius: var(--ui-radius-md);
-    row-gap: var(--ui-space-4);
-  }
-
-  .ts-row:hover {
-    background: var(--ui-surface-low);
-  }
-
-  .ts-style {
+  .ts-id {
+    grid-column: 1;
+    grid-row: 1 / span 2;
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-2);
@@ -121,13 +100,74 @@
     color: var(--ui-text-muted);
   }
 
-  /* Preview renders through the bundle's own vars (letterforms, not ink); ink
-     stays the editor's text colour since colour is outside the style bundle. */
+  /* Fixed-height preview well with the sample pinned to the top, so its
+     cap-line meets the identity label instead of floating mid-row. Height
+     clears the largest style (heading-xl) so every well is uniform and the
+     rows keep a steady rhythm regardless of sample size. Preview renders
+     through the bundle's own vars (letterforms, not ink); ink stays the
+     editor's text colour since colour is outside the style bundle. */
   .ts-preview {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+    min-height: 3rem;
     color: var(--ui-text-primary);
+    max-width: 100%;
     min-width: 0;
+    text-align: left;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Fixed-width tracks packed to the left rather than stretching across the
+     full-bleed section, so the axis pickers stay a tight, scannable cluster.
+     auto-fill wraps them when the panel is too narrow for one row. */
+  .ts-controls {
+    grid-column: 2;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(6.5rem, 7.5rem));
+    justify-content: start;
+    gap: var(--ui-space-12);
+    align-items: start;
+  }
+
+  .ts-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-4);
+    min-width: 0;
+  }
+
+  /* The shared picker renders trigger + resolved value side by side (a subgrid
+     spanning two parent tracks). Here we want them stacked — label, control,
+     then the resolved value beneath — so flip its own layout to a column and
+     left-align the value the component otherwise centres. */
+  .ts-field :global(.ui-token-selector) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ui-space-4);
+  }
+
+  .ts-field :global(.ui-ts-trigger-wrap) {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .ts-field :global(.ui-ts-meta-text) {
+    align-self: flex-start;
+  }
+
+  /* Quiet eyebrow-scale labels so the eye lands on the control and its value,
+     not the field name. */
+  .ts-label {
+    font-size: var(--ui-font-size-xs);
+    font-weight: var(--ui-font-weight-medium);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ui-text-muted);
     white-space: nowrap;
   }
 </style>

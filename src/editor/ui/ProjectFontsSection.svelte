@@ -481,9 +481,6 @@
     background: var(--ui-surface-subtle, rgba(255,255,255,0.02));
     min-height: 36px;
   }
-  .pf-family:hover {
-    background: var(--ui-surface-hover, rgba(255,255,255,0.04));
-  }
 
   .pf-family-remove {
     display: inline-flex;
