@@ -5,6 +5,7 @@
   import { editorState, beginScope, commitScope, cancelScope, type Scope } from '../../core/store/editorStore';
   import { setBaseHueChroma, setBaseChroma, setBaseColors } from './paletteBaseColor';
   import { maxChroma } from './colorWheelMath';
+  import { harmonyHues, type HarmonyMode } from '../../core/palettes/colorHarmony';
 
   interface Props {
     selected: string | null;
@@ -17,9 +18,12 @@
     /** Rotation semantics: off (default) preserves relative saturation (constant
      *  render radius); on preserves absolute chroma (the dot drifts in/out). */
     absoluteChroma: boolean;
+    /** Hovered harmony mode: paints non-interactive ghost dots at the hues the
+     *  trio would move to, so the geometry previews before it's applied. */
+    previewMode?: HarmonyMode | null;
   }
 
-  let { selected, onSelect, discLightness, onCustomize, absoluteChroma }: Props = $props();
+  let { selected, onSelect, discLightness, onCustomize, absoluteChroma, previewMode = null }: Props = $props();
 
   // The harmony trio, anchored on Brand. Neutral/Alternate/Special stay off the
   // wheel this pass (swatch row only).
@@ -114,6 +118,24 @@
     const d = drag;
     const angle = d?.kind === 'global' ? d.angle : globalAngle;
     return { x: center + extRadius * Math.cos(rad(angle)), y: center - extRadius * Math.sin(rad(angle)) };
+  });
+
+  // Ghost dots for a hovered harmony mode: each trio member re-hued to the
+  // would-be geometry, its own chroma preserved (so radius = chroma at the new
+  // hue, matching what applyHarmony will produce). Anchor-stationary members are
+  // dropped so a ghost never sits atop its live dot. Non-interactive.
+  let ghosts = $derived.by(() => {
+    if (!previewMode || previewMode === 'custom' || drag) return [];
+    const brand = trio.find((t) => t.label === 'Brand');
+    if (!brand) return [];
+    const hues = harmonyHues(previewMode, brand.hue);
+    return TRIO_LABELS.flatMap((label, i) => {
+      const t = trio.find((x) => x.label === label);
+      if (!t || Math.abs(angleDelta(hues[i], t.hue)) < 0.5) return [];
+      const rFrac = clamp(t.chroma / (maxChroma(t.lightness, hues[i]) || 1e-6), 0, 1);
+      const r = rFrac * discRadius;
+      return [{ label, hex: t.hex, x: center + r * Math.cos(rad(hues[i])), y: center - r * Math.sin(rad(hues[i])) }];
+    });
   });
 
   let discMaxByHue = $derived.by(() => {
@@ -369,6 +391,10 @@
     {/each}
   </svg>
 
+  {#each ghosts as g (g.label)}
+    <span class="ghost" style="left: {g.x}px; top: {g.y}px; --fill: {g.hex}" aria-hidden="true"></span>
+  {/each}
+
   {#each trioRender as t (t.label)}
     <button
       type="button"
@@ -465,6 +491,21 @@
     stroke: var(--ui-border);
     stroke-width: 1;
     opacity: 0.6;
+  }
+
+  /* Preview dots for a hovered harmony mode. Dashed, translucent, no pointer
+     events — a hint at the would-be geometry, not a target. */
+  .ghost {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 1rem;
+    height: 1rem;
+    border-radius: var(--ui-radius-full);
+    background: var(--fill);
+    border: 2px dashed var(--ui-text-primary);
+    opacity: 0.55;
+    pointer-events: none;
+    z-index: 1;
   }
 
   /* Inner color dots — the only elements that carry actual palette colour. */

@@ -1,10 +1,11 @@
 /**
- * The Colors view's writes to a palette's seed color. Both the wheel handle
- * drag and the readout panel funnel through here so a Colors-view edit is
- * byte-identical to a PaletteEditor base-color edit (global invariant 5: one
- * store path, no parallel color state). `mutate` runs inside whatever scope the
- * caller has opened (a wheel drag's clipping session, a slider gesture, or none
- * for a discrete edit); this module never opens or commits scopes itself.
+ * The Colors view's writes to a palette's seed color and the page-background
+ * spot. Both the wheel handle drag and the readout panel funnel through here so
+ * a Colors-view edit is byte-identical to a PaletteEditor base-color edit
+ * (global invariant 5: one store path, no parallel color state). `mutate` runs
+ * inside whatever scope the caller has opened (a wheel drag's clipping session,
+ * a slider gesture, or none for a discrete edit); the seed-color setters never
+ * open or commit scopes themselves.
  *
  * The store holds unclamped OKLCH intent: setters write channels directly, with
  * no gamut clamp and no hex round-trip. Clamping is projection-only (derivation
@@ -18,6 +19,7 @@
 
 import type { Oklch } from '../../core/palettes/oklch';
 import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
+import { solveTextCurves } from '../../core/palettes/solveTextContrast';
 import { defaultPaletteConfig } from '../palette/paletteMath';
 import { mutate, transaction } from '../../core/store/editorStore';
 import type { EditorState } from '../../core/store/editorTypes';
@@ -84,5 +86,27 @@ export function setBaseColors(patch: Record<string, Oklch>, historyLabel = 'colo
     for (const [label, color] of Object.entries(patch)) {
       ensureConfig(s, label).baseColor = color;
     }
+  });
+}
+
+export function applySolvedTextCurves(s: EditorState): void {
+  const { patches, cssVarOverrides } = solveTextCurves(s.palettes);
+  for (const [label, patch] of Object.entries(patches)) {
+    const cfg = s.palettes[label];
+    if (cfg) cfg.scaleCurves = { ...cfg.scaleCurves, ...patch.scaleCurves };
+  }
+  Object.assign(s.cssVars, cssVarOverrides);
+}
+
+/** Pick which palette step is the page background. Forces solid mode, then
+ *  re-solves every family's text curve against the new background in the same
+ *  transaction — one undo restores both the spot and the text. */
+export function setBackgroundSpot(stepLabel: string): void {
+  const spec = PALETTE_SPECS.find((p) => p.emptySelector)!;
+  transaction(`colors: background spot ${stepLabel}`, (s) => {
+    const cfg = ensureConfig(s, spec.label);
+    cfg.emptyMode = 'solid';
+    cfg.emptyStep = stepLabel;
+    applySolvedTextCurves(s);
   });
 }
