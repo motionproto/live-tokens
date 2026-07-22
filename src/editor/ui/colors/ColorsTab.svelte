@@ -9,6 +9,7 @@
   import ColorReadouts from './ColorReadouts.svelte';
   import ColorStory from './ColorStory.svelte';
   import BackgroundSpotStrip from './BackgroundSpotStrip.svelte';
+  import HarmonyAxesList from './HarmonyAxesList.svelte';
   import UIPillButton from '../UIPillButton.svelte';
   import { setBaseColor, setBaseColors, applySolvedTextCurves } from './paletteBaseColor';
 
@@ -127,6 +128,8 @@
             onclick={tintNeutrals}
           >Tint neutrals from anchor</UIPillButton>
         </div>
+
+        <HarmonyAxesList />
 
         <div class="wheel-opts">
           <label class="opt">

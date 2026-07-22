@@ -81,9 +81,8 @@ export function setBaseChroma(label: string, chroma: number): void {
   });
 }
 
-/** The single write path for the harmony axis order. Wave 4's list UI calls this
- *  on every committed gesture; the sanitizer guards against a dropped/duplicated
- *  entry ever reaching the store. */
+/** Single write path for the harmony axis order; the sanitizer guards against a
+ *  dropped/duplicated entry ever reaching the store. */
 export function setHarmonyOrder(order: string[]): void {
   mutate('colors: harmony axes', (s) => {
     s.harmonyOrder = sanitizeHarmonyOrder(order);
