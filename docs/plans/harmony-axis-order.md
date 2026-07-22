@@ -19,7 +19,7 @@ This plan replaces the constants with **one ordered list, stored per theme**:
 harmonyOrder?: string[]           // Theme (optional on disk; absent = default)
 harmonyOrder: string[]            // EditorState (always present)
 
-export const DEFAULT_HARMONY_ORDER = ['Brand', 'Background', 'Accent'];
+export const DEFAULT_HARMONY_ORDER = ['Brand', 'Accent', 'Background'];
 export const HARMONY_ELIGIBLE = ['Brand', 'Accent', 'Background', 'Special'];
 ```
 
@@ -33,16 +33,16 @@ Semantics:
 
 ### Per-mode slot tables (curated, not mechanical)
 
-`a` = anchor hue (hue of the family in slot 0). All hues normalized to [0, 360). These tables are the spec; do not invent alternatives. Slots 0–2 with the default order reproduce today's `harmonyHues()` output exactly — that equivalence is the Wave 1 pinning test.
+`a` = anchor hue (hue of the family in slot 0). All hues normalized to [0, 360). These tables are the spec; do not invent alternatives. Slots are priority-ordered: the mode's defining hues occupy the lowest slots. Slot 1 is the primary harmonic partner. With the default order `['Brand', 'Accent', 'Background']`, dealing slots 0–2 reproduces today's per-family `applyHarmony` output exactly (Brand=slot 0, Accent=slot 1, Background=slot 2). That per-family equivalence is the Wave 1 pinning test. Note `harmonyHues` now returns hues in slot order, so its raw array differs from today's ordering (e.g. complementary is now `[a, a + 180, a]`, not `[a, a, a + 180]`); assert on `applyHarmony`'s per-family output, and update the existing direct `harmonyHues` unit test's expected array to the new slot order.
 
 | mode                | slot 0 | slot 1  | slot 2  | slot 3  |
 |---------------------|--------|---------|---------|---------|
 | monochromatic       | a      | a       | a       | a       |
-| analogous           | a      | a − 30  | a + 30  | a + 60  |
-| complementary       | a      | a       | a + 180 | a + 180 |
-| split-complementary | a      | a + 150 | a + 210 | a       |
-| triadic             | a      | a + 120 | a + 240 | a       |
-| square              | a      | a + 90  | a + 180 | a + 270 |
+| analogous           | a      | a + 30  | a − 30  | a + 60  |
+| complementary       | a      | a + 180 | a       | a + 180 |
+| split-complementary | a      | a + 210 | a + 150 | a       |
+| triadic             | a      | a + 240 | a + 120 | a       |
+| square              | a      | a + 180 | a + 90  | a + 270 |
 | custom              | a      | a       | a       | a       |
 
 (`custom` remains "no constraint": `applyHarmony('custom', …)` still returns `{}`; the table row exists only so `harmonyHues` stays total.)
@@ -79,7 +79,7 @@ One wave = one commit. Run the wave's verification green before committing; neve
 Files: `src/editor/core/palettes/colorHarmony.ts`, `src/editor/core/palettes/colorHarmony.test.ts`.
 
 1. In `colorHarmony.ts`:
-   - Add `export const DEFAULT_HARMONY_ORDER: readonly string[] = ['Brand', 'Background', 'Accent'];` and `export const HARMONY_ELIGIBLE: readonly string[] = ['Brand', 'Accent', 'Background', 'Special'];`. Delete the private `TRIO` constant.
+   - Add `export const DEFAULT_HARMONY_ORDER: readonly string[] = ['Brand', 'Accent', 'Background'];` and `export const HARMONY_ELIGIBLE: readonly string[] = ['Brand', 'Accent', 'Background', 'Special'];`. Delete the private `TRIO` constant.
    - Reshape `harmonyHues(mode, anchorHue)` → `harmonyHues(mode: HarmonyMode, anchorHue: number, slotCount: number): number[]`, implementing the slot table above (return the first `slotCount` entries; `slotCount` is 1–4). Keep the existing name so call sites are greppable.
    - Reshape `applyHarmony(mode, palettes)` → `applyHarmony(mode: HarmonyMode, palettes: Record<string, PaletteConfig>, order: readonly string[] = DEFAULT_HARMONY_ORDER): Record<string, Oklch>`:
      - `'custom'` → `{}` (unchanged).
@@ -89,7 +89,7 @@ Files: `src/editor/core/palettes/colorHarmony.ts`, `src/editor/core/palettes/col
    - Update the file-header comment: the trio is no longer a constant; the anchor is slot 0 of the caller-supplied order.
 2. Update the two importing call sites **minimally** so the build stays green — `ColorsTab.svelte` (rename `tintNeutralsFromBrand` → `tintNeutralsFromAnchor`; `applyHarmony` keeps its default argument) and `ColorWheel.svelte` (`harmonyHues(previewMode, brand.hue)` → pass `3` as `slotCount`). Wave 3 does the real wheel generalization; this wave only keeps signatures compiling with unchanged behavior.
 3. Tests (`colorHarmony.test.ts` — extend, keep existing tests passing; if an existing test calls the old signatures, update the call, never the expectation):
-   - **Pinning:** for every mode, `applyHarmony(mode, palettes)` with no order argument equals the pre-change output. Write these expectations from the slot table's first three columns (they are today's values by construction).
+   - **Pinning:** for every mode, `applyHarmony(mode, palettes)` with no order argument equals the pre-change per-family output. With the default order, that is Brand=slot 0, Accent=slot 1, Background=slot 2; those are today's values by construction. Also update the existing direct `harmonyHues` unit test (e.g. `harmonyHues('complementary', 30)` was `[30, 30, 210]`, now `[30, 210, 30]` under the new slot order) to the new expected array; this is a call/ordering update, not a behavior weakening, since applied per-family output is unchanged.
    - Square with `['Brand', 'Background', 'Accent', 'Special']`: Special gets `anchor + 270`.
    - Non-Brand anchor: `['Accent', 'Brand']`, complementary → Accent keeps its hue, Brand gets `accentHue + 180`.
    - Unlisted family untouched: order without Background → no `Background` key in the patch.

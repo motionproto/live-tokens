@@ -25,9 +25,11 @@
 
   let { selected, onSelect, discLightness, onCustomize, absoluteChroma, previewMode = null }: Props = $props();
 
-  // The harmony trio, anchored on Brand. Neutral/Alternate/Special stay off the
-  // wheel this pass (swatch row only).
-  const TRIO_LABELS = ['Brand', 'Background', 'Accent'];
+  // The harmony trio, anchored on Brand. Order matches harmonyHues' slot order
+  // (slot 0 anchor, slot 1 primary partner) so the ghost preview pairs each
+  // family with its own slot hue. Neutral/Alternate/Special stay off the wheel
+  // this pass (swatch row only).
+  const TRIO_LABELS = ['Brand', 'Accent', 'Background'];
   const TRIO_SPECS: PaletteSpec[] = TRIO_LABELS
     .map((l) => PALETTE_SPECS.find((s) => s.label === l))
     .filter((s): s is PaletteSpec => !!s);
@@ -128,7 +130,7 @@
     if (!previewMode || previewMode === 'custom' || drag) return [];
     const brand = trio.find((t) => t.label === 'Brand');
     if (!brand) return [];
-    const hues = harmonyHues(previewMode, brand.hue);
+    const hues = harmonyHues(previewMode, brand.hue, TRIO_LABELS.length);
     return TRIO_LABELS.flatMap((label, i) => {
       const t = trio.find((x) => x.label === label);
       if (!t || Math.abs(angleDelta(hues[i], t.hue)) < 0.5) return [];

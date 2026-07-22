@@ -2,7 +2,7 @@
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginSliderGesture, transaction } from '../../core/store/editorStore';
-  import { applyHarmony, tintNeutralsFromBrand, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import { applyHarmony, tintNeutralsFromAnchor, type HarmonyMode } from '../../core/palettes/colorHarmony';
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import ColorWheel from './ColorWheel.svelte';
   import LightnessBar from './LightnessBar.svelte';
@@ -58,8 +58,8 @@
   }
 
   function tintNeutrals() {
-    const patch = tintNeutralsFromBrand($editorState.palettes);
-    if (Object.keys(patch).length) setBaseColors(patch, 'colors: tint neutrals from brand');
+    const patch = tintNeutralsFromAnchor($editorState.palettes);
+    if (Object.keys(patch).length) setBaseColors(patch, 'colors: tint neutrals from anchor');
   }
 
   function deriveAccessibleText() {
@@ -125,9 +125,9 @@
           <UIPillButton
             size="compact"
             icon="fa-fill-drip"
-            title="Re-hue Neutral and Alternate to the Brand hue (their own chroma and lightness kept)"
+            title="Re-hue Neutral and Alternate to the anchor color (their own chroma and lightness kept)"
             onclick={tintNeutrals}
-          >Tint neutrals from brand</UIPillButton>
+          >Tint neutrals from anchor</UIPillButton>
         </div>
 
         <div class="wheel-opts">
