@@ -6,58 +6,66 @@
   import { HARMONY_ELIGIBLE } from '../../core/palettes/colorHarmony';
   import { editorState } from '../../core/store/editorStore';
   import { setHarmonyOrder } from './paletteBaseColor';
-  import UIPillButton from '../UIPillButton.svelte';
 
   const SPEC_BY_LABEL: Record<string, PaletteSpec> = Object.fromEntries(PALETTE_SPECS.map((s) => [s.label, s]));
 
-  let rows = $derived(
-    $editorState.harmonyOrder.map((label) => {
-      const spec = SPEC_BY_LABEL[label];
-      const { l, c, h } = $editorState.palettes[label]?.baseColor ?? spec.initialColor;
-      return { label, hex: oklchToHexClamped(l, c, h) };
-    }),
-  );
-
-  let unlisted = $derived(HARMONY_ELIGIBLE.filter((label) => !$editorState.harmonyOrder.includes(label)));
-
-  function append(label: string) {
-    setHarmonyOrder([...$editorState.harmonyOrder, label]);
+  function hexOf(label: string): string {
+    const { l, c, h } = $editorState.palettes[label]?.baseColor ?? SPEC_BY_LABEL[label].initialColor;
+    return oklchToHexClamped(l, c, h);
   }
 
-  function remove(index: number) {
-    setHarmonyOrder($editorState.harmonyOrder.filter((_, i) => i !== index));
+  let order = $derived($editorState.harmonyOrder);
+  // Active families first in slot order, then the eligible families they leave off.
+  let items = $derived([
+    ...order.map((label, slot) => ({ label, hex: hexOf(label), active: true, slot })),
+    ...HARMONY_ELIGIBLE.filter((l) => !order.includes(l)).map((label) => ({
+      label,
+      hex: hexOf(label),
+      active: false,
+      slot: -1,
+    })),
+  ]);
+
+  function activate(label: string) {
+    setHarmonyOrder([...order, label]);
   }
 
-  function moveBy(index: number, delta: number) {
-    const target = index + delta;
-    const order = [...$editorState.harmonyOrder];
+  function deactivate(slot: number) {
+    // The anchor list can never be empty; the last active family stays on.
+    if (order.length <= 1) return;
+    setHarmonyOrder(order.filter((_, i) => i !== slot));
+  }
+
+  function moveBy(slot: number, delta: number) {
+    const target = slot + delta;
     if (target < 0 || target >= order.length) return;
-    const [moved] = order.splice(index, 1);
-    order.splice(target, 0, moved);
-    setHarmonyOrder(order);
+    const next = [...order];
+    const [moved] = next.splice(slot, 1);
+    next.splice(target, 0, moved);
+    setHarmonyOrder(next);
   }
 
-  function onHandleKeydown(e: KeyboardEvent, index: number) {
+  function onHandleKeydown(e: KeyboardEvent, slot: number) {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
-      moveBy(index, -1);
+      moveBy(slot, -1);
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
-      moveBy(index, 1);
+      moveBy(slot, 1);
     }
   }
 
-  /* Reorder mirrors FontStackEditor: only the handle is draggable so it can't
-     swallow the row's remove-button click; the array commits on drop and
-     animate:flip slides each row to its new slot. */
-  let dragIndex: number | null = $state(null);
-  let dragOver: { index: number; position: 'before' | 'after' } | null = $state(null);
+  /* Reorder mirrors FontStackEditor: only the handle is draggable, and the array
+     commits on drop while animate:flip slides each row to its new slot. Only
+     active rows are drop targets; inactive families have no slot. */
+  let dragSlot: number | null = $state(null);
+  let dragOver: { slot: number; position: 'before' | 'after' } | null = $state(null);
 
-  function onDragStart(e: DragEvent, index: number) {
+  function onDragStart(e: DragEvent, slot: number) {
     if (!e.dataTransfer) return;
-    dragIndex = index;
+    dragSlot = slot;
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('application/x-harmony-axis', String(index));
+    e.dataTransfer.setData('application/x-harmony-axis', String(slot));
     const rowEl = (e.currentTarget as HTMLElement).closest('.axis-row') as HTMLElement | null;
     if (rowEl) {
       const rect = rowEl.getBoundingClientRect();
@@ -65,99 +73,89 @@
     }
   }
 
-  function onDragOver(e: DragEvent, index: number) {
+  function onDragOver(e: DragEvent, slot: number) {
     if (!(e.dataTransfer?.types ?? []).includes('application/x-harmony-axis')) return;
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const position: 'before' | 'after' = e.clientY - rect.top < rect.height / 2 ? 'before' : 'after';
-    dragOver = { index, position };
+    dragOver = { slot, position };
   }
 
   function onDragLeave() {
     dragOver = null;
   }
 
-  function onDrop(e: DragEvent, index: number) {
+  function onDrop(e: DragEvent, slot: number) {
     e.preventDefault();
     const payload = e.dataTransfer?.getData('application/x-harmony-axis');
     const position = dragOver?.position ?? 'before';
     dragOver = null;
     if (payload == null || payload === '') return;
     const src = Number(payload);
-    if (src === index) return;
-    const order = [...$editorState.harmonyOrder];
-    const [moved] = order.splice(src, 1);
-    let target = index;
-    if (src < index) target -= 1;
+    if (src === slot) return;
+    const next = [...order];
+    const [moved] = next.splice(src, 1);
+    let target = slot;
+    if (src < slot) target -= 1;
     if (position === 'after') target += 1;
-    order.splice(target, 0, moved);
-    setHarmonyOrder(order);
+    next.splice(target, 0, moved);
+    setHarmonyOrder(next);
   }
 
   function onDragEnd() {
-    dragIndex = null;
+    dragSlot = null;
     dragOver = null;
   }
 </script>
 
-<div class="axes">
-  <div class="axis-list">
-    {#each rows as row, i (row.label)}
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <div
-        class="axis-row"
-        class:drop-before={dragOver?.index === i && dragOver?.position === 'before'}
-        class:drop-after={dragOver?.index === i && dragOver?.position === 'after'}
-        class:dragging={dragIndex === i}
-        ondragover={(e) => onDragOver(e, i)}
-        ondragleave={onDragLeave}
-        ondrop={(e) => onDrop(e, i)}
-        ondragend={onDragEnd}
-        animate:flip={{ duration: 200, easing: cubicOut }}
-      >
+<div class="axis-list">
+  {#each items as item (item.label)}
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+      class="axis-row"
+      class:inactive={!item.active}
+      class:drop-before={item.active && dragOver?.slot === item.slot && dragOver?.position === 'before'}
+      class:drop-after={item.active && dragOver?.slot === item.slot && dragOver?.position === 'after'}
+      class:dragging={item.active && dragSlot === item.slot}
+      ondragover={item.active ? (e) => onDragOver(e, item.slot) : undefined}
+      ondragleave={item.active ? onDragLeave : undefined}
+      ondrop={item.active ? (e) => onDrop(e, item.slot) : undefined}
+      ondragend={item.active ? onDragEnd : undefined}
+      animate:flip={{ duration: 200, easing: cubicOut }}
+    >
+      <input
+        type="checkbox"
+        class="axis-check"
+        checked={item.active}
+        disabled={item.active && order.length <= 1}
+        aria-label={item.active ? `Turn off ${item.label}` : `Turn on ${item.label}`}
+        title={item.active ? 'On the wheel' : 'Off the wheel'}
+        onchange={() => (item.active ? deactivate(item.slot) : activate(item.label))}
+      />
+      {#if item.active}
         <button
           type="button"
           class="drag-handle"
           draggable="true"
-          aria-label={`Reorder ${row.label} (arrow keys move it)`}
+          aria-label={`Reorder ${item.label} (arrow keys move it)`}
           title="Drag to reorder, or use arrow keys"
-          ondragstart={(e) => onDragStart(e, i)}
-          onkeydown={(e) => onHandleKeydown(e, i)}
+          ondragstart={(e) => onDragStart(e, item.slot)}
+          onkeydown={(e) => onHandleKeydown(e, item.slot)}
         >⋮⋮</button>
-        <span class="slot-num">{i + 1}.</span>
-        <span class="chip" style="--chip-fill: {row.hex}"></span>
-        <span class="axis-label">{row.label}</span>
-        {#if i === 0}<span class="anchor-tag">Anchor</span>{/if}
-        {#if rows.length > 1}
-          <button
-            type="button"
-            class="axis-remove"
-            aria-label={`Remove ${row.label}`}
-            title="Remove from harmony"
-            onclick={() => remove(i)}
-          >×</button>
-        {/if}
-      </div>
-    {/each}
-  </div>
-
-  {#if unlisted.length}
-    <div class="axis-add">
-      {#each unlisted as label (label)}
-        <UIPillButton size="compact" variant="outline" icon="fa-plus" onclick={() => append(label)}>{label}</UIPillButton>
-      {/each}
+        <span class="slot-num">{item.slot + 1}.</span>
+      {:else}
+        <span class="drag-handle placeholder" aria-hidden="true">⋮⋮</span>
+        <span class="slot-num placeholder" aria-hidden="true">·</span>
+      {/if}
+      <span class="chip" style="--chip-fill: {item.hex}"></span>
+      <span class="axis-label">{item.label}</span>
+      {#if item.active && item.slot === 0}<span class="anchor-tag">Anchor</span>{/if}
     </div>
-  {/if}
+  {/each}
 </div>
 
 <style>
-  .axes {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-8);
-  }
-
   .axis-list {
     display: flex;
     flex-direction: column;
@@ -178,6 +176,12 @@
     transition:
       opacity var(--ui-transition-fast),
       border-color var(--ui-transition-fast);
+  }
+
+  .axis-row.inactive {
+    background: none;
+    border-color: transparent;
+    color: var(--ui-text-muted);
   }
 
   /* Insertion bar sits in the 6px gap between rows; absolute so it consumes no
@@ -203,6 +207,14 @@
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
   }
 
+  .axis-check {
+    margin: 0;
+    cursor: pointer;
+  }
+  .axis-check:disabled {
+    cursor: default;
+  }
+
   .drag-handle {
     display: inline-flex;
     align-items: center;
@@ -221,6 +233,10 @@
   }
   .axis-row.dragging .drag-handle { cursor: grabbing; }
 
+  .placeholder {
+    visibility: hidden;
+  }
+
   .slot-num {
     min-width: 1.1rem;
     text-align: right;
@@ -236,8 +252,16 @@
     border: 1px solid var(--ui-border-low);
   }
 
+  .axis-row.inactive .chip {
+    opacity: 0.5;
+  }
+
   .axis-label {
     color: var(--ui-text-primary);
+  }
+
+  .axis-row.inactive .axis-label {
+    color: var(--ui-text-muted);
   }
 
   .anchor-tag {
@@ -248,28 +272,5 @@
     color: var(--ui-text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.04em;
-  }
-
-  .axis-remove {
-    margin-left: auto;
-    width: 1.4rem;
-    height: 1.4rem;
-    background: none;
-    border: 1px solid var(--ui-border-low);
-    border-radius: var(--ui-radius-sm);
-    color: var(--ui-text-muted);
-    font-size: var(--ui-font-size-md);
-    line-height: 1;
-    cursor: pointer;
-  }
-  .axis-remove:hover {
-    color: var(--ui-text-primary);
-    border-color: var(--ui-border);
-  }
-
-  .axis-add {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ui-space-6);
   }
 </style>
