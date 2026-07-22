@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { harmonyHues, applyHarmony, tintNeutralsFromAnchor, type HarmonyMode } from './colorHarmony';
+import { harmonyHues, applyHarmony, tintNeutralsFromAnchor, sanitizeHarmonyOrder, DEFAULT_HARMONY_ORDER, type HarmonyMode } from './colorHarmony';
 import { hexToOklch, oklchToHex } from './oklch';
 import { DEFAULT_PALETTE_LIGHTNESS, DEFAULT_PALETTE_SATURATION, defaultScaleCurves } from './paletteDerivation';
 import type { PaletteConfig } from '../themes/themeTypes';
@@ -58,7 +58,7 @@ describe('applyHarmony', () => {
   // Default order deals slot i to DEFAULT_HARMONY_ORDER[i] = [Brand, Accent, Background].
   const defaultOrder = ['Brand', 'Accent', 'Background'] as const;
 
-  it('rotates only [Brand, Background, Accent] hue; each own c + L unchanged', () => {
+  it('rotates only [Brand, Accent, Background] hue; each own c + L unchanged', () => {
     const out = applyHarmony('triadic', palettes);
     expect(Object.keys(out).sort()).toEqual(['Accent', 'Background', 'Brand']);
     expect('Special' in out).toBe(false);
@@ -180,5 +180,33 @@ describe('tintNeutralsFromAnchor', () => {
       const before = palettes[label].baseColor;
       expect(out[label]).toEqual({ l: before.l, c: before.c, h: accentHue });
     }
+  });
+});
+
+describe('sanitizeHarmonyOrder', () => {
+  it('non-array input falls back to the default order', () => {
+    expect(sanitizeHarmonyOrder(undefined)).toEqual([...DEFAULT_HARMONY_ORDER]);
+    expect(sanitizeHarmonyOrder('Brand')).toEqual([...DEFAULT_HARMONY_ORDER]);
+  });
+
+  it('empty array falls back to the default order', () => {
+    expect(sanitizeHarmonyOrder([])).toEqual([...DEFAULT_HARMONY_ORDER]);
+  });
+
+  it('drops entries outside HARMONY_ELIGIBLE', () => {
+    expect(sanitizeHarmonyOrder(['Danger', 'Brand', 'Neutral'])).toEqual(['Brand']);
+  });
+
+  it('drops duplicates, keeping the first occurrence', () => {
+    expect(sanitizeHarmonyOrder(['Accent', 'Brand', 'Accent'])).toEqual(['Accent', 'Brand']);
+  });
+
+  it('a fully-invalid array falls back to the default order', () => {
+    expect(sanitizeHarmonyOrder(['Danger', 'Success', 7, null])).toEqual([...DEFAULT_HARMONY_ORDER]);
+  });
+
+  it('passes a valid custom order through unchanged', () => {
+    expect(sanitizeHarmonyOrder(['Brand', 'Background', 'Accent', 'Special']))
+      .toEqual(['Brand', 'Background', 'Accent', 'Special']);
   });
 });

@@ -22,6 +22,25 @@ export const DEFAULT_HARMONY_ORDER: readonly string[] = ['Brand', 'Accent', 'Bac
 /** Families the user may order/include on the harmony axes (dev-declared pool). */
 export const HARMONY_ELIGIBLE: readonly string[] = ['Brand', 'Accent', 'Background', 'Special'];
 
+/**
+ * Coerce untrusted input (theme JSON) into a valid harmony order: keep only
+ * eligible entries, first occurrence of each. A non-array, empty, or
+ * fully-invalid input falls back to the default order.
+ */
+export function sanitizeHarmonyOrder(input: unknown): string[] {
+  if (!Array.isArray(input)) return [...DEFAULT_HARMONY_ORDER];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const entry of input) {
+    if (typeof entry !== 'string') continue;
+    if (!HARMONY_ELIGIBLE.includes(entry)) continue;
+    if (seen.has(entry)) continue;
+    seen.add(entry);
+    out.push(entry);
+  }
+  return out.length > 0 ? out : [...DEFAULT_HARMONY_ORDER];
+}
+
 const norm = (h: number): number => ((h % 360) + 360) % 360;
 
 /**

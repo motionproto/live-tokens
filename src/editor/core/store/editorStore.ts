@@ -30,6 +30,7 @@ import {
 import { renamePrimaryPaletteKey } from '../themes/migrations/2026-05-13-primary-to-brand';
 import { unifyGrayPalettes } from '../themes/migrations/2026-06-05-palette-unification';
 import { migratePaletteColorsToOklch, type PreOklchPaletteConfig } from '../themes/migrations/2026-07-21-palette-oklch-basis';
+import { DEFAULT_HARMONY_ORDER, sanitizeHarmonyOrder } from '../palettes/colorHarmony';
 import { __resetRendererCacheForTests, installRenderer } from './editorRenderer';
 import {
   store,
@@ -88,6 +89,7 @@ function emptyState(): EditorState {
     columns: { ...DEFAULT_COLUMNS },
     components: {},
     gradients: { tokens: makeDefaultGradients() },
+    harmonyOrder: [...DEFAULT_HARMONY_ORDER],
     cssVars: {},
   };
 }
@@ -530,6 +532,7 @@ export function loadFromFile(theme: Theme): void {
   // (or in components' case, vars that wouldn't have been in the theme to
   // begin with).
   for (const load of Object.values(domainLoaders)) load(next, rawVars);
+  next.harmonyOrder = sanitizeHarmonyOrder(theme.harmonyOrder);
   next.cssVars = rawVars;
   resetHistoryForLoad();
   store.set(next);
@@ -563,6 +566,7 @@ export function toTheme(state: EditorState, meta: { name: string }): Theme {
     cssVariables,
     fontSources: state.fonts.sources,
     fontStacks: state.fonts.stacks,
+    harmonyOrder: state.harmonyOrder,
     schemaVersion: CURRENT_THEME_SCHEMA_VERSION,
   };
 }

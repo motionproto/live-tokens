@@ -136,5 +136,7 @@ export interface EditorState {
   columns: ColumnsState;
   components: Record<string, ComponentSlice>;
   gradients: { tokens: GradientToken[] };
+  /** Ordered harmony axis assignment; slot 0 is the anchor. Always present. */
+  harmonyOrder: string[];
   cssVars: Record<string, string>;
 }

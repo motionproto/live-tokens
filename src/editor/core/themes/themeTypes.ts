@@ -83,6 +83,10 @@ export interface Theme {
   fontSources?: FontSource[];
   fontStacks?: FontStack[];
   /**
+   * Ordered harmony axis assignment; slot 0 is the anchor. Absent = default trio.
+   */
+  harmonyOrder?: string[];
+  /**
    * Server-attached file-name marker for round-tripping the file identity
    * back to the client. Set by `themeFileApi`'s GET handlers; read by
    * `themeInit` to seed `activeFileName`. Optional and not persisted to disk.

@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
 import { get } from 'svelte/store';
-import type { PaletteConfig } from '../themes/themeTypes';
+import type { PaletteConfig, Theme } from '../themes/themeTypes';
 import { hexToOklch as c } from '../palettes/oklch';
 import {
   editorState,
@@ -14,6 +14,8 @@ import {
   undo,
   redo,
   setPaletteConfig,
+  loadFromFile,
+  toTheme,
   __resetForTests,
   __getHistoryLengths,
   __getPastAt,
@@ -271,6 +273,31 @@ describe('editorStore — apply + undo matches spec end-to-end', () => {
     // One undo walks back to before the palette existed (setPaletteConfig before scope)
     undo();
     expect(get(editorState).palettes.Background).toBeUndefined();
+  });
+});
+
+describe('editorStore — harmonyOrder persistence round-trip', () => {
+  const baseTheme = (overrides: Partial<Theme> = {}): Theme => ({
+    name: 't', createdAt: '', updatedAt: '', editorConfigs: {}, cssVariables: {}, ...overrides,
+  });
+
+  it('a theme without harmonyOrder loads the default order', () => {
+    loadFromFile(baseTheme());
+    expect(get(editorState).harmonyOrder).toEqual(['Brand', 'Accent', 'Background']);
+  });
+
+  it('toTheme → loadFromFile preserves a non-default order', () => {
+    loadFromFile(baseTheme({ harmonyOrder: ['Accent', 'Brand', 'Special'] }));
+    const saved = toTheme(get(editorState), { name: 't' });
+    expect(saved.harmonyOrder).toEqual(['Accent', 'Brand', 'Special']);
+
+    loadFromFile(saved);
+    expect(get(editorState).harmonyOrder).toEqual(['Accent', 'Brand', 'Special']);
+  });
+
+  it('sanitizes an invalid stored order on load (drops ineligible + duplicate)', () => {
+    loadFromFile(baseTheme({ harmonyOrder: ['Danger', 'Brand', 'Brand'] }));
+    expect(get(editorState).harmonyOrder).toEqual(['Brand']);
   });
 });
 
