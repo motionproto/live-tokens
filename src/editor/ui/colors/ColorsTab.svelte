@@ -12,9 +12,7 @@
   import UIPillButton from '../UIPillButton.svelte';
   import { setBaseColor, setBaseColors, applySolvedTextCurves } from './paletteBaseColor';
 
-  const WHEEL_LABELS = ['Brand', 'Accent', 'Background', 'Neutral', 'Alternate'];
-
-  // Greyscale glyphs approximating the Adobe harmony row (trio = Brand/Background/Accent).
+  // Greyscale glyphs approximating the Adobe harmony row.
   const MODES: { mode: HarmonyMode; icon: string; label: string }[] = [
     { mode: 'analogous', icon: 'fa-grip-lines-vertical', label: 'Analogous' },
     { mode: 'monochromatic', icon: 'fa-circle', label: 'Monochromatic' },
@@ -53,12 +51,12 @@
 
   function applyMode(mode: HarmonyMode) {
     activeMode = mode;
-    const patch = applyHarmony(mode, $editorState.palettes);
+    const patch = applyHarmony(mode, $editorState.palettes, $editorState.harmonyOrder);
     if (Object.keys(patch).length) setBaseColors(patch, `colors: harmony ${mode}`);
   }
 
   function tintNeutrals() {
-    const patch = tintNeutralsFromAnchor($editorState.palettes);
+    const patch = tintNeutralsFromAnchor($editorState.palettes, $editorState.harmonyOrder);
     if (Object.keys(patch).length) setBaseColors(patch, 'colors: tint neutrals from anchor');
   }
 
@@ -73,7 +71,7 @@
         label: spec.label,
         display: spec.displayLabel ?? spec.label,
         hex: oklchToHexClamped(l, c, h),
-        onWheel: WHEEL_LABELS.includes(spec.label),
+        onWheel: $editorState.harmonyOrder.includes(spec.label),
       };
     }),
   );
