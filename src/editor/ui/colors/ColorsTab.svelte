@@ -129,8 +129,6 @@
           >Tint neutrals from anchor</UIPillButton>
         </div>
 
-        <HarmonyAxesList />
-
         <div class="wheel-opts">
           <label class="opt">
             <input type="checkbox" bind:checked={absoluteChroma} />
@@ -216,6 +214,12 @@
       </div>
       <ColorStory />
     </section>
+
+    <section id="colors-axes" class="block">
+      <h2 class="title">Harmony axes</h2>
+      <p class="axes-desc">Order the families the wheel harmonizes. The first is the anchor; the rest take their hue from it. Add or remove families to set which ones the wheel controls.</p>
+      <HarmonyAxesList />
+    </section>
   </div>
 </div>
 
@@ -228,7 +232,17 @@
   }
 
   .pane {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-32);
     min-width: 0;
+  }
+
+  .axes-desc {
+    margin: 0;
+    font-size: var(--ui-font-size-sm);
+    line-height: 1.5;
+    color: var(--ui-text-secondary);
   }
 
   .block {

@@ -102,8 +102,6 @@
 </script>
 
 <div class="axes">
-  <span class="eyebrow">Axes</span>
-
   <div class="axis-list">
     {#each rows as row, i (row.label)}
       <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -158,14 +156,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-8);
-  }
-
-  .eyebrow {
-    font-size: var(--ui-font-size-xs);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
   }
 
   .axis-list {
