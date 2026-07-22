@@ -3,14 +3,14 @@
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginSliderGesture, transaction } from '../../core/store/editorStore';
   import { applyHarmony, tintNeutralsFromBrand, type HarmonyMode } from '../../core/palettes/colorHarmony';
-  import { solveTextCurves } from '../../core/palettes/solveTextContrast';
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import ColorWheel from './ColorWheel.svelte';
   import LightnessBar from './LightnessBar.svelte';
   import ColorReadouts from './ColorReadouts.svelte';
   import ColorStory from './ColorStory.svelte';
+  import BackgroundSpotStrip from './BackgroundSpotStrip.svelte';
   import UIPillButton from '../UIPillButton.svelte';
-  import { setBaseColor, setBaseColors } from './paletteBaseColor';
+  import { setBaseColor, setBaseColors, applySolvedTextCurves } from './paletteBaseColor';
 
   const WHEEL_LABELS = ['Brand', 'Accent', 'Background', 'Neutral', 'Alternate'];
 
@@ -26,6 +26,7 @@
 
   let selected = $state('Brand');
   let activeMode = $state<HarmonyMode>('custom');
+  let previewMode = $state<HarmonyMode | null>(null);
   // Local UI only — deliberately NOT stored in PaletteConfig (shape unchanged).
   let absoluteChroma = $state(false);
   let infoOpen = $state(false);
@@ -62,14 +63,7 @@
   }
 
   function deriveAccessibleText() {
-    const { patches, cssVarOverrides } = solveTextCurves($editorState.palettes);
-    transaction('derive accessible text', (s) => {
-      for (const [label, patch] of Object.entries(patches)) {
-        const cfg = s.palettes[label];
-        if (cfg) cfg.scaleCurves = { ...cfg.scaleCurves, ...patch.scaleCurves };
-      }
-      Object.assign(s.cssVars, cssVarOverrides);
-    });
+    transaction('derive accessible text', applySolvedTextCurves);
   }
 
   let swatches = $derived(
@@ -99,6 +93,7 @@
       <ColorWheel
         {selected}
         {absoluteChroma}
+        {previewMode}
         onSelect={select}
         discLightness={selectedOklch.l}
         onCustomize={() => (activeMode = 'custom')}
@@ -118,6 +113,10 @@
               aria-label={m.label}
               aria-pressed={activeMode === m.mode}
               onclick={() => applyMode(m.mode)}
+              onpointerenter={() => (previewMode = m.mode)}
+              onpointerleave={() => (previewMode = null)}
+              onfocus={() => (previewMode = m.mode)}
+              onblur={() => (previewMode = null)}
             ><i class="fas {m.icon}" aria-hidden="true"></i></button>
           {/each}
         </div>
@@ -191,6 +190,13 @@
         />
         <ColorReadouts color={selectedOklch} />
       </div>
+
+      {#if selectedSpec.emptySelector}
+        <div class="group">
+          <span class="eyebrow">Page background spot</span>
+          <BackgroundSpotStrip />
+        </div>
+      {/if}
     </section>
   </div>
 
