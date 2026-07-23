@@ -16,7 +16,7 @@
 
   let selected = $state('Brand');
   let activeMode = $state<HarmonyMode>('custom');
-  let previewMode = $state<HarmonyMode | null>(null);
+  let hoverMode = $state<HarmonyMode | null>(null);
   // Local UI only — deliberately NOT stored in PaletteConfig (shape unchanged).
   let absoluteChroma = $state(false);
   let infoOpen = $state(false);
@@ -74,6 +74,10 @@
     }),
   );
 
+  let shownModeLabel = $derived(
+    HARMONY_MODE_BUTTONS.find((b) => b.mode === (hoverMode ?? activeMode))?.label ?? '',
+  );
+
   let selectedSpec = $derived(PALETTE_SPECS.find((s) => s.label === selected) ?? PALETTE_SPECS[0]);
   let selectedOklch = $derived($editorState.palettes[selected]?.baseColor ?? selectedSpec.initialColor);
 </script>
@@ -90,7 +94,6 @@
         {selected}
         {absoluteChroma}
         {activeMode}
-        {previewMode}
         onSelect={select}
         discLightness={selectedOklch.l}
         onCustomize={() => (activeMode = 'custom')}
@@ -99,8 +102,8 @@
       <LightnessBar {selected} {absoluteChroma} />
 
       <div class="group">
-        <span class="eyebrow">Harmony</span>
-        <div class="mode-row" role="group" aria-label="Harmony mode">
+        <span class="eyebrow">Color Harmony <span class="mode-name">&middot; {shownModeLabel}</span></span>
+        <div class="mode-row" role="group" aria-label="Color harmony mode">
           {#each HARMONY_MODE_BUTTONS as m (m.mode)}
             <button
               type="button"
@@ -110,10 +113,10 @@
               aria-label={m.label}
               aria-pressed={activeMode === m.mode}
               onclick={() => applyMode(m.mode)}
-              onpointerenter={() => (previewMode = m.mode)}
-              onpointerleave={() => (previewMode = null)}
-              onfocus={() => (previewMode = m.mode)}
-              onblur={() => (previewMode = null)}
+              onpointerenter={() => (hoverMode = m.mode)}
+              onpointerleave={() => (hoverMode = null)}
+              onfocus={() => (hoverMode = m.mode)}
+              onblur={() => (hoverMode = null)}
             >{@html m.svg}</button>
           {/each}
         </div>
@@ -262,6 +265,10 @@
     color: var(--ui-text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.04em;
+  }
+
+  .eyebrow .mode-name {
+    color: var(--ui-text-secondary);
   }
 
   .title {
