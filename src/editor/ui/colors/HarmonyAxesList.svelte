@@ -7,6 +7,7 @@
   import { editorState } from '../../core/store/editorStore';
   import { setHarmonyOrder } from './paletteBaseColor';
 
+  const DIVIDER = ' divider';
   const SPEC_BY_LABEL: Record<string, PaletteSpec> = Object.fromEntries(PALETTE_SPECS.map((s) => [s.label, s]));
 
   function hexOf(label: string): string {
@@ -14,58 +15,68 @@
     return oklchToHexClamped(l, c, h);
   }
 
-  let order = $derived($editorState.harmonyOrder);
-  // Active families first in slot order, then the eligible families they leave off.
-  let items = $derived([
-    ...order.map((label, slot) => ({ label, hex: hexOf(label), active: true, slot })),
-    ...HARMONY_ELIGIBLE.filter((l) => !order.includes(l)).map((label) => ({
-      label,
-      hex: hexOf(label),
-      active: false,
-      slot: -1,
-    })),
-  ]);
+  // One list of all four eligible families plus a divider sentinel. Families
+  // above the divider are assigned (the harmony, top = anchor); below are left
+  // free. harmonyOrder IS the assigned slice, so this derives from the store
+  // with no local mirror; a drag across the divider assigns or unassigns.
+  let assigned = $derived($editorState.harmonyOrder);
+  let slots = $derived([...assigned, DIVIDER, ...HARMONY_ELIGIBLE.filter((l) => !assigned.includes(l))]);
 
-  function activate(label: string) {
-    setHarmonyOrder([...order, label]);
+  let items = $derived.by(() => {
+    const di = slots.indexOf(DIVIDER);
+    return slots.map((entry, i) =>
+      entry === DIVIDER
+        ? { divider: true as const, index: i }
+        : { divider: false as const, index: i, label: entry, hex: hexOf(entry), on: i < di, slot: i < di ? i : -1 },
+    );
+  });
+
+  function apply(next: string[]) {
+    const a = next.slice(0, next.indexOf(DIVIDER));
+    // The wheel needs an anchor, so at least one family stays assigned.
+    if (a.length < 1) return;
+    setHarmonyOrder(a);
   }
 
-  function deactivate(slot: number) {
-    // The anchor list can never be empty; the last active family stays on.
-    if (order.length <= 1) return;
-    setHarmonyOrder(order.filter((_, i) => i !== slot));
-  }
-
-  function moveBy(slot: number, delta: number) {
-    const target = slot + delta;
-    if (target < 0 || target >= order.length) return;
-    const next = [...order];
-    const [moved] = next.splice(slot, 1);
+  function move(from: number, to: number, position: 'before' | 'after') {
+    const next = [...slots];
+    const [moved] = next.splice(from, 1);
+    let target = to;
+    if (from < to) target -= 1;
+    if (position === 'after') target += 1;
     next.splice(target, 0, moved);
-    setHarmonyOrder(next);
+    apply(next);
   }
 
-  function onHandleKeydown(e: KeyboardEvent, slot: number) {
+  function moveBy(index: number, delta: number) {
+    const target = index + delta;
+    if (target < 0 || target >= slots.length) return;
+    const next = [...slots];
+    [next[index], next[target]] = [next[target], next[index]];
+    apply(next);
+  }
+
+  function onHandleKeydown(e: KeyboardEvent, index: number) {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
-      moveBy(slot, -1);
+      moveBy(index, -1);
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
-      moveBy(slot, 1);
+      moveBy(index, 1);
     }
   }
 
   /* Reorder mirrors FontStackEditor: only the handle is draggable, and the array
-     commits on drop while animate:flip slides each row to its new slot. Only
-     active rows are drop targets; inactive families have no slot. */
-  let dragSlot: number | null = $state(null);
-  let dragOver: { slot: number; position: 'before' | 'after' } | null = $state(null);
+     commits on drop while animate:flip slides each row to its new slot. The
+     divider is a drop target too, so a family can land right at the boundary. */
+  let dragIndex: number | null = $state(null);
+  let dragOver: { index: number; position: 'before' | 'after' } | null = $state(null);
 
-  function onDragStart(e: DragEvent, slot: number) {
+  function onDragStart(e: DragEvent, index: number) {
     if (!e.dataTransfer) return;
-    dragSlot = slot;
+    dragIndex = index;
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('application/x-harmony-axis', String(slot));
+    e.dataTransfer.setData('application/x-harmony-axis', String(index));
     const rowEl = (e.currentTarget as HTMLElement).closest('.axis-row') as HTMLElement | null;
     if (rowEl) {
       const rect = rowEl.getBoundingClientRect();
@@ -73,84 +84,73 @@
     }
   }
 
-  function onDragOver(e: DragEvent, slot: number) {
+  function onDragOver(e: DragEvent, index: number) {
     if (!(e.dataTransfer?.types ?? []).includes('application/x-harmony-axis')) return;
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const position: 'before' | 'after' = e.clientY - rect.top < rect.height / 2 ? 'before' : 'after';
-    dragOver = { slot, position };
+    dragOver = { index, position };
   }
 
   function onDragLeave() {
     dragOver = null;
   }
 
-  function onDrop(e: DragEvent, slot: number) {
+  function onDrop(e: DragEvent, index: number) {
     e.preventDefault();
     const payload = e.dataTransfer?.getData('application/x-harmony-axis');
     const position = dragOver?.position ?? 'before';
     dragOver = null;
     if (payload == null || payload === '') return;
     const src = Number(payload);
-    if (src === slot) return;
-    const next = [...order];
-    const [moved] = next.splice(src, 1);
-    let target = slot;
-    if (src < slot) target -= 1;
-    if (position === 'after') target += 1;
-    next.splice(target, 0, moved);
-    setHarmonyOrder(next);
+    if (src === index) return;
+    move(src, index, position);
   }
 
   function onDragEnd() {
-    dragSlot = null;
+    dragIndex = null;
     dragOver = null;
   }
 </script>
 
 <div class="axis-list">
-  {#each items as item (item.label)}
+  {#each items as item (item.divider ? 'divider' : item.label)}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
-      class="axis-row"
-      class:inactive={!item.active}
-      class:drop-before={item.active && dragOver?.slot === item.slot && dragOver?.position === 'before'}
-      class:drop-after={item.active && dragOver?.slot === item.slot && dragOver?.position === 'after'}
-      class:dragging={item.active && dragSlot === item.slot}
-      ondragover={item.active ? (e) => onDragOver(e, item.slot) : undefined}
-      ondragleave={item.active ? onDragLeave : undefined}
-      ondrop={item.active ? (e) => onDrop(e, item.slot) : undefined}
-      ondragend={item.active ? onDragEnd : undefined}
+      class:divider={item.divider}
+      class:axis-row={!item.divider}
+      class:inactive={!item.divider && !item.on}
+      class:drop-before={dragOver?.index === item.index && dragOver?.position === 'before'}
+      class:drop-after={dragOver?.index === item.index && dragOver?.position === 'after'}
+      class:dragging={!item.divider && dragIndex === item.index}
+      ondragover={(e) => onDragOver(e, item.index)}
+      ondragleave={onDragLeave}
+      ondrop={(e) => onDrop(e, item.index)}
+      ondragend={item.divider ? undefined : onDragEnd}
       animate:flip={{ duration: 200, easing: cubicOut }}
     >
-      <input
-        type="checkbox"
-        class="axis-check"
-        checked={item.active}
-        disabled={item.active && order.length <= 1}
-        aria-label={item.active ? `Turn off ${item.label}` : `Turn on ${item.label}`}
-        title={item.active ? 'On the wheel' : 'Off the wheel'}
-        onchange={() => (item.active ? deactivate(item.slot) : activate(item.label))}
-      />
-      {#if item.active}
+      {#if item.divider}
+        <span class="divider-label">Unassigned</span>
+      {:else}
         <button
           type="button"
           class="drag-handle"
           draggable="true"
-          aria-label={`Reorder ${item.label} (arrow keys move it)`}
-          title="Drag to reorder, or use arrow keys"
-          ondragstart={(e) => onDragStart(e, item.slot)}
-          onkeydown={(e) => onHandleKeydown(e, item.slot)}
+          aria-label={`Reorder ${item.label} (arrow keys move it across the divider)`}
+          title="Drag to reorder or assign, or use arrow keys"
+          ondragstart={(e) => onDragStart(e, item.index)}
+          onkeydown={(e) => onHandleKeydown(e, item.index)}
         >⋮⋮</button>
-        <span class="slot-num">{item.slot + 1}.</span>
-      {:else}
-        <span class="drag-handle placeholder" aria-hidden="true">⋮⋮</span>
-        <span class="slot-num placeholder" aria-hidden="true">·</span>
+        {#if item.on}
+          <span class="slot-num">{item.slot + 1}.</span>
+        {:else}
+          <span class="slot-num placeholder" aria-hidden="true">·</span>
+        {/if}
+        <span class="chip" style="--chip-fill: {item.hex}"></span>
+        <span class="axis-label">{item.label}</span>
+        {#if item.on && item.slot === 0}<span class="anchor-tag">Anchor</span>{/if}
       {/if}
-      <span class="chip" style="--chip-fill: {item.hex}"></span>
-      <span class="axis-label">{item.label}</span>
-      {#if item.active && item.slot === 0}<span class="anchor-tag">Anchor</span>{/if}
     </div>
   {/each}
 </div>
@@ -184,10 +184,36 @@
     color: var(--ui-text-muted);
   }
 
+  .divider {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 1.5rem;
+    padding: var(--ui-space-2) var(--ui-space-8);
+  }
+
+  .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    margin-left: var(--ui-space-8);
+    background: var(--ui-border-low);
+  }
+
+  .divider-label {
+    font-size: var(--ui-font-size-xs);
+    color: var(--ui-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
   /* Insertion bar sits in the 6px gap between rows; absolute so it consumes no
      layout space and the list height stays put during a drag. */
   .axis-row.drop-before::before,
-  .axis-row.drop-after::after {
+  .axis-row.drop-after::after,
+  .divider.drop-before::before,
+  .divider.drop-after::after {
     content: '';
     position: absolute;
     left: 0;
@@ -197,22 +223,16 @@
     border-radius: 1px;
     box-shadow: 0 0 6px rgba(255, 255, 255, 0.45);
   }
-  .axis-row.drop-before::before { top: -4px; }
-  .axis-row.drop-after::after { bottom: -4px; }
+  .axis-row.drop-before::before,
+  .divider.drop-before::before { top: -4px; }
+  .axis-row.drop-after::after,
+  .divider.drop-after::after { bottom: -4px; }
 
   .axis-row.dragging {
     opacity: 0.55;
     z-index: 2;
     border-color: var(--ui-border-high);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
-  }
-
-  .axis-check {
-    margin: 0;
-    cursor: pointer;
-  }
-  .axis-check:disabled {
-    cursor: default;
   }
 
   .drag-handle {
@@ -233,14 +253,14 @@
   }
   .axis-row.dragging .drag-handle { cursor: grabbing; }
 
-  .placeholder {
-    visibility: hidden;
-  }
-
   .slot-num {
     min-width: 1.1rem;
     text-align: right;
     color: var(--ui-text-muted);
+  }
+
+  .placeholder {
+    color: var(--ui-border);
   }
 
   .chip {

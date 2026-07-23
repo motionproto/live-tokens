@@ -217,7 +217,7 @@
 
     <section id="colors-axes" class="block">
       <h2 class="title">Harmony axes</h2>
-      <p class="axes-desc">The wheel harmonizes the families you turn on. Drag to reorder them; the first is the anchor and the rest take their hue from it. Turn a family off to leave its hue free.</p>
+      <p class="axes-desc">Families above the divider are harmonized on the wheel; the top one is the anchor and the rest take their hue from it. Drag a family below the divider to leave it out, so you can harmonize a subset and let the others float free.</p>
       <HarmonyAxesList />
     </section>
   </div>
