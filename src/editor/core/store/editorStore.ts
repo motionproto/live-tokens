@@ -30,7 +30,7 @@ import {
 import { renamePrimaryPaletteKey } from '../themes/migrations/2026-05-13-primary-to-brand';
 import { unifyGrayPalettes } from '../themes/migrations/2026-06-05-palette-unification';
 import { migratePaletteColorsToOklch, type PreOklchPaletteConfig } from '../themes/migrations/2026-07-21-palette-oklch-basis';
-import { DEFAULT_HARMONY_ORDER, sanitizeHarmonyOrder, defaultHarmonyAxes } from '../palettes/colorHarmony';
+import { defaultHarmonyAxes, sanitizeHarmonyAxes, axesFromLegacyOrder } from '../palettes/colorHarmony';
 import { __resetRendererCacheForTests, installRenderer } from './editorRenderer';
 import {
   store,
@@ -89,7 +89,6 @@ function emptyState(): EditorState {
     columns: { ...DEFAULT_COLUMNS },
     components: {},
     gradients: { tokens: makeDefaultGradients() },
-    harmonyOrder: [...DEFAULT_HARMONY_ORDER],
     harmonyAxes: defaultHarmonyAxes(),
     cssVars: {},
   };
@@ -533,7 +532,9 @@ export function loadFromFile(theme: Theme): void {
   // (or in components' case, vars that wouldn't have been in the theme to
   // begin with).
   for (const load of Object.values(domainLoaders)) load(next, rawVars);
-  next.harmonyOrder = sanitizeHarmonyOrder(theme.harmonyOrder);
+  next.harmonyAxes = theme.harmonyAxes
+    ? sanitizeHarmonyAxes(theme.harmonyAxes, next.palettes)
+    : axesFromLegacyOrder(theme.harmonyOrder, next.palettes);
   next.cssVars = rawVars;
   resetHistoryForLoad();
   store.set(next);
@@ -559,6 +560,9 @@ export function toTheme(state: EditorState, meta: { name: string }): Theme {
   if (state.shadows.tokens.length > 0) {
     Object.assign(cssVariables, shadowsToVars(state.shadows));
   }
+  // Compat: bound families in axis order for older builds. Omitted when nothing
+  // is bound — an empty legacy list would resurrect the default trio on load.
+  const boundOrder = state.harmonyAxes.filter((a) => a.family !== null).map((a) => a.family!);
   return {
     name: meta.name,
     createdAt: now,
@@ -567,7 +571,8 @@ export function toTheme(state: EditorState, meta: { name: string }): Theme {
     cssVariables,
     fontSources: state.fonts.sources,
     fontStacks: state.fonts.stacks,
-    harmonyOrder: state.harmonyOrder,
+    harmonyAxes: state.harmonyAxes,
+    ...(boundOrder.length > 0 ? { harmonyOrder: boundOrder } : {}),
     schemaVersion: CURRENT_THEME_SCHEMA_VERSION,
   };
 }

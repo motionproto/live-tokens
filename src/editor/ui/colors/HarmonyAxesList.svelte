@@ -18,9 +18,11 @@
 
   // One list of all four eligible families plus a divider sentinel. Families
   // above the divider are assigned (the harmony, top = anchor); below are left
-  // free. harmonyOrder IS the assigned slice, so this derives from the store
-  // with no local mirror; a drag across the divider assigns or unassigns.
-  let assigned = $derived($editorState.harmonyOrder);
+  // free. The assigned slice = families bound to axes in axis order, derived
+  // from the store with no local mirror; a drag across the divider (re)binds.
+  let assigned = $derived(
+    $editorState.harmonyAxes.filter((a) => a.family !== null).map((a) => a.family!),
+  );
   let slots = $derived([...assigned, DIVIDER, ...HARMONY_ELIGIBLE.filter((l) => !assigned.includes(l))]);
 
   let items = $derived.by(() => {

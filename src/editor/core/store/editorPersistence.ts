@@ -20,6 +20,7 @@ import { store } from './editorCore';
 import { quietGet, quietSet } from '../storage/storage';
 import { makeDefaultGradients } from '../themes/slices/gradients';
 import { seedShadowsFromDom } from '../themes/slices/shadows';
+import { sanitizeHarmonyAxes, axesFromLegacyOrder } from '../palettes/colorHarmony';
 
 // Resolve the persist key lazily (per-call) so library consumers that invoke
 // `configureEditor({storagePrefix})` before the first store write get the
@@ -87,6 +88,22 @@ export function normalizeComponents(state: EditorState): EditorState {
   return { ...state, components };
 }
 
+// `hydrate` shallow-merges persisted state over `emptyState()`, which always
+// seeds a default `harmonyAxes`. So a pre-axes session (persisted `harmonyOrder`,
+// no `harmonyAxes`) surfaces here with the injected default axes over its real
+// palettes. The new store never persists `harmonyOrder`, so its presence is the
+// definitive pre-axes signal: migrate from it, seeding hues off the palettes.
+// Otherwise reconcile the persisted axes. Either way, drop the stale legacy key.
+export function normalizeHarmonyAxes(state: EditorState): EditorState {
+  const legacy = (state as { harmonyOrder?: unknown }).harmonyOrder;
+  const axes = legacy !== undefined
+    ? axesFromLegacyOrder(legacy, state.palettes)
+    : sanitizeHarmonyAxes(state.harmonyAxes, state.palettes);
+  const next = { ...state, harmonyAxes: axes };
+  delete (next as { harmonyOrder?: unknown }).harmonyOrder;
+  return next;
+}
+
 export function hydrate(): void {
   // Corrupt state, missing key, or unavailable storage all return null;
   // the editor falls through to the empty default in that case.
@@ -95,7 +112,7 @@ export function hydrate(): void {
     // Shallow-merge onto default shape so older persisted state missing
     // newly-added domain fields still loads.
     const merged = { ...emptyStateFactory(), ...(parsed as object) } as EditorState;
-    store.set(normalizeComponents(migrateGradients(merged)));
+    store.set(normalizeHarmonyAxes(normalizeComponents(migrateGradients(merged))));
   }
   // m13 fix: seed shadows from the DOM at hydrate time so the editor
   // captures the tokens.css baseline regardless of whether the user opens

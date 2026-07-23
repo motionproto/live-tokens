@@ -17,12 +17,13 @@
  * handle can never silently drop an edit.
  */
 
+import { get } from 'svelte/store';
 import type { Oklch } from '../../core/palettes/oklch';
-import { sanitizeHarmonyOrder } from '../../core/palettes/colorHarmony';
+import { sanitizeHarmonyOrder, AXIS_ROLES } from '../../core/palettes/colorHarmony';
 import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
 import { solveTextCurves } from '../../core/palettes/solveTextContrast';
 import { defaultPaletteConfig } from '../palette/paletteMath';
-import { mutate, transaction } from '../../core/store/editorStore';
+import { mutate, transaction, editorState } from '../../core/store/editorStore';
 import type { EditorState } from '../../core/store/editorTypes';
 import type { PaletteConfig } from '../../core/themes/themeTypes';
 
@@ -39,10 +40,18 @@ function ensureConfig(s: EditorState, label: string): PaletteConfig {
   return cfg;
 }
 
+/** Drag the bound axis's hue along after a direct color-hue edit — the handle is
+ *  the color's handle while bound, so it must not silently detach (invariant 1). */
+function syncBoundAxisHue(s: EditorState, label: string): void {
+  const axis = s.harmonyAxes.find((a) => a.family === label);
+  if (axis) axis.hue = normHue(s.palettes[label].baseColor.h);
+}
+
 /** Set the full seed color (H, C and L). Used by the readout panel. */
 export function setBaseColor(label: string, color: Oklch): void {
   mutate(`colors: ${label} base`, (s) => {
     ensureConfig(s, label).baseColor = color;
+    syncBoundAxisHue(s, label);
   });
 }
 
@@ -51,6 +60,7 @@ export function setBaseHueChroma(label: string, hue: number, chroma: number): vo
   mutate(`colors: ${label} base`, (s) => {
     const cfg = ensureConfig(s, label);
     cfg.baseColor = { l: cfg.baseColor.l, c: Math.max(0, chroma), h: normHue(hue) };
+    syncBoundAxisHue(s, label);
   });
 }
 
@@ -60,6 +70,7 @@ export function setBaseHue(label: string, hue: number): void {
   mutate(`colors: ${label} hue`, (s) => {
     const cfg = ensureConfig(s, label);
     cfg.baseColor = { l: cfg.baseColor.l, c: cfg.baseColor.c, h: normHue(hue) };
+    syncBoundAxisHue(s, label);
   });
 }
 
@@ -81,11 +92,100 @@ export function setBaseChroma(label: string, chroma: number): void {
   });
 }
 
-/** Single write path for the harmony axis order; the sanitizer guards against a
- *  dropped/duplicated entry ever reaching the store. */
+/** Set one axis's hue; a bound family's baseColor follows in the same mutate.
+ *  familyChroma carries the wheel drag's chroma policy; omitted = chroma kept. */
+export function setAxisHue(index: number, hue: number, familyChroma?: number): void {
+  const h = normHue(hue);
+  const axis = get(editorState).harmonyAxes[index];
+  const c = familyChroma !== undefined ? Math.max(0, familyChroma) : undefined;
+  const base = axis.family !== null ? get(editorState).palettes[axis.family]?.baseColor : undefined;
+  const colorNoop = !base || (base.h === h && (c === undefined || base.c === c));
+  if (axis.hue === h && colorNoop) return;
+  mutate(`colors: ${AXIS_ROLES[index]} axis hue`, (s) => {
+    applyAxisHue(s, index, h, c);
+  });
+}
+
+/** Several axis hues in ONE transaction (mode apply, keyboard rotate-all). */
+export function setAxisHues(
+  entries: { index: number; hue: number; familyChroma?: number }[],
+  historyLabel: string,
+): void {
+  const s0 = get(editorState);
+  const changes = entries.map((e) => ({
+    index: e.index,
+    h: normHue(e.hue),
+    c: e.familyChroma !== undefined ? Math.max(0, e.familyChroma) : undefined,
+  }));
+  const changed = changes.some(({ index, h, c }) => {
+    const axis = s0.harmonyAxes[index];
+    if (axis.hue !== h) return true;
+    const base = axis.family !== null ? s0.palettes[axis.family]?.baseColor : undefined;
+    if (!base) return false;
+    return base.h !== h || (c !== undefined && base.c !== c);
+  });
+  if (!changed) return;
+  transaction(historyLabel, (s) => {
+    for (const { index, h, c } of changes) applyAxisHue(s, index, h, c);
+  });
+}
+
+function applyAxisHue(s: EditorState, index: number, hue: number, chroma: number | undefined): void {
+  const axis = s.harmonyAxes[index];
+  axis.hue = hue;
+  if (axis.family !== null) {
+    const cfg = ensureConfig(s, axis.family);
+    cfg.baseColor = { l: cfg.baseColor.l, c: chroma ?? cfg.baseColor.c, h: hue };
+  }
+}
+
+/** Bind a family to an axis; the family adopts the axis hue (c + L kept).
+ *  Trade-places semantics: whatever occupied the destination takes the source's
+ *  position (another axis, adopting its hue, or Unassigned). One mutate. */
+export function bindFamilyToAxis(family: string, index: number): void {
+  const srcIndex = get(editorState).harmonyAxes.findIndex((a) => a.family === family);
+  if (srcIndex === index) return;
+  mutate(`colors: bind ${family}`, (s) => {
+    const axes = s.harmonyAxes;
+    const occupant = axes[index].family;
+    axes[index].family = family;
+    adoptAxisHue(s, family, axes[index].hue);
+    // Source was another axis: the occupant trades into it (adopting its hue).
+    // Source was Unassigned (-1): the occupant simply floats free, color kept.
+    if (srcIndex !== -1) {
+      axes[srcIndex].family = occupant;
+      if (occupant !== null) adoptAxisHue(s, occupant, axes[srcIndex].hue);
+    }
+  });
+}
+
+/** Unbind; the family keeps its current color, the axis keeps its hue. */
+export function unbindFamily(family: string): void {
+  const idx = get(editorState).harmonyAxes.findIndex((a) => a.family === family);
+  if (idx === -1) return;
+  mutate(`colors: unbind ${family}`, (s) => {
+    s.harmonyAxes[idx].family = null;
+  });
+}
+
+function adoptAxisHue(s: EditorState, family: string, hue: number): void {
+  const cfg = ensureConfig(s, family);
+  cfg.baseColor = { l: cfg.baseColor.l, c: cfg.baseColor.c, h: normHue(hue) };
+}
+
+/** Legacy reorder shim (deleted in Wave 4): rebinds axes[i] to order[i] without
+ *  moving any color's hue — parity with the old reorder, which only re-hued once
+ *  a mode was re-applied. */
 export function setHarmonyOrder(order: string[]): void {
+  const clean = sanitizeHarmonyOrder(order);
+  const s0 = get(editorState);
+  const next = s0.harmonyAxes.map((axis, i) => ({
+    family: clean[i] ?? null,
+    hue: clean[i] && s0.palettes[clean[i]] ? s0.palettes[clean[i]].baseColor.h : axis.hue,
+  }));
+  if (next.every((a, i) => a.family === s0.harmonyAxes[i].family && a.hue === s0.harmonyAxes[i].hue)) return;
   mutate('colors: harmony axes', (s) => {
-    s.harmonyOrder = sanitizeHarmonyOrder(order);
+    s.harmonyAxes = next.map((a) => ({ ...a }));
   });
 }
 

@@ -26,9 +26,11 @@
   let { selected, onSelect, discLightness, onCustomize, absoluteChroma, previewMode = null }: Props = $props();
 
   // Wheel families in slot order (slot 0 anchor, slot 1 primary partner) from the
-  // user-ordered harmony axes, so the ghost preview pairs each family with its own
-  // slot hue. Unlisted families stay off the wheel (swatch row only).
-  let wheelLabels = $derived($editorState.harmonyOrder);
+  // bound harmony axes, so the ghost preview pairs each family with its own slot
+  // hue. Unbound families stay off the wheel (swatch row only).
+  let wheelLabels = $derived(
+    $editorState.harmonyAxes.filter((a) => a.family !== null).map((a) => a.family!),
+  );
   let wheelSpecs = $derived(
     wheelLabels
       .map((l) => PALETTE_SPECS.find((s) => s.label === l))

@@ -20,6 +20,12 @@ import {
   __getHistoryLengths,
   __getPastAt,
 } from './editorStore';
+import {
+  setAxisHue,
+  bindFamilyToAxis,
+  unbindFamily,
+  setBaseHue,
+} from '../../ui/colors/paletteBaseColor';
 
 function makePaletteConfig(baseColor: string): PaletteConfig {
   return {
@@ -31,6 +37,22 @@ function makePaletteConfig(baseColor: string): PaletteConfig {
     overrides: {},
     snappedScales: [],
   };
+}
+
+function makeTheme(overrides: Partial<Theme> = {}): Theme {
+  return { name: 't', createdAt: '', updatedAt: '', editorConfigs: {}, cssVariables: {}, ...overrides };
+}
+
+function themeWithPalettes(overrides: Partial<Theme> = {}): Theme {
+  return makeTheme({
+    editorConfigs: {
+      Brand: makePaletteConfig('#c04a2f'),
+      Accent: makePaletteConfig('#d8a13a'),
+      Background: makePaletteConfig('#2b2140'),
+      Special: makePaletteConfig('#7a3fb0'),
+    },
+    ...overrides,
+  });
 }
 
 const txOpts = { label: 'tx', collapseToOne: true, clipUndoFloor: false } as const;
@@ -276,28 +298,149 @@ describe('editorStore — apply + undo matches spec end-to-end', () => {
   });
 });
 
-describe('editorStore — harmonyOrder persistence round-trip', () => {
-  const baseTheme = (overrides: Partial<Theme> = {}): Theme => ({
-    name: 't', createdAt: '', updatedAt: '', editorConfigs: {}, cssVariables: {}, ...overrides,
+describe('editorStore — harmonyAxes persistence + migration', () => {
+  it('a theme with neither field binds the default trio, hues seeded from palettes', () => {
+    loadFromFile(themeWithPalettes());
+    const s = get(editorState);
+    expect(s.harmonyAxes.map((a) => a.family)).toEqual(['Brand', 'Accent', 'Background', null]);
+    expect(s.harmonyAxes[0].hue).toBeCloseTo(s.palettes.Brand.baseColor.h, 9);
+    expect(s.harmonyAxes[1].hue).toBeCloseTo(s.palettes.Accent.baseColor.h, 9);
+    expect(s.harmonyAxes[2].hue).toBeCloseTo(s.palettes.Background.baseColor.h, 9);
+    expect(s.harmonyAxes[3].hue).toBeCloseTo((s.palettes.Brand.baseColor.h + 270) % 360, 9);
   });
 
-  it('a theme without harmonyOrder loads the default order', () => {
-    loadFromFile(baseTheme());
-    expect(get(editorState).harmonyOrder).toEqual(['Brand', 'Accent', 'Background']);
+  it('migrates legacy harmonyOrder → axes 0-2 bound at palette hues, axis 3 unbound', () => {
+    loadFromFile(themeWithPalettes({ harmonyOrder: ['Accent', 'Brand', 'Special'] }));
+    const s = get(editorState);
+    expect(s.harmonyAxes.map((a) => a.family)).toEqual(['Accent', 'Brand', 'Special', null]);
+    expect(s.harmonyAxes[0].hue).toBeCloseTo(s.palettes.Accent.baseColor.h, 9);
+    expect(s.harmonyAxes[1].hue).toBeCloseTo(s.palettes.Brand.baseColor.h, 9);
+    expect(s.harmonyAxes[2].hue).toBeCloseTo(s.palettes.Special.baseColor.h, 9);
   });
 
-  it('toTheme → loadFromFile preserves a non-default order', () => {
-    loadFromFile(baseTheme({ harmonyOrder: ['Accent', 'Brand', 'Special'] }));
+  it('applies legacy sanitize rules on migration: [Danger, Brand, Brand] binds only Brand', () => {
+    loadFromFile(themeWithPalettes({ harmonyOrder: ['Danger', 'Brand', 'Brand'] }));
+    expect(get(editorState).harmonyAxes.map((a) => a.family)).toEqual(['Brand', null, null, null]);
+  });
+
+  it('round-trips a sparse layout and writes the compat harmonyOrder', () => {
+    loadFromFile(themeWithPalettes({
+      harmonyAxes: [
+        { family: 'Brand', hue: 0 },
+        { family: null, hue: 123 },
+        { family: 'Background', hue: 0 },
+        { family: null, hue: 234 },
+      ],
+    }));
     const saved = toTheme(get(editorState), { name: 't' });
-    expect(saved.harmonyOrder).toEqual(['Accent', 'Brand', 'Special']);
+    expect(saved.harmonyOrder).toEqual(['Brand', 'Background']);
+    expect(saved.harmonyAxes!.map((a) => a.family)).toEqual(['Brand', null, 'Background', null]);
 
     loadFromFile(saved);
-    expect(get(editorState).harmonyOrder).toEqual(['Accent', 'Brand', 'Special']);
+    const s = get(editorState);
+    expect(s.harmonyAxes.map((a) => a.family)).toEqual(['Brand', null, 'Background', null]);
+    expect(s.harmonyAxes[1].hue).toBe(123);
+    expect(s.harmonyAxes[3].hue).toBe(234);
+    expect(s.harmonyAxes[0].hue).toBeCloseTo(s.palettes.Brand.baseColor.h, 9);
+    expect(s.harmonyAxes[2].hue).toBeCloseTo(s.palettes.Background.baseColor.h, 9);
   });
 
-  it('sanitizes an invalid stored order on load (drops ineligible + duplicate)', () => {
-    loadFromFile(baseTheme({ harmonyOrder: ['Danger', 'Brand', 'Brand'] }));
-    expect(get(editorState).harmonyOrder).toEqual(['Brand']);
+  it('omits the compat harmonyOrder when no family is bound', () => {
+    loadFromFile(themeWithPalettes({
+      harmonyAxes: [
+        { family: null, hue: 10 }, { family: null, hue: 20 },
+        { family: null, hue: 30 }, { family: null, hue: 40 },
+      ],
+    }));
+    const saved = toTheme(get(editorState), { name: 't' });
+    expect('harmonyOrder' in saved).toBe(false);
+  });
+
+  it('reconciles a hand-edited bound hue to the palette on load (color is ground truth)', () => {
+    loadFromFile(themeWithPalettes({
+      harmonyAxes: [
+        { family: 'Brand', hue: 5 }, { family: 'Accent', hue: 6 },
+        { family: 'Background', hue: 7 }, { family: null, hue: 8 },
+      ],
+    }));
+    const s = get(editorState);
+    expect(s.harmonyAxes[0].hue).not.toBe(5);
+    expect(s.harmonyAxes[0].hue).toBeCloseTo(s.palettes.Brand.baseColor.h, 9);
+  });
+});
+
+describe('editorStore — harmony axis setters', () => {
+  it('bindFamilyToAxis adopts the axis hue into the family baseColor in one entry', () => {
+    loadFromFile(themeWithPalettes());
+    const quatHue = get(editorState).harmonyAxes[3].hue;
+    const before = __getHistoryLengths().past;
+    bindFamilyToAxis('Special', 3);
+    const s = get(editorState);
+    expect(__getHistoryLengths().past).toBe(before + 1);
+    expect(s.harmonyAxes[3].family).toBe('Special');
+    expect(s.palettes.Special.baseColor.h).toBeCloseTo(quatHue, 9);
+  });
+
+  it('bindFamilyToAxis trades places when the destination axis is occupied', () => {
+    loadFromFile(themeWithPalettes());
+    const brandHue = get(editorState).harmonyAxes[0].hue;
+    const accentHue = get(editorState).harmonyAxes[1].hue;
+    const before = __getHistoryLengths().past;
+    bindFamilyToAxis('Brand', 1);
+    const s = get(editorState);
+    expect(__getHistoryLengths().past).toBe(before + 1);
+    expect(s.harmonyAxes[0].family).toBe('Accent');
+    expect(s.harmonyAxes[1].family).toBe('Brand');
+    expect(s.palettes.Brand.baseColor.h).toBeCloseTo(accentHue, 9);
+    expect(s.palettes.Accent.baseColor.h).toBeCloseTo(brandHue, 9);
+  });
+
+  it('unbindFamily keeps the family color and the axis hue', () => {
+    loadFromFile(themeWithPalettes());
+    const bg0 = { ...get(editorState).palettes.Background.baseColor };
+    const axisHue0 = get(editorState).harmonyAxes[2].hue;
+    const before = __getHistoryLengths().past;
+    unbindFamily('Background');
+    const s = get(editorState);
+    expect(__getHistoryLengths().past).toBe(before + 1);
+    expect(s.harmonyAxes[2].family).toBe(null);
+    expect(s.harmonyAxes[2].hue).toBe(axisHue0);
+    expect(s.palettes.Background.baseColor).toEqual(bg0);
+  });
+
+  it('setAxisHue on a bound axis moves both hue fields in one entry, chroma kept', () => {
+    loadFromFile(themeWithPalettes());
+    const chroma0 = get(editorState).palettes.Brand.baseColor.c;
+    const before = __getHistoryLengths().past;
+    setAxisHue(0, 123);
+    const s = get(editorState);
+    expect(__getHistoryLengths().past).toBe(before + 1);
+    expect(s.harmonyAxes[0].hue).toBe(123);
+    expect(s.palettes.Brand.baseColor.h).toBe(123);
+    expect(s.palettes.Brand.baseColor.c).toBe(chroma0);
+  });
+
+  it('a no-op bindFamilyToAxis adds no history entry', () => {
+    loadFromFile(themeWithPalettes());
+    const before = __getHistoryLengths().past;
+    bindFamilyToAxis('Brand', 0);
+    expect(__getHistoryLengths().past).toBe(before);
+  });
+
+  it('a no-op setAxisHue adds no history entry', () => {
+    loadFromFile(themeWithPalettes());
+    setAxisHue(0, 150);
+    const before = __getHistoryLengths().past;
+    setAxisHue(0, 150);
+    expect(__getHistoryLengths().past).toBe(before);
+  });
+
+  it('a direct setBaseHue on a bound family drags the axis hue along', () => {
+    loadFromFile(themeWithPalettes());
+    setBaseHue('Brand', 200);
+    const s = get(editorState);
+    expect(s.palettes.Brand.baseColor.h).toBe(200);
+    expect(s.harmonyAxes[0].hue).toBe(200);
   });
 });
 

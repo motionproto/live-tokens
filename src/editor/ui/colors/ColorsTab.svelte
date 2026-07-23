@@ -25,6 +25,11 @@
 
   let selected = $state('Brand');
   let activeMode = $state<HarmonyMode>('custom');
+  // Bound families in axis order — the Wave-2 bridge to the old order-based
+  // harmony signatures (both rewritten in Wave 3).
+  let boundOrder = $derived(
+    $editorState.harmonyAxes.filter((a) => a.family !== null).map((a) => a.family!),
+  );
   let previewMode = $state<HarmonyMode | null>(null);
   // Local UI only — deliberately NOT stored in PaletteConfig (shape unchanged).
   let absoluteChroma = $state(false);
@@ -52,12 +57,12 @@
 
   function applyMode(mode: HarmonyMode) {
     activeMode = mode;
-    const patch = applyHarmony(mode, $editorState.palettes, $editorState.harmonyOrder);
+    const patch = applyHarmony(mode, $editorState.palettes, boundOrder);
     if (Object.keys(patch).length) setBaseColors(patch, `colors: harmony ${mode}`);
   }
 
   function tintNeutrals() {
-    const patch = tintNeutralsFromAnchor($editorState.palettes, $editorState.harmonyOrder);
+    const patch = tintNeutralsFromAnchor($editorState.palettes, boundOrder);
     if (Object.keys(patch).length) setBaseColors(patch, 'colors: tint neutrals from anchor');
   }
 
@@ -72,7 +77,7 @@
         label: spec.label,
         display: spec.displayLabel ?? spec.label,
         hex: oklchToHexClamped(l, c, h),
-        onWheel: $editorState.harmonyOrder.includes(spec.label),
+        onWheel: $editorState.harmonyAxes.some((a) => a.family === spec.label),
       };
     }),
   );
