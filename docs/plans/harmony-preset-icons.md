@@ -128,3 +128,15 @@ If tuning is needed, the user names the adjustments (e.g. "dots to r=28", "ring 
 - No persistence of `activeMode` in `EditorState` or theme JSON (decision 6).
 - No changes to `ColorWheel.svelte`, `HarmonyAxesList.svelte`, `paletteBaseColor.ts`, sanitizers, or theme schema — if a wave seems to need one, stop and report instead.
 - No analogous step-angle parameter, no per-mode configurability.
+
+## Execution record (2026-07-24)
+
+Waves 1–3 executed and reviewer-approved; Wave 4 pending user QA.
+
+- **Wave 1** `ee3586e` — 10 SVGs moved to `src/editor/ui/colors/harmony-icons/` (renames applied), cleaned to spec, `src/img/` removed. Deviation: `square.svg` keeps `stroke-linejoin="round"` on its diagonals (rendering no-op on `<line>`, kept deliberately). Check 0 errors, 3074 tests passing.
+- **Wave 2** `def7c62` — union + `harmonyHues` cases per decision 2; pins at anchor 30 (`[30,210,90,270]` / `[30,210,60,240]`), `modeHasQuaternary` and every-mode lists extended, new unbound-Quaternary `applyHarmonyToAxes` pin. `modeHasQuaternary` docstring updated (Wave 2 falsified its square/analogous enumeration). 3075 tests passing.
+- **Wave 3** `34255f9` — `harmonyModeIcons.ts` (9 explicit `?raw` imports) + pinned test (+12), `ColorsTab.svelte` mode row rewired; `custom` early-returns in `applyMode` before any store write; eyebrow suffix dropped. Judgment call: kept 2.25rem buttons and existing gap — `.mode-row` already wraps (`flex-wrap`), so no shrink was needed; final say deferred to Wave 4. `{@html}` autofixer advisory accepted (build-time assets pinned by the icon test). 3087 tests passing.
+- Baseline correction: the parent branch's true test count was 3074, not the 3072 cited above.
+- Union/switch ordering chosen: `triadic → tetradic → compound → square`.
+
+Wave 4 QA result: _pending._
