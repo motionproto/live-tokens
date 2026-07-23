@@ -1,7 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import { harmonyHues, applyHarmony, tintNeutralsFromAnchor, sanitizeHarmonyOrder, DEFAULT_HARMONY_ORDER, type HarmonyMode } from './colorHarmony';
+import {
+  harmonyHues,
+  applyHarmony,
+  tintNeutralsFromAnchor,
+  sanitizeHarmonyOrder,
+  DEFAULT_HARMONY_ORDER,
+  AXIS_COUNT,
+  AXIS_ROLES,
+  defaultHarmonyAxes,
+  applyHarmonyToAxes,
+  boundColorPatch,
+  sanitizeHarmonyAxes,
+  axesFromLegacyOrder,
+  type HarmonyMode,
+  type HarmonyAxis,
+} from './colorHarmony';
 import { hexToOklch, oklchToHex } from './oklch';
-import { DEFAULT_PALETTE_LIGHTNESS, DEFAULT_PALETTE_SATURATION, defaultScaleCurves } from './paletteDerivation';
+import { DEFAULT_PALETTE_LIGHTNESS, DEFAULT_PALETTE_SATURATION, defaultScaleCurves, PALETTE_SPECS } from './paletteDerivation';
 import type { PaletteConfig } from '../themes/themeTypes';
 
 function mkP(baseColorHex: string): PaletteConfig {
@@ -208,5 +223,253 @@ describe('sanitizeHarmonyOrder', () => {
   it('passes a valid custom order through unchanged', () => {
     expect(sanitizeHarmonyOrder(['Brand', 'Background', 'Accent', 'Special']))
       .toEqual(['Brand', 'Background', 'Accent', 'Special']);
+  });
+});
+
+const specHue = (label: string): number => PALETTE_SPECS.find((s) => s.label === label)!.initialColor.h;
+const n = (h: number): number => ((h % 360) + 360) % 360;
+
+describe('defaultHarmonyAxes', () => {
+  it('AXIS_ROLES names the four roles by index', () => {
+    expect(AXIS_COUNT).toBe(4);
+    expect(AXIS_ROLES).toEqual(['Anchor', 'Secondary', 'Tertiary', 'Quaternary']);
+  });
+
+  it('binds the default trio and leaves Quaternary unbound', () => {
+    const axes = defaultHarmonyAxes();
+    expect(axes.length).toBe(AXIS_COUNT);
+    expect(axes.map((a) => a.family)).toEqual(['Brand', 'Accent', 'Background', null]);
+  });
+
+  it('seeds bound hues from PALETTE_SPECS; Quaternary sits at anchor + 270', () => {
+    const axes = defaultHarmonyAxes();
+    expect(axes[0].hue).toBe(specHue('Brand'));
+    expect(axes[1].hue).toBe(specHue('Accent'));
+    expect(axes[2].hue).toBe(specHue('Background'));
+    expect(axes[3].hue).toBeCloseTo(n(specHue('Brand') + 270), 9);
+  });
+
+  it('returns a fresh array each call (seeds mutable state)', () => {
+    expect(defaultHarmonyAxes()).not.toBe(defaultHarmonyAxes());
+  });
+});
+
+describe('applyHarmonyToAxes', () => {
+  const baseAxes = (): HarmonyAxis[] => [
+    { hue: 30, family: 'Brand' },
+    { hue: 200, family: 'Accent' },
+    { hue: 100, family: 'Background' },
+    { hue: 300, family: null },
+  ];
+
+  it('deals each axis its slot hue from axis 0, bindings preserved', () => {
+    const modes: HarmonyMode[] = ['complementary', 'split-complementary', 'triadic', 'square', 'analogous', 'monochromatic'];
+    for (const mode of modes) {
+      const out = applyHarmonyToAxes(mode, baseAxes());
+      expect(out.map((a) => a.hue)).toEqual(harmonyHues(mode, 30, AXIS_COUNT));
+      expect(out.map((a) => a.family)).toEqual(['Brand', 'Accent', 'Background', null]);
+    }
+  });
+
+  it('custom returns an unchanged copy', () => {
+    const axes = baseAxes();
+    const out = applyHarmonyToAxes('custom', axes);
+    expect(out).toEqual(axes);
+    expect(out).not.toBe(axes);
+    expect(out[0]).not.toBe(axes[0]);
+  });
+
+  it('deals slot-2 geometry to a Tertiary binding even when Secondary is unbound', () => {
+    const axes: HarmonyAxis[] = [
+      { hue: 30, family: 'Brand' },
+      { hue: 200, family: null },
+      { hue: 100, family: 'Background' },
+      { hue: 300, family: null },
+    ];
+    const out = applyHarmonyToAxes('square', axes);
+    expect(out[1].family).toBe(null);
+    expect(out[2].family).toBe('Background');
+    expect(out[2].hue).toBeCloseTo(n(30 + 90), 9);
+  });
+});
+
+describe('boundColorPatch', () => {
+  const palettes: Record<string, PaletteConfig> = {
+    Brand: mkP(oklchToHex(0.6, 0.1, 30)),
+    Accent: mkP(oklchToHex(0.55, 0.12, 100)),
+    Background: mkP(oklchToHex(0.65, 0.08, 200)),
+  };
+
+  it('re-hues each bound family to its axis hue, own c + L kept', () => {
+    const axes: HarmonyAxis[] = [
+      { hue: 12, family: 'Brand' },
+      { hue: 340, family: 'Accent' },
+      { hue: 77, family: null },
+      { hue: 300, family: null },
+    ];
+    const out = boundColorPatch(axes, palettes);
+    expect(Object.keys(out).sort()).toEqual(['Accent', 'Brand']);
+    expect(out.Brand).toEqual({ l: palettes.Brand.baseColor.l, c: palettes.Brand.baseColor.c, h: 12 });
+    expect(out.Accent).toEqual({ l: palettes.Accent.baseColor.l, c: palettes.Accent.baseColor.c, h: 340 });
+  });
+
+  it('skips unbound axes and families without a palette', () => {
+    const axes: HarmonyAxis[] = [
+      { hue: 12, family: 'Special' },
+      { hue: 340, family: null },
+      { hue: 77, family: null },
+      { hue: 300, family: null },
+    ];
+    expect(boundColorPatch(axes, palettes)).toEqual({});
+  });
+
+  it('a fully-unbound axes array produces no keys', () => {
+    const axes: HarmonyAxis[] = [
+      { hue: 10, family: null }, { hue: 20, family: null },
+      { hue: 30, family: null }, { hue: 40, family: null },
+    ];
+    expect(boundColorPatch(axes, palettes)).toEqual({});
+  });
+});
+
+describe('bridge equivalence (deleted with applyHarmony in Wave 3)', () => {
+  const palettes: Record<string, PaletteConfig> = {
+    Brand: mkP(oklchToHex(0.6, 0.1, 30)),
+    Background: mkP(oklchToHex(0.65, 0.08, 200)),
+    Accent: mkP(oklchToHex(0.55, 0.12, 100)),
+    Special: mkP(oklchToHex(0.5, 0.15, 280)),
+    Neutral: mkP(oklchToHex(0.6, 0.02, 50)),
+  };
+
+  it('boundColorPatch(applyHarmonyToAxes(mode, axesFromLegacyOrder(default))) equals applyHarmony(mode)', () => {
+    const modes: Exclude<HarmonyMode, 'custom'>[] = ['complementary', 'split-complementary', 'triadic', 'square', 'analogous', 'monochromatic'];
+    for (const mode of modes) {
+      const axes = axesFromLegacyOrder(['Brand', 'Accent', 'Background'], palettes);
+      const patch = boundColorPatch(applyHarmonyToAxes(mode, axes), palettes);
+      expect(patch).toEqual(applyHarmony(mode, palettes));
+    }
+  });
+});
+
+describe('sanitizeHarmonyAxes', () => {
+  const palettes: Record<string, PaletteConfig> = {
+    Brand: mkP(oklchToHex(0.6, 0.1, 33)),
+    Accent: mkP(oklchToHex(0.55, 0.12, 111)),
+    Background: mkP(oklchToHex(0.65, 0.08, 222)),
+    Special: mkP(oklchToHex(0.5, 0.15, 280)),
+  };
+
+  it('non-array input yields the default axes reconciled against the palettes', () => {
+    const out = sanitizeHarmonyAxes(undefined, palettes);
+    expect(out.map((a) => a.family)).toEqual(['Brand', 'Accent', 'Background', null]);
+    expect(out[0].hue).toBeCloseTo(palettes.Brand.baseColor.h, 9);
+    expect(out[1].hue).toBeCloseTo(palettes.Accent.baseColor.h, 9);
+    expect(out[2].hue).toBeCloseTo(palettes.Background.baseColor.h, 9);
+  });
+
+  it('truncates extra entries and pads missing indexes from the defaults', () => {
+    const padded = sanitizeHarmonyAxes([{ family: 'Special', hue: 10 }, { family: null, hue: 20 }], {});
+    expect(padded.length).toBe(AXIS_COUNT);
+    expect(padded[0]).toEqual({ family: 'Special', hue: 10 });
+    expect(padded[1]).toEqual({ family: null, hue: 20 });
+    expect(padded[2].family).toBe('Background');
+    expect(padded[3].family).toBe(null);
+
+    const truncated = sanitizeHarmonyAxes(
+      [
+        { family: 'Brand', hue: 1 }, { family: 'Accent', hue: 2 },
+        { family: 'Background', hue: 3 }, { family: 'Special', hue: 4 },
+        { family: 'Brand', hue: 5 }, { family: 'Accent', hue: 6 },
+      ],
+      {},
+    );
+    expect(truncated.length).toBe(AXIS_COUNT);
+    expect(truncated.map((a) => a.family)).toEqual(['Brand', 'Accent', 'Background', 'Special']);
+  });
+
+  it('drops an ineligible family to null, keeping its axis hue', () => {
+    const out = sanitizeHarmonyAxes(
+      [{ family: 'Danger', hue: 50 }, { family: 'Accent', hue: 60 }, { family: 'Background', hue: 70 }, { family: null, hue: 80 }],
+      {},
+    );
+    expect(out[0].family).toBe(null);
+    expect(out[0].hue).toBe(50);
+  });
+
+  it('nulls a duplicate family already used at a lower index', () => {
+    const out = sanitizeHarmonyAxes(
+      [{ family: 'Brand', hue: 10 }, { family: 'Brand', hue: 20 }, { family: 'Accent', hue: 30 }, { family: null, hue: 40 }],
+      {},
+    );
+    expect(out[0].family).toBe('Brand');
+    expect(out[1].family).toBe(null);
+    expect(out[1].hue).toBe(20);
+  });
+
+  it('replaces a non-finite hue with the default axis hue for that index', () => {
+    const defaults = defaultHarmonyAxes();
+    const out = sanitizeHarmonyAxes(
+      [{ family: null, hue: Number.NaN }, { family: null, hue: Infinity }, { family: null, hue: 5 }, { family: null, hue: 6 }],
+      {},
+    );
+    expect(out[0].hue).toBe(defaults[0].hue);
+    expect(out[1].hue).toBe(defaults[1].hue);
+    expect(out[2].hue).toBe(5);
+  });
+
+  it('normalizes hues into [0, 360)', () => {
+    const out = sanitizeHarmonyAxes(
+      [{ family: null, hue: 400 }, { family: null, hue: -30 }, { family: null, hue: 720 }, { family: null, hue: 359 }],
+      {},
+    );
+    expect(out.map((a) => a.hue)).toEqual([40, 330, 0, 359]);
+  });
+
+  it('snaps a bound axis hue to its palette (color is ground truth on load)', () => {
+    const out = sanitizeHarmonyAxes(
+      [{ family: 'Brand', hue: 12 }, { family: null, hue: 20 }, { family: null, hue: 30 }, { family: null, hue: 40 }],
+      palettes,
+    );
+    expect(out[0].family).toBe('Brand');
+    expect(out[0].hue).not.toBe(12);
+    expect(out[0].hue).toBeCloseTo(palettes.Brand.baseColor.h, 9);
+  });
+});
+
+describe('axesFromLegacyOrder', () => {
+  const palettes: Record<string, PaletteConfig> = {
+    Brand: mkP(oklchToHex(0.6, 0.1, 33)),
+    Accent: mkP(oklchToHex(0.55, 0.12, 111)),
+    Background: mkP(oklchToHex(0.65, 0.08, 222)),
+    Special: mkP(oklchToHex(0.5, 0.15, 280)),
+  };
+
+  it('undefined yields the default trio bound with palette-seeded hues, Quaternary unbound', () => {
+    const out = axesFromLegacyOrder(undefined, palettes);
+    expect(out.map((a) => a.family)).toEqual(['Brand', 'Accent', 'Background', null]);
+    expect(out[0].hue).toBeCloseTo(palettes.Brand.baseColor.h, 9);
+    expect(out[1].hue).toBeCloseTo(palettes.Accent.baseColor.h, 9);
+    expect(out[2].hue).toBeCloseTo(palettes.Background.baseColor.h, 9);
+    expect(out[3].hue).toBeCloseTo(n(palettes.Brand.baseColor.h + 270), 9);
+  });
+
+  it('binds order[i] to axis i at each family palette hue, remaining axis unbound', () => {
+    const out = axesFromLegacyOrder(['Accent', 'Brand', 'Special'], palettes);
+    expect(out.map((a) => a.family)).toEqual(['Accent', 'Brand', 'Special', null]);
+    expect(out[0].hue).toBeCloseTo(palettes.Accent.baseColor.h, 9);
+    expect(out[1].hue).toBeCloseTo(palettes.Brand.baseColor.h, 9);
+    expect(out[2].hue).toBeCloseTo(palettes.Special.baseColor.h, 9);
+  });
+
+  it('applies legacy sanitize rules: [Danger, Brand, Brand] binds only Brand', () => {
+    const out = axesFromLegacyOrder(['Danger', 'Brand', 'Brand'], palettes);
+    expect(out.map((a) => a.family)).toEqual(['Brand', null, null, null]);
+    expect(out[0].hue).toBeCloseTo(palettes.Brand.baseColor.h, 9);
+  });
+
+  it('falls back to the spec initial hue when a bound family has no palette', () => {
+    const out = axesFromLegacyOrder(['Special'], {});
+    expect(out[0].family).toBe('Special');
+    expect(out[0].hue).toBeCloseTo(specHue('Special'), 9);
   });
 });

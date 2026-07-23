@@ -1,4 +1,5 @@
 import type { PaletteConfig, FontSource, FontStack } from '../themes/themeTypes';
+import type { HarmonyAxis } from '../palettes/colorHarmony';
 
 export interface ShadowGlobals {
   angle: number;
@@ -136,7 +137,10 @@ export interface EditorState {
   columns: ColumnsState;
   components: Record<string, ComponentSlice>;
   gradients: { tokens: GradientToken[] };
-  /** Ordered harmony axis assignment; slot 0 is the anchor. Always present. */
+  /** Legacy; removed in Wave 2. */
   harmonyOrder: string[];
+  /** Four fixed axes (index = role: Anchor/Secondary/Tertiary/Quaternary); each
+   *  owns a hue; family is the live-bound color or null. */
+  harmonyAxes: HarmonyAxis[];
   cssVars: Record<string, string>;
 }

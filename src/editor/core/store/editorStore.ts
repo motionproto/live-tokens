@@ -30,7 +30,7 @@ import {
 import { renamePrimaryPaletteKey } from '../themes/migrations/2026-05-13-primary-to-brand';
 import { unifyGrayPalettes } from '../themes/migrations/2026-06-05-palette-unification';
 import { migratePaletteColorsToOklch, type PreOklchPaletteConfig } from '../themes/migrations/2026-07-21-palette-oklch-basis';
-import { DEFAULT_HARMONY_ORDER, sanitizeHarmonyOrder } from '../palettes/colorHarmony';
+import { DEFAULT_HARMONY_ORDER, sanitizeHarmonyOrder, defaultHarmonyAxes } from '../palettes/colorHarmony';
 import { __resetRendererCacheForTests, installRenderer } from './editorRenderer';
 import {
   store,
@@ -90,6 +90,7 @@ function emptyState(): EditorState {
     components: {},
     gradients: { tokens: makeDefaultGradients() },
     harmonyOrder: [...DEFAULT_HARMONY_ORDER],
+    harmonyAxes: defaultHarmonyAxes(),
     cssVars: {},
   };
 }

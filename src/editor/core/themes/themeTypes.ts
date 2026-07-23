@@ -1,5 +1,6 @@
 import type { CurveAnchor } from '../../ui/curveEngine';
 import type { Oklch } from '../palettes/oklch';
+import type { HarmonyAxis } from '../palettes/colorHarmony';
 
 export type GradientStyle = 'linear' | 'radial' | 'conic';
 
@@ -83,9 +84,12 @@ export interface Theme {
   fontSources?: FontSource[];
   fontStacks?: FontStack[];
   /**
-   * Ordered harmony axis assignment; slot 0 is the anchor. Absent = default trio.
+   * Deprecated legacy field. Read when `harmonyAxes` is absent; written on save
+   * for older builds.
    */
   harmonyOrder?: string[];
+  /** Four fixed harmony axes, each owning a hue with an optional bound family. */
+  harmonyAxes?: HarmonyAxis[];
   /**
    * Server-attached file-name marker for round-tripping the file identity
    * back to the client. Set by `themeFileApi`'s GET handlers; read by
