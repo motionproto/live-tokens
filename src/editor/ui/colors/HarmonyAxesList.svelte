@@ -8,6 +8,7 @@
   import { setHarmonyOrder } from './paletteBaseColor';
 
   const DIVIDER = ' divider';
+  const ROLE_LABELS = ['Anchor', 'Secondary', 'Tertiary', 'Quaternary'];
   const SPEC_BY_LABEL: Record<string, PaletteSpec> = Object.fromEntries(PALETTE_SPECS.map((s) => [s.label, s]));
 
   function hexOf(label: string): string {
@@ -27,7 +28,15 @@
     return slots.map((entry, i) =>
       entry === DIVIDER
         ? { divider: true as const, index: i }
-        : { divider: false as const, index: i, label: entry, hex: hexOf(entry), on: i < di, slot: i < di ? i : -1 },
+        : {
+            divider: false as const,
+            index: i,
+            label: entry,
+            hex: hexOf(entry),
+            on: i < di,
+            slot: i < di ? i : -1,
+            role: i < di ? ROLE_LABELS[i] : '',
+          },
     );
   });
 
@@ -143,13 +152,12 @@
           onkeydown={(e) => onHandleKeydown(e, item.index)}
         >⋮⋮</button>
         {#if item.on}
-          <span class="slot-num">{item.slot + 1}.</span>
+          <span class="slot-role"><span class="slot-num">{item.slot + 1}</span>{item.role}</span>
         {:else}
-          <span class="slot-num placeholder" aria-hidden="true">·</span>
+          <span class="slot-role placeholder" aria-hidden="true"></span>
         {/if}
         <span class="chip" style="--chip-fill: {item.hex}"></span>
         <span class="axis-label">{item.label}</span>
-        {#if item.on && item.slot === 0}<span class="anchor-tag">Anchor</span>{/if}
       {/if}
     </div>
   {/each}
@@ -253,14 +261,21 @@
   }
   .axis-row.dragging .drag-handle { cursor: grabbing; }
 
-  .slot-num {
-    min-width: 1.1rem;
-    text-align: right;
-    color: var(--ui-text-muted);
+  /* Fixed width so chips and family names line up whether a row is assigned
+     (number + role) or unassigned (blank). */
+  .slot-role {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--ui-space-6);
+    width: 5.5rem;
+    color: var(--ui-text-secondary);
   }
 
-  .placeholder {
-    color: var(--ui-border);
+  .slot-num {
+    min-width: 0.9rem;
+    text-align: right;
+    color: var(--ui-text-muted);
+    font-variant-numeric: tabular-nums;
   }
 
   .chip {
@@ -282,15 +297,5 @@
 
   .axis-row.inactive .axis-label {
     color: var(--ui-text-muted);
-  }
-
-  .anchor-tag {
-    padding: 0 var(--ui-space-6);
-    border: 1px solid var(--ui-border-low);
-    border-radius: var(--ui-radius-full);
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
   }
 </style>
