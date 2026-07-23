@@ -12,25 +12,28 @@
     onSelect: (label: string) => void;
     /** Lightness (0..1) the disc is painted at — the selected color's L. */
     discLightness: number;
-    /** Called when a per-axis edit detaches the trio from its harmony geometry,
+    /** Called when a per-axis edit detaches a family from its harmony geometry,
      *  so the parent can flip the active mode to 'custom'. */
     onCustomize: () => void;
     /** Rotation semantics: off (default) preserves relative saturation (constant
      *  render radius); on preserves absolute chroma (the dot drifts in/out). */
     absoluteChroma: boolean;
     /** Hovered harmony mode: paints non-interactive ghost dots at the hues the
-     *  trio would move to, so the geometry previews before it's applied. */
+     *  wheel families would move to, so the geometry previews before it's applied. */
     previewMode?: HarmonyMode | null;
   }
 
   let { selected, onSelect, discLightness, onCustomize, absoluteChroma, previewMode = null }: Props = $props();
 
-  // The harmony trio, anchored on Brand. Neutral/Alternate/Special stay off the
-  // wheel this pass (swatch row only).
-  const TRIO_LABELS = ['Brand', 'Background', 'Accent'];
-  const TRIO_SPECS: PaletteSpec[] = TRIO_LABELS
-    .map((l) => PALETTE_SPECS.find((s) => s.label === l))
-    .filter((s): s is PaletteSpec => !!s);
+  // Wheel families in slot order (slot 0 anchor, slot 1 primary partner) from the
+  // user-ordered harmony axes, so the ghost preview pairs each family with its own
+  // slot hue. Unlisted families stay off the wheel (swatch row only).
+  let wheelLabels = $derived($editorState.harmonyOrder);
+  let wheelSpecs = $derived(
+    wheelLabels
+      .map((l) => PALETTE_SPECS.find((s) => s.label === l))
+      .filter((s): s is PaletteSpec => !!s),
+  );
 
   // Reserved judgment call: keyboard nudge increments.
   const HUE_STEP = 2;
@@ -72,8 +75,8 @@
   let drag: Drag | null = $state(null);
   let dragScope: Scope | null = null;
 
-  let trio = $derived(
-    TRIO_SPECS.map((spec) => {
+  let wheel = $derived(
+    wheelSpecs.map((spec) => {
       const { l, c, h } = $editorState.palettes[spec.label]?.baseColor ?? spec.initialColor;
       const mc = maxChroma(l, h) || 1e-6;
       // `hex` is the clamped sRGB projection painting the dot fill only.
@@ -81,12 +84,12 @@
     }),
   );
 
-  // Overlay the transient intent onto the store-derived trio so the active rail
+  // Overlay the transient intent onto the store-derived wheel so the active rail
   // / dot / handle tracks the pointer with no store round-trip. The dragged
   // coordinate follows the pointer; the OTHER is locked to gesture-start intent
   // (rotation → radius; chroma → angle) — neither is re-read from the hex.
-  let trioRender = $derived(
-    trio.map((t) => {
+  let wheelRender = $derived(
+    wheel.map((t) => {
       let hue = t.hue;
       let rFrac = t.rFrac;
       const d = drag;
@@ -120,17 +123,17 @@
     return { x: center + extRadius * Math.cos(rad(angle)), y: center - extRadius * Math.sin(rad(angle)) };
   });
 
-  // Ghost dots for a hovered harmony mode: each trio member re-hued to the
+  // Ghost dots for a hovered harmony mode: each wheel family re-hued to the
   // would-be geometry, its own chroma preserved (so radius = chroma at the new
   // hue, matching what applyHarmony will produce). Anchor-stationary members are
   // dropped so a ghost never sits atop its live dot. Non-interactive.
   let ghosts = $derived.by(() => {
     if (!previewMode || previewMode === 'custom' || drag) return [];
-    const brand = trio.find((t) => t.label === 'Brand');
-    if (!brand) return [];
-    const hues = harmonyHues(previewMode, brand.hue);
-    return TRIO_LABELS.flatMap((label, i) => {
-      const t = trio.find((x) => x.label === label);
+    const anchor = wheel.find((t) => t.label === wheelLabels[0]);
+    if (!anchor) return [];
+    const hues = harmonyHues(previewMode, anchor.hue, wheelLabels.length);
+    return wheelLabels.flatMap((label, i) => {
+      const t = wheel.find((x) => x.label === label);
       if (!t || Math.abs(angleDelta(hues[i], t.hue)) < 0.5) return [];
       const rFrac = clamp(t.chroma / (maxChroma(t.lightness, hues[i]) || 1e-6), 0, 1);
       const r = rFrac * discRadius;
@@ -264,7 +267,7 @@
     onCustomize();
     capture(e);
     openGesture(`colors: ${label} rotate`);
-    const t = trio.find((x) => x.label === label);
+    const t = wheel.find((x) => x.label === label);
     const start = t ? startOf(t) : { hue0: pointerAngle(e), chroma0: 0, rFrac0: 0, l0: discLightness };
     drag = { kind: 'axis', label, angle: pointerAngle(e), start };
     applyAxis(e);
@@ -276,14 +279,14 @@
     writeRotation(drag.label, angle, drag.start);
   }
 
-  // Global rotate — all trio hues by the same accumulated delta (mode kept).
+  // Global rotate — all wheel hues by the same accumulated delta (mode kept).
   function startGlobalDrag(e: PointerEvent) {
     if (e.button !== 0) return;
     e.preventDefault();
     capture(e);
     openGesture('colors: rotate all');
     const start: Record<string, RotateStart> = {};
-    for (const t of trio) start[t.label] = startOf(t);
+    for (const t of wheel) start[t.label] = startOf(t);
     const a = pointerAngle(e);
     drag = { kind: 'global', start, delta: 0, lastAngle: a, angle: a };
   }
@@ -306,7 +309,7 @@
     onSelect(label);
     capture(e);
     openGesture(`colors: ${label} chroma`);
-    const t = trio.find((x) => x.label === label);
+    const t = wheel.find((x) => x.label === label);
     const hue0 = t?.hue ?? 0;
     const l0 = t?.lightness ?? discLightness;
     drag = { kind: 'chroma', label, hue0, l0, maxC0: maxChroma(l0, hue0) || 1e-6, rFrac: t?.rFrac ?? 0 };
@@ -332,7 +335,7 @@
 
   function rotateAll(delta: number) {
     const patch: Record<string, Oklch> = {};
-    for (const t of trio) {
+    for (const t of wheel) {
       const newHue = normDeg(t.hue + delta);
       // Unclamped intent: off holds the gamut fraction, on holds absolute chroma.
       patch[t.label] = absoluteChroma
@@ -343,7 +346,7 @@
   }
 
   function axisKey(e: KeyboardEvent, label: string) {
-    const t = trio.find((x) => x.label === label);
+    const t = wheel.find((x) => x.label === label);
     if (!t) return;
     let dir = 0;
     if (e.key === 'ArrowLeft') dir = -1;
@@ -354,7 +357,7 @@
     writeRotation(label, t.hue + dir * HUE_STEP, startOf(t));
   }
   function dotKey(e: KeyboardEvent, label: string) {
-    const t = trio.find((x) => x.label === label);
+    const t = wheel.find((x) => x.label === label);
     if (!t) return;
     if (e.key === 'ArrowUp') { e.preventDefault(); setBaseChroma(label, t.chroma + CHROMA_STEP); }
     else if (e.key === 'ArrowDown') { e.preventDefault(); setBaseChroma(label, t.chroma - CHROMA_STEP); }
@@ -383,10 +386,10 @@
     <!-- Dotted tether center→icon, drawn first so the solid rail below covers
          its inner half — reads as one axis that extends outward as dots to the
          external handle. Same angle as the handle, so it tracks live. -->
-    {#each trioRender as t (t.label)}
+    {#each wheelRender as t (t.label)}
       <line class="tether" x1={center} y1={center} x2={t.ext.x} y2={t.ext.y} />
     {/each}
-    {#each trioRender as t (t.label)}
+    {#each wheelRender as t (t.label)}
       <line class="rail" x1={center} y1={center} x2={t.dot.x} y2={t.dot.y} />
     {/each}
   </svg>
@@ -395,7 +398,7 @@
     <span class="ghost" style="left: {g.x}px; top: {g.y}px; --fill: {g.hex}" aria-hidden="true"></span>
   {/each}
 
-  {#each trioRender as t (t.label)}
+  {#each wheelRender as t (t.label)}
     <button
       type="button"
       class="dot"
@@ -413,7 +416,7 @@
     ></button>
   {/each}
 
-  {#each trioRender as t (t.label)}
+  {#each wheelRender as t (t.label)}
     <button
       type="button"
       class="ext-handle"

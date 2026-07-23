@@ -2,19 +2,18 @@
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginSliderGesture, transaction } from '../../core/store/editorStore';
-  import { applyHarmony, tintNeutralsFromBrand, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import { applyHarmony, tintNeutralsFromAnchor, type HarmonyMode } from '../../core/palettes/colorHarmony';
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import ColorWheel from './ColorWheel.svelte';
   import LightnessBar from './LightnessBar.svelte';
   import ColorReadouts from './ColorReadouts.svelte';
   import ColorStory from './ColorStory.svelte';
   import BackgroundSpotStrip from './BackgroundSpotStrip.svelte';
+  import HarmonyAxesList from './HarmonyAxesList.svelte';
   import UIPillButton from '../UIPillButton.svelte';
   import { setBaseColor, setBaseColors, applySolvedTextCurves } from './paletteBaseColor';
 
-  const WHEEL_LABELS = ['Brand', 'Accent', 'Background', 'Neutral', 'Alternate'];
-
-  // Greyscale glyphs approximating the Adobe harmony row (trio = Brand/Background/Accent).
+  // Greyscale glyphs approximating the Adobe harmony row.
   const MODES: { mode: HarmonyMode; icon: string; label: string }[] = [
     { mode: 'analogous', icon: 'fa-grip-lines-vertical', label: 'Analogous' },
     { mode: 'monochromatic', icon: 'fa-circle', label: 'Monochromatic' },
@@ -53,13 +52,13 @@
 
   function applyMode(mode: HarmonyMode) {
     activeMode = mode;
-    const patch = applyHarmony(mode, $editorState.palettes);
+    const patch = applyHarmony(mode, $editorState.palettes, $editorState.harmonyOrder);
     if (Object.keys(patch).length) setBaseColors(patch, `colors: harmony ${mode}`);
   }
 
   function tintNeutrals() {
-    const patch = tintNeutralsFromBrand($editorState.palettes);
-    if (Object.keys(patch).length) setBaseColors(patch, 'colors: tint neutrals from brand');
+    const patch = tintNeutralsFromAnchor($editorState.palettes, $editorState.harmonyOrder);
+    if (Object.keys(patch).length) setBaseColors(patch, 'colors: tint neutrals from anchor');
   }
 
   function deriveAccessibleText() {
@@ -73,7 +72,7 @@
         label: spec.label,
         display: spec.displayLabel ?? spec.label,
         hex: oklchToHexClamped(l, c, h),
-        onWheel: WHEEL_LABELS.includes(spec.label),
+        onWheel: $editorState.harmonyOrder.includes(spec.label),
       };
     }),
   );
@@ -125,9 +124,9 @@
           <UIPillButton
             size="compact"
             icon="fa-fill-drip"
-            title="Re-hue Neutral and Alternate to the Brand hue (their own chroma and lightness kept)"
+            title="Re-hue Neutral and Alternate to the anchor color (their own chroma and lightness kept)"
             onclick={tintNeutrals}
-          >Tint neutrals from brand</UIPillButton>
+          >Tint neutrals from anchor</UIPillButton>
         </div>
 
         <div class="wheel-opts">
@@ -215,6 +214,12 @@
       </div>
       <ColorStory />
     </section>
+
+    <section id="colors-axes" class="block">
+      <h2 class="title">Harmony axes</h2>
+      <p class="axes-desc">Families above the divider are harmonized on the wheel; the top one is the anchor and the rest take their hue from it. Drag a family below the divider to leave it out, so you can harmonize a subset and let the others float free.</p>
+      <HarmonyAxesList />
+    </section>
   </div>
 </div>
 
@@ -227,7 +232,17 @@
   }
 
   .pane {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-32);
     min-width: 0;
+  }
+
+  .axes-desc {
+    margin: 0;
+    font-size: var(--ui-font-size-sm);
+    line-height: 1.5;
+    color: var(--ui-text-secondary);
   }
 
   .block {

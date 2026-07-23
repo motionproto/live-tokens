@@ -18,6 +18,7 @@
  */
 
 import type { Oklch } from '../../core/palettes/oklch';
+import { sanitizeHarmonyOrder } from '../../core/palettes/colorHarmony';
 import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
 import { solveTextCurves } from '../../core/palettes/solveTextContrast';
 import { defaultPaletteConfig } from '../palette/paletteMath';
@@ -77,6 +78,14 @@ export function setBaseChroma(label: string, chroma: number): void {
   mutate(`colors: ${label} chroma`, (s) => {
     const cfg = ensureConfig(s, label);
     cfg.baseColor = { l: cfg.baseColor.l, c: Math.max(0, chroma), h: cfg.baseColor.h };
+  });
+}
+
+/** Single write path for the harmony axis order; the sanitizer guards against a
+ *  dropped/duplicated entry ever reaching the store. */
+export function setHarmonyOrder(order: string[]): void {
+  mutate('colors: harmony axes', (s) => {
+    s.harmonyOrder = sanitizeHarmonyOrder(order);
   });
 }
 
