@@ -27,6 +27,9 @@
   } from './palette/paletteMath';
   import type { PaletteConfig, GradientStop } from '../core/themes/themeTypes';
   import { editorState, mutate, setPaletteConfig, beginSliderGesture, beginScope, commitScope, cancelScope, type Scope } from '../core/store/editorStore';
+  // Base-color edits route through the shared setter so a bound harmony axis
+  // follows the hue (invariant 1); the local `edit` would silently detach it.
+  import { setBaseColor } from './colors/paletteBaseColor';
   import { showCopyPopover } from './copyPopover';
 
   interface Props {
@@ -508,7 +511,7 @@
     onStartEdit={startBaseEdit}
     onConfirm={confirmEdit}
     onCancel={cancelEdit}
-    onBaseChange={(h, c, l) => edit('baseColor', { l: l / 100, c, h })}
+    onBaseChange={(h, c, l) => setBaseColor(label, { l: l / 100, c, h })}
     onAnchorToBaseChange={setAnchorToBase}
     onCopyBaseHex={copyHex}
   />
