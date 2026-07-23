@@ -18,9 +18,6 @@ export type HarmonyMode =
   | 'monochromatic'
   | 'custom';
 
-/** Default harmony axis order: slot 0 is the anchor (Brand), then Accent, Background. */
-export const DEFAULT_HARMONY_ORDER: readonly string[] = ['Brand', 'Accent', 'Background'];
-
 /** Families the user may order/include on the harmony axes (dev-declared pool). */
 export const HARMONY_ELIGIBLE: readonly string[] = ['Brand', 'Accent', 'Background', 'Special'];
 
@@ -34,13 +31,17 @@ export interface HarmonyAxis {
   family: string | null;
 }
 
+// Slot 0 is the anchor (Brand), then Accent, Background — the pre-axes default.
+const LEGACY_DEFAULT_ORDER: readonly string[] = ['Brand', 'Accent', 'Background'];
+
 /**
- * Coerce untrusted input (theme JSON) into a valid harmony order: keep only
- * eligible entries, first occurrence of each. A non-array, empty, or
- * fully-invalid input falls back to the default order.
+ * Coerce an untrusted legacy `harmonyOrder` (theme JSON) into a valid order:
+ * keep only eligible entries, first occurrence of each. A non-array, empty, or
+ * fully-invalid input falls back to the default order. Private to
+ * `axesFromLegacyOrder`, the sole migration entry point.
  */
-export function sanitizeHarmonyOrder(input: unknown): string[] {
-  if (!Array.isArray(input)) return [...DEFAULT_HARMONY_ORDER];
+function sanitizeLegacyOrder(input: unknown): string[] {
+  if (!Array.isArray(input)) return [...LEGACY_DEFAULT_ORDER];
   const seen = new Set<string>();
   const out: string[] = [];
   for (const entry of input) {
@@ -50,7 +51,7 @@ export function sanitizeHarmonyOrder(input: unknown): string[] {
     seen.add(entry);
     out.push(entry);
   }
-  return out.length > 0 ? out : [...DEFAULT_HARMONY_ORDER];
+  return out.length > 0 ? out : [...LEGACY_DEFAULT_ORDER];
 }
 
 const norm = (h: number): number => ((h % 360) + 360) % 360;
@@ -187,7 +188,7 @@ export function axesFromLegacyOrder(
   order: unknown,
   palettes: Record<string, PaletteConfig>,
 ): HarmonyAxis[] {
-  const legacy = sanitizeHarmonyOrder(order);
+  const legacy = sanitizeLegacyOrder(order);
   const defaults = defaultHarmonyAxes();
   const hueOf = (family: string): number =>
     norm(palettes[family] ? palettes[family].baseColor.h : specInitialHue(family));

@@ -219,7 +219,7 @@
 
     <section id="colors-axes" class="block">
       <h2 class="title">Harmony axes</h2>
-      <p class="axes-desc">Families above the divider are harmonized on the wheel; the top one is the anchor and the rest take their hue from it. Drag a family below the divider to leave it out, so you can harmonize a subset and let the others float free.</p>
+      <p class="axes-desc">Each axis owns a hue. Drop a color on an axis to bind it. The color adopts the axis hue and follows the axis. Drag a color to Unassigned to let it float free.</p>
       <HarmonyAxesList />
     </section>
   </div>

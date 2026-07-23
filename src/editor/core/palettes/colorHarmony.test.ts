@@ -2,8 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   harmonyHues,
   tintNeutralsFromAnchor,
-  sanitizeHarmonyOrder,
-  DEFAULT_HARMONY_ORDER,
   AXIS_COUNT,
   AXIS_ROLES,
   defaultHarmonyAxes,
@@ -224,34 +222,6 @@ describe('tintNeutralsFromAnchor', () => {
   });
 });
 
-describe('sanitizeHarmonyOrder', () => {
-  it('non-array input falls back to the default order', () => {
-    expect(sanitizeHarmonyOrder(undefined)).toEqual([...DEFAULT_HARMONY_ORDER]);
-    expect(sanitizeHarmonyOrder('Brand')).toEqual([...DEFAULT_HARMONY_ORDER]);
-  });
-
-  it('empty array falls back to the default order', () => {
-    expect(sanitizeHarmonyOrder([])).toEqual([...DEFAULT_HARMONY_ORDER]);
-  });
-
-  it('drops entries outside HARMONY_ELIGIBLE', () => {
-    expect(sanitizeHarmonyOrder(['Danger', 'Brand', 'Neutral'])).toEqual(['Brand']);
-  });
-
-  it('drops duplicates, keeping the first occurrence', () => {
-    expect(sanitizeHarmonyOrder(['Accent', 'Brand', 'Accent'])).toEqual(['Accent', 'Brand']);
-  });
-
-  it('a fully-invalid array falls back to the default order', () => {
-    expect(sanitizeHarmonyOrder(['Danger', 'Success', 7, null])).toEqual([...DEFAULT_HARMONY_ORDER]);
-  });
-
-  it('passes a valid custom order through unchanged', () => {
-    expect(sanitizeHarmonyOrder(['Brand', 'Background', 'Accent', 'Special']))
-      .toEqual(['Brand', 'Background', 'Accent', 'Special']);
-  });
-});
-
 const specHue = (label: string): number => PALETTE_SPECS.find((s) => s.label === label)!.initialColor.h;
 const n = (h: number): number => ((h % 360) + 360) % 360;
 
@@ -468,10 +438,36 @@ describe('axesFromLegacyOrder', () => {
     expect(out[2].hue).toBeCloseTo(palettes.Special.baseColor.h, 9);
   });
 
-  it('applies legacy sanitize rules: [Danger, Brand, Brand] binds only Brand', () => {
+  // The legacy-sanitize rule intents, exercised through the public migration
+  // surface (the private sanitizer no longer has its own describe).
+  const defaultTrio = ['Brand', 'Accent', 'Background', null];
+
+  it('non-array, empty, and fully-invalid input all fall back to the default trio', () => {
+    expect(axesFromLegacyOrder('Brand', palettes).map((a) => a.family)).toEqual(defaultTrio);
+    expect(axesFromLegacyOrder([], palettes).map((a) => a.family)).toEqual(defaultTrio);
+    expect(axesFromLegacyOrder(['Danger', 'Success', 7, null], palettes).map((a) => a.family)).toEqual(defaultTrio);
+  });
+
+  it('drops entries outside HARMONY_ELIGIBLE', () => {
+    const out = axesFromLegacyOrder(['Danger', 'Brand', 'Neutral'], palettes);
+    expect(out.map((a) => a.family)).toEqual(['Brand', null, null, null]);
+    expect(out[0].hue).toBeCloseTo(palettes.Brand.baseColor.h, 9);
+  });
+
+  it('drops duplicates, keeping the first occurrence', () => {
+    const out = axesFromLegacyOrder(['Accent', 'Brand', 'Accent'], palettes);
+    expect(out.map((a) => a.family)).toEqual(['Accent', 'Brand', null, null]);
+  });
+
+  it('drops both ineligible and duplicate entries: [Danger, Brand, Brand] binds only Brand', () => {
     const out = axesFromLegacyOrder(['Danger', 'Brand', 'Brand'], palettes);
     expect(out.map((a) => a.family)).toEqual(['Brand', null, null, null]);
     expect(out[0].hue).toBeCloseTo(palettes.Brand.baseColor.h, 9);
+  });
+
+  it('binds a valid full four-family order across all axes', () => {
+    const out = axesFromLegacyOrder(['Brand', 'Background', 'Accent', 'Special'], palettes);
+    expect(out.map((a) => a.family)).toEqual(['Brand', 'Background', 'Accent', 'Special']);
   });
 
   it('falls back to the spec initial hue when a bound family has no palette', () => {

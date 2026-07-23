@@ -19,7 +19,7 @@
 
 import { get } from 'svelte/store';
 import type { Oklch } from '../../core/palettes/oklch';
-import { sanitizeHarmonyOrder, AXIS_ROLES } from '../../core/palettes/colorHarmony';
+import { AXIS_ROLES } from '../../core/palettes/colorHarmony';
 import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
 import { solveTextCurves } from '../../core/palettes/solveTextContrast';
 import { defaultPaletteConfig } from '../palette/paletteMath';
@@ -171,22 +171,6 @@ export function unbindFamily(family: string): void {
 function adoptAxisHue(s: EditorState, family: string, hue: number): void {
   const cfg = ensureConfig(s, family);
   cfg.baseColor = { l: cfg.baseColor.l, c: cfg.baseColor.c, h: normHue(hue) };
-}
-
-/** Legacy reorder shim (deleted in Wave 4): rebinds axes[i] to order[i] without
- *  moving any color's hue — parity with the old reorder, which only re-hued once
- *  a mode was re-applied. */
-export function setHarmonyOrder(order: string[]): void {
-  const clean = sanitizeHarmonyOrder(order);
-  const s0 = get(editorState);
-  const next = s0.harmonyAxes.map((axis, i) => ({
-    family: clean[i] ?? null,
-    hue: clean[i] && s0.palettes[clean[i]] ? s0.palettes[clean[i]].baseColor.h : axis.hue,
-  }));
-  if (next.every((a, i) => a.family === s0.harmonyAxes[i].family && a.hue === s0.harmonyAxes[i].hue)) return;
-  mutate('colors: harmony axes', (s) => {
-    s.harmonyAxes = next.map((a) => ({ ...a }));
-  });
 }
 
 /** Set several seed colors in ONE undo entry (harmony apply, global rotate). */
