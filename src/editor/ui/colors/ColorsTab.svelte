@@ -288,8 +288,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 3.375rem;
+    height: 3.375rem;
     padding: 0;
     background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-low);
@@ -300,8 +300,8 @@
   }
 
   .mode-btn :global(svg) {
-    width: 1.375rem;
-    height: 1.375rem;
+    width: 100%;
+    height: 100%;
     display: block;
   }
 
