@@ -39,6 +39,8 @@ describe('harmonyHues geometry', () => {
     expect(harmonyHues('complementary', 30, 3)).toEqual([30, 210, 30]);
     expect(harmonyHues('split-complementary', 30, 3)).toEqual([30, 240, 180]);
     expect(harmonyHues('triadic', 30, 3)).toEqual([30, 270, 150]);
+    expect(harmonyHues('tetradic', 30, 4)).toEqual([30, 210, 90, 270]);
+    expect(harmonyHues('compound', 30, 4)).toEqual([30, 210, 60, 240]);
     expect(harmonyHues('square', 30, 3)).toEqual([30, 210, 120]);
     expect(harmonyHues('analogous', 30, 3)).toEqual([30, 60, 0]);
     expect(harmonyHues('monochromatic', 30, 3)).toEqual([30, 30, 30]);
@@ -62,6 +64,8 @@ describe('modeHasQuaternary', () => {
   it('is true only for the modes whose slot 3 is a distinct position', () => {
     expect(modeHasQuaternary('square')).toBe(true);
     expect(modeHasQuaternary('analogous')).toBe(true);
+    expect(modeHasQuaternary('tetradic')).toBe(true);
+    expect(modeHasQuaternary('compound')).toBe(true);
     expect(modeHasQuaternary('complementary')).toBe(false);
     expect(modeHasQuaternary('split-complementary')).toBe(false);
     expect(modeHasQuaternary('triadic')).toBe(false);
@@ -112,7 +116,7 @@ describe('harmony via axes (boundColorPatch ∘ applyHarmonyToAxes)', () => {
   });
 
   it('every mode leaves L and C untouched for the trio (hue-only, no chroma clamp)', () => {
-    const modes: HarmonyMode[] = ['complementary', 'split-complementary', 'triadic', 'square', 'analogous', 'monochromatic'];
+    const modes: HarmonyMode[] = ['complementary', 'split-complementary', 'triadic', 'tetradic', 'compound', 'square', 'analogous', 'monochromatic'];
     for (const mode of modes) {
       const out = patchFor(mode);
       const hues = harmonyHues(mode, palettes.Brand.baseColor.h, AXIS_COUNT);
@@ -133,6 +137,8 @@ describe('harmony via axes (boundColorPatch ∘ applyHarmonyToAxes)', () => {
       complementary:         { Brand: a, Accent: n(a + 180),   Background: a },
       'split-complementary': { Brand: a, Accent: n(a + 210),   Background: n(a + 150) },
       triadic:               { Brand: a, Accent: n(a + 240),   Background: n(a + 120) },
+      tetradic:              { Brand: a, Accent: n(a + 180),   Background: n(a + 60) },
+      compound:              { Brand: a, Accent: n(a + 180),   Background: n(a + 30) },
       square:                { Brand: a, Accent: n(a + 180),   Background: n(a + 90) },
     };
     for (const mode of Object.keys(perFamily) as (keyof typeof perFamily)[]) {
@@ -272,7 +278,7 @@ describe('applyHarmonyToAxes', () => {
   ];
 
   it('deals each axis its slot hue from axis 0, bindings preserved', () => {
-    const modes: HarmonyMode[] = ['complementary', 'split-complementary', 'triadic', 'square', 'analogous', 'monochromatic'];
+    const modes: HarmonyMode[] = ['complementary', 'split-complementary', 'triadic', 'tetradic', 'compound', 'square', 'analogous', 'monochromatic'];
     for (const mode of modes) {
       const out = applyHarmonyToAxes(mode, baseAxes());
       const slots = harmonyHues(mode, 30, AXIS_COUNT);
@@ -280,6 +286,13 @@ describe('applyHarmonyToAxes', () => {
       expect(out.map((a) => a.hue)).toEqual(expected);
       expect(out.map((a) => a.family)).toEqual(['Brand', 'Accent', 'Background', null]);
     }
+  });
+
+  it('tetradic deals all four hues; Quaternary moves to anchor + 240 while unbound', () => {
+    const out = applyHarmonyToAxes('tetradic', baseAxes());
+    expect(out.map((a) => a.hue)).toEqual([30, n(30 + 180), n(30 + 60), n(30 + 240)]);
+    expect(out.map((a) => a.family)).toEqual(['Brand', 'Accent', 'Background', null]);
+    expect(out[3]).toEqual({ hue: n(30 + 240), family: null });
   });
 
   it('leaves the Quaternary axis untouched in modes without a distinct fourth slot, bound included', () => {
