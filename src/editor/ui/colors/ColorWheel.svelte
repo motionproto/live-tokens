@@ -53,9 +53,9 @@
   // Reserved judgment call: keyboard nudge increments.
   const HUE_STEP = 2;
   const CHROMA_STEP = 0.005;
-  const MARGIN = 44;      // ring-to-edge gap: houses the external handles AND the axis numerals outside them
+  const MARGIN = 52;      // ring-to-edge gap: houses the external handles AND the axis numerals outside them
   const EXT_OFFSET = 20;  // external handle radius beyond the disc rim (room for the dotted tether)
-  const NUM_OFFSET = 16;  // numeral radius beyond the external handles
+  const NUM_OFFSET = 24;  // numeral radius beyond the external handles
   const MIN_SIZE = 240;
   const MAX_SIZE = 360;
 
