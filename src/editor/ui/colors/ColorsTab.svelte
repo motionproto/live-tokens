@@ -2,7 +2,7 @@
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginSliderGesture, transaction } from '../../core/store/editorStore';
-  import { applyHarmony, tintNeutralsFromAnchor, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import { applyHarmonyToAxes, tintNeutralsFromAnchor, type HarmonyMode } from '../../core/palettes/colorHarmony';
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import ColorWheel from './ColorWheel.svelte';
   import LightnessBar from './LightnessBar.svelte';
@@ -11,7 +11,7 @@
   import BackgroundSpotStrip from './BackgroundSpotStrip.svelte';
   import HarmonyAxesList from './HarmonyAxesList.svelte';
   import UIPillButton from '../UIPillButton.svelte';
-  import { setBaseColor, setBaseColors, applySolvedTextCurves } from './paletteBaseColor';
+  import { setBaseColor, setBaseColors, setAxisHues, applySolvedTextCurves } from './paletteBaseColor';
 
   // Greyscale glyphs approximating the Adobe harmony row.
   const MODES: { mode: HarmonyMode; icon: string; label: string }[] = [
@@ -25,11 +25,6 @@
 
   let selected = $state('Brand');
   let activeMode = $state<HarmonyMode>('custom');
-  // Bound families in axis order — the Wave-2 bridge to the old order-based
-  // harmony signatures (both rewritten in Wave 3).
-  let boundOrder = $derived(
-    $editorState.harmonyAxes.filter((a) => a.family !== null).map((a) => a.family!),
-  );
   let previewMode = $state<HarmonyMode | null>(null);
   // Local UI only — deliberately NOT stored in PaletteConfig (shape unchanged).
   let absoluteChroma = $state(false);
@@ -57,12 +52,14 @@
 
   function applyMode(mode: HarmonyMode) {
     activeMode = mode;
-    const patch = applyHarmony(mode, $editorState.palettes, boundOrder);
-    if (Object.keys(patch).length) setBaseColors(patch, `colors: harmony ${mode}`);
+    // Hue-only: every axis moves to its slot hue and each bound family follows in
+    // the same transaction. setAxisHues no-op-guards a re-applied geometry.
+    const target = applyHarmonyToAxes(mode, $editorState.harmonyAxes);
+    setAxisHues(target.map((a, i) => ({ index: i, hue: a.hue })), `colors: harmony ${mode}`);
   }
 
   function tintNeutrals() {
-    const patch = tintNeutralsFromAnchor($editorState.palettes, boundOrder);
+    const patch = tintNeutralsFromAnchor($editorState.palettes, $editorState.harmonyAxes[0].hue);
     if (Object.keys(patch).length) setBaseColors(patch, 'colors: tint neutrals from anchor');
   }
 

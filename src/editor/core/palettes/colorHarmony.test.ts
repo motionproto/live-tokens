@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   harmonyHues,
-  applyHarmony,
   tintNeutralsFromAnchor,
   sanitizeHarmonyOrder,
   DEFAULT_HARMONY_ORDER,
@@ -60,7 +59,7 @@ describe('harmonyHues geometry', () => {
   });
 });
 
-describe('applyHarmony', () => {
+describe('harmony via axes (boundColorPatch ∘ applyHarmonyToAxes)', () => {
   // In-gamut seeds so the hex round-trip stays tight enough to assert preservation.
   const palettes: Record<string, PaletteConfig> = {
     Brand: mkP(oklchToHex(0.6, 0.1, 30)),
@@ -70,16 +69,26 @@ describe('applyHarmony', () => {
     Neutral: mkP(oklchToHex(0.6, 0.02, 50)),
   };
 
-  // Default order deals slot i to DEFAULT_HARMONY_ORDER[i] = [Brand, Accent, Background].
+  // The default composition: the trio bound at their palette hues (so axis 0
+  // anchors on Brand), Quaternary unbound — the shape a fresh theme carries.
+  const defaultAxes = (): HarmonyAxis[] => [
+    { hue: palettes.Brand.baseColor.h, family: 'Brand' },
+    { hue: palettes.Accent.baseColor.h, family: 'Accent' },
+    { hue: palettes.Background.baseColor.h, family: 'Background' },
+    { hue: n(palettes.Brand.baseColor.h + 270), family: null },
+  ];
+  const patchFor = (mode: HarmonyMode, axes: HarmonyAxis[] = defaultAxes()) =>
+    boundColorPatch(applyHarmonyToAxes(mode, axes), palettes);
+
   const defaultOrder = ['Brand', 'Accent', 'Background'] as const;
 
-  it('rotates only [Brand, Accent, Background] hue; each own c + L unchanged', () => {
-    const out = applyHarmony('triadic', palettes);
+  it('re-hues only the bound trio; each own c + L unchanged', () => {
+    const out = patchFor('triadic');
     expect(Object.keys(out).sort()).toEqual(['Accent', 'Background', 'Brand']);
     expect('Special' in out).toBe(false);
     expect('Neutral' in out).toBe(false);
 
-    const hues = harmonyHues('triadic', palettes.Brand.baseColor.h, defaultOrder.length);
+    const hues = harmonyHues('triadic', palettes.Brand.baseColor.h, AXIS_COUNT);
     defaultOrder.forEach((label, i) => {
       const before = palettes[label].baseColor;
       // Exact: only the hue moves; L and C are the seed's own, unclamped.
@@ -88,18 +97,14 @@ describe('applyHarmony', () => {
   });
 
   it('is deterministic', () => {
-    expect(applyHarmony('split-complementary', palettes)).toEqual(applyHarmony('split-complementary', palettes));
-  });
-
-  it('custom imposes no constraint (no changes)', () => {
-    expect(applyHarmony('custom', palettes)).toEqual({});
+    expect(patchFor('split-complementary')).toEqual(patchFor('split-complementary'));
   });
 
   it('every mode leaves L and C untouched for the trio (hue-only, no chroma clamp)', () => {
     const modes: HarmonyMode[] = ['complementary', 'split-complementary', 'triadic', 'square', 'analogous', 'monochromatic'];
     for (const mode of modes) {
-      const out = applyHarmony(mode, palettes);
-      const hues = harmonyHues(mode, palettes.Brand.baseColor.h, defaultOrder.length);
+      const out = patchFor(mode);
+      const hues = harmonyHues(mode, palettes.Brand.baseColor.h, AXIS_COUNT);
       defaultOrder.forEach((label, i) => {
         const before = palettes[label].baseColor;
         expect(out[label]).toEqual({ l: before.l, c: before.c, h: hues[i] });
@@ -107,11 +112,10 @@ describe('applyHarmony', () => {
     }
   });
 
-  // Invariant 1: with the default order, per-family output is exactly today's
+  // Invariant 3: with the default shape, per-family output is exactly today's
   // pre-generalization values. Offsets are literal so this never tracks harmonyHues.
-  it('pins default-order per-family hues to the pre-generalization values', () => {
+  it('pins default-shape per-family hues to the pre-generalization values', () => {
     const a = palettes.Brand.baseColor.h;
-    const n = (h: number) => ((h % 360) + 360) % 360;
     const perFamily: Record<Exclude<HarmonyMode, 'custom'>, { Brand: number; Accent: number; Background: number }> = {
       monochromatic:         { Brand: a, Accent: a,            Background: a },
       analogous:             { Brand: a, Accent: n(a + 30),    Background: n(a - 30) },
@@ -121,7 +125,7 @@ describe('applyHarmony', () => {
       square:                { Brand: a, Accent: n(a + 180),   Background: n(a + 90) },
     };
     for (const mode of Object.keys(perFamily) as (keyof typeof perFamily)[]) {
-      const out = applyHarmony(mode, palettes);
+      const out = patchFor(mode);
       for (const label of defaultOrder) {
         const before = palettes[label].baseColor;
         expect(out[label].l).toBe(before.l);
@@ -131,9 +135,14 @@ describe('applyHarmony', () => {
     }
   });
 
-  it('square with a 4-entry order sends slot 3 to anchor + 270', () => {
-    const order = ['Brand', 'Background', 'Accent', 'Special'];
-    const out = applyHarmony('square', palettes, order);
+  it('square with Special bound to Quaternary sends it to anchor + 270', () => {
+    const axes: HarmonyAxis[] = [
+      { hue: palettes.Brand.baseColor.h, family: 'Brand' },
+      { hue: palettes.Background.baseColor.h, family: 'Background' },
+      { hue: palettes.Accent.baseColor.h, family: 'Accent' },
+      { hue: palettes.Special.baseColor.h, family: 'Special' },
+    ];
+    const out = patchFor('square', axes);
     expect(Object.keys(out).sort()).toEqual(['Accent', 'Background', 'Brand', 'Special']);
     const before = palettes.Special.baseColor;
     expect(out.Special.l).toBe(before.l);
@@ -141,8 +150,14 @@ describe('applyHarmony', () => {
     expect(out.Special.h).toBeCloseTo((palettes.Brand.baseColor.h + 270) % 360, 9);
   });
 
-  it('honors a non-Brand anchor (slot 0)', () => {
-    const out = applyHarmony('complementary', palettes, ['Accent', 'Brand']);
+  it('honors a non-Brand anchor (axis 0)', () => {
+    const axes: HarmonyAxis[] = [
+      { hue: palettes.Accent.baseColor.h, family: 'Accent' },
+      { hue: palettes.Brand.baseColor.h, family: 'Brand' },
+      { hue: 0, family: null },
+      { hue: 0, family: null },
+    ];
+    const out = patchFor('complementary', axes);
     const accentHue = palettes.Accent.baseColor.h;
     expect(out.Accent).toEqual({ l: palettes.Accent.baseColor.l, c: palettes.Accent.baseColor.c, h: accentHue });
     expect(out.Brand.l).toBe(palettes.Brand.baseColor.l);
@@ -151,49 +166,60 @@ describe('applyHarmony', () => {
     expect('Background' in out).toBe(false);
   });
 
-  it('never touches families outside the order', () => {
-    const out = applyHarmony('triadic', palettes, ['Brand', 'Accent']);
+  it('never touches unbound families', () => {
+    const axes: HarmonyAxis[] = [
+      { hue: palettes.Brand.baseColor.h, family: 'Brand' },
+      { hue: palettes.Accent.baseColor.h, family: 'Accent' },
+      { hue: 0, family: null },
+      { hue: 0, family: null },
+    ];
+    const out = patchFor('triadic', axes);
     expect(Object.keys(out).sort()).toEqual(['Accent', 'Brand']);
     expect('Background' in out).toBe(false);
   });
 
-  it('returns no changes when the anchor config is missing', () => {
-    expect(applyHarmony('triadic', palettes, ['Alternate', 'Brand'])).toEqual({});
+  it('skips a bound axis whose config is missing', () => {
+    const axes: HarmonyAxis[] = [
+      { hue: 40, family: 'Alternate' }, // no palette in this map
+      { hue: palettes.Brand.baseColor.h, family: 'Brand' },
+      { hue: 0, family: null },
+      { hue: 0, family: null },
+    ];
+    const out = patchFor('triadic', axes);
+    expect('Alternate' in out).toBe(false);
+    expect('Brand' in out).toBe(true);
   });
 });
 
 describe('tintNeutralsFromAnchor', () => {
-  it('re-hues Neutral + Alternate to Brand hue, keeping their own c + L', () => {
+  it('re-hues Neutral + Alternate to the anchor hue, keeping their own c + L', () => {
     const palettes: Record<string, PaletteConfig> = {
       Brand: mkP(oklchToHex(0.6, 0.12, 120)),
       Neutral: mkP(oklchToHex(0.6, 0.02, 50)),
       Alternate: mkP(oklchToHex(0.62, 0.03, 300)),
       Special: mkP(oklchToHex(0.5, 0.15, 280)),
     };
-    const out = tintNeutralsFromAnchor(palettes);
+    const anchorHue = palettes.Brand.baseColor.h;
+    const out = tintNeutralsFromAnchor(palettes, anchorHue);
     expect(Object.keys(out).sort()).toEqual(['Alternate', 'Neutral']);
 
-    const brandHue = palettes.Brand.baseColor.h;
     for (const label of ['Neutral', 'Alternate']) {
       const before = palettes[label].baseColor;
-      expect(out[label]).toEqual({ l: before.l, c: before.c, h: brandHue });
+      expect(out[label]).toEqual({ l: before.l, c: before.c, h: anchorHue });
     }
     expect('Special' in out).toBe(false);
     expect('Brand' in out).toBe(false);
   });
 
-  it('tints from a non-Brand anchor (slot 0 of the order)', () => {
+  it('tints from an arbitrary anchor hue', () => {
     const palettes: Record<string, PaletteConfig> = {
-      Accent: mkP(oklchToHex(0.55, 0.12, 100)),
-      Brand: mkP(oklchToHex(0.6, 0.1, 30)),
       Neutral: mkP(oklchToHex(0.6, 0.02, 50)),
       Alternate: mkP(oklchToHex(0.62, 0.03, 300)),
     };
-    const out = tintNeutralsFromAnchor(palettes, ['Accent', 'Brand']);
-    const accentHue = palettes.Accent.baseColor.h;
+    const out = tintNeutralsFromAnchor(palettes, 100);
     for (const label of ['Neutral', 'Alternate']) {
       const before = palettes[label].baseColor;
-      expect(out[label]).toEqual({ l: before.l, c: before.c, h: accentHue });
+      expect(out[label]).toEqual({ l: before.l, c: before.c, h: 100 });
     }
   });
 });
@@ -329,25 +355,6 @@ describe('boundColorPatch', () => {
       { hue: 30, family: null }, { hue: 40, family: null },
     ];
     expect(boundColorPatch(axes, palettes)).toEqual({});
-  });
-});
-
-describe('bridge equivalence (deleted with applyHarmony in Wave 3)', () => {
-  const palettes: Record<string, PaletteConfig> = {
-    Brand: mkP(oklchToHex(0.6, 0.1, 30)),
-    Background: mkP(oklchToHex(0.65, 0.08, 200)),
-    Accent: mkP(oklchToHex(0.55, 0.12, 100)),
-    Special: mkP(oklchToHex(0.5, 0.15, 280)),
-    Neutral: mkP(oklchToHex(0.6, 0.02, 50)),
-  };
-
-  it('boundColorPatch(applyHarmonyToAxes(mode, axesFromLegacyOrder(default))) equals applyHarmony(mode)', () => {
-    const modes: Exclude<HarmonyMode, 'custom'>[] = ['complementary', 'split-complementary', 'triadic', 'square', 'analogous', 'monochromatic'];
-    for (const mode of modes) {
-      const axes = axesFromLegacyOrder(['Brand', 'Accent', 'Background'], palettes);
-      const patch = boundColorPatch(applyHarmonyToAxes(mode, axes), palettes);
-      expect(patch).toEqual(applyHarmony(mode, palettes));
-    }
   });
 });
 

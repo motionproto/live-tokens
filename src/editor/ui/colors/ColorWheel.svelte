@@ -1,40 +1,45 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
-  import { oklchToHex, oklchToHexClamped, type Oklch } from '../../core/palettes/oklch';
-  import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
+  import { oklchToHex, oklchToHexClamped } from '../../core/palettes/oklch';
+  import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginScope, commitScope, cancelScope, type Scope } from '../../core/store/editorStore';
-  import { setBaseHueChroma, setBaseChroma, setBaseColors } from './paletteBaseColor';
+  import { setBaseHueChroma, setBaseChroma, setAxisHue, setAxisHues } from './paletteBaseColor';
   import { maxChroma } from './colorWheelMath';
-  import { harmonyHues, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import { harmonyHues, AXIS_ROLES, AXIS_COUNT, type HarmonyMode } from '../../core/palettes/colorHarmony';
 
   interface Props {
     selected: string | null;
     onSelect: (label: string) => void;
     /** Lightness (0..1) the disc is painted at — the selected color's L. */
     discLightness: number;
-    /** Called when a per-axis edit detaches a family from its harmony geometry,
+    /** Called when a per-axis edit detaches the axes from their harmony geometry,
      *  so the parent can flip the active mode to 'custom'. */
     onCustomize: () => void;
     /** Rotation semantics: off (default) preserves relative saturation (constant
      *  render radius); on preserves absolute chroma (the dot drifts in/out). */
     absoluteChroma: boolean;
-    /** Hovered harmony mode: paints non-interactive ghost dots at the hues the
-     *  wheel families would move to, so the geometry previews before it's applied. */
+    /** Hovered harmony mode: paints non-interactive ghost markers at the hues the
+     *  axes would move to, so the geometry previews before it's applied. */
     previewMode?: HarmonyMode | null;
   }
 
   let { selected, onSelect, discLightness, onCustomize, absoluteChroma, previewMode = null }: Props = $props();
 
-  // Wheel families in slot order (slot 0 anchor, slot 1 primary partner) from the
-  // bound harmony axes, so the ghost preview pairs each family with its own slot
-  // hue. Unbound families stay off the wheel (swatch row only).
-  let wheelLabels = $derived(
-    $editorState.harmonyAxes.filter((a) => a.family !== null).map((a) => a.family!),
-  );
-  let wheelSpecs = $derived(
-    wheelLabels
-      .map((l) => PALETTE_SPECS.find((s) => s.label === l))
-      .filter((s): s is PaletteSpec => !!s),
+  // One handle per axis (index = role). A bound axis reads its color from the
+  // family's baseColor (hue equals axes[i].hue by invariant 1); an unbound axis
+  // carries only its stored hue, previewing where a dropped color would land.
+  let axisData = $derived(
+    $editorState.harmonyAxes.map((axis, i) => {
+      const common = { index: i, role: AXIS_ROLES[i], family: axis.family, bound: axis.family !== null };
+      if (axis.family !== null) {
+        const spec = PALETTE_SPECS.find((s) => s.label === axis.family);
+        const { l, c, h } = $editorState.palettes[axis.family]?.baseColor ?? spec!.initialColor;
+        const mc = maxChroma(l, h) || 1e-6;
+        // `hex` is the clamped sRGB projection painting the dot fill only.
+        return { ...common, hex: oklchToHexClamped(l, c, h), hue: h, chroma: c, lightness: l, rFrac: clamp(c / mc, 0, 1) };
+      }
+      return { ...common, hex: '', hue: axis.hue, chroma: 0, lightness: discLightness, rFrac: 0 };
+    }),
   );
 
   // Reserved judgment call: keyboard nudge increments.
@@ -69,47 +74,44 @@
   // here, never re-derived from the just-written 8-bit hex (that round-trip is
   // lossy and makes the non-dragged coordinate wobble). Writes also use the
   // pristine hue0/L0, so nothing accumulates across frames.
-  type RotateStart = { hue0: number; chroma0: number; rFrac0: number; l0: number };
+  type AxisView = {
+    index: number; role: string; family: string | null; bound: boolean;
+    hex: string; hue: number; chroma: number; lightness: number; rFrac: number;
+  };
+
+  // `bound` gates the chroma policy: only a bound axis carries a color to re-hue.
+  type RotateStart = { hue0: number; chroma0: number; rFrac0: number; l0: number; bound: boolean };
   type Drag =
-    | { kind: 'axis'; label: string; angle: number; start: RotateStart }
-    | { kind: 'global'; start: Record<string, RotateStart>; delta: number; lastAngle: number; angle: number }
-    | { kind: 'chroma'; label: string; hue0: number; l0: number; maxC0: number; rFrac: number };
+    | { kind: 'axis'; index: number; angle: number; start: RotateStart }
+    | { kind: 'global'; start: RotateStart[]; delta: number; lastAngle: number; angle: number }
+    | { kind: 'chroma'; index: number; family: string; hue0: number; l0: number; maxC0: number; rFrac: number };
   let drag: Drag | null = $state(null);
   let dragScope: Scope | null = null;
 
-  let wheel = $derived(
-    wheelSpecs.map((spec) => {
-      const { l, c, h } = $editorState.palettes[spec.label]?.baseColor ?? spec.initialColor;
-      const mc = maxChroma(l, h) || 1e-6;
-      // `hex` is the clamped sRGB projection painting the dot fill only.
-      return { label: spec.label, hex: oklchToHexClamped(l, c, h), hue: h, chroma: c, lightness: l, rFrac: clamp(c / mc, 0, 1) };
-    }),
-  );
-
-  // Overlay the transient intent onto the store-derived wheel so the active rail
+  // Overlay the transient intent onto the store-derived axes so the active rail
   // / dot / handle tracks the pointer with no store round-trip. The dragged
   // coordinate follows the pointer; the OTHER is locked to gesture-start intent
   // (rotation → radius; chroma → angle) — neither is re-read from the hex.
-  let wheelRender = $derived(
-    wheel.map((t) => {
+  let axisRender = $derived(
+    axisData.map((t) => {
       let hue = t.hue;
       let rFrac = t.rFrac;
       const d = drag;
-      if (d?.kind === 'axis' && d.label === t.label) {
+      if (d?.kind === 'axis' && d.index === t.index) {
         hue = d.angle;
-        rFrac = rotateRadius(d.start, hue);
-      } else if (d?.kind === 'chroma' && d.label === t.label) {
+        rFrac = t.bound ? rotateRadius(d.start, hue) : 0;
+      } else if (d?.kind === 'chroma' && d.index === t.index) {
         hue = d.hue0;
         rFrac = d.rFrac;
-      } else if (d?.kind === 'global' && d.start[t.label]) {
-        hue = normDeg(d.start[t.label].hue0 + d.delta);
-        rFrac = rotateRadius(d.start[t.label], hue);
+      } else if (d?.kind === 'global' && d.start[t.index]) {
+        hue = normDeg(d.start[t.index].hue0 + d.delta);
+        rFrac = t.bound ? rotateRadius(d.start[t.index], hue) : 0;
       }
       const dotR = rFrac * discRadius;
       return {
         ...t,
         hue,
-        selected: selected === t.label,
+        selected: t.bound && selected === t.family,
         dot: { x: center + dotR * Math.cos(rad(hue)), y: center - dotR * Math.sin(rad(hue)) },
         ext: { x: center + extRadius * Math.cos(rad(hue)), y: center - extRadius * Math.sin(rad(hue)) },
         // Orient the glyph tangent to the ring (perpendicular to the radius).
@@ -125,21 +127,21 @@
     return { x: center + extRadius * Math.cos(rad(angle)), y: center - extRadius * Math.sin(rad(angle)) };
   });
 
-  // Ghost dots for a hovered harmony mode: each wheel family re-hued to the
-  // would-be geometry, its own chroma preserved (so radius = chroma at the new
-  // hue, matching what applyHarmony will produce). Anchor-stationary members are
-  // dropped so a ghost never sits atop its live dot. Non-interactive.
+  // Ghost previews for a hovered harmony mode: every axis re-hued to the would-be
+  // geometry (anchored on axis 0's hue). A bound axis previews at its family's
+  // chroma radius; an unbound axis shows a marker on the external track. Axes that
+  // wouldn't move are dropped so a ghost never sits atop its live handle. Inert.
   let ghosts = $derived.by(() => {
     if (!previewMode || previewMode === 'custom' || drag) return [];
-    const anchor = wheel.find((t) => t.label === wheelLabels[0]);
-    if (!anchor) return [];
-    const hues = harmonyHues(previewMode, anchor.hue, wheelLabels.length);
-    return wheelLabels.flatMap((label, i) => {
-      const t = wheel.find((x) => x.label === label);
-      if (!t || Math.abs(angleDelta(hues[i], t.hue)) < 0.5) return [];
-      const rFrac = clamp(t.chroma / (maxChroma(t.lightness, hues[i]) || 1e-6), 0, 1);
-      const r = rFrac * discRadius;
-      return [{ label, hex: t.hex, x: center + r * Math.cos(rad(hues[i])), y: center - r * Math.sin(rad(hues[i])) }];
+    const hues = harmonyHues(previewMode, $editorState.harmonyAxes[0].hue, AXIS_COUNT);
+    return axisData.flatMap((t, i) => {
+      if (Math.abs(angleDelta(hues[i], t.hue)) < 0.5) return [];
+      if (t.bound) {
+        const rFrac = clamp(t.chroma / (maxChroma(t.lightness, hues[i]) || 1e-6), 0, 1);
+        const r = rFrac * discRadius;
+        return [{ index: i, bound: true, hex: t.hex, x: center + r * Math.cos(rad(hues[i])), y: center - r * Math.sin(rad(hues[i])) }];
+      }
+      return [{ index: i, bound: false, hex: '', x: center + extRadius * Math.cos(rad(hues[i])), y: center - extRadius * Math.sin(rad(hues[i])) }];
     });
   });
 
@@ -241,8 +243,8 @@
   const rFracOf = (t: { chroma: number; lightness: number; hue: number }) =>
     clamp(t.chroma / (maxChroma(t.lightness, t.hue) || 1e-6), 0, 1);
 
-  const startOf = (t: { hue: number; chroma: number; lightness: number }): RotateStart =>
-    ({ hue0: t.hue, chroma0: t.chroma, rFrac0: rFracOf(t), l0: t.lightness });
+  const startOf = (t: AxisView): RotateStart =>
+    ({ hue0: t.hue, chroma0: t.chroma, rFrac0: rFracOf(t), l0: t.lightness, bound: t.bound });
 
   // Render radius for a rotating family, from pristine intent (not the hex).
   // Off: relative saturation held constant (rFrac0). On: absolute chroma0
@@ -253,42 +255,40 @@
     return clamp(s.chroma0 / (maxChroma(s.l0, renderHue) || 1e-6), 0, 1);
   }
 
-  // The one rotation write, from pristine gesture-start intent. Off holds the
-  // gamut fraction (chroma = rFrac0·maxChroma(L0, newHue)); on holds absolute
-  // chroma0 (gamut-clamped for display only). L preserved; single store path.
-  function writeRotation(label: string, newHue: number, s: RotateStart) {
-    if (absoluteChroma) setBaseHueChroma(label, newHue, s.chroma0);
-    else setBaseHueChroma(label, newHue, s.rFrac0 * maxChroma(s.l0, newHue));
+  // Chroma a rotating bound family carries, from pristine gesture-start intent.
+  // Off holds the gamut fraction (rFrac0·maxChroma(L0, newHue)); on holds absolute
+  // chroma0 (gamut-clamped for display only). Unbound axes carry no chroma.
+  function chromaForPolicy(s: RotateStart, newHue: number): number {
+    return absoluteChroma ? s.chroma0 : s.rFrac0 * maxChroma(s.l0, newHue);
   }
 
-  // Per-axis rotate — detaches harmony to custom.
-  function startAxisDrag(e: PointerEvent, label: string) {
+  // Per-axis rotate — detaches harmony to custom. Bound axes select + re-hue their
+  // family (via setAxisHue's coherent write); unbound axes move only their hue.
+  function startAxisDrag(e: PointerEvent, axis: AxisView) {
     if (e.button !== 0) return;
     e.preventDefault();
-    onSelect(label);
+    if (axis.family !== null) onSelect(axis.family);
     onCustomize();
     capture(e);
-    openGesture(`colors: ${label} rotate`);
-    const t = wheel.find((x) => x.label === label);
-    const start = t ? startOf(t) : { hue0: pointerAngle(e), chroma0: 0, rFrac0: 0, l0: discLightness };
-    drag = { kind: 'axis', label, angle: pointerAngle(e), start };
+    openGesture(`colors: ${axis.role} axis rotate`);
+    drag = { kind: 'axis', index: axis.index, angle: pointerAngle(e), start: startOf(axis) };
     applyAxis(e);
   }
   function applyAxis(e: PointerEvent) {
     if (drag?.kind !== 'axis') return;
     const angle = pointerAngle(e);
     drag.angle = angle;
-    writeRotation(drag.label, angle, drag.start);
+    const { start } = drag;
+    setAxisHue(drag.index, angle, start.bound ? chromaForPolicy(start, angle) : undefined);
   }
 
-  // Global rotate — all wheel hues by the same accumulated delta (mode kept).
+  // Global rotate — every axis hue by the same accumulated delta (mode kept).
   function startGlobalDrag(e: PointerEvent) {
     if (e.button !== 0) return;
     e.preventDefault();
     capture(e);
     openGesture('colors: rotate all');
-    const start: Record<string, RotateStart> = {};
-    for (const t of wheel) start[t.label] = startOf(t);
+    const start = axisRender.map((t) => startOf(t));
     const a = pointerAngle(e);
     drag = { kind: 'global', start, delta: 0, lastAngle: a, angle: a };
   }
@@ -298,23 +298,25 @@
     drag.delta += angleDelta(a, drag.lastAngle);
     drag.lastAngle = a;
     drag.angle = a;
-    for (const [label, s] of Object.entries(drag.start)) {
-      writeRotation(label, s.hue0 + drag.delta, s);
-    }
+    const { delta } = drag;
+    drag.start.forEach((s, index) => {
+      const newHue = s.hue0 + delta;
+      setAxisHue(index, newHue, s.bound ? chromaForPolicy(s, newHue) : undefined);
+    });
   }
 
-  // Rail-constrained chroma — 1D radial along the rail, hue PINNED to hue0 for
-  // the whole gesture (render + write) so the axis can't wobble off the hex.
-  function startChromaDrag(e: PointerEvent, label: string) {
-    if (e.button !== 0) return;
+  // Rail-constrained chroma (bound axes only) — 1D radial along the rail, hue
+  // PINNED to hue0 for the whole gesture (render + write) so it can't wobble off.
+  function startChromaDrag(e: PointerEvent, axis: AxisView) {
+    if (e.button !== 0 || axis.family === null) return;
     e.preventDefault();
-    onSelect(label);
+    onSelect(axis.family);
     capture(e);
-    openGesture(`colors: ${label} chroma`);
-    const t = wheel.find((x) => x.label === label);
-    const hue0 = t?.hue ?? 0;
-    const l0 = t?.lightness ?? discLightness;
-    drag = { kind: 'chroma', label, hue0, l0, maxC0: maxChroma(l0, hue0) || 1e-6, rFrac: t?.rFrac ?? 0 };
+    openGesture(`colors: ${axis.family} chroma`);
+    drag = {
+      kind: 'chroma', index: axis.index, family: axis.family, hue0: axis.hue, l0: axis.lightness,
+      maxC0: maxChroma(axis.lightness, axis.hue) || 1e-6, rFrac: axis.rFrac,
+    };
     applyChroma(e);
   }
   function applyChroma(e: PointerEvent) {
@@ -325,7 +327,7 @@
     const proj = dx * Math.cos(rad(drag.hue0)) - dy * Math.sin(rad(drag.hue0)); // onto the pinned rail
     const rFrac = clamp(proj / (r.width / 2 - MARGIN), 0, 1);
     drag.rFrac = rFrac;
-    setBaseHueChroma(drag.label, drag.hue0, rFrac * drag.maxC0);
+    setBaseHueChroma(drag.family, drag.hue0, rFrac * drag.maxC0);
   }
 
   function moveDrag(e: PointerEvent) {
@@ -336,33 +338,31 @@
   }
 
   function rotateAll(delta: number) {
-    const patch: Record<string, Oklch> = {};
-    for (const t of wheel) {
-      const newHue = normDeg(t.hue + delta);
+    const entries = axisData.map((t) => ({
+      index: t.index,
+      hue: t.hue + delta,
       // Unclamped intent: off holds the gamut fraction, on holds absolute chroma.
-      patch[t.label] = absoluteChroma
-        ? { l: t.lightness, c: t.chroma, h: newHue }
-        : { l: t.lightness, c: rFracOf(t) * maxChroma(t.lightness, newHue), h: newHue };
-    }
-    setBaseColors(patch, 'colors: rotate all');
+      familyChroma: t.bound
+        ? (absoluteChroma ? t.chroma : rFracOf(t) * maxChroma(t.lightness, normDeg(t.hue + delta)))
+        : undefined,
+    }));
+    setAxisHues(entries, 'colors: rotate all');
   }
 
-  function axisKey(e: KeyboardEvent, label: string) {
-    const t = wheel.find((x) => x.label === label);
-    if (!t) return;
+  function axisKey(e: KeyboardEvent, axis: AxisView) {
     let dir = 0;
     if (e.key === 'ArrowLeft') dir = -1;
     else if (e.key === 'ArrowRight') dir = 1;
     else return;
     e.preventDefault();
     onCustomize();
-    writeRotation(label, t.hue + dir * HUE_STEP, startOf(t));
+    const newHue = axis.hue + dir * HUE_STEP;
+    setAxisHue(axis.index, newHue, axis.bound ? chromaForPolicy(startOf(axis), newHue) : undefined);
   }
-  function dotKey(e: KeyboardEvent, label: string) {
-    const t = wheel.find((x) => x.label === label);
-    if (!t) return;
-    if (e.key === 'ArrowUp') { e.preventDefault(); setBaseChroma(label, t.chroma + CHROMA_STEP); }
-    else if (e.key === 'ArrowDown') { e.preventDefault(); setBaseChroma(label, t.chroma - CHROMA_STEP); }
+  function dotKey(e: KeyboardEvent, axis: AxisView) {
+    if (axis.family === null) return;
+    if (e.key === 'ArrowUp') { e.preventDefault(); setBaseChroma(axis.family, axis.chroma + CHROMA_STEP); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); setBaseChroma(axis.family, axis.chroma - CHROMA_STEP); }
   }
   function globalKey(e: KeyboardEvent) {
     if (e.key === 'ArrowLeft') { e.preventDefault(); rotateAll(-HUE_STEP); }
@@ -388,51 +388,56 @@
     <!-- Dotted tether center→icon, drawn first so the solid rail below covers
          its inner half — reads as one axis that extends outward as dots to the
          external handle. Same angle as the handle, so it tracks live. -->
-    {#each wheelRender as t (t.label)}
-      <line class="tether" x1={center} y1={center} x2={t.ext.x} y2={t.ext.y} />
+    {#each axisRender as t (t.index)}
+      <line class="tether" class:unbound={!t.bound} x1={center} y1={center} x2={t.ext.x} y2={t.ext.y} />
     {/each}
-    {#each wheelRender as t (t.label)}
-      <line class="rail" x1={center} y1={center} x2={t.dot.x} y2={t.dot.y} />
+    {#each axisRender as t (t.index)}
+      {#if t.bound}
+        <line class="rail" x1={center} y1={center} x2={t.dot.x} y2={t.dot.y} />
+      {/if}
     {/each}
   </svg>
 
-  {#each ghosts as g (g.label)}
-    <span class="ghost" style="left: {g.x}px; top: {g.y}px; --fill: {g.hex}" aria-hidden="true"></span>
+  {#each ghosts as g (g.index)}
+    <span class="ghost" class:unbound={!g.bound} style="left: {g.x}px; top: {g.y}px; --fill: {g.hex}" aria-hidden="true"></span>
   {/each}
 
-  {#each wheelRender as t (t.label)}
-    <button
-      type="button"
-      class="dot"
-      class:selected={t.selected}
-      style="left: {t.dot.x}px; top: {t.dot.y}px; --fill: {t.hex}"
-      aria-label={`${t.label} — drag along rail to adjust chroma`}
-      title={`${t.label} (drag for chroma)`}
-      onpointerdown={(e) => startChromaDrag(e, t.label)}
-      onpointermove={moveDrag}
-      onpointerup={endDrag}
-      onpointercancel={endDrag}
-      onlostpointercapture={endDrag}
-      onkeydown={(e) => dotKey(e, t.label)}
-      onclick={() => onSelect(t.label)}
-    ></button>
+  {#each axisRender as t (t.index)}
+    {#if t.bound && t.family !== null}
+      <button
+        type="button"
+        class="dot"
+        class:selected={t.selected}
+        style="left: {t.dot.x}px; top: {t.dot.y}px; --fill: {t.hex}"
+        aria-label={`${t.family} — drag along rail to adjust chroma`}
+        title={`${t.family} (drag for chroma)`}
+        onpointerdown={(e) => startChromaDrag(e, t)}
+        onpointermove={moveDrag}
+        onpointerup={endDrag}
+        onpointercancel={endDrag}
+        onlostpointercapture={endDrag}
+        onkeydown={(e) => dotKey(e, t)}
+        onclick={() => t.family !== null && onSelect(t.family)}
+      ></button>
+    {/if}
   {/each}
 
-  {#each wheelRender as t (t.label)}
+  {#each axisRender as t (t.index)}
     <button
       type="button"
       class="ext-handle"
+      class:unbound={!t.bound}
       class:selected={t.selected}
       style="left: {t.ext.x}px; top: {t.ext.y}px; transform: translate(-50%, -50%) rotate({t.iconRot}deg)"
-      aria-label={`Rotate ${t.label} hue`}
-      title={`Rotate ${t.label} hue`}
-      onpointerdown={(e) => startAxisDrag(e, t.label)}
+      aria-label={t.bound ? `Rotate ${t.role} axis hue (${t.family})` : `Rotate ${t.role} axis hue`}
+      title={t.bound ? `Rotate ${t.role} axis hue (${t.family})` : `Rotate ${t.role} axis hue`}
+      onpointerdown={(e) => startAxisDrag(e, t)}
       onpointermove={moveDrag}
       onpointerup={endDrag}
       onpointercancel={endDrag}
       onlostpointercapture={endDrag}
-      onkeydown={(e) => axisKey(e, t.label)}
-      onclick={() => onSelect(t.label)}
+      onkeydown={(e) => axisKey(e, t)}
+      onclick={() => t.family !== null && onSelect(t.family)}
     ><i class="fas fa-arrows-left-right" aria-hidden="true"></i></button>
   {/each}
 
@@ -490,6 +495,13 @@
     opacity: 0.9;
   }
 
+  /* Unbound axis: no solid rail covers the inner half, so fade the whole tether
+     to read as an empty preview axis rather than a live color. */
+  .tether.unbound {
+    stroke: var(--ui-border-high);
+    opacity: 0.55;
+  }
+
   /* Faint ring the external axis handles ride along. Decorative. */
   .track {
     fill: none;
@@ -511,6 +523,15 @@
     opacity: 0.55;
     pointer-events: none;
     z-index: 1;
+  }
+
+  /* Unbound-axis ghost: a hollow greyscale marker on the external track (no color
+     to preview, only where a dropped color's hue would land). */
+  .ghost.unbound {
+    width: 0.7rem;
+    height: 0.7rem;
+    background: transparent;
+    border-color: var(--ui-text-secondary);
   }
 
   /* Inner color dots — the only elements that carry actual palette colour. */
@@ -587,6 +608,21 @@
   .ext-handle.selected {
     color: var(--ui-text-primary);
     border-color: var(--ui-text-primary);
+  }
+
+  /* Unbound axis handle: hollow + dashed so it reads as an empty preview slot,
+     not a live color handle. */
+  .ext-handle.unbound {
+    background: transparent;
+    border-style: dashed;
+    border-color: var(--ui-border);
+    color: var(--ui-text-tertiary);
+  }
+
+  .ext-handle.unbound:hover {
+    background: var(--ui-surface-low);
+    border-color: var(--ui-border-high);
+    color: var(--ui-text-secondary);
   }
 
   .dot:focus-visible,

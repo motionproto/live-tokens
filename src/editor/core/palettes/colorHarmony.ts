@@ -81,47 +81,23 @@ function reHue(config: PaletteConfig, hue: number): Oklch {
   return { l, c, h: norm(hue) };
 }
 
-/**
- * New baseColors for the families in `order` under `mode`. The slot-0 family is
- * the anchor and keeps its hue; the rest are re-hued to the harmony geometry with
- * their own chroma + lightness preserved. `'custom'` imposes no constraint and
- * returns no changes. Families not in `order` are never touched.
- */
-export function applyHarmony(
-  mode: HarmonyMode,
-  palettes: Record<string, PaletteConfig>,
-  order: readonly string[] = DEFAULT_HARMONY_ORDER,
-): Record<string, Oklch> {
-  if (mode === 'custom') return {};
-  const anchor = palettes[order[0]];
-  if (!anchor) return {};
-  const hues = harmonyHues(mode, anchor.baseColor.h, order.length);
-  const out: Record<string, Oklch> = {};
-  order.forEach((label, i) => {
-    const config = palettes[label];
-    if (config) out[label] = reHue(config, hues[i]);
-  });
-  return out;
-}
-
-/** Re-hue Neutral and Alternate to the anchor hue, own chroma + lightness kept. */
+/** Re-hue Neutral and Alternate to `anchorHue`, own chroma + lightness kept. */
 export function tintNeutralsFromAnchor(
   palettes: Record<string, PaletteConfig>,
-  order: readonly string[] = DEFAULT_HARMONY_ORDER,
+  anchorHue: number,
 ): Record<string, Oklch> {
-  const anchor = palettes[order[0]];
-  if (!anchor) return {};
-  const hue = anchor.baseColor.h;
   const out: Record<string, Oklch> = {};
   for (const label of ['Neutral', 'Alternate']) {
     const config = palettes[label];
-    if (config) out[label] = reHue(config, hue);
+    if (config) out[label] = reHue(config, anchorHue);
   }
   return out;
 }
 
+// Callers only pass HARMONY_ELIGIBLE families, all of which have a spec; a miss
+// is a programming error, so surface it rather than seed a silent hue 0.
 const specInitialHue = (label: string): number =>
-  PALETTE_SPECS.find((s) => s.label === label)?.initialColor.h ?? 0;
+  PALETTE_SPECS.find((s) => s.label === label)!.initialColor.h;
 
 /**
  * Seed the four axes for a fresh editor: the default trio bound (hues read from
