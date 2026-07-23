@@ -1,5 +1,7 @@
 # Execution plan: harmony axes own their hues (`harmonyAxes`)
 
+> **Execution record (2026-07-23).** All four waves executed and review-approved on branch `harmony-axes-redesign`: W1 `11eec6c`, W2 `73ed69e`, W3 `e52ab00` + fix `ea15195` (PaletteEditor base edits sync the bound axis; see the W3 addendum), W4 `caeb204`. Final state: `npm run check` 0 errors, `npm test` 3072 passing (baseline 3044 + net new axis tests), Svelte autofixer clean on every touched component. Browser QA passed: default state, keyboard bind Special→Quaternary (adopts axis hue anchor+270), square mode (one undo), unbind keeps color and axis hue, trade-places round trip with focus-follow, no-op actions add no undo entries. Reload-persistence was verified at the unit level (toTheme→loadFromFile round-trips sparse layouts); in-browser reload intentionally reverts unsaved edits because boot always seeds from the server's active theme (`themeInit.ts`), which predates this feature. Not merged, not pushed.
+
 Branch: create **`harmony-axes-redesign`** off `main` @ `88897dd`. Four waves, each a single commit unit executable by a sub-agent with only this doc and the repo. Waves are strictly sequential; each ends green (`npm run check` 0 errors, `npm test` all passing).
 
 **Precondition:** a clean working tree on `main` @ `88897dd`. Never stash, reset, or checkout over uncommitted changes; if the tree is dirty, stop and report.
