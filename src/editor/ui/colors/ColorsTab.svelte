@@ -12,16 +12,7 @@
   import HarmonyAxesList from './HarmonyAxesList.svelte';
   import UIPillButton from '../UIPillButton.svelte';
   import { setBaseColor, setBaseColors, setAxisHues, applySolvedTextCurves } from './paletteBaseColor';
-
-  // Greyscale glyphs approximating the Adobe harmony row.
-  const MODES: { mode: HarmonyMode; icon: string; label: string }[] = [
-    { mode: 'analogous', icon: 'fa-grip-lines-vertical', label: 'Analogous' },
-    { mode: 'monochromatic', icon: 'fa-circle', label: 'Monochromatic' },
-    { mode: 'complementary', icon: 'fa-circle-half-stroke', label: 'Complementary' },
-    { mode: 'split-complementary', icon: 'fa-code-branch', label: 'Split complementary' },
-    { mode: 'triadic', icon: 'fa-caret-up', label: 'Triadic' },
-    { mode: 'square', icon: 'fa-square', label: 'Square' },
-  ];
+  import { HARMONY_MODE_BUTTONS } from './harmonyModeIcons';
 
   let selected = $state('Brand');
   let activeMode = $state<HarmonyMode>('custom');
@@ -51,6 +42,10 @@
   });
 
   function applyMode(mode: HarmonyMode) {
+    if (mode === 'custom') {
+      activeMode = 'custom';
+      return;
+    }
     activeMode = mode;
     // Hue-only: every axis moves to its slot hue and each bound family follows in
     // the same transaction. setAxisHues no-op-guards a re-applied geometry.
@@ -104,9 +99,9 @@
       <LightnessBar {selected} {absoluteChroma} />
 
       <div class="group">
-        <span class="eyebrow">Harmony{#if activeMode === 'custom'} · custom{/if}</span>
+        <span class="eyebrow">Harmony</span>
         <div class="mode-row" role="group" aria-label="Harmony mode">
-          {#each MODES as m (m.mode)}
+          {#each HARMONY_MODE_BUTTONS as m (m.mode)}
             <button
               type="button"
               class="mode-btn"
@@ -119,7 +114,7 @@
               onpointerleave={() => (previewMode = null)}
               onfocus={() => (previewMode = m.mode)}
               onblur={() => (previewMode = null)}
-            ><i class="fas {m.icon}" aria-hidden="true"></i></button>
+            >{@html m.svg}</button>
           {/each}
         </div>
 
@@ -301,8 +296,13 @@
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-secondary);
     cursor: pointer;
-    font-size: var(--ui-font-size-md);
     transition: background var(--ui-transition-fast), border-color var(--ui-transition-fast), color var(--ui-transition-fast);
+  }
+
+  .mode-btn :global(svg) {
+    width: 1.375rem;
+    height: 1.375rem;
+    display: block;
   }
 
   .mode-btn:hover {
