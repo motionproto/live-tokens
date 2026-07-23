@@ -3,11 +3,11 @@
     <circle fill="none" stroke="currentColor" stroke-width="18" opacity="0.25" cx="128" cy="128" r="90"/>
   </g>
   <g>
-    <circle fill="currentColor" cx="128" cy="38" r="24"/>
+    <circle fill="currentColor" cx="128" cy="38" r="14"/>
     <line fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" x1="128" y1="128" x2="128" y2="38"/>
-    <circle fill="currentColor" cx="64.36" cy="64.36" r="24"/>
+    <circle fill="currentColor" cx="64.36" cy="64.36" r="14"/>
     <line fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" x1="128" y1="128" x2="64.36" y2="64.36"/>
-    <circle fill="currentColor" cx="191.64" cy="64.36" r="24"/>
+    <circle fill="currentColor" cx="191.64" cy="64.36" r="14"/>
     <line fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" x1="128" y1="128" x2="191.64" y2="64.36"/>
   </g>
 </svg>
