@@ -1,7 +1,9 @@
 <script lang="ts">
   import { editorState } from '../../core/store/editorStore';
-  import { palettesToVars } from '../../core/palettes/paletteDerivation';
+  import { palettesToVars, PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
+  import { defaultPaletteConfig } from '../palette/paletteMath';
   import { contrastRatio } from '../../core/palettes/contrast';
+  import type { PaletteConfig } from '../../core/themes/themeTypes';
 
   // 60-30-10 as an area composition: the background surface is the dominant 60%
   // field (the page), and Brand/Accent/Special are the tones shown against it.
@@ -19,9 +21,30 @@
     { label: 'Danger', ns: 'danger' },
   ] as const;
 
-  // Ratios come from the store-derived hexes, never getComputedStyle, so they
-  // update live during drags and match what the theme will actually ship.
-  let vars = $derived(palettesToVars($editorState.palettes));
+  // Every color the story renders comes from this store-derived map — the same
+  // source as the ratios — never from the ambient :root variables. Ambient vars
+  // stay at their vendored defaults for families a loaded theme doesn't
+  // configure, so a story bound to them silently goes static. Unconfigured
+  // families derive from their spec defaults instead.
+  let vars = $derived.by(() => {
+    const full: Record<string, PaletteConfig> = {};
+    for (const spec of PALETTE_SPECS) {
+      full[spec.label] =
+        $editorState.palettes[spec.label] ??
+        defaultPaletteConfig({ baseColor: spec.initialColor, neutral: spec.neutral ?? false });
+    }
+    return palettesToVars(full);
+  });
+
+  // Shadow the consumed variables locally with the store-derived values, so the
+  // markup below can keep referencing var(--…) while never reading :root.
+  let storyVars = $derived(
+    ['--page-bg', '--text-primary', '--text-secondary']
+      .concat([...TONES, ...FUNCTIONAL].flatMap((t) => [`--surface-${t.ns}`, `--text-${t.ns}`]))
+      .filter((name) => vars[name] !== undefined)
+      .map((name) => `${name}: ${vars[name]}`)
+      .join('; '),
+  );
 
   // The guaranteed, real-use pairing: a family's text on the BACKGROUND page,
   // not on its own saturated surface. That is what "Derive accessible text"
@@ -41,7 +64,7 @@
   let bgRatio = $derived(ratioOnBg('--text-primary'));
 </script>
 
-<div class="story">
+<div class="story" style={storyVars}>
   <div class="field">
     <div class="field-head">
       <span class="field-label">Background</span>

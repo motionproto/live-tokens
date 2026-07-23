@@ -5,6 +5,7 @@ import {
   AXIS_COUNT,
   AXIS_ROLES,
   defaultHarmonyAxes,
+  modeHasQuaternary,
   applyHarmonyToAxes,
   boundColorPatch,
   sanitizeHarmonyAxes,
@@ -54,6 +55,18 @@ describe('harmonyHues geometry', () => {
     expect(harmonyHues('square', 30, 1)).toEqual([30]);
     expect(harmonyHues('square', 30, 2)).toEqual([30, 210]);
     expect(harmonyHues('square', 30, 4)).toEqual([30, 210, 120, 300]);
+  });
+});
+
+describe('modeHasQuaternary', () => {
+  it('is true only for the modes whose slot 3 is a distinct position', () => {
+    expect(modeHasQuaternary('square')).toBe(true);
+    expect(modeHasQuaternary('analogous')).toBe(true);
+    expect(modeHasQuaternary('complementary')).toBe(false);
+    expect(modeHasQuaternary('split-complementary')).toBe(false);
+    expect(modeHasQuaternary('triadic')).toBe(false);
+    expect(modeHasQuaternary('monochromatic')).toBe(false);
+    expect(modeHasQuaternary('custom')).toBe(false);
   });
 });
 
@@ -262,9 +275,20 @@ describe('applyHarmonyToAxes', () => {
     const modes: HarmonyMode[] = ['complementary', 'split-complementary', 'triadic', 'square', 'analogous', 'monochromatic'];
     for (const mode of modes) {
       const out = applyHarmonyToAxes(mode, baseAxes());
-      expect(out.map((a) => a.hue)).toEqual(harmonyHues(mode, 30, AXIS_COUNT));
+      const slots = harmonyHues(mode, 30, AXIS_COUNT);
+      const expected = modeHasQuaternary(mode) ? slots : [...slots.slice(0, 3), 300];
+      expect(out.map((a) => a.hue)).toEqual(expected);
       expect(out.map((a) => a.family)).toEqual(['Brand', 'Accent', 'Background', null]);
     }
+  });
+
+  it('leaves the Quaternary axis untouched in modes without a distinct fourth slot, bound included', () => {
+    const axes = baseAxes();
+    axes[3] = { hue: 300, family: 'Special' };
+    const out = applyHarmonyToAxes('triadic', axes);
+    expect(out[3]).toEqual({ hue: 300, family: 'Special' });
+    const sq = applyHarmonyToAxes('square', axes);
+    expect(sq[3]).toEqual({ hue: n(30 + 270), family: 'Special' });
   });
 
   it('custom returns an unchanged copy', () => {

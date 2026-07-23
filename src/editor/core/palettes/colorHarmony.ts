@@ -116,13 +116,26 @@ export function defaultHarmonyAxes(): HarmonyAxis[] {
 }
 
 /**
+ * Whether `mode`'s geometry defines a distinct fourth position: slot 3 must not
+ * repeat an earlier slot. True only for square (+270) and analogous (+60); the
+ * other modes pad slot 3, and custom imposes no geometry, so its slots coincide.
+ */
+export function modeHasQuaternary(mode: HarmonyMode): boolean {
+  const slots = harmonyHues(mode, 0, AXIS_COUNT);
+  return slots.slice(0, 3).every((h) => h !== slots[3]);
+}
+
+/**
  * Re-deal every axis's hue from `mode`'s geometry, anchored on axis 0's hue.
  * Bindings are preserved; `'custom'` imposes no constraint and returns a copy.
+ * A mode without a distinct fourth position leaves the Quaternary axis alone —
+ * its slot would be a repeat, and the UI disables the axis for such modes.
  */
 export function applyHarmonyToAxes(mode: HarmonyMode, axes: HarmonyAxis[]): HarmonyAxis[] {
   if (mode === 'custom') return axes.map((a) => ({ ...a }));
   const hues = harmonyHues(mode, axes[0].hue, AXIS_COUNT);
-  return axes.map((a, i) => ({ hue: hues[i], family: a.family }));
+  const quaternary = modeHasQuaternary(mode);
+  return axes.map((a, i) => (i === 3 && !quaternary ? { ...a } : { hue: hues[i], family: a.family }));
 }
 
 /**

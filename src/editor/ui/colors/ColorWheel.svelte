@@ -5,7 +5,7 @@
   import { editorState, beginScope, commitScope, cancelScope, type Scope } from '../../core/store/editorStore';
   import { setBaseHueChroma, setBaseChroma, setAxisHue, setAxisHues } from './paletteBaseColor';
   import { maxChroma } from './colorWheelMath';
-  import { harmonyHues, AXIS_ROLES, AXIS_COUNT, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import { applyHarmonyToAxes, modeHasQuaternary, AXIS_ROLES, type HarmonyMode } from '../../core/palettes/colorHarmony';
 
   interface Props {
     selected: string | null;
@@ -18,12 +18,15 @@
     /** Rotation semantics: off (default) preserves relative saturation (constant
      *  render radius); on preserves absolute chroma (the dot drifts in/out). */
     absoluteChroma: boolean;
+    /** The applied harmony mode: gates whether an unbound Quaternary axis exists
+     *  on the wheel (only geometries with a distinct fourth slot show one). */
+    activeMode: HarmonyMode;
     /** Hovered harmony mode: paints non-interactive ghost markers at the hues the
      *  axes would move to, so the geometry previews before it's applied. */
     previewMode?: HarmonyMode | null;
   }
 
-  let { selected, onSelect, discLightness, onCustomize, absoluteChroma, previewMode = null }: Props = $props();
+  let { selected, onSelect, discLightness, onCustomize, absoluteChroma, activeMode, previewMode = null }: Props = $props();
 
   // One handle per axis (index = role). A bound axis reads its color from the
   // family's baseColor (hue equals axes[i].hue by invariant 1); an unbound axis
@@ -42,11 +45,17 @@
     }),
   );
 
+  // An unbound Quaternary axis exists only when the applied geometry has a
+  // distinct fourth slot; a bound one always renders (it carries a real color).
+  let quaternaryVisible = $derived(axisData[3].bound || modeHasQuaternary(activeMode));
+  const isVisible = (t: { index: number }) => t.index !== 3 || quaternaryVisible;
+
   // Reserved judgment call: keyboard nudge increments.
   const HUE_STEP = 2;
   const CHROMA_STEP = 0.005;
-  const MARGIN = 30;      // ring-to-edge gap that houses the external handles
+  const MARGIN = 44;      // ring-to-edge gap: houses the external handles AND the axis numerals outside them
   const EXT_OFFSET = 20;  // external handle radius beyond the disc rim (room for the dotted tether)
+  const NUM_OFFSET = 16;  // numeral radius beyond the external handles
   const MIN_SIZE = 240;
   const MAX_SIZE = 360;
 
@@ -108,12 +117,16 @@
         rFrac = t.bound ? rotateRadius(d.start[t.index], hue) : 0;
       }
       const dotR = rFrac * discRadius;
+      const numR = extRadius + NUM_OFFSET;
       return {
         ...t,
         hue,
         selected: t.bound && selected === t.family,
         dot: { x: center + dotR * Math.cos(rad(hue)), y: center - dotR * Math.sin(rad(hue)) },
         ext: { x: center + extRadius * Math.cos(rad(hue)), y: center - extRadius * Math.sin(rad(hue)) },
+        // Numeral just beyond the handle; the span itself is never rotated, so
+        // the digit stays upright at any angle.
+        num: { x: center + numR * Math.cos(rad(hue)), y: center - numR * Math.sin(rad(hue)) },
         // Orient the glyph tangent to the ring (perpendicular to the radius).
         // Screen y-down: the radius sits at CSS-angle -hue, so the tangent is 90 - hue.
         iconRot: 90 - hue,
@@ -121,27 +134,31 @@
     }),
   );
 
+  let visibleRender = $derived(axisRender.filter(isVisible));
+
   let globalHandle = $derived.by(() => {
     const d = drag;
     const angle = d?.kind === 'global' ? d.angle : globalAngle;
     return { x: center + extRadius * Math.cos(rad(angle)), y: center - extRadius * Math.sin(rad(angle)) };
   });
 
-  // Ghost previews for a hovered harmony mode: every axis re-hued to the would-be
-  // geometry (anchored on axis 0's hue). A bound axis previews at its family's
-  // chroma radius; an unbound axis shows a marker on the external track. Axes that
-  // wouldn't move are dropped so a ghost never sits atop its live handle. Inert.
+  // Ghost previews for a hovered harmony mode: every visible axis re-hued to the
+  // would-be geometry (`applyHarmonyToAxes`, so a frozen Quaternary previews as
+  // stationary). A bound axis previews at its family's chroma radius; an unbound
+  // axis shows a marker on the external track. Axes that wouldn't move are
+  // dropped so a ghost never sits atop its live handle. Inert.
   let ghosts = $derived.by(() => {
     if (!previewMode || previewMode === 'custom' || drag) return [];
-    const hues = harmonyHues(previewMode, $editorState.harmonyAxes[0].hue, AXIS_COUNT);
-    return axisData.flatMap((t, i) => {
-      if (Math.abs(angleDelta(hues[i], t.hue)) < 0.5) return [];
+    const target = applyHarmonyToAxes(previewMode, $editorState.harmonyAxes);
+    return axisData.filter(isVisible).flatMap((t) => {
+      const hue = target[t.index].hue;
+      if (Math.abs(angleDelta(hue, t.hue)) < 0.5) return [];
       if (t.bound) {
-        const rFrac = clamp(t.chroma / (maxChroma(t.lightness, hues[i]) || 1e-6), 0, 1);
+        const rFrac = clamp(t.chroma / (maxChroma(t.lightness, hue) || 1e-6), 0, 1);
         const r = rFrac * discRadius;
-        return [{ index: i, bound: true, hex: t.hex, x: center + r * Math.cos(rad(hues[i])), y: center - r * Math.sin(rad(hues[i])) }];
+        return [{ index: t.index, bound: true, hex: t.hex, x: center + r * Math.cos(rad(hue)), y: center - r * Math.sin(rad(hue)) }];
       }
-      return [{ index: i, bound: false, hex: '', x: center + extRadius * Math.cos(rad(hues[i])), y: center - extRadius * Math.sin(rad(hues[i])) }];
+      return [{ index: t.index, bound: false, hex: '', x: center + extRadius * Math.cos(rad(hue)), y: center - extRadius * Math.sin(rad(hue)) }];
     });
   });
 
@@ -288,7 +305,9 @@
     e.preventDefault();
     capture(e);
     openGesture('colors: rotate all');
-    const start = axisRender.map((t) => startOf(t));
+    // Sparse by axis index: a hidden Quaternary takes no part in the spin.
+    const start: RotateStart[] = [];
+    for (const t of visibleRender) start[t.index] = startOf(t);
     const a = pointerAngle(e);
     drag = { kind: 'global', start, delta: 0, lastAngle: a, angle: a };
   }
@@ -338,7 +357,7 @@
   }
 
   function rotateAll(delta: number) {
-    const entries = axisData.map((t) => ({
+    const entries = axisData.filter(isVisible).map((t) => ({
       index: t.index,
       hue: t.hue + delta,
       // Unclamped intent: off holds the gamut fraction, on holds absolute chroma.
@@ -388,10 +407,10 @@
     <!-- Dotted tether center→icon, drawn first so the solid rail below covers
          its inner half — reads as one axis that extends outward as dots to the
          external handle. Same angle as the handle, so it tracks live. -->
-    {#each axisRender as t (t.index)}
-      <line class="tether" class:unbound={!t.bound} x1={center} y1={center} x2={t.ext.x} y2={t.ext.y} />
+    {#each visibleRender as t (t.index)}
+      <line class="tether" x1={center} y1={center} x2={t.ext.x} y2={t.ext.y} />
     {/each}
-    {#each axisRender as t (t.index)}
+    {#each visibleRender as t (t.index)}
       {#if t.bound}
         <line class="rail" x1={center} y1={center} x2={t.dot.x} y2={t.dot.y} />
       {/if}
@@ -402,7 +421,11 @@
     <span class="ghost" class:unbound={!g.bound} style="left: {g.x}px; top: {g.y}px; --fill: {g.hex}" aria-hidden="true"></span>
   {/each}
 
-  {#each axisRender as t (t.index)}
+  {#each visibleRender as t (t.index)}
+    <span class="axis-num" style="left: {t.num.x}px; top: {t.num.y}px" aria-hidden="true">{t.index + 1}</span>
+  {/each}
+
+  {#each visibleRender as t (t.index)}
     {#if t.bound && t.family !== null}
       <button
         type="button"
@@ -422,7 +445,7 @@
     {/if}
   {/each}
 
-  {#each axisRender as t (t.index)}
+  {#each visibleRender as t (t.index)}
     <button
       type="button"
       class="ext-handle"
@@ -493,13 +516,6 @@
     stroke-dasharray: 2 4;
     stroke-linecap: round;
     opacity: 0.9;
-  }
-
-  /* Unbound axis: no solid rail covers the inner half, so fade the whole tether
-     to read as an empty preview axis rather than a live color. */
-  .tether.unbound {
-    stroke: var(--ui-border-high);
-    opacity: 0.55;
   }
 
   /* Faint ring the external axis handles ride along. Decorative. */
@@ -611,18 +627,31 @@
   }
 
   /* Unbound axis handle: hollow + dashed so it reads as an empty preview slot,
-     not a live color handle. */
+     not a live color handle. Shape carries the distinction — never opacity. */
   .ext-handle.unbound {
     background: transparent;
     border-style: dashed;
-    border-color: var(--ui-border);
-    color: var(--ui-text-tertiary);
+    border-color: var(--ui-border-high);
+    color: var(--ui-text-secondary);
   }
 
   .ext-handle.unbound:hover {
     background: var(--ui-surface-low);
-    border-color: var(--ui-border-high);
-    color: var(--ui-text-secondary);
+    border-color: var(--ui-border-higher);
+    color: var(--ui-text-primary);
+  }
+
+  /* Axis numeral just outside the handle track. Positioned only — never rotated,
+     so it stays upright at any angle. */
+  .axis-num {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-size: var(--ui-font-size-xs);
+    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-text-primary);
+    pointer-events: none;
+    user-select: none;
+    z-index: 3;
   }
 
   .dot:focus-visible,

@@ -4,18 +4,23 @@
   import { cubicOut } from 'svelte/easing';
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
-  import { AXIS_ROLES, HARMONY_ELIGIBLE } from '../../core/palettes/colorHarmony';
+  import { AXIS_ROLES, modeHasQuaternary, type HarmonyMode, HARMONY_ELIGIBLE } from '../../core/palettes/colorHarmony';
   import { editorState } from '../../core/store/editorStore';
   import { bindFamilyToAxis, unbindFamily } from './paletteBaseColor';
+
+  interface Props {
+    /** The applied harmony mode: an unbound Quaternary slot is disabled when the
+     *  geometry has no distinct fourth position. */
+    activeMode: HarmonyMode;
+  }
+
+  let { activeMode }: Props = $props();
 
   const DRAG_TYPE = 'application/x-harmony-family';
   // Unbound swatch previews the hue a dropped color would take, at fixed preview
   // L/C so only the hue reads (Reserved judgment call 4).
   const PREVIEW_L = 0.65;
   const PREVIEW_C = 0.12;
-  // Keyboard sequence: the four axes then Unassigned.
-  const POSITION_COUNT = AXIS_ROLES.length + 1;
-  const LAST_AXIS = AXIS_ROLES.length - 1;
 
   const SPEC_BY_LABEL: Record<string, PaletteSpec> = Object.fromEntries(PALETTE_SPECS.map((s) => [s.label, s]));
 
@@ -23,6 +28,11 @@
 
   let axes = $derived($editorState.harmonyAxes);
   let unassigned = $derived(HARMONY_ELIGIBLE.filter((f) => !axes.some((a) => a.family === f)));
+  let quaternaryDisabled = $derived(axes[3].family === null && !modeHasQuaternary(activeMode));
+  // Keyboard sequence: the enabled axes then Unassigned.
+  let axisSeq = $derived(quaternaryDisabled ? [0, 1, 2] : [0, 1, 2, 3]);
+  let positionCount = $derived(axisSeq.length + 1);
+  let lastAxis = $derived(axisSeq[axisSeq.length - 1]);
 
   function familyHex(family: string): string {
     const { l, c, h } = $editorState.palettes[family]?.baseColor ?? SPEC_BY_LABEL[family].initialColor;
@@ -38,11 +48,11 @@
 
   function moveFamily(family: string, dir: -1 | 1) {
     const idx = axes.findIndex((a) => a.family === family);
-    const pos = idx === -1 ? LAST_AXIS + 1 : idx;
+    const pos = idx === -1 ? axisSeq.length : axisSeq.indexOf(idx);
     const target = pos + dir;
-    if (target < 0 || target > LAST_AXIS + 1) return;
-    if (target > LAST_AXIS) unbindFamily(family);
-    else bindFamilyToAxis(family, target);
+    if (target < 0 || target > axisSeq.length) return;
+    if (target === axisSeq.length) unbindFamily(family);
+    else bindFamilyToAxis(family, axisSeq[target]);
     refocus(family);
   }
 
@@ -70,6 +80,7 @@
 
   function onDragOver(e: DragEvent, target: number | 'unassigned') {
     if (!(e.dataTransfer?.types ?? []).includes(DRAG_TYPE)) return;
+    if (target === 3 && quaternaryDisabled) return;
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     dragTarget = target;
@@ -84,6 +95,7 @@
     const family = e.dataTransfer?.getData(DRAG_TYPE);
     dragTarget = null;
     if (!family) return;
+    if (target === 3 && quaternaryDisabled) return;
     // Self-drop is a no-op: the setters early-return when nothing changes.
     if (target === 'unassigned') unbindFamily(family);
     else bindFamilyToAxis(family, target);
@@ -96,15 +108,18 @@
 
 <div class="axes-list" bind:this={listEl}>
   {#each axes as axis, i (i)}
+    {@const disabled = i === 3 && quaternaryDisabled}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="axis-row"
+      class:disabled
       class:drop-target={dragTarget === i}
+      aria-disabled={disabled || undefined}
       ondragover={(e) => onDragOver(e, i)}
       ondragleave={() => onDragLeave(i)}
       ondrop={(e) => onDrop(e, i)}
     >
-      <span class="role">{AXIS_ROLES[i]}</span>
+      <span class="role"><span class="role-num">{i + 1}.</span> {AXIS_ROLES[i]}</span>
       {#if axis.family !== null}
         {@const family = axis.family}
         <span class="swatch" style="--fill: {familyHex(family)}"></span>
@@ -113,12 +128,13 @@
           class="chip"
           draggable="true"
           data-family={family}
-          aria-label={`${family}, ${AXIS_ROLES[i]} axis, position ${i + 1} of ${POSITION_COUNT}. Arrow up or down to move it, Delete to unbind.`}
+          aria-label={`${family}, ${AXIS_ROLES[i]} axis, position ${i + 1} of ${positionCount}. Arrow up or down to move it, Delete to unbind.`}
           title="Drag to another axis or to Unassigned. Arrow keys move it, Delete unbinds."
           ondragstart={(e) => onDragStart(e, family)}
           ondragend={onDragEnd}
           onkeydown={(e) => onChipKeydown(e, family)}
         >
+          <span class="grip" aria-hidden="true">⋮⋮</span>
           <span class="chip-swatch" style="--fill: {familyHex(family)}"></span>
           <span class="chip-name">{family}</span>
         </button>
@@ -145,13 +161,14 @@
           class="chip"
           draggable="true"
           data-family={family}
-          aria-label={`${family}, unassigned, position ${POSITION_COUNT} of ${POSITION_COUNT}. Arrow up to bind it to ${AXIS_ROLES[LAST_AXIS]}.`}
-          title="Drag onto an axis to bind it. Arrow up binds it to Quaternary."
+          aria-label={`${family}, unassigned, position ${positionCount} of ${positionCount}. Arrow up to bind it to ${AXIS_ROLES[lastAxis]}.`}
+          title={`Drag onto an axis to bind it. Arrow up binds it to ${AXIS_ROLES[lastAxis]}.`}
           ondragstart={(e) => onDragStart(e, family)}
           ondragend={onDragEnd}
           onkeydown={(e) => onChipKeydown(e, family)}
           animate:flip={{ duration: 200, easing: cubicOut }}
         >
+          <span class="grip" aria-hidden="true">⋮⋮</span>
           <span class="chip-swatch" style="--fill: {familyHex(family)}"></span>
           <span class="chip-name">{family}</span>
         </button>
@@ -192,8 +209,20 @@
 
   .role {
     flex: none;
-    width: 5.5rem;
+    width: 6.5rem;
     color: var(--ui-text-secondary);
+  }
+
+  .role-num {
+    color: var(--ui-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Disabled slot: the applied geometry has no fourth position. The Empty label
+     stays visible; shape + dimming carry the state. */
+  .axis-row.disabled {
+    border-style: dashed;
+    opacity: 0.45;
   }
 
   .swatch {
@@ -211,8 +240,17 @@
   }
 
   .empty {
-    color: var(--ui-text-muted);
+    color: var(--ui-text-tertiary);
     font-size: var(--ui-font-size-sm);
+  }
+
+  .grip {
+    flex: none;
+    color: var(--ui-text-muted);
+    font-size: var(--ui-font-size-xs);
+    line-height: 1;
+    letter-spacing: -0.1em;
+    user-select: none;
   }
 
   .chip {
