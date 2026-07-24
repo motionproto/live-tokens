@@ -5,7 +5,7 @@ import {
   AXIS_COUNT,
   AXIS_ROLES,
   defaultHarmonyAxes,
-  modeHasQuaternary,
+  modeActiveAxes,
   applyHarmonyToAxes,
   boundColorPatch,
   sanitizeHarmonyAxes,
@@ -60,17 +60,20 @@ describe('harmonyHues geometry', () => {
   });
 });
 
-describe('modeHasQuaternary', () => {
-  it('is true only for the modes whose slot 3 is a distinct position', () => {
-    expect(modeHasQuaternary('square')).toBe(true);
-    expect(modeHasQuaternary('tetradic')).toBe(true);
-    expect(modeHasQuaternary('compound')).toBe(true);
-    expect(modeHasQuaternary('custom')).toBe(true);
-    expect(modeHasQuaternary('analogous')).toBe(false);
-    expect(modeHasQuaternary('complementary')).toBe(false);
-    expect(modeHasQuaternary('split-complementary')).toBe(false);
-    expect(modeHasQuaternary('triadic')).toBe(false);
-    expect(modeHasQuaternary('monochromatic')).toBe(false);
+describe('modeActiveAxes', () => {
+  it('activates exactly the distinct slots of each geometry', () => {
+    expect(modeActiveAxes('complementary')).toEqual([true, true, false, false]);
+    expect(modeActiveAxes('split-complementary')).toEqual([true, true, true, false]);
+    expect(modeActiveAxes('triadic')).toEqual([true, true, true, false]);
+    expect(modeActiveAxes('analogous')).toEqual([true, true, true, false]);
+    expect(modeActiveAxes('tetradic')).toEqual([true, true, true, true]);
+    expect(modeActiveAxes('compound')).toEqual([true, true, true, true]);
+    expect(modeActiveAxes('square')).toEqual([true, true, true, true]);
+  });
+
+  it('monochromatic (repeats are the point) and custom (no geometry) keep every axis active', () => {
+    expect(modeActiveAxes('monochromatic')).toEqual([true, true, true, true]);
+    expect(modeActiveAxes('custom')).toEqual([true, true, true, true]);
   });
 });
 
@@ -120,21 +123,25 @@ describe('harmony via axes (boundColorPatch ∘ applyHarmonyToAxes)', () => {
     for (const mode of modes) {
       const out = patchFor(mode);
       const hues = harmonyHues(mode, palettes.Brand.baseColor.h, AXIS_COUNT);
+      const active = modeActiveAxes(mode);
       defaultOrder.forEach((label, i) => {
         const before = palettes[label].baseColor;
-        expect(out[label]).toEqual({ l: before.l, c: before.c, h: hues[i] });
+        expect(out[label]).toEqual({ l: before.l, c: before.c, h: active[i] ? hues[i] : before.h });
       });
     }
   });
 
-  // Invariant 3: with the default shape, per-family output is exactly today's
-  // pre-generalization values. Offsets are literal so this never tracks harmonyHues.
+  // Invariant 3, amended: with the default shape, per-family output is the
+  // pre-generalization values — except complementary, now a true 2-axis mode:
+  // its Tertiary is inactive, so the third family keeps its own hue instead of
+  // riding the anchor. Offsets are literal so this never tracks harmonyHues.
   it('pins default-shape per-family hues to the pre-generalization values', () => {
     const a = palettes.Brand.baseColor.h;
+    const bg = palettes.Background.baseColor.h;
     const perFamily: Record<Exclude<HarmonyMode, 'custom'>, { Brand: number; Accent: number; Background: number }> = {
       monochromatic:         { Brand: a, Accent: a,            Background: a },
       analogous:             { Brand: a, Accent: n(a + 30),    Background: n(a - 30) },
-      complementary:         { Brand: a, Accent: n(a + 180),   Background: a },
+      complementary:         { Brand: a, Accent: n(a + 180),   Background: bg },
       'split-complementary': { Brand: a, Accent: n(a + 210),   Background: n(a + 150) },
       triadic:               { Brand: a, Accent: n(a + 240),   Background: n(a + 120) },
       tetradic:              { Brand: a, Accent: n(a + 180),   Background: n(a + 60) },
@@ -277,12 +284,13 @@ describe('applyHarmonyToAxes', () => {
     { hue: 300, family: null },
   ];
 
-  it('deals each axis its slot hue from axis 0, bindings preserved', () => {
+  it('deals each active axis its slot hue from axis 0, bindings preserved; inactive axes keep theirs', () => {
     const modes: HarmonyMode[] = ['complementary', 'split-complementary', 'triadic', 'tetradic', 'compound', 'square', 'analogous', 'monochromatic'];
     for (const mode of modes) {
       const out = applyHarmonyToAxes(mode, baseAxes());
       const slots = harmonyHues(mode, 30, AXIS_COUNT);
-      const expected = modeHasQuaternary(mode) ? slots : [...slots.slice(0, 3), 300];
+      const active = modeActiveAxes(mode);
+      const expected = slots.map((h, i) => (active[i] ? h : baseAxes()[i].hue));
       expect(out.map((a) => a.hue)).toEqual(expected);
       expect(out.map((a) => a.family)).toEqual(['Brand', 'Accent', 'Background', null]);
     }
@@ -302,6 +310,25 @@ describe('applyHarmonyToAxes', () => {
     expect(out[3]).toEqual({ hue: 300, family: 'Special' });
     const sq = applyHarmonyToAxes('square', axes);
     expect(sq[3]).toEqual({ hue: n(30 + 270), family: 'Special' });
+  });
+
+  it('complementary is a 2-axis mode: Tertiary and Quaternary untouched, bound included', () => {
+    const out = applyHarmonyToAxes('complementary', baseAxes());
+    expect(out.map((a) => a.hue)).toEqual([30, n(30 + 180), 100, 300]);
+
+    const axes = baseAxes();
+    axes[3] = { hue: 300, family: 'Special' };
+    const bound = applyHarmonyToAxes('complementary', axes);
+    expect(bound[2]).toEqual({ hue: 100, family: 'Background' });
+    expect(bound[3]).toEqual({ hue: 300, family: 'Special' });
+  });
+
+  it('monochromatic collapses every axis onto the anchor, Quaternary included', () => {
+    const axes = baseAxes();
+    axes[3] = { hue: 300, family: 'Special' };
+    const out = applyHarmonyToAxes('monochromatic', axes);
+    expect(out.map((a) => a.hue)).toEqual([30, 30, 30, 30]);
+    expect(out.map((a) => a.family)).toEqual(['Brand', 'Accent', 'Background', 'Special']);
   });
 
   it('custom returns an unchanged copy', () => {

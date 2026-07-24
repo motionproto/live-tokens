@@ -4,13 +4,13 @@
   import { cubicOut } from 'svelte/easing';
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
-  import { AXIS_ROLES, modeHasQuaternary, type HarmonyMode, HARMONY_ELIGIBLE } from '../../core/palettes/colorHarmony';
+  import { AXIS_ROLES, modeActiveAxes, type HarmonyMode, HARMONY_ELIGIBLE } from '../../core/palettes/colorHarmony';
   import { editorState } from '../../core/store/editorStore';
   import { bindFamilyToAxis, unbindFamily } from './paletteBaseColor';
 
   interface Props {
-    /** The applied harmony mode: an unbound Quaternary slot is disabled when the
-     *  geometry has no distinct fourth position. */
+    /** The applied harmony mode: an unbound slot is disabled when the geometry
+     *  deals it no distinct position (complementary enables only the first two). */
     activeMode: HarmonyMode;
   }
 
@@ -28,9 +28,9 @@
 
   let axes = $derived($editorState.harmonyAxes);
   let unassigned = $derived(HARMONY_ELIGIBLE.filter((f) => !axes.some((a) => a.family === f)));
-  let quaternaryDisabled = $derived(axes[3].family === null && !modeHasQuaternary(activeMode));
+  let axisDisabled = $derived(modeActiveAxes(activeMode).map((active, i) => !active && axes[i].family === null));
   // Keyboard sequence: the enabled axes then Unassigned.
-  let axisSeq = $derived(quaternaryDisabled ? [0, 1, 2] : [0, 1, 2, 3]);
+  let axisSeq = $derived(axisDisabled.flatMap((disabled, i) => (disabled ? [] : [i])));
   let positionCount = $derived(axisSeq.length + 1);
   let lastAxis = $derived(axisSeq[axisSeq.length - 1]);
 
@@ -80,7 +80,7 @@
 
   function onDragOver(e: DragEvent, target: number | 'unassigned') {
     if (!(e.dataTransfer?.types ?? []).includes(DRAG_TYPE)) return;
-    if (target === 3 && quaternaryDisabled) return;
+    if (typeof target === 'number' && axisDisabled[target]) return;
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     dragTarget = target;
@@ -95,7 +95,7 @@
     const family = e.dataTransfer?.getData(DRAG_TYPE);
     dragTarget = null;
     if (!family) return;
-    if (target === 3 && quaternaryDisabled) return;
+    if (typeof target === 'number' && axisDisabled[target]) return;
     // Self-drop is a no-op: the setters early-return when nothing changes.
     if (target === 'unassigned') unbindFamily(family);
     else bindFamilyToAxis(family, target);
@@ -108,7 +108,7 @@
 
 <div class="axes-list" bind:this={listEl}>
   {#each axes as axis, i (i)}
-    {@const disabled = i === 3 && quaternaryDisabled}
+    {@const disabled = axisDisabled[i]}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="axis-row"
@@ -218,8 +218,8 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Disabled slot: the applied geometry has no fourth position. The Empty label
-     stays visible; shape + dimming carry the state. */
+  /* Disabled slot: the applied geometry deals it no distinct position. The Empty
+     label stays visible; shape + dimming carry the state. */
   .axis-row.disabled {
     border-style: dashed;
     opacity: 0.45;

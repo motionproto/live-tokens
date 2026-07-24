@@ -56,7 +56,9 @@ function sanitizeLegacyOrder(input: unknown): string[] {
   return out.length > 0 ? out : [...LEGACY_DEFAULT_ORDER];
 }
 
-const norm = (h: number): number => ((h % 360) + 360) % 360;
+// In-range hues pass through bit-exact: the mod-360 round trip perturbs the
+// last mantissa bits, which would make a preserved hue compare unequal.
+const norm = (h: number): number => (h >= 0 && h < 360 ? h : ((h % 360) + 360) % 360);
 
 /**
  * Slot hues for `mode` from the anchor hue, priority-ordered: slot 1 is the
@@ -120,27 +122,28 @@ export function defaultHarmonyAxes(): HarmonyAxis[] {
 }
 
 /**
- * Whether the Quaternary axis is available in `mode`. Geometric modes qualify
- * when slot 3 is a distinct position (square, tetradic, compound); the others
- * pad slot 3 with a repeat. Custom imposes no geometry, so it denies nothing.
+ * Per-axis availability in `mode`: an axis participates only when its slot is a
+ * distinct position (complementary → 2 axes, triadic → 3, square → 4). Two
+ * carve-outs keep every axis active: monochromatic, whose repeats are the point
+ * (all axes collapse onto the anchor), and custom, which imposes no geometry.
  */
-export function modeHasQuaternary(mode: HarmonyMode): boolean {
-  if (mode === 'custom') return true;
+export function modeActiveAxes(mode: HarmonyMode): boolean[] {
+  if (mode === 'custom' || mode === 'monochromatic') return Array(AXIS_COUNT).fill(true);
   const slots = harmonyHues(mode, 0, AXIS_COUNT);
-  return slots.slice(0, 3).every((h) => h !== slots[3]);
+  return slots.map((h, i) => slots.slice(0, i).every((prev) => prev !== h));
 }
 
 /**
  * Re-deal every axis's hue from `mode`'s geometry, anchored on axis 0's hue.
  * Bindings are preserved; `'custom'` imposes no constraint and returns a copy.
- * A mode without a distinct fourth position leaves the Quaternary axis alone —
- * its slot would be a repeat, and the UI disables the axis for such modes.
+ * An axis inactive in `mode` (its slot would be a repeat) is left alone — the
+ * UI disables it while unbound.
  */
 export function applyHarmonyToAxes(mode: HarmonyMode, axes: HarmonyAxis[]): HarmonyAxis[] {
   if (mode === 'custom') return axes.map((a) => ({ ...a }));
   const hues = harmonyHues(mode, axes[0].hue, AXIS_COUNT);
-  const quaternary = modeHasQuaternary(mode);
-  return axes.map((a, i) => (i === 3 && !quaternary ? { ...a } : { hue: hues[i], family: a.family }));
+  const active = modeActiveAxes(mode);
+  return axes.map((a, i) => (active[i] ? { hue: hues[i], family: a.family } : { ...a }));
 }
 
 /**

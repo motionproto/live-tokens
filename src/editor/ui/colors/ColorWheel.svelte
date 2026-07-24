@@ -5,7 +5,7 @@
   import { editorState, beginScope, commitScope, cancelScope, type Scope } from '../../core/store/editorStore';
   import { setBaseHueChroma, setBaseChroma, setAxisHue, setAxisHues } from './paletteBaseColor';
   import { maxChroma } from './colorWheelMath';
-  import { applyHarmonyToAxes, modeHasQuaternary, AXIS_ROLES, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import { applyHarmonyToAxes, modeActiveAxes, AXIS_ROLES, type HarmonyMode } from '../../core/palettes/colorHarmony';
 
   interface Props {
     selected: string | null;
@@ -18,8 +18,8 @@
     /** Rotation semantics: off (default) preserves relative saturation (constant
      *  render radius); on preserves absolute chroma (the dot drifts in/out). */
     absoluteChroma: boolean;
-    /** The applied harmony mode: gates whether an unbound Quaternary axis exists
-     *  on the wheel (only geometries with a distinct fourth slot show one). */
+    /** The applied harmony mode: gates which unbound axes exist on the wheel
+     *  (only slots the geometry deals a distinct hue to show one). */
     activeMode: HarmonyMode;
     /** Hovered harmony mode: paints non-interactive ghost markers at the hues the
      *  axes would move to, so the geometry previews before it's applied. */
@@ -45,10 +45,10 @@
     }),
   );
 
-  // An unbound Quaternary axis exists only when the applied geometry has a
-  // distinct fourth slot; a bound one always renders (it carries a real color).
-  let quaternaryVisible = $derived(axisData[3].bound || modeHasQuaternary(activeMode));
-  const isVisible = (t: { index: number }) => t.index !== 3 || quaternaryVisible;
+  // An unbound axis exists only while active in the applied geometry (its slot
+  // is a distinct position); a bound one always renders (it carries a real color).
+  let activeAxes = $derived(modeActiveAxes(activeMode));
+  const isVisible = (t: { index: number; bound: boolean }) => t.bound || activeAxes[t.index];
 
   // Reserved judgment call: keyboard nudge increments.
   const HUE_STEP = 2;
@@ -166,8 +166,8 @@
   });
 
   // Ghost previews for a hovered harmony mode: every visible axis re-hued to the
-  // would-be geometry (`applyHarmonyToAxes`, so a frozen Quaternary previews as
-  // stationary). A bound axis previews at its family's chroma radius; an unbound
+  // would-be geometry (`applyHarmonyToAxes`, so a frozen inactive axis previews
+  // as stationary). A bound axis previews at its family's chroma radius; an unbound
   // axis shows a marker on the external track. Axes that wouldn't move are
   // dropped so a ghost never sits atop its live handle. Inert.
   let ghosts = $derived.by(() => {
@@ -328,7 +328,7 @@
     e.preventDefault();
     capture(e);
     openGesture('colors: rotate all');
-    // Sparse by axis index: a hidden Quaternary takes no part in the spin.
+    // Sparse by axis index: a hidden axis takes no part in the spin.
     const start: RotateStart[] = [];
     for (const t of visibleRender) start[t.index] = startOf(t);
     const a = pointerAngle(e);
