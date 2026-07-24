@@ -65,12 +65,12 @@ describe('modeHasQuaternary', () => {
     expect(modeHasQuaternary('square')).toBe(true);
     expect(modeHasQuaternary('tetradic')).toBe(true);
     expect(modeHasQuaternary('compound')).toBe(true);
+    expect(modeHasQuaternary('custom')).toBe(true);
     expect(modeHasQuaternary('analogous')).toBe(false);
     expect(modeHasQuaternary('complementary')).toBe(false);
     expect(modeHasQuaternary('split-complementary')).toBe(false);
     expect(modeHasQuaternary('triadic')).toBe(false);
     expect(modeHasQuaternary('monochromatic')).toBe(false);
-    expect(modeHasQuaternary('custom')).toBe(false);
   });
 });
 

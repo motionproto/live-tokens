@@ -120,11 +120,12 @@ export function defaultHarmonyAxes(): HarmonyAxis[] {
 }
 
 /**
- * Whether `mode`'s geometry defines a distinct fourth position: slot 3 must not
- * repeat an earlier slot. True for square, tetradic, and compound; the other
- * modes pad slot 3, and custom imposes no geometry, so its slots coincide.
+ * Whether the Quaternary axis is available in `mode`. Geometric modes qualify
+ * when slot 3 is a distinct position (square, tetradic, compound); the others
+ * pad slot 3 with a repeat. Custom imposes no geometry, so it denies nothing.
  */
 export function modeHasQuaternary(mode: HarmonyMode): boolean {
+  if (mode === 'custom') return true;
   const slots = harmonyHues(mode, 0, AXIS_COUNT);
   return slots.slice(0, 3).every((h) => h !== slots[3]);
 }
