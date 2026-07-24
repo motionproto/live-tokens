@@ -73,7 +73,7 @@ export function harmonyHues(mode: HarmonyMode, anchorHue: number, slotCount: num
       case 'tetradic':            return [a, norm(a + 180), norm(a + 60), norm(a + 240)];
       case 'compound':            return [a, norm(a + 180), norm(a + 30), norm(a + 210)];
       case 'square':              return [a, norm(a + 180), norm(a + 90), norm(a + 270)];
-      case 'analogous':           return [a, norm(a + 30), norm(a - 30), norm(a + 60)];
+      case 'analogous':           return [a, norm(a + 30), norm(a - 30), a];
       case 'monochromatic':       return [a, a, a, a];
       case 'custom':              return [a, a, a, a];
     }
@@ -121,8 +121,8 @@ export function defaultHarmonyAxes(): HarmonyAxis[] {
 
 /**
  * Whether `mode`'s geometry defines a distinct fourth position: slot 3 must not
- * repeat an earlier slot. True for square, analogous, tetradic, and compound;
- * the other modes pad slot 3, and custom imposes no geometry, so its slots coincide.
+ * repeat an earlier slot. True for square, tetradic, and compound; the other
+ * modes pad slot 3, and custom imposes no geometry, so its slots coincide.
  */
 export function modeHasQuaternary(mode: HarmonyMode): boolean {
   const slots = harmonyHues(mode, 0, AXIS_COUNT);

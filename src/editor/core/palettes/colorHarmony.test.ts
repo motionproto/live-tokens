@@ -63,9 +63,9 @@ describe('harmonyHues geometry', () => {
 describe('modeHasQuaternary', () => {
   it('is true only for the modes whose slot 3 is a distinct position', () => {
     expect(modeHasQuaternary('square')).toBe(true);
-    expect(modeHasQuaternary('analogous')).toBe(true);
     expect(modeHasQuaternary('tetradic')).toBe(true);
     expect(modeHasQuaternary('compound')).toBe(true);
+    expect(modeHasQuaternary('analogous')).toBe(false);
     expect(modeHasQuaternary('complementary')).toBe(false);
     expect(modeHasQuaternary('split-complementary')).toBe(false);
     expect(modeHasQuaternary('triadic')).toBe(false);
