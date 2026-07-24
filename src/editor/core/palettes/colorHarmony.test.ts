@@ -486,7 +486,7 @@ describe('axesFromLegacyOrder', () => {
   });
 
   it('drops entries outside HARMONY_ELIGIBLE', () => {
-    const out = axesFromLegacyOrder(['Danger', 'Brand', 'Neutral'], palettes);
+    const out = axesFromLegacyOrder(['Danger', 'Brand', 'Success'], palettes);
     expect(out.map((a) => a.family)).toEqual(['Brand', null, null, null]);
     expect(out[0].hue).toBeCloseTo(palettes.Brand.baseColor.h, 9);
   });

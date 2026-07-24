@@ -21,7 +21,7 @@ export type HarmonyMode =
   | 'custom';
 
 /** Families the user may order/include on the harmony axes (dev-declared pool). */
-export const HARMONY_ELIGIBLE: readonly string[] = ['Brand', 'Accent', 'Background', 'Special'];
+export const HARMONY_ELIGIBLE: readonly string[] = ['Brand', 'Accent', 'Background', 'Special', 'Neutral', 'Alternate'];
 
 export const AXIS_COUNT = 4;
 export const AXIS_ROLES = ['Anchor', 'Secondary', 'Tertiary', 'Quaternary'] as const;
