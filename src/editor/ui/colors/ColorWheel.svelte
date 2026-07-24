@@ -93,7 +93,8 @@
   type Drag =
     | { kind: 'axis'; index: number; angle: number; start: RotateStart }
     | { kind: 'global'; start: RotateStart[]; delta: number; lastAngle: number; angle: number }
-    | { kind: 'chroma'; index: number; family: string; hue0: number; l0: number; maxC0: number; rFrac: number };
+    | { kind: 'chroma'; index: number; family: string; hue0: number; l0: number; maxC0: number; rFrac: number }
+    | { kind: 'free'; family: string; l0: number; hue: number; rFrac: number };
   let drag: Drag | null = $state(null);
   let dragScope: Scope | null = null;
 
@@ -135,6 +136,28 @@
   );
 
   let visibleRender = $derived(axisRender.filter(isVisible));
+
+  // Free dot for a selected family that sits on no axis (Neutral, Alternate, …):
+  // a 2D handle at the family's own (hue, chroma), draggable anywhere on the
+  // disc. Writes go through setBaseHueChroma only — axes never move.
+  let freeDot = $derived.by(() => {
+    if (!selected || $editorState.harmonyAxes.some((a) => a.family === selected)) return null;
+    const spec = PALETTE_SPECS.find((s) => s.label === selected);
+    if (!spec) return null;
+    const { l, c, h } = $editorState.palettes[selected]?.baseColor ?? spec.initialColor;
+    let hue = h;
+    let rFrac = clamp(c / (maxChroma(l, h) || 1e-6), 0, 1);
+    const d = drag;
+    if (d?.kind === 'free') {
+      hue = d.hue;
+      rFrac = d.rFrac;
+    }
+    const r = rFrac * discRadius;
+    return {
+      family: selected, hex: oklchToHexClamped(l, c, h), hue, chroma: c, lightness: l,
+      x: center + r * Math.cos(rad(hue)), y: center - r * Math.sin(rad(hue)),
+    };
+  });
 
   let globalHandle = $derived.by(() => {
     const d = drag;
@@ -349,10 +372,36 @@
     setBaseHueChroma(drag.family, drag.hue0, rFrac * drag.maxC0);
   }
 
+  // Unconstrained 2D drag for the off-axis selected family: angle → hue,
+  // radius → chroma fraction of the gamut at the pristine lightness.
+  function startFreeDrag(e: PointerEvent) {
+    if (e.button !== 0 || !freeDot) return;
+    e.preventDefault();
+    capture(e);
+    openGesture(`colors: ${freeDot.family} base`);
+    drag = {
+      kind: 'free', family: freeDot.family, l0: freeDot.lightness,
+      hue: freeDot.hue, rFrac: clamp(freeDot.chroma / (maxChroma(freeDot.lightness, freeDot.hue) || 1e-6), 0, 1),
+    };
+    applyFree(e);
+  }
+  function applyFree(e: PointerEvent) {
+    if (drag?.kind !== 'free') return;
+    const r = wrapper!.getBoundingClientRect();
+    const dx = e.clientX - (r.left + r.width / 2);
+    const dy = e.clientY - (r.top + r.height / 2);
+    const hue = normDeg((Math.atan2(-dy, dx) * 180) / Math.PI);
+    const rFrac = clamp(Math.sqrt(dx * dx + dy * dy) / (r.width / 2 - MARGIN), 0, 1);
+    drag.hue = hue;
+    drag.rFrac = rFrac;
+    setBaseHueChroma(drag.family, hue, rFrac * maxChroma(drag.l0, hue));
+  }
+
   function moveDrag(e: PointerEvent) {
     if (!drag) return;
     if (drag.kind === 'axis') applyAxis(e);
     else if (drag.kind === 'global') applyGlobal(e);
+    else if (drag.kind === 'free') applyFree(e);
     else applyChroma(e);
   }
 
@@ -382,6 +431,13 @@
     if (axis.family === null) return;
     if (e.key === 'ArrowUp') { e.preventDefault(); setBaseChroma(axis.family, axis.chroma + CHROMA_STEP); }
     else if (e.key === 'ArrowDown') { e.preventDefault(); setBaseChroma(axis.family, axis.chroma - CHROMA_STEP); }
+  }
+  function freeDotKey(e: KeyboardEvent) {
+    if (!freeDot) return;
+    if (e.key === 'ArrowUp') { e.preventDefault(); setBaseChroma(freeDot.family, freeDot.chroma + CHROMA_STEP); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); setBaseChroma(freeDot.family, freeDot.chroma - CHROMA_STEP); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); setBaseHueChroma(freeDot.family, freeDot.hue - HUE_STEP, freeDot.chroma); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); setBaseHueChroma(freeDot.family, freeDot.hue + HUE_STEP, freeDot.chroma); }
   }
   function globalKey(e: KeyboardEvent) {
     if (e.key === 'ArrowLeft') { e.preventDefault(); rotateAll(-HUE_STEP); }
@@ -463,6 +519,22 @@
       onclick={() => t.family !== null && onSelect(t.family)}
     ><i class="fas fa-arrows-left-right" aria-hidden="true"></i></button>
   {/each}
+
+  {#if freeDot}
+    <button
+      type="button"
+      class="dot selected"
+      style="left: {freeDot.x}px; top: {freeDot.y}px; --fill: {freeDot.hex}"
+      aria-label={`${freeDot.family} — drag to adjust hue and chroma`}
+      title={`${freeDot.family} (drag freely)`}
+      onpointerdown={startFreeDrag}
+      onpointermove={moveDrag}
+      onpointerup={endDrag}
+      onpointercancel={endDrag}
+      onlostpointercapture={endDrag}
+      onkeydown={freeDotKey}
+    ></button>
+  {/if}
 
   <button
     type="button"
