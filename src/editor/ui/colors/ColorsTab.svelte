@@ -2,7 +2,7 @@
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginSliderGesture, transaction } from '../../core/store/editorStore';
-  import { applyHarmonyToAxes, tintNeutralsFromAnchor, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import { applyHarmonyToAxes, modeActiveAxes, tintNeutralsFromAnchor, type HarmonyMode } from '../../core/palettes/colorHarmony';
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import ColorWheel from './ColorWheel.svelte';
   import LightnessBar from './LightnessBar.svelte';
@@ -62,17 +62,19 @@
     transaction('derive accessible text', applySolvedTextCurves);
   }
 
-  let swatches = $derived(
-    PALETTE_SPECS.map((spec) => {
+  let swatches = $derived.by(() => {
+    // A family bound to an inactive axis edits in dot mode, so it is not "on the wheel".
+    const active = modeActiveAxes(activeMode);
+    return PALETTE_SPECS.map((spec) => {
       const { l, c, h } = $editorState.palettes[spec.label]?.baseColor ?? spec.initialColor;
       return {
         label: spec.label,
         display: spec.displayLabel ?? spec.label,
         hex: oklchToHexClamped(l, c, h),
-        onWheel: $editorState.harmonyAxes.some((a) => a.family === spec.label),
+        onWheel: $editorState.harmonyAxes.some((a, i) => a.family === spec.label && active[i]),
       };
-    }),
-  );
+    });
+  });
 
   let shownModeLabel = $derived(
     HARMONY_MODE_BUTTONS.find((b) => b.mode === (hoverMode ?? activeMode))?.label ?? '',

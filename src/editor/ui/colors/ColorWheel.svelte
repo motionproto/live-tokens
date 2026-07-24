@@ -18,8 +18,9 @@
     /** Rotation semantics: off (default) preserves relative saturation (constant
      *  render radius); on preserves absolute chroma (the dot drifts in/out). */
     absoluteChroma: boolean;
-    /** The applied harmony mode: gates which unbound axes exist on the wheel
-     *  (only slots the geometry deals a distinct hue to show one). */
+    /** The applied harmony mode: gates which axes exist on the wheel (only
+     *  slots the geometry deals a distinct hue to). A family bound to an
+     *  inactive axis renders as the free dot instead. */
     activeMode: HarmonyMode;
     /** Hovered harmony mode: paints non-interactive ghost markers at the hues the
      *  axes would move to, so the geometry previews before it's applied. */
@@ -45,10 +46,12 @@
     }),
   );
 
-  // An unbound axis exists only while active in the applied geometry (its slot
-  // is a distinct position); a bound one always renders (it carries a real color).
+  // Axis chrome (rail, tether, handle, numeral) exists only while the axis is
+  // active in the applied geometry (its slot is a distinct position). A bound
+  // inactive axis keeps its family's color but is edited in dot mode, not axis
+  // mode: the family renders as the free dot and sits out the global spin.
   let activeAxes = $derived(modeActiveAxes(activeMode));
-  const isVisible = (t: { index: number; bound: boolean }) => t.bound || activeAxes[t.index];
+  const isVisible = (t: { index: number }) => activeAxes[t.index];
 
   // Reserved judgment call: keyboard nudge increments.
   const HUE_STEP = 2;
@@ -137,11 +140,13 @@
 
   let visibleRender = $derived(axisRender.filter(isVisible));
 
-  // Free dot for a selected family that sits on no axis (Neutral, Alternate, …):
-  // a 2D handle at the family's own (hue, chroma), draggable anywhere on the
-  // disc. Writes go through setBaseHueChroma only — axes never move.
+  // Free dot for a selected family on no ACTIVE axis (Neutral, Alternate, …,
+  // plus families whose axis the applied geometry deals no distinct slot): a 2D
+  // handle at the family's own (hue, chroma), draggable anywhere on the disc.
+  // Writes go through setBaseHueChroma only — active axes never move; a bound
+  // inactive axis follows its family via syncBoundAxisHue.
   let freeDot = $derived.by(() => {
-    if (!selected || $editorState.harmonyAxes.some((a) => a.family === selected)) return null;
+    if (!selected || $editorState.harmonyAxes.some((a, i) => a.family === selected && activeAxes[i])) return null;
     const spec = PALETTE_SPECS.find((s) => s.label === selected);
     if (!spec) return null;
     const { l, c, h } = $editorState.palettes[selected]?.baseColor ?? spec.initialColor;
