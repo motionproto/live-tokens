@@ -50,7 +50,7 @@ const TEXT_STEPS: { name: string; x: number }[] = [
   { name: 'disabled', x: 100 },
 ];
 
-const NEUTRAL_BAND = [
+export const NEUTRAL_BAND = [
   '--surface-neutral-lowest', '--surface-neutral-lower', '--surface-neutral-low',
   '--surface-neutral', '--surface-neutral-high', '--surface-neutral-higher',
   '--surface-neutral-highest',
