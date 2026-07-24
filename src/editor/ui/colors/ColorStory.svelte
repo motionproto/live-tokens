@@ -1,6 +1,7 @@
 <script lang="ts">
   import { editorState } from '../../core/store/editorStore';
-  import { palettesToVars, PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
+  import { oklchToHexClamped } from '../../core/palettes/oklch';
+  import { palettesToVars, PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
   import { defaultPaletteConfig } from '../palette/paletteMath';
   import { contrastRatio } from '../../core/palettes/contrast';
   import type { PaletteConfig } from '../../core/themes/themeTypes';
@@ -21,11 +22,22 @@
     { label: 'Danger', ns: 'danger' },
   ] as const;
 
-  // Every color the story renders comes from this store-derived map — the same
-  // source as the ratios — never from the ambient :root variables. Ambient vars
-  // stay at their vendored defaults for families a loaded theme doesn't
-  // configure, so a story bound to them silently goes static. Unconfigured
-  // families derive from their spec defaults instead.
+  // The story is a seed-composition preview: every FILL is a family's base
+  // color — exactly what the wheel dot and swatch show — so it tracks edits
+  // 1:1. Derived --surface-* tokens deliberately do not appear here: their
+  // lightness is curve-owned, which decouples the story from the wheel and
+  // reads as broken.
+  const SPEC_BY_LABEL: Record<string, PaletteSpec> = Object.fromEntries(PALETTE_SPECS.map((s) => [s.label, s]));
+
+  function seedHex(label: string): string {
+    const { l, c, h } = $editorState.palettes[label]?.baseColor ?? SPEC_BY_LABEL[label].initialColor;
+    return oklchToHexClamped(l, c, h);
+  }
+
+  // Text still renders from this store-derived map (text derivation tracks the
+  // seed), never from the ambient :root variables — those stay at vendored
+  // defaults for families a loaded theme doesn't configure, so a story bound
+  // to them silently goes static.
   let vars = $derived.by(() => {
     const full: Record<string, PaletteConfig> = {};
     for (const spec of PALETTE_SPECS) {
@@ -36,24 +48,22 @@
     return palettesToVars(full);
   });
 
-  // Shadow the consumed variables locally with the store-derived values, so the
-  // markup below can keep referencing var(--…) while never reading :root.
+  // Shadow the consumed text variables locally with the store-derived values;
+  // the page field is the Background family's SEED, not its derived page step.
   let storyVars = $derived(
-    ['--page-bg', '--text-primary', '--text-secondary']
-      .concat([...TONES, ...FUNCTIONAL].flatMap((t) => [`--surface-${t.ns}`, `--text-${t.ns}`]))
+    ['--text-primary', '--text-secondary']
+      .concat([...TONES, ...FUNCTIONAL].map((t) => `--text-${t.ns}`))
       .filter((name) => vars[name] !== undefined)
       .map((name) => `${name}: ${vars[name]}`)
+      .concat(`--page-bg: ${seedHex('Background')}`)
       .join('; '),
   );
 
-  // The guaranteed, real-use pairing: a family's text on the BACKGROUND page,
-  // not on its own saturated surface. That is what "Derive accessible text"
-  // solves for, and what text/icons on a page actually sit on. Neutral supplies
-  // the light-or-dark text the background's luminance calls for.
+  // Ratios are measured against the DISPLAYED field — the Background seed —
+  // so the numbers always describe what the story shows.
   function ratioOnBg(textVar: string): number | null {
     const text = vars[textVar];
-    const bg = vars['--page-bg'];
-    return typeof text === 'string' && typeof bg === 'string' ? contrastRatio(text, bg) : null;
+    return typeof text === 'string' ? contrastRatio(text, seedHex('Background')) : null;
   }
 
   // Floor, don't round: the readout must never overstate a contrast ratio.
@@ -77,7 +87,7 @@
       {#each FUNCTIONAL as fn (fn.ns)}
         {@const r = fmt(ratioOnBg(`--text-${fn.ns}`))}
         <span class="fn-chip">
-          <span class="fn-dot" style:--dot="var(--surface-{fn.ns})"></span>
+          <span class="fn-dot" style:--dot={seedHex(fn.label)}></span>
           <span class="fn-label" style:color="var(--text-{fn.ns})">{fn.label}</span>
           {#if r}<span class="ratio">{r}</span>{/if}
         </span>
@@ -88,7 +98,7 @@
   <div class="tones">
     {#each TONES as tone (tone.ns)}
       {@const r = fmt(ratioOnBg(`--text-${tone.ns}`))}
-      <div class="tone" style:--tone-fill="var(--surface-{tone.ns})" style:--tone-share={tone.share}>
+      <div class="tone" style:--tone-fill={seedHex(tone.label)} style:--tone-share={tone.share}>
         <span class="tone-pill" style:color="var(--text-{tone.ns})">
           <span class="tone-name">{tone.label}</span>
           {#if r}<span class="ratio">{r}</span>{/if}
