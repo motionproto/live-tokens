@@ -22,6 +22,7 @@ import type { Oklch } from '../../core/palettes/oklch';
 import { AXIS_ROLES } from '../../core/palettes/colorHarmony';
 import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
 import { solveTextCurves } from '../../core/palettes/solveTextContrast';
+import { recommendNeutralText } from '../../core/palettes/recommendText';
 import { defaultPaletteConfig } from '../palette/paletteMath';
 import { mutate, transaction, editorState } from '../../core/store/editorStore';
 import type { EditorState } from '../../core/store/editorTypes';
@@ -189,6 +190,18 @@ export function applySolvedTextCurves(s: EditorState): void {
     if (cfg) cfg.scaleCurves = { ...cfg.scaleCurves, ...patch.scaleCurves };
   }
   Object.assign(s.cssVars, cssVarOverrides);
+}
+
+/** Apply the Color Story's suggested neutral text hierarchy (primary anchor,
+ *  two even L drops, AA floors) as the Neutral family's Text curve. */
+export function applySuggestedNeutralText(): void {
+  mutate('colors: suggested text hierarchy', (s) => {
+    ensureConfig(s, 'Neutral');
+    const rec = recommendNeutralText(s.palettes);
+    if (!rec.patch) return;
+    const cfg = s.palettes['Neutral'];
+    cfg.scaleCurves = { ...cfg.scaleCurves, Text: rec.patch };
+  });
 }
 
 /** Pick which palette step is the page background. Forces solid mode, then

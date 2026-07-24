@@ -4,6 +4,9 @@
   import { palettesToVars, PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
   import { defaultPaletteConfig } from '../palette/paletteMath';
   import { contrastRatio } from '../../core/palettes/contrast';
+  import { recommendNeutralText } from '../../core/palettes/recommendText';
+  import { applySuggestedNeutralText } from './paletteBaseColor';
+  import UIPillButton from '../UIPillButton.svelte';
   import type { PaletteConfig } from '../../core/themes/themeTypes';
 
   // 60-30-10 as an area composition: the background surface is the dominant 60%
@@ -38,20 +41,24 @@
   // seed), never from the ambient :root variables — those stay at vendored
   // defaults for families a loaded theme doesn't configure, so a story bound
   // to them silently goes static.
-  let vars = $derived.by(() => {
-    const full: Record<string, PaletteConfig> = {};
+  let full = $derived.by(() => {
+    const map: Record<string, PaletteConfig> = {};
     for (const spec of PALETTE_SPECS) {
-      full[spec.label] =
+      map[spec.label] =
         $editorState.palettes[spec.label] ??
         defaultPaletteConfig({ baseColor: spec.initialColor, neutral: spec.neutral ?? false });
     }
-    return palettesToVars(full);
+    return map;
   });
+
+  let vars = $derived(palettesToVars(full));
+  let rec = $derived(recommendNeutralText(full));
+  let partialCoverage = $derived(rec.suggestions.filter((s) => !s.current.coverage.full));
 
   // Shadow the consumed text variables locally with the store-derived values;
   // the page field is the Background family's SEED, not its derived page step.
   let storyVars = $derived(
-    ['--text-primary', '--text-secondary']
+    ['--text-primary', '--text-secondary', '--text-tertiary']
       .concat([...TONES, ...FUNCTIONAL].map((t) => `--text-${t.ns}`))
       .filter((name) => vars[name] !== undefined)
       .map((name) => `${name}: ${vars[name]}`)
@@ -81,7 +88,48 @@
       {#if fmt(bgRatio)}<span class="ratio">{fmt(bgRatio)}</span>{/if}
     </div>
     <p class="body">The dominant surface. Body text sits here.</p>
-    <p class="secondary">Secondary text follows the same field.</p>
+    <p class="secondary">
+      Secondary text follows the same field.
+      {#if fmt(ratioOnBg('--text-secondary'))}<span class="ratio">{fmt(ratioOnBg('--text-secondary'))}</span>{/if}
+    </p>
+    <p class="tertiary">
+      Tertiary text steps back once more.
+      {#if fmt(ratioOnBg('--text-tertiary'))}<span class="ratio">{fmt(ratioOnBg('--text-tertiary'))}</span>{/if}
+    </p>
+
+    {#if rec.anyDiffers}
+      <div class="suggest-row">
+        <span class="suggest-label">Suggested</span>
+        {#each rec.suggestions as s (s.step)}
+          <span class="suggest-entry" class:dim={!s.differs}>
+            <span class="fn-dot" style:--dot={s.suggested.hex}></span>
+            <span class="suggest-step">{s.step}</span>
+            <span class="ratio">{fmt(contrastRatio(s.suggested.hex, seedHex('Background')))}</span>
+          </span>
+        {/each}
+        <UIPillButton
+          icon="fa-arrow-down-short-wide"
+          title="Anchor on primary and step secondary/tertiary down by even lightness drops, floored at WCAG AA (one undo)"
+          onclick={applySuggestedNeutralText}
+        >
+          Use suggested
+        </UIPillButton>
+      </div>
+    {/if}
+
+    {#if partialCoverage.length > 0}
+      <div
+        class="coverage-alert"
+        title="WCAG AA (4.5:1) coverage across the neutral surface steps. Informational, nothing is blocked."
+      >
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>
+          AA reach: {partialCoverage
+            .map((s) => `${s.step} ${s.current.coverage.cleared}/${s.current.coverage.total} surfaces`)
+            .join(' · ')}
+        </span>
+      </div>
+    {/if}
 
     <div class="functional-row">
       {#each FUNCTIONAL as fn (fn.ns)}
@@ -156,6 +204,47 @@
     margin: 0;
     font-size: var(--ui-font-size-xs);
     color: var(--text-secondary);
+  }
+
+  .tertiary {
+    margin: 0;
+    font-size: var(--ui-font-size-xs);
+    color: var(--text-tertiary);
+  }
+
+  .suggest-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ui-space-8);
+  }
+
+  .suggest-label {
+    font-size: var(--ui-font-size-sm);
+    font-weight: var(--ui-font-weight-semibold);
+    opacity: 0.6;
+  }
+
+  .suggest-entry {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+  }
+
+  .suggest-entry.dim {
+    opacity: 0.45;
+  }
+
+  .suggest-step {
+    font-size: var(--ui-font-size-xs);
+  }
+
+  .coverage-alert {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    font-size: var(--ui-font-size-xs);
+    opacity: 0.75;
   }
 
   .functional-row {
