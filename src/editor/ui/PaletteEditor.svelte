@@ -1,8 +1,5 @@
 <script lang="ts">
-  import { stopPropagation, createBubbler } from 'svelte/legacy';
-
-  const bubble = createBubbler();
-  import { onMount, onDestroy, tick, untrack } from 'svelte';
+  import { onMount, onDestroy, tick } from 'svelte';
   import { oklchToHexClamped, type Oklch } from '../core/palettes/oklch';
   import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig } from './curveEngine';
   import ColorEditPanel from './ColorEditPanel.svelte';
@@ -12,6 +9,7 @@
   import ScaleCurveEditor from './palette/ScaleCurveEditor.svelte';
   import PaletteBase from './palette/PaletteBase.svelte';
   import { type EditingState, idleState, BASE_KEY, isEditingBase as isBaseEdit } from './palette/paletteEditorState';
+  import { dockTrackTemplate } from './palette/dockMagnify';
   import {
     type Step, type Scale,
     GRAY_FALLBACK,
@@ -20,7 +18,7 @@
     paletteStepLightness, scales,
     paletteStepKey, stepKey, scaleCurveKey as getScaleCurveKey,
     stepIndexToX,
-    injectLockedAnchor, removeLockedAnchor,
+    syncBaseAnchor, clearBaseAnchor,
     computePaletteOklch as computePaletteOklchPure,
     computeDerivedOklch as computeDerivedOklchPure,
     snapScaleToPalette as snapScaleToPalettePure,
@@ -69,15 +67,15 @@
   }
 
   let lockedLightnessIdx: number | null = $derived.by(() => {
-    if (!anchorToBase) return null;
-    const x500 = stepIndexToX(4);
-    const idx = lightnessCurve.findIndex(a => Math.abs(a.x - x500) < 0.5);
+    if (!anchorToBase || anchorPlacement === undefined) return null;
+    const x = stepIndexToX(anchorPlacement.step);
+    const idx = lightnessCurve.findIndex(a => Math.abs(a.x - x) < 0.5);
     return idx >= 0 ? idx : null;
   });
   let lockedSaturationIdx: number | null = $derived.by(() => {
-    if (!anchorToBase) return null;
-    const x500 = stepIndexToX(4);
-    const idx = saturationCurve.findIndex(a => Math.abs(a.x - x500) < 0.5);
+    if (!anchorToBase || anchorPlacement === undefined) return null;
+    const x = stepIndexToX(anchorPlacement.step);
+    const idx = saturationCurve.findIndex(a => Math.abs(a.x - x) < 0.5);
     return idx >= 0 ? idx : null;
   });
 
@@ -110,9 +108,6 @@
 
   let editing: EditingState = $state(idleState);
 
-  let injectedLightness = false;
-  let injectedSaturation = false;
-
   function computePaletteOklch(index: number, base: Oklch): Oklch {
     return computePaletteOklchPure(index, base, lightnessCurve, saturationCurve, curveOffset);
   }
@@ -121,42 +116,22 @@
     return computeDerivedOklchPure(step, base, scaleTitle, scaleCurves, curveOffset);
   }
 
-  /**
-   * Toggle anchorToBase: inject (or remove) the locked 500 anchor in both
-   * curves atomically with the flag flip, so one undo reverses the whole
-   * thing. Transient `injectedLightness` / `injectedSaturation` remember
-   * whether we created the anchor (vs it already existed) so toggle-off
-   * doesn't destroy a user-authored anchor. Not persisted — acceptable drift
-   * on reload is that a pre-existing anchor would be preserved on toggle-off.
-   */
+  // Toggle placement atomically with the flag flip so one undo reverses the
+  // whole thing. The anchor's lifecycle (placement, displaced-y restore)
+  // lives in syncBaseAnchor/clearBaseAnchor, shared with the store setters.
   function setAnchorToBase(next: boolean) {
     if (next === anchorToBase) return;
-    if (next) {
-      const x500 = stepIndexToX(4);
-      const lResult = injectLockedAnchor(lightnessCurve, x500, baseColor.l * 100);
-      const sResult = injectLockedAnchor(saturationCurve, x500, 100);
-      injectedLightness = lResult.injected;
-      injectedSaturation = sResult.injected;
-      patchPalette({
-        anchorToBase: true,
-        lightnessCurve: lResult.curve,
-        saturationCurve: sResult.curve,
-      }, 'anchor on');
-    } else {
-      const lCurr = lightnessCurve;
-      const sCurr = saturationCurve;
-      const nextL = injectedLightness ? removeLockedAnchor(lCurr, lockedLightnessIdx) : lCurr;
-      const nextS = injectedSaturation ? removeLockedAnchor(sCurr, lockedSaturationIdx) : sCurr;
-      injectedLightness = false;
-      injectedSaturation = false;
-      patchPalette({
-        anchorToBase: false,
-        lightnessCurve: nextL,
-        saturationCurve: nextS,
-      }, 'anchor off');
-    }
+    mutate(`${label}: ${next ? 'anchor on' : 'anchor off'}`, (s) => {
+      if (!s.palettes[label]) s.palettes[label] = seedConfig();
+      const cfg = s.palettes[label];
+      if (next) {
+        cfg.anchorToBase = true;
+        syncBaseAnchor(cfg);
+      } else {
+        clearBaseAnchor(cfg);
+      }
+    });
   }
-
 
 
   function startBaseEdit() {
@@ -401,8 +376,18 @@
   let overrides = $derived($editorState.palettes[label]?.overrides ?? {});
   let snappedScales = $derived(new Set($editorState.palettes[label]?.snappedScales ?? []));
   let anchorToBase = $derived($editorState.palettes[label]?.anchorToBase ?? true);
+  let anchorPlacement = $derived($editorState.palettes[label]?.anchorPlacement);
+  let anchorStepLabel = $derived(anchorToBase && anchorPlacement !== undefined
+    ? paletteStepLightness[anchorPlacement.step]?.label ?? null
+    : null);
+  // Dock magnification: the grid transitions between track lists, so dialing
+  // lightness reads as swatches opening/closing while the anchor walks the
+  // ramp. Column 0 is the white bookend, so step i is column i+1.
+  let swatchTemplate = $derived(dockTrackTemplate(
+    paletteStepLightness.length + 2,
+    anchorToBase && anchorPlacement !== undefined ? anchorPlacement.step + 1 : null,
+  ));
   let emptyMode = $derived($editorState.palettes[label]?.emptyMode ?? 'solid');
-  let emptyStep = $derived($editorState.palettes[label]?.emptyStep ?? '850');
   let gradientStyle = $derived($editorState.palettes[label]?.gradientStyle ?? 'linear');
   let gradientAngle = $derived($editorState.palettes[label]?.gradientAngle ?? 180);
   let gradientReverse = $derived($editorState.palettes[label]?.gradientReverse ?? false);
@@ -413,24 +398,8 @@
   let gradientSize = $derived($editorState.palettes[label]?.gradientSize ?? 'page');
   let editingKey = $derived(editing.kind === 'idle' ? null : editing.kind === 'editingBase' ? BASE_KEY : editing.stepKey);
   let editingDraft = $derived(editing.kind === 'editingStep' ? editing.draft : null);
-  // Keep the locked lightness anchor y in sync with baseColor. Idempotent.
-  // `lightnessCurve` is read via `untrack` so writing it back via `edit` does
-  // not retrigger this effect (Svelte 5 flags the read+write pattern as
-  // recursive).
-  $effect(() => {
-    if (!anchorToBase || lockedLightnessIdx === null || !baseColor) return;
-    const targetY = baseColor.l * 100;
-    untrack(() => {
-      const idx = lockedLightnessIdx;
-      if (idx === null) return;
-      const curve = lightnessCurve;
-      if (curve[idx] && Math.abs(curve[idx].y - targetY) > 0.01) {
-        edit('lightnessCurve', curve.map((a, i) => i === idx ? { ...a, y: targetY } : a));
-      }
-    });
-  });
   let paletteComputed = $derived((() => {
-    const _bc = baseColor, _lc = lightnessCurve, _sc = saturationCurve, _co = curveOffset, _ed = editingDraft, _ek = editingKey, _ov = overrides, _ab = anchorToBase;
+    const _bc = baseColor, _lc = lightnessCurve, _sc = saturationCurve, _co = curveOffset, _ed = editingDraft, _ek = editingKey, _ov = overrides, _ab = anchorToBase, _ap = anchorPlacement;
     return paletteStepLightness.map((ps, index) => {
       const k = paletteStepKey(ps.label);
       const oklch = computePaletteOklch(index, baseColor);
@@ -440,6 +409,7 @@
         lightness: ps.lightness,
         index,
         key: k,
+        anchored: _ab && _ap?.step === index,
         // `oklch` is the numeric step (feeds snap); `hex`/`effective` are the
         // sRGB projections that paint swatches and copy to the clipboard.
         oklch,
@@ -503,6 +473,7 @@
     {neutral}
     {baseColor}
     {anchorToBase}
+    {anchorStepLabel}
     {isEditingBase}
     {panelOpen}
     {editingColor}
@@ -536,7 +507,7 @@
           {paletteEditorOpen ? 'Close' : 'Edit'}
         </UIPillButton>
       </div>
-      <div class="swatch-grid" style="--swatch-cols: {paletteStepLightness.length + 2}">
+      <div class="swatch-grid" style="--swatch-cols: {paletteStepLightness.length + 2}; grid-template-columns: {swatchTemplate}">
         <div class="step-column">
           <button class="step-label copyable-label" class:copied={copiedLabelKey === 'palette-white'} type="button" onclick={(e) => copyVarName('palette-white', `--color-${cssNamespace}-white`, e)}>
             {copiedLabelKey === 'palette-white' ? 'copied!' : 'white'}
@@ -553,6 +524,8 @@
               class="swatch gray-swatch"
               class:active={editingKey === ps.key}
               class:overridden={ps.key in overrides}
+              class:anchored={ps.anchored}
+              title={ps.anchored ? 'Base color' : undefined}
               style="background: {ps.effective}"
               onclick={() => handlePaletteClick({ label: ps.label, lightness: ps.lightness, index: ps.index })}
               role="button"
@@ -561,16 +534,6 @@
             >
               {#if ps.key in overrides}
                 <span class="override-dot" title="Palette override"></span>
-              {/if}
-              {#if emptySelector && emptyMode === 'solid'}
-                <input
-                  type="checkbox"
-                  class="empty-check"
-                  checked={emptyStep === ps.label}
-                  onclick={stopPropagation(() => edit('emptyStep', ps.label))}
-                  onkeydown={stopPropagation(bubble('keydown'))}
-                  title="Page background"
-                />
               {/if}
             </div>
             <button
@@ -866,6 +829,7 @@
   .swatch-grid {
     display: grid;
     grid-template-columns: repeat(var(--swatch-cols), minmax(0, 1fr));
+    transition: grid-template-columns var(--ui-transition-fast);
     gap: var(--ui-space-4) var(--swatch-gap, var(--ui-space-4));
     align-items: start;
     justify-content: start;
@@ -882,6 +846,12 @@
   .swatch.gray-swatch {
     width: 100%;
     height: calc(4rem + var(--ui-space-2));
+    /* Compensating margin: height + margin-bottom is constant every frame of
+       the magnification, so the grid's row height never dips mid-transition
+       (the dip bounced everything below the palette). Also keeps the hex row
+       aligned across anchored and plain columns. */
+    margin-bottom: 1rem;
+    transition: height var(--ui-transition-fast), margin-bottom var(--ui-transition-fast);
     cursor: pointer;
     position: relative;
   }
@@ -899,6 +869,15 @@
     border-color: var(--ui-border-higher);
     outline: 2px solid var(--ui-border-high);
     outline-offset: 1px;
+  }
+
+  /* The step the base color is placed at: dock-magnified (its grid column is
+     also widened via the track template) with an emphasized border. No fill
+     change — the swatch itself already IS the picked color. */
+  .swatch.gray-swatch.anchored {
+    border-color: var(--ui-border-higher);
+    height: calc(5rem + var(--ui-space-2));
+    margin-bottom: 0;
   }
 
   .override-dot {
@@ -925,39 +904,6 @@
   .empty-mode-toggle input {
     margin: 0;
     cursor: pointer;
-  }
-
-  .empty-check {
-    -webkit-appearance: none;
-    appearance: none;
-    position: absolute;
-    bottom: 3px;
-    right: 3px;
-    margin: 0;
-    cursor: pointer;
-    width: 14px;
-    height: 14px;
-    background: white;
-    border: 1px solid rgba(0, 0, 0, 0.3);
-    border-radius: 2px;
-    opacity: 0.5;
-  }
-
-  .empty-check:checked {
-    opacity: 1;
-  }
-
-  .empty-check:checked::after {
-    content: '\2713';
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    font-size: var(--ui-font-size-md);
-    font-weight: bold;
-    color: black;
-    line-height: 1;
   }
 
   /* Narrow desktop: tighten palette editor spacing */

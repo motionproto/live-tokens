@@ -207,6 +207,83 @@ export function computePaletteOklch(
   return gamutClamp(targetL, targetC, h);
 }
 
+/** The palette step whose curve lightness is nearest the picked color's L
+ *  (both in curve space, 0–100; `curveOffset` shifts anchor and steps alike,
+ *  so it cancels out of the comparison). */
+export function nearestPaletteStep(lightnessCurve: CurveAnchor[], baseL: number): number {
+  let best = 0;
+  let bestD = Infinity;
+  for (let i = 0; i < PALETTE_STEPS.length; i++) {
+    const d = Math.abs(sampleCurve(lightnessCurve, stepIndexToX(i)) - baseL * 100);
+    if (d < bestD) { bestD = d; best = i; }
+  }
+  return best;
+}
+
+/** Insert an anchor at x, or overwrite one already there (endpoints included).
+ *  Returns the y it displaced so the caller can restore it later. */
+export function setCurveAnchor(curve: CurveAnchor[], x: number, y: number): { curve: CurveAnchor[]; displacedY?: number } {
+  const existing = curve.findIndex((a) => Math.abs(a.x - x) < 0.5);
+  if (existing >= 0) {
+    const displacedY = curve[existing].y;
+    return { curve: curve.map((a, i) => (i === existing ? { ...a, x, y } : a)), displacedY };
+  }
+  let insertAt = curve.findIndex((a) => a.x > x);
+  if (insertAt < 0) insertAt = curve.length;
+  return { curve: [...curve.slice(0, insertAt), makeAnchor(x, y, 15), ...curve.slice(insertAt)] };
+}
+
+/** Undo a placement at x: restore the displaced y when one was recorded,
+ *  remove the anchor when the placement created it. Endpoints are never
+ *  removed — a curve needs its boundaries. */
+export function liftCurveAnchor(curve: CurveAnchor[], x: number, displacedY?: number): CurveAnchor[] {
+  const idx = curve.findIndex((a) => Math.abs(a.x - x) < 0.5);
+  if (idx < 0) return curve;
+  if (displacedY !== undefined) return curve.map((a, i) => (i === idx ? { ...a, y: displacedY } : a));
+  if (idx === 0 || idx === curve.length - 1) return curve;
+  return curve.filter((_, i) => i !== idx);
+}
+
+/**
+ * Place the base color in the ramp: pin a lightness anchor (base L) and a
+ * saturation anchor (multiplier 100) at the step whose lightness is nearest
+ * the base L, so the picked color renders verbatim at that step. Placement
+ * is measured against the curve with the previous placement lifted out —
+ * the pinned anchor equals base L at its own x by construction, so measuring
+ * against it would be circular and the anchor could never move. Runs inside
+ * the same store mutation as the base-color write; mutates `cfg` in place.
+ */
+export function syncBaseAnchor(cfg: PaletteConfig): void {
+  if (cfg.anchorToBase === false) return;
+  const prev = cfg.anchorPlacement;
+  let lCurve = cfg.lightnessCurve;
+  let sCurve = cfg.saturationCurve;
+  if (prev) {
+    const prevX = stepIndexToX(prev.step);
+    lCurve = liftCurveAnchor(lCurve, prevX, prev.displacedL);
+    sCurve = liftCurveAnchor(sCurve, prevX, prev.displacedS);
+  }
+  const step = nearestPaletteStep(lCurve, cfg.baseColor.l);
+  const x = stepIndexToX(step);
+  const l = setCurveAnchor(lCurve, x, cfg.baseColor.l * 100);
+  const s = setCurveAnchor(sCurve, x, 100);
+  cfg.lightnessCurve = l.curve;
+  cfg.saturationCurve = s.curve;
+  cfg.anchorPlacement = { step, displacedL: l.displacedY, displacedS: s.displacedY };
+}
+
+/** Toggle-off: lift the placement out of both curves and drop the flag. */
+export function clearBaseAnchor(cfg: PaletteConfig): void {
+  const prev = cfg.anchorPlacement;
+  if (prev) {
+    const x = stepIndexToX(prev.step);
+    cfg.lightnessCurve = liftCurveAnchor(cfg.lightnessCurve, x, prev.displacedL);
+    cfg.saturationCurve = liftCurveAnchor(cfg.saturationCurve, x, prev.displacedS);
+    cfg.anchorPlacement = undefined;
+  }
+  cfg.anchorToBase = false;
+}
+
 export function computeDerivedOklch(
   step: Step,
   base: Oklch,
@@ -284,7 +361,6 @@ export function derivePaletteValues(spec: PaletteSpec, config: PaletteConfig | u
 
   if (spec.emptySelector) {
     const emptyMode = config.emptyMode ?? 'solid';
-    const emptyStep = config.emptyStep ?? '850';
     const gradientStyle = config.gradientStyle ?? 'linear';
     const gradientAngle = config.gradientAngle ?? 180;
     const gradientReverse = config.gradientReverse ?? false;
@@ -295,8 +371,10 @@ export function derivePaletteValues(spec: PaletteSpec, config: PaletteConfig | u
     ];
 
     if (emptyMode === 'solid') {
-      const stepValue = out[`--color-${spec.cssNamespace}-${emptyStep}`];
-      if (stepValue) out['--page-bg'] = stepValue;
+      // The solid page background is the base color itself, not a selected
+      // step: the base anchor already renders it verbatim in the ramp, so a
+      // separate spot selection could only disagree with it.
+      out['--page-bg'] = { kind: 'color', ...baseColor };
       out['--page-bg-attachment'] = { kind: 'raw', css: 'scroll' };
     } else {
       // `--page-bg` is a raw kind composed from the already-serialized step
@@ -396,6 +474,7 @@ export function reconcilePalettesFromCssVars(
         // Input boundary: the imported cssVariables anchor is a hex string;
         // parse it to the OKLCH basis exactly once, here.
         next[spec.label] = { ...current, baseColor: hexToOklch(anchorHex.trim()), _imported: false };
+        syncBaseAnchor(next[spec.label]);
         snapped.add(spec.label);
       } else {
         // No anchor in cssVariables to snap to — flag has nothing to do; clear

@@ -15,6 +15,8 @@ import {
 } from './paletteDerivation';
 import { hexToOklch, type Oklch } from './oklch';
 import { migratePaletteColorsToOklch, type PreOklchPaletteConfig } from '../themes/migrations/2026-07-21-palette-oklch-basis';
+import { adoptLegacyBaseAnchor } from '../themes/migrations/2026-07-24-base-anchor-placement';
+import { adoptBackgroundSpotAsBase } from '../themes/migrations/2026-07-25-background-spot-to-base';
 import { makeAnchor, type CurveAnchor } from '../../ui/curveEngine';
 import type { PaletteConfig } from '../themes/themeTypes';
 import defaultTheme from '../../../live-tokens/data/themes/default.json';
@@ -122,11 +124,12 @@ describe('paletteMath re-exports resolve to the core implementations', () => {
 });
 
 describe('derivation is byte-stable (Global invariant 1)', () => {
-  // default.json is still hex on disk; loadFromFile migrates it to the OKLCH
-  // basis, so mirror that here before deriving.
-  const editorConfigs = migratePaletteColorsToOklch(
+  // default.json is still hex on disk with a legacy background spot;
+  // loadFromFile migrates it (OKLCH basis, anchor adoption, spot → base), so
+  // mirror that chain here before deriving.
+  const editorConfigs = adoptBackgroundSpotAsBase(adoptLegacyBaseAnchor(migratePaletteColorsToOklch(
     defaultTheme.editorConfigs as unknown as Record<string, PreOklchPaletteConfig>,
-  );
+  )));
 
   it('palettesToVars(default.json editorConfigs) is unchanged', () => {
     expect(palettesToVars(editorConfigs)).toMatchSnapshot();

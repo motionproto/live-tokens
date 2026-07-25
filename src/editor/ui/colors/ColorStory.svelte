@@ -52,7 +52,8 @@
   });
 
   let vars = $derived(palettesToVars(full));
-  let rec = $derived(recommendNeutralText(full));
+  let useBlackWhite = $state(false);
+  let rec = $derived(recommendNeutralText(full, undefined, useBlackWhite));
   let partialCoverage = $derived(rec.suggestions.filter((s) => !s.current.coverage.full));
 
   // Shadow the consumed text variables locally with the store-derived values;
@@ -97,25 +98,32 @@
       {#if fmt(ratioOnBg('--text-tertiary'))}<span class="ratio">{fmt(ratioOnBg('--text-tertiary'))}</span>{/if}
     </p>
 
-    {#if rec.anyDiffers}
-      <div class="suggest-row">
-        <span class="suggest-label">Suggested</span>
-        {#each rec.suggestions as s (s.step)}
-          <span class="suggest-entry" class:dim={!s.differs}>
-            <span class="fn-dot" style:--dot={s.suggested.hex}></span>
-            <span class="suggest-step">{s.step}</span>
-            <span class="ratio">{fmt(contrastRatio(s.suggested.hex, seedHex('Background')))}</span>
-          </span>
-        {/each}
+    <!-- Always rendered: toggling "Use black and white" changes the
+         suggestion, so the toggle must stay reachable even when the current
+         values already match. -->
+    <div class="suggest-row">
+      <span class="suggest-label">Suggested</span>
+      {#each rec.suggestions as s (s.step)}
+        <span class="suggest-entry" class:dim={!s.differs}>
+          <span class="fn-dot" style:--dot={s.suggested.hex}></span>
+          <span class="suggest-step">{s.step}</span>
+          <span class="ratio">{fmt(contrastRatio(s.suggested.hex, seedHex('Background')))}</span>
+        </span>
+      {/each}
+      <label class="bw-toggle" title="Anchor the suggestion at pure white or black instead of the softened extreme">
+        <input type="checkbox" bind:checked={useBlackWhite} />
+        <span>Use black and white</span>
+      </label>
+      {#if rec.anyDiffers}
         <UIPillButton
           icon="fa-arrow-down-short-wide"
           title="Anchor on primary and step secondary/tertiary down by even lightness drops, floored at WCAG AA (one undo)"
-          onclick={applySuggestedNeutralText}
+          onclick={() => applySuggestedNeutralText(useBlackWhite)}
         >
           Use suggested
         </UIPillButton>
-      </div>
-    {/if}
+      {/if}
+    </div>
 
     {#if partialCoverage.length > 0}
       <div
@@ -237,6 +245,19 @@
 
   .suggest-step {
     font-size: var(--ui-font-size-xs);
+  }
+
+  .bw-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-4);
+    font-size: var(--ui-font-size-xs);
+    cursor: pointer;
+  }
+
+  .bw-toggle input {
+    margin: 0;
+    cursor: pointer;
   }
 
   .coverage-alert {

@@ -28,6 +28,8 @@
     neutral?: boolean;
     baseColor: Oklch;
     anchorToBase: boolean;
+    /** Palette step label ('500', '850', …) the base color is placed at; null while off or unplaced. */
+    anchorStepLabel?: string | null;
     isEditingBase: boolean;
     panelOpen: boolean;
     editingColor: Oklch | null;
@@ -47,6 +49,7 @@
     neutral = false,
     baseColor,
     anchorToBase,
+    anchorStepLabel = null,
     isEditingBase,
     panelOpen,
     editingColor,
@@ -104,7 +107,11 @@
     onSliderStart={() => beginSliderGesture(`edit ${label} base`)}
   >
     {#snippet actions()}
-      <Toggle checked={anchorToBase} onchange={(v) => onAnchorToBaseChange(v ?? !anchorToBase)} label="Lock base color to position 500" />
+      <Toggle
+        checked={anchorToBase}
+        onchange={(v) => onAnchorToBaseChange(v ?? !anchorToBase)}
+        label={anchorStepLabel ? `Base color placed at ${anchorStepLabel}` : 'Place base color in palette'}
+      />
     {/snippet}
   </ColorEditPanel>
 {/if}

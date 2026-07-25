@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { recommendNeutralText, SUGGESTED_STEP_DROP } from './recommendText';
+import { recommendNeutralText, SUGGESTED_STEP_DROP, BW_GUARD_MIN_L, BW_GUARD_MAX_L } from './recommendText';
 import { NEUTRAL_BAND } from './solveTextContrast';
 import { contrastRatio } from './contrast';
 import { hexToOklch, oklchToHex } from './oklch';
@@ -34,11 +34,7 @@ function mkP(baseColorHex: string, scheme: SchemeDirection, extra: Partial<Palet
 function buildPalettes(scheme: SchemeDirection, neutralHex = '#70787e'): Record<string, PaletteConfig> {
   return {
     Neutral: mkP(neutralHex, scheme),
-    Background: mkP(
-      scheme === 'light' ? oklchToHex(0.9, 0.02, 260) : oklchToHex(0.25, 0.04, 260),
-      scheme,
-      { emptyStep: scheme === 'light' ? '100' : '850' },
-    ),
+    Background: mkP(scheme === 'light' ? oklchToHex(0.9, 0.02, 260) : oklchToHex(0.25, 0.04, 260), scheme),
   };
 }
 
@@ -77,13 +73,13 @@ describe('recommendNeutralText — hierarchy and floors', () => {
 
   it('keeps a compliant current primary as the anchor', () => {
     const palettes = buildPalettes('dark');
-    // Lift the curve's primary end well past the band-adverse AA floor so the
-    // current value is compliant; the suggestion must then not move it.
+    // Lift the curve's primary end past the band-adverse AA floor but inside
+    // the black/white guard; the suggestion must then not move it.
     const d = scaleCurveDefaults('dark');
     const anchors = d.Text.lightness();
     palettes.Neutral.scaleCurves = {
       ...palettes.Neutral.scaleCurves,
-      Text: { lightness: [{ ...anchors[0], y: 170 }, anchors[1]], saturation: d.Text.saturation() },
+      Text: { lightness: [{ ...anchors[0], y: 155 }, anchors[1]], saturation: d.Text.saturation() },
     };
     const rec = recommendNeutralText(palettes, 'dark');
     const primary = rec.suggestions[0];
@@ -112,6 +108,50 @@ describe('recommendNeutralText — hierarchy and floors', () => {
     expect(p.suggested.l).toBeGreaterThan(p.current.l);
     expect(p.suggested.coverage.full).toBe(true);
     expect(contrastRatio(t.suggested.hex, palettesToVars(palettes)['--surface-neutral'])).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+describe('recommendNeutralText — pure black/white is opt-in', () => {
+  const withPrimaryY = (scheme: SchemeDirection, y: number) => {
+    const palettes = buildPalettes(scheme);
+    const d = scaleCurveDefaults(scheme);
+    const anchors = d.Text.lightness();
+    palettes.Neutral.scaleCurves = {
+      ...palettes.Neutral.scaleCurves,
+      Text: { lightness: [{ ...anchors[0], y }, anchors[1]], saturation: d.Text.saturation() },
+    };
+    return palettes;
+  };
+
+  it('dark: a pure-white current primary is pulled inside the guard', () => {
+    const rec = recommendNeutralText(withPrimaryY('dark', 200), 'dark');
+    const p = rec.suggestions[0];
+    expect(p.current.l).toBeCloseTo(1, 2);
+    expect(p.suggested.hex).not.toBe('#ffffff');
+    expect(p.suggested.l).toBeLessThanOrEqual(BW_GUARD_MAX_L + 1e-6);
+    expect(p.suggested.coverage.full).toBe(true);
+  });
+
+  it('light: a pure-black current primary is pulled inside the guard', () => {
+    const rec = recommendNeutralText(withPrimaryY('light', 0), 'light');
+    const p = rec.suggestions[0];
+    expect(p.suggested.hex).not.toBe('#000000');
+    expect(p.suggested.l).toBeGreaterThanOrEqual(BW_GUARD_MIN_L - 1e-6);
+  });
+
+  it('opting in anchors primary at the scheme extreme', () => {
+    const dark = recommendNeutralText(buildPalettes('dark'), 'dark', true);
+    expect(dark.suggestions[0].suggested.hex).toBe('#ffffff');
+    const light = recommendNeutralText(buildPalettes('light'), 'light', true);
+    expect(light.suggestions[0].suggested.hex).toBe('#000000');
+  });
+
+  it('the hierarchy still steps down from the opted-in extreme', () => {
+    const rec = recommendNeutralText(buildPalettes('dark'), 'dark', true);
+    const [p, s, t] = rec.suggestions.map((x) => x.suggested);
+    expect(p.l).toBeGreaterThan(s.l);
+    expect(s.l).toBeGreaterThan(t.l);
+    expect(contrastRatio(t.hex, palettesToVars(buildPalettes('dark'))['--surface-neutral'])).toBeGreaterThanOrEqual(4.5);
   });
 });
 

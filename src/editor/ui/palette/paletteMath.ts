@@ -17,6 +17,9 @@ import {
   scaleStepToX,
   paletteStepKey,
   stepKey,
+  nearestPaletteStep,
+  syncBaseAnchor,
+  clearBaseAnchor,
 } from '../../core/palettes/paletteDerivation';
 
 // Single source of truth is `core/palettes/paletteDerivation`; these are the
@@ -38,6 +41,9 @@ export {
   scaleStepToX,
   paletteStepKey,
   stepKey,
+  nearestPaletteStep,
+  syncBaseAnchor,
+  clearBaseAnchor,
 };
 
 export const GRAY_FALLBACK: Oklch = { l: 0.5999, c: 0, h: 89.88 };
@@ -60,7 +66,7 @@ export const DEFAULT_NEUTRAL_LIGHTNESS = (): CurveAnchor[] => [makeAnchor(0, 92,
  * ramp, accents the standard one. Everything is editable afterward.
  */
 export function defaultPaletteConfig(opts: { baseColor: Oklch; neutral?: boolean; scheme?: SchemeDirection }): PaletteConfig {
-  return {
+  const cfg: PaletteConfig = {
     baseColor: opts.baseColor,
     lightnessCurve: opts.neutral ? DEFAULT_NEUTRAL_LIGHTNESS() : DEFAULT_PALETTE_LIGHTNESS(),
     saturationCurve: DEFAULT_PALETTE_SATURATION(),
@@ -70,6 +76,8 @@ export function defaultPaletteConfig(opts: { baseColor: Oklch; neutral?: boolean
     snappedScales: [],
     anchorToBase: true,
   };
+  syncBaseAnchor(cfg);
+  return cfg;
 }
 
 export function defaultScaleCurvesObject(scheme: SchemeDirection = 'dark'): ScaleCurves {
@@ -96,22 +104,6 @@ export const paletteStepLightness: PaletteStepDef[] = [
 ];
 
 export const scaleCurveKey = (scaleTitle: string, channel: 'lightness' | 'saturation') => `${scaleTitle}-${channel}`;
-
-export function injectLockedAnchor(curve: CurveAnchor[], x: number, y: number): { curve: CurveAnchor[]; idx: number; injected: boolean } {
-  const existing = curve.findIndex(a => Math.abs(a.x - x) < 0.5);
-  if (existing >= 0) {
-    if (curve[existing].x === x && Math.abs(curve[existing].y - y) < 0.01) return { curve, idx: existing, injected: false };
-    return { curve: curve.map((a, i) => i === existing ? { ...a, x, y } : a), idx: existing, injected: false };
-  }
-  let insertAt = curve.findIndex(a => a.x > x);
-  if (insertAt < 0) insertAt = curve.length;
-  return { curve: [...curve.slice(0, insertAt), makeAnchor(x, y, 15), ...curve.slice(insertAt)], idx: insertAt, injected: true };
-}
-
-export function removeLockedAnchor(curve: CurveAnchor[], idx: number | null): CurveAnchor[] {
-  if (idx === null || idx === 0 || idx === curve.length - 1) return curve;
-  return curve.filter((_, i) => i !== idx);
-}
 
 interface PaletteComputed {
   oklch: Oklch;

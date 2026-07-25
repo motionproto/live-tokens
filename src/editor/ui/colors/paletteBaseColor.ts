@@ -20,7 +20,7 @@
 import { get } from 'svelte/store';
 import type { Oklch } from '../../core/palettes/oklch';
 import { AXIS_ROLES } from '../../core/palettes/colorHarmony';
-import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
+import { PALETTE_SPECS, syncBaseAnchor, type PaletteSpec } from '../../core/palettes/paletteDerivation';
 import { solveTextCurves } from '../../core/palettes/solveTextContrast';
 import { recommendNeutralText } from '../../core/palettes/recommendText';
 import { defaultPaletteConfig } from '../palette/paletteMath';
@@ -51,7 +51,9 @@ function syncBoundAxisHue(s: EditorState, label: string): void {
 /** Set the full seed color (H, C and L). Used by the readout panel. */
 export function setBaseColor(label: string, color: Oklch): void {
   mutate(`colors: ${label} base`, (s) => {
-    ensureConfig(s, label).baseColor = color;
+    const cfg = ensureConfig(s, label);
+    cfg.baseColor = color;
+    syncBaseAnchor(cfg);
     syncBoundAxisHue(s, label);
   });
 }
@@ -61,6 +63,7 @@ export function setBaseHueChroma(label: string, hue: number, chroma: number): vo
   mutate(`colors: ${label} base`, (s) => {
     const cfg = ensureConfig(s, label);
     cfg.baseColor = { l: cfg.baseColor.l, c: Math.max(0, chroma), h: normHue(hue) };
+    syncBaseAnchor(cfg);
     syncBoundAxisHue(s, label);
   });
 }
@@ -71,6 +74,7 @@ export function setBaseHue(label: string, hue: number): void {
   mutate(`colors: ${label} hue`, (s) => {
     const cfg = ensureConfig(s, label);
     cfg.baseColor = { l: cfg.baseColor.l, c: cfg.baseColor.c, h: normHue(hue) };
+    syncBaseAnchor(cfg);
     syncBoundAxisHue(s, label);
   });
 }
@@ -82,6 +86,7 @@ export function setBaseLightnessChroma(label: string, lightness: number, chroma:
   mutate(`colors: ${label} lightness`, (s) => {
     const cfg = ensureConfig(s, label);
     cfg.baseColor = { l: lightness, c: Math.max(0, chroma), h: cfg.baseColor.h };
+    syncBaseAnchor(cfg);
   });
 }
 
@@ -90,6 +95,7 @@ export function setBaseChroma(label: string, chroma: number): void {
   mutate(`colors: ${label} chroma`, (s) => {
     const cfg = ensureConfig(s, label);
     cfg.baseColor = { l: cfg.baseColor.l, c: Math.max(0, chroma), h: cfg.baseColor.h };
+    syncBaseAnchor(cfg);
   });
 }
 
@@ -137,6 +143,7 @@ function applyAxisHue(s: EditorState, index: number, hue: number, chroma: number
   if (axis.family !== null) {
     const cfg = ensureConfig(s, axis.family);
     cfg.baseColor = { l: cfg.baseColor.l, c: chroma ?? cfg.baseColor.c, h: hue };
+    syncBaseAnchor(cfg);
   }
 }
 
@@ -172,13 +179,16 @@ export function unbindFamily(family: string): void {
 function adoptAxisHue(s: EditorState, family: string, hue: number): void {
   const cfg = ensureConfig(s, family);
   cfg.baseColor = { l: cfg.baseColor.l, c: cfg.baseColor.c, h: normHue(hue) };
+  syncBaseAnchor(cfg);
 }
 
 /** Set several seed colors in ONE undo entry (harmony apply, global rotate). */
 export function setBaseColors(patch: Record<string, Oklch>, historyLabel = 'colors: harmony'): void {
   transaction(historyLabel, (s) => {
     for (const [label, color] of Object.entries(patch)) {
-      ensureConfig(s, label).baseColor = color;
+      const cfg = ensureConfig(s, label);
+      cfg.baseColor = color;
+      syncBaseAnchor(cfg);
     }
   });
 }
@@ -194,25 +204,12 @@ export function applySolvedTextCurves(s: EditorState): void {
 
 /** Apply the Color Story's suggested neutral text hierarchy (primary anchor,
  *  two even L drops, AA floors) as the Neutral family's Text curve. */
-export function applySuggestedNeutralText(): void {
+export function applySuggestedNeutralText(useBlackWhite = false): void {
   mutate('colors: suggested text hierarchy', (s) => {
     ensureConfig(s, 'Neutral');
-    const rec = recommendNeutralText(s.palettes);
+    const rec = recommendNeutralText(s.palettes, undefined, useBlackWhite);
     if (!rec.patch) return;
     const cfg = s.palettes['Neutral'];
     cfg.scaleCurves = { ...cfg.scaleCurves, Text: rec.patch };
-  });
-}
-
-/** Pick which palette step is the page background. Forces solid mode, then
- *  re-solves every family's text curve against the new background in the same
- *  transaction — one undo restores both the spot and the text. */
-export function setBackgroundSpot(stepLabel: string): void {
-  const spec = PALETTE_SPECS.find((p) => p.emptySelector)!;
-  transaction(`colors: background spot ${stepLabel}`, (s) => {
-    const cfg = ensureConfig(s, spec.label);
-    cfg.emptyMode = 'solid';
-    cfg.emptyStep = stepLabel;
-    applySolvedTextCurves(s);
   });
 }

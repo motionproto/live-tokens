@@ -8,7 +8,7 @@
   import LightnessBar from './LightnessBar.svelte';
   import ColorReadouts from './ColorReadouts.svelte';
   import ColorStory from './ColorStory.svelte';
-  import BackgroundSpotStrip from './BackgroundSpotStrip.svelte';
+  import PaletteStepStrip from './PaletteStepStrip.svelte';
   import HarmonyAxesList from './HarmonyAxesList.svelte';
   import UIPillButton from '../UIPillButton.svelte';
   import { setBaseColor, setBaseColors, setAxisHues, applySolvedTextCurves } from './paletteBaseColor';
@@ -75,6 +75,10 @@
       };
     });
   });
+
+  const FUNCTIONAL_FAMILIES = new Set(['Info', 'Success', 'Warning', 'Danger']);
+  let coreSwatches = $derived(swatches.filter((sw) => !FUNCTIONAL_FAMILIES.has(sw.label)));
+  let functionalSwatches = $derived(swatches.filter((sw) => FUNCTIONAL_FAMILIES.has(sw.label)));
 
   let shownModeLabel = $derived(
     HARMONY_MODE_BUTTONS.find((b) => b.mode === (hoverMode ?? activeMode))?.label ?? '',
@@ -159,23 +163,33 @@
 
       <div class="group">
         <span class="eyebrow">Swatches</span>
-        <div class="swatch-row">
-          {#each swatches as sw (sw.label)}
-            <button
-              type="button"
-              class="swatch"
-              class:active={selected === sw.label}
-              style="--swatch-fill: {sw.hex}"
-              title={sw.display}
-              aria-label={`Select ${sw.display}`}
-              aria-pressed={selected === sw.label}
-              onclick={() => select(sw.label)}
-            >
-              <span class="chip"></span>
-              <span class="swatch-label">{sw.label}</span>
-              {#if sw.onWheel}<span class="wheel-dot" title="On the wheel" aria-hidden="true"></span>{/if}
-            </button>
-          {/each}
+        {#snippet swatchButton(sw: (typeof swatches)[number])}
+          <button
+            type="button"
+            class="swatch"
+            class:active={selected === sw.label}
+            style="--swatch-fill: {sw.hex}"
+            title={sw.display}
+            aria-label={`Select ${sw.display}`}
+            aria-pressed={selected === sw.label}
+            onclick={() => select(sw.label)}
+          >
+            <span class="chip"></span>
+            <span class="swatch-label">{sw.label}</span>
+            {#if sw.onWheel}<span class="wheel-dot" title="On the wheel" aria-hidden="true"></span>{/if}
+          </button>
+        {/snippet}
+        <div class="swatch-rows">
+          <div class="swatch-row">
+            {#each coreSwatches as sw (sw.label)}
+              {@render swatchButton(sw)}
+            {/each}
+          </div>
+          <div class="swatch-row">
+            {#each functionalSwatches as sw (sw.label)}
+              {@render swatchButton(sw)}
+            {/each}
+          </div>
         </div>
       </div>
 
@@ -190,15 +204,16 @@
           onHueChromaChange={(h, c, l) => setBaseColor(selected, { l: l / 100, c, h })}
           onSliderStart={() => beginSliderGesture(`colors: ${selected} base`)}
         />
-        <ColorReadouts color={selectedOklch} />
       </div>
 
-      {#if selectedSpec.emptySelector}
-        <div class="group">
-          <span class="eyebrow">Page background spot</span>
-          <BackgroundSpotStrip />
-        </div>
-      {/if}
+      <div class="group">
+        <span class="eyebrow">Derived scale</span>
+        <PaletteStepStrip spec={selectedSpec} />
+      </div>
+
+      <div class="group">
+        <ColorReadouts color={selectedOklch} />
+      </div>
     </section>
   </div>
 
@@ -414,6 +429,13 @@
   .harmony-actions {
     display: flex;
     gap: var(--ui-space-8);
+  }
+
+  .swatch-rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-8);
+    min-width: 0;
   }
 
   .swatch-row {

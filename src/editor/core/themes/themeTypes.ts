@@ -21,13 +21,21 @@ export interface PaletteConfig {
   overrides: Record<string, Oklch>;
   snappedScales: string[];
   emptyMode?: 'solid' | 'gradient';
-  emptyStep?: string;
   gradientStyle?: GradientStyle;
   gradientAngle?: number;
   gradientReverse?: boolean;
   gradientStops?: GradientStop[];
   gradientSize?: 'page' | 'window';
   anchorToBase?: boolean;
+  /**
+   * Where the base color sits in the ramp while `anchorToBase` is on: the
+   * PALETTE_STEPS index whose curve anchors are pinned to the base color
+   * (lightness = base L, saturation = multiplier 100). `displacedL` /
+   * `displacedS` remember the y of a pre-existing anchor (endpoint or
+   * user-authored) the placement overwrote at that x, so moving the
+   * placement or toggling off restores it instead of deleting it.
+   */
+  anchorPlacement?: { step: number; displacedL?: number; displacedS?: number };
   /**
    * Set to true by importers when they overlay `cssVariables[--color-{ns}-*]`
    * without owning the typed-state curves. The storage-layer reconciler uses

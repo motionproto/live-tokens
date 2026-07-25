@@ -26,6 +26,11 @@ import type { PaletteConfig } from '../themes/themeTypes';
 /** One even hierarchy drop in OKLCH L. Two drops span primary → tertiary. */
 export const SUGGESTED_STEP_DROP = 0.07;
 
+/** Guard band when pure black/white is not opted into: suggestions stay
+ *  between ≈ #111 and ≈ #e8e8e8. The AA floor beats the guard. */
+export const BW_GUARD_MIN_L = 0.17;
+export const BW_GUARD_MAX_L = 0.93;
+
 /** L difference below which current and suggested count as the same value. */
 const DIFF_EPS = 0.01;
 
@@ -76,6 +81,7 @@ function colorL(v: DerivedValue | undefined): number | null {
 export function recommendNeutralText(
   palettes: Record<string, PaletteConfig>,
   scheme?: SchemeDirection,
+  useBlackWhite = false,
 ): NeutralTextRecommendation {
   const neutral = palettes['Neutral']!;
   const values = palettesToValues(palettes);
@@ -147,7 +153,19 @@ export function recommendNeutralText(
   const currentL: Record<string, number> = {};
   for (const s of STEPS) currentL[s.step] = colorL(values[s.textVar]) ?? seedL;
 
-  const primaryL = clampWindow(towardContrast(currentL.primary, primaryFloor.l));
+  // Pure black/white is an affirmative choice (most designers find it too
+  // stark): opted in, primary anchors at the scheme extreme; otherwise the
+  // anchor is pulled inside the guard band, yielding only to the AA floor.
+  let primaryL: number;
+  if (useBlackWhite) {
+    primaryL = clampWindow(sign > 0 ? lMax : 0);
+  } else {
+    const guard = sign > 0
+      ? Math.max(BW_GUARD_MAX_L, primaryFloor.l)
+      : Math.min(BW_GUARD_MIN_L, primaryFloor.l);
+    const anchored = clampWindow(towardContrast(currentL.primary, primaryFloor.l));
+    primaryL = sign > 0 ? Math.min(anchored, guard) : Math.max(anchored, guard);
+  }
   const tertiaryL = towardContrast(stepFloor.l, primaryL - sign * 2 * SUGGESTED_STEP_DROP);
   const suggestedL: Record<string, number> = {
     primary: primaryL,

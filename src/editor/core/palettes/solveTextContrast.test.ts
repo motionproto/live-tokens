@@ -33,11 +33,7 @@ function buildPalettes(scheme: SchemeDirection, brandL: number, brandHue: number
   return {
     Neutral: mkP('#70787e', scheme),
     Alternate: mkP('#817b78', scheme),
-    Background: mkP(
-      scheme === 'light' ? oklchToHex(0.9, 0.02, 260) : oklchToHex(0.25, 0.04, 260),
-      scheme,
-      { emptyStep: scheme === 'light' ? '100' : '850' },
-    ),
+    Background: mkP(scheme === 'light' ? oklchToHex(0.9, 0.02, 260) : oklchToHex(0.25, 0.04, 260), scheme),
     Brand: mkP(oklchToHex(brandL, 0.15, brandHue), scheme),
     Accent: mkP(oklchToHex(0.55, 0.14, 40), scheme),
     Special: mkP(oklchToHex(0.5, 0.16, 300), scheme),

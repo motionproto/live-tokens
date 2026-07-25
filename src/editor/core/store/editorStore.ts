@@ -30,6 +30,8 @@ import {
 import { renamePrimaryPaletteKey } from '../themes/migrations/2026-05-13-primary-to-brand';
 import { unifyGrayPalettes } from '../themes/migrations/2026-06-05-palette-unification';
 import { migratePaletteColorsToOklch, type PreOklchPaletteConfig } from '../themes/migrations/2026-07-21-palette-oklch-basis';
+import { adoptLegacyBaseAnchor } from '../themes/migrations/2026-07-24-base-anchor-placement';
+import { adoptBackgroundSpotAsBase } from '../themes/migrations/2026-07-25-background-spot-to-base';
 import { defaultHarmonyAxes, sanitizeHarmonyAxes, axesFromLegacyOrder } from '../palettes/colorHarmony';
 import { __resetRendererCacheForTests, installRenderer } from './editorRenderer';
 import {
@@ -516,10 +518,12 @@ const domainLoaders: Record<string, DomainLoader> = {
 export function loadFromFile(theme: Theme): void {
   const next = emptyState();
   // Structural palette migrations, innermost → outermost: rename Primary→Brand,
-  // drop the gray "mode", then convert every color channel to the numeric OKLCH
-  // basis. The clone is still pre-basis (hex or already-numeric) on disk.
+  // drop the gray "mode", convert every color channel to the numeric OKLCH
+  // basis, adopt any legacy locked-500 anchor as a persisted placement, then
+  // fold a legacy background spot into the base color. The clone is still
+  // pre-basis (hex or already-numeric) on disk.
   const raw = structuredClone(theme.editorConfigs ?? {}) as Record<string, PreOklchPaletteConfig>;
-  next.palettes = migratePaletteColorsToOklch(unifyGrayPalettes(renamePrimaryPaletteKey(raw)));
+  next.palettes = adoptBackgroundSpotAsBase(adoptLegacyBaseAnchor(migratePaletteColorsToOklch(unifyGrayPalettes(renamePrimaryPaletteKey(raw)))));
   next.fonts.sources = structuredClone(theme.fontSources ?? []);
   next.fonts.stacks  = structuredClone(theme.fontStacks  ?? []);
   const rawVars = runMigrations(

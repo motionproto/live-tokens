@@ -1,74 +1,80 @@
 <script lang="ts">
   import { editorState } from '../../core/store/editorStore';
   import {
-    PALETTE_SPECS,
     PALETTE_STEPS,
     derivePaletteValues,
     serializeDerivedValue,
+    type PaletteSpec,
   } from '../../core/palettes/paletteDerivation';
   import { contrastRatio, AA_BODY } from '../../core/palettes/contrast';
   import { defaultPaletteConfig } from '../palette/paletteMath';
-  import { setBackgroundSpot } from './paletteBaseColor';
+  import { dockGrow } from '../palette/dockMagnify';
 
-  const spec = PALETTE_SPECS.find((s) => s.emptySelector)!;
+  let { spec }: { spec: PaletteSpec } = $props();
 
   let config = $derived($editorState.palettes[spec.label]);
-  let isGradient = $derived((config?.emptyMode ?? 'solid') === 'gradient');
-  let currentStep = $derived(isGradient ? null : (config?.emptyStep ?? '850'));
+  let isGradient = $derived(!!spec.emptySelector && (config?.emptyMode ?? 'solid') === 'gradient');
+
+  function withContrast(hex: string) {
+    const onWhite = contrastRatio(hex, '#ffffff');
+    const onBlack = contrastRatio(hex, '#000000');
+    const best = Math.max(onWhite, onBlack);
+    return { hex, textHex: onWhite >= onBlack ? '#ffffff' : '#000000', best, aa: best >= AA_BODY };
+  }
+
+  let effectiveConfig = $derived(config ?? defaultPaletteConfig({ baseColor: spec.initialColor, neutral: spec.neutral }));
 
   let steps = $derived.by(() => {
-    const values = derivePaletteValues(
-      spec,
-      config ?? defaultPaletteConfig({ baseColor: spec.initialColor, neutral: spec.neutral }),
-    );
-    return PALETTE_STEPS.map((ps) => {
-      const hex = serializeDerivedValue(values[`--color-${spec.cssNamespace}-${ps.label}`]);
-      const onWhite = contrastRatio(hex, '#ffffff');
-      const onBlack = contrastRatio(hex, '#000000');
-      const best = Math.max(onWhite, onBlack);
-      return {
-        label: ps.label,
-        hex,
-        textHex: onWhite >= onBlack ? '#ffffff' : '#000000',
-        best,
-        aa: best >= AA_BODY,
-      };
-    });
+    const values = derivePaletteValues(spec, effectiveConfig);
+    return PALETTE_STEPS.map((ps) => ({
+      label: ps.label,
+      ...withContrast(serializeDerivedValue(values[`--color-${spec.cssNamespace}-${ps.label}`])),
+    }));
   });
 
+  // Dock magnification, mirroring PaletteEditor's swatch grid: the flex-grow
+  // transition animates the walk as lightness is dialed.
+  let anchoredStep = $derived(effectiveConfig.anchorToBase === false ? null : effectiveConfig.anchorPlacement?.step ?? null);
+  // The page background follows the base anchor; there is no separate spot.
+  let backgroundStep = $derived(spec.emptySelector && !isGradient ? anchoredStep : null);
+
   // Floor, don't round: the readout must never overstate a contrast ratio.
-  function title(s: (typeof steps)[number]): string {
+  function verdict(s: { best: number; aa: boolean }): string {
     const ratio = `${(Math.floor(s.best * 10) / 10).toFixed(1)}:1`;
-    const verdict = s.aa ? `best text contrast ${ratio}` : `no text reaches AA (best ${ratio})`;
-    return `${spec.label} ${s.label} · set as page background · ${verdict}`;
+    return s.aa ? `best text contrast ${ratio}` : `no text reaches AA (best ${ratio})`;
+  }
+
+  function stepTitle(s: (typeof steps)[number], i: number): string {
+    const anchor = i === anchoredStep ? ' · base color' : '';
+    const bg = i === backgroundStep ? ' · page background' : '';
+    return `${spec.label} ${s.label}${anchor}${bg} · ${verdict(s)}`;
   }
 </script>
 
-<div class="strip" role="group" aria-label="Page background spot">
-  {#each steps as s (s.label)}
-    <button
-      type="button"
+<div class="strip" role="group" aria-label={`${spec.label} derived scale`}>
+  {#each steps as s, i (s.label)}
+    <div
       class="spot"
-      class:active={currentStep === s.label}
-      title={title(s)}
-      aria-label={title(s)}
-      aria-pressed={currentStep === s.label}
-      onclick={() => setBackgroundSpot(s.label)}
+      class:anchored={anchoredStep === i}
+      class:background={backgroundStep === i}
+      style:flex-grow={dockGrow(i, anchoredStep)}
+      title={stepTitle(s, i)}
     >
       <span class="chip" style:background={s.hex}>
         <span class="aa" class:fail={!s.aa} style:color={s.textHex}>Aa</span>
       </span>
       <span class="step-label">{s.label}</span>
-    </button>
+    </div>
   {/each}
 </div>
 {#if isGradient}
-  <p class="hint">The background is currently a gradient. Picking a spot switches it to a solid background.</p>
+  <p class="hint">The page background is currently a gradient; the base color takes over when gradient mode is off.</p>
 {/if}
 
 <style>
   .strip {
     display: flex;
+    align-items: flex-end;
     gap: var(--ui-space-4);
   }
 
@@ -78,10 +84,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-4);
-    padding: 0;
-    background: none;
-    border: none;
-    cursor: pointer;
+    transition: flex-grow var(--ui-transition-fast);
   }
 
   .chip {
@@ -89,17 +92,23 @@
     align-items: center;
     justify-content: center;
     height: 2.25rem;
+    /* Compensating margin: height + margin-top is constant every frame of the
+       magnification, so the strip's layout height never dips mid-transition
+       (the dip bounced everything below). Chip grows upward, label pinned. */
+    margin-top: 0.5rem;
     border-radius: var(--ui-radius-sm);
     border: 1px solid var(--ui-border-low);
-    transition: border-color var(--ui-transition-fast);
+    transition: border-color var(--ui-transition-fast), height var(--ui-transition-fast), margin-top var(--ui-transition-fast);
   }
 
-  .spot:hover .chip {
-    border-color: var(--ui-border-high);
-  }
-
-  .spot.active .chip {
+  .spot.anchored .chip {
+    height: 2.75rem;
+    margin-top: 0;
     border-color: var(--ui-border-higher);
+  }
+
+  /* The ring marks the page background, which is the anchored base color. */
+  .spot.background .chip {
     outline: 2px solid var(--ui-text-primary);
     outline-offset: 1px;
   }
@@ -120,8 +129,9 @@
     text-align: center;
   }
 
-  .spot.active .step-label {
+  .spot.anchored .step-label {
     color: var(--ui-text-primary);
+    font-weight: var(--ui-font-weight-semibold);
   }
 
   .hint {
