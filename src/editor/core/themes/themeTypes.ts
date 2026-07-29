@@ -91,11 +91,6 @@ export interface Theme {
   cssVariables: Record<string, string>;
   fontSources?: FontSource[];
   fontStacks?: FontStack[];
-  /**
-   * Deprecated legacy field. Read when `harmonyAxes` is absent; written on save
-   * for older builds.
-   */
-  harmonyOrder?: string[];
   /** Four fixed harmony axes, each owning a hue with an optional bound family. */
   harmonyAxes?: HarmonyAxis[];
   /**

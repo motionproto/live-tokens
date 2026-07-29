@@ -33,29 +33,6 @@ export interface HarmonyAxis {
   family: string | null;
 }
 
-// Slot 0 is the anchor (Brand), then Accent, Background — the pre-axes default.
-const LEGACY_DEFAULT_ORDER: readonly string[] = ['Brand', 'Accent', 'Background'];
-
-/**
- * Coerce an untrusted legacy `harmonyOrder` (theme JSON) into a valid order:
- * keep only eligible entries, first occurrence of each. A non-array, empty, or
- * fully-invalid input falls back to the default order. Private to
- * `axesFromLegacyOrder`, the sole migration entry point.
- */
-function sanitizeLegacyOrder(input: unknown): string[] {
-  if (!Array.isArray(input)) return [...LEGACY_DEFAULT_ORDER];
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const entry of input) {
-    if (typeof entry !== 'string') continue;
-    if (!HARMONY_ELIGIBLE.includes(entry)) continue;
-    if (seen.has(entry)) continue;
-    seen.add(entry);
-    out.push(entry);
-  }
-  return out.length > 0 ? out : [...LEGACY_DEFAULT_ORDER];
-}
-
 // In-range hues pass through bit-exact: the mod-360 round trip perturbs the
 // last mantissa bits, which would make a preserved hue compare unequal.
 const norm = (h: number): number => (h >= 0 && h < 360 ? h : ((h % 360) + 360) % 360);
@@ -196,33 +173,10 @@ export function sanitizeHarmonyAxes(
       axis.hue = norm(palettes[axis.family].baseColor.h);
     }
   }
-  return axes;
-}
-
-/**
- * Migrate a legacy `harmonyOrder` into axes: `order[i]` binds to axis `i` (via
- * the same eligibility/dedup rules as the old model), seeded at its palette's
- * `baseColor.h` (or the family's spec hue when no palette loaded). Unfilled axes
- * stay unbound at the default hues, Quaternary offset from the migrated anchor.
- */
-export function axesFromLegacyOrder(
-  order: unknown,
-  palettes: Record<string, PaletteConfig>,
-): HarmonyAxis[] {
-  const legacy = sanitizeLegacyOrder(order);
-  const defaults = defaultHarmonyAxes();
-  const hueOf = (family: string): number =>
-    norm(palettes[family] ? palettes[family].baseColor.h : specInitialHue(family));
-  const axes: HarmonyAxis[] = [];
-  for (let i = 0; i < AXIS_COUNT; i++) {
-    const family = legacy[i] ?? null;
-    if (family) {
-      axes.push({ hue: hueOf(family), family });
-    } else if (i === AXIS_COUNT - 1) {
-      axes.push({ hue: norm(axes[0].hue + 270), family: null });
-    } else {
-      axes.push({ hue: defaults[i].hue, family: null });
-    }
-  }
+  // With no stored axes (a theme predating them), the default Quaternary hue is
+  // an offset from the anchor, so it follows the anchor's palette-seeded hue
+  // rather than the spec hue the defaults were built from.
+  const last = axes[AXIS_COUNT - 1];
+  if (!Array.isArray(input) && last.family === null) last.hue = norm(axes[0].hue + 270);
   return axes;
 }

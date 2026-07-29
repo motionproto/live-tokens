@@ -298,7 +298,7 @@ describe('editorStore — apply + undo matches spec end-to-end', () => {
   });
 });
 
-describe('editorStore — harmonyAxes persistence + migration', () => {
+describe('editorStore — harmonyAxes persistence', () => {
   it('a theme with neither field binds the default trio, hues seeded from palettes', () => {
     loadFromFile(themeWithPalettes());
     const s = get(editorState);
@@ -309,21 +309,7 @@ describe('editorStore — harmonyAxes persistence + migration', () => {
     expect(s.harmonyAxes[3].hue).toBeCloseTo((s.palettes.Brand.baseColor.h + 270) % 360, 9);
   });
 
-  it('migrates legacy harmonyOrder → axes 0-2 bound at palette hues, axis 3 unbound', () => {
-    loadFromFile(themeWithPalettes({ harmonyOrder: ['Accent', 'Brand', 'Special'] }));
-    const s = get(editorState);
-    expect(s.harmonyAxes.map((a) => a.family)).toEqual(['Accent', 'Brand', 'Special', null]);
-    expect(s.harmonyAxes[0].hue).toBeCloseTo(s.palettes.Accent.baseColor.h, 9);
-    expect(s.harmonyAxes[1].hue).toBeCloseTo(s.palettes.Brand.baseColor.h, 9);
-    expect(s.harmonyAxes[2].hue).toBeCloseTo(s.palettes.Special.baseColor.h, 9);
-  });
-
-  it('applies legacy sanitize rules on migration: [Danger, Brand, Brand] binds only Brand', () => {
-    loadFromFile(themeWithPalettes({ harmonyOrder: ['Danger', 'Brand', 'Brand'] }));
-    expect(get(editorState).harmonyAxes.map((a) => a.family)).toEqual(['Brand', null, null, null]);
-  });
-
-  it('round-trips a sparse layout and writes the compat harmonyOrder', () => {
+  it('round-trips a sparse layout', () => {
     loadFromFile(themeWithPalettes({
       harmonyAxes: [
         { family: 'Brand', hue: 0 },
@@ -333,7 +319,6 @@ describe('editorStore — harmonyAxes persistence + migration', () => {
       ],
     }));
     const saved = toTheme(get(editorState), { name: 't' });
-    expect(saved.harmonyOrder).toEqual(['Brand', 'Background']);
     expect(saved.harmonyAxes!.map((a) => a.family)).toEqual(['Brand', null, 'Background', null]);
 
     loadFromFile(saved);
@@ -343,17 +328,6 @@ describe('editorStore — harmonyAxes persistence + migration', () => {
     expect(s.harmonyAxes[3].hue).toBe(234);
     expect(s.harmonyAxes[0].hue).toBeCloseTo(s.palettes.Brand.baseColor.h, 9);
     expect(s.harmonyAxes[2].hue).toBeCloseTo(s.palettes.Background.baseColor.h, 9);
-  });
-
-  it('omits the compat harmonyOrder when no family is bound', () => {
-    loadFromFile(themeWithPalettes({
-      harmonyAxes: [
-        { family: null, hue: 10 }, { family: null, hue: 20 },
-        { family: null, hue: 30 }, { family: null, hue: 40 },
-      ],
-    }));
-    const saved = toTheme(get(editorState), { name: 't' });
-    expect('harmonyOrder' in saved).toBe(false);
   });
 
   it('reconciles a hand-edited bound hue to the palette on load (color is ground truth)', () => {

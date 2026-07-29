@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+- `Theme.harmonyOrder` and its migration path. The field only ever existed
+  between v0.40.1 and v0.41.0, superseded by `harmonyAxes` inside the same
+  release cycle, so nothing on disk carries it: a 0.41.0-saved theme wrote both
+  fields and `harmonyAxes` was already authoritative on load. Themes with
+  neither field still resolve to the default axes, with the unbound Quaternary
+  offset from the anchor's own hue.
+
 ## 0.41.0 — A Colors view, and semantic text styles
 
 ### Added

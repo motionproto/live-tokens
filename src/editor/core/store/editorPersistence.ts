@@ -20,7 +20,7 @@ import { store } from './editorCore';
 import { quietGet, quietSet } from '../storage/storage';
 import { makeDefaultGradients } from '../themes/slices/gradients';
 import { seedShadowsFromDom } from '../themes/slices/shadows';
-import { sanitizeHarmonyAxes, axesFromLegacyOrder } from '../palettes/colorHarmony';
+import { sanitizeHarmonyAxes } from '../palettes/colorHarmony';
 
 // Resolve the persist key lazily (per-call) so library consumers that invoke
 // `configureEditor({storagePrefix})` before the first store write get the
@@ -88,20 +88,11 @@ export function normalizeComponents(state: EditorState): EditorState {
   return { ...state, components };
 }
 
-// `hydrate` shallow-merges persisted state over `emptyState()`, which always
-// seeds a default `harmonyAxes`. So a pre-axes session (persisted `harmonyOrder`,
-// no `harmonyAxes`) surfaces here with the injected default axes over its real
-// palettes. The new store never persists `harmonyOrder`, so its presence is the
-// definitive pre-axes signal: migrate from it, seeding hues off the palettes.
-// Otherwise reconcile the persisted axes. Either way, drop the stale legacy key.
+// `hydrate` shallow-merges persisted state over `emptyState()`, so the axes that
+// arrive here may be the injected defaults sitting over the session's real
+// palettes. Reconcile them against those palettes.
 export function normalizeHarmonyAxes(state: EditorState): EditorState {
-  const legacy = (state as { harmonyOrder?: unknown }).harmonyOrder;
-  const axes = legacy !== undefined
-    ? axesFromLegacyOrder(legacy, state.palettes)
-    : sanitizeHarmonyAxes(state.harmonyAxes, state.palettes);
-  const next = { ...state, harmonyAxes: axes };
-  delete (next as { harmonyOrder?: unknown }).harmonyOrder;
-  return next;
+  return { ...state, harmonyAxes: sanitizeHarmonyAxes(state.harmonyAxes, state.palettes) };
 }
 
 export function hydrate(): void {
