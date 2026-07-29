@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.42.0 — Canvas, and every ramp places its base color
 
 ### Changed (breaking)
 
@@ -17,6 +17,15 @@
   the now-ineligible family and silently unbind the axis. The shipped
   `default.json` is rewritten under the new key.
 
+### Added
+
+- **The Colors view's swatch rows read as ramps.** Both rows (core families and
+  functional families) order their swatches by base-color luminance, light to
+  dark, matching the palette ramps. The selected swatch dock-magnifies through
+  the same `dockGrow` policy the palette grid and the derived-scale strip already
+  share, and it animates to its new position as its lightness is dialed, so the
+  selection is legible while it walks the row.
+
 ### Removed
 
 - `Theme.harmonyOrder` and its migration path. The field only ever existed
@@ -25,6 +34,26 @@
   fields and `harmonyAxes` was already authoritative on load. Themes with
   neither field still resolve to the default axes, with the unbound Quaternary
   offset from the anchor's own hue.
+
+### Fixed
+
+- **Palette ramps now show the enlarged slot for the step the base color sits
+  at.** The dock magnification keys off `anchorPlacement`, which the July 24
+  migration only wrote for configs carrying the legacy locked-500 curve anchor;
+  a palette whose `anchorToBase` was on but never re-edited had no placement, so
+  its ramp never magnified anything. Theme migration
+  `2026-07-29-place-base-anchors` places those configs up front by pinning the
+  base color at the step whose curve lightness is nearest the base L, the same
+  thing a base-color edit has always done. It applies on theme load and on
+  session hydrate, skips configs that are already placed or have `anchorToBase`
+  off, and self-sunsets once every theme has been resaved with a placement.
+
+### Migration
+
+- Both migrations in this release are **theme-file migrations**: they run
+  automatically when a theme loads and when a persisted editor session hydrates.
+  No token names changed, so `tokens.css` is untouched and there is nothing for
+  `npx live-tokens migrate` to do. Consumers upgrade by bumping the dependency.
 
 ## 0.41.0 — A Colors view, and semantic text styles
 
