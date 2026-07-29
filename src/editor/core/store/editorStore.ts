@@ -28,9 +28,14 @@ import {
   runMigrations,
 } from '../themes/migrations';
 import { renamePrimaryPaletteKey } from '../themes/migrations/2026-05-13-primary-to-brand';
+import {
+  renameBackgroundPaletteKey,
+  renameBackgroundHarmonyFamily,
+} from '../themes/migrations/2026-07-29-background-palette-to-canvas';
 import { unifyGrayPalettes } from '../themes/migrations/2026-06-05-palette-unification';
 import { migratePaletteColorsToOklch, type PreOklchPaletteConfig } from '../themes/migrations/2026-07-21-palette-oklch-basis';
 import { adoptLegacyBaseAnchor } from '../themes/migrations/2026-07-24-base-anchor-placement';
+import { placeUnplacedBaseAnchors } from '../themes/migrations/2026-07-29-place-base-anchors';
 import { adoptBackgroundSpotAsBase } from '../themes/migrations/2026-07-25-background-spot-to-base';
 import { defaultHarmonyAxes, sanitizeHarmonyAxes } from '../palettes/colorHarmony';
 import { __resetRendererCacheForTests, installRenderer } from './editorRenderer';
@@ -517,13 +522,15 @@ const domainLoaders: Record<string, DomainLoader> = {
  */
 export function loadFromFile(theme: Theme): void {
   const next = emptyState();
-  // Structural palette migrations, innermost → outermost: rename Primary→Brand,
-  // drop the gray "mode", convert every color channel to the numeric OKLCH
-  // basis, adopt any legacy locked-500 anchor as a persisted placement, then
-  // fold a legacy background spot into the base color. The clone is still
-  // pre-basis (hex or already-numeric) on disk.
+  // Structural palette migrations, innermost → outermost: rename Primary→Brand
+  // and Background→Canvas (both key renames, so they precede anything that looks
+  // a palette up by label), drop the gray "mode", convert every color channel to
+  // the numeric OKLCH basis, adopt any legacy locked-500 anchor as a persisted
+  // placement, fold a legacy background spot into the base color, then place any
+  // still-unplaced anchor by base luminance. The clone is still pre-basis (hex
+  // or already-numeric) on disk.
   const raw = structuredClone(theme.editorConfigs ?? {}) as Record<string, PreOklchPaletteConfig>;
-  next.palettes = adoptBackgroundSpotAsBase(adoptLegacyBaseAnchor(migratePaletteColorsToOklch(unifyGrayPalettes(renamePrimaryPaletteKey(raw)))));
+  next.palettes = placeUnplacedBaseAnchors(adoptBackgroundSpotAsBase(adoptLegacyBaseAnchor(migratePaletteColorsToOklch(unifyGrayPalettes(renameBackgroundPaletteKey(renamePrimaryPaletteKey(raw)))))));
   next.fonts.sources = structuredClone(theme.fontSources ?? []);
   next.fonts.stacks  = structuredClone(theme.fontStacks  ?? []);
   const rawVars = runMigrations(
@@ -536,7 +543,7 @@ export function loadFromFile(theme: Theme): void {
   // (or in components' case, vars that wouldn't have been in the theme to
   // begin with).
   for (const load of Object.values(domainLoaders)) load(next, rawVars);
-  next.harmonyAxes = sanitizeHarmonyAxes(theme.harmonyAxes, next.palettes);
+  next.harmonyAxes = sanitizeHarmonyAxes(renameBackgroundHarmonyFamily(theme.harmonyAxes), next.palettes);
   next.cssVars = rawVars;
   resetHistoryForLoad();
   store.set(next);

@@ -21,7 +21,7 @@ export type HarmonyMode =
   | 'custom';
 
 /** Families the user may order/include on the harmony axes (dev-declared pool). */
-export const HARMONY_ELIGIBLE: readonly string[] = ['Brand', 'Accent', 'Background', 'Special', 'Neutral', 'Alternate'];
+export const HARMONY_ELIGIBLE: readonly string[] = ['Brand', 'Accent', 'Canvas', 'Special', 'Neutral', 'Alternate'];
 
 export const AXIS_COUNT = 4;
 export const AXIS_ROLES = ['Anchor', 'Secondary', 'Tertiary', 'Quaternary'] as const;
@@ -93,7 +93,7 @@ export function defaultHarmonyAxes(): HarmonyAxis[] {
   return [
     { hue: anchorHue, family: 'Brand' },
     { hue: specInitialHue('Accent'), family: 'Accent' },
-    { hue: specInitialHue('Background'), family: 'Background' },
+    { hue: specInitialHue('Canvas'), family: 'Canvas' },
     { hue: norm(anchorHue + 270), family: null },
   ];
 }

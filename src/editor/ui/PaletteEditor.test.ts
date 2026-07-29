@@ -43,64 +43,64 @@ describe('PaletteEditor — store-first integration', () => {
   // session would be pulled back to the pre-session snapshot — this test
   // would fail.
   it('mounts against the editor store without throwing', () => {
-    setPaletteConfig('Background', makePaletteConfig('#8d7f74'));
+    setPaletteConfig('Canvas', makePaletteConfig('#8d7f74'));
 
     const target = document.createElement('div');
     document.body.appendChild(target);
 
     const component = mount(PaletteEditor, {
           target,
-          props: { label: 'Background', initialColor: c('#8d7f74') },
+          props: { label: 'Canvas', initialColor: c('#8d7f74') },
         });
 
-    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#8d7f74'));
+    expect(get(editorState).palettes.Canvas.baseColor).toEqual(c('#8d7f74'));
     unmount(component);
   });
 
   it('per-tick store mutations are visible immediately during a session', () => {
-    setPaletteConfig('Background', makePaletteConfig('#8d7f74'));
+    setPaletteConfig('Canvas', makePaletteConfig('#8d7f74'));
 
     const target = document.createElement('div');
     document.body.appendChild(target);
     const component = mount(PaletteEditor, {
           target,
-          props: { label: 'Background', initialColor: c('#8d7f74') },
+          props: { label: 'Canvas', initialColor: c('#8d7f74') },
         });
 
     const session = beginScope({ ...sessionOpts });
     beginSliderGesture('drag base');
 
     for (const hex of ['#8c7f73', '#8b7f72', '#8a7f71']) {
-      mutate('drag tick', (s) => { s.palettes.Background.baseColor = c(hex); });
-      expect(get(editorState).palettes.Background.baseColor).toEqual(c(hex));
+      mutate('drag tick', (s) => { s.palettes.Canvas.baseColor = c(hex); });
+      expect(get(editorState).palettes.Canvas.baseColor).toEqual(c(hex));
     }
 
     window.dispatchEvent(new Event('pointerup'));
     commitScope(session);
 
-    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#8a7f71'));
+    expect(get(editorState).palettes.Canvas.baseColor).toEqual(c('#8a7f71'));
 
     undo();
-    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#8d7f74'));
+    expect(get(editorState).palettes.Canvas.baseColor).toEqual(c('#8d7f74'));
 
     unmount(component);
   });
 
   it('cancel after drag snaps the store back to pre-session', () => {
-    setPaletteConfig('Background', makePaletteConfig('#8d7f74'));
+    setPaletteConfig('Canvas', makePaletteConfig('#8d7f74'));
 
     const target = document.createElement('div');
     document.body.appendChild(target);
     const component = mount(PaletteEditor, {
           target,
-          props: { label: 'Background', initialColor: c('#8d7f74') },
+          props: { label: 'Canvas', initialColor: c('#8d7f74') },
         });
 
     const session = beginScope({ ...sessionOpts });
-    mutate('drag', (s) => { s.palettes.Background.baseColor = c('#112233'); });
+    mutate('drag', (s) => { s.palettes.Canvas.baseColor = c('#112233'); });
     cancelScope(session);
 
-    expect(get(editorState).palettes.Background.baseColor).toEqual(c('#8d7f74'));
+    expect(get(editorState).palettes.Canvas.baseColor).toEqual(c('#8d7f74'));
     unmount(component);
   });
 });

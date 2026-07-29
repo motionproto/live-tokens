@@ -34,7 +34,7 @@ function mkP(baseColorHex: string, scheme: SchemeDirection, extra: Partial<Palet
 function buildPalettes(scheme: SchemeDirection, neutralHex = '#70787e'): Record<string, PaletteConfig> {
   return {
     Neutral: mkP(neutralHex, scheme),
-    Background: mkP(scheme === 'light' ? oklchToHex(0.9, 0.02, 260) : oklchToHex(0.25, 0.04, 260), scheme),
+    Canvas: mkP(scheme === 'light' ? oklchToHex(0.9, 0.02, 260) : oklchToHex(0.25, 0.04, 260), scheme),
   };
 }
 

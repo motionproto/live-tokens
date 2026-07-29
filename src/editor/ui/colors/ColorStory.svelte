@@ -57,21 +57,21 @@
   let partialCoverage = $derived(rec.suggestions.filter((s) => !s.current.coverage.full));
 
   // Shadow the consumed text variables locally with the store-derived values;
-  // the page field is the Background family's SEED, not its derived page step.
+  // the page field is the Canvas family's SEED, not its derived page step.
   let storyVars = $derived(
     ['--text-primary', '--text-secondary', '--text-tertiary', '--text-inverted']
       .concat([...TONES, ...FUNCTIONAL].map((t) => `--text-${t.ns}`))
       .filter((name) => vars[name] !== undefined)
       .map((name) => `${name}: ${vars[name]}`)
-      .concat(`--page-bg: ${seedHex('Background')}`)
+      .concat(`--page-bg: ${seedHex('Canvas')}`)
       .join('; '),
   );
 
-  // Ratios are measured against the DISPLAYED field — the Background seed —
+  // Ratios are measured against the DISPLAYED field — the Canvas seed —
   // so the numbers always describe what the story shows.
   function ratioOnBg(textVar: string): number | null {
     const text = vars[textVar];
-    return typeof text === 'string' ? contrastRatio(text, seedHex('Background')) : null;
+    return typeof text === 'string' ? contrastRatio(text, seedHex('Canvas')) : null;
   }
 
   // Floor, don't round: the readout must never overstate a contrast ratio.
@@ -97,7 +97,7 @@
 <div class="story" style={storyVars}>
   <div class="field">
     <div class="field-head">
-      <span class="field-label">Background</span>
+      <span class="field-label">Canvas</span>
       {#if fmt(bgRatio)}<span class="ratio">{fmt(bgRatio)}</span>{/if}
     </div>
     <p class="body">The dominant surface. Body text sits here.</p>
@@ -125,7 +125,7 @@
         <span class="suggest-entry" class:dim={!s.differs}>
           <span class="fn-dot" style:--dot={s.suggested.hex}></span>
           <span class="suggest-step">{s.step}</span>
-          <span class="ratio">{fmt(contrastRatio(s.suggested.hex, seedHex('Background')))}</span>
+          <span class="ratio">{fmt(contrastRatio(s.suggested.hex, seedHex('Canvas')))}</span>
         </span>
       {/each}
       <label class="bw-toggle" title="Anchor the suggestion at pure white or black instead of the softened extreme">

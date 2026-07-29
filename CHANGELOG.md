@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Changed (breaking)
+
+- **The "Background" palette family is renamed to "Canvas".** Its CSS namespace
+  was always `canvas` (`--color-canvas-*`, `--surface-canvas-*`), and every other
+  surface that names the family already said Canvas: the token selector,
+  SectionDivider's variant families, the shadows backdrop picker. Only the
+  palette label said Background, so the label joins the namespace. **No token
+  names change**, so consumer CSS is unaffected. The label doubles as a storage
+  key, so theme migration `2026-07-29-background-palette-to-canvas` renames the
+  `editorConfigs` key and any `harmonyAxes` family binding. It applies
+  automatically both when a theme file loads and when a persisted editor session
+  hydrates, and it runs before the axes are sanitized, which would otherwise drop
+  the now-ineligible family and silently unbind the axis. The shipped
+  `default.json` is rewritten under the new key.
+
 ### Removed
 
 - `Theme.harmonyOrder` and its migration path. The field only ever existed

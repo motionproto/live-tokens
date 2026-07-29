@@ -21,6 +21,11 @@ import { quietGet, quietSet } from '../storage/storage';
 import { makeDefaultGradients } from '../themes/slices/gradients';
 import { seedShadowsFromDom } from '../themes/slices/shadows';
 import { sanitizeHarmonyAxes } from '../palettes/colorHarmony';
+import {
+  renameBackgroundPaletteKey,
+  renameBackgroundHarmonyFamily,
+} from '../themes/migrations/2026-07-29-background-palette-to-canvas';
+import { placeUnplacedBaseAnchors } from '../themes/migrations/2026-07-29-place-base-anchors';
 
 // Resolve the persist key lazily (per-call) so library consumers that invoke
 // `configureEditor({storagePrefix})` before the first store write get the
@@ -88,11 +93,25 @@ export function normalizeComponents(state: EditorState): EditorState {
   return { ...state, components };
 }
 
+// A session persisted before the rename keys its palette by the old label and
+// binds an axis to it. Both have to move before the axes are sanitized, which
+// would otherwise drop the now-ineligible family and unbind the axis.
+export function normalizePaletteLabels(state: EditorState): EditorState {
+  return { ...state, palettes: renameBackgroundPaletteKey(state.palettes) };
+}
+
 // `hydrate` shallow-merges persisted state over `emptyState()`, so the axes that
 // arrive here may be the injected defaults sitting over the session's real
 // palettes. Reconcile them against those palettes.
 export function normalizeHarmonyAxes(state: EditorState): EditorState {
-  return { ...state, harmonyAxes: sanitizeHarmonyAxes(state.harmonyAxes, state.palettes) };
+  const axes = renameBackgroundHarmonyFamily(state.harmonyAxes);
+  return { ...state, harmonyAxes: sanitizeHarmonyAxes(axes, state.palettes) };
+}
+
+// A session persisted before placements existed has anchored palettes with no
+// `anchorPlacement`, so their ramps never show the anchored slot.
+export function normalizeBaseAnchors(state: EditorState): EditorState {
+  return { ...state, palettes: placeUnplacedBaseAnchors(state.palettes) };
 }
 
 export function hydrate(): void {
@@ -103,7 +122,7 @@ export function hydrate(): void {
     // Shallow-merge onto default shape so older persisted state missing
     // newly-added domain fields still loads.
     const merged = { ...emptyStateFactory(), ...(parsed as object) } as EditorState;
-    store.set(normalizeHarmonyAxes(normalizeComponents(migrateGradients(merged))));
+    store.set(normalizeHarmonyAxes(normalizeBaseAnchors(normalizePaletteLabels(normalizeComponents(migrateGradients(merged))))));
   }
   // m13 fix: seed shadows from the DOM at hydrate time so the editor
   // captures the tokens.css baseline regardless of whether the user opens

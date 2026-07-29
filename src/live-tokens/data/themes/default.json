@@ -328,7 +328,7 @@
       "snappedScales": [],
       "anchorToBase": true
     },
-    "Background": {
+    "Canvas": {
       "baseColor": "#3c3c53",
       "lightnessCurve": [
         {

@@ -40,7 +40,7 @@ export interface PaletteSpec {
 export const PALETTE_SPECS: readonly PaletteSpec[] = [
   { label: 'Brand',      cssNamespace: 'brand',     initialColor: { l: 0.5573, c: 0.1841, h: 25.49 } },
   { label: 'Accent',     cssNamespace: 'accent',    initialColor: { l: 0.7674, c: 0.164, h: 70.44 } },
-  { label: 'Background', cssNamespace: 'canvas',    emptySelector: true, initialColor: { l: 0.2284, c: 0.0384, h: 282.93 } },
+  { label: 'Canvas',     cssNamespace: 'canvas',    emptySelector: true, initialColor: { l: 0.2284, c: 0.0384, h: 282.93 } },
   { label: 'Neutral',    cssNamespace: 'neutral',   neutral: true, initialColor: { l: 0.5679, c: 0.0134, h: 240.07 } },
   { label: 'Alternate',  cssNamespace: 'alternate', neutral: true, displayLabel: 'Alternate (neutral)', initialColor: { l: 0.5873, c: 0.0087, h: 48.57 } },
   { label: 'Special',    cssNamespace: 'special',   initialColor: { l: 0.6056, c: 0.2189, h: 292.72 } },

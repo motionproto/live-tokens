@@ -13,6 +13,7 @@ import {
 } from './paletteDerivation';
 import { adoptLegacyBaseAnchor } from '../themes/migrations/2026-07-24-base-anchor-placement';
 import { adoptBackgroundSpotAsBase } from '../themes/migrations/2026-07-25-background-spot-to-base';
+import { placeUnplacedBaseAnchors } from '../themes/migrations/2026-07-29-place-base-anchors';
 import { defaultPaletteConfig } from '../../ui/palette/paletteMath';
 import { makeAnchor, sampleCurve, type CurveAnchor } from '../../ui/curveEngine';
 import type { PaletteConfig } from '../themes/themeTypes';
@@ -176,6 +177,26 @@ describe('adoptLegacyBaseAnchor', () => {
     const out = adoptLegacyBaseAnchor({ Off: off, Placed: placed });
     expect(out.Off.anchorPlacement).toBeUndefined();
     expect(out.Placed.anchorPlacement).toEqual({ step: 5 });
+  });
+});
+
+describe('placeUnplacedBaseAnchors', () => {
+  it('places an unplaced anchored config at the step nearest the base luminance', () => {
+    const out = placeUnplacedBaseAnchors({ Accent: cfg(0.56) });
+    const placed = out.Accent;
+    expect(placed.anchorPlacement!.step).toBe(nearestPaletteStep(DEFAULT_PALETTE_LIGHTNESS(), 0.56));
+    const shown = computePaletteOklch(placed.anchorPlacement!.step, placed.baseColor, placed.lightnessCurve, placed.saturationCurve, {});
+    expect(shown.l).toBeCloseTo(0.56, 4);
+  });
+
+  it('skips anchorToBase=false and existing placements', () => {
+    const off = cfg(0.56, { anchorToBase: false });
+    const placed = cfg(0.56, { anchorPlacement: { step: 7 } });
+    const out = placeUnplacedBaseAnchors({ Off: off, Placed: placed });
+    expect(out.Off.anchorPlacement).toBeUndefined();
+    expect(out.Off.lightnessCurve).toEqual(DEFAULT_PALETTE_LIGHTNESS());
+    expect(out.Placed.anchorPlacement).toEqual({ step: 7 });
+    expect(out.Placed.lightnessCurve).toEqual(DEFAULT_PALETTE_LIGHTNESS());
   });
 });
 

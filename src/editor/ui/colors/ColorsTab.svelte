@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { flip } from 'svelte/animate';
+  import { cubicOut } from 'svelte/easing';
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginSliderGesture, transaction } from '../../core/store/editorStore';
@@ -13,6 +15,7 @@
   import UIPillButton from '../UIPillButton.svelte';
   import { setBaseColor, setBaseColors, setAxisHues, applySolvedTextCurves } from './paletteBaseColor';
   import { HARMONY_MODE_BUTTONS } from './harmonyModeIcons';
+  import { dockGrow } from '../palette/dockMagnify';
 
   let selected = $state('Brand');
   let activeMode = $state<HarmonyMode>('custom');
@@ -71,14 +74,17 @@
         label: spec.label,
         display: spec.displayLabel ?? spec.label,
         hex: oklchToHexClamped(l, c, h),
+        l,
         onWheel: $editorState.harmonyAxes.some((a, i) => a.family === spec.label && active[i]),
       };
     });
   });
 
   const FUNCTIONAL_FAMILIES = new Set(['Info', 'Success', 'Warning', 'Danger']);
-  let coreSwatches = $derived(swatches.filter((sw) => !FUNCTIONAL_FAMILIES.has(sw.label)));
-  let functionalSwatches = $derived(swatches.filter((sw) => FUNCTIONAL_FAMILIES.has(sw.label)));
+  // Light → dark, matching the palette ramps (white bookend on the left).
+  const byLuminance = (arr: typeof swatches) => [...arr].sort((a, b) => b.l - a.l);
+  let coreSwatches = $derived(byLuminance(swatches.filter((sw) => !FUNCTIONAL_FAMILIES.has(sw.label))));
+  let functionalSwatches = $derived(byLuminance(swatches.filter((sw) => FUNCTIONAL_FAMILIES.has(sw.label))));
 
   let shownModeLabel = $derived(
     HARMONY_MODE_BUTTONS.find((b) => b.mode === (hoverMode ?? activeMode))?.label ?? '',
@@ -163,33 +169,33 @@
 
       <div class="group">
         <span class="eyebrow">Swatches</span>
-        {#snippet swatchButton(sw: (typeof swatches)[number])}
-          <button
-            type="button"
-            class="swatch"
-            class:active={selected === sw.label}
-            style="--swatch-fill: {sw.hex}"
-            title={sw.display}
-            aria-label={`Select ${sw.display}`}
-            aria-pressed={selected === sw.label}
-            onclick={() => select(sw.label)}
-          >
-            <span class="chip"></span>
-            <span class="swatch-label">{sw.label}</span>
-            {#if sw.onWheel}<span class="wheel-dot" title="On the wheel" aria-hidden="true"></span>{/if}
-          </button>
+        {#snippet swatchRow(row: typeof swatches)}
+          {@const selIdx = row.findIndex((sw) => sw.label === selected)}
+          <div class="swatch-row">
+            {#each row as sw, i (sw.label)}
+              <button
+                type="button"
+                class="swatch"
+                class:active={selected === sw.label}
+                style="--swatch-fill: {sw.hex}"
+                style:flex-grow={dockGrow(i, selIdx === -1 ? null : selIdx)}
+                title={sw.display}
+                aria-label={`Select ${sw.display}`}
+                aria-pressed={selected === sw.label}
+                onclick={() => select(sw.label)}
+                animate:flip={{ duration: 200, easing: cubicOut }}
+              >
+                <span class="chip">
+                  {#if sw.onWheel}<span class="wheel-dot" title="On the wheel" aria-hidden="true"></span>{/if}
+                </span>
+                <span class="swatch-label">{sw.label}</span>
+              </button>
+            {/each}
+          </div>
         {/snippet}
         <div class="swatch-rows">
-          <div class="swatch-row">
-            {#each coreSwatches as sw (sw.label)}
-              {@render swatchButton(sw)}
-            {/each}
-          </div>
-          <div class="swatch-row">
-            {#each functionalSwatches as sw (sw.label)}
-              {@render swatchButton(sw)}
-            {/each}
-          </div>
+          {@render swatchRow(coreSwatches)}
+          {@render swatchRow(functionalSwatches)}
         </div>
       </div>
 
@@ -438,14 +444,18 @@
     min-width: 0;
   }
 
+  /* Dock magnification, mirroring PaletteStepStrip: the flex-grow transition
+     animates the selected swatch opening while flip walks it to its
+     luminance-sorted spot as lightness is dialed. */
   .swatch-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr));
+    display: flex;
+    align-items: flex-end;
     gap: var(--ui-space-8);
   }
 
   .swatch {
-    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -454,15 +464,26 @@
     background: none;
     border: none;
     cursor: pointer;
+    transition: flex-grow var(--ui-transition-fast);
   }
 
   .chip {
+    position: relative;
     display: block;
     height: 2.75rem;
+    /* Compensating margin: height + margin-top is constant every frame of the
+       magnification, so the row's layout height never dips mid-transition.
+       Chip grows upward, label pinned. */
+    margin-top: 0.5rem;
     border-radius: var(--ui-radius-sm);
     background: var(--swatch-fill);
     border: 1px solid var(--ui-border-low);
-    transition: border-color var(--ui-transition-fast);
+    transition: border-color var(--ui-transition-fast), height var(--ui-transition-fast), margin-top var(--ui-transition-fast);
+  }
+
+  .swatch.active .chip {
+    height: 3.25rem;
+    margin-top: 0;
   }
 
   .swatch:hover .chip {
@@ -497,6 +518,7 @@
     border-radius: var(--ui-radius-full);
     background: var(--ui-text-primary);
     box-shadow: 0 0 0 1.5px var(--ui-surface-lowest);
+    pointer-events: none;
   }
 
   @media (max-width: 1024px) {
