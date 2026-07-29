@@ -103,6 +103,12 @@ export const SCALES: readonly Scale[] = [
   },
 ];
 
+/** Guard band for derived near-black/near-white text: values stay between
+ *  ≈ #111 and ≈ #e8e8e8 unless pure black/white is opted into. The AA floor
+ *  beats the guard (see `recommendText.ts`). */
+export const BW_GUARD_MIN_L = 0.17;
+export const BW_GUARD_MAX_L = 0.93;
+
 export const DEFAULT_PALETTE_LIGHTNESS = (): CurveAnchor[] => [makeAnchor(0, 95, 5), makeAnchor(100, 8, 5)];
 export const DEFAULT_PALETTE_SATURATION = (): CurveAnchor[] => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)];
 
@@ -357,6 +363,16 @@ export function derivePaletteValues(spec: PaletteSpec, config: PaletteConfig | u
       const varName = scaleToCssVar(scale.title, step.name, spec.cssNamespace);
       if (varName) out[varName] = value;
     }
+  }
+
+  // `--text-inverted` is the derived flip of primary — mirrored L, same
+  // hue/chroma — pulled inside the guard band so a near-white primary yields
+  // ≈ #111 rather than pure black. Only Neutral emits `--text-primary`, so
+  // its presence gates this to the Neutral palette.
+  const textPrimary = out['--text-primary'];
+  if (textPrimary?.kind === 'color') {
+    const mirroredL = Math.max(BW_GUARD_MIN_L, Math.min(BW_GUARD_MAX_L, 1 - textPrimary.l));
+    out['--text-inverted'] = { kind: 'color', ...gamutClamp(mirroredL, textPrimary.c, textPrimary.h) };
   }
 
   if (spec.emptySelector) {

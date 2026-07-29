@@ -15,9 +15,13 @@ import { gamutClamp, oklchToHexClamped } from './oklch';
 import {
   palettesToValues,
   defaultScaleCurves,
+  BW_GUARD_MIN_L,
+  BW_GUARD_MAX_L,
   type DerivedValue,
   type SchemeDirection,
 } from './paletteDerivation';
+
+export { BW_GUARD_MIN_L, BW_GUARD_MAX_L };
 import { NEUTRAL_BAND } from './solveTextContrast';
 import { findLForContrast, contrastRatio, AA_BODY } from './contrast';
 import { sampleCurve, makeAnchor, type CurveAnchor } from '../../ui/curveEngine';
@@ -25,11 +29,6 @@ import type { PaletteConfig } from '../themes/themeTypes';
 
 /** One even hierarchy drop in OKLCH L. Two drops span primary → tertiary. */
 export const SUGGESTED_STEP_DROP = 0.07;
-
-/** Guard band when pure black/white is not opted into: suggestions stay
- *  between ≈ #111 and ≈ #e8e8e8. The AA floor beats the guard. */
-export const BW_GUARD_MIN_L = 0.17;
-export const BW_GUARD_MAX_L = 0.93;
 
 /** L difference below which current and suggested count as the same value. */
 const DIFF_EPS = 0.01;

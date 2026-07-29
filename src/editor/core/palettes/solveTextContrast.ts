@@ -38,7 +38,6 @@ export interface ContrastPairing {
 
 export interface TextSolveResult {
   patches: Record<string, Pick<PaletteConfig, 'scaleCurves'>>;
-  cssVarOverrides: Record<string, string>;
   report: ContrastPairing[];
 }
 
@@ -223,10 +222,7 @@ export function solveTextCurves(
     }
   }
 
-  const cssVarOverrides: Record<string, string> =
-    resolvedScheme === 'light' ? { '--text-inverted': 'var(--color-neutral-100)' } : {};
-
-  return { patches, cssVarOverrides, report };
+  return { patches, report };
 }
 
 // The AA floor a guaranteed step must clear (primary/secondary/tertiary = body

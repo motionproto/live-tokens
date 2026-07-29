@@ -59,7 +59,7 @@
   // Shadow the consumed text variables locally with the store-derived values;
   // the page field is the Background family's SEED, not its derived page step.
   let storyVars = $derived(
-    ['--text-primary', '--text-secondary', '--text-tertiary']
+    ['--text-primary', '--text-secondary', '--text-tertiary', '--text-inverted']
       .concat([...TONES, ...FUNCTIONAL].map((t) => `--text-${t.ns}`))
       .filter((name) => vars[name] !== undefined)
       .map((name) => `${name}: ${vars[name]}`)
@@ -80,6 +80,18 @@
   }
 
   let bgRatio = $derived(ratioOnBg('--text-primary'));
+
+  // Inverted is measured against the fill it sits on (primary), not the page:
+  // the pill below IS that pairing, so the number describes what is shown. A
+  // mid-lightness primary makes this pairing inherently low-contrast — the
+  // readout surfaces that rather than hiding the pill.
+  let invertedRatio = $derived.by(() => {
+    const inverted = vars['--text-inverted'];
+    const primary = vars['--text-primary'];
+    return typeof inverted === 'string' && typeof primary === 'string'
+      ? contrastRatio(inverted, primary)
+      : null;
+  });
 </script>
 
 <div class="story" style={storyVars}>
@@ -96,6 +108,12 @@
     <p class="tertiary">
       Tertiary text steps back once more.
       {#if fmt(ratioOnBg('--text-tertiary'))}<span class="ratio">{fmt(ratioOnBg('--text-tertiary'))}</span>{/if}
+    </p>
+    <p class="inverted-row">
+      <span class="inverted-pill">
+        Inverted text flips onto primary.
+        {#if fmt(invertedRatio)}<span class="ratio">{fmt(invertedRatio)}</span>{/if}
+      </span>
     </p>
 
     <!-- Always rendered: toggling "Use black and white" changes the
@@ -218,6 +236,23 @@
     margin: 0;
     font-size: var(--ui-font-size-xs);
     color: var(--text-tertiary);
+  }
+
+  .inverted-row {
+    margin: 0;
+  }
+
+  /* The pill's fill IS the primary text color: the flip is shown literally,
+     and any illegibility of the pairing is visible right here. */
+  .inverted-pill {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-2) var(--ui-space-8);
+    border-radius: var(--ui-radius-full);
+    background: var(--text-primary);
+    color: var(--text-inverted);
+    font-size: var(--ui-font-size-xs);
   }
 
   .suggest-row {

@@ -176,12 +176,13 @@
   align-items: center;
   gap: 0.25rem;
   padding: 0.375rem 0.75rem;
+  /* Darkest stop stays ≥ #8f9090 so black text keeps ~6:1 AA contrast. */
   background: linear-gradient(
     135deg,
-    #cccdcd 0%,
-    #7c7d7d 38%,
-    #b1b2b2 62%,
-    #626363 100%
+    #e4e5e5 0%,
+    #a2a3a3 38%,
+    #cdcece 62%,
+    #8f9090 100%
   );
   color: #000;
   border: 1px solid rgba(255, 255, 255, 0.55);

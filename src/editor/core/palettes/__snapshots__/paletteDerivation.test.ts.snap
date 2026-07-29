@@ -265,6 +265,7 @@ exports[`derivation is byte-stable (Global invariant 1) > palettesToVars(default
   "--text-info-muted": "#1d2c34",
   "--text-info-secondary": "#0083b4",
   "--text-info-tertiary": "#1c506a",
+  "--text-inverted": "#0f0f0f",
   "--text-muted": "#4e4f50",
   "--text-primary": "#ffffff",
   "--text-secondary": "#c2cacf",

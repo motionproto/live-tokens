@@ -146,6 +146,32 @@ describe('derivation is byte-stable (Global invariant 1)', () => {
   });
 });
 
+describe('--text-inverted derivation', () => {
+  it('mirrors the derived primary L, same hue and chroma', () => {
+    const values = core.palettesToValues({ Neutral: palette('#70787e') });
+    const primary = values['--text-primary'];
+    const inverted = values['--text-inverted'];
+    if (primary?.kind !== 'color' || inverted?.kind !== 'color') throw new Error('expected color values');
+    expect(inverted.l).toBeCloseTo(1 - primary.l, 6);
+    expect(inverted.h).toBeCloseTo(primary.h, 6);
+  });
+
+  it('guard band stops the mirror short of pure black', () => {
+    const values = core.palettesToValues({ Neutral: palette('#ffffff') });
+    const primary = values['--text-primary'];
+    const inverted = values['--text-inverted'];
+    if (primary?.kind !== 'color' || inverted?.kind !== 'color') throw new Error('expected color values');
+    expect(1 - primary.l).toBeLessThan(core.BW_GUARD_MIN_L);
+    expect(inverted.l).toBeCloseTo(core.BW_GUARD_MIN_L, 6);
+  });
+
+  it('only Neutral emits it', () => {
+    const values = core.palettesToValues({ Brand: palette('#fb2898') });
+    expect(values['--text-inverted']).toBeUndefined();
+    expect(Object.keys(values).some((k) => k.includes('inverted'))).toBe(false);
+  });
+});
+
 describe('scaleCurveDefaults (Global invariant 1: dark anchors frozen)', () => {
   const resolve = (defs: ScaleCurveDefaults) => ({
     Surfaces: { lightness: defs.Surfaces.lightness(), saturation: defs.Surfaces.saturation() },

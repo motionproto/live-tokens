@@ -113,6 +113,10 @@
   const borderStepKeys = borderSteps.map(s => s.key);
   const textStepKeys = textSteps.map(s => s.key);
 
+  /** Neutral additionally exposes the derived flip of primary; chromatic
+   *  families have no inverted step. */
+  const neutralTextSteps = [...textSteps, { key: 'inverted', label: 'Inverted' }];
+
   const familiesWithText = ['neutral', 'alternate', 'canvas', 'brand', 'accent', 'special', 'success', 'warning', 'info', 'danger'];
 
   const allCategories: { id: Category; label: string }[] = [
@@ -205,6 +209,7 @@
     if (varName === '--text-tertiary') return { family: 'neutral', step: 'tertiary' };
     if (varName === '--text-muted') return { family: 'neutral', step: 'muted' };
     if (varName === '--text-disabled') return { family: 'neutral', step: 'disabled' };
+    if (varName === '--text-inverted') return { family: 'neutral', step: 'inverted' };
     const m = varName.match(/^--text-([a-z]+)(?:-([a-z]+))?$/);
     if (m) {
       const fam = m[1];
@@ -702,7 +707,7 @@
           </div>
         {:else if selectedTab === 'text'}
           <div class="step-grid">
-            {#each textSteps as step}
+            {#each (selectedFamily === 'neutral' ? neutralTextSteps : textSteps) as step}
               <button
                 class="step-item"
                 class:active={chosenCategory === 'text' && chosenFamily === selectedFamily && chosenStep === step.key}

@@ -15,7 +15,6 @@ export * from './variantScales';
 
 // Editor tabs & panels
 export { default as VariablesTab } from './VariablesTab.svelte';
-export { default as TextTab } from './TextTab.svelte';
 export { default as SurfacesTab } from './SurfacesTab.svelte';
 
 // Palette editor stack

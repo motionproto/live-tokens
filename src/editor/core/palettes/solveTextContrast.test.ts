@@ -74,25 +74,6 @@ describe('solveTextCurves — patches only touch the Text scale', () => {
   });
 });
 
-describe('solveTextCurves — cssVarOverrides per scheme', () => {
-  it('dark emits none', () => {
-    const { cssVarOverrides } = solveTextCurves(buildPalettes('dark', 0.55, 0), 'dark');
-    expect(cssVarOverrides).toEqual({});
-  });
-
-  it('light adds --text-inverted → var(--color-neutral-100)', () => {
-    const { cssVarOverrides } = solveTextCurves(buildPalettes('light', 0.55, 0), 'light');
-    expect(cssVarOverrides).toEqual({ '--text-inverted': 'var(--color-neutral-100)' });
-  });
-
-  it('infers scheme from resolved --page-bg lightness when omitted', () => {
-    expect(solveTextCurves(buildPalettes('light', 0.55, 0)).cssVarOverrides).toEqual({
-      '--text-inverted': 'var(--color-neutral-100)',
-    });
-    expect(solveTextCurves(buildPalettes('dark', 0.55, 0)).cssVarOverrides).toEqual({});
-  });
-});
-
 describe('solveTextCurves — guaranteed pairings meet their ratio post-round-trip', () => {
   const schemes: SchemeDirection[] = ['light', 'dark'];
   const hues = [0, 60, 120, 180, 240, 300];

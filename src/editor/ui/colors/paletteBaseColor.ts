@@ -194,12 +194,11 @@ export function setBaseColors(patch: Record<string, Oklch>, historyLabel = 'colo
 }
 
 export function applySolvedTextCurves(s: EditorState): void {
-  const { patches, cssVarOverrides } = solveTextCurves(s.palettes);
+  const { patches } = solveTextCurves(s.palettes);
   for (const [label, patch] of Object.entries(patches)) {
     const cfg = s.palettes[label];
     if (cfg) cfg.scaleCurves = { ...cfg.scaleCurves, ...patch.scaleCurves };
   }
-  Object.assign(s.cssVars, cssVarOverrides);
 }
 
 /** Apply the Color Story's suggested neutral text hierarchy (primary anchor,
