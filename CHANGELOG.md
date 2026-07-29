@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.43.0 — The editor opens on Tokens
+
+### Changed
+
+- **The editor's view no longer carries across sessions.** Opening the editor in
+  a fresh tab always lands on Tokens; previously it restored whichever of
+  Tokens / Colors / Components you last used, so a session that ended on Colors
+  reopened there indefinitely. `editorViewStore` moved the active view from
+  `localStorage` to `sessionStorage`, which keeps the two things that did depend
+  on the round-trip: the parent window and the overlay iframe stay in sync (same
+  tab, same origin, so they share one storage area and its `storage` events),
+  and an in-page deep link that calls `setEditorView()` before opening the
+  overlay still lands on the view it asked for. The sidebar's condensed/expanded
+  state is a durable preference and stays in `localStorage`. A stale
+  `lt.editorView` left in `localStorage` by an earlier version is ignored, not
+  migrated.
+
 ## 0.42.0 — Canvas, and every ramp places its base color
 
 ### Changed (breaking)
