@@ -110,12 +110,20 @@ What should be in the tarball:
 - `src/system/**` (token components and `tokens.css`)
 - `src/app/site.css` (optional starter typography)
 - `dist-plugin/**` (built vite plugin)
-- `.claude/skills/live-tokens-create-component/**` (Claude skill)
+- `bin/**` (the `live-tokens` CLI: `create`, `migrate`, `migrate-routes`)
+- `template/**` (the `create` scaffold)
+- `.claude/skills/**` (the Claude skills: build-page, create-component,
+  pick-component)
+- These three files only, out of `src/live-tokens/data/`:
+  `tokens.generated.css`, `themes/default.json`, `manifests/default.json`.
+  Everything else under that path is consumer data and must stay out.
+  See "Why the three defaults ship" below before removing them.
 - `package.json`, `README.md`, `LICENSE*`, `CHANGELOG.md`
 
 What should NEVER be in the tarball:
-- `src/live-tokens/data/**` — that's consumer data, not source
-- `themes/`, `manifests/`, `component-configs/` — same
+- `src/live-tokens/data/**` beyond the three defaults named above — the rest is
+  consumer data, not source
+- `themes/`, `manifests/`, `component-configs/` at the repo root — same
 - `temp/`, scratch markdown, `*.test.ts`, `__tests__/**`
 - `Stat.svelte` / `StatEditor.svelte` — gated by `package.json#files`
   exclusion patterns (they're internal scaffolding)
@@ -123,6 +131,34 @@ What should NEVER be in the tarball:
 
 If something unexpected appears, fix `package.json#files` rather than
 deleting from a built tarball — `npm pack` will regenerate it next time.
+
+### Why the three defaults ship
+
+They look like consumer data sitting in the tarball, so this gets questioned
+periodically. They are load-bearing, and shipping them is what keeps a
+consumer's install clean.
+
+The plugin used to run *seed writers* that wrote a default theme into the
+consumer's project on first boot. That is what dirtied a fresh install.
+`versionedFileResourceServer` replaced it with a read-only `packageDir`
+fallback: reads resolve the local file first, then the package copy. Writes and
+pointer files never target the package copy, which stays immutable, so a fresh
+consumer's data directory stays empty until they save a theme of their own. A
+fresh-consumer integration suite pins this (`applyManifest('default')` returns
+200 with a full palette and no local default written).
+
+Two behaviours depend on them being the *installed package's* copy rather than
+a vendored one:
+
+- a consumer pointed at `default` picks up improved defaults on `npm upgrade`,
+  instead of holding a copy that silently goes stale;
+- a consumer on a custom theme keeps a current "restore to" baseline.
+
+They are also not a size problem: roughly 57 KB of a 2.8 MB unpacked tarball,
+and they compress well. If you are trimming the package, the two `.webp` demo
+assets under `src/system/assets/` are ~457 KB, and being pre-compressed they
+are close to half the packed tarball. They cannot simply be deleted, since
+shipped editor components import them.
 
 ## Publishing (how it actually happens)
 
