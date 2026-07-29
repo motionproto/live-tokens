@@ -48,7 +48,7 @@ const BUNDLE = [
   { name: '--body-sm-font-family', value: 'var(--font-sans)' },
   { name: '--body-sm-font-size', value: 'var(--font-size-sm)' },
   { name: '--body-sm-font-weight', value: 'var(--font-weight-normal)' },
-  { name: '--body-sm-line-height', value: 'var(--line-height-normal)' },
+  { name: '--body-sm-line-height', value: 'var(--line-height-tight)' },
   { name: '--body-sm-letter-spacing', value: 'var(--letter-spacing-normal)' },
 
   { name: '--code-font-family', value: 'var(--font-mono)' },

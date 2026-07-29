@@ -1,33 +1,109 @@
 # Changelog
 
-## Unreleased
+## 0.41.0 — A Colors view, and semantic text styles
 
 ### Added
 
+- **Colors: a third editor view, next to Tokens and Components.** It has two
+  sections. **Wheel** is a saturation-radial harmony wheel where every color
+  family that participates in harmony sits on a rail, with external rotation
+  handles per family plus one global rotation handle, a lightness bar under the
+  wheel, and an Absolute Chroma toggle that governs whether radius reads as
+  absolute or relative chroma. Nine harmony modes (complementary,
+  split-complementary, triadic, tetradic, compound, square, analogous,
+  monochromatic, custom) are picked from a row of geometry icons that draw the
+  mode's actual axis layout. Two one-shot actions sit alongside: "Tint neutrals
+  from anchor" re-hues Neutral and Alternate to the anchor color while keeping
+  their own chroma and lightness, and "Derive accessible text" solves each
+  family's Text lightness curve so the derived text clears WCAG AA against the
+  surfaces it sits on. Both are a single undo.
+- **Color Story: a proportional preview of the theme, built from seeds.** It
+  paints the seed base colors in their intended proportions rather than the
+  derived `--surface-*` tokens, so it tracks the wheel one-to-one, and it renders
+  the neutral text ladder (primary / secondary / tertiary) on each band with live
+  contrast readouts.
+- **Suggested neutral text hierarchy.** Color Story proposes a text ladder
+  anchored on the current primary, deriving secondary and tertiary as two even
+  OKLCH-lightness drops toward the background: hierarchy first, with AA (4.5) as
+  a floor rather than the driver. The floor is solved against the adverse extreme
+  of the neutral surface band, so a compliant suggestion holds AA on every band
+  surface; when the seed's reachable lightness window cannot span the band, it
+  falls back to the default surface and reports the reduced coverage. Coverage
+  alerts are informational and never block. "Use suggested" writes the Neutral
+  Text curve; "Use black and white" is available as the blunt alternative.
+- **Harmony runs on four fixed axes.** Anchor, Secondary, Tertiary and
+  Quaternary each own a hue whether or not a family is bound to them, and a new
+  Harmony axes list binds and unbinds families per axis. Neutral and Alternate
+  join Brand, Accent, Background and Special in the harmony-eligible pool.
+  Harmony rotates hue only: each palette keeps its own chroma and lightness.
 - **Semantic text styles: a role layer over the type primitives.** Eight named
-  style bundles ship in `tokens.css` — `heading-xl/lg/md/sm`, `body-md/sm`,
-  `code`, and `eyebrow` — each a set of per-axis aliases (`--heading-xl-font-family`,
-  `--heading-xl-font-size`, `-font-weight`, `-line-height`, `-letter-spacing`, and
-  `--eyebrow-text-transform`). Every value aliases an existing primitive scale, so
-  editing a style re-points an alias rather than minting a raw value, and the
-  responsive size shrink carries through for free. Display-size headings tighten
-  their leading at `≤768px` via a paired `@media` re-point in the token layer, so
-  a style's `line-height` token stays the single source of truth at every
-  viewport. Additive migration `2026-07-20-semantic-text-styles` (`kind:
-  'additive'`) inserts the bundle block and the responsive re-point into a
-  consumer's vendored `tokens.css`.
+  style bundles ship in `tokens.css` (`heading-xl/lg/md/sm`, `body-md/sm`,
+  `code`, `eyebrow`), each a set of per-axis aliases (`--heading-xl-font-family`,
+  `--heading-xl-font-size`, `-font-weight`, `-line-height`, `-letter-spacing`,
+  plus `--eyebrow-text-transform`). Every value aliases an existing primitive
+  scale, so editing a style re-points an alias rather than minting a raw value,
+  and the responsive size shrink carries through for free. Additive migration
+  `2026-07-20-semantic-text-styles` (`kind: 'additive'`) inserts the bundle block
+  into a consumer's vendored `tokens.css`.
+- **Text Styles table in the editor.** Tokens → Typography gains a row per style
+  with pickers for family, size, weight, line-height and letter-spacing, plus a
+  text-transform picker on `eyebrow`, the one style that carries that axis.
+  `site.css` and the first-party surfaces consume the style layer instead of
+  re-declaring the same per-element type rules.
 
 ### Changed (breaking)
 
-- **The line-height scale is renamed from size vocabulary to leading
+- **The line-height scale is reshaped from size vocabulary to leading
   vocabulary.** `--line-height-xs/sm/md/lg/xl` become
-  `--line-height-none/tight/normal/loose/looser` (values unchanged: 1, 1.25,
-  1.5, 1.75, 2), and a new `--line-height-tighter: 1.1` step fills the gap
-  between `none` and `tight`. Line-height now names by effect, matching the
-  letter-spacing scale. Token names are public API, so this ships with the
-  paired migration `2026-07-20-line-height-rename` (`kind: 'breaking'`); a
-  consumer applies it via `npx live-tokens migrate`, which rewrites their
-  vendored `tokens.css` declarations and every `var()` reference.
+  `--line-height-none/tightest/tighter/tight/normal/relaxed`
+  (1, 1.1, 1.25, 1.35, 1.5, 1.75). Old values map by ratio: `xs`→`none`,
+  `sm`→`tighter`, `md`→`normal`, `lg`→`relaxed`; `xl` (2) has no slot in the new
+  scale and is dropped. Line-height now names by effect, matching the
+  letter-spacing scale. Token names are public API, so this ships with the paired
+  migration `2026-07-20-line-height-rename` (`kind: 'breaking'`); a consumer
+  applies it via `npx live-tokens migrate`, which rewrites their vendored
+  `tokens.css` declarations and every `var()` reference.
+- **Palette state is numeric OKLCH, not hex.** `PaletteConfig.baseColor` and
+  `overrides` change from hex strings to `{ l, c, h }`. The store holds the
+  user's unclamped intent and gamut clamping becomes projection-only, applied at
+  derivation output, canvas painting and CSS serialization. This removes the
+  hex round-trip that made wheel and slider gestures wobble. Theme migration
+  `2026-07-21-palette-oklch-basis` converts saved themes on load.
+- **The base-color anchor can sit at any step.** The old "lock base color to
+  position 500" flag becomes `anchorPlacement`, which records the step it pins
+  and remembers the anchor it displaced, so moving or releasing the placement
+  restores what was there. Theme migration `2026-07-24-base-anchor-placement`
+  adopts the legacy locked-500 anchor.
+- **The solid page background is the Background base color.** It used to be a
+  separately selected palette step (`emptyStep`), which is removed. Theme
+  migration `2026-07-25-background-spot-to-base` adopts the color the old spot
+  actually rendered, curves and overrides included, so a saved theme's page
+  renders identically. Gradient-mode configs are untouched.
+- **`Theme.harmonyOrder` is superseded by `Theme.harmonyAxes`.** The old field is
+  still read when `harmonyAxes` is absent, and still written on save so older
+  builds keep loading the file.
+- **Token names are otherwise unchanged.** The palette changes above are theme
+  schema changes, not `tokens.css` migrations, and every theme migration applies
+  automatically when a theme loads.
+
+### Removed
+
+- `TextTab` (`src/editor/ui/TextTab.svelte`) and its re-export. It was never
+  mounted; the Text Styles table supersedes it.
+
+### Fixed
+
+- The `2026-07-20-semantic-text-styles` migration set `--body-sm-line-height` to
+  `--line-height-normal` while the package default is `--line-height-tight`. A
+  migrating consumer now lands on the same value as a fresh install.
+- Vitest snapshots (`**/__snapshots__/**`) are excluded from the published
+  tarball.
+
+### Migration
+
+- Run `npx live-tokens migrate` to apply the two `tokens.css` migrations. The
+  line-height rename is `breaking` and never auto-applies, so it rides that
+  explicit command. Both are idempotent.
 
 ## 0.40.1 — Floating token-tag labels follow the theme
 
