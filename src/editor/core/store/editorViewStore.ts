@@ -10,9 +10,14 @@ function isEditorView(v: unknown): v is EditorView {
   return v === 'tokens' || v === 'components' || v === 'colors';
 }
 
+// Session-scoped, not persistent: opening the editor fresh always starts on
+// Tokens. Within a session it still round-trips, which is what the parent
+// window / overlay iframe pair and in-page deep links (setEditorView before
+// opening the overlay) rely on — same-origin frames in a tab share one
+// sessionStorage area and its `storage` events.
 function readView(): EditorView {
   try {
-    const v = localStorage.getItem(VIEW_KEY);
+    const v = sessionStorage.getItem(VIEW_KEY);
     if (isEditorView(v)) return v;
   } catch {}
   return 'tokens';
@@ -32,14 +37,14 @@ export const sidebarCondensed = writable<SidebarCondensed>(readCondensed());
 export const selectedComponent = writable<string>('button');
 
 editorView.subscribe((v) => {
-  try { localStorage.setItem(VIEW_KEY, v); } catch {}
+  try { sessionStorage.setItem(VIEW_KEY, v); } catch {}
 });
 
 sidebarCondensed.subscribe((v) => {
   try { localStorage.setItem(CONDENSED_KEY, v === 'auto' ? 'auto' : String(v)); } catch {}
 });
 
-// Cross-window sync: parent and overlay iframe share localStorage but each have
+// Cross-window sync: parent and overlay iframe share web storage but each have
 // their own module state. `storage` events fire in the *other* window when one
 // writes, so we mirror the new value into this window's store.
 if (typeof window !== 'undefined') {
