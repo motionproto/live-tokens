@@ -65,11 +65,15 @@ interface StepPlan {
 
 // Neutral family sits on neutral surfaces; primary/secondary must clear the
 // adverse band extreme, tertiary/muted the default surface. Disabled is graded.
+//
+// Muted held a large-text 3.0 floor until 0.44.0. Nothing in the name marked it
+// large-only, so consumers reached for it as a quiet body colour and shipped
+// text below AA; disabled is now the sole sub-AA step, which WCAG exempts.
 const NEUTRAL_PLAN: Record<string, StepPlan> = {
   primary:   { ratio: 7.0, guaranteed: true,  target: 'band' },
   secondary: { ratio: 4.5, guaranteed: true,  target: 'band' },
   tertiary:  { ratio: 4.5, guaranteed: true,  target: 'default' },
-  muted:     { ratio: 3.0, guaranteed: true,  target: 'default' },
+  muted:     { ratio: 4.5, guaranteed: true,  target: 'default' },
   disabled:  { ratio: 2.0, guaranteed: false, target: 'default' },
 };
 
@@ -216,7 +220,7 @@ export function solveTextCurves(
         againstVar: against.var,
         targetRatio: stepPlan.ratio,
         achievedRatio: achieved,
-        meets: achieved >= minGuarantee(step.name, stepPlan),
+        meets: achieved >= minGuarantee(stepPlan),
         guaranteed: stepPlan.guaranteed,
       });
     }
@@ -225,11 +229,10 @@ export function solveTextCurves(
   return { patches, report };
 }
 
-// The AA floor a guaranteed step must clear (primary/secondary/tertiary = body
-// 4.5; neutral muted = large 3.0). Graded steps floor at 1 (informational).
-function minGuarantee(stepName: string, plan: StepPlan): number {
-  if (!plan.guaranteed) return 1;
-  return stepName === 'muted' ? 3.0 : 4.5;
+// Every guaranteed step clears the body-text AA floor. Graded steps floor at 1
+// (informational).
+function minGuarantee(plan: StepPlan): number {
+  return plan.guaranteed ? 4.5 : 1;
 }
 
 function clamp(lo: number, hi: number, v: number): number {

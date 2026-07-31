@@ -98,7 +98,7 @@ describe('solveTextCurves — guaranteed pairings meet their ratio post-round-tr
           expect(contrastRatio(vars['--text-primary'], bandAdverse)).toBeGreaterThanOrEqual(4.5);
           expect(contrastRatio(vars['--text-secondary'], bandAdverse)).toBeGreaterThanOrEqual(4.5);
           expect(contrastRatio(vars['--text-tertiary'], surfaceDefault)).toBeGreaterThanOrEqual(4.5);
-          expect(contrastRatio(vars['--text-muted'], surfaceDefault)).toBeGreaterThanOrEqual(3.0);
+          expect(contrastRatio(vars['--text-muted'], surfaceDefault)).toBeGreaterThanOrEqual(4.5);
 
           // Chromatic families.
           expect(contrastRatio(vars['--text-brand'], worst)).toBeGreaterThanOrEqual(4.5);

@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.44.0 — Every text step derives to body contrast
+
+### Changed
+
+- **`--text-muted` now derives to 4.5:1, not 3:1.** The neutral text ramp
+  guaranteed muted at the WCAG AA floor for *large* text, one step below
+  `--text-tertiary`, on the assumption it would only ever be set at 24px (or
+  18.66px bold). Nothing in the token's name or its position in a ramp of text
+  colors carried that condition, so consumers reached for it as a quiet body
+  color and shipped text below AA — in the first site audited, all eleven uses
+  were 13–16px, every one of them failing. `--text-muted` joins primary,
+  secondary and tertiary on the 4.5:1 body floor, which leaves `--text-disabled`
+  as the ramp's only sub-AA step, and WCAG 1.4.3 exempts disabled controls.
+  `AA_LARGE` is unchanged and still floors the graded chromatic steps.
+
+  Derived palettes get a lighter (dark scheme) or darker (light scheme) muted
+  step the next time text contrast is solved. **A theme already on disk keeps
+  its stored curve** — its `--text-muted` does not move until the palette is
+  re-solved, so a consuming site that has shipped muted on small text must
+  either re-derive or restate those colors itself.
+
+  Expect muted and tertiary to derive to nearly the same color: both target the
+  default surface, so both settle just past the same floor (on the reference
+  dark palette, tertiary `#94999c` 4.58:1 and muted `#96989a` 4.55:1). That is
+  arithmetic, not a rough edge — a step quieter than tertiary cannot also clear
+  tertiary's floor. Treat `--text-muted` as an alias of `--text-tertiary` for
+  now; reach for `--text-disabled` when a genuinely quieter, non-AA step is
+  wanted, and expect a decision on deprecating one of the two.
+
 ## 0.43.0 — The editor opens on Tokens
 
 ### Changed
