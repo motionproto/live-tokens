@@ -3,6 +3,7 @@
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginSliderGesture } from '../../core/store/editorStore';
   import { applyHarmonyToAxes, axisStatuses, tintNeutralsFromAnchor, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import AxisNumeral from './AxisNumeral.svelte';
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import ColorWheel from './ColorWheel.svelte';
   import LightnessBar from './LightnessBar.svelte';
@@ -182,7 +183,7 @@
                 onclick={() => select(sw.label)}
               >
                 <span class="chip">
-                  {#if sw.axis?.status === 'on-wheel'}<span class="wheel-dot" title="On the wheel" aria-hidden="true"></span>{/if}
+                  {#if sw.axis}<span class="axis-badge" aria-hidden="true"><AxisNumeral index={sw.axis.index} status={sw.axis.status} scrim /></span>{/if}
                 </span>
                 <span class="swatch-label">{sw.label}</span>
               </button>
@@ -500,15 +501,15 @@
     color: var(--ui-text-primary);
   }
 
-  .wheel-dot {
+  /* The badge rides an arbitrary user-chosen fill, so no surface token can keep
+     it legible. This scrim is the one literal color the file is allowed. */
+  .axis-badge {
     position: absolute;
     top: var(--ui-space-4);
     right: var(--ui-space-4);
-    width: 6px;
-    height: 6px;
+    display: flex;
     border-radius: var(--ui-radius-full);
-    background: var(--ui-text-primary);
-    box-shadow: 0 0 0 1.5px var(--ui-surface-lowest);
+    background: rgba(0, 0, 0, 0.72);
     pointer-events: none;
   }
 

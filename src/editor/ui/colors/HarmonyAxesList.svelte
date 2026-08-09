@@ -6,6 +6,7 @@
   import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
   import { AXIS_ROLES, activeAxisCount, axisStatuses, type HarmonyMode, HARMONY_ELIGIBLE } from '../../core/palettes/colorHarmony';
   import { editorState } from '../../core/store/editorStore';
+  import AxisNumeral from './AxisNumeral.svelte';
   import { modeLabel } from './harmonyModeIcons';
   import { bindFamilyToAxis, unbindFamily } from './paletteBaseColor';
 
@@ -115,25 +116,26 @@
   {#each axes as axis, i (i)}
     {@const status = statuses[i]}
     {@const unused = status === 'unused'}
+    {@const rowSelected = axis.family !== null && axis.family === selected}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="axis-row"
       class:unused
-      class:selected={axis.family !== null && axis.family === selected}
+      class:selected={rowSelected}
       class:drop-target={dragTarget === i}
       aria-disabled={unused || undefined}
       ondragover={(e) => onDragOver(e, i)}
       ondragleave={() => onDragLeave(i)}
       ondrop={(e) => onDrop(e, i)}
     >
-      <span class="role"><span class="role-num">{i + 1}.</span> {AXIS_ROLES[i]}</span>
+      <AxisNumeral index={i} {status} selected={rowSelected} />
+      <span class="role">{AXIS_ROLES[i]}</span>
       {#if axis.family !== null}
         {@const family = axis.family}
         <span class="swatch" style="--fill: {familyHex(family)}"></span>
         <button
           type="button"
           class="chip"
-          class:selected={family === selected}
           draggable="true"
           data-family={family}
           aria-label={`${family}, ${AXIS_ROLES[i]} axis, position ${i + 1} of ${positionCount}. Arrow up or down to move it, Delete to unbind.`}
@@ -221,21 +223,25 @@
       background var(--ui-transition-fast);
   }
 
+  /* About to receive a drop: a doubled ring. Ring count is what separates it
+     from selection, which keeps a single line. Never dashed (dashed means
+     unused) and never colored. */
   .axis-row.drop-target,
   .unassigned.drop-target {
-    border-color: var(--ui-border-higher);
+    border-color: var(--ui-text-primary);
     background: var(--ui-surface-low);
+    outline: 1px solid var(--ui-text-primary);
+    outline-offset: 1px;
   }
 
-  /* The family selected in the swatch grid / wheel: the row's numeral and role
-     go full-contrast so the selection reads across both surfaces. */
+  /* The family selected in the swatch grid / wheel. The numeral inverts and the
+     row takes one border; the chip inside stays plain, so the row lights up once. */
   .axis-row.selected {
     border-color: var(--ui-text-primary);
     background: var(--ui-surface-low);
   }
 
-  .axis-row.selected .role,
-  .axis-row.selected .role-num {
+  .axis-row.selected .role {
     color: var(--ui-text-primary);
     font-weight: var(--ui-font-weight-semibold);
   }
@@ -244,11 +250,6 @@
     flex: none;
     width: 6.5rem;
     color: var(--ui-text-secondary);
-  }
-
-  .role-num {
-    color: var(--ui-text-muted);
-    font-variant-numeric: tabular-nums;
   }
 
   /* Unused slot: nothing bound and no position dealt. The row states the reason
@@ -310,7 +311,9 @@
     border-color: var(--ui-border-high);
   }
 
-  .chip.selected {
+  /* Tray chips only: they have no row and no numeral, so this is their sole
+     selection indicator. An axis row carries its selection on the row itself. */
+  .unassigned .chip.selected {
     border-color: var(--ui-text-primary);
     background: var(--ui-surface-high);
   }

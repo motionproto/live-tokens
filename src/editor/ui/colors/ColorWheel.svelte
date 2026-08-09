@@ -6,6 +6,7 @@
   import { setBaseHueChroma, setBaseChroma, setAxisHue, setAxisHues } from './paletteBaseColor';
   import { maxChroma } from './colorWheelMath';
   import { applyHarmonyToAxes, axisLabel, axisStatuses, AXIS_ROLES, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import AxisNumeral from './AxisNumeral.svelte';
   import { modeLabel } from './harmonyModeIcons';
 
   interface Props {
@@ -498,7 +499,9 @@
   {/each}
 
   {#each visibleRender as t (t.index)}
-    <span class="axis-num" class:selected={t.selected} style="left: {t.num.x}px; top: {t.num.y}px" aria-hidden="true">{t.index + 1}</span>
+    <span class="axis-num" style="left: {t.num.x}px; top: {t.num.y}px" aria-hidden="true">
+      <AxisNumeral index={t.index} status={statuses[t.index]} selected={t.selected} />
+    </span>
   {/each}
 
   {#each visibleRender as t (t.index)}
@@ -543,10 +546,12 @@
   {#if freeDot}
     {#if freeDot.axisIndex !== null}
       <span
-        class="axis-num selected"
+        class="axis-num"
         style="left: {freeDot.x + FREE_NUM_OFFSET}px; top: {freeDot.y - FREE_NUM_OFFSET}px"
         aria-hidden="true"
-      >{freeDot.axisIndex + 1}</span>
+      >
+        <AxisNumeral index={freeDot.axisIndex} status={statuses[freeDot.axisIndex]} selected />
+      </span>
     {/if}
     <button
       type="button"
@@ -753,22 +758,14 @@
     color: var(--ui-text-primary);
   }
 
-  /* Axis numeral just outside the handle track. Positioned only — never rotated,
-     so it stays upright at any angle. */
+  /* Axis numeral just outside the handle track. Positioning only — never
+     rotated, so the digit stays upright at any angle. */
   .axis-num {
     position: absolute;
     transform: translate(-50%, -50%);
-    font-size: var(--ui-font-size-xs);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-tertiary);
+    display: flex;
     pointer-events: none;
-    user-select: none;
     z-index: 3;
-  }
-
-  .axis-num.selected {
-    color: var(--ui-text-primary);
-    font-size: var(--ui-font-size-sm);
   }
 
   .dot:focus-visible,
