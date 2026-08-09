@@ -8,4 +8,5 @@
 // <LiveTokensRouter>; these are only the defaults.
 export const DEFAULT_EDITOR_PATH = '/live-tokens/editor';
 export const DEFAULT_COMPONENTS_PATH = '/live-tokens/components';
+export const DEFAULT_COLORS_PATH = '/live-tokens/colors';
 export const DEFAULT_DOCS_PATH = '/live-tokens/docs';

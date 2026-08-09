@@ -1,7 +1,7 @@
 <script lang="ts">
   import { editorView, type EditorView } from '../core/store/editorViewStore';
   import { parentRoute } from '../core/routing/parentRouteStore';
-  import { DEFAULT_COMPONENTS_PATH } from '../core/routing/ownedRoutes';
+  import { DEFAULT_COMPONENTS_PATH, DEFAULT_COLORS_PATH } from '../core/routing/ownedRoutes';
 
   interface Props {
     condensed?: boolean;
@@ -9,16 +9,17 @@
 
   let { condensed = false }: Props = $props();
 
-  // On the components route the host page is already the components editor —
-  // the overlay's components view would just stack on top, so disable the
-  // switch. The switcher renders inside the editor iframe, so we read the
-  // *parent* route, not this iframe's own. Compares the default path:
-  // editorRoutes.components relocation isn't plumbed across the iframe, so a
-  // relocated route won't disable the switch.
+  // On the components or colors route the host page already renders that
+  // surface — the overlay's matching view would just stack on top, so disable
+  // the switch. The switcher renders inside the editor iframe, so we read the
+  // *parent* route, not this iframe's own. Compares the default paths:
+  // editorRoutes relocation isn't plumbed across the iframe, so a relocated
+  // route won't disable the switch.
   let componentsDisabled = $derived($parentRoute === DEFAULT_COMPONENTS_PATH);
+  let colorsDisabled = $derived($parentRoute === DEFAULT_COLORS_PATH);
 
   // Editing flow order: Tokens → Colors → Components. The condensed rail cycles
-  // through these; Components is skipped while it's disabled (already on that
+  // through these; a view is skipped while it's disabled (already on that
   // page) so the cycle never lands on a dead view.
   const CYCLE: readonly EditorView[] = ['tokens', 'colors', 'components'];
   const ICONS: Record<EditorView, string> = {
@@ -43,6 +44,7 @@
         i = (i + 1) % CYCLE.length;
         const next = CYCLE[i];
         if (next === 'components' && componentsDisabled) continue;
+        if (next === 'colors' && colorsDisabled) continue;
         return next;
       }
       return current;
@@ -81,6 +83,8 @@
         class="seg-btn"
         class:active={$editorView === 'colors'}
         aria-selected={$editorView === 'colors'}
+        disabled={colorsDisabled}
+        title={colorsDisabled ? 'Already viewing the Colors page' : undefined}
         onclick={() => set('colors')}
       >
         <span class="radio" aria-hidden="true"></span>

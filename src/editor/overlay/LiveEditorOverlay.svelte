@@ -15,7 +15,7 @@
   import { fade } from 'svelte/transition';
   import { cubicInOut } from 'svelte/easing';
   import { route, navigate } from '../core/routing/router';
-  import { DEFAULT_EDITOR_PATH, DEFAULT_COMPONENTS_PATH } from '../core/routing/ownedRoutes';
+  import { DEFAULT_EDITOR_PATH, DEFAULT_COMPONENTS_PATH, DEFAULT_COLORS_PATH } from '../core/routing/ownedRoutes';
   import { editorView } from '../core/store/editorViewStore';
   import { columnsVisible, toggleColumns } from './columnsOverlay';
   import { storageKey } from '../core/store/editorConfig';
@@ -29,6 +29,7 @@
     open?: boolean | undefined;
     editorPath?: string;
     componentsPath?: string;
+    colorsPath?: string;
     navLinks?: NavLink[];
     pageSources?: Record<string, string>;
     hidePageSourceOn?: string[];
@@ -39,6 +40,7 @@
     open = $bindable(undefined),
     editorPath = DEFAULT_EDITOR_PATH,
     componentsPath = DEFAULT_COMPONENTS_PATH,
+    colorsPath = DEFAULT_COLORS_PATH,
     navLinks = [],
     pageSources = {},
     hidePageSourceOn = [],
@@ -65,9 +67,9 @@
     overlayOpen.set(!!open);
   });
 
-  // The components route renders the same component-editor surface as the
-  // overlay's components view. Pair them: on entering it, flip the overlay to
-  // tokens so the two surfaces don't stack. Fires only on route
+  // The components and colors routes render the same surfaces as the overlay's
+  // components and colors views. Pair them: on entering one, flip the overlay
+  // to tokens so the two surfaces don't stack. Fires only on route
   // change, not on every editorView change — otherwise cross-window storage
   // sync re-triggers the rule, which writes editorView, which fires another
   // storage event, which fires the rule again. The result is heavy re-render
@@ -80,6 +82,9 @@
     prevRoute = r;
     if (r === componentsPath) {
       editorView.update((v) => (v === 'components' ? 'tokens' : v));
+    }
+    if (r === colorsPath) {
+      editorView.update((v) => (v === 'colors' ? 'tokens' : v));
     }
   });
 

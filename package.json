@@ -65,6 +65,11 @@
       "svelte": "./src/editor/pages/ComponentEditorPage.svelte",
       "default": "./src/editor/pages/ComponentEditorPage.svelte"
     },
+    "./colors": {
+      "types": "./src/editor/pages/ColorsPage.svelte.d.ts",
+      "svelte": "./src/editor/pages/ColorsPage.svelte",
+      "default": "./src/editor/pages/ColorsPage.svelte"
+    },
     "./docs": {
       "types": "./src/editor/docs/Docs.svelte.d.ts",
       "svelte": "./src/editor/docs/Docs.svelte",

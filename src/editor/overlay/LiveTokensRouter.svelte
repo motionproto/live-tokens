@@ -30,20 +30,22 @@
   /**
    * Override the package's dev-only routes, which default to the reserved
    * `/live-tokens/*` namespace (`/live-tokens/editor`, `/live-tokens/components`,
-   * `/live-tokens/docs`) so they never collide with consumer pages. Pass a
-   * string to relocate a route; pass `false` to disable it entirely (no
-   * dispatch and, for `components`/`docs`, no auto-injected nav-rail entry).
+   * `/live-tokens/colors`, `/live-tokens/docs`) so they never collide with
+   * consumer pages. Pass a string to relocate a route; pass `false` to disable
+   * it entirely (no dispatch and, for `components`/`colors`/`docs`, no
+   * auto-injected nav-rail entry).
    */
   export interface EditorRouteOverrides {
     editor?: string | false;
     components?: string | false;
+    colors?: string | false;
     docs?: string | false;
   }
 
   /**
    * Resolve a path to the single entry that renders it. Precedence, after the
-   * package-owned `/live-tokens/*` routes (editor, components, docs) have
-   * already been matched by the component:
+   * package-owned `/live-tokens/*` routes (editor, components, colors, docs)
+   * have already been matched by the component:
    *
    *   1. `pages[route]` — exact static match.
    *   2. `resolve(route)` — consumer code, where params / prefixes / gating
@@ -68,7 +70,7 @@
   import LiveEditorOverlay from './LiveEditorOverlay.svelte';
   import ColumnsOverlay from './ColumnsOverlay.svelte';
   import { route, navigate } from '../core/routing/router';
-  import { DEFAULT_EDITOR_PATH, DEFAULT_COMPONENTS_PATH, DEFAULT_DOCS_PATH } from '../core/routing/ownedRoutes';
+  import { DEFAULT_EDITOR_PATH, DEFAULT_COMPONENTS_PATH, DEFAULT_COLORS_PATH, DEFAULT_DOCS_PATH } from '../core/routing/ownedRoutes';
 
   interface Props {
     pages: Record<string, RouteEntry>;
@@ -86,32 +88,38 @@
 
   let editorEnabled = $derived(editorRoutes.editor !== false);
   let componentsEnabled = $derived(editorRoutes.components !== false);
+  let colorsEnabled = $derived(editorRoutes.colors !== false);
   let docsEnabled = $derived(editorRoutes.docs !== false);
   let editorPath = $derived(typeof editorRoutes.editor === 'string' ? editorRoutes.editor : DEFAULT_EDITOR_PATH);
   let componentsPath = $derived(typeof editorRoutes.components === 'string' ? editorRoutes.components : DEFAULT_COMPONENTS_PATH);
+  let colorsPath = $derived(typeof editorRoutes.colors === 'string' ? editorRoutes.colors : DEFAULT_COLORS_PATH);
   let docsPath = $derived(typeof editorRoutes.docs === 'string' ? editorRoutes.docs : DEFAULT_DOCS_PATH);
 
   const isDev = import.meta.env.DEV;
   let isEditor = $derived(isDev && editorEnabled && $route === editorPath);
   let isComponentEditor = $derived(isDev && componentsEnabled && $route === componentsPath);
+  let isColors = $derived(isDev && colorsEnabled && $route === colorsPath);
   let isDocs = $derived(isDev && docsEnabled && $route === docsPath);
 
   // The single entry that renders the current route. Owned routes are handled
-  // by the isEditor/isComponentEditor/isDocs branches, so they resolve to null
-  // here; everything else flows through resolveRoute and drives both dispatch
-  // (component + props) and page-source from this one value.
+  // by the isEditor/isComponentEditor/isColors/isDocs branches, so they resolve
+  // to null here; everything else flows through resolveRoute and drives both
+  // dispatch (component + props) and page-source from this one value.
   let resolvedEntry = $derived(
-    isEditor || isComponentEditor || isDocs ? null : resolveRoute(pages, resolve, $route),
+    isEditor || isComponentEditor || isColors || isDocs ? null : resolveRoute(pages, resolve, $route),
   );
 
   // Pages with a label show up in the nav rail, in declaration order. In dev,
-  // the components-editor and docs routes are auto-appended so they're reachable
-  // from every page. Docs ship from the package, so consumers reference the
-  // guide in the editor while building without vendoring a copy.
+  // the colors, components-editor, and docs routes are auto-appended so they're
+  // reachable from every page. Docs ship from the package, so consumers
+  // reference the guide in the editor while building without vendoring a copy.
   let navLinks = $derived([
     ...Object.entries(pages)
       .filter(([, e]) => !!e.label)
       .map(([path, e]) => ({ path, label: e.label!, icon: e.icon ?? '' })),
+    ...(isDev && colorsEnabled
+      ? [{ path: colorsPath, label: 'Colors', icon: 'fa-palette' }]
+      : []),
     ...(isDev && componentsEnabled
       ? [{ path: componentsPath, label: 'Components', icon: 'fa-puzzle-piece' }]
       : []),
@@ -132,14 +140,15 @@
     ...(resolvedEntry?.source ? { [$route]: resolvedEntry.source } : {}),
   });
 
-  // The package-owned components and docs routes hide the page-source button
-  // (no consumer source file backs them).
+  // The package-owned components, colors, and docs routes hide the page-source
+  // button (no consumer source file backs them).
   let hidePageSourceOn = $derived([
     ...Object.entries(pages)
       .filter(([, e]) => e.hidePageSource)
       .map(([path]) => path),
     ...(resolvedEntry?.hidePageSource ? [$route] : []),
     ...(componentsEnabled ? [componentsPath] : []),
+    ...(colorsEnabled ? [colorsPath] : []),
     ...(docsEnabled ? [docsPath] : []),
   ]);
 
@@ -150,6 +159,7 @@
   let pagePromise = $derived.by(() => {
     if (isEditor) return import('../pages/Editor.svelte');
     if (isComponentEditor) return import('../pages/ComponentEditorPage.svelte');
+    if (isColors) return import('../pages/ColorsPage.svelte');
     if (isDocs) return import('../docs/Docs.svelte');
     const entry = resolvedEntry;
     if (!entry) return Promise.resolve({ default: null as unknown as Component<any, any, any> });
@@ -177,9 +187,10 @@
   class="lt-app"
   class:is-editor={isEditor}
   class:is-component-editor={isComponentEditor}
+  class:is-colors={isColors}
   onclick={handleClick}
 >
-  <LiveEditorOverlay {navLinks} {pageSources} {hidePageSourceOn} {editorPath} {componentsPath} />
+  <LiveEditorOverlay {navLinks} {pageSources} {hidePageSourceOn} {editorPath} {componentsPath} {colorsPath} />
   <ColumnsOverlay />
 
   {#await pagePromise then m}
@@ -210,7 +221,8 @@
     padding-right: var(--lt-overlay-scroll-pad, 0px);
   }
 
-  .lt-app.is-editor {
+  .lt-app.is-editor,
+  .lt-app.is-colors {
     padding-bottom: 0;
     background: black;
   }
