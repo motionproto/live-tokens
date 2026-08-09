@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.45.0 — The Color Story shows the tokens you actually have
+
+### Fixed
+
+- **The Color Story's text steps read the live tokens.** The primary, secondary
+  and tertiary row rendered the values the *Even neutral steps* pill would have
+  written, not the current ones, so the same step could report two different
+  ratios in the same frame (the Canvas header said 17.9:1 while the row said
+  14.7:1). Each step now resolves `--text-primary` / `--text-secondary` /
+  `--text-tertiary` through the same path the functional chips and tone pills
+  already used, renders in its own token, and reports its real contrast against
+  the canvas.
+
+### Removed
+
+- **The Color Story's action pills.** *Raise all text to AA*, *Even neutral
+  steps*, and the *Anchor at pure white/black* toggle, added in 0.44.0, are
+  gone. The story is a proportional preview, and authoring text steps from it
+  put a second palette editor next to the real one. Text steps are edited in
+  the Tokens view.
+
+- **The text-contrast solvers.** `solveTextContrast.ts` and `recommendText.ts`
+  (plus `applySolvedTextCurves` and `applySuggestedNeutralText`) backed only
+  those pills and are deleted. Both were internal to `src/editor/core/palettes/`
+  and never reachable through the package exports, so no consumer import
+  changes. `BW_GUARD_MIN_L` / `BW_GUARD_MAX_L` are unaffected: they live in
+  `paletteDerivation.ts` and still guard derived inverted text.
+
+### Changed
+
+- **The story's prose lines and its unlabeled header ratio are gone.** The three
+  sentences under Canvas ("The dominant surface. Body text sits here." and its
+  two siblings) said nothing the labelled steps don't, and the ratio beside the
+  Canvas heading was primary's, measured but never named. The stacked steps
+  carry all three ratios now.
+
 ## 0.44.0 — Every text step derives to body contrast
 
 ### Added
