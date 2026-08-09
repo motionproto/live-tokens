@@ -2,7 +2,33 @@
 
 ## 0.44.0 — Every text step derives to body contrast
 
+### Added
+
+- **A full-page Colors route.** `/live-tokens/colors` renders the Colors editor
+  as its own page, alongside the existing editor and components routes, and is
+  auto-appended to the dev nav rail. New `@motion-proto/live-tokens/colors`
+  export for consumers mounting it themselves, and a new `colors` key on
+  `editorRoutes` to relocate it or pass `false` to disable it. Entering the
+  route flips the overlay off its Colors view so the two surfaces never stack.
+
 ### Changed
+
+- **Selection reads across every Colors surface.** Picking a family used to
+  highlight only its swatch. Its harmony-axis row and chip now light up, and on
+  the wheel its rail thickens to full contrast while its axis numeral goes
+  white and the others step back. Axis chips are clickable to select.
+
+- **The Color Story is a readout, not a control panel.** Its "Use suggested"
+  button and "Use black and white" checkbox moved out to three pills above the
+  story: *Raise all text to AA* (every family, contrast-first), *Even neutral
+  steps* (Neutral only, hierarchy-first), and an *Anchor at pure white/black*
+  toggle. The old labels named neither the scope nor the effect, which are what
+  separate the two actions; each pill now carries the full explanation on hover.
+  The AA-reach line is gone.
+
+- **Color swatches hold their position.** Both swatch rows were sorted by
+  luminance, so editing a color's lightness reshuffled the row under the
+  pointer and stuttered mid-drag. They render in declaration order now.
 
 - **`--text-muted` now derives to 4.5:1, not 3:1.** The neutral text ramp
   guaranteed muted at the WCAG AA floor for *large* text, one step below
