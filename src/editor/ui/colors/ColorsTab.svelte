@@ -2,7 +2,7 @@
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginSliderGesture } from '../../core/store/editorStore';
-  import { applyHarmonyToAxes, modeActiveAxes, tintNeutralsFromAnchor, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import { applyHarmonyToAxes, axisStatuses, tintNeutralsFromAnchor, type HarmonyMode } from '../../core/palettes/colorHarmony';
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import ColorWheel from './ColorWheel.svelte';
   import LightnessBar from './LightnessBar.svelte';
@@ -17,7 +17,7 @@
     setAxisHues,
     palettesWithDefaults,
   } from './paletteBaseColor';
-  import { HARMONY_MODE_BUTTONS } from './harmonyModeIcons';
+  import { HARMONY_MODE_BUTTONS, modeLabel } from './harmonyModeIcons';
   import { dockGrow } from '../palette/dockMagnify';
 
   let selected = $state('Brand');
@@ -67,15 +67,15 @@
   let fullPalettes = $derived(palettesWithDefaults($editorState.palettes));
 
   let swatches = $derived.by(() => {
-    // A family bound to an inactive axis edits in dot mode, so it is not "on the wheel".
-    const active = modeActiveAxes(activeMode);
+    const statuses = axisStatuses(activeMode, $editorState.harmonyAxes);
     return PALETTE_SPECS.map((spec) => {
       const { l, c, h } = $editorState.palettes[spec.label]?.baseColor ?? spec.initialColor;
+      const index = $editorState.harmonyAxes.findIndex((a) => a.family === spec.label);
       return {
         label: spec.label,
         display: spec.displayLabel ?? spec.label,
         hex: oklchToHexClamped(l, c, h),
-        onWheel: $editorState.harmonyAxes.some((a, i) => a.family === spec.label && active[i]),
+        axis: index === -1 ? null : { index, status: statuses[index] },
       };
     });
   });
@@ -86,9 +86,7 @@
   let coreSwatches = $derived(swatches.filter((sw) => !FUNCTIONAL_FAMILIES.has(sw.label)));
   let functionalSwatches = $derived(swatches.filter((sw) => FUNCTIONAL_FAMILIES.has(sw.label)));
 
-  let shownModeLabel = $derived(
-    HARMONY_MODE_BUTTONS.find((b) => b.mode === (hoverMode ?? activeMode))?.label ?? '',
-  );
+  let shownModeLabel = $derived(modeLabel(hoverMode ?? activeMode));
 
   let selectedSpec = $derived(PALETTE_SPECS.find((s) => s.label === selected) ?? PALETTE_SPECS[0]);
   let selectedOklch = $derived($editorState.palettes[selected]?.baseColor ?? selectedSpec.initialColor);
@@ -184,7 +182,7 @@
                 onclick={() => select(sw.label)}
               >
                 <span class="chip">
-                  {#if sw.onWheel}<span class="wheel-dot" title="On the wheel" aria-hidden="true"></span>{/if}
+                  {#if sw.axis?.status === 'on-wheel'}<span class="wheel-dot" title="On the wheel" aria-hidden="true"></span>{/if}
                 </span>
                 <span class="swatch-label">{sw.label}</span>
               </button>

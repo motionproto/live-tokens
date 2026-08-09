@@ -6,6 +6,7 @@ import {
   AXIS_ROLES,
   defaultHarmonyAxes,
   modeActiveAxes,
+  axisStatuses,
   applyHarmonyToAxes,
   boundColorPatch,
   sanitizeHarmonyAxes,
@@ -73,6 +74,44 @@ describe('modeActiveAxes', () => {
   it('monochromatic (repeats are the point) and custom (no geometry) keep every axis active', () => {
     expect(modeActiveAxes('monochromatic')).toEqual([true, true, true, true]);
     expect(modeActiveAxes('custom')).toEqual([true, true, true, true]);
+  });
+});
+
+describe('axisStatuses', () => {
+  const ALL_MODES: HarmonyMode[] = [
+    'complementary', 'split-complementary', 'triadic', 'tetradic',
+    'compound', 'square', 'analogous', 'monochromatic', 'custom',
+  ];
+
+  it('separates a bound inactive axis from an unbound one', () => {
+    expect(axisStatuses('complementary', defaultHarmonyAxes())).toEqual([
+      'on-wheel', 'on-wheel', 'off-wheel', 'unused',
+    ]);
+  });
+
+  it('custom and monochromatic put every axis on the wheel', () => {
+    for (const mode of ['custom', 'monochromatic'] as const) {
+      expect(axisStatuses(mode, defaultHarmonyAxes())).toEqual(Array(AXIS_COUNT).fill('on-wheel'));
+    }
+  });
+
+  // The three surfaces derived these two predicates separately before the
+  // helper existed; pinning them proves the merge changed no behaviour.
+  it('matches the per-surface predicates it replaces, for every mode and binding shape', () => {
+    const shapes: HarmonyAxis[][] = [
+      defaultHarmonyAxes(),
+      defaultHarmonyAxes().map((a) => ({ ...a, family: null })),
+      defaultHarmonyAxes().map((a, i) => (i === 3 ? { ...a, family: 'Special' } : { ...a })),
+    ];
+    for (const mode of ALL_MODES) {
+      for (const axes of shapes) {
+        const active = modeActiveAxes(mode);
+        axisStatuses(mode, axes).forEach((status, i) => {
+          expect(status === 'unused').toBe(!active[i] && axes[i].family === null);
+          expect(status === 'on-wheel').toBe(active[i]);
+        });
+      }
+    }
   });
 });
 

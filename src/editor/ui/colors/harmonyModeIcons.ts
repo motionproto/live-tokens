@@ -21,3 +21,8 @@ export const HARMONY_MODE_BUTTONS: { mode: HarmonyMode; label: string; svg: stri
   { mode: 'compound', label: 'Compound', svg: compoundSvg },
   { mode: 'custom', label: 'Custom', svg: customSvg },
 ];
+
+/** Display name for copy and aria; the raw mode id must never reach a string. */
+export function modeLabel(mode: HarmonyMode): string {
+  return HARMONY_MODE_BUTTONS.find((b) => b.mode === mode)!.label;
+}

@@ -110,6 +110,36 @@ export function modeActiveAxes(mode: HarmonyMode): boolean[] {
   return slots.map((h, i) => slots.slice(0, i).every((prev) => prev !== h));
 }
 
+export type AxisStatus = 'on-wheel' | 'off-wheel' | 'unused';
+
+/**
+ * Per-axis presentation status. The single source every Colors surface reads,
+ * so the wheel, the swatch row and the axes list cannot disagree about the
+ * same axis.
+ *
+ *   on-wheel  — the mode deals this slot a distinct hue: rail, handle, numeral.
+ *   off-wheel — a family is bound, but the mode deals the slot no position.
+ *               The binding is real and returns when the mode changes; the
+ *               family edits as the free dot meanwhile.
+ *   unused    — no family bound and no position dealt.
+ */
+export function axisStatuses(mode: HarmonyMode, axes: HarmonyAxis[]): AxisStatus[] {
+  return modeActiveAxes(mode).map((active, i) => {
+    if (active) return 'on-wheel';
+    return axes[i].family !== null ? 'off-wheel' : 'unused';
+  });
+}
+
+/** How many axes `mode` deals a distinct position to. Reason strings quote it. */
+export function activeAxisCount(mode: HarmonyMode): number {
+  return modeActiveAxes(mode).filter(Boolean).length;
+}
+
+/** Axis 1 is the slot the other three are measured from, so it keeps a name. */
+export function axisLabel(index: number): string {
+  return index === 0 ? 'anchor' : `axis ${index + 1}`;
+}
+
 /**
  * Re-deal every axis's hue from `mode`'s geometry, anchored on axis 0's hue.
  * Bindings are preserved; `'custom'` imposes no constraint and returns a copy.

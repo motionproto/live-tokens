@@ -5,7 +5,8 @@
   import { editorState, beginScope, commitScope, cancelScope, type Scope } from '../../core/store/editorStore';
   import { setBaseHueChroma, setBaseChroma, setAxisHue, setAxisHues } from './paletteBaseColor';
   import { maxChroma } from './colorWheelMath';
-  import { applyHarmonyToAxes, modeActiveAxes, AXIS_ROLES, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import { applyHarmonyToAxes, axisLabel, axisStatuses, AXIS_ROLES, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import { modeLabel } from './harmonyModeIcons';
 
   interface Props {
     selected: string | null;
@@ -50,8 +51,8 @@
   // active in the applied geometry (its slot is a distinct position). A bound
   // inactive axis keeps its family's color but is edited in dot mode, not axis
   // mode: the family renders as the free dot and sits out the global spin.
-  let activeAxes = $derived(modeActiveAxes(activeMode));
-  const isVisible = (t: { index: number }) => activeAxes[t.index];
+  let statuses = $derived(axisStatuses(activeMode, $editorState.harmonyAxes));
+  const isVisible = (t: { index: number }) => statuses[t.index] === 'on-wheel';
 
   // Reserved judgment call: keyboard nudge increments.
   const HUE_STEP = 2;
@@ -59,6 +60,7 @@
   const MARGIN = 52;      // ring-to-edge gap: houses the external handles AND the axis numerals outside them
   const EXT_OFFSET = 20;  // external handle radius beyond the disc rim (room for the dotted tether)
   const NUM_OFFSET = 24;  // numeral radius beyond the external handles
+  const FREE_NUM_OFFSET = 15; // free-dot numeral, diagonal clearance past the enlarged dot
   const MIN_SIZE = 240;
   const MAX_SIZE = 560;
 
@@ -146,7 +148,9 @@
   // Writes go through setBaseHueChroma only — active axes never move; a bound
   // inactive axis follows its family via syncBoundAxisHue.
   let freeDot = $derived.by(() => {
-    if (!selected || $editorState.harmonyAxes.some((a, i) => a.family === selected && activeAxes[i])) return null;
+    if (!selected) return null;
+    const axisIndex = $editorState.harmonyAxes.findIndex((a) => a.family === selected);
+    if (axisIndex !== -1 && statuses[axisIndex] === 'on-wheel') return null;
     const spec = PALETTE_SPECS.find((s) => s.label === selected);
     if (!spec) return null;
     const { l, c, h } = $editorState.palettes[selected]?.baseColor ?? spec.initialColor;
@@ -159,9 +163,20 @@
     }
     const r = rFrac * discRadius;
     return {
-      family: selected, hex: oklchToHexClamped(l, c, h), hue, chroma: c, lightness: l,
+      family: selected, axisIndex: axisIndex === -1 ? null : axisIndex,
+      hex: oklchToHexClamped(l, c, h), hue, chroma: c, lightness: l,
       x: center + r * Math.cos(rad(hue)), y: center - r * Math.sin(rad(hue)),
     };
+  });
+
+  // The dot serves two states: bound to an axis the mode left off the wheel, and
+  // unassigned. Only the first has an axis to name.
+  let freeDotLabel = $derived.by(() => {
+    if (!freeDot) return '';
+    const where = freeDot.axisIndex === null
+      ? 'unassigned'
+      : `${axisLabel(freeDot.axisIndex)}. Off the wheel in ${modeLabel(activeMode)}`;
+    return `${freeDot.family}, ${where}. Drag to adjust hue and chroma.`;
   });
 
   let globalHandle = $derived.by(() => {
@@ -526,12 +541,19 @@
   {/each}
 
   {#if freeDot}
+    {#if freeDot.axisIndex !== null}
+      <span
+        class="axis-num selected"
+        style="left: {freeDot.x + FREE_NUM_OFFSET}px; top: {freeDot.y - FREE_NUM_OFFSET}px"
+        aria-hidden="true"
+      >{freeDot.axisIndex + 1}</span>
+    {/if}
     <button
       type="button"
       class="dot selected"
       style="left: {freeDot.x}px; top: {freeDot.y}px; --fill: {freeDot.hex}"
-      aria-label={`${freeDot.family} — drag to adjust hue and chroma`}
-      title={`${freeDot.family} (drag freely)`}
+      aria-label={freeDotLabel}
+      title={freeDotLabel}
       onpointerdown={startFreeDrag}
       onpointermove={moveDrag}
       onpointerup={endDrag}

@@ -4,13 +4,14 @@
   import { cubicOut } from 'svelte/easing';
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
-  import { AXIS_ROLES, modeActiveAxes, type HarmonyMode, HARMONY_ELIGIBLE } from '../../core/palettes/colorHarmony';
+  import { AXIS_ROLES, activeAxisCount, axisStatuses, type HarmonyMode, HARMONY_ELIGIBLE } from '../../core/palettes/colorHarmony';
   import { editorState } from '../../core/store/editorStore';
+  import { modeLabel } from './harmonyModeIcons';
   import { bindFamilyToAxis, unbindFamily } from './paletteBaseColor';
 
   interface Props {
-    /** The applied harmony mode: an unbound slot is disabled when the geometry
-     *  deals it no distinct position (complementary enables only the first two). */
+    /** The applied harmony mode: it deals a distinct position to some axes only,
+     *  which is what leaves an axis off the wheel or unused (complementary deals two). */
     activeMode: HarmonyMode;
     /** Family selected in the swatch grid / wheel — its row (or chip) reads as active here. */
     selected: string | null;
@@ -31,9 +32,10 @@
 
   let axes = $derived($editorState.harmonyAxes);
   let unassigned = $derived(HARMONY_ELIGIBLE.filter((f) => !axes.some((a) => a.family === f)));
-  let axisDisabled = $derived(modeActiveAxes(activeMode).map((active, i) => !active && axes[i].family === null));
-  // Keyboard sequence: the enabled axes then Unassigned.
-  let axisSeq = $derived(axisDisabled.flatMap((disabled, i) => (disabled ? [] : [i])));
+  let statuses = $derived(axisStatuses(activeMode, axes));
+  let modeUsage = $derived(`${modeLabel(activeMode)} uses ${activeAxisCount(activeMode)}`);
+  // Keyboard sequence: every axis that still accepts a family, then Unassigned.
+  let axisSeq = $derived(statuses.flatMap((s, i) => (s === 'unused' ? [] : [i])));
   let positionCount = $derived(axisSeq.length + 1);
   let lastAxis = $derived(axisSeq[axisSeq.length - 1]);
 
@@ -83,7 +85,7 @@
 
   function onDragOver(e: DragEvent, target: number | 'unassigned') {
     if (!(e.dataTransfer?.types ?? []).includes(DRAG_TYPE)) return;
-    if (typeof target === 'number' && axisDisabled[target]) return;
+    if (typeof target === 'number' && statuses[target] === 'unused') return;
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     dragTarget = target;
@@ -98,7 +100,7 @@
     const family = e.dataTransfer?.getData(DRAG_TYPE);
     dragTarget = null;
     if (!family) return;
-    if (typeof target === 'number' && axisDisabled[target]) return;
+    if (typeof target === 'number' && statuses[target] === 'unused') return;
     // Self-drop is a no-op: the setters early-return when nothing changes.
     if (target === 'unassigned') unbindFamily(family);
     else bindFamilyToAxis(family, target);
@@ -111,14 +113,15 @@
 
 <div class="axes-list" bind:this={listEl}>
   {#each axes as axis, i (i)}
-    {@const disabled = axisDisabled[i]}
+    {@const status = statuses[i]}
+    {@const unused = status === 'unused'}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="axis-row"
-      class:disabled
+      class:unused
       class:selected={axis.family !== null && axis.family === selected}
       class:drop-target={dragTarget === i}
-      aria-disabled={disabled || undefined}
+      aria-disabled={unused || undefined}
       ondragover={(e) => onDragOver(e, i)}
       ondragleave={() => onDragLeave(i)}
       ondrop={(e) => onDrop(e, i)}
@@ -145,9 +148,16 @@
           <span class="chip-swatch" style="--fill: {familyHex(family)}"></span>
           <span class="chip-name">{family}</span>
         </button>
+        {#if status === 'off-wheel'}
+          <span class="reason">off wheel &middot; {modeUsage}</span>
+        {/if}
       {:else}
         <span class="swatch preview" style="--fill: {oklchToHexClamped(PREVIEW_L, PREVIEW_C, axis.hue)}"></span>
-        <span class="empty">Empty</span>
+        {#if unused}
+          <span class="reason">unused &middot; {modeUsage}</span>
+        {:else}
+          <span class="empty">Empty</span>
+        {/if}
       {/if}
     </div>
   {/each}
@@ -241,9 +251,9 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Disabled slot: the applied geometry deals it no distinct position. The Empty
-     label stays visible; shape + dimming carry the state. */
-  .axis-row.disabled {
+  /* Unused slot: nothing bound and no position dealt. The row states the reason
+     in text; shape and dimming only echo it. */
+  .axis-row.unused {
     border-style: dashed;
     opacity: 0.45;
   }
@@ -265,6 +275,11 @@
   .empty {
     color: var(--ui-text-tertiary);
     font-size: var(--ui-font-size-md);
+  }
+
+  .reason {
+    color: var(--ui-text-tertiary);
+    font-size: var(--ui-font-size-sm);
   }
 
   .grip {
