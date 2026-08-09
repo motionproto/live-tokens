@@ -101,16 +101,18 @@
         <h2 class="title">Color Wheel</h2>
       </header>
 
-      <ColorWheel
-        {selected}
-        {absoluteChroma}
-        {activeMode}
-        onSelect={select}
-        discLightness={selectedOklch.l}
-        onCustomize={() => (activeMode = 'custom')}
-      />
+      <div class="wheel-hero">
+        <ColorWheel
+          {selected}
+          {absoluteChroma}
+          {activeMode}
+          onSelect={select}
+          discLightness={selectedOklch.l}
+          onCustomize={() => (activeMode = 'custom')}
+        />
 
-      <LightnessBar {selected} {absoluteChroma} />
+        <LightnessBar {selected} {absoluteChroma} />
+      </div>
 
       <div class="group">
         <span class="eyebrow">Color Harmony <span class="mode-name">&middot; {shownModeLabel}</span></span>
@@ -166,6 +168,12 @@
       </div>
 
       <div class="group">
+        <span class="eyebrow">Harmony axes</span>
+        <p class="axes-desc">Each axis owns a hue. Drop a color on an axis to bind it. The color adopts the axis hue and follows the axis. Drag a color to Unassigned to let it float free.</p>
+        <HarmonyAxesList {activeMode} {selected} onSelect={select} />
+      </div>
+
+      <div class="group">
         <span class="eyebrow">Swatches</span>
         {#snippet swatchRow(row: typeof swatches)}
           {@const selIdx = row.findIndex((sw) => sw.label === selected)}
@@ -208,15 +216,6 @@
           onSliderStart={() => beginSliderGesture(`colors: ${selected} base`)}
         />
       </div>
-
-      <div class="group">
-        <span class="eyebrow">Derived scale</span>
-        <PaletteStepStrip spec={selectedSpec} />
-      </div>
-
-      <div class="group">
-        <ColorReadouts color={selectedOklch} />
-      </div>
     </section>
   </div>
 
@@ -229,10 +228,20 @@
       <ColorStory full={fullPalettes} />
     </section>
 
-    <section id="colors-axes" class="block">
-      <h2 class="title">Harmony axes</h2>
-      <p class="axes-desc">Each axis owns a hue. Drop a color on an axis to bind it. The color adopts the axis hue and follows the axis. Drag a color to Unassigned to let it float free.</p>
-      <HarmonyAxesList {activeMode} {selected} onSelect={select} />
+    <section id="colors-selected" class="block">
+      <header class="block-head">
+        <span class="eyebrow">Selected color</span>
+        <h2 class="title">{selectedSpec.displayLabel ?? selected}</h2>
+      </header>
+
+      <div class="group">
+        <span class="eyebrow">Derived scale</span>
+        <PaletteStepStrip spec={selectedSpec} />
+      </div>
+
+      <div class="group">
+        <ColorReadouts color={selectedOklch} />
+      </div>
     </section>
   </div>
 </div>
@@ -274,6 +283,17 @@
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-20);
+    min-width: 0;
+  }
+
+  /* The wheel and its lightness bar are one instrument, and the hero of the
+     view. Bind them tighter than the block rhythm and add the difference back
+     below, so the controls that follow stop reading at the wheel's weight. */
+  .wheel-hero {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-12);
+    margin-bottom: var(--ui-space-12);
     min-width: 0;
   }
 
