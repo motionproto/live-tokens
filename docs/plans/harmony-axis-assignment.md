@@ -2,6 +2,8 @@
 
 Branch off `main` as `harmony-axis-assignment`. Five waves, each a single commit unit executable by a sub-agent with only this doc and the repo. Waves are strictly sequential; each ends green.
 
+**Execution model.** A fresh Fable session orchestrates from this doc; it writes no wave code itself. Each wave runs in a wave-executor sub-agent on the model named in its **Executor** line: Opus for the mechanical waves, Fable for Wave 4 (a new menu component, where focus management and a11y pass typecheck while wrong). The review gate after each wave (wave-reviewer) runs at the orchestrator's tier. The manual halves of each wave's verification are the user's; the executor runs only the automated commands and reports the manual checklist as pending.
+
 **Precondition:** a clean working tree. Verified clean at `0.45.0` when this plan was written. Never stash, reset, or checkout-over uncommitted changes; if the tree is dirty, stop and report.
 
 **Scope:** presentation only. No wave changes the harmony data model. Four fixed axes, one optional family each, hue-only rotation (Global invariant 6 in `colorHarmony.ts`'s header) all hold unchanged, and every `paletteBaseColor.ts` signature survives. A legibility problem is fixed at the presentation layer.
@@ -52,6 +54,8 @@ A disabled axis is dashed at `opacity: 0.45` and still labelled `Empty` (`Harmon
 
 One wave = one commit. Run the wave's verification green before committing; never commit red. Commit message `Axis assignment W<n>: <summary>` + the standard co-author trailer. Do not push, tag, or release. Stop after each wave for review. If reality contradicts this plan (a cited symbol is missing, a test pins conflicting behavior), stop and report rather than improvise.
 
+Line numbers date from 0.45.0; from Wave 2 on, locate by the cited symbol or string, and stop only if the symbol itself is gone.
+
 Waves 1 and 2 carry most of the value and are independently shippable. If the run is cut short, cutting after Wave 2 leaves a coherent product.
 
 ## Global invariants (reviewer checklist)
@@ -70,6 +74,8 @@ Waves 1 and 2 carry most of the value and are independently shippable. If the ru
 ## Wave 1 — one source of truth for axis status; bound-but-inactive reads as itself
 
 **Goal:** the three surfaces stop disagreeing. Highest value, smallest diff, no new primitives.
+
+**Executor:** Opus.
 
 Files: `src/editor/core/palettes/colorHarmony.ts`, `src/editor/core/palettes/colorHarmony.test.ts`, `src/editor/ui/colors/harmonyModeIcons.ts`, `src/editor/ui/colors/HarmonyAxesList.svelte`, `src/editor/ui/colors/ColorWheel.svelte`, `src/editor/ui/colors/ColorsTab.svelte`.
 
@@ -127,6 +133,8 @@ Files: `src/editor/core/palettes/colorHarmony.ts`, `src/editor/core/palettes/col
 
 **Goal:** the connective token becomes a number that means the same thing everywhere, replacing three visual languages.
 
+**Executor:** Opus.
+
 Files: new `src/editor/ui/colors/AxisNumeral.svelte`; `ColorsTab.svelte`, `HarmonyAxesList.svelte`, `ColorWheel.svelte`.
 
 1. `AxisNumeral.svelte` takes `index: number` and `status: AxisStatus`. Filled = `'on-wheel'`, hollow (dashed border, `--ui-text-muted`) = `'off-wheel'`. Callers do not render it for unassigned families. Three call sites with identical state logic is the threshold where the shared component pays for itself. Footprint is fixed at dot scale, about `1rem`, numeral at `--ui-font-size-xs`; the component carries no positioning of its own, so the wheel can place it absolutely and the rows inline.
@@ -154,6 +162,8 @@ Files: new `src/editor/ui/colors/AxisNumeral.svelte`; `ColorsTab.svelte`, `Harmo
 
 **Goal:** put the list beside the wheel it describes. Pure markup and CSS in one file; no logic changes.
 
+**Executor:** Opus.
+
 File: `src/editor/ui/colors/ColorsTab.svelte`.
 
 1. Move the axes (`:233-237`) out of the right pane into `#colors-wheel`, directly below the `Color Harmony` group (after `:167`). They enter as a **group, not a section** — a block-head inside a section would nest two heading tiers. Move `Derived scale` (`:213-216`) and `ColorReadouts` (`:218-220`) to the right pane below `ColorStory`, wrapped in one new `section.block` (groups cannot sit bare in a pane). Its block-head names the selection — eyebrow `Selected color`, title `selectedSpec.displayLabel ?? selected` — keeping the association with the left column's edit panel legible now that the numbers live a pane away; the `Derived scale` group eyebrow stays inside.
@@ -176,6 +186,8 @@ File: `src/editor/ui/colors/ColorsTab.svelte`.
 ## Wave 4 — assign a family with a picker; drag kept as an accelerator
 
 **Goal:** a click path to assignment. The largest wave; review it on its own.
+
+**Executor:** Fable. This wave authors `UIMenuButton` from scratch — `role="menu"` semantics, outside-click lifecycle, Escape, focus return, arrow navigation coexisting with the chip's own keydown handler — and the repo has no menu to copy (`UIInfoPopover` is a popover, not a menu). The failure mode is code that passes `npm run check` and the tests but fails the keyboard walk.
 
 Files: new `src/editor/ui/UIMenuButton.svelte`; `src/editor/ui/colors/HarmonyAxesList.svelte`.
 
@@ -202,6 +214,8 @@ Files: new `src/editor/ui/UIMenuButton.svelte`; `src/editor/ui/colors/HarmonyAxe
 ## Wave 5 — one verb per concept
 
 **Goal:** the copy stops forking. Deliberately last: widest surface, least visual change, and the only wave whose output is visible outside the Colors view.
+
+**Executor:** Opus.
 
 Files: `src/editor/core/palettes/colorHarmony.ts`, `src/editor/ui/colors/paletteBaseColor.ts`, `HarmonyAxesList.svelte`, `ColorWheel.svelte`, `ColorsTab.svelte`, plus any test asserting on history-label strings.
 
