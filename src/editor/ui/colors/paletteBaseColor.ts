@@ -21,8 +21,6 @@ import { get } from 'svelte/store';
 import type { Oklch } from '../../core/palettes/oklch';
 import { AXIS_ROLES } from '../../core/palettes/colorHarmony';
 import { PALETTE_SPECS, syncBaseAnchor, type PaletteSpec } from '../../core/palettes/paletteDerivation';
-import { solveTextCurves } from '../../core/palettes/solveTextContrast';
-import { recommendNeutralText } from '../../core/palettes/recommendText';
 import { defaultPaletteConfig } from '../palette/paletteMath';
 import { mutate, transaction, editorState } from '../../core/store/editorStore';
 import type { EditorState } from '../../core/store/editorTypes';
@@ -193,14 +191,6 @@ export function setBaseColors(patch: Record<string, Oklch>, historyLabel = 'colo
   });
 }
 
-export function applySolvedTextCurves(s: EditorState): void {
-  const { patches } = solveTextCurves(s.palettes);
-  for (const [label, patch] of Object.entries(patches)) {
-    const cfg = s.palettes[label];
-    if (cfg) cfg.scaleCurves = { ...cfg.scaleCurves, ...patch.scaleCurves };
-  }
-}
-
 /** Read-only view of every family's config, seeding spec defaults for the ones a
  *  loaded theme leaves unconfigured — previews and recommendations must not go
  *  static on a family the theme never mentions. */
@@ -211,16 +201,4 @@ export function palettesWithDefaults(palettes: Record<string, PaletteConfig>): R
       palettes[spec.label] ?? defaultPaletteConfig({ baseColor: spec.initialColor, neutral: spec.neutral ?? false });
   }
   return map;
-}
-
-/** Apply the Color Story's suggested neutral text hierarchy (primary anchor,
- *  two even L drops, AA floors) as the Neutral family's Text curve. */
-export function applySuggestedNeutralText(useBlackWhite = false): void {
-  mutate('colors: suggested text hierarchy', (s) => {
-    ensureConfig(s, 'Neutral');
-    const rec = recommendNeutralText(s.palettes, undefined, useBlackWhite);
-    if (!rec.patch) return;
-    const cfg = s.palettes['Neutral'];
-    cfg.scaleCurves = { ...cfg.scaleCurves, Text: rec.patch };
-  });
 }

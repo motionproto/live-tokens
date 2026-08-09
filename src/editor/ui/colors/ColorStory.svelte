@@ -2,18 +2,14 @@
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { palettesToVars } from '../../core/palettes/paletteDerivation';
   import { contrastRatio } from '../../core/palettes/contrast';
-  import type { NeutralTextRecommendation } from '../../core/palettes/recommendText';
   import type { PaletteConfig } from '../../core/themes/themeTypes';
 
   interface Props {
     /** Every family's config, spec defaults filled in (palettesWithDefaults). */
     full: Record<string, PaletteConfig>;
-    /** Suggested neutral text hierarchy — read out here, acted on from the
-     *  section's action pills. The story itself stays non-interactive. */
-    rec: NeutralTextRecommendation;
   }
 
-  let { full, rec }: Props = $props();
+  let { full }: Props = $props();
 
   // 60-30-10 as an area composition: the background surface is the dominant 60%
   // field (the page), and Brand/Accent/Special are the tones shown against it.
@@ -23,6 +19,8 @@
     { label: 'Accent', ns: 'accent', share: 8 },
     { label: 'Special', ns: 'special', share: 2 },
   ] as const;
+
+  const TEXT_STEPS = ['primary', 'secondary', 'tertiary'] as const;
 
   const FUNCTIONAL = [
     { label: 'Info', ns: 'info' },
@@ -69,8 +67,6 @@
     return r === null ? null : `${(Math.floor(r * 10) / 10).toFixed(1)}:1`;
   }
 
-  let bgRatio = $derived(ratioOnBg('--text-primary'));
-
   // Inverted is measured against the fill it sits on (primary), not the page:
   // the pill below IS that pairing, so the number describes what is shown. A
   // mid-lightness primary makes this pairing inherently low-contrast — the
@@ -86,37 +82,26 @@
 
 <div class="story" style={storyVars}>
   <div class="field">
-    <div class="field-head">
-      <span class="field-label">Canvas</span>
-      {#if fmt(bgRatio)}<span class="ratio">{fmt(bgRatio)}</span>{/if}
+    <span class="field-label">Canvas</span>
+
+    <!-- Each step renders in its own token, so the word IS the sample and the
+         ratio beside it measures exactly what you are reading. -->
+    <div class="text-steps">
+      {#each TEXT_STEPS as step (step)}
+        {@const r = fmt(ratioOnBg(`--text-${step}`))}
+        <p class="text-step" style:color="var(--text-{step})">
+          {step}
+          {#if r}<span class="ratio">{r}</span>{/if}
+        </p>
+      {/each}
     </div>
-    <p class="body">The dominant surface. Body text sits here.</p>
-    <p class="secondary">
-      Secondary text follows the same field.
-      {#if fmt(ratioOnBg('--text-secondary'))}<span class="ratio">{fmt(ratioOnBg('--text-secondary'))}</span>{/if}
-    </p>
-    <p class="tertiary">
-      Tertiary text steps back once more.
-      {#if fmt(ratioOnBg('--text-tertiary'))}<span class="ratio">{fmt(ratioOnBg('--text-tertiary'))}</span>{/if}
-    </p>
+
     <p class="inverted-row">
       <span class="inverted-pill">
         Inverted text flips onto primary.
         {#if fmt(invertedRatio)}<span class="ratio">{fmt(invertedRatio)}</span>{/if}
       </span>
     </p>
-
-    <!-- Readout only: applied from the section's actions, not from here. -->
-    <div class="suggest-row" title="What “Even neutral steps” would set these three text steps to">
-      <span class="suggest-label">Suggested steps</span>
-      {#each rec.suggestions as s (s.step)}
-        <span class="suggest-entry" class:dim={!s.differs}>
-          <span class="fn-dot" style:--dot={s.suggested.hex}></span>
-          <span class="suggest-step">{s.step}</span>
-          <span class="ratio">{fmt(contrastRatio(s.suggested.hex, seedHex('Canvas')))}</span>
-        </span>
-      {/each}
-    </div>
 
     <div class="functional-row">
       {#each FUNCTIONAL as fn (fn.ns)}
@@ -172,34 +157,9 @@
     color: var(--text-primary);
   }
 
-  .field-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--ui-space-8);
-  }
-
   .field-label {
     font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-semibold);
-  }
-
-  .body {
-    margin: 0;
-    font-size: var(--ui-font-size-md);
-    color: var(--text-primary);
-  }
-
-  .secondary {
-    margin: 0;
-    font-size: var(--ui-font-size-md);
-    color: var(--text-secondary);
-  }
-
-  .tertiary {
-    margin: 0;
-    font-size: var(--ui-font-size-md);
-    color: var(--text-tertiary);
   }
 
   .inverted-row {
@@ -219,31 +179,18 @@
     font-size: var(--ui-font-size-md);
   }
 
-  .suggest-row {
+  .text-steps {
     display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--ui-space-8);
-    margin-top: var(--ui-space-12);
-  }
-
-  .suggest-label {
-    font-size: var(--ui-font-size-md);
-    font-weight: var(--ui-font-weight-semibold);
-    opacity: 0.6;
-  }
-
-  .suggest-entry {
-    display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
     gap: var(--ui-space-6);
   }
 
-  .suggest-entry.dim {
-    opacity: 0.45;
-  }
-
-  .suggest-step {
+  .text-step {
+    display: flex;
+    align-items: baseline;
+    gap: var(--ui-space-8);
+    margin: 0;
     font-size: var(--ui-font-size-md);
   }
 

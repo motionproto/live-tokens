@@ -104,8 +104,7 @@ export const SCALES: readonly Scale[] = [
 ];
 
 /** Guard band for derived near-black/near-white text: values stay between
- *  ≈ #111 and ≈ #e8e8e8 unless pure black/white is opted into. The AA floor
- *  beats the guard (see `recommendText.ts`). */
+ *  ≈ #111 and ≈ #e8e8e8, the range most designers prefer over pure extremes. */
 export const BW_GUARD_MIN_L = 0.17;
 export const BW_GUARD_MAX_L = 0.93;
 

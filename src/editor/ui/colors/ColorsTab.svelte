@@ -1,7 +1,7 @@
 <script lang="ts">
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
-  import { editorState, beginSliderGesture, transaction } from '../../core/store/editorStore';
+  import { editorState, beginSliderGesture } from '../../core/store/editorStore';
   import { applyHarmonyToAxes, modeActiveAxes, tintNeutralsFromAnchor, type HarmonyMode } from '../../core/palettes/colorHarmony';
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import ColorWheel from './ColorWheel.svelte';
@@ -11,13 +11,10 @@
   import PaletteStepStrip from './PaletteStepStrip.svelte';
   import HarmonyAxesList from './HarmonyAxesList.svelte';
   import UIPillButton from '../UIPillButton.svelte';
-  import { recommendNeutralText } from '../../core/palettes/recommendText';
   import {
     setBaseColor,
     setBaseColors,
     setAxisHues,
-    applySolvedTextCurves,
-    applySuggestedNeutralText,
     palettesWithDefaults,
   } from './paletteBaseColor';
   import { HARMONY_MODE_BUTTONS } from './harmonyModeIcons';
@@ -67,17 +64,7 @@
     if (Object.keys(patch).length) setBaseColors(patch, 'colors: tint neutrals from anchor');
   }
 
-  function deriveAccessibleText() {
-    transaction('derive accessible text', applySolvedTextCurves);
-  }
-
-  // Color Story model: the story is a pure readout, so its palette map and text
-  // recommendation are owned here alongside the actions that write them.
-  let useBlackWhite = $state(false);
   let fullPalettes = $derived(palettesWithDefaults($editorState.palettes));
-  let textRec = $derived(recommendNeutralText(fullPalettes, undefined, useBlackWhite));
-
-  let pureExtreme = $derived(textRec.scheme === 'light' ? 'pure black' : 'pure white');
 
   let swatches = $derived.by(() => {
     // A family bound to an inactive axis edits in dot mode, so it is not "on the wheel".
@@ -240,28 +227,7 @@
         <span class="eyebrow">Proportional preview</span>
         <h2 class="title">Color Story</h2>
       </header>
-      <div class="story-actions">
-        <UIPillButton
-          icon="fa-universal-access"
-          title="Every family: solve its Text lightness curve to the value that clears WCAG AA (4.5:1) against its own surfaces. Contrast-first, so secondary and tertiary can land close together. One undo."
-          onclick={deriveAccessibleText}
-        >Raise all text to AA</UIPillButton>
-        <UIPillButton
-          icon="fa-arrow-down-short-wide"
-          disabled={!textRec.anyDiffers}
-          title={textRec.anyDiffers
-            ? 'Neutral text: keep primary where it is and step secondary and tertiary down in even lightness drops, floored at WCAG AA (4.5:1). Muted and disabled stay put. One undo.'
-            : 'The neutral text steps already match the suggestion shown below.'}
-          onclick={() => applySuggestedNeutralText(useBlackWhite)}
-        >Even neutral steps</UIPillButton>
-        <UIPillButton
-          icon="fa-circle-half-stroke"
-          ariaPressed={useBlackWhite}
-          title={`Start the suggested steps from ${pureExtreme} instead of the softer extreme most designers prefer. Changes the suggestion shown below.`}
-          onclick={() => (useBlackWhite = !useBlackWhite)}
-        >Anchor at {pureExtreme}</UIPillButton>
-      </div>
-      <ColorStory full={fullPalettes} rec={textRec} />
+      <ColorStory full={fullPalettes} />
     </section>
 
     <section id="colors-axes" class="block">
@@ -462,12 +428,6 @@
 
   .harmony-actions {
     display: flex;
-    gap: var(--ui-space-8);
-  }
-
-  .story-actions {
-    display: flex;
-    flex-wrap: wrap;
     gap: var(--ui-space-8);
   }
 
