@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { flip } from 'svelte/animate';
-  import { cubicOut } from 'svelte/easing';
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginSliderGesture, transaction } from '../../core/store/editorStore';
@@ -13,7 +11,15 @@
   import PaletteStepStrip from './PaletteStepStrip.svelte';
   import HarmonyAxesList from './HarmonyAxesList.svelte';
   import UIPillButton from '../UIPillButton.svelte';
-  import { setBaseColor, setBaseColors, setAxisHues, applySolvedTextCurves } from './paletteBaseColor';
+  import { recommendNeutralText } from '../../core/palettes/recommendText';
+  import {
+    setBaseColor,
+    setBaseColors,
+    setAxisHues,
+    applySolvedTextCurves,
+    applySuggestedNeutralText,
+    palettesWithDefaults,
+  } from './paletteBaseColor';
   import { HARMONY_MODE_BUTTONS } from './harmonyModeIcons';
   import { dockGrow } from '../palette/dockMagnify';
 
@@ -65,6 +71,14 @@
     transaction('derive accessible text', applySolvedTextCurves);
   }
 
+  // Color Story model: the story is a pure readout, so its palette map and text
+  // recommendation are owned here alongside the actions that write them.
+  let useBlackWhite = $state(false);
+  let fullPalettes = $derived(palettesWithDefaults($editorState.palettes));
+  let textRec = $derived(recommendNeutralText(fullPalettes, undefined, useBlackWhite));
+
+  let pureExtreme = $derived(textRec.scheme === 'light' ? 'pure black' : 'pure white');
+
   let swatches = $derived.by(() => {
     // A family bound to an inactive axis edits in dot mode, so it is not "on the wheel".
     const active = modeActiveAxes(activeMode);
@@ -74,17 +88,16 @@
         label: spec.label,
         display: spec.displayLabel ?? spec.label,
         hex: oklchToHexClamped(l, c, h),
-        l,
         onWheel: $editorState.harmonyAxes.some((a, i) => a.family === spec.label && active[i]),
       };
     });
   });
 
   const FUNCTIONAL_FAMILIES = new Set(['Info', 'Success', 'Warning', 'Danger']);
-  // Light → dark, matching the palette ramps (white bookend on the left).
-  const byLuminance = (arr: typeof swatches) => [...arr].sort((a, b) => b.l - a.l);
-  let coreSwatches = $derived(byLuminance(swatches.filter((sw) => !FUNCTIONAL_FAMILIES.has(sw.label))));
-  let functionalSwatches = $derived(byLuminance(swatches.filter((sw) => FUNCTIONAL_FAMILIES.has(sw.label))));
+  // Declaration order, never a computed one: sorting by luminance made the row
+  // reshuffle under the pointer while a lightness edit was in flight.
+  let coreSwatches = $derived(swatches.filter((sw) => !FUNCTIONAL_FAMILIES.has(sw.label)));
+  let functionalSwatches = $derived(swatches.filter((sw) => FUNCTIONAL_FAMILIES.has(sw.label)));
 
   let shownModeLabel = $derived(
     HARMONY_MODE_BUTTONS.find((b) => b.mode === (hoverMode ?? activeMode))?.label ?? '',
@@ -135,7 +148,6 @@
 
         <div class="harmony-actions">
           <UIPillButton
-            size="compact"
             icon="fa-fill-drip"
             title="Re-hue Neutral and Alternate to the anchor color (their own chroma and lightness kept)"
             onclick={tintNeutrals}
@@ -183,7 +195,6 @@
                 aria-label={`Select ${sw.display}`}
                 aria-pressed={selected === sw.label}
                 onclick={() => select(sw.label)}
-                animate:flip={{ duration: 200, easing: cubicOut }}
               >
                 <span class="chip">
                   {#if sw.onWheel}<span class="wheel-dot" title="On the wheel" aria-hidden="true"></span>{/if}
@@ -225,24 +236,38 @@
 
   <div class="pane">
     <section id="colors-story" class="block">
-      <div class="head-row">
-        <header class="block-head">
-          <span class="eyebrow">Proportional preview</span>
-          <h2 class="title">Color Story</h2>
-        </header>
+      <header class="block-head">
+        <span class="eyebrow">Proportional preview</span>
+        <h2 class="title">Color Story</h2>
+      </header>
+      <div class="story-actions">
         <UIPillButton
-          icon="fa-wand-magic-sparkles"
-          title="Solve each family's Text lightness curve so derived text meets WCAG AA against its surfaces (one undo)"
+          icon="fa-universal-access"
+          title="Every family: solve its Text lightness curve to the value that clears WCAG AA (4.5:1) against its own surfaces. Contrast-first, so secondary and tertiary can land close together. One undo."
           onclick={deriveAccessibleText}
-        >Derive accessible text</UIPillButton>
+        >Raise all text to AA</UIPillButton>
+        <UIPillButton
+          icon="fa-arrow-down-short-wide"
+          disabled={!textRec.anyDiffers}
+          title={textRec.anyDiffers
+            ? 'Neutral text: keep primary where it is and step secondary and tertiary down in even lightness drops, floored at WCAG AA (4.5:1). Muted and disabled stay put. One undo.'
+            : 'The neutral text steps already match the suggestion shown below.'}
+          onclick={() => applySuggestedNeutralText(useBlackWhite)}
+        >Even neutral steps</UIPillButton>
+        <UIPillButton
+          icon="fa-circle-half-stroke"
+          ariaPressed={useBlackWhite}
+          title={`Start the suggested steps from ${pureExtreme} instead of the softer extreme most designers prefer. Changes the suggestion shown below.`}
+          onclick={() => (useBlackWhite = !useBlackWhite)}
+        >Anchor at {pureExtreme}</UIPillButton>
       </div>
-      <ColorStory />
+      <ColorStory full={fullPalettes} rec={textRec} />
     </section>
 
     <section id="colors-axes" class="block">
       <h2 class="title">Harmony axes</h2>
       <p class="axes-desc">Each axis owns a hue. Drop a color on an axis to bind it. The color adopts the axis hue and follows the axis. Drag a color to Unassigned to let it float free.</p>
-      <HarmonyAxesList {activeMode} />
+      <HarmonyAxesList {activeMode} {selected} onSelect={select} />
     </section>
   </div>
 </div>
@@ -255,6 +280,17 @@
     align-items: start;
   }
 
+  /* Wide standalone layouts (Colors page, full-screen editor): pin the story
+     pane to the width it was designed at in the docked panel — wider stretches
+     the seed-color bars into heavy slabs — and let the wheel column absorb the
+     rest. The docked panel's iframe viewport stays below this breakpoint. */
+  @media (min-width: 1200px) {
+    .colors-tab {
+      grid-template-columns: minmax(0, 1fr) 30rem;
+      gap: var(--ui-space-48);
+    }
+  }
+
   .pane {
     display: flex;
     flex-direction: column;
@@ -264,7 +300,7 @@
 
   .axes-desc {
     margin: 0;
-    font-size: var(--ui-font-size-sm);
+    font-size: var(--ui-font-size-md);
     line-height: 1.5;
     color: var(--ui-text-secondary);
   }
@@ -424,16 +460,14 @@
     color: var(--ui-text-secondary);
   }
 
-  .head-row {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: var(--ui-space-12);
-    flex-wrap: wrap;
-  }
-
   .harmony-actions {
     display: flex;
+    gap: var(--ui-space-8);
+  }
+
+  .story-actions {
+    display: flex;
+    flex-wrap: wrap;
     gap: var(--ui-space-8);
   }
 
@@ -445,8 +479,7 @@
   }
 
   /* Dock magnification, mirroring PaletteStepStrip: the flex-grow transition
-     animates the selected swatch opening while flip walks it to its
-     luminance-sorted spot as lightness is dialed. */
+     animates the selected swatch opening in place. */
   .swatch-row {
     display: flex;
     align-items: flex-end;

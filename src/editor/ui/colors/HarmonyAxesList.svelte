@@ -12,9 +12,12 @@
     /** The applied harmony mode: an unbound slot is disabled when the geometry
      *  deals it no distinct position (complementary enables only the first two). */
     activeMode: HarmonyMode;
+    /** Family selected in the swatch grid / wheel — its row (or chip) reads as active here. */
+    selected: string | null;
+    onSelect: (family: string) => void;
   }
 
-  let { activeMode }: Props = $props();
+  let { activeMode, selected, onSelect }: Props = $props();
 
   const DRAG_TYPE = 'application/x-harmony-family';
   // Unbound swatch previews the hue a dropped color would take, at fixed preview
@@ -113,6 +116,7 @@
     <div
       class="axis-row"
       class:disabled
+      class:selected={axis.family !== null && axis.family === selected}
       class:drop-target={dragTarget === i}
       aria-disabled={disabled || undefined}
       ondragover={(e) => onDragOver(e, i)}
@@ -126,13 +130,16 @@
         <button
           type="button"
           class="chip"
+          class:selected={family === selected}
           draggable="true"
           data-family={family}
           aria-label={`${family}, ${AXIS_ROLES[i]} axis, position ${i + 1} of ${positionCount}. Arrow up or down to move it, Delete to unbind.`}
+          aria-pressed={family === selected}
           title="Drag to another axis or to Unassigned. Arrow keys move it, Delete unbinds."
           ondragstart={(e) => onDragStart(e, family)}
           ondragend={onDragEnd}
           onkeydown={(e) => onChipKeydown(e, family)}
+          onclick={() => onSelect(family)}
         >
           <span class="grip" aria-hidden="true">⋮⋮</span>
           <span class="chip-swatch" style="--fill: {familyHex(family)}"></span>
@@ -159,13 +166,16 @@
         <button
           type="button"
           class="chip"
+          class:selected={family === selected}
           draggable="true"
           data-family={family}
           aria-label={`${family}, unassigned, position ${positionCount} of ${positionCount}. Arrow up to bind it to ${AXIS_ROLES[lastAxis]}.`}
+          aria-pressed={family === selected}
           title={`Drag onto an axis to bind it. Arrow up binds it to ${AXIS_ROLES[lastAxis]}.`}
           ondragstart={(e) => onDragStart(e, family)}
           ondragend={onDragEnd}
           onkeydown={(e) => onChipKeydown(e, family)}
+          onclick={() => onSelect(family)}
           animate:flip={{ duration: 200, easing: cubicOut }}
         >
           <span class="grip" aria-hidden="true">⋮⋮</span>
@@ -195,7 +205,7 @@
     background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
-    font-size: var(--ui-font-size-sm);
+    font-size: var(--ui-font-size-md);
     transition:
       border-color var(--ui-transition-fast),
       background var(--ui-transition-fast);
@@ -205,6 +215,19 @@
   .unassigned.drop-target {
     border-color: var(--ui-border-higher);
     background: var(--ui-surface-low);
+  }
+
+  /* The family selected in the swatch grid / wheel: the row's numeral and role
+     go full-contrast so the selection reads across both surfaces. */
+  .axis-row.selected {
+    border-color: var(--ui-text-primary);
+    background: var(--ui-surface-low);
+  }
+
+  .axis-row.selected .role,
+  .axis-row.selected .role-num {
+    color: var(--ui-text-primary);
+    font-weight: var(--ui-font-weight-semibold);
   }
 
   .role {
@@ -241,7 +264,7 @@
 
   .empty {
     color: var(--ui-text-tertiary);
-    font-size: var(--ui-font-size-sm);
+    font-size: var(--ui-font-size-md);
   }
 
   .grip {
@@ -262,7 +285,7 @@
     border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
     color: var(--ui-text-primary);
-    font-size: var(--ui-font-size-sm);
+    font-size: var(--ui-font-size-md);
     line-height: 1;
     cursor: grab;
     user-select: none;
@@ -270,6 +293,11 @@
 
   .chip:hover {
     border-color: var(--ui-border-high);
+  }
+
+  .chip.selected {
+    border-color: var(--ui-text-primary);
+    background: var(--ui-surface-high);
   }
 
   .chip:focus-visible {

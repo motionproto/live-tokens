@@ -1,13 +1,19 @@
 <script lang="ts">
-  import { editorState } from '../../core/store/editorStore';
   import { oklchToHexClamped } from '../../core/palettes/oklch';
-  import { palettesToVars, PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
-  import { defaultPaletteConfig } from '../palette/paletteMath';
+  import { palettesToVars } from '../../core/palettes/paletteDerivation';
   import { contrastRatio } from '../../core/palettes/contrast';
-  import { recommendNeutralText } from '../../core/palettes/recommendText';
-  import { applySuggestedNeutralText } from './paletteBaseColor';
-  import UIPillButton from '../UIPillButton.svelte';
+  import type { NeutralTextRecommendation } from '../../core/palettes/recommendText';
   import type { PaletteConfig } from '../../core/themes/themeTypes';
+
+  interface Props {
+    /** Every family's config, spec defaults filled in (palettesWithDefaults). */
+    full: Record<string, PaletteConfig>;
+    /** Suggested neutral text hierarchy — read out here, acted on from the
+     *  section's action pills. The story itself stays non-interactive. */
+    rec: NeutralTextRecommendation;
+  }
+
+  let { full, rec }: Props = $props();
 
   // 60-30-10 as an area composition: the background surface is the dominant 60%
   // field (the page), and Brand/Accent/Special are the tones shown against it.
@@ -30,31 +36,15 @@
   // 1:1. Derived --surface-* tokens deliberately do not appear here: their
   // lightness is curve-owned, which decouples the story from the wheel and
   // reads as broken.
-  const SPEC_BY_LABEL: Record<string, PaletteSpec> = Object.fromEntries(PALETTE_SPECS.map((s) => [s.label, s]));
-
   function seedHex(label: string): string {
-    const { l, c, h } = $editorState.palettes[label]?.baseColor ?? SPEC_BY_LABEL[label].initialColor;
+    const { l, c, h } = full[label].baseColor;
     return oklchToHexClamped(l, c, h);
   }
 
-  // Text still renders from this store-derived map (text derivation tracks the
-  // seed), never from the ambient :root variables — those stay at vendored
-  // defaults for families a loaded theme doesn't configure, so a story bound
-  // to them silently goes static.
-  let full = $derived.by(() => {
-    const map: Record<string, PaletteConfig> = {};
-    for (const spec of PALETTE_SPECS) {
-      map[spec.label] =
-        $editorState.palettes[spec.label] ??
-        defaultPaletteConfig({ baseColor: spec.initialColor, neutral: spec.neutral ?? false });
-    }
-    return map;
-  });
-
+  // Text renders from this map (text derivation tracks the seed), never from the
+  // ambient :root variables — those stay at vendored defaults for families a
+  // loaded theme doesn't configure, so a story bound to them silently goes static.
   let vars = $derived(palettesToVars(full));
-  let useBlackWhite = $state(false);
-  let rec = $derived(recommendNeutralText(full, undefined, useBlackWhite));
-  let partialCoverage = $derived(rec.suggestions.filter((s) => !s.current.coverage.full));
 
   // Shadow the consumed text variables locally with the store-derived values;
   // the page field is the Canvas family's SEED, not its derived page step.
@@ -116,11 +106,9 @@
       </span>
     </p>
 
-    <!-- Always rendered: toggling "Use black and white" changes the
-         suggestion, so the toggle must stay reachable even when the current
-         values already match. -->
-    <div class="suggest-row">
-      <span class="suggest-label">Suggested</span>
+    <!-- Readout only: applied from the section's actions, not from here. -->
+    <div class="suggest-row" title="What “Even neutral steps” would set these three text steps to">
+      <span class="suggest-label">Suggested steps</span>
       {#each rec.suggestions as s (s.step)}
         <span class="suggest-entry" class:dim={!s.differs}>
           <span class="fn-dot" style:--dot={s.suggested.hex}></span>
@@ -128,40 +116,15 @@
           <span class="ratio">{fmt(contrastRatio(s.suggested.hex, seedHex('Canvas')))}</span>
         </span>
       {/each}
-      <label class="bw-toggle" title="Anchor the suggestion at pure white or black instead of the softened extreme">
-        <input type="checkbox" bind:checked={useBlackWhite} />
-        <span>Use black and white</span>
-      </label>
-      {#if rec.anyDiffers}
-        <UIPillButton
-          icon="fa-arrow-down-short-wide"
-          title="Anchor on primary and step secondary/tertiary down by even lightness drops, floored at WCAG AA (one undo)"
-          onclick={() => applySuggestedNeutralText(useBlackWhite)}
-        >
-          Use suggested
-        </UIPillButton>
-      {/if}
     </div>
-
-    {#if partialCoverage.length > 0}
-      <div
-        class="coverage-alert"
-        title="WCAG AA (4.5:1) coverage across the neutral surface steps. Informational, nothing is blocked."
-      >
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        <span>
-          AA reach: {partialCoverage
-            .map((s) => `${s.step} ${s.current.coverage.cleared}/${s.current.coverage.total} surfaces`)
-            .join(' · ')}
-        </span>
-      </div>
-    {/if}
 
     <div class="functional-row">
       {#each FUNCTIONAL as fn (fn.ns)}
         {@const r = fmt(ratioOnBg(`--text-${fn.ns}`))}
         <span class="fn-chip">
-          <span class="fn-dot" style:--dot={seedHex(fn.label)}></span>
+          <!-- The dot shows the TEXT color the ratio measures (shadowed via
+               storyVars), matching the label — not the family's seed fill. -->
+          <span class="fn-dot" style:--dot="var(--text-{fn.ns})"></span>
           <span class="fn-label" style:color="var(--text-{fn.ns})">{fn.label}</span>
           {#if r}<span class="ratio">{r}</span>{/if}
         </span>
@@ -197,14 +160,15 @@
   }
 
   /* Transparent: the background surface reads directly, no card over it. */
+  /* No min-height: 0 — the field must keep its content min-height so tall
+     text wrapping grows the frame instead of overflowing onto the tone bars. */
   .field {
     flex-grow: 60;
     flex-basis: 0;
     display: flex;
     flex-direction: column;
-    gap: var(--ui-space-4);
-    min-height: 0;
-    padding: var(--ui-space-8) var(--ui-space-12);
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-12);
     color: var(--text-primary);
   }
 
@@ -216,30 +180,30 @@
   }
 
   .field-label {
-    font-size: var(--ui-font-size-sm);
+    font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-semibold);
   }
 
   .body {
     margin: 0;
-    font-size: var(--ui-font-size-sm);
+    font-size: var(--ui-font-size-md);
     color: var(--text-primary);
   }
 
   .secondary {
     margin: 0;
-    font-size: var(--ui-font-size-xs);
+    font-size: var(--ui-font-size-md);
     color: var(--text-secondary);
   }
 
   .tertiary {
     margin: 0;
-    font-size: var(--ui-font-size-xs);
+    font-size: var(--ui-font-size-md);
     color: var(--text-tertiary);
   }
 
   .inverted-row {
-    margin: 0;
+    margin: var(--ui-space-8) 0 0;
   }
 
   /* The pill's fill IS the primary text color: the flip is shown literally,
@@ -252,7 +216,7 @@
     border-radius: var(--ui-radius-full);
     background: var(--text-primary);
     color: var(--text-inverted);
-    font-size: var(--ui-font-size-xs);
+    font-size: var(--ui-font-size-md);
   }
 
   .suggest-row {
@@ -260,10 +224,11 @@
     align-items: center;
     flex-wrap: wrap;
     gap: var(--ui-space-8);
+    margin-top: var(--ui-space-12);
   }
 
   .suggest-label {
-    font-size: var(--ui-font-size-sm);
+    font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-semibold);
     opacity: 0.6;
   }
@@ -279,36 +244,15 @@
   }
 
   .suggest-step {
-    font-size: var(--ui-font-size-xs);
-  }
-
-  .bw-toggle {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-4);
-    font-size: var(--ui-font-size-xs);
-    cursor: pointer;
-  }
-
-  .bw-toggle input {
-    margin: 0;
-    cursor: pointer;
-  }
-
-  .coverage-alert {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-    font-size: var(--ui-font-size-xs);
-    opacity: 0.75;
+    font-size: var(--ui-font-size-md);
   }
 
   .functional-row {
     display: flex;
-    gap: var(--ui-space-8);
+    gap: var(--ui-space-8) var(--ui-space-12);
     flex-wrap: wrap;
     margin-top: auto;
-    padding-top: var(--ui-space-12);
+    padding-top: var(--ui-space-16);
   }
 
   .fn-chip {
@@ -326,17 +270,18 @@
   }
 
   .fn-label {
-    font-size: var(--ui-font-size-xs);
+    font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-semibold);
   }
 
+  /* Like .field, no min-height: 0 — the bars' min heights must grow the frame
+     rather than spill past its border when the field's text is tall. */
   .tones {
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-8);
     flex-grow: 40;
     flex-basis: 0;
-    min-height: 0;
   }
 
   .tone {
@@ -363,12 +308,12 @@
   }
 
   .tone-name {
-    font-size: var(--ui-font-size-xs);
+    font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-semibold);
   }
 
   .ratio {
-    font-size: var(--ui-font-size-xs);
+    font-size: var(--ui-font-size-md);
     font-family: var(--ui-font-mono);
     opacity: 0.75;
   }

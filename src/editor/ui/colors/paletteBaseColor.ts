@@ -201,6 +201,18 @@ export function applySolvedTextCurves(s: EditorState): void {
   }
 }
 
+/** Read-only view of every family's config, seeding spec defaults for the ones a
+ *  loaded theme leaves unconfigured — previews and recommendations must not go
+ *  static on a family the theme never mentions. */
+export function palettesWithDefaults(palettes: Record<string, PaletteConfig>): Record<string, PaletteConfig> {
+  const map: Record<string, PaletteConfig> = {};
+  for (const spec of PALETTE_SPECS) {
+    map[spec.label] =
+      palettes[spec.label] ?? defaultPaletteConfig({ baseColor: spec.initialColor, neutral: spec.neutral ?? false });
+  }
+  return map;
+}
+
 /** Apply the Color Story's suggested neutral text hierarchy (primary anchor,
  *  two even L drops, AA floors) as the Neutral family's Text curve. */
 export function applySuggestedNeutralText(useBlackWhite = false): void {

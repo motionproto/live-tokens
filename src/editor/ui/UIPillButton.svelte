@@ -10,6 +10,8 @@
     disabled?: boolean;
     title?: string;
     type?: 'button' | 'submit' | 'reset';
+    /** Marks the pill a toggle; true also lights it as on. */
+    ariaPressed?: boolean;
     onclick?: (e: MouseEvent) => void;
     children?: Snippet;
   }
@@ -23,6 +25,7 @@
     disabled = false,
     title,
     type = 'button',
+    ariaPressed,
     onclick,
     children,
   }: Props = $props();
@@ -48,6 +51,7 @@
     {disabled}
     {title}
     {onclick}
+    aria-pressed={ariaPressed}
   >
     {#if icon}<i class="fas {icon}" aria-hidden="true"></i>{/if}
     {#if children}<span class="ui-pill-label">{@render children()}</span>{/if}
@@ -87,6 +91,17 @@
   .ui-pill:hover:not(:disabled):not([aria-disabled='true']) {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.45) 100%);
     border-color: rgba(255, 255, 255, 0.75);
+  }
+
+  /* Toggle "on": inset fill so it reads as depressed, not merely hovered. */
+  .ui-pill[aria-pressed='true'] {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.30) 0%, rgba(255, 255, 255, 0.16) 100%);
+    border-color: rgba(255, 255, 255, 0.9);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
+  }
+
+  .ui-pill[aria-pressed='true'] i {
+    color: rgba(255, 255, 255, 0.95);
   }
 
   .ui-pill:focus-visible {

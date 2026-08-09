@@ -60,7 +60,7 @@
   const EXT_OFFSET = 20;  // external handle radius beyond the disc rim (room for the dotted tether)
   const NUM_OFFSET = 24;  // numeral radius beyond the external handles
   const MIN_SIZE = 240;
-  const MAX_SIZE = 360;
+  const MAX_SIZE = 560;
 
   const normDeg = (d: number) => ((d % 360) + 360) % 360;
   const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
@@ -469,11 +469,11 @@
          its inner half — reads as one axis that extends outward as dots to the
          external handle. Same angle as the handle, so it tracks live. -->
     {#each visibleRender as t (t.index)}
-      <line class="tether" x1={center} y1={center} x2={t.ext.x} y2={t.ext.y} />
+      <line class="tether" class:selected={t.selected} x1={center} y1={center} x2={t.ext.x} y2={t.ext.y} />
     {/each}
     {#each visibleRender as t (t.index)}
       {#if t.bound}
-        <line class="rail" x1={center} y1={center} x2={t.dot.x} y2={t.dot.y} />
+        <line class="rail" class:selected={t.selected} x1={center} y1={center} x2={t.dot.x} y2={t.dot.y} />
       {/if}
     {/each}
   </svg>
@@ -483,7 +483,7 @@
   {/each}
 
   {#each visibleRender as t (t.index)}
-    <span class="axis-num" style="left: {t.num.x}px; top: {t.num.y}px" aria-hidden="true">{t.index + 1}</span>
+    <span class="axis-num" class:selected={t.selected} style="left: {t.num.x}px; top: {t.num.y}px" aria-hidden="true">{t.index + 1}</span>
   {/each}
 
   {#each visibleRender as t (t.index)}
@@ -583,7 +583,7 @@
   .rail {
     stroke: var(--ui-text-primary);
     stroke-width: 2;
-    opacity: 0.65;
+    opacity: 0.5;
   }
 
   /* Dotted continuation of the axis out to the external handle. Greyscale. */
@@ -592,7 +592,20 @@
     stroke-width: 1.5;
     stroke-dasharray: 2 4;
     stroke-linecap: round;
-    opacity: 0.9;
+    opacity: 0.7;
+  }
+
+  /* Selected family's axis: heavier stroke at full contrast, so the whole axis
+     reads as active alongside its enlarged dot and handle. */
+  .rail.selected {
+    stroke-width: 4;
+    opacity: 1;
+  }
+
+  .tether.selected {
+    stroke: var(--ui-text-primary);
+    stroke-width: 2.5;
+    opacity: 1;
   }
 
   /* Faint ring the external axis handles ride along. Decorative. */
@@ -725,10 +738,15 @@
     transform: translate(-50%, -50%);
     font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-primary);
+    color: var(--ui-text-tertiary);
     pointer-events: none;
     user-select: none;
     z-index: 3;
+  }
+
+  .axis-num.selected {
+    color: var(--ui-text-primary);
+    font-size: var(--ui-font-size-sm);
   }
 
   .dot:focus-visible,
