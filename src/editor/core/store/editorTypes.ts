@@ -137,8 +137,8 @@ export interface EditorState {
   columns: ColumnsState;
   components: Record<string, ComponentSlice>;
   gradients: { tokens: GradientToken[] };
-  /** Four fixed axes (index = role: Anchor/Secondary/Tertiary/Quaternary); each
-   *  owns a hue; family is the live-bound color or null. */
+  /** Four fixed numbered axes (index 0 is the anchor); each owns a hue;
+   *  family is the live-bound color or null. */
   harmonyAxes: HarmonyAxis[];
   cssVars: Record<string, string>;
 }
