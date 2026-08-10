@@ -4,7 +4,7 @@
   import { cubicOut } from 'svelte/easing';
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
-  import { AXIS_ROLES, activeAxisCount, axisLabel, axisStatuses, type HarmonyMode, HARMONY_ELIGIBLE } from '../../core/palettes/colorHarmony';
+  import { AXIS_COUNT, activeAxisCount, axisLabel, axisStatuses, type HarmonyMode, HARMONY_ELIGIBLE } from '../../core/palettes/colorHarmony';
   import { editorState } from '../../core/store/editorStore';
   import UIMenuButton from '../UIMenuButton.svelte';
   import UIOptionItem from '../UIOptionItem.svelte';
@@ -25,8 +25,8 @@
   let { activeMode, selected, onSelect }: Props = $props();
 
   const DRAG_TYPE = 'application/x-harmony-family';
-  // Unbound swatch previews the hue a dropped color would take, at fixed preview
-  // L/C so only the hue reads (Reserved judgment call 4).
+  // Unbound swatch previews the hue an assigned color would take, at fixed
+  // preview L/C so only the hue reads.
   const PREVIEW_L = 0.65;
   const PREVIEW_C = 0.12;
 
@@ -40,7 +40,6 @@
   let modeUsage = $derived(`${modeLabel(activeMode)} uses ${activeAxisCount(activeMode)}`);
   // Keyboard sequence: every axis that still accepts a family, then Unassigned.
   let axisSeq = $derived(statuses.flatMap((s, i) => (s === 'unused' ? [] : [i])));
-  let positionCount = $derived(axisSeq.length + 1);
   let lastAxis = $derived(axisSeq[axisSeq.length - 1]);
 
   function familyHex(family: string): string {
@@ -48,8 +47,8 @@
     return oklchToHexClamped(l, c, h);
   }
 
-  // Keep focus on the moved family so keyboard bind/move/unbind chains without
-  // hunting for the row it landed in.
+  // Keep focus on the moved family so keyboard moves chain without hunting for
+  // the row it landed in.
   async function refocus(family: string) {
     await tick();
     listEl?.querySelector<HTMLElement>(`[data-family="${family}"]`)?.focus();
@@ -144,7 +143,7 @@
       >
         {#snippet preview()}<span class="menu-swatch" style="--fill: {familyHex(family)}"></span>{/snippet}
         {#snippet label()}{family}{/snippet}
-        {#snippet meta()}{#if from !== -1 && from !== i}moves from {from + 1}{/if}{/snippet}
+        {#snippet meta()}{#if from !== -1 && from !== i}moves from {axisLabel(from)}{/if}{/snippet}
       </UIOptionItem>
     {/each}
   </UIOptionList>
@@ -179,7 +178,7 @@
       ondrop={(e) => onDrop(e, i)}
     >
       <AxisNumeral index={i} {status} selected={rowSelected} />
-      <span class="role">{AXIS_ROLES[i]}</span>
+      <span class="role">{i === 0 ? 'Anchor' : ''}</span>
       {#if axis.family !== null}
         {@const family = axis.family}
         <span class="swatch" style="--fill: {familyHex(family)}"></span>
@@ -188,9 +187,9 @@
           class="chip"
           draggable="true"
           data-family={family}
-          aria-label={`${family}, ${AXIS_ROLES[i]} axis, position ${i + 1} of ${positionCount}. Arrow up or down to move it, Delete to unbind.`}
+          aria-label={`${family}, on ${axisLabel(i)}${i === 0 ? '' : ` of ${AXIS_COUNT}`}. Arrow up or down to move it, Delete to unassign.`}
           aria-pressed={family === selected}
-          title="Drag to another axis or to Unassigned. Arrow keys move it, Delete unbinds."
+          title="Drag to another axis or to Unassigned. Arrow keys move it, Delete unassigns."
           ondragstart={(e) => onDragStart(e, family)}
           ondragend={onDragEnd}
           onkeydown={(e) => onChipKeydown(e, family)}
@@ -242,9 +241,9 @@
           class:selected={family === selected}
           draggable="true"
           data-family={family}
-          aria-label={`${family}, unassigned, position ${positionCount} of ${positionCount}. Arrow up to bind it to ${AXIS_ROLES[lastAxis]}.`}
+          aria-label={`${family}, unassigned. Arrow up to assign it to ${axisLabel(lastAxis)}.`}
           aria-pressed={family === selected}
-          title={`Drag onto an axis to bind it. Arrow up binds it to ${AXIS_ROLES[lastAxis]}.`}
+          title={`Drag onto an axis to assign it. Arrow up assigns it to ${axisLabel(lastAxis)}.`}
           ondragstart={(e) => onDragStart(e, family)}
           ondragend={onDragEnd}
           onkeydown={(e) => onChipKeydown(e, family)}
@@ -257,7 +256,7 @@
         </button>
       {/each}
       {#if unassigned.length === 0}
-        <span class="empty">Every color is bound to an axis.</span>
+        <span class="empty">Every color is assigned to an axis.</span>
       {/if}
     </div>
   </div>
@@ -302,14 +301,11 @@
     background: var(--ui-surface-low);
   }
 
-  .axis-row.selected .role {
-    color: var(--ui-text-primary);
-    font-weight: var(--ui-font-weight-semibold);
-  }
-
+  /* Only axis 1 fills this column, but every row reserves it so the swatches,
+     chips and pickers below start at one x. Sized to fit "Anchor". */
   .role {
     flex: none;
-    width: 6.5rem;
+    width: 4rem;
     color: var(--ui-text-secondary);
   }
 

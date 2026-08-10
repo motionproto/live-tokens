@@ -3,7 +3,6 @@ import {
   harmonyHues,
   tintNeutralsFromAnchor,
   AXIS_COUNT,
-  AXIS_ROLES,
   defaultHarmonyAxes,
   modeActiveAxes,
   axisStatuses,
@@ -126,7 +125,7 @@ describe('harmony via axes (boundColorPatch ∘ applyHarmonyToAxes)', () => {
   };
 
   // The default composition: the trio bound at their palette hues (so axis 0
-  // anchors on Brand), Quaternary unbound — the shape a fresh theme carries.
+  // anchors on Brand), axis 4 unbound — the shape a fresh theme carries.
   const defaultAxes = (): HarmonyAxis[] => [
     { hue: palettes.Brand.baseColor.h, family: 'Brand' },
     { hue: palettes.Accent.baseColor.h, family: 'Accent' },
@@ -171,7 +170,7 @@ describe('harmony via axes (boundColorPatch ∘ applyHarmonyToAxes)', () => {
 
   // Invariant 3, amended: with the default shape, per-family output is the
   // pre-generalization values — except complementary, now a true 2-axis mode:
-  // its Tertiary is inactive, so the third family keeps its own hue instead of
+  // its axis 3 is inactive, so the third family keeps its own hue instead of
   // riding the anchor. Offsets are literal so this never tracks harmonyHues.
   it('pins default-shape per-family hues to the pre-generalization values', () => {
     const a = palettes.Brand.baseColor.h;
@@ -197,7 +196,7 @@ describe('harmony via axes (boundColorPatch ∘ applyHarmonyToAxes)', () => {
     }
   });
 
-  it('square with Special bound to Quaternary sends it to anchor + 270', () => {
+  it('square with Special bound to axis 4 sends it to anchor + 270', () => {
     const axes: HarmonyAxis[] = [
       { hue: palettes.Brand.baseColor.h, family: 'Brand' },
       { hue: palettes.Canvas.baseColor.h, family: 'Canvas' },
@@ -290,18 +289,13 @@ const specHue = (label: string): number => PALETTE_SPECS.find((s) => s.label ===
 const n = (h: number): number => ((h % 360) + 360) % 360;
 
 describe('defaultHarmonyAxes', () => {
-  it('AXIS_ROLES names the four roles by index', () => {
-    expect(AXIS_COUNT).toBe(4);
-    expect(AXIS_ROLES).toEqual(['Anchor', 'Secondary', 'Tertiary', 'Quaternary']);
-  });
-
-  it('binds the default trio and leaves Quaternary unbound', () => {
+  it('binds the default trio and leaves axis 4 unbound', () => {
     const axes = defaultHarmonyAxes();
     expect(axes.length).toBe(AXIS_COUNT);
     expect(axes.map((a) => a.family)).toEqual(['Brand', 'Accent', 'Canvas', null]);
   });
 
-  it('seeds bound hues from PALETTE_SPECS; Quaternary sits at anchor + 270', () => {
+  it('seeds bound hues from PALETTE_SPECS; axis 4 sits at anchor + 270', () => {
     const axes = defaultHarmonyAxes();
     expect(axes[0].hue).toBe(specHue('Brand'));
     expect(axes[1].hue).toBe(specHue('Accent'));
@@ -334,14 +328,14 @@ describe('applyHarmonyToAxes', () => {
     }
   });
 
-  it('tetradic deals all four hues; Quaternary moves to anchor + 240 while unbound', () => {
+  it('tetradic deals all four hues; axis 4 moves to anchor + 240 while unbound', () => {
     const out = applyHarmonyToAxes('tetradic', baseAxes());
     expect(out.map((a) => a.hue)).toEqual([30, n(30 + 180), n(30 + 60), n(30 + 240)]);
     expect(out.map((a) => a.family)).toEqual(['Brand', 'Accent', 'Canvas', null]);
     expect(out[3]).toEqual({ hue: n(30 + 240), family: null });
   });
 
-  it('leaves the Quaternary axis untouched in modes without a distinct fourth slot, bound included', () => {
+  it('leaves axis 4 untouched in modes without a distinct fourth slot, bound included', () => {
     const axes = baseAxes();
     axes[3] = { hue: 300, family: 'Special' };
     const out = applyHarmonyToAxes('triadic', axes);
@@ -350,7 +344,7 @@ describe('applyHarmonyToAxes', () => {
     expect(sq[3]).toEqual({ hue: n(30 + 270), family: 'Special' });
   });
 
-  it('complementary is a 2-axis mode: Tertiary and Quaternary untouched, bound included', () => {
+  it('complementary is a 2-axis mode: axes 3 and 4 untouched, bound included', () => {
     const out = applyHarmonyToAxes('complementary', baseAxes());
     expect(out.map((a) => a.hue)).toEqual([30, n(30 + 180), 100, 300]);
 
@@ -361,7 +355,7 @@ describe('applyHarmonyToAxes', () => {
     expect(bound[3]).toEqual({ hue: 300, family: 'Special' });
   });
 
-  it('monochromatic collapses every axis onto the anchor, Quaternary included', () => {
+  it('monochromatic collapses every axis onto the anchor, axis 4 included', () => {
     const axes = baseAxes();
     axes[3] = { hue: 300, family: 'Special' };
     const out = applyHarmonyToAxes('monochromatic', axes);
@@ -377,7 +371,7 @@ describe('applyHarmonyToAxes', () => {
     expect(out[0]).not.toBe(axes[0]);
   });
 
-  it('deals slot-2 geometry to a Tertiary binding even when Secondary is unbound', () => {
+  it('deals slot-2 geometry to an axis 3 binding even when axis 2 is unbound', () => {
     const axes: HarmonyAxis[] = [
       { hue: 30, family: 'Brand' },
       { hue: 200, family: null },

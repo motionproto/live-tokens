@@ -169,7 +169,7 @@
 
       <div class="group">
         <span class="eyebrow">Harmony axes</span>
-        <p class="axes-desc">Each axis owns a hue. Drop a color on an axis to bind it. The color adopts the axis hue and follows the axis. Drag a color to Unassigned to let it float free.</p>
+        <p class="axes-desc">Each axis owns a hue. Assign a color from the row menu, or drag one onto the axis. The color adopts the axis hue and follows it. To unassign, use the row menu or drag the color to Unassigned.</p>
         <HarmonyAxesList {activeMode} {selected} onSelect={select} />
       </div>
 

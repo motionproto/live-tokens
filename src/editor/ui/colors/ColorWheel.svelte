@@ -5,7 +5,7 @@
   import { editorState, beginScope, commitScope, cancelScope, type Scope } from '../../core/store/editorStore';
   import { setBaseHueChroma, setBaseChroma, setAxisHue, setAxisHues } from './paletteBaseColor';
   import { maxChroma } from './colorWheelMath';
-  import { applyHarmonyToAxes, axisLabel, axisStatuses, AXIS_ROLES, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import { applyHarmonyToAxes, axisLabel, axisStatuses, type HarmonyMode } from '../../core/palettes/colorHarmony';
   import AxisNumeral from './AxisNumeral.svelte';
   import { modeLabel } from './harmonyModeIcons';
 
@@ -31,12 +31,12 @@
 
   let { selected, onSelect, discLightness, onCustomize, absoluteChroma, activeMode, previewMode = null }: Props = $props();
 
-  // One handle per axis (index = role). A bound axis reads its color from the
-  // family's baseColor (hue equals axes[i].hue by invariant 1); an unbound axis
-  // carries only its stored hue, previewing where a dropped color would land.
+  // One handle per axis. A bound axis reads its color from the family's
+  // baseColor (hue equals axes[i].hue by invariant 1); an unbound axis carries
+  // only its stored hue, previewing where an assigned color would land.
   let axisData = $derived(
     $editorState.harmonyAxes.map((axis, i) => {
-      const common = { index: i, role: AXIS_ROLES[i], family: axis.family, bound: axis.family !== null };
+      const common = { index: i, label: axisLabel(i), family: axis.family, bound: axis.family !== null };
       if (axis.family !== null) {
         const spec = PALETTE_SPECS.find((s) => s.label === axis.family);
         const { l, c, h } = $editorState.palettes[axis.family]?.baseColor ?? spec!.initialColor;
@@ -90,7 +90,7 @@
   // lossy and makes the non-dragged coordinate wobble). Writes also use the
   // pristine hue0/L0, so nothing accumulates across frames.
   type AxisView = {
-    index: number; role: string; family: string | null; bound: boolean;
+    index: number; label: string; family: string | null; bound: boolean;
     hex: string; hue: number; chroma: number; lightness: number; rFrac: number;
   };
 
@@ -331,7 +331,7 @@
     if (axis.family !== null) onSelect(axis.family);
     onCustomize();
     capture(e);
-    openGesture(`colors: ${axis.role} axis rotate`);
+    openGesture(`colors: ${axis.label} rotate`);
     drag = { kind: 'axis', index: axis.index, angle: pointerAngle(e), start: startOf(axis) };
     applyAxis(e);
   }
@@ -511,7 +511,7 @@
         class="dot"
         class:selected={t.selected}
         style="left: {t.dot.x}px; top: {t.dot.y}px; --fill: {t.hex}"
-        aria-label={`${t.family} — drag along rail to adjust chroma`}
+        aria-label={`${t.family}, drag along the rail to adjust chroma`}
         title={`${t.family} (drag for chroma)`}
         onpointerdown={(e) => startChromaDrag(e, t)}
         onpointermove={moveDrag}
@@ -531,8 +531,8 @@
       class:unbound={!t.bound}
       class:selected={t.selected}
       style="left: {t.ext.x}px; top: {t.ext.y}px; transform: translate(-50%, -50%) rotate({t.iconRot}deg)"
-      aria-label={t.bound ? `Rotate ${t.role} axis hue (${t.family})` : `Rotate ${t.role} axis hue`}
-      title={t.bound ? `Rotate ${t.role} axis hue (${t.family})` : `Rotate ${t.role} axis hue`}
+      aria-label={t.bound ? `Rotate ${t.label} hue (${t.family})` : `Rotate ${t.label} hue`}
+      title={t.bound ? `Rotate ${t.label} hue (${t.family})` : `Rotate ${t.label} hue`}
       onpointerdown={(e) => startAxisDrag(e, t)}
       onpointermove={moveDrag}
       onpointerup={endDrag}
@@ -659,7 +659,7 @@
   }
 
   /* Unbound-axis ghost: a hollow greyscale marker on the external track (no color
-     to preview, only where a dropped color's hue would land). */
+     to preview, only where an assigned color's hue would land). */
   .ghost.unbound {
     width: 0.7rem;
     height: 0.7rem;

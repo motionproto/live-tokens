@@ -19,7 +19,7 @@
 
 import { get } from 'svelte/store';
 import type { Oklch } from '../../core/palettes/oklch';
-import { AXIS_ROLES } from '../../core/palettes/colorHarmony';
+import { axisLabel } from '../../core/palettes/colorHarmony';
 import { PALETTE_SPECS, syncBaseAnchor, type PaletteSpec } from '../../core/palettes/paletteDerivation';
 import { defaultPaletteConfig } from '../palette/paletteMath';
 import { mutate, transaction, editorState } from '../../core/store/editorStore';
@@ -106,7 +106,7 @@ export function setAxisHue(index: number, hue: number, familyChroma?: number): v
   const base = axis.family !== null ? get(editorState).palettes[axis.family]?.baseColor : undefined;
   const colorNoop = !base || (base.h === h && (c === undefined || base.c === c));
   if (axis.hue === h && colorNoop) return;
-  mutate(`colors: ${AXIS_ROLES[index]} axis hue`, (s) => {
+  mutate(`colors: ${axisLabel(index)} hue`, (s) => {
     applyAxisHue(s, index, h, c);
   });
 }
@@ -151,7 +151,7 @@ function applyAxisHue(s: EditorState, index: number, hue: number, chroma: number
 export function bindFamilyToAxis(family: string, index: number): void {
   const srcIndex = get(editorState).harmonyAxes.findIndex((a) => a.family === family);
   if (srcIndex === index) return;
-  mutate(`colors: bind ${family}`, (s) => {
+  mutate(`colors: assign ${family}`, (s) => {
     const axes = s.harmonyAxes;
     const occupant = axes[index].family;
     axes[index].family = family;
@@ -169,7 +169,7 @@ export function bindFamilyToAxis(family: string, index: number): void {
 export function unbindFamily(family: string): void {
   const idx = get(editorState).harmonyAxes.findIndex((a) => a.family === family);
   if (idx === -1) return;
-  mutate(`colors: unbind ${family}`, (s) => {
+  mutate(`colors: unassign ${family}`, (s) => {
     s.harmonyAxes[idx].family = null;
   });
 }

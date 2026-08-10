@@ -1,9 +1,9 @@
 // Harmony rotates HUE ONLY (Global invariant 6). Each palette keeps its own
 // OKLCH chroma and lightness; only a family's hue moves onto a geometric
 // relationship with the anchor. The anchor is axis 0's stored hue: harmony lives
-// on four fixed axes (Anchor/Secondary/Tertiary/Quaternary), each owning a hue
-// whether or not a color family is bound to it. No chroma clamp or cap lives
-// here; a saturated background is a legitimate choice, not something to correct.
+// on four fixed axes, numbered, each owning a hue whether or not a color family
+// is bound to it. No chroma clamp or cap lives here; a saturated background is a
+// legitimate choice, not something to correct.
 
 import type { Oklch } from './oklch';
 import type { PaletteConfig } from '../themes/themeTypes';
@@ -24,7 +24,6 @@ export type HarmonyMode =
 export const HARMONY_ELIGIBLE: readonly string[] = ['Brand', 'Accent', 'Canvas', 'Special', 'Neutral', 'Alternate'];
 
 export const AXIS_COUNT = 4;
-export const AXIS_ROLES = ['Anchor', 'Secondary', 'Tertiary', 'Quaternary'] as const;
 
 export interface HarmonyAxis {
   /** Hue in [0, 360). Always present, bound or not. */
@@ -85,7 +84,7 @@ const specInitialHue = (label: string): number =>
 
 /**
  * Seed the four axes for a fresh editor: the default trio bound (hues read from
- * `PALETTE_SPECS`, never hardcoded) and Quaternary unbound at anchor + 270 (the
+ * `PALETTE_SPECS`, never hardcoded) and axis 4 unbound at anchor + 270 (the
  * square slot-3 offset). Fresh array each call — it seeds mutable state.
  */
 export function defaultHarmonyAxes(): HarmonyAxis[] {
@@ -203,7 +202,7 @@ export function sanitizeHarmonyAxes(
       axis.hue = norm(palettes[axis.family].baseColor.h);
     }
   }
-  // With no stored axes (a theme predating them), the default Quaternary hue is
+  // With no stored axes (a theme predating them), the default axis 4 hue is
   // an offset from the anchor, so it follows the anchor's palette-seeded hue
   // rather than the spec hue the defaults were built from.
   const last = axes[AXIS_COUNT - 1];
