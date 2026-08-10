@@ -342,11 +342,15 @@
 
   .grip {
     flex: none;
-    color: var(--ui-text-muted);
-    font-size: var(--ui-font-size-xs);
+    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-sm);
     line-height: 1;
     letter-spacing: -0.1em;
     user-select: none;
+  }
+
+  .chip:hover .grip {
+    color: var(--ui-text-primary);
   }
 
   .chip {
