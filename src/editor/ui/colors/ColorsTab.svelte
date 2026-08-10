@@ -157,24 +157,57 @@
       </div>
 
       <div class="harmony-cols">
-        <div class="group">
-          <span class="eyebrow">Color Harmony <span class="mode-name">&middot; {shownModeLabel}</span></span>
-          <div class="mode-row" role="group" aria-label="Color harmony mode">
-            {#each HARMONY_MODE_BUTTONS as m (m.mode)}
-              <button
-                type="button"
-                class="mode-btn"
-                class:active={activeMode === m.mode}
-                title={m.label}
-                aria-label={m.label}
-                aria-pressed={activeMode === m.mode}
-                onclick={() => applyMode(m.mode)}
-                onpointerenter={() => (hoverMode = m.mode)}
-                onpointerleave={() => (hoverMode = null)}
-                onfocus={() => (hoverMode = m.mode)}
-                onblur={() => (hoverMode = null)}
-              >{@html m.svg}</button>
-            {/each}
+        <div class="hc-col">
+          <div class="group">
+            <span class="eyebrow">Color Harmony <span class="mode-name">&middot; {shownModeLabel}</span></span>
+            <div class="mode-row" role="group" aria-label="Color harmony mode">
+              {#each HARMONY_MODE_BUTTONS as m (m.mode)}
+                <button
+                  type="button"
+                  class="mode-btn"
+                  class:active={activeMode === m.mode}
+                  title={m.label}
+                  aria-label={m.label}
+                  aria-pressed={activeMode === m.mode}
+                  onclick={() => applyMode(m.mode)}
+                  onpointerenter={() => (hoverMode = m.mode)}
+                  onpointerleave={() => (hoverMode = null)}
+                  onfocus={() => (hoverMode = m.mode)}
+                  onblur={() => (hoverMode = null)}
+                >{@html m.svg}</button>
+              {/each}
+            </div>
+          </div>
+
+          <div class="group">
+            <span class="eyebrow">Swatches</span>
+            {#snippet swatchRow(row: typeof swatches)}
+              {@const selIdx = row.findIndex((sw) => sw.label === selected)}
+              <div class="swatch-row">
+                {#each row as sw, i (sw.label)}
+                  <button
+                    type="button"
+                    class="swatch"
+                    class:active={selected === sw.label}
+                    style="--swatch-fill: {sw.hex}"
+                    style:flex-grow={dockGrow(i, selIdx === -1 ? null : selIdx)}
+                    title={sw.display}
+                    aria-label={`Select ${sw.display}`}
+                    aria-pressed={selected === sw.label}
+                    onclick={() => select(sw.label)}
+                  >
+                    <span class="chip">
+                      {#if sw.axis}<span class="axis-badge" aria-hidden="true"><AxisNumeral index={sw.axis.index} status={sw.axis.status} scrim /></span>{/if}
+                    </span>
+                    <span class="swatch-label">{sw.label}</span>
+                  </button>
+                {/each}
+              </div>
+            {/snippet}
+            <div class="swatch-rows">
+              {@render swatchRow(coreSwatches)}
+              {@render swatchRow(functionalSwatches)}
+            </div>
           </div>
         </div>
 
@@ -182,37 +215,6 @@
           <span class="eyebrow">Harmony axes</span>
           <p class="axes-desc">Each axis owns a hue. Assign a color from the row menu, or drag one onto the axis. The color adopts the axis hue and follows it. To unassign, use the row menu or drag the color to Unassigned.</p>
           <HarmonyAxesList {activeMode} {selected} onSelect={select} />
-        </div>
-      </div>
-
-      <div class="group">
-        <span class="eyebrow">Swatches</span>
-        {#snippet swatchRow(row: typeof swatches)}
-          {@const selIdx = row.findIndex((sw) => sw.label === selected)}
-          <div class="swatch-row">
-            {#each row as sw, i (sw.label)}
-              <button
-                type="button"
-                class="swatch"
-                class:active={selected === sw.label}
-                style="--swatch-fill: {sw.hex}"
-                style:flex-grow={dockGrow(i, selIdx === -1 ? null : selIdx)}
-                title={sw.display}
-                aria-label={`Select ${sw.display}`}
-                aria-pressed={selected === sw.label}
-                onclick={() => select(sw.label)}
-              >
-                <span class="chip">
-                  {#if sw.axis}<span class="axis-badge" aria-hidden="true"><AxisNumeral index={sw.axis.index} status={sw.axis.status} scrim /></span>{/if}
-                </span>
-                <span class="swatch-label">{sw.label}</span>
-              </button>
-            {/each}
-          </div>
-        {/snippet}
-        <div class="swatch-rows">
-          {@render swatchRow(coreSwatches)}
-          {@render swatchRow(functionalSwatches)}
         </div>
       </div>
     </section>
@@ -331,6 +333,13 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--ui-space-20);
     align-items: start;
+  }
+
+  .hc-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-20);
+    min-width: 0;
   }
 
   /* The docked panel's iframe viewport is the panel itself, so this collapse
@@ -490,7 +499,7 @@
   .chip {
     position: relative;
     display: block;
-    height: 2.75rem;
+    height: 2.25rem;
     /* Compensating margin: height + margin-top is constant every frame of the
        magnification, so the row's layout height never dips mid-transition.
        Chip grows upward, label pinned. */
@@ -502,7 +511,7 @@
   }
 
   .swatch.active .chip {
-    height: 3.25rem;
+    height: 2.75rem;
     margin-top: 0;
   }
 
