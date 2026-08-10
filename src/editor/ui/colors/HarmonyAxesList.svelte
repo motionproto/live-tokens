@@ -4,8 +4,11 @@
   import { cubicOut } from 'svelte/easing';
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
-  import { AXIS_ROLES, activeAxisCount, axisStatuses, type HarmonyMode, HARMONY_ELIGIBLE } from '../../core/palettes/colorHarmony';
+  import { AXIS_ROLES, activeAxisCount, axisLabel, axisStatuses, type HarmonyMode, HARMONY_ELIGIBLE } from '../../core/palettes/colorHarmony';
   import { editorState } from '../../core/store/editorStore';
+  import UIMenuButton from '../UIMenuButton.svelte';
+  import UIOptionItem from '../UIOptionItem.svelte';
+  import UIOptionList from '../UIOptionList.svelte';
   import AxisNumeral from './AxisNumeral.svelte';
   import { modeLabel } from './harmonyModeIcons';
   import { bindFamilyToAxis, unbindFamily } from './paletteBaseColor';
@@ -76,6 +79,22 @@
     }
   }
 
+  function assignFromMenu(family: string, index: number) {
+    const wasEmpty = axes[index].family === null;
+    bindFamilyToAxis(family, index);
+    // An empty row's text trigger is replaced by the chip, so focus would die
+    // with it; follow the family, as every keyboard move does.
+    if (wasEmpty) refocus(family);
+  }
+
+  function clearFromMenu(index: number) {
+    const family = axes[index].family;
+    if (family === null) return;
+    unbindFamily(family);
+    // Same reason: the chevron trigger leaves with the chip.
+    refocus(family);
+  }
+
   let dragTarget = $state<number | 'unassigned' | null>(null);
 
   function onDragStart(e: DragEvent, family: string) {
@@ -111,6 +130,37 @@
     dragTarget = null;
   }
 </script>
+
+{#snippet axisMenu(i: number, close: () => void)}
+  <UIOptionList>
+    {#each HARMONY_ELIGIBLE as family (family)}
+      {@const from = axes.findIndex((a) => a.family === family)}
+      <UIOptionItem
+        active={from === i}
+        onclick={() => {
+          assignFromMenu(family, i);
+          close();
+        }}
+      >
+        {#snippet preview()}<span class="menu-swatch" style="--fill: {familyHex(family)}"></span>{/snippet}
+        {#snippet label()}{family}{/snippet}
+        {#snippet meta()}{#if from !== -1 && from !== i}moves from {from + 1}{/if}{/snippet}
+      </UIOptionItem>
+    {/each}
+  </UIOptionList>
+  <div class="menu-sep" role="separator"></div>
+  <UIOptionList>
+    <UIOptionItem
+      active={axes[i].family === null}
+      onclick={() => {
+        clearFromMenu(i);
+        close();
+      }}
+    >
+      {#snippet label()}Leave empty{/snippet}
+    </UIOptionItem>
+  </UIOptionList>
+{/snippet}
 
 <div class="axes-list" bind:this={listEl}>
   {#each axes as axis, i (i)}
@@ -153,12 +203,23 @@
         {#if status === 'off-wheel'}
           <span class="reason">off wheel &middot; {modeUsage}</span>
         {/if}
+        <UIMenuButton
+          header={`Assign to ${axisLabel(i)}`}
+          triggerLabel={`Assign to ${axisLabel(i)}`}
+          triggerClass="axis-menu-trigger"
+        >
+          {#snippet trigger()}<i class="fas fa-chevron-down" aria-hidden="true"></i>{/snippet}
+          {#snippet children({ close })}{@render axisMenu(i, close)}{/snippet}
+        </UIMenuButton>
       {:else}
         <span class="swatch preview" style="--fill: {oklchToHexClamped(PREVIEW_L, PREVIEW_C, axis.hue)}"></span>
         {#if unused}
           <span class="reason">unused &middot; {modeUsage}</span>
         {:else}
-          <span class="empty">Empty</span>
+          <UIMenuButton header={`Assign to ${axisLabel(i)}`} triggerClass="assign-trigger">
+            {#snippet trigger()}Assign a color…{/snippet}
+            {#snippet children({ close })}{@render axisMenu(i, close)}{/snippet}
+          </UIMenuButton>
         {/if}
       {/if}
     </div>
@@ -334,6 +395,48 @@
     border-radius: var(--ui-radius-sm);
     background: var(--fill);
     border: 1px solid var(--ui-border-low);
+  }
+
+  /* Row furniture, not pills: the triggers match the editor's quiet
+     icon-button idiom (see UIInfoPopover's info-btn). */
+  .axis-row :global(.axis-menu-trigger) {
+    margin-left: auto;
+    width: var(--ui-space-24);
+    height: var(--ui-space-24);
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-muted);
+    font-size: var(--ui-font-size-xs);
+    transition: color var(--ui-transition-fast);
+  }
+
+  .axis-row :global(.axis-menu-trigger:hover),
+  .axis-row :global(.axis-menu-trigger[aria-expanded='true']) {
+    color: var(--ui-text-primary);
+  }
+
+  .axis-row :global(.assign-trigger) {
+    padding: var(--ui-space-4) 0;
+    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-md);
+    transition: color var(--ui-transition-fast);
+  }
+
+  .axis-row :global(.assign-trigger:hover),
+  .axis-row :global(.assign-trigger[aria-expanded='true']) {
+    color: var(--ui-text-primary);
+  }
+
+  .menu-swatch {
+    flex: none;
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: var(--ui-radius-sm);
+    background: var(--fill);
+    border: 1px solid var(--ui-border-low);
+  }
+
+  .menu-sep {
+    border-top: 1px solid var(--ui-border-low);
   }
 
   .unassigned {
