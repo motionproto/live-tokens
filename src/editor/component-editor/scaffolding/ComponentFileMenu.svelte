@@ -108,7 +108,7 @@
   title="Load {component} Config"
   {files}
   {activeFileName}
-  systemBadge={{ label: 'system', title: 'Protected system config' }}
+  systemBadge={{ label: 'System', title: 'Protected system config' }}
   emptyMessage="No saved files"
   onload={handleLoad}
   ondelete={handleDelete}

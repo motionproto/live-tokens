@@ -23,28 +23,28 @@
 
       <div class="ts-controls">
         <div class="ts-field">
-          <span class="ts-label">family</span>
+          <span class="ts-label">Family</span>
           <UIFontFamilySelector variable={`${style.prefix}-font-family`} />
         </div>
         <div class="ts-field">
-          <span class="ts-label">size</span>
+          <span class="ts-label">Size</span>
           <UIFontSizeSelector variable={`${style.prefix}-font-size`} />
         </div>
         <div class="ts-field">
-          <span class="ts-label">weight</span>
+          <span class="ts-label">Weight</span>
           <UIFontWeightSelector variable={`${style.prefix}-font-weight`} />
         </div>
         <div class="ts-field">
-          <span class="ts-label">letter spacing</span>
+          <span class="ts-label">Letter spacing</span>
           <UILetterSpacingSelector variable={`${style.prefix}-letter-spacing`} />
         </div>
         <div class="ts-field">
-          <span class="ts-label">line height</span>
+          <span class="ts-label">Line height</span>
           <UILineHeightSelector variable={`${style.prefix}-line-height`} />
         </div>
         {#if style.hasTextTransform}
           <div class="ts-field">
-            <span class="ts-label">transform</span>
+            <span class="ts-label">Transform</span>
             <UITextTransformSelector variable={`${style.prefix}-text-transform`} />
           </div>
         {/if}
@@ -165,8 +165,6 @@
   .ts-label {
     font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-medium);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
     color: var(--ui-text-muted);
     white-space: nowrap;
   }

@@ -202,8 +202,6 @@
     font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
   }
 
   .lightness-value {

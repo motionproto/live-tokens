@@ -204,10 +204,9 @@
   /* Subsection title (used by Spacing & Borders) */
   .subsection-title {
     margin: var(--ui-space-16) 0 var(--ui-space-8);
-    font-size: var(--ui-font-size-xs);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-tertiary);
-    text-transform: uppercase;
+    font-size: var(--ui-font-size-xl);
+    font-weight: var(--ui-font-weight-bold);
+    color: var(--ui-text-primary);
   }
 
   .subsection-title:first-child {

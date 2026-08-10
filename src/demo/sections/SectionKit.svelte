@@ -321,8 +321,6 @@
     font-family: var(--font-sans);
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-medium);
-    letter-spacing: var(--letter-spacing-wide);
-    text-transform: uppercase;
     color: var(--text-secondary);
   }
 

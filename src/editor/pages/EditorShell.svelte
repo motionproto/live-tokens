@@ -299,9 +299,9 @@
     flex-shrink: 0;
   }
 
-  /* Divider between SYSTEM and CUSTOM groups. The horizontal line uses the
-     dimmer border token (sub-element separator), with an uppercase eyebrow
-     label that fades out when the rail is condensed so the line still reads. */
+  /* Divider between the System and Custom groups. The horizontal line uses the
+     dimmer border token (sub-element separator), with an eyebrow label that
+     fades out when the rail is condensed so the line still reads. */
   .nav-divider {
     display: grid;
     grid-template-columns: 48px 1fr;
@@ -316,8 +316,6 @@
     font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
     opacity: 1;
     transition: opacity 180ms ease;
   }

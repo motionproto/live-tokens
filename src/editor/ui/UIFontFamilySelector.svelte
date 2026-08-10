@@ -5,7 +5,7 @@
   import { resolveAliasChain } from '../core/palettes/tokenRegistry';
   import { editorState } from '../core/store/editorStore';
   import { CSS_VAR_CHANGE_EVENT } from '../core/cssVarSync';
-  import type { FontFamily, FontSource } from '../core/themes/themeTypes';
+  import type { FontFamily, FontSource, FontSourceKind } from '../core/themes/themeTypes';
   import UITokenSelector from './UITokenSelector.svelte';
   import UIOptionList from './UIOptionList.svelte';
   import UIOptionItem from './UIOptionItem.svelte';
@@ -27,6 +27,13 @@
     selectionsLocked = false,
     onchange,
   }: Props = $props();
+
+  const SOURCE_KIND_LABELS: Record<FontSourceKind, string> = {
+    google: 'Google Fonts',
+    typekit: 'Typekit',
+    'css-url': 'CSS URL',
+    'font-face': 'Font face',
+  };
 
   const options = [
     { key: 'display', label: 'Display' },
@@ -219,7 +226,7 @@
             <div class="pfs-submenu">
               {#each fontSources as source (source.id)}
                 {#if source.families.length > 0}
-                  <div class="pfs-source-label">{source.label ?? source.kind}</div>
+                  <div class="pfs-source-label">{source.label ?? SOURCE_KIND_LABELS[source.kind]}</div>
                   {#each source.families as fam (fam.id)}
                     <UIOptionItem
                       active={chosenFamilyId === fam.id}
@@ -329,6 +336,5 @@
     font-family: var(--ui-font-mono);
     font-size: var(--ui-font-size-xs);
     color: var(--ui-text-tertiary);
-    text-transform: uppercase;
   }
 </style>

@@ -539,8 +539,6 @@
     font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
   }
   .pf-browse-row {
     display: flex;
@@ -569,8 +567,6 @@
     gap: var(--ui-space-8);
     color: var(--ui-text-tertiary);
     font-size: var(--ui-font-size-xs);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
   }
   .pf-add-divider::before,
   .pf-add-divider::after {

@@ -234,7 +234,5 @@
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
     font-family: var(--ui-font-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
   }
 </style>

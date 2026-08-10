@@ -455,8 +455,6 @@
   .eyebrow {
     font-size: var(--ui-font-size-xs);
     color: var(--ui-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
   }
 
   .chips {

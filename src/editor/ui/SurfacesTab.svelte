@@ -290,9 +290,9 @@
   }
 
   .group-title {
-    font-size: var(--ui-font-size-lg);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-xl);
+    font-weight: var(--ui-font-weight-bold);
+    color: var(--ui-text-primary);
     margin: 0;
   }
 

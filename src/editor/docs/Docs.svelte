@@ -449,7 +449,6 @@
     font-size: var(--font-size-lg, 1.125rem);
     line-height: 1.75rem;
     font-weight: var(--font-weight-bold, 700);
-    letter-spacing: 0.025em;
     color: var(--text-primary);
     text-decoration: none;
     cursor: pointer;
@@ -638,8 +637,6 @@
   .footer-dir {
     font-size: var(--font-size-xs, 0.75rem);
     color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: var(--letter-spacing-wider, 0.08em);
   }
   .chapter-link { text-decoration: none; }
 

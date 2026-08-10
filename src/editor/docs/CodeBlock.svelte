@@ -67,8 +67,6 @@
     font-family: var(--font-mono, ui-monospace, monospace);
     font-size: var(--font-size-xs, 0.75rem);
     color: var(--text-tertiary, #7e8285);
-    text-transform: uppercase;
-    letter-spacing: var(--letter-spacing-wider, 0.06em);
     background: color-mix(in srgb, var(--surface-neutral-lowest, #040c13) 60%, transparent);
     border-left: var(--border-width-1, 1px) solid var(--border-neutral-faint, #1c2327);
     border-bottom: var(--border-width-1, 1px) solid var(--border-neutral-faint, #1c2327);

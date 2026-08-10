@@ -152,7 +152,7 @@
           <span class="updated-at" title={file.updatedAt}>{formatUpdatedAt(file.updatedAt)}</span>
         {/if}
         {#if file.fileName === activeFileName}
-          <span class="active-badge">active</span>
+          <span class="active-badge">Active</span>
         {/if}
         {#if onexport}
           <button
@@ -207,10 +207,9 @@
     padding: 4px 0;
     background: none;
     border: none;
-    color: #888;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
+    color: var(--ui-text-tertiary);
+    font-size: var(--ui-font-size-xs);
+    font-weight: var(--ui-font-weight-semibold);
     cursor: pointer;
     text-align: left;
   }
@@ -312,13 +311,12 @@
 
   .system-badge {
     flex-shrink: 0;
-    font-size: 11px;
+    font-size: var(--ui-font-size-xs);
     padding: 1px 6px;
     border-radius: 3px;
     background: transparent;
     border: 1px solid #3a3a3a;
-    color: #888;
-    text-transform: uppercase;
+    color: var(--ui-text-tertiary);
   }
 
   .updated-at {
@@ -331,7 +329,7 @@
 
   .active-badge {
     flex-shrink: 0;
-    font-size: 12px;
+    font-size: var(--ui-font-size-xs);
     padding: 1px 6px;
     border-radius: 3px;
     background: #333;

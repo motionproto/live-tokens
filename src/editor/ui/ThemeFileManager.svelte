@@ -417,7 +417,7 @@
   activeFileName={$activeFileName}
   sortable
   showUpdatedAt
-  systemBadge={{ label: 'system', title: 'Protected system theme' }}
+  systemBadge={{ label: 'System', title: 'Protected system theme' }}
   emptyMessage="No saved files"
   canDelete={(file) => file.fileName !== 'default' && file.fileName !== $themeProductionInfo?.fileName}
   onload={handleLoad}
@@ -460,7 +460,6 @@
   .tfm-header-label {
     font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
-    text-transform: uppercase;
   }
 
   /* Two-card pipeline (Editor → Production) — theme card + production card
@@ -508,7 +507,6 @@
   .tfm-card-label {
     font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
-    text-transform: uppercase;
     color: var(--ui-text-secondary);
     line-height: 1.1;
   }

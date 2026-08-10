@@ -116,10 +116,9 @@
   }
 
   .seg-label {
-    font-size: 10px;
+    font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
-    text-transform: uppercase;
-    color: #fff;
+    color: var(--ui-text-primary);
     padding-left: var(--ui-space-2);
     margin-bottom: 2px;
   }

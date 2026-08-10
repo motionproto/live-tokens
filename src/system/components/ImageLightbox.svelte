@@ -916,7 +916,6 @@
     backdrop-filter: blur(var(--blur-md));
     font-family: var(--font-mono);
     font-size: var(--font-size-xs);
-    letter-spacing: var(--letter-spacing-wider);
     opacity: 0;
     pointer-events: none;
   }
@@ -949,7 +948,6 @@
     text-align: center;
     font-family: var(--font-mono);
     font-size: var(--font-size-xs);
-    letter-spacing: var(--letter-spacing-wider);
     padding: 0 var(--space-4);
   }
 

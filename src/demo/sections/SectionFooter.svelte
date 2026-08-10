@@ -112,7 +112,6 @@
   .brand-caption {
     font-family: var(--font-mono);
     font-size: var(--font-size-md);
-    letter-spacing: 0.01em;
     color: var(--text-tertiary);
   }
 

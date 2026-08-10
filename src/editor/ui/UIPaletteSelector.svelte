@@ -1059,7 +1059,6 @@
     font-size: var(--ui-font-size-xs);
     font-family: var(--ui-font-mono);
     color: var(--ui-text-tertiary);
-    text-transform: uppercase;
     border-top: 1px solid var(--ui-border-low);
   }
 

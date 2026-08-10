@@ -212,7 +212,7 @@
     --sectiondivider-lg-eyebrow-font-family: var(--font-sans);
     --sectiondivider-lg-eyebrow-font-weight: var(--font-weight-medium);
     --sectiondivider-lg-eyebrow-font-size: var(--font-size-md);
-    --sectiondivider-lg-eyebrow-letter-spacing: var(--letter-spacing-wide);
+    --sectiondivider-lg-eyebrow-letter-spacing: var(--letter-spacing-normal);
     --sectiondivider-lg-padding: var(--space-0);
     --sectiondivider-lg-title-padding: var(--space-2);
     --sectiondivider-lg-description-padding: var(--space-0);
@@ -243,7 +243,7 @@
     --sectiondivider-md-eyebrow-font-family: var(--font-sans);
     --sectiondivider-md-eyebrow-font-weight: var(--font-weight-medium);
     --sectiondivider-md-eyebrow-font-size: var(--font-size-sm);
-    --sectiondivider-md-eyebrow-letter-spacing: var(--letter-spacing-wide);
+    --sectiondivider-md-eyebrow-letter-spacing: var(--letter-spacing-normal);
     --sectiondivider-md-padding: var(--space-0);
     --sectiondivider-md-title-padding: var(--space-2);
     --sectiondivider-md-description-padding: var(--space-0);
@@ -274,7 +274,7 @@
     --sectiondivider-sm-eyebrow-font-family: var(--font-sans);
     --sectiondivider-sm-eyebrow-font-weight: var(--font-weight-medium);
     --sectiondivider-sm-eyebrow-font-size: var(--font-size-xs);
-    --sectiondivider-sm-eyebrow-letter-spacing: var(--letter-spacing-wide);
+    --sectiondivider-sm-eyebrow-letter-spacing: var(--letter-spacing-normal);
     --sectiondivider-sm-padding: var(--space-0);
     --sectiondivider-sm-title-padding: var(--space-2);
     --sectiondivider-sm-description-padding: var(--space-0);
@@ -546,7 +546,7 @@
     display: inline-flex;
   }
 
-  /* Eyebrow visibility + uppercase flow from per-variant CSS vars. */
+  /* Eyebrow visibility + text transform flow from per-variant CSS vars. */
   .divider-eyebrow {
     display: var(--_divider-eyebrow-display);
     font-family: var(--_divider-eyebrow-font-family);

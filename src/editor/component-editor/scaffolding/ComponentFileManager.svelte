@@ -531,7 +531,6 @@
   .cfm-row-label {
     font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
-    text-transform: uppercase;
     color: var(--ui-text-secondary);
     line-height: 1.1;
   }

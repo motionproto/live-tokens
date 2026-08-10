@@ -343,7 +343,6 @@
   .mfm-header-label {
     font-size: var(--ui-font-size-xs);
     color: var(--ui-text-secondary);
-    text-transform: uppercase;
   }
 
   .mfm-card {
@@ -380,9 +379,8 @@
   }
 
   .mfm-card-label {
-    font-size: 10px;
+    font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
-    text-transform: uppercase;
     color: var(--ui-text-tertiary);
   }
 
