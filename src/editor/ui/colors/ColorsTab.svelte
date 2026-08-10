@@ -251,7 +251,6 @@
   <div class="pane">
     <section id="colors-story" class="block">
       <header class="block-head">
-        <span class="eyebrow">Proportional preview</span>
         <h2 class="title">Color Story</h2>
       </header>
       <ColorStory full={fullPalettes} />
