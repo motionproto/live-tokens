@@ -26,29 +26,32 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1rem;
-    height: 1rem;
+    /* Callers that need a bigger numeral set these two; the row default is the
+       size the wheel and the axes list share. */
+    width: var(--numeral-size, 1rem);
+    height: var(--numeral-size, 1rem);
     border: 1px dashed var(--ui-text-muted);
     border-radius: var(--ui-radius-full);
     color: var(--ui-text-muted);
-    font-size: var(--ui-font-size-xs);
+    font-size: var(--numeral-font-size, var(--ui-font-size-xs));
     font-weight: var(--ui-font-weight-semibold);
-    font-variant-numeric: tabular-nums;
+    /* No tabular figures: the box is a fixed circle, so nothing needs aligning,
+       and a padded tabular "1" sits off-center inside its own advance. */
     line-height: 1;
     user-select: none;
-  }
-
-  .numeral.filled {
-    border-style: solid;
-    border-color: var(--ui-border-higher);
-    background: var(--ui-surface-high);
-    color: var(--ui-text-secondary);
   }
 
   /* The scrim composites with the swatch fill beneath it, which lands close
      enough to the muted token to erase the ring and the digit. */
   .numeral.scrim:not(.filled) {
     border-color: var(--ui-text-secondary);
+    color: var(--ui-text-secondary);
+  }
+
+  .numeral.filled {
+    border-style: solid;
+    border-color: var(--ui-border-higher);
+    background: var(--ui-surface-high);
     color: var(--ui-text-secondary);
   }
 

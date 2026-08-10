@@ -10,11 +10,6 @@ import HarmonyAxesList from './colors/HarmonyAxesList.svelte';
 import { HARMONY_ELIGIBLE, type HarmonyMode } from '../core/palettes/colorHarmony';
 import { editorState, __resetForTests } from '../core/store/editorStore';
 
-// happy-dom lacks Web Animations; the tray's animate:flip probes both on reorder.
-Element.prototype.getAnimations ??= () => [];
-Element.prototype.animate ??= () =>
-  ({ cancel() {}, finish() {}, finished: Promise.resolve(), onfinish: null }) as unknown as Animation;
-
 let target: HTMLDivElement;
 let component: ReturnType<typeof mount> | null = null;
 
@@ -36,7 +31,7 @@ afterEach(() => {
 function mountList(activeMode: HarmonyMode = 'custom') {
   component = mount(HarmonyAxesList, {
     target,
-    props: { activeMode, selected: null, onSelect: () => {} },
+    props: { activeMode, selected: null, oncustomize: () => {} },
   });
   flushSync();
 }
@@ -107,6 +102,31 @@ describe('opening', () => {
     await openMenu(triggerOf(rows()[0])!);
     expect(menu()).not.toBeNull();
     expect(focused()).toBe(menuItems()[0]);
+  });
+
+  it('a click anywhere on the row opens that row’s menu', async () => {
+    mountList();
+    const row = rows()[1];
+    row.querySelector<HTMLElement>('.chip')!.click();
+    flushSync();
+    await frame();
+    await frame();
+    expect(menu()!.getAttribute('aria-label')).toBe('Assign to axis 2');
+    expect(triggerOf(row)!.getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('a click on the trigger opens once instead of toggling shut', async () => {
+    mountList();
+    await openMenu(triggerOf(rows()[0])!);
+    expect(menu()).not.toBeNull();
+  });
+
+  it('a click on an unused row opens nothing', async () => {
+    mountList('complementary');
+    rows()[3].click();
+    flushSync();
+    await frame();
+    expect(menu()).toBeNull();
   });
 
   it('ArrowDown on the closed trigger opens the menu focusing the first item', async () => {

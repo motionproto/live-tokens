@@ -1,7 +1,5 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { flip } from 'svelte/animate';
-  import { cubicOut } from 'svelte/easing';
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS, type PaletteSpec } from '../../core/palettes/paletteDerivation';
   import { AXIS_COUNT, activeAxisCount, axisLabel, axisStatuses, type HarmonyMode, HARMONY_ELIGIBLE } from '../../core/palettes/colorHarmony';
@@ -9,24 +7,29 @@
   import UIMenuButton from '../UIMenuButton.svelte';
   import UIOptionItem from '../UIOptionItem.svelte';
   import UIOptionList from '../UIOptionList.svelte';
-  import AxisNumeral from './AxisNumeral.svelte';
   import { modeLabel } from './harmonyModeIcons';
   import { bindFamilyToAxis, unbindFamily } from './paletteBaseColor';
+  import { HARMONY_DRAG_TYPE, startFamilyDrag } from './harmonyDrag';
 
   interface Props {
     /** The applied harmony mode: it deals a distinct position to some axes only,
      *  which is what leaves an axis off the wheel or unused (complementary deals two). */
     activeMode: HarmonyMode;
-    /** Family selected in the swatch grid / wheel — its row (or chip) reads as active here. */
+    /** Family selected in the swatch grid / wheel — its row reads as active here. */
     selected: string | null;
-    onSelect: (family: string) => void;
+    /** An assignment moves its axis to the color's hue, which leaves an applied
+     *  mode no longer describing the geometry. Mirrors the wheel's handle drag. */
+    oncustomize: () => void;
   }
 
-  let { activeMode, selected, onSelect }: Props = $props();
+  let { activeMode, selected, oncustomize }: Props = $props();
 
-  const DRAG_TYPE = 'application/x-harmony-family';
-  // Unbound swatch previews the hue an assigned color would take, at fixed
-  // preview L/C so only the hue reads.
+  function assign(family: string, index: number) {
+    if (bindFamilyToAxis(family, index)) oncustomize();
+  }
+
+  // Empty-row swatch shows the axis's own hue, at fixed preview L/C so only the
+  // hue reads. An assignment overwrites it with the color's hue.
   const PREVIEW_L = 0.65;
   const PREVIEW_C = 0.12;
 
@@ -35,12 +38,10 @@
   let listEl: HTMLElement | undefined = $state();
 
   let axes = $derived($editorState.harmonyAxes);
-  let unassigned = $derived(HARMONY_ELIGIBLE.filter((f) => !axes.some((a) => a.family === f)));
   let statuses = $derived(axisStatuses(activeMode, axes));
   let modeUsage = $derived(`${modeLabel(activeMode)} uses ${activeAxisCount(activeMode)}`);
-  // Keyboard sequence: every axis that still accepts a family, then Unassigned.
+  // Keyboard move sequence: every axis that still accepts a family.
   let axisSeq = $derived(statuses.flatMap((s, i) => (s === 'unused' ? [] : [i])));
-  let lastAxis = $derived(axisSeq[axisSeq.length - 1]);
 
   function familyHex(family: string): string {
     const { l, c, h } = $editorState.palettes[family]?.baseColor ?? SPEC_BY_LABEL[family].initialColor;
@@ -54,17 +55,22 @@
     listEl?.querySelector<HTMLElement>(`[data-family="${family}"]`)?.focus();
   }
 
+  // The row a family leaves is where focus goes when it stops being a chip:
+  // both trigger forms answer to this selector, so an emptied row keeps focus.
+  async function refocusAxis(i: number) {
+    await tick();
+    listEl?.querySelector<HTMLElement>(`[data-axis="${i}"] [aria-haspopup="menu"]`)?.focus();
+  }
+
   function moveFamily(family: string, dir: -1 | 1) {
     const idx = axes.findIndex((a) => a.family === family);
-    const pos = idx === -1 ? axisSeq.length : axisSeq.indexOf(idx);
-    const target = pos + dir;
-    if (target < 0 || target > axisSeq.length) return;
-    if (target === axisSeq.length) unbindFamily(family);
-    else bindFamilyToAxis(family, axisSeq[target]);
+    const target = axisSeq.indexOf(idx) + dir;
+    if (target < 0 || target >= axisSeq.length) return;
+    assign(family, axisSeq[target]);
     refocus(family);
   }
 
-  function onChipKeydown(e: KeyboardEvent, family: string) {
+  function onChipKeydown(e: KeyboardEvent, family: string, i: number) {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       moveFamily(family, -1);
@@ -74,13 +80,13 @@
     } else if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
       unbindFamily(family);
-      refocus(family);
+      refocusAxis(i);
     }
   }
 
   function assignFromMenu(family: string, index: number) {
     const wasEmpty = axes[index].family === null;
-    bindFamilyToAxis(family, index);
+    assign(family, index);
     // An empty row's text trigger is replaced by the chip, so focus would die
     // with it; follow the family, as every keyboard move does.
     if (wasEmpty) refocus(family);
@@ -91,44 +97,70 @@
     if (family === null) return;
     unbindFamily(family);
     // Same reason: the chevron trigger leaves with the chip.
-    refocus(family);
+    refocusAxis(index);
   }
 
-  let dragTarget = $state<number | 'unassigned' | null>(null);
-
-  function onDragStart(e: DragEvent, family: string) {
-    if (!e.dataTransfer) return;
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData(DRAG_TYPE, family);
+  // The row is the control, so a click anywhere in it opens the menu. Routed
+  // through the trigger's own click rather than an imperative open, so the
+  // button keeps sole ownership of the open state and of aria-expanded.
+  function onRowClick(e: MouseEvent) {
+    const el = e.target as HTMLElement;
+    if (el.closest('[aria-haspopup="menu"]')) return;
+    (e.currentTarget as HTMLElement).querySelector<HTMLButtonElement>('[aria-haspopup="menu"]')?.click();
   }
 
-  function onDragOver(e: DragEvent, target: number | 'unassigned') {
-    if (!(e.dataTransfer?.types ?? []).includes(DRAG_TYPE)) return;
-    if (typeof target === 'number' && statuses[target] === 'unused') return;
+  let dragTarget = $state<number | null>(null);
+
+  function onDragOver(e: DragEvent, target: number) {
+    if (!(e.dataTransfer?.types ?? []).includes(HARMONY_DRAG_TYPE)) return;
+    if (statuses[target] === 'unused') return;
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     dragTarget = target;
   }
 
-  function onDragLeave(target: number | 'unassigned') {
+  function onDragLeave(target: number) {
     if (dragTarget === target) dragTarget = null;
   }
 
-  function onDrop(e: DragEvent, target: number | 'unassigned') {
+  function onDrop(e: DragEvent, target: number) {
     e.preventDefault();
-    const family = e.dataTransfer?.getData(DRAG_TYPE);
+    const family = e.dataTransfer?.getData(HARMONY_DRAG_TYPE);
     dragTarget = null;
     if (!family) return;
-    if (typeof target === 'number' && statuses[target] === 'unused') return;
+    if (statuses[target] === 'unused') return;
     // Self-drop is a no-op: the setters early-return when nothing changes.
-    if (target === 'unassigned') unbindFamily(family);
-    else bindFamilyToAxis(family, target);
+    assign(family, target);
   }
 
+  // Window-scoped: a drag can start in the swatch row, whose dragend never
+  // reaches this component, and abandoning it there would strand the highlight.
   function onDragEnd() {
     dragTarget = null;
   }
+
+  // Opening the whole page as a drop zone is what lets a release over dead
+  // space mean something. Only our own payload, so file drops are untouched.
+  function onWindowDragOver(e: DragEvent) {
+    if (!(e.dataTransfer?.types ?? []).includes(HARMONY_DRAG_TYPE)) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+  }
+
+  /** The drop no axis row and no swatch row claimed: letting a color go over
+   *  dead space is the quickest way off an axis. A drop target that handled it
+   *  has already called preventDefault on this same event. Escape cancels a
+   *  drag without ever firing a drop, so it still leaves the color where it is. */
+  function onWindowDrop(e: DragEvent) {
+    if (e.defaultPrevented) return;
+    e.preventDefault();
+    dragTarget = null;
+    const family = e.dataTransfer?.getData(HARMONY_DRAG_TYPE);
+    if (family) unbindFamily(family);
+  }
 </script>
+
+<svelte:window ondragend={onDragEnd} ondragover={onWindowDragOver} ondrop={onWindowDrop} />
 
 {#snippet axisMenu(i: number, close: () => void)}
   <UIOptionList>
@@ -166,18 +198,23 @@
     {@const status = statuses[i]}
     {@const unused = status === 'unused'}
     {@const rowSelected = axis.family !== null && axis.family === selected}
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <!-- The click is a shortcut to the trigger button inside, which stays the
+         keyboard and screen-reader path. -->
+    <!-- svelte-ignore a11y_no_static_element_interactions, a11y_click_events_have_key_events -->
     <div
       class="axis-row"
       class:unused
       class:selected={rowSelected}
       class:drop-target={dragTarget === i}
+      class:off-wheel={status === 'off-wheel'}
+      class:openable={!unused}
+      data-axis={i}
       aria-disabled={unused || undefined}
+      onclick={onRowClick}
       ondragover={(e) => onDragOver(e, i)}
       ondragleave={() => onDragLeave(i)}
       ondrop={(e) => onDrop(e, i)}
     >
-      <AxisNumeral index={i} {status} selected={rowSelected} />
       <span class="role">{i === 0 ? 'Anchor' : ''}</span>
       {#if axis.family !== null}
         {@const family = axis.family}
@@ -188,26 +225,28 @@
           draggable="true"
           data-family={family}
           aria-label={`${family}, on ${axisLabel(i)}${i === 0 ? '' : ` of ${AXIS_COUNT}`}. Arrow up or down to move it, Delete to unassign.`}
-          aria-pressed={family === selected}
-          title="Drag to another axis or to Unassigned. Arrow keys move it, Delete unassigns."
-          ondragstart={(e) => onDragStart(e, family)}
-          ondragend={onDragEnd}
-          onkeydown={(e) => onChipKeydown(e, family)}
-          onclick={() => onSelect(family)}
+          title="Drag to another axis, or anywhere off the list to unassign. Arrow keys move it, Delete unassigns."
+          ondragstart={(e) => startFamilyDrag(e, family)}
+          onkeydown={(e) => onChipKeydown(e, family, i)}
         >
           <span class="grip" aria-hidden="true">⋮⋮</span>
           <span class="chip-swatch" style="--fill: {familyHex(family)}"></span>
           <span class="chip-name">{family}</span>
         </button>
         {#if status === 'off-wheel'}
-          <span class="reason">off wheel &middot; {modeUsage}</span>
+          <span
+            class="warn fas fa-triangle-exclamation"
+            role="img"
+            aria-label={`Off the wheel. ${modeUsage}.`}
+            title={`Off the wheel &middot; ${modeUsage}`}
+          ></span>
         {/if}
         <UIMenuButton
           header={`Assign to ${axisLabel(i)}`}
           triggerLabel={`Assign to ${axisLabel(i)}`}
           triggerClass="axis-menu-trigger"
         >
-          {#snippet trigger()}<i class="fas fa-chevron-down" aria-hidden="true"></i>{/snippet}
+          {#snippet trigger()}<i class="fas fa-chevron-down chev" aria-hidden="true"></i>{/snippet}
           {#snippet children({ close })}{@render axisMenu(i, close)}{/snippet}
         </UIMenuButton>
       {:else}
@@ -216,50 +255,13 @@
           <span class="reason">unused &middot; {modeUsage}</span>
         {:else}
           <UIMenuButton header={`Assign to ${axisLabel(i)}`} triggerClass="assign-trigger">
-            {#snippet trigger()}Assign a color…{/snippet}
+            {#snippet trigger()}<span>Assign a color…</span><i class="fas fa-chevron-down chev" aria-hidden="true"></i>{/snippet}
             {#snippet children({ close })}{@render axisMenu(i, close)}{/snippet}
           </UIMenuButton>
         {/if}
       {/if}
     </div>
   {/each}
-
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div
-    class="unassigned"
-    class:drop-target={dragTarget === 'unassigned'}
-    ondragover={(e) => onDragOver(e, 'unassigned')}
-    ondragleave={() => onDragLeave('unassigned')}
-    ondrop={(e) => onDrop(e, 'unassigned')}
-  >
-    <span class="eyebrow">Unassigned</span>
-    <div class="chips">
-      {#each unassigned as family (family)}
-        <button
-          type="button"
-          class="chip"
-          class:selected={family === selected}
-          draggable="true"
-          data-family={family}
-          aria-label={`${family}, unassigned. Arrow up to assign it to ${axisLabel(lastAxis)}.`}
-          aria-pressed={family === selected}
-          title={`Drag onto an axis to assign it. Arrow up assigns it to ${axisLabel(lastAxis)}.`}
-          ondragstart={(e) => onDragStart(e, family)}
-          ondragend={onDragEnd}
-          onkeydown={(e) => onChipKeydown(e, family)}
-          onclick={() => onSelect(family)}
-          animate:flip={{ duration: 200, easing: cubicOut }}
-        >
-          <span class="grip" aria-hidden="true">⋮⋮</span>
-          <span class="chip-swatch" style="--fill: {familyHex(family)}"></span>
-          <span class="chip-name">{family}</span>
-        </button>
-      {/each}
-      {#if unassigned.length === 0}
-        <span class="empty">Every color is assigned to an axis.</span>
-      {/if}
-    </div>
-  </div>
 </div>
 
 <style>
@@ -286,23 +288,38 @@
   /* About to receive a drop: a doubled ring. Ring count is what separates it
      from selection, which keeps a single line. Never dashed (dashed means
      unused) and never colored. */
-  .axis-row.drop-target,
-  .unassigned.drop-target {
+  .axis-row.drop-target {
     border-color: var(--ui-text-primary);
     background: var(--ui-surface-low);
     outline: 1px solid var(--ui-text-primary);
     outline-offset: 1px;
   }
 
-  /* The family selected in the swatch grid / wheel. The numeral inverts and the
-     row takes one border; the chip inside stays plain, so the row lights up once. */
+  /* The whole row opens the menu, so it hovers as one control. */
+  .axis-row.openable {
+    cursor: pointer;
+  }
+
+  /* Selection and the drop ring already own the border; hover must not undo them. */
+  .axis-row.openable:not(.selected):not(.drop-target):hover {
+    border-color: var(--ui-border-high);
+  }
+
+  .axis-row.openable:hover :global(.axis-menu-trigger),
+  .axis-row.openable:hover :global(.assign-trigger) {
+    color: var(--ui-text-primary);
+  }
+
+  /* The family selected in the swatch grid / wheel. The row takes one border and
+     the chip inside stays plain, so the row lights up once. */
   .axis-row.selected {
     border-color: var(--ui-text-primary);
     background: var(--ui-surface-low);
   }
 
   /* Only axis 1 fills this column, but every row reserves it so the swatches,
-     chips and pickers below start at one x. Sized to fit "Anchor". */
+     chips and pickers start at one x. Sized to fit "Anchor". The axis number
+     itself lives only on the left swatches, which is where a color is read. */
   .role {
     flex: none;
     width: 4rem;
@@ -314,6 +331,18 @@
   .axis-row.unused {
     border-style: dashed;
     opacity: 0.45;
+  }
+
+  /* Bound, but the applied mode deals this axis no position. Dimming carries it
+     and the triangle names it; never dashed, which is reserved for unused. */
+  .axis-row.off-wheel {
+    opacity: 0.6;
+  }
+
+  .warn {
+    flex: none;
+    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-sm);
   }
 
   .swatch {
@@ -328,11 +357,6 @@
   .swatch.preview {
     border-style: dashed;
     opacity: 0.7;
-  }
-
-  .empty {
-    color: var(--ui-text-tertiary);
-    font-size: var(--ui-font-size-md);
   }
 
   .reason {
@@ -372,13 +396,6 @@
     border-color: var(--ui-border-high);
   }
 
-  /* Tray chips only: they have no row and no numeral, so this is their sole
-     selection indicator. An axis row carries its selection on the row itself. */
-  .unassigned .chip.selected {
-    border-color: var(--ui-text-primary);
-    background: var(--ui-surface-high);
-  }
-
   .chip:focus-visible {
     outline: 2px solid var(--ui-border-higher);
     outline-offset: 2px;
@@ -404,7 +421,7 @@
     width: var(--ui-space-24);
     height: var(--ui-space-24);
     border-radius: var(--ui-radius-sm);
-    color: var(--ui-text-muted);
+    color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-xs);
     transition: color var(--ui-transition-fast);
   }
@@ -414,11 +431,23 @@
     color: var(--ui-text-primary);
   }
 
+  /* Claims the rest of the row so its chevron lands where a filled row's does:
+     every row carries the same control, whether or not it holds a color. */
   .axis-row :global(.assign-trigger) {
+    flex: 1;
+    justify-content: space-between;
     padding: var(--ui-space-4) 0;
     color: var(--ui-text-secondary);
     font-size: var(--ui-font-size-md);
     transition: color var(--ui-transition-fast);
+  }
+
+  .chev {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ui-space-24);
+    font-size: var(--ui-font-size-xs);
   }
 
   .axis-row :global(.assign-trigger:hover),
@@ -439,29 +468,4 @@
     border-top: 1px solid var(--ui-border-low);
   }
 
-  .unassigned {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-8);
-    margin-top: var(--ui-space-4);
-    padding: var(--ui-space-8);
-    border: 1px dashed var(--ui-border-low);
-    border-radius: var(--ui-radius-md);
-    transition:
-      border-color var(--ui-transition-fast),
-      background var(--ui-transition-fast);
-  }
-
-  .eyebrow {
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-muted);
-  }
-
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ui-space-6);
-    min-height: 1.75rem;
-    align-items: center;
-  }
 </style>

@@ -1,8 +1,9 @@
 <script lang="ts">
+  import { cubicOut } from 'svelte/easing';
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginSliderGesture } from '../../core/store/editorStore';
-  import { applyHarmonyToAxes, axisStatuses, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import { applyHarmonyToAxes, axisStatuses, HARMONY_ELIGIBLE, type HarmonyMode } from '../../core/palettes/colorHarmony';
   import AxisNumeral from './AxisNumeral.svelte';
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import ColorWheel from './ColorWheel.svelte';
@@ -13,15 +14,15 @@
   import {
     setBaseColor,
     setAxisHues,
+    unbindFamily,
     palettesWithDefaults,
   } from './paletteBaseColor';
-  import { HARMONY_MODE_BUTTONS, modeLabel } from './harmonyModeIcons';
+  import { HARMONY_MODE_BUTTONS } from './harmonyModeIcons';
+  import { HARMONY_DRAG_TYPE, startFamilyDrag } from './harmonyDrag';
   import { maxChroma } from './colorWheelMath';
-  import { dockGrow } from '../palette/dockMagnify';
 
   let selected = $state('Brand');
   let activeMode = $state<HarmonyMode>('custom');
-  let hoverMode = $state<HarmonyMode | null>(null);
   // Local UI only — deliberately NOT stored in PaletteConfig (shape unchanged).
   let absoluteChroma = $state(false);
   let infoOpen = $state(false);
@@ -69,6 +70,40 @@
     setAxisHues(target.map((a, i) => ({ index: i, hue: a.hue })), `colors: harmony ${mode}`);
   }
 
+  const ELIGIBLE = new Set(HARMONY_ELIGIBLE);
+
+  const reduceMotion =
+    typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+
+  /** The badge is the swatch's answer to "did it land": it fades up as the color
+   *  takes an axis, and back out when the color comes home. It rides over the
+   *  fill, so nothing reflows and opacity alone carries the change. */
+  function badgeFade(_node: Element) {
+    return {
+      duration: reduceMotion ? 0 : 200,
+      easing: cubicOut,
+      css: (t: number) => `opacity: ${t}; transform: translateY(-50%) scale(${0.85 + 0.15 * t});`,
+    };
+  }
+
+  // The swatch row is the home a family returns to: dropping a chip back here
+  // is the unassign gesture, which is why no separate tray exists.
+  let unassignHover = $state(false);
+
+  function onSwatchesDragOver(e: DragEvent) {
+    if (!(e.dataTransfer?.types ?? []).includes(HARMONY_DRAG_TYPE)) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    unassignHover = true;
+  }
+
+  function onSwatchesDrop(e: DragEvent) {
+    e.preventDefault();
+    unassignHover = false;
+    const family = e.dataTransfer?.getData(HARMONY_DRAG_TYPE);
+    if (family) unbindFamily(family);
+  }
+
   let fullPalettes = $derived(palettesWithDefaults($editorState.palettes));
 
   let swatches = $derived.by(() => {
@@ -81,6 +116,7 @@
         display: spec.displayLabel ?? spec.label,
         hex: oklchToHexClamped(l, c, h),
         axis: index === -1 ? null : { index, status: statuses[index] },
+        eligible: ELIGIBLE.has(spec.label),
       };
     });
   });
@@ -90,8 +126,6 @@
   // reshuffle under the pointer while a lightness edit was in flight.
   let coreSwatches = $derived(swatches.filter((sw) => !FUNCTIONAL_FAMILIES.has(sw.label)));
   let functionalSwatches = $derived(swatches.filter((sw) => FUNCTIONAL_FAMILIES.has(sw.label)));
-
-  let shownModeLabel = $derived(modeLabel(hoverMode ?? activeMode));
 
   let selectedSpec = $derived(PALETTE_SPECS.find((s) => s.label === selected) ?? PALETTE_SPECS[0]);
   let selectedOklch = $derived($editorState.palettes[selected]?.baseColor ?? selectedSpec.initialColor);
@@ -120,14 +154,32 @@
       </header>
 
       <div class="wheel-hero">
-        <ColorWheel
-          {selected}
-          {absoluteChroma}
-          {activeMode}
-          onSelect={select}
-          discLightness={selectedOklch.l}
-          onCustomize={() => (activeMode = 'custom')}
-        />
+        <div class="wheel-row">
+          <div class="mode-rail" role="group" aria-label="Color harmony mode">
+            {#each HARMONY_MODE_BUTTONS as m (m.mode)}
+              <button
+                type="button"
+                class="mode-btn"
+                class:active={activeMode === m.mode}
+                title={m.label}
+                aria-label={m.label}
+                aria-pressed={activeMode === m.mode}
+                onclick={() => applyMode(m.mode)}
+              >{@html m.svg}</button>
+            {/each}
+          </div>
+
+          <div class="wheel-slot">
+            <ColorWheel
+              {selected}
+              {absoluteChroma}
+              {activeMode}
+              onSelect={select}
+              discLightness={selectedOklch.l}
+              onCustomize={() => (activeMode = 'custom')}
+            />
+          </div>
+        </div>
 
         <ColorEditPanel
           title={selectedSpec.displayLabel ?? selected}
@@ -168,63 +220,59 @@
       </div>
 
       <div class="harmony-cols">
-        <div class="hc-col">
-          <div class="group">
-            <span class="eyebrow">Color Harmony <span class="mode-name">&middot; {shownModeLabel}</span></span>
-            <div class="mode-row" role="group" aria-label="Color harmony mode">
-              {#each HARMONY_MODE_BUTTONS as m (m.mode)}
+        <div class="group">
+          <h3 class="title">Selected color</h3>
+          {#snippet swatchRow(row: typeof swatches, acceptsDrop = false)}
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div
+              class="swatch-row"
+              class:drop-target={acceptsDrop && unassignHover}
+              ondragover={acceptsDrop ? onSwatchesDragOver : undefined}
+              ondragleave={acceptsDrop ? () => (unassignHover = false) : undefined}
+              ondrop={acceptsDrop ? onSwatchesDrop : undefined}
+            >
+              {#each row as sw (sw.label)}
                 <button
                   type="button"
-                  class="mode-btn"
-                  class:active={activeMode === m.mode}
-                  title={m.label}
-                  aria-label={m.label}
-                  aria-pressed={activeMode === m.mode}
-                  onclick={() => applyMode(m.mode)}
-                  onpointerenter={() => (hoverMode = m.mode)}
-                  onpointerleave={() => (hoverMode = null)}
-                  onfocus={() => (hoverMode = m.mode)}
-                  onblur={() => (hoverMode = null)}
-                >{@html m.svg}</button>
+                  class="swatch"
+                  class:active={selected === sw.label}
+                  class:draggable={sw.eligible}
+                  style="--swatch-fill: {sw.hex}"
+                  draggable={sw.eligible}
+                  title={sw.eligible ? `${sw.display} · drag onto an axis to assign it` : sw.display}
+                  aria-label={`Select ${sw.display}`}
+                  aria-pressed={selected === sw.label}
+                  ondragstart={(e) => startFamilyDrag(e, sw.label)}
+                  onclick={() => select(sw.label)}
+                >
+                  <span class="frame">
+                    {#if sw.eligible}<span class="grip" aria-hidden="true">⋮⋮</span>{/if}
+                    <span class="bar">
+                      {#if sw.axis}
+                        <span class="axis-badge" aria-hidden="true" transition:badgeFade>
+                          <AxisNumeral index={sw.axis.index} status={sw.axis.status} scrim />
+                        </span>
+                      {/if}
+                    </span>
+                  </span>
+                  <span class="swatch-label">{sw.label}</span>
+                </button>
               {/each}
             </div>
+          {/snippet}
+          <div class="swatch-rows">
+            {@render swatchRow(coreSwatches, true)}
+            {@render swatchRow(functionalSwatches)}
           </div>
+        </div>
 
-          <div class="group">
-            <span class="eyebrow">Swatches</span>
-            {#snippet swatchRow(row: typeof swatches)}
-              {@const selIdx = row.findIndex((sw) => sw.label === selected)}
-              <div class="swatch-row">
-                {#each row as sw, i (sw.label)}
-                  <button
-                    type="button"
-                    class="swatch"
-                    class:active={selected === sw.label}
-                    style="--swatch-fill: {sw.hex}"
-                    style:flex-grow={dockGrow(i, selIdx === -1 ? null : selIdx)}
-                    title={sw.display}
-                    aria-label={`Select ${sw.display}`}
-                    aria-pressed={selected === sw.label}
-                    onclick={() => select(sw.label)}
-                  >
-                    <span class="chip">
-                      {#if sw.axis}<span class="axis-badge" aria-hidden="true"><AxisNumeral index={sw.axis.index} status={sw.axis.status} scrim /></span>{/if}
-                    </span>
-                    <span class="swatch-label">{sw.label}</span>
-                  </button>
-                {/each}
-              </div>
-            {/snippet}
-            <div class="swatch-rows">
-              {@render swatchRow(coreSwatches)}
-              {@render swatchRow(functionalSwatches)}
-            </div>
-          </div>
+        <div class="gutter" aria-hidden="true">
+          <i class="fas fa-arrows-left-right" title="Drag a color onto an axis to assign it, back to the swatches to unassign"></i>
         </div>
 
         <div class="group">
           <div class="group-head">
-            <span class="eyebrow">Harmony axes</span>
+            <h3 class="title">Harmony axes</h3>
             <div class="info" bind:this={axesInfoWrap}>
               <button
                 type="button"
@@ -237,12 +285,12 @@
               {#if axesInfoOpen}
                 <div class="info-box" role="region" aria-label="Harmony axes">
                   <strong class="info-title">Harmony axes</strong>
-                  <p>Each axis owns a hue. Assign a color from the row menu, or drag one onto the axis. The color adopts the axis hue and follows it. To unassign, use the row menu or drag the color to Unassigned.</p>
+                  <p>Each axis owns a hue. Assign a color from the row menu, or drag one onto the axis. The axis moves to that color's hue and the color follows the axis from then on, so applying a harmony rotates every assigned color at once. To unassign, use the row menu, or drag the color off its axis and drop it anywhere else.</p>
                 </div>
               {/if}
             </div>
           </div>
-          <HarmonyAxesList {activeMode} {selected} onSelect={select} />
+          <HarmonyAxesList {activeMode} {selected} oncustomize={() => (activeMode = 'custom')} />
         </div>
       </div>
     </section>
@@ -258,12 +306,10 @@
 
     <section id="colors-selected" class="block">
       <header class="block-head">
-        <span class="eyebrow">Selected color</span>
-        <h2 class="title">{selectedSpec.displayLabel ?? selected}</h2>
+        <h2 class="title">Palette <span class="mode-name">&middot; {selectedSpec.displayLabel ?? selected}</span></h2>
       </header>
 
       <div class="group">
-        <span class="eyebrow">Derived scale</span>
         <PaletteStepStrip spec={selectedSpec} />
       </div>
 
@@ -330,16 +376,8 @@
     gap: var(--ui-space-2);
   }
 
-  .eyebrow {
-    font-size: var(--ui-font-size-xs);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-tertiary);
-  }
-
-  .eyebrow .mode-name {
-    color: var(--ui-text-secondary);
-  }
-
+  /* Every labeled region on this page carries the same heading, section and
+     group alike: the old xs tertiary eyebrows read as captions and got skipped. */
   .title {
     font-size: var(--ui-font-size-2xl);
     font-weight: var(--ui-font-weight-semibold);
@@ -347,25 +385,53 @@
     margin: 0;
   }
 
+  .title .mode-name {
+    font-weight: var(--ui-font-weight-normal);
+    color: var(--ui-text-secondary);
+  }
+
   .group {
     display: flex;
     flex-direction: column;
-    gap: var(--ui-space-8);
+    gap: var(--ui-space-12);
     min-width: 0;
   }
 
+  /* Swatches, drag gutter, axes. The axes column is the narrower of the two:
+     its rows are fixed furniture, while the swatches carry the color. */
   .harmony-cols {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.62fr);
     gap: var(--ui-space-20);
     align-items: start;
   }
 
-  .hc-col {
+  /* Names the gesture the two columns share, centered on the drag path. */
+  .gutter {
+    align-self: center;
     display: flex;
-    flex-direction: column;
+    color: var(--ui-text-muted);
+    font-size: var(--ui-font-size-md);
+  }
+
+  /* Rail anchored to the pane's left edge; the disc centers in whatever is left. */
+  .wheel-row {
+    display: flex;
+    align-items: center;
     gap: var(--ui-space-20);
     min-width: 0;
+  }
+
+  .wheel-slot {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .mode-rail {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-6);
   }
 
   /* The docked panel's iframe viewport is the panel itself, so this collapse
@@ -374,20 +440,32 @@
     .harmony-cols {
       grid-template-columns: minmax(0, 1fr);
     }
-  }
 
-  .mode-row {
-    display: flex;
-    gap: var(--ui-space-6);
-    flex-wrap: wrap;
+    /* Stacked, the drag runs top to bottom. */
+    .gutter {
+      justify-content: center;
+      transform: rotate(90deg);
+    }
+
+    /* Below the wheel's minimum the rail is taller than the disc it flanks. */
+    .wheel-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .mode-rail {
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
   }
 
   .mode-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 3.375rem;
-    height: 3.375rem;
+    width: 3rem;
+    height: 3rem;
     padding: 0;
     background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-low);
@@ -500,14 +578,23 @@
     min-width: 0;
   }
 
-  /* Dock magnification, mirroring PaletteStepStrip: the flex-grow transition
-     animates the selected swatch opening in place. */
   .swatch-row {
     display: flex;
     align-items: flex-end;
     gap: var(--ui-space-8);
+    border-radius: var(--ui-radius-md);
+    outline: 1px solid transparent;
+    outline-offset: var(--ui-space-6);
+    transition: outline-color var(--ui-transition-fast);
   }
 
+  /* Mirrors the axis row's drop ring: this is where a chip goes to unassign. */
+  .swatch-row.drop-target {
+    outline-color: var(--ui-text-primary);
+  }
+
+  /* Every swatch keeps one width: selection reads in the frame's height alone,
+     so nothing in the row shifts sideways as the selection moves. */
   .swatch {
     flex: 1 1 0;
     min-width: 0;
@@ -519,36 +606,55 @@
     background: none;
     border: none;
     cursor: pointer;
-    transition: flex-grow var(--ui-transition-fast);
   }
 
-  .chip {
+  /* Same grab idiom as the axes-list chips: these two are one drag surface. */
+  .swatch.draggable {
+    cursor: grab;
+  }
+
+  .swatch.draggable:active {
+    cursor: grabbing;
+  }
+
+  /* The same frame the axes-list chips wear, holding the color instead of a
+     name: one object in two states, wide here and compact once it lands. */
+  .frame {
     position: relative;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-6);
     height: 2.25rem;
     /* Compensating margin: height + margin-top is constant every frame of the
        magnification, so the row's layout height never dips mid-transition.
-       Chip grows upward, label pinned. */
+       Frame grows upward, label pinned. */
     margin-top: 0.5rem;
-    border-radius: var(--ui-radius-sm);
-    background: var(--swatch-fill);
+    padding: var(--ui-space-4) var(--ui-space-6);
+    background: var(--ui-surface-low);
     border: 1px solid var(--ui-border-low);
+    border-radius: var(--ui-radius-md);
     transition: border-color var(--ui-transition-fast), height var(--ui-transition-fast), margin-top var(--ui-transition-fast);
   }
 
-  .swatch.active .chip {
+  .bar {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    align-self: stretch;
+    border-radius: var(--ui-radius-sm);
+    background: var(--swatch-fill);
+  }
+
+  .swatch.active .frame {
     height: 2.75rem;
     margin-top: 0;
-  }
-
-  .swatch:hover .chip {
-    border-color: var(--ui-border-high);
-  }
-
-  .swatch.active .chip {
     border-color: var(--ui-border-higher);
     outline: 2px solid var(--ui-text-primary);
     outline-offset: 1px;
+  }
+
+  .swatch:hover .frame {
+    border-color: var(--ui-border-high);
   }
 
   .swatch-label {
@@ -564,16 +670,37 @@
     color: var(--ui-text-primary);
   }
 
-  /* The badge rides an arbitrary user-chosen fill, so no surface token can keep
-     it legible. This scrim is the one literal color the file is allowed. */
+  /* Rides the head of the color bar, opposite the grip: how to send it, and
+     where it went. Larger than the row numerals because this is the one place
+     the assignment has to read at a glance across six swatches. The badge sits
+     on an arbitrary user-chosen fill, so no surface token can keep it legible.
+     This scrim is the one literal color the file is allowed. */
   .axis-badge {
+    --numeral-size: 1.5rem;
+    --numeral-font-size: var(--ui-font-size-sm);
     position: absolute;
-    top: var(--ui-space-4);
-    right: var(--ui-space-4);
+    top: 50%;
+    left: var(--ui-space-4);
     display: flex;
+    transform: translateY(-50%);
     border-radius: var(--ui-radius-full);
     background: rgba(0, 0, 0, 0.72);
     pointer-events: none;
+  }
+
+  /* Reads on the frame, not the fill, exactly as the axes-list grip does. */
+  .grip {
+    flex: none;
+    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-sm);
+    line-height: 1;
+    letter-spacing: -0.1em;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .swatch:hover .grip {
+    color: var(--ui-text-primary);
   }
 
   @media (max-width: 1024px) {
