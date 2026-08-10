@@ -2,7 +2,7 @@
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginSliderGesture } from '../../core/store/editorStore';
-  import { applyHarmonyToAxes, axisStatuses, tintNeutralsFromAnchor, type HarmonyMode } from '../../core/palettes/colorHarmony';
+  import { applyHarmonyToAxes, axisStatuses, type HarmonyMode } from '../../core/palettes/colorHarmony';
   import AxisNumeral from './AxisNumeral.svelte';
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import ColorWheel from './ColorWheel.svelte';
@@ -11,10 +11,8 @@
   import ColorStory from './ColorStory.svelte';
   import PaletteStepStrip from './PaletteStepStrip.svelte';
   import HarmonyAxesList from './HarmonyAxesList.svelte';
-  import UIPillButton from '../UIPillButton.svelte';
   import {
     setBaseColor,
-    setBaseColors,
     setAxisHues,
     palettesWithDefaults,
   } from './paletteBaseColor';
@@ -58,11 +56,6 @@
     // the same transaction. setAxisHues no-op-guards a re-applied geometry.
     const target = applyHarmonyToAxes(mode, $editorState.harmonyAxes);
     setAxisHues(target.map((a, i) => ({ index: i, hue: a.hue })), `colors: harmony ${mode}`);
-  }
-
-  function tintNeutrals() {
-    const patch = tintNeutralsFromAnchor($editorState.palettes, $editorState.harmonyAxes[0].hue);
-    if (Object.keys(patch).length) setBaseColors(patch, 'colors: tint neutrals from anchor');
   }
 
   let fullPalettes = $derived(palettesWithDefaults($editorState.palettes));
@@ -116,53 +109,47 @@
 
       <div class="group">
         <span class="eyebrow">Color Harmony <span class="mode-name">&middot; {shownModeLabel}</span></span>
-        <div class="mode-row" role="group" aria-label="Color harmony mode">
-          {#each HARMONY_MODE_BUTTONS as m (m.mode)}
-            <button
-              type="button"
-              class="mode-btn"
-              class:active={activeMode === m.mode}
-              title={m.label}
-              aria-label={m.label}
-              aria-pressed={activeMode === m.mode}
-              onclick={() => applyMode(m.mode)}
-              onpointerenter={() => (hoverMode = m.mode)}
-              onpointerleave={() => (hoverMode = null)}
-              onfocus={() => (hoverMode = m.mode)}
-              onblur={() => (hoverMode = null)}
-            >{@html m.svg}</button>
-          {/each}
-        </div>
+        <div class="mode-line">
+          <div class="mode-row" role="group" aria-label="Color harmony mode">
+            {#each HARMONY_MODE_BUTTONS as m (m.mode)}
+              <button
+                type="button"
+                class="mode-btn"
+                class:active={activeMode === m.mode}
+                title={m.label}
+                aria-label={m.label}
+                aria-pressed={activeMode === m.mode}
+                onclick={() => applyMode(m.mode)}
+                onpointerenter={() => (hoverMode = m.mode)}
+                onpointerleave={() => (hoverMode = null)}
+                onfocus={() => (hoverMode = m.mode)}
+                onblur={() => (hoverMode = null)}
+              >{@html m.svg}</button>
+            {/each}
+          </div>
 
-        <div class="harmony-actions">
-          <UIPillButton
-            icon="fa-fill-drip"
-            title="Re-hue Neutral and Alternate to the anchor color (their own chroma and lightness kept)"
-            onclick={tintNeutrals}
-          >Tint neutrals from anchor</UIPillButton>
-        </div>
-
-        <div class="wheel-opts">
-          <label class="opt">
-            <input type="checkbox" bind:checked={absoluteChroma} />
-            <span>Absolute Chroma</span>
-          </label>
-          <div class="info" bind:this={infoWrap}>
-            <button
-              type="button"
-              class="info-btn"
-              aria-expanded={infoOpen}
-              aria-label="About Absolute Chroma"
-              title="About Absolute Chroma"
-              onclick={toggleInfo}
-            ><i class="fas fa-circle-info" aria-hidden="true"></i></button>
-            {#if infoOpen}
-              <div class="info-box" role="region" aria-label="Absolute Chroma">
-                <strong class="info-title">Absolute Chroma</strong>
-                <p>When on, rotating a color keeps its exact chroma, its colorfulness. The reachable chroma changes from hue to hue, so the handle moves in and out as it orbits.</p>
-                <p>When off, rotating keeps the color's relative saturation, its fraction of the available gamut. The handle stays a constant distance from the center, and colorfulness shifts a little across hues to stay in gamut.</p>
-              </div>
-            {/if}
+          <div class="wheel-opts">
+            <label class="opt">
+              <input type="checkbox" bind:checked={absoluteChroma} />
+              <span>Absolute Chroma</span>
+            </label>
+            <div class="info" bind:this={infoWrap}>
+              <button
+                type="button"
+                class="info-btn"
+                aria-expanded={infoOpen}
+                aria-label="About Absolute Chroma"
+                title="About Absolute Chroma"
+                onclick={toggleInfo}
+              ><i class="fas fa-circle-info" aria-hidden="true"></i></button>
+              {#if infoOpen}
+                <div class="info-box" role="region" aria-label="Absolute Chroma">
+                  <strong class="info-title">Absolute Chroma</strong>
+                  <p>When on, rotating a color keeps its exact chroma, its colorfulness. The reachable chroma changes from hue to hue, so the handle moves in and out as it orbits.</p>
+                  <p>When off, rotating keeps the color's relative saturation, its fraction of the available gamut. The handle stays a constant distance from the center, and colorfulness shifts a little across hues to stay in gamut.</p>
+                </div>
+              {/if}
+            </div>
           </div>
         </div>
       </div>
@@ -329,6 +316,13 @@
     min-width: 0;
   }
 
+  .mode-line {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-12);
+    flex-wrap: wrap;
+  }
+
   .mode-row {
     display: flex;
     gap: var(--ui-space-6);
@@ -372,6 +366,7 @@
     display: flex;
     align-items: center;
     gap: var(--ui-space-8);
+    margin-left: auto;
   }
 
   .opt {
@@ -443,11 +438,6 @@
     font-size: var(--ui-font-size-sm);
     line-height: 1.5;
     color: var(--ui-text-secondary);
-  }
-
-  .harmony-actions {
-    display: flex;
-    gap: var(--ui-space-8);
   }
 
   .swatch-rows {
