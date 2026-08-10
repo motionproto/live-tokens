@@ -51,31 +51,49 @@
   }
 </script>
 
-<div class="strip" role="group" aria-label={`${spec.label} derived scale`}>
-  {#each steps as s, i (s.label)}
-    <div
-      class="spot"
-      class:anchored={anchoredStep === i}
-      class:background={backgroundStep === i}
-      style:flex-grow={dockGrow(i, anchoredStep)}
-      title={stepTitle(s, i)}
-    >
-      <span class="chip" style:background={s.hex}>
-        <span class="aa" class:fail={!s.aa} style:color={s.textHex}>Aa</span>
-      </span>
-      <span class="step-label">{s.label}</span>
-    </div>
-  {/each}
+<div class="strip-viewport">
+  <div class="strip" role="group" aria-label={`${spec.label} derived scale`}>
+    {#each steps as s, i (s.label)}
+      <div
+        class="spot"
+        class:anchored={anchoredStep === i}
+        class:background={backgroundStep === i}
+        style:flex-grow={dockGrow(i, anchoredStep)}
+        title={stepTitle(s, i)}
+      >
+        <span class="chip" style:background={s.hex}>
+          <span class="aa" class:fail={!s.aa} style:color={s.textHex}>Aa</span>
+        </span>
+        <span class="step-label">{s.label}</span>
+      </div>
+    {/each}
+  </div>
 </div>
 {#if isGradient}
   <p class="hint">The page background is currently a gradient; the base color takes over when gradient mode is off.</p>
 {/if}
 
 <style>
+  .strip-viewport {
+    container: strip / inline-size;
+    min-width: 0;
+  }
+
   .strip {
     display: flex;
     align-items: flex-end;
     gap: var(--ui-space-4);
+  }
+
+  /* Eleven steps shrink to slivers before the pane is done narrowing: below
+     that, rank the chips on a grid that keeps a readable width. Grid ignores
+     the dock-magnify flex-grow, so the anchored step reads by height alone. */
+  @container strip (max-width: 28rem) {
+    .strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(2.5rem, 1fr));
+      gap: var(--ui-space-8) var(--ui-space-4);
+    }
   }
 
   .spot {

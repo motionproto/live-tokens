@@ -339,7 +339,11 @@
     }
   }
 
+  /* The pane is one column of a two-pane grid, so it goes narrow on a wide
+     standalone window just as it does in the docked panel. Every collapse
+     below keys on the pane's own width, never the viewport's. */
   .pane {
+    container: pane / inline-size;
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-32);
@@ -434,9 +438,8 @@
     gap: var(--ui-space-6);
   }
 
-  /* The docked panel's iframe viewport is the panel itself, so this collapse
-     fires there long before the standalone page ever gets this narrow. */
-  @media (max-width: 720px) {
+  /* Below this the three columns squeeze the swatches into slivers. */
+  @container pane (max-width: 44rem) {
     .harmony-cols {
       grid-template-columns: minmax(0, 1fr);
     }
@@ -446,8 +449,10 @@
       justify-content: center;
       transform: rotate(90deg);
     }
+  }
 
-    /* Below the wheel's minimum the rail is taller than the disc it flanks. */
+  /* Below the wheel's minimum the rail is taller than the disc it flanks. */
+  @container pane (max-width: 26rem) {
     .wheel-row {
       flex-direction: column;
       align-items: stretch;
@@ -572,6 +577,7 @@
   }
 
   .swatch-rows {
+    container: swatches / inline-size;
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-8);
@@ -591,6 +597,17 @@
   /* Mirrors the axis row's drop ring: this is where a chip goes to unassign. */
   .swatch-row.drop-target {
     outline-color: var(--ui-text-primary);
+  }
+
+  /* Too narrow for one swatch per family: wrap into ranks that keep a readable
+     swatch width rather than shrinking toward slivers. auto-fill keeps every
+     rank on the same tracks, so a short last rank never stretches. */
+  @container swatches (max-width: 28rem) {
+    .swatch-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(5.25rem, 1fr));
+      gap: var(--ui-space-8);
+    }
   }
 
   /* Every swatch keeps one width: selection reads in the frame's height alone,

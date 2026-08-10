@@ -120,6 +120,14 @@
     }
     menu.style.left = `${left}px`;
     menu.style.top = `${top}px`;
+    // A container-type (or transformed) ancestor re-parents the fixed
+    // containing block off the viewport origin; measure where the menu landed
+    // and re-anchor so the viewport math above still holds.
+    const placed = menu.getBoundingClientRect();
+    if (Math.abs(placed.left - left) > 0.5 || Math.abs(placed.top - top) > 0.5) {
+      menu.style.left = `${left - (placed.left - left)}px`;
+      menu.style.top = `${top - (placed.top - top)}px`;
+    }
     menu.style.visibility = 'visible';
   }
 
