@@ -156,31 +156,33 @@
         </ColorEditPanel>
       </div>
 
-      <div class="group">
-        <span class="eyebrow">Color Harmony <span class="mode-name">&middot; {shownModeLabel}</span></span>
-        <div class="mode-row" role="group" aria-label="Color harmony mode">
-          {#each HARMONY_MODE_BUTTONS as m (m.mode)}
-            <button
-              type="button"
-              class="mode-btn"
-              class:active={activeMode === m.mode}
-              title={m.label}
-              aria-label={m.label}
-              aria-pressed={activeMode === m.mode}
-              onclick={() => applyMode(m.mode)}
-              onpointerenter={() => (hoverMode = m.mode)}
-              onpointerleave={() => (hoverMode = null)}
-              onfocus={() => (hoverMode = m.mode)}
-              onblur={() => (hoverMode = null)}
-            >{@html m.svg}</button>
-          {/each}
+      <div class="harmony-cols">
+        <div class="group">
+          <span class="eyebrow">Color Harmony <span class="mode-name">&middot; {shownModeLabel}</span></span>
+          <div class="mode-row" role="group" aria-label="Color harmony mode">
+            {#each HARMONY_MODE_BUTTONS as m (m.mode)}
+              <button
+                type="button"
+                class="mode-btn"
+                class:active={activeMode === m.mode}
+                title={m.label}
+                aria-label={m.label}
+                aria-pressed={activeMode === m.mode}
+                onclick={() => applyMode(m.mode)}
+                onpointerenter={() => (hoverMode = m.mode)}
+                onpointerleave={() => (hoverMode = null)}
+                onfocus={() => (hoverMode = m.mode)}
+                onblur={() => (hoverMode = null)}
+              >{@html m.svg}</button>
+            {/each}
+          </div>
         </div>
-      </div>
 
-      <div class="group">
-        <span class="eyebrow">Harmony axes</span>
-        <p class="axes-desc">Each axis owns a hue. Assign a color from the row menu, or drag one onto the axis. The color adopts the axis hue and follows it. To unassign, use the row menu or drag the color to Unassigned.</p>
-        <HarmonyAxesList {activeMode} {selected} onSelect={select} />
+        <div class="group">
+          <span class="eyebrow">Harmony axes</span>
+          <p class="axes-desc">Each axis owns a hue. Assign a color from the row menu, or drag one onto the axis. The color adopts the axis hue and follows it. To unassign, use the row menu or drag the color to Unassigned.</p>
+          <HarmonyAxesList {activeMode} {selected} onSelect={select} />
+        </div>
       </div>
 
       <div class="group">
@@ -322,6 +324,21 @@
     flex-direction: column;
     gap: var(--ui-space-8);
     min-width: 0;
+  }
+
+  .harmony-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--ui-space-20);
+    align-items: start;
+  }
+
+  /* The docked panel's iframe viewport is the panel itself, so this collapse
+     fires there long before the standalone page ever gets this narrow. */
+  @media (max-width: 720px) {
+    .harmony-cols {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 
   .mode-row {
