@@ -16,6 +16,7 @@
     palettesWithDefaults,
   } from './paletteBaseColor';
   import { HARMONY_MODE_BUTTONS, modeLabel } from './harmonyModeIcons';
+  import { maxChroma } from './colorWheelMath';
   import { dockGrow } from '../palette/dockMagnify';
 
   let selected = $state('Brand');
@@ -83,6 +84,21 @@
 
   let selectedSpec = $derived(PALETTE_SPECS.find((s) => s.label === selected) ?? PALETTE_SPECS[0]);
   let selectedOklch = $derived($editorState.palettes[selected]?.baseColor ?? selectedSpec.initialColor);
+
+  const rFracOf = (l: number, c: number, h: number) =>
+    Math.min(1, Math.max(0, c / (maxChroma(l, h) || 1e-6)));
+
+  // H and L slider edits honor the Absolute Chroma toggle the way the wheel
+  // does: with it off, the relative saturation fraction holds while the gamut
+  // moves. An explicit chroma edit (C slider, hex, eyedropper) is taken as-is.
+  function editBase(h: number, c: number, lPct: number) {
+    const l = lPct / 100;
+    const cur = selectedOklch;
+    const chroma = absoluteChroma || c !== cur.c
+      ? c
+      : rFracOf(cur.l, cur.c, cur.h) * maxChroma(l, h);
+    setBaseColor(selected, { l, c: chroma, h });
+  }
 </script>
 
 <div class="colors-tab">
@@ -109,55 +125,55 @@
           hue={selectedOklch.h}
           chroma={selectedOklch.c}
           lightness={selectedOklch.l * 100}
-          onHueChromaChange={(h, c, l) => setBaseColor(selected, { l: l / 100, c, h })}
+          onHueChromaChange={editBase}
           onSliderStart={() => beginSliderGesture(`colors: ${selected} base`)}
-        />
+        >
+          {#snippet actions()}
+            <div class="wheel-opts">
+              <label class="opt">
+                <input type="checkbox" bind:checked={absoluteChroma} />
+                <span>Absolute Chroma</span>
+              </label>
+              <div class="info" bind:this={infoWrap}>
+                <button
+                  type="button"
+                  class="info-btn"
+                  aria-expanded={infoOpen}
+                  aria-label="About Absolute Chroma"
+                  title="About Absolute Chroma"
+                  onclick={toggleInfo}
+                ><i class="fas fa-circle-info" aria-hidden="true"></i></button>
+                {#if infoOpen}
+                  <div class="info-box" role="region" aria-label="Absolute Chroma">
+                    <strong class="info-title">Absolute Chroma</strong>
+                    <p>When on, rotating a color keeps its exact chroma, its colorfulness. The reachable chroma changes from hue to hue, so the handle moves in and out as it orbits.</p>
+                    <p>When off, rotating keeps the color's relative saturation, its fraction of the available gamut. The handle stays a constant distance from the center, and colorfulness shifts a little across hues to stay in gamut.</p>
+                  </div>
+                {/if}
+              </div>
+            </div>
+          {/snippet}
+        </ColorEditPanel>
       </div>
 
       <div class="group">
         <span class="eyebrow">Color Harmony <span class="mode-name">&middot; {shownModeLabel}</span></span>
-        <div class="mode-line">
-          <div class="mode-row" role="group" aria-label="Color harmony mode">
-            {#each HARMONY_MODE_BUTTONS as m (m.mode)}
-              <button
-                type="button"
-                class="mode-btn"
-                class:active={activeMode === m.mode}
-                title={m.label}
-                aria-label={m.label}
-                aria-pressed={activeMode === m.mode}
-                onclick={() => applyMode(m.mode)}
-                onpointerenter={() => (hoverMode = m.mode)}
-                onpointerleave={() => (hoverMode = null)}
-                onfocus={() => (hoverMode = m.mode)}
-                onblur={() => (hoverMode = null)}
-              >{@html m.svg}</button>
-            {/each}
-          </div>
-
-          <div class="wheel-opts">
-            <label class="opt">
-              <input type="checkbox" bind:checked={absoluteChroma} />
-              <span>Absolute Chroma</span>
-            </label>
-            <div class="info" bind:this={infoWrap}>
-              <button
-                type="button"
-                class="info-btn"
-                aria-expanded={infoOpen}
-                aria-label="About Absolute Chroma"
-                title="About Absolute Chroma"
-                onclick={toggleInfo}
-              ><i class="fas fa-circle-info" aria-hidden="true"></i></button>
-              {#if infoOpen}
-                <div class="info-box" role="region" aria-label="Absolute Chroma">
-                  <strong class="info-title">Absolute Chroma</strong>
-                  <p>When on, rotating a color keeps its exact chroma, its colorfulness. The reachable chroma changes from hue to hue, so the handle moves in and out as it orbits.</p>
-                  <p>When off, rotating keeps the color's relative saturation, its fraction of the available gamut. The handle stays a constant distance from the center, and colorfulness shifts a little across hues to stay in gamut.</p>
-                </div>
-              {/if}
-            </div>
-          </div>
+        <div class="mode-row" role="group" aria-label="Color harmony mode">
+          {#each HARMONY_MODE_BUTTONS as m (m.mode)}
+            <button
+              type="button"
+              class="mode-btn"
+              class:active={activeMode === m.mode}
+              title={m.label}
+              aria-label={m.label}
+              aria-pressed={activeMode === m.mode}
+              onclick={() => applyMode(m.mode)}
+              onpointerenter={() => (hoverMode = m.mode)}
+              onpointerleave={() => (hoverMode = null)}
+              onfocus={() => (hoverMode = m.mode)}
+              onblur={() => (hoverMode = null)}
+            >{@html m.svg}</button>
+          {/each}
         </div>
       </div>
 
@@ -306,13 +322,6 @@
     flex-direction: column;
     gap: var(--ui-space-8);
     min-width: 0;
-  }
-
-  .mode-line {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-12);
-    flex-wrap: wrap;
   }
 
   .mode-row {

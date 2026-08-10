@@ -330,25 +330,24 @@
     flex-wrap: wrap;
   }
 
+  /* Shared column tracks keep every bar and every input the same width
+     regardless of row content; the row wrappers dissolve into the grid. */
   .hsl-sliders {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-6);
+    display: grid;
+    grid-template-columns: 2.5rem minmax(6rem, 1fr) 3.5rem 0.75rem;
+    gap: var(--ui-space-6) var(--ui-space-8);
+    align-items: center;
   }
 
   .hsl-slider-row {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-8);
+    display: contents;
   }
 
   .hsl-slider-label {
     font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
-    width: 2.5rem;
     text-align: right;
-    flex-shrink: 0;
   }
 
   .slider-track {
@@ -356,8 +355,6 @@
     height: 1.25rem;
     border-radius: var(--ui-radius-md);
     border: 1px solid var(--ui-border-low);
-    flex: 1;
-    min-width: 6rem;
   }
 
   .chroma-hint {
@@ -422,9 +419,9 @@
     font-size: var(--ui-font-size-md);
     color: var(--ui-text-primary);
     font-family: var(--ui-font-mono);
-    width: 3.5rem;
+    width: 100%;
+    box-sizing: border-box;
     text-align: right;
-    flex-shrink: 0;
     background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
@@ -448,7 +445,5 @@
     font-size: var(--ui-font-size-md);
     color: var(--ui-text-muted);
     font-family: var(--ui-font-mono);
-    width: 0.75rem;
-    flex-shrink: 0;
   }
 </style>
