@@ -28,6 +28,7 @@
   // Base-color edits route through the shared setter so a bound harmony axis
   // follows the hue (invariant 1); the local `edit` would silently detach it.
   import { setBaseColor } from './colors/paletteBaseColor';
+  import { pendingPaletteFocus } from '../core/store/paletteFocus';
   import { showCopyPopover } from './copyPopover';
 
   interface Props {
@@ -98,6 +99,16 @@
 
   let showDerived = $state(false);
   let paletteEditorOpen = $state(false);
+  let rootEl: HTMLElement | undefined = $state();
+
+  // Arriving from the Colors view's Edit button: open this family's controls and
+  // bring it into view, since the Tokens view stacks every family.
+  $effect(() => {
+    if ($pendingPaletteFocus !== label) return;
+    pendingPaletteFocus.set(null);
+    paletteEditorOpen = true;
+    tick().then(() => rootEl?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  });
 
   function setLightnessCurve(a: CurveAnchor[]) { edit('lightnessCurve', a); }
   function setSaturationCurve(a: CurveAnchor[]) { edit('saturationCurve', a); }
@@ -131,6 +142,12 @@
         clearBaseAnchor(cfg);
       }
     });
+  }
+
+  let anchorUnlockPrompt = $state(false);
+  function confirmBaseAnchorUnlock() {
+    setAnchorToBase(false);
+    anchorUnlockPrompt = false;
   }
 
 
@@ -466,7 +483,7 @@
   });
 </script>
 
-<div class="palette-editor" style="--editor-base: {toHex(baseColor)}">
+<div class="palette-editor" bind:this={rootEl} style="--editor-base: {toHex(baseColor)}">
   <PaletteBase
     {label}
     {displayLabel}
@@ -476,6 +493,7 @@
     {anchorStepLabel}
     {isEditingBase}
     {panelOpen}
+    pinnedOpen={paletteEditorOpen}
     {editingColor}
     {editPanelTitle}
     {copiedKey}
@@ -552,6 +570,16 @@
         </div>
       {#if paletteEditorOpen}
         <div class="curve-grid-span" style="grid-column: 2 / {paletteStepLightness.length + 2}">
+          {#if anchorUnlockPrompt && anchorToBase}
+            <div class="anchor-unlock-notice" role="alert">
+              <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
+              <span>Unlock the base color anchor? The palette will no longer pass through the base color.</span>
+              <div class="anchor-unlock-actions">
+                <UIPillButton size="compact" onclick={confirmBaseAnchorUnlock}>Unlock</UIPillButton>
+                <UIPillButton size="compact" variant="outline" onclick={() => anchorUnlockPrompt = false}>Cancel</UIPillButton>
+              </div>
+            </div>
+          {/if}
           <ScaleCurveEditor
             curveKey="lightness"
             anchors={lightnessCurve}
@@ -560,6 +588,7 @@
             defaults={DEFAULT_PALETTE_LIGHTNESS()}
             offset={curveOffset['lightness'] ?? 0}
             lockedAnchorIndex={lockedLightnessIdx}
+            onLockedAnchorUnlock={() => anchorUnlockPrompt = true}
             onAnchorsChange={setLightnessCurve}
             onOffsetChange={handleOffset}
           />
@@ -571,6 +600,7 @@
             defaults={DEFAULT_PALETTE_SATURATION()}
             offset={curveOffset['saturation'] ?? 0}
             lockedAnchorIndex={lockedSaturationIdx}
+            onLockedAnchorUnlock={() => anchorUnlockPrompt = true}
             onAnchorsChange={setSaturationCurve}
             onOffsetChange={handleOffset}
           />
@@ -841,6 +871,28 @@
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-8);
+  }
+
+  .anchor-unlock-notice {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    padding: var(--ui-space-6) var(--ui-space-12);
+    background: var(--ui-surface-high);
+    border: 1px solid var(--ui-border-low);
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-sm);
+  }
+
+  .anchor-unlock-notice i {
+    color: var(--ui-text-tertiary);
+  }
+
+  .anchor-unlock-actions {
+    display: flex;
+    gap: var(--ui-space-4);
+    margin-left: auto;
   }
 
   .swatch.gray-swatch {

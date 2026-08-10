@@ -97,6 +97,19 @@
     document.removeEventListener('mousedown', onDocumentMousedown, true);
   });
 
+  /* Reparented out of the row: a trigger's surroundings can carry opacity
+     (dimmed rows do), which fades every descendant and would show the page
+     through the popup. Fixed positioning alone cannot escape that.
+     The host is the enclosing .editor-page, not <body>: every --ui-* token is
+     scoped to it, so a popup parked outside renders with no background at all.
+     Reparenting takes the node out of the range the component tears down, so
+     removal is the action's to do: a menu open when its trigger disappears
+     (selecting a family swaps the row's trigger) would otherwise be stranded. */
+  function portal(node: HTMLElement) {
+    (node.closest('.editor-page') ?? document.body).appendChild(node);
+    return { destroy: () => node.remove() };
+  }
+
   /* Fixed positioning escapes any parent overflow/stacking context. Anchored
      below the trigger, right edges aligned; flips above near the viewport
      bottom. Inline visibility rather than a state flag so the item focus that
@@ -179,6 +192,7 @@
     style="min-width: {menuMinWidth};"
     bind:this={menuEl}
     onkeydown={onMenuKeydown}
+    use:portal
   >
     <div class="menu-header" role="presentation">{header}</div>
     {@render children({ close })}

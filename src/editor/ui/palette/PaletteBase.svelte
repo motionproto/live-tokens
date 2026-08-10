@@ -1,6 +1,7 @@
 <script lang="ts">
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import Toggle from '../Toggle.svelte';
+  import PaletteJumpButton from './PaletteJumpButton.svelte';
   import { beginSliderGesture } from '../../core/store/editorStore';
   import { oklchToHexClamped, type Oklch } from '../../core/palettes/oklch';
 
@@ -32,6 +33,8 @@
     anchorStepLabel?: string | null;
     isEditingBase: boolean;
     panelOpen: boolean;
+    /** Keep the panel open in live-apply mode (no confirm/cancel session) while the curve editors are visible. */
+    pinnedOpen?: boolean;
     editingColor: Oklch | null;
     editPanelTitle: string | null;
     copiedKey: string | null;
@@ -52,6 +55,7 @@
     anchorStepLabel = null,
     isEditingBase,
     panelOpen,
+    pinnedOpen = false,
     editingColor,
     editPanelTitle,
     copiedKey,
@@ -73,7 +77,7 @@
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
     <div
       class="header-swatch"
-      class:active={isEditingBase}
+      class:active={isEditingBase || pinnedOpen}
       style="background: {baseHex}"
       onclick={onStartEdit}
       role="button"
@@ -81,7 +85,10 @@
       onkeydown={(e) => e.key === 'Enter' && onStartEdit()}
     ></div>
     <div class="primary-info">
-      <span class="editor-label">{displayLabel ?? label}</span>
+      <div class="label-row">
+        <span class="editor-label">{displayLabel ?? label}</span>
+        <PaletteJumpButton family={label} {displayLabel} target="wheel" />
+      </div>
       <button
         class="base-hex clickable-hex"
         type="button"
@@ -91,10 +98,11 @@
   </div>
 </div>
 
-{#if isEditingBase && panelOpen && editingColor}
+{#if pinnedOpen || (isEditingBase && panelOpen && editingColor)}
   <ColorEditPanel
-    title={editPanelTitle}
+    title={isEditingBase ? editPanelTitle : 'Base Color'}
     showRemoveOverride={false}
+    hideActions={!isEditingBase}
     hue={baseOklch.h}
     chroma={baseOklch.c}
     lightness={baseOklch.l * 100}
@@ -127,7 +135,7 @@
   .editor-primary {
     display: flex;
     align-items: center;
-    gap: var(--ui-space-8);
+    gap: var(--ui-space-12);
     flex-shrink: 0;
   }
 
@@ -136,6 +144,13 @@
     flex-direction: column;
     gap: var(--ui-space-2);
   }
+
+  .label-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-10);
+  }
+
 
   .header-swatch {
     width: 4rem;

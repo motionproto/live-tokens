@@ -26,6 +26,7 @@
     lockedAnchorIndex?: number | null;
     onAnchorsChange: (anchors: CurveAnchor[]) => void;
     onOffsetChange: (key: string, value: number) => void;
+    onLockedAnchorUnlock?: (() => void) | null;
   }
 
   let {
@@ -37,7 +38,8 @@
     offset = 0,
     lockedAnchorIndex = null,
     onAnchorsChange,
-    onOffsetChange
+    onOffsetChange,
+    onLockedAnchorUnlock = null
   }: Props = $props();
 </script>
 
@@ -48,6 +50,7 @@
   defaultAnchors={defaults}
   {offset}
   {lockedAnchorIndex}
+  {onLockedAnchorUnlock}
   {onAnchorsChange}
   onOffsetChange={(v) => onOffsetChange(curveKey, v)}
 />

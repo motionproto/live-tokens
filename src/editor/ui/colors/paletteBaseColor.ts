@@ -145,26 +145,31 @@ function applyAxisHue(s: EditorState, index: number, hue: number, chroma: number
   }
 }
 
-/** Bind a family to an axis; the axis moves to the family's hue. Trade-places
+/** Which side of an assignment keeps its hue: `swatch` moves the axis onto the
+ *  color, `axis` repaints the color onto the axis. */
+export type AdoptOnAssign = 'swatch' | 'axis';
+
+/** Bind a family to an axis; `adopt` decides which hue survives. Trade-places
  *  semantics: whatever occupied the destination takes the source's position
- *  (another axis, which likewise moves to it, or unassigned). One mutate.
+ *  (another axis, reconciled the same way, or unassigned). One mutate.
  *  Returns whether any axis hue moved, which is what makes an applied harmony
  *  mode untrue — the caller drops to Custom on that. */
-export function bindFamilyToAxis(family: string, index: number): boolean {
+export function bindFamilyToAxis(family: string, index: number, adopt: AdoptOnAssign): boolean {
   const srcIndex = get(editorState).harmonyAxes.findIndex((a) => a.family === family);
   if (srcIndex === index) return false;
+  const reconcile = adopt === 'swatch' ? takeSeedHue : giveAxisHue;
   let hueMoved = false;
   mutate(`colors: assign ${family}`, (s) => {
     const axes = s.harmonyAxes;
     const occupant = axes[index].family;
     axes[index].family = family;
-    hueMoved = takeSeedHue(s, index, family);
-    // Source was another axis: the occupant trades into it, keeping its color
-    // and taking that axis to its hue. Source was unassigned (-1): the occupant
-    // simply floats free, color kept.
+    hueMoved = reconcile(s, index, family);
+    // Source was another axis: the occupant trades into it and reconciles with
+    // it in turn. Source was unassigned (-1): the occupant floats free, and
+    // keeps whatever hue this assignment left it.
     if (srcIndex !== -1) {
       axes[srcIndex].family = occupant;
-      if (occupant !== null) hueMoved = takeSeedHue(s, srcIndex, occupant) || hueMoved;
+      if (occupant !== null) hueMoved = reconcile(s, srcIndex, occupant) || hueMoved;
     }
   });
   return hueMoved;
@@ -179,13 +184,28 @@ export function unbindFamily(family: string): void {
   });
 }
 
-/** Assignment must never repaint a seed the user chose, so the axis is what
- *  moves. Harmony modes and axis drags stay the steps that move colors. */
+/** The axis adopts the swatch: the seed the user chose is never repainted, so
+ *  the axis is what moves. */
 function takeSeedHue(s: EditorState, index: number, family: string): boolean {
   const hue = normHue(ensureConfig(s, family).baseColor.h);
   if (s.harmonyAxes[index].hue === hue) return false;
   s.harmonyAxes[index].hue = hue;
   return true;
+}
+
+/** The swatch adopts the axis: the color lands on the hue its new slot holds,
+ *  which leaves the geometry untouched — hence never a hue move to report, so
+ *  an applied harmony mode survives assignment. */
+function giveAxisHue(s: EditorState, index: number, family: string): boolean {
+  // The axis hue is taken raw: the color must land exactly on it, and normHue
+  // is not identity in range — its round trip shifts the last bit.
+  const hue = s.harmonyAxes[index].hue;
+  const cfg = ensureConfig(s, family);
+  if (cfg.baseColor.h !== hue) {
+    cfg.baseColor = { l: cfg.baseColor.l, c: cfg.baseColor.c, h: hue };
+    syncBaseAnchor(cfg);
+  }
+  return false;
 }
 
 /** Set several seed colors in ONE undo entry (harmony apply, global rotate). */

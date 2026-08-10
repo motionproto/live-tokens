@@ -3,6 +3,7 @@
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginSliderGesture } from '../../core/store/editorStore';
+  import { selectedPalette } from '../../core/store/paletteFocus';
   import { applyHarmonyToAxes, axisStatuses, HARMONY_ELIGIBLE, type HarmonyMode } from '../../core/palettes/colorHarmony';
   import AxisNumeral from './AxisNumeral.svelte';
   import ColorEditPanel from '../ColorEditPanel.svelte';
@@ -11,6 +12,7 @@
   import ColorStory from './ColorStory.svelte';
   import PaletteStepStrip from './PaletteStepStrip.svelte';
   import HarmonyAxesList from './HarmonyAxesList.svelte';
+  import PaletteJumpButton from '../palette/PaletteJumpButton.svelte';
   import {
     setBaseColor,
     setAxisHues,
@@ -21,7 +23,9 @@
   import { HARMONY_DRAG_TYPE, startFamilyDrag } from './harmonyDrag';
   import { maxChroma } from './colorWheelMath';
 
-  let selected = $state('Brand');
+  // Shared with the Tokens view: its wheel link hands a family over by writing
+  // the store, and this view is already showing it when the switch lands.
+  let selected = $derived($selectedPalette);
   let activeMode = $state<HarmonyMode>('custom');
   // Local UI only — deliberately NOT stored in PaletteConfig (shape unchanged).
   let absoluteChroma = $state(false);
@@ -31,7 +35,7 @@
   let axesInfoWrap: HTMLElement | undefined = $state();
 
   function select(label: string) {
-    selected = label;
+    selectedPalette.set(label);
   }
 
   function toggleInfo() {
@@ -285,7 +289,7 @@
               {#if axesInfoOpen}
                 <div class="info-box" role="region" aria-label="Harmony axes">
                   <strong class="info-title">Harmony axes</strong>
-                  <p>Each axis owns a hue. Assign a color from the row menu, or drag one onto the axis. The axis moves to that color's hue and the color follows the axis from then on, so applying a harmony rotates every assigned color at once. To unassign, use the row menu, or drag the color off its axis and drop it anywhere else.</p>
+                  <p>Each axis owns a hue. Assign a color from the row menu, or drag one onto the axis. On assign picks which hue survives: Adopt swatch moves the axis to the color's hue, Adopt axis repaints the color to the hue the axis already holds, which keeps an applied harmony true. Either way the color follows the axis from then on, so applying a harmony rotates every assigned color at once. To unassign, use the row menu, or drag the color off its axis and drop it anywhere else.</p>
                 </div>
               {/if}
             </div>
@@ -305,8 +309,9 @@
     </section>
 
     <section id="colors-selected" class="block">
-      <header class="block-head">
+      <header class="block-head head-row">
         <h2 class="title">Palette <span class="mode-name">&middot; {selectedSpec.displayLabel ?? selected}</span></h2>
+        <PaletteJumpButton family={selected} displayLabel={selectedSpec.displayLabel} target="tokens" />
       </header>
 
       <div class="group">
@@ -378,6 +383,13 @@
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-2);
+  }
+
+  .block-head.head-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-12);
   }
 
   /* Every labeled region on this page carries the same heading, section and

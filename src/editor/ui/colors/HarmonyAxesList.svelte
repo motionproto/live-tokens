@@ -7,8 +7,9 @@
   import UIMenuButton from '../UIMenuButton.svelte';
   import UIOptionItem from '../UIOptionItem.svelte';
   import UIOptionList from '../UIOptionList.svelte';
+  import UISegmentedControl from '../UISegmentedControl.svelte';
   import { modeLabel } from './harmonyModeIcons';
-  import { bindFamilyToAxis, unbindFamily } from './paletteBaseColor';
+  import { bindFamilyToAxis, unbindFamily, type AdoptOnAssign } from './paletteBaseColor';
   import { HARMONY_DRAG_TYPE, startFamilyDrag } from './harmonyDrag';
 
   interface Props {
@@ -24,8 +25,23 @@
 
   let { activeMode, selected, oncustomize }: Props = $props();
 
+  const ADOPT_OPTIONS = [
+    {
+      value: 'axis',
+      label: 'Adopt axis',
+      title: 'The color moves to the hue its new axis holds, so an applied harmony stays true',
+    },
+    {
+      value: 'swatch',
+      label: 'Adopt swatch',
+      title: "The axis moves to the color's hue, which leaves the harmony custom",
+    },
+  ] as const satisfies ReadonlyArray<{ value: AdoptOnAssign; label: string; title: string }>;
+
+  let adopt = $state<AdoptOnAssign>('swatch');
+
   function assign(family: string, index: number) {
-    if (bindFamilyToAxis(family, index)) oncustomize();
+    if (bindFamilyToAxis(family, index, adopt)) oncustomize();
   }
 
   // Empty-row swatch shows the axis's own hue, at fixed preview L/C so only the
@@ -194,6 +210,15 @@
 {/snippet}
 
 <div class="axes-list" bind:this={listEl}>
+  <div class="adopt-row">
+    <span class="adopt-caption">On assign</span>
+    <UISegmentedControl
+      bind:value={adopt}
+      options={ADOPT_OPTIONS}
+      ariaLabel="Which hue survives an assignment"
+    />
+  </div>
+  <span class="anchor-caption">Anchor</span>
   {#each axes as axis, i (i)}
     {@const status = statuses[i]}
     {@const unused = status === 'unused'}
@@ -215,7 +240,6 @@
       ondragleave={() => onDragLeave(i)}
       ondrop={(e) => onDrop(e, i)}
     >
-      <span class="role">{i === 0 ? 'Anchor' : ''}</span>
       {#if axis.family !== null}
         {@const family = axis.family}
         <span class="swatch" style="--fill: {familyHex(family)}"></span>
@@ -317,13 +341,24 @@
     background: var(--ui-surface-low);
   }
 
-  /* Only axis 1 fills this column, but every row reserves it so the swatches,
-     chips and pickers start at one x. Sized to fit "Anchor". The axis number
-     itself lives only on the left swatches, which is where a color is read. */
-  .role {
-    flex: none;
-    width: 4rem;
+  .adopt-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+    margin-bottom: var(--ui-space-4);
+  }
+
+  .adopt-caption {
     color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-xs);
+  }
+
+  /* Names the first row alone. Sitting above the list rather than in a column
+     every row reserves, so no row carries dead space for a word only one has. */
+  .anchor-caption {
+    padding-inline-start: calc(var(--ui-space-8) + 1px);
+    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-xs);
   }
 
   /* Unused slot: nothing bound and no position dealt. The row states the reason

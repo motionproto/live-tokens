@@ -375,11 +375,11 @@ describe('editorStore — harmonyAxes persistence', () => {
 });
 
 describe('editorStore — harmony axis setters', () => {
-  it('bindFamilyToAxis moves the axis to the family hue, leaving the color alone', () => {
+  it('adopt swatch moves the axis to the family hue, leaving the color alone', () => {
     loadFromFile(themeWithPalettes());
     const special0 = { ...get(editorState).palettes.Special.baseColor };
     const before = __getHistoryLengths().past;
-    expect(bindFamilyToAxis('Special', 3)).toBe(true);
+    expect(bindFamilyToAxis('Special', 3, 'swatch')).toBe(true);
     const s = get(editorState);
     expect(__getHistoryLengths().past).toBe(before + 1);
     expect(s.harmonyAxes[3].family).toBe('Special');
@@ -387,12 +387,12 @@ describe('editorStore — harmony axis setters', () => {
     expect(s.palettes.Special.baseColor).toEqual(special0);
   });
 
-  it('bindFamilyToAxis trades places, each axis taking its new family hue', () => {
+  it('adopt swatch trades places, each axis taking its new family hue', () => {
     loadFromFile(themeWithPalettes());
     const brand0 = { ...get(editorState).palettes.Brand.baseColor };
     const accent0 = { ...get(editorState).palettes.Accent.baseColor };
     const before = __getHistoryLengths().past;
-    bindFamilyToAxis('Brand', 1);
+    bindFamilyToAxis('Brand', 1, 'swatch');
     const s = get(editorState);
     expect(__getHistoryLengths().past).toBe(before + 1);
     expect(s.harmonyAxes[0].family).toBe('Accent');
@@ -401,6 +401,32 @@ describe('editorStore — harmony axis setters', () => {
     expect(s.harmonyAxes[1].hue).toBeCloseTo(brand0.h, 9);
     expect(s.palettes.Brand.baseColor).toEqual(brand0);
     expect(s.palettes.Accent.baseColor).toEqual(accent0);
+  });
+
+  it('adopt axis repaints the family onto the axis hue, reporting no hue move', () => {
+    loadFromFile(themeWithPalettes());
+    const special0 = { ...get(editorState).palettes.Special.baseColor };
+    const axisHue0 = get(editorState).harmonyAxes[3].hue;
+    expect(bindFamilyToAxis('Special', 3, 'axis')).toBe(false);
+    const s = get(editorState);
+    expect(s.harmonyAxes[3].family).toBe('Special');
+    expect(s.harmonyAxes[3].hue).toBe(axisHue0);
+    expect(s.palettes.Special.baseColor).toEqual({ l: special0.l, c: special0.c, h: axisHue0 });
+  });
+
+  it('adopt axis trades places, the two families swapping hues and both axes staying put', () => {
+    loadFromFile(themeWithPalettes());
+    const brand0 = { ...get(editorState).palettes.Brand.baseColor };
+    const accent0 = { ...get(editorState).palettes.Accent.baseColor };
+    const [axis0, axis1] = get(editorState).harmonyAxes.map((a) => a.hue);
+    bindFamilyToAxis('Brand', 1, 'axis');
+    const s = get(editorState);
+    expect(s.harmonyAxes[0].family).toBe('Accent');
+    expect(s.harmonyAxes[1].family).toBe('Brand');
+    expect(s.harmonyAxes[0].hue).toBe(axis0);
+    expect(s.harmonyAxes[1].hue).toBe(axis1);
+    expect(s.palettes.Brand.baseColor).toEqual({ l: brand0.l, c: brand0.c, h: axis1 });
+    expect(s.palettes.Accent.baseColor).toEqual({ l: accent0.l, c: accent0.c, h: axis0 });
   });
 
   it('unbindFamily keeps the family color and the axis hue', () => {
@@ -431,7 +457,7 @@ describe('editorStore — harmony axis setters', () => {
   it('a no-op bindFamilyToAxis adds no history entry and reports no hue move', () => {
     loadFromFile(themeWithPalettes());
     const before = __getHistoryLengths().past;
-    expect(bindFamilyToAxis('Brand', 0)).toBe(false);
+    expect(bindFamilyToAxis('Brand', 0, 'swatch')).toBe(false);
     expect(__getHistoryLengths().past).toBe(before);
   });
 

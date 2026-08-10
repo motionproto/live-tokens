@@ -156,6 +156,13 @@ describe('menu semantics', () => {
     }
   });
 
+  it('renders the popup outside the row, whose dimming would otherwise fade it', async () => {
+    mountList('complementary');
+    const offWheel = rows()[2];
+    await openMenu(triggerOf(offWheel)!);
+    expect(offWheel.contains(menu())).toBe(false);
+  });
+
   it('names the anchor menu "Assign to anchor"', async () => {
     mountList();
     await openMenu(triggerOf(rows()[0])!);

@@ -20,6 +20,7 @@
     lockedAnchorIndex?: number | null;
     onAnchorsChange?: (anchors: CurveAnchor[]) => void;
     onOffsetChange?: (offset: number) => void;
+    onLockedAnchorUnlock?: (() => void) | null;
   }
 
   let {
@@ -31,7 +32,8 @@
     defaultAnchors = null,
     lockedAnchorIndex = null,
     onAnchorsChange = () => {},
-    onOffsetChange = () => {}
+    onOffsetChange = () => {},
+    onLockedAnchorUnlock = null
   }: Props = $props();
 
   function resetToDefault() {
@@ -380,7 +382,12 @@
               <path
                 d="M{curveXToSvg(pt.x, w, padX)},{curveYToSvg(pt.y, cfg) - 6} l5,6 l-5,6 l-5,-6 Z"
                 class="curve-handle locked"
-              />
+                ondblclick={onLockedAnchorUnlock ? stopPropagation(onLockedAnchorUnlock) : undefined}
+              >
+                {#if onLockedAnchorUnlock}
+                  <title>Base color anchor. Double-click to unlock.</title>
+                {/if}
+              </path>
             {:else if isCornerAnchor(pt)}
               <rect
                 x={curveXToSvg(pt.x, w, padX) - 4} y={curveYToSvg(pt.y, cfg) - 4}
