@@ -12,9 +12,6 @@
     /** Hide the confirm/cancel actions for live-apply consumers (Colors view
      *  readout) where edits commit through the store as they happen. */
     hideActions?: boolean;
-    /** Drop the L slider row for hosts that already provide a lightness
-     *  control beside the panel (Colors view's LightnessBar). */
-    hideLightness?: boolean;
     onConfirm?: () => void;
     onCancel?: () => void;
     onRemoveOverride?: () => void;
@@ -33,16 +30,12 @@
     chromaHint?: number;
     onHueChromaChange?: (hue: number, chroma: number, lightness: number) => void;
     actions?: import('svelte').Snippet;
-    /** Rendered inside the box below the sliders — hosts that hide the L row
-     *  slot their own lightness control here so H, C and L share the panel. */
-    children?: import('svelte').Snippet;
   }
 
   let {
     title = null,
     showRemoveOverride = false,
     hideActions = false,
-    hideLightness = false,
     onConfirm = () => {},
     onCancel = () => {},
     onRemoveOverride = () => {},
@@ -53,8 +46,7 @@
     chromaMax = 0.4,
     chromaHint,
     onHueChromaChange = () => {},
-    actions,
-    children
+    actions
   }: Props = $props();
 
   const hasEyeDropper = typeof window !== 'undefined' && 'EyeDropper' in window;
@@ -198,7 +190,7 @@
         type="number"
         min="0"
         max="360"
-        value={hue}
+        value={Math.round(hue)}
         onchange={(e) => onHueChromaChange(Math.min(360, Math.max(0, +e.currentTarget.value)), chroma, lPct)}
       /><span class="hsl-slider-unit">&deg;</span>
     </div>
@@ -213,35 +205,32 @@
           oninput={(e) => onHueChromaChange(hue, +e.currentTarget.value, lPct)} />
       </div>
       <input
-        class="hsl-slider-input chroma-input"
+        class="hsl-slider-input"
         type="number"
         min="0"
         max={chromaMax}
         step="0.001"
         value={chroma.toFixed(3)}
         onchange={(e) => onHueChromaChange(hue, Math.min(chromaMax, Math.max(0, +e.currentTarget.value)), lPct)}
-      />
+      /><span class="hsl-slider-unit"></span>
     </div>
-    {#if !hideLightness}
-      <div class="hsl-slider-row">
-        <span class="hsl-slider-label">L</span>
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div class="slider-track" style="background: {lightnessGradient}" onpointerdown={onSliderStart}>
-          <input type="range" min="0" max="100" value={lPct}
-            oninput={(e) => onHueChromaChange(hue, chroma, +e.currentTarget.value)} />
-        </div>
-        <input
-          class="hsl-slider-input"
-          type="number"
-          min="0"
-          max="100"
-          value={Math.round(lPct)}
-          onchange={(e) => onHueChromaChange(hue, chroma, Math.min(100, Math.max(0, +e.currentTarget.value)))}
-        /><span class="hsl-slider-unit">%</span>
+    <div class="hsl-slider-row">
+      <span class="hsl-slider-label">L</span>
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div class="slider-track" style="background: {lightnessGradient}" onpointerdown={onSliderStart}>
+        <input type="range" min="0" max="100" value={lPct}
+          oninput={(e) => onHueChromaChange(hue, chroma, +e.currentTarget.value)} />
       </div>
-    {/if}
+      <input
+        class="hsl-slider-input"
+        type="number"
+        min="0"
+        max="100"
+        value={Math.round(lPct)}
+        onchange={(e) => onHueChromaChange(hue, chroma, Math.min(100, Math.max(0, +e.currentTarget.value)))}
+      /><span class="hsl-slider-unit">%</span>
+    </div>
   </div>
-  {@render children?.()}
 </div>
 
 <style>
@@ -433,7 +422,7 @@
     font-size: var(--ui-font-size-md);
     color: var(--ui-text-primary);
     font-family: var(--ui-font-mono);
-    width: 2.5rem;
+    width: 3.5rem;
     text-align: right;
     flex-shrink: 0;
     background: var(--ui-surface-lowest);
@@ -442,10 +431,6 @@
     padding: var(--ui-space-2) var(--ui-space-4);
     -moz-appearance: textfield;
     appearance: textfield;
-  }
-
-  .hsl-slider-input.chroma-input {
-    width: 3.5rem;
   }
 
   .hsl-slider-input::-webkit-inner-spin-button,

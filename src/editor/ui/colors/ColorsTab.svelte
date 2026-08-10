@@ -6,7 +6,6 @@
   import AxisNumeral from './AxisNumeral.svelte';
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import ColorWheel from './ColorWheel.svelte';
-  import LightnessBar from './LightnessBar.svelte';
   import ColorReadouts from './ColorReadouts.svelte';
   import ColorStory from './ColorStory.svelte';
   import PaletteStepStrip from './PaletteStepStrip.svelte';
@@ -107,15 +106,12 @@
         <ColorEditPanel
           title={selectedSpec.displayLabel ?? selected}
           hideActions
-          hideLightness
           hue={selectedOklch.h}
           chroma={selectedOklch.c}
           lightness={selectedOklch.l * 100}
           onHueChromaChange={(h, c, l) => setBaseColor(selected, { l: l / 100, c, h })}
           onSliderStart={() => beginSliderGesture(`colors: ${selected} base`)}
-        >
-          <LightnessBar {selected} {absoluteChroma} />
-        </ColorEditPanel>
+        />
       </div>
 
       <div class="group">
