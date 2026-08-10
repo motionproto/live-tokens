@@ -33,6 +33,9 @@
     chromaHint?: number;
     onHueChromaChange?: (hue: number, chroma: number, lightness: number) => void;
     actions?: import('svelte').Snippet;
+    /** Rendered inside the box below the sliders — hosts that hide the L row
+     *  slot their own lightness control here so H, C and L share the panel. */
+    children?: import('svelte').Snippet;
   }
 
   let {
@@ -50,7 +53,8 @@
     chromaMax = 0.4,
     chromaHint,
     onHueChromaChange = () => {},
-    actions
+    actions,
+    children
   }: Props = $props();
 
   const hasEyeDropper = typeof window !== 'undefined' && 'EyeDropper' in window;
@@ -237,6 +241,7 @@
       </div>
     {/if}
   </div>
+  {@render children?.()}
 </div>
 
 <style>

@@ -113,9 +113,9 @@
           lightness={selectedOklch.l * 100}
           onHueChromaChange={(h, c, l) => setBaseColor(selected, { l: l / 100, c, h })}
           onSliderStart={() => beginSliderGesture(`colors: ${selected} base`)}
-        />
-
-        <LightnessBar {selected} {absoluteChroma} />
+        >
+          <LightnessBar {selected} {absoluteChroma} />
+        </ColorEditPanel>
       </div>
 
       <div class="group">
