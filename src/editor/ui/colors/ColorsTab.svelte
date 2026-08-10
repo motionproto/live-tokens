@@ -26,6 +26,8 @@
   let absoluteChroma = $state(false);
   let infoOpen = $state(false);
   let infoWrap: HTMLElement | undefined = $state();
+  let axesInfoOpen = $state(false);
+  let axesInfoWrap: HTMLElement | undefined = $state();
 
   function select(label: string) {
     selected = label;
@@ -41,6 +43,15 @@
     if (!infoOpen) return;
     const onDoc = (e: MouseEvent) => {
       if (infoWrap && !infoWrap.contains(e.target as Node)) infoOpen = false;
+    };
+    document.addEventListener('click', onDoc);
+    return () => document.removeEventListener('click', onDoc);
+  });
+
+  $effect(() => {
+    if (!axesInfoOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (axesInfoWrap && !axesInfoWrap.contains(e.target as Node)) axesInfoOpen = false;
     };
     document.addEventListener('click', onDoc);
     return () => document.removeEventListener('click', onDoc);
@@ -212,8 +223,25 @@
         </div>
 
         <div class="group">
-          <span class="eyebrow">Harmony axes</span>
-          <p class="axes-desc">Each axis owns a hue. Assign a color from the row menu, or drag one onto the axis. The color adopts the axis hue and follows it. To unassign, use the row menu or drag the color to Unassigned.</p>
+          <div class="group-head">
+            <span class="eyebrow">Harmony axes</span>
+            <div class="info" bind:this={axesInfoWrap}>
+              <button
+                type="button"
+                class="info-btn"
+                aria-expanded={axesInfoOpen}
+                aria-label="About harmony axes"
+                title="About harmony axes"
+                onclick={() => (axesInfoOpen = !axesInfoOpen)}
+              ><i class="fas fa-circle-info" aria-hidden="true"></i></button>
+              {#if axesInfoOpen}
+                <div class="info-box" role="region" aria-label="Harmony axes">
+                  <strong class="info-title">Harmony axes</strong>
+                  <p>Each axis owns a hue. Assign a color from the row menu, or drag one onto the axis. The color adopts the axis hue and follows it. To unassign, use the row menu or drag the color to Unassigned.</p>
+                </div>
+              {/if}
+            </div>
+          </div>
           <HarmonyAxesList {activeMode} {selected} onSelect={select} />
         </div>
       </div>
@@ -273,11 +301,10 @@
     min-width: 0;
   }
 
-  .axes-desc {
-    margin: 0;
-    font-size: var(--ui-font-size-md);
-    line-height: 1.5;
-    color: var(--ui-text-secondary);
+  .group-head {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-6);
   }
 
   .block {
