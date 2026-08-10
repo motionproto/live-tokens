@@ -1,5 +1,72 @@
 # Changelog
 
+## 0.46.0 — Harmony axes are numbered, and you assign them with a picker
+
+### Changed
+
+- **The four harmony axes are numbered, not named.** `AXIS_ROLES`
+  (`Anchor`/`Secondary`/`Tertiary`/`Quaternary`) is deleted; every call site
+  routes through the new `axisLabel(index)`, and only axis 1 keeps a word.
+  Rows read `1 Anchor`, `2`, `3`, `4`. History entries read `colors: axis 3
+  hue`, `colors: anchor rotate`, `colors: assign Brand`, `colors: unassign
+  Brand`. Aria and titles drop the doubled "axis": `Rotate axis 3 hue`,
+  `Brand, on axis 2 of 4. ... Delete to unassign.` `bindFamilyToAxis` and
+  `unbindFamily` keep their names, so the model verb is unchanged.
+
+- **One source of truth for axis status.** `axisStatuses(mode, axes)` replaces
+  the three per-surface derivations off `modeActiveAxes`, so the swatch row,
+  the wheel and the axes list can no longer disagree about a family bound to an
+  axis the current mode gives no position. That family now reads as
+  bound-and-off-wheel everywhere: the list keeps its chip at full strength and
+  states `Off the wheel · <Mode> uses N`, the free dot carries its axis numeral and
+  says why it left the ring, and the swatch row's mark tracks the same status.
+  Unused rows replace the bare "Empty" with their reason. New helpers
+  `activeAxisCount` and `axisLabel` keep those strings out of per-call-site
+  composition.
+
+- **Assigning a family to an axis is a picker.** Each row opens an `Assign to
+  ...` menu listing the eligible families, with meta reading `moves from
+  anchor` / `moves from axis 2`. Dragging a chip onto an axis still works and
+  is now the accelerator, not the only path. The axes description leads with
+  the click path and mentions drag second.
+
+- **The Colors view is laid out around the wheel.** Color Harmony and Harmony
+  axes sit side by side, the family swatches tuck under the harmony presets,
+  the axes list moves under the mode row, and the selected color's edit panel
+  moves under the wheel with the lightness bar inside it and Absolute Chroma in
+  its header. The three slider rows are grid-aligned on one column set.
+
+- **`Special` moves ahead of `Canvas` in `PALETTE_SPECS`.** It reorders the
+  family list in the editor and the block order in
+  `src/live-tokens/data/tokens.generated.css`. No token name is added, renamed
+  or removed, so no migration applies.
+
+- **SectionDivider's eyebrow letter-spacing default is
+  `--letter-spacing-normal`.** All three sizes previously defaulted to
+  `--letter-spacing-wide`. Consumers on a saved component config keep their own
+  value; consumers on `default` pick this up.
+
+### Added
+
+- **`UIMenuButton`**, the shared editor menu-button behind the axis picker.
+  `aria-haspopup="menu"`, arrow navigation that wraps, Home/End, and dismissal
+  on Escape, Tab or outside mousedown, each pinned by a test. Internal to the
+  editor; it is not exported from `@motion-proto/live-tokens/ui`.
+
+- **`AxisNumeral`**, the one numeral treatment shared by the swatch row, the
+  wheel and the axes list.
+
+### Removed
+
+- **The tint-neutrals button.** Absolute Chroma sits beside the harmony presets
+  and covers the case.
+
+- **Chrome the surfaces did not need.** The Theme eyebrow and the panel's
+  preview square in the Colors view, the Proportional preview eyebrow, and the
+  inline axes description, which is now an info icon. Selected rows lose the
+  third emphasis signal on `.role`: the settled treatment is inverted numeral
+  plus one row border.
+
 ## 0.45.0 — The Color Story shows the tokens you actually have
 
 ### Fixed
