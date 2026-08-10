@@ -116,7 +116,6 @@
   <div class="pane">
     <section id="colors-wheel" class="block">
       <header class="block-head">
-        <span class="eyebrow">Theme</span>
         <h2 class="title">Color Wheel</h2>
       </header>
 
@@ -133,6 +132,7 @@
         <ColorEditPanel
           title={selectedSpec.displayLabel ?? selected}
           hideActions
+          hidePreview
           hue={selectedOklch.h}
           chroma={selectedOklch.c}
           lightness={selectedOklch.l * 100}

@@ -12,6 +12,9 @@
     /** Hide the confirm/cancel actions for live-apply consumers (Colors view
      *  readout) where edits commit through the store as they happen. */
     hideActions?: boolean;
+    /** Hide the preview square where the surrounding view already shows the
+     *  color (Colors view: wheel, swatches and derived scale all do). */
+    hidePreview?: boolean;
     onConfirm?: () => void;
     onCancel?: () => void;
     onRemoveOverride?: () => void;
@@ -36,6 +39,7 @@
     title = null,
     showRemoveOverride = false,
     hideActions = false,
+    hidePreview = false,
     onConfirm = () => {},
     onCancel = () => {},
     onRemoveOverride = () => {},
@@ -131,7 +135,9 @@
 
 <div class="hsl-panel">
   <div class="hsl-panel-header">
-    <div class="hsl-preview" style="background: {previewHex}"></div>
+    {#if !hidePreview}
+      <div class="hsl-preview" style="background: {previewHex}"></div>
+    {/if}
     {#if hasEyeDropper}
       <button
         class="eyedropper-btn"
