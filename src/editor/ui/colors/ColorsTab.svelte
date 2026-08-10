@@ -104,6 +104,17 @@
           onCustomize={() => (activeMode = 'custom')}
         />
 
+        <ColorEditPanel
+          title={selectedSpec.displayLabel ?? selected}
+          hideActions
+          hideLightness
+          hue={selectedOklch.h}
+          chroma={selectedOklch.c}
+          lightness={selectedOklch.l * 100}
+          onHueChromaChange={(h, c, l) => setBaseColor(selected, { l: l / 100, c, h })}
+          onSliderStart={() => beginSliderGesture(`colors: ${selected} base`)}
+        />
+
         <LightnessBar {selected} {absoluteChroma} />
       </div>
 
@@ -189,19 +200,6 @@
           {@render swatchRow(coreSwatches)}
           {@render swatchRow(functionalSwatches)}
         </div>
-      </div>
-
-      <div class="group">
-        <span class="eyebrow">{selectedSpec.displayLabel ?? selected}</span>
-        <ColorEditPanel
-          title={selectedSpec.displayLabel ?? selected}
-          hideActions
-          hue={selectedOklch.h}
-          chroma={selectedOklch.c}
-          lightness={selectedOklch.l * 100}
-          onHueChromaChange={(h, c, l) => setBaseColor(selected, { l: l / 100, c, h })}
-          onSliderStart={() => beginSliderGesture(`colors: ${selected} base`)}
-        />
       </div>
     </section>
   </div>
@@ -294,8 +292,6 @@
     font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
   }
 
   .eyebrow .mode-name {
