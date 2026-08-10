@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.46.1 — The Colors view collapses on its own width
+
+### Fixed
+
+- **Colors view collapses by pane width, not viewport width.** `.pane` is now a
+  `container: pane / inline-size`, and the harmony columns (`44rem`) and wheel
+  rail (`26rem`) collapse against it. The pane is one column of a two-pane grid,
+  so a wide standalone window narrowed it just as the docked panel does while
+  the old `@media (max-width: 720px)` query never fired.
+
+- **Swatch rows and derived-scale strips rank instead of shrinking to slivers.**
+  Below `28rem` of their own container both switch from flex to
+  `repeat(auto-fill, minmax(...))` grids, keeping a readable chip width and
+  wrapping into ranks. `auto-fill` holds the tracks steady, so a short last rank
+  never stretches.
+
+- **`UIMenuButton` anchors correctly inside a container-type ancestor.** A
+  `container-type` (or transformed) ancestor re-parents a fixed element's
+  containing block off the viewport origin, so the menu landed offset from its
+  computed position. It now measures where it landed and re-anchors.
+
 ## 0.46.0 — Harmony axes are numbered, and you assign them with a picker
 
 ### Changed
