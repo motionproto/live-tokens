@@ -1,5 +1,46 @@
 # Changelog
 
+## 0.47.0 — Colors and Tokens hand palettes to each other
+
+### Added
+
+- **Jump buttons link the two palette surfaces.** `PaletteJumpButton` sits in
+  the Colors view's Palette header (`Edit`, into Tokens) and on every Tokens
+  palette label (`Wheel`, into Colors). The new `paletteFocus` store carries the
+  family across: `selectedPalette` is now the Colors view's selection, so the
+  wheel is already showing the handed-over family when the switch lands, and the
+  one-shot `pendingPaletteFocus` opens the matching Tokens editor and scrolls it
+  into view. From the standalone Colors page the jump also navigates, since that
+  page has no Tokens surface to flip to.
+
+- **`On assign` picks which hue survives an axis assignment.** A segmented
+  control above the axes list chooses between `Adopt swatch`, which moves the
+  axis to the color's hue and leaves the harmony custom, and `Adopt axis`, which
+  repaints the color onto the hue the axis already holds. Adopting the axis
+  moves no axis geometry, so an applied harmony mode survives the assignment.
+  `bindFamilyToAxis` takes the mode as a third argument and reconciles a traded
+  occupant the same way.
+
+- **The base color anchor unlocks from the curve.** Double-clicking the locked
+  anchor in the lightness or saturation curve raises a confirm notice, and
+  accepting clears `anchorToBase`. The anchor carries a `<title>` saying so.
+
+### Changed
+
+- **The Tokens base color panel stays open with the curve editors.** Opening a
+  palette's controls pins `ColorEditPanel` in live-apply mode (no confirm or
+  cancel session) and marks the header swatch active, so base edits and curve
+  edits are visible at once.
+
+- **`UIMenuButton` portals its menu to the enclosing `.editor-page`.** A dimmed
+  ancestor's opacity faded the popup and showed the page through it, which fixed
+  positioning alone cannot escape. The `--ui-*` tokens are scoped to
+  `.editor-page`, so the menu reparents there rather than to `<body>`.
+
+- **The axes list drops its per-row role column.** `Anchor` names the first row
+  from a caption above the list, so no row reserves 4rem of dead space for a
+  word only one of them carries.
+
 ## 0.46.1 — The Colors view collapses on its own width
 
 ### Fixed
