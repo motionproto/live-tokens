@@ -1,6 +1,6 @@
 ---
 name: live-tokens-adjust-shape-space
-description: Adjust corner radius, padding, gap, and border width across live-tokens components by moving each token alias along the shipped scales. Use when the user asks for pill or capsule buttons, rounded, rounder, sharp, sharper, square corners, softer, harder, a bigger or smaller corner radius, or talks about spacing and padding. Make the buttons pill shaped, give the cards sharp corners, make the windows sharper, make the UI softer, space it out, tighter, denser, more compact, airier, more breathing room. Changes shape and space aliases per component, never color, fonts, or tokens.css. Not for editing a single token (use the editor) or for color (see live-tokens-generate-theme).
+description: Adjust corner radius, padding, gap, and border width across live-tokens components by moving each token alias along the shipped scales. Use when the user asks for pill or capsule buttons, rounded, rounder, sharp, sharper, square corners, softer, harder, a bigger or smaller corner radius, thicker or thinner borders, or talks about spacing and padding. Make the buttons pill shaped, give the cards sharp corners, make the windows sharper, make the UI softer, space it out, tighter, denser, more compact, airier, more breathing room. Changes shape and space aliases per component, never color, fonts, or tokens.css. Not for editing a single token (use the editor) or for color (see live-tokens-generate-theme).
 ---
 
 # Adjusting shape and space
@@ -54,7 +54,7 @@ Magnitude words: "slightly" or "a bit" is 1 step, unqualified is 1 to 2, "much",
 
 ## Ladders
 
-Radius runs `none, sm, md, lg, xl, 2xl, 3xl, 4xl`, with `full` as the gated ninth rung. Space (padding and gap) is the editor picker's subset: `0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 48`, so every written value stays re-editable by hand. Border width is the full `--border-width-*` scale. `set` values must be on the ladder (`--space-64` is rejected); an alias sitting off the subset snaps to the nearest rung when shifted, marked in the report.
+Radius runs `none, sm, md, lg, xl, 2xl, 3xl, 4xl`, with `full` as the gated ninth rung. Space (padding and gap) is the editor picker's subset: `0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 48`, so every written value stays re-editable by hand. Border width is the full `--border-width-*` scale. `set` values must be on the ladder (`--space-64` is rejected); an alias sitting off the subset snaps to the nearest rung when shifted, and the report marks a snap that lands against the requested direction.
 
 ## Scope
 
