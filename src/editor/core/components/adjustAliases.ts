@@ -123,8 +123,9 @@ function validateOp(op: AdjustOp, configs: Record<string, ComponentConfig>): voi
   const hasSet = op.set !== undefined;
   const hasShift = op.shift !== undefined;
   if (hasSet === hasShift) throw new Error(`A ${op.kind} op needs exactly one of "set" or "shift"`);
-  if (hasSet && !ladder.family.includes(op.set!)) {
-    throw new Error(`"${op.set}" is not a ${op.kind} token`);
+  const settable = op.kind === 'radius' ? ladder.family : ladder.rungs;
+  if (hasSet && !settable.includes(op.set!)) {
+    throw new Error(`"${op.set}" is not on the ${op.kind} ladder`);
   }
   if (hasShift && !Number.isInteger(op.shift)) {
     throw new Error(`"shift" must be a whole number of steps, got ${op.shift}`);

@@ -165,17 +165,31 @@ describe('adjustAliases', () => {
 describe('adjustAliases op validation', () => {
   it('rejects a set value that is not on the kind ladder', () => {
     expect(() => adjustAliases(fixture(), [{ kind: 'radius', set: '--radius-huge' }], NOW))
-      .toThrow(/not a radius token/);
+      .toThrow(/not on the radius ladder/);
   });
 
   it('rejects a set value from another token family', () => {
     expect(() => adjustAliases(fixture(), [{ kind: 'padding', set: '--radius-full' }], NOW))
-      .toThrow(/not a padding token/);
+      .toThrow(/not on the padding ladder/);
   });
 
   it('rejects --space-full as a set value', () => {
     expect(() => adjustAliases(fixture(), [{ kind: 'gap', set: '--space-full' }], NOW))
-      .toThrow(/not a gap token/);
+      .toThrow(/not on the gap ladder/);
+  });
+
+  it('rejects an off-subset space token as a set value', () => {
+    expect(() => adjustAliases(fixture(), [{ kind: 'padding', set: '--space-64' }], NOW))
+      .toThrow(/not on the padding ladder/);
+  });
+
+  it('accepts --radius-full as a set value without the full flag', () => {
+    const { configs } = adjustAliases(
+      fixture(),
+      [{ target: 'button', kind: 'radius', set: '--radius-full' }],
+      NOW,
+    );
+    expect(configs.button.aliases['--button-primary-radius']).toBe('--radius-full');
   });
 
   it('rejects an op carrying both set and shift', () => {
