@@ -163,3 +163,38 @@ describe('package-default fallback on a fresh consumer', () => {
     expect(status).toBe(403);
   });
 });
+
+describe('shipped preset themes on a fresh consumer', () => {
+  it('GET /themes lists the shipped presets alongside default', async () => {
+    const { json } = await request('GET', `${API}/themes`);
+    const names = json.files.map((f: any) => f.fileName);
+    for (const preset of ['christmas', 'halloween', 'spring-meadow', 'royal-velvet']) {
+      expect(names).toContain(preset);
+    }
+  });
+
+  it('GET /themes/christmas resolves via the package fallback', async () => {
+    const { status, json } = await request('GET', `${API}/themes/christmas`);
+    expect(status).toBe(200);
+    expect(Object.keys(json.editorConfigs).length).toBeGreaterThan(0);
+  });
+
+  it('DELETE /themes/christmas with no local copy → 403 PACKAGE_THEME', async () => {
+    const { status, json } = await request('DELETE', `${API}/themes/christmas`);
+    expect(status).toBe(403);
+    expect(json.code).toBe('PACKAGE_THEME');
+  });
+
+  it('PUT then DELETE on a preset removes the local shadow and restores the shipped version', async () => {
+    const put = await request('PUT', `${API}/themes/christmas`, { name: 'Christmas', cssVariables: {} });
+    expect(put.status).toBe(200);
+    expect(fs.existsSync(path.join(themesDir, 'christmas.json'))).toBe(true);
+
+    const del = await request('DELETE', `${API}/themes/christmas`);
+    expect(del.status).toBe(200);
+    expect(fs.existsSync(path.join(themesDir, 'christmas.json'))).toBe(false);
+
+    const { json } = await request('GET', `${API}/themes`);
+    expect(json.files.map((f: any) => f.fileName)).toContain('christmas');
+  });
+});

@@ -930,11 +930,21 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         return;
       }
       if (fs.existsSync(filePath)) {
+        // Deleting a local file that shadows a shipped preset restores the
+        // package version (it stays listed via the package fallback).
         fs.unlinkSync(filePath);
         // If this was the active theme, revert to default
         if (themesResource.getActiveName() === fileName) {
           themesResource.setActiveName('default');
         }
+      } else if (themesResource.existingPath(fileName)) {
+        // No local copy — only the package ships this theme. Without this
+        // guard the delete would report ok while the theme stays listed.
+        jsonResponse(res, 403, {
+          error: 'Cannot delete a theme shipped with the package. Saving it creates a local copy; deleting that copy restores the shipped version.',
+          code: 'PACKAGE_THEME',
+        });
+        return;
       }
       jsonResponse(res, 200, { ok: true });
       return;
