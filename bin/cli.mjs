@@ -210,6 +210,7 @@ const SAMPLE_PROMPTS = {
   'live-tokens-pick-component': "what's the difference between TabBar and SegmentedControl?",
   'live-tokens-create-component': 'author a new Toggle component for my live-tokens project',
   'live-tokens-generate-theme': 'make me a bright and cheerful color theme',
+  'live-tokens-adjust-shape-space': 'make the buttons pill shaped',
 };
 
 const installedSamples = skills
