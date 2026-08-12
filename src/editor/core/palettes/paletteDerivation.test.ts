@@ -140,9 +140,11 @@ describe('derivation is byte-stable (Global invariant 1)', () => {
 
   it('pins exact hexes for the default Brand config', () => {
     const out = palettesToVars({ Brand: editorConfigs.Brand });
-    expect(out['--color-brand-500']).toBe('#fb2898');
-    expect(out['--color-brand-100']).toBe('#ffbad3');
-    expect(out['--color-brand-950']).toBe('#100005');
+    // The clean default lightness range (95 -> 8) places Brand's base color
+    // nearest step 400, not the hand-picked 500 the old custom range used.
+    expect(out['--color-brand-400']).toBe('#fb2898');
+    expect(out['--color-brand-100']).toBe('#ffe7ef');
+    expect(out['--color-brand-950']).toBe('#070002');
     expect(out['--surface-brand']).toBe('#89004e');
     expect(out['--border-brand']).toBe('#ae0065');
     expect(out['--text-brand']).toBe('#ff75b1');

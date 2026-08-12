@@ -12,7 +12,7 @@
           "inDx": 0,
           "inDy": 0,
           "outDx": 13.33,
-          "outDy": -11.87
+          "outDy": -11.74
         },
         {
           "x": 40,
@@ -26,7 +26,7 @@
           "x": 100,
           "y": 3,
           "inDx": -20,
-          "inDy": 17.8,
+          "inDy": 17.93,
           "outDx": 0,
           "outDy": 0
         }
@@ -181,7 +181,43 @@
       "snappedScales": [],
       "anchorToBase": true,
       "anchorPlacement": {
-        "step": 4
+        "step": 4,
+        "priorLightnessEndpoints": [
+          {
+            "x": 0,
+            "y": 92,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 3,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          }
+        ],
+        "priorSaturationEndpoints": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          }
+        ]
       }
     },
     "Alternate": {
@@ -193,21 +229,21 @@
           "inDx": 0,
           "inDy": 0,
           "outDx": 13.33,
-          "outDy": -11.2
+          "outDy": -11.09
         },
         {
           "x": 40,
           "y": 58.73,
           "inDx": -13.33,
-          "inDy": 11.17,
+          "inDy": 11.66,
           "outDx": 20,
-          "outDy": -16.76
+          "outDy": -17.49
         },
         {
           "x": 100,
-          "y": 8,
+          "y": 3,
           "inDx": -20,
-          "inDy": 16.8,
+          "inDy": 18.58,
           "outDx": 0,
           "outDy": 0
         }
@@ -363,7 +399,43 @@
       "snappedScales": [],
       "anchorToBase": true,
       "anchorPlacement": {
-        "step": 4
+        "step": 4,
+        "priorLightnessEndpoints": [
+          {
+            "x": 0,
+            "y": 92,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 3,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          }
+        ],
+        "priorSaturationEndpoints": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          }
+        ]
       }
     },
     "Canvas": {
@@ -371,25 +443,25 @@
       "lightnessCurve": [
         {
           "x": 0,
-          "y": 86,
+          "y": 95,
           "inDx": 0,
           "inDy": 0,
-          "outDx": 26.66,
-          "outDy": -20
+          "outDx": 23.33,
+          "outDy": -19.46
         },
         {
-          "x": 80,
+          "x": 70,
           "y": 36.61,
-          "inDx": -26.67,
-          "inDy": 23.88,
-          "outDx": 6.67,
-          "outDy": -5.97
+          "inDx": -23.33,
+          "inDy": 20.95,
+          "outDx": 10,
+          "outDy": -8.98
         },
         {
           "x": 100,
-          "y": 11,
-          "inDx": -6.67,
-          "inDy": 5,
+          "y": 8,
+          "inDx": -10,
+          "inDy": 9.54,
           "outDx": 0,
           "outDy": 0
         }
@@ -397,25 +469,25 @@
       "saturationCurve": [
         {
           "x": 0,
-          "y": 76,
+          "y": 100,
           "inDx": 0,
           "inDy": 0,
-          "outDx": 26.66,
-          "outDy": 12.54
+          "outDx": 23.33,
+          "outDy": 0
         },
         {
-          "x": 80,
+          "x": 70,
           "y": 100,
-          "inDx": -26.67,
-          "inDy": -14.37,
-          "outDx": 6.67,
-          "outDy": 3.59
+          "inDx": -23.33,
+          "inDy": 0,
+          "outDx": 10,
+          "outDy": 0
         },
         {
           "x": 100,
-          "y": 123,
-          "inDx": -6.67,
-          "inDy": -3.13,
+          "y": 100,
+          "inDx": -10,
+          "inDy": 0,
           "outDx": 0,
           "outDy": 0
         }
@@ -560,7 +632,43 @@
       ],
       "gradientSize": "page",
       "anchorPlacement": {
-        "step": 8
+        "step": 7,
+        "priorLightnessEndpoints": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          }
+        ],
+        "priorSaturationEndpoints": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          }
+        ]
       }
     },
     "Brand": {
@@ -568,25 +676,25 @@
       "lightnessCurve": [
         {
           "x": 0,
-          "y": 86,
+          "y": 95,
           "inDx": 0,
           "inDy": 0,
-          "outDx": 13.33,
-          "outDy": -10
+          "outDx": 10,
+          "outDy": -9.76
         },
         {
-          "x": 40,
+          "x": 30,
           "y": 65.72,
-          "inDx": -13.33,
-          "inDy": 8.53,
-          "outDx": 20,
-          "outDy": -12.79
+          "inDx": -10,
+          "inDy": 9.04,
+          "outDx": 23.33,
+          "outDy": -21.09
         },
         {
           "x": 100,
-          "y": 11,
-          "inDx": -20,
-          "inDy": 15,
+          "y": 8,
+          "inDx": -23.33,
+          "inDy": 19.24,
           "outDx": 0,
           "outDy": 0
         }
@@ -594,25 +702,25 @@
       "saturationCurve": [
         {
           "x": 0,
-          "y": 76,
+          "y": 100,
           "inDx": 0,
           "inDy": 0,
-          "outDx": 13.33,
-          "outDy": 6.27
+          "outDx": 10,
+          "outDy": 0
         },
         {
-          "x": 40,
+          "x": 30,
           "y": 100,
-          "inDx": -13.33,
-          "inDy": -6.33,
-          "outDx": 20,
-          "outDy": 9.5
+          "inDx": -10,
+          "inDy": 0,
+          "outDx": 23.33,
+          "outDy": 0
         },
         {
           "x": 100,
-          "y": 123,
-          "inDx": -20,
-          "inDy": -9.4,
+          "y": 100,
+          "inDx": -23.33,
+          "inDy": 0,
           "outDx": 0,
           "outDy": 0
         }
@@ -743,7 +851,43 @@
       "snappedScales": [],
       "anchorToBase": true,
       "anchorPlacement": {
-        "step": 4
+        "step": 3,
+        "priorLightnessEndpoints": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          }
+        ],
+        "priorSaturationEndpoints": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          }
+        ]
       }
     },
     "Accent": {
@@ -751,25 +895,25 @@
       "lightnessCurve": [
         {
           "x": 0,
-          "y": 86,
+          "y": 95,
           "inDx": 0,
           "inDy": 0,
-          "outDx": 10,
-          "outDy": -7.5
+          "outDx": 16.67,
+          "outDy": -13.09
         },
         {
-          "x": 30,
+          "x": 50,
           "y": 55.72,
-          "inDx": -10,
-          "inDy": 8.07,
-          "outDx": 23.33,
-          "outDy": -18.82
+          "inDx": -16.67,
+          "inDy": 14.36,
+          "outDx": 16.67,
+          "outDy": -14.36
         },
         {
           "x": 100,
-          "y": 11,
-          "inDx": -23.33,
-          "inDy": 17.5,
+          "y": 8,
+          "inDx": -16.67,
+          "inDy": 15.91,
           "outDx": 0,
           "outDy": 0
         }
@@ -777,25 +921,25 @@
       "saturationCurve": [
         {
           "x": 0,
-          "y": 76,
+          "y": 100,
           "inDx": 0,
           "inDy": 0,
-          "outDx": 10,
-          "outDy": 4.7
+          "outDx": 16.67,
+          "outDy": 0
         },
         {
-          "x": 30,
+          "x": 50,
           "y": 100,
-          "inDx": -10,
-          "inDy": -4.93,
-          "outDx": 23.33,
-          "outDy": 11.51
+          "inDx": -16.67,
+          "inDy": 0,
+          "outDx": 16.67,
+          "outDy": 0
         },
         {
           "x": 100,
-          "y": 123,
-          "inDx": -23.33,
-          "inDy": -10.97,
+          "y": 100,
+          "inDx": -16.67,
+          "inDy": 0,
           "outDx": 0,
           "outDy": 0
         }
@@ -924,7 +1068,43 @@
       "snappedScales": [],
       "anchorToBase": true,
       "anchorPlacement": {
-        "step": 3
+        "step": 5,
+        "priorLightnessEndpoints": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          }
+        ],
+        "priorSaturationEndpoints": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          }
+        ]
       }
     },
     "Special": {
@@ -932,25 +1112,25 @@
       "lightnessCurve": [
         {
           "x": 0,
-          "y": 86,
+          "y": 95,
           "inDx": 0,
           "inDy": 0,
-          "outDx": 10,
-          "outDy": -7.5
+          "outDx": 13.33,
+          "outDy": -11.48
         },
         {
-          "x": 30,
+          "x": 40,
           "y": 60.56,
-          "inDx": -10,
-          "inDy": 7.81,
-          "outDx": 23.33,
-          "outDy": -18.22
+          "inDx": -13.33,
+          "inDy": 11.57,
+          "outDx": 20,
+          "outDy": -17.36
         },
         {
           "x": 100,
-          "y": 11,
-          "inDx": -23.33,
-          "inDy": 17.5,
+          "y": 8,
+          "inDx": -20,
+          "inDy": 17.52,
           "outDx": 0,
           "outDy": 0
         }
@@ -958,25 +1138,25 @@
       "saturationCurve": [
         {
           "x": 0,
-          "y": 76,
+          "y": 100,
           "inDx": 0,
           "inDy": 0,
-          "outDx": 10,
-          "outDy": 4.7
+          "outDx": 13.33,
+          "outDy": 0
         },
         {
-          "x": 30,
+          "x": 40,
           "y": 100,
-          "inDx": -10,
-          "inDy": -4.93,
-          "outDx": 23.33,
-          "outDy": 11.51
+          "inDx": -13.33,
+          "inDy": 0,
+          "outDx": 20,
+          "outDy": 0
         },
         {
           "x": 100,
-          "y": 123,
-          "inDx": -23.33,
-          "inDy": -10.97,
+          "y": 100,
+          "inDx": -20,
+          "inDy": 0,
           "outDx": 0,
           "outDy": 0
         }
@@ -1105,7 +1285,43 @@
       "snappedScales": [],
       "anchorToBase": true,
       "anchorPlacement": {
-        "step": 3
+        "step": 4,
+        "priorLightnessEndpoints": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          }
+        ],
+        "priorSaturationEndpoints": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          }
+        ]
       }
     },
     "Success": {
@@ -1113,25 +1329,25 @@
       "lightnessCurve": [
         {
           "x": 0,
-          "y": 86,
+          "y": 95,
           "inDx": 0,
           "inDy": 0,
-          "outDx": 10,
-          "outDy": -7.5
+          "outDx": 13.33,
+          "outDy": -11.49
         },
         {
-          "x": 30,
+          "x": 40,
           "y": 60.52,
-          "inDx": -10,
-          "inDy": 7.81,
-          "outDx": 23.33,
-          "outDy": -18.23
+          "inDx": -13.33,
+          "inDy": 11.58,
+          "outDx": 20,
+          "outDy": -17.36
         },
         {
           "x": 100,
-          "y": 11,
-          "inDx": -23.33,
-          "inDy": 17.5,
+          "y": 8,
+          "inDx": -20,
+          "inDy": 17.51,
           "outDx": 0,
           "outDy": 0
         }
@@ -1139,25 +1355,25 @@
       "saturationCurve": [
         {
           "x": 0,
-          "y": 76,
+          "y": 100,
           "inDx": 0,
           "inDy": 0,
-          "outDx": 10,
-          "outDy": 4.7
+          "outDx": 13.33,
+          "outDy": 0
         },
         {
-          "x": 30,
+          "x": 40,
           "y": 100,
-          "inDx": -10,
-          "inDy": -4.93,
-          "outDx": 23.33,
-          "outDy": 11.51
+          "inDx": -13.33,
+          "inDy": 0,
+          "outDx": 20,
+          "outDy": 0
         },
         {
           "x": 100,
-          "y": 123,
-          "inDx": -23.33,
-          "inDy": -10.97,
+          "y": 100,
+          "inDx": -20,
+          "inDy": 0,
           "outDx": 0,
           "outDy": 0
         }
@@ -1287,7 +1503,43 @@
       "snappedScales": [],
       "anchorToBase": true,
       "anchorPlacement": {
-        "step": 3
+        "step": 4,
+        "priorLightnessEndpoints": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          }
+        ],
+        "priorSaturationEndpoints": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          }
+        ]
       }
     },
     "Warning": {
@@ -1295,17 +1547,25 @@
       "lightnessCurve": [
         {
           "x": 0,
-          "y": 81.31,
+          "y": 95,
           "inDx": 0,
           "inDy": 0,
-          "outDx": 33.33,
-          "outDy": -25
+          "outDx": 6.67,
+          "outDy": -4.56
+        },
+        {
+          "x": 20,
+          "y": 81.31,
+          "inDx": -6.67,
+          "inDy": 5.08,
+          "outDx": 26.67,
+          "outDy": -20.31
         },
         {
           "x": 100,
-          "y": 11,
-          "inDx": -33.33,
-          "inDy": 25,
+          "y": 8,
+          "inDx": -26.67,
+          "inDy": 24.44,
           "outDx": 0,
           "outDy": 0
         }
@@ -1316,14 +1576,22 @@
           "y": 100,
           "inDx": 0,
           "inDy": 0,
-          "outDx": 33.33,
-          "outDy": 15.67
+          "outDx": 6.67,
+          "outDy": 0
+        },
+        {
+          "x": 20,
+          "y": 100,
+          "inDx": -6.67,
+          "inDy": 0,
+          "outDx": 26.67,
+          "outDy": 0
         },
         {
           "x": 100,
-          "y": 123,
-          "inDx": -33.33,
-          "inDy": -15.67,
+          "y": 100,
+          "inDx": -26.67,
+          "inDy": 0,
           "outDx": 0,
           "outDy": 0
         }
@@ -1452,7 +1720,43 @@
       "snappedScales": [],
       "anchorToBase": true,
       "anchorPlacement": {
-        "step": 0
+        "step": 2,
+        "priorLightnessEndpoints": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          }
+        ],
+        "priorSaturationEndpoints": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          }
+        ]
       }
     },
     "Info": {
@@ -1460,25 +1764,25 @@
       "lightnessCurve": [
         {
           "x": 0,
-          "y": 86,
+          "y": 95,
           "inDx": 0,
           "inDy": 0,
-          "outDx": 3.33,
-          "outDy": -2.5
+          "outDx": 6.67,
+          "outDy": -6.8
         },
         {
-          "x": 10,
+          "x": 20,
           "y": 74.61,
-          "inDx": -3.33,
-          "inDy": 3.1,
-          "outDx": 30,
-          "outDy": -27.91
+          "inDx": -6.67,
+          "inDy": 6.24,
+          "outDx": 26.67,
+          "outDy": -24.95
         },
         {
           "x": 100,
-          "y": 11,
-          "inDx": -30,
-          "inDy": 22.5,
+          "y": 8,
+          "inDx": -26.67,
+          "inDy": 22.2,
           "outDx": 0,
           "outDy": 0
         }
@@ -1486,25 +1790,25 @@
       "saturationCurve": [
         {
           "x": 0,
-          "y": 76,
+          "y": 100,
           "inDx": 0,
           "inDy": 0,
-          "outDx": 3.33,
-          "outDy": 1.57
+          "outDx": 6.67,
+          "outDy": 0
         },
         {
-          "x": 10,
+          "x": 20,
           "y": 100,
-          "inDx": -3.33,
-          "inDy": -1.96,
-          "outDx": 30,
-          "outDy": 17.66
+          "inDx": -6.67,
+          "inDy": 0,
+          "outDx": 26.67,
+          "outDy": 0
         },
         {
           "x": 100,
-          "y": 123,
-          "inDx": -30,
-          "inDy": -14.1,
+          "y": 100,
+          "inDx": -26.67,
+          "inDy": 0,
           "outDx": 0,
           "outDy": 0
         }
@@ -1636,7 +1940,43 @@
       "snappedScales": [],
       "anchorToBase": true,
       "anchorPlacement": {
-        "step": 1
+        "step": 2,
+        "priorLightnessEndpoints": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          }
+        ],
+        "priorSaturationEndpoints": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          }
+        ]
       }
     },
     "Danger": {
@@ -1644,25 +1984,25 @@
       "lightnessCurve": [
         {
           "x": 0,
-          "y": 86,
+          "y": 95,
           "inDx": 0,
           "inDy": 0,
-          "outDx": 10,
-          "outDy": -7.5
+          "outDx": 16.67,
+          "outDy": -13.59
         },
         {
-          "x": 30,
+          "x": 50,
           "y": 54.23,
-          "inDx": -10,
-          "inDy": 8.09,
-          "outDx": 23.33,
-          "outDy": -18.87
+          "inDx": -16.67,
+          "inDy": 14.44,
+          "outDx": 16.67,
+          "outDy": -14.44
         },
         {
           "x": 100,
-          "y": 11,
-          "inDx": -23.33,
-          "inDy": 17.5,
+          "y": 8,
+          "inDx": -16.67,
+          "inDy": 15.41,
           "outDx": 0,
           "outDy": 0
         }
@@ -1670,25 +2010,25 @@
       "saturationCurve": [
         {
           "x": 0,
-          "y": 76,
+          "y": 100,
           "inDx": 0,
           "inDy": 0,
-          "outDx": 10,
-          "outDy": 4.7
+          "outDx": 16.67,
+          "outDy": 0
         },
         {
-          "x": 30,
+          "x": 50,
           "y": 100,
-          "inDx": -10,
-          "inDy": -4.93,
-          "outDx": 23.33,
-          "outDy": 11.51
+          "inDx": -16.67,
+          "inDy": 0,
+          "outDx": 16.67,
+          "outDy": 0
         },
         {
           "x": 100,
-          "y": 123,
-          "inDx": -23.33,
-          "inDy": -10.97,
+          "y": 100,
+          "inDx": -16.67,
+          "inDy": 0,
           "outDx": 0,
           "outDy": 0
         }
@@ -1817,7 +2157,43 @@
       "snappedScales": [],
       "anchorToBase": true,
       "anchorPlacement": {
-        "step": 3
+        "step": 5,
+        "priorLightnessEndpoints": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -5,
+            "inDy": 0,
+            "outDx": 5,
+            "outDy": 0
+          }
+        ],
+        "priorSaturationEndpoints": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          }
+        ]
       }
     }
   },

@@ -225,9 +225,53 @@ export function nearestPaletteStep(lightnessCurve: CurveAnchor[], baseL: number)
   return best;
 }
 
-/** Insert an anchor at x, or overwrite one already there (endpoints included).
- *  Returns the y it displaced so the caller can restore it later. */
-export function setCurveAnchor(curve: CurveAnchor[], x: number, y: number): { curve: CurveAnchor[]; displacedY?: number } {
+/**
+ * Insert an anchor at x, or overwrite one already there (endpoints included).
+ * Returns the y it displaced so the caller can restore it later.
+ *
+ * `smooth` is for a curve's first-ever placement only (nothing has had a
+ * chance to edit it yet): every anchor, endpoints included, gets a tangent
+ * computed jointly with its real neighbour, so the placement reads as one
+ * smooth curve instead of two segments meeting at a corner where the
+ * endpoints still aim along their pre-insertion secant. It also returns the
+ * untouched original endpoints as `priorEndpoints` — this reshaping isn't
+ * algebraically invertible the way the scale-and-preserve path below is, so
+ * the caller must hold onto them to restore the curve exactly later. Every
+ * other placement (`smooth` false, the default) preserves whatever shape is
+ * already there, edited or not.
+ */
+export function setCurveAnchor(
+  curve: CurveAnchor[],
+  x: number,
+  y: number,
+  smooth = false,
+): { curve: CurveAnchor[]; displacedY?: number; priorEndpoints?: [CurveAnchor, CurveAnchor] } {
+  if (smooth && curve.length === 2) {
+    const [p0, p2] = curve;
+    const mid: CurveAnchor = { x, y, inDx: 0, inDy: 0, outDx: 0, outDy: 0 };
+    if (Math.abs(p0.x - x) < 0.5) {
+      return {
+        curve: [tangentAnchor(x, y, null, p2), tangentAnchor(p2.x, p2.y, mid, null)],
+        displacedY: p0.y,
+        priorEndpoints: [p0, p2],
+      };
+    }
+    if (Math.abs(p2.x - x) < 0.5) {
+      return {
+        curve: [tangentAnchor(p0.x, p0.y, null, mid), tangentAnchor(x, y, p0, null)],
+        displacedY: p2.y,
+        priorEndpoints: [p0, p2],
+      };
+    }
+    return {
+      curve: [
+        tangentAnchor(p0.x, p0.y, null, mid),
+        tangentAnchor(x, y, p0, p2),
+        tangentAnchor(p2.x, p2.y, mid, null),
+      ],
+      priorEndpoints: [p0, p2],
+    };
+  }
   const existing = curve.findIndex((a) => Math.abs(a.x - x) < 0.5);
   if (existing >= 0) {
     const displacedY = curve[existing].y;
@@ -272,10 +316,22 @@ function fitBetween(a: CurveAnchor, prev: CurveAnchor | null, next: CurveAnchor 
   return out;
 }
 
-/** Undo a placement at x: restore the displaced y when one was recorded,
- *  remove the anchor when the placement created it. Endpoints are never
- *  removed — a curve needs its boundaries. */
-export function liftCurveAnchor(curve: CurveAnchor[], x: number, displacedY?: number): CurveAnchor[] {
+/**
+ * Undo a placement at x: restore the displaced y when one was recorded,
+ * remove the anchor when the placement created it. Endpoints are never
+ * removed — a curve needs its boundaries.
+ *
+ * `priorEndpoints`, when given, wins outright: it's the untouched pair from
+ * before a `smooth` placement, which the scale/displace math below can't
+ * reconstruct on its own.
+ */
+export function liftCurveAnchor(
+  curve: CurveAnchor[],
+  x: number,
+  displacedY?: number,
+  priorEndpoints?: [CurveAnchor, CurveAnchor],
+): CurveAnchor[] {
+  if (priorEndpoints) return priorEndpoints;
   const idx = curve.findIndex((a) => Math.abs(a.x - x) < 0.5);
   if (idx < 0) return curve;
   if (displacedY !== undefined) return curve.map((a, i) => (i === idx ? { ...a, y: displacedY } : a));
@@ -303,20 +359,34 @@ export function liftCurveAnchor(curve: CurveAnchor[], x: number, displacedY?: nu
 export function syncBaseAnchor(cfg: PaletteConfig): void {
   if (cfg.anchorToBase === false) return;
   const prev = cfg.anchorPlacement;
+  const fresh = prev === undefined;
   let lCurve = cfg.lightnessCurve;
   let sCurve = cfg.saturationCurve;
   if (prev) {
+    // Re-placing an existing anchor (a hue move, typically) must preserve
+    // whatever is currently on the curve, edited or not — never restore the
+    // pristine `priorEndpoints` here, or every hand-tuned handle would be
+    // discarded the next time the base color moves.
     const prevX = stepIndexToX(prev.step);
     lCurve = liftCurveAnchor(lCurve, prevX, prev.displacedL);
     sCurve = liftCurveAnchor(sCurve, prevX, prev.displacedS);
   }
   const step = nearestPaletteStep(lCurve, cfg.baseColor.l);
   const x = stepIndexToX(step);
-  const l = setCurveAnchor(lCurve, x, cfg.baseColor.l * 100);
-  const s = setCurveAnchor(sCurve, x, 100);
+  const l = setCurveAnchor(lCurve, x, cfg.baseColor.l * 100, fresh);
+  const s = setCurveAnchor(sCurve, x, 100, fresh);
   cfg.lightnessCurve = l.curve;
   cfg.saturationCurve = s.curve;
-  cfg.anchorPlacement = { step, displacedL: l.displacedY, displacedS: s.displacedY };
+  // priorEndpoints is captured once, on the curve's first-ever placement,
+  // and carried forward untouched thereafter so a later clear can still
+  // restore the true original regardless of how many times the anchor moved.
+  cfg.anchorPlacement = {
+    step,
+    displacedL: l.displacedY,
+    displacedS: s.displacedY,
+    priorLightnessEndpoints: prev?.priorLightnessEndpoints ?? l.priorEndpoints,
+    priorSaturationEndpoints: prev?.priorSaturationEndpoints ?? s.priorEndpoints,
+  };
 }
 
 /** Toggle-off: lift the placement out of both curves and drop the flag. */
@@ -324,8 +394,8 @@ export function clearBaseAnchor(cfg: PaletteConfig): void {
   const prev = cfg.anchorPlacement;
   if (prev) {
     const x = stepIndexToX(prev.step);
-    cfg.lightnessCurve = liftCurveAnchor(cfg.lightnessCurve, x, prev.displacedL);
-    cfg.saturationCurve = liftCurveAnchor(cfg.saturationCurve, x, prev.displacedS);
+    cfg.lightnessCurve = liftCurveAnchor(cfg.lightnessCurve, x, prev.displacedL, prev.priorLightnessEndpoints);
+    cfg.saturationCurve = liftCurveAnchor(cfg.saturationCurve, x, prev.displacedS, prev.priorSaturationEndpoints);
     cfg.anchorPlacement = undefined;
   }
   cfg.anchorToBase = false;

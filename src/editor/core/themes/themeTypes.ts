@@ -34,8 +34,19 @@ export interface PaletteConfig {
    * `displacedS` remember the y of a pre-existing anchor (endpoint or
    * user-authored) the placement overwrote at that x, so moving the
    * placement or toggling off restores it instead of deleting it.
+   * `priorLightnessEndpoints` / `priorSaturationEndpoints` remember the two
+   * endpoints exactly as they stood before the curve's first-ever placement
+   * (a smoothed reshape, not algebraically invertible the way a later
+   * scaled-handle re-placement is), so a clear can still restore the true
+   * original regardless of how many times the anchor has since moved.
    */
-  anchorPlacement?: { step: number; displacedL?: number; displacedS?: number };
+  anchorPlacement?: {
+    step: number;
+    displacedL?: number;
+    displacedS?: number;
+    priorLightnessEndpoints?: [CurveAnchor, CurveAnchor];
+    priorSaturationEndpoints?: [CurveAnchor, CurveAnchor];
+  };
   /**
    * Set to true by importers when they overlay `cssVariables[--color-{ns}-*]`
    * without owning the typed-state curves. The storage-layer reconciler uses

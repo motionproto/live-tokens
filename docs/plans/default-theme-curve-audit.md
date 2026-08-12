@@ -128,3 +128,28 @@ step 850, where the old curve's dragged tail was doing the most work.
 - Whether the default theme should be regenerated wholesale from a light-first
   scheme. See `light-first-theming.md`.
 - Per-step overrides: there are none in `default.json`, so nothing to strip.
+
+## Follow-up: the straightened endpoints still bent
+
+The straight-interpolation pass above scaled each endpoint's *existing*
+handle down to fit the new gap once a base-color anchor was inserted, rather
+than giving the endpoint a tangent aimed at where the anchor actually landed.
+An endpoint's handle still pointed along the secant of the *whole* curve, so
+whenever the anchor's y wasn't on that straight line (the usual case — that's
+the point of pinning it), the segment leaving the endpoint bent to catch up,
+reading as a plateau then a kink (visible on Brand: white through 400 nearly
+flat, then bending hard around 500).
+
+Fixed in `setCurveAnchor`: a curve's first-ever placement (`smooth = true`,
+only reachable when nothing has had a chance to edit it) now gives every
+anchor — endpoints included — a tangent computed jointly with its real
+neighbour. Re-placements (hue moves after the first) still use the original
+scale-and-preserve path, so hand edits made in between are never discarded.
+Since the fresh reshape isn't algebraically invertible, `anchorPlacement`
+gained `priorLightnessEndpoints` / `priorSaturationEndpoints` — the untouched
+originals, captured once and carried forward — so clearing the anchor still
+restores the pristine curve exactly.
+
+All 10 families in `default.json` were regenerated through this path,
+preserving each family's endpoint y-range and anchor step (same product
+decision as before), fixing only the tangents.
