@@ -16,34 +16,13 @@
     setComponentAliasLinked,
     clearComponentAliasLinked,
   } from '../../core/store/editorStore';
+  import { rawKind, type TokenKind } from '../../core/components/aliasKinds';
   import { getEditorContext } from './editorContext';
   import type { Token } from './types';
 
   /** Selector kind. `padding-split` is `padding` whose per-side variables exist;
       it renders the four-sided field group instead of the single-value row. */
-  type Kind =
-    | 'surface'
-    | 'border'
-    | 'border-width'
-    | 'radius'
-    | 'divider-width'
-    | 'divider-height'
-    | 'divider-inset'
-    | 'dot-size'
-    | 'blur'
-    | 'scale'
-    | 'shadow'
-    | 'font-family'
-    | 'font-weight'
-    | 'font-size'
-    | 'line-height'
-    | 'letter-spacing'
-    | 'padding'
-    | 'padding-split'
-    | 'gap'
-    | 'duration'
-    | 'easing'
-    | 'text-color';
+  type Kind = TokenKind | 'padding-split';
 
   type Entry = { kind: Kind; token: Token };
 
@@ -81,42 +60,6 @@
     columns = 1,
     onchange,
   }: Props = $props();
-
-  /** Suffix/prefix patterns mapped to kinds — single source of truth used by `rawKind`.
-      Order matters: `-text` must run before `-border`/`-surface` because `--text-*`
-      would otherwise match `surface`/`border` if any pattern overlapped. Variables
-      that don't match any pattern fall through to `text-color` (renders as a palette
-      picker). Tokens with unconventional suffixes should be renamed. */
-  const KIND_PATTERNS: Array<{ kind: Kind; matches: (v: string) => boolean }> = [
-    { kind: 'font-family',    matches: (v) => v.endsWith('-font-family') },
-    { kind: 'font-weight',    matches: (v) => v.endsWith('-font-weight') },
-    { kind: 'font-size',      matches: (v) => v.endsWith('-font-size') || v.endsWith('-icon-size') || v.endsWith('-thumb-size') },
-    { kind: 'line-height',    matches: (v) => v.endsWith('-line-height') },
-    { kind: 'letter-spacing', matches: (v) => v.endsWith('-letter-spacing') },
-    { kind: 'text-color',     matches: (v) => v.endsWith('-text') || v.startsWith('--text-') },
-    { kind: 'radius',         matches: (v) => v.endsWith('-radius') || v.startsWith('--radius-') },
-    { kind: 'divider-width',  matches: (v) => v.endsWith('-divider-width') || v.endsWith('-divider-thickness') },
-    { kind: 'divider-height', matches: (v) => v.endsWith('-divider-height') || v.endsWith('-track-height') },
-    { kind: 'divider-inset',  matches: (v) => v.endsWith('-divider-inset') },
-    { kind: 'dot-size',       matches: (v) => v.endsWith('-dot-size') },
-    { kind: 'blur',           matches: (v) => v.endsWith('-blur') || v.startsWith('--blur-') },
-    { kind: 'scale',          matches: (v) => v.endsWith('-scale') || v.startsWith('--scale-') },
-    { kind: 'shadow',         matches: (v) => v.endsWith('-shadow') || v.startsWith('--shadow-') },
-    { kind: 'padding',        matches: (v) => v.endsWith('-padding') || v.endsWith('-margin') },
-    { kind: 'gap',            matches: (v) => v.endsWith('-gap') },
-    { kind: 'duration',       matches: (v) => v.endsWith('-duration') || v.startsWith('--duration-') },
-    { kind: 'easing',         matches: (v) => v.endsWith('-easing') || v.startsWith('--ease-') },
-    { kind: 'border-width',   matches: (v) => v.endsWith('-border-width') || v.endsWith('-accent-width') || v.endsWith('-hairline-thickness') || v.startsWith('--border-width-') },
-    { kind: 'border',         matches: (v) => v.endsWith('-border') || v.startsWith('--border-') },
-    { kind: 'surface',        matches: (v) => v.endsWith('-surface') || v.startsWith('--surface-') },
-  ];
-
-  function rawKind(variable: string): Kind {
-    for (const { kind, matches } of KIND_PATTERNS) {
-      if (matches(variable)) return kind;
-    }
-    return 'text-color';
-  }
 
   /** Fixed internal order for tokens within a layout. `padding-split` co-orders with `padding`. */
   const baseKindOrder: Kind[] = [
