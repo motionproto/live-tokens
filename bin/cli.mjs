@@ -4,6 +4,8 @@
 //   create <dir>             Scaffold a new app that depends on this package.
 //   setup-claude [--force]   Copy bundled Claude Code skills into ./.claude/skills/.
 //   check-component <id>     Validate a component against the add-component skill contract.
+//   generate-theme <brief>   Build + activate a theme from a 10-seed OKLCH brief.
+//   migrate [...]            Reconcile tokens.css + route references after an upgrade.
 
 import { cpSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -13,6 +15,7 @@ import { checkComponent, formatReport } from './check-component.mjs';
 import { runMigrate, formatMigrateResult } from './migrate.mjs';
 import { runMigrateRoutes, formatRouteResult } from './migrate-routes.mjs';
 import { runCreate, formatCreateResult } from './create.mjs';
+import { runGenerateTheme, formatGenerateThemeResult } from './generate-theme.mjs';
 
 const USAGE = `Usage: npx @motion-proto/live-tokens <command> [options]
 
@@ -22,6 +25,16 @@ Commands:
   setup-claude [--force]      Install bundled Claude Code skills into ./.claude/skills/
   check-component <id>        Validate <id>'s runtime, editor, and registration
                               against the live-tokens-create-component contract
+  generate-theme <brief.json> [--no-activate] [--dry-run] [--carry-from <name>]
+                              Build a full theme from a 10-seed OKLCH brief
+                              (see the live-tokens-generate-theme skill),
+                              enforce AA contrast on derived text tokens, write
+                              themes/<slug>.json, and make it the active theme.
+                              --no-activate only writes the file; --dry-run
+                              prints the contrast report without writing.
+                              Non-color content (gradients, fonts, component
+                              aliases) carries forward from the active theme,
+                              or from <name> with --carry-from.
   migrate [--check] [--write] [--tokens <path>]
                               Reconcile your project with the installed package:
                               applies additive tokens.css migrations (unless
@@ -69,6 +82,28 @@ if (command === 'check-component') {
   const result = checkComponent(id);
   console.log(formatReport(id, result));
   process.exit(result.errors.length === 0 ? 0 : 1);
+}
+
+if (command === 'generate-theme') {
+  const briefPath = rest.find((a) => !a.startsWith('-'));
+  if (!briefPath) {
+    fail(`Usage: npx @motion-proto/live-tokens generate-theme <brief.json> [--no-activate] [--dry-run]`);
+  }
+  try {
+    const carryIdx = rest.indexOf('--carry-from');
+    const carryFrom = carryIdx !== -1 ? rest[carryIdx + 1] : undefined;
+    if (carryIdx !== -1 && !carryFrom) fail(`--carry-from requires a theme name`);
+    const result = await runGenerateTheme({
+      briefPath,
+      activate: !rest.includes('--no-activate'),
+      dryRun: rest.includes('--dry-run'),
+      carryFrom,
+    });
+    console.log(formatGenerateThemeResult(result));
+    process.exit(result.report.failures.length === 0 ? 0 : 1);
+  } catch (err) {
+    fail(`generate-theme failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
 }
 
 if (command === 'migrate') {
@@ -144,6 +179,7 @@ const SAMPLE_PROMPTS = {
   'live-tokens-build-page': 'build a pricing page using live-tokens components',
   'live-tokens-pick-component': "what's the difference between TabBar and SegmentedControl?",
   'live-tokens-create-component': 'author a new Toggle component for my live-tokens project',
+  'live-tokens-generate-theme': 'make me a bright and cheerful color theme',
 };
 
 const installedSamples = skills

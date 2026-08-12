@@ -13,7 +13,7 @@ A foundational design system for quickly styling and building Svelte + Vite micr
 - **Live editor overlay** — pins to the top-right of every dev page. Opens the editor in a side panel or floating window so you edit *on the page you're styling*, not in a separate tab. Includes a "Page Source" button that opens the current page's `.svelte` file in VS Code.
 - **Manifests** — a manifest captures a whole site configuration as one portable artifact: the theme in one slot, every component in its own slot, each holding either the shipped default or a custom file. Export it as a bundle and import it into another project to restore the full styling in one step.
 - **Vite plugin** — hosts the `/api/live-tokens/{themes,component-configs,manifests}/*` routes that persist your edits to disk as you make them. The single namespace keeps live-tokens' routes from colliding with anything your app serves under `/api`.
-- **Claude Code skill suite** — three bundled skills so you can drive the package in plain English. `build-page` composes pages from the shipped components. `pick-component` decides between confusing pairs (TabBar vs SegmentedControl, Card vs CollapsibleSection). `create-component` authors a new editable component against the project's naming, state-model, and import rules. One command to install all three: `npx @motion-proto/live-tokens setup-claude`. See [Claude Code skills](#claude-code-skills) below.
+- **Claude Code skill suite** — four bundled skills so you can drive the package in plain English. `build-page` composes pages from the shipped components. `pick-component` decides between confusing pairs (TabBar vs SegmentedControl, Card vs CollapsibleSection). `create-component` authors a new editable component against the project's naming, state-model, and import rules. `generate-theme` turns a mood brief ("bright and cheerful", "dark night theme") into a complete AA-checked color theme. One command to install them all: `npx @motion-proto/live-tokens setup-claude`. See [Claude Code skills](#claude-code-skills) below.
 
 ## Quick install
 
@@ -311,13 +311,14 @@ The component appears in the `/live-tokens/components` page under a **CUSTOM** g
 
 ## Claude Code skills
 
-The package ships a suite of Claude Code skills that encode the project's conventions so Claude can drive the package in plain English. They cover the three jobs the README itself can't carry well: deciding which shipped component fits a need, composing a page from the catalogue, and (for the long-tail case) authoring a new editable component. Each skill auto-triggers from natural-language requests — no slash commands. (Plain `npm install` plus the README handle first-time setup.)
+The package ships a suite of Claude Code skills that encode the project's conventions so Claude can drive the package in plain English. They cover the jobs the README itself can't carry well: deciding which shipped component fits a need, composing a page from the catalogue, generating a color theme from a mood brief, and (for the long-tail case) authoring a new editable component. Each skill auto-triggers from natural-language requests — no slash commands. (Plain `npm install` plus the README handle first-time setup.)
 
 | Skill                          | Triggers on                                                          | What it knows                                                                                                                  |
 |--------------------------------|----------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
 | `live-tokens-build-page`       | "build a pricing page using live-tokens components"                  | shipped-component catalogue, column grid, `pageSources` registration, token-only styling rule                                   |
 | `live-tokens-pick-component`   | "what's the difference between TabBar and SegmentedControl?"         | decision tables for each confusable family (selection, container, messaging, on/off); when to author a new one instead         |
 | `live-tokens-create-component` | "author a new Toggle component for my live-tokens project"           | runtime + editor + `registerComponent()` recipe, naming scheme, state model, public-imports rule, verification checklist        |
+| `live-tokens-generate-theme`   | "make me a bright and cheerful color theme"                          | mood → OKLCH seed framework (chroma budget, per-role bands, gamut guardrails, holiday palettes); drives `npx live-tokens generate-theme`, which enforces AA contrast |
 
 ### Install
 
