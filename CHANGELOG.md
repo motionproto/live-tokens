@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.47.1 — Straightened curves
+
+### Fixed
+
+- **`setCurveAnchor` could insert a handle that overran its neighbour.**
+  A fresh anchor's tangent handles were sized from the gap alone, so an
+  interior anchor placed past roughly the curve's midpoint could leave the
+  new segment non-monotone in x — the one thing `sampleCurve`'s binary
+  search cannot survive. Insertion now scales the neighbours' facing
+  handles by the share of the gap each keeps, the same rule de Casteljau
+  uses, and gives the new anchor only the room left over; `liftCurveAnchor`
+  reverses it on removal.
+
+- **The default theme's curves are regenerated to their endpoints.** The
+  shipped `default.json` carried curves hand-dragged in the editor: two
+  palette-lightness curves had handles overrunning an interior anchor
+  (the bug above, already on disk), and a text-saturation curve overshot
+  its own endpoint. All 80 curves are now straight interpolations between
+  their designed endpoint values, with the one base-color placement per
+  family per curve kept and pinned to its historical step. Full audit in
+  `docs/plans/default-theme-curve-audit.md`.
+
 ## 0.47.0 — Colors and Tokens hand palettes to each other
 
 ### Added
