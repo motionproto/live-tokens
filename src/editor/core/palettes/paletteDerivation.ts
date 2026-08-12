@@ -235,8 +235,41 @@ export function setCurveAnchor(curve: CurveAnchor[], x: number, y: number): { cu
   }
   let insertAt = curve.findIndex((a) => a.x > x);
   if (insertAt < 0) insertAt = curve.length;
-  const anchor = tangentAnchor(x, y, curve[insertAt - 1] ?? null, curve[insertAt] ?? null);
-  return { curve: [...curve.slice(0, insertAt), anchor, ...curve.slice(insertAt)] };
+  const prev = curve[insertAt - 1] ?? null;
+  const next = curve[insertAt] ?? null;
+  const out = [...curve];
+  // The neighbours aimed their handles across a gap this insert has just split,
+  // so a handle that was in bounds can now reach clean past the new anchor and
+  // leave the segment non-monotone in x, which is the one thing sampleCurve
+  // cannot survive. Scale them by the share of the gap each one keeps: the same
+  // rule de Casteljau uses, so the curve holds its shape, and exactly invertible
+  // by liftCurveAnchor when the placement moves off again.
+  if (prev && next) {
+    const span = next.x - prev.x;
+    out[insertAt - 1] = scaleOutHandle(prev, (x - prev.x) / span);
+    out[insertAt] = scaleInHandle(next, (next.x - x) / span);
+  }
+  out.splice(insertAt, 0, fitBetween(tangentAnchor(x, y, prev, next), out[insertAt - 1] ?? null, out[insertAt] ?? null));
+  return { curve: out };
+}
+
+const scaleOutHandle = (a: CurveAnchor, k: number): CurveAnchor => ({ ...a, outDx: a.outDx * k, outDy: a.outDy * k });
+const scaleInHandle = (a: CurveAnchor, k: number): CurveAnchor => ({ ...a, inDx: a.inDx * k, inDy: a.inDy * k });
+
+/** Shorten a freshly derived anchor's handles to whatever room its neighbours
+ *  leave. Only the new anchor gives ground: its handles carry no intent yet,
+ *  and a stored handle is someone's edit. */
+function fitBetween(a: CurveAnchor, prev: CurveAnchor | null, next: CurveAnchor | null): CurveAnchor {
+  let out = a;
+  if (prev) {
+    const room = a.x - (prev.x + prev.outDx);
+    if (room < -out.inDx) out = scaleInHandle(out, room <= 0 ? 0 : room / -out.inDx);
+  }
+  if (next) {
+    const room = next.x + next.inDx - a.x;
+    if (room < out.outDx) out = scaleOutHandle(out, room <= 0 ? 0 : room / out.outDx);
+  }
+  return out;
 }
 
 /** Undo a placement at x: restore the displaced y when one was recorded,
@@ -247,7 +280,15 @@ export function liftCurveAnchor(curve: CurveAnchor[], x: number, displacedY?: nu
   if (idx < 0) return curve;
   if (displacedY !== undefined) return curve.map((a, i) => (i === idx ? { ...a, y: displacedY } : a));
   if (idx === 0 || idx === curve.length - 1) return curve;
-  return curve.filter((_, i) => i !== idx);
+  const out = curve.filter((_, i) => i !== idx);
+  const prev = curve[idx - 1];
+  const next = curve[idx + 1];
+  if (prev && next) {
+    const span = next.x - prev.x;
+    out[idx - 1] = scaleOutHandle(prev, span / (curve[idx].x - prev.x));
+    out[idx] = scaleInHandle(next, span / (next.x - curve[idx].x));
+  }
+  return out;
 }
 
 /**

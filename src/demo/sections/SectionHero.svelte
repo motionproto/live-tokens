@@ -59,7 +59,6 @@
     display: grid;
     grid-template-columns: repeat(var(--columns-count), 1fr);
     column-gap: var(--columns-gutter);
-    isolation: isolate;
   }
 
   .hero-text {
@@ -79,19 +78,6 @@
     height: 32rem;
     margin-top: 1rem;
     position: relative;
-  }
-
-  .hero-kite::before {
-    content: '';
-    position: absolute;
-    inset: -100% -100%;
-    background: radial-gradient(
-      ellipse 38% 48% at 50% 50%,
-      color-mix(in srgb, var(--color-brand-500) 26%, transparent) 0%,
-      transparent 100%
-    );
-    pointer-events: none;
-    z-index: -1;
   }
 
   .hero-title {
