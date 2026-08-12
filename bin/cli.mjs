@@ -5,6 +5,7 @@
 //   setup-claude [--force]   Copy bundled Claude Code skills into ./.claude/skills/.
 //   check-component <id>     Validate a component against the add-component skill contract.
 //   generate-theme <brief>   Build + activate a theme from a 10-seed OKLCH brief.
+//   adjust <ops.json>        Apply radius/padding/gap/border-width ops to component configs.
 //   migrate [...]            Reconcile tokens.css + route references after an upgrade.
 
 import { cpSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
@@ -16,6 +17,7 @@ import { runMigrate, formatMigrateResult } from './migrate.mjs';
 import { runMigrateRoutes, formatRouteResult } from './migrate-routes.mjs';
 import { runCreate, formatCreateResult } from './create.mjs';
 import { runGenerateTheme, formatGenerateThemeResult } from './generate-theme.mjs';
+import { runAdjust, formatAdjustResult } from './adjust.mjs';
 
 const USAGE = `Usage: npx @motion-proto/live-tokens <command> [options]
 
@@ -35,6 +37,16 @@ Commands:
                               Non-color content (gradients, fonts, component
                               aliases) carries forward from the active theme,
                               or from <name> with --carry-from.
+  adjust <ops.json> [--no-activate] [--dry-run]
+                              Move radius, padding, gap, and border-width
+                              aliases along their token scales (see the
+                              live-tokens-adjust-shape-space skill). Reads each
+                              component's active config, writes
+                              component-configs/<id>/<slug>.json for every
+                              component the ops change, and activates it.
+                              Unnamed runs roll into "adjusted"; a named run
+                              writes its own file. --no-activate only writes the
+                              files; --dry-run prints the report without writing.
   migrate [--check] [--write] [--tokens <path>]
                               Reconcile your project with the installed package:
                               applies additive tokens.css migrations (unless
@@ -103,6 +115,24 @@ if (command === 'generate-theme') {
     process.exit(result.report.failures.length === 0 ? 0 : 1);
   } catch (err) {
     fail(`generate-theme failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
+
+if (command === 'adjust') {
+  const opsPath = rest.find((a) => !a.startsWith('-'));
+  if (!opsPath) {
+    fail(`Usage: npx @motion-proto/live-tokens adjust <ops.json> [--no-activate] [--dry-run]`);
+  }
+  try {
+    const result = await runAdjust({
+      opsPath,
+      activate: !rest.includes('--no-activate'),
+      dryRun: rest.includes('--dry-run'),
+    });
+    console.log(formatAdjustResult(result));
+    process.exit(0);
+  } catch (err) {
+    fail(`adjust failed: ${err instanceof Error ? err.message : String(err)}`);
   }
 }
 
