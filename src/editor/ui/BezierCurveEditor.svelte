@@ -4,7 +4,7 @@
   import {
     type CurveAnchor, type CurveConfig,
     CURVE_H, CURVE_PAD_Y, CURVE_Y_PAD,
-    isCornerAnchor, curveXToSvg, curveYToSvg, svgToX, svgToY,
+    isCornerAnchor, tangentAnchor, curveXToSvg, curveYToSvg, svgToX, svgToY,
     evalBezier, buildCurvePath, curveTemplates,
     serializeCurve, deserializeCurve,
   } from './curveEngine';
@@ -191,7 +191,7 @@
     const a = anchors[index];
     const updated = [...anchors];
     if (isCornerAnchor(a)) {
-      updated[index] = { ...a, inDx: -15, inDy: 0, outDx: 15, outDy: 0 };
+      updated[index] = tangentAnchor(a.x, a.y, anchors[index - 1] ?? null, anchors[index + 1] ?? null);
     } else {
       updated[index] = { ...a, inDx: 0, inDy: 0, outDx: 0, outDy: 0 };
     }

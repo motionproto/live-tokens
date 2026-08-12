@@ -8,6 +8,7 @@
   import GradientStopEditor from './palette/GradientStopEditor.svelte';
   import ScaleCurveEditor from './palette/ScaleCurveEditor.svelte';
   import PaletteBase from './palette/PaletteBase.svelte';
+  import PaletteJumpButton from './palette/PaletteJumpButton.svelte';
   import { type EditingState, idleState, BASE_KEY, isEditingBase as isBaseEdit } from './palette/paletteEditorState';
   import { dockTrackTemplate } from './palette/dockMagnify';
   import {
@@ -520,6 +521,7 @@
             <span>Gradient</span>
           </label>
         {/if}
+        <PaletteJumpButton family={label} {displayLabel} target="wheel" />
         <UIPillButton size="compact" variant="outline" onclick={clearPaletteOverrides}>Clear Overrides</UIPillButton>
         <UIPillButton size="compact" variant="outline" onclick={() => paletteEditorOpen = !paletteEditorOpen}>
           {paletteEditorOpen ? 'Close' : 'Edit'}
@@ -551,7 +553,9 @@
               onkeydown={(e) => e.key === 'Enter' && handlePaletteClick({ label: ps.label, lightness: ps.lightness, index: ps.index })}
             >
               {#if ps.key in overrides}
-                <span class="override-dot" title="Palette override"></span>
+                <span class="override-lock" title="Palette override: this step is set by hand, not derived from the curve">
+                  <i class="fas fa-lock" aria-hidden="true"></i>
+                </span>
               {/if}
             </div>
             <button
@@ -864,7 +868,7 @@
     align-items: start;
     justify-content: start;
     min-width: 0;
-    max-width: calc(var(--swatch-cols) * 4rem + (var(--swatch-cols) - 1) * var(--swatch-gap, var(--ui-space-4)));
+    max-width: calc(var(--swatch-cols) * 4.5rem + (var(--swatch-cols) - 1) * var(--swatch-gap, var(--ui-space-4)));
   }
 
   .curve-grid-span {
@@ -897,7 +901,7 @@
 
   .swatch.gray-swatch {
     width: 100%;
-    height: calc(4rem + var(--ui-space-2));
+    height: calc(4.75rem + var(--ui-space-2));
     /* Compensating margin: height + margin-bottom is constant every frame of
        the magnification, so the grid's row height never dips mid-transition
        (the dip bounced everything below the palette). Also keeps the hex row
@@ -928,19 +932,29 @@
      change — the swatch itself already IS the picked color. */
   .swatch.gray-swatch.anchored {
     border-color: var(--ui-border-higher);
-    height: calc(5rem + var(--ui-space-2));
+    height: calc(5.75rem + var(--ui-space-2));
     margin-bottom: 0;
   }
 
-  .override-dot {
+  /* An overridden step is held by hand and no longer follows the curve, which a
+     lock says and a dot could not. The badge carries its own dark disc: the
+     ramp runs from near-white to near-black, so no single glyph colour reads
+     against every swatch it can land on. */
+  .override-lock {
     position: absolute;
-    top: 3px;
-    right: 3px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--ui-text-primary);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    top: var(--ui-space-4);
+    right: var(--ui-space-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: var(--ui-radius-full);
+    background: rgba(0, 0, 0, 0.55);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.45);
+    color: #fff;
+    font-size: var(--ui-font-size-xs);
+    line-height: 1;
   }
 
   .empty-mode-toggle {

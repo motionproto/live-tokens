@@ -17,7 +17,7 @@ import { hexToOklch, type Oklch } from './oklch';
 import { migratePaletteColorsToOklch, type PreOklchPaletteConfig } from '../themes/migrations/2026-07-21-palette-oklch-basis';
 import { adoptLegacyBaseAnchor } from '../themes/migrations/2026-07-24-base-anchor-placement';
 import { adoptBackgroundSpotAsBase } from '../themes/migrations/2026-07-25-background-spot-to-base';
-import { makeAnchor, type CurveAnchor } from '../../ui/curveEngine';
+import { makeAnchor, sampleCurve, type CurveAnchor } from '../../ui/curveEngine';
 import type { PaletteConfig } from '../themes/themeTypes';
 import defaultTheme from '../../../live-tokens/data/themes/default.json';
 
@@ -277,5 +277,36 @@ describe('snapScaleToPalette is direction-agnostic', () => {
 
     const palSet = new Set(paletteComputed.map((p) => p.oklch));
     for (const color of Object.values(assigned)) expect(palSet.has(color)).toBe(true);
+  });
+});
+
+describe('setCurveAnchor lands on the local slope', () => {
+  const ramp = (): CurveAnchor[] => [makeAnchor(0, 95, 5), makeAnchor(100, 8, 5)];
+
+  it('gives an inserted anchor a descending tangent, not flat handles', () => {
+    const { curve } = core.setCurveAnchor(ramp(), 40, 60);
+    const a = curve[1];
+    expect(a.outDy).toBeLessThan(0);
+    expect(a.inDy).toBeGreaterThan(0);
+    // Symmetric about the anchor: one tangent, not a corner wearing two handles.
+    expect(a.outDy / a.outDx).toBeCloseTo(a.inDy / a.inDx, 10);
+  });
+
+  it('keeps the sampled ramp monotone through the inserted anchor', () => {
+    const { curve } = core.setCurveAnchor(ramp(), 40, 60);
+    const ys = Array.from({ length: 51 }, (_, i) => sampleCurve(curve, i * 2));
+    for (let i = 0; i + 1 < ys.length; i++) expect(ys[i]).toBeGreaterThanOrEqual(ys[i + 1]);
+  });
+
+  it('flattens only at a genuine turning point', () => {
+    const { curve } = core.setCurveAnchor([makeAnchor(0, 20, 5), makeAnchor(100, 20, 5)], 50, 80);
+    expect(curve[1].inDy).toBeCloseTo(0, 10);
+    expect(curve[1].outDy).toBeCloseTo(0, 10);
+  });
+
+  it('holds handles inside the gaps it was dropped between', () => {
+    const { curve } = core.setCurveAnchor(ramp(), 10, 88);
+    expect(Math.abs(curve[1].inDx)).toBeLessThanOrEqual(10);
+    expect(curve[1].outDx).toBeLessThanOrEqual(90);
   });
 });

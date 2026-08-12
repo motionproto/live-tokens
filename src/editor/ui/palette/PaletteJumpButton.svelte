@@ -35,15 +35,10 @@
     display: inline-flex;
   }
 
-  /* fa-palette loses its bowl at the pill's default icon size. The compact
-     pill's line box is shorter than the glyph draws, so the padding grows with
-     it rather than letting it cross the border. */
-  .palette-jump :global(.ui-pill) {
-    padding-block: var(--ui-space-6);
-  }
-
+  /* fa-palette loses its bowl at the pill's default icon size; the compact
+     pill's min-height carries the taller glyph without changing the pill's
+     height, so it still lines up with the plain pills beside it. */
   .palette-jump :global(.ui-pill i) {
     font-size: var(--ui-font-size-md);
-    line-height: 1.2;
   }
 </style>

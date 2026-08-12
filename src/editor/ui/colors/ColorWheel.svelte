@@ -62,6 +62,8 @@
   const EXT_OFFSET = 20;  // external handle radius beyond the disc rim (room for the dotted tether)
   const NUM_OFFSET = 24;  // numeral radius beyond the external handles
   const FREE_NUM_OFFSET = 15; // free-dot numeral, diagonal clearance past the enlarged dot
+  const NUM_PERP = 20;    // sideways clearance for a numeral moved beside its own marker
+  const NUM_STACK = 20;   // radial gap between the numerals of co-hued unbound axes
   const MIN_SIZE = 240;
   const MAX_SIZE = 560;
 
@@ -128,6 +130,7 @@
       return {
         ...t,
         hue,
+        dotR,
         selected: t.bound && selected === t.family,
         dot: { x: center + dotR * Math.cos(rad(hue)), y: center - dotR * Math.sin(rad(hue)) },
         ext: { x: center + extRadius * Math.cos(rad(hue)), y: center - extRadius * Math.sin(rad(hue)) },
@@ -141,7 +144,37 @@
     }),
   );
 
-  let visibleRender = $derived(axisRender.filter(isVisible));
+  // Monochromatic stacks every axis on one hue (custom does too, once the hues
+  // are dragged together), so the outer numeral slot is the same point for all
+  // of them. Each numeral then moves beside the marker it names — its own dot,
+  // or the external handle when the axis carries no color — which is the only
+  // thing that still tells the axes apart on a shared rail.
+  let visibleRender = $derived.by(() => {
+    const vis = axisRender.filter(isVisible);
+    const hueKey = (hue: number) => Math.round(normDeg(hue)) % 360;
+    const byHue = new Map<number, typeof vis>();
+    for (const t of vis) {
+      const group = byHue.get(hueKey(t.hue));
+      if (group) group.push(t);
+      else byHue.set(hueKey(t.hue), [t]);
+    }
+    return vis.map((t) => {
+      const group = byHue.get(hueKey(t.hue))!;
+      if (group.length < 2) return t;
+      // Bound axes separate by chroma radius on their own; unbound ones share the
+      // handle track, so they step outward past it instead.
+      const unboundBefore = group.slice(0, group.indexOf(t)).filter((g) => !g.bound).length;
+      const r = t.bound ? t.dotR : extRadius + unboundBefore * NUM_STACK;
+      const a = rad(t.hue);
+      return {
+        ...t,
+        num: {
+          x: center + r * Math.cos(a) - NUM_PERP * Math.sin(a),
+          y: center - r * Math.sin(a) - NUM_PERP * Math.cos(a),
+        },
+      };
+    });
+  });
 
   // Free dot for a selected family on no ACTIVE axis (Neutral, Alternate, …,
   // plus families whose axis the applied geometry deals no distinct slot): a 2D

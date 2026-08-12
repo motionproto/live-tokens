@@ -14,7 +14,7 @@
  */
 
 import { hexToOklch, oklchToHexClamped, gamutClamp, type Oklch } from './oklch';
-import { type CurveAnchor, sampleCurve, makeAnchor } from '../../ui/curveEngine';
+import { type CurveAnchor, sampleCurve, makeAnchor, tangentAnchor } from '../../ui/curveEngine';
 import type { PaletteConfig } from '../themes/themeTypes';
 
 export interface PaletteSpec {
@@ -235,7 +235,8 @@ export function setCurveAnchor(curve: CurveAnchor[], x: number, y: number): { cu
   }
   let insertAt = curve.findIndex((a) => a.x > x);
   if (insertAt < 0) insertAt = curve.length;
-  return { curve: [...curve.slice(0, insertAt), makeAnchor(x, y, 15), ...curve.slice(insertAt)] };
+  const anchor = tangentAnchor(x, y, curve[insertAt - 1] ?? null, curve[insertAt] ?? null);
+  return { curve: [...curve.slice(0, insertAt), anchor, ...curve.slice(insertAt)] };
 }
 
 /** Undo a placement at x: restore the displaced y when one was recorded,

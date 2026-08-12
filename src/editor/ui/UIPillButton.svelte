@@ -60,6 +60,7 @@
 
 <style>
   .ui-pill {
+    box-sizing: border-box;
     display: inline-flex;
     align-items: center;
     gap: var(--ui-space-6, 6px);
@@ -175,9 +176,13 @@
     border-color: rgba(255, 255, 255, 0.18);
   }
 
-  /* Size: compact — for header bars / chrome rails */
+  /* Size: compact — for header bars / chrome rails. The min-height, not the
+     padding, sets the height: a pill carrying an icon has a taller line box than
+     one with only a label, and equal padding would leave them different heights
+     in the same row. The slack also clears glyphs that draw past their em box. */
   .ui-pill-compact {
     font-size: var(--ui-font-size-sm, 14px);
-    padding: var(--ui-space-2, 2px) var(--ui-space-12, 12px);
+    padding: var(--ui-space-4, 4px) var(--ui-space-12, 12px);
+    min-height: 1.75rem;
   }
 </style>

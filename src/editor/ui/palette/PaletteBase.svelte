@@ -1,7 +1,6 @@
 <script lang="ts">
   import ColorEditPanel from '../ColorEditPanel.svelte';
   import Toggle from '../Toggle.svelte';
-  import PaletteJumpButton from './PaletteJumpButton.svelte';
   import { beginSliderGesture } from '../../core/store/editorStore';
   import { oklchToHexClamped, type Oklch } from '../../core/palettes/oklch';
 
@@ -85,46 +84,58 @@
       onkeydown={(e) => e.key === 'Enter' && onStartEdit()}
     ></div>
     <div class="primary-info">
-      <div class="label-row">
-        <span class="editor-label">{displayLabel ?? label}</span>
-        <PaletteJumpButton family={label} {displayLabel} target="wheel" />
-      </div>
+      <span class="editor-label">{displayLabel ?? label}</span>
       <button
-        class="base-hex clickable-hex"
+        class="base-hex"
+        class:copied={copiedKey === '__base__'}
         type="button"
+        title="Copy {baseHex}"
         onclick={(e) => onCopyBaseHex('__base__', baseHex, e)}
-      >{copiedKey === '__base__' ? 'copied!' : baseHex}</button>
+      >
+        <span class="hex-value">{baseHex}</span>
+        <i
+          class="fas"
+          class:fa-copy={copiedKey !== '__base__'}
+          class:fa-check={copiedKey === '__base__'}
+          aria-hidden="true"
+        ></i>
+      </button>
     </div>
   </div>
+
+  {#if pinnedOpen || (isEditingBase && panelOpen && editingColor)}
+    <div class="editor-controls">
+      <ColorEditPanel
+        title={isEditingBase ? editPanelTitle : 'Base Color'}
+        showRemoveOverride={false}
+        hideActions={!isEditingBase}
+        hidePreview
+        hue={baseOklch.h}
+        chroma={baseOklch.c}
+        lightness={baseOklch.l * 100}
+        chromaMax={CHROMA_MAX}
+        chromaHint={pickerChromaHint}
+        onHueChromaChange={onBaseChange}
+        onConfirm={onConfirm}
+        onCancel={onCancel}
+        onRemoveOverride={() => {}}
+        onSliderStart={() => beginSliderGesture(`edit ${label} base`)}
+      >
+        {#snippet actions()}
+          <Toggle
+            checked={anchorToBase}
+            onchange={(v) => onAnchorToBaseChange(v ?? !anchorToBase)}
+            label={anchorStepLabel ? `Base color placed at ${anchorStepLabel}` : 'Place base color in palette'}
+          />
+        {/snippet}
+      </ColorEditPanel>
+    </div>
+  {/if}
 </div>
 
-{#if pinnedOpen || (isEditingBase && panelOpen && editingColor)}
-  <ColorEditPanel
-    title={isEditingBase ? editPanelTitle : 'Base Color'}
-    showRemoveOverride={false}
-    hideActions={!isEditingBase}
-    hue={baseOklch.h}
-    chroma={baseOklch.c}
-    lightness={baseOklch.l * 100}
-    chromaMax={CHROMA_MAX}
-    chromaHint={pickerChromaHint}
-    onHueChromaChange={onBaseChange}
-    onConfirm={onConfirm}
-    onCancel={onCancel}
-    onRemoveOverride={() => {}}
-    onSliderStart={() => beginSliderGesture(`edit ${label} base`)}
-  >
-    {#snippet actions()}
-      <Toggle
-        checked={anchorToBase}
-        onchange={(v) => onAnchorToBaseChange(v ?? !anchorToBase)}
-        label={anchorStepLabel ? `Base color placed at ${anchorStepLabel}` : 'Place base color in palette'}
-      />
-    {/snippet}
-  </ColorEditPanel>
-{/if}
-
 <style>
+  /* Identity and controls read as one band: the sliders sit beside the swatch
+     rather than under it, which is what leaves the palette below its height. */
   .editor-top {
     display: flex;
     align-items: flex-start;
@@ -134,7 +145,7 @@
 
   .editor-primary {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: var(--ui-space-12);
     flex-shrink: 0;
   }
@@ -142,19 +153,20 @@
   .primary-info {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: var(--ui-space-2);
   }
 
-  .label-row {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-10);
+  /* Basis, not width: the panel takes the rest of the row and drops below only
+     when it can't hold that much. */
+  .editor-controls {
+    flex: 1 1 26rem;
+    min-width: 0;
   }
 
-
   .header-swatch {
-    width: 4rem;
-    height: 4rem;
+    width: 4.5rem;
+    min-height: 4.5rem;
     border-radius: var(--ui-radius-md);
     border: 2px solid var(--ui-border);
     flex-shrink: 0;
@@ -178,13 +190,9 @@
   }
 
   .base-hex {
-    font-size: var(--ui-font-size-md);
-    color: var(--ui-text-secondary);
-    font-family: var(--ui-font-mono);
-  }
-
-  .clickable-hex {
-    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-6);
     background: none;
     border: none;
     cursor: pointer;
@@ -197,15 +205,31 @@
     text-align: left;
   }
 
-  .clickable-hex:hover {
+  /* The glyph only announces itself on approach; the hex is the content. */
+  .base-hex i {
+    font-size: var(--ui-font-size-xs);
+    color: var(--ui-text-muted);
+    transition: color var(--ui-transition-fast);
+  }
+
+  .base-hex:hover {
     background: var(--ui-surface-highest);
     color: var(--ui-text-primary);
   }
 
+  .base-hex:hover i {
+    color: var(--ui-text-secondary);
+  }
+
+  .base-hex.copied,
+  .base-hex.copied i {
+    color: var(--ui-text-accent);
+  }
+
   @media (max-width: 1280px) {
     .header-swatch {
-      width: 3rem;
-      height: 3rem;
+      width: 3.5rem;
+      min-height: 3.5rem;
     }
   }
 </style>

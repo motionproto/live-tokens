@@ -97,6 +97,54 @@ export function makeAnchor(x: number, y: number, tangentLen = 15): CurveAnchor {
   return { x, y, inDx: -tangentLen, inDy: 0, outDx: tangentLen, outDy: 0 };
 }
 
+/** Share of a segment's x-span a tangent handle reaches across. At a third the
+ *  cubic is the exact Hermite form of the slope, so the handle length carries no
+ *  shape of its own, and the two facing handles can never cross. */
+const HANDLE_SPAN = 1 / 3;
+
+/**
+ * Slope to carry through (x, y), given whichever neighbours it has.
+ *
+ * The weighted harmonic mean of the two secants (Fritsch–Carlson): it always
+ * lands between them, so the segment cannot overshoot its own endpoints. The
+ * plain average (Catmull-Rom) can overshoot when the gaps differ, and on a
+ * lightness ramp an overshoot puts a step out of order with its neighbours,
+ * which is the one thing a ramp must not do.
+ */
+function tangentSlope(
+  prev: CurveAnchor | null,
+  x: number,
+  y: number,
+  next: CurveAnchor | null,
+): number {
+  const hPrev = prev ? x - prev.x : 0;
+  const hNext = next ? next.x - x : 0;
+  const dPrev = hPrev > 0 ? (y - prev!.y) / hPrev : null;
+  const dNext = hNext > 0 ? (next!.y - y) / hNext : null;
+  if (dPrev === null) return dNext ?? 0;
+  if (dNext === null) return dPrev;
+  // Secants disagreeing in sign make this a turning point, where flat is the
+  // true slope rather than a failure to find one.
+  if (dPrev * dNext <= 0) return 0;
+  const wPrev = 2 * hNext + hPrev;
+  const wNext = hNext + 2 * hPrev;
+  return (wPrev + wNext) / (wPrev / dPrev + wNext / dNext);
+}
+
+/** An anchor at (x, y) whose handles lie along the local slope, so dropping it
+ *  onto a run bends the line rather than flattening it. */
+export function tangentAnchor(
+  x: number,
+  y: number,
+  prev: CurveAnchor | null,
+  next: CurveAnchor | null,
+): CurveAnchor {
+  const m = tangentSlope(prev, x, y, next);
+  const inDx = prev ? -(x - prev.x) * HANDLE_SPAN : 0;
+  const outDx = next ? (next.x - x) * HANDLE_SPAN : 0;
+  return { x, y, inDx, inDy: m * inDx, outDx, outDy: m * outDx };
+}
+
 export function isCornerAnchor(a: CurveAnchor): boolean {
   return a.inDx === 0 && a.inDy === 0 && a.outDx === 0 && a.outDy === 0;
 }

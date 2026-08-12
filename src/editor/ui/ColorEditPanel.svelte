@@ -340,7 +340,7 @@
      regardless of row content; the row wrappers dissolve into the grid. */
   .hsl-sliders {
     display: grid;
-    grid-template-columns: 2.5rem minmax(6rem, 1fr) 3.5rem 0.75rem;
+    grid-template-columns: 1.25rem minmax(6rem, 1fr) 3.5rem 0.75rem;
     gap: var(--ui-space-6) var(--ui-space-8);
     align-items: center;
   }
