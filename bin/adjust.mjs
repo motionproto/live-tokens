@@ -71,6 +71,18 @@ function opposesShift(ops, matchesKind, component, change) {
   return direction !== 0 && Math.sign(to - from) !== direction;
 }
 
+/** Successive ops can touch the same alias (soften, then pill the buttons);
+ *  the report shows one entry per alias, first `from` to last `to`. */
+function collapseChanges(changes) {
+  const byVariable = new Map();
+  for (const change of changes) {
+    const entry = byVariable.get(change.variable);
+    if (entry) entry.to = change.to;
+    else byVariable.set(change.variable, { ...change });
+  }
+  return [...byVariable.values()].filter((c) => c.from !== c.to);
+}
+
 function readActiveConfigs(dir) {
   const configs = {};
   const previousActive = {};
@@ -132,7 +144,8 @@ export async function runAdjust({
 
   const components = [];
   for (const entry of report.components) {
-    const { component, changes, skips } = entry;
+    const { component, skips } = entry;
+    const changes = collapseChanges(entry.changes);
 
     if (changes.length > 0 && !dryRun) {
       const configPath = join(dir, component, `${slug}.json`);
@@ -174,14 +187,19 @@ export function formatAdjustResult(result) {
   const { components: changedCount, aliases, skips } = result.totals;
 
   if (changedCount === 0) {
-    lines.push(`Nothing to change: no alias matched the ops.`);
+    lines.push(
+      skips > 0
+        ? `Nothing changed: every matching alias was skipped (reasons below).`
+        : `Nothing to change: no alias matched the ops.`,
+    );
   } else {
     const verb = result.dryRun ? 'Would write' : 'Wrote';
     lines.push(`${verb} "${result.slug}.json" into ${changedCount} component config folder(s).`);
   }
 
   for (const entry of result.components) {
-    lines.push(`\n${entry.component}  (active: ${entry.previousActive})`);
+    const flipped = result.activated && entry.changes.length > 0;
+    lines.push(`\n${entry.component}  (${flipped ? 'previously' : 'active'}: ${entry.previousActive})`);
 
     const width = Math.max(0, ...entry.changes.map((c) => c.variable.length));
     for (const c of entry.changes) {

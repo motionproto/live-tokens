@@ -182,6 +182,31 @@ describe('formatAdjustResult', () => {
     expect(out).toContain('skipped, already at the ladder end: --button-primary-radius');
     expect(out).toContain('skipped, pill preserved (pass "full": true to move it): --button-pill-radius');
     expect(out).toContain('0 component(s) changed, 0 alias(es), 3 skipped.');
-    expect(out).toContain('Nothing to change');
+    expect(out).toContain('Nothing changed: every matching alias was skipped');
+  });
+
+  it('collapses successive ops on one alias into a single reported change', async () => {
+    const root = fixture();
+    const result = await run(root, {
+      ops: [
+        { kind: 'radius', shift: 1 },
+        { target: 'button', kind: 'radius', set: '--radius-full' },
+      ],
+    });
+
+    const button = result.components.find((c: { component: string }) => c.component === 'button');
+    expect(button.changes).toEqual([
+      { variable: '--button-primary-radius', from: '--radius-xl', to: '--radius-full', snapped: false },
+    ]);
+    expect(result.totals.aliases).toBe(2);
+    expect(readConfig(root, 'button', 'adjusted').aliases['--button-primary-radius']).toBe('--radius-full');
+  });
+
+  it('labels a flipped component with its previous active config', async () => {
+    const root = fixture();
+    const out = formatAdjustResult(await run(root, { ops: [{ kind: 'radius', shift: 1 }] }));
+
+    expect(out).toContain('button  (previously: default)');
+    expect(out).not.toContain('button  (active: default)');
   });
 });
