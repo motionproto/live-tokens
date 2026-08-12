@@ -484,6 +484,63 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out['--card-hover-title']).toBe('--text-secondary');
   });
 
+  it('theme v3 → v4: legacy shape/space keys drop; modern component + theme vars survive', () => {
+    const v3 = {
+      '--badge-trait-radius': 'var(--radius-full)',
+      '--badge-trait-padding': 'var(--space-6)',
+      '--sectiondivider-padding': 'var(--space-16)',
+      '--dialog-primary-default-radius': 'var(--radius-md)',
+      '--dialog-primary-default-padding': 'var(--space-8)',
+      '--dialog-primary-hover-radius': 'var(--radius-md)',
+      '--dialog-primary-hover-padding': 'var(--space-8)',
+      '--dialog-secondary-default-radius': 'var(--radius-md)',
+      '--dialog-secondary-default-padding': 'var(--space-8)',
+      '--dialog-secondary-hover-radius': 'var(--radius-md)',
+      '--dialog-secondary-hover-padding': 'var(--space-8)',
+      // Same components, non-shape keys — untouched.
+      '--badge-trait-surface': 'var(--surface-brand)',
+      '--sectiondivider-title': 'var(--text-primary)',
+      '--dialog-primary-default-border-width': 'var(--border-width-1)',
+      // Shape/space keys under the modern component-config names — untouched.
+      '--badge-primary-radius': 'var(--radius-full)',
+      '--sectiondivider-lg-padding': 'var(--space-0)',
+      '--dialog-radius': 'var(--radius-lg)',
+      // Unrelated theme var.
+      '--text-primary': '#fff5f0',
+    };
+    const out = runMigrations('theme', 3, v3);
+    for (const key of [
+      '--badge-trait-radius',
+      '--badge-trait-padding',
+      '--sectiondivider-padding',
+      '--dialog-primary-default-radius',
+      '--dialog-primary-default-padding',
+      '--dialog-primary-hover-radius',
+      '--dialog-primary-hover-padding',
+      '--dialog-secondary-default-radius',
+      '--dialog-secondary-default-padding',
+      '--dialog-secondary-hover-radius',
+      '--dialog-secondary-hover-padding',
+    ]) {
+      expect(out[key]).toBeUndefined();
+    }
+    expect(out['--badge-trait-surface']).toBe('var(--surface-brand)');
+    expect(out['--sectiondivider-title']).toBe('var(--text-primary)');
+    expect(out['--dialog-primary-default-border-width']).toBe('var(--border-width-1)');
+    expect(out['--badge-primary-radius']).toBe('var(--radius-full)');
+    expect(out['--sectiondivider-lg-padding']).toBe('var(--space-0)');
+    expect(out['--dialog-radius']).toBe('var(--radius-lg)');
+    expect(out['--text-primary']).toBe('#fff5f0');
+  });
+
+  it('theme v3 → v4 is idempotent — re-running on migrated output changes nothing', () => {
+    const once = runMigrations('theme', 3, {
+      '--dialog-primary-default-radius': 'var(--radius-md)',
+      '--text-primary': '#fff5f0',
+    });
+    expect(runMigrations('theme', 3, once)).toEqual(once);
+  });
+
   it('runMigrations is pure — does not mutate the input map', () => {
     const input = { '--surface-bg': '#fff' };
     const before = { ...input };
