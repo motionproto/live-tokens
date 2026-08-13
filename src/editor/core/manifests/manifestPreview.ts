@@ -1,5 +1,5 @@
 import { get } from 'svelte/store';
-import type { FontSource, Manifest } from '../themes/themeTypes';
+import type { FontSource, Manifest, Theme } from '../themes/themeTypes';
 import { editorState, themeToState, toComponentSlice } from '../store/editorStore';
 import { deriveCssVars } from '../store/editorRenderer';
 import { setCssVar, removeCssVar } from '../cssVarSync';
@@ -8,15 +8,20 @@ import { migrateThemeFonts } from '../fonts/fontMigration';
 import { loadManifest } from './manifestService';
 
 /**
- * Client-side rendering of a manifest, for browsing looks without committing
- * one. Nothing here writes to the server, mutates the editor store, or marks
- * anything dirty: a preview is paint only. Save-As stays honest because
- * `captureLook` reads the server's active files, which a preview never touches.
+ * Client-side rendering of a saved file, for browsing looks without committing
+ * one. A manifest previews as a whole look; a theme previews as colors and type
+ * over the components the user has right now. Nothing here writes to the server,
+ * mutates the editor store, or marks anything dirty: a preview is paint only.
+ * Save-As stays honest because `captureLook` reads the server's active files,
+ * which a preview never touches.
  *
  * Both painting and reverting run the same derivation the renderer runs on
  * store state (`deriveCssVars`), so a preview cannot drift from what an Apply
- * of the same manifest would produce, and a revert re-derives from the live
- * store rather than replaying DOM values scraped before the preview.
+ * of the same manifest produces, and a revert re-derives from the live store
+ * rather than replaying DOM values scraped before the preview.
+ *
+ * One preview is live at a time, whichever kind it is: painting reverts first,
+ * so every look is a diff against the user's real state.
  */
 
 /** Everything a look puts on the page: the full var set (theme, components and
@@ -57,6 +62,21 @@ export function manifestLook(manifest: Manifest, defaults: Manifest): RenderedLo
   return { vars, fontSources: theme.fontSources ?? [] };
 }
 
+/**
+ * The full var set a theme paints. A theme is colors and type, not a whole look,
+ * so the components stay as the user has them: `themeToState` carries the live
+ * component slice forward (`loadComponentsFromVars`) and strips component-owned
+ * vars out of the theme's own bag, which is exactly the composition a preview
+ * wants. No defaults fetch, no component reset.
+ */
+export function themeLook(theme: Theme): RenderedLook {
+  const next = structuredClone(theme);
+  migrateThemeFonts(next);
+  const vars = deriveCssVars(themeToState(next));
+  Object.assign(vars, resolveFontStackValues(next.fontStacks ?? [], next.fontSources ?? []));
+  return { vars, fontSources: next.fontSources ?? [] };
+}
+
 /** The look the editor store currently describes — the state a revert returns to. */
 export function liveLook(): RenderedLook {
   const state = get(editorState);
@@ -89,16 +109,25 @@ function paint(next: RenderedLook, from: RenderedLook): void {
 }
 
 /**
- * Paint `manifest` over the page. Re-entrant: a live preview is reverted first,
- * so every look is painted as a diff against the user's real state and a var one
+ * Show `look` on the page. Re-entrant: a live preview is reverted first, so
+ * every look is painted as a diff against the user's real state and a var one
  * look sets but the next does not returns to its live value instead of vanishing.
  * The two passes run in one task, so the browser never paints the intermediate.
  */
-export async function previewManifest(manifest: Manifest): Promise<void> {
-  const look = manifestLook(manifest, await loadDefaults());
+function applyPreview(look: RenderedLook): void {
   revertPreview();
   paint(look, liveLook());
   livePreview = look;
+}
+
+/** Paint a whole look: the manifest's theme and every component config it carries. */
+export async function previewManifest(manifest: Manifest): Promise<void> {
+  applyPreview(manifestLook(manifest, await loadDefaults()));
+}
+
+/** Paint a theme's colors and type over the components as they stand. */
+export function previewTheme(theme: Theme): void {
+  applyPreview(themeLook(theme));
 }
 
 /** Restore the live editor state. No-op when no preview is running. */

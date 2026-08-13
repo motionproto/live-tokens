@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
   import type { ThemeMeta } from '../core/themes/themeTypes';
-  import { listThemes, deleteTheme, setActiveFile, getProductionInfo, setProductionFile, sanitizeFileName } from '../core/themes/themeService';
+  import { listThemes, deleteTheme, loadTheme, setActiveFile, getProductionInfo, setProductionFile, sanitizeFileName } from '../core/themes/themeService';
   import { listManifests, saveAsManifest } from '../core/manifests/manifestService';
+  import { previewTheme, revertPreview } from '../core/manifests/manifestPreview';
   import { activeFileName } from '../core/store/editorConfigStore';
   import { dirty } from '../core/store/editorStore';
   import { productionRevision, bumpProductionRevision, themeProductionInfo } from '../core/productionPulse';
@@ -182,19 +183,67 @@
     }
   }
 
-  async function handleLoad(file: ThemeMeta) {
+  // ── Preview ───────────────────────────────────────────────────────────
+  //
+  // Selecting a row paints that theme's colors and type on the page and leaves
+  // the window open; the components stay as they are and nothing is written
+  // until Save. Cancelling — or closing the window by any route — repaints the
+  // user's live state, unsaved edits included.
+
+  let previewFile: ThemeMeta | null = $state(null);
+
+  function cancelPreview() {
+    revertPreview();
+    previewFile = null;
+  }
+
+  async function handleSelect(file: ThemeMeta) {
+    if (file.fileName === previewFile?.fileName) return;
+    if (file.fileName === $activeFileName) {
+      cancelPreview();
+      return;
+    }
+    try {
+      const theme = await loadTheme(file.fileName);
+      // The window may have closed during the fetch; painting then would leave
+      // a preview on screen with no Save or Cancel in sight.
+      if (!showFileList) return;
+      previewTheme(theme);
+      previewFile = file;
+    } catch (err) {
+      window.alert(`Failed to preview theme: ${(err as Error).message}`);
+      cancelPreview();
+    }
+  }
+
+  async function handleSavePreview() {
+    const file = previewFile;
+    if (!file) return;
     if ($dirty) {
       const ok = window.confirm(
         'Loading a theme will discard unsaved changes. Continue?',
       );
       if (!ok) return;
     }
+    // Hand the page back to the store before loading. The renderer diffs
+    // against its own last-applied set, which never saw the preview's direct
+    // writes; starting from the live look makes the load land exactly as it
+    // does with no preview in play.
+    cancelPreview();
     showFileList = false;
     await setActiveFile(file.fileName);
     $activeFileName = file.fileName;
     currentDisplayName = file.name;
     onload?.({ fileName: file.fileName });
   }
+
+  // Closing the window is cancelling: the X, the backdrop and the Cancel button
+  // all just flip `show`, so watching it covers every exit.
+  $effect(() => {
+    if (!showFileList) cancelPreview();
+  });
+
+  onDestroy(cancelPreview);
 
   // Two-step arm pattern. First click flips `revertArmed` so the button
   // morphs into a "Discard?" affordance; second click commits. Click-out,
@@ -248,6 +297,9 @@
       // into local state — otherwise the "was this the active file?" check
       // below sees the post-revert value and skips the reload.
       const wasActive = file.fileName === $activeFileName;
+      // End the preview when the file being previewed is going away, and when
+      // the delete will hydrate a new active theme underneath it.
+      if (wasActive || file.fileName === previewFile?.fileName) cancelPreview();
       await deleteTheme(file.fileName);
       await refreshFiles();
       // Deleting the production theme is legal now that manifests carry their
@@ -279,6 +331,12 @@
     <UIInfoPopover title="Themes" ariaLabel="About themes">
       <p>
         A <strong>theme</strong> saves the design tokens for a site, components use these tokens to define their appearance.
+      </p>
+      <p>
+        <strong>Load</strong> opens the list. Picking a theme shows its colors and type on the page as a preview, with your components left as they are and nothing written to disk. Pick another to compare, or <strong>Cancel</strong> to go back to where you were.
+      </p>
+      <p>
+        <strong>Save</strong> keeps the previewed theme: it becomes the theme the editor is working on.
       </p>
     </UIInfoPopover>
   </div>
@@ -356,7 +414,7 @@
           class="tfm-btn tfm-btn-row"
           class:active={showFileList}
           onclick={toggleFileList}
-          title="Load a theme"
+          title="Preview a theme, then save it to load it"
         >
           <i class="fas fa-folder-open"></i>
           <span>Load…</span>
@@ -425,7 +483,12 @@
   systemBadge={{ label: 'System', title: 'Protected system theme' }}
   emptyMessage="No saved files"
   canDelete={(file) => file.fileName !== 'default'}
-  onload={handleLoad}
+  selectedFileName={previewFile?.fileName ?? null}
+  selectedBadge={{ label: 'Preview', title: 'Shown on the page now. Save to keep it.' }}
+  cancelLabel={previewFile ? 'Cancel' : 'Close'}
+  confirmLabel={previewFile ? 'Save' : ''}
+  onconfirm={handleSavePreview}
+  onload={handleSelect}
   ondelete={handleDelete}
 />
 

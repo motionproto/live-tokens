@@ -11,8 +11,10 @@ import {
 } from '../store/editorStore';
 import {
   manifestLook,
+  themeLook,
   liveLook,
   previewManifest,
+  previewTheme,
   revertPreview,
   isPreviewing,
   __resetPreviewForTests,
@@ -31,6 +33,13 @@ const MOUNTAINS = {
       cssName: '"Mountains of Christmas"',
     },
   ],
+};
+
+const CINZEL = {
+  id: 'src_preset_cinzel',
+  kind: 'font-face' as const,
+  cssText: '@font-face { font-family: "Cinzel"; src: local("Cinzel"); }',
+  families: [{ id: 'src_preset_cinzel:cinzel', name: 'Cinzel', cssName: '"Cinzel"' }],
 };
 
 function theme(cssVariables: Record<string, string>, extra: Partial<Theme> = {}): Theme {
@@ -123,6 +132,50 @@ describe('manifestLook', () => {
     const { vars, fontSources } = manifestLook(yuletide, defaults);
     expect(vars['--font-display']).toBe('"Mountains of Christmas", serif');
     expect(fontSources.map((s) => s.id)).toContain('src_preset_mountains');
+  });
+});
+
+const royalVelvet = theme(
+  { '--surface-canvas': '#2b1b45' },
+  {
+    fontSources: [CINZEL],
+    fontStacks: [
+      {
+        variable: '--font-display',
+        slots: [
+          { kind: 'project', familyId: 'src_preset_cinzel:cinzel' },
+          { kind: 'generic', value: 'serif' },
+        ],
+      },
+    ],
+  },
+);
+
+describe('themeLook', () => {
+  beforeEach(() => {
+    __resetForTests();
+    __resetPreviewForTests();
+    loadFromFile(theme({ '--surface-canvas': '#111111' }));
+    seedComponentsFromApi({
+      card: { activeFile: 'my-card', aliases: { '--card-default-radius': '--radius-md' } },
+    });
+  });
+
+  it('swaps the theme vars and keeps the live component ones', () => {
+    const { vars } = themeLook(royalVelvet);
+    expect(vars['--surface-canvas']).toBe('#2b1b45');
+    expect(vars['--card-default-radius']).toBe('var(--radius-md)');
+  });
+
+  it('resolves the candidate theme font stacks and reports its sources', () => {
+    const { vars, fontSources } = themeLook(royalVelvet);
+    expect(vars['--font-display']).toBe('"Cinzel", serif');
+    expect(fontSources.map((s) => s.id)).toEqual(['src_preset_cinzel']);
+  });
+
+  it('ignores component vars that leaked into the theme file', () => {
+    const { vars } = themeLook(theme({ '--card-default-radius': 'var(--radius-none)' }));
+    expect(vars['--card-default-radius']).toBe('var(--radius-md)');
   });
 });
 
@@ -228,5 +281,77 @@ describe('previewManifest', () => {
   it('reads only, so a capture of the look still sees the saved files', async () => {
     await previewManifest(yuletide);
     expect(requests).toEqual([`GET ${API_BASE}/manifests/default`]);
+  });
+});
+
+describe('previewTheme', () => {
+  beforeEach(() => {
+    __resetForTests();
+    __resetPreviewForTests();
+    document.documentElement.removeAttribute('style');
+    vi.stubGlobal(
+      'fetch',
+      async () =>
+        new Response(JSON.stringify(defaults), {
+          headers: { 'Content-Type': 'application/json' },
+        }),
+    );
+    loadFromFile(theme({ '--surface-canvas': '#111111', '--live-only': '1px' }));
+    seedComponentsFromApi({
+      card: { activeFile: 'my-card', aliases: { '--card-default-radius': '--radius-md' } },
+    });
+  });
+
+  afterEach(() => {
+    revertPreview();
+    vi.unstubAllGlobals();
+  });
+
+  const read = (name: string) => document.documentElement.style.getPropertyValue(name);
+
+  it('paints the theme over the live components and restores on revert', () => {
+    previewTheme(royalVelvet);
+    expect(read('--surface-canvas')).toBe('#2b1b45');
+    expect(read('--font-display')).toBe('"Cinzel", serif');
+    expect(read('--card-default-radius')).toBe('var(--radius-md)');
+    expect(read('--live-only')).toBe('');
+
+    revertPreview();
+    expect(isPreviewing()).toBe(false);
+    expect(read('--surface-canvas')).toBe('#111111');
+    expect(read('--font-display')).toBe('"Mountains of Christmas", serif');
+    expect(read('--live-only')).toBe('1px');
+  });
+
+  it('hands a live theme preview over to a manifest preview and back', async () => {
+    previewTheme(royalVelvet);
+    await previewManifest(yuletide);
+    expect(read('--surface-canvas')).toBe('#0b3d2e');
+    expect(read('--card-default-radius')).toBe('var(--radius-3xl)');
+    expect(read('--font-display')).toBe('"Mountains of Christmas", serif');
+
+    revertPreview();
+    expect(read('--surface-canvas')).toBe('#111111');
+    expect(read('--card-default-radius')).toBe('var(--radius-md)');
+    expect(read('--badge-default-radius')).toBe('');
+    expect(read('--live-only')).toBe('1px');
+  });
+
+  it('drops a manifest preview cleanly when a theme preview follows it', async () => {
+    await previewManifest(yuletide);
+    previewTheme(royalVelvet);
+    expect(read('--surface-canvas')).toBe('#2b1b45');
+    expect(read('--card-default-radius')).toBe('var(--radius-md)');
+    expect(read('--badge-default-radius')).toBe('');
+  });
+
+  it('commits by reverting first, so the load repaints from the store', () => {
+    previewTheme(royalVelvet);
+    // What Save does: hand the page back, then hydrate the file.
+    revertPreview();
+    loadFromFile(royalVelvet);
+    expect(read('--surface-canvas')).toBe('#2b1b45');
+    expect(read('--card-default-radius')).toBe('var(--radius-md)');
+    expect(read('--live-only')).toBe('');
   });
 });
