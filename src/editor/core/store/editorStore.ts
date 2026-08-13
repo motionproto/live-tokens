@@ -439,14 +439,28 @@ function splitAliasesAndConfig(
 }
 
 /**
+ * Disk-shape config → in-memory slice, migrations included. `schemaVersion` is
+ * the stamp on the loaded file (0 for legacy files with no stamp); the runner
+ * applies any migrations between that and `CURRENT_COMPONENT_SCHEMA_VERSION`,
+ * so in-memory state is always at the current version.
+ *
+ * Pure: the store paths below commit the result, the manifest preview renders
+ * one without committing.
+ */
+export function toComponentSlice(
+  component: string,
+  aliases: Record<string, AliasDiskValue>,
+  config?: Record<string, unknown>,
+  schemaVersion: number = 0,
+): { aliases: Record<string, CssVarRef>; config: Record<string, unknown> } {
+  const migrated = migrateComponentAliases(component, aliases, config, schemaVersion);
+  return splitAliasesAndConfig(migrated.aliases, migrated.config);
+}
+
+/**
  * Replace a component's slice with a loaded config file's contents. Uses
  * `mutate()` so the load is one undoable entry; updates the dirty baseline
  * so the post-load state reads clean for this component.
- *
- * `schemaVersion` is the stamp on the loaded file (0 for legacy files
- * with no stamp). The runner applies any migrations between that and
- * `CURRENT_COMPONENT_SCHEMA_VERSION` before the slice is stored — in-memory
- * state is always at the current version.
  */
 export function loadComponentActive(
   component: string,
@@ -455,8 +469,7 @@ export function loadComponentActive(
   config?: Record<string, unknown>,
   schemaVersion: number = 0,
 ): void {
-  const migrated = migrateComponentAliases(component, aliases, config, schemaVersion);
-  const split = splitAliasesAndConfig(migrated.aliases, migrated.config);
+  const split = toComponentSlice(component, aliases, config, schemaVersion);
   mutate(`load ${component}/${activeFile}`, (s) => {
     s.components[component] = { activeFile, aliases: { ...split.aliases }, config: { ...split.config } };
   });
@@ -484,8 +497,7 @@ export function seedComponentsFromApi(
   store.update((s) => {
     s.components = {};
     for (const [comp, cfg] of Object.entries(configs)) {
-      const migrated = migrateComponentAliases(comp, cfg.aliases, cfg.config, cfg.schemaVersion ?? 0);
-      const split = splitAliasesAndConfig(migrated.aliases, migrated.config);
+      const split = toComponentSlice(comp, cfg.aliases, cfg.config, cfg.schemaVersion ?? 0);
       s.components[comp] = { activeFile: cfg.activeFile, aliases: { ...split.aliases }, config: { ...split.config } };
       setSavedComponentBaseline(comp, componentBaseline(split));
     }
@@ -514,13 +526,14 @@ const domainLoaders: Record<string, DomainLoader> = {
 };
 
 /**
- * Replace state with a loaded theme. Clears history and marks saved —
- * "open a different document" semantics. Undo cannot cross a theme load.
+ * Project a theme file onto a fresh `EditorState` without committing it.
+ * `loadFromFile` commits the projection; the manifest preview renders one
+ * without touching the store, so both paths derive vars from the same shape.
  *
  * Reads `theme.schemaVersion` (absent = 0) and runs theme migrations up to
  * `CURRENT_THEME_SCHEMA_VERSION` before splitting the bag into domains.
  */
-export function loadFromFile(theme: Theme): void {
+export function themeToState(theme: Theme): EditorState {
   const next = emptyState();
   // Structural palette migrations, innermost → outermost: rename Primary→Brand
   // and Background→Canvas (both key renames, so they precede anything that looks
@@ -545,6 +558,15 @@ export function loadFromFile(theme: Theme): void {
   for (const load of Object.values(domainLoaders)) load(next, rawVars);
   next.harmonyAxes = sanitizeHarmonyAxes(renameBackgroundHarmonyFamily(theme.harmonyAxes), next.palettes);
   next.cssVars = rawVars;
+  return next;
+}
+
+/**
+ * Replace state with a loaded theme. Clears history and marks saved —
+ * "open a different document" semantics. Undo cannot cross a theme load.
+ */
+export function loadFromFile(theme: Theme): void {
+  const next = themeToState(theme);
   resetHistoryForLoad();
   store.set(next);
   schedulePersist();

@@ -20,6 +20,16 @@
     /** Shown when `files` is empty. Omit to render no row at all. */
     emptyMessage?: string;
     width?: string;
+    /** Marks the row the user picked, for lists where picking is a step rather
+     *  than the whole action (manifest preview). Null leaves every row unpicked. */
+    selectedFileName?: string | null;
+    /** Badge on the selected row, naming what picking it did. Null hides it. */
+    selectedBadge?: { label: string; title: string } | null;
+    /** Dialog footer: label for the dismiss button, and an optional commit
+     *  button. Both pass straight through to `UIDialog`. */
+    cancelLabel?: string;
+    confirmLabel?: string;
+    onconfirm?: () => void;
     onload: (file: F) => void;
     ondelete?: (file: F) => void;
     /** Optional per-row export action — e.g. download a manifest bundle.
@@ -41,6 +51,11 @@
     systemBadge = null,
     emptyMessage,
     width = '420px',
+    selectedFileName = null,
+    selectedBadge = null,
+    cancelLabel = 'Close',
+    confirmLabel = '',
+    onconfirm,
     onload,
     ondelete,
     onexport,
@@ -103,7 +118,7 @@
   }
 </script>
 
-<UIDialog bind:show {title} cancelLabel="Close" {width}>
+<UIDialog bind:show {title} {cancelLabel} {confirmLabel} {onconfirm} {width}>
   <div class="load-list">
     {#if sortable}
       <div class="load-header">
@@ -137,9 +152,14 @@
       <div
         class="load-item"
         class:active={file.fileName === activeFileName}
+        class:selected={file.fileName === selectedFileName}
         class:protected={protectedRow}
       >
-        <button class="load-name-btn" onclick={() => handleLoad(file)}>
+        <button
+          class="load-name-btn"
+          aria-pressed={selectedFileName === null ? undefined : file.fileName === selectedFileName}
+          onclick={() => handleLoad(file)}
+        >
           {#if protectedRow}
             <i class="fas fa-lock system-glyph" aria-hidden="true"></i>
           {/if}
@@ -151,7 +171,9 @@
         {#if showUpdatedAt}
           <span class="updated-at" title={file.updatedAt}>{formatUpdatedAt(file.updatedAt)}</span>
         {/if}
-        {#if file.fileName === activeFileName}
+        {#if file.fileName === selectedFileName && selectedBadge}
+          <span class="active-badge" title={selectedBadge.title}>{selectedBadge.label}</span>
+        {:else if file.fileName === activeFileName}
           <span class="active-badge">Active</span>
         {/if}
         {#if onexport}
@@ -287,6 +309,14 @@
 
   .load-name-btn:hover {
     color: #e0e0e0;
+  }
+
+  .load-item.selected {
+    background: var(--ui-surface-high);
+  }
+
+  .load-item.selected .load-name-btn {
+    color: var(--ui-text-primary);
   }
 
   .load-item.active .load-name-btn {

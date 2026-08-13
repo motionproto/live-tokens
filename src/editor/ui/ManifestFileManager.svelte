@@ -1,16 +1,18 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
   import type { ManifestMeta } from '../core/themes/themeTypes';
   import {
     listManifests,
     deleteManifest,
     getActiveManifest,
+    loadManifest,
     applyManifest,
     saveAsManifest,
     saveActiveManifest,
     exportManifest,
     importManifest,
   } from '../core/manifests/manifestService';
+  import { previewManifest, revertPreview } from '../core/manifests/manifestPreview';
   import { dirty, componentDirty } from '../core/store/editorStore';
   import { productionRevision, activeManifest } from '../core/productionPulse';
   import { flashStatus } from '../core/flashStatus';
@@ -120,14 +122,45 @@
     }
   }
 
-  async function handleApply(file: ManifestMeta) {
+  // ── Preview ───────────────────────────────────────────────────────────
+  //
+  // Selecting a row paints that look on the page and leaves the window open;
+  // nothing is written until Save. Cancelling — or closing the window by any
+  // route — repaints the user's live state, unsaved edits included.
+
+  let previewFile: ManifestMeta | null = $state(null);
+
+  function cancelPreview() {
+    revertPreview();
+    previewFile = null;
+  }
+
+  async function handleSelect(file: ManifestMeta) {
+    if (file.fileName === previewFile?.fileName) return;
+    if (file.fileName === activeFileName) {
+      cancelPreview();
+      return;
+    }
+    try {
+      await previewManifest(await loadManifest(file.fileName));
+      previewFile = file;
+    } catch (err) {
+      window.alert(`Failed to preview manifest: ${(err as Error).message}`);
+      cancelPreview();
+    }
+  }
+
+  async function handleSavePreview() {
+    const file = previewFile;
+    if (!file) return;
     if (editorDirty) {
       const ok = window.confirm(
         'Loading a manifest will reload the editor and discard unsaved changes. Continue?',
       );
       if (!ok) return;
     }
-    showFileList = false;
+    // The window stays open until the page reloads: closing it would revert the
+    // preview and flash the outgoing look while Apply is in flight.
     try {
       const result = await applyManifest(file.fileName);
       if (result.skippedComponents.length > 0) {
@@ -144,6 +177,14 @@
       window.alert(`Failed to apply manifest: ${(err as Error).message}`);
     }
   }
+
+  // Closing the window is cancelling: the X, the backdrop and the Cancel button
+  // all just flip `show`, so watching it covers every exit.
+  $effect(() => {
+    if (!showFileList) cancelPreview();
+  });
+
+  onDestroy(cancelPreview);
 
   async function handleExport(file: ManifestMeta) {
     try {
@@ -215,6 +256,7 @@
     if (!ok) return;
     try {
       await deleteManifest(file.fileName);
+      if (file.fileName === previewFile?.fileName) cancelPreview();
       await refreshFiles();
       if (wasActive) await refreshActive();
     } catch (err) {
@@ -239,7 +281,10 @@
         It holds its own copy of that data, so deleting a theme or component file never breaks a saved manifest.
       </p>
       <p>
-        <strong>Load</strong> writes the look back out to working files named after the manifest. A manifest owns its name: any theme or component file already using it is overwritten. Components the manifest does not carry go back to their defaults.
+        <strong>Load</strong> opens the list. Picking a manifest shows it on the page as a preview, so you can try each look with nothing written to disk. Pick another to compare, or <strong>Cancel</strong> to go back to where you were.
+      </p>
+      <p>
+        <strong>Save</strong> keeps the previewed look: it writes the look back out to working files named after the manifest. A manifest owns its name: any theme or component file already using it is overwritten. Components the manifest does not carry go back to their defaults.
       </p>
       <p>
         The <strong>active</strong> manifest is what the editor reads and what production runs. Theme and component <strong>Adopt</strong> actions update it in place.
@@ -299,7 +344,7 @@
         class="mfm-btn mfm-btn-row"
         class:active={showFileList}
         onclick={toggleFileList}
-        title="Load a manifest"
+        title="Preview a manifest, then save it to load it"
       >
         <i class="fas fa-folder-open"></i>
         <span>Load…</span>
@@ -330,7 +375,12 @@
   title="Load Manifest"
   {files}
   {activeFileName}
-  onload={handleApply}
+  selectedFileName={previewFile?.fileName ?? null}
+  selectedBadge={{ label: 'Preview', title: 'Shown on the page now. Save to keep it.' }}
+  cancelLabel={previewFile ? 'Cancel' : 'Close'}
+  confirmLabel={previewFile ? 'Save' : ''}
+  onconfirm={handleSavePreview}
+  onload={handleSelect}
   ondelete={handleDelete}
   onexport={handleExport}
   exportTitle={(f) => `Export "${f.name}" as a shareable bundle`}

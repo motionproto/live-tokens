@@ -1,0 +1,209 @@
+// @vitest-environment happy-dom
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { get } from 'svelte/store';
+import type { ComponentConfig, Manifest, Theme } from '../themes/themeTypes';
+import { API_BASE } from '../storage/apiBase';
+import {
+  editorState,
+  loadFromFile,
+  seedComponentsFromApi,
+  __resetForTests,
+} from '../store/editorStore';
+import {
+  manifestLook,
+  liveLook,
+  previewManifest,
+  revertPreview,
+  isPreviewing,
+  __resetPreviewForTests,
+} from './manifestPreview';
+
+// A font-face source, not a google one: applyFontSources injects the real node
+// and happy-dom would go to the network for a <link href>.
+const MOUNTAINS = {
+  id: 'src_preset_mountains',
+  kind: 'font-face' as const,
+  cssText: '@font-face { font-family: "Mountains of Christmas"; src: local("Mountains of Christmas"); }',
+  families: [
+    {
+      id: 'src_preset_mountains:mountains-of-christmas',
+      name: 'Mountains of Christmas',
+      cssName: '"Mountains of Christmas"',
+    },
+  ],
+};
+
+function theme(cssVariables: Record<string, string>, extra: Partial<Theme> = {}): Theme {
+  return {
+    name: 'T',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    editorConfigs: {},
+    cssVariables,
+    fontSources: [MOUNTAINS],
+    fontStacks: [
+      {
+        variable: '--font-display',
+        slots: [
+          { kind: 'project', familyId: 'src_preset_mountains:mountains-of-christmas' },
+          { kind: 'generic', value: 'serif' },
+        ],
+      },
+    ],
+    ...extra,
+  };
+}
+
+function config(component: string, aliases: Record<string, string>): ComponentConfig {
+  return {
+    name: component,
+    component,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    aliases,
+    schemaVersion: 3,
+  };
+}
+
+function manifest(
+  name: string,
+  themeValue: Theme,
+  componentConfigs: Record<string, ComponentConfig>,
+): Manifest {
+  return {
+    name,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    schemaVersion: 2,
+    theme: themeValue,
+    componentConfigs,
+    _fileName: name,
+  };
+}
+
+const defaults = manifest('default', theme({ '--surface-canvas': '#ffffff' }), {
+  card: config('card', { '--card-default-radius': '--radius-lg' }),
+  button: config('button', {
+    '--button-primary-radius': '--radius-xl',
+    '--button-primary-padding': '--space-8',
+  }),
+  badge: config('badge', { '--badge-default-radius': '--radius-sm' }),
+});
+
+const yuletide = manifest('yuletide', theme({ '--surface-canvas': '#0b3d2e' }), {
+  card: config('card', { '--card-default-radius': '--radius-3xl' }),
+  button: config('button', {
+    '--button-primary-radius': '--radius-full',
+    '--button-primary-padding': '--space-8',
+  }),
+});
+
+describe('manifestLook', () => {
+  it('overlays the manifest configs on the default set', () => {
+    const { vars } = manifestLook(yuletide, defaults);
+    expect(vars['--card-default-radius']).toBe('var(--radius-3xl)');
+    expect(vars['--button-primary-radius']).toBe('var(--radius-full)');
+    expect(vars['--surface-canvas']).toBe('#0b3d2e');
+  });
+
+  it('renders components the manifest omits from their default config', () => {
+    const { vars } = manifestLook(yuletide, defaults);
+    expect(vars['--badge-default-radius']).toBe('var(--radius-sm)');
+  });
+
+  it('skips configs for components this install does not have', () => {
+    const withStat = manifest('stat-look', theme({}), {
+      stat: config('stat', { '--stat-default-radius': '--radius-none' }),
+    });
+    const { vars } = manifestLook(withStat, defaults);
+    expect(vars).not.toHaveProperty('--stat-default-radius');
+  });
+
+  it('resolves the theme font stacks into --font-* values', () => {
+    const { vars, fontSources } = manifestLook(yuletide, defaults);
+    expect(vars['--font-display']).toBe('"Mountains of Christmas", serif');
+    expect(fontSources.map((s) => s.id)).toContain('src_preset_mountains');
+  });
+});
+
+describe('liveLook', () => {
+  beforeEach(() => {
+    __resetForTests();
+    __resetPreviewForTests();
+  });
+
+  it('derives from the editor store, not the DOM', () => {
+    loadFromFile(theme({ '--surface-canvas': '#111111' }));
+    seedComponentsFromApi({
+      card: { activeFile: 'my-card', aliases: { '--card-default-radius': '--radius-md' } },
+    });
+    document.documentElement.style.setProperty('--card-default-radius', 'var(--radius-none)');
+
+    const { vars } = liveLook();
+    expect(vars['--card-default-radius']).toBe('var(--radius-md)');
+    expect(vars['--surface-canvas']).toBe('#111111');
+    expect(vars['--font-display']).toBe('"Mountains of Christmas", serif');
+  });
+});
+
+describe('previewManifest', () => {
+  const requests: string[] = [];
+
+  beforeEach(() => {
+    __resetForTests();
+    __resetPreviewForTests();
+    requests.length = 0;
+    document.documentElement.removeAttribute('style');
+    vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
+      requests.push(`${init?.method ?? 'GET'} ${url}`);
+      return new Response(JSON.stringify(defaults), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    });
+    loadFromFile(theme({ '--surface-canvas': '#111111', '--live-only': '1px' }));
+    seedComponentsFromApi({
+      card: { activeFile: 'my-card', aliases: { '--card-default-radius': '--radius-md' } },
+    });
+  });
+
+  afterEach(() => {
+    revertPreview();
+    vi.unstubAllGlobals();
+  });
+
+  const read = (name: string) => document.documentElement.style.getPropertyValue(name);
+
+  it('paints the manifest look and restores the live one on revert', async () => {
+    await previewManifest(yuletide);
+    expect(isPreviewing()).toBe(true);
+    expect(read('--card-default-radius')).toBe('var(--radius-3xl)');
+    expect(read('--surface-canvas')).toBe('#0b3d2e');
+    expect(read('--badge-default-radius')).toBe('var(--radius-sm)');
+
+    revertPreview();
+    expect(isPreviewing()).toBe(false);
+    expect(read('--card-default-radius')).toBe('var(--radius-md)');
+    expect(read('--surface-canvas')).toBe('#111111');
+    expect(read('--badge-default-radius')).toBe('');
+  });
+
+  it('restores vars the live state carries and the preview drops', async () => {
+    await previewManifest(yuletide);
+    expect(read('--live-only')).toBe('');
+    revertPreview();
+    expect(read('--live-only')).toBe('1px');
+  });
+
+  it('leaves the editor store untouched', async () => {
+    const before = JSON.stringify(get(editorState));
+    await previewManifest(yuletide);
+    expect(JSON.stringify(get(editorState))).toBe(before);
+    revertPreview();
+    expect(JSON.stringify(get(editorState))).toBe(before);
+  });
+
+  it('reads only, so a capture of the look still sees the saved files', async () => {
+    await previewManifest(yuletide);
+    expect(requests).toEqual([`GET ${API_BASE}/manifests/default`]);
+  });
+});

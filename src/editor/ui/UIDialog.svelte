@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { run, self } from 'svelte/legacy';
+  import { self } from 'svelte/legacy';
 
   import { tick } from 'svelte';
 
@@ -31,14 +31,16 @@
   let cancelButtonRef: HTMLButtonElement | undefined = $state();
   let confirmButtonRef: HTMLButtonElement | undefined = $state();
 
-  run(() => {
-    if (show) {
-      tick().then(() => {
-        if (confirmLabel && confirmButtonRef) confirmButtonRef.focus();
-        else if (showCancel && cancelButtonRef) cancelButtonRef.focus();
-        else if (closeButtonRef) closeButtonRef.focus();
-      });
-    }
+  // Depends on `show` alone: the footer can gain or lose its confirm button
+  // while the dialog is open (manifest preview), and pulling focus out of the
+  // body each time that happens would fight whatever the user is doing.
+  $effect(() => {
+    if (!show) return;
+    tick().then(() => {
+      if (confirmLabel && confirmButtonRef) confirmButtonRef.focus();
+      else if (showCancel && cancelButtonRef) cancelButtonRef.focus();
+      else if (closeButtonRef) closeButtonRef.focus();
+    });
   });
 
   function handleClose() {
