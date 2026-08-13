@@ -347,8 +347,10 @@
   // route — repaints the user's live state, unsaved edits included.
 
   let previewRow: LoadRow | null = $state(null);
-  let previewLook: Manifest | null = $state(null);
-  let previewLayer: Theme | null = $state(null);
+  // `$state.raw`: the preview engine structuredClones these, and a deep `$state`
+  // proxy is not cloneable. Both are only ever reassigned whole.
+  let previewLook: Manifest | null = $state.raw(null);
+  let previewLayer: Theme | null = $state.raw(null);
   let colorsOnly = $state(false);
   let effectiveColorsOnly = $derived(isColorsOnly(previewRow, colorsOnly));
   let colorsOnlyLocked = $derived(colorsOnlyIsForced(previewRow));

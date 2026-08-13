@@ -10,6 +10,7 @@ import { API_BASE } from '../core/storage/apiBase';
 import { activeFileName } from '../core/store/editorConfigStore';
 import { mutate, setComponentAlias, __resetForTests } from '../core/store/editorStore';
 import { activeManifest, themeProductionInfo } from '../core/productionPulse';
+import { isPreviewing, __resetPreviewForTests } from '../core/preview/lookPreview';
 import ThemePanel from './ThemePanel.svelte';
 
 const THEME = {
@@ -260,5 +261,49 @@ describe('Adopt', () => {
 
     expect(calls.filter((c) => c === 'PUT /production')).toHaveLength(2);
     expect(calls.filter((c) => c.startsWith('PUT /manifests/my-theme'))).toHaveLength(1);
+  });
+});
+
+// The preview engine structuredClones what it is handed, and a fetched file
+// held in deep `$state` arrives as an uncloneable proxy — every row select
+// alerted "Failed to preview theme" instead of painting.
+describe('Load preview', () => {
+  let alerts: string[];
+
+  beforeEach(() => {
+    alerts = [];
+    vi.stubGlobal('alert', (message: string) => alerts.push(message));
+    __resetPreviewForTests();
+  });
+
+  it('paints a colors-and-type row', async () => {
+    overrides['GET /themes/my-colors'] = () => json(THEME);
+    await mountPanel();
+
+    button('Load').click();
+    await settle();
+    button('My Colors').click();
+    await settle();
+
+    expect(alerts).toEqual([]);
+    expect(isPreviewing()).toBe(true);
+  });
+
+  // Selecting the ACTIVE look is a designed no-op, so this previews another one.
+  it('paints a look row', async () => {
+    overrides['GET /manifests'] = () =>
+      json({ files: [{ fileName: 'my-theme', name: 'My Theme' }, { fileName: 'ocean', name: 'Ocean' }] });
+    overrides['GET /manifests/ocean'] = () => json({ ...LOOK, _fileName: 'ocean', name: 'Ocean' });
+    overrides['GET /manifests/default'] = () =>
+      json({ ...LOOK, _fileName: 'default', name: 'Default' });
+    await mountPanel();
+
+    button('Load').click();
+    await settle();
+    button('Ocean').click();
+    await settle();
+
+    expect(alerts).toEqual([]);
+    expect(isPreviewing()).toBe(true);
   });
 });
