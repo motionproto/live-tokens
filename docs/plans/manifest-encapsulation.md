@@ -292,7 +292,7 @@ Branch `manifest-encapsulation`, stacked on `shape-space-adjust`; all units thro
 
 ### Next steps, in order
 
-1. `git log --oneline -3`: confirm the fix commit landed on top of 74cb5b6; `npm test` + `npm run check` green. If no fix commit exists, the wave died: re-run the fixes per the findings above.
+1. DONE at handoff: the fix commit is `2f7c73c` on top of this section's commit, all four findings addressed, gates green (3340 tests, 0 check errors, docs current). Notable semantics it adds: Save, Save As and Adopt all flush dirty token-layer edits via `persistTheme` first (fork to `my-colors` / "My Colors" on the protected default; new pure module `layerFlush.ts`); confirms fire only for unsaved component edits; adopt patches promoted slices only; `LookProductionState.unknown` renders neutral with Adopt enabled plus a 3s retry; 409 recovery caps at one fork. Known limit recorded by the fix: colors edited on a layer file that is already production do not ship via Adopt (Adopt disables when pointers agree) — they reach production through the PUT-syncs-production path instead.
 2. Re-review: wave-reviewer (Opus) against the fix commit, scoped to the four findings plus no-regression on unit 12's verified-clean list (atomic door, 409-before-write, no file names below root identity, per-component Adopt untouched). PASS closes unit 12.
 3. Verify the CHANGELOG Unreleased bullets ("One Theme panel", "Adopt ships the whole look", "Loading is preview first") match post-fix semantics.
 4. Hand the user the browser checklist below — units 8-12 are UI; the checklist is the acceptance test.
