@@ -199,3 +199,9 @@ Mark's verdict on the two peer file managers: confusing; "theme should have all 
 - Rides along: move `manifestPreview.ts` to `core/preview/lookPreview.ts` (naming debt flagged in the unit-9 review; two import sites).
 
 Unit 10, one commit: panel restructure + vocabulary sweep (help popovers, dialog titles, delete confirms), preset filtering in the layer list, the rename, tests for the list filtering, svelte-check clean. Server, formats, CLIs, migrations: untouched.
+
+### Addendum 5, as executed (2026-08-13)
+
+Shipped in unit 10 plus a review-fix commit. The root Theme panel lives at the foot of the sidebar, not the top: review ruled the plan text wrong, not the code — the layer manager already lived in the footer, nothing vacated the top, and the hierarchy intent is carried by nesting (root identity above indented parts, pinned by margin-top auto) rather than vertical position. Blocker fixed: the Components count special-cases the Default look (the one full-set, non-delta manifest), counting only customised components against it; the general disagreement rule stands for every delta look.
+
+Carried into unit 11: Adopt and the production out-of-sync signal sit two clicks deep behind the collapsed part; server error strings still say "manifest" on reachable paths; a customised local shadow of a preset theme becomes unreachable from the filtered layer list (needs an isPackage marker on the themes list); the count's refresh misses clean component Loads; two stale user-guide passages predate the wave; the ManifestFileManager/ThemeFileManager file names invert the hierarchy (deferred rename, public export touched).

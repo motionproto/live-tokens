@@ -179,7 +179,7 @@
         prodApplyStatus = 'idle';
         try {
           const targetName = await pickFreshManifestName('my-theme');
-          await saveAsManifest(targetName, targetName);
+          await saveAsManifest(targetName, 'My Theme');
         } catch {
           flashStatus(setProdApplyStatus, 'error', { durationMs: 3000 });
           return;

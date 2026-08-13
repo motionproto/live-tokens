@@ -99,7 +99,11 @@
   async function refreshComponentSummary() {
     if (!lookConfigs) return;
     try {
-      componentsOffLook = countComponentsOffLook(await listComponents(), lookConfigs);
+      componentsOffLook = countComponentsOffLook(
+        await listComponents(),
+        lookConfigs,
+        activeFileName === 'default',
+      );
     } catch {
       // silent — keep the last count rather than showing a wrong zero
     }

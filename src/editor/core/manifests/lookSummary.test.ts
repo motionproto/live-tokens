@@ -36,4 +36,16 @@ describe('countComponentsOffLook', () => {
   it('ignores look entries for components this install lacks', () => {
     expect(countComponentsOffLook([comp('card', 'ocean')], { card: {}, stat: {} })).toBe(0);
   });
+
+  it('reports the full-set Default look in sync when every pointer is default', () => {
+    const components = [comp('card', 'default'), comp('button', 'default'), comp('badge', 'default')];
+    const fullSet = { card: {}, button: {}, badge: {} };
+    expect(countComponentsOffLook(components, fullSet, true)).toBe(0);
+  });
+
+  it('counts only customised components against the Default look', () => {
+    const components = [comp('card', 'my-card'), comp('button', 'default')];
+    const fullSet = { card: {}, button: {} };
+    expect(countComponentsOffLook(components, fullSet, true)).toBe(1);
+  });
 });
