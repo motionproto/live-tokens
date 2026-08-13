@@ -15,6 +15,7 @@ import {
   redo,
   setPaletteConfig,
   loadFromFile,
+  themeDirty,
   toTheme,
   __resetForTests,
   __getHistoryLengths,
@@ -326,6 +327,18 @@ describe('editorStore — Background → Canvas palette rename', () => {
     expect(canvas).toBeDefined();
     expect('emptyStep' in canvas).toBe(false);
     expect(canvas.anchorPlacement).toBeDefined();
+  });
+});
+
+describe('editorStore — themeDirty baseline', () => {
+  it('loadFromFile baselines the loaded content; a theme-content edit dirties it', () => {
+    loadFromFile(themeWithPalettes({ cssVariables: { '--surface-canvas': '#123456' } }));
+    expect(get(themeDirty)).toBe(false);
+
+    mutate('edit', (s) => {
+      s.cssVars['--surface-canvas'] = '#654321';
+    });
+    expect(get(themeDirty)).toBe(true);
   });
 });
 

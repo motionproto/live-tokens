@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import { API_BASE } from '../storage/apiBase';
 import { activeFileName } from '../store/editorConfigStore';
-import { dirty, editorState, mutate, __resetForTests } from '../store/editorStore';
+import { dirty, editorState, mutate, themeDirty, __resetForTests } from '../store/editorStore';
 import { persistTheme } from './themeService';
 
 describe('persistTheme', () => {
@@ -34,6 +34,7 @@ describe('persistTheme', () => {
       s.cssVars['--surface-canvas'] = '#123456';
     });
     expect(get(dirty)).toBe(true);
+    expect(get(themeDirty)).toBe(true);
 
     await persistTheme(get(editorState), 'my-colors', 'My Colors');
 
@@ -46,5 +47,6 @@ describe('persistTheme', () => {
     expect(requests[1].body).toEqual({ name: 'my-colors' });
     expect(get(activeFileName)).toBe('my-colors');
     expect(get(dirty)).toBe(false);
+    expect(get(themeDirty)).toBe(false);
   });
 });
