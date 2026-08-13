@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushSync, mount, unmount } from 'svelte';
 import { API_BASE } from '../core/storage/apiBase';
 import { activeFileName } from '../core/store/editorConfigStore';
-import { mutate, __resetForTests } from '../core/store/editorStore';
+import { mutate, setComponentAlias, __resetForTests } from '../core/store/editorStore';
 import { activeManifest, themeProductionInfo } from '../core/productionPulse';
 import ThemePanel from './ThemePanel.svelte';
 
@@ -124,6 +124,14 @@ function editColors() {
   flushSync();
 }
 
+function editComponent() {
+  setComponentAlias('button', '--button-background', { kind: 'token', name: '--surface-high' });
+  flushSync();
+}
+
+/** The dialog's own confirm — the panel's Save button carries the same label. */
+const dialogSave = () => target.querySelector<HTMLButtonElement>('.ui-dialog-btn.primary')!;
+
 describe('Save', () => {
   it('writes the colors and type before it captures the look', async () => {
     await mountPanel();
@@ -156,6 +164,68 @@ describe('Save', () => {
     await settle();
 
     expect(confirms).toEqual([]);
+  });
+
+  it('warns that a dirty component stays out, and says how many', async () => {
+    await mountPanel();
+    editComponent();
+
+    button('Save').click();
+    await settle();
+
+    expect(confirms).toEqual([
+      '1 component has unsaved edits. Those stay out until you save them in the '
+        + 'component editor. Save the theme anyway?',
+    ]);
+  });
+});
+
+describe('Save As', () => {
+  it('writes the colors and type before it captures the look', async () => {
+    await mountPanel();
+    editColors();
+
+    button('Save As').click();
+    await settle();
+    const input = target.querySelector<HTMLInputElement>('.save-as-input')!;
+    input.value = 'Fresh';
+    input.dispatchEvent(new Event('input'));
+    dialogSave().click();
+    await settle();
+
+    const themePut = calls.indexOf('PUT /themes/my-colors');
+    expect(themePut).toBeGreaterThan(-1);
+    expect(calls.indexOf('PUT /manifests/fresh')).toBeGreaterThan(themePut);
+  });
+});
+
+// The editor's history counts component edits too, so a signal that reads it
+// cannot stand in for "the colors and type differ from their file".
+describe('Component-only edits', () => {
+  it('leave the layer file alone on Save', async () => {
+    await mountPanel();
+    editComponent();
+
+    button('Save').click();
+    await settle();
+
+    expect(calls.filter((c) => c.startsWith('PUT /themes/'))).toEqual([]);
+    expect(calls).toContain('PUT /manifests/my-theme');
+  });
+
+  it('do not fork colors and type out of the protected Default look', async () => {
+    overrides['GET /manifests/active'] = () => json({ ...LOOK, name: 'Default', _fileName: 'default' });
+    overrides['GET /themes'] = () =>
+      json({ files: [{ fileName: 'default', name: 'Default', isActive: true, isPackage: true }] });
+    overrides['PUT /production'] = () =>
+      json({ error: 'Active theme is protected.', code: 'ACTIVE_IS_PROTECTED' }, 409);
+    await mountPanel();
+    editComponent();
+
+    button('Adopt').click();
+    await settle();
+
+    expect(calls.filter((c) => c.startsWith('PUT /themes/'))).toEqual([]);
   });
 });
 

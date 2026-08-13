@@ -18,6 +18,7 @@
  * orchestrate across slices and stay here.
  */
 
+import { derived, writable, type Readable } from 'svelte/store';
 import type { CssVarRef, EditorState, GradientAliasValue } from './editorTypes';
 import type { AliasDiskValue, Theme } from '../themes/themeTypes';
 import { KNOWN_COMPONENT_CONFIG_KEYS } from '../components/componentConfigKeys';
@@ -569,7 +570,32 @@ export function loadFromFile(theme: Theme): void {
   const next = themeToState(theme);
   resetHistoryForLoad();
   store.set(next);
+  markThemeSaved(next);
   schedulePersist();
+}
+
+/**
+ * Everything a theme file carries except its identity and timestamps. Split
+ * out of `toTheme` so the dirty baseline below compares exactly what a save
+ * would write, with nothing that changes on its own between two saves.
+ */
+function themeContent(state: EditorState): Omit<Theme, 'name' | 'createdAt' | 'updatedAt'> {
+  const cssVariables: Record<string, string> = { ...state.cssVars };
+  if (!columnsEqualsDefault(state.columns)) {
+    Object.assign(cssVariables, columnsToVars(state.columns));
+  }
+  Object.assign(cssVariables, overlaysToVars(state.overlays));
+  if (state.shadows.tokens.length > 0) {
+    Object.assign(cssVariables, shadowsToVars(state.shadows));
+  }
+  return {
+    editorConfigs: state.palettes,
+    cssVariables,
+    fontSources: state.fonts.sources,
+    fontStacks: state.fonts.stacks,
+    harmonyAxes: state.harmonyAxes,
+    schemaVersion: CURRENT_THEME_SCHEMA_VERSION,
+  };
 }
 
 /**
@@ -583,25 +609,29 @@ export function loadFromFile(theme: Theme): void {
  */
 export function toTheme(state: EditorState, meta: { name: string }): Theme {
   const now = new Date().toISOString();
-  const cssVariables: Record<string, string> = { ...state.cssVars };
-  if (!columnsEqualsDefault(state.columns)) {
-    Object.assign(cssVariables, columnsToVars(state.columns));
-  }
-  Object.assign(cssVariables, overlaysToVars(state.overlays));
-  if (state.shadows.tokens.length > 0) {
-    Object.assign(cssVariables, shadowsToVars(state.shadows));
-  }
-  return {
-    name: meta.name,
-    createdAt: now,
-    updatedAt: now,
-    editorConfigs: state.palettes,
-    cssVariables,
-    fontSources: state.fonts.sources,
-    fontStacks: state.fonts.stacks,
-    harmonyAxes: state.harmonyAxes,
-    schemaVersion: CURRENT_THEME_SCHEMA_VERSION,
-  };
+  return { name: meta.name, createdAt: now, updatedAt: now, ...themeContent(state) };
+}
+
+// ── Theme-layer dirty tracking ─────────────────────────────────────────────
+//
+// `dirty` counts history entries, and component edits push history too, so it
+// cannot answer whether the colors and type differ from their file. This is
+// the components slice's baseline mechanism at theme scope: the serialized
+// content of the last file read or written, compared against live state.
+
+let savedThemeContent = JSON.stringify(themeContent(emptyState()));
+const themeSavedTick = writable(0);
+
+export const themeDirty: Readable<boolean> = derived(
+  [store, themeSavedTick],
+  ([$state]) => JSON.stringify(themeContent($state)) !== savedThemeContent,
+);
+
+/** Take `state` as what the theme file now holds. `loadFromFile` passes what
+ *  it loaded, `persistTheme` what it wrote. */
+export function markThemeSaved(state: EditorState): void {
+  savedThemeContent = JSON.stringify(themeContent(state));
+  themeSavedTick.update((n) => n + 1);
 }
 
 // ── Persistence ────────────────────────────────────────────────────────────
@@ -626,6 +656,7 @@ export function __resetForTests(): void {
   __resetCoreForTests();
   __resetRendererCacheForTests();
   __resetComponentsForTests();
+  markThemeSaved(emptyState());
 }
 
 // ── Wiring ─────────────────────────────────────────────────────────────────

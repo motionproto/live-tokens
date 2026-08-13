@@ -279,6 +279,14 @@ Unit 12, one commit. Server scope: the one whole-look adopt endpoint (composing 
 
 `ThemePanel.test.ts` drives the panel against a fake server for the orderings that span services (layer write before capture, flush before ship, one fork per Adopt, the unknown state's neutral render); `layerFlush.test.ts` and `themeService.test.ts` cover the pure parts and `markSaved` reachability.
 
+### Unit 12 re-review fixes (2026-08-13)
+
+Re-review of `2f7c73c` returned PASS with six findings. Five are fixed here; the sixth is recorded under Known deferred items.
+
+**The theme layer gets its own dirty signal.** `flushLayer` gated on the global `$dirty`, which is a history-depth comparison, and every component mutation pushes history — so component-only work triggered a layer write: a rewrite of an identical file on a saved look, and on the protected Default a fork of `my-colors` nobody asked for, which Adopt then moved the production pointer onto. `themeDirty` is the components slice's baseline mechanism at theme scope: `themeContent(state)` — what a save writes, minus the name and the timestamps — serialized at every read (`loadFromFile`) and every write (`persistTheme`), compared against live state. Component-dirty and layer-dirty are separate signals from here on; `$dirty` keeps its other job, the discard confirms.
+
+**Three smaller ones.** The 3s production retry holds its handle and clears it in `onDestroy`, so an unmounted panel can no longer write the module-level production store (it was also leaving a live timer behind in the tests). `handleAdoptLook`'s comment no longer claims a refresh for already-current pointers, which the promoted-slices-only fix ended. New tests cover the narrowed confirm's count and copy, Save As flushing the dirty layer, and the two component-only pins above (no `PUT /themes/*` on Save, no fork on Default).
+
 ## Resume point (2026-08-13, session handoff)
 
 Branch `manifest-encapsulation`, stacked on `shape-space-adjust`; all units through 11 review-PASSED with fixes in. Unit 12 (root-level Adopt, commit 1f22f35) FAILED review; an Opus fix wave was in flight at handoff and commits on its own when green. The user's editor session left 4 modified data files (tokens.generated.css, three _active/_production pointers) + ~77 untracked demo configs in the tree: leave all of them alone, never `git add -A`.
@@ -293,7 +301,7 @@ Branch `manifest-encapsulation`, stacked on `shape-space-adjust`; all units thro
 ### Next steps, in order
 
 1. DONE at handoff: the fix commit is `2f7c73c` on top of this section's commit, all four findings addressed, gates green (3340 tests, 0 check errors, docs current). Notable semantics it adds: Save, Save As and Adopt all flush dirty token-layer edits via `persistTheme` first (fork to `my-colors` / "My Colors" on the protected default; new pure module `layerFlush.ts`); confirms fire only for unsaved component edits; adopt patches promoted slices only; `LookProductionState.unknown` renders neutral with Adopt enabled plus a 3s retry; 409 recovery caps at one fork. Known limit recorded by the fix: colors edited on a layer file that is already production do not ship via Adopt (Adopt disables when pointers agree) — they reach production through the PUT-syncs-production path instead.
-2. Re-review: wave-reviewer (Opus) against the fix commit, scoped to the four findings plus no-regression on unit 12's verified-clean list (atomic door, 409-before-write, no file names below root identity, per-component Adopt untouched). PASS closes unit 12.
+2. DONE: re-review of `2f7c73c` returned PASS with six findings; five are fixed in the commit above ("Unit 12 re-review fixes"), the sixth is a nit recorded under Known deferred items. Unit 12 is closed.
 3. Verify the CHANGELOG Unreleased bullets ("One Theme panel", "Adopt ships the whole look", "Loading is preview first") match post-fix semantics.
 4. Hand the user the browser checklist below — units 8-12 are UI; the checklist is the acceptance test.
 5. Then the branch is merge-ready: `shape-space-adjust` first or `manifest-encapsulation` directly (contains both).
@@ -313,3 +321,7 @@ Branch `manifest-encapsulation`, stacked on `shape-space-adjust`; all units thro
 ### Known deferred items (recorded, not owed now)
 
 Corrupt-manifest count not surfaced in list UI (needs a server field); look row stays marked active after a colors-only load (needs active theme file surfaced); `handleSetProductionTheme`'s unreachable "Active manifest is protected" string; RELEASING.md Stat.svelte ghost was fixed; release-time: retitle CHANGELOG Unreleased, re-run generate:preset-manifests after any theme migration.
+
+Adopt limits, both from the promoted-slices-only fix: Adopt stays disabled while every pointer agrees, so colors edited on a layer file that is already production ship through the flush's PUT instead; and a slice whose pointer already agrees but whose file content changed since the look was saved keeps a stale embedded copy after Adopt, since only promoted slices are re-embedded. Save refreshes both. The trade is deliberate — re-embedding everything is what deleted a look's only copy of a config.
+
+Display names can collide in the Load list: `layerFlushTarget` always labels its fork "My Colors" while the file name steps past what is on disk (`my-colors_01`), so two rows can read the same. Same shape as the `my-theme` recovery fork, and pre-existing there.

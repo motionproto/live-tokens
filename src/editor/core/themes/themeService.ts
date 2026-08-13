@@ -6,7 +6,7 @@ import {
   sanitizeFileName as sanitizeFileNameImpl,
 } from '../storage/files/versionedFileResourceClient';
 import { API_BASE } from '../storage/apiBase';
-import { loadFromFile as loadEditorState, toTheme, markSaved } from '../store/editorStore';
+import { loadFromFile as loadEditorState, toTheme, markSaved, markThemeSaved } from '../store/editorStore';
 import { activeFileName } from '../store/editorConfigStore';
 import { applyFontSources, applyFontStacks } from '../fonts/fontLoader';
 import { migrateThemeFonts } from '../fonts/fontMigration';
@@ -83,6 +83,7 @@ export async function persistTheme(
   await setActiveFile(fileName);
   activeFileName.set(fileName);
   markSaved();
+  markThemeSaved(state);
 }
 
 /** Load a theme file into the editor state and re-apply font side-effects

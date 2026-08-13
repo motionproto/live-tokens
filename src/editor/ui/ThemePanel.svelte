@@ -47,7 +47,7 @@
     type ComponentSummary,
   } from '../core/components/componentConfigService';
   import { fontPairingLabel } from '../core/fonts/fontPairing';
-  import { dirty, componentDirty, editorState } from '../core/store/editorStore';
+  import { dirty, componentDirty, editorState, themeDirty } from '../core/store/editorStore';
   import { activeFileName as layerFileName } from '../core/store/editorConfigStore';
   import { editorView } from '../core/store/editorViewStore';
   import {
@@ -122,14 +122,21 @@
   // has nothing else that asks on its own between pulses. One delayed retry is
   // the way out of it.
   const PRODUCTION_RETRY_MS = 3000;
+  let productionRetry: ReturnType<typeof setTimeout> | undefined;
 
   async function refreshProduction(retry = true) {
     try {
       themeProductionInfo.set(await getProductionInfo());
     } catch {
-      if (retry) setTimeout(() => refreshProduction(false), PRODUCTION_RETRY_MS);
+      if (retry) productionRetry = setTimeout(() => refreshProduction(false), PRODUCTION_RETRY_MS);
     }
   }
+
+  // The store it writes outlives the panel, so a pending retry has to go with
+  // the panel rather than land on a later mount's state.
+  onDestroy(() => {
+    if (productionRetry !== undefined) clearTimeout(productionRetry);
+  });
 
   // ── Components ────────────────────────────────────────────────────────
   //
@@ -193,8 +200,13 @@
   // first — that is what makes Save and Adopt mean the look in front of you.
   // A component's edits live in its own editor's state, which this panel
   // cannot write, so those are the only ones a capture leaves behind.
+  //
+  // The gate is `themeDirty`, not the global `dirty`: that one counts every
+  // history entry, components included, so it would write the layer over
+  // component-only work — and fork "My Colors" out of the protected Default
+  // to do it.
   async function flushLayer(): Promise<void> {
-    if (!$dirty) return;
+    if (!$themeDirty) return;
     const active = $layerFileName;
     const target = layerFlushTarget(
       active,

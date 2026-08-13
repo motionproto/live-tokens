@@ -1651,11 +1651,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     regenerateTokensCss();
     if (themePromoted) syncFontsToCss(themeName);
 
-    // The look records what shipped: the slices that moved, re-read from disk
-    // so a promotion of an already-current pointer still refreshes stale
-    // embedded content. Slices that did not move are left alone — re-embedding
-    // them would delete the look's entry for every component sitting on its
-    // default, which is data the adopt never touched.
+    // The look records what shipped, and only that: re-embedding a slice that
+    // did not move would delete the look's entry for every component sitting
+    // on its default, which is data the adopt never touched.
     patchActiveManifest([
       ...(themePromoted ? [{ field: 'theme' as const, fileName: themeName }] : []),
       ...promotedComponents.map((comp) => ({
