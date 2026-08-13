@@ -38,8 +38,13 @@ so those files are working files, not something to manage.
 
 In the Theme panel:
 
-- **Save** re-stamps the active theme with everything you have saved.
+- **Save** captures the look on screen into the active theme. Your colors and
+  type go to their file as part of it, so there is nothing to save first.
 - **Save As** names a new theme. Use it for your first save and for forking.
+
+Component edits are the exception. Each component editor holds its own unsaved
+state, which this panel cannot write, so save a component in its editor before
+capturing it. The panel says how many are waiting.
 
 Names are tidied to lowercase with underscores, so "My Brand!" becomes
 `my_brand`. There is a built-in `default` you can always return to; the editor
@@ -67,9 +72,10 @@ does not have. It bakes the tokens into
 match what you shipped. The panel says "out of sync" whenever the look and
 production have drifted apart.
 
-Adopt ships what is saved. Unsaved edits stay on screen and out of production,
-so save first if you want them to go. A component editor has its own Adopt for
-shipping one component alone.
+Adopt takes the colors and type on screen with it, writing them out on the way,
+and the same component rule applies: a component's unsaved edits stay out until
+you save them in its editor. A component editor has its own Adopt for shipping
+one component alone.
 
 Production builds (`npm run build`) ship only that plain CSS and your
 components. No editor, no JSON loading, no runtime indirection. If you save

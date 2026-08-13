@@ -84,21 +84,23 @@ function writeJson(file: string, data: unknown) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2));
 }
 
-/** Record every path written while a request runs, the write itself untouched.
- *  Pins how many times a door rebuilds the generated CSS. */
-function trackWrites() {
+/** Record every path written while `run` executes, the write itself untouched.
+ *  Pins how many times a door rebuilds the generated CSS. The patch comes off
+ *  in `finally`: leaking it would follow every later test in the file. */
+async function trackWrites<T>(
+  run: () => Promise<T>,
+): Promise<{ result: T; written: string[] }> {
   const written: string[] = [];
   const original = fs.writeFileSync;
   (fs as any).writeFileSync = (file: any, data: any, options?: any) => {
     written.push(String(file));
     return original(file, data, options);
   };
-  return {
-    stop(): string[] {
-      (fs as any).writeFileSync = original;
-      return written;
-    },
-  };
+  try {
+    return { result: await run(), written };
+  } finally {
+    (fs as any).writeFileSync = original;
+  }
 }
 
 const readJson = (file: string) => JSON.parse(fs.readFileSync(file, 'utf-8'));
@@ -554,9 +556,7 @@ describe('adopting the whole look', () => {
     await bootWithActiveLook();
     await driftFromProduction();
 
-    const writes = trackWrites();
-    await request('PUT', `${API}/production`);
-    const written = writes.stop();
+    const { written } = await trackWrites(() => request('PUT', `${API}/production`));
 
     expect(written.filter((p) => p === generatedCss())).toHaveLength(1);
     expect(fs.readFileSync(generatedCss(), 'utf-8')).toContain('--button-radius: 99px');
@@ -566,14 +566,12 @@ describe('adopting the whole look', () => {
     await bootWithActiveLook();
     await driftFromProduction();
 
-    const writes = trackWrites();
-    await request('PUT', `${API}/production`);
-    const written = writes.stop();
+    const { written } = await trackWrites(() => request('PUT', `${API}/production`));
 
     expect(written.filter((p) => p === path.join(manifestsDir, 'look.json'))).toHaveLength(1);
   });
 
-  it('re-embeds the live state in the active look, entry by entry', async () => {
+  it('re-embeds the promoted slices and leaves the rest of the look alone', async () => {
     await bootWithActiveLook();
     writeJson(path.join(themesDir, 'other.json'), { ...THEME, name: 'Other' });
     await request('PUT', `${API}/themes/active`, { name: 'other' });
@@ -589,9 +587,23 @@ describe('adopting the whole look', () => {
     const look = readJson(path.join(manifestsDir, 'look.json'));
     expect(look.theme.name).toBe('Other');
     expect(look.componentConfigs.card.aliases).toEqual({ '--card-radius': '0' });
-    // The button ran the default while this shipped, so the look stops claiming
-    // the config it was carrying.
-    expect(look.componentConfigs.button).toBeUndefined();
+    // The button never moved, so the adopt has nothing to say about it and the
+    // config the look carries survives.
+    expect(look.componentConfigs.button.aliases).toEqual({ '--button-radius': '99px' });
+  });
+
+  it('keeps a look entry for a component sitting on the default at both pointers', async () => {
+    await bootWithActiveLook();
+    // The button's active and production are both the default, and the look
+    // carries a config for it regardless — that is what a saved look is for.
+    writeJson(path.join(themesDir, 'other.json'), { ...THEME, name: 'Other' });
+    await request('PUT', `${API}/themes/active`, { name: 'other' });
+
+    const { json } = await request('PUT', `${API}/production`);
+    expect(json.components).toEqual([]);
+
+    const look = readJson(path.join(manifestsDir, 'look.json'));
+    expect(look.componentConfigs.button.aliases).toEqual({ '--button-radius': '99px' });
   });
 
   it('writes nothing when production already runs the look', async () => {
@@ -599,9 +611,8 @@ describe('adopting the whole look', () => {
     await request('PUT', `${API}/manifests/look/apply`);
     const lookBefore = readJson(path.join(manifestsDir, 'look.json'));
 
-    const writes = trackWrites();
-    const { status, json } = await request('PUT', `${API}/production`);
-    const written = writes.stop();
+    const { result, written } = await trackWrites(() => request('PUT', `${API}/production`));
+    const { status, json } = result;
 
     expect(status).toBe(200);
     expect(json).toEqual({ ok: true, promoted: false, theme: null, components: [] });

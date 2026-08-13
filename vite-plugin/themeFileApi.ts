@@ -1611,7 +1611,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    * cannot land halfway.
    *
    * Promotes what is SAVED. Editor state that never reached a file is not
-   * visible from here, and the client warns before it ships without it.
+   * visible from here; the client flushes the colors and type it holds before
+   * it calls, and warns about component edits it cannot flush.
    */
   async function handleAdoptLook({ res }: any) {
     // Reject before any write. The protected Default look cannot record what
@@ -1650,12 +1651,14 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     regenerateTokensCss();
     if (themePromoted) syncFontsToCss(themeName);
 
-    // The look records what shipped, every slice of it: a slice already in
-    // production can still embed an older copy of its file, and a whole-look
-    // adopt has no reason to leave that behind.
+    // The look records what shipped: the slices that moved, re-read from disk
+    // so a promotion of an already-current pointer still refreshes stale
+    // embedded content. Slices that did not move are left alone — re-embedding
+    // them would delete the look's entry for every component sitting on its
+    // default, which is data the adopt never touched.
     patchActiveManifest([
-      { field: 'theme', fileName: themeName },
-      ...components.map((comp) => ({
+      ...(themePromoted ? [{ field: 'theme' as const, fileName: themeName }] : []),
+      ...promotedComponents.map((comp) => ({
         field: 'component' as const,
         comp,
         fileName: componentResource(comp).getActiveName(),

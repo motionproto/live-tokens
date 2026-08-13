@@ -53,7 +53,7 @@ describe('countComponentsOffLook', () => {
 describe('lookProductionState', () => {
   it('reports the whole look in production when every pointer agrees', () => {
     const state = lookProductionState('ocean', 'ocean', [comp('card', 'ocean'), comp('button', 'default')]);
-    expect(state).toEqual({ inProduction: true, themeOff: false, componentsOff: [] });
+    expect(state).toEqual({ inProduction: true, unknown: false, themeOff: false, componentsOff: [] });
   });
 
   it('reports out of sync when the colors and type have not shipped', () => {
@@ -69,8 +69,21 @@ describe('lookProductionState', () => {
     expect(state.inProduction).toBe(false);
   });
 
-  it('holds its verdict until production answers', () => {
+  it('claims neither state until production answers', () => {
     const state = lookProductionState('my-colors', null, [comp('card', 'ocean')]);
-    expect(state).toEqual({ inProduction: true, themeOff: false, componentsOff: [] });
+    expect(state).toEqual({ inProduction: false, unknown: true, themeOff: false, componentsOff: [] });
+  });
+
+  it('still names the components that drifted while production is unknown', () => {
+    const state = lookProductionState('my-colors', null, [comp('card', 'bold', 'default')]);
+    expect(state.unknown).toBe(true);
+    expect(state.componentsOff).toEqual(['card']);
+    expect(state.inProduction).toBe(false);
+  });
+
+  it('leaves unknown behind as soon as production names a theme', () => {
+    const state = lookProductionState('ocean', 'ocean', []);
+    expect(state.unknown).toBe(false);
+    expect(state.inProduction).toBe(true);
   });
 });

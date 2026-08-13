@@ -64,7 +64,8 @@ export const sanitizeFileName = sanitizeFileNameImpl;
 // ── Theme save/load orchestration ──────────────────────────
 //
 // `persistTheme` and `hydrateTheme` are the canonical entry points for
-// round-tripping editor state to disk. Callers (e.g. `EditorShell`) need
+// round-tripping editor state to disk. The caller — `ThemePanel`, which
+// flushes the colors and type on screen before it captures or ships — needs
 // only handle UI-level concerns (status flashing, error chrome) and
 // delegate the actual orchestration here.
 

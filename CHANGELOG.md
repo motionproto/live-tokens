@@ -18,15 +18,18 @@
   Export. Colors & Type and a Components drift count appear as read-only
   parts inside it, the way a component shows its parts, and the word
   "manifest" no longer appears in the editor. The nine presets live in
-  this panel's Load list and nowhere else.
+  this panel's Load list and nowhere else. Save captures the look on
+  screen: the colors and type you have been editing are written to their
+  file as part of the capture, so there is no separate save first.
 
 - **Adopt ships the whole look.** Production state and the Adopt action
-  live on the Theme panel's root card: one action promotes the active
-  colors, type, and every drifted component config to production in a
-  single atomic step, with one CSS regeneration. It ships what is saved,
-  and says so before it runs when there are unsaved edits.
-  Per-component Adopt stays in each component's editor for granular
-  shipping.
+  live on the Theme panel's root card: one action writes out the colors
+  and type on screen, then promotes them and every drifted component
+  config to production in a single atomic step, with one CSS
+  regeneration. Component editors hold their own unsaved state, which the
+  panel cannot write, so Save and Adopt both say how many components are
+  waiting on their own editors before they run. Per-component Adopt stays
+  in each component's editor for granular shipping.
 
 - **`generate-theme` turns a mood brief into a complete theme.** `npx
   live-tokens generate-theme <brief.json>` takes ten OKLCH seeds plus a

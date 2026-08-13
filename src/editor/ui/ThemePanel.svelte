@@ -8,6 +8,7 @@
   // files still exist, and older ones are listed here as colors-and-type
   // entries, but nothing saves, loads or adopts them anywhere else.
   import { onDestroy, onMount } from 'svelte';
+  import { get } from 'svelte/store';
   import type { Manifest, ManifestMeta, Theme, ThemeMeta } from '../core/themes/themeTypes';
   import {
     listManifests,
@@ -29,9 +30,11 @@
     hydrateTheme,
     listThemes,
     loadTheme,
+    persistTheme,
     saveTheme,
     setActiveFile,
   } from '../core/themes/themeService';
+  import { freshName, layerFlushTarget } from '../core/themes/layerFlush';
   import {
     buildLoadRows,
     colorsOnlyIsForced,
@@ -115,11 +118,16 @@
     }
   }
 
-  async function refreshProduction() {
+  // A read that never lands leaves the production state unknown, and the panel
+  // has nothing else that asks on its own between pulses. One delayed retry is
+  // the way out of it.
+  const PRODUCTION_RETRY_MS = 3000;
+
+  async function refreshProduction(retry = true) {
     try {
       themeProductionInfo.set(await getProductionInfo());
     } catch {
-      // silent — leave the cached value in place
+      if (retry) setTimeout(() => refreshProduction(false), PRODUCTION_RETRY_MS);
     }
   }
 
@@ -181,21 +189,38 @@
     refreshComponents();
   });
 
-  // A theme captures the saved files, not the editor's live state. Warn before
-  // capturing if there are unsaved edits, since those won't make it in.
-  function confirmUnsavedExclusion(): boolean {
-    if (!editorDirty) return true;
+  // A capture reads files, so the colors and type on screen go to their file
+  // first — that is what makes Save and Adopt mean the look in front of you.
+  // A component's edits live in its own editor's state, which this panel
+  // cannot write, so those are the only ones a capture leaves behind.
+  async function flushLayer(): Promise<void> {
+    if (!$dirty) return;
+    const active = $layerFileName;
+    const target = layerFlushTarget(
+      active,
+      layerFiles.find((f) => f.fileName === active)?.name ?? active,
+      layerFiles.map((f) => f.fileName),
+    );
+    // persistTheme writes the file, points active at it and clears dirty.
+    await persistTheme(get(editorState), target.fileName, target.displayName);
+    await refreshFiles();
+  }
+
+  function confirmUnsavedComponents(action: string): boolean {
+    if (dirtyComponentCount === 0) return true;
+    const n = dirtyComponentCount;
     return window.confirm(
-      'You have unsaved changes. A theme captures what is saved, so these edits will not be '
-        + 'included. Save the theme anyway?',
+      `${n === 1 ? '1 component has' : `${n} components have`} unsaved edits. Those stay out `
+        + `until you save them in the component editor. ${action}`,
     );
   }
 
   async function handleSave() {
     if (activeIsProtected) return;
-    if (!confirmUnsavedExclusion()) return;
+    if (!confirmUnsavedComponents('Save the theme anyway?')) return;
     saveStatus = 'saving';
     try {
+      await flushLayer();
       await saveActiveManifest(currentDisplayName);
       await refreshActive();
       flashStatus(setSaveStatus, 'saved');
@@ -205,7 +230,7 @@
   }
 
   function openSaveAs() {
-    if (!confirmUnsavedExclusion()) return;
+    if (!confirmUnsavedComponents('Save the theme anyway?')) return;
     showFileList = false;
     saveAsDialog = true;
   }
@@ -213,6 +238,7 @@
   async function confirmSaveAs(detail: { displayName: string; fileName: string }) {
     saveStatus = 'saving';
     try {
+      await flushLayer();
       await saveAsManifest(detail.fileName, detail.displayName);
       await refreshFiles();
       await refreshActive();
@@ -238,6 +264,7 @@
 
   let adoptTitle = $derived.by(() => {
     if (production.inProduction) return 'Production is running this theme';
+    if (production.unknown) return 'Ship this theme to production';
     const parts: string[] = [];
     if (production.themeOff) parts.push('the colors and type');
     const off = production.componentsOff.length;
@@ -245,36 +272,23 @@
     return `Ship ${parts.join(' and ')} to production`;
   });
 
-  // Adopt ships what is saved: the server promotes files, and edits that never
-  // reached one are invisible to it.
-  function confirmAdoptWithUnsaved(): boolean {
-    if (!editorDirty) return true;
-    return window.confirm(
-      'You have unsaved changes. Adopt ships what is saved, so those edits stay out of '
-        + 'production. Ship the saved theme anyway?',
-    );
-  }
-
-  // Adopt writes a file the user never named, so the name steps past anything
-  // on disk rather than clobbering a theme made earlier.
-  function freshName(base: string, taken: Set<string>): string {
-    if (!taken.has(base)) return base;
-    for (let n = 1; n < 1000; n++) {
-      const candidate = `${base}_${String(n).padStart(2, '0')}`;
-      if (!taken.has(candidate)) return candidate;
-    }
-    return `${base}_${Date.now()}`;
-  }
-
   async function handleAdopt() {
     if (production.inProduction || adoptStatus === 'adopting') return;
-    if (!confirmAdoptWithUnsaved()) return;
+    if (!confirmUnsavedComponents('Ship the theme anyway?')) return;
     await runAdopt();
   }
 
-  async function runAdopt() {
+  /**
+   * One Adopt, at most one fork. A 409 says the protected Default look is
+   * active and cannot record what shipped, so the flow forks it and retries
+   * once; a second 409 is a state this cannot name and surfaces as an error
+   * rather than another file. The status holds at 'adopting' throughout, which
+   * is what keeps `handleAdopt`'s re-entry guard closed across the fork.
+   */
+  async function runAdopt(depth = 0) {
     adoptStatus = 'adopting';
     try {
+      await flushLayer();
       await adoptLook();
       // The panel's own production pulse re-reads identity, production state
       // and the component pointers.
@@ -282,11 +296,9 @@
       flashStatus(setAdoptStatus, 'done');
     } catch (err) {
       const e = err as Error & { code?: string };
-      if (e.code === 'ACTIVE_IS_PROTECTED') {
-        // The protected Default theme is active and cannot record what shipped.
-        // Fork it and carry on: the user clicked Adopt, and which file holds
-        // the look is bookkeeping they shouldn't have to think about.
-        adoptStatus = 'idle';
+      if (e.code === 'ACTIVE_IS_PROTECTED' && depth === 0) {
+        // The user clicked Adopt, and which file holds the look is bookkeeping
+        // they shouldn't have to think about.
         try {
           const taken = new Set((await listManifests()).map((m) => m.fileName));
           await saveAsManifest(freshName('my-theme', taken), 'My Theme');
@@ -294,7 +306,7 @@
           flashStatus(setAdoptStatus, 'error', { durationMs: 3000 });
           return;
         }
-        await runAdopt();
+        await runAdopt(depth + 1);
         return;
       }
       flashStatus(setAdoptStatus, 'error', { durationMs: 3000 });
@@ -618,7 +630,7 @@
         The <strong>active</strong> theme is what the editor reads. <strong>Adopt</strong> ships the whole look to production: the colors and type plus every component you changed. The line under the name says whether production is running this theme.
       </p>
       <p>
-        Adopt ships what is saved. Save your work first if you want the edits on screen to go with it.
+        Save and Adopt both take the colors and type on screen as they are, writing them out for you. Component edits are the exception: save those in the component's own editor first.
       </p>
       <p>
         <strong>Default</strong> is protected. To start customizing, <strong>Save As</strong> a new theme first.
@@ -646,7 +658,9 @@
     />
     <span class="mfm-prod-status" class:applied={production.inProduction}>
       <i class="mfm-status-dot" aria-hidden="true"></i>
-      <span>{production.inProduction ? 'in production' : 'out of sync'}</span>
+      <span>
+        {#if production.unknown}production unknown{:else if production.inProduction}in production{:else}out of sync{/if}
+      </span>
     </span>
     <button
       class="mfm-adopt-btn"
@@ -679,7 +693,7 @@
         disabled={activeIsProtected || saveStatus === 'saving'}
         title={activeIsProtected
           ? 'Default is read-only. Use Save As to capture under a new name.'
-          : 'Update this theme from your saved files'}
+          : 'Update this theme from the look on screen'}
       >
         <i
           class="fas"

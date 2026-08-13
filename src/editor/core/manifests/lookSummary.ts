@@ -1,8 +1,10 @@
 import type { ComponentSummary } from '../components/componentConfigService';
 
 export interface LookProductionState {
-  /** True when production runs the look on screen, slice for slice. */
+  /** True when production is known to run the look on screen, slice for slice. */
   inProduction: boolean;
+  /** True while the production theme is unread: neither claim can be made. */
+  unknown: boolean;
   /** True when production runs colors and type other than the live ones. */
   themeOff: boolean;
   /** Components running a config production does not have. */
@@ -14,19 +16,27 @@ export interface LookProductionState {
  * live colors and type against the production theme, and each component's
  * active config against its production one.
  *
- * A null production theme means the answer has not arrived from the server
- * yet. Reporting "out of sync" then would raise the alarm on every mount.
+ * A null production theme is not an answer, so it is neither state: `unknown`
+ * says so and `inProduction` stays false. Callers render that as its own
+ * neutral state, which keeps a mount from flashing the alarm without letting a
+ * read that never lands read as shipped forever.
  */
 export function lookProductionState(
   activeTheme: string,
   productionTheme: string | null,
   components: ComponentSummary[],
 ): LookProductionState {
-  const themeOff = productionTheme !== null && productionTheme !== activeTheme;
+  const unknown = productionTheme === null;
+  const themeOff = !unknown && productionTheme !== activeTheme;
   const componentsOff = components
     .filter((c) => c.activeFile !== c.productionFile)
     .map((c) => c.name);
-  return { themeOff, componentsOff, inProduction: !themeOff && componentsOff.length === 0 };
+  return {
+    unknown,
+    themeOff,
+    componentsOff,
+    inProduction: !unknown && !themeOff && componentsOff.length === 0,
+  };
 }
 
 /**
