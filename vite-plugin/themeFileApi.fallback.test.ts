@@ -2,10 +2,10 @@
  * Integration tests for the package-default fallback, driven through the real
  * route table with mock req/res — no live Vite server. The plugin computes its
  * package data dir from this file's location (`../src/live-tokens/data`), which
- * in the live-tokens repo holds the shipped `themes/default.json` +
- * `manifests/default.json`. Pointing the plugin's local data dir at an empty
- * temp dir reproduces a fresh consumer: local has nothing, the package supplies
- * the defaults.
+ * in the live-tokens repo holds the shipped `themes/default.json` (the default
+ * manifest is not shipped; boot materializes it locally). Pointing the plugin's
+ * local data dir at an empty temp dir reproduces a fresh consumer: local has
+ * nothing, the package supplies the theme and boot writes the rest.
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import fs from 'fs';
@@ -121,7 +121,7 @@ describe('package-default fallback on a fresh consumer', () => {
     expect(Object.keys(json.editorConfigs).length).toBeGreaterThan(0);
   });
 
-  it('GET /manifests lists the package default', async () => {
+  it('GET /manifests lists the boot-materialized default', async () => {
     const { status, json } = await request('GET', `${API}/manifests`);
     expect(status).toBe(200);
     expect(json.files.map((f: any) => f.fileName)).toContain('default');
