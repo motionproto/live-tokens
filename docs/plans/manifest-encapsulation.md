@@ -173,3 +173,9 @@ Risks the executor must resolve by reading the code, not assuming: where boot/th
 Shipped in unit 8 plus a review-fix commit. The preview reuses `deriveCssVars` and the cssVarSync fan-out verbatim; fonts swap through `applyFontSources` diffing. Review verdict PASS; fixes taken: the close-during-fetch race (a paint landing after the window closed left a preview with no Save/Cancel on screen), the memoized rejected defaults fetch, and a permanent re-preview test (A to B diffs against the live look, not the previous preview).
 
 Deliverable noted per the spec: the THEME file manager's own Load still hard-commits per selection (`ThemeFileManager.svelte` `handleLoad`: confirm on dirty, close, PUT `_active`, hydrate). Same clunky shape this addendum removed for manifests; candidate for the identical preview pattern, not built.
+
+## Addendum 4: preview-before-commit for theme Load (decided 2026-08-13)
+
+Field report from Mark confirmed the unit-8 note: the THEME file manager's Load still commits and closes on selection. Extend the preview pattern there: the list stays open, selecting a theme paints it in the background, switching is free, Save commits (the existing PUT-active + hydrate flow), Cancel or closing reverts.
+
+Semantic difference from manifest preview, binding: a theme is colors and fonts, not a complete look. The preview swaps ONLY the theme-derived slices (cssVariables, palettes, gradients, shadows, overlays, columns, fonts) and keeps the user's current component-config state exactly as rendered now. No component resets, no defaults fetch. Reuse the unit-8 engine's paint/revert core; the look computation composes the candidate theme's derivation with the live store's component slice. Everything else mirrors addendum 3: GETs only, no store mutation, no dirty marking, revert re-derives from the store, re-selection diffs against the live look, deleting the previewed file cancels, unsaved-edits confirm moves to Save.
