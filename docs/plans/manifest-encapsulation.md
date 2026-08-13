@@ -94,3 +94,27 @@ As executed: embedded configs are stamped `name: <preset slug>`, so a materializ
 2. **Default regeneration + full deletability.** `ensureManifestsDir` materializes the full-set Default manifest (package default theme + derived default configs, drift-aware like `generateDefaultConfig`); theme DELETE loses the production guard and gains production self-heal (pointer → default + syncs, mirroring the config DELETE handler); active-manifest deletion allowed with `_active` self-heal to default. Package/default 403s stay. Tests.
 3. **Client + tooling.** `manifestService` snapshot functions build by-value manifests; `ManifestFileManager` drops the active-manifest delete guard, help copy rewritten for encapsulation; `ThemeFileManager` `canDelete` loses the production-theme exclusion; `scripts/collapse-manifest-to-default.mjs` rewritten to read embedded data. svelte-check green.
 4. **Data + docs.** Repo's `manifests/default.json` regenerated (stat entry gone); `my-manifest` restored per decision 5; demo look manifests regenerated as v2; README manifest model copy updated; cross-reference from `docs/plans/shape-space-skill.md`.
+
+## Addendum 2: bold preset personalities + font pairings (decided 2026-08-13)
+
+Feedback on the first personalities: the presets still read as color swaps. The modest global shifts are invisible next to the palette change, and every preset moves the same way. Revision goals, from Mark: real variation between presets so no two share a shape and corner-radius profile; deliberate intra-preset contrast is welcome ("sharp windows and round buttons"); visible spacing differences; and a Google Fonts pairing per preset — popular or recommended pairings, playful allowed, avoiding Inter, IBM Plex, and the common technical families. Nine presets stay. The Default look keeps its current fonts (Arvo display, Manrope sans) and default shapes.
+
+Fonts are a theme slice, so pairings land in the preset THEME files (`fontSources` + `fontStacks`) and the manifests embed them: applying either the theme alone or the manifest changes the type. Each preset overrides `--font-display` (heading) and `--font-sans` (body) and leaves `--font-serif` / `--font-mono` at the defaults. Sources are `kind: "google"` entries with real fonts.googleapis.com URLs and sensible weight sets, following the shape of the default theme's Manrope entry.
+
+Revised personalities (ops in listed order; global before targeted so targeted wins):
+
+| Preset | Shape and space ops | Display / body fonts | Identity |
+|---|---|---|---|
+| autumn | radius +1; padding +2; gap +1 | Fraunces / Nunito Sans | cozy paper, generous |
+| christmas | radius +3; button set full; gap +2 | Mountains of Christmas / Nunito | storybook, very round |
+| halloween | radius set none (global — squares even the pills); border-width +2; padding −1 | Creepster / Karla | sharp poster, heavy lines |
+| midnight-study | dialog set none; card set sm; button set full; padding −2; gap −1 | EB Garamond / Montserrat | sharp windows, round buttons, dense |
+| ocean | radius +2 with full; button set full; padding +1; gap +1 | Quicksand / Mulish | everything soft |
+| royal-velvet | button set full; radius +1; padding +2; border-width +1 | Cinzel / Lato | stately, defined edges |
+| saint-patrick | button set full; radius +2; gap +1 | Baloo 2 / Cabin | friendly pub |
+| spring-meadow | padding +2; gap +2; radius +1 | Comfortaa / Figtree | airy, delicate |
+| sunset | radius +2; button set full; padding +1 | DM Serif Display / Jost | warm lounge |
+
+Distinctness check the review must enforce: no two presets share both their card-radius landing rung and their button-padding landing rung; halloween and midnight-study are the only sharp profiles and differ from each other (fully square vs. mixed); every display font unique, every body font unique.
+
+Mechanics (unit 7, one commit): a fonts table in `scripts/generate-preset-manifests.mjs` (or a sibling module it imports) stamps `fontSources` + `fontStacks` into each preset theme file idempotently, the ops table is replaced with the revised one, manifests regenerate, `presetManifests.test.ts` extends to gate the font stamping and the distinctness rules, README's example-looks bullet mentions type. Executor verifies each family exists on Google Fonts with the listed weights by checking the constructed URLs, and confirms `syncFontsToCss` / the font loader handles multiple google sources per theme.
