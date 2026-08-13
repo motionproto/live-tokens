@@ -205,4 +205,34 @@ describe('shipped preset themes on a fresh consumer', () => {
     const { json } = await request('GET', `${API}/themes`);
     expect(json.files.map((f: any) => f.fileName)).toContain('christmas');
   });
+
+  it('deleting a production shadow of a shipped preset keeps the pointer and resyncs', async () => {
+    await request('PUT', `${API}/themes/christmas`, { name: 'Christmas Local', cssVariables: {} });
+    fs.writeFileSync(path.join(themesDir, '_active.json'), JSON.stringify({ activeFile: 'christmas' }));
+    fs.writeFileSync(path.join(themesDir, '_production.json'), JSON.stringify({ productionFile: 'christmas' }));
+
+    const del = await request('DELETE', `${API}/themes/christmas`);
+    expect(del.status).toBe(200);
+
+    const active = await request('GET', `${API}/themes/active`);
+    expect(active.json._fileName).toBe('christmas');
+    const production = await request('GET', `${API}/themes/production`);
+    expect(production.json.fileName).toBe('christmas');
+    const generated = fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8');
+    expect(generated).toContain('christmas');
+  });
+
+  it('deleting a production theme with no shipped counterpart heals to default', async () => {
+    await request('PUT', `${API}/themes/local-only`, { name: 'Local Only', cssVariables: {} });
+    fs.writeFileSync(path.join(themesDir, '_active.json'), JSON.stringify({ activeFile: 'local-only' }));
+    fs.writeFileSync(path.join(themesDir, '_production.json'), JSON.stringify({ productionFile: 'local-only' }));
+
+    const del = await request('DELETE', `${API}/themes/local-only`);
+    expect(del.status).toBe(200);
+
+    const active = await request('GET', `${API}/themes/active`);
+    expect(active.json._fileName).toBe('default');
+    const production = await request('GET', `${API}/themes/production`);
+    expect(production.json.fileName).toBe('default');
+  });
 });
