@@ -153,3 +153,17 @@ Two notes for review, left as the addendum specified them:
 Two presets renamed to step away from the religious names, per Mark: christmas → **yuletide** ("Yuletide") and saint-patrick → **leprechaun** ("Leprechaun"), keeping their fonts (Mountains of Christmas, Baloo 2) and personalities. Theme files, manifests, package `files` entries, tests, README, and CHANGELOG all follow; the generate-theme skill keeps "Christmas" and "St. Patrick's" as brief vocabulary since that is what users type. Nothing had shipped, so no migration.
 
 Two unit-7 review findings fixed in the same pass: `stampPresetFonts` now drops sources no stack references (the displaced Arvo and Manrope entries were two render-blocking @imports per consumer page load; preset themes carry four sources, all used), and the generator counts aliases that differ from the default instead of per-op change records (overlapping ops double-counted).
+
+## Addendum 3: preview-before-commit for manifest Load (decided 2026-08-13)
+
+Feedback from Mark: selecting a look should not commit it. Keep the file window open, let the user select a manifest, update the page in the background as a preview, and only Save (commit) or Cancel (revert) ends the session. Today's Load applies server-side and hard-reloads the page per selection, which makes browsing the nine preset looks clunky.
+
+Design, unit 8 (one commit):
+
+- **Preview is pure client-side render state.** Selecting a manifest fetches it (GET; encapsulated, so the response carries the whole look) and paints it: theme vars and component-config alias vars written through the existing fan-out writer (both self and parent `:root`; the iframe constraint stands), fonts injected via the existing font-source loader. No server write, no pointer flip, no editor-store mutation, and the preview must not be capturable by manifest Save-As (it is not store state).
+- **Selection is re-entrant.** Picking another manifest previews that one instead; picking the active manifest (or Cancel) restores the real state by re-deriving vars and fonts from the editor store, not by snapshotting DOM values.
+- **Save commits via the existing Apply** (materialize under the slug, flip active + production, sync CSS, reload; skipped-components alert unchanged). The unsaved-edits confirm moves from selection time to Save time; Cancel always restores the user's live state including their unsaved edits' rendered values.
+- **Scope: ManifestFileManager only.** The executor verifies how the theme manager's own Load behaves today; if it also hard-commits per selection, note it as a candidate for the same pattern, do not build it.
+- Editor UI rules apply: greyscale, pill buttons, tokened values, no em-dashes in copy. The list rows gain a selected state; Save/Cancel appear only while a preview is live; closing the window equals Cancel.
+
+Risks the executor must resolve by reading the code, not assuming: where boot/theme-switch derives the full var set (renderer entry point to reuse for both preview and revert), how gradient/structured alias values become CSS, and whether font `<link>` injection is idempotent enough to swap pairings repeatedly in one session.
