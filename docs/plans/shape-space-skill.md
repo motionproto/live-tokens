@@ -85,7 +85,7 @@ Component configs already have the full artifact lifecycle (named files, `_activ
 
 Flags mirror `generate-theme`: `--dry-run`, `--no-activate`. The report card lists, per component, each alias old → new, plus skips (raw value, clamped at ladder end, pill preserved).
 
-No manifest writing in v1. Flipping active configs is exactly what the editor does, and the existing manifest export captures the combined state when the user wants a shippable bundle.
+No manifest writing in v1. Flipping active configs is exactly what the editor does, and the existing manifest export captures the combined state when the user wants a shippable bundle. Successor: `docs/plans/manifest-encapsulation.md` makes a manifest one self-contained file, which is the prerequisite for a CLI that writes one.
 
 ## Engine and CLI placement
 
@@ -121,7 +121,7 @@ Every theme file carries 11 legacy shape/space keys in its `cssVariables` bag: `
 - Editing the primitive scales themselves ("make the whole radius scale chunkier" would be a `tokens.css` edit behind the migration contract; different feature).
 - Per-variant targeting ("only primary buttons") — v1 targets whole components; the suffix match already scopes per-variant aliases together.
 - Typography, color, shadows, motion.
-- Production promotion and manifests.
+- Production promotion and manifests (see `docs/plans/manifest-encapsulation.md`).
 
 ## Decisions (2026-08-12)
 

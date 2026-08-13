@@ -1,6 +1,6 @@
 # Encapsulated manifests
 
-Status: DECIDED 2026-08-13 ("the design holds"), ready to implement. Open questions resolved per their recommendations: theme embeds by value; Apply keeps setting production; the demo look manifests are throwaway, regenerated as v2.
+Status: EXECUTED 2026-08-13 on branch `manifest-encapsulation`, all four commit units in. Decided the same day ("the design holds"); open questions resolved per their recommendations: theme embeds by value; Apply keeps setting production; the demo look manifests are throwaway, regenerated as v2.
 
 ## The discovered corruption
 

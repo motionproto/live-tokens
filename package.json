@@ -34,7 +34,6 @@
     "src/live-tokens/data/themes/saint-patrick.json",
     "src/live-tokens/data/themes/spring-meadow.json",
     "src/live-tokens/data/themes/sunset.json",
-    "src/live-tokens/data/manifests/default.json",
     "dist-plugin",
     ".claude/skills",
     "bin",

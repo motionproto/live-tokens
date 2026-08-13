@@ -11,7 +11,7 @@ A foundational design system for quickly styling and building Svelte + Vite micr
 - **Theme editor** (`/live-tokens/editor` route, dev-only) — the home of real-time token editing. Save themes to disk as JSON, promote one to "production" to bake it into a static `tokens.css` for the build.
 - **Per-component editor** (`/live-tokens/components` route, dev-only) — the home of real-time component-alias editing. Pick token aliases per component without writing CSS.
 - **Live editor overlay** — pins to the top-right of every dev page. Opens the editor in a side panel or floating window so you edit *on the page you're styling*, not in a separate tab. Includes a "Page Source" button that opens the current page's `.svelte` file in VS Code.
-- **Manifests** — a manifest captures a whole site configuration as one portable artifact: the theme in one slot, every component in its own slot, each holding either the shipped default or a custom file. Export it as a bundle and import it into another project to restore the full styling in one step.
+- **Manifests** — a manifest is a whole look in one file: the theme plus a config for every component you changed, held by value. Deleting a theme or component file never breaks a saved manifest. Load writes the look back out to working files named after the manifest, and components it does not carry go back to their defaults. Export one and import it into another project to restore the full styling in one step.
 - **Vite plugin** — hosts the `/api/live-tokens/{themes,component-configs,manifests}/*` routes that persist your edits to disk as you make them. The single namespace keeps live-tokens' routes from colliding with anything your app serves under `/api`.
 - **Claude Code skill suite** — five bundled skills so you can drive the package in plain English. `build-page` composes pages from the shipped components. `pick-component` decides between confusing pairs (TabBar vs SegmentedControl, Card vs CollapsibleSection). `create-component` authors a new editable component against the project's naming, state-model, and import rules. `generate-theme` turns a mood brief ("bright and cheerful", "dark night theme") into a complete AA-checked color theme. `adjust-shape-space` turns "make the buttons pill shaped" or "space it out" into new radius, padding, gap, and border-width aliases. One command to install them all: `npx @motion-proto/live-tokens setup-claude`. See [Claude Code skills](#claude-code-skills) below.
 
@@ -42,8 +42,9 @@ export default defineConfig({
 ```
 
 The `themeFileApi` plugin:
-- Seeds `src/live-tokens/data/themes/` with a default theme on first dev-server start.
+- Resolves the `default` theme from the installed package, so you start on the shipped defaults without a local copy.
 - Discovers components at `src/components/*.svelte` (and `src/system/components/*.svelte` for back-compat) and seeds `src/live-tokens/data/component-configs/{comp}/default.json` from each component's `:global(:root)` block.
+- Writes `src/live-tokens/data/manifests/default.json` on dev-server start: the Default manifest, derived from the shipped theme and those component defaults, and regenerated whenever they change. It is protected, so the editor never deletes it and an outside deletion heals on the next start.
 - Hosts the `/api/live-tokens/*` routes the editor uses to save and load themes + per-component configs.
 - Auto-injects `__PROJECT_ROOT__` for the overlay's "Page Source" link and `__LIVE_TOKENS_API_BASE__` so the client uses whatever `apiBase` you configured.
 

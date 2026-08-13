@@ -110,10 +110,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   // Package-shipped default data lives at <package>/src/live-tokens/data/. Same
   // `..`-from-this-file resolution as packageComponentsDir, so it works in
-  // library-dev, in a consumer's node_modules, and from dist-plugin/. Only
-  // themes/default.json and manifests/default.json actually ship (package.json
-  // `files`); the resource server's read-only fallback resolves a consumer's
-  // `default` to these when they have no local copy.
+  // library-dev, in a consumer's node_modules, and from dist-plugin/. Only the
+  // themes ship (package.json `files`); the resource server's read-only
+  // fallback resolves a consumer's `default` theme to the shipped copy when
+  // they have no local one. No manifest ships: `ensureDefaultManifest` derives
+  // the full local Default set at boot, before the first request.
   const packageDataDir = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
     '..',
