@@ -161,58 +161,51 @@ export interface ComponentConfigMeta {
 }
 
 /**
- * Manifest that captures an entire site state — the active theme plus the
- * active config for every component. Loading a manifest flips the relevant
- * `_active.json` pointers; the underlying theme + component-config files stay
- * the source of truth, so editing them flows through any manifest that
- * references them. The currently-active manifest is the live snapshot: theme
- * and component Adopts auto-patch its refs on the server.
+ * A saved look, encapsulated: the whole theme plus a config for every component
+ * that sits off its default, all carried by value. Working files (themes,
+ * component configs) are therefore freely deletable — a manifest owns its copy.
+ * Applying one materialises that data back into working files under the
+ * manifest's own slug and flips the `_active.json` / `_production.json`
+ * pointers at it. The currently-active manifest is the live snapshot: theme
+ * and component Adopts re-embed that slice on the server.
  */
 export interface Manifest {
   name: string;
   createdAt: string;
   updatedAt: string;
-  /** File basename (no `.json`) of the theme this manifest pins. */
-  theme: string;
-  /** Map of componentId → config file basename. Components omitted here fall
-   *  back to "default" at apply time. */
-  componentConfigs: Record<string, string>;
+  /** Migration stamp. 1 was the pointer form (theme + config basenames);
+   *  2 is encapsulated. The server rewrites v1 files at boot. */
+  schemaVersion: 2;
+  /** Full theme content. */
+  theme: Theme;
+  /** Component id → its config. Delta encoding: a component absent here is on
+   *  its default. Defaults are never inlined — the local `default.json` derived
+   *  from the component source is canonical, and a frozen copy would drift. */
+  componentConfigs: Record<string, ComponentConfig>;
   /** Server-attached file-name marker. Same role as `Theme._fileName`. */
   _fileName?: string;
 }
 
 /**
- * Transport artifact for sharing a manifest with someone else. Self-contained:
- * the bundle inlines the referenced theme and every non-default component
- * config so the receiver doesn't need anything else on disk to apply it.
+ * Transport envelope for sharing a manifest. The manifest already carries
+ * everything needed to apply it, so the envelope adds only provenance.
  *
  * Bundles are *not* stored under `manifests/` — they're transient downloads /
- * uploads. Local manifests stay lightweight pointer files; bundles are the
- * import/export envelope. See temp/manifest-robustness-plan.md §11.
- *
- * `componentConfigs` is keyed by `${component}/${configName}` so a single map
- * carries multiple components. Entries whose manifest value is `"default"`
- * are deliberately omitted — the receiver's local `default.json` is the
- * live-tokens package's canonical default, and shipping the sender's default
- * would risk version-divergence with no clean conflict story.
+ * uploads; import writes the enclosed manifest as a single file.
  */
 export interface ManifestBundle {
   /** Discriminator for safe identification of bundle JSON files. */
   kind: 'manifest-bundle';
-  /** Bumps when the bundle envelope shape changes. Start at 1. */
-  schemaVersion: 1;
+  /** Tracks the enclosed manifest's schema. Import still accepts 1, where the
+   *  envelope carried a pointer manifest plus separately inlined theme and
+   *  `${component}/${configName}`-keyed configs. */
+  schemaVersion: 2;
   /** Sender's `@motion-proto/live-tokens` package version. Receiver can
    *  compare to its own to warn about compatibility drift. */
   liveTokensVersion: string;
   /** ISO timestamp of when the bundle was exported. */
   exportedAt: string;
-  /** Full pointer-form manifest (same shape as on-disk manifest files). */
   manifest: Manifest;
-  /** Full content of the theme that `manifest.theme` references. */
-  theme: Theme;
-  /** Full content of each non-default component config referenced by
-   *  `manifest.componentConfigs`, keyed by `${component}/${configName}`. */
-  componentConfigs: Record<string, ComponentConfig>;
 }
 
 export interface ManifestMeta {

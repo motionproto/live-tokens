@@ -1,0 +1,366 @@
+/**
+ * Integration tests for encapsulated manifests, driven through the real route
+ * table with mock req/res — no live Vite server. Local data lives in a temp dir
+ * (a fresh consumer); the package data dir resolves to this repo's own
+ * `src/live-tokens/data`, which supplies the default theme and manifest.
+ *
+ * Each test seeds files first and calls `boot()` itself, because the boot-time
+ * v1 → v2 migration is one of the things under test.
+ */
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { themeFileApi } from './themeFileApi';
+
+const API = '/api/live-tokens';
+const REPO_ROOT = process.cwd();
+
+let tmp: string;
+let themesDir: string;
+let configsDir: string;
+let manifestsDir: string;
+let warnings: string[];
+let mw: (req: any, res: any, next: any) => any;
+
+function makeReq(method: string, url: string, body?: unknown) {
+  return {
+    method,
+    url,
+    on(event: string, cb: (arg?: any) => void) {
+      if (event === 'data') {
+        if (body !== undefined) cb(Buffer.from(JSON.stringify(body)));
+      } else if (event === 'end') {
+        cb();
+      }
+    },
+  };
+}
+
+function makeRes() {
+  return {
+    statusCode: 0,
+    headers: {} as Record<string, string>,
+    payload: '',
+    writableEnded: false,
+    setHeader(this: any, k: string, v: string) {
+      this.headers[k] = v;
+    },
+    end(this: any, p?: string) {
+      if (p !== undefined) this.payload = p;
+      this.writableEnded = true;
+    },
+  };
+}
+
+async function request(method: string, url: string, body?: unknown) {
+  const req = makeReq(method, url, body);
+  const res = makeRes();
+  await mw(req, res, () => {});
+  return { status: res.statusCode, json: res.payload ? JSON.parse(res.payload) : null };
+}
+
+function boot() {
+  const plugin = themeFileApi({
+    dataDir: tmp,
+    themesDir,
+    componentConfigsDir: configsDir,
+    manifestsDir,
+    tokensCssPath: path.join(REPO_ROOT, 'src/system/styles/tokens.css'),
+    fontsCssPath: path.join(tmp, 'fonts.css'),
+    tokensGeneratedCssPath: path.join(tmp, 'tokens.generated.css'),
+  });
+  const captured: any[] = [];
+  (plugin as any).configureServer({
+    middlewares: { use: (fn: any) => captured.push(fn) },
+    config: { logger: { warn: (msg: string) => warnings.push(msg) } },
+  });
+  mw = captured[0];
+}
+
+function writeJson(file: string, data: unknown) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, JSON.stringify(data, null, 2));
+}
+
+const readJson = (file: string) => JSON.parse(fs.readFileSync(file, 'utf-8'));
+
+const THEME = { name: 'Custom', createdAt: 'x', updatedAt: 'x', editorConfigs: {}, cssVariables: {} };
+const BUTTON_CONFIG = { name: 'fancy', component: 'button', aliases: { '--button-radius': '99px' } };
+
+/** A v1 pointer manifest naming a live theme, a live config, a component on
+ *  default, and a config that has since been deleted. */
+function seedPointerManifest() {
+  writeJson(path.join(themesDir, 'custom.json'), THEME);
+  writeJson(path.join(configsDir, 'button', 'fancy.json'), BUTTON_CONFIG);
+  writeJson(path.join(manifestsDir, 'look.json'), {
+    name: 'look',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    theme: 'custom',
+    componentConfigs: { button: 'fancy', card: 'default', panel: 'deleted-config' },
+  });
+}
+
+beforeEach(() => {
+  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ltme-'));
+  themesDir = path.join(tmp, 'themes');
+  configsDir = path.join(tmp, 'component-configs');
+  manifestsDir = path.join(tmp, 'manifests');
+  warnings = [];
+});
+
+afterEach(() => {
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
+
+describe('boot migration', () => {
+  it('rewrites a v1 manifest with the data it referenced', () => {
+    seedPointerManifest();
+    boot();
+
+    const migrated = readJson(path.join(manifestsDir, 'look.json'));
+    expect(migrated.schemaVersion).toBe(2);
+    expect(migrated.theme.name).toBe('Custom');
+    expect(migrated.componentConfigs.button.aliases).toEqual(BUTTON_CONFIG.aliases);
+    expect(migrated.createdAt).toBe('2026-01-01T00:00:00.000Z');
+  });
+
+  it('omits a component pinned to default and drops one whose config is gone', () => {
+    seedPointerManifest();
+    boot();
+
+    const migrated = readJson(path.join(manifestsDir, 'look.json'));
+    expect(Object.keys(migrated.componentConfigs)).toEqual(['button']);
+    expect(warnings.join('\n')).toContain('panel/deleted-config');
+  });
+
+  it('leaves an already-encapsulated manifest alone', () => {
+    const file = path.join(manifestsDir, 'v2.json');
+    const manifest = {
+      name: 'v2',
+      createdAt: 'a',
+      updatedAt: 'a',
+      schemaVersion: 2,
+      theme: THEME,
+      componentConfigs: {},
+    };
+    writeJson(file, manifest);
+    boot();
+    expect(readJson(file)).toEqual(manifest);
+  });
+
+  it('never writes a local copy of the package default', () => {
+    boot();
+    expect(fs.existsSync(path.join(manifestsDir, 'default.json'))).toBe(false);
+  });
+});
+
+describe('read doors', () => {
+  it('GET :name returns the encapsulated form of a package v1 manifest', async () => {
+    boot();
+    const { status, json } = await request('GET', `${API}/manifests/default`);
+    expect(status).toBe(200);
+    expect(json.schemaVersion).toBe(2);
+    expect(Object.keys(json.theme.editorConfigs).length).toBeGreaterThan(0);
+    // Every component in the shipped default sits on its default config.
+    expect(json.componentConfigs).toEqual({});
+  });
+
+  it('GET active returns the encapsulated form', async () => {
+    seedPointerManifest();
+    boot();
+    await request('PUT', `${API}/manifests/active`, { name: 'look' });
+
+    const { json } = await request('GET', `${API}/manifests/active`);
+    expect(json._fileName).toBe('look');
+    expect(json.theme.name).toBe('Custom');
+  });
+
+  it('PUT stores a pointer body in encapsulated form', async () => {
+    seedPointerManifest();
+    boot();
+    const { status } = await request('PUT', `${API}/manifests/copy`, {
+      name: 'copy',
+      theme: 'custom',
+      componentConfigs: { button: 'fancy' },
+    });
+    expect(status).toBe(200);
+
+    const written = readJson(path.join(manifestsDir, 'copy.json'));
+    expect(written.schemaVersion).toBe(2);
+    expect(written.theme.name).toBe('Custom');
+    expect(written.componentConfigs.button.aliases).toEqual(BUTTON_CONFIG.aliases);
+  });
+});
+
+describe('apply', () => {
+  it('materialises the embedded data under the manifest slug', async () => {
+    seedPointerManifest();
+    boot();
+    const { status, json } = await request('PUT', `${API}/manifests/look/apply`);
+    expect(status).toBe(200);
+
+    expect(readJson(path.join(themesDir, 'look.json')).name).toBe('Custom');
+    expect(readJson(path.join(configsDir, 'button', 'look.json')).aliases).toEqual(
+      BUTTON_CONFIG.aliases,
+    );
+    expect(json.theme._fileName).toBe('look');
+    expect(readJson(path.join(themesDir, '_active.json')).activeFile).toBe('look');
+    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('look');
+    expect(readJson(path.join(configsDir, 'button', '_active.json')).activeFile).toBe('look');
+    expect(readJson(path.join(configsDir, 'button', '_production.json')).productionFile).toBe('look');
+    expect(readJson(path.join(manifestsDir, '_active.json')).activeFile).toBe('look');
+  });
+
+  it('resets components the manifest does not carry to their defaults', async () => {
+    seedPointerManifest();
+    writeJson(path.join(configsDir, 'card', 'other.json'), { name: 'other', component: 'card' });
+    boot();
+    await request('PUT', `${API}/component-configs/card/active`, { name: 'other' });
+    expect(readJson(path.join(configsDir, 'card', '_active.json')).activeFile).toBe('other');
+
+    await request('PUT', `${API}/manifests/look/apply`);
+    expect(readJson(path.join(configsDir, 'card', '_active.json')).activeFile).toBe('default');
+    expect(readJson(path.join(configsDir, 'card', '_production.json')).productionFile).toBe('default');
+  });
+
+  it('reports embedded data for components this install does not have', async () => {
+    writeJson(path.join(manifestsDir, 'ghosted.json'), {
+      name: 'ghosted',
+      createdAt: 'a',
+      updatedAt: 'a',
+      schemaVersion: 2,
+      theme: THEME,
+      componentConfigs: { ghost: { name: 'ghost', aliases: {} } },
+    });
+    boot();
+    const { json } = await request('PUT', `${API}/manifests/ghosted/apply`);
+    expect(json.skippedComponents).toEqual(['ghost']);
+  });
+
+  it('applies pure defaults for the default manifest and materialises nothing', async () => {
+    seedPointerManifest();
+    boot();
+    await request('PUT', `${API}/manifests/look/apply`);
+    expect(readJson(path.join(configsDir, 'button', '_production.json')).productionFile).toBe('look');
+
+    const { status, json } = await request('PUT', `${API}/manifests/default/apply`);
+    expect(status).toBe(200);
+    expect(json.theme._fileName).toBe('default');
+    expect(fs.existsSync(path.join(themesDir, 'default.json'))).toBe(false);
+    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('default');
+    expect(readJson(path.join(configsDir, 'button', '_production.json')).productionFile).toBe(
+      'default',
+    );
+  });
+});
+
+describe('export and import', () => {
+  it('exports the envelope alone', async () => {
+    seedPointerManifest();
+    boot();
+    const { status, json } = await request('GET', `${API}/manifests/look/export`);
+    expect(status).toBe(200);
+    expect(json.kind).toBe('manifest-bundle');
+    expect(json.schemaVersion).toBe(2);
+    expect(json.manifest.theme.name).toBe('Custom');
+    expect(json).not.toHaveProperty('theme');
+    expect(json).not.toHaveProperty('componentConfigs');
+  });
+
+  it('imports a v2 bundle as one file, renamed past the collision', async () => {
+    seedPointerManifest();
+    boot();
+    const exported = (await request('GET', `${API}/manifests/look/export`)).json;
+    const themeFilesBefore = fs.readdirSync(themesDir).length;
+
+    const { status, json } = await request('POST', `${API}/manifests/import`, exported);
+    expect(status).toBe(200);
+    expect(json.manifest).toBe('look-2');
+    expect(json.renames).toEqual({ 'manifest:look': 'look-2' });
+    expect(readJson(path.join(manifestsDir, 'look-2.json')).theme.name).toBe('Custom');
+    expect(fs.readdirSync(themesDir).length).toBe(themeFilesBefore);
+  });
+
+  it('imports a v1 bundle by embedding what the bundle carries', async () => {
+    boot();
+    const { status, json } = await request('POST', `${API}/manifests/import`, {
+      kind: 'manifest-bundle',
+      schemaVersion: 1,
+      liveTokensVersion: '0.1.0',
+      exportedAt: 'a',
+      manifest: {
+        name: 'shared',
+        createdAt: 'a',
+        updatedAt: 'a',
+        theme: 'their-theme',
+        componentConfigs: { button: 'fancy', card: 'default', panel: 'absent' },
+      },
+      theme: { ...THEME, name: 'Their Theme' },
+      componentConfigs: { 'button/fancy': BUTTON_CONFIG },
+    });
+    expect(status).toBe(200);
+    expect(json.dropped).toEqual(['panel/absent']);
+
+    const written = readJson(path.join(manifestsDir, 'shared.json'));
+    expect(written.schemaVersion).toBe(2);
+    expect(written.theme.name).toBe('Their Theme');
+    expect(Object.keys(written.componentConfigs)).toEqual(['button']);
+    expect(fs.existsSync(path.join(themesDir, 'their-theme.json'))).toBe(false);
+    expect(fs.existsSync(path.join(configsDir, 'button', 'fancy.json'))).toBe(false);
+  });
+
+  it('rejects a bundle whose schemaVersion it does not know', async () => {
+    boot();
+    const { status } = await request('POST', `${API}/manifests/import`, {
+      kind: 'manifest-bundle',
+      schemaVersion: 99,
+      manifest: {},
+    });
+    expect(status).toBe(400);
+  });
+});
+
+describe('adopt patches the active manifest', () => {
+  async function bootWithActiveLook() {
+    seedPointerManifest();
+    boot();
+    await request('PUT', `${API}/manifests/active`, { name: 'look' });
+  }
+
+  it('embeds the adopted config', async () => {
+    await bootWithActiveLook();
+    writeJson(path.join(configsDir, 'card', 'bold.json'), {
+      name: 'bold',
+      component: 'card',
+      aliases: { '--card-radius': '0' },
+    });
+
+    const { status } = await request('PUT', `${API}/component-configs/card/production`, {
+      name: 'bold',
+    });
+    expect(status).toBe(200);
+    expect(readJson(path.join(manifestsDir, 'look.json')).componentConfigs.card.aliases).toEqual({
+      '--card-radius': '0',
+    });
+  });
+
+  it('drops the entry when a component is adopted back to default', async () => {
+    await bootWithActiveLook();
+    const { status } = await request('PUT', `${API}/component-configs/button/production`, {
+      name: 'default',
+    });
+    expect(status).toBe(200);
+    expect(readJson(path.join(manifestsDir, 'look.json')).componentConfigs).toEqual({});
+  });
+
+  it('embeds the adopted theme', async () => {
+    await bootWithActiveLook();
+    writeJson(path.join(themesDir, 'other.json'), { ...THEME, name: 'Other' });
+
+    const { status } = await request('PUT', `${API}/themes/production`, { name: 'other' });
+    expect(status).toBe(200);
+    expect(readJson(path.join(manifestsDir, 'look.json')).theme.name).toBe('Other');
+  });
+});

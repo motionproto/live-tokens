@@ -14,6 +14,12 @@ import {
   type VersionedFileResourceServer,
 } from './files/versionedFileResourceServer';
 import { dispatch, type Route } from './files/routeTable';
+import {
+  MANIFEST_SCHEMA_VERSION,
+  normalizeManifest,
+  type EncapsulatedManifest,
+  type ManifestResolvers,
+} from './manifests/normalizeManifest';
 import { nextAvailableName as allocNextAvailableName } from './files/nameAllocator';
 import { resolveDataDirs } from './files/dataPaths';
 import { validateTokensCss, runAdditiveTokensCssMigrations } from './tokensCssMigrations';
@@ -623,11 +629,66 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   // ── Manifests helpers ─────────────────────────────────────────────────────
 
-  function ensureManifestsDir(): void {
+  /** Resolve a v1 manifest's refs against the files on disk, package fallback
+   *  included. Import passes its own bundle-scoped resolvers instead. */
+  const diskManifestResolvers: ManifestResolvers = {
+    readTheme: (name) => themesResource.readJson(sanitizeFileName(name)),
+    readComponentConfig: (comp, name) => readComponentConfig(comp, sanitizeFileName(name)),
+    normalizeTheme: (theme) => normalizeTheme(theme as any),
+  };
+
+  function readManifest(fileName: string) {
+    const raw = manifestsResource.readJson(fileName);
+    if (!raw) return null;
+    return normalizeManifest(raw, diskManifestResolvers);
+  }
+
+  function writeManifest(fileName: string, manifest: EncapsulatedManifest): void {
+    manifestsResource.ensureDir();
+    fs.writeFileSync(manifestsResource.filePath(fileName), JSON.stringify(manifest, null, 2));
+  }
+
+  /**
+   * Rewrite local pointer-form manifests to the encapsulated form. Eager, at
+   * boot: from here on themes and configs are freely deletable, so a manifest
+   * that still names them can lose its content between one boot and the next.
+   */
+  function migrateLocalManifests(warn: (msg: string) => void): void {
+    // In the live-tokens repo the local data dir IS the package data dir.
+    // Shipped data is regenerated deliberately, never as a boot side effect —
+    // `npm test` boots this plugin too.
+    if (path.resolve(MANIFESTS_DIR) === path.resolve(packageManifestsDir)) return;
+    if (!fs.existsSync(MANIFESTS_DIR)) return;
+    for (const file of fs.readdirSync(MANIFESTS_DIR)) {
+      if (!file.endsWith('.json') || file.startsWith('_')) continue;
+      const fileName = file.slice(0, -'.json'.length);
+      // `default` is live from the package and read-only; read doors normalize
+      // it on the fly.
+      if (fileName === 'default') continue;
+      let raw: unknown;
+      try {
+        raw = JSON.parse(fs.readFileSync(path.join(MANIFESTS_DIR, file), 'utf-8'));
+      } catch {
+        continue;
+      }
+      const { manifest, dropped, migrated } = normalizeManifest(raw, diskManifestResolvers);
+      if (!migrated) continue;
+      writeManifest(fileName, manifest);
+      if (dropped.length > 0) {
+        warn(
+          `[live-tokens] Manifest "${fileName}": ${dropped.join(', ')} no longer exists; ` +
+            'those slices now use their defaults.',
+        );
+      }
+    }
+  }
+
+  function ensureManifestsDir(warn: (msg: string) => void): void {
     manifestsResource.ensureDir();
     // No synthetic local default.json is written: `default` resolves to the
     // shipped package manifest via the read-only fallback. A local copy would
     // shadow it and freeze a consumer's "restore to" baseline at create time.
+    migrateLocalManifests(warn);
 
     // Ensure `_active.json` exists; the manifest model has no Production slot,
     // so `_production.json` is never written for this resource.
@@ -647,10 +708,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Patch the currently-active manifest in response to a theme or component
-   * Adopt: rewrites the matching ref (`theme` or `componentConfigs[comp]`).
-   * Returns `false` if the active manifest is `default` (protected) so the
-   * caller can fail the Adopt with 409 ACTIVE_IS_PROTECTED.
+   * Re-embed one slice of the currently-active manifest in response to a theme
+   * or component Adopt: the adopted file's content is copied in by value.
+   * Adopting `default` for a component drops its entry — absent is default.
+   * Returns `false` if the active manifest is `default` (protected).
    */
   function patchActiveManifest(
     field: 'theme' | 'component',
@@ -659,22 +720,25 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   ): boolean {
     const activeFile = manifestsResource.getActiveName();
     if (activeFile === 'default') return false;
-    const manifestPath = manifestsResource.filePath(activeFile);
-    if (!fs.existsSync(manifestPath)) return false;
-    let manifest: any;
-    try {
-      manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-    } catch {
-      return false;
-    }
+    if (!fs.existsSync(manifestsResource.filePath(activeFile))) return false;
+    const read = readManifest(activeFile);
+    if (!read) return false;
+    const { manifest } = read;
     if (field === 'theme') {
-      manifest.theme = fileName;
+      const theme = themesResource.readJson(sanitizeFileName(fileName));
+      if (!theme) return false;
+      manifest.theme = normalizeTheme(theme as any);
     } else if (field === 'component' && comp) {
-      manifest.componentConfigs = manifest.componentConfigs ?? {};
-      manifest.componentConfigs[comp] = fileName;
+      if (fileName === 'default') {
+        delete manifest.componentConfigs[comp];
+      } else {
+        const cfg = readComponentConfig(comp, fileName);
+        if (!cfg) return false;
+        manifest.componentConfigs[comp] = { ...cfg, component: comp };
+      }
     }
     manifest.updatedAt = new Date().toISOString();
-    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+    writeManifest(activeFile, manifest);
     return true;
   }
 
@@ -1123,11 +1187,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   async function handleListManifests({ res }: any) {
     const activeFile = manifestsResource.getActiveName();
     const files = manifestsResource.listNames().map((fileName) => {
-      const data = manifestsResource.readJson(fileName) as any;
+      const read = readManifest(fileName);
       return {
-        name: data?.name || fileName,
+        name: read?.manifest.name || fileName,
         fileName,
-        updatedAt: data?.updatedAt || '',
+        updatedAt: read?.manifest.updatedAt || '',
         isActive: fileName === activeFile,
         isProtected: fileName === 'default',
       };
@@ -1137,14 +1201,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   async function handleGetActiveManifest({ res }: any) {
     const activeFile = manifestsResource.getActiveName();
-    const raw = manifestsResource.readJson(activeFile);
-    if (!raw) {
+    const read = readManifest(activeFile);
+    if (!read) {
       jsonResponse(res, 404, { error: 'Active manifest not found' });
       return;
     }
-    const data = raw as any;
-    data._fileName = activeFile;
-    jsonResponse(res, 200, data);
+    jsonResponse(res, 200, { ...read.manifest, _fileName: activeFile });
   }
 
   async function handleSetActiveManifest({ req, res }: any) {
@@ -1163,14 +1225,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const filePath = manifestsResource.filePath(fileName);
 
     if (req.method === 'GET') {
-      const raw = manifestsResource.readJson(fileName);
-      if (!raw) {
+      const read = readManifest(fileName);
+      if (!read) {
         jsonResponse(res, 404, { error: 'Not found' });
         return;
       }
-      const data = raw as any;
-      data._fileName = fileName;
-      jsonResponse(res, 200, data);
+      jsonResponse(res, 200, { ...read.manifest, _fileName: fileName });
       return;
     }
 
@@ -1180,15 +1240,17 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         return;
       }
       const body = JSON.parse(await readBody(req));
-      body.updatedAt = new Date().toISOString();
+      // Normalize the incoming body too, so what lands on disk is encapsulated
+      // whatever form the client sent.
+      const { manifest } = normalizeManifest(body, diskManifestResolvers);
+      manifest.updatedAt = new Date().toISOString();
       if (fs.existsSync(filePath)) {
         try {
           const existing = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-          if (existing.createdAt) body.createdAt = existing.createdAt;
-        } catch { /* use body value or set below */ }
+          if (existing.createdAt) manifest.createdAt = existing.createdAt;
+        } catch { /* keep the body's value */ }
       }
-      if (!body.createdAt) body.createdAt = body.updatedAt;
-      fs.writeFileSync(filePath, JSON.stringify(body, null, 2));
+      writeManifest(fileName, manifest);
       jsonResponse(res, 200, { ok: true, fileName });
       return;
     }
@@ -1210,52 +1272,44 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Atomically apply a manifest: validate every referenced file exists, flip
-   * the theme + each component's `_active.json` and `_production.json`
-   * pointers, sync tokens.css/fonts.css from the new theme, mark the manifest
-   * itself active, and return the resolved theme + component configs in one
-   * payload. The client follows with a full page reload. Setting production
-   * here (not just active) means the running page picks up the new theme
-   * without the user having to Adopt theme + every component by hand.
+   * Apply a manifest: materialise its embedded theme and configs into working
+   * files under the manifest's own slug, flip the theme + each component's
+   * `_active.json` and `_production.json` pointers at them, sync
+   * tokens.css/fonts.css, mark the manifest active, and return the resolved
+   * state in one payload. The client follows with a full page reload. Setting
+   * production here (not just active) means the running page picks up the new
+   * look without the user having to Adopt theme + every component by hand.
+   *
+   * A manifest is a complete look, so components it doesn't carry are reset to
+   * their defaults rather than left as they were.
    */
   async function handleApplyManifest({ params, res }: any) {
     const [fileName] = params;
-    const manifest = manifestsResource.readJson(fileName) as any;
-    if (!manifest) {
+    const read = readManifest(fileName);
+    if (!read) {
       jsonResponse(res, 404, { error: 'Manifest not found' });
       return;
     }
-
-    const themeName = sanitizeFileName(manifest.theme || 'default');
-    if (themesResource.existingPath(themeName) === null) {
-      jsonResponse(res, 422, { error: `Manifest references missing theme: ${themeName}` });
+    const { manifest } = read;
+    // The default manifest IS the baseline: it applies pure defaults and
+    // materialises nothing (`default.json` is derived from source, read-only).
+    const isDefault = fileName === 'default';
+    if (!isDefault && !manifest.theme) {
+      jsonResponse(res, 422, { error: 'Manifest carries no theme' });
       return;
     }
 
-    // Validate every referenced component config exists. Components in the
-    // manifest that don't exist as components get skipped (component was
-    // removed since the manifest was saved); missing config files for an
-    // existing component are a hard error.
-    const knownComponents = new Set(listComponentNames());
-    const componentConfigs = manifest.componentConfigs ?? {};
-    const resolvedConfigs: Record<string, any> = {};
-    const apply: Array<[string, string]> = [];
-    for (const [comp, configFile] of Object.entries(componentConfigs)) {
-      if (!knownComponents.has(comp)) continue;
-      const sanitized = sanitizeFileName(String(configFile) || 'default');
-      const r = componentResource(comp);
-      if (r.existingPath(sanitized) === null) {
-        jsonResponse(res, 422, {
-          error: `Manifest references missing config: ${comp}/${sanitized}`,
-        });
-        return;
-      }
-      apply.push([comp, sanitized]);
+    const themeName = isDefault ? 'default' : fileName;
+    if (!isDefault) {
+      themesResource.ensureDir();
+      fs.writeFileSync(
+        themesResource.filePath(themeName),
+        JSON.stringify(manifest.theme, null, 2),
+      );
     }
 
     // Flip theme: active drives the editor, production drives the running page
-    // (syncTokensToCss/syncFontsToCss write into tokens.css). Without setting
-    // production here the user would have to re-Adopt the theme by hand.
+    // (syncTokensToCss/syncFontsToCss write into tokens.css).
     themesResource.setActiveName(themeName);
     themesResource.setProductionName(themeName);
     syncTokensToCss(themeName);
@@ -1263,22 +1317,30 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const themeData = normalizeTheme(themesResource.readJson(themeName) as any);
     themeData._fileName = themeName;
 
-    for (const [comp, configFile] of apply) {
+    const knownComponents = listComponentNames();
+    const resolvedConfigs: Record<string, any> = {};
+    for (const comp of knownComponents) {
+      const embedded = isDefault ? undefined : manifest.componentConfigs[comp];
       const r = componentResource(comp);
+      const configFile = embedded ? fileName : 'default';
+      if (embedded) {
+        r.ensureDir();
+        fs.writeFileSync(
+          r.filePath(configFile),
+          JSON.stringify({ ...embedded, component: comp }, null, 2),
+        );
+      }
       r.setActiveName(configFile);
       r.setProductionName(configFile);
       const cfg = readComponentConfig(comp, configFile);
       if (cfg) resolvedConfigs[comp] = { ...cfg, _fileName: configFile };
     }
 
-    // Components on disk but not mentioned in the manifest: leave their
-    // active and production pointers alone. The manifest has no opinion.
-    for (const comp of knownComponents) {
-      if (resolvedConfigs[comp]) continue;
-      const activeName = componentResource(comp).getActiveName();
-      const cfg = readComponentConfig(comp, activeName);
-      if (cfg) resolvedConfigs[comp] = { ...cfg, _fileName: activeName };
-    }
+    // Data for components this install doesn't have is inert, but silence here
+    // is what let a removed component sit in the default manifest unnoticed.
+    const skippedComponents = Object.keys(manifest.componentConfigs).filter(
+      (comp) => !knownComponents.includes(comp),
+    );
 
     // One sync after all component production pointers are flipped so the
     // tokens.css component-alias block lands in a single write.
@@ -1291,58 +1353,31 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       manifest: { ...manifest, _fileName: fileName },
       theme: themeData,
       componentConfigs: resolvedConfigs,
+      skippedComponents,
     });
   }
 
   /**
-   * Export a manifest as a self-contained `ManifestBundle` for sharing.
-   * Reads the manifest, inlines the referenced theme and every non-default
-   * component config, returns the bundle as JSON with a `Content-Disposition`
-   * attachment header so browsers save rather than display.
-   *
-   * Defaults are NOT inlined — the receiver's local default.json is the
-   * live-tokens package's canonical default. `liveTokensVersion` lets the
-   * UI warn on compatibility drift in a future iteration.
-   * See temp/manifest-robustness-plan.md §11.
+   * Export a manifest for sharing: the manifest already carries its theme and
+   * configs, so the bundle is the envelope plus provenance. Served with a
+   * `Content-Disposition` attachment header so browsers save rather than
+   * display. `liveTokensVersion` lets the UI warn on compatibility drift in a
+   * future iteration.
    */
   async function handleExportManifest({ params, res }: any) {
     const [fileName] = params;
-    const manifest = manifestsResource.readJson(fileName) as any;
-    if (!manifest) {
+    const read = readManifest(fileName);
+    if (!read) {
       jsonResponse(res, 404, { error: 'Manifest not found' });
       return;
-    }
-    const themeName = sanitizeFileName(manifest.theme || 'default');
-    const theme = themesResource.readJson(themeName);
-    if (!theme) {
-      jsonResponse(res, 422, { error: `Manifest references missing theme: ${themeName}` });
-      return;
-    }
-
-    const knownComponents = new Set(listComponentNames());
-    const componentConfigs: Record<string, any> = {};
-    for (const [comp, configFile] of Object.entries(manifest.componentConfigs ?? {})) {
-      if (!knownComponents.has(comp)) continue;
-      const sanitized = sanitizeFileName(String(configFile) || 'default');
-      if (sanitized === 'default') continue; // receiver uses their own default
-      const cfg = componentResource(comp).readJson(sanitized);
-      if (!cfg) {
-        jsonResponse(res, 422, {
-          error: `Manifest references missing config: ${comp}/${sanitized}`,
-        });
-        return;
-      }
-      componentConfigs[`${comp}/${sanitized}`] = cfg;
     }
 
     const bundle = {
       kind: 'manifest-bundle' as const,
-      schemaVersion: 1 as const,
+      schemaVersion: MANIFEST_SCHEMA_VERSION,
       liveTokensVersion: PKG_VERSION,
       exportedAt: new Date().toISOString(),
-      manifest,
-      theme,
-      componentConfigs,
+      manifest: read.manifest,
     };
 
     res.statusCode = 200;
@@ -1370,14 +1405,15 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Import a `ManifestBundle`: materialise the inlined theme + component
-   * configs to disk under fresh (collision-renamed) names, rewrite the
-   * manifest's pointers to match, and write the resulting manifest. Returns
-   * the final manifest filename plus a rename map so the UI can surface
-   * what got renamed. Does not auto-apply — user clicks Load on the new row.
+   * Import a `ManifestBundle`: one validated manifest file, no materialisation
+   * — Apply is what turns embedded data into working files. Returns the final
+   * manifest filename plus a rename map so the UI can surface a collision
+   * rename (`-2` / `-3` suffixes), and whatever the bundle failed to carry.
+   * Does not auto-apply — the user clicks Load on the new row.
    *
-   * Collision policy: rename with `-2` / `-3` suffixes (see
-   * temp/manifest-robustness-plan.md §11 for rationale).
+   * v1 bundles (pointer manifest + separately inlined theme and configs) still
+   * import: their refs resolve inside the bundle, never against local files
+   * that happen to share a name.
    */
   async function handleImportManifest({ req, res }: any) {
     let bundle: any;
@@ -1393,99 +1429,48 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       });
       return;
     }
-    if (bundle.schemaVersion !== 1) {
+    if (bundle.schemaVersion !== 1 && bundle.schemaVersion !== MANIFEST_SCHEMA_VERSION) {
       jsonResponse(res, 400, {
         error: `Unsupported bundle schemaVersion: ${bundle.schemaVersion}`,
       });
       return;
     }
-    if (!bundle.manifest || !bundle.theme || !bundle.componentConfigs) {
-      jsonResponse(res, 400, { error: 'Bundle missing manifest / theme / componentConfigs' });
+    if (!bundle.manifest) {
+      jsonResponse(res, 400, { error: 'Bundle missing manifest' });
       return;
     }
 
-    const renames: Record<string, string> = {};
-    const now = new Date().toISOString();
-
-    // Theme: write under a fresh name if the requested one is taken.
-    const originalThemeName = sanitizeFileName(bundle.manifest.theme || 'default');
-    const finalThemeName = nextAvailableName(
-      (n) => themesResource.existingPath(n) !== null,
-      originalThemeName,
-    );
-    if (finalThemeName !== originalThemeName) {
-      renames[`theme:${originalThemeName}`] = finalThemeName;
-    }
-    const themeBody = { ...bundle.theme };
-    themeBody.updatedAt = now;
-    if (!themeBody.createdAt) themeBody.createdAt = now;
-    themesResource.ensureDir();
-    fs.writeFileSync(themesResource.filePath(finalThemeName), JSON.stringify(themeBody, null, 2));
-
-    // Component configs: each `${comp}/${name}` entry. Skip unknown
-    // components silently — the bundle may reference one the receiver doesn't
-    // ship (different live-tokens version).
-    const knownComponents = new Set(listComponentNames());
-    const componentRenames: Record<string, string> = {}; // `${comp}/${originalName}` → finalName
-    for (const [key, cfgValue] of Object.entries(bundle.componentConfigs)) {
-      const [comp, originalName] = key.split('/');
-      if (!comp || !originalName) continue;
-      if (!knownComponents.has(comp)) continue;
-      const r = componentResource(comp);
-      const finalName = nextAvailableName(
-        (n) => r.existingPath(n) !== null,
-        originalName,
-      );
-      if (finalName !== originalName) {
-        renames[`componentConfig:${comp}/${originalName}`] = finalName;
-      }
-      componentRenames[`${comp}/${originalName}`] = finalName;
-      const cfgBody: any = { ...(cfgValue as any) };
-      cfgBody.component = comp;
-      cfgBody.name = finalName;
-      cfgBody.updatedAt = now;
-      if (!cfgBody.createdAt) cfgBody.createdAt = now;
-      r.ensureDir();
-      fs.writeFileSync(r.filePath(finalName), JSON.stringify(cfgBody, null, 2));
-    }
-
-    // Rewrite the manifest's pointers through the rename maps and write the
-    // manifest under its own fresh name.
-    const rewrittenManifest: Record<string, any> = {
-      ...bundle.manifest,
-      theme: finalThemeName,
-      componentConfigs: {} as Record<string, string>,
+    const bundleResolvers: ManifestResolvers = {
+      readTheme: () => bundle.theme,
+      readComponentConfig: (comp, name) => bundle.componentConfigs?.[`${comp}/${name}`],
+      normalizeTheme: (theme) => normalizeTheme(theme as any),
     };
-    for (const [comp, configName] of Object.entries(bundle.manifest.componentConfigs ?? {})) {
-      const original = String(configName);
-      if (original === 'default') {
-        rewrittenManifest.componentConfigs[comp] = 'default';
-        continue;
-      }
-      const finalName = componentRenames[`${comp}/${original}`] ?? original;
-      rewrittenManifest.componentConfigs[comp] = finalName;
+    const { manifest, dropped } = normalizeManifest(bundle.manifest, bundleResolvers);
+    // Foreign data door: an embedded theme arrives unreconciled, which is what
+    // normalizeTheme's `_imported` palette path exists for.
+    if (manifest.theme) manifest.theme = normalizeTheme(manifest.theme as any);
+    if (!manifest.theme) {
+      jsonResponse(res, 400, { error: 'Bundle carries no theme' });
+      return;
     }
-    rewrittenManifest.updatedAt = now;
-    if (!rewrittenManifest.createdAt) rewrittenManifest.createdAt = now;
+    manifest.updatedAt = new Date().toISOString();
 
-    const originalManifestName = sanitizeFileName(bundle.manifest.name || 'imported');
-    const finalManifestName = nextAvailableName(
+    const renames: Record<string, string> = {};
+    const originalName = sanitizeFileName(manifest.name || 'imported');
+    const finalName = nextAvailableName(
       (n) => manifestsResource.existingPath(n) !== null,
-      originalManifestName,
+      originalName,
     );
-    if (finalManifestName !== originalManifestName) {
-      renames[`manifest:${originalManifestName}`] = finalManifestName;
+    if (finalName !== originalName) {
+      renames[`manifest:${originalName}`] = finalName;
     }
-    manifestsResource.ensureDir();
-    fs.writeFileSync(
-      manifestsResource.filePath(finalManifestName),
-      JSON.stringify(rewrittenManifest, null, 2),
-    );
+    writeManifest(finalName, manifest);
 
     jsonResponse(res, 200, {
       ok: true,
-      manifest: finalManifestName,
+      manifest: finalName,
       renames,
+      dropped,
     });
   }
 
@@ -1588,7 +1573,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     configureServer(server) {
       ensureThemesDir();
       ensureComponentConfigsDir();
-      ensureManifestsDir();
+      ensureManifestsDir((msg) => server.config.logger.warn(msg));
       // Make sure the editor-owned sidecar exists and reflects current
       // production state before the first request lands. Without this, a
       // fresh checkout would import a stale (or missing) generated file.
