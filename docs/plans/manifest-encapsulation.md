@@ -167,3 +167,9 @@ Design, unit 8 (one commit):
 - Editor UI rules apply: greyscale, pill buttons, tokened values, no em-dashes in copy. The list rows gain a selected state; Save/Cancel appear only while a preview is live; closing the window equals Cancel.
 
 Risks the executor must resolve by reading the code, not assuming: where boot/theme-switch derives the full var set (renderer entry point to reuse for both preview and revert), how gradient/structured alias values become CSS, and whether font `<link>` injection is idempotent enough to swap pairings repeatedly in one session.
+
+### Addendum 3, as executed (2026-08-13)
+
+Shipped in unit 8 plus a review-fix commit. The preview reuses `deriveCssVars` and the cssVarSync fan-out verbatim; fonts swap through `applyFontSources` diffing. Review verdict PASS; fixes taken: the close-during-fetch race (a paint landing after the window closed left a preview with no Save/Cancel on screen), the memoized rejected defaults fetch, and a permanent re-preview test (A to B diffs against the live look, not the previous preview).
+
+Deliverable noted per the spec: the THEME file manager's own Load still hard-commits per selection (`ThemeFileManager.svelte` `handleLoad`: confirm on dirty, close, PUT `_active`, hydrate). Same clunky shape this addendum removed for manifests; candidate for the identical preview pattern, not built.

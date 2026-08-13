@@ -142,7 +142,11 @@
       return;
     }
     try {
-      await previewManifest(await loadManifest(file.fileName));
+      const manifest = await loadManifest(file.fileName);
+      // The window may have closed during the fetch; painting then would leave
+      // a preview on screen with no Save or Cancel in sight.
+      if (!showFileList) return;
+      await previewManifest(manifest);
       previewFile = file;
     } catch (err) {
       window.alert(`Failed to preview manifest: ${(err as Error).message}`);

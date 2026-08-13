@@ -69,7 +69,12 @@ let livePreview: RenderedLook | null = null;
 let defaultsPromise: Promise<Manifest> | null = null;
 
 function loadDefaults(): Promise<Manifest> {
-  defaultsPromise ??= loadManifest('default');
+  // A rejected promise must not be memoized, or one failed fetch (a dev-server
+  // restart mid-dialog) poisons every later preview until a page reload.
+  defaultsPromise ??= loadManifest('default').catch((err) => {
+    defaultsPromise = null;
+    throw err;
+  });
   return defaultsPromise;
 }
 

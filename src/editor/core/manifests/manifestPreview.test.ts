@@ -194,6 +194,29 @@ describe('previewManifest', () => {
     expect(read('--live-only')).toBe('1px');
   });
 
+  it('re-previewing diffs against the live look, not the previous preview', async () => {
+    const halloween = manifest('halloween', theme({ '--surface-canvas': '#4d2300' }), {
+      card: config('card', { '--card-default-radius': '--radius-none' }),
+      spooky: config('spooky', { '--spooky-glow': '1' }),
+    });
+
+    await previewManifest(yuletide);
+    await previewManifest(halloween);
+    expect(read('--card-default-radius')).toBe('var(--radius-none)');
+    expect(read('--surface-canvas')).toBe('#4d2300');
+    expect(read('--button-primary-radius')).toBe('var(--radius-xl)');
+
+    revertPreview();
+    expect(read('--card-default-radius')).toBe('var(--radius-md)');
+    expect(read('--surface-canvas')).toBe('#111111');
+    expect(read('--live-only')).toBe('1px');
+    expect(read('--badge-default-radius')).toBe('');
+    expect(read('--button-primary-radius')).toBe('');
+
+    revertPreview();
+    expect(read('--card-default-radius')).toBe('var(--radius-md)');
+  });
+
   it('leaves the editor store untouched', async () => {
     const before = JSON.stringify(get(editorState));
     await previewManifest(yuletide);
