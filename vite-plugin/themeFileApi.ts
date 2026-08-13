@@ -167,10 +167,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     return r;
   }
 
-  // Manifests resource — files that pin one theme + one config per component.
-  // The active manifest is the single live snapshot; theme/component Adopts
-  // patch its refs (see `patchActiveManifest`). `_production.json` is unused
-  // for this resource — the new model has no separate Production slot.
+  // Manifests resource — files that carry one theme plus a config per
+  // off-default component, by value. The active manifest is the single live
+  // snapshot; theme/component Adopts re-embed that slice (see
+  // `patchActiveManifest`). `_production.json` is unused for this resource —
+  // the model has no separate Production slot.
   const manifestsResource = versionedFileResourceServer({
     dir: MANIFESTS_DIR,
     packageDir: packageManifestsDir,
@@ -637,10 +638,30 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     normalizeTheme: (theme) => normalizeTheme(theme as any),
   };
 
+  /** `null` covers both "no such manifest" and "the file is there but won't
+   *  parse": one unreadable file must not take the list door down with it.
+   *  Doors that answer a single manifest tell the two apart via
+   *  `respondUnreadableManifest`. */
   function readManifest(fileName: string) {
-    const raw = manifestsResource.readJson(fileName);
+    let raw: unknown;
+    try {
+      raw = manifestsResource.readJson(fileName);
+    } catch {
+      return null;
+    }
     if (!raw) return null;
     return normalizeManifest(raw, diskManifestResolvers);
+  }
+
+  function respondUnreadableManifest(res: any, fileName: string, missingError: string): void {
+    if (manifestsResource.existingPath(fileName) !== null) {
+      jsonResponse(res, 422, {
+        error: `Manifest "${fileName}" is not valid JSON`,
+        code: 'CORRUPT_MANIFEST',
+      });
+      return;
+    }
+    jsonResponse(res, 404, { error: missingError });
   }
 
   function writeManifest(fileName: string, manifest: EncapsulatedManifest): void {
@@ -683,11 +704,54 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
   }
 
+  /**
+   * Materialise the Default manifest: the shipped theme plus EVERY component's
+   * derived default config, by value. It is the one manifest that is not
+   * delta-encoded, because it is the written record of the whole default state.
+   *
+   * Its source of truth is code (the theme file plus each component's
+   * `:global(:root)`), so regenerating it on every boot is safe: deletion
+   * outside the file manager heals, and a removed component cannot linger in it
+   * the way `stat` did. Writes only on real drift, like `generateDefaultConfig`
+   * — a boot that changes nothing leaves bytes and mtime alone.
+   */
+  function ensureDefaultManifest(): void {
+    const theme = normalizeTheme(themesResource.readJson('default') as any);
+    const componentConfigs: Record<string, any> = {};
+    for (const comp of listComponentNames()) {
+      const cfg = readComponentConfig(comp, 'default');
+      if (cfg) componentConfigs[comp] = cfg;
+    }
+
+    let existing: any = null;
+    try {
+      existing = JSON.parse(fs.readFileSync(manifestsResource.filePath('default'), 'utf-8'));
+    } catch { /* missing or corrupt — regenerate */ }
+    if (
+      existing?.schemaVersion === MANIFEST_SCHEMA_VERSION &&
+      JSON.stringify(existing.theme) === JSON.stringify(theme) &&
+      JSON.stringify(existing.componentConfigs) === JSON.stringify(componentConfigs)
+    ) {
+      return;
+    }
+
+    const now = new Date().toISOString();
+    writeManifest('default', {
+      name: 'Default',
+      createdAt: typeof existing?.createdAt === 'string' ? existing.createdAt : now,
+      updatedAt: now,
+      schemaVersion: MANIFEST_SCHEMA_VERSION,
+      theme,
+      componentConfigs,
+    });
+  }
+
   function ensureManifestsDir(warn: (msg: string) => void): void {
     manifestsResource.ensureDir();
-    // No synthetic local default.json is written: `default` resolves to the
-    // shipped package manifest via the read-only fallback. A local copy would
-    // shadow it and freeze a consumer's "restore to" baseline at create time.
+    // Runs before the migration and in every project, this repo included: the
+    // Default set is derived, so regenerating shipped data here is the point
+    // rather than a side effect.
+    ensureDefaultManifest();
     migrateLocalManifests(warn);
 
     // Ensure `_active.json` exists; the manifest model has no Production slot,
@@ -983,16 +1047,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         jsonResponse(res, 403, { error: 'Cannot delete the default theme' });
         return;
       }
-      // Reject deletion of the live production theme — removing it would
-      // leave _production.json pointing at a missing file and break the
-      // running site. The user must Adopt a different theme first.
-      if (themesResource.getProductionName() === fileName) {
-        jsonResponse(res, 403, {
-          error: 'Cannot delete the production theme. Adopt a different theme first.',
-          code: 'PRODUCTION_THEME',
-        });
-        return;
-      }
       if (fs.existsSync(filePath)) {
         // Deleting a local file that shadows a shipped preset restores the
         // package version (it stays listed via the package fallback).
@@ -1000,6 +1054,14 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         // If this was the active theme, revert to default
         if (themesResource.getActiveName() === fileName) {
           themesResource.setActiveName('default');
+        }
+        // A theme file is a working copy — manifests carry their theme by
+        // value — so production heals to the default and the running page
+        // keeps rendering, mirroring the component-config delete handler.
+        if (themesResource.getProductionName() === fileName) {
+          themesResource.setProductionName('default');
+          syncTokensToCss('default');
+          syncFontsToCss('default');
         }
       } else if (themesResource.existingPath(fileName)) {
         // No local copy — only the package ships this theme. Without this
@@ -1186,16 +1248,21 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   async function handleListManifests({ res }: any) {
     const activeFile = manifestsResource.getActiveName();
-    const files = manifestsResource.listNames().map((fileName) => {
+    const files = [];
+    for (const fileName of manifestsResource.listNames()) {
       const read = readManifest(fileName);
-      return {
-        name: read?.manifest.name || fileName,
+      if (!read) {
+        console.warn(`[live-tokens] Manifest "${fileName}" is unreadable and was left out of the list.`);
+        continue;
+      }
+      files.push({
+        name: read.manifest.name,
         fileName,
-        updatedAt: read?.manifest.updatedAt || '',
+        updatedAt: read.manifest.updatedAt,
         isActive: fileName === activeFile,
         isProtected: fileName === 'default',
-      };
-    });
+      });
+    }
     jsonResponse(res, 200, { files, activeFile });
   }
 
@@ -1203,7 +1270,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const activeFile = manifestsResource.getActiveName();
     const read = readManifest(activeFile);
     if (!read) {
-      jsonResponse(res, 404, { error: 'Active manifest not found' });
+      respondUnreadableManifest(res, activeFile, 'Active manifest not found');
       return;
     }
     jsonResponse(res, 200, { ...read.manifest, _fileName: activeFile });
@@ -1227,7 +1294,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     if (req.method === 'GET') {
       const read = readManifest(fileName);
       if (!read) {
-        jsonResponse(res, 404, { error: 'Not found' });
+        respondUnreadableManifest(res, fileName, 'Not found');
         return;
       }
       jsonResponse(res, 200, { ...read.manifest, _fileName: fileName });
@@ -1262,6 +1329,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       }
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
+        // Deleting the manifest you are on is legal: the Default set always
+        // sits on disk to fall back to.
         if (manifestsResource.getActiveName() === fileName) {
           manifestsResource.setActiveName('default');
         }
@@ -1287,7 +1356,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const [fileName] = params;
     const read = readManifest(fileName);
     if (!read) {
-      jsonResponse(res, 404, { error: 'Manifest not found' });
+      respondUnreadableManifest(res, fileName, 'Manifest not found');
       return;
     }
     const { manifest } = read;
@@ -1368,7 +1437,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const [fileName] = params;
     const read = readManifest(fileName);
     if (!read) {
-      jsonResponse(res, 404, { error: 'Manifest not found' });
+      respondUnreadableManifest(res, fileName, 'Manifest not found');
       return;
     }
 

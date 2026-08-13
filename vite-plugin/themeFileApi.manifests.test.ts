@@ -60,12 +60,13 @@ async function request(method: string, url: string, body?: unknown) {
   return { status: res.statusCode, json: res.payload ? JSON.parse(res.payload) : null };
 }
 
-function boot() {
+function boot(componentsSrcDir?: string) {
   const plugin = themeFileApi({
     dataDir: tmp,
     themesDir,
     componentConfigsDir: configsDir,
     manifestsDir,
+    componentsSrcDir,
     tokensCssPath: path.join(REPO_ROOT, 'src/system/styles/tokens.css'),
     fontsCssPath: path.join(tmp, 'fonts.css'),
     tokensGeneratedCssPath: path.join(tmp, 'tokens.generated.css'),
@@ -149,22 +150,90 @@ describe('boot migration', () => {
     boot();
     expect(readJson(file)).toEqual(manifest);
   });
+});
 
-  it('never writes a local copy of the package default', () => {
+describe('the default manifest', () => {
+  const defaultPath = () => path.join(manifestsDir, 'default.json');
+
+  /** A component source dir the test owns, so removing a component is testable
+   *  (the repo's own sources are re-derived on every boot). */
+  function seedComponentSources(names: string[]): string {
+    const dir = path.join(tmp, 'components');
+    fs.mkdirSync(dir, { recursive: true });
+    for (const name of names) {
+      fs.writeFileSync(
+        path.join(dir, `${name}.svelte`),
+        `<div></div>\n<style>\n:global(:root) {\n  --${name.toLowerCase()}-radius: var(--radius-md);\n}\n</style>\n`,
+      );
+    }
+    return dir;
+  }
+
+  it('materialises the full default set on boot', () => {
     boot();
-    expect(fs.existsSync(path.join(manifestsDir, 'default.json'))).toBe(false);
+    const manifest = readJson(defaultPath());
+    expect(manifest.schemaVersion).toBe(2);
+    expect(manifest.name).toBe('Default');
+    expect(Object.keys(manifest.theme.editorConfigs).length).toBeGreaterThan(0);
+    // Every component, including the ones sitting on pure defaults.
+    expect(Object.keys(manifest.componentConfigs).sort()).toEqual(
+      fs.readdirSync(configsDir).sort(),
+    );
+    expect(manifest.componentConfigs.button.aliases['--button-primary-radius']).toBe('--radius-xl');
+  });
+
+  it('rewrites nothing on a second boot', () => {
+    boot();
+    const first = readJson(defaultPath());
+    const past = new Date(Date.now() - 60_000);
+    fs.utimesSync(defaultPath(), past, past);
+
+    boot();
+    expect(readJson(defaultPath())).toEqual(first);
+    expect(fs.statSync(defaultPath()).mtime.getTime()).toBe(past.getTime());
+  });
+
+  it('drops a component that no longer exists', () => {
+    const srcDir = seedComponentSources(['Widget', 'Gizmo']);
+    boot(srcDir);
+    expect(Object.keys(readJson(defaultPath()).componentConfigs)).toContain('gizmo');
+
+    fs.rmSync(path.join(srcDir, 'Gizmo.svelte'));
+    boot(srcDir);
+    const configs = Object.keys(readJson(defaultPath()).componentConfigs);
+    expect(configs).toContain('widget');
+    expect(configs).not.toContain('gizmo');
+    // The orphaned config dir survives; the manifest follows the sources.
+    expect(fs.existsSync(path.join(configsDir, 'gizmo'))).toBe(true);
+  });
+
+  it('regenerates after deletion outside the file manager', () => {
+    boot();
+    const before = readJson(defaultPath());
+    fs.rmSync(defaultPath());
+
+    boot();
+    const after = readJson(defaultPath());
+    expect(after.componentConfigs).toEqual(before.componentConfigs);
+    expect(after.theme).toEqual(before.theme);
+  });
+
+  it('DELETE stays 403', async () => {
+    boot();
+    const { status } = await request('DELETE', `${API}/manifests/default`);
+    expect(status).toBe(403);
+    expect(fs.existsSync(defaultPath())).toBe(true);
   });
 });
 
 describe('read doors', () => {
-  it('GET :name returns the encapsulated form of a package v1 manifest', async () => {
+  it('GET :name returns the materialised default set', async () => {
     boot();
     const { status, json } = await request('GET', `${API}/manifests/default`);
     expect(status).toBe(200);
     expect(json.schemaVersion).toBe(2);
     expect(Object.keys(json.theme.editorConfigs).length).toBeGreaterThan(0);
-    // Every component in the shipped default sits on its default config.
-    expect(json.componentConfigs).toEqual({});
+    expect(json.componentConfigs.button.aliases['--button-primary-radius']).toBe('--radius-xl');
   });
 
   it('GET active returns the encapsulated form', async () => {
@@ -191,6 +260,57 @@ describe('read doors', () => {
     expect(written.schemaVersion).toBe(2);
     expect(written.theme.name).toBe('Custom');
     expect(written.componentConfigs.button.aliases).toEqual(BUTTON_CONFIG.aliases);
+  });
+
+  it('leaves a corrupt manifest out of the list instead of failing the door', async () => {
+    seedPointerManifest();
+    boot();
+    fs.writeFileSync(path.join(manifestsDir, 'broken.json'), '{ not json');
+
+    const { status, json } = await request('GET', `${API}/manifests`);
+    expect(status).toBe(200);
+    const names = json.files.map((f: any) => f.fileName);
+    expect(names).toContain('look');
+    expect(names).not.toContain('broken');
+  });
+
+  it('GET on a corrupt manifest names the file rather than claiming it is missing', async () => {
+    boot();
+    fs.writeFileSync(path.join(manifestsDir, 'broken.json'), '{ not json');
+
+    const { status, json } = await request('GET', `${API}/manifests/broken`);
+    expect(status).toBe(422);
+    expect(json.error).toContain('broken');
+    expect((await request('GET', `${API}/manifests/absent`)).status).toBe(404);
+  });
+});
+
+describe('deletability', () => {
+  it('deleting the production theme heals the pointer and resyncs the CSS', async () => {
+    seedPointerManifest();
+    boot();
+    await request('PUT', `${API}/manifests/look/apply`);
+    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('look');
+
+    const { status } = await request('DELETE', `${API}/themes/look`);
+    expect(status).toBe(200);
+    expect(fs.existsSync(path.join(themesDir, 'look.json'))).toBe(false);
+    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('default');
+    expect(readJson(path.join(themesDir, '_active.json')).activeFile).toBe('default');
+    expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).toContain(
+      '/* Production theme: default */',
+    );
+  });
+
+  it('deleting the active manifest heals the pointer to default', async () => {
+    seedPointerManifest();
+    boot();
+    await request('PUT', `${API}/manifests/active`, { name: 'look' });
+
+    const { status } = await request('DELETE', `${API}/manifests/look`);
+    expect(status).toBe(200);
+    expect(fs.existsSync(path.join(manifestsDir, 'look.json'))).toBe(false);
+    expect(readJson(path.join(manifestsDir, '_active.json')).activeFile).toBe('default');
   });
 });
 

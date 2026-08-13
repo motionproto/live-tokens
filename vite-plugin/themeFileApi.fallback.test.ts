@@ -88,9 +88,17 @@ afterEach(() => {
 });
 
 describe('package-default fallback on a fresh consumer', () => {
-  it('writes no local default theme or manifest on boot (seed writers removed)', () => {
+  it('writes no local default theme on boot (seed writers removed)', () => {
     expect(fs.existsSync(path.join(themesDir, 'default.json'))).toBe(false);
-    expect(fs.existsSync(path.join(manifestsDir, 'default.json'))).toBe(false);
+  });
+
+  it('materialises the default manifest locally, carrying the package theme', () => {
+    const manifest = JSON.parse(
+      fs.readFileSync(path.join(manifestsDir, 'default.json'), 'utf-8'),
+    );
+    expect(manifest.schemaVersion).toBe(2);
+    expect(Object.keys(manifest.theme.editorConfigs).length).toBeGreaterThan(0);
+    expect(Object.keys(manifest.componentConfigs).length).toBeGreaterThan(0);
   });
 
   it('regenerates tokens.generated.css from the package default (palette not flattened)', () => {
