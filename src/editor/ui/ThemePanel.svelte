@@ -3,10 +3,14 @@
   // with the colors-and-type layer and the components as disclosed parts. The
   // file behind it is still a manifest, which is why the code keeps that name;
   // the word does not appear in the UI.
+  //
+  // It is also the only save and load surface. The layer is internal: its files
+  // still exist, and older ones are listed here as colors-and-type entries, but
+  // nothing saves or loads them anywhere else.
   import { onDestroy, onMount } from 'svelte';
   import { get } from 'svelte/store';
   import { slide } from 'svelte/transition';
-  import type { Manifest, ManifestMeta } from '../core/themes/themeTypes';
+  import type { Manifest, ManifestMeta, Theme, ThemeMeta } from '../core/themes/themeTypes';
   import {
     listManifests,
     deleteManifest,
@@ -19,18 +23,41 @@
     importManifest,
   } from '../core/manifests/manifestService';
   import { countComponentsOffLook } from '../core/manifests/lookSummary';
-  import { previewManifest, revertPreview } from '../core/preview/lookPreview';
-  import { persistTheme, hydrateTheme } from '../core/themes/themeService';
+  import { previewManifest, previewTheme, revertPreview } from '../core/preview/lookPreview';
+  import {
+    deleteTheme,
+    getProductionInfo,
+    hydrateTheme,
+    listThemes,
+    loadTheme,
+    persistTheme,
+    saveTheme,
+    setActiveFile,
+  } from '../core/themes/themeService';
+  import {
+    buildLoadRows,
+    colorsOnlyIsForced,
+    isColorsOnly,
+    loadRowId,
+    type LoadRow,
+  } from '../core/themes/loadRows';
   import { listComponents } from '../core/components/componentConfigService';
   import { dirty, componentDirty, editorState } from '../core/store/editorStore';
+  import { activeFileName as layerFileName } from '../core/store/editorConfigStore';
   import { editorView } from '../core/store/editorViewStore';
-  import { productionRevision, activeManifest } from '../core/productionPulse';
+  import {
+    componentActiveRevision,
+    productionRevision,
+    activeManifest,
+    bumpProductionRevision,
+    themeProductionInfo,
+  } from '../core/productionPulse';
   import { flashStatus } from '../core/flashStatus';
   import UIInfoPopover from './UIInfoPopover.svelte';
   import UIPillButton from './UIPillButton.svelte';
   import FileLoadList from './FileLoadList.svelte';
   import FilePill from './FilePill.svelte';
-  import ThemeFileManager from './ThemeFileManager.svelte';
+  import ColorsTypePart from './ColorsTypePart.svelte';
   import SaveAsDialog from '../component-editor/scaffolding/SaveAsDialog.svelte';
 
   interface Props {
@@ -43,6 +70,8 @@
   let canOpenComponents = $derived(showComponentsLink && $editorView !== 'components');
 
   let files: ManifestMeta[] = $state([]);
+  let layerFiles: ThemeMeta[] = $state([]);
+  let rows = $derived(buildLoadRows(files, layerFiles));
   let showFileList = $state(false);
   let saveAsDialog = $state(false);
   let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = $state('idle');
@@ -50,6 +79,7 @@
   let activeFileName = $state('default');
   let currentDisplayName = $state('Default');
   let activeIsProtected = $derived(activeFileName === 'default');
+  let activeRowId = $derived(loadRowId('look', activeFileName));
 
   type SaveState = 'idle' | 'saving' | 'saved' | 'error';
   const setSaveStatus = (s: SaveState) => (saveStatus = s);
@@ -66,7 +96,12 @@
 
   async function refreshFiles() {
     try {
-      files = await listManifests();
+      [files, layerFiles] = await Promise.all([listManifests(), listThemes()]);
+      const activeLayer = layerFiles.find((f) => f.isActive);
+      if (activeLayer) {
+        layerFileName.set(activeLayer.fileName);
+        layerDisplayName = activeLayer.name;
+      }
     } catch {
       // silent — empty list
     }
@@ -84,6 +119,14 @@
       }
     } catch {
       // silent
+    }
+  }
+
+  async function refreshProduction() {
+    try {
+      themeProductionInfo.set(await getProductionInfo());
+    } catch {
+      // silent — leave the cached value in place
     }
   }
 
@@ -109,12 +152,14 @@
     }
   }
 
-  // Two signals move this count and nothing else reports them: the look itself
-  // changing, and a component settling (saving a component sets a new active
-  // file for it without pulsing production).
+  // Three signals move this count: the look itself changing, a component
+  // settling (saving one sets a new active file for it without pulsing
+  // production), and a component editor pointing at another file with no edit
+  // in play, which only the component pulse reports.
   $effect(() => {
     void lookConfigs;
     void dirtyComponentCount;
+    void $componentActiveRevision;
     refreshComponentSummary();
   });
 
@@ -125,12 +170,13 @@
   onMount(async () => {
     await refreshFiles();
     await refreshActive();
+    await refreshProduction();
   });
 
   // Re-read the active look whenever a part's Adopt fires — the server patches
-  // our active file in those moments, so the identity and the component summary
-  // shown here need to track. Skip the first tick (refreshActive ran already on
-  // mount).
+  // our active file in those moments, so the identity, the component summary
+  // and the production state shown here need to track. Skip the first tick
+  // (mount ran them already).
   let pulseInitialised = false;
   $effect(() => {
     void $productionRevision;
@@ -139,16 +185,17 @@
       return;
     }
     refreshActive();
+    refreshProduction();
+    refreshFiles();
   });
 
   // A theme captures the saved files, not the editor's live state. Warn before
-  // capturing if there are unsaved edits, since those won't make it in until
-  // they're saved.
+  // capturing if there are unsaved edits, since those won't make it in.
   function confirmUnsavedExclusion(): boolean {
     if (!editorDirty) return true;
     return window.confirm(
-      'You have unsaved changes. A theme captures saved files, so these edits will not be '
-        + 'included. Save them first to capture them. Save the theme anyway?',
+      'You have unsaved changes. A theme captures what is saved, so these edits will not be '
+        + 'included. Adopt them first to include them. Save the theme anyway?',
     );
   }
 
@@ -185,25 +232,36 @@
 
   // ── Colors & Type part ────────────────────────────────────────────────
   //
-  // The layer manager is a part of this panel, so the panel owns its save and
-  // load orchestration. Both hosts (editor shell, components page) therefore
-  // get the same working part with no wiring of their own.
+  // The layer is a status surface with one action: Adopt. The panel owns its
+  // data so the summary reads true while the part is collapsed, and its two
+  // file operations so both hosts get the same working part with no wiring.
 
   let layerOpen = $state(false);
-  let layerSaveStatus: SaveState = $state('idle');
-  const setLayerSaveStatus = (s: SaveState) => (layerSaveStatus = s);
+  let layerDisplayName = $state('Default Theme');
+  // Unknown until production answers; treating that as out of sync would open
+  // the part on every mount.
+  let layerOutOfSync = $derived(
+    $themeProductionInfo !== null && $themeProductionInfo.fileName !== $layerFileName,
+  );
 
-  async function handleLayerSave(detail: { fileName: string; displayName: string }) {
-    layerSaveStatus = 'saving';
-    try {
-      await persistTheme(get(editorState), detail.fileName, detail.displayName);
-      flashStatus(setLayerSaveStatus, 'saved');
-    } catch {
-      flashStatus(setLayerSaveStatus, 'error', { durationMs: 3000 });
+  // Out of sync is the one state that needs the user, so the part opens itself
+  // the first time it appears. Manual collapse sticks: reopening on every
+  // render would fight the user.
+  let autoOpened = false;
+  $effect(() => {
+    if (layerOutOfSync && !autoOpened) {
+      autoOpened = true;
+      layerOpen = true;
     }
+  });
+
+  async function saveLayer(detail: { fileName: string; displayName: string }) {
+    await persistTheme(get(editorState), detail.fileName, detail.displayName);
+    layerDisplayName = detail.displayName;
+    await refreshFiles();
   }
 
-  async function handleLayerLoad(detail: { fileName: string }) {
+  async function loadLayer(detail: { fileName: string }) {
     try {
       await hydrateTheme(detail.fileName);
     } catch {
@@ -213,39 +271,79 @@
 
   // ── Preview ───────────────────────────────────────────────────────────
   //
-  // Selecting a row paints that look on the page and leaves the window open;
+  // Selecting a row paints that theme on the page and leaves the window open;
   // nothing is written until Save. Cancelling — or closing the window by any
   // route — repaints the user's live state, unsaved edits included.
 
-  let previewFile: ManifestMeta | null = $state(null);
+  let previewRow: LoadRow | null = $state(null);
+  let previewLook: Manifest | null = $state(null);
+  let previewLayer: Theme | null = $state(null);
+  let colorsOnly = $state(false);
+  let effectiveColorsOnly = $derived(isColorsOnly(previewRow, colorsOnly));
+  let colorsOnlyLocked = $derived(colorsOnlyIsForced(previewRow));
 
   function cancelPreview() {
     revertPreview();
-    previewFile = null;
+    previewRow = null;
+    previewLook = null;
+    previewLayer = null;
   }
 
-  async function handleSelect(file: ManifestMeta) {
-    if (file.fileName === previewFile?.fileName) return;
-    if (file.fileName === activeFileName) {
+  /** Paint whatever is selected, through the engine the mode calls for. A
+   *  theme's colors and type are its manifest's embedded theme, so one look
+   *  previews either way. */
+  async function repaint(): Promise<void> {
+    if (previewLayer) {
+      previewTheme(previewLayer);
+      return;
+    }
+    if (!previewLook) return;
+    if (effectiveColorsOnly) previewTheme(previewLook.theme);
+    else await previewManifest(previewLook);
+  }
+
+  async function handleSelect(row: LoadRow) {
+    if (row.fileName === previewRow?.fileName) return;
+    // The active look in whole-look mode is what the page already shows. In
+    // colors-only mode it is a real operation: it puts the theme's own colors
+    // back over whatever the user has edited.
+    if (row.kind === 'look' && row.slug === activeFileName && !isColorsOnly(row, colorsOnly)) {
       cancelPreview();
       return;
     }
     try {
-      const manifest = await loadManifest(file.fileName);
+      const look = row.kind === 'look' ? await loadManifest(row.slug) : null;
+      const layer = row.kind === 'layer' ? await loadTheme(row.slug) : null;
       // The window may have closed during the fetch; painting then would leave
       // a preview on screen with no Save or Cancel in sight.
       if (!showFileList) return;
-      await previewManifest(manifest);
-      previewFile = file;
+      previewRow = row;
+      previewLook = look;
+      previewLayer = layer;
+      await repaint();
     } catch (err) {
       window.alert(`Failed to preview theme: ${(err as Error).message}`);
       cancelPreview();
     }
   }
 
+  async function handleToggleColorsOnly(next: boolean) {
+    colorsOnly = next;
+    if (previewRow) await repaint();
+  }
+
   async function handleSavePreview() {
-    const file = previewFile;
-    if (!file) return;
+    if (!previewRow) return;
+    if (effectiveColorsOnly) {
+      await commitColorsOnly();
+      return;
+    }
+    await commitWholeLook();
+  }
+
+  async function commitWholeLook() {
+    const row = previewRow;
+    if (!row) return;
     if (editorDirty) {
       const ok = window.confirm(
         'Loading a theme will reload the editor and discard unsaved changes. Continue?',
@@ -255,10 +353,10 @@
     // The window stays open until the page reloads: closing it would revert the
     // preview and flash the outgoing look while Apply is in flight.
     try {
-      const result = await applyManifest(file.fileName);
+      const result = await applyManifest(row.slug);
       if (result.skippedComponents.length > 0) {
         window.alert(
-          `Loaded "${file.name}". These components are not installed here, so their `
+          `Loaded "${row.name}". These components are not installed here, so their `
             + `saved settings were skipped:\n\n${result.skippedComponents.join(', ')}`,
         );
       }
@@ -271,6 +369,43 @@
     }
   }
 
+  /**
+   * Colors and type alone: the components stay as they are, so this is the
+   * layer load, not Apply. A theme's colors and type live inside its manifest,
+   * so they are written out as a working file under the theme's own name first
+   * — the same materialisation Apply does for the theme half — and then made
+   * active. The Default theme needs no write: its layer is the package file
+   * already sitting under that name.
+   */
+  async function commitColorsOnly() {
+    const row = previewRow;
+    // Read the payload before the revert clears it.
+    const theme = previewLook?.theme ?? null;
+    if (!row) return;
+    if ($dirty) {
+      const ok = window.confirm(
+        'Loading colors and type will discard unsaved changes. Continue?',
+      );
+      if (!ok) return;
+    }
+    // Hand the page back to the store before loading. The renderer diffs
+    // against its own last-applied set, which never saw the preview's direct
+    // writes; starting from the live look makes the load land exactly as it
+    // does with no preview in play.
+    cancelPreview();
+    showFileList = false;
+    try {
+      if (theme && row.slug !== 'default') await saveTheme(row.slug, theme);
+      await setActiveFile(row.slug);
+      layerFileName.set(row.slug);
+      layerDisplayName = theme?.name ?? row.name;
+      await hydrateTheme(row.slug);
+      await refreshFiles();
+    } catch (err) {
+      window.alert(`Failed to load colors and type: ${(err as Error).message}`);
+    }
+  }
+
   // Closing the window is cancelling: the X, the backdrop and the Cancel button
   // all just flip `show`, so watching it covers every exit.
   $effect(() => {
@@ -279,9 +414,9 @@
 
   onDestroy(cancelPreview);
 
-  async function handleExport(file: ManifestMeta) {
+  async function handleExport(row: LoadRow) {
     try {
-      await exportManifest(file.fileName);
+      await exportManifest(row.slug);
     } catch (err) {
       window.alert(`Failed to export: ${(err as Error).message}`);
     }
@@ -333,25 +468,56 @@
     }
   }
 
-  async function handleDelete(file: ManifestMeta) {
-    if (file.isProtected) return;
+  async function handleDelete(row: LoadRow) {
+    if (row.isProtected) return;
+    if (row.kind === 'layer') return deleteLayerFile(row);
     // Deleting the active theme is legal, and the working files on disk are
     // untouched either way. Where active lands depends on something the client
     // can't see: deleting a local copy that shadows a shipped theme restores the
     // shipped one and keeps the pointer on it, while deleting a local-only theme
     // sends active back to Default.
-    const wasActive = file.fileName === activeFileName;
+    const wasActive = row.slug === activeFileName;
     const ok = window.confirm(
       wasActive
-        ? `Delete theme "${file.name}"? Active goes to the version shipped with the package if there is one, otherwise Default. Your working files stay as they are.`
-        : `Delete theme "${file.name}"?`,
+        ? `Delete theme "${row.name}"? Active goes to the version shipped with the package if there is one, otherwise Default. Your working files stay as they are.`
+        : `Delete theme "${row.name}"?`,
     );
     if (!ok) return;
     try {
-      await deleteManifest(file.fileName);
-      if (file.fileName === previewFile?.fileName) cancelPreview();
+      await deleteManifest(row.slug);
+      if (row.fileName === previewRow?.fileName) cancelPreview();
       await refreshFiles();
       if (wasActive) await refreshActive();
+    } catch (err) {
+      window.alert(`Failed to delete: ${(err as Error).message}`);
+    }
+  }
+
+  /** Colors and type files are working files: the themes that carry them keep
+   *  their own copy, so deleting one breaks nothing. */
+  async function deleteLayerFile(row: LoadRow) {
+    const wasActive = row.slug === $layerFileName;
+    const ok = window.confirm(
+      wasActive
+        ? `Delete the colors and type file "${row.name}"? The editor moves to the version shipped with the package if there is one, otherwise the default. Your themes keep their own copies.`
+        : `Delete the colors and type file "${row.name}"? Your themes keep their own copies.`,
+    );
+    if (!ok) return;
+    try {
+      if (wasActive || row.fileName === previewRow?.fileName) cancelPreview();
+      await deleteTheme(row.slug);
+      await refreshFiles();
+      // Deleting the production file is legal now that themes carry their own
+      // copy; the server heals the pointer and resyncs the CSS, so re-read
+      // production rather than trusting the cached value.
+      await refreshProduction();
+      bumpProductionRevision();
+      if (wasActive) {
+        // Not always the default: deleting a local copy that shadows a shipped
+        // file restores it and the pointer keeps naming it. refreshFiles()
+        // already read back whichever name survived.
+        await loadLayer({ fileName: $layerFileName });
+      }
     } catch (err) {
       window.alert(`Failed to delete: ${(err as Error).message}`);
     }
@@ -360,6 +526,12 @@
   function toggleFileList() {
     showFileList = !showFileList;
     if (showFileList) refreshFiles();
+  }
+
+  function rowBadge(row: LoadRow) {
+    return row.kind === 'layer'
+      ? { label: 'colors & type', title: 'Holds colors and type only, no shapes' }
+      : null;
   }
 </script>
 
@@ -371,13 +543,16 @@
         A <strong>theme</strong> is a whole look in one file: the colors and type plus a setting for every component you changed.
       </p>
       <p>
-        It holds its own copy of that data, so deleting a colors and type file or a component file never breaks a saved theme.
+        It holds its own copy of that data, so deleting a working file never breaks a saved theme.
       </p>
       <p>
         <strong>Load</strong> opens the list. Picking a theme shows it on the page as a preview, so you can try each look with nothing written to disk. Pick another to compare, or <strong>Cancel</strong> to go back to where you were.
       </p>
       <p>
         <strong>Save</strong> keeps the previewed theme: it writes the look back out to working files named after the theme. A theme owns its name: any working file already using it is overwritten. Components the theme does not carry go back to their defaults.
+      </p>
+      <p>
+        <strong>Colors and type only</strong> in that window takes the palette and the fonts and leaves your shapes and component settings alone.
       </p>
       <p>
         The <strong>active</strong> theme is what the editor reads and what production runs. <strong>Adopt</strong> in a part below updates it in place.
@@ -470,8 +645,10 @@
           <span class="part-summary-sep">·</span>
           {#if $dirty}
             <span class="part-summary-dirty">unsaved</span>
+          {:else if layerOutOfSync}
+            <span class="part-summary-dirty">not in production</span>
           {:else}
-            <span>saved</span>
+            <span>live</span>
           {/if}
         </span>
       </button>
@@ -480,19 +657,19 @@
           <strong>Colors &amp; type</strong> is the part of the theme your design tokens live in. Components read those tokens for their own appearance.
         </p>
         <p>
-          Saving here writes a colors and type file. <strong>Adopt</strong> puts it into production and updates the theme above to match.
+          <strong>Adopt</strong> puts what you see into production and updates the theme above to match. It is the ship step.
         </p>
         <p>
-          <strong>Load</strong> shows a file on the page as a preview, components left as they are. The example looks are not listed here: load one from the theme above to get its colors, type and shapes together.
+          To load colors and type without touching your shapes, open <strong>Load</strong> above and turn on <strong>Colors and type only</strong>.
         </p>
       </UIInfoPopover>
     </div>
     {#if layerOpen}
       <div id="look-part-layer" class="part-body" transition:slide|local={{ duration: slideDur }}>
-        <ThemeFileManager
-          saveStatus={layerSaveStatus}
-          onsave={handleLayerSave}
-          onload={handleLayerLoad}
+        <ColorsTypePart
+          displayName={layerDisplayName}
+          onsave={saveLayer}
+          onload={loadLayer}
         />
       </div>
     {/if}
@@ -534,18 +711,37 @@
 <FileLoadList
   bind:show={showFileList}
   title="Load Theme"
-  {files}
-  {activeFileName}
-  selectedFileName={previewFile?.fileName ?? null}
+  files={rows}
+  activeFileName={activeRowId}
+  selectedFileName={previewRow?.fileName ?? null}
   selectedBadge={{ label: 'Preview', title: 'Shown on the page now. Save to keep it.' }}
-  cancelLabel={previewFile ? 'Cancel' : 'Close'}
-  confirmLabel={previewFile ? 'Save' : ''}
+  {rowBadge}
+  cancelLabel={previewRow ? 'Cancel' : 'Close'}
+  confirmLabel={previewRow ? 'Save' : ''}
   onconfirm={handleSavePreview}
   onload={handleSelect}
   ondelete={handleDelete}
-  onexport={handleExport}
-  exportTitle={(f) => `Export "${f.name}" as a file you can share`}
-/>
+  onexport={(row) => handleExport(row)}
+  canExport={(row) => row.kind === 'look'}
+  exportTitle={(row) => `Export "${row.name}" as a file you can share`}
+>
+  {#snippet options()}
+    <label
+      class="colors-only"
+      class:locked={colorsOnlyLocked}
+      title={colorsOnlyLocked ? 'This file holds colors and type, so that is all it can load.' : ''}
+    >
+      <input
+        class="ui-form-checkbox"
+        type="checkbox"
+        checked={effectiveColorsOnly}
+        disabled={colorsOnlyLocked}
+        onchange={(e) => handleToggleColorsOnly(e.currentTarget.checked)}
+      />
+      <span>Colors and type only. Keep my shapes.</span>
+    </label>
+  {/snippet}
+</FileLoadList>
 
 <SaveAsDialog
   bind:show={saveAsDialog}
@@ -757,5 +953,25 @@
 
   .part-body {
     padding: var(--ui-space-6) 0 var(--ui-space-8);
+  }
+
+  /* Rendered inside the Load window, so it carries this panel's scope. */
+  .colors-only {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .colors-only:hover {
+    color: var(--ui-text-primary);
+  }
+
+  .colors-only.locked {
+    color: var(--ui-text-muted);
+    cursor: default;
   }
 </style>

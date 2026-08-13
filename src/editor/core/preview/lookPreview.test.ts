@@ -184,6 +184,33 @@ describe('themeLook', () => {
   });
 });
 
+// What the Load window's "colors and type only" toggle does to a look row: the
+// same look, through the other engine.
+describe('a look previewed colors and type only', () => {
+  beforeEach(() => {
+    __resetForTests();
+    __resetPreviewForTests();
+    loadFromFile(theme({ '--surface-canvas': '#111111' }));
+    seedComponentsFromApi({
+      card: { activeFile: 'my-card', aliases: { '--card-default-radius': '--radius-md' } },
+    });
+  });
+
+  it('takes the theme half and leaves the components as the user has them', () => {
+    const { vars } = themeLook(yuletide.theme);
+    expect(vars['--surface-canvas']).toBe('#0b3d2e');
+    expect(vars['--card-default-radius']).toBe('var(--radius-md)');
+  });
+
+  it('differs from the whole look on the component half alone', () => {
+    const whole = manifestLook(yuletide, defaults).vars;
+    const colors = themeLook(yuletide.theme).vars;
+    expect(whole['--surface-canvas']).toBe(colors['--surface-canvas']);
+    expect(whole['--font-display']).toBe(colors['--font-display']);
+    expect(whole['--card-default-radius']).toBe('var(--radius-3xl)');
+  });
+});
+
 describe('liveLook', () => {
   beforeEach(() => {
     __resetForTests();

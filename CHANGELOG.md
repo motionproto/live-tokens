@@ -44,6 +44,22 @@
 
 ### Changed
 
+- **One Theme panel, one save and load surface.** The editor sidebar holds a
+  single Theme panel: Save, Save As, Load with preview, Import and Export at
+  the root, and Colors & Type and Components as disclosed parts. Colors and
+  type is a status surface now, not a second file manager: it shows the
+  active palette name and font pairing, whether production is running them,
+  and **Adopt**. Its file list, Save and Save As are gone, and the part opens
+  itself when production has drifted.
+
+- **Load can take colors and type alone.** "Colors and type only. Keep my
+  shapes." in the Load window previews and applies just the palette and the
+  fonts, leaving every component setting as it is. Older colors and type
+  files are listed there too, marked, and picking one is always that
+  narrower load. `GET /themes` marks each file `isPackage`, so a local copy
+  of a shipped preset stays reachable while the presets themselves are
+  offered once, as whole themes.
+
 - **The Default manifest is written and regenerated at boot.** It is a full
   set derived from the package default theme and each component's
   `:global(:root)` defaults, rewritten whenever the derived content drifts

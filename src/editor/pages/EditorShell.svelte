@@ -6,7 +6,7 @@
   import ColorsTab from '../ui/colors/ColorsTab.svelte';
   import EditorViewSwitcher from '../ui/EditorViewSwitcher.svelte';
   import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
-  import ManifestFileManager from '../ui/ManifestFileManager.svelte';
+  import ThemePanel from '../ui/ThemePanel.svelte';
   import { scrollSectionIntoView } from '../ui/scrollSection';
   import { editorView, sidebarCondensed, selectedComponent } from '../core/store/editorViewStore';
   import { componentDirty } from '../core/store/editorStore';
@@ -126,7 +126,7 @@
       </div>
       {#if !condensed}
         <div class="sidebar-footer">
-          <ManifestFileManager />
+          <ThemePanel />
         </div>
       {/if}
     {:else if $editorView === 'colors'}
@@ -146,7 +146,7 @@
       </div>
       {#if !condensed}
         <div class="sidebar-footer">
-          <ManifestFileManager />
+          <ThemePanel />
         </div>
       {/if}
     {:else}
@@ -191,7 +191,7 @@
       </div>
       {#if !condensed}
         <div class="sidebar-footer">
-          <ManifestFileManager />
+          <ThemePanel />
         </div>
       {/if}
     {/if}

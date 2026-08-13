@@ -54,6 +54,39 @@ describe('existingPath', () => {
   });
 });
 
+describe('isPackageFile', () => {
+  it('is true for a package file with no local copy', () => {
+    const r = versionedFileResourceServer({ dir: localDir, packageDir });
+    write(packageDir, 'ocean', {});
+    expect(r.isPackageFile('ocean')).toBe(true);
+  });
+
+  it('is false once a local copy shadows it', () => {
+    const r = versionedFileResourceServer({ dir: localDir, packageDir });
+    write(packageDir, 'ocean', {});
+    write(localDir, 'ocean', {});
+    expect(r.isPackageFile('ocean')).toBe(false);
+  });
+
+  it('is false for a local-only file', () => {
+    const r = versionedFileResourceServer({ dir: localDir, packageDir });
+    write(localDir, 'mine', {});
+    expect(r.isPackageFile('mine')).toBe(false);
+  });
+
+  it('is true in the library repo, where the local dir IS the package dir', () => {
+    const r = versionedFileResourceServer({ dir: localDir, packageDir: localDir });
+    write(localDir, 'ocean', {});
+    expect(r.isPackageFile('ocean')).toBe(true);
+  });
+
+  it('is false with no package dir at all', () => {
+    const r = versionedFileResourceServer({ dir: localDir });
+    write(localDir, 'mine', {});
+    expect(r.isPackageFile('mine')).toBe(false);
+  });
+});
+
 describe('readJson', () => {
   it('reads and parses the local file', () => {
     const r = versionedFileResourceServer({ dir: localDir, packageDir });

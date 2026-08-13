@@ -118,6 +118,11 @@ describe('package-default fallback on a fresh consumer', () => {
     expect(json.files.map((f: any) => f.fileName)).toContain('default');
   });
 
+  it('GET /themes marks the package default isPackage', async () => {
+    const { json } = await request('GET', `${API}/themes`);
+    expect(json.files.find((f: any) => f.fileName === 'default').isPackage).toBe(true);
+  });
+
   it('GET /themes/active resolves to the package default', async () => {
     const { status, json } = await request('GET', `${API}/themes/active`);
     expect(status).toBe(200);
@@ -189,6 +194,24 @@ describe('shipped preset themes on a fresh consumer', () => {
     const { status, json } = await request('GET', `${API}/themes/yuletide`);
     expect(status).toBe(200);
     expect(Object.keys(json.editorConfigs).length).toBeGreaterThan(0);
+  });
+
+  it('marks the presets isPackage until a local copy shadows them', async () => {
+    const before = await request('GET', `${API}/themes`);
+    expect(before.json.files.find((f: any) => f.fileName === 'ocean').isPackage).toBe(true);
+
+    await request('PUT', `${API}/themes/ocean`, { name: 'Ocean Mine', cssVariables: {} });
+
+    const after = await request('GET', `${API}/themes`);
+    const row = after.json.files.find((f: any) => f.fileName === 'ocean');
+    expect(row.isPackage).toBe(false);
+    expect(row.name).toBe('Ocean Mine');
+  });
+
+  it('marks a local-only theme isPackage false', async () => {
+    await request('PUT', `${API}/themes/mine`, { name: 'Mine', cssVariables: {} });
+    const { json } = await request('GET', `${API}/themes`);
+    expect(json.files.find((f: any) => f.fileName === 'mine').isPackage).toBe(false);
   });
 
   it('DELETE /themes/yuletide with no local copy → 403 PACKAGE_THEME', async () => {

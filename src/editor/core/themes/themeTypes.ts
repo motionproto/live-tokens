@@ -124,6 +124,9 @@ export interface ThemeMeta {
   fileName: string;
   updatedAt: string;
   isActive: boolean;
+  /** The file is served from the installed package and no local copy shadows
+   *  it: one of the shipped presets or the default, not a file the user made. */
+  isPackage: boolean;
 }
 
 /** On-disk shape of a single alias entry. Plain strings carry the bulk of

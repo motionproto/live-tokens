@@ -65,10 +65,10 @@ live.
 ## Saving
 
 The editor saves to your browser continuously, so work survives a reload
-mid-edit. **Save** is a separate step: it writes a named theme file under
-`src/live-tokens/data/themes/`.
+mid-edit. Writing a file is a separate step: the **Theme** panel at the foot of
+the sidebar has **Save**, **Save As**, and **Load**, and each theme is one JSON
+file under `src/live-tokens/data/manifests/`.
 
-The header gives you undo/redo (`Cmd/Ctrl+Z`, `Cmd/Ctrl+Shift+Z`) and a file
-menu for New, Save, Save as, Switch, and Delete. You can keep many themes side
-by side; one is active at a time. See [Themes](themes-workflow.md) for the full
-lifecycle.
+The header gives you undo/redo (`Cmd/Ctrl+Z`, `Cmd/Ctrl+Shift+Z`). You can keep
+many themes side by side; one is active at a time. See
+[Themes](themes-workflow.md) for the full lifecycle.

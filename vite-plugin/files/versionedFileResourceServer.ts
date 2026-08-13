@@ -45,6 +45,12 @@ export interface VersionedFileResourceServer {
    * error never triggers the fallback, so a consumer's broken custom file is
    * not silently masked by the package default. */
   existingPath(name: string): string | null;
+  /** `true` when `{name}.json` resolves from the read-only package dir and no
+   * distinct local copy shadows it: deleting it is refused, and it is a file
+   * the package owns rather than one the user made. In the library repo the
+   * local and package dirs are the same directory, so the single file there is
+   * the package's. */
+  isPackageFile(name: string): boolean;
   /** Read and `JSON.parse` `{name}.json` resolved via `existingPath`. Returns
    * `null` only when neither local nor package has it. Throws (does NOT fall
    * back) on a corrupt resolved file — the path is already pinned to an
@@ -111,6 +117,15 @@ export function versionedFileResourceServer(
     return null;
   }
 
+  function isPackageFile(name: string): boolean {
+    if (!resolvedPackageDir) return false;
+    const pkg = path.join(resolvedPackageDir, `${name}.json`);
+    if (!fs.existsSync(pkg)) return false;
+    const local = path.resolve(filePath(name));
+    if (local === pkg) return true;
+    return !fs.existsSync(local);
+  }
+
   function readJson(name: string): unknown | null {
     const resolved = existingPath(name);
     if (!resolved) return null;
@@ -169,6 +184,7 @@ export function versionedFileResourceServer(
     ensureMeta,
     filePath,
     existingPath,
+    isPackageFile,
     readJson,
     listNames,
     getActiveName,

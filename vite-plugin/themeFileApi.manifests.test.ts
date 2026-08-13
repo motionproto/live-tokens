@@ -302,6 +302,17 @@ describe('deletability', () => {
     );
   });
 
+  it('refuses the protected default in the vocabulary the UI speaks', async () => {
+    boot();
+    const del = await request('DELETE', `${API}/manifests/default`);
+    expect(del.status).toBe(403);
+    expect(del.json.error).toBe('Cannot delete the default theme');
+
+    const put = await request('PUT', `${API}/manifests/default`, { name: 'Hacked' });
+    expect(put.status).toBe(403);
+    expect(put.json.error).toBe('Cannot overwrite the default theme');
+  });
+
   it('deleting the active manifest heals the pointer to default', async () => {
     seedPointerManifest();
     boot();

@@ -22,7 +22,7 @@
     loadComponentActive,
     markComponentSaved,
   } from '../../core/store/editorStore';
-  import { bumpProductionRevision } from '../../core/productionPulse';
+  import { bumpComponentActiveRevision, bumpProductionRevision } from '../../core/productionPulse';
   import { listManifests, saveAsManifest } from '../../core/manifests/manifestService';
   import type { ManifestMeta } from '../../core/themes/themeTypes';
   import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../core/themes/migrations';
@@ -154,6 +154,7 @@
     activeFileName = fileName;
     currentDisplayName = displayName;
     markComponentSaved(component);
+    bumpComponentActiveRevision();
   }
 
   async function handleSave() {
@@ -202,6 +203,7 @@
       loadComponentActive(component, file.fileName, cfg.aliases, cfg.config, cfg.schemaVersion ?? 0);
       activeFileName = file.fileName;
       currentDisplayName = file.name;
+      bumpComponentActiveRevision();
     } catch {
       // intentional: see comment above
     }
@@ -226,6 +228,7 @@
         loadComponentActive(component, 'default', defaultCfg.aliases, defaultCfg.config, defaultCfg.schemaVersion ?? 0);
         activeFileName = 'default';
         currentDisplayName = 'Default';
+        bumpComponentActiveRevision();
       }
     } catch {
       // intentional: see comment above

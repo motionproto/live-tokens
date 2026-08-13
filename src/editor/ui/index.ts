@@ -26,5 +26,7 @@ export { default as BezierCurveEditor } from './BezierCurveEditor.svelte';
 export { default as FontStackEditor } from './FontStackEditor.svelte';
 export { default as ProjectFontsSection } from './ProjectFontsSection.svelte';
 
-// Theme persistence UI
-export { default as ThemeFileManager } from './ThemeFileManager.svelte';
+// Theme persistence UI. `ThemeFileManager` was the layer manager; the panel is
+// what carries that role now, and the alias keeps the public import working.
+export { default as ThemePanel } from './ThemePanel.svelte';
+export { default as ThemeFileManager } from './ThemePanel.svelte';

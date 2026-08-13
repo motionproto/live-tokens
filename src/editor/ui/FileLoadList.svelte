@@ -25,6 +25,9 @@
     selectedFileName?: string | null;
     /** Badge on the selected row, naming what picking it did. Null hides it. */
     selectedBadge?: { label: string; title: string } | null;
+    /** Per-row badge naming what kind of file the row is, for lists that mix
+     *  kinds. Null leaves the row unmarked. */
+    rowBadge?: (file: F) => { label: string; title: string } | null;
     /** Dialog footer: label for the dismiss button, and an optional commit
      *  button. Both pass straight through to `UIDialog`. */
     cancelLabel?: string;
@@ -35,8 +38,12 @@
     /** Optional per-row export action — e.g. download a manifest bundle.
      *  When omitted, no export button renders. */
     onexport?: (file: F) => void;
+    /** Whether the export button should appear for a row. Default: every row. */
+    canExport?: (file: F) => boolean;
     /** Tooltip for the per-row export button. Falls back to "Export {name}". */
     exportTitle?: (file: F) => string;
+    /** Controls under the list, above the dialog footer. */
+    options?: import('svelte').Snippet;
   }
 
   let {
@@ -53,13 +60,16 @@
     width = '420px',
     selectedFileName = null,
     selectedBadge = null,
+    rowBadge,
     cancelLabel = 'Close',
     confirmLabel = '',
     onconfirm,
     onload,
     ondelete,
     onexport,
+    canExport,
     exportTitle,
+    options,
   }: Props = $props();
 
   type SortKey = 'name' | 'updatedAt';
@@ -116,6 +126,11 @@
     if (canDelete) return canDelete(file);
     return !isProtected(file);
   }
+
+  function shouldShowExport(file: F): boolean {
+    if (!onexport) return false;
+    return canExport ? canExport(file) : true;
+  }
 </script>
 
 <UIDialog bind:show {title} {cancelLabel} {confirmLabel} {onconfirm} {width}>
@@ -168,6 +183,12 @@
         {#if protectedRow && systemBadge}
           <span class="system-badge" title={systemBadge.title}>{systemBadge.label}</span>
         {/if}
+        {#if rowBadge}
+          {@const badge = rowBadge(file)}
+          {#if badge}
+            <span class="system-badge" title={badge.title}>{badge.label}</span>
+          {/if}
+        {/if}
         {#if showUpdatedAt}
           <span class="updated-at" title={file.updatedAt}>{formatUpdatedAt(file.updatedAt)}</span>
         {/if}
@@ -176,7 +197,7 @@
         {:else if file.fileName === activeFileName}
           <span class="active-badge">Active</span>
         {/if}
-        {#if onexport}
+        {#if shouldShowExport(file)}
           <button
             class="file-action-btn"
             onclick={stopPropagation(() => onexport!(file))}
@@ -200,6 +221,9 @@
       <div class="load-item empty">{emptyMessage}</div>
     {/if}
   </div>
+  {#if options}
+    <div class="load-options">{@render options()}</div>
+  {/if}
 </UIDialog>
 
 <style>
@@ -208,6 +232,11 @@
     flex-direction: column;
     max-height: 60vh;
     overflow-y: auto;
+  }
+
+  .load-options {
+    padding: var(--ui-space-10) var(--ui-space-4) var(--ui-space-2);
+    border-top: 1px solid var(--ui-border-low);
   }
 
   .load-header {

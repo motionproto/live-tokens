@@ -3,7 +3,7 @@
 
   import { onMount, onDestroy } from 'svelte';
   import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
-  import ManifestFileManager from '../ui/ManifestFileManager.svelte';
+  import ThemePanel from '../ui/ThemePanel.svelte';
   import { navigate } from '../core/routing/router';
   import { getComponentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
   import { listComponents } from '../core/components/componentConfigService';
@@ -177,7 +177,7 @@
     </div>
     {#if drawerOpen}
       <div class="sidebar-footer">
-        <ManifestFileManager showComponentsLink={false} />
+        <ThemePanel showComponentsLink={false} />
       </div>
     {/if}
   </nav>

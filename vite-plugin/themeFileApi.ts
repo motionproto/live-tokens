@@ -658,7 +658,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   function respondUnreadableManifest(res: any, fileName: string, missingError: string): void {
     if (manifestsResource.existingPath(fileName) !== null) {
       jsonResponse(res, 422, {
-        error: `Manifest "${fileName}" is not valid JSON`,
+        error: `Theme file "${fileName}" is not valid JSON`,
         code: 'CORRUPT_MANIFEST',
       });
       return;
@@ -926,6 +926,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         fileName,
         updatedAt: data?.updatedAt || '',
         isActive: fileName === activeFile,
+        // Package-owned rows are the shipped presets and the default. The Load
+        // window offers those as whole themes, so it lists only the rows a
+        // local file backs — including a local copy of a shipped name, which
+        // holds whatever the user did to it.
+        isPackage: themesResource.isPackageFile(fileName),
       };
     });
     jsonResponse(_ctx.res, 200, { files });
@@ -1281,7 +1286,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const activeFile = manifestsResource.getActiveName();
     const read = readManifest(activeFile);
     if (!read) {
-      respondUnreadableManifest(res, activeFile, 'Active manifest not found');
+      respondUnreadableManifest(res, activeFile, 'Active theme not found');
       return;
     }
     jsonResponse(res, 200, { ...read.manifest, _fileName: activeFile });
@@ -1291,7 +1296,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const body = JSON.parse(await readBody(req));
     const fileName = sanitizeFileName(body.name || 'default');
     if (manifestsResource.existingPath(fileName) === null) {
-      jsonResponse(res, 404, { error: 'Manifest not found' });
+      jsonResponse(res, 404, { error: 'Theme not found' });
       return;
     }
     manifestsResource.setActiveName(fileName);
@@ -1314,7 +1319,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
     if (req.method === 'PUT') {
       if (fileName === 'default') {
-        jsonResponse(res, 403, { error: 'Cannot overwrite the default manifest' });
+        jsonResponse(res, 403, { error: 'Cannot overwrite the default theme' });
         return;
       }
       const body = JSON.parse(await readBody(req));
@@ -1335,7 +1340,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
     if (req.method === 'DELETE') {
       if (fileName === 'default') {
-        jsonResponse(res, 403, { error: 'Cannot delete the default manifest' });
+        jsonResponse(res, 403, { error: 'Cannot delete the default theme' });
         return;
       }
       if (fs.existsSync(filePath)) {
@@ -1355,7 +1360,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         // No local copy — only the package ships this manifest. Without this
         // guard the delete would report ok while the manifest stays listed.
         jsonResponse(res, 403, {
-          error: 'Cannot delete a manifest shipped with the package. Saving it creates a local copy; deleting that copy restores the shipped version.',
+          error: 'Cannot delete a theme shipped with the package. Saving it creates a local copy; deleting that copy restores the shipped version.',
           code: 'PACKAGE_MANIFEST',
         });
         return;
@@ -1381,7 +1386,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const [fileName] = params;
     const read = readManifest(fileName);
     if (!read) {
-      respondUnreadableManifest(res, fileName, 'Manifest not found');
+      respondUnreadableManifest(res, fileName, 'Theme not found');
       return;
     }
     const { manifest } = read;
@@ -1389,7 +1394,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     // materialises nothing (`default.json` is derived from source, read-only).
     const isDefault = fileName === 'default';
     if (!isDefault && !manifest.theme) {
-      jsonResponse(res, 422, { error: 'Manifest carries no theme' });
+      jsonResponse(res, 422, { error: 'This theme carries no colors and type' });
       return;
     }
 
@@ -1462,7 +1467,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const [fileName] = params;
     const read = readManifest(fileName);
     if (!read) {
-      respondUnreadableManifest(res, fileName, 'Manifest not found');
+      respondUnreadableManifest(res, fileName, 'Theme not found');
       return;
     }
 

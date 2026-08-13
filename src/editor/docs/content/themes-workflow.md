@@ -9,7 +9,8 @@ colors, type, and a setting for every component you changed, in one file. Two
 parts sit under it.
 
 - **Colors & Type** holds the design tokens. Components read those tokens to
-  define their appearance.
+  define their appearance. It shows what the theme's colors and type are and
+  whether production is running them, and it holds **Adopt**.
 - **Components** counts how many components run something the theme does not
   carry, and opens the component editors.
 
@@ -24,20 +25,22 @@ is the only place the older word survives.
 
 - **Your live edits** are what the page shows right now. They save to your
   browser automatically and survive a reload, but they are not yet a file.
-- **A saved colors and type file** is a named JSON file in
-  `src/live-tokens/data/themes/`. You create one with **Save as** inside the
-  Colors & Type part.
+- **A saved theme** is a named JSON file in
+  `src/live-tokens/data/manifests/`. You create one with **Save As**.
 - **The active theme** is the one the editor reads and production runs. Exactly
   one at a time.
+
+Underneath, colors and type are stored as their own files in
+`src/live-tokens/data/themes/`, and Adopt writes one. The theme keeps a copy of
+whatever it captured, so those files are working files, not something to
+manage.
 
 ## Saving
 
 In the Theme panel:
 
 - **Save** re-stamps the active theme with everything you have saved.
-- **Save as** names a new theme. Use it for your first save and for forking.
-
-Colors & Type has the same two buttons for its own file.
+- **Save As** names a new theme. Use it for your first save and for forking.
 
 Names are tidied to lowercase with underscores, so "My Brand!" becomes
 `my_brand`. There is a built-in `default` you can always return to; the editor
@@ -50,15 +53,18 @@ it on the page as a preview with nothing written to disk, so you can try each
 look and compare. **Save** keeps the previewed theme, **Cancel** returns you to
 where you were.
 
-Colors & Type has its own Load with the same preview flow, over your own files
-only. The example looks appear once, in the Theme panel, because each one
-carries shapes and component settings as well as colors and type.
+**Colors and type only. Keep my shapes.** in that window narrows the load to the
+palette and the fonts: your component settings stay exactly as they are. Older
+colors and type files are listed there too, marked *colors & type*, and picking
+one is always that narrower load.
 
 ## Shipping
 
-**Adopt** is the "ship it" step. It bakes the tokens into
-`src/live-tokens/data/tokens.generated.css`, which your build bundles alongside
-`tokens.css`. Fonts regenerate to match.
+**Adopt**, in the Colors & Type part, is the "ship it" step. It bakes the tokens
+into `src/live-tokens/data/tokens.generated.css`, which your build bundles
+alongside `tokens.css`. Fonts regenerate to match, and the active theme is
+updated to match what you shipped. The part says "not in production" whenever
+the two have drifted apart.
 
 Production builds (`npm run build`) ship only that plain CSS and your
 components. No editor, no JSON loading, no runtime indirection. If you save
@@ -69,7 +75,7 @@ with no separate step.
 
 Everything under `src/live-tokens/data/` is plain JSON, so commit it. Themes
 show up as readable diffs you can review per branch. There are no automatic
-backups: git is your safety net. To experiment freely, **Save as** a new name
+backups: git is your safety net. To experiment freely, **Save As** a new name
 first, then edit.
 
 ## Where to go next
