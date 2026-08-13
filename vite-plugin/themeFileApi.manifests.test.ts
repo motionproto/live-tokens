@@ -84,6 +84,23 @@ function writeJson(file: string, data: unknown) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2));
 }
 
+/** Record every path written while a request runs, the write itself untouched.
+ *  Pins how many times a door rebuilds the generated CSS. */
+function trackWrites() {
+  const written: string[] = [];
+  const original = fs.writeFileSync;
+  (fs as any).writeFileSync = (file: any, data: any, options?: any) => {
+    written.push(String(file));
+    return original(file, data, options);
+  };
+  return {
+    stop(): string[] {
+      (fs as any).writeFileSync = original;
+      return written;
+    },
+  };
+}
+
 const readJson = (file: string) => JSON.parse(fs.readFileSync(file, 'utf-8'));
 
 const THEME = { name: 'Custom', createdAt: 'x', updatedAt: 'x', editorConfigs: {}, cssVariables: {} };
@@ -493,5 +510,129 @@ describe('adopt patches the active manifest', () => {
     const { status } = await request('PUT', `${API}/themes/production`, { name: 'other' });
     expect(status).toBe(200);
     expect(readJson(path.join(manifestsDir, 'look.json')).theme.name).toBe('Other');
+  });
+});
+
+describe('adopting the whole look', () => {
+  const generatedCss = () => path.join(tmp, 'tokens.generated.css');
+
+  async function bootWithActiveLook() {
+    seedPointerManifest();
+    boot();
+    await request('PUT', `${API}/manifests/active`, { name: 'look' });
+  }
+
+  /** Move the theme and two components off what production runs. */
+  async function driftFromProduction() {
+    await request('PUT', `${API}/themes/active`, { name: 'custom' });
+    await request('PUT', `${API}/component-configs/button/active`, { name: 'fancy' });
+    writeJson(path.join(configsDir, 'card', 'bold.json'), {
+      name: 'bold',
+      component: 'card',
+      aliases: { '--card-radius': '0' },
+    });
+    await request('PUT', `${API}/component-configs/card/active`, { name: 'bold' });
+  }
+
+  it('promotes the theme and every component behind it in one call', async () => {
+    await bootWithActiveLook();
+    await driftFromProduction();
+
+    const { status, json } = await request('PUT', `${API}/production`);
+    expect(status).toBe(200);
+    expect(json.promoted).toBe(true);
+    expect(json.theme).toEqual({ fileName: 'custom', name: 'Custom' });
+    expect(json.components.sort()).toEqual(['button', 'card']);
+
+    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('custom');
+    expect(readJson(path.join(configsDir, 'button', '_production.json')).productionFile).toBe('fancy');
+    expect(readJson(path.join(configsDir, 'card', '_production.json')).productionFile).toBe('bold');
+    expect(readJson(path.join(themesDir, '_active.json')).activeFile).toBe('custom');
+  });
+
+  it('rebuilds the generated CSS once for the whole promotion', async () => {
+    await bootWithActiveLook();
+    await driftFromProduction();
+
+    const writes = trackWrites();
+    await request('PUT', `${API}/production`);
+    const written = writes.stop();
+
+    expect(written.filter((p) => p === generatedCss())).toHaveLength(1);
+    expect(fs.readFileSync(generatedCss(), 'utf-8')).toContain('--button-radius: 99px');
+  });
+
+  it('writes the active look once, whatever it promoted', async () => {
+    await bootWithActiveLook();
+    await driftFromProduction();
+
+    const writes = trackWrites();
+    await request('PUT', `${API}/production`);
+    const written = writes.stop();
+
+    expect(written.filter((p) => p === path.join(manifestsDir, 'look.json'))).toHaveLength(1);
+  });
+
+  it('re-embeds the live state in the active look, entry by entry', async () => {
+    await bootWithActiveLook();
+    writeJson(path.join(themesDir, 'other.json'), { ...THEME, name: 'Other' });
+    await request('PUT', `${API}/themes/active`, { name: 'other' });
+    writeJson(path.join(configsDir, 'card', 'bold.json'), {
+      name: 'bold',
+      component: 'card',
+      aliases: { '--card-radius': '0' },
+    });
+    await request('PUT', `${API}/component-configs/card/active`, { name: 'bold' });
+
+    await request('PUT', `${API}/production`);
+
+    const look = readJson(path.join(manifestsDir, 'look.json'));
+    expect(look.theme.name).toBe('Other');
+    expect(look.componentConfigs.card.aliases).toEqual({ '--card-radius': '0' });
+    // The button ran the default while this shipped, so the look stops claiming
+    // the config it was carrying.
+    expect(look.componentConfigs.button).toBeUndefined();
+  });
+
+  it('writes nothing when production already runs the look', async () => {
+    await bootWithActiveLook();
+    await request('PUT', `${API}/manifests/look/apply`);
+    const lookBefore = readJson(path.join(manifestsDir, 'look.json'));
+
+    const writes = trackWrites();
+    const { status, json } = await request('PUT', `${API}/production`);
+    const written = writes.stop();
+
+    expect(status).toBe(200);
+    expect(json).toEqual({ ok: true, promoted: false, theme: null, components: [] });
+    expect(written).toEqual([]);
+    expect(readJson(path.join(manifestsDir, 'look.json'))).toEqual(lookBefore);
+  });
+
+  it('promotes the components alone when only they drifted', async () => {
+    await bootWithActiveLook();
+    await request('PUT', `${API}/manifests/look/apply`);
+    writeJson(path.join(configsDir, 'card', 'bold.json'), {
+      name: 'bold',
+      component: 'card',
+      aliases: { '--card-radius': '0' },
+    });
+    await request('PUT', `${API}/component-configs/card/active`, { name: 'bold' });
+
+    const { json } = await request('PUT', `${API}/production`);
+    expect(json.theme).toBeNull();
+    expect(json.components).toEqual(['card']);
+    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('look');
+  });
+
+  it('refuses while the protected Default look is active, before any write', async () => {
+    seedPointerManifest();
+    boot();
+    await request('PUT', `${API}/themes/active`, { name: 'custom' });
+
+    const { status, json } = await request('PUT', `${API}/production`);
+    expect(status).toBe(409);
+    expect(json.code).toBe('ACTIVE_IS_PROTECTED');
+    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('default');
   });
 });

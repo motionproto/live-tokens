@@ -1,15 +1,13 @@
 <script lang="ts">
   // The root of the look hierarchy: one Theme panel that owns the whole look,
-  // with the colors-and-type layer and the components as disclosed parts. The
-  // file behind it is still a manifest, which is why the code keeps that name;
-  // the word does not appear in the UI.
+  // with the colors-and-type layer and the components as parts that report
+  // rather than manage. The file behind it is still a manifest, which is why
+  // the code keeps that name; the word does not appear in the UI.
   //
-  // It is also the only save and load surface. The layer is internal: its files
-  // still exist, and older ones are listed here as colors-and-type entries, but
-  // nothing saves or loads them anywhere else.
+  // It is the only save, load and ship surface. The layer is internal: its
+  // files still exist, and older ones are listed here as colors-and-type
+  // entries, but nothing saves, loads or adopts them anywhere else.
   import { onDestroy, onMount } from 'svelte';
-  import { get } from 'svelte/store';
-  import { slide } from 'svelte/transition';
   import type { Manifest, ManifestMeta, Theme, ThemeMeta } from '../core/themes/themeTypes';
   import {
     listManifests,
@@ -17,12 +15,13 @@
     getActiveManifest,
     loadManifest,
     applyManifest,
+    adoptLook,
     saveAsManifest,
     saveActiveManifest,
     exportManifest,
     importManifest,
   } from '../core/manifests/manifestService';
-  import { countComponentsOffLook } from '../core/manifests/lookSummary';
+  import { countComponentsOffLook, lookProductionState } from '../core/manifests/lookSummary';
   import { previewManifest, previewTheme, revertPreview } from '../core/preview/lookPreview';
   import {
     deleteTheme,
@@ -30,7 +29,6 @@
     hydrateTheme,
     listThemes,
     loadTheme,
-    persistTheme,
     saveTheme,
     setActiveFile,
   } from '../core/themes/themeService';
@@ -41,7 +39,11 @@
     loadRowId,
     type LoadRow,
   } from '../core/themes/loadRows';
-  import { listComponents } from '../core/components/componentConfigService';
+  import {
+    listComponents,
+    type ComponentSummary,
+  } from '../core/components/componentConfigService';
+  import { fontPairingLabel } from '../core/fonts/fontPairing';
   import { dirty, componentDirty, editorState } from '../core/store/editorStore';
   import { activeFileName as layerFileName } from '../core/store/editorConfigStore';
   import { editorView } from '../core/store/editorViewStore';
@@ -57,7 +59,6 @@
   import UIPillButton from './UIPillButton.svelte';
   import FileLoadList from './FileLoadList.svelte';
   import FilePill from './FilePill.svelte';
-  import ColorsTypePart from './ColorsTypePart.svelte';
   import SaveAsDialog from '../component-editor/scaffolding/SaveAsDialog.svelte';
 
   interface Props {
@@ -89,19 +90,11 @@
   );
   let editorDirty = $derived($dirty || dirtyComponentCount > 0);
 
-  const reduceMotion =
-    typeof window !== 'undefined'
-    && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
-  const slideDur = reduceMotion ? 0 : 200;
-
   async function refreshFiles() {
     try {
       [files, layerFiles] = await Promise.all([listManifests(), listThemes()]);
       const activeLayer = layerFiles.find((f) => f.isActive);
-      if (activeLayer) {
-        layerFileName.set(activeLayer.fileName);
-        layerDisplayName = activeLayer.name;
-      }
+      if (activeLayer) layerFileName.set(activeLayer.fileName);
     } catch {
       // silent — empty list
     }
@@ -130,37 +123,35 @@
     }
   }
 
-  // ── Components part ───────────────────────────────────────────────────
+  // ── Components ────────────────────────────────────────────────────────
   //
-  // A summary, not a manager: the per-component file managers live in the
-  // component editors. The count says how many components run something the
-  // active look does not carry.
+  // The per-component file managers live in the component editors; the list
+  // here answers two questions at once — how many components run something the
+  // active look does not carry, and which of them production is not running.
 
-  let componentsOffLook = $state(0);
+  let components: ComponentSummary[] = $state([]);
   let lookConfigs: Manifest['componentConfigs'] | null = $state(null);
 
-  async function refreshComponentSummary() {
-    if (!lookConfigs) return;
+  let componentsOffLook = $derived(
+    lookConfigs ? countComponentsOffLook(components, lookConfigs, activeIsProtected) : 0,
+  );
+
+  async function refreshComponents() {
     try {
-      componentsOffLook = countComponentsOffLook(
-        await listComponents(),
-        lookConfigs,
-        activeFileName === 'default',
-      );
+      components = await listComponents();
     } catch {
-      // silent — keep the last count rather than showing a wrong zero
+      // silent — keep the last answer rather than showing a wrong zero
     }
   }
 
-  // Three signals move this count: the look itself changing, a component
-  // settling (saving one sets a new active file for it without pulsing
-  // production), and a component editor pointing at another file with no edit
-  // in play, which only the component pulse reports.
+  // Two signals move the components on their own: a component settling (saving
+  // one sets a new active file for it without pulsing production), and a
+  // component editor pointing at another file with no edit in play, which only
+  // the component pulse reports. Adopts arrive on the production pulse below.
   $effect(() => {
-    void lookConfigs;
     void dirtyComponentCount;
     void $componentActiveRevision;
-    refreshComponentSummary();
+    refreshComponents();
   });
 
   function openComponents() {
@@ -173,10 +164,10 @@
     await refreshProduction();
   });
 
-  // Re-read the active look whenever a part's Adopt fires — the server patches
-  // our active file in those moments, so the identity, the component summary
-  // and the production state shown here need to track. Skip the first tick
-  // (mount ran them already).
+  // Re-read the active look whenever an Adopt fires, here or in a component
+  // editor — the server patches our active file in those moments, so the
+  // identity, the component summary and the production state shown here need
+  // to track. Skip the first tick (mount ran them already).
   let pulseInitialised = false;
   $effect(() => {
     void $productionRevision;
@@ -187,6 +178,7 @@
     refreshActive();
     refreshProduction();
     refreshFiles();
+    refreshComponents();
   });
 
   // A theme captures the saved files, not the editor's live state. Warn before
@@ -195,7 +187,7 @@
     if (!editorDirty) return true;
     return window.confirm(
       'You have unsaved changes. A theme captures what is saved, so these edits will not be '
-        + 'included. Adopt them first to include them. Save the theme anyway?',
+        + 'included. Save the theme anyway?',
     );
   }
 
@@ -230,40 +222,95 @@
     }
   }
 
-  // ── Colors & Type part ────────────────────────────────────────────────
+  // ── Adopt: ship the whole look ────────────────────────────────────────
   //
-  // The layer is a status surface with one action: Adopt. The panel owns its
-  // data so the summary reads true while the part is collapsed, and its two
-  // file operations so both hosts get the same working part with no wiring.
+  // One action at the root, because a look ships as a whole: the colors and
+  // type plus every component running something production does not have. The
+  // component editors keep their own Adopt for shipping one component alone.
 
-  let layerOpen = $state(false);
-  let layerDisplayName = $state('Default Theme');
-  // Unknown until production answers; treating that as out of sync would open
-  // the part on every mount.
-  let layerOutOfSync = $derived(
-    $themeProductionInfo !== null && $themeProductionInfo.fileName !== $layerFileName,
+  type AdoptStatus = 'idle' | 'adopting' | 'done' | 'error';
+  let adoptStatus: AdoptStatus = $state('idle');
+  const setAdoptStatus = (s: AdoptStatus) => (adoptStatus = s);
+
+  let production = $derived(
+    lookProductionState($layerFileName, $themeProductionInfo?.fileName ?? null, components),
   );
 
-  // Out of sync is the one state that needs the user, so the part opens itself
-  // the first time it appears. Manual collapse sticks: reopening on every
-  // render would fight the user.
-  let autoOpened = false;
-  $effect(() => {
-    if (layerOutOfSync && !autoOpened) {
-      autoOpened = true;
-      layerOpen = true;
-    }
+  let adoptTitle = $derived.by(() => {
+    if (production.inProduction) return 'Production is running this theme';
+    const parts: string[] = [];
+    if (production.themeOff) parts.push('the colors and type');
+    const off = production.componentsOff.length;
+    if (off > 0) parts.push(off === 1 ? '1 component' : `${off} components`);
+    return `Ship ${parts.join(' and ')} to production`;
   });
 
-  async function saveLayer(detail: { fileName: string; displayName: string }) {
-    await persistTheme(get(editorState), detail.fileName, detail.displayName);
-    layerDisplayName = detail.displayName;
-    await refreshFiles();
+  // Adopt ships what is saved: the server promotes files, and edits that never
+  // reached one are invisible to it.
+  function confirmAdoptWithUnsaved(): boolean {
+    if (!editorDirty) return true;
+    return window.confirm(
+      'You have unsaved changes. Adopt ships what is saved, so those edits stay out of '
+        + 'production. Ship the saved theme anyway?',
+    );
   }
 
-  async function loadLayer(detail: { fileName: string }) {
+  // Adopt writes a file the user never named, so the name steps past anything
+  // on disk rather than clobbering a theme made earlier.
+  function freshName(base: string, taken: Set<string>): string {
+    if (!taken.has(base)) return base;
+    for (let n = 1; n < 1000; n++) {
+      const candidate = `${base}_${String(n).padStart(2, '0')}`;
+      if (!taken.has(candidate)) return candidate;
+    }
+    return `${base}_${Date.now()}`;
+  }
+
+  async function handleAdopt() {
+    if (production.inProduction || adoptStatus === 'adopting') return;
+    if (!confirmAdoptWithUnsaved()) return;
+    await runAdopt();
+  }
+
+  async function runAdopt() {
+    adoptStatus = 'adopting';
     try {
-      await hydrateTheme(detail.fileName);
+      await adoptLook();
+      // The panel's own production pulse re-reads identity, production state
+      // and the component pointers.
+      bumpProductionRevision();
+      flashStatus(setAdoptStatus, 'done');
+    } catch (err) {
+      const e = err as Error & { code?: string };
+      if (e.code === 'ACTIVE_IS_PROTECTED') {
+        // The protected Default theme is active and cannot record what shipped.
+        // Fork it and carry on: the user clicked Adopt, and which file holds
+        // the look is bookkeeping they shouldn't have to think about.
+        adoptStatus = 'idle';
+        try {
+          const taken = new Set((await listManifests()).map((m) => m.fileName));
+          await saveAsManifest(freshName('my-theme', taken), 'My Theme');
+        } catch {
+          flashStatus(setAdoptStatus, 'error', { durationMs: 3000 });
+          return;
+        }
+        await runAdopt();
+        return;
+      }
+      flashStatus(setAdoptStatus, 'error', { durationMs: 3000 });
+    }
+  }
+
+  // ── Colors & Type ─────────────────────────────────────────────────────
+  //
+  // Read-only identity: the two faces the theme is recognised by. The layer's
+  // own files are working files, so nothing here names one.
+
+  let pairing = $derived(fontPairingLabel($editorState.fonts.stacks, $editorState.fonts.sources));
+
+  async function loadLayer(fileName: string) {
+    try {
+      await hydrateTheme(fileName);
     } catch {
       // silent
     }
@@ -412,7 +459,6 @@
       if (theme && row.slug !== 'default') await saveTheme(row.slug, theme);
       await setActiveFile(row.slug);
       layerFileName.set(row.slug);
-      layerDisplayName = theme?.name ?? row.name;
       await hydrateTheme(row.slug);
       await refreshFiles();
     } catch (err) {
@@ -530,7 +576,7 @@
         // Not always the default: deleting a local copy that shadows a shipped
         // file restores it and the pointer keeps naming it. refreshFiles()
         // already read back whichever name survived.
-        await loadLayer({ fileName: $layerFileName });
+        await loadLayer($layerFileName);
       }
     } catch (err) {
       window.alert(`Failed to delete: ${(err as Error).message}`);
@@ -569,7 +615,10 @@
         <strong>Colors and type only</strong> in that window takes the palette and the fonts and leaves your shapes and component settings alone.
       </p>
       <p>
-        The <strong>active</strong> theme is what the editor reads and what production runs. <strong>Adopt</strong> in a part below updates it in place.
+        The <strong>active</strong> theme is what the editor reads. <strong>Adopt</strong> ships the whole look to production: the colors and type plus every component you changed. The line under the name says whether production is running this theme.
+      </p>
+      <p>
+        Adopt ships what is saved. Save your work first if you want the edits on screen to go with it.
       </p>
       <p>
         <strong>Default</strong> is protected. To start customizing, <strong>Save As</strong> a new theme first.
@@ -595,6 +644,31 @@
       title={currentDisplayName}
       style="display: flex;"
     />
+    <span class="mfm-prod-status" class:applied={production.inProduction}>
+      <i class="mfm-status-dot" aria-hidden="true"></i>
+      <span>{production.inProduction ? 'in production' : 'out of sync'}</span>
+    </span>
+    <button
+      class="mfm-adopt-btn"
+      class:adopting={adoptStatus === 'adopting'}
+      class:adopted={adoptStatus === 'done'}
+      class:error={adoptStatus === 'error'}
+      class:in-sync={production.inProduction}
+      onclick={handleAdopt}
+      disabled={adoptStatus === 'adopting' || production.inProduction}
+      title={adoptTitle}
+    >
+      <i
+        class="fas"
+        class:fa-arrow-down={adoptStatus === 'idle'}
+        class:fa-spinner={adoptStatus === 'adopting'}
+        class:fa-check={adoptStatus === 'done'}
+        class:fa-xmark={adoptStatus === 'error'}
+      ></i>
+      <span>
+        {#if adoptStatus === 'idle'}Adopt{:else if adoptStatus === 'adopting'}Adopting{:else if adoptStatus === 'done'}Adopted{:else}Error{/if}
+      </span>
+    </button>
     <div class="mfm-card-actions">
       <button
         class="mfm-btn mfm-btn-row save-btn"
@@ -642,51 +716,28 @@
     </div>
   </div>
 
-  <!-- Parts of the look, permanent identity above, layer plumbing below. -->
+  <!-- Parts of the look: what each holds now, no lifecycle of its own. -->
   <div class="look-parts">
-    <div class="part-head">
-      <button
-        type="button"
-        class="part-toggle"
-        class:expanded={layerOpen}
-        aria-expanded={layerOpen}
-        aria-controls="look-part-layer"
-        onclick={() => (layerOpen = !layerOpen)}
-      >
-        <i class="fas fa-chevron-right chevron" aria-hidden="true"></i>
-        <span class="part-label">Colors &amp; Type</span>
-        <span class="part-summary">
+    <div class="part-head part-static">
+      <span class="part-label">Colors &amp; Type</span>
+      <span class="part-summary">
+        {#if pairing}
           <span class="part-summary-sep">·</span>
-          {#if $dirty}
-            <span class="part-summary-dirty">unsaved</span>
-          {:else if layerOutOfSync}
-            <span class="part-summary-dirty">not in production</span>
-          {:else}
-            <span>live</span>
-          {/if}
-        </span>
-      </button>
+          <span class="part-summary-text" title={pairing}>{pairing}</span>
+        {/if}
+      </span>
       <UIInfoPopover title="Colors &amp; Type" ariaLabel="About colors and type">
         <p>
           <strong>Colors &amp; type</strong> is the part of the theme your design tokens live in. Components read those tokens for their own appearance.
         </p>
         <p>
-          <strong>Adopt</strong> puts what you see into production and updates the theme above to match. It is the ship step.
+          The two faces named here are the heading and body fonts the page is showing.
         </p>
         <p>
           To load colors and type without touching your shapes, open <strong>Load</strong> above and turn on <strong>Colors and type only</strong>.
         </p>
       </UIInfoPopover>
     </div>
-    {#if layerOpen}
-      <div id="look-part-layer" class="part-body" transition:slide|local={{ duration: slideDur }}>
-        <ColorsTypePart
-          displayName={layerDisplayName}
-          onsave={saveLayer}
-          onload={loadLayer}
-        />
-      </div>
-    {/if}
 
     <div class="part-head part-static">
       <span class="part-label">Components</span>
@@ -843,6 +894,89 @@
     font-size: 0.8em;
   }
 
+  /* Production state of the whole look, under the name it ships as. */
+  .mfm-prod-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-4);
+    font-size: 0.7rem;
+    color: var(--ui-text-muted);
+    line-height: 1;
+  }
+
+  .mfm-status-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.7;
+    flex-shrink: 0;
+  }
+
+  .mfm-prod-status.applied {
+    color: var(--mfm-active);
+  }
+
+  .mfm-prod-status.applied .mfm-status-dot {
+    opacity: 1;
+  }
+
+  /* The ship action. Green is the file-state exception to the greyscale rule,
+     shared with the component editors' own Adopt. */
+  .mfm-adopt-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ui-space-6);
+    width: 100%;
+    padding: var(--ui-space-6) var(--ui-space-12);
+    background: color-mix(in srgb, var(--mfm-active) 18%, var(--ui-surface-high));
+    border: 1px solid color-mix(in srgb, var(--mfm-active) 45%, var(--ui-border-high));
+    border-radius: var(--ui-radius-md);
+    color: var(--ui-text-primary);
+    font-family: inherit;
+    font-size: var(--ui-font-size-md);
+    font-weight: var(--ui-font-weight-medium);
+    cursor: pointer;
+    transition: all var(--ui-transition-fast);
+    white-space: nowrap;
+  }
+
+  .mfm-adopt-btn i {
+    width: 1rem;
+    text-align: center;
+    font-size: 0.85em;
+  }
+
+  .mfm-adopt-btn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--mfm-active) 30%, var(--ui-surface-higher));
+    border-color: color-mix(in srgb, var(--mfm-active) 70%, var(--ui-border-higher));
+  }
+
+  .mfm-adopt-btn:disabled {
+    cursor: not-allowed;
+  }
+
+  .mfm-adopt-btn.in-sync {
+    background: transparent;
+    border-color: var(--ui-border-low);
+    color: var(--ui-text-muted);
+    opacity: 0.7;
+  }
+
+  .mfm-adopt-btn.adopting i {
+    animation: mfm-spin 0.8s linear infinite;
+  }
+
+  .mfm-adopt-btn.adopted {
+    background: color-mix(in srgb, var(--mfm-active) 30%, var(--ui-surface-high));
+    color: var(--mfm-active);
+  }
+
+  .mfm-adopt-btn.error {
+    color: var(--ui-text-muted);
+  }
+
   .mfm-card-actions {
     display: flex;
     flex-direction: column;
@@ -908,38 +1042,13 @@
   }
 
   .part-static {
-    padding-left: calc(0.75rem + var(--ui-space-8));
-  }
-
-  .part-toggle {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-    flex: 1 1 auto;
-    min-width: 0;
-    padding: 0;
-    background: none;
-    border: 0;
-    color: inherit;
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-  }
-
-  .part-toggle .chevron {
-    width: 0.75rem;
-    font-size: 0.625rem;
-    color: var(--ui-text-tertiary);
-    transition: transform var(--ui-transition-fast);
-  }
-
-  .part-toggle.expanded .chevron {
-    transform: rotate(90deg);
+    padding-left: var(--ui-space-8);
   }
 
   .part-label {
     font-size: var(--ui-font-size-sm);
     color: var(--ui-text-secondary);
+    flex-shrink: 0;
   }
 
   .part-summary {
@@ -947,6 +1056,7 @@
     align-items: center;
     gap: var(--ui-space-4);
     flex: 1 1 auto;
+    min-width: 0;
     font-size: var(--ui-font-size-xs);
     color: var(--ui-text-tertiary);
   }
@@ -961,12 +1071,10 @@
     color: var(--ui-text-secondary);
   }
 
-  .part-summary-dirty {
-    color: var(--ui-highlight);
-  }
-
-  .part-body {
-    padding: var(--ui-space-6) 0 var(--ui-space-8);
+  .part-summary-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* Rendered inside the Load window, so it carries this panel's scope. */

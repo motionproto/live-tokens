@@ -791,40 +791,47 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
   }
 
+  /** One slice of the live look, named by the file it runs. */
+  type AdoptedSlice =
+    | { field: 'theme'; fileName: string }
+    | { field: 'component'; comp: string; fileName: string };
+
   /**
-   * Re-embed one slice of the currently-active manifest in response to a theme
-   * or component Adopt: the adopted file's content is copied in by value.
-   * Adopting `default` for a component drops its entry — absent is default.
-   * Returns `false` if the active manifest is `default` (protected).
+   * Re-embed slices of the currently-active manifest in response to an Adopt:
+   * each adopted file's content is copied in by value. Adopting `default` for
+   * a component drops its entry — absent is default. Returns `false` if the
+   * active manifest is `default` (protected) or nothing resolved.
+   *
+   * Takes a list so the whole-look adopt lands as one read and one write; a
+   * per-slice loop would rewrite the file once per component.
    *
    * Adopting into a package-shipped manifest forks it: the read resolves
    * through the package fallback, the write lands locally under the same name.
    * The alternative is a shipped manifest that stays marked active while the
    * live state moves away from it.
    */
-  function patchActiveManifest(
-    field: 'theme' | 'component',
-    comp: string | null,
-    fileName: string,
-  ): boolean {
+  function patchActiveManifest(slices: AdoptedSlice[]): boolean {
     const activeFile = manifestsResource.getActiveName();
     if (activeFile === 'default') return false;
     const read = readManifest(activeFile);
     if (!read) return false;
     const { manifest } = read;
-    if (field === 'theme') {
-      const theme = themesResource.readJson(sanitizeFileName(fileName));
-      if (!theme) return false;
-      manifest.theme = normalizeTheme(theme as any);
-    } else if (field === 'component' && comp) {
-      if (fileName === 'default') {
-        delete manifest.componentConfigs[comp];
+    let applied = 0;
+    for (const slice of slices) {
+      if (slice.field === 'theme') {
+        const theme = themesResource.readJson(sanitizeFileName(slice.fileName));
+        if (!theme) continue;
+        manifest.theme = normalizeTheme(theme as any);
+      } else if (slice.fileName === 'default') {
+        delete manifest.componentConfigs[slice.comp];
       } else {
-        const cfg = readComponentConfig(comp, fileName);
-        if (!cfg) return false;
-        manifest.componentConfigs[comp] = { ...cfg, component: comp };
+        const cfg = readComponentConfig(slice.comp, slice.fileName);
+        if (!cfg) continue;
+        manifest.componentConfigs[slice.comp] = { ...cfg, component: slice.comp };
       }
+      applied++;
     }
+    if (applied === 0) return false;
     manifest.updatedAt = new Date().toISOString();
     writeManifest(activeFile, manifest);
     return true;
@@ -926,6 +933,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const MANIFEST_EXPORT_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)/export$`);
   const MANIFEST_IMPORT_ROUTE = `${API_BASE}/manifests/import`;
   const MANIFEST_BY_NAME_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)$`);
+  // Root peer of `/themes/production` and `/component-configs/:comp/production`:
+  // the production state of the whole look.
+  const PRODUCTION_ROUTE = `${API_BASE}/production`;
 
   // ── Route handlers ────────────────────────────────────────────────────────
   // Each handler can throw — the route-table dispatcher centralises the 500
@@ -1013,7 +1023,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     syncTokensToCss(fileName);
     syncFontsToCss(fileName);
     syncComponentsToCss();
-    patchActiveManifest('theme', null, fileName);
+    patchActiveManifest([{ field: 'theme', fileName }]);
     const data = themesResource.readJson(fileName) as any;
     jsonResponse(res, 200, {
       ok: true,
@@ -1182,7 +1192,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     r.ensureDir();
     r.setProductionName(fileName);
     syncComponentsToCss();
-    patchActiveManifest('component', comp, fileName);
+    patchActiveManifest([{ field: 'component', comp, fileName }]);
     const cfg = readComponentConfig(comp, fileName);
     jsonResponse(res, 200, {
       ok: true,
@@ -1591,6 +1601,76 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     });
   }
 
+  // ── /api/production ──────────────────────────────────────────────────────
+
+  /**
+   * Adopt the whole look: promote the live state to production in one pass —
+   * the theme layer plus every component whose active config is not what
+   * production runs. The per-slice production doors stay for the component
+   * editors' own Adopt; this is the root one, and it exists so shipping a look
+   * cannot land halfway.
+   *
+   * Promotes what is SAVED. Editor state that never reached a file is not
+   * visible from here, and the client warns before it ships without it.
+   */
+  async function handleAdoptLook({ res }: any) {
+    // Reject before any write. The protected Default look cannot record what
+    // shipped, so the client forks it and retries.
+    if (manifestsResource.getActiveName() === 'default') {
+      jsonResponse(res, 409, {
+        error: 'Active theme is protected. Save As first.',
+        code: 'ACTIVE_IS_PROTECTED',
+      });
+      return;
+    }
+
+    const themeName = themesResource.getActiveName();
+    const themePromoted = themesResource.getProductionName() !== themeName;
+    const components = listComponentNames();
+    const promotedComponents = components.filter((comp) => {
+      const r = componentResource(comp);
+      return r.getProductionName() !== r.getActiveName();
+    });
+
+    if (!themePromoted && promotedComponents.length === 0) {
+      jsonResponse(res, 200, { ok: true, promoted: false, theme: null, components: [] });
+      return;
+    }
+
+    if (themePromoted) themesResource.setProductionName(themeName);
+    for (const comp of promotedComponents) {
+      const r = componentResource(comp);
+      r.ensureDir();
+      r.setProductionName(r.getActiveName());
+    }
+
+    // syncTokensToCss and syncComponentsToCss are the same rebuild, so one call
+    // covers every pointer just flipped. fonts.css tracks the production theme
+    // alone.
+    regenerateTokensCss();
+    if (themePromoted) syncFontsToCss(themeName);
+
+    // The look records what shipped, every slice of it: a slice already in
+    // production can still embed an older copy of its file, and a whole-look
+    // adopt has no reason to leave that behind.
+    patchActiveManifest([
+      { field: 'theme', fileName: themeName },
+      ...components.map((comp) => ({
+        field: 'component' as const,
+        comp,
+        fileName: componentResource(comp).getActiveName(),
+      })),
+    ]);
+
+    const themeData = themesResource.readJson(themeName) as any;
+    jsonResponse(res, 200, {
+      ok: true,
+      promoted: true,
+      theme: themePromoted ? { fileName: themeName, name: themeData?.name || themeName } : null,
+      components: promotedComponents,
+    });
+  }
+
   // ── Method-not-allowed shims ─────────────────────────────────────────────
   // Routes that match the URL pattern but were called with the wrong method
   // need to return 405 instead of falling through to next(). We register a
@@ -1670,6 +1750,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     { method: 'GET',    pattern: MANIFEST_BY_NAME_REGEX,  handler: handleManifestByName },
     { method: 'PUT',    pattern: MANIFEST_BY_NAME_REGEX,  handler: handleManifestByName },
     { method: 'DELETE', pattern: MANIFEST_BY_NAME_REGEX,  handler: handleManifestByName },
+
+    // Production — the whole-look adopt door
+    { method: 'PUT',    pattern: PRODUCTION_ROUTE,        handler: handleAdoptLook },
+    { method: 'GET',    pattern: PRODUCTION_ROUTE,        handler: methodNotAllowed },
+    { method: 'POST',   pattern: PRODUCTION_ROUTE,        handler: methodNotAllowed },
+    { method: 'DELETE', pattern: PRODUCTION_ROUTE,        handler: methodNotAllowed },
   ];
 
   return {

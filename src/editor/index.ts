@@ -60,10 +60,11 @@ export {
   getActiveManifest,
   setActiveManifest,
   applyManifest,
+  adoptLook,
   saveAsManifest,
   saveActiveManifest,
 } from './core/manifests/manifestService';
-export type { ApplyManifestResult } from './core/manifests/manifestService';
+export type { AdoptLookResult, ApplyManifestResult } from './core/manifests/manifestService';
 
 export {
   applyFontSources,

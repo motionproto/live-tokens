@@ -165,6 +165,34 @@ describe('package-default fallback on a fresh consumer', () => {
     expect(json.code).toBe('ACTIVE_IS_PROTECTED');
   });
 
+  it('PUT /production → 409 while the Default look is active, 200 once the client forks it', async () => {
+    await request('PUT', `${API}/themes/mine`, { name: 'Mine', cssVariables: {} });
+    await request('PUT', `${API}/themes/active`, { name: 'mine' });
+
+    const blocked = await request('PUT', `${API}/production`);
+    expect(blocked.status).toBe(409);
+    expect(blocked.json.code).toBe('ACTIVE_IS_PROTECTED');
+    expect(
+      JSON.parse(fs.readFileSync(path.join(themesDir, '_production.json'), 'utf-8')).productionFile,
+    ).toBe('default');
+
+    // The client's recovery: capture the live look under a name of its own,
+    // make it active, retry.
+    await request('PUT', `${API}/manifests/my-theme`, {
+      name: 'My Theme',
+      theme: 'mine',
+      componentConfigs: {},
+    });
+    await request('PUT', `${API}/manifests/active`, { name: 'my-theme' });
+
+    const { status, json } = await request('PUT', `${API}/production`);
+    expect(status).toBe(200);
+    expect(json.theme).toEqual({ fileName: 'mine', name: 'Mine' });
+    expect(
+      JSON.parse(fs.readFileSync(path.join(themesDir, '_production.json'), 'utf-8')).productionFile,
+    ).toBe('mine');
+  });
+
   it('PUT /manifests/default/apply → 200 with resolved theme + component configs (headline restore path)', async () => {
     const { status, json } = await request('PUT', `${API}/manifests/default/apply`);
     expect(status).toBe(200);

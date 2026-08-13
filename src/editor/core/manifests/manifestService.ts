@@ -62,6 +62,40 @@ export async function applyManifest(fileName: string): Promise<ApplyManifestResu
   return res.json();
 }
 
+export interface AdoptLookResult {
+  ok: boolean;
+  /** False when production was already running the look: nothing was written. */
+  promoted: boolean;
+  /** The colors and type promoted, or null when production already ran them. */
+  theme: { fileName: string; name: string } | null;
+  /** Names of the components promoted. */
+  components: string[];
+}
+
+/**
+ * Ship the whole look: one door that promotes the theme layer and every
+ * component whose active config is not what production runs, then re-embeds
+ * the shipped state in the active look. What is saved goes; unsaved editor
+ * state is not visible to the server and stays behind.
+ *
+ * Answers 409 `ACTIVE_IS_PROTECTED` while the Default look is active, which
+ * the caller recovers from by forking it and retrying.
+ */
+export async function adoptLook(): Promise<AdoptLookResult> {
+  const res = await fetch(`${API_BASE}/production`, { method: 'PUT' });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const err = new Error(body.error || 'Adopt failed') as Error & {
+      status?: number;
+      code?: string;
+    };
+    err.status = res.status;
+    if (body.code) err.code = body.code;
+    throw err;
+  }
+  return res.json();
+}
+
 /** `_fileName` marks which file a read door answered from; it is never part of
  *  the content we send back. */
 function withoutFileMarker<T extends { _fileName?: string }>(value: T): T {

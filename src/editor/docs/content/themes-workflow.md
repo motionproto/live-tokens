@@ -5,18 +5,18 @@ Save your work, switch between looks, and ship one to production.
 ## The Theme panel
 
 The **Theme** panel at the foot of the editor sidebar holds the whole look:
-colors, type, and a setting for every component you changed, in one file. Two
-parts sit under it.
+colors, type, and a setting for every component you changed, in one file. It
+carries the name the look ships under, whether production is running it, and
+**Adopt**. Two parts sit under it, each a read-out rather than a file to manage.
 
 - **Colors & Type** holds the design tokens. Components read those tokens to
-  define their appearance. It shows what the theme's colors and type are and
-  whether production is running them, and it holds **Adopt**.
+  define their appearance. It names the two faces the page is showing.
 - **Components** counts how many components run something the theme does not
   carry, and opens the component editors.
 
 A theme keeps its own copy of every part, so deleting a working file never
-breaks a saved theme. Adopting a part updates the active theme in place, which
-keeps the whole true to what you see.
+breaks a saved theme. Adopt updates the active theme in place, which keeps the
+whole true to what you shipped.
 
 On disk a theme is a *manifest*, under `src/live-tokens/data/manifests/`. That
 is the only place the older word survives.
@@ -31,9 +31,8 @@ is the only place the older word survives.
   one at a time.
 
 Underneath, colors and type are stored as their own files in
-`src/live-tokens/data/themes/`, and Adopt writes one. The theme keeps a copy of
-whatever it captured, so those files are working files, not something to
-manage.
+`src/live-tokens/data/themes/`. The theme keeps a copy of whatever it captured,
+so those files are working files, not something to manage.
 
 ## Saving
 
@@ -60,11 +59,17 @@ one is always that narrower load.
 
 ## Shipping
 
-**Adopt**, in the Colors & Type part, is the "ship it" step. It bakes the tokens
-into `src/live-tokens/data/tokens.generated.css`, which your build bundles
-alongside `tokens.css`. Fonts regenerate to match, and the active theme is
-updated to match what you shipped. The part says "not in production" whenever
-the two have drifted apart.
+**Adopt**, in the Theme panel, is the "ship it" step, and it ships the whole
+look: the colors and type plus every component running something production
+does not have. It bakes the tokens into
+`src/live-tokens/data/tokens.generated.css`, which your build bundles alongside
+`tokens.css`. Fonts regenerate to match, and the active theme is updated to
+match what you shipped. The panel says "out of sync" whenever the look and
+production have drifted apart.
+
+Adopt ships what is saved. Unsaved edits stay on screen and out of production,
+so save first if you want them to go. A component editor has its own Adopt for
+shipping one component alone.
 
 Production builds (`npm run build`) ship only that plain CSS and your
 components. No editor, no JSON loading, no runtime indirection. If you save

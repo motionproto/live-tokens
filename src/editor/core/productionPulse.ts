@@ -8,8 +8,7 @@ import type { ManifestMeta } from './themes/themeTypes';
  * react to a sibling Adopt subscribe to this so they refresh without
  * per-pair wiring.
  *
- * Bumpers: `ColorsTypePart.handleApplyToProduction`,
- * `ThemePanel.deleteLayerFile`,
+ * Bumpers: `ThemePanel.runAdopt`, `ThemePanel.deleteLayerFile`,
  * `ComponentFileManager.handleUpdateProduction`. Anyone setting
  * `_production.json` should bump.
  */

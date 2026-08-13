@@ -23,8 +23,10 @@
 - **Adopt ships the whole look.** Production state and the Adopt action
   live on the Theme panel's root card: one action promotes the active
   colors, type, and every drifted component config to production in a
-  single atomic step, with one CSS regeneration. Per-component Adopt
-  stays in each component's editor for granular shipping.
+  single atomic step, with one CSS regeneration. It ships what is saved,
+  and says so before it runs when there are unsaved edits.
+  Per-component Adopt stays in each component's editor for granular
+  shipping.
 
 - **`generate-theme` turns a mood brief into a complete theme.** `npx
   live-tokens generate-theme <brief.json>` takes ten OKLCH seeds plus a
@@ -67,12 +69,12 @@
 ### Changed
 
 - **One Theme panel, one save and load surface.** The editor sidebar holds a
-  single Theme panel: Save, Save As, Load with preview, Import and Export at
-  the root, and Colors & Type and Components as disclosed parts. Colors and
-  type is a status surface now, not a second file manager: it shows the
-  active palette name and font pairing, whether production is running them,
-  and **Adopt**. Its file list, Save and Save As are gone, and the part opens
-  itself when production has drifted.
+  single Theme panel: Save, Save As, Load with preview, Import, Export, the
+  production state and Adopt at the root, with Colors & Type and Components
+  as read-only parts under it. Colors and type stops being a file the user
+  manages: no list, no Save, no Save As, no lifecycle of its own. It names
+  the two faces the page is showing, and no working file name appears
+  anywhere in the panel.
 
 - **Load can take colors and type alone.** "Colors and type only. Keep my
   shapes." in the Load window previews and applies just the palette and the

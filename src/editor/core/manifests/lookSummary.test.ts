@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { countComponentsOffLook } from './lookSummary';
+import { countComponentsOffLook, lookProductionState } from './lookSummary';
 
-const comp = (name: string, activeFile: string) => ({
+const comp = (name: string, activeFile: string, productionFile = activeFile) => ({
   name,
   activeFile,
-  productionFile: activeFile,
+  productionFile,
 });
 
 describe('countComponentsOffLook', () => {
@@ -47,5 +47,30 @@ describe('countComponentsOffLook', () => {
     const components = [comp('card', 'my-card'), comp('button', 'default')];
     const fullSet = { card: {}, button: {} };
     expect(countComponentsOffLook(components, fullSet, true)).toBe(1);
+  });
+});
+
+describe('lookProductionState', () => {
+  it('reports the whole look in production when every pointer agrees', () => {
+    const state = lookProductionState('ocean', 'ocean', [comp('card', 'ocean'), comp('button', 'default')]);
+    expect(state).toEqual({ inProduction: true, themeOff: false, componentsOff: [] });
+  });
+
+  it('reports out of sync when the colors and type have not shipped', () => {
+    const state = lookProductionState('my-colors', 'ocean', [comp('card', 'ocean')]);
+    expect(state.themeOff).toBe(true);
+    expect(state.inProduction).toBe(false);
+  });
+
+  it('names every component production is not running', () => {
+    const components = [comp('card', 'bold', 'default'), comp('button', 'ocean'), comp('badge', 'default', 'old')];
+    const state = lookProductionState('ocean', 'ocean', components);
+    expect(state.componentsOff).toEqual(['card', 'badge']);
+    expect(state.inProduction).toBe(false);
+  });
+
+  it('holds its verdict until production answers', () => {
+    const state = lookProductionState('my-colors', null, [comp('card', 'ocean')]);
+    expect(state).toEqual({ inProduction: true, themeOff: false, componentsOff: [] });
   });
 });

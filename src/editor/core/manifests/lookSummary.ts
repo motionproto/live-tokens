@@ -1,5 +1,34 @@
 import type { ComponentSummary } from '../components/componentConfigService';
 
+export interface LookProductionState {
+  /** True when production runs the look on screen, slice for slice. */
+  inProduction: boolean;
+  /** True when production runs colors and type other than the live ones. */
+  themeOff: boolean;
+  /** Components running a config production does not have. */
+  componentsOff: string[];
+}
+
+/**
+ * Whether production is running the whole look. Two pointer comparisons: the
+ * live colors and type against the production theme, and each component's
+ * active config against its production one.
+ *
+ * A null production theme means the answer has not arrived from the server
+ * yet. Reporting "out of sync" then would raise the alarm on every mount.
+ */
+export function lookProductionState(
+  activeTheme: string,
+  productionTheme: string | null,
+  components: ComponentSummary[],
+): LookProductionState {
+  const themeOff = productionTheme !== null && productionTheme !== activeTheme;
+  const componentsOff = components
+    .filter((c) => c.activeFile !== c.productionFile)
+    .map((c) => c.name);
+  return { themeOff, componentsOff, inProduction: !themeOff && componentsOff.length === 0 };
+}
+
 /**
  * How many components run something other than what the active look carries.
  *
