@@ -48,7 +48,7 @@ const PRESETS = [
     ops: [{ kind: 'radius', shift: 2 }, { kind: 'padding', shift: 2 }, { kind: 'gap', shift: 1 }],
   },
   {
-    slug: 'christmas',
+    slug: 'yuletide',
     ops: [
       { kind: 'radius', shift: 3 },
       { kind: 'gap', shift: 2 },
@@ -91,7 +91,7 @@ const PRESETS = [
     ],
   },
   {
-    slug: 'saint-patrick',
+    slug: 'leprechaun',
     ops: [
       { kind: 'radius', shift: 2 },
       { kind: 'gap', shift: 1 },
@@ -183,8 +183,15 @@ for (const { slug, ops } of PRESETS) {
   const componentConfigs = {};
   let aliasCount = 0;
   for (const entry of [...report.components].sort((a, b) => a.component.localeCompare(b.component))) {
-    if (entry.changes.length === 0) continue;
     const comp = entry.component;
+    // Count aliases that end up differing from the default, not per-op change
+    // records — overlapping ops (a sweep plus a targeted set) would otherwise
+    // double-count, and a net-zero component must not embed a default-identical
+    // config (delta encoding).
+    const diff = Object.keys(next[comp].aliases).filter(
+      (v) => next[comp].aliases[v] !== defaults[comp].aliases[v],
+    ).length;
+    if (diff === 0) continue;
     componentConfigs[comp] = {
       name: slug,
       component: comp,
@@ -192,7 +199,7 @@ for (const { slug, ops } of PRESETS) {
       updatedAt: now,
       aliases: next[comp].aliases,
     };
-    aliasCount += entry.changes.length;
+    aliasCount += diff;
   }
 
   const manifestPath = join(MANIFESTS, `${slug}.json`);

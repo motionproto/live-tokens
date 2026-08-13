@@ -1,12 +1,12 @@
 {
   "name": "Ocean",
   "createdAt": "2026-08-13T10:21:46.867Z",
-  "updatedAt": "2026-08-13T13:58:23.447Z",
+  "updatedAt": "2026-08-13T14:14:20.015Z",
   "schemaVersion": 2,
   "theme": {
     "name": "Ocean",
     "createdAt": "2026-08-12T20:13:46.322Z",
-    "updatedAt": "2026-08-13T13:58:23.447Z",
+    "updatedAt": "2026-08-13T14:14:20.015Z",
     "editorConfigs": {
       "Brand": {
         "baseColor": {
@@ -2291,45 +2291,6 @@
         ]
       },
       {
-        "id": "src_manrope_local",
-        "kind": "google",
-        "label": "Google Fonts",
-        "families": [
-          {
-            "id": "src_manrope_local:manrope",
-            "name": "Manrope",
-            "cssName": "\"Manrope\"",
-            "weights": [
-              200,
-              300,
-              400,
-              500,
-              600,
-              700,
-              800
-            ]
-          }
-        ],
-        "url": "https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap"
-      },
-      {
-        "id": "src_google_arvo",
-        "kind": "google",
-        "url": "https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&display=swap",
-        "label": "Google Fonts",
-        "families": [
-          {
-            "id": "src_google_arvo:arvo",
-            "name": "Arvo",
-            "cssName": "\"Arvo\"",
-            "weights": [
-              400,
-              700
-            ]
-          }
-        ]
-      },
-      {
         "id": "src_google_eck6qp6s",
         "kind": "google",
         "url": "https://fonts.googleapis.com/css2?family=GFS+Didot&display=swap",
@@ -2474,7 +2435,7 @@
       "name": "ocean",
       "component": "badge",
       "createdAt": "2026-05-01T08:28:00.345Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--badge-primary-surface": "--surface-brand",
         "--badge-primary-text": "--text-brand",
@@ -2612,7 +2573,7 @@
       "name": "ocean",
       "component": "button",
       "createdAt": "2026-05-10T19:28:06.893Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--button-primary-surface": "--surface-brand-high",
         "--button-primary-text": "--text-primary",
@@ -2728,7 +2689,7 @@
       "name": "ocean",
       "component": "callout",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--callout-info-surface": "--surface-info-lowest",
         "--callout-info-border": "--border-info-medium",
@@ -2800,7 +2761,7 @@
       "name": "ocean",
       "component": "card",
       "createdAt": "2026-05-10T19:26:31.704Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--card-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent)",
         "--card-default-border": "--border-neutral",
@@ -2841,7 +2802,7 @@
       "name": "ocean",
       "component": "codesnippet",
       "createdAt": "2026-05-27T13:22:54.228Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--codesnippet-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 76%, transparent)",
         "--codesnippet-border": "--border-neutral",
@@ -2865,7 +2826,7 @@
       "name": "ocean",
       "component": "collapsiblesection",
       "createdAt": "2026-05-10T20:40:17.048Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--collapsiblesection-chromeless-default-surface": "--color-transparent",
         "--collapsiblesection-chromeless-default-padding": "--space-6",
@@ -2938,7 +2899,7 @@
       "name": "ocean",
       "component": "cornerbadge",
       "createdAt": "2026-05-12T15:31:06.313Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--corner-badge-margin": "--space-2",
         "--corner-badge-outer-radius": "--radius-md",
@@ -2986,7 +2947,7 @@
       "name": "ocean",
       "component": "dialog",
       "createdAt": "2026-05-10T20:05:24.719Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--dialog-overlay-surface": "--overlay-high",
         "--dialog-surface": "--surface-neutral-lowest",
@@ -3021,7 +2982,7 @@
       "name": "ocean",
       "component": "iconbutton",
       "createdAt": "2026-06-14T00:00:00.000Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--iconbutton-primary-surface": "--surface-brand-high",
         "--iconbutton-primary-icon": "--text-primary",
@@ -3110,7 +3071,7 @@
       "name": "ocean",
       "component": "image",
       "createdAt": "2026-04-26T00:00:00.000Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--image-default-radius": "--radius-4xl",
         "--image-default-border": "--border-neutral",
@@ -3123,7 +3084,7 @@
       "name": "ocean",
       "component": "imagelightbox",
       "createdAt": "2026-05-26T02:03:38.863Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--imagelightbox-tile-radius": "--radius-4xl",
         "--imagelightbox-tile-border": "--color-transparent",
@@ -3142,7 +3103,7 @@
       "name": "ocean",
       "component": "inlineeditactions",
       "createdAt": "2026-05-01T08:34:39.325Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--inlineeditactions-save-default-surface": "--surface-success-low",
         "--inlineeditactions-save-default-text": "--text-success",
@@ -3178,7 +3139,7 @@
       "name": "ocean",
       "component": "input",
       "createdAt": "2026-05-24T14:28:03.860Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--input-radius": "--radius-xl",
         "--input-padding": "--space-10",
@@ -3236,7 +3197,7 @@
       "name": "ocean",
       "component": "menuselect",
       "createdAt": "2026-05-16T00:00:00.000Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--menuselect-menu-surface": "color-mix(in srgb, var(--surface-neutral-lower) 85%, transparent)",
         "--menuselect-menu-border": "--border-neutral-medium",
@@ -3286,7 +3247,7 @@
       "name": "ocean",
       "component": "notification",
       "createdAt": "2026-04-18T02:43:11.330Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--notification-info-surface": "--surface-info",
         "--notification-info-action-surface": "--surface-neutral-lowest",
@@ -3366,7 +3327,7 @@
       "name": "ocean",
       "component": "panel",
       "createdAt": "2026-06-01T09:34:52.417Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--panel-frame-border": "--border-neutral",
         "--panel-frame-border-width": "--border-width-1",
@@ -3399,7 +3360,7 @@
       "name": "ocean",
       "component": "progressbar",
       "createdAt": "2026-05-10T20:42:26.726Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--progressbar-track-surface": "--surface-neutral-lowest",
         "--progressbar-track-border": "--border-neutral-subtle",
@@ -3424,7 +3385,7 @@
       "name": "ocean",
       "component": "sectiondivider",
       "createdAt": "2026-05-10T22:09:00.336Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--sectiondivider-lg-title-font-family": "--font-display",
         "--sectiondivider-lg-title-font-weight": "--font-weight-bold",
@@ -3519,7 +3480,7 @@
       "name": "ocean",
       "component": "segmentedcontrol",
       "createdAt": "2026-04-28T21:13:17.669Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--segmentedcontrol-bar-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent)",
         "--segmentedcontrol-bar-border": "--border-neutral",
@@ -3579,7 +3540,7 @@
       "name": "ocean",
       "component": "sidenavigation",
       "createdAt": "2026-05-25T19:34:09.771Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--sidenavigation-panel-surface": "--surface-canvas-lower",
         "--sidenavigation-panel-border": "--border-canvas-faint",
@@ -3739,7 +3700,7 @@
       "name": "ocean",
       "component": "tabbar",
       "createdAt": "2026-05-12T01:57:26.390Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--tabbar-bar-divider": "--border-neutral-subtle",
         "--tabbar-bar-divider-thickness": "--border-width-1",
@@ -3809,7 +3770,7 @@
       "name": "ocean",
       "component": "table",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--table-default-radius": "--radius-xl",
         "--table-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 57%, transparent)",
@@ -3843,7 +3804,7 @@
       "name": "ocean",
       "component": "toggle",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--toggle-track-surface": "--surface-neutral",
         "--toggle-track-border": "--border-neutral",
@@ -3875,7 +3836,7 @@
       "name": "ocean",
       "component": "tooltip",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--tooltip-surface": "color-mix(in srgb, var(--surface-canvas-lowest) 75%, transparent)",
         "--tooltip-text": "--text-primary",

@@ -147,3 +147,9 @@ Two notes for review, left as the addendum specified them:
 
 - Ocean's `radius +2 with full` is inert today. No component default sits at `--radius-3xl` or above, so nothing can climb to `--radius-full`, and existing pills are preserved with or without the flag. Kept as declared intent.
 - Preset themes keep the Arvo and Manrope sources inherited from the default theme, now referenced by no stack, so each preset's `fonts.css` carries two unused `@import`s. Pruning unreferenced sources would widen the stamper's remit past "add or replace the two".
+
+### Post-review revision (2026-08-13)
+
+Two presets renamed to step away from the religious names, per Mark: christmas → **yuletide** ("Yuletide") and saint-patrick → **leprechaun** ("Leprechaun"), keeping their fonts (Mountains of Christmas, Baloo 2) and personalities. Theme files, manifests, package `files` entries, tests, README, and CHANGELOG all follow; the generate-theme skill keeps "Christmas" and "St. Patrick's" as brief vocabulary since that is what users type. Nothing had shipped, so no migration.
+
+Two unit-7 review findings fixed in the same pass: `stampPresetFonts` now drops sources no stack references (the displaced Arvo and Manrope entries were two render-blocking @imports per consumer page load; preset themes carry four sources, all used), and the generator counts aliases that differ from the default instead of per-op change records (overlapping ops double-counted).

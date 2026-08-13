@@ -1,18 +1,18 @@
 {
-  "name": "Saint Patrick",
-  "createdAt": "2026-08-13T10:21:46.867Z",
-  "updatedAt": "2026-08-13T13:58:23.447Z",
+  "name": "Yuletide",
+  "createdAt": "2026-08-13T14:14:20.015Z",
+  "updatedAt": "2026-08-13T14:14:20.015Z",
   "schemaVersion": 2,
   "theme": {
-    "name": "Saint Patrick",
-    "createdAt": "2026-08-12T20:13:46.377Z",
-    "updatedAt": "2026-08-13T13:58:23.447Z",
+    "name": "Yuletide",
+    "createdAt": "2026-08-12T20:13:46.153Z",
+    "updatedAt": "2026-08-13T14:14:20.015Z",
     "editorConfigs": {
       "Brand": {
         "baseColor": {
-          "l": 0.78,
-          "c": 0.14,
-          "h": 90
+          "l": 0.72,
+          "c": 0.13,
+          "h": 152
         },
         "lightnessCurve": [
           {
@@ -20,22 +20,22 @@
             "y": 95,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 6.666666666666666,
-            "outDy": -5.666666666666666
+            "outDx": 10,
+            "outDy": -7.666666666666667
           },
           {
-            "x": 20,
-            "y": 78,
-            "inDx": -6.666666666666666,
-            "inDy": 5.732177263969171,
-            "outDx": 26.666666666666664,
-            "outDy": -22.928709055876684
+            "x": 30,
+            "y": 72,
+            "inDx": -10,
+            "inDy": 8.243419824528655,
+            "outDx": 23.333333333333332,
+            "outDy": -19.234646257233525
           },
           {
             "x": 100,
             "y": 8,
-            "inDx": -26.666666666666664,
-            "inDy": 23.333333333333332,
+            "inDx": -23.333333333333332,
+            "inDy": 21.333333333333332,
             "outDx": 0,
             "outDy": 0
           }
@@ -46,21 +46,21 @@
             "y": 100,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 6.666666666666666,
+            "outDx": 10,
             "outDy": 0
           },
           {
-            "x": 20,
+            "x": 30,
             "y": 100,
-            "inDx": -6.666666666666666,
+            "inDx": -10,
             "inDy": 0,
-            "outDx": 26.666666666666664,
+            "outDx": 23.333333333333332,
             "outDy": 0
           },
           {
             "x": 100,
             "y": 100,
-            "inDx": -26.666666666666664,
+            "inDx": -23.333333333333332,
             "inDy": 0,
             "outDx": 0,
             "outDy": 0
@@ -190,7 +190,7 @@
         "snappedScales": [],
         "anchorToBase": true,
         "anchorPlacement": {
-          "step": 2,
+          "step": 3,
           "priorLightnessEndpoints": [
             {
               "x": 0,
@@ -231,9 +231,9 @@
       },
       "Accent": {
         "baseColor": {
-          "l": 0.78,
-          "c": 0.12,
-          "h": 150
+          "l": 0.82,
+          "c": 0.14,
+          "h": 90
         },
         "lightnessCurve": [
           {
@@ -242,21 +242,21 @@
             "inDx": 0,
             "inDy": 0,
             "outDx": 6.666666666666666,
-            "outDy": -5.666666666666666
+            "outDy": -4.333333333333333
           },
           {
             "x": 20,
-            "y": 78,
+            "y": 82,
             "inDx": -6.666666666666666,
-            "inDy": 5.732177263969171,
+            "inDy": 4.918200408997955,
             "outDx": 26.666666666666664,
-            "outDy": -22.928709055876684
+            "outDy": -19.67280163599182
           },
           {
             "x": 100,
             "y": 8,
             "inDx": -26.666666666666664,
-            "inDy": 23.333333333333332,
+            "inDy": 24.666666666666664,
             "outDx": 0,
             "outDy": 0
           }
@@ -452,9 +452,9 @@
       },
       "Special": {
         "baseColor": {
-          "l": 0.85,
-          "c": 0.1,
-          "h": 95
+          "l": 0.72,
+          "c": 0.14,
+          "h": 5
         },
         "lightnessCurve": [
           {
@@ -462,22 +462,22 @@
             "y": 95,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 3.333333333333333,
-            "outDy": -3.333333333333333
+            "outDx": 10,
+            "outDy": -7.666666666666667
           },
           {
-            "x": 10,
-            "y": 85,
-            "inDx": -3.333333333333333,
-            "inDy": 3.139013452914798,
-            "outDx": 30,
-            "outDy": -28.251121076233186
+            "x": 30,
+            "y": 72,
+            "inDx": -10,
+            "inDy": 8.243419824528655,
+            "outDx": 23.333333333333332,
+            "outDy": -19.234646257233525
           },
           {
             "x": 100,
             "y": 8,
-            "inDx": -30,
-            "inDy": 25.666666666666664,
+            "inDx": -23.333333333333332,
+            "inDy": 21.333333333333332,
             "outDx": 0,
             "outDy": 0
           }
@@ -488,21 +488,21 @@
             "y": 100,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 3.333333333333333,
+            "outDx": 10,
             "outDy": 0
           },
           {
-            "x": 10,
+            "x": 30,
             "y": 100,
-            "inDx": -3.333333333333333,
+            "inDx": -10,
             "inDy": 0,
-            "outDx": 30,
+            "outDx": 23.333333333333332,
             "outDy": 0
           },
           {
             "x": 100,
             "y": 100,
-            "inDx": -30,
+            "inDx": -23.333333333333332,
             "inDy": 0,
             "outDx": 0,
             "outDy": 0
@@ -632,7 +632,7 @@
         "snappedScales": [],
         "anchorToBase": true,
         "anchorPlacement": {
-          "step": 1,
+          "step": 3,
           "priorLightnessEndpoints": [
             {
               "x": 0,
@@ -673,9 +673,9 @@
       },
       "Canvas": {
         "baseColor": {
-          "l": 0.44,
-          "c": 0.1,
-          "h": 152
+          "l": 0.42,
+          "c": 0.14,
+          "h": 25
         },
         "lightnessCurve": [
           {
@@ -684,21 +684,21 @@
             "inDx": 0,
             "inDy": 0,
             "outDx": 20,
-            "outDy": -17
+            "outDy": -17.666666666666664
           },
           {
             "x": 60,
-            "y": 44,
+            "y": 42,
             "inDx": -20,
-            "inDy": 17.51908396946565,
+            "inDy": 17.304737516005122,
             "outDx": 13.333333333333332,
-            "outDy": -11.679389312977099
+            "outDy": -11.536491677336747
           },
           {
             "x": 100,
             "y": 8,
             "inDx": -13.333333333333332,
-            "inDy": 12,
+            "inDy": 11.333333333333332,
             "outDx": 0,
             "outDy": 0
           }
@@ -896,7 +896,7 @@
         "baseColor": {
           "l": 0.57,
           "c": 0.015,
-          "h": 150
+          "h": 25
         },
         "lightnessCurve": [
           {
@@ -1039,19 +1039,19 @@
               },
               {
                 "x": 25,
-                "y": 163.17360429713267,
+                "y": 162.94814842033736,
                 "inDx": -8.333333333333332,
-                "inDy": 5.638599020530414,
+                "inDy": 5.7193198910874905,
                 "outDx": 8.333333333333332,
-                "outDy": -5.638599020530415
+                "outDy": -5.719319891087491
               },
               {
                 "x": 50,
-                "y": 138.89100197077516,
+                "y": 138.70459280905376,
                 "inDx": -8.333333333333332,
-                "inDy": 9.957826139397307,
+                "inDy": 9.939877622433116,
                 "outDx": 16.666666666666664,
-                "outDy": -19.915652278794614
+                "outDy": -19.87975524486623
               },
               {
                 "x": 100,
@@ -1073,7 +1073,7 @@
               },
               {
                 "x": 25,
-                "y": 80.55989825664977,
+                "y": 81.51599467962448,
                 "inDx": -8.333333333333332,
                 "inDy": 0,
                 "outDx": 8.333333333333332,
@@ -1081,11 +1081,11 @@
               },
               {
                 "x": 50,
-                "y": 53.18393399828051,
+                "y": 60.73403961484883,
                 "inDx": -8.333333333333332,
-                "inDy": 7.650052568081528,
+                "inDy": 7.219908119412393,
                 "outDx": 16.666666666666664,
-                "outDy": -15.300105136163056
+                "outDy": -14.439816238824786
               },
               {
                 "x": 100,
@@ -1149,7 +1149,7 @@
         "baseColor": {
           "l": 0.58,
           "c": 0.012,
-          "h": 90
+          "h": 150
         },
         "lightnessCurve": [
           {
@@ -1284,7 +1284,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 136.82615650873032,
+                "y": 136.08349170526864,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -1302,7 +1302,7 @@
             "saturation": [
               {
                 "x": 0,
-                "y": 99.9624916855599,
+                "y": 97.99097958892096,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -2323,45 +2323,6 @@
         ]
       },
       {
-        "id": "src_manrope_local",
-        "kind": "google",
-        "label": "Google Fonts",
-        "families": [
-          {
-            "id": "src_manrope_local:manrope",
-            "name": "Manrope",
-            "cssName": "\"Manrope\"",
-            "weights": [
-              200,
-              300,
-              400,
-              500,
-              600,
-              700,
-              800
-            ]
-          }
-        ],
-        "url": "https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap"
-      },
-      {
-        "id": "src_google_arvo",
-        "kind": "google",
-        "url": "https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&display=swap",
-        "label": "Google Fonts",
-        "families": [
-          {
-            "id": "src_google_arvo:arvo",
-            "name": "Arvo",
-            "cssName": "\"Arvo\"",
-            "weights": [
-              400,
-              700
-            ]
-          }
-        ]
-      },
-      {
         "id": "src_google_eck6qp6s",
         "kind": "google",
         "url": "https://fonts.googleapis.com/css2?family=GFS+Didot&display=swap",
@@ -2378,40 +2339,39 @@
         ]
       },
       {
-        "id": "src_preset_baloo-2",
+        "id": "src_preset_mountains-of-christmas",
         "kind": "google",
-        "url": "https://fonts.googleapis.com/css2?family=Baloo+2:wght@400..800&display=swap",
+        "url": "https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&display=swap",
         "label": "Google Fonts",
         "families": [
           {
-            "id": "src_preset_baloo-2:baloo-2",
-            "name": "Baloo 2",
-            "cssName": "\"Baloo 2\"",
+            "id": "src_preset_mountains-of-christmas:mountains-of-christmas",
+            "name": "Mountains of Christmas",
+            "cssName": "\"Mountains of Christmas\"",
             "weights": [
               400,
-              500,
-              600,
-              700,
-              800
+              700
             ]
           }
         ]
       },
       {
-        "id": "src_preset_cabin",
+        "id": "src_preset_nunito",
         "kind": "google",
-        "url": "https://fonts.googleapis.com/css2?family=Cabin:wght@400..700&display=swap",
+        "url": "https://fonts.googleapis.com/css2?family=Nunito:wght@300..800&display=swap",
         "label": "Google Fonts",
         "families": [
           {
-            "id": "src_preset_cabin:cabin",
-            "name": "Cabin",
-            "cssName": "\"Cabin\"",
+            "id": "src_preset_nunito:nunito",
+            "name": "Nunito",
+            "cssName": "\"Nunito\"",
             "weights": [
+              300,
               400,
               500,
               600,
-              700
+              700,
+              800
             ]
           }
         ]
@@ -2423,7 +2383,7 @@
         "slots": [
           {
             "kind": "project",
-            "familyId": "src_preset_baloo-2:baloo-2"
+            "familyId": "src_preset_mountains-of-christmas:mountains-of-christmas"
           },
           {
             "kind": "generic",
@@ -2436,7 +2396,7 @@
         "slots": [
           {
             "kind": "project",
-            "familyId": "src_preset_cabin:cabin"
+            "familyId": "src_preset_nunito:nunito"
           },
           {
             "kind": "system",
@@ -2481,19 +2441,19 @@
     ],
     "harmonyAxes": [
       {
-        "hue": 90,
+        "hue": 152,
         "family": "Brand"
       },
       {
-        "hue": 150,
+        "hue": 90,
         "family": "Accent"
       },
       {
-        "hue": 152,
+        "hue": 25,
         "family": "Canvas"
       },
       {
-        "hue": 0,
+        "hue": 62,
         "family": null
       }
     ],
@@ -2501,10 +2461,10 @@
   },
   "componentConfigs": {
     "button": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "button",
       "createdAt": "2026-05-10T19:28:06.893Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--button-primary-surface": "--surface-brand-high",
         "--button-primary-text": "--text-primary",
@@ -2617,16 +2577,16 @@
       }
     },
     "callout": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "callout",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--callout-info-surface": "--surface-info-lowest",
         "--callout-info-border": "--border-info-medium",
         "--callout-info-border-width": "--border-width-1",
         "--callout-info-accent-width": "--border-width-4",
-        "--callout-info-radius": "--radius-2xl",
+        "--callout-info-radius": "--radius-3xl",
         "--callout-info-padding": "--space-12",
         "--callout-info-label": "--text-primary",
         "--callout-info-label-font-family": "--font-sans",
@@ -2642,7 +2602,7 @@
         "--callout-success-border": "--border-success-subtle",
         "--callout-success-border-width": "--border-width-1",
         "--callout-success-accent-width": "--border-width-4",
-        "--callout-success-radius": "--radius-2xl",
+        "--callout-success-radius": "--radius-3xl",
         "--callout-success-padding": "--space-12",
         "--callout-success-label": "--text-primary",
         "--callout-success-label-font-family": "--font-sans",
@@ -2658,7 +2618,7 @@
         "--callout-warning-border": "--border-warning-subtle",
         "--callout-warning-border-width": "--border-width-1",
         "--callout-warning-accent-width": "--border-width-4",
-        "--callout-warning-radius": "--radius-2xl",
+        "--callout-warning-radius": "--radius-3xl",
         "--callout-warning-padding": "--space-12",
         "--callout-warning-label": "--text-primary",
         "--callout-warning-label-font-family": "--font-sans",
@@ -2674,7 +2634,7 @@
         "--callout-danger-border": "--border-danger-subtle",
         "--callout-danger-border-width": "--border-width-1",
         "--callout-danger-accent-width": "--border-width-4",
-        "--callout-danger-radius": "--radius-2xl",
+        "--callout-danger-radius": "--radius-3xl",
         "--callout-danger-padding": "--space-12",
         "--callout-danger-label": "--text-primary",
         "--callout-danger-label-font-family": "--font-sans",
@@ -2689,21 +2649,21 @@
       }
     },
     "card": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "card",
       "createdAt": "2026-05-10T19:26:31.704Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--card-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent)",
         "--card-default-border": "--border-neutral",
         "--card-default-border-width": "--border-width-1",
-        "--card-default-radius": "--radius-2xl",
+        "--card-default-radius": "--radius-3xl",
         "--card-default-header-padding": "--space-16",
         "--card-default-header-padding-top": "--space-12",
         "--card-default-header-padding-right": "--space-20",
         "--card-default-header-padding-bottom": "--space-12",
         "--card-default-header-padding-left": "--space-20",
-        "--card-default-header-gap": "--space-10",
+        "--card-default-header-gap": "--space-12",
         "--card-default-body-padding": "--space-16",
         "--card-default-body-padding-top": "--space-16",
         "--card-default-body-padding-right": "--space-20",
@@ -2730,17 +2690,17 @@
       }
     },
     "codesnippet": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "codesnippet",
       "createdAt": "2026-05-27T13:22:54.228Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--codesnippet-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 76%, transparent)",
         "--codesnippet-border": "--border-neutral",
         "--codesnippet-border-width": "--border-width-1",
-        "--codesnippet-radius": "--radius-xl",
+        "--codesnippet-radius": "--radius-2xl",
         "--codesnippet-padding": "--space-16",
-        "--codesnippet-gap": "--space-20",
+        "--codesnippet-gap": "--space-24",
         "--codesnippet-code-text": "--text-brand",
         "--codesnippet-code-font-family": "--font-mono",
         "--codesnippet-code-font-size": "--font-size-md",
@@ -2754,10 +2714,10 @@
       }
     },
     "collapsiblesection": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "collapsiblesection",
       "createdAt": "2026-05-10T20:40:17.048Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--collapsiblesection-chromeless-default-surface": "--color-transparent",
         "--collapsiblesection-chromeless-default-padding": "--space-4",
@@ -2803,7 +2763,7 @@
         "--collapsiblesection-divider-expanded-padding": "--space-4",
         "--collapsiblesection-container-frame-border": "--border-neutral",
         "--collapsiblesection-container-frame-border-width": "--border-width-1",
-        "--collapsiblesection-container-frame-radius": "--radius-xl",
+        "--collapsiblesection-container-frame-radius": "--radius-2xl",
         "--collapsiblesection-container-default-surface": "--surface-neutral",
         "--collapsiblesection-container-default-padding": "--space-4",
         "--collapsiblesection-container-default-label": "--text-primary",
@@ -2827,16 +2787,16 @@
       }
     },
     "cornerbadge": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "cornerbadge",
       "createdAt": "2026-05-12T15:31:06.313Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--corner-badge-margin": "--space-0",
-        "--corner-badge-outer-radius": "--radius-md",
-        "--corner-badge-inner-radius": "--radius-md",
-        "--corner-badge-h-axis-radius": "--radius-md",
-        "--corner-badge-v-axis-radius": "--radius-md",
+        "--corner-badge-outer-radius": "--radius-lg",
+        "--corner-badge-inner-radius": "--radius-lg",
+        "--corner-badge-h-axis-radius": "--radius-lg",
+        "--corner-badge-v-axis-radius": "--radius-lg",
         "--corner-badge-padding": "--space-6",
         "--corner-badge-text-font-family": "--font-sans",
         "--corner-badge-text-font-size": "--font-size-sm",
@@ -2875,16 +2835,16 @@
       }
     },
     "dialog": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "dialog",
       "createdAt": "2026-05-10T20:05:24.719Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--dialog-overlay-surface": "--overlay-high",
         "--dialog-surface": "--surface-neutral-lowest",
         "--dialog-border": "--border-neutral-strong",
         "--dialog-border-width": "--border-width-2",
-        "--dialog-radius": "--radius-2xl",
+        "--dialog-radius": "--radius-3xl",
         "--dialog-shadow": "--shadow-2xl",
         "--dialog-blur": "--blur-none",
         "--dialog-header-surface": "--surface-neutral-lower",
@@ -2910,16 +2870,16 @@
       }
     },
     "iconbutton": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "iconbutton",
       "createdAt": "2026-06-14T00:00:00.000Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--iconbutton-primary-surface": "--surface-brand-high",
         "--iconbutton-primary-icon": "--text-primary",
         "--iconbutton-primary-border": "--border-brand",
         "--iconbutton-primary-border-width": "--border-width-1",
-        "--iconbutton-primary-radius": "--radius-3xl",
+        "--iconbutton-primary-radius": "--radius-4xl",
         "--iconbutton-primary-padding": "--space-8",
         "--iconbutton-primary-icon-size": "--icon-size-md",
         "--iconbutton-primary-hover-surface": "--surface-brand-higher",
@@ -2932,7 +2892,7 @@
         "--iconbutton-secondary-icon": "--text-primary",
         "--iconbutton-secondary-border": "--border-neutral",
         "--iconbutton-secondary-border-width": "--border-width-1",
-        "--iconbutton-secondary-radius": "--radius-3xl",
+        "--iconbutton-secondary-radius": "--radius-4xl",
         "--iconbutton-secondary-padding": "--space-8",
         "--iconbutton-secondary-icon-size": "--icon-size-md",
         "--iconbutton-secondary-hover-surface": "--surface-neutral-higher",
@@ -2945,7 +2905,7 @@
         "--iconbutton-outline-icon": "--text-primary",
         "--iconbutton-outline-border": "--border-neutral",
         "--iconbutton-outline-border-width": "--border-width-1",
-        "--iconbutton-outline-radius": "--radius-3xl",
+        "--iconbutton-outline-radius": "--radius-4xl",
         "--iconbutton-outline-padding": "--space-8",
         "--iconbutton-outline-icon-size": "--icon-size-md",
         "--iconbutton-outline-hover-surface": "--surface-neutral-lower",
@@ -2959,7 +2919,7 @@
         "--iconbutton-success-icon": "--text-success",
         "--iconbutton-success-border": "--border-success",
         "--iconbutton-success-border-width": "--border-width-1",
-        "--iconbutton-success-radius": "--radius-3xl",
+        "--iconbutton-success-radius": "--radius-4xl",
         "--iconbutton-success-padding": "--space-8",
         "--iconbutton-success-icon-size": "--icon-size-md",
         "--iconbutton-success-hover-surface": "--surface-success-higher",
@@ -2972,7 +2932,7 @@
         "--iconbutton-danger-icon": "--text-danger",
         "--iconbutton-danger-border": "--border-danger",
         "--iconbutton-danger-border-width": "--border-width-1",
-        "--iconbutton-danger-radius": "--radius-3xl",
+        "--iconbutton-danger-radius": "--radius-4xl",
         "--iconbutton-danger-padding": "--space-8",
         "--iconbutton-danger-icon-size": "--icon-size-md",
         "--iconbutton-danger-hover-surface": "--surface-danger-high",
@@ -2985,7 +2945,7 @@
         "--iconbutton-warning-icon": "--text-warning",
         "--iconbutton-warning-border": "--border-warning",
         "--iconbutton-warning-border-width": "--border-width-1",
-        "--iconbutton-warning-radius": "--radius-3xl",
+        "--iconbutton-warning-radius": "--radius-4xl",
         "--iconbutton-warning-padding": "--space-8",
         "--iconbutton-warning-icon-size": "--icon-size-md",
         "--iconbutton-warning-hover-surface": "--surface-warning-high",
@@ -2999,10 +2959,10 @@
       }
     },
     "image": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "image",
       "createdAt": "2026-04-26T00:00:00.000Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--image-default-radius": "--radius-4xl",
         "--image-default-border": "--border-neutral",
@@ -3012,10 +2972,10 @@
       }
     },
     "imagelightbox": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "imagelightbox",
       "createdAt": "2026-05-26T02:03:38.863Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--imagelightbox-tile-radius": "--radius-4xl",
         "--imagelightbox-tile-border": "--color-transparent",
@@ -3031,51 +2991,51 @@
       }
     },
     "inlineeditactions": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "inlineeditactions",
       "createdAt": "2026-05-01T08:34:39.325Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--inlineeditactions-save-default-surface": "--surface-success-low",
         "--inlineeditactions-save-default-text": "--text-success",
         "--inlineeditactions-save-default-border": "--border-success",
         "--inlineeditactions-save-default-border-width": "--border-width-0",
-        "--inlineeditactions-save-default-radius": "--radius-xl",
+        "--inlineeditactions-save-default-radius": "--radius-2xl",
         "--inlineeditactions-save-default-padding": "--space-4",
         "--inlineeditactions-save-default-icon-size": "--icon-size-md",
         "--inlineeditactions-save-hover-surface": "--surface-success-high",
         "--inlineeditactions-save-hover-text": "--text-success",
         "--inlineeditactions-save-hover-border": "--border-success",
         "--inlineeditactions-save-hover-border-width": "--border-width-0",
-        "--inlineeditactions-save-hover-radius": "--radius-xl",
+        "--inlineeditactions-save-hover-radius": "--radius-2xl",
         "--inlineeditactions-save-hover-padding": "--space-4",
         "--inlineeditactions-save-hover-icon-size": "--icon-size-md",
         "--inlineeditactions-cancel-default-surface": "--surface-danger-low",
         "--inlineeditactions-cancel-default-text": "--text-danger",
         "--inlineeditactions-cancel-default-border": "--border-danger",
         "--inlineeditactions-cancel-default-border-width": "--border-width-0",
-        "--inlineeditactions-cancel-default-radius": "--radius-xl",
+        "--inlineeditactions-cancel-default-radius": "--radius-2xl",
         "--inlineeditactions-cancel-default-padding": "--space-4",
         "--inlineeditactions-cancel-default-icon-size": "--icon-size-md",
         "--inlineeditactions-cancel-hover-surface": "--surface-danger-high",
         "--inlineeditactions-cancel-hover-text": "--text-danger",
         "--inlineeditactions-cancel-hover-border": "--border-danger",
         "--inlineeditactions-cancel-hover-border-width": "--border-width-0",
-        "--inlineeditactions-cancel-hover-radius": "--radius-xl",
+        "--inlineeditactions-cancel-hover-radius": "--radius-2xl",
         "--inlineeditactions-cancel-hover-padding": "--space-4",
         "--inlineeditactions-cancel-hover-icon-size": "--icon-size-md"
       }
     },
     "input": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "input",
       "createdAt": "2026-05-24T14:28:03.860Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
-        "--input-radius": "--radius-xl",
+        "--input-radius": "--radius-2xl",
         "--input-padding": "--space-8",
         "--input-border-width": "--border-width-1",
-        "--input-gap": "--space-8",
+        "--input-gap": "--space-10",
         "--input-default-surface": "--surface-neutral-lower",
         "--input-default-border": "--border-neutral",
         "--input-default-text": "--text-primary",
@@ -3125,19 +3085,19 @@
       }
     },
     "menuselect": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "menuselect",
       "createdAt": "2026-05-16T00:00:00.000Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--menuselect-menu-surface": "color-mix(in srgb, var(--surface-neutral-lower) 85%, transparent)",
         "--menuselect-menu-border": "--border-neutral-medium",
         "--menuselect-menu-border-width": "--border-width-1",
-        "--menuselect-menu-radius": "--radius-xl",
+        "--menuselect-menu-radius": "--radius-2xl",
         "--menuselect-menu-padding": "--space-4",
-        "--menuselect-menu-gap": "--space-4",
+        "--menuselect-menu-gap": "--space-6",
         "--menuselect-menu-shadow": "--shadow-md",
-        "--menuselect-item-radius": "--radius-lg",
+        "--menuselect-item-radius": "--radius-xl",
         "--menuselect-item-padding": "--space-8",
         "--menuselect-default-surface": "--color-transparent",
         "--menuselect-default-text": "--text-secondary",
@@ -3175,16 +3135,16 @@
       }
     },
     "notification": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "notification",
       "createdAt": "2026-04-18T02:43:11.330Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--notification-info-surface": "--surface-info",
         "--notification-info-action-surface": "--surface-neutral-lowest",
         "--notification-info-border": "--border-info",
         "--notification-info-border-width": "--border-width-1",
-        "--notification-info-radius": "--radius-xl",
+        "--notification-info-radius": "--radius-2xl",
         "--notification-info-padding": "--space-12",
         "--notification-info-icon": "--text-info",
         "--notification-info-icon-size": "--icon-size-md",
@@ -3202,7 +3162,7 @@
         "--notification-success-action-surface": "--surface-neutral-lowest",
         "--notification-success-border": "--border-success",
         "--notification-success-border-width": "--border-width-1",
-        "--notification-success-radius": "--radius-xl",
+        "--notification-success-radius": "--radius-2xl",
         "--notification-success-padding": "--space-12",
         "--notification-success-icon": "--text-success",
         "--notification-success-icon-size": "--icon-size-md",
@@ -3220,7 +3180,7 @@
         "--notification-warning-action-surface": "--surface-neutral-lowest",
         "--notification-warning-border": "--border-warning",
         "--notification-warning-border-width": "--border-width-1",
-        "--notification-warning-radius": "--radius-xl",
+        "--notification-warning-radius": "--radius-2xl",
         "--notification-warning-padding": "--space-12",
         "--notification-warning-icon": "--text-warning",
         "--notification-warning-icon-size": "--icon-size-md",
@@ -3238,7 +3198,7 @@
         "--notification-danger-action-surface": "--surface-neutral-lowest",
         "--notification-danger-border": "--border-danger",
         "--notification-danger-border-width": "--border-width-1",
-        "--notification-danger-radius": "--radius-xl",
+        "--notification-danger-radius": "--radius-2xl",
         "--notification-danger-padding": "--space-12",
         "--notification-danger-icon": "--text-danger",
         "--notification-danger-icon-size": "--icon-size-md",
@@ -3255,17 +3215,17 @@
       }
     },
     "panel": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "panel",
       "createdAt": "2026-06-01T09:34:52.417Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--panel-frame-border": "--border-neutral",
         "--panel-frame-border-width": "--border-width-1",
         "--panel-frame-radius": "--radius-4xl",
         "--panel-stage-padding": "--space-16",
         "--panel-stage-inline-padding": "--space-16",
-        "--panel-stage-gap": "--space-20",
+        "--panel-stage-gap": "--space-24",
         "--panel-stage-surface": {
           "kind": "gradient",
           "value": {
@@ -3288,10 +3248,10 @@
       }
     },
     "progressbar": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "progressbar",
       "createdAt": "2026-05-10T20:42:26.726Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--progressbar-track-surface": "--surface-neutral-lowest",
         "--progressbar-track-border": "--border-neutral-subtle",
@@ -3299,7 +3259,7 @@
         "--progressbar-track-height": "--space-16",
         "--progressbar-radius": "--radius-full",
         "--progressbar-fill": "--surface-special-highest",
-        "--progressbar-label-gap": "--space-8",
+        "--progressbar-label-gap": "--space-10",
         "--progressbar-label": "--text-secondary",
         "--progressbar-label-font-family": "--font-sans",
         "--progressbar-label-font-size": "--font-size-md",
@@ -3313,10 +3273,10 @@
       }
     },
     "sectiondivider": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "sectiondivider",
       "createdAt": "2026-05-10T22:09:00.336Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--sectiondivider-lg-title-font-family": "--font-display",
         "--sectiondivider-lg-title-font-weight": "--font-weight-bold",
@@ -3336,7 +3296,7 @@
         "--sectiondivider-lg-title-padding": "--space-2",
         "--sectiondivider-lg-description-padding": "--space-0",
         "--sectiondivider-lg-eyebrow-padding": "--space-0",
-        "--sectiondivider-lg-radius": "--radius-2xl",
+        "--sectiondivider-lg-radius": "--radius-3xl",
         "--sectiondivider-lg-border-width": "--border-width-1",
         "--sectiondivider-lg-shadow": "--shadow-none",
         "--sectiondivider-lg-hairline-thickness": "--border-width-1",
@@ -3365,7 +3325,7 @@
         "--sectiondivider-md-title-padding": "--space-2",
         "--sectiondivider-md-description-padding": "--space-0",
         "--sectiondivider-md-eyebrow-padding": "--space-0",
-        "--sectiondivider-md-radius": "--radius-2xl",
+        "--sectiondivider-md-radius": "--radius-3xl",
         "--sectiondivider-md-border-width": "--border-width-1",
         "--sectiondivider-md-shadow": "--shadow-none",
         "--sectiondivider-md-hairline-thickness": "--border-width-1",
@@ -3394,7 +3354,7 @@
         "--sectiondivider-sm-title-padding": "--space-2",
         "--sectiondivider-sm-description-padding": "--space-0",
         "--sectiondivider-sm-eyebrow-padding": "--space-0",
-        "--sectiondivider-sm-radius": "--radius-2xl",
+        "--sectiondivider-sm-radius": "--radius-3xl",
         "--sectiondivider-sm-border-width": "--border-width-1",
         "--sectiondivider-sm-shadow": "--shadow-none",
         "--sectiondivider-sm-hairline-thickness": "--border-width-1",
@@ -3408,22 +3368,22 @@
       }
     },
     "segmentedcontrol": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "segmentedcontrol",
       "createdAt": "2026-04-28T21:13:17.669Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--segmentedcontrol-bar-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent)",
         "--segmentedcontrol-bar-border": "--border-neutral",
         "--segmentedcontrol-bar-border-width": "--border-width-1",
-        "--segmentedcontrol-bar-radius": "--radius-2xl",
+        "--segmentedcontrol-bar-radius": "--radius-3xl",
         "--segmentedcontrol-bar-padding": "--space-4",
-        "--segmentedcontrol-bar-gap": "--space-10",
+        "--segmentedcontrol-bar-gap": "--space-12",
         "--segmentedcontrol-divider-color": "--border-neutral",
         "--segmentedcontrol-divider-thickness": "--border-width-1",
         "--segmentedcontrol-divider-inset": "--space-6",
         "--segmentedcontrol-option-padding": "--space-8",
-        "--segmentedcontrol-option-gap": "--space-10",
+        "--segmentedcontrol-option-gap": "--space-12",
         "--segmentedcontrol-option-text": "--text-primary",
         "--segmentedcontrol-option-text-font-family": "--font-sans",
         "--segmentedcontrol-option-text-font-size": "--font-size-md",
@@ -3447,7 +3407,7 @@
         "--segmentedcontrol-selected-icon": "--text-secondary",
         "--segmentedcontrol-selected-border": "--border-brand",
         "--segmentedcontrol-selected-border-width": "--border-width-1",
-        "--segmentedcontrol-selected-radius": "--radius-xl",
+        "--segmentedcontrol-selected-radius": "--radius-2xl",
         "--segmentedcontrol-disabled-surface": "--color-transparent",
         "--segmentedcontrol-disabled-text": "--text-secondary",
         "--segmentedcontrol-disabled-text-font-family": "--font-sans",
@@ -3456,40 +3416,40 @@
         "--segmentedcontrol-disabled-text-line-height": "--line-height-normal",
         "--segmentedcontrol-disabled-icon": "--text-secondary",
         "--segmentedcontrol-bar-small-padding": "--space-2",
-        "--segmentedcontrol-bar-small-radius": "--radius-xl",
+        "--segmentedcontrol-bar-small-radius": "--radius-2xl",
         "--segmentedcontrol-small-divider-inset": "--space-4",
         "--segmentedcontrol-small-divider-thickness": "--border-width-1",
         "--segmentedcontrol-option-small-padding": "--space-6",
-        "--segmentedcontrol-option-small-gap": "--space-8",
+        "--segmentedcontrol-option-small-gap": "--space-10",
         "--segmentedcontrol-option-small-icon-size": "--icon-size-sm",
         "--segmentedcontrol-option-small-text-font-size": "--font-size-sm",
         "--segmentedcontrol-option-small-text-line-height": "--line-height-tighter",
-        "--segmentedcontrol-selected-small-radius": "--radius-lg"
+        "--segmentedcontrol-selected-small-radius": "--radius-xl"
       }
     },
     "sidenavigation": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "sidenavigation",
       "createdAt": "2026-05-25T19:34:09.771Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--sidenavigation-panel-surface": "--surface-canvas-lower",
         "--sidenavigation-panel-border": "--border-canvas-faint",
         "--sidenavigation-panel-border-width": "--border-width-1",
         "--sidenavigation-panel-padding": "--space-16",
-        "--sidenavigation-panel-section-gap": "--space-6",
+        "--sidenavigation-panel-section-gap": "--space-8",
         "--sidenavigation-panel-item-padding": "--space-32",
-        "--sidenavigation-panel-footer-gap": "--space-20",
+        "--sidenavigation-panel-footer-gap": "--space-24",
         "--sidenavigation-open-duration": "--duration-200",
         "--sidenavigation-open-easing": "--ease-out-quart",
         "--sidenavigation-close-duration": "--duration-150",
         "--sidenavigation-close-easing": "--ease-out-quart",
-        "--sidenavigation-title-gap": "--space-10",
-        "--sidenavigation-title-radius": "--radius-xl",
+        "--sidenavigation-title-gap": "--space-12",
+        "--sidenavigation-title-radius": "--radius-2xl",
         "--sidenavigation-title-label-surface": "--color-transparent",
         "--sidenavigation-title-label-border": "--border-canvas-faint",
         "--sidenavigation-title-label-border-width": "--border-width-1",
-        "--sidenavigation-title-label-radius": "--radius-xl",
+        "--sidenavigation-title-label-radius": "--radius-2xl",
         "--sidenavigation-title-label-padding": "--space-6",
         "--sidenavigation-title-default-surface": "--color-transparent",
         "--sidenavigation-title-default-border": "--border-canvas-faint",
@@ -3527,14 +3487,14 @@
         "--sidenavigation-toggle-default-surface": "--color-transparent",
         "--sidenavigation-toggle-default-border": "--border-brand-medium",
         "--sidenavigation-toggle-default-border-width": "--border-width-1",
-        "--sidenavigation-toggle-default-radius": "--radius-xl",
+        "--sidenavigation-toggle-default-radius": "--radius-2xl",
         "--sidenavigation-toggle-default-padding": "--space-8",
         "--sidenavigation-toggle-default-icon": "--text-primary",
         "--sidenavigation-toggle-default-icon-size": "--icon-size-md",
         "--sidenavigation-toggle-hover-surface": "--surface-brand-lowest",
         "--sidenavigation-toggle-hover-border": "--border-brand",
         "--sidenavigation-toggle-hover-border-width": "--border-width-1",
-        "--sidenavigation-toggle-hover-radius": "--radius-xl",
+        "--sidenavigation-toggle-hover-radius": "--radius-2xl",
         "--sidenavigation-toggle-hover-padding": "--space-8",
         "--sidenavigation-toggle-hover-icon": "--text-brand",
         "--sidenavigation-toggle-hover-icon-size": "--icon-size-md",
@@ -3591,7 +3551,7 @@
         "--sidenavigation-item-active-text-line-height": "--line-height-normal",
         "--sidenavigation-footer-default-surface": "--color-transparent",
         "--sidenavigation-footer-default-padding": "--space-8",
-        "--sidenavigation-footer-default-gap": "--space-10",
+        "--sidenavigation-footer-default-gap": "--space-12",
         "--sidenavigation-footer-default-accent": "--color-transparent",
         "--sidenavigation-footer-default-accent-width": "--border-width-3",
         "--sidenavigation-footer-default-icon": "--text-muted",
@@ -3603,7 +3563,7 @@
         "--sidenavigation-footer-default-text-line-height": "--line-height-normal",
         "--sidenavigation-footer-hover-surface": "--surface-canvas",
         "--sidenavigation-footer-hover-padding": "--space-8",
-        "--sidenavigation-footer-hover-gap": "--space-10",
+        "--sidenavigation-footer-hover-gap": "--space-12",
         "--sidenavigation-footer-hover-accent": "--color-transparent",
         "--sidenavigation-footer-hover-accent-width": "--border-width-3",
         "--sidenavigation-footer-hover-icon": "--text-secondary",
@@ -3615,7 +3575,7 @@
         "--sidenavigation-footer-hover-text-line-height": "--line-height-normal",
         "--sidenavigation-footer-active-surface": "--surface-canvas-low",
         "--sidenavigation-footer-active-padding": "--space-8",
-        "--sidenavigation-footer-active-gap": "--space-10",
+        "--sidenavigation-footer-active-gap": "--space-12",
         "--sidenavigation-footer-active-accent": "--border-brand-medium",
         "--sidenavigation-footer-active-accent-width": "--border-width-3",
         "--sidenavigation-footer-active-icon": "--text-primary",
@@ -3628,17 +3588,17 @@
       }
     },
     "tabbar": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "tabbar",
       "createdAt": "2026-05-12T01:57:26.390Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--tabbar-bar-divider": "--border-neutral-subtle",
         "--tabbar-bar-divider-thickness": "--border-width-1",
         "--tabbar-bar-top-margin": "--space-0",
         "--tabbar-bar-bottom-padding": "--space-0",
         "--tabbar-bar-bottom-margin": "--space-0",
-        "--tabbar-tab-gap": "--space-4",
+        "--tabbar-tab-gap": "--space-6",
         "--tabbar-default-text": "--text-tertiary",
         "--tabbar-default-text-font-family": "--font-sans",
         "--tabbar-default-text-font-size": "--font-size-md",
@@ -3650,8 +3610,8 @@
         "--tabbar-default-surface": "--color-transparent",
         "--tabbar-default-tab-border-color": "--color-transparent",
         "--tabbar-default-tab-border-width": "--border-width-0",
-        "--tabbar-default-tab-top-radius": "--radius-md",
-        "--tabbar-default-tab-bottom-radius": "--radius-md",
+        "--tabbar-default-tab-top-radius": "--radius-lg",
+        "--tabbar-default-tab-bottom-radius": "--radius-lg",
         "--tabbar-default-indicator-border-width": "--border-width-2",
         "--tabbar-hover-text": "--text-secondary",
         "--tabbar-hover-surface": "--surface-neutral-lower",
@@ -3664,8 +3624,8 @@
         "--tabbar-hover-border": "--color-transparent",
         "--tabbar-hover-tab-border-color": "--color-transparent",
         "--tabbar-hover-tab-border-width": "--border-width-0",
-        "--tabbar-hover-tab-top-radius": "--radius-md",
-        "--tabbar-hover-tab-bottom-radius": "--radius-md",
+        "--tabbar-hover-tab-top-radius": "--radius-lg",
+        "--tabbar-hover-tab-bottom-radius": "--radius-lg",
         "--tabbar-hover-indicator-border-width": "--border-width-2",
         "--tabbar-active-text": "--text-primary",
         "--tabbar-active-border": "--color-brand-500",
@@ -3678,8 +3638,8 @@
         "--tabbar-active-padding": "--space-8",
         "--tabbar-active-tab-border-color": "--color-transparent",
         "--tabbar-active-tab-border-width": "--border-width-0",
-        "--tabbar-active-tab-top-radius": "--radius-md",
-        "--tabbar-active-tab-bottom-radius": "--radius-md",
+        "--tabbar-active-tab-top-radius": "--radius-lg",
+        "--tabbar-active-tab-bottom-radius": "--radius-lg",
         "--tabbar-active-indicator-border-width": "--border-width-2",
         "--tabbar-disabled-text": "--text-disabled",
         "--tabbar-disabled-text-font-family": "--font-sans",
@@ -3692,18 +3652,18 @@
         "--tabbar-disabled-surface": "--color-transparent",
         "--tabbar-disabled-tab-border-color": "--color-transparent",
         "--tabbar-disabled-tab-border-width": "--border-width-0",
-        "--tabbar-disabled-tab-top-radius": "--radius-md",
-        "--tabbar-disabled-tab-bottom-radius": "--radius-md",
+        "--tabbar-disabled-tab-top-radius": "--radius-lg",
+        "--tabbar-disabled-tab-bottom-radius": "--radius-lg",
         "--tabbar-disabled-indicator-border-width": "--border-width-2"
       }
     },
     "table": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "table",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
-        "--table-default-radius": "--radius-xl",
+        "--table-default-radius": "--radius-2xl",
         "--table-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 57%, transparent)",
         "--table-default-border": "--border-neutral",
         "--table-default-border-width": "--border-width-2",
@@ -3732,10 +3692,10 @@
       }
     },
     "toggle": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "toggle",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--toggle-track-surface": "--surface-neutral",
         "--toggle-track-border": "--border-neutral",
@@ -3749,7 +3709,7 @@
         "--toggle-label-font-family": "--font-sans",
         "--toggle-label-font-size": "--font-size-sm",
         "--toggle-label-font-weight": "--font-weight-normal",
-        "--toggle-gap": "--space-10",
+        "--toggle-gap": "--space-12",
         "--toggle-hover-track-surface": "--surface-neutral-high",
         "--toggle-hover-thumb-surface": "--text-primary",
         "--toggle-on-track-surface": "--surface-brand-high",
@@ -3764,10 +3724,10 @@
       }
     },
     "tooltip": {
-      "name": "saint-patrick",
+      "name": "yuletide",
       "component": "tooltip",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-13T13:58:23.447Z",
+      "updatedAt": "2026-08-13T14:14:20.015Z",
       "aliases": {
         "--tooltip-surface": "color-mix(in srgb, var(--surface-canvas-lowest) 75%, transparent)",
         "--tooltip-text": "--text-primary",
@@ -3777,7 +3737,7 @@
         "--tooltip-text-line-height": "--line-height-normal",
         "--tooltip-border": "--border-neutral",
         "--tooltip-border-width": "--border-width-1",
-        "--tooltip-radius": "--radius-xl",
+        "--tooltip-radius": "--radius-2xl",
         "--tooltip-padding": "--space-6",
         "--tooltip-shadow": "--shadow-md"
       }

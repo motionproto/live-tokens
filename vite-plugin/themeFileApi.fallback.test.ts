@@ -180,50 +180,50 @@ describe('shipped preset themes on a fresh consumer', () => {
   it('GET /themes lists the shipped presets alongside default', async () => {
     const { json } = await request('GET', `${API}/themes`);
     const names = json.files.map((f: any) => f.fileName);
-    for (const preset of ['christmas', 'halloween', 'spring-meadow', 'royal-velvet']) {
+    for (const preset of ['yuletide', 'halloween', 'spring-meadow', 'royal-velvet']) {
       expect(names).toContain(preset);
     }
   });
 
-  it('GET /themes/christmas resolves via the package fallback', async () => {
-    const { status, json } = await request('GET', `${API}/themes/christmas`);
+  it('GET /themes/yuletide resolves via the package fallback', async () => {
+    const { status, json } = await request('GET', `${API}/themes/yuletide`);
     expect(status).toBe(200);
     expect(Object.keys(json.editorConfigs).length).toBeGreaterThan(0);
   });
 
-  it('DELETE /themes/christmas with no local copy → 403 PACKAGE_THEME', async () => {
-    const { status, json } = await request('DELETE', `${API}/themes/christmas`);
+  it('DELETE /themes/yuletide with no local copy → 403 PACKAGE_THEME', async () => {
+    const { status, json } = await request('DELETE', `${API}/themes/yuletide`);
     expect(status).toBe(403);
     expect(json.code).toBe('PACKAGE_THEME');
   });
 
   it('PUT then DELETE on a preset removes the local shadow and restores the shipped version', async () => {
-    const put = await request('PUT', `${API}/themes/christmas`, { name: 'Christmas', cssVariables: {} });
+    const put = await request('PUT', `${API}/themes/yuletide`, { name: 'Yuletide', cssVariables: {} });
     expect(put.status).toBe(200);
-    expect(fs.existsSync(path.join(themesDir, 'christmas.json'))).toBe(true);
+    expect(fs.existsSync(path.join(themesDir, 'yuletide.json'))).toBe(true);
 
-    const del = await request('DELETE', `${API}/themes/christmas`);
+    const del = await request('DELETE', `${API}/themes/yuletide`);
     expect(del.status).toBe(200);
-    expect(fs.existsSync(path.join(themesDir, 'christmas.json'))).toBe(false);
+    expect(fs.existsSync(path.join(themesDir, 'yuletide.json'))).toBe(false);
 
     const { json } = await request('GET', `${API}/themes`);
-    expect(json.files.map((f: any) => f.fileName)).toContain('christmas');
+    expect(json.files.map((f: any) => f.fileName)).toContain('yuletide');
   });
 
   it('deleting a production shadow of a shipped preset keeps the pointer and resyncs', async () => {
-    await request('PUT', `${API}/themes/christmas`, { name: 'Christmas Local', cssVariables: {} });
-    fs.writeFileSync(path.join(themesDir, '_active.json'), JSON.stringify({ activeFile: 'christmas' }));
-    fs.writeFileSync(path.join(themesDir, '_production.json'), JSON.stringify({ productionFile: 'christmas' }));
+    await request('PUT', `${API}/themes/yuletide`, { name: 'Yuletide Local', cssVariables: {} });
+    fs.writeFileSync(path.join(themesDir, '_active.json'), JSON.stringify({ activeFile: 'yuletide' }));
+    fs.writeFileSync(path.join(themesDir, '_production.json'), JSON.stringify({ productionFile: 'yuletide' }));
 
-    const del = await request('DELETE', `${API}/themes/christmas`);
+    const del = await request('DELETE', `${API}/themes/yuletide`);
     expect(del.status).toBe(200);
 
     const active = await request('GET', `${API}/themes/active`);
-    expect(active.json._fileName).toBe('christmas');
+    expect(active.json._fileName).toBe('yuletide');
     const production = await request('GET', `${API}/themes/production`);
-    expect(production.json.fileName).toBe('christmas');
+    expect(production.json.fileName).toBe('yuletide');
     const generated = fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8');
-    expect(generated).toContain('christmas');
+    expect(generated).toContain('yuletide');
   });
 
   it('deleting a production theme with no shipped counterpart heals to default', async () => {

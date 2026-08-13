@@ -11,8 +11,8 @@
   bundled `live-tokens-generate-theme` skill translates natural-language
   briefs ("dark and moody night theme", "St. Patrick's Day with green and
   gold") into seeds. Nine preset themes generated this way ship in the
-  package: Autumn, Christmas, Halloween, Midnight Study, Ocean, Royal
-  Velvet, Saint Patrick, Spring Meadow, Sunset.
+  package: Autumn, Halloween, Leprechaun, Midnight Study, Ocean, Royal
+  Velvet, Spring Meadow, Sunset, Yuletide.
 
 - **`adjust` moves shape and space along the token scales.** `npx
   live-tokens adjust <ops.json>` shifts or sets every matching radius,
@@ -33,12 +33,14 @@
   dev-server start, resolving and embedding what they reference.
 
 - **The nine preset themes ship as full example looks.** One manifest per
-  preset embeds its theme plus a generated shape personality (Christmas
-  rounder with looser gaps, Halloween sharp with heavier borders, Royal
-  Velvet and Sunset with pill buttons). Load one to try the complete look;
-  delete its materialized files to restore. `npm run
-  generate:preset-manifests` regenerates all nine from the component
-  defaults.
+  preset embeds its theme plus a distinct shape personality and a Google
+  Fonts pairing: Yuletide is storybook-round with Mountains of Christmas
+  headings, Halloween goes fully square with heavy borders and Creepster,
+  Midnight Study pairs sharp windows and round buttons with EB Garamond,
+  and no two presets share a corner-radius and spacing profile or a font
+  family. Load one to try the complete look; delete its materialized files
+  to restore. `npm run generate:preset-manifests` regenerates all nine
+  from the component defaults.
 
 ### Changed
 

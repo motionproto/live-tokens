@@ -14,7 +14,7 @@ export const PRESET_FONTS = {
     display: { name: 'Fraunces', url: 'https://fonts.googleapis.com/css2?family=Fraunces:wght@400..900&display=swap' },
     body: { name: 'Nunito Sans', url: 'https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300..800&display=swap' },
   },
-  christmas: {
+  yuletide: {
     display: { name: 'Mountains of Christmas', url: 'https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&display=swap' },
     body: { name: 'Nunito', url: 'https://fonts.googleapis.com/css2?family=Nunito:wght@300..800&display=swap' },
   },
@@ -34,7 +34,7 @@ export const PRESET_FONTS = {
     display: { name: 'Cinzel', url: 'https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap' },
     body: { name: 'Lato', url: 'https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap' },
   },
-  'saint-patrick': {
+  leprechaun: {
     display: { name: 'Baloo 2', url: 'https://fonts.googleapis.com/css2?family=Baloo+2:wght@400..800&display=swap' },
     body: { name: 'Cabin', url: 'https://fonts.googleapis.com/css2?family=Cabin:wght@400..700&display=swap' },
   },
@@ -115,6 +115,19 @@ export function stampPresetFonts(theme, slug) {
   ];
   rewriteStack(theme, '--font-display', display.families[0].id);
   rewriteStack(theme, '--font-sans', body.families[0].id);
+
+  // Sources displaced from the rewritten stacks would still ship as
+  // render-blocking @imports in every consumer's fonts.css, so drop any
+  // source no remaining stack references.
+  const referenced = new Set(
+    (theme.fontStacks ?? [])
+      .flatMap((s) => s.slots)
+      .filter((s) => s.kind === 'project')
+      .map((s) => s.familyId),
+  );
+  theme.fontSources = theme.fontSources.filter((s) =>
+    s.families.some((f) => referenced.has(f.id)),
+  );
 
   return JSON.stringify([theme.fontSources, theme.fontStacks]) !== before;
 }

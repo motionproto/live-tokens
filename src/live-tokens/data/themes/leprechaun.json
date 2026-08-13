@@ -1,7 +1,7 @@
 {
-  "name": "Saint Patrick",
+  "name": "Leprechaun",
   "createdAt": "2026-08-12T20:13:46.377Z",
-  "updatedAt": "2026-08-13T13:58:23.447Z",
+  "updatedAt": "2026-08-13T14:14:20.015Z",
   "editorConfigs": {
     "Brand": {
       "baseColor": {
@@ -2314,45 +2314,6 @@
           "id": "src_typekit_jes8oow:fira-code",
           "name": "fira-code",
           "cssName": "\"fira-code\""
-        }
-      ]
-    },
-    {
-      "id": "src_manrope_local",
-      "kind": "google",
-      "label": "Google Fonts",
-      "families": [
-        {
-          "id": "src_manrope_local:manrope",
-          "name": "Manrope",
-          "cssName": "\"Manrope\"",
-          "weights": [
-            200,
-            300,
-            400,
-            500,
-            600,
-            700,
-            800
-          ]
-        }
-      ],
-      "url": "https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap"
-    },
-    {
-      "id": "src_google_arvo",
-      "kind": "google",
-      "url": "https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&display=swap",
-      "label": "Google Fonts",
-      "families": [
-        {
-          "id": "src_google_arvo:arvo",
-          "name": "Arvo",
-          "cssName": "\"Arvo\"",
-          "weights": [
-            400,
-            700
-          ]
         }
       ]
     },
