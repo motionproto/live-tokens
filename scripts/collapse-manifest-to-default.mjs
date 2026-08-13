@@ -1,17 +1,18 @@
 #!/usr/bin/env node
 // Collapse the active manifest's customizations down into the shipped defaults,
-// then clear the custom definitions. For each artifact the manifest points at:
+// then clear the custom definitions. The manifest carries the look by value, so
+// it is the source for every bake; the working files it materialised are found
+// through the active/production pointers and removed:
 //
-//   • component config (≠ default)  → bake its aliases into the component's
-//                                      `:global(:root)` .svelte block (the
-//                                      source of truth shipped to consumers),
-//                                      regenerate its default.json, reset the
-//                                      active/production pointers, delete the file
-//   • theme (≠ default)             → copy its editorConfigs/cssVariables/fonts
-//                                      into themes/default.json, reset pointers,
-//                                      delete the file
-//   • manifest                      → point active back to the default manifest,
-//                                      delete the custom manifest
+//   • embedded component config  → bake its aliases into the component's
+//                                  `:global(:root)` .svelte block (the source
+//                                  of truth shipped to consumers), regenerate
+//                                  its default.json, reset the active/production
+//                                  pointers, delete the working files
+//   • embedded theme             → copy it into themes/default.json, reset
+//                                  pointers, delete the working files
+//   • manifest                   → point active back to the default manifest,
+//                                  delete the custom manifest
 //
 //   node scripts/collapse-manifest-to-default.mjs [--write]
 //
@@ -63,6 +64,33 @@ function leafDiffCount(a, b) {
   return n;
 }
 
+/** Non-default file names a resource's pointers currently name. These are the
+ *  working files the collapsed look lives in; read them before resetting. */
+function pointedFiles(dir) {
+  const names = new Set();
+  for (const [file, key] of [
+    ['_active.json', 'activeFile'],
+    ['_production.json', 'productionFile'],
+  ]) {
+    const pointerPath = join(dir, file);
+    if (!existsSync(pointerPath)) continue;
+    const name = readJson(pointerPath)[key];
+    if (name && name !== 'default') names.add(name);
+  }
+  return [...names];
+}
+
+function clearWorkingFiles(dir, names) {
+  for (const name of names) {
+    const p = join(dir, `${name}.json`);
+    if (existsSync(p)) rmSync(p);
+  }
+}
+
+const reportCleared = (names) => {
+  if (names.length) console.log(`   clears ${names.map((n) => `${n}.json`).join(', ')}`);
+};
+
 const activePointer = join(MANIFESTS, '_active.json');
 const activeManifestName = existsSync(activePointer)
   ? readJson(activePointer).activeFile ?? 'default'
@@ -80,33 +108,36 @@ if (!existsSync(manifestPath)) {
 }
 const manifest = readJson(manifestPath);
 
+if (typeof manifest.theme === 'string') {
+  console.error(
+    `Active manifest "${activeManifestName}" is still in the old pointer format. ` +
+      'Start the dev server once to migrate it, then re-run.',
+  );
+  process.exit(1);
+}
+
 console.log(`${write ? 'COLLAPSE' : 'DRY RUN'} — active manifest "${activeManifestName}"\n`);
 
 // --- Components ---------------------------------------------------------------
 const componentConfigs = manifest.componentConfigs ?? {};
 let componentValueChanges = 0;
-for (const [comp, file] of Object.entries(componentConfigs).sort()) {
-  if (file === 'default') continue;
-
-  const cfgPath = join(CONFIGS, comp, `${file}.json`);
-  if (!existsSync(cfgPath)) {
-    console.log(`SKIP  ${comp} → "${file}" (config file missing)`);
-    continue;
-  }
+for (const [comp, cfg] of Object.entries(componentConfigs).sort()) {
   const svelteName = svelteByLower.get(comp);
   if (!svelteName) {
     console.log(`SKIP  ${comp} (no matching .svelte to bake into)`);
     continue;
   }
 
-  const aliases = readJson(cfgPath).aliases ?? {};
+  const aliases = cfg?.aliases ?? {};
   const sveltePath = join(COMPONENTS, svelteName);
   const src = readFileSync(sveltePath, 'utf8');
   const { src: next, changed, skipped } = syncBlock(src, aliases);
+  const working = pointedFiles(join(CONFIGS, comp));
 
-  console.log(`${svelteName}  ← ${comp}/${file}  (${changed.length} changed${skipped.length ? `, ${skipped.length} skipped` : ''})`);
+  console.log(`${svelteName}  ← ${comp}  (${changed.length} changed${skipped.length ? `, ${skipped.length} skipped` : ''})`);
   for (const c of changed) console.log(`   ${c}`);
   for (const s of skipped) console.log(`   ⊘ ${s}`);
+  reportCleared(working);
   componentValueChanges += changed.length;
 
   if (write) {
@@ -129,41 +160,38 @@ for (const [comp, file] of Object.entries(componentConfigs).sort()) {
 
     writePointer(join(CONFIGS, comp, '_active.json'), { activeFile: 'default' });
     writePointer(join(CONFIGS, comp, '_production.json'), { productionFile: 'default' });
-    rmSync(cfgPath);
+    clearWorkingFiles(join(CONFIGS, comp), working);
   }
 }
 
 // --- Theme -------------------------------------------------------------------
-const themeName = manifest.theme ?? 'default';
-if (themeName !== 'default') {
-  const themePath = join(THEMES, `${themeName}.json`);
+const theme = manifest.theme;
+if (!theme || typeof theme !== 'object') {
+  console.log('\nSKIP  theme (manifest carries none)');
+} else {
   const defaultThemePath = join(THEMES, 'default.json');
-  if (!existsSync(themePath)) {
-    console.log(`\nSKIP  theme "${themeName}" (file missing)`);
-  } else {
-    const theme = readJson(themePath);
-    const currentDefault = existsSync(defaultThemePath) ? readJson(defaultThemePath) : {};
-    const diff = leafDiffCount(
-      { ec: currentDefault.editorConfigs, cv: currentDefault.cssVariables },
-      { ec: theme.editorConfigs, cv: theme.cssVariables },
-    );
-    console.log(`\ntheme  default.json ← ${themeName}  (${diff} value(s) differ)`);
+  const currentDefault = existsSync(defaultThemePath) ? readJson(defaultThemePath) : {};
+  const diff = leafDiffCount(
+    { ec: currentDefault.editorConfigs, cv: currentDefault.cssVariables },
+    { ec: theme.editorConfigs, cv: theme.cssVariables },
+  );
+  const working = pointedFiles(THEMES);
+  console.log(`\ntheme  default.json ← manifest  (${diff} value(s) differ)`);
+  reportCleared(working);
 
-    if (write) {
-      writeJson(defaultThemePath, {
-        name: currentDefault.name ?? 'Default Theme',
-        createdAt: currentDefault.createdAt ?? new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        editorConfigs: theme.editorConfigs ?? {},
-        cssVariables: theme.cssVariables ?? {},
-        fontSources: theme.fontSources ?? [],
-        fontStacks: theme.fontStacks ?? {},
-        schemaVersion: theme.schemaVersion ?? 0,
-      });
-      writePointer(join(THEMES, '_active.json'), { activeFile: 'default' });
-      writePointer(join(THEMES, '_production.json'), { productionFile: 'default' });
-      rmSync(themePath);
-    }
+  if (write) {
+    // Spread: the manifest's theme is the whole file, so fields the collapse
+    // has no opinion on (fonts, harmony axes, schemaVersion) carry across
+    // untouched. Only the default's identity is preserved.
+    writeJson(defaultThemePath, {
+      ...theme,
+      name: currentDefault.name ?? theme.name ?? 'Default Theme',
+      createdAt: currentDefault.createdAt ?? new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    writePointer(join(THEMES, '_active.json'), { activeFile: 'default' });
+    writePointer(join(THEMES, '_production.json'), { productionFile: 'default' });
+    clearWorkingFiles(THEMES, working);
   }
 }
 

@@ -77,15 +77,15 @@
     refreshActive();
   });
 
-  // A manifest snapshots saved file pointers, not the editor's live state. Warn
+  // A manifest captures the saved files, not the editor's live state. Warn
   // before capturing if there are unsaved theme/component edits, since those
-  // won't make it into the manifest until they're saved (and adopted).
+  // won't make it into the manifest until they're saved.
   function confirmUnsavedExclusion(): boolean {
     if (!editorDirty) return true;
     return window.confirm(
-      'You have unsaved theme or component changes. A manifest captures only saved, ' +
-        'adopted files, so these edits will not be included. Save and adopt them first ' +
-        'to capture them. Save the manifest anyway?',
+      'You have unsaved theme or component changes. A manifest captures saved files, ' +
+        'so these edits will not be included. Save them first to capture them. ' +
+        'Save the manifest anyway?',
     );
   }
 
@@ -129,7 +129,13 @@
     }
     showFileList = false;
     try {
-      await applyManifest(file.fileName);
+      const result = await applyManifest(file.fileName);
+      if (result.skippedComponents.length > 0) {
+        window.alert(
+          `Applied "${file.name}". These components are not installed here, so their ` +
+            `saved settings were skipped:\n\n${result.skippedComponents.join(', ')}`,
+        );
+      }
       // applyManifest atomically flips active + production pointers and
       // syncs tokens.css; reload to rehydrate the editor from the
       // now-active theme + component configs.
@@ -172,14 +178,21 @@
     try {
       const result = await importManifest(bundle);
       await refreshFiles();
+      const notes: string[] = [];
       const renameCount = Object.keys(result.renames).length;
       if (renameCount > 0) {
         const summary = Object.entries(result.renames)
           .map(([k, v]) => `${k} → ${v}`)
           .join('\n');
-        window.alert(
-          `Imported as "${result.manifest}". ${renameCount} file(s) renamed to avoid collisions:\n\n${summary}`,
+        notes.push(`${renameCount} file(s) renamed to avoid collisions:\n${summary}`);
+      }
+      if (result.dropped.length > 0) {
+        notes.push(
+          `The bundle was missing this data, which fell back to the default:\n${result.dropped.join('\n')}`,
         );
+      }
+      if (notes.length > 0) {
+        window.alert(`Imported as "${result.manifest}".\n\n${notes.join('\n\n')}`);
       }
     } catch (err) {
       window.alert(`Failed to import: ${(err as Error).message}`);
@@ -188,15 +201,19 @@
 
   async function handleDelete(file: ManifestMeta) {
     if (file.isProtected) return;
-    if (file.fileName === activeFileName) {
-      window.alert('Cannot delete the active manifest. Load another manifest first.');
-      return;
-    }
-    const ok = window.confirm(`Delete manifest "${file.name}"?`);
+    // Deleting the active manifest is legal: the server points active back at
+    // Default, and the theme and component files on disk are untouched.
+    const wasActive = file.fileName === activeFileName;
+    const ok = window.confirm(
+      wasActive
+        ? `Delete manifest "${file.name}"? Active goes back to Default. Your theme and component files stay as they are.`
+        : `Delete manifest "${file.name}"?`,
+    );
     if (!ok) return;
     try {
       await deleteManifest(file.fileName);
       await refreshFiles();
+      if (wasActive) await refreshActive();
     } catch (err) {
       window.alert(`Failed to delete: ${(err as Error).message}`);
     }
@@ -213,10 +230,16 @@
     <span class="mfm-header-label">Manifest</span>
     <UIInfoPopover title="Manifests" ariaLabel="About manifests">
       <p>
-        A <strong>manifest</strong> pins one theme plus one config file per component.
+        A <strong>manifest</strong> is a whole look in one file: the theme plus a config for every component you changed.
       </p>
       <p>
-        The <strong>active</strong> manifest is what the editor reads and what production runs. Theme and component <strong>Adopt</strong> actions auto-update its file.
+        It holds its own copy of that data, so deleting a theme or component file never breaks a saved manifest.
+      </p>
+      <p>
+        <strong>Load</strong> writes the look back out to working files named after the manifest. A manifest owns its name: any theme or component file already using it is overwritten.
+      </p>
+      <p>
+        The <strong>active</strong> manifest is what the editor reads and what production runs. Theme and component <strong>Adopt</strong> actions update it in place.
       </p>
       <p>
         <strong>Default</strong> is protected. To start customizing, <strong>Save As</strong> a new manifest first.

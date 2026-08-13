@@ -243,7 +243,6 @@
 
   async function handleDelete(file: ThemeMeta) {
     if (file.fileName === 'default') return;
-    if (file.fileName === $themeProductionInfo?.fileName) return;
     try {
       // Capture before refreshFiles() reads the server's reverted active back
       // into local state — otherwise the "was this the active file?" check
@@ -251,6 +250,11 @@
       const wasActive = file.fileName === $activeFileName;
       await deleteTheme(file.fileName);
       await refreshFiles();
+      // Deleting the production theme is legal now that manifests carry their
+      // own copy; the server heals the pointer and resyncs the CSS, so re-read
+      // production rather than trusting the cached value.
+      await refreshProduction();
+      bumpProductionRevision();
       if (wasActive) {
         $activeFileName = 'default';
         currentDisplayName = 'Default Theme';
@@ -419,7 +423,7 @@
   showUpdatedAt
   systemBadge={{ label: 'System', title: 'Protected system theme' }}
   emptyMessage="No saved files"
-  canDelete={(file) => file.fileName !== 'default' && file.fileName !== $themeProductionInfo?.fileName}
+  canDelete={(file) => file.fileName !== 'default'}
   onload={handleLoad}
   ondelete={handleDelete}
 />

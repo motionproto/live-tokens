@@ -1,7 +1,7 @@
 import type { Manifest, ManifestMeta, ManifestBundle, Theme, ComponentConfig } from '../themes/themeTypes';
 import { versionedFileResource } from '../storage/files/versionedFileResourceClient';
 import { API_BASE } from '../storage/apiBase';
-import { listComponents } from '../components/componentConfigService';
+import { listComponents, loadComponentConfig } from '../components/componentConfigService';
 import { getActiveTheme } from '../themes/themeService';
 
 /**
@@ -13,19 +13,6 @@ import { getActiveTheme } from '../themes/themeService';
  * `default` is the protected baseline — cannot be overwritten or deleted, and
  * Adopts return 409 ACTIVE_IS_PROTECTED while it is active.
  */
-
-/**
- * What the save functions below still send: file names rather than content. The
- * server resolves and embeds them on write, so disk holds the encapsulated form
- * either way.
- */
-type ManifestPointerPayload = {
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-  theme: string;
-  componentConfigs: Record<string, string>;
-};
 
 const manifestsResource = versionedFileResource<Manifest, ManifestMeta, never>({
   baseUrl: `${API_BASE}/manifests`,
@@ -75,63 +62,79 @@ export async function applyManifest(fileName: string): Promise<ApplyManifestResu
   return res.json();
 }
 
+/** `_fileName` marks which file a read door answered from; it is never part of
+ *  the content we send back. */
+function withoutFileMarker<T extends { _fileName?: string }>(value: T): T {
+  const { _fileName, ...rest } = value;
+  return rest as T;
+}
+
 /**
- * Snapshot the currently-active theme + component-config file pointers into
- * a new manifest file and set it active. Used by the manifest panel's Save As
- * action and by the SaveAs-then-Adopt recovery flow when active is `default`.
+ * The look as it stands: the active theme plus the active config of every
+ * component that sits off its default, all by value. Delta encoding — a
+ * component absent from the map runs the local default, which stays canonical.
+ *
+ * The theme comes from `GET /themes/active`, which normalises before it
+ * answers. That matters: the server trusts an already-embedded theme and runs
+ * no migrations over it on write.
+ */
+async function captureLook(): Promise<Pick<Manifest, 'theme' | 'componentConfigs'>> {
+  const activeTheme = await getActiveTheme();
+  if (!activeTheme) {
+    throw new Error('No active theme to capture');
+  }
+  const overridden = (await listComponents()).filter(
+    (c) => c.activeFile && c.activeFile !== 'default',
+  );
+  const configs = await Promise.all(
+    overridden.map((c) => loadComponentConfig(c.name, c.activeFile)),
+  );
+  const componentConfigs: Record<string, ComponentConfig> = {};
+  overridden.forEach((c, i) => {
+    componentConfigs[c.name] = withoutFileMarker(configs[i]);
+  });
+  return { theme: withoutFileMarker(activeTheme), componentConfigs };
+}
+
+/**
+ * Capture the current look into a new manifest file and set it active. Used by
+ * the manifest panel's Save As action and by the SaveAs-then-Adopt recovery
+ * flow when active is `default`.
  */
 export async function saveAsManifest(
   fileName: string,
   displayName: string,
 ): Promise<void> {
-  const activeTheme = await getActiveTheme();
-  if (!activeTheme || !activeTheme._fileName) {
-    throw new Error('No active theme on disk to capture');
-  }
-  const components = await listComponents();
-  const componentConfigs: Record<string, string> = {};
-  for (const c of components) {
-    componentConfigs[c.name] = c.activeFile || 'default';
-  }
+  const look = await captureLook();
   const now = new Date().toISOString();
-  const manifest: ManifestPointerPayload = {
+  await saveManifest(fileName, {
     name: displayName,
     createdAt: now,
     updatedAt: now,
-    theme: activeTheme._fileName,
-    componentConfigs,
-  };
-  await saveManifest(fileName, manifest as unknown as Manifest);
+    schemaVersion: 2,
+    ...look,
+  });
   await setActiveManifest(fileName);
 }
 
 /**
- * Re-snapshot the editor's current active pointers into the *currently active*
- * manifest file. Used by the manifest panel's Save action. Server rejects with
- * 403 if active is `default` (protected).
+ * Re-capture the current look into the *currently active* manifest file. Used
+ * by the manifest panel's Save action. Server rejects with 403 if active is
+ * `default` (protected).
  */
 export async function saveActiveManifest(displayName?: string): Promise<void> {
   const active = await getActiveManifest();
   if (!active || !active._fileName) {
     throw new Error('No active manifest');
   }
-  const activeTheme = await getActiveTheme();
-  if (!activeTheme || !activeTheme._fileName) {
-    throw new Error('No active theme on disk');
-  }
-  const components = await listComponents();
-  const componentConfigs: Record<string, string> = {};
-  for (const c of components) {
-    componentConfigs[c.name] = c.activeFile || 'default';
-  }
-  const manifest: ManifestPointerPayload = {
+  const look = await captureLook();
+  await saveManifest(active._fileName, {
     name: displayName ?? active.name,
     createdAt: active.createdAt,
     updatedAt: new Date().toISOString(),
-    theme: activeTheme._fileName,
-    componentConfigs,
-  };
-  await saveManifest(active._fileName, manifest as unknown as Manifest);
+    schemaVersion: 2,
+    ...look,
+  });
 }
 
 export interface ImportManifestResult {
