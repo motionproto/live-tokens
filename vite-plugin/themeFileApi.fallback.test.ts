@@ -409,3 +409,33 @@ describe('a package-shipped manifest on a fresh consumer', () => {
     );
   });
 });
+
+describe('the library repo itself (local data dir IS the package dir)', () => {
+  it('lists shipped themes as package files and user themes as local ones', async () => {
+    const repoData = path.join(REPO_ROOT, 'src/live-tokens/data');
+    const plugin = themeFileApi({
+      dataDir: repoData,
+      themesDir: path.join(repoData, 'themes'),
+      componentConfigsDir: path.join(repoData, 'component-configs'),
+      manifestsDir: path.join(repoData, 'manifests'),
+      tokensCssPath: path.join(REPO_ROOT, 'src/system/styles/tokens.css'),
+      fontsCssPath: path.join(tmp, 'fonts.css'),
+      tokensGeneratedCssPath: path.join(tmp, 'tokens.generated.css'),
+    });
+    const captured: any[] = [];
+    (plugin as any).configureServer({
+      middlewares: { use: (fn: any) => captured.push(fn) },
+      config: { logger: { warn: () => {} } },
+    });
+    const selfMw = captured[0];
+    const req = makeReq('GET', `${API}/themes`);
+    const res = makeRes();
+    await selfMw(req, res, () => {});
+    const byName = Object.fromEntries(
+      JSON.parse(res.payload).files.map((f: any) => [f.fileName, f.isPackage]),
+    );
+    expect(byName['ocean']).toBe(true);
+    expect(byName['default']).toBe(true);
+    expect(byName['my-theme']).toBe(false);
+  });
+});

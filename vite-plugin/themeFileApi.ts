@@ -127,6 +127,20 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const packageManifestsDir = path.join(packageDataDir, 'manifests');
   const packageComponentConfigsDir = path.join(packageDataDir, 'component-configs');
 
+  /** Theme basenames the package ships, read from its own `files` listing. */
+  function shippedThemeNames(dataDir: string): string[] {
+    try {
+      const pkgRoot = path.resolve(dataDir, '..', '..', '..');
+      const pkg = JSON.parse(fs.readFileSync(path.join(pkgRoot, 'package.json'), 'utf-8'));
+      const files: string[] = Array.isArray(pkg.files) ? pkg.files : [];
+      return files
+        .filter((f) => /^src\/live-tokens\/data\/themes\/[^/]+\.json$/.test(f))
+        .map((f) => path.basename(f, '.json'));
+    } catch {
+      return [];
+    }
+  }
+
   // Union of dirs to scan for component .svelte files. Consumer dirs first so
   // a consumer-authored component shadows a first-party one when names collide.
   const COMPONENTS_SCAN_DIRS: string[] = [...consumerComponentDirs];
@@ -140,9 +154,13 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // Themes resource — list/load/save/delete + active/production. The package
   // fallback ships the real default theme so a consumer always has one to load
   // / restore to, and picks up an upgraded default on `npm upgrade`.
+  // `packageOwnedNames` comes from the package's own manifest so the library
+  // repo (whose local dir IS the package dir) can still tell a shipped theme
+  // from a user file when flagging `isPackage` in the list.
   const themesResource = versionedFileResourceServer({
     dir: THEMES_DIR,
     packageDir: packageThemesDir,
+    packageOwnedNames: shippedThemeNames(packageDataDir),
   });
 
   // Per-component resources are constructed on demand because the set of

@@ -24,6 +24,12 @@ export interface VersionedFileResourceServerOptions {
    * package copy stays immutable, the consumer's local dir owns all state.
    */
   packageDir?: string;
+  /**
+   * Names the installed package ships for this resource. Only consulted when
+   * the local dir and the package dir are the same path (the library repo),
+   * where path identity cannot distinguish a shipped file from a user file.
+   */
+  packageOwnedNames?: string[];
 }
 
 export interface VersionedFileResourceServer {
@@ -122,7 +128,12 @@ export function versionedFileResourceServer(
     const pkg = path.join(resolvedPackageDir, `${name}.json`);
     if (!fs.existsSync(pkg)) return false;
     const local = path.resolve(filePath(name));
-    if (local === pkg) return true;
+    if (local === pkg) {
+      // The library repo's local dir IS the package dir, so path identity says
+      // nothing there: only the names the package actually ships count as
+      // package files, or every user file would vanish from layer listings.
+      return opts.packageOwnedNames ? opts.packageOwnedNames.includes(name) : true;
+    }
     return !fs.existsSync(local);
   }
 

@@ -74,10 +74,32 @@ describe('isPackageFile', () => {
     expect(r.isPackageFile('mine')).toBe(false);
   });
 
-  it('is true in the library repo, where the local dir IS the package dir', () => {
+  it('falls back to path identity in the self-dir case with no owned-names list', () => {
     const r = versionedFileResourceServer({ dir: localDir, packageDir: localDir });
     write(localDir, 'ocean', {});
     expect(r.isPackageFile('ocean')).toBe(true);
+  });
+
+  it('uses the owned-names list in the self-dir case, so user files stay user files', () => {
+    const r = versionedFileResourceServer({
+      dir: localDir,
+      packageDir: localDir,
+      packageOwnedNames: ['ocean'],
+    });
+    write(localDir, 'ocean', {});
+    write(localDir, 'my-theme', {});
+    expect(r.isPackageFile('ocean')).toBe(true);
+    expect(r.isPackageFile('my-theme')).toBe(false);
+  });
+
+  it('ignores the owned-names list when the dirs differ', () => {
+    const r = versionedFileResourceServer({
+      dir: localDir,
+      packageDir,
+      packageOwnedNames: ['mine'],
+    });
+    write(localDir, 'mine', {});
+    expect(r.isPackageFile('mine')).toBe(false);
   });
 
   it('is false with no package dir at all', () => {

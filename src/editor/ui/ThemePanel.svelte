@@ -388,6 +388,20 @@
       );
       if (!ok) return;
     }
+    // The look's copy lands under the look's own name. A user file already
+    // sitting there (a tuned shadow of this look's colors) would be replaced,
+    // and if that file is production, production regenerates from the copy.
+    const shadow = theme && row.slug !== 'default'
+      ? layerFiles.find((f) => f.fileName === row.slug && !f.isPackage)
+      : undefined;
+    if (shadow) {
+      const hitsProduction = $themeProductionInfo?.fileName === row.slug;
+      const ok = window.confirm(
+        `Replace your saved colors and type "${shadow.name}" with this theme's copy?`
+          + (hitsProduction ? ' It is in production, so production updates too.' : ''),
+      );
+      if (!ok) return;
+    }
     // Hand the page back to the store before loading. The renderer diffs
     // against its own last-applied set, which never saw the preview's direct
     // writes; starting from the live look makes the load land exactly as it

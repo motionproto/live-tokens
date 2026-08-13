@@ -130,6 +130,11 @@ describe.each(PRESETS)('shipped preset manifest "%s"', (slug) => {
     expect(files).not.toContain('src/live-tokens/data/manifests');
     expect(files).not.toContain('src/live-tokens/data/manifests/');
   });
+
+  it('ships its theme file as its own entry in package.json files', () => {
+    const { files } = readJson(path.join(REPO_ROOT, 'package.json'));
+    expect(files).toContain(`src/live-tokens/data/themes/${slug}.json`);
+  });
 });
 
 describe('the nine presets read as nine different looks', () => {
