@@ -18,7 +18,7 @@ import {
   revertPreview,
   isPreviewing,
   __resetPreviewForTests,
-} from './manifestPreview';
+} from './lookPreview';
 
 // A font-face source, not a google one: applyFontSources injects the real node
 // and happy-dom would go to the network for a <link href>.

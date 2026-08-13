@@ -14,12 +14,12 @@
      *  (ComponentConfigMeta, ManifestMeta, …). */
     files?: { fileName: string }[];
     /** Dialog title — defaults to "Save As". Overridable so callers can use
-     *  context-specific framing (e.g. "Save Manifest As"). */
+     *  context-specific framing (e.g. "Save Theme As"). */
     title?: string;
     /** Placeholder shown in the empty input. */
     placeholder?: string;
     /** Error message shown when the user types the reserved "default" name.
-     *  Default copy references components; manifests should override. */
+     *  Default copy references components; the theme panel overrides it. */
     reservedNameMessage?: string;
     /** Optional one-line explanation rendered above the name input. Use when
      *  the dialog opens automatically (e.g. as a recovery prompt) so the user

@@ -2,16 +2,12 @@
   import { run } from 'svelte/legacy';
 
   import { onMount } from 'svelte';
-  import { get } from 'svelte/store';
   import VariablesTab from '../ui/VariablesTab.svelte';
   import ColorsTab from '../ui/colors/ColorsTab.svelte';
-  import ThemeFileManager from '../ui/ThemeFileManager.svelte';
   import EditorViewSwitcher from '../ui/EditorViewSwitcher.svelte';
   import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
   import ManifestFileManager from '../ui/ManifestFileManager.svelte';
-  import { persistTheme, hydrateTheme } from '../core/themes/themeService';
   import { scrollSectionIntoView } from '../ui/scrollSection';
-  import { editorState } from '../core/store/editorStore';
   import { editorView, sidebarCondensed, selectedComponent } from '../core/store/editorViewStore';
   import { componentDirty } from '../core/store/editorStore';
   import { getComponentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
@@ -40,7 +36,6 @@
   const customNavItems = allComponentNavItems.filter((i) => i.origin === 'custom');
 
   let selectedTokenSection: string | null = $state(null);
-  let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = $state('idle');
 
   // 'auto' = open by default. Auto-condensing on shellWidth caused a bounce
   // as the overlay panel grew past the threshold mid-animation.
@@ -88,27 +83,6 @@
     sidebarCondensed.update((v) => !(v === true));
   }
 
-  async function handleSave(detail: { fileName: string; displayName: string }) {
-    const { fileName, displayName } = detail;
-    saveStatus = 'saving';
-    try {
-      await persistTheme(get(editorState), fileName, displayName);
-      saveStatus = 'saved';
-      setTimeout(() => { saveStatus = 'idle'; }, 2000);
-    } catch {
-      saveStatus = 'error';
-      setTimeout(() => { saveStatus = 'idle'; }, 3000);
-    }
-  }
-
-  async function handleLoad(detail: { fileName: string }) {
-    try {
-      await hydrateTheme(detail.fileName);
-    } catch {
-      // silent
-    }
-  }
-
   onMount(async () => {
     try {
       const summaries = await listComponents();
@@ -152,7 +126,7 @@
       </div>
       {#if !condensed}
         <div class="sidebar-footer">
-          <ThemeFileManager {saveStatus} onsave={handleSave} onload={handleLoad} />
+          <ManifestFileManager />
         </div>
       {/if}
     {:else if $editorView === 'colors'}
@@ -172,7 +146,7 @@
       </div>
       {#if !condensed}
         <div class="sidebar-footer">
-          <ThemeFileManager {saveStatus} onsave={handleSave} onload={handleLoad} />
+          <ManifestFileManager />
         </div>
       {/if}
     {:else}

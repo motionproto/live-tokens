@@ -75,7 +75,7 @@
   let productionUpdateStatus: ProductionStatus = $state('idle');
   let adoptFeedback = $state('');
 
-  // Manifest SaveAs prompt for the "Adopt while default manifest is active" case.
+  // Theme SaveAs prompt for the "Adopt while the default theme is active" case.
   let manifestSaveAsDialog = $state(false);
   let manifests: ManifestMeta[] = $state([]);
   let retryAdoptAfterManifestSave = false;
@@ -283,7 +283,7 @@
     try {
       await saveAsManifest(detail.fileName, detail.displayName);
     } catch (err) {
-      window.alert(`Failed to create manifest: ${(err as Error).message}`);
+      window.alert(`Failed to create the theme: ${(err as Error).message}`);
       retryAdoptAfterManifestSave = false;
       return;
     }
@@ -442,13 +442,13 @@
 
 <SaveAsDialog
   bind:show={manifestSaveAsDialog}
-  currentDisplayName="my-manifest"
+  currentDisplayName="My Theme"
   files={manifests}
   reservedDisplayNames={manifests.filter((m) => m.fileName === 'default').map((m) => m.name)}
-  title="Save Manifest As"
-  placeholder="Manifest name…"
-  description="Adopting a component change updates the active manifest, The default manifest is locked. Name a new manifest for the site."
-  reservedNameMessage='That name is reserved for the protected default manifest.'
+  title="Save Theme As"
+  placeholder="Theme name…"
+  description="Adopting a component change updates the active theme. The default theme is locked, so name a new theme for this site."
+  reservedNameMessage='That name is reserved for the protected default theme.'
   onsave={onManifestSaveAs}
 />
 

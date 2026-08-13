@@ -5,7 +5,7 @@ import { deriveCssVars } from '../store/editorRenderer';
 import { setCssVar, removeCssVar } from '../cssVarSync';
 import { applyFontSources, resolveFontStackValues } from '../fonts/fontLoader';
 import { migrateThemeFonts } from '../fonts/fontMigration';
-import { loadManifest } from './manifestService';
+import { loadManifest } from '../manifests/manifestService';
 
 /**
  * Client-side rendering of a saved file, for browsing looks without committing

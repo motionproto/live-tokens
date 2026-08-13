@@ -177,7 +177,7 @@
     </div>
     {#if drawerOpen}
       <div class="sidebar-footer">
-        <ManifestFileManager />
+        <ManifestFileManager showComponentsLink={false} />
       </div>
     {/if}
   </nav>

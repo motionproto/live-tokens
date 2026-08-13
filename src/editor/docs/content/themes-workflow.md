@@ -1,51 +1,69 @@
 # Themes
 
-Save your work, switch between themes, and ship one to production.
+Save your work, switch between looks, and ship one to production.
+
+## The Theme panel
+
+The **Theme** panel at the foot of the editor sidebar holds the whole look:
+colors, type, and a setting for every component you changed, in one file. Two
+parts sit under it.
+
+- **Colors & Type** holds the design tokens. Components read those tokens to
+  define their appearance.
+- **Components** counts how many components run something the theme does not
+  carry, and opens the component editors.
+
+A theme keeps its own copy of every part, so deleting a working file never
+breaks a saved theme. Adopting a part updates the active theme in place, which
+keeps the whole true to what you see.
+
+On disk a theme is a *manifest*, under `src/live-tokens/data/manifests/`. That
+is the only place the older word survives.
 
 ## How themes work
 
 - **Your live edits** are what the page shows right now. They save to your
   browser automatically and survive a reload, but they are not yet a file.
-- **A saved theme** is a named JSON file in `src/live-tokens/data/themes/`. You
-  create one with **Save as**.
-- **The active theme** is the saved theme the page loads at startup. Exactly one
-  at a time.
-- **The production theme** is the one that ships. Promoting sets it.
+- **A saved colors and type file** is a named JSON file in
+  `src/live-tokens/data/themes/`. You create one with **Save as** inside the
+  Colors & Type part.
+- **The active theme** is the one the editor reads and production runs. Exactly
+  one at a time.
 
 ## Saving
 
-In the editor header:
+In the Theme panel:
 
-- **Save** updates the current theme.
+- **Save** re-stamps the active theme with everything you have saved.
 - **Save as** names a new theme. Use it for your first save and for forking.
 
+Colors & Type has the same two buttons for its own file.
+
 Names are tidied to lowercase with underscores, so "My Brand!" becomes
-`my_brand`. There is a built-in `default` theme you can always return to; the
-editor never overwrites it.
+`my_brand`. There is a built-in `default` you can always return to; the editor
+never overwrites it.
 
 ## Switching
 
-The file menu lists every saved theme. Pick one to make it active; the page
-reloads with it applied. Your current edits are saved to the previous theme
-first, so you don't lose work.
+**Load** lists your saved themes and the nine example looks. Picking one shows
+it on the page as a preview with nothing written to disk, so you can try each
+look and compare. **Save** keeps the previewed theme, **Cancel** returns you to
+where you were.
+
+Colors & Type has its own Load with the same preview flow, over your own files
+only. The example looks appear once, in the Theme panel, because each one
+carries shapes and component settings as well as colors and type.
 
 ## Shipping
 
-**Promote to production** is the "ship it" step. It bakes the theme's variables
-into `src/live-tokens/data/tokens.generated.css`, which your build bundles
-alongside `tokens.css`. Fonts regenerate to match.
+**Adopt** is the "ship it" step. It bakes the tokens into
+`src/live-tokens/data/tokens.generated.css`, which your build bundles alongside
+`tokens.css`. Fonts regenerate to match.
 
 Production builds (`npm run build`) ship only that plain CSS and your
 components. No editor, no JSON loading, no runtime indirection. If you save
-while the production theme is active, the generated CSS updates immediately,
-with no separate promote step.
-
-## Manifests
-
-A **manifest** bundles one theme plus a config for each component into a single
-named set. Useful when you run several brands and want each to apply its theme
-and component tweaks in one move. There is a protected default and an active
-manifest; applying one swaps everything at once.
+while the production file is active, the generated CSS updates immediately,
+with no separate step.
 
 ## Keeping your work safe
 

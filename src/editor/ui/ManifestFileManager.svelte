@@ -1,6 +1,12 @@
 <script lang="ts">
+  // The root of the look hierarchy: one Theme panel that owns the whole look,
+  // with the colors-and-type layer and the components as disclosed parts. The
+  // file behind it is still a manifest, which is why the code keeps that name;
+  // the word does not appear in the UI.
   import { onDestroy, onMount } from 'svelte';
-  import type { ManifestMeta } from '../core/themes/themeTypes';
+  import { get } from 'svelte/store';
+  import { slide } from 'svelte/transition';
+  import type { Manifest, ManifestMeta } from '../core/themes/themeTypes';
   import {
     listManifests,
     deleteManifest,
@@ -12,14 +18,29 @@
     exportManifest,
     importManifest,
   } from '../core/manifests/manifestService';
-  import { previewManifest, revertPreview } from '../core/manifests/manifestPreview';
-  import { dirty, componentDirty } from '../core/store/editorStore';
+  import { countComponentsOffLook } from '../core/manifests/lookSummary';
+  import { previewManifest, revertPreview } from '../core/preview/lookPreview';
+  import { persistTheme, hydrateTheme } from '../core/themes/themeService';
+  import { listComponents } from '../core/components/componentConfigService';
+  import { dirty, componentDirty, editorState } from '../core/store/editorStore';
+  import { editorView } from '../core/store/editorViewStore';
   import { productionRevision, activeManifest } from '../core/productionPulse';
   import { flashStatus } from '../core/flashStatus';
   import UIInfoPopover from './UIInfoPopover.svelte';
+  import UIPillButton from './UIPillButton.svelte';
   import FileLoadList from './FileLoadList.svelte';
   import FilePill from './FilePill.svelte';
+  import ThemeFileManager from './ThemeFileManager.svelte';
   import SaveAsDialog from '../component-editor/scaffolding/SaveAsDialog.svelte';
+
+  interface Props {
+    /** False on the components page, which is the surface the link opens. */
+    showComponentsLink?: boolean;
+  }
+
+  let { showComponentsLink = true }: Props = $props();
+
+  let canOpenComponents = $derived(showComponentsLink && $editorView !== 'components');
 
   let files: ManifestMeta[] = $state([]);
   let showFileList = $state(false);
@@ -38,6 +59,11 @@
   );
   let editorDirty = $derived($dirty || dirtyComponentCount > 0);
 
+  const reduceMotion =
+    typeof window !== 'undefined'
+    && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+  const slideDur = reduceMotion ? 0 : 200;
+
   async function refreshFiles() {
     try {
       files = await listManifests();
@@ -54,10 +80,42 @@
         currentDisplayName = active.name ?? activeFileName;
         const meta = (await listManifests()).find((f) => f.fileName === activeFileName) ?? null;
         activeManifest.set(meta);
+        lookConfigs = active.componentConfigs;
       }
     } catch {
       // silent
     }
+  }
+
+  // ── Components part ───────────────────────────────────────────────────
+  //
+  // A summary, not a manager: the per-component file managers live in the
+  // component editors. The count says how many components run something the
+  // active look does not carry.
+
+  let componentsOffLook = $state(0);
+  let lookConfigs: Manifest['componentConfigs'] | null = $state(null);
+
+  async function refreshComponentSummary() {
+    if (!lookConfigs) return;
+    try {
+      componentsOffLook = countComponentsOffLook(await listComponents(), lookConfigs);
+    } catch {
+      // silent — keep the last count rather than showing a wrong zero
+    }
+  }
+
+  // Two signals move this count and nothing else reports them: the look itself
+  // changing, and a component settling (saving a component sets a new active
+  // file for it without pulsing production).
+  $effect(() => {
+    void lookConfigs;
+    void dirtyComponentCount;
+    refreshComponentSummary();
+  });
+
+  function openComponents() {
+    editorView.set('components');
   }
 
   onMount(async () => {
@@ -65,10 +123,10 @@
     await refreshActive();
   });
 
-  // Re-read active manifest whenever a sibling Adopt fires — the server
-  // patches our active file in those moments, so the timestamp + refs
-  // displayed here need to track. Skip the first tick (refreshActive ran
-  // already on mount).
+  // Re-read the active look whenever a part's Adopt fires — the server patches
+  // our active file in those moments, so the identity and the component summary
+  // shown here need to track. Skip the first tick (refreshActive ran already on
+  // mount).
   let pulseInitialised = false;
   $effect(() => {
     void $productionRevision;
@@ -79,15 +137,14 @@
     refreshActive();
   });
 
-  // A manifest captures the saved files, not the editor's live state. Warn
-  // before capturing if there are unsaved theme/component edits, since those
-  // won't make it into the manifest until they're saved.
+  // A theme captures the saved files, not the editor's live state. Warn before
+  // capturing if there are unsaved edits, since those won't make it in until
+  // they're saved.
   function confirmUnsavedExclusion(): boolean {
     if (!editorDirty) return true;
     return window.confirm(
-      'You have unsaved theme or component changes. A manifest captures saved files, ' +
-        'so these edits will not be included. Save them first to capture them. ' +
-        'Save the manifest anyway?',
+      'You have unsaved changes. A theme captures saved files, so these edits will not be '
+        + 'included. Save them first to capture them. Save the theme anyway?',
     );
   }
 
@@ -122,6 +179,34 @@
     }
   }
 
+  // ── Colors & Type part ────────────────────────────────────────────────
+  //
+  // The layer manager is a part of this panel, so the panel owns its save and
+  // load orchestration. Both hosts (editor shell, components page) therefore
+  // get the same working part with no wiring of their own.
+
+  let layerOpen = $state(false);
+  let layerSaveStatus: SaveState = $state('idle');
+  const setLayerSaveStatus = (s: SaveState) => (layerSaveStatus = s);
+
+  async function handleLayerSave(detail: { fileName: string; displayName: string }) {
+    layerSaveStatus = 'saving';
+    try {
+      await persistTheme(get(editorState), detail.fileName, detail.displayName);
+      flashStatus(setLayerSaveStatus, 'saved');
+    } catch {
+      flashStatus(setLayerSaveStatus, 'error', { durationMs: 3000 });
+    }
+  }
+
+  async function handleLayerLoad(detail: { fileName: string }) {
+    try {
+      await hydrateTheme(detail.fileName);
+    } catch {
+      // silent
+    }
+  }
+
   // ── Preview ───────────────────────────────────────────────────────────
   //
   // Selecting a row paints that look on the page and leaves the window open;
@@ -149,7 +234,7 @@
       await previewManifest(manifest);
       previewFile = file;
     } catch (err) {
-      window.alert(`Failed to preview manifest: ${(err as Error).message}`);
+      window.alert(`Failed to preview theme: ${(err as Error).message}`);
       cancelPreview();
     }
   }
@@ -159,7 +244,7 @@
     if (!file) return;
     if (editorDirty) {
       const ok = window.confirm(
-        'Loading a manifest will reload the editor and discard unsaved changes. Continue?',
+        'Loading a theme will reload the editor and discard unsaved changes. Continue?',
       );
       if (!ok) return;
     }
@@ -169,8 +254,8 @@
       const result = await applyManifest(file.fileName);
       if (result.skippedComponents.length > 0) {
         window.alert(
-          `Loaded "${file.name}". These components are not installed here, so their ` +
-            `saved settings were skipped:\n\n${result.skippedComponents.join(', ')}`,
+          `Loaded "${file.name}". These components are not installed here, so their `
+            + `saved settings were skipped:\n\n${result.skippedComponents.join(', ')}`,
         );
       }
       // applyManifest atomically flips active + production pointers and
@@ -178,7 +263,7 @@
       // now-active theme + component configs.
       window.location.reload();
     } catch (err) {
-      window.alert(`Failed to apply manifest: ${(err as Error).message}`);
+      window.alert(`Failed to load theme: ${(err as Error).message}`);
     }
   }
 
@@ -217,7 +302,7 @@
       return;
     }
     if (bundle?.kind !== 'manifest-bundle') {
-      window.alert('Not a manifest bundle (missing kind discriminator).');
+      window.alert('That file is not an exported theme.');
       return;
     }
     try {
@@ -233,7 +318,7 @@
       }
       if (result.dropped.length > 0) {
         notes.push(
-          `The bundle was missing this data, which fell back to the default:\n${result.dropped.join('\n')}`,
+          `The file was missing this data, which fell back to the default:\n${result.dropped.join('\n')}`,
         );
       }
       if (notes.length > 0) {
@@ -246,16 +331,16 @@
 
   async function handleDelete(file: ManifestMeta) {
     if (file.isProtected) return;
-    // Deleting the active manifest is legal, and the theme and component files
-    // on disk are untouched either way. Where active lands depends on something
-    // the client can't see: deleting a local copy that shadows a shipped
-    // manifest restores the shipped one and keeps the pointer on it, while
-    // deleting a local-only manifest sends active back to Default.
+    // Deleting the active theme is legal, and the working files on disk are
+    // untouched either way. Where active lands depends on something the client
+    // can't see: deleting a local copy that shadows a shipped theme restores the
+    // shipped one and keeps the pointer on it, while deleting a local-only theme
+    // sends active back to Default.
     const wasActive = file.fileName === activeFileName;
     const ok = window.confirm(
       wasActive
-        ? `Delete manifest "${file.name}"? Active goes to the version shipped with the package if there is one, otherwise Default. Your theme and component files stay as they are.`
-        : `Delete manifest "${file.name}"?`,
+        ? `Delete theme "${file.name}"? Active goes to the version shipped with the package if there is one, otherwise Default. Your working files stay as they are.`
+        : `Delete theme "${file.name}"?`,
     );
     if (!ok) return;
     try {
@@ -274,27 +359,27 @@
   }
 </script>
 
-<div class="manifest-file-manager">
+<div class="look-panel">
   <div class="mfm-header">
-    <span class="mfm-header-label">Manifest</span>
-    <UIInfoPopover title="Manifests" ariaLabel="About manifests">
+    <span class="mfm-header-label">Theme</span>
+    <UIInfoPopover title="Theme" ariaLabel="About the theme">
       <p>
-        A <strong>manifest</strong> is a whole look in one file: the theme plus a config for every component you changed.
+        A <strong>theme</strong> is a whole look in one file: the colors and type plus a setting for every component you changed.
       </p>
       <p>
-        It holds its own copy of that data, so deleting a theme or component file never breaks a saved manifest.
+        It holds its own copy of that data, so deleting a colors and type file or a component file never breaks a saved theme.
       </p>
       <p>
-        <strong>Load</strong> opens the list. Picking a manifest shows it on the page as a preview, so you can try each look with nothing written to disk. Pick another to compare, or <strong>Cancel</strong> to go back to where you were.
+        <strong>Load</strong> opens the list. Picking a theme shows it on the page as a preview, so you can try each look with nothing written to disk. Pick another to compare, or <strong>Cancel</strong> to go back to where you were.
       </p>
       <p>
-        <strong>Save</strong> keeps the previewed look: it writes the look back out to working files named after the manifest. A manifest owns its name: any theme or component file already using it is overwritten. Components the manifest does not carry go back to their defaults.
+        <strong>Save</strong> keeps the previewed theme: it writes the look back out to working files named after the theme. A theme owns its name: any working file already using it is overwritten. Components the theme does not carry go back to their defaults.
       </p>
       <p>
-        The <strong>active</strong> manifest is what the editor reads and what production runs. Theme and component <strong>Adopt</strong> actions update it in place.
+        The <strong>active</strong> theme is what the editor reads and what production runs. <strong>Adopt</strong> in a part below updates it in place.
       </p>
       <p>
-        <strong>Default</strong> is protected. To start customizing, <strong>Save As</strong> a new manifest first.
+        <strong>Default</strong> is protected. To start customizing, <strong>Save As</strong> a new theme first.
       </p>
     </UIInfoPopover>
   </div>
@@ -304,7 +389,7 @@
     <div class="mfm-card-head">
       <span class="mfm-card-label">Active</span>
       {#if activeIsProtected}
-        <span class="mfm-badge protected" title="The default manifest is read-only">
+        <span class="mfm-badge protected" title="The default theme is read-only">
           <i class="fas fa-lock" aria-hidden="true"></i>
           <span>protected</span>
         </span>
@@ -313,7 +398,7 @@
     <FilePill
       name={currentDisplayName}
       isProtected={activeIsProtected}
-      protectedTitle="Protected default manifest"
+      protectedTitle="Protected default theme"
       title={currentDisplayName}
       style="display: flex;"
     />
@@ -326,8 +411,8 @@
         onclick={handleSave}
         disabled={activeIsProtected || saveStatus === 'saving'}
         title={activeIsProtected
-          ? 'Default is read-only — use Save As to capture under a new name'
-          : 'Re-stamp the active manifest with the current editor state'}
+          ? 'Default is read-only. Use Save As to capture under a new name.'
+          : 'Update this theme from your saved files'}
       >
         <i
           class="fas"
@@ -340,7 +425,7 @@
           {#if saveStatus === 'idle'}Save{:else if saveStatus === 'saving'}Saving{:else if saveStatus === 'saved'}Saved{:else}Error{/if}
         </span>
       </button>
-      <button class="mfm-btn mfm-btn-row" onclick={openSaveAs} title="Save current state as a new manifest">
+      <button class="mfm-btn mfm-btn-row" onclick={openSaveAs} title="Save the current look as a new theme">
         <i class="fas fa-copy"></i>
         <span>Save As…</span>
       </button>
@@ -348,7 +433,7 @@
         class="mfm-btn mfm-btn-row"
         class:active={showFileList}
         onclick={toggleFileList}
-        title="Preview a manifest, then save it to load it"
+        title="Preview a theme, then save it to load it"
       >
         <i class="fas fa-folder-open"></i>
         <span>Load…</span>
@@ -356,11 +441,79 @@
       <button
         class="mfm-btn mfm-btn-row"
         onclick={openImport}
-        title="Import a shared manifest bundle"
+        title="Import a theme someone shared"
       >
         <i class="fas fa-file-import"></i>
         <span>Import…</span>
       </button>
+    </div>
+  </div>
+
+  <!-- Parts of the look, permanent identity above, layer plumbing below. -->
+  <div class="look-parts">
+    <div class="part-head">
+      <button
+        type="button"
+        class="part-toggle"
+        class:expanded={layerOpen}
+        aria-expanded={layerOpen}
+        aria-controls="look-part-layer"
+        onclick={() => (layerOpen = !layerOpen)}
+      >
+        <i class="fas fa-chevron-right chevron" aria-hidden="true"></i>
+        <span class="part-label">Colors &amp; Type</span>
+        <span class="part-summary">
+          <span class="part-summary-sep">·</span>
+          {#if $dirty}
+            <span class="part-summary-dirty">unsaved</span>
+          {:else}
+            <span>saved</span>
+          {/if}
+        </span>
+      </button>
+      <UIInfoPopover title="Colors &amp; Type" ariaLabel="About colors and type">
+        <p>
+          <strong>Colors &amp; type</strong> is the part of the theme your design tokens live in. Components read those tokens for their own appearance.
+        </p>
+        <p>
+          Saving here writes a colors and type file. <strong>Adopt</strong> puts it into production and updates the theme above to match.
+        </p>
+        <p>
+          <strong>Load</strong> shows a file on the page as a preview, components left as they are. The example looks are not listed here: load one from the theme above to get its colors, type and shapes together.
+        </p>
+      </UIInfoPopover>
+    </div>
+    {#if layerOpen}
+      <div id="look-part-layer" class="part-body" transition:slide|local={{ duration: slideDur }}>
+        <ThemeFileManager
+          saveStatus={layerSaveStatus}
+          onsave={handleLayerSave}
+          onload={handleLayerLoad}
+        />
+      </div>
+    {/if}
+
+    <div class="part-head part-static">
+      <span class="part-label">Components</span>
+      <span class="part-summary">
+        <span class="part-summary-sep">·</span>
+        {#if componentsOffLook > 0}
+          <span class="part-summary-count">{componentsOffLook}</span>
+          <span>off the theme</span>
+        {:else}
+          <span>in sync</span>
+        {/if}
+      </span>
+      {#if canOpenComponents}
+        <UIPillButton
+          size="compact"
+          icon="fa-cubes"
+          title="Open the component editors"
+          onclick={openComponents}
+        >
+          Open
+        </UIPillButton>
+      {/if}
     </div>
   </div>
 </div>
@@ -376,7 +529,7 @@
 
 <FileLoadList
   bind:show={showFileList}
-  title="Load Manifest"
+  title="Load Theme"
   {files}
   {activeFileName}
   selectedFileName={previewFile?.fileName ?? null}
@@ -387,22 +540,22 @@
   onload={handleSelect}
   ondelete={handleDelete}
   onexport={handleExport}
-  exportTitle={(f) => `Export "${f.name}" as a shareable bundle`}
+  exportTitle={(f) => `Export "${f.name}" as a file you can share`}
 />
 
 <SaveAsDialog
   bind:show={saveAsDialog}
   {currentDisplayName}
   {files}
-  title="Save Manifest As"
-  placeholder="Manifest name…"
+  title="Save Theme As"
+  placeholder="Theme name…"
   reservedNameMessage='The name "default" is reserved for the protected baseline.'
-  branchFromDefaultName="my-manifest"
+  branchFromDefaultName="My Theme"
   onsave={confirmSaveAs}
 />
 
 <style>
-  .manifest-file-manager {
+  .look-panel {
     --mfm-active: #5aa85e;
     --mfm-rail-neutral: var(--ui-border);
     --mfm-rail-active: var(--mfm-active);
@@ -522,5 +675,83 @@
   @keyframes mfm-spin {
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
+  }
+
+  /* Parts. Each reads as a row belonging to the card above, so they sit inside
+     the panel with the same left inset the card's rail gives its content. */
+  .look-parts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-4);
+    padding: 0 var(--ui-space-4);
+  }
+
+  .part-head {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    min-height: 24px;
+  }
+
+  .part-static {
+    padding-left: calc(0.75rem + var(--ui-space-8));
+  }
+
+  .part-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .part-toggle .chevron {
+    width: 0.75rem;
+    font-size: 0.625rem;
+    color: var(--ui-text-tertiary);
+    transition: transform var(--ui-transition-fast);
+  }
+
+  .part-toggle.expanded .chevron {
+    transform: rotate(90deg);
+  }
+
+  .part-label {
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-secondary);
+  }
+
+  .part-summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-4);
+    flex: 1 1 auto;
+    font-size: var(--ui-font-size-xs);
+    color: var(--ui-text-tertiary);
+  }
+
+  .part-summary-sep {
+    color: var(--ui-border);
+  }
+
+  .part-summary-count {
+    font-family: var(--ui-font-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ui-text-secondary);
+  }
+
+  .part-summary-dirty {
+    color: var(--ui-highlight);
+  }
+
+  .part-body {
+    padding: var(--ui-space-6) 0 var(--ui-space-8);
   }
 </style>

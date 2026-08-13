@@ -1,14 +1,17 @@
 <script lang="ts">
+  // The Colors & Type part of the Theme panel. Its files are still themes on
+  // disk, which is why the code keeps that name; in the UI the theme is the
+  // whole look and this is one part of it.
   import { onDestroy, onMount } from 'svelte';
   import type { ThemeMeta } from '../core/themes/themeTypes';
   import { listThemes, deleteTheme, loadTheme, setActiveFile, getProductionInfo, setProductionFile, sanitizeFileName } from '../core/themes/themeService';
+  import { layerThemesForList } from '../core/themes/presetThemes';
   import { listManifests, saveAsManifest } from '../core/manifests/manifestService';
-  import { previewTheme, revertPreview } from '../core/manifests/manifestPreview';
+  import { previewTheme, revertPreview } from '../core/preview/lookPreview';
   import { activeFileName } from '../core/store/editorConfigStore';
   import { dirty } from '../core/store/editorStore';
   import { productionRevision, bumpProductionRevision, themeProductionInfo } from '../core/productionPulse';
   import { flashStatus } from '../core/flashStatus';
-  import UIInfoPopover from './UIInfoPopover.svelte';
   import FileLoadList from './FileLoadList.svelte';
   import FilePill from './FilePill.svelte';
   import SaveAsDialog from '../component-editor/scaffolding/SaveAsDialog.svelte';
@@ -48,6 +51,11 @@
   let protectedDisplayNames = $derived(
     files.filter((f) => f.fileName === 'default').map((f) => f.name),
   );
+
+  // The example looks each ship a layer file too, and the Theme panel above
+  // loads them whole. `files` stays complete so Save As still sees every name
+  // on disk when it picks a free one.
+  let listedFiles = $derived(layerThemesForList(files, $activeFileName));
 
   async function refreshFiles() {
     try {
@@ -119,8 +127,8 @@
     }
   }
 
-  // Pick a manifest filename that doesn't collide with anything on disk so
-  // auto-creating doesn't clobber a manifest the user customized earlier.
+  // Pick a theme filename that doesn't collide with anything on disk so
+  // auto-creating doesn't clobber a theme the user customized earlier.
   async function pickFreshManifestName(base: string): Promise<string> {
     const baseFile = sanitizeFileName(base);
     let manifests: { fileName: string }[];
@@ -164,13 +172,13 @@
     } catch (err) {
       const e = err as Error & { code?: string };
       if (e.code === 'ACTIVE_IS_PROTECTED') {
-        // Default manifest is active — auto-create a user manifest and retry.
-        // No second dialog: the user clicked one button (Adopt) and gave the
-        // theme a name; the manifest is bookkeeping they shouldn't have to
-        // think about.
+        // The protected Default theme is active — auto-create a user theme and
+        // retry. No second dialog: the user clicked one button (Adopt) and named
+        // their colors and type; the theme above is bookkeeping they shouldn't
+        // have to think about.
         prodApplyStatus = 'idle';
         try {
-          const targetName = await pickFreshManifestName('my-manifest');
+          const targetName = await pickFreshManifestName('my-theme');
           await saveAsManifest(targetName, targetName);
         } catch {
           flashStatus(setProdApplyStatus, 'error', { durationMs: 3000 });
@@ -211,7 +219,7 @@
       previewTheme(theme);
       previewFile = file;
     } catch (err) {
-      window.alert(`Failed to preview theme: ${(err as Error).message}`);
+      window.alert(`Failed to preview colors and type: ${(err as Error).message}`);
       cancelPreview();
     }
   }
@@ -221,7 +229,7 @@
     if (!file) return;
     if ($dirty) {
       const ok = window.confirm(
-        'Loading a theme will discard unsaved changes. Continue?',
+        'Loading colors and type will discard unsaved changes. Continue?',
       );
       if (!ok) return;
     }
@@ -326,21 +334,6 @@
 </script>
 
 <div class="theme-file-manager">
-  <div class="tfm-header">
-    <span class="tfm-header-label">Theme</span>
-    <UIInfoPopover title="Themes" ariaLabel="About themes">
-      <p>
-        A <strong>theme</strong> saves the design tokens for a site, components use these tokens to define their appearance.
-      </p>
-      <p>
-        <strong>Load</strong> opens the list. Picking a theme shows its colors and type on the page as a preview, with your components left as they are and nothing written to disk. Pick another to compare, or <strong>Cancel</strong> to go back to where you were.
-      </p>
-      <p>
-        <strong>Save</strong> keeps the previewed theme: it becomes the theme the editor is working on.
-      </p>
-    </UIInfoPopover>
-  </div>
-
   <div class="tfm-cards" class:in-sync={prodIsInSync}>
     <div
       class="tfm-card tfm-card-editor"
@@ -379,7 +372,7 @@
         isProtected={isDefaultActive}
         dirty={$dirty}
         applied={editorIsApplied}
-        protectedTitle="Protected system theme"
+        protectedTitle="Protected default colors and type"
         title={currentDisplayName}
         style="display: flex;"
       />
@@ -392,7 +385,7 @@
           onclick={handleSave}
           disabled={saveStatus === 'saving'}
           title={isDefaultActive
-            ? 'Save to a new theme file'
+            ? 'Save to a new colors and type file'
             : 'Save to current file'}
         >
           <i
@@ -406,7 +399,7 @@
             {#if saveStatus === 'idle'}Save{:else if saveStatus === 'saving'}Saving{:else if saveStatus === 'saved'}Saved{:else}Error{/if}
           </span>
         </button>
-        <button class="tfm-btn tfm-btn-row" onclick={openSaveAs} title="Save as new theme">
+        <button class="tfm-btn tfm-btn-row" onclick={openSaveAs} title="Save as a new colors and type file">
           <i class="fas fa-copy"></i>
           <span>Save As…</span>
         </button>
@@ -414,7 +407,7 @@
           class="tfm-btn tfm-btn-row"
           class:active={showFileList}
           onclick={toggleFileList}
-          title="Preview a theme, then save it to load it"
+          title="Preview colors and type, then save to load them"
         >
           <i class="fas fa-folder-open"></i>
           <span>Load…</span>
@@ -431,8 +424,8 @@
       onclick={handleApplyToProduction}
       disabled={prodApplyStatus === 'applying' || prodIsInSync}
       title={prodIsInSync
-        ? 'This theme is already in production'
-        : `Adopt "${currentDisplayName}" as the production theme`}
+        ? 'These colors and type are already in production'
+        : `Adopt "${currentDisplayName}" for production`}
     >
       <i
         class="fas"
@@ -465,7 +458,7 @@
         name={prodName}
         isProtected={$themeProductionInfo?.fileName === 'default'}
         applied={prodIsInSync}
-        protectedTitle="Protected system theme"
+        protectedTitle="Protected default colors and type"
         title={prodName}
         style="display: flex;"
       />
@@ -475,12 +468,12 @@
 
 <FileLoadList
   bind:show={showFileList}
-  title="Load Theme"
-  {files}
+  title="Load Colors & Type"
+  files={listedFiles}
   activeFileName={$activeFileName}
   sortable
   showUpdatedAt
-  systemBadge={{ label: 'System', title: 'Protected system theme' }}
+  systemBadge={{ label: 'System', title: 'Protected default colors and type' }}
   emptyMessage="No saved files"
   canDelete={(file) => file.fileName !== 'default'}
   selectedFileName={previewFile?.fileName ?? null}
@@ -498,10 +491,10 @@
   {files}
   currentFileName={$activeFileName}
   reservedDisplayNames={protectedDisplayNames}
-  title="Save Theme As"
-  placeholder="Theme name…"
-  reservedNameMessage='That name is reserved for the protected default theme.'
-  branchFromDefaultName="My Theme"
+  title="Save Colors & Type As"
+  placeholder="Colors and type name…"
+  reservedNameMessage='That name is reserved for the protected default.'
+  branchFromDefaultName="My Colors"
   onsave={confirmSaveAs}
 />
 
@@ -517,22 +510,8 @@
     gap: var(--ui-space-8);
   }
 
-  .tfm-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--ui-space-4);
-    padding: 0 var(--ui-space-4);
-  }
-
-  .tfm-header-label {
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
-  }
-
-  /* Two-card pipeline (Editor → Production) — theme card + production card
-     surface the per-artifact pipeline. The manifest panel sits one level up
-     and tracks active vs default rather than editor vs production. */
+  /* Two-card pipeline (Editor → Production). The Theme panel this part sits
+     in tracks active vs default rather than editor vs production. */
   .tfm-cards {
     display: flex;
     flex-direction: column;
