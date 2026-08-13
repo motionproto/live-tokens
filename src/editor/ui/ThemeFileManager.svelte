@@ -256,9 +256,10 @@
       await refreshProduction();
       bumpProductionRevision();
       if (wasActive) {
-        $activeFileName = 'default';
-        currentDisplayName = 'Default Theme';
-        onload?.({ fileName: 'default' });
+        // Not always Default: deleting a local copy that shadows a shipped
+        // theme restores the shipped one and the pointer keeps naming it.
+        // refreshFiles() already read back whichever name survived.
+        onload?.({ fileName: $activeFileName });
       }
     } catch {
       // silent

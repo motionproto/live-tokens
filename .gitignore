@@ -17,6 +17,9 @@ dist-ssr
 src/live-tokens/data/themes/_backups/
 src/system/styles/_backups/
 
+# Staged by the shipped-manifest fallback tests; a killed run leaves it behind
+src/live-tokens/data/manifests/package-fixture-look.json
+
 .env*
 .npmrc
 

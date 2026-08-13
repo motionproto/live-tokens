@@ -1,6 +1,6 @@
 # Encapsulated manifests
 
-Status: EXECUTED 2026-08-13 on branch `manifest-encapsulation`, all four commit units in. Decided the same day ("the design holds"); open questions resolved per their recommendations: theme embeds by value; Apply keeps setting production; the demo look manifests are throwaway, regenerated as v2.
+Status: EXECUTED 2026-08-13 on branch `manifest-encapsulation`, all four commit units plus the two addendum units in. Decided the same day ("the design holds"); open questions resolved per their recommendations: theme embeds by value; Apply keeps setting production; the demo look manifests are throwaway, regenerated as v2.
 
 ## The discovered corruption
 
@@ -66,7 +66,7 @@ Commit units in order on branch `manifest-encapsulation` (stacked on shape-space
 
 1. **Server format flip.** `Manifest` v2 type (schemaVersion 2, embedded theme + by-value non-default componentConfigs, delta against defaults); `normalizeManifest` called from every manifest read door (the `normalizeTheme` pattern); eager v1→v2 resolve-and-embed migration in `ensureManifestsDir` (eager, so references are resolved before the new deletability regime can orphan them; dangling → default, logged); `handleApplyManifest` materializes embedded data under the manifest slug; `handleExportManifest` becomes envelope-only; `handleImportManifest` gains the v2 branch (validate + write one file, no materialization at import); `patchActiveManifest` embeds the adopted data instead of the pointer. Tests per `themeFileApi.fallback.test.ts` conventions plus a migration test.
 
-## Addendum: preset example manifests (decided 2026-08-13)
+## Addendum: preset example manifests (decided 2026-08-13, EXECUTED 2026-08-13)
 
 Promote the nine shipped preset themes to full example looks: one shipped v2 manifest per preset, embedding the preset theme by value plus a modest shape personality built with the pure `adjustAliases` engine over the derived component defaults. Encapsulation makes this shippable where the pointer model could not (a pointer manifest would reference configs the package does not ship).
 
@@ -88,6 +88,9 @@ Mechanics:
 
 - **Unit 5 (server):** package-shipped manifests resolve through the existing `packageManifestsDir` fallback (list, GET, apply, export). Add the missing delete guard mirroring `PACKAGE_THEME`: deleting a local shadow restores the shipped version (pointer semantics already correct after 2031e38); deleting with no local copy 403s `PACKAGE_MANIFEST`. Fallback tests mirroring the preset-theme suite.
 - **Unit 6 (generator + data + docs):** committed `scripts/generate-preset-manifests.mjs` builds all nine deterministically from the derived default configs + preset theme files using the compiled engine (no active-state churn, no working-file trail); idempotent (preserves createdAt, skips write when content unchanged modulo timestamps) so regeneration is safe when component defaults drift. Manifests committed under `src/live-tokens/data/manifests/`, added to `package.json` `files`, README + release-notes touch. Manifest display name = theme display name.
+
+As executed: embedded configs are stamped `name: <preset slug>`, so a materialized `<slug>.json` reads coherently under the name Apply gives it. Between 21 and 24 of the 25 components carry a config per preset. The shape ops land where the defaults sit, which is one rung below the sketch in a couple of places: `--card-default-radius` is `--radius-lg` (Christmas takes it to `--radius-2xl`) and `--button-*-radius` is `--radius-xl` (Halloween takes it to `--radius-md`). Royal Velvet and Sunset buttons are `--radius-full`. `vite-plugin/manifests/presetManifests.test.ts` gates all nine for v2 pass-through, delta encoding, and their nine explicit `files` entries.
+
 2. **Default regeneration + full deletability.** `ensureManifestsDir` materializes the full-set Default manifest (package default theme + derived default configs, drift-aware like `generateDefaultConfig`); theme DELETE loses the production guard and gains production self-heal (pointer → default + syncs, mirroring the config DELETE handler); active-manifest deletion allowed with `_active` self-heal to default. Package/default 403s stay. Tests.
 3. **Client + tooling.** `manifestService` snapshot functions build by-value manifests; `ManifestFileManager` drops the active-manifest delete guard, help copy rewritten for encapsulation; `ThemeFileManager` `canDelete` loses the production-theme exclusion; `scripts/collapse-manifest-to-default.mjs` rewritten to read embedded data. svelte-check green.
 4. **Data + docs.** Repo's `manifests/default.json` regenerated (stat entry gone); `my-manifest` restored per decision 5; demo look manifests regenerated as v2; README manifest model copy updated; cross-reference from `docs/plans/shape-space-skill.md`.

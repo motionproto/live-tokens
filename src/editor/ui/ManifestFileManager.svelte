@@ -201,12 +201,15 @@
 
   async function handleDelete(file: ManifestMeta) {
     if (file.isProtected) return;
-    // Deleting the active manifest is legal: the server points active back at
-    // Default, and the theme and component files on disk are untouched.
+    // Deleting the active manifest is legal, and the theme and component files
+    // on disk are untouched either way. Where active lands depends on something
+    // the client can't see: deleting a local copy that shadows a shipped
+    // manifest restores the shipped one and keeps the pointer on it, while
+    // deleting a local-only manifest sends active back to Default.
     const wasActive = file.fileName === activeFileName;
     const ok = window.confirm(
       wasActive
-        ? `Delete manifest "${file.name}"? Active goes back to Default. Your theme and component files stay as they are.`
+        ? `Delete manifest "${file.name}"? Active goes to the version shipped with the package if there is one, otherwise Default. Your theme and component files stay as they are.`
         : `Delete manifest "${file.name}"?`,
     );
     if (!ok) return;

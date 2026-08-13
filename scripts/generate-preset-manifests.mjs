@@ -1,0 +1,161 @@
+#!/usr/bin/env node
+// Build the nine shipped preset manifests: one encapsulated (v2) manifest per
+// preset theme, carrying that theme by value plus a shape personality applied
+// to the derived component defaults.
+//
+//   node scripts/generate-preset-manifests.mjs
+//
+// Deterministic and idempotent: a run that computes the same content (modulo
+// timestamps) writes nothing, so regenerating after a component default drifts
+// touches only the presets that actually moved. Nothing here reads or writes
+// active/production pointers, so it leaves no working-file trail — this is the
+// reason it uses the pure engine directly instead of the `adjust` CLI.
+
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { dirname, join, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const DATA = join(ROOT, 'src/live-tokens/data');
+const CONFIGS = join(DATA, 'component-configs');
+const THEMES = join(DATA, 'themes');
+const MANIFESTS = join(DATA, 'manifests');
+
+const ENGINE = join(ROOT, 'dist-plugin/adjust/index.js');
+const ENGINE_SOURCES = [
+  'vite-plugin/adjust/index.ts',
+  'src/editor/core/components/adjustAliases.ts',
+  'src/editor/core/components/aliasKinds.ts',
+].map((p) => join(ROOT, p));
+
+const MANIFEST_SCHEMA_VERSION = 2;
+
+/** Shape personality per preset, from the plan's addendum table. A `set` op
+ *  runs last so it overrides the sweep rather than being shifted by it. */
+const PRESETS = [
+  { slug: 'autumn', ops: [{ kind: 'radius', shift: 1 }, { kind: 'padding', shift: 1 }] },
+  { slug: 'christmas', ops: [{ kind: 'radius', shift: 2 }, { kind: 'gap', shift: 1 }] },
+  { slug: 'halloween', ops: [{ kind: 'radius', shift: -2 }, { kind: 'border-width', shift: 1 }] },
+  { slug: 'midnight-study', ops: [{ kind: 'radius', shift: -1 }, { kind: 'padding', shift: -1 }] },
+  { slug: 'ocean', ops: [{ kind: 'radius', shift: 2 }, { kind: 'padding', shift: 1 }] },
+  {
+    slug: 'royal-velvet',
+    ops: [
+      { kind: 'radius', shift: 1 },
+      { kind: 'padding', shift: 1 },
+      { target: 'button', kind: 'radius', set: '--radius-full' },
+    ],
+  },
+  { slug: 'saint-patrick', ops: [{ kind: 'radius', shift: 1 }] },
+  {
+    slug: 'spring-meadow',
+    ops: [{ kind: 'radius', shift: 1 }, { kind: 'padding', shift: 1 }, { kind: 'gap', shift: 1 }],
+  },
+  {
+    slug: 'sunset',
+    ops: [{ kind: 'radius', shift: 2 }, { target: 'button', kind: 'radius', set: '--radius-full' }],
+  },
+];
+
+const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
+
+async function loadEngine() {
+  if (!existsSync(ENGINE)) {
+    throw new Error(
+      `adjust engine not found at ${relative(ROOT, ENGINE)}. Build the plugin first: npm run build:plugin`,
+    );
+  }
+  const built = statSync(ENGINE).mtimeMs;
+  const stale = ENGINE_SOURCES.filter((src) => statSync(src).mtimeMs > built);
+  if (stale.length > 0) {
+    throw new Error(
+      `adjust engine is older than ${stale.map((s) => relative(ROOT, s)).join(', ')}. ` +
+        `Rebuild it first: npm run build:plugin`,
+    );
+  }
+  return import(ENGINE);
+}
+
+function readDefaultConfigs() {
+  const configs = {};
+  for (const entry of readdirSync(CONFIGS, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const path = join(CONFIGS, entry.name, 'default.json');
+    if (!existsSync(path)) {
+      throw new Error(`component "${entry.name}" has no default.json. Start the dev server once to derive it.`);
+    }
+    configs[entry.name] = readJson(path);
+  }
+  return configs;
+}
+
+/** Content identity, timestamps excluded: what "unchanged" means for a rewrite. */
+function signature(manifest) {
+  const configs = Object.fromEntries(
+    Object.entries(manifest.componentConfigs).map(([comp, cfg]) => {
+      const { updatedAt, ...rest } = cfg;
+      return [comp, rest];
+    }),
+  );
+  return JSON.stringify({
+    name: manifest.name,
+    schemaVersion: manifest.schemaVersion,
+    theme: manifest.theme,
+    componentConfigs: configs,
+  });
+}
+
+const { adjustAliases } = await loadEngine();
+const defaults = readDefaultConfigs();
+const now = new Date().toISOString();
+
+let written = 0;
+for (const { slug, ops } of PRESETS) {
+  const themePath = join(THEMES, `${slug}.json`);
+  if (!existsSync(themePath)) {
+    throw new Error(`preset theme "${slug}" not found at ${relative(ROOT, themePath)}`);
+  }
+  const theme = readJson(themePath);
+  const { configs: next, report } = adjustAliases(defaults, ops, now);
+
+  const componentConfigs = {};
+  let aliasCount = 0;
+  for (const entry of [...report.components].sort((a, b) => a.component.localeCompare(b.component))) {
+    if (entry.changes.length === 0) continue;
+    const comp = entry.component;
+    componentConfigs[comp] = {
+      name: slug,
+      component: comp,
+      createdAt: defaults[comp].createdAt,
+      updatedAt: now,
+      aliases: next[comp].aliases,
+    };
+    aliasCount += entry.changes.length;
+  }
+
+  const manifestPath = join(MANIFESTS, `${slug}.json`);
+  const existing = existsSync(manifestPath) ? readJson(manifestPath) : null;
+  const manifest = {
+    name: theme.name ?? slug,
+    createdAt: typeof existing?.createdAt === 'string' ? existing.createdAt : now,
+    updatedAt: now,
+    schemaVersion: MANIFEST_SCHEMA_VERSION,
+    theme,
+    componentConfigs,
+  };
+
+  const summary = `${slug}  ${Object.keys(componentConfigs).length} component(s), ${aliasCount} alias(es)`;
+  if (existing && signature(existing) === signature(manifest)) {
+    console.log(`  ${summary} — unchanged`);
+    continue;
+  }
+  writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+  written++;
+  console.log(`✓ ${summary} — written`);
+}
+
+console.log(
+  written === 0
+    ? `\nAll ${PRESETS.length} preset manifests were already current.`
+    : `\nWrote ${written} of ${PRESETS.length} preset manifests to ${relative(ROOT, MANIFESTS)}.`,
+);
