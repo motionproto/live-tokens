@@ -4,6 +4,28 @@
 
 ### Added
 
+- **Loading is preview first.** Picking a theme in the Load window paints
+  it on the page while the window stays open: switch between looks freely,
+  then Save to keep one or Cancel to return to exactly what you had,
+  unsaved edits included. The preview is paint only; nothing touches disk
+  until Save. A "Colors and type only. Keep my shapes" toggle previews and
+  loads just a theme's palette and fonts over your current component
+  shapes, and your own saved colors-and-type files appear in the same list
+  under a badge, where that mode is implied.
+
+- **One Theme panel.** The editor's separate theme and manifest managers
+  merge into a single panel: one identity, Save, Save As, Load, Import,
+  Export. Colors & Type and a Components drift count appear as read-only
+  parts inside it, the way a component shows its parts, and the word
+  "manifest" no longer appears in the editor. The nine presets live in
+  this panel's Load list and nowhere else.
+
+- **Adopt ships the whole look.** Production state and the Adopt action
+  live on the Theme panel's root card: one action promotes the active
+  colors, type, and every drifted component config to production in a
+  single atomic step, with one CSS regeneration. Per-component Adopt
+  stays in each component's editor for granular shipping.
+
 - **`generate-theme` turns a mood brief into a complete theme.** `npx
   live-tokens generate-theme <brief.json>` takes ten OKLCH seeds plus a
   scheme, assembles the full curve set, enforces AA contrast with automatic
