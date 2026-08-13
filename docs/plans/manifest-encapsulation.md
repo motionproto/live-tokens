@@ -266,3 +266,38 @@ Unit 12, one commit. Server scope: the one whole-look adopt endpoint (composing 
 **ColorsTypePart is deleted.** With no Editor card, no Production card, no Adopt and no discard arm, only the font pairing was left, so the disclosure collapses to a static row beside Components and the component has nothing to be. The auto-open machinery, the slide transition and the chevron styles go with it; `/ui` still exports `ThemePanel` under both names.
 
 **Unsaved edits stay out, and now have nowhere to go.** Adopt promotes what is saved and the confirm says so before it runs. The unit-11 note recorded Adopt as the only path for unsaved colors and type to reach disk; that path is gone with the layer flush, so the Save confirm's "Adopt them first to include them" was a false instruction and is removed. Unsaved colors and type now live only in the editor's own browser state. Flagged for review, not resolved here: closing it means either Save flushing the dirty layer or Adopt doing it, both behavior changes this addendum does not call for.
+
+## Resume point (2026-08-13, session handoff)
+
+Branch `manifest-encapsulation`, stacked on `shape-space-adjust`; all units through 11 review-PASSED with fixes in. Unit 12 (root-level Adopt, commit 1f22f35) FAILED review; an Opus fix wave was in flight at handoff and commits on its own when green. The user's editor session left 4 modified data files (tokens.generated.css, three _active/_production pointers) + ~77 untracked demo configs in the tree: leave all of them alone, never `git add -A`.
+
+### The four unit-12 findings the fix wave addresses
+
+1. BLOCKER: `persistTheme` had zero callers — color/type edits could not reach a file, `$dirty` latched forever, confirms instructed a nonexistent "save first". Fix: ThemePanel's Save and Adopt flush the dirty token layer via persistTheme first (auto-fork `my-colors` / "My Colors" when the protected default is active), confirms narrowed to unsaved COMPONENT edits only, themes-workflow.md + CHANGELOG accuracy pass.
+2. HIGH: adopt re-embedded every slice, deleting look entries for components on default even when unmoved (only-copy loss). Fix: patch only promoted slices; the "button entry survives" case becomes the pinned test.
+3. MEDIUM: null production read as permanently "in production" with Adopt disabled (false calm, no exit). Fix: `unknown` state in lookProductionState, neutral render, Adopt enabled, a retry path.
+4. LOW: 409 recovery unbounded + double-fire window. Fix: depth cap 1, hold 'adopting' through the fork.
+
+### Next steps, in order
+
+1. `git log --oneline -3`: confirm the fix commit landed on top of 74cb5b6; `npm test` + `npm run check` green. If no fix commit exists, the wave died: re-run the fixes per the findings above.
+2. Re-review: wave-reviewer (Opus) against the fix commit, scoped to the four findings plus no-regression on unit 12's verified-clean list (atomic door, 409-before-write, no file names below root identity, per-component Adopt untouched). PASS closes unit 12.
+3. Verify the CHANGELOG Unreleased bullets ("One Theme panel", "Adopt ships the whole look", "Loading is preview first") match post-fix semantics.
+4. Hand the user the browser checklist below — units 8-12 are UI; the checklist is the acceptance test.
+5. Then the branch is merge-ready: `shape-space-adjust` first or `manifest-encapsulation` directly (contains both).
+
+### Browser checklist (post-fix)
+
+1. Root card: Active name, production state line, green Adopt, Save/Save As/Load/Import; no file name anywhere below the root identity.
+2. Colors & Type and Components render as plain static rows (no chevron/disclosure); Components "Open" pill switches views.
+3. Edit a color, click Save: the edit reaches the theme file on disk (new semantics), $dirty clears, no false "unsaved changes" confirm afterward.
+4. Drift one component, Adopt: line flips out-of-sync naming it, one click ships it, tokens.generated.css regenerates once, both _production pointers move.
+5. On the Default look with edits, Adopt: silent fork to ONE new "My Colors"/"My Theme" file, promotion completes, no dialog, no second fork.
+6. Look-content survival: a look carrying a config for a component now on default keeps that entry after adopting an unrelated change.
+7. Kill/restart the dev server under the open editor: production state must not sit on a permanent false "in production" with Adopt disabled.
+8. Load window: preview looks with the window open, Cancel restores exactly (unsaved edits included), "Colors and type only" toggle repaints mid-preview, colors-and-type rows force the toggle, replace-confirm fires before overwriting a tuned shadow.
+9. /live-tokens/components hosts the same panel, Open pill suppressed.
+
+### Known deferred items (recorded, not owed now)
+
+Corrupt-manifest count not surfaced in list UI (needs a server field); look row stays marked active after a colors-only load (needs active theme file surfaced); `handleSetProductionTheme`'s unreachable "Active manifest is protected" string; RELEASING.md Stat.svelte ghost was fixed; release-time: retitle CHANGELOG Unreleased, re-run generate:preset-manifests after any theme migration.
