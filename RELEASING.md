@@ -110,33 +110,43 @@ What should be in the tarball:
 - `src/system/**` (token components and `tokens.css`)
 - `src/app/site.css` (optional starter typography)
 - `dist-plugin/**` (built vite plugin)
-- `bin/**` (the `live-tokens` CLI: `create`, `migrate`, `migrate-routes`)
+- `bin/**` (the `live-tokens` CLI: `create`, `setup-claude`, `check-component`,
+  `generate-theme`, `adjust`, `migrate`, `migrate-routes`)
 - `template/**` (the `create` scaffold)
 - `.claude/skills/**` (the Claude skills: build-page, create-component,
-  pick-component)
-- These three files only, out of `src/live-tokens/data/`:
-  `tokens.generated.css`, `themes/default.json`, `manifests/default.json`.
+  pick-component, generate-theme, adjust-shape-space)
+- These files only, out of `src/live-tokens/data/`: `tokens.generated.css`,
+  `themes/default.json` plus the nine preset themes, and the nine preset
+  manifests (each an entry-by-entry `files` listing, never a directory).
   Everything else under that path is consumer data and must stay out.
-  See "Why the three defaults ship" below before removing them.
+  See "Why the shipped data files ship" below before removing them.
 - `package.json`, `README.md`, `LICENSE*`, `CHANGELOG.md`
 
 What should NEVER be in the tarball:
-- `src/live-tokens/data/**` beyond the three defaults named above — the rest is
-  consumer data, not source
+- `src/live-tokens/data/**` beyond the files named above — the rest is
+  consumer data, not source. In particular `manifests/default.json` and
+  `manifests/my-manifest.json` never ship: the Default manifest is
+  materialized locally at boot, so a package copy would be unreadable by
+  design.
 - `themes/`, `manifests/`, `component-configs/` at the repo root — same
 - `temp/`, scratch markdown, `*.test.ts`, `__tests__/**`
-- `Stat.svelte` / `StatEditor.svelte` — gated by `package.json#files`
-  exclusion patterns (they're internal scaffolding)
 - `.git/`, `node_modules/`, `dist/`, `dist-ssr/`
 
 If something unexpected appears, fix `package.json#files` rather than
 deleting from a built tarball — `npm pack` will regenerate it next time.
 
-### Why the three defaults ship
+### Why the shipped data files ship
 
 They look like consumer data sitting in the tarball, so this gets questioned
 periodically. They are load-bearing, and shipping them is what keeps a
 consumer's install clean.
+
+The preset manifests are generated artifacts: `npm run
+generate:preset-manifests` rebuilds all nine from the derived component
+defaults and the preset theme files, and a test suite pins the on-disk
+copies to that generator. After any theme migration or component-default
+change, re-run the generator before tagging so the shipped manifests carry
+current data.
 
 The plugin used to run *seed writers* that wrote a default theme into the
 consumer's project on first boot. That is what dirtied a fresh install.
@@ -154,8 +164,9 @@ a vendored one:
   instead of holding a copy that silently goes stale;
 - a consumer on a custom theme keeps a current "restore to" baseline.
 
-They are also not a size problem: roughly 57 KB of a 2.8 MB unpacked tarball,
-and they compress well. If you are trimming the package, the two `.webp` demo
+They are also not a size problem: the themes and preset manifests are
+roughly 1.7 MB of a 4.6 MB unpacked tarball but compress to about 150 KB of
+the 1.2 MB packed artifact. If you are trimming the package, the two `.webp` demo
 assets under `src/system/assets/` are ~457 KB, and being pre-compressed they
 are close to half the packed tarball. They cannot simply be deleted, since
 shipped editor components import them.

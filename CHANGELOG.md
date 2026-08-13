@@ -1,5 +1,89 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **`generate-theme` turns a mood brief into a complete theme.** `npx
+  live-tokens generate-theme <brief.json>` takes ten OKLCH seeds plus a
+  scheme, assembles the full curve set, enforces AA contrast with automatic
+  correction rounds, writes `themes/<slug>.json`, and activates it. The
+  bundled `live-tokens-generate-theme` skill translates natural-language
+  briefs ("dark and moody night theme", "St. Patrick's Day with green and
+  gold") into seeds. Nine preset themes generated this way ship in the
+  package: Autumn, Christmas, Halloween, Midnight Study, Ocean, Royal
+  Velvet, Saint Patrick, Spring Meadow, Sunset.
+
+- **`adjust` moves shape and space along the token scales.** `npx
+  live-tokens adjust <ops.json>` shifts or sets every matching radius,
+  padding, gap, and border-width alias across component configs: relative
+  shifts preserve the cross-component hierarchy, `--radius-full` is a
+  gated rung so a global "softer" never silently turns the UI into
+  capsules, and spacing moves along the editor picker's 12-step subset so
+  every written value stays hand-editable. Unnamed runs roll into one
+  `adjusted.json` per component; a named run keeps the look. The bundled
+  `live-tokens-adjust-shape-space` skill maps "make the buttons pill
+  shaped", "make the UI softer", "space it out" onto ops files.
+
+- **Manifests are encapsulated.** A manifest now carries its whole look by
+  value (`schemaVersion: 2`): the full theme plus a copy of every
+  non-default component config. Deleting any theme or component file never
+  breaks a saved manifest, and the import/export bundle is the same format
+  as the file on disk. Existing pointer manifests migrate on first
+  dev-server start, resolving and embedding what they reference.
+
+- **The nine preset themes ship as full example looks.** One manifest per
+  preset embeds its theme plus a generated shape personality (Christmas
+  rounder with looser gaps, Halloween sharp with heavier borders, Royal
+  Velvet and Sunset with pill buttons). Load one to try the complete look;
+  delete its materialized files to restore. `npm run
+  generate:preset-manifests` regenerates all nine from the component
+  defaults.
+
+### Changed
+
+- **The Default manifest is written and regenerated at boot.** It is a full
+  set derived from the package default theme and each component's
+  `:global(:root)` defaults, rewritten whenever the derived content drifts
+  and restored if deleted outside the file manager. The package no longer
+  ships the file; a consumer's boot always materializes a current local
+  copy.
+
+- **Everything is deletable.** The production-theme delete guard is gone.
+  Pointers heal to `default` only when the deleted name stops resolving,
+  so removing a local shadow of a shipped preset restores the shipped
+  version and keeps the pointer on it. The active manifest is deletable;
+  active heals to Default. Deleting a shipped theme or manifest with no
+  local copy still refuses.
+
+- **Load applies the complete look.** Loading a manifest materializes its
+  data into working files named after the manifest (overwriting files that
+  already use that name) and points components the manifest does not carry
+  back at their defaults. Components that are not installed are skipped
+  and reported instead of silently ignored.
+
+### Fixed
+
+- **Dead shape and space keys dropped from every theme** (theme schema
+  version 4): the `--badge-trait-*`, `--sectiondivider-padding`, and
+  `--dialog-{primary,secondary}-*` shape keys had no consumers since their
+  components were restructured; a migration removes them from
+  `cssVariables`.
+
+- **Adopting while a shipped manifest is active records the adoption.** The
+  adopt path used to return success while writing nothing when the active
+  manifest resolved from the package; it now forks the manifest locally,
+  shadow-and-restore style.
+
+- **`my-manifest` restored.** Its `my-card` and `my-panel` configs, deleted
+  along with the files they pointed at, are recovered from git history and
+  embedded. Orphan component-config directories (`detailnav`, `stateditor`,
+  `slotprobe`, `floatingtokentags`) are removed.
+
+- **`collapse-manifest-to-default` no longer drops `harmonyAxes`** or
+  coerces a missing `fontStacks` to an empty object when baking a manifest
+  into the shipped defaults.
+
 ## 0.47.1 — Straightened curves
 
 ### Fixed
