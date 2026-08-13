@@ -173,9 +173,14 @@ describe('themeLook', () => {
     expect(fontSources.map((s) => s.id)).toEqual(['src_preset_cinzel']);
   });
 
-  it('ignores component vars that leaked into the theme file', () => {
+  it('live component aliases win over values the theme file carries for them', () => {
     const { vars } = themeLook(theme({ '--card-default-radius': 'var(--radius-none)' }));
     expect(vars['--card-default-radius']).toBe('var(--radius-md)');
+  });
+
+  it('paints theme-file vars for component names the live slice does not alias', () => {
+    const { vars } = themeLook(theme({ '--card-default-padding': 'var(--space-99)' }));
+    expect(vars['--card-default-padding']).toBe('var(--space-99)');
   });
 });
 
@@ -353,5 +358,18 @@ describe('previewTheme', () => {
     expect(read('--surface-canvas')).toBe('#2b1b45');
     expect(read('--card-default-radius')).toBe('var(--radius-md)');
     expect(read('--live-only')).toBe('');
+  });
+
+  it('reverting first cannot strand a var the hydrated file no longer carries', () => {
+    // The renderer diffs against its own last-applied set, which never saw the
+    // preview's writes: skipping the revert leaves --preview-only painted
+    // forever when the committed file diverges from the previewed one.
+    previewTheme(theme({ '--surface-canvas': '#2b1b45', '--preview-only': '2px' }));
+    expect(read('--preview-only')).toBe('2px');
+
+    revertPreview();
+    loadFromFile(royalVelvet);
+    expect(read('--preview-only')).toBe('');
+    expect(read('--surface-canvas')).toBe('#2b1b45');
   });
 });
