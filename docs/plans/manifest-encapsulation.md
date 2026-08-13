@@ -187,3 +187,15 @@ Shipped in unit 9. The composition the addendum specifies is already what `theme
 Save transition: the commit path reverts the preview first, then runs the existing load (PUT `_active`, then hydrate through `onload`). The renderer diffs against its own last-applied set, which never sees a preview's direct `setCssVar` writes, so committing from a painted preview could strand one of its vars. Reverting first makes Save land exactly as a Load with no preview in play, at the cost of showing the outgoing look for two round trips (the `_active` PUT, then the hydrate GET). No page reload here, unlike manifest Apply.
 
 `previewTheme` and `previewManifest` share one `applyPreview` core, so either kind of preview replaces the other and one revert restores the live state. Browser check not run: the headless smoke ran the real `loadTheme('yuletide')` client GET and `themeLook` against a store fixture holding a customized card.
+
+## Addendum 5: the look hierarchy (decided 2026-08-13)
+
+Mark's verdict on the two peer file managers: confusing; "theme should have all things and be stored in a manifest... we treat it as a hierarchy, like a component." The layered storage stays (color/type and shape change at different speeds; the generators compose because the layers are orthogonal); the UI and vocabulary restructure around one root artifact with parts, the way a component has parts.
+
+- **Root: Theme** — the whole look, backed by the manifest file, unchanged on disk. One panel at the top of the sidebar: active look identity, Save (captures everything, which manifest save already does), Save As, Load with the preview flow, Import/Export. The nine presets appear here and only here. The word "manifest" leaves the UI; it survives as the file-format term in docs and code.
+- **Part: Colors & Type** — the current theme-layer manager, disclosed inside the root per the editor's component conventions (labeled groups, progressive disclosure, permanent before impermanent). Keeps its layer files, Save/Load with preview (unit 9), and Adopt. Its Load list drops shipped presets; user layer files stay.
+- **Part: Components** — a summary, not a third manager: how many components sit off the active look's config, linking into the per-component editors where the in-situ file managers remain untouched.
+- Part-level Adopt auto-patching the root (`patchActiveManifest`) is the hierarchy's consistency rule: editing a part updates the whole, as with a component's parts.
+- Rides along: move `manifestPreview.ts` to `core/preview/lookPreview.ts` (naming debt flagged in the unit-9 review; two import sites).
+
+Unit 10, one commit: panel restructure + vocabulary sweep (help popovers, dialog titles, delete confirms), preset filtering in the layer list, the rename, tests for the list filtering, svelte-check clean. Server, formats, CLIs, migrations: untouched.
