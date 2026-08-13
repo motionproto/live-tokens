@@ -61,10 +61,7 @@ async function request(method: string, url: string, body?: unknown) {
   return { status: res.statusCode, json: res.payload ? JSON.parse(res.payload) : null, nextCalled };
 }
 
-beforeEach(() => {
-  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ltfb-'));
-  themesDir = path.join(tmp, 'themes');
-  manifestsDir = path.join(tmp, 'manifests');
+function boot() {
   const plugin = themeFileApi({
     dataDir: tmp,
     themesDir,
@@ -81,6 +78,13 @@ beforeEach(() => {
   };
   (plugin as any).configureServer(server);
   mw = captured[0];
+}
+
+beforeEach(() => {
+  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ltfb-'));
+  themesDir = path.join(tmp, 'themes');
+  manifestsDir = path.join(tmp, 'manifests');
+  boot();
 });
 
 afterEach(() => {
@@ -234,5 +238,151 @@ describe('shipped preset themes on a fresh consumer', () => {
     expect(active.json._fileName).toBe('default');
     const production = await request('GET', `${API}/themes/production`);
     expect(production.json.fileName).toBe('default');
+  });
+});
+
+/**
+ * The package data dir is the repo's own `src/live-tokens/data`, so a shipped
+ * example manifest is staged by writing one there for the length of the suite.
+ */
+describe('a package-shipped manifest on a fresh consumer', () => {
+  const FIXTURE = 'package-fixture-look';
+  const packageManifestPath = path.join(
+    REPO_ROOT,
+    'src/live-tokens/data/manifests',
+    `${FIXTURE}.json`,
+  );
+  const localManifestPath = () => path.join(manifestsDir, `${FIXTURE}.json`);
+  const shipped = {
+    name: 'Package Fixture',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    schemaVersion: 2,
+    theme: {
+      name: 'Package Fixture Theme',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      editorConfigs: {},
+      cssVariables: { '--radius-md': '4px' },
+    },
+    componentConfigs: {
+      button: {
+        name: 'package-fixture',
+        component: 'button',
+        aliases: { '--button-radius': '99px' },
+      },
+    },
+  };
+
+  beforeEach(() => {
+    fs.writeFileSync(packageManifestPath, JSON.stringify(shipped, null, 2));
+    boot();
+  });
+
+  afterEach(() => {
+    fs.rmSync(packageManifestPath, { force: true });
+  });
+
+  it('boot materialises the local default and leaves the shipped file untouched', () => {
+    const past = new Date(Date.now() - 60_000);
+    fs.utimesSync(packageManifestPath, past, past);
+    boot();
+
+    expect(fs.statSync(packageManifestPath).mtime.getTime()).toBe(past.getTime());
+    expect(JSON.parse(fs.readFileSync(packageManifestPath, 'utf-8'))).toEqual(shipped);
+    expect(fs.existsSync(localManifestPath())).toBe(false);
+    expect(fs.existsSync(path.join(manifestsDir, 'default.json'))).toBe(true);
+  });
+
+  it('GET /manifests lists it alongside the local default', async () => {
+    const { json } = await request('GET', `${API}/manifests`);
+    const row = json.files.find((f: any) => f.fileName === FIXTURE);
+    expect(row.name).toBe('Package Fixture');
+    expect(row.isProtected).toBe(false);
+    expect(json.files.map((f: any) => f.fileName)).toContain('default');
+  });
+
+  it('GET :name serves the shipped v2 manifest as-is', async () => {
+    const { status, json } = await request('GET', `${API}/manifests/${FIXTURE}`);
+    expect(status).toBe(200);
+    expect(json.schemaVersion).toBe(2);
+    expect(json.theme.name).toBe('Package Fixture Theme');
+    expect(json.componentConfigs.button.aliases).toEqual({ '--button-radius': '99px' });
+  });
+
+  it('apply materialises the embedded data into local working files', async () => {
+    const { status, json } = await request('PUT', `${API}/manifests/${FIXTURE}/apply`);
+    expect(status).toBe(200);
+    expect(json.theme._fileName).toBe(FIXTURE);
+
+    expect(JSON.parse(fs.readFileSync(path.join(themesDir, `${FIXTURE}.json`), 'utf-8')).name).toBe(
+      'Package Fixture Theme',
+    );
+    expect(
+      JSON.parse(
+        fs.readFileSync(path.join(tmp, 'component-configs', 'button', `${FIXTURE}.json`), 'utf-8'),
+      ).aliases,
+    ).toEqual({ '--button-radius': '99px' });
+    expect(
+      JSON.parse(fs.readFileSync(path.join(manifestsDir, '_active.json'), 'utf-8')).activeFile,
+    ).toBe(FIXTURE);
+    expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).toContain(
+      '--radius-md: 4px',
+    );
+    expect(fs.existsSync(localManifestPath())).toBe(false);
+  });
+
+  it('export serves the envelope with the shipped content', async () => {
+    const { status, json } = await request('GET', `${API}/manifests/${FIXTURE}/export`);
+    expect(status).toBe(200);
+    expect(json.kind).toBe('manifest-bundle');
+    expect(json.manifest.theme.name).toBe('Package Fixture Theme');
+  });
+
+  it('DELETE with no local copy → 403 PACKAGE_MANIFEST', async () => {
+    const { status, json } = await request('DELETE', `${API}/manifests/${FIXTURE}`);
+    expect(status).toBe(403);
+    expect(json.code).toBe('PACKAGE_MANIFEST');
+    expect(fs.existsSync(packageManifestPath)).toBe(true);
+  });
+
+  it('PUT then DELETE removes the shadow and restores the shipped version', async () => {
+    const put = await request('PUT', `${API}/manifests/${FIXTURE}`, {
+      ...shipped,
+      name: 'Local Fork',
+    });
+    expect(put.status).toBe(200);
+    expect(fs.existsSync(localManifestPath())).toBe(true);
+
+    const del = await request('DELETE', `${API}/manifests/${FIXTURE}`);
+    expect(del.status).toBe(200);
+    expect(fs.existsSync(localManifestPath())).toBe(false);
+
+    const { json } = await request('GET', `${API}/manifests/${FIXTURE}`);
+    expect(json.name).toBe('Package Fixture');
+  });
+
+  it('deleting the shadow of the active manifest keeps the pointer on the restored version', async () => {
+    await request('PUT', `${API}/manifests/${FIXTURE}`, { ...shipped, name: 'Local Fork' });
+    await request('PUT', `${API}/manifests/active`, { name: FIXTURE });
+
+    await request('DELETE', `${API}/manifests/${FIXTURE}`);
+
+    const active = await request('GET', `${API}/manifests/active`);
+    expect(active.json._fileName).toBe(FIXTURE);
+    expect(active.json.name).toBe('Package Fixture');
+  });
+
+  it('adopting a theme while it is active forks it locally', async () => {
+    await request('PUT', `${API}/manifests/active`, { name: FIXTURE });
+    await request('PUT', `${API}/themes/adopted`, { name: 'Adopted', cssVariables: {} });
+
+    const { status } = await request('PUT', `${API}/themes/production`, { name: 'adopted' });
+    expect(status).toBe(200);
+
+    expect(JSON.parse(fs.readFileSync(localManifestPath(), 'utf-8')).theme.name).toBe('Adopted');
+    expect(JSON.parse(fs.readFileSync(packageManifestPath, 'utf-8')).theme.name).toBe(
+      'Package Fixture Theme',
+    );
   });
 });

@@ -110,11 +110,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   // Package-shipped default data lives at <package>/src/live-tokens/data/. Same
   // `..`-from-this-file resolution as packageComponentsDir, so it works in
-  // library-dev, in a consumer's node_modules, and from dist-plugin/. Only the
-  // themes ship (package.json `files`); the resource server's read-only
-  // fallback resolves a consumer's `default` theme to the shipped copy when
-  // they have no local one. No manifest ships: `ensureDefaultManifest` derives
-  // the full local Default set at boot, before the first request.
+  // library-dev, in a consumer's node_modules, and from dist-plugin/. The
+  // resource server's read-only fallback resolves a consumer's `default` theme
+  // to the shipped copy when they have no local one, and serves shipped example
+  // manifests the same way. The Default manifest never ships:
+  // `ensureDefaultManifest` derives the full local set at boot, before the
+  // first request.
   const packageDataDir = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
     '..',
@@ -777,6 +778,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    * or component Adopt: the adopted file's content is copied in by value.
    * Adopting `default` for a component drops its entry — absent is default.
    * Returns `false` if the active manifest is `default` (protected).
+   *
+   * Adopting into a package-shipped manifest forks it: the read resolves
+   * through the package fallback, the write lands locally under the same name.
+   * The alternative is a shipped manifest that stays marked active while the
+   * live state moves away from it.
    */
   function patchActiveManifest(
     field: 'theme' | 'component',
@@ -785,7 +791,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   ): boolean {
     const activeFile = manifestsResource.getActiveName();
     if (activeFile === 'default') return false;
-    if (!fs.existsSync(manifestsResource.filePath(activeFile))) return false;
     const read = readManifest(activeFile);
     if (!read) return false;
     const { manifest } = read;
@@ -1336,10 +1341,24 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
         // Deleting the manifest you are on is legal: the Default set always
-        // sits on disk to fall back to.
-        if (manifestsResource.getActiveName() === fileName) {
+        // sits on disk to fall back to. Deleting a local file that shadows a
+        // shipped manifest restores the package version, which still resolves,
+        // so the pointer keeps naming it — only a name that resolves nowhere
+        // heals, mirroring the theme delete handler.
+        if (
+          manifestsResource.existingPath(fileName) === null &&
+          manifestsResource.getActiveName() === fileName
+        ) {
           manifestsResource.setActiveName('default');
         }
+      } else if (manifestsResource.existingPath(fileName)) {
+        // No local copy — only the package ships this manifest. Without this
+        // guard the delete would report ok while the manifest stays listed.
+        jsonResponse(res, 403, {
+          error: 'Cannot delete a manifest shipped with the package. Saving it creates a local copy; deleting that copy restores the shipped version.',
+          code: 'PACKAGE_MANIFEST',
+        });
+        return;
       }
       jsonResponse(res, 200, { ok: true });
       return;
