@@ -65,6 +65,29 @@ Manifest `schemaVersion` bumps (bundle format is v1; encapsulated-native becomes
 Commit units in order on branch `manifest-encapsulation` (stacked on shape-space-adjust; wave 4 needs the adjust CLI); each unit leaves the tree green. Key implementation surfaces were mapped ahead of execution; per-wave briefs carry the file:line detail.
 
 1. **Server format flip.** `Manifest` v2 type (schemaVersion 2, embedded theme + by-value non-default componentConfigs, delta against defaults); `normalizeManifest` called from every manifest read door (the `normalizeTheme` pattern); eager v1→v2 resolve-and-embed migration in `ensureManifestsDir` (eager, so references are resolved before the new deletability regime can orphan them; dangling → default, logged); `handleApplyManifest` materializes embedded data under the manifest slug; `handleExportManifest` becomes envelope-only; `handleImportManifest` gains the v2 branch (validate + write one file, no materialization at import); `patchActiveManifest` embeds the adopted data instead of the pointer. Tests per `themeFileApi.fallback.test.ts` conventions plus a migration test.
+
+## Addendum: preset example manifests (decided 2026-08-13)
+
+Promote the nine shipped preset themes to full example looks: one shipped v2 manifest per preset, embedding the preset theme by value plus a modest shape personality built with the pure `adjustAliases` engine over the derived component defaults. Encapsulation makes this shippable where the pointer model could not (a pointer manifest would reference configs the package does not ship).
+
+Shape personalities (ops against default configs; magnitudes deliberately modest):
+
+| Preset | Ops |
+|---|---|
+| autumn | radius +1, padding +1 |
+| christmas | radius +2, gap +1 |
+| halloween | radius −2, border-width +1 |
+| midnight-study | radius −1, padding −1 |
+| ocean | radius +2, padding +1 |
+| royal-velvet | button radius set full; radius +1, padding +1 |
+| saint-patrick | radius +1 |
+| spring-meadow | radius +1, padding +1, gap +1 |
+| sunset | button radius set full; radius +2 |
+
+Mechanics:
+
+- **Unit 5 (server):** package-shipped manifests resolve through the existing `packageManifestsDir` fallback (list, GET, apply, export). Add the missing delete guard mirroring `PACKAGE_THEME`: deleting a local shadow restores the shipped version (pointer semantics already correct after 2031e38); deleting with no local copy 403s `PACKAGE_MANIFEST`. Fallback tests mirroring the preset-theme suite.
+- **Unit 6 (generator + data + docs):** committed `scripts/generate-preset-manifests.mjs` builds all nine deterministically from the derived default configs + preset theme files using the compiled engine (no active-state churn, no working-file trail); idempotent (preserves createdAt, skips write when content unchanged modulo timestamps) so regeneration is safe when component defaults drift. Manifests committed under `src/live-tokens/data/manifests/`, added to `package.json` `files`, README + release-notes touch. Manifest display name = theme display name.
 2. **Default regeneration + full deletability.** `ensureManifestsDir` materializes the full-set Default manifest (package default theme + derived default configs, drift-aware like `generateDefaultConfig`); theme DELETE loses the production guard and gains production self-heal (pointer → default + syncs, mirroring the config DELETE handler); active-manifest deletion allowed with `_active` self-heal to default. Package/default 403s stay. Tests.
 3. **Client + tooling.** `manifestService` snapshot functions build by-value manifests; `ManifestFileManager` drops the active-manifest delete guard, help copy rewritten for encapsulation; `ThemeFileManager` `canDelete` loses the production-theme exclusion; `scripts/collapse-manifest-to-default.mjs` rewritten to read embedded data. svelte-check green.
 4. **Data + docs.** Repo's `manifests/default.json` regenerated (stat entry gone); `my-manifest` restored per decision 5; demo look manifests regenerated as v2; README manifest model copy updated; cross-reference from `docs/plans/shape-space-skill.md`.
