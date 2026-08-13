@@ -111,7 +111,7 @@ const manifest = readJson(manifestPath);
 if (typeof manifest.theme === 'string') {
   console.error(
     `Active manifest "${activeManifestName}" is still in the old pointer format. ` +
-      'Start the dev server once to migrate it, then re-run.',
+      "Re-save it in the editor's Manifest file manager, then re-run.",
   );
   process.exit(1);
 }

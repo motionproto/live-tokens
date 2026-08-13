@@ -132,7 +132,7 @@
       const result = await applyManifest(file.fileName);
       if (result.skippedComponents.length > 0) {
         window.alert(
-          `Applied "${file.name}". These components are not installed here, so their ` +
+          `Loaded "${file.name}". These components are not installed here, so their ` +
             `saved settings were skipped:\n\n${result.skippedComponents.join(', ')}`,
         );
       }
@@ -236,7 +236,7 @@
         It holds its own copy of that data, so deleting a theme or component file never breaks a saved manifest.
       </p>
       <p>
-        <strong>Load</strong> writes the look back out to working files named after the manifest. A manifest owns its name: any theme or component file already using it is overwritten.
+        <strong>Load</strong> writes the look back out to working files named after the manifest. A manifest owns its name: any theme or component file already using it is overwritten. Components the manifest does not carry go back to their defaults.
       </p>
       <p>
         The <strong>active</strong> manifest is what the editor reads and what production runs. Theme and component <strong>Adopt</strong> actions update it in place.

@@ -9,6 +9,7 @@ import type { ManifestMeta } from './themes/themeTypes';
  * per-pair wiring.
  *
  * Bumpers: `ThemeFileManager.handleApplyToProduction`,
+ * `ThemeFileManager.handleDelete`,
  * `ComponentFileManager.handleUpdateProduction`. Anyone setting
  * `_production.json` should bump.
  */
