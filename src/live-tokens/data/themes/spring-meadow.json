@@ -1,7 +1,7 @@
 {
   "name": "Spring Meadow",
   "createdAt": "2026-08-12T20:13:46.433Z",
-  "updatedAt": "2026-08-12T20:21:21.438Z",
+  "updatedAt": "2026-08-13T13:58:23.447Z",
   "editorConfigs": {
     "Brand": {
       "baseColor": {
@@ -2325,6 +2325,48 @@
           ]
         }
       ]
+    },
+    {
+      "id": "src_preset_comfortaa",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_preset_comfortaa:comfortaa",
+          "name": "Comfortaa",
+          "cssName": "\"Comfortaa\"",
+          "weights": [
+            300,
+            400,
+            500,
+            600,
+            700
+          ]
+        }
+      ]
+    },
+    {
+      "id": "src_preset_figtree",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=Figtree:wght@300..900&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_preset_figtree:figtree",
+          "name": "Figtree",
+          "cssName": "\"Figtree\"",
+          "weights": [
+            300,
+            400,
+            500,
+            600,
+            700,
+            800,
+            900
+          ]
+        }
+      ]
     }
   ],
   "fontStacks": [
@@ -2333,7 +2375,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_google_arvo:arvo"
+          "familyId": "src_preset_comfortaa:comfortaa"
         },
         {
           "kind": "generic",
@@ -2346,7 +2388,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_manrope_local:manrope"
+          "familyId": "src_preset_figtree:figtree"
         },
         {
           "kind": "system",

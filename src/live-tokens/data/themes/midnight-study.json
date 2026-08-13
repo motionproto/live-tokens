@@ -1,7 +1,7 @@
 {
   "name": "Midnight Study",
   "createdAt": "2026-08-12T20:13:46.264Z",
-  "updatedAt": "2026-08-12T20:21:21.285Z",
+  "updatedAt": "2026-08-13T13:58:23.447Z",
   "editorConfigs": {
     "Brand": {
       "baseColor": {
@@ -2371,6 +2371,47 @@
           ]
         }
       ]
+    },
+    {
+      "id": "src_preset_eb-garamond",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400..800&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_preset_eb-garamond:eb-garamond",
+          "name": "EB Garamond",
+          "cssName": "\"EB Garamond\"",
+          "weights": [
+            400,
+            500,
+            600,
+            700,
+            800
+          ]
+        }
+      ]
+    },
+    {
+      "id": "src_preset_montserrat",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=Montserrat:wght@300..800&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_preset_montserrat:montserrat",
+          "name": "Montserrat",
+          "cssName": "\"Montserrat\"",
+          "weights": [
+            300,
+            400,
+            500,
+            600,
+            700,
+            800
+          ]
+        }
+      ]
     }
   ],
   "fontStacks": [
@@ -2379,7 +2420,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_google_arvo:arvo"
+          "familyId": "src_preset_eb-garamond:eb-garamond"
         },
         {
           "kind": "generic",
@@ -2392,7 +2433,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_manrope_local:manrope"
+          "familyId": "src_preset_montserrat:montserrat"
         },
         {
           "kind": "system",

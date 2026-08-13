@@ -1,7 +1,7 @@
 {
   "name": "Halloween",
   "createdAt": "2026-08-12T20:13:46.209Z",
-  "updatedAt": "2026-08-12T20:21:21.230Z",
+  "updatedAt": "2026-08-13T13:58:23.447Z",
   "editorConfigs": {
     "Brand": {
       "baseColor": {
@@ -2371,6 +2371,40 @@
           ]
         }
       ]
+    },
+    {
+      "id": "src_preset_creepster",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=Creepster&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_preset_creepster:creepster",
+          "name": "Creepster",
+          "cssName": "\"Creepster\""
+        }
+      ]
+    },
+    {
+      "id": "src_preset_karla",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=Karla:wght@300..800&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_preset_karla:karla",
+          "name": "Karla",
+          "cssName": "\"Karla\"",
+          "weights": [
+            300,
+            400,
+            500,
+            600,
+            700,
+            800
+          ]
+        }
+      ]
     }
   ],
   "fontStacks": [
@@ -2379,7 +2413,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_google_arvo:arvo"
+          "familyId": "src_preset_creepster:creepster"
         },
         {
           "kind": "generic",
@@ -2392,7 +2426,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_manrope_local:manrope"
+          "familyId": "src_preset_karla:karla"
         },
         {
           "kind": "system",

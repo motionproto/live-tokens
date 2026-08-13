@@ -1,7 +1,7 @@
 {
   "name": "Saint Patrick",
   "createdAt": "2026-08-12T20:13:46.377Z",
-  "updatedAt": "2026-08-12T20:21:21.387Z",
+  "updatedAt": "2026-08-13T13:58:23.447Z",
   "editorConfigs": {
     "Brand": {
       "baseColor": {
@@ -2371,6 +2371,45 @@
           ]
         }
       ]
+    },
+    {
+      "id": "src_preset_baloo-2",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=Baloo+2:wght@400..800&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_preset_baloo-2:baloo-2",
+          "name": "Baloo 2",
+          "cssName": "\"Baloo 2\"",
+          "weights": [
+            400,
+            500,
+            600,
+            700,
+            800
+          ]
+        }
+      ]
+    },
+    {
+      "id": "src_preset_cabin",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=Cabin:wght@400..700&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_preset_cabin:cabin",
+          "name": "Cabin",
+          "cssName": "\"Cabin\"",
+          "weights": [
+            400,
+            500,
+            600,
+            700
+          ]
+        }
+      ]
     }
   ],
   "fontStacks": [
@@ -2379,7 +2418,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_google_arvo:arvo"
+          "familyId": "src_preset_baloo-2:baloo-2"
         },
         {
           "kind": "generic",
@@ -2392,7 +2431,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_manrope_local:manrope"
+          "familyId": "src_preset_cabin:cabin"
         },
         {
           "kind": "system",

@@ -1,7 +1,7 @@
 {
   "name": "Ocean",
   "createdAt": "2026-08-12T20:13:46.322Z",
-  "updatedAt": "2026-08-12T20:21:21.337Z",
+  "updatedAt": "2026-08-13T13:58:23.447Z",
   "editorConfigs": {
     "Brand": {
       "baseColor": {
@@ -2339,6 +2339,47 @@
           ]
         }
       ]
+    },
+    {
+      "id": "src_preset_quicksand",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_preset_quicksand:quicksand",
+          "name": "Quicksand",
+          "cssName": "\"Quicksand\"",
+          "weights": [
+            300,
+            400,
+            500,
+            600,
+            700
+          ]
+        }
+      ]
+    },
+    {
+      "id": "src_preset_mulish",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=Mulish:wght@300..800&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_preset_mulish:mulish",
+          "name": "Mulish",
+          "cssName": "\"Mulish\"",
+          "weights": [
+            300,
+            400,
+            500,
+            600,
+            700,
+            800
+          ]
+        }
+      ]
     }
   ],
   "fontStacks": [
@@ -2347,7 +2388,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_google_arvo:arvo"
+          "familyId": "src_preset_quicksand:quicksand"
         },
         {
           "kind": "generic",
@@ -2360,7 +2401,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_manrope_local:manrope"
+          "familyId": "src_preset_mulish:mulish"
         },
         {
           "kind": "system",

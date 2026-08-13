@@ -1,7 +1,7 @@
 {
   "name": "Autumn",
   "createdAt": "2026-08-12T20:21:21.128Z",
-  "updatedAt": "2026-08-12T20:21:21.128Z",
+  "updatedAt": "2026-08-13T13:58:23.447Z",
   "editorConfigs": {
     "Brand": {
       "baseColor": {
@@ -2339,6 +2339,48 @@
           ]
         }
       ]
+    },
+    {
+      "id": "src_preset_fraunces",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=Fraunces:wght@400..900&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_preset_fraunces:fraunces",
+          "name": "Fraunces",
+          "cssName": "\"Fraunces\"",
+          "weights": [
+            400,
+            500,
+            600,
+            700,
+            800,
+            900
+          ]
+        }
+      ]
+    },
+    {
+      "id": "src_preset_nunito-sans",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300..800&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_preset_nunito-sans:nunito-sans",
+          "name": "Nunito Sans",
+          "cssName": "\"Nunito Sans\"",
+          "weights": [
+            300,
+            400,
+            500,
+            600,
+            700,
+            800
+          ]
+        }
+      ]
     }
   ],
   "fontStacks": [
@@ -2347,7 +2389,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_google_arvo:arvo"
+          "familyId": "src_preset_fraunces:fraunces"
         },
         {
           "kind": "generic",
@@ -2360,7 +2402,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_manrope_local:manrope"
+          "familyId": "src_preset_nunito-sans:nunito-sans"
         },
         {
           "kind": "system",

@@ -1,7 +1,7 @@
 {
   "name": "Royal Velvet",
   "createdAt": "2026-08-12T20:26:16.137Z",
-  "updatedAt": "2026-08-12T20:26:16.137Z",
+  "updatedAt": "2026-08-13T13:58:23.447Z",
   "editorConfigs": {
     "Brand": {
       "baseColor": {
@@ -2371,6 +2371,46 @@
           ]
         }
       ]
+    },
+    {
+      "id": "src_preset_cinzel",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_preset_cinzel:cinzel",
+          "name": "Cinzel",
+          "cssName": "\"Cinzel\"",
+          "weights": [
+            400,
+            500,
+            600,
+            700,
+            800,
+            900
+          ]
+        }
+      ]
+    },
+    {
+      "id": "src_preset_lato",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_preset_lato:lato",
+          "name": "Lato",
+          "cssName": "\"Lato\"",
+          "weights": [
+            300,
+            400,
+            700,
+            900
+          ]
+        }
+      ]
     }
   ],
   "fontStacks": [
@@ -2379,7 +2419,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_google_arvo:arvo"
+          "familyId": "src_preset_cinzel:cinzel"
         },
         {
           "kind": "generic",
@@ -2392,7 +2432,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_manrope_local:manrope"
+          "familyId": "src_preset_lato:lato"
         },
         {
           "kind": "system",

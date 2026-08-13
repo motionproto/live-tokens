@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Build the nine shipped preset manifests: one encapsulated (v2) manifest per
 // preset theme, carrying that theme by value plus a shape personality applied
-// to the derived component defaults.
+// to the derived component defaults. The run also stamps each preset's Google
+// Fonts pairing into its theme file, so type and shape ship together.
 //
 //   node scripts/generate-preset-manifests.mjs
 //
@@ -14,6 +15,8 @@
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { stampPresetFonts } from './lib/presetFonts.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'src/live-tokens/data');
@@ -30,30 +33,82 @@ const ENGINE_SOURCES = [
 
 const MANIFEST_SCHEMA_VERSION = 2;
 
-/** Shape personality per preset, from the plan's addendum table. A `set` op
- *  runs last so it overrides the sweep rather than being shifted by it. */
+/** Shape personality per preset, from the plan's addendum 2 table. Global ops
+ *  come first and targeted `set` ops last, so a targeted corner wins over the
+ *  sweep that would otherwise have moved it.
+ *
+ *  Three ops differ from the table's sketch, because the sketch lands three
+ *  presets on the same card-radius/button-padding pair and two more on a second
+ *  shared pair, which the addendum's own distinctness rule forbids: autumn takes
+ *  radius +2 (was +1), royal-velvet drops its radius shift, and sunset takes
+ *  radius +1 (was +2). `presetManifests.test.ts` gates the rule. */
 const PRESETS = [
-  { slug: 'autumn', ops: [{ kind: 'radius', shift: 1 }, { kind: 'padding', shift: 1 }] },
-  { slug: 'christmas', ops: [{ kind: 'radius', shift: 2 }, { kind: 'gap', shift: 1 }] },
-  { slug: 'halloween', ops: [{ kind: 'radius', shift: -2 }, { kind: 'border-width', shift: 1 }] },
-  { slug: 'midnight-study', ops: [{ kind: 'radius', shift: -1 }, { kind: 'padding', shift: -1 }] },
-  { slug: 'ocean', ops: [{ kind: 'radius', shift: 2 }, { kind: 'padding', shift: 1 }] },
+  {
+    slug: 'autumn',
+    ops: [{ kind: 'radius', shift: 2 }, { kind: 'padding', shift: 2 }, { kind: 'gap', shift: 1 }],
+  },
+  {
+    slug: 'christmas',
+    ops: [
+      { kind: 'radius', shift: 3 },
+      { kind: 'gap', shift: 2 },
+      { target: 'button', kind: 'radius', set: '--radius-full' },
+    ],
+  },
+  {
+    slug: 'halloween',
+    ops: [
+      { kind: 'radius', set: '--radius-none' },
+      { kind: 'border-width', shift: 2 },
+      { kind: 'padding', shift: -1 },
+    ],
+  },
+  {
+    slug: 'midnight-study',
+    ops: [
+      { kind: 'padding', shift: -2 },
+      { kind: 'gap', shift: -1 },
+      { target: 'dialog', kind: 'radius', set: '--radius-none' },
+      { target: 'card', kind: 'radius', set: '--radius-sm' },
+      { target: 'button', kind: 'radius', set: '--radius-full' },
+    ],
+  },
+  {
+    slug: 'ocean',
+    ops: [
+      { kind: 'radius', shift: 2, full: true },
+      { kind: 'padding', shift: 1 },
+      { kind: 'gap', shift: 1 },
+      { target: 'button', kind: 'radius', set: '--radius-full' },
+    ],
+  },
   {
     slug: 'royal-velvet',
+    ops: [
+      { kind: 'padding', shift: 2 },
+      { kind: 'border-width', shift: 1 },
+      { target: 'button', kind: 'radius', set: '--radius-full' },
+    ],
+  },
+  {
+    slug: 'saint-patrick',
+    ops: [
+      { kind: 'radius', shift: 2 },
+      { kind: 'gap', shift: 1 },
+      { target: 'button', kind: 'radius', set: '--radius-full' },
+    ],
+  },
+  {
+    slug: 'spring-meadow',
+    ops: [{ kind: 'padding', shift: 2 }, { kind: 'gap', shift: 2 }, { kind: 'radius', shift: 1 }],
+  },
+  {
+    slug: 'sunset',
     ops: [
       { kind: 'radius', shift: 1 },
       { kind: 'padding', shift: 1 },
       { target: 'button', kind: 'radius', set: '--radius-full' },
     ],
-  },
-  { slug: 'saint-patrick', ops: [{ kind: 'radius', shift: 1 }] },
-  {
-    slug: 'spring-meadow',
-    ops: [{ kind: 'radius', shift: 1 }, { kind: 'padding', shift: 1 }, { kind: 'gap', shift: 1 }],
-  },
-  {
-    slug: 'sunset',
-    ops: [{ kind: 'radius', shift: 2 }, { target: 'button', kind: 'radius', set: '--radius-full' }],
   },
 ];
 
@@ -110,12 +165,19 @@ const defaults = readDefaultConfigs();
 const now = new Date().toISOString();
 
 let written = 0;
+let stamped = 0;
 for (const { slug, ops } of PRESETS) {
   const themePath = join(THEMES, `${slug}.json`);
   if (!existsSync(themePath)) {
     throw new Error(`preset theme "${slug}" not found at ${relative(ROOT, themePath)}`);
   }
   const theme = readJson(themePath);
+  if (stampPresetFonts(theme, slug)) {
+    theme.updatedAt = now;
+    writeFileSync(themePath, `${JSON.stringify(theme, null, 2)}\n`);
+    stamped++;
+    console.log(`✓ ${slug}  fonts stamped into ${relative(ROOT, themePath)}`);
+  }
   const { configs: next, report } = adjustAliases(defaults, ops, now);
 
   const componentConfigs = {};
@@ -155,7 +217,7 @@ for (const { slug, ops } of PRESETS) {
 }
 
 console.log(
-  written === 0
-    ? `\nAll ${PRESETS.length} preset manifests were already current.`
-    : `\nWrote ${written} of ${PRESETS.length} preset manifests to ${relative(ROOT, MANIFESTS)}.`,
+  written === 0 && stamped === 0
+    ? `\nAll ${PRESETS.length} preset themes and manifests were already current.`
+    : `\nStamped ${stamped} preset theme(s); wrote ${written} of ${PRESETS.length} manifests to ${relative(ROOT, MANIFESTS)}.`,
 );

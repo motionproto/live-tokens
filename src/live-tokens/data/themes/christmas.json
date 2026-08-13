@@ -1,7 +1,7 @@
 {
   "name": "Christmas",
   "createdAt": "2026-08-12T20:13:46.153Z",
-  "updatedAt": "2026-08-12T20:21:21.179Z",
+  "updatedAt": "2026-08-13T13:58:23.447Z",
   "editorConfigs": {
     "Brand": {
       "baseColor": {
@@ -2371,6 +2371,44 @@
           ]
         }
       ]
+    },
+    {
+      "id": "src_preset_mountains-of-christmas",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_preset_mountains-of-christmas:mountains-of-christmas",
+          "name": "Mountains of Christmas",
+          "cssName": "\"Mountains of Christmas\"",
+          "weights": [
+            400,
+            700
+          ]
+        }
+      ]
+    },
+    {
+      "id": "src_preset_nunito",
+      "kind": "google",
+      "url": "https://fonts.googleapis.com/css2?family=Nunito:wght@300..800&display=swap",
+      "label": "Google Fonts",
+      "families": [
+        {
+          "id": "src_preset_nunito:nunito",
+          "name": "Nunito",
+          "cssName": "\"Nunito\"",
+          "weights": [
+            300,
+            400,
+            500,
+            600,
+            700,
+            800
+          ]
+        }
+      ]
     }
   ],
   "fontStacks": [
@@ -2379,7 +2417,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_google_arvo:arvo"
+          "familyId": "src_preset_mountains-of-christmas:mountains-of-christmas"
         },
         {
           "kind": "generic",
@@ -2392,7 +2430,7 @@
       "slots": [
         {
           "kind": "project",
-          "familyId": "src_manrope_local:manrope"
+          "familyId": "src_preset_nunito:nunito"
         },
         {
           "kind": "system",
