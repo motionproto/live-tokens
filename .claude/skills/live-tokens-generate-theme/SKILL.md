@@ -5,12 +5,12 @@ description: Generate a complete live-tokens color theme from a natural-language
 
 # Generating a theme from a mood brief
 
-You translate the brief into 10 OKLCH seed colors plus a scheme; the CLI does everything else (curve assembly, AA contrast enforcement with auto-correction, file writing, activation). Never hand-author theme JSON and never edit `themes/*.json` directly — seeds in, valid theme out.
+You translate the brief into 10 OKLCH seed colors plus a scheme; the CLI does everything else (curve assembly, AA contrast enforcement with auto-correction, file writing, activation). Never hand-author theme JSON and never edit `colors-and-type/*.json` directly — seeds in, valid theme out.
 
 ## Workflow
 
 1. Translate the brief into a seed file using the framework below. Write it to a temp path (not the project tree), e.g. `/tmp/theme-brief.json`.
-2. Run `npx live-tokens generate-theme /tmp/theme-brief.json`. It writes `themes/<slug>.json`, activates it, and prints a contrast report card. Exit 1 means unmet floors.
+2. Run `npx live-tokens generate-theme /tmp/theme-brief.json`. It writes `colors-and-type/<slug>.json`, activates it, and prints a contrast report card. Exit 1 means unmet floors.
 3. Read the report. Auto-corrections are fine (the engine adjusted text curves to hit the floors). Unmet floors mean the seeds themselves are unworkable; each failure line says which seed to adjust (usually raise the seed's lightness or cut chroma). Fix the brief and re-run — same name, same file, it overwrites.
 4. Tell the user to look at the running app. Offer refinements ("warmer", "more contrast", "less saturated") as seed adjustments to the same brief, re-run.
 
