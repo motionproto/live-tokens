@@ -1,18 +1,18 @@
 /**
- * Manifest schema v1 → v2. v1 manifests pointed at a colors-and-type file and a
+ * Theme schema v1 → v2. v1 themes pointed at a colors-and-type file and a
  * config file per component by basename; v2 carries that data by value, so
  * deleting a working file can never break a saved look.
  *
- * Pure: every disk (or bundle) lookup arrives through `ManifestResolvers`, and
+ * Pure: every disk (or bundle) lookup arrives through `ThemeResolvers`, and
  * unresolvable refs come back in `dropped` rather than being logged here — the
  * boot migration reports them once, read doors stay quiet.
  */
 
-export const MANIFEST_SCHEMA_VERSION = 2;
+export const THEME_SCHEMA_VERSION = 2;
 
 type Json = Record<string, unknown>;
 
-export interface ManifestResolvers {
+export interface ThemeResolvers {
   readColorsAndType(name: string): unknown;
   readComponentConfig(comp: string, name: string): unknown;
   /**
@@ -23,11 +23,11 @@ export interface ManifestResolvers {
   normalizeColorsAndType(colorsAndType: Json): Json;
 }
 
-export interface EncapsulatedManifest {
+export interface EncapsulatedTheme {
   name: string;
   createdAt: string;
   updatedAt: string;
-  schemaVersion: typeof MANIFEST_SCHEMA_VERSION;
+  schemaVersion: typeof THEME_SCHEMA_VERSION;
   /** Full colors-and-type content. `null` only when nothing resolved, including
    *  the default — callers surface that as an error. */
   theme: Json | null;
@@ -36,10 +36,10 @@ export interface EncapsulatedManifest {
   componentConfigs: Record<string, Json>;
 }
 
-export interface NormalizedManifest {
-  manifest: EncapsulatedManifest;
-  /** Refs that resolved to nothing, as `theme:<name>` / `<comp>/<name>`. Each
-   *  fell back to the default. */
+export interface NormalizedTheme {
+  theme: EncapsulatedTheme;
+  /** Refs that resolved to nothing, as `colors-and-type:<name>` /
+   *  `<comp>/<name>`. Each fell back to the default. */
   dropped: string[];
   /** The input was pointer-form and got resolved and embedded. */
   migrated: boolean;
@@ -61,10 +61,10 @@ function asString(value: unknown, fallback: string): string {
   return typeof value === 'string' && value ? value : fallback;
 }
 
-export function normalizeManifest(
+export function normalizeTheme(
   raw: unknown,
-  resolvers: ManifestResolvers,
-): NormalizedManifest {
+  resolvers: ThemeResolvers,
+): NormalizedTheme {
   const src = asObject(raw) ?? {};
   const dropped: string[] = [];
   const now = new Date().toISOString();
@@ -77,7 +77,7 @@ export function normalizeManifest(
     const colorsAndTypeName = asString(src.theme, 'default');
     colorsAndType = asObject(resolvers.readColorsAndType(colorsAndTypeName));
     if (!colorsAndType) {
-      dropped.push(`theme:${colorsAndTypeName}`);
+      dropped.push(`colors-and-type:${colorsAndTypeName}`);
       if (colorsAndTypeName !== 'default') colorsAndType = asObject(resolvers.readColorsAndType('default'));
     }
     if (colorsAndType) colorsAndType = resolvers.normalizeColorsAndType(stripFileMarker(colorsAndType));
@@ -101,15 +101,15 @@ export function normalizeManifest(
   }
 
   return {
-    manifest: {
+    theme: {
       name: asString(src.name, 'Untitled'),
       createdAt: asString(src.createdAt, now),
       updatedAt: asString(src.updatedAt, now),
-      schemaVersion: MANIFEST_SCHEMA_VERSION,
+      schemaVersion: THEME_SCHEMA_VERSION,
       theme: colorsAndType,
       componentConfigs,
     },
     dropped,
-    migrated: src.schemaVersion !== MANIFEST_SCHEMA_VERSION,
+    migrated: src.schemaVersion !== THEME_SCHEMA_VERSION,
   };
 }

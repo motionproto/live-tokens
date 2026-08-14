@@ -1,5 +1,5 @@
 /**
- * Gates the nine shipped preset manifests (`npm run generate:preset-manifests`)
+ * Gates the nine shipped preset themes (`npm run generate:preset-manifests`)
  * against the contract a consumer relies on: read doors serve them untouched,
  * they carry only what the shape ops changed, each look reads as its own shape
  * and type, and the tarball ships each one by name.
@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { normalizeManifest, type ManifestResolvers } from './normalizeManifest';
+import { normalizeTheme, type ThemeResolvers } from './normalizeTheme';
 import { parseGoogleFontsUrl } from '../../src/editor/core/fonts/fontParse';
 import { PRESET_FONTS } from '../../scripts/lib/presetFonts.mjs';
 
@@ -27,13 +27,13 @@ const PRESETS = [
 ];
 
 const readJson = (p: string) => JSON.parse(fs.readFileSync(p, 'utf-8'));
-const manifestOf = (slug: string) => readJson(path.join(DATA, 'manifests', `${slug}.json`));
+const themeOf = (slug: string) => readJson(path.join(DATA, 'manifests', `${slug}.json`));
 const colorsAndTypeOf = (slug: string) => readJson(path.join(DATA, 'colors-and-type', `${slug}.json`));
 const defaultConfigOf = (comp: string) =>
   readJson(path.join(DATA, 'component-configs', comp, 'default.json'));
 
-/** Prefix `stampPresetFonts` writes; everything else in a preset theme's
-    fontSources came from the default theme it was branched off. */
+/** Prefix `stampPresetFonts` writes; everything else in a preset's
+    fontSources came from the default colors and type it branched off. */
 const STAMPED = 'src_preset_';
 
 const stackOf = (colorsAndType: any, variable: string) =>
@@ -41,12 +41,12 @@ const stackOf = (colorsAndType: any, variable: string) =>
 const stampedSourcesOf = (colorsAndType: any) =>
   colorsAndType.fontSources.filter((s: any) => s.id.startsWith(STAMPED));
 const aliasesOf = (slug: string, comp: string) =>
-  manifestOf(slug).componentConfigs[comp]?.aliases ?? defaultConfigOf(comp).aliases;
+  themeOf(slug).componentConfigs[comp]?.aliases ?? defaultConfigOf(comp).aliases;
 
 /** Pass-through means nothing had to be resolved: any lookup here is a bug. */
-const strictResolvers: ManifestResolvers = {
+const strictResolvers: ThemeResolvers = {
   readColorsAndType: (name) => {
-    throw new Error(`resolved theme "${name}"`);
+    throw new Error(`resolved colors and type "${name}"`);
   },
   readComponentConfig: (comp, name) => {
     throw new Error(`resolved config "${comp}/${name}"`);
@@ -56,28 +56,28 @@ const strictResolvers: ManifestResolvers = {
   },
 };
 
-describe.each(PRESETS)('shipped preset manifest "%s"', (slug) => {
-  it('passes through normalizeManifest unchanged', () => {
-    const raw = manifestOf(slug);
-    const { manifest, dropped, migrated } = normalizeManifest(raw, strictResolvers);
+describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
+  it('passes through normalizeTheme unchanged', () => {
+    const raw = themeOf(slug);
+    const { theme, dropped, migrated } = normalizeTheme(raw, strictResolvers);
 
     expect(migrated).toBe(false);
     expect(dropped).toEqual([]);
-    expect(manifest).toEqual(raw);
-    expect(manifest.schemaVersion).toBe(2);
+    expect(theme).toEqual(raw);
+    expect(theme.schemaVersion).toBe(2);
   });
 
-  it('embeds the preset theme by value under the theme display name', () => {
-    const manifest = manifestOf(slug);
+  it('embeds the preset colors and type by value under their display name', () => {
+    const theme = themeOf(slug);
     const colorsAndType = colorsAndTypeOf(slug);
 
-    expect(manifest.theme).toEqual(colorsAndType);
-    expect(manifest.name).toBe(colorsAndType.name);
+    expect(theme.theme).toEqual(colorsAndType);
+    expect(theme.name).toBe(colorsAndType.name);
   });
 
   it('carries only the components the shape ops changed, values only', () => {
-    const manifest = manifestOf(slug);
-    const configs = Object.entries(manifest.componentConfigs) as [string, any][];
+    const theme = themeOf(slug);
+    const configs = Object.entries(theme.componentConfigs) as [string, any][];
     expect(configs.length).toBeGreaterThan(0);
 
     for (const [comp, config] of configs) {
@@ -90,7 +90,7 @@ describe.each(PRESETS)('shipped preset manifest "%s"', (slug) => {
   });
 
   it('carries the pairing as two google sources the display and body stacks use', () => {
-    const colorsAndType = manifestOf(slug).theme;
+    const colorsAndType = themeOf(slug).theme;
     const pairing = PRESET_FONTS[slug];
     const stamped = stampedSourcesOf(colorsAndType);
 
@@ -109,8 +109,8 @@ describe.each(PRESETS)('shipped preset manifest "%s"', (slug) => {
     expect(stackOf(colorsAndType, '--font-sans').slots[0].familyId).toBe(stamped[1].families[0].id);
   });
 
-  it('rewrites only the project slot, leaving serif and mono at the default theme', () => {
-    const colorsAndType = manifestOf(slug).theme;
+  it('rewrites only the project slot, leaving serif and mono at the default', () => {
+    const colorsAndType = themeOf(slug).theme;
     const base = readJson(path.join(DATA, 'colors-and-type', 'default.json'));
     const fallbacks = (t: any, v: string) =>
       stackOf(t, v).slots.filter((s: any) => s.kind !== 'project');
@@ -131,7 +131,7 @@ describe.each(PRESETS)('shipped preset manifest "%s"', (slug) => {
     expect(files).not.toContain('src/live-tokens/data/manifests/');
   });
 
-  it('ships its theme file as its own entry in package.json files', () => {
+  it('ships its colors-and-type file as its own entry in package.json files', () => {
     const { files } = readJson(path.join(REPO_ROOT, 'package.json'));
     expect(files).toContain(`src/live-tokens/data/colors-and-type/${slug}.json`);
   });

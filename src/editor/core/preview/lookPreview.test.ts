@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
-import type { ComponentConfig, Manifest, ColorsAndType } from '../themes/themeTypes';
+import type { ComponentConfig, Theme, ColorsAndType } from '../themes/themeTypes';
 import { API_BASE } from '../storage/apiBase';
 import {
   editorState,
@@ -10,10 +10,10 @@ import {
   __resetForTests,
 } from '../store/editorStore';
 import {
-  manifestLook,
+  themeLook,
   colorsAndTypeLook,
   liveLook,
-  previewManifest,
+  previewTheme,
   previewColorsAndType,
   revertPreview,
   isPreviewing,
@@ -74,11 +74,11 @@ function config(component: string, aliases: Record<string, string>): ComponentCo
   };
 }
 
-function manifest(
+function theme(
   name: string,
   colorsAndTypeValue: ColorsAndType,
   componentConfigs: Record<string, ComponentConfig>,
-): Manifest {
+): Theme {
   return {
     name,
     createdAt: '2026-01-01T00:00:00.000Z',
@@ -90,7 +90,7 @@ function manifest(
   };
 }
 
-const defaults = manifest('default', colorsAndType({ '--surface-canvas': '#ffffff' }), {
+const defaults = theme('default', colorsAndType({ '--surface-canvas': '#ffffff' }), {
   card: config('card', { '--card-default-radius': '--radius-lg' }),
   button: config('button', {
     '--button-primary-radius': '--radius-xl',
@@ -99,7 +99,7 @@ const defaults = manifest('default', colorsAndType({ '--surface-canvas': '#fffff
   badge: config('badge', { '--badge-default-radius': '--radius-sm' }),
 });
 
-const yuletide = manifest('yuletide', colorsAndType({ '--surface-canvas': '#0b3d2e' }), {
+const yuletide = theme('yuletide', colorsAndType({ '--surface-canvas': '#0b3d2e' }), {
   card: config('card', { '--card-default-radius': '--radius-3xl' }),
   button: config('button', {
     '--button-primary-radius': '--radius-full',
@@ -107,29 +107,29 @@ const yuletide = manifest('yuletide', colorsAndType({ '--surface-canvas': '#0b3d
   }),
 });
 
-describe('manifestLook', () => {
-  it('overlays the manifest configs on the default set', () => {
-    const { vars } = manifestLook(yuletide, defaults);
+describe('themeLook', () => {
+  it('overlays the theme configs on the default set', () => {
+    const { vars } = themeLook(yuletide, defaults);
     expect(vars['--card-default-radius']).toBe('var(--radius-3xl)');
     expect(vars['--button-primary-radius']).toBe('var(--radius-full)');
     expect(vars['--surface-canvas']).toBe('#0b3d2e');
   });
 
-  it('renders components the manifest omits from their default config', () => {
-    const { vars } = manifestLook(yuletide, defaults);
+  it('renders components the theme omits from their default config', () => {
+    const { vars } = themeLook(yuletide, defaults);
     expect(vars['--badge-default-radius']).toBe('var(--radius-sm)');
   });
 
   it('skips configs for components this install does not have', () => {
-    const withStat = manifest('stat-look', colorsAndType({}), {
+    const withStat = theme('stat-look', colorsAndType({}), {
       stat: config('stat', { '--stat-default-radius': '--radius-none' }),
     });
-    const { vars } = manifestLook(withStat, defaults);
+    const { vars } = themeLook(withStat, defaults);
     expect(vars).not.toHaveProperty('--stat-default-radius');
   });
 
   it('resolves the embedded font stacks into --font-* values', () => {
-    const { vars, fontSources } = manifestLook(yuletide, defaults);
+    const { vars, fontSources } = themeLook(yuletide, defaults);
     expect(vars['--font-display']).toBe('"Mountains of Christmas", serif');
     expect(fontSources.map((s) => s.id)).toContain('src_preset_mountains');
   });
@@ -203,7 +203,7 @@ describe('a look previewed colors and type only', () => {
   });
 
   it('differs from the whole look on the component half alone', () => {
-    const whole = manifestLook(yuletide, defaults).vars;
+    const whole = themeLook(yuletide, defaults).vars;
     const colors = colorsAndTypeLook(yuletide.theme).vars;
     expect(whole['--surface-canvas']).toBe(colors['--surface-canvas']);
     expect(whole['--font-display']).toBe(colors['--font-display']);
@@ -231,7 +231,7 @@ describe('liveLook', () => {
   });
 });
 
-describe('previewManifest', () => {
+describe('previewTheme', () => {
   const requests: string[] = [];
 
   beforeEach(() => {
@@ -258,8 +258,8 @@ describe('previewManifest', () => {
 
   const read = (name: string) => document.documentElement.style.getPropertyValue(name);
 
-  it('paints the manifest look and restores the live one on revert', async () => {
-    await previewManifest(yuletide);
+  it('paints the theme look and restores the live one on revert', async () => {
+    await previewTheme(yuletide);
     expect(isPreviewing()).toBe(true);
     expect(read('--card-default-radius')).toBe('var(--radius-3xl)');
     expect(read('--surface-canvas')).toBe('#0b3d2e');
@@ -273,20 +273,20 @@ describe('previewManifest', () => {
   });
 
   it('restores vars the live state carries and the preview drops', async () => {
-    await previewManifest(yuletide);
+    await previewTheme(yuletide);
     expect(read('--live-only')).toBe('');
     revertPreview();
     expect(read('--live-only')).toBe('1px');
   });
 
   it('re-previewing diffs against the live look, not the previous preview', async () => {
-    const halloween = manifest('halloween', colorsAndType({ '--surface-canvas': '#4d2300' }), {
+    const halloween = theme('halloween', colorsAndType({ '--surface-canvas': '#4d2300' }), {
       card: config('card', { '--card-default-radius': '--radius-none' }),
       spooky: config('spooky', { '--spooky-glow': '1' }),
     });
 
-    await previewManifest(yuletide);
-    await previewManifest(halloween);
+    await previewTheme(yuletide);
+    await previewTheme(halloween);
     expect(read('--card-default-radius')).toBe('var(--radius-none)');
     expect(read('--surface-canvas')).toBe('#4d2300');
     expect(read('--button-primary-radius')).toBe('var(--radius-xl)');
@@ -304,14 +304,14 @@ describe('previewManifest', () => {
 
   it('leaves the editor store untouched', async () => {
     const before = JSON.stringify(get(editorState));
-    await previewManifest(yuletide);
+    await previewTheme(yuletide);
     expect(JSON.stringify(get(editorState))).toBe(before);
     revertPreview();
     expect(JSON.stringify(get(editorState))).toBe(before);
   });
 
   it('reads only, so a capture of the look still sees the saved files', async () => {
-    await previewManifest(yuletide);
+    await previewTheme(yuletide);
     expect(requests).toEqual([`GET ${API_BASE}/manifests/default`]);
   });
 });
@@ -355,9 +355,9 @@ describe('previewColorsAndType', () => {
     expect(read('--live-only')).toBe('1px');
   });
 
-  it('hands a live colors-and-type preview over to a manifest preview and back', async () => {
+  it('hands a live colors-and-type preview over to a theme preview and back', async () => {
     previewColorsAndType(royalVelvet);
-    await previewManifest(yuletide);
+    await previewTheme(yuletide);
     expect(read('--surface-canvas')).toBe('#0b3d2e');
     expect(read('--card-default-radius')).toBe('var(--radius-3xl)');
     expect(read('--font-display')).toBe('"Mountains of Christmas", serif');
@@ -369,8 +369,8 @@ describe('previewColorsAndType', () => {
     expect(read('--live-only')).toBe('1px');
   });
 
-  it('drops a manifest preview cleanly when a colors-and-type preview follows it', async () => {
-    await previewManifest(yuletide);
+  it('drops a theme preview cleanly when a colors-and-type preview follows it', async () => {
+    await previewTheme(yuletide);
     previewColorsAndType(royalVelvet);
     expect(read('--surface-canvas')).toBe('#2b1b45');
     expect(read('--card-default-radius')).toBe('var(--radius-md)');

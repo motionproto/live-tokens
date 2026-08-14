@@ -1,6 +1,6 @@
 /**
  * Centralised "flash a transient status, then revert to idle" helper for the
- * file managers (theme / component / manifest). Each pulse — saved, error,
+ * file managers (colors and type / component / theme). Each pulse — saved, error,
  * adopted — shares the same timing so the UI stays in sync.
  */
 

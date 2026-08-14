@@ -23,8 +23,8 @@
     markComponentSaved,
   } from '../../core/store/editorStore';
   import { bumpComponentActiveRevision, bumpProductionRevision } from '../../core/productionPulse';
-  import { listManifests, saveAsManifest } from '../../core/manifests/manifestService';
-  import type { ManifestMeta } from '../../core/themes/themeTypes';
+  import { listThemes, saveAsTheme } from '../../core/themes/themeService';
+  import type { ThemeMeta } from '../../core/themes/themeTypes';
   import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../core/themes/migrations';
   import { refToDiskValue } from '../../core/store/cssVarRef';
   import { safeFetch } from '../../core/storage/storage';
@@ -76,9 +76,9 @@
   let adoptFeedback = $state('');
 
   // Theme SaveAs prompt for the "Adopt while the default theme is active" case.
-  let manifestSaveAsDialog = $state(false);
-  let manifests: ManifestMeta[] = $state([]);
-  let retryAdoptAfterManifestSave = false;
+  let themeSaveAsDialog = $state(false);
+  let themes: ThemeMeta[] = $state([]);
+  let retryAdoptAfterThemeSave = false;
 
   const setProductionStatus = (s: ProductionStatus) => (productionUpdateStatus = s);
 
@@ -267,13 +267,13 @@
       if (e.code === 'ACTIVE_IS_PROTECTED') {
         adoptFeedback = '';
         productionUpdateStatus = 'idle';
-        retryAdoptAfterManifestSave = true;
+        retryAdoptAfterThemeSave = true;
         try {
-          manifests = await listManifests();
+          themes = await listThemes();
         } catch {
-          manifests = [];
+          themes = [];
         }
-        manifestSaveAsDialog = true;
+        themeSaveAsDialog = true;
         return;
       }
       adoptFeedback = '';
@@ -281,17 +281,17 @@
     }
   }
 
-  async function onManifestSaveAs(detail: { displayName: string; fileName: string }) {
-    manifestSaveAsDialog = false;
+  async function onThemeSaveAs(detail: { displayName: string; fileName: string }) {
+    themeSaveAsDialog = false;
     try {
-      await saveAsManifest(detail.fileName, detail.displayName);
+      await saveAsTheme(detail.fileName, detail.displayName);
     } catch (err) {
       window.alert(`Failed to create the theme: ${(err as Error).message}`);
-      retryAdoptAfterManifestSave = false;
+      retryAdoptAfterThemeSave = false;
       return;
     }
-    if (retryAdoptAfterManifestSave) {
-      retryAdoptAfterManifestSave = false;
+    if (retryAdoptAfterThemeSave) {
+      retryAdoptAfterThemeSave = false;
       await handleUpdateProduction();
     }
   }
@@ -444,15 +444,15 @@
 />
 
 <SaveAsDialog
-  bind:show={manifestSaveAsDialog}
+  bind:show={themeSaveAsDialog}
   currentDisplayName="My Theme"
-  files={manifests}
-  reservedDisplayNames={manifests.filter((m) => m.fileName === 'default').map((m) => m.name)}
+  files={themes}
+  reservedDisplayNames={themes.filter((m) => m.fileName === 'default').map((m) => m.name)}
   title="Save Theme As"
   placeholder="Theme name…"
   description="Adopting a component change updates the active theme. The default theme is locked, so name a new theme for this site."
   reservedNameMessage='That name is reserved for the protected default theme.'
-  onsave={onManifestSaveAs}
+  onsave={onThemeSaveAs}
 />
 
 <style>

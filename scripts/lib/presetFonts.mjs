@@ -1,6 +1,6 @@
 // Google Fonts pairing per preset theme, from the plan's addendum 2. Called by
 // generate-preset-manifests.mjs, which stamps the pairing into the preset's
-// colors-and-type file before embedding it in the manifest — so applying either
+// colors-and-type file before embedding it in the theme — so applying either
 // the colors and type alone or the whole look changes the type.
 //
 // Every URL below was checked against fonts.googleapis.com (200 plus the

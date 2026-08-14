@@ -1,29 +1,28 @@
 <script lang="ts">
   // The root of the look hierarchy: one Theme panel that owns the whole look,
   // with the colors-and-type layer and the components as parts that report
-  // rather than manage. The file behind it is still a manifest, which is why
-  // the code keeps that name; the word does not appear in the UI.
+  // rather than manage.
   //
   // It is the only save, load and ship surface. The layer is internal: its
   // files still exist, and older ones are listed here as colors-and-type
   // entries, but nothing saves, loads or adopts them anywhere else.
   import { onDestroy, onMount } from 'svelte';
   import { get } from 'svelte/store';
-  import type { Manifest, ManifestMeta, ColorsAndType, ColorsAndTypeMeta } from '../core/themes/themeTypes';
+  import type { Theme, ThemeMeta, ColorsAndType, ColorsAndTypeMeta } from '../core/themes/themeTypes';
   import {
-    listManifests,
-    deleteManifest,
-    getActiveManifest,
-    loadManifest,
-    applyManifest,
+    listThemes,
+    deleteTheme,
+    getActiveTheme,
+    loadTheme,
+    applyTheme,
     adoptLook,
-    saveAsManifest,
-    saveActiveManifest,
-    exportManifest,
-    importManifest,
-  } from '../core/manifests/manifestService';
-  import { countComponentsOffLook, lookProductionState } from '../core/manifests/lookSummary';
-  import { previewManifest, previewColorsAndType, revertPreview } from '../core/preview/lookPreview';
+    saveAsTheme,
+    saveActiveTheme,
+    exportTheme,
+    importTheme,
+  } from '../core/themes/themeService';
+  import { countComponentsOffLook, lookProductionState } from '../core/themes/lookSummary';
+  import { previewTheme, previewColorsAndType, revertPreview } from '../core/preview/lookPreview';
   import {
     deleteColorsAndType,
     getProductionInfo,
@@ -53,7 +52,7 @@
   import {
     componentActiveRevision,
     productionRevision,
-    activeManifest,
+    activeTheme,
     bumpProductionRevision,
     colorsAndTypeProductionInfo,
   } from '../core/productionPulse';
@@ -73,7 +72,7 @@
 
   let canOpenComponents = $derived(showComponentsLink && $editorView !== 'components');
 
-  let files: ManifestMeta[] = $state([]);
+  let files: ThemeMeta[] = $state([]);
   let layerFiles: ColorsAndTypeMeta[] = $state([]);
   let rows = $derived(buildLoadRows(files, layerFiles));
   let showFileList = $state(false);
@@ -95,7 +94,7 @@
 
   async function refreshFiles() {
     try {
-      [files, layerFiles] = await Promise.all([listManifests(), listColorsAndType()]);
+      [files, layerFiles] = await Promise.all([listThemes(), listColorsAndType()]);
       const activeLayer = layerFiles.find((f) => f.isActive);
       if (activeLayer) layerFileName.set(activeLayer.fileName);
     } catch {
@@ -105,12 +104,12 @@
 
   async function refreshActive() {
     try {
-      const active = await getActiveManifest();
+      const active = await getActiveTheme();
       if (active) {
         activeFileName = active._fileName ?? 'default';
         currentDisplayName = active.name ?? activeFileName;
-        const meta = (await listManifests()).find((f) => f.fileName === activeFileName) ?? null;
-        activeManifest.set(meta);
+        const meta = (await listThemes()).find((f) => f.fileName === activeFileName) ?? null;
+        activeTheme.set(meta);
         lookConfigs = active.componentConfigs;
       }
     } catch {
@@ -145,7 +144,7 @@
   // active look does not carry, and which of them production is not running.
 
   let components: ComponentSummary[] = $state([]);
-  let lookConfigs: Manifest['componentConfigs'] | null = $state(null);
+  let lookConfigs: Theme['componentConfigs'] | null = $state(null);
 
   let componentsOffLook = $derived(
     lookConfigs ? countComponentsOffLook(components, lookConfigs, activeIsProtected) : 0,
@@ -233,7 +232,7 @@
     saveStatus = 'saving';
     try {
       await flushLayer();
-      await saveActiveManifest(currentDisplayName);
+      await saveActiveTheme(currentDisplayName);
       await refreshActive();
       flashStatus(setSaveStatus, 'saved');
     } catch {
@@ -251,7 +250,7 @@
     saveStatus = 'saving';
     try {
       await flushLayer();
-      await saveAsManifest(detail.fileName, detail.displayName);
+      await saveAsTheme(detail.fileName, detail.displayName);
       await refreshFiles();
       await refreshActive();
       flashStatus(setSaveStatus, 'saved');
@@ -312,8 +311,8 @@
         // The user clicked Adopt, and which file holds the look is bookkeeping
         // they shouldn't have to think about.
         try {
-          const taken = new Set((await listManifests()).map((m) => m.fileName));
-          await saveAsManifest(freshName('my-theme', taken), 'My Theme');
+          const taken = new Set((await listThemes()).map((m) => m.fileName));
+          await saveAsTheme(freshName('my-theme', taken), 'My Theme');
         } catch {
           flashStatus(setAdoptStatus, 'error', { durationMs: 3000 });
           return;
@@ -349,7 +348,7 @@
   let previewRow: LoadRow | null = $state(null);
   // `$state.raw`: the preview engine structuredClones these, and a deep `$state`
   // proxy is not cloneable. Both are only ever reassigned whole.
-  let previewLook: Manifest | null = $state.raw(null);
+  let previewLook: Theme | null = $state.raw(null);
   let previewLayer: ColorsAndType | null = $state.raw(null);
   let colorsOnly = $state(false);
   let effectiveColorsOnly = $derived(isColorsOnly(previewRow, colorsOnly));
@@ -363,7 +362,7 @@
   }
 
   /** Paint whatever is selected, through the engine the mode calls for. A
-   *  theme's colors and type are its manifest's embedded theme, so one look
+   *  theme's colors and type are the slice embedded in it, so one look
    *  previews either way. */
   async function repaint(): Promise<void> {
     if (previewLayer) {
@@ -372,7 +371,7 @@
     }
     if (!previewLook) return;
     if (effectiveColorsOnly) previewColorsAndType(previewLook.theme);
-    else await previewManifest(previewLook);
+    else await previewTheme(previewLook);
   }
 
   async function handleSelect(row: LoadRow) {
@@ -385,7 +384,7 @@
       return;
     }
     try {
-      const look = row.kind === 'look' ? await loadManifest(row.slug) : null;
+      const look = row.kind === 'look' ? await loadTheme(row.slug) : null;
       const layer = row.kind === 'layer' ? await loadColorsAndType(row.slug) : null;
       // The window may have closed during the fetch; painting then would leave
       // a preview on screen with no Save or Cancel in sight.
@@ -426,14 +425,14 @@
     // The window stays open until the page reloads: closing it would revert the
     // preview and flash the outgoing look while Apply is in flight.
     try {
-      const result = await applyManifest(row.slug);
+      const result = await applyTheme(row.slug);
       if (result.skippedComponents.length > 0) {
         window.alert(
           `Loaded "${row.name}". These components are not installed here, so their `
             + `saved settings were skipped:\n\n${result.skippedComponents.join(', ')}`,
         );
       }
-      // applyManifest atomically flips active + production pointers and
+      // applyTheme atomically flips active + production pointers and
       // syncs tokens.css; reload to rehydrate the editor from the
       // now-active theme + component configs.
       window.location.reload();
@@ -444,8 +443,8 @@
 
   /**
    * Colors and type alone: the components stay as they are, so this is the
-   * layer load, not Apply. A theme's colors and type live inside its manifest,
-   * so they are written out as a working file under the theme's own name first
+   * layer load, not Apply. A theme's colors and type live inside it, so they
+   * are written out as a working file under the theme's own name first
    * — the same materialisation Apply does for the theme half — and then made
    * active. The Default theme needs no write: its layer is the package file
    * already sitting under that name.
@@ -502,7 +501,7 @@
 
   async function handleExport(row: LoadRow) {
     try {
-      await exportManifest(row.slug);
+      await exportTheme(row.slug);
     } catch (err) {
       window.alert(`Failed to export: ${(err as Error).message}`);
     }
@@ -531,7 +530,7 @@
       return;
     }
     try {
-      const result = await importManifest(bundle);
+      const result = await importTheme(bundle);
       await refreshFiles();
       const notes: string[] = [];
       const renameCount = Object.keys(result.renames).length;
@@ -547,7 +546,7 @@
         );
       }
       if (notes.length > 0) {
-        window.alert(`Imported as "${result.manifest}".\n\n${notes.join('\n\n')}`);
+        window.alert(`Imported as "${result.theme}".\n\n${notes.join('\n\n')}`);
       }
     } catch (err) {
       window.alert(`Failed to import: ${(err as Error).message}`);
@@ -570,7 +569,7 @@
     );
     if (!ok) return;
     try {
-      await deleteManifest(row.slug);
+      await deleteTheme(row.slug);
       if (row.fileName === previewRow?.fileName) cancelPreview();
       await refreshFiles();
       if (wasActive) await refreshActive();

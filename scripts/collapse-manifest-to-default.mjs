@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Collapse the active manifest's customizations down into the shipped defaults,
-// then clear the custom definitions. The manifest carries the look by value, so
+// Collapse the active theme's customizations down into the shipped defaults,
+// then clear the custom definitions. The theme carries the look by value, so
 // it is the source for every bake; the working files it materialised are found
 // through the active/production pointers and removed:
 //
@@ -9,10 +9,10 @@
 //                                  of truth shipped to consumers), regenerate
 //                                  its default.json, reset the active/production
 //                                  pointers, delete the working files
-//   • embedded theme             → copy it into colors-and-type/default.json, reset
+//   • embedded colors and type   → copy it into colors-and-type/default.json, reset
 //                                  pointers, delete the working files
-//   • manifest                   → point active back to the default manifest,
-//                                  delete the custom manifest
+//   • theme                      → point active back to the default theme,
+//                                  delete the custom theme
 //
 //   node scripts/collapse-manifest-to-default.mjs [--write]
 //
@@ -30,7 +30,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'src/live-tokens/data');
 const CONFIGS = join(DATA, 'component-configs');
 const COLORS_AND_TYPE = join(DATA, 'colors-and-type');
-const MANIFESTS = join(DATA, 'manifests');
+const THEMES = join(DATA, 'manifests');
 const COMPONENTS = join(ROOT, 'src/system/components');
 
 const write = process.argv.includes('--write');
@@ -91,35 +91,35 @@ const reportCleared = (names) => {
   if (names.length) console.log(`   clears ${names.map((n) => `${n}.json`).join(', ')}`);
 };
 
-const activePointer = join(MANIFESTS, '_active.json');
-const activeManifestName = existsSync(activePointer)
+const activePointer = join(THEMES, '_active.json');
+const activeThemeName = existsSync(activePointer)
   ? readJson(activePointer).activeFile ?? 'default'
   : 'default';
 
-if (activeManifestName === 'default') {
-  console.log('Active manifest is already "default" — nothing to collapse.');
+if (activeThemeName === 'default') {
+  console.log('Active theme is already "default" — nothing to collapse.');
   process.exit(0);
 }
 
-const manifestPath = join(MANIFESTS, `${activeManifestName}.json`);
-if (!existsSync(manifestPath)) {
-  console.error(`Active manifest "${activeManifestName}" not found at ${manifestPath}`);
+const themePath = join(THEMES, `${activeThemeName}.json`);
+if (!existsSync(themePath)) {
+  console.error(`Active theme "${activeThemeName}" not found at ${themePath}`);
   process.exit(1);
 }
-const manifest = readJson(manifestPath);
+const theme = readJson(themePath);
 
-if (typeof manifest.theme === 'string') {
+if (typeof theme.theme === 'string') {
   console.error(
-    `Active manifest "${activeManifestName}" is still in the old pointer format. ` +
-      "Re-save it in the editor's Manifest file manager, then re-run.",
+    `Active theme "${activeThemeName}" is still in the old pointer format. ` +
+      "Re-save it in the editor's Theme file manager, then re-run.",
   );
   process.exit(1);
 }
 
-console.log(`${write ? 'COLLAPSE' : 'DRY RUN'} — active manifest "${activeManifestName}"\n`);
+console.log(`${write ? 'COLLAPSE' : 'DRY RUN'} — active theme "${activeThemeName}"\n`);
 
 // --- Components ---------------------------------------------------------------
-const componentConfigs = manifest.componentConfigs ?? {};
+const componentConfigs = theme.componentConfigs ?? {};
 let componentValueChanges = 0;
 for (const [comp, cfg] of Object.entries(componentConfigs).sort()) {
   const svelteName = svelteByLower.get(comp);
@@ -165,9 +165,9 @@ for (const [comp, cfg] of Object.entries(componentConfigs).sort()) {
 }
 
 // --- Colors and type ---------------------------------------------------------
-const colorsAndType = manifest.theme;
+const colorsAndType = theme.theme;
 if (!colorsAndType || typeof colorsAndType !== 'object') {
-  console.log('\nSKIP  theme (manifest carries none)');
+  console.log('\nSKIP  colors and type (theme carries none)');
 } else {
   const defaultColorsAndTypePath = join(COLORS_AND_TYPE, 'default.json');
   const currentDefault = existsSync(defaultColorsAndTypePath) ? readJson(defaultColorsAndTypePath) : {};
@@ -176,13 +176,13 @@ if (!colorsAndType || typeof colorsAndType !== 'object') {
     { ec: colorsAndType.editorConfigs, cv: colorsAndType.cssVariables },
   );
   const working = pointedFiles(COLORS_AND_TYPE);
-  console.log(`\ntheme  default.json ← manifest  (${diff} value(s) differ)`);
+  console.log(`\ncolors and type  default.json ← theme  (${diff} value(s) differ)`);
   reportCleared(working);
 
   if (write) {
-    // Spread: the manifest's theme is the whole file, so fields the collapse
-    // has no opinion on (fonts, harmony axes, schemaVersion) carry across
-    // untouched. Only the default's identity is preserved.
+    // Spread: the theme's colors-and-type slice is the whole file, so fields
+    // the collapse has no opinion on (fonts, harmony axes, schemaVersion) carry
+    // across untouched. Only the default's identity is preserved.
     writeJson(defaultColorsAndTypePath, {
       ...colorsAndType,
       name: currentDefault.name ?? colorsAndType.name ?? 'Default Theme',
@@ -195,11 +195,11 @@ if (!colorsAndType || typeof colorsAndType !== 'object') {
   }
 }
 
-// --- Manifest ----------------------------------------------------------------
-console.log(`\nmanifest  active → default  (delete "${activeManifestName}")`);
+// --- Theme -------------------------------------------------------------------
+console.log(`\ntheme  active → default  (delete "${activeThemeName}")`);
 if (write) {
   writePointer(activePointer, { activeFile: 'default' });
-  rmSync(manifestPath);
+  rmSync(themePath);
 }
 
 // --- Summary -----------------------------------------------------------------

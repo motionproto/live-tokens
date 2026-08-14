@@ -15,11 +15,11 @@ import {
 } from './files/versionedFileResourceServer';
 import { dispatch, type Route } from './files/routeTable';
 import {
-  MANIFEST_SCHEMA_VERSION,
-  normalizeManifest,
-  type EncapsulatedManifest,
-  type ManifestResolvers,
-} from './manifests/normalizeManifest';
+  THEME_SCHEMA_VERSION,
+  normalizeTheme,
+  type EncapsulatedTheme,
+  type ThemeResolvers,
+} from './themes/normalizeTheme';
 import { nextAvailableName as allocNextAvailableName } from './files/nameAllocator';
 import { resolveDataDirs } from './files/dataPaths';
 import { validateTokensCss, runAdditiveTokensCssMigrations } from './tokensCssMigrations';
@@ -74,7 +74,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   });
   const COLORS_AND_TYPE_DIR = dataDirs.colorsAndTypeDir;
   const COMPONENT_CONFIGS_DIR = dataDirs.componentConfigsDir;
-  const MANIFESTS_DIR = dataDirs.manifestsDir;
+  const THEMES_DIR = dataDirs.manifestsDir;
   const CSS_PATH = path.resolve(opts.tokensCssPath);
   const GENERATED_CSS_PATH = opts.tokensGeneratedCssPath
     ? path.resolve(opts.tokensGeneratedCssPath)
@@ -113,8 +113,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // library-dev, in a consumer's node_modules, and from dist-plugin/. The
   // resource server's read-only fallback resolves a consumer's `default` colors
   // and type to the shipped copy when they have no local one, and serves shipped example
-  // manifests the same way. The Default manifest never ships:
-  // `ensureDefaultManifest` derives the full local set at boot, before the
+  // themes the same way. The Default theme never ships:
+  // `ensureDefaultTheme` derives the full local set at boot, before the
   // first request.
   const packageDataDir = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
@@ -124,7 +124,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     'data',
   );
   const packageColorsAndTypeDir = path.join(packageDataDir, 'colors-and-type');
-  const packageManifestsDir = path.join(packageDataDir, 'manifests');
+  const packageThemesDir = path.join(packageDataDir, 'manifests');
   const packageComponentConfigsDir = path.join(packageDataDir, 'component-configs');
 
   /** Colors-and-type basenames the package ships, read from its own `files` listing. */
@@ -154,9 +154,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // Colors-and-type resource — list/load/save/delete + active/production. The
   // package fallback ships the real default file so a consumer always has one to
   // load / restore to, and picks up an upgraded default on `npm upgrade`.
-  // `packageOwnedNames` comes from the package's own manifest so the library
-  // repo (whose local dir IS the package dir) can still tell a shipped file
-  // from a user file when flagging `isPackage` in the list.
+  // `packageOwnedNames` comes from the package's own `package.json` so the
+  // library repo (whose local dir IS the package dir) can still tell a shipped
+  // file from a user file when flagging `isPackage` in the list.
   const colorsAndTypeResource = versionedFileResourceServer({
     dir: COLORS_AND_TYPE_DIR,
     packageDir: packageColorsAndTypeDir,
@@ -187,14 +187,14 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     return r;
   }
 
-  // Manifests resource — files that carry one colors-and-type file plus a config
-  // per off-default component, by value. The active manifest is the single live
+  // Themes resource — files that carry one colors-and-type file plus a config
+  // per off-default component, by value. The active theme is the single live
   // snapshot; colors-and-type/component Adopts re-embed that slice (see
-  // `patchActiveManifest`). `_production.json` is unused for this resource —
+  // `patchActiveTheme`). `_production.json` is unused for this resource —
   // the model has no separate Production slot.
-  const manifestsResource = versionedFileResourceServer({
-    dir: MANIFESTS_DIR,
-    packageDir: packageManifestsDir,
+  const themesResource = versionedFileResourceServer({
+    dir: THEMES_DIR,
+    packageDir: packageThemesDir,
   });
 
   function ensureColorsAndTypeDir() {
@@ -649,76 +649,76 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
   }
 
-  // ── Manifests helpers ─────────────────────────────────────────────────────
+  // ── Themes helpers ────────────────────────────────────────────────────────
 
-  /** Resolve a v1 manifest's refs against the files on disk, package fallback
+  /** Resolve a v1 theme's refs against the files on disk, package fallback
    *  included. Import passes its own bundle-scoped resolvers instead. */
-  const diskManifestResolvers: ManifestResolvers = {
+  const diskThemeResolvers: ThemeResolvers = {
     readColorsAndType: (name) => colorsAndTypeResource.readJson(sanitizeFileName(name)),
     readComponentConfig: (comp, name) => readComponentConfig(comp, sanitizeFileName(name)),
     normalizeColorsAndType: (colorsAndType) => normalizeColorsAndType(colorsAndType as any),
   };
 
-  /** `null` covers both "no such manifest" and "the file is there but won't
+  /** `null` covers both "no such theme" and "the file is there but won't
    *  parse": one unreadable file must not take the list door down with it.
-   *  Doors that answer a single manifest tell the two apart via
-   *  `respondUnreadableManifest`. */
-  function readManifest(fileName: string) {
+   *  Doors that answer a single theme tell the two apart via
+   *  `respondUnreadableTheme`. */
+  function readTheme(fileName: string) {
     let raw: unknown;
     try {
-      raw = manifestsResource.readJson(fileName);
+      raw = themesResource.readJson(fileName);
     } catch {
       return null;
     }
     if (!raw) return null;
-    return normalizeManifest(raw, diskManifestResolvers);
+    return normalizeTheme(raw, diskThemeResolvers);
   }
 
-  function respondUnreadableManifest(res: any, fileName: string, missingError: string): void {
-    if (manifestsResource.existingPath(fileName) !== null) {
+  function respondUnreadableTheme(res: any, fileName: string, missingError: string): void {
+    if (themesResource.existingPath(fileName) !== null) {
       jsonResponse(res, 422, {
         error: `Theme file "${fileName}" is not valid JSON`,
-        code: 'CORRUPT_MANIFEST',
+        code: 'CORRUPT_THEME',
       });
       return;
     }
     jsonResponse(res, 404, { error: missingError });
   }
 
-  function writeManifest(fileName: string, manifest: EncapsulatedManifest): void {
-    manifestsResource.ensureDir();
-    fs.writeFileSync(manifestsResource.filePath(fileName), JSON.stringify(manifest, null, 2));
+  function writeTheme(fileName: string, theme: EncapsulatedTheme): void {
+    themesResource.ensureDir();
+    fs.writeFileSync(themesResource.filePath(fileName), JSON.stringify(theme, null, 2));
   }
 
   /**
-   * Rewrite local pointer-form manifests to the encapsulated form. Eager, at
-   * boot: from here on colors-and-type files and configs are freely deletable, so a manifest
+   * Rewrite local pointer-form themes to the encapsulated form. Eager, at
+   * boot: from here on colors-and-type files and configs are freely deletable, so a theme
    * that still names them can lose its content between one boot and the next.
    */
-  function migrateLocalManifests(warn: (msg: string) => void): void {
+  function migrateLocalThemes(warn: (msg: string) => void): void {
     // In the live-tokens repo the local data dir IS the package data dir.
     // Shipped data is regenerated deliberately, never as a boot side effect —
     // `npm test` boots this plugin too.
-    if (path.resolve(MANIFESTS_DIR) === path.resolve(packageManifestsDir)) return;
-    if (!fs.existsSync(MANIFESTS_DIR)) return;
-    for (const file of fs.readdirSync(MANIFESTS_DIR)) {
+    if (path.resolve(THEMES_DIR) === path.resolve(packageThemesDir)) return;
+    if (!fs.existsSync(THEMES_DIR)) return;
+    for (const file of fs.readdirSync(THEMES_DIR)) {
       if (!file.endsWith('.json') || file.startsWith('_')) continue;
       const fileName = file.slice(0, -'.json'.length);
-      // `default` is regenerated by ensureDefaultManifest before this runs,
+      // `default` is regenerated by ensureDefaultTheme before this runs,
       // so it is already v2.
       if (fileName === 'default') continue;
       let raw: unknown;
       try {
-        raw = JSON.parse(fs.readFileSync(path.join(MANIFESTS_DIR, file), 'utf-8'));
+        raw = JSON.parse(fs.readFileSync(path.join(THEMES_DIR, file), 'utf-8'));
       } catch {
         continue;
       }
-      const { manifest, dropped, migrated } = normalizeManifest(raw, diskManifestResolvers);
+      const { theme, dropped, migrated } = normalizeTheme(raw, diskThemeResolvers);
       if (!migrated) continue;
-      writeManifest(fileName, manifest);
+      writeTheme(fileName, theme);
       if (dropped.length > 0) {
         warn(
-          `[live-tokens] Manifest "${fileName}": ${dropped.join(', ')} no longer exists; ` +
+          `[live-tokens] Theme "${fileName}": ${dropped.join(', ')} no longer exists; ` +
             'those slices now use their defaults.',
         );
       }
@@ -726,8 +726,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Materialise the Default manifest: the shipped colors and type plus EVERY
-   * component's derived default config, by value. It is the one manifest that is
+   * Materialise the Default theme: the shipped colors and type plus EVERY
+   * component's derived default config, by value. It is the one theme that is
    * not delta-encoded, because it is the written record of the whole default state.
    *
    * Its source of truth is code (the colors-and-type file plus each component's
@@ -736,7 +736,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    * the way `stat` did. Writes only on real drift, like `generateDefaultConfig`
    * — a boot that changes nothing leaves bytes and mtime alone.
    */
-  function ensureDefaultManifest(): void {
+  function ensureDefaultTheme(): void {
     const colorsAndType = normalizeColorsAndType(colorsAndTypeResource.readJson('default') as any);
     const componentConfigs: Record<string, any> = {};
     for (const comp of listComponentNames()) {
@@ -746,10 +746,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
     let existing: any = null;
     try {
-      existing = JSON.parse(fs.readFileSync(manifestsResource.filePath('default'), 'utf-8'));
+      existing = JSON.parse(fs.readFileSync(themesResource.filePath('default'), 'utf-8'));
     } catch { /* missing or corrupt — regenerate */ }
     if (
-      existing?.schemaVersion === MANIFEST_SCHEMA_VERSION &&
+      existing?.schemaVersion === THEME_SCHEMA_VERSION &&
       JSON.stringify(existing.theme) === JSON.stringify(colorsAndType) &&
       JSON.stringify(existing.componentConfigs) === JSON.stringify(componentConfigs)
     ) {
@@ -757,37 +757,37 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
 
     const now = new Date().toISOString();
-    writeManifest('default', {
+    writeTheme('default', {
       name: 'Default',
       createdAt: typeof existing?.createdAt === 'string' ? existing.createdAt : now,
       updatedAt: now,
-      schemaVersion: MANIFEST_SCHEMA_VERSION,
+      schemaVersion: THEME_SCHEMA_VERSION,
       theme: colorsAndType,
       componentConfigs,
     });
   }
 
-  function ensureManifestsDir(warn: (msg: string) => void): void {
-    manifestsResource.ensureDir();
+  function ensureThemesDir(warn: (msg: string) => void): void {
+    themesResource.ensureDir();
     // Runs before the migration and in every project, this repo included: the
     // Default set is derived, so regenerating shipped data here is the point
     // rather than a side effect.
-    ensureDefaultManifest();
-    migrateLocalManifests(warn);
+    ensureDefaultTheme();
+    migrateLocalThemes(warn);
 
-    // Ensure `_active.json` exists; the manifest model has no Production slot,
+    // Ensure `_active.json` exists; the theme model has no Production slot,
     // so `_production.json` is never written for this resource.
-    if (!fs.existsSync(manifestsResource.activePath)) {
+    if (!fs.existsSync(themesResource.activePath)) {
       fs.writeFileSync(
-        manifestsResource.activePath,
+        themesResource.activePath,
         JSON.stringify({ activeFile: 'default' }),
       );
     } else {
       // Normalize: if the pointer references a name that resolves neither
       // locally nor in the package, fall back to default.
-      const activeName = manifestsResource.getActiveName();
-      if (manifestsResource.existingPath(activeName) === null) {
-        manifestsResource.setActiveName('default');
+      const activeName = themesResource.getActiveName();
+      if (themesResource.existingPath(activeName) === null) {
+        themesResource.setActiveName('default');
       }
     }
   }
@@ -798,43 +798,43 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     | { field: 'component'; comp: string; fileName: string };
 
   /**
-   * Re-embed slices of the currently-active manifest in response to an Adopt:
+   * Re-embed slices of the currently-active theme in response to an Adopt:
    * each adopted file's content is copied in by value. Adopting `default` for
    * a component drops its entry — absent is default. Returns `false` if the
-   * active manifest is `default` (protected) or nothing resolved.
+   * active theme is `default` (protected) or nothing resolved.
    *
    * Takes a list so the whole-look adopt lands as one read and one write; a
    * per-slice loop would rewrite the file once per component.
    *
-   * Adopting into a package-shipped manifest forks it: the read resolves
+   * Adopting into a package-shipped theme forks it: the read resolves
    * through the package fallback, the write lands locally under the same name.
-   * The alternative is a shipped manifest that stays marked active while the
+   * The alternative is a shipped theme that stays marked active while the
    * live state moves away from it.
    */
-  function patchActiveManifest(slices: AdoptedSlice[]): boolean {
-    const activeFile = manifestsResource.getActiveName();
+  function patchActiveTheme(slices: AdoptedSlice[]): boolean {
+    const activeFile = themesResource.getActiveName();
     if (activeFile === 'default') return false;
-    const read = readManifest(activeFile);
+    const read = readTheme(activeFile);
     if (!read) return false;
-    const { manifest } = read;
+    const { theme } = read;
     let applied = 0;
     for (const slice of slices) {
       if (slice.field === 'colors-and-type') {
         const colorsAndType = colorsAndTypeResource.readJson(sanitizeFileName(slice.fileName));
         if (!colorsAndType) continue;
-        manifest.theme = normalizeColorsAndType(colorsAndType as any);
+        theme.theme = normalizeColorsAndType(colorsAndType as any);
       } else if (slice.fileName === 'default') {
-        delete manifest.componentConfigs[slice.comp];
+        delete theme.componentConfigs[slice.comp];
       } else {
         const cfg = readComponentConfig(slice.comp, slice.fileName);
         if (!cfg) continue;
-        manifest.componentConfigs[slice.comp] = { ...cfg, component: slice.comp };
+        theme.componentConfigs[slice.comp] = { ...cfg, component: slice.comp };
       }
       applied++;
     }
     if (applied === 0) return false;
-    manifest.updatedAt = new Date().toISOString();
-    writeManifest(activeFile, manifest);
+    theme.updatedAt = new Date().toISOString();
+    writeTheme(activeFile, theme);
     return true;
   }
 
@@ -923,17 +923,17 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const COLORS_AND_TYPE_ACTIVE_ROUTE = `${API_BASE}/colors-and-type/active`;
   const COLORS_AND_TYPE_PRODUCTION_ROUTE = `${API_BASE}/colors-and-type/production`;
   const COMPONENT_CONFIGS_ROUTE = `${API_BASE}/component-configs`;
-  const MANIFESTS_ROUTE = `${API_BASE}/manifests`;
-  const MANIFESTS_ACTIVE_ROUTE = `${API_BASE}/manifests/active`;
+  const THEMES_ROUTE = `${API_BASE}/manifests`;
+  const THEMES_ACTIVE_ROUTE = `${API_BASE}/manifests/active`;
   const COLORS_AND_TYPE_BY_NAME_REGEX = new RegExp(`^${escapedBase}/colors-and-type/([a-z0-9\\-_]+)$`);
   const COMP_LIST_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)$`);
   const COMP_ACTIVE_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/active$`);
   const COMP_PRODUCTION_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/production$`);
   const COMP_BY_NAME_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/([a-z0-9\\-_]+)$`);
-  const MANIFEST_APPLY_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)/apply$`);
-  const MANIFEST_EXPORT_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)/export$`);
-  const MANIFEST_IMPORT_ROUTE = `${API_BASE}/manifests/import`;
-  const MANIFEST_BY_NAME_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)$`);
+  const THEME_APPLY_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)/apply$`);
+  const THEME_EXPORT_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)/export$`);
+  const THEME_IMPORT_ROUTE = `${API_BASE}/manifests/import`;
+  const THEME_BY_NAME_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)$`);
   // Root peer of `/colors-and-type/production` and `/component-configs/:comp/production`:
   // the production state of the whole look.
   const PRODUCTION_ROUTE = `${API_BASE}/production`;
@@ -1011,11 +1011,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       jsonResponse(res, 404, { error: 'Theme not found' });
       return;
     }
-    // Reject before any destructive write if the active manifest is the
+    // Reject before any destructive write if the active theme is the
     // protected default — the client recovers by prompting Save As.
-    if (manifestsResource.getActiveName() === 'default') {
+    if (themesResource.getActiveName() === 'default') {
       jsonResponse(res, 409, {
-        error: 'Active manifest is protected. Save As first.',
+        error: 'Active theme is protected. Save As first.',
         code: 'ACTIVE_IS_PROTECTED',
       });
       return;
@@ -1024,7 +1024,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     syncTokensToCss(fileName);
     syncFontsToCss(fileName);
     syncComponentsToCss();
-    patchActiveManifest([{ field: 'colors-and-type', fileName }]);
+    patchActiveTheme([{ field: 'colors-and-type', fileName }]);
     const data = colorsAndTypeResource.readJson(fileName) as any;
     jsonResponse(res, 200, {
       ok: true,
@@ -1052,7 +1052,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
     if (req.method === 'PUT') {
       // `default` is live from the package and immutable, symmetric with
-      // component-config and manifest PUT. Without this guard a client could
+      // component-config and theme PUT. Without this guard a client could
       // write colors-and-type/default.json locally and fork the default the
       // live-from-package model treats as read-only. The editor's save flow
       // already redirects a Save on the active default into Save As, so no
@@ -1183,9 +1183,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       jsonResponse(res, 404, { error: 'Config not found' });
       return;
     }
-    if (manifestsResource.getActiveName() === 'default') {
+    if (themesResource.getActiveName() === 'default') {
       jsonResponse(res, 409, {
-        error: 'Active manifest is protected. Save As first.',
+        error: 'Active theme is protected. Save As first.',
         code: 'ACTIVE_IS_PROTECTED',
       });
       return;
@@ -1193,7 +1193,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     r.ensureDir();
     r.setProductionName(fileName);
     syncComponentsToCss();
-    patchActiveManifest([{ field: 'component', comp, fileName }]);
+    patchActiveTheme([{ field: 'component', comp, fileName }]);
     const cfg = readComponentConfig(comp, fileName);
     jsonResponse(res, 200, {
       ok: true,
@@ -1291,19 +1291,19 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   // ── /api/manifests ───────────────────────────────────────────────────────
 
-  async function handleListManifests({ res }: any) {
-    const activeFile = manifestsResource.getActiveName();
+  async function handleListThemes({ res }: any) {
+    const activeFile = themesResource.getActiveName();
     const files = [];
-    for (const fileName of manifestsResource.listNames()) {
-      const read = readManifest(fileName);
+    for (const fileName of themesResource.listNames()) {
+      const read = readTheme(fileName);
       if (!read) {
-        console.warn(`[live-tokens] Manifest "${fileName}" is unreadable and was left out of the list.`);
+        console.warn(`[live-tokens] Theme "${fileName}" is unreadable and was left out of the list.`);
         continue;
       }
       files.push({
-        name: read.manifest.name,
+        name: read.theme.name,
         fileName,
-        updatedAt: read.manifest.updatedAt,
+        updatedAt: read.theme.updatedAt,
         isActive: fileName === activeFile,
         isProtected: fileName === 'default',
       });
@@ -1311,38 +1311,38 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     jsonResponse(res, 200, { files, activeFile });
   }
 
-  async function handleGetActiveManifest({ res }: any) {
-    const activeFile = manifestsResource.getActiveName();
-    const read = readManifest(activeFile);
+  async function handleGetActiveTheme({ res }: any) {
+    const activeFile = themesResource.getActiveName();
+    const read = readTheme(activeFile);
     if (!read) {
-      respondUnreadableManifest(res, activeFile, 'Active theme not found');
+      respondUnreadableTheme(res, activeFile, 'Active theme not found');
       return;
     }
-    jsonResponse(res, 200, { ...read.manifest, _fileName: activeFile });
+    jsonResponse(res, 200, { ...read.theme, _fileName: activeFile });
   }
 
-  async function handleSetActiveManifest({ req, res }: any) {
+  async function handleSetActiveTheme({ req, res }: any) {
     const body = JSON.parse(await readBody(req));
     const fileName = sanitizeFileName(body.name || 'default');
-    if (manifestsResource.existingPath(fileName) === null) {
+    if (themesResource.existingPath(fileName) === null) {
       jsonResponse(res, 404, { error: 'Theme not found' });
       return;
     }
-    manifestsResource.setActiveName(fileName);
+    themesResource.setActiveName(fileName);
     jsonResponse(res, 200, { ok: true, activeFile: fileName });
   }
 
-  async function handleManifestByName({ params, req, res }: any) {
+  async function handleThemeByName({ params, req, res }: any) {
     const [fileName] = params;
-    const filePath = manifestsResource.filePath(fileName);
+    const filePath = themesResource.filePath(fileName);
 
     if (req.method === 'GET') {
-      const read = readManifest(fileName);
+      const read = readTheme(fileName);
       if (!read) {
-        respondUnreadableManifest(res, fileName, 'Not found');
+        respondUnreadableTheme(res, fileName, 'Not found');
         return;
       }
-      jsonResponse(res, 200, { ...read.manifest, _fileName: fileName });
+      jsonResponse(res, 200, { ...read.theme, _fileName: fileName });
       return;
     }
 
@@ -1354,15 +1354,15 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       const body = JSON.parse(await readBody(req));
       // Normalize the incoming body too, so what lands on disk is encapsulated
       // whatever form the client sent.
-      const { manifest } = normalizeManifest(body, diskManifestResolvers);
-      manifest.updatedAt = new Date().toISOString();
+      const { theme } = normalizeTheme(body, diskThemeResolvers);
+      theme.updatedAt = new Date().toISOString();
       if (fs.existsSync(filePath)) {
         try {
           const existing = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-          if (existing.createdAt) manifest.createdAt = existing.createdAt;
+          if (existing.createdAt) theme.createdAt = existing.createdAt;
         } catch { /* keep the body's value */ }
       }
-      writeManifest(fileName, manifest);
+      writeTheme(fileName, theme);
       jsonResponse(res, 200, { ok: true, fileName });
       return;
     }
@@ -1374,23 +1374,23 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       }
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
-        // Deleting the manifest you are on is legal: the Default set always
+        // Deleting the theme you are on is legal: the Default set always
         // sits on disk to fall back to. Deleting a local file that shadows a
-        // shipped manifest restores the package version, which still resolves,
+        // shipped theme restores the package version, which still resolves,
         // so the pointer keeps naming it — only a name that resolves nowhere
         // heals, mirroring the colors-and-type delete handler.
         if (
-          manifestsResource.existingPath(fileName) === null &&
-          manifestsResource.getActiveName() === fileName
+          themesResource.existingPath(fileName) === null &&
+          themesResource.getActiveName() === fileName
         ) {
-          manifestsResource.setActiveName('default');
+          themesResource.setActiveName('default');
         }
-      } else if (manifestsResource.existingPath(fileName)) {
-        // No local copy — only the package ships this manifest. Without this
-        // guard the delete would report ok while the manifest stays listed.
+      } else if (themesResource.existingPath(fileName)) {
+        // No local copy — only the package ships this theme. Without this
+        // guard the delete would report ok while the theme stays listed.
         jsonResponse(res, 403, {
           error: 'Cannot delete a theme shipped with the package. Saving it creates a local copy; deleting that copy restores the shipped version.',
-          code: 'PACKAGE_MANIFEST',
+          code: 'PACKAGE_THEME',
         });
         return;
       }
@@ -1400,29 +1400,29 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Apply a manifest: materialise its embedded colors and type and configs into
-   * working files under the manifest's own slug, flip the colors-and-type +
+   * Apply a theme: materialise its embedded colors and type and configs into
+   * working files under the theme's own slug, flip the colors-and-type +
    * each component's `_active.json` and `_production.json` pointers at them, sync
-   * tokens.css/fonts.css, mark the manifest active, and return the resolved
+   * tokens.css/fonts.css, mark the theme active, and return the resolved
    * state in one payload. The client follows with a full page reload. Setting
    * production here (not just active) means the running page picks up the new
    * look without the user having to Adopt colors and type + every component by hand.
    *
-   * A manifest is a complete look, so components it doesn't carry are reset to
+   * A theme is a complete look, so components it doesn't carry are reset to
    * their defaults rather than left as they were.
    */
-  async function handleApplyManifest({ params, res }: any) {
+  async function handleApplyTheme({ params, res }: any) {
     const [fileName] = params;
-    const read = readManifest(fileName);
+    const read = readTheme(fileName);
     if (!read) {
-      respondUnreadableManifest(res, fileName, 'Theme not found');
+      respondUnreadableTheme(res, fileName, 'Theme not found');
       return;
     }
-    const { manifest } = read;
-    // The default manifest IS the baseline: it applies pure defaults and
+    const { theme } = read;
+    // The default theme IS the baseline: it applies pure defaults and
     // materialises nothing (`default.json` is derived from source, read-only).
     const isDefault = fileName === 'default';
-    if (!isDefault && !manifest.theme) {
+    if (!isDefault && !theme.theme) {
       jsonResponse(res, 422, { error: 'This theme carries no colors and type' });
       return;
     }
@@ -1432,7 +1432,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       colorsAndTypeResource.ensureDir();
       fs.writeFileSync(
         colorsAndTypeResource.filePath(colorsAndTypeName),
-        JSON.stringify(manifest.theme, null, 2),
+        JSON.stringify(theme.theme, null, 2),
       );
     }
 
@@ -1448,7 +1448,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const knownComponents = listComponentNames();
     const resolvedConfigs: Record<string, any> = {};
     for (const comp of knownComponents) {
-      const embedded = isDefault ? undefined : manifest.componentConfigs[comp];
+      const embedded = isDefault ? undefined : theme.componentConfigs[comp];
       const r = componentResource(comp);
       const configFile = embedded ? fileName : 'default';
       if (embedded) {
@@ -1465,8 +1465,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
 
     // Data for components this install doesn't have is inert, but silence here
-    // is what let a removed component sit in the default manifest unnoticed.
-    const skippedComponents = Object.keys(manifest.componentConfigs).filter(
+    // is what let a removed component sit in the default theme unnoticed.
+    const skippedComponents = Object.keys(theme.componentConfigs).filter(
       (comp) => !knownComponents.includes(comp),
     );
 
@@ -1474,38 +1474,38 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     // tokens.css component-alias block lands in a single write.
     syncComponentsToCss();
 
-    manifestsResource.setActiveName(fileName);
+    themesResource.setActiveName(fileName);
 
     jsonResponse(res, 200, {
       ok: true,
-      manifest: { ...manifest, _fileName: fileName },
-      theme: colorsAndTypeData,
+      theme: { ...theme, _fileName: fileName },
+      colorsAndType: colorsAndTypeData,
       componentConfigs: resolvedConfigs,
       skippedComponents,
     });
   }
 
   /**
-   * Export a manifest for sharing: the manifest already carries its colors and
+   * Export a theme for sharing: the theme already carries its colors and
    * type and its configs, so the bundle is the envelope plus provenance. Served with a
    * `Content-Disposition` attachment header so browsers save rather than
    * display. `liveTokensVersion` lets the UI warn on compatibility drift in a
    * future iteration.
    */
-  async function handleExportManifest({ params, res }: any) {
+  async function handleExportTheme({ params, res }: any) {
     const [fileName] = params;
-    const read = readManifest(fileName);
+    const read = readTheme(fileName);
     if (!read) {
-      respondUnreadableManifest(res, fileName, 'Theme not found');
+      respondUnreadableTheme(res, fileName, 'Theme not found');
       return;
     }
 
     const bundle = {
       kind: 'manifest-bundle' as const,
-      schemaVersion: MANIFEST_SCHEMA_VERSION,
+      schemaVersion: THEME_SCHEMA_VERSION,
       liveTokensVersion: PKG_VERSION,
       exportedAt: new Date().toISOString(),
-      manifest: read.manifest,
+      manifest: read.theme,
     };
 
     res.statusCode = 200;
@@ -1533,17 +1533,17 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Import a `ManifestBundle`: one validated manifest file, no materialisation
+   * Import a `ThemeBundle`: one validated theme file, no materialisation
    * — Apply is what turns embedded data into working files. Returns the final
-   * manifest filename plus a rename map so the UI can surface a collision
+   * theme filename plus a rename map so the UI can surface a collision
    * rename (`-2` / `-3` suffixes), and whatever the bundle failed to carry.
    * Does not auto-apply — the user clicks Load on the new row.
    *
-   * v1 bundles (pointer manifest + separately inlined colors and type and configs) still
+   * v1 bundles (pointer theme + separately inlined colors and type and configs) still
    * import: their refs resolve inside the bundle, never against local files
    * that happen to share a name.
    */
-  async function handleImportManifest({ req, res }: any) {
+  async function handleImportTheme({ req, res }: any) {
     let bundle: any;
     try {
       bundle = JSON.parse(await readBody(req));
@@ -1553,50 +1553,50 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
     if (!bundle || bundle.kind !== 'manifest-bundle') {
       jsonResponse(res, 400, {
-        error: 'Not a manifest bundle (kind discriminator missing or wrong)',
+        error: 'Not a theme bundle (kind discriminator missing or wrong)',
       });
       return;
     }
-    if (bundle.schemaVersion !== 1 && bundle.schemaVersion !== MANIFEST_SCHEMA_VERSION) {
+    if (bundle.schemaVersion !== 1 && bundle.schemaVersion !== THEME_SCHEMA_VERSION) {
       jsonResponse(res, 400, {
         error: `Unsupported bundle schemaVersion: ${bundle.schemaVersion}`,
       });
       return;
     }
     if (!bundle.manifest) {
-      jsonResponse(res, 400, { error: 'Bundle missing manifest' });
+      jsonResponse(res, 400, { error: 'Bundle missing theme' });
       return;
     }
 
-    const bundleResolvers: ManifestResolvers = {
+    const bundleResolvers: ThemeResolvers = {
       readColorsAndType: () => bundle.theme,
       readComponentConfig: (comp, name) => bundle.componentConfigs?.[`${comp}/${name}`],
       normalizeColorsAndType: (colorsAndType) => normalizeColorsAndType(colorsAndType as any),
     };
-    const { manifest, dropped } = normalizeManifest(bundle.manifest, bundleResolvers);
+    const { theme, dropped } = normalizeTheme(bundle.manifest, bundleResolvers);
     // Foreign data door: an embedded copy arrives unreconciled, which is what
     // normalizeColorsAndType's `_imported` palette path exists for.
-    if (manifest.theme) manifest.theme = normalizeColorsAndType(manifest.theme as any);
-    if (!manifest.theme) {
+    if (theme.theme) theme.theme = normalizeColorsAndType(theme.theme as any);
+    if (!theme.theme) {
       jsonResponse(res, 400, { error: 'Bundle carries no theme' });
       return;
     }
-    manifest.updatedAt = new Date().toISOString();
+    theme.updatedAt = new Date().toISOString();
 
     const renames: Record<string, string> = {};
-    const originalName = sanitizeFileName(manifest.name || 'imported');
+    const originalName = sanitizeFileName(theme.name || 'imported');
     const finalName = nextAvailableName(
-      (n) => manifestsResource.existingPath(n) !== null,
+      (n) => themesResource.existingPath(n) !== null,
       originalName,
     );
     if (finalName !== originalName) {
-      renames[`manifest:${originalName}`] = finalName;
+      renames[`theme:${originalName}`] = finalName;
     }
-    writeManifest(finalName, manifest);
+    writeTheme(finalName, theme);
 
     jsonResponse(res, 200, {
       ok: true,
-      manifest: finalName,
+      theme: finalName,
       renames,
       dropped,
     });
@@ -1618,7 +1618,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   async function handleAdoptLook({ res }: any) {
     // Reject before any write. The protected Default look cannot record what
     // shipped, so the client forks it and retries.
-    if (manifestsResource.getActiveName() === 'default') {
+    if (themesResource.getActiveName() === 'default') {
       jsonResponse(res, 409, {
         error: 'Active theme is protected. Save As first.',
         code: 'ACTIVE_IS_PROTECTED',
@@ -1655,7 +1655,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     // The look records what shipped, and only that: re-embedding a slice that
     // did not move would delete the look's entry for every component sitting
     // on its default, which is data the adopt never touched.
-    patchActiveManifest([
+    patchActiveTheme([
       ...(colorsAndTypePromoted ? [{ field: 'colors-and-type' as const, fileName: colorsAndTypeName }] : []),
       ...promotedComponents.map((comp) => ({
         field: 'component' as const,
@@ -1726,33 +1726,33 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     { method: 'PUT',    pattern: COLORS_AND_TYPE_BY_NAME_REGEX, handler: handleColorsAndTypeByName },
     { method: 'DELETE', pattern: COLORS_AND_TYPE_BY_NAME_REGEX, handler: handleColorsAndTypeByName },
 
-    // Manifests — list / active are exact strings, must run before regexes
-    { method: 'GET',    pattern: MANIFESTS_ROUTE,         handler: handleListManifests },
-    { method: 'GET',    pattern: MANIFESTS_ACTIVE_ROUTE,  handler: handleGetActiveManifest },
-    { method: 'PUT',    pattern: MANIFESTS_ACTIVE_ROUTE,  handler: handleSetActiveManifest },
+    // Themes — list / active are exact strings, must run before regexes
+    { method: 'GET',    pattern: THEMES_ROUTE,            handler: handleListThemes },
+    { method: 'GET',    pattern: THEMES_ACTIVE_ROUTE,     handler: handleGetActiveTheme },
+    { method: 'PUT',    pattern: THEMES_ACTIVE_ROUTE,     handler: handleSetActiveTheme },
 
-    // Manifests — exact import route runs before :name regexes
-    { method: 'POST',   pattern: MANIFEST_IMPORT_ROUTE,   handler: handleImportManifest },
-    { method: 'PUT',    pattern: MANIFEST_IMPORT_ROUTE,   handler: methodNotAllowed },
-    { method: 'GET',    pattern: MANIFEST_IMPORT_ROUTE,   handler: methodNotAllowed },
-    { method: 'DELETE', pattern: MANIFEST_IMPORT_ROUTE,   handler: methodNotAllowed },
+    // Themes — exact import route runs before :name regexes
+    { method: 'POST',   pattern: THEME_IMPORT_ROUTE,      handler: handleImportTheme },
+    { method: 'PUT',    pattern: THEME_IMPORT_ROUTE,      handler: methodNotAllowed },
+    { method: 'GET',    pattern: THEME_IMPORT_ROUTE,      handler: methodNotAllowed },
+    { method: 'DELETE', pattern: THEME_IMPORT_ROUTE,      handler: methodNotAllowed },
 
-    // Manifests — :name/apply (more specific than :name)
-    { method: 'PUT',    pattern: MANIFEST_APPLY_REGEX,    handler: handleApplyManifest },
-    { method: 'POST',   pattern: MANIFEST_APPLY_REGEX,    handler: methodNotAllowed },
-    { method: 'GET',    pattern: MANIFEST_APPLY_REGEX,    handler: methodNotAllowed },
-    { method: 'DELETE', pattern: MANIFEST_APPLY_REGEX,    handler: methodNotAllowed },
+    // Themes — :name/apply (more specific than :name)
+    { method: 'PUT',    pattern: THEME_APPLY_REGEX,       handler: handleApplyTheme },
+    { method: 'POST',   pattern: THEME_APPLY_REGEX,       handler: methodNotAllowed },
+    { method: 'GET',    pattern: THEME_APPLY_REGEX,       handler: methodNotAllowed },
+    { method: 'DELETE', pattern: THEME_APPLY_REGEX,       handler: methodNotAllowed },
 
-    // Manifests — :name/export (more specific than :name)
-    { method: 'GET',    pattern: MANIFEST_EXPORT_REGEX,   handler: handleExportManifest },
-    { method: 'PUT',    pattern: MANIFEST_EXPORT_REGEX,   handler: methodNotAllowed },
-    { method: 'POST',   pattern: MANIFEST_EXPORT_REGEX,   handler: methodNotAllowed },
-    { method: 'DELETE', pattern: MANIFEST_EXPORT_REGEX,   handler: methodNotAllowed },
+    // Themes — :name/export (more specific than :name)
+    { method: 'GET',    pattern: THEME_EXPORT_REGEX,      handler: handleExportTheme },
+    { method: 'PUT',    pattern: THEME_EXPORT_REGEX,      handler: methodNotAllowed },
+    { method: 'POST',   pattern: THEME_EXPORT_REGEX,      handler: methodNotAllowed },
+    { method: 'DELETE', pattern: THEME_EXPORT_REGEX,      handler: methodNotAllowed },
 
-    // Manifests — :name CRUD (broadest manifest route, runs last)
-    { method: 'GET',    pattern: MANIFEST_BY_NAME_REGEX,  handler: handleManifestByName },
-    { method: 'PUT',    pattern: MANIFEST_BY_NAME_REGEX,  handler: handleManifestByName },
-    { method: 'DELETE', pattern: MANIFEST_BY_NAME_REGEX,  handler: handleManifestByName },
+    // Themes — :name CRUD (broadest theme route, runs last)
+    { method: 'GET',    pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
+    { method: 'PUT',    pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
+    { method: 'DELETE', pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
 
     // Production — the whole-look adopt door
     { method: 'PUT',    pattern: PRODUCTION_ROUTE,        handler: handleAdoptLook },
@@ -1779,7 +1779,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     configureServer(server) {
       ensureColorsAndTypeDir();
       ensureComponentConfigsDir();
-      ensureManifestsDir((msg) => server.config.logger.warn(msg));
+      ensureThemesDir((msg) => server.config.logger.warn(msg));
       // Make sure the editor-owned sidecar exists and reflects current
       // production state before the first request lands. Without this, a
       // fresh checkout would import a stale (or missing) generated file.

@@ -1,8 +1,8 @@
-import type { ManifestMeta, ColorsAndTypeMeta } from './themeTypes';
+import type { ThemeMeta, ColorsAndTypeMeta } from './themeTypes';
 
 /**
- * The one Load list. A theme is the whole look, backed by a manifest; a colors
- * and type file is a layer of one, and older installs have those lying around.
+ * The one Load list. A theme is the whole look; a colors and type file is a
+ * layer of one, and older installs have those lying around.
  * Both belong in the same window, told apart by a badge rather than by living
  * in separate managers.
  *
@@ -26,7 +26,7 @@ export interface LoadRow {
 
 export const loadRowId = (kind: LoadRowKind, slug: string): string => `${kind}:${slug}`;
 
-export function buildLoadRows(looks: ManifestMeta[], layers: ColorsAndTypeMeta[]): LoadRow[] {
+export function buildLoadRows(looks: ThemeMeta[], layers: ColorsAndTypeMeta[]): LoadRow[] {
   const lookRows: LoadRow[] = looks.map((f) => ({
     fileName: loadRowId('look', f.fileName),
     slug: f.fileName,

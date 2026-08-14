@@ -11,7 +11,7 @@
     currentDisplayName?: string;
     /** Existing files used by the increment helper to find the next available `_NN` suffix.
      *  Only `fileName` is read, so this accepts any shape with that field
-     *  (ComponentConfigMeta, ManifestMeta, …). */
+     *  (ComponentConfigMeta, ThemeMeta, …). */
     files?: { fileName: string }[];
     /** Dialog title — defaults to "Save As". Overridable so callers can use
      *  context-specific framing (e.g. "Save Theme As"). */

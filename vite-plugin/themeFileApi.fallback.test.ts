@@ -3,9 +3,9 @@
  * route table with mock req/res — no live Vite server. The plugin computes its
  * package data dir from this file's location (`../src/live-tokens/data`), which
  * in the live-tokens repo holds the shipped `colors-and-type/default.json` (the default
- * manifest is not shipped; boot materializes it locally). Pointing the plugin's
+ * theme is not shipped; boot materializes it locally). Pointing the plugin's
  * local data dir at an empty temp dir reproduces a fresh consumer: local has
- * nothing, the package supplies the theme and boot writes the rest.
+ * nothing, the package supplies the colors and type and boot writes the rest.
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import fs from 'fs';
@@ -96,13 +96,13 @@ describe('package-default fallback on a fresh consumer', () => {
     expect(fs.existsSync(path.join(colorsAndTypeDir, 'default.json'))).toBe(false);
   });
 
-  it('materialises the default manifest locally, carrying the package theme', () => {
-    const manifest = JSON.parse(
+  it('materialises the default theme locally, carrying the package theme', () => {
+    const theme = JSON.parse(
       fs.readFileSync(path.join(manifestsDir, 'default.json'), 'utf-8'),
     );
-    expect(manifest.schemaVersion).toBe(2);
-    expect(Object.keys(manifest.theme.editorConfigs).length).toBeGreaterThan(0);
-    expect(Object.keys(manifest.componentConfigs).length).toBeGreaterThan(0);
+    expect(theme.schemaVersion).toBe(2);
+    expect(Object.keys(theme.theme.editorConfigs).length).toBeGreaterThan(0);
+    expect(Object.keys(theme.componentConfigs).length).toBeGreaterThan(0);
   });
 
   it('regenerates tokens.generated.css from the package default (palette not flattened)', () => {
@@ -151,7 +151,7 @@ describe('package-default fallback on a fresh consumer', () => {
     expect(status).toBe(200);
   });
 
-  it('PUT /colors-and-type/production default → 409 (past existence, blocked by protected manifest)', async () => {
+  it('PUT /colors-and-type/production default → 409 (past existence, blocked by protected theme)', async () => {
     const { status, json } = await request('PUT', `${API}/colors-and-type/production`, { name: 'default' });
     expect(status).toBe(409);
     expect(json.code).toBe('ACTIVE_IS_PROTECTED');
@@ -193,11 +193,11 @@ describe('package-default fallback on a fresh consumer', () => {
     ).toBe('mine');
   });
 
-  it('PUT /manifests/default/apply → 200 with resolved theme + component configs (headline restore path)', async () => {
+  it('PUT /manifests/default/apply → 200 with resolved colors and type + component configs (headline restore path)', async () => {
     const { status, json } = await request('PUT', `${API}/manifests/default/apply`);
     expect(status).toBe(200);
     expect(json.theme._fileName).toBe('default');
-    expect(Object.keys(json.theme.editorConfigs).length).toBeGreaterThan(0);
+    expect(Object.keys(json.colorsAndType.editorConfigs).length).toBeGreaterThan(0);
     expect(Object.keys(json.componentConfigs).length).toBeGreaterThan(0);
     const css = fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8');
     expect(css).toContain(':root:root {');
@@ -294,16 +294,16 @@ describe('shipped preset colors and type on a fresh consumer', () => {
 
 /**
  * The package data dir is the repo's own `src/live-tokens/data`, so a shipped
- * example manifest is staged by writing one there for the length of the suite.
+ * example theme is staged by writing one there for the length of the suite.
  */
-describe('a package-shipped manifest on a fresh consumer', () => {
+describe('a package-shipped theme on a fresh consumer', () => {
   const FIXTURE = 'package-fixture-look';
-  const packageManifestPath = path.join(
+  const packageThemePath = path.join(
     REPO_ROOT,
     'src/live-tokens/data/manifests',
     `${FIXTURE}.json`,
   );
-  const localManifestPath = () => path.join(manifestsDir, `${FIXTURE}.json`);
+  const localThemePath = () => path.join(manifestsDir, `${FIXTURE}.json`);
   const shipped = {
     name: 'Package Fixture',
     createdAt: '2026-01-01T00:00:00.000Z',
@@ -326,22 +326,22 @@ describe('a package-shipped manifest on a fresh consumer', () => {
   };
 
   beforeEach(() => {
-    fs.writeFileSync(packageManifestPath, JSON.stringify(shipped, null, 2));
+    fs.writeFileSync(packageThemePath, JSON.stringify(shipped, null, 2));
     boot();
   });
 
   afterEach(() => {
-    fs.rmSync(packageManifestPath, { force: true });
+    fs.rmSync(packageThemePath, { force: true });
   });
 
   it('boot materialises the local default and leaves the shipped file untouched', () => {
     const past = new Date(Date.now() - 60_000);
-    fs.utimesSync(packageManifestPath, past, past);
+    fs.utimesSync(packageThemePath, past, past);
     boot();
 
-    expect(fs.statSync(packageManifestPath).mtime.getTime()).toBe(past.getTime());
-    expect(JSON.parse(fs.readFileSync(packageManifestPath, 'utf-8'))).toEqual(shipped);
-    expect(fs.existsSync(localManifestPath())).toBe(false);
+    expect(fs.statSync(packageThemePath).mtime.getTime()).toBe(past.getTime());
+    expect(JSON.parse(fs.readFileSync(packageThemePath, 'utf-8'))).toEqual(shipped);
+    expect(fs.existsSync(localThemePath())).toBe(false);
     expect(fs.existsSync(path.join(manifestsDir, 'default.json'))).toBe(true);
   });
 
@@ -353,7 +353,7 @@ describe('a package-shipped manifest on a fresh consumer', () => {
     expect(json.files.map((f: any) => f.fileName)).toContain('default');
   });
 
-  it('GET :name serves the shipped v2 manifest as-is', async () => {
+  it('GET :name serves the shipped v2 theme as-is', async () => {
     const { status, json } = await request('GET', `${API}/manifests/${FIXTURE}`);
     expect(status).toBe(200);
     expect(json.schemaVersion).toBe(2);
@@ -380,7 +380,7 @@ describe('a package-shipped manifest on a fresh consumer', () => {
     expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).toContain(
       '--radius-md: 4px',
     );
-    expect(fs.existsSync(localManifestPath())).toBe(false);
+    expect(fs.existsSync(localThemePath())).toBe(false);
   });
 
   it('export serves the envelope with the shipped content', async () => {
@@ -390,11 +390,11 @@ describe('a package-shipped manifest on a fresh consumer', () => {
     expect(json.manifest.theme.name).toBe('Package Fixture Theme');
   });
 
-  it('DELETE with no local copy → 403 PACKAGE_MANIFEST', async () => {
+  it('DELETE with no local copy → 403 PACKAGE_THEME', async () => {
     const { status, json } = await request('DELETE', `${API}/manifests/${FIXTURE}`);
     expect(status).toBe(403);
-    expect(json.code).toBe('PACKAGE_MANIFEST');
-    expect(fs.existsSync(packageManifestPath)).toBe(true);
+    expect(json.code).toBe('PACKAGE_THEME');
+    expect(fs.existsSync(packageThemePath)).toBe(true);
   });
 
   it('PUT then DELETE removes the shadow and restores the shipped version', async () => {
@@ -403,17 +403,17 @@ describe('a package-shipped manifest on a fresh consumer', () => {
       name: 'Local Fork',
     });
     expect(put.status).toBe(200);
-    expect(fs.existsSync(localManifestPath())).toBe(true);
+    expect(fs.existsSync(localThemePath())).toBe(true);
 
     const del = await request('DELETE', `${API}/manifests/${FIXTURE}`);
     expect(del.status).toBe(200);
-    expect(fs.existsSync(localManifestPath())).toBe(false);
+    expect(fs.existsSync(localThemePath())).toBe(false);
 
     const { json } = await request('GET', `${API}/manifests/${FIXTURE}`);
     expect(json.name).toBe('Package Fixture');
   });
 
-  it('deleting the shadow of the active manifest keeps the pointer on the restored version', async () => {
+  it('deleting the shadow of the active theme keeps the pointer on the restored version', async () => {
     await request('PUT', `${API}/manifests/${FIXTURE}`, { ...shipped, name: 'Local Fork' });
     await request('PUT', `${API}/manifests/active`, { name: FIXTURE });
 
@@ -431,8 +431,8 @@ describe('a package-shipped manifest on a fresh consumer', () => {
     const { status } = await request('PUT', `${API}/colors-and-type/production`, { name: 'adopted' });
     expect(status).toBe(200);
 
-    expect(JSON.parse(fs.readFileSync(localManifestPath(), 'utf-8')).theme.name).toBe('Adopted');
-    expect(JSON.parse(fs.readFileSync(packageManifestPath, 'utf-8')).theme.name).toBe(
+    expect(JSON.parse(fs.readFileSync(localThemePath(), 'utf-8')).theme.name).toBe('Adopted');
+    expect(JSON.parse(fs.readFileSync(packageThemePath, 'utf-8')).theme.name).toBe(
       'Package Fixture Theme',
     );
   });

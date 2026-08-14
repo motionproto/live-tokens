@@ -1,57 +1,57 @@
-import type { Manifest, ManifestMeta, ManifestBundle, ColorsAndType, ComponentConfig } from '../themes/themeTypes';
+import type { Theme, ThemeMeta, ThemeBundle, ColorsAndType, ComponentConfig } from './themeTypes';
 import { versionedFileResource } from '../storage/files/versionedFileResourceClient';
 import { API_BASE } from '../storage/apiBase';
 import { listComponents, loadComponentConfig } from '../components/componentConfigService';
-import { getActiveColorsAndType } from '../themes/colorsAndTypeService';
+import { getActiveColorsAndType } from './colorsAndTypeService';
 
 /**
- * REST client for manifest files. A manifest carries a whole look by value: the
+ * REST client for theme files. A theme carries a whole look by value: the
  * colors and type plus a config for every component that is off its default. The
- * active manifest is the single live snapshot — colors-and-type and component
+ * active theme is the single live snapshot — colors-and-type and component
  * Adopts re-embed that slice server-side.
  *
  * `default` is the protected baseline — cannot be overwritten or deleted, and
  * Adopts return 409 ACTIVE_IS_PROTECTED while it is active.
  */
 
-const manifestsResource = versionedFileResource<Manifest, ManifestMeta, never>({
+const themesResource = versionedFileResource<Theme, ThemeMeta, never>({
   baseUrl: `${API_BASE}/manifests`,
 });
 
-export const listManifests = async (): Promise<ManifestMeta[]> => {
-  const data = await manifestsResource.list();
+export const listThemes = async (): Promise<ThemeMeta[]> => {
+  const data = await themesResource.list();
   return data.files;
 };
 
-export const loadManifest = (fileName: string): Promise<Manifest> =>
-  manifestsResource.load(fileName);
-export const saveManifest = (fileName: string, data: Manifest): Promise<void> =>
-  manifestsResource.save(fileName, data);
-export const deleteManifest = (fileName: string): Promise<void> =>
-  manifestsResource.remove(fileName);
-export const getActiveManifest = (): Promise<Manifest | null> => manifestsResource.getActive();
-export const setActiveManifest = (fileName: string): Promise<void> =>
-  manifestsResource.setActive(fileName);
+export const loadTheme = (fileName: string): Promise<Theme> =>
+  themesResource.load(fileName);
+export const saveTheme = (fileName: string, data: Theme): Promise<void> =>
+  themesResource.save(fileName, data);
+export const deleteTheme = (fileName: string): Promise<void> =>
+  themesResource.remove(fileName);
+export const getActiveTheme = (): Promise<Theme | null> => themesResource.getActive();
+export const setActiveTheme = (fileName: string): Promise<void> =>
+  themesResource.setActive(fileName);
 
-export interface ApplyManifestResult {
+export interface ApplyThemeResult {
   ok: boolean;
-  manifest: Manifest;
-  theme: ColorsAndType;
+  theme: Theme;
+  colorsAndType: ColorsAndType;
   componentConfigs: Record<string, ComponentConfig>;
-  /** Components the manifest carries data for that this install doesn't have. */
+  /** Components the theme carries data for that this install doesn't have. */
   skippedComponents: string[];
 }
 
 /**
- * Server-side apply: materialise the manifest's embedded colors and type and configs into
+ * Server-side apply: materialise the theme's embedded colors and type and configs into
  * working files under its slug, flip each `_active.json` / `_production.json`
- * pointer at them, sync tokens.css/fonts.css, mark the manifest active, and
- * return the resolved state in one payload. Components the manifest doesn't
- * carry go back to their defaults — a manifest is a complete look. Clients
- * usually follow with a full page reload; manifest load is a "blow up the
+ * pointer at them, sync tokens.css/fonts.css, mark the theme active, and
+ * return the resolved state in one payload. Components the theme doesn't
+ * carry go back to their defaults — a theme is a complete look. Clients
+ * usually follow with a full page reload; theme load is a "blow up the
  * world" action.
  */
-export async function applyManifest(fileName: string): Promise<ApplyManifestResult> {
+export async function applyTheme(fileName: string): Promise<ApplyThemeResult> {
   const res = await fetch(`${API_BASE}/manifests/${encodeURIComponent(fileName)}/apply`, {
     method: 'PUT',
   });
@@ -112,7 +112,7 @@ function withoutFileMarker<T extends { _fileName?: string }>(value: T): T {
  * answers. That matters: the server trusts an already-embedded copy and runs
  * no migrations over it on write.
  */
-async function captureLook(): Promise<Pick<Manifest, 'theme' | 'componentConfigs'>> {
+async function captureLook(): Promise<Pick<Theme, 'theme' | 'componentConfigs'>> {
   const activeColorsAndType = await getActiveColorsAndType();
   if (!activeColorsAndType) {
     throw new Error('No active theme to capture');
@@ -131,38 +131,38 @@ async function captureLook(): Promise<Pick<Manifest, 'theme' | 'componentConfigs
 }
 
 /**
- * Capture the current look into a new manifest file and set it active. Used by
- * the manifest panel's Save As action and by the SaveAs-then-Adopt recovery
+ * Capture the current look into a new theme file and set it active. Used by
+ * the theme panel's Save As action and by the SaveAs-then-Adopt recovery
  * flow when active is `default`.
  */
-export async function saveAsManifest(
+export async function saveAsTheme(
   fileName: string,
   displayName: string,
 ): Promise<void> {
   const look = await captureLook();
   const now = new Date().toISOString();
-  await saveManifest(fileName, {
+  await saveTheme(fileName, {
     name: displayName,
     createdAt: now,
     updatedAt: now,
     schemaVersion: 2,
     ...look,
   });
-  await setActiveManifest(fileName);
+  await setActiveTheme(fileName);
 }
 
 /**
- * Re-capture the current look into the *currently active* manifest file. Used
- * by the manifest panel's Save action. Server rejects with 403 if active is
+ * Re-capture the current look into the *currently active* theme file. Used
+ * by the theme panel's Save action. Server rejects with 403 if active is
  * `default` (protected).
  */
-export async function saveActiveManifest(displayName?: string): Promise<void> {
-  const active = await getActiveManifest();
+export async function saveActiveTheme(displayName?: string): Promise<void> {
+  const active = await getActiveTheme();
   if (!active || !active._fileName) {
-    throw new Error('No active manifest');
+    throw new Error('No active theme');
   }
   const look = await captureLook();
-  await saveManifest(active._fileName, {
+  await saveTheme(active._fileName, {
     name: displayName ?? active.name,
     createdAt: active.createdAt,
     updatedAt: new Date().toISOString(),
@@ -171,23 +171,23 @@ export async function saveActiveManifest(displayName?: string): Promise<void> {
   });
 }
 
-export interface ImportManifestResult {
+export interface ImportThemeResult {
   ok: boolean;
-  /** Final manifest filename (may be renamed if it collided with an existing one). */
-  manifest: string;
-  /** Keyed `manifest:<orig>` → final name. */
+  /** Final theme filename (may be renamed if it collided with an existing one). */
+  theme: string;
+  /** Keyed `theme:<orig>` → final name. */
   renames: Record<string, string>;
-  /** Refs a v1 bundle failed to carry, as `theme:<name>` / `<comp>/<name>`.
-   *  Each fell back to the default. */
+  /** Refs a v1 bundle failed to carry, as `colors-and-type:<name>` /
+   *  `<comp>/<name>`. Each fell back to the default. */
   dropped: string[];
 }
 
 /**
- * Fetch the manifest as a `ManifestBundle` and trigger a browser download.
+ * Fetch the theme as a `ThemeBundle` and trigger a browser download.
  * Hidden-anchor trick — no infrastructure beyond the existing GET
  * `/api/manifests/:name/export` endpoint.
  */
-export async function exportManifest(fileName: string): Promise<void> {
+export async function exportTheme(fileName: string): Promise<void> {
   const res = await fetch(`${API_BASE}/manifests/${encodeURIComponent(fileName)}/export`);
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Export failed' }));
@@ -208,11 +208,11 @@ export async function exportManifest(fileName: string): Promise<void> {
 }
 
 /**
- * POST a `ManifestBundle` to the import endpoint. The server writes one
- * manifest file (renaming on collision) and returns its final name; nothing is
+ * POST a `ThemeBundle` to the import endpoint. The server writes one
+ * theme file (renaming on collision) and returns its final name; nothing is
  * materialised until Apply. v1 bundles from older installs are accepted too.
  */
-export async function importManifest(bundle: ManifestBundle): Promise<ImportManifestResult> {
+export async function importTheme(bundle: ThemeBundle): Promise<ImportThemeResult> {
   const res = await fetch(`${API_BASE}/manifests/import`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

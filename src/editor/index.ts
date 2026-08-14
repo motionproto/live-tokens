@@ -48,23 +48,23 @@ export type {
   FontStackVariable,
   SystemCascadePreset,
   GenericFamily,
-  Manifest,
-  ManifestMeta,
+  Theme,
+  ThemeMeta,
 } from './core/themes/themeTypes';
 
 export {
-  listManifests,
-  loadManifest,
-  saveManifest,
-  deleteManifest,
-  getActiveManifest,
-  setActiveManifest,
-  applyManifest,
+  listThemes,
+  loadTheme,
+  saveTheme,
+  deleteTheme,
+  getActiveTheme,
+  setActiveTheme,
+  applyTheme,
   adoptLook,
-  saveAsManifest,
-  saveActiveManifest,
-} from './core/manifests/manifestService';
-export type { AdoptLookResult, ApplyManifestResult } from './core/manifests/manifestService';
+  saveAsTheme,
+  saveActiveTheme,
+} from './core/themes/themeService';
+export type { AdoptLookResult, ApplyThemeResult } from './core/themes/themeService';
 
 export {
   applyFontSources,

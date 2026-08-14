@@ -3,8 +3,8 @@
  * then `baseName-2`, `baseName-3`, etc. Caller supplies the existence predicate
  * (fs.existsSync wrapped against a specific resource's filePath, in practice).
  *
- * Used by the manifest-import path to materialise bundle files without
- * overwriting the receiver's local theme / component configs / manifest.
+ * Used by the theme-import path to materialise bundle files without
+ * overwriting the receiver's local colors and type / component configs / themes.
  * See temp/manifest-robustness-plan.md §11.
  */
 export function nextAvailableName(

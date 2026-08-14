@@ -1,15 +1,15 @@
 import { get } from 'svelte/store';
-import type { FontSource, Manifest, ColorsAndType } from '../themes/themeTypes';
+import type { FontSource, Theme, ColorsAndType } from '../themes/themeTypes';
 import { editorState, colorsAndTypeToState, toComponentSlice } from '../store/editorStore';
 import { deriveCssVars } from '../store/editorRenderer';
 import { setCssVar, removeCssVar } from '../cssVarSync';
 import { applyFontSources, resolveFontStackValues } from '../fonts/fontLoader';
 import { migrateColorsAndTypeFonts } from '../fonts/fontMigration';
-import { loadManifest } from '../manifests/manifestService';
+import { loadTheme } from '../themes/themeService';
 
 /**
  * Client-side rendering of a saved file, for browsing looks without committing
- * one. A manifest previews as a whole look; a colors-and-type file previews as
+ * one. A theme previews as a whole look; a colors-and-type file previews as
  * colors and type over the components the user has right now. Nothing here writes to the server,
  * mutates the editor store, or marks anything dirty: a preview is paint only.
  * Save-As stays honest because `captureLook` reads the server's active files,
@@ -17,7 +17,7 @@ import { loadManifest } from '../manifests/manifestService';
  *
  * Both painting and reverting run the same derivation the renderer runs on
  * store state (`deriveCssVars`), so a preview cannot drift from what an Apply
- * of the same manifest produces, and a revert re-derives from the live store
+ * of the same theme produces, and a revert re-derives from the live store
  * rather than replaying DOM values scraped before the preview.
  *
  * One preview is live at a time, whichever kind it is: painting reverts first,
@@ -33,12 +33,12 @@ export interface RenderedLook {
 }
 
 /**
- * The full var set a manifest paints. Components the manifest carries no config
+ * The full var set a theme paints. Components the theme carries no config
  * for render `defaults`' config, matching Apply's complete-look semantics;
  * configs for components this install lacks are skipped, as Apply skips them.
  */
-export function manifestLook(manifest: Manifest, defaults: Manifest): RenderedLook {
-  const colorsAndType = structuredClone(manifest.theme);
+export function themeLook(theme: Theme, defaults: Theme): RenderedLook {
+  const colorsAndType = structuredClone(theme.theme);
   migrateColorsAndTypeFonts(colorsAndType);
   const state = colorsAndTypeToState(colorsAndType);
   state.components = {};
@@ -50,8 +50,8 @@ export function manifestLook(manifest: Manifest, defaults: Manifest): RenderedLo
   }
   // `activeFile` is the name Apply would materialise the config under. Nothing
   // in the derivation reads it; it keeps the projected slice coherent.
-  const slug = manifest._fileName ?? 'default';
-  for (const [comp, config] of Object.entries(manifest.componentConfigs)) {
+  const slug = theme._fileName ?? 'default';
+  for (const [comp, config] of Object.entries(theme.componentConfigs)) {
     if (!(comp in state.components)) continue;
     state.components[comp] = {
       activeFile: slug,
@@ -87,12 +87,12 @@ export function liveLook(): RenderedLook {
 }
 
 let livePreview: RenderedLook | null = null;
-let defaultsPromise: Promise<Manifest> | null = null;
+let defaultsPromise: Promise<Theme> | null = null;
 
-function loadDefaults(): Promise<Manifest> {
+function loadDefaults(): Promise<Theme> {
   // A rejected promise must not be memoized, or one failed fetch (a dev-server
   // restart mid-dialog) poisons every later preview until a page reload.
-  defaultsPromise ??= loadManifest('default').catch((err) => {
+  defaultsPromise ??= loadTheme('default').catch((err) => {
     defaultsPromise = null;
     throw err;
   });
@@ -121,10 +121,10 @@ function applyPreview(look: RenderedLook): void {
   livePreview = look;
 }
 
-/** Paint a whole look: the manifest's colors and type and every component config
+/** Paint a whole look: the theme's colors and type and every component config
  *  it carries. */
-export async function previewManifest(manifest: Manifest): Promise<void> {
-  applyPreview(manifestLook(manifest, await loadDefaults()));
+export async function previewTheme(theme: Theme): Promise<void> {
+  applyPreview(themeLook(theme, await loadDefaults()));
 }
 
 /** Paint colors and type over the components as they stand. */
@@ -143,7 +143,7 @@ export function isPreviewing(): boolean {
   return livePreview !== null;
 }
 
-/** Test-only: drop the live preview and the cached defaults manifest. */
+/** Test-only: drop the live preview and the cached defaults theme. */
 export function __resetPreviewForTests(): void {
   livePreview = null;
   defaultsPromise = null;

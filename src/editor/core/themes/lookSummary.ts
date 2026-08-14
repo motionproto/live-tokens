@@ -49,7 +49,7 @@ export function lookProductionState(
  * an Adopt re-embeds the live config under whatever file name it already has,
  * so comparing file names there would report drift that does not exist.
  *
- * The Default look breaks the disagreement rule: it is the one manifest that
+ * The Default look breaks the disagreement rule: it is the one theme that
  * embeds every component's DEFAULT config by value (full set, not delta), so
  * carrying an entry says nothing. For it, off-look is simply "customised".
  */

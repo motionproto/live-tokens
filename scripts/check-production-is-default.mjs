@@ -42,8 +42,8 @@ function pointer(file, key) {
 const colorsAndTypeProd = pointer(join(DATA, 'colors-and-type/_production.json'), 'productionFile');
 if (colorsAndTypeProd !== 'default') errors.push(`colors-and-type production pointer is "${colorsAndTypeProd}", expected "default"`);
 
-const manifestActive = pointer(join(DATA, 'manifests/_active.json'), 'activeFile');
-if (manifestActive !== 'default') errors.push(`manifests active pointer is "${manifestActive}", expected "default"`);
+const themeActive = pointer(join(DATA, 'manifests/_active.json'), 'activeFile');
+if (themeActive !== 'default') errors.push(`manifests active pointer is "${themeActive}", expected "default"`);
 
 const compRoot = join(DATA, 'component-configs');
 if (existsSync(compRoot)) {
@@ -67,7 +67,7 @@ if (errors.length) {
   console.error('check:production-is-default FAILED — the shipped baseline is not the default:\n');
   for (const e of errors) console.error(`  - ${e}`);
   console.error(
-    '\nAdopt the Default manifest (or reset the production pointers to default) and regenerate ' +
+    '\nAdopt the Default theme (or reset the production pointers to default) and regenerate ' +
       'tokens.generated.css, then commit, before publishing.',
   );
   process.exit(1);

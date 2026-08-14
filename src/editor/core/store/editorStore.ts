@@ -445,7 +445,7 @@ function splitAliasesAndConfig(
  * applies any migrations between that and `CURRENT_COMPONENT_SCHEMA_VERSION`,
  * so in-memory state is always at the current version.
  *
- * Pure: the store paths below commit the result, the manifest preview renders
+ * Pure: the store paths below commit the result, the theme preview renders
  * one without committing.
  */
 export function toComponentSlice(
@@ -528,7 +528,7 @@ const domainLoaders: Record<string, DomainLoader> = {
 
 /**
  * Project a colors-and-type file onto a fresh `EditorState` without committing
- * it. `loadFromFile` commits the projection; the manifest preview renders one
+ * it. `loadFromFile` commits the projection; the theme preview renders one
  * without touching the store, so both paths derive vars from the same shape.
  *
  * Reads `schemaVersion` (absent = 0) and runs colors-and-type migrations up to

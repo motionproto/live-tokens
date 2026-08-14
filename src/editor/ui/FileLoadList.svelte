@@ -21,7 +21,7 @@
     emptyMessage?: string;
     width?: string;
     /** Marks the row the user picked, for lists where picking is a step rather
-     *  than the whole action (manifest preview). Null leaves every row unpicked. */
+     *  than the whole action (theme preview). Null leaves every row unpicked. */
     selectedFileName?: string | null;
     /** Badge on the selected row, naming what picking it did. Null hides it. */
     selectedBadge?: { label: string; title: string } | null;
@@ -35,7 +35,7 @@
     onconfirm?: () => void;
     onload: (file: F) => void;
     ondelete?: (file: F) => void;
-    /** Optional per-row export action — e.g. download a manifest bundle.
+    /** Optional per-row export action — e.g. download a theme bundle.
      *  When omitted, no export button renders. */
     onexport?: (file: F) => void;
     /** Whether the export button should appear for a row. Default: every row. */

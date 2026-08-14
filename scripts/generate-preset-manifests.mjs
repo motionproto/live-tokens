@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// Build the nine shipped preset manifests: one encapsulated (v2) manifest per
-// preset theme, carrying that theme by value plus a shape personality applied
-// to the derived component defaults. The run also stamps each preset's Google
-// Fonts pairing into its theme file, so type and shape ship together.
+// Build the nine shipped preset themes: one encapsulated (v2) theme per preset,
+// carrying that preset's colors and type by value plus a shape personality
+// applied to the derived component defaults. The run also stamps each preset's
+// Google Fonts pairing into its colors-and-type file, so type and shape ship
+// together.
 //
 //   node scripts/generate-preset-manifests.mjs
 //
@@ -22,7 +23,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'src/live-tokens/data');
 const CONFIGS = join(DATA, 'component-configs');
 const COLORS_AND_TYPE = join(DATA, 'colors-and-type');
-const MANIFESTS = join(DATA, 'manifests');
+const THEMES = join(DATA, 'manifests');
 
 const ENGINE = join(ROOT, 'dist-plugin/adjust/index.js');
 const ENGINE_SOURCES = [
@@ -31,7 +32,7 @@ const ENGINE_SOURCES = [
   'src/editor/core/components/aliasKinds.ts',
 ].map((p) => join(ROOT, p));
 
-const MANIFEST_SCHEMA_VERSION = 2;
+const THEME_SCHEMA_VERSION = 2;
 
 /** Shape personality per preset, from the plan's addendum 2 table. Global ops
  *  come first and targeted `set` ops last, so a targeted corner wins over the
@@ -41,7 +42,7 @@ const MANIFEST_SCHEMA_VERSION = 2;
  *  presets on the same card-radius/button-padding pair and two more on a second
  *  shared pair, which the addendum's own distinctness rule forbids: autumn takes
  *  radius +2 (was +1), royal-velvet drops its radius shift, and sunset takes
- *  radius +1 (was +2). `presetManifests.test.ts` gates the rule. */
+ *  radius +1 (was +2). `presetThemes.test.ts` gates the rule. */
 const PRESETS = [
   {
     slug: 'autumn',
@@ -145,17 +146,17 @@ function readDefaultConfigs() {
 }
 
 /** Content identity, timestamps excluded: what "unchanged" means for a rewrite. */
-function signature(manifest) {
+function signature(theme) {
   const configs = Object.fromEntries(
-    Object.entries(manifest.componentConfigs).map(([comp, cfg]) => {
+    Object.entries(theme.componentConfigs).map(([comp, cfg]) => {
       const { updatedAt, ...rest } = cfg;
       return [comp, rest];
     }),
   );
   return JSON.stringify({
-    name: manifest.name,
-    schemaVersion: manifest.schemaVersion,
-    theme: manifest.theme,
+    name: theme.name,
+    schemaVersion: theme.schemaVersion,
+    theme: theme.theme,
     componentConfigs: configs,
   });
 }
@@ -202,29 +203,29 @@ for (const { slug, ops } of PRESETS) {
     aliasCount += diff;
   }
 
-  const manifestPath = join(MANIFESTS, `${slug}.json`);
-  const existing = existsSync(manifestPath) ? readJson(manifestPath) : null;
-  const manifest = {
+  const themePath = join(THEMES, `${slug}.json`);
+  const existing = existsSync(themePath) ? readJson(themePath) : null;
+  const theme = {
     name: colorsAndType.name ?? slug,
     createdAt: typeof existing?.createdAt === 'string' ? existing.createdAt : now,
     updatedAt: now,
-    schemaVersion: MANIFEST_SCHEMA_VERSION,
+    schemaVersion: THEME_SCHEMA_VERSION,
     theme: colorsAndType,
     componentConfigs,
   };
 
   const summary = `${slug}  ${Object.keys(componentConfigs).length} component(s), ${aliasCount} alias(es)`;
-  if (existing && signature(existing) === signature(manifest)) {
+  if (existing && signature(existing) === signature(theme)) {
     console.log(`  ${summary} — unchanged`);
     continue;
   }
-  writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+  writeFileSync(themePath, JSON.stringify(theme, null, 2));
   written++;
   console.log(`✓ ${summary} — written`);
 }
 
 console.log(
   written === 0 && stamped === 0
-    ? `\nAll ${PRESETS.length} preset themes and manifests were already current.`
-    : `\nStamped ${stamped} preset theme(s); wrote ${written} of ${PRESETS.length} manifests to ${relative(ROOT, MANIFESTS)}.`,
+    ? `\nAll ${PRESETS.length} preset colors-and-type files and themes were already current.`
+    : `\nStamped ${stamped} preset colors-and-type file(s); wrote ${written} of ${PRESETS.length} themes to ${relative(ROOT, THEMES)}.`,
 );

@@ -9,7 +9,7 @@ import { flushSync, mount, unmount } from 'svelte';
 import { API_BASE } from '../core/storage/apiBase';
 import { activeFileName } from '../core/store/editorConfigStore';
 import { mutate, setComponentAlias, __resetForTests } from '../core/store/editorStore';
-import { activeManifest, colorsAndTypeProductionInfo } from '../core/productionPulse';
+import { activeTheme, colorsAndTypeProductionInfo } from '../core/productionPulse';
 import { isPreviewing, __resetPreviewForTests } from '../core/preview/lookPreview';
 import ThemePanel from './ThemePanel.svelte';
 
@@ -89,7 +89,7 @@ beforeEach(async () => {
   // Module-level caches: the panel remounts against them in the real editor,
   // and a leftover from the last test would answer for the fetch under test.
   colorsAndTypeProductionInfo.set(null);
-  activeManifest.set(null);
+  activeTheme.set(null);
   calls = [];
   confirms = [];
   overrides = {};

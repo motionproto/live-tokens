@@ -164,22 +164,22 @@ export interface ComponentConfigMeta {
 }
 
 /**
- * A saved look, encapsulated: the whole theme plus a config for every component
- * that sits off its default, all carried by value. Working files (themes,
- * component configs) are therefore freely deletable — a manifest owns its copy.
- * Applying one materialises that data back into working files under the
- * manifest's own slug and flips the `_active.json` / `_production.json`
- * pointers at it. The currently-active manifest is the live snapshot: theme
- * and component Adopts re-embed that slice on the server.
+ * A saved look, encapsulated: the colors and type plus a config for every
+ * component that sits off its default, all carried by value. Working files
+ * (colors and type, component configs) are therefore freely deletable — a theme
+ * owns its copy. Applying one materialises that data back into working files
+ * under the theme's own slug and flips the `_active.json` / `_production.json`
+ * pointers at it. The currently-active theme is the live snapshot:
+ * colors-and-type and component Adopts re-embed that slice on the server.
  */
-export interface Manifest {
+export interface Theme {
   name: string;
   createdAt: string;
   updatedAt: string;
-  /** Migration stamp. 1 was the pointer form (theme + config basenames);
-   *  2 is encapsulated. The server rewrites v1 files at boot. */
+  /** Migration stamp. 1 was the pointer form (colors-and-type + config
+   *  basenames); 2 is encapsulated. The server rewrites v1 files at boot. */
   schemaVersion: 2;
-  /** Full theme content. */
+  /** Full colors-and-type content. */
   theme: ColorsAndType;
   /** Component id → its config. Delta encoding: a component absent here is on
    *  its default. Defaults are never inlined — the local `default.json` derived
@@ -190,33 +190,36 @@ export interface Manifest {
 }
 
 /**
- * Transport envelope for sharing a manifest. The manifest already carries
+ * Transport envelope for sharing a theme. The theme already carries
  * everything needed to apply it, so the envelope adds only provenance.
  *
  * Bundles are *not* stored under `manifests/` — they're transient downloads /
- * uploads; import writes the enclosed manifest as a single file.
+ * uploads; import writes the enclosed theme as a single file.
  */
-export interface ManifestBundle {
+export interface ThemeBundle {
   /** Discriminator for safe identification of bundle JSON files. */
   kind: 'manifest-bundle';
-  /** Tracks the enclosed manifest's schema. Import still accepts 1, where the
-   *  envelope carried a pointer manifest plus separately inlined theme and
-   *  `${component}/${configName}`-keyed configs. */
+  /** Tracks the enclosed theme's schema. Import still accepts 1, where the
+   *  envelope carried a pointer theme plus separately inlined colors and type
+   *  and `${component}/${configName}`-keyed configs. */
   schemaVersion: 2;
   /** Sender's `@motion-proto/live-tokens` package version. Receiver can
    *  compare to its own to warn about compatibility drift. */
   liveTokensVersion: string;
   /** ISO timestamp of when the bundle was exported. */
   exportedAt: string;
-  manifest: Manifest;
+  /** Keeps the `manifest` spelling: in a v1 bundle `theme` is the separately
+   *  inlined colors and type, which import still reads. */
+  manifest: Theme;
 }
 
-export interface ManifestMeta {
+export interface ThemeMeta {
   name: string;
   fileName: string;
   updatedAt: string;
   isActive: boolean;
   /** `true` only for `default` — the protected baseline. Cannot be written
-   *  to or deleted, and theme/component Adopts cannot patch into it. */
+   *  to or deleted, and colors-and-type / component Adopts cannot patch into
+   *  it. */
   isProtected: boolean;
 }

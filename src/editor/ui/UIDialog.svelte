@@ -32,7 +32,7 @@
   let confirmButtonRef: HTMLButtonElement | undefined = $state();
 
   // Depends on `show` alone: the footer can gain or lose its confirm button
-  // while the dialog is open (manifest preview), and pulling focus out of the
+  // while the dialog is open (theme preview), and pulling focus out of the
   // body each time that happens would fight whatever the user is doing.
   $effect(() => {
     if (!show) return;

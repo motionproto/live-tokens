@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store';
 import type { ProductionInfo } from './themes/colorsAndTypeService';
-import type { ManifestMeta } from './themes/themeTypes';
+import type { ThemeMeta } from './themes/themeTypes';
 
 /**
  * Monotonic counter that ticks every time a production pointer flips —
@@ -41,9 +41,9 @@ export function bumpComponentActiveRevision(): void {
 export const colorsAndTypeProductionInfo = writable<ProductionInfo | null>(null);
 
 /**
- * Last-known active manifest meta. Bumped by the Theme panel whenever the
- * active manifest changes (load, save, save-as) and whenever a colors-and-type
- * or component Adopt completes (the server patches the active manifest as a
+ * Last-known active theme meta. Bumped by the Theme panel whenever the
+ * active theme changes (load, save, save-as) and whenever a colors-and-type
+ * or component Adopt completes (the server patches the active theme as a
  * side-effect, so consumers re-read it on `productionRevision` ticks).
  */
-export const activeManifest = writable<ManifestMeta | null>(null);
+export const activeTheme = writable<ThemeMeta | null>(null);

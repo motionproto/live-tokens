@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { ManifestMeta, ColorsAndTypeMeta } from './themeTypes';
+import type { ThemeMeta, ColorsAndTypeMeta } from './themeTypes';
 import { buildLoadRows, colorsOnlyIsForced, isColorsOnly, loadRowId } from './loadRows';
 
-const look = (fileName: string, isProtected = false): ManifestMeta => ({
+const look = (fileName: string, isProtected = false): ThemeMeta => ({
   name: fileName,
   fileName,
   updatedAt: '',

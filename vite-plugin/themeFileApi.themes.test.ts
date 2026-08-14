@@ -1,8 +1,8 @@
 /**
- * Integration tests for encapsulated manifests, driven through the real route
+ * Integration tests for encapsulated themes, driven through the real route
  * table with mock req/res — no live Vite server. Local data lives in a temp dir
  * (a fresh consumer); the package data dir resolves to this repo's own
- * `src/live-tokens/data`, which supplies the default theme and manifest.
+ * `src/live-tokens/data`, which supplies the default colors and type and theme.
  *
  * Each test seeds files first and calls `boot()` itself, because the boot-time
  * v1 → v2 migration is one of the things under test.
@@ -108,9 +108,9 @@ const readJson = (file: string) => JSON.parse(fs.readFileSync(file, 'utf-8'));
 const COLORS_AND_TYPE = { name: 'Custom', createdAt: 'x', updatedAt: 'x', editorConfigs: {}, cssVariables: {} };
 const BUTTON_CONFIG = { name: 'fancy', component: 'button', aliases: { '--button-radius': '99px' } };
 
-/** A v1 pointer manifest naming a live theme, a live config, a component on
+/** A v1 pointer theme naming live colors and type, a live config, a component on
  *  default, and a config that has since been deleted. */
-function seedPointerManifest() {
+function seedPointerTheme() {
   writeJson(path.join(colorsAndTypeDir, 'custom.json'), COLORS_AND_TYPE);
   writeJson(path.join(configsDir, 'button', 'fancy.json'), BUTTON_CONFIG);
   writeJson(path.join(manifestsDir, 'look.json'), {
@@ -135,8 +135,8 @@ afterEach(() => {
 });
 
 describe('boot migration', () => {
-  it('rewrites a v1 manifest with the data it referenced', () => {
-    seedPointerManifest();
+  it('rewrites a v1 theme with the data it referenced', () => {
+    seedPointerTheme();
     boot();
 
     const migrated = readJson(path.join(manifestsDir, 'look.json'));
@@ -147,7 +147,7 @@ describe('boot migration', () => {
   });
 
   it('omits a component pinned to default and drops one whose config is gone', () => {
-    seedPointerManifest();
+    seedPointerTheme();
     boot();
 
     const migrated = readJson(path.join(manifestsDir, 'look.json'));
@@ -155,9 +155,9 @@ describe('boot migration', () => {
     expect(warnings.join('\n')).toContain('panel/deleted-config');
   });
 
-  it('leaves an already-encapsulated manifest alone', () => {
+  it('leaves an already-encapsulated theme alone', () => {
     const file = path.join(manifestsDir, 'v2.json');
-    const manifest = {
+    const theme = {
       name: 'v2',
       createdAt: 'a',
       updatedAt: 'a',
@@ -165,13 +165,13 @@ describe('boot migration', () => {
       theme: COLORS_AND_TYPE,
       componentConfigs: {},
     };
-    writeJson(file, manifest);
+    writeJson(file, theme);
     boot();
-    expect(readJson(file)).toEqual(manifest);
+    expect(readJson(file)).toEqual(theme);
   });
 });
 
-describe('the default manifest', () => {
+describe('the default theme', () => {
   const defaultPath = () => path.join(manifestsDir, 'default.json');
 
   /** A component source dir the test owns, so removing a component is testable
@@ -190,15 +190,15 @@ describe('the default manifest', () => {
 
   it('materialises the full default set on boot', () => {
     boot();
-    const manifest = readJson(defaultPath());
-    expect(manifest.schemaVersion).toBe(2);
-    expect(manifest.name).toBe('Default');
-    expect(Object.keys(manifest.theme.editorConfigs).length).toBeGreaterThan(0);
+    const theme = readJson(defaultPath());
+    expect(theme.schemaVersion).toBe(2);
+    expect(theme.name).toBe('Default');
+    expect(Object.keys(theme.theme.editorConfigs).length).toBeGreaterThan(0);
     // Every component, including the ones sitting on pure defaults.
-    expect(Object.keys(manifest.componentConfigs).sort()).toEqual(
+    expect(Object.keys(theme.componentConfigs).sort()).toEqual(
       fs.readdirSync(configsDir).sort(),
     );
-    expect(manifest.componentConfigs.button.aliases['--button-primary-radius']).toBe('--radius-xl');
+    expect(theme.componentConfigs.button.aliases['--button-primary-radius']).toBe('--radius-xl');
   });
 
   it('rewrites nothing on a second boot', () => {
@@ -222,7 +222,7 @@ describe('the default manifest', () => {
     const configs = Object.keys(readJson(defaultPath()).componentConfigs);
     expect(configs).toContain('widget');
     expect(configs).not.toContain('gizmo');
-    // The orphaned config dir survives; the manifest follows the sources.
+    // The orphaned config dir survives; the theme follows the sources.
     expect(fs.existsSync(path.join(configsDir, 'gizmo'))).toBe(true);
   });
 
@@ -256,7 +256,7 @@ describe('read doors', () => {
   });
 
   it('GET active returns the encapsulated form', async () => {
-    seedPointerManifest();
+    seedPointerTheme();
     boot();
     await request('PUT', `${API}/manifests/active`, { name: 'look' });
 
@@ -266,7 +266,7 @@ describe('read doors', () => {
   });
 
   it('PUT stores a pointer body in encapsulated form', async () => {
-    seedPointerManifest();
+    seedPointerTheme();
     boot();
     const { status } = await request('PUT', `${API}/manifests/copy`, {
       name: 'copy',
@@ -281,8 +281,8 @@ describe('read doors', () => {
     expect(written.componentConfigs.button.aliases).toEqual(BUTTON_CONFIG.aliases);
   });
 
-  it('leaves a corrupt manifest out of the list instead of failing the door', async () => {
-    seedPointerManifest();
+  it('leaves a corrupt theme out of the list instead of failing the door', async () => {
+    seedPointerTheme();
     boot();
     fs.writeFileSync(path.join(manifestsDir, 'broken.json'), '{ not json');
 
@@ -293,7 +293,7 @@ describe('read doors', () => {
     expect(names).not.toContain('broken');
   });
 
-  it('GET on a corrupt manifest names the file rather than claiming it is missing', async () => {
+  it('GET on a corrupt theme names the file rather than claiming it is missing', async () => {
     boot();
     fs.writeFileSync(path.join(manifestsDir, 'broken.json'), '{ not json');
 
@@ -306,7 +306,7 @@ describe('read doors', () => {
 
 describe('deletability', () => {
   it('deleting the production theme heals the pointer and resyncs the CSS', async () => {
-    seedPointerManifest();
+    seedPointerTheme();
     boot();
     await request('PUT', `${API}/manifests/look/apply`);
     expect(readJson(path.join(colorsAndTypeDir, '_production.json')).productionFile).toBe('look');
@@ -332,8 +332,8 @@ describe('deletability', () => {
     expect(put.json.error).toBe('Cannot overwrite the default theme');
   });
 
-  it('deleting the active manifest heals the pointer to default', async () => {
-    seedPointerManifest();
+  it('deleting the active theme heals the pointer to default', async () => {
+    seedPointerTheme();
     boot();
     await request('PUT', `${API}/manifests/active`, { name: 'look' });
 
@@ -345,8 +345,8 @@ describe('deletability', () => {
 });
 
 describe('apply', () => {
-  it('materialises the embedded data under the manifest slug', async () => {
-    seedPointerManifest();
+  it('materialises the embedded data under the theme slug', async () => {
+    seedPointerTheme();
     boot();
     const { status, json } = await request('PUT', `${API}/manifests/look/apply`);
     expect(status).toBe(200);
@@ -363,8 +363,8 @@ describe('apply', () => {
     expect(readJson(path.join(manifestsDir, '_active.json')).activeFile).toBe('look');
   });
 
-  it('resets components the manifest does not carry to their defaults', async () => {
-    seedPointerManifest();
+  it('resets components the theme does not carry to their defaults', async () => {
+    seedPointerTheme();
     writeJson(path.join(configsDir, 'card', 'other.json'), { name: 'other', component: 'card' });
     boot();
     await request('PUT', `${API}/component-configs/card/active`, { name: 'other' });
@@ -389,8 +389,8 @@ describe('apply', () => {
     expect(json.skippedComponents).toEqual(['ghost']);
   });
 
-  it('applies pure defaults for the default manifest and materialises nothing', async () => {
-    seedPointerManifest();
+  it('applies pure defaults for the default theme and materialises nothing', async () => {
+    seedPointerTheme();
     boot();
     await request('PUT', `${API}/manifests/look/apply`);
     expect(readJson(path.join(configsDir, 'button', '_production.json')).productionFile).toBe('look');
@@ -408,7 +408,7 @@ describe('apply', () => {
 
 describe('export and import', () => {
   it('exports the envelope alone', async () => {
-    seedPointerManifest();
+    seedPointerTheme();
     boot();
     const { status, json } = await request('GET', `${API}/manifests/look/export`);
     expect(status).toBe(200);
@@ -420,15 +420,15 @@ describe('export and import', () => {
   });
 
   it('imports a v2 bundle as one file, renamed past the collision', async () => {
-    seedPointerManifest();
+    seedPointerTheme();
     boot();
     const exported = (await request('GET', `${API}/manifests/look/export`)).json;
     const colorsAndTypeFilesBefore = fs.readdirSync(colorsAndTypeDir).length;
 
     const { status, json } = await request('POST', `${API}/manifests/import`, exported);
     expect(status).toBe(200);
-    expect(json.manifest).toBe('look-2');
-    expect(json.renames).toEqual({ 'manifest:look': 'look-2' });
+    expect(json.theme).toBe('look-2');
+    expect(json.renames).toEqual({ 'theme:look': 'look-2' });
     expect(readJson(path.join(manifestsDir, 'look-2.json')).theme.name).toBe('Custom');
     expect(fs.readdirSync(colorsAndTypeDir).length).toBe(colorsAndTypeFilesBefore);
   });
@@ -472,9 +472,9 @@ describe('export and import', () => {
   });
 });
 
-describe('adopt patches the active manifest', () => {
+describe('adopt patches the active theme', () => {
   async function bootWithActiveLook() {
-    seedPointerManifest();
+    seedPointerTheme();
     boot();
     await request('PUT', `${API}/manifests/active`, { name: 'look' });
   }
@@ -505,7 +505,7 @@ describe('adopt patches the active manifest', () => {
     expect(readJson(path.join(manifestsDir, 'look.json')).componentConfigs).toEqual({});
   });
 
-  it('embeds the adopted theme', async () => {
+  it('embeds the adopted colors and type', async () => {
     await bootWithActiveLook();
     writeJson(path.join(colorsAndTypeDir, 'other.json'), { ...COLORS_AND_TYPE, name: 'Other' });
 
@@ -519,12 +519,12 @@ describe('adopting the whole look', () => {
   const generatedCss = () => path.join(tmp, 'tokens.generated.css');
 
   async function bootWithActiveLook() {
-    seedPointerManifest();
+    seedPointerTheme();
     boot();
     await request('PUT', `${API}/manifests/active`, { name: 'look' });
   }
 
-  /** Move the theme and two components off what production runs. */
+  /** Move the colors and type and two components off what production runs. */
   async function driftFromProduction() {
     await request('PUT', `${API}/colors-and-type/active`, { name: 'custom' });
     await request('PUT', `${API}/component-configs/button/active`, { name: 'fancy' });
@@ -536,7 +536,7 @@ describe('adopting the whole look', () => {
     await request('PUT', `${API}/component-configs/card/active`, { name: 'bold' });
   }
 
-  it('promotes the theme and every component behind it in one call', async () => {
+  it('promotes the colors and type and every component behind it in one call', async () => {
     await bootWithActiveLook();
     await driftFromProduction();
 
@@ -637,7 +637,7 @@ describe('adopting the whole look', () => {
   });
 
   it('refuses while the protected Default look is active, before any write', async () => {
-    seedPointerManifest();
+    seedPointerTheme();
     boot();
     await request('PUT', `${API}/colors-and-type/active`, { name: 'custom' });
 
