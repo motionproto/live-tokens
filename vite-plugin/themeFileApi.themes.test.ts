@@ -453,7 +453,7 @@ describe('export and import', () => {
   it('imports a v1 bundle by embedding what the bundle carries', async () => {
     boot();
     const { status, json } = await request('POST', `${API}/themes/import`, {
-      kind: 'theme-bundle',
+      kind: 'manifest-bundle',
       schemaVersion: 1,
       liveTokensVersion: '0.1.0',
       exportedAt: 'a',
@@ -486,6 +486,17 @@ describe('export and import', () => {
       manifest: {},
     });
     expect(status).toBe(400);
+  });
+
+  it('rejects a kind paired with a version no release wrote it at', async () => {
+    boot();
+    const bundle = { liveTokensVersion: '0.1.0', exportedAt: 'a', manifest: {} };
+    expect(
+      (await request('POST', `${API}/themes/import`, { ...bundle, kind: 'theme-bundle', schemaVersion: 1 })).status,
+    ).toBe(400);
+    expect(
+      (await request('POST', `${API}/themes/import`, { ...bundle, kind: 'manifest-bundle', schemaVersion: 3 })).status,
+    ).toBe(400);
   });
 });
 

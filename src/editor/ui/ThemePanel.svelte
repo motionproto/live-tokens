@@ -525,7 +525,12 @@
       window.alert('Selected file is not valid JSON.');
       return;
     }
-    if (bundle?.kind !== 'theme-bundle') {
+    // Kind and version travel as a pair: bundles exported before the rename say
+    // `manifest-bundle` and are always v1. The server re-checks.
+    const known =
+      (bundle?.kind === 'manifest-bundle' && bundle.schemaVersion === 1) ||
+      (bundle?.kind === 'theme-bundle' && bundle.schemaVersion === 3);
+    if (!known) {
       window.alert('That file is not an exported theme.');
       return;
     }

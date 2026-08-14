@@ -198,7 +198,9 @@ export interface Theme {
  * uploads; import writes the enclosed theme as a single file.
  */
 export interface ThemeBundle {
-  /** Discriminator for safe identification of bundle JSON files. */
+  /** Discriminator for safe identification of bundle JSON files. Paired with
+   *  the version below: import accepts this kind only at v3, and the
+   *  `manifest-bundle` every release through 0.47.1 wrote only at v1. */
   kind: 'theme-bundle';
   /** Tracks the enclosed theme's schema. Import still accepts 1, where the
    *  envelope carried a pointer theme plus separately inlined colors and type
