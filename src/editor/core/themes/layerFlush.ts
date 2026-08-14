@@ -23,7 +23,7 @@ export interface LayerFlushTarget {
  * The file the colors and type on screen flush to. Normally the active layer
  * file, under its own name. The protected default cannot be written, so a
  * flush over it forks to a file of the user's own; the caller sets active to
- * the fork, which is what `persistTheme` does.
+ * the fork, which is what `persistColorsAndType` does.
  */
 export function layerFlushTarget(
   activeFileName: string,

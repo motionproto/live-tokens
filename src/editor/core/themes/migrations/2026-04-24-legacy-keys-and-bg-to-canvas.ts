@@ -1,7 +1,7 @@
 import type { Migration } from './index';
 
 /**
- * Theme migration (2026-04-24): rename legacy CSS-var keys to their
+ * ColorsAndType migration (2026-04-24): rename legacy CSS-var keys to their
  * current names, drop a few orphaned tokens, and convert the entire
  * `-bg`/`-bg-*` family to the `-canvas` namespace.
  *
@@ -58,11 +58,11 @@ function migrateLegacyKeys(rawVars: Record<string, string>): void {
   migrateBgToCanvas(rawVars);
 }
 
-export const themeMigration_2026_04_24_legacyKeysAndBgToCanvas: Migration = {
+export const colorsAndTypeMigration_2026_04_24_legacyKeysAndBgToCanvas: Migration = {
   id: '2026-04-24-legacy-keys-and-bg-to-canvas',
   fromVersion: 0,
   toVersion: 1,
-  appliesTo: 'theme',
+  appliesTo: 'colors-and-type',
   apply(rawVars) {
     const out = { ...rawVars };
     migrateLegacyKeys(out);

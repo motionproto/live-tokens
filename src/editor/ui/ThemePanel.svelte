@@ -9,7 +9,7 @@
   // entries, but nothing saves, loads or adopts them anywhere else.
   import { onDestroy, onMount } from 'svelte';
   import { get } from 'svelte/store';
-  import type { Manifest, ManifestMeta, Theme, ThemeMeta } from '../core/themes/themeTypes';
+  import type { Manifest, ManifestMeta, ColorsAndType, ColorsAndTypeMeta } from '../core/themes/themeTypes';
   import {
     listManifests,
     deleteManifest,
@@ -23,17 +23,17 @@
     importManifest,
   } from '../core/manifests/manifestService';
   import { countComponentsOffLook, lookProductionState } from '../core/manifests/lookSummary';
-  import { previewManifest, previewTheme, revertPreview } from '../core/preview/lookPreview';
+  import { previewManifest, previewColorsAndType, revertPreview } from '../core/preview/lookPreview';
   import {
-    deleteTheme,
+    deleteColorsAndType,
     getProductionInfo,
-    hydrateTheme,
-    listThemes,
-    loadTheme,
-    persistTheme,
-    saveTheme,
+    hydrateColorsAndType,
+    listColorsAndType,
+    loadColorsAndType,
+    persistColorsAndType,
+    saveColorsAndType,
     setActiveFile,
-  } from '../core/themes/themeService';
+  } from '../core/themes/colorsAndTypeService';
   import { freshName, layerFlushTarget } from '../core/themes/layerFlush';
   import {
     buildLoadRows,
@@ -47,7 +47,7 @@
     type ComponentSummary,
   } from '../core/components/componentConfigService';
   import { fontPairingLabel } from '../core/fonts/fontPairing';
-  import { dirty, componentDirty, editorState, themeDirty } from '../core/store/editorStore';
+  import { dirty, componentDirty, editorState, colorsAndTypeDirty } from '../core/store/editorStore';
   import { activeFileName as layerFileName } from '../core/store/editorConfigStore';
   import { editorView } from '../core/store/editorViewStore';
   import {
@@ -55,7 +55,7 @@
     productionRevision,
     activeManifest,
     bumpProductionRevision,
-    themeProductionInfo,
+    colorsAndTypeProductionInfo,
   } from '../core/productionPulse';
   import { flashStatus } from '../core/flashStatus';
   import UIInfoPopover from './UIInfoPopover.svelte';
@@ -74,7 +74,7 @@
   let canOpenComponents = $derived(showComponentsLink && $editorView !== 'components');
 
   let files: ManifestMeta[] = $state([]);
-  let layerFiles: ThemeMeta[] = $state([]);
+  let layerFiles: ColorsAndTypeMeta[] = $state([]);
   let rows = $derived(buildLoadRows(files, layerFiles));
   let showFileList = $state(false);
   let saveAsDialog = $state(false);
@@ -95,7 +95,7 @@
 
   async function refreshFiles() {
     try {
-      [files, layerFiles] = await Promise.all([listManifests(), listThemes()]);
+      [files, layerFiles] = await Promise.all([listManifests(), listColorsAndType()]);
       const activeLayer = layerFiles.find((f) => f.isActive);
       if (activeLayer) layerFileName.set(activeLayer.fileName);
     } catch {
@@ -126,7 +126,7 @@
 
   async function refreshProduction(retry = true) {
     try {
-      themeProductionInfo.set(await getProductionInfo());
+      colorsAndTypeProductionInfo.set(await getProductionInfo());
     } catch {
       if (retry) productionRetry = setTimeout(() => refreshProduction(false), PRODUCTION_RETRY_MS);
     }
@@ -201,20 +201,20 @@
   // A component's edits live in its own editor's state, which this panel
   // cannot write, so those are the only ones a capture leaves behind.
   //
-  // The gate is `themeDirty`, not the global `dirty`: that one counts every
+  // The gate is `colorsAndTypeDirty`, not the global `dirty`: that one counts every
   // history entry, components included, so it would write the layer over
   // component-only work — and fork "My Colors" out of the protected Default
   // to do it.
   async function flushLayer(): Promise<void> {
-    if (!$themeDirty) return;
+    if (!$colorsAndTypeDirty) return;
     const active = $layerFileName;
     const target = layerFlushTarget(
       active,
       layerFiles.find((f) => f.fileName === active)?.name ?? active,
       layerFiles.map((f) => f.fileName),
     );
-    // persistTheme writes the file, points active at it and clears dirty.
-    await persistTheme(get(editorState), target.fileName, target.displayName);
+    // persistColorsAndType writes the file, points active at it and clears dirty.
+    await persistColorsAndType(get(editorState), target.fileName, target.displayName);
     await refreshFiles();
   }
 
@@ -271,14 +271,14 @@
   const setAdoptStatus = (s: AdoptStatus) => (adoptStatus = s);
 
   let production = $derived(
-    lookProductionState($layerFileName, $themeProductionInfo?.fileName ?? null, components),
+    lookProductionState($layerFileName, $colorsAndTypeProductionInfo?.fileName ?? null, components),
   );
 
   let adoptTitle = $derived.by(() => {
     if (production.inProduction) return 'Production is running this theme';
     if (production.unknown) return 'Ship this theme to production';
     const parts: string[] = [];
-    if (production.themeOff) parts.push('the colors and type');
+    if (production.colorsAndTypeOff) parts.push('the colors and type');
     const off = production.componentsOff.length;
     if (off > 0) parts.push(off === 1 ? '1 component' : `${off} components`);
     return `Ship ${parts.join(' and ')} to production`;
@@ -334,7 +334,7 @@
 
   async function loadLayer(fileName: string) {
     try {
-      await hydrateTheme(fileName);
+      await hydrateColorsAndType(fileName);
     } catch {
       // silent
     }
@@ -350,7 +350,7 @@
   // `$state.raw`: the preview engine structuredClones these, and a deep `$state`
   // proxy is not cloneable. Both are only ever reassigned whole.
   let previewLook: Manifest | null = $state.raw(null);
-  let previewLayer: Theme | null = $state.raw(null);
+  let previewLayer: ColorsAndType | null = $state.raw(null);
   let colorsOnly = $state(false);
   let effectiveColorsOnly = $derived(isColorsOnly(previewRow, colorsOnly));
   let colorsOnlyLocked = $derived(colorsOnlyIsForced(previewRow));
@@ -367,11 +367,11 @@
    *  previews either way. */
   async function repaint(): Promise<void> {
     if (previewLayer) {
-      previewTheme(previewLayer);
+      previewColorsAndType(previewLayer);
       return;
     }
     if (!previewLook) return;
-    if (effectiveColorsOnly) previewTheme(previewLook.theme);
+    if (effectiveColorsOnly) previewColorsAndType(previewLook.theme);
     else await previewManifest(previewLook);
   }
 
@@ -386,7 +386,7 @@
     }
     try {
       const look = row.kind === 'look' ? await loadManifest(row.slug) : null;
-      const layer = row.kind === 'layer' ? await loadTheme(row.slug) : null;
+      const layer = row.kind === 'layer' ? await loadColorsAndType(row.slug) : null;
       // The window may have closed during the fetch; painting then would leave
       // a preview on screen with no Save or Cancel in sight.
       if (!showFileList) return;
@@ -453,7 +453,7 @@
   async function commitColorsOnly() {
     const row = previewRow;
     // Read the payload before the revert clears it.
-    const theme = previewLook?.theme ?? null;
+    const colorsAndType = previewLook?.theme ?? null;
     if (!row) return;
     if ($dirty) {
       const ok = window.confirm(
@@ -464,11 +464,11 @@
     // The look's copy lands under the look's own name. A user file already
     // sitting there (a tuned shadow of this look's colors) would be replaced,
     // and if that file is production, production regenerates from the copy.
-    const shadow = theme && row.slug !== 'default'
+    const shadow = colorsAndType && row.slug !== 'default'
       ? layerFiles.find((f) => f.fileName === row.slug && !f.isPackage)
       : undefined;
     if (shadow) {
-      const hitsProduction = $themeProductionInfo?.fileName === row.slug;
+      const hitsProduction = $colorsAndTypeProductionInfo?.fileName === row.slug;
       const ok = window.confirm(
         `Replace your saved colors and type "${shadow.name}" with this theme's copy?`
           + (hitsProduction ? ' It is in production, so production updates too.' : ''),
@@ -482,10 +482,10 @@
     cancelPreview();
     showFileList = false;
     try {
-      if (theme && row.slug !== 'default') await saveTheme(row.slug, theme);
+      if (colorsAndType && row.slug !== 'default') await saveColorsAndType(row.slug, colorsAndType);
       await setActiveFile(row.slug);
       layerFileName.set(row.slug);
-      await hydrateTheme(row.slug);
+      await hydrateColorsAndType(row.slug);
       await refreshFiles();
     } catch (err) {
       window.alert(`Failed to load colors and type: ${(err as Error).message}`);
@@ -591,7 +591,7 @@
     if (!ok) return;
     try {
       if (wasActive || row.fileName === previewRow?.fileName) cancelPreview();
-      await deleteTheme(row.slug);
+      await deleteColorsAndType(row.slug);
       await refreshFiles();
       // Deleting the production file is legal now that themes carry their own
       // copy; the server heals the pointer and resyncs the CSS, so re-read

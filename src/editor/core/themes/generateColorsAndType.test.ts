@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { buildThemeFromSeeds, type ThemeBrief } from './generateTheme';
+import { buildColorsAndTypeFromSeeds, type ColorsAndTypeBrief } from './generateColorsAndType';
 import { palettesToVars } from '../palettes/paletteDerivation';
-import { CURRENT_THEME_SCHEMA_VERSION } from './migrations/index';
+import { CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION } from './migrations/index';
 import type { Oklch } from '../palettes/oklch';
 
 const NOW = '2026-08-12T00:00:00.000Z';
@@ -22,9 +22,9 @@ function seeds(overrides: Record<string, Oklch | string> = {}): Record<string, O
   };
 }
 
-const lightBrief: ThemeBrief = { name: 'Spring Meadow', scheme: 'light', seeds: seeds({ Brand: '#2f9e44' }) };
+const lightBrief: ColorsAndTypeBrief = { name: 'Spring Meadow', scheme: 'light', seeds: seeds({ Brand: '#2f9e44' }) };
 
-const darkBrief: ThemeBrief = {
+const darkBrief: ColorsAndTypeBrief = {
   name: 'Midnight Violet',
   scheme: 'dark',
   seeds: seeds({
@@ -36,19 +36,19 @@ const darkBrief: ThemeBrief = {
   }),
 };
 
-describe('buildThemeFromSeeds', () => {
-  it('assembles a complete theme from a light brief', () => {
-    const { theme, slug, report } = buildThemeFromSeeds(lightBrief, {}, NOW);
+describe('buildColorsAndTypeFromSeeds', () => {
+  it('assembles complete colors and type from a light brief', () => {
+    const { colorsAndType, slug, report } = buildColorsAndTypeFromSeeds(lightBrief, {}, NOW);
     expect(slug).toBe('spring-meadow');
-    expect(theme.name).toBe('Spring Meadow');
-    expect(theme.createdAt).toBe(NOW);
-    expect(Object.keys(theme.editorConfigs)).toHaveLength(10);
-    expect(theme.schemaVersion).toBe(CURRENT_THEME_SCHEMA_VERSION);
-    expect(theme.harmonyAxes).toHaveLength(4);
-    expect(theme.harmonyAxes![0]).toMatchObject({ family: 'Brand' });
-    expect(theme.harmonyAxes![0].hue).toBeCloseTo(theme.editorConfigs.Brand.baseColor.h, 5);
+    expect(colorsAndType.name).toBe('Spring Meadow');
+    expect(colorsAndType.createdAt).toBe(NOW);
+    expect(Object.keys(colorsAndType.editorConfigs)).toHaveLength(10);
+    expect(colorsAndType.schemaVersion).toBe(CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION);
+    expect(colorsAndType.harmonyAxes).toHaveLength(4);
+    expect(colorsAndType.harmonyAxes![0]).toMatchObject({ family: 'Brand' });
+    expect(colorsAndType.harmonyAxes![0].hue).toBeCloseTo(colorsAndType.editorConfigs.Brand.baseColor.h, 5);
 
-    const vars = palettesToVars(theme.editorConfigs);
+    const vars = palettesToVars(colorsAndType.editorConfigs);
     for (const required of ['--color-brand-500', '--surface-neutral', '--text-primary', '--page-bg']) {
       expect(vars[required]).toMatch(/^#[0-9a-f]{6}$/);
     }
@@ -57,27 +57,27 @@ describe('buildThemeFromSeeds', () => {
   });
 
   it('meets every floor on a dark brief, auto-correcting where the seeds fall short', () => {
-    const { report } = buildThemeFromSeeds(darkBrief, {}, NOW);
+    const { report } = buildColorsAndTypeFromSeeds(darkBrief, {}, NOW);
     expect(report.failures).toEqual([]);
     for (const check of report.checks) expect(check.ratio).toBeGreaterThanOrEqual(check.floor);
   });
 
   it('reports unreachable floors instead of silently passing', () => {
-    const brief: ThemeBrief = {
+    const brief: ColorsAndTypeBrief = {
       name: 'Doomed',
       scheme: 'dark',
       seeds: seeds({ Neutral: { l: 0.15, c: 0.013, h: 285 }, Canvas: { l: 0.2, c: 0.02, h: 280 } }),
     };
-    const { report } = buildThemeFromSeeds(brief, {}, NOW);
+    const { report } = buildColorsAndTypeFromSeeds(brief, {}, NOW);
     const primary = report.checks.find((c) => c.textVar === '--text-primary')!;
     expect(primary.pass).toBe(false);
     expect(report.failures.some((f) => f.includes('--text-primary'))).toBe(true);
   });
 
   it('refuses the protected default name and malformed briefs', () => {
-    expect(() => buildThemeFromSeeds({ ...lightBrief, name: 'Default' }, {}, NOW)).toThrow(/protected/);
+    expect(() => buildColorsAndTypeFromSeeds({ ...lightBrief, name: 'Default' }, {}, NOW)).toThrow(/protected/);
     const { Brand: _dropped, ...missingBrand } = seeds();
-    expect(() => buildThemeFromSeeds({ name: 'x', scheme: 'light', seeds: missingBrand }, {}, NOW)).toThrow(
+    expect(() => buildColorsAndTypeFromSeeds({ name: 'x', scheme: 'light', seeds: missingBrand }, {}, NOW)).toThrow(
       /seeds\.Brand: missing/,
     );
   });
@@ -87,9 +87,9 @@ describe('buildThemeFromSeeds', () => {
       cssVariables: { '--surface-brand': '#123456', '--gradient-1': 'linear-gradient(90deg, #000, #fff)' },
       fontStacks: [{ variable: '--font-sans' as const, slots: [] }],
     };
-    const { theme } = buildThemeFromSeeds(lightBrief, carry, NOW);
-    expect(theme.cssVariables['--surface-brand']).toBeUndefined();
-    expect(theme.cssVariables['--gradient-1']).toBe(carry.cssVariables['--gradient-1']);
-    expect(theme.fontStacks).toEqual(carry.fontStacks);
+    const { colorsAndType } = buildColorsAndTypeFromSeeds(lightBrief, carry, NOW);
+    expect(colorsAndType.cssVariables['--surface-brand']).toBeUndefined();
+    expect(colorsAndType.cssVariables['--gradient-1']).toBe(carry.cssVariables['--gradient-1']);
+    expect(colorsAndType.fontStacks).toEqual(carry.fontStacks);
   });
 });

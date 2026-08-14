@@ -1,7 +1,7 @@
 // Google Fonts pairing per preset theme, from the plan's addendum 2. Called by
-// generate-preset-manifests.mjs, which stamps the pairing into the preset THEME
-// file before embedding that theme in the manifest — so applying either the
-// theme alone or the whole look changes the type.
+// generate-preset-manifests.mjs, which stamps the pairing into the preset's
+// colors-and-type file before embedding it in the manifest — so applying either
+// the colors and type alone or the whole look changes the type.
 //
 // Every URL below was checked against fonts.googleapis.com (200 plus the
 // expected family and weight coverage in the returned CSS); the API answers 400
@@ -88,46 +88,47 @@ function sourceFor({ name, url }) {
   };
 }
 
-function rewriteStack(theme, variable, familyId) {
-  const stack = theme.fontStacks?.find((s) => s.variable === variable);
-  if (!stack) throw new Error(`theme has no ${variable} stack to rewrite`);
+function rewriteStack(colorsAndType, variable, familyId) {
+  const stack = colorsAndType.fontStacks?.find((s) => s.variable === variable);
+  if (!stack) throw new Error(`colors and type have no ${variable} stack to rewrite`);
   stack.slots = [{ kind: 'project', familyId }, ...stack.slots.filter((s) => s.kind !== 'project')];
 }
 
 /**
- * Stamp the preset's pairing into `theme` in place: the two google sources plus
- * the `--font-display` / `--font-sans` project slots. Fallback slots, the serif
- * and mono stacks, and every other theme field are left alone. Returns whether
- * anything moved, so the caller can skip the write and the `updatedAt` bump.
+ * Stamp the preset's pairing into `colorsAndType` in place: the two google
+ * sources plus the `--font-display` / `--font-sans` project slots. Fallback
+ * slots, the serif and mono stacks, and every other field are left alone.
+ * Returns whether anything moved, so the caller can skip the write and the
+ * `updatedAt` bump.
  */
-export function stampPresetFonts(theme, slug) {
+export function stampPresetFonts(colorsAndType, slug) {
   const pairing = PRESET_FONTS[slug];
   if (!pairing) throw new Error(`no font pairing for preset "${slug}"`);
 
-  const before = JSON.stringify([theme.fontSources, theme.fontStacks]);
+  const before = JSON.stringify([colorsAndType.fontSources, colorsAndType.fontStacks]);
   const display = sourceFor(pairing.display);
   const body = sourceFor(pairing.body);
 
-  theme.fontSources = [
-    ...(theme.fontSources ?? []).filter((s) => !s.id.startsWith(STAMP_PREFIX)),
+  colorsAndType.fontSources = [
+    ...(colorsAndType.fontSources ?? []).filter((s) => !s.id.startsWith(STAMP_PREFIX)),
     display,
     body,
   ];
-  rewriteStack(theme, '--font-display', display.families[0].id);
-  rewriteStack(theme, '--font-sans', body.families[0].id);
+  rewriteStack(colorsAndType, '--font-display', display.families[0].id);
+  rewriteStack(colorsAndType, '--font-sans', body.families[0].id);
 
   // Sources displaced from the rewritten stacks would still ship as
   // render-blocking @imports in every consumer's fonts.css, so drop any
   // source no remaining stack references.
   const referenced = new Set(
-    (theme.fontStacks ?? [])
+    (colorsAndType.fontStacks ?? [])
       .flatMap((s) => s.slots)
       .filter((s) => s.kind === 'project')
       .map((s) => s.familyId),
   );
-  theme.fontSources = theme.fontSources.filter((s) =>
+  colorsAndType.fontSources = colorsAndType.fontSources.filter((s) =>
     s.families.some((f) => referenced.has(f.id)),
   );
 
-  return JSON.stringify([theme.fontSources, theme.fontStacks]) !== before;
+  return JSON.stringify([colorsAndType.fontSources, colorsAndType.fontStacks]) !== before;
 }

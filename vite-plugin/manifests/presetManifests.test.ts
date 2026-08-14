@@ -28,7 +28,7 @@ const PRESETS = [
 
 const readJson = (p: string) => JSON.parse(fs.readFileSync(p, 'utf-8'));
 const manifestOf = (slug: string) => readJson(path.join(DATA, 'manifests', `${slug}.json`));
-const themeOf = (slug: string) => readJson(path.join(DATA, 'themes', `${slug}.json`));
+const colorsAndTypeOf = (slug: string) => readJson(path.join(DATA, 'themes', `${slug}.json`));
 const defaultConfigOf = (comp: string) =>
   readJson(path.join(DATA, 'component-configs', comp, 'default.json'));
 
@@ -36,23 +36,23 @@ const defaultConfigOf = (comp: string) =>
     fontSources came from the default theme it was branched off. */
 const STAMPED = 'src_preset_';
 
-const stackOf = (theme: any, variable: string) =>
-  theme.fontStacks.find((s: any) => s.variable === variable);
-const stampedSourcesOf = (theme: any) =>
-  theme.fontSources.filter((s: any) => s.id.startsWith(STAMPED));
+const stackOf = (colorsAndType: any, variable: string) =>
+  colorsAndType.fontStacks.find((s: any) => s.variable === variable);
+const stampedSourcesOf = (colorsAndType: any) =>
+  colorsAndType.fontSources.filter((s: any) => s.id.startsWith(STAMPED));
 const aliasesOf = (slug: string, comp: string) =>
   manifestOf(slug).componentConfigs[comp]?.aliases ?? defaultConfigOf(comp).aliases;
 
 /** Pass-through means nothing had to be resolved: any lookup here is a bug. */
 const strictResolvers: ManifestResolvers = {
-  readTheme: (name) => {
+  readColorsAndType: (name) => {
     throw new Error(`resolved theme "${name}"`);
   },
   readComponentConfig: (comp, name) => {
     throw new Error(`resolved config "${comp}/${name}"`);
   },
-  normalizeTheme: (theme) => {
-    throw new Error(`normalised an embedded theme: ${JSON.stringify(theme).slice(0, 40)}`);
+  normalizeColorsAndType: (colorsAndType) => {
+    throw new Error(`normalised embedded colors and type: ${JSON.stringify(colorsAndType).slice(0, 40)}`);
   },
 };
 
@@ -69,10 +69,10 @@ describe.each(PRESETS)('shipped preset manifest "%s"', (slug) => {
 
   it('embeds the preset theme by value under the theme display name', () => {
     const manifest = manifestOf(slug);
-    const theme = themeOf(slug);
+    const colorsAndType = colorsAndTypeOf(slug);
 
-    expect(manifest.theme).toEqual(theme);
-    expect(manifest.name).toBe(theme.name);
+    expect(manifest.theme).toEqual(colorsAndType);
+    expect(manifest.name).toBe(colorsAndType.name);
   });
 
   it('carries only the components the shape ops changed, values only', () => {
@@ -90,9 +90,9 @@ describe.each(PRESETS)('shipped preset manifest "%s"', (slug) => {
   });
 
   it('carries the pairing as two google sources the display and body stacks use', () => {
-    const theme = manifestOf(slug).theme;
+    const colorsAndType = manifestOf(slug).theme;
     const pairing = PRESET_FONTS[slug];
-    const stamped = stampedSourcesOf(theme);
+    const stamped = stampedSourcesOf(colorsAndType);
 
     expect(stamped.map((s: any) => s.families[0].name)).toEqual([
       pairing.display.name,
@@ -105,22 +105,22 @@ describe.each(PRESETS)('shipped preset manifest "%s"', (slug) => {
       expect(parsed.name).toBe(family.name);
       expect(family.weights).toEqual(parsed.weights);
     }
-    expect(stackOf(theme, '--font-display').slots[0].familyId).toBe(stamped[0].families[0].id);
-    expect(stackOf(theme, '--font-sans').slots[0].familyId).toBe(stamped[1].families[0].id);
+    expect(stackOf(colorsAndType, '--font-display').slots[0].familyId).toBe(stamped[0].families[0].id);
+    expect(stackOf(colorsAndType, '--font-sans').slots[0].familyId).toBe(stamped[1].families[0].id);
   });
 
   it('rewrites only the project slot, leaving serif and mono at the default theme', () => {
-    const theme = manifestOf(slug).theme;
+    const colorsAndType = manifestOf(slug).theme;
     const base = readJson(path.join(DATA, 'themes', 'default.json'));
     const fallbacks = (t: any, v: string) =>
       stackOf(t, v).slots.filter((s: any) => s.kind !== 'project');
 
     for (const variable of ['--font-display', '--font-sans']) {
-      expect(fallbacks(theme, variable)).toEqual(fallbacks(base, variable));
-      expect(stackOf(theme, variable).slots.filter((s: any) => s.kind === 'project')).toHaveLength(1);
+      expect(fallbacks(colorsAndType, variable)).toEqual(fallbacks(base, variable));
+      expect(stackOf(colorsAndType, variable).slots.filter((s: any) => s.kind === 'project')).toHaveLength(1);
     }
     for (const variable of ['--font-serif', '--font-mono']) {
-      expect(stackOf(theme, variable)).toEqual(stackOf(base, variable));
+      expect(stackOf(colorsAndType, variable)).toEqual(stackOf(base, variable));
     }
   });
 

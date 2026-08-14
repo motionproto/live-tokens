@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeManifest, type ManifestResolvers } from './normalizeManifest';
 
-const THEMES: Record<string, any> = {
+const COLORS_AND_TYPE: Record<string, any> = {
   default: { name: 'Default Theme', cssVariables: { '--surface-default': 'white' } },
   'my-theme': { name: 'My Theme', cssVariables: { '--surface-default': 'black' } },
 };
@@ -12,9 +12,9 @@ const CONFIGS: Record<string, any> = {
 
 function resolvers(overrides: Partial<ManifestResolvers> = {}): ManifestResolvers {
   return {
-    readTheme: (name) => THEMES[name] ?? null,
+    readColorsAndType: (name) => COLORS_AND_TYPE[name] ?? null,
     readComponentConfig: (comp, name) => CONFIGS[`${comp}/${name}`] ?? null,
-    normalizeTheme: (theme) => theme,
+    normalizeColorsAndType: (colorsAndType) => colorsAndType,
     ...overrides,
   };
 }
@@ -32,7 +32,7 @@ describe('normalizeManifest v1 → v2', () => {
     const { manifest, migrated } = normalizeManifest(v1, resolvers());
     expect(migrated).toBe(true);
     expect(manifest.schemaVersion).toBe(2);
-    expect(manifest.theme).toEqual(THEMES['my-theme']);
+    expect(manifest.theme).toEqual(COLORS_AND_TYPE['my-theme']);
     expect(manifest.componentConfigs.card).toEqual(CONFIGS['card/my-card']);
   });
 
@@ -57,19 +57,19 @@ describe('normalizeManifest v1 → v2', () => {
 
   it('falls back to the default theme when the named one is gone', () => {
     const { manifest, dropped } = normalizeManifest({ ...v1, theme: 'deleted' }, resolvers());
-    expect(manifest.theme).toEqual(THEMES.default);
+    expect(manifest.theme).toEqual(COLORS_AND_TYPE.default);
     expect(dropped).toEqual(['theme:deleted', 'panel/my-panel']);
   });
 
   it('leaves theme null when nothing resolves', () => {
-    const { manifest } = normalizeManifest(v1, resolvers({ readTheme: () => null }));
+    const { manifest } = normalizeManifest(v1, resolvers({ readColorsAndType: () => null }));
     expect(manifest.theme).toBeNull();
   });
 
-  it('runs the embedded theme through normalizeTheme', () => {
+  it('runs the embedded theme through normalizeColorsAndType', () => {
     const { manifest } = normalizeManifest(
       v1,
-      resolvers({ normalizeTheme: (theme) => ({ ...theme, reconciled: true }) }),
+      resolvers({ normalizeColorsAndType: (colorsAndType) => ({ ...colorsAndType, reconciled: true }) }),
     );
     expect(manifest.theme?.reconciled).toBe(true);
   });
@@ -89,7 +89,7 @@ describe('normalizeManifest v2', () => {
     const { manifest, migrated, dropped } = normalizeManifest(
       v2,
       resolvers({
-        readTheme: () => {
+        readColorsAndType: () => {
           throw new Error('v2 must not read from disk');
         },
       }),

@@ -1,8 +1,8 @@
 /**
- * Brief → theme generator: full Theme from 10 OKLCH seeds + a scheme, with AA
- * floors enforced on derived text tokens. Seed *selection* lives in the
+ * Brief → generator: a full ColorsAndType from 10 OKLCH seeds + a scheme, with
+ * AA floors enforced on derived text tokens. Seed *selection* lives in the
  * live-tokens-generate-theme skill; the CLI reaches this via
- * `dist-plugin/generateTheme`, so keep this module Node-safe (no DOM).
+ * `dist-plugin/generateColorsAndType`, so keep this module Node-safe (no DOM).
  */
 
 import { hexToOklch, type Oklch } from '../palettes/oklch';
@@ -20,10 +20,10 @@ import { AA_BODY, AA_LARGE, contrastRatio, findLForContrast } from '../palettes/
 import { type HarmonyAxis, type HarmonyMode } from '../palettes/colorHarmony';
 import { defaultPaletteConfig } from '../../ui/palette/paletteMath';
 import { sanitizeFileName } from '../storage/files/versionedFileResourceClient';
-import { CURRENT_THEME_SCHEMA_VERSION } from './migrations/index';
-import type { FontSource, FontStack, PaletteConfig, Theme } from './themeTypes';
+import { CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION } from './migrations/index';
+import type { FontSource, FontStack, PaletteConfig, ColorsAndType } from './themeTypes';
 
-export interface ThemeBrief {
+export interface ColorsAndTypeBrief {
   name: string;
   scheme: SchemeDirection;
   /** One seed per palette label (all 10 required); hex string or numeric OKLCH. */
@@ -32,8 +32,8 @@ export interface ThemeBrief {
   harmony?: { mode: HarmonyMode };
 }
 
-/** Non-color theme content carried forward from the currently active theme so
- *  gradients, shadows, component aliases, and fonts survive regeneration. */
+/** Non-color content carried forward from the currently active colors and type
+ *  so gradients, shadows, component aliases, and fonts survive regeneration. */
 export interface CarryForward {
   cssVariables?: Record<string, string>;
   fontSources?: FontSource[];
@@ -50,16 +50,16 @@ export interface ContrastCheck {
   corrected: boolean;
 }
 
-export interface GenerateThemeReport {
+export interface GenerateColorsAndTypeReport {
   scheme: SchemeDirection;
   checks: ContrastCheck[];
   failures: string[];
 }
 
-export interface GenerateThemeResult {
-  theme: Theme;
+export interface GenerateColorsAndTypeResult {
+  colorsAndType: ColorsAndType;
   slug: string;
-  report: GenerateThemeReport;
+  report: GenerateColorsAndTypeReport;
 }
 
 const HEX_RE = /^#[0-9a-f]{6}$/i;
@@ -110,7 +110,7 @@ function parseSeed(label: string, raw: Oklch | string, problems: string[]): Oklc
   return { l, c, h: norm(h) };
 }
 
-function validateBrief(brief: ThemeBrief): { seeds: Record<string, Oklch>; slug: string } {
+function validateBrief(brief: ColorsAndTypeBrief): { seeds: Record<string, Oklch>; slug: string } {
   const problems: string[] = [];
   const name = typeof brief.name === 'string' ? brief.name.trim() : '';
   if (!name) problems.push('name: required');
@@ -222,7 +222,7 @@ const MAX_CORRECTION_ROUNDS = 3;
 function runContrastGate(
   configs: Record<string, PaletteConfig>,
   scheme: SchemeDirection,
-): GenerateThemeReport {
+): GenerateColorsAndTypeReport {
   const defs = checkDefs();
   const direction = scheme === 'light' ? 'darker' : 'lighter';
   const corrected = new Set<string>();
@@ -278,11 +278,11 @@ function runContrastGate(
   return { scheme, checks, failures };
 }
 
-export function buildThemeFromSeeds(
-  brief: ThemeBrief,
+export function buildColorsAndTypeFromSeeds(
+  brief: ColorsAndTypeBrief,
   carry: CarryForward = {},
   now: string = new Date().toISOString(),
-): GenerateThemeResult {
+): GenerateColorsAndTypeResult {
   const { seeds, slug } = validateBrief(brief);
 
   const configs: Record<string, PaletteConfig> = {};
@@ -304,13 +304,13 @@ export function buildThemeFromSeeds(
   ];
 
   // The catch-all bag carries only tokens no typed slice owns (the server's
-  // normalizeTheme invariant); strip anything this theme's derivation emits.
+  // normalizeColorsAndType invariant); strip anything this derivation emits.
   const owned = new Set(Object.keys(palettesToVars(configs)));
   const cssVariables = Object.fromEntries(
     Object.entries(carry.cssVariables ?? {}).filter(([k]) => !owned.has(k)),
   );
 
-  const theme: Theme = {
+  const colorsAndType: ColorsAndType = {
     name: brief.name.trim(),
     createdAt: now,
     updatedAt: now,
@@ -319,8 +319,8 @@ export function buildThemeFromSeeds(
     fontSources: carry.fontSources ?? [],
     fontStacks: carry.fontStacks ?? [],
     harmonyAxes,
-    schemaVersion: CURRENT_THEME_SCHEMA_VERSION,
+    schemaVersion: CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION,
   };
 
-  return { theme, slug, report };
+  return { colorsAndType, slug, report };
 }

@@ -9,11 +9,11 @@ import { flushSync, mount, unmount } from 'svelte';
 import { API_BASE } from '../core/storage/apiBase';
 import { activeFileName } from '../core/store/editorConfigStore';
 import { mutate, setComponentAlias, __resetForTests } from '../core/store/editorStore';
-import { activeManifest, themeProductionInfo } from '../core/productionPulse';
+import { activeManifest, colorsAndTypeProductionInfo } from '../core/productionPulse';
 import { isPreviewing, __resetPreviewForTests } from '../core/preview/lookPreview';
 import ThemePanel from './ThemePanel.svelte';
 
-const THEME = {
+const COLORS_AND_TYPE = {
   name: 'My Colors',
   createdAt: 'x',
   updatedAt: 'x',
@@ -27,7 +27,7 @@ const LOOK = {
   createdAt: 'x',
   updatedAt: 'x',
   schemaVersion: 2,
-  theme: THEME,
+  theme: COLORS_AND_TYPE,
   componentConfigs: {},
 };
 
@@ -58,7 +58,7 @@ function server(url: string, init?: RequestInit): Response {
     case 'GET /manifests/active':
       return json(LOOK);
     case 'GET /themes/active':
-      return json(THEME);
+      return json(COLORS_AND_TYPE);
     // A theme other than the live one, so the look reads out of sync and Adopt
     // is live.
     case 'GET /themes/production':
@@ -88,7 +88,7 @@ beforeEach(async () => {
   activeFileName.set('my-colors');
   // Module-level caches: the panel remounts against them in the real editor,
   // and a leftover from the last test would answer for the fetch under test.
-  themeProductionInfo.set(null);
+  colorsAndTypeProductionInfo.set(null);
   activeManifest.set(null);
   calls = [];
   confirms = [];
@@ -141,10 +141,10 @@ describe('Save', () => {
     button('Save').click();
     await settle();
 
-    const themePut = calls.indexOf(`PUT /themes/my-colors`);
+    const colorsAndTypePut = calls.indexOf(`PUT /themes/my-colors`);
     const lookPut = calls.indexOf(`PUT /manifests/my-theme`);
-    expect(themePut).toBeGreaterThan(-1);
-    expect(lookPut).toBeGreaterThan(themePut);
+    expect(colorsAndTypePut).toBeGreaterThan(-1);
+    expect(lookPut).toBeGreaterThan(colorsAndTypePut);
   });
 
   it('writes nothing to the layer when the colors and type are saved', async () => {
@@ -194,9 +194,9 @@ describe('Save As', () => {
     dialogSave().click();
     await settle();
 
-    const themePut = calls.indexOf('PUT /themes/my-colors');
-    expect(themePut).toBeGreaterThan(-1);
-    expect(calls.indexOf('PUT /manifests/fresh')).toBeGreaterThan(themePut);
+    const colorsAndTypePut = calls.indexOf('PUT /themes/my-colors');
+    expect(colorsAndTypePut).toBeGreaterThan(-1);
+    expect(calls.indexOf('PUT /manifests/fresh')).toBeGreaterThan(colorsAndTypePut);
   });
 });
 
@@ -277,7 +277,7 @@ describe('Load preview', () => {
   });
 
   it('paints a colors-and-type row', async () => {
-    overrides['GET /themes/my-colors'] = () => json(THEME);
+    overrides['GET /themes/my-colors'] = () => json(COLORS_AND_TYPE);
     await mountPanel();
 
     button('Load').click();

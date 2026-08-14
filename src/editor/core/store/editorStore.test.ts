@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
 import { get } from 'svelte/store';
-import type { PaletteConfig, Theme } from '../themes/themeTypes';
+import type { PaletteConfig, ColorsAndType } from '../themes/themeTypes';
 import { hexToOklch as c } from '../palettes/oklch';
 import {
   editorState,
@@ -15,8 +15,8 @@ import {
   redo,
   setPaletteConfig,
   loadFromFile,
-  themeDirty,
-  toTheme,
+  colorsAndTypeDirty,
+  toColorsAndType,
   __resetForTests,
   __getHistoryLengths,
   __getPastAt,
@@ -40,12 +40,12 @@ function makePaletteConfig(baseColor: string): PaletteConfig {
   };
 }
 
-function makeTheme(overrides: Partial<Theme> = {}): Theme {
+function makeColorsAndType(overrides: Partial<ColorsAndType> = {}): ColorsAndType {
   return { name: 't', createdAt: '', updatedAt: '', editorConfigs: {}, cssVariables: {}, ...overrides };
 }
 
-function themeWithPalettes(overrides: Partial<Theme> = {}): Theme {
-  return makeTheme({
+function colorsAndTypeWithPalettes(overrides: Partial<ColorsAndType> = {}): ColorsAndType {
+  return makeColorsAndType({
     editorConfigs: {
       Brand: makePaletteConfig('#c04a2f'),
       Accent: makePaletteConfig('#d8a13a'),
@@ -300,8 +300,8 @@ describe('editorStore — apply + undo matches spec end-to-end', () => {
 });
 
 describe('editorStore — Background → Canvas palette rename', () => {
-  it('a legacy theme keys its palette under Canvas and keeps the axis bound', () => {
-    loadFromFile(makeTheme({
+  it('a legacy file keys its palette under Canvas and keeps the axis bound', () => {
+    loadFromFile(makeColorsAndType({
       editorConfigs: {
         Brand: makePaletteConfig('#c04a2f'),
         Background: makePaletteConfig('#2b2140'),
@@ -322,7 +322,7 @@ describe('editorStore — Background → Canvas palette rename', () => {
 
   it('the rename precedes the legacy background-spot adoption, which resolves the palette by label', () => {
     const legacy = { ...makePaletteConfig('#2b2140'), emptyMode: 'solid' as const, emptyStep: '850' };
-    loadFromFile(makeTheme({ editorConfigs: { Background: legacy } }));
+    loadFromFile(makeColorsAndType({ editorConfigs: { Background: legacy } }));
     const canvas = get(editorState).palettes.Canvas;
     expect(canvas).toBeDefined();
     expect('emptyStep' in canvas).toBe(false);
@@ -330,21 +330,21 @@ describe('editorStore — Background → Canvas palette rename', () => {
   });
 });
 
-describe('editorStore — themeDirty baseline', () => {
-  it('loadFromFile baselines the loaded content; a theme-content edit dirties it', () => {
-    loadFromFile(themeWithPalettes({ cssVariables: { '--surface-canvas': '#123456' } }));
-    expect(get(themeDirty)).toBe(false);
+describe('editorStore — colorsAndTypeDirty baseline', () => {
+  it('loadFromFile baselines the loaded content; a colors-and-type edit dirties it', () => {
+    loadFromFile(colorsAndTypeWithPalettes({ cssVariables: { '--surface-canvas': '#123456' } }));
+    expect(get(colorsAndTypeDirty)).toBe(false);
 
     mutate('edit', (s) => {
       s.cssVars['--surface-canvas'] = '#654321';
     });
-    expect(get(themeDirty)).toBe(true);
+    expect(get(colorsAndTypeDirty)).toBe(true);
   });
 });
 
 describe('editorStore — harmonyAxes persistence', () => {
-  it('a theme with neither field binds the default trio, hues seeded from palettes', () => {
-    loadFromFile(themeWithPalettes());
+  it('a file with neither field binds the default trio, hues seeded from palettes', () => {
+    loadFromFile(colorsAndTypeWithPalettes());
     const s = get(editorState);
     expect(s.harmonyAxes.map((a) => a.family)).toEqual(['Brand', 'Accent', 'Canvas', null]);
     expect(s.harmonyAxes[0].hue).toBeCloseTo(s.palettes.Brand.baseColor.h, 9);
@@ -354,7 +354,7 @@ describe('editorStore — harmonyAxes persistence', () => {
   });
 
   it('round-trips a sparse layout', () => {
-    loadFromFile(themeWithPalettes({
+    loadFromFile(colorsAndTypeWithPalettes({
       harmonyAxes: [
         { family: 'Brand', hue: 0 },
         { family: null, hue: 123 },
@@ -362,7 +362,7 @@ describe('editorStore — harmonyAxes persistence', () => {
         { family: null, hue: 234 },
       ],
     }));
-    const saved = toTheme(get(editorState), { name: 't' });
+    const saved = toColorsAndType(get(editorState), { name: 't' });
     expect(saved.harmonyAxes!.map((a) => a.family)).toEqual(['Brand', null, 'Canvas', null]);
 
     loadFromFile(saved);
@@ -375,7 +375,7 @@ describe('editorStore — harmonyAxes persistence', () => {
   });
 
   it('reconciles a hand-edited bound hue to the palette on load (color is ground truth)', () => {
-    loadFromFile(themeWithPalettes({
+    loadFromFile(colorsAndTypeWithPalettes({
       harmonyAxes: [
         { family: 'Brand', hue: 5 }, { family: 'Accent', hue: 6 },
         { family: 'Canvas', hue: 7 }, { family: null, hue: 8 },
@@ -389,7 +389,7 @@ describe('editorStore — harmonyAxes persistence', () => {
 
 describe('editorStore — harmony axis setters', () => {
   it('adopt swatch moves the axis to the family hue, leaving the color alone', () => {
-    loadFromFile(themeWithPalettes());
+    loadFromFile(colorsAndTypeWithPalettes());
     const special0 = { ...get(editorState).palettes.Special.baseColor };
     const before = __getHistoryLengths().past;
     expect(bindFamilyToAxis('Special', 3, 'swatch')).toBe(true);
@@ -401,7 +401,7 @@ describe('editorStore — harmony axis setters', () => {
   });
 
   it('adopt swatch trades places, each axis taking its new family hue', () => {
-    loadFromFile(themeWithPalettes());
+    loadFromFile(colorsAndTypeWithPalettes());
     const brand0 = { ...get(editorState).palettes.Brand.baseColor };
     const accent0 = { ...get(editorState).palettes.Accent.baseColor };
     const before = __getHistoryLengths().past;
@@ -417,7 +417,7 @@ describe('editorStore — harmony axis setters', () => {
   });
 
   it('adopt axis repaints the family onto the axis hue, reporting no hue move', () => {
-    loadFromFile(themeWithPalettes());
+    loadFromFile(colorsAndTypeWithPalettes());
     const special0 = { ...get(editorState).palettes.Special.baseColor };
     const axisHue0 = get(editorState).harmonyAxes[3].hue;
     expect(bindFamilyToAxis('Special', 3, 'axis')).toBe(false);
@@ -428,7 +428,7 @@ describe('editorStore — harmony axis setters', () => {
   });
 
   it('adopt axis trades places, the two families swapping hues and both axes staying put', () => {
-    loadFromFile(themeWithPalettes());
+    loadFromFile(colorsAndTypeWithPalettes());
     const brand0 = { ...get(editorState).palettes.Brand.baseColor };
     const accent0 = { ...get(editorState).palettes.Accent.baseColor };
     const [axis0, axis1] = get(editorState).harmonyAxes.map((a) => a.hue);
@@ -443,7 +443,7 @@ describe('editorStore — harmony axis setters', () => {
   });
 
   it('unbindFamily keeps the family color and the axis hue', () => {
-    loadFromFile(themeWithPalettes());
+    loadFromFile(colorsAndTypeWithPalettes());
     const bg0 = { ...get(editorState).palettes.Canvas.baseColor };
     const axisHue0 = get(editorState).harmonyAxes[2].hue;
     const before = __getHistoryLengths().past;
@@ -456,7 +456,7 @@ describe('editorStore — harmony axis setters', () => {
   });
 
   it('setAxisHue on a bound axis moves both hue fields in one entry, chroma kept', () => {
-    loadFromFile(themeWithPalettes());
+    loadFromFile(colorsAndTypeWithPalettes());
     const chroma0 = get(editorState).palettes.Brand.baseColor.c;
     const before = __getHistoryLengths().past;
     setAxisHue(0, 123);
@@ -468,14 +468,14 @@ describe('editorStore — harmony axis setters', () => {
   });
 
   it('a no-op bindFamilyToAxis adds no history entry and reports no hue move', () => {
-    loadFromFile(themeWithPalettes());
+    loadFromFile(colorsAndTypeWithPalettes());
     const before = __getHistoryLengths().past;
     expect(bindFamilyToAxis('Brand', 0, 'swatch')).toBe(false);
     expect(__getHistoryLengths().past).toBe(before);
   });
 
   it('a no-op setAxisHue adds no history entry', () => {
-    loadFromFile(themeWithPalettes());
+    loadFromFile(colorsAndTypeWithPalettes());
     setAxisHue(0, 150);
     const before = __getHistoryLengths().past;
     setAxisHue(0, 150);
@@ -483,7 +483,7 @@ describe('editorStore — harmony axis setters', () => {
   });
 
   it('a direct setBaseHue on a bound family drags the axis hue along', () => {
-    loadFromFile(themeWithPalettes());
+    loadFromFile(colorsAndTypeWithPalettes());
     setBaseHue('Brand', 200);
     const s = get(editorState);
     expect(s.palettes.Brand.baseColor.h).toBe(200);

@@ -105,13 +105,13 @@ async function trackWrites<T>(
 
 const readJson = (file: string) => JSON.parse(fs.readFileSync(file, 'utf-8'));
 
-const THEME = { name: 'Custom', createdAt: 'x', updatedAt: 'x', editorConfigs: {}, cssVariables: {} };
+const COLORS_AND_TYPE = { name: 'Custom', createdAt: 'x', updatedAt: 'x', editorConfigs: {}, cssVariables: {} };
 const BUTTON_CONFIG = { name: 'fancy', component: 'button', aliases: { '--button-radius': '99px' } };
 
 /** A v1 pointer manifest naming a live theme, a live config, a component on
  *  default, and a config that has since been deleted. */
 function seedPointerManifest() {
-  writeJson(path.join(themesDir, 'custom.json'), THEME);
+  writeJson(path.join(themesDir, 'custom.json'), COLORS_AND_TYPE);
   writeJson(path.join(configsDir, 'button', 'fancy.json'), BUTTON_CONFIG);
   writeJson(path.join(manifestsDir, 'look.json'), {
     name: 'look',
@@ -162,7 +162,7 @@ describe('boot migration', () => {
       createdAt: 'a',
       updatedAt: 'a',
       schemaVersion: 2,
-      theme: THEME,
+      theme: COLORS_AND_TYPE,
       componentConfigs: {},
     };
     writeJson(file, manifest);
@@ -381,7 +381,7 @@ describe('apply', () => {
       createdAt: 'a',
       updatedAt: 'a',
       schemaVersion: 2,
-      theme: THEME,
+      theme: COLORS_AND_TYPE,
       componentConfigs: { ghost: { name: 'ghost', aliases: {} } },
     });
     boot();
@@ -423,14 +423,14 @@ describe('export and import', () => {
     seedPointerManifest();
     boot();
     const exported = (await request('GET', `${API}/manifests/look/export`)).json;
-    const themeFilesBefore = fs.readdirSync(themesDir).length;
+    const colorsAndTypeFilesBefore = fs.readdirSync(themesDir).length;
 
     const { status, json } = await request('POST', `${API}/manifests/import`, exported);
     expect(status).toBe(200);
     expect(json.manifest).toBe('look-2');
     expect(json.renames).toEqual({ 'manifest:look': 'look-2' });
     expect(readJson(path.join(manifestsDir, 'look-2.json')).theme.name).toBe('Custom');
-    expect(fs.readdirSync(themesDir).length).toBe(themeFilesBefore);
+    expect(fs.readdirSync(themesDir).length).toBe(colorsAndTypeFilesBefore);
   });
 
   it('imports a v1 bundle by embedding what the bundle carries', async () => {
@@ -447,7 +447,7 @@ describe('export and import', () => {
         theme: 'their-theme',
         componentConfigs: { button: 'fancy', card: 'default', panel: 'absent' },
       },
-      theme: { ...THEME, name: 'Their Theme' },
+      theme: { ...COLORS_AND_TYPE, name: 'Their Theme' },
       componentConfigs: { 'button/fancy': BUTTON_CONFIG },
     });
     expect(status).toBe(200);
@@ -507,7 +507,7 @@ describe('adopt patches the active manifest', () => {
 
   it('embeds the adopted theme', async () => {
     await bootWithActiveLook();
-    writeJson(path.join(themesDir, 'other.json'), { ...THEME, name: 'Other' });
+    writeJson(path.join(themesDir, 'other.json'), { ...COLORS_AND_TYPE, name: 'Other' });
 
     const { status } = await request('PUT', `${API}/themes/production`, { name: 'other' });
     expect(status).toBe(200);
@@ -573,7 +573,7 @@ describe('adopting the whole look', () => {
 
   it('re-embeds the promoted slices and leaves the rest of the look alone', async () => {
     await bootWithActiveLook();
-    writeJson(path.join(themesDir, 'other.json'), { ...THEME, name: 'Other' });
+    writeJson(path.join(themesDir, 'other.json'), { ...COLORS_AND_TYPE, name: 'Other' });
     await request('PUT', `${API}/themes/active`, { name: 'other' });
     writeJson(path.join(configsDir, 'card', 'bold.json'), {
       name: 'bold',
@@ -596,7 +596,7 @@ describe('adopting the whole look', () => {
     await bootWithActiveLook();
     // The button's active and production are both the default, and the look
     // carries a config for it regardless — that is what a saved look is for.
-    writeJson(path.join(themesDir, 'other.json'), { ...THEME, name: 'Other' });
+    writeJson(path.join(themesDir, 'other.json'), { ...COLORS_AND_TYPE, name: 'Other' });
     await request('PUT', `${API}/themes/active`, { name: 'other' });
 
     const { json } = await request('PUT', `${API}/production`);

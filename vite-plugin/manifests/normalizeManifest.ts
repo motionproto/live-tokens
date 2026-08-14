@@ -1,7 +1,7 @@
 /**
- * Manifest schema v1 → v2. v1 manifests pointed at a theme file and a config
- * file per component by basename; v2 carries that data by value, so deleting a
- * working file can never break a saved look.
+ * Manifest schema v1 → v2. v1 manifests pointed at a colors-and-type file and a
+ * config file per component by basename; v2 carries that data by value, so
+ * deleting a working file can never break a saved look.
  *
  * Pure: every disk (or bundle) lookup arrives through `ManifestResolvers`, and
  * unresolvable refs come back in `dropped` rather than being logged here — the
@@ -13,14 +13,14 @@ export const MANIFEST_SCHEMA_VERSION = 2;
 type Json = Record<string, unknown>;
 
 export interface ManifestResolvers {
-  readTheme(name: string): unknown;
+  readColorsAndType(name: string): unknown;
   readComponentConfig(comp: string, name: string): unknown;
   /**
-   * Applied to a theme at the moment it is embedded. Read doors trust already
-   * embedded themes: every write path that embeds one runs it through here
-   * first, so the stored copy is already reconciled.
+   * Applied to colors and type at the moment they are embedded. Read doors
+   * trust an already embedded copy: every write path that embeds one runs it
+   * through here first, so the stored copy is already reconciled.
    */
-  normalizeTheme(theme: Json): Json;
+  normalizeColorsAndType(colorsAndType: Json): Json;
 }
 
 export interface EncapsulatedManifest {
@@ -28,8 +28,8 @@ export interface EncapsulatedManifest {
   createdAt: string;
   updatedAt: string;
   schemaVersion: typeof MANIFEST_SCHEMA_VERSION;
-  /** Full theme content. `null` only when nothing resolved, including the
-   *  default — callers surface that as an error. */
+  /** Full colors-and-type content. `null` only when nothing resolved, including
+   *  the default — callers surface that as an error. */
   theme: Json | null;
   /** Component id → its config, embedded by value. Delta encoding: a component
    *  absent here is on its default. */
@@ -69,18 +69,18 @@ export function normalizeManifest(
   const dropped: string[] = [];
   const now = new Date().toISOString();
 
-  const embeddedTheme = asObject(src.theme);
-  let theme: Json | null = null;
-  if (embeddedTheme) {
-    theme = stripFileMarker(embeddedTheme);
+  const embeddedColorsAndType = asObject(src.theme);
+  let colorsAndType: Json | null = null;
+  if (embeddedColorsAndType) {
+    colorsAndType = stripFileMarker(embeddedColorsAndType);
   } else {
-    const themeName = asString(src.theme, 'default');
-    theme = asObject(resolvers.readTheme(themeName));
-    if (!theme) {
-      dropped.push(`theme:${themeName}`);
-      if (themeName !== 'default') theme = asObject(resolvers.readTheme('default'));
+    const colorsAndTypeName = asString(src.theme, 'default');
+    colorsAndType = asObject(resolvers.readColorsAndType(colorsAndTypeName));
+    if (!colorsAndType) {
+      dropped.push(`theme:${colorsAndTypeName}`);
+      if (colorsAndTypeName !== 'default') colorsAndType = asObject(resolvers.readColorsAndType('default'));
     }
-    if (theme) theme = resolvers.normalizeTheme(stripFileMarker(theme));
+    if (colorsAndType) colorsAndType = resolvers.normalizeColorsAndType(stripFileMarker(colorsAndType));
   }
 
   const componentConfigs: Record<string, Json> = {};
@@ -106,7 +106,7 @@ export function normalizeManifest(
       createdAt: asString(src.createdAt, now),
       updatedAt: asString(src.updatedAt, now),
       schemaVersion: MANIFEST_SCHEMA_VERSION,
-      theme,
+      theme: colorsAndType,
       componentConfigs,
     },
     dropped,

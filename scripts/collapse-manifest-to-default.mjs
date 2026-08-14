@@ -29,7 +29,7 @@ import { syncBlock } from './lib/componentBlockSync.mjs';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'src/live-tokens/data');
 const CONFIGS = join(DATA, 'component-configs');
-const THEMES = join(DATA, 'themes');
+const COLORS_AND_TYPE = join(DATA, 'themes');
 const MANIFESTS = join(DATA, 'manifests');
 const COMPONENTS = join(ROOT, 'src/system/components');
 
@@ -164,18 +164,18 @@ for (const [comp, cfg] of Object.entries(componentConfigs).sort()) {
   }
 }
 
-// --- Theme -------------------------------------------------------------------
-const theme = manifest.theme;
-if (!theme || typeof theme !== 'object') {
+// --- Colors and type ---------------------------------------------------------
+const colorsAndType = manifest.theme;
+if (!colorsAndType || typeof colorsAndType !== 'object') {
   console.log('\nSKIP  theme (manifest carries none)');
 } else {
-  const defaultThemePath = join(THEMES, 'default.json');
-  const currentDefault = existsSync(defaultThemePath) ? readJson(defaultThemePath) : {};
+  const defaultColorsAndTypePath = join(COLORS_AND_TYPE, 'default.json');
+  const currentDefault = existsSync(defaultColorsAndTypePath) ? readJson(defaultColorsAndTypePath) : {};
   const diff = leafDiffCount(
     { ec: currentDefault.editorConfigs, cv: currentDefault.cssVariables },
-    { ec: theme.editorConfigs, cv: theme.cssVariables },
+    { ec: colorsAndType.editorConfigs, cv: colorsAndType.cssVariables },
   );
-  const working = pointedFiles(THEMES);
+  const working = pointedFiles(COLORS_AND_TYPE);
   console.log(`\ntheme  default.json ← manifest  (${diff} value(s) differ)`);
   reportCleared(working);
 
@@ -183,15 +183,15 @@ if (!theme || typeof theme !== 'object') {
     // Spread: the manifest's theme is the whole file, so fields the collapse
     // has no opinion on (fonts, harmony axes, schemaVersion) carry across
     // untouched. Only the default's identity is preserved.
-    writeJson(defaultThemePath, {
-      ...theme,
-      name: currentDefault.name ?? theme.name ?? 'Default Theme',
+    writeJson(defaultColorsAndTypePath, {
+      ...colorsAndType,
+      name: currentDefault.name ?? colorsAndType.name ?? 'Default Theme',
       createdAt: currentDefault.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
-    writePointer(join(THEMES, '_active.json'), { activeFile: 'default' });
-    writePointer(join(THEMES, '_production.json'), { productionFile: 'default' });
-    clearWorkingFiles(THEMES, working);
+    writePointer(join(COLORS_AND_TYPE, '_active.json'), { activeFile: 'default' });
+    writePointer(join(COLORS_AND_TYPE, '_production.json'), { productionFile: 'default' });
+    clearWorkingFiles(COLORS_AND_TYPE, working);
   }
 }
 

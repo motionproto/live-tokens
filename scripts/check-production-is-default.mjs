@@ -39,8 +39,8 @@ function pointer(file, key) {
   }
 }
 
-const themeProd = pointer(join(DATA, 'themes/_production.json'), 'productionFile');
-if (themeProd !== 'default') errors.push(`themes production pointer is "${themeProd}", expected "default"`);
+const colorsAndTypeProd = pointer(join(DATA, 'themes/_production.json'), 'productionFile');
+if (colorsAndTypeProd !== 'default') errors.push(`themes production pointer is "${colorsAndTypeProd}", expected "default"`);
 
 const manifestActive = pointer(join(DATA, 'manifests/_active.json'), 'activeFile');
 if (manifestActive !== 'default') errors.push(`manifests active pointer is "${manifestActive}", expected "default"`);

@@ -21,7 +21,7 @@ import { stampPresetFonts } from './lib/presetFonts.mjs';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'src/live-tokens/data');
 const CONFIGS = join(DATA, 'component-configs');
-const THEMES = join(DATA, 'themes');
+const COLORS_AND_TYPE = join(DATA, 'themes');
 const MANIFESTS = join(DATA, 'manifests');
 
 const ENGINE = join(ROOT, 'dist-plugin/adjust/index.js');
@@ -167,16 +167,16 @@ const now = new Date().toISOString();
 let written = 0;
 let stamped = 0;
 for (const { slug, ops } of PRESETS) {
-  const themePath = join(THEMES, `${slug}.json`);
-  if (!existsSync(themePath)) {
-    throw new Error(`preset theme "${slug}" not found at ${relative(ROOT, themePath)}`);
+  const colorsAndTypePath = join(COLORS_AND_TYPE, `${slug}.json`);
+  if (!existsSync(colorsAndTypePath)) {
+    throw new Error(`preset theme "${slug}" not found at ${relative(ROOT, colorsAndTypePath)}`);
   }
-  const theme = readJson(themePath);
-  if (stampPresetFonts(theme, slug)) {
-    theme.updatedAt = now;
-    writeFileSync(themePath, `${JSON.stringify(theme, null, 2)}\n`);
+  const colorsAndType = readJson(colorsAndTypePath);
+  if (stampPresetFonts(colorsAndType, slug)) {
+    colorsAndType.updatedAt = now;
+    writeFileSync(colorsAndTypePath, `${JSON.stringify(colorsAndType, null, 2)}\n`);
     stamped++;
-    console.log(`✓ ${slug}  fonts stamped into ${relative(ROOT, themePath)}`);
+    console.log(`✓ ${slug}  fonts stamped into ${relative(ROOT, colorsAndTypePath)}`);
   }
   const { configs: next, report } = adjustAliases(defaults, ops, now);
 
@@ -205,11 +205,11 @@ for (const { slug, ops } of PRESETS) {
   const manifestPath = join(MANIFESTS, `${slug}.json`);
   const existing = existsSync(manifestPath) ? readJson(manifestPath) : null;
   const manifest = {
-    name: theme.name ?? slug,
+    name: colorsAndType.name ?? slug,
     createdAt: typeof existing?.createdAt === 'string' ? existing.createdAt : now,
     updatedAt: now,
     schemaVersion: MANIFEST_SCHEMA_VERSION,
-    theme,
+    theme: colorsAndType,
     componentConfigs,
   };
 

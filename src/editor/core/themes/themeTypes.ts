@@ -94,7 +94,7 @@ export interface FontStack {
   slots: FontStackSlot[];
 }
 
-export interface Theme {
+export interface ColorsAndType {
   name: string;
   createdAt: string;
   updatedAt: string;
@@ -119,7 +119,7 @@ export interface Theme {
   schemaVersion?: number;
 }
 
-export interface ThemeMeta {
+export interface ColorsAndTypeMeta {
   name: string;
   fileName: string;
   updatedAt: string;
@@ -145,12 +145,12 @@ export interface ComponentConfig {
   aliases: Record<string, AliasDiskValue>;
   config?: Record<string, unknown>;
   /**
-   * Server-attached file-name marker. Same role as `Theme._fileName`. Set by
+   * Server-attached file-name marker. Same role as `ColorsAndType._fileName`. Set by
    * the component-configs GET handlers; not persisted to disk.
    */
   _fileName?: string;
   /**
-   * Migration stamp. Absent on legacy files, treated as 0. See `Theme.schemaVersion`.
+   * Migration stamp. Absent on legacy files, treated as 0. See `ColorsAndType.schemaVersion`.
    */
   schemaVersion?: number;
 }
@@ -180,12 +180,12 @@ export interface Manifest {
    *  2 is encapsulated. The server rewrites v1 files at boot. */
   schemaVersion: 2;
   /** Full theme content. */
-  theme: Theme;
+  theme: ColorsAndType;
   /** Component id → its config. Delta encoding: a component absent here is on
    *  its default. Defaults are never inlined — the local `default.json` derived
    *  from the component source is canonical, and a frozen copy would drift. */
   componentConfigs: Record<string, ComponentConfig>;
-  /** Server-attached file-name marker. Same role as `Theme._fileName`. */
+  /** Server-attached file-name marker. Same role as `ColorsAndType._fileName`. */
   _fileName?: string;
 }
 

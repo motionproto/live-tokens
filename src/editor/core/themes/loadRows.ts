@@ -1,4 +1,4 @@
-import type { ManifestMeta, ThemeMeta } from './themeTypes';
+import type { ManifestMeta, ColorsAndTypeMeta } from './themeTypes';
 
 /**
  * The one Load list. A theme is the whole look, backed by a manifest; a colors
@@ -26,7 +26,7 @@ export interface LoadRow {
 
 export const loadRowId = (kind: LoadRowKind, slug: string): string => `${kind}:${slug}`;
 
-export function buildLoadRows(looks: ManifestMeta[], layers: ThemeMeta[]): LoadRow[] {
+export function buildLoadRows(looks: ManifestMeta[], layers: ColorsAndTypeMeta[]): LoadRow[] {
   const lookRows: LoadRow[] = looks.map((f) => ({
     fileName: loadRowId('look', f.fileName),
     slug: f.fileName,

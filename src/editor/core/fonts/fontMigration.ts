@@ -1,4 +1,4 @@
-import type { FontFamily, FontSource, FontStack, Theme } from '../themes/themeTypes';
+import type { FontFamily, FontSource, FontStack, ColorsAndType } from '../themes/themeTypes';
 
 // Google Fonts CDN URLs for the default font families. We used to ship local
 // woff2 files and emit @font-face blocks pointing at them, but Vite's url()
@@ -30,7 +30,7 @@ function fam(sourceId: string, name: string, cssName?: string, weights?: number[
 }
 
 /**
- * Build the default fontSources. Used when a theme has no fontSources yet.
+ * Build the default fontSources. Used when a file has no fontSources yet.
  */
 export function defaultFontSources(): FontSource[] {
   const typekitId = 'src_typekit_jes8oow';
@@ -143,29 +143,29 @@ function migrateLegacyLocalFonts(src: FontSource): boolean {
 }
 
 /**
- * Ensure the loaded Theme has fontSources and fontStacks. Mutates in place
- * only when missing; safe to call on already-migrated themes. Also strips any
+ * Ensure the loaded colors and type have fontSources and fontStacks. Mutates in place
+ * only when missing; safe to call on already-migrated files. Also strips any
  * stale --font-* entries from cssVariables since those are now derived, and
  * migrates legacy local-font sources to Google Fonts URL sources.
  */
-export function migrateThemeFonts(theme: Theme): { migrated: boolean } {
+export function migrateColorsAndTypeFonts(colorsAndType: ColorsAndType): { migrated: boolean } {
   let migrated = false;
-  if (!theme.fontSources || theme.fontSources.length === 0) {
-    theme.fontSources = defaultFontSources();
+  if (!colorsAndType.fontSources || colorsAndType.fontSources.length === 0) {
+    colorsAndType.fontSources = defaultFontSources();
     migrated = true;
   } else {
-    for (const src of theme.fontSources) {
+    for (const src of colorsAndType.fontSources) {
       if (migrateLegacyLocalFonts(src)) migrated = true;
     }
   }
-  if (!theme.fontStacks || theme.fontStacks.length === 0) {
-    theme.fontStacks = defaultFontStacks(theme.fontSources);
+  if (!colorsAndType.fontStacks || colorsAndType.fontStacks.length === 0) {
+    colorsAndType.fontStacks = defaultFontStacks(colorsAndType.fontSources);
     migrated = true;
   }
-  if (theme.cssVariables) {
+  if (colorsAndType.cssVariables) {
     for (const key of ['--font-display', '--font-sans', '--font-serif', '--font-mono']) {
-      if (key in theme.cssVariables) {
-        delete theme.cssVariables[key];
+      if (key in colorsAndType.cssVariables) {
+        delete colorsAndType.cssVariables[key];
         migrated = true;
       }
     }

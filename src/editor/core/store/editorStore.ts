@@ -13,18 +13,18 @@
  *  - `editorRenderer` (DOM subscriber)
  *  - `editorPersistence` (debounced localStorage)
  *
- * Component-config + theme migrations live in `./migrations` (Wave 4).
- * `loadComponentActive` / `seedComponentsFromApi` / `loadFromFile` / `toTheme`
+ * Component-config + colors-and-type migrations live in `./migrations` (Wave 4).
+ * `loadComponentActive` / `seedComponentsFromApi` / `loadFromFile` / `toColorsAndType`
  * orchestrate across slices and stay here.
  */
 
 import { derived, writable, type Readable } from 'svelte/store';
 import type { CssVarRef, EditorState, GradientAliasValue } from './editorTypes';
-import type { AliasDiskValue, Theme } from '../themes/themeTypes';
+import type { AliasDiskValue, ColorsAndType } from '../themes/themeTypes';
 import { KNOWN_COMPONENT_CONFIG_KEYS } from '../components/componentConfigKeys';
 import { cssStringToRef } from './cssVarRef';
 import {
-  CURRENT_THEME_SCHEMA_VERSION,
+  CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION,
   CURRENT_COMPONENT_SCHEMA_VERSION,
   runMigrations,
 } from '../themes/migrations';
@@ -200,12 +200,12 @@ export {
 export {
   setFontSources,
   setFontStacks,
-  seedFontsFromTheme,
+  seedFontsFromColorsAndType,
 } from '../themes/slices/fonts';
 
 export {
   setPaletteConfig,
-  seedPalettesFromTheme,
+  seedPalettesFromColorsAndType,
 } from '../themes/slices/palettes';
 
 // ── Component-config load orchestration ───────────────────────────────────
@@ -508,10 +508,10 @@ export function seedComponentsFromApi(
   schedulePersist();
 }
 
-// ── Theme load / save ──────────────────────────────────────────────────────
+// ── Colors and type load / save ────────────────────────────────────────────
 
 /**
- * Per-domain loader: routes a freshly-loaded theme's `cssVariables` bag
+ * Per-domain loader: routes a freshly-loaded file's `cssVariables` bag
  * into typed state on `next`, then removes the routed entries so the
  * remainder lands as the catch-all `cssVars` bag. Each loader owns its
  * domain's parser + name list; this table is the only place editorStore
@@ -527,14 +527,14 @@ const domainLoaders: Record<string, DomainLoader> = {
 };
 
 /**
- * Project a theme file onto a fresh `EditorState` without committing it.
- * `loadFromFile` commits the projection; the manifest preview renders one
+ * Project a colors-and-type file onto a fresh `EditorState` without committing
+ * it. `loadFromFile` commits the projection; the manifest preview renders one
  * without touching the store, so both paths derive vars from the same shape.
  *
- * Reads `theme.schemaVersion` (absent = 0) and runs theme migrations up to
- * `CURRENT_THEME_SCHEMA_VERSION` before splitting the bag into domains.
+ * Reads `schemaVersion` (absent = 0) and runs colors-and-type migrations up to
+ * `CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION` before splitting the bag into domains.
  */
-export function themeToState(theme: Theme): EditorState {
+export function colorsAndTypeToState(colorsAndType: ColorsAndType): EditorState {
   const next = emptyState();
   // Structural palette migrations, innermost → outermost: rename Primary→Brand
   // and Background→Canvas (both key renames, so they precede anything that looks
@@ -543,43 +543,43 @@ export function themeToState(theme: Theme): EditorState {
   // placement, fold a legacy background spot into the base color, then place any
   // still-unplaced anchor by base luminance. The clone is still pre-basis (hex
   // or already-numeric) on disk.
-  const raw = structuredClone(theme.editorConfigs ?? {}) as Record<string, PreOklchPaletteConfig>;
+  const raw = structuredClone(colorsAndType.editorConfigs ?? {}) as Record<string, PreOklchPaletteConfig>;
   next.palettes = placeUnplacedBaseAnchors(adoptBackgroundSpotAsBase(adoptLegacyBaseAnchor(migratePaletteColorsToOklch(unifyGrayPalettes(renameBackgroundPaletteKey(renamePrimaryPaletteKey(raw)))))));
-  next.fonts.sources = structuredClone(theme.fontSources ?? []);
-  next.fonts.stacks  = structuredClone(theme.fontStacks  ?? []);
+  next.fonts.sources = structuredClone(colorsAndType.fontSources ?? []);
+  next.fonts.stacks  = structuredClone(colorsAndType.fontStacks  ?? []);
   const rawVars = runMigrations(
-    'theme',
-    theme.schemaVersion ?? 0,
-    theme.cssVariables ?? {},
+    'colors-and-type',
+    colorsAndType.schemaVersion ?? 0,
+    colorsAndType.cssVariables ?? {},
   );
   // Route domain-owned entries out of the catch-all bag into typed state.
   // Order doesn't matter — each loader claims a disjoint set of var names
-  // (or in components' case, vars that wouldn't have been in the theme to
+  // (or in components' case, vars that wouldn't have been in the file to
   // begin with).
   for (const load of Object.values(domainLoaders)) load(next, rawVars);
-  next.harmonyAxes = sanitizeHarmonyAxes(renameBackgroundHarmonyFamily(theme.harmonyAxes), next.palettes);
+  next.harmonyAxes = sanitizeHarmonyAxes(renameBackgroundHarmonyFamily(colorsAndType.harmonyAxes), next.palettes);
   next.cssVars = rawVars;
   return next;
 }
 
 /**
- * Replace state with a loaded theme. Clears history and marks saved —
- * "open a different document" semantics. Undo cannot cross a theme load.
+ * Replace state with a loaded colors-and-type file. Clears history and marks
+ * saved — "open a different document" semantics. Undo cannot cross a load.
  */
-export function loadFromFile(theme: Theme): void {
-  const next = themeToState(theme);
+export function loadFromFile(colorsAndType: ColorsAndType): void {
+  const next = colorsAndTypeToState(colorsAndType);
   resetHistoryForLoad();
   store.set(next);
-  markThemeSaved(next);
+  markColorsAndTypeSaved(next);
   schedulePersist();
 }
 
 /**
- * Everything a theme file carries except its identity and timestamps. Split
- * out of `toTheme` so the dirty baseline below compares exactly what a save
- * would write, with nothing that changes on its own between two saves.
+ * Everything a colors-and-type file carries except its identity and timestamps.
+ * Split out of `toColorsAndType` so the dirty baseline below compares exactly
+ * what a save would write, with nothing that changes on its own between two saves.
  */
-function themeContent(state: EditorState): Omit<Theme, 'name' | 'createdAt' | 'updatedAt'> {
+function colorsAndTypeContent(state: EditorState): Omit<ColorsAndType, 'name' | 'createdAt' | 'updatedAt'> {
   const cssVariables: Record<string, string> = { ...state.cssVars };
   if (!columnsEqualsDefault(state.columns)) {
     Object.assign(cssVariables, columnsToVars(state.columns));
@@ -594,7 +594,7 @@ function themeContent(state: EditorState): Omit<Theme, 'name' | 'createdAt' | 'u
     fontSources: state.fonts.sources,
     fontStacks: state.fonts.stacks,
     harmonyAxes: state.harmonyAxes,
-    schemaVersion: CURRENT_THEME_SCHEMA_VERSION,
+    schemaVersion: CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION,
   };
 }
 
@@ -604,34 +604,35 @@ function themeContent(state: EditorState): Omit<Theme, 'name' | 'createdAt' | 'u
  * when they diverge from defaults; the catch-all `cssVars` bag carries
  * everything not yet migrated to a typed domain.
  *
- * Stamps the file with `CURRENT_THEME_SCHEMA_VERSION` so future loads can
- * skip migrations the file is already past.
+ * Stamps the file with `CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION` so future loads
+ * can skip migrations the file is already past.
  */
-export function toTheme(state: EditorState, meta: { name: string }): Theme {
+export function toColorsAndType(state: EditorState, meta: { name: string }): ColorsAndType {
   const now = new Date().toISOString();
-  return { name: meta.name, createdAt: now, updatedAt: now, ...themeContent(state) };
+  return { name: meta.name, createdAt: now, updatedAt: now, ...colorsAndTypeContent(state) };
 }
 
-// ── Theme-layer dirty tracking ─────────────────────────────────────────────
+// ── Colors-and-type dirty tracking ─────────────────────────────────────────
 //
 // `dirty` counts history entries, and component edits push history too, so it
 // cannot answer whether the colors and type differ from their file. This is
-// the components slice's baseline mechanism at theme scope: the serialized
-// content of the last file read or written, compared against live state.
+// the components slice's baseline mechanism at colors-and-type scope: the
+// serialized content of the last file read or written, compared against live
+// state.
 
-let savedThemeContent = JSON.stringify(themeContent(emptyState()));
-const themeSavedTick = writable(0);
+let savedColorsAndTypeContent = JSON.stringify(colorsAndTypeContent(emptyState()));
+const colorsAndTypeSavedTick = writable(0);
 
-export const themeDirty: Readable<boolean> = derived(
-  [store, themeSavedTick],
-  ([$state]) => JSON.stringify(themeContent($state)) !== savedThemeContent,
+export const colorsAndTypeDirty: Readable<boolean> = derived(
+  [store, colorsAndTypeSavedTick],
+  ([$state]) => JSON.stringify(colorsAndTypeContent($state)) !== savedColorsAndTypeContent,
 );
 
-/** Take `state` as what the theme file now holds. `loadFromFile` passes what
- *  it loaded, `persistTheme` what it wrote. */
-export function markThemeSaved(state: EditorState): void {
-  savedThemeContent = JSON.stringify(themeContent(state));
-  themeSavedTick.update((n) => n + 1);
+/** Take `state` as what the colors-and-type file now holds. `loadFromFile`
+ *  passes what it loaded, `persistColorsAndType` what it wrote. */
+export function markColorsAndTypeSaved(state: EditorState): void {
+  savedColorsAndTypeContent = JSON.stringify(colorsAndTypeContent(state));
+  colorsAndTypeSavedTick.update((n) => n + 1);
 }
 
 // ── Persistence ────────────────────────────────────────────────────────────
@@ -656,7 +657,7 @@ export function __resetForTests(): void {
   __resetCoreForTests();
   __resetRendererCacheForTests();
   __resetComponentsForTests();
-  markThemeSaved(emptyState());
+  markColorsAndTypeSaved(emptyState());
 }
 
 // ── Wiring ─────────────────────────────────────────────────────────────────

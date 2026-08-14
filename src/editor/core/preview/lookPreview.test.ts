@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
-import type { ComponentConfig, Manifest, Theme } from '../themes/themeTypes';
+import type { ComponentConfig, Manifest, ColorsAndType } from '../themes/themeTypes';
 import { API_BASE } from '../storage/apiBase';
 import {
   editorState,
@@ -11,10 +11,10 @@ import {
 } from '../store/editorStore';
 import {
   manifestLook,
-  themeLook,
+  colorsAndTypeLook,
   liveLook,
   previewManifest,
-  previewTheme,
+  previewColorsAndType,
   revertPreview,
   isPreviewing,
   __resetPreviewForTests,
@@ -42,7 +42,7 @@ const CINZEL = {
   families: [{ id: 'src_preset_cinzel:cinzel', name: 'Cinzel', cssName: '"Cinzel"' }],
 };
 
-function theme(cssVariables: Record<string, string>, extra: Partial<Theme> = {}): Theme {
+function colorsAndType(cssVariables: Record<string, string>, extra: Partial<ColorsAndType> = {}): ColorsAndType {
   return {
     name: 'T',
     createdAt: '2026-01-01T00:00:00.000Z',
@@ -76,7 +76,7 @@ function config(component: string, aliases: Record<string, string>): ComponentCo
 
 function manifest(
   name: string,
-  themeValue: Theme,
+  colorsAndTypeValue: ColorsAndType,
   componentConfigs: Record<string, ComponentConfig>,
 ): Manifest {
   return {
@@ -84,13 +84,13 @@ function manifest(
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     schemaVersion: 2,
-    theme: themeValue,
+    theme: colorsAndTypeValue,
     componentConfigs,
     _fileName: name,
   };
 }
 
-const defaults = manifest('default', theme({ '--surface-canvas': '#ffffff' }), {
+const defaults = manifest('default', colorsAndType({ '--surface-canvas': '#ffffff' }), {
   card: config('card', { '--card-default-radius': '--radius-lg' }),
   button: config('button', {
     '--button-primary-radius': '--radius-xl',
@@ -99,7 +99,7 @@ const defaults = manifest('default', theme({ '--surface-canvas': '#ffffff' }), {
   badge: config('badge', { '--badge-default-radius': '--radius-sm' }),
 });
 
-const yuletide = manifest('yuletide', theme({ '--surface-canvas': '#0b3d2e' }), {
+const yuletide = manifest('yuletide', colorsAndType({ '--surface-canvas': '#0b3d2e' }), {
   card: config('card', { '--card-default-radius': '--radius-3xl' }),
   button: config('button', {
     '--button-primary-radius': '--radius-full',
@@ -121,21 +121,21 @@ describe('manifestLook', () => {
   });
 
   it('skips configs for components this install does not have', () => {
-    const withStat = manifest('stat-look', theme({}), {
+    const withStat = manifest('stat-look', colorsAndType({}), {
       stat: config('stat', { '--stat-default-radius': '--radius-none' }),
     });
     const { vars } = manifestLook(withStat, defaults);
     expect(vars).not.toHaveProperty('--stat-default-radius');
   });
 
-  it('resolves the theme font stacks into --font-* values', () => {
+  it('resolves the embedded font stacks into --font-* values', () => {
     const { vars, fontSources } = manifestLook(yuletide, defaults);
     expect(vars['--font-display']).toBe('"Mountains of Christmas", serif');
     expect(fontSources.map((s) => s.id)).toContain('src_preset_mountains');
   });
 });
 
-const royalVelvet = theme(
+const royalVelvet = colorsAndType(
   { '--surface-canvas': '#2b1b45' },
   {
     fontSources: [CINZEL],
@@ -151,35 +151,35 @@ const royalVelvet = theme(
   },
 );
 
-describe('themeLook', () => {
+describe('colorsAndTypeLook', () => {
   beforeEach(() => {
     __resetForTests();
     __resetPreviewForTests();
-    loadFromFile(theme({ '--surface-canvas': '#111111' }));
+    loadFromFile(colorsAndType({ '--surface-canvas': '#111111' }));
     seedComponentsFromApi({
       card: { activeFile: 'my-card', aliases: { '--card-default-radius': '--radius-md' } },
     });
   });
 
-  it('swaps the theme vars and keeps the live component ones', () => {
-    const { vars } = themeLook(royalVelvet);
+  it('swaps the colors-and-type vars and keeps the live component ones', () => {
+    const { vars } = colorsAndTypeLook(royalVelvet);
     expect(vars['--surface-canvas']).toBe('#2b1b45');
     expect(vars['--card-default-radius']).toBe('var(--radius-md)');
   });
 
-  it('resolves the candidate theme font stacks and reports its sources', () => {
-    const { vars, fontSources } = themeLook(royalVelvet);
+  it('resolves the candidate font stacks and reports its sources', () => {
+    const { vars, fontSources } = colorsAndTypeLook(royalVelvet);
     expect(vars['--font-display']).toBe('"Cinzel", serif');
     expect(fontSources.map((s) => s.id)).toEqual(['src_preset_cinzel']);
   });
 
-  it('live component aliases win over values the theme file carries for them', () => {
-    const { vars } = themeLook(theme({ '--card-default-radius': 'var(--radius-none)' }));
+  it('live component aliases win over values the colors-and-type file carries for them', () => {
+    const { vars } = colorsAndTypeLook(colorsAndType({ '--card-default-radius': 'var(--radius-none)' }));
     expect(vars['--card-default-radius']).toBe('var(--radius-md)');
   });
 
-  it('paints theme-file vars for component names the live slice does not alias', () => {
-    const { vars } = themeLook(theme({ '--card-default-padding': 'var(--space-99)' }));
+  it('paints colors-and-type vars for component names the live slice does not alias', () => {
+    const { vars } = colorsAndTypeLook(colorsAndType({ '--card-default-padding': 'var(--space-99)' }));
     expect(vars['--card-default-padding']).toBe('var(--space-99)');
   });
 });
@@ -190,21 +190,21 @@ describe('a look previewed colors and type only', () => {
   beforeEach(() => {
     __resetForTests();
     __resetPreviewForTests();
-    loadFromFile(theme({ '--surface-canvas': '#111111' }));
+    loadFromFile(colorsAndType({ '--surface-canvas': '#111111' }));
     seedComponentsFromApi({
       card: { activeFile: 'my-card', aliases: { '--card-default-radius': '--radius-md' } },
     });
   });
 
-  it('takes the theme half and leaves the components as the user has them', () => {
-    const { vars } = themeLook(yuletide.theme);
+  it('takes the colors-and-type half and leaves the components as the user has them', () => {
+    const { vars } = colorsAndTypeLook(yuletide.theme);
     expect(vars['--surface-canvas']).toBe('#0b3d2e');
     expect(vars['--card-default-radius']).toBe('var(--radius-md)');
   });
 
   it('differs from the whole look on the component half alone', () => {
     const whole = manifestLook(yuletide, defaults).vars;
-    const colors = themeLook(yuletide.theme).vars;
+    const colors = colorsAndTypeLook(yuletide.theme).vars;
     expect(whole['--surface-canvas']).toBe(colors['--surface-canvas']);
     expect(whole['--font-display']).toBe(colors['--font-display']);
     expect(whole['--card-default-radius']).toBe('var(--radius-3xl)');
@@ -218,7 +218,7 @@ describe('liveLook', () => {
   });
 
   it('derives from the editor store, not the DOM', () => {
-    loadFromFile(theme({ '--surface-canvas': '#111111' }));
+    loadFromFile(colorsAndType({ '--surface-canvas': '#111111' }));
     seedComponentsFromApi({
       card: { activeFile: 'my-card', aliases: { '--card-default-radius': '--radius-md' } },
     });
@@ -245,7 +245,7 @@ describe('previewManifest', () => {
         headers: { 'Content-Type': 'application/json' },
       });
     });
-    loadFromFile(theme({ '--surface-canvas': '#111111', '--live-only': '1px' }));
+    loadFromFile(colorsAndType({ '--surface-canvas': '#111111', '--live-only': '1px' }));
     seedComponentsFromApi({
       card: { activeFile: 'my-card', aliases: { '--card-default-radius': '--radius-md' } },
     });
@@ -280,7 +280,7 @@ describe('previewManifest', () => {
   });
 
   it('re-previewing diffs against the live look, not the previous preview', async () => {
-    const halloween = manifest('halloween', theme({ '--surface-canvas': '#4d2300' }), {
+    const halloween = manifest('halloween', colorsAndType({ '--surface-canvas': '#4d2300' }), {
       card: config('card', { '--card-default-radius': '--radius-none' }),
       spooky: config('spooky', { '--spooky-glow': '1' }),
     });
@@ -316,7 +316,7 @@ describe('previewManifest', () => {
   });
 });
 
-describe('previewTheme', () => {
+describe('previewColorsAndType', () => {
   beforeEach(() => {
     __resetForTests();
     __resetPreviewForTests();
@@ -328,7 +328,7 @@ describe('previewTheme', () => {
           headers: { 'Content-Type': 'application/json' },
         }),
     );
-    loadFromFile(theme({ '--surface-canvas': '#111111', '--live-only': '1px' }));
+    loadFromFile(colorsAndType({ '--surface-canvas': '#111111', '--live-only': '1px' }));
     seedComponentsFromApi({
       card: { activeFile: 'my-card', aliases: { '--card-default-radius': '--radius-md' } },
     });
@@ -341,8 +341,8 @@ describe('previewTheme', () => {
 
   const read = (name: string) => document.documentElement.style.getPropertyValue(name);
 
-  it('paints the theme over the live components and restores on revert', () => {
-    previewTheme(royalVelvet);
+  it('paints the colors and type over the live components and restores on revert', () => {
+    previewColorsAndType(royalVelvet);
     expect(read('--surface-canvas')).toBe('#2b1b45');
     expect(read('--font-display')).toBe('"Cinzel", serif');
     expect(read('--card-default-radius')).toBe('var(--radius-md)');
@@ -355,8 +355,8 @@ describe('previewTheme', () => {
     expect(read('--live-only')).toBe('1px');
   });
 
-  it('hands a live theme preview over to a manifest preview and back', async () => {
-    previewTheme(royalVelvet);
+  it('hands a live colors-and-type preview over to a manifest preview and back', async () => {
+    previewColorsAndType(royalVelvet);
     await previewManifest(yuletide);
     expect(read('--surface-canvas')).toBe('#0b3d2e');
     expect(read('--card-default-radius')).toBe('var(--radius-3xl)');
@@ -369,16 +369,16 @@ describe('previewTheme', () => {
     expect(read('--live-only')).toBe('1px');
   });
 
-  it('drops a manifest preview cleanly when a theme preview follows it', async () => {
+  it('drops a manifest preview cleanly when a colors-and-type preview follows it', async () => {
     await previewManifest(yuletide);
-    previewTheme(royalVelvet);
+    previewColorsAndType(royalVelvet);
     expect(read('--surface-canvas')).toBe('#2b1b45');
     expect(read('--card-default-radius')).toBe('var(--radius-md)');
     expect(read('--badge-default-radius')).toBe('');
   });
 
   it('commits by reverting first, so the load repaints from the store', () => {
-    previewTheme(royalVelvet);
+    previewColorsAndType(royalVelvet);
     // What Save does: hand the page back, then hydrate the file.
     revertPreview();
     loadFromFile(royalVelvet);
@@ -391,7 +391,7 @@ describe('previewTheme', () => {
     // The renderer diffs against its own last-applied set, which never saw the
     // preview's writes: skipping the revert leaves --preview-only painted
     // forever when the committed file diverges from the previewed one.
-    previewTheme(theme({ '--surface-canvas': '#2b1b45', '--preview-only': '2px' }));
+    previewColorsAndType(colorsAndType({ '--surface-canvas': '#2b1b45', '--preview-only': '2px' }));
     expect(read('--preview-only')).toBe('2px');
 
     revertPreview();

@@ -3,7 +3,7 @@ import type { Migration } from './index';
 /**
  * Overlay scale trim (2026-05-26): `--overlay-lowest`, `--overlay-lower`,
  * `--overlay-higher`, and `--overlay-highest` were retired. The kept stops
- * are `--overlay-low`, `--overlay`, and `--overlay-high`. Theme files
+ * are `--overlay-low`, `--overlay`, and `--overlay-high`. ColorsAndType files
  * stripped of the dropped keys; component configs whose aliases referenced
  * a dropped stop rebind to the nearest survivor.
  */
@@ -14,11 +14,11 @@ const DROPPED_TO_KEPT: Record<string, string> = {
   '--overlay-highest': '--overlay-high',
 };
 
-export const themeMigration_2026_05_26_dropOverlayExtraStops: Migration = {
+export const colorsAndTypeMigration_2026_05_26_dropOverlayExtraStops: Migration = {
   id: '2026-05-26-drop-overlay-extra-stops-theme',
   fromVersion: 2,
   toVersion: 3,
-  appliesTo: 'theme',
+  appliesTo: 'colors-and-type',
   apply(rawVars) {
     const out: Record<string, string> = {};
     for (const [key, value] of Object.entries(rawVars)) {

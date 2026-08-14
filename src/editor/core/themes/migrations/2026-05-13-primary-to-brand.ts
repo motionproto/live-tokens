@@ -39,11 +39,11 @@ function renameKeysAndValues(rawVars: Record<string, string>): Record<string, st
   return out;
 }
 
-export const themeMigration_2026_05_13_primaryToBrand: Migration = {
+export const colorsAndTypeMigration_2026_05_13_primaryToBrand: Migration = {
   id: '2026-05-13-primary-to-brand-theme',
   fromVersion: 1,
   toVersion: 2,
-  appliesTo: 'theme',
+  appliesTo: 'colors-and-type',
   apply: renameKeys,
 };
 

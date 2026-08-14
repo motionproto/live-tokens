@@ -3,13 +3,13 @@ import { versionedFileResource } from '../storage/files/versionedFileResourceCli
 import { API_BASE } from '../storage/apiBase';
 
 /**
- * REST client for per-component config files. Parallel to `themeService.ts`
+ * REST client for per-component config files. Parallel to `colorsAndTypeService.ts`
  * but scoped to `${API_BASE}/component-configs/*`. Each component (button,
  * card, …) has its own lifecycle: default.json (generated from the `.svelte`
  * source), plus user-authored named configs, each with its own active /
  * production pointer.
  *
- * Both this and `themeService` consume `versionedFileResource(...)`. Adding a
+ * Both this and `colorsAndTypeService` consume `versionedFileResource(...)`. Adding a
  * third file-managed resource — per the user's "mirror theme-file lifecycle
  * for new editor artifacts" invariant — is one helper call here, not a third
  * round of copy-paste CRUD.

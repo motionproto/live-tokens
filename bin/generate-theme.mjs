@@ -1,18 +1,18 @@
 // `live-tokens generate-theme` worker.
 //
-// Reads a seed brief (JSON), builds a full validated theme via the compiled
-// engine (dist-plugin/generateTheme — the CLI never imports TS sources),
-// enforces the AA contrast gate, writes <themesDir>/<slug>.json, and activates
-// it. Non-color content (gradients, shadows, component aliases, fonts) is
-// carried forward from the currently active theme so generation only replaces
-// the color identity.
+// Reads a seed brief (JSON), builds a full validated colors-and-type file via
+// the compiled engine (dist-plugin/generateColorsAndType — the CLI never imports
+// TS sources), enforces the AA contrast gate, writes <themesDir>/<slug>.json,
+// and activates it. Non-color content (gradients, shadows, component aliases,
+// fonts) is carried forward from the currently active file so generation only
+// replaces the color identity.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const ENGINE = resolve(pkgRoot, 'dist-plugin/generateTheme/index.js');
+const ENGINE = resolve(pkgRoot, 'dist-plugin/generateColorsAndType/index.js');
 
 async function loadEngine() {
   if (!existsSync(ENGINE)) {
@@ -36,9 +36,9 @@ function readJsonIfExists(path) {
   }
 }
 
-/** Local themes dir first, then the installed package's shipped copy — the
- *  same fallback order the dev server uses for reads. */
-function loadThemeFile(themesDir, fileName) {
+/** Local colors-and-type dir first, then the installed package's shipped copy
+ *  — the same fallback order the dev server uses for reads. */
+function loadColorsAndTypeFile(themesDir, fileName) {
   return (
     readJsonIfExists(join(themesDir, `${fileName}.json`)) ??
     readJsonIfExists(join(pkgRoot, 'src/live-tokens/data/themes', `${fileName}.json`))
@@ -46,7 +46,7 @@ function loadThemeFile(themesDir, fileName) {
 }
 
 export async function runGenerateTheme({ briefPath, activate = true, dryRun = false, carryFrom, root = process.cwd() } = {}) {
-  const { buildThemeFromSeeds, resolveDataDirs } = await loadEngine();
+  const { buildColorsAndTypeFromSeeds, resolveDataDirs } = await loadEngine();
 
   const briefFull = resolve(root, briefPath);
   if (!existsSync(briefFull)) {
@@ -63,35 +63,35 @@ export async function runGenerateTheme({ briefPath, activate = true, dryRun = fa
 
   const activePointer = readJsonIfExists(join(themesDir, '_active.json'));
   const previousActive = activePointer?.activeFile ?? 'default';
-  if (carryFrom && !loadThemeFile(themesDir, carryFrom)) {
+  if (carryFrom && !loadColorsAndTypeFile(themesDir, carryFrom)) {
     throw new Error(`--carry-from theme "${carryFrom}" not found`);
   }
   const carrySource =
-    loadThemeFile(themesDir, carryFrom ?? previousActive) ?? loadThemeFile(themesDir, 'default') ?? {};
+    loadColorsAndTypeFile(themesDir, carryFrom ?? previousActive) ?? loadColorsAndTypeFile(themesDir, 'default') ?? {};
   const carry = {
     cssVariables: carrySource.cssVariables,
     fontSources: carrySource.fontSources,
     fontStacks: carrySource.fontStacks,
   };
 
-  const { theme, slug, report } = buildThemeFromSeeds(brief, carry, new Date().toISOString());
+  const { colorsAndType, slug, report } = buildColorsAndTypeFromSeeds(brief, carry, new Date().toISOString());
 
-  const themePath = join(themesDir, `${slug}.json`);
-  const existing = readJsonIfExists(themePath);
-  if (existing?.createdAt) theme.createdAt = existing.createdAt;
+  const colorsAndTypePath = join(themesDir, `${slug}.json`);
+  const existing = readJsonIfExists(colorsAndTypePath);
+  if (existing?.createdAt) colorsAndType.createdAt = existing.createdAt;
 
   if (!dryRun) {
     mkdirSync(themesDir, { recursive: true });
-    writeFileSync(themePath, JSON.stringify(theme, null, 2) + '\n');
+    writeFileSync(colorsAndTypePath, JSON.stringify(colorsAndType, null, 2) + '\n');
     if (activate) {
       writeFileSync(join(themesDir, '_active.json'), JSON.stringify({ activeFile: slug }, null, 2) + '\n');
     }
   }
 
   return {
-    name: theme.name,
+    name: colorsAndType.name,
     slug,
-    themePath,
+    colorsAndTypePath,
     existed: existing !== null,
     activated: activate && !dryRun,
     previousActive,
@@ -104,7 +104,7 @@ export function formatGenerateThemeResult(result) {
   const root = process.cwd();
   const lines = [];
   const wrote = result.dryRun ? 'Would write' : result.existed ? 'Updated' : 'Created';
-  lines.push(`${wrote} theme "${result.name}" → ${relative(root, result.themePath)}`);
+  lines.push(`${wrote} theme "${result.name}" → ${relative(root, result.colorsAndTypePath)}`);
 
   lines.push(`\nContrast report (${result.report.scheme} scheme):`);
   const width = Math.max(...result.report.checks.map((c) => c.textVar.length));

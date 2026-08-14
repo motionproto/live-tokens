@@ -1,10 +1,10 @@
 import { writable } from 'svelte/store';
-import type { ProductionInfo } from './themes/themeService';
+import type { ProductionInfo } from './themes/colorsAndTypeService';
 import type { ManifestMeta } from './themes/themeTypes';
 
 /**
  * Monotonic counter that ticks every time a production pointer flips —
- * theme production or a component's production. UI surfaces that need to
+ * colors-and-type production or a component's production. UI surfaces that need to
  * react to a sibling Adopt subscribe to this so they refresh without
  * per-pair wiring.
  *
@@ -38,12 +38,12 @@ export function bumpComponentActiveRevision(): void {
  * state on the first frame instead of flashing through "not in sync" while a
  * fresh fetch resolves.
  */
-export const themeProductionInfo = writable<ProductionInfo | null>(null);
+export const colorsAndTypeProductionInfo = writable<ProductionInfo | null>(null);
 
 /**
  * Last-known active manifest meta. Bumped by the Theme panel whenever the
- * active manifest changes (load, save, save-as) and whenever a theme or
- * component Adopt completes (the server patches the active manifest as a
+ * active manifest changes (load, save, save-as) and whenever a colors-and-type
+ * or component Adopt completes (the server patches the active manifest as a
  * side-effect, so consumers re-read it on `productionRevision` ticks).
  */
 export const activeManifest = writable<ManifestMeta | null>(null);

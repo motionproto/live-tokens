@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ManifestMeta, ThemeMeta } from './themeTypes';
+import type { ManifestMeta, ColorsAndTypeMeta } from './themeTypes';
 import { buildLoadRows, colorsOnlyIsForced, isColorsOnly, loadRowId } from './loadRows';
 
 const look = (fileName: string, isProtected = false): ManifestMeta => ({
@@ -10,7 +10,7 @@ const look = (fileName: string, isProtected = false): ManifestMeta => ({
   isProtected,
 });
 
-const layer = (fileName: string, isPackage: boolean): ThemeMeta => ({
+const layer = (fileName: string, isPackage: boolean): ColorsAndTypeMeta => ({
   name: fileName,
   fileName,
   updatedAt: '',

@@ -8,7 +8,7 @@
  * is past a given version, that migration's bookkeeping is dead code and
  * the file can be deleted.
  *
- * Theme and component-config have INDEPENDENT version sequences. Every
+ * ColorsAndType and component-config have INDEPENDENT version sequences. Every
  * theme migration steps the theme version; every component-config migration
  * steps the component-config version. There is no shared 'both' kind.
  */
@@ -25,19 +25,19 @@ export interface Migration {
   /** Post-condition version — files past this no longer need this migration. */
   toVersion: number;
   /** Which storage flavor this applies to. */
-  appliesTo: 'theme' | 'component-config';
+  appliesTo: 'colors-and-type' | 'component-config';
   /** Pure transform on the raw vars map. May add, remove, or rename keys. */
   apply(rawVars: Record<string, string>, meta: MigrationMeta): Record<string, string>;
 }
 
-import { themeMigration_2026_04_24_legacyKeysAndBgToCanvas } from './2026-04-24-legacy-keys-and-bg-to-canvas';
+import { colorsAndTypeMigration_2026_04_24_legacyKeysAndBgToCanvas } from './2026-04-24-legacy-keys-and-bg-to-canvas';
 import { componentMigration_2026_04_24_prefixAndSuffixRenames } from './2026-04-24-component-prefix-and-suffix-renames';
 import { componentMigration_2026_04_27_segmentedcontrolDisabledFlatten } from './2026-04-27-segmentedcontrol-disabled-flatten';
 import { componentMigration_2026_05_08_collapsiblesectionVariantNamespace } from './2026-05-08-collapsiblesection-variant-namespace';
 import { componentMigration_2026_05_08_collapsiblesectionFrameAndCleanup } from './2026-05-08-collapsiblesection-frame-and-cleanup';
 import { componentMigration_2026_05_10_sectiondividerGradientStops } from './2026-05-10-sectiondivider-gradient-stops';
 import {
-  themeMigration_2026_05_13_primaryToBrand,
+  colorsAndTypeMigration_2026_05_13_primaryToBrand,
   componentMigration_2026_05_13_primaryToBrand,
 } from './2026-05-13-primary-to-brand';
 import { componentMigration_2026_05_19_collapsiblesectionDropFrameSurface } from './2026-05-19-collapsiblesection-drop-frame-surface';
@@ -51,21 +51,21 @@ import { componentMigration_2026_05_24_progressbarCollapseVariants } from './202
 import { componentMigration_2026_05_24_collapsiblesectionDropActiveState } from './2026-05-24-collapsiblesection-drop-active-state';
 import { componentMigration_2026_05_25_cornerbadgeFlattenVariants } from './2026-05-25-cornerbadge-flatten-variants';
 import {
-  themeMigration_2026_05_26_dropOverlayExtraStops,
+  colorsAndTypeMigration_2026_05_26_dropOverlayExtraStops,
   componentMigration_2026_05_26_dropOverlayExtraStops,
 } from './2026-05-26-drop-overlay-extra-stops';
 import { componentMigration_2026_05_29_tabbarIndicatorThicknessToPerStateWidth } from './2026-05-29-tabbar-indicator-thickness-to-per-state-width';
 import { componentMigration_2026_05_29_segmentedcontrolSmallDividerRename } from './2026-05-29-segmentedcontrol-small-divider-rename';
 import { componentMigration_2026_05_29_toggleDeriveTrackFromThumb } from './2026-05-29-toggle-derive-track-from-thumb';
-import { themeMigration_2026_08_13_dropLegacyShapeSpaceKeys } from './2026-08-13-drop-legacy-shape-space-keys';
+import { colorsAndTypeMigration_2026_08_13_dropLegacyShapeSpaceKeys } from './2026-08-13-drop-legacy-shape-space-keys';
 
 /**
  * Registered migrations. Order in this array does not matter — the runner
  * filters by `appliesTo` and sorts by `toVersion` before applying.
  */
 export const MIGRATIONS: Migration[] = [
-  themeMigration_2026_04_24_legacyKeysAndBgToCanvas,
-  themeMigration_2026_05_13_primaryToBrand,
+  colorsAndTypeMigration_2026_04_24_legacyKeysAndBgToCanvas,
+  colorsAndTypeMigration_2026_05_13_primaryToBrand,
   componentMigration_2026_04_24_prefixAndSuffixRenames,
   componentMigration_2026_04_27_segmentedcontrolDisabledFlatten,
   componentMigration_2026_05_08_collapsiblesectionVariantNamespace,
@@ -82,15 +82,15 @@ export const MIGRATIONS: Migration[] = [
   componentMigration_2026_05_24_progressbarCollapseVariants,
   componentMigration_2026_05_24_collapsiblesectionDropActiveState,
   componentMigration_2026_05_25_cornerbadgeFlattenVariants,
-  themeMigration_2026_05_26_dropOverlayExtraStops,
+  colorsAndTypeMigration_2026_05_26_dropOverlayExtraStops,
   componentMigration_2026_05_26_dropOverlayExtraStops,
   componentMigration_2026_05_29_tabbarIndicatorThicknessToPerStateWidth,
   componentMigration_2026_05_29_segmentedcontrolSmallDividerRename,
   componentMigration_2026_05_29_toggleDeriveTrackFromThumb,
-  themeMigration_2026_08_13_dropLegacyShapeSpaceKeys,
+  colorsAndTypeMigration_2026_08_13_dropLegacyShapeSpaceKeys,
 ];
 
-function countFor(kind: 'theme' | 'component-config'): number {
+function countFor(kind: 'colors-and-type' | 'component-config'): number {
   return MIGRATIONS.filter((m) => m.appliesTo === kind).length;
 }
 
@@ -99,7 +99,7 @@ function countFor(kind: 'theme' | 'component-config'): number {
  * adding a new dated migration file (and importing it above) auto-bumps the
  * relevant constant.
  */
-export const CURRENT_THEME_SCHEMA_VERSION = countFor('theme');
+export const CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION = countFor('colors-and-type');
 export const CURRENT_COMPONENT_SCHEMA_VERSION = countFor('component-config');
 
 /**
@@ -111,7 +111,7 @@ export const CURRENT_COMPONENT_SCHEMA_VERSION = countFor('component-config');
  * fromVersion=N can be deleted without affecting any load path.
  */
 export function runMigrations(
-  kind: 'theme' | 'component-config',
+  kind: 'colors-and-type' | 'component-config',
   fileVersion: number,
   rawVars: Record<string, string>,
   meta: MigrationMeta = {},

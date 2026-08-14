@@ -1,14 +1,14 @@
-import type { Manifest, ManifestMeta, ManifestBundle, Theme, ComponentConfig } from '../themes/themeTypes';
+import type { Manifest, ManifestMeta, ManifestBundle, ColorsAndType, ComponentConfig } from '../themes/themeTypes';
 import { versionedFileResource } from '../storage/files/versionedFileResourceClient';
 import { API_BASE } from '../storage/apiBase';
 import { listComponents, loadComponentConfig } from '../components/componentConfigService';
-import { getActiveTheme } from '../themes/themeService';
+import { getActiveColorsAndType } from '../themes/colorsAndTypeService';
 
 /**
  * REST client for manifest files. A manifest carries a whole look by value: the
- * theme plus a config for every component that is off its default. The active
- * manifest is the single live snapshot — theme and component Adopts re-embed
- * that slice server-side.
+ * colors and type plus a config for every component that is off its default. The
+ * active manifest is the single live snapshot — colors-and-type and component
+ * Adopts re-embed that slice server-side.
  *
  * `default` is the protected baseline — cannot be overwritten or deleted, and
  * Adopts return 409 ACTIVE_IS_PROTECTED while it is active.
@@ -36,14 +36,14 @@ export const setActiveManifest = (fileName: string): Promise<void> =>
 export interface ApplyManifestResult {
   ok: boolean;
   manifest: Manifest;
-  theme: Theme;
+  theme: ColorsAndType;
   componentConfigs: Record<string, ComponentConfig>;
   /** Components the manifest carries data for that this install doesn't have. */
   skippedComponents: string[];
 }
 
 /**
- * Server-side apply: materialise the manifest's embedded theme and configs into
+ * Server-side apply: materialise the manifest's embedded colors and type and configs into
  * working files under its slug, flip each `_active.json` / `_production.json`
  * pointer at them, sync tokens.css/fonts.css, mark the manifest active, and
  * return the resolved state in one payload. Components the manifest doesn't
@@ -73,7 +73,7 @@ export interface AdoptLookResult {
 }
 
 /**
- * Ship the whole look: one door that promotes the theme layer and every
+ * Ship the whole look: one door that promotes the colors-and-type layer and every
  * component whose active config is not what production runs, then re-embeds
  * the shipped state in the active look. What is saved goes; unsaved editor
  * state is not visible to the server and stays behind.
@@ -104,17 +104,17 @@ function withoutFileMarker<T extends { _fileName?: string }>(value: T): T {
 }
 
 /**
- * The look as it stands: the active theme plus the active config of every
- * component that sits off its default, all by value. Delta encoding — a
+ * The look as it stands: the active colors and type plus the active config of
+ * every component that sits off its default, all by value. Delta encoding — a
  * component absent from the map runs the local default, which stays canonical.
  *
- * The theme comes from `GET /themes/active`, which normalises before it
- * answers. That matters: the server trusts an already-embedded theme and runs
+ * The colors and type come from `GET /themes/active`, which normalises before it
+ * answers. That matters: the server trusts an already-embedded copy and runs
  * no migrations over it on write.
  */
 async function captureLook(): Promise<Pick<Manifest, 'theme' | 'componentConfigs'>> {
-  const activeTheme = await getActiveTheme();
-  if (!activeTheme) {
+  const activeColorsAndType = await getActiveColorsAndType();
+  if (!activeColorsAndType) {
     throw new Error('No active theme to capture');
   }
   const overridden = (await listComponents()).filter(
@@ -127,7 +127,7 @@ async function captureLook(): Promise<Pick<Manifest, 'theme' | 'componentConfigs
   overridden.forEach((c, i) => {
     componentConfigs[c.name] = withoutFileMarker(configs[i]);
   });
-  return { theme: withoutFileMarker(activeTheme), componentConfigs };
+  return { theme: withoutFileMarker(activeColorsAndType), componentConfigs };
 }
 
 /**

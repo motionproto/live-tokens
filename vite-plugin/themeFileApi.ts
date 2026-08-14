@@ -72,7 +72,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     componentConfigsDir: opts.componentConfigsDir,
     manifestsDir: opts.manifestsDir,
   });
-  const THEMES_DIR = dataDirs.themesDir;
+  const COLORS_AND_TYPE_DIR = dataDirs.themesDir;
   const COMPONENT_CONFIGS_DIR = dataDirs.componentConfigsDir;
   const MANIFESTS_DIR = dataDirs.manifestsDir;
   const CSS_PATH = path.resolve(opts.tokensCssPath);
@@ -111,8 +111,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // Package-shipped default data lives at <package>/src/live-tokens/data/. Same
   // `..`-from-this-file resolution as packageComponentsDir, so it works in
   // library-dev, in a consumer's node_modules, and from dist-plugin/. The
-  // resource server's read-only fallback resolves a consumer's `default` theme
-  // to the shipped copy when they have no local one, and serves shipped example
+  // resource server's read-only fallback resolves a consumer's `default` colors
+  // and type to the shipped copy when they have no local one, and serves shipped example
   // manifests the same way. The Default manifest never ships:
   // `ensureDefaultManifest` derives the full local set at boot, before the
   // first request.
@@ -123,12 +123,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     'live-tokens',
     'data',
   );
-  const packageThemesDir = path.join(packageDataDir, 'themes');
+  const packageColorsAndTypeDir = path.join(packageDataDir, 'themes');
   const packageManifestsDir = path.join(packageDataDir, 'manifests');
   const packageComponentConfigsDir = path.join(packageDataDir, 'component-configs');
 
-  /** Theme basenames the package ships, read from its own `files` listing. */
-  function shippedThemeNames(dataDir: string): string[] {
+  /** Colors-and-type basenames the package ships, read from its own `files` listing. */
+  function shippedColorsAndTypeNames(dataDir: string): string[] {
     try {
       const pkgRoot = path.resolve(dataDir, '..', '..', '..');
       const pkg = JSON.parse(fs.readFileSync(path.join(pkgRoot, 'package.json'), 'utf-8'));
@@ -151,16 +151,16 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     COMPONENTS_SCAN_DIRS.push(packageComponentsDir);
   }
 
-  // Themes resource — list/load/save/delete + active/production. The package
-  // fallback ships the real default theme so a consumer always has one to load
-  // / restore to, and picks up an upgraded default on `npm upgrade`.
+  // Colors-and-type resource — list/load/save/delete + active/production. The
+  // package fallback ships the real default file so a consumer always has one to
+  // load / restore to, and picks up an upgraded default on `npm upgrade`.
   // `packageOwnedNames` comes from the package's own manifest so the library
-  // repo (whose local dir IS the package dir) can still tell a shipped theme
+  // repo (whose local dir IS the package dir) can still tell a shipped file
   // from a user file when flagging `isPackage` in the list.
-  const themesResource = versionedFileResourceServer({
-    dir: THEMES_DIR,
-    packageDir: packageThemesDir,
-    packageOwnedNames: shippedThemeNames(packageDataDir),
+  const colorsAndTypeResource = versionedFileResourceServer({
+    dir: COLORS_AND_TYPE_DIR,
+    packageDir: packageColorsAndTypeDir,
+    packageOwnedNames: shippedColorsAndTypeNames(packageDataDir),
   });
 
   // Per-component resources are constructed on demand because the set of
@@ -174,7 +174,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       // generateDefaultConfig, re-derived locally on dev start / HMR. This
       // packageDir is therefore inert for consumers (the dir doesn't exist) and
       // self-referential in library-dev (local === package); it's wired only
-      // for construction symmetry with themes/manifests, and existingPath /
+      // for construction symmetry with colors-and-type/manifests, and existingPath /
       // listNames no-op on a missing dir. Do NOT "fix" the asymmetry by shipping
       // component JSON — it becomes a second source of truth that drifts and is
       // shadowed on first dev-start anyway.
@@ -187,9 +187,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     return r;
   }
 
-  // Manifests resource — files that carry one theme plus a config per
-  // off-default component, by value. The active manifest is the single live
-  // snapshot; theme/component Adopts re-embed that slice (see
+  // Manifests resource — files that carry one colors-and-type file plus a config
+  // per off-default component, by value. The active manifest is the single live
+  // snapshot; colors-and-type/component Adopts re-embed that slice (see
   // `patchActiveManifest`). `_production.json` is unused for this resource —
   // the model has no separate Production slot.
   const manifestsResource = versionedFileResourceServer({
@@ -197,13 +197,13 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     packageDir: packageManifestsDir,
   });
 
-  function ensureThemesDir() {
+  function ensureColorsAndTypeDir() {
     // No local default.json is written: `default` resolves to the shipped
-    // package theme via the resource server's read-only fallback. Writing an
+    // package file via the resource server's read-only fallback. Writing an
     // empty local default here would shadow it. A missing package default fails
     // loudly downstream (caught by npm pack verification), not papered over.
-    themesResource.ensureDir();
-    themesResource.ensureMeta();
+    colorsAndTypeResource.ensureDir();
+    colorsAndTypeResource.ensureMeta();
   }
 
   function readBody(req: any): Promise<string> {
@@ -222,29 +222,30 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Single-door theme normaliser. Runs the per-slice reconciler (palettes
+   * Single-door colors-and-type normaliser. Runs the per-slice reconciler (palettes
    * today; fonts/shadows/gradients later phases), then strips every variable
    * the typed slices now own from the catch-all `cssVariables` bag.
    *
    * The reconciler is gated by `_imported` per palette — editor-authored
-   * themes are no-ops, importers opt in. Strip runs unconditionally because
+   * files are no-ops, importers opt in. Strip runs unconditionally because
    * the renderer already overlays typed-slice derivations on top of
    * cssVariables; stripped values were dead data.
    *
-   * Call from every theme-read door. See temp/manifest-robustness-plan.md §10.
+   * Call from every colors-and-type read door. See
+   * temp/manifest-robustness-plan.md §10.
    */
-  function normalizeTheme<T extends { cssVariables?: Record<string, string>; editorConfigs?: any } | null | undefined>(
-    theme: T,
+  function normalizeColorsAndType<T extends { cssVariables?: Record<string, string>; editorConfigs?: any } | null | undefined>(
+    colorsAndType: T,
   ): T {
-    if (!theme || typeof theme !== 'object') return theme;
-    const palettes = theme.editorConfigs ?? {};
-    const cssVars = theme.cssVariables ?? {};
+    if (!colorsAndType || typeof colorsAndType !== 'object') return colorsAndType;
+    const palettes = colorsAndType.editorConfigs ?? {};
+    const cssVars = colorsAndType.cssVariables ?? {};
     const { palettes: nextPalettes, consumed } = reconcilePalettesFromCssVars(palettes, cssVars);
     const nextCssVars: Record<string, string> = {};
     for (const [k, v] of Object.entries(cssVars)) {
       if (!consumed.has(k)) nextCssVars[k] = v;
     }
-    return { ...theme, editorConfigs: nextPalettes, cssVariables: nextCssVars };
+    return { ...colorsAndType, editorConfigs: nextPalettes, cssVariables: nextCssVars };
   }
 
   const SYSTEM_CASCADES_SSR: Record<string, string> = {
@@ -254,9 +255,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     'system-ui-mono': 'ui-monospace, "SF Mono", Menlo, Consolas, monospace',
   };
 
-  function resolveFontStacks(themeData: any): Record<string, string> {
-    const stacks = themeData.fontStacks as Array<{ variable: string; slots: any[] }> | undefined;
-    const sources = themeData.fontSources as Array<{ id: string; families: Array<{ id: string; cssName: string }> }> | undefined;
+  function resolveFontStacks(colorsAndTypeData: any): Record<string, string> {
+    const stacks = colorsAndTypeData.fontStacks as Array<{ variable: string; slots: any[] }> | undefined;
+    const sources = colorsAndTypeData.fontSources as Array<{ id: string; families: Array<{ id: string; cssName: string }> }> | undefined;
     if (!stacks || stacks.length === 0) return {};
     const familyById = new Map<string, string>();
     for (const src of sources ?? []) {
@@ -283,7 +284,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   /**
    * Regenerate the editor-owned `tokens.generated.css` sidecar from the
-   * production theme and every component's `_production.json`. The
+   * production colors and type and every component's `_production.json`. The
    * developer-authored `tokens.css` is never written — it holds defaults the
    * user is free to hand-edit and stays the single source of truth for
    * primitives. The generated file is imported immediately after `tokens.css`
@@ -302,22 +303,22 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     lines.push('/* tokens.css holds developer-authored defaults; this file holds editor overrides. */');
     lines.push('');
 
-    // Section 1: production-theme overrides (palette ramps, font stacks, custom vars).
-    const productionThemeName = themesResource.getProductionName();
-    const themeData = themesResource.readJson(productionThemeName) as any;
-    let themeVarCount = 0;
-    if (themeData) {
-      const cssVars: Record<string, string> = { ...(themeData.cssVariables || {}) };
-      // On-disk theme JSON is a pre-basis (hex or already-numeric) input; convert
+    // Section 1: production colors-and-type overrides (palette ramps, font stacks, custom vars).
+    const productionColorsAndTypeName = colorsAndTypeResource.getProductionName();
+    const colorsAndTypeData = colorsAndTypeResource.readJson(productionColorsAndTypeName) as any;
+    let colorsAndTypeVarCount = 0;
+    if (colorsAndTypeData) {
+      const cssVars: Record<string, string> = { ...(colorsAndTypeData.cssVariables || {}) };
+      // On-disk JSON is a pre-basis (hex or already-numeric) input; convert
       // to the OKLCH basis at this boundary before deriving, mirroring loadFromFile.
-      Object.assign(cssVars, palettesToVars(migratePaletteColorsToOklch(themeData.editorConfigs ?? {})));
-      const resolvedFontVars = resolveFontStacks(themeData);
+      Object.assign(cssVars, palettesToVars(migratePaletteColorsToOklch(colorsAndTypeData.editorConfigs ?? {})));
+      const resolvedFontVars = resolveFontStacks(colorsAndTypeData);
       for (const [name, value] of Object.entries(resolvedFontVars)) {
         cssVars[name] = value;
       }
-      themeVarCount = Object.keys(cssVars).length;
-      if (themeVarCount > 0) {
-        lines.push(`/* Production theme: ${productionThemeName} */`);
+      colorsAndTypeVarCount = Object.keys(cssVars).length;
+      if (colorsAndTypeVarCount > 0) {
+        lines.push(`/* Production theme: ${productionColorsAndTypeName} */`);
         lines.push(':root:root {');
         for (const [name, value] of Object.entries(cssVars)) {
           lines.push(`  ${name}: ${value};`);
@@ -372,12 +373,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
     fs.writeFileSync(GENERATED_CSS_PATH, lines.join('\n'));
     console.log(
-      `[regenerateTokensCss] Wrote ${path.basename(GENERATED_CSS_PATH)} (${themeVarCount} theme vars, ${componentOverrideCount} component overrides)`,
+      `[regenerateTokensCss] Wrote ${path.basename(GENERATED_CSS_PATH)} (${colorsAndTypeVarCount} theme vars, ${componentOverrideCount} component overrides)`,
     );
   }
 
   /** Back-compat wrapper. The argument is ignored; the generated file is
-   * always rebuilt from the current production theme. Existing call sites
+   * always rebuilt from the current production colors and type. Existing call sites
    * pass a fileName for historical reasons (they all set the production
    * pointer first, then call this). */
   function syncTokensToCss(_fileName: string): void {
@@ -385,14 +386,14 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Regenerate fonts.css from a theme's fontSources. Called alongside
+   * Regenerate fonts.css from a colors-and-type file's fontSources. Called alongside
    * syncTokensToCss so the production build's static font-loading layer
    * matches the registry the editor last promoted.
    */
   function syncFontsToCss(fileName: string): void {
-    const themeData = themesResource.readJson(fileName) as any;
-    if (!themeData) return;
-    const sources = themeData.fontSources as Array<{
+    const colorsAndTypeData = colorsAndTypeResource.readJson(fileName) as any;
+    if (!colorsAndTypeData) return;
+    const sources = colorsAndTypeData.fontSources as Array<{
       id: string;
       kind: string;
       url?: string;
@@ -653,9 +654,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   /** Resolve a v1 manifest's refs against the files on disk, package fallback
    *  included. Import passes its own bundle-scoped resolvers instead. */
   const diskManifestResolvers: ManifestResolvers = {
-    readTheme: (name) => themesResource.readJson(sanitizeFileName(name)),
+    readColorsAndType: (name) => colorsAndTypeResource.readJson(sanitizeFileName(name)),
     readComponentConfig: (comp, name) => readComponentConfig(comp, sanitizeFileName(name)),
-    normalizeTheme: (theme) => normalizeTheme(theme as any),
+    normalizeColorsAndType: (colorsAndType) => normalizeColorsAndType(colorsAndType as any),
   };
 
   /** `null` covers both "no such manifest" and "the file is there but won't
@@ -691,7 +692,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   /**
    * Rewrite local pointer-form manifests to the encapsulated form. Eager, at
-   * boot: from here on themes and configs are freely deletable, so a manifest
+   * boot: from here on colors-and-type files and configs are freely deletable, so a manifest
    * that still names them can lose its content between one boot and the next.
    */
   function migrateLocalManifests(warn: (msg: string) => void): void {
@@ -725,18 +726,18 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Materialise the Default manifest: the shipped theme plus EVERY component's
-   * derived default config, by value. It is the one manifest that is not
-   * delta-encoded, because it is the written record of the whole default state.
+   * Materialise the Default manifest: the shipped colors and type plus EVERY
+   * component's derived default config, by value. It is the one manifest that is
+   * not delta-encoded, because it is the written record of the whole default state.
    *
-   * Its source of truth is code (the theme file plus each component's
+   * Its source of truth is code (the colors-and-type file plus each component's
    * `:global(:root)`), so regenerating it on every boot is safe: deletion
    * outside the file manager heals, and a removed component cannot linger in it
    * the way `stat` did. Writes only on real drift, like `generateDefaultConfig`
    * — a boot that changes nothing leaves bytes and mtime alone.
    */
   function ensureDefaultManifest(): void {
-    const theme = normalizeTheme(themesResource.readJson('default') as any);
+    const colorsAndType = normalizeColorsAndType(colorsAndTypeResource.readJson('default') as any);
     const componentConfigs: Record<string, any> = {};
     for (const comp of listComponentNames()) {
       const cfg = readComponentConfig(comp, 'default');
@@ -749,7 +750,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     } catch { /* missing or corrupt — regenerate */ }
     if (
       existing?.schemaVersion === MANIFEST_SCHEMA_VERSION &&
-      JSON.stringify(existing.theme) === JSON.stringify(theme) &&
+      JSON.stringify(existing.theme) === JSON.stringify(colorsAndType) &&
       JSON.stringify(existing.componentConfigs) === JSON.stringify(componentConfigs)
     ) {
       return;
@@ -761,7 +762,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       createdAt: typeof existing?.createdAt === 'string' ? existing.createdAt : now,
       updatedAt: now,
       schemaVersion: MANIFEST_SCHEMA_VERSION,
-      theme,
+      theme: colorsAndType,
       componentConfigs,
     });
   }
@@ -793,7 +794,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   /** One slice of the live look, named by the file it runs. */
   type AdoptedSlice =
-    | { field: 'theme'; fileName: string }
+    | { field: 'colors-and-type'; fileName: string }
     | { field: 'component'; comp: string; fileName: string };
 
   /**
@@ -818,10 +819,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const { manifest } = read;
     let applied = 0;
     for (const slice of slices) {
-      if (slice.field === 'theme') {
-        const theme = themesResource.readJson(sanitizeFileName(slice.fileName));
-        if (!theme) continue;
-        manifest.theme = normalizeTheme(theme as any);
+      if (slice.field === 'colors-and-type') {
+        const colorsAndType = colorsAndTypeResource.readJson(sanitizeFileName(slice.fileName));
+        if (!colorsAndType) continue;
+        manifest.theme = normalizeColorsAndType(colorsAndType as any);
       } else if (slice.fileName === 'default') {
         delete manifest.componentConfigs[slice.comp];
       } else {
@@ -918,13 +919,13 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // Build parameterized routes/regexes from API_BASE.
   // Escape regex metacharacters so custom apiBase values still work.
   const escapedBase = API_BASE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const THEMES_ROUTE = `${API_BASE}/themes`;
-  const THEMES_ACTIVE_ROUTE = `${API_BASE}/themes/active`;
-  const THEMES_PRODUCTION_ROUTE = `${API_BASE}/themes/production`;
+  const COLORS_AND_TYPE_ROUTE = `${API_BASE}/themes`;
+  const COLORS_AND_TYPE_ACTIVE_ROUTE = `${API_BASE}/themes/active`;
+  const COLORS_AND_TYPE_PRODUCTION_ROUTE = `${API_BASE}/themes/production`;
   const COMPONENT_CONFIGS_ROUTE = `${API_BASE}/component-configs`;
   const MANIFESTS_ROUTE = `${API_BASE}/manifests`;
   const MANIFESTS_ACTIVE_ROUTE = `${API_BASE}/manifests/active`;
-  const THEME_BY_NAME_REGEX = new RegExp(`^${escapedBase}/themes/([a-z0-9\\-_]+)$`);
+  const COLORS_AND_TYPE_BY_NAME_REGEX = new RegExp(`^${escapedBase}/themes/([a-z0-9\\-_]+)$`);
   const COMP_LIST_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)$`);
   const COMP_ACTIVE_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/active$`);
   const COMP_PRODUCTION_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/production$`);
@@ -945,10 +946,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   // ── /api/themes ──────────────────────────────────────────────────────────
 
-  async function handleListThemes(_ctx: any) {
-    const activeFile = themesResource.getActiveName();
-    const files = themesResource.listNames().map((fileName) => {
-      const data = themesResource.readJson(fileName) as any;
+  async function handleListColorsAndType(_ctx: any) {
+    const activeFile = colorsAndTypeResource.getActiveName();
+    const files = colorsAndTypeResource.listNames().map((fileName) => {
+      const data = colorsAndTypeResource.readJson(fileName) as any;
       return {
         name: data?.name || fileName,
         fileName,
@@ -958,43 +959,43 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         // window offers those as whole themes, so it lists only the rows a
         // local file backs — including a local copy of a shipped name, which
         // holds whatever the user did to it.
-        isPackage: themesResource.isPackageFile(fileName),
+        isPackage: colorsAndTypeResource.isPackageFile(fileName),
       };
     });
     jsonResponse(_ctx.res, 200, { files });
   }
 
-  async function handleGetActiveTheme({ res }: any) {
-    const activeFile = themesResource.getActiveName();
-    const raw = themesResource.readJson(activeFile);
+  async function handleGetActiveColorsAndType({ res }: any) {
+    const activeFile = colorsAndTypeResource.getActiveName();
+    const raw = colorsAndTypeResource.readJson(activeFile);
     if (!raw) {
       jsonResponse(res, 404, { error: 'Active theme not found' });
       return;
     }
-    const data = normalizeTheme(raw as any);
+    const data = normalizeColorsAndType(raw as any);
     data._fileName = activeFile;
     jsonResponse(res, 200, data);
   }
 
-  async function handleSetActiveTheme({ req, res }: any) {
+  async function handleSetActiveColorsAndType({ req, res }: any) {
     const body = JSON.parse(await readBody(req));
     const fileName = sanitizeFileName(body.name || 'default');
-    if (themesResource.existingPath(fileName) === null) {
+    if (colorsAndTypeResource.existingPath(fileName) === null) {
       jsonResponse(res, 404, { error: 'Theme not found' });
       return;
     }
-    themesResource.setActiveName(fileName);
+    colorsAndTypeResource.setActiveName(fileName);
     jsonResponse(res, 200, { ok: true, activeFile: fileName });
   }
 
-  async function handleGetProductionTheme({ res }: any) {
-    const prodFile = themesResource.getProductionName();
-    const raw = themesResource.readJson(prodFile);
+  async function handleGetProductionColorsAndType({ res }: any) {
+    const prodFile = colorsAndTypeResource.getProductionName();
+    const raw = colorsAndTypeResource.readJson(prodFile);
     if (!raw) {
       jsonResponse(res, 200, { fileName: prodFile, name: prodFile, cssVariables: {} });
       return;
     }
-    const data = normalizeTheme(raw as any);
+    const data = normalizeColorsAndType(raw as any);
     jsonResponse(res, 200, {
       fileName: prodFile,
       name: data.name || prodFile,
@@ -1003,10 +1004,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     });
   }
 
-  async function handleSetProductionTheme({ req, res }: any) {
+  async function handleSetProductionColorsAndType({ req, res }: any) {
     const body = JSON.parse(await readBody(req));
     const fileName = sanitizeFileName(body.name || 'default');
-    if (themesResource.existingPath(fileName) === null) {
+    if (colorsAndTypeResource.existingPath(fileName) === null) {
       jsonResponse(res, 404, { error: 'Theme not found' });
       return;
     }
@@ -1019,12 +1020,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       });
       return;
     }
-    themesResource.setProductionName(fileName);
+    colorsAndTypeResource.setProductionName(fileName);
     syncTokensToCss(fileName);
     syncFontsToCss(fileName);
     syncComponentsToCss();
-    patchActiveManifest([{ field: 'theme', fileName }]);
-    const data = themesResource.readJson(fileName) as any;
+    patchActiveManifest([{ field: 'colors-and-type', fileName }]);
+    const data = colorsAndTypeResource.readJson(fileName) as any;
     jsonResponse(res, 200, {
       ok: true,
       fileName,
@@ -1033,17 +1034,17 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     });
   }
 
-  async function handleThemeByName({ params, req, res }: any) {
+  async function handleColorsAndTypeByName({ params, req, res }: any) {
     const [fileName] = params;
-    const filePath = themesResource.filePath(fileName);
+    const filePath = colorsAndTypeResource.filePath(fileName);
 
     if (req.method === 'GET') {
-      const raw = themesResource.readJson(fileName);
+      const raw = colorsAndTypeResource.readJson(fileName);
       if (!raw) {
         jsonResponse(res, 404, { error: 'Not found' });
         return;
       }
-      const data = normalizeTheme(raw as any);
+      const data = normalizeColorsAndType(raw as any);
       data._fileName = fileName;
       jsonResponse(res, 200, data);
       return;
@@ -1071,8 +1072,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       }
       if (!body.createdAt) body.createdAt = body.updatedAt;
       fs.writeFileSync(filePath, JSON.stringify(body, null, 2));
-      // Keep tokens.css and fonts.css in sync when the production theme is saved
-      if (fileName === themesResource.getProductionName()) {
+      // Keep tokens.css and fonts.css in sync when the production file is saved
+      if (fileName === colorsAndTypeResource.getProductionName()) {
         syncTokensToCss(fileName);
         syncFontsToCss(fileName);
         syncComponentsToCss();
@@ -1093,23 +1094,23 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         // but the CSS must resync to the restored content. Only a name that no
         // longer resolves anywhere heals its pointers to default, mirroring
         // the component-config delete handler.
-        const stillShipped = themesResource.existingPath(fileName) !== null;
+        const stillShipped = colorsAndTypeResource.existingPath(fileName) !== null;
         if (!stillShipped) {
-          if (themesResource.getActiveName() === fileName) {
-            themesResource.setActiveName('default');
+          if (colorsAndTypeResource.getActiveName() === fileName) {
+            colorsAndTypeResource.setActiveName('default');
           }
-          if (themesResource.getProductionName() === fileName) {
-            themesResource.setProductionName('default');
+          if (colorsAndTypeResource.getProductionName() === fileName) {
+            colorsAndTypeResource.setProductionName('default');
             syncTokensToCss('default');
             syncFontsToCss('default');
           }
-        } else if (themesResource.getProductionName() === fileName) {
+        } else if (colorsAndTypeResource.getProductionName() === fileName) {
           syncTokensToCss(fileName);
           syncFontsToCss(fileName);
         }
-      } else if (themesResource.existingPath(fileName)) {
-        // No local copy — only the package ships this theme. Without this
-        // guard the delete would report ok while the theme stays listed.
+      } else if (colorsAndTypeResource.existingPath(fileName)) {
+        // No local copy — only the package ships this file. Without this
+        // guard the delete would report ok while it stays listed.
         jsonResponse(res, 403, {
           error: 'Cannot delete a theme shipped with the package. Saving it creates a local copy; deleting that copy restores the shipped version.',
           code: 'PACKAGE_THEME',
@@ -1377,7 +1378,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         // sits on disk to fall back to. Deleting a local file that shadows a
         // shipped manifest restores the package version, which still resolves,
         // so the pointer keeps naming it — only a name that resolves nowhere
-        // heals, mirroring the theme delete handler.
+        // heals, mirroring the colors-and-type delete handler.
         if (
           manifestsResource.existingPath(fileName) === null &&
           manifestsResource.getActiveName() === fileName
@@ -1399,13 +1400,13 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Apply a manifest: materialise its embedded theme and configs into working
-   * files under the manifest's own slug, flip the theme + each component's
-   * `_active.json` and `_production.json` pointers at them, sync
+   * Apply a manifest: materialise its embedded colors and type and configs into
+   * working files under the manifest's own slug, flip the colors-and-type +
+   * each component's `_active.json` and `_production.json` pointers at them, sync
    * tokens.css/fonts.css, mark the manifest active, and return the resolved
    * state in one payload. The client follows with a full page reload. Setting
    * production here (not just active) means the running page picks up the new
-   * look without the user having to Adopt theme + every component by hand.
+   * look without the user having to Adopt colors and type + every component by hand.
    *
    * A manifest is a complete look, so components it doesn't carry are reset to
    * their defaults rather than left as they were.
@@ -1426,23 +1427,23 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       return;
     }
 
-    const themeName = isDefault ? 'default' : fileName;
+    const colorsAndTypeName = isDefault ? 'default' : fileName;
     if (!isDefault) {
-      themesResource.ensureDir();
+      colorsAndTypeResource.ensureDir();
       fs.writeFileSync(
-        themesResource.filePath(themeName),
+        colorsAndTypeResource.filePath(colorsAndTypeName),
         JSON.stringify(manifest.theme, null, 2),
       );
     }
 
-    // Flip theme: active drives the editor, production drives the running page
+    // Flip colors and type: active drives the editor, production drives the running page
     // (syncTokensToCss/syncFontsToCss write into tokens.css).
-    themesResource.setActiveName(themeName);
-    themesResource.setProductionName(themeName);
-    syncTokensToCss(themeName);
-    syncFontsToCss(themeName);
-    const themeData = normalizeTheme(themesResource.readJson(themeName) as any);
-    themeData._fileName = themeName;
+    colorsAndTypeResource.setActiveName(colorsAndTypeName);
+    colorsAndTypeResource.setProductionName(colorsAndTypeName);
+    syncTokensToCss(colorsAndTypeName);
+    syncFontsToCss(colorsAndTypeName);
+    const colorsAndTypeData = normalizeColorsAndType(colorsAndTypeResource.readJson(colorsAndTypeName) as any);
+    colorsAndTypeData._fileName = colorsAndTypeName;
 
     const knownComponents = listComponentNames();
     const resolvedConfigs: Record<string, any> = {};
@@ -1478,15 +1479,15 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     jsonResponse(res, 200, {
       ok: true,
       manifest: { ...manifest, _fileName: fileName },
-      theme: themeData,
+      theme: colorsAndTypeData,
       componentConfigs: resolvedConfigs,
       skippedComponents,
     });
   }
 
   /**
-   * Export a manifest for sharing: the manifest already carries its theme and
-   * configs, so the bundle is the envelope plus provenance. Served with a
+   * Export a manifest for sharing: the manifest already carries its colors and
+   * type and its configs, so the bundle is the envelope plus provenance. Served with a
    * `Content-Disposition` attachment header so browsers save rather than
    * display. `liveTokensVersion` lets the UI warn on compatibility drift in a
    * future iteration.
@@ -1538,7 +1539,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    * rename (`-2` / `-3` suffixes), and whatever the bundle failed to carry.
    * Does not auto-apply — the user clicks Load on the new row.
    *
-   * v1 bundles (pointer manifest + separately inlined theme and configs) still
+   * v1 bundles (pointer manifest + separately inlined colors and type and configs) still
    * import: their refs resolve inside the bundle, never against local files
    * that happen to share a name.
    */
@@ -1568,14 +1569,14 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
 
     const bundleResolvers: ManifestResolvers = {
-      readTheme: () => bundle.theme,
+      readColorsAndType: () => bundle.theme,
       readComponentConfig: (comp, name) => bundle.componentConfigs?.[`${comp}/${name}`],
-      normalizeTheme: (theme) => normalizeTheme(theme as any),
+      normalizeColorsAndType: (colorsAndType) => normalizeColorsAndType(colorsAndType as any),
     };
     const { manifest, dropped } = normalizeManifest(bundle.manifest, bundleResolvers);
-    // Foreign data door: an embedded theme arrives unreconciled, which is what
-    // normalizeTheme's `_imported` palette path exists for.
-    if (manifest.theme) manifest.theme = normalizeTheme(manifest.theme as any);
+    // Foreign data door: an embedded copy arrives unreconciled, which is what
+    // normalizeColorsAndType's `_imported` palette path exists for.
+    if (manifest.theme) manifest.theme = normalizeColorsAndType(manifest.theme as any);
     if (!manifest.theme) {
       jsonResponse(res, 400, { error: 'Bundle carries no theme' });
       return;
@@ -1605,7 +1606,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   /**
    * Adopt the whole look: promote the live state to production in one pass —
-   * the theme layer plus every component whose active config is not what
+   * the colors-and-type layer plus every component whose active config is not what
    * production runs. The per-slice production doors stay for the component
    * editors' own Adopt; this is the root one, and it exists so shipping a look
    * cannot land halfway.
@@ -1625,20 +1626,20 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       return;
     }
 
-    const themeName = themesResource.getActiveName();
-    const themePromoted = themesResource.getProductionName() !== themeName;
+    const colorsAndTypeName = colorsAndTypeResource.getActiveName();
+    const colorsAndTypePromoted = colorsAndTypeResource.getProductionName() !== colorsAndTypeName;
     const components = listComponentNames();
     const promotedComponents = components.filter((comp) => {
       const r = componentResource(comp);
       return r.getProductionName() !== r.getActiveName();
     });
 
-    if (!themePromoted && promotedComponents.length === 0) {
+    if (!colorsAndTypePromoted && promotedComponents.length === 0) {
       jsonResponse(res, 200, { ok: true, promoted: false, theme: null, components: [] });
       return;
     }
 
-    if (themePromoted) themesResource.setProductionName(themeName);
+    if (colorsAndTypePromoted) colorsAndTypeResource.setProductionName(colorsAndTypeName);
     for (const comp of promotedComponents) {
       const r = componentResource(comp);
       r.ensureDir();
@@ -1646,16 +1647,16 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
 
     // syncTokensToCss and syncComponentsToCss are the same rebuild, so one call
-    // covers every pointer just flipped. fonts.css tracks the production theme
-    // alone.
+    // covers every pointer just flipped. fonts.css tracks the production colors
+    // and type alone.
     regenerateTokensCss();
-    if (themePromoted) syncFontsToCss(themeName);
+    if (colorsAndTypePromoted) syncFontsToCss(colorsAndTypeName);
 
     // The look records what shipped, and only that: re-embedding a slice that
     // did not move would delete the look's entry for every component sitting
     // on its default, which is data the adopt never touched.
     patchActiveManifest([
-      ...(themePromoted ? [{ field: 'theme' as const, fileName: themeName }] : []),
+      ...(colorsAndTypePromoted ? [{ field: 'colors-and-type' as const, fileName: colorsAndTypeName }] : []),
       ...promotedComponents.map((comp) => ({
         field: 'component' as const,
         comp,
@@ -1663,11 +1664,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       })),
     ]);
 
-    const themeData = themesResource.readJson(themeName) as any;
+    const colorsAndTypeData = colorsAndTypeResource.readJson(colorsAndTypeName) as any;
     jsonResponse(res, 200, {
       ok: true,
       promoted: true,
-      theme: themePromoted ? { fileName: themeName, name: themeData?.name || themeName } : null,
+      theme: colorsAndTypePromoted ? { fileName: colorsAndTypeName, name: colorsAndTypeData?.name || colorsAndTypeName } : null,
       components: promotedComponents,
     });
   }
@@ -1688,12 +1689,13 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   //   2. COMP_LIST_REGEX (`/api/component-configs/:comp`) must come after the
   //      :comp/:name routes because the latter is more specific.
   const routes: Route[] = [
-    // Themes — list / active / production are exact strings, must run before THEME_BY_NAME_REGEX
-    { method: 'GET',    pattern: THEMES_ROUTE,            handler: handleListThemes },
-    { method: 'GET',    pattern: THEMES_ACTIVE_ROUTE,     handler: handleGetActiveTheme },
-    { method: 'PUT',    pattern: THEMES_ACTIVE_ROUTE,     handler: handleSetActiveTheme },
-    { method: 'GET',    pattern: THEMES_PRODUCTION_ROUTE, handler: handleGetProductionTheme },
-    { method: 'PUT',    pattern: THEMES_PRODUCTION_ROUTE, handler: handleSetProductionTheme },
+    // Colors and type — list / active / production are exact strings; they must
+    // run before COLORS_AND_TYPE_BY_NAME_REGEX
+    { method: 'GET',    pattern: COLORS_AND_TYPE_ROUTE,            handler: handleListColorsAndType },
+    { method: 'GET',    pattern: COLORS_AND_TYPE_ACTIVE_ROUTE,     handler: handleGetActiveColorsAndType },
+    { method: 'PUT',    pattern: COLORS_AND_TYPE_ACTIVE_ROUTE,     handler: handleSetActiveColorsAndType },
+    { method: 'GET',    pattern: COLORS_AND_TYPE_PRODUCTION_ROUTE, handler: handleGetProductionColorsAndType },
+    { method: 'PUT',    pattern: COLORS_AND_TYPE_PRODUCTION_ROUTE, handler: handleSetProductionColorsAndType },
 
     // Component configs — list of components
     { method: 'GET',    pattern: COMPONENT_CONFIGS_ROUTE, handler: handleListComponents },
@@ -1719,10 +1721,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     // Component configs — list configs for :comp (broadest, runs last among comp routes)
     { method: 'GET',    pattern: COMP_LIST_REGEX,         handler: handleListComponentConfigs },
 
-    // Themes — :name CRUD (broadest theme route, runs last)
-    { method: 'GET',    pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
-    { method: 'PUT',    pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
-    { method: 'DELETE', pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
+    // Colors and type — :name CRUD (broadest colors-and-type route, runs last)
+    { method: 'GET',    pattern: COLORS_AND_TYPE_BY_NAME_REGEX, handler: handleColorsAndTypeByName },
+    { method: 'PUT',    pattern: COLORS_AND_TYPE_BY_NAME_REGEX, handler: handleColorsAndTypeByName },
+    { method: 'DELETE', pattern: COLORS_AND_TYPE_BY_NAME_REGEX, handler: handleColorsAndTypeByName },
 
     // Manifests — list / active are exact strings, must run before regexes
     { method: 'GET',    pattern: MANIFESTS_ROUTE,         handler: handleListManifests },
@@ -1775,7 +1777,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       };
     },
     configureServer(server) {
-      ensureThemesDir();
+      ensureColorsAndTypeDir();
       ensureComponentConfigsDir();
       ensureManifestsDir((msg) => server.config.logger.warn(msg));
       // Make sure the editor-owned sidecar exists and reflects current

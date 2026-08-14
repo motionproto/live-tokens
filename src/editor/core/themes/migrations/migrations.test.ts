@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CURRENT_THEME_SCHEMA_VERSION,
+  CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION,
   CURRENT_COMPONENT_SCHEMA_VERSION,
   runMigrations,
 } from './index';
 
 describe('migration runner — schemaVersion gating', () => {
   it('CURRENT_*_SCHEMA_VERSION are positive (at least one migration registered each)', () => {
-    expect(CURRENT_THEME_SCHEMA_VERSION).toBeGreaterThan(0);
+    expect(CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION).toBeGreaterThan(0);
     expect(CURRENT_COMPONENT_SCHEMA_VERSION).toBeGreaterThan(0);
   });
 
-  it('legacy theme (schemaVersion: 0) → bg/canvas + legacy-key renames applied; resaved file matches modern shape', () => {
+  it('legacy colors and type (schemaVersion: 0) → bg/canvas + legacy-key renames applied; resaved file matches modern shape', () => {
     const legacy = {
       // bg → canvas pattern (exact match + boundary suffix)
       '--surface-bg': '#fff',
@@ -25,7 +25,7 @@ describe('migration runner — schemaVersion gating', () => {
       // unrelated key passes through
       '--text-primary': '#333',
     };
-    const migrated = runMigrations('theme', 0, legacy);
+    const migrated = runMigrations('colors-and-type', 0, legacy);
     expect(migrated['--surface-canvas']).toBe('#fff');
     expect(migrated['--text-canvas']).toBe('#000');
     expect(migrated['--border-canvas-strong']).toBe('#888');
@@ -38,9 +38,9 @@ describe('migration runner — schemaVersion gating', () => {
     expect(migrated['--empty']).toBeUndefined();
   });
 
-  it('file already at current theme version → no migrations run (passthrough)', () => {
+  it('file already at current colors-and-type version → no migrations run (passthrough)', () => {
     const modern = { '--surface-canvas': '#fff', '--text-primary': '#333' };
-    const out = runMigrations('theme', CURRENT_THEME_SCHEMA_VERSION, modern);
+    const out = runMigrations('colors-and-type', CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION, modern);
     expect(out).toEqual(modern);
     // identity-preserved values
     expect(out['--surface-canvas']).toBe('#fff');
@@ -417,7 +417,7 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out).toEqual(current);
   });
 
-  it('theme v1 → v2 primary→brand: brand family keys renamed, neutral --text-primary untouched', () => {
+  it('colors-and-type v1 → v2 primary→brand: brand family keys renamed, neutral --text-primary untouched', () => {
     const v1 = {
       '--color-primary-100': '#ffe6f9',
       '--color-primary-500': '#eb0ad4',
@@ -433,7 +433,7 @@ describe('migration runner — schemaVersion gating', () => {
       // Component variant — also must NOT be touched.
       '--button-primary-surface': '#abc123',
     };
-    const out = runMigrations('theme', 1, v1);
+    const out = runMigrations('colors-and-type', 1, v1);
     // Brand family renamed.
     expect(out['--color-brand-100']).toBe('#ffe6f9');
     expect(out['--color-brand-500']).toBe('#eb0ad4');
@@ -484,7 +484,7 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out['--card-hover-title']).toBe('--text-secondary');
   });
 
-  it('theme v3 → v4: legacy shape/space keys drop; modern component + theme vars survive', () => {
+  it('colors-and-type v3 → v4: legacy shape/space keys drop; modern component + global vars survive', () => {
     const v3 = {
       '--badge-trait-radius': 'var(--radius-full)',
       '--badge-trait-padding': 'var(--space-6)',
@@ -505,10 +505,10 @@ describe('migration runner — schemaVersion gating', () => {
       '--badge-primary-radius': 'var(--radius-full)',
       '--sectiondivider-lg-padding': 'var(--space-0)',
       '--dialog-radius': 'var(--radius-lg)',
-      // Unrelated theme var.
+      // Unrelated global var.
       '--text-primary': '#fff5f0',
     };
-    const out = runMigrations('theme', 3, v3);
+    const out = runMigrations('colors-and-type', 3, v3);
     for (const key of [
       '--badge-trait-radius',
       '--badge-trait-padding',
@@ -533,18 +533,18 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out['--text-primary']).toBe('#fff5f0');
   });
 
-  it('theme v3 → v4 is idempotent — re-running on migrated output changes nothing', () => {
-    const once = runMigrations('theme', 3, {
+  it('colors-and-type v3 → v4 is idempotent — re-running on migrated output changes nothing', () => {
+    const once = runMigrations('colors-and-type', 3, {
       '--dialog-primary-default-radius': 'var(--radius-md)',
       '--text-primary': '#fff5f0',
     });
-    expect(runMigrations('theme', 3, once)).toEqual(once);
+    expect(runMigrations('colors-and-type', 3, once)).toEqual(once);
   });
 
   it('runMigrations is pure — does not mutate the input map', () => {
     const input = { '--surface-bg': '#fff' };
     const before = { ...input };
-    runMigrations('theme', 0, input);
+    runMigrations('colors-and-type', 0, input);
     expect(input).toEqual(before);
   });
 

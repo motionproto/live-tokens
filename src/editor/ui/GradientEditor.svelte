@@ -7,7 +7,7 @@
   import { get } from 'svelte/store';
   import type { GradientType, GradientTokenStop } from '../core/store/editorTypes';
   import {
-    themeGradientSource,
+    colorsAndTypeGradientSource,
     snapshotGradient,
     type GradientSource,
     type GradientSourceSnapshot,
@@ -20,7 +20,7 @@
   import { snapTokenToFamily } from '../core/palettes/familySwap';
 
   interface Props {
-    /** Theme-gradient mode: variable name (e.g. `--gradient-1`). */
+    /** ColorsAndType-gradient mode: variable name (e.g. `--gradient-1`). */
     variable?: string;
     /** Component-gradient mode: source adapter. Wins over `variable`. */
     source?: GradientSource;
@@ -52,7 +52,7 @@
 
   // Captured once: callers remount when the target gradient changes.
   // svelte-ignore state_referenced_locally
-  const gradientSource: GradientSource = source ?? themeGradientSource(variable!);
+  const gradientSource: GradientSource = source ?? colorsAndTypeGradientSource(variable!);
   // Local const so Svelte 5's `$<store>` auto-subscription works.
   const gradientSourceCurrent = gradientSource.current;
   // svelte-ignore state_referenced_locally

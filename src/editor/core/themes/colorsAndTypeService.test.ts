@@ -3,10 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import { API_BASE } from '../storage/apiBase';
 import { activeFileName } from '../store/editorConfigStore';
-import { dirty, editorState, mutate, themeDirty, __resetForTests } from '../store/editorStore';
-import { persistTheme } from './themeService';
+import { dirty, editorState, mutate, colorsAndTypeDirty, __resetForTests } from '../store/editorStore';
+import { persistColorsAndType } from './colorsAndTypeService';
 
-describe('persistTheme', () => {
+describe('persistColorsAndType', () => {
   let requests: { method: string; url: string; body: any }[];
 
   beforeEach(() => {
@@ -34,9 +34,9 @@ describe('persistTheme', () => {
       s.cssVars['--surface-canvas'] = '#123456';
     });
     expect(get(dirty)).toBe(true);
-    expect(get(themeDirty)).toBe(true);
+    expect(get(colorsAndTypeDirty)).toBe(true);
 
-    await persistTheme(get(editorState), 'my-colors', 'My Colors');
+    await persistColorsAndType(get(editorState), 'my-colors', 'My Colors');
 
     expect(requests.map((r) => `${r.method} ${r.url}`)).toEqual([
       `PUT ${API_BASE}/themes/my-colors`,
@@ -47,6 +47,6 @@ describe('persistTheme', () => {
     expect(requests[1].body).toEqual({ name: 'my-colors' });
     expect(get(activeFileName)).toBe('my-colors');
     expect(get(dirty)).toBe(false);
-    expect(get(themeDirty)).toBe(false);
+    expect(get(colorsAndTypeDirty)).toBe(false);
   });
 });

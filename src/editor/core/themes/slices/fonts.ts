@@ -20,7 +20,7 @@ export function setFontStacks(stacks: FontStack[]): void {
  * Populate fonts from the server's active theme at boot. Does not push
  * a history entry — the boot load is a starting point, not an edit.
  */
-export function seedFontsFromTheme(sources: FontSource[], stacks: FontStack[]): void {
+export function seedFontsFromColorsAndType(sources: FontSource[], stacks: FontStack[]): void {
   store.update((s) => {
     s.fonts.sources = structuredClone(sources);
     s.fonts.stacks = structuredClone(stacks);

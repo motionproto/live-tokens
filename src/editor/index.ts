@@ -22,22 +22,22 @@ export {
 export { setCssVar, removeCssVar } from './core/cssVarSync';
 
 export {
-  listThemes,
-  loadTheme,
-  saveTheme,
-  deleteTheme,
-  getActiveTheme,
+  listColorsAndType,
+  loadColorsAndType,
+  saveColorsAndType,
+  deleteColorsAndType,
+  getActiveColorsAndType,
   setActiveFile,
   getProductionInfo,
   setProductionFile,
   sanitizeFileName,
-} from './core/themes/themeService';
-export type { ProductionInfo } from './core/themes/themeService';
+} from './core/themes/colorsAndTypeService';
+export type { ProductionInfo } from './core/themes/colorsAndTypeService';
 
 export type {
   PaletteConfig,
-  Theme,
-  ThemeMeta,
+  ColorsAndType,
+  ColorsAndTypeMeta,
   GradientStyle,
   GradientStop,
   FontSource,
@@ -72,7 +72,7 @@ export {
   resolveFontStackValues,
   SYSTEM_CASCADES,
 } from './core/fonts/fontLoader';
-export { migrateThemeFonts, defaultFontSources, defaultFontStacks } from './core/fonts/fontMigration';
+export { migrateColorsAndTypeFonts, defaultFontSources, defaultFontStacks } from './core/fonts/fontMigration';
 
 export { hexToOklch, oklchToHex, gamutClamp } from './core/palettes/oklch';
 export type { Oklch } from './core/palettes/oklch';

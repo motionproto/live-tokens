@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { hexToOklch, oklchToHex } from './oklch';
-import defaultTheme from '../../../live-tokens/data/themes/default.json';
+import defaultColorsAndType from '../../../live-tokens/data/themes/default.json';
 
 // The storage migration (and the reconcile anchor parser) parse hex to the
 // OKLCH basis at the boundary. Those boundaries are lossy-safe only if
@@ -9,7 +9,7 @@ import defaultTheme from '../../../live-tokens/data/themes/default.json';
 describe('hex → OKLCH → hex is lossless (guards the migration + reconcile boundaries)', () => {
   const fixtureHexes = (): string[] => {
     const set = new Set<string>();
-    const configs = defaultTheme.editorConfigs as unknown as Record<string, { baseColor?: unknown; overrides?: Record<string, unknown> }>;
+    const configs = defaultColorsAndType.editorConfigs as unknown as Record<string, { baseColor?: unknown; overrides?: Record<string, unknown> }>;
     for (const config of Object.values(configs)) {
       if (typeof config?.baseColor === 'string') set.add(config.baseColor);
       for (const v of Object.values(config?.overrides ?? {})) if (typeof v === 'string') set.add(v);

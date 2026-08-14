@@ -11,7 +11,7 @@ import ProjectFontsSection from './ProjectFontsSection.svelte';
 import FontStackEditor from './FontStackEditor.svelte';
 import {
   editorState,
-  seedFontsFromTheme,
+  seedFontsFromColorsAndType,
   __resetForTests,
 } from '../core/store/editorStore';
 import type { FontSource, FontStack } from '../core/themes/themeTypes';
@@ -48,7 +48,7 @@ const stacks: FontStack[] = [
 beforeEach(() => {
   __resetForTests();
   document.body.innerHTML = '';
-  seedFontsFromTheme(sources, stacks);
+  seedFontsFromColorsAndType(sources, stacks);
 });
 
 describe('removeFamily X button', () => {

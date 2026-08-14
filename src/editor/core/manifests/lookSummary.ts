@@ -3,39 +3,39 @@ import type { ComponentSummary } from '../components/componentConfigService';
 export interface LookProductionState {
   /** True when production is known to run the look on screen, slice for slice. */
   inProduction: boolean;
-  /** True while the production theme is unread: neither claim can be made. */
+  /** True while the production colors and type are unread: neither claim can be made. */
   unknown: boolean;
   /** True when production runs colors and type other than the live ones. */
-  themeOff: boolean;
+  colorsAndTypeOff: boolean;
   /** Components running a config production does not have. */
   componentsOff: string[];
 }
 
 /**
  * Whether production is running the whole look. Two pointer comparisons: the
- * live colors and type against the production theme, and each component's
+ * live colors and type against the production ones, and each component's
  * active config against its production one.
  *
- * A null production theme is not an answer, so it is neither state: `unknown`
+ * A null production read is not an answer, so it is neither state: `unknown`
  * says so and `inProduction` stays false. Callers render that as its own
  * neutral state, which keeps a mount from flashing the alarm without letting a
  * read that never lands read as shipped forever.
  */
 export function lookProductionState(
-  activeTheme: string,
-  productionTheme: string | null,
+  activeColorsAndType: string,
+  productionColorsAndType: string | null,
   components: ComponentSummary[],
 ): LookProductionState {
-  const unknown = productionTheme === null;
-  const themeOff = !unknown && productionTheme !== activeTheme;
+  const unknown = productionColorsAndType === null;
+  const colorsAndTypeOff = !unknown && productionColorsAndType !== activeColorsAndType;
   const componentsOff = components
     .filter((c) => c.activeFile !== c.productionFile)
     .map((c) => c.name);
   return {
     unknown,
-    themeOff,
+    colorsAndTypeOff,
     componentsOff,
-    inProduction: !unknown && !themeOff && componentsOff.length === 0,
+    inProduction: !unknown && !colorsAndTypeOff && componentsOff.length === 0,
   };
 }
 

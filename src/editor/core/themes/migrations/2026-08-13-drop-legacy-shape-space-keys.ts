@@ -22,11 +22,11 @@ const DROPPED = new Set([
   '--dialog-secondary-hover-padding',
 ]);
 
-export const themeMigration_2026_08_13_dropLegacyShapeSpaceKeys: Migration = {
+export const colorsAndTypeMigration_2026_08_13_dropLegacyShapeSpaceKeys: Migration = {
   id: '2026-08-13-drop-legacy-shape-space-keys',
   fromVersion: 3,
   toVersion: 4,
-  appliesTo: 'theme',
+  appliesTo: 'colors-and-type',
   apply(rawVars) {
     const out: Record<string, string> = {};
     for (const [key, value] of Object.entries(rawVars)) {

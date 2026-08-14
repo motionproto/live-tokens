@@ -3,7 +3,7 @@
  * editable artifact whose lifecycle mirrors the theme files: list / load /
  * save / delete + an active pointer + a production pointer.
  *
- * `themeService.ts` and `componentConfigService.ts` previously reimplemented
+ * `colorsAndTypeService.ts` and `componentConfigService.ts` previously reimplemented
  * the same fetch shape. They now both consume `versionedFileResource(...)`
  * with their resource-specific URL.
  *

@@ -20,7 +20,7 @@ import { adoptBackgroundSpotAsBase } from '../themes/migrations/2026-07-25-backg
 import { placeUnplacedBaseAnchors } from '../themes/migrations/2026-07-29-place-base-anchors';
 import { makeAnchor, sampleCurve, type CurveAnchor } from '../../ui/curveEngine';
 import type { PaletteConfig } from '../themes/themeTypes';
-import defaultTheme from '../../../live-tokens/data/themes/default.json';
+import defaultColorsAndType from '../../../live-tokens/data/themes/default.json';
 
 // Keeps each test case explicit about which fields a palette starts with so
 // the reconciler's behaviour is unambiguous. Takes hex for readability and
@@ -131,7 +131,7 @@ describe('derivation is byte-stable (Global invariant 1)', () => {
   // deriving. The placement pass is what pins each base color into its own
   // ramp, so leaving it out would derive a theme no one ever loads.
   const editorConfigs = placeUnplacedBaseAnchors(adoptBackgroundSpotAsBase(adoptLegacyBaseAnchor(migratePaletteColorsToOklch(
-    defaultTheme.editorConfigs as unknown as Record<string, PreOklchPaletteConfig>,
+    defaultColorsAndType.editorConfigs as unknown as Record<string, PreOklchPaletteConfig>,
   ))));
 
   it('palettesToVars(default.json editorConfigs) is unchanged', () => {

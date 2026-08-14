@@ -1,6 +1,6 @@
-import type { AliasDiskValue, Theme } from './themeTypes';
+import type { AliasDiskValue, ColorsAndType } from './themeTypes';
 import { activeFileName } from '../store/editorConfigStore';
-import { migrateThemeFonts } from '../fonts/fontMigration';
+import { migrateColorsAndTypeFonts } from '../fonts/fontMigration';
 import { applyFontSources, applyFontStacks } from '../fonts/fontLoader';
 import { loadFromFile, seedComponentsFromApi } from '../store/editorStore';
 import { getActiveComponentConfig } from '../components/componentConfigService';
@@ -18,14 +18,14 @@ interface ListComponentsDto {
 }
 
 /**
- * Fetch the active theme from the server and apply its CSS variables
- * to :root before the app mounts. Seeds the editor store so PaletteEditors
- * initialize from the theme instead of stale localStorage.
+ * Fetch the active colors and type from the server and apply their CSS
+ * variables to :root before the app mounts. Seeds the editor store so
+ * PaletteEditors initialize from the file instead of stale localStorage.
  *
- * Routes the theme through `loadFromFile` so palette-derived vars in
+ * Routes the payload through `loadFromFile` so palette-derived vars in
  * `deriveCssVars` correctly overwrite any stale hexes baked into
- * `theme.cssVariables` by `handleSave`'s scrape. Writing
- * `theme.cssVariables` directly to inline :root (the previous approach)
+ * `cssVariables` by `handleSave`'s scrape. Writing
+ * `cssVariables` directly to inline :root (the previous approach)
  * bypassed the store and left the subscriber's `lastApplied` diff cache
  * out of sync, so palette-derived values stayed stale until a
  * `PaletteEditor` mounted and re-emitted them.
@@ -35,17 +35,17 @@ interface ListComponentsDto {
  * `safeFetch` (instead of empty try/catch) to make the silence intentional.
  */
 export async function initializeTheme(): Promise<void> {
-  const theme = await safeFetch<Theme>(`${API_BASE}/themes/active`);
-  if (theme) {
-    migrateThemeFonts(theme);
-    loadFromFile(theme);
-    if (theme.fontSources && theme.fontSources.length > 0) {
-      applyFontSources(theme.fontSources);
+  const colorsAndType = await safeFetch<ColorsAndType>(`${API_BASE}/themes/active`);
+  if (colorsAndType) {
+    migrateColorsAndTypeFonts(colorsAndType);
+    loadFromFile(colorsAndType);
+    if (colorsAndType.fontSources && colorsAndType.fontSources.length > 0) {
+      applyFontSources(colorsAndType.fontSources);
     }
-    if (theme.fontStacks && theme.fontStacks.length > 0) {
-      applyFontStacks(theme.fontStacks, theme.fontSources ?? []);
+    if (colorsAndType.fontStacks && colorsAndType.fontStacks.length > 0) {
+      applyFontStacks(colorsAndType.fontStacks, colorsAndType.fontSources ?? []);
     }
-    const fileName = theme._fileName || 'default';
+    const fileName = colorsAndType._fileName || 'default';
     activeFileName.set(fileName);
   }
 

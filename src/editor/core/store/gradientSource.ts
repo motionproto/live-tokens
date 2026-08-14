@@ -53,7 +53,7 @@ export interface GradientSource {
 }
 
 /** Adapter for `--gradient-N` library tokens in `state.gradients.tokens`. */
-export function themeGradientSource(variable: string): GradientSource {
+export function colorsAndTypeGradientSource(variable: string): GradientSource {
   const current = derived(editorState, ($s) => {
     const t = $s.gradients.tokens.find((g) => g.variable === variable);
     if (!t) return undefined;

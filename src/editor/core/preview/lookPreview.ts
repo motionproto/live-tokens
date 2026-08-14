@@ -1,16 +1,16 @@
 import { get } from 'svelte/store';
-import type { FontSource, Manifest, Theme } from '../themes/themeTypes';
-import { editorState, themeToState, toComponentSlice } from '../store/editorStore';
+import type { FontSource, Manifest, ColorsAndType } from '../themes/themeTypes';
+import { editorState, colorsAndTypeToState, toComponentSlice } from '../store/editorStore';
 import { deriveCssVars } from '../store/editorRenderer';
 import { setCssVar, removeCssVar } from '../cssVarSync';
 import { applyFontSources, resolveFontStackValues } from '../fonts/fontLoader';
-import { migrateThemeFonts } from '../fonts/fontMigration';
+import { migrateColorsAndTypeFonts } from '../fonts/fontMigration';
 import { loadManifest } from '../manifests/manifestService';
 
 /**
  * Client-side rendering of a saved file, for browsing looks without committing
- * one. A manifest previews as a whole look; a theme previews as colors and type
- * over the components the user has right now. Nothing here writes to the server,
+ * one. A manifest previews as a whole look; a colors-and-type file previews as
+ * colors and type over the components the user has right now. Nothing here writes to the server,
  * mutates the editor store, or marks anything dirty: a preview is paint only.
  * Save-As stays honest because `captureLook` reads the server's active files,
  * which a preview never touches.
@@ -24,8 +24,9 @@ import { loadManifest } from '../manifests/manifestService';
  * so every look is a diff against the user's real state.
  */
 
-/** Everything a look puts on the page: the full var set (theme, components and
- *  the composed `--font-*` stacks) plus the sources its faces come from. */
+/** Everything a look puts on the page: the full var set (colors and type,
+ *  components and the composed `--font-*` stacks) plus the sources its faces
+ *  come from. */
 export interface RenderedLook {
   vars: Record<string, string>;
   fontSources: FontSource[];
@@ -37,9 +38,9 @@ export interface RenderedLook {
  * configs for components this install lacks are skipped, as Apply skips them.
  */
 export function manifestLook(manifest: Manifest, defaults: Manifest): RenderedLook {
-  const theme = structuredClone(manifest.theme);
-  migrateThemeFonts(theme);
-  const state = themeToState(theme);
+  const colorsAndType = structuredClone(manifest.theme);
+  migrateColorsAndTypeFonts(colorsAndType);
+  const state = colorsAndTypeToState(colorsAndType);
   state.components = {};
   for (const [comp, config] of Object.entries(defaults.componentConfigs)) {
     state.components[comp] = {
@@ -58,21 +59,21 @@ export function manifestLook(manifest: Manifest, defaults: Manifest): RenderedLo
     };
   }
   const vars = deriveCssVars(state);
-  Object.assign(vars, resolveFontStackValues(theme.fontStacks ?? [], theme.fontSources ?? []));
-  return { vars, fontSources: theme.fontSources ?? [] };
+  Object.assign(vars, resolveFontStackValues(colorsAndType.fontStacks ?? [], colorsAndType.fontSources ?? []));
+  return { vars, fontSources: colorsAndType.fontSources ?? [] };
 }
 
 /**
- * The full var set a theme paints. A theme is colors and type, not a whole look,
- * so the components stay as the user has them: `themeToState` carries the live
+ * The full var set colors and type paint on their own. They are not a whole look,
+ * so the components stay as the user has them: `colorsAndTypeToState` carries the live
  * component slice forward (`loadComponentsFromVars`) and strips component-owned
- * vars out of the theme's own bag, which is exactly the composition a preview
+ * vars out of their own bag, which is exactly the composition a preview
  * wants. No defaults fetch, no component reset.
  */
-export function themeLook(theme: Theme): RenderedLook {
-  const next = structuredClone(theme);
-  migrateThemeFonts(next);
-  const vars = deriveCssVars(themeToState(next));
+export function colorsAndTypeLook(colorsAndType: ColorsAndType): RenderedLook {
+  const next = structuredClone(colorsAndType);
+  migrateColorsAndTypeFonts(next);
+  const vars = deriveCssVars(colorsAndTypeToState(next));
   Object.assign(vars, resolveFontStackValues(next.fontStacks ?? [], next.fontSources ?? []));
   return { vars, fontSources: next.fontSources ?? [] };
 }
@@ -120,14 +121,15 @@ function applyPreview(look: RenderedLook): void {
   livePreview = look;
 }
 
-/** Paint a whole look: the manifest's theme and every component config it carries. */
+/** Paint a whole look: the manifest's colors and type and every component config
+ *  it carries. */
 export async function previewManifest(manifest: Manifest): Promise<void> {
   applyPreview(manifestLook(manifest, await loadDefaults()));
 }
 
-/** Paint a theme's colors and type over the components as they stand. */
-export function previewTheme(theme: Theme): void {
-  applyPreview(themeLook(theme));
+/** Paint colors and type over the components as they stand. */
+export function previewColorsAndType(colorsAndType: ColorsAndType): void {
+  applyPreview(colorsAndTypeLook(colorsAndType));
 }
 
 /** Restore the live editor state. No-op when no preview is running. */

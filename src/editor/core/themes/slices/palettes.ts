@@ -15,9 +15,9 @@ export function setPaletteConfig(label: string, config: PaletteConfig): void {
 
 /**
  * Server-boot path: populate all palettes at once without a history entry.
- * Mirrors `seedFontsFromTheme`.
+ * Mirrors `seedFontsFromColorsAndType`.
  */
-export function seedPalettesFromTheme(palettes: Record<string, PaletteConfig>): void {
+export function seedPalettesFromColorsAndType(palettes: Record<string, PaletteConfig>): void {
   store.update((s) => {
     s.palettes = structuredClone(palettes);
     return s;
