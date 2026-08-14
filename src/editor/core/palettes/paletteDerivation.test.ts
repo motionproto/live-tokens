@@ -20,7 +20,7 @@ import { adoptBackgroundSpotAsBase } from '../themes/migrations/2026-07-25-backg
 import { placeUnplacedBaseAnchors } from '../themes/migrations/2026-07-29-place-base-anchors';
 import { makeAnchor, sampleCurve, type CurveAnchor } from '../../ui/curveEngine';
 import type { PaletteConfig } from '../themes/themeTypes';
-import defaultColorsAndType from '../../../live-tokens/data/themes/default.json';
+import defaultColorsAndType from '../../../live-tokens/data/colors-and-type/default.json';
 
 // Keeps each test case explicit about which fields a palette starts with so
 // the reconciler's behaviour is unambiguous. Takes hex for readability and

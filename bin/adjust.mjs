@@ -4,7 +4,7 @@
 // the compiled engine (dist-plugin/adjust — the CLI never imports TS sources),
 // writes `<slug>.json` into each component dir the engine actually changed, and
 // points that component's `_active.json` at it. Production slots, `default.json`,
-// themes, and tokens.css are never touched.
+// colors and type, and tokens.css are never touched.
 
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';

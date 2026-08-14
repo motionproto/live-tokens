@@ -21,7 +21,7 @@ import { stampPresetFonts } from './lib/presetFonts.mjs';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'src/live-tokens/data');
 const CONFIGS = join(DATA, 'component-configs');
-const COLORS_AND_TYPE = join(DATA, 'themes');
+const COLORS_AND_TYPE = join(DATA, 'colors-and-type');
 const MANIFESTS = join(DATA, 'manifests');
 
 const ENGINE = join(ROOT, 'dist-plugin/adjust/index.js');

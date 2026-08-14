@@ -14,7 +14,7 @@ export default defineConfig({
       // handles TypeScript + scss.
       preprocess: [replacePreprocess(buildPruneReplace()), vitePreprocess()],
     }),
-    // Data folders default to `src/live-tokens/data/{themes,manifests,
+    // Data folders default to `src/live-tokens/data/{colors-and-type,manifests,
     // component-configs}`. Override per-folder here or via
     // `live-tokens.config.json` at the project root.
     themeFileApi({ tokensCssPath: 'src/system/styles/tokens.css' }),

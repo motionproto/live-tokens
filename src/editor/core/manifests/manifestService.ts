@@ -108,7 +108,7 @@ function withoutFileMarker<T extends { _fileName?: string }>(value: T): T {
  * every component that sits off its default, all by value. Delta encoding — a
  * component absent from the map runs the local default, which stays canonical.
  *
- * The colors and type come from `GET /themes/active`, which normalises before it
+ * The colors and type come from `GET /colors-and-type/active`, which normalises before it
  * answers. That matters: the server trusts an already-embedded copy and runs
  * no migrations over it on write.
  */

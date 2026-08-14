@@ -31,7 +31,8 @@ Commands:
                               Build a full theme from a 10-seed OKLCH brief
                               (see the live-tokens-generate-theme skill),
                               enforce AA contrast on derived text tokens, write
-                              themes/<slug>.json, and make it the active theme.
+                              colors-and-type/<slug>.json, and make it the
+                              active theme.
                               --no-activate only writes the file; --dry-run
                               prints the contrast report without writing.
                               Non-color content (gradients, fonts, component

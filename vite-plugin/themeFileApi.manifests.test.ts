@@ -17,7 +17,7 @@ const API = '/api/live-tokens';
 const REPO_ROOT = process.cwd();
 
 let tmp: string;
-let themesDir: string;
+let colorsAndTypeDir: string;
 let configsDir: string;
 let manifestsDir: string;
 let warnings: string[];
@@ -63,7 +63,7 @@ async function request(method: string, url: string, body?: unknown) {
 function boot(componentsSrcDir?: string) {
   const plugin = themeFileApi({
     dataDir: tmp,
-    themesDir,
+    colorsAndTypeDir,
     componentConfigsDir: configsDir,
     manifestsDir,
     componentsSrcDir,
@@ -111,7 +111,7 @@ const BUTTON_CONFIG = { name: 'fancy', component: 'button', aliases: { '--button
 /** A v1 pointer manifest naming a live theme, a live config, a component on
  *  default, and a config that has since been deleted. */
 function seedPointerManifest() {
-  writeJson(path.join(themesDir, 'custom.json'), COLORS_AND_TYPE);
+  writeJson(path.join(colorsAndTypeDir, 'custom.json'), COLORS_AND_TYPE);
   writeJson(path.join(configsDir, 'button', 'fancy.json'), BUTTON_CONFIG);
   writeJson(path.join(manifestsDir, 'look.json'), {
     name: 'look',
@@ -124,7 +124,7 @@ function seedPointerManifest() {
 
 beforeEach(() => {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ltme-'));
-  themesDir = path.join(tmp, 'themes');
+  colorsAndTypeDir = path.join(tmp, 'colors-and-type');
   configsDir = path.join(tmp, 'component-configs');
   manifestsDir = path.join(tmp, 'manifests');
   warnings = [];
@@ -309,13 +309,13 @@ describe('deletability', () => {
     seedPointerManifest();
     boot();
     await request('PUT', `${API}/manifests/look/apply`);
-    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('look');
+    expect(readJson(path.join(colorsAndTypeDir, '_production.json')).productionFile).toBe('look');
 
-    const { status } = await request('DELETE', `${API}/themes/look`);
+    const { status } = await request('DELETE', `${API}/colors-and-type/look`);
     expect(status).toBe(200);
-    expect(fs.existsSync(path.join(themesDir, 'look.json'))).toBe(false);
-    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('default');
-    expect(readJson(path.join(themesDir, '_active.json')).activeFile).toBe('default');
+    expect(fs.existsSync(path.join(colorsAndTypeDir, 'look.json'))).toBe(false);
+    expect(readJson(path.join(colorsAndTypeDir, '_production.json')).productionFile).toBe('default');
+    expect(readJson(path.join(colorsAndTypeDir, '_active.json')).activeFile).toBe('default');
     expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).toContain(
       '/* Production theme: default */',
     );
@@ -351,13 +351,13 @@ describe('apply', () => {
     const { status, json } = await request('PUT', `${API}/manifests/look/apply`);
     expect(status).toBe(200);
 
-    expect(readJson(path.join(themesDir, 'look.json')).name).toBe('Custom');
+    expect(readJson(path.join(colorsAndTypeDir, 'look.json')).name).toBe('Custom');
     expect(readJson(path.join(configsDir, 'button', 'look.json')).aliases).toEqual(
       BUTTON_CONFIG.aliases,
     );
     expect(json.theme._fileName).toBe('look');
-    expect(readJson(path.join(themesDir, '_active.json')).activeFile).toBe('look');
-    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('look');
+    expect(readJson(path.join(colorsAndTypeDir, '_active.json')).activeFile).toBe('look');
+    expect(readJson(path.join(colorsAndTypeDir, '_production.json')).productionFile).toBe('look');
     expect(readJson(path.join(configsDir, 'button', '_active.json')).activeFile).toBe('look');
     expect(readJson(path.join(configsDir, 'button', '_production.json')).productionFile).toBe('look');
     expect(readJson(path.join(manifestsDir, '_active.json')).activeFile).toBe('look');
@@ -398,8 +398,8 @@ describe('apply', () => {
     const { status, json } = await request('PUT', `${API}/manifests/default/apply`);
     expect(status).toBe(200);
     expect(json.theme._fileName).toBe('default');
-    expect(fs.existsSync(path.join(themesDir, 'default.json'))).toBe(false);
-    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('default');
+    expect(fs.existsSync(path.join(colorsAndTypeDir, 'default.json'))).toBe(false);
+    expect(readJson(path.join(colorsAndTypeDir, '_production.json')).productionFile).toBe('default');
     expect(readJson(path.join(configsDir, 'button', '_production.json')).productionFile).toBe(
       'default',
     );
@@ -423,14 +423,14 @@ describe('export and import', () => {
     seedPointerManifest();
     boot();
     const exported = (await request('GET', `${API}/manifests/look/export`)).json;
-    const colorsAndTypeFilesBefore = fs.readdirSync(themesDir).length;
+    const colorsAndTypeFilesBefore = fs.readdirSync(colorsAndTypeDir).length;
 
     const { status, json } = await request('POST', `${API}/manifests/import`, exported);
     expect(status).toBe(200);
     expect(json.manifest).toBe('look-2');
     expect(json.renames).toEqual({ 'manifest:look': 'look-2' });
     expect(readJson(path.join(manifestsDir, 'look-2.json')).theme.name).toBe('Custom');
-    expect(fs.readdirSync(themesDir).length).toBe(colorsAndTypeFilesBefore);
+    expect(fs.readdirSync(colorsAndTypeDir).length).toBe(colorsAndTypeFilesBefore);
   });
 
   it('imports a v1 bundle by embedding what the bundle carries', async () => {
@@ -457,7 +457,7 @@ describe('export and import', () => {
     expect(written.schemaVersion).toBe(2);
     expect(written.theme.name).toBe('Their Theme');
     expect(Object.keys(written.componentConfigs)).toEqual(['button']);
-    expect(fs.existsSync(path.join(themesDir, 'their-theme.json'))).toBe(false);
+    expect(fs.existsSync(path.join(colorsAndTypeDir, 'their-theme.json'))).toBe(false);
     expect(fs.existsSync(path.join(configsDir, 'button', 'fancy.json'))).toBe(false);
   });
 
@@ -507,9 +507,9 @@ describe('adopt patches the active manifest', () => {
 
   it('embeds the adopted theme', async () => {
     await bootWithActiveLook();
-    writeJson(path.join(themesDir, 'other.json'), { ...COLORS_AND_TYPE, name: 'Other' });
+    writeJson(path.join(colorsAndTypeDir, 'other.json'), { ...COLORS_AND_TYPE, name: 'Other' });
 
-    const { status } = await request('PUT', `${API}/themes/production`, { name: 'other' });
+    const { status } = await request('PUT', `${API}/colors-and-type/production`, { name: 'other' });
     expect(status).toBe(200);
     expect(readJson(path.join(manifestsDir, 'look.json')).theme.name).toBe('Other');
   });
@@ -526,7 +526,7 @@ describe('adopting the whole look', () => {
 
   /** Move the theme and two components off what production runs. */
   async function driftFromProduction() {
-    await request('PUT', `${API}/themes/active`, { name: 'custom' });
+    await request('PUT', `${API}/colors-and-type/active`, { name: 'custom' });
     await request('PUT', `${API}/component-configs/button/active`, { name: 'fancy' });
     writeJson(path.join(configsDir, 'card', 'bold.json'), {
       name: 'bold',
@@ -546,10 +546,10 @@ describe('adopting the whole look', () => {
     expect(json.theme).toEqual({ fileName: 'custom', name: 'Custom' });
     expect(json.components.sort()).toEqual(['button', 'card']);
 
-    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('custom');
+    expect(readJson(path.join(colorsAndTypeDir, '_production.json')).productionFile).toBe('custom');
     expect(readJson(path.join(configsDir, 'button', '_production.json')).productionFile).toBe('fancy');
     expect(readJson(path.join(configsDir, 'card', '_production.json')).productionFile).toBe('bold');
-    expect(readJson(path.join(themesDir, '_active.json')).activeFile).toBe('custom');
+    expect(readJson(path.join(colorsAndTypeDir, '_active.json')).activeFile).toBe('custom');
   });
 
   it('rebuilds the generated CSS once for the whole promotion', async () => {
@@ -573,8 +573,8 @@ describe('adopting the whole look', () => {
 
   it('re-embeds the promoted slices and leaves the rest of the look alone', async () => {
     await bootWithActiveLook();
-    writeJson(path.join(themesDir, 'other.json'), { ...COLORS_AND_TYPE, name: 'Other' });
-    await request('PUT', `${API}/themes/active`, { name: 'other' });
+    writeJson(path.join(colorsAndTypeDir, 'other.json'), { ...COLORS_AND_TYPE, name: 'Other' });
+    await request('PUT', `${API}/colors-and-type/active`, { name: 'other' });
     writeJson(path.join(configsDir, 'card', 'bold.json'), {
       name: 'bold',
       component: 'card',
@@ -596,8 +596,8 @@ describe('adopting the whole look', () => {
     await bootWithActiveLook();
     // The button's active and production are both the default, and the look
     // carries a config for it regardless — that is what a saved look is for.
-    writeJson(path.join(themesDir, 'other.json'), { ...COLORS_AND_TYPE, name: 'Other' });
-    await request('PUT', `${API}/themes/active`, { name: 'other' });
+    writeJson(path.join(colorsAndTypeDir, 'other.json'), { ...COLORS_AND_TYPE, name: 'Other' });
+    await request('PUT', `${API}/colors-and-type/active`, { name: 'other' });
 
     const { json } = await request('PUT', `${API}/production`);
     expect(json.components).toEqual([]);
@@ -633,17 +633,17 @@ describe('adopting the whole look', () => {
     const { json } = await request('PUT', `${API}/production`);
     expect(json.theme).toBeNull();
     expect(json.components).toEqual(['card']);
-    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('look');
+    expect(readJson(path.join(colorsAndTypeDir, '_production.json')).productionFile).toBe('look');
   });
 
   it('refuses while the protected Default look is active, before any write', async () => {
     seedPointerManifest();
     boot();
-    await request('PUT', `${API}/themes/active`, { name: 'custom' });
+    await request('PUT', `${API}/colors-and-type/active`, { name: 'custom' });
 
     const { status, json } = await request('PUT', `${API}/production`);
     expect(status).toBe(409);
     expect(json.code).toBe('ACTIVE_IS_PROTECTED');
-    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('default');
+    expect(readJson(path.join(colorsAndTypeDir, '_production.json')).productionFile).toBe('default');
   });
 });

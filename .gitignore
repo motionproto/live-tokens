@@ -14,7 +14,7 @@ dist-ssr
 *.local
 
 # Theme + CSS backups (local-only working state)
-src/live-tokens/data/themes/_backups/
+src/live-tokens/data/colors-and-type/_backups/
 src/system/styles/_backups/
 
 # Staged by the shipped-manifest fallback tests; a killed run leaves it behind

@@ -39,8 +39,8 @@ describe('persistColorsAndType', () => {
     await persistColorsAndType(get(editorState), 'my-colors', 'My Colors');
 
     expect(requests.map((r) => `${r.method} ${r.url}`)).toEqual([
-      `PUT ${API_BASE}/themes/my-colors`,
-      `PUT ${API_BASE}/themes/active`,
+      `PUT ${API_BASE}/colors-and-type/my-colors`,
+      `PUT ${API_BASE}/colors-and-type/active`,
     ]);
     expect(requests[0].body.name).toBe('My Colors');
     expect(requests[0].body.cssVariables['--surface-canvas']).toBe('#123456');

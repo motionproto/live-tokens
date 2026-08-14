@@ -28,7 +28,7 @@ const PRESETS = [
 
 const readJson = (p: string) => JSON.parse(fs.readFileSync(p, 'utf-8'));
 const manifestOf = (slug: string) => readJson(path.join(DATA, 'manifests', `${slug}.json`));
-const colorsAndTypeOf = (slug: string) => readJson(path.join(DATA, 'themes', `${slug}.json`));
+const colorsAndTypeOf = (slug: string) => readJson(path.join(DATA, 'colors-and-type', `${slug}.json`));
 const defaultConfigOf = (comp: string) =>
   readJson(path.join(DATA, 'component-configs', comp, 'default.json'));
 
@@ -111,7 +111,7 @@ describe.each(PRESETS)('shipped preset manifest "%s"', (slug) => {
 
   it('rewrites only the project slot, leaving serif and mono at the default theme', () => {
     const colorsAndType = manifestOf(slug).theme;
-    const base = readJson(path.join(DATA, 'themes', 'default.json'));
+    const base = readJson(path.join(DATA, 'colors-and-type', 'default.json'));
     const fallbacks = (t: any, v: string) =>
       stackOf(t, v).slots.filter((s: any) => s.kind !== 'project');
 
@@ -133,7 +133,7 @@ describe.each(PRESETS)('shipped preset manifest "%s"', (slug) => {
 
   it('ships its theme file as its own entry in package.json files', () => {
     const { files } = readJson(path.join(REPO_ROOT, 'package.json'));
-    expect(files).toContain(`src/live-tokens/data/themes/${slug}.json`);
+    expect(files).toContain(`src/live-tokens/data/colors-and-type/${slug}.json`);
   });
 });
 

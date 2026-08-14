@@ -35,7 +35,7 @@ interface ListComponentsDto {
  * `safeFetch` (instead of empty try/catch) to make the silence intentional.
  */
 export async function initializeTheme(): Promise<void> {
-  const colorsAndType = await safeFetch<ColorsAndType>(`${API_BASE}/themes/active`);
+  const colorsAndType = await safeFetch<ColorsAndType>(`${API_BASE}/colors-and-type/active`);
   if (colorsAndType) {
     migrateColorsAndTypeFonts(colorsAndType);
     loadFromFile(colorsAndType);

@@ -2,7 +2,7 @@
  * Integration tests for the package-default fallback, driven through the real
  * route table with mock req/res — no live Vite server. The plugin computes its
  * package data dir from this file's location (`../src/live-tokens/data`), which
- * in the live-tokens repo holds the shipped `themes/default.json` (the default
+ * in the live-tokens repo holds the shipped `colors-and-type/default.json` (the default
  * manifest is not shipped; boot materializes it locally). Pointing the plugin's
  * local data dir at an empty temp dir reproduces a fresh consumer: local has
  * nothing, the package supplies the theme and boot writes the rest.
@@ -17,7 +17,7 @@ const API = '/api/live-tokens';
 const REPO_ROOT = process.cwd();
 
 let tmp: string;
-let themesDir: string;
+let colorsAndTypeDir: string;
 let manifestsDir: string;
 let mw: (req: any, res: any, next: any) => any;
 
@@ -64,7 +64,7 @@ async function request(method: string, url: string, body?: unknown) {
 function boot() {
   const plugin = themeFileApi({
     dataDir: tmp,
-    themesDir,
+    colorsAndTypeDir,
     componentConfigsDir: path.join(tmp, 'component-configs'),
     manifestsDir,
     tokensCssPath: path.join(REPO_ROOT, 'src/system/styles/tokens.css'),
@@ -82,7 +82,7 @@ function boot() {
 
 beforeEach(() => {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ltfb-'));
-  themesDir = path.join(tmp, 'themes');
+  colorsAndTypeDir = path.join(tmp, 'colors-and-type');
   manifestsDir = path.join(tmp, 'manifests');
   boot();
 });
@@ -93,7 +93,7 @@ afterEach(() => {
 
 describe('package-default fallback on a fresh consumer', () => {
   it('writes no local default theme on boot (seed writers removed)', () => {
-    expect(fs.existsSync(path.join(themesDir, 'default.json'))).toBe(false);
+    expect(fs.existsSync(path.join(colorsAndTypeDir, 'default.json'))).toBe(false);
   });
 
   it('materialises the default manifest locally, carrying the package theme', () => {
@@ -112,19 +112,19 @@ describe('package-default fallback on a fresh consumer', () => {
     expect(css.split('\n').length).toBeGreaterThan(50);
   });
 
-  it('GET /themes lists the package default', async () => {
-    const { status, json } = await request('GET', `${API}/themes`);
+  it('GET /colors-and-type lists the package default', async () => {
+    const { status, json } = await request('GET', `${API}/colors-and-type`);
     expect(status).toBe(200);
     expect(json.files.map((f: any) => f.fileName)).toContain('default');
   });
 
-  it('GET /themes marks the package default isPackage', async () => {
-    const { json } = await request('GET', `${API}/themes`);
+  it('GET /colors-and-type marks the package default isPackage', async () => {
+    const { json } = await request('GET', `${API}/colors-and-type`);
     expect(json.files.find((f: any) => f.fileName === 'default').isPackage).toBe(true);
   });
 
-  it('GET /themes/active resolves to the package default', async () => {
-    const { status, json } = await request('GET', `${API}/themes/active`);
+  it('GET /colors-and-type/active resolves to the package default', async () => {
+    const { status, json } = await request('GET', `${API}/colors-and-type/active`);
     expect(status).toBe(200);
     expect(json._fileName).toBe('default');
     expect(Object.keys(json.editorConfigs).length).toBeGreaterThan(0);
@@ -136,8 +136,8 @@ describe('package-default fallback on a fresh consumer', () => {
     expect(json.files.map((f: any) => f.fileName)).toContain('default');
   });
 
-  it('PUT /themes/active default → 200 (existence check uses package fallback)', async () => {
-    const { status } = await request('PUT', `${API}/themes/active`, { name: 'default' });
+  it('PUT /colors-and-type/active default → 200 (existence check uses package fallback)', async () => {
+    const { status } = await request('PUT', `${API}/colors-and-type/active`, { name: 'default' });
     expect(status).toBe(200);
   });
 
@@ -151,8 +151,8 @@ describe('package-default fallback on a fresh consumer', () => {
     expect(status).toBe(200);
   });
 
-  it('PUT /themes/production default → 409 (past existence, blocked by protected manifest)', async () => {
-    const { status, json } = await request('PUT', `${API}/themes/production`, { name: 'default' });
+  it('PUT /colors-and-type/production default → 409 (past existence, blocked by protected manifest)', async () => {
+    const { status, json } = await request('PUT', `${API}/colors-and-type/production`, { name: 'default' });
     expect(status).toBe(409);
     expect(json.code).toBe('ACTIVE_IS_PROTECTED');
   });
@@ -166,14 +166,14 @@ describe('package-default fallback on a fresh consumer', () => {
   });
 
   it('PUT /production → 409 while the Default look is active, 200 once the client forks it', async () => {
-    await request('PUT', `${API}/themes/mine`, { name: 'Mine', cssVariables: {} });
-    await request('PUT', `${API}/themes/active`, { name: 'mine' });
+    await request('PUT', `${API}/colors-and-type/mine`, { name: 'Mine', cssVariables: {} });
+    await request('PUT', `${API}/colors-and-type/active`, { name: 'mine' });
 
     const blocked = await request('PUT', `${API}/production`);
     expect(blocked.status).toBe(409);
     expect(blocked.json.code).toBe('ACTIVE_IS_PROTECTED');
     expect(
-      JSON.parse(fs.readFileSync(path.join(themesDir, '_production.json'), 'utf-8')).productionFile,
+      JSON.parse(fs.readFileSync(path.join(colorsAndTypeDir, '_production.json'), 'utf-8')).productionFile,
     ).toBe('default');
 
     // The client's recovery: capture the live look under a name of its own,
@@ -189,7 +189,7 @@ describe('package-default fallback on a fresh consumer', () => {
     expect(status).toBe(200);
     expect(json.theme).toEqual({ fileName: 'mine', name: 'Mine' });
     expect(
-      JSON.parse(fs.readFileSync(path.join(themesDir, '_production.json'), 'utf-8')).productionFile,
+      JSON.parse(fs.readFileSync(path.join(colorsAndTypeDir, '_production.json'), 'utf-8')).productionFile,
     ).toBe('mine');
   });
 
@@ -203,91 +203,91 @@ describe('package-default fallback on a fresh consumer', () => {
     expect(css).toContain(':root:root {');
   });
 
-  it('PUT /themes/default → 403 (default is live from package, immutable)', async () => {
-    const { status } = await request('PUT', `${API}/themes/default`, { name: 'hacked', cssVariables: {} });
+  it('PUT /colors-and-type/default → 403 (default is live from package, immutable)', async () => {
+    const { status } = await request('PUT', `${API}/colors-and-type/default`, { name: 'hacked', cssVariables: {} });
     expect(status).toBe(403);
   });
 });
 
-describe('shipped preset themes on a fresh consumer', () => {
-  it('GET /themes lists the shipped presets alongside default', async () => {
-    const { json } = await request('GET', `${API}/themes`);
+describe('shipped preset colors and type on a fresh consumer', () => {
+  it('GET /colors-and-type lists the shipped presets alongside default', async () => {
+    const { json } = await request('GET', `${API}/colors-and-type`);
     const names = json.files.map((f: any) => f.fileName);
     for (const preset of ['yuletide', 'halloween', 'spring-meadow', 'royal-velvet']) {
       expect(names).toContain(preset);
     }
   });
 
-  it('GET /themes/yuletide resolves via the package fallback', async () => {
-    const { status, json } = await request('GET', `${API}/themes/yuletide`);
+  it('GET /colors-and-type/yuletide resolves via the package fallback', async () => {
+    const { status, json } = await request('GET', `${API}/colors-and-type/yuletide`);
     expect(status).toBe(200);
     expect(Object.keys(json.editorConfigs).length).toBeGreaterThan(0);
   });
 
   it('marks the presets isPackage until a local copy shadows them', async () => {
-    const before = await request('GET', `${API}/themes`);
+    const before = await request('GET', `${API}/colors-and-type`);
     expect(before.json.files.find((f: any) => f.fileName === 'ocean').isPackage).toBe(true);
 
-    await request('PUT', `${API}/themes/ocean`, { name: 'Ocean Mine', cssVariables: {} });
+    await request('PUT', `${API}/colors-and-type/ocean`, { name: 'Ocean Mine', cssVariables: {} });
 
-    const after = await request('GET', `${API}/themes`);
+    const after = await request('GET', `${API}/colors-and-type`);
     const row = after.json.files.find((f: any) => f.fileName === 'ocean');
     expect(row.isPackage).toBe(false);
     expect(row.name).toBe('Ocean Mine');
   });
 
   it('marks a local-only theme isPackage false', async () => {
-    await request('PUT', `${API}/themes/mine`, { name: 'Mine', cssVariables: {} });
-    const { json } = await request('GET', `${API}/themes`);
+    await request('PUT', `${API}/colors-and-type/mine`, { name: 'Mine', cssVariables: {} });
+    const { json } = await request('GET', `${API}/colors-and-type`);
     expect(json.files.find((f: any) => f.fileName === 'mine').isPackage).toBe(false);
   });
 
-  it('DELETE /themes/yuletide with no local copy → 403 PACKAGE_THEME', async () => {
-    const { status, json } = await request('DELETE', `${API}/themes/yuletide`);
+  it('DELETE /colors-and-type/yuletide with no local copy → 403 PACKAGE_THEME', async () => {
+    const { status, json } = await request('DELETE', `${API}/colors-and-type/yuletide`);
     expect(status).toBe(403);
     expect(json.code).toBe('PACKAGE_THEME');
   });
 
   it('PUT then DELETE on a preset removes the local shadow and restores the shipped version', async () => {
-    const put = await request('PUT', `${API}/themes/yuletide`, { name: 'Yuletide', cssVariables: {} });
+    const put = await request('PUT', `${API}/colors-and-type/yuletide`, { name: 'Yuletide', cssVariables: {} });
     expect(put.status).toBe(200);
-    expect(fs.existsSync(path.join(themesDir, 'yuletide.json'))).toBe(true);
+    expect(fs.existsSync(path.join(colorsAndTypeDir, 'yuletide.json'))).toBe(true);
 
-    const del = await request('DELETE', `${API}/themes/yuletide`);
+    const del = await request('DELETE', `${API}/colors-and-type/yuletide`);
     expect(del.status).toBe(200);
-    expect(fs.existsSync(path.join(themesDir, 'yuletide.json'))).toBe(false);
+    expect(fs.existsSync(path.join(colorsAndTypeDir, 'yuletide.json'))).toBe(false);
 
-    const { json } = await request('GET', `${API}/themes`);
+    const { json } = await request('GET', `${API}/colors-and-type`);
     expect(json.files.map((f: any) => f.fileName)).toContain('yuletide');
   });
 
   it('deleting a production shadow of a shipped preset keeps the pointer and resyncs', async () => {
-    await request('PUT', `${API}/themes/yuletide`, { name: 'Yuletide Local', cssVariables: {} });
-    fs.writeFileSync(path.join(themesDir, '_active.json'), JSON.stringify({ activeFile: 'yuletide' }));
-    fs.writeFileSync(path.join(themesDir, '_production.json'), JSON.stringify({ productionFile: 'yuletide' }));
+    await request('PUT', `${API}/colors-and-type/yuletide`, { name: 'Yuletide Local', cssVariables: {} });
+    fs.writeFileSync(path.join(colorsAndTypeDir, '_active.json'), JSON.stringify({ activeFile: 'yuletide' }));
+    fs.writeFileSync(path.join(colorsAndTypeDir, '_production.json'), JSON.stringify({ productionFile: 'yuletide' }));
 
-    const del = await request('DELETE', `${API}/themes/yuletide`);
+    const del = await request('DELETE', `${API}/colors-and-type/yuletide`);
     expect(del.status).toBe(200);
 
-    const active = await request('GET', `${API}/themes/active`);
+    const active = await request('GET', `${API}/colors-and-type/active`);
     expect(active.json._fileName).toBe('yuletide');
-    const production = await request('GET', `${API}/themes/production`);
+    const production = await request('GET', `${API}/colors-and-type/production`);
     expect(production.json.fileName).toBe('yuletide');
     const generated = fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8');
     expect(generated).toContain('yuletide');
   });
 
   it('deleting a production theme with no shipped counterpart heals to default', async () => {
-    await request('PUT', `${API}/themes/local-only`, { name: 'Local Only', cssVariables: {} });
-    fs.writeFileSync(path.join(themesDir, '_active.json'), JSON.stringify({ activeFile: 'local-only' }));
-    fs.writeFileSync(path.join(themesDir, '_production.json'), JSON.stringify({ productionFile: 'local-only' }));
+    await request('PUT', `${API}/colors-and-type/local-only`, { name: 'Local Only', cssVariables: {} });
+    fs.writeFileSync(path.join(colorsAndTypeDir, '_active.json'), JSON.stringify({ activeFile: 'local-only' }));
+    fs.writeFileSync(path.join(colorsAndTypeDir, '_production.json'), JSON.stringify({ productionFile: 'local-only' }));
 
-    const del = await request('DELETE', `${API}/themes/local-only`);
+    const del = await request('DELETE', `${API}/colors-and-type/local-only`);
     expect(del.status).toBe(200);
 
-    const active = await request('GET', `${API}/themes/active`);
+    const active = await request('GET', `${API}/colors-and-type/active`);
     expect(active.json._fileName).toBe('default');
-    const production = await request('GET', `${API}/themes/production`);
+    const production = await request('GET', `${API}/colors-and-type/production`);
     expect(production.json.fileName).toBe('default');
   });
 });
@@ -366,7 +366,7 @@ describe('a package-shipped manifest on a fresh consumer', () => {
     expect(status).toBe(200);
     expect(json.theme._fileName).toBe(FIXTURE);
 
-    expect(JSON.parse(fs.readFileSync(path.join(themesDir, `${FIXTURE}.json`), 'utf-8')).name).toBe(
+    expect(JSON.parse(fs.readFileSync(path.join(colorsAndTypeDir, `${FIXTURE}.json`), 'utf-8')).name).toBe(
       'Package Fixture Theme',
     );
     expect(
@@ -426,9 +426,9 @@ describe('a package-shipped manifest on a fresh consumer', () => {
 
   it('adopting a theme while it is active forks it locally', async () => {
     await request('PUT', `${API}/manifests/active`, { name: FIXTURE });
-    await request('PUT', `${API}/themes/adopted`, { name: 'Adopted', cssVariables: {} });
+    await request('PUT', `${API}/colors-and-type/adopted`, { name: 'Adopted', cssVariables: {} });
 
-    const { status } = await request('PUT', `${API}/themes/production`, { name: 'adopted' });
+    const { status } = await request('PUT', `${API}/colors-and-type/production`, { name: 'adopted' });
     expect(status).toBe(200);
 
     expect(JSON.parse(fs.readFileSync(localManifestPath(), 'utf-8')).theme.name).toBe('Adopted');
@@ -439,11 +439,11 @@ describe('a package-shipped manifest on a fresh consumer', () => {
 });
 
 describe('the library repo itself (local data dir IS the package dir)', () => {
-  it('lists shipped themes as package files and user themes as local ones', async () => {
+  it('lists shipped colors and type as package files and user files as local ones', async () => {
     const repoData = path.join(REPO_ROOT, 'src/live-tokens/data');
     const plugin = themeFileApi({
       dataDir: repoData,
-      themesDir: path.join(repoData, 'themes'),
+      colorsAndTypeDir: path.join(repoData, 'colors-and-type'),
       componentConfigsDir: path.join(repoData, 'component-configs'),
       manifestsDir: path.join(repoData, 'manifests'),
       tokensCssPath: path.join(REPO_ROOT, 'src/system/styles/tokens.css'),
@@ -456,7 +456,7 @@ describe('the library repo itself (local data dir IS the package dir)', () => {
       config: { logger: { warn: () => {} } },
     });
     const selfMw = captured[0];
-    const req = makeReq('GET', `${API}/themes`);
+    const req = makeReq('GET', `${API}/colors-and-type`);
     const res = makeRes();
     await selfMw(req, res, () => {});
     const byName = Object.fromEntries(

@@ -9,7 +9,7 @@
 //                                  of truth shipped to consumers), regenerate
 //                                  its default.json, reset the active/production
 //                                  pointers, delete the working files
-//   • embedded theme             → copy it into themes/default.json, reset
+//   • embedded theme             → copy it into colors-and-type/default.json, reset
 //                                  pointers, delete the working files
 //   • manifest                   → point active back to the default manifest,
 //                                  delete the custom manifest
@@ -29,7 +29,7 @@ import { syncBlock } from './lib/componentBlockSync.mjs';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'src/live-tokens/data');
 const CONFIGS = join(DATA, 'component-configs');
-const COLORS_AND_TYPE = join(DATA, 'themes');
+const COLORS_AND_TYPE = join(DATA, 'colors-and-type');
 const MANIFESTS = join(DATA, 'manifests');
 const COMPONENTS = join(ROOT, 'src/system/components');
 

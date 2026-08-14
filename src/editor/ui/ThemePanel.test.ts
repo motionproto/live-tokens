@@ -53,15 +53,15 @@ function server(url: string, init?: RequestInit): Response {
   switch (route) {
     case 'GET /manifests':
       return json({ files: [{ fileName: 'my-theme', name: 'My Theme' }] });
-    case 'GET /themes':
+    case 'GET /colors-and-type':
       return json({ files: [{ fileName: 'my-colors', name: 'My Colors', isActive: true }] });
     case 'GET /manifests/active':
       return json(LOOK);
-    case 'GET /themes/active':
+    case 'GET /colors-and-type/active':
       return json(COLORS_AND_TYPE);
     // A theme other than the live one, so the look reads out of sync and Adopt
     // is live.
-    case 'GET /themes/production':
+    case 'GET /colors-and-type/production':
       return json({ fileName: 'shipped', name: 'Shipped', updatedAt: 'x', cssVariables: {} });
     case 'GET /component-configs':
       return json({ components: [] });
@@ -141,7 +141,7 @@ describe('Save', () => {
     button('Save').click();
     await settle();
 
-    const colorsAndTypePut = calls.indexOf(`PUT /themes/my-colors`);
+    const colorsAndTypePut = calls.indexOf(`PUT /colors-and-type/my-colors`);
     const lookPut = calls.indexOf(`PUT /manifests/my-theme`);
     expect(colorsAndTypePut).toBeGreaterThan(-1);
     expect(lookPut).toBeGreaterThan(colorsAndTypePut);
@@ -153,7 +153,7 @@ describe('Save', () => {
     button('Save').click();
     await settle();
 
-    expect(calls).not.toContain('PUT /themes/my-colors');
+    expect(calls).not.toContain('PUT /colors-and-type/my-colors');
     expect(calls).toContain('PUT /manifests/my-theme');
   });
 
@@ -194,7 +194,7 @@ describe('Save As', () => {
     dialogSave().click();
     await settle();
 
-    const colorsAndTypePut = calls.indexOf('PUT /themes/my-colors');
+    const colorsAndTypePut = calls.indexOf('PUT /colors-and-type/my-colors');
     expect(colorsAndTypePut).toBeGreaterThan(-1);
     expect(calls.indexOf('PUT /manifests/fresh')).toBeGreaterThan(colorsAndTypePut);
   });
@@ -210,13 +210,13 @@ describe('Component-only edits', () => {
     button('Save').click();
     await settle();
 
-    expect(calls.filter((c) => c.startsWith('PUT /themes/'))).toEqual([]);
+    expect(calls.filter((c) => c.startsWith('PUT /colors-and-type/'))).toEqual([]);
     expect(calls).toContain('PUT /manifests/my-theme');
   });
 
   it('do not fork colors and type out of the protected Default look', async () => {
     overrides['GET /manifests/active'] = () => json({ ...LOOK, name: 'Default', _fileName: 'default' });
-    overrides['GET /themes'] = () =>
+    overrides['GET /colors-and-type'] = () =>
       json({ files: [{ fileName: 'default', name: 'Default', isActive: true, isPackage: true }] });
     overrides['PUT /production'] = () =>
       json({ error: 'Active theme is protected.', code: 'ACTIVE_IS_PROTECTED' }, 409);
@@ -226,7 +226,7 @@ describe('Component-only edits', () => {
     button('Adopt').click();
     await settle();
 
-    expect(calls.filter((c) => c.startsWith('PUT /themes/'))).toEqual([]);
+    expect(calls.filter((c) => c.startsWith('PUT /colors-and-type/'))).toEqual([]);
   });
 });
 
@@ -238,11 +238,11 @@ describe('Adopt', () => {
     button('Adopt').click();
     await settle();
 
-    expect(calls.indexOf('PUT /production')).toBeGreaterThan(calls.indexOf('PUT /themes/my-colors'));
+    expect(calls.indexOf('PUT /production')).toBeGreaterThan(calls.indexOf('PUT /colors-and-type/my-colors'));
   });
 
   it('reads as neither state and stays clickable while production is unread', async () => {
-    overrides['GET /themes/production'] = () => json({ error: 'nope' }, 500);
+    overrides['GET /colors-and-type/production'] = () => json({ error: 'nope' }, 500);
     await mountPanel();
 
     const status = target.querySelector('.mfm-prod-status')!;
@@ -277,7 +277,7 @@ describe('Load preview', () => {
   });
 
   it('paints a colors-and-type row', async () => {
-    overrides['GET /themes/my-colors'] = () => json(COLORS_AND_TYPE);
+    overrides['GET /colors-and-type/my-colors'] = () => json(COLORS_AND_TYPE);
     await mountPanel();
 
     button('Load').click();

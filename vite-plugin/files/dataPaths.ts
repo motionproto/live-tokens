@@ -3,7 +3,7 @@ import path from 'path';
 
 export interface LiveTokensFileConfig {
   dataDir?: string;
-  themesDir?: string;
+  colorsAndTypeDir?: string;
   componentConfigsDir?: string;
   manifestsDir?: string;
   /**
@@ -16,14 +16,14 @@ export interface LiveTokensFileConfig {
 
 export interface ResolveDataDirsInput {
   dataDir?: string;
-  themesDir?: string;
+  colorsAndTypeDir?: string;
   componentConfigsDir?: string;
   manifestsDir?: string;
 }
 
 export interface ResolvedDataDirs {
   dataDir: string;
-  themesDir: string;
+  colorsAndTypeDir: string;
   componentConfigsDir: string;
   manifestsDir: string;
 }
@@ -32,7 +32,7 @@ const DEFAULT_DATA_DIR = 'src/live-tokens/data';
 
 const KNOWN_CONFIG_KEYS = new Set<keyof LiveTokensFileConfig>([
   'dataDir',
-  'themesDir',
+  'colorsAndTypeDir',
   'componentConfigsDir',
   'manifestsDir',
   'tokensCssPath',
@@ -46,7 +46,7 @@ const KNOWN_CONFIG_KEYS = new Set<keyof LiveTokensFileConfig>([
  * re-reading on every plugin-init or pruning-marker resolution would be wasted
  * work. Restart the dev server to pick up config changes.
  *
- * Logs a one-line warning per unrecognised key so typos (`themesDr`,
+ * Logs a one-line warning per unrecognised key so typos (`colorsAndTypeDr`,
  * `compoenntConfigsDir`) don't silently degrade to defaults — the consumer
  * would think their config applied when it didn't. `$schema` is ignored as a
  * common IDE-hint convention.
@@ -84,14 +84,14 @@ export function _resetLiveTokensConfigCache(): void {
  * Resolve the four data directories for a single plugin/preprocessor.
  *
  * Per-folder resolution order (most specific wins):
- *   1. explicit opts (e.g. `opts.themesDir`)
- *   2. `live-tokens.config.json` field (e.g. `fileConfig.themesDir`)
+ *   1. explicit opts (e.g. `opts.colorsAndTypeDir`)
+ *   2. `live-tokens.config.json` field (e.g. `fileConfig.colorsAndTypeDir`)
  *   3. `<dataDir>/<sub>` where dataDir comes from opts > config file > the
  *      package default (`src/live-tokens/data`)
  *
  * This lets a consumer set `dataDir` once and have all three subfolders move
  * together, while still allowing per-folder overrides for unusual layouts
- * (e.g. a monorepo where themes are shared across packages but
+ * (e.g. a monorepo where colors and type are shared across packages but
  * component-configs aren't).
  *
  * All returned paths are absolute (resolved via `path.resolve` against cwd).
@@ -104,11 +104,11 @@ export function resolveDataDirs(opts: ResolveDataDirsInput = {}): ResolvedDataDi
 
   return {
     dataDir,
-    themesDir: opts.themesDir
-      ? path.resolve(opts.themesDir)
-      : fileConfig.themesDir
-        ? path.resolve(fileConfig.themesDir)
-        : sub('themes'),
+    colorsAndTypeDir: opts.colorsAndTypeDir
+      ? path.resolve(opts.colorsAndTypeDir)
+      : fileConfig.colorsAndTypeDir
+        ? path.resolve(fileConfig.colorsAndTypeDir)
+        : sub('colors-and-type'),
     componentConfigsDir: opts.componentConfigsDir
       ? path.resolve(opts.componentConfigsDir)
       : fileConfig.componentConfigsDir

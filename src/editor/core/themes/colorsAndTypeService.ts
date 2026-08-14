@@ -14,7 +14,7 @@ import { migrateColorsAndTypeFonts } from '../fonts/fontMigration';
 // ── API helpers ──────────────────────────────────────────────
 //
 // All colors-and-type CRUD goes through
-// `versionedFileResource(`${API_BASE}/themes`)` — shared with
+// `versionedFileResource(`${API_BASE}/colors-and-type`)` — shared with
 // `componentConfigService`'s per-component clients. The resource-specific
 // response shapes (ColorsAndTypeMeta list payload, ProductionInfo) are layered
 // on top via the generic type parameters.
@@ -27,7 +27,7 @@ export interface ProductionInfo {
 }
 
 const colorsAndTypeResource = versionedFileResource<ColorsAndType, ColorsAndTypeMeta, ProductionInfo>({
-  baseUrl: `${API_BASE}/themes`,
+  baseUrl: `${API_BASE}/colors-and-type`,
 });
 
 export async function listColorsAndType(): Promise<ColorsAndTypeMeta[]> {

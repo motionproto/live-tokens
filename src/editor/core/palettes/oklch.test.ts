@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { hexToOklch, oklchToHex } from './oklch';
-import defaultColorsAndType from '../../../live-tokens/data/themes/default.json';
+import defaultColorsAndType from '../../../live-tokens/data/colors-and-type/default.json';
 
 // The storage migration (and the reconcile anchor parser) parse hex to the
 // OKLCH basis at the boundary. Those boundaries are lossy-safe only if

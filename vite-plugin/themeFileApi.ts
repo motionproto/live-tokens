@@ -53,7 +53,7 @@ export interface ThemeFileApiOptions {
   // `live-tokens.config.json` at cwd > `<dataDir>/<sub>` where dataDir comes
   // from opts > config file > package default `src/live-tokens/data`.
   dataDir?: string;            // default: 'src/live-tokens/data'
-  themesDir?: string;          // default: `<dataDir>/themes`
+  colorsAndTypeDir?: string;   // default: `<dataDir>/colors-and-type`
   componentConfigsDir?: string; // default: `<dataDir>/component-configs`
   manifestsDir?: string;       // default: `<dataDir>/manifests`
   componentsSrcDir?: string;   // default: scans both 'src/components' and 'src/system/components'
@@ -68,11 +68,11 @@ export interface ThemeFileApiOptions {
 export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const dataDirs = resolveDataDirs({
     dataDir: opts.dataDir,
-    themesDir: opts.themesDir,
+    colorsAndTypeDir: opts.colorsAndTypeDir,
     componentConfigsDir: opts.componentConfigsDir,
     manifestsDir: opts.manifestsDir,
   });
-  const COLORS_AND_TYPE_DIR = dataDirs.themesDir;
+  const COLORS_AND_TYPE_DIR = dataDirs.colorsAndTypeDir;
   const COMPONENT_CONFIGS_DIR = dataDirs.componentConfigsDir;
   const MANIFESTS_DIR = dataDirs.manifestsDir;
   const CSS_PATH = path.resolve(opts.tokensCssPath);
@@ -83,7 +83,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     ? path.resolve(opts.fontsCssPath)
     : path.join(path.dirname(CSS_PATH), 'fonts.css');
   // Default keeps live-tokens' REST routes under a single namespace so they
-  // can't collide with the consumer's own `/api/themes` or `/api/manifests`.
+  // can't collide with the consumer's own `/api/colors-and-type` or `/api/manifests`.
   // The client side reads the same value via the `__LIVE_TOKENS_API_BASE__`
   // define injected in `config()` below.
   const API_BASE = opts.apiBase ?? '/api/live-tokens';
@@ -123,7 +123,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     'live-tokens',
     'data',
   );
-  const packageColorsAndTypeDir = path.join(packageDataDir, 'themes');
+  const packageColorsAndTypeDir = path.join(packageDataDir, 'colors-and-type');
   const packageManifestsDir = path.join(packageDataDir, 'manifests');
   const packageComponentConfigsDir = path.join(packageDataDir, 'component-configs');
 
@@ -134,7 +134,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       const pkg = JSON.parse(fs.readFileSync(path.join(pkgRoot, 'package.json'), 'utf-8'));
       const files: string[] = Array.isArray(pkg.files) ? pkg.files : [];
       return files
-        .filter((f) => /^src\/live-tokens\/data\/themes\/[^/]+\.json$/.test(f))
+        .filter((f) => /^src\/live-tokens\/data\/colors-and-type\/[^/]+\.json$/.test(f))
         .map((f) => path.basename(f, '.json'));
     } catch {
       return [];
@@ -919,13 +919,13 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // Build parameterized routes/regexes from API_BASE.
   // Escape regex metacharacters so custom apiBase values still work.
   const escapedBase = API_BASE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const COLORS_AND_TYPE_ROUTE = `${API_BASE}/themes`;
-  const COLORS_AND_TYPE_ACTIVE_ROUTE = `${API_BASE}/themes/active`;
-  const COLORS_AND_TYPE_PRODUCTION_ROUTE = `${API_BASE}/themes/production`;
+  const COLORS_AND_TYPE_ROUTE = `${API_BASE}/colors-and-type`;
+  const COLORS_AND_TYPE_ACTIVE_ROUTE = `${API_BASE}/colors-and-type/active`;
+  const COLORS_AND_TYPE_PRODUCTION_ROUTE = `${API_BASE}/colors-and-type/production`;
   const COMPONENT_CONFIGS_ROUTE = `${API_BASE}/component-configs`;
   const MANIFESTS_ROUTE = `${API_BASE}/manifests`;
   const MANIFESTS_ACTIVE_ROUTE = `${API_BASE}/manifests/active`;
-  const COLORS_AND_TYPE_BY_NAME_REGEX = new RegExp(`^${escapedBase}/themes/([a-z0-9\\-_]+)$`);
+  const COLORS_AND_TYPE_BY_NAME_REGEX = new RegExp(`^${escapedBase}/colors-and-type/([a-z0-9\\-_]+)$`);
   const COMP_LIST_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)$`);
   const COMP_ACTIVE_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/active$`);
   const COMP_PRODUCTION_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/production$`);
@@ -934,7 +934,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const MANIFEST_EXPORT_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)/export$`);
   const MANIFEST_IMPORT_ROUTE = `${API_BASE}/manifests/import`;
   const MANIFEST_BY_NAME_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)$`);
-  // Root peer of `/themes/production` and `/component-configs/:comp/production`:
+  // Root peer of `/colors-and-type/production` and `/component-configs/:comp/production`:
   // the production state of the whole look.
   const PRODUCTION_ROUTE = `${API_BASE}/production`;
 
@@ -944,7 +944,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // MUST appear before the catch-all `:name` patterns (the table replaces
   // the previous "warning comment" with explicit ordering).
 
-  // ── /api/themes ──────────────────────────────────────────────────────────
+  // ── /api/colors-and-type ─────────────────────────────────────────────────
 
   async function handleListColorsAndType(_ctx: any) {
     const activeFile = colorsAndTypeResource.getActiveName();
@@ -1053,7 +1053,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     if (req.method === 'PUT') {
       // `default` is live from the package and immutable, symmetric with
       // component-config and manifest PUT. Without this guard a client could
-      // write themes/default.json locally and fork the default the
+      // write colors-and-type/default.json locally and fork the default the
       // live-from-package model treats as read-only. The editor's save flow
       // already redirects a Save on the active default into Save As, so no
       // legitimate client PUTs this path.

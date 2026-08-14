@@ -2,7 +2,7 @@
 //
 // Reads a seed brief (JSON), builds a full validated colors-and-type file via
 // the compiled engine (dist-plugin/generateColorsAndType — the CLI never imports
-// TS sources), enforces the AA contrast gate, writes <themesDir>/<slug>.json,
+// TS sources), enforces the AA contrast gate, writes <colorsAndTypeDir>/<slug>.json,
 // and activates it. Non-color content (gradients, shadows, component aliases,
 // fonts) is carried forward from the currently active file so generation only
 // replaces the color identity.
@@ -38,10 +38,10 @@ function readJsonIfExists(path) {
 
 /** Local colors-and-type dir first, then the installed package's shipped copy
  *  — the same fallback order the dev server uses for reads. */
-function loadColorsAndTypeFile(themesDir, fileName) {
+function loadColorsAndTypeFile(colorsAndTypeDir, fileName) {
   return (
-    readJsonIfExists(join(themesDir, `${fileName}.json`)) ??
-    readJsonIfExists(join(pkgRoot, 'src/live-tokens/data/themes', `${fileName}.json`))
+    readJsonIfExists(join(colorsAndTypeDir, `${fileName}.json`)) ??
+    readJsonIfExists(join(pkgRoot, 'src/live-tokens/data/colors-and-type', `${fileName}.json`))
   );
 }
 
@@ -59,15 +59,15 @@ export async function runGenerateTheme({ briefPath, activate = true, dryRun = fa
     throw new Error(`brief is not valid JSON: ${err instanceof Error ? err.message : String(err)}`);
   }
 
-  const { themesDir } = resolveDataDirs();
+  const { colorsAndTypeDir } = resolveDataDirs();
 
-  const activePointer = readJsonIfExists(join(themesDir, '_active.json'));
+  const activePointer = readJsonIfExists(join(colorsAndTypeDir, '_active.json'));
   const previousActive = activePointer?.activeFile ?? 'default';
-  if (carryFrom && !loadColorsAndTypeFile(themesDir, carryFrom)) {
+  if (carryFrom && !loadColorsAndTypeFile(colorsAndTypeDir, carryFrom)) {
     throw new Error(`--carry-from theme "${carryFrom}" not found`);
   }
   const carrySource =
-    loadColorsAndTypeFile(themesDir, carryFrom ?? previousActive) ?? loadColorsAndTypeFile(themesDir, 'default') ?? {};
+    loadColorsAndTypeFile(colorsAndTypeDir, carryFrom ?? previousActive) ?? loadColorsAndTypeFile(colorsAndTypeDir, 'default') ?? {};
   const carry = {
     cssVariables: carrySource.cssVariables,
     fontSources: carrySource.fontSources,
@@ -76,15 +76,15 @@ export async function runGenerateTheme({ briefPath, activate = true, dryRun = fa
 
   const { colorsAndType, slug, report } = buildColorsAndTypeFromSeeds(brief, carry, new Date().toISOString());
 
-  const colorsAndTypePath = join(themesDir, `${slug}.json`);
+  const colorsAndTypePath = join(colorsAndTypeDir, `${slug}.json`);
   const existing = readJsonIfExists(colorsAndTypePath);
   if (existing?.createdAt) colorsAndType.createdAt = existing.createdAt;
 
   if (!dryRun) {
-    mkdirSync(themesDir, { recursive: true });
+    mkdirSync(colorsAndTypeDir, { recursive: true });
     writeFileSync(colorsAndTypePath, JSON.stringify(colorsAndType, null, 2) + '\n');
     if (activate) {
-      writeFileSync(join(themesDir, '_active.json'), JSON.stringify({ activeFile: slug }, null, 2) + '\n');
+      writeFileSync(join(colorsAndTypeDir, '_active.json'), JSON.stringify({ activeFile: slug }, null, 2) + '\n');
     }
   }
 
