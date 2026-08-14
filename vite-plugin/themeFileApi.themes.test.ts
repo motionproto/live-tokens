@@ -322,7 +322,7 @@ describe('read doors', () => {
 });
 
 describe('deletability', () => {
-  it('deleting the production theme heals the pointer and resyncs the CSS', async () => {
+  it('deleting the production colors and type heals the pointer and resyncs the CSS', async () => {
     seedPointerTheme();
     boot();
     await request('PUT', `${API}/themes/look/apply`);
@@ -334,7 +334,7 @@ describe('deletability', () => {
     expect(readJson(path.join(colorsAndTypeDir, '_production.json')).productionFile).toBe('default');
     expect(readJson(path.join(colorsAndTypeDir, '_active.json')).activeFile).toBe('default');
     expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).toContain(
-      '/* Production theme: default */',
+      '/* Production colors and type: default */',
     );
   });
 

@@ -37,7 +37,7 @@ Editor chrome uses **only** the `--ui-*` font namespace (`--ui-font-sans`, `--ui
 
 ## Layer 1 — theme tokens (`tokens.css`)
 
-Theme tokens are the design system's vocabulary. They describe colors, sizes, spacing, shadows, and motion: the things a designer reasons about independent of any one component. Components consume them, and themes in `themes/*.json` recolor or re-scale them.
+Theme tokens are the design system's vocabulary. They describe colors, sizes, spacing, shadows, and motion: the things a designer reasons about independent of any one component. Components consume them, and the colors-and-type files in `colors-and-type/*.json` recolor or re-scale them.
 
 ### Category-first naming
 

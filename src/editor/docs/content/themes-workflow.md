@@ -18,21 +18,18 @@ A theme keeps its own copy of every part, so deleting a working file never
 breaks a saved theme. Adopt updates the active theme in place, which keeps the
 whole true to what you shipped.
 
-On disk a theme is a *manifest*, under `src/live-tokens/data/manifests/`. That
-is the only place the older word survives.
-
 ## How themes work
 
 - **Your live edits** are what the page shows right now. They save to your
   browser automatically and survive a reload, but they are not yet a file.
 - **A saved theme** is a named JSON file in
-  `src/live-tokens/data/manifests/`. You create one with **Save As**.
+  `src/live-tokens/data/themes/`. You create one with **Save As**.
 - **The active theme** is the one the editor reads and production runs. Exactly
   one at a time.
 
 Underneath, colors and type are stored as their own files in
-`src/live-tokens/data/themes/`. The theme keeps a copy of whatever it captured,
-so those files are working files, not something to manage.
+`src/live-tokens/data/colors-and-type/`. The theme keeps a copy of whatever it
+captured, so those files are working files, not something to manage.
 
 ## Saving
 

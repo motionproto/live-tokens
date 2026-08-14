@@ -40,7 +40,7 @@ version upgrades never touch your styles. The package code stays in
 3. Open **Palettes**, pick **Brand**, and change the base hex. The page
    repaints as you type.
 4. In the **Theme** panel at the foot of the sidebar, choose **Save As**. Your
-   theme appears as JSON under `src/live-tokens/data/manifests/`.
+   theme appears as JSON under `src/live-tokens/data/themes/`.
 5. Reload. Your saved theme is the active theme, so the page returns as you
    left it.
 

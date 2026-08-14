@@ -10,8 +10,8 @@ surface shades, text colors, borders, shadows, gradients, and the per-component
 styling.
 
 You own Layer A through the editor. Your choices are saved as JSON (your theme,
-your manifest, and each component's settings). When the site runs, those values
-are applied live on top of everything else, so they always win.
+its colors and type, and each component's settings). When the site runs, those
+values are applied live on top of everything else, so they always win.
 
 `tokens.css` also carries a starting copy of these colors, but you never see it,
 because your saved theme overrides it the moment the page loads.

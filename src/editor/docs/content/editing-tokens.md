@@ -67,7 +67,7 @@ live.
 The editor saves to your browser continuously, so work survives a reload
 mid-edit. Writing a file is a separate step: the **Theme** panel at the foot of
 the sidebar has **Save**, **Save As**, and **Load**, and each theme is one JSON
-file under `src/live-tokens/data/manifests/`.
+file under `src/live-tokens/data/themes/`.
 
 The header gives you undo/redo (`Cmd/Ctrl+Z`, `Cmd/Ctrl+Shift+Z`). You can keep
 many themes side by side; one is active at a time. See

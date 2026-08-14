@@ -565,7 +565,7 @@ const HEX_RE = /^#[0-9a-f]{6}$/i;
  *     authoritative anchor and `baseColor` is snapped to it. The flag is then
  *     cleared. Editor-authored palettes (no `_imported`) are left untouched —
  *     see `temp/manifest-robustness-plan.md` §9 for why "snap on any
- *     divergence" was wrong: it would have flipped `themes/default.json`'s
+ *     divergence" was wrong: it would have flipped `colors-and-type/default.json`'s
  *     accent from teal to olive on first read.
  *
  *   - **Consume** (always): every variable the palette's derivation produces

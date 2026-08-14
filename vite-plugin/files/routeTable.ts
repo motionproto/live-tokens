@@ -5,8 +5,8 @@
  * (err) { 500 } return; }` blocks with a single ordered table:
  *
  *   [
- *     { method: 'GET',    pattern: '/api/themes',        handler: ... },
- *     { method: 'PUT',    pattern: COMP_ACTIVE_REGEX,    handler: ... },
+ *     { method: 'GET',    pattern: '/api/live-tokens/themes', handler: ... },
+ *     { method: 'PUT',    pattern: COMP_ACTIVE_REGEX,       handler: ... },
  *     // … COMP_ACTIVE_REGEX must come before COMP_BY_NAME_REGEX —
  *     // explicit table ordering, not a comment-warning.
  *   ]

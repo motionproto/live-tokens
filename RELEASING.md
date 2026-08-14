@@ -59,9 +59,9 @@ Before pushing the tag:
 - [ ] CHANGELOG entry written, version bumped to match.
 - [ ] `git status` is clean. Stray files in the working tree end up in the
   tarball if they match `files:` in `package.json`.
-- [ ] `themes/_backups/` and `src/system/styles/_backups/` are empty or
+- [ ] `colors-and-type/_backups/` and `src/system/styles/_backups/` are empty or
   gitignored. They're local-only working state; shipping them poisons every
-  consumer's theme history.
+  consumer's file history.
 - [ ] No `temp/` or scratch docs accidentally added to `files:`.
 - [ ] Tag exactly matches `package.json#version` prefixed with `v`. CI rejects
   the publish otherwise (`Verify tag matches package.json version` step).
@@ -116,19 +116,18 @@ What should be in the tarball:
 - `.claude/skills/**` (the Claude skills: build-page, create-component,
   pick-component, generate-theme, adjust-shape-space)
 - These files only, out of `src/live-tokens/data/`: `tokens.generated.css`,
-  `themes/default.json` plus the nine preset themes, and the nine preset
-  manifests (each an entry-by-entry `files` listing, never a directory).
-  Everything else under that path is consumer data and must stay out.
+  `colors-and-type/default.json` plus the nine preset colors-and-type files,
+  and the nine preset themes (each an entry-by-entry `files` listing, never a
+  directory). Everything else under that path is consumer data and must stay out.
   See "Why the shipped data files ship" below before removing them.
 - `package.json`, `README.md`, `LICENSE*`, `CHANGELOG.md`
 
 What should NEVER be in the tarball:
 - `src/live-tokens/data/**` beyond the files named above — the rest is
-  consumer data, not source. In particular `manifests/default.json` and
-  `manifests/my-manifest.json` never ship: the Default manifest is
-  materialized locally at boot, so a package copy would be unreadable by
-  design.
-- `themes/`, `manifests/`, `component-configs/` at the repo root — same
+  consumer data, not source. In particular `themes/default.json` and
+  `themes/my-theme.json` never ship: the Default theme is materialized locally
+  at boot, so a package copy would be unreadable by design.
+- `colors-and-type/`, `themes/`, `component-configs/` at the repo root — same
 - `temp/`, scratch markdown, `*.test.ts`, `__tests__/**`
 - `.git/`, `node_modules/`, `dist/`, `dist-ssr/`
 
@@ -141,20 +140,19 @@ They look like consumer data sitting in the tarball, so this gets questioned
 periodically. They are load-bearing, and shipping them is what keeps a
 consumer's install clean.
 
-The preset manifests are generated artifacts: `npm run
-generate:preset-manifests` rebuilds all nine from the derived component
-defaults and the preset theme files, and a test suite pins the on-disk
-copies to that generator. After any theme migration or component-default
-change, re-run the generator before tagging so the shipped manifests carry
-current data.
+The preset themes are generated artifacts: `npm run generate:preset-themes`
+rebuilds all nine from the derived component defaults and the preset
+colors-and-type files, and a test suite pins the on-disk copies to that
+generator. After any colors-and-type migration or component-default change,
+re-run the generator before tagging so the shipped themes carry current data.
 
-The plugin used to run *seed writers* that wrote a default theme into the
-consumer's project on first boot. That is what dirtied a fresh install.
+The plugin used to run *seed writers* that wrote a default colors-and-type file
+into the consumer's project on first boot. That is what dirtied a fresh install.
 `versionedFileResourceServer` replaced it with a read-only `packageDir`
 fallback: reads resolve the local file first, then the package copy. Writes and
 pointer files never target the package copy, which stays immutable, so a fresh
 consumer's data directory stays empty until they save a theme of their own. A
-fresh-consumer integration suite pins this (`applyManifest('default')` returns
+fresh-consumer integration suite pins this (`applyTheme('default')` returns
 200 with a full palette and no local default written).
 
 Two behaviours depend on them being the *installed package's* copy rather than
@@ -164,8 +162,8 @@ a vendored one:
   instead of holding a copy that silently goes stale;
 - a consumer on a custom theme keeps a current "restore to" baseline.
 
-They are also not a size problem: the themes and preset manifests are
-roughly 1.7 MB of a 4.6 MB unpacked tarball but compress to about 150 KB of
+They are also not a size problem: the colors-and-type files and preset themes
+are roughly 1.7 MB of a 4.6 MB unpacked tarball but compress to about 150 KB of
 the 1.2 MB packed artifact. If you are trimming the package, the two `.webp` demo
 assets under `src/system/assets/` are ~457 KB, and being pre-compressed they
 are close to half the packed tarball. They cannot simply be deleted, since

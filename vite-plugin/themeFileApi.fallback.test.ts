@@ -92,11 +92,11 @@ afterEach(() => {
 });
 
 describe('package-default fallback on a fresh consumer', () => {
-  it('writes no local default theme on boot (seed writers removed)', () => {
+  it('writes no local default colors and type on boot (seed writers removed)', () => {
     expect(fs.existsSync(path.join(colorsAndTypeDir, 'default.json'))).toBe(false);
   });
 
-  it('materialises the default theme locally, carrying the package theme', () => {
+  it('materialises the default theme locally, carrying the package colors and type', () => {
     const theme = JSON.parse(
       fs.readFileSync(path.join(themesDir, 'default.json'), 'utf-8'),
     );
@@ -236,16 +236,16 @@ describe('shipped preset colors and type on a fresh consumer', () => {
     expect(row.name).toBe('Ocean Mine');
   });
 
-  it('marks a local-only theme isPackage false', async () => {
+  it('marks a local-only colors-and-type file isPackage false', async () => {
     await request('PUT', `${API}/colors-and-type/mine`, { name: 'Mine', cssVariables: {} });
     const { json } = await request('GET', `${API}/colors-and-type`);
     expect(json.files.find((f: any) => f.fileName === 'mine').isPackage).toBe(false);
   });
 
-  it('DELETE /colors-and-type/yuletide with no local copy → 403 PACKAGE_THEME', async () => {
+  it('DELETE /colors-and-type/yuletide with no local copy → 403 PACKAGE_COLORS_AND_TYPE', async () => {
     const { status, json } = await request('DELETE', `${API}/colors-and-type/yuletide`);
     expect(status).toBe(403);
-    expect(json.code).toBe('PACKAGE_THEME');
+    expect(json.code).toBe('PACKAGE_COLORS_AND_TYPE');
   });
 
   it('PUT then DELETE on a preset removes the local shadow and restores the shipped version', async () => {
@@ -277,7 +277,7 @@ describe('shipped preset colors and type on a fresh consumer', () => {
     expect(generated).toContain('yuletide');
   });
 
-  it('deleting a production theme with no shipped counterpart heals to default', async () => {
+  it('deleting production colors and type with no shipped counterpart heals to default', async () => {
     await request('PUT', `${API}/colors-and-type/local-only`, { name: 'Local Only', cssVariables: {} });
     fs.writeFileSync(path.join(colorsAndTypeDir, '_active.json'), JSON.stringify({ activeFile: 'local-only' }));
     fs.writeFileSync(path.join(colorsAndTypeDir, '_production.json'), JSON.stringify({ productionFile: 'local-only' }));
