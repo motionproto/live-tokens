@@ -213,13 +213,13 @@ describe('shipped preset colors and type on a fresh consumer', () => {
   it('GET /colors-and-type lists the shipped presets alongside default', async () => {
     const { json } = await request('GET', `${API}/colors-and-type`);
     const names = json.files.map((f: any) => f.fileName);
-    for (const preset of ['yuletide', 'halloween', 'spring-meadow', 'royal-velvet']) {
+    for (const preset of ['sunset', 'halloween', 'spring-meadow', 'royal-velvet']) {
       expect(names).toContain(preset);
     }
   });
 
-  it('GET /colors-and-type/yuletide resolves via the package fallback', async () => {
-    const { status, json } = await request('GET', `${API}/colors-and-type/yuletide`);
+  it('GET /colors-and-type/sunset resolves via the package fallback', async () => {
+    const { status, json } = await request('GET', `${API}/colors-and-type/sunset`);
     expect(status).toBe(200);
     expect(Object.keys(json.editorConfigs).length).toBeGreaterThan(0);
   });
@@ -242,39 +242,39 @@ describe('shipped preset colors and type on a fresh consumer', () => {
     expect(json.files.find((f: any) => f.fileName === 'mine').isPackage).toBe(false);
   });
 
-  it('DELETE /colors-and-type/yuletide with no local copy → 403 PACKAGE_COLORS_AND_TYPE', async () => {
-    const { status, json } = await request('DELETE', `${API}/colors-and-type/yuletide`);
+  it('DELETE /colors-and-type/sunset with no local copy → 403 PACKAGE_COLORS_AND_TYPE', async () => {
+    const { status, json } = await request('DELETE', `${API}/colors-and-type/sunset`);
     expect(status).toBe(403);
     expect(json.code).toBe('PACKAGE_COLORS_AND_TYPE');
   });
 
   it('PUT then DELETE on a preset removes the local shadow and restores the shipped version', async () => {
-    const put = await request('PUT', `${API}/colors-and-type/yuletide`, { name: 'Yuletide', cssVariables: {} });
+    const put = await request('PUT', `${API}/colors-and-type/sunset`, { name: 'Sunset', cssVariables: {} });
     expect(put.status).toBe(200);
-    expect(fs.existsSync(path.join(colorsAndTypeDir, 'yuletide.json'))).toBe(true);
+    expect(fs.existsSync(path.join(colorsAndTypeDir, 'sunset.json'))).toBe(true);
 
-    const del = await request('DELETE', `${API}/colors-and-type/yuletide`);
+    const del = await request('DELETE', `${API}/colors-and-type/sunset`);
     expect(del.status).toBe(200);
-    expect(fs.existsSync(path.join(colorsAndTypeDir, 'yuletide.json'))).toBe(false);
+    expect(fs.existsSync(path.join(colorsAndTypeDir, 'sunset.json'))).toBe(false);
 
     const { json } = await request('GET', `${API}/colors-and-type`);
-    expect(json.files.map((f: any) => f.fileName)).toContain('yuletide');
+    expect(json.files.map((f: any) => f.fileName)).toContain('sunset');
   });
 
   it('deleting a production shadow of a shipped preset keeps the pointer and resyncs', async () => {
-    await request('PUT', `${API}/colors-and-type/yuletide`, { name: 'Yuletide Local', cssVariables: {} });
-    fs.writeFileSync(path.join(colorsAndTypeDir, '_active.json'), JSON.stringify({ activeFile: 'yuletide' }));
-    fs.writeFileSync(path.join(colorsAndTypeDir, '_production.json'), JSON.stringify({ productionFile: 'yuletide' }));
+    await request('PUT', `${API}/colors-and-type/sunset`, { name: 'Sunset Local', cssVariables: {} });
+    fs.writeFileSync(path.join(colorsAndTypeDir, '_active.json'), JSON.stringify({ activeFile: 'sunset' }));
+    fs.writeFileSync(path.join(colorsAndTypeDir, '_production.json'), JSON.stringify({ productionFile: 'sunset' }));
 
-    const del = await request('DELETE', `${API}/colors-and-type/yuletide`);
+    const del = await request('DELETE', `${API}/colors-and-type/sunset`);
     expect(del.status).toBe(200);
 
     const active = await request('GET', `${API}/colors-and-type/active`);
-    expect(active.json._fileName).toBe('yuletide');
+    expect(active.json._fileName).toBe('sunset');
     const production = await request('GET', `${API}/colors-and-type/production`);
-    expect(production.json.fileName).toBe('yuletide');
+    expect(production.json.fileName).toBe('sunset');
     const generated = fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8');
-    expect(generated).toContain('yuletide');
+    expect(generated).toContain('sunset');
   });
 
   it('deleting production colors and type with no shipped counterpart heals to default', async () => {
@@ -439,7 +439,7 @@ describe('a package-shipped theme on a fresh consumer', () => {
 });
 
 describe('the library repo itself (local data dir IS the package dir)', () => {
-  it('lists shipped colors and type as package files and user files as local ones', async () => {
+  it('lists every colors and type file in the repo data dir as a package file', async () => {
     const repoData = path.join(REPO_ROOT, 'src/live-tokens/data');
     const plugin = themeFileApi({
       dataDir: repoData,
@@ -464,6 +464,8 @@ describe('the library repo itself (local data dir IS the package dir)', () => {
     );
     expect(byName['ocean']).toBe(true);
     expect(byName['default']).toBe(true);
-    expect(byName['my-theme']).toBe(false);
+    // The repo data dir holds only shipped files: a `false` here is a personal
+    // file that would publish with the package.
+    expect(Object.entries(byName).filter(([, isPackage]) => !isPackage)).toEqual([]);
   });
 });

@@ -209,7 +209,7 @@ describe('the default theme', () => {
     boot();
     const theme = readJson(defaultPath());
     expect(theme.schemaVersion).toBe(3);
-    expect(theme.name).toBe('Default');
+    expect(theme.name).toBe('Motion Proto');
     expect(Object.keys(theme.colorsAndType.editorConfigs).length).toBeGreaterThan(0);
     // Every component, including the ones sitting on pure defaults.
     expect(Object.keys(theme.componentConfigs).sort()).toEqual(

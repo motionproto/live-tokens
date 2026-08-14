@@ -16,12 +16,10 @@ const DATA = path.join(REPO_ROOT, 'src/live-tokens/data');
 
 const PRESETS = [
   'autumn',
-  'yuletide',
   'halloween',
   'midnight-study',
   'ocean',
   'royal-velvet',
-  'leprechaun',
   'spring-meadow',
   'sunset',
 ];

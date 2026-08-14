@@ -767,7 +767,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
     const now = new Date().toISOString();
     writeTheme('default', {
-      name: 'Default',
+      name: 'Motion Proto',
       createdAt: typeof existing?.createdAt === 'string' ? existing.createdAt : now,
       updatedAt: now,
       schemaVersion: THEME_SCHEMA_VERSION,

@@ -14,10 +14,6 @@ export const PRESET_FONTS = {
     display: { name: 'Fraunces', url: 'https://fonts.googleapis.com/css2?family=Fraunces:wght@400..900&display=swap' },
     body: { name: 'Nunito Sans', url: 'https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300..800&display=swap' },
   },
-  yuletide: {
-    display: { name: 'Mountains of Christmas', url: 'https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&display=swap' },
-    body: { name: 'Nunito', url: 'https://fonts.googleapis.com/css2?family=Nunito:wght@300..800&display=swap' },
-  },
   halloween: {
     display: { name: 'Creepster', url: 'https://fonts.googleapis.com/css2?family=Creepster&display=swap' },
     body: { name: 'Karla', url: 'https://fonts.googleapis.com/css2?family=Karla:wght@300..800&display=swap' },
@@ -33,10 +29,6 @@ export const PRESET_FONTS = {
   'royal-velvet': {
     display: { name: 'Cinzel', url: 'https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap' },
     body: { name: 'Lato', url: 'https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap' },
-  },
-  leprechaun: {
-    display: { name: 'Baloo 2', url: 'https://fonts.googleapis.com/css2?family=Baloo+2:wght@400..800&display=swap' },
-    body: { name: 'Cabin', url: 'https://fonts.googleapis.com/css2?family=Cabin:wght@400..700&display=swap' },
   },
   'spring-meadow': {
     display: { name: 'Comfortaa', url: 'https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap' },

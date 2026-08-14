@@ -1,12 +1,12 @@
 {
-  "name": "Default",
+  "name": "Motion Proto",
   "createdAt": "2026-05-10T18:15:30.815Z",
-  "updatedAt": "2026-08-14T17:42:58.629Z",
+  "updatedAt": "2026-08-14T19:14:47.000Z",
   "schemaVersion": 3,
   "colorsAndType": {
-    "name": "Default Theme",
+    "name": "Motion Proto",
     "createdAt": "2026-04-01T11:00:38.342Z",
-    "updatedAt": "2026-06-01T23:57:08.090Z",
+    "updatedAt": "2026-08-14T19:14:47.000Z",
     "editorConfigs": {
       "Neutral": {
         "baseColor": "#70787e",
@@ -70,14 +70,14 @@
                 "y": 15,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 17.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 67,
-                "inDx": -33.33,
-                "inDy": -17.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -88,14 +88,14 @@
                 "y": 156,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -30.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 65,
-                "inDx": -33.33,
-                "inDy": 30.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -108,14 +108,14 @@
                 "y": 25,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 16
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 73,
-                "inDx": -33.33,
-                "inDy": -16,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -124,17 +124,17 @@
               {
                 "x": 0,
                 "y": 100,
-                "inDx": 0,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 33.33,
+                "outDx": 30,
                 "outDy": 0
               },
               {
                 "x": 100,
                 "y": 100,
-                "inDx": -33.33,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ]
@@ -144,17 +144,17 @@
               {
                 "x": 0,
                 "y": 197,
-                "inDx": 0,
-                "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -45.67
+                "inDx": -13.415374991989074,
+                "inDy": 34,
+                "outDx": 13.415374991989074,
+                "outDy": -34
               },
               {
                 "x": 100,
                 "y": 60,
-                "inDx": -33.33,
-                "inDy": 45.67,
-                "outDx": 0,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ],
@@ -164,16 +164,16 @@
                 "y": 127,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -41.67
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 2,
-                "inDx": -33.33,
-                "inDy": 41.67,
-                "outDx": 0,
-                "outDy": 0
+                "inDx": -37.749916095522494,
+                "inDy": 2,
+                "outDx": 37.749916095522494,
+                "outDy": -2
               }
             ]
           }
@@ -287,14 +287,14 @@
                 "y": 15,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 17.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 67,
-                "inDx": -33.33,
-                "inDy": -17.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -305,14 +305,14 @@
                 "y": 156,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -30.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 65,
-                "inDx": -33.33,
-                "inDy": 30.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -325,14 +325,14 @@
                 "y": 25,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 16
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 73,
-                "inDx": -33.33,
-                "inDy": -16,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -341,17 +341,17 @@
               {
                 "x": 0,
                 "y": 100,
-                "inDx": 0,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 33.33,
+                "outDx": 30,
                 "outDy": 0
               },
               {
                 "x": 100,
                 "y": 100,
-                "inDx": -33.33,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ]
@@ -361,17 +361,17 @@
               {
                 "x": 0,
                 "y": 197,
-                "inDx": 0,
-                "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -45.67
+                "inDx": -13.415374991989074,
+                "inDy": 34,
+                "outDx": 13.415374991989074,
+                "outDy": -34
               },
               {
                 "x": 100,
                 "y": 60,
-                "inDx": -33.33,
-                "inDy": 45.67,
-                "outDx": 0,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ],
@@ -381,16 +381,16 @@
                 "y": 127,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -41.67
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 2,
-                "inDx": -33.33,
-                "inDy": 41.67,
-                "outDx": 0,
-                "outDy": 0
+                "inDx": -37.749916095522494,
+                "inDy": 2,
+                "outDx": 37.749916095522494,
+                "outDy": -2
               }
             ]
           }
@@ -417,239 +417,6 @@
             {
               "x": 100,
               "y": 3,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            }
-          ],
-          "priorSaturationEndpoints": [
-            {
-              "x": 0,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            }
-          ]
-        }
-      },
-      "Canvas": {
-        "baseColor": "#3c3c53",
-        "lightnessCurve": [
-          {
-            "x": 0,
-            "y": 95,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 23.33,
-            "outDy": -19.46
-          },
-          {
-            "x": 70,
-            "y": 36.61,
-            "inDx": -23.33,
-            "inDy": 20.95,
-            "outDx": 10,
-            "outDy": -8.98
-          },
-          {
-            "x": 100,
-            "y": 8,
-            "inDx": -10,
-            "inDy": 9.54,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "saturationCurve": [
-          {
-            "x": 0,
-            "y": 100,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 23.33,
-            "outDy": 0
-          },
-          {
-            "x": 70,
-            "y": 100,
-            "inDx": -23.33,
-            "inDy": 0,
-            "outDx": 10,
-            "outDy": 0
-          },
-          {
-            "x": 100,
-            "y": 100,
-            "inDx": -10,
-            "inDy": 0,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "scaleCurves": {
-          "Surfaces": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 15,
-                "inDx": 0,
-                "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 17.33
-              },
-              {
-                "x": 100,
-                "y": 67,
-                "inDx": -33.33,
-                "inDy": -17.33,
-                "outDx": 0,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 156,
-                "inDx": 0,
-                "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -30.33
-              },
-              {
-                "x": 100,
-                "y": 65,
-                "inDx": -33.33,
-                "inDy": 30.33,
-                "outDx": 0,
-                "outDy": 0
-              }
-            ]
-          },
-          "Borders": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 25,
-                "inDx": 0,
-                "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 16
-              },
-              {
-                "x": 100,
-                "y": 73,
-                "inDx": -33.33,
-                "inDy": -16,
-                "outDx": 0,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": 0,
-                "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -33.33,
-                "inDy": 0,
-                "outDx": 0,
-                "outDy": 0
-              }
-            ]
-          },
-          "Text": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 188,
-                "inDx": 0,
-                "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -33
-              },
-              {
-                "x": 100,
-                "y": 89,
-                "inDx": -33.33,
-                "inDy": 33,
-                "outDx": 0,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 180,
-                "inDx": 0,
-                "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -59.33
-              },
-              {
-                "x": 100,
-                "y": 2,
-                "inDx": -33.33,
-                "inDy": 59.33,
-                "outDx": 0,
-                "outDy": 0
-              }
-            ]
-          }
-        },
-        "curveOffset": {
-          "lightness": 0,
-          "saturation": 0
-        },
-        "overrides": {},
-        "snappedScales": [],
-        "anchorToBase": true,
-        "emptyMode": "solid",
-        "emptyStep": "850",
-        "gradientStyle": "linear",
-        "gradientAngle": 180,
-        "gradientReverse": false,
-        "gradientStops": [
-          {
-            "position": 0,
-            "paletteLabel": "800"
-          },
-          {
-            "position": 100,
-            "paletteLabel": "950"
-          }
-        ],
-        "gradientSize": "page",
-        "anchorPlacement": {
-          "step": 7,
-          "priorLightnessEndpoints": [
-            {
-              "x": 0,
-              "y": 95,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 8,
               "inDx": -5,
               "inDy": 0,
               "outDx": 5,
@@ -738,14 +505,14 @@
                 "y": 15,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 17.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 67,
-                "inDx": -33.33,
-                "inDy": -17.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -756,14 +523,14 @@
                 "y": 156,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -30.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 65,
-                "inDx": -33.33,
-                "inDy": 30.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -776,14 +543,14 @@
                 "y": 25,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 16
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 73,
-                "inDx": -33.33,
-                "inDy": -16,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -792,17 +559,17 @@
               {
                 "x": 0,
                 "y": 100,
-                "inDx": 0,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 33.33,
+                "outDx": 30,
                 "outDy": 0
               },
               {
                 "x": 100,
                 "y": 100,
-                "inDx": -33.33,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ]
@@ -814,15 +581,15 @@
                 "y": 113,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -20.67
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 51,
-                "inDx": -33.33,
-                "inDy": 20.67,
-                "outDx": 0,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ],
@@ -832,16 +599,16 @@
                 "y": 127,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -41.67
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 2,
-                "inDx": -33.33,
-                "inDy": 41.67,
-                "outDx": 0,
-                "outDy": 0
+                "inDx": -37.749916095522494,
+                "inDy": 2,
+                "outDx": 37.749916095522494,
+                "outDy": -2
               }
             ]
           }
@@ -957,14 +724,14 @@
                 "y": 15,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 17.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 67,
-                "inDx": -33.33,
-                "inDy": -17.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -975,14 +742,14 @@
                 "y": 156,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -30.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 65,
-                "inDx": -33.33,
-                "inDy": 30.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -995,14 +762,14 @@
                 "y": 25,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 16
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 73,
-                "inDx": -33.33,
-                "inDy": -16,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -1011,17 +778,17 @@
               {
                 "x": 0,
                 "y": 100,
-                "inDx": 0,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 33.33,
+                "outDx": 30,
                 "outDy": 0
               },
               {
                 "x": 100,
                 "y": 100,
-                "inDx": -33.33,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ]
@@ -1033,15 +800,15 @@
                 "y": 157,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -33.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 57,
-                "inDx": -33.33,
-                "inDy": 33.33,
-                "outDx": 0,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ],
@@ -1051,16 +818,16 @@
                 "y": 127,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -41.67
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 2,
-                "inDx": -33.33,
-                "inDy": 41.67,
-                "outDx": 0,
-                "outDy": 0
+                "inDx": -37.749916095522494,
+                "inDy": 2,
+                "outDx": 37.749916095522494,
+                "outDy": -2
               }
             ]
           }
@@ -1174,14 +941,14 @@
                 "y": 15,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 17.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 67,
-                "inDx": -33.33,
-                "inDy": -17.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -1192,14 +959,14 @@
                 "y": 156,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -30.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 65,
-                "inDx": -33.33,
-                "inDy": 30.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -1212,14 +979,14 @@
                 "y": 25,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 16
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 73,
-                "inDx": -33.33,
-                "inDy": -16,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -1228,17 +995,17 @@
               {
                 "x": 0,
                 "y": 100,
-                "inDx": 0,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 33.33,
+                "outDx": 30,
                 "outDy": 0
               },
               {
                 "x": 100,
                 "y": 100,
-                "inDx": -33.33,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ]
@@ -1250,15 +1017,23 @@
                 "y": 129,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -26
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 25,
+                "y": 99,
+                "inDx": -14.487522876292367,
+                "inDy": 14.232211785417547,
+                "outDx": 23.120259446385028,
+                "outDy": -22.712815143382414
               },
               {
                 "x": 100,
                 "y": 51,
-                "inDx": -33.33,
-                "inDy": 26,
-                "outDx": 0,
+                "inDx": -18.443198204040527,
+                "inDy": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ],
@@ -1268,16 +1043,16 @@
                 "y": 127,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -41.67
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 2,
-                "inDx": -33.33,
-                "inDy": 41.67,
-                "outDx": 0,
-                "outDy": 0
+                "inDx": -37.749916095522494,
+                "inDy": 2,
+                "outDx": 37.749916095522494,
+                "outDy": -2
               }
             ]
           }
@@ -1391,14 +1166,14 @@
                 "y": 15,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 17.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 67,
-                "inDx": -33.33,
-                "inDy": -17.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -1409,14 +1184,14 @@
                 "y": 156,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -30.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 65,
-                "inDx": -33.33,
-                "inDy": 30.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -1429,14 +1204,14 @@
                 "y": 25,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 16
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 73,
-                "inDx": -33.33,
-                "inDy": -16,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -1445,17 +1220,17 @@
               {
                 "x": 0,
                 "y": 100,
-                "inDx": 0,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 33.33,
+                "outDx": 30,
                 "outDy": 0
               },
               {
                 "x": 100,
                 "y": 100,
-                "inDx": -33.33,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ]
@@ -1467,15 +1242,23 @@
                 "y": 145,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -31.33
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 25,
+                "y": 99,
+                "inDx": -14.487522876292367,
+                "inDy": 14.232211785417547,
+                "outDx": 23.120259446385028,
+                "outDy": -22.712815143382414
               },
               {
                 "x": 100,
                 "y": 51,
-                "inDx": -33.33,
-                "inDy": 31.33,
-                "outDx": 0,
+                "inDx": -18.443198204040527,
+                "inDy": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ],
@@ -1485,16 +1268,24 @@
                 "y": 90,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -24.67
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 26,
+                "y": 84,
+                "inDx": -14.661871885761727,
+                "inDy": 21.608076543058374,
+                "outDx": 21.5348071795068,
+                "outDy": -31.73713189559838
               },
               {
                 "x": 100,
                 "y": 16,
-                "inDx": -33.33,
-                "inDy": 24.67,
-                "outDx": 0,
-                "outDy": 0
+                "inDx": -22.458888084560982,
+                "inDy": 1.1898775100708008,
+                "outDx": 37.749916095522494,
+                "outDy": -2
               }
             ]
           }
@@ -1609,14 +1400,14 @@
                 "y": 15,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 24.67
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 89,
-                "inDx": -33.33,
-                "inDy": -24.67,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -1627,14 +1418,14 @@
                 "y": 116,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 21.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 180,
-                "inDx": -33.33,
-                "inDy": -21.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -1647,14 +1438,14 @@
                 "y": 25,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 16
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 73,
-                "inDx": -33.33,
-                "inDy": -16,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -1663,17 +1454,17 @@
               {
                 "x": 0,
                 "y": 100,
-                "inDx": 0,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 33.33,
+                "outDx": 30,
                 "outDy": 0
               },
               {
                 "x": 100,
                 "y": 100,
-                "inDx": -33.33,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ]
@@ -1685,15 +1476,15 @@
                 "y": 117,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -22
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 51,
-                "inDx": -33.33,
-                "inDy": 22,
-                "outDx": 0,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ],
@@ -1703,16 +1494,16 @@
                 "y": 137,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -45
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 2,
-                "inDx": -33.33,
-                "inDy": 45,
-                "outDx": 0,
-                "outDy": 0
+                "inDx": -37.749916095522494,
+                "inDy": 2,
+                "outDx": 37.749916095522494,
+                "outDy": -2
               }
             ]
           }
@@ -1826,14 +1617,14 @@
                 "y": 15,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 17.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 67,
-                "inDx": -33.33,
-                "inDy": -17.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -1844,14 +1635,14 @@
                 "y": 156,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -30.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 65,
-                "inDx": -33.33,
-                "inDy": 30.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -1864,14 +1655,14 @@
                 "y": 25,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 16
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 73,
-                "inDx": -33.33,
-                "inDy": -16,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -1880,17 +1671,17 @@
               {
                 "x": 0,
                 "y": 100,
-                "inDx": 0,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 33.33,
+                "outDx": 30,
                 "outDy": 0
               },
               {
                 "x": 100,
                 "y": 100,
-                "inDx": -33.33,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ]
@@ -1902,15 +1693,23 @@
                 "y": 129,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -26
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 25,
+                "y": 99,
+                "inDx": -14.487522876292367,
+                "inDy": 14.232211785417547,
+                "outDx": 23.120259446385028,
+                "outDy": -22.712815143382414
               },
               {
                 "x": 100,
                 "y": 51,
-                "inDx": -33.33,
-                "inDy": 26,
-                "outDx": 0,
+                "inDx": -18.443198204040527,
+                "inDy": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ],
@@ -1920,16 +1719,16 @@
                 "y": 127,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -41.67
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 2,
-                "inDx": -33.33,
-                "inDy": 41.67,
-                "outDx": 0,
-                "outDy": 0
+                "inDx": -37.749916095522494,
+                "inDy": 2,
+                "outDx": 37.749916095522494,
+                "outDy": -2
               }
             ]
           }
@@ -2046,14 +1845,14 @@
                 "y": 15,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 17.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 67,
-                "inDx": -33.33,
-                "inDy": -17.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -2064,14 +1863,14 @@
                 "y": 156,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -30.33
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 65,
-                "inDx": -33.33,
-                "inDy": 30.33,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -2084,14 +1883,14 @@
                 "y": 25,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": 16
+                "outDx": 0,
+                "outDy": 0
               },
               {
                 "x": 100,
                 "y": 73,
-                "inDx": -33.33,
-                "inDy": -16,
+                "inDx": 0,
+                "inDy": 0,
                 "outDx": 0,
                 "outDy": 0
               }
@@ -2100,17 +1899,17 @@
               {
                 "x": 0,
                 "y": 100,
-                "inDx": 0,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 33.33,
+                "outDx": 30,
                 "outDy": 0
               },
               {
                 "x": 100,
                 "y": 100,
-                "inDx": -33.33,
+                "inDx": -30,
                 "inDy": 0,
-                "outDx": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ]
@@ -2122,15 +1921,23 @@
                 "y": 129,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -21.67
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 25,
+                "y": 96,
+                "inDx": -14.781845559453089,
+                "inDy": 9.099491159608732,
+                "outDx": 23.09903042218575,
+                "outDy": -14.21943033275673
               },
               {
                 "x": 100,
                 "y": 64,
-                "inDx": -33.33,
-                "inDy": 21.67,
-                "outDx": 0,
+                "inDx": -18.293423652648926,
+                "inDy": 0,
+                "outDx": 30,
                 "outDy": 0
               }
             ],
@@ -2140,16 +1947,24 @@
                 "y": 149,
                 "inDx": 0,
                 "inDy": 0,
-                "outDx": 33.33,
-                "outDy": -49
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 26,
+                "y": 81,
+                "inDx": -15.114526584781416,
+                "inDy": 24.757692026976258,
+                "outDx": 21.497894286580312,
+                "outDy": -35.2136894920381
               },
               {
                 "x": 100,
                 "y": 2,
-                "inDx": -33.33,
-                "inDy": 49,
-                "outDx": 0,
-                "outDy": 0
+                "inDx": -22.165802922461467,
+                "inDy": 1.1743497848510742,
+                "outDx": 37.749916095522494,
+                "outDy": -2
               }
             ]
           }
@@ -2163,6 +1978,239 @@
         "anchorToBase": true,
         "anchorPlacement": {
           "step": 5,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 95,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 8,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Canvas": {
+        "baseColor": "#3c3c53",
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 23.33,
+            "outDy": -19.46
+          },
+          {
+            "x": 70,
+            "y": 36.61,
+            "inDx": -23.33,
+            "inDy": 20.95,
+            "outDx": 10,
+            "outDy": -8.98
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -10,
+            "inDy": 9.54,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 23.33,
+            "outDy": 0
+          },
+          {
+            "x": 70,
+            "y": 100,
+            "inDx": -23.33,
+            "inDy": 0,
+            "outDx": 10,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -10,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 67,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 156,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 65,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 73,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 188,
+                "inDx": -25.05119014113117,
+                "inDy": 50,
+                "outDx": 25.05119014113117,
+                "outDy": -50
+              },
+              {
+                "x": 100,
+                "y": 89,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 180,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 2,
+                "inDx": -37.749916095522494,
+                "inDy": 2,
+                "outDx": 37.749916095522494,
+                "outDy": -2
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "emptyMode": "solid",
+        "emptyStep": "850",
+        "gradientStyle": "linear",
+        "gradientAngle": 180,
+        "gradientReverse": false,
+        "gradientStops": [
+          {
+            "position": 0,
+            "paletteLabel": "800"
+          },
+          {
+            "position": 100,
+            "paletteLabel": "950"
+          }
+        ],
+        "gradientSize": "page",
+        "anchorPlacement": {
+          "step": 7,
           "priorLightnessEndpoints": [
             {
               "x": 0,

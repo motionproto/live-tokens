@@ -80,7 +80,7 @@
   let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = $state('idle');
 
   let activeFileName = $state('default');
-  let currentDisplayName = $state('Default');
+  let currentDisplayName = $state('Motion Proto');
   let activeIsProtected = $derived(activeFileName === 'default');
   let activeRowId = $derived(loadRowId('look', activeFileName));
 
@@ -569,7 +569,7 @@
     const wasActive = row.slug === activeFileName;
     const ok = window.confirm(
       wasActive
-        ? `Delete theme "${row.name}"? Active goes to the version shipped with the package if there is one, otherwise Default. Your working files stay as they are.`
+        ? `Delete theme "${row.name}"? Active goes to the version shipped with the package if there is one, otherwise Motion Proto. Your working files stay as they are.`
         : `Delete theme "${row.name}"?`,
     );
     if (!ok) return;
@@ -651,7 +651,7 @@
         Save and Adopt both take the colors and type on screen as they are, writing them out for you. Component edits are the exception: save those in the component's own editor first.
       </p>
       <p>
-        <strong>Default</strong> is protected. To start customizing, <strong>Save As</strong> a new theme first.
+        <strong>Motion Proto</strong> is the protected baseline. To start customizing, <strong>Save As</strong> a new theme first.
       </p>
     </UIInfoPopover>
   </div>
@@ -710,7 +710,7 @@
         onclick={handleSave}
         disabled={activeIsProtected || saveStatus === 'saving'}
         title={activeIsProtected
-          ? 'Default is read-only. Use Save As to capture under a new name.'
+          ? 'Motion Proto is read-only. Use Save As to capture under a new name.'
           : 'Update this theme from the look on screen'}
       >
         <i

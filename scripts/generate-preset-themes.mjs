@@ -49,14 +49,6 @@ const PRESETS = [
     ops: [{ kind: 'radius', shift: 2 }, { kind: 'padding', shift: 2 }, { kind: 'gap', shift: 1 }],
   },
   {
-    slug: 'yuletide',
-    ops: [
-      { kind: 'radius', shift: 3 },
-      { kind: 'gap', shift: 2 },
-      { target: 'button', kind: 'radius', set: '--radius-full' },
-    ],
-  },
-  {
     slug: 'halloween',
     ops: [
       { kind: 'radius', set: '--radius-none' },
@@ -88,14 +80,6 @@ const PRESETS = [
     ops: [
       { kind: 'padding', shift: 2 },
       { kind: 'border-width', shift: 1 },
-      { target: 'button', kind: 'radius', set: '--radius-full' },
-    ],
-  },
-  {
-    slug: 'leprechaun',
-    ops: [
-      { kind: 'radius', shift: 2 },
-      { kind: 'gap', shift: 1 },
       { target: 'button', kind: 'radius', set: '--radius-full' },
     ],
   },
