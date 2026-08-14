@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// Build the nine shipped preset themes: one encapsulated (v2) theme per preset,
+// Build the nine shipped preset themes: one encapsulated (v3) theme per preset,
 // carrying that preset's colors and type by value plus a shape personality
 // applied to the derived component defaults. The run also stamps each preset's
 // Google Fonts pairing into its colors-and-type file, so type and shape ship
 // together.
 //
-//   node scripts/generate-preset-manifests.mjs
+//   node scripts/generate-preset-themes.mjs
 //
 // Deterministic and idempotent: a run that computes the same content (modulo
 // timestamps) writes nothing, so regenerating after a component default drifts
@@ -23,7 +23,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'src/live-tokens/data');
 const CONFIGS = join(DATA, 'component-configs');
 const COLORS_AND_TYPE = join(DATA, 'colors-and-type');
-const THEMES = join(DATA, 'manifests');
+const THEMES = join(DATA, 'themes');
 
 const ENGINE = join(ROOT, 'dist-plugin/adjust/index.js');
 const ENGINE_SOURCES = [
@@ -32,7 +32,7 @@ const ENGINE_SOURCES = [
   'src/editor/core/components/aliasKinds.ts',
 ].map((p) => join(ROOT, p));
 
-const THEME_SCHEMA_VERSION = 2;
+const THEME_SCHEMA_VERSION = 3;
 
 /** Shape personality per preset, from the plan's addendum 2 table. Global ops
  *  come first and targeted `set` ops last, so a targeted corner wins over the
@@ -156,7 +156,7 @@ function signature(theme) {
   return JSON.stringify({
     name: theme.name,
     schemaVersion: theme.schemaVersion,
-    theme: theme.theme,
+    colorsAndType: theme.colorsAndType,
     componentConfigs: configs,
   });
 }
@@ -210,7 +210,7 @@ for (const { slug, ops } of PRESETS) {
     createdAt: typeof existing?.createdAt === 'string' ? existing.createdAt : now,
     updatedAt: now,
     schemaVersion: THEME_SCHEMA_VERSION,
-    theme: colorsAndType,
+    colorsAndType,
     componentConfigs,
   };
 

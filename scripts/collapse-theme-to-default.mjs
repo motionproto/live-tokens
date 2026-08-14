@@ -14,7 +14,7 @@
 //   • theme                      → point active back to the default theme,
 //                                  delete the custom theme
 //
-//   node scripts/collapse-manifest-to-default.mjs [--write]
+//   node scripts/collapse-theme-to-default.mjs [--write]
 //
 // Without --write it's a dry run (prints the plan). Run with the dev server
 // STOPPED — it re-derives config from these files and would race the rewrites.
@@ -30,7 +30,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'src/live-tokens/data');
 const CONFIGS = join(DATA, 'component-configs');
 const COLORS_AND_TYPE = join(DATA, 'colors-and-type');
-const THEMES = join(DATA, 'manifests');
+const THEMES = join(DATA, 'themes');
 const COMPONENTS = join(ROOT, 'src/system/components');
 
 const write = process.argv.includes('--write');
@@ -108,7 +108,7 @@ if (!existsSync(themePath)) {
 }
 const theme = readJson(themePath);
 
-if (typeof theme.theme === 'string') {
+if (typeof theme.colorsAndType === 'string') {
   console.error(
     `Active theme "${activeThemeName}" is still in the old pointer format. ` +
       "Re-save it in the editor's Theme file manager, then re-run.",
@@ -165,7 +165,7 @@ for (const [comp, cfg] of Object.entries(componentConfigs).sort()) {
 }
 
 // --- Colors and type ---------------------------------------------------------
-const colorsAndType = theme.theme;
+const colorsAndType = theme.colorsAndType;
 if (!colorsAndType || typeof colorsAndType !== 'object') {
   console.log('\nSKIP  colors and type (theme carries none)');
 } else {

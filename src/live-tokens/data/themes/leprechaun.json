@@ -1,18 +1,18 @@
 {
-  "name": "Midnight Study",
-  "createdAt": "2026-08-13T10:21:46.867Z",
-  "updatedAt": "2026-08-13T14:14:20.015Z",
-  "schemaVersion": 2,
-  "theme": {
-    "name": "Midnight Study",
-    "createdAt": "2026-08-12T20:13:46.264Z",
+  "name": "Leprechaun",
+  "createdAt": "2026-08-13T14:14:20.015Z",
+  "updatedAt": "2026-08-14T17:42:08.545Z",
+  "schemaVersion": 3,
+  "colorsAndType": {
+    "name": "Leprechaun",
+    "createdAt": "2026-08-12T20:13:46.377Z",
     "updatedAt": "2026-08-13T14:14:20.015Z",
     "editorConfigs": {
       "Brand": {
         "baseColor": {
           "l": 0.78,
-          "c": 0.12,
-          "h": 300
+          "c": 0.14,
+          "h": 90
         },
         "lightnessCurve": [
           {
@@ -230,1364 +230,6 @@
         }
       },
       "Accent": {
-        "baseColor": {
-          "l": 0.8,
-          "c": 0.1,
-          "h": 340
-        },
-        "lightnessCurve": [
-          {
-            "x": 0,
-            "y": 95,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 6.666666666666666,
-            "outDy": -5
-          },
-          {
-            "x": 20,
-            "y": 80,
-            "inDx": -6.666666666666666,
-            "inDy": 5.357142857142856,
-            "outDx": 26.666666666666664,
-            "outDy": -21.428571428571423
-          },
-          {
-            "x": 100,
-            "y": 8,
-            "inDx": -26.666666666666664,
-            "inDy": 24,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "saturationCurve": [
-          {
-            "x": 0,
-            "y": 100,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 6.666666666666666,
-            "outDy": 0
-          },
-          {
-            "x": 20,
-            "y": 100,
-            "inDx": -6.666666666666666,
-            "inDy": 0,
-            "outDx": 26.666666666666664,
-            "outDy": 0
-          },
-          {
-            "x": 100,
-            "y": 100,
-            "inDx": -26.666666666666664,
-            "inDy": 0,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "scaleCurves": {
-          "Surfaces": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 15,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 47,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          },
-          "Borders": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 25,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 80,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          },
-          "Text": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 120,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 55,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 15,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          }
-        },
-        "curveOffset": {
-          "lightness": 0,
-          "saturation": 0
-        },
-        "overrides": {},
-        "snappedScales": [],
-        "anchorToBase": true,
-        "anchorPlacement": {
-          "step": 2,
-          "priorLightnessEndpoints": [
-            {
-              "x": 0,
-              "y": 95,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 8,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            }
-          ],
-          "priorSaturationEndpoints": [
-            {
-              "x": 0,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            }
-          ]
-        }
-      },
-      "Special": {
-        "baseColor": {
-          "l": 0.75,
-          "c": 0.13,
-          "h": 260
-        },
-        "lightnessCurve": [
-          {
-            "x": 0,
-            "y": 95,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 6.666666666666666,
-            "outDy": -6.666666666666666
-          },
-          {
-            "x": 20,
-            "y": 75,
-            "inDx": -6.666666666666666,
-            "inDy": 6.1865189289012,
-            "outDx": 26.666666666666664,
-            "outDy": -24.7460757156048
-          },
-          {
-            "x": 100,
-            "y": 8,
-            "inDx": -26.666666666666664,
-            "inDy": 22.333333333333332,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "saturationCurve": [
-          {
-            "x": 0,
-            "y": 100,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 6.666666666666666,
-            "outDy": 0
-          },
-          {
-            "x": 20,
-            "y": 100,
-            "inDx": -6.666666666666666,
-            "inDy": 0,
-            "outDx": 26.666666666666664,
-            "outDy": 0
-          },
-          {
-            "x": 100,
-            "y": 100,
-            "inDx": -26.666666666666664,
-            "inDy": 0,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "scaleCurves": {
-          "Surfaces": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 15,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 47,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          },
-          "Borders": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 25,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 80,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          },
-          "Text": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 120,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 55,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 15,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          }
-        },
-        "curveOffset": {
-          "lightness": 0,
-          "saturation": 0
-        },
-        "overrides": {},
-        "snappedScales": [],
-        "anchorToBase": true,
-        "anchorPlacement": {
-          "step": 2,
-          "priorLightnessEndpoints": [
-            {
-              "x": 0,
-              "y": 95,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 8,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            }
-          ],
-          "priorSaturationEndpoints": [
-            {
-              "x": 0,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            }
-          ]
-        }
-      },
-      "Canvas": {
-        "baseColor": {
-          "l": 0.19,
-          "c": 0.035,
-          "h": 268
-        },
-        "lightnessCurve": [
-          {
-            "x": 0,
-            "y": 95,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 30,
-            "outDy": -25.333333333333332
-          },
-          {
-            "x": 90,
-            "y": 19,
-            "inDx": -30,
-            "inDy": 29.703908409001183,
-            "outDx": 3.333333333333333,
-            "outDy": -3.300434267666798
-          },
-          {
-            "x": 100,
-            "y": 8,
-            "inDx": -3.333333333333333,
-            "inDy": 3.6666666666666665,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "saturationCurve": [
-          {
-            "x": 0,
-            "y": 100,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 30,
-            "outDy": 0
-          },
-          {
-            "x": 90,
-            "y": 100,
-            "inDx": -30,
-            "inDy": 0,
-            "outDx": 3.333333333333333,
-            "outDy": 0
-          },
-          {
-            "x": 100,
-            "y": 100,
-            "inDx": -3.333333333333333,
-            "inDy": 0,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "scaleCurves": {
-          "Surfaces": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 15,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 47,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          },
-          "Borders": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 25,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 80,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          },
-          "Text": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 120,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 55,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 15,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          }
-        },
-        "curveOffset": {
-          "lightness": 0,
-          "saturation": 0
-        },
-        "overrides": {},
-        "snappedScales": [],
-        "anchorToBase": true,
-        "anchorPlacement": {
-          "step": 9,
-          "priorLightnessEndpoints": [
-            {
-              "x": 0,
-              "y": 95,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 8,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            }
-          ],
-          "priorSaturationEndpoints": [
-            {
-              "x": 0,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            }
-          ]
-        }
-      },
-      "Neutral": {
-        "baseColor": {
-          "l": 0.57,
-          "c": 0.013,
-          "h": 285
-        },
-        "lightnessCurve": [
-          {
-            "x": 0,
-            "y": 92,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 13.333333333333332,
-            "outDy": -11.666666666666668
-          },
-          {
-            "x": 40,
-            "y": 56.99999999999999,
-            "inDx": -13.333333333333332,
-            "inDy": 11.819887429643527,
-            "outDx": 20,
-            "outDy": -17.729831144465294
-          },
-          {
-            "x": 100,
-            "y": 3,
-            "inDx": -20,
-            "inDy": 18,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "saturationCurve": [
-          {
-            "x": 0,
-            "y": 100,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 13.333333333333332,
-            "outDy": 0
-          },
-          {
-            "x": 40,
-            "y": 100,
-            "inDx": -13.333333333333332,
-            "inDy": 0,
-            "outDx": 20,
-            "outDy": 0
-          },
-          {
-            "x": 100,
-            "y": 100,
-            "inDx": -20,
-            "inDy": 0,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "scaleCurves": {
-          "Surfaces": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 15,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 47,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          },
-          "Borders": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 25,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 80,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          },
-          "Text": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 175.43859649122808,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 7.5,
-                "outDy": 0
-              },
-              {
-                "x": 25,
-                "y": 163.00845368315098,
-                "inDx": -8.333333333333332,
-                "inDy": 5.697801090592383,
-                "outDx": 8.333333333333332,
-                "outDy": -5.697801090592383
-              },
-              {
-                "x": 50,
-                "y": 138.95880993148975,
-                "inDx": -8.333333333333332,
-                "inDy": 9.894847245852741,
-                "outDx": 16.666666666666664,
-                "outDy": -19.789694491705482
-              },
-              {
-                "x": 100,
-                "y": 55,
-                "inDx": -15,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 0,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 7.5,
-                "outDy": 0
-              },
-              {
-                "x": 25,
-                "y": 80.01985538881978,
-                "inDx": -8.333333333333332,
-                "inDy": 0,
-                "outDx": 8.333333333333332,
-                "outDy": 0
-              },
-              {
-                "x": 50,
-                "y": 60.42353850050536,
-                "inDx": -8.333333333333332,
-                "inDy": 6.956197069561975,
-                "outDx": 16.666666666666664,
-                "outDy": -13.91239413912395
-              },
-              {
-                "x": 100,
-                "y": 15,
-                "inDx": -15,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          }
-        },
-        "curveOffset": {
-          "lightness": 0,
-          "saturation": 0
-        },
-        "overrides": {},
-        "snappedScales": [],
-        "anchorToBase": true,
-        "anchorPlacement": {
-          "step": 4,
-          "priorLightnessEndpoints": [
-            {
-              "x": 0,
-              "y": 92,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 3,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            }
-          ],
-          "priorSaturationEndpoints": [
-            {
-              "x": 0,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            }
-          ]
-        }
-      },
-      "Alternate": {
-        "baseColor": {
-          "l": 0.58,
-          "c": 0.01,
-          "h": 320
-        },
-        "lightnessCurve": [
-          {
-            "x": 0,
-            "y": 92,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 13.333333333333332,
-            "outDy": -11.333333333333336
-          },
-          {
-            "x": 40,
-            "y": 57.99999999999999,
-            "inDx": -13.333333333333332,
-            "inDy": 11.731493099121707,
-            "outDx": 20,
-            "outDy": -17.59723964868256
-          },
-          {
-            "x": 100,
-            "y": 3,
-            "inDx": -20,
-            "inDy": 18.33333333333333,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "saturationCurve": [
-          {
-            "x": 0,
-            "y": 100,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 13.333333333333332,
-            "outDy": 0
-          },
-          {
-            "x": 40,
-            "y": 100,
-            "inDx": -13.333333333333332,
-            "inDy": 0,
-            "outDx": 20,
-            "outDy": 0
-          },
-          {
-            "x": 100,
-            "y": 100,
-            "inDx": -20,
-            "inDy": 0,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "scaleCurves": {
-          "Surfaces": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 15,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 47,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          },
-          "Borders": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 25,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 80,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          },
-          "Text": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 136.7324360835188,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 55,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 103.43207727942531,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 15,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          }
-        },
-        "curveOffset": {
-          "lightness": 0,
-          "saturation": 0
-        },
-        "overrides": {},
-        "snappedScales": [],
-        "anchorToBase": true,
-        "anchorPlacement": {
-          "step": 4,
-          "priorLightnessEndpoints": [
-            {
-              "x": 0,
-              "y": 92,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 3,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            }
-          ],
-          "priorSaturationEndpoints": [
-            {
-              "x": 0,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            }
-          ]
-        }
-      },
-      "Info": {
-        "baseColor": {
-          "l": 0.78,
-          "c": 0.11,
-          "h": 250
-        },
-        "lightnessCurve": [
-          {
-            "x": 0,
-            "y": 95,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 6.666666666666666,
-            "outDy": -5.666666666666666
-          },
-          {
-            "x": 20,
-            "y": 78,
-            "inDx": -6.666666666666666,
-            "inDy": 5.732177263969171,
-            "outDx": 26.666666666666664,
-            "outDy": -22.928709055876684
-          },
-          {
-            "x": 100,
-            "y": 8,
-            "inDx": -26.666666666666664,
-            "inDy": 23.333333333333332,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "saturationCurve": [
-          {
-            "x": 0,
-            "y": 100,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 6.666666666666666,
-            "outDy": 0
-          },
-          {
-            "x": 20,
-            "y": 100,
-            "inDx": -6.666666666666666,
-            "inDy": 0,
-            "outDx": 26.666666666666664,
-            "outDy": 0
-          },
-          {
-            "x": 100,
-            "y": 100,
-            "inDx": -26.666666666666664,
-            "inDy": 0,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "scaleCurves": {
-          "Surfaces": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 15,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 47,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          },
-          "Borders": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 25,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 80,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          },
-          "Text": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 120,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 55,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 15,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          }
-        },
-        "curveOffset": {
-          "lightness": 0,
-          "saturation": 0
-        },
-        "overrides": {},
-        "snappedScales": [],
-        "anchorToBase": true,
-        "anchorPlacement": {
-          "step": 2,
-          "priorLightnessEndpoints": [
-            {
-              "x": 0,
-              "y": 95,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 8,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            }
-          ],
-          "priorSaturationEndpoints": [
-            {
-              "x": 0,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            }
-          ]
-        }
-      },
-      "Success": {
         "baseColor": {
           "l": 0.78,
           "c": 0.12,
@@ -1808,10 +450,1368 @@
           ]
         }
       },
+      "Special": {
+        "baseColor": {
+          "l": 0.85,
+          "c": 0.1,
+          "h": 95
+        },
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 3.333333333333333,
+            "outDy": -3.333333333333333
+          },
+          {
+            "x": 10,
+            "y": 85,
+            "inDx": -3.333333333333333,
+            "inDy": 3.139013452914798,
+            "outDx": 30,
+            "outDy": -28.251121076233186
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -30,
+            "inDy": 25.666666666666664,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 3.333333333333333,
+            "outDy": 0
+          },
+          {
+            "x": 10,
+            "y": 100,
+            "inDx": -3.333333333333333,
+            "inDy": 0,
+            "outDx": 30,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -30,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 47,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 80,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 120,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 55,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 15,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 1,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 95,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 8,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Canvas": {
+        "baseColor": {
+          "l": 0.44,
+          "c": 0.1,
+          "h": 152
+        },
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 20,
+            "outDy": -17
+          },
+          {
+            "x": 60,
+            "y": 44,
+            "inDx": -20,
+            "inDy": 17.51908396946565,
+            "outDx": 13.333333333333332,
+            "outDy": -11.679389312977099
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -13.333333333333332,
+            "inDy": 12,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 20,
+            "outDy": 0
+          },
+          {
+            "x": 60,
+            "y": 100,
+            "inDx": -20,
+            "inDy": 0,
+            "outDx": 13.333333333333332,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -13.333333333333332,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 47,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 80,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 120,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 55,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 15,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 6,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 95,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 8,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Neutral": {
+        "baseColor": {
+          "l": 0.57,
+          "c": 0.015,
+          "h": 150
+        },
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 92,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 13.333333333333332,
+            "outDy": -11.666666666666668
+          },
+          {
+            "x": 40,
+            "y": 56.99999999999999,
+            "inDx": -13.333333333333332,
+            "inDy": 11.819887429643527,
+            "outDx": 20,
+            "outDy": -17.729831144465294
+          },
+          {
+            "x": 100,
+            "y": 3,
+            "inDx": -20,
+            "inDy": 18,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 13.333333333333332,
+            "outDy": 0
+          },
+          {
+            "x": 40,
+            "y": 100,
+            "inDx": -13.333333333333332,
+            "inDy": 0,
+            "outDx": 20,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -20,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 47,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 80,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 175.43859649122808,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 7.5,
+                "outDy": 0
+              },
+              {
+                "x": 25,
+                "y": 163.17360429713267,
+                "inDx": -8.333333333333332,
+                "inDy": 5.638599020530414,
+                "outDx": 8.333333333333332,
+                "outDy": -5.638599020530415
+              },
+              {
+                "x": 50,
+                "y": 138.89100197077516,
+                "inDx": -8.333333333333332,
+                "inDy": 9.957826139397307,
+                "outDx": 16.666666666666664,
+                "outDy": -19.915652278794614
+              },
+              {
+                "x": 100,
+                "y": 55,
+                "inDx": -15,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 0,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 7.5,
+                "outDy": 0
+              },
+              {
+                "x": 25,
+                "y": 80.55989825664977,
+                "inDx": -8.333333333333332,
+                "inDy": 0,
+                "outDx": 8.333333333333332,
+                "outDy": 0
+              },
+              {
+                "x": 50,
+                "y": 53.18393399828051,
+                "inDx": -8.333333333333332,
+                "inDy": 7.650052568081528,
+                "outDx": 16.666666666666664,
+                "outDy": -15.300105136163056
+              },
+              {
+                "x": 100,
+                "y": 15,
+                "inDx": -15,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 4,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 92,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 3,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Alternate": {
+        "baseColor": {
+          "l": 0.58,
+          "c": 0.012,
+          "h": 90
+        },
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 92,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 13.333333333333332,
+            "outDy": -11.333333333333336
+          },
+          {
+            "x": 40,
+            "y": 57.99999999999999,
+            "inDx": -13.333333333333332,
+            "inDy": 11.731493099121707,
+            "outDx": 20,
+            "outDy": -17.59723964868256
+          },
+          {
+            "x": 100,
+            "y": 3,
+            "inDx": -20,
+            "inDy": 18.33333333333333,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 13.333333333333332,
+            "outDy": 0
+          },
+          {
+            "x": 40,
+            "y": 100,
+            "inDx": -13.333333333333332,
+            "inDy": 0,
+            "outDx": 20,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -20,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 47,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 80,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 136.82615650873032,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 55,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 99.9624916855599,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 15,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 4,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 92,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 3,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Info": {
+        "baseColor": {
+          "l": 0.76,
+          "c": 0.1,
+          "h": 250
+        },
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 6.666666666666666,
+            "outDy": -6.333333333333332
+          },
+          {
+            "x": 20,
+            "y": 76,
+            "inDx": -6.666666666666666,
+            "inDy": 6.048689138576779,
+            "outDx": 26.666666666666664,
+            "outDy": -24.194756554307116
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -26.666666666666664,
+            "inDy": 22.666666666666664,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 6.666666666666666,
+            "outDy": 0
+          },
+          {
+            "x": 20,
+            "y": 100,
+            "inDx": -6.666666666666666,
+            "inDy": 0,
+            "outDx": 26.666666666666664,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -26.666666666666664,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 47,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 80,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 120,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 55,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 15,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 2,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 95,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 8,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Success": {
+        "baseColor": {
+          "l": 0.76,
+          "c": 0.12,
+          "h": 150
+        },
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 6.666666666666666,
+            "outDy": -6.333333333333332
+          },
+          {
+            "x": 20,
+            "y": 76,
+            "inDx": -6.666666666666666,
+            "inDy": 6.048689138576779,
+            "outDx": 26.666666666666664,
+            "outDy": -24.194756554307116
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -26.666666666666664,
+            "inDy": 22.666666666666664,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 6.666666666666666,
+            "outDy": 0
+          },
+          {
+            "x": 20,
+            "y": 100,
+            "inDx": -6.666666666666666,
+            "inDy": 0,
+            "outDx": 26.666666666666664,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -26.666666666666664,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 47,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 80,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 120,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 55,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 15,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 2,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 95,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 8,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            }
+          ]
+        }
+      },
       "Warning": {
         "baseColor": {
           "l": 0.8,
-          "c": 0.12,
+          "c": 0.13,
           "h": 85
         },
         "lightnessCurve": [
@@ -2031,8 +2031,8 @@
       },
       "Danger": {
         "baseColor": {
-          "l": 0.76,
-          "c": 0.13,
+          "l": 0.72,
+          "c": 0.15,
           "h": 25
         },
         "lightnessCurve": [
@@ -2041,22 +2041,22 @@
             "y": 95,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 6.666666666666666,
-            "outDy": -6.333333333333332
+            "outDx": 10,
+            "outDy": -7.666666666666667
           },
           {
-            "x": 20,
-            "y": 76,
-            "inDx": -6.666666666666666,
-            "inDy": 6.048689138576779,
-            "outDx": 26.666666666666664,
-            "outDy": -24.194756554307116
+            "x": 30,
+            "y": 72,
+            "inDx": -10,
+            "inDy": 8.243419824528655,
+            "outDx": 23.333333333333332,
+            "outDy": -19.234646257233525
           },
           {
             "x": 100,
             "y": 8,
-            "inDx": -26.666666666666664,
-            "inDy": 22.666666666666664,
+            "inDx": -23.333333333333332,
+            "inDy": 21.333333333333332,
             "outDx": 0,
             "outDy": 0
           }
@@ -2067,21 +2067,21 @@
             "y": 100,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 6.666666666666666,
+            "outDx": 10,
             "outDy": 0
           },
           {
-            "x": 20,
+            "x": 30,
             "y": 100,
-            "inDx": -6.666666666666666,
+            "inDx": -10,
             "inDy": 0,
-            "outDx": 26.666666666666664,
+            "outDx": 23.333333333333332,
             "outDy": 0
           },
           {
             "x": 100,
             "y": 100,
-            "inDx": -26.666666666666664,
+            "inDx": -23.333333333333332,
             "inDy": 0,
             "outDx": 0,
             "outDy": 0
@@ -2211,7 +2211,7 @@
         "snappedScales": [],
         "anchorToBase": true,
         "anchorPlacement": {
-          "step": 2,
+          "step": 3,
           "priorLightnessEndpoints": [
             {
               "x": 0,
@@ -2339,15 +2339,15 @@
         ]
       },
       {
-        "id": "src_preset_eb-garamond",
+        "id": "src_preset_baloo-2",
         "kind": "google",
-        "url": "https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400..800&display=swap",
+        "url": "https://fonts.googleapis.com/css2?family=Baloo+2:wght@400..800&display=swap",
         "label": "Google Fonts",
         "families": [
           {
-            "id": "src_preset_eb-garamond:eb-garamond",
-            "name": "EB Garamond",
-            "cssName": "\"EB Garamond\"",
+            "id": "src_preset_baloo-2:baloo-2",
+            "name": "Baloo 2",
+            "cssName": "\"Baloo 2\"",
             "weights": [
               400,
               500,
@@ -2359,22 +2359,20 @@
         ]
       },
       {
-        "id": "src_preset_montserrat",
+        "id": "src_preset_cabin",
         "kind": "google",
-        "url": "https://fonts.googleapis.com/css2?family=Montserrat:wght@300..800&display=swap",
+        "url": "https://fonts.googleapis.com/css2?family=Cabin:wght@400..700&display=swap",
         "label": "Google Fonts",
         "families": [
           {
-            "id": "src_preset_montserrat:montserrat",
-            "name": "Montserrat",
-            "cssName": "\"Montserrat\"",
+            "id": "src_preset_cabin:cabin",
+            "name": "Cabin",
+            "cssName": "\"Cabin\"",
             "weights": [
-              300,
               400,
               500,
               600,
-              700,
-              800
+              700
             ]
           }
         ]
@@ -2386,7 +2384,7 @@
         "slots": [
           {
             "kind": "project",
-            "familyId": "src_preset_eb-garamond:eb-garamond"
+            "familyId": "src_preset_baloo-2:baloo-2"
           },
           {
             "kind": "generic",
@@ -2399,7 +2397,7 @@
         "slots": [
           {
             "kind": "project",
-            "familyId": "src_preset_montserrat:montserrat"
+            "familyId": "src_preset_cabin:cabin"
           },
           {
             "kind": "system",
@@ -2444,168 +2442,30 @@
     ],
     "harmonyAxes": [
       {
-        "hue": 300,
+        "hue": 90,
         "family": "Brand"
       },
       {
-        "hue": 340,
+        "hue": 150,
         "family": "Accent"
       },
       {
-        "hue": 268,
+        "hue": 152,
         "family": "Canvas"
       },
       {
-        "hue": 210,
+        "hue": 0,
         "family": null
       }
     ],
     "schemaVersion": 3
   },
   "componentConfigs": {
-    "badge": {
-      "name": "midnight-study",
-      "component": "badge",
-      "createdAt": "2026-05-01T08:28:00.345Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
-      "aliases": {
-        "--badge-primary-surface": "--surface-brand",
-        "--badge-primary-text": "--text-brand",
-        "--badge-primary-border": "--border-brand",
-        "--badge-primary-text-font-family": "--font-sans",
-        "--badge-primary-text-font-size": "--font-size-md",
-        "--badge-primary-text-font-weight": "--font-weight-normal",
-        "--badge-primary-text-line-height": "--line-height-none",
-        "--badge-primary-border-width": "--border-width-1",
-        "--badge-primary-radius": "--radius-full",
-        "--badge-primary-padding": "--space-2",
-        "--badge-primary-shadow": "--shadow-none",
-        "--badge-primary-blur": "--blur-none",
-        "--badge-primary-icon-size": "--icon-size-sm",
-        "--badge-accent-surface": "--surface-accent",
-        "--badge-accent-text": "--text-accent",
-        "--badge-accent-border": "--border-accent",
-        "--badge-accent-text-font-family": "--font-sans",
-        "--badge-accent-text-font-size": "--font-size-md",
-        "--badge-accent-text-font-weight": "--font-weight-normal",
-        "--badge-accent-text-line-height": "--line-height-none",
-        "--badge-accent-border-width": "--border-width-1",
-        "--badge-accent-radius": "--radius-full",
-        "--badge-accent-padding": "--space-2",
-        "--badge-accent-shadow": "--shadow-none",
-        "--badge-accent-blur": "--blur-none",
-        "--badge-accent-icon-size": "--icon-size-sm",
-        "--badge-neutral-surface": "--surface-neutral",
-        "--badge-neutral-text": "--text-primary",
-        "--badge-neutral-border": "--border-neutral",
-        "--badge-neutral-text-font-family": "--font-sans",
-        "--badge-neutral-text-font-size": "--font-size-md",
-        "--badge-neutral-text-font-weight": "--font-weight-normal",
-        "--badge-neutral-text-line-height": "--line-height-none",
-        "--badge-neutral-border-width": "--border-width-1",
-        "--badge-neutral-radius": "--radius-full",
-        "--badge-neutral-padding": "--space-2",
-        "--badge-neutral-shadow": "--shadow-none",
-        "--badge-neutral-blur": "--blur-none",
-        "--badge-neutral-icon-size": "--icon-size-sm",
-        "--badge-alternate-surface": "--surface-alternate",
-        "--badge-alternate-text": "--text-alternate",
-        "--badge-alternate-border": "--border-alternate",
-        "--badge-alternate-text-font-family": "--font-sans",
-        "--badge-alternate-text-font-size": "--font-size-md",
-        "--badge-alternate-text-font-weight": "--font-weight-normal",
-        "--badge-alternate-text-line-height": "--line-height-none",
-        "--badge-alternate-border-width": "--border-width-1",
-        "--badge-alternate-radius": "--radius-full",
-        "--badge-alternate-padding": "--space-2",
-        "--badge-alternate-shadow": "--shadow-none",
-        "--badge-alternate-blur": "--blur-none",
-        "--badge-alternate-icon-size": "--icon-size-sm",
-        "--badge-canvas-surface": "--surface-canvas",
-        "--badge-canvas-text": "--text-canvas",
-        "--badge-canvas-border": "--border-canvas",
-        "--badge-canvas-text-font-family": "--font-sans",
-        "--badge-canvas-text-font-size": "--font-size-md",
-        "--badge-canvas-text-font-weight": "--font-weight-normal",
-        "--badge-canvas-text-line-height": "--line-height-none",
-        "--badge-canvas-border-width": "--border-width-1",
-        "--badge-canvas-radius": "--radius-full",
-        "--badge-canvas-padding": "--space-2",
-        "--badge-canvas-shadow": "--shadow-none",
-        "--badge-canvas-blur": "--blur-none",
-        "--badge-canvas-icon-size": "--icon-size-sm",
-        "--badge-special-surface": "--surface-special",
-        "--badge-special-text": "--text-special",
-        "--badge-special-border": "--border-special",
-        "--badge-special-text-font-family": "--font-sans",
-        "--badge-special-text-font-size": "--font-size-md",
-        "--badge-special-text-font-weight": "--font-weight-normal",
-        "--badge-special-text-line-height": "--line-height-none",
-        "--badge-special-border-width": "--border-width-1",
-        "--badge-special-radius": "--radius-full",
-        "--badge-special-padding": "--space-2",
-        "--badge-special-shadow": "--shadow-none",
-        "--badge-special-blur": "--blur-none",
-        "--badge-special-icon-size": "--icon-size-sm",
-        "--badge-success-surface": "--surface-success",
-        "--badge-success-text": "--text-success",
-        "--badge-success-border": "--border-success",
-        "--badge-success-text-font-family": "--font-sans",
-        "--badge-success-text-font-size": "--font-size-md",
-        "--badge-success-text-font-weight": "--font-weight-normal",
-        "--badge-success-text-line-height": "--line-height-none",
-        "--badge-success-border-width": "--border-width-1",
-        "--badge-success-radius": "--radius-full",
-        "--badge-success-padding": "--space-2",
-        "--badge-success-shadow": "--shadow-none",
-        "--badge-success-blur": "--blur-none",
-        "--badge-success-icon-size": "--icon-size-sm",
-        "--badge-warning-surface": "--surface-warning",
-        "--badge-warning-text": "--text-warning",
-        "--badge-warning-border": "--border-warning",
-        "--badge-warning-text-font-family": "--font-sans",
-        "--badge-warning-text-font-size": "--font-size-md",
-        "--badge-warning-text-font-weight": "--font-weight-normal",
-        "--badge-warning-text-line-height": "--line-height-none",
-        "--badge-warning-border-width": "--border-width-1",
-        "--badge-warning-radius": "--radius-full",
-        "--badge-warning-padding": "--space-2",
-        "--badge-warning-shadow": "--shadow-none",
-        "--badge-warning-blur": "--blur-none",
-        "--badge-warning-icon-size": "--icon-size-sm",
-        "--badge-danger-surface": "--surface-danger",
-        "--badge-danger-text": "--text-danger",
-        "--badge-danger-border": "--border-danger",
-        "--badge-danger-text-font-family": "--font-sans",
-        "--badge-danger-text-font-size": "--font-size-md",
-        "--badge-danger-text-font-weight": "--font-weight-normal",
-        "--badge-danger-text-line-height": "--line-height-none",
-        "--badge-danger-border-width": "--border-width-1",
-        "--badge-danger-radius": "--radius-full",
-        "--badge-danger-padding": "--space-2",
-        "--badge-danger-shadow": "--shadow-none",
-        "--badge-danger-blur": "--blur-none",
-        "--badge-danger-icon-size": "--icon-size-sm",
-        "--badge-info-surface": "--surface-info",
-        "--badge-info-text": "--text-info",
-        "--badge-info-border": "--border-info",
-        "--badge-info-text-font-family": "--font-sans",
-        "--badge-info-text-font-size": "--font-size-md",
-        "--badge-info-text-font-weight": "--font-weight-normal",
-        "--badge-info-text-line-height": "--line-height-none",
-        "--badge-info-border-width": "--border-width-1",
-        "--badge-info-radius": "--radius-full",
-        "--badge-info-padding": "--space-2",
-        "--badge-info-shadow": "--shadow-none",
-        "--badge-info-blur": "--blur-none",
-        "--badge-info-icon-size": "--icon-size-sm"
-      }
-    },
     "button": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "button",
       "createdAt": "2026-05-10T19:28:06.893Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--button-primary-surface": "--surface-brand-high",
         "--button-primary-text": "--text-primary",
@@ -2616,7 +2476,7 @@
         "--button-primary-border": "--border-brand",
         "--button-primary-border-width": "--border-width-1",
         "--button-primary-radius": "--radius-full",
-        "--button-primary-padding": "--space-4",
+        "--button-primary-padding": "--space-8",
         "--button-primary-hover-surface": "--surface-brand-higher",
         "--button-primary-hover-text": "--text-primary",
         "--button-primary-hover-border": "--border-brand-strong",
@@ -2633,7 +2493,7 @@
         "--button-secondary-border": "--border-neutral",
         "--button-secondary-border-width": "--border-width-1",
         "--button-secondary-radius": "--radius-full",
-        "--button-secondary-padding": "--space-4",
+        "--button-secondary-padding": "--space-8",
         "--button-secondary-hover-surface": "--surface-neutral-higher",
         "--button-secondary-hover-text": "--text-primary",
         "--button-secondary-hover-border": "--border-neutral-strong",
@@ -2650,7 +2510,7 @@
         "--button-outline-border": "--border-neutral",
         "--button-outline-border-width": "--border-width-1",
         "--button-outline-radius": "--radius-full",
-        "--button-outline-padding": "--space-4",
+        "--button-outline-padding": "--space-8",
         "--button-outline-hover-surface": "--surface-neutral-lower",
         "--button-outline-hover-text": "--text-primary",
         "--button-outline-hover-border": "--border-neutral-strong",
@@ -2668,7 +2528,7 @@
         "--button-success-border": "--border-success",
         "--button-success-border-width": "--border-width-1",
         "--button-success-radius": "--radius-full",
-        "--button-success-padding": "--space-4",
+        "--button-success-padding": "--space-8",
         "--button-success-hover-surface": "--surface-success-higher",
         "--button-success-hover-text": "--text-primary",
         "--button-success-hover-border": "--border-success-strong",
@@ -2685,7 +2545,7 @@
         "--button-danger-border": "--border-danger",
         "--button-danger-border-width": "--border-width-1",
         "--button-danger-radius": "--radius-full",
-        "--button-danger-padding": "--space-4",
+        "--button-danger-padding": "--space-8",
         "--button-danger-hover-surface": "--surface-danger-high",
         "--button-danger-hover-text": "--text-primary",
         "--button-danger-hover-border": "--border-danger-medium",
@@ -2702,7 +2562,7 @@
         "--button-warning-border": "--border-warning",
         "--button-warning-border-width": "--border-width-1",
         "--button-warning-radius": "--radius-full",
-        "--button-warning-padding": "--space-4",
+        "--button-warning-padding": "--space-8",
         "--button-warning-hover-surface": "--surface-warning-high",
         "--button-warning-hover-text": "--text-primary",
         "--button-warning-hover-border": "--border-warning-medium",
@@ -2710,7 +2570,7 @@
         "--button-warning-disabled-text": "--text-tertiary",
         "--button-warning-disabled-border": "--border-neutral-faint",
         "--button-warning-icon-size": "--icon-size-md",
-        "--button-small-padding": "--space-2",
+        "--button-small-padding": "--space-6",
         "--button-small-text-font-size": "--font-size-sm",
         "--button-small-text-font-weight": "--font-weight-normal",
         "--button-small-text-line-height": "--line-height-tighter",
@@ -2718,17 +2578,17 @@
       }
     },
     "callout": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "callout",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--callout-info-surface": "--surface-info-lowest",
         "--callout-info-border": "--border-info-medium",
         "--callout-info-border-width": "--border-width-1",
         "--callout-info-accent-width": "--border-width-4",
-        "--callout-info-radius": "--radius-lg",
-        "--callout-info-padding": "--space-8",
+        "--callout-info-radius": "--radius-2xl",
+        "--callout-info-padding": "--space-12",
         "--callout-info-label": "--text-primary",
         "--callout-info-label-font-family": "--font-sans",
         "--callout-info-label-font-size": "--font-size-lg",
@@ -2743,8 +2603,8 @@
         "--callout-success-border": "--border-success-subtle",
         "--callout-success-border-width": "--border-width-1",
         "--callout-success-accent-width": "--border-width-4",
-        "--callout-success-radius": "--radius-lg",
-        "--callout-success-padding": "--space-8",
+        "--callout-success-radius": "--radius-2xl",
+        "--callout-success-padding": "--space-12",
         "--callout-success-label": "--text-primary",
         "--callout-success-label-font-family": "--font-sans",
         "--callout-success-label-font-size": "--font-size-lg",
@@ -2759,8 +2619,8 @@
         "--callout-warning-border": "--border-warning-subtle",
         "--callout-warning-border-width": "--border-width-1",
         "--callout-warning-accent-width": "--border-width-4",
-        "--callout-warning-radius": "--radius-lg",
-        "--callout-warning-padding": "--space-8",
+        "--callout-warning-radius": "--radius-2xl",
+        "--callout-warning-padding": "--space-12",
         "--callout-warning-label": "--text-primary",
         "--callout-warning-label-font-family": "--font-sans",
         "--callout-warning-label-font-size": "--font-size-lg",
@@ -2775,8 +2635,8 @@
         "--callout-danger-border": "--border-danger-subtle",
         "--callout-danger-border-width": "--border-width-1",
         "--callout-danger-accent-width": "--border-width-4",
-        "--callout-danger-radius": "--radius-lg",
-        "--callout-danger-padding": "--space-8",
+        "--callout-danger-radius": "--radius-2xl",
+        "--callout-danger-padding": "--space-12",
         "--callout-danger-label": "--text-primary",
         "--callout-danger-label-font-family": "--font-sans",
         "--callout-danger-label-font-size": "--font-size-lg",
@@ -2790,26 +2650,26 @@
       }
     },
     "card": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "card",
       "createdAt": "2026-05-10T19:26:31.704Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--card-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent)",
         "--card-default-border": "--border-neutral",
         "--card-default-border-width": "--border-width-1",
-        "--card-default-radius": "--radius-sm",
-        "--card-default-header-padding": "--space-10",
-        "--card-default-header-padding-top": "--space-8",
-        "--card-default-header-padding-right": "--space-12",
-        "--card-default-header-padding-bottom": "--space-8",
-        "--card-default-header-padding-left": "--space-12",
-        "--card-default-header-gap": "--space-6",
-        "--card-default-body-padding": "--space-10",
-        "--card-default-body-padding-top": "--space-10",
-        "--card-default-body-padding-right": "--space-12",
-        "--card-default-body-padding-bottom": "--space-10",
-        "--card-default-body-padding-left": "--space-12",
+        "--card-default-radius": "--radius-2xl",
+        "--card-default-header-padding": "--space-16",
+        "--card-default-header-padding-top": "--space-12",
+        "--card-default-header-padding-right": "--space-20",
+        "--card-default-header-padding-bottom": "--space-12",
+        "--card-default-header-padding-left": "--space-20",
+        "--card-default-header-gap": "--space-10",
+        "--card-default-body-padding": "--space-16",
+        "--card-default-body-padding-top": "--space-16",
+        "--card-default-body-padding-right": "--space-20",
+        "--card-default-body-padding-bottom": "--space-16",
+        "--card-default-body-padding-left": "--space-20",
         "--card-default-shadow": "--shadow-sm",
         "--card-default-blur": "--blur-none",
         "--card-default-header-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 80%, transparent)",
@@ -2831,17 +2691,17 @@
       }
     },
     "codesnippet": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "codesnippet",
       "createdAt": "2026-05-27T13:22:54.228Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--codesnippet-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 76%, transparent)",
         "--codesnippet-border": "--border-neutral",
         "--codesnippet-border-width": "--border-width-1",
-        "--codesnippet-radius": "--radius-md",
-        "--codesnippet-padding": "--space-10",
-        "--codesnippet-gap": "--space-12",
+        "--codesnippet-radius": "--radius-xl",
+        "--codesnippet-padding": "--space-16",
+        "--codesnippet-gap": "--space-20",
         "--codesnippet-code-text": "--text-brand",
         "--codesnippet-code-font-family": "--font-mono",
         "--codesnippet-code-font-size": "--font-size-md",
@@ -2855,13 +2715,13 @@
       }
     },
     "collapsiblesection": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "collapsiblesection",
       "createdAt": "2026-05-10T20:40:17.048Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--collapsiblesection-chromeless-default-surface": "--color-transparent",
-        "--collapsiblesection-chromeless-default-padding": "--space-0",
+        "--collapsiblesection-chromeless-default-padding": "--space-4",
         "--collapsiblesection-chromeless-default-label": "--text-primary",
         "--collapsiblesection-chromeless-default-label-font-family": "--font-sans",
         "--collapsiblesection-chromeless-default-label-font-size": "--font-size-md",
@@ -2870,7 +2730,7 @@
         "--collapsiblesection-chromeless-default-icon": "--text-primary",
         "--collapsiblesection-chromeless-default-icon-size": "--icon-size-xs",
         "--collapsiblesection-chromeless-hover-surface": "--color-transparent",
-        "--collapsiblesection-chromeless-hover-padding": "--space-0",
+        "--collapsiblesection-chromeless-hover-padding": "--space-4",
         "--collapsiblesection-chromeless-hover-label": "--text-primary",
         "--collapsiblesection-chromeless-hover-label-font-family": "--font-sans",
         "--collapsiblesection-chromeless-hover-label-font-size": "--font-size-md",
@@ -2878,11 +2738,11 @@
         "--collapsiblesection-chromeless-hover-label-line-height": "--line-height-normal",
         "--collapsiblesection-chromeless-hover-icon": "--text-primary",
         "--collapsiblesection-chromeless-hover-icon-size": "--icon-size-xs",
-        "--collapsiblesection-chromeless-expanded-padding": "--space-0",
+        "--collapsiblesection-chromeless-expanded-padding": "--space-4",
         "--collapsiblesection-divider-default-surface": "--color-transparent",
         "--collapsiblesection-divider-default-border": "--border-brand",
         "--collapsiblesection-divider-default-border-width": "--border-width-1",
-        "--collapsiblesection-divider-default-padding": "--space-0",
+        "--collapsiblesection-divider-default-padding": "--space-4",
         "--collapsiblesection-divider-default-label": "--text-primary",
         "--collapsiblesection-divider-default-label-font-family": "--font-sans",
         "--collapsiblesection-divider-default-label-font-size": "--font-size-md",
@@ -2893,7 +2753,7 @@
         "--collapsiblesection-divider-hover-surface": "--color-transparent",
         "--collapsiblesection-divider-hover-border": "--border-neutral",
         "--collapsiblesection-divider-hover-border-width": "--border-width-1",
-        "--collapsiblesection-divider-hover-padding": "--space-0",
+        "--collapsiblesection-divider-hover-padding": "--space-4",
         "--collapsiblesection-divider-hover-label": "--text-primary",
         "--collapsiblesection-divider-hover-label-font-family": "--font-sans",
         "--collapsiblesection-divider-hover-label-font-size": "--font-size-md",
@@ -2901,12 +2761,12 @@
         "--collapsiblesection-divider-hover-label-line-height": "--line-height-normal",
         "--collapsiblesection-divider-hover-icon": "--text-primary",
         "--collapsiblesection-divider-hover-icon-size": "--icon-size-xs",
-        "--collapsiblesection-divider-expanded-padding": "--space-0",
+        "--collapsiblesection-divider-expanded-padding": "--space-4",
         "--collapsiblesection-container-frame-border": "--border-neutral",
         "--collapsiblesection-container-frame-border-width": "--border-width-1",
-        "--collapsiblesection-container-frame-radius": "--radius-md",
+        "--collapsiblesection-container-frame-radius": "--radius-xl",
         "--collapsiblesection-container-default-surface": "--surface-neutral",
-        "--collapsiblesection-container-default-padding": "--space-0",
+        "--collapsiblesection-container-default-padding": "--space-4",
         "--collapsiblesection-container-default-label": "--text-primary",
         "--collapsiblesection-container-default-label-font-family": "--font-sans",
         "--collapsiblesection-container-default-label-font-size": "--font-size-md",
@@ -2915,7 +2775,7 @@
         "--collapsiblesection-container-default-icon": "--text-primary",
         "--collapsiblesection-container-default-icon-size": "--icon-size-xs",
         "--collapsiblesection-container-hover-surface": "--surface-neutral-high",
-        "--collapsiblesection-container-hover-padding": "--space-0",
+        "--collapsiblesection-container-hover-padding": "--space-4",
         "--collapsiblesection-container-hover-label": "--text-primary",
         "--collapsiblesection-container-hover-label-font-family": "--font-sans",
         "--collapsiblesection-container-hover-label-font-size": "--font-size-md",
@@ -2924,21 +2784,21 @@
         "--collapsiblesection-container-hover-icon": "--text-primary",
         "--collapsiblesection-container-hover-icon-size": "--icon-size-xs",
         "--collapsiblesection-container-expanded-surface": "--surface-neutral-higher",
-        "--collapsiblesection-container-expanded-padding": "--space-0"
+        "--collapsiblesection-container-expanded-padding": "--space-4"
       }
     },
     "cornerbadge": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "cornerbadge",
       "createdAt": "2026-05-12T15:31:06.313Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--corner-badge-margin": "--space-0",
-        "--corner-badge-outer-radius": "--radius-none",
-        "--corner-badge-inner-radius": "--radius-none",
-        "--corner-badge-h-axis-radius": "--radius-none",
-        "--corner-badge-v-axis-radius": "--radius-none",
-        "--corner-badge-padding": "--space-2",
+        "--corner-badge-outer-radius": "--radius-md",
+        "--corner-badge-inner-radius": "--radius-md",
+        "--corner-badge-h-axis-radius": "--radius-md",
+        "--corner-badge-v-axis-radius": "--radius-md",
+        "--corner-badge-padding": "--space-6",
         "--corner-badge-text-font-family": "--font-sans",
         "--corner-badge-text-font-size": "--font-size-sm",
         "--corner-badge-text-font-weight": "--font-weight-medium",
@@ -2976,22 +2836,22 @@
       }
     },
     "dialog": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "dialog",
       "createdAt": "2026-05-10T20:05:24.719Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--dialog-overlay-surface": "--overlay-high",
         "--dialog-surface": "--surface-neutral-lowest",
         "--dialog-border": "--border-neutral-strong",
         "--dialog-border-width": "--border-width-2",
-        "--dialog-radius": "--radius-none",
+        "--dialog-radius": "--radius-2xl",
         "--dialog-shadow": "--shadow-2xl",
         "--dialog-blur": "--blur-none",
         "--dialog-header-surface": "--surface-neutral-lower",
         "--dialog-header-border": "--border-neutral-subtle",
         "--dialog-header-border-width": "--border-width-1",
-        "--dialog-header-padding": "--space-4",
+        "--dialog-header-padding": "--space-8",
         "--dialog-title": "--text-primary",
         "--dialog-title-font-family": "--font-sans",
         "--dialog-title-font-size": "--font-size-2xl",
@@ -2999,7 +2859,7 @@
         "--dialog-title-line-height": "--line-height-tighter",
         "--dialog-close-icon": "--text-secondary",
         "--dialog-close-icon-size": "--icon-size-xl",
-        "--dialog-body-padding": "--space-10",
+        "--dialog-body-padding": "--space-16",
         "--dialog-body": "--text-secondary",
         "--dialog-body-font-family": "--font-sans",
         "--dialog-body-font-size": "--font-size-md",
@@ -3007,21 +2867,21 @@
         "--dialog-body-line-height": "--line-height-normal",
         "--dialog-footer-border": "--border-neutral-subtle",
         "--dialog-footer-border-width": "--border-width-1",
-        "--dialog-footer-padding": "--space-10"
+        "--dialog-footer-padding": "--space-16"
       }
     },
     "iconbutton": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "iconbutton",
       "createdAt": "2026-06-14T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--iconbutton-primary-surface": "--surface-brand-high",
         "--iconbutton-primary-icon": "--text-primary",
         "--iconbutton-primary-border": "--border-brand",
         "--iconbutton-primary-border-width": "--border-width-1",
-        "--iconbutton-primary-radius": "--radius-xl",
-        "--iconbutton-primary-padding": "--space-4",
+        "--iconbutton-primary-radius": "--radius-3xl",
+        "--iconbutton-primary-padding": "--space-8",
         "--iconbutton-primary-icon-size": "--icon-size-md",
         "--iconbutton-primary-hover-surface": "--surface-brand-higher",
         "--iconbutton-primary-hover-icon": "--text-primary",
@@ -3033,8 +2893,8 @@
         "--iconbutton-secondary-icon": "--text-primary",
         "--iconbutton-secondary-border": "--border-neutral",
         "--iconbutton-secondary-border-width": "--border-width-1",
-        "--iconbutton-secondary-radius": "--radius-xl",
-        "--iconbutton-secondary-padding": "--space-4",
+        "--iconbutton-secondary-radius": "--radius-3xl",
+        "--iconbutton-secondary-padding": "--space-8",
         "--iconbutton-secondary-icon-size": "--icon-size-md",
         "--iconbutton-secondary-hover-surface": "--surface-neutral-higher",
         "--iconbutton-secondary-hover-icon": "--text-primary",
@@ -3046,8 +2906,8 @@
         "--iconbutton-outline-icon": "--text-primary",
         "--iconbutton-outline-border": "--border-neutral",
         "--iconbutton-outline-border-width": "--border-width-1",
-        "--iconbutton-outline-radius": "--radius-xl",
-        "--iconbutton-outline-padding": "--space-4",
+        "--iconbutton-outline-radius": "--radius-3xl",
+        "--iconbutton-outline-padding": "--space-8",
         "--iconbutton-outline-icon-size": "--icon-size-md",
         "--iconbutton-outline-hover-surface": "--surface-neutral-lower",
         "--iconbutton-outline-hover-icon": "--text-primary",
@@ -3060,8 +2920,8 @@
         "--iconbutton-success-icon": "--text-success",
         "--iconbutton-success-border": "--border-success",
         "--iconbutton-success-border-width": "--border-width-1",
-        "--iconbutton-success-radius": "--radius-xl",
-        "--iconbutton-success-padding": "--space-4",
+        "--iconbutton-success-radius": "--radius-3xl",
+        "--iconbutton-success-padding": "--space-8",
         "--iconbutton-success-icon-size": "--icon-size-md",
         "--iconbutton-success-hover-surface": "--surface-success-higher",
         "--iconbutton-success-hover-icon": "--text-primary",
@@ -3073,8 +2933,8 @@
         "--iconbutton-danger-icon": "--text-danger",
         "--iconbutton-danger-border": "--border-danger",
         "--iconbutton-danger-border-width": "--border-width-1",
-        "--iconbutton-danger-radius": "--radius-xl",
-        "--iconbutton-danger-padding": "--space-4",
+        "--iconbutton-danger-radius": "--radius-3xl",
+        "--iconbutton-danger-padding": "--space-8",
         "--iconbutton-danger-icon-size": "--icon-size-md",
         "--iconbutton-danger-hover-surface": "--surface-danger-high",
         "--iconbutton-danger-hover-icon": "--text-primary",
@@ -3086,8 +2946,8 @@
         "--iconbutton-warning-icon": "--text-warning",
         "--iconbutton-warning-border": "--border-warning",
         "--iconbutton-warning-border-width": "--border-width-1",
-        "--iconbutton-warning-radius": "--radius-xl",
-        "--iconbutton-warning-padding": "--space-4",
+        "--iconbutton-warning-radius": "--radius-3xl",
+        "--iconbutton-warning-padding": "--space-8",
         "--iconbutton-warning-icon-size": "--icon-size-md",
         "--iconbutton-warning-hover-surface": "--surface-warning-high",
         "--iconbutton-warning-hover-icon": "--text-primary",
@@ -3095,56 +2955,88 @@
         "--iconbutton-warning-disabled-surface": "--color-neutral-700",
         "--iconbutton-warning-disabled-icon": "--text-tertiary",
         "--iconbutton-warning-disabled-border": "--border-neutral-faint",
-        "--iconbutton-small-padding": "--space-2",
+        "--iconbutton-small-padding": "--space-6",
         "--iconbutton-small-icon-size": "--icon-size-sm"
       }
     },
+    "image": {
+      "name": "leprechaun",
+      "component": "image",
+      "createdAt": "2026-04-26T00:00:00.000Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "aliases": {
+        "--image-default-radius": "--radius-4xl",
+        "--image-default-border": "--border-neutral",
+        "--image-default-border-width": "--border-width-1",
+        "--image-default-shadow": "--shadow-md",
+        "--image-zoom-scale": "--scale-sm"
+      }
+    },
+    "imagelightbox": {
+      "name": "leprechaun",
+      "component": "imagelightbox",
+      "createdAt": "2026-05-26T02:03:38.863Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "aliases": {
+        "--imagelightbox-tile-radius": "--radius-4xl",
+        "--imagelightbox-tile-border": "--color-transparent",
+        "--imagelightbox-tile-border-width": "--border-width-0",
+        "--imagelightbox-tile-shadow": "--shadow-md",
+        "--imagelightbox-overlay-surface": "color-mix(in srgb, var(--color-neutral-950) 76%, transparent)",
+        "--imagelightbox-chrome-surface": "--surface-neutral-low",
+        "--imagelightbox-chrome-border": "--border-brand",
+        "--imagelightbox-chrome-border-width": "--border-width-1",
+        "--imagelightbox-chrome-radius": "--radius-full",
+        "--imagelightbox-chrome-icon": "--text-primary",
+        "--imagelightbox-chrome-hover-surface": "--surface-brand-high"
+      }
+    },
     "inlineeditactions": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "inlineeditactions",
       "createdAt": "2026-05-01T08:34:39.325Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--inlineeditactions-save-default-surface": "--surface-success-low",
         "--inlineeditactions-save-default-text": "--text-success",
         "--inlineeditactions-save-default-border": "--border-success",
         "--inlineeditactions-save-default-border-width": "--border-width-0",
-        "--inlineeditactions-save-default-radius": "--radius-md",
-        "--inlineeditactions-save-default-padding": "--space-0",
+        "--inlineeditactions-save-default-radius": "--radius-xl",
+        "--inlineeditactions-save-default-padding": "--space-4",
         "--inlineeditactions-save-default-icon-size": "--icon-size-md",
         "--inlineeditactions-save-hover-surface": "--surface-success-high",
         "--inlineeditactions-save-hover-text": "--text-success",
         "--inlineeditactions-save-hover-border": "--border-success",
         "--inlineeditactions-save-hover-border-width": "--border-width-0",
-        "--inlineeditactions-save-hover-radius": "--radius-md",
-        "--inlineeditactions-save-hover-padding": "--space-0",
+        "--inlineeditactions-save-hover-radius": "--radius-xl",
+        "--inlineeditactions-save-hover-padding": "--space-4",
         "--inlineeditactions-save-hover-icon-size": "--icon-size-md",
         "--inlineeditactions-cancel-default-surface": "--surface-danger-low",
         "--inlineeditactions-cancel-default-text": "--text-danger",
         "--inlineeditactions-cancel-default-border": "--border-danger",
         "--inlineeditactions-cancel-default-border-width": "--border-width-0",
-        "--inlineeditactions-cancel-default-radius": "--radius-md",
-        "--inlineeditactions-cancel-default-padding": "--space-0",
+        "--inlineeditactions-cancel-default-radius": "--radius-xl",
+        "--inlineeditactions-cancel-default-padding": "--space-4",
         "--inlineeditactions-cancel-default-icon-size": "--icon-size-md",
         "--inlineeditactions-cancel-hover-surface": "--surface-danger-high",
         "--inlineeditactions-cancel-hover-text": "--text-danger",
         "--inlineeditactions-cancel-hover-border": "--border-danger",
         "--inlineeditactions-cancel-hover-border-width": "--border-width-0",
-        "--inlineeditactions-cancel-hover-radius": "--radius-md",
-        "--inlineeditactions-cancel-hover-padding": "--space-0",
+        "--inlineeditactions-cancel-hover-radius": "--radius-xl",
+        "--inlineeditactions-cancel-hover-padding": "--space-4",
         "--inlineeditactions-cancel-hover-icon-size": "--icon-size-md"
       }
     },
     "input": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "input",
       "createdAt": "2026-05-24T14:28:03.860Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
-        "--input-radius": "--radius-md",
-        "--input-padding": "--space-4",
+        "--input-radius": "--radius-xl",
+        "--input-padding": "--space-8",
         "--input-border-width": "--border-width-1",
-        "--input-gap": "--space-4",
+        "--input-gap": "--space-8",
         "--input-default-surface": "--surface-neutral-lower",
         "--input-default-border": "--border-neutral",
         "--input-default-text": "--text-primary",
@@ -3194,20 +3086,20 @@
       }
     },
     "menuselect": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "menuselect",
       "createdAt": "2026-05-16T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--menuselect-menu-surface": "color-mix(in srgb, var(--surface-neutral-lower) 85%, transparent)",
         "--menuselect-menu-border": "--border-neutral-medium",
         "--menuselect-menu-border-width": "--border-width-1",
-        "--menuselect-menu-radius": "--radius-md",
-        "--menuselect-menu-padding": "--space-0",
-        "--menuselect-menu-gap": "--space-0",
+        "--menuselect-menu-radius": "--radius-xl",
+        "--menuselect-menu-padding": "--space-4",
+        "--menuselect-menu-gap": "--space-4",
         "--menuselect-menu-shadow": "--shadow-md",
-        "--menuselect-item-radius": "--radius-sm",
-        "--menuselect-item-padding": "--space-4",
+        "--menuselect-item-radius": "--radius-lg",
+        "--menuselect-item-padding": "--space-8",
         "--menuselect-default-surface": "--color-transparent",
         "--menuselect-default-text": "--text-secondary",
         "--menuselect-default-text-font-family": "--font-sans",
@@ -3244,17 +3136,17 @@
       }
     },
     "notification": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "notification",
       "createdAt": "2026-04-18T02:43:11.330Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--notification-info-surface": "--surface-info",
         "--notification-info-action-surface": "--surface-neutral-lowest",
         "--notification-info-border": "--border-info",
         "--notification-info-border-width": "--border-width-1",
-        "--notification-info-radius": "--radius-md",
-        "--notification-info-padding": "--space-8",
+        "--notification-info-radius": "--radius-xl",
+        "--notification-info-padding": "--space-12",
         "--notification-info-icon": "--text-info",
         "--notification-info-icon-size": "--icon-size-md",
         "--notification-info-title": "--text-info",
@@ -3271,8 +3163,8 @@
         "--notification-success-action-surface": "--surface-neutral-lowest",
         "--notification-success-border": "--border-success",
         "--notification-success-border-width": "--border-width-1",
-        "--notification-success-radius": "--radius-md",
-        "--notification-success-padding": "--space-8",
+        "--notification-success-radius": "--radius-xl",
+        "--notification-success-padding": "--space-12",
         "--notification-success-icon": "--text-success",
         "--notification-success-icon-size": "--icon-size-md",
         "--notification-success-title": "--text-success",
@@ -3289,8 +3181,8 @@
         "--notification-warning-action-surface": "--surface-neutral-lowest",
         "--notification-warning-border": "--border-warning",
         "--notification-warning-border-width": "--border-width-1",
-        "--notification-warning-radius": "--radius-md",
-        "--notification-warning-padding": "--space-8",
+        "--notification-warning-radius": "--radius-xl",
+        "--notification-warning-padding": "--space-12",
         "--notification-warning-icon": "--text-warning",
         "--notification-warning-icon-size": "--icon-size-md",
         "--notification-warning-title": "--text-warning",
@@ -3307,8 +3199,8 @@
         "--notification-danger-action-surface": "--surface-neutral-lowest",
         "--notification-danger-border": "--border-danger",
         "--notification-danger-border-width": "--border-width-1",
-        "--notification-danger-radius": "--radius-md",
-        "--notification-danger-padding": "--space-8",
+        "--notification-danger-radius": "--radius-xl",
+        "--notification-danger-padding": "--space-12",
         "--notification-danger-icon": "--text-danger",
         "--notification-danger-icon-size": "--icon-size-md",
         "--notification-danger-title": "--text-danger",
@@ -3324,17 +3216,17 @@
       }
     },
     "panel": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "panel",
       "createdAt": "2026-06-01T09:34:52.417Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--panel-frame-border": "--border-neutral",
         "--panel-frame-border-width": "--border-width-1",
-        "--panel-frame-radius": "--radius-2xl",
-        "--panel-stage-padding": "--space-10",
-        "--panel-stage-inline-padding": "--space-10",
-        "--panel-stage-gap": "--space-12",
+        "--panel-frame-radius": "--radius-4xl",
+        "--panel-stage-padding": "--space-16",
+        "--panel-stage-inline-padding": "--space-16",
+        "--panel-stage-gap": "--space-20",
         "--panel-stage-surface": {
           "kind": "gradient",
           "value": {
@@ -3357,10 +3249,10 @@
       }
     },
     "progressbar": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "progressbar",
       "createdAt": "2026-05-10T20:42:26.726Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--progressbar-track-surface": "--surface-neutral-lowest",
         "--progressbar-track-border": "--border-neutral-subtle",
@@ -3368,7 +3260,7 @@
         "--progressbar-track-height": "--space-16",
         "--progressbar-radius": "--radius-full",
         "--progressbar-fill": "--surface-special-highest",
-        "--progressbar-label-gap": "--space-4",
+        "--progressbar-label-gap": "--space-8",
         "--progressbar-label": "--text-secondary",
         "--progressbar-label-font-family": "--font-sans",
         "--progressbar-label-font-size": "--font-size-md",
@@ -3382,10 +3274,10 @@
       }
     },
     "sectiondivider": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "sectiondivider",
       "createdAt": "2026-05-10T22:09:00.336Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--sectiondivider-lg-title-font-family": "--font-display",
         "--sectiondivider-lg-title-font-weight": "--font-weight-bold",
@@ -3402,10 +3294,10 @@
         "--sectiondivider-lg-eyebrow-font-size": "--font-size-md",
         "--sectiondivider-lg-eyebrow-letter-spacing": "--letter-spacing-normal",
         "--sectiondivider-lg-padding": "--space-0",
-        "--sectiondivider-lg-title-padding": "--space-0",
+        "--sectiondivider-lg-title-padding": "--space-2",
         "--sectiondivider-lg-description-padding": "--space-0",
         "--sectiondivider-lg-eyebrow-padding": "--space-0",
-        "--sectiondivider-lg-radius": "--radius-lg",
+        "--sectiondivider-lg-radius": "--radius-2xl",
         "--sectiondivider-lg-border-width": "--border-width-1",
         "--sectiondivider-lg-shadow": "--shadow-none",
         "--sectiondivider-lg-hairline-thickness": "--border-width-1",
@@ -3431,10 +3323,10 @@
         "--sectiondivider-md-eyebrow-font-size": "--font-size-sm",
         "--sectiondivider-md-eyebrow-letter-spacing": "--letter-spacing-normal",
         "--sectiondivider-md-padding": "--space-0",
-        "--sectiondivider-md-title-padding": "--space-0",
+        "--sectiondivider-md-title-padding": "--space-2",
         "--sectiondivider-md-description-padding": "--space-0",
         "--sectiondivider-md-eyebrow-padding": "--space-0",
-        "--sectiondivider-md-radius": "--radius-lg",
+        "--sectiondivider-md-radius": "--radius-2xl",
         "--sectiondivider-md-border-width": "--border-width-1",
         "--sectiondivider-md-shadow": "--shadow-none",
         "--sectiondivider-md-hairline-thickness": "--border-width-1",
@@ -3460,10 +3352,10 @@
         "--sectiondivider-sm-eyebrow-font-size": "--font-size-xs",
         "--sectiondivider-sm-eyebrow-letter-spacing": "--letter-spacing-normal",
         "--sectiondivider-sm-padding": "--space-0",
-        "--sectiondivider-sm-title-padding": "--space-0",
+        "--sectiondivider-sm-title-padding": "--space-2",
         "--sectiondivider-sm-description-padding": "--space-0",
         "--sectiondivider-sm-eyebrow-padding": "--space-0",
-        "--sectiondivider-sm-radius": "--radius-lg",
+        "--sectiondivider-sm-radius": "--radius-2xl",
         "--sectiondivider-sm-border-width": "--border-width-1",
         "--sectiondivider-sm-shadow": "--shadow-none",
         "--sectiondivider-sm-hairline-thickness": "--border-width-1",
@@ -3477,22 +3369,22 @@
       }
     },
     "segmentedcontrol": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "segmentedcontrol",
       "createdAt": "2026-04-28T21:13:17.669Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--segmentedcontrol-bar-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent)",
         "--segmentedcontrol-bar-border": "--border-neutral",
         "--segmentedcontrol-bar-border-width": "--border-width-1",
-        "--segmentedcontrol-bar-radius": "--radius-lg",
-        "--segmentedcontrol-bar-padding": "--space-0",
-        "--segmentedcontrol-bar-gap": "--space-6",
+        "--segmentedcontrol-bar-radius": "--radius-2xl",
+        "--segmentedcontrol-bar-padding": "--space-4",
+        "--segmentedcontrol-bar-gap": "--space-10",
         "--segmentedcontrol-divider-color": "--border-neutral",
         "--segmentedcontrol-divider-thickness": "--border-width-1",
         "--segmentedcontrol-divider-inset": "--space-6",
-        "--segmentedcontrol-option-padding": "--space-4",
-        "--segmentedcontrol-option-gap": "--space-6",
+        "--segmentedcontrol-option-padding": "--space-8",
+        "--segmentedcontrol-option-gap": "--space-10",
         "--segmentedcontrol-option-text": "--text-primary",
         "--segmentedcontrol-option-text-font-family": "--font-sans",
         "--segmentedcontrol-option-text-font-size": "--font-size-md",
@@ -3516,7 +3408,7 @@
         "--segmentedcontrol-selected-icon": "--text-secondary",
         "--segmentedcontrol-selected-border": "--border-brand",
         "--segmentedcontrol-selected-border-width": "--border-width-1",
-        "--segmentedcontrol-selected-radius": "--radius-md",
+        "--segmentedcontrol-selected-radius": "--radius-xl",
         "--segmentedcontrol-disabled-surface": "--color-transparent",
         "--segmentedcontrol-disabled-text": "--text-secondary",
         "--segmentedcontrol-disabled-text-font-family": "--font-sans",
@@ -3524,46 +3416,46 @@
         "--segmentedcontrol-disabled-text-font-weight": "--font-weight-normal",
         "--segmentedcontrol-disabled-text-line-height": "--line-height-normal",
         "--segmentedcontrol-disabled-icon": "--text-secondary",
-        "--segmentedcontrol-bar-small-padding": "--space-0",
-        "--segmentedcontrol-bar-small-radius": "--radius-md",
+        "--segmentedcontrol-bar-small-padding": "--space-2",
+        "--segmentedcontrol-bar-small-radius": "--radius-xl",
         "--segmentedcontrol-small-divider-inset": "--space-4",
         "--segmentedcontrol-small-divider-thickness": "--border-width-1",
-        "--segmentedcontrol-option-small-padding": "--space-2",
-        "--segmentedcontrol-option-small-gap": "--space-4",
+        "--segmentedcontrol-option-small-padding": "--space-6",
+        "--segmentedcontrol-option-small-gap": "--space-8",
         "--segmentedcontrol-option-small-icon-size": "--icon-size-sm",
         "--segmentedcontrol-option-small-text-font-size": "--font-size-sm",
         "--segmentedcontrol-option-small-text-line-height": "--line-height-tighter",
-        "--segmentedcontrol-selected-small-radius": "--radius-sm"
+        "--segmentedcontrol-selected-small-radius": "--radius-lg"
       }
     },
     "sidenavigation": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "sidenavigation",
       "createdAt": "2026-05-25T19:34:09.771Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--sidenavigation-panel-surface": "--surface-canvas-lower",
         "--sidenavigation-panel-border": "--border-canvas-faint",
         "--sidenavigation-panel-border-width": "--border-width-1",
-        "--sidenavigation-panel-padding": "--space-10",
-        "--sidenavigation-panel-section-gap": "--space-2",
-        "--sidenavigation-panel-item-padding": "--space-20",
-        "--sidenavigation-panel-footer-gap": "--space-12",
+        "--sidenavigation-panel-padding": "--space-16",
+        "--sidenavigation-panel-section-gap": "--space-6",
+        "--sidenavigation-panel-item-padding": "--space-32",
+        "--sidenavigation-panel-footer-gap": "--space-20",
         "--sidenavigation-open-duration": "--duration-200",
         "--sidenavigation-open-easing": "--ease-out-quart",
         "--sidenavigation-close-duration": "--duration-150",
         "--sidenavigation-close-easing": "--ease-out-quart",
-        "--sidenavigation-title-gap": "--space-6",
-        "--sidenavigation-title-radius": "--radius-md",
+        "--sidenavigation-title-gap": "--space-10",
+        "--sidenavigation-title-radius": "--radius-xl",
         "--sidenavigation-title-label-surface": "--color-transparent",
         "--sidenavigation-title-label-border": "--border-canvas-faint",
         "--sidenavigation-title-label-border-width": "--border-width-1",
-        "--sidenavigation-title-label-radius": "--radius-md",
-        "--sidenavigation-title-label-padding": "--space-2",
+        "--sidenavigation-title-label-radius": "--radius-xl",
+        "--sidenavigation-title-label-padding": "--space-6",
         "--sidenavigation-title-default-surface": "--color-transparent",
         "--sidenavigation-title-default-border": "--border-canvas-faint",
         "--sidenavigation-title-default-border-width": "--border-width-1",
-        "--sidenavigation-title-default-padding": "--space-8",
+        "--sidenavigation-title-default-padding": "--space-12",
         "--sidenavigation-title-default-accent": "--color-transparent",
         "--sidenavigation-title-default-accent-width": "--border-width-3",
         "--sidenavigation-title-default-label": "--text-primary",
@@ -3574,7 +3466,7 @@
         "--sidenavigation-title-hover-surface": "--color-transparent",
         "--sidenavigation-title-hover-border": "--border-canvas-faint",
         "--sidenavigation-title-hover-border-width": "--border-width-1",
-        "--sidenavigation-title-hover-padding": "--space-8",
+        "--sidenavigation-title-hover-padding": "--space-12",
         "--sidenavigation-title-hover-accent": "--color-transparent",
         "--sidenavigation-title-hover-accent-width": "--border-width-3",
         "--sidenavigation-title-hover-label": "--text-primary",
@@ -3585,7 +3477,7 @@
         "--sidenavigation-title-active-surface": "--surface-canvas-low",
         "--sidenavigation-title-active-border": "--border-canvas-faint",
         "--sidenavigation-title-active-border-width": "--border-width-1",
-        "--sidenavigation-title-active-padding": "--space-8",
+        "--sidenavigation-title-active-padding": "--space-12",
         "--sidenavigation-title-active-accent": "--border-brand-medium",
         "--sidenavigation-title-active-accent-width": "--border-width-3",
         "--sidenavigation-title-active-label": "--text-primary",
@@ -3596,15 +3488,15 @@
         "--sidenavigation-toggle-default-surface": "--color-transparent",
         "--sidenavigation-toggle-default-border": "--border-brand-medium",
         "--sidenavigation-toggle-default-border-width": "--border-width-1",
-        "--sidenavigation-toggle-default-radius": "--radius-md",
-        "--sidenavigation-toggle-default-padding": "--space-4",
+        "--sidenavigation-toggle-default-radius": "--radius-xl",
+        "--sidenavigation-toggle-default-padding": "--space-8",
         "--sidenavigation-toggle-default-icon": "--text-primary",
         "--sidenavigation-toggle-default-icon-size": "--icon-size-md",
         "--sidenavigation-toggle-hover-surface": "--surface-brand-lowest",
         "--sidenavigation-toggle-hover-border": "--border-brand",
         "--sidenavigation-toggle-hover-border-width": "--border-width-1",
-        "--sidenavigation-toggle-hover-radius": "--radius-md",
-        "--sidenavigation-toggle-hover-padding": "--space-4",
+        "--sidenavigation-toggle-hover-radius": "--radius-xl",
+        "--sidenavigation-toggle-hover-padding": "--space-8",
         "--sidenavigation-toggle-hover-icon": "--text-brand",
         "--sidenavigation-toggle-hover-icon-size": "--icon-size-md",
         "--sidenavigation-section-default-surface": "--color-transparent",
@@ -3632,7 +3524,7 @@
         "--sidenavigation-section-active-text-font-weight": "--font-weight-medium",
         "--sidenavigation-section-active-text-line-height": "--line-height-normal",
         "--sidenavigation-item-default-surface": "--color-transparent",
-        "--sidenavigation-item-default-padding": "--space-2",
+        "--sidenavigation-item-default-padding": "--space-6",
         "--sidenavigation-item-default-accent": "--color-transparent",
         "--sidenavigation-item-default-accent-width": "--border-width-3",
         "--sidenavigation-item-default-text": "--text-tertiary",
@@ -3641,7 +3533,7 @@
         "--sidenavigation-item-default-text-font-weight": "--font-weight-semibold",
         "--sidenavigation-item-default-text-line-height": "--line-height-normal",
         "--sidenavigation-item-hover-surface": "--surface-canvas",
-        "--sidenavigation-item-hover-padding": "--space-2",
+        "--sidenavigation-item-hover-padding": "--space-6",
         "--sidenavigation-item-hover-accent": "--color-transparent",
         "--sidenavigation-item-hover-accent-width": "--border-width-3",
         "--sidenavigation-item-hover-text": "--text-secondary",
@@ -3650,7 +3542,7 @@
         "--sidenavigation-item-hover-text-font-weight": "--font-weight-light",
         "--sidenavigation-item-hover-text-line-height": "--line-height-normal",
         "--sidenavigation-item-active-surface": "--surface-canvas-low",
-        "--sidenavigation-item-active-padding": "--space-2",
+        "--sidenavigation-item-active-padding": "--space-6",
         "--sidenavigation-item-active-accent": "--border-brand-medium",
         "--sidenavigation-item-active-accent-width": "--border-width-3",
         "--sidenavigation-item-active-text": "--text-primary",
@@ -3659,8 +3551,8 @@
         "--sidenavigation-item-active-text-font-weight": "--font-weight-normal",
         "--sidenavigation-item-active-text-line-height": "--line-height-normal",
         "--sidenavigation-footer-default-surface": "--color-transparent",
-        "--sidenavigation-footer-default-padding": "--space-4",
-        "--sidenavigation-footer-default-gap": "--space-6",
+        "--sidenavigation-footer-default-padding": "--space-8",
+        "--sidenavigation-footer-default-gap": "--space-10",
         "--sidenavigation-footer-default-accent": "--color-transparent",
         "--sidenavigation-footer-default-accent-width": "--border-width-3",
         "--sidenavigation-footer-default-icon": "--text-muted",
@@ -3671,8 +3563,8 @@
         "--sidenavigation-footer-default-text-font-weight": "--font-weight-light",
         "--sidenavigation-footer-default-text-line-height": "--line-height-normal",
         "--sidenavigation-footer-hover-surface": "--surface-canvas",
-        "--sidenavigation-footer-hover-padding": "--space-4",
-        "--sidenavigation-footer-hover-gap": "--space-6",
+        "--sidenavigation-footer-hover-padding": "--space-8",
+        "--sidenavigation-footer-hover-gap": "--space-10",
         "--sidenavigation-footer-hover-accent": "--color-transparent",
         "--sidenavigation-footer-hover-accent-width": "--border-width-3",
         "--sidenavigation-footer-hover-icon": "--text-secondary",
@@ -3683,8 +3575,8 @@
         "--sidenavigation-footer-hover-text-font-weight": "--font-weight-light",
         "--sidenavigation-footer-hover-text-line-height": "--line-height-normal",
         "--sidenavigation-footer-active-surface": "--surface-canvas-low",
-        "--sidenavigation-footer-active-padding": "--space-4",
-        "--sidenavigation-footer-active-gap": "--space-6",
+        "--sidenavigation-footer-active-padding": "--space-8",
+        "--sidenavigation-footer-active-gap": "--space-10",
         "--sidenavigation-footer-active-accent": "--border-brand-medium",
         "--sidenavigation-footer-active-accent-width": "--border-width-3",
         "--sidenavigation-footer-active-icon": "--text-primary",
@@ -3697,30 +3589,30 @@
       }
     },
     "tabbar": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "tabbar",
       "createdAt": "2026-05-12T01:57:26.390Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--tabbar-bar-divider": "--border-neutral-subtle",
         "--tabbar-bar-divider-thickness": "--border-width-1",
         "--tabbar-bar-top-margin": "--space-0",
         "--tabbar-bar-bottom-padding": "--space-0",
         "--tabbar-bar-bottom-margin": "--space-0",
-        "--tabbar-tab-gap": "--space-0",
+        "--tabbar-tab-gap": "--space-4",
         "--tabbar-default-text": "--text-tertiary",
         "--tabbar-default-text-font-family": "--font-sans",
         "--tabbar-default-text-font-size": "--font-size-md",
         "--tabbar-default-text-font-weight": "--font-weight-light",
         "--tabbar-default-text-line-height": "--line-height-normal",
         "--tabbar-default-icon-size": "--icon-size-md",
-        "--tabbar-default-padding": "--space-4",
+        "--tabbar-default-padding": "--space-8",
         "--tabbar-default-border": "--color-transparent",
         "--tabbar-default-surface": "--color-transparent",
         "--tabbar-default-tab-border-color": "--color-transparent",
         "--tabbar-default-tab-border-width": "--border-width-0",
-        "--tabbar-default-tab-top-radius": "--radius-none",
-        "--tabbar-default-tab-bottom-radius": "--radius-none",
+        "--tabbar-default-tab-top-radius": "--radius-md",
+        "--tabbar-default-tab-bottom-radius": "--radius-md",
         "--tabbar-default-indicator-border-width": "--border-width-2",
         "--tabbar-hover-text": "--text-secondary",
         "--tabbar-hover-surface": "--surface-neutral-lower",
@@ -3729,12 +3621,12 @@
         "--tabbar-hover-text-font-weight": "--font-weight-light",
         "--tabbar-hover-text-line-height": "--line-height-normal",
         "--tabbar-hover-icon-size": "--icon-size-md",
-        "--tabbar-hover-padding": "--space-4",
+        "--tabbar-hover-padding": "--space-8",
         "--tabbar-hover-border": "--color-transparent",
         "--tabbar-hover-tab-border-color": "--color-transparent",
         "--tabbar-hover-tab-border-width": "--border-width-0",
-        "--tabbar-hover-tab-top-radius": "--radius-none",
-        "--tabbar-hover-tab-bottom-radius": "--radius-none",
+        "--tabbar-hover-tab-top-radius": "--radius-md",
+        "--tabbar-hover-tab-bottom-radius": "--radius-md",
         "--tabbar-hover-indicator-border-width": "--border-width-2",
         "--tabbar-active-text": "--text-primary",
         "--tabbar-active-border": "--color-brand-500",
@@ -3744,11 +3636,11 @@
         "--tabbar-active-text-font-weight": "--font-weight-light",
         "--tabbar-active-text-line-height": "--line-height-normal",
         "--tabbar-active-icon-size": "--icon-size-md",
-        "--tabbar-active-padding": "--space-4",
+        "--tabbar-active-padding": "--space-8",
         "--tabbar-active-tab-border-color": "--color-transparent",
         "--tabbar-active-tab-border-width": "--border-width-0",
-        "--tabbar-active-tab-top-radius": "--radius-none",
-        "--tabbar-active-tab-bottom-radius": "--radius-none",
+        "--tabbar-active-tab-top-radius": "--radius-md",
+        "--tabbar-active-tab-bottom-radius": "--radius-md",
         "--tabbar-active-indicator-border-width": "--border-width-2",
         "--tabbar-disabled-text": "--text-disabled",
         "--tabbar-disabled-text-font-family": "--font-sans",
@@ -3756,23 +3648,23 @@
         "--tabbar-disabled-text-font-weight": "--font-weight-light",
         "--tabbar-disabled-text-line-height": "--line-height-normal",
         "--tabbar-disabled-icon-size": "--icon-size-md",
-        "--tabbar-disabled-padding": "--space-4",
+        "--tabbar-disabled-padding": "--space-8",
         "--tabbar-disabled-border": "--color-transparent",
         "--tabbar-disabled-surface": "--color-transparent",
         "--tabbar-disabled-tab-border-color": "--color-transparent",
         "--tabbar-disabled-tab-border-width": "--border-width-0",
-        "--tabbar-disabled-tab-top-radius": "--radius-none",
-        "--tabbar-disabled-tab-bottom-radius": "--radius-none",
+        "--tabbar-disabled-tab-top-radius": "--radius-md",
+        "--tabbar-disabled-tab-bottom-radius": "--radius-md",
         "--tabbar-disabled-indicator-border-width": "--border-width-2"
       }
     },
     "table": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "table",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
-        "--table-default-radius": "--radius-md",
+        "--table-default-radius": "--radius-xl",
         "--table-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 57%, transparent)",
         "--table-default-border": "--border-neutral",
         "--table-default-border-width": "--border-width-2",
@@ -3783,7 +3675,7 @@
         "--table-default-header-font-size": "--font-size-lg",
         "--table-default-header-font-weight": "--font-weight-semibold",
         "--table-default-header-line-height": "--line-height-none",
-        "--table-default-header-padding": "--space-8",
+        "--table-default-header-padding": "--space-12",
         "--table-default-header-border": "--border-neutral",
         "--table-default-header-border-width": "--border-width-1",
         "--table-default-cell-text": "--text-secondary",
@@ -3791,7 +3683,7 @@
         "--table-default-cell-font-size": "--font-size-md",
         "--table-default-cell-font-weight": "--font-weight-medium",
         "--table-default-cell-line-height": "--line-height-normal",
-        "--table-default-cell-padding": "--space-4",
+        "--table-default-cell-padding": "--space-8",
         "--table-default-row-surface": "--color-transparent",
         "--table-default-row-divider": "--border-neutral-subtle",
         "--table-default-row-divider-width": "--border-width-1",
@@ -3801,16 +3693,16 @@
       }
     },
     "toggle": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "toggle",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--toggle-track-surface": "--surface-neutral",
         "--toggle-track-border": "--border-neutral",
         "--toggle-track-border-width": "--border-width-1",
         "--toggle-track-radius": "--radius-full",
-        "--toggle-track-padding": "--space-0",
+        "--toggle-track-padding": "--space-2",
         "--toggle-thumb-surface": "--surface-neutral-highest",
         "--toggle-thumb-border": "--border-neutral-strong",
         "--toggle-thumb-size": "--font-size-md",
@@ -3818,7 +3710,7 @@
         "--toggle-label-font-family": "--font-sans",
         "--toggle-label-font-size": "--font-size-sm",
         "--toggle-label-font-weight": "--font-weight-normal",
-        "--toggle-gap": "--space-6",
+        "--toggle-gap": "--space-10",
         "--toggle-hover-track-surface": "--surface-neutral-high",
         "--toggle-hover-thumb-surface": "--text-primary",
         "--toggle-on-track-surface": "--surface-brand-high",
@@ -3833,10 +3725,10 @@
       }
     },
     "tooltip": {
-      "name": "midnight-study",
+      "name": "leprechaun",
       "component": "tooltip",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--tooltip-surface": "color-mix(in srgb, var(--surface-canvas-lowest) 75%, transparent)",
         "--tooltip-text": "--text-primary",
@@ -3846,8 +3738,8 @@
         "--tooltip-text-line-height": "--line-height-normal",
         "--tooltip-border": "--border-neutral",
         "--tooltip-border-width": "--border-width-1",
-        "--tooltip-radius": "--radius-md",
-        "--tooltip-padding": "--space-2",
+        "--tooltip-radius": "--radius-xl",
+        "--tooltip-padding": "--space-6",
         "--tooltip-shadow": "--shadow-md"
       }
     }

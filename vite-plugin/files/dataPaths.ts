@@ -5,7 +5,7 @@ export interface LiveTokensFileConfig {
   dataDir?: string;
   colorsAndTypeDir?: string;
   componentConfigsDir?: string;
-  manifestsDir?: string;
+  themesDir?: string;
   /**
    * Path to the developer-authored `tokens.css`. The dev plugin takes this from
    * its `themeFileApi({ tokensCssPath })` option; the standalone `live-tokens
@@ -18,14 +18,14 @@ export interface ResolveDataDirsInput {
   dataDir?: string;
   colorsAndTypeDir?: string;
   componentConfigsDir?: string;
-  manifestsDir?: string;
+  themesDir?: string;
 }
 
 export interface ResolvedDataDirs {
   dataDir: string;
   colorsAndTypeDir: string;
   componentConfigsDir: string;
-  manifestsDir: string;
+  themesDir: string;
 }
 
 const DEFAULT_DATA_DIR = 'src/live-tokens/data';
@@ -34,7 +34,7 @@ const KNOWN_CONFIG_KEYS = new Set<keyof LiveTokensFileConfig>([
   'dataDir',
   'colorsAndTypeDir',
   'componentConfigsDir',
-  'manifestsDir',
+  'themesDir',
   'tokensCssPath',
 ]);
 
@@ -114,10 +114,10 @@ export function resolveDataDirs(opts: ResolveDataDirsInput = {}): ResolvedDataDi
       : fileConfig.componentConfigsDir
         ? path.resolve(fileConfig.componentConfigsDir)
         : sub('component-configs'),
-    manifestsDir: opts.manifestsDir
-      ? path.resolve(opts.manifestsDir)
-      : fileConfig.manifestsDir
-        ? path.resolve(fileConfig.manifestsDir)
-        : sub('manifests'),
+    themesDir: opts.themesDir
+      ? path.resolve(opts.themesDir)
+      : fileConfig.themesDir
+        ? path.resolve(fileConfig.themesDir)
+        : sub('themes'),
   };
 }

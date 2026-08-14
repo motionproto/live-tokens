@@ -38,7 +38,7 @@ export interface RenderedLook {
  * configs for components this install lacks are skipped, as Apply skips them.
  */
 export function themeLook(theme: Theme, defaults: Theme): RenderedLook {
-  const colorsAndType = structuredClone(theme.theme);
+  const colorsAndType = structuredClone(theme.colorsAndType);
   migrateColorsAndTypeFonts(colorsAndType);
   const state = colorsAndTypeToState(colorsAndType);
   state.components = {};

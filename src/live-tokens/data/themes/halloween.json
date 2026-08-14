@@ -1,18 +1,18 @@
 {
-  "name": "Ocean",
+  "name": "Halloween",
   "createdAt": "2026-08-13T10:21:46.867Z",
-  "updatedAt": "2026-08-13T14:14:20.015Z",
-  "schemaVersion": 2,
-  "theme": {
-    "name": "Ocean",
-    "createdAt": "2026-08-12T20:13:46.322Z",
+  "updatedAt": "2026-08-14T17:42:08.545Z",
+  "schemaVersion": 3,
+  "colorsAndType": {
+    "name": "Halloween",
+    "createdAt": "2026-08-12T20:13:46.209Z",
     "updatedAt": "2026-08-13T14:14:20.015Z",
     "editorConfigs": {
       "Brand": {
         "baseColor": {
-          "l": 0.45,
-          "c": 0.09,
-          "h": 237
+          "l": 0.75,
+          "c": 0.13,
+          "h": 300
         },
         "lightnessCurve": [
           {
@@ -20,22 +20,22 @@
             "y": 95,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 20,
-            "outDy": -16.666666666666668
+            "outDx": 6.666666666666666,
+            "outDy": -6.666666666666666
           },
           {
-            "x": 60,
-            "y": 45,
-            "inDx": -20,
-            "inDy": 17.596702599873176,
-            "outDx": 13.333333333333332,
-            "outDy": -11.731135066582118
+            "x": 20,
+            "y": 75,
+            "inDx": -6.666666666666666,
+            "inDy": 6.1865189289012,
+            "outDx": 26.666666666666664,
+            "outDy": -24.7460757156048
           },
           {
             "x": 100,
             "y": 8,
-            "inDx": -13.333333333333332,
-            "inDy": 12.333333333333332,
+            "inDx": -26.666666666666664,
+            "inDy": 22.333333333333332,
             "outDx": 0,
             "outDy": 0
           }
@@ -46,21 +46,21 @@
             "y": 100,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 20,
+            "outDx": 6.666666666666666,
             "outDy": 0
           },
           {
-            "x": 60,
+            "x": 20,
             "y": 100,
-            "inDx": -20,
+            "inDx": -6.666666666666666,
             "inDy": 0,
-            "outDx": 13.333333333333332,
+            "outDx": 26.666666666666664,
             "outDy": 0
           },
           {
             "x": 100,
             "y": 100,
-            "inDx": -13.333333333333332,
+            "inDx": -26.666666666666664,
             "inDy": 0,
             "outDx": 0,
             "outDy": 0
@@ -71,7 +71,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 98,
+                "y": 15,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -79,7 +79,7 @@
               },
               {
                 "x": 100,
-                "y": 82,
+                "y": 47,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -109,7 +109,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 92,
+                "y": 25,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -117,7 +117,7 @@
               },
               {
                 "x": 100,
-                "y": 45,
+                "y": 80,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -147,7 +147,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 30,
+                "y": 120,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -155,7 +155,7 @@
               },
               {
                 "x": 100,
-                "y": 120,
+                "y": 55,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -190,7 +190,7 @@
         "snappedScales": [],
         "anchorToBase": true,
         "anchorPlacement": {
-          "step": 6,
+          "step": 2,
           "priorLightnessEndpoints": [
             {
               "x": 0,
@@ -231,9 +231,9 @@
       },
       "Accent": {
         "baseColor": {
-          "l": 0.78,
-          "c": 0.12,
-          "h": 214
+          "l": 0.75,
+          "c": 0.16,
+          "h": 137
         },
         "lightnessCurve": [
           {
@@ -242,21 +242,21 @@
             "inDx": 0,
             "inDy": 0,
             "outDx": 6.666666666666666,
-            "outDy": -5.666666666666666
+            "outDy": -6.666666666666666
           },
           {
             "x": 20,
-            "y": 78,
+            "y": 75,
             "inDx": -6.666666666666666,
-            "inDy": 5.732177263969171,
+            "inDy": 6.1865189289012,
             "outDx": 26.666666666666664,
-            "outDy": -22.928709055876684
+            "outDy": -24.7460757156048
           },
           {
             "x": 100,
             "y": 8,
             "inDx": -26.666666666666664,
-            "inDy": 23.333333333333332,
+            "inDy": 22.333333333333332,
             "outDx": 0,
             "outDy": 0
           }
@@ -292,7 +292,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 98,
+                "y": 15,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -300,7 +300,7 @@
               },
               {
                 "x": 100,
-                "y": 82,
+                "y": 47,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -330,7 +330,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 92,
+                "y": 25,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -338,7 +338,7 @@
               },
               {
                 "x": 100,
-                "y": 45,
+                "y": 80,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -368,7 +368,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 30,
+                "y": 120,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -376,7 +376,7 @@
               },
               {
                 "x": 100,
-                "y": 120,
+                "y": 55,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -453,8 +453,8 @@
       "Special": {
         "baseColor": {
           "l": 0.72,
-          "c": 0.13,
-          "h": 40
+          "c": 0.18,
+          "h": 46
         },
         "lightnessCurve": [
           {
@@ -513,7 +513,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 98,
+                "y": 15,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -521,7 +521,7 @@
               },
               {
                 "x": 100,
-                "y": 82,
+                "y": 47,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -551,7 +551,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 92,
+                "y": 25,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -559,7 +559,7 @@
               },
               {
                 "x": 100,
-                "y": 45,
+                "y": 80,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -589,7 +589,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 30,
+                "y": 120,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -597,7 +597,7 @@
               },
               {
                 "x": 100,
-                "y": 120,
+                "y": 55,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -673,9 +673,9 @@
       },
       "Canvas": {
         "baseColor": {
-          "l": 0.9,
-          "c": 0.045,
-          "h": 220
+          "l": 0.45,
+          "c": 0.13,
+          "h": 55
         },
         "lightnessCurve": [
           {
@@ -683,22 +683,22 @@
             "y": 95,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 3.333333333333333,
-            "outDy": -1.6666666666666665
+            "outDx": 20,
+            "outDy": -16.666666666666668
           },
           {
-            "x": 10,
-            "y": 90,
-            "inDx": -3.333333333333333,
-            "inDy": 1.9970774476376032,
-            "outDx": 30,
-            "outDy": -17.97369702873843
+            "x": 60,
+            "y": 45,
+            "inDx": -20,
+            "inDy": 17.596702599873176,
+            "outDx": 13.333333333333332,
+            "outDy": -11.731135066582118
           },
           {
             "x": 100,
             "y": 8,
-            "inDx": -30,
-            "inDy": 27.333333333333332,
+            "inDx": -13.333333333333332,
+            "inDy": 12.333333333333332,
             "outDx": 0,
             "outDy": 0
           }
@@ -709,21 +709,21 @@
             "y": 100,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 3.333333333333333,
+            "outDx": 20,
             "outDy": 0
           },
           {
-            "x": 10,
+            "x": 60,
             "y": 100,
-            "inDx": -3.333333333333333,
+            "inDx": -20,
             "inDy": 0,
-            "outDx": 30,
+            "outDx": 13.333333333333332,
             "outDy": 0
           },
           {
             "x": 100,
             "y": 100,
-            "inDx": -30,
+            "inDx": -13.333333333333332,
             "inDy": 0,
             "outDx": 0,
             "outDy": 0
@@ -734,7 +734,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 98,
+                "y": 15,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -742,7 +742,7 @@
               },
               {
                 "x": 100,
-                "y": 82,
+                "y": 47,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -772,7 +772,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 92,
+                "y": 25,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -780,7 +780,7 @@
               },
               {
                 "x": 100,
-                "y": 45,
+                "y": 80,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -810,7 +810,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 30,
+                "y": 120,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -818,7 +818,7 @@
               },
               {
                 "x": 100,
-                "y": 120,
+                "y": 55,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -853,7 +853,7 @@
         "snappedScales": [],
         "anchorToBase": true,
         "anchorPlacement": {
-          "step": 1,
+          "step": 6,
           "priorLightnessEndpoints": [
             {
               "x": 0,
@@ -894,9 +894,9 @@
       },
       "Neutral": {
         "baseColor": {
-          "l": 0.55,
+          "l": 0.57,
           "c": 0.014,
-          "h": 230
+          "h": 55
         },
         "lightnessCurve": [
           {
@@ -905,21 +905,21 @@
             "inDx": 0,
             "inDy": 0,
             "outDx": 13.333333333333332,
-            "outDy": -12.33333333333333
+            "outDy": -11.666666666666668
           },
           {
             "x": 40,
-            "y": 55.00000000000001,
+            "y": 56.99999999999999,
             "inDx": -13.333333333333332,
-            "inDy": 11.957737725295212,
+            "inDy": 11.819887429643527,
             "outDx": 20,
-            "outDy": -17.93660658794282
+            "outDy": -17.729831144465294
           },
           {
             "x": 100,
             "y": 3,
             "inDx": -20,
-            "inDy": 17.333333333333336,
+            "inDy": 18,
             "outDx": 0,
             "outDy": 0
           }
@@ -955,7 +955,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 98,
+                "y": 15,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -963,7 +963,7 @@
               },
               {
                 "x": 100,
-                "y": 82,
+                "y": 47,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -993,7 +993,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 92,
+                "y": 25,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1001,7 +1001,7 @@
               },
               {
                 "x": 100,
-                "y": 45,
+                "y": 80,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1031,16 +1031,32 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 30,
+                "y": 175.43859649122808,
                 "inDx": -30,
                 "inDy": 0,
-                "outDx": 30,
+                "outDx": 7.5,
                 "outDy": 0
               },
               {
+                "x": 25,
+                "y": 162.94474606874843,
+                "inDx": -8.333333333333332,
+                "inDy": 5.7205323807972475,
+                "outDx": 8.333333333333332,
+                "outDy": -5.720532380797248
+              },
+              {
+                "x": 50,
+                "y": 138.73836730998016,
+                "inDx": -8.333333333333332,
+                "inDy": 9.930723845619523,
+                "outDx": 16.666666666666664,
+                "outDy": -19.861447691239047
+              },
+              {
                 "x": 100,
-                "y": 120,
-                "inDx": -30,
+                "y": 55,
+                "inDx": -15,
                 "inDy": 0,
                 "outDx": 30,
                 "outDy": 0
@@ -1049,16 +1065,32 @@
             "saturation": [
               {
                 "x": 0,
-                "y": 100,
+                "y": 0,
                 "inDx": -30,
                 "inDy": 0,
-                "outDx": 30,
+                "outDx": 7.5,
                 "outDy": 0
+              },
+              {
+                "x": 25,
+                "y": 87.27928405892784,
+                "inDx": -8.333333333333332,
+                "inDy": 0,
+                "outDx": 8.333333333333332,
+                "outDy": 0
+              },
+              {
+                "x": 50,
+                "y": 56.73712581011626,
+                "inDx": -8.333333333333332,
+                "inDy": 8.441572701712257,
+                "outDx": 16.666666666666664,
+                "outDy": -16.883145403424514
               },
               {
                 "x": 100,
                 "y": 15,
-                "inDx": -30,
+                "inDx": -15,
                 "inDy": 0,
                 "outDx": 30,
                 "outDy": 0
@@ -1116,8 +1148,8 @@
       "Alternate": {
         "baseColor": {
           "l": 0.58,
-          "c": 0.01,
-          "h": 90
+          "c": 0.012,
+          "h": 300
         },
         "lightnessCurve": [
           {
@@ -1176,7 +1208,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 98,
+                "y": 15,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1184,7 +1216,7 @@
               },
               {
                 "x": 100,
-                "y": 82,
+                "y": 47,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1214,7 +1246,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 92,
+                "y": 25,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1222,7 +1254,7 @@
               },
               {
                 "x": 100,
-                "y": 45,
+                "y": 80,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1252,7 +1284,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 30,
+                "y": 136.5222703268422,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -1260,7 +1292,7 @@
               },
               {
                 "x": 100,
-                "y": 120,
+                "y": 55,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -1270,7 +1302,7 @@
             "saturation": [
               {
                 "x": 0,
-                "y": 100,
+                "y": 97.8127914173576,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -1336,8 +1368,8 @@
       },
       "Info": {
         "baseColor": {
-          "l": 0.55,
-          "c": 0.13,
+          "l": 0.75,
+          "c": 0.11,
           "h": 250
         },
         "lightnessCurve": [
@@ -1346,22 +1378,22 @@
             "y": 95,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 16.666666666666664,
-            "outDy": -13.333333333333329
+            "outDx": 6.666666666666666,
+            "outDy": -6.666666666666666
           },
           {
-            "x": 50,
-            "y": 55.00000000000001,
-            "inDx": -16.666666666666664,
-            "inDy": 14.406130268199231,
-            "outDx": 16.666666666666664,
-            "outDy": -14.406130268199231
+            "x": 20,
+            "y": 75,
+            "inDx": -6.666666666666666,
+            "inDy": 6.1865189289012,
+            "outDx": 26.666666666666664,
+            "outDy": -24.7460757156048
           },
           {
             "x": 100,
             "y": 8,
-            "inDx": -16.666666666666664,
-            "inDy": 15.666666666666668,
+            "inDx": -26.666666666666664,
+            "inDy": 22.333333333333332,
             "outDx": 0,
             "outDy": 0
           }
@@ -1372,21 +1404,21 @@
             "y": 100,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 16.666666666666664,
+            "outDx": 6.666666666666666,
             "outDy": 0
           },
           {
-            "x": 50,
+            "x": 20,
             "y": 100,
-            "inDx": -16.666666666666664,
+            "inDx": -6.666666666666666,
             "inDy": 0,
-            "outDx": 16.666666666666664,
+            "outDx": 26.666666666666664,
             "outDy": 0
           },
           {
             "x": 100,
             "y": 100,
-            "inDx": -16.666666666666664,
+            "inDx": -26.666666666666664,
             "inDy": 0,
             "outDx": 0,
             "outDy": 0
@@ -1397,7 +1429,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 98,
+                "y": 15,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1405,7 +1437,7 @@
               },
               {
                 "x": 100,
-                "y": 82,
+                "y": 47,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1435,7 +1467,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 92,
+                "y": 25,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1443,7 +1475,7 @@
               },
               {
                 "x": 100,
-                "y": 45,
+                "y": 80,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1473,7 +1505,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 30,
+                "y": 120,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -1481,7 +1513,7 @@
               },
               {
                 "x": 100,
-                "y": 120,
+                "y": 55,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -1516,7 +1548,7 @@
         "snappedScales": [],
         "anchorToBase": true,
         "anchorPlacement": {
-          "step": 5,
+          "step": 2,
           "priorLightnessEndpoints": [
             {
               "x": 0,
@@ -1557,9 +1589,9 @@
       },
       "Success": {
         "baseColor": {
-          "l": 0.55,
-          "c": 0.14,
-          "h": 155
+          "l": 0.75,
+          "c": 0.13,
+          "h": 145
         },
         "lightnessCurve": [
           {
@@ -1567,22 +1599,22 @@
             "y": 95,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 16.666666666666664,
-            "outDy": -13.333333333333329
+            "outDx": 6.666666666666666,
+            "outDy": -6.666666666666666
           },
           {
-            "x": 50,
-            "y": 55.00000000000001,
-            "inDx": -16.666666666666664,
-            "inDy": 14.406130268199231,
-            "outDx": 16.666666666666664,
-            "outDy": -14.406130268199231
+            "x": 20,
+            "y": 75,
+            "inDx": -6.666666666666666,
+            "inDy": 6.1865189289012,
+            "outDx": 26.666666666666664,
+            "outDy": -24.7460757156048
           },
           {
             "x": 100,
             "y": 8,
-            "inDx": -16.666666666666664,
-            "inDy": 15.666666666666668,
+            "inDx": -26.666666666666664,
+            "inDy": 22.333333333333332,
             "outDx": 0,
             "outDy": 0
           }
@@ -1593,21 +1625,21 @@
             "y": 100,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 16.666666666666664,
+            "outDx": 6.666666666666666,
             "outDy": 0
           },
           {
-            "x": 50,
+            "x": 20,
             "y": 100,
-            "inDx": -16.666666666666664,
+            "inDx": -6.666666666666666,
             "inDy": 0,
-            "outDx": 16.666666666666664,
+            "outDx": 26.666666666666664,
             "outDy": 0
           },
           {
             "x": 100,
             "y": 100,
-            "inDx": -16.666666666666664,
+            "inDx": -26.666666666666664,
             "inDy": 0,
             "outDx": 0,
             "outDy": 0
@@ -1618,7 +1650,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 98,
+                "y": 15,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1626,7 +1658,7 @@
               },
               {
                 "x": 100,
-                "y": 82,
+                "y": 47,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1656,7 +1688,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 92,
+                "y": 25,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1664,7 +1696,7 @@
               },
               {
                 "x": 100,
-                "y": 45,
+                "y": 80,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1694,7 +1726,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 30,
+                "y": 120,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -1702,7 +1734,7 @@
               },
               {
                 "x": 100,
-                "y": 120,
+                "y": 55,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -1737,7 +1769,7 @@
         "snappedScales": [],
         "anchorToBase": true,
         "anchorPlacement": {
-          "step": 5,
+          "step": 2,
           "priorLightnessEndpoints": [
             {
               "x": 0,
@@ -1778,8 +1810,8 @@
       },
       "Warning": {
         "baseColor": {
-          "l": 0.76,
-          "c": 0.14,
+          "l": 0.8,
+          "c": 0.13,
           "h": 85
         },
         "lightnessCurve": [
@@ -1789,21 +1821,21 @@
             "inDx": 0,
             "inDy": 0,
             "outDx": 6.666666666666666,
-            "outDy": -6.333333333333332
+            "outDy": -5
           },
           {
             "x": 20,
-            "y": 76,
+            "y": 80,
             "inDx": -6.666666666666666,
-            "inDy": 6.048689138576779,
+            "inDy": 5.357142857142856,
             "outDx": 26.666666666666664,
-            "outDy": -24.194756554307116
+            "outDy": -21.428571428571423
           },
           {
             "x": 100,
             "y": 8,
             "inDx": -26.666666666666664,
-            "inDy": 22.666666666666664,
+            "inDy": 24,
             "outDx": 0,
             "outDy": 0
           }
@@ -1839,7 +1871,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 98,
+                "y": 15,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1847,7 +1879,7 @@
               },
               {
                 "x": 100,
-                "y": 82,
+                "y": 47,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1877,7 +1909,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 92,
+                "y": 25,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1885,7 +1917,7 @@
               },
               {
                 "x": 100,
-                "y": 45,
+                "y": 80,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1915,7 +1947,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 30,
+                "y": 120,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -1923,7 +1955,7 @@
               },
               {
                 "x": 100,
-                "y": 120,
+                "y": 55,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -1999,9 +2031,9 @@
       },
       "Danger": {
         "baseColor": {
-          "l": 0.55,
-          "c": 0.18,
-          "h": 25
+          "l": 0.72,
+          "c": 0.15,
+          "h": 20
         },
         "lightnessCurve": [
           {
@@ -2009,22 +2041,22 @@
             "y": 95,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 16.666666666666664,
-            "outDy": -13.333333333333329
+            "outDx": 10,
+            "outDy": -7.666666666666667
           },
           {
-            "x": 50,
-            "y": 55.00000000000001,
-            "inDx": -16.666666666666664,
-            "inDy": 14.406130268199231,
-            "outDx": 16.666666666666664,
-            "outDy": -14.406130268199231
+            "x": 30,
+            "y": 72,
+            "inDx": -10,
+            "inDy": 8.243419824528655,
+            "outDx": 23.333333333333332,
+            "outDy": -19.234646257233525
           },
           {
             "x": 100,
             "y": 8,
-            "inDx": -16.666666666666664,
-            "inDy": 15.666666666666668,
+            "inDx": -23.333333333333332,
+            "inDy": 21.333333333333332,
             "outDx": 0,
             "outDy": 0
           }
@@ -2035,21 +2067,21 @@
             "y": 100,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 16.666666666666664,
+            "outDx": 10,
             "outDy": 0
           },
           {
-            "x": 50,
+            "x": 30,
             "y": 100,
-            "inDx": -16.666666666666664,
+            "inDx": -10,
             "inDy": 0,
-            "outDx": 16.666666666666664,
+            "outDx": 23.333333333333332,
             "outDy": 0
           },
           {
             "x": 100,
             "y": 100,
-            "inDx": -16.666666666666664,
+            "inDx": -23.333333333333332,
             "inDy": 0,
             "outDx": 0,
             "outDy": 0
@@ -2060,7 +2092,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 98,
+                "y": 15,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -2068,7 +2100,7 @@
               },
               {
                 "x": 100,
-                "y": 82,
+                "y": 47,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -2098,7 +2130,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 92,
+                "y": 25,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -2106,7 +2138,7 @@
               },
               {
                 "x": 100,
-                "y": 45,
+                "y": 80,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -2136,7 +2168,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 30,
+                "y": 120,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -2144,7 +2176,7 @@
               },
               {
                 "x": 100,
-                "y": 120,
+                "y": 55,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -2179,7 +2211,7 @@
         "snappedScales": [],
         "anchorToBase": true,
         "anchorPlacement": {
-          "step": 5,
+          "step": 3,
           "priorLightnessEndpoints": [
             {
               "x": 0,
@@ -2307,35 +2339,28 @@
         ]
       },
       {
-        "id": "src_preset_quicksand",
+        "id": "src_preset_creepster",
         "kind": "google",
-        "url": "https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap",
+        "url": "https://fonts.googleapis.com/css2?family=Creepster&display=swap",
         "label": "Google Fonts",
         "families": [
           {
-            "id": "src_preset_quicksand:quicksand",
-            "name": "Quicksand",
-            "cssName": "\"Quicksand\"",
-            "weights": [
-              300,
-              400,
-              500,
-              600,
-              700
-            ]
+            "id": "src_preset_creepster:creepster",
+            "name": "Creepster",
+            "cssName": "\"Creepster\""
           }
         ]
       },
       {
-        "id": "src_preset_mulish",
+        "id": "src_preset_karla",
         "kind": "google",
-        "url": "https://fonts.googleapis.com/css2?family=Mulish:wght@300..800&display=swap",
+        "url": "https://fonts.googleapis.com/css2?family=Karla:wght@300..800&display=swap",
         "label": "Google Fonts",
         "families": [
           {
-            "id": "src_preset_mulish:mulish",
-            "name": "Mulish",
-            "cssName": "\"Mulish\"",
+            "id": "src_preset_karla:karla",
+            "name": "Karla",
+            "cssName": "\"Karla\"",
             "weights": [
               300,
               400,
@@ -2354,7 +2379,7 @@
         "slots": [
           {
             "kind": "project",
-            "familyId": "src_preset_quicksand:quicksand"
+            "familyId": "src_preset_creepster:creepster"
           },
           {
             "kind": "generic",
@@ -2367,7 +2392,7 @@
         "slots": [
           {
             "kind": "project",
-            "familyId": "src_preset_mulish:mulish"
+            "familyId": "src_preset_karla:karla"
           },
           {
             "kind": "system",
@@ -2412,19 +2437,19 @@
     ],
     "harmonyAxes": [
       {
-        "hue": 237,
+        "hue": 300,
         "family": "Brand"
       },
       {
-        "hue": 214,
+        "hue": 137,
         "family": "Accent"
       },
       {
-        "hue": 220,
+        "hue": 55,
         "family": "Canvas"
       },
       {
-        "hue": 147,
+        "hue": 210,
         "family": null
       }
     ],
@@ -2432,10 +2457,10 @@
   },
   "componentConfigs": {
     "badge": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "badge",
       "createdAt": "2026-05-01T08:28:00.345Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--badge-primary-surface": "--surface-brand",
         "--badge-primary-text": "--text-brand",
@@ -2444,9 +2469,9 @@
         "--badge-primary-text-font-size": "--font-size-md",
         "--badge-primary-text-font-weight": "--font-weight-normal",
         "--badge-primary-text-line-height": "--line-height-none",
-        "--badge-primary-border-width": "--border-width-1",
-        "--badge-primary-radius": "--radius-full",
-        "--badge-primary-padding": "--space-8",
+        "--badge-primary-border-width": "--border-width-3",
+        "--badge-primary-radius": "--radius-none",
+        "--badge-primary-padding": "--space-4",
         "--badge-primary-shadow": "--shadow-none",
         "--badge-primary-blur": "--blur-none",
         "--badge-primary-icon-size": "--icon-size-sm",
@@ -2457,9 +2482,9 @@
         "--badge-accent-text-font-size": "--font-size-md",
         "--badge-accent-text-font-weight": "--font-weight-normal",
         "--badge-accent-text-line-height": "--line-height-none",
-        "--badge-accent-border-width": "--border-width-1",
-        "--badge-accent-radius": "--radius-full",
-        "--badge-accent-padding": "--space-8",
+        "--badge-accent-border-width": "--border-width-3",
+        "--badge-accent-radius": "--radius-none",
+        "--badge-accent-padding": "--space-4",
         "--badge-accent-shadow": "--shadow-none",
         "--badge-accent-blur": "--blur-none",
         "--badge-accent-icon-size": "--icon-size-sm",
@@ -2470,9 +2495,9 @@
         "--badge-neutral-text-font-size": "--font-size-md",
         "--badge-neutral-text-font-weight": "--font-weight-normal",
         "--badge-neutral-text-line-height": "--line-height-none",
-        "--badge-neutral-border-width": "--border-width-1",
-        "--badge-neutral-radius": "--radius-full",
-        "--badge-neutral-padding": "--space-8",
+        "--badge-neutral-border-width": "--border-width-3",
+        "--badge-neutral-radius": "--radius-none",
+        "--badge-neutral-padding": "--space-4",
         "--badge-neutral-shadow": "--shadow-none",
         "--badge-neutral-blur": "--blur-none",
         "--badge-neutral-icon-size": "--icon-size-sm",
@@ -2483,9 +2508,9 @@
         "--badge-alternate-text-font-size": "--font-size-md",
         "--badge-alternate-text-font-weight": "--font-weight-normal",
         "--badge-alternate-text-line-height": "--line-height-none",
-        "--badge-alternate-border-width": "--border-width-1",
-        "--badge-alternate-radius": "--radius-full",
-        "--badge-alternate-padding": "--space-8",
+        "--badge-alternate-border-width": "--border-width-3",
+        "--badge-alternate-radius": "--radius-none",
+        "--badge-alternate-padding": "--space-4",
         "--badge-alternate-shadow": "--shadow-none",
         "--badge-alternate-blur": "--blur-none",
         "--badge-alternate-icon-size": "--icon-size-sm",
@@ -2496,9 +2521,9 @@
         "--badge-canvas-text-font-size": "--font-size-md",
         "--badge-canvas-text-font-weight": "--font-weight-normal",
         "--badge-canvas-text-line-height": "--line-height-none",
-        "--badge-canvas-border-width": "--border-width-1",
-        "--badge-canvas-radius": "--radius-full",
-        "--badge-canvas-padding": "--space-8",
+        "--badge-canvas-border-width": "--border-width-3",
+        "--badge-canvas-radius": "--radius-none",
+        "--badge-canvas-padding": "--space-4",
         "--badge-canvas-shadow": "--shadow-none",
         "--badge-canvas-blur": "--blur-none",
         "--badge-canvas-icon-size": "--icon-size-sm",
@@ -2509,9 +2534,9 @@
         "--badge-special-text-font-size": "--font-size-md",
         "--badge-special-text-font-weight": "--font-weight-normal",
         "--badge-special-text-line-height": "--line-height-none",
-        "--badge-special-border-width": "--border-width-1",
-        "--badge-special-radius": "--radius-full",
-        "--badge-special-padding": "--space-8",
+        "--badge-special-border-width": "--border-width-3",
+        "--badge-special-radius": "--radius-none",
+        "--badge-special-padding": "--space-4",
         "--badge-special-shadow": "--shadow-none",
         "--badge-special-blur": "--blur-none",
         "--badge-special-icon-size": "--icon-size-sm",
@@ -2522,9 +2547,9 @@
         "--badge-success-text-font-size": "--font-size-md",
         "--badge-success-text-font-weight": "--font-weight-normal",
         "--badge-success-text-line-height": "--line-height-none",
-        "--badge-success-border-width": "--border-width-1",
-        "--badge-success-radius": "--radius-full",
-        "--badge-success-padding": "--space-8",
+        "--badge-success-border-width": "--border-width-3",
+        "--badge-success-radius": "--radius-none",
+        "--badge-success-padding": "--space-4",
         "--badge-success-shadow": "--shadow-none",
         "--badge-success-blur": "--blur-none",
         "--badge-success-icon-size": "--icon-size-sm",
@@ -2535,9 +2560,9 @@
         "--badge-warning-text-font-size": "--font-size-md",
         "--badge-warning-text-font-weight": "--font-weight-normal",
         "--badge-warning-text-line-height": "--line-height-none",
-        "--badge-warning-border-width": "--border-width-1",
-        "--badge-warning-radius": "--radius-full",
-        "--badge-warning-padding": "--space-8",
+        "--badge-warning-border-width": "--border-width-3",
+        "--badge-warning-radius": "--radius-none",
+        "--badge-warning-padding": "--space-4",
         "--badge-warning-shadow": "--shadow-none",
         "--badge-warning-blur": "--blur-none",
         "--badge-warning-icon-size": "--icon-size-sm",
@@ -2548,9 +2573,9 @@
         "--badge-danger-text-font-size": "--font-size-md",
         "--badge-danger-text-font-weight": "--font-weight-normal",
         "--badge-danger-text-line-height": "--line-height-none",
-        "--badge-danger-border-width": "--border-width-1",
-        "--badge-danger-radius": "--radius-full",
-        "--badge-danger-padding": "--space-8",
+        "--badge-danger-border-width": "--border-width-3",
+        "--badge-danger-radius": "--radius-none",
+        "--badge-danger-padding": "--space-4",
         "--badge-danger-shadow": "--shadow-none",
         "--badge-danger-blur": "--blur-none",
         "--badge-danger-icon-size": "--icon-size-sm",
@@ -2561,19 +2586,19 @@
         "--badge-info-text-font-size": "--font-size-md",
         "--badge-info-text-font-weight": "--font-weight-normal",
         "--badge-info-text-line-height": "--line-height-none",
-        "--badge-info-border-width": "--border-width-1",
-        "--badge-info-radius": "--radius-full",
-        "--badge-info-padding": "--space-8",
+        "--badge-info-border-width": "--border-width-3",
+        "--badge-info-radius": "--radius-none",
+        "--badge-info-padding": "--space-4",
         "--badge-info-shadow": "--shadow-none",
         "--badge-info-blur": "--blur-none",
         "--badge-info-icon-size": "--icon-size-sm"
       }
     },
     "button": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "button",
       "createdAt": "2026-05-10T19:28:06.893Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--button-primary-surface": "--surface-brand-high",
         "--button-primary-text": "--text-primary",
@@ -2582,9 +2607,9 @@
         "--button-primary-text-font-weight": "--font-weight-semibold",
         "--button-primary-text-line-height": "--line-height-tighter",
         "--button-primary-border": "--border-brand",
-        "--button-primary-border-width": "--border-width-1",
-        "--button-primary-radius": "--radius-full",
-        "--button-primary-padding": "--space-10",
+        "--button-primary-border-width": "--border-width-3",
+        "--button-primary-radius": "--radius-none",
+        "--button-primary-padding": "--space-6",
         "--button-primary-hover-surface": "--surface-brand-higher",
         "--button-primary-hover-text": "--text-primary",
         "--button-primary-hover-border": "--border-brand-strong",
@@ -2599,9 +2624,9 @@
         "--button-secondary-text-font-weight": "--font-weight-semibold",
         "--button-secondary-text-line-height": "--line-height-tighter",
         "--button-secondary-border": "--border-neutral",
-        "--button-secondary-border-width": "--border-width-1",
-        "--button-secondary-radius": "--radius-full",
-        "--button-secondary-padding": "--space-10",
+        "--button-secondary-border-width": "--border-width-3",
+        "--button-secondary-radius": "--radius-none",
+        "--button-secondary-padding": "--space-6",
         "--button-secondary-hover-surface": "--surface-neutral-higher",
         "--button-secondary-hover-text": "--text-primary",
         "--button-secondary-hover-border": "--border-neutral-strong",
@@ -2616,9 +2641,9 @@
         "--button-outline-text-font-weight": "--font-weight-semibold",
         "--button-outline-text-line-height": "--line-height-tighter",
         "--button-outline-border": "--border-neutral",
-        "--button-outline-border-width": "--border-width-1",
-        "--button-outline-radius": "--radius-full",
-        "--button-outline-padding": "--space-10",
+        "--button-outline-border-width": "--border-width-3",
+        "--button-outline-radius": "--radius-none",
+        "--button-outline-padding": "--space-6",
         "--button-outline-hover-surface": "--surface-neutral-lower",
         "--button-outline-hover-text": "--text-primary",
         "--button-outline-hover-border": "--border-neutral-strong",
@@ -2634,9 +2659,9 @@
         "--button-success-text-font-weight": "--font-weight-semibold",
         "--button-success-text-line-height": "--line-height-tighter",
         "--button-success-border": "--border-success",
-        "--button-success-border-width": "--border-width-1",
-        "--button-success-radius": "--radius-full",
-        "--button-success-padding": "--space-10",
+        "--button-success-border-width": "--border-width-3",
+        "--button-success-radius": "--radius-none",
+        "--button-success-padding": "--space-6",
         "--button-success-hover-surface": "--surface-success-higher",
         "--button-success-hover-text": "--text-primary",
         "--button-success-hover-border": "--border-success-strong",
@@ -2651,9 +2676,9 @@
         "--button-danger-text-font-weight": "--font-weight-semibold",
         "--button-danger-text-line-height": "--line-height-tighter",
         "--button-danger-border": "--border-danger",
-        "--button-danger-border-width": "--border-width-1",
-        "--button-danger-radius": "--radius-full",
-        "--button-danger-padding": "--space-10",
+        "--button-danger-border-width": "--border-width-3",
+        "--button-danger-radius": "--radius-none",
+        "--button-danger-padding": "--space-6",
         "--button-danger-hover-surface": "--surface-danger-high",
         "--button-danger-hover-text": "--text-primary",
         "--button-danger-hover-border": "--border-danger-medium",
@@ -2668,9 +2693,9 @@
         "--button-warning-text-font-weight": "--font-weight-semibold",
         "--button-warning-text-line-height": "--line-height-tighter",
         "--button-warning-border": "--border-warning",
-        "--button-warning-border-width": "--border-width-1",
-        "--button-warning-radius": "--radius-full",
-        "--button-warning-padding": "--space-10",
+        "--button-warning-border-width": "--border-width-3",
+        "--button-warning-radius": "--radius-none",
+        "--button-warning-padding": "--space-6",
         "--button-warning-hover-surface": "--surface-warning-high",
         "--button-warning-hover-text": "--text-primary",
         "--button-warning-hover-border": "--border-warning-medium",
@@ -2678,7 +2703,7 @@
         "--button-warning-disabled-text": "--text-tertiary",
         "--button-warning-disabled-border": "--border-neutral-faint",
         "--button-warning-icon-size": "--icon-size-md",
-        "--button-small-padding": "--space-8",
+        "--button-small-padding": "--space-4",
         "--button-small-text-font-size": "--font-size-sm",
         "--button-small-text-font-weight": "--font-weight-normal",
         "--button-small-text-line-height": "--line-height-tighter",
@@ -2686,17 +2711,17 @@
       }
     },
     "callout": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "callout",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--callout-info-surface": "--surface-info-lowest",
         "--callout-info-border": "--border-info-medium",
-        "--callout-info-border-width": "--border-width-1",
-        "--callout-info-accent-width": "--border-width-4",
-        "--callout-info-radius": "--radius-2xl",
-        "--callout-info-padding": "--space-16",
+        "--callout-info-border-width": "--border-width-3",
+        "--callout-info-accent-width": "--border-width-6",
+        "--callout-info-radius": "--radius-none",
+        "--callout-info-padding": "--space-10",
         "--callout-info-label": "--text-primary",
         "--callout-info-label-font-family": "--font-sans",
         "--callout-info-label-font-size": "--font-size-lg",
@@ -2709,10 +2734,10 @@
         "--callout-info-text-line-height": "--line-height-normal",
         "--callout-success-surface": "--surface-success-lowest",
         "--callout-success-border": "--border-success-subtle",
-        "--callout-success-border-width": "--border-width-1",
-        "--callout-success-accent-width": "--border-width-4",
-        "--callout-success-radius": "--radius-2xl",
-        "--callout-success-padding": "--space-16",
+        "--callout-success-border-width": "--border-width-3",
+        "--callout-success-accent-width": "--border-width-6",
+        "--callout-success-radius": "--radius-none",
+        "--callout-success-padding": "--space-10",
         "--callout-success-label": "--text-primary",
         "--callout-success-label-font-family": "--font-sans",
         "--callout-success-label-font-size": "--font-size-lg",
@@ -2725,10 +2750,10 @@
         "--callout-success-text-line-height": "--line-height-normal",
         "--callout-warning-surface": "--surface-warning-lowest",
         "--callout-warning-border": "--border-warning-subtle",
-        "--callout-warning-border-width": "--border-width-1",
-        "--callout-warning-accent-width": "--border-width-4",
-        "--callout-warning-radius": "--radius-2xl",
-        "--callout-warning-padding": "--space-16",
+        "--callout-warning-border-width": "--border-width-3",
+        "--callout-warning-accent-width": "--border-width-6",
+        "--callout-warning-radius": "--radius-none",
+        "--callout-warning-padding": "--space-10",
         "--callout-warning-label": "--text-primary",
         "--callout-warning-label-font-family": "--font-sans",
         "--callout-warning-label-font-size": "--font-size-lg",
@@ -2741,10 +2766,10 @@
         "--callout-warning-text-line-height": "--line-height-normal",
         "--callout-danger-surface": "--surface-danger-lowest",
         "--callout-danger-border": "--border-danger-subtle",
-        "--callout-danger-border-width": "--border-width-1",
-        "--callout-danger-accent-width": "--border-width-4",
-        "--callout-danger-radius": "--radius-2xl",
-        "--callout-danger-padding": "--space-16",
+        "--callout-danger-border-width": "--border-width-3",
+        "--callout-danger-accent-width": "--border-width-6",
+        "--callout-danger-radius": "--radius-none",
+        "--callout-danger-padding": "--space-10",
         "--callout-danger-label": "--text-primary",
         "--callout-danger-label-font-family": "--font-sans",
         "--callout-danger-label-font-size": "--font-size-lg",
@@ -2758,26 +2783,26 @@
       }
     },
     "card": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "card",
       "createdAt": "2026-05-10T19:26:31.704Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--card-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent)",
         "--card-default-border": "--border-neutral",
-        "--card-default-border-width": "--border-width-1",
-        "--card-default-radius": "--radius-2xl",
-        "--card-default-header-padding": "--space-20",
-        "--card-default-header-padding-top": "--space-16",
-        "--card-default-header-padding-right": "--space-24",
-        "--card-default-header-padding-bottom": "--space-16",
-        "--card-default-header-padding-left": "--space-24",
-        "--card-default-header-gap": "--space-10",
-        "--card-default-body-padding": "--space-20",
-        "--card-default-body-padding-top": "--space-20",
-        "--card-default-body-padding-right": "--space-24",
-        "--card-default-body-padding-bottom": "--space-20",
-        "--card-default-body-padding-left": "--space-24",
+        "--card-default-border-width": "--border-width-3",
+        "--card-default-radius": "--radius-none",
+        "--card-default-header-padding": "--space-12",
+        "--card-default-header-padding-top": "--space-10",
+        "--card-default-header-padding-right": "--space-16",
+        "--card-default-header-padding-bottom": "--space-10",
+        "--card-default-header-padding-left": "--space-16",
+        "--card-default-header-gap": "--space-8",
+        "--card-default-body-padding": "--space-12",
+        "--card-default-body-padding-top": "--space-12",
+        "--card-default-body-padding-right": "--space-16",
+        "--card-default-body-padding-bottom": "--space-12",
+        "--card-default-body-padding-left": "--space-16",
         "--card-default-shadow": "--shadow-sm",
         "--card-default-blur": "--blur-none",
         "--card-default-header-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 80%, transparent)",
@@ -2799,17 +2824,17 @@
       }
     },
     "codesnippet": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "codesnippet",
       "createdAt": "2026-05-27T13:22:54.228Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--codesnippet-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 76%, transparent)",
         "--codesnippet-border": "--border-neutral",
-        "--codesnippet-border-width": "--border-width-1",
-        "--codesnippet-radius": "--radius-xl",
-        "--codesnippet-padding": "--space-20",
-        "--codesnippet-gap": "--space-20",
+        "--codesnippet-border-width": "--border-width-3",
+        "--codesnippet-radius": "--radius-none",
+        "--codesnippet-padding": "--space-12",
+        "--codesnippet-gap": "--space-16",
         "--codesnippet-code-text": "--text-brand",
         "--codesnippet-code-font-family": "--font-mono",
         "--codesnippet-code-font-size": "--font-size-md",
@@ -2818,18 +2843,18 @@
         "--codesnippet-icon": "--text-secondary",
         "--codesnippet-icon-size": "--font-size-md",
         "--codesnippet-hover-icon": "--text-primary",
-        "--codesnippet-scrollbar-border-width": "--border-width-6",
+        "--codesnippet-scrollbar-border-width": "--border-width-10",
         "--codesnippet-scrollbar-thumb": "--text-tertiary"
       }
     },
     "collapsiblesection": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "collapsiblesection",
       "createdAt": "2026-05-10T20:40:17.048Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--collapsiblesection-chromeless-default-surface": "--color-transparent",
-        "--collapsiblesection-chromeless-default-padding": "--space-6",
+        "--collapsiblesection-chromeless-default-padding": "--space-2",
         "--collapsiblesection-chromeless-default-label": "--text-primary",
         "--collapsiblesection-chromeless-default-label-font-family": "--font-sans",
         "--collapsiblesection-chromeless-default-label-font-size": "--font-size-md",
@@ -2838,7 +2863,7 @@
         "--collapsiblesection-chromeless-default-icon": "--text-primary",
         "--collapsiblesection-chromeless-default-icon-size": "--icon-size-xs",
         "--collapsiblesection-chromeless-hover-surface": "--color-transparent",
-        "--collapsiblesection-chromeless-hover-padding": "--space-6",
+        "--collapsiblesection-chromeless-hover-padding": "--space-2",
         "--collapsiblesection-chromeless-hover-label": "--text-primary",
         "--collapsiblesection-chromeless-hover-label-font-family": "--font-sans",
         "--collapsiblesection-chromeless-hover-label-font-size": "--font-size-md",
@@ -2846,11 +2871,11 @@
         "--collapsiblesection-chromeless-hover-label-line-height": "--line-height-normal",
         "--collapsiblesection-chromeless-hover-icon": "--text-primary",
         "--collapsiblesection-chromeless-hover-icon-size": "--icon-size-xs",
-        "--collapsiblesection-chromeless-expanded-padding": "--space-6",
+        "--collapsiblesection-chromeless-expanded-padding": "--space-2",
         "--collapsiblesection-divider-default-surface": "--color-transparent",
         "--collapsiblesection-divider-default-border": "--border-brand",
-        "--collapsiblesection-divider-default-border-width": "--border-width-1",
-        "--collapsiblesection-divider-default-padding": "--space-6",
+        "--collapsiblesection-divider-default-border-width": "--border-width-3",
+        "--collapsiblesection-divider-default-padding": "--space-2",
         "--collapsiblesection-divider-default-label": "--text-primary",
         "--collapsiblesection-divider-default-label-font-family": "--font-sans",
         "--collapsiblesection-divider-default-label-font-size": "--font-size-md",
@@ -2860,8 +2885,8 @@
         "--collapsiblesection-divider-default-icon-size": "--icon-size-xs",
         "--collapsiblesection-divider-hover-surface": "--color-transparent",
         "--collapsiblesection-divider-hover-border": "--border-neutral",
-        "--collapsiblesection-divider-hover-border-width": "--border-width-1",
-        "--collapsiblesection-divider-hover-padding": "--space-6",
+        "--collapsiblesection-divider-hover-border-width": "--border-width-3",
+        "--collapsiblesection-divider-hover-padding": "--space-2",
         "--collapsiblesection-divider-hover-label": "--text-primary",
         "--collapsiblesection-divider-hover-label-font-family": "--font-sans",
         "--collapsiblesection-divider-hover-label-font-size": "--font-size-md",
@@ -2869,12 +2894,12 @@
         "--collapsiblesection-divider-hover-label-line-height": "--line-height-normal",
         "--collapsiblesection-divider-hover-icon": "--text-primary",
         "--collapsiblesection-divider-hover-icon-size": "--icon-size-xs",
-        "--collapsiblesection-divider-expanded-padding": "--space-6",
+        "--collapsiblesection-divider-expanded-padding": "--space-2",
         "--collapsiblesection-container-frame-border": "--border-neutral",
-        "--collapsiblesection-container-frame-border-width": "--border-width-1",
-        "--collapsiblesection-container-frame-radius": "--radius-xl",
+        "--collapsiblesection-container-frame-border-width": "--border-width-3",
+        "--collapsiblesection-container-frame-radius": "--radius-none",
         "--collapsiblesection-container-default-surface": "--surface-neutral",
-        "--collapsiblesection-container-default-padding": "--space-6",
+        "--collapsiblesection-container-default-padding": "--space-2",
         "--collapsiblesection-container-default-label": "--text-primary",
         "--collapsiblesection-container-default-label-font-family": "--font-sans",
         "--collapsiblesection-container-default-label-font-size": "--font-size-md",
@@ -2883,7 +2908,7 @@
         "--collapsiblesection-container-default-icon": "--text-primary",
         "--collapsiblesection-container-default-icon-size": "--icon-size-xs",
         "--collapsiblesection-container-hover-surface": "--surface-neutral-high",
-        "--collapsiblesection-container-hover-padding": "--space-6",
+        "--collapsiblesection-container-hover-padding": "--space-2",
         "--collapsiblesection-container-hover-label": "--text-primary",
         "--collapsiblesection-container-hover-label-font-family": "--font-sans",
         "--collapsiblesection-container-hover-label-font-size": "--font-size-md",
@@ -2892,21 +2917,21 @@
         "--collapsiblesection-container-hover-icon": "--text-primary",
         "--collapsiblesection-container-hover-icon-size": "--icon-size-xs",
         "--collapsiblesection-container-expanded-surface": "--surface-neutral-higher",
-        "--collapsiblesection-container-expanded-padding": "--space-6"
+        "--collapsiblesection-container-expanded-padding": "--space-2"
       }
     },
     "cornerbadge": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "cornerbadge",
       "createdAt": "2026-05-12T15:31:06.313Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
-        "--corner-badge-margin": "--space-2",
-        "--corner-badge-outer-radius": "--radius-md",
-        "--corner-badge-inner-radius": "--radius-md",
-        "--corner-badge-h-axis-radius": "--radius-md",
-        "--corner-badge-v-axis-radius": "--radius-md",
-        "--corner-badge-padding": "--space-8",
+        "--corner-badge-margin": "--space-0",
+        "--corner-badge-outer-radius": "--radius-none",
+        "--corner-badge-inner-radius": "--radius-none",
+        "--corner-badge-h-axis-radius": "--radius-none",
+        "--corner-badge-v-axis-radius": "--radius-none",
+        "--corner-badge-padding": "--space-4",
         "--corner-badge-text-font-family": "--font-sans",
         "--corner-badge-text-font-size": "--font-size-sm",
         "--corner-badge-text-font-weight": "--font-weight-medium",
@@ -2944,22 +2969,22 @@
       }
     },
     "dialog": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "dialog",
       "createdAt": "2026-05-10T20:05:24.719Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--dialog-overlay-surface": "--overlay-high",
         "--dialog-surface": "--surface-neutral-lowest",
         "--dialog-border": "--border-neutral-strong",
-        "--dialog-border-width": "--border-width-2",
-        "--dialog-radius": "--radius-2xl",
+        "--dialog-border-width": "--border-width-4",
+        "--dialog-radius": "--radius-none",
         "--dialog-shadow": "--shadow-2xl",
         "--dialog-blur": "--blur-none",
         "--dialog-header-surface": "--surface-neutral-lower",
         "--dialog-header-border": "--border-neutral-subtle",
-        "--dialog-header-border-width": "--border-width-1",
-        "--dialog-header-padding": "--space-10",
+        "--dialog-header-border-width": "--border-width-3",
+        "--dialog-header-padding": "--space-6",
         "--dialog-title": "--text-primary",
         "--dialog-title-font-family": "--font-sans",
         "--dialog-title-font-size": "--font-size-2xl",
@@ -2967,29 +2992,29 @@
         "--dialog-title-line-height": "--line-height-tighter",
         "--dialog-close-icon": "--text-secondary",
         "--dialog-close-icon-size": "--icon-size-xl",
-        "--dialog-body-padding": "--space-20",
+        "--dialog-body-padding": "--space-12",
         "--dialog-body": "--text-secondary",
         "--dialog-body-font-family": "--font-sans",
         "--dialog-body-font-size": "--font-size-md",
         "--dialog-body-font-weight": "--font-weight-normal",
         "--dialog-body-line-height": "--line-height-normal",
         "--dialog-footer-border": "--border-neutral-subtle",
-        "--dialog-footer-border-width": "--border-width-1",
-        "--dialog-footer-padding": "--space-20"
+        "--dialog-footer-border-width": "--border-width-3",
+        "--dialog-footer-padding": "--space-12"
       }
     },
     "iconbutton": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "iconbutton",
       "createdAt": "2026-06-14T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--iconbutton-primary-surface": "--surface-brand-high",
         "--iconbutton-primary-icon": "--text-primary",
         "--iconbutton-primary-border": "--border-brand",
-        "--iconbutton-primary-border-width": "--border-width-1",
-        "--iconbutton-primary-radius": "--radius-3xl",
-        "--iconbutton-primary-padding": "--space-10",
+        "--iconbutton-primary-border-width": "--border-width-3",
+        "--iconbutton-primary-radius": "--radius-none",
+        "--iconbutton-primary-padding": "--space-6",
         "--iconbutton-primary-icon-size": "--icon-size-md",
         "--iconbutton-primary-hover-surface": "--surface-brand-higher",
         "--iconbutton-primary-hover-icon": "--text-primary",
@@ -3000,9 +3025,9 @@
         "--iconbutton-secondary-surface": "--surface-neutral-high",
         "--iconbutton-secondary-icon": "--text-primary",
         "--iconbutton-secondary-border": "--border-neutral",
-        "--iconbutton-secondary-border-width": "--border-width-1",
-        "--iconbutton-secondary-radius": "--radius-3xl",
-        "--iconbutton-secondary-padding": "--space-10",
+        "--iconbutton-secondary-border-width": "--border-width-3",
+        "--iconbutton-secondary-radius": "--radius-none",
+        "--iconbutton-secondary-padding": "--space-6",
         "--iconbutton-secondary-icon-size": "--icon-size-md",
         "--iconbutton-secondary-hover-surface": "--surface-neutral-higher",
         "--iconbutton-secondary-hover-icon": "--text-primary",
@@ -3013,9 +3038,9 @@
         "--iconbutton-outline-surface": "--color-transparent",
         "--iconbutton-outline-icon": "--text-primary",
         "--iconbutton-outline-border": "--border-neutral",
-        "--iconbutton-outline-border-width": "--border-width-1",
-        "--iconbutton-outline-radius": "--radius-3xl",
-        "--iconbutton-outline-padding": "--space-10",
+        "--iconbutton-outline-border-width": "--border-width-3",
+        "--iconbutton-outline-radius": "--radius-none",
+        "--iconbutton-outline-padding": "--space-6",
         "--iconbutton-outline-icon-size": "--icon-size-md",
         "--iconbutton-outline-hover-surface": "--surface-neutral-lower",
         "--iconbutton-outline-hover-icon": "--text-primary",
@@ -3027,9 +3052,9 @@
         "--iconbutton-success-surface": "--surface-success-low",
         "--iconbutton-success-icon": "--text-success",
         "--iconbutton-success-border": "--border-success",
-        "--iconbutton-success-border-width": "--border-width-1",
-        "--iconbutton-success-radius": "--radius-3xl",
-        "--iconbutton-success-padding": "--space-10",
+        "--iconbutton-success-border-width": "--border-width-3",
+        "--iconbutton-success-radius": "--radius-none",
+        "--iconbutton-success-padding": "--space-6",
         "--iconbutton-success-icon-size": "--icon-size-md",
         "--iconbutton-success-hover-surface": "--surface-success-higher",
         "--iconbutton-success-hover-icon": "--text-primary",
@@ -3040,9 +3065,9 @@
         "--iconbutton-danger-surface": "--surface-danger-low",
         "--iconbutton-danger-icon": "--text-danger",
         "--iconbutton-danger-border": "--border-danger",
-        "--iconbutton-danger-border-width": "--border-width-1",
-        "--iconbutton-danger-radius": "--radius-3xl",
-        "--iconbutton-danger-padding": "--space-10",
+        "--iconbutton-danger-border-width": "--border-width-3",
+        "--iconbutton-danger-radius": "--radius-none",
+        "--iconbutton-danger-padding": "--space-6",
         "--iconbutton-danger-icon-size": "--icon-size-md",
         "--iconbutton-danger-hover-surface": "--surface-danger-high",
         "--iconbutton-danger-hover-icon": "--text-primary",
@@ -3053,9 +3078,9 @@
         "--iconbutton-warning-surface": "--surface-warning-low",
         "--iconbutton-warning-icon": "--text-warning",
         "--iconbutton-warning-border": "--border-warning",
-        "--iconbutton-warning-border-width": "--border-width-1",
-        "--iconbutton-warning-radius": "--radius-3xl",
-        "--iconbutton-warning-padding": "--space-10",
+        "--iconbutton-warning-border-width": "--border-width-3",
+        "--iconbutton-warning-radius": "--radius-none",
+        "--iconbutton-warning-padding": "--space-6",
         "--iconbutton-warning-icon-size": "--icon-size-md",
         "--iconbutton-warning-hover-surface": "--surface-warning-high",
         "--iconbutton-warning-hover-icon": "--text-primary",
@@ -3063,88 +3088,88 @@
         "--iconbutton-warning-disabled-surface": "--color-neutral-700",
         "--iconbutton-warning-disabled-icon": "--text-tertiary",
         "--iconbutton-warning-disabled-border": "--border-neutral-faint",
-        "--iconbutton-small-padding": "--space-8",
+        "--iconbutton-small-padding": "--space-4",
         "--iconbutton-small-icon-size": "--icon-size-sm"
       }
     },
     "image": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "image",
       "createdAt": "2026-04-26T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
-        "--image-default-radius": "--radius-4xl",
+        "--image-default-radius": "--radius-none",
         "--image-default-border": "--border-neutral",
-        "--image-default-border-width": "--border-width-1",
+        "--image-default-border-width": "--border-width-3",
         "--image-default-shadow": "--shadow-md",
         "--image-zoom-scale": "--scale-sm"
       }
     },
     "imagelightbox": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "imagelightbox",
       "createdAt": "2026-05-26T02:03:38.863Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
-        "--imagelightbox-tile-radius": "--radius-4xl",
+        "--imagelightbox-tile-radius": "--radius-none",
         "--imagelightbox-tile-border": "--color-transparent",
-        "--imagelightbox-tile-border-width": "--border-width-0",
+        "--imagelightbox-tile-border-width": "--border-width-2",
         "--imagelightbox-tile-shadow": "--shadow-md",
         "--imagelightbox-overlay-surface": "color-mix(in srgb, var(--color-neutral-950) 76%, transparent)",
         "--imagelightbox-chrome-surface": "--surface-neutral-low",
         "--imagelightbox-chrome-border": "--border-brand",
-        "--imagelightbox-chrome-border-width": "--border-width-1",
-        "--imagelightbox-chrome-radius": "--radius-full",
+        "--imagelightbox-chrome-border-width": "--border-width-3",
+        "--imagelightbox-chrome-radius": "--radius-none",
         "--imagelightbox-chrome-icon": "--text-primary",
         "--imagelightbox-chrome-hover-surface": "--surface-brand-high"
       }
     },
     "inlineeditactions": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "inlineeditactions",
       "createdAt": "2026-05-01T08:34:39.325Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--inlineeditactions-save-default-surface": "--surface-success-low",
         "--inlineeditactions-save-default-text": "--text-success",
         "--inlineeditactions-save-default-border": "--border-success",
-        "--inlineeditactions-save-default-border-width": "--border-width-0",
-        "--inlineeditactions-save-default-radius": "--radius-xl",
-        "--inlineeditactions-save-default-padding": "--space-6",
+        "--inlineeditactions-save-default-border-width": "--border-width-2",
+        "--inlineeditactions-save-default-radius": "--radius-none",
+        "--inlineeditactions-save-default-padding": "--space-2",
         "--inlineeditactions-save-default-icon-size": "--icon-size-md",
         "--inlineeditactions-save-hover-surface": "--surface-success-high",
         "--inlineeditactions-save-hover-text": "--text-success",
         "--inlineeditactions-save-hover-border": "--border-success",
-        "--inlineeditactions-save-hover-border-width": "--border-width-0",
-        "--inlineeditactions-save-hover-radius": "--radius-xl",
-        "--inlineeditactions-save-hover-padding": "--space-6",
+        "--inlineeditactions-save-hover-border-width": "--border-width-2",
+        "--inlineeditactions-save-hover-radius": "--radius-none",
+        "--inlineeditactions-save-hover-padding": "--space-2",
         "--inlineeditactions-save-hover-icon-size": "--icon-size-md",
         "--inlineeditactions-cancel-default-surface": "--surface-danger-low",
         "--inlineeditactions-cancel-default-text": "--text-danger",
         "--inlineeditactions-cancel-default-border": "--border-danger",
-        "--inlineeditactions-cancel-default-border-width": "--border-width-0",
-        "--inlineeditactions-cancel-default-radius": "--radius-xl",
-        "--inlineeditactions-cancel-default-padding": "--space-6",
+        "--inlineeditactions-cancel-default-border-width": "--border-width-2",
+        "--inlineeditactions-cancel-default-radius": "--radius-none",
+        "--inlineeditactions-cancel-default-padding": "--space-2",
         "--inlineeditactions-cancel-default-icon-size": "--icon-size-md",
         "--inlineeditactions-cancel-hover-surface": "--surface-danger-high",
         "--inlineeditactions-cancel-hover-text": "--text-danger",
         "--inlineeditactions-cancel-hover-border": "--border-danger",
-        "--inlineeditactions-cancel-hover-border-width": "--border-width-0",
-        "--inlineeditactions-cancel-hover-radius": "--radius-xl",
-        "--inlineeditactions-cancel-hover-padding": "--space-6",
+        "--inlineeditactions-cancel-hover-border-width": "--border-width-2",
+        "--inlineeditactions-cancel-hover-radius": "--radius-none",
+        "--inlineeditactions-cancel-hover-padding": "--space-2",
         "--inlineeditactions-cancel-hover-icon-size": "--icon-size-md"
       }
     },
     "input": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "input",
       "createdAt": "2026-05-24T14:28:03.860Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
-        "--input-radius": "--radius-xl",
-        "--input-padding": "--space-10",
-        "--input-border-width": "--border-width-1",
-        "--input-gap": "--space-8",
+        "--input-radius": "--radius-none",
+        "--input-padding": "--space-6",
+        "--input-border-width": "--border-width-3",
+        "--input-gap": "--space-6",
         "--input-default-surface": "--surface-neutral-lower",
         "--input-default-border": "--border-neutral",
         "--input-default-text": "--text-primary",
@@ -3157,7 +3182,7 @@
         "--input-default-placeholder": "--text-tertiary",
         "--input-focused-surface": "--surface-neutral-lower",
         "--input-focused-border": "--border-brand",
-        "--input-focused-border-width": "--border-width-2",
+        "--input-focused-border-width": "--border-width-4",
         "--input-focused-text": "--text-primary",
         "--input-focused-text-font-family": "--font-sans",
         "--input-focused-text-font-size": "--font-size-sm",
@@ -3185,7 +3210,7 @@
         "--input-hint-font-weight": "--font-weight-normal",
         "--input-hint-line-height": "--line-height-tighter",
         "--input-error-border": "--border-danger",
-        "--input-error-border-width": "--border-width-2",
+        "--input-error-border-width": "--border-width-4",
         "--input-error": "--text-danger",
         "--input-error-font-family": "--font-sans",
         "--input-error-font-size": "--font-size-xs",
@@ -3194,20 +3219,20 @@
       }
     },
     "menuselect": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "menuselect",
       "createdAt": "2026-05-16T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--menuselect-menu-surface": "color-mix(in srgb, var(--surface-neutral-lower) 85%, transparent)",
         "--menuselect-menu-border": "--border-neutral-medium",
-        "--menuselect-menu-border-width": "--border-width-1",
-        "--menuselect-menu-radius": "--radius-xl",
-        "--menuselect-menu-padding": "--space-6",
-        "--menuselect-menu-gap": "--space-4",
+        "--menuselect-menu-border-width": "--border-width-3",
+        "--menuselect-menu-radius": "--radius-none",
+        "--menuselect-menu-padding": "--space-2",
+        "--menuselect-menu-gap": "--space-2",
         "--menuselect-menu-shadow": "--shadow-md",
-        "--menuselect-item-radius": "--radius-lg",
-        "--menuselect-item-padding": "--space-10",
+        "--menuselect-item-radius": "--radius-none",
+        "--menuselect-item-padding": "--space-6",
         "--menuselect-default-surface": "--color-transparent",
         "--menuselect-default-text": "--text-secondary",
         "--menuselect-default-text-font-family": "--font-sans",
@@ -3244,17 +3269,17 @@
       }
     },
     "notification": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "notification",
       "createdAt": "2026-04-18T02:43:11.330Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--notification-info-surface": "--surface-info",
         "--notification-info-action-surface": "--surface-neutral-lowest",
         "--notification-info-border": "--border-info",
-        "--notification-info-border-width": "--border-width-1",
-        "--notification-info-radius": "--radius-xl",
-        "--notification-info-padding": "--space-16",
+        "--notification-info-border-width": "--border-width-3",
+        "--notification-info-radius": "--radius-none",
+        "--notification-info-padding": "--space-10",
         "--notification-info-icon": "--text-info",
         "--notification-info-icon-size": "--icon-size-md",
         "--notification-info-title": "--text-info",
@@ -3270,9 +3295,9 @@
         "--notification-success-surface": "--surface-success",
         "--notification-success-action-surface": "--surface-neutral-lowest",
         "--notification-success-border": "--border-success",
-        "--notification-success-border-width": "--border-width-1",
-        "--notification-success-radius": "--radius-xl",
-        "--notification-success-padding": "--space-16",
+        "--notification-success-border-width": "--border-width-3",
+        "--notification-success-radius": "--radius-none",
+        "--notification-success-padding": "--space-10",
         "--notification-success-icon": "--text-success",
         "--notification-success-icon-size": "--icon-size-md",
         "--notification-success-title": "--text-success",
@@ -3288,9 +3313,9 @@
         "--notification-warning-surface": "--surface-warning",
         "--notification-warning-action-surface": "--surface-neutral-lowest",
         "--notification-warning-border": "--border-warning",
-        "--notification-warning-border-width": "--border-width-1",
-        "--notification-warning-radius": "--radius-xl",
-        "--notification-warning-padding": "--space-16",
+        "--notification-warning-border-width": "--border-width-3",
+        "--notification-warning-radius": "--radius-none",
+        "--notification-warning-padding": "--space-10",
         "--notification-warning-icon": "--text-warning",
         "--notification-warning-icon-size": "--icon-size-md",
         "--notification-warning-title": "--text-warning",
@@ -3306,9 +3331,9 @@
         "--notification-danger-surface": "--surface-danger",
         "--notification-danger-action-surface": "--surface-neutral-lowest",
         "--notification-danger-border": "--border-danger",
-        "--notification-danger-border-width": "--border-width-1",
-        "--notification-danger-radius": "--radius-xl",
-        "--notification-danger-padding": "--space-16",
+        "--notification-danger-border-width": "--border-width-3",
+        "--notification-danger-radius": "--radius-none",
+        "--notification-danger-padding": "--space-10",
         "--notification-danger-icon": "--text-danger",
         "--notification-danger-icon-size": "--icon-size-md",
         "--notification-danger-title": "--text-danger",
@@ -3324,17 +3349,17 @@
       }
     },
     "panel": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "panel",
       "createdAt": "2026-06-01T09:34:52.417Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--panel-frame-border": "--border-neutral",
-        "--panel-frame-border-width": "--border-width-1",
-        "--panel-frame-radius": "--radius-4xl",
-        "--panel-stage-padding": "--space-20",
-        "--panel-stage-inline-padding": "--space-20",
-        "--panel-stage-gap": "--space-20",
+        "--panel-frame-border-width": "--border-width-3",
+        "--panel-frame-radius": "--radius-none",
+        "--panel-stage-padding": "--space-12",
+        "--panel-stage-inline-padding": "--space-12",
+        "--panel-stage-gap": "--space-16",
         "--panel-stage-surface": {
           "kind": "gradient",
           "value": {
@@ -3357,18 +3382,18 @@
       }
     },
     "progressbar": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "progressbar",
       "createdAt": "2026-05-10T20:42:26.726Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--progressbar-track-surface": "--surface-neutral-lowest",
         "--progressbar-track-border": "--border-neutral-subtle",
-        "--progressbar-track-border-width": "--border-width-1",
+        "--progressbar-track-border-width": "--border-width-3",
         "--progressbar-track-height": "--space-16",
-        "--progressbar-radius": "--radius-full",
+        "--progressbar-radius": "--radius-none",
         "--progressbar-fill": "--surface-special-highest",
-        "--progressbar-label-gap": "--space-8",
+        "--progressbar-label-gap": "--space-6",
         "--progressbar-label": "--text-secondary",
         "--progressbar-label-font-family": "--font-sans",
         "--progressbar-label-font-size": "--font-size-md",
@@ -3381,11 +3406,46 @@
         "--progressbar-value-line-height": "--line-height-normal"
       }
     },
+    "radiobutton": {
+      "name": "halloween",
+      "component": "radiobutton",
+      "createdAt": "2026-05-10T20:44:44.372Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "aliases": {
+        "--radiobutton-default-dot-border-color": "--border-neutral",
+        "--radiobutton-default-dot-border-width": "--border-width-4",
+        "--radiobutton-default-dot-fill": "--text-secondary",
+        "--radiobutton-default-dot-size": "--dot-size-0",
+        "--radiobutton-default-label": "--text-primary",
+        "--radiobutton-default-label-font-family": "--font-sans",
+        "--radiobutton-default-label-font-size": "--font-size-md",
+        "--radiobutton-default-label-font-weight": "--font-weight-semibold",
+        "--radiobutton-default-label-line-height": "--line-height-none",
+        "--radiobutton-hover-dot-border-color": "--border-neutral",
+        "--radiobutton-hover-dot-border-width": "--border-width-4",
+        "--radiobutton-hover-dot-fill": "--text-secondary",
+        "--radiobutton-hover-dot-size": "--dot-size-50",
+        "--radiobutton-hover-label": "--text-primary",
+        "--radiobutton-hover-label-font-family": "--font-sans",
+        "--radiobutton-hover-label-font-size": "--font-size-md",
+        "--radiobutton-hover-label-font-weight": "--font-weight-semibold",
+        "--radiobutton-hover-label-line-height": "--line-height-none",
+        "--radiobutton-active-dot-border-color": "--border-neutral",
+        "--radiobutton-active-dot-border-width": "--border-width-4",
+        "--radiobutton-active-dot-fill": "--text-secondary",
+        "--radiobutton-active-dot-size": "--dot-size-50",
+        "--radiobutton-active-label": "--text-primary",
+        "--radiobutton-active-label-font-family": "--font-sans",
+        "--radiobutton-active-label-font-size": "--font-size-md",
+        "--radiobutton-active-label-font-weight": "--font-weight-semibold",
+        "--radiobutton-active-label-line-height": "--line-height-none"
+      }
+    },
     "sectiondivider": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "sectiondivider",
       "createdAt": "2026-05-10T22:09:00.336Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--sectiondivider-lg-title-font-family": "--font-display",
         "--sectiondivider-lg-title-font-weight": "--font-weight-bold",
@@ -3401,14 +3461,14 @@
         "--sectiondivider-lg-eyebrow-font-weight": "--font-weight-medium",
         "--sectiondivider-lg-eyebrow-font-size": "--font-size-md",
         "--sectiondivider-lg-eyebrow-letter-spacing": "--letter-spacing-normal",
-        "--sectiondivider-lg-padding": "--space-2",
-        "--sectiondivider-lg-title-padding": "--space-4",
-        "--sectiondivider-lg-description-padding": "--space-2",
-        "--sectiondivider-lg-eyebrow-padding": "--space-2",
-        "--sectiondivider-lg-radius": "--radius-2xl",
-        "--sectiondivider-lg-border-width": "--border-width-1",
+        "--sectiondivider-lg-padding": "--space-0",
+        "--sectiondivider-lg-title-padding": "--space-0",
+        "--sectiondivider-lg-description-padding": "--space-0",
+        "--sectiondivider-lg-eyebrow-padding": "--space-0",
+        "--sectiondivider-lg-radius": "--radius-none",
+        "--sectiondivider-lg-border-width": "--border-width-3",
         "--sectiondivider-lg-shadow": "--shadow-none",
-        "--sectiondivider-lg-hairline-thickness": "--border-width-1",
+        "--sectiondivider-lg-hairline-thickness": "--border-width-3",
         "--sectiondivider-lg-background": "--color-transparent",
         "--sectiondivider-lg-title": "--text-primary",
         "--sectiondivider-lg-description": "--text-alternate",
@@ -3430,14 +3490,14 @@
         "--sectiondivider-md-eyebrow-font-weight": "--font-weight-medium",
         "--sectiondivider-md-eyebrow-font-size": "--font-size-sm",
         "--sectiondivider-md-eyebrow-letter-spacing": "--letter-spacing-normal",
-        "--sectiondivider-md-padding": "--space-2",
-        "--sectiondivider-md-title-padding": "--space-4",
-        "--sectiondivider-md-description-padding": "--space-2",
-        "--sectiondivider-md-eyebrow-padding": "--space-2",
-        "--sectiondivider-md-radius": "--radius-2xl",
-        "--sectiondivider-md-border-width": "--border-width-1",
+        "--sectiondivider-md-padding": "--space-0",
+        "--sectiondivider-md-title-padding": "--space-0",
+        "--sectiondivider-md-description-padding": "--space-0",
+        "--sectiondivider-md-eyebrow-padding": "--space-0",
+        "--sectiondivider-md-radius": "--radius-none",
+        "--sectiondivider-md-border-width": "--border-width-3",
         "--sectiondivider-md-shadow": "--shadow-none",
-        "--sectiondivider-md-hairline-thickness": "--border-width-1",
+        "--sectiondivider-md-hairline-thickness": "--border-width-3",
         "--sectiondivider-md-background": "--color-transparent",
         "--sectiondivider-md-title": "--text-primary",
         "--sectiondivider-md-description": "--text-secondary",
@@ -3459,14 +3519,14 @@
         "--sectiondivider-sm-eyebrow-font-weight": "--font-weight-medium",
         "--sectiondivider-sm-eyebrow-font-size": "--font-size-xs",
         "--sectiondivider-sm-eyebrow-letter-spacing": "--letter-spacing-normal",
-        "--sectiondivider-sm-padding": "--space-2",
-        "--sectiondivider-sm-title-padding": "--space-4",
-        "--sectiondivider-sm-description-padding": "--space-2",
-        "--sectiondivider-sm-eyebrow-padding": "--space-2",
-        "--sectiondivider-sm-radius": "--radius-2xl",
-        "--sectiondivider-sm-border-width": "--border-width-1",
+        "--sectiondivider-sm-padding": "--space-0",
+        "--sectiondivider-sm-title-padding": "--space-0",
+        "--sectiondivider-sm-description-padding": "--space-0",
+        "--sectiondivider-sm-eyebrow-padding": "--space-0",
+        "--sectiondivider-sm-radius": "--radius-none",
+        "--sectiondivider-sm-border-width": "--border-width-3",
         "--sectiondivider-sm-shadow": "--shadow-none",
-        "--sectiondivider-sm-hairline-thickness": "--border-width-1",
+        "--sectiondivider-sm-hairline-thickness": "--border-width-3",
         "--sectiondivider-sm-background": "--color-transparent",
         "--sectiondivider-sm-title": "--text-brand",
         "--sectiondivider-sm-description": "--text-secondary",
@@ -3477,22 +3537,22 @@
       }
     },
     "segmentedcontrol": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "segmentedcontrol",
       "createdAt": "2026-04-28T21:13:17.669Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--segmentedcontrol-bar-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent)",
         "--segmentedcontrol-bar-border": "--border-neutral",
-        "--segmentedcontrol-bar-border-width": "--border-width-1",
-        "--segmentedcontrol-bar-radius": "--radius-2xl",
-        "--segmentedcontrol-bar-padding": "--space-6",
-        "--segmentedcontrol-bar-gap": "--space-10",
+        "--segmentedcontrol-bar-border-width": "--border-width-3",
+        "--segmentedcontrol-bar-radius": "--radius-none",
+        "--segmentedcontrol-bar-padding": "--space-2",
+        "--segmentedcontrol-bar-gap": "--space-8",
         "--segmentedcontrol-divider-color": "--border-neutral",
         "--segmentedcontrol-divider-thickness": "--border-width-1",
         "--segmentedcontrol-divider-inset": "--space-6",
-        "--segmentedcontrol-option-padding": "--space-10",
-        "--segmentedcontrol-option-gap": "--space-10",
+        "--segmentedcontrol-option-padding": "--space-6",
+        "--segmentedcontrol-option-gap": "--space-8",
         "--segmentedcontrol-option-text": "--text-primary",
         "--segmentedcontrol-option-text-font-family": "--font-sans",
         "--segmentedcontrol-option-text-font-size": "--font-size-md",
@@ -3515,8 +3575,8 @@
         "--segmentedcontrol-selected-text-line-height": "--line-height-normal",
         "--segmentedcontrol-selected-icon": "--text-secondary",
         "--segmentedcontrol-selected-border": "--border-brand",
-        "--segmentedcontrol-selected-border-width": "--border-width-1",
-        "--segmentedcontrol-selected-radius": "--radius-xl",
+        "--segmentedcontrol-selected-border-width": "--border-width-3",
+        "--segmentedcontrol-selected-radius": "--radius-none",
         "--segmentedcontrol-disabled-surface": "--color-transparent",
         "--segmentedcontrol-disabled-text": "--text-secondary",
         "--segmentedcontrol-disabled-text-font-family": "--font-sans",
@@ -3524,48 +3584,48 @@
         "--segmentedcontrol-disabled-text-font-weight": "--font-weight-normal",
         "--segmentedcontrol-disabled-text-line-height": "--line-height-normal",
         "--segmentedcontrol-disabled-icon": "--text-secondary",
-        "--segmentedcontrol-bar-small-padding": "--space-4",
-        "--segmentedcontrol-bar-small-radius": "--radius-xl",
+        "--segmentedcontrol-bar-small-padding": "--space-0",
+        "--segmentedcontrol-bar-small-radius": "--radius-none",
         "--segmentedcontrol-small-divider-inset": "--space-4",
         "--segmentedcontrol-small-divider-thickness": "--border-width-1",
-        "--segmentedcontrol-option-small-padding": "--space-8",
-        "--segmentedcontrol-option-small-gap": "--space-8",
+        "--segmentedcontrol-option-small-padding": "--space-4",
+        "--segmentedcontrol-option-small-gap": "--space-6",
         "--segmentedcontrol-option-small-icon-size": "--icon-size-sm",
         "--segmentedcontrol-option-small-text-font-size": "--font-size-sm",
         "--segmentedcontrol-option-small-text-line-height": "--line-height-tighter",
-        "--segmentedcontrol-selected-small-radius": "--radius-lg"
+        "--segmentedcontrol-selected-small-radius": "--radius-none"
       }
     },
     "sidenavigation": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "sidenavigation",
       "createdAt": "2026-05-25T19:34:09.771Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--sidenavigation-panel-surface": "--surface-canvas-lower",
         "--sidenavigation-panel-border": "--border-canvas-faint",
-        "--sidenavigation-panel-border-width": "--border-width-1",
-        "--sidenavigation-panel-padding": "--space-20",
-        "--sidenavigation-panel-section-gap": "--space-6",
-        "--sidenavigation-panel-item-padding": "--space-48",
-        "--sidenavigation-panel-footer-gap": "--space-20",
+        "--sidenavigation-panel-border-width": "--border-width-3",
+        "--sidenavigation-panel-padding": "--space-12",
+        "--sidenavigation-panel-section-gap": "--space-4",
+        "--sidenavigation-panel-item-padding": "--space-24",
+        "--sidenavigation-panel-footer-gap": "--space-16",
         "--sidenavigation-open-duration": "--duration-200",
         "--sidenavigation-open-easing": "--ease-out-quart",
         "--sidenavigation-close-duration": "--duration-150",
         "--sidenavigation-close-easing": "--ease-out-quart",
-        "--sidenavigation-title-gap": "--space-10",
-        "--sidenavigation-title-radius": "--radius-xl",
+        "--sidenavigation-title-gap": "--space-8",
+        "--sidenavigation-title-radius": "--radius-none",
         "--sidenavigation-title-label-surface": "--color-transparent",
         "--sidenavigation-title-label-border": "--border-canvas-faint",
-        "--sidenavigation-title-label-border-width": "--border-width-1",
-        "--sidenavigation-title-label-radius": "--radius-xl",
-        "--sidenavigation-title-label-padding": "--space-8",
+        "--sidenavigation-title-label-border-width": "--border-width-3",
+        "--sidenavigation-title-label-radius": "--radius-none",
+        "--sidenavigation-title-label-padding": "--space-4",
         "--sidenavigation-title-default-surface": "--color-transparent",
         "--sidenavigation-title-default-border": "--border-canvas-faint",
-        "--sidenavigation-title-default-border-width": "--border-width-1",
-        "--sidenavigation-title-default-padding": "--space-16",
+        "--sidenavigation-title-default-border-width": "--border-width-3",
+        "--sidenavigation-title-default-padding": "--space-10",
         "--sidenavigation-title-default-accent": "--color-transparent",
-        "--sidenavigation-title-default-accent-width": "--border-width-3",
+        "--sidenavigation-title-default-accent-width": "--border-width-5",
         "--sidenavigation-title-default-label": "--text-primary",
         "--sidenavigation-title-default-label-font-family": "--font-display",
         "--sidenavigation-title-default-label-font-size": "--font-size-2xl",
@@ -3573,10 +3633,10 @@
         "--sidenavigation-title-default-label-line-height": "--line-height-tighter",
         "--sidenavigation-title-hover-surface": "--color-transparent",
         "--sidenavigation-title-hover-border": "--border-canvas-faint",
-        "--sidenavigation-title-hover-border-width": "--border-width-1",
-        "--sidenavigation-title-hover-padding": "--space-16",
+        "--sidenavigation-title-hover-border-width": "--border-width-3",
+        "--sidenavigation-title-hover-padding": "--space-10",
         "--sidenavigation-title-hover-accent": "--color-transparent",
-        "--sidenavigation-title-hover-accent-width": "--border-width-3",
+        "--sidenavigation-title-hover-accent-width": "--border-width-5",
         "--sidenavigation-title-hover-label": "--text-primary",
         "--sidenavigation-title-hover-label-font-family": "--font-display",
         "--sidenavigation-title-hover-label-font-size": "--font-size-2xl",
@@ -3584,10 +3644,10 @@
         "--sidenavigation-title-hover-label-line-height": "--line-height-tighter",
         "--sidenavigation-title-active-surface": "--surface-canvas-low",
         "--sidenavigation-title-active-border": "--border-canvas-faint",
-        "--sidenavigation-title-active-border-width": "--border-width-1",
-        "--sidenavigation-title-active-padding": "--space-16",
+        "--sidenavigation-title-active-border-width": "--border-width-3",
+        "--sidenavigation-title-active-padding": "--space-10",
         "--sidenavigation-title-active-accent": "--border-brand-medium",
-        "--sidenavigation-title-active-accent-width": "--border-width-3",
+        "--sidenavigation-title-active-accent-width": "--border-width-5",
         "--sidenavigation-title-active-label": "--text-primary",
         "--sidenavigation-title-active-label-font-family": "--font-display",
         "--sidenavigation-title-active-label-font-size": "--font-size-2xl",
@@ -3595,21 +3655,21 @@
         "--sidenavigation-title-active-label-line-height": "--line-height-tighter",
         "--sidenavigation-toggle-default-surface": "--color-transparent",
         "--sidenavigation-toggle-default-border": "--border-brand-medium",
-        "--sidenavigation-toggle-default-border-width": "--border-width-1",
-        "--sidenavigation-toggle-default-radius": "--radius-xl",
-        "--sidenavigation-toggle-default-padding": "--space-10",
+        "--sidenavigation-toggle-default-border-width": "--border-width-3",
+        "--sidenavigation-toggle-default-radius": "--radius-none",
+        "--sidenavigation-toggle-default-padding": "--space-6",
         "--sidenavigation-toggle-default-icon": "--text-primary",
         "--sidenavigation-toggle-default-icon-size": "--icon-size-md",
         "--sidenavigation-toggle-hover-surface": "--surface-brand-lowest",
         "--sidenavigation-toggle-hover-border": "--border-brand",
-        "--sidenavigation-toggle-hover-border-width": "--border-width-1",
-        "--sidenavigation-toggle-hover-radius": "--radius-xl",
-        "--sidenavigation-toggle-hover-padding": "--space-10",
+        "--sidenavigation-toggle-hover-border-width": "--border-width-3",
+        "--sidenavigation-toggle-hover-radius": "--radius-none",
+        "--sidenavigation-toggle-hover-padding": "--space-6",
         "--sidenavigation-toggle-hover-icon": "--text-brand",
         "--sidenavigation-toggle-hover-icon-size": "--icon-size-md",
         "--sidenavigation-section-default-surface": "--color-transparent",
         "--sidenavigation-section-default-accent": "--color-transparent",
-        "--sidenavigation-section-default-accent-width": "--border-width-3",
+        "--sidenavigation-section-default-accent-width": "--border-width-5",
         "--sidenavigation-section-default-text": "--text-primary",
         "--sidenavigation-section-default-text-font-family": "--font-sans",
         "--sidenavigation-section-default-text-font-size": "--font-size-lg",
@@ -3617,7 +3677,7 @@
         "--sidenavigation-section-default-text-line-height": "--line-height-normal",
         "--sidenavigation-section-hover-surface": "--surface-canvas",
         "--sidenavigation-section-hover-accent": "--color-transparent",
-        "--sidenavigation-section-hover-accent-width": "--border-width-3",
+        "--sidenavigation-section-hover-accent-width": "--border-width-5",
         "--sidenavigation-section-hover-text": "--text-primary",
         "--sidenavigation-section-hover-text-font-family": "--font-sans",
         "--sidenavigation-section-hover-text-font-size": "--font-size-lg",
@@ -3625,44 +3685,44 @@
         "--sidenavigation-section-hover-text-line-height": "--line-height-normal",
         "--sidenavigation-section-active-surface": "--surface-canvas-low",
         "--sidenavigation-section-active-accent": "--border-brand-medium",
-        "--sidenavigation-section-active-accent-width": "--border-width-3",
+        "--sidenavigation-section-active-accent-width": "--border-width-5",
         "--sidenavigation-section-active-text": "--text-primary",
         "--sidenavigation-section-active-text-font-family": "--font-sans",
         "--sidenavigation-section-active-text-font-size": "--font-size-lg",
         "--sidenavigation-section-active-text-font-weight": "--font-weight-medium",
         "--sidenavigation-section-active-text-line-height": "--line-height-normal",
         "--sidenavigation-item-default-surface": "--color-transparent",
-        "--sidenavigation-item-default-padding": "--space-8",
+        "--sidenavigation-item-default-padding": "--space-4",
         "--sidenavigation-item-default-accent": "--color-transparent",
-        "--sidenavigation-item-default-accent-width": "--border-width-3",
+        "--sidenavigation-item-default-accent-width": "--border-width-5",
         "--sidenavigation-item-default-text": "--text-tertiary",
         "--sidenavigation-item-default-text-font-family": "--font-sans",
         "--sidenavigation-item-default-text-font-size": "--font-size-md",
         "--sidenavigation-item-default-text-font-weight": "--font-weight-semibold",
         "--sidenavigation-item-default-text-line-height": "--line-height-normal",
         "--sidenavigation-item-hover-surface": "--surface-canvas",
-        "--sidenavigation-item-hover-padding": "--space-8",
+        "--sidenavigation-item-hover-padding": "--space-4",
         "--sidenavigation-item-hover-accent": "--color-transparent",
-        "--sidenavigation-item-hover-accent-width": "--border-width-3",
+        "--sidenavigation-item-hover-accent-width": "--border-width-5",
         "--sidenavigation-item-hover-text": "--text-secondary",
         "--sidenavigation-item-hover-text-font-family": "--font-sans",
         "--sidenavigation-item-hover-text-font-size": "--font-size-md",
         "--sidenavigation-item-hover-text-font-weight": "--font-weight-light",
         "--sidenavigation-item-hover-text-line-height": "--line-height-normal",
         "--sidenavigation-item-active-surface": "--surface-canvas-low",
-        "--sidenavigation-item-active-padding": "--space-8",
+        "--sidenavigation-item-active-padding": "--space-4",
         "--sidenavigation-item-active-accent": "--border-brand-medium",
-        "--sidenavigation-item-active-accent-width": "--border-width-3",
+        "--sidenavigation-item-active-accent-width": "--border-width-5",
         "--sidenavigation-item-active-text": "--text-primary",
         "--sidenavigation-item-active-text-font-family": "--font-sans",
         "--sidenavigation-item-active-text-font-size": "--font-size-md",
         "--sidenavigation-item-active-text-font-weight": "--font-weight-normal",
         "--sidenavigation-item-active-text-line-height": "--line-height-normal",
         "--sidenavigation-footer-default-surface": "--color-transparent",
-        "--sidenavigation-footer-default-padding": "--space-10",
-        "--sidenavigation-footer-default-gap": "--space-10",
+        "--sidenavigation-footer-default-padding": "--space-6",
+        "--sidenavigation-footer-default-gap": "--space-8",
         "--sidenavigation-footer-default-accent": "--color-transparent",
-        "--sidenavigation-footer-default-accent-width": "--border-width-3",
+        "--sidenavigation-footer-default-accent-width": "--border-width-5",
         "--sidenavigation-footer-default-icon": "--text-muted",
         "--sidenavigation-footer-default-icon-size": "--icon-size-xs",
         "--sidenavigation-footer-default-text": "--text-tertiary",
@@ -3671,10 +3731,10 @@
         "--sidenavigation-footer-default-text-font-weight": "--font-weight-light",
         "--sidenavigation-footer-default-text-line-height": "--line-height-normal",
         "--sidenavigation-footer-hover-surface": "--surface-canvas",
-        "--sidenavigation-footer-hover-padding": "--space-10",
-        "--sidenavigation-footer-hover-gap": "--space-10",
+        "--sidenavigation-footer-hover-padding": "--space-6",
+        "--sidenavigation-footer-hover-gap": "--space-8",
         "--sidenavigation-footer-hover-accent": "--color-transparent",
-        "--sidenavigation-footer-hover-accent-width": "--border-width-3",
+        "--sidenavigation-footer-hover-accent-width": "--border-width-5",
         "--sidenavigation-footer-hover-icon": "--text-secondary",
         "--sidenavigation-footer-hover-icon-size": "--icon-size-xs",
         "--sidenavigation-footer-hover-text": "--text-secondary",
@@ -3683,10 +3743,10 @@
         "--sidenavigation-footer-hover-text-font-weight": "--font-weight-light",
         "--sidenavigation-footer-hover-text-line-height": "--line-height-normal",
         "--sidenavigation-footer-active-surface": "--surface-canvas-low",
-        "--sidenavigation-footer-active-padding": "--space-10",
-        "--sidenavigation-footer-active-gap": "--space-10",
+        "--sidenavigation-footer-active-padding": "--space-6",
+        "--sidenavigation-footer-active-gap": "--space-8",
         "--sidenavigation-footer-active-accent": "--border-brand-medium",
-        "--sidenavigation-footer-active-accent-width": "--border-width-3",
+        "--sidenavigation-footer-active-accent-width": "--border-width-5",
         "--sidenavigation-footer-active-icon": "--text-primary",
         "--sidenavigation-footer-active-icon-size": "--icon-size-xs",
         "--sidenavigation-footer-active-text": "--text-primary",
@@ -3697,31 +3757,31 @@
       }
     },
     "tabbar": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "tabbar",
       "createdAt": "2026-05-12T01:57:26.390Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--tabbar-bar-divider": "--border-neutral-subtle",
         "--tabbar-bar-divider-thickness": "--border-width-1",
-        "--tabbar-bar-top-margin": "--space-2",
-        "--tabbar-bar-bottom-padding": "--space-2",
-        "--tabbar-bar-bottom-margin": "--space-2",
-        "--tabbar-tab-gap": "--space-4",
+        "--tabbar-bar-top-margin": "--space-0",
+        "--tabbar-bar-bottom-padding": "--space-0",
+        "--tabbar-bar-bottom-margin": "--space-0",
+        "--tabbar-tab-gap": "--space-2",
         "--tabbar-default-text": "--text-tertiary",
         "--tabbar-default-text-font-family": "--font-sans",
         "--tabbar-default-text-font-size": "--font-size-md",
         "--tabbar-default-text-font-weight": "--font-weight-light",
         "--tabbar-default-text-line-height": "--line-height-normal",
         "--tabbar-default-icon-size": "--icon-size-md",
-        "--tabbar-default-padding": "--space-10",
+        "--tabbar-default-padding": "--space-6",
         "--tabbar-default-border": "--color-transparent",
         "--tabbar-default-surface": "--color-transparent",
         "--tabbar-default-tab-border-color": "--color-transparent",
-        "--tabbar-default-tab-border-width": "--border-width-0",
-        "--tabbar-default-tab-top-radius": "--radius-md",
-        "--tabbar-default-tab-bottom-radius": "--radius-md",
-        "--tabbar-default-indicator-border-width": "--border-width-2",
+        "--tabbar-default-tab-border-width": "--border-width-2",
+        "--tabbar-default-tab-top-radius": "--radius-none",
+        "--tabbar-default-tab-bottom-radius": "--radius-none",
+        "--tabbar-default-indicator-border-width": "--border-width-4",
         "--tabbar-hover-text": "--text-secondary",
         "--tabbar-hover-surface": "--surface-neutral-lower",
         "--tabbar-hover-text-font-family": "--font-sans",
@@ -3729,13 +3789,13 @@
         "--tabbar-hover-text-font-weight": "--font-weight-light",
         "--tabbar-hover-text-line-height": "--line-height-normal",
         "--tabbar-hover-icon-size": "--icon-size-md",
-        "--tabbar-hover-padding": "--space-10",
+        "--tabbar-hover-padding": "--space-6",
         "--tabbar-hover-border": "--color-transparent",
         "--tabbar-hover-tab-border-color": "--color-transparent",
-        "--tabbar-hover-tab-border-width": "--border-width-0",
-        "--tabbar-hover-tab-top-radius": "--radius-md",
-        "--tabbar-hover-tab-bottom-radius": "--radius-md",
-        "--tabbar-hover-indicator-border-width": "--border-width-2",
+        "--tabbar-hover-tab-border-width": "--border-width-2",
+        "--tabbar-hover-tab-top-radius": "--radius-none",
+        "--tabbar-hover-tab-bottom-radius": "--radius-none",
+        "--tabbar-hover-indicator-border-width": "--border-width-4",
         "--tabbar-active-text": "--text-primary",
         "--tabbar-active-border": "--color-brand-500",
         "--tabbar-active-surface": "--overlay-low",
@@ -3744,38 +3804,38 @@
         "--tabbar-active-text-font-weight": "--font-weight-light",
         "--tabbar-active-text-line-height": "--line-height-normal",
         "--tabbar-active-icon-size": "--icon-size-md",
-        "--tabbar-active-padding": "--space-10",
+        "--tabbar-active-padding": "--space-6",
         "--tabbar-active-tab-border-color": "--color-transparent",
-        "--tabbar-active-tab-border-width": "--border-width-0",
-        "--tabbar-active-tab-top-radius": "--radius-md",
-        "--tabbar-active-tab-bottom-radius": "--radius-md",
-        "--tabbar-active-indicator-border-width": "--border-width-2",
+        "--tabbar-active-tab-border-width": "--border-width-2",
+        "--tabbar-active-tab-top-radius": "--radius-none",
+        "--tabbar-active-tab-bottom-radius": "--radius-none",
+        "--tabbar-active-indicator-border-width": "--border-width-4",
         "--tabbar-disabled-text": "--text-disabled",
         "--tabbar-disabled-text-font-family": "--font-sans",
         "--tabbar-disabled-text-font-size": "--font-size-md",
         "--tabbar-disabled-text-font-weight": "--font-weight-light",
         "--tabbar-disabled-text-line-height": "--line-height-normal",
         "--tabbar-disabled-icon-size": "--icon-size-md",
-        "--tabbar-disabled-padding": "--space-10",
+        "--tabbar-disabled-padding": "--space-6",
         "--tabbar-disabled-border": "--color-transparent",
         "--tabbar-disabled-surface": "--color-transparent",
         "--tabbar-disabled-tab-border-color": "--color-transparent",
-        "--tabbar-disabled-tab-border-width": "--border-width-0",
-        "--tabbar-disabled-tab-top-radius": "--radius-md",
-        "--tabbar-disabled-tab-bottom-radius": "--radius-md",
-        "--tabbar-disabled-indicator-border-width": "--border-width-2"
+        "--tabbar-disabled-tab-border-width": "--border-width-2",
+        "--tabbar-disabled-tab-top-radius": "--radius-none",
+        "--tabbar-disabled-tab-bottom-radius": "--radius-none",
+        "--tabbar-disabled-indicator-border-width": "--border-width-4"
       }
     },
     "table": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "table",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
-        "--table-default-radius": "--radius-xl",
+        "--table-default-radius": "--radius-none",
         "--table-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 57%, transparent)",
         "--table-default-border": "--border-neutral",
-        "--table-default-border-width": "--border-width-2",
+        "--table-default-border-width": "--border-width-4",
         "--table-default-shadow": "--shadow-md",
         "--table-default-header-surface": "--surface-neutral-lowest",
         "--table-default-header-text": "--text-primary",
@@ -3783,15 +3843,15 @@
         "--table-default-header-font-size": "--font-size-lg",
         "--table-default-header-font-weight": "--font-weight-semibold",
         "--table-default-header-line-height": "--line-height-none",
-        "--table-default-header-padding": "--space-16",
+        "--table-default-header-padding": "--space-10",
         "--table-default-header-border": "--border-neutral",
-        "--table-default-header-border-width": "--border-width-1",
+        "--table-default-header-border-width": "--border-width-3",
         "--table-default-cell-text": "--text-secondary",
         "--table-default-cell-font-family": "--font-sans",
         "--table-default-cell-font-size": "--font-size-md",
         "--table-default-cell-font-weight": "--font-weight-medium",
         "--table-default-cell-line-height": "--line-height-normal",
-        "--table-default-cell-padding": "--space-10",
+        "--table-default-cell-padding": "--space-6",
         "--table-default-row-surface": "--color-transparent",
         "--table-default-row-divider": "--border-neutral-subtle",
         "--table-default-row-divider-width": "--border-width-1",
@@ -3801,16 +3861,16 @@
       }
     },
     "toggle": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "toggle",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--toggle-track-surface": "--surface-neutral",
         "--toggle-track-border": "--border-neutral",
-        "--toggle-track-border-width": "--border-width-1",
-        "--toggle-track-radius": "--radius-full",
-        "--toggle-track-padding": "--space-4",
+        "--toggle-track-border-width": "--border-width-3",
+        "--toggle-track-radius": "--radius-none",
+        "--toggle-track-padding": "--space-0",
         "--toggle-thumb-surface": "--surface-neutral-highest",
         "--toggle-thumb-border": "--border-neutral-strong",
         "--toggle-thumb-size": "--font-size-md",
@@ -3818,7 +3878,7 @@
         "--toggle-label-font-family": "--font-sans",
         "--toggle-label-font-size": "--font-size-sm",
         "--toggle-label-font-weight": "--font-weight-normal",
-        "--toggle-gap": "--space-10",
+        "--toggle-gap": "--space-8",
         "--toggle-hover-track-surface": "--surface-neutral-high",
         "--toggle-hover-thumb-surface": "--text-primary",
         "--toggle-on-track-surface": "--surface-brand-high",
@@ -3833,10 +3893,10 @@
       }
     },
     "tooltip": {
-      "name": "ocean",
+      "name": "halloween",
       "component": "tooltip",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--tooltip-surface": "color-mix(in srgb, var(--surface-canvas-lowest) 75%, transparent)",
         "--tooltip-text": "--text-primary",
@@ -3845,9 +3905,9 @@
         "--tooltip-text-font-weight": "--font-weight-normal",
         "--tooltip-text-line-height": "--line-height-normal",
         "--tooltip-border": "--border-neutral",
-        "--tooltip-border-width": "--border-width-1",
-        "--tooltip-radius": "--radius-xl",
-        "--tooltip-padding": "--space-8",
+        "--tooltip-border-width": "--border-width-3",
+        "--tooltip-radius": "--radius-none",
+        "--tooltip-padding": "--space-4",
         "--tooltip-shadow": "--shadow-md"
       }
     }

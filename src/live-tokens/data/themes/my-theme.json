@@ -1,9 +1,9 @@
 {
-  "name": "my-manifest",
+  "name": "my-theme",
   "createdAt": "2026-06-03T12:10:05.667Z",
   "updatedAt": "2026-08-13T03:24:58.532Z",
-  "schemaVersion": 2,
-  "theme": {
+  "schemaVersion": 3,
+  "colorsAndType": {
     "name": "Default Theme",
     "createdAt": "2026-04-01T11:00:38.342Z",
     "updatedAt": "2026-06-01T23:57:08.090Z",

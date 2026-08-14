@@ -15,7 +15,7 @@ import { getActiveColorsAndType } from './colorsAndTypeService';
  */
 
 const themesResource = versionedFileResource<Theme, ThemeMeta, never>({
-  baseUrl: `${API_BASE}/manifests`,
+  baseUrl: `${API_BASE}/themes`,
 });
 
 export const listThemes = async (): Promise<ThemeMeta[]> => {
@@ -52,7 +52,7 @@ export interface ApplyThemeResult {
  * world" action.
  */
 export async function applyTheme(fileName: string): Promise<ApplyThemeResult> {
-  const res = await fetch(`${API_BASE}/manifests/${encodeURIComponent(fileName)}/apply`, {
+  const res = await fetch(`${API_BASE}/themes/${encodeURIComponent(fileName)}/apply`, {
     method: 'PUT',
   });
   if (!res.ok) {
@@ -67,7 +67,7 @@ export interface AdoptLookResult {
   /** False when production was already running the look: nothing was written. */
   promoted: boolean;
   /** The colors and type promoted, or null when production already ran them. */
-  theme: { fileName: string; name: string } | null;
+  colorsAndType: { fileName: string; name: string } | null;
   /** Names of the components promoted. */
   components: string[];
 }
@@ -112,7 +112,7 @@ function withoutFileMarker<T extends { _fileName?: string }>(value: T): T {
  * answers. That matters: the server trusts an already-embedded copy and runs
  * no migrations over it on write.
  */
-async function captureLook(): Promise<Pick<Theme, 'theme' | 'componentConfigs'>> {
+async function captureLook(): Promise<Pick<Theme, 'colorsAndType' | 'componentConfigs'>> {
   const activeColorsAndType = await getActiveColorsAndType();
   if (!activeColorsAndType) {
     throw new Error('No active theme to capture');
@@ -127,7 +127,7 @@ async function captureLook(): Promise<Pick<Theme, 'theme' | 'componentConfigs'>>
   overridden.forEach((c, i) => {
     componentConfigs[c.name] = withoutFileMarker(configs[i]);
   });
-  return { theme: withoutFileMarker(activeColorsAndType), componentConfigs };
+  return { colorsAndType: withoutFileMarker(activeColorsAndType), componentConfigs };
 }
 
 /**
@@ -145,7 +145,7 @@ export async function saveAsTheme(
     name: displayName,
     createdAt: now,
     updatedAt: now,
-    schemaVersion: 2,
+    schemaVersion: 3,
     ...look,
   });
   await setActiveTheme(fileName);
@@ -166,7 +166,7 @@ export async function saveActiveTheme(displayName?: string): Promise<void> {
     name: displayName ?? active.name,
     createdAt: active.createdAt,
     updatedAt: new Date().toISOString(),
-    schemaVersion: 2,
+    schemaVersion: 3,
     ...look,
   });
 }
@@ -185,10 +185,10 @@ export interface ImportThemeResult {
 /**
  * Fetch the theme as a `ThemeBundle` and trigger a browser download.
  * Hidden-anchor trick — no infrastructure beyond the existing GET
- * `/api/manifests/:name/export` endpoint.
+ * `/api/themes/:name/export` endpoint.
  */
 export async function exportTheme(fileName: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/manifests/${encodeURIComponent(fileName)}/export`);
+  const res = await fetch(`${API_BASE}/themes/${encodeURIComponent(fileName)}/export`);
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Export failed' }));
     throw new Error(err.error || 'Export failed');
@@ -213,7 +213,7 @@ export async function exportTheme(fileName: string): Promise<void> {
  * materialised until Apply. v1 bundles from older installs are accepted too.
  */
 export async function importTheme(bundle: ThemeBundle): Promise<ImportThemeResult> {
-  const res = await fetch(`${API_BASE}/manifests/import`, {
+  const res = await fetch(`${API_BASE}/themes/import`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(bundle),

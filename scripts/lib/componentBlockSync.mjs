@@ -2,7 +2,7 @@
 // `:global(:root){…}` block of its `.svelte` source — the shipped default that
 // consumers receive. Two callers:
 //   • sync-component-defaults.mjs     default.json → .svelte (keep them in sync)
-//   • collapse-manifest-to-default.mjs adopted config → .svelte (make it default)
+//   • collapse-theme-to-default.mjs    adopted config → .svelte (make it default)
 // Kept in one place so the fragile gradient-format mirror can't drift.
 
 // Mirror of src/editor/core/themes/slices/gradients.ts → formatGradientValue,

@@ -18,7 +18,7 @@ const REPO_ROOT = process.cwd();
 
 let tmp: string;
 let colorsAndTypeDir: string;
-let manifestsDir: string;
+let themesDir: string;
 let mw: (req: any, res: any, next: any) => any;
 
 function makeReq(method: string, url: string, body?: unknown) {
@@ -66,7 +66,7 @@ function boot() {
     dataDir: tmp,
     colorsAndTypeDir,
     componentConfigsDir: path.join(tmp, 'component-configs'),
-    manifestsDir,
+    themesDir,
     tokensCssPath: path.join(REPO_ROOT, 'src/system/styles/tokens.css'),
     fontsCssPath: path.join(tmp, 'fonts.css'),
     tokensGeneratedCssPath: path.join(tmp, 'tokens.generated.css'),
@@ -83,7 +83,7 @@ function boot() {
 beforeEach(() => {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ltfb-'));
   colorsAndTypeDir = path.join(tmp, 'colors-and-type');
-  manifestsDir = path.join(tmp, 'manifests');
+  themesDir = path.join(tmp, 'themes');
   boot();
 });
 
@@ -98,10 +98,10 @@ describe('package-default fallback on a fresh consumer', () => {
 
   it('materialises the default theme locally, carrying the package theme', () => {
     const theme = JSON.parse(
-      fs.readFileSync(path.join(manifestsDir, 'default.json'), 'utf-8'),
+      fs.readFileSync(path.join(themesDir, 'default.json'), 'utf-8'),
     );
-    expect(theme.schemaVersion).toBe(2);
-    expect(Object.keys(theme.theme.editorConfigs).length).toBeGreaterThan(0);
+    expect(theme.schemaVersion).toBe(3);
+    expect(Object.keys(theme.colorsAndType.editorConfigs).length).toBeGreaterThan(0);
     expect(Object.keys(theme.componentConfigs).length).toBeGreaterThan(0);
   });
 
@@ -130,8 +130,8 @@ describe('package-default fallback on a fresh consumer', () => {
     expect(Object.keys(json.editorConfigs).length).toBeGreaterThan(0);
   });
 
-  it('GET /manifests lists the boot-materialized default', async () => {
-    const { status, json } = await request('GET', `${API}/manifests`);
+  it('GET /themes lists the boot-materialized default', async () => {
+    const { status, json } = await request('GET', `${API}/themes`);
     expect(status).toBe(200);
     expect(json.files.map((f: any) => f.fileName)).toContain('default');
   });
@@ -141,8 +141,8 @@ describe('package-default fallback on a fresh consumer', () => {
     expect(status).toBe(200);
   });
 
-  it('PUT /manifests/active default → 200', async () => {
-    const { status } = await request('PUT', `${API}/manifests/active`, { name: 'default' });
+  it('PUT /themes/active default → 200', async () => {
+    const { status } = await request('PUT', `${API}/themes/active`, { name: 'default' });
     expect(status).toBe(200);
   });
 
@@ -178,23 +178,23 @@ describe('package-default fallback on a fresh consumer', () => {
 
     // The client's recovery: capture the live look under a name of its own,
     // make it active, retry.
-    await request('PUT', `${API}/manifests/my-theme`, {
+    await request('PUT', `${API}/themes/my-theme`, {
       name: 'My Theme',
       theme: 'mine',
       componentConfigs: {},
     });
-    await request('PUT', `${API}/manifests/active`, { name: 'my-theme' });
+    await request('PUT', `${API}/themes/active`, { name: 'my-theme' });
 
     const { status, json } = await request('PUT', `${API}/production`);
     expect(status).toBe(200);
-    expect(json.theme).toEqual({ fileName: 'mine', name: 'Mine' });
+    expect(json.colorsAndType).toEqual({ fileName: 'mine', name: 'Mine' });
     expect(
       JSON.parse(fs.readFileSync(path.join(colorsAndTypeDir, '_production.json'), 'utf-8')).productionFile,
     ).toBe('mine');
   });
 
-  it('PUT /manifests/default/apply → 200 with resolved colors and type + component configs (headline restore path)', async () => {
-    const { status, json } = await request('PUT', `${API}/manifests/default/apply`);
+  it('PUT /themes/default/apply → 200 with resolved colors and type + component configs (headline restore path)', async () => {
+    const { status, json } = await request('PUT', `${API}/themes/default/apply`);
     expect(status).toBe(200);
     expect(json.theme._fileName).toBe('default');
     expect(Object.keys(json.colorsAndType.editorConfigs).length).toBeGreaterThan(0);
@@ -300,16 +300,16 @@ describe('a package-shipped theme on a fresh consumer', () => {
   const FIXTURE = 'package-fixture-look';
   const packageThemePath = path.join(
     REPO_ROOT,
-    'src/live-tokens/data/manifests',
+    'src/live-tokens/data/themes',
     `${FIXTURE}.json`,
   );
-  const localThemePath = () => path.join(manifestsDir, `${FIXTURE}.json`);
+  const localThemePath = () => path.join(themesDir, `${FIXTURE}.json`);
   const shipped = {
     name: 'Package Fixture',
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
-    schemaVersion: 2,
-    theme: {
+    schemaVersion: 3,
+    colorsAndType: {
       name: 'Package Fixture Theme',
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
@@ -342,27 +342,27 @@ describe('a package-shipped theme on a fresh consumer', () => {
     expect(fs.statSync(packageThemePath).mtime.getTime()).toBe(past.getTime());
     expect(JSON.parse(fs.readFileSync(packageThemePath, 'utf-8'))).toEqual(shipped);
     expect(fs.existsSync(localThemePath())).toBe(false);
-    expect(fs.existsSync(path.join(manifestsDir, 'default.json'))).toBe(true);
+    expect(fs.existsSync(path.join(themesDir, 'default.json'))).toBe(true);
   });
 
-  it('GET /manifests lists it alongside the local default', async () => {
-    const { json } = await request('GET', `${API}/manifests`);
+  it('GET /themes lists it alongside the local default', async () => {
+    const { json } = await request('GET', `${API}/themes`);
     const row = json.files.find((f: any) => f.fileName === FIXTURE);
     expect(row.name).toBe('Package Fixture');
     expect(row.isProtected).toBe(false);
     expect(json.files.map((f: any) => f.fileName)).toContain('default');
   });
 
-  it('GET :name serves the shipped v2 theme as-is', async () => {
-    const { status, json } = await request('GET', `${API}/manifests/${FIXTURE}`);
+  it('GET :name serves the shipped theme as-is', async () => {
+    const { status, json } = await request('GET', `${API}/themes/${FIXTURE}`);
     expect(status).toBe(200);
-    expect(json.schemaVersion).toBe(2);
-    expect(json.theme.name).toBe('Package Fixture Theme');
+    expect(json.schemaVersion).toBe(3);
+    expect(json.colorsAndType.name).toBe('Package Fixture Theme');
     expect(json.componentConfigs.button.aliases).toEqual({ '--button-radius': '99px' });
   });
 
   it('apply materialises the embedded data into local working files', async () => {
-    const { status, json } = await request('PUT', `${API}/manifests/${FIXTURE}/apply`);
+    const { status, json } = await request('PUT', `${API}/themes/${FIXTURE}/apply`);
     expect(status).toBe(200);
     expect(json.theme._fileName).toBe(FIXTURE);
 
@@ -375,7 +375,7 @@ describe('a package-shipped theme on a fresh consumer', () => {
       ).aliases,
     ).toEqual({ '--button-radius': '99px' });
     expect(
-      JSON.parse(fs.readFileSync(path.join(manifestsDir, '_active.json'), 'utf-8')).activeFile,
+      JSON.parse(fs.readFileSync(path.join(themesDir, '_active.json'), 'utf-8')).activeFile,
     ).toBe(FIXTURE);
     expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).toContain(
       '--radius-md: 4px',
@@ -384,55 +384,55 @@ describe('a package-shipped theme on a fresh consumer', () => {
   });
 
   it('export serves the envelope with the shipped content', async () => {
-    const { status, json } = await request('GET', `${API}/manifests/${FIXTURE}/export`);
+    const { status, json } = await request('GET', `${API}/themes/${FIXTURE}/export`);
     expect(status).toBe(200);
-    expect(json.kind).toBe('manifest-bundle');
-    expect(json.manifest.theme.name).toBe('Package Fixture Theme');
+    expect(json.kind).toBe('theme-bundle');
+    expect(json.manifest.colorsAndType.name).toBe('Package Fixture Theme');
   });
 
   it('DELETE with no local copy → 403 PACKAGE_THEME', async () => {
-    const { status, json } = await request('DELETE', `${API}/manifests/${FIXTURE}`);
+    const { status, json } = await request('DELETE', `${API}/themes/${FIXTURE}`);
     expect(status).toBe(403);
     expect(json.code).toBe('PACKAGE_THEME');
     expect(fs.existsSync(packageThemePath)).toBe(true);
   });
 
   it('PUT then DELETE removes the shadow and restores the shipped version', async () => {
-    const put = await request('PUT', `${API}/manifests/${FIXTURE}`, {
+    const put = await request('PUT', `${API}/themes/${FIXTURE}`, {
       ...shipped,
       name: 'Local Fork',
     });
     expect(put.status).toBe(200);
     expect(fs.existsSync(localThemePath())).toBe(true);
 
-    const del = await request('DELETE', `${API}/manifests/${FIXTURE}`);
+    const del = await request('DELETE', `${API}/themes/${FIXTURE}`);
     expect(del.status).toBe(200);
     expect(fs.existsSync(localThemePath())).toBe(false);
 
-    const { json } = await request('GET', `${API}/manifests/${FIXTURE}`);
+    const { json } = await request('GET', `${API}/themes/${FIXTURE}`);
     expect(json.name).toBe('Package Fixture');
   });
 
   it('deleting the shadow of the active theme keeps the pointer on the restored version', async () => {
-    await request('PUT', `${API}/manifests/${FIXTURE}`, { ...shipped, name: 'Local Fork' });
-    await request('PUT', `${API}/manifests/active`, { name: FIXTURE });
+    await request('PUT', `${API}/themes/${FIXTURE}`, { ...shipped, name: 'Local Fork' });
+    await request('PUT', `${API}/themes/active`, { name: FIXTURE });
 
-    await request('DELETE', `${API}/manifests/${FIXTURE}`);
+    await request('DELETE', `${API}/themes/${FIXTURE}`);
 
-    const active = await request('GET', `${API}/manifests/active`);
+    const active = await request('GET', `${API}/themes/active`);
     expect(active.json._fileName).toBe(FIXTURE);
     expect(active.json.name).toBe('Package Fixture');
   });
 
   it('adopting a theme while it is active forks it locally', async () => {
-    await request('PUT', `${API}/manifests/active`, { name: FIXTURE });
+    await request('PUT', `${API}/themes/active`, { name: FIXTURE });
     await request('PUT', `${API}/colors-and-type/adopted`, { name: 'Adopted', cssVariables: {} });
 
     const { status } = await request('PUT', `${API}/colors-and-type/production`, { name: 'adopted' });
     expect(status).toBe(200);
 
-    expect(JSON.parse(fs.readFileSync(localThemePath(), 'utf-8')).theme.name).toBe('Adopted');
-    expect(JSON.parse(fs.readFileSync(packageThemePath, 'utf-8')).theme.name).toBe(
+    expect(JSON.parse(fs.readFileSync(localThemePath(), 'utf-8')).colorsAndType.name).toBe('Adopted');
+    expect(JSON.parse(fs.readFileSync(packageThemePath, 'utf-8')).colorsAndType.name).toBe(
       'Package Fixture Theme',
     );
   });
@@ -445,7 +445,7 @@ describe('the library repo itself (local data dir IS the package dir)', () => {
       dataDir: repoData,
       colorsAndTypeDir: path.join(repoData, 'colors-and-type'),
       componentConfigsDir: path.join(repoData, 'component-configs'),
-      manifestsDir: path.join(repoData, 'manifests'),
+      themesDir: path.join(repoData, 'themes'),
       tokensCssPath: path.join(REPO_ROOT, 'src/system/styles/tokens.css'),
       fontsCssPath: path.join(tmp, 'fonts.css'),
       tokensGeneratedCssPath: path.join(tmp, 'tokens.generated.css'),

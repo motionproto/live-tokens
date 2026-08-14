@@ -370,7 +370,7 @@
       return;
     }
     if (!previewLook) return;
-    if (effectiveColorsOnly) previewColorsAndType(previewLook.theme);
+    if (effectiveColorsOnly) previewColorsAndType(previewLook.colorsAndType);
     else await previewTheme(previewLook);
   }
 
@@ -452,7 +452,7 @@
   async function commitColorsOnly() {
     const row = previewRow;
     // Read the payload before the revert clears it.
-    const colorsAndType = previewLook?.theme ?? null;
+    const colorsAndType = previewLook?.colorsAndType ?? null;
     if (!row) return;
     if ($dirty) {
       const ok = window.confirm(
@@ -525,7 +525,7 @@
       window.alert('Selected file is not valid JSON.');
       return;
     }
-    if (bundle?.kind !== 'manifest-bundle') {
+    if (bundle?.kind !== 'theme-bundle') {
       window.alert('That file is not an exported theme.');
       return;
     }

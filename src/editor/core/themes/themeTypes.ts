@@ -177,10 +177,11 @@ export interface Theme {
   createdAt: string;
   updatedAt: string;
   /** Migration stamp. 1 was the pointer form (colors-and-type + config
-   *  basenames); 2 is encapsulated. The server rewrites v1 files at boot. */
-  schemaVersion: 2;
+   *  basenames); 2 encapsulated it under a `theme` key; 3 spells that key
+   *  `colorsAndType`. The server rewrites older files at boot. */
+  schemaVersion: 3;
   /** Full colors-and-type content. */
-  theme: ColorsAndType;
+  colorsAndType: ColorsAndType;
   /** Component id → its config. Delta encoding: a component absent here is on
    *  its default. Defaults are never inlined — the local `default.json` derived
    *  from the component source is canonical, and a frozen copy would drift. */
@@ -193,23 +194,24 @@ export interface Theme {
  * Transport envelope for sharing a theme. The theme already carries
  * everything needed to apply it, so the envelope adds only provenance.
  *
- * Bundles are *not* stored under `manifests/` — they're transient downloads /
+ * Bundles are *not* stored under `themes/` — they're transient downloads /
  * uploads; import writes the enclosed theme as a single file.
  */
 export interface ThemeBundle {
   /** Discriminator for safe identification of bundle JSON files. */
-  kind: 'manifest-bundle';
+  kind: 'theme-bundle';
   /** Tracks the enclosed theme's schema. Import still accepts 1, where the
    *  envelope carried a pointer theme plus separately inlined colors and type
    *  and `${component}/${configName}`-keyed configs. */
-  schemaVersion: 2;
+  schemaVersion: 3;
   /** Sender's `@motion-proto/live-tokens` package version. Receiver can
    *  compare to its own to warn about compatibility drift. */
   liveTokensVersion: string;
   /** ISO timestamp of when the bundle was exported. */
   exportedAt: string;
-  /** Keeps the `manifest` spelling: in a v1 bundle `theme` is the separately
-   *  inlined colors and type, which import still reads. */
+  /** Keeps the `manifest` spelling: a v1 bundle's `theme` is the separately
+   *  inlined colors and type, which import still reads, so the envelope cannot
+   *  take that name without meaning two things at once. */
   manifest: Theme;
 }
 

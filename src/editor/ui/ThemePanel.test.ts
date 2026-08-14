@@ -26,8 +26,8 @@ const LOOK = {
   _fileName: 'my-theme',
   createdAt: 'x',
   updatedAt: 'x',
-  schemaVersion: 2,
-  theme: COLORS_AND_TYPE,
+  schemaVersion: 3,
+  colorsAndType: COLORS_AND_TYPE,
   componentConfigs: {},
 };
 
@@ -51,11 +51,11 @@ function server(url: string, init?: RequestInit): Response {
   const override = overrides[route];
   if (override) return override();
   switch (route) {
-    case 'GET /manifests':
+    case 'GET /themes':
       return json({ files: [{ fileName: 'my-theme', name: 'My Theme' }] });
     case 'GET /colors-and-type':
       return json({ files: [{ fileName: 'my-colors', name: 'My Colors', isActive: true }] });
-    case 'GET /manifests/active':
+    case 'GET /themes/active':
       return json(LOOK);
     case 'GET /colors-and-type/active':
       return json(COLORS_AND_TYPE);
@@ -142,7 +142,7 @@ describe('Save', () => {
     await settle();
 
     const colorsAndTypePut = calls.indexOf(`PUT /colors-and-type/my-colors`);
-    const lookPut = calls.indexOf(`PUT /manifests/my-theme`);
+    const lookPut = calls.indexOf(`PUT /themes/my-theme`);
     expect(colorsAndTypePut).toBeGreaterThan(-1);
     expect(lookPut).toBeGreaterThan(colorsAndTypePut);
   });
@@ -154,7 +154,7 @@ describe('Save', () => {
     await settle();
 
     expect(calls).not.toContain('PUT /colors-and-type/my-colors');
-    expect(calls).toContain('PUT /manifests/my-theme');
+    expect(calls).toContain('PUT /themes/my-theme');
   });
 
   it('does not warn about colors and type it is about to write', async () => {
@@ -196,7 +196,7 @@ describe('Save As', () => {
 
     const colorsAndTypePut = calls.indexOf('PUT /colors-and-type/my-colors');
     expect(colorsAndTypePut).toBeGreaterThan(-1);
-    expect(calls.indexOf('PUT /manifests/fresh')).toBeGreaterThan(colorsAndTypePut);
+    expect(calls.indexOf('PUT /themes/fresh')).toBeGreaterThan(colorsAndTypePut);
   });
 });
 
@@ -211,11 +211,11 @@ describe('Component-only edits', () => {
     await settle();
 
     expect(calls.filter((c) => c.startsWith('PUT /colors-and-type/'))).toEqual([]);
-    expect(calls).toContain('PUT /manifests/my-theme');
+    expect(calls).toContain('PUT /themes/my-theme');
   });
 
   it('do not fork colors and type out of the protected Default look', async () => {
-    overrides['GET /manifests/active'] = () => json({ ...LOOK, name: 'Default', _fileName: 'default' });
+    overrides['GET /themes/active'] = () => json({ ...LOOK, name: 'Default', _fileName: 'default' });
     overrides['GET /colors-and-type'] = () =>
       json({ files: [{ fileName: 'default', name: 'Default', isActive: true, isPackage: true }] });
     overrides['PUT /production'] = () =>
@@ -260,7 +260,7 @@ describe('Adopt', () => {
     await settle();
 
     expect(calls.filter((c) => c === 'PUT /production')).toHaveLength(2);
-    expect(calls.filter((c) => c.startsWith('PUT /manifests/my-theme'))).toHaveLength(1);
+    expect(calls.filter((c) => c.startsWith('PUT /themes/my-theme'))).toHaveLength(1);
   });
 });
 
@@ -291,10 +291,10 @@ describe('Load preview', () => {
 
   // Selecting the ACTIVE look is a designed no-op, so this previews another one.
   it('paints a look row', async () => {
-    overrides['GET /manifests'] = () =>
+    overrides['GET /themes'] = () =>
       json({ files: [{ fileName: 'my-theme', name: 'My Theme' }, { fileName: 'ocean', name: 'Ocean' }] });
-    overrides['GET /manifests/ocean'] = () => json({ ...LOOK, _fileName: 'ocean', name: 'Ocean' });
-    overrides['GET /manifests/default'] = () =>
+    overrides['GET /themes/ocean'] = () => json({ ...LOOK, _fileName: 'ocean', name: 'Ocean' });
+    overrides['GET /themes/default'] = () =>
       json({ ...LOOK, _fileName: 'default', name: 'Default' });
     await mountPanel();
 

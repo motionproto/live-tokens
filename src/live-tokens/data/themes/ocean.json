@@ -1,18 +1,18 @@
 {
-  "name": "Leprechaun",
-  "createdAt": "2026-08-13T14:14:20.015Z",
-  "updatedAt": "2026-08-13T14:14:20.015Z",
-  "schemaVersion": 2,
-  "theme": {
-    "name": "Leprechaun",
-    "createdAt": "2026-08-12T20:13:46.377Z",
+  "name": "Ocean",
+  "createdAt": "2026-08-13T10:21:46.867Z",
+  "updatedAt": "2026-08-14T17:42:08.545Z",
+  "schemaVersion": 3,
+  "colorsAndType": {
+    "name": "Ocean",
+    "createdAt": "2026-08-12T20:13:46.322Z",
     "updatedAt": "2026-08-13T14:14:20.015Z",
     "editorConfigs": {
       "Brand": {
         "baseColor": {
-          "l": 0.78,
-          "c": 0.14,
-          "h": 90
+          "l": 0.45,
+          "c": 0.09,
+          "h": 237
         },
         "lightnessCurve": [
           {
@@ -20,22 +20,22 @@
             "y": 95,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 6.666666666666666,
-            "outDy": -5.666666666666666
+            "outDx": 20,
+            "outDy": -16.666666666666668
           },
           {
-            "x": 20,
-            "y": 78,
-            "inDx": -6.666666666666666,
-            "inDy": 5.732177263969171,
-            "outDx": 26.666666666666664,
-            "outDy": -22.928709055876684
+            "x": 60,
+            "y": 45,
+            "inDx": -20,
+            "inDy": 17.596702599873176,
+            "outDx": 13.333333333333332,
+            "outDy": -11.731135066582118
           },
           {
             "x": 100,
             "y": 8,
-            "inDx": -26.666666666666664,
-            "inDy": 23.333333333333332,
+            "inDx": -13.333333333333332,
+            "inDy": 12.333333333333332,
             "outDx": 0,
             "outDy": 0
           }
@@ -46,21 +46,21 @@
             "y": 100,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 6.666666666666666,
+            "outDx": 20,
             "outDy": 0
           },
           {
-            "x": 20,
+            "x": 60,
             "y": 100,
-            "inDx": -6.666666666666666,
+            "inDx": -20,
             "inDy": 0,
-            "outDx": 26.666666666666664,
+            "outDx": 13.333333333333332,
             "outDy": 0
           },
           {
             "x": 100,
             "y": 100,
-            "inDx": -26.666666666666664,
+            "inDx": -13.333333333333332,
             "inDy": 0,
             "outDx": 0,
             "outDy": 0
@@ -71,7 +71,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 15,
+                "y": 98,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -79,7 +79,7 @@
               },
               {
                 "x": 100,
-                "y": 47,
+                "y": 82,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -109,7 +109,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 25,
+                "y": 92,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -117,7 +117,7 @@
               },
               {
                 "x": 100,
-                "y": 80,
+                "y": 45,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -147,7 +147,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 120,
+                "y": 30,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -155,7 +155,7 @@
               },
               {
                 "x": 100,
-                "y": 55,
+                "y": 120,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -190,7 +190,7 @@
         "snappedScales": [],
         "anchorToBase": true,
         "anchorPlacement": {
-          "step": 2,
+          "step": 6,
           "priorLightnessEndpoints": [
             {
               "x": 0,
@@ -233,7 +233,7 @@
         "baseColor": {
           "l": 0.78,
           "c": 0.12,
-          "h": 150
+          "h": 214
         },
         "lightnessCurve": [
           {
@@ -292,7 +292,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 15,
+                "y": 98,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -300,7 +300,7 @@
               },
               {
                 "x": 100,
-                "y": 47,
+                "y": 82,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -330,7 +330,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 25,
+                "y": 92,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -338,7 +338,7 @@
               },
               {
                 "x": 100,
-                "y": 80,
+                "y": 45,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -368,7 +368,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 120,
+                "y": 30,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -376,7 +376,7 @@
               },
               {
                 "x": 100,
-                "y": 55,
+                "y": 120,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -452,9 +452,230 @@
       },
       "Special": {
         "baseColor": {
-          "l": 0.85,
-          "c": 0.1,
-          "h": 95
+          "l": 0.72,
+          "c": 0.13,
+          "h": 40
+        },
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 10,
+            "outDy": -7.666666666666667
+          },
+          {
+            "x": 30,
+            "y": 72,
+            "inDx": -10,
+            "inDy": 8.243419824528655,
+            "outDx": 23.333333333333332,
+            "outDy": -19.234646257233525
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -23.333333333333332,
+            "inDy": 21.333333333333332,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 10,
+            "outDy": 0
+          },
+          {
+            "x": 30,
+            "y": 100,
+            "inDx": -10,
+            "inDy": 0,
+            "outDx": 23.333333333333332,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -23.333333333333332,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 98,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 82,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 92,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 45,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 30,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 120,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 15,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 3,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 95,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 8,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Canvas": {
+        "baseColor": {
+          "l": 0.9,
+          "c": 0.045,
+          "h": 220
         },
         "lightnessCurve": [
           {
@@ -463,21 +684,21 @@
             "inDx": 0,
             "inDy": 0,
             "outDx": 3.333333333333333,
-            "outDy": -3.333333333333333
+            "outDy": -1.6666666666666665
           },
           {
             "x": 10,
-            "y": 85,
+            "y": 90,
             "inDx": -3.333333333333333,
-            "inDy": 3.139013452914798,
+            "inDy": 1.9970774476376032,
             "outDx": 30,
-            "outDy": -28.251121076233186
+            "outDy": -17.97369702873843
           },
           {
             "x": 100,
             "y": 8,
             "inDx": -30,
-            "inDy": 25.666666666666664,
+            "inDy": 27.333333333333332,
             "outDx": 0,
             "outDy": 0
           }
@@ -513,7 +734,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 15,
+                "y": 98,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -521,7 +742,7 @@
               },
               {
                 "x": 100,
-                "y": 47,
+                "y": 82,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -551,7 +772,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 25,
+                "y": 92,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -559,7 +780,7 @@
               },
               {
                 "x": 100,
-                "y": 80,
+                "y": 45,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -589,7 +810,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 120,
+                "y": 30,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -597,7 +818,7 @@
               },
               {
                 "x": 100,
-                "y": 55,
+                "y": 120,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -671,232 +892,11 @@
           ]
         }
       },
-      "Canvas": {
-        "baseColor": {
-          "l": 0.44,
-          "c": 0.1,
-          "h": 152
-        },
-        "lightnessCurve": [
-          {
-            "x": 0,
-            "y": 95,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 20,
-            "outDy": -17
-          },
-          {
-            "x": 60,
-            "y": 44,
-            "inDx": -20,
-            "inDy": 17.51908396946565,
-            "outDx": 13.333333333333332,
-            "outDy": -11.679389312977099
-          },
-          {
-            "x": 100,
-            "y": 8,
-            "inDx": -13.333333333333332,
-            "inDy": 12,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "saturationCurve": [
-          {
-            "x": 0,
-            "y": 100,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 20,
-            "outDy": 0
-          },
-          {
-            "x": 60,
-            "y": 100,
-            "inDx": -20,
-            "inDy": 0,
-            "outDx": 13.333333333333332,
-            "outDy": 0
-          },
-          {
-            "x": 100,
-            "y": 100,
-            "inDx": -13.333333333333332,
-            "inDy": 0,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "scaleCurves": {
-          "Surfaces": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 15,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 47,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          },
-          "Borders": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 25,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 80,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          },
-          "Text": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 120,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 55,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 15,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          }
-        },
-        "curveOffset": {
-          "lightness": 0,
-          "saturation": 0
-        },
-        "overrides": {},
-        "snappedScales": [],
-        "anchorToBase": true,
-        "anchorPlacement": {
-          "step": 6,
-          "priorLightnessEndpoints": [
-            {
-              "x": 0,
-              "y": 95,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 8,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            }
-          ],
-          "priorSaturationEndpoints": [
-            {
-              "x": 0,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            }
-          ]
-        }
-      },
       "Neutral": {
         "baseColor": {
-          "l": 0.57,
-          "c": 0.015,
-          "h": 150
+          "l": 0.55,
+          "c": 0.014,
+          "h": 230
         },
         "lightnessCurve": [
           {
@@ -905,21 +905,21 @@
             "inDx": 0,
             "inDy": 0,
             "outDx": 13.333333333333332,
-            "outDy": -11.666666666666668
+            "outDy": -12.33333333333333
           },
           {
             "x": 40,
-            "y": 56.99999999999999,
+            "y": 55.00000000000001,
             "inDx": -13.333333333333332,
-            "inDy": 11.819887429643527,
+            "inDy": 11.957737725295212,
             "outDx": 20,
-            "outDy": -17.729831144465294
+            "outDy": -17.93660658794282
           },
           {
             "x": 100,
             "y": 3,
             "inDx": -20,
-            "inDy": 18,
+            "inDy": 17.333333333333336,
             "outDx": 0,
             "outDy": 0
           }
@@ -955,7 +955,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 15,
+                "y": 98,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -963,7 +963,7 @@
               },
               {
                 "x": 100,
-                "y": 47,
+                "y": 82,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -993,7 +993,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 25,
+                "y": 92,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1001,7 +1001,7 @@
               },
               {
                 "x": 100,
-                "y": 80,
+                "y": 45,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1031,32 +1031,16 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 175.43859649122808,
+                "y": 30,
                 "inDx": -30,
                 "inDy": 0,
-                "outDx": 7.5,
+                "outDx": 30,
                 "outDy": 0
               },
               {
-                "x": 25,
-                "y": 163.17360429713267,
-                "inDx": -8.333333333333332,
-                "inDy": 5.638599020530414,
-                "outDx": 8.333333333333332,
-                "outDy": -5.638599020530415
-              },
-              {
-                "x": 50,
-                "y": 138.89100197077516,
-                "inDx": -8.333333333333332,
-                "inDy": 9.957826139397307,
-                "outDx": 16.666666666666664,
-                "outDy": -19.915652278794614
-              },
-              {
                 "x": 100,
-                "y": 55,
-                "inDx": -15,
+                "y": 120,
+                "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
                 "outDy": 0
@@ -1065,32 +1049,16 @@
             "saturation": [
               {
                 "x": 0,
-                "y": 0,
+                "y": 100,
                 "inDx": -30,
                 "inDy": 0,
-                "outDx": 7.5,
+                "outDx": 30,
                 "outDy": 0
-              },
-              {
-                "x": 25,
-                "y": 80.55989825664977,
-                "inDx": -8.333333333333332,
-                "inDy": 0,
-                "outDx": 8.333333333333332,
-                "outDy": 0
-              },
-              {
-                "x": 50,
-                "y": 53.18393399828051,
-                "inDx": -8.333333333333332,
-                "inDy": 7.650052568081528,
-                "outDx": 16.666666666666664,
-                "outDy": -15.300105136163056
               },
               {
                 "x": 100,
                 "y": 15,
-                "inDx": -15,
+                "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
                 "outDy": 0
@@ -1148,7 +1116,7 @@
       "Alternate": {
         "baseColor": {
           "l": 0.58,
-          "c": 0.012,
+          "c": 0.01,
           "h": 90
         },
         "lightnessCurve": [
@@ -1208,7 +1176,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 15,
+                "y": 98,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1216,7 +1184,7 @@
               },
               {
                 "x": 100,
-                "y": 47,
+                "y": 82,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1246,7 +1214,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 25,
+                "y": 92,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1254,7 +1222,7 @@
               },
               {
                 "x": 100,
-                "y": 80,
+                "y": 45,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1284,7 +1252,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 136.82615650873032,
+                "y": 30,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -1292,7 +1260,7 @@
               },
               {
                 "x": 100,
-                "y": 55,
+                "y": 120,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -1302,7 +1270,7 @@
             "saturation": [
               {
                 "x": 0,
-                "y": 99.9624916855599,
+                "y": 100,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -1368,8 +1336,8 @@
       },
       "Info": {
         "baseColor": {
-          "l": 0.76,
-          "c": 0.1,
+          "l": 0.55,
+          "c": 0.13,
           "h": 250
         },
         "lightnessCurve": [
@@ -1378,22 +1346,22 @@
             "y": 95,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 6.666666666666666,
-            "outDy": -6.333333333333332
+            "outDx": 16.666666666666664,
+            "outDy": -13.333333333333329
           },
           {
-            "x": 20,
-            "y": 76,
-            "inDx": -6.666666666666666,
-            "inDy": 6.048689138576779,
-            "outDx": 26.666666666666664,
-            "outDy": -24.194756554307116
+            "x": 50,
+            "y": 55.00000000000001,
+            "inDx": -16.666666666666664,
+            "inDy": 14.406130268199231,
+            "outDx": 16.666666666666664,
+            "outDy": -14.406130268199231
           },
           {
             "x": 100,
             "y": 8,
-            "inDx": -26.666666666666664,
-            "inDy": 22.666666666666664,
+            "inDx": -16.666666666666664,
+            "inDy": 15.666666666666668,
             "outDx": 0,
             "outDy": 0
           }
@@ -1404,21 +1372,21 @@
             "y": 100,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 6.666666666666666,
+            "outDx": 16.666666666666664,
             "outDy": 0
           },
           {
-            "x": 20,
+            "x": 50,
             "y": 100,
-            "inDx": -6.666666666666666,
+            "inDx": -16.666666666666664,
             "inDy": 0,
-            "outDx": 26.666666666666664,
+            "outDx": 16.666666666666664,
             "outDy": 0
           },
           {
             "x": 100,
             "y": 100,
-            "inDx": -26.666666666666664,
+            "inDx": -16.666666666666664,
             "inDy": 0,
             "outDx": 0,
             "outDy": 0
@@ -1429,7 +1397,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 15,
+                "y": 98,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1437,7 +1405,7 @@
               },
               {
                 "x": 100,
-                "y": 47,
+                "y": 82,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1467,7 +1435,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 25,
+                "y": 92,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1475,7 +1443,7 @@
               },
               {
                 "x": 100,
-                "y": 80,
+                "y": 45,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1505,7 +1473,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 120,
+                "y": 30,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -1513,7 +1481,7 @@
               },
               {
                 "x": 100,
-                "y": 55,
+                "y": 120,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -1548,7 +1516,7 @@
         "snappedScales": [],
         "anchorToBase": true,
         "anchorPlacement": {
-          "step": 2,
+          "step": 5,
           "priorLightnessEndpoints": [
             {
               "x": 0,
@@ -1589,9 +1557,230 @@
       },
       "Success": {
         "baseColor": {
+          "l": 0.55,
+          "c": 0.14,
+          "h": 155
+        },
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 16.666666666666664,
+            "outDy": -13.333333333333329
+          },
+          {
+            "x": 50,
+            "y": 55.00000000000001,
+            "inDx": -16.666666666666664,
+            "inDy": 14.406130268199231,
+            "outDx": 16.666666666666664,
+            "outDy": -14.406130268199231
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -16.666666666666664,
+            "inDy": 15.666666666666668,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 16.666666666666664,
+            "outDy": 0
+          },
+          {
+            "x": 50,
+            "y": 100,
+            "inDx": -16.666666666666664,
+            "inDy": 0,
+            "outDx": 16.666666666666664,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -16.666666666666664,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 98,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 82,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 92,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 45,
+                "inDx": -5,
+                "inDy": 0,
+                "outDx": 5,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 30,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 120,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 15,
+                "inDx": -30,
+                "inDy": 0,
+                "outDx": 30,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 5,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 95,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 8,
+              "inDx": -5,
+              "inDy": 0,
+              "outDx": 5,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -30,
+              "inDy": 0,
+              "outDx": 30,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Warning": {
+        "baseColor": {
           "l": 0.76,
-          "c": 0.12,
-          "h": 150
+          "c": 0.14,
+          "h": 85
         },
         "lightnessCurve": [
           {
@@ -1650,7 +1839,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 15,
+                "y": 98,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1658,228 +1847,7 @@
               },
               {
                 "x": 100,
-                "y": 47,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          },
-          "Borders": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 25,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 80,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          },
-          "Text": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 120,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 55,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ],
-            "saturation": [
-              {
-                "x": 0,
-                "y": 100,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 15,
-                "inDx": -30,
-                "inDy": 0,
-                "outDx": 30,
-                "outDy": 0
-              }
-            ]
-          }
-        },
-        "curveOffset": {
-          "lightness": 0,
-          "saturation": 0
-        },
-        "overrides": {},
-        "snappedScales": [],
-        "anchorToBase": true,
-        "anchorPlacement": {
-          "step": 2,
-          "priorLightnessEndpoints": [
-            {
-              "x": 0,
-              "y": 95,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 8,
-              "inDx": -5,
-              "inDy": 0,
-              "outDx": 5,
-              "outDy": 0
-            }
-          ],
-          "priorSaturationEndpoints": [
-            {
-              "x": 0,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            },
-            {
-              "x": 100,
-              "y": 100,
-              "inDx": -30,
-              "inDy": 0,
-              "outDx": 30,
-              "outDy": 0
-            }
-          ]
-        }
-      },
-      "Warning": {
-        "baseColor": {
-          "l": 0.8,
-          "c": 0.13,
-          "h": 85
-        },
-        "lightnessCurve": [
-          {
-            "x": 0,
-            "y": 95,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 6.666666666666666,
-            "outDy": -5
-          },
-          {
-            "x": 20,
-            "y": 80,
-            "inDx": -6.666666666666666,
-            "inDy": 5.357142857142856,
-            "outDx": 26.666666666666664,
-            "outDy": -21.428571428571423
-          },
-          {
-            "x": 100,
-            "y": 8,
-            "inDx": -26.666666666666664,
-            "inDy": 24,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "saturationCurve": [
-          {
-            "x": 0,
-            "y": 100,
-            "inDx": 0,
-            "inDy": 0,
-            "outDx": 6.666666666666666,
-            "outDy": 0
-          },
-          {
-            "x": 20,
-            "y": 100,
-            "inDx": -6.666666666666666,
-            "inDy": 0,
-            "outDx": 26.666666666666664,
-            "outDy": 0
-          },
-          {
-            "x": 100,
-            "y": 100,
-            "inDx": -26.666666666666664,
-            "inDy": 0,
-            "outDx": 0,
-            "outDy": 0
-          }
-        ],
-        "scaleCurves": {
-          "Surfaces": {
-            "lightness": [
-              {
-                "x": 0,
-                "y": 15,
-                "inDx": -5,
-                "inDy": 0,
-                "outDx": 5,
-                "outDy": 0
-              },
-              {
-                "x": 100,
-                "y": 47,
+                "y": 82,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1909,7 +1877,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 25,
+                "y": 92,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1917,7 +1885,7 @@
               },
               {
                 "x": 100,
-                "y": 80,
+                "y": 45,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -1947,7 +1915,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 120,
+                "y": 30,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -1955,7 +1923,7 @@
               },
               {
                 "x": 100,
-                "y": 55,
+                "y": 120,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -2031,8 +1999,8 @@
       },
       "Danger": {
         "baseColor": {
-          "l": 0.72,
-          "c": 0.15,
+          "l": 0.55,
+          "c": 0.18,
           "h": 25
         },
         "lightnessCurve": [
@@ -2041,22 +2009,22 @@
             "y": 95,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 10,
-            "outDy": -7.666666666666667
+            "outDx": 16.666666666666664,
+            "outDy": -13.333333333333329
           },
           {
-            "x": 30,
-            "y": 72,
-            "inDx": -10,
-            "inDy": 8.243419824528655,
-            "outDx": 23.333333333333332,
-            "outDy": -19.234646257233525
+            "x": 50,
+            "y": 55.00000000000001,
+            "inDx": -16.666666666666664,
+            "inDy": 14.406130268199231,
+            "outDx": 16.666666666666664,
+            "outDy": -14.406130268199231
           },
           {
             "x": 100,
             "y": 8,
-            "inDx": -23.333333333333332,
-            "inDy": 21.333333333333332,
+            "inDx": -16.666666666666664,
+            "inDy": 15.666666666666668,
             "outDx": 0,
             "outDy": 0
           }
@@ -2067,21 +2035,21 @@
             "y": 100,
             "inDx": 0,
             "inDy": 0,
-            "outDx": 10,
+            "outDx": 16.666666666666664,
             "outDy": 0
           },
           {
-            "x": 30,
+            "x": 50,
             "y": 100,
-            "inDx": -10,
+            "inDx": -16.666666666666664,
             "inDy": 0,
-            "outDx": 23.333333333333332,
+            "outDx": 16.666666666666664,
             "outDy": 0
           },
           {
             "x": 100,
             "y": 100,
-            "inDx": -23.333333333333332,
+            "inDx": -16.666666666666664,
             "inDy": 0,
             "outDx": 0,
             "outDy": 0
@@ -2092,7 +2060,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 15,
+                "y": 98,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -2100,7 +2068,7 @@
               },
               {
                 "x": 100,
-                "y": 47,
+                "y": 82,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -2130,7 +2098,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 25,
+                "y": 92,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -2138,7 +2106,7 @@
               },
               {
                 "x": 100,
-                "y": 80,
+                "y": 45,
                 "inDx": -5,
                 "inDy": 0,
                 "outDx": 5,
@@ -2168,7 +2136,7 @@
             "lightness": [
               {
                 "x": 0,
-                "y": 120,
+                "y": 30,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -2176,7 +2144,7 @@
               },
               {
                 "x": 100,
-                "y": 55,
+                "y": 120,
                 "inDx": -30,
                 "inDy": 0,
                 "outDx": 30,
@@ -2211,7 +2179,7 @@
         "snappedScales": [],
         "anchorToBase": true,
         "anchorPlacement": {
-          "step": 3,
+          "step": 5,
           "priorLightnessEndpoints": [
             {
               "x": 0,
@@ -2339,40 +2307,42 @@
         ]
       },
       {
-        "id": "src_preset_baloo-2",
+        "id": "src_preset_quicksand",
         "kind": "google",
-        "url": "https://fonts.googleapis.com/css2?family=Baloo+2:wght@400..800&display=swap",
+        "url": "https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap",
         "label": "Google Fonts",
         "families": [
           {
-            "id": "src_preset_baloo-2:baloo-2",
-            "name": "Baloo 2",
-            "cssName": "\"Baloo 2\"",
+            "id": "src_preset_quicksand:quicksand",
+            "name": "Quicksand",
+            "cssName": "\"Quicksand\"",
             "weights": [
+              300,
               400,
               500,
               600,
-              700,
-              800
+              700
             ]
           }
         ]
       },
       {
-        "id": "src_preset_cabin",
+        "id": "src_preset_mulish",
         "kind": "google",
-        "url": "https://fonts.googleapis.com/css2?family=Cabin:wght@400..700&display=swap",
+        "url": "https://fonts.googleapis.com/css2?family=Mulish:wght@300..800&display=swap",
         "label": "Google Fonts",
         "families": [
           {
-            "id": "src_preset_cabin:cabin",
-            "name": "Cabin",
-            "cssName": "\"Cabin\"",
+            "id": "src_preset_mulish:mulish",
+            "name": "Mulish",
+            "cssName": "\"Mulish\"",
             "weights": [
+              300,
               400,
               500,
               600,
-              700
+              700,
+              800
             ]
           }
         ]
@@ -2384,7 +2354,7 @@
         "slots": [
           {
             "kind": "project",
-            "familyId": "src_preset_baloo-2:baloo-2"
+            "familyId": "src_preset_quicksand:quicksand"
           },
           {
             "kind": "generic",
@@ -2397,7 +2367,7 @@
         "slots": [
           {
             "kind": "project",
-            "familyId": "src_preset_cabin:cabin"
+            "familyId": "src_preset_mulish:mulish"
           },
           {
             "kind": "system",
@@ -2442,30 +2412,168 @@
     ],
     "harmonyAxes": [
       {
-        "hue": 90,
+        "hue": 237,
         "family": "Brand"
       },
       {
-        "hue": 150,
+        "hue": 214,
         "family": "Accent"
       },
       {
-        "hue": 152,
+        "hue": 220,
         "family": "Canvas"
       },
       {
-        "hue": 0,
+        "hue": 147,
         "family": null
       }
     ],
     "schemaVersion": 3
   },
   "componentConfigs": {
+    "badge": {
+      "name": "ocean",
+      "component": "badge",
+      "createdAt": "2026-05-01T08:28:00.345Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "aliases": {
+        "--badge-primary-surface": "--surface-brand",
+        "--badge-primary-text": "--text-brand",
+        "--badge-primary-border": "--border-brand",
+        "--badge-primary-text-font-family": "--font-sans",
+        "--badge-primary-text-font-size": "--font-size-md",
+        "--badge-primary-text-font-weight": "--font-weight-normal",
+        "--badge-primary-text-line-height": "--line-height-none",
+        "--badge-primary-border-width": "--border-width-1",
+        "--badge-primary-radius": "--radius-full",
+        "--badge-primary-padding": "--space-8",
+        "--badge-primary-shadow": "--shadow-none",
+        "--badge-primary-blur": "--blur-none",
+        "--badge-primary-icon-size": "--icon-size-sm",
+        "--badge-accent-surface": "--surface-accent",
+        "--badge-accent-text": "--text-accent",
+        "--badge-accent-border": "--border-accent",
+        "--badge-accent-text-font-family": "--font-sans",
+        "--badge-accent-text-font-size": "--font-size-md",
+        "--badge-accent-text-font-weight": "--font-weight-normal",
+        "--badge-accent-text-line-height": "--line-height-none",
+        "--badge-accent-border-width": "--border-width-1",
+        "--badge-accent-radius": "--radius-full",
+        "--badge-accent-padding": "--space-8",
+        "--badge-accent-shadow": "--shadow-none",
+        "--badge-accent-blur": "--blur-none",
+        "--badge-accent-icon-size": "--icon-size-sm",
+        "--badge-neutral-surface": "--surface-neutral",
+        "--badge-neutral-text": "--text-primary",
+        "--badge-neutral-border": "--border-neutral",
+        "--badge-neutral-text-font-family": "--font-sans",
+        "--badge-neutral-text-font-size": "--font-size-md",
+        "--badge-neutral-text-font-weight": "--font-weight-normal",
+        "--badge-neutral-text-line-height": "--line-height-none",
+        "--badge-neutral-border-width": "--border-width-1",
+        "--badge-neutral-radius": "--radius-full",
+        "--badge-neutral-padding": "--space-8",
+        "--badge-neutral-shadow": "--shadow-none",
+        "--badge-neutral-blur": "--blur-none",
+        "--badge-neutral-icon-size": "--icon-size-sm",
+        "--badge-alternate-surface": "--surface-alternate",
+        "--badge-alternate-text": "--text-alternate",
+        "--badge-alternate-border": "--border-alternate",
+        "--badge-alternate-text-font-family": "--font-sans",
+        "--badge-alternate-text-font-size": "--font-size-md",
+        "--badge-alternate-text-font-weight": "--font-weight-normal",
+        "--badge-alternate-text-line-height": "--line-height-none",
+        "--badge-alternate-border-width": "--border-width-1",
+        "--badge-alternate-radius": "--radius-full",
+        "--badge-alternate-padding": "--space-8",
+        "--badge-alternate-shadow": "--shadow-none",
+        "--badge-alternate-blur": "--blur-none",
+        "--badge-alternate-icon-size": "--icon-size-sm",
+        "--badge-canvas-surface": "--surface-canvas",
+        "--badge-canvas-text": "--text-canvas",
+        "--badge-canvas-border": "--border-canvas",
+        "--badge-canvas-text-font-family": "--font-sans",
+        "--badge-canvas-text-font-size": "--font-size-md",
+        "--badge-canvas-text-font-weight": "--font-weight-normal",
+        "--badge-canvas-text-line-height": "--line-height-none",
+        "--badge-canvas-border-width": "--border-width-1",
+        "--badge-canvas-radius": "--radius-full",
+        "--badge-canvas-padding": "--space-8",
+        "--badge-canvas-shadow": "--shadow-none",
+        "--badge-canvas-blur": "--blur-none",
+        "--badge-canvas-icon-size": "--icon-size-sm",
+        "--badge-special-surface": "--surface-special",
+        "--badge-special-text": "--text-special",
+        "--badge-special-border": "--border-special",
+        "--badge-special-text-font-family": "--font-sans",
+        "--badge-special-text-font-size": "--font-size-md",
+        "--badge-special-text-font-weight": "--font-weight-normal",
+        "--badge-special-text-line-height": "--line-height-none",
+        "--badge-special-border-width": "--border-width-1",
+        "--badge-special-radius": "--radius-full",
+        "--badge-special-padding": "--space-8",
+        "--badge-special-shadow": "--shadow-none",
+        "--badge-special-blur": "--blur-none",
+        "--badge-special-icon-size": "--icon-size-sm",
+        "--badge-success-surface": "--surface-success",
+        "--badge-success-text": "--text-success",
+        "--badge-success-border": "--border-success",
+        "--badge-success-text-font-family": "--font-sans",
+        "--badge-success-text-font-size": "--font-size-md",
+        "--badge-success-text-font-weight": "--font-weight-normal",
+        "--badge-success-text-line-height": "--line-height-none",
+        "--badge-success-border-width": "--border-width-1",
+        "--badge-success-radius": "--radius-full",
+        "--badge-success-padding": "--space-8",
+        "--badge-success-shadow": "--shadow-none",
+        "--badge-success-blur": "--blur-none",
+        "--badge-success-icon-size": "--icon-size-sm",
+        "--badge-warning-surface": "--surface-warning",
+        "--badge-warning-text": "--text-warning",
+        "--badge-warning-border": "--border-warning",
+        "--badge-warning-text-font-family": "--font-sans",
+        "--badge-warning-text-font-size": "--font-size-md",
+        "--badge-warning-text-font-weight": "--font-weight-normal",
+        "--badge-warning-text-line-height": "--line-height-none",
+        "--badge-warning-border-width": "--border-width-1",
+        "--badge-warning-radius": "--radius-full",
+        "--badge-warning-padding": "--space-8",
+        "--badge-warning-shadow": "--shadow-none",
+        "--badge-warning-blur": "--blur-none",
+        "--badge-warning-icon-size": "--icon-size-sm",
+        "--badge-danger-surface": "--surface-danger",
+        "--badge-danger-text": "--text-danger",
+        "--badge-danger-border": "--border-danger",
+        "--badge-danger-text-font-family": "--font-sans",
+        "--badge-danger-text-font-size": "--font-size-md",
+        "--badge-danger-text-font-weight": "--font-weight-normal",
+        "--badge-danger-text-line-height": "--line-height-none",
+        "--badge-danger-border-width": "--border-width-1",
+        "--badge-danger-radius": "--radius-full",
+        "--badge-danger-padding": "--space-8",
+        "--badge-danger-shadow": "--shadow-none",
+        "--badge-danger-blur": "--blur-none",
+        "--badge-danger-icon-size": "--icon-size-sm",
+        "--badge-info-surface": "--surface-info",
+        "--badge-info-text": "--text-info",
+        "--badge-info-border": "--border-info",
+        "--badge-info-text-font-family": "--font-sans",
+        "--badge-info-text-font-size": "--font-size-md",
+        "--badge-info-text-font-weight": "--font-weight-normal",
+        "--badge-info-text-line-height": "--line-height-none",
+        "--badge-info-border-width": "--border-width-1",
+        "--badge-info-radius": "--radius-full",
+        "--badge-info-padding": "--space-8",
+        "--badge-info-shadow": "--shadow-none",
+        "--badge-info-blur": "--blur-none",
+        "--badge-info-icon-size": "--icon-size-sm"
+      }
+    },
     "button": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "button",
       "createdAt": "2026-05-10T19:28:06.893Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--button-primary-surface": "--surface-brand-high",
         "--button-primary-text": "--text-primary",
@@ -2476,7 +2584,7 @@
         "--button-primary-border": "--border-brand",
         "--button-primary-border-width": "--border-width-1",
         "--button-primary-radius": "--radius-full",
-        "--button-primary-padding": "--space-8",
+        "--button-primary-padding": "--space-10",
         "--button-primary-hover-surface": "--surface-brand-higher",
         "--button-primary-hover-text": "--text-primary",
         "--button-primary-hover-border": "--border-brand-strong",
@@ -2493,7 +2601,7 @@
         "--button-secondary-border": "--border-neutral",
         "--button-secondary-border-width": "--border-width-1",
         "--button-secondary-radius": "--radius-full",
-        "--button-secondary-padding": "--space-8",
+        "--button-secondary-padding": "--space-10",
         "--button-secondary-hover-surface": "--surface-neutral-higher",
         "--button-secondary-hover-text": "--text-primary",
         "--button-secondary-hover-border": "--border-neutral-strong",
@@ -2510,7 +2618,7 @@
         "--button-outline-border": "--border-neutral",
         "--button-outline-border-width": "--border-width-1",
         "--button-outline-radius": "--radius-full",
-        "--button-outline-padding": "--space-8",
+        "--button-outline-padding": "--space-10",
         "--button-outline-hover-surface": "--surface-neutral-lower",
         "--button-outline-hover-text": "--text-primary",
         "--button-outline-hover-border": "--border-neutral-strong",
@@ -2528,7 +2636,7 @@
         "--button-success-border": "--border-success",
         "--button-success-border-width": "--border-width-1",
         "--button-success-radius": "--radius-full",
-        "--button-success-padding": "--space-8",
+        "--button-success-padding": "--space-10",
         "--button-success-hover-surface": "--surface-success-higher",
         "--button-success-hover-text": "--text-primary",
         "--button-success-hover-border": "--border-success-strong",
@@ -2545,7 +2653,7 @@
         "--button-danger-border": "--border-danger",
         "--button-danger-border-width": "--border-width-1",
         "--button-danger-radius": "--radius-full",
-        "--button-danger-padding": "--space-8",
+        "--button-danger-padding": "--space-10",
         "--button-danger-hover-surface": "--surface-danger-high",
         "--button-danger-hover-text": "--text-primary",
         "--button-danger-hover-border": "--border-danger-medium",
@@ -2562,7 +2670,7 @@
         "--button-warning-border": "--border-warning",
         "--button-warning-border-width": "--border-width-1",
         "--button-warning-radius": "--radius-full",
-        "--button-warning-padding": "--space-8",
+        "--button-warning-padding": "--space-10",
         "--button-warning-hover-surface": "--surface-warning-high",
         "--button-warning-hover-text": "--text-primary",
         "--button-warning-hover-border": "--border-warning-medium",
@@ -2570,7 +2678,7 @@
         "--button-warning-disabled-text": "--text-tertiary",
         "--button-warning-disabled-border": "--border-neutral-faint",
         "--button-warning-icon-size": "--icon-size-md",
-        "--button-small-padding": "--space-6",
+        "--button-small-padding": "--space-8",
         "--button-small-text-font-size": "--font-size-sm",
         "--button-small-text-font-weight": "--font-weight-normal",
         "--button-small-text-line-height": "--line-height-tighter",
@@ -2578,17 +2686,17 @@
       }
     },
     "callout": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "callout",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--callout-info-surface": "--surface-info-lowest",
         "--callout-info-border": "--border-info-medium",
         "--callout-info-border-width": "--border-width-1",
         "--callout-info-accent-width": "--border-width-4",
         "--callout-info-radius": "--radius-2xl",
-        "--callout-info-padding": "--space-12",
+        "--callout-info-padding": "--space-16",
         "--callout-info-label": "--text-primary",
         "--callout-info-label-font-family": "--font-sans",
         "--callout-info-label-font-size": "--font-size-lg",
@@ -2604,7 +2712,7 @@
         "--callout-success-border-width": "--border-width-1",
         "--callout-success-accent-width": "--border-width-4",
         "--callout-success-radius": "--radius-2xl",
-        "--callout-success-padding": "--space-12",
+        "--callout-success-padding": "--space-16",
         "--callout-success-label": "--text-primary",
         "--callout-success-label-font-family": "--font-sans",
         "--callout-success-label-font-size": "--font-size-lg",
@@ -2620,7 +2728,7 @@
         "--callout-warning-border-width": "--border-width-1",
         "--callout-warning-accent-width": "--border-width-4",
         "--callout-warning-radius": "--radius-2xl",
-        "--callout-warning-padding": "--space-12",
+        "--callout-warning-padding": "--space-16",
         "--callout-warning-label": "--text-primary",
         "--callout-warning-label-font-family": "--font-sans",
         "--callout-warning-label-font-size": "--font-size-lg",
@@ -2636,7 +2744,7 @@
         "--callout-danger-border-width": "--border-width-1",
         "--callout-danger-accent-width": "--border-width-4",
         "--callout-danger-radius": "--radius-2xl",
-        "--callout-danger-padding": "--space-12",
+        "--callout-danger-padding": "--space-16",
         "--callout-danger-label": "--text-primary",
         "--callout-danger-label-font-family": "--font-sans",
         "--callout-danger-label-font-size": "--font-size-lg",
@@ -2650,26 +2758,26 @@
       }
     },
     "card": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "card",
       "createdAt": "2026-05-10T19:26:31.704Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--card-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent)",
         "--card-default-border": "--border-neutral",
         "--card-default-border-width": "--border-width-1",
         "--card-default-radius": "--radius-2xl",
-        "--card-default-header-padding": "--space-16",
-        "--card-default-header-padding-top": "--space-12",
-        "--card-default-header-padding-right": "--space-20",
-        "--card-default-header-padding-bottom": "--space-12",
-        "--card-default-header-padding-left": "--space-20",
+        "--card-default-header-padding": "--space-20",
+        "--card-default-header-padding-top": "--space-16",
+        "--card-default-header-padding-right": "--space-24",
+        "--card-default-header-padding-bottom": "--space-16",
+        "--card-default-header-padding-left": "--space-24",
         "--card-default-header-gap": "--space-10",
-        "--card-default-body-padding": "--space-16",
-        "--card-default-body-padding-top": "--space-16",
-        "--card-default-body-padding-right": "--space-20",
-        "--card-default-body-padding-bottom": "--space-16",
-        "--card-default-body-padding-left": "--space-20",
+        "--card-default-body-padding": "--space-20",
+        "--card-default-body-padding-top": "--space-20",
+        "--card-default-body-padding-right": "--space-24",
+        "--card-default-body-padding-bottom": "--space-20",
+        "--card-default-body-padding-left": "--space-24",
         "--card-default-shadow": "--shadow-sm",
         "--card-default-blur": "--blur-none",
         "--card-default-header-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 80%, transparent)",
@@ -2691,16 +2799,16 @@
       }
     },
     "codesnippet": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "codesnippet",
       "createdAt": "2026-05-27T13:22:54.228Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--codesnippet-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 76%, transparent)",
         "--codesnippet-border": "--border-neutral",
         "--codesnippet-border-width": "--border-width-1",
         "--codesnippet-radius": "--radius-xl",
-        "--codesnippet-padding": "--space-16",
+        "--codesnippet-padding": "--space-20",
         "--codesnippet-gap": "--space-20",
         "--codesnippet-code-text": "--text-brand",
         "--codesnippet-code-font-family": "--font-mono",
@@ -2715,13 +2823,13 @@
       }
     },
     "collapsiblesection": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "collapsiblesection",
       "createdAt": "2026-05-10T20:40:17.048Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--collapsiblesection-chromeless-default-surface": "--color-transparent",
-        "--collapsiblesection-chromeless-default-padding": "--space-4",
+        "--collapsiblesection-chromeless-default-padding": "--space-6",
         "--collapsiblesection-chromeless-default-label": "--text-primary",
         "--collapsiblesection-chromeless-default-label-font-family": "--font-sans",
         "--collapsiblesection-chromeless-default-label-font-size": "--font-size-md",
@@ -2730,7 +2838,7 @@
         "--collapsiblesection-chromeless-default-icon": "--text-primary",
         "--collapsiblesection-chromeless-default-icon-size": "--icon-size-xs",
         "--collapsiblesection-chromeless-hover-surface": "--color-transparent",
-        "--collapsiblesection-chromeless-hover-padding": "--space-4",
+        "--collapsiblesection-chromeless-hover-padding": "--space-6",
         "--collapsiblesection-chromeless-hover-label": "--text-primary",
         "--collapsiblesection-chromeless-hover-label-font-family": "--font-sans",
         "--collapsiblesection-chromeless-hover-label-font-size": "--font-size-md",
@@ -2738,11 +2846,11 @@
         "--collapsiblesection-chromeless-hover-label-line-height": "--line-height-normal",
         "--collapsiblesection-chromeless-hover-icon": "--text-primary",
         "--collapsiblesection-chromeless-hover-icon-size": "--icon-size-xs",
-        "--collapsiblesection-chromeless-expanded-padding": "--space-4",
+        "--collapsiblesection-chromeless-expanded-padding": "--space-6",
         "--collapsiblesection-divider-default-surface": "--color-transparent",
         "--collapsiblesection-divider-default-border": "--border-brand",
         "--collapsiblesection-divider-default-border-width": "--border-width-1",
-        "--collapsiblesection-divider-default-padding": "--space-4",
+        "--collapsiblesection-divider-default-padding": "--space-6",
         "--collapsiblesection-divider-default-label": "--text-primary",
         "--collapsiblesection-divider-default-label-font-family": "--font-sans",
         "--collapsiblesection-divider-default-label-font-size": "--font-size-md",
@@ -2753,7 +2861,7 @@
         "--collapsiblesection-divider-hover-surface": "--color-transparent",
         "--collapsiblesection-divider-hover-border": "--border-neutral",
         "--collapsiblesection-divider-hover-border-width": "--border-width-1",
-        "--collapsiblesection-divider-hover-padding": "--space-4",
+        "--collapsiblesection-divider-hover-padding": "--space-6",
         "--collapsiblesection-divider-hover-label": "--text-primary",
         "--collapsiblesection-divider-hover-label-font-family": "--font-sans",
         "--collapsiblesection-divider-hover-label-font-size": "--font-size-md",
@@ -2761,12 +2869,12 @@
         "--collapsiblesection-divider-hover-label-line-height": "--line-height-normal",
         "--collapsiblesection-divider-hover-icon": "--text-primary",
         "--collapsiblesection-divider-hover-icon-size": "--icon-size-xs",
-        "--collapsiblesection-divider-expanded-padding": "--space-4",
+        "--collapsiblesection-divider-expanded-padding": "--space-6",
         "--collapsiblesection-container-frame-border": "--border-neutral",
         "--collapsiblesection-container-frame-border-width": "--border-width-1",
         "--collapsiblesection-container-frame-radius": "--radius-xl",
         "--collapsiblesection-container-default-surface": "--surface-neutral",
-        "--collapsiblesection-container-default-padding": "--space-4",
+        "--collapsiblesection-container-default-padding": "--space-6",
         "--collapsiblesection-container-default-label": "--text-primary",
         "--collapsiblesection-container-default-label-font-family": "--font-sans",
         "--collapsiblesection-container-default-label-font-size": "--font-size-md",
@@ -2775,7 +2883,7 @@
         "--collapsiblesection-container-default-icon": "--text-primary",
         "--collapsiblesection-container-default-icon-size": "--icon-size-xs",
         "--collapsiblesection-container-hover-surface": "--surface-neutral-high",
-        "--collapsiblesection-container-hover-padding": "--space-4",
+        "--collapsiblesection-container-hover-padding": "--space-6",
         "--collapsiblesection-container-hover-label": "--text-primary",
         "--collapsiblesection-container-hover-label-font-family": "--font-sans",
         "--collapsiblesection-container-hover-label-font-size": "--font-size-md",
@@ -2784,21 +2892,21 @@
         "--collapsiblesection-container-hover-icon": "--text-primary",
         "--collapsiblesection-container-hover-icon-size": "--icon-size-xs",
         "--collapsiblesection-container-expanded-surface": "--surface-neutral-higher",
-        "--collapsiblesection-container-expanded-padding": "--space-4"
+        "--collapsiblesection-container-expanded-padding": "--space-6"
       }
     },
     "cornerbadge": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "cornerbadge",
       "createdAt": "2026-05-12T15:31:06.313Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
-        "--corner-badge-margin": "--space-0",
+        "--corner-badge-margin": "--space-2",
         "--corner-badge-outer-radius": "--radius-md",
         "--corner-badge-inner-radius": "--radius-md",
         "--corner-badge-h-axis-radius": "--radius-md",
         "--corner-badge-v-axis-radius": "--radius-md",
-        "--corner-badge-padding": "--space-6",
+        "--corner-badge-padding": "--space-8",
         "--corner-badge-text-font-family": "--font-sans",
         "--corner-badge-text-font-size": "--font-size-sm",
         "--corner-badge-text-font-weight": "--font-weight-medium",
@@ -2836,10 +2944,10 @@
       }
     },
     "dialog": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "dialog",
       "createdAt": "2026-05-10T20:05:24.719Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--dialog-overlay-surface": "--overlay-high",
         "--dialog-surface": "--surface-neutral-lowest",
@@ -2851,7 +2959,7 @@
         "--dialog-header-surface": "--surface-neutral-lower",
         "--dialog-header-border": "--border-neutral-subtle",
         "--dialog-header-border-width": "--border-width-1",
-        "--dialog-header-padding": "--space-8",
+        "--dialog-header-padding": "--space-10",
         "--dialog-title": "--text-primary",
         "--dialog-title-font-family": "--font-sans",
         "--dialog-title-font-size": "--font-size-2xl",
@@ -2859,7 +2967,7 @@
         "--dialog-title-line-height": "--line-height-tighter",
         "--dialog-close-icon": "--text-secondary",
         "--dialog-close-icon-size": "--icon-size-xl",
-        "--dialog-body-padding": "--space-16",
+        "--dialog-body-padding": "--space-20",
         "--dialog-body": "--text-secondary",
         "--dialog-body-font-family": "--font-sans",
         "--dialog-body-font-size": "--font-size-md",
@@ -2867,21 +2975,21 @@
         "--dialog-body-line-height": "--line-height-normal",
         "--dialog-footer-border": "--border-neutral-subtle",
         "--dialog-footer-border-width": "--border-width-1",
-        "--dialog-footer-padding": "--space-16"
+        "--dialog-footer-padding": "--space-20"
       }
     },
     "iconbutton": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "iconbutton",
       "createdAt": "2026-06-14T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--iconbutton-primary-surface": "--surface-brand-high",
         "--iconbutton-primary-icon": "--text-primary",
         "--iconbutton-primary-border": "--border-brand",
         "--iconbutton-primary-border-width": "--border-width-1",
         "--iconbutton-primary-radius": "--radius-3xl",
-        "--iconbutton-primary-padding": "--space-8",
+        "--iconbutton-primary-padding": "--space-10",
         "--iconbutton-primary-icon-size": "--icon-size-md",
         "--iconbutton-primary-hover-surface": "--surface-brand-higher",
         "--iconbutton-primary-hover-icon": "--text-primary",
@@ -2894,7 +3002,7 @@
         "--iconbutton-secondary-border": "--border-neutral",
         "--iconbutton-secondary-border-width": "--border-width-1",
         "--iconbutton-secondary-radius": "--radius-3xl",
-        "--iconbutton-secondary-padding": "--space-8",
+        "--iconbutton-secondary-padding": "--space-10",
         "--iconbutton-secondary-icon-size": "--icon-size-md",
         "--iconbutton-secondary-hover-surface": "--surface-neutral-higher",
         "--iconbutton-secondary-hover-icon": "--text-primary",
@@ -2907,7 +3015,7 @@
         "--iconbutton-outline-border": "--border-neutral",
         "--iconbutton-outline-border-width": "--border-width-1",
         "--iconbutton-outline-radius": "--radius-3xl",
-        "--iconbutton-outline-padding": "--space-8",
+        "--iconbutton-outline-padding": "--space-10",
         "--iconbutton-outline-icon-size": "--icon-size-md",
         "--iconbutton-outline-hover-surface": "--surface-neutral-lower",
         "--iconbutton-outline-hover-icon": "--text-primary",
@@ -2921,7 +3029,7 @@
         "--iconbutton-success-border": "--border-success",
         "--iconbutton-success-border-width": "--border-width-1",
         "--iconbutton-success-radius": "--radius-3xl",
-        "--iconbutton-success-padding": "--space-8",
+        "--iconbutton-success-padding": "--space-10",
         "--iconbutton-success-icon-size": "--icon-size-md",
         "--iconbutton-success-hover-surface": "--surface-success-higher",
         "--iconbutton-success-hover-icon": "--text-primary",
@@ -2934,7 +3042,7 @@
         "--iconbutton-danger-border": "--border-danger",
         "--iconbutton-danger-border-width": "--border-width-1",
         "--iconbutton-danger-radius": "--radius-3xl",
-        "--iconbutton-danger-padding": "--space-8",
+        "--iconbutton-danger-padding": "--space-10",
         "--iconbutton-danger-icon-size": "--icon-size-md",
         "--iconbutton-danger-hover-surface": "--surface-danger-high",
         "--iconbutton-danger-hover-icon": "--text-primary",
@@ -2947,7 +3055,7 @@
         "--iconbutton-warning-border": "--border-warning",
         "--iconbutton-warning-border-width": "--border-width-1",
         "--iconbutton-warning-radius": "--radius-3xl",
-        "--iconbutton-warning-padding": "--space-8",
+        "--iconbutton-warning-padding": "--space-10",
         "--iconbutton-warning-icon-size": "--icon-size-md",
         "--iconbutton-warning-hover-surface": "--surface-warning-high",
         "--iconbutton-warning-hover-icon": "--text-primary",
@@ -2955,15 +3063,15 @@
         "--iconbutton-warning-disabled-surface": "--color-neutral-700",
         "--iconbutton-warning-disabled-icon": "--text-tertiary",
         "--iconbutton-warning-disabled-border": "--border-neutral-faint",
-        "--iconbutton-small-padding": "--space-6",
+        "--iconbutton-small-padding": "--space-8",
         "--iconbutton-small-icon-size": "--icon-size-sm"
       }
     },
     "image": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "image",
       "createdAt": "2026-04-26T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--image-default-radius": "--radius-4xl",
         "--image-default-border": "--border-neutral",
@@ -2973,10 +3081,10 @@
       }
     },
     "imagelightbox": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "imagelightbox",
       "createdAt": "2026-05-26T02:03:38.863Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--imagelightbox-tile-radius": "--radius-4xl",
         "--imagelightbox-tile-border": "--color-transparent",
@@ -2992,49 +3100,49 @@
       }
     },
     "inlineeditactions": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "inlineeditactions",
       "createdAt": "2026-05-01T08:34:39.325Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--inlineeditactions-save-default-surface": "--surface-success-low",
         "--inlineeditactions-save-default-text": "--text-success",
         "--inlineeditactions-save-default-border": "--border-success",
         "--inlineeditactions-save-default-border-width": "--border-width-0",
         "--inlineeditactions-save-default-radius": "--radius-xl",
-        "--inlineeditactions-save-default-padding": "--space-4",
+        "--inlineeditactions-save-default-padding": "--space-6",
         "--inlineeditactions-save-default-icon-size": "--icon-size-md",
         "--inlineeditactions-save-hover-surface": "--surface-success-high",
         "--inlineeditactions-save-hover-text": "--text-success",
         "--inlineeditactions-save-hover-border": "--border-success",
         "--inlineeditactions-save-hover-border-width": "--border-width-0",
         "--inlineeditactions-save-hover-radius": "--radius-xl",
-        "--inlineeditactions-save-hover-padding": "--space-4",
+        "--inlineeditactions-save-hover-padding": "--space-6",
         "--inlineeditactions-save-hover-icon-size": "--icon-size-md",
         "--inlineeditactions-cancel-default-surface": "--surface-danger-low",
         "--inlineeditactions-cancel-default-text": "--text-danger",
         "--inlineeditactions-cancel-default-border": "--border-danger",
         "--inlineeditactions-cancel-default-border-width": "--border-width-0",
         "--inlineeditactions-cancel-default-radius": "--radius-xl",
-        "--inlineeditactions-cancel-default-padding": "--space-4",
+        "--inlineeditactions-cancel-default-padding": "--space-6",
         "--inlineeditactions-cancel-default-icon-size": "--icon-size-md",
         "--inlineeditactions-cancel-hover-surface": "--surface-danger-high",
         "--inlineeditactions-cancel-hover-text": "--text-danger",
         "--inlineeditactions-cancel-hover-border": "--border-danger",
         "--inlineeditactions-cancel-hover-border-width": "--border-width-0",
         "--inlineeditactions-cancel-hover-radius": "--radius-xl",
-        "--inlineeditactions-cancel-hover-padding": "--space-4",
+        "--inlineeditactions-cancel-hover-padding": "--space-6",
         "--inlineeditactions-cancel-hover-icon-size": "--icon-size-md"
       }
     },
     "input": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "input",
       "createdAt": "2026-05-24T14:28:03.860Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--input-radius": "--radius-xl",
-        "--input-padding": "--space-8",
+        "--input-padding": "--space-10",
         "--input-border-width": "--border-width-1",
         "--input-gap": "--space-8",
         "--input-default-surface": "--surface-neutral-lower",
@@ -3086,20 +3194,20 @@
       }
     },
     "menuselect": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "menuselect",
       "createdAt": "2026-05-16T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--menuselect-menu-surface": "color-mix(in srgb, var(--surface-neutral-lower) 85%, transparent)",
         "--menuselect-menu-border": "--border-neutral-medium",
         "--menuselect-menu-border-width": "--border-width-1",
         "--menuselect-menu-radius": "--radius-xl",
-        "--menuselect-menu-padding": "--space-4",
+        "--menuselect-menu-padding": "--space-6",
         "--menuselect-menu-gap": "--space-4",
         "--menuselect-menu-shadow": "--shadow-md",
         "--menuselect-item-radius": "--radius-lg",
-        "--menuselect-item-padding": "--space-8",
+        "--menuselect-item-padding": "--space-10",
         "--menuselect-default-surface": "--color-transparent",
         "--menuselect-default-text": "--text-secondary",
         "--menuselect-default-text-font-family": "--font-sans",
@@ -3136,17 +3244,17 @@
       }
     },
     "notification": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "notification",
       "createdAt": "2026-04-18T02:43:11.330Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--notification-info-surface": "--surface-info",
         "--notification-info-action-surface": "--surface-neutral-lowest",
         "--notification-info-border": "--border-info",
         "--notification-info-border-width": "--border-width-1",
         "--notification-info-radius": "--radius-xl",
-        "--notification-info-padding": "--space-12",
+        "--notification-info-padding": "--space-16",
         "--notification-info-icon": "--text-info",
         "--notification-info-icon-size": "--icon-size-md",
         "--notification-info-title": "--text-info",
@@ -3164,7 +3272,7 @@
         "--notification-success-border": "--border-success",
         "--notification-success-border-width": "--border-width-1",
         "--notification-success-radius": "--radius-xl",
-        "--notification-success-padding": "--space-12",
+        "--notification-success-padding": "--space-16",
         "--notification-success-icon": "--text-success",
         "--notification-success-icon-size": "--icon-size-md",
         "--notification-success-title": "--text-success",
@@ -3182,7 +3290,7 @@
         "--notification-warning-border": "--border-warning",
         "--notification-warning-border-width": "--border-width-1",
         "--notification-warning-radius": "--radius-xl",
-        "--notification-warning-padding": "--space-12",
+        "--notification-warning-padding": "--space-16",
         "--notification-warning-icon": "--text-warning",
         "--notification-warning-icon-size": "--icon-size-md",
         "--notification-warning-title": "--text-warning",
@@ -3200,7 +3308,7 @@
         "--notification-danger-border": "--border-danger",
         "--notification-danger-border-width": "--border-width-1",
         "--notification-danger-radius": "--radius-xl",
-        "--notification-danger-padding": "--space-12",
+        "--notification-danger-padding": "--space-16",
         "--notification-danger-icon": "--text-danger",
         "--notification-danger-icon-size": "--icon-size-md",
         "--notification-danger-title": "--text-danger",
@@ -3216,16 +3324,16 @@
       }
     },
     "panel": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "panel",
       "createdAt": "2026-06-01T09:34:52.417Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--panel-frame-border": "--border-neutral",
         "--panel-frame-border-width": "--border-width-1",
         "--panel-frame-radius": "--radius-4xl",
-        "--panel-stage-padding": "--space-16",
-        "--panel-stage-inline-padding": "--space-16",
+        "--panel-stage-padding": "--space-20",
+        "--panel-stage-inline-padding": "--space-20",
         "--panel-stage-gap": "--space-20",
         "--panel-stage-surface": {
           "kind": "gradient",
@@ -3249,10 +3357,10 @@
       }
     },
     "progressbar": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "progressbar",
       "createdAt": "2026-05-10T20:42:26.726Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--progressbar-track-surface": "--surface-neutral-lowest",
         "--progressbar-track-border": "--border-neutral-subtle",
@@ -3274,10 +3382,10 @@
       }
     },
     "sectiondivider": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "sectiondivider",
       "createdAt": "2026-05-10T22:09:00.336Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--sectiondivider-lg-title-font-family": "--font-display",
         "--sectiondivider-lg-title-font-weight": "--font-weight-bold",
@@ -3293,10 +3401,10 @@
         "--sectiondivider-lg-eyebrow-font-weight": "--font-weight-medium",
         "--sectiondivider-lg-eyebrow-font-size": "--font-size-md",
         "--sectiondivider-lg-eyebrow-letter-spacing": "--letter-spacing-normal",
-        "--sectiondivider-lg-padding": "--space-0",
-        "--sectiondivider-lg-title-padding": "--space-2",
-        "--sectiondivider-lg-description-padding": "--space-0",
-        "--sectiondivider-lg-eyebrow-padding": "--space-0",
+        "--sectiondivider-lg-padding": "--space-2",
+        "--sectiondivider-lg-title-padding": "--space-4",
+        "--sectiondivider-lg-description-padding": "--space-2",
+        "--sectiondivider-lg-eyebrow-padding": "--space-2",
         "--sectiondivider-lg-radius": "--radius-2xl",
         "--sectiondivider-lg-border-width": "--border-width-1",
         "--sectiondivider-lg-shadow": "--shadow-none",
@@ -3322,10 +3430,10 @@
         "--sectiondivider-md-eyebrow-font-weight": "--font-weight-medium",
         "--sectiondivider-md-eyebrow-font-size": "--font-size-sm",
         "--sectiondivider-md-eyebrow-letter-spacing": "--letter-spacing-normal",
-        "--sectiondivider-md-padding": "--space-0",
-        "--sectiondivider-md-title-padding": "--space-2",
-        "--sectiondivider-md-description-padding": "--space-0",
-        "--sectiondivider-md-eyebrow-padding": "--space-0",
+        "--sectiondivider-md-padding": "--space-2",
+        "--sectiondivider-md-title-padding": "--space-4",
+        "--sectiondivider-md-description-padding": "--space-2",
+        "--sectiondivider-md-eyebrow-padding": "--space-2",
         "--sectiondivider-md-radius": "--radius-2xl",
         "--sectiondivider-md-border-width": "--border-width-1",
         "--sectiondivider-md-shadow": "--shadow-none",
@@ -3351,10 +3459,10 @@
         "--sectiondivider-sm-eyebrow-font-weight": "--font-weight-medium",
         "--sectiondivider-sm-eyebrow-font-size": "--font-size-xs",
         "--sectiondivider-sm-eyebrow-letter-spacing": "--letter-spacing-normal",
-        "--sectiondivider-sm-padding": "--space-0",
-        "--sectiondivider-sm-title-padding": "--space-2",
-        "--sectiondivider-sm-description-padding": "--space-0",
-        "--sectiondivider-sm-eyebrow-padding": "--space-0",
+        "--sectiondivider-sm-padding": "--space-2",
+        "--sectiondivider-sm-title-padding": "--space-4",
+        "--sectiondivider-sm-description-padding": "--space-2",
+        "--sectiondivider-sm-eyebrow-padding": "--space-2",
         "--sectiondivider-sm-radius": "--radius-2xl",
         "--sectiondivider-sm-border-width": "--border-width-1",
         "--sectiondivider-sm-shadow": "--shadow-none",
@@ -3369,21 +3477,21 @@
       }
     },
     "segmentedcontrol": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "segmentedcontrol",
       "createdAt": "2026-04-28T21:13:17.669Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--segmentedcontrol-bar-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent)",
         "--segmentedcontrol-bar-border": "--border-neutral",
         "--segmentedcontrol-bar-border-width": "--border-width-1",
         "--segmentedcontrol-bar-radius": "--radius-2xl",
-        "--segmentedcontrol-bar-padding": "--space-4",
+        "--segmentedcontrol-bar-padding": "--space-6",
         "--segmentedcontrol-bar-gap": "--space-10",
         "--segmentedcontrol-divider-color": "--border-neutral",
         "--segmentedcontrol-divider-thickness": "--border-width-1",
         "--segmentedcontrol-divider-inset": "--space-6",
-        "--segmentedcontrol-option-padding": "--space-8",
+        "--segmentedcontrol-option-padding": "--space-10",
         "--segmentedcontrol-option-gap": "--space-10",
         "--segmentedcontrol-option-text": "--text-primary",
         "--segmentedcontrol-option-text-font-family": "--font-sans",
@@ -3416,11 +3524,11 @@
         "--segmentedcontrol-disabled-text-font-weight": "--font-weight-normal",
         "--segmentedcontrol-disabled-text-line-height": "--line-height-normal",
         "--segmentedcontrol-disabled-icon": "--text-secondary",
-        "--segmentedcontrol-bar-small-padding": "--space-2",
+        "--segmentedcontrol-bar-small-padding": "--space-4",
         "--segmentedcontrol-bar-small-radius": "--radius-xl",
         "--segmentedcontrol-small-divider-inset": "--space-4",
         "--segmentedcontrol-small-divider-thickness": "--border-width-1",
-        "--segmentedcontrol-option-small-padding": "--space-6",
+        "--segmentedcontrol-option-small-padding": "--space-8",
         "--segmentedcontrol-option-small-gap": "--space-8",
         "--segmentedcontrol-option-small-icon-size": "--icon-size-sm",
         "--segmentedcontrol-option-small-text-font-size": "--font-size-sm",
@@ -3429,17 +3537,17 @@
       }
     },
     "sidenavigation": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "sidenavigation",
       "createdAt": "2026-05-25T19:34:09.771Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--sidenavigation-panel-surface": "--surface-canvas-lower",
         "--sidenavigation-panel-border": "--border-canvas-faint",
         "--sidenavigation-panel-border-width": "--border-width-1",
-        "--sidenavigation-panel-padding": "--space-16",
+        "--sidenavigation-panel-padding": "--space-20",
         "--sidenavigation-panel-section-gap": "--space-6",
-        "--sidenavigation-panel-item-padding": "--space-32",
+        "--sidenavigation-panel-item-padding": "--space-48",
         "--sidenavigation-panel-footer-gap": "--space-20",
         "--sidenavigation-open-duration": "--duration-200",
         "--sidenavigation-open-easing": "--ease-out-quart",
@@ -3451,11 +3559,11 @@
         "--sidenavigation-title-label-border": "--border-canvas-faint",
         "--sidenavigation-title-label-border-width": "--border-width-1",
         "--sidenavigation-title-label-radius": "--radius-xl",
-        "--sidenavigation-title-label-padding": "--space-6",
+        "--sidenavigation-title-label-padding": "--space-8",
         "--sidenavigation-title-default-surface": "--color-transparent",
         "--sidenavigation-title-default-border": "--border-canvas-faint",
         "--sidenavigation-title-default-border-width": "--border-width-1",
-        "--sidenavigation-title-default-padding": "--space-12",
+        "--sidenavigation-title-default-padding": "--space-16",
         "--sidenavigation-title-default-accent": "--color-transparent",
         "--sidenavigation-title-default-accent-width": "--border-width-3",
         "--sidenavigation-title-default-label": "--text-primary",
@@ -3466,7 +3574,7 @@
         "--sidenavigation-title-hover-surface": "--color-transparent",
         "--sidenavigation-title-hover-border": "--border-canvas-faint",
         "--sidenavigation-title-hover-border-width": "--border-width-1",
-        "--sidenavigation-title-hover-padding": "--space-12",
+        "--sidenavigation-title-hover-padding": "--space-16",
         "--sidenavigation-title-hover-accent": "--color-transparent",
         "--sidenavigation-title-hover-accent-width": "--border-width-3",
         "--sidenavigation-title-hover-label": "--text-primary",
@@ -3477,7 +3585,7 @@
         "--sidenavigation-title-active-surface": "--surface-canvas-low",
         "--sidenavigation-title-active-border": "--border-canvas-faint",
         "--sidenavigation-title-active-border-width": "--border-width-1",
-        "--sidenavigation-title-active-padding": "--space-12",
+        "--sidenavigation-title-active-padding": "--space-16",
         "--sidenavigation-title-active-accent": "--border-brand-medium",
         "--sidenavigation-title-active-accent-width": "--border-width-3",
         "--sidenavigation-title-active-label": "--text-primary",
@@ -3489,14 +3597,14 @@
         "--sidenavigation-toggle-default-border": "--border-brand-medium",
         "--sidenavigation-toggle-default-border-width": "--border-width-1",
         "--sidenavigation-toggle-default-radius": "--radius-xl",
-        "--sidenavigation-toggle-default-padding": "--space-8",
+        "--sidenavigation-toggle-default-padding": "--space-10",
         "--sidenavigation-toggle-default-icon": "--text-primary",
         "--sidenavigation-toggle-default-icon-size": "--icon-size-md",
         "--sidenavigation-toggle-hover-surface": "--surface-brand-lowest",
         "--sidenavigation-toggle-hover-border": "--border-brand",
         "--sidenavigation-toggle-hover-border-width": "--border-width-1",
         "--sidenavigation-toggle-hover-radius": "--radius-xl",
-        "--sidenavigation-toggle-hover-padding": "--space-8",
+        "--sidenavigation-toggle-hover-padding": "--space-10",
         "--sidenavigation-toggle-hover-icon": "--text-brand",
         "--sidenavigation-toggle-hover-icon-size": "--icon-size-md",
         "--sidenavigation-section-default-surface": "--color-transparent",
@@ -3524,7 +3632,7 @@
         "--sidenavigation-section-active-text-font-weight": "--font-weight-medium",
         "--sidenavigation-section-active-text-line-height": "--line-height-normal",
         "--sidenavigation-item-default-surface": "--color-transparent",
-        "--sidenavigation-item-default-padding": "--space-6",
+        "--sidenavigation-item-default-padding": "--space-8",
         "--sidenavigation-item-default-accent": "--color-transparent",
         "--sidenavigation-item-default-accent-width": "--border-width-3",
         "--sidenavigation-item-default-text": "--text-tertiary",
@@ -3533,7 +3641,7 @@
         "--sidenavigation-item-default-text-font-weight": "--font-weight-semibold",
         "--sidenavigation-item-default-text-line-height": "--line-height-normal",
         "--sidenavigation-item-hover-surface": "--surface-canvas",
-        "--sidenavigation-item-hover-padding": "--space-6",
+        "--sidenavigation-item-hover-padding": "--space-8",
         "--sidenavigation-item-hover-accent": "--color-transparent",
         "--sidenavigation-item-hover-accent-width": "--border-width-3",
         "--sidenavigation-item-hover-text": "--text-secondary",
@@ -3542,7 +3650,7 @@
         "--sidenavigation-item-hover-text-font-weight": "--font-weight-light",
         "--sidenavigation-item-hover-text-line-height": "--line-height-normal",
         "--sidenavigation-item-active-surface": "--surface-canvas-low",
-        "--sidenavigation-item-active-padding": "--space-6",
+        "--sidenavigation-item-active-padding": "--space-8",
         "--sidenavigation-item-active-accent": "--border-brand-medium",
         "--sidenavigation-item-active-accent-width": "--border-width-3",
         "--sidenavigation-item-active-text": "--text-primary",
@@ -3551,7 +3659,7 @@
         "--sidenavigation-item-active-text-font-weight": "--font-weight-normal",
         "--sidenavigation-item-active-text-line-height": "--line-height-normal",
         "--sidenavigation-footer-default-surface": "--color-transparent",
-        "--sidenavigation-footer-default-padding": "--space-8",
+        "--sidenavigation-footer-default-padding": "--space-10",
         "--sidenavigation-footer-default-gap": "--space-10",
         "--sidenavigation-footer-default-accent": "--color-transparent",
         "--sidenavigation-footer-default-accent-width": "--border-width-3",
@@ -3563,7 +3671,7 @@
         "--sidenavigation-footer-default-text-font-weight": "--font-weight-light",
         "--sidenavigation-footer-default-text-line-height": "--line-height-normal",
         "--sidenavigation-footer-hover-surface": "--surface-canvas",
-        "--sidenavigation-footer-hover-padding": "--space-8",
+        "--sidenavigation-footer-hover-padding": "--space-10",
         "--sidenavigation-footer-hover-gap": "--space-10",
         "--sidenavigation-footer-hover-accent": "--color-transparent",
         "--sidenavigation-footer-hover-accent-width": "--border-width-3",
@@ -3575,7 +3683,7 @@
         "--sidenavigation-footer-hover-text-font-weight": "--font-weight-light",
         "--sidenavigation-footer-hover-text-line-height": "--line-height-normal",
         "--sidenavigation-footer-active-surface": "--surface-canvas-low",
-        "--sidenavigation-footer-active-padding": "--space-8",
+        "--sidenavigation-footer-active-padding": "--space-10",
         "--sidenavigation-footer-active-gap": "--space-10",
         "--sidenavigation-footer-active-accent": "--border-brand-medium",
         "--sidenavigation-footer-active-accent-width": "--border-width-3",
@@ -3589,16 +3697,16 @@
       }
     },
     "tabbar": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "tabbar",
       "createdAt": "2026-05-12T01:57:26.390Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--tabbar-bar-divider": "--border-neutral-subtle",
         "--tabbar-bar-divider-thickness": "--border-width-1",
-        "--tabbar-bar-top-margin": "--space-0",
-        "--tabbar-bar-bottom-padding": "--space-0",
-        "--tabbar-bar-bottom-margin": "--space-0",
+        "--tabbar-bar-top-margin": "--space-2",
+        "--tabbar-bar-bottom-padding": "--space-2",
+        "--tabbar-bar-bottom-margin": "--space-2",
         "--tabbar-tab-gap": "--space-4",
         "--tabbar-default-text": "--text-tertiary",
         "--tabbar-default-text-font-family": "--font-sans",
@@ -3606,7 +3714,7 @@
         "--tabbar-default-text-font-weight": "--font-weight-light",
         "--tabbar-default-text-line-height": "--line-height-normal",
         "--tabbar-default-icon-size": "--icon-size-md",
-        "--tabbar-default-padding": "--space-8",
+        "--tabbar-default-padding": "--space-10",
         "--tabbar-default-border": "--color-transparent",
         "--tabbar-default-surface": "--color-transparent",
         "--tabbar-default-tab-border-color": "--color-transparent",
@@ -3621,7 +3729,7 @@
         "--tabbar-hover-text-font-weight": "--font-weight-light",
         "--tabbar-hover-text-line-height": "--line-height-normal",
         "--tabbar-hover-icon-size": "--icon-size-md",
-        "--tabbar-hover-padding": "--space-8",
+        "--tabbar-hover-padding": "--space-10",
         "--tabbar-hover-border": "--color-transparent",
         "--tabbar-hover-tab-border-color": "--color-transparent",
         "--tabbar-hover-tab-border-width": "--border-width-0",
@@ -3636,7 +3744,7 @@
         "--tabbar-active-text-font-weight": "--font-weight-light",
         "--tabbar-active-text-line-height": "--line-height-normal",
         "--tabbar-active-icon-size": "--icon-size-md",
-        "--tabbar-active-padding": "--space-8",
+        "--tabbar-active-padding": "--space-10",
         "--tabbar-active-tab-border-color": "--color-transparent",
         "--tabbar-active-tab-border-width": "--border-width-0",
         "--tabbar-active-tab-top-radius": "--radius-md",
@@ -3648,7 +3756,7 @@
         "--tabbar-disabled-text-font-weight": "--font-weight-light",
         "--tabbar-disabled-text-line-height": "--line-height-normal",
         "--tabbar-disabled-icon-size": "--icon-size-md",
-        "--tabbar-disabled-padding": "--space-8",
+        "--tabbar-disabled-padding": "--space-10",
         "--tabbar-disabled-border": "--color-transparent",
         "--tabbar-disabled-surface": "--color-transparent",
         "--tabbar-disabled-tab-border-color": "--color-transparent",
@@ -3659,10 +3767,10 @@
       }
     },
     "table": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "table",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--table-default-radius": "--radius-xl",
         "--table-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 57%, transparent)",
@@ -3675,7 +3783,7 @@
         "--table-default-header-font-size": "--font-size-lg",
         "--table-default-header-font-weight": "--font-weight-semibold",
         "--table-default-header-line-height": "--line-height-none",
-        "--table-default-header-padding": "--space-12",
+        "--table-default-header-padding": "--space-16",
         "--table-default-header-border": "--border-neutral",
         "--table-default-header-border-width": "--border-width-1",
         "--table-default-cell-text": "--text-secondary",
@@ -3683,7 +3791,7 @@
         "--table-default-cell-font-size": "--font-size-md",
         "--table-default-cell-font-weight": "--font-weight-medium",
         "--table-default-cell-line-height": "--line-height-normal",
-        "--table-default-cell-padding": "--space-8",
+        "--table-default-cell-padding": "--space-10",
         "--table-default-row-surface": "--color-transparent",
         "--table-default-row-divider": "--border-neutral-subtle",
         "--table-default-row-divider-width": "--border-width-1",
@@ -3693,16 +3801,16 @@
       }
     },
     "toggle": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "toggle",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--toggle-track-surface": "--surface-neutral",
         "--toggle-track-border": "--border-neutral",
         "--toggle-track-border-width": "--border-width-1",
         "--toggle-track-radius": "--radius-full",
-        "--toggle-track-padding": "--space-2",
+        "--toggle-track-padding": "--space-4",
         "--toggle-thumb-surface": "--surface-neutral-highest",
         "--toggle-thumb-border": "--border-neutral-strong",
         "--toggle-thumb-size": "--font-size-md",
@@ -3725,10 +3833,10 @@
       }
     },
     "tooltip": {
-      "name": "leprechaun",
+      "name": "ocean",
       "component": "tooltip",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--tooltip-surface": "color-mix(in srgb, var(--surface-canvas-lowest) 75%, transparent)",
         "--tooltip-text": "--text-primary",
@@ -3739,7 +3847,7 @@
         "--tooltip-border": "--border-neutral",
         "--tooltip-border-width": "--border-width-1",
         "--tooltip-radius": "--radius-xl",
-        "--tooltip-padding": "--space-6",
+        "--tooltip-padding": "--space-8",
         "--tooltip-shadow": "--shadow-md"
       }
     }

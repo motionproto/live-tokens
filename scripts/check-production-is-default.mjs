@@ -7,7 +7,7 @@
 //
 // Enforced (necessary conditions):
 //   1. colors-and-type/_production.json → "default"
-//   2. manifests/_active.json           → "default"
+//   2. themes/_active.json              → "default"
 //   3. every component-configs/<comp>/_production.json → "default"
 //   4. committed tokens.generated.css carries NO component-alias override block
 //      (regenerateTokensCss emits one only when a component production pointer
@@ -42,8 +42,8 @@ function pointer(file, key) {
 const colorsAndTypeProd = pointer(join(DATA, 'colors-and-type/_production.json'), 'productionFile');
 if (colorsAndTypeProd !== 'default') errors.push(`colors-and-type production pointer is "${colorsAndTypeProd}", expected "default"`);
 
-const themeActive = pointer(join(DATA, 'manifests/_active.json'), 'activeFile');
-if (themeActive !== 'default') errors.push(`manifests active pointer is "${themeActive}", expected "default"`);
+const themeActive = pointer(join(DATA, 'themes/_active.json'), 'activeFile');
+if (themeActive !== 'default') errors.push(`themes active pointer is "${themeActive}", expected "default"`);
 
 const compRoot = join(DATA, 'component-configs');
 if (existsSync(compRoot)) {
@@ -73,4 +73,4 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log('check:production-is-default OK — colors-and-type / manifests / components production baseline is default.');
+console.log('check:production-is-default OK — colors-and-type / themes / components production baseline is default.');

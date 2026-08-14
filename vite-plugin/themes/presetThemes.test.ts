@@ -1,5 +1,5 @@
 /**
- * Gates the nine shipped preset themes (`npm run generate:preset-manifests`)
+ * Gates the nine shipped preset themes (`npm run generate:preset-themes`)
  * against the contract a consumer relies on: read doors serve them untouched,
  * they carry only what the shape ops changed, each look reads as its own shape
  * and type, and the tarball ships each one by name.
@@ -27,7 +27,7 @@ const PRESETS = [
 ];
 
 const readJson = (p: string) => JSON.parse(fs.readFileSync(p, 'utf-8'));
-const themeOf = (slug: string) => readJson(path.join(DATA, 'manifests', `${slug}.json`));
+const themeOf = (slug: string) => readJson(path.join(DATA, 'themes', `${slug}.json`));
 const colorsAndTypeOf = (slug: string) => readJson(path.join(DATA, 'colors-and-type', `${slug}.json`));
 const defaultConfigOf = (comp: string) =>
   readJson(path.join(DATA, 'component-configs', comp, 'default.json'));
@@ -64,14 +64,14 @@ describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
     expect(migrated).toBe(false);
     expect(dropped).toEqual([]);
     expect(theme).toEqual(raw);
-    expect(theme.schemaVersion).toBe(2);
+    expect(theme.schemaVersion).toBe(3);
   });
 
   it('embeds the preset colors and type by value under their display name', () => {
     const theme = themeOf(slug);
     const colorsAndType = colorsAndTypeOf(slug);
 
-    expect(theme.theme).toEqual(colorsAndType);
+    expect(theme.colorsAndType).toEqual(colorsAndType);
     expect(theme.name).toBe(colorsAndType.name);
   });
 
@@ -90,7 +90,7 @@ describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
   });
 
   it('carries the pairing as two google sources the display and body stacks use', () => {
-    const colorsAndType = themeOf(slug).theme;
+    const colorsAndType = themeOf(slug).colorsAndType;
     const pairing = PRESET_FONTS[slug];
     const stamped = stampedSourcesOf(colorsAndType);
 
@@ -110,7 +110,7 @@ describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
   });
 
   it('rewrites only the project slot, leaving serif and mono at the default', () => {
-    const colorsAndType = themeOf(slug).theme;
+    const colorsAndType = themeOf(slug).colorsAndType;
     const base = readJson(path.join(DATA, 'colors-and-type', 'default.json'));
     const fallbacks = (t: any, v: string) =>
       stackOf(t, v).slots.filter((s: any) => s.kind !== 'project');
@@ -126,9 +126,9 @@ describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
 
   it('ships as its own entry in package.json files', () => {
     const { files } = readJson(path.join(REPO_ROOT, 'package.json'));
-    expect(files).toContain(`src/live-tokens/data/manifests/${slug}.json`);
-    expect(files).not.toContain('src/live-tokens/data/manifests');
-    expect(files).not.toContain('src/live-tokens/data/manifests/');
+    expect(files).toContain(`src/live-tokens/data/themes/${slug}.json`);
+    expect(files).not.toContain('src/live-tokens/data/themes');
+    expect(files).not.toContain('src/live-tokens/data/themes/');
   });
 
   it('ships its colors-and-type file as its own entry in package.json files', () => {

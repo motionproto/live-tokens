@@ -55,7 +55,7 @@ export interface ThemeFileApiOptions {
   dataDir?: string;            // default: 'src/live-tokens/data'
   colorsAndTypeDir?: string;   // default: `<dataDir>/colors-and-type`
   componentConfigsDir?: string; // default: `<dataDir>/component-configs`
-  manifestsDir?: string;       // default: `<dataDir>/manifests`
+  themesDir?: string;          // default: `<dataDir>/themes`
   componentsSrcDir?: string;   // default: scans both 'src/components' and 'src/system/components'
   // When true, the dev server applies pending *additive* tokens.css migrations
   // (new token names only) to `tokensCssPath` at boot and writes the file; the
@@ -70,11 +70,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     dataDir: opts.dataDir,
     colorsAndTypeDir: opts.colorsAndTypeDir,
     componentConfigsDir: opts.componentConfigsDir,
-    manifestsDir: opts.manifestsDir,
+    themesDir: opts.themesDir,
   });
   const COLORS_AND_TYPE_DIR = dataDirs.colorsAndTypeDir;
   const COMPONENT_CONFIGS_DIR = dataDirs.componentConfigsDir;
-  const THEMES_DIR = dataDirs.manifestsDir;
+  const THEMES_DIR = dataDirs.themesDir;
   const CSS_PATH = path.resolve(opts.tokensCssPath);
   const GENERATED_CSS_PATH = opts.tokensGeneratedCssPath
     ? path.resolve(opts.tokensGeneratedCssPath)
@@ -83,7 +83,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     ? path.resolve(opts.fontsCssPath)
     : path.join(path.dirname(CSS_PATH), 'fonts.css');
   // Default keeps live-tokens' REST routes under a single namespace so they
-  // can't collide with the consumer's own `/api/colors-and-type` or `/api/manifests`.
+  // can't collide with the consumer's own `/api/colors-and-type` or `/api/themes`.
   // The client side reads the same value via the `__LIVE_TOKENS_API_BASE__`
   // define injected in `config()` below.
   const API_BASE = opts.apiBase ?? '/api/live-tokens';
@@ -124,7 +124,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     'data',
   );
   const packageColorsAndTypeDir = path.join(packageDataDir, 'colors-and-type');
-  const packageThemesDir = path.join(packageDataDir, 'manifests');
+  const packageThemesDir = path.join(packageDataDir, 'themes');
   const packageComponentConfigsDir = path.join(packageDataDir, 'component-configs');
 
   /** Colors-and-type basenames the package ships, read from its own `files` listing. */
@@ -174,7 +174,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       // generateDefaultConfig, re-derived locally on dev start / HMR. This
       // packageDir is therefore inert for consumers (the dir doesn't exist) and
       // self-referential in library-dev (local === package); it's wired only
-      // for construction symmetry with colors-and-type/manifests, and existingPath /
+      // for construction symmetry with colors-and-type/themes, and existingPath /
       // listNames no-op on a missing dir. Do NOT "fix" the asymmetry by shipping
       // component JSON — it becomes a second source of truth that drifts and is
       // shadowed on first dev-start anyway.
@@ -750,7 +750,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     } catch { /* missing or corrupt — regenerate */ }
     if (
       existing?.schemaVersion === THEME_SCHEMA_VERSION &&
-      JSON.stringify(existing.theme) === JSON.stringify(colorsAndType) &&
+      JSON.stringify(existing.colorsAndType) === JSON.stringify(colorsAndType) &&
       JSON.stringify(existing.componentConfigs) === JSON.stringify(componentConfigs)
     ) {
       return;
@@ -762,7 +762,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       createdAt: typeof existing?.createdAt === 'string' ? existing.createdAt : now,
       updatedAt: now,
       schemaVersion: THEME_SCHEMA_VERSION,
-      theme: colorsAndType,
+      colorsAndType,
       componentConfigs,
     });
   }
@@ -822,7 +822,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       if (slice.field === 'colors-and-type') {
         const colorsAndType = colorsAndTypeResource.readJson(sanitizeFileName(slice.fileName));
         if (!colorsAndType) continue;
-        theme.theme = normalizeColorsAndType(colorsAndType as any);
+        theme.colorsAndType = normalizeColorsAndType(colorsAndType as any);
       } else if (slice.fileName === 'default') {
         delete theme.componentConfigs[slice.comp];
       } else {
@@ -923,17 +923,17 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const COLORS_AND_TYPE_ACTIVE_ROUTE = `${API_BASE}/colors-and-type/active`;
   const COLORS_AND_TYPE_PRODUCTION_ROUTE = `${API_BASE}/colors-and-type/production`;
   const COMPONENT_CONFIGS_ROUTE = `${API_BASE}/component-configs`;
-  const THEMES_ROUTE = `${API_BASE}/manifests`;
-  const THEMES_ACTIVE_ROUTE = `${API_BASE}/manifests/active`;
+  const THEMES_ROUTE = `${API_BASE}/themes`;
+  const THEMES_ACTIVE_ROUTE = `${API_BASE}/themes/active`;
   const COLORS_AND_TYPE_BY_NAME_REGEX = new RegExp(`^${escapedBase}/colors-and-type/([a-z0-9\\-_]+)$`);
   const COMP_LIST_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)$`);
   const COMP_ACTIVE_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/active$`);
   const COMP_PRODUCTION_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/production$`);
   const COMP_BY_NAME_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/([a-z0-9\\-_]+)$`);
-  const THEME_APPLY_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)/apply$`);
-  const THEME_EXPORT_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)/export$`);
-  const THEME_IMPORT_ROUTE = `${API_BASE}/manifests/import`;
-  const THEME_BY_NAME_REGEX = new RegExp(`^${escapedBase}/manifests/([a-z0-9\\-_]+)$`);
+  const THEME_APPLY_REGEX = new RegExp(`^${escapedBase}/themes/([a-z0-9\\-_]+)/apply$`);
+  const THEME_EXPORT_REGEX = new RegExp(`^${escapedBase}/themes/([a-z0-9\\-_]+)/export$`);
+  const THEME_IMPORT_ROUTE = `${API_BASE}/themes/import`;
+  const THEME_BY_NAME_REGEX = new RegExp(`^${escapedBase}/themes/([a-z0-9\\-_]+)$`);
   // Root peer of `/colors-and-type/production` and `/component-configs/:comp/production`:
   // the production state of the whole look.
   const PRODUCTION_ROUTE = `${API_BASE}/production`;
@@ -1289,7 +1289,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     jsonResponse(res, 200, { component: comp, files, activeFile, productionFile });
   }
 
-  // ── /api/manifests ───────────────────────────────────────────────────────
+  // ── /api/themes ──────────────────────────────────────────────────────────
 
   async function handleListThemes({ res }: any) {
     const activeFile = themesResource.getActiveName();
@@ -1422,7 +1422,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     // The default theme IS the baseline: it applies pure defaults and
     // materialises nothing (`default.json` is derived from source, read-only).
     const isDefault = fileName === 'default';
-    if (!isDefault && !theme.theme) {
+    if (!isDefault && !theme.colorsAndType) {
       jsonResponse(res, 422, { error: 'This theme carries no colors and type' });
       return;
     }
@@ -1432,7 +1432,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       colorsAndTypeResource.ensureDir();
       fs.writeFileSync(
         colorsAndTypeResource.filePath(colorsAndTypeName),
-        JSON.stringify(theme.theme, null, 2),
+        JSON.stringify(theme.colorsAndType, null, 2),
       );
     }
 
@@ -1501,7 +1501,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
 
     const bundle = {
-      kind: 'manifest-bundle' as const,
+      kind: 'theme-bundle' as const,
       schemaVersion: THEME_SCHEMA_VERSION,
       liveTokensVersion: PKG_VERSION,
       exportedAt: new Date().toISOString(),
@@ -1541,7 +1541,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    *
    * v1 bundles (pointer theme + separately inlined colors and type and configs) still
    * import: their refs resolve inside the bundle, never against local files
-   * that happen to share a name.
+   * that happen to share a name. A v1 bundle's top-level `theme` is that
+   * inlined colors and type, which is why the envelope key stays `manifest`:
+   * one key, both versions, no ambiguity.
    */
   async function handleImportTheme({ req, res }: any) {
     let bundle: any;
@@ -1551,7 +1553,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       jsonResponse(res, 400, { error: 'Body is not valid JSON' });
       return;
     }
-    if (!bundle || bundle.kind !== 'manifest-bundle') {
+    if (!bundle || bundle.kind !== 'theme-bundle') {
       jsonResponse(res, 400, {
         error: 'Not a theme bundle (kind discriminator missing or wrong)',
       });
@@ -1576,8 +1578,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const { theme, dropped } = normalizeTheme(bundle.manifest, bundleResolvers);
     // Foreign data door: an embedded copy arrives unreconciled, which is what
     // normalizeColorsAndType's `_imported` palette path exists for.
-    if (theme.theme) theme.theme = normalizeColorsAndType(theme.theme as any);
-    if (!theme.theme) {
+    if (theme.colorsAndType) theme.colorsAndType = normalizeColorsAndType(theme.colorsAndType as any);
+    if (!theme.colorsAndType) {
       jsonResponse(res, 400, { error: 'Bundle carries no theme' });
       return;
     }
@@ -1635,7 +1637,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     });
 
     if (!colorsAndTypePromoted && promotedComponents.length === 0) {
-      jsonResponse(res, 200, { ok: true, promoted: false, theme: null, components: [] });
+      jsonResponse(res, 200, { ok: true, promoted: false, colorsAndType: null, components: [] });
       return;
     }
 
@@ -1668,7 +1670,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     jsonResponse(res, 200, {
       ok: true,
       promoted: true,
-      theme: colorsAndTypePromoted ? { fileName: colorsAndTypeName, name: colorsAndTypeData?.name || colorsAndTypeName } : null,
+      colorsAndType: colorsAndTypePromoted ? { fileName: colorsAndTypeName, name: colorsAndTypeData?.name || colorsAndTypeName } : null,
       components: promotedComponents,
     });
   }

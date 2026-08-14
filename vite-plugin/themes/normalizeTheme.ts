@@ -1,14 +1,16 @@
 /**
- * Theme schema v1 → v2. v1 themes pointed at a colors-and-type file and a
- * config file per component by basename; v2 carries that data by value, so
- * deleting a working file can never break a saved look.
+ * Theme schema v1/v2 → v3, in one pass. v1 themes pointed at a colors-and-type
+ * file and a config file per component by basename; v2 carries that data by
+ * value, so deleting a working file can never break a saved look; v3 spells the
+ * embedded layer `colorsAndType` instead of `theme`, which now names the whole
+ * look.
  *
  * Pure: every disk (or bundle) lookup arrives through `ThemeResolvers`, and
  * unresolvable refs come back in `dropped` rather than being logged here — the
  * boot migration reports them once, read doors stay quiet.
  */
 
-export const THEME_SCHEMA_VERSION = 2;
+export const THEME_SCHEMA_VERSION = 3;
 
 type Json = Record<string, unknown>;
 
@@ -30,7 +32,7 @@ export interface EncapsulatedTheme {
   schemaVersion: typeof THEME_SCHEMA_VERSION;
   /** Full colors-and-type content. `null` only when nothing resolved, including
    *  the default — callers surface that as an error. */
-  theme: Json | null;
+  colorsAndType: Json | null;
   /** Component id → its config, embedded by value. Delta encoding: a component
    *  absent here is on its default. */
   componentConfigs: Record<string, Json>;
@@ -41,7 +43,7 @@ export interface NormalizedTheme {
   /** Refs that resolved to nothing, as `colors-and-type:<name>` /
    *  `<comp>/<name>`. Each fell back to the default. */
   dropped: string[];
-  /** The input was pointer-form and got resolved and embedded. */
+  /** The input was below the current schema version and got upgraded. */
   migrated: boolean;
 }
 
@@ -61,20 +63,30 @@ function asString(value: unknown, fallback: string): string {
   return typeof value === 'string' && value ? value : fallback;
 }
 
+/** v1 and v2 spelled the embedded layer `theme` — v1 as a file name, v2 by
+ *  value. Runs only below the current version, so `colorsAndType` is the one
+ *  spelling a v3 file is read by. */
+function migrateEmbeddedKey(src: Json): Json {
+  const { theme, ...rest } = src;
+  return { ...rest, colorsAndType: theme };
+}
+
 export function normalizeTheme(
   raw: unknown,
   resolvers: ThemeResolvers,
 ): NormalizedTheme {
-  const src = asObject(raw) ?? {};
+  const input = asObject(raw) ?? {};
+  const migrated = input.schemaVersion !== THEME_SCHEMA_VERSION;
+  const src = migrated ? migrateEmbeddedKey(input) : input;
   const dropped: string[] = [];
   const now = new Date().toISOString();
 
-  const embeddedColorsAndType = asObject(src.theme);
+  const embeddedColorsAndType = asObject(src.colorsAndType);
   let colorsAndType: Json | null = null;
   if (embeddedColorsAndType) {
     colorsAndType = stripFileMarker(embeddedColorsAndType);
   } else {
-    const colorsAndTypeName = asString(src.theme, 'default');
+    const colorsAndTypeName = asString(src.colorsAndType, 'default');
     colorsAndType = asObject(resolvers.readColorsAndType(colorsAndTypeName));
     if (!colorsAndType) {
       dropped.push(`colors-and-type:${colorsAndTypeName}`);
@@ -106,10 +118,10 @@ export function normalizeTheme(
       createdAt: asString(src.createdAt, now),
       updatedAt: asString(src.updatedAt, now),
       schemaVersion: THEME_SCHEMA_VERSION,
-      theme: colorsAndType,
+      colorsAndType,
       componentConfigs,
     },
     dropped,
-    migrated: src.schemaVersion !== THEME_SCHEMA_VERSION,
+    migrated,
   };
 }

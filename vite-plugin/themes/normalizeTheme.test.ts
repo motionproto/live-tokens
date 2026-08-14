@@ -27,12 +27,12 @@ const v1 = {
   componentConfigs: { card: 'my-card', button: 'default', panel: 'my-panel' },
 };
 
-describe('normalizeTheme v1 → v2', () => {
+describe('normalizeTheme v1 → v3', () => {
   it('embeds the referenced colors and type and configs', () => {
     const { theme, migrated } = normalizeTheme(v1, resolvers());
     expect(migrated).toBe(true);
-    expect(theme.schemaVersion).toBe(2);
-    expect(theme.theme).toEqual(COLORS_AND_TYPE['my-theme']);
+    expect(theme.schemaVersion).toBe(3);
+    expect(theme.colorsAndType).toEqual(COLORS_AND_TYPE['my-theme']);
     expect(theme.componentConfigs.card).toEqual(CONFIGS['card/my-card']);
   });
 
@@ -57,13 +57,13 @@ describe('normalizeTheme v1 → v2', () => {
 
   it('falls back to the default colors and type when the named one is gone', () => {
     const { theme, dropped } = normalizeTheme({ ...v1, theme: 'deleted' }, resolvers());
-    expect(theme.theme).toEqual(COLORS_AND_TYPE.default);
+    expect(theme.colorsAndType).toEqual(COLORS_AND_TYPE.default);
     expect(dropped).toEqual(['colors-and-type:deleted', 'panel/my-panel']);
   });
 
   it('leaves the colors and type null when nothing resolves', () => {
     const { theme } = normalizeTheme(v1, resolvers({ readColorsAndType: () => null }));
-    expect(theme.theme).toBeNull();
+    expect(theme.colorsAndType).toBeNull();
   });
 
   it('runs the embedded colors and type through normalizeColorsAndType', () => {
@@ -71,38 +71,65 @@ describe('normalizeTheme v1 → v2', () => {
       v1,
       resolvers({ normalizeColorsAndType: (colorsAndType) => ({ ...colorsAndType, reconciled: true }) }),
     );
-    expect(theme.theme?.reconciled).toBe(true);
+    expect(theme.colorsAndType?.reconciled).toBe(true);
   });
 });
 
-describe('normalizeTheme v2', () => {
+describe('normalizeTheme v2 → v3', () => {
   const v2 = {
     name: 'Encapsulated',
     createdAt: '2026-03-03T00:00:00.000Z',
     updatedAt: '2026-03-03T00:00:00.000Z',
     schemaVersion: 2,
-    theme: { name: 'Embedded', _fileName: 'my-theme' },
+    theme: { name: 'Embedded' },
+    componentConfigs: { card: { name: 'my-card' } },
+  };
+
+  it('renames the embedded key, resolving nothing', () => {
+    const { theme, migrated, dropped } = normalizeTheme(
+      v2,
+      resolvers({
+        readColorsAndType: () => {
+          throw new Error('embedded data must not read from disk');
+        },
+      }),
+    );
+    expect(migrated).toBe(true);
+    expect(dropped).toEqual([]);
+    expect(theme.schemaVersion).toBe(3);
+    expect(theme.colorsAndType?.name).toBe('Embedded');
+    expect(theme.componentConfigs.card.name).toBe('my-card');
+  });
+});
+
+describe('normalizeTheme v3', () => {
+  const v3 = {
+    name: 'Encapsulated',
+    createdAt: '2026-03-03T00:00:00.000Z',
+    updatedAt: '2026-03-03T00:00:00.000Z',
+    schemaVersion: 3,
+    colorsAndType: { name: 'Embedded', _fileName: 'my-theme' },
     componentConfigs: { card: { name: 'my-card', _fileName: 'my-card' } },
   };
 
   it('passes embedded data through untouched', () => {
     const { theme, migrated, dropped } = normalizeTheme(
-      v2,
+      v3,
       resolvers({
         readColorsAndType: () => {
-          throw new Error('v2 must not read from disk');
+          throw new Error('v3 must not read from disk');
         },
       }),
     );
     expect(migrated).toBe(false);
     expect(dropped).toEqual([]);
-    expect(theme.theme?.name).toBe('Embedded');
+    expect(theme.colorsAndType?.name).toBe('Embedded');
     expect(theme.componentConfigs.card.name).toBe('my-card');
   });
 
   it('strips the server-attached _fileName marker', () => {
-    const { theme } = normalizeTheme(v2, resolvers());
-    expect(theme.theme).not.toHaveProperty('_fileName');
+    const { theme } = normalizeTheme(v3, resolvers());
+    expect(theme.colorsAndType).not.toHaveProperty('_fileName');
     expect(theme.componentConfigs.card).not.toHaveProperty('_fileName');
   });
 });

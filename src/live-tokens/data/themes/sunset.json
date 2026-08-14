@@ -1,9 +1,9 @@
 {
   "name": "Sunset",
   "createdAt": "2026-08-13T10:21:46.867Z",
-  "updatedAt": "2026-08-13T14:14:20.015Z",
-  "schemaVersion": 2,
-  "theme": {
+  "updatedAt": "2026-08-14T17:42:08.545Z",
+  "schemaVersion": 3,
+  "colorsAndType": {
     "name": "Sunset",
     "createdAt": "2026-08-12T20:13:46.488Z",
     "updatedAt": "2026-08-13T14:14:20.015Z",
@@ -2459,7 +2459,7 @@
       "name": "sunset",
       "component": "badge",
       "createdAt": "2026-05-01T08:28:00.345Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--badge-primary-surface": "--surface-brand",
         "--badge-primary-text": "--text-brand",
@@ -2597,7 +2597,7 @@
       "name": "sunset",
       "component": "button",
       "createdAt": "2026-05-10T19:28:06.893Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--button-primary-surface": "--surface-brand-high",
         "--button-primary-text": "--text-primary",
@@ -2713,7 +2713,7 @@
       "name": "sunset",
       "component": "callout",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--callout-info-surface": "--surface-info-lowest",
         "--callout-info-border": "--border-info-medium",
@@ -2785,7 +2785,7 @@
       "name": "sunset",
       "component": "card",
       "createdAt": "2026-05-10T19:26:31.704Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--card-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent)",
         "--card-default-border": "--border-neutral",
@@ -2826,7 +2826,7 @@
       "name": "sunset",
       "component": "codesnippet",
       "createdAt": "2026-05-27T13:22:54.228Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--codesnippet-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 76%, transparent)",
         "--codesnippet-border": "--border-neutral",
@@ -2850,7 +2850,7 @@
       "name": "sunset",
       "component": "collapsiblesection",
       "createdAt": "2026-05-10T20:40:17.048Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--collapsiblesection-chromeless-default-surface": "--color-transparent",
         "--collapsiblesection-chromeless-default-padding": "--space-6",
@@ -2923,7 +2923,7 @@
       "name": "sunset",
       "component": "cornerbadge",
       "createdAt": "2026-05-12T15:31:06.313Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--corner-badge-margin": "--space-2",
         "--corner-badge-outer-radius": "--radius-sm",
@@ -2971,7 +2971,7 @@
       "name": "sunset",
       "component": "dialog",
       "createdAt": "2026-05-10T20:05:24.719Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--dialog-overlay-surface": "--overlay-high",
         "--dialog-surface": "--surface-neutral-lowest",
@@ -3006,7 +3006,7 @@
       "name": "sunset",
       "component": "iconbutton",
       "createdAt": "2026-06-14T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--iconbutton-primary-surface": "--surface-brand-high",
         "--iconbutton-primary-icon": "--text-primary",
@@ -3095,7 +3095,7 @@
       "name": "sunset",
       "component": "image",
       "createdAt": "2026-04-26T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--image-default-radius": "--radius-3xl",
         "--image-default-border": "--border-neutral",
@@ -3108,7 +3108,7 @@
       "name": "sunset",
       "component": "imagelightbox",
       "createdAt": "2026-05-26T02:03:38.863Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--imagelightbox-tile-radius": "--radius-3xl",
         "--imagelightbox-tile-border": "--color-transparent",
@@ -3127,7 +3127,7 @@
       "name": "sunset",
       "component": "inlineeditactions",
       "createdAt": "2026-05-01T08:34:39.325Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--inlineeditactions-save-default-surface": "--surface-success-low",
         "--inlineeditactions-save-default-text": "--text-success",
@@ -3163,7 +3163,7 @@
       "name": "sunset",
       "component": "input",
       "createdAt": "2026-05-24T14:28:03.860Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--input-radius": "--radius-lg",
         "--input-padding": "--space-10",
@@ -3221,7 +3221,7 @@
       "name": "sunset",
       "component": "menuselect",
       "createdAt": "2026-05-16T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--menuselect-menu-surface": "color-mix(in srgb, var(--surface-neutral-lower) 85%, transparent)",
         "--menuselect-menu-border": "--border-neutral-medium",
@@ -3271,7 +3271,7 @@
       "name": "sunset",
       "component": "notification",
       "createdAt": "2026-04-18T02:43:11.330Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--notification-info-surface": "--surface-info",
         "--notification-info-action-surface": "--surface-neutral-lowest",
@@ -3351,7 +3351,7 @@
       "name": "sunset",
       "component": "panel",
       "createdAt": "2026-06-01T09:34:52.417Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--panel-frame-border": "--border-neutral",
         "--panel-frame-border-width": "--border-width-1",
@@ -3384,7 +3384,7 @@
       "name": "sunset",
       "component": "sectiondivider",
       "createdAt": "2026-05-10T22:09:00.336Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--sectiondivider-lg-title-font-family": "--font-display",
         "--sectiondivider-lg-title-font-weight": "--font-weight-bold",
@@ -3479,7 +3479,7 @@
       "name": "sunset",
       "component": "segmentedcontrol",
       "createdAt": "2026-04-28T21:13:17.669Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--segmentedcontrol-bar-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent)",
         "--segmentedcontrol-bar-border": "--border-neutral",
@@ -3539,7 +3539,7 @@
       "name": "sunset",
       "component": "sidenavigation",
       "createdAt": "2026-05-25T19:34:09.771Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--sidenavigation-panel-surface": "--surface-canvas-lower",
         "--sidenavigation-panel-border": "--border-canvas-faint",
@@ -3699,7 +3699,7 @@
       "name": "sunset",
       "component": "tabbar",
       "createdAt": "2026-05-12T01:57:26.390Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--tabbar-bar-divider": "--border-neutral-subtle",
         "--tabbar-bar-divider-thickness": "--border-width-1",
@@ -3769,7 +3769,7 @@
       "name": "sunset",
       "component": "table",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--table-default-radius": "--radius-lg",
         "--table-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 57%, transparent)",
@@ -3803,7 +3803,7 @@
       "name": "sunset",
       "component": "toggle",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--toggle-track-surface": "--surface-neutral",
         "--toggle-track-border": "--border-neutral",
@@ -3835,7 +3835,7 @@
       "name": "sunset",
       "component": "tooltip",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-13T14:14:20.015Z",
+      "updatedAt": "2026-08-14T17:42:08.545Z",
       "aliases": {
         "--tooltip-surface": "color-mix(in srgb, var(--surface-canvas-lowest) 75%, transparent)",
         "--tooltip-text": "--text-primary",

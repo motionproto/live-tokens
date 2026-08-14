@@ -83,8 +83,8 @@ function theme(
     name,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
-    schemaVersion: 2,
-    theme: colorsAndTypeValue,
+    schemaVersion: 3,
+    colorsAndType: colorsAndTypeValue,
     componentConfigs,
     _fileName: name,
   };
@@ -197,14 +197,14 @@ describe('a look previewed colors and type only', () => {
   });
 
   it('takes the colors-and-type half and leaves the components as the user has them', () => {
-    const { vars } = colorsAndTypeLook(yuletide.theme);
+    const { vars } = colorsAndTypeLook(yuletide.colorsAndType);
     expect(vars['--surface-canvas']).toBe('#0b3d2e');
     expect(vars['--card-default-radius']).toBe('var(--radius-md)');
   });
 
   it('differs from the whole look on the component half alone', () => {
     const whole = themeLook(yuletide, defaults).vars;
-    const colors = colorsAndTypeLook(yuletide.theme).vars;
+    const colors = colorsAndTypeLook(yuletide.colorsAndType).vars;
     expect(whole['--surface-canvas']).toBe(colors['--surface-canvas']);
     expect(whole['--font-display']).toBe(colors['--font-display']);
     expect(whole['--card-default-radius']).toBe('var(--radius-3xl)');
@@ -312,7 +312,7 @@ describe('previewTheme', () => {
 
   it('reads only, so a capture of the look still sees the saved files', async () => {
     await previewTheme(yuletide);
-    expect(requests).toEqual([`GET ${API_BASE}/manifests/default`]);
+    expect(requests).toEqual([`GET ${API_BASE}/themes/default`]);
   });
 });
 
