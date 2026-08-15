@@ -1,5 +1,5 @@
 /**
- * Gates the nine shipped preset themes (`npm run generate:preset-themes`)
+ * Gates the seven shipped preset themes (`npm run generate:preset-themes`)
  * against the contract a consumer relies on: read doors serve them untouched,
  * they carry only what the shape ops changed, each look reads as its own shape
  * and type, and the tarball ships each one by name.
@@ -135,7 +135,7 @@ describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
   });
 });
 
-describe('the nine presets read as nine different looks', () => {
+describe('the presets read as distinct looks', () => {
   const duplicates = (label: (slug: string) => string) => {
     const seen = new Map<string, string>();
     const clashes: string[] = [];

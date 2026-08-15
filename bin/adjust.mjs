@@ -214,7 +214,7 @@ export function formatAdjustResult(result) {
   }
   if (result.ignoredName !== null) {
     lines.push(
-      `Ignored "name": "${result.ignoredName}" — adjust edits the open buffer now, ` +
+      `Ignored "name": "${result.ignoredName}". adjust edits the open buffer now, ` +
         `so it writes no file of its own.`,
     );
   }

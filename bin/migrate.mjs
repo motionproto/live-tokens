@@ -133,13 +133,13 @@ export function formatMigrateDataResult(result) {
     lines.push(`  ${planned ? 'would fill' : 'filled'} ${rel(p)} from the live state`);
   }
   for (const p of result.workingKept) {
-    lines.push(`  kept ${rel(p)} — the editor already owns that buffer`);
+    lines.push(`  kept ${rel(p)}: the editor already owns that buffer`);
   }
   for (const p of result.deletedFiles) {
-    lines.push(`  ${planned ? 'would delete' : 'deleted'} ${rel(p)} — a copy of a saved theme`);
+    lines.push(`  ${planned ? 'would delete' : 'deleted'} ${rel(p)}: a copy of a saved theme`);
   }
   for (const p of result.keptUserFiles) {
-    lines.push(`  kept ${rel(p)} — it matches no theme, so it is yours`);
+    lines.push(`  kept ${rel(p)}: it matches no theme, so it is yours`);
   }
   lines.push(
     `  ${planned ? 'would retire' : 'retired'} ${result.deletedPointers.length} per-layer pointer file(s)`,

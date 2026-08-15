@@ -58,8 +58,8 @@
 
 - **The seven presets ship as full example looks.** One theme per preset
   embeds its colors and type plus a distinct shape personality and a Google
-  Fonts pairing: Halloween goes fully square with heavy borders and
-  Creepster, Midnight Study pairs sharp windows and round buttons with EB
+  Fonts pairing: Halloween goes fully square with heavy borders and Mystery
+  Quest, Midnight Study pairs sharp windows and round buttons with EB
   Garamond, and no two presets share a corner-radius and spacing profile or
   a font family. Load one to try the complete look, load Motion Proto to
   come back. `npm run generate:preset-themes` regenerates all seven from the
@@ -136,9 +136,9 @@
   presets now, so nothing live points at one and any of them can go. Deleting
   the theme you have open is legal too: the buffer survives its document, so
   the look on screen stays, and open heals to the shipped version if one
-  shadows it, otherwise to Default. Two refusals remain, both about something
-  a delete would break: the theme in production, and a shipped file with no
-  local copy.
+  shadows it, otherwise to Default. Three refusals remain, each about
+  something a delete would break: the protected `default` name, the theme in
+  production, and a shipped file with no local copy.
 
 - **Load applies the complete look.** Loading a theme opens it: its embedded
   copies fill the working buffer and components it does not carry go back to
@@ -186,10 +186,8 @@
   theme resolved from the package; it now forks the theme locally,
   shadow-and-restore style.
 
-- **`my-theme` restored.** Its `my-card` and `my-panel` configs, deleted
-  along with the files they pointed at, are recovered from git history and
-  embedded. Orphan component-config directories (`detailnav`, `stateditor`,
-  `slotprobe`, `floatingtokentags`) are removed.
+- **Orphan component-config directories removed** (`detailnav`, `stateditor`,
+  `slotprobe`, `floatingtokentags`): no shipped component reads them.
 
 - **`collapse-theme-to-default` no longer drops `harmonyAxes`** or coerces a
   missing `fontStacks` to an empty object when baking a theme into the

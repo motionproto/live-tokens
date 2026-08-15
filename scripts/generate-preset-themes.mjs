@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Build the nine shipped preset themes: one encapsulated (v3) theme per preset,
+// Build the shipped preset themes: one encapsulated (v3) theme per preset,
 // carrying that preset's colors and type by value plus a shape personality
 // applied to the derived component defaults. The run also stamps each preset's
 // Google Fonts pairing into its colors-and-type file, so type and shape ship

@@ -116,17 +116,17 @@ What should be in the tarball:
 - `.claude/skills/**` (the Claude skills: build-page, create-component,
   pick-component, generate-theme, adjust-shape-space)
 - These files only, out of `src/live-tokens/data/`: `tokens.generated.css`,
-  `colors-and-type/default.json` plus the nine preset colors-and-type files,
-  and the nine preset themes (each an entry-by-entry `files` listing, never a
+  `colors-and-type/default.json` plus the seven preset colors-and-type files,
+  and the seven preset themes (each an entry-by-entry `files` listing, never a
   directory). Everything else under that path is consumer data and must stay out.
   See "Why the shipped data files ship" below before removing them.
 - `package.json`, `README.md`, `LICENSE*`, `CHANGELOG.md`
 
 What should NEVER be in the tarball:
 - `src/live-tokens/data/**` beyond the files named above — the rest is
-  consumer data, not source. In particular `themes/default.json` and
-  `themes/my-theme.json` never ship: the Default theme is materialized locally
-  at boot, so a package copy would be unreadable by design.
+  consumer data, not source. In particular `themes/default.json` never ships:
+  the Default theme is materialized locally at boot, so a package copy would be
+  unreadable by design.
 - `colors-and-type/`, `themes/`, `component-configs/` at the repo root — same
 - `temp/`, scratch markdown, `*.test.ts`, `__tests__/**`
 - `.git/`, `node_modules/`, `dist/`, `dist-ssr/`
@@ -141,7 +141,7 @@ periodically. They are load-bearing, and shipping them is what keeps a
 consumer's install clean.
 
 The preset themes are generated artifacts: `npm run generate:preset-themes`
-rebuilds all nine from the derived component defaults and the preset
+rebuilds all seven from the derived component defaults and the preset
 colors-and-type files, and a test suite pins the on-disk copies to that
 generator. After any colors-and-type migration or component-default change,
 re-run the generator before tagging so the shipped themes carry current data.

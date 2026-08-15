@@ -133,7 +133,7 @@ if (command === 'adjust') {
   if (rest.includes('--no-activate')) {
     fail(
       `adjust has no --no-activate: it edits the open buffer, which is what the page already runs. ` +
-        `Save the open theme in the editor to keep the change, or apply a theme to discard it.`,
+        `Drop the flag and re-run.`,
     );
   }
   try {

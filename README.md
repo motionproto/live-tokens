@@ -48,7 +48,6 @@ The `themeFileApi` plugin:
 - Writes `src/live-tokens/data/themes/default.json` on dev-server start: the Default theme, derived from the shipped colors and type and those component defaults, and regenerated whenever they change. It is protected, so the editor never deletes it and an outside deletion heals on the next start.
 - Bakes `tokens.generated.css` from the production theme at startup, so a fresh checkout builds against the look you shipped.
 - Hosts the `/api/live-tokens/*` routes the editor uses to save and load themes + per-component configs.
-
 - Auto-injects `__PROJECT_ROOT__` for the overlay's "Page Source" link and `__LIVE_TOKENS_API_BASE__` so the client uses whatever `apiBase` you configured.
 
 A project last opened before the working-set model still carries the retired per-layer `_active.json` / `_production.json` files. The plugin warns and holds the startup bake rather than deciding for you. `npx live-tokens migrate` reads what those pointers resolved to, records it as the production theme, and clears them.
@@ -214,9 +213,8 @@ import '@motion-proto/live-tokens/app/fonts.css';  // optional: Fraunces + Manro
 ```
 
 …or copy `node_modules/@motion-proto/live-tokens/src/system/styles/tokens.css` into
-your project and edit. It stays hand-authored: the editor derives
-`themes/default.json` from it on first run and writes what you Adopt into the
-sidecar `tokens.generated.css`, never back into `tokens.css`.
+your project and edit. It stays hand-authored: the editor writes what you Adopt
+into the sidecar `tokens.generated.css`, never back into `tokens.css`.
 
 ## Consuming live-tokens from scratch
 

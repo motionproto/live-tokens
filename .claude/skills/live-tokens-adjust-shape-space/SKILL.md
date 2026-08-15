@@ -63,6 +63,6 @@ Every value written is an existing token; nothing new is minted. `tokens.css`, s
 ## Verify
 
 - The CLI exits 0 and the report card lists the changes you expected, with no surprising skips.
-- The app (dev server running) shows the new shape after a reload.
-- The editor shows each changed component as edited, and the Theme panel counts it as waiting to be saved.
+- The app (dev server running) shows the new shape on each changed component after a reload.
+- `component-configs/<id>/_working.json` exists for every component the report listed. That buffer is the whole change: it stays until the open theme is saved or another theme is loaded.
 - To revert, run the inverse ops, or load a theme in the Theme panel to discard every unsaved edit.
