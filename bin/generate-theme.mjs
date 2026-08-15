@@ -241,11 +241,11 @@ export function formatGenerateThemeResult(result) {
   if (result.activated) {
     lines.push(
       `\nOpened "${result.slug}" (previously open: "${result.previousActive}"). ` +
-        `Reload the app to see it; switch back any time in the editor's Theme file manager. ` +
+        `Reload the app to see it; switch back any time from Load in the editor's Theme panel. ` +
         `Adopt it there to publish it to tokens.generated.css.`,
     );
   } else if (!result.dryRun) {
-    lines.push(`\nNot opened (--no-activate). Select "${result.slug}" in the editor's Theme file manager.`);
+    lines.push(`\nNot opened (--no-activate). Load "${result.slug}" from the editor's Theme panel to see it.`);
   }
   return lines.join('\n');
 }

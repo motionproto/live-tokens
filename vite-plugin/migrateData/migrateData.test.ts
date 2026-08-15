@@ -222,6 +222,16 @@ describe('migrateData', () => {
     migrateData({ ...dirs(root), packageDataDir: path.join(root, DATA) });
 
     expect(exists(root, 'colors-and-type', 'sunset.json')).toBe(true);
+    // The package ships no component configs, so nothing there is shipped and
+    // the sweep still reaches the copies the theme carries.
+    expect(exists(root, 'component-configs', 'button', 'sunset.json')).toBe(false);
+  });
+
+  it('names the file when one a retired pointer names will not parse', () => {
+    const root = legacyTree();
+    fs.writeFileSync(path.join(root, DATA, 'colors-and-type', 'sunset.json'), '{ not json');
+
+    expect(() => heal(root)).toThrow(/sunset\.json will not parse/);
   });
 
   it('deletes a local shadow of a shipped preset', () => {

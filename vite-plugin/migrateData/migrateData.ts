@@ -138,16 +138,19 @@ function componentNames(componentConfigsDir: string): string[] {
     .sort();
 }
 
-/** Colors-and-type basenames the installed package ships, read from its own
- *  `files` listing — the only way to tell a shipped preset from a user file in
- *  the library repo, where the local dir IS the package dir. */
-function shippedColorsAndTypeNames(packageDataDir: string): string[] {
+/** Basenames the installed package ships under `<packageDataDir>/<subdir>`, read
+ *  from its own `files` listing — the only way to tell a shipped file from a
+ *  user file in the library repo, where the local dir IS the package dir. The
+ *  package ships no component configs, so there the answer is none, which is
+ *  what lets the sweep reach them at all. */
+function shippedNames(packageDataDir: string, subdir: string): string[] {
   try {
     const pkgRoot = path.resolve(packageDataDir, '..', '..', '..');
     const pkg = JSON.parse(fs.readFileSync(path.join(pkgRoot, 'package.json'), 'utf-8'));
     const files: string[] = Array.isArray(pkg.files) ? pkg.files : [];
+    const prefix = `src/live-tokens/data/${subdir}/`;
     return files
-      .filter((f) => /^src\/live-tokens\/data\/colors-and-type\/[^/]+\.json$/.test(f))
+      .filter((f) => f.startsWith(prefix) && /^[^/]+\.json$/.test(f.slice(prefix.length)))
       .map((f) => path.basename(f, '.json'));
   } catch {
     return [];
@@ -161,7 +164,7 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
   const colorsRes = versionedFileResourceServer({
     dir: colorsAndTypeDir,
     packageDir: packageDataDir ? path.join(packageDataDir, 'colors-and-type') : undefined,
-    packageOwnedNames: packageDataDir ? shippedColorsAndTypeNames(packageDataDir) : undefined,
+    packageOwnedNames: packageDataDir ? shippedNames(packageDataDir, 'colors-and-type') : undefined,
   });
   const themesRes = versionedFileResourceServer({
     dir: themesDir,
@@ -175,6 +178,9 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
         dir: path.join(componentConfigsDir, comp),
         packageDir: packageDataDir
           ? path.join(packageDataDir, 'component-configs', comp)
+          : undefined,
+        packageOwnedNames: packageDataDir
+          ? shippedNames(packageDataDir, `component-configs/${comp}`)
           : undefined,
       });
       componentResources.set(comp, r);
@@ -244,6 +250,21 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
     return name;
   };
 
+  /** The heal's whole plan is built from what the retired pointers named, so a
+   *  file that will not parse has to stop it by name. A raw SyntaxError says
+   *  nothing about which file to fix. */
+  const readPointed = (res: VersionedFileResourceServer, name: string): unknown => {
+    try {
+      return res.readJson(name);
+    } catch (err) {
+      const file = res.existingPath(name) ?? res.filePath(name);
+      throw new Error(
+        `${file} will not parse (${err instanceof Error ? err.message : String(err)}), and a retired ` +
+          `pointer names it. Fix or delete the file, then run the migration again.`,
+      );
+    }
+  };
+
   const defaultConfig = (comp: string): unknown => compRes(comp).readJson('default');
 
   /** What a theme says a component runs. Delta encoding: absent is the default,
@@ -261,8 +282,10 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
       resolveName(compRes(comp), path.join(componentConfigsDir, comp), '_production.json', 'productionFile'),
     ]),
   );
-  const prodColors = colorsRes.readJson(prodColorsName);
-  const prodConfigs = new Map(comps.map((comp) => [comp, compRes(comp).readJson(prodConfigNames.get(comp)!)]));
+  const prodColors = readPointed(colorsRes, prodColorsName);
+  const prodConfigs = new Map(
+    comps.map((comp) => [comp, readPointed(compRes(comp), prodConfigNames.get(comp)!)]),
+  );
 
   const allDefault =
     prodColorsName === 'default' && [...prodConfigNames.values()].every((n) => n === 'default');
@@ -326,7 +349,7 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
   const activeColorsName = resolveName(colorsRes, colorsAndTypeDir, '_active.json', 'activeFile');
   planWorking(
     colorsRes,
-    colorsRes.readJson(activeColorsName),
+    readPointed(colorsRes, activeColorsName),
     activeTheme?.colorsAndType ?? colorsRes.readJson('default'),
   );
   for (const comp of comps) {
@@ -338,7 +361,7 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
     );
     planWorking(
       compRes(comp),
-      compRes(comp).readJson(activeName),
+      readPointed(compRes(comp), activeName),
       activeTheme ? themeConfigFor(activeTheme, comp) : defaultConfig(comp),
     );
   }

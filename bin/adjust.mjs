@@ -245,7 +245,7 @@ export function formatAdjustResult(result) {
   if (result.buffered) {
     lines.push(
       `Reload the app to see it. This is an unsaved edit: save the open theme in the ` +
-        `editor's Theme file manager to keep it, or apply a theme to discard it.`,
+        `editor's Theme panel to keep it, or load a theme to discard it.`,
     );
   } else if (result.dryRun) {
     lines.push(`Dry run: nothing written under ${relative(root, result.configsDir)}.`);

@@ -4,9 +4,9 @@
 //   create <dir>             Scaffold a new app that depends on this package.
 //   setup-claude [--force]   Copy bundled Claude Code skills into ./.claude/skills/.
 //   check-component <id>     Validate a component against the add-component skill contract.
-//   generate-theme <brief>   Build + activate a theme from a 10-seed OKLCH brief.
-//   adjust <ops.json>        Apply radius/padding/gap/border-width ops to component configs.
-//   migrate [...]            Reconcile tokens.css + route references after an upgrade.
+//   generate-theme <brief>   Build a theme from a 10-seed OKLCH brief and open it.
+//   adjust <ops.json>        Apply radius/padding/gap/border-width ops to the open buffer.
+//   migrate [...]            Reconcile tokens.css, the data tree, and route references.
 
 import { cpSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -36,32 +36,33 @@ Commands:
                               Build a full theme from a 10-seed OKLCH brief
                               (see the live-tokens-generate-theme skill),
                               enforce AA contrast on derived text tokens, write
-                              colors-and-type/<slug>.json, and make it the
-                              active theme.
-                              --no-activate only writes the file; --dry-run
-                              prints the contrast report without writing.
-                              Non-color content (gradients, fonts, component
-                              aliases) carries forward from the active theme,
-                              or from <name> with --carry-from.
-  adjust <ops.json> [--no-activate] [--dry-run]
+                              themes/<slug>.json, and open it in the editor.
+                              Opening never changes what your site ships; Adopt
+                              in the editor does that.
+                              --no-activate writes the theme without opening it;
+                              --dry-run prints the contrast report without
+                              writing. Non-color content (gradients, fonts,
+                              component aliases) carries forward from the live
+                              look, or from theme <name> with --carry-from.
+  adjust <ops.json> [--dry-run]
                               Move radius, padding, gap, and border-width
                               aliases along their token scales (see the
                               live-tokens-adjust-shape-space skill). Reads each
-                              component's active config, writes
-                              component-configs/<id>/<slug>.json for every
-                              component the ops change, and activates it.
-                              Unnamed runs roll into "adjusted"; a named run
-                              writes its own file. --no-activate only writes the
-                              files; --dry-run prints the report without writing.
+                              component's live config and writes the result to
+                              that component's unsaved buffer, so save the open
+                              theme in the editor to keep it. --dry-run prints
+                              the report without writing.
   migrate [--check] [--write] [--tokens <path>]
                               Reconcile your project with the installed package:
-                              applies additive tokens.css migrations (unless
-                              --check), and reports source references to the
+                              applies additive tokens.css migrations, heals a
+                              data tree still on the pre-working-set model
+                              (retired pointer files and the copies they named),
+                              and reports source references to the
                               editor/components/docs routes that moved to
                               /live-tokens/* in 0.35.0. --write also rewrites the
                               unambiguous route references (never /docs). --check
-                              reports without writing (exit 1 if token migrations
-                              are pending; route findings are advisory).
+                              prints both plans without writing (exit 1 when
+                              either is pending; route findings are advisory).
 `;
 
 function fail(message, code = 1) {
@@ -128,6 +129,12 @@ if (command === 'adjust') {
   const opsPath = rest.find((a) => !a.startsWith('-'));
   if (!opsPath) {
     fail(`Usage: npx @motion-proto/live-tokens adjust <ops.json> [--dry-run]`);
+  }
+  if (rest.includes('--no-activate')) {
+    fail(
+      `adjust has no --no-activate: it edits the open buffer, which is what the page already runs. ` +
+        `Save the open theme in the editor to keep the change, or apply a theme to discard it.`,
+    );
   }
   try {
     const result = await runAdjust({
