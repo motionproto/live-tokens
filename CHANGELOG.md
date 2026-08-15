@@ -226,13 +226,14 @@
   removes them from `cssVariables`.
 
 - **Line-height references follow the scale that was renamed under them**
-  (colors-and-type schema version 5): 0.41.0 reshaped `--line-height-{xs..xl}`
-  into leading vocabulary in `tokens.css`, but nothing carried a saved file's
-  references across, so every one of them pointed at a token that no longer
-  existed. They now migrate on load: `xs` to `none`, `sm` to `tighter`, `md` to
-  `normal`, `lg` to `relaxed`. The retired 2.0 slot (`xl`) lands on `relaxed`,
-  the nearest surviving step, which is a visible change to any line that used
-  it.
+  (colors-and-type schema version 5, component-config schema version 21):
+  0.41.0 reshaped `--line-height-{xs..xl}` into leading vocabulary in
+  `tokens.css`, but nothing carried a saved file's references across, so every
+  one of them pointed at a token that no longer existed. Both layers now migrate
+  on load, a colors-and-type file's `cssVariables` and a component config's
+  alias values alike: `xs` to `none`, `sm` to `tighter`, `md` to `normal`, `lg`
+  to `relaxed`. The retired 2.0 slot (`xl`) lands on `relaxed`, the nearest
+  surviving step, which is a visible change to any line that used it.
 
 - **A colors-and-type file left among the themes is refused, not read as a
   theme.** Both kinds carry a `schemaVersion` and the sequences overlap, so one

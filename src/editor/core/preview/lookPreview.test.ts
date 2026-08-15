@@ -128,6 +128,14 @@ describe('themeLook', () => {
     expect(vars).not.toHaveProperty('--stat-default-radius');
   });
 
+  it('migrates a config the theme embedded at an older stamp', () => {
+    const stale = theme('stale', colorsAndType({}), {
+      card: config('card', { '--card-default-title-line-height': '--line-height-md' }),
+    });
+    const { vars } = themeLook(stale, defaults);
+    expect(vars['--card-default-title-line-height']).toBe('var(--line-height-normal)');
+  });
+
   it('resolves the embedded font stacks into --font-* values', () => {
     const { vars, fontSources } = themeLook(yuletide, defaults);
     expect(vars['--font-display']).toBe('"Mountains of Christmas", serif');

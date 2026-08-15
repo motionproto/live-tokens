@@ -562,6 +562,31 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out['--font-size-md']).toBe('1rem');
   });
 
+  it('component-config v20 → v21: alias values follow the same line-height rename', () => {
+    const v20 = {
+      '--card-default-title-line-height': '--line-height-md',
+      '--card-default-body-line-height': '--line-height-xl',
+      // Already on the leading vocabulary, and a value the rename must not reach.
+      '--card-selected-title-line-height': '--line-height-tight',
+      '--card-default-radius': '--radius-lg',
+    };
+    const out = runMigrations('component-config', 20, v20, { component: 'card' });
+    expect(out['--card-default-title-line-height']).toBe('--line-height-normal');
+    expect(out['--card-default-body-line-height']).toBe('--line-height-relaxed');
+    expect(out['--card-selected-title-line-height']).toBe('--line-height-tight');
+    expect(out['--card-default-radius']).toBe('--radius-lg');
+  });
+
+  it('component-config v20 → v21 is idempotent', () => {
+    const once = runMigrations(
+      'component-config',
+      20,
+      { '--card-default-title-line-height': '--line-height-md' },
+      { component: 'card' },
+    );
+    expect(runMigrations('component-config', 20, once, { component: 'card' })).toEqual(once);
+  });
+
   it('colors-and-type v4 → v5 leaves definitions alone and is idempotent', () => {
     const once = runMigrations('colors-and-type', 4, {
       '--card-title-line-height': 'var(--line-height-md)',
