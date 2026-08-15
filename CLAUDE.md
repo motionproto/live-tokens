@@ -4,14 +4,15 @@ Write throwaway files (theme briefs, test scripts, one-off outputs) to `scratch/
 
 # The data tree is live app state
 
-The editor, the dev server, and `live-tokens generate-theme` write into `src/live-tokens/data/` and `src/system/styles/fonts.css`. Activating or promoting a theme flips every `_active.json` and `_production.json` pointer, rewrites `tokens.generated.css` and `fonts.css`, and creates per-theme component-config files.
+The editor, the dev server, `live-tokens generate-theme`, and `live-tokens adjust` write into `src/live-tokens/data/` and `src/system/styles/fonts.css`. Loading a theme writes `_working.json` buffers and sets `themes/_active.json`. Adopt sets `themes/_production.json` and rewrites `tokens.generated.css` and `fonts.css`. Generating a theme also creates `themes/<slug>.json`.
 
 When you exercise the generator or the editor as a test, restore that state before you finish. Skip the restore only when the data change is the deliverable.
 
 ```sh
-git restore $(git diff --name-only | grep -E '(_active|_production)\.json$')
+git restore src/live-tokens/data/themes/_active.json src/live-tokens/data/themes/_production.json
 git restore src/live-tokens/data/tokens.generated.css src/system/styles/fonts.css
-git status --short src/live-tokens/data   # then delete untracked per-theme files the run created
+find src/live-tokens/data -name '_working.json' -delete
+git status --short src/live-tokens/data   # then delete untracked theme files the run created
 ```
 
-`node scripts/check-production-is-default.mjs` verifies the pointers afterward.
+`node scripts/check-production-is-default.mjs` verifies the tree afterward.
