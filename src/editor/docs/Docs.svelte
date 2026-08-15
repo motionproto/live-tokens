@@ -99,6 +99,7 @@
         { path: 'getting-started',     title: 'Getting started' },
         { path: 'editing-tokens',      title: 'Editing tokens' },
         { path: 'themes-workflow',     title: 'Themes' },
+        { path: 'where-themes-live',   title: 'Where themes live' },
         { path: 'creating-components', title: 'Creating components' },
       ],
     },

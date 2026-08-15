@@ -94,5 +94,7 @@ edit.
 
 ## Where to go next
 
+- **[Where themes live](where-themes-live.md)**: the files behind all of this,
+  and what writes each one.
 - **[Creating components](creating-components.md)**: make your own components
   editable in the same editor.
