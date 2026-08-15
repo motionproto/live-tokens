@@ -18,16 +18,18 @@ This project follows the package's [recommended layout](https://github.com/motio
   a reserved `/live-tokens/*` namespace (so they never collide with your pages):
   `/live-tokens/editor` (theme tokens), `/live-tokens/components` (per-component
   aliases), and `/live-tokens/docs` (the user guide).
-- `src/system/styles/tokens.css` — your theme token vocabulary. The dev server
-  writes edits here when you use the in-browser editor.
+- `src/system/styles/tokens.css` — your theme token vocabulary. Hand-authored
+  and yours; the editor reads it but never writes it.
 - `src/styles/site.css` — themed page typography. Yours to edit.
 
 ## Editing live
 
 Run `npm run dev`, then click **Open Token Editor** on the home page (or visit
-`/live-tokens/editor`). Changes persist to `src/system/styles/tokens.css` and the JSON under
-`src/live-tokens/data/`. The editor is dev-only — `npm run build` ships plain
-CSS variables and the components you used, nothing else.
+`/live-tokens/editor`). Edits live in the JSON under `src/live-tokens/data/`:
+Save keeps them in a theme, and Adopt writes the theme into
+`src/live-tokens/data/tokens.generated.css`, the file your built site ships.
+The editor is dev-only — `npm run build` ships plain CSS variables and the
+components you used, nothing else.
 
 ## Adding components
 

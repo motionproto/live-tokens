@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.48.0 — Themes are documents
 
 ### Added
 
@@ -48,6 +48,14 @@
   component's unsaved buffer, so save the open theme to keep it. The bundled
   `live-tokens-adjust-shape-space` skill maps "make the buttons pill
   shaped", "make the UI softer", "space it out" onto ops files.
+
+- **Gradients travel with the theme.** The `--gradient-N` swatch tokens
+  round-trip through colors-and-type files as a structured `gradients` field:
+  the editable type, angle, and stops, not just the rendered CSS strings, which
+  stay in `cssVariables` as a projection for production. Loading restores your
+  tuned gradients; files saved before the field existed keep the stock set they
+  rendered. `generate-theme` carries tuned gradients forward and rebuilds stock
+  ones from the new theme's color families.
 
 - **Themes are encapsulated.** A theme now carries its whole look by value
   (`schemaVersion: 3`): its full colors and type plus a copy of every
