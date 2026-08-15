@@ -56,10 +56,11 @@ tape measure never repaints your walls.
   stays exactly as you set it.
 - **`migrate` also tidies your saved data.** A project that predates the
   working-set model kept a copy of every look it had ever loaded. The same
-  command records which theme your site ships, keeps whatever you were in the
-  middle of, and clears the copies. It never deletes a file that matches no
-  theme, and never changes what your site ships without writing that look down
-  as a theme of its own. Run it once, then review the diff in git.
+  command moves your data folders onto the names 0.48 uses, records which theme
+  your site ships, keeps whatever you were in the middle of, and clears the
+  copies. It never deletes a file that matches no theme, and never changes what
+  your site ships without writing that look down as a theme of its own. Run it
+  once, then review the diff in git.
 - **Installing never edits your files on its own.** `npm install` updates the
   package code only. Changing your `tokens.css` is a separate, deliberate step
   you run with `migrate` when you are ready, then you review the change in git

@@ -54,9 +54,9 @@ Commands:
                               the report without writing.
   migrate [--check] [--write] [--tokens <path>]
                               Reconcile your project with the installed package:
-                              applies additive tokens.css migrations, heals a
-                              data tree still on the pre-working-set model
-                              (retired pointer files and the copies they named),
+                              applies additive tokens.css migrations, moves a
+                              pre-0.48 data tree onto the current directory
+                              names, heals what the retired pointer files named,
                               and reports source references to the
                               editor/components/docs routes that moved to
                               /live-tokens/* in 0.35.0. --write also rewrites the

@@ -25,6 +25,12 @@ import {
   type ThemeResolvers,
 } from '../themes/normalizeTheme';
 import { nextAvailableName } from '../files/nameAllocator';
+import {
+  applyLegacyRenames,
+  detectLegacyLayout,
+  planLegacyRenames,
+  type LegacyRename,
+} from '../files/legacyLayout';
 
 /** Slug for the theme that records a production state no saved theme matches.
  *  Fixed rather than derived: release notes, the boot warning and support
@@ -43,6 +49,9 @@ const VOLATILE_KEYS = [...MARKER_KEYS, 'updatedAt'];
 type Json = Record<string, unknown>;
 
 export interface MigrateDataOptions {
+  /** The directory the three below sit under. Locates the pre-0.48
+   *  `manifests/` directory, which no config key names any more. */
+  dataDir: string;
   colorsAndTypeDir: string;
   componentConfigsDir: string;
   themesDir: string;
@@ -56,6 +65,8 @@ export interface MigrateDataOptions {
 
 export interface MigrateDataResult {
   status: 'clean' | 'planned' | 'healed';
+  /** Directories moved to the 0.48 layout, old → new, in the order they ran. */
+  renames: LegacyRename[];
   /** The theme production resolves to after the heal, and how it was decided. */
   production: { slug: string; how: 'all-default' | 'matched' | 'recovered' } | null;
   /** Path of the theme written to record an unmatched production state. */
@@ -158,8 +169,43 @@ function shippedNames(packageDataDir: string, subdir: string): string[] {
 }
 
 export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
-  const { colorsAndTypeDir, componentConfigsDir, themesDir, check = false } = opts;
+  const { componentConfigsDir, check = false } = opts;
   const packageDataDir = opts.packageDataDir;
+
+  // Step zero, before anything reads a theme: a tree on the pre-0.48 layout
+  // keeps its colors and type in `themes/` and its looks in `manifests/`, so
+  // the heal below would read every palette as a corrupt theme. Move the
+  // directories first and the rest of the pass runs on the layout it expects.
+  const legacyLayout = detectLegacyLayout({
+    dataDir: opts.dataDir,
+    colorsAndTypeDir: opts.colorsAndTypeDir,
+    themesDir: opts.themesDir,
+  });
+  const renames = legacyLayout
+    ? planLegacyRenames(legacyLayout, {
+        dataDir: opts.dataDir,
+        colorsAndTypeDir: opts.colorsAndTypeDir,
+        themesDir: opts.themesDir,
+      })
+    : [];
+  if (legacyLayout && !check) applyLegacyRenames(renames);
+
+  // `--check` moves nothing, so it plans against the directories where the
+  // content still sits: the old themes directory holds the colors and type, the
+  // manifests directory holds the themes.
+  const planningLegacy = legacyLayout !== null && check;
+  const colorsAndTypeDir = planningLegacy ? opts.themesDir : opts.colorsAndTypeDir;
+  const themesDir = planningLegacy ? legacyLayout!.manifestsDir : opts.themesDir;
+
+  /** A planned path names where the file will be once the renames run, not the
+   *  directory the plan had to read it from. */
+  const reported = (p: string): string => {
+    if (!planningLegacy) return p;
+    for (const { from, to } of renames) {
+      if (p.startsWith(from + path.sep)) return path.join(to, p.slice(from.length + 1));
+    }
+    return p;
+  };
 
   const colorsRes = versionedFileResourceServer({
     dir: colorsAndTypeDir,
@@ -200,6 +246,7 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
 
   const empty: MigrateDataResult = {
     status: 'clean',
+    renames,
     production: null,
     recoveredThemePath: null,
     workingWritten: [],
@@ -210,8 +257,12 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
     upgradedThemes: [],
   };
   // The pointers are what says a tree still runs the old model. Without them
-  // every named file is a preset the user saved, and there is nothing to heal.
-  if (legacyPointers.length === 0) return empty;
+  // every named file is a preset the user saved, and there is nothing left to
+  // heal once the directories carry their 0.48 names.
+  if (legacyPointers.length === 0) {
+    if (!legacyLayout) return empty;
+    return { ...empty, status: check ? 'planned' : 'healed' };
+  }
 
   // Identity normalisation: the heal compares what is on disk against what a
   // theme embedded, so reconciling either side would invent a difference.
@@ -415,13 +466,14 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
 
   return {
     status: check ? 'planned' : 'healed',
+    renames,
     production,
-    recoveredThemePath,
-    workingWritten,
-    workingKept,
-    deletedFiles,
-    deletedPointers: legacyPointers,
-    keptUserFiles,
-    upgradedThemes,
+    recoveredThemePath: recoveredThemePath && reported(recoveredThemePath),
+    workingWritten: workingWritten.map(reported),
+    workingKept: workingKept.map(reported),
+    deletedFiles: deletedFiles.map(reported),
+    deletedPointers: legacyPointers.map(reported),
+    keptUserFiles: keptUserFiles.map(reported),
+    upgradedThemes: upgradedThemes.map(reported),
   };
 }

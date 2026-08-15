@@ -50,7 +50,7 @@ The `themeFileApi` plugin:
 - Hosts the `/api/live-tokens/*` routes the editor uses to save and load themes + per-component configs.
 - Auto-injects `__PROJECT_ROOT__` for the overlay's "Page Source" link and `__LIVE_TOKENS_API_BASE__` so the client uses whatever `apiBase` you configured.
 
-A project last opened before the working-set model still carries the retired per-layer `_active.json` / `_production.json` files. The plugin warns and holds the startup bake rather than deciding for you. `npx live-tokens migrate` reads what those pointers resolved to, records it as the production theme, and clears them.
+A project last opened on 0.47.1 or earlier still keeps its colors and type in `themes/` and its whole looks in `manifests/`, the names 0.48 reassigned. The plugin recognises that layout, writes nothing at all, and says so. `npx live-tokens migrate` moves `themes/` to `colors-and-type/` and `manifests/` to `themes/`, then heals what is inside: it reads what the retired per-layer `_active.json` / `_production.json` pointers resolved to, records it as the production theme, and clears them. Restart the dev server afterwards.
 
 ### Where data lands — and how to move it
 

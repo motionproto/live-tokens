@@ -22,6 +22,7 @@ import {
 } from './themes/normalizeTheme';
 import { nextAvailableName as allocNextAvailableName } from './files/nameAllocator';
 import { resolveDataDirs } from './files/dataPaths';
+import { detectLegacyLayout } from './files/legacyLayout';
 import { validateTokensCss, runAdditiveTokensCssMigrations } from './tokensCssMigrations';
 import { fileURLToPath } from 'node:url';
 
@@ -713,6 +714,19 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
           ? ` Until then this tree has named no production theme, so ${path.basename(GENERATED_CSS_PATH)} ` +
             'is left exactly as it is rather than rebuilt from the default.'
           : ''),
+    );
+  }
+
+  /** The pre-0.48 layout is not a state any door here can read: `themes/` holds
+   *  colors-and-type files, and a writer aimed at one would overwrite a saved
+   *  palette with the package default. Boot stops instead. */
+  function warnOnLegacyLayout(evidence: string, warn: (msg: string) => void): void {
+    warn(
+      `[live-tokens] This project still uses the data layout from 0.47 and earlier: ${evidence}. ` +
+        'Since 0.48 the whole-look theme files live in `themes/` and the colors and type live in ' +
+        '`colors-and-type/`. Nothing in the data directory was written, the editor cannot save, and ' +
+        `${path.basename(GENERATED_CSS_PATH)} is left exactly as it is. Run ` +
+        '`npx live-tokens migrate` to move the directories and heal the tree, then restart the dev server.',
     );
   }
 
@@ -1789,30 +1803,54 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       };
     },
     configureServer(server) {
-      ensureColorsAndTypeDir();
-      ensureComponentConfigsDir();
-      const { productionPointerHeld } = ensureThemesDir((msg) => server.config.logger.warn(msg));
-      // Make sure the editor-owned sidecar exists and reflects current
-      // production state before the first request lands. Without this, a
-      // fresh checkout would import a stale (or missing) generated file. An
-      // unhealed tree is the exception: baking there would answer a question it
-      // has not been asked yet — unless the file is absent, in which case there
-      // is no shipped look to preserve and the default beats nothing at all.
-      if (!productionPointerHeld || !fs.existsSync(GENERATED_CSS_PATH)) regenerateTokensCss();
+      // Before every writer: the pre-0.48 layout has to be recognised while the
+      // directories still hold what they held, and `ensureColorsAndTypeDir`
+      // alone would leave a marker that hides it.
+      const legacyLayout = detectLegacyLayout({
+        dataDir: dataDirs.dataDir,
+        colorsAndTypeDir: COLORS_AND_TYPE_DIR,
+        themesDir: THEMES_DIR,
+      });
 
-      // Opt-in: bring tokens.css up to date with additive migrations first, so
-      // the drift warning below only fires for genuinely breaking gaps.
-      if (opts.autoMigrate) autoMigrateAdditive((msg) => server.config.logger.info(msg));
+      if (legacyLayout) {
+        warnOnLegacyLayout(legacyLayout.evidence, (msg) => server.config.logger.warn(msg));
+      } else {
+        ensureColorsAndTypeDir();
+        ensureComponentConfigsDir();
+        const { productionPointerHeld } = ensureThemesDir((msg) => server.config.logger.warn(msg));
+        // Make sure the editor-owned sidecar exists and reflects current
+        // production state before the first request lands. Without this, a
+        // fresh checkout would import a stale (or missing) generated file. An
+        // unhealed tree is the exception: baking there would answer a question it
+        // has not been asked yet — unless the file is absent, in which case there
+        // is no shipped look to preserve and the default beats nothing at all.
+        if (!productionPointerHeld || !fs.existsSync(GENERATED_CSS_PATH)) regenerateTokensCss();
 
-      // Surface Layer-1 token drift (consumer tokens.css behind the package's
-      // component vocabulary) before the editor loads, so blank slots have an
-      // explanation and a one-command fix.
-      warnOnTokenDrift((msg) => server.config.logger.warn(msg));
-      warnOnLegacyPointers(listLegacyPointers(), productionPointerHeld, (msg) =>
-        server.config.logger.warn(msg),
-      );
+        // Opt-in: bring tokens.css up to date with additive migrations first, so
+        // the drift warning below only fires for genuinely breaking gaps.
+        if (opts.autoMigrate) autoMigrateAdditive((msg) => server.config.logger.info(msg));
+
+        // Surface Layer-1 token drift (consumer tokens.css behind the package's
+        // component vocabulary) before the editor loads, so blank slots have an
+        // explanation and a one-command fix.
+        warnOnTokenDrift((msg) => server.config.logger.warn(msg));
+        warnOnLegacyPointers(listLegacyPointers(), productionPointerHeld, (msg) =>
+          server.config.logger.warn(msg),
+        );
+      }
 
       server.middlewares.use(async (req, res, next) => {
+        // Reads degrade to the package defaults, which is wrong but harmless.
+        // A write would land in a directory whose meaning has changed under it.
+        if (legacyLayout && req.method !== 'GET' && (req.url ?? '').startsWith(API_BASE)) {
+          jsonResponse(res, 409, {
+            error:
+              'This project still uses the data layout from 0.47 and earlier. Run ' +
+              '`npx live-tokens migrate`, then restart the dev server.',
+            code: 'LEGACY_LAYOUT',
+          });
+          return;
+        }
         const handled = await dispatch(req, res, routes);
         if (!handled) next();
       });

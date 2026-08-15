@@ -98,6 +98,7 @@ export async function runMigrateData({ check = false, engine } = {}) {
   const { migrateData, resolveDataDirs } = engine ?? (await loadDataEngine());
   const dirs = resolveDataDirs();
   return migrateData({
+    dataDir: dirs.dataDir,
     colorsAndTypeDir: dirs.colorsAndTypeDir,
     componentConfigsDir: dirs.componentConfigsDir,
     themesDir: dirs.themesDir,
@@ -120,6 +121,9 @@ export function formatMigrateDataResult(result) {
   const planned = result.status === 'planned';
   const lines = [planned ? 'Data tree heal (planned):' : 'Data tree healed:'];
 
+  for (const { from, to } of result.renames) {
+    lines.push(`  ${planned ? 'would move' : 'moved'} ${rel(from)} → ${rel(to)} (0.48 layout)`);
+  }
   for (const p of result.upgradedThemes) {
     lines.push(`  ${planned ? 'would carry' : 'carried'} ${rel(p)} by value (was a pre-v3 theme naming files)`);
   }

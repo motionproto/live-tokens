@@ -66,6 +66,7 @@ const DATA = 'src/live-tokens/data';
 
 function dirs(root: string) {
   return {
+    dataDir: path.join(root, DATA),
     colorsAndTypeDir: path.join(root, DATA, 'colors-and-type'),
     componentConfigsDir: path.join(root, DATA, 'component-configs'),
     themesDir: path.join(root, DATA, 'themes'),

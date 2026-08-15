@@ -95,15 +95,24 @@
   and publishes the open theme, that component with it. The per-slice promote
   door is gone.
 
-- **Existing projects need one `npx live-tokens migrate`.** It reads what the
+- **Existing projects need one `npx live-tokens migrate`.** It starts with the
+  directories: a project last opened on 0.47.1 or earlier keeps its colors and
+  type in `data/themes/` and its whole looks in `data/manifests/`, so the
+  migration moves `themes/` to `colors-and-type/` and `manifests/` to `themes/`
+  before reading a single file. Then it heals what is inside. It reads what the
   retired pointers resolved to and records it as the production theme, keeps
   live state that had drifted from the open theme as a buffer, deletes the
   copies a saved theme already carries, and clears the pointer files. A file
   matching no theme is yours and is kept; the effective production output never
-  changes without being written down as `themes/recovered-production.json`.
-  `--check` prints the whole plan. Until you run it the dev server warns and
-  holds the startup bake, so the look you ship survives the upgrade. It never
-  deletes anything on its own.
+  changes without being written down as `themes/recovered-production.json`, so
+  that file appearing is the normal outcome when your live look had drifted from
+  the production pointers, not an error. `--check` prints the whole plan,
+  renames included. Until you run it the dev server leaves the data directory
+  alone: it writes nothing, rebuilds no CSS, refuses the editor's save doors,
+  and prints what to run. Restart it afterwards. One thing to check by hand: a
+  `.gitignore` entry for `data/themes/_backups/` or `data/manifests/_backups/`
+  now names the wrong directory. Any old backups move with their directory, so
+  repath the entry to `data/colors-and-type/_backups/` or drop it.
 
 - **Public API. (breaking)** `setActiveFile`, `setProductionFile`,
   `getProductionInfo`, the `ProductionInfo` type and the `activeFileName` store
