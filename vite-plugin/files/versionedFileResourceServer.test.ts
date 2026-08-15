@@ -174,25 +174,61 @@ describe('listNames', () => {
   });
 });
 
+describe('the working buffer', () => {
+  it('reads back what was written', () => {
+    const r = versionedFileResourceServer({ dir: localDir, packageDir });
+    r.writeWorking({ name: 'Buffer' });
+    expect(r.readWorking()).toEqual({ name: 'Buffer' });
+  });
+
+  it('reads null when there is none', () => {
+    const r = versionedFileResourceServer({ dir: localDir, packageDir });
+    expect(r.readWorking()).toBeNull();
+  });
+
+  it('never falls back to a package buffer', () => {
+    const r = versionedFileResourceServer({ dir: localDir, packageDir });
+    write(packageDir, '_working', { name: 'Package buffer' });
+    expect(r.readWorking()).toBeNull();
+  });
+
+  it('creates a missing dir on write', () => {
+    const fresh = path.join(root, 'fresh');
+    const r = versionedFileResourceServer({ dir: fresh });
+    r.writeWorking({ name: 'Buffer' });
+    expect(fs.existsSync(path.join(fresh, '_working.json'))).toBe(true);
+  });
+
+  it('clears the buffer, and clearing nothing is a no-op', () => {
+    const r = versionedFileResourceServer({ dir: localDir, packageDir });
+    r.writeWorking({ name: 'Buffer' });
+    r.clearWorking();
+    r.clearWorking();
+    expect(fs.existsSync(r.workingPath)).toBe(false);
+  });
+});
+
 describe('writes and pointers stay local', () => {
   it('filePath always resolves under the local dir', () => {
     const r = versionedFileResourceServer({ dir: localDir, packageDir });
     expect(r.filePath('default')).toBe(path.join(localDir, 'default.json'));
   });
 
-  it('activePath / productionPath resolve under the local dir', () => {
+  it('activePath / productionPath / workingPath resolve under the local dir', () => {
     const r = versionedFileResourceServer({ dir: localDir, packageDir });
     expect(r.activePath).toBe(path.join(localDir, '_active.json'));
     expect(r.productionPath).toBe(path.join(localDir, '_production.json'));
+    expect(r.workingPath).toBe(path.join(localDir, '_working.json'));
   });
 
-  it('setActiveName / setProductionName write under local, never package', () => {
+  it('setActiveName / setProductionName / writeWorking write under local, never package', () => {
     const r = versionedFileResourceServer({ dir: localDir, packageDir });
     r.setActiveName('custom');
     r.setProductionName('custom');
+    r.writeWorking({ name: 'Buffer' });
     expect(fs.existsSync(path.join(localDir, '_active.json'))).toBe(true);
     expect(fs.existsSync(path.join(localDir, '_production.json'))).toBe(true);
-    expect(fs.existsSync(path.join(packageDir, '_active.json'))).toBe(false);
-    expect(fs.existsSync(path.join(packageDir, '_production.json'))).toBe(false);
+    expect(fs.existsSync(path.join(localDir, '_working.json'))).toBe(true);
+    expect(fs.readdirSync(packageDir)).toEqual([]);
   });
 });

@@ -142,6 +142,8 @@ export function sanitizeFileName(name: string): string {
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9\-_]/g, '')
       .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '') || 'unnamed'
+      // A leading `_` marks the fixed slots (`_working`, the pointer files), so
+      // no name a user types or a bundle carries may keep one.
+      .replace(/^[-_]+|-+$/g, '') || 'unnamed'
   );
 }

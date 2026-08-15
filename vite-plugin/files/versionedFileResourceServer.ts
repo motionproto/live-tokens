@@ -1,9 +1,9 @@
 /**
  * Server-side filesystem helpers for any "versioned file resource" — a
  * directory of `.json` files with a paired `_active.json` and
- * `_production.json` pointer. Both `themes/` and `component-configs/{comp}/`
- * follow this exact shape; they previously had separate copies of the same
- * code.
+ * `_production.json` pointer plus a reserved `_working.json` buffer slot. Both
+ * `themes/` and `component-configs/{comp}/` follow this exact shape; they
+ * previously had separate copies of the same code.
  *
  * Pure Node (`fs`, `path`) — no Vite or Svelte coupling, so the tsup
  * ESM+CJS build bundles it cleanly.
@@ -36,6 +36,7 @@ export interface VersionedFileResourceServer {
   readonly dir: string;
   readonly activePath: string;
   readonly productionPath: string;
+  readonly workingPath: string;
 
   /** Create the directory (and pointer files) if missing. Pointer files default
    * to `defaultName`. */
@@ -76,6 +77,15 @@ export interface VersionedFileResourceServer {
   setActiveName(name: string): void;
   /** Atomically write the production-file pointer. */
   setProductionName(name: string): void;
+  /** Read the `_working.json` buffer, or `null` when there is none. Local only:
+   * the buffer is the consumer's unsaved edit, so a package copy must never
+   * stand in for its absence. Throws on a corrupt file, same
+   * no-silent-fallback rule as `readJson`. */
+  readWorking(): unknown | null;
+  /** Write the `_working.json` buffer, creating `dir` if it is missing. */
+  writeWorking(data: unknown): void;
+  /** Delete the `_working.json` buffer. No-op when there is none. */
+  clearWorking(): void;
 }
 
 /**
@@ -88,6 +98,7 @@ export function versionedFileResourceServer(
   const dir = opts.dir;
   const activePath = path.join(dir, '_active.json');
   const productionPath = path.join(dir, '_production.json');
+  const workingPath = path.join(dir, '_working.json');
   const defaultName = opts.defaultName ?? 'default';
   // Resolve both dirs so the library-repo self-fallback (local === package)
   // is detectable in `listNames` and never double-lists.
@@ -187,10 +198,25 @@ export function versionedFileResourceServer(
     fs.writeFileSync(productionPath, JSON.stringify({ productionFile: name }));
   }
 
+  function readWorking(): unknown | null {
+    if (!fs.existsSync(workingPath)) return null;
+    return JSON.parse(fs.readFileSync(workingPath, 'utf-8'));
+  }
+
+  function writeWorking(data: unknown): void {
+    ensureDir();
+    fs.writeFileSync(workingPath, JSON.stringify(data, null, 2));
+  }
+
+  function clearWorking(): void {
+    if (fs.existsSync(workingPath)) fs.unlinkSync(workingPath);
+  }
+
   return {
     dir,
     activePath,
     productionPath,
+    workingPath,
     ensureDir,
     ensureMeta,
     filePath,
@@ -202,5 +228,8 @@ export function versionedFileResourceServer(
     getProductionName,
     setActiveName,
     setProductionName,
+    readWorking,
+    writeWorking,
+    clearWorking,
   };
 }

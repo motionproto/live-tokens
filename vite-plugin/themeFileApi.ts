@@ -231,6 +231,22 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
+   * Refuse a `:name` the fixed slots own. `_working.json` and the pointer files
+   * share the directory with user files, so a save, load or delete addressed to
+   * a `_`-prefixed name would reach machine state through the user-file door.
+   * `sanitizeFileName` keeps names the user types out of that space; this
+   * covers the URL, which nothing sanitises. Returns `true` when it answered.
+   */
+  function rejectReservedName(res: any, name: string): boolean {
+    if (!name.startsWith('_')) return false;
+    jsonResponse(res, 400, {
+      error: 'Names starting with "_" are reserved',
+      code: 'RESERVED_NAME',
+    });
+    return true;
+  }
+
+  /**
    * Single-door colors-and-type normaliser. Runs the per-slice reconciler (palettes
    * today; fonts/shadows/gradients later phases), then strips every variable
    * the typed slices now own from the catch-all `cssVariables` bag.
@@ -931,6 +947,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const COLORS_AND_TYPE_ROUTE = `${API_BASE}/colors-and-type`;
   const COLORS_AND_TYPE_ACTIVE_ROUTE = `${API_BASE}/colors-and-type/active`;
   const COLORS_AND_TYPE_PRODUCTION_ROUTE = `${API_BASE}/colors-and-type/production`;
+  const COLORS_AND_TYPE_WORKING_ROUTE = `${API_BASE}/colors-and-type/working`;
   const COMPONENT_CONFIGS_ROUTE = `${API_BASE}/component-configs`;
   const THEMES_ROUTE = `${API_BASE}/themes`;
   const THEMES_ACTIVE_ROUTE = `${API_BASE}/themes/active`;
@@ -938,6 +955,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const COMP_LIST_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)$`);
   const COMP_ACTIVE_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/active$`);
   const COMP_PRODUCTION_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/production$`);
+  const COMP_WORKING_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/working$`);
   const COMP_BY_NAME_REGEX = new RegExp(`^${escapedBase}/component-configs/([a-z0-9\\-_]+)/([a-z0-9\\-_]+)$`);
   const THEME_APPLY_REGEX = new RegExp(`^${escapedBase}/themes/([a-z0-9\\-_]+)/apply$`);
   const THEME_EXPORT_REGEX = new RegExp(`^${escapedBase}/themes/([a-z0-9\\-_]+)/export$`);
@@ -1043,8 +1061,34 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     });
   }
 
+  // ── /api/colors-and-type/working ─────────────────────────────────────────
+  // The unsaved buffer, one reserved slot per layer. Absence means "the open
+  // theme's saved state, unedited", so GET answers 404 instead of inventing a
+  // payload and DELETE is how the client drops back to saved.
+
+  async function handleGetWorkingColorsAndType({ res }: any) {
+    const raw = colorsAndTypeResource.readWorking();
+    if (!raw) {
+      jsonResponse(res, 404, { error: 'No working colors and type' });
+      return;
+    }
+    jsonResponse(res, 200, normalizeColorsAndType(raw as any));
+  }
+
+  async function handleSetWorkingColorsAndType({ req, res }: any) {
+    const body = JSON.parse(await readBody(req));
+    colorsAndTypeResource.writeWorking(body);
+    jsonResponse(res, 200, { ok: true });
+  }
+
+  async function handleClearWorkingColorsAndType({ res }: any) {
+    colorsAndTypeResource.clearWorking();
+    jsonResponse(res, 200, { ok: true });
+  }
+
   async function handleColorsAndTypeByName({ params, req, res }: any) {
     const [fileName] = params;
+    if (rejectReservedName(res, fileName)) return;
     const filePath = colorsAndTypeResource.filePath(fileName);
 
     if (req.method === 'GET') {
@@ -1212,8 +1256,32 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     });
   }
 
+  async function handleGetComponentWorking({ params, res }: any) {
+    const [comp] = params;
+    const raw = componentResource(comp).readWorking();
+    if (!raw) {
+      jsonResponse(res, 404, { error: 'No working config' });
+      return;
+    }
+    jsonResponse(res, 200, raw);
+  }
+
+  async function handleSetComponentWorking({ params, req, res }: any) {
+    const [comp] = params;
+    const body = JSON.parse(await readBody(req));
+    componentResource(comp).writeWorking(body);
+    jsonResponse(res, 200, { ok: true });
+  }
+
+  async function handleClearComponentWorking({ params, res }: any) {
+    const [comp] = params;
+    componentResource(comp).clearWorking();
+    jsonResponse(res, 200, { ok: true });
+  }
+
   async function handleComponentConfigByName({ params, req, res }: any) {
     const [comp, name] = params;
+    if (rejectReservedName(res, name)) return;
     const r = componentResource(comp);
     const configPath = r.filePath(name);
 
@@ -1343,6 +1411,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   async function handleThemeByName({ params, req, res }: any) {
     const [fileName] = params;
+    if (rejectReservedName(res, fileName)) return;
     const filePath = themesResource.filePath(fileName);
 
     if (req.method === 'GET') {
@@ -1698,19 +1767,23 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   // Build the route table. ORDER MATTERS:
-  //   1. The active/production patterns must precede COMP_BY_NAME_REGEX so
+  //   1. The active/production/working patterns must precede COMP_BY_NAME_REGEX so
   //      `/api/component-configs/button/active` doesn't match `:comp/:name`
   //      with `name='active'`.
   //   2. COMP_LIST_REGEX (`/api/component-configs/:comp`) must come after the
   //      :comp/:name routes because the latter is more specific.
   const routes: Route[] = [
-    // Colors and type — list / active / production are exact strings; they must
-    // run before COLORS_AND_TYPE_BY_NAME_REGEX
+    // Colors and type — list / active / production / working are exact strings;
+    // they must run before COLORS_AND_TYPE_BY_NAME_REGEX
     { method: 'GET',    pattern: COLORS_AND_TYPE_ROUTE,            handler: handleListColorsAndType },
     { method: 'GET',    pattern: COLORS_AND_TYPE_ACTIVE_ROUTE,     handler: handleGetActiveColorsAndType },
     { method: 'PUT',    pattern: COLORS_AND_TYPE_ACTIVE_ROUTE,     handler: handleSetActiveColorsAndType },
     { method: 'GET',    pattern: COLORS_AND_TYPE_PRODUCTION_ROUTE, handler: handleGetProductionColorsAndType },
     { method: 'PUT',    pattern: COLORS_AND_TYPE_PRODUCTION_ROUTE, handler: handleSetProductionColorsAndType },
+    { method: 'GET',    pattern: COLORS_AND_TYPE_WORKING_ROUTE,    handler: handleGetWorkingColorsAndType },
+    { method: 'PUT',    pattern: COLORS_AND_TYPE_WORKING_ROUTE,    handler: handleSetWorkingColorsAndType },
+    { method: 'DELETE', pattern: COLORS_AND_TYPE_WORKING_ROUTE,    handler: handleClearWorkingColorsAndType },
+    { method: 'POST',   pattern: COLORS_AND_TYPE_WORKING_ROUTE,    handler: methodNotAllowed },
 
     // Component configs — list of components
     { method: 'GET',    pattern: COMPONENT_CONFIGS_ROUTE, handler: handleListComponents },
@@ -1726,6 +1799,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     { method: 'PUT',    pattern: COMP_PRODUCTION_REGEX,   handler: handleSetComponentProduction },
     { method: 'POST',   pattern: COMP_PRODUCTION_REGEX,   handler: methodNotAllowed },
     { method: 'DELETE', pattern: COMP_PRODUCTION_REGEX,   handler: methodNotAllowed },
+
+    // Component configs — :comp/working (must precede :comp/:name)
+    { method: 'GET',    pattern: COMP_WORKING_REGEX,      handler: handleGetComponentWorking },
+    { method: 'PUT',    pattern: COMP_WORKING_REGEX,      handler: handleSetComponentWorking },
+    { method: 'DELETE', pattern: COMP_WORKING_REGEX,      handler: handleClearComponentWorking },
+    { method: 'POST',   pattern: COMP_WORKING_REGEX,      handler: methodNotAllowed },
 
     // Component configs — :comp/:name (must precede :comp listing)
     { method: 'GET',    pattern: COMP_BY_NAME_REGEX,      handler: handleComponentConfigByName },
