@@ -114,6 +114,33 @@
   now names the wrong directory. Any old backups move with their directory, so
   repath the entry to `data/colors-and-type/_backups/` or drop it.
 
+- **`npm update` will not bring you here.** Pre-1.0 a caret range pins the
+  minor, so `^0.47.1` never resolves to 0.48.0. Ask for it by name: `npm
+  install @motion-proto/live-tokens@0.48.0`.
+
+- **Re-copy the bundled skills.** `npx live-tokens setup-claude` copies the
+  Claude Code skills into your repo's `.claude/skills/`. That copy is a copy: it
+  does not follow the package, and a stale one describes CLIs and files this
+  release changed. Run the command again after upgrading, with `--force` to
+  overwrite.
+
+- **The REST surface, before and after.** For anyone who proxies, mocks or
+  scripts `/api/live-tokens/*`. Retired doors answer 405 rather than
+  disappearing, so a caller that still holds one gets an answer it can read.
+
+  | Before, through 0.47.1 | Now |
+  | --- | --- |
+  | `/themes`, `/themes/:name` (colors and type) | `/colors-and-type`, `/colors-and-type/:name` |
+  | `GET /themes/active`, `PUT /themes/active` | `GET /colors-and-type/active`; writes go to `PUT /colors-and-type/working` |
+  | `GET`/`PUT /themes/production` (colors and type) | `/colors-and-type/production`, 405 on every method |
+  | `PUT /component-configs/:comp/active` | `PUT /component-configs/:comp/working` |
+  | `GET`/`PUT /component-configs/:comp/production` | 405 on every method: a component ships with its theme |
+  | `/manifests`, `/manifests/:name`, `/manifests/:name/apply`, `/manifests/:name/export`, `/manifests/import` | the same shapes under `/themes` |
+  | `GET`/`PUT /manifests/active` | `GET`/`PUT /themes/active` |
+  | `PUT /production` | unchanged, and now the only door that publishes |
+  | new | `GET /themes/production`: the whole theme your site ships |
+  | new | `GET`/`PUT`/`DELETE /colors-and-type/working` and `/component-configs/:comp/working` |
+
 - **Public API. (breaking)** `setActiveFile`, `setProductionFile`,
   `getProductionInfo`, the `ProductionInfo` type and the `activeFileName` store
   leave with the per-layer pointers they drove. `getProductionTheme`,
@@ -197,6 +224,22 @@
   `--sectiondivider-padding`, and `--dialog-{primary,secondary}-*` shape keys
   had no consumers since their components were restructured; a migration
   removes them from `cssVariables`.
+
+- **Line-height references follow the scale that was renamed under them**
+  (colors-and-type schema version 5): 0.41.0 reshaped `--line-height-{xs..xl}`
+  into leading vocabulary in `tokens.css`, but nothing carried a saved file's
+  references across, so every one of them pointed at a token that no longer
+  existed. They now migrate on load: `xs` to `none`, `sm` to `tighter`, `md` to
+  `normal`, `lg` to `relaxed`. The retired 2.0 slot (`xl`) lands on `relaxed`,
+  the nearest surviving step, which is a visible change to any line that used
+  it.
+
+- **A colors-and-type file left among the themes is refused, not read as a
+  theme.** Both kinds carry a `schemaVersion` and the sequences overlap, so one
+  parsed as a current theme whose colors resolved to the package default: it
+  listed as a theme that painted the shipped look, and the boot migration
+  rewrote it, taking the palette with it. Every door that reads a theme off disk
+  now checks the shape, answers 422, and leaves the file alone.
 
 - **Adopting while a shipped theme is active records the adoption.** The
   adopt path used to return success while writing nothing when the active

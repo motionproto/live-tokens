@@ -51,6 +51,25 @@ function asObject(value: unknown): Json | null {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as Json) : null;
 }
 
+/**
+ * A colors-and-type file, not a theme: it carries its content at the top level
+ * and names no inner layer, where every theme names one (`theme` at v1 and v2,
+ * `colorsAndType` at v3).
+ *
+ * Both file kinds carry a `schemaVersion`, and the two sequences overlap, so
+ * the version says nothing. Left unchecked, `normalizeTheme` reads such a file
+ * as a current theme whose colors resolve to the package default: the stale
+ * file would list as a theme that paints the shipped look, and the boot
+ * migration would rewrite it, destroying the palette. Every door that reads a
+ * theme off disk refuses it instead.
+ */
+export function isColorsAndTypeShaped(raw: unknown): boolean {
+  const obj = asObject(raw);
+  if (!obj) return false;
+  if ('theme' in obj || 'colorsAndType' in obj) return false;
+  return 'cssVariables' in obj || 'editorConfigs' in obj;
+}
+
 /** `_fileName` is attached by read doors, never stored. Embedded copies come
  *  from those doors, so strip it before it becomes persisted state. */
 function stripFileMarker(value: Json): Json {

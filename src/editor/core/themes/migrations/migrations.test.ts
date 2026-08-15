@@ -541,6 +541,36 @@ describe('migration runner — schemaVersion gating', () => {
     expect(runMigrations('colors-and-type', 3, once)).toEqual(once);
   });
 
+  it('colors-and-type v4 → v5: line-height references follow the tokens.css rename', () => {
+    const v4 = {
+      '--card-title-line-height': 'var(--line-height-md)',
+      '--card-body-line-height': '--line-height-lg',
+      '--badge-text-line-height': 'var(--line-height-xs)',
+      '--callout-label-line-height': 'var(--line-height-sm)',
+      '--tooltip-text-line-height': 'var(--line-height-xl)',
+      '--dialog-title-line-height': 'var(--line-height-tight)',
+      '--font-size-md': '1rem',
+    };
+    const out = runMigrations('colors-and-type', 4, v4);
+    expect(out['--card-title-line-height']).toBe('var(--line-height-normal)');
+    expect(out['--card-body-line-height']).toBe('--line-height-relaxed');
+    expect(out['--badge-text-line-height']).toBe('var(--line-height-none)');
+    expect(out['--callout-label-line-height']).toBe('var(--line-height-tighter)');
+    // The retired 2.0 slot lands on the nearest surviving step.
+    expect(out['--tooltip-text-line-height']).toBe('var(--line-height-relaxed)');
+    expect(out['--dialog-title-line-height']).toBe('var(--line-height-tight)');
+    expect(out['--font-size-md']).toBe('1rem');
+  });
+
+  it('colors-and-type v4 → v5 leaves definitions alone and is idempotent', () => {
+    const once = runMigrations('colors-and-type', 4, {
+      '--card-title-line-height': 'var(--line-height-md)',
+      '--line-height-xl': '2',
+    });
+    expect(once['--line-height-xl']).toBe('2');
+    expect(runMigrations('colors-and-type', 4, once)).toEqual(once);
+  });
+
   it('runMigrations is pure — does not mutate the input map', () => {
     const input = { '--surface-bg': '#fff' };
     const before = { ...input };

@@ -269,6 +269,44 @@ describe('migrateData', () => {
     expect(exists(root, 'colors-and-type', 'sunset.json')).toBe(false);
   });
 
+  it('reads past a colors-and-type file left among the themes', () => {
+    const root = legacyTree();
+    const stray = path.join(root, DATA, 'themes', 'stray.json');
+    writeJson(stray, COLORS);
+
+    const result = heal(root);
+
+    expect(result.notThemes).toEqual([stray]);
+    expect(readJson(stray)).toEqual(COLORS);
+    expect(result.production).toEqual({ slug: 'sunset', how: 'matched' });
+  });
+
+  it('reports a local default that shadows the one the package ships', () => {
+    const root = legacyTree();
+    const packageDataDir = path.join(root, 'pkg', DATA);
+    writeJson(path.join(packageDataDir, 'colors-and-type', 'default.json'), {
+      name: 'Default',
+      cssVariables: { '--surface-default': '#moved-on' },
+    });
+
+    const result = migrateData({ ...dirs(root), packageDataDir });
+
+    expect(result.shadowedDefaults).toEqual([path.join(root, DATA, 'colors-and-type', 'default.json')]);
+    expect(exists(root, 'colors-and-type', 'default.json')).toBe(true);
+  });
+
+  it('says nothing when the local default still matches the package', () => {
+    const root = legacyTree();
+    const packageDataDir = path.join(root, 'pkg', DATA);
+    writeJson(path.join(packageDataDir, 'colors-and-type', 'default.json'), {
+      name: 'Default',
+      cssVariables: {},
+      updatedAt: '2026-09-09T00:00:00.000Z',
+    });
+
+    expect(migrateData({ ...dirs(root), packageDataDir }).shadowedDefaults).toEqual([]);
+  });
+
   it('plans without writing under check', () => {
     const root = legacyTree();
     const result = heal(root, true);

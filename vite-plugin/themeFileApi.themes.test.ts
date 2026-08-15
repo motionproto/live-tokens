@@ -235,6 +235,54 @@ describe('boot migration', () => {
   });
 });
 
+/** Both file kinds carry a schemaVersion, so nothing but the shape says which
+ *  is which. The tree here is on the current layout (a real colors-and-type
+ *  file is in place); one palette was left behind in `themes/`. */
+describe('a colors-and-type file left among the themes', () => {
+  const STALE = {
+    name: 'Sunset',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    schemaVersion: 1,
+    editorConfigs: {},
+    cssVariables: { '--surface-default': '#fff5e6' },
+  };
+
+  function seedStaleColorsFile() {
+    writeJson(path.join(colorsAndTypeDir, 'custom.json'), COLORS_AND_TYPE);
+    writeJson(path.join(themesDir, 'sunset.json'), STALE);
+  }
+
+  it('is left byte for byte alone by the boot migration', () => {
+    seedStaleColorsFile();
+
+    boot();
+
+    expect(readJson(path.join(themesDir, 'sunset.json'))).toEqual(STALE);
+    expect(warnings.join('\n')).toContain('not a theme');
+  });
+
+  it('is left out of the theme list', async () => {
+    seedStaleColorsFile();
+    boot();
+
+    const { json } = await request('GET', `${API}/themes`);
+
+    expect(json.files.map((f: any) => f.fileName)).not.toContain('sunset');
+  });
+
+  it('is refused by the door that answers one theme', async () => {
+    seedStaleColorsFile();
+    boot();
+
+    const { status, json } = await request('GET', `${API}/themes/sunset`);
+
+    expect(status).toBe(422);
+    expect(json.code).toBe('CORRUPT_THEME');
+    expect(json.error).toContain('colors-and-type file, not a theme');
+  });
+});
+
 describe('the default theme', () => {
   const defaultPath = () => path.join(themesDir, 'default.json');
 

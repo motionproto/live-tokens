@@ -11,6 +11,7 @@
  */
 import fs from 'fs';
 import path from 'path';
+import { isColorsAndTypeShaped } from '../themes/normalizeTheme';
 
 export interface LegacyLayoutInput {
   dataDir: string;
@@ -42,16 +43,6 @@ function jsonFiles(dir: string): string[] {
   }
 }
 
-/** A colors-and-type file carries its content at the top level and names no
- *  inner layer. Every theme names one: v1 and v2 as `theme`, v3 as
- *  `colorsAndType`. */
-function isColorsAndTypeFile(raw: unknown): boolean {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return false;
-  const obj = raw as Record<string, unknown>;
-  if ('theme' in obj || 'colorsAndType' in obj) return false;
-  return 'cssVariables' in obj || 'editorConfigs' in obj;
-}
-
 /**
  * `null` for every tree on the current layout, including a pristine one.
  *
@@ -77,7 +68,7 @@ export function detectLegacyLayout(input: LegacyLayoutInput): LegacyLayout | nul
     } catch {
       continue;
     }
-    if (isColorsAndTypeFile(raw)) {
+    if (isColorsAndTypeShaped(raw)) {
       return { manifestsDir, evidence: `${file} is a colors-and-type file, not a theme` };
     }
   }

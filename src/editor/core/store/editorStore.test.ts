@@ -332,6 +332,22 @@ describe('editorStore — Background → Canvas palette rename', () => {
   });
 });
 
+describe('editorStore — line-height scale rename', () => {
+  it('a saved file carrying the retired names loads on the leading scale', () => {
+    loadFromFile(
+      makeColorsAndType({
+        cssVariables: {
+          '--card-title-line-height': 'var(--line-height-md)',
+          '--tooltip-text-line-height': 'var(--line-height-xl)',
+        },
+      }),
+    );
+    const vars = get(editorState).cssVars;
+    expect(vars['--card-title-line-height']).toBe('var(--line-height-normal)');
+    expect(vars['--tooltip-text-line-height']).toBe('var(--line-height-relaxed)');
+  });
+});
+
 describe('editorStore — colorsAndTypeDirty baseline', () => {
   it('loadFromFile baselines the loaded content; a colors-and-type edit dirties it', () => {
     loadFromFile(colorsAndTypeWithPalettes({ cssVariables: { '--surface-canvas': '#123456' } }));

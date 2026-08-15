@@ -16,6 +16,7 @@ import {
 import { dispatch, type Route } from './files/routeTable';
 import {
   THEME_SCHEMA_VERSION,
+  isColorsAndTypeShaped,
   normalizeTheme,
   type EncapsulatedTheme,
   type ThemeResolvers,
@@ -740,10 +741,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     normalizeColorsAndType: (colorsAndType) => normalizeColorsAndType(colorsAndType as any),
   };
 
-  /** `null` covers both "no such theme" and "the file is there but won't
-   *  parse": one unreadable file must not take the list door down with it.
-   *  Doors that answer a single theme tell the two apart via
-   *  `respondUnreadableTheme`. */
+  /** `null` covers "no such theme", "the file is there but won't parse" and
+   *  "the file is not a theme at all": one unreadable file must not take the
+   *  list door down with it. Doors that answer a single theme tell them apart
+   *  via `respondUnreadableTheme`. */
   function readTheme(fileName: string) {
     let raw: unknown;
     try {
@@ -752,18 +753,44 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       return null;
     }
     if (!raw) return null;
+    if (isColorsAndTypeShaped(raw)) return null;
     return normalizeTheme(raw, diskThemeResolvers);
   }
 
+  /** Why `readTheme` answered `null`. Re-reads, so it runs on the error path
+   *  alone. */
+  function unreadableThemeReason(fileName: string): 'missing' | 'colors-and-type' | 'corrupt' {
+    const resolved = themesResource.existingPath(fileName);
+    if (resolved === null) return 'missing';
+    try {
+      if (isColorsAndTypeShaped(JSON.parse(fs.readFileSync(resolved, 'utf-8')))) {
+        return 'colors-and-type';
+      }
+    } catch { /* falls through to corrupt */ }
+    return 'corrupt';
+  }
+
+  function notAThemeError(fileName: string): string {
+    return (
+      `"${fileName}" is a colors-and-type file, not a theme. Before 0.48 those lived in ` +
+      `themes/; move it to ${path.basename(COLORS_AND_TYPE_DIR)}/ or delete it.`
+    );
+  }
+
   function respondUnreadableTheme(res: any, fileName: string, missingError: string): void {
-    if (themesResource.existingPath(fileName) !== null) {
-      jsonResponse(res, 422, {
-        error: `Theme file "${fileName}" is not valid JSON`,
-        code: 'CORRUPT_THEME',
-      });
-      return;
+    switch (unreadableThemeReason(fileName)) {
+      case 'missing':
+        jsonResponse(res, 404, { error: missingError });
+        return;
+      case 'colors-and-type':
+        jsonResponse(res, 422, { error: notAThemeError(fileName), code: 'CORRUPT_THEME' });
+        return;
+      case 'corrupt':
+        jsonResponse(res, 422, {
+          error: `Theme file "${fileName}" is not valid JSON`,
+          code: 'CORRUPT_THEME',
+        });
     }
-    jsonResponse(res, 404, { error: missingError });
   }
 
   function writeTheme(fileName: string, theme: EncapsulatedTheme): void {
@@ -792,6 +819,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       try {
         raw = JSON.parse(fs.readFileSync(path.join(THEMES_DIR, file), 'utf-8'));
       } catch {
+        continue;
+      }
+      // Rewriting one would replace the palette it holds with the default.
+      if (isColorsAndTypeShaped(raw)) {
+        warn(`[live-tokens] ${notAThemeError(fileName)} It is left untouched.`);
         continue;
       }
       const { theme, dropped, migrated } = normalizeTheme(raw, diskThemeResolvers);
@@ -1318,7 +1350,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     for (const fileName of themesResource.listNames()) {
       const read = readTheme(fileName);
       if (!read) {
-        console.warn(`[live-tokens] Theme "${fileName}" is unreadable and was left out of the list.`);
+        console.warn(
+          unreadableThemeReason(fileName) === 'colors-and-type'
+            ? `[live-tokens] ${notAThemeError(fileName)} It is left out of the theme list.`
+            : `[live-tokens] Theme "${fileName}" is unreadable and was left out of the list.`,
+        );
         continue;
       }
       files.push({

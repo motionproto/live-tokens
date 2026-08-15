@@ -19,6 +19,7 @@ import {
   type VersionedFileResourceServer,
 } from '../files/versionedFileResourceServer';
 import {
+  isColorsAndTypeShaped,
   normalizeTheme,
   THEME_SCHEMA_VERSION,
   type EncapsulatedTheme,
@@ -81,6 +82,12 @@ export interface MigrateDataResult {
   deletedPointers: string[];
   /** Named files matching no theme. Yours, so they stay. */
   keptUserFiles: string[];
+  /** Files in the themes directory that are not themes. Read past, never
+   *  rewritten. */
+  notThemes: string[];
+  /** A local `colors-and-type/default.json` whose content differs from the copy
+   *  the package ships. It shadows the shipped default. Reported only. */
+  shadowedDefaults: string[];
   /** Themes rewritten from the pre-v3 by-reference form, so step 3 cannot
    *  delete a file they still name. */
   upgradedThemes: string[];
@@ -254,6 +261,8 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
     deletedFiles: [],
     deletedPointers: [],
     keptUserFiles: [],
+    notThemes: [],
+    shadowedDefaults: [],
     upgradedThemes: [],
   };
   // The pointers are what says a tree still runs the old model. Without them
@@ -273,6 +282,7 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
   };
 
   const upgradedThemes: string[] = [];
+  const notThemes: string[] = [];
   const themes: Array<{ slug: string; theme: EncapsulatedTheme }> = [];
   for (const slug of themesRes.listNames()) {
     let raw: unknown;
@@ -282,6 +292,12 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
       continue;
     }
     if (!raw) continue;
+    // A colors-and-type file someone left among the themes is not one, and
+    // reading it as one would derive a production that paints the default.
+    if (isColorsAndTypeShaped(raw)) {
+      notThemes.push(themesRes.filePath(slug));
+      continue;
+    }
     const { theme, migrated } = normalizeTheme(raw, resolvers);
     themes.push({ slug, theme });
     // A pre-v3 theme names its slices by file. Step 3 deletes those files, so
@@ -451,6 +467,28 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
     sweep(compRes(comp), path.join(componentConfigsDir, comp), (theme) => themeConfigFor(theme, comp));
   }
 
+  // `default` is a baseline rather than a copy, so the sweep never considers
+  // it. A local one that no longer matches the package is still worth saying
+  // out loud: it shadows the shipped default, and an old one keeps a consumer
+  // off improvements they think they upgraded into.
+  const shadowedDefaults: string[] = [];
+  const localDefault = path.join(colorsAndTypeDir, 'default.json');
+  const packageDefault = packageDataDir
+    ? path.join(packageDataDir, 'colors-and-type', 'default.json')
+    : null;
+  if (
+    packageDefault &&
+    fs.existsSync(localDefault) &&
+    fs.existsSync(packageDefault) &&
+    path.resolve(localDefault) !== path.resolve(packageDefault)
+  ) {
+    try {
+      const local = JSON.parse(fs.readFileSync(localDefault, 'utf-8'));
+      const shipped = JSON.parse(fs.readFileSync(packageDefault, 'utf-8'));
+      if (!sameContent(local, shipped)) shadowedDefaults.push(localDefault);
+    } catch { /* a file that will not parse is not a claim to make here */ }
+  }
+
   // ── 4. Retire the per-layer pointers ────────────────────────────────────
   if (!check) {
     for (const p of legacyPointers) fs.unlinkSync(p);
@@ -474,6 +512,8 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
     deletedFiles: deletedFiles.map(reported),
     deletedPointers: legacyPointers.map(reported),
     keptUserFiles: keptUserFiles.map(reported),
+    notThemes: notThemes.map(reported),
+    shadowedDefaults: shadowedDefaults.map(reported),
     upgradedThemes: upgradedThemes.map(reported),
   };
 }

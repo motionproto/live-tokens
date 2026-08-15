@@ -145,6 +145,12 @@ export function formatMigrateDataResult(result) {
   for (const p of result.keptUserFiles) {
     lines.push(`  kept ${rel(p)}: it matches no theme, so it is yours`);
   }
+  for (const p of result.notThemes) {
+    lines.push(`  left ${rel(p)} alone: it is a colors-and-type file, not a theme`);
+  }
+  for (const p of result.shadowedDefaults) {
+    lines.push(`  kept ${rel(p)}: it shadows the default the package ships, which has moved on`);
+  }
   lines.push(
     `  ${planned ? 'would retire' : 'retired'} ${result.deletedPointers.length} per-layer pointer file(s)`,
   );
