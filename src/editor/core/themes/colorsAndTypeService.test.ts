@@ -2,7 +2,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import { API_BASE } from '../storage/apiBase';
-import { activeFileName } from '../store/editorConfigStore';
 import { dirty, editorState, mutate, colorsAndTypeDirty, __resetForTests } from '../store/editorStore';
 import { persistColorsAndType } from './colorsAndTypeService';
 
@@ -11,7 +10,6 @@ describe('persistColorsAndType', () => {
 
   beforeEach(() => {
     __resetForTests();
-    activeFileName.set('default');
     requests = [];
     vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
       requests.push({
@@ -29,23 +27,20 @@ describe('persistColorsAndType', () => {
     vi.unstubAllGlobals();
   });
 
-  it('writes the file, points active at it and clears the dirty flag', async () => {
+  it('writes the buffer under the open theme’s name and clears the dirty flag', async () => {
     mutate('edit', (s) => {
       s.cssVars['--surface-canvas'] = '#123456';
     });
     expect(get(dirty)).toBe(true);
     expect(get(colorsAndTypeDirty)).toBe(true);
 
-    await persistColorsAndType(get(editorState), 'my-colors', 'My Colors');
+    await persistColorsAndType(get(editorState), 'My Theme');
 
     expect(requests.map((r) => `${r.method} ${r.url}`)).toEqual([
-      `PUT ${API_BASE}/colors-and-type/my-colors`,
-      `PUT ${API_BASE}/colors-and-type/active`,
+      `PUT ${API_BASE}/colors-and-type/working`,
     ]);
-    expect(requests[0].body.name).toBe('My Colors');
+    expect(requests[0].body.name).toBe('My Theme');
     expect(requests[0].body.cssVariables['--surface-canvas']).toBe('#123456');
-    expect(requests[1].body).toEqual({ name: 'my-colors' });
-    expect(get(activeFileName)).toBe('my-colors');
     expect(get(dirty)).toBe(false);
     expect(get(colorsAndTypeDirty)).toBe(false);
   });

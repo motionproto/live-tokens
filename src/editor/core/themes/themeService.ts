@@ -1,20 +1,21 @@
 import type { Theme, ThemeMeta, ThemeBundle, ColorsAndType, ComponentConfig } from './themeTypes';
 import { versionedFileResource } from '../storage/files/versionedFileResourceClient';
 import { API_BASE } from '../storage/apiBase';
-import { listComponents, loadComponentConfig } from '../components/componentConfigService';
+import { listComponents, getActiveComponentConfig } from '../components/componentConfigService';
 import { getActiveColorsAndType } from './colorsAndTypeService';
 
 /**
- * REST client for theme files. A theme carries a whole look by value: the
- * colors and type plus a config for every component that is off its default. The
- * active theme is the single live snapshot — colors-and-type and component
- * Adopts re-embed that slice server-side.
+ * REST client for theme files, the documents of the editor. A theme carries a
+ * whole look by value: the colors and type plus a config for every component
+ * that is off its default. One theme is open (`themes/_active.json`) and one is
+ * published (`themes/_production.json`); the live look is the open theme plus
+ * whatever the `_working` buffers hold over it.
  *
  * `default` is the protected baseline — cannot be overwritten or deleted, and
- * Adopts return 409 ACTIVE_IS_PROTECTED while it is active.
+ * Adopt returns 409 ACTIVE_IS_PROTECTED while it is open.
  */
 
-const themesResource = versionedFileResource<Theme, ThemeMeta, never>({
+const themesResource = versionedFileResource<Theme, ThemeMeta>({
   baseUrl: `${API_BASE}/themes`,
 });
 
@@ -33,6 +34,24 @@ export const getActiveTheme = (): Promise<Theme | null> => themesResource.getAct
 export const setActiveTheme = (fileName: string): Promise<void> =>
   themesResource.setActive(fileName);
 
+/** The published theme, served whole so the client can tell what production
+ *  runs from the document itself. */
+export async function getProductionTheme(): Promise<Theme> {
+  const res = await fetch(`${API_BASE}/themes/production`);
+  if (!res.ok) throw new Error('Failed to read the production theme');
+  return res.json();
+}
+
+/** Step past the theme names already on disk rather than clobbering one. */
+export function freshName(base: string, taken: Set<string>): string {
+  if (!taken.has(base)) return base;
+  for (let n = 1; n < 1000; n++) {
+    const candidate = `${base}_${String(n).padStart(2, '0')}`;
+    if (!taken.has(candidate)) return candidate;
+  }
+  return `${base}_${Date.now()}`;
+}
+
 export interface ApplyThemeResult {
   ok: boolean;
   theme: Theme;
@@ -43,12 +62,11 @@ export interface ApplyThemeResult {
 }
 
 /**
- * Server-side apply: materialise the theme's embedded colors and type and configs into
- * working files under its slug, flip each `_active.json` / `_production.json`
- * pointer at them, sync tokens.css/fonts.css, mark the theme active, and
- * return the resolved state in one payload. Components the theme doesn't
- * carry go back to their defaults — a theme is a complete look. Clients
- * usually follow with a full page reload; theme load is a "blow up the
+ * Open a theme: the server writes its embedded copies into the `_working`
+ * buffers, clears the buffer of every component it does not carry, points
+ * `themes/_active.json` at it and returns the resolved state in one payload.
+ * Production is untouched, so trying a look cannot change what the site ships.
+ * Clients follow with a full page reload; opening a theme is a "blow up the
  * world" action.
  */
 export async function applyTheme(fileName: string): Promise<ApplyThemeResult> {
@@ -64,22 +82,18 @@ export async function applyTheme(fileName: string): Promise<ApplyThemeResult> {
 
 export interface AdoptLookResult {
   ok: boolean;
-  /** False when production was already running the look: nothing was written. */
-  promoted: boolean;
-  /** The colors and type promoted, or null when production already ran them. */
-  colorsAndType: { fileName: string; name: string } | null;
-  /** Names of the components promoted. */
-  components: string[];
+  /** The theme production now ships. */
+  productionTheme: { fileName: string; name: string; updatedAt: string };
 }
 
 /**
- * Ship the whole look: one door that promotes the colors-and-type layer and every
- * component whose active config is not what production runs, then re-embeds
- * the shipped state in the active look. What is saved goes; unsaved editor
- * state is not visible to the server and stays behind.
+ * Publish the open theme: `themes/_production.json` names it and
+ * `tokens.generated.css` plus `fonts.css` are rebaked from its embedded
+ * content. What is SAVED ships, so the caller saves the theme first; a buffer
+ * the server has not been handed is invisible from here.
  *
- * Answers 409 `ACTIVE_IS_PROTECTED` while the Default look is active, which
- * the caller recovers from by forking it and retrying.
+ * Answers 409 `ACTIVE_IS_PROTECTED` while the Default theme is open, which the
+ * caller recovers from by forking it under a name of the user's own.
  */
 export async function adoptLook(): Promise<AdoptLookResult> {
   const res = await fetch(`${API_BASE}/production`, { method: 'PUT' });
@@ -96,44 +110,42 @@ export async function adoptLook(): Promise<AdoptLookResult> {
   return res.json();
 }
 
-/** `_fileName` marks which file a read door answered from; it is never part of
- *  the content we send back. */
-function withoutFileMarker<T extends { _fileName?: string }>(value: T): T {
-  const { _fileName, ...rest } = value;
+/** `_fileName` and `_source` mark which document and which layer a read door
+ *  answered from; neither is part of the content we send back. */
+function withoutLiveMarkers<T extends { _fileName?: string; _source?: unknown }>(value: T): T {
+  const { _fileName, _source, ...rest } = value;
   return rest as T;
 }
 
 /**
- * The look as it stands: the active colors and type plus the active config of
+ * The look as it stands: the live colors and type plus the live config of
  * every component that sits off its default, all by value. Delta encoding — a
  * component absent from the map runs the local default, which stays canonical.
  *
- * The colors and type come from `GET /colors-and-type/active`, which normalises before it
- * answers. That matters: the server trusts an already-embedded copy and runs
- * no migrations over it on write.
+ * Everything comes from the live read doors, so a capture takes the buffers
+ * over the open theme's own copies. The colors and type are normalised on the
+ * way out of `GET /colors-and-type/active`, which matters: the server trusts an
+ * already-embedded copy and runs no migrations over it on write.
  */
 async function captureLook(): Promise<Pick<Theme, 'colorsAndType' | 'componentConfigs'>> {
-  const activeColorsAndType = await getActiveColorsAndType();
-  if (!activeColorsAndType) {
-    throw new Error('No active theme to capture');
+  const liveColorsAndType = await getActiveColorsAndType();
+  if (!liveColorsAndType) {
+    throw new Error('No live colors and type to capture');
   }
-  const overridden = (await listComponents()).filter(
-    (c) => c.activeFile && c.activeFile !== 'default',
-  );
-  const configs = await Promise.all(
-    overridden.map((c) => loadComponentConfig(c.name, c.activeFile)),
-  );
+  const overridden = (await listComponents()).filter((c) => c.source !== 'default');
+  const configs = await Promise.all(overridden.map((c) => getActiveComponentConfig(c.name)));
   const componentConfigs: Record<string, ComponentConfig> = {};
   overridden.forEach((c, i) => {
-    componentConfigs[c.name] = withoutFileMarker(configs[i]);
+    const config = configs[i];
+    if (config) componentConfigs[c.name] = withoutLiveMarkers(config);
   });
-  return { colorsAndType: withoutFileMarker(activeColorsAndType), componentConfigs };
+  return { colorsAndType: withoutLiveMarkers(liveColorsAndType), componentConfigs };
 }
 
 /**
- * Capture the current look into a new theme file and set it active. Used by
- * the theme panel's Save As action and by the SaveAs-then-Adopt recovery
- * flow when active is `default`.
+ * Capture the current look into a new theme file and open it. Used by the
+ * theme panel's Save As action and by the fork-then-Adopt flow the protected
+ * Default theme forces.
  */
 export async function saveAsTheme(
   fileName: string,
@@ -152,9 +164,9 @@ export async function saveAsTheme(
 }
 
 /**
- * Re-capture the current look into the *currently active* theme file. Used
- * by the theme panel's Save action. Server rejects with 403 if active is
- * `default` (protected).
+ * Re-capture the current look into the open theme file. Used by the theme
+ * panel's Save action and by both Adopt paths, which publish what is saved.
+ * The server rejects with 403 while the protected `default` theme is open.
  */
 export async function saveActiveTheme(displayName?: string): Promise<void> {
   const active = await getActiveTheme();

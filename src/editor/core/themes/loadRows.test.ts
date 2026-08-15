@@ -7,6 +7,7 @@ const look = (fileName: string, isProtected = false): ThemeMeta => ({
   fileName,
   updatedAt: '',
   isActive: false,
+  isProduction: false,
   isProtected,
 });
 
@@ -14,7 +15,6 @@ const layer = (fileName: string, isPackage: boolean): ColorsAndTypeMeta => ({
   name: fileName,
   fileName,
   updatedAt: '',
-  isActive: false,
   isPackage,
 });
 

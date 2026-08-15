@@ -110,6 +110,14 @@ export interface GradientDiskToken {
   stops: { position: number; color: string; opacity?: number }[];
 }
 
+/**
+ * Where a live read resolved from: the unsaved `_working` buffer, the open
+ * theme's embedded copy, or the shipped default. It says which layer answered,
+ * never whether the content was edited — applying a theme fills the buffer for
+ * every layer it carries.
+ */
+export type LiveSource = 'working' | 'theme' | 'default';
+
 export interface ColorsAndType {
   name: string;
   createdAt: string;
@@ -124,11 +132,13 @@ export interface ColorsAndType {
   /** Four fixed harmony axes, each owning a hue with an optional bound family. */
   harmonyAxes?: HarmonyAxis[];
   /**
-   * Server-attached file-name marker for round-tripping the file identity
-   * back to the client. Set by `themeFileApi`'s GET handlers; read by
-   * `themeInit` to seed `activeFileName`. Optional and not persisted to disk.
+   * Server-attached marker naming the open theme — the document this content
+   * belongs to, not a colors-and-type file. Set by `themeFileApi`'s GET
+   * handlers; read by `themeInit` to seed `openThemeSlug`. Not persisted.
    */
   _fileName?: string;
+  /** Server-attached marker: which of the three live layers answered. */
+  _source?: LiveSource;
   /**
    * Migration stamp. Absent on legacy files, treated as 0; the loader runs
    * any registered theme migrations whose `fromVersion >= file.schemaVersion`.
@@ -142,7 +152,6 @@ export interface ColorsAndTypeMeta {
   name: string;
   fileName: string;
   updatedAt: string;
-  isActive: boolean;
   /** The file is served from the installed package and no local copy shadows
    *  it: one of the shipped presets or the default, not a file the user made. */
   isPackage: boolean;
@@ -164,10 +173,12 @@ export interface ComponentConfig {
   aliases: Record<string, AliasDiskValue>;
   config?: Record<string, unknown>;
   /**
-   * Server-attached file-name marker. Same role as `ColorsAndType._fileName`. Set by
-   * the component-configs GET handlers; not persisted to disk.
+   * Server-attached marker. Same role as `ColorsAndType._fileName`: the open
+   * theme, not a config file. Set by the component-configs GET handlers.
    */
   _fileName?: string;
+  /** Server-attached marker: which of the three live layers answered. */
+  _source?: LiveSource;
   /**
    * Migration stamp. Absent on legacy files, treated as 0. See `ColorsAndType.schemaVersion`.
    */
@@ -178,18 +189,15 @@ export interface ComponentConfigMeta {
   name: string;
   fileName: string;
   updatedAt: string;
-  isActive: boolean;
-  isProduction: boolean;
 }
 
 /**
  * A saved look, encapsulated: the colors and type plus a config for every
- * component that sits off its default, all carried by value. Working files
- * (colors and type, component configs) are therefore freely deletable — a theme
- * owns its copy. Applying one materialises that data back into working files
- * under the theme's own slug and flips the `_active.json` / `_production.json`
- * pointers at it. The currently-active theme is the live snapshot:
- * colors-and-type and component Adopts re-embed that slice on the server.
+ * component that sits off its default, all carried by value. Themes are the
+ * documents of the editor. Applying one opens it: its embedded copies land in
+ * the reserved `_working` buffers and `themes/_active.json` names it. Saving
+ * captures the live buffers back into it; Adopt publishes it, and only then is
+ * `tokens.generated.css` rebaked.
  */
 export interface Theme {
   name: string;
@@ -241,6 +249,8 @@ export interface ThemeMeta {
   fileName: string;
   updatedAt: string;
   isActive: boolean;
+  /** The theme `tokens.generated.css` was last baked from. */
+  isProduction: boolean;
   /** `true` only for `default` — the protected baseline. Cannot be written
    *  to or deleted, and colors-and-type / component Adopts cannot patch into
    *  it. */

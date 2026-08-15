@@ -9,8 +9,6 @@
     component: string;
     /** Files shown in the load dialog. */
     files?: ComponentConfigMeta[];
-    /** Currently active file — highlighted in the load list. */
-    activeFileName?: string;
     onsave?: () => void;
     onsaveAs?: () => void;
     /** Fired when the user clicks "Load…" in the menu — parent should refresh `files`. */
@@ -22,7 +20,6 @@
   let {
     component,
     files = [],
-    activeFileName = 'default',
     onsave,
     onsaveAs,
     onopenLoad,
@@ -107,7 +104,6 @@
   bind:show={showFileList}
   title="Load {component} Config"
   {files}
-  {activeFileName}
   systemBadge={{ label: 'System', title: 'Protected system config' }}
   emptyMessage="No saved files"
   onload={handleLoad}

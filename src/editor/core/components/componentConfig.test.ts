@@ -46,9 +46,8 @@ describe('component aliases — editor-state round trip', () => {
     expect(get(editorState).components.button.aliases['--button-primary-surface']).toEqual(tokenRef('--surface-success-high'));
   });
 
-  it('setComponentAlias implicitly registers the slice with activeFile "default"', () => {
+  it('setComponentAlias implicitly registers the slice', () => {
     setComponentAlias('card', '--card-radius', tokenRef('--radius-lg'));
-    expect(get(editorState).components.card.activeFile).toBe('default');
     expect(get(editorState).components.card.aliases['--card-radius']).toEqual(tokenRef('--radius-lg'));
     expect(get(editorState).components.card.config).toEqual({});
   });
@@ -74,7 +73,6 @@ describe('component config — literal-valued knobs', () => {
 
   it('setComponentConfig implicitly registers the slice with empty aliases', () => {
     setComponentConfig('dialog', '--dialog-cancel-variant', 'outline');
-    expect(get(editorState).components.dialog.activeFile).toBe('default');
     expect(get(editorState).components.dialog.aliases).toEqual({});
     expect(get(editorState).components.dialog.config['--dialog-cancel-variant']).toBe('outline');
   });
@@ -82,7 +80,7 @@ describe('component config — literal-valued knobs', () => {
 
 describe('componentDirty — per-component scoping', () => {
   it('marks a component dirty only after its aliases diverge from the saved baseline', () => {
-    loadComponentActive('button', 'default', { '--button-primary-surface': '--surface-success-high' });
+    loadComponentActive('button', { '--button-primary-surface': '--surface-success-high' });
     expect(get(componentDirty).button).toBe(false);
 
     setComponentAlias('button', '--button-primary-surface', tokenRef('--surface-error-high'));
@@ -93,7 +91,7 @@ describe('componentDirty — per-component scoping', () => {
   });
 
   it('marks a component dirty when config diverges from the saved baseline', () => {
-    loadComponentActive('dialog', 'default', {}, { '--dialog-confirm-variant': 'primary' });
+    loadComponentActive('dialog', {}, { '--dialog-confirm-variant': 'primary' });
     expect(get(componentDirty).dialog).toBe(false);
 
     setComponentConfig('dialog', '--dialog-confirm-variant', 'danger');
@@ -104,8 +102,8 @@ describe('componentDirty — per-component scoping', () => {
   });
 
   it('editing one component does not dirty another', () => {
-    loadComponentActive('button', 'default', { '--button-primary-surface': '--surface-success-high' });
-    loadComponentActive('card', 'default', { '--card-radius': '--radius-md' });
+    loadComponentActive('button', { '--button-primary-surface': '--surface-success-high' });
+    loadComponentActive('card', { '--card-radius': '--radius-md' });
     expect(get(componentDirty).button).toBe(false);
     expect(get(componentDirty).card).toBe(false);
 
@@ -115,7 +113,7 @@ describe('componentDirty — per-component scoping', () => {
   });
 
   it('undo after a saved state marks dirty again', () => {
-    loadComponentActive('button', 'default', { '--button-primary-surface': '--surface-success-high' });
+    loadComponentActive('button', { '--button-primary-surface': '--surface-success-high' });
     setComponentAlias('button', '--button-primary-surface', tokenRef('--surface-error-high'));
     markComponentSaved('button');
     expect(get(componentDirty).button).toBe(false);
@@ -128,7 +126,7 @@ describe('componentDirty — per-component scoping', () => {
 
 describe('loadComponentActive — split-on-load migration', () => {
   it('routes legacy config keys from single-bucket aliases into the config bucket', () => {
-    loadComponentActive('dialog', 'default', {
+    loadComponentActive('dialog', {
       '--dialog-surface': '--surface-neutral-low',
       '--dialog-confirm-variant': 'danger',
     });
@@ -139,7 +137,7 @@ describe('loadComponentActive — split-on-load migration', () => {
   });
 
   it('keeps CSS-var-valued aliases (e.g. --button-shimmer → --shimmer-on) in the aliases bucket', () => {
-    loadComponentActive('button', 'default', {
+    loadComponentActive('button', {
       '--button-primary-surface': '--surface-success-high',
       '--button-shimmer': '--shimmer-on',
     });
@@ -150,7 +148,7 @@ describe('loadComponentActive — split-on-load migration', () => {
   });
 
   it('classifies literal alias values as kind "literal"', () => {
-    loadComponentActive('myComp', 'default', {
+    loadComponentActive('myComp', {
       '--my-comp-token': '--some-token',
       '--my-comp-color': 'rebeccapurple',
     });
@@ -162,7 +160,6 @@ describe('loadComponentActive — split-on-load migration', () => {
   it('explicit config field wins over legacy alias-bucketed value', () => {
     loadComponentActive(
       'dialog',
-      'default',
       { '--dialog-confirm-variant': 'primary' },
       { '--dialog-confirm-variant': 'danger' },
     );
@@ -173,9 +170,8 @@ describe('loadComponentActive — split-on-load migration', () => {
 describe('seedComponentsFromApi — boot-time hydration', () => {
   it('populates state and establishes the clean baseline', () => {
     seedComponentsFromApi({
-      button: { activeFile: 'myConfig', aliases: { '--button-primary-surface': '--surface-success-high' } },
+      button: { aliases: { '--button-primary-surface': '--surface-success-high' } },
     });
-    expect(get(editorState).components.button.activeFile).toBe('myConfig');
     expect(get(editorState).components.button.aliases['--button-primary-surface']).toEqual(tokenRef('--surface-success-high'));
     expect(get(componentDirty).button).toBe(false);
   });
@@ -183,7 +179,6 @@ describe('seedComponentsFromApi — boot-time hydration', () => {
   it('routes config keys when seeding from legacy single-bucket API payload', () => {
     seedComponentsFromApi({
       dialog: {
-        activeFile: 'default',
         aliases: { '--dialog-confirm-variant': 'danger', '--dialog-shadow': '--shadow-2xl' },
       },
     });
@@ -196,7 +191,7 @@ describe('seedComponentsFromApi — boot-time hydration', () => {
   it('replaces the full components slice', () => {
     setComponentAlias('card', '--card-radius', tokenRef('--radius-md'));
     seedComponentsFromApi({
-      button: { activeFile: 'default', aliases: {} },
+      button: { aliases: {} },
     });
     expect(get(editorState).components.card).toBeUndefined();
     expect(get(editorState).components.button).toBeDefined();

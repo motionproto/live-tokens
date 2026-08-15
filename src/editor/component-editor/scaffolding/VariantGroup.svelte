@@ -169,7 +169,7 @@
     const dstTypeGroups = typeGroups[toState] ?? [];
 
     mutate(`copy ${fromVariant}/${fromState} → ${name}/${toState}`, (s) => {
-      const slice = s.components[component!] ?? (s.components[component!] = { activeFile: 'default', aliases: {}, config: {} });
+      const slice = s.components[component!] ?? (s.components[component!] = { aliases: {}, config: {} });
       const dstVarsTouched: string[] = [];
       /** Resolve a variable's effective value as a CSS string: the override if
           set, otherwise its declared default. Returns null if neither exists.

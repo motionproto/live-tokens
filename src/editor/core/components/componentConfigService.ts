@@ -1,37 +1,24 @@
-import type { AliasDiskValue, ComponentConfig, ComponentConfigMeta } from '../themes/themeTypes';
+import type { ComponentConfig, ComponentConfigMeta, LiveSource } from '../themes/themeTypes';
 import { versionedFileResource } from '../storage/files/versionedFileResourceClient';
 import { API_BASE } from '../storage/apiBase';
 
 /**
  * REST client for per-component config files. Parallel to `colorsAndTypeService.ts`
  * but scoped to `${API_BASE}/component-configs/*`. Each component (button,
- * card, …) has its own lifecycle: default.json (generated from the `.svelte`
- * source), plus user-authored named configs, each with its own active /
- * production pointer.
- *
- * Both this and `colorsAndTypeService` consume `versionedFileResource(...)`. Adding a
- * third file-managed resource — per the user's "mirror theme-file lifecycle
- * for new editor artifacts" invariant — is one helper call here, not a third
- * round of copy-paste CRUD.
+ * card, …) has a `default.json` generated from its `.svelte` source, a reserved
+ * `_working.json` buffer holding whatever the editor is running, and any number
+ * of user-saved presets.
  */
 
 export interface ComponentSummary {
   name: string;
-  activeFile: string;
-  productionFile: string;
-}
-
-export interface ComponentProductionInfo {
-  fileName: string;
-  name: string;
-  aliases: Record<string, AliasDiskValue>;
+  /** Where the component's live config resolves from. */
+  source: LiveSource;
 }
 
 export interface ComponentConfigList {
   component: string;
   files: ComponentConfigMeta[];
-  activeFile: string;
-  productionFile: string;
 }
 
 export async function listComponents(): Promise<ComponentSummary[]> {
@@ -42,19 +29,14 @@ export async function listComponents(): Promise<ComponentSummary[]> {
 }
 
 function resourceFor(component: string) {
-  return versionedFileResource<ComponentConfig, ComponentConfigMeta, ComponentProductionInfo>({
+  return versionedFileResource<ComponentConfig, ComponentConfigMeta>({
     baseUrl: `${API_BASE}/component-configs/${encodeURIComponent(component)}`,
   });
 }
 
 export async function listComponentConfigs(component: string): Promise<ComponentConfigList> {
   const data = await resourceFor(component).list();
-  return {
-    component,
-    files: data.files,
-    activeFile: data.activeFile ?? 'default',
-    productionFile: data.productionFile ?? 'default',
-  };
+  return { component, files: data.files };
 }
 
 export const loadComponentConfig = (
@@ -71,19 +53,23 @@ export const saveComponentConfig = (
 export const deleteComponentConfig = (component: string, fileName: string): Promise<void> =>
   resourceFor(component).remove(fileName);
 
+/** The config the component is running: the buffer, else the open theme's
+ *  copy, else the component default. `_source` says which. */
 export const getActiveComponentConfig = (component: string): Promise<ComponentConfig | null> =>
   resourceFor(component).getActive();
 
-export const setActiveComponentFile = (component: string, fileName: string): Promise<void> =>
-  resourceFor(component).setActive(fileName);
-
-export const getComponentProductionInfo = (component: string): Promise<ComponentProductionInfo> =>
-  resourceFor(component).getProductionInfo();
-
-export async function setComponentProductionFile(
+/** Write the component's unsaved buffer. */
+export async function writeWorkingComponentConfig(
   component: string,
-  fileName: string,
-): Promise<{ ok: boolean; productionFile: string }> {
-  const data = await resourceFor(component).setProduction(fileName);
-  return { ok: data.ok, productionFile: data.fileName };
+  data: ComponentConfig,
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/component-configs/${encodeURIComponent(component)}/working`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Write failed' }));
+    throw new Error(err.error || 'Write failed');
+  }
 }

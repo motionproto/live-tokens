@@ -6,15 +6,19 @@
   import { onMount, onDestroy } from 'svelte';
   import UIInfoPopover from '../../ui/UIInfoPopover.svelte';
   import { get } from 'svelte/store';
-  import type { AliasDiskValue, ComponentConfig, ComponentConfigMeta } from '../../core/themes/themeTypes';
+  import type {
+    AliasDiskValue,
+    ComponentConfig,
+    ComponentConfigMeta,
+    LiveSource,
+  } from '../../core/themes/themeTypes';
   import { componentSourceFile } from './componentSources';
   import {
+    getActiveComponentConfig,
     loadComponentConfig,
     saveComponentConfig,
     deleteComponentConfig,
-    setActiveComponentFile,
-    setComponentProductionFile,
-    type ComponentProductionInfo,
+    writeWorkingComponentConfig,
   } from '../../core/components/componentConfigService';
   import {
     editorState,
@@ -22,8 +26,20 @@
     loadComponentActive,
     markComponentSaved,
   } from '../../core/store/editorStore';
-  import { bumpComponentActiveRevision, bumpProductionRevision } from '../../core/productionPulse';
-  import { listThemes, saveAsTheme } from '../../core/themes/themeService';
+  import {
+    bumpComponentActiveRevision,
+    bumpProductionRevision,
+    productionRevision,
+    productionTheme,
+  } from '../../core/productionPulse';
+  import {
+    adoptLook,
+    getActiveTheme,
+    getProductionTheme,
+    listThemes,
+    saveActiveTheme,
+    saveAsTheme,
+  } from '../../core/themes/themeService';
   import type { ThemeMeta } from '../../core/themes/themeTypes';
   import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../core/themes/migrations';
   import { refToDiskValue } from '../../core/store/cssVarRef';
@@ -36,17 +52,14 @@
   import UIPillButton from '../../ui/UIPillButton.svelte';
   import UISquareButton from '../../ui/UISquareButton.svelte';
 
-  
-  
-  
   interface Props {
     /** Which component this manager controls (e.g. "button"). */
     component: string;
     /** Display name shown at the start of the bar (e.g. "Segmented Control"). */
     title?: string;
-    /** When provided, renders a Reset button that reverts the component to its
-      currently-loaded config file (discarding unsaved edits). To switch
-      configs or return to default, use the File menu. */
+    /** When provided, renders a Reset button that reverts the component to the
+      config the server holds for it (discarding unsaved edits). To load
+      another config, use the File menu. */
     resetVariables?: string[] | null;
   }
 
@@ -60,22 +73,21 @@
   let saveStatus: SaveStatus = 'idle';
   const setSaveStatus = (s: SaveStatus) => (saveStatus = s);
 
+  // Saved presets. Nothing live points at one: the component runs its working
+  // buffer, and the theme it belongs to carries the copy that ships.
   let files: ComponentConfigMeta[] = $state([]);
-  let activeFileName = $state('default');
-  let currentDisplayName = $state('Default');
+  let liveSource: LiveSource = $state('default');
+  let openTheme: { fileName: string; name: string } = $state({
+    fileName: 'default',
+    name: 'Motion Proto',
+  });
   let saveAsDialog = $state(false);
-  // Title + description re-set per trigger so the auto-prompts (Save on
-  // default, Adopt on default+dirty) explain why they appeared, while the
-  // manual Save As button stays terse.
-  let saveAsTitle = $state('Save Component As');
-  let saveAsDescription = $state('');
 
-  let productionInfo = $state<ComponentProductionInfo | null>(null);
   type ProductionStatus = 'idle' | 'updating' | 'done' | 'error';
   let productionUpdateStatus: ProductionStatus = $state('idle');
   let adoptFeedback = $state('');
 
-  // Theme SaveAs prompt for the "Adopt while the default theme is active" case.
+  // Theme SaveAs prompt for the "Adopt while the default theme is open" case.
   let themeSaveAsDialog = $state(false);
   let themes: ThemeMeta[] = $state([]);
   let retryAdoptAfterThemeSave = false;
@@ -83,40 +95,78 @@
   const setProductionStatus = (s: ProductionStatus) => (productionUpdateStatus = s);
 
   let compDirty = $derived($componentDirty[component] ?? false);
-  let isApplied = $derived(!!productionInfo && productionInfo.fileName === activeFileName && !compDirty);
+  let openIsProtected = $derived(openTheme.fileName === 'default');
+  // Both rows name a document, because that is what a config belongs to now:
+  // the component runs the open theme's config (or the shipped default), and
+  // production ships the published theme's.
+  let editorDoc = $derived(liveSource === 'default' ? 'default' : openTheme.fileName);
+  let productionDoc = $derived(
+    $productionTheme
+      ? ($productionTheme.componentConfigs[component] ? $productionTheme._fileName ?? 'default' : 'default')
+      : null,
+  );
+  let editorName = $derived(liveSource === 'default' ? 'Default' : openTheme.name);
+  let productionName = $derived(
+    productionDoc === null ? '—' : productionDoc === 'default' ? 'Default' : $productionTheme?.name ?? '—',
+  );
+  let isApplied = $derived(productionDoc !== null && productionDoc === editorDoc && !compDirty);
   let resetDirty = $derived(!!resetVariables && compDirty);
 
   async function refreshFiles() {
     // safeFetch returns null on dev-server unavailable / non-2xx — silently
     // leave the file list empty in that case.
-    const data = await safeFetch<{
-      files: ComponentConfigMeta[];
-      activeFile: string;
-    }>(`${API_BASE}/component-configs/${encodeURIComponent(component)}`);
-    if (!data) return;
-    files = data.files;
-    activeFileName = data.activeFile;
-    const active = files.find((f) => f.fileName === activeFileName);
-    if (active) currentDisplayName = active.name;
+    const data = await safeFetch<{ files: ComponentConfigMeta[] }>(
+      `${API_BASE}/component-configs/${encodeURIComponent(component)}`,
+    );
+    if (data) files = data.files;
+  }
+
+  /** Which layer the component's live config comes from, and the theme it
+   *  belongs to. Both ride on the live read door's markers. */
+  async function refreshLive() {
+    const cfg = await getActiveComponentConfig(component);
+    if (cfg) liveSource = cfg._source ?? 'default';
+    try {
+      const theme = await getActiveTheme();
+      if (theme) openTheme = { fileName: theme._fileName ?? 'default', name: theme.name };
+    } catch {
+      // silent — keep the last answer
+    }
   }
 
   async function refreshProduction() {
-    // Preserve existing productionInfo on transient fetch failure rather than
-    // clobbering it to null — same behaviour as the previous empty catch.
-    const info = await safeFetch<ComponentProductionInfo>(
-      `${API_BASE}/component-configs/${encodeURIComponent(component)}/production`,
-    );
-    if (info) productionInfo = info;
+    // Preserve the last answer on a transient failure rather than clobbering
+    // the store to null, which would read as "production unknown".
+    try {
+      productionTheme.set(await getProductionTheme());
+    } catch {
+      // silent
+    }
   }
 
   onMount(async () => {
     await refreshFiles();
+    await refreshLive();
     await refreshProduction();
     window.addEventListener('keydown', handleKeydown);
   });
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeydown);
+  });
+
+  // An Adopt in the theme panel can fork the protected theme, so the document
+  // this component belongs to changes under us. The production side rides on
+  // the shared store and needs no re-read here. Skip the first tick — mount
+  // ran it already.
+  let pulseInitialised = false;
+  $effect(() => {
+    void $productionRevision;
+    if (!pulseInitialised) {
+      pulseInitialised = true;
+      return;
+    }
+    refreshLive();
   });
 
   function handleKeydown(e: KeyboardEvent) {
@@ -138,9 +188,9 @@
     return get(editorState).components[component]?.config ?? {};
   }
 
-  async function persist(fileName: string, displayName: string): Promise<void> {
+  function currentConfigData(displayName: string): ComponentConfig {
     const now = new Date().toISOString();
-    const data: ComponentConfig = {
+    return {
       name: displayName,
       component,
       createdAt: now,
@@ -149,42 +199,40 @@
       config: { ...currentConfig() },
       schemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
     };
-    await saveComponentConfig(component, fileName, data);
-    await setActiveComponentFile(component, fileName);
-    activeFileName = fileName;
-    currentDisplayName = displayName;
+  }
+
+  /** Flush the editor state to the component's working buffer. A theme save
+   *  captures the buffers, so this is what puts these edits in reach of Save
+   *  and Adopt. */
+  async function persist(): Promise<void> {
+    await writeWorkingComponentConfig(component, currentConfigData(openTheme.name));
+    liveSource = 'working';
     markComponentSaved(component);
     bumpComponentActiveRevision();
   }
 
   async function handleSave() {
-    if (activeFileName === 'default') {
-      // Default is regenerated from source, so the first Save quietly opens
-      // Save As — same dialog as the Save As button, no scolding description.
-      openSaveAs();
-      return;
-    }
     saveStatus = 'saving';
     try {
-      await persist(activeFileName, currentDisplayName);
+      await persist();
       flashStatus(setSaveStatus, 'saved');
-      await refreshFiles();
     } catch {
       flashStatus(setSaveStatus, 'error');
     }
   }
 
   function openSaveAs() {
-    saveAsTitle = 'Save Component As';
-    saveAsDescription = '';
     saveAsDialog = true;
   }
 
+  /** Save As writes a preset — a config the user can load into any theme —
+   *  and keeps the buffer, so the editor reads saved either way. */
   async function confirmSaveAs(detail: { displayName: string; fileName: string }) {
     const { displayName, fileName } = detail;
     saveStatus = 'saving';
     try {
-      await persist(fileName, displayName);
+      await saveComponentConfig(component, fileName, currentConfigData(displayName));
+      await persist();
       flashStatus(setSaveStatus, 'saved');
       await refreshFiles();
     } catch {
@@ -193,16 +241,15 @@
   }
 
   async function handleLoad(file: ComponentConfigMeta) {
-    // Multi-step service flow (load + set-active) — if any network call
+    // Multi-step service flow (load + buffer write) — if any network call
     // fails, the dialog is already closed and the local state stays on the
     // previous selection. Silent by design; the same boot resilience that
     // keeps the editor working without a dev-server applies here.
     try {
-      const cfg = await loadComponentConfig(component, file.fileName);
-      await setActiveComponentFile(component, file.fileName);
-      loadComponentActive(component, file.fileName, cfg.aliases, cfg.config, cfg.schemaVersion ?? 0);
-      activeFileName = file.fileName;
-      currentDisplayName = file.name;
+      const { _fileName, _source, ...cfg } = await loadComponentConfig(component, file.fileName);
+      await writeWorkingComponentConfig(component, { ...cfg, component });
+      loadComponentActive(component, cfg.aliases, cfg.config, cfg.schemaVersion ?? 0);
+      liveSource = 'working';
       bumpComponentActiveRevision();
     } catch {
       // intentional: see comment above
@@ -211,71 +258,47 @@
 
   async function handleDelete(file: ComponentConfigMeta) {
     if (file.fileName === 'default') return;
-    // Multi-step service flow (delete + reload-default-on-active-removal).
-    // Silent by design — see handleLoad.
+    // A preset is not live state, so deleting one leaves the component running
+    // exactly what it ran. Silent by design — see handleLoad.
     try {
-      // Capture before refreshFiles() reads the server's reverted active back
-      // into local state — otherwise the "was this the active file?" check
-      // below sees the post-revert value and skips the reload.
-      const wasActive = file.fileName === activeFileName;
       await deleteComponentConfig(component, file.fileName);
       await refreshFiles();
-      await refreshProduction();
-      if (wasActive) {
-        // Server reverts active to default; reload default aliases into the store
-        // so the deleted file's CSS vars are replaced by default's.
-        const defaultCfg = await loadComponentConfig(component, 'default');
-        loadComponentActive(component, 'default', defaultCfg.aliases, defaultCfg.config, defaultCfg.schemaVersion ?? 0);
-        activeFileName = 'default';
-        currentDisplayName = 'Default';
-        bumpComponentActiveRevision();
-      }
     } catch {
       // intentional: see comment above
     }
   }
 
-  async function handleUpdateProduction() {
-    // If the editor has unsaved edits, persist them first so production adopts
-    // the actual current state — not a stale snapshot. The `default` file is
-    // regenerated from source and can't be overwritten, so route to Save As
-    // and bail; the user can re-trigger Adopt after the new file is saved.
-    if (compDirty && activeFileName === 'default') {
-      saveAsTitle = 'Save Component As';
-      saveAsDescription =
-        'Adopting pushes this component to production. The default config is read-only, so save your edits to a new file first.';
-      saveAsDialog = true;
+  /**
+   * Adopt ships the whole look, because production is one saved theme: flush
+   * this component, save the open theme, publish it. The protected Default
+   * theme cannot record what shipped, so it prompts for a theme name first and
+   * retries.
+   */
+  async function handleAdopt() {
+    if (openIsProtected) {
+      retryAdoptAfterThemeSave = true;
+      try {
+        themes = await listThemes();
+      } catch {
+        themes = [];
+      }
+      themeSaveAsDialog = true;
       return;
     }
     const wasDirty = compDirty;
-    const adoptingName = currentDisplayName;
+    const adoptingName = openTheme.name;
     productionUpdateStatus = 'updating';
     try {
-      if (wasDirty) {
-        await persist(activeFileName, currentDisplayName);
-        await refreshFiles();
-      }
-      await setComponentProductionFile(component, activeFileName);
+      if (wasDirty) await persist();
+      await saveActiveTheme();
+      await adoptLook();
       await refreshProduction();
       bumpProductionRevision();
       adoptFeedback = wasDirty
         ? `Saved "${adoptingName}" and adopted`
         : `Adopted "${adoptingName}"`;
       flashStatus(setProductionStatus, 'done', { onIdle: () => (adoptFeedback = '') });
-    } catch (err) {
-      const e = err as Error & { code?: string };
-      if (e.code === 'ACTIVE_IS_PROTECTED') {
-        adoptFeedback = '';
-        productionUpdateStatus = 'idle';
-        retryAdoptAfterThemeSave = true;
-        try {
-          themes = await listThemes();
-        } catch {
-          themes = [];
-        }
-        themeSaveAsDialog = true;
-        return;
-      }
+    } catch {
       adoptFeedback = '';
       flashStatus(setProductionStatus, 'error', { onIdle: () => (adoptFeedback = '') });
     }
@@ -284,7 +307,11 @@
   async function onThemeSaveAs(detail: { displayName: string; fileName: string }) {
     themeSaveAsDialog = false;
     try {
+      // The capture reads the server's live state, so this component's edits
+      // have to be in its buffer before the new theme takes shape.
+      if (compDirty) await persist();
       await saveAsTheme(detail.fileName, detail.displayName);
+      await refreshLive();
     } catch (err) {
       window.alert(`Failed to create the theme: ${(err as Error).message}`);
       retryAdoptAfterThemeSave = false;
@@ -292,15 +319,15 @@
     }
     if (retryAdoptAfterThemeSave) {
       retryAdoptAfterThemeSave = false;
-      await handleUpdateProduction();
+      await handleAdopt();
     }
   }
 
   async function handleReset() {
     if (!resetVariables) return;
     try {
-      const cfg = await loadComponentConfig(component, activeFileName);
-      loadComponentActive(component, activeFileName, cfg.aliases, cfg.config, cfg.schemaVersion ?? 0);
+      const cfg = await getActiveComponentConfig(component);
+      if (cfg) loadComponentActive(component, cfg.aliases, cfg.config, cfg.schemaVersion ?? 0);
     } catch {
       // intentional: dev-server unavailable — leave state untouched
     }
@@ -321,7 +348,7 @@
     {/if}
   </div>
 
-  <div class="cfm-rows" class:in-sync={isApplied} class:promotable={compDirty || (!!productionInfo && productionInfo.fileName !== activeFileName)}>
+  <div class="cfm-rows" class:in-sync={isApplied} class:promotable={compDirty || (productionDoc !== null && productionDoc !== editorDoc)}>
     <div class="cfm-row cfm-row-editor" class:dirty={compDirty} class:applied={isApplied}>
       <span class="cfm-rail" aria-hidden="true"></span>
       <div class="cfm-row-head">
@@ -332,15 +359,15 @@
         </span>
       </div>
       <FilePill
-        name={currentDisplayName}
-        isProtected={activeFileName === 'default'}
+        name={editorName}
+        isProtected={editorDoc === 'default'}
         dirty={compDirty}
         applied={isApplied}
-        protectedTitle="Protected system config"
+        protectedTitle="Running the config shipped with the component"
         title={compDirty
           ? 'Unsaved changes'
           : isApplied
-            ? 'Active config is applied to production'
+            ? 'Production is running this config'
             : ''}
         style="flex: 0 1 11.25rem; min-width: 0; max-width: 11.25rem;"
       />
@@ -348,7 +375,6 @@
         <ComponentFileMenu
           {component}
           {files}
-          {activeFileName}
           onsave={handleSave}
           onsaveAs={openSaveAs}
           onopenLoad={refreshFiles}
@@ -360,7 +386,7 @@
             icon="fa-rotate-left"
             onclick={handleReset}
             disabled={!resetDirty}
-            title="Revert unsaved changes to {currentDisplayName}"
+            title="Revert unsaved changes to {editorName}"
           >Reset</UISquareButton>
         {/if}
       </div>
@@ -380,9 +406,9 @@
         </span>
       </div>
       <FilePill
-        name={productionInfo?.name ?? '—'}
-        isProtected={productionInfo?.fileName === 'default'}
-        protectedTitle="Protected system config"
+        name={productionName}
+        isProtected={productionDoc === 'default'}
+        protectedTitle="Running the config shipped with the component"
         style="flex: 0 1 11.25rem; min-width: 0; max-width: 11.25rem;"
       />
       <div class="cfm-actions">
@@ -395,31 +421,23 @@
               : productionUpdateStatus === 'error'
                 ? 'fa-xmark'
                 : 'fa-arrow-down'}
-          onclick={handleUpdateProduction}
-          disabled={productionUpdateStatus === 'updating' || !productionInfo || (productionInfo.fileName === activeFileName && !compDirty)}
-          title={!productionInfo
-            ? ''
-            : productionInfo.fileName === activeFileName && !compDirty
-              ? 'Already in sync with editor'
-              : compDirty && activeFileName === 'default'
-                ? 'Save edits as a new file, then adopt'
-                : compDirty
-                  ? `Save "${currentDisplayName}" and adopt`
-                  : `Adopt "${currentDisplayName}" from editor`}
+          onclick={handleAdopt}
+          disabled={productionUpdateStatus === 'updating' || isApplied}
+          title={isApplied
+            ? 'Production is running this theme'
+            : `Save "${openTheme.name}" and ship it to production`}
         >
           {#if productionUpdateStatus === 'idle'}Adopt{:else if productionUpdateStatus === 'updating'}Adopting{:else if productionUpdateStatus === 'done'}Adopted{:else}Error{/if}
         </UISquareButton>
         <UIInfoPopover title="Component Configuration" ariaLabel="About Save and Adopt">
           <p>
-            Editor and Prod both use a saved file. When they share the
-            <em>same</em> file, <strong>Saved changes</strong> go to into production
-            immediately. They are sharing the configuration.
+            <strong>Save</strong> keeps your edits in the theme you have open. The theme carries a copy of every component you changed, so the look travels as one file.
           </p>
           <p>
-            To experiment without changing production,<strong>Save As</strong> a new file first.
+            <strong>Save As</strong> writes the component's settings to a file of their own, ready to load into any theme.
           </p>
           <p>
-            When ready, click <strong>Adopt</strong> to use the new file on prod.
+            <strong>Adopt</strong> ships the whole theme to production, this component with it. Production runs one saved theme, so a component never ships alone.
           </p>
         </UIInfoPopover>
         {#if adoptFeedback}
@@ -432,12 +450,10 @@
 
 <SaveAsDialog
   bind:show={saveAsDialog}
-  {currentDisplayName}
+  currentDisplayName={editorName}
   {files}
-  currentFileName={activeFileName}
   reservedDisplayNames={files.filter((f) => f.fileName === 'default').map((f) => f.name)}
-  title={saveAsTitle}
-  description={saveAsDescription}
+  title="Save Component As"
   placeholder="Component config name…"
   branchFromDefaultName={`my-${(title || 'component').toLowerCase().trim().replace(/\s+/g, '-')}`}
   onsave={confirmSaveAs}
@@ -450,7 +466,7 @@
   reservedDisplayNames={themes.filter((m) => m.fileName === 'default').map((m) => m.name)}
   title="Save Theme As"
   placeholder="Theme name…"
-  description="Adopting a component change updates the active theme. The default theme is locked, so name a new theme for this site."
+  description="Adopting ships the whole theme, this component with it. The default theme is locked, so name a new theme for this site."
   reservedNameMessage='That name is reserved for the protected default theme.'
   onsave={onThemeSaveAs}
 />

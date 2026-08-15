@@ -1,16 +1,12 @@
 import { writable } from 'svelte/store';
-import type { ProductionInfo } from './themes/colorsAndTypeService';
-import type { ThemeMeta } from './themes/themeTypes';
+import type { Theme } from './themes/themeTypes';
 
 /**
- * Monotonic counter that ticks every time a production pointer flips —
- * colors-and-type production or a component's production. UI surfaces that need to
- * react to a sibling Adopt subscribe to this so they refresh without
- * per-pair wiring.
+ * Monotonic counter that ticks every time an Adopt publishes a theme. UI
+ * surfaces that need to react to a sibling Adopt subscribe to this so they
+ * refresh without per-pair wiring.
  *
- * Bumpers: `ThemePanel.runAdopt`, `ThemePanel.deleteLayerFile`,
- * `ComponentFileManager.handleUpdateProduction`. Anyone setting
- * `_production.json` should bump.
+ * Bumpers: `ThemePanel.runAdopt`, `ComponentFileManager.handleAdopt`.
  */
 export const productionRevision = writable(0);
 
@@ -19,10 +15,11 @@ export function bumpProductionRevision(): void {
 }
 
 /**
- * Ticks when a component starts running a different config file. Saving one is
- * visible through `componentDirty`, but loading or deleting a config with no
- * edit in play changes nothing the Theme panel can observe, and its Components
- * count is derived from exactly that. Bumped by `ComponentFileManager`.
+ * Ticks when a component's live config changes on the server — a save, a
+ * preset load, a delete. Saving one is visible through `componentDirty`, but
+ * loading a preset with no edit in play changes nothing the Theme panel can
+ * observe, and its Components count is derived from exactly that. Bumped by
+ * `ComponentFileManager`.
  */
 export const componentActiveRevision = writable(0);
 
@@ -31,19 +28,10 @@ export function bumpComponentActiveRevision(): void {
 }
 
 /**
- * Cached production-state stores. The Theme panel and its parts live in the
- * sidebar footer, swapping in/out of the DOM as the user toggles between the
- * tokens and components views. Keeping the last-known production state in
- * module-level Svelte stores means a remount renders the correct Adopt-button
- * state on the first frame instead of flashing through "not in sync" while a
- * fresh fetch resolves.
+ * Last-read production theme — the document `tokens.generated.css` was baked
+ * from. The Theme panel and the component file managers live in surfaces that
+ * swap in and out of the DOM, so keeping the last answer in a module-level
+ * store means a remount renders the correct Adopt state on the first frame
+ * instead of flashing through "not in sync" while a fresh fetch resolves.
  */
-export const colorsAndTypeProductionInfo = writable<ProductionInfo | null>(null);
-
-/**
- * Last-known active theme meta. Bumped by the Theme panel whenever the
- * active theme changes (load, save, save-as) and whenever a colors-and-type
- * or component Adopt completes (the server patches the active theme as a
- * side-effect, so consumers re-read it on `productionRevision` ticks).
- */
-export const activeTheme = writable<ThemeMeta | null>(null);
+export const productionTheme = writable<Theme | null>(null);

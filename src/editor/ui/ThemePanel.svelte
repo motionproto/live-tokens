@@ -1,11 +1,10 @@
 <script lang="ts">
-  // The root of the look hierarchy: one Theme panel that owns the whole look,
-  // with the colors-and-type layer and the components as parts that report
-  // rather than manage.
+  // The root of the look hierarchy: one Theme panel that owns the open theme,
+  // with the colors and type and the components as parts that report rather
+  // than manage.
   //
-  // It is the only save, load and ship surface. The layer is internal: its
-  // files still exist, and older ones are listed here as colors-and-type
-  // entries, but nothing saves, loads or adopts them anywhere else.
+  // It is the only save, load and ship surface. Colors-and-type files are
+  // presets: listed here so they stay loadable, never written by a save.
   import { onDestroy, onMount } from 'svelte';
   import { get } from 'svelte/store';
   import type { Theme, ThemeMeta, ColorsAndType, ColorsAndTypeMeta } from '../core/themes/themeTypes';
@@ -13,9 +12,11 @@
     listThemes,
     deleteTheme,
     getActiveTheme,
+    getProductionTheme,
     loadTheme,
     applyTheme,
     adoptLook,
+    freshName,
     saveAsTheme,
     saveActiveTheme,
     exportTheme,
@@ -25,15 +26,12 @@
   import { previewTheme, previewColorsAndType, revertPreview } from '../core/preview/lookPreview';
   import {
     deleteColorsAndType,
-    getProductionInfo,
     hydrateColorsAndType,
     listColorsAndType,
     loadColorsAndType,
     persistColorsAndType,
-    saveColorsAndType,
-    setActiveFile,
+    writeWorkingColorsAndType,
   } from '../core/themes/colorsAndTypeService';
-  import { freshName, layerFlushTarget } from '../core/themes/layerFlush';
   import {
     buildLoadRows,
     colorsOnlyIsForced,
@@ -46,15 +44,14 @@
     type ComponentSummary,
   } from '../core/components/componentConfigService';
   import { fontPairingLabel } from '../core/fonts/fontPairing';
-  import { dirty, componentDirty, editorState, colorsAndTypeDirty } from '../core/store/editorStore';
-  import { activeFileName as layerFileName } from '../core/store/editorConfigStore';
+  import { componentDirty, editorState, colorsAndTypeDirty } from '../core/store/editorStore';
+  import { openThemeSlug } from '../core/store/editorConfigStore';
   import { editorView } from '../core/store/editorViewStore';
   import {
     componentActiveRevision,
     productionRevision,
-    activeTheme,
     bumpProductionRevision,
-    colorsAndTypeProductionInfo,
+    productionTheme,
   } from '../core/productionPulse';
   import { flashStatus } from '../core/flashStatus';
   import UIInfoPopover from './UIInfoPopover.svelte';
@@ -73,16 +70,15 @@
   let canOpenComponents = $derived(showComponentsLink && $editorView !== 'components');
 
   let files: ThemeMeta[] = $state([]);
-  let layerFiles: ColorsAndTypeMeta[] = $state([]);
-  let rows = $derived(buildLoadRows(files, layerFiles));
+  let colorsFiles: ColorsAndTypeMeta[] = $state([]);
+  let rows = $derived(buildLoadRows(files, colorsFiles));
   let showFileList = $state(false);
   let saveAsDialog = $state(false);
   let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = $state('idle');
 
-  let activeFileName = $state('default');
   let currentDisplayName = $state('Motion Proto');
-  let activeIsProtected = $derived(activeFileName === 'default');
-  let activeRowId = $derived(loadRowId('look', activeFileName));
+  let activeIsProtected = $derived($openThemeSlug === 'default');
+  let activeRowId = $derived(loadRowId('look', $openThemeSlug));
 
   type SaveState = 'idle' | 'saving' | 'saved' | 'error';
   const setSaveStatus = (s: SaveState) => (saveStatus = s);
@@ -90,13 +86,16 @@
   let dirtyComponentCount = $derived(
     Object.values($componentDirty).filter(Boolean).length,
   );
-  let editorDirty = $derived($dirty || dirtyComponentCount > 0);
+  let unsavedEdits = $derived($colorsAndTypeDirty || dirtyComponentCount > 0);
+
+  // Only Adopt bakes the CSS, so writing the open theme after it shipped leaves
+  // production a version behind until the next one. A page load starts this
+  // over: nothing on disk records when the bake happened.
+  let movedSinceAdopt = $state(false);
 
   async function refreshFiles() {
     try {
-      [files, layerFiles] = await Promise.all([listThemes(), listColorsAndType()]);
-      const activeLayer = layerFiles.find((f) => f.isActive);
-      if (activeLayer) layerFileName.set(activeLayer.fileName);
+      [files, colorsFiles] = await Promise.all([listThemes(), listColorsAndType()]);
     } catch {
       // silent — empty list
     }
@@ -106,10 +105,8 @@
     try {
       const active = await getActiveTheme();
       if (active) {
-        activeFileName = active._fileName ?? 'default';
-        currentDisplayName = active.name ?? activeFileName;
-        const meta = (await listThemes()).find((f) => f.fileName === activeFileName) ?? null;
-        activeTheme.set(meta);
+        openThemeSlug.set(active._fileName ?? 'default');
+        currentDisplayName = active.name ?? $openThemeSlug;
         lookConfigs = active.componentConfigs;
       }
     } catch {
@@ -125,7 +122,7 @@
 
   async function refreshProduction(retry = true) {
     try {
-      colorsAndTypeProductionInfo.set(await getProductionInfo());
+      productionTheme.set(await getProductionTheme());
     } catch {
       if (retry) productionRetry = setTimeout(() => refreshProduction(false), PRODUCTION_RETRY_MS);
     }
@@ -140,8 +137,8 @@
   // ── Components ────────────────────────────────────────────────────────
   //
   // The per-component file managers live in the component editors; the list
-  // here answers two questions at once — how many components run something the
-  // active look does not carry, and which of them production is not running.
+  // here answers one question — how many components run something the open
+  // theme does not carry.
 
   let components: ComponentSummary[] = $state([]);
   let lookConfigs: Theme['componentConfigs'] | null = $state(null);
@@ -159,9 +156,9 @@
   }
 
   // Two signals move the components on their own: a component settling (saving
-  // one sets a new active file for it without pulsing production), and a
-  // component editor pointing at another file with no edit in play, which only
-  // the component pulse reports. Adopts arrive on the production pulse below.
+  // one writes its buffer without pulsing production), and a component editor
+  // loading a preset with no edit in play, which only the component pulse
+  // reports. Adopts arrive on the production pulse below.
   $effect(() => {
     void dirtyComponentCount;
     void $componentActiveRevision;
@@ -178,10 +175,10 @@
     await refreshProduction();
   });
 
-  // Re-read the active look whenever an Adopt fires, here or in a component
-  // editor — the server patches our active file in those moments, so the
-  // identity, the component summary and the production state shown here need
-  // to track. Skip the first tick (mount ran them already).
+  // Re-read whenever an Adopt fires, here or in a component editor: it saves
+  // the open theme and moves the production pointer, so the identity, the
+  // component summary and the production state shown here all need to track.
+  // Skip the first tick (mount ran them already).
   let pulseInitialised = false;
   $effect(() => {
     void $productionRevision;
@@ -195,26 +192,16 @@
     refreshComponents();
   });
 
-  // A capture reads files, so the colors and type on screen go to their file
-  // first — that is what makes Save and Adopt mean the look in front of you.
-  // A component's edits live in its own editor's state, which this panel
-  // cannot write, so those are the only ones a capture leaves behind.
+  // A capture reads the server's live state, so the colors and type on screen
+  // go to their buffer first — that is what makes Save and Adopt mean the look
+  // in front of you. A component's edits live in its own editor's state, which
+  // this panel cannot write, so those are the only ones a capture leaves behind.
   //
-  // The gate is `colorsAndTypeDirty`, not the global `dirty`: that one counts every
-  // history entry, components included, so it would write the layer over
-  // component-only work — and fork "My Colors" out of the protected Default
-  // to do it.
-  async function flushLayer(): Promise<void> {
+  // The gate is `colorsAndTypeDirty`, not history: history counts every entry,
+  // components included, so it would flush the colors over component-only work.
+  async function flushColors(): Promise<void> {
     if (!$colorsAndTypeDirty) return;
-    const active = $layerFileName;
-    const target = layerFlushTarget(
-      active,
-      layerFiles.find((f) => f.fileName === active)?.name ?? active,
-      layerFiles.map((f) => f.fileName),
-    );
-    // persistColorsAndType writes the file, points active at it and clears dirty.
-    await persistColorsAndType(get(editorState), target.fileName, target.displayName);
-    await refreshFiles();
+    await persistColorsAndType(get(editorState), currentDisplayName);
   }
 
   function confirmUnsavedComponents(action: string): boolean {
@@ -231,8 +218,9 @@
     if (!confirmUnsavedComponents('Save the theme anyway?')) return;
     saveStatus = 'saving';
     try {
-      await flushLayer();
+      await flushColors();
       await saveActiveTheme(currentDisplayName);
+      movedSinceAdopt = true;
       await refreshActive();
       flashStatus(setSaveStatus, 'saved');
     } catch {
@@ -249,7 +237,7 @@
   async function confirmSaveAs(detail: { displayName: string; fileName: string }) {
     saveStatus = 'saving';
     try {
-      await flushLayer();
+      await flushColors();
       await saveAsTheme(detail.fileName, detail.displayName);
       await refreshFiles();
       await refreshActive();
@@ -261,26 +249,26 @@
 
   // ── Adopt: ship the whole look ────────────────────────────────────────
   //
-  // One action at the root, because a look ships as a whole: the colors and
-  // type plus every component running something production does not have. The
-  // component editors keep their own Adopt for shipping one component alone.
+  // One action at the root, because production is one saved theme: Adopt saves
+  // the open one and publishes it whole. The component editors' Adopt runs the
+  // same flow, so a component can never ship on its own.
 
   type AdoptStatus = 'idle' | 'adopting' | 'done' | 'error';
   let adoptStatus: AdoptStatus = $state('idle');
   const setAdoptStatus = (s: AdoptStatus) => (adoptStatus = s);
 
   let production = $derived(
-    lookProductionState($layerFileName, $colorsAndTypeProductionInfo?.fileName ?? null, components),
+    lookProductionState({
+      openTheme: $openThemeSlug,
+      productionTheme: $productionTheme?._fileName ?? null,
+      unpublished: unsavedEdits || movedSinceAdopt,
+    }),
   );
 
   let adoptTitle = $derived.by(() => {
     if (production.inProduction) return 'Production is running this theme';
-    if (production.unknown) return 'Ship this theme to production';
-    const parts: string[] = [];
-    if (production.colorsAndTypeOff) parts.push('the colors and type');
-    const off = production.componentsOff.length;
-    if (off > 0) parts.push(off === 1 ? '1 component' : `${off} components`);
-    return `Ship ${parts.join(' and ')} to production`;
+    if (production.unknown || production.themeOff) return 'Ship this theme to production';
+    return 'Save this theme and ship it to production';
   });
 
   async function handleAdopt() {
@@ -290,54 +278,40 @@
   }
 
   /**
-   * One Adopt, at most one fork. A 409 says the protected Default look is
-   * active and cannot record what shipped, so the flow forks it and retries
-   * once; a second 409 is a state this cannot name and surfaces as an error
-   * rather than another file. The status holds at 'adopting' throughout, which
-   * is what keeps `handleAdopt`'s re-entry guard closed across the fork.
+   * Adopt publishes what is saved, so the flow is flush, save, ship. The
+   * protected Default theme cannot record what shipped: the user clicked
+   * Adopt, and which file holds the look is bookkeeping they should not have
+   * to think about, so it forks to a theme of their own first.
    */
-  async function runAdopt(depth = 0) {
+  async function runAdopt() {
     adoptStatus = 'adopting';
     try {
-      await flushLayer();
+      await flushColors();
+      if (activeIsProtected) {
+        const taken = new Set((await listThemes()).map((m) => m.fileName));
+        await saveAsTheme(freshName('my-theme', taken), 'My Theme');
+        await refreshFiles();
+        await refreshActive();
+      } else {
+        await saveActiveTheme(currentDisplayName);
+      }
       await adoptLook();
-      // The panel's own production pulse re-reads identity, production state
-      // and the component pointers.
+      movedSinceAdopt = false;
+      // The panel's own production pulse re-reads identity, the production
+      // theme and the component summary.
       bumpProductionRevision();
       flashStatus(setAdoptStatus, 'done');
-    } catch (err) {
-      const e = err as Error & { code?: string };
-      if (e.code === 'ACTIVE_IS_PROTECTED' && depth === 0) {
-        // The user clicked Adopt, and which file holds the look is bookkeeping
-        // they shouldn't have to think about.
-        try {
-          const taken = new Set((await listThemes()).map((m) => m.fileName));
-          await saveAsTheme(freshName('my-theme', taken), 'My Theme');
-        } catch {
-          flashStatus(setAdoptStatus, 'error', { durationMs: 3000 });
-          return;
-        }
-        await runAdopt(depth + 1);
-        return;
-      }
+    } catch {
       flashStatus(setAdoptStatus, 'error', { durationMs: 3000 });
     }
   }
 
   // ── Colors & Type ─────────────────────────────────────────────────────
   //
-  // Read-only identity: the two faces the theme is recognised by. The layer's
-  // own files are working files, so nothing here names one.
+  // Read-only identity: the two faces the theme is recognised by. The colors
+  // and type belong to the theme, so nothing here names a file.
 
   let pairing = $derived(fontPairingLabel($editorState.fonts.stacks, $editorState.fonts.sources));
-
-  async function loadLayer(fileName: string) {
-    try {
-      await hydrateColorsAndType(fileName);
-    } catch {
-      // silent
-    }
-  }
 
   // ── Preview ───────────────────────────────────────────────────────────
   //
@@ -376,10 +350,10 @@
 
   async function handleSelect(row: LoadRow) {
     if (row.fileName === previewRow?.fileName) return;
-    // The active look in whole-look mode is what the page already shows. In
+    // The open theme in whole-look mode is what the page already shows. In
     // colors-only mode it is a real operation: it puts the theme's own colors
     // back over whatever the user has edited.
-    if (row.kind === 'look' && row.slug === activeFileName && !isColorsOnly(row, colorsOnly)) {
+    if (row.kind === 'look' && row.slug === $openThemeSlug && !isColorsOnly(row, colorsOnly)) {
       cancelPreview();
       return;
     }
@@ -416,7 +390,7 @@
   async function commitWholeLook() {
     const row = previewRow;
     if (!row) return;
-    if (editorDirty) {
+    if (unsavedEdits) {
       const ok = window.confirm(
         'Loading a theme will reload the editor and discard unsaved changes. Continue?',
       );
@@ -432,9 +406,8 @@
             + `saved settings were skipped:\n\n${result.skippedComponents.join(', ')}`,
         );
       }
-      // applyTheme atomically flips active + production pointers and
-      // syncs tokens.css; reload to rehydrate the editor from the
-      // now-active theme + component configs.
+      // applyTheme opens the theme: it fills the working buffers and points
+      // `themes/_active.json` at it. Reload to rehydrate the editor from those.
       window.location.reload();
     } catch (err) {
       window.alert(`Failed to load theme: ${(err as Error).message}`);
@@ -442,35 +415,19 @@
   }
 
   /**
-   * Colors and type alone: the components stay as they are, so this is the
-   * layer load, not Apply. A theme's colors and type live inside it, so they
-   * are written out as a working file under the theme's own name first
-   * — the same materialisation Apply does for the theme half — and then made
-   * active. The Default theme needs no write: its layer is the package file
-   * already sitting under that name.
+   * Colors and type alone: the components stay as they are, so this loads the
+   * colors half into the open theme rather than opening a new one. The picked
+   * copy goes to the working buffer and onto the page; the theme itself is
+   * unchanged until Save.
    */
   async function commitColorsOnly() {
     const row = previewRow;
     // Read the payload before the revert clears it.
-    const colorsAndType = previewLook?.colorsAndType ?? null;
-    if (!row) return;
-    if ($dirty) {
+    const colorsAndType = previewLayer ?? previewLook?.colorsAndType ?? null;
+    if (!row || !colorsAndType) return;
+    if (unsavedEdits) {
       const ok = window.confirm(
         'Loading colors and type will discard unsaved changes. Continue?',
-      );
-      if (!ok) return;
-    }
-    // The look's copy lands under the look's own name. A user file already
-    // sitting there (a tuned shadow of this look's colors) would be replaced,
-    // and if that file is production, production regenerates from the copy.
-    const shadow = colorsAndType && row.slug !== 'default'
-      ? layerFiles.find((f) => f.fileName === row.slug && !f.isPackage)
-      : undefined;
-    if (shadow) {
-      const hitsProduction = $colorsAndTypeProductionInfo?.fileName === row.slug;
-      const ok = window.confirm(
-        `Replace your saved colors and type "${shadow.name}" with this theme's copy?`
-          + (hitsProduction ? ' It is in production, so production updates too.' : ''),
       );
       if (!ok) return;
     }
@@ -481,11 +438,9 @@
     cancelPreview();
     showFileList = false;
     try {
-      if (colorsAndType && row.slug !== 'default') await saveColorsAndType(row.slug, colorsAndType);
-      await setActiveFile(row.slug);
-      layerFileName.set(row.slug);
-      await hydrateColorsAndType(row.slug);
-      await refreshFiles();
+      await writeWorkingColorsAndType(colorsAndType);
+      hydrateColorsAndType(structuredClone(colorsAndType));
+      movedSinceAdopt = true;
     } catch (err) {
       window.alert(`Failed to load colors and type: ${(err as Error).message}`);
     }
@@ -560,16 +515,16 @@
 
   async function handleDelete(row: LoadRow) {
     if (row.isProtected) return;
-    if (row.kind === 'layer') return deleteLayerFile(row);
-    // Deleting the active theme is legal, and the working files on disk are
-    // untouched either way. Where active lands depends on something the client
-    // can't see: deleting a local copy that shadows a shipped theme restores the
-    // shipped one and keeps the pointer on it, while deleting a local-only theme
-    // sends active back to Default.
-    const wasActive = row.slug === activeFileName;
+    if (row.kind === 'layer') return deleteColorsFile(row);
+    // Deleting the open theme is legal: the working buffer survives its
+    // document, so the look on screen stays. Where open lands depends on
+    // something the client can't see — deleting a local copy that shadows a
+    // shipped theme restores the shipped one and keeps naming it, while
+    // deleting a local-only theme sends open back to Motion Proto.
+    const wasActive = row.slug === $openThemeSlug;
     const ok = window.confirm(
       wasActive
-        ? `Delete theme "${row.name}"? Active goes to the version shipped with the package if there is one, otherwise Motion Proto. Your working files stay as they are.`
+        ? `Delete theme "${row.name}"? The editor moves to the version shipped with the package if there is one, otherwise Motion Proto. The look on screen stays as it is.`
         : `Delete theme "${row.name}"?`,
     );
     if (!ok) return;
@@ -583,31 +538,17 @@
     }
   }
 
-  /** Colors and type files are working files: the themes that carry them keep
-   *  their own copy, so deleting one breaks nothing. */
-  async function deleteLayerFile(row: LoadRow) {
-    const wasActive = row.slug === $layerFileName;
+  /** Colors and type files are presets: nothing live points at one, and the
+   *  themes that carry those colors keep their own copy. */
+  async function deleteColorsFile(row: LoadRow) {
     const ok = window.confirm(
-      wasActive
-        ? `Delete the colors and type file "${row.name}"? The editor moves to the version shipped with the package if there is one, otherwise the default. Your themes keep their own copies.`
-        : `Delete the colors and type file "${row.name}"? Your themes keep their own copies.`,
+      `Delete the colors and type file "${row.name}"? Your themes keep their own copies.`,
     );
     if (!ok) return;
     try {
-      if (wasActive || row.fileName === previewRow?.fileName) cancelPreview();
+      if (row.fileName === previewRow?.fileName) cancelPreview();
       await deleteColorsAndType(row.slug);
       await refreshFiles();
-      // Deleting the production file is legal now that themes carry their own
-      // copy; the server heals the pointer and resyncs the CSS, so re-read
-      // production rather than trusting the cached value.
-      await refreshProduction();
-      bumpProductionRevision();
-      if (wasActive) {
-        // Not always the default: deleting a local copy that shadows a shipped
-        // file restores it and the pointer keeps naming it. refreshFiles()
-        // already read back whichever name survived.
-        await loadLayer($layerFileName);
-      }
     } catch (err) {
       window.alert(`Failed to delete: ${(err as Error).message}`);
     }
@@ -633,22 +574,22 @@
         A <strong>theme</strong> is a whole look in one file: the colors and type plus a setting for every component you changed.
       </p>
       <p>
-        It holds its own copy of that data, so deleting a working file never breaks a saved theme.
+        It holds its own copy of that data, so the theme you open is the whole look, and one theme can never break another.
       </p>
       <p>
         <strong>Load</strong> opens the list. Picking a theme shows it on the page as a preview, so you can try each look with nothing written to disk. Pick another to compare, or <strong>Cancel</strong> to go back to where you were.
       </p>
       <p>
-        <strong>Save</strong> keeps the previewed theme: it writes the look back out to working files named after the theme. A theme owns its name: any working file already using it is overwritten. Components the theme does not carry go back to their defaults.
+        <strong>Save</strong> opens the previewed theme: the editor works on it from then on, and components it does not carry go back to their defaults. Trying a theme never changes what your site ships.
       </p>
       <p>
         <strong>Colors and type only</strong> in that window takes the palette and the fonts and leaves your shapes and component settings alone.
       </p>
       <p>
-        The <strong>active</strong> theme is what the editor reads. <strong>Adopt</strong> ships the whole look to production: the colors and type plus every component you changed. The line under the name says whether production is running this theme.
+        The <strong>active</strong> theme is the one the editor has open. <strong>Adopt</strong> saves it and ships it to production, colors and type plus every component you changed. The line under the name says whether production is running this theme.
       </p>
       <p>
-        Save and Adopt both take the colors and type on screen as they are, writing them out for you. Component edits are the exception: save those in the component's own editor first.
+        Save and Adopt both take the colors and type on screen as they are. Component edits are the exception: save those in the component's own editor first.
       </p>
       <p>
         <strong>Motion Proto</strong> is the protected baseline. To start customizing, <strong>Save As</strong> a new theme first.

@@ -1,11 +1,11 @@
 /**
  * Client-side REST helpers for any "versioned file resource" — a class of
  * editable artifact whose lifecycle mirrors the theme files: list / load /
- * save / delete + an active pointer + a production pointer.
+ * save / delete, plus a live read door and, for themes, the pointer naming the
+ * open one.
  *
- * `colorsAndTypeService.ts` and `componentConfigService.ts` previously reimplemented
- * the same fetch shape. They now both consume `versionedFileResource(...)`
- * with their resource-specific URL.
+ * `colorsAndTypeService.ts`, `componentConfigService.ts` and `themeService.ts`
+ * all consume `versionedFileResource(...)` with their own URL root.
  *
  * Pure URL construction + fetch — no DOM, no filesystem, safe for any browser
  * or test harness that has a `fetch` global.
@@ -16,15 +16,13 @@ export interface VersionedFileResourceClientOptions {
   baseUrl: string;
 }
 
-export interface VersionedFileResourceClient<TItem, TMeta, TProductionInfo> {
+export interface VersionedFileResourceClient<TItem, TMeta> {
   list(): Promise<{ files: TMeta[]; activeFile?: string; productionFile?: string }>;
   load(fileName: string): Promise<TItem>;
   save(fileName: string, data: TItem): Promise<void>;
   remove(fileName: string): Promise<void>;
   getActive(): Promise<TItem | null>;
   setActive(fileName: string): Promise<void>;
-  getProductionInfo(): Promise<TProductionInfo>;
-  setProduction(fileName: string): Promise<TProductionInfo & { ok: boolean }>;
 }
 
 /**
@@ -34,17 +32,15 @@ export interface VersionedFileResourceClient<TItem, TMeta, TProductionInfo> {
  *   GET    {base}/:name                   → load
  *   PUT    {base}/:name                   → save
  *   DELETE {base}/:name                   → delete
- *   GET    {base}/active                  → load active
- *   PUT    {base}/active   {name}         → set active
- *   GET    {base}/production              → production info
- *   PUT    {base}/production {name}       → set production
+ *   GET    {base}/active                  → the live item
+ *   PUT    {base}/active   {name}         → open that item (themes only)
  *
- * Generic over the payload types so theme & component-config can share the
- * same plumbing while keeping their own response/info shapes.
+ * Generic over the payload types so themes, colors and type and component
+ * configs share the plumbing while keeping their own response shapes.
  */
-export function versionedFileResource<TItem, TMeta, TProductionInfo>(
+export function versionedFileResource<TItem, TMeta>(
   opts: VersionedFileResourceClientOptions,
-): VersionedFileResourceClient<TItem, TMeta, TProductionInfo> {
+): VersionedFileResourceClient<TItem, TMeta> {
   const { baseUrl } = opts;
 
   async function readJsonError(res: Response, fallback: string): Promise<string> {
@@ -105,32 +101,7 @@ export function versionedFileResource<TItem, TMeta, TProductionInfo>(
     }
   }
 
-  async function getProductionInfo(): Promise<TProductionInfo> {
-    const res = await fetch(`${baseUrl}/production`);
-    if (!res.ok) throw new Error('Failed to get production info');
-    return res.json();
-  }
-
-  async function setProduction(fileName: string): Promise<TProductionInfo & { ok: boolean }> {
-    const res = await fetch(`${baseUrl}/production`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: fileName }),
-    });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      const err = new Error(body.error || 'Set production failed') as Error & {
-        status?: number;
-        code?: string;
-      };
-      err.status = res.status;
-      if (body.code) err.code = body.code;
-      throw err;
-    }
-    return res.json();
-  }
-
-  return { list, load, save, remove, getActive, setActive, getProductionInfo, setProduction };
+  return { list, load, save, remove, getActive, setActive };
 }
 
 /** Sanitize a display name to a safe file name. Pure — no DOM, no fs. */

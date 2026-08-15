@@ -110,7 +110,6 @@ export type CssVarRef =
   | { kind: 'gradient'; value: GradientAliasValue };
 
 export interface ComponentSlice {
-  activeFile: string;
   aliases: Record<string, CssVarRef>;
   config: Record<string, unknown>;
   unlinked?: string[];

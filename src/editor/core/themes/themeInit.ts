@@ -1,26 +1,20 @@
 import type { AliasDiskValue, ColorsAndType } from './themeTypes';
-import { activeFileName } from '../store/editorConfigStore';
+import { openThemeSlug } from '../store/editorConfigStore';
 import { migrateColorsAndTypeFonts } from '../fonts/fontMigration';
 import { applyFontSources, applyFontStacks } from '../fonts/fontLoader';
 import { loadFromFile, seedComponentsFromApi } from '../store/editorStore';
-import { getActiveComponentConfig } from '../components/componentConfigService';
+import { getActiveComponentConfig, type ComponentSummary } from '../components/componentConfigService';
 import { safeFetch } from '../storage/storage';
 import { API_BASE } from '../storage/apiBase';
 
-interface ComponentSummaryDto {
-  name: string;
-  activeFile: string;
-  productionFile: string;
-}
-
 interface ListComponentsDto {
-  components: ComponentSummaryDto[];
+  components: ComponentSummary[];
 }
 
 /**
- * Fetch the active colors and type from the server and apply their CSS
+ * Fetch the live colors and type from the server and apply their CSS
  * variables to :root before the app mounts. Seeds the editor store so
- * PaletteEditors initialize from the file instead of stale localStorage.
+ * PaletteEditors initialize from the server state instead of stale localStorage.
  *
  * Routes the payload through `loadFromFile` so palette-derived vars in
  * `deriveCssVars` correctly overwrite any stale hexes baked into
@@ -45,22 +39,20 @@ export async function initializeTheme(): Promise<void> {
     if (colorsAndType.fontStacks && colorsAndType.fontStacks.length > 0) {
       applyFontStacks(colorsAndType.fontStacks, colorsAndType.fontSources ?? []);
     }
-    const fileName = colorsAndType._fileName || 'default';
-    activeFileName.set(fileName);
+    openThemeSlug.set(colorsAndType._fileName || 'default');
   }
 
   const list = await safeFetch<ListComponentsDto>(`${API_BASE}/component-configs`);
   if (list && Array.isArray(list.components)) {
     const configs: Record<
       string,
-      { activeFile: string; aliases: Record<string, AliasDiskValue>; config?: Record<string, unknown>; schemaVersion?: number }
+      { aliases: Record<string, AliasDiskValue>; config?: Record<string, unknown>; schemaVersion?: number }
     > = {};
     await Promise.all(
       list.components.map(async (c) => {
         const cfg = await getActiveComponentConfig(c.name);
         if (cfg) {
           configs[c.name] = {
-            activeFile: c.activeFile,
             aliases: cfg.aliases,
             config: cfg.config,
             schemaVersion: cfg.schemaVersion,

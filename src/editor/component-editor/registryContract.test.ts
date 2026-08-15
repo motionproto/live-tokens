@@ -7,8 +7,8 @@
  *   (1) Registration: each entry resolves to a real runtime file and a non-empty schema.
  *   (2) Editor ↔ Runtime: every editable token's CSS var is declared in the
  *       runtime's <style> block.
- *   (3) Editor ↔ Production config: every editable token has a seed alias in the
- *       production-pointed default config so consumers adopt with full defaults.
+ *   (3) Editor ↔ Default config: every editable token has a seed alias in the
+ *       component's `default.json` so consumers adopt with full defaults.
  *   (4) Round-trip: `setComponentAlias` persists into the slice under the same key.
  *
  * Tokens excluded from (2) and (3):
@@ -58,11 +58,8 @@ function extractRuntimeDeclarations(source: string): Set<string> {
   return out;
 }
 
-function loadProductionAliasKeys(componentId: string): Set<string> | null {
-  const pointerPath = path.join(CONFIG_ROOT, componentId, '_production.json');
-  if (!existsSync(pointerPath)) return null;
-  const { productionFile } = JSON.parse(readFileSync(pointerPath, 'utf-8')) as { productionFile: string };
-  const configPath = path.join(CONFIG_ROOT, componentId, `${productionFile}.json`);
+function loadDefaultAliasKeys(componentId: string): Set<string> | null {
+  const configPath = path.join(CONFIG_ROOT, componentId, 'default.json');
   if (!existsSync(configPath)) return null;
   const config = JSON.parse(readFileSync(configPath, 'utf-8')) as { aliases?: Record<string, unknown> };
   return new Set(Object.keys(config.aliases ?? {}));
@@ -104,10 +101,10 @@ describe('component registry contract', () => {
       expect(missing).toEqual([]);
     });
 
-    it('every editable schema variable is seeded in the production config', () => {
-      const aliasKeys = loadProductionAliasKeys(entry.id);
+    it('every editable schema variable is seeded in the default config', () => {
+      const aliasKeys = loadDefaultAliasKeys(entry.id);
       if (!aliasKeys) {
-        // No production config dir — component is editor-only or a smoke test.
+        // No default config — component is editor-only or a smoke test.
         // Registration test still ran; skip the seed check.
         return;
       }

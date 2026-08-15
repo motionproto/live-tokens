@@ -43,20 +43,11 @@ export function themeLook(theme: Theme, defaults: Theme): RenderedLook {
   const state = colorsAndTypeToState(colorsAndType);
   state.components = {};
   for (const [comp, config] of Object.entries(defaults.componentConfigs)) {
-    state.components[comp] = {
-      activeFile: 'default',
-      ...toComponentSlice(comp, config.aliases, config.config, config.schemaVersion),
-    };
+    state.components[comp] = toComponentSlice(comp, config.aliases, config.config, config.schemaVersion);
   }
-  // `activeFile` is the name Apply would materialise the config under. Nothing
-  // in the derivation reads it; it keeps the projected slice coherent.
-  const slug = theme._fileName ?? 'default';
   for (const [comp, config] of Object.entries(theme.componentConfigs)) {
     if (!(comp in state.components)) continue;
-    state.components[comp] = {
-      activeFile: slug,
-      ...toComponentSlice(comp, config.aliases, config.config, config.schemaVersion),
-    };
+    state.components[comp] = toComponentSlice(comp, config.aliases, config.config, config.schemaVersion);
   }
   const vars = deriveCssVars(state);
   Object.assign(vars, resolveFontStackValues(colorsAndType.fontStacks ?? [], colorsAndType.fontSources ?? []));

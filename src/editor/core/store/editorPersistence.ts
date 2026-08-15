@@ -85,7 +85,6 @@ export function normalizeComponents(state: EditorState): EditorState {
     if (!slice || typeof slice !== 'object') continue;
     components[name] = {
       ...slice,
-      activeFile: typeof slice.activeFile === 'string' ? slice.activeFile : 'default',
       aliases: slice.aliases && typeof slice.aliases === 'object' ? slice.aliases : {},
       config: slice.config && typeof slice.config === 'object' ? slice.config : {},
     };

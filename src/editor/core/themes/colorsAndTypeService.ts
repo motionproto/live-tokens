@@ -7,26 +7,16 @@ import {
 } from '../storage/files/versionedFileResourceClient';
 import { API_BASE } from '../storage/apiBase';
 import { loadFromFile as loadEditorState, toColorsAndType, markSaved, markColorsAndTypeSaved } from '../store/editorStore';
-import { activeFileName } from '../store/editorConfigStore';
 import { applyFontSources, applyFontStacks } from '../fonts/fontLoader';
 import { migrateColorsAndTypeFonts } from '../fonts/fontMigration';
 
 // ── API helpers ──────────────────────────────────────────────
 //
-// All colors-and-type CRUD goes through
-// `versionedFileResource(`${API_BASE}/colors-and-type`)` — shared with
-// `componentConfigService`'s per-component clients. The resource-specific
-// response shapes (ColorsAndTypeMeta list payload, ProductionInfo) are layered
-// on top via the generic type parameters.
+// Named colors-and-type files are presets: the user saves, loads and deletes
+// them, and nothing machine-written lands among them. The live colors and type
+// are the `_working` buffer, read back through `/colors-and-type/active`.
 
-export interface ProductionInfo {
-  fileName: string;
-  name: string;
-  updatedAt: string;
-  cssVariables: Record<string, string>;
-}
-
-const colorsAndTypeResource = versionedFileResource<ColorsAndType, ColorsAndTypeMeta, ProductionInfo>({
+const colorsAndTypeResource = versionedFileResource<ColorsAndType, ColorsAndTypeMeta>({
   baseUrl: `${API_BASE}/colors-and-type`,
 });
 
@@ -40,21 +30,24 @@ export const saveColorsAndType = (fileName: string, data: ColorsAndType): Promis
   colorsAndTypeResource.save(fileName, data);
 export const deleteColorsAndType = (fileName: string): Promise<void> => colorsAndTypeResource.remove(fileName);
 
+/** The colors and type the page is running: the buffer, else the open theme's
+ *  copy, else the shipped default. `_source` says which. */
 export async function getActiveColorsAndType(): Promise<ColorsAndType | null> {
   return colorsAndTypeResource.getActive();
 }
 
-export const setActiveFile = (fileName: string): Promise<void> => colorsAndTypeResource.setActive(fileName);
-
-// ── Production API helpers ─────────────────────────────────
-
-export const getProductionInfo = (): Promise<ProductionInfo> => colorsAndTypeResource.getProductionInfo();
-
-export async function setProductionFile(
-  fileName: string,
-): Promise<{ ok: boolean; fileName: string; name: string }> {
-  const data = await colorsAndTypeResource.setProduction(fileName);
-  return { ok: data.ok, fileName: data.fileName, name: data.name };
+/** Write the unsaved buffer. Absence of the buffer means "the open theme's
+ *  saved colors and type", so this is what puts the screen ahead of them. */
+export async function writeWorkingColorsAndType(data: ColorsAndType): Promise<void> {
+  const res = await fetch(`${API_BASE}/colors-and-type/working`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Write failed' }));
+    throw new Error(err.error || 'Write failed');
+  }
 }
 
 /** Sanitize a display name to a safe file name. Re-exported from the shared
@@ -62,35 +55,30 @@ export async function setProductionFile(
  * canonical pure helper without depending on this module's CSS imports. */
 export const sanitizeFileName = sanitizeFileNameImpl;
 
-// ── Colors and type save/load orchestration ────────────────
+// ── Colors and type flush / load orchestration ─────────────
 //
 // `persistColorsAndType` and `hydrateColorsAndType` are the canonical entry
-// points for round-tripping editor state to disk. The caller — `ThemePanel`,
-// which flushes the colors and type on screen before it captures or ships —
-// needs only handle UI-level concerns (status flashing, error chrome) and
-// delegate the actual orchestration here.
+// points for round-tripping editor state through the server. The caller —
+// `ThemePanel`, which flushes the colors and type on screen before it captures
+// or ships — handles only UI-level concerns (status flashing, error chrome).
 
-/** Snapshot the editor state to disk under `fileName`, mark the file active,
- *  and clear the dirty flag. The caller is responsible for surfacing
- *  saving / saved / error UI states around this call. */
+/** Flush the editor state to the buffer under `displayName`, the name of the
+ *  theme the buffer belongs to, and clear the dirty flag. A capture reads the
+ *  buffer back, so this is what makes Save and Adopt mean the look on screen. */
 export async function persistColorsAndType(
   state: EditorState,
-  fileName: string,
   displayName: string,
 ): Promise<void> {
   await tick();
   const colorsAndType = toColorsAndType(state, { name: displayName });
-  await saveColorsAndType(fileName, colorsAndType);
-  await setActiveFile(fileName);
-  activeFileName.set(fileName);
+  await writeWorkingColorsAndType(colorsAndType);
   markSaved();
   markColorsAndTypeSaved(state);
 }
 
-/** Load a colors-and-type file into the editor state and re-apply font
- *  side-effects (@font-face rules + `--font-*` CSS vars on :root). */
-export async function hydrateColorsAndType(fileName: string): Promise<void> {
-  const colorsAndType = await loadColorsAndType(fileName);
+/** Load colors and type into the editor state and re-apply font side-effects
+ *  (@font-face rules + `--font-*` CSS vars on :root). */
+export function hydrateColorsAndType(colorsAndType: ColorsAndType): void {
   migrateColorsAndTypeFonts(colorsAndType);
   loadEditorState(colorsAndType);
   // Font data is in state.fonts via loadEditorState; the DOM-side-effect

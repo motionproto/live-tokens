@@ -157,7 +157,7 @@ describe('colorsAndTypeLook', () => {
     __resetPreviewForTests();
     loadFromFile(colorsAndType({ '--surface-canvas': '#111111' }));
     seedComponentsFromApi({
-      card: { activeFile: 'my-card', aliases: { '--card-default-radius': '--radius-md' } },
+      card: { aliases: { '--card-default-radius': '--radius-md' } },
     });
   });
 
@@ -192,7 +192,7 @@ describe('a look previewed colors and type only', () => {
     __resetPreviewForTests();
     loadFromFile(colorsAndType({ '--surface-canvas': '#111111' }));
     seedComponentsFromApi({
-      card: { activeFile: 'my-card', aliases: { '--card-default-radius': '--radius-md' } },
+      card: { aliases: { '--card-default-radius': '--radius-md' } },
     });
   });
 
@@ -220,7 +220,7 @@ describe('liveLook', () => {
   it('derives from the editor store, not the DOM', () => {
     loadFromFile(colorsAndType({ '--surface-canvas': '#111111' }));
     seedComponentsFromApi({
-      card: { activeFile: 'my-card', aliases: { '--card-default-radius': '--radius-md' } },
+      card: { aliases: { '--card-default-radius': '--radius-md' } },
     });
     document.documentElement.style.setProperty('--card-default-radius', 'var(--radius-none)');
 
@@ -247,7 +247,7 @@ describe('previewTheme', () => {
     });
     loadFromFile(colorsAndType({ '--surface-canvas': '#111111', '--live-only': '1px' }));
     seedComponentsFromApi({
-      card: { activeFile: 'my-card', aliases: { '--card-default-radius': '--radius-md' } },
+      card: { aliases: { '--card-default-radius': '--radius-md' } },
     });
   });
 
@@ -330,7 +330,7 @@ describe('previewColorsAndType', () => {
     );
     loadFromFile(colorsAndType({ '--surface-canvas': '#111111', '--live-only': '1px' }));
     seedComponentsFromApi({
-      card: { activeFile: 'my-card', aliases: { '--card-default-radius': '--radius-md' } },
+      card: { aliases: { '--card-default-radius': '--radius-md' } },
     });
   });
 

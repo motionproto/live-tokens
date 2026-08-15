@@ -1,15 +1,15 @@
 // @vitest-environment happy-dom
 //
 // Drives the panel against a fake server, because the two things at stake are
-// orderings across services: the colors and type reach disk before a capture
-// reads files, and one Adopt forks the protected look at most once.
+// orderings across services: the colors and type reach the buffer before a
+// capture reads it, and Adopt saves the theme it is about to publish.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushSync, mount, unmount } from 'svelte';
 import { API_BASE } from '../core/storage/apiBase';
-import { activeFileName } from '../core/store/editorConfigStore';
+import { openThemeSlug } from '../core/store/editorConfigStore';
 import { mutate, setComponentAlias, __resetForTests } from '../core/store/editorStore';
-import { activeTheme, colorsAndTypeProductionInfo } from '../core/productionPulse';
+import { productionTheme } from '../core/productionPulse';
 import { isPreviewing, __resetPreviewForTests } from '../core/preview/lookPreview';
 import ThemePanel from './ThemePanel.svelte';
 
@@ -54,15 +54,15 @@ function server(url: string, init?: RequestInit): Response {
     case 'GET /themes':
       return json({ files: [{ fileName: 'my-theme', name: 'My Theme' }] });
     case 'GET /colors-and-type':
-      return json({ files: [{ fileName: 'my-colors', name: 'My Colors', isActive: true }] });
+      return json({ files: [{ fileName: 'my-colors', name: 'My Colors' }] });
     case 'GET /themes/active':
       return json(LOOK);
     case 'GET /colors-and-type/active':
-      return json(COLORS_AND_TYPE);
-    // A theme other than the live one, so the look reads out of sync and Adopt
+      return json({ ...COLORS_AND_TYPE, _fileName: 'my-theme', _source: 'working' });
+    // A theme other than the open one, so the look reads out of sync and Adopt
     // is live.
-    case 'GET /colors-and-type/production':
-      return json({ fileName: 'shipped', name: 'Shipped', updatedAt: 'x', cssVariables: {} });
+    case 'GET /themes/production':
+      return json({ ...LOOK, _fileName: 'shipped', name: 'Shipped' });
     case 'GET /component-configs':
       return json({ components: [] });
     default:
@@ -85,11 +85,10 @@ const button = (label: string) =>
 
 beforeEach(async () => {
   __resetForTests();
-  activeFileName.set('my-colors');
-  // Module-level caches: the panel remounts against them in the real editor,
-  // and a leftover from the last test would answer for the fetch under test.
-  colorsAndTypeProductionInfo.set(null);
-  activeTheme.set(null);
+  openThemeSlug.set('my-theme');
+  // Module-level cache: the panel remounts against it in the real editor, and a
+  // leftover from the last test would answer for the fetch under test.
+  productionTheme.set(null);
   calls = [];
   confirms = [];
   overrides = {};
@@ -134,27 +133,39 @@ function editComponent() {
 const dialogSave = () => target.querySelector<HTMLButtonElement>('.ui-dialog-btn.primary')!;
 
 describe('Save', () => {
-  it('writes the colors and type before it captures the look', async () => {
+  it('writes the colors and type to the buffer before it captures the theme', async () => {
     await mountPanel();
     editColors();
 
     button('Save').click();
     await settle();
 
-    const colorsAndTypePut = calls.indexOf(`PUT /colors-and-type/my-colors`);
-    const lookPut = calls.indexOf(`PUT /themes/my-theme`);
-    expect(colorsAndTypePut).toBeGreaterThan(-1);
-    expect(lookPut).toBeGreaterThan(colorsAndTypePut);
+    const bufferPut = calls.indexOf('PUT /colors-and-type/working');
+    const themePut = calls.indexOf('PUT /themes/my-theme');
+    expect(bufferPut).toBeGreaterThan(-1);
+    expect(themePut).toBeGreaterThan(bufferPut);
   });
 
-  it('writes nothing to the layer when the colors and type are saved', async () => {
+  it('writes no buffer when the colors and type are unchanged', async () => {
     await mountPanel();
 
     button('Save').click();
     await settle();
 
-    expect(calls).not.toContain('PUT /colors-and-type/my-colors');
+    expect(calls).not.toContain('PUT /colors-and-type/working');
     expect(calls).toContain('PUT /themes/my-theme');
+  });
+
+  it('never writes a named colors-and-type file', async () => {
+    await mountPanel();
+    editColors();
+
+    button('Save').click();
+    await settle();
+
+    expect(calls.filter((c) => c.startsWith('PUT /colors-and-type/'))).toEqual([
+      'PUT /colors-and-type/working',
+    ]);
   });
 
   it('does not warn about colors and type it is about to write', async () => {
@@ -182,7 +193,7 @@ describe('Save', () => {
 });
 
 describe('Save As', () => {
-  it('writes the colors and type before it captures the look', async () => {
+  it('writes the buffer before it captures the theme', async () => {
     await mountPanel();
     editColors();
 
@@ -194,16 +205,16 @@ describe('Save As', () => {
     dialogSave().click();
     await settle();
 
-    const colorsAndTypePut = calls.indexOf('PUT /colors-and-type/my-colors');
-    expect(colorsAndTypePut).toBeGreaterThan(-1);
-    expect(calls.indexOf('PUT /themes/fresh')).toBeGreaterThan(colorsAndTypePut);
+    const bufferPut = calls.indexOf('PUT /colors-and-type/working');
+    expect(bufferPut).toBeGreaterThan(-1);
+    expect(calls.indexOf('PUT /themes/fresh')).toBeGreaterThan(bufferPut);
   });
 });
 
 // The editor's history counts component edits too, so a signal that reads it
-// cannot stand in for "the colors and type differ from their file".
+// cannot stand in for "the colors and type differ from what the server holds".
 describe('Component-only edits', () => {
-  it('leave the layer file alone on Save', async () => {
+  it('leave the buffer alone on Save', async () => {
     await mountPanel();
     editComponent();
 
@@ -213,36 +224,24 @@ describe('Component-only edits', () => {
     expect(calls.filter((c) => c.startsWith('PUT /colors-and-type/'))).toEqual([]);
     expect(calls).toContain('PUT /themes/my-theme');
   });
-
-  it('do not fork colors and type out of the protected Default look', async () => {
-    overrides['GET /themes/active'] = () => json({ ...LOOK, name: 'Default', _fileName: 'default' });
-    overrides['GET /colors-and-type'] = () =>
-      json({ files: [{ fileName: 'default', name: 'Default', isActive: true, isPackage: true }] });
-    overrides['PUT /production'] = () =>
-      json({ error: 'Active theme is protected.', code: 'ACTIVE_IS_PROTECTED' }, 409);
-    await mountPanel();
-    editComponent();
-
-    button('Adopt').click();
-    await settle();
-
-    expect(calls.filter((c) => c.startsWith('PUT /colors-and-type/'))).toEqual([]);
-  });
 });
 
 describe('Adopt', () => {
-  it('flushes the colors and type, then ships', async () => {
+  it('flushes the colors and type, saves the theme, then ships', async () => {
     await mountPanel();
     editColors();
 
     button('Adopt').click();
     await settle();
 
-    expect(calls.indexOf('PUT /production')).toBeGreaterThan(calls.indexOf('PUT /colors-and-type/my-colors'));
+    const bufferPut = calls.indexOf('PUT /colors-and-type/working');
+    const themePut = calls.indexOf('PUT /themes/my-theme');
+    expect(themePut).toBeGreaterThan(bufferPut);
+    expect(calls.indexOf('PUT /production')).toBeGreaterThan(themePut);
   });
 
   it('reads as neither state and stays clickable while production is unread', async () => {
-    overrides['GET /colors-and-type/production'] = () => json({ error: 'nope' }, 500);
+    overrides['GET /themes/production'] = () => json({ error: 'nope' }, 500);
     await mountPanel();
 
     const status = target.querySelector('.mfm-prod-status')!;
@@ -251,16 +250,29 @@ describe('Adopt', () => {
     expect(button('Adopt').disabled).toBe(false);
   });
 
-  it('forks the protected look once and gives up on a second refusal', async () => {
-    overrides['PUT /production'] = () =>
-      json({ error: 'Active theme is protected.', code: 'ACTIVE_IS_PROTECTED' }, 409);
+  it('reads as out of sync once the theme is saved past what shipped', async () => {
+    overrides['GET /themes/production'] = () => json(LOOK);
+    await mountPanel();
+    expect(target.querySelector('.mfm-prod-status')!.textContent?.trim()).toBe('in production');
+
+    button('Save').click();
+    await settle();
+
+    expect(target.querySelector('.mfm-prod-status')!.textContent?.trim()).toBe('out of sync');
+  });
+
+  it('forks the protected theme, then ships the fork', async () => {
+    overrides['GET /themes/active'] = () => json({ ...LOOK, name: 'Default', _fileName: 'default' });
+    overrides['GET /themes'] = () => json({ files: [{ fileName: 'default', name: 'Default' }] });
     await mountPanel();
 
     button('Adopt').click();
     await settle();
 
-    expect(calls.filter((c) => c === 'PUT /production')).toHaveLength(2);
-    expect(calls.filter((c) => c.startsWith('PUT /themes/my-theme'))).toHaveLength(1);
+    expect(calls).toContain('PUT /themes/my-theme');
+    expect(calls).toContain('PUT /themes/active');
+    expect(calls.filter((c) => c === 'PUT /production')).toHaveLength(1);
+    expect(calls.filter((c) => c.startsWith('PUT /colors-and-type/'))).toEqual([]);
   });
 });
 
@@ -289,7 +301,7 @@ describe('Load preview', () => {
     expect(isPreviewing()).toBe(true);
   });
 
-  // Selecting the ACTIVE look is a designed no-op, so this previews another one.
+  // Selecting the OPEN theme is a designed no-op, so this previews another one.
   it('paints a look row', async () => {
     overrides['GET /themes'] = () =>
       json({ files: [{ fileName: 'my-theme', name: 'My Theme' }, { fileName: 'ocean', name: 'Ocean' }] });
@@ -305,5 +317,23 @@ describe('Load preview', () => {
 
     expect(alerts).toEqual([]);
     expect(isPreviewing()).toBe(true);
+  });
+
+  it('loads colors and type alone into the buffer, leaving named files alone', async () => {
+    overrides['GET /colors-and-type/my-colors'] = () => json(COLORS_AND_TYPE);
+    await mountPanel();
+
+    button('Load').click();
+    await settle();
+    button('My Colors').click();
+    await settle();
+    calls.length = 0;
+    dialogSave().click();
+    await settle();
+
+    expect(calls.filter((c) => c.startsWith('PUT /colors-and-type/'))).toEqual([
+      'PUT /colors-and-type/working',
+    ]);
+    expect(isPreviewing()).toBe(false);
   });
 });

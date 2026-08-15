@@ -2,20 +2,19 @@ import type { ThemeMeta, ColorsAndTypeMeta } from './themeTypes';
 
 /**
  * The one Load list. A theme is the whole look; a colors and type file is a
- * layer of one, and older installs have those lying around.
- * Both belong in the same window, told apart by a badge rather than by living
- * in separate managers.
+ * preset holding that half of one. Both belong in the same window, told apart
+ * by a badge rather than by living in separate managers.
  *
- * The nine shipped presets are looks, so their layer files stay out: they are
- * package-owned (`isPackage`) until the user's own copy shadows them, and that
- * copy is exactly the customised file the list must keep reachable.
+ * The shipped presets are themes, so their colors-and-type files stay out: they
+ * are package-owned (`isPackage`) until the user's own copy shadows them, and
+ * that copy is exactly the file the list must keep reachable.
  */
 
 export type LoadRowKind = 'look' | 'layer';
 
 export interface LoadRow {
-  /** `<kind>:<slug>`. Apply materialises a look's theme under the look's own
-   *  name, so the two kinds share a slug space and the list needs its own. */
+  /** `<kind>:<slug>`. The two kinds are separate resources with separate name
+   *  spaces, so a row needs an id that says which one it came from. */
   fileName: string;
   slug: string;
   kind: LoadRowKind;

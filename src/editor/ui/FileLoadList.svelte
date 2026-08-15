@@ -6,7 +6,8 @@
     show: boolean;
     title: string;
     files: F[];
-    activeFileName: string;
+    /** Marks the row the editor already has open. Omit where no row is. */
+    activeFileName?: string;
     /** Show name/date sort headers above the list. */
     sortable?: boolean;
     /** Render the updatedAt column on each row. */
@@ -50,7 +51,7 @@
     show = $bindable(false),
     title,
     files,
-    activeFileName,
+    activeFileName = '',
     sortable = false,
     showUpdatedAt = false,
     isProtected = (f) => f.isProtected ?? f.fileName === 'default',

@@ -1,5 +1,5 @@
 /**
- * Components slice — per-component `{ activeFile, aliases, config, unlinked? }`.
+ * Components slice — per-component `{ aliases, config, unlinked? }`.
  *
  * `aliases` are the typed component-token → semantic-token map (each entry is
  * a `CssVarRef` discriminated union: `{ kind: 'token', name }` or
@@ -106,7 +106,7 @@ export function setComponentAlias(component: string, varName: string, ref: CssVa
     if (existing) {
       existing.aliases[varName] = ref;
     } else {
-      s.components[component] = { activeFile: 'default', aliases: { [varName]: ref }, config: {} };
+      s.components[component] = { aliases: { [varName]: ref }, config: {} };
     }
   });
 }
@@ -125,7 +125,7 @@ export function setComponentConfig(component: string, key: string, value: unknow
     if (existing) {
       existing.config[key] = value;
     } else {
-      s.components[component] = { activeFile: 'default', aliases: {}, config: { [key]: value } };
+      s.components[component] = { aliases: {}, config: { [key]: value } };
     }
   });
 }
@@ -272,7 +272,7 @@ export function setComponentAliasLinked(component: string, varName: string, ref:
     return;
   }
   mutate(`link ${component}/${groupKey}`, (s) => {
-    const slice = s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {}, config: {} });
+    const slice = s.components[component] ?? (s.components[component] = { aliases: {}, config: {} });
     const unlinked = (slice.unlinked ?? []).filter((p) => p !== varName);
     slice.aliases[varName] = ref;
     for (const v of siblings) {

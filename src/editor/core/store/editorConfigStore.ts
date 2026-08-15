@@ -1,4 +1,4 @@
 import { writable } from 'svelte/store';
 
-/** The file name of the currently active token file. */
-export const activeFileName = writable<string>('default');
+/** Slug of the theme the editor has open — the document every edit belongs to. */
+export const openThemeSlug = writable<string>('default');

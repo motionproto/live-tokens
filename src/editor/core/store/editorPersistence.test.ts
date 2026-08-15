@@ -9,27 +9,26 @@ function stateWith(components: unknown): EditorState {
 describe('normalizeComponents', () => {
   it('backfills config on a slice persisted before the alias/config split', () => {
     const out = normalizeComponents(
-      stateWith({ card: { activeFile: 'default', aliases: { '--card-bg': { kind: 'token', name: '--surface' } } } }),
+      stateWith({ card: { aliases: { '--card-bg': { kind: 'token', name: '--surface' } } } }),
     );
     expect(out.components.card.config).toEqual({});
     expect(out.components.card.aliases).toEqual({ '--card-bg': { kind: 'token', name: '--surface' } });
   });
 
-  it('backfills aliases and activeFile when absent', () => {
+  it('backfills aliases when absent', () => {
     const out = normalizeComponents(stateWith({ button: { config: { '--button-variant': 'primary' } } }));
     expect(out.components.button.aliases).toEqual({});
-    expect(out.components.button.activeFile).toBe('default');
   });
 
   it('preserves the optional unlinked list', () => {
     const out = normalizeComponents(
-      stateWith({ card: { activeFile: 'a', aliases: {}, config: {}, unlinked: ['--card-bg'] } }),
+      stateWith({ card: { aliases: {}, config: {}, unlinked: ['--card-bg'] } }),
     );
     expect(out.components.card.unlinked).toEqual(['--card-bg']);
   });
 
   it('drops a null or non-object slice rather than crashing the renderer', () => {
-    const out = normalizeComponents(stateWith({ good: { activeFile: 'd', aliases: {}, config: {} }, bad: null }));
+    const out = normalizeComponents(stateWith({ good: { aliases: {}, config: {} }, bad: null }));
     expect(Object.keys(out.components)).toEqual(['good']);
   });
 

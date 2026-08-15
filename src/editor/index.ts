@@ -8,7 +8,7 @@ export type { BootLiveTokensOptions } from './bootstrap';
 
 export { columnsVisible, toggleColumns, init as initColumnsOverlay } from './overlay/columnsOverlay';
 export { configureEditor, storageKey } from './core/store/editorConfig';
-export { activeFileName } from './core/store/editorConfigStore';
+export { openThemeSlug } from './core/store/editorConfigStore';
 export { init as initRouter, route, navigate, setScrollReset } from './core/routing/router';
 export { init as initCssVarSync } from './core/cssVarSync';
 export {
@@ -27,17 +27,15 @@ export {
   saveColorsAndType,
   deleteColorsAndType,
   getActiveColorsAndType,
-  setActiveFile,
-  getProductionInfo,
-  setProductionFile,
+  writeWorkingColorsAndType,
   sanitizeFileName,
 } from './core/themes/colorsAndTypeService';
-export type { ProductionInfo } from './core/themes/colorsAndTypeService';
 
 export type {
   PaletteConfig,
   ColorsAndType,
   ColorsAndTypeMeta,
+  LiveSource,
   GradientStyle,
   GradientStop,
   FontSource,
@@ -59,6 +57,7 @@ export {
   deleteTheme,
   getActiveTheme,
   setActiveTheme,
+  getProductionTheme,
   applyTheme,
   adoptLook,
   saveAsTheme,

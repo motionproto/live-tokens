@@ -463,27 +463,25 @@ export function toComponentSlice(
 }
 
 /**
- * Replace a component's slice with a loaded config file's contents. Uses
- * `mutate()` so the load is one undoable entry; updates the dirty baseline
- * so the post-load state reads clean for this component.
+ * Replace a component's slice with a loaded config's contents. Uses `mutate()`
+ * so the load is one undoable entry; updates the dirty baseline so the
+ * post-load state reads clean for this component.
  */
 export function loadComponentActive(
   component: string,
-  activeFile: string,
   aliases: Record<string, AliasDiskValue>,
   config?: Record<string, unknown>,
   schemaVersion: number = 0,
 ): void {
   const split = toComponentSlice(component, aliases, config, schemaVersion);
-  mutate(`load ${component}/${activeFile}`, (s) => {
-    s.components[component] = { activeFile, aliases: { ...split.aliases }, config: { ...split.config } };
+  mutate(`load ${component}`, (s) => {
+    s.components[component] = { aliases: { ...split.aliases }, config: { ...split.config } };
   });
   setSavedComponentBaseline(component, componentBaseline(split));
   notifyComponentSavedChanged();
 }
 
 export interface ComponentSeed {
-  activeFile: string;
   aliases: Record<string, AliasDiskValue>;
   config?: Record<string, unknown>;
   schemaVersion?: number;
@@ -503,7 +501,7 @@ export function seedComponentsFromApi(
     s.components = {};
     for (const [comp, cfg] of Object.entries(configs)) {
       const split = toComponentSlice(comp, cfg.aliases, cfg.config, cfg.schemaVersion ?? 0);
-      s.components[comp] = { activeFile: cfg.activeFile, aliases: { ...split.aliases }, config: { ...split.config } };
+      s.components[comp] = { aliases: { ...split.aliases }, config: { ...split.config } };
       setSavedComponentBaseline(comp, componentBaseline(split));
     }
     return s;

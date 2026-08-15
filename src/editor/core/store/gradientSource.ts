@@ -137,7 +137,7 @@ export function componentGradientSource(component: string, varName: string): Gra
    *  theme-gradient path. */
   const update = (label: string, mutator: (g: GradientAliasValue) => void): void => {
     mutate(label, (s) => {
-      const slice = s.components[component] ?? (s.components[component] = { activeFile: 'default', aliases: {}, config: {} });
+      const slice = s.components[component] ?? (s.components[component] = { aliases: {}, config: {} });
       const ref = slice.aliases[varName];
       // Seed the editable base from the existing gradient, or lift the current
       // flat-colour alias into one so the first edit promotes (rather than
