@@ -109,10 +109,15 @@
   the production pointers, not an error. `--check` prints the whole plan,
   renames included. Until you run it the dev server leaves the data directory
   alone: it writes nothing, rebuilds no CSS, refuses the editor's save doors,
-  and prints what to run. Restart it afterwards. One thing to check by hand: a
-  `.gitignore` entry for `data/themes/_backups/` or `data/manifests/_backups/`
-  now names the wrong directory. Any old backups move with their directory, so
-  repath the entry to `data/colors-and-type/_backups/` or drop it.
+  and prints what to run. Restart it afterwards.
+
+  Two things to finish by hand. Token references that the migration repaired
+  reach `tokens.generated.css` on the next save and adopt, not at migration
+  time, so re-save your theme (make any edit, or Save As over it) and adopt it
+  once. And a `.gitignore` entry for `data/themes/_backups/` or
+  `data/manifests/_backups/` now names the wrong directory: any old backups move
+  with their directory, so repath the entry to `data/colors-and-type/_backups/`
+  or drop it.
 
 - **`npm update` will not bring you here.** Pre-1.0 a caret range pins the
   minor, so `^0.47.1` never resolves to 0.48.0. Ask for it by name: `npm
@@ -125,8 +130,10 @@
   overwrite.
 
 - **The REST surface, before and after.** For anyone who proxies, mocks or
-  scripts `/api/live-tokens/*`. Retired doors answer 405 rather than
-  disappearing, so a caller that still holds one gets an answer it can read.
+  scripts `/api/live-tokens/*`. A door retired in place answers 405, so a caller
+  that still holds one gets an answer it can read. The `/manifests/*` paths are
+  not retired in place: they are gone, and the middleware passes them through to
+  your app like any unclaimed URL.
 
   | Before, through 0.47.1 | Now |
   | --- | --- |
@@ -137,7 +144,7 @@
   | `GET`/`PUT /component-configs/:comp/production` | 405 on every method: a component ships with its theme |
   | `/manifests`, `/manifests/:name`, `/manifests/:name/apply`, `/manifests/:name/export`, `/manifests/import` | the same shapes under `/themes` |
   | `GET`/`PUT /manifests/active` | `GET`/`PUT /themes/active` |
-  | `PUT /production` | unchanged, and now the only door that publishes |
+  | new | `PUT /production`: adopt the open theme, the only door that publishes |
   | new | `GET /themes/production`: the whole theme your site ships |
   | new | `GET`/`PUT`/`DELETE /colors-and-type/working` and `/component-configs/:comp/working` |
 

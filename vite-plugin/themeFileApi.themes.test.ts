@@ -262,6 +262,18 @@ describe('a colors-and-type file left among the themes', () => {
     expect(warnings.join('\n')).toContain('not a theme');
   });
 
+  /** `default.json` is the one theme boot rewrites on its own, and on a
+   *  hand-moved tree it is the consumer's default palette. */
+  it('survives the one file boot regenerates, which then refuses to bake', () => {
+    writeJson(path.join(colorsAndTypeDir, 'custom.json'), COLORS_AND_TYPE);
+    writeJson(path.join(themesDir, 'default.json'), STALE);
+
+    expect(() => boot()).toThrow(/is a colors-and-type file, not a theme/);
+
+    expect(readJson(path.join(themesDir, 'default.json'))).toEqual(STALE);
+    expect(warnings.join('\n')).toContain('not a theme');
+  });
+
   it('is left out of the theme list', async () => {
     seedStaleColorsFile();
     boot();

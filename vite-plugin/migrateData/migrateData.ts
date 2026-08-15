@@ -56,6 +56,8 @@ export interface MigrateDataOptions {
   colorsAndTypeDir: string;
   componentConfigsDir: string;
   themesDir: string;
+  /** The retired `manifestsDir` config key, when the consumer set it. */
+  legacyManifestsDir?: string;
   /** The installed package's `src/live-tokens/data`. Its files are read-only:
    *  they resolve names the consumer has no local copy of, and are never
    *  deleted even when their content matches a theme. */
@@ -85,6 +87,9 @@ export interface MigrateDataResult {
   /** Files in the themes directory that are not themes. Read past, never
    *  rewritten. */
   notThemes: string[];
+  /** One sentence per reference a theme named that resolved to nothing. The
+   *  theme carries the shipped default there now. */
+  droppedRefs: string[];
   /** A local `colors-and-type/default.json` whose content differs from the copy
    *  the package ships. It shadows the shipped default. Reported only. */
   shadowedDefaults: string[];
@@ -183,18 +188,14 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
   // keeps its colors and type in `themes/` and its looks in `manifests/`, so
   // the heal below would read every palette as a corrupt theme. Move the
   // directories first and the rest of the pass runs on the layout it expects.
-  const legacyLayout = detectLegacyLayout({
+  const layoutInput = {
     dataDir: opts.dataDir,
     colorsAndTypeDir: opts.colorsAndTypeDir,
     themesDir: opts.themesDir,
-  });
-  const renames = legacyLayout
-    ? planLegacyRenames(legacyLayout, {
-        dataDir: opts.dataDir,
-        colorsAndTypeDir: opts.colorsAndTypeDir,
-        themesDir: opts.themesDir,
-      })
-    : [];
+    configuredManifestsDir: opts.legacyManifestsDir,
+  };
+  const legacyLayout = detectLegacyLayout(layoutInput);
+  const renames = legacyLayout ? planLegacyRenames(legacyLayout, layoutInput) : [];
   if (legacyLayout && !check) applyLegacyRenames(renames);
 
   // `--check` moves nothing, so it plans against the directories where the
@@ -262,6 +263,7 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
     deletedPointers: [],
     keptUserFiles: [],
     notThemes: [],
+    droppedRefs: [],
     shadowedDefaults: [],
     upgradedThemes: [],
   };
@@ -283,6 +285,7 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
 
   const upgradedThemes: string[] = [];
   const notThemes: string[] = [];
+  const droppedRefs: string[] = [];
   const themes: Array<{ slug: string; theme: EncapsulatedTheme }> = [];
   for (const slug of themesRes.listNames()) {
     let raw: unknown;
@@ -298,10 +301,18 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
       notThemes.push(themesRes.filePath(slug));
       continue;
     }
-    const { theme, migrated } = normalizeTheme(raw, resolvers);
+    const { theme, migrated, dropped } = normalizeTheme(raw, resolvers);
     themes.push({ slug, theme });
-    // A pre-v3 theme names its slices by file. Step 3 deletes those files, so
-    // the theme has to carry them by value before it can run.
+    // A pre-v3 theme names its slices by file. One naming a file that no longer
+    // resolves takes the shipped default in its place, which is a different
+    // look than the one saved. Silent is what makes that bad, so say it.
+    for (const ref of dropped) {
+      droppedRefs.push(
+        `theme "${slug}": the reference ${ref} resolved to nothing, so it carries the shipped default instead`,
+      );
+    }
+    // Step 3 deletes the files a pre-v3 theme names, so it has to carry them by
+    // value before it can run.
     if (migrated && fs.existsSync(themesRes.filePath(slug))) {
       upgradedThemes.push(themesRes.filePath(slug));
       if (!check) fs.writeFileSync(themesRes.filePath(slug), JSON.stringify(theme, null, 2));
@@ -499,6 +510,7 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
       themesRes.ensureDir();
       fs.writeFileSync(recoveredThemePath, JSON.stringify(recoveredTheme, null, 2));
     }
+    themesRes.ensureDir();
     themesRes.setProductionName(production.slug);
   }
 
@@ -513,6 +525,7 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
     deletedPointers: legacyPointers.map(reported),
     keptUserFiles: keptUserFiles.map(reported),
     notThemes: notThemes.map(reported),
+    droppedRefs,
     shadowedDefaults: shadowedDefaults.map(reported),
     upgradedThemes: upgradedThemes.map(reported),
   };

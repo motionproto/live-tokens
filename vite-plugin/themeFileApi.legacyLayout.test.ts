@@ -22,6 +22,7 @@ let outDir: string;
 let tokensCssPath: string;
 let generatedCssPath: string;
 let warnings: string[];
+let plugin: any;
 let mw: (req: any, res: any, next: any) => any;
 
 const SUNSET_COLORS = {
@@ -109,7 +110,7 @@ async function request(method: string, url: string, body?: unknown) {
 }
 
 function boot() {
-  const plugin = themeFileApi({
+  plugin = themeFileApi({
     dataDir,
     componentsSrcDir: componentsDir,
     tokensCssPath,
@@ -205,6 +206,67 @@ describe('boot on a pre-0.48 layout', () => {
 
     expect(status).toBe(409);
     expect(json.code).toBe('LEGACY_LAYOUT');
+  });
+
+  it('is still recognised when one colors file was moved across by hand', () => {
+    // The half-moved tree: `colors-and-type/` exists and holds something, so
+    // only the manifests directory is left to tell the truth.
+    fs.mkdirSync(path.join(dataDir, 'colors-and-type'), { recursive: true });
+    fs.renameSync(
+      path.join(dataDir, 'themes', 'sunset.json'),
+      path.join(dataDir, 'colors-and-type', 'sunset.json'),
+    );
+    const before = snapshot(tmp);
+
+    boot();
+
+    expect(changedSince(before, snapshot(tmp))).toEqual([]);
+    expect(warnings[0]).toContain('data layout from 0.47 and earlier');
+    expect(JSON.parse(fs.readFileSync(path.join(dataDir, 'themes', 'default.json'), 'utf-8'))).toEqual(
+      DEFAULT_COLORS,
+    );
+  });
+
+  it('is still recognised with no manifests directory and only pointers left', () => {
+    // The consumer ran on the shipped presets, so their themes directory holds
+    // the pointers and nothing else. Those slugs name package *themes* now.
+    fs.rmSync(path.join(dataDir, 'manifests'), { recursive: true, force: true });
+    fs.rmSync(path.join(dataDir, 'themes', 'sunset.json'));
+    fs.rmSync(path.join(dataDir, 'themes', 'default.json'));
+    const before = snapshot(tmp);
+
+    boot();
+
+    expect(changedSince(before, snapshot(tmp))).toEqual([]);
+    expect(warnings[0]).toContain('data layout from 0.47 and earlier');
+  });
+
+  it('leaves a hot component update alone while the layout is legacy', () => {
+    boot();
+    const before = snapshot(tmp);
+
+    (plugin as any).handleHotUpdate({ file: path.join(componentsDir, 'Widget.svelte') });
+
+    expect(changedSince(before, snapshot(tmp))).toEqual([]);
+  });
+
+  /** git does not track an empty directory, so a healed tree can arrive from a
+   *  fresh clone with no `colors-and-type/` at all. The theme beside the
+   *  pointers is what says the rename has already run. */
+  it('does not fire on a healed tree whose empty colors-and-type never made it into git', () => {
+    fs.rmSync(path.join(dataDir, 'manifests'), { recursive: true, force: true });
+    fs.rmSync(path.join(dataDir, 'themes', 'sunset.json'));
+    writeJson(path.join(dataDir, 'themes', 'default.json'), {
+      name: 'Motion Proto',
+      schemaVersion: 3,
+      colorsAndType: { ...DEFAULT_COLORS, schemaVersion: 5 },
+      componentConfigs: {},
+    });
+
+    boot();
+
+    expect(warnings.filter((w) => w.includes('data layout'))).toEqual([]);
+    expect(fs.existsSync(path.join(dataDir, 'colors-and-type'))).toBe(true);
   });
 
   it('boots normally once the migration has run', () => {

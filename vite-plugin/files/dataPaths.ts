@@ -7,6 +7,13 @@ export interface LiveTokensFileConfig {
   componentConfigsDir?: string;
   themesDir?: string;
   /**
+   * Retired in 0.48, where `themesDir` took over the meaning. Still recognised
+   * so an unmigrated project is not told its key is a typo, and so the
+   * migration can find (or refuse to guess at) a whole-look directory the
+   * consumer moved.
+   */
+  manifestsDir?: string;
+  /**
    * Path to the developer-authored `tokens.css`. The dev plugin takes this from
    * its `themeFileApi({ tokensCssPath })` option; the standalone `live-tokens
    * migrate` CLI has no plugin options, so it reads this key to locate the file.
@@ -26,6 +33,9 @@ export interface ResolvedDataDirs {
   colorsAndTypeDir: string;
   componentConfigsDir: string;
   themesDir: string;
+  /** Absolute path of the retired `manifestsDir` key, when the config sets it.
+   *  Only the pre-0.48 layout detector and the migration read it. */
+  legacyManifestsDir?: string;
 }
 
 const DEFAULT_DATA_DIR = 'src/live-tokens/data';
@@ -35,6 +45,7 @@ const KNOWN_CONFIG_KEYS = new Set<keyof LiveTokensFileConfig>([
   'colorsAndTypeDir',
   'componentConfigsDir',
   'themesDir',
+  'manifestsDir',
   'tokensCssPath',
 ]);
 
@@ -119,5 +130,6 @@ export function resolveDataDirs(opts: ResolveDataDirsInput = {}): ResolvedDataDi
       : fileConfig.themesDir
         ? path.resolve(fileConfig.themesDir)
         : sub('themes'),
+    legacyManifestsDir: fileConfig.manifestsDir ? path.resolve(fileConfig.manifestsDir) : undefined,
   };
 }

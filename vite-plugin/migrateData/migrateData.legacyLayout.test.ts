@@ -248,6 +248,29 @@ describe('migrateData on a pre-0.48 layout', () => {
     expect(second.deletedPointers).toEqual([]);
   });
 
+  it('names a reference the pointer manifest lost rather than embedding the default in silence', () => {
+    const root = preRenameTree();
+    fs.rmSync(at(root, 'themes', 'sunset.json'));
+
+    const result = heal(root);
+
+    expect(result.droppedRefs).toEqual([
+      'theme "sunset": the reference colors-and-type:sunset resolved to nothing, so it carries the shipped default instead',
+    ]);
+  });
+
+  it('refuses to guess when the retired manifestsDir key names a custom path', () => {
+    const root = preRenameTree();
+    const moved = path.join(root, 'looks');
+    fs.renameSync(at(root, 'manifests'), moved);
+
+    expect(() => migrateData({ ...dirs(root), legacyManifestsDir: moved })).toThrow(
+      /"manifestsDir" key/,
+    );
+    expect(fs.existsSync(moved)).toBe(true);
+    expect(exists(root, 'themes', 'sunset.json')).toBe(true);
+  });
+
   it('refuses when the configured directories make the mapping ambiguous', () => {
     const root = preRenameTree();
 

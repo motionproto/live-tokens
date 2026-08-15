@@ -102,6 +102,7 @@ export async function runMigrateData({ check = false, engine } = {}) {
     colorsAndTypeDir: dirs.colorsAndTypeDir,
     componentConfigsDir: dirs.componentConfigsDir,
     themesDir: dirs.themesDir,
+    legacyManifestsDir: dirs.legacyManifestsDir,
     packageDataDir: join(pkgRoot, 'src/live-tokens/data'),
     check,
   });
@@ -144,6 +145,9 @@ export function formatMigrateDataResult(result) {
   }
   for (const p of result.keptUserFiles) {
     lines.push(`  kept ${rel(p)}: it matches no theme, so it is yours`);
+  }
+  for (const note of result.droppedRefs) {
+    lines.push(`  ${note}`);
   }
   for (const p of result.notThemes) {
     lines.push(`  left ${rel(p)} alone: it is a colors-and-type file, not a theme`);

@@ -17,6 +17,11 @@ export interface LegacyLayoutInput {
   dataDir: string;
   colorsAndTypeDir: string;
   themesDir: string;
+  /** The retired `manifestsDir` config key, when the consumer set it. It named
+   *  the whole-look directory through 0.47.1 and names nothing now, so it is
+   *  read here alone: to find the directory, and to refuse to guess when it
+   *  points somewhere the rename cannot reason about. */
+  configuredManifestsDir?: string;
 }
 
 export interface LegacyLayout {
@@ -43,34 +48,76 @@ function jsonFiles(dir: string): string[] {
   }
 }
 
+function isDirectory(dir: string): boolean {
+  try {
+    return fs.statSync(dir).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+function parseJsonFile(file: string): unknown {
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf-8'));
+  } catch {
+    return null;
+  }
+}
+
+/** A theme carries its look under `colorsAndType` (v3) or names it as `theme`
+ *  (v1 and v2). One of these in the themes directory says the rename has run. */
+function holdsATheme(themesDir: string): boolean {
+  return jsonFiles(themesDir).some((file) => {
+    if (path.basename(file).startsWith('_')) return false;
+    const raw = parseJsonFile(file);
+    if (!raw || typeof raw !== 'object') return false;
+    return 'colorsAndType' in raw || 'theme' in raw;
+  });
+}
+
 /**
  * `null` for every tree on the current layout, including a pristine one.
  *
- * A healed tree can hold an empty `colors-and-type/` directory, because
- * `default` resolves from the installed package and nothing writes a local
- * copy, so emptiness counts as absence here. What settles it is the evidence:
- * a `manifests/` directory, or a themes directory holding colors-and-type
- * files.
+ * Four kinds of evidence, in the order that keeps each from hiding the others:
+ *
+ * 1. A `manifests/` directory. The rename moves it away, so a healed tree never
+ *    has one, empty or not. This runs first: a consumer who moved one file by
+ *    hand would otherwise look healed to the check below.
+ * 2. Colors-and-type files already in place, which says the rename has run and
+ *    ends the search. A healed tree can hold an *empty* `colors-and-type/`
+ *    (`default` resolves from the package and nothing writes a local copy), so
+ *    emptiness counts as absence.
+ * 3. A colors-and-type file in the themes directory.
+ * 4. The old layer's pointer files in the themes directory with no theme beside
+ *    them and no colors-and-type directory at all. That tree names its look
+ *    with a slug the package now ships as a *theme* of the same name, so boot
+ *    would bake someone else's look over the consumer's.
  */
 export function detectLegacyLayout(input: LegacyLayoutInput): LegacyLayout | null {
-  if (jsonFiles(input.colorsAndTypeDir).length > 0) return null;
+  const manifestsDir = input.configuredManifestsDir ?? path.join(input.dataDir, 'manifests');
+  const themesHoldAThemeFile = holdsATheme(input.themesDir);
 
-  const manifestsDir = path.join(input.dataDir, 'manifests');
-  if (jsonFiles(manifestsDir).length > 0) {
-    return { manifestsDir, evidence: `${manifestsDir} holds the pre-0.48 whole-look files` };
+  if (isDirectory(manifestsDir) && !themesHoldAThemeFile) {
+    return { manifestsDir, evidence: `${manifestsDir} is the pre-0.48 whole-look directory` };
   }
+
+  if (jsonFiles(input.colorsAndTypeDir).length > 0) return null;
 
   for (const file of jsonFiles(input.themesDir)) {
     if (path.basename(file).startsWith('_')) continue;
-    let raw: unknown;
-    try {
-      raw = JSON.parse(fs.readFileSync(file, 'utf-8'));
-    } catch {
-      continue;
-    }
-    if (isColorsAndTypeShaped(raw)) {
+    if (isColorsAndTypeShaped(parseJsonFile(file))) {
       return { manifestsDir, evidence: `${file} is a colors-and-type file, not a theme` };
     }
+  }
+
+  const pointer = ['_active.json', '_production.json']
+    .map((name) => path.join(input.themesDir, name))
+    .find((p) => fs.existsSync(p));
+  if (pointer && !themesHoldAThemeFile && !fs.existsSync(input.colorsAndTypeDir)) {
+    return {
+      manifestsDir,
+      evidence: `${pointer} points at colors and type, and there is no ${path.basename(input.colorsAndTypeDir)} directory`,
+    };
   }
 
   return null;
@@ -91,6 +138,17 @@ export function planLegacyRenames(
 ): LegacyRename[] {
   const defaultColorsAndType = path.join(input.dataDir, 'colors-and-type');
   const defaultThemes = path.join(input.dataDir, 'themes');
+  if (
+    input.configuredManifestsDir &&
+    path.resolve(input.configuredManifestsDir) !== path.join(input.dataDir, 'manifests')
+  ) {
+    throw new Error(
+      `This project uses the pre-0.48 data layout (${layout.evidence}), and live-tokens.config.json ` +
+        `sets the retired "manifestsDir" key to ${input.configuredManifestsDir}. That directory holds ` +
+        `the whole looks, which now belong in ${input.themesDir}. Move it there by hand, drop the ` +
+        `"manifestsDir" key, then run the migration again.`,
+    );
+  }
   if (
     path.resolve(input.colorsAndTypeDir) !== path.resolve(defaultColorsAndType) ||
     path.resolve(input.themesDir) !== path.resolve(defaultThemes)

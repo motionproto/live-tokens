@@ -269,6 +269,16 @@ describe('migrateData', () => {
     expect(exists(root, 'colors-and-type', 'sunset.json')).toBe(false);
   });
 
+  it('does not read a stray empty manifests directory as the old layout', () => {
+    const root = legacyTree();
+    fs.mkdirSync(path.join(root, DATA, 'manifests'), { recursive: true });
+
+    const result = heal(root);
+
+    expect(result.renames).toEqual([]);
+    expect(readJson(path.join(root, DATA, 'themes', 'sunset.json')).colorsAndType).toBeDefined();
+  });
+
   it('reads past a colors-and-type file left among the themes', () => {
     const root = legacyTree();
     const stray = path.join(root, DATA, 'themes', 'stray.json');

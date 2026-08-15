@@ -23,7 +23,7 @@ import {
 } from './themes/normalizeTheme';
 import { nextAvailableName as allocNextAvailableName } from './files/nameAllocator';
 import { resolveDataDirs } from './files/dataPaths';
-import { detectLegacyLayout } from './files/legacyLayout';
+import { detectLegacyLayout, type LegacyLayout } from './files/legacyLayout';
 import { validateTokensCss, runAdditiveTokensCssMigrations } from './tokensCssMigrations';
 import { fileURLToPath } from 'node:url';
 
@@ -336,9 +336,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     // look the site ships with nothing. A document that is on disk and
     // unreadable is a failure to name, not an empty look.
     if (themesResource.existingPath(productionThemeName) !== null && !productionTheme?.colorsAndType) {
+      const tail = `${path.basename(GENERATED_CSS_PATH)} was left as it was.`;
       throw new Error(
-        `[live-tokens] Production theme "${productionThemeName}" is unreadable, so ` +
-          `${path.basename(GENERATED_CSS_PATH)} was left as it was. Repair the theme file or adopt another theme.`,
+        unreadableThemeReason(productionThemeName) === 'colors-and-type'
+          ? `[live-tokens] ${notAThemeError(productionThemeName)} ${tail}`
+          : `[live-tokens] Production theme "${productionThemeName}" is unreadable, so ${tail} ` +
+            'Repair the theme file or adopt another theme.',
       );
     }
 
@@ -849,7 +852,19 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    * the way `stat` did. Writes only on real drift, like `generateDefaultConfig`
    * — a boot that changes nothing leaves bytes and mtime alone.
    */
-  function ensureDefaultTheme(): void {
+  function ensureDefaultTheme(warn: (msg: string) => void): void {
+    let existing: any = null;
+    try {
+      existing = JSON.parse(fs.readFileSync(themesResource.filePath('default'), 'utf-8'));
+    } catch { /* missing or corrupt — regenerate */ }
+    // The one file this function overwrites without asking. On the pre-0.48
+    // layout it is the consumer's default palette, and the layout detector is
+    // not always the thing that catches that.
+    if (isColorsAndTypeShaped(existing)) {
+      warn(`[live-tokens] ${notAThemeError('default')} The Default theme was not materialised.`);
+      return;
+    }
+
     const colorsAndType = normalizeColorsAndType(colorsAndTypeResource.readJson('default') as any);
     const componentConfigs: Record<string, any> = {};
     for (const comp of listComponentNames()) {
@@ -857,10 +872,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       if (cfg) componentConfigs[comp] = cfg;
     }
 
-    let existing: any = null;
-    try {
-      existing = JSON.parse(fs.readFileSync(themesResource.filePath('default'), 'utf-8'));
-    } catch { /* missing or corrupt — regenerate */ }
     if (
       existing?.schemaVersion === THEME_SCHEMA_VERSION &&
       JSON.stringify(existing.colorsAndType) === JSON.stringify(colorsAndType) &&
@@ -887,7 +898,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     // Runs before the migration and in every project, this repo included: the
     // Default set is derived, so regenerating shipped data here is the point
     // rather than a side effect.
-    ensureDefaultTheme();
+    ensureDefaultTheme(warn);
     migrateLocalThemes(warn);
 
     // A tree still carrying the pre-working-set per-layer pointers has never
@@ -1732,6 +1743,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   //      patterns outright would hand `/colors-and-type/production` to the
   //      `:name` route, which would answer as if `production.json` were a file
   //      the user saved.
+  /** Set at boot, read by every hook that writes. `null` on a healed tree,
+   *  which is every tree that has run `live-tokens migrate`. */
+  let legacyLayout: LegacyLayout | null = null;
+
   const routes: Route[] = [
     // Colors and type — list / active / production / working are exact strings;
     // they must run before COLORS_AND_TYPE_BY_NAME_REGEX
@@ -1842,10 +1857,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       // Before every writer: the pre-0.48 layout has to be recognised while the
       // directories still hold what they held, and `ensureColorsAndTypeDir`
       // alone would leave a marker that hides it.
-      const legacyLayout = detectLegacyLayout({
+      legacyLayout = detectLegacyLayout({
         dataDir: dataDirs.dataDir,
         colorsAndTypeDir: COLORS_AND_TYPE_DIR,
         themesDir: THEMES_DIR,
+        configuredManifestsDir: dataDirs.legacyManifestsDir,
       });
 
       if (legacyLayout) {
@@ -1892,6 +1908,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       });
     },
     handleHotUpdate(ctx) {
+      // Boot wrote nothing on the pre-0.48 layout, and an editor save while a
+      // component file changes must not be the exception. Component defaults
+      // are derived, so the next boot after `live-tokens migrate` rebuilds them.
+      if (legacyLayout) return;
       // When a component source file changes, regenerate its default.json.
       // The editor's componentConfigService picks up the new defaults on its
       // next fetch; a full reload is not required since runtime state owns
