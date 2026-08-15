@@ -41,8 +41,8 @@ version upgrades never touch your styles. The package code stays in
    repaints as you type.
 4. In the **Theme** panel at the foot of the sidebar, choose **Save As**. Your
    theme appears as JSON under `src/live-tokens/data/themes/`.
-5. Reload. Your saved theme is the active theme, so the page returns as you
-   left it.
+5. Reload. The editor reopens on your theme, so the page returns as you left
+   it.
 
 ## What you just changed
 
@@ -51,9 +51,11 @@ properties through `var(--...)`. There is no token build step and no
 preprocessor rewriting your code: the page renders against plain CSS variables
 the editor swaps live.
 
-To ship, click **Adopt** in the Theme panel. That bakes the theme's variables
-into `src/live-tokens/data/tokens.generated.css`, which your build bundles
-alongside `tokens.css`. The editor itself never reaches production.
+To ship, click **Adopt** in the Theme panel. That saves the open theme and bakes
+it into `src/live-tokens/data/tokens.generated.css`, which your build bundles
+alongside `tokens.css`. Adopt is the only action that changes what your site
+ships, so try any look you like first. The editor itself never reaches
+production.
 
 Already have a Svelte 5 + Vite app? The
 [README](https://github.com/motionproto/live-tokens#readme) covers installing

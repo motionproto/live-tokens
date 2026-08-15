@@ -8,12 +8,12 @@ A foundational design system for quickly styling and building Svelte + Vite micr
 
 - **Real-time token editing.** Pick a color, drag a hue slider, retype a font size — the page repaints on every input event via CSS-variable writes. No reload, no save-and-refresh, no build step. Works across colors, typography, spacing, radii, shadows, motion, palettes, and gradients.
 - **Real-time component editing.** Each of ~24 shipped Svelte components (Button, Input, Card, Dialog, Badge, Callout, Table, Tooltip, Toggle, TabBar, SegmentedControl, RadioButton, MenuSelect, ProgressBar, CornerBadge, SectionDivider, CollapsibleSection, Notification, Image, ImageLightbox, CodeSnippet, SideNavigation, and more) declares its own design-token aliases in a `:global(:root)` block. Rewire any alias from a per-component picker and see that component update everywhere it's used — live, on your real pages, not in a Storybook sandbox.
-- **Theme editor** (`/live-tokens/editor` route, dev-only) — the home of real-time token editing. Save themes to disk as JSON, promote one to "production" to bake it into a static `tokens.css` for the build.
+- **Theme editor** (`/live-tokens/editor` route, dev-only) — the home of real-time token editing. Save themes to disk as JSON, then Adopt one to bake it into static CSS for the build.
 - **Per-component editor** (`/live-tokens/components` route, dev-only) — the home of real-time component-alias editing. Pick token aliases per component without writing CSS.
 - **Live editor overlay** — pins to the top-right of every dev page. Opens the editor in a side panel or floating window so you edit *on the page you're styling*, not in a separate tab. Includes a "Page Source" button that opens the current page's `.svelte` file in VS Code.
-- **Themes** — a theme is a whole look in one file: colors and type plus a config for every component you changed, held by value. In the editor this is the Theme panel, with Colors & Type and Components as its parts. Deleting a colors-and-type or component file never breaks a saved theme. Load writes the look back out to working files named after the theme, and components it does not carry go back to their defaults, or takes the colors and type alone and leaves your shapes. Export one and import it into another project to restore the full styling in one step.
-- **Nine example looks** — Autumn, Halloween, Leprechaun, Midnight Study, Ocean, Royal Velvet, Spring Meadow, Sunset and Yuletide each ship as a full theme: preset colors and type plus a shape personality of radius, padding, gap and border-width aliases. Each preset also names its own Google Fonts pairing, one display family and one body family, so a look carries type as well as colour and shape. They need no local files, so Load one to try a whole look on your own pages and load Default to come back. Saving over a preset writes a local copy that shadows the shipped one; delete that copy and the shipped version returns.
-- **Vite plugin** — hosts the `/api/live-tokens/{colors-and-type,component-configs,themes}/*` routes that persist your edits to disk as you make them. The single namespace keeps live-tokens' routes from colliding with anything your app serves under `/api`.
+- **Themes** — a theme is a whole look in one file: colors and type plus a config for every component you changed, held by value. In the editor this is the Theme panel, with Colors & Type and Components as its parts. Themes are documents: loading one opens it, filling the editor's working buffer and returning every component it does not carry to its default, and nothing your site ships changes until you Adopt. A narrower load takes the colors and type alone and leaves your shapes. Export one and import it into another project to restore the full styling in one step.
+- **Seven example looks** — Autumn, Halloween, Midnight Study, Ocean, Royal Velvet, Spring Meadow and Sunset each ship as a full theme: preset colors and type plus a shape personality of radius, padding, gap and border-width aliases. Each preset also names its own Google Fonts pairing, one display family and one body family, so a look carries type as well as colour and shape. They need no local files, so Load one to try a whole look on your own pages and load Motion Proto to come back. Saving over a preset writes a local copy that shadows the shipped one; delete that copy and the shipped version returns.
+- **Vite plugin** — hosts the `/api/live-tokens/{colors-and-type,component-configs,themes}/*` routes the editor reads and saves through. The single namespace keeps live-tokens' routes from colliding with anything your app serves under `/api`.
 - **Claude Code skill suite** — five bundled skills so you can drive the package in plain English. `build-page` composes pages from the shipped components. `pick-component` decides between confusing pairs (TabBar vs SegmentedControl, Card vs CollapsibleSection). `create-component` authors a new editable component against the project's naming, state-model, and import rules. `generate-theme` turns a mood brief ("bright and cheerful", "dark night theme") into a complete AA-checked color theme. `adjust-shape-space` turns "make the buttons pill shaped" or "space it out" into new radius, padding, gap, and border-width aliases. One command to install them all: `npx @motion-proto/live-tokens setup-claude`. See [Claude Code skills](#claude-code-skills) below.
 
 ## Quick install
@@ -46,12 +46,18 @@ The `themeFileApi` plugin:
 - Resolves the `default` colors and type from the installed package, so you start on the shipped defaults without a local copy.
 - Discovers components at `src/components/*.svelte` (and `src/system/components/*.svelte` for back-compat) and seeds `src/live-tokens/data/component-configs/{comp}/default.json` from each component's `:global(:root)` block.
 - Writes `src/live-tokens/data/themes/default.json` on dev-server start: the Default theme, derived from the shipped colors and type and those component defaults, and regenerated whenever they change. It is protected, so the editor never deletes it and an outside deletion heals on the next start.
+- Bakes `tokens.generated.css` from the production theme at startup, so a fresh checkout builds against the look you shipped.
 - Hosts the `/api/live-tokens/*` routes the editor uses to save and load themes + per-component configs.
+
 - Auto-injects `__PROJECT_ROOT__` for the overlay's "Page Source" link and `__LIVE_TOKENS_API_BASE__` so the client uses whatever `apiBase` you configured.
+
+A project last opened before the working-set model still carries the retired per-layer `_active.json` / `_production.json` files. The plugin warns and holds the startup bake rather than deciding for you. `npx live-tokens migrate` reads what those pointers resolved to, records it as the production theme, and clears them.
 
 ### Where data lands — and how to move it
 
 By default, the plugin reads and writes under one folder: `src/live-tokens/data/`. Inside that folder live three subdirectories — `colors-and-type/`, `themes/`, `component-configs/` — each owned by the plugin.
+
+`themes/` holds the documents: one file per whole look, plus `_active.json` naming the one the editor has open and `_production.json` naming the one your site ships. `colors-and-type/` and `component-configs/{comp}/` hold each layer's `default.json` baseline, any preset you save by name, and the `_working.json` buffer for edits you have not saved into a theme. A buffer exists only where the look sits off the shipped default, so a new project has none.
 
 To move them, create a `live-tokens.config.json` at your project root:
 
@@ -208,8 +214,9 @@ import '@motion-proto/live-tokens/app/fonts.css';  // optional: Fraunces + Manro
 ```
 
 …or copy `node_modules/@motion-proto/live-tokens/src/system/styles/tokens.css` into
-your project and edit. The editor will seed `themes/default.json` on first
-run and you can promote your edits back into the file.
+your project and edit. It stays hand-authored: the editor derives
+`themes/default.json` from it on first run and writes what you Adopt into the
+sidecar `tokens.generated.css`, never back into `tokens.css`.
 
 ## Consuming live-tokens from scratch
 
@@ -273,8 +280,8 @@ src/
   system/styles/tokens.css        # vendored Layer-1 tokens — committed
   live-tokens/data/               # editor state — committed
     tokens.generated.css          #   editor output
-    colors-and-type/ themes/ component-configs/
-    **/_backups/                  #   gitignored (local-only snapshots)
+    themes/                       #   one file per whole look, plus the two pointers
+    colors-and-type/ component-configs/
 vite.config.ts                    # svelte({ preprocess: vitePreprocess() }) + themeFileApi
 svelte.config.js                  # vitePreprocess()
 ```
@@ -283,7 +290,7 @@ Conventions that make this work:
 
 - **Vendor `tokens.css` into `src/` and commit it.** Point `themeFileApi({ tokensCssPath })` at that file, not at one inside `node_modules`. The dev server writes your edits there; a copy under `node_modules` is wiped on every `npm install`.
 - **All editable state lives under `src/` and is committed** — `tokens.css`, `tokens.generated.css`, and everything in `live-tokens/data/`. This is the invariant that makes upgrades safe: `npm install` only ever touches `node_modules` + `package.json` + the lockfile, never your `src/`.
-- **`_backups/` is gitignored.** The dev server snapshots a file before overwriting it; those snapshots are local working state, not source.
+- **Nothing is backed up for you.** The dev server keeps no snapshots, so git is the safety net: commit a theme you care about before editing over it.
 - **Preprocess with `vitePreprocess()`** (bundled in `@sveltejs/vite-plugin-svelte`), keeping `sass` installed for the components' `scss`. No `svelte-preprocess`, no `legacy-peer-deps` `.npmrc` — the dependency tree resolves cleanly on its own (since 0.19.1).
 - **Import only from the public surface** — `@motion-proto/live-tokens`, `/components/*`, `/vite-plugin`, `/app/*`.
 
@@ -351,8 +358,8 @@ It enforces the file layout, `:global(:root)` block, token-suffix vocabulary, th
 
 ## How the editor ships changes to prod
 
-1. Edit in `/live-tokens/editor` or `/live-tokens/components`. Saves write to `<dataDir>/colors-and-type/{name}.json`, `<dataDir>/themes/{name}.json`, and `<dataDir>/component-configs/{comp}/{name}.json`.
-2. Promote a theme to "production." Its variables are written into `tokens.generated.css` next to your authored `tokens.css`.
+1. Edit in `/live-tokens/editor` or `/live-tokens/components`. Your edits sit in the working buffer (`_working.json`); **Save** in the Theme panel captures that buffer into the open theme at `<dataDir>/themes/{name}.json`.
+2. **Adopt** the theme. It becomes the production theme, and its variables are baked into `tokens.generated.css` next to your authored `tokens.css`. Nothing else writes that file, so trying a look never changes what you ship.
 3. `npm run build` bundles both as plain CSS. No editor code, no JSON lookups, no dev surfaces ship to prod.
 
 ## File ownership — what the plugin writes
@@ -371,17 +378,16 @@ It never writes to your project root, your `src/` outside the data folder, or an
 **At dev-server startup, the plugin fills gaps and refreshes its own derived files — it never overwrites authored ones:**
 
 - `<dataDir>/themes/default.json` — the derived Default theme, regenerated when the shipped colors and type or a component default changes.
-- `<dataDir>/colors-and-type/_active.json` and `_production.json` — written **only if missing**.
-- `<dataDir>/themes/_active.json` — written **only if missing**.
-- `<dataDir>/component-configs/{comp}/_active.json` and `_production.json` — same: only if missing.
+- `<dataDir>/themes/_active.json` and `_production.json` — written **only if missing**, and healed when they name a theme that no longer resolves.
 - `<dataDir>/component-configs/{comp}/default.json` — regenerated from the component's `:global(:root)` block **only when the `.svelte` source is newer than the existing default**. This file is a build artifact of the source; don't hand-edit it.
+- `<tokensCssPath sibling>/tokens.generated.css` — rebaked from the production theme, so a fresh checkout builds against the look you shipped.
 
-**At dev-time editor actions, these files get rewritten by your explicit save/promote:**
+**At dev-time editor actions, these files get rewritten by what you do:**
 
-- `<dataDir>/colors-and-type/{name}.json` and `<dataDir>/themes/{name}.json` — every save in the editor.
-- `<tokensCssPath sibling>/tokens.generated.css` — fully regenerated when you save or promote the production colors and type.
-- `<tokensCssPath sibling>/fonts.css` — same rule: regenerated from the production font sources.
-- `<dataDir>/component-configs/{comp}/{name}.json` — every save of a per-component config.
+- `<dataDir>/colors-and-type/_working.json` and `<dataDir>/component-configs/{comp}/_working.json` — the buffer, written as you save each part of the look and cleared when a theme you open does not carry it.
+- `<dataDir>/themes/{name}.json` — every Save and Save As in the Theme panel.
+- `<dataDir>/colors-and-type/{name}.json` and `<dataDir>/component-configs/{comp}/{name}.json` — only when you save a preset by name. Nothing machine-written lands among them.
+- `<tokensCssPath sibling>/tokens.generated.css` and `fonts.css` — regenerated from the production theme when you Adopt.
 
 The developer-authored `tokens.css` itself is **never written** by the plugin — it holds defaults you're free to hand-edit. The editor's overrides land in the sidecar `tokens.generated.css`, which the package imports immediately after `tokens.css`.
 

@@ -5,18 +5,18 @@ description: Generate a complete live-tokens color theme from a natural-language
 
 # Generating a theme from a mood brief
 
-You translate the brief into 10 OKLCH seed colors plus a scheme; the CLI does everything else (curve assembly, AA contrast enforcement with auto-correction, file writing, activation). Never hand-author theme JSON and never edit `colors-and-type/*.json` directly — seeds in, valid theme out.
+You translate the brief into 10 OKLCH seed colors plus a scheme; the CLI does everything else (curve assembly, AA contrast enforcement with auto-correction, writing the theme, opening it). Never hand-author theme JSON and never edit the data tree directly. Seeds in, valid theme out.
 
 ## Workflow
 
 1. Translate the brief into a seed file using the framework below. Write it to a temp path (not the project tree), e.g. `/tmp/theme-brief.json`.
-2. Run `npx live-tokens generate-theme /tmp/theme-brief.json`. It writes `colors-and-type/<slug>.json`, activates it, and prints a contrast report card. Exit 1 means unmet floors.
+2. Run `npx live-tokens generate-theme /tmp/theme-brief.json`. It writes `themes/<slug>.json`, opens that theme, and prints a contrast report card. Exit 1 means unmet floors.
 3. Read the report. Auto-corrections are fine (the engine adjusted text curves to hit the floors). Unmet floors mean the seeds themselves are unworkable; each failure line says which seed to adjust (usually raise the seed's lightness or cut chroma). Fix the brief and re-run — same name, same file, it overwrites.
 4. Tell the user to look at the running app. Offer refinements ("warmer", "more contrast", "less saturated") as seed adjustments to the same brief, re-run.
 
-Flags: `--dry-run` prints the report without writing; `--no-activate` writes the file without switching the active theme.
+Flags: `--dry-run` prints the report without writing; `--no-activate` writes the theme without opening it. Opening a theme never changes what the site ships: only Adopt, in the editor, does that.
 
-Warn once per session when iterating: regeneration replaces the whole color state of that theme file, including any manual palette tweaks made in the editor after the last generation.
+Warn once per session when iterating: regeneration replaces the whole color state of that theme, including any manual palette tweaks made in the editor after the last generation.
 
 ## The brief
 
@@ -40,7 +40,7 @@ Warn once per session when iterating: regeneration replaces the whole color stat
 }
 ```
 
-All 10 seeds are required. A seed may also be a `"#rrggbb"` hex string (converted for you). OKLCH: `l` 0–1 perceptual lightness, `c` chroma (0 grey, ~0.37 max), `h` hue degrees. `name` becomes the theme file slug; `"default"` is refused (protected package theme). `harmony` is an optional record of your reasoning; the seeds are ground truth. `canvasGradient` is an optional boolean — see "The canvas sky" below before setting it.
+All 10 seeds are required. A seed may also be a `"#rrggbb"` hex string (converted for you). OKLCH: `l` 0–1 perceptual lightness, `c` chroma (0 grey, ~0.37 max), `h` hue degrees. `name` becomes the theme file slug, tidied to lowercase with hyphens and stripped of any leading underscore (those names are reserved); `"default"` is refused (protected package theme). `harmony` is an optional record of your reasoning; the seeds are ground truth. `canvasGradient` is an optional boolean — see "The canvas sky" below before setting it.
 
 Roles: **Brand** is the dominant chromatic identity; **Accent** the supporting color; **Special** the rare expressive tertiary; **Canvas** is the page background verbatim; **Neutral** drives all neutral surfaces and body text; **Alternate** is the second near-grey family; the four status colors are conventional signals.
 
@@ -143,10 +143,10 @@ Holiday briefs are statement briefs — default to commitment level 2–3 above,
 
 ## Scope
 
-Fonts are never touched (they carry forward from the active theme, as do shadows and component aliases). Swatch gradients (`--gradient-1..4`) carry forward when user-tuned; if they are absent or still stock, the engine rebuilds them from the new theme's families — you never author them. Radius is out of scope for generation. Production promotion stays a human action in the editor.
+Fonts are never touched (they carry forward from the live look, as do shadows and component aliases). Swatch gradients (`--gradient-1..4`) carry forward when user-tuned; if they are absent or still stock, the engine rebuilds them from the new theme's families — you never author them. Radius is out of scope for generation. Shipping the theme stays a human action: Adopt, in the editor.
 
 ## Verify
 
 - The CLI exits 0 and the report card shows every check ✓ (auto-corrected is fine).
-- The app (dev server running) shows the new theme after a reload; the editor's Theme file manager lists the new file as active.
-- If the user wants to keep the previous look, the previous active theme is named in the CLI output; restore it in the Theme file manager.
+- The app (dev server running) shows the new theme after a reload; the editor's Theme panel names it.
+- If the user wants the previous look back, the CLI output names the theme that was open; load it from the Theme panel.

@@ -552,7 +552,7 @@ It enforces the file layout, the `:global(:root)` block, token-suffix vocabulary
 1. Registration resolves to a real `sourceFile` and a non-empty schema.
 2. Schema variables are unique within the component.
 3. Every editable token (excluding `hidden: true`, `kind: 'gradient'`, and padding-side suffixes) is declared in the runtime `<style>` block.
-4. Every editable token is seeded in the production-pointed config under `src/live-tokens/data/component-configs/<id>/`.
+4. Every editable token is seeded in `src/live-tokens/data/component-configs/<id>/default.json`.
 5. `setComponentAlias` round-trips the alias through the slice.
 
 A new first-party component is auto-covered the moment it lands in `builtInRegistry` — `npm test` will fail if any of the five checks miss. For a consumer-authored component, mirror this pattern in your own test suite if you want the same drift protection (the same test logic works against any `registerComponent` registration; iterate `getComponentRegistryEntries()` after your `main.ts` has run).
@@ -564,6 +564,6 @@ Finally navigate to `/live-tokens/components` and confirm the runtime behaviours
 - [ ] The new component appears in the nav rail under the **CUSTOM** group (system entries above, custom below the labeled divider).
 - [ ] Token rows render. Color pickers, radius selectors, font selectors all work.
 - [ ] Linked-block (if your component has linked siblings): shared rows appear with the link toggle. Changing the linked value broadcasts across every variant.
-- [ ] First save creates `component-configs/<id>/default.json`. Subsequent saves write `_active.json` plus any named files.
+- [ ] `component-configs/<id>/default.json` is derived from the `:global(:root)` block at boot. Save writes `_working.json`, the unsaved buffer the open theme captures; Save As also writes a named preset.
 - [ ] Reset returns each variable to its `:global(:root)` default.
 - [ ] Boot validation is clean (no warnings about the component being missing from the server scan, or about disk-vs-registry drift).

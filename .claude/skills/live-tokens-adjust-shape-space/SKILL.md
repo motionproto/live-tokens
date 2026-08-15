@@ -5,16 +5,16 @@ description: Adjust corner radius, padding, gap, and border width across live-to
 
 # Adjusting shape and space
 
-You translate the request into a small ops file; the CLI resolves each matching alias on its token ladder, writes per-component configs, and prints a report card. Never hand-edit `component-configs/*.json`.
+You translate the request into a small ops file; the CLI resolves each matching alias on its token ladder, writes the result into each component's unsaved buffer, and prints a report card. Never hand-edit the data tree.
 
 ## Workflow
 
 1. Write the ops file to a temp path (not the project tree), e.g. `/tmp/adjust-ops.json`.
-2. Run `npx live-tokens adjust /tmp/adjust-ops.json`. It writes `component-configs/<id>/<slug>.json` for every component the ops change and activates it. `--dry-run` prints the report without writing; `--no-activate` writes the files but leaves the current config active.
+2. Run `npx live-tokens adjust /tmp/adjust-ops.json`. It writes `component-configs/<id>/_working.json` for every component the ops change, which is the buffer the page already runs. `--dry-run` prints the report without writing.
 3. Read the report card: every changed alias old → new, plus skips (raw value, off the ladder, already at the ladder end, pill preserved). Exit 1 means the run was rejected; the message names the offending op or the missing input, so fix it and re-run.
-4. Tell the user to reload the app and look. Offer the inverse op as the undo.
+4. Tell the user to reload the app and look. Offer the inverse op as the undo, and say the edit is unsaved until they save the open theme.
 
-Each run reads the ACTIVE config, so "a bit more" and "back one" compound naturally. Never chain `--no-activate` runs: the second reads the still-active old config and discards the first run's output.
+Each run reads the LIVE config (buffer, else the open theme, else the shipped default), so "a bit more" and "back one" compound naturally.
 
 ## The ops file
 
@@ -27,10 +27,10 @@ Global, relative:
 Targeted, absolute:
 
 ```json
-{ "name": "pill-buttons", "ops": [{ "target": "button", "kind": "radius", "set": "--radius-full" }] }
+{ "ops": [{ "target": "button", "kind": "radius", "set": "--radius-full" }] }
 ```
 
-- `name` (optional): slug for the written files. Omitted means the rolling slug `adjusted`, overwritten each run so iteration leaves no trail in the file manager. Pass a name only when the user names a look worth keeping.
+- `name`: ignored. Buffers are fixed slots, so a name names no file, and the CLI says it dropped one. Leave it out.
 - `target` (optional): a component id (the folder names under `src/live-tokens/data/component-configs/`). A named component targets its id: "windows" or "modals" is `dialog`, "cards" is `card`, "tabs" is `tabbar`; an unknown target is a hard error. "The UI", "everything", or no noun at all means global, so omit it.
 - `kind`: `radius | padding | gap | border-width`.
 - `set` or `shift`, exactly one of the two. `set` takes an existing token on that kind's ladder. `shift` is a whole number of steps, clamped at the ladder ends.
@@ -58,11 +58,11 @@ Radius runs `none, sm, md, lg, xl, 2xl, 3xl, 4xl`, with `full` as the gated nint
 
 ## Scope
 
-Every value written is an existing token; nothing new is minted. `tokens.css`, themes, colors, and fonts are never touched, so any theme composes with any shape state. Production promotion stays a human action in the editor.
+Every value written is an existing token; nothing new is minted. `tokens.css`, saved themes, colors, and fonts are never touched, so any theme composes with any shape state. An adjustment is an unsaved edit: Save the open theme in the editor to keep it, and Adopt to ship it. Both stay human actions.
 
 ## Verify
 
 - The CLI exits 0 and the report card lists the changes you expected, with no surprising skips.
 - The app (dev server running) shows the new shape after a reload.
-- The editor's Component file manager lists the new slug as active for each changed component.
-- To revert, the report names each component's previous active config; select it in the Component file manager.
+- The editor shows each changed component as edited, and the Theme panel counts it as waiting to be saved.
+- To revert, run the inverse ops, or load a theme in the Theme panel to discard every unsaved edit.

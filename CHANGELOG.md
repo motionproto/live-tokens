@@ -16,29 +16,27 @@
 - **One Theme panel.** The editor's separate colors-and-type and theme
   managers merge into a single panel: one identity, Save, Save As, Load,
   Import, Export. Colors & Type and a Components drift count appear as
-  read-only parts inside it, the way a component shows its parts. The nine
+  read-only parts inside it, the way a component shows its parts. The seven
   presets live in this panel's Load list and nowhere else. Save captures the
-  look on screen: the colors and type you have been editing are written to
-  their file as part of the capture, so there is no separate save first.
+  look on screen, the colors and type you have been editing included, so
+  there is no separate save first.
 
 - **Adopt ships the whole look.** Production state and the Adopt action
-  live on the Theme panel's root card: one action writes out the colors
-  and type on screen, then promotes them and every drifted component
-  config to production in a single atomic step, with one CSS
-  regeneration. Component editors hold their own unsaved state, which the
-  panel cannot write, so Save and Adopt both say how many components are
-  waiting on their own editors before they run. Per-component Adopt stays
-  in each component's editor for granular shipping.
+  live on the Theme panel's root card: one action saves the open theme and
+  publishes it, colors and type plus every component it carries, with one
+  CSS regeneration. Component editors hold their own unsaved state, which
+  the panel cannot write, so Save and Adopt both say how many components are
+  waiting on their own editors before they run.
 
 - **`generate-theme` turns a mood brief into a complete theme.** `npx
   live-tokens generate-theme <brief.json>` takes ten OKLCH seeds plus a
   scheme, assembles the full curve set, enforces AA contrast with automatic
-  correction rounds, writes `colors-and-type/<slug>.json`, and activates it.
-  The bundled `live-tokens-generate-theme` skill translates natural-language
-  briefs ("dark and moody night theme", "St. Patrick's Day with green and
-  gold") into seeds. Nine preset themes generated this way ship in the
-  package: Autumn, Halloween, Leprechaun, Midnight Study, Ocean, Royal
-  Velvet, Spring Meadow, Sunset, Yuletide.
+  correction rounds, writes `themes/<slug>.json`, and opens it. The bundled
+  `live-tokens-generate-theme` skill translates natural-language briefs
+  ("dark and moody night theme", "St. Patrick's Day with green and gold")
+  into seeds. Seven preset themes generated this way ship in the package:
+  Autumn, Halloween, Midnight Study, Ocean, Royal Velvet, Spring Meadow,
+  Sunset.
 
 - **`adjust` moves shape and space along the token scales.** `npx
   live-tokens adjust <ops.json>` shifts or sets every matching radius,
@@ -46,8 +44,8 @@
   shifts preserve the cross-component hierarchy, `--radius-full` is a
   gated rung so a global "softer" never silently turns the UI into
   capsules, and spacing moves along the editor picker's 12-step subset so
-  every written value stays hand-editable. Unnamed runs roll into one
-  `adjusted.json` per component; a named run keeps the look. The bundled
+  every written value stays hand-editable. The result lands in each
+  component's unsaved buffer, so save the open theme to keep it. The bundled
   `live-tokens-adjust-shape-space` skill maps "make the buttons pill
   shaped", "make the UI softer", "space it out" onto ops files.
 
@@ -58,17 +56,58 @@
   format as the file on disk. Existing pointer themes migrate on first
   dev-server start, resolving and embedding what they reference.
 
-- **The nine presets ship as full example looks.** One theme per preset
+- **The seven presets ship as full example looks.** One theme per preset
   embeds its colors and type plus a distinct shape personality and a Google
-  Fonts pairing: Yuletide is storybook-round with Mountains of Christmas
-  headings, Halloween goes fully square with heavy borders and Creepster,
-  Midnight Study pairs sharp windows and round buttons with EB Garamond,
-  and no two presets share a corner-radius and spacing profile or a font
-  family. Load one to try the complete look; delete its materialized files
-  to restore. `npm run generate:preset-themes` regenerates all nine from
-  the component defaults.
+  Fonts pairing: Halloween goes fully square with heavy borders and
+  Creepster, Midnight Study pairs sharp windows and round buttons with EB
+  Garamond, and no two presets share a corner-radius and spacing profile or
+  a font family. Load one to try the complete look, load Motion Proto to
+  come back. `npm run generate:preset-themes` regenerates all seven from the
+  component defaults.
 
 ### Changed
+
+- **Themes are documents; the working set is a buffer. (breaking)** A theme file
+  is the whole look, `themes/_active.json` names the one the editor has open,
+  and `themes/_production.json` names the one your site ships. Anything not yet
+  saved into a theme lives in one reserved slot per layer, `_working.json`, and
+  a slot exists only where the look sits off the shipped default, so a new
+  project has none. The per-layer `_active.json` / `_production.json` pointer
+  files, about fifty in a full tree, are retired, and applying a theme no longer
+  writes a copy of it under its own slug. The files that piled up, one set per
+  theme sampled, go with the mechanism that made them.
+
+- **Trying a theme no longer publishes it. (breaking)** Loading a theme used to
+  set production in the same step, so sampling the presets rewrote
+  `tokens.generated.css` behind your back. Loading now opens the theme and does
+  nothing else. Adopt is the only action that changes what your site ships.
+
+- **A component ships with its theme. (breaking)** Production is one saved theme
+  rather than a mix of per-slice pointers, so a component editor's Adopt saves
+  and publishes the open theme, that component with it. The per-slice promote
+  door is gone.
+
+- **Existing projects need one `npx live-tokens migrate`.** It reads what the
+  retired pointers resolved to and records it as the production theme, keeps
+  live state that had drifted from the open theme as a buffer, deletes the
+  copies a saved theme already carries, and clears the pointer files. A file
+  matching no theme is yours and is kept; the effective production output never
+  changes without being written down as `themes/recovered-production.json`.
+  `--check` prints the whole plan. Until you run it the dev server warns and
+  holds the startup bake, so the look you ship survives the upgrade. It never
+  deletes anything on its own.
+
+- **Public API. (breaking)** `setActiveFile`, `setProductionFile`,
+  `getProductionInfo`, the `ProductionInfo` type and the `activeFileName` store
+  leave with the per-layer pointers they drove. `getProductionTheme`,
+  `writeWorkingColorsAndType`, the `LiveSource` type and the `openThemeSlug`
+  store arrive.
+
+- **CLIs follow the model.** `generate-theme` writes `themes/<slug>.json` and
+  opens it, instead of writing a colors-and-type file and flipping pointers at
+  it. `adjust` writes each touched component's buffer; its `--no-activate` flag
+  named files that no longer exist, so it is rejected with what to do instead.
+  `live-tokens migrate` runs the data heal alongside the tokens.css migrations.
 
 - **One Theme panel, one save and load surface.** The editor sidebar holds a
   single Theme panel: Save, Save As, Load with preview, Import, Export, the
@@ -93,18 +132,18 @@
   ships the file; a consumer's boot always materializes a current local
   copy.
 
-- **Everything is deletable.** The delete guard on the production colors and
-  type is gone. Pointers heal to `default` only when the deleted name stops
-  resolving, so removing a local shadow of a shipped preset restores the
-  shipped version and keeps the pointer on it. The active theme is
-  deletable; active heals to Default. Deleting a shipped colors-and-type
-  file or theme with no local copy still refuses.
+- **Almost everything is deletable.** Colors-and-type and component files are
+  presets now, so nothing live points at one and any of them can go. Deleting
+  the theme you have open is legal too: the buffer survives its document, so
+  the look on screen stays, and open heals to the shipped version if one
+  shadows it, otherwise to Default. Two refusals remain, both about something
+  a delete would break: the theme in production, and a shipped file with no
+  local copy.
 
-- **Load applies the complete look.** Loading a theme materializes its data
-  into working files named after the theme (overwriting files that already
-  use that name) and points components the theme does not carry back at
-  their defaults. Components that are not installed are skipped and
-  reported instead of silently ignored.
+- **Load applies the complete look.** Loading a theme opens it: its embedded
+  copies fill the working buffer and components it does not carry go back to
+  their defaults. Components that are not installed are skipped and reported
+  instead of silently ignored.
 
 - **"Manifest" retires; a theme is the whole look.** The file that carries a
   complete look is a **theme**, and the colors-and-typography layer inside it
@@ -155,6 +194,15 @@
 - **`collapse-theme-to-default` no longer drops `harmonyAxes`** or coerces a
   missing `fontStacks` to an empty object when baking a theme into the
   shipped defaults.
+
+### Known limitations
+
+- **Production freshness resets on reload.** Nothing on disk records when the
+  last bake happened, so the editor tracks it for the session. Save a theme
+  after adopting it and the panel reads "out of sync" until you adopt again,
+  which is right; reload the page and it reads "in production" again while the
+  baked CSS is a version behind. Adopt when in doubt, it costs nothing to
+  repeat.
 
 ## 0.47.1 — Straightened curves
 

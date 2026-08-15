@@ -70,5 +70,5 @@ the sidebar has **Save**, **Save As**, and **Load**, and each theme is one JSON
 file under `src/live-tokens/data/themes/`.
 
 The header gives you undo/redo (`Cmd/Ctrl+Z`, `Cmd/Ctrl+Shift+Z`). You can keep
-many themes side by side; one is active at a time. See
-[Themes](themes-workflow.md) for the full lifecycle.
+many themes side by side; one is open at a time, and only **Adopt** publishes
+one. See [Themes](themes-workflow.md) for the full lifecycle.

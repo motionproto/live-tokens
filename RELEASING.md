@@ -59,9 +59,9 @@ Before pushing the tag:
 - [ ] CHANGELOG entry written, version bumped to match.
 - [ ] `git status` is clean. Stray files in the working tree end up in the
   tarball if they match `files:` in `package.json`.
-- [ ] `colors-and-type/_backups/` and `src/system/styles/_backups/` are empty or
-  gitignored. They're local-only working state; shipping them poisons every
-  consumer's file history.
+- [ ] No `_working.json` buffer left under `src/live-tokens/data/`
+  (`npm run check:production-is-default` covers this). It is unsaved local
+  state; shipping one hands every consumer a look nobody chose.
 - [ ] No `temp/` or scratch docs accidentally added to `files:`.
 - [ ] Tag exactly matches `package.json#version` prefixed with `v`. CI rejects
   the publish otherwise (`Verify tag matches package.json version` step).
