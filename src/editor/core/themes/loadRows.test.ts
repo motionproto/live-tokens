@@ -32,6 +32,11 @@ describe('buildLoadRows', () => {
     expect(rows.map((r) => r.fileName)).toEqual(['look:ocean', 'layer:ocean']);
   });
 
+  it('puts the protected default look first', () => {
+    const rows = buildLoadRows([look('autumn'), look('default', true), look('ocean')], []);
+    expect(rows.map((r) => r.fileName)).toEqual(['look:default', 'look:autumn', 'look:ocean']);
+  });
+
   it('carries the protected flag on looks and never on layers', () => {
     const rows = buildLoadRows([look('default', true)], [layer('default', false)]);
     expect(rows.map((r) => r.isProtected)).toEqual([true, false]);

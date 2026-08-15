@@ -15,7 +15,7 @@ export const PRESET_FONTS = {
     body: { name: 'Nunito Sans', url: 'https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300..800&display=swap' },
   },
   halloween: {
-    display: { name: 'Creepster', url: 'https://fonts.googleapis.com/css2?family=Creepster&display=swap' },
+    display: { name: 'Mystery Quest', url: 'https://fonts.googleapis.com/css2?family=Mystery+Quest&display=swap' },
     body: { name: 'Karla', url: 'https://fonts.googleapis.com/css2?family=Karla:wght@300..800&display=swap' },
   },
   'midnight-study': {

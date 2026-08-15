@@ -69,7 +69,11 @@ import {
   loadShadowsFromVars,
   shadowsToVars,
 } from '../themes/slices/shadows';
-import { makeDefaultGradients } from '../themes/slices/gradients';
+import {
+  gradientsToVars,
+  loadGradientsFromFile,
+  makeDefaultGradients,
+} from '../themes/slices/gradients';
 import {
   componentBaseline,
   loadComponentsFromVars,
@@ -557,6 +561,7 @@ export function colorsAndTypeToState(colorsAndType: ColorsAndType): EditorState 
   // (or in components' case, vars that wouldn't have been in the file to
   // begin with).
   for (const load of Object.values(domainLoaders)) load(next, rawVars);
+  loadGradientsFromFile(next, colorsAndType.gradients, rawVars);
   next.harmonyAxes = sanitizeHarmonyAxes(renameBackgroundHarmonyFamily(colorsAndType.harmonyAxes), next.palettes);
   next.cssVars = rawVars;
   return next;
@@ -588,11 +593,17 @@ function colorsAndTypeContent(state: EditorState): Omit<ColorsAndType, 'name' | 
   if (state.shadows.tokens.length > 0) {
     Object.assign(cssVariables, shadowsToVars(state.shadows));
   }
+  // Rendered gradient strings ride along in cssVariables for the production
+  // CSS pipeline; the structured `gradients` field is the editable basis.
+  if (state.gradients.tokens.length > 0) {
+    Object.assign(cssVariables, gradientsToVars(state.gradients));
+  }
   return {
     editorConfigs: state.palettes,
     cssVariables,
     fontSources: state.fonts.sources,
     fontStacks: state.fonts.stacks,
+    gradients: state.gradients.tokens,
     harmonyAxes: state.harmonyAxes,
     schemaVersion: CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION,
   };

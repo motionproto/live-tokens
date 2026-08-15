@@ -885,7 +885,22 @@
             "outDy": 0
           }
         ]
-      }
+      },
+      "emptyMode": "gradient",
+      "gradientStyle": "linear",
+      "gradientAngle": 180,
+      "gradientReverse": false,
+      "gradientStops": [
+        {
+          "position": 0,
+          "paletteLabel": "950"
+        },
+        {
+          "position": 100,
+          "paletteLabel": "850"
+        }
+      ],
+      "gradientSize": "window"
     },
     "Neutral": {
       "baseColor": {
@@ -2247,10 +2262,10 @@
     }
   },
   "cssVariables": {
-    "--gradient-1": "linear-gradient(90deg, var(--color-brand-500) 0%, var(--color-accent-500) 100%)",
-    "--gradient-2": "linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-special-500) 100%)",
-    "--gradient-3": "linear-gradient(90deg, var(--color-success-500) 0%, var(--color-info-500) 100%)",
-    "--gradient-4": "linear-gradient(45deg, var(--color-danger-500) 0%, var(--color-warning-500) 100%)",
+    "--gradient-1": "linear-gradient(90deg, var(--color-brand-400) 0%, var(--color-brand-700) 100%)",
+    "--gradient-2": "linear-gradient(135deg, var(--color-special-500) 0%, var(--color-brand-500) 100%)",
+    "--gradient-3": "linear-gradient(90deg, var(--color-brand-500) 0%, var(--color-accent-500) 100%)",
+    "--gradient-4": "linear-gradient(180deg, var(--color-canvas-600) 0%, var(--color-canvas-900) 100%)",
     "--badge-trait-surface": "var(--surface-brand)",
     "--badge-trait-text": "var(--text-brand)",
     "--badge-trait-text-font-family": "var(--font-sans)",
@@ -2447,5 +2462,67 @@
       "family": null
     }
   ],
-  "schemaVersion": 3
+  "schemaVersion": 3,
+  "gradients": [
+    {
+      "variable": "--gradient-1",
+      "type": "linear",
+      "angle": 90,
+      "stops": [
+        {
+          "position": 0,
+          "color": "--color-brand-400"
+        },
+        {
+          "position": 100,
+          "color": "--color-brand-700"
+        }
+      ]
+    },
+    {
+      "variable": "--gradient-2",
+      "type": "linear",
+      "angle": 135,
+      "stops": [
+        {
+          "position": 0,
+          "color": "--color-special-500"
+        },
+        {
+          "position": 100,
+          "color": "--color-brand-500"
+        }
+      ]
+    },
+    {
+      "variable": "--gradient-3",
+      "type": "linear",
+      "angle": 90,
+      "stops": [
+        {
+          "position": 0,
+          "color": "--color-brand-500"
+        },
+        {
+          "position": 100,
+          "color": "--color-accent-500"
+        }
+      ]
+    },
+    {
+      "variable": "--gradient-4",
+      "type": "linear",
+      "angle": 180,
+      "stops": [
+        {
+          "position": 0,
+          "color": "--color-canvas-600"
+        },
+        {
+          "position": 100,
+          "color": "--color-canvas-900"
+        }
+      ]
+    }
+  ]
 }

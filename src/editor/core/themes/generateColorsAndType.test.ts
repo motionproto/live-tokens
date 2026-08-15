@@ -89,7 +89,60 @@ describe('buildColorsAndTypeFromSeeds', () => {
     };
     const { colorsAndType } = buildColorsAndTypeFromSeeds(lightBrief, carry, NOW);
     expect(colorsAndType.cssVariables['--surface-brand']).toBeUndefined();
-    expect(colorsAndType.cssVariables['--gradient-1']).toBe(carry.cssVariables['--gradient-1']);
+    // The carried string is a projection of stock gradients; the rebuilt basis supersedes it.
+    expect(colorsAndType.cssVariables['--gradient-1']).toBe(
+      'linear-gradient(90deg, var(--color-brand-400) 0%, var(--color-brand-700) 100%)',
+    );
     expect(colorsAndType.fontStacks).toEqual(carry.fontStacks);
+  });
+
+  it('rebuilds absent/stock swatch gradients from the theme families, falling back within-family for distant hues', () => {
+    const { colorsAndType, report } = buildColorsAndTypeFromSeeds(lightBrief, {}, NOW);
+    expect(report.gradients).toBe('recipes');
+    const stops = colorsAndType.gradients!.map((g) => g.stops.map((s) => s.color));
+    expect(stops[0]).toEqual(['--color-brand-400', '--color-brand-700']);
+    // Special (300) vs Brand (~146) exceeds 120° → within-family fallback.
+    expect(stops[1]).toEqual(['--color-special-400', '--color-special-700']);
+    // Brand (~146) vs Accent (95) is adjacent → cross-family pair.
+    expect(stops[2]).toEqual(['--color-brand-500', '--color-accent-500']);
+    // Light scheme sweeps the light half of the canvas ramp.
+    expect(stops[3]).toEqual(['--color-canvas-200', '--color-canvas-500']);
+  });
+
+  it('keeps user-tuned gradients untouched', () => {
+    const tuned = [
+      { variable: '--gradient-1', type: 'linear' as const, angle: 33,
+        stops: [{ position: 0, color: '--color-brand-200' }, { position: 100, color: '--color-brand-900' }] },
+    ];
+    const { colorsAndType, report } = buildColorsAndTypeFromSeeds(lightBrief, { gradients: tuned }, NOW);
+    expect(report.gradients).toBe('carried');
+    expect(colorsAndType.gradients).toBe(tuned);
+    expect(colorsAndType.cssVariables['--gradient-1']).toContain('33deg');
+  });
+
+  it('canvasGradient: true turns on the page sky on the scheme-safe side of the Canvas anchor', () => {
+    const dark = buildColorsAndTypeFromSeeds({ ...darkBrief, canvasGradient: true }, {}, NOW);
+    const canvas = dark.colorsAndType.editorConfigs.Canvas;
+    expect(canvas.emptyMode).toBe('gradient');
+    expect(canvas.gradientSize).toBe('window');
+    const anchorLabel = canvas.gradientStops![1].paletteLabel;
+    const skyLabel = canvas.gradientStops![0].paletteLabel;
+    expect(Number(skyLabel)).toBeGreaterThan(Number(anchorLabel));
+    expect(dark.report.canvasGradient).toBe(`on, ${skyLabel} → ${anchorLabel}`);
+
+    // A committed light canvas has room on the light side.
+    const committed = { ...lightBrief, canvasGradient: true, seeds: seeds({ Brand: '#2f9e44', Canvas: { l: 0.88, c: 0.06, h: 120 } }) };
+    const light = buildColorsAndTypeFromSeeds(committed, {}, NOW);
+    const stops = light.colorsAndType.editorConfigs.Canvas.gradientStops!;
+    expect(Number(stops[0].paletteLabel)).toBeLessThan(Number(stops[1].paletteLabel));
+
+    // A near-white canvas anchors at the ramp edge: sky skipped, and the report says so.
+    const edge = buildColorsAndTypeFromSeeds({ ...lightBrief, canvasGradient: true }, {}, NOW);
+    expect(edge.colorsAndType.editorConfigs.Canvas.emptyMode).toBeUndefined();
+    expect(edge.report.canvasGradient).toMatch(/^skipped/);
+
+    const off = buildColorsAndTypeFromSeeds(lightBrief, {}, NOW);
+    expect(off.colorsAndType.editorConfigs.Canvas.emptyMode).toBeUndefined();
+    expect(off.report.canvasGradient).toBeUndefined();
   });
 });

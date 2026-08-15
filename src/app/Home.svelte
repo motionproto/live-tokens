@@ -51,8 +51,12 @@
     align-content: center;
   }
 
+  /* Shrink-to-fit so themes with wider type widen the card instead of
+     wrapping the action row; the paragraph's measure sets the resting width. */
   .stub {
-    grid-column: 4 / span 6;
+    grid-column: 1 / -1;
+    justify-self: center;
+    max-width: 100%;
   }
 
   .eyebrow {
@@ -71,6 +75,7 @@
   p {
     color: var(--text-secondary);
     line-height: 1.6;
+    max-width: 60ch;
   }
 
   code {

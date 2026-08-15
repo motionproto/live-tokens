@@ -40,7 +40,7 @@ Warn once per session when iterating: regeneration replaces the whole color stat
 }
 ```
 
-All 10 seeds are required. A seed may also be a `"#rrggbb"` hex string (converted for you). OKLCH: `l` 0–1 perceptual lightness, `c` chroma (0 grey, ~0.37 max), `h` hue degrees. `name` becomes the theme file slug; `"default"` is refused (protected package theme). `harmony` is an optional record of your reasoning; the seeds are ground truth.
+All 10 seeds are required. A seed may also be a `"#rrggbb"` hex string (converted for you). OKLCH: `l` 0–1 perceptual lightness, `c` chroma (0 grey, ~0.37 max), `h` hue degrees. `name` becomes the theme file slug; `"default"` is refused (protected package theme). `harmony` is an optional record of your reasoning; the seeds are ground truth. `canvasGradient` is an optional boolean — see "The canvas sky" below before setting it.
 
 Roles: **Brand** is the dominant chromatic identity; **Accent** the supporting color; **Special** the rare expressive tertiary; **Canvas** is the page background verbatim; **Neutral** drives all neutral surfaces and body text; **Alternate** is the second near-grey family; the four status colors are conventional signals.
 
@@ -111,6 +111,25 @@ Modes and hue offsets from Brand: complementary +180; split-complementary +150/+
 - Brief names two colors → measure their hue gap and pick the matching mode (green + gold ≈ 60–90° → analogous/compound).
 - Drama or maximum contrast → complementary/triadic/tetradic; then never pair max-chroma text with a near-black ground; tone one side down.
 
+## The canvas sky (optional page-background gradient)
+
+The brief may set `"canvasGradient": true` to render the page background as a
+vertical gradient built from the Canvas ramp. The engine picks the stops itself
+(two ramp steps from the Canvas anchor on the scheme's safe side), so the
+choice you make is only *whether*, never *how*.
+
+Default **off**. Turn it on only when the brief evokes atmosphere: sky, night,
+dusk, dawn, sunset, glow, candlelight, underwater, depth — or when the user
+asks for a gradient outright. Keep it off for crisp, clean, flat, minimal, or
+corporate briefs, and whenever in doubt. Most themes should not have one; a sky
+that appears on every generated theme stops meaning anything. When you enable
+it, say why in one sentence when reporting back ("night brief → canvas sky").
+
+A sky needs a committed canvas: when the Canvas seed anchors at the ramp edge
+(near-white light canvas, near-black dark one) there is no room on the safe
+side and the engine skips the sky, saying so in the report. An atmospheric
+brief that wants one should already be at canvas commitment level 2–3.
+
 ## Named themes (canonical OKLCH anchors)
 
 Holiday briefs are statement briefs — default to commitment level 2–3 above, not cream. The named colors go on the *ground*, not just the buttons.
@@ -124,7 +143,7 @@ Holiday briefs are statement briefs — default to commitment level 2–3 above,
 
 ## Scope
 
-Fonts are never touched (they carry forward from the active theme, as do gradients, shadows, and component aliases). Radius is out of scope for generation. Production promotion stays a human action in the editor.
+Fonts are never touched (they carry forward from the active theme, as do shadows and component aliases). Swatch gradients (`--gradient-1..4`) carry forward when user-tuned; if they are absent or still stock, the engine rebuilds them from the new theme's families — you never author them. Radius is out of scope for generation. Production promotion stays a human action in the editor.
 
 ## Verify
 

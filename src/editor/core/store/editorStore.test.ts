@@ -14,6 +14,8 @@ import {
   undo,
   redo,
   setPaletteConfig,
+  makeDefaultGradients,
+  setGradientAngle,
   loadFromFile,
   colorsAndTypeDirty,
   toColorsAndType,
@@ -339,6 +341,47 @@ describe('editorStore — colorsAndTypeDirty baseline', () => {
       s.cssVars['--surface-canvas'] = '#654321';
     });
     expect(get(colorsAndTypeDirty)).toBe(true);
+  });
+});
+
+describe('editorStore — gradients round-trip', () => {
+  it('loadFromFile restores structured gradients and sheds the rendered strings from the bag', () => {
+    const gradients = makeDefaultGradients();
+    gradients[0] = {
+      ...gradients[0],
+      angle: 45,
+      stops: [
+        { position: 0, color: '--color-brand-400' },
+        { position: 100, color: '--color-brand-600' },
+      ],
+    };
+    loadFromFile(makeColorsAndType({
+      gradients,
+      cssVariables: { '--gradient-1': 'linear-gradient(90deg, red, blue)', '--other': '1px' },
+    }));
+    const s = get(editorState);
+    expect(s.gradients.tokens[0].angle).toBe(45);
+    expect(s.gradients.tokens[0].stops[0].color).toBe('--color-brand-400');
+    expect(s.cssVars['--gradient-1']).toBeUndefined();
+    expect(s.cssVars['--other']).toBe('1px');
+  });
+
+  it('a file without the field keeps the stock defaults and still sheds bag strings', () => {
+    loadFromFile(makeColorsAndType({ cssVariables: { '--gradient-2': 'linear-gradient(90deg, red, blue)' } }));
+    const s = get(editorState);
+    expect(s.gradients.tokens).toEqual(makeDefaultGradients());
+    expect(s.cssVars['--gradient-2']).toBeUndefined();
+  });
+
+  it('an edited gradient survives save and reload', () => {
+    setGradientAngle('--gradient-1', 30);
+    const file = toColorsAndType(get(editorState), { name: 't' });
+    expect(file.gradients?.[0].angle).toBe(30);
+    expect(file.cssVariables['--gradient-1']).toContain('30deg');
+
+    loadFromFile(file);
+    expect(get(editorState).gradients.tokens[0].angle).toBe(30);
+    expect(get(colorsAndTypeDirty)).toBe(false);
   });
 });
 

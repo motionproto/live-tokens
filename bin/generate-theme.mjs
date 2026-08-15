@@ -3,9 +3,10 @@
 // Reads a seed brief (JSON), builds a full validated colors-and-type file via
 // the compiled engine (dist-plugin/generateColorsAndType — the CLI never imports
 // TS sources), enforces the AA contrast gate, writes <colorsAndTypeDir>/<slug>.json,
-// and activates it. Non-color content (gradients, shadows, component aliases,
-// fonts) is carried forward from the currently active file so generation only
-// replaces the color identity.
+// and activates it. Non-color content (shadows, component aliases, fonts) is
+// carried forward from the currently active file so generation only replaces
+// the color identity. Swatch gradients ride along too when user-tuned; stock
+// ones are rebuilt from the new theme's families by the engine.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
@@ -72,6 +73,7 @@ export async function runGenerateTheme({ briefPath, activate = true, dryRun = fa
     cssVariables: carrySource.cssVariables,
     fontSources: carrySource.fontSources,
     fontStacks: carrySource.fontStacks,
+    gradients: carrySource.gradients,
   };
 
   const { colorsAndType, slug, report } = buildColorsAndTypeFromSeeds(brief, carry, new Date().toISOString());
@@ -118,6 +120,15 @@ export function formatGenerateThemeResult(result) {
   if (result.report.failures.length > 0) {
     lines.push(`\nUnmet floors — adjust the brief's seeds and re-run:`);
     for (const f of result.report.failures) lines.push(`  ! ${f}`);
+  }
+
+  lines.push(
+    result.report.gradients === 'carried'
+      ? '\nGradients: kept your tuned swatch gradients.'
+      : '\nGradients: swatch tokens rebuilt from the theme families.',
+  );
+  if (result.report.canvasGradient) {
+    lines.push(`Canvas sky: ${result.report.canvasGradient}.`);
   }
 
   if (result.activated) {

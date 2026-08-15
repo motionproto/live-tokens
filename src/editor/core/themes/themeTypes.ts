@@ -94,6 +94,22 @@ export interface FontStack {
   slots: FontStackSlot[];
 }
 
+/** On-disk shape of one `--gradient-N` library token. Structural mirror of the
+ *  store's `GradientToken` (like `AliasDiskValue`'s inline gradient shape) so
+ *  the file schema stays independent of store types. The rendered strings in
+ *  `cssVariables` are a projection of these for production CSS; this field is
+ *  the editable basis. */
+export interface GradientDiskToken {
+  variable: string;
+  type: 'linear' | 'radial' | 'solid' | 'none';
+  angle: number;
+  radius?: number;
+  centerX?: number;
+  aspectX?: number;
+  aspectY?: number;
+  stops: { position: number; color: string; opacity?: number }[];
+}
+
 export interface ColorsAndType {
   name: string;
   createdAt: string;
@@ -102,6 +118,9 @@ export interface ColorsAndType {
   cssVariables: Record<string, string>;
   fontSources?: FontSource[];
   fontStacks?: FontStack[];
+  /** Absent on files saved before gradients round-tripped; the loader keeps
+   *  the stock defaults then, which match what those files rendered. */
+  gradients?: GradientDiskToken[];
   /** Four fixed harmony axes, each owning a hue with an optional bound family. */
   harmonyAxes?: HarmonyAxis[];
   /**

@@ -8,6 +8,7 @@
 import { hexToOklch, type Oklch } from '../palettes/oklch';
 import {
   PALETTE_SPECS,
+  PALETTE_STEPS,
   SCALES,
   type SchemeDirection,
   type Step,
@@ -16,12 +17,13 @@ import {
   scaleToCssVar,
   setCurveAnchor,
 } from '../palettes/paletteDerivation';
+import { formatGradientValue, makeDefaultGradients } from './slices/gradients';
 import { AA_BODY, AA_LARGE, contrastRatio, findLForContrast } from '../palettes/contrast';
 import { type HarmonyAxis, type HarmonyMode } from '../palettes/colorHarmony';
 import { defaultPaletteConfig } from '../../ui/palette/paletteMath';
 import { sanitizeFileName } from '../storage/files/versionedFileResourceClient';
 import { CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION } from './migrations/index';
-import type { FontSource, FontStack, PaletteConfig, ColorsAndType } from './themeTypes';
+import type { FontSource, FontStack, GradientDiskToken, PaletteConfig, ColorsAndType } from './themeTypes';
 
 export interface ColorsAndTypeBrief {
   name: string;
@@ -30,6 +32,10 @@ export interface ColorsAndTypeBrief {
   seeds: Record<string, Oklch | string>;
   /** Advisory record of the harmony reasoning; seeds stay ground truth. */
   harmony?: { mode: HarmonyMode };
+  /** Page-background sky. Off by default; the skill turns it on only when the
+   *  mood brief evokes atmosphere. The engine derives the stops itself, on the
+   *  scheme's safe side of the Canvas anchor. */
+  canvasGradient?: boolean;
 }
 
 /** Non-color content carried forward from the currently active colors and type
@@ -38,6 +44,7 @@ export interface CarryForward {
   cssVariables?: Record<string, string>;
   fontSources?: FontSource[];
   fontStacks?: FontStack[];
+  gradients?: GradientDiskToken[];
 }
 
 export interface ContrastCheck {
@@ -54,6 +61,13 @@ export interface GenerateColorsAndTypeReport {
   scheme: SchemeDirection;
   checks: ContrastCheck[];
   failures: string[];
+  /** 'recipes' when the engine replaced absent/stock swatch gradients with the
+   *  family-relative recipes; 'carried' when user-tuned ones rode through. */
+  gradients: 'recipes' | 'carried';
+  /** Present when the brief opted into the page-background sky: either
+   *  'on, <sky> → <anchor>' or a 'skipped — …' explanation when the Canvas
+   *  anchors at the ramp edge and leaves no room. */
+  canvasGradient?: string;
 }
 
 export interface GenerateColorsAndTypeResult {
@@ -121,6 +135,9 @@ function validateBrief(brief: ColorsAndTypeBrief): { seeds: Record<string, Oklch
   }
   if (brief.harmony && !HARMONY_MODES.includes(brief.harmony.mode)) {
     problems.push(`harmony.mode: unknown mode ${JSON.stringify(brief.harmony.mode)}`);
+  }
+  if (brief.canvasGradient !== undefined && typeof brief.canvasGradient !== 'boolean') {
+    problems.push(`canvasGradient: must be a boolean, got ${JSON.stringify(brief.canvasGradient)}`);
   }
 
   const seeds: Record<string, Oklch> = {};
@@ -222,7 +239,7 @@ const MAX_CORRECTION_ROUNDS = 3;
 function runContrastGate(
   configs: Record<string, PaletteConfig>,
   scheme: SchemeDirection,
-): GenerateColorsAndTypeReport {
+): Pick<GenerateColorsAndTypeReport, 'scheme' | 'checks' | 'failures'> {
   const defs = checkDefs();
   const direction = scheme === 'light' ? 'darker' : 'lighter';
   const corrected = new Set<string>();
@@ -278,6 +295,78 @@ function runContrastGate(
   return { scheme, checks, failures };
 }
 
+const ADJACENT_HUE_MAX = 120;
+
+const hueDist = (a: number, b: number): number => {
+  const d = Math.abs(norm(a) - norm(b));
+  return Math.min(d, 360 - d);
+};
+
+const linear = (variable: string, angle: number, from: string, to: string): GradientDiskToken => ({
+  variable,
+  type: 'linear',
+  angle,
+  stops: [{ position: 0, color: from }, { position: 100, color: to }],
+});
+
+/** The four swatch recipes, family-relative so they suit any seed set: a
+ *  within-family brand sweep, two cross-family pairs that fall back to
+ *  within-family when the hues sit more than 120° apart (an srgb gradient
+ *  between distant hues passes through gray), and a canvas sweep on the
+ *  scheme's rich half of the ramp. Stops are var() refs, so later palette
+ *  edits flow through. */
+function recipeGradients(seeds: Record<string, Oklch>, scheme: SchemeDirection): GradientDiskToken[] {
+  return [
+    linear('--gradient-1', 90, '--color-brand-400', '--color-brand-700'),
+    hueDist(seeds.Special.h, seeds.Brand.h) <= ADJACENT_HUE_MAX
+      ? linear('--gradient-2', 135, '--color-special-500', '--color-brand-500')
+      : linear('--gradient-2', 135, '--color-special-400', '--color-special-700'),
+    hueDist(seeds.Brand.h, seeds.Accent.h) <= ADJACENT_HUE_MAX
+      ? linear('--gradient-3', 90, '--color-brand-500', '--color-accent-500')
+      : linear('--gradient-3', 90, '--color-accent-400', '--color-accent-700'),
+    scheme === 'dark'
+      ? linear('--gradient-4', 180, '--color-canvas-600', '--color-canvas-900')
+      : linear('--gradient-4', 180, '--color-canvas-200', '--color-canvas-500'),
+  ];
+}
+
+/** Absent or still the stock defaults → the engine may replace them; anything
+ *  else is user-tuned and rides through untouched. */
+function isStockGradients(gradients: GradientDiskToken[] | undefined): boolean {
+  return !gradients || gradients.length === 0
+    || JSON.stringify(gradients) === JSON.stringify(makeDefaultGradients());
+}
+
+/** Turn on the page-background sky: two ramp steps from the Canvas anchor on
+ *  the scheme's safe side (darker for dark, lighter for light), ending at the
+ *  anchor. The anchor step IS the solid `--page-bg` the contrast gate checked,
+ *  and every other stop sits further from text lightness, so the gradient can
+ *  only raise contrast — call this after the gate has run.
+ *
+ *  A canvas anchored at the ramp's edge (near-white in light, near-black in
+ *  dark) has no room on the safe side; the sky is skipped with a report line
+ *  saying so, since a flat "gradient" would silently do nothing. */
+function applyCanvasGradient(canvas: PaletteConfig, scheme: SchemeDirection): string {
+  const labels = PALETTE_STEPS.map((s) => s.label);
+  const anchor = canvas.anchorPlacement!.step;
+  const sky = scheme === 'dark'
+    ? Math.min(anchor + 2, labels.length - 1)
+    : Math.max(anchor - 2, 0);
+  if (sky === anchor) {
+    return `skipped — the Canvas seed anchors at the ramp edge (${labels[anchor]}), leaving no room for a sky; commit the canvas further from ${scheme === 'dark' ? 'black' : 'white'}`;
+  }
+  canvas.emptyMode = 'gradient';
+  canvas.gradientStyle = 'linear';
+  canvas.gradientAngle = 180;
+  canvas.gradientReverse = false;
+  canvas.gradientStops = [
+    { position: 0, paletteLabel: labels[sky] },
+    { position: 100, paletteLabel: labels[anchor] },
+  ];
+  canvas.gradientSize = 'window';
+  return `on, ${labels[sky]} → ${labels[anchor]}`;
+}
+
 export function buildColorsAndTypeFromSeeds(
   brief: ColorsAndTypeBrief,
   carry: CarryForward = {},
@@ -295,6 +384,13 @@ export function buildColorsAndTypeFromSeeds(
   }
 
   const report = runContrastGate(configs, brief.scheme);
+  const canvasGradient = brief.canvasGradient
+    ? applyCanvasGradient(configs.Canvas, brief.scheme)
+    : undefined;
+
+  const gradients = isStockGradients(carry.gradients)
+    ? recipeGradients(seeds, brief.scheme)
+    : carry.gradients!;
 
   const harmonyAxes: HarmonyAxis[] = [
     { hue: norm(seeds.Brand.h), family: 'Brand' },
@@ -309,6 +405,8 @@ export function buildColorsAndTypeFromSeeds(
   const cssVariables = Object.fromEntries(
     Object.entries(carry.cssVariables ?? {}).filter(([k]) => !owned.has(k)),
   );
+  // Rendered projections of the structured gradients, kept for production CSS.
+  for (const t of gradients) cssVariables[t.variable] = formatGradientValue(t);
 
   const colorsAndType: ColorsAndType = {
     name: brief.name.trim(),
@@ -318,9 +416,18 @@ export function buildColorsAndTypeFromSeeds(
     cssVariables,
     fontSources: carry.fontSources ?? [],
     fontStacks: carry.fontStacks ?? [],
+    gradients,
     harmonyAxes,
     schemaVersion: CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION,
   };
 
-  return { colorsAndType, slug, report };
+  return {
+    colorsAndType,
+    slug,
+    report: {
+      ...report,
+      gradients: gradients === carry.gradients ? 'carried' : 'recipes',
+      ...(canvasGradient ? { canvasGradient } : {}),
+    },
+  };
 }

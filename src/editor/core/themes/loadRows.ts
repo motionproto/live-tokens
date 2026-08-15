@@ -27,14 +27,16 @@ export interface LoadRow {
 export const loadRowId = (kind: LoadRowKind, slug: string): string => `${kind}:${slug}`;
 
 export function buildLoadRows(looks: ThemeMeta[], layers: ColorsAndTypeMeta[]): LoadRow[] {
-  const lookRows: LoadRow[] = looks.map((f) => ({
-    fileName: loadRowId('look', f.fileName),
-    slug: f.fileName,
-    kind: 'look',
-    name: f.name,
-    updatedAt: f.updatedAt,
-    isProtected: f.isProtected,
-  }));
+  const lookRows: LoadRow[] = looks
+    .map((f): LoadRow => ({
+      fileName: loadRowId('look', f.fileName),
+      slug: f.fileName,
+      kind: 'look',
+      name: f.name,
+      updatedAt: f.updatedAt,
+      isProtected: f.isProtected,
+    }))
+    .sort((a, b) => Number(b.isProtected) - Number(a.isProtected));
   const layerRows: LoadRow[] = layers
     .filter((f) => !f.isPackage)
     .map((f) => ({

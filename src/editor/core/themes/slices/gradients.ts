@@ -5,6 +5,7 @@
  * edits flow through.
  */
 import type { EditorState, GradientToken, GradientTokenStop, GradientType, GradientAliasValue } from '../../store/editorTypes';
+import type { GradientDiskToken } from '../themeTypes';
 import { mutate } from '../../store/editorCore';
 
 export function makeDefaultGradients(): GradientToken[] {
@@ -46,6 +47,27 @@ export function makeDefaultGradients(): GradientToken[] {
       ],
     },
   ];
+}
+
+/**
+ * Loader: restore the gradient library from a file's structured `gradients`
+ * field and scrub the rendered `--gradient-N` strings from the vars bag — they
+ * are a projection kept for production CSS, never a basis. Files without the
+ * field (saved before gradients round-tripped) keep the seeded defaults, which
+ * match what those files rendered. A file whose slots don't match the fixed
+ * four is stale-shaped and also keeps defaults, mirroring the persistence
+ * layer's `migrateGradients` guard.
+ */
+export function loadGradientsFromFile(
+  next: EditorState,
+  gradients: GradientDiskToken[] | undefined,
+  rawVars: Record<string, string>,
+): void {
+  const expected = makeDefaultGradients().map((g) => g.variable).sort();
+  for (const name of expected) delete rawVars[name];
+  const have = (gradients ?? []).map((g) => g.variable).sort();
+  const matches = have.length === expected.length && expected.every((v, i) => v === have[i]);
+  if (matches) next.gradients.tokens = structuredClone(gradients) as GradientToken[];
 }
 
 function formatGradientStop(s: GradientTokenStop): string {

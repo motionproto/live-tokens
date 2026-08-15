@@ -1,7 +1,7 @@
 {
   "name": "Midnight Study",
   "createdAt": "2026-08-13T10:21:46.867Z",
-  "updatedAt": "2026-08-14T17:42:08.545Z",
+  "updatedAt": "2026-08-14T23:53:22.549Z",
   "schemaVersion": 3,
   "colorsAndType": {
     "name": "Midnight Study",
@@ -890,7 +890,22 @@
               "outDy": 0
             }
           ]
-        }
+        },
+        "emptyMode": "gradient",
+        "gradientStyle": "linear",
+        "gradientAngle": 180,
+        "gradientReverse": false,
+        "gradientStops": [
+          {
+            "position": 0,
+            "paletteLabel": "950"
+          },
+          {
+            "position": 100,
+            "paletteLabel": "900"
+          }
+        ],
+        "gradientSize": "window"
       },
       "Neutral": {
         "baseColor": {
@@ -2252,10 +2267,10 @@
       }
     },
     "cssVariables": {
-      "--gradient-1": "linear-gradient(90deg, var(--color-brand-500) 0%, var(--color-accent-500) 100%)",
-      "--gradient-2": "linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-special-500) 100%)",
-      "--gradient-3": "linear-gradient(90deg, var(--color-success-500) 0%, var(--color-info-500) 100%)",
-      "--gradient-4": "linear-gradient(45deg, var(--color-danger-500) 0%, var(--color-warning-500) 100%)",
+      "--gradient-1": "linear-gradient(90deg, var(--color-brand-400) 0%, var(--color-brand-700) 100%)",
+      "--gradient-2": "linear-gradient(135deg, var(--color-special-500) 0%, var(--color-brand-500) 100%)",
+      "--gradient-3": "linear-gradient(90deg, var(--color-brand-500) 0%, var(--color-accent-500) 100%)",
+      "--gradient-4": "linear-gradient(180deg, var(--color-canvas-600) 0%, var(--color-canvas-900) 100%)",
       "--badge-trait-surface": "var(--surface-brand)",
       "--badge-trait-text": "var(--text-brand)",
       "--badge-trait-text-font-family": "var(--font-sans)",
@@ -2460,14 +2475,76 @@
         "family": null
       }
     ],
-    "schemaVersion": 3
+    "schemaVersion": 3,
+    "gradients": [
+      {
+        "variable": "--gradient-1",
+        "type": "linear",
+        "angle": 90,
+        "stops": [
+          {
+            "position": 0,
+            "color": "--color-brand-400"
+          },
+          {
+            "position": 100,
+            "color": "--color-brand-700"
+          }
+        ]
+      },
+      {
+        "variable": "--gradient-2",
+        "type": "linear",
+        "angle": 135,
+        "stops": [
+          {
+            "position": 0,
+            "color": "--color-special-500"
+          },
+          {
+            "position": 100,
+            "color": "--color-brand-500"
+          }
+        ]
+      },
+      {
+        "variable": "--gradient-3",
+        "type": "linear",
+        "angle": 90,
+        "stops": [
+          {
+            "position": 0,
+            "color": "--color-brand-500"
+          },
+          {
+            "position": 100,
+            "color": "--color-accent-500"
+          }
+        ]
+      },
+      {
+        "variable": "--gradient-4",
+        "type": "linear",
+        "angle": 180,
+        "stops": [
+          {
+            "position": 0,
+            "color": "--color-canvas-600"
+          },
+          {
+            "position": 100,
+            "color": "--color-canvas-900"
+          }
+        ]
+      }
+    ]
   },
   "componentConfigs": {
     "badge": {
       "name": "midnight-study",
       "component": "badge",
       "createdAt": "2026-05-01T08:28:00.345Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--badge-primary-surface": "--surface-brand",
         "--badge-primary-text": "--text-brand",
@@ -2605,7 +2682,7 @@
       "name": "midnight-study",
       "component": "button",
       "createdAt": "2026-05-10T19:28:06.893Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--button-primary-surface": "--surface-brand-high",
         "--button-primary-text": "--text-primary",
@@ -2721,7 +2798,7 @@
       "name": "midnight-study",
       "component": "callout",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--callout-info-surface": "--surface-info-lowest",
         "--callout-info-border": "--border-info-medium",
@@ -2793,7 +2870,7 @@
       "name": "midnight-study",
       "component": "card",
       "createdAt": "2026-05-10T19:26:31.704Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--card-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent)",
         "--card-default-border": "--border-neutral",
@@ -2834,7 +2911,7 @@
       "name": "midnight-study",
       "component": "codesnippet",
       "createdAt": "2026-05-27T13:22:54.228Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--codesnippet-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 76%, transparent)",
         "--codesnippet-border": "--border-neutral",
@@ -2858,7 +2935,7 @@
       "name": "midnight-study",
       "component": "collapsiblesection",
       "createdAt": "2026-05-10T20:40:17.048Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--collapsiblesection-chromeless-default-surface": "--color-transparent",
         "--collapsiblesection-chromeless-default-padding": "--space-0",
@@ -2931,7 +3008,7 @@
       "name": "midnight-study",
       "component": "cornerbadge",
       "createdAt": "2026-05-12T15:31:06.313Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--corner-badge-margin": "--space-0",
         "--corner-badge-outer-radius": "--radius-none",
@@ -2979,7 +3056,7 @@
       "name": "midnight-study",
       "component": "dialog",
       "createdAt": "2026-05-10T20:05:24.719Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--dialog-overlay-surface": "--overlay-high",
         "--dialog-surface": "--surface-neutral-lowest",
@@ -3014,7 +3091,7 @@
       "name": "midnight-study",
       "component": "iconbutton",
       "createdAt": "2026-06-14T00:00:00.000Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--iconbutton-primary-surface": "--surface-brand-high",
         "--iconbutton-primary-icon": "--text-primary",
@@ -3103,7 +3180,7 @@
       "name": "midnight-study",
       "component": "inlineeditactions",
       "createdAt": "2026-05-01T08:34:39.325Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--inlineeditactions-save-default-surface": "--surface-success-low",
         "--inlineeditactions-save-default-text": "--text-success",
@@ -3139,7 +3216,7 @@
       "name": "midnight-study",
       "component": "input",
       "createdAt": "2026-05-24T14:28:03.860Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--input-radius": "--radius-md",
         "--input-padding": "--space-4",
@@ -3197,7 +3274,7 @@
       "name": "midnight-study",
       "component": "menuselect",
       "createdAt": "2026-05-16T00:00:00.000Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--menuselect-menu-surface": "color-mix(in srgb, var(--surface-neutral-lower) 85%, transparent)",
         "--menuselect-menu-border": "--border-neutral-medium",
@@ -3247,7 +3324,7 @@
       "name": "midnight-study",
       "component": "notification",
       "createdAt": "2026-04-18T02:43:11.330Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--notification-info-surface": "--surface-info",
         "--notification-info-action-surface": "--surface-neutral-lowest",
@@ -3327,7 +3404,7 @@
       "name": "midnight-study",
       "component": "panel",
       "createdAt": "2026-06-01T09:34:52.417Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--panel-frame-border": "--border-neutral",
         "--panel-frame-border-width": "--border-width-1",
@@ -3360,7 +3437,7 @@
       "name": "midnight-study",
       "component": "progressbar",
       "createdAt": "2026-05-10T20:42:26.726Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--progressbar-track-surface": "--surface-neutral-lowest",
         "--progressbar-track-border": "--border-neutral-subtle",
@@ -3385,7 +3462,7 @@
       "name": "midnight-study",
       "component": "sectiondivider",
       "createdAt": "2026-05-10T22:09:00.336Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--sectiondivider-lg-title-font-family": "--font-display",
         "--sectiondivider-lg-title-font-weight": "--font-weight-bold",
@@ -3480,7 +3557,7 @@
       "name": "midnight-study",
       "component": "segmentedcontrol",
       "createdAt": "2026-04-28T21:13:17.669Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--segmentedcontrol-bar-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent)",
         "--segmentedcontrol-bar-border": "--border-neutral",
@@ -3540,7 +3617,7 @@
       "name": "midnight-study",
       "component": "sidenavigation",
       "createdAt": "2026-05-25T19:34:09.771Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--sidenavigation-panel-surface": "--surface-canvas-lower",
         "--sidenavigation-panel-border": "--border-canvas-faint",
@@ -3700,7 +3777,7 @@
       "name": "midnight-study",
       "component": "tabbar",
       "createdAt": "2026-05-12T01:57:26.390Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--tabbar-bar-divider": "--border-neutral-subtle",
         "--tabbar-bar-divider-thickness": "--border-width-1",
@@ -3770,7 +3847,7 @@
       "name": "midnight-study",
       "component": "table",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--table-default-radius": "--radius-md",
         "--table-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 57%, transparent)",
@@ -3804,7 +3881,7 @@
       "name": "midnight-study",
       "component": "toggle",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--toggle-track-surface": "--surface-neutral",
         "--toggle-track-border": "--border-neutral",
@@ -3836,7 +3913,7 @@
       "name": "midnight-study",
       "component": "tooltip",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-14T17:42:08.545Z",
+      "updatedAt": "2026-08-14T23:53:22.549Z",
       "aliases": {
         "--tooltip-surface": "color-mix(in srgb, var(--surface-canvas-lowest) 75%, transparent)",
         "--tooltip-text": "--text-primary",
