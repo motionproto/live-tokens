@@ -5,23 +5,35 @@ import path from 'node:path';
 import { buildPruneReplace } from './pruneReplace';
 import { _resetProductionConfigCache } from './loadProductionConfig';
 
+/** A tree whose production theme carries `component` by value, with the
+ *  component's own default.json deliberately empty so a read that falls back to
+ *  it fails the assertion instead of passing by accident. */
 function makeTempConfigsDir(
   component: string,
   aliases: Record<string, unknown>,
-): { dir: string; cleanup: () => void } {
+): { dir: string; opts: { componentConfigsDir: string; themesDir: string }; cleanup: () => void } {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'prune-test-'));
-  const compDir = path.join(tmp, component);
-  fs.mkdirSync(compDir, { recursive: true });
+  const configsDir = path.join(tmp, 'component-configs');
+  const themesDir = path.join(tmp, 'themes');
+  fs.mkdirSync(path.join(configsDir, component), { recursive: true });
+  fs.mkdirSync(themesDir, { recursive: true });
   fs.writeFileSync(
-    path.join(compDir, '_production.json'),
-    JSON.stringify({ productionFile: 'my-config' }),
+    path.join(configsDir, component, 'default.json'),
+    JSON.stringify({ name: 'default', component, aliases: {} }),
   );
+  fs.writeFileSync(path.join(themesDir, '_production.json'), JSON.stringify({ productionFile: 'mine' }));
   fs.writeFileSync(
-    path.join(compDir, 'my-config.json'),
-    JSON.stringify({ name: 'my-config', aliases }),
+    path.join(themesDir, 'mine.json'),
+    JSON.stringify({
+      name: 'Mine',
+      schemaVersion: 3,
+      colorsAndType: {},
+      componentConfigs: { [component]: { name: 'mine', component, aliases } },
+    }),
   );
   return {
-    dir: tmp,
+    dir: configsDir,
+    opts: { componentConfigsDir: configsDir, themesDir },
     cleanup: () => fs.rmSync(tmp, { recursive: true, force: true }),
   };
 }
@@ -43,7 +55,7 @@ describe('buildPruneReplace', () => {
 
   it('emits markup raw when all variants pass', () => {
     // All three variants have eyebrow-display === 'block'; marker keeps when != none.
-    const { dir, cleanup } = makeTempConfigsDir('sectiondivider', {
+    const { opts, cleanup } = makeTempConfigsDir('sectiondivider', {
       '--sectiondivider-lg-foo': 'x',
       '--sectiondivider-md-foo': 'x',
       '--sectiondivider-sm-foo': 'x',
@@ -52,7 +64,7 @@ describe('buildPruneReplace', () => {
       '--sectiondivider-sm-eyebrow-display': 'block',
     });
     try {
-      const replacers = buildPruneReplace({ componentConfigsDir: dir });
+      const replacers = buildPruneReplace(opts);
       const input =
         '<!--PRUNE_FOR sectiondivider eyebrow-display != none--><span>e</span><!--END_PRUNE-->';
       expect(applyReplace(input, replacers)).toBe('<span>e</span>');
@@ -62,7 +74,7 @@ describe('buildPruneReplace', () => {
   });
 
   it('emits empty string when no variants pass', () => {
-    const { dir, cleanup } = makeTempConfigsDir('sectiondivider', {
+    const { opts, cleanup } = makeTempConfigsDir('sectiondivider', {
       '--sectiondivider-lg-foo': 'x',
       '--sectiondivider-md-foo': 'x',
       '--sectiondivider-sm-foo': 'x',
@@ -71,7 +83,7 @@ describe('buildPruneReplace', () => {
       '--sectiondivider-sm-eyebrow-display': 'none',
     });
     try {
-      const replacers = buildPruneReplace({ componentConfigsDir: dir });
+      const replacers = buildPruneReplace(opts);
       const input =
         '<!--PRUNE_FOR sectiondivider eyebrow-display != none--><span>e</span><!--END_PRUNE-->';
       expect(applyReplace(input, replacers)).toBe('');
@@ -81,7 +93,7 @@ describe('buildPruneReplace', () => {
   });
 
   it('emits {#if variant === ...} for mixed variants', () => {
-    const { dir, cleanup } = makeTempConfigsDir('sectiondivider', {
+    const { opts, cleanup } = makeTempConfigsDir('sectiondivider', {
       '--sectiondivider-lg-foo': 'x',
       '--sectiondivider-md-foo': 'x',
       '--sectiondivider-sm-foo': 'x',
@@ -90,7 +102,7 @@ describe('buildPruneReplace', () => {
       '--sectiondivider-sm-eyebrow-display': 'block',
     });
     try {
-      const replacers = buildPruneReplace({ componentConfigsDir: dir });
+      const replacers = buildPruneReplace(opts);
       const input =
         '<!--PRUNE_FOR sectiondivider eyebrow-display != none--><span>e</span><!--END_PRUNE-->';
       const out = applyReplace(input, replacers);
@@ -106,12 +118,12 @@ describe('buildPruneReplace', () => {
   });
 
   it('throws on unknown suffix (strict mode)', () => {
-    const { dir, cleanup } = makeTempConfigsDir('sectiondivider', {
+    const { opts, cleanup } = makeTempConfigsDir('sectiondivider', {
       '--sectiondivider-lg-foo': 'x',
       '--sectiondivider-md-foo': 'x',
     });
     try {
-      const replacers = buildPruneReplace({ componentConfigsDir: dir });
+      const replacers = buildPruneReplace(opts);
       const input =
         '<!--PRUNE_FOR sectiondivider not-a-real-key == something--><x/><!--END_PRUNE-->';
       expect(() => applyReplace(input, replacers)).toThrow(/not-a-real-key/);
@@ -122,14 +134,14 @@ describe('buildPruneReplace', () => {
 
   it('keeps block for variants missing the key (safe fallback)', () => {
     // Only lg sets eyebrow-display; md/sm fall back to "unknown" and are kept.
-    const { dir, cleanup } = makeTempConfigsDir('sectiondivider', {
+    const { opts, cleanup } = makeTempConfigsDir('sectiondivider', {
       '--sectiondivider-lg-foo': 'x',
       '--sectiondivider-md-foo': 'x',
       '--sectiondivider-sm-foo': 'x',
       '--sectiondivider-lg-eyebrow-display': 'none',
     });
     try {
-      const replacers = buildPruneReplace({ componentConfigsDir: dir });
+      const replacers = buildPruneReplace(opts);
       const input =
         '<!--PRUNE_FOR sectiondivider eyebrow-display != none--><span>e</span><!--END_PRUNE-->';
       const out = applyReplace(input, replacers);
@@ -143,7 +155,7 @@ describe('buildPruneReplace', () => {
   });
 
   it('handles == operator', () => {
-    const { dir, cleanup } = makeTempConfigsDir('sectiondivider', {
+    const { opts, cleanup } = makeTempConfigsDir('sectiondivider', {
       '--sectiondivider-lg-foo': 'x',
       '--sectiondivider-md-foo': 'x',
       '--sectiondivider-sm-foo': 'x',
@@ -152,7 +164,7 @@ describe('buildPruneReplace', () => {
       '--sectiondivider-sm-hairline': 'above-label',
     });
     try {
-      const replacers = buildPruneReplace({ componentConfigsDir: dir });
+      const replacers = buildPruneReplace(opts);
       const input =
         '<!--PRUNE_FOR sectiondivider hairline == above-label--><hr/><!--END_PRUNE-->';
       const out = applyReplace(input, replacers);
@@ -165,7 +177,7 @@ describe('buildPruneReplace', () => {
   });
 
   it('handles in operator', () => {
-    const { dir, cleanup } = makeTempConfigsDir('sectiondivider', {
+    const { opts, cleanup } = makeTempConfigsDir('sectiondivider', {
       '--sectiondivider-lg-foo': 'x',
       '--sectiondivider-md-foo': 'x',
       '--sectiondivider-sm-foo': 'x',
@@ -174,7 +186,7 @@ describe('buildPruneReplace', () => {
       '--sectiondivider-sm-hairline': 'below-description',
     });
     try {
-      const replacers = buildPruneReplace({ componentConfigsDir: dir });
+      const replacers = buildPruneReplace(opts);
       const input =
         '<!--PRUNE_FOR sectiondivider hairline in [above-label, through-label, below-label]--><hr/><!--END_PRUNE-->';
       const out = applyReplace(input, replacers);
@@ -187,7 +199,7 @@ describe('buildPruneReplace', () => {
   });
 
   it('handles multiple markers in one file', () => {
-    const { dir, cleanup } = makeTempConfigsDir('sectiondivider', {
+    const { opts, cleanup } = makeTempConfigsDir('sectiondivider', {
       '--sectiondivider-lg-foo': 'x',
       '--sectiondivider-md-foo': 'x',
       '--sectiondivider-sm-foo': 'x',
@@ -199,7 +211,7 @@ describe('buildPruneReplace', () => {
       '--sectiondivider-sm-description-display': 'flex',
     });
     try {
-      const replacers = buildPruneReplace({ componentConfigsDir: dir });
+      const replacers = buildPruneReplace(opts);
       const input =
         '<!--PRUNE_FOR sectiondivider eyebrow-display != none--><span>e</span><!--END_PRUNE-->' +
         '<!--PRUNE_FOR sectiondivider description-display != none--><p>d</p><!--END_PRUNE-->';
@@ -222,14 +234,14 @@ describe('buildPruneReplace', () => {
   it('uses default=<v> for variants missing the key', () => {
     // Only lg sets eyebrow-display=block; md/sm should fall back to default=none,
     // which means the != none check fails for them — they get stripped.
-    const { dir, cleanup } = makeTempConfigsDir('sectiondivider', {
+    const { opts, cleanup } = makeTempConfigsDir('sectiondivider', {
       '--sectiondivider-lg-foo': 'x',
       '--sectiondivider-md-foo': 'x',
       '--sectiondivider-sm-foo': 'x',
       '--sectiondivider-lg-eyebrow-display': 'block',
     });
     try {
-      const replacers = buildPruneReplace({ componentConfigsDir: dir });
+      const replacers = buildPruneReplace(opts);
       const input =
         '<!--PRUNE_FOR sectiondivider eyebrow-display != none default=none--><span>e</span><!--END_PRUNE-->';
       const out = applyReplace(input, replacers);
@@ -244,14 +256,14 @@ describe('buildPruneReplace', () => {
   });
 
   it('strips entirely when default matches and no variant overrides differently', () => {
-    const { dir, cleanup } = makeTempConfigsDir('sectiondivider', {
+    const { opts, cleanup } = makeTempConfigsDir('sectiondivider', {
       '--sectiondivider-lg-foo': 'x',
       '--sectiondivider-md-foo': 'x',
       '--sectiondivider-sm-foo': 'x',
       '--sectiondivider-lg-hairline': 'below-description',
     });
     try {
-      const replacers = buildPruneReplace({ componentConfigsDir: dir });
+      const replacers = buildPruneReplace(opts);
       // None of the variants hit "above-label" (lg=below-description, md/sm=default=none).
       const input =
         '<!--PRUNE_FOR sectiondivider hairline == above-label default=none--><hr/><!--END_PRUNE-->';
@@ -267,7 +279,7 @@ describe('buildPruneReplace', () => {
     // After resolution, the outer keeps {lg} but the inner inside it
     // produces a guard for {md}. Because md is not in the outer-keep set,
     // the inner block effectively contributes nothing to the lg path.
-    const { dir, cleanup } = makeTempConfigsDir('sectiondivider', {
+    const { opts, cleanup } = makeTempConfigsDir('sectiondivider', {
       '--sectiondivider-lg-foo': 'x',
       '--sectiondivider-md-foo': 'x',
       '--sectiondivider-sm-foo': 'x',
@@ -279,7 +291,7 @@ describe('buildPruneReplace', () => {
       '--sectiondivider-sm-hairline': 'below-label',
     });
     try {
-      const replacers = buildPruneReplace({ componentConfigsDir: dir });
+      const replacers = buildPruneReplace(opts);
       const input = [
         '<!--PRUNE_FOR sectiondivider description-display != none-->',
         '  <div class="desc">',
@@ -303,11 +315,11 @@ describe('buildPruneReplace', () => {
   });
 
   it('throws on unmatched END_PRUNE', () => {
-    const { dir, cleanup } = makeTempConfigsDir('sectiondivider', {
+    const { opts, cleanup } = makeTempConfigsDir('sectiondivider', {
       '--sectiondivider-lg-foo': 'x',
     });
     try {
-      const replacers = buildPruneReplace({ componentConfigsDir: dir });
+      const replacers = buildPruneReplace(opts);
       // PRUNE_FOR at the start so the trigger regex fires; inner END_PRUNE
       // is unmatched relative to its own scope.
       const input = '<!--PRUNE_FOR sectiondivider foo == x--><x/><!--END_PRUNE--><!--END_PRUNE-->';
@@ -318,11 +330,11 @@ describe('buildPruneReplace', () => {
   });
 
   it('throws on unmatched PRUNE_FOR', () => {
-    const { dir, cleanup } = makeTempConfigsDir('sectiondivider', {
+    const { opts, cleanup } = makeTempConfigsDir('sectiondivider', {
       '--sectiondivider-lg-foo': 'x',
     });
     try {
-      const replacers = buildPruneReplace({ componentConfigsDir: dir });
+      const replacers = buildPruneReplace(opts);
       // Outer PRUNE_FOR never closed (only an inner END_PRUNE)
       const input =
         '<!--PRUNE_FOR sectiondivider foo == x--><a/>' +
@@ -334,7 +346,7 @@ describe('buildPruneReplace', () => {
   });
 
   it('matches multi-line markup', () => {
-    const { dir, cleanup } = makeTempConfigsDir('sectiondivider', {
+    const { opts, cleanup } = makeTempConfigsDir('sectiondivider', {
       '--sectiondivider-lg-foo': 'x',
       '--sectiondivider-md-foo': 'x',
       '--sectiondivider-sm-foo': 'x',
@@ -343,7 +355,7 @@ describe('buildPruneReplace', () => {
       '--sectiondivider-sm-eyebrow-display': 'block',
     });
     try {
-      const replacers = buildPruneReplace({ componentConfigsDir: dir });
+      const replacers = buildPruneReplace(opts);
       const input = [
         '<!--PRUNE_FOR sectiondivider eyebrow-display != none-->',
         '<div>',
@@ -356,6 +368,45 @@ describe('buildPruneReplace', () => {
       expect(out).toContain('<span>line1</span>');
       expect(out).toContain('<span>line2</span>');
       expect(out).not.toContain('PRUNE_FOR');
+    } finally {
+      cleanup();
+    }
+  });
+
+  it('reads the component default when the production theme does not carry it', () => {
+    const { opts, cleanup } = makeTempConfigsDir('sectiondivider', {});
+    try {
+      fs.writeFileSync(
+        path.join(opts.themesDir, 'mine.json'),
+        JSON.stringify({ name: 'Mine', schemaVersion: 3, colorsAndType: {}, componentConfigs: {} }),
+      );
+      fs.writeFileSync(
+        path.join(opts.componentConfigsDir, 'sectiondivider', 'default.json'),
+        JSON.stringify({
+          name: 'default',
+          component: 'sectiondivider',
+          aliases: { '--sectiondivider-lg-eyebrow-display': 'none' },
+        }),
+      );
+      const replacers = buildPruneReplace(opts);
+      const input =
+        '<!--PRUNE_FOR sectiondivider eyebrow-display != none--><span>e</span><!--END_PRUNE-->';
+      expect(applyReplace(input, replacers)).toBe('');
+    } finally {
+      cleanup();
+    }
+  });
+
+  it('refuses a production theme that names the component by reference', () => {
+    const { opts, cleanup } = makeTempConfigsDir('sectiondivider', {});
+    try {
+      fs.writeFileSync(
+        path.join(opts.themesDir, 'mine.json'),
+        JSON.stringify({ name: 'Mine', componentConfigs: { sectiondivider: 'some-config' } }),
+      );
+      const replacers = buildPruneReplace(opts);
+      const input = '<!--PRUNE_FOR sectiondivider foo == x--><x/><!--END_PRUNE-->';
+      expect(() => applyReplace(input, replacers)).toThrow(/by reference/);
     } finally {
       cleanup();
     }

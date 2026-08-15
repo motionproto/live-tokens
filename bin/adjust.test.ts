@@ -4,11 +4,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { adjustAliases } from '../src/editor/core/components/adjustAliases';
 import { matchesKind } from '../src/editor/core/components/aliasKinds';
-import { sanitizeFileName } from '../src/editor/core/storage/files/versionedFileResourceClient';
 // @ts-expect-error — plain .mjs module, no types
 import { runAdjust, formatAdjustResult } from './adjust.mjs';
 
-const engine = { adjustAliases, matchesKind, sanitizeFileName };
+const engine = { adjustAliases, matchesKind };
 const CREATED = '2026-01-01T00:00:00.000Z';
 
 const roots: string[] = [];
@@ -16,6 +15,13 @@ const roots: string[] = [];
 function project(components: Record<string, Record<string, string>>): string {
   const root = mkdtempSync(join(tmpdir(), 'lt-adjust-'));
   roots.push(root);
+  mkdirSync(join(root, 'themes'), { recursive: true });
+  // Every tree has a local Default theme: boot derives it. Without one here the
+  // package fallback would serve this repo's own, and the fixture would be moot.
+  writeFileSync(
+    join(root, 'themes', 'default.json'),
+    JSON.stringify({ name: 'Default', schemaVersion: 3, colorsAndType: {}, componentConfigs: {} }),
+  );
   for (const [component, aliases] of Object.entries(components)) {
     const dir = join(root, 'component-configs', component);
     mkdirSync(dir, { recursive: true });
@@ -23,8 +29,6 @@ function project(components: Record<string, Record<string, string>>): string {
       join(dir, 'default.json'),
       JSON.stringify({ name: 'default', component, createdAt: CREATED, updatedAt: CREATED, aliases }, null, 2),
     );
-    writeFileSync(join(dir, '_active.json'), JSON.stringify({ activeFile: 'default' }));
-    writeFileSync(join(dir, '_production.json'), JSON.stringify({ productionFile: 'default' }));
   }
   return root;
 }
@@ -39,17 +43,27 @@ function run(root: string, doc: unknown, opts: Record<string, unknown> = {}) {
   return runAdjust({
     opsPath: opsFile(root, doc),
     componentConfigsDir: join(root, 'component-configs'),
+    themesDir: join(root, 'themes'),
     engine,
     ...opts,
   });
 }
 
-function readConfig(root: string, component: string, name: string) {
-  return JSON.parse(readFileSync(join(root, 'component-configs', component, `${name}.json`), 'utf8'));
+function buffer(root: string, component: string) {
+  return JSON.parse(readFileSync(join(root, 'component-configs', component, '_working.json'), 'utf8'));
 }
 
-function activeOf(root: string, component: string): string {
-  return JSON.parse(readFileSync(join(root, 'component-configs', component, '_active.json'), 'utf8')).activeFile;
+function hasBuffer(root: string, component: string): boolean {
+  return existsSync(join(root, 'component-configs', component, '_working.json'));
+}
+
+/** An open theme carrying `component` by value, the way apply leaves the tree. */
+function openTheme(root: string, slug: string, componentConfigs: Record<string, unknown>) {
+  writeFileSync(
+    join(root, 'themes', `${slug}.json`),
+    JSON.stringify({ name: slug, schemaVersion: 3, colorsAndType: {}, componentConfigs }),
+  );
+  writeFileSync(join(root, 'themes', '_active.json'), JSON.stringify({ activeFile: slug }));
 }
 
 const fixture = () =>
@@ -64,51 +78,46 @@ afterEach(() => {
 });
 
 describe('runAdjust', () => {
-  it('writes and activates the rolling slug for changed components only', async () => {
+  it('fills the buffer of changed components only', async () => {
     const root = fixture();
     const result = await run(root, { ops: [{ kind: 'radius', shift: 1 }] });
 
-    expect(result.slug).toBe('adjusted');
-    expect(readConfig(root, 'button', 'adjusted').aliases['--button-primary-radius']).toBe('--radius-2xl');
-    expect(readConfig(root, 'card', 'adjusted').aliases['--card-default-radius']).toBe('--radius-lg');
-    expect(activeOf(root, 'button')).toBe('adjusted');
-    expect(activeOf(root, 'card')).toBe('adjusted');
-
-    expect(existsSync(join(root, 'component-configs/tooltip/adjusted.json'))).toBe(false);
-    expect(activeOf(root, 'tooltip')).toBe('default');
+    expect(buffer(root, 'button').aliases['--button-primary-radius']).toBe('--radius-2xl');
+    expect(buffer(root, 'card').aliases['--card-default-radius']).toBe('--radius-lg');
+    expect(buffer(root, 'button').component).toBe('button');
+    expect(hasBuffer(root, 'tooltip')).toBe(false);
     expect(result.totals).toEqual({ components: 2, aliases: 2, skips: 0 });
   });
 
-  it('stamps a new file with now and keeps createdAt when the slug rolls over', async () => {
+  it('writes no named file and no pointer', async () => {
     const root = fixture();
     await run(root, { ops: [{ kind: 'radius', shift: 1 }] });
-    const first = readConfig(root, 'button', 'adjusted');
-    expect(first.name).toBe('adjusted');
-    expect(first.createdAt).not.toBe(CREATED);
-    expect(first.updatedAt).not.toBe(CREATED);
 
-    await run(root, { ops: [{ kind: 'radius', shift: 1 }] });
-    const second = readConfig(root, 'button', 'adjusted');
-    expect(second.createdAt).toBe(first.createdAt);
-    expect(second.aliases['--button-primary-radius']).toBe('--radius-3xl');
-  });
-
-  it('slugifies a given name and leaves the rolling file alone', async () => {
-    const root = fixture();
-    await run(root, { name: 'Pill Buttons', ops: [{ target: 'button', kind: 'radius', set: '--radius-full' }] });
-
-    expect(readConfig(root, 'button', 'pill-buttons').aliases['--button-primary-radius']).toBe('--radius-full');
     expect(existsSync(join(root, 'component-configs/button/adjusted.json'))).toBe(false);
-    expect(activeOf(root, 'button')).toBe('pill-buttons');
-    expect(activeOf(root, 'card')).toBe('default');
+    expect(existsSync(join(root, 'component-configs/button/_active.json'))).toBe(false);
+    expect(existsSync(join(root, 'component-configs/button/_production.json'))).toBe(false);
+    expect(readFileSync(join(root, 'component-configs/button/default.json'), 'utf8')).toContain('--radius-xl');
   });
 
-  it('leaves the active pointer alone with activate false', async () => {
+  it('reads the open theme when a component has no buffer yet', async () => {
     const root = fixture();
-    await run(root, { ops: [{ kind: 'radius', shift: 1 }] }, { activate: false });
+    openTheme(root, 'sunset', {
+      button: { name: 'sunset', aliases: { '--button-primary-radius': '--radius-sm' } },
+    });
 
-    expect(existsSync(join(root, 'component-configs/button/adjusted.json'))).toBe(true);
-    expect(activeOf(root, 'button')).toBe('default');
+    const result = await run(root, { ops: [{ target: 'button', kind: 'radius', shift: 1 }] });
+
+    expect(buffer(root, 'button').aliases['--button-primary-radius']).toBe('--radius-md');
+    expect(result.openTheme).toBe('sunset');
+    expect(result.components.find((c: { component: string }) => c.component === 'button').source).toBe('theme');
+  });
+
+  it('compounds shifts by reading back the buffer it wrote', async () => {
+    const root = fixture();
+    await run(root, { ops: [{ kind: 'padding', shift: 1 }] });
+    await run(root, { ops: [{ kind: 'padding', shift: 1 }] });
+
+    expect(buffer(root, 'button').aliases['--button-primary-padding']).toBe('--space-12');
   });
 
   it('writes nothing on a dry run', async () => {
@@ -116,26 +125,8 @@ describe('runAdjust', () => {
     const result = await run(root, { ops: [{ kind: 'radius', shift: 1 }] }, { dryRun: true });
 
     expect(result.totals.components).toBe(2);
-    expect(result.activated).toBe(false);
-    expect(existsSync(join(root, 'component-configs/button/adjusted.json'))).toBe(false);
-    expect(activeOf(root, 'button')).toBe('default');
-  });
-
-  it('compounds shifts by reading the now-active config', async () => {
-    const root = fixture();
-    await run(root, { ops: [{ kind: 'padding', shift: 1 }] });
-    await run(root, { ops: [{ kind: 'padding', shift: 1 }] });
-
-    expect(readConfig(root, 'button', 'adjusted').aliases['--button-primary-padding']).toBe('--space-12');
-  });
-
-  it('refuses the protected default name', async () => {
-    const root = fixture();
-    await expect(run(root, { name: 'Default', ops: [{ kind: 'radius', shift: 1 }] })).rejects.toThrow(
-      /protected package config/,
-    );
-    expect(existsSync(join(root, 'component-configs/button/default.json'))).toBe(true);
-    expect(readConfig(root, 'button', 'default').aliases['--button-primary-radius']).toBe('--radius-xl');
+    expect(result.buffered).toBe(false);
+    expect(hasBuffer(root, 'button')).toBe(false);
   });
 
   it('surfaces engine validation errors intact', async () => {
@@ -144,7 +135,7 @@ describe('runAdjust', () => {
     await expect(run(root, { ops: [{ target: 'nope', kind: 'radius', shift: 1 }] })).rejects.toThrow(
       /Unknown target component "nope"/,
     );
-    expect(existsSync(join(root, 'component-configs/button/adjusted.json'))).toBe(false);
+    expect(hasBuffer(root, 'button')).toBe(false);
   });
 
   it('rejects an ops file with no ops', async () => {
@@ -167,7 +158,7 @@ describe('formatAdjustResult', () => {
     expect(out).toContain('2 component(s) changed, 2 alias(es), 0 skipped.');
   });
 
-  it('groups skips by reason and names the previous active config', async () => {
+  it('groups skips by reason and names where the config came from', async () => {
     const root = project({
       button: {
         '--button-primary-radius': '--radius-4xl',
@@ -177,7 +168,7 @@ describe('formatAdjustResult', () => {
     });
     const out = formatAdjustResult(await run(root, { ops: [{ kind: 'radius', shift: 1 }] }));
 
-    expect(out).toContain('button  (active: default)');
+    expect(out).toContain('button  (from: the shipped default)');
     expect(out).toContain('skipped, raw value, not a token: --button-ghost-radius');
     expect(out).toContain('skipped, already at the ladder end: --button-primary-radius');
     expect(out).toContain('skipped, pill preserved (pass "full": true to move it): --button-pill-radius');
@@ -199,14 +190,27 @@ describe('formatAdjustResult', () => {
       { variable: '--button-primary-radius', from: '--radius-xl', to: '--radius-full', snapped: false },
     ]);
     expect(result.totals.aliases).toBe(2);
-    expect(readConfig(root, 'button', 'adjusted').aliases['--button-primary-radius']).toBe('--radius-full');
+    expect(buffer(root, 'button').aliases['--button-primary-radius']).toBe('--radius-full');
   });
 
-  it('labels a flipped component with its previous active config', async () => {
+  it('names the open theme as the source and says the edit is unsaved', async () => {
     const root = fixture();
-    const out = formatAdjustResult(await run(root, { ops: [{ kind: 'radius', shift: 1 }] }));
+    openTheme(root, 'sunset', {
+      button: { name: 'sunset', aliases: { '--button-primary-radius': '--radius-sm' } },
+    });
+    const out = formatAdjustResult(await run(root, { ops: [{ target: 'button', kind: 'radius', shift: 1 }] }));
 
-    expect(out).toContain('button  (previously: default)');
-    expect(out).not.toContain('button  (active: default)');
+    expect(out).toContain('button  (from: theme "sunset")');
+    expect(out).toContain('This is an unsaved edit');
+  });
+
+  it('says an ops-file name is ignored', async () => {
+    const root = fixture();
+    const out = formatAdjustResult(
+      await run(root, { name: 'Pill Buttons', ops: [{ target: 'button', kind: 'radius', set: '--radius-full' }] }),
+    );
+
+    expect(out).toContain('Ignored "name": "Pill Buttons"');
+    expect(existsSync(join(root, 'component-configs/button/pill-buttons.json'))).toBe(false);
   });
 });

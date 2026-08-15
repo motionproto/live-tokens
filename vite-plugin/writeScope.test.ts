@@ -11,9 +11,14 @@ import path from 'path';
 import { themeFileApi } from './themeFileApi';
 import { adjustAliases } from '../src/editor/core/components/adjustAliases';
 import { matchesKind } from '../src/editor/core/components/aliasKinds';
-import { sanitizeFileName } from '../src/editor/core/storage/files/versionedFileResourceClient';
+import { buildColorsAndTypeFromSeeds } from '../src/editor/core/themes/generateColorsAndType';
+import { migrateData } from './migrateData/migrateData';
 // @ts-expect-error — plain .mjs module, no types
 import { runAdjust } from '../bin/adjust.mjs';
+// @ts-expect-error — plain .mjs module, no types
+import { runGenerateTheme } from '../bin/generate-theme.mjs';
+// @ts-expect-error — plain .mjs module, no types
+import { runMigrateData } from '../bin/migrate.mjs';
 
 const API = '/api/live-tokens';
 const REPO_ROOT = process.cwd();
@@ -276,11 +281,76 @@ describe('write scope', () => {
     await runAdjust({
       opsPath,
       componentConfigsDir: configsDir,
-      engine: { adjustAliases, matchesKind, sanitizeFileName },
+      themesDir,
+      engine: { adjustAliases, matchesKind },
     });
     const touched = changedSince(before, snapshotTree(tmp));
 
     expect(touched.length).toBeGreaterThan(0);
     expect(outsideOf(touched, [configsDir], [])).toEqual([]);
+  });
+
+  it('the generate-theme CLI writes only inside the data dirs it was given', async () => {
+    boot();
+    const briefPath = path.join(tmp, 'brief.json');
+    fs.writeFileSync(
+      briefPath,
+      JSON.stringify({
+        name: 'Scope Check',
+        scheme: 'light',
+        seeds: {
+          Brand: { l: 0.62, c: 0.17, h: 145 },
+          Accent: { l: 0.8, c: 0.15, h: 95 },
+          Special: { l: 0.6, c: 0.19, h: 300 },
+          Canvas: { l: 0.97, c: 0.01, h: 120 },
+          Neutral: { l: 0.55, c: 0.012, h: 140 },
+          Alternate: { l: 0.58, c: 0.009, h: 60 },
+          Info: { l: 0.6, c: 0.15, h: 255 },
+          Success: { l: 0.6, c: 0.16, h: 150 },
+          Warning: { l: 0.75, c: 0.15, h: 85 },
+          Danger: { l: 0.58, c: 0.2, h: 25 },
+        },
+      }),
+    );
+
+    const before = snapshotTree(tmp);
+    await runGenerateTheme({
+      briefPath,
+      colorsAndTypeDir,
+      componentConfigsDir: configsDir,
+      themesDir,
+      engine: { buildColorsAndTypeFromSeeds },
+    });
+    const touched = changedSince(before, snapshotTree(tmp));
+
+    expect(touched.length).toBeGreaterThan(0);
+    expect(outsideOf(touched, [dataDir], [])).toEqual([]);
+  });
+
+  it('the migrate CLI writes only inside the data dirs it resolved', async () => {
+    boot();
+    fs.writeFileSync(path.join(colorsAndTypeDir, '_active.json'), JSON.stringify({ activeFile: 'default' }));
+    fs.writeFileSync(
+      path.join(configsDir, 'widget', '_production.json'),
+      JSON.stringify({ productionFile: 'default' }),
+    );
+
+    const before = snapshotTree(tmp);
+    const result = await runMigrateData({
+      engine: {
+        migrateData,
+        resolveDataDirs: () => ({
+          dataDir,
+          colorsAndTypeDir,
+          componentConfigsDir: configsDir,
+          themesDir,
+        }),
+      },
+    });
+    const touched = changedSince(before, snapshotTree(tmp));
+
+    expect(result.status).toBe('healed');
+    expect(touched.length).toBeGreaterThan(0);
+    expect(outsideOf(touched, [dataDir], [])).toEqual([]);
   });
 });

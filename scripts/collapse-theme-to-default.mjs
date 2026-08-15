@@ -1,16 +1,15 @@
 #!/usr/bin/env node
 // Collapse the active theme's customizations down into the shipped defaults,
 // then clear the custom definitions. The theme carries the look by value, so
-// it is the source for every bake; the working files it materialised are found
-// through the active/production pointers and removed:
+// it is the source for every bake, and the buffers it filled are the fixed
+// `_working.json` slots:
 //
 //   • embedded component config  → bake its aliases into the component's
 //                                  `:global(:root)` .svelte block (the source
 //                                  of truth shipped to consumers), regenerate
-//                                  its default.json, reset the active/production
-//                                  pointers, delete the working files
-//   • embedded colors and type   → copy it into colors-and-type/default.json, reset
-//                                  pointers, delete the working files
+//                                  its default.json, clear the buffer
+//   • embedded colors and type   → copy it into colors-and-type/default.json,
+//                                  clear the buffer
 //   • theme                      → point active back to the default theme,
 //                                  delete the custom theme
 //
@@ -64,31 +63,13 @@ function leafDiffCount(a, b) {
   return n;
 }
 
-/** Non-default file names a resource's pointers currently name. These are the
- *  working files the collapsed look lives in; read them before resetting. */
-function pointedFiles(dir) {
-  const names = new Set();
-  for (const [file, key] of [
-    ['_active.json', 'activeFile'],
-    ['_production.json', 'productionFile'],
-  ]) {
-    const pointerPath = join(dir, file);
-    if (!existsSync(pointerPath)) continue;
-    const name = readJson(pointerPath)[key];
-    if (name && name !== 'default') names.add(name);
-  }
-  return [...names];
+function clearWorking(dir) {
+  const p = join(dir, '_working.json');
+  if (existsSync(p)) rmSync(p);
 }
 
-function clearWorkingFiles(dir, names) {
-  for (const name of names) {
-    const p = join(dir, `${name}.json`);
-    if (existsSync(p)) rmSync(p);
-  }
-}
-
-const reportCleared = (names) => {
-  if (names.length) console.log(`   clears ${names.map((n) => `${n}.json`).join(', ')}`);
+const reportCleared = (dir) => {
+  if (existsSync(join(dir, '_working.json'))) console.log('   clears _working.json');
 };
 
 const activePointer = join(THEMES, '_active.json');
@@ -132,12 +113,11 @@ for (const [comp, cfg] of Object.entries(componentConfigs).sort()) {
   const sveltePath = join(COMPONENTS, svelteName);
   const src = readFileSync(sveltePath, 'utf8');
   const { src: next, changed, skipped } = syncBlock(src, aliases);
-  const working = pointedFiles(join(CONFIGS, comp));
 
   console.log(`${svelteName}  ← ${comp}  (${changed.length} changed${skipped.length ? `, ${skipped.length} skipped` : ''})`);
   for (const c of changed) console.log(`   ${c}`);
   for (const s of skipped) console.log(`   ⊘ ${s}`);
-  reportCleared(working);
+  reportCleared(join(CONFIGS, comp));
   componentValueChanges += changed.length;
 
   if (write) {
@@ -158,9 +138,7 @@ for (const [comp, cfg] of Object.entries(componentConfigs).sort()) {
       aliases,
     });
 
-    writePointer(join(CONFIGS, comp, '_active.json'), { activeFile: 'default' });
-    writePointer(join(CONFIGS, comp, '_production.json'), { productionFile: 'default' });
-    clearWorkingFiles(join(CONFIGS, comp), working);
+    clearWorking(join(CONFIGS, comp));
   }
 }
 
@@ -175,9 +153,8 @@ if (!colorsAndType || typeof colorsAndType !== 'object') {
     { ec: currentDefault.editorConfigs, cv: currentDefault.cssVariables },
     { ec: colorsAndType.editorConfigs, cv: colorsAndType.cssVariables },
   );
-  const working = pointedFiles(COLORS_AND_TYPE);
   console.log(`\ncolors and type  default.json ← theme  (${diff} value(s) differ)`);
-  reportCleared(working);
+  reportCleared(COLORS_AND_TYPE);
 
   if (write) {
     // Spread: the theme's colors-and-type slice is the whole file, so fields
@@ -189,22 +166,28 @@ if (!colorsAndType || typeof colorsAndType !== 'object') {
       createdAt: currentDefault.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
-    writePointer(join(COLORS_AND_TYPE, '_active.json'), { activeFile: 'default' });
-    writePointer(join(COLORS_AND_TYPE, '_production.json'), { productionFile: 'default' });
-    clearWorkingFiles(COLORS_AND_TYPE, working);
+    clearWorking(COLORS_AND_TYPE);
   }
 }
 
 // --- Theme -------------------------------------------------------------------
+// Production names a theme now, so a collapse that deletes the published one
+// has to move it or leave the pointer dangling.
+const productionPointer = join(THEMES, '_production.json');
+const productionName = existsSync(productionPointer)
+  ? readJson(productionPointer).productionFile ?? 'default'
+  : 'default';
 console.log(`\ntheme  active → default  (delete "${activeThemeName}")`);
+if (productionName === activeThemeName) console.log('   production → default');
 if (write) {
   writePointer(activePointer, { activeFile: 'default' });
+  if (productionName === activeThemeName) writePointer(productionPointer, { productionFile: 'default' });
   rmSync(themePath);
 }
 
 // --- Summary -----------------------------------------------------------------
 if (write) {
-  console.log(`\nWROTE — ${componentValueChanges} component value(s) baked into source; pointers reset; custom files cleared.`);
+  console.log(`\nWROTE — ${componentValueChanges} component value(s) baked into source; buffers cleared; theme deleted.`);
   console.log('Next: restart the dev server to regenerate tokens.generated.css and fonts.css from the new defaults.');
 } else {
   console.log(`\nDRY RUN — ${componentValueChanges} component value(s) would be baked. Re-run with --write to apply (dev server stopped).`);

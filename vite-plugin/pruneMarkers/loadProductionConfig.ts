@@ -2,9 +2,12 @@
  * Node-side loader for a component's *production* config. Used by the Svelte
  * `replace` preprocessor at build time to resolve PRUNE_FOR marker keys.
  *
- * On-disk layout (mirrored from `vite-plugin/themeFileApi.ts`):
- *   component-configs/<component>/_production.json -> { "productionFile": "<name>" }
- *   component-configs/<component>/<name>.json      -> { aliases: { ... } }
+ * Production is one saved theme, read by value:
+ *   themes/_production.json      -> { "productionFile": "<slug>" }  (absent: default)
+ *   themes/<slug>.json           -> { componentConfigs: { <component>: { aliases } } }
+ *
+ * Delta encoding: a component the theme does not carry runs its own
+ * `component-configs/<component>/default.json`.
  *
  * The intrinsic CSS-var keys we evaluate (e.g. `--sectiondivider-md-align`)
  * live under `aliases`. Values are usually plain strings (`"start"`, `"none"`)
@@ -34,24 +37,34 @@ export interface LoadProductionConfigOptions {
    * default `src/live-tokens/data/component-configs` — same resolution
    * `themeFileApi` uses, so build-time pruning and the dev-server stay in sync. */
   componentConfigsDir?: string;
+  /** Same, for the themes root. */
+  themesDir?: string;
+}
+
+function readJson(filePath: string): unknown {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+  } catch (err) {
+    throw new Error(`[prune-markers] Failed to parse ${filePath}: ${(err as Error).message}`);
+  }
 }
 
 /**
  * Load a single component's production config. Cached after first read.
- * Throws if the config dir or production file is missing — fail loud, per
+ * Throws if the config dir or the production theme is missing — fail loud, per
  * strict-mode (decision 3 in build-time-pruning-plan.md).
  */
 export function loadProductionConfig(
   component: string,
   opts: LoadProductionConfigOptions = {},
 ): ProductionConfig {
-  const cacheKey = `${component}|${opts.componentConfigsDir ?? ''}`;
+  const cacheKey = `${component}|${opts.componentConfigsDir ?? ''}|${opts.themesDir ?? ''}`;
   const cached = cache.get(cacheKey);
   if (cached) return cached;
 
-  const baseDir = opts.componentConfigsDir
-    ? path.resolve(opts.componentConfigsDir)
-    : resolveDataDirs().componentConfigsDir;
+  const dirs = resolveDataDirs();
+  const baseDir = opts.componentConfigsDir ? path.resolve(opts.componentConfigsDir) : dirs.componentConfigsDir;
+  const themesDir = opts.themesDir ? path.resolve(opts.themesDir) : dirs.themesDir;
   const componentDir = path.join(baseDir, component);
 
   if (!fs.existsSync(componentDir)) {
@@ -61,34 +74,38 @@ export function loadProductionConfig(
     );
   }
 
-  const pointerPath = path.join(componentDir, '_production.json');
-  let productionFile = 'default';
+  const pointerPath = path.join(themesDir, '_production.json');
+  let productionTheme = 'default';
   if (fs.existsSync(pointerPath)) {
-    try {
-      const pointer = JSON.parse(fs.readFileSync(pointerPath, 'utf-8'));
-      if (typeof pointer?.productionFile === 'string' && pointer.productionFile) {
-        productionFile = pointer.productionFile;
-      }
-    } catch (err) {
-      throw new Error(
-        `[prune-markers] Failed to parse ${pointerPath}: ${(err as Error).message}`,
-      );
+    const pointer = readJson(pointerPath) as { productionFile?: unknown };
+    if (typeof pointer?.productionFile === 'string' && pointer.productionFile) {
+      productionTheme = pointer.productionFile;
     }
   }
 
-  const configPath = path.join(componentDir, `${productionFile}.json`);
-  if (!fs.existsSync(configPath)) {
-    throw new Error(
-      `[prune-markers] Production config file not found: ${configPath}`,
-    );
+  const themePath = path.join(themesDir, `${productionTheme}.json`);
+  if (!fs.existsSync(themePath)) {
+    throw new Error(`[prune-markers] Production theme file not found: ${themePath}`);
   }
+  const theme = readJson(themePath) as { componentConfigs?: Record<string, unknown> };
+  const embedded = theme.componentConfigs?.[component];
 
   let raw: ProductionConfigOnDisk;
-  try {
-    raw = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-  } catch (err) {
+  if (embedded === undefined) {
+    const defaultPath = path.join(componentDir, 'default.json');
+    if (!fs.existsSync(defaultPath)) {
+      throw new Error(`[prune-markers] Component default config not found: ${defaultPath}`);
+    }
+    raw = readJson(defaultPath) as ProductionConfigOnDisk;
+  } else if (embedded && typeof embedded === 'object' && !Array.isArray(embedded)) {
+    raw = embedded as ProductionConfigOnDisk;
+  } else {
+    // Pre-v3 themes named a config file instead of carrying one. Those files
+    // are deletable now, so guessing here could prune against a look that no
+    // longer exists.
     throw new Error(
-      `[prune-markers] Failed to parse ${configPath}: ${(err as Error).message}`,
+      `[prune-markers] Theme "${productionTheme}" names component "${component}" by reference. ` +
+        `Start the dev server once (or run \`npx live-tokens migrate\`) to carry it by value.`,
     );
   }
 

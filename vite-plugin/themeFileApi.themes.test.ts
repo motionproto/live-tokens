@@ -159,6 +159,16 @@ describe('a tree still on the pre-working-set model', () => {
     expect(warnings.join('\n')).toContain('live-tokens migrate');
   });
 
+  it('bakes anyway when there is no generated CSS to preserve', () => {
+    seedLegacyTree();
+    fs.rmSync(path.join(tmp, 'tokens.generated.css'));
+
+    boot();
+
+    expect(fs.existsSync(path.join(tmp, 'tokens.generated.css'))).toBe(true);
+    expect(fs.existsSync(path.join(themesDir, '_production.json'))).toBe(false);
+  });
+
   it('bakes as usual once the legacy pointers are gone', () => {
     seedLegacyTree();
     boot();

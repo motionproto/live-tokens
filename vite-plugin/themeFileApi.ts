@@ -1796,8 +1796,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       // production state before the first request lands. Without this, a
       // fresh checkout would import a stale (or missing) generated file. An
       // unhealed tree is the exception: baking there would answer a question it
-      // has not been asked yet.
-      if (!productionPointerHeld) regenerateTokensCss();
+      // has not been asked yet — unless the file is absent, in which case there
+      // is no shipped look to preserve and the default beats nothing at all.
+      if (!productionPointerHeld || !fs.existsSync(GENERATED_CSS_PATH)) regenerateTokensCss();
 
       // Opt-in: bring tokens.css up to date with additive migrations first, so
       // the drift warning below only fires for genuinely breaking gaps.

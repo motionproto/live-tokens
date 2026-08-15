@@ -6,6 +6,7 @@ export default defineConfig({
     'vite-plugin/tokensCssMigrations/index.ts',
     'vite-plugin/generateColorsAndType/index.ts',
     'vite-plugin/adjust/index.ts',
+    'vite-plugin/migrateData/index.ts',
   ],
   outDir: 'dist-plugin',
   format: ['esm', 'cjs'],

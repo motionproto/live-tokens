@@ -1,10 +1,11 @@
 // `live-tokens adjust` worker.
 //
-// Reads an ops file (JSON), applies it to every component's ACTIVE config via
-// the compiled engine (dist-plugin/adjust — the CLI never imports TS sources),
-// writes `<slug>.json` into each component dir the engine actually changed, and
-// points that component's `_active.json` at it. Production slots, `default.json`,
-// colors and type, and tokens.css are never touched.
+// Reads an ops file (JSON), applies it to every component's LIVE config via the
+// compiled engine (dist-plugin/adjust — the CLI never imports TS sources), and
+// writes the result into that component's `_working.json` buffer: the same slot
+// the editor's own edits land in, so an adjustment is an unsaved edit the user
+// saves into a theme when they want to keep it. `default.json`, named preset
+// files, themes, colors and type, and tokens.css are never touched.
 
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
@@ -12,10 +13,13 @@ import { fileURLToPath } from 'node:url';
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ENGINE = resolve(pkgRoot, 'dist-plugin/adjust/index.js');
+const packageThemesDir = join(pkgRoot, 'src/live-tokens/data/themes');
 
-/** Unnamed runs roll into one file per component, so hands-off iteration
- *  ("a bit more", "back one") leaves no trail in the file manager. */
-const ROLLING_SLUG = 'adjusted';
+const SOURCE_LABELS = {
+  working: 'your unsaved edits',
+  theme: 'the open theme',
+  default: 'the shipped default',
+};
 
 const SKIP_LABELS = [
   ['raw-value', 'raw value, not a token'],
@@ -83,34 +87,49 @@ function collapseChanges(changes) {
   return [...byVariable.values()].filter((c) => c.from !== c.to);
 }
 
-function readActiveConfigs(dir) {
+/** The open theme, read the way every other door reads it: the local file
+ *  first, then the copy the installed package ships. */
+function readActiveTheme(themesDir) {
+  if (!themesDir) return null;
+  const slug = readJsonIfExists(join(themesDir, '_active.json'))?.activeFile ?? 'default';
+  const theme =
+    readJsonIfExists(join(themesDir, `${slug}.json`)) ??
+    readJsonIfExists(join(packageThemesDir, `${slug}.json`));
+  return theme ? { slug, theme } : null;
+}
+
+/** Each component's live config and where it came from: the buffer, else the
+ *  open theme's embedded copy, else the shipped default. Mirrors the dev
+ *  server's `resolveLiveComponentConfig`, so the CLI adjusts what the page runs. */
+function readLiveConfigs(dir, active) {
   const configs = {};
-  const previousActive = {};
+  const sources = {};
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const componentDir = join(dir, entry.name);
-    const active = readJsonIfExists(join(componentDir, '_active.json'))?.activeFile ?? 'default';
-    const config = readJsonIfExists(join(componentDir, `${active}.json`));
+    const comp = entry.name;
+    const componentDir = join(dir, comp);
+    const working = readJsonIfExists(join(componentDir, '_working.json'));
+    const embedded = active?.theme?.componentConfigs?.[comp];
+    const config = working ?? embedded ?? readJsonIfExists(join(componentDir, 'default.json'));
     if (!config) {
-      throw new Error(`component "${entry.name}": active config "${active}.json" is missing`);
+      throw new Error(`component "${comp}": default.json is missing`);
     }
-    configs[entry.name] = config;
-    previousActive[entry.name] = active;
+    configs[comp] = { ...config, component: comp };
+    sources[comp] = working ? 'working' : embedded ? 'theme' : 'default';
   }
-  return { configs, previousActive };
+  return { configs, sources };
 }
 
 /** `engine` is a test seam; the CLI always runs the compiled bundle. */
 export async function runAdjust({
   opsPath,
-  activate = true,
   dryRun = false,
   root = process.cwd(),
   componentConfigsDir,
+  themesDir,
   engine,
 } = {}) {
-  const { adjustAliases, matchesKind, sanitizeFileName, resolveDataDirs } =
-    engine ?? (await loadEngine());
+  const { adjustAliases, matchesKind, resolveDataDirs } = engine ?? (await loadEngine());
 
   const opsFull = resolve(root, opsPath);
   if (!existsSync(opsFull)) {
@@ -128,17 +147,14 @@ export async function runAdjust({
     throw new Error('ops file needs a non-empty "ops" array');
   }
 
-  const slug = doc.name === undefined ? ROLLING_SLUG : sanitizeFileName(String(doc.name));
-  if (slug === 'default') {
-    throw new Error('name: "default" is the protected package config; pick another name');
-  }
-
-  const dir = componentConfigsDir ?? resolveDataDirs().componentConfigsDir;
+  const resolved = componentConfigsDir && themesDir ? null : resolveDataDirs();
+  const dir = componentConfigsDir ?? resolved.componentConfigsDir;
   if (!existsSync(dir)) {
     throw new Error(`no component configs at ${relative(root, dir)}. Run the dev server once to create them.`);
   }
 
-  const { configs, previousActive } = readActiveConfigs(dir);
+  const active = readActiveTheme(themesDir ?? resolved?.themesDir);
+  const { configs, sources } = readLiveConfigs(dir, active);
   const now = new Date().toISOString();
   const { configs: next, report } = adjustAliases(configs, ops, now);
 
@@ -148,18 +164,15 @@ export async function runAdjust({
     const changes = collapseChanges(entry.changes);
 
     if (changes.length > 0 && !dryRun) {
-      const configPath = join(dir, component, `${slug}.json`);
-      const existing = readJsonIfExists(configPath);
-      const config = { ...next[component], name: slug, createdAt: existing?.createdAt ?? now };
-      writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n');
-      if (activate) {
-        writeFileSync(join(dir, component, '_active.json'), JSON.stringify({ activeFile: slug }));
-      }
+      writeFileSync(
+        join(dir, component, '_working.json'),
+        JSON.stringify({ ...next[component], component }, null, 2),
+      );
     }
 
     components.push({
       component,
-      previousActive: previousActive[component],
+      source: sources[component],
       changes: changes.map((c) => ({ ...c, snapped: opposesShift(ops, matchesKind, component, c) })),
       skips,
     });
@@ -168,10 +181,13 @@ export async function runAdjust({
 
   const changed = components.filter((c) => c.changes.length > 0);
   return {
-    slug,
     configsDir: dir,
+    openTheme: active?.slug ?? null,
+    // The ops file's `name` used to pick a file name. Buffers are fixed slots,
+    // so it now names nothing; say so rather than drop it in silence.
+    ignoredName: doc.name === undefined ? null : String(doc.name),
     dryRun,
-    activated: activate && !dryRun && changed.length > 0,
+    buffered: !dryRun && changed.length > 0,
     components,
     totals: {
       components: changed.length,
@@ -193,13 +209,22 @@ export function formatAdjustResult(result) {
         : `Nothing to change: no alias matched the ops.`,
     );
   } else {
-    const verb = result.dryRun ? 'Would write' : 'Wrote';
-    lines.push(`${verb} "${result.slug}.json" into ${changedCount} component config folder(s).`);
+    const verb = result.dryRun ? 'Would edit' : 'Edited';
+    lines.push(`${verb} the open buffer of ${changedCount} component(s).`);
+  }
+  if (result.ignoredName !== null) {
+    lines.push(
+      `Ignored "name": "${result.ignoredName}" — adjust edits the open buffer now, ` +
+        `so it writes no file of its own.`,
+    );
   }
 
   for (const entry of result.components) {
-    const flipped = result.activated && entry.changes.length > 0;
-    lines.push(`\n${entry.component}  (${flipped ? 'previously' : 'active'}: ${entry.previousActive})`);
+    const from =
+      entry.source === 'theme' && result.openTheme
+        ? `theme "${result.openTheme}"`
+        : SOURCE_LABELS[entry.source];
+    lines.push(`\n${entry.component}  (from: ${from})`);
 
     const width = Math.max(0, ...entry.changes.map((c) => c.variable.length));
     for (const c of entry.changes) {
@@ -217,15 +242,13 @@ export function formatAdjustResult(result) {
   lines.push(
     `\n${changedCount} component(s) changed, ${aliases} alias(es), ${skips} skipped.`,
   );
-  if (result.activated) {
+  if (result.buffered) {
     lines.push(
-      `Activated "${result.slug}" in each changed component (previous active shown above). ` +
-        `Reload the app to see it; revert any time in the editor's Component file manager.`,
+      `Reload the app to see it. This is an unsaved edit: save the open theme in the ` +
+        `editor's Theme file manager to keep it, or apply a theme to discard it.`,
     );
   } else if (result.dryRun) {
     lines.push(`Dry run: nothing written under ${relative(root, result.configsDir)}.`);
-  } else if (changedCount > 0) {
-    lines.push(`Not activated (--no-activate). Select "${result.slug}" in the editor's Component file manager.`);
   }
   return lines.join('\n');
 }

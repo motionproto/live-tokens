@@ -24,6 +24,8 @@ import { loadProductionConfig, type ProductionConfig } from './loadProductionCon
 export interface BuildPruneReplaceOptions {
   /** Project-root-relative or absolute path. Default: `component-configs`. */
   componentConfigsDir?: string;
+  /** Project-root-relative or absolute path. Default: `themes`. */
+  themesDir?: string;
 }
 
 /** Scan the source for both opens and closes in one pass. Captures `argsRaw`
@@ -106,6 +108,7 @@ function resolveMarker(
   const args = parsePruneArgs(argsRaw);
   const config = loadProductionConfig(args.component, {
     componentConfigsDir: opts.componentConfigsDir,
+    themesDir: opts.themesDir,
   });
 
   const variants = extractVariants(args.component, args.key, config, args);

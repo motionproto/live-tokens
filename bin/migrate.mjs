@@ -1,17 +1,23 @@
 // `live-tokens migrate` worker.
 //
-// Applies the registered tokens-css migrations to a consumer's developer-authored
-// tokens.css, reconciling Layer-1 drift after a package upgrade. The migration
-// engine itself lives in the built plugin (dist-plugin/tokensCssMigrations) so
-// the CLI and the dev-plugin guardrail share one source of truth; this module
-// only handles path resolution, file IO, and reporting.
+// Two passes, both against a consumer's project. The first applies the
+// registered tokens-css migrations to their developer-authored tokens.css,
+// reconciling Layer-1 drift after a package upgrade. The second heals the data
+// tree: the pre-working-set model left a materialised copy of every applied
+// theme behind and a pointer pair per layer pointing at them, and this is what
+// turns that into one production theme plus one buffer per layer.
+//
+// Both engines live in the built plugin (dist-plugin/) so the CLI and the
+// dev-plugin guardrail share one source of truth; this module handles path
+// resolution, file IO, and reporting.
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, relative, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ENGINE = resolve(pkgRoot, 'dist-plugin/tokensCssMigrations/index.js');
+const DATA_ENGINE = resolve(pkgRoot, 'dist-plugin/migrateData/index.js');
 
 // Locations to probe when neither --tokens nor config.tokensCssPath is given.
 const DEFAULT_CANDIDATES = [
@@ -75,6 +81,75 @@ export async function runMigrate({ tokensArg, check = false, root = process.cwd(
   }
   writeFileSync(tokensPath, css);
   return { status: 'changed', tokensPath, applied, addedLines };
+}
+
+async function loadDataEngine() {
+  if (!existsSync(DATA_ENGINE)) {
+    throw new Error(
+      `data migration engine not found at ${relative(process.cwd(), DATA_ENGINE)}. ` +
+        `Build the plugin first (npm run build:plugin).`,
+    );
+  }
+  return import(DATA_ENGINE);
+}
+
+/** `engine` is a test seam; the CLI always runs the compiled bundle. */
+export async function runMigrateData({ check = false, engine } = {}) {
+  const { migrateData, resolveDataDirs } = engine ?? (await loadDataEngine());
+  const dirs = resolveDataDirs();
+  return migrateData({
+    colorsAndTypeDir: dirs.colorsAndTypeDir,
+    componentConfigsDir: dirs.componentConfigsDir,
+    themesDir: dirs.themesDir,
+    packageDataDir: join(pkgRoot, 'src/live-tokens/data'),
+    check,
+  });
+}
+
+const HOW_SAID = {
+  'all-default': 'every retired pointer named the default',
+  matched: 'it matches what the retired pointers resolved to',
+  recovered: 'no saved theme matched what the retired pointers resolved to, so it was captured',
+};
+
+export function formatMigrateDataResult(result) {
+  const root = process.cwd();
+  const rel = (p) => relative(root, p);
+  if (result.status === 'clean') return '';
+
+  const planned = result.status === 'planned';
+  const lines = [planned ? 'Data tree heal (planned):' : 'Data tree healed:'];
+
+  for (const p of result.upgradedThemes) {
+    lines.push(`  ${planned ? 'would carry' : 'carried'} ${rel(p)} by value (was a pre-v3 theme naming files)`);
+  }
+  if (result.production) {
+    lines.push(`  production theme → "${result.production.slug}" (${HOW_SAID[result.production.how]})`);
+  }
+  if (result.recoveredThemePath) {
+    lines.push(`  ${planned ? 'would write' : 'wrote'} ${rel(result.recoveredThemePath)}`);
+  }
+  for (const p of result.workingWritten) {
+    lines.push(`  ${planned ? 'would fill' : 'filled'} ${rel(p)} from the live state`);
+  }
+  for (const p of result.workingKept) {
+    lines.push(`  kept ${rel(p)} — the editor already owns that buffer`);
+  }
+  for (const p of result.deletedFiles) {
+    lines.push(`  ${planned ? 'would delete' : 'deleted'} ${rel(p)} — a copy of a saved theme`);
+  }
+  for (const p of result.keptUserFiles) {
+    lines.push(`  kept ${rel(p)} — it matches no theme, so it is yours`);
+  }
+  lines.push(
+    `  ${planned ? 'would retire' : 'retired'} ${result.deletedPointers.length} per-layer pointer file(s)`,
+  );
+  lines.push(
+    planned
+      ? '\nRun without --check to apply this, then review the diff in git.'
+      : '\nRestart the dev server: it rebuilds tokens.generated.css from the production theme.',
+  );
+  return lines.join('\n');
 }
 
 function diffAddedLines(before, after) {
