@@ -182,15 +182,11 @@ const WIDGET_CONFIG = { name: 'mine', component: 'widget', aliases: { '--widget-
 async function exerciseEveryDoor(): Promise<number[]> {
   const calls: Array<[string, string, unknown?]> = [
     ['PUT', `${API}/colors-and-type/mine`, COLORS_AND_TYPE],
-    ['PUT', `${API}/colors-and-type/active`, { name: 'mine' }],
     ['PUT', `${API}/colors-and-type/working`, COLORS_AND_TYPE],
     ['PUT', `${API}/component-configs/widget/mine`, WIDGET_CONFIG],
-    ['PUT', `${API}/component-configs/widget/active`, { name: 'mine' }],
     ['PUT', `${API}/component-configs/widget/working`, WIDGET_CONFIG],
     ['PUT', `${API}/themes/mine`, THEME],
     ['PUT', `${API}/themes/active`, { name: 'mine' }],
-    ['PUT', `${API}/colors-and-type/production`, { name: 'mine' }],
-    ['PUT', `${API}/component-configs/widget/production`, { name: 'mine' }],
     ['PUT', `${API}/production`],
     ['PUT', `${API}/themes/mine/apply`],
     [
@@ -208,6 +204,10 @@ async function exerciseEveryDoor(): Promise<number[]> {
     ['DELETE', `${API}/component-configs/widget/working`],
     ['DELETE', `${API}/component-configs/widget/mine`],
     ['DELETE', `${API}/colors-and-type/mine`],
+    // `mine` is still in production here, so it is deleted last, after the
+    // theme door has something else to point at.
+    ['PUT', `${API}/themes/active`, { name: 'imported' }],
+    ['PUT', `${API}/production`],
     ['DELETE', `${API}/themes/mine`],
   ];
   const statuses: number[] = [];

@@ -192,6 +192,21 @@ describe('the working buffer', () => {
     expect(r.readWorking()).toBeNull();
   });
 
+  it('answers presence without parsing', () => {
+    const r = versionedFileResourceServer({ dir: localDir, packageDir });
+    expect(r.hasWorking()).toBe(false);
+    fs.writeFileSync(r.workingPath, '{ not json');
+    expect(r.hasWorking()).toBe(true);
+  });
+
+  // `null` from readWorking means "no buffer"; a stored scalar would read back
+  // as content that is indistinguishable from absence.
+  it('throws when the slot holds something other than an object', () => {
+    const r = versionedFileResourceServer({ dir: localDir, packageDir });
+    fs.writeFileSync(r.workingPath, JSON.stringify('a string'));
+    expect(() => r.readWorking()).toThrow();
+  });
+
   it('creates a missing dir on write', () => {
     const fresh = path.join(root, 'fresh');
     const r = versionedFileResourceServer({ dir: fresh });

@@ -136,61 +136,57 @@ describe('package-default fallback on a fresh consumer', () => {
     expect(json.files.map((f: any) => f.fileName)).toContain('default');
   });
 
-  it('PUT /colors-and-type/active default → 200 (existence check uses package fallback)', async () => {
-    const { status } = await request('PUT', `${API}/colors-and-type/active`, { name: 'default' });
-    expect(status).toBe(200);
-  });
-
   it('PUT /themes/active default → 200', async () => {
     const { status } = await request('PUT', `${API}/themes/active`, { name: 'default' });
     expect(status).toBe(200);
   });
 
-  it('PUT /component-configs/button/active default → 200', async () => {
-    const { status } = await request('PUT', `${API}/component-configs/button/active`, { name: 'default' });
-    expect(status).toBe(200);
+  // Production is a theme, so a layer has no pointer to set. The patterns keep
+  // 405 shims: falling through would hand `/colors-and-type/production` to the
+  // `:name` route and answer as if it were a file the user saved.
+  it('the retired per-layer pointer doors answer 405', async () => {
+    const retired: Array<[string, string]> = [
+      ['PUT', `${API}/colors-and-type/active`],
+      ['GET', `${API}/colors-and-type/production`],
+      ['PUT', `${API}/colors-and-type/production`],
+      ['PUT', `${API}/component-configs/button/active`],
+      ['GET', `${API}/component-configs/button/production`],
+      ['PUT', `${API}/component-configs/button/production`],
+    ];
+    for (const [method, url] of retired) {
+      const { status } = await request(method, url, { name: 'default' });
+      expect([method, url, status]).toEqual([method, url, 405]);
+    }
+    expect(fs.existsSync(path.join(colorsAndTypeDir, 'production.json'))).toBe(false);
   });
 
-  it('PUT /colors-and-type/production default → 409 (past existence, blocked by protected theme)', async () => {
-    const { status, json } = await request('PUT', `${API}/colors-and-type/production`, { name: 'default' });
-    expect(status).toBe(409);
-    expect(json.code).toBe('ACTIVE_IS_PROTECTED');
-  });
-
-  it('PUT /component-configs/button/production default → 409 (past existence)', async () => {
-    const { status, json } = await request('PUT', `${API}/component-configs/button/production`, {
-      name: 'default',
-    });
-    expect(status).toBe(409);
-    expect(json.code).toBe('ACTIVE_IS_PROTECTED');
-  });
-
-  it('PUT /production → 409 while the Default look is active, 200 once the client forks it', async () => {
-    await request('PUT', `${API}/colors-and-type/mine`, { name: 'Mine', cssVariables: {} });
-    await request('PUT', `${API}/colors-and-type/active`, { name: 'mine' });
-
+  it('PUT /production → 409 while the Default theme is open, 200 once the client forks it', async () => {
     const blocked = await request('PUT', `${API}/production`);
     expect(blocked.status).toBe(409);
     expect(blocked.json.code).toBe('ACTIVE_IS_PROTECTED');
     expect(
-      JSON.parse(fs.readFileSync(path.join(colorsAndTypeDir, '_production.json'), 'utf-8')).productionFile,
+      JSON.parse(fs.readFileSync(path.join(themesDir, '_production.json'), 'utf-8')).productionFile,
     ).toBe('default');
 
-    // The client's recovery: capture the live look under a name of its own,
-    // make it active, retry.
+    // The client's recovery: save the live look as a theme of its own, open it,
+    // retry.
     await request('PUT', `${API}/themes/my-theme`, {
       name: 'My Theme',
-      theme: 'mine',
+      schemaVersion: 3,
+      colorsAndType: { name: 'Mine', cssVariables: { '--radius-md': '4px' } },
       componentConfigs: {},
     });
     await request('PUT', `${API}/themes/active`, { name: 'my-theme' });
 
     const { status, json } = await request('PUT', `${API}/production`);
     expect(status).toBe(200);
-    expect(json.colorsAndType).toEqual({ fileName: 'mine', name: 'Mine' });
+    expect(json.productionTheme.fileName).toBe('my-theme');
     expect(
-      JSON.parse(fs.readFileSync(path.join(colorsAndTypeDir, '_production.json'), 'utf-8')).productionFile,
-    ).toBe('mine');
+      JSON.parse(fs.readFileSync(path.join(themesDir, '_production.json'), 'utf-8')).productionFile,
+    ).toBe('my-theme');
+    expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).toContain(
+      '--radius-md: 4px',
+    );
   });
 
   it('PUT /themes/default/apply → 200 with resolved colors and type + component configs (headline restore path)', async () => {
@@ -261,34 +257,16 @@ describe('shipped preset colors and type on a fresh consumer', () => {
     expect(json.files.map((f: any) => f.fileName)).toContain('sunset');
   });
 
-  it('deleting a production shadow of a shipped preset keeps the pointer and resyncs', async () => {
-    await request('PUT', `${API}/colors-and-type/sunset`, { name: 'Sunset Local', cssVariables: {} });
-    fs.writeFileSync(path.join(colorsAndTypeDir, '_active.json'), JSON.stringify({ activeFile: 'sunset' }));
-    fs.writeFileSync(path.join(colorsAndTypeDir, '_production.json'), JSON.stringify({ productionFile: 'sunset' }));
-
-    const del = await request('DELETE', `${API}/colors-and-type/sunset`);
-    expect(del.status).toBe(200);
-
-    const active = await request('GET', `${API}/colors-and-type/active`);
-    expect(active.json._fileName).toBe('sunset');
-    const production = await request('GET', `${API}/colors-and-type/production`);
-    expect(production.json.fileName).toBe('sunset');
-    const generated = fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8');
-    expect(generated).toContain('sunset');
-  });
-
-  it('deleting production colors and type with no shipped counterpart heals to default', async () => {
+  it('deleting a named preset leaves the live look and the generated CSS alone', async () => {
     await request('PUT', `${API}/colors-and-type/local-only`, { name: 'Local Only', cssVariables: {} });
-    fs.writeFileSync(path.join(colorsAndTypeDir, '_active.json'), JSON.stringify({ activeFile: 'local-only' }));
-    fs.writeFileSync(path.join(colorsAndTypeDir, '_production.json'), JSON.stringify({ productionFile: 'local-only' }));
+    const generatedBefore = fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8');
 
     const del = await request('DELETE', `${API}/colors-and-type/local-only`);
     expect(del.status).toBe(200);
 
     const active = await request('GET', `${API}/colors-and-type/active`);
-    expect(active.json._fileName).toBe('default');
-    const production = await request('GET', `${API}/colors-and-type/production`);
-    expect(production.json.fileName).toBe('default');
+    expect(active.json._source).toBe('theme');
+    expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).toBe(generatedBefore);
   });
 });
 
@@ -361,25 +339,27 @@ describe('a package-shipped theme on a fresh consumer', () => {
     expect(json.componentConfigs.button.aliases).toEqual({ '--button-radius': '99px' });
   });
 
-  it('apply materialises the embedded data into local working files', async () => {
+  it('apply fills the local buffers from the shipped copy', async () => {
     const { status, json } = await request('PUT', `${API}/themes/${FIXTURE}/apply`);
     expect(status).toBe(200);
     expect(json.theme._fileName).toBe(FIXTURE);
 
-    expect(JSON.parse(fs.readFileSync(path.join(colorsAndTypeDir, `${FIXTURE}.json`), 'utf-8')).name).toBe(
-      'Package Fixture Theme',
-    );
+    expect(
+      JSON.parse(fs.readFileSync(path.join(colorsAndTypeDir, '_working.json'), 'utf-8')).name,
+    ).toBe('Package Fixture Theme');
     expect(
       JSON.parse(
-        fs.readFileSync(path.join(tmp, 'component-configs', 'button', `${FIXTURE}.json`), 'utf-8'),
+        fs.readFileSync(path.join(tmp, 'component-configs', 'button', '_working.json'), 'utf-8'),
       ).aliases,
     ).toEqual({ '--button-radius': '99px' });
     expect(
       JSON.parse(fs.readFileSync(path.join(themesDir, '_active.json'), 'utf-8')).activeFile,
     ).toBe(FIXTURE);
-    expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).toContain(
+    // Trying a theme leaves what the site ships untouched.
+    expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).not.toContain(
       '--radius-md: 4px',
     );
+    expect(fs.existsSync(path.join(colorsAndTypeDir, `${FIXTURE}.json`))).toBe(false);
     expect(fs.existsSync(localThemePath())).toBe(false);
   });
 
@@ -424,17 +404,18 @@ describe('a package-shipped theme on a fresh consumer', () => {
     expect(active.json.name).toBe('Package Fixture');
   });
 
-  it('adopting a theme while it is active forks it locally', async () => {
-    await request('PUT', `${API}/themes/active`, { name: FIXTURE });
-    await request('PUT', `${API}/colors-and-type/adopted`, { name: 'Adopted', cssVariables: {} });
+  it('adopting it names it in production and writes no local copy', async () => {
+    await request('PUT', `${API}/themes/${FIXTURE}/apply`);
 
-    const { status } = await request('PUT', `${API}/colors-and-type/production`, { name: 'adopted' });
+    const { status, json } = await request('PUT', `${API}/production`);
     expect(status).toBe(200);
-
-    expect(JSON.parse(fs.readFileSync(localThemePath(), 'utf-8')).colorsAndType.name).toBe('Adopted');
-    expect(JSON.parse(fs.readFileSync(packageThemePath, 'utf-8')).colorsAndType.name).toBe(
-      'Package Fixture Theme',
+    expect(json.productionTheme.fileName).toBe(FIXTURE);
+    expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).toContain(
+      '--radius-md: 4px',
     );
+    // Publishing reads the shipped document; nothing about it has to change.
+    expect(fs.existsSync(localThemePath())).toBe(false);
+    expect(JSON.parse(fs.readFileSync(packageThemePath, 'utf-8'))).toEqual(shipped);
   });
 });
 

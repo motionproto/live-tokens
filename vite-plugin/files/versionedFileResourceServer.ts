@@ -1,9 +1,9 @@
 /**
  * Server-side filesystem helpers for any "versioned file resource" — a
  * directory of `.json` files with a paired `_active.json` and
- * `_production.json` pointer plus a reserved `_working.json` buffer slot. Both
- * `themes/` and `component-configs/{comp}/` follow this exact shape; they
- * previously had separate copies of the same code.
+ * `_production.json` pointer plus a reserved `_working.json` buffer slot.
+ * `themes/`, `colors-and-type/` and `component-configs/{comp}/` all share the
+ * shape; only `themes/` uses the pointer pair, the layers use the buffer alone.
  *
  * Pure Node (`fs`, `path`) — no Vite or Svelte coupling, so the tsup
  * ESM+CJS build bundles it cleanly.
@@ -77,13 +77,18 @@ export interface VersionedFileResourceServer {
   setActiveName(name: string): void;
   /** Atomically write the production-file pointer. */
   setProductionName(name: string): void;
-  /** Read the `_working.json` buffer, or `null` when there is none. Local only:
-   * the buffer is the consumer's unsaved edit, so a package copy must never
-   * stand in for its absence. Throws on a corrupt file, same
+  /** `true` when the buffer slot is filled. Absence means "on the saved
+   * state", so presence is the answer several doors want without paying for a
+   * parse — and without a corrupt buffer taking a listing down. */
+  hasWorking(): boolean;
+  /** Read the `_working.json` buffer, or `null` when there is none — `null`
+   * answers absence alone, never content. Local only: the buffer is the
+   * consumer's unsaved edit, so a package copy must never stand in for its
+   * absence. Throws on a corrupt file or a non-object payload, same
    * no-silent-fallback rule as `readJson`. */
-  readWorking(): unknown | null;
+  readWorking(): Record<string, unknown> | null;
   /** Write the `_working.json` buffer, creating `dir` if it is missing. */
-  writeWorking(data: unknown): void;
+  writeWorking(data: Record<string, unknown>): void;
   /** Delete the `_working.json` buffer. No-op when there is none. */
   clearWorking(): void;
 }
@@ -198,12 +203,22 @@ export function versionedFileResourceServer(
     fs.writeFileSync(productionPath, JSON.stringify({ productionFile: name }));
   }
 
-  function readWorking(): unknown | null {
-    if (!fs.existsSync(workingPath)) return null;
-    return JSON.parse(fs.readFileSync(workingPath, 'utf-8'));
+  function hasWorking(): boolean {
+    return fs.existsSync(workingPath);
   }
 
-  function writeWorking(data: unknown): void {
+  function readWorking(): Record<string, unknown> | null {
+    if (!fs.existsSync(workingPath)) return null;
+    const parsed = JSON.parse(fs.readFileSync(workingPath, 'utf-8'));
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      // Absence is the only meaning `null` carries, so a slot holding `null`
+      // (or a scalar, or an array) is corruption to report, not emptiness.
+      throw new Error(`${workingPath} does not hold a JSON object`);
+    }
+    return parsed as Record<string, unknown>;
+  }
+
+  function writeWorking(data: Record<string, unknown>): void {
     ensureDir();
     fs.writeFileSync(workingPath, JSON.stringify(data, null, 2));
   }
@@ -228,6 +243,7 @@ export function versionedFileResourceServer(
     getProductionName,
     setActiveName,
     setProductionName,
+    hasWorking,
     readWorking,
     writeWorking,
     clearWorking,

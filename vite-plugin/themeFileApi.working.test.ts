@@ -125,8 +125,8 @@ afterEach(() => {
 });
 
 describe('reserved names', () => {
-  // `_active` names a file that really is on disk, so a door that reads or
-  // applies it corrupts the tree rather than 404ing on nothing.
+  // `_active` names a file that really is on disk under `themes/`, so a door
+  // that reads or applies it corrupts the tree rather than 404ing on nothing.
   const names = ['_working', '_active'];
   const doors: Array<{ method: string; url: (name: string) => string }> = [
     { method: 'GET', url: (n) => `${API}/colors-and-type/${n}` },
@@ -143,8 +143,10 @@ describe('reserved names', () => {
   ];
 
   const machineState = () => ({
-    activePointer: fs.readFileSync(path.join(colorsAndTypeDir, '_active.json'), 'utf-8'),
+    activeTheme: fs.readFileSync(path.join(themesDir, '_active.json'), 'utf-8'),
+    productionTheme: fs.readFileSync(path.join(themesDir, '_production.json'), 'utf-8'),
     generatedCss: fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8'),
+    colorsAndTypeFiles: fs.readdirSync(colorsAndTypeDir).sort(),
   });
 
   for (const name of names) {
@@ -212,6 +214,15 @@ describe('the colors-and-type buffer', () => {
     expect(fs.existsSync(path.join(colorsAndTypeDir, '_working.json'))).toBe(false);
     expect((await request('GET', `${API}/colors-and-type/working`)).status).toBe(404);
   });
+
+  // A stored scalar would round-trip as content while reading back falsy, which
+  // is the one thing absence is allowed to mean.
+  it('refuses a body that is not a JSON object', async () => {
+    const { status, json } = await request('PUT', `${API}/colors-and-type/working`, 'not an object');
+    expect(status).toBe(400);
+    expect(json.code).toBe('INVALID_BODY');
+    expect(fs.existsSync(path.join(colorsAndTypeDir, '_working.json'))).toBe(false);
+  });
 });
 
 describe('the component buffer', () => {
@@ -238,5 +249,16 @@ describe('the component buffer', () => {
     expect((await request('DELETE', `${API}/component-configs/widget/working`)).status).toBe(200);
     expect(fs.existsSync(path.join(configsDir, 'widget', '_working.json'))).toBe(false);
     expect((await request('GET', `${API}/component-configs/widget/working`)).status).toBe(404);
+  });
+
+  it('refuses a component this install does not have, creating no directory', async () => {
+    const { status, json } = await request(
+      'PUT',
+      `${API}/component-configs/ghost/working`,
+      WIDGET_BUFFER,
+    );
+    expect(status).toBe(404);
+    expect(json.code).toBe('UNKNOWN_COMPONENT');
+    expect(fs.existsSync(path.join(configsDir, 'ghost'))).toBe(false);
   });
 });
