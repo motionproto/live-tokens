@@ -28,6 +28,19 @@ export function bumpComponentActiveRevision(): void {
 }
 
 /**
+ * The live look has moved past the last bake. Only Adopt bakes the CSS, so a
+ * buffer write or a theme save after one leaves production a version behind,
+ * and no pointer file records when the bake happened. Every surface reads the
+ * one signal: a component save has to reach the theme panel's Adopt, and a
+ * component editor's Adopt has to clear it for the panel.
+ *
+ * Set by the client writes that move the live look (`writeWorkingColorsAndType`,
+ * `writeWorkingComponentConfig`, `saveActiveTheme`, `saveAsTheme`); cleared by
+ * `adoptLook`. Module-level, so it survives the remounts a view switch causes.
+ */
+export const liveMovedSinceBake = writable(false);
+
+/**
  * Last-read production theme — the document `tokens.generated.css` was baked
  * from. The Theme panel and the component file managers live in surfaces that
  * swap in and out of the DOM, so keeping the last answer in a module-level

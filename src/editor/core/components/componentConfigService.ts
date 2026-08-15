@@ -1,6 +1,7 @@
 import type { ComponentConfig, ComponentConfigMeta, LiveSource } from '../themes/themeTypes';
 import { versionedFileResource } from '../storage/files/versionedFileResourceClient';
 import { API_BASE } from '../storage/apiBase';
+import { liveMovedSinceBake } from '../productionPulse';
 
 /**
  * REST client for per-component config files. Parallel to `colorsAndTypeService.ts`
@@ -72,4 +73,5 @@ export async function writeWorkingComponentConfig(
     const err = await res.json().catch(() => ({ error: 'Write failed' }));
     throw new Error(err.error || 'Write failed');
   }
+  liveMovedSinceBake.set(true);
 }

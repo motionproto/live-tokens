@@ -29,6 +29,7 @@
   import {
     bumpComponentActiveRevision,
     bumpProductionRevision,
+    liveMovedSinceBake,
     productionRevision,
     productionTheme,
   } from '../../core/productionPulse';
@@ -109,7 +110,12 @@
   let productionName = $derived(
     productionDoc === null ? '—' : productionDoc === 'default' ? 'Default' : $productionTheme?.name ?? '—',
   );
-  let isApplied = $derived(productionDoc !== null && productionDoc === editorDoc && !compDirty);
+  // Saving writes the buffer, which the bake has not seen: the document is
+  // still the published one, so only the shared signal can say the config on
+  // screen is not what production runs.
+  let isApplied = $derived(
+    productionDoc !== null && productionDoc === editorDoc && !compDirty && !$liveMovedSinceBake,
+  );
   let resetDirty = $derived(!!resetVariables && compDirty);
 
   async function refreshFiles() {

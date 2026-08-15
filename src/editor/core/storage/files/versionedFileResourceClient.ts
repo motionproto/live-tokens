@@ -17,7 +17,7 @@ export interface VersionedFileResourceClientOptions {
 }
 
 export interface VersionedFileResourceClient<TItem, TMeta> {
-  list(): Promise<{ files: TMeta[]; activeFile?: string; productionFile?: string }>;
+  list(): Promise<{ files: TMeta[] }>;
   load(fileName: string): Promise<TItem>;
   save(fileName: string, data: TItem): Promise<void>;
   remove(fileName: string): Promise<void>;
@@ -48,7 +48,7 @@ export function versionedFileResource<TItem, TMeta>(
     return err.error || fallback;
   }
 
-  async function list(): Promise<{ files: TMeta[]; activeFile?: string; productionFile?: string }> {
+  async function list(): Promise<{ files: TMeta[] }> {
     const res = await fetch(baseUrl);
     if (!res.ok) throw new Error(`Failed to list ${baseUrl}`);
     return res.json();

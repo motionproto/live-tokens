@@ -9,7 +9,7 @@ import { flushSync, mount, unmount } from 'svelte';
 import { API_BASE } from '../core/storage/apiBase';
 import { openThemeSlug } from '../core/store/editorConfigStore';
 import { mutate, setComponentAlias, __resetForTests } from '../core/store/editorStore';
-import { productionTheme } from '../core/productionPulse';
+import { liveMovedSinceBake, productionTheme } from '../core/productionPulse';
 import { isPreviewing, __resetPreviewForTests } from '../core/preview/lookPreview';
 import ThemePanel from './ThemePanel.svelte';
 
@@ -86,9 +86,10 @@ const button = (label: string) =>
 beforeEach(async () => {
   __resetForTests();
   openThemeSlug.set('my-theme');
-  // Module-level cache: the panel remounts against it in the real editor, and a
-  // leftover from the last test would answer for the fetch under test.
+  // Module-level state: the panel remounts against it in the real editor, and a
+  // leftover from the last test would answer for the run under test.
   productionTheme.set(null);
+  liveMovedSinceBake.set(false);
   calls = [];
   confirms = [];
   overrides = {};

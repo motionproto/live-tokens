@@ -6,6 +6,7 @@ import {
   sanitizeFileName as sanitizeFileNameImpl,
 } from '../storage/files/versionedFileResourceClient';
 import { API_BASE } from '../storage/apiBase';
+import { liveMovedSinceBake } from '../productionPulse';
 import { loadFromFile as loadEditorState, toColorsAndType, markSaved, markColorsAndTypeSaved } from '../store/editorStore';
 import { applyFontSources, applyFontStacks } from '../fonts/fontLoader';
 import { migrateColorsAndTypeFonts } from '../fonts/fontMigration';
@@ -48,6 +49,7 @@ export async function writeWorkingColorsAndType(data: ColorsAndType): Promise<vo
     const err = await res.json().catch(() => ({ error: 'Write failed' }));
     throw new Error(err.error || 'Write failed');
   }
+  liveMovedSinceBake.set(true);
 }
 
 /** Sanitize a display name to a safe file name. Re-exported from the shared

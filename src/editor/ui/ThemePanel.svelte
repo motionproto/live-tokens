@@ -51,6 +51,7 @@
     componentActiveRevision,
     productionRevision,
     bumpProductionRevision,
+    liveMovedSinceBake,
     productionTheme,
   } from '../core/productionPulse';
   import { flashStatus } from '../core/flashStatus';
@@ -87,11 +88,6 @@
     Object.values($componentDirty).filter(Boolean).length,
   );
   let unsavedEdits = $derived($colorsAndTypeDirty || dirtyComponentCount > 0);
-
-  // Only Adopt bakes the CSS, so writing the open theme after it shipped leaves
-  // production a version behind until the next one. A page load starts this
-  // over: nothing on disk records when the bake happened.
-  let movedSinceAdopt = $state(false);
 
   async function refreshFiles() {
     try {
@@ -220,7 +216,6 @@
     try {
       await flushColors();
       await saveActiveTheme(currentDisplayName);
-      movedSinceAdopt = true;
       await refreshActive();
       flashStatus(setSaveStatus, 'saved');
     } catch {
@@ -261,7 +256,7 @@
     lookProductionState({
       openTheme: $openThemeSlug,
       productionTheme: $productionTheme?._fileName ?? null,
-      unpublished: unsavedEdits || movedSinceAdopt,
+      unpublished: unsavedEdits || $liveMovedSinceBake,
     }),
   );
 
@@ -296,7 +291,6 @@
         await saveActiveTheme(currentDisplayName);
       }
       await adoptLook();
-      movedSinceAdopt = false;
       // The panel's own production pulse re-reads identity, the production
       // theme and the component summary.
       bumpProductionRevision();
@@ -422,9 +416,11 @@
    */
   async function commitColorsOnly() {
     const row = previewRow;
-    // Read the payload before the revert clears it.
-    const colorsAndType = previewLayer ?? previewLook?.colorsAndType ?? null;
-    if (!row || !colorsAndType) return;
+    // Read the payload before the revert clears it. The read doors mark where
+    // they answered from; the buffer holds content alone.
+    const picked = previewLayer ?? previewLook?.colorsAndType ?? null;
+    if (!row || !picked) return;
+    const { _fileName, _source, ...buffer } = picked;
     if (unsavedEdits) {
       const ok = window.confirm(
         'Loading colors and type will discard unsaved changes. Continue?',
@@ -438,9 +434,8 @@
     cancelPreview();
     showFileList = false;
     try {
-      await writeWorkingColorsAndType(colorsAndType);
-      hydrateColorsAndType(structuredClone(colorsAndType));
-      movedSinceAdopt = true;
+      await writeWorkingColorsAndType(buffer);
+      hydrateColorsAndType(structuredClone(buffer));
     } catch (err) {
       window.alert(`Failed to load colors and type: ${(err as Error).message}`);
     }

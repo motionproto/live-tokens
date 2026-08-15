@@ -1,6 +1,7 @@
 import type { Theme, ThemeMeta, ThemeBundle, ColorsAndType, ComponentConfig } from './themeTypes';
 import { versionedFileResource } from '../storage/files/versionedFileResourceClient';
 import { API_BASE } from '../storage/apiBase';
+import { liveMovedSinceBake } from '../productionPulse';
 import { listComponents, getActiveComponentConfig } from '../components/componentConfigService';
 import { getActiveColorsAndType } from './colorsAndTypeService';
 
@@ -107,6 +108,7 @@ export async function adoptLook(): Promise<AdoptLookResult> {
     if (body.code) err.code = body.code;
     throw err;
   }
+  liveMovedSinceBake.set(false);
   return res.json();
 }
 
@@ -160,6 +162,7 @@ export async function saveAsTheme(
     schemaVersion: 3,
     ...look,
   });
+  liveMovedSinceBake.set(true);
   await setActiveTheme(fileName);
 }
 
@@ -181,6 +184,7 @@ export async function saveActiveTheme(displayName?: string): Promise<void> {
     schemaVersion: 3,
     ...look,
   });
+  liveMovedSinceBake.set(true);
 }
 
 export interface ImportThemeResult {
