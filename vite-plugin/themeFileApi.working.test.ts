@@ -125,18 +125,36 @@ afterEach(() => {
 });
 
 describe('reserved names', () => {
-  const doors = [
-    `${API}/colors-and-type/_working`,
-    `${API}/component-configs/widget/_working`,
-    `${API}/themes/_working`,
+  // `_active` names a file that really is on disk, so a door that reads or
+  // applies it corrupts the tree rather than 404ing on nothing.
+  const names = ['_working', '_active'];
+  const doors: Array<{ method: string; url: (name: string) => string }> = [
+    { method: 'GET', url: (n) => `${API}/colors-and-type/${n}` },
+    { method: 'PUT', url: (n) => `${API}/colors-and-type/${n}` },
+    { method: 'DELETE', url: (n) => `${API}/colors-and-type/${n}` },
+    { method: 'GET', url: (n) => `${API}/component-configs/widget/${n}` },
+    { method: 'PUT', url: (n) => `${API}/component-configs/widget/${n}` },
+    { method: 'DELETE', url: (n) => `${API}/component-configs/widget/${n}` },
+    { method: 'GET', url: (n) => `${API}/themes/${n}` },
+    { method: 'PUT', url: (n) => `${API}/themes/${n}` },
+    { method: 'DELETE', url: (n) => `${API}/themes/${n}` },
+    { method: 'PUT', url: (n) => `${API}/themes/${n}/apply` },
+    { method: 'GET', url: (n) => `${API}/themes/${n}/export` },
   ];
 
-  for (const url of doors) {
-    for (const method of ['GET', 'PUT', 'DELETE']) {
-      it(`${method} ${url} is refused`, async () => {
-        const { status, json } = await request(method, url, { name: '_working' });
+  const machineState = () => ({
+    activePointer: fs.readFileSync(path.join(colorsAndTypeDir, '_active.json'), 'utf-8'),
+    generatedCss: fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8'),
+  });
+
+  for (const name of names) {
+    for (const { method, url } of doors) {
+      it(`${method} ${url(name)} is refused and changes nothing`, async () => {
+        const before = machineState();
+        const { status, json } = await request(method, url(name), { name });
         expect(status).toBe(400);
         expect(json.code).toBe('RESERVED_NAME');
+        expect(machineState()).toEqual(before);
       });
     }
   }

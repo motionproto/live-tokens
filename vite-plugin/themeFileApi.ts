@@ -1491,6 +1491,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    */
   async function handleApplyTheme({ params, res }: any) {
     const [fileName] = params;
+    if (rejectReservedName(res, fileName)) return;
     const read = readTheme(fileName);
     if (!read) {
       respondUnreadableTheme(res, fileName, 'Theme not found');
@@ -1572,6 +1573,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    */
   async function handleExportTheme({ params, res }: any) {
     const [fileName] = params;
+    if (rejectReservedName(res, fileName)) return;
     const read = readTheme(fileName);
     if (!read) {
       respondUnreadableTheme(res, fileName, 'Theme not found');
