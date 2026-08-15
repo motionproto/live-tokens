@@ -140,6 +140,37 @@ afterEach(() => {
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 
+describe('a tree still on the pre-working-set model', () => {
+  const SHIPPED = '/* the look this consumer ships */\n';
+
+  function seedLegacyTree() {
+    seedPointerTheme();
+    writeJson(path.join(colorsAndTypeDir, '_production.json'), { productionFile: 'custom' });
+    fs.writeFileSync(path.join(tmp, 'tokens.generated.css'), SHIPPED);
+  }
+
+  it('holds the boot bake until migrate has named a production theme', () => {
+    seedLegacyTree();
+
+    boot();
+
+    expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).toBe(SHIPPED);
+    expect(fs.existsSync(path.join(themesDir, '_production.json'))).toBe(false);
+    expect(warnings.join('\n')).toContain('live-tokens migrate');
+  });
+
+  it('bakes as usual once the legacy pointers are gone', () => {
+    seedLegacyTree();
+    boot();
+
+    fs.rmSync(path.join(colorsAndTypeDir, '_production.json'));
+    boot();
+
+    expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).not.toBe(SHIPPED);
+    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('default');
+  });
+});
+
 describe('boot migration', () => {
   it('rewrites a v1 theme with the data it referenced', () => {
     seedPointerTheme();
@@ -665,6 +696,17 @@ describe('adopting the whole look', () => {
 
     expect(generatedCss()).not.toContain('--radius-md: 99px');
     expect(generatedCss()).toContain('--button-radius: 99px');
+  });
+
+  it('refuses to bake a production theme it cannot read', async () => {
+    await bootWithOpenLook();
+    await request('PUT', `${API}/production`);
+    const baked = generatedCss();
+
+    fs.writeFileSync(path.join(themesDir, 'look.json'), '{ not json');
+
+    expect(() => boot()).toThrow(/look/);
+    expect(generatedCss()).toBe(baked);
   });
 
   it('re-bakes what the theme now says once the client saves it', async () => {

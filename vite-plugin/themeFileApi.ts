@@ -328,6 +328,17 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
     const productionThemeName = themesResource.getProductionName();
     const productionTheme = readTheme(productionThemeName)?.theme ?? null;
+    // `readTheme` answers `null` for a file that will not parse, and
+    // `normalizeTheme` drops a colors ref that resolves nowhere. Either way the
+    // bake below would emit a header alone and report success, replacing the
+    // look the site ships with nothing. A document that is on disk and
+    // unreadable is a failure to name, not an empty look.
+    if (themesResource.existingPath(productionThemeName) !== null && !productionTheme?.colorsAndType) {
+      throw new Error(
+        `[live-tokens] Production theme "${productionThemeName}" is unreadable, so ` +
+          `${path.basename(GENERATED_CSS_PATH)} was left as it was. Repair the theme file or adopt another theme.`,
+      );
+    }
 
     // Section 1: production colors-and-type overrides (palette ramps, font stacks, custom vars).
     const colorsAndTypeData = productionTheme?.colorsAndType as any;
@@ -664,15 +675,13 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Legacy per-layer pointer files (`colors-and-type/_active.json`,
-   * `component-configs/<comp>/_production.json`, …) predate the working-set
-   * model, where the theme pointers are the only ones left. Nothing reads them, so
-   * a stale one is inert rather than dangerous — but it hides the tree's real
-   * shape from anyone reading it, and the heal that removes it also recovers
-   * whatever state it still named. Warn, never delete: only `live-tokens
-   * migrate` decides what a pointer's content was worth.
+   * Pointer files from the pre-working-set model: an `_active`/`_production`
+   * pair per layer and per component, where the theme pointers are now the only
+   * ones left. Nothing reads them, so a stale one is inert — but their presence
+   * is how a tree says it has not been healed yet, which decides both the
+   * warning below and whether boot may bake.
    */
-  function warnOnLegacyPointers(warn: (msg: string) => void): void {
+  function listLegacyPointers(): string[] {
     const legacy: string[] = [];
     const check = (dir: string) => {
       for (const name of ['_active.json', '_production.json']) {
@@ -686,10 +695,24 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         if (entry.isDirectory()) check(path.join(COMPONENT_CONFIGS_DIR, entry.name));
       }
     }
+    return legacy;
+  }
+
+  /** Warn, never delete: only `live-tokens migrate` decides what a pointer's
+   *  content was worth. */
+  function warnOnLegacyPointers(
+    legacy: string[],
+    bakeHeld: boolean,
+    warn: (msg: string) => void,
+  ): void {
     if (legacy.length === 0) return;
     warn(
       `[live-tokens] ${legacy.length} legacy pointer file(s) left from the pre-working-set data model, ` +
-        `starting with ${legacy[0]}. They are no longer read. Run \`npx live-tokens migrate\` to heal the tree.`,
+        `starting with ${legacy[0]}. They are no longer read. Run \`npx live-tokens migrate\` to heal the tree.` +
+        (bakeHeld
+          ? ` Until then this tree has named no production theme, so ${path.basename(GENERATED_CSS_PATH)} ` +
+            'is left exactly as it is rather than rebuilt from the default.'
+          : ''),
     );
   }
 
@@ -811,7 +834,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     });
   }
 
-  function ensureThemesDir(warn: (msg: string) => void): void {
+  /** `productionPointerHeld` says the tree has not named a production theme and
+   *  must not be told it runs the default — see the guard below. */
+  function ensureThemesDir(warn: (msg: string) => void): { productionPointerHeld: boolean } {
     themesResource.ensureDir();
     // Runs before the migration and in every project, this repo included: the
     // Default set is derived, so regenerating shipped data here is the point
@@ -819,7 +844,19 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     ensureDefaultTheme();
     migrateLocalThemes(warn);
 
-    themesResource.ensureMeta();
+    // A tree still carrying the pre-working-set per-layer pointers has never
+    // chosen a production theme; `live-tokens migrate` derives it from what
+    // those pointers resolve to. Writing `default` here would let the boot bake
+    // replace the look the consumer ships before they can run the heal, so the
+    // pointer waits. Reads resolve a missing pointer to `default` anyway.
+    const productionPointerHeld =
+      !fs.existsSync(themesResource.productionPath) && listLegacyPointers().length > 0;
+    if (productionPointerHeld) {
+      if (!fs.existsSync(themesResource.activePath)) themesResource.setActiveName('default');
+    } else {
+      themesResource.ensureMeta();
+    }
+
     // Normalize: a pointer naming a theme that resolves neither locally nor in
     // the package falls back to default, which always exists by here.
     if (themesResource.existingPath(themesResource.getActiveName()) === null) {
@@ -828,6 +865,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     if (themesResource.existingPath(themesResource.getProductionName()) === null) {
       themesResource.setProductionName('default');
     }
+    return { productionPointerHeld };
   }
 
   /** The open document. `null` only when its file is missing or corrupt; boot
@@ -837,11 +875,14 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Where the live state of a layer came from. `working` is the unsaved buffer,
-   * `theme` the open document's saved copy, `default` the shipped baseline —
-   * absence of both the buffer and a theme entry. The read doors report it so
-   * the client can tell an edited layer from a pristine one without comparing
-   * content.
+   * Where the live state of a layer came from. `working` is the buffer, `theme`
+   * the open document's saved copy, `default` the shipped baseline — no buffer
+   * and no theme entry.
+   *
+   * It says how far the layer sits from the default, not whether it is dirty:
+   * applying a theme fills the buffers of every layer it carries, so `working`
+   * means "off the shipped default", not "edited". Dirtiness is a content diff,
+   * which the client owns.
    */
   type LiveSource = 'working' | 'theme' | 'default';
 
@@ -1750,11 +1791,13 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     configureServer(server) {
       ensureColorsAndTypeDir();
       ensureComponentConfigsDir();
-      ensureThemesDir((msg) => server.config.logger.warn(msg));
+      const { productionPointerHeld } = ensureThemesDir((msg) => server.config.logger.warn(msg));
       // Make sure the editor-owned sidecar exists and reflects current
       // production state before the first request lands. Without this, a
-      // fresh checkout would import a stale (or missing) generated file.
-      regenerateTokensCss();
+      // fresh checkout would import a stale (or missing) generated file. An
+      // unhealed tree is the exception: baking there would answer a question it
+      // has not been asked yet.
+      if (!productionPointerHeld) regenerateTokensCss();
 
       // Opt-in: bring tokens.css up to date with additive migrations first, so
       // the drift warning below only fires for genuinely breaking gaps.
@@ -1764,7 +1807,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       // component vocabulary) before the editor loads, so blank slots have an
       // explanation and a one-command fix.
       warnOnTokenDrift((msg) => server.config.logger.warn(msg));
-      warnOnLegacyPointers((msg) => server.config.logger.warn(msg));
+      warnOnLegacyPointers(listLegacyPointers(), productionPointerHeld, (msg) =>
+        server.config.logger.warn(msg),
+      );
 
       server.middlewares.use(async (req, res, next) => {
         const handled = await dispatch(req, res, routes);
