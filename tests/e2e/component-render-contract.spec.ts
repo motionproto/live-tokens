@@ -580,6 +580,17 @@ test('every component property repaints its standardized runtime preview', async
       await expanders.nth(index).click({ force: true });
       await visitViews();
     }
+
+    // A default-off hover gate only paints while the runtime element itself
+    // matches :hover. Forced preview classes intentionally bypass that gate,
+    // so retry unresolved properties while hovering each visible preview node.
+    // This stays component-agnostic and runs only for the small unresolved set.
+    const hoverTargets = frame.locator('.variant-group:visible .tabs-preview *:visible');
+    for (let index = 0; index < await hoverTargets.count(); index++) {
+      if (forced.every((variable) => covered.has(variable))) return;
+      await hoverTargets.nth(index).hover({ force: true });
+      await probe(aliases, forced);
+    }
   };
 
   for (const [component, aliases] of aliasesByComponent) {
