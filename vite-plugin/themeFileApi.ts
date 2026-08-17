@@ -1583,7 +1583,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   /**
    * Apply a theme: open it. Existing working deltas are cleared,
    * `themes/_active.json` names it, and the resolved state comes back in
-   * one payload; the client follows with a full page reload.
+   * one payload; the client hydrates that payload directly into its editor
+   * store and host-page CSS variables.
    *
    * Nothing else moves. Production is a theme of its own, so trying a look
    * cannot rewrite what the site ships, and no named file is written, so

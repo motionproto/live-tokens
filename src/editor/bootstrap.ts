@@ -19,6 +19,7 @@ import * as cssVarSync from './core/cssVarSync';
 import * as router from './core/routing/router';
 import * as columnsOverlay from './overlay/columnsOverlay';
 import * as editorStore from './core/store/editorStore';
+import * as themeDocumentSync from './core/themes/themeDocumentSync';
 import { initializeTheme } from './core/themes/themeInit';
 import { registerComponent, type RegisterComponentEntry } from './component-editor/registry';
 
@@ -38,6 +39,7 @@ export async function bootLiveTokens(
   editorStore.init();
 
   if (import.meta.env.DEV) {
+    themeDocumentSync.init();
     if (opts.components) {
       for (const entry of opts.components) {
         registerComponent(entry);

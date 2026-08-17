@@ -585,6 +585,8 @@
     style:--imagelightbox-tile-object-fit={fit}
     type="button"
     aria-label={cover?.alt ? `Expand image: ${cover.alt}` : 'Expand image'}
+    aria-haspopup="dialog"
+    aria-expanded={open}
     onclick={openLightbox}
   >
     <img src={cover?.src} alt={cover?.alt} draggable="false" onload={onCoverLoad} />

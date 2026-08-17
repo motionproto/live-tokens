@@ -12,6 +12,9 @@ dist
 dist-plugin
 dist-ssr
 *.local
+.playwright-data/
+playwright-report/
+test-results/
 
 # Disposable working files (briefs, test scripts, one-off outputs)
 scratch/

@@ -4,8 +4,10 @@
  * Writes to document.documentElement and — when running inside a same-origin
  * iframe (the live-preview overlay) — also writes to
  * window.parent.document.documentElement. This lets the overlay editor at
- * /live-tokens/editor drive the host site's :root in real time without any
- * message-passing infrastructure.
+ * /live-tokens/editor drive the host site's :root for ordinary live edits.
+ * Complete theme application additionally synchronizes each document's typed
+ * Svelte store through `themeDocumentSync`; copying CSS alone would leave an
+ * already-open editor disconnected when the load originates in the host.
  *
  * When the editor runs standalone at /live-tokens/editor (not inside the overlay iframe),
  * parentRoot is null and every call is a plain single-root write.
@@ -121,4 +123,12 @@ export function scrapeCssVariables(): Record<string, string> {
     }
   }
   return variables;
+}
+
+/** Test-only: forget cached window/document roots so a test can install a
+ *  synthetic same-origin parent before the next write resolves them. */
+export function __resetCssVarSyncForTests(): void {
+  selfRoot = null;
+  parentRoot = null;
+  resolved = false;
 }

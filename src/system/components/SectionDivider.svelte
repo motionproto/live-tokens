@@ -63,11 +63,28 @@
   });
 
   onMount(() => {
+    let mounted = true;
+    const sync = () => { measure(); syncFilter(); };
     measure();
     syncFilter();
-    const obs = new MutationObserver(() => { measure(); syncFilter(); });
+    const obs = new MutationObserver(sync);
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
-    return () => obs.disconnect();
+
+    // A font-family variable changes before its webfont necessarily finishes
+    // loading. Re-run getBBox when the real face becomes available so the SVG
+    // viewBox and outline do not stay sized for the fallback font.
+    const fonts = document.fonts;
+    const onFontsLoaded = () => {
+      if (mounted) sync();
+    };
+    fonts?.addEventListener('loadingdone', onFontsLoaded);
+    void fonts?.ready.then(onFontsLoaded);
+
+    return () => {
+      mounted = false;
+      obs.disconnect();
+      fonts?.removeEventListener('loadingdone', onFontsLoaded);
+    };
   });
 </script>
 
@@ -531,6 +548,7 @@
     font-family: var(--_divider-title-font-family);
     font-weight: var(--_divider-title-font-weight);
     font-size: var(--_divider-title-font-size);
+    line-height: var(--_divider-title-line-height);
     letter-spacing: var(--_divider-title-letter-spacing);
     fill: currentColor;
   }

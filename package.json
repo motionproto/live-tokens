@@ -110,6 +110,10 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:components": "playwright test tests/e2e/component-render-contract.spec.ts",
+    "test:e2e:ui": "playwright test --ui",
+    "prepare:e2e": "node scripts/prepare-playwright-data.mjs",
     "build:plugin": "tsup",
     "build:lib": "npm run build:plugin",
     "deploy:local": "bash scripts/deploy-local.sh",
@@ -136,6 +140,7 @@
     "vite": "^8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@types/node": "^25.9.1",
     "happy-dom": "^20.9.0",

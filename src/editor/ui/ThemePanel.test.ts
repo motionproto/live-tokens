@@ -6,6 +6,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushSync, mount, unmount } from 'svelte';
+import { get } from 'svelte/store';
 import { API_BASE } from '../core/storage/apiBase';
 import { openThemeSlug } from '../core/store/editorConfigStore';
 import { mutate, setComponentAlias, __resetForTests } from '../core/store/editorStore';
@@ -318,6 +319,52 @@ describe('Load preview', () => {
 
     expect(alerts).toEqual([]);
     expect(isPreviewing()).toBe(true);
+  });
+
+  it('opens the Theme Picker when the current theme name is clicked', async () => {
+    await mountPanel();
+
+    target.querySelector<HTMLButtonElement>('.theme-name-trigger')!.click();
+    await settle();
+
+    expect(target.querySelector('.ui-dialog-title')?.textContent).toBe('Theme Picker');
+  });
+
+  it('loads and adopts a selected theme with the picker Save action', async () => {
+    const ocean = { ...LOOK, _fileName: 'ocean', name: 'Ocean' };
+    let active = LOOK;
+    overrides['GET /themes/active'] = () => json(active);
+    overrides['GET /themes'] = () =>
+      json({ files: [{ fileName: 'my-theme', name: 'My Theme' }, { fileName: 'ocean', name: 'Ocean' }] });
+    overrides['GET /themes/ocean'] = () => json(ocean);
+    overrides['GET /themes/default'] = () =>
+      json({ ...LOOK, _fileName: 'default', name: 'Default' });
+    overrides['PUT /themes/ocean/apply'] = () => {
+      active = ocean;
+      return json({
+        ok: true,
+        theme: ocean,
+        colorsAndType: COLORS_AND_TYPE,
+        componentConfigs: {},
+        skippedComponents: [],
+      });
+    };
+    await mountPanel();
+
+    button('Load').click();
+    await settle();
+    button('Ocean').click();
+    await settle();
+    calls.length = 0;
+    dialogSave().click();
+    await settle(10);
+
+    const apply = calls.indexOf('PUT /themes/ocean/apply');
+    const adopt = calls.indexOf('PUT /production');
+    expect(apply).toBeGreaterThan(-1);
+    expect(adopt).toBeGreaterThan(apply);
+    expect(get(openThemeSlug)).toBe('ocean');
+    expect(isPreviewing()).toBe(false);
   });
 
   it('loads colors and type alone into the buffer, leaving named files alone', async () => {

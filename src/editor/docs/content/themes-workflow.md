@@ -30,7 +30,8 @@ A theme is a document, and the editor works the way any editor does.
   one slot per part of the look. **Save** captures that buffer into the open
   theme.
 - **The production theme** is the one your site ships, named in
-  `themes/_production.json`. Only **Adopt** changes it.
+  `themes/_production.json`. **Adopt** changes it; saving a preset in the Theme
+  Picker performs that Adopt for you.
 
 Absence is the answer for anything untouched: a buffer exists only where the
 live look diverges from the active theme, so a newly opened theme has none.
@@ -54,13 +55,13 @@ to it, and the editor never overwrites it, so start your own with **Save As**.
 
 ## Switching
 
-**Load** lists your saved themes and the seven example looks. Picking one shows
-it on the page as a preview with nothing written to disk, so you can try each
-look and compare. **Save** in that window opens the previewed theme: the active
-pointer changes, the buffers clear, components it does not carry fall through
-to their defaults, and the editor works on it from then on. **Cancel** returns
-you to where you were.
-Trying a look never changes what your site ships.
+**Load**—or clicking the active theme's name—opens the Theme Picker. Picking a
+theme shows it on the page as a preview with nothing written to disk, so you can
+try each look and compare. **Save** in that window opens and adopts the previewed
+theme in one step: the active pointer changes, the buffers clear, components it
+does not carry fall through to their defaults, the editor works on it, and
+production ships it. **Cancel** returns you to where you were. Previewing alone
+never changes what your site ships.
 
 **Colors and type only. Keep my shapes.** narrows the load to the palette and
 the fonts: your component settings stay as they are and the theme you have open

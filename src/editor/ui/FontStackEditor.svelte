@@ -11,7 +11,7 @@
     SystemCascadePreset,
   } from '../core/themes/themeTypes';
   import { editorState, setFontStacks } from '../core/store/editorStore';
-  import { applyFontStacks, SYSTEM_CASCADES } from '../core/fonts/fontLoader';
+  import { SYSTEM_CASCADES } from '../core/fonts/fontLoader';
 
   const SYSTEM_PRESETS: SystemCascadePreset[] = ['system-ui-sans', 'system-ui-serif', 'system-ui-mono'];
   // `cursive` and `fantasy` are CSS-spec generics whose rendering varies wildly
@@ -110,7 +110,6 @@
   function updateStack(variable: FontStackVariable, updater: (slots: FontStackSlot[]) => FontStackSlot[]) {
     const next = stacks.map((s) => (s.variable === variable ? { ...s, slots: updater([...s.slots]) } : s));
     setFontStacks(next);
-    applyFontStacks(next, fontSourcesList);
   }
 
   function handleSelectChange(variable: FontStackVariable, index: number, value: string) {

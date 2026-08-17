@@ -165,7 +165,7 @@
           {/if}
         {/snippet}
         {#snippet children({ activeState })}
-          {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
+          {@const forceClass = activeState === 'hover' ? 'force-hover' : activeState === 'active' ? 'force-active' : ''}
           {@const isDisabled = activeState === 'disabled'}
           <div class="button-showcase-grid">
             <div class="button-showcase-item">

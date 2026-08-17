@@ -6,7 +6,7 @@ import type {
   FontStackVariable,
   SystemCascadePreset,
 } from '../themes/themeTypes';
-import { setCssVar, getSyncedDocuments } from '../cssVarSync';
+import { setCssVar, removeCssVar, getSyncedDocuments } from '../cssVarSync';
 
 export const SYSTEM_CASCADES: Record<SystemCascadePreset, string> = {
   'system-ui-sans':
@@ -14,6 +14,13 @@ export const SYSTEM_CASCADES: Record<SystemCascadePreset, string> = {
   'system-ui-serif': 'Georgia, "Times New Roman", serif',
   'system-ui-mono': 'ui-monospace, "SF Mono", Menlo, Consolas, monospace',
 };
+
+const FONT_STACK_VARIABLES: FontStackVariable[] = [
+  '--font-display',
+  '--font-sans',
+  '--font-serif',
+  '--font-mono',
+];
 
 const LINK_ATTR = 'data-font-source-id';
 const STYLE_ATTR = 'data-font-source-id';
@@ -124,7 +131,9 @@ export function resolveFontStackValues(
  */
 export function applyFontStacks(stacks: FontStack[], sources: FontSource[]): void {
   const resolved = resolveFontStackValues(stacks, sources);
-  for (const [name, value] of Object.entries(resolved)) {
-    setCssVar(name, value);
+  for (const name of FONT_STACK_VARIABLES) {
+    const value = resolved[name];
+    if (value) setCssVar(name, value);
+    else removeCssVar(name);
   }
 }

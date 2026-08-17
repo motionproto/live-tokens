@@ -1,7 +1,6 @@
 import type { AliasDiskValue, ColorsAndType } from './themeTypes';
 import { openThemeSlug } from '../store/editorConfigStore';
 import { migrateColorsAndTypeFonts } from '../fonts/fontMigration';
-import { applyFontSources, applyFontStacks } from '../fonts/fontLoader';
 import { loadFromFile, seedComponentsFromApi } from '../store/editorStore';
 import { getActiveComponentConfig, type ComponentSummary } from '../components/componentConfigService';
 import { safeFetch } from '../storage/storage';
@@ -33,12 +32,6 @@ export async function initializeTheme(): Promise<void> {
   if (colorsAndType) {
     migrateColorsAndTypeFonts(colorsAndType);
     loadFromFile(colorsAndType);
-    if (colorsAndType.fontSources && colorsAndType.fontSources.length > 0) {
-      applyFontSources(colorsAndType.fontSources);
-    }
-    if (colorsAndType.fontStacks && colorsAndType.fontStacks.length > 0) {
-      applyFontStacks(colorsAndType.fontStacks, colorsAndType.fontSources ?? []);
-    }
     openThemeSlug.set(colorsAndType._fileName || 'default');
   }
 
@@ -48,6 +41,7 @@ export async function initializeTheme(): Promise<void> {
       string,
       { aliases: Record<string, AliasDiskValue>; config?: Record<string, unknown>; schemaVersion?: number }
     > = {};
+    let componentReadFailed = false;
     await Promise.all(
       list.components.map(async (c) => {
         const cfg = await getActiveComponentConfig(c.name);
@@ -57,11 +51,14 @@ export async function initializeTheme(): Promise<void> {
             config: cfg.config,
             schemaVersion: cfg.schemaVersion,
           };
+        } else {
+          componentReadFailed = true;
         }
       }),
     );
-    if (Object.keys(configs).length > 0) {
-      seedComponentsFromApi(configs);
-    }
+    // A successful empty list is authoritative. A partial read is not: avoid
+    // replacing the visible design system with a mixture of active configs
+    // and CSS defaults because one request happened to fail during boot.
+    if (!componentReadFailed) seedComponentsFromApi(configs);
   }
 }

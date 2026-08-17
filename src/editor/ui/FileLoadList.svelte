@@ -167,6 +167,7 @@
       {@const protectedRow = isProtected(file)}
       <div
         class="load-item"
+        data-file-name={file.fileName}
         class:active={file.fileName === activeFileName}
         class:selected={file.fileName === selectedFileName}
         class:protected={protectedRow}

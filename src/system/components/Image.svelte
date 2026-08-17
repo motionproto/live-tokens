@@ -17,6 +17,8 @@
     /** Content images default to lazy; pass `'eager'` for above-the-fold heroes. */
     loading?: 'lazy' | 'eager';
     decoding?: 'async' | 'sync' | 'auto';
+    /** Editor preview hook: paint the hover transform without pointer input. */
+    forceHover?: boolean;
   }
 
   let {
@@ -29,7 +31,8 @@
     srcset = undefined,
     sizes = undefined,
     loading = 'lazy',
-    decoding = 'async'
+    decoding = 'async',
+    forceHover = false,
   }: Props = $props();
 
   const variantHeights: Record<string, string | undefined> = {
@@ -60,6 +63,7 @@
 
 <div
   class="image"
+  class:force-hover={forceHover}
   style:height={resolvedHeight}
   style:--image-zoom-hover={contentHover}
   style:--image-grow-hover={frameHover}
@@ -100,11 +104,13 @@
     transition: transform var(--duration-300) var(--ease-out-cubic);
   }
 
-  .image:hover {
+  .image:hover,
+  .image.force-hover {
     transform: var(--image-grow-hover);
   }
 
-  .image:hover img {
+  .image:hover img,
+  .image.force-hover img {
     transform: var(--image-zoom-hover);
   }
 </style>

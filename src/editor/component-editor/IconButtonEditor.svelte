@@ -140,7 +140,7 @@
         previewActions={sizeAction}
       >
         {#snippet children({ activeState })}
-          {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
+          {@const forceClass = activeState === 'hover' ? 'force-hover' : activeState === 'active' ? 'force-active' : ''}
           {@const isDisabled = activeState === 'disabled'}
           <IconButton variant={v} icon={previewIcons[v]} ariaLabel={`${v} action`} disabled={isDisabled} class={forceClass} />
         {/snippet}

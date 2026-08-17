@@ -4,6 +4,7 @@ import { API_BASE } from '../storage/apiBase';
 import { liveMovedSinceBake } from '../productionPulse';
 import { listComponents, getActiveComponentConfig } from '../components/componentConfigService';
 import { getActiveColorsAndType } from './colorsAndTypeService';
+import { broadcastAppliedTheme, hydrateAppliedTheme } from './themeDocumentSync';
 
 /**
  * REST client for theme files, the documents of the editor. A theme carries a
@@ -67,8 +68,11 @@ export interface ApplyThemeResult {
  * `themes/_active.json` at it, and returns the resolved state in one payload.
  * Live reads then fall through to the theme's embedded layers.
  * Production is untouched, so trying a look cannot change what the site ships.
- * Clients follow with a full page reload; opening a theme is a "blow up the
- * world" action.
+ * The resolved response hydrates the caller immediately, then broadcasts the
+ * same typed state to every already-open same-origin host/editor document.
+ * Each store renderer projects that state into its own document, so a theme
+ * loaded from either side keeps the controls, aliases, and visible components
+ * on the same design system without a reload.
  */
 export async function applyTheme(fileName: string): Promise<ApplyThemeResult> {
   const res = await fetch(`${API_BASE}/themes/${encodeURIComponent(fileName)}/apply`, {
@@ -78,7 +82,10 @@ export async function applyTheme(fileName: string): Promise<ApplyThemeResult> {
     const err = await res.json().catch(() => ({ error: 'Apply failed' }));
     throw new Error(err.error || 'Apply failed');
   }
-  return res.json();
+  const result = await res.json() as ApplyThemeResult;
+  hydrateAppliedTheme(fileName, result);
+  broadcastAppliedTheme(fileName, result);
+  return result;
 }
 
 export interface AdoptLookResult {

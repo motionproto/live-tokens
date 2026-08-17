@@ -1,9 +1,8 @@
 /**
- * Fonts slice — sources + stacks. No derived CSS vars owned by this store
- * (the `--font-*` vars are written by `applyFontStacks` in fontLoader, and
- * @font-face rules by `applyFontSources`). We own the *data* (sources +
- * stacks); callers still invoke the DOM-side-effect helpers themselves
- * after mutating.
+ * Fonts slice — sources + stacks. The editor renderer projects both from the
+ * store: stacks become `--font-*` vars and sources become mirrored
+ * <link>/<style> nodes. Callers only mutate data; undo/redo and hydration then
+ * use the exact same reactive path as the initial edit.
  */
 import type { FontSource, FontStack } from '../themeTypes';
 import { store, mutate, persist } from '../../store/editorCore';

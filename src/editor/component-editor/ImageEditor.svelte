@@ -78,7 +78,7 @@
         <span>Overflow scaling (mask zoom to frame)</span>
       </label>
     {/snippet}
-    <Image src={demoImageUrl} alt="Demo" variant="banner" zoom={useZoom ? undefined : false} {overflowScaling} />
+    <Image src={demoImageUrl} alt="Demo" variant="banner" zoom={useZoom ? undefined : false} {overflowScaling} forceHover={useZoom} />
     <p class="zoom-help">
       Use zoom on hover: every image scales on hover (a page can still force it per image with the
       <code>zoom</code> prop). Overflow scaling on (default): the content zooms inside the fixed frame,

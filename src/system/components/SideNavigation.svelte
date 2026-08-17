@@ -124,7 +124,7 @@
     if (forceHoverPart !== 'item') return null;
     const s = sections[0];
     if (!s || s.items.length === 0) return null;
-    return (s.items[1] ?? s.items[0]).path;
+    return s.items.find((item) => item.path !== currentPath)?.path ?? s.items[0].path;
   });
 
   let titleActive = $derived(forceActivePart === 'title' || currentPath === '');
@@ -471,6 +471,8 @@
     --_surface: var(--sidenavigation-title-default-surface);
     --_border: var(--sidenavigation-title-default-border);
     --_border-width: var(--sidenavigation-title-default-border-width);
+    --_indicator: var(--sidenavigation-title-default-accent);
+    --_indicator-width: var(--sidenavigation-title-default-accent-width);
     --_padding: var(--sidenavigation-title-default-padding);
     --_label: var(--sidenavigation-title-default-label);
     --_label-family: var(--sidenavigation-title-default-label-font-family);
@@ -490,6 +492,8 @@
     justify-content: center;
     gap: var(--sidenavigation-title-gap);
     background: var(--_surface);
+    border: var(--_border-width) solid var(--_border);
+    border-left: var(--_indicator-width) solid var(--_indicator);
     border-radius: var(--sidenavigation-title-radius);
     @include themed-padding(--_padding);
     transition: background var(--duration-150);
@@ -500,6 +504,8 @@
     --_surface: var(--sidenavigation-title-hover-surface);
     --_border: var(--sidenavigation-title-hover-border);
     --_border-width: var(--sidenavigation-title-hover-border-width);
+    --_indicator: var(--sidenavigation-title-hover-accent);
+    --_indicator-width: var(--sidenavigation-title-hover-accent-width);
     --_padding: var(--sidenavigation-title-hover-padding);
     --_label: var(--sidenavigation-title-hover-label);
     --_label-family: var(--sidenavigation-title-hover-label-font-family);
@@ -512,6 +518,8 @@
     --_surface: var(--sidenavigation-title-active-surface);
     --_border: var(--sidenavigation-title-active-border);
     --_border-width: var(--sidenavigation-title-active-border-width);
+    --_indicator: var(--sidenavigation-title-active-accent);
+    --_indicator-width: var(--sidenavigation-title-active-accent-width);
     --_padding: var(--sidenavigation-title-active-padding);
     --_label: var(--sidenavigation-title-active-label);
     --_label-family: var(--sidenavigation-title-active-label-font-family);
@@ -530,6 +538,7 @@
 
   .sn-title-label {
     background: var(--sidenavigation-title-label-surface);
+    border: var(--sidenavigation-title-label-border-width) solid var(--sidenavigation-title-label-border);
     border-radius: var(--sidenavigation-title-label-radius);
     @include themed-padding(--sidenavigation-title-label-padding);
     color: var(--_label);
@@ -652,6 +661,11 @@
     --_surface: var(--sidenavigation-section-hover-surface);
     --_indicator: var(--sidenavigation-section-hover-accent);
     --_indicator-width: var(--sidenavigation-section-hover-accent-width);
+    --collapsiblesection-chromeless-default-label: var(--sidenavigation-section-hover-text);
+    --collapsiblesection-chromeless-default-label-font-family: var(--sidenavigation-section-hover-text-font-family);
+    --collapsiblesection-chromeless-default-label-font-size: var(--sidenavigation-section-hover-text-font-size);
+    --collapsiblesection-chromeless-default-label-font-weight: var(--sidenavigation-section-hover-text-font-weight);
+    --collapsiblesection-chromeless-default-label-line-height: var(--sidenavigation-section-hover-text-line-height);
   }
   .sn-section-header.active {
     --_surface: var(--sidenavigation-section-active-surface);

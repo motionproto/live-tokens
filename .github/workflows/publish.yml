@@ -60,6 +60,12 @@ jobs:
 
       - run: npm test --if-present
 
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Test live editing in Chromium
+        run: npm run test:e2e
+
       - name: Dry-run packaging (catches missing files, bad exports, etc.)
         run: npm pack --dry-run
 

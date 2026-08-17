@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { FontFamily, FontSource } from '../core/themes/themeTypes';
   import { editorState, setFontSources, transaction } from '../core/store/editorStore';
-  import { applyFontSources, applyFontStacks } from '../core/fonts/fontLoader';
   import {
     buildSourceFromFontFaceText,
     buildSourceFromUrl,
@@ -69,8 +68,6 @@
 
   function commitSources(next: FontSource[]) {
     setFontSources(next);
-    applyFontSources(next);
-    applyFontStacks(fontStacksList, next);
   }
 
   /** One paste field → sniff whether it's @font-face or a URL/embed and
@@ -220,8 +217,6 @@
       s.fonts.sources = next;
       s.fonts.stacks = updatedStacks;
     });
-    applyFontSources(next);
-    applyFontStacks(updatedStacks, next);
   }
 
   /** Resolve a clickable target for the row. We prefer the human-readable

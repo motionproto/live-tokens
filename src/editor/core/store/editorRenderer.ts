@@ -13,6 +13,7 @@
 
 import type { EditorState } from './editorTypes';
 import { setCssVar, removeCssVar } from '../cssVarSync';
+import { applyFontSources, resolveFontStackValues } from '../fonts/fontLoader';
 import { palettesToVars } from '../palettes/paletteDerivation';
 import {
   editorState,
@@ -38,10 +39,12 @@ export function deriveCssVars(state: EditorState): Record<string, string> {
   }
   Object.assign(out, palettesToVars(state.palettes));
   Object.assign(out, componentsToVars(state.components));
+  Object.assign(out, resolveFontStackValues(state.fonts.stacks, state.fonts.sources));
   return out;
 }
 
 let lastApplied: Record<string, string> = {};
+let lastFontSources = '';
 let installed = false;
 
 /**
@@ -62,10 +65,20 @@ export function installRenderer(): void {
       if (!(name in next)) removeCssVar(name);
     }
     lastApplied = next;
+
+    // Font source nodes are DOM state just like root custom properties. Keep
+    // them behind the same authoritative store subscription so load,
+    // undo/redo, reset, and every future mutation path all reconcile them.
+    const nextFontSources = JSON.stringify(state.fonts.sources);
+    if (nextFontSources !== lastFontSources) {
+      applyFontSources(state.fonts.sources);
+      lastFontSources = nextFontSources;
+    }
   });
 }
 
 /** Test-only: clear the diff cache so independent test runs don't leak applied vars. */
 export function __resetRendererCacheForTests(): void {
   lastApplied = {};
+  lastFontSources = '';
 }

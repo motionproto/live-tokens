@@ -8,7 +8,6 @@ import {
 import { API_BASE } from '../storage/apiBase';
 import { liveMovedSinceBake } from '../productionPulse';
 import { loadFromFile as loadEditorState, toColorsAndType, markSaved, markColorsAndTypeSaved } from '../store/editorStore';
-import { applyFontSources, applyFontStacks } from '../fonts/fontLoader';
 import { migrateColorsAndTypeFonts } from '../fonts/fontMigration';
 
 // ── API helpers ──────────────────────────────────────────────
@@ -78,18 +77,9 @@ export async function persistColorsAndType(
   markColorsAndTypeSaved(state);
 }
 
-/** Load colors and type into the editor state and re-apply font side-effects
- *  (@font-face rules + `--font-*` CSS vars on :root). */
+/** Load colors and type into the editor state. The store renderer projects
+ *  font sources, stacks, and all other CSS variables in one reactive pass. */
 export function hydrateColorsAndType(colorsAndType: ColorsAndType): void {
   migrateColorsAndTypeFonts(colorsAndType);
   loadEditorState(colorsAndType);
-  // Font data is in state.fonts via loadEditorState; the DOM-side-effect
-  // helpers still need to run so @font-face rules and --font-* CSS vars
-  // land on :root.
-  if (colorsAndType.fontSources && colorsAndType.fontSources.length > 0) {
-    applyFontSources(colorsAndType.fontSources);
-  }
-  if (colorsAndType.fontStacks && colorsAndType.fontStacks.length > 0) {
-    applyFontStacks(colorsAndType.fontStacks, colorsAndType.fontSources ?? []);
-  }
 }

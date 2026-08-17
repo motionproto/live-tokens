@@ -35,6 +35,12 @@ jobs:
       - name: Test
         run: npm test --if-present
 
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Test live editing in Chromium
+        run: npm run test:e2e
+
       - name: Build library
         run: npm run build:lib
 

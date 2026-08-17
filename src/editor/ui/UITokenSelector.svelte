@@ -266,7 +266,12 @@
   });
 </script>
 
-<div class="ui-token-selector" class:disabled bind:this={container}>
+<div
+  class="ui-token-selector"
+  class:disabled
+  data-token-variable={variable}
+  bind:this={container}
+>
   <div class="ui-ts-trigger-wrap">
     <button
       class="ui-ts-trigger"

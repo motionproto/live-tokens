@@ -3,7 +3,7 @@ import type { FontSource, Theme, ColorsAndType } from '../themes/themeTypes';
 import { editorState, colorsAndTypeToState, toComponentSlice } from '../store/editorStore';
 import { deriveCssVars } from '../store/editorRenderer';
 import { setCssVar, removeCssVar } from '../cssVarSync';
-import { applyFontSources, resolveFontStackValues } from '../fonts/fontLoader';
+import { applyFontSources } from '../fonts/fontLoader';
 import { migrateColorsAndTypeFonts } from '../fonts/fontMigration';
 import { loadTheme } from '../themes/themeService';
 
@@ -50,7 +50,6 @@ export function themeLook(theme: Theme, defaults: Theme): RenderedLook {
     state.components[comp] = toComponentSlice(comp, config.aliases, config.config, config.schemaVersion);
   }
   const vars = deriveCssVars(state);
-  Object.assign(vars, resolveFontStackValues(colorsAndType.fontStacks ?? [], colorsAndType.fontSources ?? []));
   return { vars, fontSources: colorsAndType.fontSources ?? [] };
 }
 
@@ -65,7 +64,6 @@ export function colorsAndTypeLook(colorsAndType: ColorsAndType): RenderedLook {
   const next = structuredClone(colorsAndType);
   migrateColorsAndTypeFonts(next);
   const vars = deriveCssVars(colorsAndTypeToState(next));
-  Object.assign(vars, resolveFontStackValues(next.fontStacks ?? [], next.fontSources ?? []));
   return { vars, fontSources: next.fontSources ?? [] };
 }
 
@@ -73,7 +71,6 @@ export function colorsAndTypeLook(colorsAndType: ColorsAndType): RenderedLook {
 export function liveLook(): RenderedLook {
   const state = get(editorState);
   const vars = deriveCssVars(state);
-  Object.assign(vars, resolveFontStackValues(state.fonts.stacks, state.fonts.sources));
   return { vars, fontSources: state.fonts.sources };
 }
 

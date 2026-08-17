@@ -22,6 +22,10 @@
     exportTheme,
     importTheme,
   } from '../core/themes/themeService';
+  import {
+    THEME_APPLIED_EVENT,
+    type AppliedThemeDetail,
+  } from '../core/themes/themeDocumentSync';
   import { countComponentsOffLook, lookProductionState } from '../core/themes/lookSummary';
   import { previewTheme, previewColorsAndType, revertPreview } from '../core/preview/lookPreview';
   import {
@@ -169,6 +173,19 @@
     await refreshFiles();
     await refreshActive();
     await refreshProduction();
+  });
+
+  // A consumer can load a theme from the host while this iframe stays open.
+  // The cross-document bridge hydrates this document's typed store; keep the
+  // panel's local identity/summary state on that same payload as well.
+  onMount(() => {
+    const handleThemeApplied = (event: Event) => {
+      const { result } = (event as CustomEvent<AppliedThemeDetail>).detail;
+      currentDisplayName = result.theme.name;
+      lookConfigs = result.theme.componentConfigs;
+    };
+    document.addEventListener(THEME_APPLIED_EVENT, handleThemeApplied);
+    return () => document.removeEventListener(THEME_APPLIED_EVENT, handleThemeApplied);
   });
 
   // Re-read whenever an Adopt fires, here or in a component editor: it saves
@@ -386,26 +403,55 @@
     if (!row) return;
     if (unsavedEdits) {
       const ok = window.confirm(
-        'Loading a theme will reload the editor and discard unsaved changes. Continue?',
+        'Loading a theme will replace the editor’s current state and discard unsaved changes. Continue?',
       );
       if (!ok) return;
     }
-    // The window stays open until the page reloads: closing it would revert the
-    // preview and flash the outgoing look while Apply is in flight.
+    // Preview writes bypass the store. Return the DOM to the current live state
+    // first so applyTheme can hydrate the returned design system through the
+    // store renderer and make the editor plus host page move together.
+    cancelPreview();
+    let result: Awaited<ReturnType<typeof applyTheme>>;
     try {
-      const result = await applyTheme(row.slug);
+      result = await applyTheme(row.slug);
       if (result.skippedComponents.length > 0) {
         window.alert(
           `Loaded "${row.name}". These components are not installed here, so their `
             + `saved settings were skipped:\n\n${result.skippedComponents.join(', ')}`,
         );
       }
-      // applyTheme opens the theme: it clears working deltas and points
-      // `themes/_active.json` at it. Reload to rehydrate through the resolver.
-      window.location.reload();
+      currentDisplayName = result.theme.name;
+      lookConfigs = result.theme.componentConfigs;
+      showFileList = false;
     } catch (err) {
       window.alert(`Failed to load theme: ${(err as Error).message}`);
+      // The selection remains visible after a failed request; put its preview
+      // back so the dialog and page continue to agree.
+      previewRow = row;
+      previewLook = row.kind === 'look' ? await loadTheme(row.slug).catch(() => null) : null;
+      if (previewLook) await repaint();
+      return;
     }
+
+    // The picker is a one-step choose-and-ship flow. Package/user presets are
+    // already saved documents, so adopting can publish them directly. The
+    // protected baseline cannot be production's editable document; mirror the
+    // normal Adopt behavior and fork it first when it is selected.
+    adoptStatus = 'adopting';
+    try {
+      if (row.slug === 'default') {
+        const taken = new Set((await listThemes()).map((m) => m.fileName));
+        await saveAsTheme(freshName('my-theme', taken), 'My Theme');
+        await refreshActive();
+      }
+      await adoptLook();
+      bumpProductionRevision();
+      flashStatus(setAdoptStatus, 'done');
+    } catch (err) {
+      window.alert(`Theme loaded, but could not be adopted: ${(err as Error).message}`);
+      flashStatus(setAdoptStatus, 'error', { durationMs: 3000 });
+    }
+    await Promise.all([refreshFiles(), refreshComponents(), refreshProduction()]);
   }
 
   /**
@@ -554,6 +600,11 @@
     if (showFileList) refreshFiles();
   }
 
+  function openThemePicker() {
+    showFileList = true;
+    refreshFiles();
+  }
+
   function rowBadge(row: LoadRow) {
     return row.kind === 'layer'
       ? { label: 'colors & type', title: 'Holds colors and type only, no shapes' }
@@ -575,7 +626,7 @@
         <strong>Load</strong> opens the list. Picking a theme shows it on the page as a preview, so you can try each look with nothing written to disk. Pick another to compare, or <strong>Cancel</strong> to go back to where you were.
       </p>
       <p>
-        <strong>Save</strong> opens the previewed theme: the editor works on it from then on, and components it does not carry go back to their defaults. Trying a theme never changes what your site ships.
+        <strong>Save</strong> opens and adopts the previewed theme: the editor works on it from then on and production ships it immediately. Components it does not carry go back to their defaults. Previewing and cancelling never change what your site ships.
       </p>
       <p>
         <strong>Colors and type only</strong> in that window takes the palette and the fonts and leaves your shapes and component settings alone.
@@ -603,13 +654,21 @@
         </span>
       {/if}
     </div>
-    <FilePill
-      name={currentDisplayName}
-      isProtected={activeIsProtected}
-      protectedTitle="Protected default theme"
-      title={currentDisplayName}
-      style="display: flex;"
-    />
+    <button
+      type="button"
+      class="theme-name-trigger"
+      onclick={openThemePicker}
+      title="Open the Theme Picker"
+      aria-label={`Open Theme Picker. Current theme: ${currentDisplayName}`}
+    >
+      <FilePill
+        name={currentDisplayName}
+        isProtected={activeIsProtected}
+        protectedTitle="Protected default theme"
+        title={currentDisplayName}
+        style="display: flex;"
+      />
+    </button>
     <span class="mfm-prod-status" class:applied={production.inProduction}>
       <i class="mfm-status-dot" aria-hidden="true"></i>
       <span>
@@ -668,7 +727,7 @@
         class="mfm-btn mfm-btn-row"
         class:active={showFileList}
         onclick={toggleFileList}
-        title="Preview a theme, then save it to load it"
+        title="Open the Theme Picker"
       >
         <i class="fas fa-folder-open"></i>
         <span>Load…</span>
@@ -743,11 +802,11 @@
 
 <FileLoadList
   bind:show={showFileList}
-  title="Load Theme"
+  title="Theme Picker"
   files={rows}
   activeFileName={activeRowId}
   selectedFileName={previewRow?.fileName ?? null}
-  selectedBadge={{ label: 'Preview', title: 'Shown on the page now. Save to keep it.' }}
+  selectedBadge={{ label: 'Preview', title: 'Shown on the page now. Save to use and publish it.' }}
   {rowBadge}
   cancelLabel={previewRow ? 'Cancel' : 'Close'}
   confirmLabel={previewRow ? 'Save' : ''}
@@ -848,6 +907,34 @@
     font-size: var(--ui-font-size-xs);
     font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
+  }
+
+  .theme-name-trigger {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+    cursor: pointer;
+  }
+
+  .theme-name-trigger :global(.file-pill) {
+    width: 100%;
+  }
+
+  .theme-name-trigger:hover :global(.file-pill),
+  .theme-name-trigger:focus-visible :global(.file-pill) {
+    border-color: var(--ui-border-higher);
+    box-shadow: inset 0 0 0 1px var(--ui-border-high);
+  }
+
+  .theme-name-trigger:focus-visible {
+    outline: 2px solid var(--ui-text-accent);
+    outline-offset: 2px;
+    border-radius: var(--ui-radius-md);
   }
 
   .mfm-badge {

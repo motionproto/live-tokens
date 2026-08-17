@@ -229,7 +229,8 @@
             color: var(--iconbutton-outline-hover-icon);
          }
 
-         &:active:not(:disabled) {
+         &:active:not(:disabled),
+         &.force-active:not(:disabled) {
             background: var(--iconbutton-outline-active-surface);
          }
 

@@ -48,6 +48,8 @@
       { label: 'surface color', groupKey: 'title-surface', variable: `--sidenavigation-title-${s}-surface` },
       { label: 'border color', groupKey: 'title-border', variable: `--sidenavigation-title-${s}-border` },
       { label: 'border width', canBeLinked: true, groupKey: 'title-border-width', variable: `--sidenavigation-title-${s}-border-width` },
+      { label: 'indicator color', groupKey: 'title-accent', variable: `--sidenavigation-title-${s}-accent` },
+      { label: 'indicator width', canBeLinked: true, groupKey: 'title-accent-width', variable: `--sidenavigation-title-${s}-accent-width` },
       { label: 'padding', canBeLinked: true, groupKey: 'title-padding', variable: `--sidenavigation-title-${s}-padding` },
     ];
   }
@@ -59,6 +61,8 @@
     { label: 'gap', canBeLinked: true, groupKey: 'title-gap', variable: '--sidenavigation-title-gap' },
     { label: 'corner radius', canBeLinked: true, groupKey: 'title-radius', variable: '--sidenavigation-title-radius' },
     { label: 'label surface color', groupKey: 'title-label-surface', variable: '--sidenavigation-title-label-surface' },
+    { label: 'label border color', groupKey: 'title-label-border', variable: '--sidenavigation-title-label-border' },
+    { label: 'label border width', canBeLinked: true, groupKey: 'title-label-border-width', variable: '--sidenavigation-title-label-border-width' },
     { label: 'label corner radius', canBeLinked: true, groupKey: 'title-label-radius', variable: '--sidenavigation-title-label-radius' },
     { label: 'label padding', canBeLinked: true, groupKey: 'title-label-padding', variable: '--sidenavigation-title-label-padding' },
   ];
@@ -214,6 +218,7 @@
   const linkableContexts = new Map<string, string>([
     ...STATEFUL_STATES.flatMap((s): Array<[string, string]> => [
       [`--sidenavigation-title-${s}-border-width`, `title ${s}`],
+      [`--sidenavigation-title-${s}-accent-width`, `title ${s}`],
       [`--sidenavigation-title-${s}-padding`, `title ${s}`],
       [`--sidenavigation-title-${s}-label-font-family`, `title ${s}`],
       [`--sidenavigation-title-${s}-label-font-size`, `title ${s}`],
@@ -252,6 +257,7 @@
     ]),
     ['--sidenavigation-panel-border-width', 'panel'],
     ['--sidenavigation-panel-padding', 'panel'],
+    ['--sidenavigation-title-label-border-width', 'title block'],
   ]);
 </script>
 

@@ -348,7 +348,8 @@
             color: var(--button-outline-hover-text);
          }
 
-         &:active:not(:disabled) {
+         &:active:not(:disabled),
+         &.force-active:not(:disabled) {
             background: var(--button-outline-active-surface);
          }
 

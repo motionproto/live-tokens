@@ -159,7 +159,7 @@
     {#snippet children({ activeState })}
       {@const previewClass = activeState === 'hover' ? 'force-hover' : ''}
       <div class="card-demo">
-        <Card title="Card title" class={previewClass}>
+        <Card title="Card title" icon="fas fa-star" class={previewClass}>
           <div class="content-placeholder">Content Placeholder</div>
         </Card>
       </div>
