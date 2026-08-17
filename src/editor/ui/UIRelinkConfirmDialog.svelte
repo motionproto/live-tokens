@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { self } from 'svelte/legacy';
   import UIRadio from './UIRadio.svelte';
 
   type Candidate = { variable: string; alias: string };
@@ -73,8 +72,13 @@
   });
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions a11y_no_static_element_interactions -->
-<div class="ui-relink-backdrop" onclick={self(handleCancel)}>
+<div class="ui-relink-backdrop">
+  <button
+    type="button"
+    class="ui-relink-dismiss"
+    aria-label="Cancel linking"
+    onclick={handleCancel}
+  ></button>
   <div
     class="ui-relink-dialog"
     role="dialog"
@@ -135,7 +139,18 @@
     z-index: 10000;
   }
 
+  .ui-relink-dismiss {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: default;
+  }
+
   .ui-relink-dialog {
+    position: relative;
+    z-index: 1;
     background: var(--ui-surface-higher);
     border: 1px solid var(--ui-border-high);
     border-radius: var(--ui-radius-md);

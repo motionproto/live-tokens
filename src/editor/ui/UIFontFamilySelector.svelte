@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, untrack } from 'svelte';
   import { resolveAliasChain } from '../core/palettes/tokenRegistry';
   import { editorState } from '../core/store/editorStore';
   import { CSS_VAR_CHANGE_EVENT } from '../core/cssVarSync';
@@ -160,12 +158,14 @@
 
   // Re-derive `chosenKey` / `chosenFamilyId` when `variable` changes (the
   // VariantGroup tabs view reuses the same selector instance across states).
-  let lastSeenVariable: string | null = $state(null);
-  run(() => {
-    if (variable !== lastSeenVariable) {
-      lastSeenVariable = variable;
+  $effect(() => {
+    // A tab can reuse this instance with a different variable. Track only the
+    // prop; initialization writes local selector state and is intentionally
+    // untracked to prevent a self-triggering effect.
+    variable;
+    untrack(() => {
       initFromCurrent();
-    }
+    });
   });
 
   onMount(() => {

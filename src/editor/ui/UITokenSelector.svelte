@@ -98,6 +98,18 @@
   let relinkOpen = $state(false);
   let relinkCandidates: { variable: string; alias: string }[] = $state([]);
 
+  /** Keep overflow metadata available through the native title tooltip without
+   * attaching a mouse-only interaction handler to otherwise static text. */
+  function mirrorTextToTitle(node: HTMLElement) {
+    const sync = () => {
+      node.title = node.textContent?.trim() ?? '';
+    };
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(node, { childList: true, characterData: true, subtree: true });
+    return { destroy: () => observer.disconnect() };
+  }
+
   let isLinkedFromData = $derived(canBeLinked && component && $editorState
     ? isComponentPropertyLinked(component, variable)
     : false);
@@ -345,7 +357,7 @@
   {#if triggerMeta}
     <span
       class="ui-ts-meta-text"
-      onmouseenter={(e) => { e.currentTarget.title = e.currentTarget.textContent ?? ''; }}
+      use:mirrorTextToTitle
     >{@render triggerMeta()}</span>
   {/if}
 </div>

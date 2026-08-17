@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
+  import { untrack } from 'svelte';
   import { slide } from 'svelte/transition';
   import { cubicOut, cubicIn } from 'svelte/easing';
   import { resolveAliasChain } from '../core/palettes/tokenRegistry';
@@ -528,13 +527,14 @@
   // The wrapper UITokenSelector forwards `var-change` only for the currently
   // bound variable, so prop swaps wouldn't otherwise refresh `chosenCategory`
   // / `chosenFamily` / `chosenStep` and the meta label drifts from the swatch.
-  let lastSeenVariable: string | null = $state(null);
-  run(() => {
-    if (variable !== lastSeenVariable) {
-      lastSeenVariable = variable;
+  $effect(() => {
+    // Track only the prop. The initialization writes local display state and
+    // must not subscribe the effect to that same state.
+    variable;
+    untrack(() => {
       initFromCurrent();
       captureSelfDefault();
-    }
+    });
   });
 
   let chosenGradientToken = $derived(chosenGradient ? getGradientToken(chosenGradient) : undefined);
@@ -542,8 +542,11 @@
   let effectiveAngle = $derived(chosenGradientToken
     ? (chosenAngle ?? chosenGradientToken.angle)
     : 0);
-  run(() => {
-    angleInput = effectiveAngle;
+  $effect(() => {
+    const nextAngle = effectiveAngle;
+    untrack(() => {
+      angleInput = nextAngle;
+    });
   });
 
   let metaLabel = $derived(chosenNone
@@ -560,10 +563,14 @@
     ? allCategories.filter(c => c.id !== 'text' || familiesWithText.includes(selectedFamily!))
     : allCategories);
 
-  run(() => {
-    if (selectedFamily && !availableTabs.find(t => t.id === selectedTab)) {
-      selectedTab = 'palette';
-    }
+  $effect(() => {
+    const family = selectedFamily;
+    const tabs = availableTabs;
+    untrack(() => {
+      if (family && !tabs.find(t => t.id === selectedTab)) {
+        selectedTab = 'palette';
+      }
+    });
   });
 </script>
 
