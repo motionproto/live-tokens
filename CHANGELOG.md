@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.48.1 — Demo typography follows the theme
+
+### Fixed
+
+- **The demo hero follows semantic typography.** The subtitle and supporting
+  tagline now take their font families from the heading and body text-style
+  tokens, so changing the theme's primary font pairing repaints the whole hero.
+
+- **Floating-tag connectors stay visible.** Connector strings choose the
+  black or white invariant with the stronger contrast against the current page
+  background, including backgrounds with multiple gradient stops.
+
 ## 0.48.0 — Themes are documents
 
 ### Added
