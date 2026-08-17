@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.49.1 — Automatic working-copy cleanup
+
+### Fixed
+
+- **Upgrades clean up 0.48's materialised working copies automatically.** At
+  dev-server boot, a `_working.json` that exactly matches the active theme is
+  removed. A differing buffer is preserved as unsaved work, so upgrading needs
+  no manual migration and cannot discard real edits.
+
 ## 0.49.0 — Working buffers are active-theme deltas
 
 ### Changed (breaking)

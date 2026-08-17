@@ -1946,6 +1946,14 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         ensureColorsAndTypeDir();
         ensureComponentConfigsDir();
         const { productionPointerHeld } = ensureThemesDir((msg) => server.config.logger.warn(msg));
+        // 0.48 materialised every applied theme layer into `_working.json`.
+        // On upgrade, exact copies are not unsaved work: remove them now that
+        // live reads fall through to the active theme. Any differing buffer is
+        // genuine divergence (or at least cannot safely be distinguished from
+        // it) and stays untouched. An unreadable active theme also leaves every
+        // buffer alone.
+        const openTheme = activeTheme();
+        if (openTheme) pruneMatchingWorking(openTheme);
         // Make sure the editor-owned sidecar exists and reflects current
         // production state before the first request lands. Without this, a
         // fresh checkout would import a stale (or missing) generated file. An

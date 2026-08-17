@@ -181,6 +181,52 @@ describe('a tree still on the pre-working-set model', () => {
   });
 });
 
+describe('boot reconciliation of 0.48 working copies', () => {
+  it('removes buffers that exactly match the active theme', () => {
+    seedPointerTheme();
+    writeJson(path.join(themesDir, '_active.json'), { activeFile: 'look' });
+    writeJson(path.join(colorsAndTypeDir, '_working.json'), COLORS_AND_TYPE);
+    writeJson(path.join(configsDir, 'button', '_working.json'), BUTTON_CONFIG);
+
+    boot();
+
+    expect(fs.existsSync(path.join(colorsAndTypeDir, '_working.json'))).toBe(false);
+    expect(fs.existsSync(path.join(configsDir, 'button', '_working.json'))).toBe(false);
+    expect(readJson(path.join(themesDir, '_active.json')).activeFile).toBe('look');
+  });
+
+  it('preserves buffers that differ from the active theme', () => {
+    seedPointerTheme();
+    writeJson(path.join(themesDir, '_active.json'), { activeFile: 'look' });
+    writeJson(path.join(colorsAndTypeDir, '_working.json'), {
+      ...COLORS_AND_TYPE,
+      name: 'Unsaved colors',
+    });
+    writeJson(path.join(configsDir, 'button', '_working.json'), {
+      ...BUTTON_CONFIG,
+      aliases: { '--button-radius': '1px' },
+    });
+
+    boot();
+
+    expect(readJson(path.join(colorsAndTypeDir, '_working.json')).name).toBe('Unsaved colors');
+    expect(
+      readJson(path.join(configsDir, 'button', '_working.json')).aliases['--button-radius'],
+    ).toBe('1px');
+  });
+
+  it('preserves every buffer when the active theme is unreadable', () => {
+    writeJson(path.join(themesDir, '_active.json'), { activeFile: 'broken' });
+    writeJson(path.join(colorsAndTypeDir, '_working.json'), COLORS_AND_TYPE);
+    fs.mkdirSync(themesDir, { recursive: true });
+    fs.writeFileSync(path.join(themesDir, 'broken.json'), '{ not json');
+
+    boot();
+
+    expect(readJson(path.join(colorsAndTypeDir, '_working.json'))).toEqual(COLORS_AND_TYPE);
+  });
+});
+
 describe('boot migration', () => {
   it('rewrites a v1 theme with the data it referenced', () => {
     seedPointerTheme();

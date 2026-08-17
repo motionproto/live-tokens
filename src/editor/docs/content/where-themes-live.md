@@ -49,6 +49,11 @@ The `default.json` files are the shipped baseline. The editor derives them at
 boot and refreshes them when the package updates; it never saves your work
 over them.
 
+Projects upgraded from 0.48 may initially contain working files copied from the
+active theme. On the first dev-server boot, exact copies are removed
+automatically. Any file that differs is kept as unsaved work, so no migration
+command is required.
+
 ## What to commit
 
 All of it. The data tree is designed to live in git: themes diff readably, the
