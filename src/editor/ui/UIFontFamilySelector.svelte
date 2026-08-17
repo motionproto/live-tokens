@@ -2,7 +2,7 @@
   import { onMount, onDestroy, untrack } from 'svelte';
   import { resolveAliasChain } from '../core/palettes/tokenRegistry';
   import { editorState } from '../core/store/editorStore';
-  import { CSS_VAR_CHANGE_EVENT } from '../core/cssVarSync';
+  import { CSS_VARS_CHANGE_EVENT, type CssVarsChangeDetail } from '../core/cssVarSync';
   import type { FontFamily, FontSource, FontSourceKind } from '../core/themes/themeTypes';
   import UITokenSelector from './UITokenSelector.svelte';
   import UIOptionList from './UIOptionList.svelte';
@@ -91,8 +91,8 @@
   }
 
   function handleVarChange(e: Event) {
-    const detail = (e as CustomEvent<{ name: string }>).detail;
-    if (detail?.name?.startsWith('--font-')) readResolved();
+    const names = (e as CustomEvent<CssVarsChangeDetail>).detail?.names ?? [];
+    if (names.some((name) => name.startsWith('--font-'))) readResolved();
   }
 
   function initFromCurrent() {
@@ -169,10 +169,10 @@
   });
 
   onMount(() => {
-    document.addEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
+    document.addEventListener(CSS_VARS_CHANGE_EVENT, handleVarChange);
   });
   onDestroy(() => {
-    document.removeEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
+    document.removeEventListener(CSS_VARS_CHANGE_EVENT, handleVarChange);
   });
 
   let activeLabel = $derived(chosenFamilyId

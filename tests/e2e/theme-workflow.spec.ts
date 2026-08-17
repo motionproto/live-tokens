@@ -9,6 +9,17 @@ test('a host-initiated theme load hydrates an already-open editor', async ({ pag
     ? { slug: 'ocean', name: 'Ocean' }
     : { slug: 'autumn', name: 'Autumn' };
 
+  await Promise.all([
+    page.evaluate(() => {
+      (window as any).__themeBatchCount = 0;
+      document.addEventListener('cssvars:change', () => (window as any).__themeBatchCount++);
+    }),
+    frame.evaluate(() => {
+      (window as any).__themeBatchCount = 0;
+      document.addEventListener('cssvars:change', () => (window as any).__themeBatchCount++);
+    }),
+  ]);
+
   await page.evaluate(async (slug) => {
     const modulePath = '/src/editor/core/themes/themeService.ts';
     const themes = await import(/* @vite-ignore */ modulePath);
@@ -22,6 +33,13 @@ test('a host-initiated theme load hydrates an already-open editor', async ({ pag
   ]);
   expect(colors[0]).not.toBe('');
   expect(colors[1]).toBe(colors[0]);
+  const batchCounts = await Promise.all([
+    page.evaluate(() => (window as any).__themeBatchCount),
+    frame.evaluate(() => (window as any).__themeBatchCount),
+  ]);
+  // Each document receives one complete design-system transaction. A split
+  // colors/type + components hydrate would produce two renderer batches.
+  expect(batchCounts).toEqual([1, 1]);
 
   // Hydration must restore an editable graph, not merely copy a theme's
   // current CSS snapshot. Prove a component mutation still reaches the host
@@ -53,9 +71,14 @@ test('clicking the active name opens the picker and Save loads and adopts in one
   await expect(dialog).toBeVisible();
   await dialog.locator(`[data-file-name="look:${target.slug}"] .load-name-btn`).click();
   await expect(dialog.getByRole('button', { name: 'Save', exact: true })).toBeVisible();
+  await frame.evaluate(() => {
+    (window as any).__saveBatchCount = 0;
+    document.addEventListener('cssvars:change', () => (window as any).__saveBatchCount++);
+  });
   await dialog.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(dialog).toBeHidden();
   await expect(trigger).toContainText(target.name);
+  expect(await frame.evaluate(() => (window as any).__saveBatchCount)).toBe(1);
 
   const pointers = await page.evaluate(async () => {
     const [active, production] = await Promise.all([

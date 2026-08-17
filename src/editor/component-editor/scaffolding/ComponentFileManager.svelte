@@ -5,10 +5,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import UIInfoPopover from '../../ui/UIInfoPopover.svelte';
-  import { get } from 'svelte/store';
   import type {
-    AliasDiskValue,
-    ComponentConfig,
     ComponentConfigMeta,
     LiveSource,
   } from '../../core/themes/themeTypes';
@@ -19,6 +16,7 @@
     saveComponentConfig,
     deleteComponentConfig,
     writeWorkingComponentConfig,
+    componentConfigFromState,
   } from '../../core/components/componentConfigService';
   import {
     editorState,
@@ -42,8 +40,6 @@
     saveAsTheme,
   } from '../../core/themes/themeService';
   import type { ThemeMeta } from '../../core/themes/themeTypes';
-  import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../core/themes/migrations';
-  import { refToDiskValue } from '../../core/store/cssVarRef';
   import { safeFetch } from '../../core/storage/storage';
   import { API_BASE } from '../../core/storage/apiBase';
   import { flashStatus } from '../../core/flashStatus';
@@ -182,36 +178,14 @@
     }
   }
 
-  function currentAliases(): Record<string, AliasDiskValue> {
-    const slice = get(editorState).components[component];
-    if (!slice) return {};
-    const out: Record<string, AliasDiskValue> = {};
-    for (const [k, ref] of Object.entries(slice.aliases)) out[k] = refToDiskValue(ref);
-    return out;
-  }
-
-  function currentConfig(): Record<string, unknown> {
-    return get(editorState).components[component]?.config ?? {};
-  }
-
-  function currentConfigData(displayName: string): ComponentConfig {
-    const now = new Date().toISOString();
-    return {
-      name: displayName,
-      component,
-      createdAt: now,
-      updatedAt: now,
-      aliases: { ...currentAliases() },
-      config: { ...currentConfig() },
-      schemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
-    };
-  }
-
   /** Flush the editor state to the component's working buffer. A theme save
    *  captures the buffers, so this is what puts these edits in reach of Save
    *  and Adopt. */
   async function persist(): Promise<void> {
-    await writeWorkingComponentConfig(component, currentConfigData(openTheme.name));
+    await writeWorkingComponentConfig(
+      component,
+      componentConfigFromState($editorState, component, openTheme.name),
+    );
     liveSource = 'working';
     markComponentSaved(component);
     bumpComponentActiveRevision();
@@ -237,7 +211,11 @@
     const { displayName, fileName } = detail;
     saveStatus = 'saving';
     try {
-      await saveComponentConfig(component, fileName, currentConfigData(displayName));
+      await saveComponentConfig(
+        component,
+        fileName,
+        componentConfigFromState($editorState, component, displayName),
+      );
       await persist();
       flashStatus(setSaveStatus, 'saved');
       await refreshFiles();

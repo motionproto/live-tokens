@@ -44,9 +44,11 @@ In the Theme panel:
   go in as part of it, so there is nothing to save first.
 - **Save As** names a new theme. Use it for your first save and for forking.
 
-Component edits are the exception. Each component editor holds its own unsaved
-state, which this panel cannot write, so save a component in its editor before
-capturing it. The panel says how many are waiting.
+Component editors keep their own unsaved state. If one or more components are
+waiting when you use **Save**, **Save As**, or **Adopt**, the Theme panel offers
+to save all of them before continuing. You can accept once instead of visiting
+each component, or cancel to review them individually. A component editor's
+**Save As** creates a reusable component preset.
 
 Names are tidied to lowercase with hyphens, so "My Brand!" becomes `my-brand`,
 and a leading underscore is dropped: those names are reserved for the buffer.

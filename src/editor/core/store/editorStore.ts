@@ -76,6 +76,7 @@ import {
 } from '../themes/slices/gradients';
 import {
   componentBaseline,
+  getComponentOwnedVarNames,
   loadComponentsFromVars,
   notifyComponentSavedChanged,
   setSavedComponentBaseline,
@@ -506,6 +507,36 @@ export function seedComponentsFromApi(
     }
     return s;
   });
+  notifyComponentSavedChanged();
+  schedulePersist();
+}
+
+/**
+ * Replace colors/type and every component slice as one theme transaction.
+ * Theme application used to call `loadFromFile` and `seedComponentsFromApi`
+ * separately, causing two complete renderer passes and briefly exposing a
+ * mixed old-components/new-tokens state. Build the final state first and emit
+ * it once instead.
+ */
+export function loadThemeFromApi(
+  colorsAndType: ColorsAndType,
+  configs: Record<string, ComponentSeed>,
+): void {
+  const next = colorsAndTypeToState(colorsAndType);
+  next.components = {};
+  for (const [comp, cfg] of Object.entries(configs)) {
+    const split = toComponentSlice(comp, cfg.aliases, cfg.config, cfg.schemaVersion ?? 0);
+    next.components[comp] = { aliases: { ...split.aliases }, config: { ...split.config } };
+    setSavedComponentBaseline(comp, componentBaseline(split));
+  }
+  // Defensive legacy cleanup: a colors-and-type payload may still carry
+  // component-owned variables in its catch-all bag. The component slice is
+  // authoritative for a whole-theme load.
+  for (const name of getComponentOwnedVarNames(next)) delete next.cssVars[name];
+
+  resetHistoryForLoad();
+  store.set(next);
+  markColorsAndTypeSaved(next);
   notifyComponentSavedChanged();
   schedulePersist();
 }

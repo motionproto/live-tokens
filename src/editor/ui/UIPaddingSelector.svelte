@@ -7,7 +7,7 @@
   import UITokenSelector from './UITokenSelector.svelte';
   import UIOptionList from './UIOptionList.svelte';
   import UIOptionItem from './UIOptionItem.svelte';
-  import { setCssVar, removeCssVar, CSS_VAR_CHANGE_EVENT } from '../core/cssVarSync';
+  import { setCssVar, removeCssVar, CSS_VARS_CHANGE_EVENT } from '../core/cssVarSync';
   import {
     editorState,
     setComponentAlias,
@@ -207,11 +207,11 @@
 
   onMount(() => {
     refreshFromState();
-    document.addEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
+    document.addEventListener(CSS_VARS_CHANGE_EVENT, handleVarChange);
   });
 
   onDestroy(() => {
-    document.removeEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
+    document.removeEventListener(CSS_VARS_CHANGE_EVENT, handleVarChange);
   });
 
   // Track `variable` alongside `$editorState` so a VariantGroup tabs view that

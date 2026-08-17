@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import type { ComponentConfig, Theme, ColorsAndType } from '../themes/themeTypes';
 import { API_BASE } from '../storage/apiBase';
+import { CSS_VAR_CHANGE_EVENT, CSS_VARS_CHANGE_EVENT } from '../cssVarSync';
 import {
   editorState,
   loadFromFile,
@@ -16,6 +17,7 @@ import {
   previewTheme,
   previewColorsAndType,
   revertPreview,
+  commitPreview,
   isPreviewing,
   __resetPreviewForTests,
 } from './lookPreview';
@@ -287,14 +289,31 @@ describe('previewTheme', () => {
     expect(read('--live-only')).toBe('1px');
   });
 
-  it('re-previewing diffs against the live look, not the previous preview', async () => {
+  it('re-previewing diffs directly from the previous preview', async () => {
     const halloween = theme('halloween', colorsAndType({ '--surface-canvas': '#4d2300' }), {
       card: config('card', { '--card-default-radius': '--radius-none' }),
       spooky: config('spooky', { '--spooky-glow': '1' }),
     });
 
     await previewTheme(yuletide);
+    const changedNames: string[] = [];
+    const batches: string[][] = [];
+    const onChange = (event: Event) => changedNames.push(
+      (event as CustomEvent<{ name: string }>).detail.name,
+    );
+    const onBatch = (event: Event) => batches.push(
+      (event as CustomEvent<{ names: string[] }>).detail.names,
+    );
+    document.addEventListener(CSS_VAR_CHANGE_EVENT, onChange);
+    document.addEventListener(CSS_VARS_CHANGE_EVENT, onBatch);
     await previewTheme(halloween);
+    document.removeEventListener(CSS_VAR_CHANGE_EVENT, onChange);
+    document.removeEventListener(CSS_VARS_CHANGE_EVENT, onBatch);
+
+    // The canvas changes once, yuletide → halloween. The former
+    // yuletide → live → halloween route emitted it twice.
+    expect(changedNames.filter((name) => name === '--surface-canvas')).toHaveLength(1);
+    expect(batches).toHaveLength(1);
     expect(read('--card-default-radius')).toBe('var(--radius-none)');
     expect(read('--surface-canvas')).toBe('#4d2300');
     expect(read('--button-primary-radius')).toBe('var(--radius-xl)');
@@ -316,6 +335,23 @@ describe('previewTheme', () => {
     expect(JSON.stringify(get(editorState))).toBe(before);
     revertPreview();
     expect(JSON.stringify(get(editorState))).toBe(before);
+  });
+
+  it('hands an accepted preview to the following store load without repainting live', async () => {
+    await previewTheme(yuletide);
+    const changedNames: string[] = [];
+    const onChange = (event: Event) => changedNames.push(
+      (event as CustomEvent<{ name: string }>).detail.name,
+    );
+    document.addEventListener(CSS_VAR_CHANGE_EVENT, onChange);
+
+    commitPreview();
+    document.removeEventListener(CSS_VAR_CHANGE_EVENT, onChange);
+
+    expect(isPreviewing()).toBe(false);
+    expect(changedNames).toEqual([]);
+    expect(read('--surface-canvas')).toBe('#0b3d2e');
+    expect(read('--card-default-radius')).toBe('var(--radius-3xl)');
   });
 
   it('reads only, so a capture of the look still sees the saved files', async () => {

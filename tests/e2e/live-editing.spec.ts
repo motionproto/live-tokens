@@ -1,6 +1,33 @@
 import { expect, test } from '@playwright/test';
 import { openOverlayEditor } from './support/editor';
 
+test('the floating token sample label follows its live surface luminance', async ({ page }) => {
+  await page.goto('/demo');
+  const sample = page.locator('.ftt-box');
+  const label = sample.locator('.ftt-box-label');
+
+  const setSurface = (value: string) => page.evaluate(
+    ({ value }) => document.documentElement.style.setProperty('--surface-brand-high', value),
+    { value },
+  );
+
+  const renderedContrastToken = () => sample.evaluate(box => (box as HTMLElement).style
+    .getPropertyValue('--ftt-box-contrast-color'));
+
+  await setSurface('#ffffff');
+  await expect.poll(renderedContrastToken).toBe('var(--color-black)');
+  await expect(label).toHaveCSS('color', 'rgb(0, 0, 0)');
+
+  await setSurface('#000000');
+  await expect.poll(renderedContrastToken).toBe('var(--color-white)');
+  await expect(label).toHaveCSS('color', 'rgb(255, 255, 255)');
+
+  // This visual aid is intentionally isolated from the real Button component.
+  expect(await page.locator('.hero-actions .button').evaluateAll(buttons => buttons.every(button =>
+    !(button as HTMLElement).style.getPropertyValue('--ftt-box-contrast-color'),
+  ))).toBe(true);
+});
+
 test('a primitive token edit flows through semantic and component aliases to the host', async ({ page }) => {
   const frame = await openOverlayEditor(page, 'tokens');
   const button = page.locator('.hero-actions .button.primary').first();
@@ -47,8 +74,23 @@ test('a primitive token edit flows through semantic and component aliases to the
 
 test('component controls repaint the host without save, adopt, or reload', async ({ page }) => {
   const frame = await openOverlayEditor(page, 'components');
+
+  // Reproduce the reported path: hydrate a complete preset into an already
+  // open host/editor pair, then edit the loaded component graph.
+  await page.evaluate(async () => {
+    const modulePath = '/src/editor/core/themes/themeService.ts';
+    const themes = await import(/* @vite-ignore */ modulePath);
+    await themes.applyTheme('autumn');
+    await themes.applyTheme('spring-meadow');
+  });
+  await expect(frame.locator('.theme-name-trigger')).toContainText('Spring Meadow');
+
   await frame.getByRole('button', { name: 'Section Divider' }).click();
-  await frame.getByRole('tab', { name: 'Medium' }).click();
+  // The demo's prominent `The Kit` divider uses the runtime default (`md`).
+  // Opening this editor on Large made linked family edits look live while
+  // variant-specific colour/size edits appeared broken on the page.
+  await expect(frame.getByRole('tab', { name: 'Medium' }))
+    .toHaveAttribute('aria-selected', 'true');
 
   const expected = await page.evaluate(() => {
     const probe = document.createElement('div');
@@ -71,9 +113,54 @@ test('component controls repaint the host without save, adopt, or reload', async
   };
 
   await page.evaluate(() => ((window as any).__playwrightLiveMarker = 'still-here'));
+  const beforeSvg = await page.locator('.section-divider.variant-md').first().evaluate((divider) => {
+    const svg = divider.querySelector<SVGSVGElement>('svg.divider-label')!;
+    const text = svg.querySelector<SVGTextElement>('text')!;
+    return {
+      height: svg.getBoundingClientRect().height,
+      textBoxHeight: text.getBBox().height,
+      fontSize: getComputedStyle(text).fontSize,
+      fill: getComputedStyle(text).fill,
+    };
+  });
+
   await selectOption('--sectiondivider-md-title', 'Black');
-  await selectOption('--sectiondivider-md-title-font-weight', 'Black');
+  await expect.poll(() => page.locator('.section-divider.variant-md').first().evaluate((divider) => {
+    const text = divider.querySelector('svg.divider-label text')!;
+    return {
+      root: document.documentElement.style.getPropertyValue('--sectiondivider-md-title').trim(),
+      fill: getComputedStyle(text).fill,
+    };
+  })).toEqual({ root: 'var(--color-black)', fill: expected.titleColor });
+
   await selectOption('--sectiondivider-md-title-font-size', '6XL');
+  await expect.poll(() => page.locator('.section-divider.variant-md').first().evaluate((divider) => {
+    const svg = divider.querySelector<SVGSVGElement>('svg.divider-label')!;
+    const text = svg.querySelector<SVGTextElement>('text')!;
+    return {
+      root: document.documentElement.style.getPropertyValue('--sectiondivider-md-title-font-size').trim(),
+      fontSize: getComputedStyle(text).fontSize,
+      height: svg.getBoundingClientRect().height,
+      textBoxHeight: text.getBBox().height,
+    };
+  })).toEqual({
+    root: 'var(--font-size-6xl)',
+    fontSize: expected.fontSize,
+    height: expect.any(Number),
+    textBoxHeight: expect.any(Number),
+  });
+
+  const afterSvg = await page.locator('.section-divider.variant-md').first().evaluate((divider) => {
+    const svg = divider.querySelector<SVGSVGElement>('svg.divider-label')!;
+    const text = svg.querySelector<SVGTextElement>('text')!;
+    return { height: svg.getBoundingClientRect().height, textBoxHeight: text.getBBox().height };
+  });
+  expect(afterSvg.height).toBeGreaterThan(0);
+  expect(afterSvg.textBoxHeight).toBeGreaterThan(0);
+  expect(afterSvg.height).not.toBe(beforeSvg.height);
+  expect(afterSvg.textBoxHeight).not.toBe(beforeSvg.textBoxHeight);
+
+  await selectOption('--sectiondivider-md-title-font-weight', 'Black');
   await selectOption('--sectiondivider-md-title-outline-width', '12px');
 
   await expect.poll(() => page.evaluate(() => {

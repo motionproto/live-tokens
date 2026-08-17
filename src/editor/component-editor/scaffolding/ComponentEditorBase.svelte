@@ -25,6 +25,9 @@
       with 2+ entries, a single variant tab strip is rendered that drives which
       VariantGroup is focused. */
     variants?: { value: string; label: string }[];
+    /** Variant selected when this component editor first opens. Falls back to
+      the first declared variant. */
+    defaultVariant?: string;
     config?: import('svelte').Snippet;
     children?: import('svelte').Snippet<[any]>;
   }
@@ -36,6 +39,7 @@
     tokens = [],
     linked = null,
     variants = [],
+    defaultVariant = '',
     config,
     children
   }: Props = $props();
@@ -52,7 +56,10 @@
   let showVariantTabs = $derived(variants.length >= 2);
   run(() => {
     if (showVariantTabs && ($focusedVariant === null || !variants.some((v) => v.value === $focusedVariant))) {
-      focusedVariant.set(variants[0].value);
+      const preferred = variants.some((v) => v.value === defaultVariant)
+        ? defaultVariant
+        : variants[0].value;
+      focusedVariant.set(preferred);
     }
   });
   let resetVariables = $derived(tokens.map((t) => t.variable));

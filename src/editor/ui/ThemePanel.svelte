@@ -27,7 +27,7 @@
     type AppliedThemeDetail,
   } from '../core/themes/themeDocumentSync';
   import { countComponentsOffLook, lookProductionState } from '../core/themes/lookSummary';
-  import { previewTheme, previewColorsAndType, revertPreview } from '../core/preview/lookPreview';
+  import { commitPreview, previewTheme, previewColorsAndType, revertPreview } from '../core/preview/lookPreview';
   import {
     deleteColorsAndType,
     hydrateColorsAndType,
@@ -45,10 +45,17 @@
   } from '../core/themes/loadRows';
   import {
     listComponents,
+    componentConfigFromState,
+    writeWorkingComponentConfig,
     type ComponentSummary,
   } from '../core/components/componentConfigService';
   import { fontPairingLabel } from '../core/fonts/fontPairing';
-  import { componentDirty, editorState, colorsAndTypeDirty } from '../core/store/editorStore';
+  import {
+    componentDirty,
+    editorState,
+    colorsAndTypeDirty,
+    markComponentSaved,
+  } from '../core/store/editorStore';
   import { openThemeSlug } from '../core/store/editorConfigStore';
   import { editorView } from '../core/store/editorViewStore';
   import {
@@ -57,12 +64,14 @@
     bumpProductionRevision,
     liveMovedSinceBake,
     productionTheme,
+    bumpComponentActiveRevision,
   } from '../core/productionPulse';
   import { flashStatus } from '../core/flashStatus';
   import UIInfoPopover from './UIInfoPopover.svelte';
   import UIPillButton from './UIPillButton.svelte';
   import FileLoadList from './FileLoadList.svelte';
   import FilePill from './FilePill.svelte';
+  import UIDialog from './UIDialog.svelte';
   import SaveAsDialog from '../component-editor/scaffolding/SaveAsDialog.svelte';
 
   interface Props {
@@ -79,6 +88,9 @@
   let rows = $derived(buildLoadRows(files, colorsFiles));
   let showFileList = $state(false);
   let saveAsDialog = $state(false);
+  let saveComponentsDialog = $state(false);
+  let pendingComponentSave: (() => Promise<void>) | null = null;
+  let pendingComponentCount = $state(0);
   let saveStatus: 'idle' | 'saving' | 'saved' | 'error' = $state('idle');
 
   let currentDisplayName = $state('Motion Proto');
@@ -205,10 +217,10 @@
     refreshComponents();
   });
 
-  // A capture reads the server's live state, so the colors and type on screen
-  // go to their buffer first — that is what makes Save and Adopt mean the look
-  // in front of you. A component's edits live in its own editor's state, which
-  // this panel cannot write, so those are the only ones a capture leaves behind.
+  // A capture reads the server's live state, so colors and type go to their
+  // buffer first. Component editors retain their own save boundary; when any
+  // are dirty, the theme panel offers to flush all of them in one explicit
+  // step before continuing.
   //
   // The gate is `colorsAndTypeDirty`, not history: history counts every entry,
   // components included, so it would flush the colors over component-only work.
@@ -217,20 +229,45 @@
     await persistColorsAndType(get(editorState), currentDisplayName);
   }
 
-  function confirmUnsavedComponents(action: string): boolean {
-    if (dirtyComponentCount === 0) return true;
-    const n = dirtyComponentCount;
-    return window.confirm(
-      `${n === 1 ? '1 component has' : `${n} components have`} unsaved edits. Those stay out `
-        + `until you save them in the component editor. ${action}`,
-    );
+  async function flushComponents(displayName = currentDisplayName): Promise<void> {
+    const dirtyComponents = Object.entries(get(componentDirty))
+      .filter(([, dirty]) => dirty)
+      .map(([component]) => component);
+    if (dirtyComponents.length === 0) return;
+
+    const state = get(editorState);
+    await Promise.all(dirtyComponents.map((component) =>
+      writeWorkingComponentConfig(
+        component,
+        componentConfigFromState(state, component, displayName),
+      ),
+    ));
+    for (const component of dirtyComponents) markComponentSaved(component);
+    bumpComponentActiveRevision();
   }
 
-  async function handleSave() {
-    if (activeIsProtected) return;
-    if (!confirmUnsavedComponents('Save the theme anyway?')) return;
+  function continueWithComponentChoice(action: () => Promise<void>): void {
+    const dirtyCount = Object.values(get(componentDirty)).filter(Boolean).length;
+    if (dirtyCount === 0) {
+      void action();
+      return;
+    }
+    pendingComponentCount = dirtyCount;
+    pendingComponentSave = action;
+    saveComponentsDialog = true;
+  }
+
+  async function confirmSaveAllComponents(): Promise<void> {
+    const action = pendingComponentSave;
+    pendingComponentSave = null;
+    saveComponentsDialog = false;
+    if (action) await action();
+  }
+
+  async function runSave(saveComponents: boolean) {
     saveStatus = 'saving';
     try {
+      if (saveComponents) await flushComponents();
       await flushColors();
       await saveActiveTheme(currentDisplayName);
       await refreshActive();
@@ -240,10 +277,21 @@
     }
   }
 
+  function handleSave() {
+    if (activeIsProtected) return;
+    continueWithComponentChoice(() => runSave(true));
+  }
+
   function openSaveAs() {
-    if (!confirmUnsavedComponents('Save the theme anyway?')) return;
-    showFileList = false;
-    saveAsDialog = true;
+    continueWithComponentChoice(async () => {
+      try {
+        await flushComponents();
+        showFileList = false;
+        saveAsDialog = true;
+      } catch {
+        flashStatus(setSaveStatus, 'error');
+      }
+    });
   }
 
   async function confirmSaveAs(detail: { displayName: string; fileName: string }) {
@@ -283,10 +331,9 @@
     return 'Save this theme and ship it to production';
   });
 
-  async function handleAdopt() {
+  function handleAdopt() {
     if (production.inProduction || adoptStatus === 'adopting') return;
-    if (!confirmUnsavedComponents('Ship the theme anyway?')) return;
-    await runAdopt();
+    continueWithComponentChoice(() => runAdopt(true));
   }
 
   /**
@@ -295,9 +342,10 @@
    * Adopt, and which file holds the look is bookkeeping they should not have
    * to think about, so it forks to a theme of their own first.
    */
-  async function runAdopt() {
+  async function runAdopt(saveComponents = false) {
     adoptStatus = 'adopting';
     try {
+      if (saveComponents) await flushComponents();
       await flushColors();
       if (activeIsProtected) {
         const taken = new Set((await listThemes()).map((m) => m.fileName));
@@ -341,6 +389,13 @@
 
   function cancelPreview() {
     revertPreview();
+    previewRow = null;
+    previewLook = null;
+    previewLayer = null;
+  }
+
+  function acceptPreview() {
+    commitPreview();
     previewRow = null;
     previewLook = null;
     previewLayer = null;
@@ -407,10 +462,9 @@
       );
       if (!ok) return;
     }
-    // Preview writes bypass the store. Return the DOM to the current live state
-    // first so applyTheme can hydrate the returned design system through the
-    // store renderer and make the editor plus host page move together.
-    cancelPreview();
+    // The exact theme being opened is already painted. Hand that preview to
+    // the store load without restoring the old look across the request.
+    acceptPreview();
     let result: Awaited<ReturnType<typeof applyTheme>>;
     try {
       result = await applyTheme(row.slug);
@@ -635,7 +689,7 @@
         The <strong>active</strong> theme is the one the editor has open. <strong>Adopt</strong> saves it and ships it to production, colors and type plus every component you changed. The line under the name says whether production is running this theme.
       </p>
       <p>
-        Save and Adopt both take the colors and type on screen as they are. Component edits are the exception: save those in the component's own editor first.
+        If components have unsaved edits, Save and Adopt offer to save all of them before continuing. You can cancel to review or save components individually.
       </p>
       <p>
         <strong>Motion Proto</strong> is the protected baseline. To start customizing, <strong>Save As</strong> a new theme first.
@@ -800,6 +854,22 @@
   style="display: none;"
 />
 
+<UIDialog
+  bind:show={saveComponentsDialog}
+  title="Unsaved component edits"
+  cancelLabel="Cancel"
+  confirmLabel={pendingComponentCount === 1 ? 'Save component' : 'Save all components'}
+  onconfirm={confirmSaveAllComponents}
+  width="400px"
+>
+  <p class="save-components-message">
+    {pendingComponentCount === 1
+      ? '1 component has unsaved edits.'
+      : `${pendingComponentCount} components have unsaved edits.`}
+    Save {pendingComponentCount === 1 ? 'it' : 'all of them'} and continue?
+  </p>
+</UIDialog>
+
 <FileLoadList
   bind:show={showFileList}
   title="Theme Picker"
@@ -847,6 +917,13 @@
 />
 
 <style>
+  .save-components-message {
+    margin: 0;
+    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-sm);
+    line-height: 1.5;
+  }
+
   .look-panel {
     --mfm-active: #5aa85e;
     --mfm-rail-neutral: var(--ui-border);

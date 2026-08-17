@@ -7,6 +7,7 @@ import { API_BASE } from '../storage/apiBase';
 import { editorState, __resetForTests } from '../store/editorStore';
 import { openThemeSlug } from '../store/editorConfigStore';
 import { liveMovedSinceBake } from '../productionPulse';
+import { CSS_VARS_CHANGE_EVENT } from '../cssVarSync';
 
 beforeEach(() => {
   __resetForTests();
@@ -69,8 +70,11 @@ describe('applyTheme', () => {
       }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     });
     liveMovedSinceBake.set(true);
+    const batches = vi.fn();
+    document.addEventListener(CSS_VARS_CHANGE_EVENT, batches);
 
     await applyTheme('spring-meadow');
+    document.removeEventListener(CSS_VARS_CHANGE_EVENT, batches);
 
     const state = get(editorState);
     expect(get(openThemeSlug)).toBe('spring-meadow');
@@ -81,5 +85,6 @@ describe('applyTheme', () => {
     expect(document.documentElement.style.getPropertyValue('--loaded-color')).toBe('#74c67a');
     expect(document.documentElement.style.getPropertyValue('--sectiondivider-lg-title-outline-color'))
       .toBe('var(--color-danger-600)');
+    expect(batches).toHaveBeenCalledTimes(1);
   });
 });

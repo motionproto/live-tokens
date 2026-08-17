@@ -2,7 +2,7 @@
   import { run } from 'svelte/legacy';
 
   import { onMount, onDestroy } from 'svelte';
-  import { CSS_VAR_CHANGE_EVENT } from '../core/cssVarSync';
+  import { CSS_VARS_CHANGE_EVENT, type CssVarsChangeDetail } from '../core/cssVarSync';
   import UIVariantSelector from './UIVariantSelector.svelte';
 
   interface Props {
@@ -74,8 +74,8 @@
   }
 
   function handleVarChange(e: Event) {
-    const detail = (e as CustomEvent<{ name: string }>).detail;
-    if (detail?.name?.startsWith('--font-size-') || detail?.name?.startsWith('--icon-size-')) readPxValues();
+    const names = (e as CustomEvent<CssVarsChangeDetail>).detail?.names ?? [];
+    if (names.some((name) => name.startsWith('--font-size-') || name.startsWith('--icon-size-'))) readPxValues();
   }
 
   // Re-read sizes when the target variable's scale changes
@@ -86,10 +86,10 @@
 
   onMount(() => {
     readPxValues();
-    document.addEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
+    document.addEventListener(CSS_VARS_CHANGE_EVENT, handleVarChange);
   });
   onDestroy(() => {
-    document.removeEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
+    document.removeEventListener(CSS_VARS_CHANGE_EVENT, handleVarChange);
   });
 </script>
 

@@ -1,4 +1,11 @@
 <script lang="ts">
+  import { onDestroy, onMount } from 'svelte';
+  import { editorState } from '../core/store/editorStore';
+  import { CSS_VARS_CHANGE_EVENT, type CssVarsChangeDetail } from '../core/cssVarSync';
+  import {
+    fontWeightAvailability,
+    inferFontFamilyVariable,
+  } from '../core/fonts/fontWeightAvailability';
   import UIVariantSelector from './UIVariantSelector.svelte';
   import UIOptionItem from './UIOptionItem.svelte';
 
@@ -31,6 +38,44 @@
     { key: 'extrabold', label: 'Extra Bold', value: '800' },
     { key: 'black', label: 'Black', value: '900' },
   ] as const;
+
+  let availability = $state<ReturnType<typeof fontWeightAvailability>>(null);
+  let familyVariable = $derived(inferFontFamilyVariable(variable));
+
+  function refreshAvailability() {
+    if (!familyVariable) {
+      availability = null;
+      return;
+    }
+    const familyValue = getComputedStyle(document.documentElement)
+      .getPropertyValue(familyVariable)
+      .trim();
+    availability = fontWeightAvailability(
+      familyValue,
+      $editorState.fonts.sources,
+      $editorState.fonts.stacks,
+    );
+  }
+
+  function handleVarChange(event: Event) {
+    const names = (event as CustomEvent<CssVarsChangeDetail>).detail?.names ?? [];
+    if (
+      (familyVariable && names.includes(familyVariable))
+      || names.some((name) => /^--font-(?:display|sans|serif|mono)$/.test(name))
+    ) {
+      refreshAvailability();
+    }
+  }
+
+  $effect(() => {
+    variable;
+    $editorState.fonts.sources;
+    $editorState.fonts.stacks;
+    refreshAvailability();
+  });
+
+  onMount(() => document.addEventListener(CSS_VARS_CHANGE_EVENT, handleVarChange));
+  onDestroy(() => document.removeEventListener(CSS_VARS_CHANGE_EVENT, handleVarChange));
 </script>
 
 <UIVariantSelector
@@ -44,8 +89,13 @@
   {onchange}
 >
   {#snippet option({ opt, active, select })}
-  
-      <UIOptionItem {active} onclick={select}>
+      {@const unsupported = availability !== null && !availability.weights.has(Number(opt.value))}
+      <UIOptionItem
+        {active}
+        disabled={unsupported}
+        title={unsupported ? `${opt.label} is not available for ${availability?.familyName}` : ''}
+        onclick={select}
+      >
         {#snippet preview()}
             <span  class="weight-sample" style="font-weight: var(--font-weight-{opt.key});">A</span>
           {/snippet}

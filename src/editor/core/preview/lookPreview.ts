@@ -2,7 +2,7 @@ import { get } from 'svelte/store';
 import type { FontSource, Theme, ColorsAndType } from '../themes/themeTypes';
 import { editorState, colorsAndTypeToState, toComponentSlice } from '../store/editorStore';
 import { deriveCssVars } from '../store/editorRenderer';
-import { setCssVar, removeCssVar } from '../cssVarSync';
+import { batchCssVarChanges, setCssVar, removeCssVar } from '../cssVarSync';
 import { applyFontSources } from '../fonts/fontLoader';
 import { migrateColorsAndTypeFonts } from '../fonts/fontMigration';
 import { loadTheme } from '../themes/themeService';
@@ -88,24 +88,24 @@ function loadDefaults(): Promise<Theme> {
 }
 
 function paint(next: RenderedLook, from: RenderedLook): void {
-  for (const [name, value] of Object.entries(next.vars)) {
-    if (from.vars[name] !== value) setCssVar(name, value);
-  }
-  for (const name of Object.keys(from.vars)) {
-    if (!(name in next.vars)) removeCssVar(name);
-  }
-  applyFontSources(next.fontSources);
+  batchCssVarChanges(() => {
+    for (const [name, value] of Object.entries(next.vars)) {
+      if (from.vars[name] !== value) setCssVar(name, value);
+    }
+    for (const name of Object.keys(from.vars)) {
+      if (!(name in next.vars)) removeCssVar(name);
+    }
+    applyFontSources(next.fontSources);
+  });
 }
 
 /**
- * Show `look` on the page. Re-entrant: a live preview is reverted first, so
- * every look is painted as a diff against the user's real state and a var one
- * look sets but the next does not returns to its live value instead of vanishing.
- * The two passes run in one task, so the browser never paints the intermediate.
+ * Show `look` on the page. Re-entrant previews diff directly from the look
+ * already painted; only Cancel restores the live store projection. This avoids
+ * repainting the live theme as an invisible intermediate on every picker row.
  */
 function applyPreview(look: RenderedLook): void {
-  revertPreview();
-  paint(look, liveLook());
+  paint(look, livePreview ?? liveLook());
   livePreview = look;
 }
 
@@ -124,6 +124,14 @@ export function previewColorsAndType(colorsAndType: ColorsAndType): void {
 export function revertPreview(): void {
   if (!livePreview) return;
   paint(liveLook(), livePreview);
+  livePreview = null;
+}
+
+/** Release the preview without repainting. The caller must immediately load
+ * the exact look being previewed into the store. This is the Save handoff: the
+ * selected theme is already on screen, so restoring the old live look before
+ * applying it would add work and create a visible flash across the request. */
+export function commitPreview(): void {
   livePreview = null;
 }
 

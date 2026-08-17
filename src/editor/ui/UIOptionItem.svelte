@@ -1,6 +1,8 @@
 <script lang="ts">
   interface Props {
     active?: boolean;
+    disabled?: boolean;
+    title?: string;
     preview?: import('svelte').Snippet;
     label?: import('svelte').Snippet;
     meta?: import('svelte').Snippet;
@@ -9,6 +11,8 @@
 
   let {
     active = false,
+    disabled = false,
+    title = '',
     preview,
     label,
     meta,
@@ -16,7 +20,7 @@
   }: Props = $props();
 </script>
 
-<button class="ui-option-item" class:active {onclick}>
+<button class="ui-option-item" class:active {onclick} {disabled} {title}>
   {#if preview}
     <span class="ui-option-preview">
       {@render preview?.()}
@@ -62,6 +66,15 @@
 
   .ui-option-item.active .ui-option-meta {
     color: var(--ui-text-primary);
+  }
+
+  .ui-option-item:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .ui-option-item:disabled:hover {
+    background: none;
   }
 
   .ui-option-preview {

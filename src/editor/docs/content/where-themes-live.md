@@ -34,8 +34,8 @@ deleting anything else never breaks it.
 
 - **Editing** changes the page through CSS variables. The editor keeps your
   edits in the browser as you work and writes them to the `_working.json`
-  buffers when you save a component. A buffer exists only where the live layer
-  differs from the active theme's saved layer, so a fresh project has none.
+  buffers when you save a component. When the Theme panel finds several dirty
+  components, **Save all** writes those buffers together.
 - **Save** captures the buffers into the open theme's file. That file is the
   durable copy of your look; matching buffers are then removed.
 - **Load** clears the buffers and points `themes/_active.json` at the theme you

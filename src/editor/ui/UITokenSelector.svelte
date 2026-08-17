@@ -1,7 +1,12 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import type { Snippet } from 'svelte';
-  import { setCssVar, removeCssVar, CSS_VAR_CHANGE_EVENT } from '../core/cssVarSync';
+  import {
+    setCssVar,
+    removeCssVar,
+    CSS_VARS_CHANGE_EVENT,
+    type CssVarsChangeDetail,
+  } from '../core/cssVarSync';
   import type { CssVarRef } from '../core/store/editorTypes';
   import { cssStringToRef } from '../core/store/cssVarRef';
   import {
@@ -263,18 +268,18 @@
   }
 
   function handleVarChange(e: Event) {
-    const detail = (e as CustomEvent<{ name: string }>).detail;
-    if (detail?.name === variable) onvarChange?.();
+    const names = (e as CustomEvent<CssVarsChangeDetail>).detail?.names ?? [];
+    if (names.includes(variable)) onvarChange?.();
   }
 
   onMount(() => {
     document.addEventListener('click', handleClickOutside, true);
-    document.addEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
+    document.addEventListener(CSS_VARS_CHANGE_EVENT, handleVarChange);
   });
 
   onDestroy(() => {
     document.removeEventListener('click', handleClickOutside, true);
-    document.removeEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
+    document.removeEventListener(CSS_VARS_CHANGE_EVENT, handleVarChange);
   });
 </script>
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { CSS_VAR_CHANGE_EVENT } from '../core/cssVarSync';
+  import { CSS_VARS_CHANGE_EVENT, type CssVarsChangeDetail } from '../core/cssVarSync';
   import UITokenSelector from './UITokenSelector.svelte';
   import UIOptionList from './UIOptionList.svelte';
   import UIOptionItem from './UIOptionItem.svelte';
@@ -40,8 +40,8 @@
   }
 
   function handleVarChange(e: Event) {
-    const detail = (e as CustomEvent<{ name: string }>).detail;
-    if (detail?.name === variable) readResolved();
+    const names = (e as CustomEvent<CssVarsChangeDetail>).detail?.names ?? [];
+    if (names.includes(variable)) readResolved();
   }
 
   function select(keyword: string, close: () => void) {
@@ -58,10 +58,10 @@
 
   onMount(() => {
     readResolved();
-    document.addEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
+    document.addEventListener(CSS_VARS_CHANGE_EVENT, handleVarChange);
   });
   onDestroy(() => {
-    document.removeEventListener(CSS_VAR_CHANGE_EVENT, handleVarChange);
+    document.removeEventListener(CSS_VARS_CHANGE_EVENT, handleVarChange);
   });
 
   let activeKey = $derived(options.find((o) => o.key === current)?.key ?? null);

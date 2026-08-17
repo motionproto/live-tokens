@@ -66,10 +66,54 @@ export function getSyncedDocuments(): Document[] {
 }
 
 export const CSS_VAR_CHANGE_EVENT = 'cssvar:change';
+/** One notification for a completed CSS-variable transaction. Internal editor
+ * controls use this instead of reacting once per variable during theme loads. */
+export const CSS_VARS_CHANGE_EVENT = 'cssvars:change';
+
+export interface CssVarsChangeDetail {
+  names: string[];
+}
+
+let batchDepth = 0;
+const pendingNames = new Set<string>();
+
+function dispatchChanges(names: string[]): void {
+  if (typeof document === 'undefined' || names.length === 0) return;
+  document.dispatchEvent(new CustomEvent<CssVarsChangeDetail>(CSS_VARS_CHANGE_EVENT, {
+    detail: { names },
+  }));
+  // Preserve the public per-variable contract for consumers. These events are
+  // deliberately dispatched only after every write in a batch has landed, so
+  // a listener's computed-style read cannot force layout against a half-painted
+  // theme.
+  for (const name of names) {
+    document.dispatchEvent(new CustomEvent(CSS_VAR_CHANGE_EVENT, { detail: { name } }));
+  }
+}
 
 function notifyChange(name: string): void {
-  if (typeof document === 'undefined') return;
-  document.dispatchEvent(new CustomEvent(CSS_VAR_CHANGE_EVENT, { detail: { name } }));
+  if (batchDepth > 0) {
+    pendingNames.add(name);
+    return;
+  }
+  dispatchChanges([name]);
+}
+
+/** Run a group of CSS-variable writes as one observable transaction. DOM
+ * styles are still applied synchronously; notifications wait until the outer
+ * batch completes. Nested batches coalesce into their parent. */
+export function batchCssVarChanges<T>(fn: () => T): T {
+  batchDepth += 1;
+  try {
+    return fn();
+  } finally {
+    batchDepth -= 1;
+    if (batchDepth === 0 && pendingNames.size > 0) {
+      const names = Array.from(pendingNames);
+      pendingNames.clear();
+      dispatchChanges(names);
+    }
+  }
 }
 
 export function setCssVar(name: string, value: string): void {
@@ -88,9 +132,11 @@ export function removeCssVar(name: string): void {
 
 /** Apply a map of CSS variables to :root (and the parent :root when in an iframe). */
 export function applyCssVariables(variables: Record<string, string>): void {
-  for (const [name, value] of Object.entries(variables)) {
-    setCssVar(name, value);
-  }
+  batchCssVarChanges(() => {
+    for (const [name, value] of Object.entries(variables)) {
+      setCssVar(name, value);
+    }
+  });
 }
 
 /** Remove all inline CSS custom properties from :root on both self and parent. */
@@ -131,4 +177,6 @@ export function __resetCssVarSyncForTests(): void {
   selfRoot = null;
   parentRoot = null;
   resolved = false;
+  batchDepth = 0;
+  pendingNames.clear();
 }

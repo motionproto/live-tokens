@@ -12,7 +12,7 @@
  */
 
 import type { EditorState } from './editorTypes';
-import { setCssVar, removeCssVar } from '../cssVarSync';
+import { batchCssVarChanges, setCssVar, removeCssVar } from '../cssVarSync';
 import { applyFontSources, resolveFontStackValues } from '../fonts/fontLoader';
 import { palettesToVars } from '../palettes/paletteDerivation';
 import {
@@ -58,12 +58,14 @@ export function installRenderer(): void {
   if (typeof window === 'undefined') return;
   editorState.subscribe((state) => {
     const next = deriveCssVars(state);
-    for (const name in next) {
-      if (next[name] !== lastApplied[name]) setCssVar(name, next[name]);
-    }
-    for (const name in lastApplied) {
-      if (!(name in next)) removeCssVar(name);
-    }
+    batchCssVarChanges(() => {
+      for (const name in next) {
+        if (next[name] !== lastApplied[name]) setCssVar(name, next[name]);
+      }
+      for (const name in lastApplied) {
+        if (!(name in next)) removeCssVar(name);
+      }
+    });
     lastApplied = next;
 
     // Font source nodes are DOM state just like root custom properties. Keep

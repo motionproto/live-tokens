@@ -126,8 +126,8 @@ function editColors() {
   flushSync();
 }
 
-function editComponent() {
-  setComponentAlias('button', '--button-background', { kind: 'token', name: '--surface-high' });
+function editComponent(componentName = 'button') {
+  setComponentAlias(componentName, `--${componentName}-background`, { kind: 'token', name: '--surface-high' });
   flushSync();
 }
 
@@ -180,17 +180,43 @@ describe('Save', () => {
     expect(confirms).toEqual([]);
   });
 
-  it('warns that a dirty component stays out, and says how many', async () => {
+  it('offers to save every dirty component before it captures the theme', async () => {
+    await mountPanel();
+    editComponent();
+    editComponent('card');
+
+    button('Save').click();
+    await settle();
+
+    expect(target.querySelector('.ui-dialog-title')?.textContent).toBe('Unsaved component edits');
+    expect(dialogSave().textContent?.trim()).toBe('Save all components');
+    expect(calls).not.toContain('PUT /component-configs/button/working');
+    expect(calls).not.toContain('PUT /themes/my-theme');
+
+    dialogSave().click();
+    await settle();
+
+    const buttonPut = calls.indexOf('PUT /component-configs/button/working');
+    const cardPut = calls.indexOf('PUT /component-configs/card/working');
+    const themePut = calls.indexOf('PUT /themes/my-theme');
+    expect(buttonPut).toBeGreaterThan(-1);
+    expect(cardPut).toBeGreaterThan(-1);
+    expect(themePut).toBeGreaterThan(buttonPut);
+    expect(themePut).toBeGreaterThan(cardPut);
+    expect(confirms).toEqual([]);
+  });
+
+  it('cancels without saving when dirty components need review', async () => {
     await mountPanel();
     editComponent();
 
     button('Save').click();
     await settle();
+    target.querySelector<HTMLButtonElement>('.ui-dialog-btn:not(.primary)')!.click();
+    await settle();
 
-    expect(confirms).toEqual([
-      '1 component has unsaved edits. Those stay out until you save them in the '
-        + 'component editor. Save the theme anyway?',
-    ]);
+    expect(calls).not.toContain('PUT /component-configs/button/working');
+    expect(calls).not.toContain('PUT /themes/my-theme');
   });
 });
 
@@ -216,14 +242,17 @@ describe('Save As', () => {
 // The editor's history counts component edits too, so a signal that reads it
 // cannot stand in for "the colors and type differ from what the server holds".
 describe('Component-only edits', () => {
-  it('leave the buffer alone on Save', async () => {
+  it('write the component buffer without touching colors and type', async () => {
     await mountPanel();
     editComponent();
 
     button('Save').click();
     await settle();
+    dialogSave().click();
+    await settle();
 
     expect(calls.filter((c) => c.startsWith('PUT /colors-and-type/'))).toEqual([]);
+    expect(calls).toContain('PUT /component-configs/button/working');
     expect(calls).toContain('PUT /themes/my-theme');
   });
 });
@@ -239,6 +268,23 @@ describe('Adopt', () => {
     const bufferPut = calls.indexOf('PUT /colors-and-type/working');
     const themePut = calls.indexOf('PUT /themes/my-theme');
     expect(themePut).toBeGreaterThan(bufferPut);
+    expect(calls.indexOf('PUT /production')).toBeGreaterThan(themePut);
+  });
+
+  it('flushes dirty components before it saves and ships the theme', async () => {
+    await mountPanel();
+    editComponent();
+
+    button('Adopt').click();
+    await settle();
+    expect(dialogSave().textContent?.trim()).toBe('Save component');
+    dialogSave().click();
+    await settle();
+
+    const componentPut = calls.indexOf('PUT /component-configs/button/working');
+    const themePut = calls.indexOf('PUT /themes/my-theme');
+    expect(componentPut).toBeGreaterThan(-1);
+    expect(themePut).toBeGreaterThan(componentPut);
     expect(calls.indexOf('PUT /production')).toBeGreaterThan(themePut);
   });
 

@@ -1,7 +1,7 @@
 import { liveMovedSinceBake } from '../productionPulse';
 import { openThemeSlug } from '../store/editorConfigStore';
-import { seedComponentsFromApi } from '../store/editorStore';
-import { hydrateColorsAndType } from './colorsAndTypeService';
+import { loadThemeFromApi } from '../store/editorStore';
+import { migrateColorsAndTypeFonts } from '../fonts/fontMigration';
 import type { ApplyThemeResult } from './themeService';
 
 const CHANNEL_NAME = 'live-tokens:active-theme:v1';
@@ -38,8 +38,9 @@ function isAppliedThemeMessage(value: unknown): value is AppliedThemeMessage {
  * editor must hydrate the typed palette and component layers as well.
  */
 export function hydrateAppliedTheme(fileName: string, result: ApplyThemeResult): void {
-  hydrateColorsAndType(structuredClone(result.colorsAndType));
-  seedComponentsFromApi(structuredClone(result.componentConfigs));
+  const colorsAndType = structuredClone(result.colorsAndType);
+  migrateColorsAndTypeFonts(colorsAndType);
+  loadThemeFromApi(colorsAndType, structuredClone(result.componentConfigs));
   openThemeSlug.set(fileName);
   liveMovedSinceBake.set(false);
   if (typeof document !== 'undefined') {

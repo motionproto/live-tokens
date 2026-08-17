@@ -191,6 +191,7 @@
   }
 
   let lastPageBackground = '';
+  let lastBoxBackground = '';
   function syncConnectorContrast() {
     if (!stageEl) return;
     const styles = getComputedStyle(stageEl);
@@ -201,11 +202,21 @@
     stageEl.style.setProperty('--ftt-contrast-color', `var(${token})`);
   }
 
+  function syncBoxLabelContrast() {
+    if (!boxEl) return;
+    const background = getComputedStyle(boxEl).backgroundColor;
+    if (background === lastBoxBackground) return;
+    lastBoxBackground = background;
+    const token = contrastTokenForBackground(background);
+    boxEl.style.setProperty('--ftt-box-contrast-color', `var(${token})`);
+  }
+
   // Kite strings and energy balls are recomputed each frame from the box's
   // measured rect so intrinsic sizing drives anchor placement.
   function syncFrame() {
     if (!stageEl) return;
     syncConnectorContrast();
+    syncBoxLabelContrast();
     const stageRect = stageEl.getBoundingClientRect();
     if (stageRect.width === 0 || stageRect.height === 0) return;
 

@@ -1,7 +1,10 @@
 import type { ComponentConfig, ComponentConfigMeta, LiveSource } from '../themes/themeTypes';
+import type { EditorState } from '../store/editorTypes';
 import { versionedFileResource } from '../storage/files/versionedFileResourceClient';
 import { API_BASE } from '../storage/apiBase';
 import { liveMovedSinceBake } from '../productionPulse';
+import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../themes/migrations';
+import { refToDiskValue } from '../store/cssVarRef';
 
 /**
  * REST client for per-component config files. Parallel to `colorsAndTypeService.ts`
@@ -58,6 +61,28 @@ export const deleteComponentConfig = (component: string, fileName: string): Prom
  *  copy, else the component default. `_source` says which. */
 export const getActiveComponentConfig = (component: string): Promise<ComponentConfig | null> =>
   resourceFor(component).getActive();
+
+/** Serialize one live component slice into the on-disk config shape. Shared by
+ * the component editor's local checkpoint and the theme-level save-all flow. */
+export function componentConfigFromState(
+  state: EditorState,
+  component: string,
+  displayName: string,
+): ComponentConfig {
+  const now = new Date().toISOString();
+  const slice = state.components[component];
+  return {
+    name: displayName,
+    component,
+    createdAt: now,
+    updatedAt: now,
+    aliases: Object.fromEntries(
+      Object.entries(slice?.aliases ?? {}).map(([name, ref]) => [name, refToDiskValue(ref)]),
+    ),
+    config: { ...(slice?.config ?? {}) },
+    schemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
+  };
+}
 
 /** Write the component's unsaved buffer. */
 export async function writeWorkingComponentConfig(

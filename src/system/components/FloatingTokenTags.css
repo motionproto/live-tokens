@@ -17,6 +17,7 @@
 
 /* --- Central box ---------------------------------------------------------- */
 .ftt-box {
+  --ftt-box-contrast-color: var(--color-white);
   position: absolute;
   left: 50%;
   top: 50%;
@@ -46,7 +47,7 @@
   font-family: Manrope, system-ui, -apple-system, sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--ftt-box-contrast-color);
   white-space: nowrap;
   user-select: none;
   pointer-events: none;
