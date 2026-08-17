@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.50.0 — Live editing stays in sync
+
+### Added
+
+- **Save and Adopt can capture every unsaved component.** When component
+  editors have pending changes, the Theme panel offers to save them together
+  before saving or adopting the theme, so the look on screen can be persisted
+  without visiting each component editor first.
+
+- **Font-weight choices follow the selected family.** The editor detects the
+  weights available for project and Google fonts, keeps the current custom
+  value visible, and avoids offering weights the font cannot render.
+
+### Fixed
+
+- **Theme changes paint as one transaction.** Loading, previewing, and applying
+  a theme now update colors, type, and components together instead of exposing
+  intermediate mixed states or flashing through the previous live look.
+
+- **Editor controls react reliably to live token changes.** Reused selectors,
+  gradient controls, linked aliases, typography, spacing, and component state
+  now refresh when their bound variable or upstream token changes.
+
+- **Component saves preserve migrated values.** Theme-level saves serialize
+  the current component state consistently, including corrected migration
+  handling for Section Divider and Corner Badge configurations.
+
 ## 0.49.1 — Automatic working-copy cleanup
 
 ### Fixed
