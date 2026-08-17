@@ -1,7 +1,7 @@
 {
   "name": "Spring Meadow",
   "createdAt": "2026-08-13T10:21:46.867Z",
-  "updatedAt": "2026-08-17T14:51:55.412Z",
+  "updatedAt": "2026-08-17T20:21:26.098Z",
   "schemaVersion": 3,
   "colorsAndType": {
     "name": "Spring Meadow",
@@ -3431,12 +3431,12 @@
       }
     },
     "sectiondivider": {
-      "name": "spring-meadow",
+      "name": "Spring Meadow",
       "component": "sectiondivider",
-      "createdAt": "2026-05-10T22:09:00.336Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "createdAt": "2026-08-17T20:21:22.937Z",
+      "updatedAt": "2026-08-17T20:21:22.937Z",
       "aliases": {
-        "--sectiondivider-lg-title-font-family": "--font-display",
+        "--sectiondivider-lg-title-font-family": "--font-sans",
         "--sectiondivider-lg-title-font-weight": "--font-weight-bold",
         "--sectiondivider-lg-title-font-size": "--font-size-5xl",
         "--sectiondivider-lg-title-line-height": "--line-height-normal",
@@ -3465,9 +3465,9 @@
         "--sectiondivider-lg-border": "--color-transparent",
         "--sectiondivider-lg-title-outline-color": "--surface-canvas-lowest",
         "--sectiondivider-lg-hairline-color": "--border-brand-medium",
-        "--sectiondivider-md-title-font-family": "--font-display",
-        "--sectiondivider-md-title-font-weight": "--font-weight-bold",
-        "--sectiondivider-md-title-font-size": "--font-size-4xl",
+        "--sectiondivider-md-title-font-family": "--font-sans",
+        "--sectiondivider-md-title-font-weight": "--font-weight-extrabold",
+        "--sectiondivider-md-title-font-size": "--font-size-5xl",
         "--sectiondivider-md-title-line-height": "--line-height-normal",
         "--sectiondivider-md-title-letter-spacing": "--letter-spacing-normal",
         "--sectiondivider-md-title-outline-width": "--border-width-4",
@@ -3488,13 +3488,13 @@
         "--sectiondivider-md-shadow": "--shadow-none",
         "--sectiondivider-md-hairline-thickness": "--border-width-1",
         "--sectiondivider-md-background": "--color-transparent",
-        "--sectiondivider-md-title": "--text-primary",
+        "--sectiondivider-md-title": "--color-brand-700",
         "--sectiondivider-md-description": "--text-secondary",
         "--sectiondivider-md-eyebrow": "--text-tertiary",
         "--sectiondivider-md-border": "--color-transparent",
-        "--sectiondivider-md-title-outline-color": "--surface-accent-lowest",
+        "--sectiondivider-md-title-outline-color": "color-mix(in srgb, var(--color-white) 34%, transparent)",
         "--sectiondivider-md-hairline-color": "--border-brand-medium",
-        "--sectiondivider-sm-title-font-family": "--font-display",
+        "--sectiondivider-sm-title-font-family": "--font-sans",
         "--sectiondivider-sm-title-font-weight": "--font-weight-medium",
         "--sectiondivider-sm-title-font-size": "--font-size-3xl",
         "--sectiondivider-sm-title-line-height": "--line-height-normal",
@@ -3523,7 +3523,9 @@
         "--sectiondivider-sm-border": "--color-transparent",
         "--sectiondivider-sm-title-outline-color": "color-mix(in srgb, var(--surface-neutral-lowest) 25%, transparent)",
         "--sectiondivider-sm-hairline-color": "color-mix(in srgb, var(--border-brand-medium) 50%, transparent)"
-      }
+      },
+      "config": {},
+      "schemaVersion": 21
     },
     "segmentedcontrol": {
       "name": "spring-meadow",

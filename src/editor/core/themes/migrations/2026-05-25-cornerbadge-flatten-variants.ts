@@ -16,6 +16,7 @@ import type { Migration } from './index';
  */
 const VARIANTS = ['primary', 'accent', 'neutral', 'alternate', 'canvas', 'special', 'success', 'warning', 'danger', 'info'] as const;
 const RE = new RegExp(`^--corner-badge-(${VARIANTS.join('|')})-(.+)$`);
+const CURRENT_COLOR_PROPS = new Set(['surface', 'border', 'text']);
 
 function flattenVariants(rawVars: Record<string, string>, meta: { component?: string }): Record<string, string> {
   if (meta.component !== 'cornerbadge') return rawVars;
@@ -25,6 +26,13 @@ function flattenVariants(rawVars: Record<string, string>, meta: { component?: st
     const m = key.match(RE);
     if (m) {
       const prop = m[2];
+      // The current component composes Badge's per-variant colors under these
+      // same prefixes. They were introduced after this migration and must be
+      // left intact when an otherwise-current unversioned snapshot is loaded.
+      if (CURRENT_COLOR_PROPS.has(prop)) {
+        out[key] = value;
+        continue;
+      }
       if (!collected.has(prop)) collected.set(prop, value);
       continue;
     }

@@ -15,6 +15,8 @@ import {
   redo,
   __resetForTests,
 } from '../store/editorStore';
+import { componentConfigFromState } from './componentConfigService';
+import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../themes/migrations';
 
 const tokenRef = (name: string) => ({ kind: 'token' as const, name });
 
@@ -164,6 +166,48 @@ describe('loadComponentActive — split-on-load migration', () => {
       { '--dialog-confirm-variant': 'danger' },
     );
     expect(get(editorState).components.dialog.config['--dialog-confirm-variant']).toBe('danger');
+  });
+});
+
+describe('component config — load/save lifecycle', () => {
+  it('preserves modern Section Divider aliases when an unversioned config is migrated and saved', () => {
+    const diskAliases = {
+      '--sectiondivider-md-padding': '--space-4',
+      '--sectiondivider-md-title-letter-spacing': '--letter-spacing-normal',
+      '--sectiondivider-md-eyebrow-letter-spacing': '--letter-spacing-wide',
+      '--sectiondivider-md-title': '--color-brand-700',
+      '--sectiondivider-md-title-outline-color': 'color-mix(in srgb, var(--color-white) 34%, transparent)',
+    };
+
+    // Embedded component snapshots written before schema stamps existed are
+    // treated as v0. Saving one must not mutate already-modern token names.
+    loadComponentActive('sectiondivider', diskAliases, {}, 0);
+    const firstSave = componentConfigFromState(
+      get(editorState),
+      'sectiondivider',
+      'Spring Meadow',
+    );
+
+    expect(firstSave.aliases).toEqual(diskAliases);
+    expect(firstSave.schemaVersion).toBe(CURRENT_COMPONENT_SCHEMA_VERSION);
+
+    // Once stamped, another load/save pass is byte-shape stable for the
+    // component-owned payload (timestamps are intentionally refreshed).
+    loadComponentActive(
+      'sectiondivider',
+      firstSave.aliases,
+      firstSave.config,
+      firstSave.schemaVersion,
+    );
+    const secondSave = componentConfigFromState(
+      get(editorState),
+      'sectiondivider',
+      'Spring Meadow',
+    );
+
+    expect(secondSave.aliases).toEqual(firstSave.aliases);
+    expect(secondSave.config).toEqual(firstSave.config);
+    expect(secondSave.schemaVersion).toBe(firstSave.schemaVersion);
   });
 });
 

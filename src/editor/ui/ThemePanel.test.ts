@@ -10,6 +10,7 @@ import { get } from 'svelte/store';
 import { API_BASE } from '../core/storage/apiBase';
 import { openThemeSlug } from '../core/store/editorConfigStore';
 import { mutate, setComponentAlias, __resetForTests } from '../core/store/editorStore';
+import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../core/themes/migrations';
 import { liveMovedSinceBake, productionTheme } from '../core/productionPulse';
 import { isPreviewing, __resetPreviewForTests } from '../core/preview/lookPreview';
 import ThemePanel from './ThemePanel.svelte';
@@ -35,6 +36,7 @@ const LOOK = {
 let target: HTMLDivElement;
 let component: ReturnType<typeof mount> | null = null;
 let calls: string[];
+let requestBodies: Array<{ route: string; body: unknown }>;
 let confirms: string[];
 /** Route → response, consulted before the defaults. */
 let overrides: Record<string, () => Response>;
@@ -49,6 +51,9 @@ function json(body: unknown, status = 200) {
 function server(url: string, init?: RequestInit): Response {
   const route = `${init?.method ?? 'GET'} ${url.replace(API_BASE, '')}`;
   calls.push(route);
+  if (typeof init?.body === 'string') {
+    requestBodies.push({ route, body: JSON.parse(init.body) });
+  }
   const override = overrides[route];
   if (override) return override();
   switch (route) {
@@ -92,6 +97,7 @@ beforeEach(async () => {
   productionTheme.set(null);
   liveMovedSinceBake.set(false);
   calls = [];
+  requestBodies = [];
   confirms = [];
   overrides = {};
   vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => server(url, init));
@@ -203,6 +209,11 @@ describe('Save', () => {
     expect(cardPut).toBeGreaterThan(-1);
     expect(themePut).toBeGreaterThan(buttonPut);
     expect(themePut).toBeGreaterThan(cardPut);
+    const buttonBody = requestBodies.find(
+      (request) => request.route === 'PUT /component-configs/button/working',
+    )?.body as { aliases: Record<string, string>; schemaVersion: number };
+    expect(buttonBody.aliases['--button-background']).toBe('--surface-high');
+    expect(buttonBody.schemaVersion).toBe(CURRENT_COMPONENT_SCHEMA_VERSION);
     expect(confirms).toEqual([]);
   });
 

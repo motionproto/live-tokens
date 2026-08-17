@@ -494,16 +494,23 @@
   --progressbar-label-gap: var(--space-10);
 
   /* sectiondivider */
+  --sectiondivider-lg-title-font-family: var(--font-sans);
   --sectiondivider-lg-padding: var(--space-4);
   --sectiondivider-lg-title-padding: var(--space-6);
   --sectiondivider-lg-description-padding: var(--space-4);
   --sectiondivider-lg-eyebrow-padding: var(--space-4);
   --sectiondivider-lg-radius: var(--radius-xl);
+  --sectiondivider-md-title-font-family: var(--font-sans);
+  --sectiondivider-md-title-font-weight: var(--font-weight-extrabold);
+  --sectiondivider-md-title-font-size: var(--font-size-5xl);
   --sectiondivider-md-padding: var(--space-4);
   --sectiondivider-md-title-padding: var(--space-6);
   --sectiondivider-md-description-padding: var(--space-4);
   --sectiondivider-md-eyebrow-padding: var(--space-4);
   --sectiondivider-md-radius: var(--radius-xl);
+  --sectiondivider-md-title: var(--color-brand-700);
+  --sectiondivider-md-title-outline-color: color-mix(in srgb, var(--color-white) 34%, transparent);
+  --sectiondivider-sm-title-font-family: var(--font-sans);
   --sectiondivider-sm-padding: var(--space-4);
   --sectiondivider-sm-title-padding: var(--space-6);
   --sectiondivider-sm-description-padding: var(--space-4);

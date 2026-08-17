@@ -28,7 +28,10 @@ const VARIANTS = ['lg', 'md', 'sm'] as const;
 const SUFFIX_RENAMES: Array<[RegExp, string]> = [
   [/-title-border-width$/, '-title-outline-width'],
   [/-title-stroke-color$/, '-title-outline-color'],
-  [/-padding$/, '-spacing'],
+  [
+    /^--sectiondivider-(canvas|neutral|alternate|primary|accent|special)-padding$/,
+    '--sectiondivider-$1-spacing',
+  ],
 ];
 
 function renameKeySuffix(key: string): string {

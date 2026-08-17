@@ -315,6 +315,24 @@ describe('migration runner — schemaVersion gating', () => {
     expect(migrated['--corner-badge-info-text-font-family']).toBeUndefined();
   });
 
+  it('component-config v15 preserves current Corner Badge variant colors', () => {
+    const currentColors = {
+      '--corner-badge-primary-surface': '--surface-brand',
+      '--corner-badge-primary-border': '--border-brand',
+      '--corner-badge-primary-text': '--text-brand',
+      '--corner-badge-danger-surface': '--surface-danger',
+      '--corner-badge-danger-border': '--border-danger',
+      '--corner-badge-danger-text': '--text-danger',
+    };
+
+    const out = runMigrations('component-config', 15, currentColors, { component: 'cornerbadge' });
+
+    expect(out).toEqual(currentColors);
+    expect(out['--corner-badge-surface']).toBeUndefined();
+    expect(out['--corner-badge-border']).toBeUndefined();
+    expect(out['--corner-badge-text']).toBeUndefined();
+  });
+
   it('component-config v15 cornerbadge-flatten migration only fires for cornerbadge', () => {
     const v15 = { '--badge-primary-padding': '--space-6' };
     const out = runMigrations('component-config', 15, v15, { component: 'badge' });
@@ -639,6 +657,40 @@ describe('migration runner — schemaVersion gating', () => {
       expect(out[`--sectiondivider-${v}-radius`]).toBe('--radius-lg');
       expect(out[`--sectiondivider-${v}-shadow`]).toBe('--shadow-none');
     }
+  });
+
+  it('component-config v8 → v9 sectiondivider does not rename current per-element padding', () => {
+    const current = {
+      '--sectiondivider-md-padding': '--space-4',
+      '--sectiondivider-md-title-padding': '--space-6',
+      '--sectiondivider-md-description-padding': '--space-4',
+      '--sectiondivider-md-eyebrow-padding': '--space-2',
+    };
+
+    const out = runMigrations('component-config', 8, current, { component: 'sectiondivider' });
+
+    expect(out['--sectiondivider-md-padding']).toBe('--space-4');
+    expect(out['--sectiondivider-md-title-padding']).toBe('--space-6');
+    expect(out['--sectiondivider-md-description-padding']).toBe('--space-4');
+    expect(out['--sectiondivider-md-eyebrow-padding']).toBe('--space-2');
+    expect(out['--sectiondivider-md-title-spacing']).toBeUndefined();
+  });
+
+  it('component-config v9 → v10 sectiondivider renames container spacing without touching letter spacing', () => {
+    const v9 = {
+      '--sectiondivider-md-spacing': '--space-4',
+      '--sectiondivider-md-title-letter-spacing': '--letter-spacing-tight',
+      '--sectiondivider-md-eyebrow-letter-spacing': '--letter-spacing-wide',
+    };
+
+    const out = runMigrations('component-config', 9, v9, { component: 'sectiondivider' });
+
+    expect(out['--sectiondivider-md-spacing']).toBeUndefined();
+    expect(out['--sectiondivider-md-padding']).toBe('--space-4');
+    expect(out['--sectiondivider-md-title-letter-spacing']).toBe('--letter-spacing-tight');
+    expect(out['--sectiondivider-md-eyebrow-letter-spacing']).toBe('--letter-spacing-wide');
+    expect(out['--sectiondivider-md-title-letter-padding']).toBeUndefined();
+    expect(out['--sectiondivider-md-eyebrow-letter-padding']).toBeUndefined();
   });
 
   it('component-config v8 → v9 only fires for sectiondivider', () => {

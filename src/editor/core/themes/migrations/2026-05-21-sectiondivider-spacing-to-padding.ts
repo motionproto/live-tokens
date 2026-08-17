@@ -16,7 +16,10 @@ export const componentMigration_2026_05_21_sectiondividerSpacingToPadding: Migra
     if (meta.component !== 'sectiondivider') return { ...rawVars };
     const out: Record<string, string> = {};
     for (const [key, value] of Object.entries(rawVars)) {
-      const renamed = key.replace(/-spacing$/, '-padding');
+      const renamed = key.replace(
+        /^--sectiondivider-(lg|md|sm)-spacing$/,
+        '--sectiondivider-$1-padding',
+      );
       out[renamed] = value;
     }
     return out;
