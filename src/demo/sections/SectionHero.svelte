@@ -91,7 +91,7 @@
   }
 
   .hero-italic {
-    font-family: var(--font-serif);
+    font-family: var(--heading-xl-font-family);
     font-size: var(--font-size-6xl);
     font-weight: var(--font-weight-normal);
     color: var(--text-brand);
@@ -100,7 +100,7 @@
   }
 
   .hero-tagline {
-    font-family: var(--font-serif);
+    font-family: var(--body-md-font-family);
     font-size: var(--font-size-2xl);
     color: var(--text-primary);
     line-height: 1.2;

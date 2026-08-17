@@ -7,6 +7,7 @@
  */
 
 .ftt-stage {
+  --ftt-contrast-color: var(--color-white);
   position: relative;
   width: 100%;
   height: 100%;
@@ -73,7 +74,7 @@
 }
 
 .ftt-string {
-  stroke: #d4ccc6;
+  stroke: var(--ftt-contrast-color);
   stroke-width: 2;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;

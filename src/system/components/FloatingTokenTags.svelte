@@ -35,6 +35,7 @@
 <script lang="ts">
   import MenuSelect from './MenuSelect.svelte';
   import { SvelteMap } from 'svelte/reactivity';
+  import { contrastTokenForBackground } from '../internal/backgroundContrast';
   // `.ftt-tag` is hand-rolled (not Badge) so editing badge-* tokens doesn't
   // repaint the playground. The dropdown uses MenuSelect on purpose.
   import './FloatingTokenTags.css';
@@ -189,10 +190,22 @@
     return name ? `var(${name})` : undefined;
   }
 
+  let lastPageBackground = '';
+  function syncConnectorContrast() {
+    if (!stageEl) return;
+    const styles = getComputedStyle(stageEl);
+    const pageBackground = styles.getPropertyValue('--page-bg').trim();
+    if (pageBackground === lastPageBackground) return;
+    lastPageBackground = pageBackground;
+    const token = contrastTokenForBackground(pageBackground);
+    stageEl.style.setProperty('--ftt-contrast-color', `var(${token})`);
+  }
+
   // Kite strings and energy balls are recomputed each frame from the box's
   // measured rect so intrinsic sizing drives anchor placement.
   function syncFrame() {
     if (!stageEl) return;
+    syncConnectorContrast();
     const stageRect = stageEl.getBoundingClientRect();
     if (stageRect.width === 0 || stageRect.height === 0) return;
 
