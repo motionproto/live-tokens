@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **Working buffers are deltas from the active theme.** Loading a theme now
+  clears working buffers and changes only `themes/_active.json`; live reads
+  resolve through the active theme. Saving removes buffers whose content is now
+  durable, while deleting an active theme materialises only the deltas needed
+  to preserve the visible look.
+
 ## 0.48.1 — Demo typography follows the theme
 
 ### Fixed

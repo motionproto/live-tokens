@@ -4,7 +4,7 @@ Write throwaway files (theme briefs, test scripts, one-off outputs) to `scratch/
 
 # The data tree is live app state
 
-The editor, the dev server, `live-tokens generate-theme`, and `live-tokens adjust` write into `src/live-tokens/data/` and `src/system/styles/fonts.css`. Loading a theme writes `_working.json` buffers and sets `themes/_active.json`. Adopt sets `themes/_production.json` and rewrites `tokens.generated.css` and `fonts.css`. Generating a theme also creates `themes/<slug>.json`.
+The editor, the dev server, `live-tokens generate-theme`, and `live-tokens adjust` write into `src/live-tokens/data/` and `src/system/styles/fonts.css`. Loading a theme clears unsaved `_working.json` deltas and sets `themes/_active.json`; live reads fall through to that theme. Adopt sets `themes/_production.json` and rewrites `tokens.generated.css` and `fonts.css`. Generating a theme also creates `themes/<slug>.json`.
 
 When you exercise the generator or the editor as a test, restore that state before you finish. Skip the restore only when the data change is the deliverable.
 

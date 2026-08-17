@@ -496,7 +496,7 @@ describe('the live layer doors', () => {
 
     const { json } = await request('GET', `${API}/component-configs`);
     const byName = Object.fromEntries(json.components.map((c: any) => [c.name, c.source]));
-    expect(byName.button).toBe('working');
+    expect(byName.button).toBe('theme');
     expect(byName.card).toBe('default');
   });
 });
@@ -514,7 +514,8 @@ describe('deletability', () => {
     // The look carries its colors by value, so the preset it was built from is
     // just a file the user can throw away.
     expect(readJson(path.join(themesDir, 'look.json')).colorsAndType.name).toBe('Custom');
-    expect(readJson(path.join(colorsAndTypeDir, '_working.json')).name).toBe('Custom');
+    expect(fs.existsSync(path.join(colorsAndTypeDir, '_working.json'))).toBe(false);
+    expect((await request('GET', `${API}/colors-and-type/active`)).json.name).toBe('Custom');
     expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).toBe(cssBefore);
   });
 
@@ -541,7 +542,7 @@ describe('deletability', () => {
     expect(fs.existsSync(path.join(themesDir, 'look.json'))).toBe(true);
   });
 
-  it('deleting the active theme heals the pointer to default and keeps the buffer', async () => {
+  it('deleting the active theme heals the pointer and materialises preserving deltas', async () => {
     seedPointerTheme();
     boot();
     await request('PUT', `${API}/themes/look/apply`);
@@ -550,9 +551,16 @@ describe('deletability', () => {
     expect(status).toBe(200);
     expect(fs.existsSync(path.join(themesDir, 'look.json'))).toBe(false);
     expect(readJson(path.join(themesDir, '_active.json')).activeFile).toBe('default');
-    // The buffer outlives the document it came from: the user's live edits are
-    // not the theme file's to take with it.
+    // The theme supplied this content before deletion, so the server writes
+    // only the deltas required to preserve that visible look over Default.
     expect(readJson(path.join(colorsAndTypeDir, '_working.json')).name).toBe('Custom');
+    expect(readJson(path.join(configsDir, 'button', '_working.json')).aliases).toEqual(
+      BUTTON_CONFIG.aliases,
+    );
+    expect((await request('GET', `${API}/colors-and-type/active`)).json.name).toBe('Custom');
+    expect((await request('GET', `${API}/component-configs/button/active`)).json.aliases).toEqual(
+      BUTTON_CONFIG.aliases,
+    );
   });
 });
 
@@ -569,19 +577,16 @@ describe('apply', () => {
     return found.sort();
   }
 
-  it('fills the buffers from the embedded data and opens the theme', async () => {
+  it('clears the buffers and opens the theme through the active pointer', async () => {
     seedPointerTheme();
     boot();
     const { status, json } = await request('PUT', `${API}/themes/look/apply`);
     expect(status).toBe(200);
 
-    expect(readJson(path.join(colorsAndTypeDir, '_working.json')).name).toBe('Custom');
-    expect(readJson(path.join(configsDir, 'button', '_working.json')).aliases).toEqual(
-      BUTTON_CONFIG.aliases,
-    );
+    expect(workingSet()).toEqual([]);
     expect(json.theme._fileName).toBe('look');
-    expect(json.colorsAndType._source).toBe('working');
-    expect(json.componentConfigs.button._source).toBe('working');
+    expect(json.colorsAndType._source).toBe('theme');
+    expect(json.componentConfigs.button._source).toBe('theme');
     expect(json.componentConfigs.card._source).toBe('default');
     expect(readJson(path.join(themesDir, '_active.json')).activeFile).toBe('look');
   });
@@ -602,7 +607,7 @@ describe('apply', () => {
     expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).toBe(cssBefore);
   });
 
-  it('leaves exactly the second theme\'s buffers after applying two themes', async () => {
+  it('leaves no buffers after applying two themes', async () => {
     seedPointerTheme();
     writeJson(path.join(themesDir, 'other.json'), {
       name: 'other',
@@ -615,18 +620,18 @@ describe('apply', () => {
     boot();
 
     await request('PUT', `${API}/themes/look/apply`);
-    expect(workingSet()).toEqual(['button', 'colors-and-type']);
+    expect(workingSet()).toEqual([]);
 
     await request('PUT', `${API}/themes/other/apply`);
-    expect(workingSet()).toEqual(['card', 'colors-and-type']);
-    expect(readJson(path.join(colorsAndTypeDir, '_working.json')).name).toBe('Other');
+    expect(workingSet()).toEqual([]);
+    expect((await request('GET', `${API}/colors-and-type/active`)).json.name).toBe('Other');
   });
 
   it('leaves no buffer at all when the default theme is applied', async () => {
     seedPointerTheme();
     boot();
     await request('PUT', `${API}/themes/look/apply`);
-    expect(workingSet().length).toBeGreaterThan(0);
+    expect(workingSet()).toEqual([]);
 
     const { status, json } = await request('PUT', `${API}/themes/default/apply`);
     expect(status).toBe(200);
@@ -648,6 +653,40 @@ describe('apply', () => {
     boot();
     const { json } = await request('PUT', `${API}/themes/ghosted/apply`);
     expect(json.skippedComponents).toEqual(['ghost']);
+  });
+
+  it('does not allocate a buffer for content equal to the active theme layer', async () => {
+    seedPointerTheme();
+    boot();
+    await request('PUT', `${API}/themes/look/apply`);
+
+    await request('PUT', `${API}/colors-and-type/working`, COLORS_AND_TYPE);
+    await request('PUT', `${API}/component-configs/button/working`, BUTTON_CONFIG);
+
+    expect(workingSet()).toEqual([]);
+  });
+
+  it('removes matching working deltas after the active theme is saved', async () => {
+    seedPointerTheme();
+    boot();
+    await request('PUT', `${API}/themes/look/apply`);
+    const editedColors = { ...COLORS_AND_TYPE, name: 'Edited' };
+    const editedButton = {
+      ...BUTTON_CONFIG,
+      aliases: { ...BUTTON_CONFIG.aliases, '--button-radius': '1px' },
+    };
+    await request('PUT', `${API}/colors-and-type/working`, editedColors);
+    await request('PUT', `${API}/component-configs/button/working`, editedButton);
+    expect(workingSet()).toEqual(['button', 'colors-and-type']);
+
+    const look = readJson(path.join(themesDir, 'look.json'));
+    look.colorsAndType = editedColors;
+    look.componentConfigs.button = editedButton;
+    await request('PUT', `${API}/themes/look`, look);
+
+    expect(workingSet()).toEqual([]);
+    expect((await request('GET', `${API}/colors-and-type/active`)).json._source).toBe('theme');
+    expect((await request('GET', `${API}/component-configs/button/active`)).json._source).toBe('theme');
   });
 });
 

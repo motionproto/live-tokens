@@ -63,9 +63,9 @@ export interface ApplyThemeResult {
 }
 
 /**
- * Open a theme: the server writes its embedded copies into the `_working`
- * buffers, clears the buffer of every component it does not carry, points
- * `themes/_active.json` at it and returns the resolved state in one payload.
+ * Open a theme: the server clears the `_working` buffers, points
+ * `themes/_active.json` at it, and returns the resolved state in one payload.
+ * Live reads then fall through to the theme's embedded layers.
  * Production is untouched, so trying a look cannot change what the site ships.
  * Clients follow with a full page reload; opening a theme is a "blow up the
  * world" action.

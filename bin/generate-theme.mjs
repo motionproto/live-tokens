@@ -5,7 +5,7 @@
 // TS sources), enforces the AA contrast gate, and saves the result as a theme:
 // <themesDir>/<slug>.json, the document that carries the whole look by value.
 // Unless --no-activate it then opens that theme the way the dev server's apply
-// door does — the embedded copies land in the reserved `_working` buffers and
+// door does — existing `_working` buffers are cleared and
 // `themes/_active.json` names it. Nothing else moves, so generating a theme
 // cannot change what the site ships.
 //
@@ -97,9 +97,8 @@ function resolveCarrySource({ carryFrom, colorsAndTypeDir, componentConfigsDir, 
       readData(colorsAndTypeDir, 'colors-and-type', 'default'),
   );
 
-  // Presence is the model's own rule for "off the shipped default": a buffer
-  // exists only where the layer sits off it, and a theme carries only the
-  // components it changes.
+  // A working buffer is an unsaved delta from the active theme; absent theme
+  // component entries fall through to the component defaults.
   const componentConfigs = {};
   for (const comp of comps) {
     const live =
@@ -168,7 +167,7 @@ export async function runGenerateTheme({
   if (!dryRun) {
     mkdirSync(dirs.themesDir, { recursive: true });
     writeFileSync(themePath, JSON.stringify(theme, null, 2) + '\n');
-    if (activate) applyTheme(theme, slug, dirs);
+    if (activate) applyTheme(slug, dirs);
   }
 
   return {
@@ -185,21 +184,15 @@ export async function runGenerateTheme({
   };
 }
 
-/** The apply door's write set, reproduced: the theme's copies fill the reserved
- *  buffers, every component it does not carry is cleared back to the default,
- *  and `themes/_active.json` names the open document. Production is untouched. */
-function applyTheme(theme, slug, dirs) {
-  mkdirSync(dirs.colorsAndTypeDir, { recursive: true });
-  writeFileSync(
-    join(dirs.colorsAndTypeDir, '_working.json'),
-    JSON.stringify(theme.colorsAndType, null, 2),
-  );
+/** The apply door's write set, reproduced: clear every working delta and point
+ *  `themes/_active.json` at the open document. Production is untouched. */
+function applyTheme(slug, dirs) {
+  const colorsWorking = join(dirs.colorsAndTypeDir, '_working.json');
+  if (existsSync(colorsWorking)) rmSync(colorsWorking);
 
   for (const comp of componentNames(dirs.componentConfigsDir)) {
     const workingPath = join(dirs.componentConfigsDir, comp, '_working.json');
-    const embedded = theme.componentConfigs[comp];
-    if (embedded) writeFileSync(workingPath, JSON.stringify({ ...embedded, component: comp }, null, 2));
-    else if (existsSync(workingPath)) rmSync(workingPath);
+    if (existsSync(workingPath)) rmSync(workingPath);
   }
 
   writeFileSync(join(dirs.themesDir, '_active.json'), JSON.stringify({ activeFile: slug }));

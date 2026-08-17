@@ -89,7 +89,7 @@ describe('runGenerateTheme', () => {
     expect(Object.keys(theme.colorsAndType.editorConfigs)).toHaveLength(10);
 
     expect(readJson(join(root, 'themes', '_active.json')).activeFile).toBe('spring-meadow');
-    expect(readJson(join(root, 'colors-and-type', '_working.json')).name).toBe('Spring Meadow');
+    expect(existsSync(join(root, 'colors-and-type', '_working.json'))).toBe(false);
   });
 
   it('writes no named colors-and-type file and never touches production', async () => {

@@ -936,10 +936,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    * the open document's saved copy, `default` the shipped baseline — no buffer
    * and no theme entry.
    *
-   * It says how far the layer sits from the default, not whether it is dirty:
-   * applying a theme fills the buffers of every layer it carries, so `working`
-   * means "off the shipped default", not "edited". Dirtiness is a content diff,
-   * which the client owns.
+   * A working source is genuine divergence from the open document. Applying a
+   * theme clears every buffer; saving removes any buffer whose content is now
+   * supplied by that theme.
    */
   type LiveSource = 'working' | 'theme' | 'default';
 
@@ -965,6 +964,67 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const cfg = readComponentConfig(comp, 'default');
     if (!cfg) return null;
     return { data: cfg, source: 'default' };
+  }
+
+  /** The saved layer below a working buffer. Kept separate from the live
+   * resolvers so buffer writes can decide whether they are a real delta. */
+  function resolveSavedColorsAndType(theme: EncapsulatedTheme | null): any | null {
+    if (theme?.colorsAndType) return theme.colorsAndType;
+    const shipped = colorsAndTypeResource.readJson('default');
+    return shipped ? normalizeColorsAndType(shipped as any) : null;
+  }
+
+  function resolveSavedComponentConfig(
+    comp: string,
+    theme: EncapsulatedTheme | null,
+  ): ComponentConfigRead | null {
+    const embedded = theme?.componentConfigs[comp];
+    if (embedded) return { ...embedded, component: comp } as ComponentConfigRead;
+    return readComponentConfig(comp, 'default');
+  }
+
+  function sameJsonValue(a: unknown, b: unknown): boolean {
+    if (a === null || b === null) return a === b;
+    if (typeof a !== typeof b) return false;
+    if (typeof a !== 'object') return a === b;
+    if (Array.isArray(a) || Array.isArray(b)) {
+      return Array.isArray(a) && Array.isArray(b) &&
+        a.length === b.length && a.every((value, i) => sameJsonValue(value, b[i]));
+    }
+    const aRecord = a as Record<string, unknown>;
+    const bRecord = b as Record<string, unknown>;
+    const aKeys = Object.keys(aRecord).sort();
+    const bKeys = Object.keys(bRecord).sort();
+    return aKeys.length === bKeys.length &&
+      aKeys.every((key, i) => key === bKeys[i] && sameJsonValue(aRecord[key], bRecord[key]));
+  }
+
+  /** Saving makes matching buffers redundant: the active theme is now their
+   * durable source, so only genuine unsaved divergence remains on disk. */
+  function pruneMatchingWorking(theme: EncapsulatedTheme | null): void {
+    const colorsWorking = colorsAndTypeResource.readWorking();
+    const savedColors = resolveSavedColorsAndType(theme);
+    if (
+      colorsWorking !== null && savedColors !== null &&
+      sameJsonValue(normalizeColorsAndType(colorsWorking as any), savedColors)
+    ) {
+      colorsAndTypeResource.clearWorking();
+    }
+    for (const comp of listComponentNames()) {
+      const r = componentResource(comp);
+      const working = r.readWorking();
+      if (working !== null && sameJsonValue(working, resolveSavedComponentConfig(comp, theme))) {
+        r.clearWorking();
+      }
+    }
+  }
+
+  function clearAllWorking(): void {
+    colorsAndTypeResource.clearWorking();
+    if (!fs.existsSync(COMPONENT_CONFIGS_DIR)) return;
+    for (const entry of fs.readdirSync(COMPONENT_CONFIGS_DIR, { withFileTypes: true })) {
+      if (entry.isDirectory()) componentResource(entry.name).clearWorking();
+    }
   }
 
   /** Inline structured gradient on a component alias. Mirrors the client's
@@ -1137,7 +1197,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   async function handleSetWorkingColorsAndType({ req, res }: any) {
     const body = await readBufferBody(req, res);
     if (!body) return;
-    colorsAndTypeResource.writeWorking(body);
+    const normalized = normalizeColorsAndType(body as any);
+    const saved = resolveSavedColorsAndType(activeTheme());
+    if (saved !== null && sameJsonValue(normalized, saved)) colorsAndTypeResource.clearWorking();
+    else colorsAndTypeResource.writeWorking(body);
     jsonResponse(res, 200, { ok: true });
   }
 
@@ -1269,7 +1332,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     if (rejectUnknownComponent(res, comp)) return;
     const body = await readBufferBody(req, res);
     if (!body) return;
-    componentResource(comp).writeWorking(body);
+    const r = componentResource(comp);
+    if (sameJsonValue(body, resolveSavedComponentConfig(comp, activeTheme()))) r.clearWorking();
+    else r.writeWorking(body);
     jsonResponse(res, 200, { ok: true });
   }
 
@@ -1410,6 +1475,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       return;
     }
     themesResource.setActiveName(fileName);
+    pruneMatchingWorking(readTheme(fileName)?.theme ?? null);
     jsonResponse(res, 200, { ok: true, activeFile: fileName });
   }
 
@@ -1445,6 +1511,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         } catch { /* keep the body's value */ }
       }
       writeTheme(fileName, theme);
+      if (themesResource.getActiveName() === fileName) pruneMatchingWorking(theme);
       jsonResponse(res, 200, { ok: true, fileName });
       return;
     }
@@ -1464,17 +1531,40 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         return;
       }
       if (fs.existsSync(filePath)) {
+        const deletingActive = themesResource.getActiveName() === fileName;
+        const liveColors = deletingActive ? resolveLiveColorsAndType(activeTheme()) : null;
+        const liveComponents: Record<string, ComponentConfigRead> = {};
+        if (deletingActive) {
+          for (const comp of listComponentNames()) {
+            const resolved = resolveLiveComponentConfig(comp, activeTheme());
+            if (resolved) liveComponents[comp] = resolved.data;
+          }
+        }
         fs.unlinkSync(filePath);
-        // Deleting the theme you are on is legal: the buffer survives its
-        // document, and the Default set always sits on disk to fall back to.
-        // Deleting a local file that shadows a shipped theme restores the
-        // package version, which still resolves, so the pointer keeps naming
-        // it — only a name that resolves nowhere heals.
+        // A package theme with the same name takes over; a local-only name
+        // heals to Default. Convert the former live state into deltas from that
+        // replacement so deleting the open document never changes the page.
         if (
           themesResource.existingPath(fileName) === null &&
-          themesResource.getActiveName() === fileName
+          deletingActive
         ) {
           themesResource.setActiveName('default');
+        }
+        if (deletingActive) {
+          const replacement = activeTheme();
+          const savedColors = resolveSavedColorsAndType(replacement);
+          if (liveColors && !sameJsonValue(liveColors.data, savedColors)) {
+            colorsAndTypeResource.writeWorking(liveColors.data);
+          } else {
+            colorsAndTypeResource.clearWorking();
+          }
+          for (const comp of listComponentNames()) {
+            const r = componentResource(comp);
+            const live = liveComponents[comp] ?? null;
+            const saved = resolveSavedComponentConfig(comp, replacement);
+            if (live !== null && !sameJsonValue(live, saved)) r.writeWorking(live);
+            else r.clearWorking();
+          }
         }
       } else if (themesResource.existingPath(fileName)) {
         // No local copy — only the package ships this theme. Without this
@@ -1491,15 +1581,14 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   }
 
   /**
-   * Apply a theme: open it. Its embedded copies land in the reserved `_working`
-   * slots, `themes/_active.json` names it, and the resolved state comes back in
+   * Apply a theme: open it. Existing working deltas are cleared,
+   * `themes/_active.json` names it, and the resolved state comes back in
    * one payload; the client follows with a full page reload.
    *
    * Nothing else moves. Production is a theme of its own, so trying a look
    * cannot rewrite what the site ships, and no named file is written, so
-   * sampling themes cannot litter the tree. A theme is a complete look, so a
-   * component it does not carry has its buffer cleared back to the default
-   * rather than left as it was.
+   * sampling themes cannot litter the tree. Live reads fall through the empty
+   * working slots to the active theme and then to component defaults.
    */
   async function handleApplyTheme({ params, res }: any) {
     const [fileName] = params;
@@ -1510,25 +1599,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       return;
     }
     const { theme } = read;
-    // The Default theme IS the baseline, and absence means default: applying it
-    // empties every buffer instead of filling them with copies of the default.
-    const isDefault = fileName === 'default';
-    if (!isDefault && !theme.colorsAndType) {
+    if (!theme.colorsAndType) {
       jsonResponse(res, 422, { error: 'This theme carries no colors and type' });
       return;
     }
-
-    if (isDefault) colorsAndTypeResource.clearWorking();
-    else colorsAndTypeResource.writeWorking(theme.colorsAndType!);
-
+    clearAllWorking();
     const knownComponents = listComponentNames();
-    for (const comp of knownComponents) {
-      const embedded = isDefault ? undefined : theme.componentConfigs[comp];
-      const r = componentResource(comp);
-      if (embedded) r.writeWorking({ ...embedded, component: comp });
-      else r.clearWorking();
-    }
-
     themesResource.setActiveName(fileName);
 
     // Resolved through the same doors a follow-up GET would use, so the payload

@@ -112,9 +112,8 @@ export interface GradientDiskToken {
 
 /**
  * Where a live read resolved from: the unsaved `_working` buffer, the open
- * theme's embedded copy, or the shipped default. It says which layer answered,
- * never whether the content was edited — applying a theme fills the buffer for
- * every layer it carries.
+ * theme's embedded copy, or the shipped default. A `working` source is an
+ * unsaved delta from the active theme.
  */
 export type LiveSource = 'working' | 'theme' | 'default';
 
@@ -194,9 +193,10 @@ export interface ComponentConfigMeta {
 /**
  * A saved look, encapsulated: the colors and type plus a config for every
  * component that sits off its default, all carried by value. Themes are the
- * documents of the editor. Applying one opens it: its embedded copies land in
- * the reserved `_working` buffers and `themes/_active.json` names it. Saving
- * captures the live buffers back into it; Adopt publishes it, and only then is
+ * documents of the editor. Applying one opens it by clearing the reserved
+ * `_working` buffers and updating `themes/_active.json`; live reads fall through
+ * to its embedded copies. Saving captures live deltas back into it; Adopt
+ * publishes it, and only then is
  * `tokens.generated.css` rebaked.
  */
 export interface Theme {

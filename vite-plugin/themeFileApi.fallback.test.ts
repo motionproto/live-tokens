@@ -339,19 +339,17 @@ describe('a package-shipped theme on a fresh consumer', () => {
     expect(json.componentConfigs.button.aliases).toEqual({ '--button-radius': '99px' });
   });
 
-  it('apply fills the local buffers from the shipped copy', async () => {
+  it('apply points at the shipped copy without creating local buffers', async () => {
     const { status, json } = await request('PUT', `${API}/themes/${FIXTURE}/apply`);
     expect(status).toBe(200);
     expect(json.theme._fileName).toBe(FIXTURE);
 
+    expect(fs.existsSync(path.join(colorsAndTypeDir, '_working.json'))).toBe(false);
     expect(
-      JSON.parse(fs.readFileSync(path.join(colorsAndTypeDir, '_working.json'), 'utf-8')).name,
-    ).toBe('Package Fixture Theme');
-    expect(
-      JSON.parse(
-        fs.readFileSync(path.join(tmp, 'component-configs', 'button', '_working.json'), 'utf-8'),
-      ).aliases,
-    ).toEqual({ '--button-radius': '99px' });
+      fs.existsSync(path.join(tmp, 'component-configs', 'button', '_working.json')),
+    ).toBe(false);
+    expect(json.colorsAndType._source).toBe('theme');
+    expect(json.componentConfigs.button._source).toBe('theme');
     expect(
       JSON.parse(fs.readFileSync(path.join(themesDir, '_active.json'), 'utf-8')).activeFile,
     ).toBe(FIXTURE);
@@ -394,7 +392,20 @@ describe('a package-shipped theme on a fresh consumer', () => {
   });
 
   it('deleting the shadow of the active theme keeps the pointer on the restored version', async () => {
-    await request('PUT', `${API}/themes/${FIXTURE}`, { ...shipped, name: 'Local Fork' });
+    await request('PUT', `${API}/themes/${FIXTURE}`, {
+      ...shipped,
+      name: 'Local Fork',
+      colorsAndType: {
+        ...shipped.colorsAndType,
+        cssVariables: { ...shipped.colorsAndType.cssVariables, '--radius-md': '17px' },
+      },
+      componentConfigs: {
+        button: {
+          ...shipped.componentConfigs.button,
+          aliases: { '--button-radius': '17px' },
+        },
+      },
+    });
     await request('PUT', `${API}/themes/active`, { name: FIXTURE });
 
     await request('DELETE', `${API}/themes/${FIXTURE}`);
@@ -402,6 +413,15 @@ describe('a package-shipped theme on a fresh consumer', () => {
     const active = await request('GET', `${API}/themes/active`);
     expect(active.json._fileName).toBe(FIXTURE);
     expect(active.json.name).toBe('Package Fixture');
+    expect(
+      JSON.parse(fs.readFileSync(path.join(colorsAndTypeDir, '_working.json'), 'utf-8'))
+        .cssVariables['--radius-md'],
+    ).toBe('17px');
+    expect(
+      JSON.parse(
+        fs.readFileSync(path.join(tmp, 'component-configs', 'button', '_working.json'), 'utf-8'),
+      ).aliases['--button-radius'],
+    ).toBe('17px');
   });
 
   it('adopting it names it in production and writes no local copy', async () => {

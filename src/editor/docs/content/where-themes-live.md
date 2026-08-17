@@ -34,12 +34,13 @@ deleting anything else never breaks it.
 
 - **Editing** changes the page through CSS variables. The editor keeps your
   edits in the browser as you work and writes them to the `_working.json`
-  buffers when you save a component or capture the look. A buffer exists only
-  where your look sits off the shipped default, so a fresh project has none.
+  buffers when you save a component. A buffer exists only where the live layer
+  differs from the active theme's saved layer, so a fresh project has none.
 - **Save** captures the buffers into the open theme's file. That file is the
-  durable copy of your look.
-- **Load** fills the buffers from the theme you picked and points
-  `themes/_active.json` at it. Nothing else changes, so trying looks is free.
+  durable copy of your look; matching buffers are then removed.
+- **Load** clears the buffers and points `themes/_active.json` at the theme you
+  picked. Live reads fall through to that file. Nothing else changes, so trying
+  looks is free and ordinary switching changes only the pointer.
 - **Adopt** points `themes/_production.json` at the open theme, bakes it into
   `tokens.generated.css`, and rewrites `fonts.css` to match. It is the only
   action that changes what your site ships.

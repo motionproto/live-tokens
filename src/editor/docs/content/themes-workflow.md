@@ -33,7 +33,7 @@ A theme is a document, and the editor works the way any editor does.
   `themes/_production.json`. Only **Adopt** changes it.
 
 Absence is the answer for anything untouched: a buffer exists only where the
-look sits off the shipped default, so a new project has none at all.
+live look diverges from the active theme, so a newly opened theme has none.
 
 ## Saving
 
@@ -56,9 +56,10 @@ to it, and the editor never overwrites it, so start your own with **Save As**.
 
 **Load** lists your saved themes and the seven example looks. Picking one shows
 it on the page as a preview with nothing written to disk, so you can try each
-look and compare. **Save** in that window opens the previewed theme: its copies
-fill the buffers, components it does not carry go back to their defaults, and
-the editor works on it from then on. **Cancel** returns you to where you were.
+look and compare. **Save** in that window opens the previewed theme: the active
+pointer changes, the buffers clear, components it does not carry fall through
+to their defaults, and the editor works on it from then on. **Cancel** returns
+you to where you were.
 Trying a look never changes what your site ships.
 
 **Colors and type only. Keep my shapes.** narrows the load to the palette and

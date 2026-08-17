@@ -400,8 +400,8 @@
             + `saved settings were skipped:\n\n${result.skippedComponents.join(', ')}`,
         );
       }
-      // applyTheme opens the theme: it fills the working buffers and points
-      // `themes/_active.json` at it. Reload to rehydrate the editor from those.
+      // applyTheme opens the theme: it clears working deltas and points
+      // `themes/_active.json` at it. Reload to rehydrate through the resolver.
       window.location.reload();
     } catch (err) {
       window.alert(`Failed to load theme: ${(err as Error).message}`);
@@ -511,8 +511,8 @@
   async function handleDelete(row: LoadRow) {
     if (row.isProtected) return;
     if (row.kind === 'layer') return deleteColorsFile(row);
-    // Deleting the open theme is legal: the working buffer survives its
-    // document, so the look on screen stays. Where open lands depends on
+    // Deleting the open theme is legal: the server materialises only the
+    // deltas needed to keep the look on screen. Where open lands depends on
     // something the client can't see — deleting a local copy that shadows a
     // shipped theme restores the shipped one and keeps naming it, while
     // deleting a local-only theme sends open back to Motion Proto.
