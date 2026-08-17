@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.49.0 — Working buffers are active-theme deltas
 
-### Changed
+### Changed (breaking)
 
 - **Working buffers are deltas from the active theme.** Loading a theme now
   clears working buffers and changes only `themes/_active.json`; live reads

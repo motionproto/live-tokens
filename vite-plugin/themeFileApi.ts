@@ -1562,7 +1562,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
             const r = componentResource(comp);
             const live = liveComponents[comp] ?? null;
             const saved = resolveSavedComponentConfig(comp, replacement);
-            if (live !== null && !sameJsonValue(live, saved)) r.writeWorking(live);
+            if (live !== null && !sameJsonValue(live, saved)) r.writeWorking({ ...live });
             else r.clearWorking();
           }
         }
