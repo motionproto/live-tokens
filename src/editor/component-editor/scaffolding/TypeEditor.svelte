@@ -15,6 +15,7 @@
   interface Props {
     colorVariable: string;
     colorLabel?: string;
+    colorCanBeLinked?: boolean;
     familyVariable?: string | undefined;
     familyLabel?: string;
     sizeVariable?: string | undefined;
@@ -42,6 +43,7 @@
   let {
     colorVariable,
     colorLabel = 'color',
+    colorCanBeLinked = false,
     familyVariable = undefined,
     familyLabel = 'family',
     sizeVariable = undefined,
@@ -65,7 +67,7 @@
 <FieldsetWrapper {legend}>
   <div class="type-grid">
     <span class="row-label">{colorLabel}</span>
-    <UIPaletteSelector variable={colorVariable} {component} {onchange} />
+    <UIPaletteSelector variable={colorVariable} {component} canBeLinked={colorCanBeLinked} {onchange} />
 
     {#if familyVariable}
       <span class="row-label">{familyLabel}</span>

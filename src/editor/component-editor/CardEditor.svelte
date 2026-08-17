@@ -144,7 +144,10 @@
   >
     {#snippet stateActions(stateName)}
       {#if stateName === 'hover'}
-        <div class="hover-control">
+        <div
+          class="hover-control"
+          data-token-variables="--card-hover-border-active --card-hover-shadow-active"
+        >
           <label class="hover-enable">
             <input type="checkbox" checked={hoverEnabled} onchange={(e) => setHoverEnabled(e.currentTarget.checked)} />
             <span>Use hover</span>

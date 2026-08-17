@@ -207,11 +207,13 @@ token → semantic → component dependency-chain assertion.
 The final audit gate is an automated rendered-component harness rather than a
 generated set of handwritten tests. It visits every standardized editor size,
 variant, part, and state; activates optional modes from shared controls and ARIA
-semantics; and perturbs every shipped component property. The assertion is a
-change in the actual runtime preview's computed styles, pseudo-elements,
-attributes, or geometry—not merely a store value or editor control. It has no
-per-component test list and currently covers all 25 components and all 1,237
-properties in about 48 seconds in Chromium.
+semantics; operates every property's real editor control; and perturbs every
+shipped component property. It completes one component's full property set
+before advancing to the next. Each control write must agree on the editor and
+host roots, and each perturbation must change the actual runtime preview's
+computed styles, pseudo-elements, attributes, or geometry. It has no
+per-component test list or exception table and covers all 25 components and all
+1,237 properties in Chromium.
 
 That exhaustive pass found and fixed concrete runtime gaps that the earlier
 schema/default contract could not detect:
@@ -227,6 +229,16 @@ schema/default contract could not detect:
 - Image's preview had no deterministic hover state for its zoom alias;
 - dialog, placeholder, and scrollbar properties required portaled and
   pseudo-element fingerprinting rather than ordinary descendant styles.
+
+The editor-control phase subsequently found three additional classes of gap:
+
+- Section Divider typography colors were declared as linked across sizes, but
+  the shared typography editor did not enable its color link path;
+- Tab Bar shipped default, hover, and disabled indicator colors that the editor
+  did not expose;
+- split padding parents and Card's two-variable hover enablement needed standard
+  composite ownership metadata so every affected property could be exercised
+  through the visible control.
 
 `npm run test:e2e:components` runs the full harness. Set
 `LIVE_TOKENS_COMPONENT=<registry-name>` to run the same logic against one

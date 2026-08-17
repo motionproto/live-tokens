@@ -40,6 +40,9 @@ export interface GradientSourceSnapshot {
 }
 
 export interface GradientSource {
+  /** CSS variable ultimately written by this source. Exposed for editor
+   *  semantics and automated control-to-runtime contract discovery. */
+  targetVariable: string;
   /** Reactive readable of the current gradient value (or undefined if missing). */
   current: Readable<GradientSourceSnapshot | undefined>;
   setAll(next: GradientSourceSnapshot): void;
@@ -67,6 +70,7 @@ export function colorsAndTypeGradientSource(variable: string): GradientSource {
     };
   });
   return {
+    targetVariable: variable,
     current,
     setAll: (next) => setGradient(variable, next),
     setType: (t) => setGradientType(variable, t),
@@ -158,6 +162,7 @@ export function componentGradientSource(component: string, varName: string): Gra
     });
   };
   return {
+    targetVariable: varName,
     current,
     setAll: (next) => writeComponentGradient(component, varName, {
       type: next.type,

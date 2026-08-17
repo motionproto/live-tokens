@@ -19,6 +19,7 @@
       { label: 'border width', element: 'frame', canBeLinked: true, groupKey: 'tab-border-width', variable: `--tabbar-${s}-tab-border-width` },
       { label: 'padding', element: 'frame', canBeLinked: true, groupKey: 'padding', variable: `--tabbar-${s}-padding` },
       { label: 'size', element: 'icon', canBeLinked: true, groupKey: 'icon-size', variable: `--tabbar-${s}-icon-size` },
+      { label: 'color', element: 'indicator', groupKey: 'indicator-color', variable: `--tabbar-${s}-border` },
       { label: 'width', element: 'indicator', canBeLinked: true, groupKey: 'indicator-border-width', variable: `--tabbar-${s}-indicator-border-width` },
     ];
   }
@@ -50,10 +51,6 @@
     ],
     ...Object.fromEntries(tabStateNames.map((s) => [`${s} tab`, tabStateTokens(s)])),
   };
-  states['active tab'] = [
-    ...states['active tab'],
-    { label: 'color', element: 'indicator', groupKey: 'indicator-color', variable: '--tabbar-active-border' },
-  ];
   const typeGroups: Record<string, TypeGroupConfig[]> = Object.fromEntries(
     tabStateNames.map((s) => [`${s} tab`, tabStateTypeGroups(s)]),
   );
@@ -71,7 +68,6 @@
 
   // Linking: shape props across tab states (same tab object).
   const linkableContexts = new Map<string, string>([
-    [`--tabbar-active-border`, `active tab`] as const,
     ...tabStateNames.flatMap((s) => [
     [`--tabbar-${s}-tab-border-color`, `${s} tab`] as const,
     [`--tabbar-${s}-tab-border-width`, `${s} tab`] as const,

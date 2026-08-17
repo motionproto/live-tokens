@@ -70,6 +70,9 @@ export type TypeGroupConfig = {
   legend?: string;
   colorVariable: string;
   colorLabel?: string;
+  /** Whether this typography color participates in its declared cross-context
+   *  sibling group. Kept explicit because most state colors are independent. */
+  colorCanBeLinked?: boolean;
   familyVariable?: string;
   familyLabel?: string;
   sizeVariable?: string;

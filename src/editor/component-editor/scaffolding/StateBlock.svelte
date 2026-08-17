@@ -129,6 +129,7 @@
                 legend={tg.legend ?? ''}
                 colorVariable={tg.colorVariable}
                 colorLabel={tg.colorLabel ?? 'text color'}
+                colorCanBeLinked={tg.colorCanBeLinked ?? false}
                 familyVariable={tg.familyVariable}
                 familyLabel={tg.familyLabel ?? 'font family'}
                 sizeVariable={tg.sizeVariable}
@@ -171,6 +172,7 @@
           legend={tg.legend ?? 'type'}
           colorVariable={tg.colorVariable}
           colorLabel={tg.colorLabel ?? 'text color'}
+          colorCanBeLinked={tg.colorCanBeLinked ?? false}
           familyVariable={tg.familyVariable}
           familyLabel={tg.familyLabel ?? 'font family'}
           sizeVariable={tg.sizeVariable}

@@ -396,6 +396,7 @@
     <button
       type="button"
       class="merge-btn"
+      data-padding-parent-variable={variable}
       onclick={mergeToSingle}
       title="Use the same value for all sides"
       disabled={disabled || selectionsLocked}

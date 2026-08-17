@@ -31,26 +31,32 @@ automatically adds it to browser coverage.
 
 `tests/e2e/component-render-contract.spec.ts` is the rendered-component test
 harness. It discovers the same registry and default files, opens each real
-component editor, visits every size, variant, part, and state, and perturbs each
-of the 1,237 shipped component properties. A property passes only when the
-mounted runtime preview's computed styles, pseudo-elements, attributes, or
-geometry change immediately. The property panel is outside the fingerprint, so
-an editor-control repaint cannot satisfy the contract.
+component editor, visits every size, variant, part, and state, and checks that
+component's complete property set before moving to the next component. For each
+property it first operates the rendered editor control and requires the CSS
+write to reach both editor and host roots. It then perturbs the property and
+requires the mounted runtime preview's computed styles, pseudo-elements,
+attributes, or geometry to change immediately. The property panel is outside
+the fingerprint, so an editor-control repaint cannot satisfy the contract.
 
-The harness has no per-component test cases or exception list. It discovers
-split padding, canvas selects, optional-content checkboxes, expanded/collapsed
-controls, and portaled dialogs from the standardized editor structure and ARIA
-semantics. A second data-driven pass activates those dormant modes only for
-properties not observed in the default pass. New component aliases therefore
-enter the rendered reactivity gate without a handwritten Playwright test.
+The harness has no per-component test cases or exception list. Standard token
+selectors publish their owning variable as DOM metadata; composite controls
+publish every variable they own. The harness discovers token selectors,
+gradients, split padding, multi-variable toggles, canvas selects,
+optional-content checkboxes, expanded/collapsed controls, and portaled dialogs
+from that standardized editor structure and ARIA semantics. A second
+data-driven pass activates dormant modes only for properties not observed in
+the default pass. New component aliases therefore enter both the control-write
+and rendered-reactivity gates without a handwritten Playwright test.
 
 `tests/e2e/live-editing.spec.ts` covers three complementary paths:
 
 - a primitive Brand palette edit through its production mutation action,
   proving primitive token → semantic surface token → Button component alias →
   computed host rendering;
-- real Section Divider UI selections for weight, size, and outline thickness,
-  with assertions against the host component's computed type and SVG filter;
+- real Section Divider UI selections for title color, weight, size, and outline
+  thickness, with assertions against the host component's computed type, SVG
+  fill, and SVG filter;
 - the transformation matrix for literals, token references with opacity,
   gradients, four-side padding, intrinsic display, font stacks, font-source
   nodes, and undo/redo.

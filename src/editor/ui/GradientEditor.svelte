@@ -274,7 +274,11 @@
 </script>
 
 {#if gradient}
-  <div class="gradient-editor" class:has-pad={hasAside}>
+  <div
+    class="gradient-editor"
+    class:has-pad={hasAside}
+    data-token-variable={gradientSource.targetVariable}
+  >
     {#if sectionLabel || hasAside}
       <div class="editor-header editor-section-left">
         <span class="editor-section-label">{sectionLabel ?? ''}</span>

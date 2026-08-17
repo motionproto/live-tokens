@@ -54,12 +54,14 @@ test('component controls repaint the host without save, adopt, or reload', async
     const probe = document.createElement('div');
     document.body.appendChild(probe);
     probe.style.fontSize = 'var(--font-size-6xl)';
+    probe.style.color = 'var(--color-black)';
     const fontSize = getComputedStyle(probe).fontSize;
+    const titleColor = getComputedStyle(probe).color;
     probe.remove();
     const borderWidth = parseFloat(
       getComputedStyle(document.documentElement).getPropertyValue('--border-width-12'),
     );
-    return { fontSize, outlineRadius: String(borderWidth / 2) };
+    return { fontSize, outlineRadius: String(borderWidth / 2), titleColor };
   });
 
   const selectOption = async (variable: string, label: string) => {
@@ -69,6 +71,7 @@ test('component controls repaint the host without save, adopt, or reload', async
   };
 
   await page.evaluate(() => ((window as any).__playwrightLiveMarker = 'still-here'));
+  await selectOption('--sectiondivider-md-title', 'Black');
   await selectOption('--sectiondivider-md-title-font-weight', 'Black');
   await selectOption('--sectiondivider-md-title-font-size', '6XL');
   await selectOption('--sectiondivider-md-title-outline-width', '12px');
@@ -76,11 +79,13 @@ test('component controls repaint the host without save, adopt, or reload', async
   await expect.poll(() => page.evaluate(() => {
     const root = document.documentElement.style;
     return {
+      color: root.getPropertyValue('--sectiondivider-md-title').trim(),
       weight: root.getPropertyValue('--sectiondivider-md-title-font-weight').trim(),
       size: root.getPropertyValue('--sectiondivider-md-title-font-size').trim(),
       outline: root.getPropertyValue('--sectiondivider-md-title-outline-width').trim(),
     };
   })).toEqual({
+    color: 'var(--color-black)',
     weight: 'var(--font-weight-black)',
     size: 'var(--font-size-6xl)',
     outline: 'var(--border-width-12)',
@@ -90,12 +95,20 @@ test('component controls repaint the host without save, adopt, or reload', async
     const text = divider.querySelector('svg.divider-label text')!;
     const morphology = divider.querySelector('feMorphology')!;
     return {
+      color: getComputedStyle(text).color,
+      fill: getComputedStyle(text).fill,
       fontWeight: getComputedStyle(text).fontWeight,
       fontSize: getComputedStyle(text).fontSize,
       outlineRadius: morphology.getAttribute('radius'),
     };
   });
-  expect(rendered).toEqual({ fontWeight: '900', ...expected });
+  expect(rendered).toEqual({
+    color: expected.titleColor,
+    fill: expected.titleColor,
+    fontWeight: '900',
+    fontSize: expected.fontSize,
+    outlineRadius: expected.outlineRadius,
+  });
   expect(await page.evaluate(() => (window as any).__playwrightLiveMarker)).toBe('still-here');
   expect(await page.evaluate(() => performance.getEntriesByType('navigation').length)).toBe(1);
 });

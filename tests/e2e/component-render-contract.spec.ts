@@ -42,6 +42,190 @@ interface ProbeResult {
 }
 
 /**
+ * Exercise each standard token selector through the same click path a designer
+ * uses. The rendered-property probe below deliberately writes root variables
+ * directly so it can try arbitrary CSS values; this companion gate proves the
+ * editor control itself reaches the store, editor root, and host root.
+ */
+async function exerciseVisibleTokenControls(
+  frame: Frame,
+  componentAliases: string[],
+  exercised: Set<string>,
+): Promise<void> {
+  const group = frame.locator('.variant-group:visible');
+  const settle = () => frame.evaluate(() => new Promise<void>((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  await settle();
+  const variables = await group.locator('.ui-token-selector:visible[data-token-variable]')
+    .evaluateAll((elements) => [...new Set(elements
+      .map((element) => (element as HTMLElement).dataset.tokenVariable)
+      .filter((value): value is string => !!value))]);
+
+  for (const variable of variables) {
+    if (!componentAliases.includes(variable) || exercised.has(variable)) continue;
+    const selector = group.locator(`.ui-token-selector:visible[data-token-variable="${variable}"]`).first();
+    const before = await frame.evaluate((name) => ({
+      editor: document.documentElement.style.getPropertyValue(name).trim(),
+      host: window.parent.document.documentElement.style.getPropertyValue(name).trim(),
+    }), variable);
+
+    const optionSelector = [
+      '.ui-ts-dropdown .static-chip:not(.active):not(:disabled)',
+      '.ui-ts-dropdown .ui-option-item:not(.active):not(:disabled)',
+      '.ui-ts-dropdown .font-size-row:not(.active):not(:disabled)',
+    ].join(', ');
+    let after = before;
+    let foundOption = false;
+    // Some semantic options can resolve to the same CSS as the current alias.
+    // Try several distinct visible choices before treating the control as dead.
+    for (let attempt = 0; attempt < 4 && after.editor === before.editor; attempt++) {
+      await settle();
+      await selector.locator('.ui-ts-trigger').click();
+      const options = selector.locator(optionSelector);
+      const count = await options.count();
+      if (count === 0) {
+        // Close an unsupported dropdown before the traversal moves on. The
+        // final coverage assertion reports its precise variable.
+        await selector.locator('.ui-ts-trigger').click();
+        break;
+      }
+      foundOption = true;
+      await options.nth(attempt % count).click();
+      await settle();
+      after = await frame.evaluate((name) => ({
+        editor: document.documentElement.style.getPropertyValue(name).trim(),
+        host: window.parent.document.documentElement.style.getPropertyValue(name).trim(),
+      }), variable);
+    }
+    if (!foundOption) continue;
+    expect(after.editor, `${variable} did not write through its editor control`)
+      .not.toBe(before.editor);
+    expect(after.host, `${variable} did not reach the host root`)
+      .not.toBe(before.host);
+    expect(after.editor, `${variable} diverged between editor and host`).toBe(after.host);
+
+    after = await frame.evaluate((name) => ({
+      editor: document.documentElement.style.getPropertyValue(name).trim(),
+      host: window.parent.document.documentElement.style.getPropertyValue(name).trim(),
+    }), variable);
+    expect(after.editor, `${variable} diverged between editor and host`).toBe(after.host);
+    exercised.add(variable);
+  }
+}
+
+/** Split padding exposes four side selectors and a merge action instead of a
+ * selector for the fallback parent value. Merge each visible composite, then
+ * exercise the newly rendered parent selector through the standard path. */
+async function exerciseVisibleSplitPaddingControls(
+  frame: Frame,
+  componentAliases: string[],
+  exercised: Set<string>,
+): Promise<void> {
+  const group = frame.locator('.variant-group:visible');
+  const variables = await group.locator('.merge-btn:visible[data-padding-parent-variable]')
+    .evaluateAll((elements) => [...new Set(elements
+      .map((element) => (element as HTMLElement).dataset.paddingParentVariable)
+      .filter((value): value is string => !!value))]);
+
+  for (const variable of variables) {
+    if (!componentAliases.includes(variable) || exercised.has(variable)) continue;
+    const merge = group.locator(`.merge-btn:visible[data-padding-parent-variable="${variable}"]`).first();
+    if (await merge.count()) await merge.click();
+  }
+  if (variables.length > 0) {
+    await frame.evaluate(() => new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await exerciseVisibleTokenControls(frame, componentAliases, exercised);
+  }
+}
+
+/** A single semantic control may intentionally own several CSS variables.
+ * Every listed variable must change and reach both roots before the component
+ * traversal can advance. */
+async function exerciseVisibleCompositeControls(
+  frame: Frame,
+  componentAliases: string[],
+  exercised: Set<string>,
+): Promise<void> {
+  const group = frame.locator('.variant-group:visible');
+  const controls = group.locator('[data-token-variables]:visible');
+  for (let index = 0; index < await controls.count(); index++) {
+    const control = controls.nth(index);
+    const variables = ((await control.getAttribute('data-token-variables')) ?? '')
+      .split(/\s+/)
+      .filter((variable) => componentAliases.includes(variable) && !exercised.has(variable));
+    if (variables.length === 0) continue;
+    const before = await frame.evaluate((names) => Object.fromEntries(names.map((name) => [name, {
+      editor: document.documentElement.style.getPropertyValue(name).trim(),
+      host: window.parent.document.documentElement.style.getPropertyValue(name).trim(),
+    }])), variables);
+    const input = control.locator('input[type="checkbox"], input[type="radio"]').first();
+    if (await input.count() === 0) continue;
+    await input.click();
+    await frame.evaluate(() => new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    const after = await frame.evaluate((names) => Object.fromEntries(names.map((name) => [name, {
+      editor: document.documentElement.style.getPropertyValue(name).trim(),
+      host: window.parent.document.documentElement.style.getPropertyValue(name).trim(),
+    }])), variables);
+    for (const variable of variables) {
+      expect(after[variable].editor, `${variable} did not write through its composite control`)
+        .not.toBe(before[variable].editor);
+      expect(after[variable].host, `${variable} did not reach the host root`)
+        .not.toBe(before[variable].host);
+      expect(after[variable].editor, `${variable} diverged between editor and host`)
+        .toBe(after[variable].host);
+      exercised.add(variable);
+    }
+  }
+}
+
+/** Component-owned gradients use a composite editor instead of a token
+ * selector. Pick a real stop colour through its nested palette control and
+ * assert the owning component variable—not the scratch stop variable—writes. */
+async function exerciseVisibleGradientControls(
+  frame: Frame,
+  componentAliases: string[],
+  exercised: Set<string>,
+): Promise<void> {
+  const group = frame.locator('.variant-group:visible');
+  const editors = group.locator('.gradient-editor:visible[data-token-variable]');
+  for (let index = 0; index < await editors.count(); index++) {
+    const editor = editors.nth(index);
+    const variable = await editor.getAttribute('data-token-variable');
+    if (!variable || !componentAliases.includes(variable) || exercised.has(variable)) continue;
+    const before = await frame.evaluate((name) =>
+      document.documentElement.style.getPropertyValue(name).trim(), variable);
+
+    // Promote an empty/flat background to Solid so its stop picker is present,
+    // then select a non-active invariant colour through the real palette UI.
+    const solid = editor.getByRole('radio', { name: 'Solid' });
+    if (await solid.count() && !await solid.isChecked()) await solid.check({ force: true });
+    const picker = editor.locator('.picker-slot .ui-token-selector').first();
+    await picker.locator('.ui-ts-trigger').click({ force: true });
+    const swatch = picker.locator('.static-chip:not(.active):not(:disabled)').first();
+    if (await swatch.count() === 0) continue;
+    await swatch.click({ force: true });
+
+    await expect.poll(() => frame.evaluate((name) => ({
+      editor: document.documentElement.style.getPropertyValue(name).trim(),
+      host: window.parent.document.documentElement.style.getPropertyValue(name).trim(),
+    }), variable), { message: `${variable} did not write through its gradient editor` })
+      .toEqual({ editor: expect.not.stringMatching(new RegExp(`^${escapeRegExp(before)}$`)), host: expect.any(String) });
+    const after = await frame.evaluate((name) => ({
+      editor: document.documentElement.style.getPropertyValue(name).trim(),
+      host: window.parent.document.documentElement.style.getPropertyValue(name).trim(),
+    }), variable);
+    expect(after.editor, `${variable} diverged between editor and host`).toBe(after.host);
+    exercised.add(variable);
+  }
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Exercise every property control visible for the current standardized
  * VariantGroup view. The preview and property panel are deliberately siblings:
  * only `.tabs-preview` is fingerprinted, so a selector repaint cannot satisfy
@@ -68,6 +252,12 @@ async function probeCurrentView(
         const variable = element.dataset.tokenVariable;
         if (element.offsetParent !== null && variable && allAliases.includes(variable)) {
           visibleVariables.add(variable);
+        }
+      }
+      for (const element of group.querySelectorAll<HTMLElement>('[data-token-variables]')) {
+        if (element.offsetParent === null) continue;
+        for (const variable of (element.dataset.tokenVariables ?? '').split(/\s+/)) {
+          if (allAliases.includes(variable)) visibleVariables.add(variable);
         }
       }
     }
@@ -256,11 +446,12 @@ async function selectComponent(frame: Frame, component: string): Promise<void> {
 }
 
 test('every component property repaints its standardized runtime preview', async ({ page }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(600_000);
   const frame = await openOverlayEditor(page, 'components');
   const covered = new Set<string>();
   const seen = new Set<string>();
   const unchanged = new Set<string>();
+  const controlExercised = new Set<string>();
 
   const probe = async (aliases: string[], forced: string[] = []) => {
     const remaining = forced.length > 0
@@ -286,6 +477,10 @@ test('every component property repaints its standardized runtime preview', async
     const dialogAction = frame.locator('[role="dialog"] button:not(:disabled)').first();
     if (await dialogAction.count()) await dialogAction.hover({ force: true });
 
+    await exerciseVisibleTokenControls(frame, aliases, controlExercised);
+    await exerciseVisibleCompositeControls(frame, aliases, controlExercised);
+    await exerciseVisibleSplitPaddingControls(frame, aliases, controlExercised);
+    await exerciseVisibleGradientControls(frame, aliases, controlExercised);
     const result = await probeCurrentView(frame, aliases, remaining);
     result.covered.forEach((variable) => covered.add(variable));
     result.covered.forEach((variable) => seen.add(variable));
@@ -406,10 +601,13 @@ test('every component property repaints its standardized runtime preview', async
   const allVariables = aliasCases.map(({ variable }) => variable);
   const notExposed = allVariables.filter((variable) => !seen.has(variable));
   const notReactive = allVariables.filter((variable) => seen.has(variable) && !covered.has(variable));
+  const notControlExercised = allVariables.filter((variable) => !controlExercised.has(variable));
 
   expect(notExposed, `Properties not exposed by a standardized component view:\n${notExposed.join('\n')}`)
     .toEqual([]);
   expect(notReactive, `Properties whose rendered preview did not change:\n${notReactive.join('\n')}`)
+    .toEqual([]);
+  expect(notControlExercised, `Properties not exercised through a rendered editor control:\n${notControlExercised.join('\n')}`)
     .toEqual([]);
   expect(covered.size).toBe(aliasCases.length);
 });
