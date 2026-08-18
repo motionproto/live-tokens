@@ -259,7 +259,6 @@
 
 <div class="curve-panel">
   <div class="curve-panel-header">
-    <span class="curve-panel-label">{cfg.label}</span>
     <div class="curve-help">
       <button class="curve-help-badge" type="button" aria-label="Curve editor help">
         <i class="fas fa-circle-info" aria-hidden="true"></i>
@@ -453,12 +452,6 @@
     display: flex;
     align-items: center;
     gap: var(--ui-space-6);
-  }
-
-  .curve-panel-label {
-    font-size: var(--ui-font-size-md);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-tertiary);
   }
 
   .curve-container {

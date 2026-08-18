@@ -176,6 +176,16 @@
     scaleEditorOpen = scaleEditorOpen;
   }
 
+  // Session-scoped (RJC 9): viewport state, never written to theme JSON.
+  // Keyed by the same curveKey strings that already key curveOffset, so a
+  // hue key ("hue" or "<scale>-hue") defaults closed and the rest open.
+  let curveSectionOpen: Record<string, boolean> = $state({});
+  const sectionOpen = (key: string) => curveSectionOpen[key] ?? !key.endsWith('hue');
+  function toggleCurveSection(key: string) {
+    curveSectionOpen[key] = !sectionOpen(key);
+    curveSectionOpen = curveSectionOpen;
+  }
+
   function setScaleCurve(title: string, channel: 'lightness' | 'saturation', a: CurveAnchor[]) {
     const cur = scaleCurves[title] ?? { lightness: defaultScaleCurves[title].lightness(), saturation: defaultScaleCurves[title].saturation() };
     edit('scaleCurves', { ...scaleCurves, [title]: { ...cur, [channel]: a } });
@@ -585,18 +595,6 @@
             </div>
           {/if}
           <ScaleCurveEditor
-            curveKey="lightness"
-            anchors={lightnessCurve}
-            cfg={lightnessCurveConfig}
-            stepCount={paletteStepLightness.length}
-            defaults={DEFAULT_PALETTE_LIGHTNESS()}
-            offset={curveOffset['lightness'] ?? 0}
-            lockedAnchorIndex={lockedLightnessIdx}
-            onLockedAnchorUnlock={() => anchorUnlockPrompt = true}
-            onAnchorsChange={setLightnessCurve}
-            onOffsetChange={handleOffset}
-          />
-          <ScaleCurveEditor
             curveKey="saturation"
             anchors={saturationCurve}
             cfg={saturationCurveConfig}
@@ -604,8 +602,24 @@
             defaults={DEFAULT_PALETTE_SATURATION()}
             offset={curveOffset['saturation'] ?? 0}
             lockedAnchorIndex={lockedSaturationIdx}
+            open={sectionOpen('saturation')}
+            onToggleOpen={() => toggleCurveSection('saturation')}
             onLockedAnchorUnlock={() => anchorUnlockPrompt = true}
             onAnchorsChange={setSaturationCurve}
+            onOffsetChange={handleOffset}
+          />
+          <ScaleCurveEditor
+            curveKey="lightness"
+            anchors={lightnessCurve}
+            cfg={lightnessCurveConfig}
+            stepCount={paletteStepLightness.length}
+            defaults={DEFAULT_PALETTE_LIGHTNESS()}
+            offset={curveOffset['lightness'] ?? 0}
+            lockedAnchorIndex={lockedLightnessIdx}
+            open={sectionOpen('lightness')}
+            onToggleOpen={() => toggleCurveSection('lightness')}
+            onLockedAnchorUnlock={() => anchorUnlockPrompt = true}
+            onAnchorsChange={setLightnessCurve}
             onOffsetChange={handleOffset}
           />
         </div>
@@ -663,6 +677,8 @@
       onCopyVarName={copyVarName}
       onSetScaleCurve={setScaleCurve}
       onOffsetChange={handleOffset}
+      {sectionOpen}
+      onToggleCurveSection={toggleCurveSection}
     />
   {/snippet}
 

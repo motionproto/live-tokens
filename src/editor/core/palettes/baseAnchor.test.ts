@@ -150,8 +150,8 @@ describe('syncBaseAnchor with a hue curve', () => {
     const out = computePaletteOklch(step, c.baseColor, c.lightnessCurve, c.saturationCurve, {}, c.hueCurve);
     // Same bisection-sampled curve as lightness/saturation, so "verbatim" is
     // curve-sampling precision, not bit-exact (the L/C assertions elsewhere
-    // in this file use the same toBeCloseTo tolerance).
-    expect(out.h).toBeCloseTo(200, 3);
+    // in this file use the same toBeCloseTo precision).
+    expect(out.h).toBeCloseTo(200, 4);
   });
 
   it('leaves hue untouched when no hue curve is present', () => {

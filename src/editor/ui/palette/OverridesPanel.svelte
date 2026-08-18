@@ -72,6 +72,8 @@
     onCopyVarName: (key: string, varName: string, event?: MouseEvent) => void;
     onSetScaleCurve: (scaleTitle: string, channel: Channel, anchors: CurveAnchor[]) => void;
     onOffsetChange: (key: string, value: number) => void;
+    sectionOpen: (key: string) => boolean;
+    onToggleCurveSection: (key: string) => void;
   }
 
   let {
@@ -103,7 +105,9 @@
     onCopyHex,
     onCopyVarName,
     onSetScaleCurve,
-    onOffsetChange
+    onOffsetChange,
+    sectionOpen,
+    onToggleCurveSection
   }: Props = $props();
 
   interface CurveDescriptor {
@@ -120,8 +124,8 @@
     const defs = defaultScaleCurves[scale.title];
     if (!sc || !defs) return [];
     return [
-      { key: scaleCurveKeyFor(scale.title, 'lightness'), anchors: sc.lightness, cfg: lightnessCfg, defaults: defs.lightness(), channel: 'lightness' },
       { key: scaleCurveKeyFor(scale.title, 'saturation'), anchors: sc.saturation, cfg: saturationCurveConfig, defaults: defs.saturation(), channel: 'saturation' },
+      { key: scaleCurveKeyFor(scale.title, 'lightness'), anchors: sc.lightness, cfg: lightnessCfg, defaults: defs.lightness(), channel: 'lightness' },
     ];
   })());
 </script>
@@ -255,6 +259,8 @@
             stepCount={scale.steps.length}
             defaults={curve.defaults}
             offset={curveOffset[curve.key] ?? 0}
+            open={sectionOpen(curve.key)}
+            onToggleOpen={() => onToggleCurveSection(curve.key)}
             onAnchorsChange={(a) => onSetScaleCurve(scale.title, curve.channel, a)}
             onOffsetChange={onOffsetChange}
           />

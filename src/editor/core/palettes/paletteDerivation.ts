@@ -359,9 +359,10 @@ export function liftCurveAnchor(
 }
 
 /**
- * Place the base color in the ramp: pin a lightness anchor (base L) and a
- * saturation anchor (multiplier 100) at the step whose lightness is nearest
- * the base L, so the picked color renders verbatim at that step. Placement
+ * Place the base color in the ramp: pin a lightness anchor (base L), a
+ * saturation anchor (multiplier 100), and, when a hue curve exists, a hue
+ * anchor (delta 0), all at the step whose lightness is nearest the base L,
+ * so the picked color renders verbatim at that step. Placement
  * is measured against the curve with the previous placement lifted out —
  * the pinned anchor equals base L at its own x by construction, so measuring
  * against it would be circular and the anchor could never move. Runs inside
@@ -404,11 +405,15 @@ export function syncBaseAnchor(cfg: PaletteConfig): void {
     displacedH: h?.displacedY,
     priorLightnessEndpoints: prev?.priorLightnessEndpoints ?? l.priorEndpoints,
     priorSaturationEndpoints: prev?.priorSaturationEndpoints ?? s.priorEndpoints,
-    priorHueEndpoints: h ? (prev?.priorHueEndpoints ?? h.priorEndpoints) : prev?.priorHueEndpoints,
+    // No else-branch reading `prev?.priorHueEndpoints`: that could only fire
+    // if a placed hue curve later went absent, which RJC 7 (reset never
+    // deletes) never lets happen.
+    priorHueEndpoints: h ? (prev?.priorHueEndpoints ?? h.priorEndpoints) : undefined,
   };
 }
 
-/** Toggle-off: lift the placement out of both curves and drop the flag. */
+/** Toggle-off: lift the placement out of every curve it touched (hue only
+ *  if present) and drop the flag. */
 export function clearBaseAnchor(cfg: PaletteConfig): void {
   const prev = cfg.anchorPlacement;
   if (prev) {
