@@ -112,7 +112,7 @@ type DerivedValue =
 
 # Part B — `oklch()` CSS serialization (separate go/no-go)
 
-**Status: direction approved; do NOT start Wave 3 without an explicit user go-ahead recorded here after Part A QA.**
+**Status: GO recorded 2026-08-19 — Mark: "I would rather see OKLCH end-to-end and for us to use hex only for display and copying." Executing Waves 3-5 on branch `oklch-part-b` off `main` @ 9c295bb (v0.50.0, not the v0.40.1 this plan was written against; Wave 5's bump target moves accordingly).**
 
 Costs: modern-browser floor (Chrome 111 / Safari 15.4 / Firefox 113, ~2023); a breaking `tokens.css` value migration; consumer churn; version bump. Benefits: shipped tokens shed 8-bit quantization; generated CSS is legible in the basis; wide-gamut output becomes possible later without another format change. **No visual change on flip day:** all values remain sRGB-gamut-clamped before serialization; emitting unclamped/P3 values is a separate future decision, out of scope.
 

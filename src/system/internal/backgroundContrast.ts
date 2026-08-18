@@ -1,8 +1,11 @@
+import { parseOklchCss, oklchToRgb255 } from './oklch';
+
 export type ContrastColorToken = '--color-black' | '--color-white';
 
 type Rgb = { r: number; g: number; b: number };
 
 const HEX_RE = /#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})\b/gi;
+const OKLCH_RE = /oklch\(\s*[\d.]+%?\s+[\d.]+%?\s+[\d.]+(?:deg)?\s*\)/gi;
 const RGB_RE = /rgba?\(\s*([\d.]+%?)\s*[, ]\s*([\d.]+%?)\s*[, ]\s*([\d.]+%?)(?:\s*[,/]\s*[\d.]+%?)?\s*\)/gi;
 
 function channel(value: string): number {
@@ -24,6 +27,10 @@ function parseHex(hex: string): Rgb {
 function colorsIn(background: string): Rgb[] {
   const colors: Rgb[] = [];
   for (const match of background.matchAll(HEX_RE)) colors.push(parseHex(match[0]));
+  for (const match of background.matchAll(OKLCH_RE)) {
+    const parsed = parseOklchCss(match[0]);
+    if (parsed) colors.push(oklchToRgb255(parsed.l, parsed.c, parsed.h));
+  }
   for (const match of background.matchAll(RGB_RE)) {
     colors.push({ r: channel(match[1]), g: channel(match[2]), b: channel(match[3]) });
   }

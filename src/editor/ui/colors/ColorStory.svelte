@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { oklchToHexClamped } from '../../core/palettes/oklch';
+  import { cssColorToOklch, oklchToHexClamped } from '../../core/palettes/oklch';
   import { palettesToVars } from '../../core/palettes/paletteDerivation';
   import { contrastRatio } from '../../core/palettes/contrast';
   import type { PaletteConfig } from '../../core/themes/themeTypes';
@@ -57,9 +57,15 @@
 
   // Ratios are measured against the DISPLAYED field — the Canvas seed —
   // so the numbers always describe what the story shows.
+  // Derived vars serialize as `oklch()`; contrastRatio is sRGB-terminated.
+  function varHex(name: string): string | null {
+    const parsed = cssColorToOklch(vars[name] ?? '');
+    return parsed ? oklchToHexClamped(parsed.l, parsed.c, parsed.h) : null;
+  }
+
   function ratioOnBg(textVar: string): number | null {
-    const text = vars[textVar];
-    return typeof text === 'string' ? contrastRatio(text, seedHex('Canvas')) : null;
+    const text = varHex(textVar);
+    return text === null ? null : contrastRatio(text, seedHex('Canvas'));
   }
 
   // Floor, don't round: the readout must never overstate a contrast ratio.
@@ -72,11 +78,9 @@
   // mid-lightness primary makes this pairing inherently low-contrast — the
   // readout surfaces that rather than hiding the pill.
   let invertedRatio = $derived.by(() => {
-    const inverted = vars['--text-inverted'];
-    const primary = vars['--text-primary'];
-    return typeof inverted === 'string' && typeof primary === 'string'
-      ? contrastRatio(inverted, primary)
-      : null;
+    const inverted = varHex('--text-inverted');
+    const primary = varHex('--text-primary');
+    return inverted !== null && primary !== null ? contrastRatio(inverted, primary) : null;
   });
 </script>
 

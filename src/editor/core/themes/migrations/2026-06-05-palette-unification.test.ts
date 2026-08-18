@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { unifyGrayPalettes } from './2026-06-05-palette-unification';
 import { migratePaletteColorsToOklch, type PreOklchPaletteConfig } from './2026-07-21-palette-oklch-basis';
 import { derivePaletteVars, PALETTE_SPECS, DEFAULT_PALETTE_LIGHTNESS, DEFAULT_PALETTE_SATURATION } from '../../palettes/paletteDerivation';
-import { hexToOklch, oklchToHex, gamutClamp } from '../../palettes/oklch';
+import { hexToOklch, cssColorToOklch, oklchToHex, gamutClamp } from '../../palettes/oklch';
 import { type CurveAnchor, makeAnchor, sampleCurve } from '../../../ui/curveEngine';
 
 type LegacyGray = {
@@ -101,7 +101,7 @@ describe('unifyGrayPalettes', () => {
     const spec = PALETTE_SPECS.find((s) => s.label === 'Neutral')!;
     const derived500 = derivePaletteVars(spec, migrated)['--color-neutral-500'];
 
-    const a = hexToOklch(derived500);
+    const a = cssColorToOklch(derived500)!;
     const b = hexToOklch(oldGray500(before));
     expect(Math.abs(a.l - b.l)).toBeLessThan(0.01);
     expect(Math.abs(a.c - b.c)).toBeLessThan(0.005);

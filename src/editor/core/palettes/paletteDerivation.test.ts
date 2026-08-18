@@ -13,7 +13,7 @@ import {
   SCALES,
   type ScaleCurveDefaults,
 } from './paletteDerivation';
-import { hexToOklch, type Oklch } from './oklch';
+import { hexToOklch, cssColorToOklch, oklchToHexClamped, type Oklch } from './oklch';
 import { migratePaletteColorsToOklch, type PreOklchPaletteConfig } from '../themes/migrations/2026-07-21-palette-oklch-basis';
 import { adoptLegacyBaseAnchor } from '../themes/migrations/2026-07-24-base-anchor-placement';
 import { adoptBackgroundSpotAsBase } from '../themes/migrations/2026-07-25-background-spot-to-base';
@@ -138,16 +138,24 @@ describe('derivation is byte-stable (Global invariant 1)', () => {
     expect(palettesToVars(editorConfigs)).toMatchSnapshot();
   });
 
-  it('pins exact hexes for the default Brand config', () => {
+  it('pins the default Brand config to the same colors the hex serializer produced', () => {
     const out = palettesToVars({ Brand: editorConfigs.Brand });
+    // Output is `oklch()`; these are the hexes this derivation emitted before
+    // the flip, so comparing through the sRGB projection is what proves the
+    // serialization change is not a visual change.
+    const asHex = (css: string) => {
+      const parsed = cssColorToOklch(css);
+      if (!parsed) throw new Error(`not a color: ${css}`);
+      return oklchToHexClamped(parsed.l, parsed.c, parsed.h);
+    };
     // The clean default lightness range (95 -> 8) places Brand's base color
     // nearest step 400, not the hand-picked 500 the old custom range used.
-    expect(out['--color-brand-400']).toBe('#fb2898');
-    expect(out['--color-brand-100']).toBe('#ffe7ef');
-    expect(out['--color-brand-950']).toBe('#070002');
-    expect(out['--surface-brand']).toBe('#89004e');
-    expect(out['--border-brand']).toBe('#ae0065');
-    expect(out['--text-brand']).toBe('#ff75b1');
+    expect(asHex(out['--color-brand-400'])).toBe('#fb2898');
+    expect(asHex(out['--color-brand-100'])).toBe('#ffe7ef');
+    expect(asHex(out['--color-brand-950'])).toBe('#070002');
+    expect(asHex(out['--surface-brand'])).toBe('#89004e');
+    expect(asHex(out['--border-brand'])).toBe('#ae0065');
+    expect(asHex(out['--text-brand'])).toBe('#ff75b1');
   });
 });
 

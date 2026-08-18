@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { hexToOklch, oklchToHex } from './oklch';
-import defaultColorsAndType from '../../../live-tokens/data/colors-and-type/default.json';
+import { hexToOklch, oklchToHex, oklchToCssClamped, cssColorToOklch } from './oklch';
+import defaultColorsAndType from '../../live-tokens/data/colors-and-type/default.json';
 
 // The storage migration (and the reconcile anchor parser) parse hex to the
 // OKLCH basis at the boundary. Those boundaries are lossy-safe only if
@@ -32,5 +32,36 @@ describe('hex → OKLCH → hex is lossless (guards the migration + reconcile bo
       const { l, c, h } = hexToOklch(hex);
       expect(oklchToHex(l, c, h)).toBe(hex);
     }
+  });
+});
+
+describe('CSS serialization', () => {
+  it('round-trips a color through oklch() within a least significant bit', () => {
+    for (const hex of ['#fb2898', '#008582', '#70787e', '#ffffff', '#000000']) {
+      const o = hexToOklch(hex);
+      const css = oklchToCssClamped(o.l, o.c, o.h);
+      const back = cssColorToOklch(css)!;
+      expect(oklchToHex(back.l, back.c, back.h)).toBe(hex);
+    }
+  });
+
+  it('clamps out-of-gamut chroma instead of clipping channels', () => {
+    const css = oklchToCssClamped(0.65, 0.4, 355);
+    const parsed = cssColorToOklch(css)!;
+    expect(parsed.c).toBeLessThan(0.4);
+    expect(parsed.h).toBeCloseTo(355, 1);
+  });
+
+  it('accepts both serializations at the input boundary', () => {
+    expect(cssColorToOklch('#fb2898')).not.toBeNull();
+    expect(cssColorToOklch('oklch(0.6572 0.2509 355.35)')).not.toBeNull();
+    expect(cssColorToOklch('linear-gradient(180deg, #fff 0%, #000 100%)')).toBeNull();
+    expect(cssColorToOklch('scroll')).toBeNull();
+  });
+
+  it('reads percentage lightness and chroma', () => {
+    const pct = cssColorToOklch('oklch(65% 50% 355)')!;
+    expect(pct.l).toBeCloseTo(0.65, 6);
+    expect(pct.c).toBeCloseTo(0.2, 6);
   });
 });

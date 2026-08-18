@@ -5,7 +5,7 @@
  * `dist-plugin/generateColorsAndType`, so keep this module Node-safe (no DOM).
  */
 
-import { hexToOklch, type Oklch } from '../palettes/oklch';
+import { hexToOklch, cssColorToOklch, oklchToHexClamped, type Oklch } from '../palettes/oklch';
 import {
   PALETTE_SPECS,
   PALETTE_STEPS,
@@ -201,6 +201,15 @@ function surfaceVars(): string[] {
   ];
 }
 
+/** Derived vars serialize as `oklch()` while the WCAG contrast API is
+ *  sRGB-terminated (decision 7), so project back to hex at this boundary.
+ *  Gradient `--page-bg` parses to null and is skipped, as it was when these
+ *  call sites read hex directly. */
+function varToHex(value: string | undefined): string | null {
+  const parsed = value ? cssColorToOklch(value) : null;
+  return parsed ? oklchToHexClamped(parsed.l, parsed.c, parsed.h) : null;
+}
+
 function worstSurface(
   textHex: string,
   vars: Record<string, string>,
@@ -208,8 +217,8 @@ function worstSurface(
   let against = '';
   let ratio = Infinity;
   for (const surfVar of surfaceVars()) {
-    const surfHex = vars[surfVar];
-    if (!surfHex || !HEX_RE.test(surfHex)) continue;
+    const surfHex = varToHex(vars[surfVar]);
+    if (!surfHex) continue;
     const r = contrastRatio(textHex, surfHex);
     if (r < ratio) {
       ratio = r;
@@ -248,17 +257,18 @@ function runContrastGate(
     const vars = palettesToVars(configs);
     let anyFixed = false;
     for (const def of defs) {
-      const textHex = vars[def.textVar];
-      if (!textHex) continue;
+      const text = cssColorToOklch(vars[def.textVar] ?? '');
+      if (!text) continue;
+      const textHex = oklchToHexClamped(text.l, text.c, text.h);
       const worst = worstSurface(textHex, vars);
       if (worst.ratio >= def.floor) continue;
       const cfg = configs[def.paletteLabel];
       const seed = cfg.baseColor;
       const solved = findLForContrast({
-        against: vars[worst.against],
+        against: varToHex(vars[worst.against]) ?? '#000000',
         ratio: def.target,
         direction,
-        c: hexToOklch(textHex).c,
+        c: text.c,
         h: seed.h,
         lMax: Math.min(1, 2 * seed.l),
       });
@@ -271,7 +281,7 @@ function runContrastGate(
 
   const finalVars = palettesToVars(configs);
   const checks: ContrastCheck[] = defs.map((def) => {
-    const worst = worstSurface(finalVars[def.textVar] ?? '#000000', finalVars);
+    const worst = worstSurface(varToHex(finalVars[def.textVar]) ?? '#000000', finalVars);
     return {
       textVar: def.textVar,
       floor: def.floor,

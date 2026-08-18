@@ -13,7 +13,7 @@
  * derives the same CSS vars from the persisted config.
  */
 
-import { hexToOklch, oklchToHexClamped, gamutClamp, type Oklch } from './oklch';
+import { cssColorToOklch, oklchToCssClamped, gamutClamp, type Oklch } from './oklch';
 import { type CurveAnchor, sampleCurve, makeAnchor, tangentAnchor } from '../../ui/curveEngine';
 import type { PaletteConfig } from '../themes/themeTypes';
 
@@ -191,10 +191,10 @@ export type DerivedValue =
 
 /** The single color → CSS-string projection, and the single clamp point for
  *  derived color: unclamped stored intent is chroma-reduced into sRGB gamut,
- *  then serialized (hex this wave; `oklch()` after Part B). Idempotent on the
- *  already-in-gamut per-step derivation output. `raw` passes through untouched. */
+ *  then serialized as `oklch()`. Idempotent on the already-in-gamut per-step
+ *  derivation output. `raw` passes through untouched. */
 export function serializeDerivedValue(value: DerivedValue): string {
-  return value.kind === 'raw' ? value.css : oklchToHexClamped(value.l, value.c, value.h);
+  return value.kind === 'raw' ? value.css : oklchToCssClamped(value.l, value.c, value.h);
 }
 
 export function computePaletteOklch(
@@ -512,8 +512,8 @@ export function derivePaletteValues(spec: PaletteSpec, config: PaletteConfig | u
       const stopsCss = sortedStops
         .map((s) => {
           const stopValue = out[`--color-${spec.cssNamespace}-${s.paletteLabel}`];
-          const hex = stopValue ? serializeDerivedValue(stopValue) : '#000000';
-          return `${hex} ${s.position}%`;
+          const css = stopValue ? serializeDerivedValue(stopValue) : 'oklch(0 0 0)';
+          return `${css} ${s.position}%`;
         })
         .join(', ');
       let gradient: string;
@@ -553,8 +553,6 @@ export function palettesToVars(palettes: Record<string, PaletteConfig>): Record<
   }
   return out;
 }
-
-const HEX_RE = /^#[0-9a-f]{6}$/i;
 
 /**
  * Reconcile palette typed state against the catch-all `cssVariables` bag and
@@ -596,11 +594,13 @@ export function reconcilePalettesFromCssVars(
     if (current === undefined) continue;
 
     if (current._imported === true) {
-      const anchorHex = cssVars[`--color-${spec.cssNamespace}-500`];
-      if (anchorHex && HEX_RE.test(anchorHex.trim())) {
-        // Input boundary: the imported cssVariables anchor is a hex string;
-        // parse it to the OKLCH basis exactly once, here.
-        next[spec.label] = { ...current, baseColor: hexToOklch(anchorHex.trim()), _imported: false };
+      const anchor = cssVars[`--color-${spec.cssNamespace}-500`];
+      const anchorOklch = anchor ? cssColorToOklch(anchor) : null;
+      if (anchorOklch) {
+        // Input boundary: the imported cssVariables anchor is a CSS string in
+        // either serialization this system has shipped (hex before the OKLCH
+        // flip, `oklch()` after); parse it to the basis exactly once, here.
+        next[spec.label] = { ...current, baseColor: anchorOklch, _imported: false };
         syncBaseAnchor(next[spec.label]);
         snapped.add(spec.label);
       } else {
@@ -611,7 +611,12 @@ export function reconcilePalettesFromCssVars(
       }
     }
 
-    for (const k of Object.keys(derivePaletteVars(spec, next[spec.label]))) {
+    // Key names only: which variables this palette owns is a structural
+    // question, so read the IR rather than serializing values that are
+    // discarded. Callers reach here with pre-migration configs whose
+    // `baseColor` is still a hex string; serializing those derived NaNs used
+    // to produce junk strings nobody read.
+    for (const k of Object.keys(derivePaletteValues(spec, next[spec.label]))) {
       consumed.add(k);
     }
   }

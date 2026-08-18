@@ -50,7 +50,7 @@ describe('buildColorsAndTypeFromSeeds', () => {
 
     const vars = palettesToVars(colorsAndType.editorConfigs);
     for (const required of ['--color-brand-500', '--surface-neutral', '--text-primary', '--page-bg']) {
-      expect(vars[required]).toMatch(/^#[0-9a-f]{6}$/);
+      expect(vars[required]).toMatch(/^oklch\([\d.]+ [\d.]+ [\d.]+\)$/);
     }
     expect(report.failures).toEqual([]);
     for (const check of report.checks) expect(check.ratio).toBeGreaterThanOrEqual(check.floor);
