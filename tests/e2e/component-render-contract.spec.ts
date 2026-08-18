@@ -3,6 +3,10 @@ import path from 'node:path';
 import { expect, test, type Frame } from '@playwright/test';
 import { openOverlayEditor } from './support/editor';
 
+// Each test boots its own editor and asserts only over its own component's
+// aliases, so the 25 component tests carry no shared state between them.
+test.describe.configure({ mode: 'parallel' });
+
 interface AliasCase {
   component: string;
   variable: string;
