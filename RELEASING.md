@@ -29,10 +29,13 @@ heading so consumers know to read it before upgrading.
 
 **Token names are public API** (see TOKENS.md). Adding a token name is additive;
 renaming or removing one is breaking, because a consumer (or their own CSS) may
-reference it. Each `tokens.css` migration declares `kind: 'additive' | 'breaking'`,
-and `check:token-contract` enforces the rule: an additive migration that removes
-a token fails the build, and (from 1.0.0) a breaking migration without a major
-bump fails too. Pre-1.0 the breaking case only warns.
+reference it. Rewriting the *value* of an existing name is breaking too: it
+changes what every consumer referencing it renders, and it can move the file
+past a browser-support floor. Each `tokens.css` migration declares
+`kind: 'additive' | 'breaking'`, and `check:token-contract` enforces the rule:
+an additive migration that removes a token **or rewrites one's value** fails the
+build, and (from 1.0.0) a breaking migration without a major bump fails too.
+Pre-1.0 the breaking case only warns.
 
 | Change | Bump |
 |---|---|
@@ -41,6 +44,7 @@ bump fails too. Pre-1.0 the breaking case only warns.
 | Bug fix, doc tweak, dependency bump within range | patch |
 | Required-option removed, default behaviour changed, API path moved | minor *with breaking heading* |
 | Rename/remove a token name (breaking migration) | minor *with breaking heading* (pre-1.0); major (1.0.0+) |
+| Rewrite token values wholesale, e.g. a color-format change (breaking migration) | minor *with breaking heading* (pre-1.0); major (1.0.0+) |
 | `1.0.0`+ would be major | major |
 
 If a release ships only a CHANGELOG/README change, prefer a patch over no

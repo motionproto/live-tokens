@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.51.0 — OKLCH end to end
+
+### Changed (breaking)
+
+- **Color tokens are written as `oklch()`, not hex.** The editor already
+  stored, edited, and computed color in OKLCH; only the final CSS string was
+  hex, which quantized every value to 8 bits on the way out. Derived colors now
+  serialize as `oklch()` in the live `:root` and in `tokens.generated.css`, and
+  `tokens.css` ships its 283 primitives in the same form. Values are still
+  clamped into the sRGB gamut before serialization, so nothing changes color.
+  Hex remains the readout and text-field format in the editor, and is still
+  what you copy out.
+
+  This sets a browser floor of Chrome 111, Safari 15.4, and Firefox 113
+  (2023). Run `npx live-tokens migrate` to convert a vendored `tokens.css`; the
+  transform is idempotent and touches values only, never names. Because it
+  rewrites values rather than renaming them, it never auto-applies — the dev
+  plugin will not touch your file.
+
+  Any code of your own that parses these tokens as hex needs updating. Inside
+  the package, the generator's contrast gate, the Color Story readouts, and the
+  runtime background-contrast picker were the three such readers.
+
 ## 0.50.0 — Live editing stays in sync
 
 ### Added
