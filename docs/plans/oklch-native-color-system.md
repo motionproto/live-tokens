@@ -116,6 +116,14 @@ type DerivedValue =
 
 Costs: modern-browser floor (Chrome 111 / Safari 15.4 / Firefox 113, ~2023); a breaking `tokens.css` value migration; consumer churn; version bump. Benefits: shipped tokens shed 8-bit quantization; generated CSS is legible in the basis; wide-gamut output becomes possible later without another format change. **No visual change on flip day:** all values remain sRGB-gamut-clamped before serialization; emitting unclamped/P3 values is a separate future decision, out of scope.
 
+> **Execution record (2026-08-19).** Waves 3-5 executed on branch `oklch-part-b`: W3 `16fd837`, W4 `49147b0`, W5 `0da8fc2`. Green at each wave: `npm test` 3538 passing (baseline 3525 + 13 new), `npm run check` 0 errors/0 warnings across 614 files, `npm run build` clean, `check:token-contract` warns as designed (breaking migration in a pre-1.0 minor, CHANGELOG flagged).
+>
+> Deviations from the plan, all in W3 step 5's audit sweep, which found **three** hex readers rather than the zero it expected: the generator's contrast gate (`generateColorsAndType.ts`, both the text and surface sides — the text side was silently returning wrong ratios), the Color Story readouts, and `backgroundContrast.ts`. The last is a runtime file in `src/system`, which cannot import from `src/editor`, so `oklch.ts` moved to `src/system/internal/` with a re-export shim at the old path (30 importers unchanged). Separately, `reconcilePalettesFromCssVars` was serializing derived values only to collect key names and discarding them; it is called at boot with pre-migration configs whose `baseColor` is still a hex string, so it now reads the IR instead. W4 added the value half of the contract guard (the name-only guard would have passed a value-rewriting migration as additive). `oklchToCss` pins hue to 0 at zero chroma — the OKLab round trip put `#ffffff` at h 89.88.
+>
+> **W5 step 2 (consumer migration) deliberately not done.** `live-tokens-online` is the only real consumer (`node-graph` has no live-tokens dependency; `live-tokens-text-styles` no longer exists). It has 0.50.0 installed, whose `backgroundContrast` cannot parse `oklch()`, and it renders `FloatingTokenTags` in its hero. Migrating its vendored `tokens.css` before it upgrades to 0.51.0 would silently degrade that contrast picker to always-white. Correct order: publish 0.51.0, upgrade the consumer, then `npx live-tokens migrate`.
+>
+> **Manual QA still owed** (the user's half): live app renders `oklch()`; importing a pre-flip (hex) and a post-flip (`oklch()`) theme both reconcile and snap. The parser accepts both, unit-tested, but neither path has been driven in the browser.
+
 ## Wave 3: flip the serializer
 
 1. `serializeDerivedValue` emits `oklch(l c h)` for both the live `:root` and the promote path. Internal consumers unaffected (numeric, per Wave 1). Values remain sRGB-clamped.
