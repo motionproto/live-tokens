@@ -13,6 +13,8 @@ export interface CurveConfig {
   label: string;
   gridLines: number[];
   dashedLines: number[];
+  /** Suffix for the offset readout only. The axis range lives in `label`. */
+  unit?: string;
 }
 
 export interface CurveTemplate {
@@ -46,12 +48,23 @@ export const textLightnessCurveConfig: CurveConfig = {
   dashedLines: [50, 150],
 };
 
+// The range is written into `label` rather than derived, because it is the
+// only config whose axis is not self-evident from its name (RJC 4).
+export const hueCurveConfig: CurveConfig = {
+  yMin: -30, yMax: 30,
+  label: 'Hue ±30°',
+  unit: '°',
+  gridLines: [0],
+  dashedLines: [-15, 15],
+};
+
 export const curveTemplates: CurveTemplate[] = [
   {
     name: 'Flat',
     icon: 'M2,6 L18,6',
     anchors: (cfg) => {
-      const mid = (cfg.yMin + cfg.yMax) / 2;
+      const range = cfg.yMax - cfg.yMin;
+      const mid = cfg.yMin + range / 2;
       return [
         { x: 0, y: mid, inDx: 0, inDy: 0, outDx: 30, outDy: 0 },
         { x: 100, y: mid, inDx: -30, inDy: 0, outDx: 0, outDy: 0 },
@@ -61,18 +74,22 @@ export const curveTemplates: CurveTemplate[] = [
   {
     name: 'Peak',
     icon: 'M2,10 L10,2 L18,10',
-    anchors: (cfg) => [
-      { x: 0, y: cfg.yMin, inDx: 0, inDy: 0, outDx: 15, outDy: 0 },
-      { x: 50, y: cfg.yMax / 2, inDx: -15, inDy: 0, outDx: 15, outDy: 0 },
-      { x: 100, y: cfg.yMin, inDx: -15, inDy: 0, outDx: 0, outDy: 0 },
-    ],
+    anchors: (cfg) => {
+      const range = cfg.yMax - cfg.yMin;
+      return [
+        { x: 0, y: cfg.yMin, inDx: 0, inDy: 0, outDx: 15, outDy: 0 },
+        { x: 50, y: cfg.yMin + range / 2, inDx: -15, inDy: 0, outDx: 15, outDy: 0 },
+        { x: 100, y: cfg.yMin, inDx: -15, inDy: 0, outDx: 0, outDy: 0 },
+      ];
+    },
   },
   {
     name: 'Ramp up',
     icon: 'M2,10 L18,2',
     anchors: (cfg) => {
-      const lo = cfg.yMax * 0.1;
-      const hi = cfg.yMax * 0.9;
+      const range = cfg.yMax - cfg.yMin;
+      const lo = cfg.yMin + range * 0.1;
+      const hi = cfg.yMin + range * 0.9;
       return [
         { x: 0, y: lo, inDx: 0, inDy: 0, outDx: 30, outDy: 0 },
         { x: 100, y: hi, inDx: -30, inDy: 0, outDx: 0, outDy: 0 },
@@ -83,8 +100,9 @@ export const curveTemplates: CurveTemplate[] = [
     name: 'Ramp down',
     icon: 'M2,2 L18,10',
     anchors: (cfg) => {
-      const lo = cfg.yMax * 0.1;
-      const hi = cfg.yMax * 0.9;
+      const range = cfg.yMax - cfg.yMin;
+      const lo = cfg.yMin + range * 0.1;
+      const hi = cfg.yMin + range * 0.9;
       return [
         { x: 0, y: hi, inDx: 0, inDy: 0, outDx: 30, outDy: 0 },
         { x: 100, y: lo, inDx: -30, inDy: 0, outDx: 0, outDy: 0 },

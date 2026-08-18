@@ -404,8 +404,9 @@ describe('hue curve derivation: offset', () => {
 
 describe('hue curve derivation: chroma consequence', () => {
   it('rotating hue into a tighter gamut region reduces c, even with a flat saturation curve', () => {
-    // gamutClamp doing its job at the rotated hue, not a derivation bug — pinned
-    // here so the behavior is documented rather than rediscovered as a regression.
+    // This is gamutClamp doing its job at the rotated hue, not a derivation bug.
+    // It is pinned here so the behavior is documented rather than rediscovered
+    // as a regression.
     const base: Oklch = { l: 0.5, c: 0.15, h: 264 };
     const flatL: CurveAnchor[] = [makeAnchor(0, 50, 5), makeAnchor(100, 50, 5)];
     const flatSat: CurveAnchor[] = [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)];

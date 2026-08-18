@@ -282,7 +282,7 @@
         <svg viewBox="0 0 12 20" class="curve-tool-icon">
           <path d="M6,2 L10,7 L7,7 L7,13 L10,13 L6,18 L2,13 L5,13 L5,7 L2,7 Z" />
         </svg>
-        <span>Offset{offset !== 0 ? ` ${offset > 0 ? '+' : ''}${offset}` : ''}</span>
+        <span>Offset{offset !== 0 ? ` ${offset > 0 ? '+' : ''}${offset}${cfg.unit ?? ''}` : ''}</span>
       </UIPillButton>
     </div>
     <svg

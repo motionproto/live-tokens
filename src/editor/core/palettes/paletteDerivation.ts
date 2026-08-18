@@ -216,7 +216,7 @@ export function computePaletteOklch(
   const satMul = Math.max(0, Math.min(2, (sampleCurve(saturationCurve, xPos) + (curveOffset.saturation ?? 0)) / 100));
   const targetC = baseC * satMul;
   // Zero delta skips the wrap rather than folding through it: `%360` round-trips
-  // introduce sub-ULP drift for most floats already in range, which would break
+  // introduce a one-ULP drift for most floats already in range, which would break
   // byte-identity (Global invariant 1) for every palette with no hue curve.
   const hueDelta = (hueCurve ? sampleCurve(hueCurve, xPos) : 0) + (curveOffset.hue ?? 0);
   const h = hueDelta === 0 ? base.h : wrapHue(base.h + hueDelta);
