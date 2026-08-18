@@ -6,14 +6,17 @@ import {
   palettesToVars,
   DEFAULT_PALETTE_LIGHTNESS,
   DEFAULT_PALETTE_SATURATION,
+  DEFAULT_PALETTE_HUE,
   defaultScaleCurves,
   scaleCurveDefaults,
+  computePaletteOklch,
   computeDerivedOklch,
   stepKey,
+  PALETTE_STEPS,
   SCALES,
   type ScaleCurveDefaults,
 } from './paletteDerivation';
-import { hexToOklch, cssColorToOklch, oklchToHexClamped, type Oklch } from './oklch';
+import { hexToOklch, cssColorToOklch, oklchToHexClamped, gamutClamp, type Oklch } from './oklch';
 import { migratePaletteColorsToOklch, type PreOklchPaletteConfig } from '../themes/migrations/2026-07-21-palette-oklch-basis';
 import { adoptLegacyBaseAnchor } from '../themes/migrations/2026-07-24-base-anchor-placement';
 import { adoptBackgroundSpotAsBase } from '../themes/migrations/2026-07-25-background-spot-to-base';
@@ -321,5 +324,98 @@ describe('setCurveAnchor lands on the local slope', () => {
     const { curve } = core.setCurveAnchor(ramp(), 10, 88);
     expect(Math.abs(curve[1].inDx)).toBeLessThanOrEqual(10);
     expect(curve[1].outDx).toBeLessThanOrEqual(90);
+  });
+});
+
+describe('hue curve derivation (Global invariant 1: absent hue is identity)', () => {
+  const base: Oklch = { l: 0.55, c: 0.12, h: 142 };
+  const L = DEFAULT_PALETTE_LIGHTNESS();
+  const S = DEFAULT_PALETTE_SATURATION();
+
+  it('computePaletteOklch: an absent hueCurve matches an explicit flat one at every step', () => {
+    for (let i = 0; i < PALETTE_STEPS.length; i++) {
+      expect(computePaletteOklch(i, base, L, S, {})).toEqual(computePaletteOklch(i, base, L, S, {}, DEFAULT_PALETTE_HUE()));
+    }
+  });
+
+  it('computeDerivedOklch: an absent scale hue curve matches an explicit flat one', () => {
+    const scale = SCALES.find((s) => s.title === 'Text')!;
+    const withoutHue = { Text: { lightness: defaultScaleCurves.Text.lightness(), saturation: defaultScaleCurves.Text.saturation() } };
+    const withFlatHue = { Text: { ...withoutHue.Text, hue: DEFAULT_PALETTE_HUE() } };
+    for (const step of scale.steps) {
+      expect(computeDerivedOklch(step, base, 'Text', withoutHue, {})).toEqual(computeDerivedOklch(step, base, 'Text', withFlatHue, {}));
+    }
+  });
+});
+
+describe('hue curve derivation: rotation and wrap', () => {
+  const L = DEFAULT_PALETTE_LIGHTNESS();
+  const S = DEFAULT_PALETTE_SATURATION();
+
+  it('a curve ramping -30 to +30 puts step 0 at base.h - 30 and the last step at base.h + 30', () => {
+    const base: Oklch = { l: 0.55, c: 0.12, h: 142 };
+    const hueCurve: CurveAnchor[] = [makeAnchor(0, -30, 30), makeAnchor(100, 30, 30)];
+    const first = computePaletteOklch(0, base, L, S, {}, hueCurve);
+    const last = computePaletteOklch(PALETTE_STEPS.length - 1, base, L, S, {}, hueCurve);
+    expect(first.h).toBeCloseTo(base.h - 30, 6);
+    expect(last.h).toBeCloseTo(base.h + 30, 6);
+  });
+
+  it('wraps 350 + 30 to 20, not 380', () => {
+    const base: Oklch = { l: 0.5, c: 0.1, h: 350 };
+    const hueCurve: CurveAnchor[] = [makeAnchor(0, 30, 30), makeAnchor(100, 30, 30)];
+    expect(computePaletteOklch(0, base, L, S, {}, hueCurve).h).toBeCloseTo(20, 6);
+  });
+
+  it('wraps 10 - 30 to 340, not -20', () => {
+    const base: Oklch = { l: 0.5, c: 0.1, h: 10 };
+    const hueCurve: CurveAnchor[] = [makeAnchor(0, -30, 30), makeAnchor(100, -30, 30)];
+    expect(computePaletteOklch(0, base, L, S, {}, hueCurve).h).toBeCloseTo(340, 6);
+  });
+});
+
+describe('hue curve derivation: offset', () => {
+  const base: Oklch = { l: 0.55, c: 0.12, h: 142 };
+  const L = DEFAULT_PALETTE_LIGHTNESS();
+  const S = DEFAULT_PALETTE_SATURATION();
+
+  it('curveOffset.hue shifts every step by the same amount', () => {
+    for (let i = 0; i < PALETTE_STEPS.length; i++) {
+      expect(computePaletteOklch(i, base, L, S, { hue: 15 }).h).toBeCloseTo(base.h + 15, 6);
+    }
+  });
+
+  it("curveOffset['Text-hue'] shifts only the Text scale", () => {
+    const text = SCALES.find((s) => s.title === 'Text')!;
+    const surfaces = SCALES.find((s) => s.title === 'Surfaces')!;
+    const scaleCurves = {
+      Text: { lightness: defaultScaleCurves.Text.lightness(), saturation: defaultScaleCurves.Text.saturation() },
+      Surfaces: { lightness: defaultScaleCurves.Surfaces.lightness(), saturation: defaultScaleCurves.Surfaces.saturation() },
+    };
+    const curveOffset = { 'Text-hue': 15 };
+    for (const step of text.steps) {
+      expect(computeDerivedOklch(step, base, 'Text', scaleCurves, curveOffset).h).toBeCloseTo(base.h + 15, 6);
+    }
+    for (const step of surfaces.steps) {
+      expect(computeDerivedOklch(step, base, 'Surfaces', scaleCurves, curveOffset).h).toBeCloseTo(base.h, 6);
+    }
+  });
+});
+
+describe('hue curve derivation: chroma consequence', () => {
+  it('rotating hue into a tighter gamut region reduces c, even with a flat saturation curve', () => {
+    // gamutClamp doing its job at the rotated hue, not a derivation bug — pinned
+    // here so the behavior is documented rather than rediscovered as a regression.
+    const base: Oklch = { l: 0.5, c: 0.15, h: 264 };
+    const flatL: CurveAnchor[] = [makeAnchor(0, 50, 5), makeAnchor(100, 50, 5)];
+    const flatSat: CurveAnchor[] = [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)];
+    const hueCurve: CurveAnchor[] = [makeAnchor(0, -30, 30), makeAnchor(100, -30, 30)];
+
+    const unrotated = computePaletteOklch(0, base, flatL, flatSat, {});
+    const rotated = computePaletteOklch(0, base, flatL, flatSat, {}, hueCurve);
+
+    expect(unrotated.c).toBeCloseTo(base.c, 10); // already in gamut at the base hue
+    expect(rotated.c).toBeLessThan(unrotated.c);
+    expect(rotated).toEqual(gamutClamp(0.5, 0.15, 234));
   });
 });

@@ -110,6 +110,11 @@ export const BW_GUARD_MAX_L = 0.93;
 
 export const DEFAULT_PALETTE_LIGHTNESS = (): CurveAnchor[] => [makeAnchor(0, 95, 5), makeAnchor(100, 8, 5)];
 export const DEFAULT_PALETTE_SATURATION = (): CurveAnchor[] => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)];
+export const DEFAULT_PALETTE_HUE = (): CurveAnchor[] => [makeAnchor(0, 0, 30), makeAnchor(100, 0, 30)];
+
+/** Hue is cyclic, so derivation wraps rather than clamps. The trig accepts
+ *  any angle; `Oklch.h` is documented 0..360 and readouts print it. */
+const wrapHue = (h: number): number => ((h % 360) + 360) % 360;
 
 export type SchemeDirection = 'light' | 'dark';
 
@@ -203,12 +208,18 @@ export function computePaletteOklch(
   lightnessCurve: CurveAnchor[],
   saturationCurve: CurveAnchor[],
   curveOffset: Record<string, number>,
+  hueCurve?: CurveAnchor[],
 ): Oklch {
-  const { c: baseC, h } = base;
+  const { c: baseC } = base;
   const xPos = stepIndexToX(index);
   const targetL = Math.max(0, Math.min(100, sampleCurve(lightnessCurve, xPos) + (curveOffset.lightness ?? 0))) / 100;
   const satMul = Math.max(0, Math.min(2, (sampleCurve(saturationCurve, xPos) + (curveOffset.saturation ?? 0)) / 100));
   const targetC = baseC * satMul;
+  // Zero delta skips the wrap rather than folding through it: `%360` round-trips
+  // introduce sub-ULP drift for most floats already in range, which would break
+  // byte-identity (Global invariant 1) for every palette with no hue curve.
+  const hueDelta = (hueCurve ? sampleCurve(hueCurve, xPos) : 0) + (curveOffset.hue ?? 0);
+  const h = hueDelta === 0 ? base.h : wrapHue(base.h + hueDelta);
   return gamutClamp(targetL, targetC, h);
 }
 
@@ -405,7 +416,7 @@ export function computeDerivedOklch(
   step: Step,
   base: Oklch,
   scaleTitle: string,
-  scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }>,
+  scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[]; hue?: CurveAnchor[] }>,
   curveOffset: Record<string, number>,
 ): Oklch {
   const scale = SCALES.find((s) => s.title === scaleTitle)!;
@@ -413,8 +424,10 @@ export function computeDerivedOklch(
   const defs = defaultScaleCurves[scaleTitle];
   const lCurve = scaleCurves[scaleTitle]?.lightness ?? defs.lightness();
   const sCurve = scaleCurves[scaleTitle]?.saturation ?? defs.saturation();
+  const hCurve = scaleCurves[scaleTitle]?.hue;
   const lOff = curveOffset[`${scaleTitle}-lightness`] ?? 0;
   const sOff = curveOffset[`${scaleTitle}-saturation`] ?? 0;
+  const hOff = curveOffset[`${scaleTitle}-hue`] ?? 0;
   const { l: baseL, c: baseC, h: baseH } = base;
   let targetL: number;
   if (scale.isText) {
@@ -425,7 +438,10 @@ export function computeDerivedOklch(
   }
   const satMul = Math.max(0, Math.min(2, (sampleCurve(sCurve, xPos) + sOff) / 100));
   const targetC = baseC * satMul;
-  return gamutClamp(targetL, targetC, baseH);
+  // See computePaletteOklch: zero delta skips the wrap to preserve byte-identity.
+  const hueDelta = (hCurve ? sampleCurve(hCurve, xPos) : 0) + hOff;
+  const targetH = hueDelta === 0 ? baseH : wrapHue(baseH + hueDelta);
+  return gamutClamp(targetL, targetC, targetH);
 }
 
 export function scaleToCssVar(scaleTitle: string, stepName: string, cssNamespace: string | null): string | null {
@@ -461,7 +477,7 @@ export function derivePaletteValues(spec: PaletteSpec, config: PaletteConfig | u
     // Overrides are numeric OKLCH intent; pass straight through as color-kind.
     const value: DerivedValue = (k in overrides)
       ? { kind: 'color', ...overrides[k] }
-      : { kind: 'color', ...computePaletteOklch(index, baseColor, lightnessCurve, saturationCurve, curveOffset) };
+      : { kind: 'color', ...computePaletteOklch(index, baseColor, lightnessCurve, saturationCurve, curveOffset, config.hueCurve) };
     out[`--color-${spec.cssNamespace}-${ps.label}`] = value;
   });
 

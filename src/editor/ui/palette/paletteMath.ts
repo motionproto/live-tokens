@@ -9,6 +9,7 @@ import {
   PALETTE_STEPS,
   DEFAULT_PALETTE_LIGHTNESS,
   DEFAULT_PALETTE_SATURATION,
+  DEFAULT_PALETTE_HUE,
   defaultScaleCurves,
   scaleCurveDefaults,
   computePaletteOklch,
@@ -33,6 +34,7 @@ export {
   PALETTE_STEPS,
   DEFAULT_PALETTE_LIGHTNESS,
   DEFAULT_PALETTE_SATURATION,
+  DEFAULT_PALETTE_HUE,
   defaultScaleCurves,
   scaleCurveDefaults,
   computePaletteOklch,
@@ -54,7 +56,7 @@ export interface PaletteStepDef {
 }
 
 export type CurveOffset = Record<string, number>;
-export type ScaleCurves = Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }>;
+export type ScaleCurves = Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[]; hue?: CurveAnchor[] }>;
 
 // Neutrals seed a calmer, wider lightness ramp than accents; the saturation
 // curve is the same flat 100 (chroma comes from a low-chroma base, not a cap).
@@ -103,7 +105,7 @@ export const paletteStepLightness: PaletteStepDef[] = [
   { label: '950', lightness: 8 },
 ];
 
-export const scaleCurveKey = (scaleTitle: string, channel: 'lightness' | 'saturation') => `${scaleTitle}-${channel}`;
+export const scaleCurveKey = (scaleTitle: string, channel: 'lightness' | 'saturation' | 'hue') => `${scaleTitle}-${channel}`;
 
 interface PaletteComputed {
   oklch: Oklch;

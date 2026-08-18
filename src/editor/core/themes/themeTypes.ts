@@ -16,7 +16,11 @@ export interface PaletteConfig {
   baseColor: Oklch;
   lightnessCurve: CurveAnchor[];
   saturationCurve: CurveAnchor[];
-  scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }>;
+  /** Signed hue offset in degrees per step, applied on top of the base hue.
+   *  Absent means flat zero: the palette holds one hue, which is what every
+   *  theme saved before this field did. */
+  hueCurve?: CurveAnchor[];
+  scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[]; hue?: CurveAnchor[] }>;
   curveOffset: Record<string, number>;
   overrides: Record<string, Oklch>;
   snappedScales: string[];
