@@ -4,6 +4,7 @@
   import FloatingTokenTags from '../../system/components/FloatingTokenTags.svelte';
   import { setEditorView } from '../../editor/core/store/editorViewStore';
   import { overlayOpen } from '../../editor/overlay/overlayState';
+  import ThemeSelect from '../../app/ThemeSelect.svelte';
 
   const isDev = import.meta.env.DEV;
 
@@ -43,6 +44,10 @@
         <Button variant="outline" disabled>Editor &nbsp;·&nbsp; dev only</Button>
       {/if}
     </div>
+
+    {#if isDev}
+      <ThemeSelect />
+    {/if}
 
     <p class="hero-byline">
       by <a href="mailto:hello@motionproto.com">Mark</a> at
@@ -114,6 +119,10 @@
     flex-wrap: wrap;
     margin-top: auto;
     padding-top: var(--space-24);
+  }
+
+  .hero-text :global(.theme-select) {
+    margin-top: var(--space-12);
   }
 
   .hero-byline {

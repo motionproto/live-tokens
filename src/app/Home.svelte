@@ -9,6 +9,7 @@
   import { navigate } from '../editor/core/routing/router';
   import { DEFAULT_COMPONENTS_PATH, DEFAULT_COLORS_PATH } from '../editor/core/routing/ownedRoutes';
   import { overlayOpen } from '../editor/overlay/overlayState';
+  import ThemeSelect from './ThemeSelect.svelte';
 
   const isDev = import.meta.env.DEV;
 </script>
@@ -34,6 +35,7 @@
             on:click={() => window.dispatchEvent(new CustomEvent('lt-overlay-toggle'))}
           >{$overlayOpen ? 'Close Token Editor' : 'Open Token Editor'}</Button>
         </div>
+        <ThemeSelect />
       {/if}
     </Card>
   </section>
@@ -95,5 +97,9 @@
 
   .actions :global(.push-right) {
     margin-left: auto;
+  }
+
+  .stub :global(.theme-select) {
+    margin-top: var(--space-24);
   }
 </style>
