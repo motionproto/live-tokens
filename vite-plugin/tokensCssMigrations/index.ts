@@ -10,7 +10,7 @@
  * so the CLI can import it without pulling in `vite`.
  */
 import { extractGlobalRootBody } from '../../src/editor/core/themes/parsers/globalRootBlock';
-import { collectDefinedTokens, collectReferencedTokens } from './cssTokenOps';
+import { collectDefinedTokens, collectReferencedTokens, collectTokenValues } from './cssTokenOps';
 import type { TokensCssMigration } from './types';
 import { tokensCssMigration_2026_05_29_typographyScaleAdditions } from './migrations/2026-05-29-typography-scale-additions';
 import { tokensCssMigration_2026_05_29_sectiondividerLegacyAxisCleanup } from './migrations/2026-05-29-sectiondivider-legacy-axis-cleanup';
@@ -19,11 +19,13 @@ import { tokensCssMigration_2026_06_04_removeDeadSizeIconScale } from './migrati
 import { tokensCssMigration_2026_06_04_easingColorAndTypescaleAdditions } from './migrations/2026-06-04-easing-color-and-typescale-additions';
 import { tokensCssMigration_2026_07_20_lineHeightRename } from './migrations/2026-07-20-line-height-rename';
 import { tokensCssMigration_2026_07_20_semanticTextStyles } from './migrations/2026-07-20-semantic-text-styles';
+import { tokensCssMigration_2026_08_19_oklchColorValues } from './migrations/2026-08-19-oklch-color-values';
 
 export type { TokensCssMigration } from './types';
 export {
   collectDefinedTokens,
   collectReferencedTokens,
+  collectTokenValues,
   ensureScale,
   renameToken,
   removeToken,
@@ -44,6 +46,7 @@ export const TOKENS_CSS_MIGRATIONS: TokensCssMigration[] = [
   tokensCssMigration_2026_06_04_easingColorAndTypescaleAdditions,
   tokensCssMigration_2026_07_20_lineHeightRename,
   tokensCssMigration_2026_07_20_semanticTextStyles,
+  tokensCssMigration_2026_08_19_oklchColorValues,
 ];
 
 export interface RunResult {
@@ -89,26 +92,39 @@ export interface ContractViolation {
   id: string;
   /** Token names the migration removed or renamed away despite declaring `additive`. */
   removed: string[];
+  /** Token names whose value the migration rewrote despite declaring `additive`. */
+  changed: string[];
 }
 
 /**
- * Guardrail for the token-as-API contract: an `additive` migration must never
- * remove or rename a token. We verify behaviorally rather than trusting the
- * label — apply each additive migration to the package's own canonical
- * `tokens.css` (which defines the full current vocabulary) and flag any token
- * that disappears. A rename surfaces as the removal of its old name, so it is
- * caught too. This catches the dangerous direction: a breaking change shipped as
- * a backward-compatible one. (Over-labeling a no-op as `breaking` is harmless
- * and not checked.)
+ * Guardrail for the token-as-API contract: an `additive` migration must only
+ * ever insert new names — it must never remove or rename a token, and never
+ * rewrite the value of one a consumer already references. We verify
+ * behaviorally rather than trusting the label: apply each additive migration to
+ * the package's own canonical `tokens.css` (which defines the full current
+ * vocabulary) and flag any token that disappears or changes value. A rename
+ * surfaces as the removal of its old name, so it is caught too.
+ *
+ * The value half is what makes a value-rewriting migration (hex → `oklch()`)
+ * impossible to mislabel: it renames nothing, so a name-only guard would wave
+ * it through as additive and the dev plugin would auto-apply a breaking change
+ * to a consumer's vendored file.
+ *
+ * This catches the dangerous direction only. (Over-labeling a no-op as
+ * `breaking` is harmless and not checked.)
  */
 export function findContractViolations(canonicalCss: string): ContractViolation[] {
   const violations: ContractViolation[] = [];
   for (const m of TOKENS_CSS_MIGRATIONS) {
     if (m.kind !== 'additive') continue;
-    const before = collectDefinedTokens(canonicalCss);
-    const after = collectDefinedTokens(m.apply(canonicalCss));
-    const removed = [...before].filter((t) => !after.has(t)).sort();
-    if (removed.length) violations.push({ id: m.id, removed });
+    const before = collectTokenValues(canonicalCss);
+    const after = collectTokenValues(m.apply(canonicalCss));
+    const removed = [...before.keys()].filter((t) => !after.has(t)).sort();
+    const changed = [...before.entries()]
+      .filter(([t, v]) => after.has(t) && after.get(t) !== v)
+      .map(([t]) => t)
+      .sort();
+    if (removed.length || changed.length) violations.push({ id: m.id, removed, changed });
   }
   return violations;
 }

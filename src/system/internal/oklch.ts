@@ -143,7 +143,11 @@ function trim(value: number, decimals: number): string {
 }
 
 export function oklchToCss(l: number, c: number, h: number): string {
-  return `oklch(${trim(l, 4)} ${trim(c, 4)} ${trim(h, 2)})`;
+  const cs = trim(c, 4);
+  // Hue is meaningless without chroma, and the OKLab round trip leaves noise
+  // there (#ffffff lands on h≈89.88). Pin it so achromatic values read as
+  // achromatic instead of arbitrary.
+  return `oklch(${trim(l, 4)} ${cs} ${cs === '0' ? '0' : trim(h, 2)})`;
 }
 
 /** The clamped sRGB projection as an `oklch()` string — the CSS counterpart of

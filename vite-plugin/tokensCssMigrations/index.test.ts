@@ -92,8 +92,10 @@ describe('runTokensCssMigrations', () => {
     for (const t of ['--ease-out-cubic', '--ease-linear', '--ease-in-out-back', '--ease-out-bounce']) {
       expect(css).toContain(t);
     }
-    expect(css).toContain('--color-white: #ffffff;');
-    expect(css).toContain('--color-black: #000000;');
+    // Inserted as hex by the additions migration, then converted by the
+    // later oklch migration in the same full run.
+    expect(css).toContain('--color-white: oklch(1 0 0);');
+    expect(css).toContain('--color-black: oklch(0 0 0);');
     expect(css).toContain('--font-size-7xl: 4.5rem;');
     // The whole easing family sits under one "Easing" header, not two.
     expect((css.match(/\/\* Easing \*\//g) ?? []).length).toBe(1);

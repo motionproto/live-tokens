@@ -65,3 +65,12 @@ describe('CSS serialization', () => {
     expect(pct.c).toBeCloseTo(0.2, 6);
   });
 });
+
+describe('achromatic serialization', () => {
+  it('pins hue to 0 when chroma rounds away', () => {
+    expect(oklchToCssClamped(hexToOklch('#ffffff').l, hexToOklch('#ffffff').c, hexToOklch('#ffffff').h))
+      .toBe('oklch(1 0 0)');
+    expect(oklchToCssClamped(hexToOklch('#000000').l, hexToOklch('#000000').c, hexToOklch('#000000').h))
+      .toBe('oklch(0 0 0)');
+  });
+});

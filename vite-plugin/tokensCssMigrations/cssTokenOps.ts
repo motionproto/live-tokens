@@ -17,11 +17,19 @@
 
 const DECL_RE = /(^|[\s;{])(--[a-z0-9-]+)\s*:/gi;
 const REF_RE = /var\(\s*(--[a-z0-9-]+)/gi;
+const DECL_VALUE_RE = /(^|[\s;{])(--[a-z0-9-]+)\s*:([^;}]*)/gi;
 
 /** Names declared as custom properties (`--x: …;`) anywhere in the source. */
 export function collectDefinedTokens(css: string): Set<string> {
   const out = new Set<string>();
   for (const m of css.matchAll(DECL_RE)) out.add(m[2]);
+  return out;
+}
+
+/** Declared name → value, last declaration winning (as the cascade would). */
+export function collectTokenValues(css: string): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const m of css.matchAll(DECL_VALUE_RE)) out.set(m[2], m[3].trim());
   return out;
 }
 

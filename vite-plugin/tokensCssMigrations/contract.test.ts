@@ -7,7 +7,10 @@ import {
   findContractViolations,
   semverBumpType,
   enforceBreakingRequiresMajor,
+  collectDefinedTokens,
+  collectTokenValues,
 } from './index';
+import { cssColorToOklch, oklchToHex } from '../../src/system/internal/oklch';
 import type { TokensCssMigration } from './types';
 
 const CANONICAL_TOKENS_CSS = readFileSync(
@@ -43,11 +46,72 @@ describe('token-as-API contract — classification', () => {
       const violations = findContractViolations(CANONICAL_TOKENS_CSS);
       expect(violations.map((v) => v.id)).toContain('liar');
       expect(violations.find((v) => v.id === 'liar')?.removed).toContain('--space-16');
+      expect(violations.find((v) => v.id === 'liar')?.changed).toEqual([]);
     } finally {
       // Restore the registry so order/contents don't leak into sibling tests.
       TOKENS_CSS_MIGRATIONS.length = 0;
       TOKENS_CSS_MIGRATIONS.push(...before);
     }
+  });
+});
+
+describe('token-as-API contract — values', () => {
+  it('catches a value rewrite mislabeled additive', () => {
+    // Renames nothing, so a name-only guard would wave this through.
+    const liar: TokensCssMigration = {
+      id: 'value-liar',
+      kind: 'additive',
+      description: 'rewrites --color-white but says additive',
+      apply: (css) => css.replace(/--color-white:[^;]*/, '--color-white: oklch(0.5 0 0)'),
+    };
+    const before = new Set(TOKENS_CSS_MIGRATIONS);
+    TOKENS_CSS_MIGRATIONS.push(liar);
+    try {
+      const violation = findContractViolations(CANONICAL_TOKENS_CSS).find((v) => v.id === 'value-liar');
+      expect(violation?.changed).toContain('--color-white');
+      expect(violation?.removed).toEqual([]);
+    } finally {
+      TOKENS_CSS_MIGRATIONS.length = 0;
+      TOKENS_CSS_MIGRATIONS.push(...before);
+    }
+  });
+});
+
+describe('2026-08-19-oklch-color-values', () => {
+  const migration = TOKENS_CSS_MIGRATIONS.find((m) => m.id === '2026-08-19-oklch-color-values')!;
+
+  it('rewrites hex declarations and nothing else', () => {
+    const css = ':root {\n  --a: #fb2898;\n  --b: 1.5;\n  --c: var(--a);\n}\n';
+    expect(migration.apply(css)).toBe(
+      ':root {\n  --a: oklch(0.6572 0.2509 355.35);\n  --b: 1.5;\n  --c: var(--a);\n}\n',
+    );
+  });
+
+  it('is idempotent', () => {
+    const once = migration.apply(CANONICAL_TOKENS_CSS);
+    expect(migration.apply(once)).toBe(once);
+  });
+
+  it('renames nothing and converts every hex the canonical file defines', () => {
+    const out = migration.apply(CANONICAL_TOKENS_CSS);
+    expect(collectDefinedTokens(out)).toEqual(collectDefinedTokens(CANONICAL_TOKENS_CSS));
+    expect(out).not.toMatch(/:\s*#[0-9a-f]{6}/i);
+  });
+
+  it('preserves every color exactly through the sRGB projection', () => {
+    // The canonical file is already migrated, so pin the round trip on a
+    // fixture spanning the gamut: invariants, saturated primaries, the darkest
+    // and lightest ramp steps, and a near-grey.
+    const HEXES = [
+      '#ffffff', '#000000', '#fb2898', '#008582', '#8b5cf6', '#ffb01f',
+      '#00bbff', '#d10023', '#070002', '#ffe7ef', '#70787e', '#3c3c53',
+    ];
+    const css = `:root {\n${HEXES.map((h, i) => `  --t${i}: ${h};`).join('\n')}\n}\n`;
+    const after = collectTokenValues(migration.apply(css));
+    HEXES.forEach((hex, i) => {
+      const parsed = cssColorToOklch(after.get(`--t${i}`)!)!;
+      expect(oklchToHex(parsed.l, parsed.c, parsed.h), hex).toBe(hex);
+    });
   });
 });
 

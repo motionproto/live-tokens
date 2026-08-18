@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   collectDefinedTokens,
   collectReferencedTokens,
+  collectTokenValues,
   ensureScale,
   renameToken,
   removeToken,
@@ -202,5 +203,17 @@ describe('removeTokensMatching', () => {
 
   it('is a no-op when nothing matches', () => {
     expect(removeTokensMatching(ROOT, isLegacyDivider)).toBe(ROOT);
+  });
+});
+
+describe('collectTokenValues', () => {
+  it('maps each declared name to its trimmed value', () => {
+    const values = collectTokenValues(':root {\n  --a: 1rem;\n  --b: oklch(0.5 0.1 40);\n}\n');
+    expect(values.get('--a')).toBe('1rem');
+    expect(values.get('--b')).toBe('oklch(0.5 0.1 40)');
+  });
+
+  it('takes the last declaration, as the cascade would', () => {
+    expect(collectTokenValues(':root { --a: 1; }\n:root { --a: 2; }').get('--a')).toBe('2');
   });
 });

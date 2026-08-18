@@ -45,11 +45,18 @@ const canonical = readFileSync(TOKENS_CSS, 'utf8');
 const violations = findContractViolations(canonical);
 if (violations.length) {
   for (const v of violations) {
-    console.error(
-      `[check-token-contract] migration "${v.id}" is declared additive but removes: ${v.removed.join(', ')}`,
-    );
+    if (v.removed.length) {
+      console.error(
+        `[check-token-contract] migration "${v.id}" is declared additive but removes: ${v.removed.join(', ')}`,
+      );
+    }
+    if (v.changed.length) {
+      console.error(
+        `[check-token-contract] migration "${v.id}" is declared additive but rewrites the value of: ${v.changed.join(', ')}`,
+      );
+    }
   }
-  fail(`${violations.length} additive migration(s) remove or rename tokens. Mark them kind:'breaking'.`);
+  fail(`${violations.length} additive migration(s) remove, rename, or rewrite tokens. Mark them kind:'breaking'.`);
 }
 
 // Part 2: version gate. Best-effort — skips cleanly when there's no prior tag or
