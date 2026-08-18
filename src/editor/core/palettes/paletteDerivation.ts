@@ -373,6 +373,9 @@ export function syncBaseAnchor(cfg: PaletteConfig): void {
   const fresh = prev === undefined;
   let lCurve = cfg.lightnessCurve;
   let sCurve = cfg.saturationCurve;
+  // Hue is pinned only once a curve exists (RJC 5): an absent curve is flat
+  // zero already, so there is nothing to lift or re-place.
+  let hCurve = cfg.hueCurve;
   if (prev) {
     // Re-placing an existing anchor (a hue move, typically) must preserve
     // whatever is currently on the curve, edited or not — never restore the
@@ -381,6 +384,7 @@ export function syncBaseAnchor(cfg: PaletteConfig): void {
     const prevX = stepIndexToX(prev.step);
     lCurve = liftCurveAnchor(lCurve, prevX, prev.displacedL);
     sCurve = liftCurveAnchor(sCurve, prevX, prev.displacedS);
+    if (hCurve) hCurve = liftCurveAnchor(hCurve, prevX, prev.displacedH);
   }
   const step = nearestPaletteStep(lCurve, cfg.baseColor.l);
   const x = stepIndexToX(step);
@@ -388,6 +392,8 @@ export function syncBaseAnchor(cfg: PaletteConfig): void {
   const s = setCurveAnchor(sCurve, x, 100, fresh);
   cfg.lightnessCurve = l.curve;
   cfg.saturationCurve = s.curve;
+  const h = hCurve ? setCurveAnchor(hCurve, x, 0, fresh) : undefined;
+  if (h) cfg.hueCurve = h.curve;
   // priorEndpoints is captured once, on the curve's first-ever placement,
   // and carried forward untouched thereafter so a later clear can still
   // restore the true original regardless of how many times the anchor moved.
@@ -395,8 +401,10 @@ export function syncBaseAnchor(cfg: PaletteConfig): void {
     step,
     displacedL: l.displacedY,
     displacedS: s.displacedY,
+    displacedH: h?.displacedY,
     priorLightnessEndpoints: prev?.priorLightnessEndpoints ?? l.priorEndpoints,
     priorSaturationEndpoints: prev?.priorSaturationEndpoints ?? s.priorEndpoints,
+    priorHueEndpoints: h ? (prev?.priorHueEndpoints ?? h.priorEndpoints) : prev?.priorHueEndpoints,
   };
 }
 
@@ -407,6 +415,9 @@ export function clearBaseAnchor(cfg: PaletteConfig): void {
     const x = stepIndexToX(prev.step);
     cfg.lightnessCurve = liftCurveAnchor(cfg.lightnessCurve, x, prev.displacedL, prev.priorLightnessEndpoints);
     cfg.saturationCurve = liftCurveAnchor(cfg.saturationCurve, x, prev.displacedS, prev.priorSaturationEndpoints);
+    if (cfg.hueCurve) {
+      cfg.hueCurve = liftCurveAnchor(cfg.hueCurve, x, prev.displacedH, prev.priorHueEndpoints);
+    }
     cfg.anchorPlacement = undefined;
   }
   cfg.anchorToBase = false;

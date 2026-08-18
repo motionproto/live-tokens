@@ -34,11 +34,12 @@ export interface PaletteConfig {
   /**
    * Where the base color sits in the ramp while `anchorToBase` is on: the
    * PALETTE_STEPS index whose curve anchors are pinned to the base color
-   * (lightness = base L, saturation = multiplier 100). `displacedL` /
-   * `displacedS` remember the y of a pre-existing anchor (endpoint or
-   * user-authored) the placement overwrote at that x, so moving the
-   * placement or toggling off restores it instead of deleting it.
-   * `priorLightnessEndpoints` / `priorSaturationEndpoints` remember the two
+   * (lightness = base L, saturation = multiplier 100, hue delta = 0 when a
+   * hue curve exists). `displacedL` / `displacedS` / `displacedH` remember
+   * the y of a pre-existing anchor (endpoint or user-authored) the placement
+   * overwrote at that x, so moving the placement or toggling off restores it
+   * instead of deleting it. `priorLightnessEndpoints` /
+   * `priorSaturationEndpoints` / `priorHueEndpoints` remember the two
    * endpoints exactly as they stood before the curve's first-ever placement
    * (a smoothed reshape, not algebraically invertible the way a later
    * scaled-handle re-placement is), so a clear can still restore the true
@@ -48,8 +49,10 @@ export interface PaletteConfig {
     step: number;
     displacedL?: number;
     displacedS?: number;
+    displacedH?: number;
     priorLightnessEndpoints?: [CurveAnchor, CurveAnchor];
     priorSaturationEndpoints?: [CurveAnchor, CurveAnchor];
+    priorHueEndpoints?: [CurveAnchor, CurveAnchor];
   };
   /**
    * Set to true by importers when they overlay `cssVariables[--color-{ns}-*]`

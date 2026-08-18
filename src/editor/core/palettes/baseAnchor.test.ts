@@ -140,6 +140,60 @@ describe('clearBaseAnchor', () => {
   });
 });
 
+describe('syncBaseAnchor with a hue curve', () => {
+  const nonFlatHue = () => [makeAnchor(0, -20, 30), makeAnchor(100, 20, 30)];
+
+  it('pins the hue delta to zero so the base hue renders verbatim at the placed step', () => {
+    const c = cfg(0.56, { hueCurve: nonFlatHue() });
+    syncBaseAnchor(c);
+    const step = c.anchorPlacement!.step;
+    const out = computePaletteOklch(step, c.baseColor, c.lightnessCurve, c.saturationCurve, {}, c.hueCurve);
+    // Same bisection-sampled curve as lightness/saturation, so "verbatim" is
+    // curve-sampling precision, not bit-exact (the L/C assertions elsewhere
+    // in this file use the same toBeCloseTo tolerance).
+    expect(out.h).toBeCloseTo(200, 3);
+  });
+
+  it('leaves hue untouched when no hue curve is present', () => {
+    const c = cfg(0.56);
+    syncBaseAnchor(c);
+    expect(c.hueCurve).toBeUndefined();
+    expect(c.anchorPlacement!.displacedH).toBeUndefined();
+  });
+
+  it('is idempotent with a hue curve present', () => {
+    const c = cfg(0.56, { hueCurve: nonFlatHue() });
+    syncBaseAnchor(c);
+    const once = structuredClone({ p: c.anchorPlacement, l: c.lightnessCurve, s: c.saturationCurve, h: c.hueCurve });
+    syncBaseAnchor(c);
+    expect(c.anchorPlacement).toEqual(once.p);
+    expect(c.lightnessCurve).toEqual(once.l);
+    expect(c.saturationCurve).toEqual(once.s);
+    expect(c.hueCurve).toEqual(once.h);
+  });
+
+  it('is idempotent without a hue curve', () => {
+    const c = cfg(0.56);
+    syncBaseAnchor(c);
+    const once = structuredClone({ p: c.anchorPlacement, l: c.lightnessCurve, s: c.saturationCurve });
+    syncBaseAnchor(c);
+    expect(c.anchorPlacement).toEqual(once.p);
+    expect(c.lightnessCurve).toEqual(once.l);
+    expect(c.saturationCurve).toEqual(once.s);
+    expect(c.hueCurve).toBeUndefined();
+  });
+});
+
+describe('clearBaseAnchor with a hue curve', () => {
+  it('restores the hue curve to its pre-pin shape', () => {
+    const nonFlatHue = [makeAnchor(0, -20, 30), makeAnchor(100, 20, 30)];
+    const c = cfg(0.56, { hueCurve: nonFlatHue });
+    syncBaseAnchor(c);
+    clearBaseAnchor(c);
+    expect(c.hueCurve).toEqual(nonFlatHue);
+  });
+});
+
 describe('defaultPaletteConfig', () => {
   it('seeds fresh palettes already placed', () => {
     const c = defaultPaletteConfig({ baseColor: { l: 0.7674, c: 0.164, h: 70.44 } });
