@@ -445,180 +445,184 @@ async function selectComponent(frame: Frame, component: string): Promise<void> {
   await frame.locator('.variant-group').filter({ visible: true }).waitFor();
 }
 
-test('every component property repaints its standardized runtime preview', async ({ page }) => {
-  test.setTimeout(600_000);
-  const frame = await openOverlayEditor(page, 'components');
-  const covered = new Set<string>();
-  const seen = new Set<string>();
-  const unchanged = new Set<string>();
-  const controlExercised = new Set<string>();
+for (const [component, aliases] of aliasesByComponent) {
+  test(`${component} repaints every property in its standardized runtime preview`, async ({ page }) => {
+    test.setTimeout(600_000);
+    const frame = await openOverlayEditor(page, 'components');
+    const covered = new Set<string>();
+    const seen = new Set<string>();
+    const unchanged = new Set<string>();
+    const controlExercised = new Set<string>();
 
-  const probe = async (aliases: string[], forced: string[] = []) => {
-    const remaining = forced.length > 0
-      ? forced.filter((variable) => !covered.has(variable))
-      : [];
-    if (forced.length > 0 && remaining.length === 0) return;
+    const probe = async (componentAliases: string[], forced: string[] = []) => {
+      const remaining = forced.length > 0
+        ? forced.filter((variable) => !covered.has(variable))
+        : [];
+      if (forced.length > 0 && remaining.length === 0) return;
 
-    // Exercise standardized preview toggles (zoom, hover enablement, optional
-    // content) when retrying a property that is dormant in the default mode.
-    if (forced.length > 0) {
-      const unchecked = frame.locator(
-        '.variant-group:visible .tabs-preview input[type="checkbox"]:not(:checked):not(:disabled), '
-        + '.variant-group:visible .properties-header input[type="checkbox"]:not(:checked):not(:disabled)',
-      );
-      for (let index = 0; index < await unchecked.count(); index++) {
-        await unchecked.nth(index).click({ force: true });
+      // Exercise standardized preview toggles (zoom, hover enablement, optional
+      // content) when retrying a property that is dormant in the default mode.
+      if (forced.length > 0) {
+        const unchecked = frame.locator(
+          '.variant-group:visible .tabs-preview input[type="checkbox"]:not(:checked):not(:disabled), '
+          + '.variant-group:visible .properties-header input[type="checkbox"]:not(:checked):not(:disabled)',
+        );
+        for (let index = 0; index < await unchecked.count(); index++) {
+          await unchecked.nth(index).click({ force: true });
+        }
       }
-    }
 
-    // Portaled dialogs sit outside `.tabs-preview`; hover their first action
-    // so hover-only chrome aliases are painted too. Role-based discovery keeps
-    // this independent of any component name or DOM implementation class.
-    const dialogAction = frame.locator('[role="dialog"] button:not(:disabled)').first();
-    if (await dialogAction.count()) await dialogAction.hover({ force: true });
+      // Portaled dialogs sit outside `.tabs-preview`; hover their first action
+      // so hover-only chrome aliases are painted too. Role-based discovery keeps
+      // this independent of any component name or DOM implementation class.
+      const dialogAction = frame.locator('[role="dialog"] button:not(:disabled)').first();
+      if (await dialogAction.count()) await dialogAction.hover({ force: true });
 
-    await exerciseVisibleTokenControls(frame, aliases, controlExercised);
-    await exerciseVisibleCompositeControls(frame, aliases, controlExercised);
-    await exerciseVisibleSplitPaddingControls(frame, aliases, controlExercised);
-    await exerciseVisibleGradientControls(frame, aliases, controlExercised);
-    const result = await probeCurrentView(frame, aliases, remaining);
-    result.covered.forEach((variable) => covered.add(variable));
-    result.covered.forEach((variable) => seen.add(variable));
-    result.unchanged.forEach((variable) => {
-      seen.add(variable);
-      if (!covered.has(variable)) unchanged.add(variable);
-    });
-  };
+      await exerciseVisibleTokenControls(frame, componentAliases, controlExercised);
+      await exerciseVisibleCompositeControls(frame, componentAliases, controlExercised);
+      await exerciseVisibleSplitPaddingControls(frame, componentAliases, controlExercised);
+      await exerciseVisibleGradientControls(frame, componentAliases, controlExercised);
+      const result = await probeCurrentView(frame, componentAliases, remaining);
+      result.covered.forEach((variable) => covered.add(variable));
+      result.covered.forEach((variable) => seen.add(variable));
+      result.unchanged.forEach((variable) => {
+        seen.add(variable);
+        if (!covered.has(variable)) unchanged.add(variable);
+      });
+    };
 
-  const traverseComponent = async (component: string, aliases: string[], forced: string[] = []) => {
-    await selectComponent(frame, component);
+    const traverseComponent = async (
+      componentId: string,
+      componentAliases: string[],
+      forced: string[] = [],
+    ) => {
+      await selectComponent(frame, componentId);
 
-    const visitViews = async () => {
-      if (forced.length > 0 && forced.every((variable) => covered.has(variable))) return;
-      const sizeSelect = frame.locator('.variant-group:visible .preview-actions select').first();
-      const sizeValues = await sizeSelect.count()
-        ? await sizeSelect.locator('option').evaluateAll((options) =>
-            options.map((option) => (option as HTMLOptionElement).value))
-        : [''];
-
-      for (const sizeValue of sizeValues) {
-        const currentSizeSelect = frame.locator('.variant-group:visible .preview-actions select').first();
-        if (sizeValue && await currentSizeSelect.count()) await currentSizeSelect.selectOption(sizeValue);
-
-        const variantTabs = frame.locator('.variant-group:visible .variant-tabs .variant-tab-btn');
-        const variantLabels = await variantTabs.count()
-          ? await variantTabs.allTextContents()
+      const visitViews = async () => {
+        if (forced.length > 0 && forced.every((variable) => covered.has(variable))) return;
+        const sizeSelect = frame.locator('.variant-group:visible .preview-actions select').first();
+        const sizeValues = await sizeSelect.count()
+          ? await sizeSelect.locator('option').evaluateAll((options) =>
+              options.map((option) => (option as HTMLOptionElement).value))
           : [''];
 
-        for (let variantIndex = 0; variantIndex < variantLabels.length; variantIndex++) {
-          if (variantLabels[variantIndex]) {
-            await frame.locator('.variant-group:visible .variant-tabs .variant-tab-btn')
-              .nth(variantIndex)
-              .click({ force: true });
-          }
+        for (const sizeValue of sizeValues) {
+          const currentSizeSelect = frame.locator('.variant-group:visible .preview-actions select').first();
+          if (sizeValue && await currentSizeSelect.count()) await currentSizeSelect.selectOption(sizeValue);
 
-          await probe(aliases, forced);
-          const primaryTabs = frame.locator(
-            '.variant-group:visible .tabs-states-block > .tabs-selectors:first-of-type .state-tab-btn',
-          );
-          const primaryLabels = await primaryTabs.allTextContents();
-          for (let primaryIndex = 0; primaryIndex < primaryLabels.length; primaryIndex++) {
-            await frame.locator(
+          const variantTabs = frame.locator('.variant-group:visible .variant-tabs .variant-tab-btn');
+          const variantLabels = await variantTabs.count()
+            ? await variantTabs.allTextContents()
+            : [''];
+
+          for (let variantIndex = 0; variantIndex < variantLabels.length; variantIndex++) {
+            if (variantLabels[variantIndex]) {
+              await frame.locator('.variant-group:visible .variant-tabs .variant-tab-btn')
+                .nth(variantIndex)
+                .click({ force: true });
+            }
+
+            await probe(componentAliases, forced);
+            const primaryTabs = frame.locator(
               '.variant-group:visible .tabs-states-block > .tabs-selectors:first-of-type .state-tab-btn',
-            ).nth(primaryIndex).click({ force: true });
-            await probe(aliases, forced);
-
-            const secondaryTabs = frame.locator(
-              '.variant-group:visible .tabs-states-block > .tabs-selectors.substrip .state-tab-btn',
             );
-            const secondaryLabels = await secondaryTabs.allTextContents();
-            for (let secondaryIndex = 0; secondaryIndex < secondaryLabels.length; secondaryIndex++) {
+            const primaryLabels = await primaryTabs.allTextContents();
+            for (let primaryIndex = 0; primaryIndex < primaryLabels.length; primaryIndex++) {
               await frame.locator(
+                '.variant-group:visible .tabs-states-block > .tabs-selectors:first-of-type .state-tab-btn',
+              ).nth(primaryIndex).click({ force: true });
+              await probe(componentAliases, forced);
+
+              const secondaryTabs = frame.locator(
                 '.variant-group:visible .tabs-states-block > .tabs-selectors.substrip .state-tab-btn',
-              ).nth(secondaryIndex).click({ force: true });
-              await probe(aliases, forced);
+              );
+              const secondaryLabels = await secondaryTabs.allTextContents();
+              for (let secondaryIndex = 0; secondaryIndex < secondaryLabels.length; secondaryIndex++) {
+                await frame.locator(
+                  '.variant-group:visible .tabs-states-block > .tabs-selectors.substrip .state-tab-btn',
+                ).nth(secondaryIndex).click({ force: true });
+                await probe(componentAliases, forced);
+              }
             }
           }
         }
+      };
+
+      await visitViews();
+      if (forced.length === 0 || forced.every((variable) => covered.has(variable))) return;
+
+      // Open any dialog-capable preview and repeat the same registry traversal.
+      const dialogTrigger = frame.locator(
+        '.variant-group:visible .tabs-preview [aria-haspopup="dialog"][aria-expanded="false"]',
+      ).first();
+      if (await dialogTrigger.count()) {
+        await dialogTrigger.click({ force: true });
+        await frame.locator('[role="dialog"]').waitFor();
+        await visitViews();
+      }
+
+      // Exercise every option of standardized canvas selects. This covers modes
+      // such as Input type and optional Notification actions without any
+      // per-component fixture or test case.
+      const canvasSelects = frame.locator('.variant-group:visible .tabs-preview .canvas-toolbar select');
+      for (let selectIndex = 0; selectIndex < await canvasSelects.count(); selectIndex++) {
+        const values = await canvasSelects.nth(selectIndex).locator('option').evaluateAll((options) =>
+          options.map((option) => (option as HTMLOptionElement).value));
+        for (const value of values) {
+          if (forced.every((variable) => covered.has(variable))) return;
+          await canvasSelects.nth(selectIndex).selectOption(value);
+          await visitViews();
+        }
+      }
+
+      // Expanded/collapsed previews expose motion aliases whose computed style
+      // is different in each direction.
+      const expanders = frame.locator(
+        '.variant-group:visible .tabs-preview [aria-expanded]:not([aria-haspopup="dialog"])',
+      );
+      for (let index = 0; index < await expanders.count(); index++) {
+        if (forced.every((variable) => covered.has(variable))) return;
+        await expanders.nth(index).click({ force: true });
+        await visitViews();
+      }
+
+      // A default-off hover gate only paints while the runtime element itself
+      // matches :hover. Forced preview classes intentionally bypass that gate,
+      // so retry unresolved properties while hovering each visible preview node.
+      // This stays component-agnostic and runs only for the small unresolved set.
+      const hoverTargets = frame.locator('.variant-group:visible .tabs-preview *:visible');
+      for (let index = 0; index < await hoverTargets.count(); index++) {
+        if (forced.every((variable) => covered.has(variable))) return;
+        await hoverTargets.nth(index).hover({ force: true });
+        await probe(componentAliases, forced);
       }
     };
 
-    await visitViews();
-    if (forced.length === 0 || forced.every((variable) => covered.has(variable))) return;
-
-    // Open any dialog-capable preview and repeat the same registry traversal.
-    const dialogTrigger = frame.locator(
-      '.variant-group:visible .tabs-preview [aria-haspopup="dialog"][aria-expanded="false"]',
-    ).first();
-    if (await dialogTrigger.count()) {
-      await dialogTrigger.click({ force: true });
-      await frame.locator('[role="dialog"]').waitFor();
-      await visitViews();
-    }
-
-    // Exercise every option of standardized canvas selects. This covers modes
-    // such as Input type and optional Notification actions without any
-    // per-component fixture or test case.
-    const canvasSelects = frame.locator('.variant-group:visible .tabs-preview .canvas-toolbar select');
-    for (let selectIndex = 0; selectIndex < await canvasSelects.count(); selectIndex++) {
-      const values = await canvasSelects.nth(selectIndex).locator('option').evaluateAll((options) =>
-        options.map((option) => (option as HTMLOptionElement).value));
-      for (const value of values) {
-        if (forced.every((variable) => covered.has(variable))) return;
-        await canvasSelects.nth(selectIndex).selectOption(value);
-        await visitViews();
-      }
-    }
-
-    // Expanded/collapsed previews expose motion aliases whose computed style
-    // is different in each direction.
-    const expanders = frame.locator(
-      '.variant-group:visible .tabs-preview [aria-expanded]:not([aria-haspopup="dialog"])',
-    );
-    for (let index = 0; index < await expanders.count(); index++) {
-      if (forced.every((variable) => covered.has(variable))) return;
-      await expanders.nth(index).click({ force: true });
-      await visitViews();
-    }
-
-    // A default-off hover gate only paints while the runtime element itself
-    // matches :hover. Forced preview classes intentionally bypass that gate,
-    // so retry unresolved properties while hovering each visible preview node.
-    // This stays component-agnostic and runs only for the small unresolved set.
-    const hoverTargets = frame.locator('.variant-group:visible .tabs-preview *:visible');
-    for (let index = 0; index < await hoverTargets.count(); index++) {
-      if (forced.every((variable) => covered.has(variable))) return;
-      await hoverTargets.nth(index).hover({ force: true });
-      await probe(aliases, forced);
-    }
-  };
-
-  for (const [component, aliases] of aliasesByComponent) {
     await traverseComponent(component, aliases);
-  }
 
-  // Retry every property not yet observed repainting. Composite controls,
-  // pseudo-elements, optional content, interaction modes and portaled dialogs
-  // are all discovered from standard DOM semantics; there is no component
-  // exception table.
-  const firstPassUnresolved = aliasCases.filter(({ variable }) => !covered.has(variable));
-  for (const [component, aliases] of aliasesByComponent) {
-    const forced = firstPassUnresolved
-      .filter((entry) => entry.component === component)
-      .map((entry) => entry.variable);
-    if (forced.length > 0) await traverseComponent(component, aliases, forced);
-  }
+    // Retry every property not yet observed repainting. Composite controls,
+    // pseudo-elements, optional content, interaction modes and portaled dialogs
+    // are all discovered from standard DOM semantics; there is no component
+    // exception table.
+    const unresolved = aliases.filter((variable) => !covered.has(variable));
+    if (unresolved.length > 0) await traverseComponent(component, aliases, unresolved);
 
-  const allVariables = aliasCases.map(({ variable }) => variable);
-  const notExposed = allVariables.filter((variable) => !seen.has(variable));
-  const notReactive = allVariables.filter((variable) => seen.has(variable) && !covered.has(variable));
-  const notControlExercised = allVariables.filter((variable) => !controlExercised.has(variable));
+    const notExposed = aliases.filter((variable) => !seen.has(variable));
+    const notReactive = aliases.filter((variable) => seen.has(variable) && !covered.has(variable));
+    const notControlExercised = aliases.filter((variable) => !controlExercised.has(variable));
 
-  expect(notExposed, `Properties not exposed by a standardized component view:\n${notExposed.join('\n')}`)
-    .toEqual([]);
-  expect(notReactive, `Properties whose rendered preview did not change:\n${notReactive.join('\n')}`)
-    .toEqual([]);
-  expect(notControlExercised, `Properties not exercised through a rendered editor control:\n${notControlExercised.join('\n')}`)
-    .toEqual([]);
-  expect(covered.size).toBe(aliasCases.length);
+    expect(notExposed, `Properties not exposed by a standardized component view:\n${notExposed.join('\n')}`)
+      .toEqual([]);
+    expect(notReactive, `Properties whose rendered preview did not change:\n${notReactive.join('\n')}`)
+      .toEqual([]);
+    expect(notControlExercised, `Properties not exercised through a rendered editor control:\n${notControlExercised.join('\n')}`)
+      .toEqual([]);
+    expect(covered.size).toBe(aliases.length);
+  });
+}
+
+test('component discovery covers every alias exactly once', () => {
+  const perComponent = [...aliasesByComponent.values()].reduce((sum, a) => sum + a.length, 0);
+  expect(aliasCases.length).toBeGreaterThan(0);
+  expect(perComponent).toBe(aliasCases.length);
 });
