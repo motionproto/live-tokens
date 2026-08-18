@@ -10,6 +10,10 @@ export default defineConfig({
   workers: 1,
   timeout: 30_000,
   expect: { timeout: 5_000 },
+  // A shared-server, single-worker suite times out under CI load in ways it
+  // never does locally. Without a retry budget one wobble aborts a tagged
+  // release, and `Refuse to republish` makes a re-tag the only recovery.
+  retries: process.env.CI ? 2 : 0,
   outputDir: 'test-results/playwright',
   reporter: process.env.CI ? [['line'], ['html', { open: 'never' }]] : 'list',
   use: {
