@@ -29,7 +29,6 @@
     baseColor: Oklch;
     anchorToBase: boolean;
     /** Palette step label ('500', '850', …) the base color is placed at; null while off or unplaced. */
-    anchorStepLabel?: string | null;
     isEditingBase: boolean;
     panelOpen: boolean;
     /** Keep the panel open in live-apply mode (no confirm/cancel session) while the curve editors are visible. */
@@ -51,7 +50,6 @@
     neutral = false,
     baseColor,
     anchorToBase,
-    anchorStepLabel = null,
     isEditingBase,
     panelOpen,
     pinnedOpen = false,
@@ -125,7 +123,7 @@
           <Toggle
             checked={anchorToBase}
             onchange={(v) => onAnchorToBaseChange(v ?? !anchorToBase)}
-            label={anchorStepLabel ? `Base color placed at ${anchorStepLabel}` : 'Place base color in palette'}
+            label="Base color must appear in palette"
           />
         {/snippet}
       </ColorEditPanel>

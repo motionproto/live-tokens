@@ -433,9 +433,6 @@
   let snappedScales = $derived(new Set($editorState.palettes[label]?.snappedScales ?? []));
   let anchorToBase = $derived($editorState.palettes[label]?.anchorToBase ?? true);
   let anchorPlacement = $derived($editorState.palettes[label]?.anchorPlacement);
-  let anchorStepLabel = $derived(anchorToBase && anchorPlacement !== undefined
-    ? paletteStepLightness[anchorPlacement.step]?.label ?? null
-    : null);
   let emptyMode = $derived($editorState.palettes[label]?.emptyMode ?? 'solid');
   let gradientStyle = $derived($editorState.palettes[label]?.gradientStyle ?? 'linear');
   let gradientAngle = $derived($editorState.palettes[label]?.gradientAngle ?? 180);
@@ -522,7 +519,6 @@
     {neutral}
     {baseColor}
     {anchorToBase}
-    {anchorStepLabel}
     {isEditingBase}
     {panelOpen}
     pinnedOpen={paletteEditorOpen}
