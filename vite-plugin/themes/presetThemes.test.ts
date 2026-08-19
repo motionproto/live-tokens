@@ -44,8 +44,7 @@ const stackOf = (colorsAndType: any, variable: string) =>
   colorsAndType.fontStacks.find((s: any) => s.variable === variable);
 const stampedSourcesOf = (colorsAndType: any) =>
   colorsAndType.fontSources.filter((s: any) => s.id.startsWith(STAMPED));
-const aliasesOf = (slug: string, comp: string) =>
-  themeOf(slug).componentConfigs[comp]?.aliases ?? defaultConfigOf(comp).aliases;
+const aliasesOf = (slug: string, comp: string) => themeOf(slug).componentConfigs[comp].aliases;
 
 /** A shipped theme always embeds `colorsAndType` and every componentConfigs
  *  entry it carries by value, so the only lookup `normalizeTheme` should ever
@@ -67,32 +66,25 @@ const fillingResolvers: ThemeResolvers = {
 
 describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
   // Invariant 1 (docs/plans/theme-completeness.md): the CSS a component
-  // resolves to before and after normalization is the same, whether that
-  // component was already in the file or the fill added it from its default.
-  // The presets still carry real gaps at this wave (Wave 3 regenerates them
-  // complete on disk), which is exactly what exercises the fill here.
-  it('fills gaps against the current default with no value change, and stamps the current schema', () => {
+  // resolves to before and after normalization is the same. Wave 3
+  // regenerated every preset complete and current on disk, so normalizing one
+  // is a no-op: nothing to migrate, nothing to fill.
+  it('is already complete and current: normalizing it changes nothing', () => {
     const raw = themeOf(slug);
     const { theme, dropped, migrated, filled } = normalizeTheme(raw, fillingResolvers);
 
     expect(dropped).toEqual([]);
+    expect(raw.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(theme.schemaVersion).toBe(THEME_SCHEMA_VERSION);
-    // The version bump alone marks every preset "migrated" at this wave, since
-    // none carries a stale alias key (verified) — filling is what changes.
-    expect(migrated).toBe(true);
-
-    const missingComponents = KNOWN_COMPONENTS.filter((c) => !(c in raw.componentConfigs));
-    expect([...filled.components].sort()).toEqual(missingComponents);
-    // RJC 3 / verified (Part 0): every entry the presets do carry is already
-    // complete at the alias level, so only whole components are ever filled.
-    expect(filled.aliases).toBe(0);
-    expect(filled.orphans).toBe(0);
+    // Wave 1's migration TTL only fires if this is stamped: unstamped reads as
+    // 0 and replays every component migration on every load, forever.
+    expect(raw.componentSchemaVersion).toBe(CURRENT_COMPONENT_SCHEMA_VERSION);
+    expect(theme.componentSchemaVersion).toBe(CURRENT_COMPONENT_SCHEMA_VERSION);
+    expect(migrated).toBe(false);
+    expect(filled).toEqual({ components: [], aliases: 0, orphans: 0 });
 
     for (const comp of KNOWN_COMPONENTS) {
-      const expectedAliases = comp in raw.componentConfigs
-        ? raw.componentConfigs[comp].aliases
-        : defaultConfigOf(comp).aliases;
-      expect(theme.componentConfigs[comp].aliases).toEqual(expectedAliases);
+      expect(theme.componentConfigs[comp].aliases).toEqual(raw.componentConfigs[comp].aliases);
     }
   });
 
@@ -104,17 +96,16 @@ describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
     expect(theme.name).toBe(colorsAndType.name);
   });
 
-  it('carries only the components the shape ops changed, values only', () => {
+  it('carries all 25 components, each with the full alias key set', () => {
     const theme = themeOf(slug);
     const configs = Object.entries(theme.componentConfigs) as [string, any][];
-    expect(configs.length).toBeGreaterThan(0);
+    expect(Object.keys(theme.componentConfigs).sort()).toEqual(KNOWN_COMPONENTS);
 
     for (const [comp, config] of configs) {
       const base = defaultConfigOf(comp);
       expect(config.name).toBe(slug);
       expect(config.component).toBe(comp);
       expect(Object.keys(config.aliases)).toEqual(Object.keys(base.aliases));
-      expect(config.aliases).not.toEqual(base.aliases);
     }
   });
 

@@ -7,8 +7,9 @@ import type { Oklch } from '../src/editor/core/palettes/oklch';
 // @ts-expect-error — plain .mjs module, no types
 import { runGenerateTheme, formatGenerateThemeResult } from './generate-theme.mjs';
 import { THEME_SCHEMA_VERSION } from '../vite-plugin/themes/normalizeTheme';
+import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../src/editor/core/themes/migrations';
 
-const engine = { buildColorsAndTypeFromSeeds };
+const engine = { buildColorsAndTypeFromSeeds, CURRENT_COMPONENT_SCHEMA_VERSION };
 
 const SEEDS: Record<string, Oklch> = {
   Brand: { l: 0.62, c: 0.17, h: 145 },
@@ -93,6 +94,17 @@ describe('runGenerateTheme', () => {
     expect(existsSync(join(root, 'colors-and-type', '_working.json'))).toBe(false);
   });
 
+  // Without this stamp `normalizeTheme` reads `componentSchemaVersion ?? 0`
+  // and replays every component migration on every read, forever — the TTL
+  // Wave 1 built never fires for a theme this CLI produces.
+  it('stamps the current component schema version', async () => {
+    const root = project();
+    await run(root);
+
+    const theme = readJson(join(root, 'themes', 'spring-meadow.json'));
+    expect(theme.componentSchemaVersion).toBe(CURRENT_COMPONENT_SCHEMA_VERSION);
+  });
+
   it('writes no named colors-and-type file and never touches production', async () => {
     const root = project();
     await run(root);
@@ -128,6 +140,31 @@ describe('runGenerateTheme', () => {
     expect(result.previousActive).toBe('sunset');
   });
 
+  // Correction 1 of docs/plans/theme-completeness.md: the live path was
+  // missing the third resolution layer `bin/adjust.mjs` and the dev server
+  // both have, so a component neither the open theme nor a buffer carried
+  // was silently dropped instead of falling through to its default.
+  it('fills the gaps of an incomplete open theme from the component defaults', async () => {
+    const root = project(['button', 'card', 'panel']);
+    openTheme(root, 'sunset', {
+      name: 'Sunset',
+      colorsAndType: { name: 'Sunset' },
+      componentConfigs: { card: { name: 'sunset', aliases: { '--card-radius': '--radius-lg' } } },
+    });
+
+    const result = await run(root);
+
+    const theme = readJson(join(root, 'themes', 'spring-meadow.json'));
+    expect(theme.componentConfigs.card.aliases['--card-radius']).toBe('--radius-lg');
+    expect(theme.componentConfigs.button).toEqual(
+      readJson(join(root, 'component-configs', 'button', 'default.json')),
+    );
+    expect(theme.componentConfigs.panel).toEqual(
+      readJson(join(root, 'component-configs', 'panel', 'default.json')),
+    );
+    expect(result.componentsCarried).toBe(3);
+  });
+
   it('strips read-door markers from what it embeds', async () => {
     const root = project();
     writeFileSync(
@@ -153,10 +190,40 @@ describe('runGenerateTheme', () => {
       componentConfigs: {},
     });
 
-    // `--carry-from default` carries nothing, so the new theme carries no card.
+    // `--carry-from default` names a theme that carries no entries of its own;
+    // `card` comes from the shipped default, not from this edited buffer, and
+    // the buffer is cleared either way.
     await run(root, { carryFrom: 'default' });
 
     expect(existsSync(join(root, 'component-configs', 'card', '_working.json'))).toBe(false);
+  });
+
+  // Correction 1 of docs/plans/theme-completeness.md: `--carry-from` copied
+  // only the entries the source theme happened to hold, so an incomplete
+  // source produced an incomplete result.
+  it('fills the gaps of an incomplete --carry-from theme from the component defaults', async () => {
+    const root = project(['button', 'card', 'panel']);
+    writeFileSync(
+      join(root, 'themes', 'ocean.json'),
+      JSON.stringify({
+        name: 'Ocean',
+        schemaVersion: 3,
+        colorsAndType: { cssVariables: { '--shadow-lg': 'from-ocean' } },
+        componentConfigs: { button: { name: 'ocean', aliases: { '--button-radius': '--radius-xl' } } },
+      }),
+    );
+
+    const result = await run(root, { carryFrom: 'ocean' });
+
+    const theme = readJson(join(root, 'themes', 'spring-meadow.json'));
+    expect(theme.componentConfigs.button.aliases['--button-radius']).toBe('--radius-xl');
+    expect(theme.componentConfigs.card).toEqual(
+      readJson(join(root, 'component-configs', 'card', 'default.json')),
+    );
+    expect(theme.componentConfigs.panel).toEqual(
+      readJson(join(root, 'component-configs', 'panel', 'default.json')),
+    );
+    expect(result.componentsCarried).toBe(3);
   });
 
   it('carries from a named theme instead of the live state', async () => {

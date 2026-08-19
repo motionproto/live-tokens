@@ -226,7 +226,6 @@ export function normalizeTheme(
       resolvedConfig = stripFileMarker(embedded);
     } else {
       const configName = asString(value, 'default');
-      if (configName === 'default') continue; // delta encoding: default means absent
       const resolved = asObject(resolvers.readComponentConfig(comp, configName));
       if (!resolved) {
         dropped.push(`${comp}/${configName}`);

@@ -347,8 +347,10 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
 
   const defaultConfig = (comp: string): unknown => compRes(comp).readJson('default');
 
-  /** What a theme says a component runs. Delta encoding: absent is the default,
-   *  and an embedded copy carries its component id the way the file on disk does. */
+  /** What a theme says a component runs. The theme arrives from
+   *  `normalizeTheme`, which fills every component this install has, so the
+   *  fallback covers only a component the fill found no derived default for.
+   *  An embedded copy carries its component id the way the file on disk does. */
   const themeConfigFor = (theme: EncapsulatedTheme, comp: string): unknown => {
     const embedded = theme.componentConfigs[comp];
     return embedded ? { ...embedded, component: comp } : defaultConfig(comp);
@@ -390,7 +392,6 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
       for (const comp of comps) {
         const pointed = prodConfigs.get(comp);
         if (!isObject(pointed)) continue;
-        if (sameContent(pointed, defaultConfig(comp))) continue;
         componentConfigs[comp] = stripMarkers(pointed);
       }
       recoveredTheme = {

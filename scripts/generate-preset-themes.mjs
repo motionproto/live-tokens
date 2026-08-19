@@ -30,6 +30,8 @@ const ENGINE_SOURCES = [
   'vite-plugin/adjust/index.ts',
   'src/editor/core/components/adjustAliases.ts',
   'src/editor/core/components/aliasKinds.ts',
+  // Registers CURRENT_COMPONENT_SCHEMA_VERSION, re-exported below.
+  'src/editor/core/themes/migrations/index.ts',
 ].map((p) => join(ROOT, p));
 
 // Source of truth: vite-plugin/themes/normalizeTheme.ts. This copy cannot
@@ -142,12 +144,13 @@ function signature(theme) {
   return JSON.stringify({
     name: theme.name,
     schemaVersion: theme.schemaVersion,
+    componentSchemaVersion: theme.componentSchemaVersion,
     colorsAndType: theme.colorsAndType,
     componentConfigs: configs,
   });
 }
 
-const { adjustAliases } = await loadEngine();
+const { adjustAliases, CURRENT_COMPONENT_SCHEMA_VERSION } = await loadEngine();
 const defaults = readDefaultConfigs();
 const now = new Date().toISOString();
 
@@ -165,20 +168,25 @@ for (const { slug, ops } of PRESETS) {
     stamped++;
     console.log(`✓ ${slug}  fonts stamped into ${relative(ROOT, colorsAndTypePath)}`);
   }
-  const { configs: next, report } = adjustAliases(defaults, ops, now);
+  const { configs: next } = adjustAliases(defaults, ops, now);
 
+  // Every component this install has, not `report.components`: the engine
+  // only adds an entry there for a component an op's *kind* actually matched
+  // at least one alias of, so a component with no radius/padding/gap alias at
+  // all (`radiobutton` is all `-dot-border-width`) is invisible to the report
+  // whenever a preset's ops never include `border-width`. `next` already
+  // carries every component regardless — `adjustAliases` seeds it as
+  // `{ ...configs }` — so it is the complete source.
   const componentConfigs = {};
   let aliasCount = 0;
-  for (const entry of [...report.components].sort((a, b) => a.component.localeCompare(b.component))) {
-    const comp = entry.component;
+  for (const comp of Object.keys(next).sort()) {
     // Count aliases that end up differing from the default, not per-op change
     // records — overlapping ops (a sweep plus a targeted set) would otherwise
-    // double-count, and a net-zero component must not embed a default-identical
-    // config (delta encoding).
+    // double-count. A net-zero component still gets a full entry: the theme is
+    // now a complete document, not a diff of one.
     const diff = Object.keys(next[comp].aliases).filter(
       (v) => next[comp].aliases[v] !== defaults[comp].aliases[v],
     ).length;
-    if (diff === 0) continue;
     componentConfigs[comp] = {
       name: slug,
       component: comp,
@@ -198,9 +206,10 @@ for (const { slug, ops } of PRESETS) {
     schemaVersion: THEME_SCHEMA_VERSION,
     colorsAndType,
     componentConfigs,
+    componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
   };
 
-  const summary = `${slug}  ${Object.keys(componentConfigs).length} component(s), ${aliasCount} alias(es)`;
+  const summary = `${slug}  ${Object.keys(componentConfigs).length} component(s), ${aliasCount} alias(es) moved`;
   if (existing && signature(existing) === signature(theme)) {
     console.log(`  ${summary} — unchanged`);
     continue;

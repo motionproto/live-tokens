@@ -15,3 +15,4 @@ export {
 } from '../../src/editor/core/components/adjustAliases';
 export { matchesKind } from '../../src/editor/core/components/aliasKinds';
 export { readLiveTokensConfig, resolveDataDirs } from '../files/dataPaths';
+export { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../src/editor/core/themes/migrations';

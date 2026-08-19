@@ -865,8 +865,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   /**
    * Materialise the Default theme: the shipped colors and type plus EVERY
-   * component's derived default config, by value. It is the one theme that is
-   * not delta-encoded, because it is the written record of the whole default state.
+   * component's derived default config, by value. It is the written record of
+   * the whole default state.
    *
    * Its source of truth is code (the colors-and-type file plus each component's
    * `:global(:root)`), so regenerating it on every boot is safe: deletion

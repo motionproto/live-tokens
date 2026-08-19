@@ -11,7 +11,7 @@ import { THEME_SCHEMA_VERSION } from '../../../../vite-plugin/themes/normalizeTh
 /**
  * REST client for theme files, the documents of the editor. A theme carries a
  * whole look by value: the colors and type plus a config for every component
- * that is off its default. One theme is open (`themes/_active.json`) and one is
+ * this install has. One theme is open (`themes/_active.json`) and one is
  * published (`themes/_production.json`); the live look is the open theme plus
  * whatever the `_working` buffers hold over it.
  *
@@ -130,8 +130,9 @@ function withoutLiveMarkers<T extends { _fileName?: string; _source?: unknown }>
 
 /**
  * The look as it stands: the live colors and type plus the live config of
- * every component that sits off its default, all by value. Delta encoding — a
- * component absent from the map runs the local default, which stays canonical.
+ * every component this install has, all by value. A theme is a complete
+ * document (`docs/plans/theme-completeness.md`), so the capture carries every
+ * component, not just the ones off their default.
  *
  * Everything comes from the live read doors, so a capture takes the buffers
  * over the open theme's own copies. The colors and type are normalised on the
@@ -143,10 +144,10 @@ async function captureLook(): Promise<Pick<Theme, 'colorsAndType' | 'componentCo
   if (!liveColorsAndType) {
     throw new Error('No live colors and type to capture');
   }
-  const overridden = (await listComponents()).filter((c) => c.source !== 'default');
-  const configs = await Promise.all(overridden.map((c) => getActiveComponentConfig(c.name)));
+  const components = await listComponents();
+  const configs = await Promise.all(components.map((c) => getActiveComponentConfig(c.name)));
   const componentConfigs: Record<string, ComponentConfig> = {};
-  overridden.forEach((c, i) => {
+  components.forEach((c, i) => {
     const config = configs[i];
     if (config) componentConfigs[c.name] = withoutLiveMarkers(config);
   });

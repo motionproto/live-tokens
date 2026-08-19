@@ -129,7 +129,10 @@ describe('migrateData', () => {
     const recovered = readJson(path.join(root, DATA, 'themes', 'recovered-production.json'));
     expect(recovered.colorsAndType.cssVariables['--surface-default']).toBe('#010203');
     expect(recovered.componentConfigs.button.aliases['--button-radius']).toBe('--radius-xl');
-    expect(recovered.componentConfigs).not.toHaveProperty('card');
+    // `card`'s production pointer names its own default: a recovered theme is
+    // a complete document (docs/plans/theme-completeness.md, Wave 3), so it is
+    // still embedded, byte-equal to the default it points at.
+    expect(recovered.componentConfigs.card).toEqual(CARD_DEFAULT);
     expect(readJson(path.join(root, DATA, 'themes', '_production.json')).productionFile).toBe('recovered-production');
   });
 

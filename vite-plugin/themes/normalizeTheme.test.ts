@@ -14,6 +14,11 @@ const CONFIGS: Record<string, any> = {
     component: 'card',
     aliases: { '--card-radius': '4px', '--card-padding': '8px' },
   },
+  'button/default': {
+    name: 'default',
+    component: 'button',
+    aliases: { '--button-primary-padding': '8px' },
+  },
   'radiobutton/default': {
     name: 'default',
     component: 'radiobutton',
@@ -72,9 +77,9 @@ describe('normalizeTheme v1 → v4', () => {
     expect(theme.updatedAt).toBe('2026-02-02T00:00:00.000Z');
   });
 
-  it('omits components pinned to default', () => {
+  it('resolves a component pinned to default from the current default config', () => {
     const { theme, dropped } = normalizeTheme(v1, resolvers());
-    expect('button' in theme.componentConfigs).toBe(false);
+    expect(theme.componentConfigs.button).toEqual(CONFIGS['button/default']);
     expect(dropped).not.toContain('button/default');
   });
 

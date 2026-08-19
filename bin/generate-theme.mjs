@@ -71,11 +71,18 @@ function stripMarkers(value) {
   return rest;
 }
 
+/** A component's derived default, local tree first, then the installed
+ *  package's shipped copy — same fallback order every other read here uses. */
+function defaultComponentConfig(componentConfigsDir, comp) {
+  return readData(join(componentConfigsDir, comp), `component-configs/${comp}`, 'default');
+}
+
 /**
  * The look the new theme carries forward. Without --carry-from that is the LIVE
  * state — buffer first, then the open theme, then the shipped default — because
  * what the user sees is what they expect to keep. With it, the named theme,
- * read by value.
+ * then the shipped default for anything that theme omits, so an incomplete
+ * source never produces an incomplete result.
  */
 function resolveCarrySource({ carryFrom, colorsAndTypeDir, componentConfigsDir, themesDir }) {
   const comps = componentNames(componentConfigsDir);
@@ -85,7 +92,7 @@ function resolveCarrySource({ carryFrom, colorsAndTypeDir, componentConfigsDir, 
     if (!theme) throw new Error(`--carry-from theme "${carryFrom}" not found`);
     const componentConfigs = {};
     for (const comp of comps) {
-      const cfg = theme.componentConfigs?.[comp];
+      const cfg = theme.componentConfigs?.[comp] ?? defaultComponentConfig(componentConfigsDir, comp);
       if (cfg) componentConfigs[comp] = stripMarkers(cfg);
     }
     return { colorsAndType: stripMarkers(theme.colorsAndType), componentConfigs };
@@ -100,12 +107,15 @@ function resolveCarrySource({ carryFrom, colorsAndTypeDir, componentConfigsDir, 
   );
 
   // A working buffer is an unsaved delta from the active theme; absent theme
-  // component entries fall through to the component defaults.
+  // component entries fall through to the component defaults. Mirrors
+  // `bin/adjust.mjs`'s `readLiveConfigs` and the dev server's
+  // `resolveLiveComponentConfig` — all three layers, in the same order.
   const componentConfigs = {};
   for (const comp of comps) {
     const live =
       readJsonIfExists(join(componentConfigsDir, comp, '_working.json')) ??
-      activeTheme?.componentConfigs?.[comp];
+      activeTheme?.componentConfigs?.[comp] ??
+      defaultComponentConfig(componentConfigsDir, comp);
     if (live) componentConfigs[comp] = stripMarkers(live);
   }
   return { colorsAndType, componentConfigs };
@@ -123,7 +133,8 @@ export async function runGenerateTheme({
   themesDir,
   engine,
 } = {}) {
-  const { buildColorsAndTypeFromSeeds, resolveDataDirs } = engine ?? (await loadEngine());
+  const { buildColorsAndTypeFromSeeds, resolveDataDirs, CURRENT_COMPONENT_SCHEMA_VERSION } =
+    engine ?? (await loadEngine());
 
   const briefFull = resolve(root, briefPath);
   if (!existsSync(briefFull)) {
@@ -164,6 +175,7 @@ export async function runGenerateTheme({
     schemaVersion: THEME_SCHEMA_VERSION,
     colorsAndType,
     componentConfigs: carry.componentConfigs,
+    componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
   };
 
   if (!dryRun) {

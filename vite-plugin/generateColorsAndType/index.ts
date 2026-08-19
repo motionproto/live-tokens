@@ -12,3 +12,4 @@ export {
 } from '../../src/editor/core/themes/generateColorsAndType';
 export { sanitizeFileName } from '../../src/editor/core/storage/files/versionedFileResourceClient';
 export { readLiveTokensConfig, resolveDataDirs } from '../files/dataPaths';
+export { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../src/editor/core/themes/migrations';

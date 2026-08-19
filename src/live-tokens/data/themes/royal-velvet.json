@@ -1,8 +1,8 @@
 {
   "name": "Royal Velvet",
   "createdAt": "2026-08-13T10:21:46.867Z",
-  "updatedAt": "2026-08-19T17:49:15.417Z",
-  "schemaVersion": 3,
+  "updatedAt": "2026-08-19T22:39:32.785Z",
+  "schemaVersion": 4,
   "colorsAndType": {
     "name": "Royal Velvet",
     "createdAt": "2026-08-12T20:26:16.137Z",
@@ -2528,7 +2528,7 @@
       "name": "royal-velvet",
       "component": "badge",
       "createdAt": "2026-05-01T08:28:00.345Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--badge-primary-surface": "--surface-brand",
         "--badge-primary-text": "--text-brand",
@@ -2666,7 +2666,7 @@
       "name": "royal-velvet",
       "component": "button",
       "createdAt": "2026-05-10T19:28:06.893Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--button-primary-surface": "--surface-brand-high",
         "--button-primary-text": "--text-primary",
@@ -2782,7 +2782,7 @@
       "name": "royal-velvet",
       "component": "callout",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--callout-info-surface": "--surface-info-lowest",
         "--callout-info-border": "--border-info-medium",
@@ -2854,7 +2854,7 @@
       "name": "royal-velvet",
       "component": "card",
       "createdAt": "2026-05-10T19:26:31.704Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--card-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent)",
         "--card-default-border": "--border-neutral",
@@ -2895,7 +2895,7 @@
       "name": "royal-velvet",
       "component": "codesnippet",
       "createdAt": "2026-05-27T13:22:54.228Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--codesnippet-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 76%, transparent)",
         "--codesnippet-border": "--border-neutral",
@@ -2919,7 +2919,7 @@
       "name": "royal-velvet",
       "component": "collapsiblesection",
       "createdAt": "2026-05-10T20:40:17.048Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--collapsiblesection-chromeless-default-surface": "--color-transparent",
         "--collapsiblesection-chromeless-default-padding": "--space-8",
@@ -2992,7 +2992,7 @@
       "name": "royal-velvet",
       "component": "cornerbadge",
       "createdAt": "2026-05-12T15:31:06.313Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--corner-badge-margin": "--space-4",
         "--corner-badge-outer-radius": "--radius-none",
@@ -3040,7 +3040,7 @@
       "name": "royal-velvet",
       "component": "dialog",
       "createdAt": "2026-05-10T20:05:24.719Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--dialog-overlay-surface": "--overlay-high",
         "--dialog-surface": "--surface-neutral-lowest",
@@ -3075,7 +3075,7 @@
       "name": "royal-velvet",
       "component": "iconbutton",
       "createdAt": "2026-06-14T00:00:00.000Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--iconbutton-primary-surface": "--surface-brand-high",
         "--iconbutton-primary-icon": "--text-primary",
@@ -3164,7 +3164,7 @@
       "name": "royal-velvet",
       "component": "image",
       "createdAt": "2026-04-26T00:00:00.000Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--image-default-radius": "--radius-2xl",
         "--image-default-border": "--border-neutral",
@@ -3177,7 +3177,7 @@
       "name": "royal-velvet",
       "component": "imagelightbox",
       "createdAt": "2026-05-26T02:03:38.863Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--imagelightbox-tile-radius": "--radius-2xl",
         "--imagelightbox-tile-border": "--color-transparent",
@@ -3196,7 +3196,7 @@
       "name": "royal-velvet",
       "component": "inlineeditactions",
       "createdAt": "2026-05-01T08:34:39.325Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--inlineeditactions-save-default-surface": "--surface-success-low",
         "--inlineeditactions-save-default-text": "--text-success",
@@ -3232,7 +3232,7 @@
       "name": "royal-velvet",
       "component": "input",
       "createdAt": "2026-05-24T14:28:03.860Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--input-radius": "--radius-md",
         "--input-padding": "--space-12",
@@ -3290,7 +3290,7 @@
       "name": "royal-velvet",
       "component": "menuselect",
       "createdAt": "2026-05-16T00:00:00.000Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--menuselect-menu-surface": "color-mix(in srgb, var(--surface-neutral-lower) 85%, transparent)",
         "--menuselect-menu-border": "--border-neutral-medium",
@@ -3340,7 +3340,7 @@
       "name": "royal-velvet",
       "component": "notification",
       "createdAt": "2026-04-18T02:43:11.330Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--notification-info-surface": "--surface-info",
         "--notification-info-action-surface": "--surface-neutral-lowest",
@@ -3420,7 +3420,7 @@
       "name": "royal-velvet",
       "component": "panel",
       "createdAt": "2026-06-01T09:34:52.417Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--panel-frame-border": "--border-neutral",
         "--panel-frame-border-width": "--border-width-2",
@@ -3453,7 +3453,7 @@
       "name": "royal-velvet",
       "component": "progressbar",
       "createdAt": "2026-05-10T20:42:26.726Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--progressbar-track-surface": "--surface-neutral-lowest",
         "--progressbar-track-border": "--border-neutral-subtle",
@@ -3478,7 +3478,7 @@
       "name": "royal-velvet",
       "component": "radiobutton",
       "createdAt": "2026-05-10T20:44:44.372Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--radiobutton-default-dot-border-color": "--border-neutral",
         "--radiobutton-default-dot-border-width": "--border-width-3",
@@ -3513,7 +3513,7 @@
       "name": "royal-velvet",
       "component": "sectiondivider",
       "createdAt": "2026-05-10T22:09:00.336Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--sectiondivider-lg-title-font-family": "--font-display",
         "--sectiondivider-lg-title-font-weight": "--font-weight-bold",
@@ -3608,7 +3608,7 @@
       "name": "royal-velvet",
       "component": "segmentedcontrol",
       "createdAt": "2026-04-28T21:13:17.669Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--segmentedcontrol-bar-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent)",
         "--segmentedcontrol-bar-border": "--border-neutral",
@@ -3668,7 +3668,7 @@
       "name": "royal-velvet",
       "component": "sidenavigation",
       "createdAt": "2026-05-25T19:34:09.771Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--sidenavigation-panel-surface": "--surface-canvas-lower",
         "--sidenavigation-panel-border": "--border-canvas-faint",
@@ -3828,7 +3828,7 @@
       "name": "royal-velvet",
       "component": "tabbar",
       "createdAt": "2026-05-12T01:57:26.390Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--tabbar-bar-divider": "--border-neutral-subtle",
         "--tabbar-bar-divider-thickness": "--border-width-1",
@@ -3898,7 +3898,7 @@
       "name": "royal-velvet",
       "component": "table",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--table-default-radius": "--radius-md",
         "--table-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 57%, transparent)",
@@ -3932,7 +3932,7 @@
       "name": "royal-velvet",
       "component": "toggle",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--toggle-track-surface": "--surface-neutral",
         "--toggle-track-border": "--border-neutral",
@@ -3964,7 +3964,7 @@
       "name": "royal-velvet",
       "component": "tooltip",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-19T17:49:15.417Z",
+      "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
         "--tooltip-surface": "color-mix(in srgb, var(--surface-canvas-lowest) 75%, transparent)",
         "--tooltip-text": "--text-primary",
@@ -3979,5 +3979,6 @@
         "--tooltip-shadow": "--shadow-md"
       }
     }
-  }
+  },
+  "componentSchemaVersion": 21
 }
