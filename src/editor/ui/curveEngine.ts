@@ -163,6 +163,17 @@ export function tangentAnchor(
   return { x, y, inDx, inDy: m * inDx, outDx, outDy: m * outDx };
 }
 
+/** Re-derive one anchor's tangents from its current neighbours. Handles are stored,
+ *  not computed, so an anchor the user cannot drag keeps whatever slope the curve had
+ *  when it was placed. */
+export function resmoothAnchor(anchors: CurveAnchor[], index: number): CurveAnchor[] {
+  const a = anchors[index];
+  if (!a) return anchors;
+  const out = [...anchors];
+  out[index] = tangentAnchor(a.x, a.y, anchors[index - 1] ?? null, anchors[index + 1] ?? null);
+  return out;
+}
+
 export function isCornerAnchor(a: CurveAnchor): boolean {
   return a.inDx === 0 && a.inDy === 0 && a.outDx === 0 && a.outDy === 0;
 }

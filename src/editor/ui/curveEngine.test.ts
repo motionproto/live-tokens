@@ -8,6 +8,8 @@ import {
   clampAnchorsToRange,
   makeAnchor,
   CURVE_H,
+  resmoothAnchor,
+  sampleCurve,
 } from './curveEngine';
 
 function template(name: string) {
@@ -153,5 +155,29 @@ describe('clampAnchorsToRange', () => {
       expect(a.y + a.outDy).toBeGreaterThanOrEqual(hueCurveConfig.yMin);
       expect(a.y + a.outDy).toBeLessThanOrEqual(hueCurveConfig.yMax);
     }
+  });
+});
+
+describe('resmoothAnchor', () => {
+  // The pinned base anchor: placed while the curve was flat, so its tangent is flat.
+  const pinned = [
+    { x: 0, y: 20, inDx: 0, inDy: 0, outDx: 16.67, outDy: 0 },
+    { x: 50, y: 0, inDx: -16.67, inDy: 0, outDx: 16.67, outDy: 0 },
+    { x: 100, y: -8, inDx: -16.67, inDy: 0, outDx: 0, outDy: 0 },
+  ];
+
+  it('replaces a stale flat tangent with the slope of the curve around it', () => {
+    const before = [40, 60].map((x) => sampleCurve(pinned, x));
+    const after = [40, 60].map((x) => sampleCurve(resmoothAnchor(pinned, 1), x));
+    expect(before).toEqual([2.1, -0.8].map((v) => expect.closeTo(v, 1)));
+    expect(after).toEqual([3.5, -2.3].map((v) => expect.closeTo(v, 1)));
+  });
+
+  it('leaves the anchor position untouched', () => {
+    const out = resmoothAnchor(pinned, 1);
+    expect(out[1].x).toBe(50);
+    expect(out[1].y).toBe(0);
+    expect(out[0]).toEqual(pinned[0]);
+    expect(out[2]).toEqual(pinned[2]);
   });
 });

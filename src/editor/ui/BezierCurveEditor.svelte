@@ -4,7 +4,7 @@
   import {
     type CurveAnchor, type CurveConfig,
     CURVE_H, CURVE_PAD_Y, CURVE_Y_PAD,
-    isCornerAnchor, tangentAnchor, curveXToSvg, curveYToSvg, svgToX, svgToY,
+    isCornerAnchor, tangentAnchor, resmoothAnchor, curveXToSvg, curveYToSvg, svgToX, svgToY,
     evalBezier, buildCurvePath, curveTemplates,
     serializeCurve, deserializeCurve, clampAnchorsToRange,
   } from './curveEngine';
@@ -114,7 +114,7 @@
     const { x, y } = svgCoords(e);
     const newX = svgToX(x, w, padX);
     const newY = Math.round(svgToY(y, cfg));
-    const updated = [...anchors];
+    let updated = [...anchors];
 
     if (kind === 'anchor') {
       if (idx === lockedAnchorIndex) return; // locked: no x/y dragging
@@ -123,6 +123,12 @@
       else if (idx === updated.length - 1) ax = 100;
       else ax = Math.max(updated[idx - 1].x + 1, Math.min(updated[idx + 1].x - 1, ax));
       updated[idx] = { ...updated[idx], x: ax, y: newY };
+      // The locked anchor took its tangent from the curve's shape at pin time and
+      // cannot be dragged, so nothing else refreshes it. Left stale it holds a flat
+      // shelf through the middle of a ramp the user has since moved under it.
+      if (lockedAnchorIndex != null && lockedAnchorIndex !== idx) {
+        updated = resmoothAnchor(updated, lockedAnchorIndex);
+      }
     } else if (kind === 'handleOut') {
       const a = updated[idx];
       const dx = newX - a.x, dy = newY - a.y;
