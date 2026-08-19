@@ -14,7 +14,6 @@
     anchors: CurveAnchor[];
     cfg: CurveConfig;
     stepCount: number;
-    padX?: number;
     offset?: number;
     defaultAnchors?: CurveAnchor[] | null;
     lockedAnchorIndex?: number | null;
@@ -27,7 +26,6 @@
     anchors,
     cfg,
     stepCount,
-    padX = 0,
     offset = 0,
     defaultAnchors = null,
     lockedAnchorIndex = null,
@@ -50,6 +48,9 @@
   const clipId = `curve-clip-${Math.random().toString(36).slice(2, 8)}`;
 
   let w = $derived(dims);
+  // Half a step column. The graph spans the swatch row edge to edge, so without this
+  // inset the curve's ends sit on the outer edges of the end swatches, not over them.
+  let padX = $derived(stepCount > 1 ? w / (2 * stepCount) : 0);
   let offsetPx = $derived(-(offset / ((cfg.yMax - cfg.yMin) * (1 + 2 * CURVE_Y_PAD))) * (CURVE_H - 2 * CURVE_PAD_Y));
 
   function stepToX(index: number): number {
@@ -319,10 +320,10 @@
 
       <!-- Horizontal grid lines -->
       {#each cfg.gridLines as gl}
-        <line x1={padX} y1={curveYToSvg(gl, cfg)} x2={w - padX} y2={curveYToSvg(gl, cfg)} class="curve-grid" />
+        <line x1={0} y1={curveYToSvg(gl, cfg)} x2={w} y2={curveYToSvg(gl, cfg)} class="curve-grid" />
       {/each}
       {#each cfg.dashedLines as dl}
-        <line x1={padX} y1={curveYToSvg(dl, cfg)} x2={w - padX} y2={curveYToSvg(dl, cfg)} class="curve-grid dashed" />
+        <line x1={0} y1={curveYToSvg(dl, cfg)} x2={w} y2={curveYToSvg(dl, cfg)} class="curve-grid dashed" />
       {/each}
 
       <!-- Curve content group — offset vertically, clipped -->
