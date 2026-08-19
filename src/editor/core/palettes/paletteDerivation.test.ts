@@ -346,6 +346,27 @@ describe('hue curve derivation (Global invariant 1: absent hue is identity)', ()
       expect(computeDerivedOklch(step, base, 'Text', withoutHue, {})).toEqual(computeDerivedOklch(step, base, 'Text', withFlatHue, {}));
     }
   });
+
+  // A fractional hue is the real test of the zero-delta guard: 142 round-trips
+  // `((h % 360) + 360) % 360` exactly, so it can't tell a skipped wrap from a
+  // taken one, but 142.1 picks up a one-ULP drift the moment it goes through
+  // `%`. `toBe` against the input, not a comparison against the flat-curve
+  // path, is what catches the guard's removal.
+  it('computePaletteOklch: an absent hueCurve returns base.h bit-for-bit (fractional hue)', () => {
+    const fractionalBase: Oklch = { l: 0.55, c: 0.12, h: 142.1 };
+    for (let i = 0; i < PALETTE_STEPS.length; i++) {
+      expect(computePaletteOklch(i, fractionalBase, L, S, {}).h).toBe(fractionalBase.h);
+    }
+  });
+
+  it('computeDerivedOklch: an absent scale hue curve returns base.h bit-for-bit (fractional hue)', () => {
+    const fractionalBase: Oklch = { l: 0.55, c: 0.12, h: 142.1 };
+    const scale = SCALES.find((s) => s.title === 'Text')!;
+    const withoutHue = { Text: { lightness: defaultScaleCurves.Text.lightness(), saturation: defaultScaleCurves.Text.saturation() } };
+    for (const step of scale.steps) {
+      expect(computeDerivedOklch(step, fractionalBase, 'Text', withoutHue, {}).h).toBe(fractionalBase.h);
+    }
+  });
 });
 
 describe('hue curve derivation: rotation and wrap', () => {

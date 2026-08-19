@@ -245,6 +245,19 @@ export function deserializeCurve(text: string): { anchors: CurveAnchor[]; offset
   }
 }
 
+/** Pasted anchors come from another curve's axis (the clipboard is
+ *  deliberately cross-editor), so they can carry y values this axis never
+ *  produces on its own: `svgToY` clamps every drag, but a paste never touches
+ *  it. Clamp the anchor y and each handle's absolute y (not just its delta)
+ *  so a pasted curve cannot bulge past the axis between anchors either. */
+export function clampAnchorsToRange(anchors: CurveAnchor[], cfg: CurveConfig): CurveAnchor[] {
+  const bound = (v: number) => Math.max(cfg.yMin, Math.min(cfg.yMax, v));
+  return anchors.map((a) => {
+    const y = bound(a.y);
+    return { ...a, y, inDy: bound(a.y + a.inDy) - y, outDy: bound(a.y + a.outDy) - y };
+  });
+}
+
 export function buildCurvePath(anchors: CurveAnchor[], cfg: CurveConfig, w: number, padX: number = 0): string {
   if (anchors.length < 2) return '';
   let d = `M${curveXToSvg(anchors[0].x, w, padX)},${curveYToSvg(anchors[0].y, cfg)}`;

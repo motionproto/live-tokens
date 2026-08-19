@@ -5,6 +5,8 @@ import {
   saturationCurveConfig,
   hueCurveConfig,
   svgToY,
+  clampAnchorsToRange,
+  makeAnchor,
   CURVE_H,
 } from './curveEngine';
 
@@ -108,5 +110,48 @@ describe('svgToY clamps to a signed axis', () => {
 
   it('clamps a pixel below the chart to yMin', () => {
     expect(svgToY(CURVE_H + 1000, hueCurveConfig)).toBe(-30);
+  });
+});
+
+// Pasting is the one path svgToY's drag clamp never covers: a curve copied
+// from a differently-scaled axis (e.g. Saturation's 0-200) can carry y and
+// handle values this axis's own gestures could never produce.
+describe('clampAnchorsToRange', () => {
+  it('leaves anchors already inside the range untouched', () => {
+    const anchors = [makeAnchor(0, -10, 10), makeAnchor(100, 10, 10)];
+    expect(clampAnchorsToRange(anchors, hueCurveConfig)).toEqual(anchors);
+  });
+
+  it('clamps an anchor y outside the range to the nearest bound', () => {
+    const anchors = [makeAnchor(0, 100, 10), makeAnchor(100, -80, 10)];
+    const clamped = clampAnchorsToRange(anchors, hueCurveConfig);
+    expect(clamped[0].y).toBe(30);
+    expect(clamped[1].y).toBe(-30);
+  });
+
+  it('clamps a handle whose absolute y overshoots the range, preserving the in-bounds anchor', () => {
+    // y=20 is in range, but the out-handle's absolute position (20 + 50 = 70) is not.
+    const anchors = [{ x: 0, y: 20, inDx: 0, inDy: 0, outDx: 30, outDy: 50 }];
+    const [clamped] = clampAnchorsToRange(anchors, hueCurveConfig);
+    expect(clamped.y).toBe(20);
+    expect(clamped.outDy).toBe(10); // bound(20 + 50) - 20 = 30 - 20
+  });
+
+  it('every anchor and handle absolute y sits within the axis bounds for a curve pasted from a wider axis', () => {
+    // Shaped like a Saturation curve (0-200) pasted into Hue (-30 to +30).
+    const wide = [
+      { x: 0, y: 20, inDx: 0, inDy: 0, outDx: 30, outDy: -40 },
+      { x: 50, y: 190, inDx: -20, inDy: 60, outDx: 20, outDy: -60 },
+      { x: 100, y: 5, inDx: -30, inDy: 40, outDx: 0, outDy: 0 },
+    ];
+    const clamped = clampAnchorsToRange(wide, hueCurveConfig);
+    for (const a of clamped) {
+      expect(a.y).toBeGreaterThanOrEqual(hueCurveConfig.yMin);
+      expect(a.y).toBeLessThanOrEqual(hueCurveConfig.yMax);
+      expect(a.y + a.inDy).toBeGreaterThanOrEqual(hueCurveConfig.yMin);
+      expect(a.y + a.inDy).toBeLessThanOrEqual(hueCurveConfig.yMax);
+      expect(a.y + a.outDy).toBeGreaterThanOrEqual(hueCurveConfig.yMin);
+      expect(a.y + a.outDy).toBeLessThanOrEqual(hueCurveConfig.yMax);
+    }
   });
 });

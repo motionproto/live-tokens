@@ -6,7 +6,7 @@
     CURVE_H, CURVE_PAD_Y, CURVE_Y_PAD,
     isCornerAnchor, tangentAnchor, curveXToSvg, curveYToSvg, svgToX, svgToY,
     evalBezier, buildCurvePath, curveTemplates,
-    serializeCurve, deserializeCurve,
+    serializeCurve, deserializeCurve, clampAnchorsToRange,
   } from './curveEngine';
   import UIPillButton from './UIPillButton.svelte';
 
@@ -249,7 +249,7 @@
       const text = await navigator.clipboard.readText();
       const data = deserializeCurve(text);
       if (!data) return;
-      onAnchorsChange(data.anchors.map(a => ({ ...a })));
+      onAnchorsChange(clampAnchorsToRange(data.anchors.map(a => ({ ...a })), cfg));
       onOffsetChange(data.offset);
     } catch {
       // clipboard read failed or permission denied

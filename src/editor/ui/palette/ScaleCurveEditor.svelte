@@ -1,6 +1,7 @@
 <script lang="ts">
   import BezierCurveEditor from '../BezierCurveEditor.svelte';
   import type { CurveAnchor, CurveConfig } from '../curveEngine';
+  import { curveSummary } from './curveSummary';
 
   /**
    * Single-channel curve editor — one Bezier curve for one channel
@@ -46,16 +47,7 @@
     onLockedAnchorUnlock = null
   }: Props = $props();
 
-  // Range, not first-to-last: a peak's endpoints can match the defaults'
-  // while the middle diverges, and first-to-last would call that "default".
-  let summary = $derived.by(() => {
-    if (offset === 0 && JSON.stringify(anchors) === JSON.stringify(defaults)) return 'default';
-    const ys = anchors.map((a) => a.y);
-    const unit = cfg.unit ?? '';
-    const range = `${Math.min(...ys)} to ${Math.max(...ys)}${unit}`;
-    const offsetPart = offset !== 0 ? ` offset ${offset > 0 ? '+' : ''}${offset}${unit}` : '';
-    return `${range}${offsetPart}`;
-  });
+  let summary = $derived(curveSummary(anchors, defaults, offset, cfg.unit ?? ''));
 </script>
 
 <div class="curve-section">

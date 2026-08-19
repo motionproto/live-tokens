@@ -1,8 +1,9 @@
 <script lang="ts">
   import ScaleCurveEditor from './ScaleCurveEditor.svelte';
   import UIPillButton from '../UIPillButton.svelte';
-  import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig, textLightnessCurveConfig } from '../curveEngine';
+  import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig, textLightnessCurveConfig, hueCurveConfig } from '../curveEngine';
   import { scaleToCssVar } from '../../core/palettes/paletteDerivation';
+  import { DEFAULT_PALETTE_HUE } from './paletteMath';
   import type { Oklch } from '../../core/palettes/oklch';
 
   /**
@@ -29,7 +30,7 @@
     steps: Step[];
   }
 
-  type Channel = 'lightness' | 'saturation';
+  type Channel = 'lightness' | 'saturation' | 'hue';
 
   interface ScaleCurveDef {
     lightness: () => CurveAnchor[];
@@ -48,7 +49,7 @@
     snapped: boolean;
     supportsSnap: boolean;
     cssNamespace: string | null;
-    scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[] }>;
+    scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[]; hue?: CurveAnchor[] }>;
     curveOffset: Record<string, number>;
     defaultScaleCurves: Record<string, ScaleCurveDef>;
     overrides: Record<string, string>;
@@ -124,6 +125,7 @@
     const defs = defaultScaleCurves[scale.title];
     if (!sc || !defs) return [];
     return [
+      { key: scaleCurveKeyFor(scale.title, 'hue'), anchors: sc.hue ?? DEFAULT_PALETTE_HUE(), cfg: hueCurveConfig, defaults: DEFAULT_PALETTE_HUE(), channel: 'hue' },
       { key: scaleCurveKeyFor(scale.title, 'saturation'), anchors: sc.saturation, cfg: saturationCurveConfig, defaults: defs.saturation(), channel: 'saturation' },
       { key: scaleCurveKeyFor(scale.title, 'lightness'), anchors: sc.lightness, cfg: lightnessCfg, defaults: defs.lightness(), channel: 'lightness' },
     ];

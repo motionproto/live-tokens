@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy, tick } from 'svelte';
   import { oklchToHexClamped, type Oklch } from '../core/palettes/oklch';
-  import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig } from './curveEngine';
+  import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig, hueCurveConfig } from './curveEngine';
   import ColorEditPanel from './ColorEditPanel.svelte';
   import OverridesPanel from './palette/OverridesPanel.svelte';
   import UIPillButton from './UIPillButton.svelte';
@@ -14,7 +14,7 @@
   import {
     type Step, type Scale,
     GRAY_FALLBACK,
-    DEFAULT_PALETTE_LIGHTNESS, DEFAULT_PALETTE_SATURATION,
+    DEFAULT_PALETTE_LIGHTNESS, DEFAULT_PALETTE_SATURATION, DEFAULT_PALETTE_HUE,
     defaultScaleCurves, defaultScaleCurvesObject, defaultPaletteConfig,
     paletteStepLightness, scales,
     paletteStepKey, stepKey, scaleCurveKey as getScaleCurveKey,
@@ -80,6 +80,14 @@
     const idx = saturationCurve.findIndex(a => Math.abs(a.x - x) < 0.5);
     return idx >= 0 ? idx : null;
   });
+  // Unlike lightness/saturation, hue has no always-present curve to search: it stays
+  // undefined until the first edit (RJC 5), and there is nothing to lock before then.
+  let lockedHueIdx: number | null = $derived.by(() => {
+    if (!anchorToBase || anchorPlacement === undefined || hueCurve === undefined) return null;
+    const x = stepIndexToX(anchorPlacement.step);
+    const idx = hueCurve.findIndex(a => Math.abs(a.x - x) < 0.5);
+    return idx >= 0 ? idx : null;
+  });
 
   // Held at component scope so inline header-swatch handlers and the function
   // handlers share one handle for commit/cancel.
@@ -114,6 +122,22 @@
   function setLightnessCurve(a: CurveAnchor[]) { edit('lightnessCurve', a); }
   function setSaturationCurve(a: CurveAnchor[]) { edit('saturationCurve', a); }
 
+  // First edit materializes the field (RJC 5) and, in the same mutation, pins
+  // the base anchor's hue delta to zero before the edit lands — Wave 3's
+  // idempotency guarantee is what makes re-running syncBaseAnchor here safe
+  // without disturbing the lightness/saturation anchors it already placed.
+  function setHueCurve(a: CurveAnchor[]) {
+    mutate(`${label}: hueCurve`, (s) => {
+      if (!s.palettes[label]) s.palettes[label] = seedConfig();
+      const cfg = s.palettes[label];
+      if (cfg.hueCurve === undefined) {
+        cfg.hueCurve = DEFAULT_PALETTE_HUE();
+        syncBaseAnchor(cfg);
+      }
+      cfg.hueCurve = a;
+    });
+  }
+
   function handleOffset(key: string, value: number) {
     edit('curveOffset', { ...curveOffset, [key]: value });
   }
@@ -121,7 +145,7 @@
   let editing: EditingState = $state(idleState);
 
   function computePaletteOklch(index: number, base: Oklch): Oklch {
-    return computePaletteOklchPure(index, base, lightnessCurve, saturationCurve, curveOffset);
+    return computePaletteOklchPure(index, base, lightnessCurve, saturationCurve, curveOffset, hueCurve);
   }
 
   function computeDerivedOklch(step: Step, base: Oklch, scaleTitle: string): Oklch {
@@ -186,7 +210,7 @@
     curveSectionOpen = curveSectionOpen;
   }
 
-  function setScaleCurve(title: string, channel: 'lightness' | 'saturation', a: CurveAnchor[]) {
+  function setScaleCurve(title: string, channel: 'lightness' | 'saturation' | 'hue', a: CurveAnchor[]) {
     const cur = scaleCurves[title] ?? { lightness: defaultScaleCurves[title].lightness(), saturation: defaultScaleCurves[title].saturation() };
     edit('scaleCurves', { ...scaleCurves, [title]: { ...cur, [channel]: a } });
   }
@@ -399,6 +423,9 @@
   let baseColor = $derived($editorState.palettes[label]?.baseColor ?? initialColor);
   let lightnessCurve = $derived($editorState.palettes[label]?.lightnessCurve ?? DEFAULT_PALETTE_LIGHTNESS());
   let saturationCurve = $derived($editorState.palettes[label]?.saturationCurve ?? DEFAULT_PALETTE_SATURATION());
+  // Left undefined when absent (RJC 5): materializing here would seed every
+  // fresh palette with a redundant flat curve it never asked for.
+  let hueCurve = $derived($editorState.palettes[label]?.hueCurve);
   let scaleCurves = $derived($editorState.palettes[label]?.scaleCurves ?? defaultScaleCurvesObject());
   let curveOffset = $derived($editorState.palettes[label]?.curveOffset ?? { lightness: 0, saturation: 0 });
   let overrides = $derived($editorState.palettes[label]?.overrides ?? {});
@@ -427,7 +454,7 @@
   let editingKey = $derived(editing.kind === 'idle' ? null : editing.kind === 'editingBase' ? BASE_KEY : editing.stepKey);
   let editingDraft = $derived(editing.kind === 'editingStep' ? editing.draft : null);
   let paletteComputed = $derived((() => {
-    const _bc = baseColor, _lc = lightnessCurve, _sc = saturationCurve, _co = curveOffset, _ed = editingDraft, _ek = editingKey, _ov = overrides, _ab = anchorToBase, _ap = anchorPlacement;
+    const _bc = baseColor, _lc = lightnessCurve, _sc = saturationCurve, _hc = hueCurve, _co = curveOffset, _ed = editingDraft, _ek = editingKey, _ov = overrides, _ab = anchorToBase, _ap = anchorPlacement;
     return paletteStepLightness.map((ps, index) => {
       const k = paletteStepKey(ps.label);
       const oklch = computePaletteOklch(index, baseColor);
@@ -594,6 +621,20 @@
               </div>
             </div>
           {/if}
+          <ScaleCurveEditor
+            curveKey="hue"
+            anchors={hueCurve ?? DEFAULT_PALETTE_HUE()}
+            cfg={hueCurveConfig}
+            stepCount={paletteStepLightness.length}
+            defaults={DEFAULT_PALETTE_HUE()}
+            offset={curveOffset['hue'] ?? 0}
+            lockedAnchorIndex={lockedHueIdx}
+            open={sectionOpen('hue')}
+            onToggleOpen={() => toggleCurveSection('hue')}
+            onLockedAnchorUnlock={() => anchorUnlockPrompt = true}
+            onAnchorsChange={setHueCurve}
+            onOffsetChange={handleOffset}
+          />
           <ScaleCurveEditor
             curveKey="saturation"
             anchors={saturationCurve}
