@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.52.1 — Notification header actions are previewable
 
 ### Fixed
 
