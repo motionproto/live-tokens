@@ -24,7 +24,7 @@ Success, Warning, Info, Danger, and a few more) has:
   Lightness. Drag the handles to bias it warmer or cooler, more or less
   saturated, darker or lighter. Hue drifts the ramp's temperature without
   moving contrast, because OKLCH hue rotation is close to lightness-preserving.
-  It holds ±30 degrees; a bigger shift belongs on the base colour or the
+  It holds ±45 degrees; a bigger shift belongs on the base colour or the
   harmony axis.
 - **Overrides.** Lock a single step to a hand-picked hex when the curve doesn't
   land where you want.

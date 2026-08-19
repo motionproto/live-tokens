@@ -5,7 +5,7 @@
 ### Added
 
 - **Palettes gain a third curve, for hue.** Alongside Saturation and
-  Lightness, a Hue curve offsets each step by up to ±30 degrees, so a
+  Lightness, a Hue curve offsets each step by up to ±45 degrees, so a
   palette can drift warmer or cooler across its ramp without moving
   contrast. OKLCH keeps hue rotation close to lightness-preserving, which
   makes that possible. The curve is closed by default, and existing

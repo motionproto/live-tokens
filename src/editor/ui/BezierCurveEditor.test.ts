@@ -5,7 +5,7 @@ import BezierCurveEditor from './BezierCurveEditor.svelte';
 import { hueCurveConfig, saturationCurveConfig, serializeCurve, makeAnchor } from './curveEngine';
 
 // The clipboard is deliberately cross-editor (RJC in the hue-curve plan): a
-// curve copied from Saturation's 0-200 axis must not bulge Hue's ±30 past its
+// curve copied from Saturation's 0-200 axis must not bulge Hue's axis past its
 // clamp when pasted, since hue derivation wraps rather than clamps out-of-range.
 describe('BezierCurveEditor paste clamps to the target axis', () => {
   let target: HTMLDivElement;

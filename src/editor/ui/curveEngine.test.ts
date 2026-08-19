@@ -76,23 +76,23 @@ describe('curveTemplates against hueCurveConfig (signed axis)', () => {
     expect(anchors[1].y).toBe(0);
   });
 
-  it('Ramp up gives -24 to +24', () => {
+  it('Ramp up gives -36 to +36', () => {
     const anchors = template('Ramp up').anchors(hueCurveConfig);
-    expect(anchors[0].y).toBe(-24);
-    expect(anchors[1].y).toBe(24);
+    expect(anchors[0].y).toBe(-36);
+    expect(anchors[1].y).toBe(36);
   });
 
-  it('Ramp down gives +24 to -24', () => {
+  it('Ramp down gives +36 to -36', () => {
     const anchors = template('Ramp down').anchors(hueCurveConfig);
-    expect(anchors[0].y).toBe(24);
-    expect(anchors[1].y).toBe(-24);
+    expect(anchors[0].y).toBe(36);
+    expect(anchors[1].y).toBe(-36);
   });
 
-  it('Peak gives -30 to 0 to -30', () => {
+  it('Peak gives -45 to 0 to -45', () => {
     const anchors = template('Peak').anchors(hueCurveConfig);
-    expect(anchors[0].y).toBe(-30);
+    expect(anchors[0].y).toBe(-45);
     expect(anchors[1].y).toBe(0);
-    expect(anchors[2].y).toBe(-30);
+    expect(anchors[2].y).toBe(-45);
   });
 
   it('every produced y sits within the axis bounds', () => {
@@ -107,11 +107,11 @@ describe('curveTemplates against hueCurveConfig (signed axis)', () => {
 
 describe('svgToY clamps to a signed axis', () => {
   it('clamps a pixel above the chart to yMax', () => {
-    expect(svgToY(-1000, hueCurveConfig)).toBe(30);
+    expect(svgToY(-1000, hueCurveConfig)).toBe(hueCurveConfig.yMax);
   });
 
   it('clamps a pixel below the chart to yMin', () => {
-    expect(svgToY(CURVE_H + 1000, hueCurveConfig)).toBe(-30);
+    expect(svgToY(CURVE_H + 1000, hueCurveConfig)).toBe(hueCurveConfig.yMin);
   });
 });
 
@@ -127,8 +127,8 @@ describe('clampAnchorsToRange', () => {
   it('clamps an anchor y outside the range to the nearest bound', () => {
     const anchors = [makeAnchor(0, 100, 10), makeAnchor(100, -80, 10)];
     const clamped = clampAnchorsToRange(anchors, hueCurveConfig);
-    expect(clamped[0].y).toBe(30);
-    expect(clamped[1].y).toBe(-30);
+    expect(clamped[0].y).toBe(hueCurveConfig.yMax);
+    expect(clamped[1].y).toBe(hueCurveConfig.yMin);
   });
 
   it('clamps a handle whose absolute y overshoots the range, preserving the in-bounds anchor', () => {
@@ -136,11 +136,11 @@ describe('clampAnchorsToRange', () => {
     const anchors = [{ x: 0, y: 20, inDx: 0, inDy: 0, outDx: 30, outDy: 50 }];
     const [clamped] = clampAnchorsToRange(anchors, hueCurveConfig);
     expect(clamped.y).toBe(20);
-    expect(clamped.outDy).toBe(10); // bound(20 + 50) - 20 = 30 - 20
+    expect(clamped.outDy).toBe(hueCurveConfig.yMax - 20);
   });
 
   it('every anchor and handle absolute y sits within the axis bounds for a curve pasted from a wider axis', () => {
-    // Shaped like a Saturation curve (0-200) pasted into Hue (-30 to +30).
+    // Shaped like a Saturation curve (0-200) pasted into the narrower Hue axis.
     const wide = [
       { x: 0, y: 20, inDx: 0, inDy: 0, outDx: 30, outDy: -40 },
       { x: 50, y: 190, inDx: -20, inDy: 60, outDx: 20, outDy: -60 },

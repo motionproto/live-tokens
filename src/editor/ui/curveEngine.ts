@@ -51,11 +51,11 @@ export const textLightnessCurveConfig: CurveConfig = {
 // The range is written into `label` rather than derived, because it is the
 // only config whose axis is not self-evident from its name (RJC 4).
 export const hueCurveConfig: CurveConfig = {
-  yMin: -30, yMax: 30,
-  label: 'Hue ±30°',
+  yMin: -45, yMax: 45,
+  label: 'Hue ±45°',
   unit: '°',
   gridLines: [0],
-  dashedLines: [-15, 15],
+  dashedLines: [-22.5, 22.5],
 };
 
 export const curveTemplates: CurveTemplate[] = [

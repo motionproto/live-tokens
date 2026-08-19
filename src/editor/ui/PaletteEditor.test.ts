@@ -17,6 +17,7 @@ import type { PaletteConfig } from '../core/themes/themeTypes';
 import { hexToOklch as c } from '../core/palettes/oklch';
 import { mount, unmount, flushSync } from "svelte";
 import { defaultPaletteConfig, DEFAULT_PALETTE_HUE, computePaletteOklch } from './palette/paletteMath';
+import { hueCurveConfig } from './curveEngine';
 
 function makePaletteConfig(baseColor: string): PaletteConfig {
   return {
@@ -141,7 +142,7 @@ describe('PaletteEditor — hue curve section', () => {
     const expandedFor = (label: string) =>
       curveSection(label).querySelector('.curve-section-toggle')!.getAttribute('aria-expanded');
     expect(target.querySelectorAll('.curve-section-toggle')).toHaveLength(3);
-    expect(expandedFor('Hue ±30°')).toBe('false');
+    expect(expandedFor(hueCurveConfig.label)).toBe('false');
     expect(expandedFor('Saturation')).toBe('true');
     expect(expandedFor('Lightness')).toBe('true');
 
@@ -149,10 +150,10 @@ describe('PaletteEditor — hue curve section', () => {
   });
 
   it('materializes the hue field on first edit, pinning the anchor step to base.h exactly', () => {
-    // Anchored at step 0 (x=0), deliberately NOT x=50: the ±30 axis is
+    // Anchored at step 0 (x=0), deliberately NOT x=50: the hue axis is
     // symmetric, so at x=50 every template's zero-crossing makes a verbatim
     // swatch look right even with the pin discarded. x=0 coincides with one
-    // of "Ramp up"'s own anchors (y=-24), so this only reads as unchanged if
+    // of "Ramp up"'s own anchors, well off zero, so this only reads as unchanged if
     // syncBaseAnchor actually overwrote that anchor's y to 0 in the curve
     // that got saved — not in a materialized-then-discarded scratch copy.
     const config = defaultPaletteConfig({ baseColor: { l: 0.95, c: 0.1, h: 210 } });
@@ -162,12 +163,12 @@ describe('PaletteEditor — hue curve section', () => {
 
     button('Edit').click();
     flushSync();
-    curveSection('Hue ±30°').querySelector<HTMLButtonElement>('.curve-section-toggle')!.click();
+    curveSection(hueCurveConfig.label).querySelector<HTMLButtonElement>('.curve-section-toggle')!.click();
     flushSync();
 
     expect(get(editorState).palettes.Canvas.hueCurve).toBeUndefined();
 
-    curveSection('Hue ±30°').querySelector<HTMLButtonElement>('.curve-template-btn[title="Ramp up"]')!.click();
+    curveSection(hueCurveConfig.label).querySelector<HTMLButtonElement>('.curve-template-btn[title="Ramp up"]')!.click();
     flushSync();
 
     const saved = get(editorState).palettes.Canvas;
@@ -179,7 +180,7 @@ describe('PaletteEditor — hue curve section', () => {
     expect(anchoredOklch.h).toBe(saved.baseColor.h);
     // lockedHueIdx found the pinned anchor and BezierCurveEditor drew it locked,
     // rather than as a plain draggable point a user could pull off zero.
-    expect(curveSection('Hue ±30°').querySelector('.curve-handle.locked')).toBeTruthy();
+    expect(curveSection(hueCurveConfig.label).querySelector('.curve-handle.locked')).toBeTruthy();
 
     cleanup();
   });
@@ -190,14 +191,14 @@ describe('PaletteEditor — hue curve section', () => {
 
     button('Edit').click();
     flushSync();
-    curveSection('Hue ±30°').querySelector<HTMLButtonElement>('.curve-section-toggle')!.click();
+    curveSection(hueCurveConfig.label).querySelector<HTMLButtonElement>('.curve-section-toggle')!.click();
     flushSync();
-    curveSection('Hue ±30°').querySelector<HTMLButtonElement>('.curve-template-btn[title="Ramp up"]')!.click();
+    curveSection(hueCurveConfig.label).querySelector<HTMLButtonElement>('.curve-template-btn[title="Ramp up"]')!.click();
     flushSync();
     mutate('set offset', (s) => { s.palettes.Canvas.curveOffset = { ...s.palettes.Canvas.curveOffset, hue: 10 }; });
     flushSync();
 
-    curveSection('Hue ±30°').querySelector<HTMLButtonElement>('[title="Reset to default"]')!.click();
+    curveSection(hueCurveConfig.label).querySelector<HTMLButtonElement>('[title="Reset to default"]')!.click();
     flushSync();
 
     expect(get(editorState).palettes.Canvas.hueCurve).toEqual(DEFAULT_PALETTE_HUE());
