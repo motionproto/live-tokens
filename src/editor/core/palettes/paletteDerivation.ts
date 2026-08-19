@@ -14,7 +14,7 @@
  */
 
 import { cssColorToOklch, oklchToCssClamped, gamutClamp, type Oklch } from './oklch';
-import { type CurveAnchor, sampleCurve, makeAnchor, tangentAnchor } from '../../ui/curveEngine';
+import { type CurveAnchor, sampleCurve, makeAnchor, tangentAnchor, resmoothAutoCurve } from '../../ui/curveEngine';
 import type { PaletteConfig } from '../themes/themeTypes';
 
 export interface PaletteSpec {
@@ -108,12 +108,14 @@ export const SCALES: readonly Scale[] = [
 export const BW_GUARD_MIN_L = 0.17;
 export const BW_GUARD_MAX_L = 0.93;
 
-export const DEFAULT_PALETTE_LIGHTNESS = (): CurveAnchor[] => [makeAnchor(0, 95, 5), makeAnchor(100, 8, 5)];
-export const DEFAULT_PALETTE_SATURATION = (): CurveAnchor[] => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)];
-/** Short tangents, matching lightness. `makeAnchor` emits horizontal handles and a
- *  drag preserves them, so the saturation default's length of 30 would ease a dragged
- *  ramp flat through its middle and swing it at the ends. Hue wants an even drift. */
-export const DEFAULT_PALETTE_HUE = (): CurveAnchor[] => [makeAnchor(0, 0, 5), makeAnchor(100, 0, 5)];
+/** Defaults ship auto-shaped, so a curve nobody has touched is the one the editor
+ *  draws with Auto smooth on. Handle lengths come from the points, which is why
+ *  `makeAnchor`'s tangent argument is left off throughout. */
+const autoCurve = (...anchors: CurveAnchor[]): CurveAnchor[] => resmoothAutoCurve(anchors);
+
+export const DEFAULT_PALETTE_LIGHTNESS = (): CurveAnchor[] => autoCurve(makeAnchor(0, 95), makeAnchor(100, 8));
+export const DEFAULT_PALETTE_SATURATION = (): CurveAnchor[] => autoCurve(makeAnchor(0, 100), makeAnchor(100, 100));
+export const DEFAULT_PALETTE_HUE = (): CurveAnchor[] => autoCurve(makeAnchor(0, 0), makeAnchor(100, 0));
 
 /** Hue is cyclic, so derivation wraps rather than clamps. The trig accepts
  *  any angle; `Oklch.h` is documented 0..360 and readouts print it. */
@@ -141,31 +143,31 @@ export function scaleCurveDefaults(scheme: SchemeDirection = 'dark'): ScaleCurve
   if (scheme === 'light') {
     return {
       Surfaces: {
-        lightness:  () => [makeAnchor(0, 98, 5),   makeAnchor(100, 82, 5)],
-        saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)],
+        lightness:  () => autoCurve(makeAnchor(0, 98), makeAnchor(100, 82)),
+        saturation: () => autoCurve(makeAnchor(0, 100), makeAnchor(100, 100)),
       },
       Borders: {
-        lightness:  () => [makeAnchor(0, 92, 5),   makeAnchor(100, 45, 5)],
-        saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)],
+        lightness:  () => autoCurve(makeAnchor(0, 92), makeAnchor(100, 45)),
+        saturation: () => autoCurve(makeAnchor(0, 100), makeAnchor(100, 100)),
       },
       Text: {
-        lightness:  () => [makeAnchor(0, 30, 30),  makeAnchor(100, 120, 30)],
-        saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 15, 30)],
+        lightness:  () => autoCurve(makeAnchor(0, 30), makeAnchor(100, 120)),
+        saturation: () => autoCurve(makeAnchor(0, 100), makeAnchor(100, 15)),
       },
     };
   }
   return {
     Surfaces: {
-      lightness:  () => [makeAnchor(0, 15, 5),   makeAnchor(100, 47, 5)],
-      saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)],
+      lightness:  () => autoCurve(makeAnchor(0, 15), makeAnchor(100, 47)),
+      saturation: () => autoCurve(makeAnchor(0, 100), makeAnchor(100, 100)),
     },
     Borders: {
-      lightness:  () => [makeAnchor(0, 25, 5),   makeAnchor(100, 80, 5)],
-      saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)],
+      lightness:  () => autoCurve(makeAnchor(0, 25), makeAnchor(100, 80)),
+      saturation: () => autoCurve(makeAnchor(0, 100), makeAnchor(100, 100)),
     },
     Text: {
-      lightness:  () => [makeAnchor(0, 120, 30), makeAnchor(100, 55, 30)],
-      saturation: () => [makeAnchor(0, 100, 30), makeAnchor(100, 15, 30)],
+      lightness:  () => autoCurve(makeAnchor(0, 120), makeAnchor(100, 55)),
+      saturation: () => autoCurve(makeAnchor(0, 100), makeAnchor(100, 15)),
     },
   };
 }

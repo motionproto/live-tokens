@@ -21,7 +21,7 @@ import { migratePaletteColorsToOklch, type PreOklchPaletteConfig } from '../them
 import { adoptLegacyBaseAnchor } from '../themes/migrations/2026-07-24-base-anchor-placement';
 import { adoptBackgroundSpotAsBase } from '../themes/migrations/2026-07-25-background-spot-to-base';
 import { placeUnplacedBaseAnchors } from '../themes/migrations/2026-07-29-place-base-anchors';
-import { makeAnchor, sampleCurve, type CurveAnchor } from '../../ui/curveEngine';
+import { isAutoSmoothCurve, makeAnchor, resmoothAutoCurve, sampleCurve, type CurveAnchor } from '../../ui/curveEngine';
 import type { PaletteConfig } from '../themes/themeTypes';
 import defaultColorsAndType from '../../../live-tokens/data/colors-and-type/default.json';
 
@@ -195,10 +195,13 @@ describe('scaleCurveDefaults (Global invariant 1: dark anchors frozen)', () => {
     Text:     { lightness: defs.Text.lightness(),     saturation: defs.Text.saturation()      },
   });
 
+  // Handles are derived from the points now, so the freeze is on the ramp endpoints:
+  // change a y here and the guard still fires.
+  const ramp = (y0: number, y1: number) => resmoothAutoCurve([makeAnchor(0, y0), makeAnchor(100, y1)]);
   const LEGACY_DARK = {
-    Surfaces: { lightness: [makeAnchor(0, 15, 5),   makeAnchor(100, 47, 5)],  saturation: [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)] },
-    Borders:  { lightness: [makeAnchor(0, 25, 5),   makeAnchor(100, 80, 5)],  saturation: [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)] },
-    Text:     { lightness: [makeAnchor(0, 120, 30), makeAnchor(100, 55, 30)], saturation: [makeAnchor(0, 100, 30), makeAnchor(100, 15, 30)] },
+    Surfaces: { lightness: ramp(15, 47),  saturation: ramp(100, 100) },
+    Borders:  { lightness: ramp(25, 80),  saturation: ramp(100, 100) },
+    Text:     { lightness: ramp(120, 55), saturation: ramp(100, 15)  },
   };
 
   it('scaleCurveDefaults("dark") deep-equals the pinned legacy anchors', () => {
@@ -211,6 +214,18 @@ describe('scaleCurveDefaults (Global invariant 1: dark anchors frozen)', () => {
 
   it('the default scheme is dark', () => {
     expect(resolve(scaleCurveDefaults())).toEqual(resolve(scaleCurveDefaults('dark')));
+  });
+
+  it('every shipped default is auto-shaped, so an untouched curve opens with Auto smooth on', () => {
+    for (const scheme of ['dark', 'light'] as const) {
+      for (const scale of Object.values(resolve(scaleCurveDefaults(scheme)))) {
+        expect(isAutoSmoothCurve(scale.lightness)).toBe(true);
+        expect(isAutoSmoothCurve(scale.saturation)).toBe(true);
+      }
+    }
+    for (const curve of [DEFAULT_PALETTE_LIGHTNESS(), DEFAULT_PALETTE_SATURATION(), DEFAULT_PALETTE_HUE()]) {
+      expect(isAutoSmoothCurve(curve)).toBe(true);
+    }
   });
 });
 

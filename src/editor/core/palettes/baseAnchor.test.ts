@@ -53,6 +53,19 @@ describe('nearestPaletteStep', () => {
   });
 });
 
+/** Derived handles span a third of an interval, which is irrational for most
+ *  spans, so re-running a placement lands a couple of ULP away. Idempotency is a
+ *  claim about the curve, not about the bits. */
+function expectSameCurve(actual: CurveAnchor[] | undefined, expected: CurveAnchor[] | undefined) {
+  expect(actual).toHaveLength(expected!.length);
+  actual!.forEach((a, i) => {
+    const e = expected![i];
+    for (const k of ['x', 'y', 'inDx', 'inDy', 'outDx', 'outDy'] as const) {
+      expect(a[k]).toBeCloseTo(e[k], 9);
+    }
+  });
+}
+
 describe('syncBaseAnchor', () => {
   it('renders the base color verbatim at the placed step', () => {
     const c = cfg(0.56);
@@ -70,8 +83,8 @@ describe('syncBaseAnchor', () => {
     const placed = structuredClone({ p: c.anchorPlacement, l: c.lightnessCurve, s: c.saturationCurve });
     syncBaseAnchor(c);
     expect(c.anchorPlacement).toEqual(placed.p);
-    expect(c.lightnessCurve).toEqual(placed.l);
-    expect(c.saturationCurve).toEqual(placed.s);
+    expectSameCurve(c.lightnessCurve, placed.l);
+    expectSameCurve(c.saturationCurve, placed.s);
   });
 
   it('moves the anchor to another step when the base lightness moves', () => {
@@ -167,9 +180,9 @@ describe('syncBaseAnchor with a hue curve', () => {
     const once = structuredClone({ p: c.anchorPlacement, l: c.lightnessCurve, s: c.saturationCurve, h: c.hueCurve });
     syncBaseAnchor(c);
     expect(c.anchorPlacement).toEqual(once.p);
-    expect(c.lightnessCurve).toEqual(once.l);
-    expect(c.saturationCurve).toEqual(once.s);
-    expect(c.hueCurve).toEqual(once.h);
+    expectSameCurve(c.lightnessCurve, once.l);
+    expectSameCurve(c.saturationCurve, once.s);
+    expectSameCurve(c.hueCurve, once.h);
   });
 
   it('is idempotent without a hue curve', () => {
@@ -178,8 +191,8 @@ describe('syncBaseAnchor with a hue curve', () => {
     const once = structuredClone({ p: c.anchorPlacement, l: c.lightnessCurve, s: c.saturationCurve });
     syncBaseAnchor(c);
     expect(c.anchorPlacement).toEqual(once.p);
-    expect(c.lightnessCurve).toEqual(once.l);
-    expect(c.saturationCurve).toEqual(once.s);
+    expectSameCurve(c.lightnessCurve, once.l);
+    expectSameCurve(c.saturationCurve, once.s);
     expect(c.hueCurve).toBeUndefined();
   });
 });

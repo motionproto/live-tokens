@@ -1,5 +1,5 @@
 import type { Oklch } from '../../core/palettes/oklch';
-import { type CurveAnchor, makeAnchor } from '../curveEngine';
+import { type CurveAnchor, makeAnchor, resmoothAutoCurve } from '../curveEngine';
 import type { PaletteConfig } from '../../core/themes/themeTypes';
 import {
   type Step,
@@ -60,7 +60,8 @@ export type ScaleCurves = Record<string, { lightness: CurveAnchor[]; saturation:
 
 // Neutrals seed a calmer, wider lightness ramp than accents; the saturation
 // curve is the same flat 100 (chroma comes from a low-chroma base, not a cap).
-export const DEFAULT_NEUTRAL_LIGHTNESS = (): CurveAnchor[] => [makeAnchor(0, 92, 5), makeAnchor(100, 3, 5)];
+export const DEFAULT_NEUTRAL_LIGHTNESS = (): CurveAnchor[] =>
+  resmoothAutoCurve([makeAnchor(0, 92), makeAnchor(100, 3)]);
 
 /**
  * Seed config for a palette. The derivation path is unified; the only
