@@ -10,7 +10,6 @@
   import PaletteBase from './palette/PaletteBase.svelte';
   import PaletteJumpButton from './palette/PaletteJumpButton.svelte';
   import { type EditingState, idleState, BASE_KEY, isEditingBase as isBaseEdit } from './palette/paletteEditorState';
-  import { dockTrackTemplate } from './palette/dockMagnify';
   import {
     type Step, type Scale,
     GRAY_FALLBACK,
@@ -437,13 +436,6 @@
   let anchorStepLabel = $derived(anchorToBase && anchorPlacement !== undefined
     ? paletteStepLightness[anchorPlacement.step]?.label ?? null
     : null);
-  // Dock magnification: the grid transitions between track lists, so dialing
-  // lightness reads as swatches opening/closing while the anchor walks the
-  // ramp. Column 0 is the white bookend, so step i is column i+1.
-  let swatchTemplate = $derived(dockTrackTemplate(
-    paletteStepLightness.length + 2,
-    anchorToBase && anchorPlacement !== undefined ? anchorPlacement.step + 1 : null,
-  ));
   let emptyMode = $derived($editorState.palettes[label]?.emptyMode ?? 'solid');
   let gradientStyle = $derived($editorState.palettes[label]?.gradientStyle ?? 'linear');
   let gradientAngle = $derived($editorState.palettes[label]?.gradientAngle ?? 180);
@@ -566,7 +558,7 @@
           {paletteEditorOpen ? 'Close' : 'Edit'}
         </UIPillButton>
       </div>
-      <div class="swatch-grid" style="--swatch-cols: {paletteStepLightness.length + 2}; grid-template-columns: {swatchTemplate}">
+      <div class="swatch-grid" style="--swatch-cols: {paletteStepLightness.length + 2}">
         <div class="step-column">
           <button class="step-label copyable-label" class:copied={copiedLabelKey === 'palette-white'} type="button" onclick={(e) => copyVarName('palette-white', `--color-${cssNamespace}-white`, e)}>
             {copiedLabelKey === 'palette-white' ? 'copied!' : 'white'}
@@ -921,8 +913,9 @@
 
   .swatch-grid {
     display: grid;
+    /* Even tracks: the curve editors below plot one step per column, so a wider
+       anchored column would slide every swatch out from under its own point. */
     grid-template-columns: repeat(var(--swatch-cols), minmax(0, 1fr));
-    transition: grid-template-columns var(--ui-transition-fast);
     gap: var(--ui-space-4) var(--swatch-gap, var(--ui-space-4));
     align-items: start;
     justify-content: start;
@@ -986,9 +979,9 @@
     outline-offset: 1px;
   }
 
-  /* The step the base color is placed at: dock-magnified (its grid column is
-     also widened via the track template) with an emphasized border. No fill
-     change — the swatch itself already IS the picked color. */
+  /* The step the base color is placed at: taller, with an emphasized border. It
+     keeps its column width so the curve editors stay aligned. No fill change:
+     the swatch itself already IS the picked color. */
   .swatch.gray-swatch.anchored {
     border-color: var(--ui-border-higher);
     height: calc(5.75rem + var(--ui-space-2));
