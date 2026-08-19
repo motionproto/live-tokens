@@ -106,8 +106,7 @@ describe('BezierCurveEditor auto smooth switch', () => {
     document.body.removeChild(target);
   });
 
-  const pill = () =>
-    [...target.querySelectorAll('button')].find((b) => b.textContent?.includes('Auto smooth'))!;
+  const swtch = () => target.querySelector<HTMLButtonElement>('button[role="switch"]')!;
 
   it('re-derives the tangents when switched on, discarding hand-dragged handles', () => {
     const handHeld = [makeAnchor(0, 95, 5), makeAnchor(100, 8, 5)];
@@ -127,7 +126,7 @@ describe('BezierCurveEditor auto smooth switch', () => {
     });
     flushSync();
 
-    pill().click();
+    swtch().click();
     flushSync();
 
     expect(autoChanges).toEqual([true]);
@@ -154,7 +153,7 @@ describe('BezierCurveEditor auto smooth switch', () => {
     });
     flushSync();
 
-    pill().click();
+    swtch().click();
     flushSync();
 
     expect(autoChanges).toEqual([false]);

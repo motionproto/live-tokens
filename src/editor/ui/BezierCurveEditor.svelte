@@ -10,6 +10,7 @@
     serializeCurve, deserializeCurve, clampAnchorsToRange,
   } from './curveEngine';
   import UIPillButton from './UIPillButton.svelte';
+  import Toggle from './Toggle.svelte';
 
   interface Props {
     anchors: CurveAnchor[];
@@ -292,19 +293,6 @@
 </script>
 
 <div class="curve-panel">
-  <div class="curve-panel-header">
-    <div class="curve-help">
-      <button class="curve-help-badge" type="button" aria-label="Curve editor help">
-        <i class="fas fa-circle-info" aria-hidden="true"></i>
-      </button>
-      <div class="curve-help-popover" role="tooltip">
-        <div><strong>Click</strong> path to add a point</div>
-        <div><strong>&#x2325; Click</strong> a point to remove</div>
-        <div><strong>Double-click</strong> a point to toggle smooth/corner</div>
-        <div><strong>Drag a handle</strong> to leave auto smooth</div>
-      </div>
-    </div>
-  </div>
   <div class="curve-container">
     <div class="curve-chart-overlay">
       <UIPillButton
@@ -318,19 +306,17 @@
         </svg>
         <span>Offset{offset !== 0 ? ` ${offset > 0 ? '+' : ''}${offset}${cfg.unit ?? ''}` : ''}</span>
       </UIPillButton>
-      <UIPillButton
-        size="compact"
-        variant={autoSmooth ? 'default' : 'outline'}
-        title={autoSmooth
-          ? 'Tangents follow the points. Drag a handle to take them over.'
-          : 'Handles are held by hand. Turn on to re-derive them from the points.'}
-        onclick={() => setAutoSmooth(!autoSmooth)}
-      >
-        <svg viewBox="0 0 20 12" class="curve-smooth-icon">
-          <path d="M2,10 C6,10 6,2 10,2 C14,2 14,10 18,10" />
-        </svg>
-        <span>Auto smooth</span>
-      </UIPillButton>
+      <div class="curve-help">
+        <button class="curve-help-badge" type="button" aria-label="Curve editor help">
+          <i class="fas fa-circle-info" aria-hidden="true"></i>
+        </button>
+        <div class="curve-help-popover" role="tooltip">
+          <div><strong>Click</strong> path to add a point</div>
+          <div><strong>&#x2325; Click</strong> a point to remove</div>
+          <div><strong>Double-click</strong> a point to toggle smooth/corner</div>
+          <div><strong>Drag a handle</strong> to leave auto smooth</div>
+        </div>
+      </div>
     </div>
     <svg
       bind:this={svgEl}
@@ -462,19 +448,22 @@
       <UIPillButton size="compact" variant="outline" title="Copy curve" onclick={copyToClipboard}>Copy</UIPillButton>
       <UIPillButton size="compact" variant="outline" title="Paste curve" onclick={pasteFromClipboard}>Paste</UIPillButton>
     </div>
-    <div class="curve-templates">
-      {#each curveTemplates as tpl}
-        <button
-          class="curve-template-btn"
-          type="button"
-          title={tpl.name}
-          onclick={() => applyTemplate(tpl)}
-        >
-          <svg viewBox="0 0 20 12" class="curve-template-icon">
-            <path d={tpl.icon} />
-          </svg>
-        </button>
-      {/each}
+    <div class="curve-presets">
+      <Toggle checked={autoSmooth} label="Auto smooth" onchange={setAutoSmooth} />
+      <div class="curve-templates">
+        {#each curveTemplates as tpl}
+          <button
+            class="curve-template-btn"
+            type="button"
+            title={tpl.name}
+            onclick={() => applyTemplate(tpl)}
+          >
+            <svg viewBox="0 0 20 12" class="curve-template-icon">
+              <path d={tpl.icon} />
+            </svg>
+          </button>
+        {/each}
+      </div>
     </div>
     <div class="curve-toolbar-group">
       {#if defaultAnchors}
@@ -493,12 +482,6 @@
     gap: var(--ui-space-4);
   }
 
-  .curve-panel-header {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-6);
-  }
-
   .curve-container {
     position: relative;
     width: 100%;
@@ -511,7 +494,6 @@
     inset: var(--ui-space-8);
     display: flex;
     align-items: flex-end;
-    gap: var(--ui-space-8);
     pointer-events: none;
   }
 
@@ -522,6 +504,7 @@
   .curve-help {
     position: relative;
     margin-left: auto;
+    align-self: flex-start;
   }
 
   .curve-help-badge {
@@ -714,16 +697,10 @@
     fill: currentColor;
   }
 
-  .curve-smooth-icon {
-    width: 1rem;
-    height: 0.625rem;
-  }
-
-  .curve-smooth-icon path {
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.75;
-    stroke-linecap: round;
+  .curve-presets {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-12);
   }
 
   .curve-templates {
