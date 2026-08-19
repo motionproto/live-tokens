@@ -12,12 +12,12 @@ Line numbers date from `0.50.0`. From Wave 2 on, locate by the cited symbol or s
 
 | Wave | Summary | Executor | Status | Commit |
 |---|---|---|---|---|
-| 1 | Model and derivation: `hueCurve`, wrapped hue, tests | Sonnet | Not started | |
-| 2 | Curve engine handles signed axes: normalized templates, `hueCurveConfig` | Sonnet | Not started | |
-| 3 | Base anchor covers hue | Sonnet | Not started | |
-| 4 | Collapsible curve sections; existing two reordered to slider order | Sonnet | Not started | |
-| 5 | Render the hue curve, closed by default | Sonnet | Not started | |
-| 6 | Docs and changelog | Sonnet | Not started | |
+| 1 | Model and derivation: `hueCurve`, wrapped hue, tests | Sonnet | Done | 310871c |
+| 2 | Curve engine handles signed axes: normalized templates, `hueCurveConfig` | Sonnet | Done | b734bfb |
+| 3 | Base anchor covers hue | Sonnet | Done | fa7d9a0 |
+| 4 | Collapsible curve sections; existing two reordered to slider order | Sonnet | Done | 02599c0 |
+| 5 | Render the hue curve, closed by default | Sonnet | Done | b2fc793 + 506d36b |
+| 6 | Docs and changelog | Sonnet | Done | b225aa5 |
 
 The orchestrator updates this table after each review gate: `Not started` to `In progress` to `Done` (or `Blocked`, with a one-line reason appended under the table). Record the short commit SHA.
 
@@ -267,7 +267,7 @@ Files: `src/editor/ui/PaletteEditor.svelte`, `src/editor/ui/palette/OverridesPan
 1. `PaletteEditor.svelte`:
    - `let hueCurve = $derived($editorState.palettes[label]?.hueCurve);` left `undefined` when absent.
    - A third `ScaleCurveEditor`, rendered **first**, with `curveKey="hue"`, `cfg={hueCurveConfig}`, `anchors={hueCurve ?? DEFAULT_PALETTE_HUE()}`, `defaults={DEFAULT_PALETTE_HUE()}`, `offset={curveOffset['hue'] ?? 0}`.
-   - `setHueCurve(a)`: writes `cfg.hueCurve = a` first, then, only on the materializing branch (`hueCurve` was `undefined` before the write), calls `syncBaseAnchor(cfg)` to pin the delta-0 anchor. The order matters: pinning before `a` lands would write the anchor into a still-flat transient curve that the assignment then overwrites, drifting the base color's hue at its anchor step on the first edit. Wave 3's idempotency test is what makes calling `syncBaseAnchor` here, after the value is already in place, safe. When the curve already exists, it is a plain `edit('hueCurve', a)`.
+   - `setHueCurve(a)`: writes `cfg.hueCurve = a` first, then, only on the materializing branch (`hueCurve` was `undefined` before the write), calls `syncBaseAnchor(cfg)` to pin the delta-0 anchor. The order matters: pinning before `a` lands would write the anchor into a still-flat transient curve that the assignment then overwrites, drifting the base color's hue at its anchor step on the first edit. Wave 3's idempotency test is what makes calling `syncBaseAnchor` here, after the value is already in place, safe. When the curve already exists, the assignment stands alone.
    - `lockedHueIdx`, mirroring `lockedLightnessIdx` (`:71`), and null whenever `hueCurve` is undefined.
    - Final order in the stack: Hue, Saturation, Lightness.
 
