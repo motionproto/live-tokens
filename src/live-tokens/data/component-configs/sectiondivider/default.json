@@ -91,5 +91,6 @@
     "--sectiondivider-sm-border": "--color-transparent",
     "--sectiondivider-sm-title-outline-color": "color-mix(in srgb, var(--surface-neutral-lowest) 25%, transparent)",
     "--sectiondivider-sm-hairline-color": "color-mix(in srgb, var(--border-brand-medium) 50%, transparent)"
-  }
+  },
+  "schemaVersion": 21
 }

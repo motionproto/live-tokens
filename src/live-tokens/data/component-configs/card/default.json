@@ -37,5 +37,6 @@
     "--card-hover-shadow": "--shadow-md",
     "--card-hover-border-active": "--card-default-border",
     "--card-hover-shadow-active": "--card-default-shadow"
-  }
+  },
+  "schemaVersion": 21
 }

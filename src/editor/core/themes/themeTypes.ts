@@ -225,6 +225,12 @@ export interface Theme {
    *  its default. Defaults are never inlined — the local `default.json` derived
    *  from the component source is canonical, and a frozen copy would drift. */
   componentConfigs: Record<string, ComponentConfig>;
+  /** Migration stamp for every embedded component config in this theme, one
+   *  field for all of them: `CURRENT_COMPONENT_SCHEMA_VERSION` is a single
+   *  global counter over every component migration, so a per-entry stamp would
+   *  buy no isolation. `normalizeTheme` sets this on every read; an embedded
+   *  config's own `schemaVersion` (if hand-authored) is ignored and stripped. */
+  componentSchemaVersion: number;
   /** Server-attached file-name marker. Same role as `ColorsAndType._fileName`. */
   _fileName?: string;
 }

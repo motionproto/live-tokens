@@ -15,5 +15,6 @@
     "--imagelightbox-chrome-radius": "--radius-full",
     "--imagelightbox-chrome-icon": "--text-primary",
     "--imagelightbox-chrome-hover-surface": "--surface-brand-high"
-  }
+  },
+  "schemaVersion": 21
 }

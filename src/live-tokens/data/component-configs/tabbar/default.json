@@ -66,5 +66,6 @@
     "--tabbar-disabled-tab-top-radius": "--radius-none",
     "--tabbar-disabled-tab-bottom-radius": "--radius-none",
     "--tabbar-disabled-indicator-border-width": "--border-width-2"
-  }
+  },
+  "schemaVersion": 21
 }

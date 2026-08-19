@@ -1,7 +1,7 @@
 {
   "name": "Motion Proto",
   "createdAt": "2026-05-10T18:15:30.815Z",
-  "updatedAt": "2026-08-14T19:14:47.000Z",
+  "updatedAt": "2026-08-19T21:07:10.983Z",
   "schemaVersion": 3,
   "colorsAndType": {
     "name": "Motion Proto",
@@ -2766,9 +2766,7 @@
         "--callout-danger-text-font-size": "--font-size-lg",
         "--callout-danger-text-font-weight": "--font-weight-normal",
         "--callout-danger-text-line-height": "--line-height-normal"
-      },
-      "config": {},
-      "schemaVersion": 17
+      }
     },
     "card": {
       "name": "default",
@@ -2954,9 +2952,7 @@
         "--corner-badge-info-surface": "--surface-info",
         "--corner-badge-info-border": "--border-info",
         "--corner-badge-info-text": "--text-info"
-      },
-      "config": {},
-      "schemaVersion": 16
+      }
     },
     "dialog": {
       "name": "default",
@@ -3256,9 +3252,7 @@
         "--menuselect-disabled-text-line-height": "--line-height-tighter",
         "--menuselect-disabled-icon": "--text-tertiary",
         "--menuselect-disabled-icon-size": "--icon-size-sm"
-      },
-      "config": {},
-      "schemaVersion": 16
+      }
     },
     "notification": {
       "name": "default",
@@ -3338,9 +3332,7 @@
         "--notification-danger-text-font-size": "--font-size-md",
         "--notification-danger-text-font-weight": "--font-weight-normal",
         "--notification-danger-text-line-height": "--line-height-normal"
-      },
-      "config": {},
-      "schemaVersion": 16
+      }
     },
     "panel": {
       "name": "default",
@@ -3905,5 +3897,6 @@
         "--tooltip-shadow": "--shadow-md"
       }
     }
-  }
+  },
+  "componentSchemaVersion": 21
 }

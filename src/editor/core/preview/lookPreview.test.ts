@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import type { ComponentConfig, Theme, ColorsAndType } from '../themes/themeTypes';
+import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../themes/migrations';
 import { API_BASE } from '../storage/apiBase';
 import { CSS_VAR_CHANGE_EVENT, CSS_VARS_CHANGE_EVENT } from '../cssVarSync';
 import {
@@ -88,6 +89,7 @@ function theme(
     schemaVersion: 3,
     colorsAndType: colorsAndTypeValue,
     componentConfigs,
+    componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
     _fileName: name,
   };
 }

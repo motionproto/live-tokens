@@ -56,5 +56,6 @@
     "--segmentedcontrol-option-small-text-font-size": "--font-size-sm",
     "--segmentedcontrol-option-small-text-line-height": "--line-height-tighter",
     "--segmentedcontrol-selected-small-radius": "--radius-sm"
-  }
+  },
+  "schemaVersion": 21
 }

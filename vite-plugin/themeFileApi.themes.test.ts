@@ -112,7 +112,7 @@ const COLORS_AND_TYPE = {
   editorConfigs: {},
   cssVariables: { '--radius-md': '4px' },
 };
-const BUTTON_CONFIG = { name: 'fancy', component: 'button', aliases: { '--button-radius': '99px' } };
+const BUTTON_CONFIG = { name: 'fancy', component: 'button', aliases: { '--button-primary-radius': '99px' } };
 
 /** A v1 pointer theme naming live colors and type, a live config, a component on
  *  default, and a config that has since been deleted. */
@@ -204,14 +204,14 @@ describe('boot reconciliation of 0.48 working copies', () => {
     });
     writeJson(path.join(configsDir, 'button', '_working.json'), {
       ...BUTTON_CONFIG,
-      aliases: { '--button-radius': '1px' },
+      aliases: { '--button-primary-radius': '1px' },
     });
 
     boot();
 
     expect(readJson(path.join(colorsAndTypeDir, '_working.json')).name).toBe('Unsaved colors');
     expect(
-      readJson(path.join(configsDir, 'button', '_working.json')).aliases['--button-radius'],
+      readJson(path.join(configsDir, 'button', '_working.json')).aliases['--button-primary-radius'],
     ).toBe('1px');
   });
 
@@ -719,7 +719,7 @@ describe('apply', () => {
     const editedColors = { ...COLORS_AND_TYPE, name: 'Edited' };
     const editedButton = {
       ...BUTTON_CONFIG,
-      aliases: { ...BUTTON_CONFIG.aliases, '--button-radius': '1px' },
+      aliases: { ...BUTTON_CONFIG.aliases, '--button-primary-radius': '1px' },
     };
     await request('PUT', `${API}/colors-and-type/working`, editedColors);
     await request('PUT', `${API}/component-configs/button/working`, editedButton);
@@ -831,7 +831,7 @@ describe('adopting the whole look', () => {
     expect(json.productionTheme.name).toBe('look');
     expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('look');
     expect(generatedCss()).toContain('/* Production theme: look */');
-    expect(generatedCss()).toContain('--button-radius: 99px');
+    expect(generatedCss()).toContain('--button-primary-radius: 99px');
   });
 
   it('bakes the theme, not the buffer: later edits wait for the next save', async () => {
@@ -845,12 +845,12 @@ describe('adopting the whole look', () => {
     await request('PUT', `${API}/component-configs/button/working`, {
       name: 'edited',
       component: 'button',
-      aliases: { '--button-radius': '1px' },
+      aliases: { '--button-primary-radius': '1px' },
     });
     await request('PUT', `${API}/production`);
 
     expect(generatedCss()).not.toContain('--radius-md: 99px');
-    expect(generatedCss()).toContain('--button-radius: 99px');
+    expect(generatedCss()).toContain('--button-primary-radius: 99px');
   });
 
   it('refuses to bake a production theme it cannot read', async () => {
@@ -869,11 +869,11 @@ describe('adopting the whole look', () => {
     await request('PUT', `${API}/production`);
 
     const look = readJson(path.join(themesDir, 'look.json'));
-    look.componentConfigs.button.aliases = { '--button-radius': '1px' };
+    look.componentConfigs.button.aliases = { '--button-primary-radius': '1px' };
     await request('PUT', `${API}/themes/look`, look);
     await request('PUT', `${API}/production`);
 
-    expect(generatedCss()).toContain('--button-radius: 1px');
+    expect(generatedCss()).toContain('--button-primary-radius: 1px');
   });
 
   it('writes the generated CSS once and no theme file at all', async () => {
@@ -903,5 +903,70 @@ describe('adopting the whole look', () => {
     expect(status).toBe(200);
     expect(json._fileName).toBe('look');
     expect(json.colorsAndType.name).toBe('Custom');
+  });
+});
+
+// Wave 1 of docs/plans/theme-completeness.md: `normalizeTheme` migrates an
+// embedded component config wherever a theme is read, so the bake — which
+// reads `productionTheme.componentConfigs` straight off that normalized
+// result — sees post-rename keys even for a theme written before the rename.
+// This closes a real bug: pre-Wave-1, `aliasValuesEqual(undefined, staleValue)`
+// is `false`, so a stale key read raw looked like a real override and baked
+// verbatim into `tokens.generated.css` forever.
+describe('component-config migration and orphan handling reach the bake', () => {
+  const generatedCss = () => fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8');
+
+  function seedProductionTheme(componentConfigs: Record<string, unknown>) {
+    writeJson(path.join(themesDir, 'look.json'), {
+      name: 'look',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      schemaVersion: 3,
+      colorsAndType: COLORS_AND_TYPE,
+      componentConfigs,
+    });
+    writeJson(path.join(themesDir, '_active.json'), { activeFile: 'look' });
+    writeJson(path.join(themesDir, '_production.json'), { productionFile: 'look' });
+  }
+
+  it('bakes the post-rename key for an embedded config written before the rename', () => {
+    // `--progressbar-track-bg` → `--progressbar-track-surface`
+    // (2026-04-24-component-prefix-and-suffix-renames.ts). No
+    // `componentSchemaVersion` on this theme, so it migrates off 0.
+    seedProductionTheme({
+      progressbar: {
+        name: 'look',
+        component: 'progressbar',
+        aliases: { '--progressbar-track-bg': '--surface-accent' },
+      },
+    });
+
+    boot();
+
+    expect(generatedCss()).toContain('--progressbar-track-surface: var(--surface-accent);');
+    expect(generatedCss()).not.toContain('--progressbar-track-bg');
+  });
+
+  it('skips an orphaned alias key the current default no longer declares, while a real override still emits', () => {
+    seedProductionTheme({
+      card: {
+        name: 'look',
+        component: 'card',
+        aliases: {
+          // Not declared by card/default.json under any name a migration
+          // would recognise — a component-config edge case RJC 3 says the
+          // *file* must still carry, but the bake must never emit.
+          '--card-removed-thing': '--surface-accent',
+          // A real, current override — must still bake.
+          '--card-default-radius': '--radius-full',
+        },
+      },
+    });
+
+    boot();
+
+    const css = generatedCss();
+    expect(css).not.toContain('--card-removed-thing');
+    expect(css).toContain('--card-default-radius: var(--radius-full);');
   });
 });

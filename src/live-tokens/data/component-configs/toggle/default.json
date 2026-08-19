@@ -28,5 +28,6 @@
     "--toggle-disabled-track-surface": "--surface-neutral-lower",
     "--toggle-disabled-thumb-surface": "--surface-neutral",
     "--toggle-disabled-label-text": "--text-disabled"
-  }
+  },
+  "schemaVersion": 21
 }

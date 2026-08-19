@@ -134,5 +134,6 @@
     "--badge-info-shadow": "--shadow-none",
     "--badge-info-blur": "--blur-none",
     "--badge-info-icon-size": "--icon-size-sm"
-  }
+  },
+  "schemaVersion": 21
 }

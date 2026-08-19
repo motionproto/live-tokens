@@ -5,6 +5,7 @@ import { liveMovedSinceBake } from '../productionPulse';
 import { listComponents, getActiveComponentConfig } from '../components/componentConfigService';
 import { getActiveColorsAndType } from './colorsAndTypeService';
 import { broadcastAppliedTheme, hydrateAppliedTheme } from './themeDocumentSync';
+import { CURRENT_COMPONENT_SCHEMA_VERSION } from './migrations';
 
 /**
  * REST client for theme files, the documents of the editor. A theme carries a
@@ -167,6 +168,7 @@ export async function saveAsTheme(
     createdAt: now,
     updatedAt: now,
     schemaVersion: 3,
+    componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
     ...look,
   });
   liveMovedSinceBake.set(true);
@@ -189,6 +191,7 @@ export async function saveActiveTheme(displayName?: string): Promise<void> {
     createdAt: active.createdAt,
     updatedAt: new Date().toISOString(),
     schemaVersion: 3,
+    componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
     ...look,
   });
   liveMovedSinceBake.set(true);

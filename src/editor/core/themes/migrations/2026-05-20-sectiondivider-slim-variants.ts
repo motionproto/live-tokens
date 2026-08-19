@@ -18,7 +18,7 @@ import type { Migration } from './index';
  *   `*-padding`            → `*-spacing`
  *
  * The structured background payload moves through a companion rename in
- * `migrateComponentAliases` (editorStore.ts), since the runner only sees
+ * `migrateComponentConfig` (migrateComponentConfig.ts), since the runner only sees
  * string keys.
  */
 const FAMILIES = ['canvas', 'neutral', 'alternate', 'primary', 'accent', 'special'] as const;

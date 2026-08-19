@@ -9,6 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { normalizeTheme, type ThemeResolvers } from './normalizeTheme';
 import { parseGoogleFontsUrl } from '../../src/editor/core/fonts/fontParse';
+import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../src/editor/core/themes/migrations';
 import { PRESET_FONTS } from '../../scripts/lib/presetFonts.mjs';
 
 const REPO_ROOT = process.cwd();
@@ -55,13 +56,16 @@ const strictResolvers: ThemeResolvers = {
 };
 
 describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
-  it('passes through normalizeTheme unchanged', () => {
+  it('passes through normalizeTheme unchanged, stamped with the current component schema', () => {
     const raw = themeOf(slug);
     const { theme, dropped, migrated } = normalizeTheme(raw, strictResolvers);
 
     expect(migrated).toBe(false);
     expect(dropped).toEqual([]);
-    expect(theme).toEqual(raw);
+    // No stale alias keys to migrate (verified), so the only difference from
+    // the file on disk is the theme-level component-schema stamp every
+    // `normalizeTheme` call adds (Wave 1, docs/plans/theme-completeness.md).
+    expect(theme).toEqual({ ...raw, componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION });
     expect(theme.schemaVersion).toBe(3);
   });
 

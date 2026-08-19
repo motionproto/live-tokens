@@ -45,6 +45,5 @@
     "--corner-badge-info-border": "--border-info",
     "--corner-badge-info-text": "--text-info"
   },
-  "config": {},
-  "schemaVersion": 16
+  "schemaVersion": 21
 }

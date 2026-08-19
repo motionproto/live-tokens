@@ -20,5 +20,6 @@
     "--codesnippet-hover-icon": "--text-primary",
     "--codesnippet-scrollbar-border-width": "--border-width-6",
     "--codesnippet-scrollbar-thumb": "--text-tertiary"
-  }
+  },
+  "schemaVersion": 21
 }

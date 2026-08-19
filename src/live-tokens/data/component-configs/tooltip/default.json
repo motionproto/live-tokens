@@ -15,5 +15,6 @@
     "--tooltip-radius": "--radius-md",
     "--tooltip-padding": "--space-6",
     "--tooltip-shadow": "--shadow-md"
-  }
+  },
+  "schemaVersion": 21
 }

@@ -47,6 +47,5 @@
     "--menuselect-disabled-icon": "--text-tertiary",
     "--menuselect-disabled-icon-size": "--icon-size-sm"
   },
-  "config": {},
-  "schemaVersion": 16
+  "schemaVersion": 21
 }

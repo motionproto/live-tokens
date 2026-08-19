@@ -9,6 +9,7 @@ import {
   reconcilePalettesFromCssVars,
 } from '../src/editor/core/palettes/paletteDerivation';
 import { migratePaletteColorsToOklch } from '../src/editor/core/themes/migrations/2026-07-21-palette-oklch-basis';
+import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../src/editor/core/themes/migrations';
 import {
   versionedFileResourceServer,
   type VersionedFileResourceServer,
@@ -383,6 +384,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         const overrides: [string, AliasDiskValue][] = [];
         const defaultAliases = (defaultCfg.aliases ?? {}) as Record<string, AliasDiskValue>;
         for (const [varName, semanticValue] of Object.entries((prodCfg.aliases ?? {}) as Record<string, AliasDiskValue>)) {
+          // A key the current default no longer declares is orphaned — a
+          // removed/renamed token a migration hasn't (or can't) rewrite, or a
+          // component this install no longer ships. It stays in the theme file
+          // (RJC 3, docs/plans/theme-completeness.md) but never reaches CSS.
+          if (!(varName in defaultAliases)) continue;
           if (!aliasValuesEqual(defaultAliases[varName], semanticValue)) {
             overrides.push([varName, semanticValue]);
           }
@@ -605,8 +611,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   /**
    * Regenerate `component-configs/{comp}/default.json` from the component's
-   * `:global(:root)` block. Writes only if missing or stale (source mtime >
-   * default mtime). Preserves createdAt on regeneration.
+   * `:global(:root)` block. Writes only if missing, stale (source mtime >
+   * default mtime), or behind the current component-config schema, so a
+   * migration retired above every stored `schemaVersion` still reaches this
+   * file (Wave 1, docs/plans/theme-completeness.md). Preserves createdAt on
+   * regeneration.
    */
   function generateDefaultConfig(comp: string, sourcePath: string): void {
     if (!fs.existsSync(sourcePath)) return;
@@ -614,17 +623,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     r.ensureDir();
     const defaultPath = r.filePath('default');
     const sourceStat = fs.statSync(sourcePath);
-    if (fs.existsSync(defaultPath)) {
-      const defaultStat = fs.statSync(defaultPath);
-      if (defaultStat.mtimeMs >= sourceStat.mtimeMs) return;
-    }
-    const source = fs.readFileSync(sourcePath, 'utf-8');
-    const body = extractGlobalRootBody(source);
-    const aliases: Record<string, unknown> = extractAliasDeclarations(body);
-    const now = new Date().toISOString();
-    let createdAt = now;
+    let createdAt = new Date().toISOString();
     let existingUpdatedAt: string | undefined;
     let existingAliases: Record<string, unknown> | undefined;
+    let existingSchemaVersion: number | undefined;
     if (fs.existsSync(defaultPath)) {
       try {
         const existing = JSON.parse(fs.readFileSync(defaultPath, 'utf-8'));
@@ -633,8 +635,17 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         if (existing.aliases && typeof existing.aliases === 'object') {
           existingAliases = existing.aliases as Record<string, unknown>;
         }
+        if (typeof existing.schemaVersion === 'number') existingSchemaVersion = existing.schemaVersion;
       } catch { /* overwrite */ }
+      const defaultStat = fs.statSync(defaultPath);
+      if (defaultStat.mtimeMs >= sourceStat.mtimeMs && existingSchemaVersion === CURRENT_COMPONENT_SCHEMA_VERSION) {
+        return;
+      }
     }
+    const now = new Date().toISOString();
+    const source = fs.readFileSync(sourcePath, 'utf-8');
+    const body = extractGlobalRootBody(source);
+    const aliases: Record<string, unknown> = extractAliasDeclarations(body);
     // Structured aliases (e.g. a `kind:'gradient'` object) bake into :root as a
     // gradient literal, which extractAliasDeclarations can't reverse into an
     // alias — it only recovers var()/color-mix forms. Carry any prior
@@ -650,14 +661,20 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const aliasesUnchanged =
       existingAliases !== undefined &&
       JSON.stringify(existingAliases) === JSON.stringify(aliases);
+    // `derives from :global(:root)`, which is always current, so the stamp is
+    // never migrated here — only ever brought up to date (Wave 1,
+    // docs/plans/theme-completeness.md). `updatedAt` still tracks the aliases
+    // alone: a schema-stamp-only rewrite is not a content change.
+    const schemaStampCurrent = existingSchemaVersion === CURRENT_COMPONENT_SCHEMA_VERSION;
     const defaultConfig = {
       name: 'default',
       component: comp,
       createdAt,
       updatedAt: aliasesUnchanged && existingUpdatedAt ? existingUpdatedAt : now,
       aliases,
+      schemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
     };
-    if (aliasesUnchanged && existingUpdatedAt) {
+    if (aliasesUnchanged && schemaStampCurrent && existingUpdatedAt) {
       // Bump default.json's mtime so the source > default check stops firing,
       // but leave file bytes (including updatedAt) untouched.
       const t = new Date();
@@ -869,13 +886,22 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const componentConfigs: Record<string, any> = {};
     for (const comp of listComponentNames()) {
       const cfg = readComponentConfig(comp, 'default');
-      if (cfg) componentConfigs[comp] = cfg;
+      // Standalone `default.json` carries its own schema stamp (Wave 1); a
+      // theme's is one field for the whole file (RJC 9), so the per-entry
+      // stamp is stripped rather than embedded twice.
+      if (cfg) {
+        const { schemaVersion: _standaloneStamp, ...rest } = cfg as Record<string, unknown>;
+        componentConfigs[comp] = rest;
+      }
     }
 
+    const contentUnchanged =
+      JSON.stringify(existing?.colorsAndType) === JSON.stringify(colorsAndType) &&
+      JSON.stringify(existing?.componentConfigs) === JSON.stringify(componentConfigs);
     if (
       existing?.schemaVersion === THEME_SCHEMA_VERSION &&
-      JSON.stringify(existing.colorsAndType) === JSON.stringify(colorsAndType) &&
-      JSON.stringify(existing.componentConfigs) === JSON.stringify(componentConfigs)
+      existing?.componentSchemaVersion === CURRENT_COMPONENT_SCHEMA_VERSION &&
+      contentUnchanged
     ) {
       return;
     }
@@ -884,10 +910,13 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     writeTheme('default', {
       name: 'Motion Proto',
       createdAt: typeof existing?.createdAt === 'string' ? existing.createdAt : now,
-      updatedAt: now,
+      // A stamp-only rewrite (componentSchemaVersion catching up) is not a
+      // content change, so it doesn't bump this the way a real edit would.
+      updatedAt: contentUnchanged && typeof existing?.updatedAt === 'string' ? existing.updatedAt : now,
       schemaVersion: THEME_SCHEMA_VERSION,
       colorsAndType,
       componentConfigs,
+      componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
     });
   }
 

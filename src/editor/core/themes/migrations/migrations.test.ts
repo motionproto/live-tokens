@@ -193,8 +193,8 @@ describe('migration runner — schemaVersion gating', () => {
   it('component-config at version 4 → sectiondivider gradient stops strip end-to-end', () => {
     // The full migration chain now ends at v7 which strips the 7 flat
     // gradient tokens (they live in-memory as a structured gradient ref
-    // synthesized by `migrateComponentAliases` before the runner fires —
-    // see `editorStore.ts:synthesizeSectionDividerGradients`). Within the
+    // synthesized by `migrateComponentConfig` before the runner fires —
+    // see `migrateComponentConfig.ts:synthesizeSectionDividerGradients`). Within the
     // runner, the only externally observable post-condition is that the
     // flat tokens are gone and unrelated tokens are preserved.
     const v4 = {

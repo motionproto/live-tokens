@@ -9,5 +9,6 @@
     "--image-default-border-width": "--border-width-1",
     "--image-default-shadow": "--shadow-md",
     "--image-zoom-scale": "--scale-sm"
-  }
+  },
+  "schemaVersion": 21
 }

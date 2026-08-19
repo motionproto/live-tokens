@@ -21,5 +21,6 @@
     "--progressbar-value-font-size": "--font-size-md",
     "--progressbar-value-font-weight": "--font-weight-normal",
     "--progressbar-value-line-height": "--line-height-normal"
-  }
+  },
+  "schemaVersion": 21
 }

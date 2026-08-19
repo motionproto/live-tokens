@@ -54,5 +54,6 @@
     "--input-error-font-size": "--font-size-xs",
     "--input-error-font-weight": "--font-weight-medium",
     "--input-error-line-height": "--line-height-tighter"
-  }
+  },
+  "schemaVersion": 21
 }

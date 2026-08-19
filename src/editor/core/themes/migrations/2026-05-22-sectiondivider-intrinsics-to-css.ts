@@ -24,7 +24,7 @@ import type { Migration } from './index';
  *   - both undefined                     → emit nothing (default 'none' applies via CSS)
  *   - `show-hairline` unset but a real position exists → preserve the position
  *
- * The migration touches the unified bag produced by `migrateComponentAliases`
+ * The migration touches the unified bag produced by `migrateComponentConfig`
  * (which now pre-merges string-valued config entries). The post-migration
  * `splitAliasesAndConfig` step routes the new keys to `aliases` (since
  * `KNOWN_COMPONENT_CONFIG_KEYS` no longer contains them) while keeping

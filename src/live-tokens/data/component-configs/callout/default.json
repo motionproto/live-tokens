@@ -69,6 +69,5 @@
     "--callout-danger-text-font-weight": "--font-weight-normal",
     "--callout-danger-text-line-height": "--line-height-normal"
   },
-  "config": {},
-  "schemaVersion": 17
+  "schemaVersion": 21
 }

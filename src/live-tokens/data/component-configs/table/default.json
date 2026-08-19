@@ -30,5 +30,6 @@
     "--table-default-row-stripe-surface": "--color-transparent",
     "--table-default-column-divider": "--border-neutral-faint",
     "--table-default-column-divider-width": "--border-width-1"
-  }
+  },
+  "schemaVersion": 21
 }

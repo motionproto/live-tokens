@@ -85,5 +85,6 @@
     "--iconbutton-warning-disabled-border": "--border-neutral-faint",
     "--iconbutton-small-padding": "--space-6",
     "--iconbutton-small-icon-size": "--icon-size-sm"
-  }
+  },
+  "schemaVersion": 21
 }

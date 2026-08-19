@@ -156,5 +156,6 @@
     "--sidenavigation-footer-active-text-font-size": "--font-size-sm",
     "--sidenavigation-footer-active-text-font-weight": "--font-weight-normal",
     "--sidenavigation-footer-active-text-line-height": "--line-height-normal"
-  }
+  },
+  "schemaVersion": 21
 }

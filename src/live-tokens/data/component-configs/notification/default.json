@@ -77,6 +77,5 @@
     "--notification-danger-text-font-weight": "--font-weight-normal",
     "--notification-danger-text-line-height": "--line-height-normal"
   },
-  "config": {},
-  "schemaVersion": 16
+  "schemaVersion": 21
 }

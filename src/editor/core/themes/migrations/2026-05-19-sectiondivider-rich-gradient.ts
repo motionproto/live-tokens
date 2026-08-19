@@ -7,7 +7,7 @@ import type { Migration } from './index';
  * carrying `{type, angle, stops[]}` inline on the component slice.
  *
  * The structured value is synthesized *before* this migration runs — see
- * `synthesizeSectionDividerGradients` in `editorStore.ts`. The synthesizer
+ * `synthesizeSectionDividerGradients` in `migrateComponentConfig.ts`. The synthesizer
  * walks the legacy 7-token shape and emits a `kind: 'gradient'` alias into
  * the load path's object subset, where it survives this stripping pass and
  * lands in the in-memory slice.

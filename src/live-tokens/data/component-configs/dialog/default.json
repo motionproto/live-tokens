@@ -31,5 +31,6 @@
     "--dialog-footer-border": "--border-neutral-subtle",
     "--dialog-footer-border-width": "--border-width-1",
     "--dialog-footer-padding": "--space-16"
-  }
+  },
+  "schemaVersion": 21
 }
