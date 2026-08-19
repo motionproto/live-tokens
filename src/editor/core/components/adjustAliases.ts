@@ -52,12 +52,17 @@ const RADIUS_RUNGS = [
 /** The editor picker's 12-step subset (`UIPaddingSelector`), not the full
     `--space-*` scale: every value this engine writes must stay re-editable
     by hand in the picker. */
-const SPACE_RUNGS = [
+const SPACE_SETTABLE = [
   '--space-0', '--space-2', '--space-4', '--space-6', '--space-8', '--space-10',
   '--space-12', '--space-16', '--space-20', '--space-24', '--space-32', '--space-48',
 ];
 
-const SPACE_FAMILY = [...SPACE_RUNGS, '--space-40', '--space-64', '--space-96', '--space-128'];
+/** Shifts stop at `--space-4`. Below it a component reads as cramped or flush,
+    which is a deliberate choice rather than somewhere a relative "tighter"
+    should deposit you. Both rungs stay pickable by hand and settable by name. */
+const SPACE_RUNGS = SPACE_SETTABLE.slice(SPACE_SETTABLE.indexOf('--space-4'));
+
+const SPACE_FAMILY = [...SPACE_SETTABLE, '--space-40', '--space-64', '--space-96', '--space-128'];
 
 const BORDER_WIDTH_RUNGS = [
   '--border-width-0', '--border-width-1', '--border-width-2', '--border-width-3',
@@ -66,11 +71,19 @@ const BORDER_WIDTH_RUNGS = [
   '--border-width-24',
 ];
 
-const LADDERS: Record<AdjustKind, { rungs: string[]; family: string[] }> = {
-  radius: { rungs: RADIUS_RUNGS, family: [...RADIUS_RUNGS, RADIUS_FULL] },
-  padding: { rungs: SPACE_RUNGS, family: SPACE_FAMILY },
-  gap: { rungs: SPACE_RUNGS, family: SPACE_FAMILY },
-  'border-width': { rungs: BORDER_WIDTH_RUNGS, family: BORDER_WIDTH_RUNGS },
+const LADDERS: Record<AdjustKind, { rungs: string[]; settable: string[]; family: string[] }> = {
+  radius: {
+    rungs: RADIUS_RUNGS,
+    settable: [...RADIUS_RUNGS, RADIUS_FULL],
+    family: [...RADIUS_RUNGS, RADIUS_FULL],
+  },
+  padding: { rungs: SPACE_RUNGS, settable: SPACE_SETTABLE, family: SPACE_FAMILY },
+  gap: { rungs: SPACE_RUNGS, settable: SPACE_SETTABLE, family: SPACE_FAMILY },
+  'border-width': {
+    rungs: BORDER_WIDTH_RUNGS,
+    settable: BORDER_WIDTH_RUNGS,
+    family: BORDER_WIDTH_RUNGS,
+  },
 };
 
 const TOKEN_NAME = /^--[a-z0-9-]+$/;
@@ -85,14 +98,17 @@ function spaceStep(token: string): number {
   return Number(token.slice('--space-'.length));
 }
 
-/** `<=` sends an exact tie (`--space-40`, midway between 32 and 48) upward. */
-function nearestSpaceRung(token: string, rungs: string[]): number {
+/** An off-rung value has no step to count from, so landing on the first rung
+    the shift points at is itself that shift's opening step. Snapping to the
+    nearest rung instead would spend two visible steps on a one-step request.
+    Returns -1 when the ladder holds nothing in that direction. */
+function snapRung(token: string, rungs: string[], direction: number): number {
   const step = spaceStep(token);
-  let best = 0;
-  for (let i = 1; i < rungs.length; i++) {
-    if (Math.abs(spaceStep(rungs[i]) - step) <= Math.abs(spaceStep(rungs[best]) - step)) best = i;
+  if (direction > 0) return rungs.findIndex((rung) => spaceStep(rung) > step);
+  for (let index = rungs.length - 1; index >= 0; index--) {
+    if (spaceStep(rungs[index]) < step) return index;
   }
-  return best;
+  return -1;
 }
 
 function resolve(op: AdjustOp, value: AliasDiskValue): Outcome {
@@ -102,12 +118,15 @@ function resolve(op: AdjustOp, value: AliasDiskValue): Outcome {
 
   const rungs = rungsFor(op);
   let index = rungs.indexOf(value);
+  let shift = op.shift!;
   if (index < 0) {
     if (value === RADIUS_FULL) return { skip: 'pill-preserved' };
-    index = nearestSpaceRung(value, rungs);
+    index = snapRung(value, rungs, shift);
+    if (index < 0) return { skip: 'clamped' };
+    shift -= Math.sign(shift);
   }
 
-  const wanted = index + op.shift!;
+  const wanted = index + shift;
   const landed = Math.min(Math.max(wanted, 0), rungs.length - 1);
   if (landed !== wanted && rungs[landed] === value) return { skip: 'clamped' };
   return { from: value, to: rungs[landed] };
@@ -123,7 +142,7 @@ function validateOp(op: AdjustOp, configs: Record<string, ComponentConfig>): voi
   const hasSet = op.set !== undefined;
   const hasShift = op.shift !== undefined;
   if (hasSet === hasShift) throw new Error(`A ${op.kind} op needs exactly one of "set" or "shift"`);
-  const settable = op.kind === 'radius' ? ladder.family : ladder.rungs;
+  const settable = ladder.settable;
   if (hasSet && !settable.includes(op.set!)) {
     throw new Error(`"${op.set}" is not on the ${op.kind} ladder`);
   }

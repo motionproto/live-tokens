@@ -46,35 +46,6 @@ function readJsonIfExists(path) {
   return existsSync(path) ? readJson(path) : null;
 }
 
-function numericRung(token) {
-  const match = /-(\d+)$/.exec(token);
-  return match ? Number(match[1]) : null;
-}
-
-/** Net direction the ops asked for on this alias. An explicit `set` owns the
- *  value outright, so it reports no direction. */
-function requestedDirection(ops, matchesKind, component, variable) {
-  let total = 0;
-  for (const op of ops) {
-    if (op.target !== undefined && op.target !== component) continue;
-    if (!matchesKind(variable, op.kind)) continue;
-    if (op.shift === undefined) return 0;
-    total += op.shift;
-  }
-  return Math.sign(total);
-}
-
-/** A shift can land below where it started: an off-subset value (`--space-64`)
- *  snaps to its nearest writable rung first. Those changes are marked, never
- *  listed as an ordinary shift. */
-function opposesShift(ops, matchesKind, component, change) {
-  const from = numericRung(change.from);
-  const to = numericRung(change.to);
-  if (from === null || to === null) return false;
-  const direction = requestedDirection(ops, matchesKind, component, change.variable);
-  return direction !== 0 && Math.sign(to - from) !== direction;
-}
-
 /** Successive ops can touch the same alias (soften, then pill the buttons);
  *  the report shows one entry per alias, first `from` to last `to`. */
 function collapseChanges(changes) {
@@ -173,7 +144,7 @@ export async function runAdjust({
     components.push({
       component,
       source: sources[component],
-      changes: changes.map((c) => ({ ...c, snapped: opposesShift(ops, matchesKind, component, c) })),
+      changes,
       skips,
     });
   }
@@ -228,8 +199,7 @@ export function formatAdjustResult(result) {
 
     const width = Math.max(0, ...entry.changes.map((c) => c.variable.length));
     for (const c of entry.changes) {
-      const note = c.snapped ? '   ← snapped to the nearest editor rung, against the requested shift' : '';
-      lines.push(`  ${c.snapped ? '!' : ' '} ${c.variable.padEnd(width)}  ${c.from} → ${c.to}${note}`);
+      lines.push(`    ${c.variable.padEnd(width)}  ${c.from} → ${c.to}`);
     }
 
     for (const [reason, label] of SKIP_LABELS) {

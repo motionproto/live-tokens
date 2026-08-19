@@ -54,7 +54,11 @@ Magnitude words: "slightly" or "a bit" is 1 step, unqualified is 1 to 2, "much",
 
 ## Ladders
 
-Radius runs `none, sm, md, lg, xl, 2xl, 3xl, 4xl`, with `full` as the gated ninth rung. Space (padding and gap) is the editor picker's subset: `0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 48`, so every written value stays re-editable by hand. Border width is the full `--border-width-*` scale. `set` values must be on the ladder (`--space-64` is rejected); an alias sitting off the subset snaps to the nearest rung when shifted, and the report marks a snap that lands against the requested direction.
+Radius runs `none, sm, md, lg, xl, 2xl, 3xl, 4xl`, with `full` as the gated ninth rung. Space (padding and gap) is the editor picker's subset: `0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 48`, so every written value stays re-editable by hand. Border width is the full `--border-width-*` scale. `set` values must be on the ladder (`--space-64` is rejected).
+
+A shift lands only on `4` and above. `--space-0` and `--space-2` read as flush or cramped on almost anything, so they are destinations a person picks on purpose, not ones a relative "tighter" hands you. Both stay available through the editor picker and through `set`. A component already sitting below the floor still moves up, and a shift that would push it under `--space-4` reports as clamped and writes nothing.
+
+An alias sitting off the subset spends its first step reaching the rung the shift points at, so `--space-2` with `shift: 1` lands on `--space-4` rather than jumping past it.
 
 ## Scope
 

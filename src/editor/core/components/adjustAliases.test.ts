@@ -23,6 +23,7 @@ function fixture(): Record<string, ComponentConfig> {
       '--card-default-header-padding': '--space-12',
       '--card-default-header-padding-top': '--space-16',
       '--card-default-gap': '--space-0',
+      '--card-tight-padding': '--space-2',
       '--card-hero-padding': '--space-40',
       '--card-hero-radius': 'clamp(4px, 1vw, 12px)',
       '--card-media-padding': '--space-full',
@@ -95,10 +96,34 @@ describe('adjustAliases', () => {
     expect(configs.button.aliases['--button-pill-radius']).toBe('--radius-4xl');
   });
 
-  it('snaps an off-subset space value to the nearest rung before shifting, ties going up', () => {
+  it('spends the shift reaching the first rung past an off-subset space value', () => {
     const { configs } = adjustAliases(fixture(), [{ kind: 'padding', shift: -1 }], NOW);
 
     expect(configs.card.aliases['--card-hero-padding']).toBe('--space-32');
+  });
+
+  it('lifts a below-floor padding one visible step, not two', () => {
+    const { configs } = adjustAliases(fixture(), [{ kind: 'padding', shift: 1 }], NOW);
+
+    expect(configs.card.aliases['--card-tight-padding']).toBe('--space-4');
+  });
+
+  it('never shifts a padding below --space-4', () => {
+    const { configs, report } = adjustAliases(fixture(), [{ kind: 'padding', shift: -4 }], NOW);
+
+    expect(configs.card.aliases['--card-default-header-padding']).toBe('--space-4');
+    expect(configs.card.aliases['--card-tight-padding']).toBe('--space-2');
+    expect(skipReason(report, 'card', '--card-tight-padding')).toBe('clamped');
+  });
+
+  it('still sets a below-floor padding by name', () => {
+    const { configs } = adjustAliases(
+      fixture(),
+      [{ target: 'card', kind: 'padding', set: '--space-2' }],
+      NOW,
+    );
+
+    expect(configs.card.aliases['--card-default-header-padding']).toBe('--space-2');
   });
 
   it('keeps --space-full off the ladder', () => {

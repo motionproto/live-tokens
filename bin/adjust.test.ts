@@ -145,17 +145,15 @@ describe('runAdjust', () => {
 });
 
 describe('formatAdjustResult', () => {
-  it('marks a snap that moves against the requested shift', async () => {
+  it('reports an above-ladder value as clamped rather than pulling it down', async () => {
     const root = fixture();
     const result = await run(root, { ops: [{ kind: 'padding', shift: 1 }] }, { dryRun: true });
     const out = formatAdjustResult(result);
 
-    expect(out).toContain('! --card-hero-padding');
-    expect(out).toContain('--space-64 → --space-48');
-    expect(out).toContain('against the requested shift');
-    expect(out).toContain('  --button-primary-padding');
-    expect(out).not.toContain('! --button-primary-padding');
-    expect(out).toContain('2 component(s) changed, 2 alias(es), 0 skipped.');
+    expect(out).toContain('skipped, already at the ladder end: --card-hero-padding');
+    expect(out).not.toContain('--space-64 → ');
+    expect(out).toContain('--button-primary-padding');
+    expect(out).toContain('1 component(s) changed, 1 alias(es), 1 skipped.');
   });
 
   it('groups skips by reason and names where the config came from', async () => {
@@ -187,7 +185,7 @@ describe('formatAdjustResult', () => {
 
     const button = result.components.find((c: { component: string }) => c.component === 'button');
     expect(button.changes).toEqual([
-      { variable: '--button-primary-radius', from: '--radius-xl', to: '--radius-full', snapped: false },
+      { variable: '--button-primary-radius', from: '--radius-xl', to: '--radius-full' },
     ]);
     expect(result.totals.aliases).toBe(2);
     expect(buffer(root, 'button').aliases['--button-primary-radius']).toBe('--radius-full');

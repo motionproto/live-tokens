@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **Padding and gap shifts stop at `--space-4`.** `--space-0` and `--space-2`
+  read as flush or cramped on almost anything, so a relative "tighter" no
+  longer deposits a component on either one. Both stay available in the editor
+  picker and through an explicit `set` op, which is where that call belongs. A
+  shift that would push an alias under the floor now reports as clamped and
+  writes nothing.
+
+- **An off-ladder value spends its first step reaching the ladder.** Shifting
+  such a value used to snap it to the nearest rung and then apply the full
+  shift on top, so a one-step request moved two visible steps, and an
+  above-ladder value could be quietly pulled *down* by a request to go up.
+  The snap now follows the shift's direction and counts as its opening step.
+  This retires the report card's `!` marker, which existed only to flag that
+  backwards case.
+
 ## 0.52.1 — Notification header actions are previewable
 
 ### Fixed
