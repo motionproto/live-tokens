@@ -238,7 +238,22 @@ notices when the shipped themes and the ops table disagree.
    ANSWER: We should not block an incomplete theme but load any existing components. Presumably, tokens would always be there. If not, we should alert the user and prompt them to use the theme builder skill to complete their work. 
 3. Do the presets keep a generator at all once padding is authored? Radius and
    border width alone may not justify the machinery.
-   ANSWER: Padding can be changed by the skill, so generators that can modify colors, padding, and gaps could be useful. The idea here is that it's not a modifier, so it sounds like we need to rethink how these generators work and whether they are needed at all. 
+   ANSWER: Padding can be changed by the skill, so generators that can modify colors, padding, and gaps could be useful. The idea here is that it's not a modifier, so it sounds like we need to rethink how these generators work and whether they are needed at all.
+
+   BUILT (Wave 5, `docs/plans/theme-completeness.md`, RJC 7): the machinery
+   survives as a one-shot **seeder**, not a generator that sweeps shipped
+   files. `scripts/generate-preset-themes.mjs` became
+   `scripts/seed-preset-theme.mjs <slug> [--force]`: it seeds exactly one new
+   preset from the `PRESETS` ops table applied on top of the current component
+   defaults, and refuses to touch a preset that already exists unless
+   `--force`. There is no sweep-all path — a regeneration that could silently
+   move a shipped preset when the baseline shifts is exactly the bug this
+   correction closes. `scripts/check-preset-themes.mjs` replaces the old
+   regenerate-and-diff gate: it asserts invariants (complete, current schema,
+   no orphans, fonts stamped, distinct looks) on the seven committed files
+   directly and never re-derives them, so it cannot itself be coupled to the
+   baseline. The `adjust` skill still uses the same underlying engine against
+   a live theme; only the shipped presets stop being re-derivable.
 4. Motion Proto keeps five `-padding` aliases at `--space-2`, by instruction.
    Three are `--sectiondivider-*-title-padding`, one is
    `--segmentedcontrol-bar-small-padding`, one is `--toggle-track-padding`. A

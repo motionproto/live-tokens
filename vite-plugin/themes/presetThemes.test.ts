@@ -1,8 +1,10 @@
 /**
- * Gates the seven shipped preset themes (`npm run generate:preset-themes`)
- * against the contract a consumer relies on: read doors serve them untouched,
- * they carry only what the shape ops changed, each look reads as its own shape
- * and type, and the tarball ships each one by name.
+ * Gates the seven shipped preset themes (`npm run seed:preset-theme`) against
+ * the contract a consumer relies on: read doors serve them untouched, each is
+ * a complete document (every component, every alias key), and the tarball
+ * ships each one by name. Distinctness across presets, and the other
+ * committed-file invariants `scripts/check-preset-themes.mjs` asserts, live
+ * there instead of here (Wave 5, docs/plans/theme-completeness.md).
  */
 import { describe, expect, it } from 'vitest';
 import fs from 'fs';
@@ -44,7 +46,6 @@ const stackOf = (colorsAndType: any, variable: string) =>
   colorsAndType.fontStacks.find((s: any) => s.variable === variable);
 const stampedSourcesOf = (colorsAndType: any) =>
   colorsAndType.fontSources.filter((s: any) => s.id.startsWith(STAMPED));
-const aliasesOf = (slug: string, comp: string) => themeOf(slug).componentConfigs[comp].aliases;
 
 /** A shipped theme always embeds `colorsAndType` and every componentConfigs
  *  entry it carries by value, so the only lookup `normalizeTheme` should ever
@@ -172,30 +173,8 @@ describe('themes/default.json', () => {
   });
 });
 
-describe('the presets read as distinct looks', () => {
-  const duplicates = (label: (slug: string) => string) => {
-    const seen = new Map<string, string>();
-    const clashes: string[] = [];
-    for (const slug of PRESETS) {
-      const key = label(slug);
-      if (seen.has(key)) clashes.push(`${slug} and ${seen.get(key)} both land on ${key}`);
-      seen.set(key, slug);
-    }
-    return clashes;
-  };
-
-  it('gives no two presets the same card radius and button padding', () => {
-    expect(
-      duplicates(
-        (slug) =>
-          `${aliasesOf(slug, 'card')['--card-default-radius']} + ` +
-          `${aliasesOf(slug, 'button')['--button-primary-padding']}`,
-      ),
-    ).toEqual([]);
-  });
-
-  it('gives every preset its own display and body family', () => {
-    expect(duplicates((slug) => PRESET_FONTS[slug].display.name)).toEqual([]);
-    expect(duplicates((slug) => PRESET_FONTS[slug].body.name)).toEqual([]);
-  });
-});
+// Distinctness across presets (card radius + button padding, and the font
+// pairing) moved to `scripts/check-preset-themes.mjs` (Wave 5 of
+// docs/plans/theme-completeness.md): it asserts on these same committed files,
+// and CI and `prepublishOnly` both run it, so the rule now has one home
+// instead of living here too.

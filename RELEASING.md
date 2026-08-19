@@ -150,11 +150,15 @@ They look like consumer data sitting in the tarball, so this gets questioned
 periodically. They are load-bearing, and shipping them is what keeps a
 consumer's install clean.
 
-The preset themes are generated artifacts: `npm run generate:preset-themes`
-rebuilds all seven from the derived component defaults and the preset
-colors-and-type files, and a test suite pins the on-disk copies to that
-generator. After any colors-and-type migration or component-default change,
-re-run the generator before tagging so the shipped themes carry current data.
+The preset themes are seeded, not generated (`docs/plans/theme-completeness.md`
+Wave 5): `npm run seed:preset-theme <slug>` builds one new preset from the
+derived component defaults, the preset's shape ops, and its colors-and-type
+file, and refuses to touch a preset that already exists unless passed
+`--force`. There is no sweep-all mode. Once shipped, a preset's file is the
+whole record of that look and a component-default change or colors-and-type
+migration never moves it; `npm run check:preset-themes` gates the shipped
+files' invariants (complete, current schema, distinct, fonts stamped) instead
+of re-deriving them.
 
 The plugin used to run *seed writers* that wrote a default colors-and-type file
 into the consumer's project on first boot. That is what dirtied a fresh install.

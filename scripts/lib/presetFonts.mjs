@@ -1,5 +1,5 @@
 // Google Fonts pairing per preset theme, from the plan's addendum 2. Called by
-// generate-preset-themes.mjs, which stamps the pairing into the preset's
+// seed-preset-theme.mjs, which stamps the pairing into the preset's
 // colors-and-type file before embedding it in the theme — so applying either
 // the colors and type alone or the whole look changes the type.
 //
