@@ -16,11 +16,11 @@ test('the floating token sample label follows its live surface luminance', async
 
   await setSurface('#ffffff');
   await expect.poll(renderedContrastToken).toBe('var(--color-black)');
-  await expect(label).toHaveCSS('color', 'rgb(0, 0, 0)');
+  await expect(label).toHaveCSS('color', 'oklch(0 0 0)');
 
   await setSurface('#000000');
   await expect.poll(renderedContrastToken).toBe('var(--color-white)');
-  await expect(label).toHaveCSS('color', 'rgb(255, 255, 255)');
+  await expect(label).toHaveCSS('color', 'oklch(1 0 0)');
 
   // This visual aid is intentionally isolated from the real Button component.
   expect(await page.locator('.hero-actions .button').evaluateAll(buttons => buttons.every(button =>

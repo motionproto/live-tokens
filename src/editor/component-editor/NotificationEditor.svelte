@@ -87,12 +87,14 @@
   let dismissible = $state(false);
   let rightOption: ButtonVariantOption = $state('none');
   let leftOption: ButtonVariantOption = $state('none');
+  let headerAction = $state(false);
   let actions = $derived(((): NotificationActions => {
     const a: NotificationActions = {};
     const right = toVariant(rightOption);
     const left = toVariant(leftOption);
     if (right) a.right = { label: 'Confirm', variant: right, onClick: () => {} };
     if (left) a.left = { label: 'Cancel', variant: left, onClick: () => {} };
+    if (headerAction) a.header = { label: 'Action', onClick: () => {} };
     return a;
   })());
 </script>
@@ -111,6 +113,10 @@
         <label class="toolbar-check">
           <input type="checkbox" bind:checked={dismissible} />
           <span>Dismissible</span>
+        </label>
+        <label class="toolbar-check">
+          <input type="checkbox" bind:checked={headerAction} />
+          <span>Header button</span>
         </label>
         <label class="toolbar-field">
           <span>Right button</span>

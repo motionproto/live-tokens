@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- **The Notification editor can show a header action.** The four
+  `--notification-*-action-surface` tokens paint the backdrop behind a
+  header-slot button, and no preview ever rendered one, so nothing in the
+  editor could show what they do. A "Header button" checkbox in the preview
+  toolbar turns the slot on.
+
 ## 0.52.0 — A third palette curve
 
 ### Added

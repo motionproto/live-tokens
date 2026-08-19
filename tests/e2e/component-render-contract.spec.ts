@@ -384,7 +384,14 @@ async function probeCurrentView(
     const root = document.documentElement;
     const covered: string[] = [];
     const unchanged: string[] = [];
-    const settle = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    // Fast-forward in-flight transitions so the fingerprint samples end states.
+    // Reading mid-interpolation makes consecutive samples differ on their own,
+    // which reports a dead property as covered. Transition shorthands stay
+    // untouched so the duration and easing aliases remain observable.
+    const settle = async () => {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      for (const animation of document.getAnimations()) animation.finish();
+    };
 
     // Remove animation noise from the fingerprint. The contract concerns the
     // end-state projection, not interpolation frames.
@@ -594,6 +601,12 @@ for (const [component, aliases] of aliasesByComponent) {
       // matches :hover. Forced preview classes intentionally bypass that gate,
       // so retry unresolved properties while hovering each visible preview node.
       // This stays component-agnostic and runs only for the small unresolved set.
+      // The traversal above leaves a forced state selected, and its preview
+      // class outranks the gated `:hover` rule, so return to the first state.
+      const firstStateTab = frame.locator(
+        '.variant-group:visible .tabs-states-block > .tabs-selectors:first-of-type .state-tab-btn',
+      ).first();
+      if (await firstStateTab.count()) await firstStateTab.click({ force: true });
       const hoverTargets = frame.locator('.variant-group:visible .tabs-preview *:visible');
       for (let index = 0; index < await hoverTargets.count(); index++) {
         if (forced.every((variable) => covered.has(variable))) return;
