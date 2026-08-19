@@ -36,6 +36,7 @@ export type {
   ColorsAndType,
   ColorsAndTypeMeta,
   LiveSource,
+  ColorsAndTypeSource,
   GradientStyle,
   GradientStop,
   FontSource,

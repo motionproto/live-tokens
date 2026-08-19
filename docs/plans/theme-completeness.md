@@ -634,8 +634,24 @@ Files: `vite-plugin/themeFileApi.ts`, `bin/adjust.mjs`,
    carries no entry, that is now a real error (an install whose theme predates
    a newly added component and has not been re-read), so log once and fall back
    to `readComponentConfig(comp,'default')` **without** claiming a
-   `'default'` source. Prefer: assert it cannot happen, because
-   `readTheme` fills. Decide during the wave and record which.
+   `'default'` source.
+
+   **Decided (orchestrator, Wave 4): fallback, not assertion.** The assertion
+   would be wrong. `resolveLiveComponentConfig` takes
+   `theme: EncapsulatedTheme | null`, and `activeTheme()` (`:964`) returns
+   `null` whenever `readTheme(getActiveName())` fails — a stale pointer, or a
+   theme file deleted out from under it mid-session. Completeness cannot
+   prevent that, because there is no document to have filled. A second, rarer
+   route survives too: Wave 2's fill skips any component
+   `readComponentConfig(comp, 'default')` answers nothing for, so a component
+   whose source exists but whose derived default never generated has no entry.
+
+   The fallback therefore stays, logged once per component. It reports
+   `'theme'`, not a third source value: after this wave the only question any
+   consumer asks of the field is whether the value came from a working buffer
+   or from the open document, and a defaulted entry is what the open document
+   resolves to. `countComponentsOffLook` (step 4) and `ComponentFileManager`
+   (step 5) are the only readers, and both ask exactly that.
 2. `LiveSource` (`themeFileApi.ts:943`, `themeTypes.ts:152`, `:192`) narrows to
    `'working' | 'theme'`. `resolveSavedComponentConfig` (`:977`) loses its
    fallback the same way.
@@ -756,6 +772,23 @@ and type points at the fix. Small wave.
 manual pass loading a deliberately gutted theme.
 
 ---
+
+## Found during execution, deliberately not fixed here
+
+**`generateDefaultConfig` drops a structured gradient on a first local
+generation.** `extractAliasDeclarations` recovers `var()` and `color-mix()`
+forms from `:global(:root)`, but a `{kind:'gradient'}` alias bakes to a
+gradient literal it cannot reverse. The code carries such an alias forward
+only from a *prior* local `component-configs/<id>/default.json`
+(`themeFileApi.ts:653`), so on a brand-new local configs directory the first
+generation of `panel`'s default silently loses `--panel-stage-surface`'s
+gradient.
+
+Pre-existing, and unrelated to this plan except that Wave 2's fill is what
+makes it observable: the gap now freezes into every theme rather than being
+papered over by a component the delta happened to omit. Bounded to components
+whose `.svelte` source is local, since a package component resolves its
+default from the package. Worth its own fix; not worth widening a wave for.
 
 ## Out of scope
 

@@ -129,11 +129,22 @@ export interface GradientDiskToken {
 }
 
 /**
- * Where a live read resolved from: the unsaved `_working` buffer, the open
- * theme's embedded copy, or the shipped default. A `working` source is an
- * unsaved delta from the active theme.
+ * Where a live component config resolved from: the unsaved `_working`
+ * buffer, or the open theme's embedded copy. Every theme carries every
+ * component complete, so `working` is the only genuine divergence —
+ * anything else is what the open document itself resolves to.
  */
-export type LiveSource = 'working' | 'theme' | 'default';
+export type LiveSource = 'working' | 'theme';
+
+/**
+ * Where a live colors-and-type read resolved from. Unlike `LiveSource`, this
+ * keeps a third value: colors-and-type resolution is unchanged by the theme
+ * completeness work (docs/plans/theme-completeness.md Wave 4), so `default`
+ * still answers the one case completeness can't reach — the open theme's
+ * file itself is unreadable (a stale pointer, or deleted mid-session), so
+ * there is no document to resolve `working` or `theme` against.
+ */
+export type ColorsAndTypeSource = 'working' | 'theme' | 'default';
 
 export interface ColorsAndType {
   name: string;
@@ -154,8 +165,8 @@ export interface ColorsAndType {
    * handlers; read by `themeInit` to seed `openThemeSlug`. Not persisted.
    */
   _fileName?: string;
-  /** Server-attached marker: which of the three live layers answered. */
-  _source?: LiveSource;
+  /** Server-attached marker: which live layer answered. See `ColorsAndTypeSource`. */
+  _source?: ColorsAndTypeSource;
   /**
    * Migration stamp. Absent on legacy files, treated as 0; the loader runs
    * any registered theme migrations whose `fromVersion >= file.schemaVersion`.
@@ -194,7 +205,10 @@ export interface ComponentConfig {
    * theme, not a config file. Set by the component-configs GET handlers.
    */
   _fileName?: string;
-  /** Server-attached marker: which of the three live layers answered. */
+  /** Server-attached marker: which live layer answered — `working` the
+   *  buffer, `theme` the open document's embedded copy. No third value:
+   *  every theme carries every component, so there is no shipped-default
+   *  layer left to report (unlike `ColorsAndTypeSource`). */
   _source?: LiveSource;
   /**
    * Migration stamp. Absent on legacy files, treated as 0. See `ColorsAndType.schemaVersion`.

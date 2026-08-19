@@ -5,10 +5,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import UIInfoPopover from '../../ui/UIInfoPopover.svelte';
-  import type {
-    ComponentConfigMeta,
-    LiveSource,
-  } from '../../core/themes/themeTypes';
+  import type { ComponentConfigMeta } from '../../core/themes/themeTypes';
   import { componentSourceFile } from './componentSources';
   import {
     getActiveComponentConfig,
@@ -73,7 +70,6 @@
   // Saved presets. Nothing live points at one: the component runs its working
   // buffer, and the theme it belongs to carries the copy that ships.
   let files: ComponentConfigMeta[] = $state([]);
-  let liveSource: LiveSource = $state('default');
   let openTheme: { fileName: string; name: string } = $state({
     fileName: 'default',
     name: 'Motion Proto',
@@ -94,18 +90,13 @@
   let compDirty = $derived($componentDirty[component] ?? false);
   let openIsProtected = $derived(openTheme.fileName === 'default');
   // Both rows name a document, because that is what a config belongs to now:
-  // the component runs the open theme's config (or the shipped default), and
-  // production ships the published theme's.
-  let editorDoc = $derived(liveSource === 'default' ? 'default' : openTheme.fileName);
-  let productionDoc = $derived(
-    $productionTheme
-      ? ($productionTheme.componentConfigs[component] ? $productionTheme._fileName ?? 'default' : 'default')
-      : null,
-  );
-  let editorName = $derived(liveSource === 'default' ? 'Default' : openTheme.name);
-  let productionName = $derived(
-    productionDoc === null ? '—' : productionDoc === 'default' ? 'Default' : $productionTheme?.name ?? '—',
-  );
+  // every theme carries every component by value, so the component always
+  // runs the open theme's config, and production always runs the published
+  // theme's.
+  let editorDoc = $derived(openTheme.fileName);
+  let productionDoc = $derived($productionTheme?._fileName ?? null);
+  let editorName = $derived(openTheme.name);
+  let productionName = $derived(productionDoc === null ? '—' : $productionTheme?.name ?? '—');
   // Saving writes the buffer, which the bake has not seen: the document is
   // still the published one, so only the shared signal can say the config on
   // screen is not what production runs.
@@ -123,11 +114,8 @@
     if (data) files = data.files;
   }
 
-  /** Which layer the component's live config comes from, and the theme it
-   *  belongs to. Both ride on the live read door's markers. */
+  /** The theme the component belongs to, by the open document's own markers. */
   async function refreshLive() {
-    const cfg = await getActiveComponentConfig(component);
-    if (cfg) liveSource = cfg._source ?? 'default';
     try {
       const theme = await getActiveTheme();
       if (theme) openTheme = { fileName: theme._fileName ?? 'default', name: theme.name };
@@ -186,7 +174,6 @@
       component,
       componentConfigFromState($editorState, component, openTheme.name),
     );
-    liveSource = 'working';
     markComponentSaved(component);
     bumpComponentActiveRevision();
   }
@@ -233,7 +220,6 @@
       const { _fileName, _source, ...cfg } = await loadComponentConfig(component, file.fileName);
       await writeWorkingComponentConfig(component, { ...cfg, component });
       loadComponentActive(component, cfg.aliases, cfg.config, cfg.schemaVersion ?? 0);
-      liveSource = 'working';
       bumpComponentActiveRevision();
     } catch {
       // intentional: see comment above

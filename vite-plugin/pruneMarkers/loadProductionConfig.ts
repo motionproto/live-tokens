@@ -6,8 +6,10 @@
  *   themes/_production.json      -> { "productionFile": "<slug>" }  (absent: default)
  *   themes/<slug>.json           -> { componentConfigs: { <component>: { aliases } } }
  *
- * Delta encoding: a component the theme does not carry runs its own
- * `component-configs/<component>/default.json`.
+ * Every theme this install writes carries every component by value, but this
+ * reads the file straight off disk, ahead of any server-side fill — a
+ * hand-authored or pre-migration theme can still omit one, so a missing
+ * entry runs `component-configs/<component>/default.json`.
  *
  * The intrinsic CSS-var keys we evaluate (e.g. `--sectiondivider-md-align`)
  * live under `aliases`. Values are usually plain strings (`"start"`, `"none"`)

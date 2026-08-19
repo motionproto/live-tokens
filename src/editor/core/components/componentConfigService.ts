@@ -58,7 +58,7 @@ export const deleteComponentConfig = (component: string, fileName: string): Prom
   resourceFor(component).remove(fileName);
 
 /** The config the component is running: the buffer, else the open theme's
- *  copy, else the component default. `_source` says which. */
+ *  copy (every theme carries every component by value). `_source` says which. */
 export const getActiveComponentConfig = (component: string): Promise<ComponentConfig | null> =>
   resourceFor(component).getActive();
 

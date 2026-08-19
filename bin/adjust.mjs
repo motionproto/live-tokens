@@ -18,7 +18,6 @@ const packageThemesDir = join(pkgRoot, 'src/live-tokens/data/themes');
 const SOURCE_LABELS = {
   working: 'your unsaved edits',
   theme: 'the open theme',
-  default: 'the shipped default',
 };
 
 const SKIP_LABELS = [
@@ -69,9 +68,11 @@ function readActiveTheme(themesDir) {
   return theme ? { slug, theme } : null;
 }
 
-/** Each component's live config and where it came from: the buffer, else the
- *  open theme's embedded copy, else the shipped default. Mirrors the dev
- *  server's `resolveLiveComponentConfig`, so the CLI adjusts what the page runs. */
+/** Each component's live config, and whether a buffer or the open document
+ *  answered. The document's own copy falls back to the shipped default for a
+ *  component it somehow lacks, which reports as the document either way.
+ *  Mirrors the dev server's `resolveLiveComponentConfig`, so the CLI adjusts
+ *  what the page runs. */
 function readLiveConfigs(dir, active) {
   const configs = {};
   const sources = {};
@@ -80,13 +81,19 @@ function readLiveConfigs(dir, active) {
     const comp = entry.name;
     const componentDir = join(dir, comp);
     const working = readJsonIfExists(join(componentDir, '_working.json'));
-    const embedded = active?.theme?.componentConfigs?.[comp];
-    const config = working ?? embedded ?? readJsonIfExists(join(componentDir, 'default.json'));
+    // Every theme carries every component by value, but this CLI reads the
+    // file straight off disk, ahead of any server-side fill — a theme
+    // written before this component existed can still omit it, so a missing
+    // entry falls back to the shipped default the same way the theme's own
+    // fill would.
+    const embedded =
+      active?.theme?.componentConfigs?.[comp] ?? readJsonIfExists(join(componentDir, 'default.json'));
+    const config = working ?? embedded;
     if (!config) {
       throw new Error(`component "${comp}": default.json is missing`);
     }
     configs[comp] = { ...config, component: comp };
-    sources[comp] = working ? 'working' : embedded ? 'theme' : 'default';
+    sources[comp] = working ? 'working' : 'theme';
   }
   return { configs, sources };
 }

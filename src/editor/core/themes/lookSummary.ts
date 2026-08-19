@@ -47,29 +47,7 @@ export function lookProductionState({
   };
 }
 
-/**
- * How many components run something other than what the open theme carries.
- *
- * Two facts are free on the client: whether the theme embeds a config for a
- * component, and which layer the component's live config resolves from. A
- * component the theme carries but which runs the shipped default is off it, and
- * so is a component running a buffer the theme carries nothing for. A buffer
- * over a config the theme does carry says nothing either way — that is the
- * state an apply leaves — so it stays uncounted.
- *
- * The Default theme breaks that rule: it is the one theme that embeds every
- * component's DEFAULT config by value (full set, not delta), so carrying an
- * entry says nothing. For it, off-theme is simply "buffered".
- */
-export function countComponentsOffLook(
-  components: ComponentSummary[],
-  lookConfigs: Record<string, unknown> | null | undefined,
-  lookIsDefault = false,
-): number {
-  const carried = lookConfigs ?? {};
-  return components.filter((c) => {
-    if (lookIsDefault) return c.source === 'working';
-    const inLook = Object.prototype.hasOwnProperty.call(carried, c.name);
-    return inLook ? c.source === 'default' : c.source === 'working';
-  }).length;
+/** How many components run an unsaved buffer, diverging from what the open theme carries. */
+export function countComponentsOffLook(components: ComponentSummary[]): number {
+  return components.filter((c) => c.source === 'working').length;
 }

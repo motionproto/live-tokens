@@ -166,7 +166,7 @@ describe('formatAdjustResult', () => {
     });
     const out = formatAdjustResult(await run(root, { ops: [{ kind: 'radius', shift: 1 }] }));
 
-    expect(out).toContain('button  (from: the shipped default)');
+    expect(out).toContain('button  (from: theme "default")');
     expect(out).toContain('skipped, raw value, not a token: --button-ghost-radius');
     expect(out).toContain('skipped, already at the ladder end: --button-primary-radius');
     expect(out).toContain('skipped, pill preserved (pass "full": true to move it): --button-pill-radius');

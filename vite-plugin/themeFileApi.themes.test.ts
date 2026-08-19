@@ -588,6 +588,21 @@ describe('the live layer doors', () => {
     // value on read, so it now resolves as `'theme'` too.
     expect(byName.card).toBe('theme');
   });
+
+  it('resolves every component as theme-sourced once the fill has run, with no buffers open', async () => {
+    seedPointerTheme();
+    boot();
+    await request('PUT', `${API}/themes/look/apply`);
+
+    const { json: list } = await request('GET', `${API}/component-configs`);
+    const names: string[] = list.components.map((c: any) => c.name);
+    expect(names.length).toBe(25);
+
+    for (const name of names) {
+      const { json } = await request('GET', `${API}/component-configs/${name}/active`);
+      expect(json._source).toBe('theme');
+    }
+  });
 });
 
 describe('deletability', () => {

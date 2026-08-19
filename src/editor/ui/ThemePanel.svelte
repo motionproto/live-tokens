@@ -119,7 +119,6 @@
       if (active) {
         openThemeSlug.set(active._fileName ?? 'default');
         currentDisplayName = active.name ?? $openThemeSlug;
-        lookConfigs = active.componentConfigs;
       }
     } catch {
       // silent
@@ -149,15 +148,11 @@
   // ── Components ────────────────────────────────────────────────────────
   //
   // The per-component file managers live in the component editors; the list
-  // here answers one question — how many components run something the open
-  // theme does not carry.
+  // here answers one question — how many components carry an unsaved buffer.
 
   let components: ComponentSummary[] = $state([]);
-  let lookConfigs: Theme['componentConfigs'] | null = $state(null);
 
-  let componentsOffLook = $derived(
-    lookConfigs ? countComponentsOffLook(components, lookConfigs, activeIsProtected) : 0,
-  );
+  let componentsOffLook = $derived(countComponentsOffLook(components));
 
   async function refreshComponents() {
     try {
@@ -194,7 +189,6 @@
     const handleThemeApplied = (event: Event) => {
       const { result } = (event as CustomEvent<AppliedThemeDetail>).detail;
       currentDisplayName = result.theme.name;
-      lookConfigs = result.theme.componentConfigs;
     };
     document.addEventListener(THEME_APPLIED_EVENT, handleThemeApplied);
     return () => document.removeEventListener(THEME_APPLIED_EVENT, handleThemeApplied);
@@ -475,7 +469,6 @@
         );
       }
       currentDisplayName = result.theme.name;
-      lookConfigs = result.theme.componentConfigs;
       showFileList = false;
     } catch (err) {
       window.alert(`Failed to load theme: ${(err as Error).message}`);

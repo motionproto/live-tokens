@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { extractGlobalRootBody } from '../src/editor/core/themes/parsers/globalRootBlock';
 import { parseColorOpacity } from '../src/editor/core/themes/parsers/colorOpacity';
+import type { ColorsAndTypeSource } from '../src/editor/core/themes/themeTypes';
 import { sanitizeFileName } from '../src/editor/core/storage/files/versionedFileResourceClient';
 import {
   palettesToVars,
@@ -965,20 +966,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     return readTheme(themesResource.getActiveName())?.theme ?? null;
   }
 
-  /**
-   * Where the live state of a layer came from. `working` is the buffer, `theme`
-   * the open document's saved copy, `default` the shipped baseline — no buffer
-   * and no theme entry.
-   *
-   * A working source is genuine divergence from the open document. Applying a
-   * theme clears every buffer; saving removes any buffer whose content is now
-   * supplied by that theme.
-   */
-  type LiveSource = 'working' | 'theme' | 'default';
-
+  /** `ColorsAndTypeSource` (imported above) is the door's own client-facing
+   *  type, used here rather than redeclared, so the two cannot drift apart. */
   function resolveLiveColorsAndType(
     theme: EncapsulatedTheme | null,
-  ): { data: any; source: LiveSource } | null {
+  ): { data: any; source: ColorsAndTypeSource } | null {
     const working = colorsAndTypeResource.readWorking();
     if (working !== null) return { data: normalizeColorsAndType(working as any), source: 'working' };
     if (theme?.colorsAndType) return { data: theme.colorsAndType, source: 'theme' };
@@ -987,17 +979,52 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     return { data: normalizeColorsAndType(shipped as any), source: 'default' };
   }
 
+  /**
+   * Where a live component config came from. Every theme carries every
+   * component by value (`normalizeTheme`'s fill), so there is no third,
+   * shipped-default source left to report: a defaulted entry is what the
+   * open document resolves to. `working` is genuine divergence from it —
+   * applying a theme clears every buffer, saving removes any buffer whose
+   * content the theme now supplies.
+   */
+  type ComponentLiveSource = 'working' | 'theme';
+
+  /** One `themeFileApi(opts)` call builds this whole closure per plugin
+   *  instance (once per dev-server boot, once per test's `boot()`), and every
+   *  request handler below shares it — so a component logged once here stays
+   *  logged for the life of that instance, across every later request, rather
+   *  than warning again on each one. */
+  const loggedMissingThemeEntries = new Set<string>();
+
+  /** The saved layer below a working buffer: the theme's embedded copy, or
+   *  the shipped default when the theme has none (an install whose theme
+   *  predates a component, or a stale/deleted-theme pointer — completeness
+   *  cannot fill a document that isn't there). Shared by the live and saved
+   *  resolvers below so both fall back, and warn, the same way. */
+  function resolveComponentConfigOrDefault(
+    comp: string,
+    theme: EncapsulatedTheme | null,
+  ): ComponentConfigRead | null {
+    const embedded = theme?.componentConfigs[comp];
+    if (embedded) return { ...embedded, component: comp } as ComponentConfigRead;
+    if (!loggedMissingThemeEntries.has(comp)) {
+      loggedMissingThemeEntries.add(comp);
+      console.warn(
+        `[live-tokens] "${comp}" has no entry in the open theme; resolving from its shipped default.`,
+      );
+    }
+    return readComponentConfig(comp, 'default');
+  }
+
   function resolveLiveComponentConfig(
     comp: string,
     theme: EncapsulatedTheme | null,
-  ): { data: ComponentConfigRead; source: LiveSource } | null {
+  ): { data: ComponentConfigRead; source: ComponentLiveSource } | null {
     const working = componentResource(comp).readWorking();
     if (working !== null) return { data: working as ComponentConfigRead, source: 'working' };
-    const embedded = theme?.componentConfigs[comp];
-    if (embedded) return { data: { ...embedded, component: comp } as ComponentConfigRead, source: 'theme' };
-    const cfg = readComponentConfig(comp, 'default');
+    const cfg = resolveComponentConfigOrDefault(comp, theme);
     if (!cfg) return null;
-    return { data: cfg, source: 'default' };
+    return { data: cfg, source: 'theme' };
   }
 
   /** The saved layer below a working buffer. Kept separate from the live
@@ -1012,9 +1039,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     comp: string,
     theme: EncapsulatedTheme | null,
   ): ComponentConfigRead | null {
-    const embedded = theme?.componentConfigs[comp];
-    if (embedded) return { ...embedded, component: comp } as ComponentConfigRead;
-    return readComponentConfig(comp, 'default');
+    return resolveComponentConfigOrDefault(comp, theme);
   }
 
   function sameJsonValue(a: unknown, b: unknown): boolean {
@@ -1313,17 +1338,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // ── /api/component-configs ───────────────────────────────────────────────
 
   async function handleListComponents({ res }: any) {
-    const theme = activeTheme();
+    // Presence, not a parse: one corrupt buffer must not take the listing
+    // down, and the door only has to say which layer each component's live
+    // config comes from.
     const components = listComponentNames().map((comp) => ({
       name: comp,
-      // Presence, not a parse: one corrupt buffer must not take the listing
-      // down, and the door only has to say where each component's live config
-      // comes from.
-      source: componentResource(comp).hasWorking()
-        ? 'working'
-        : theme?.componentConfigs[comp]
-          ? 'theme'
-          : 'default',
+      source: componentResource(comp).hasWorking() ? 'working' : 'theme',
     }));
     jsonResponse(res, 200, { components });
   }
@@ -1339,6 +1359,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   async function handleGetComponentActive({ params, res }: any) {
     const [comp] = params;
+    // Before resolving, so a typo'd name 404s instead of warning about a
+    // missing theme entry and interning itself in the log-once set.
+    if (rejectUnknownComponent(res, comp)) return;
     const resolved = resolveLiveComponentConfig(comp, activeTheme());
     if (!resolved) {
       jsonResponse(res, 404, { error: 'Active config not found' });
