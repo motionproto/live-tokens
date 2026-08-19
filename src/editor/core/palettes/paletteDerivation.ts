@@ -110,7 +110,10 @@ export const BW_GUARD_MAX_L = 0.93;
 
 export const DEFAULT_PALETTE_LIGHTNESS = (): CurveAnchor[] => [makeAnchor(0, 95, 5), makeAnchor(100, 8, 5)];
 export const DEFAULT_PALETTE_SATURATION = (): CurveAnchor[] => [makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)];
-export const DEFAULT_PALETTE_HUE = (): CurveAnchor[] => [makeAnchor(0, 0, 30), makeAnchor(100, 0, 30)];
+/** Short tangents, matching lightness. `makeAnchor` emits horizontal handles and a
+ *  drag preserves them, so the saturation default's length of 30 would ease a dragged
+ *  ramp flat through its middle and swing it at the ends. Hue wants an even drift. */
+export const DEFAULT_PALETTE_HUE = (): CurveAnchor[] => [makeAnchor(0, 0, 5), makeAnchor(100, 0, 5)];
 
 /** Hue is cyclic, so derivation wraps rather than clamps. The trig accepts
  *  any angle; `Oklch.h` is documented 0..360 and readouts print it. */
