@@ -267,7 +267,7 @@ Files: `src/editor/ui/PaletteEditor.svelte`, `src/editor/ui/palette/OverridesPan
 1. `PaletteEditor.svelte`:
    - `let hueCurve = $derived($editorState.palettes[label]?.hueCurve);` left `undefined` when absent.
    - A third `ScaleCurveEditor`, rendered **first**, with `curveKey="hue"`, `cfg={hueCurveConfig}`, `anchors={hueCurve ?? DEFAULT_PALETTE_HUE()}`, `defaults={DEFAULT_PALETTE_HUE()}`, `offset={curveOffset['hue'] ?? 0}`.
-   - `setHueCurve(a)`: when `hueCurve === undefined`, the same store mutation materializes `hueCurve = DEFAULT_PALETTE_HUE()`, calls `syncBaseAnchor(cfg)` to pin the delta-0 anchor, and then applies `a`. Wave 3's idempotency test is what makes that second `syncBaseAnchor` call safe. When the curve already exists, it is a plain `edit('hueCurve', a)`.
+   - `setHueCurve(a)`: writes `cfg.hueCurve = a` first, then, only on the materializing branch (`hueCurve` was `undefined` before the write), calls `syncBaseAnchor(cfg)` to pin the delta-0 anchor. The order matters: pinning before `a` lands would write the anchor into a still-flat transient curve that the assignment then overwrites, drifting the base color's hue at its anchor step on the first edit. Wave 3's idempotency test is what makes calling `syncBaseAnchor` here, after the value is already in place, safe. When the curve already exists, it is a plain `edit('hueCurve', a)`.
    - `lockedHueIdx`, mirroring `lockedLightnessIdx` (`:71`), and null whenever `hueCurve` is undefined.
    - Final order in the stack: Hue, Saturation, Lightness.
 

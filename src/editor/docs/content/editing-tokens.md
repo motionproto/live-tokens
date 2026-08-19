@@ -20,8 +20,12 @@ Success, Warning, Info, Danger, and a few more) has:
 
 - **Base colour.** Pick a hex; the palette derives an 11-step ramp (100 to 950)
   from it.
-- **Curves.** Two curves shape how lightness and saturation fall off across the
-  ramp. Drag the handles to bias it darker, lighter, or more saturated.
+- **Curves.** Three curves shape the ramp, in stack order: Hue, Saturation,
+  Lightness. Drag the handles to bias it warmer or cooler, more or less
+  saturated, darker or lighter. Hue drifts the ramp's temperature without
+  moving contrast, because OKLCH hue rotation is close to lightness-preserving.
+  It holds ±30 degrees; a bigger shift belongs on the base colour or the
+  harmony axis.
 - **Overrides.** Lock a single step to a hand-picked hex when the curve doesn't
   land where you want.
 
