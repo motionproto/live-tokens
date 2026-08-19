@@ -230,13 +230,19 @@ notices when the shipped themes and the ops table disagree.
    document rather than a distinct layer? That would remove layer 3 entirely
    and leave `:global(:root)` as the only fallback. Larger change, cleaner
    model.
+   
+   ANSWER: YES
 2. Should completeness be enforced on read, so a hand-edited or third-party
    theme missing components is filled at load and flagged, rather than
    resolving silently against the defaults?
+   ANSWER: We should not block an incomplete theme but load any existing components. Presumably, tokens would always be there. If not, we should alert the user and prompt them to use the theme builder skill to complete their work. 
 3. Do the presets keep a generator at all once padding is authored? Radius and
    border width alone may not justify the machinery.
+   ANSWER: Padding can be changed by the skill, so generators that can modify colors, padding, and gaps could be useful. The idea here is that it's not a modifier, so it sounds like we need to rethink how these generators work and whether they are needed at all. 
 4. Motion Proto keeps five `-padding` aliases at `--space-2`, by instruction.
    Three are `--sectiondivider-*-title-padding`, one is
    `--segmentedcontrol-bar-small-padding`, one is `--toggle-track-padding`. A
    2px toggle track inset is plausibly correct. Worth a deliberate pass once
    these values are authored rather than derived.
+   
+   ANSWER:MotionProto was the archetypal example so they should be correct. 
