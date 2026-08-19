@@ -1,6 +1,12 @@
 import type { CurveAnchor } from '../../ui/curveEngine';
 import type { Oklch } from '../palettes/oklch';
 import type { HarmonyAxis } from '../palettes/colorHarmony';
+// `normalizeTheme.ts` is the single source of truth for the theme schema
+// version (docs/plans/theme-completeness.md, Wave 2 step 5) — a value import,
+// not `import type`, because `typeof THEME_SCHEMA_VERSION` below needs the
+// real binding. The module is pure (no Node/fs imports of its own), so it is
+// safe in a browser bundle.
+import { THEME_SCHEMA_VERSION } from '../../../../vite-plugin/themes/normalizeTheme';
 
 export type GradientStyle = 'linear' | 'radial' | 'conic';
 
@@ -204,11 +210,11 @@ export interface ComponentConfigMeta {
 
 /**
  * A saved look, encapsulated: the colors and type plus a config for every
- * component that sits off its default, all carried by value. Themes are the
- * documents of the editor. Applying one opens it by clearing the reserved
- * `_working` buffers and updating `themes/_active.json`; live reads fall through
- * to its embedded copies. Saving captures live deltas back into it; Adopt
- * publishes it, and only then is
+ * component this install has, all carried by value. Themes are the documents
+ * of the editor. Applying one opens it by clearing the reserved `_working`
+ * buffers and updating `themes/_active.json`; live reads fall through to its
+ * embedded copies. Saving captures live deltas back into it; Adopt publishes
+ * it, and only then is
  * `tokens.generated.css` rebaked.
  */
 export interface Theme {
@@ -217,13 +223,24 @@ export interface Theme {
   updatedAt: string;
   /** Migration stamp. 1 was the pointer form (colors-and-type + config
    *  basenames); 2 encapsulated it under a `theme` key; 3 spells that key
-   *  `colorsAndType`. The server rewrites older files at boot. */
-  schemaVersion: 3;
+   *  `colorsAndType`; 4 makes the theme complete (`docs/plans/
+   *  theme-completeness.md`, Wave 2) — every known component and every alias
+   *  key its `default.json` declares, by value. The server rewrites older
+   *  files at boot. */
+  schemaVersion: typeof THEME_SCHEMA_VERSION;
   /** Full colors-and-type content. */
   colorsAndType: ColorsAndType;
-  /** Component id → its config. Delta encoding: a component absent here is on
-   *  its default. Defaults are never inlined — the local `default.json` derived
-   *  from the component source is canonical, and a frozen copy would drift. */
+  /** Component id → its config, by value, one entry per component this
+   *  install has and every alias key that component's `default.json`
+   *  declares. `normalizeTheme` fills any gap from the local default on every
+   *  read (Wave 2 of `docs/plans/theme-completeness.md`) and the fill is
+   *  persisted on the next write, so a theme is a whole-look document rather
+   *  than a diff against a moving baseline. `component-configs/<id>/
+   *  default.json` is the derivation product of that component's
+   *  `:global(:root)`, not a resolution layer this map defers to — a config
+   *  for a component this install does not have, or an alias key its current
+   *  default no longer declares, is kept exactly as read (RJC 3) rather than
+   *  dropped. */
   componentConfigs: Record<string, ComponentConfig>;
   /** Migration stamp for every embedded component config in this theme, one
    *  field for all of them: `CURRENT_COMPONENT_SCHEMA_VERSION` is a single
@@ -244,13 +261,14 @@ export interface Theme {
  */
 export interface ThemeBundle {
   /** Discriminator for safe identification of bundle JSON files. Paired with
-   *  the version below: import accepts this kind only at v3, and the
+   *  the version below: import accepts this kind at v3 and v4, and the
    *  `manifest-bundle` every release through 0.47.1 wrote only at v1. */
   kind: 'theme-bundle';
   /** Tracks the enclosed theme's schema. Import still accepts 1, where the
    *  envelope carried a pointer theme plus separately inlined colors and type
-   *  and `${component}/${configName}`-keyed configs. */
-  schemaVersion: 3;
+   *  and `${component}/${configName}`-keyed configs, and 3, from before the
+   *  Wave 2 completeness bump — `normalizeTheme` fills either on the way in. */
+  schemaVersion: typeof THEME_SCHEMA_VERSION;
   /** Sender's `@motion-proto/live-tokens` package version. Receiver can
    *  compare to its own to warn about compatibility drift. */
   liveTokensVersion: string;

@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { normalizeTheme, type ThemeResolvers } from './normalizeTheme';
+import { normalizeTheme, THEME_SCHEMA_VERSION, type ThemeResolvers } from './normalizeTheme';
 import { parseGoogleFontsUrl } from '../../src/editor/core/fonts/fontParse';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../src/editor/core/themes/migrations';
 import { PRESET_FONTS } from '../../scripts/lib/presetFonts.mjs';
@@ -31,6 +31,11 @@ const colorsAndTypeOf = (slug: string) => readJson(path.join(DATA, 'colors-and-t
 const defaultConfigOf = (comp: string) =>
   readJson(path.join(DATA, 'component-configs', comp, 'default.json'));
 
+/** The install's real component list — what `listComponentNames` answers in
+ *  production — so the completeness fill (Wave 2 of
+ *  `docs/plans/theme-completeness.md`) sees the same universe a boot would. */
+const KNOWN_COMPONENTS = fs.readdirSync(path.join(DATA, 'component-configs')).sort();
+
 /** Prefix `stampPresetFonts` writes; everything else in a preset's
     fontSources came from the default colors and type it branched off. */
 const STAMPED = 'src_preset_';
@@ -42,31 +47,53 @@ const stampedSourcesOf = (colorsAndType: any) =>
 const aliasesOf = (slug: string, comp: string) =>
   themeOf(slug).componentConfigs[comp]?.aliases ?? defaultConfigOf(comp).aliases;
 
-/** Pass-through means nothing had to be resolved: any lookup here is a bug. */
-const strictResolvers: ThemeResolvers = {
+/** A shipped theme always embeds `colorsAndType` and every componentConfigs
+ *  entry it carries by value, so the only lookup `normalizeTheme` should ever
+ *  make against a v3+ file is the completeness fill reading a real default:
+ *  any other read is a bug. */
+const fillingResolvers: ThemeResolvers = {
   readColorsAndType: (name) => {
     throw new Error(`resolved colors and type "${name}"`);
   },
   readComponentConfig: (comp, name) => {
-    throw new Error(`resolved config "${comp}/${name}"`);
+    if (name !== 'default') throw new Error(`resolved config "${comp}/${name}"`);
+    return defaultConfigOf(comp);
   },
+  listComponentNames: () => KNOWN_COMPONENTS,
   normalizeColorsAndType: (colorsAndType) => {
     throw new Error(`normalised embedded colors and type: ${JSON.stringify(colorsAndType).slice(0, 40)}`);
   },
 };
 
 describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
-  it('passes through normalizeTheme unchanged, stamped with the current component schema', () => {
+  // Invariant 1 (docs/plans/theme-completeness.md): the CSS a component
+  // resolves to before and after normalization is the same, whether that
+  // component was already in the file or the fill added it from its default.
+  // The presets still carry real gaps at this wave (Wave 3 regenerates them
+  // complete on disk), which is exactly what exercises the fill here.
+  it('fills gaps against the current default with no value change, and stamps the current schema', () => {
     const raw = themeOf(slug);
-    const { theme, dropped, migrated } = normalizeTheme(raw, strictResolvers);
+    const { theme, dropped, migrated, filled } = normalizeTheme(raw, fillingResolvers);
 
-    expect(migrated).toBe(false);
     expect(dropped).toEqual([]);
-    // No stale alias keys to migrate (verified), so the only difference from
-    // the file on disk is the theme-level component-schema stamp every
-    // `normalizeTheme` call adds (Wave 1, docs/plans/theme-completeness.md).
-    expect(theme).toEqual({ ...raw, componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION });
-    expect(theme.schemaVersion).toBe(3);
+    expect(theme.schemaVersion).toBe(THEME_SCHEMA_VERSION);
+    // The version bump alone marks every preset "migrated" at this wave, since
+    // none carries a stale alias key (verified) — filling is what changes.
+    expect(migrated).toBe(true);
+
+    const missingComponents = KNOWN_COMPONENTS.filter((c) => !(c in raw.componentConfigs));
+    expect([...filled.components].sort()).toEqual(missingComponents);
+    // RJC 3 / verified (Part 0): every entry the presets do carry is already
+    // complete at the alias level, so only whole components are ever filled.
+    expect(filled.aliases).toBe(0);
+    expect(filled.orphans).toBe(0);
+
+    for (const comp of KNOWN_COMPONENTS) {
+      const expectedAliases = comp in raw.componentConfigs
+        ? raw.componentConfigs[comp].aliases
+        : defaultConfigOf(comp).aliases;
+      expect(theme.componentConfigs[comp].aliases).toEqual(expectedAliases);
+    }
   });
 
   it('embeds the preset colors and type by value under their display name', () => {
@@ -136,6 +163,21 @@ describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
   it('ships its colors-and-type file as its own entry in package.json files', () => {
     const { files } = readJson(path.join(REPO_ROOT, 'package.json'));
     expect(files).toContain(`src/live-tokens/data/colors-and-type/${slug}.json`);
+  });
+});
+
+describe('themes/default.json', () => {
+  // RJC 3 / verified (Part 0): the Default theme already materialises every
+  // component by value, so completeness fills nothing for it — the one
+  // shipped theme where round-trip identity (invariant 1) is a plain no-op.
+  it('is already complete: the fill changes nothing but the schema stamps', () => {
+    const raw = themeOf('default');
+    const { theme, dropped, filled } = normalizeTheme(raw, fillingResolvers);
+
+    expect(dropped).toEqual([]);
+    expect(filled).toEqual({ components: [], aliases: 0, orphans: 0 });
+    expect(theme.colorsAndType).toEqual(raw.colorsAndType);
+    expect(theme.componentConfigs).toEqual(raw.componentConfigs);
   });
 });
 

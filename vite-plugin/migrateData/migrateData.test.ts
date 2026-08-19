@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { migrateData } from './migrateData';
+import { THEME_SCHEMA_VERSION } from '../themes/normalizeTheme';
 
 const roots: string[] = [];
 
@@ -44,17 +45,21 @@ function legacyTree() {
   writeJson(path.join(d.componentConfigsDir, 'card', '_active.json'), { activeFile: 'default' });
   writeJson(path.join(d.componentConfigsDir, 'card', '_production.json'), { productionFile: 'default' });
 
+  // Already-current fixtures (schema version, and every component this fixture
+  // tree has — button and card): a heal over an already-encapsulated theme
+  // must not count it as "migrated" on the strength of the Wave 2 completeness
+  // bump alone (docs/plans/theme-completeness.md).
   writeJson(path.join(d.themesDir, 'default.json'), {
     name: 'Default',
-    schemaVersion: 3,
+    schemaVersion: THEME_SCHEMA_VERSION,
     colorsAndType: { name: 'Default', cssVariables: {} },
     componentConfigs: { button: BUTTON_DEFAULT, card: CARD_DEFAULT },
   });
   writeJson(path.join(d.themesDir, 'sunset.json'), {
     name: 'Sunset',
-    schemaVersion: 3,
+    schemaVersion: THEME_SCHEMA_VERSION,
     colorsAndType: COLORS,
-    componentConfigs: { button: BUTTON },
+    componentConfigs: { button: BUTTON, card: CARD_DEFAULT },
   });
   writeJson(path.join(d.themesDir, '_active.json'), { activeFile: 'sunset' });
   return root;
@@ -263,7 +268,7 @@ describe('migrateData', () => {
 
     expect(result.upgradedThemes).toHaveLength(1);
     const theme = readJson(path.join(root, DATA, 'themes', 'sunset.json'));
-    expect(theme.schemaVersion).toBe(3);
+    expect(theme.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(theme.colorsAndType.cssVariables['--surface-default']).toBe('#fff5e6');
     expect(theme.componentConfigs.button.aliases['--button-radius']).toBe('--radius-xl');
     expect(exists(root, 'colors-and-type', 'sunset.json')).toBe(false);

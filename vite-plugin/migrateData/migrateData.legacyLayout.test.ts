@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { migrateData } from './migrateData';
+import { THEME_SCHEMA_VERSION } from '../themes/normalizeTheme';
 
 const roots: string[] = [];
 const DATA = 'src/live-tokens/data';
@@ -196,7 +197,7 @@ describe('migrateData on a pre-0.48 layout', () => {
       at(root, 'themes', 'sunset.json'),
     ]);
     const theme = readJson(at(root, 'themes', 'sunset.json'));
-    expect(theme.schemaVersion).toBe(3);
+    expect(theme.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(theme.componentConfigs.button.aliases['--button-radius']).toBe('--radius-xl');
   });
 

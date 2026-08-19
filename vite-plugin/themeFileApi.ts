@@ -48,11 +48,15 @@ const PKG_VERSION: string = (() => {
 })();
 
 /** Bundle envelope kind per schema version. `manifest-bundle` is what every
- *  release through 0.47.1 exported, always v1; the current version writes
- *  `theme-bundle`. Import accepts each kind only with its own version, so a
- *  crossed pair — which no release ever wrote — stays rejected. */
+ *  release through 0.47.1 exported, always v1; every release since writes
+ *  `theme-bundle`. `3` stays alongside the current version so import keeps
+ *  accepting bundles exported before the Wave 2 completeness bump
+ *  (`docs/plans/theme-completeness.md`) — `normalizeTheme` fills them on the
+ *  way in. A crossed pair — a kind that never named that version — stays
+ *  rejected. */
 const BUNDLE_KIND_BY_VERSION: Record<number, string> = {
   1: 'manifest-bundle',
+  3: 'theme-bundle',
   [THEME_SCHEMA_VERSION]: 'theme-bundle',
 };
 
@@ -758,6 +762,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const diskThemeResolvers: ThemeResolvers = {
     readColorsAndType: (name) => colorsAndTypeResource.readJson(sanitizeFileName(name)),
     readComponentConfig: (comp, name) => readComponentConfig(comp, sanitizeFileName(name)),
+    listComponentNames,
     normalizeColorsAndType: (colorsAndType) => normalizeColorsAndType(colorsAndType as any),
   };
 
@@ -1757,7 +1762,26 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
     const bundleResolvers: ThemeResolvers = {
       readColorsAndType: () => bundle.theme,
-      readComponentConfig: (comp, name) => bundle.componentConfigs?.[`${comp}/${name}`],
+      // A named ref resolves inside the bundle only — a v1 bundle's
+      // `${comp}/${name}` map is itself the sender's data, and a stale name
+      // must still land in `dropped` rather than quietly picking up this
+      // install's copy. But `'default'` never named a bundled entry; v1
+      // spelled "no override" that way (normalizeTheme.ts's pointer-
+      // resolution loop treats it identically), so it always meant *this
+      // install's* default, not something the bundle carries. The
+      // completeness fill (Wave 2 of docs/plans/theme-completeness.md) relies
+      // on that fall-through: without it, `readComponentConfig(comp,
+      // 'default')` answers undefined for every component (no bundle ever
+      // carries a `<comp>/default` entry), the fill loop no-ops 25 times, and
+      // an incomplete bundle stays incomplete forever — exactly the drift RJC
+      // 10 exists to prevent.
+      readComponentConfig: (comp, name) =>
+        bundle.componentConfigs?.[`${comp}/${name}`] ??
+        (name === 'default' ? readComponentConfig(comp, 'default') : undefined),
+      // Installed components are a property of this install, not of the
+      // bundle being imported, so the completeness fill (Wave 2) uses the
+      // same list the disk resolver does.
+      listComponentNames,
       normalizeColorsAndType: (colorsAndType) => normalizeColorsAndType(colorsAndType as any),
     };
     const { theme, dropped } = normalizeTheme(bundle.manifest, bundleResolvers);

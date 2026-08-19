@@ -6,6 +6,7 @@ import { buildColorsAndTypeFromSeeds } from '../src/editor/core/themes/generateC
 import type { Oklch } from '../src/editor/core/palettes/oklch';
 // @ts-expect-error — plain .mjs module, no types
 import { runGenerateTheme, formatGenerateThemeResult } from './generate-theme.mjs';
+import { THEME_SCHEMA_VERSION } from '../vite-plugin/themes/normalizeTheme';
 
 const engine = { buildColorsAndTypeFromSeeds };
 
@@ -85,7 +86,7 @@ describe('runGenerateTheme', () => {
     expect(result.slug).toBe('spring-meadow');
     const theme = readJson(join(root, 'themes', 'spring-meadow.json'));
     expect(theme.name).toBe('Spring Meadow');
-    expect(theme.schemaVersion).toBe(3);
+    expect(theme.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(Object.keys(theme.colorsAndType.editorConfigs)).toHaveLength(10);
 
     expect(readJson(join(root, 'themes', '_active.json')).activeFile).toBe('spring-meadow');

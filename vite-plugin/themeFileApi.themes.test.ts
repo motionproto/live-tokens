@@ -12,6 +12,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { themeFileApi } from './themeFileApi';
+import { THEME_SCHEMA_VERSION } from './themes/normalizeTheme';
 
 const API = '/api/live-tokens';
 const REPO_ROOT = process.cwd();
@@ -112,7 +113,20 @@ const COLORS_AND_TYPE = {
   editorConfigs: {},
   cssVariables: { '--radius-md': '4px' },
 };
-const BUTTON_CONFIG = { name: 'fancy', component: 'button', aliases: { '--button-primary-radius': '99px' } };
+// Wave 2 of docs/plans/theme-completeness.md: `normalizeTheme` fills a
+// component entry's missing alias keys from the install's real default on
+// every read, so a fixture with a single overridden alias would come back
+// carrying the other ~100 button keys too. Building it against the real
+// default up front keeps the fill a no-op here and every downstream
+// `toEqual(BUTTON_CONFIG.aliases)` assertion honest.
+const BUTTON_DEFAULT_ALIASES = readJson(
+  path.join(REPO_ROOT, 'src/live-tokens/data/component-configs/button/default.json'),
+).aliases;
+const BUTTON_CONFIG = {
+  name: 'fancy',
+  component: 'button',
+  aliases: { ...BUTTON_DEFAULT_ALIASES, '--button-primary-radius': '99px' },
+};
 
 /** A v1 pointer theme naming live colors and type, a live config, a component on
  *  default, and a config that has since been deleted. */
@@ -233,19 +247,29 @@ describe('boot migration', () => {
     boot();
 
     const migrated = readJson(path.join(themesDir, 'look.json'));
-    expect(migrated.schemaVersion).toBe(3);
+    expect(migrated.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(migrated.colorsAndType.name).toBe('Custom');
     expect(migrated.componentConfigs.button.aliases).toEqual(BUTTON_CONFIG.aliases);
     expect(migrated.createdAt).toBe('2026-01-01T00:00:00.000Z');
   });
 
-  it('omits a component pinned to default and drops one whose config is gone', () => {
+  it('drops a config that is gone and reports it, but the completeness fill still gives every component a value', () => {
     seedPointerTheme();
     boot();
 
     const migrated = readJson(path.join(themesDir, 'look.json'));
-    expect(Object.keys(migrated.componentConfigs)).toEqual(['button']);
     expect(warnings.join('\n')).toContain('panel/deleted-config');
+    // `card` (pinned to 'default') and `panel` (its named config gone) both
+    // start with no embedded entry from the pointer-resolution pass, but the
+    // completeness fill (Wave 2, docs/plans/theme-completeness.md) fills
+    // every installed component in from its local default afterward — the
+    // same local `default.json` boot just materialised, not a second
+    // derivation of it.
+    expect(migrated.componentConfigs.button.aliases).toEqual(BUTTON_CONFIG.aliases);
+    expect(migrated.componentConfigs.card.aliases).toEqual(readJson(path.join(configsDir, 'card', 'default.json')).aliases);
+    expect(migrated.componentConfigs.panel.aliases).toEqual(
+      readJson(path.join(configsDir, 'panel', 'default.json')).aliases,
+    );
   });
 
   it('renames a v2 theme\'s embedded key', () => {
@@ -260,12 +284,12 @@ describe('boot migration', () => {
     });
     boot();
     const migrated = readJson(file);
-    expect(migrated.schemaVersion).toBe(3);
+    expect(migrated.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(migrated.colorsAndType).toEqual(COLORS_AND_TYPE);
     expect(migrated).not.toHaveProperty('theme');
   });
 
-  it('leaves an already-encapsulated theme alone', () => {
+  it('bumps and fills an already-encapsulated v3 theme, rather than leaving it alone', () => {
     const file = path.join(themesDir, 'v3.json');
     const theme = {
       name: 'v3',
@@ -277,7 +301,17 @@ describe('boot migration', () => {
     };
     writeJson(file, theme);
     boot();
-    expect(readJson(file)).toEqual(theme);
+
+    const rewritten = readJson(file);
+    expect(rewritten.schemaVersion).toBe(THEME_SCHEMA_VERSION);
+    expect(rewritten.colorsAndType).toEqual(COLORS_AND_TYPE);
+    // A v3 file no longer passes through untouched at v4: the completeness
+    // fill (Wave 2, docs/plans/theme-completeness.md) gives an empty
+    // `componentConfigs` every installed component, filled from its local
+    // default, and the boot rewrite persists it (`migrated` is true the
+    // moment the schema version differs).
+    expect(Object.keys(rewritten.componentConfigs).sort()).toEqual(fs.readdirSync(configsDir).sort());
+    expect(rewritten.componentConfigs.button.aliases).toEqual(BUTTON_DEFAULT_ALIASES);
   });
 });
 
@@ -361,7 +395,7 @@ describe('the default theme', () => {
   it('materialises the full default set on boot', () => {
     boot();
     const theme = readJson(defaultPath());
-    expect(theme.schemaVersion).toBe(3);
+    expect(theme.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(theme.name).toBe('Motion Proto');
     expect(Object.keys(theme.colorsAndType.editorConfigs).length).toBeGreaterThan(0);
     // Every component, including the ones sitting on pure defaults.
@@ -420,7 +454,7 @@ describe('read doors', () => {
     boot();
     const { status, json } = await request('GET', `${API}/themes/default`);
     expect(status).toBe(200);
-    expect(json.schemaVersion).toBe(3);
+    expect(json.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(Object.keys(json.colorsAndType.editorConfigs).length).toBeGreaterThan(0);
     expect(json.componentConfigs.button.aliases['--button-primary-radius']).toBe('--radius-xl');
   });
@@ -446,7 +480,7 @@ describe('read doors', () => {
     expect(status).toBe(200);
 
     const written = readJson(path.join(themesDir, 'copy.json'));
-    expect(written.schemaVersion).toBe(3);
+    expect(written.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(written.colorsAndType.name).toBe('Custom');
     expect(written.componentConfigs.button.aliases).toEqual(BUTTON_CONFIG.aliases);
   });
@@ -513,7 +547,7 @@ describe('the live layer doors', () => {
     expect(Object.keys(json.editorConfigs).length).toBeGreaterThan(0);
   });
 
-  it('resolves each component from the theme, the buffer, or its default', async () => {
+  it('resolves each component from the theme or a working override', async () => {
     seedPointerTheme();
     boot();
     await request('PUT', `${API}/themes/look/apply`);
@@ -524,8 +558,14 @@ describe('the live layer doors', () => {
     expect(button.json._source).toBe('theme');
     expect(button.json._fileName).toBe('look');
 
+    // `look.json` pointed `card` at its own default (a v1 delta encoding), so
+    // it carried no embedded entry — but Wave 2's completeness fill
+    // (docs/plans/theme-completeness.md) fills it in from the local default,
+    // by value, the moment the theme is read. It resolves as `'theme'` too,
+    // with the same values a bare default would have given it.
     const card = await request('GET', `${API}/component-configs/card/active`);
-    expect(card.json._source).toBe('default');
+    expect(card.json._source).toBe('theme');
+    expect(card.json.aliases).toEqual(readJson(path.join(configsDir, 'card', 'default.json')).aliases);
 
     await request('PUT', `${API}/component-configs/card/working`, {
       name: 'bold',
@@ -543,7 +583,10 @@ describe('the live layer doors', () => {
     const { json } = await request('GET', `${API}/component-configs`);
     const byName = Object.fromEntries(json.components.map((c: any) => [c.name, c.source]));
     expect(byName.button).toBe('theme');
-    expect(byName.card).toBe('default');
+    // `card` was on `look.json`'s default pointer, but the completeness fill
+    // (Wave 2, docs/plans/theme-completeness.md) embeds it in the theme by
+    // value on read, so it now resolves as `'theme'` too.
+    expect(byName.card).toBe('theme');
   });
 });
 
@@ -633,7 +676,10 @@ describe('apply', () => {
     expect(json.theme._fileName).toBe('look');
     expect(json.colorsAndType._source).toBe('theme');
     expect(json.componentConfigs.button._source).toBe('theme');
-    expect(json.componentConfigs.card._source).toBe('default');
+    // `look.json` pointed `card` at its default; the completeness fill
+    // (Wave 2, docs/plans/theme-completeness.md) embeds it in the theme by
+    // value on read, so it resolves as `'theme'` rather than `'default'`.
+    expect(json.componentConfigs.card._source).toBe('theme');
     expect(readJson(path.join(themesDir, '_active.json')).activeFile).toBe('look');
   });
 
@@ -743,7 +789,7 @@ describe('export and import', () => {
     const { status, json } = await request('GET', `${API}/themes/look/export`);
     expect(status).toBe(200);
     expect(json.kind).toBe('theme-bundle');
-    expect(json.schemaVersion).toBe(3);
+    expect(json.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(json.manifest.colorsAndType.name).toBe('Custom');
     expect(json).not.toHaveProperty('theme');
     expect(json).not.toHaveProperty('componentConfigs');
@@ -763,7 +809,7 @@ describe('export and import', () => {
     expect(fs.readdirSync(colorsAndTypeDir).length).toBe(colorsAndTypeFilesBefore);
   });
 
-  it('imports a v1 bundle by embedding what the bundle carries', async () => {
+  it('imports a v1 bundle by embedding what the bundle carries, filled complete from the local defaults', async () => {
     boot();
     const { status, json } = await request('POST', `${API}/themes/import`, {
       kind: 'manifest-bundle',
@@ -781,14 +827,62 @@ describe('export and import', () => {
       componentConfigs: { 'button/fancy': BUTTON_CONFIG },
     });
     expect(status).toBe(200);
+    // A named ref ('absent') still resolves inside the bundle only, and a
+    // stale one is still dropped and reported.
     expect(json.dropped).toEqual(['panel/absent']);
 
     const written = readJson(path.join(themesDir, 'shared.json'));
-    expect(written.schemaVersion).toBe(3);
+    expect(written.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(written.colorsAndType.name).toBe('Their Theme');
-    expect(Object.keys(written.componentConfigs)).toEqual(['button']);
+    // `button` keeps the bundle's own values — a named ref resolves inside
+    // the bundle only, never against this install's copy.
+    expect(written.componentConfigs.button.aliases).toEqual(BUTTON_CONFIG.aliases);
+    // `card` (pinned to the v1 'default' pointer) and `panel` (its named ref
+    // unresolved) both start with no embedded entry from the
+    // pointer-resolution pass. The completeness fill (Wave 2,
+    // docs/plans/theme-completeness.md) fills every installed component in
+    // from the *local* default afterward: 'default' always meant this
+    // install's own default, never something the bundle carries, so the fill
+    // must not leave an imported theme silently incomplete (RJC 10).
+    expect(Object.keys(written.componentConfigs).sort()).toEqual(fs.readdirSync(configsDir).sort());
+    expect(written.componentConfigs.card.aliases).toEqual(
+      readJson(path.join(configsDir, 'card', 'default.json')).aliases,
+    );
+    expect(written.componentConfigs.panel.aliases).toEqual(
+      readJson(path.join(configsDir, 'panel', 'default.json')).aliases,
+    );
     expect(fs.existsSync(path.join(colorsAndTypeDir, 'their-theme.json'))).toBe(false);
     expect(fs.existsSync(path.join(configsDir, 'button', 'fancy.json'))).toBe(false);
+  });
+
+  it('imports a v3 theme-bundle (pre-completeness), filled complete from the local defaults', async () => {
+    boot();
+    const { status, json } = await request('POST', `${API}/themes/import`, {
+      kind: 'theme-bundle',
+      schemaVersion: 3,
+      liveTokensVersion: '0.30.0',
+      exportedAt: 'a',
+      manifest: {
+        name: 'pre-completeness',
+        createdAt: 'a',
+        updatedAt: 'a',
+        schemaVersion: 3,
+        colorsAndType: { ...COLORS_AND_TYPE, name: 'Pre-Completeness' },
+        componentConfigs: { button: BUTTON_CONFIG },
+      },
+    });
+    expect(status).toBe(200);
+    expect(json.dropped).toEqual([]);
+
+    const written = readJson(path.join(themesDir, 'pre-completeness.json'));
+    expect(written.schemaVersion).toBe(THEME_SCHEMA_VERSION);
+    expect(written.colorsAndType.name).toBe('Pre-Completeness');
+    // The one component the bundle embedded keeps its own values.
+    expect(written.componentConfigs.button.aliases).toEqual(BUTTON_CONFIG.aliases);
+    // Every other installed component is filled in from the local default:
+    // a v3 bundle predates completeness (Wave 2), and import must not leave
+    // it silently incomplete.
+    expect(Object.keys(written.componentConfigs).sort()).toEqual(fs.readdirSync(configsDir).sort());
   });
 
   it('rejects a bundle whose schemaVersion it does not know', async () => {

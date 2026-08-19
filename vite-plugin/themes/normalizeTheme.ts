@@ -1,9 +1,11 @@
 /**
- * Theme schema v1/v2 → v3, in one pass. v1 themes pointed at a colors-and-type
- * file and a config file per component by basename; v2 carries that data by
- * value, so deleting a working file can never break a saved look; v3 spells the
- * embedded layer `colorsAndType` instead of `theme`, which now names the whole
- * look.
+ * Theme schema v1/v2/v3 → v4, in one pass. v1 themes pointed at a
+ * colors-and-type file and a config file per component by basename; v2
+ * carries that data by value, so deleting a working file can never break a
+ * saved look; v3 spells the embedded layer `colorsAndType` instead of
+ * `theme`, which now names the whole look; v4 makes the theme complete
+ * (`docs/plans/theme-completeness.md`, Wave 2) — every known component and
+ * every alias key its `default.json` declares, by value.
  *
  * Alongside the theme-shape migration, every embedded component config is run
  * through the same migration pipeline the client applies on load
@@ -12,6 +14,9 @@
  * a per-entry `schemaVersion` inside a theme is ignored and stripped). Without
  * this, an embedded config written before a token rename bakes its pre-rename
  * keys into `tokens.generated.css` forever, since nothing else ever migrates it.
+ *
+ * Order: migrate, then fill, then stamp (RJC 6) — filling first would write a
+ * file carrying both a stale key and its fresh replacement.
  *
  * Pure: every disk (or bundle) lookup arrives through `ThemeResolvers`, and
  * unresolvable refs come back in `dropped` rather than being logged here — the
@@ -23,13 +28,17 @@ import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../src/editor/core/themes/m
 import type { AliasDiskValue } from '../../src/editor/core/themes/themeTypes';
 import { KNOWN_COMPONENT_CONFIG_KEYS } from '../../src/editor/core/components/componentConfigKeys';
 
-export const THEME_SCHEMA_VERSION = 3;
+export const THEME_SCHEMA_VERSION = 4;
 
 type Json = Record<string, unknown>;
 
 export interface ThemeResolvers {
   readColorsAndType(name: string): unknown;
   readComponentConfig(comp: string, name: string): unknown;
+  /** Every component this install has, for the completeness fill (Wave 2).
+   *  Installed components are a property of the running install, not of a
+   *  theme or a bundle, so the disk and bundle resolvers share one answer. */
+  listComponentNames(): string[];
   /**
    * Applied to colors and type at the moment they are embedded. Read doors
    * trust an already embedded copy: every write path that embeds one runs it
@@ -46,8 +55,14 @@ export interface EncapsulatedTheme {
   /** Full colors-and-type content. `null` only when nothing resolved, including
    *  the default — callers surface that as an error. */
   colorsAndType: Json | null;
-  /** Component id → its config, embedded by value. Delta encoding: a component
-   *  absent here is on its default. */
+  /** Component id → its config, by value, one entry per component this
+   *  install has and every alias key that component's `default.json`
+   *  declares (Wave 2 of `docs/plans/theme-completeness.md`): `normalizeTheme`
+   *  fills any gap from the local default on every read, and the fill is
+   *  persisted on the next write. A config for a component this install does
+   *  not have, or an alias key its current default no longer declares,
+   *  survives untouched (RJC 3) but is never a *gap* in the completeness
+   *  sense — see `NormalizedTheme.filled`. */
   componentConfigs: Record<string, Json>;
   /** Migration stamp for every embedded component config in this theme, one
    *  field for all of them (RJC 9): `CURRENT_COMPONENT_SCHEMA_VERSION` is a
@@ -63,6 +78,14 @@ export interface NormalizedTheme {
   dropped: string[];
   /** The input was below the current schema version and got upgraded. */
   migrated: boolean;
+  /** What the completeness fill (Wave 2) had to add, reported and never acted
+   *  on silently (RJC 3): `components` names each component the input carried
+   *  no entry for at all (now filled from its default, verbatim); `aliases`
+   *  counts alias keys added to components the input did carry, whose default
+   *  declares a key the input omitted; `orphans` counts alias keys the input
+   *  carries that the component's current default does not declare — kept in
+   *  the file, but skipped by the bake. */
+  filled: { components: string[]; aliases: number; orphans: number };
 }
 
 function asObject(value: unknown): Json | null {
@@ -100,9 +123,19 @@ function asString(value: unknown, fallback: string): string {
   return typeof value === 'string' && value ? value : fallback;
 }
 
-/** v1 and v2 spelled the embedded layer `theme` — v1 as a file name, v2 by
- *  value. Runs only below the current version, so `colorsAndType` is the one
- *  spelling a v3 file is read by. */
+/**
+ * v1 and v2 spelled the embedded layer `theme` — v1 as a file name, v2 by
+ * value. `colorsAndType` is the spelling a v3 (or later) file already carries.
+ *
+ * Landmine (Wave 2, docs/plans/theme-completeness.md): the caller must gate
+ * this on the *input's* version being below 3, never on it being below the
+ * current version. A v3 file already has `colorsAndType`, and rerunning this
+ * against it destructures `{ theme, ...rest }` with `theme` absent, then
+ * overwrites the real `colorsAndType` with `undefined`. Gating on "below
+ * current" made every v3 file "migrated" the moment `THEME_SCHEMA_VERSION`
+ * bumped past 3, which would have silently replaced every consumer theme's
+ * palette with the default on the next boot.
+ */
 function migrateEmbeddedKey(src: Json): Json {
   const { theme, ...rest } = src;
   return { ...rest, colorsAndType: theme };
@@ -164,7 +197,8 @@ export function normalizeTheme(
 ): NormalizedTheme {
   const input = asObject(raw) ?? {};
   const migrated = input.schemaVersion !== THEME_SCHEMA_VERSION;
-  const src = migrated ? migrateEmbeddedKey(input) : input;
+  const inputVersion = typeof input.schemaVersion === 'number' ? input.schemaVersion : 0;
+  const src = inputVersion < 3 ? migrateEmbeddedKey(input) : input;
   const componentSchemaVersion =
     typeof input.componentSchemaVersion === 'number' ? input.componentSchemaVersion : 0;
   const dropped: string[] = [];
@@ -203,6 +237,41 @@ export function normalizeTheme(
     componentConfigs[comp] = migrateEmbeddedComponentConfig(comp, resolvedConfig, componentSchemaVersion);
   }
 
+  // Completeness fill (Wave 2, docs/plans/theme-completeness.md), after
+  // migration (RJC 6): every component this install has, and every alias key
+  // its default declares, ends up in the theme by value. Reads
+  // `readComponentConfig(comp, 'default')` — the derivation product of
+  // `:global(:root)` — never the Default theme, which `normalizeTheme` runs
+  // ahead of at boot (RJC 11). Never deletes: a component absent from
+  // `listComponentNames()` (this install does not have it) or an alias key
+  // absent from the current default (an orphan, RJC 3) is left exactly as the
+  // input carried it.
+  const filled: NormalizedTheme['filled'] = { components: [], aliases: 0, orphans: 0 };
+  for (const comp of resolvers.listComponentNames()) {
+    const base = asObject(resolvers.readComponentConfig(comp, 'default'));
+    const baseAliases = base ? (asObject(base.aliases) as Record<string, AliasDiskValue> | null) : null;
+    if (!base || !baseAliases) continue; // no derived default to fill this component from
+
+    const entry = componentConfigs[comp];
+    if (!entry) {
+      const { schemaVersion: _standaloneStamp, ...rest } = stripFileMarker(base);
+      componentConfigs[comp] = structuredClone(rest);
+      filled.components.push(comp);
+      continue;
+    }
+
+    const entryAliases = (asObject(entry.aliases) as Record<string, AliasDiskValue> | null) ?? {};
+    for (const key of Object.keys(baseAliases)) {
+      if (key in entryAliases) continue;
+      entryAliases[key] = structuredClone(baseAliases[key]);
+      filled.aliases++;
+    }
+    entry.aliases = entryAliases;
+    for (const key of Object.keys(entryAliases)) {
+      if (!(key in baseAliases)) filled.orphans++;
+    }
+  }
+
   return {
     theme: {
       name: asString(src.name, 'Untitled'),
@@ -215,5 +284,6 @@ export function normalizeTheme(
     },
     dropped,
     migrated,
+    filled,
   };
 }

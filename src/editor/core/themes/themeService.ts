@@ -6,6 +6,7 @@ import { listComponents, getActiveComponentConfig } from '../components/componen
 import { getActiveColorsAndType } from './colorsAndTypeService';
 import { broadcastAppliedTheme, hydrateAppliedTheme } from './themeDocumentSync';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from './migrations';
+import { THEME_SCHEMA_VERSION } from '../../../../vite-plugin/themes/normalizeTheme';
 
 /**
  * REST client for theme files, the documents of the editor. A theme carries a
@@ -167,7 +168,7 @@ export async function saveAsTheme(
     name: displayName,
     createdAt: now,
     updatedAt: now,
-    schemaVersion: 3,
+    schemaVersion: THEME_SCHEMA_VERSION,
     componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
     ...look,
   });
@@ -190,7 +191,7 @@ export async function saveActiveTheme(displayName?: string): Promise<void> {
     name: displayName ?? active.name,
     createdAt: active.createdAt,
     updatedAt: new Date().toISOString(),
-    schemaVersion: 3,
+    schemaVersion: THEME_SCHEMA_VERSION,
     componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
     ...look,
   });

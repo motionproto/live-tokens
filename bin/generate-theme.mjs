@@ -21,7 +21,9 @@ import { fileURLToPath } from 'node:url';
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ENGINE = resolve(pkgRoot, 'dist-plugin/generateColorsAndType/index.js');
 const packageDataDir = join(pkgRoot, 'src/live-tokens/data');
-const THEME_SCHEMA_VERSION = 3;
+// Source of truth: vite-plugin/themes/normalizeTheme.ts. This copy cannot
+// import TS, so `check:preset-themes` (Wave 5) is what catches a drift.
+const THEME_SCHEMA_VERSION = 4;
 
 async function loadEngine() {
   if (!existsSync(ENGINE)) {

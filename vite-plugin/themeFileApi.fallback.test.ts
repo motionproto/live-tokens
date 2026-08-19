@@ -12,6 +12,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { themeFileApi } from './themeFileApi';
+import { THEME_SCHEMA_VERSION } from './themes/normalizeTheme';
 
 const API = '/api/live-tokens';
 const REPO_ROOT = process.cwd();
@@ -100,7 +101,7 @@ describe('package-default fallback on a fresh consumer', () => {
     const theme = JSON.parse(
       fs.readFileSync(path.join(themesDir, 'default.json'), 'utf-8'),
     );
-    expect(theme.schemaVersion).toBe(3);
+    expect(theme.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(Object.keys(theme.colorsAndType.editorConfigs).length).toBeGreaterThan(0);
     expect(Object.keys(theme.componentConfigs).length).toBeGreaterThan(0);
   });
@@ -331,12 +332,16 @@ describe('a package-shipped theme on a fresh consumer', () => {
     expect(json.files.map((f: any) => f.fileName)).toContain('default');
   });
 
-  it('GET :name serves the shipped theme as-is', async () => {
+  it('GET :name serves the shipped theme, filled with the local default', async () => {
     const { status, json } = await request('GET', `${API}/themes/${FIXTURE}`);
     expect(status).toBe(200);
-    expect(json.schemaVersion).toBe(3);
+    expect(json.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(json.colorsAndType.name).toBe('Package Fixture Theme');
-    expect(json.componentConfigs.button.aliases).toEqual({ '--button-radius': '99px' });
+    // `--button-radius` isn't a real button alias, so the completeness fill
+    // (Wave 2, docs/plans/theme-completeness.md) keeps it as an orphan (RJC 3)
+    // rather than dropping it, while still filling in every real one.
+    expect(json.componentConfigs.button.aliases['--button-radius']).toBe('99px');
+    expect(json.componentConfigs.button.aliases['--button-primary-radius']).toBeDefined();
   });
 
   it('apply points at the shipped copy without creating local buffers', async () => {

@@ -32,7 +32,9 @@ const ENGINE_SOURCES = [
   'src/editor/core/components/aliasKinds.ts',
 ].map((p) => join(ROOT, p));
 
-const THEME_SCHEMA_VERSION = 3;
+// Source of truth: vite-plugin/themes/normalizeTheme.ts. This copy cannot
+// import TS, so `check:preset-themes` (Wave 5) is what catches a drift.
+const THEME_SCHEMA_VERSION = 4;
 
 /** Shape personality per preset, from the plan's addendum 2 table. Global ops
  *  come first and targeted `set` ops last, so a targeted corner wins over the

@@ -32,6 +32,7 @@ import {
   planLegacyRenames,
   type LegacyRename,
 } from '../files/legacyLayout';
+import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../src/editor/core/themes/migrations';
 
 /** Slug for the theme that records a production state no saved theme matches.
  *  Fixed rather than derived: release notes, the boot warning and support
@@ -280,6 +281,7 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
   const resolvers: ThemeResolvers = {
     readColorsAndType: (name) => colorsRes.readJson(name),
     readComponentConfig: (comp, name) => compRes(comp).readJson(name),
+    listComponentNames: () => comps,
     normalizeColorsAndType: (colorsAndType) => colorsAndType,
   };
 
@@ -398,6 +400,10 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
         schemaVersion: THEME_SCHEMA_VERSION,
         colorsAndType: isObject(prodColors) ? stripMarkers(prodColors) : null,
         componentConfigs,
+        // The configs above are what boot just wrote (`prodConfigs`, read off
+        // the pointed files), at the current component schema — not 0, which
+        // would misdescribe them as unmigrated.
+        componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
       };
       const slug = nextAvailableName((n) => themesRes.existingPath(n) !== null, RECOVERED_SLUG);
       recoveredThemePath = themesRes.filePath(slug);
