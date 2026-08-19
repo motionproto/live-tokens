@@ -122,19 +122,21 @@
   function setLightnessCurve(a: CurveAnchor[]) { edit('lightnessCurve', a); }
   function setSaturationCurve(a: CurveAnchor[]) { edit('saturationCurve', a); }
 
-  // First edit materializes the field (RJC 5) and, in the same mutation, pins
-  // the base anchor's hue delta to zero before the edit lands — Wave 3's
-  // idempotency guarantee is what makes re-running syncBaseAnchor here safe
-  // without disturbing the lightness/saturation anchors it already placed.
+  // First edit materializes the field (RJC 5) with `a` — the curve the UI
+  // actually rendered and edited — written in BEFORE syncBaseAnchor runs, not
+  // after: syncBaseAnchor pins the anchor by inserting a y=0 point into
+  // whatever `cfg.hueCurve` currently holds, so calling it against the
+  // about-to-be-discarded flat default and then overwriting with `a` would
+  // throw the pin away. Wave 3's idempotency guarantee is what makes
+  // re-running syncBaseAnchor here safe without disturbing the
+  // lightness/saturation anchors it already placed.
   function setHueCurve(a: CurveAnchor[]) {
     mutate(`${label}: hueCurve`, (s) => {
       if (!s.palettes[label]) s.palettes[label] = seedConfig();
       const cfg = s.palettes[label];
-      if (cfg.hueCurve === undefined) {
-        cfg.hueCurve = DEFAULT_PALETTE_HUE();
-        syncBaseAnchor(cfg);
-      }
+      const materializing = cfg.hueCurve === undefined;
       cfg.hueCurve = a;
+      if (materializing) syncBaseAnchor(cfg);
     });
   }
 

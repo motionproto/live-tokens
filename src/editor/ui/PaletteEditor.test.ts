@@ -16,8 +16,7 @@ import {
 import type { PaletteConfig } from '../core/themes/themeTypes';
 import { hexToOklch as c } from '../core/palettes/oklch';
 import { mount, unmount, flushSync } from "svelte";
-import { defaultPaletteConfig, DEFAULT_PALETTE_LIGHTNESS, DEFAULT_PALETTE_HUE, stepIndexToX } from './palette/paletteMath';
-import { sampleCurve } from './curveEngine';
+import { defaultPaletteConfig, DEFAULT_PALETTE_HUE, computePaletteOklch } from './palette/paletteMath';
 
 function makePaletteConfig(baseColor: string): PaletteConfig {
   return {
@@ -149,12 +148,15 @@ describe('PaletteEditor — hue curve section', () => {
     cleanup();
   });
 
-  it('materializes the hue field on first edit, leaving the anchored swatch unchanged', () => {
-    // Anchored at the step whose x is 50, where the "Ramp up" template crosses
-    // zero, so a verbatim swatch after the edit isn't a degenerate flat-curve case.
-    const midL = sampleCurve(DEFAULT_PALETTE_LIGHTNESS(), stepIndexToX(5)) / 100;
-    const config = defaultPaletteConfig({ baseColor: { l: midL, c: 0.1, h: 210 } });
-    expect(config.anchorPlacement?.step).toBe(5);
+  it('materializes the hue field on first edit, pinning the anchor step to base.h exactly', () => {
+    // Anchored at step 0 (x=0), deliberately NOT x=50: the ±30 axis is
+    // symmetric, so at x=50 every template's zero-crossing makes a verbatim
+    // swatch look right even with the pin discarded. x=0 coincides with one
+    // of "Ramp up"'s own anchors (y=-24), so this only reads as unchanged if
+    // syncBaseAnchor actually overwrote that anchor's y to 0 in the curve
+    // that got saved — not in a materialized-then-discarded scratch copy.
+    const config = defaultPaletteConfig({ baseColor: { l: 0.95, c: 0.1, h: 210 } });
+    expect(config.anchorPlacement?.step).toBe(0);
     setPaletteConfig('Canvas', config);
     mountEditor('Canvas');
 
@@ -164,13 +166,20 @@ describe('PaletteEditor — hue curve section', () => {
     flushSync();
 
     expect(get(editorState).palettes.Canvas.hueCurve).toBeUndefined();
-    const before = anchoredHex();
 
     curveSection('Hue ±30°').querySelector<HTMLButtonElement>('.curve-template-btn[title="Ramp up"]')!.click();
     flushSync();
 
-    expect(get(editorState).palettes.Canvas.hueCurve).toBeDefined();
-    expect(anchoredHex()).toBe(before);
+    const saved = get(editorState).palettes.Canvas;
+    expect(saved.hueCurve).toBeDefined();
+    // x=0 is an endpoint, so sampleCurve takes the exact fast path (no
+    // bisection): the pinned delta is bit-for-bit 0, and computePaletteOklch's
+    // zero-delta guard returns base.h untouched — a real `toBe`, not `toBeCloseTo`.
+    const anchoredOklch = computePaletteOklch(0, saved.baseColor, saved.lightnessCurve, saved.saturationCurve, saved.curveOffset, saved.hueCurve);
+    expect(anchoredOklch.h).toBe(saved.baseColor.h);
+    // lockedHueIdx found the pinned anchor and BezierCurveEditor drew it locked,
+    // rather than as a plain draggable point a user could pull off zero.
+    expect(curveSection('Hue ±30°').querySelector('.curve-handle.locked')).toBeTruthy();
 
     cleanup();
   });
