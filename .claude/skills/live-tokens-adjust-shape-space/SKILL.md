@@ -56,7 +56,9 @@ Magnitude words: "slightly" or "a bit" is 1 step, unqualified is 1 to 2, "much",
 
 Radius runs `none, sm, md, lg, xl, 2xl, 3xl, 4xl`, with `full` as the gated ninth rung. Space (padding and gap) is the editor picker's subset: `0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 48`, so every written value stays re-editable by hand. Border width is the full `--border-width-*` scale. `set` values must be on the ladder (`--space-64` is rejected).
 
-A shift lands only on `4` and above. `--space-0` and `--space-2` read as flush or cramped on almost anything, so they are destinations a person picks on purpose, not ones a relative "tighter" hands you. Both stay available through the editor picker and through `set`. A component already sitting below the floor still moves up, and a shift that would push it under `--space-4` reports as clamped and writes nothing.
+Content insets stop at `--space-4`. Below it the text sits against its own edge, so `--space-0` and `--space-2` are destinations a person picks on purpose, not ones a relative "tighter" hands you. Both stay available through the editor picker and through `set`. An alias already below the floor still moves up, and a shift that would push one under `--space-4` reports as clamped and writes nothing.
+
+The floor guards `-padding` only. Outer space is exempt, because a 2px gap between an icon and its label, or a 2px margin under a bar, is ordinary design rather than a mistake. Note that `-margin` rides the `padding` kind, so a padding op moves margins too; it just does not floor them.
 
 An alias sitting off the subset spends its first step reaching the rung the shift points at, so `--space-2` with `shift: 1` lands on `--space-4` rather than jumping past it.
 

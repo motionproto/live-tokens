@@ -1,7 +1,7 @@
 {
   "name": "Autumn",
   "createdAt": "2026-08-13T10:21:46.867Z",
-  "updatedAt": "2026-08-14T23:53:22.549Z",
+  "updatedAt": "2026-08-19T17:49:15.417Z",
   "schemaVersion": 3,
   "colorsAndType": {
     "name": "Autumn",
@@ -2498,7 +2498,7 @@
       "name": "autumn",
       "component": "badge",
       "createdAt": "2026-05-01T08:28:00.345Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--badge-primary-surface": "--surface-brand",
         "--badge-primary-text": "--text-brand",
@@ -2636,7 +2636,7 @@
       "name": "autumn",
       "component": "button",
       "createdAt": "2026-05-10T19:28:06.893Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--button-primary-surface": "--surface-brand-high",
         "--button-primary-text": "--text-primary",
@@ -2752,7 +2752,7 @@
       "name": "autumn",
       "component": "callout",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--callout-info-surface": "--surface-info-lowest",
         "--callout-info-border": "--border-info-medium",
@@ -2824,7 +2824,7 @@
       "name": "autumn",
       "component": "card",
       "createdAt": "2026-05-10T19:26:31.704Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--card-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent)",
         "--card-default-border": "--border-neutral",
@@ -2865,7 +2865,7 @@
       "name": "autumn",
       "component": "codesnippet",
       "createdAt": "2026-05-27T13:22:54.228Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--codesnippet-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 76%, transparent)",
         "--codesnippet-border": "--border-neutral",
@@ -2889,7 +2889,7 @@
       "name": "autumn",
       "component": "collapsiblesection",
       "createdAt": "2026-05-10T20:40:17.048Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--collapsiblesection-chromeless-default-surface": "--color-transparent",
         "--collapsiblesection-chromeless-default-padding": "--space-8",
@@ -2962,7 +2962,7 @@
       "name": "autumn",
       "component": "cornerbadge",
       "createdAt": "2026-05-12T15:31:06.313Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--corner-badge-margin": "--space-4",
         "--corner-badge-outer-radius": "--radius-md",
@@ -3010,7 +3010,7 @@
       "name": "autumn",
       "component": "dialog",
       "createdAt": "2026-05-10T20:05:24.719Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--dialog-overlay-surface": "--overlay-high",
         "--dialog-surface": "--surface-neutral-lowest",
@@ -3045,7 +3045,7 @@
       "name": "autumn",
       "component": "iconbutton",
       "createdAt": "2026-06-14T00:00:00.000Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--iconbutton-primary-surface": "--surface-brand-high",
         "--iconbutton-primary-icon": "--text-primary",
@@ -3134,7 +3134,7 @@
       "name": "autumn",
       "component": "image",
       "createdAt": "2026-04-26T00:00:00.000Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--image-default-radius": "--radius-4xl",
         "--image-default-border": "--border-neutral",
@@ -3147,7 +3147,7 @@
       "name": "autumn",
       "component": "imagelightbox",
       "createdAt": "2026-05-26T02:03:38.863Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--imagelightbox-tile-radius": "--radius-4xl",
         "--imagelightbox-tile-border": "--color-transparent",
@@ -3166,7 +3166,7 @@
       "name": "autumn",
       "component": "inlineeditactions",
       "createdAt": "2026-05-01T08:34:39.325Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--inlineeditactions-save-default-surface": "--surface-success-low",
         "--inlineeditactions-save-default-text": "--text-success",
@@ -3202,7 +3202,7 @@
       "name": "autumn",
       "component": "input",
       "createdAt": "2026-05-24T14:28:03.860Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--input-radius": "--radius-xl",
         "--input-padding": "--space-12",
@@ -3260,7 +3260,7 @@
       "name": "autumn",
       "component": "menuselect",
       "createdAt": "2026-05-16T00:00:00.000Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--menuselect-menu-surface": "color-mix(in srgb, var(--surface-neutral-lower) 85%, transparent)",
         "--menuselect-menu-border": "--border-neutral-medium",
@@ -3310,7 +3310,7 @@
       "name": "autumn",
       "component": "notification",
       "createdAt": "2026-04-18T02:43:11.330Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--notification-info-surface": "--surface-info",
         "--notification-info-action-surface": "--surface-neutral-lowest",
@@ -3390,7 +3390,7 @@
       "name": "autumn",
       "component": "panel",
       "createdAt": "2026-06-01T09:34:52.417Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--panel-frame-border": "--border-neutral",
         "--panel-frame-border-width": "--border-width-1",
@@ -3423,7 +3423,7 @@
       "name": "autumn",
       "component": "progressbar",
       "createdAt": "2026-05-10T20:42:26.726Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--progressbar-track-surface": "--surface-neutral-lowest",
         "--progressbar-track-border": "--border-neutral-subtle",
@@ -3448,7 +3448,7 @@
       "name": "autumn",
       "component": "sectiondivider",
       "createdAt": "2026-05-10T22:09:00.336Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--sectiondivider-lg-title-font-family": "--font-display",
         "--sectiondivider-lg-title-font-weight": "--font-weight-bold",
@@ -3464,10 +3464,10 @@
         "--sectiondivider-lg-eyebrow-font-weight": "--font-weight-medium",
         "--sectiondivider-lg-eyebrow-font-size": "--font-size-md",
         "--sectiondivider-lg-eyebrow-letter-spacing": "--letter-spacing-normal",
-        "--sectiondivider-lg-padding": "--space-4",
+        "--sectiondivider-lg-padding": "--space-6",
         "--sectiondivider-lg-title-padding": "--space-6",
-        "--sectiondivider-lg-description-padding": "--space-4",
-        "--sectiondivider-lg-eyebrow-padding": "--space-4",
+        "--sectiondivider-lg-description-padding": "--space-6",
+        "--sectiondivider-lg-eyebrow-padding": "--space-6",
         "--sectiondivider-lg-radius": "--radius-2xl",
         "--sectiondivider-lg-border-width": "--border-width-1",
         "--sectiondivider-lg-shadow": "--shadow-none",
@@ -3493,10 +3493,10 @@
         "--sectiondivider-md-eyebrow-font-weight": "--font-weight-medium",
         "--sectiondivider-md-eyebrow-font-size": "--font-size-sm",
         "--sectiondivider-md-eyebrow-letter-spacing": "--letter-spacing-normal",
-        "--sectiondivider-md-padding": "--space-4",
+        "--sectiondivider-md-padding": "--space-6",
         "--sectiondivider-md-title-padding": "--space-6",
-        "--sectiondivider-md-description-padding": "--space-4",
-        "--sectiondivider-md-eyebrow-padding": "--space-4",
+        "--sectiondivider-md-description-padding": "--space-6",
+        "--sectiondivider-md-eyebrow-padding": "--space-6",
         "--sectiondivider-md-radius": "--radius-2xl",
         "--sectiondivider-md-border-width": "--border-width-1",
         "--sectiondivider-md-shadow": "--shadow-none",
@@ -3522,10 +3522,10 @@
         "--sectiondivider-sm-eyebrow-font-weight": "--font-weight-medium",
         "--sectiondivider-sm-eyebrow-font-size": "--font-size-xs",
         "--sectiondivider-sm-eyebrow-letter-spacing": "--letter-spacing-normal",
-        "--sectiondivider-sm-padding": "--space-4",
+        "--sectiondivider-sm-padding": "--space-6",
         "--sectiondivider-sm-title-padding": "--space-6",
-        "--sectiondivider-sm-description-padding": "--space-4",
-        "--sectiondivider-sm-eyebrow-padding": "--space-4",
+        "--sectiondivider-sm-description-padding": "--space-6",
+        "--sectiondivider-sm-eyebrow-padding": "--space-6",
         "--sectiondivider-sm-radius": "--radius-2xl",
         "--sectiondivider-sm-border-width": "--border-width-1",
         "--sectiondivider-sm-shadow": "--shadow-none",
@@ -3543,7 +3543,7 @@
       "name": "autumn",
       "component": "segmentedcontrol",
       "createdAt": "2026-04-28T21:13:17.669Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--segmentedcontrol-bar-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent)",
         "--segmentedcontrol-bar-border": "--border-neutral",
@@ -3603,7 +3603,7 @@
       "name": "autumn",
       "component": "sidenavigation",
       "createdAt": "2026-05-25T19:34:09.771Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--sidenavigation-panel-surface": "--surface-canvas-lower",
         "--sidenavigation-panel-border": "--border-canvas-faint",
@@ -3763,12 +3763,12 @@
       "name": "autumn",
       "component": "tabbar",
       "createdAt": "2026-05-12T01:57:26.390Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--tabbar-bar-divider": "--border-neutral-subtle",
         "--tabbar-bar-divider-thickness": "--border-width-1",
         "--tabbar-bar-top-margin": "--space-4",
-        "--tabbar-bar-bottom-padding": "--space-4",
+        "--tabbar-bar-bottom-padding": "--space-6",
         "--tabbar-bar-bottom-margin": "--space-4",
         "--tabbar-tab-gap": "--space-4",
         "--tabbar-default-text": "--text-tertiary",
@@ -3833,7 +3833,7 @@
       "name": "autumn",
       "component": "table",
       "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--table-default-radius": "--radius-xl",
         "--table-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 57%, transparent)",
@@ -3867,7 +3867,7 @@
       "name": "autumn",
       "component": "toggle",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--toggle-track-surface": "--surface-neutral",
         "--toggle-track-border": "--border-neutral",
@@ -3899,7 +3899,7 @@
       "name": "autumn",
       "component": "tooltip",
       "createdAt": "2026-04-18T02:43:11.333Z",
-      "updatedAt": "2026-08-14T23:53:22.549Z",
+      "updatedAt": "2026-08-19T17:49:15.417Z",
       "aliases": {
         "--tooltip-surface": "color-mix(in srgb, var(--surface-canvas-lowest) 75%, transparent)",
         "--tooltip-text": "--text-primary",

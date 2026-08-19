@@ -64,10 +64,15 @@ const MATCHER_BY_KIND = Object.fromEntries(
 
 const SIDE_SUFFIXES = ['-top', '-right', '-bottom', '-left'];
 
+/** Drops a per-side suffix so callers can test the parent name. */
+export function stripSide(variable: string): string {
+  const side = SIDE_SUFFIXES.find((s) => variable.endsWith(s));
+  return side ? variable.slice(0, -side.length) : variable;
+}
+
 /** Side-aware kind test. Per-side paddings (`--card-default-body-padding-top`)
     are written by UIPaddingSelector and never declared as editor tokens, so
     `rawKind` never meets one; the CLI does, and they belong with their parent. */
 export function matchesKind(variable: string, kind: TokenKind): boolean {
-  const side = SIDE_SUFFIXES.find((s) => variable.endsWith(s));
-  return MATCHER_BY_KIND[kind](side ? variable.slice(0, -side.length) : variable);
+  return MATCHER_BY_KIND[kind](stripSide(variable));
 }

@@ -24,6 +24,8 @@ function fixture(): Record<string, ComponentConfig> {
       '--card-default-header-padding-top': '--space-16',
       '--card-default-gap': '--space-0',
       '--card-tight-padding': '--space-2',
+      '--card-tight-gap': '--space-2',
+      '--card-tight-margin': '--space-2',
       '--card-hero-padding': '--space-40',
       '--card-hero-radius': 'clamp(4px, 1vw, 12px)',
       '--card-media-padding': '--space-full',
@@ -114,6 +116,19 @@ describe('adjustAliases', () => {
     expect(configs.card.aliases['--card-default-header-padding']).toBe('--space-4');
     expect(configs.card.aliases['--card-tight-padding']).toBe('--space-2');
     expect(skipReason(report, 'card', '--card-tight-padding')).toBe('clamped');
+  });
+
+  it('leaves gaps free to go tighter than the inset floor', () => {
+    const { configs } = adjustAliases(fixture(), [{ kind: 'gap', shift: -1 }], NOW);
+
+    expect(configs.card.aliases['--card-tight-gap']).toBe('--space-0');
+  });
+
+  it('leaves margins free to go tighter, though they shift with padding', () => {
+    const { configs } = adjustAliases(fixture(), [{ kind: 'padding', shift: -1 }], NOW);
+
+    expect(configs.card.aliases['--card-tight-margin']).toBe('--space-0');
+    expect(configs.card.aliases['--card-tight-padding']).toBe('--space-2');
   });
 
   it('still sets a below-floor padding by name', () => {

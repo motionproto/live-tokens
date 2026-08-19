@@ -4,12 +4,13 @@
 
 ### Changed
 
-- **Padding and gap shifts stop at `--space-4`.** `--space-0` and `--space-2`
-  read as flush or cramped on almost anything, so a relative "tighter" no
-  longer deposits a component on either one. Both stay available in the editor
-  picker and through an explicit `set` op, which is where that call belongs. A
-  shift that would push an alias under the floor now reports as clamped and
-  writes nothing.
+- **Content insets stop at `--space-4`.** Below it the text sits against its
+  own edge, so a relative "tighter" no longer deposits a `-padding` alias on
+  `--space-0` or `--space-2`. Both stay available in the editor picker and
+  through an explicit `set` op, which is where that call belongs. A shift that
+  would push an alias under the floor reports as clamped and writes nothing.
+  Outer space is exempt: a 2px gap between an icon and its label, or a 2px
+  margin under a bar, is ordinary design.
 
 - **An off-ladder value spends its first step reaching the ladder.** Shifting
   such a value used to snap it to the nearest rung and then apply the full

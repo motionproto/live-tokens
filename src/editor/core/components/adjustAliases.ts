@@ -1,4 +1,4 @@
-import { matchesKind } from './aliasKinds';
+import { matchesKind, stripSide } from './aliasKinds';
 import type { AliasDiskValue, ComponentConfig } from '../themes/themeTypes';
 
 export type AdjustKind = 'radius' | 'padding' | 'gap' | 'border-width';
@@ -57,10 +57,14 @@ const SPACE_SETTABLE = [
   '--space-12', '--space-16', '--space-20', '--space-24', '--space-32', '--space-48',
 ];
 
-/** Shifts stop at `--space-4`. Below it a component reads as cramped or flush,
-    which is a deliberate choice rather than somewhere a relative "tighter"
-    should deposit you. Both rungs stay pickable by hand and settable by name. */
-const SPACE_RUNGS = SPACE_SETTABLE.slice(SPACE_SETTABLE.indexOf('--space-4'));
+const SPACE_RUNGS = SPACE_SETTABLE;
+
+/** Content insets stop at `--space-4`. Below it the text sits against its own
+    edge, which is a deliberate choice rather than somewhere a relative
+    "tighter" should deposit you. Outer space is exempt: a 2px gap between an
+    icon and its label, or a 2px margin under a bar, is ordinary design. Both
+    rungs stay pickable by hand and settable by name. */
+const INSET_RUNGS = SPACE_SETTABLE.slice(SPACE_SETTABLE.indexOf('--space-4'));
 
 const SPACE_FAMILY = [...SPACE_SETTABLE, '--space-40', '--space-64', '--space-96', '--space-128'];
 
@@ -90,8 +94,12 @@ const TOKEN_NAME = /^--[a-z0-9-]+$/;
 
 type Outcome = { from: string; to: string } | { skip: SkipReason };
 
-function rungsFor(op: AdjustOp): string[] {
-  return op.kind === 'radius' && op.full ? [...RADIUS_RUNGS, RADIUS_FULL] : LADDERS[op.kind].rungs;
+/** `-margin` shares the padding kind, so the inset floor keys off the variable
+    rather than the kind. */
+function rungsFor(op: AdjustOp, variable: string): string[] {
+  if (op.kind === 'radius') return op.full ? [...RADIUS_RUNGS, RADIUS_FULL] : RADIUS_RUNGS;
+  if (op.kind === 'padding' && stripSide(variable).endsWith('-padding')) return INSET_RUNGS;
+  return LADDERS[op.kind].rungs;
 }
 
 function spaceStep(token: string): number {
@@ -111,12 +119,12 @@ function snapRung(token: string, rungs: string[], direction: number): number {
   return -1;
 }
 
-function resolve(op: AdjustOp, value: AliasDiskValue): Outcome {
+function resolve(op: AdjustOp, variable: string, value: AliasDiskValue): Outcome {
   if (typeof value !== 'string' || !TOKEN_NAME.test(value)) return { skip: 'raw-value' };
   if (!LADDERS[op.kind].family.includes(value)) return { skip: 'off-ladder' };
   if (op.set !== undefined) return { from: value, to: op.set };
 
-  const rungs = rungsFor(op);
+  const rungs = rungsFor(op, variable);
   let index = rungs.indexOf(value);
   let shift = op.shift!;
   if (index < 0) {
@@ -180,7 +188,7 @@ export function adjustAliases(
 
       for (const [variable, value] of Object.entries(config.aliases)) {
         if (!matchesKind(variable, op.kind)) continue;
-        const outcome = resolve(op, value);
+        const outcome = resolve(op, variable, value);
         if ('skip' in outcome) {
           reportFor(component).skips.push({ variable, value, reason: outcome.skip });
           continue;
