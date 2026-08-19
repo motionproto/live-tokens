@@ -4,7 +4,8 @@
   import {
     type CurveAnchor, type CurveConfig,
     CURVE_H, CURVE_PAD_Y, CURVE_Y_PAD,
-    isCornerAnchor, tangentAnchor, resmoothAnchor, curveXToSvg, curveYToSvg, svgToX, svgToY,
+    isCornerAnchor, isAutoSmoothCurve, tangentAnchor, resmoothAnchor, resmoothAutoCurve,
+    curveXToSvg, curveYToSvg, svgToX, svgToY,
     evalBezier, buildCurvePath, curveTemplates,
     serializeCurve, deserializeCurve, clampAnchorsToRange,
   } from './curveEngine';
@@ -17,8 +18,10 @@
     offset?: number;
     defaultAnchors?: CurveAnchor[] | null;
     lockedAnchorIndex?: number | null;
+    autoSmooth?: boolean;
     onAnchorsChange?: (anchors: CurveAnchor[]) => void;
     onOffsetChange?: (offset: number) => void;
+    onAutoSmoothChange?: (autoSmooth: boolean) => void;
     onLockedAnchorUnlock?: (() => void) | null;
   }
 
@@ -29,15 +32,33 @@
     offset = 0,
     defaultAnchors = null,
     lockedAnchorIndex = null,
+    autoSmooth = true,
     onAnchorsChange = () => {},
     onOffsetChange = () => {},
+    onAutoSmoothChange = () => {},
     onLockedAnchorUnlock = null
   }: Props = $props();
 
+  /** Every mutation the editor makes to anchor positions runs through here, so
+   *  while auto smoothing is on the stored handles always equal the derived
+   *  ones. That is what makes switching it off leave the shape untouched. */
+  function commit(updated: CurveAnchor[]) {
+    onAnchorsChange(autoSmooth ? resmoothAutoCurve(updated) : updated);
+  }
+
+  function setAutoSmooth(on: boolean) {
+    onAutoSmoothChange(on);
+    // Switching off is a no-op on the shape; switching on discards hand-dragged handles.
+    if (on) onAnchorsChange(resmoothAutoCurve(anchors));
+  }
+
   function resetToDefault() {
     if (!defaultAnchors) return;
+    // The default is a shape in its own right, so it lands verbatim rather than
+    // through `commit`, and auto smoothing follows whatever that shape already is.
     onAnchorsChange(defaultAnchors.map(a => ({ ...a })));
     onOffsetChange(0);
+    onAutoSmoothChange(isAutoSmoothCurve(defaultAnchors));
   }
 
   const CURVE_W_DEFAULT = 720;
@@ -131,19 +152,21 @@
         updated = resmoothAnchor(updated, lockedAnchorIndex);
       }
     } else if (kind === 'handleOut') {
+      if (autoSmooth) onAutoSmoothChange(false);
       const a = updated[idx];
       const dx = newX - a.x, dy = newY - a.y;
       updated[idx] = breakHandle
         ? { ...a, outDx: dx, outDy: dy }
         : { ...a, outDx: dx, outDy: dy, inDx: -dx, inDy: -dy };
     } else {
+      if (autoSmooth) onAutoSmoothChange(false);
       const a = updated[idx];
       const dx = newX - a.x, dy = newY - a.y;
       updated[idx] = breakHandle
         ? { ...a, inDx: dx, inDy: dy }
         : { ...a, inDx: dx, inDy: dy, outDx: -dx, outDy: -dy };
     }
-    onAnchorsChange(updated);
+    if (kind === 'anchor') commit(updated); else onAnchorsChange(updated);
   }
 
   function handlePointerUp() {
@@ -191,7 +214,7 @@
       x: Math.round(mx), y: Math.round(my),
       inDx: r0x - mx, inDy: r0y - my, outDx: r1x - mx, outDy: r1y - my,
     });
-    onAnchorsChange(updated);
+    commit(updated);
   }
 
   function toggleAnchorSmooth(index: number) {
@@ -202,16 +225,16 @@
     } else {
       updated[index] = { ...a, inDx: 0, inDy: 0, outDx: 0, outDy: 0 };
     }
-    onAnchorsChange(updated);
+    commit(updated);
   }
 
   function removePoint(index: number) {
     if (anchors.length <= 2) return;
-    onAnchorsChange(anchors.filter((_, i) => i !== index));
+    commit(anchors.filter((_, i) => i !== index));
   }
 
   function applyTemplate(tpl: typeof curveTemplates[0]) {
-    onAnchorsChange(tpl.anchors(cfg));
+    commit(tpl.anchors(cfg));
   }
 
   // --- Shift (vertical offset) drag ---
@@ -245,7 +268,7 @@
 
   async function copyToClipboard() {
     try {
-      await navigator.clipboard.writeText(serializeCurve(anchors, offset));
+      await navigator.clipboard.writeText(serializeCurve(anchors, offset, autoSmooth));
     } catch {
       // clipboard write failed silently
     }
@@ -256,8 +279,12 @@
       const text = await navigator.clipboard.readText();
       const data = deserializeCurve(text);
       if (!data) return;
-      onAnchorsChange(clampAnchorsToRange(data.anchors.map(a => ({ ...a })), cfg));
+      // Clamping can move an anchor off its own derived tangent, so the pasted
+      // flag only survives a paste the axis left alone.
+      const pasted = clampAnchorsToRange(data.anchors.map(a => ({ ...a })), cfg);
+      onAnchorsChange(pasted);
       onOffsetChange(data.offset);
+      onAutoSmoothChange(data.autoSmooth && isAutoSmoothCurve(pasted));
     } catch {
       // clipboard read failed or permission denied
     }
@@ -274,6 +301,7 @@
         <div><strong>Click</strong> path to add a point</div>
         <div><strong>&#x2325; Click</strong> a point to remove</div>
         <div><strong>Double-click</strong> a point to toggle smooth/corner</div>
+        <div><strong>Drag a handle</strong> to leave auto smooth</div>
       </div>
     </div>
   </div>
@@ -289,6 +317,19 @@
           <path d="M6,2 L10,7 L7,7 L7,13 L10,13 L6,18 L2,13 L5,13 L5,7 L2,7 Z" />
         </svg>
         <span>Offset{offset !== 0 ? ` ${offset > 0 ? '+' : ''}${offset}${cfg.unit ?? ''}` : ''}</span>
+      </UIPillButton>
+      <UIPillButton
+        size="compact"
+        variant={autoSmooth ? 'default' : 'outline'}
+        title={autoSmooth
+          ? 'Tangents follow the points. Drag a handle to take them over.'
+          : 'Handles are held by hand. Turn on to re-derive them from the points.'}
+        onclick={() => setAutoSmooth(!autoSmooth)}
+      >
+        <svg viewBox="0 0 20 12" class="curve-smooth-icon">
+          <path d="M2,10 C6,10 6,2 10,2 C14,2 14,10 18,10" />
+        </svg>
+        <span>Auto smooth</span>
       </UIPillButton>
     </div>
     <svg
@@ -321,9 +362,6 @@
       <!-- Horizontal grid lines -->
       {#each cfg.gridLines as gl}
         <line x1={0} y1={curveYToSvg(gl, cfg)} x2={w} y2={curveYToSvg(gl, cfg)} class="curve-grid" />
-      {/each}
-      {#each cfg.dashedLines as dl}
-        <line x1={0} y1={curveYToSvg(dl, cfg)} x2={w} y2={curveYToSvg(dl, cfg)} class="curve-grid dashed" />
       {/each}
 
       <!-- Curve content group — offset vertically, clipped -->
@@ -473,6 +511,7 @@
     inset: var(--ui-space-8);
     display: flex;
     align-items: flex-end;
+    gap: var(--ui-space-8);
     pointer-events: none;
   }
 
@@ -549,7 +588,7 @@
     width: 100%;
     height: 100%;
     background: transparent;
-    border: 1px solid var(--ui-border-low);
+    border: 1px solid var(--ui-border-high);
     border-radius: var(--ui-radius-sm);
     cursor: crosshair;
     display: block;
@@ -562,20 +601,15 @@
   }
 
   .curve-grid {
-    stroke: var(--ui-border-low);
-    stroke-width: 0.5;
+    stroke: var(--ui-border-high);
+    stroke-width: 1;
     vector-effect: non-scaling-stroke;
-  }
-
-  .curve-grid.dashed {
-    stroke-dasharray: 3 3;
   }
 
   .curve-step-line {
     stroke: var(--ui-border-low);
-    stroke-width: 0.5;
+    stroke-width: 1;
     vector-effect: non-scaling-stroke;
-
   }
 
   .shift-overlay {
@@ -680,6 +714,18 @@
     fill: currentColor;
   }
 
+  .curve-smooth-icon {
+    width: 1rem;
+    height: 0.625rem;
+  }
+
+  .curve-smooth-icon path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+  }
+
   .curve-templates {
     display: flex;
     gap: var(--ui-space-2);
@@ -689,8 +735,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 1.5rem;
-    height: 1rem;
+    width: 2.625rem;
+    height: 1.75rem;
     padding: 0;
     border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
@@ -711,7 +757,7 @@
   .curve-template-icon path {
     fill: none;
     stroke: var(--ui-text-tertiary);
-    stroke-width: 1.5;
+    stroke-width: 1;
     stroke-linecap: round;
     stroke-linejoin: round;
   }

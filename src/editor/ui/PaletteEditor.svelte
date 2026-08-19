@@ -9,6 +9,7 @@
   import ScaleCurveEditor from './palette/ScaleCurveEditor.svelte';
   import PaletteBase from './palette/PaletteBase.svelte';
   import PaletteJumpButton from './palette/PaletteJumpButton.svelte';
+  import Toggle from './Toggle.svelte';
   import { type EditingState, idleState, BASE_KEY, isEditingBase as isBaseEdit } from './palette/paletteEditorState';
   import {
     type Step, type Scale,
@@ -30,6 +31,12 @@
   import { setBaseColor } from './colors/paletteBaseColor';
   import { pendingPaletteFocus } from '../core/store/paletteFocus';
   import { showCopyPopover } from './copyPopover';
+
+  // Full sRGB chroma range (gamutClamp trims per hue/lightness). Neutrals default
+  // low but are not capped; their calm character comes from defaults, not a ceiling.
+  const BASE_CHROMA_MAX = 0.4;
+  // Where a typical neutral's chroma sits, marked on the slider as a soft nudge.
+  const NEUTRAL_CALM_CHROMA = 0.05;
 
   interface Props {
     label: string;
@@ -141,6 +148,10 @@
 
   function handleOffset(key: string, value: number) {
     edit('curveOffset', { ...curveOffset, [key]: value });
+  }
+
+  function handleAutoSmooth(key: string, value: boolean) {
+    edit('curveAutoSmooth', { ...curveAutoSmooth, [key]: value });
   }
 
   let editing: EditingState = $state(idleState);
@@ -429,6 +440,7 @@
   let hueCurve = $derived($editorState.palettes[label]?.hueCurve);
   let scaleCurves = $derived($editorState.palettes[label]?.scaleCurves ?? defaultScaleCurvesObject());
   let curveOffset = $derived($editorState.palettes[label]?.curveOffset ?? { lightness: 0, saturation: 0 });
+  let curveAutoSmooth = $derived($editorState.palettes[label]?.curveAutoSmooth ?? {});
   let overrides = $derived($editorState.palettes[label]?.overrides ?? {});
   let snappedScales = $derived(new Set($editorState.palettes[label]?.snappedScales ?? []));
   let anchorToBase = $derived($editorState.palettes[label]?.anchorToBase ?? true);
@@ -516,22 +528,55 @@
   <PaletteBase
     {label}
     {displayLabel}
-    {neutral}
     {baseColor}
-    {anchorToBase}
     {isEditingBase}
-    {panelOpen}
     pinnedOpen={paletteEditorOpen}
-    {editingColor}
-    {editPanelTitle}
     {copiedKey}
     onStartEdit={startBaseEdit}
-    onConfirm={confirmEdit}
-    onCancel={cancelEdit}
-    onBaseChange={(h, c, l) => setBaseColor(label, { l: l / 100, c, h })}
-    onAnchorToBaseChange={setAnchorToBase}
     onCopyBaseHex={copyHex}
-  />
+  >
+    {#snippet actions()}
+      <PaletteJumpButton family={label} {displayLabel} target="wheel" />
+      <UIPillButton size="compact" variant="outline" onclick={clearPaletteOverrides}>Clear Overrides</UIPillButton>
+      <UIPillButton size="compact" variant="outline" onclick={() => paletteEditorOpen = !paletteEditorOpen}>
+        {paletteEditorOpen ? 'Close' : 'Edit'}
+      </UIPillButton>
+    {/snippet}
+  </PaletteBase>
+
+  {#if paletteEditorOpen || (isEditingBase && panelOpen && editingColor)}
+    <div class="swatch-grid" style="--swatch-cols: {paletteStepLightness.length + 2}">
+      <div class="base-panel" style="grid-column: 2 / {paletteStepLightness.length + 2}">
+        <ColorEditPanel
+          title={isEditingBase ? editPanelTitle : 'Base Color'}
+          showRemoveOverride={false}
+          hideActions={!isEditingBase}
+          hidePreview
+          hue={baseColor.h}
+          chroma={baseColor.c}
+          lightness={baseColor.l * 100}
+          chromaMax={BASE_CHROMA_MAX}
+          chromaHint={neutral ? NEUTRAL_CALM_CHROMA : undefined}
+          onHueChromaChange={(h, c, l) => setBaseColor(label, { l: l / 100, c, h })}
+          onConfirm={confirmEdit}
+          onCancel={cancelEdit}
+          onRemoveOverride={() => {}}
+          onSliderStart={() => beginSliderGesture(`edit ${label} base`)}
+        >
+          {#snippet actions()}
+            <div class="base-anchor-toggle">
+              <Toggle
+                checked={anchorToBase}
+                onchange={(v) => setAnchorToBase(v ?? !anchorToBase)}
+                label="Base color must appear in palette"
+                labelFirst
+              />
+            </div>
+          {/snippet}
+        </ColorEditPanel>
+      </div>
+    </div>
+  {/if}
 
   <!-- Palette + Text row -->
   <div class="scales-row">
@@ -548,11 +593,6 @@
             <span>Gradient</span>
           </label>
         {/if}
-        <PaletteJumpButton family={label} {displayLabel} target="wheel" />
-        <UIPillButton size="compact" variant="outline" onclick={clearPaletteOverrides}>Clear Overrides</UIPillButton>
-        <UIPillButton size="compact" variant="outline" onclick={() => paletteEditorOpen = !paletteEditorOpen}>
-          {paletteEditorOpen ? 'Close' : 'Edit'}
-        </UIPillButton>
       </div>
       <div class="swatch-grid" style="--swatch-cols: {paletteStepLightness.length + 2}">
         <div class="step-column">
@@ -618,12 +658,14 @@
             stepCount={paletteStepLightness.length}
             defaults={DEFAULT_PALETTE_HUE()}
             offset={curveOffset['hue'] ?? 0}
+            autoSmooth={curveAutoSmooth['hue']}
             lockedAnchorIndex={lockedHueIdx}
             open={sectionOpen('hue')}
             onToggleOpen={() => toggleCurveSection('hue')}
             onLockedAnchorUnlock={() => anchorUnlockPrompt = true}
             onAnchorsChange={setHueCurve}
             onOffsetChange={handleOffset}
+            onAutoSmoothChange={handleAutoSmooth}
           />
           <ScaleCurveEditor
             curveKey="saturation"
@@ -632,12 +674,14 @@
             stepCount={paletteStepLightness.length}
             defaults={DEFAULT_PALETTE_SATURATION()}
             offset={curveOffset['saturation'] ?? 0}
+            autoSmooth={curveAutoSmooth['saturation']}
             lockedAnchorIndex={lockedSaturationIdx}
             open={sectionOpen('saturation')}
             onToggleOpen={() => toggleCurveSection('saturation')}
             onLockedAnchorUnlock={() => anchorUnlockPrompt = true}
             onAnchorsChange={setSaturationCurve}
             onOffsetChange={handleOffset}
+            onAutoSmoothChange={handleAutoSmooth}
           />
           <ScaleCurveEditor
             curveKey="lightness"
@@ -646,12 +690,14 @@
             stepCount={paletteStepLightness.length}
             defaults={DEFAULT_PALETTE_LIGHTNESS()}
             offset={curveOffset['lightness'] ?? 0}
+            autoSmooth={curveAutoSmooth['lightness']}
             lockedAnchorIndex={lockedLightnessIdx}
             open={sectionOpen('lightness')}
             onToggleOpen={() => toggleCurveSection('lightness')}
             onLockedAnchorUnlock={() => anchorUnlockPrompt = true}
             onAnchorsChange={setLightnessCurve}
             onOffsetChange={handleOffset}
+            onAutoSmoothChange={handleAutoSmooth}
           />
         </div>
       {/if}
@@ -686,6 +732,7 @@
       {cssNamespace}
       {scaleCurves}
       {curveOffset}
+      {curveAutoSmooth}
       {defaultScaleCurves}
       overrides={overridesHex}
       {editingKey}
@@ -708,6 +755,7 @@
       onCopyVarName={copyVarName}
       onSetScaleCurve={setScaleCurve}
       onOffsetChange={handleOffset}
+      onAutoSmoothChange={handleAutoSmooth}
       {sectionOpen}
       onToggleCurveSection={toggleCurveSection}
     />
@@ -917,6 +965,16 @@
     justify-content: start;
     min-width: 0;
     max-width: calc(var(--swatch-cols) * 4.5rem + (var(--swatch-cols) - 1) * var(--swatch-gap, var(--ui-space-4)));
+  }
+
+  /* The picker rides the same track geometry as the curve editors below, so
+     the two graphs share one left and right edge. */
+  .base-panel {
+    min-width: 0;
+  }
+
+  .base-anchor-toggle {
+    margin-left: auto;
   }
 
   .curve-grid-span {

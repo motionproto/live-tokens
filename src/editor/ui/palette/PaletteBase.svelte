@@ -1,72 +1,38 @@
 <script lang="ts">
-  import ColorEditPanel from '../ColorEditPanel.svelte';
-  import Toggle from '../Toggle.svelte';
-  import { beginSliderGesture } from '../../core/store/editorStore';
+  import type { Snippet } from 'svelte';
   import { oklchToHexClamped, type Oklch } from '../../core/palettes/oklch';
-
-  // Full sRGB chroma range (gamutClamp trims per hue/lightness). Neutrals default
-  // low but are not capped; their calm character comes from defaults, not a ceiling.
-  const CHROMA_MAX = 0.4;
-  // Where a typical neutral's chroma sits, marked on the slider as a soft nudge.
-  const NEUTRAL_CALM_CHROMA = 0.05;
-
-  
-
 
   interface Props {
     /**
-   * The header swatch + label + base-hex + (when active) the OKLCH ColorEditPanel
-   * for editing the palette's base colour. The picker edits hue/chroma/lightness
-   * and maps them straight to the base hex. `neutral` only nudges the picker
-   * (a calm-chroma hint on the slider); it does not change behaviour.
-   *
-   * State (`editing`, scope handle) is owned by the parent — this component
-   * fires callbacks (`onStartEdit`, `onConfirm`, `onCancel`, etc.).
+   * The header band: swatch, label, base hex, and the palette's actions on the
+   * right. The base-colour picker itself is rendered by the parent below this
+   * band so it can line up with the curve editors.
    */
     label: string;
     displayLabel?: string | null;
-    neutral?: boolean;
     baseColor: Oklch;
-    anchorToBase: boolean;
-    /** Palette step label ('500', '850', …) the base color is placed at; null while off or unplaced. */
     isEditingBase: boolean;
-    panelOpen: boolean;
-    /** Keep the panel open in live-apply mode (no confirm/cancel session) while the curve editors are visible. */
+    /** Keep the swatch reading as active while the curve editors are visible. */
     pinnedOpen?: boolean;
-    editingColor: Oklch | null;
-    editPanelTitle: string | null;
     copiedKey: string | null;
     onStartEdit: () => void;
-    onConfirm: () => void;
-    onCancel: () => void;
-    onBaseChange: (hue: number, chroma: number, lightness: number) => void;
-    onAnchorToBaseChange: (next: boolean) => void;
     onCopyBaseHex: (key: string, hex: string, event?: MouseEvent) => void;
+    actions?: Snippet;
   }
 
   let {
     label,
     displayLabel = null,
-    neutral = false,
     baseColor,
-    anchorToBase,
     isEditingBase,
-    panelOpen,
     pinnedOpen = false,
-    editingColor,
-    editPanelTitle,
     copiedKey,
     onStartEdit,
-    onConfirm,
-    onCancel,
-    onBaseChange,
-    onAnchorToBaseChange,
-    onCopyBaseHex
+    onCopyBaseHex,
+    actions
   }: Props = $props();
 
-  let baseOklch = $derived(baseColor);
   let baseHex = $derived(oklchToHexClamped(baseColor.l, baseColor.c, baseColor.h));
-  let pickerChromaHint = $derived(neutral ? NEUTRAL_CALM_CHROMA : undefined);
 </script>
 
 <div class="editor-top">
@@ -101,42 +67,18 @@
     </div>
   </div>
 
-  {#if pinnedOpen || (isEditingBase && panelOpen && editingColor)}
-    <div class="editor-controls">
-      <ColorEditPanel
-        title={isEditingBase ? editPanelTitle : 'Base Color'}
-        showRemoveOverride={false}
-        hideActions={!isEditingBase}
-        hidePreview
-        hue={baseOklch.h}
-        chroma={baseOklch.c}
-        lightness={baseOklch.l * 100}
-        chromaMax={CHROMA_MAX}
-        chromaHint={pickerChromaHint}
-        onHueChromaChange={onBaseChange}
-        onConfirm={onConfirm}
-        onCancel={onCancel}
-        onRemoveOverride={() => {}}
-        onSliderStart={() => beginSliderGesture(`edit ${label} base`)}
-      >
-        {#snippet actions()}
-          <Toggle
-            checked={anchorToBase}
-            onchange={(v) => onAnchorToBaseChange(v ?? !anchorToBase)}
-            label="Base color must appear in palette"
-          />
-        {/snippet}
-      </ColorEditPanel>
-    </div>
+  {#if actions}
+    <div class="header-actions">{@render actions()}</div>
   {/if}
 </div>
 
 <style>
-  /* Identity and controls read as one band: the sliders sit beside the swatch
-     rather than under it, which is what leaves the palette below its height. */
+  /* Identity on the left, actions on the right: close and reset sit where a
+     panel's controls are expected, at the top-right of the band they close. */
   .editor-top {
     display: flex;
     align-items: flex-start;
+    justify-content: space-between;
     gap: var(--ui-space-16);
     flex-wrap: wrap;
   }
@@ -155,11 +97,10 @@
     gap: var(--ui-space-2);
   }
 
-  /* Basis, not width: the panel takes the rest of the row and drops below only
-     when it can't hold that much. */
-  .editor-controls {
-    flex: 1 1 26rem;
-    min-width: 0;
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-8);
   }
 
   .header-swatch {

@@ -1,6 +1,6 @@
 <script lang="ts">
   import BezierCurveEditor from '../BezierCurveEditor.svelte';
-  import type { CurveAnchor, CurveConfig } from '../curveEngine';
+  import { isAutoSmoothCurve, type CurveAnchor, type CurveConfig } from '../curveEngine';
   import { curveSummary } from './curveSummary';
 
   /**
@@ -24,11 +24,16 @@
     stepCount: number;
     defaults: CurveAnchor[];
     offset?: number;
+    /** Undefined for a curve saved before the flag existed, or one never toggled;
+     *  its shape answers for it. Only an explicit switch-off needs recording, since
+     *  switching on is self-evident from the shape it produces. */
+    autoSmooth?: boolean;
     lockedAnchorIndex?: number | null;
     open: boolean;
     onToggleOpen: () => void;
     onAnchorsChange: (anchors: CurveAnchor[]) => void;
     onOffsetChange: (key: string, value: number) => void;
+    onAutoSmoothChange: (key: string, value: boolean) => void;
     onLockedAnchorUnlock?: (() => void) | null;
   }
 
@@ -39,15 +44,18 @@
     stepCount,
     defaults,
     offset = 0,
+    autoSmooth = undefined,
     lockedAnchorIndex = null,
     open,
     onToggleOpen,
     onAnchorsChange,
     onOffsetChange,
+    onAutoSmoothChange,
     onLockedAnchorUnlock = null
   }: Props = $props();
 
   let summary = $derived(curveSummary(anchors, defaults, offset, cfg.unit ?? ''));
+  let autoSmoothResolved = $derived(autoSmooth ?? isAutoSmoothCurve(anchors));
 </script>
 
 <div class="curve-section">
@@ -71,10 +79,12 @@
       {stepCount}
       defaultAnchors={defaults}
       {offset}
+      autoSmooth={autoSmoothResolved}
       {lockedAnchorIndex}
       {onLockedAnchorUnlock}
       {onAnchorsChange}
       onOffsetChange={(v) => onOffsetChange(curveKey, v)}
+      onAutoSmoothChange={(v) => onAutoSmoothChange(curveKey, v)}
     />
   {/if}
 </div>

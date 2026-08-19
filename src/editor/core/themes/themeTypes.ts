@@ -22,6 +22,11 @@ export interface PaletteConfig {
   hueCurve?: CurveAnchor[];
   scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[]; hue?: CurveAnchor[] }>;
   curveOffset: Record<string, number>;
+  /** Per curve key: are the tangents derived from the points, or held by hand?
+   *  Only an explicit switch-off is recorded. A missing key means the curve's own
+   *  shape answers (`isAutoSmoothCurve`), which is what every theme saved before
+   *  the flag existed relies on. */
+  curveAutoSmooth?: Record<string, boolean>;
   overrides: Record<string, Oklch>;
   snappedScales: string[];
   emptyMode?: 'solid' | 'gradient';

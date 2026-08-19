@@ -3,10 +3,18 @@
     checked?: boolean;
     disabled?: boolean;
     label?: string;
+    /** Put the label before the switch, for rows that align to a right edge. */
+    labelFirst?: boolean;
     onchange?: (checked: boolean) => void;
   }
 
-  let { checked = $bindable(false), disabled = false, label = '', onchange }: Props = $props();
+  let {
+    checked = $bindable(false),
+    disabled = false,
+    label = '',
+    labelFirst = false,
+    onchange,
+  }: Props = $props();
 
   function toggle() {
     if (disabled) return;
@@ -15,7 +23,7 @@
   }
 </script>
 
-<label class="toggle" class:disabled>
+<label class="toggle" class:disabled class:label-first={labelFirst}>
   <button
     type="button"
     role="switch"
@@ -40,6 +48,10 @@
     gap: var(--space-8);
     cursor: pointer;
     user-select: none;
+
+    &.label-first {
+      flex-direction: row-reverse;
+    }
 
     &.disabled {
       cursor: not-allowed;

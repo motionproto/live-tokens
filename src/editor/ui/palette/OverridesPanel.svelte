@@ -51,6 +51,7 @@
     cssNamespace: string | null;
     scaleCurves: Record<string, { lightness: CurveAnchor[]; saturation: CurveAnchor[]; hue?: CurveAnchor[] }>;
     curveOffset: Record<string, number>;
+    curveAutoSmooth: Record<string, boolean | undefined>;
     defaultScaleCurves: Record<string, ScaleCurveDef>;
     overrides: Record<string, string>;
     editingKey: string | null;
@@ -73,6 +74,7 @@
     onCopyVarName: (key: string, varName: string, event?: MouseEvent) => void;
     onSetScaleCurve: (scaleTitle: string, channel: Channel, anchors: CurveAnchor[]) => void;
     onOffsetChange: (key: string, value: number) => void;
+    onAutoSmoothChange: (key: string, value: boolean) => void;
     sectionOpen: (key: string) => boolean;
     onToggleCurveSection: (key: string) => void;
   }
@@ -85,6 +87,7 @@
     cssNamespace,
     scaleCurves,
     curveOffset,
+    curveAutoSmooth,
     defaultScaleCurves,
     overrides,
     editingKey,
@@ -107,6 +110,7 @@
     onCopyVarName,
     onSetScaleCurve,
     onOffsetChange,
+    onAutoSmoothChange,
     sectionOpen,
     onToggleCurveSection
   }: Props = $props();
@@ -261,10 +265,12 @@
             stepCount={scale.steps.length}
             defaults={curve.defaults}
             offset={curveOffset[curve.key] ?? 0}
+            autoSmooth={curveAutoSmooth[curve.key]}
             open={sectionOpen(curve.key)}
             onToggleOpen={() => onToggleCurveSection(curve.key)}
             onAnchorsChange={(a) => onSetScaleCurve(scale.title, curve.channel, a)}
             onOffsetChange={onOffsetChange}
+            onAutoSmoothChange={onAutoSmoothChange}
           />
         {/each}
       </div>

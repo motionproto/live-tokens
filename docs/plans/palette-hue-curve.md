@@ -1,4 +1,4 @@
-# Execution plan: palette hue curve
+   # Execution plan: palette hue curve
 
 Branch off `main` as `palette-hue-curve`. Six waves, each a single commit unit executable by a sub-agent with only this doc and the repo. Waves are strictly sequential; each ends green.
 

@@ -12,7 +12,6 @@ export interface CurveConfig {
   yMax: number;
   label: string;
   gridLines: number[];
-  dashedLines: number[];
   /** Suffix for the offset readout only. The axis range lives in `label`. */
   unit?: string;
 }
@@ -31,21 +30,18 @@ export const lightnessCurveConfig: CurveConfig = {
   yMin: 0, yMax: 100,
   label: 'Lightness',
   gridLines: [50],
-  dashedLines: [25, 75],
 };
 
 export const saturationCurveConfig: CurveConfig = {
   yMin: 0, yMax: 200,
   label: 'Saturation',
   gridLines: [100],
-  dashedLines: [50, 150],
 };
 
 export const textLightnessCurveConfig: CurveConfig = {
   yMin: 0, yMax: 200,
   label: 'Lightness',
   gridLines: [100],
-  dashedLines: [50, 150],
 };
 
 // The range is written into `label` rather than derived, because it is the
@@ -55,7 +51,6 @@ export const hueCurveConfig: CurveConfig = {
   label: 'Hue ±45°',
   unit: '°',
   gridLines: [0],
-  dashedLines: [-22.5, 22.5],
 };
 
 export const curveTemplates: CurveTemplate[] = [
@@ -73,7 +68,7 @@ export const curveTemplates: CurveTemplate[] = [
   },
   {
     name: 'Peak',
-    icon: 'M2,10 L10,2 L18,10',
+    icon: 'M2,10 C4.4,10 7.6,2 10,2 C12.4,2 15.6,10 18,10',
     anchors: (cfg) => {
       const range = cfg.yMax - cfg.yMin;
       return [
@@ -85,7 +80,7 @@ export const curveTemplates: CurveTemplate[] = [
   },
   {
     name: 'Ramp up',
-    icon: 'M2,10 L18,2',
+    icon: 'M2,10 C6.8,10 13.2,2 18,2',
     anchors: (cfg) => {
       const range = cfg.yMax - cfg.yMin;
       const lo = cfg.yMin + range * 0.1;
@@ -98,7 +93,7 @@ export const curveTemplates: CurveTemplate[] = [
   },
   {
     name: 'Ramp down',
-    icon: 'M2,2 L18,10',
+    icon: 'M2,2 C6.8,2 13.2,10 18,10',
     anchors: (cfg) => {
       const range = cfg.yMax - cfg.yMin;
       const lo = cfg.yMin + range * 0.1;
@@ -178,6 +173,43 @@ export function isCornerAnchor(a: CurveAnchor): boolean {
   return a.inDx === 0 && a.inDy === 0 && a.outDx === 0 && a.outDy === 0;
 }
 
+/** Sampled-y agreement below this counts as the same curve. Saved handles round
+ *  to two decimals, so an exact compare would read every round-tripped curve as
+ *  hand-edited. */
+const AUTO_EPSILON = 0.05;
+
+const AUTO_SAMPLES = 25;
+
+/** Re-derive every anchor's tangents from its neighbours. Corner anchors are the
+ *  per-anchor opt-out and keep their zero handles; their neighbours still smooth
+ *  into them, because a tangent reads a neighbour's position, not its handles. */
+export function resmoothAutoCurve(anchors: CurveAnchor[]): CurveAnchor[] {
+  if (anchors.length < 2) return anchors;
+  return anchors.map((a, i) =>
+    isCornerAnchor(a)
+      ? a
+      : tangentAnchor(a.x, a.y, anchors[i - 1] ?? null, anchors[i + 1] ?? null),
+  );
+}
+
+/**
+ * Would switching auto smoothing on leave the curve where it is?
+ *
+ * Compares sampled y rather than handle values, because more than one handle
+ * pair draws the same path: a flat run with handles at 30 and one at the derived
+ * 33.33 are the same line. Curves saved before the flag existed carry their auto
+ * state in their shape alone, so this doubles as the read fallback for them.
+ */
+export function isAutoSmoothCurve(anchors: CurveAnchor[]): boolean {
+  if (anchors.length < 2) return true;
+  const auto = resmoothAutoCurve(anchors);
+  for (let i = 0; i <= AUTO_SAMPLES; i++) {
+    const x = (i / AUTO_SAMPLES) * 100;
+    if (Math.abs(sampleCurve(anchors, x) - sampleCurve(auto, x)) >= AUTO_EPSILON) return false;
+  }
+  return true;
+}
+
 export function curveXToSvg(v: number, w: number, padX: number = 0): number {
   return padX + (v / 100) * (w - 2 * padX);
 }
@@ -241,16 +273,22 @@ export function sampleCurve(anchors: CurveAnchor[], xPos: number): number {
 
 const CLIPBOARD_PREFIX = 'mp-curve:';
 
-export function serializeCurve(anchors: CurveAnchor[], offset: number): string {
-  return CLIPBOARD_PREFIX + JSON.stringify({ anchors, offset });
+export function serializeCurve(anchors: CurveAnchor[], offset: number, autoSmooth: boolean): string {
+  return CLIPBOARD_PREFIX + JSON.stringify({ anchors, offset, autoSmooth });
 }
 
-export function deserializeCurve(text: string): { anchors: CurveAnchor[]; offset: number } | null {
+export function deserializeCurve(
+  text: string,
+): { anchors: CurveAnchor[]; offset: number; autoSmooth: boolean } | null {
   if (!text.startsWith(CLIPBOARD_PREFIX)) return null;
   try {
     const data = JSON.parse(text.slice(CLIPBOARD_PREFIX.length));
     if (!Array.isArray(data.anchors) || typeof data.offset !== 'number') return null;
-    return data;
+    // Payloads copied before the flag existed carry their auto state in the shape.
+    const autoSmooth = typeof data.autoSmooth === 'boolean'
+      ? data.autoSmooth
+      : isAutoSmoothCurve(data.anchors);
+    return { anchors: data.anchors, offset: data.offset, autoSmooth };
   } catch {
     return null;
   }

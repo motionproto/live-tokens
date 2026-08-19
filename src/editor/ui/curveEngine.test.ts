@@ -9,6 +9,8 @@ import {
   makeAnchor,
   CURVE_H,
   resmoothAnchor,
+  resmoothAutoCurve,
+  isAutoSmoothCurve,
   sampleCurve,
 } from './curveEngine';
 
@@ -179,5 +181,33 @@ describe('resmoothAnchor', () => {
     expect(out[1].y).toBe(0);
     expect(out[0]).toEqual(pinned[0]);
     expect(out[2]).toEqual(pinned[2]);
+  });
+});
+
+describe('auto smoothing', () => {
+  it('reads a flat run as auto even though its handles are the wrong length', () => {
+    expect(isAutoSmoothCurve([makeAnchor(0, 100, 30), makeAnchor(100, 100, 30)])).toBe(true);
+  });
+
+  it('reads the ease-in-out that flat handles put on a ramp as hand-held', () => {
+    expect(isAutoSmoothCurve([makeAnchor(0, 95, 5), makeAnchor(100, 8, 5)])).toBe(false);
+  });
+
+  it('straightens that ramp', () => {
+    const auto = resmoothAutoCurve([makeAnchor(0, 95, 5), makeAnchor(100, 8, 5)]);
+    expect(sampleCurve(auto, 25)).toBeCloseTo(73.25, 1);
+    expect(isAutoSmoothCurve(auto)).toBe(true);
+  });
+
+  it('leaves corner anchors as the per-anchor opt-out', () => {
+    const corner = { x: 50, y: 20, inDx: 0, inDy: 0, outDx: 0, outDy: 0 };
+    const out = resmoothAutoCurve([makeAnchor(0, 0, 5), corner, makeAnchor(100, 0, 5)]);
+    expect(out[1]).toEqual(corner);
+    expect(out[0].outDy).not.toBe(0);
+  });
+
+  it('holds no overshoot through an unevenly spaced peak', () => {
+    const auto = resmoothAutoCurve([makeAnchor(0, 10, 5), makeAnchor(10, 90, 5), makeAnchor(100, 95, 5)]);
+    for (let x = 0; x <= 100; x++) expect(sampleCurve(auto, x)).toBeLessThanOrEqual(95.001);
   });
 });
