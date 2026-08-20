@@ -115,7 +115,7 @@
   .ui-pill[aria-disabled='true'] {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.10) 100%);
     border-color: rgba(255, 255, 255, 0.22);
-    color: var(--ui-text-muted, #4d4d4d);
+    color: var(--ui-text-disabled, #333333);
     cursor: not-allowed;
     pointer-events: none;
   }

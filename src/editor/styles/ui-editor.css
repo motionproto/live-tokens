@@ -36,10 +36,13 @@
   --ui-gray-850: #c7c7c7;
   --ui-gray-950: #f2f2f2;
 
+  /* Every level down to muted clears WCAG AA (4.5:1) on the chrome surfaces
+     it lands on, so no rung of the ramp is unreadable: muted bottoms out at
+     4.66:1 on --ui-surface. Only disabled sits below AA, which 1.4.3 exempts. */
   --ui-text-primary:    #ffffff;
   --ui-text-secondary:  var(--ui-gray-800);
-  --ui-text-tertiary:   var(--ui-gray-700);
-  --ui-text-muted:      var(--ui-gray-500);
+  --ui-text-tertiary:   var(--ui-gray-750);
+  --ui-text-muted:      var(--ui-gray-700);
   --ui-text-disabled:   var(--ui-gray-400);
   --ui-text-accent:     var(--ui-gray-950);
   --ui-text-success:    var(--ui-gray-850);

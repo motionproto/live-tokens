@@ -964,7 +964,11 @@
     align-items: start;
     justify-content: start;
     min-width: 0;
-    max-width: calc(var(--swatch-cols) * 4.5rem + (var(--swatch-cols) - 1) * var(--swatch-gap, var(--ui-space-4)));
+    /* Definite width, not max-width: the grid is a shrink-to-fit flex item, so
+       without it the palette sized itself to the curve row below and shrank
+       every time the graphs were collapsed. */
+    width: calc(var(--swatch-cols) * 4.5rem + (var(--swatch-cols) - 1) * var(--swatch-gap, var(--ui-space-4)));
+    max-width: 100%;
   }
 
   /* The picker rides the same track geometry as the curve editors below, so

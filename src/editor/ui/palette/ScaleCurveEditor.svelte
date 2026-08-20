@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { slide } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
   import BezierCurveEditor from '../BezierCurveEditor.svelte';
   import { isAutoSmoothCurve, type CurveAnchor, type CurveConfig } from '../curveEngine';
   import { curveSummary } from './curveSummary';
@@ -56,6 +58,22 @@
 
   let summary = $derived(curveSummary(anchors, defaults, offset, cfg.unit ?? ''));
   let autoSmoothResolved = $derived(autoSmooth ?? isAutoSmoothCurve(anchors));
+
+  const reduceMotion = typeof window !== 'undefined'
+    && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+  const t = (ms: number) => (reduceMotion ? 0 : ms);
+
+  /** Pane and graph run in lockstep, same duration and easing, no lead either
+   *  way: the graph comes forward as the window opens, not after it. */
+  const REVEAL_MS = 260;
+
+  function zoom(_node: Element, { duration = REVEAL_MS }) {
+    return {
+      duration,
+      easing: cubicOut,
+      css: (u: number) => `opacity: ${u}; transform: scale(${0.95 + u * 0.05})`
+    };
+  }
 </script>
 
 <div class="curve-section">
@@ -73,19 +91,25 @@
     </span>
   </button>
   {#if open}
-    <BezierCurveEditor
-      {anchors}
-      {cfg}
-      {stepCount}
-      defaultAnchors={defaults}
-      {offset}
-      autoSmooth={autoSmoothResolved}
-      {lockedAnchorIndex}
-      {onLockedAnchorUnlock}
-      {onAnchorsChange}
-      onOffsetChange={(v) => onOffsetChange(curveKey, v)}
-      onAutoSmoothChange={(v) => onAutoSmoothChange(curveKey, v)}
-    />
+    <div
+      transition:slide|local={{ duration: t(REVEAL_MS), easing: cubicOut }}
+    >
+      <div transition:zoom|local={{ duration: t(REVEAL_MS) }}>
+        <BezierCurveEditor
+          {anchors}
+          {cfg}
+          {stepCount}
+          defaultAnchors={defaults}
+          {offset}
+          autoSmooth={autoSmoothResolved}
+          {lockedAnchorIndex}
+          {onLockedAnchorUnlock}
+          {onAnchorsChange}
+          onOffsetChange={(v) => onOffsetChange(curveKey, v)}
+          onAutoSmoothChange={(v) => onAutoSmoothChange(curveKey, v)}
+        />
+      </div>
+    </div>
   {/if}
 </div>
 

@@ -45,7 +45,7 @@
   .toggle {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-8);
+    gap: var(--ui-space-8);
     cursor: pointer;
     user-select: none;
 
@@ -57,16 +57,16 @@
       cursor: not-allowed;
 
       .toggle-track {
-        background: var(--surface-neutral-lower);
-        border-color: var(--border-neutral-faint);
+        background: var(--ui-surface-lower);
+        border-color: var(--ui-border-low);
       }
 
       .toggle-thumb {
-        background: var(--text-disabled);
+        background: var(--ui-text-disabled);
       }
 
       .toggle-label {
-        color: var(--text-disabled);
+        color: var(--ui-text-disabled);
       }
     }
   }
@@ -74,13 +74,13 @@
   .toggle-track {
     position: relative;
     width: 2.25rem;
-    height: var(--space-20);
-    border-radius: var(--radius-2xl);
-    border: var(--border-width-1) solid var(--border-neutral);
-    background: var(--surface-neutral-low);
+    height: var(--ui-space-20);
+    border-radius: var(--ui-radius-2xl);
+    border: 1px solid var(--ui-border);
+    background: var(--ui-surface-low);
     padding: 0;
     cursor: inherit;
-    transition: background var(--duration-150), border-color var(--duration-150);
+    transition: background var(--ui-transition-fast), border-color var(--ui-transition-fast);
     flex-shrink: 0;
 
     &.on {
@@ -89,34 +89,34 @@
     }
 
     &:hover:not(:disabled) {
-      border-color: var(--border-neutral-medium);
+      border-color: var(--ui-border-high);
     }
 
     &:focus-visible {
-      outline: var(--border-width-2) solid var(--border-brand);
-      outline-offset: var(--space-2);
+      outline: 2px solid var(--ui-text-primary);
+      outline-offset: var(--ui-space-2);
     }
   }
 
   .toggle-thumb {
     position: absolute;
-    top: var(--space-2);
-    left: var(--space-2);
+    top: var(--ui-space-2);
+    left: var(--ui-space-2);
     width: 0.875rem;
     height: 0.875rem;
-    border-radius: var(--radius-full);
-    background: var(--text-secondary);
-    transition: transform var(--duration-150), background var(--duration-150);
+    border-radius: var(--ui-radius-full);
+    background: var(--ui-text-secondary);
+    transition: transform var(--ui-transition-fast), background var(--ui-transition-fast);
 
     .on & {
-      transform: translateX(var(--space-16));
-      background: var(--text-primary);
+      transform: translateX(var(--ui-space-16));
+      background: var(--ui-text-primary);
     }
   }
 
   .toggle-label {
-    font-size: var(--font-size-md);
-    color: var(--text-secondary);
+    font-size: var(--ui-font-size-md);
+    color: var(--ui-text-secondary);
     line-height: 1;
   }
 </style>

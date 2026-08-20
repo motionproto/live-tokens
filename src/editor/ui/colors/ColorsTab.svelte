@@ -153,8 +153,9 @@
 <div class="colors-tab">
   <div class="pane">
     <section id="colors-wheel" class="block">
-      <header class="block-head">
+      <header class="block-head head-inline">
         <h2 class="title">Color Wheel</h2>
+        <PaletteJumpButton family={selected} displayLabel={selectedSpec.displayLabel} target="tokens" />
       </header>
 
       <div class="wheel-hero">
@@ -309,9 +310,8 @@
     </section>
 
     <section id="colors-selected" class="block">
-      <header class="block-head head-row">
+      <header class="block-head">
         <h2 class="title">Palette <span class="mode-name">&middot; {selectedSpec.displayLabel ?? selected}</span></h2>
-        <PaletteJumpButton family={selected} displayLabel={selectedSpec.displayLabel} target="tokens" />
       </header>
 
       <div class="group">
@@ -385,10 +385,9 @@
     gap: var(--ui-space-2);
   }
 
-  .block-head.head-row {
+  .block-head.head-inline {
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
     gap: var(--ui-space-12);
   }
 

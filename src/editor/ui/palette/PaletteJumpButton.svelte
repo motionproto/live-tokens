@@ -12,12 +12,12 @@
   let { family, displayLabel = null, target }: Props = $props();
 
   let name = $derived(displayLabel ?? family);
-  let icon = $derived(target === 'wheel' ? 'fa-palette' : 'fa-sliders');
-  let label = $derived(target === 'wheel' ? 'Wheel' : 'Edit');
+  let icon = $derived(target === 'wheel' ? 'fa-palette' : 'fa-chart-line');
+  let label = $derived(target === 'wheel' ? 'Wheel' : 'Graph View');
   let title = $derived(
     target === 'wheel'
       ? `Open ${name} on the color wheel`
-      : `Edit the ${name} palette in Tokens`
+      : `Open the ${name} palette in the graph view`
   );
 
   function jump() {

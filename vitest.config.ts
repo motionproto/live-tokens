@@ -5,6 +5,7 @@ export default mergeConfig(
   viteConfig,
   defineConfig({
     test: {
+      setupFiles: ['./vitest.setup.ts'],
       // Playwright owns the real-browser specifications. Keeping this explicit
       // prevents Vitest's default **/*.spec.ts glob from importing them into
       // happy-dom and failing before either runner reaches its assertions.
