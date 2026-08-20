@@ -2,12 +2,22 @@ import type { CurveAnchor } from '../../ui/curveEngine';
 import type { GradientValue } from './parsers/gradient';
 import type { Oklch } from '../palettes/oklch';
 import type { HarmonyAxis } from '../palettes/colorHarmony';
-// `normalizeTheme.ts` is the single source of truth for the theme schema
-// version (docs/plans/theme-completeness.md, Wave 2 step 5) — a value import,
-// not `import type`, because `typeof THEME_SCHEMA_VERSION` below needs the
-// real binding. The module is pure (no Node/fs imports of its own), so it is
-// safe in a browser bundle.
-import { THEME_SCHEMA_VERSION } from '../../../../vite-plugin/themes/normalizeTheme';
+/** Single source of truth for the theme schema version
+ *  (docs/plans/theme-completeness.md, Wave 2 step 5). It lives here, on the
+ *  shipped side: `vite-plugin/` is build tooling and is not in the tarball, so
+ *  anything under `src/` that reaches into it resolves in this repo and
+ *  nowhere else. `normalizeTheme.ts` re-exports this. */
+export const THEME_SCHEMA_VERSION = 4;
+
+/** What the completeness fill had to add to reach a whole theme. `components`
+ *  names each component the input carried no entry for; `aliases` counts keys
+ *  added to components it did carry; `orphans` counts keys it carries that the
+ *  current default no longer declares. */
+export interface ThemeFillReport {
+  components: string[];
+  aliases: number;
+  orphans: number;
+}
 
 export type GradientStyle = 'linear' | 'radial' | 'conic';
 

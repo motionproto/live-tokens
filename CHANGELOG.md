@@ -2,6 +2,16 @@
 
 ## 0.53.0 — Themes are complete documents
 
+### Fixed
+
+- **The editor no longer imports build tooling.** `themeService.ts` and
+  `themeTypes.ts` read `THEME_SCHEMA_VERSION` from
+  `vite-plugin/themes/normalizeTheme`, a path that resolves in this repository
+  and in no installed copy, because the tarball ships no tooling. Any consumer
+  building the editor failed on an unresolved import. The constant now lives in
+  `themeTypes.ts` and the plugin re-exports it. `check:no-tooling-imports`
+  gates the direction.
+
 ### Changed
 
 - **Content insets stop at `--space-4`.** Below it the text sits against its

@@ -1,4 +1,4 @@
-import type { Theme, ThemeMeta, ThemeBundle, ColorsAndType, ComponentConfig } from './themeTypes';
+import type { Theme, ThemeMeta, ThemeBundle, ColorsAndType, ComponentConfig, ThemeFillReport } from './themeTypes';
 import { versionedFileResource } from '../storage/files/versionedFileResourceClient';
 import { API_BASE } from '../storage/apiBase';
 import { liveMovedSinceBake } from '../productionPulse';
@@ -6,11 +6,9 @@ import { listComponents, getActiveComponentConfig } from '../components/componen
 import { getActiveColorsAndType } from './colorsAndTypeService';
 import { broadcastAppliedTheme, hydrateAppliedTheme } from './themeDocumentSync';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from './migrations';
-import { THEME_SCHEMA_VERSION } from '../../../../vite-plugin/themes/normalizeTheme';
-import type { NormalizedTheme } from '../../../../vite-plugin/themes/normalizeTheme';
+import { THEME_SCHEMA_VERSION } from './themeTypes';
 
-/** What the completeness fill (`normalizeTheme`) had to add to reach a theme. */
-export type ThemeFillReport = NormalizedTheme['filled'];
+export type { ThemeFillReport };
 
 /**
  * REST client for theme files, the documents of the editor. A theme carries a

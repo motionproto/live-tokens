@@ -25,10 +25,13 @@
 
 import { migrateComponentConfig } from '../../src/editor/core/themes/migrateComponentConfig';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../src/editor/core/themes/migrations';
-import type { AliasDiskValue } from '../../src/editor/core/themes/themeTypes';
+import type { AliasDiskValue, ThemeFillReport } from '../../src/editor/core/themes/themeTypes';
+import { THEME_SCHEMA_VERSION } from '../../src/editor/core/themes/themeTypes';
 import { KNOWN_COMPONENT_CONFIG_KEYS } from '../../src/editor/core/components/componentConfigKeys';
 
-export const THEME_SCHEMA_VERSION = 4;
+// Owned by `themeTypes.ts` so the editor can read it without importing build
+// tooling that the published tarball does not carry.
+export { THEME_SCHEMA_VERSION };
 
 type Json = Record<string, unknown>;
 
@@ -79,13 +82,9 @@ export interface NormalizedTheme {
   /** The input was below the current schema version and got upgraded. */
   migrated: boolean;
   /** What the completeness fill (Wave 2) had to add, reported and never acted
-   *  on silently (RJC 3): `components` names each component the input carried
-   *  no entry for at all (now filled from its default, verbatim); `aliases`
-   *  counts alias keys added to components the input did carry, whose default
-   *  declares a key the input omitted; `orphans` counts alias keys the input
-   *  carries that the component's current default does not declare — kept in
-   *  the file, but skipped by the bake. */
-  filled: { components: string[]; aliases: number; orphans: number };
+   *  on silently (RJC 3). Kept in the file, but orphans are skipped by the
+   *  bake. */
+  filled: ThemeFillReport;
 }
 
 function asObject(value: unknown): Json | null {

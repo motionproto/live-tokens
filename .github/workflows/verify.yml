@@ -53,5 +53,11 @@ jobs:
       - name: Data checks
         run: npm run check:production-is-default && npm run check:component-defaults && npm run check:preset-themes
 
+      # A src/ file importing vite-plugin/ resolves here and in no consumer,
+      # because the tarball ships no tooling. Only `check:smoke-install` saw
+      # that before, and it runs a tagged release too late.
+      - name: Layering check
+        run: npm run check:no-tooling-imports
+
       - name: Verify package contents
         run: npm pack --dry-run

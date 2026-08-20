@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import type { ComponentConfig, Theme, ColorsAndType } from '../themes/themeTypes';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../themes/migrations';
-import { THEME_SCHEMA_VERSION } from '../../../../vite-plugin/themes/normalizeTheme';
+import { THEME_SCHEMA_VERSION } from '../themes/themeTypes';
 import { API_BASE } from '../storage/apiBase';
 import { CSS_VAR_CHANGE_EVENT, CSS_VARS_CHANGE_EVENT } from '../cssVarSync';
 import {
