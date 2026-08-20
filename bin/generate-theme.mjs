@@ -241,6 +241,7 @@ export function formatGenerateThemeResult(result) {
       ? '\nGradients: kept your tuned swatch gradients.'
       : '\nGradients: swatch tokens rebuilt from the theme families.',
   );
+  lines.push(`Shadows: ${result.report.shadows}; carried geometry kept.`);
   if (result.report.canvasGradient) {
     lines.push(`Canvas sky: ${result.report.canvasGradient}.`);
   }

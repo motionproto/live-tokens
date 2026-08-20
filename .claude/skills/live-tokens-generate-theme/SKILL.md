@@ -130,6 +130,21 @@ A sky needs a committed canvas: when the Canvas seed anchors at the ramp edge
 side and the engine skips the sky, saying so in the report. An atmospheric
 brief that wants one should already be at canvas commitment level 2–3.
 
+## Shadow weight follows the canvas
+
+The engine sets the opacity of the `--shadow-*` scale from the Canvas seed's
+lightness and carries each shadow's geometry and color through untouched. A
+near-black shadow at 0.9 opacity is what a dark ground needs to show any
+shadow at all, and it punches a hole in paper, so opacity holds at 0.9 up to
+canvas L 0.5 and eases to 0.2 by L 0.9. There is nothing to choose: the report
+prints the derived value, and every regeneration re-derives it, so a brief
+iterated from a light canvas to a dark one gets its weight back.
+
+When the user says the shadows read heavy, muddy, or dirty, the canvas is the
+lever. Raise the Canvas seed's lightness and the shadows lighten with it. A
+one-off override lives in the editor's Shadows tab and survives regeneration
+in everything except opacity.
+
 ## Named themes (canonical OKLCH anchors)
 
 Holiday briefs are statement briefs — default to commitment level 2–3 above, not cream. The named colors go on the *ground*, not just the buttons.
@@ -143,7 +158,7 @@ Holiday briefs are statement briefs — default to commitment level 2–3 above,
 
 ## Scope
 
-Fonts are never touched (they carry forward from the live look, as do shadows and component aliases). Swatch gradients (`--gradient-1..4`) carry forward when user-tuned; if they are absent or still stock, the engine rebuilds them from the new theme's families — you never author them. Radius is out of scope for generation. Shipping the theme stays a human action: Adopt, in the editor.
+Fonts are never touched (they carry forward from the live look, as do component aliases and shadow geometry; shadow opacity is derived, see above). Swatch gradients (`--gradient-1..4`) carry forward when user-tuned; if they are absent or still stock, the engine rebuilds them from the new theme's families — you never author them. Radius is out of scope for generation. Shipping the theme stays a human action: Adopt, in the editor.
 
 ## Verify
 

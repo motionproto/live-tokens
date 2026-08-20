@@ -1,9 +1,10 @@
 /*
  * Decoupled from the design system: pills, knots, strings, balls, and
  * animations are hardcoded so token edits don't repaint our chrome. The
- * two exceptions are intentional and ARE the demo: the central box's
- * surface/radius/border (set inline) and the dropdown (rendered through
- * <MenuSelect>). File is global; keep selectors `ftt-` prefixed.
+ * exceptions are intentional and ARE the demo: the central box's
+ * surface/radius/border (set inline), the dropdown (rendered through
+ * <MenuSelect>), and elevation, which reads from the --shadow-* scale.
+ * File is global; keep selectors `ftt-` prefixed.
  */
 
 .ftt-stage {
@@ -34,7 +35,7 @@
   border-color: #52726e;
   border-width: 2px;
   border-radius: 0.25rem;
-  box-shadow: 3px 3px 6px 0px hsla(237, 18%, 3%, 0.9);
+  box-shadow: var(--shadow-md);
   transition:
     background    300ms ease,
     border-color  300ms ease,
@@ -188,6 +189,7 @@
   color: #000;
   border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 9999px;
+  box-shadow: var(--shadow-md);
   font-family: Manrope, system-ui, -apple-system, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;

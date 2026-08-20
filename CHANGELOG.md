@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **Shadow weight follows the canvas.** The `--shadow-*` scale was one fixed
+  near-black at 0.9 opacity in every theme, which is what a dark ground needs
+  and what puts a smudge under every card on a light one. `generate-theme` now
+  derives the opacity from the Canvas seed's lightness: 0.9 holds up to L 0.5
+  and eases to 0.2 by L 0.9. Geometry and color carry forward untouched, so a
+  hand-tuned elevation ramp survives regeneration. The three light presets
+  (Ocean, Spring Meadow, Autumn) ship with the derived values; the dark presets
+  and the default theme are unchanged.
+
 ## 0.53.0 — Themes are complete documents
 
 ### Fixed

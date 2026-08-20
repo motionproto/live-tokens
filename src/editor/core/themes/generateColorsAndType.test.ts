@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildColorsAndTypeFromSeeds, type ColorsAndTypeBrief } from './generateColorsAndType';
+import { buildColorsAndTypeFromSeeds, shadowOpacityForCanvas, type ColorsAndTypeBrief } from './generateColorsAndType';
 import { palettesToVars } from '../palettes/paletteDerivation';
 import { CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION } from './migrations/index';
 import type { Oklch } from '../palettes/oklch';
@@ -144,5 +144,25 @@ describe('buildColorsAndTypeFromSeeds', () => {
     const off = buildColorsAndTypeFromSeeds(lightBrief, {}, NOW);
     expect(off.colorsAndType.editorConfigs.Canvas.emptyMode).toBeUndefined();
     expect(off.report.canvasGradient).toBeUndefined();
+  });
+
+  it('softens shadow opacity as the canvas lightens, keeping full weight on dark grounds', () => {
+    expect(shadowOpacityForCanvas(0.2)).toBe(0.9);
+    expect(shadowOpacityForCanvas(0.5)).toBe(0.9);
+    expect(shadowOpacityForCanvas(0.7)).toBe(0.55);
+    expect(shadowOpacityForCanvas(0.97)).toBe(0.2);
+
+    const light = buildColorsAndTypeFromSeeds(lightBrief, {}, NOW);
+    expect(light.colorsAndType.cssVariables['--shadow-md']).toBe('3px 3px 6px 0px hsla(237, 18%, 3%, 0.2)');
+    expect(light.report.shadows).toBe('opacity 0.2 for a canvas at L 0.97');
+
+    const dark = buildColorsAndTypeFromSeeds(darkBrief, {}, NOW);
+    expect(dark.colorsAndType.cssVariables['--shadow-md']).toBe('3px 3px 6px 0px hsla(237, 18%, 3%, 0.9)');
+  });
+
+  it('recolors carried shadow geometry rather than replacing it', () => {
+    const carry = { cssVariables: { '--shadow-md': '9px 9px 20px 2px hsla(20, 40%, 10%, 0.9)' } };
+    const { colorsAndType } = buildColorsAndTypeFromSeeds(lightBrief, carry, NOW);
+    expect(colorsAndType.cssVariables['--shadow-md']).toBe('9px 9px 20px 2px hsla(20, 40%, 10%, 0.2)');
   });
 });

@@ -47,7 +47,7 @@ function project(components: string[] = ['button', 'card']): string {
     JSON.stringify({
       name: 'Default',
       schemaVersion: 3,
-      colorsAndType: { name: 'Default', cssVariables: { '--shadow-lg': '0 1px 2px' }, fontStacks: [] },
+      colorsAndType: { name: 'Default', cssVariables: { '--badge-trait-surface': 'var(--surface-brand)' }, fontStacks: [] },
       componentConfigs: {},
     }),
   );
@@ -118,12 +118,12 @@ describe('runGenerateTheme', () => {
     const root = project();
     openTheme(root, 'sunset', {
       name: 'Sunset',
-      colorsAndType: { name: 'Sunset', cssVariables: { '--shadow-lg': 'from-theme' } },
+      colorsAndType: { name: 'Sunset', cssVariables: { '--badge-trait-surface': 'from-theme' } },
       componentConfigs: { card: { name: 'sunset', aliases: { '--card-radius': '--radius-lg' } } },
     });
     writeFileSync(
       join(root, 'colors-and-type', '_working.json'),
-      JSON.stringify({ cssVariables: { '--shadow-lg': 'from-buffer' }, _source: 'working' }),
+      JSON.stringify({ cssVariables: { '--badge-trait-surface': 'from-buffer' }, _source: 'working' }),
     );
     writeFileSync(
       join(root, 'component-configs', 'button', '_working.json'),
@@ -133,7 +133,7 @@ describe('runGenerateTheme', () => {
     const result = await run(root);
 
     const theme = readJson(join(root, 'themes', 'spring-meadow.json'));
-    expect(theme.colorsAndType.cssVariables['--shadow-lg']).toBe('from-buffer');
+    expect(theme.colorsAndType.cssVariables['--badge-trait-surface']).toBe('from-buffer');
     expect(theme.componentConfigs.button.aliases['--button-radius']).toBe('--radius-sm');
     expect(theme.componentConfigs.card.aliases['--card-radius']).toBe('--radius-lg');
     expect(result.componentsCarried).toBe(2);
@@ -208,7 +208,7 @@ describe('runGenerateTheme', () => {
       JSON.stringify({
         name: 'Ocean',
         schemaVersion: 3,
-        colorsAndType: { cssVariables: { '--shadow-lg': 'from-ocean' } },
+        colorsAndType: { cssVariables: { '--badge-trait-surface': 'from-ocean' } },
         componentConfigs: { button: { name: 'ocean', aliases: { '--button-radius': '--radius-xl' } } },
       }),
     );
@@ -230,14 +230,14 @@ describe('runGenerateTheme', () => {
     const root = project();
     writeFileSync(
       join(root, 'colors-and-type', '_working.json'),
-      JSON.stringify({ cssVariables: { '--shadow-lg': 'from-buffer' } }),
+      JSON.stringify({ cssVariables: { '--badge-trait-surface': 'from-buffer' } }),
     );
     writeFileSync(
       join(root, 'themes', 'ocean.json'),
       JSON.stringify({
         name: 'Ocean',
         schemaVersion: 3,
-        colorsAndType: { cssVariables: { '--shadow-lg': 'from-ocean' } },
+        colorsAndType: { cssVariables: { '--badge-trait-surface': 'from-ocean' } },
         componentConfigs: { button: { name: 'ocean', aliases: { '--button-radius': '--radius-xl' } } },
       }),
     );
@@ -245,7 +245,7 @@ describe('runGenerateTheme', () => {
     const result = await run(root, { carryFrom: 'ocean' });
 
     const theme = readJson(join(root, 'themes', 'spring-meadow.json'));
-    expect(theme.colorsAndType.cssVariables['--shadow-lg']).toBe('from-ocean');
+    expect(theme.colorsAndType.cssVariables['--badge-trait-surface']).toBe('from-ocean');
     expect(theme.componentConfigs.button.aliases['--button-radius']).toBe('--radius-xl');
     expect(result.carriedFrom).toBe('ocean');
   });

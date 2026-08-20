@@ -18,6 +18,7 @@ import {
   setCurveAnchor,
 } from '../palettes/paletteDerivation';
 import { formatGradientValue, makeDefaultGradients } from './slices/gradients';
+import { SHADOW_VAR_NAMES, parseShadowCss, shadowTokenCss } from './parsers/shadow';
 import { AA_BODY, AA_LARGE, contrastRatio, findLForContrast } from '../palettes/contrast';
 import { type HarmonyAxis, type HarmonyMode } from '../palettes/colorHarmony';
 import { defaultPaletteConfig } from '../../ui/palette/paletteMath';
@@ -39,7 +40,8 @@ export interface ColorsAndTypeBrief {
 }
 
 /** Non-color content carried forward from the currently active colors and type
- *  so gradients, shadows, component aliases, and fonts survive regeneration. */
+ *  so gradients, shadow geometry, component aliases, and fonts survive
+ *  regeneration. Shadow opacity is derived, not carried — see `shadowVars`. */
 export interface CarryForward {
   cssVariables?: Record<string, string>;
   fontSources?: FontSource[];
@@ -68,6 +70,8 @@ export interface GenerateColorsAndTypeReport {
    *  'on, <sky> → <anchor>' or a 'skipped — …' explanation when the Canvas
    *  anchors at the ramp edge and leaves no room. */
   canvasGradient?: string;
+  /** The derived shadow opacity and the canvas lightness it came from. */
+  shadows: string;
 }
 
 export interface GenerateColorsAndTypeResult {
@@ -377,6 +381,49 @@ function applyCanvasGradient(canvas: PaletteConfig, scheme: SchemeDirection): st
   return `on, ${labels[sky]} → ${labels[anchor]}`;
 }
 
+/** The tokens.css scale, the starting point when a theme carries no shadows.
+ *  Geometry per step; every step shares one color. */
+const STOCK_SHADOW_GEOMETRY: Record<(typeof SHADOW_VAR_NAMES)[number], readonly [number, number, number]> = {
+  '--shadow-sm': [1, 1, 2],
+  '--shadow-md': [3, 3, 6],
+  '--shadow-lg': [5, 5, 9],
+  '--shadow-xl': [6, 7, 13],
+  '--shadow-2xl': [8, 9, 16],
+};
+const STOCK_SHADOW_COLOR = { spread: 0, hue: 237, saturation: 18, lightness: 3, opacity: 0.9 };
+
+/** A near-black shadow needs 0.9 to read at all against a dark ground, and at
+ *  0.9 it punches a hole in a light one. Opacity therefore rides the canvas:
+ *  full weight up to DEEP, easing to SOFT by the time the page is paper. */
+const SHADOW_OPACITY_DEEP = 0.9;
+const SHADOW_OPACITY_SOFT = 0.2;
+const SHADOW_GROUND_DEEP = 0.5;
+const SHADOW_GROUND_SOFT = 0.9;
+
+export function shadowOpacityForCanvas(canvasL: number): number {
+  const t = (canvasL - SHADOW_GROUND_DEEP) / (SHADOW_GROUND_SOFT - SHADOW_GROUND_DEEP);
+  const ramp = Math.max(0, Math.min(1, t));
+  const opacity = SHADOW_OPACITY_DEEP + ramp * (SHADOW_OPACITY_SOFT - SHADOW_OPACITY_DEEP);
+  return Math.round(opacity * 100) / 100;
+}
+
+/** Recolor the scale for this canvas: carried geometry and color ride through
+ *  (elevation shape belongs to the shape pass), opacity is replaced. Replaced
+ *  rather than kept-when-untouched, because a brief iterated from a light
+ *  canvas to a dark one would otherwise hold a shadow too faint to see. The
+ *  Canvas seed is the page background verbatim, so it is the ground the
+ *  shadow falls on. */
+function shadowVars(carried: Record<string, string>, canvas: Oklch): Record<string, string> {
+  const opacity = shadowOpacityForCanvas(canvas.l);
+  const out: Record<string, string> = {};
+  for (const variable of SHADOW_VAR_NAMES) {
+    const [x, y, blur] = STOCK_SHADOW_GEOMETRY[variable];
+    const base = parseShadowCss(variable, carried[variable] ?? '') ?? { x, y, blur, ...STOCK_SHADOW_COLOR };
+    out[variable] = shadowTokenCss({ ...base, opacity });
+  }
+  return out;
+}
+
 export function buildColorsAndTypeFromSeeds(
   brief: ColorsAndTypeBrief,
   carry: CarryForward = {},
@@ -417,6 +464,7 @@ export function buildColorsAndTypeFromSeeds(
   );
   // Rendered projections of the structured gradients, kept for production CSS.
   for (const t of gradients) cssVariables[t.variable] = formatGradientValue(t);
+  Object.assign(cssVariables, shadowVars(carry.cssVariables ?? {}, seeds.Canvas));
 
   const colorsAndType: ColorsAndType = {
     name: brief.name.trim(),
@@ -437,6 +485,7 @@ export function buildColorsAndTypeFromSeeds(
     report: {
       ...report,
       gradients: gradients === carry.gradients ? 'carried' : 'recipes',
+      shadows: `opacity ${shadowOpacityForCanvas(seeds.Canvas.l)} for a canvas at L ${seeds.Canvas.l.toFixed(2)}`,
       ...(canvasGradient ? { canvasGradient } : {}),
     },
   };
