@@ -5,6 +5,7 @@
   import ColorEditPanel from './ColorEditPanel.svelte';
   import OverridesPanel from './palette/OverridesPanel.svelte';
   import UIPillButton from './UIPillButton.svelte';
+  import UIReveal from './UIReveal.svelte';
   import GradientStopEditor from './palette/GradientStopEditor.svelte';
   import ScaleCurveEditor from './palette/ScaleCurveEditor.svelte';
   import PaletteBase from './palette/PaletteBase.svelte';
@@ -639,8 +640,8 @@
           </button>
           <div class="swatch gray-swatch bookend" style="background: #000000"></div>
         </div>
-      {#if paletteEditorOpen}
-        <div class="curve-grid-span" style="grid-column: 2 / {paletteStepLightness.length + 2}">
+      <UIReveal open={paletteEditorOpen} style="grid-column: 2 / {paletteStepLightness.length + 2}">
+        <div class="curve-grid-span">
           {#if anchorUnlockPrompt && anchorToBase}
             <div class="anchor-unlock-notice" role="alert">
               <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
@@ -700,7 +701,7 @@
             onAutoSmoothChange={handleAutoSmooth}
           />
         </div>
-      {/if}
+      </UIReveal>
       </div>
 
       {#if emptySelector && emptyMode === 'gradient'}
@@ -766,18 +767,20 @@
     <span>Text, Surfaces &amp; Borders</span>
   </button>
 
-  {#if showDerived}
-    <div class="scales-row">
-      {#each scales.filter(s => s.isText) as scale}
-        {@render overridesPanel(scale, true, derivedHexForBase)}
-      {/each}
+  <UIReveal open={showDerived}>
+    <div class="derived-rows">
+      <div class="scales-row">
+        {#each scales.filter(s => s.isText) as scale}
+          {@render overridesPanel(scale, true, derivedHexForBase)}
+        {/each}
+      </div>
+      <div class="scales-row">
+        {#each scales.filter(s => !s.isText) as scale}
+          {@render overridesPanel(scale, true, derivedHexForBase)}
+        {/each}
+      </div>
     </div>
-    <div class="scales-row">
-      {#each scales.filter(s => !s.isText) as scale}
-        {@render overridesPanel(scale, true, derivedHexForBase)}
-      {/each}
-    </div>
-  {/if}
+  </UIReveal>
 
   <!-- Color Edit Panel (non-base edits) -->
   {#if !isEditingBase && panelOpen && editingColor}
@@ -853,6 +856,14 @@
     gap: 3rem;
     flex-wrap: wrap;
     min-width: 0;
+  }
+
+  /* Carries the column gap the two rows used to get from .palette-editor,
+     now that the reveal wrapper sits between them and it. */
+  .derived-rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-20);
   }
 
   .scale-section {

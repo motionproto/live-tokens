@@ -1,6 +1,7 @@
 <script lang="ts">
   import ScaleCurveEditor from './ScaleCurveEditor.svelte';
   import UIPillButton from '../UIPillButton.svelte';
+  import UIReveal from '../UIReveal.svelte';
   import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig, textLightnessCurveConfig, hueCurveConfig } from '../curveEngine';
   import { scaleToCssVar } from '../../core/palettes/paletteDerivation';
   import { DEFAULT_PALETTE_HUE } from './paletteMath';
@@ -255,8 +256,8 @@
         >{copiedKey === k ? 'copied!' : hex}</button>
       </div>
     {/each}
-    {#if editorOpen}
-      <div class="curve-grid-span" style="grid-column: 1 / -1">
+    <UIReveal open={editorOpen} style="grid-column: 1 / -1">
+      <div class="curve-grid-span">
         {#each curveDescriptors as curve (curve.key)}
           <ScaleCurveEditor
             curveKey={curve.key}
@@ -274,7 +275,7 @@
           />
         {/each}
       </div>
-    {/if}
+    </UIReveal>
   </div>
 </div>
 

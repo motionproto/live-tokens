@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { fade, slide } from 'svelte/transition';
+  import { fade } from 'svelte/transition';
   import TokenLayout from './TokenLayout.svelte';
+  import UIReveal from '../../ui/UIReveal.svelte';
   import LinkageChart from './LinkageChart.svelte';
   import { getEditorContext } from './editorContext';
   import type { LinkedBlockResult, LinkedGroup } from './linkedBlock';
@@ -11,7 +12,6 @@
   const reduceMotion = typeof window !== 'undefined'
     && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
   const fadeDur = reduceMotion ? 0 : 140;
-  const slideDur = reduceMotion ? 0 : 200;
 
   interface Props {
     component: string;
@@ -139,8 +139,8 @@
         {/if}
       </span>
     </button>
-    {#if sectionExpanded}
-      <div class="linked-grid" transition:slide|local={{ duration: slideDur }}>
+    <UIReveal open={sectionExpanded}>
+      <div class="linked-grid">
         {#each cards as card (card.row.variable)}
           {@const cardExpanded = expandedCards[card.row.variable] === true}
           {@const cardHovered = hoveredVar === card.row.variable}
@@ -176,8 +176,8 @@
                 >({card.unlinkedText})</span>
               {/if}
             </button>
-            {#if cardExpanded}
-              <div class="chart-wrap" transition:slide|local={{ duration: slideDur }}>
+            <UIReveal open={cardExpanded}>
+              <div class="chart-wrap">
                 <LinkageChart
                   contexts={card.contexts}
                   broken={card.brokenContexts}
@@ -187,11 +187,11 @@
                   onselect={handleChartSelect}
                 />
               </div>
-            {/if}
+            </UIReveal>
           </article>
         {/each}
       </div>
-    {/if}
+    </UIReveal>
   </section>
 {/if}
 
