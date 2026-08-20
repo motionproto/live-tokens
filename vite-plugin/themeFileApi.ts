@@ -3,7 +3,11 @@ import fs from 'fs';
 import path from 'path';
 import { extractGlobalRootBody } from '../src/editor/core/themes/parsers/globalRootBlock';
 import { parseColorOpacity } from '../src/editor/core/themes/parsers/colorOpacity';
-import type { ColorsAndTypeSource } from '../src/editor/core/themes/themeTypes';
+import {
+  formatGradientValue,
+  parseGradientValue,
+} from '../src/editor/core/themes/parsers/gradient';
+import type { AliasDiskValue, ColorsAndTypeSource } from '../src/editor/core/themes/themeTypes';
 import { sanitizeFileName } from '../src/editor/core/storage/files/versionedFileResourceClient';
 import {
   palettesToVars,
@@ -60,6 +64,47 @@ const BUNDLE_KIND_BY_VERSION: Record<number, string> = {
   3: 'theme-bundle',
   [THEME_SCHEMA_VERSION]: 'theme-bundle',
 };
+
+/**
+ * Derive a component's alias map from its `:global(:root)` declaration block.
+ * This is the whole content of a freshly generated `default.json`, so it has
+ * to invert every value the bake can emit:
+ *
+ *   - `var(--token)`  → the bare token name, the editor's disk convention.
+ *   - `color-mix(in srgb, var(--token) NN%, transparent)` → verbatim, matching
+ *     the production configs the editor writes. See parsers/colorOpacity, the
+ *     one place that knows that shape.
+ *   - `linear-gradient(…)` / `radial-gradient(…)` → the structured
+ *     `{kind:'gradient'}` object, via parsers/gradient.
+ *
+ * A `solid` or `none` gradient bakes to a plain colour (`var(--token)` and
+ * `var(--color-transparent)`), so it returns as a token alias: same rendered
+ * CSS, canonical form, nothing lost.
+ *
+ * Any other literal is ignored on purpose. A property must bind a design
+ * token, not a raw colour, and the structural intrinsics (`align`, `display`,
+ * `hairline`) are not aliases at all.
+ */
+export function extractAliasDeclarations(body: string): Record<string, AliasDiskValue> {
+  const aliases: Record<string, AliasDiskValue> = {};
+  const re = /(--[a-z0-9-]+)\s*:\s*([^;]+);/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(body)) !== null) {
+    const value = m[2].trim();
+    const plain = value.match(/^var\((--[a-z0-9-]+)\)$/i);
+    if (plain) {
+      aliases[m[1]] = plain[1];
+      continue;
+    }
+    if (parseColorOpacity(value)) {
+      aliases[m[1]] = value;
+      continue;
+    }
+    const gradient = parseGradientValue(value);
+    if (gradient) aliases[m[1]] = { kind: 'gradient', value: gradient };
+  }
+  return aliases;
+}
 
 export interface ThemeFileApiOptions {
   tokensCssPath: string;       // required, e.g. 'src/styles/tokens.css'. Developer-authored, never written.
@@ -492,28 +537,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // on HMR, `_working.json` is the unsaved buffer, and any other file is a
   // user-saved preset.
 
-  function extractAliasDeclarations(body: string): Record<string, string> {
-    const aliases: Record<string, string> = {};
-    // A component property is either a plain alias to a design token
-    // (`--v: var(--token);`) or that token carried at reduced opacity
-    // (`--v: color-mix(in srgb, var(--token) NN%, transparent);`) — the form the
-    // color picker emits below 100% opacity (see parsers/colorOpacity, the one
-    // place that knows that shape). Plain aliases are stored as the bare token
-    // name (the editor's disk convention); opacity declarations are stored as
-    // the full color-mix string, matching the production configs the editor
-    // writes. Any other literal is intentionally ignored — a property must bind
-    // a design token, not a raw color.
-    const re = /(--[a-z0-9-]+)\s*:\s*([^;]+);/gi;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(body)) !== null) {
-      const value = m[2].trim();
-      const plain = value.match(/^var\((--[a-z0-9-]+)\)$/i);
-      if (plain) aliases[m[1]] = plain[1];
-      else if (parseColorOpacity(value)) aliases[m[1]] = value;
-    }
-    return aliases;
-  }
-
   function componentNameFromFile(filePath: string): string {
     return path.basename(filePath, '.svelte').toLowerCase();
   }
@@ -655,19 +678,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const now = new Date().toISOString();
     const source = fs.readFileSync(sourcePath, 'utf-8');
     const body = extractGlobalRootBody(source);
-    const aliases: Record<string, unknown> = extractAliasDeclarations(body);
-    // Structured aliases (e.g. a `kind:'gradient'` object) bake into :root as a
-    // gradient literal, which extractAliasDeclarations can't reverse into an
-    // alias — it only recovers var()/color-mix forms. Carry any prior
-    // structured alias forward so regenerating from source doesn't silently
-    // drop a component's gradient default.
-    if (existingAliases) {
-      for (const [token, val] of Object.entries(existingAliases)) {
-        if (val !== null && typeof val === 'object' && !(token in aliases)) {
-          aliases[token] = val;
-        }
-      }
-    }
+    const aliases: Record<string, AliasDiskValue> = extractAliasDeclarations(body);
     const aliasesUnchanged =
       existingAliases !== undefined &&
       JSON.stringify(existingAliases) === JSON.stringify(aliases);
@@ -1092,23 +1103,6 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
   }
 
-  /** Inline structured gradient on a component alias. Mirrors the client's
-   *  `AliasDiskValue` discriminant — kept inline here because the vite plugin
-   *  has no clean import path into `src/editor/core/themes`. */
-  type AliasDiskGradient = {
-    kind: 'gradient';
-    value: {
-      type: 'linear' | 'radial' | 'solid' | 'none';
-      angle: number;
-      radius?: number;
-      centerX?: number;
-      aspectX?: number;
-      aspectY?: number;
-      stops: { position: number; color: string; opacity?: number }[];
-    };
-  };
-  type AliasDiskValue = string | AliasDiskGradient;
-
   interface ComponentConfigRead {
     name?: string;
     component?: string;
@@ -1118,33 +1112,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     config?: Record<string, unknown>;
   }
 
-  /** Server-side mirror of `formatGradientValue` from
-   *  `src/editor/core/themes/slices/gradients.ts`. Emits the same CSS the
-   *  client's renderer writes into `:root`, so production overrides stay in
-   *  sync with the live editor. */
-  function formatAliasGradient(v: AliasDiskGradient['value']): string {
-    const stopColor = (s: { color: string; opacity?: number }): string => {
-      const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
-      const opacity = s.opacity ?? 100;
-      return opacity >= 100 ? base : `color-mix(in srgb, ${base} ${opacity}%, transparent)`;
-    };
-    if (v.type === 'none') return 'transparent';
-    if (v.type === 'solid') {
-      const first = v.stops[0];
-      if (!first) return 'transparent';
-      return stopColor(first);
-    }
-    const stops = v.stops.map((s) => `${stopColor(s)} ${s.position}%`).join(', ');
-    if (v.type === 'linear') return `linear-gradient(${v.angle}deg, ${stops})`;
-    const radial = v.radius && v.radius > 0
-      ? `circle ${v.radius}px at center`
-      : 'circle';
-    return `radial-gradient(${radial}, ${stops})`;
-  }
-
   function aliasValueToCss(v: AliasDiskValue): string {
     if (typeof v === 'string') return v.startsWith('--') ? `var(${v})` : v;
-    return formatAliasGradient(v.value);
+    return formatGradientValue(v.value);
   }
 
   function aliasValuesEqual(a: AliasDiskValue | undefined, b: AliasDiskValue | undefined): boolean {

@@ -4,9 +4,12 @@
  * (`--color-brand-500`); the renderer wraps them in `var(...)` so palette
  * edits flow through.
  */
-import type { EditorState, GradientToken, GradientTokenStop, GradientType, GradientAliasValue } from '../../store/editorTypes';
+import type { EditorState, GradientToken, GradientTokenStop, GradientType } from '../../store/editorTypes';
 import type { GradientDiskToken } from '../themeTypes';
 import { mutate } from '../../store/editorCore';
+import { formatGradientValue, formatGradientStops as formatStopList } from '../parsers/gradient';
+
+export { formatGradientValue };
 
 export function makeDefaultGradients(): GradientToken[] {
   return [
@@ -70,67 +73,11 @@ export function loadGradientsFromFile(
   if (matches) next.gradients.tokens = structuredClone(gradients) as GradientToken[];
 }
 
-function formatGradientStop(s: GradientTokenStop): string {
-  return `${formatGradientStopColor(s)} ${s.position}%`;
-}
-
 /** Stops portion only — used by the palette selector to materialize a
  *  linear-gradient with a per-slot angle override while keeping the token's
  *  stop list (and its `var(--color-…)` refs, which propagate palette edits). */
 export function formatGradientStops(t: GradientToken): string {
-  return t.stops.map(formatGradientStop).join(', ');
-}
-
-/** Serialize a structured gradient value (theme token or component-owned)
- *  into a CSS background declaration.
- *  - `none`   → `transparent` (no background paint).
- *  - `solid`  → the first stop's color (no gradient function).
- *  - `linear` → `linear-gradient(<angle>, <stops>)`.
- *  - `radial` → `radial-gradient(<shape> at <centerX>% 50%, <stops>)`.
- *               centerX defaults to 50. Shape is `circle [radius]` when the
- *               aspect ratio is 1 (or absent); for aspect ≠ 1 we emit
- *               `ellipse rx ry` anchored to `radius || 100px`, area-preserved
- *               so the R=1 boundary is continuous with the legacy circle. */
-export function formatGradientValue(v: GradientAliasValue): string {
-  if (v.type === 'none') return 'transparent';
-  if (v.type === 'solid') {
-    const first = v.stops[0];
-    if (!first) return 'transparent';
-    return formatGradientStopColor(first);
-  }
-  const stops = v.stops.map(formatGradientStop).join(', ');
-  if (v.type === 'linear') return `linear-gradient(${v.angle}deg, ${stops})`;
-  const cx = v.centerX ?? 50;
-  return `radial-gradient(${formatRadialShape(v)} at ${cx}% 50%, ${stops})`;
-}
-
-/** Default base radius (px) when the gradient has no explicit `radius` but
- *  needs concrete dimensions to express its aspect ratio. Chosen as a
- *  pleasant-looking mid-size that reads as a "soft glow" inside typical
- *  component containers; the user can dial `radius` to override. */
-const DEFAULT_RADIAL_BASE_PX = 100;
-
-function formatRadialShape(v: GradientAliasValue): string {
-  const ax = v.aspectX ?? 1;
-  const ay = v.aspectY ?? 1;
-  if (ax === 1 && ay === 1) {
-    return v.radius && v.radius > 0 ? `circle ${v.radius}px` : 'circle';
-  }
-  const base = v.radius && v.radius > 0 ? v.radius : DEFAULT_RADIAL_BASE_PX;
-  const rx = base * ax;
-  const ry = base * ay;
-  return `ellipse ${rx.toFixed(2)}px ${ry.toFixed(2)}px`;
-}
-
-/** Resolve a stop's color + opacity into a CSS color value without the
- *  trailing `${position}%`. Shared by the gradient-stop formatter (which
- *  appends the position) and the solid path (which doesn't). */
-function formatGradientStopColor(s: GradientTokenStop): string {
-  const base = s.color.startsWith('--') ? `var(${s.color})` : s.color;
-  const opacity = s.opacity ?? 100;
-  return opacity >= 100
-    ? base
-    : `color-mix(in srgb, ${base} ${opacity}%, transparent)`;
+  return formatStopList(t.stops);
 }
 
 function formatGradient(t: GradientToken): string {

@@ -36,6 +36,16 @@
   missing a component no longer leaves the generator working from a hole.
 - **A pre-rename alias key in an old theme is migrated before the bake**,
   instead of being emitted verbatim into `tokens.generated.css`.
+- **A component's gradient default survives a fresh checkout.** The dev
+  server derives `component-configs/<comp>/default.json` from the component's
+  `:global(:root)` block, and it could not read a baked gradient back. On a
+  tree with no prior file it dropped the alias. It now parses the gradient
+  into its structured form, so the derivation covers every value the bake
+  emits.
+- **A radial gradient bakes the shape the editor shows.** The production bake
+  carried its own copy of the gradient renderer, which ignored the centre and
+  both aspect factors and wrote `circle … at center` for every radial. Both
+  sides now share one renderer.
 
 ## 0.52.1 — Notification header actions are previewable
 
