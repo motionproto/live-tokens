@@ -318,7 +318,7 @@ async function probeCurrentView(
       .sort()
       .join(';');
 
-    const fingerprint = (variable: string) => {
+    const pseudoSelectorsFor = (variable: string) => {
       const pseudoSelectors = ['::before', '::after'];
       if (variable.includes('placeholder')) pseudoSelectors.push('::placeholder');
       if (variable.includes('scrollbar')) {
@@ -328,29 +328,55 @@ async function probeCurrentView(
           '::-webkit-scrollbar-thumb',
         );
       }
-      // Fixed overlays are portaled to body and are therefore outside the
-      // preview subtree. Dialog roles let the harness include them without a
-      // component-specific selector or fixture.
+      return pseudoSelectors;
+    };
+
+    // Fixed overlays are portaled to body and are therefore outside the
+    // preview subtree. Dialog roles let the harness include them without a
+    // component-specific selector or fixture.
+    const fingerprintNodes = () => {
       const roots = [preview, ...document.querySelectorAll<HTMLElement>('[role="dialog"]')];
-      const nodes = roots.flatMap((root) => [root, ...root.querySelectorAll<HTMLElement>('*')]);
-      return nodes.map((element, index) => {
-        const style = getComputedStyle(element);
-        const rect = element.getBoundingClientRect();
-        const values = properties.map((property) => style[property]).join('|');
-        const pseudoValues = pseudoSelectors.map((selector) => {
-          const pseudo = getComputedStyle(element, selector);
-          return properties.map((property) => pseudo[property]).join('|');
-        }).join('~');
-        return [
-          index,
-          element.tagName,
-          values,
-          pseudoValues,
-          `${rect.x},${rect.y},${rect.width},${rect.height}`,
-          `${element.scrollWidth},${element.scrollHeight}`,
-          stableAttributes(element),
-        ].join('~');
-      }).join('\n');
+      return roots.flatMap((root) => [root, ...root.querySelectorAll<HTMLElement>('*')]);
+    };
+
+    const nodeFingerprint = (element: HTMLElement, index: number, pseudoSelectors: string[]) => {
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      const values = properties.map((property) => style[property]).join('|');
+      const pseudoValues = pseudoSelectors.map((selector) => {
+        const pseudo = getComputedStyle(element, selector);
+        return properties.map((property) => pseudo[property]).join('|');
+      }).join('~');
+      return [
+        index,
+        element.tagName,
+        values,
+        pseudoValues,
+        `${rect.x},${rect.y},${rect.width},${rect.height}`,
+        `${element.scrollWidth},${element.scrollHeight}`,
+        stableAttributes(element),
+      ].join('~');
+    };
+
+    const fingerprint = (variable: string) => {
+      const pseudoSelectors = pseudoSelectorsFor(variable);
+      return fingerprintNodes().map((element, index) =>
+        nodeFingerprint(element, index, pseudoSelectors));
+    };
+
+    /** Proving a repaint takes one difference, so stop at the node that moved
+     *  instead of reading every remaining node's computed style. Each node
+     *  costs 58 properties across the element and its pseudo-elements, and this
+     *  walk runs once per candidate value per alias, so it is the probe's
+     *  dominant cost. Only the negative case has to read everything. */
+    const movedFrom = (variable: string, baseline: string[]) => {
+      const pseudoSelectors = pseudoSelectorsFor(variable);
+      const nodes = fingerprintNodes();
+      if (nodes.length !== baseline.length) return true;
+      for (let index = 0; index < nodes.length; index++) {
+        if (nodeFingerprint(nodes[index], index, pseudoSelectors) !== baseline[index]) return true;
+      }
+      return false;
     };
 
     const alternateValues = (variable: string, current: string): string[] => {
@@ -435,7 +461,7 @@ async function probeCurrentView(
         // CSS updates synchronously. One animation frame also gives the few
         // JavaScript-backed components (SVG/filter bridges) time to reconcile.
         await settle();
-        if (fingerprint(variable) !== baseline) {
+        if (movedFrom(variable, baseline)) {
           changed = true;
           break;
         }
