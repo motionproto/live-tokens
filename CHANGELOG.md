@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.54.0 — Shadow weight and text insets follow their context
 
 ### Fixed
 
