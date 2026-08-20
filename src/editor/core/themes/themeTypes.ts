@@ -246,15 +246,16 @@ export interface Theme {
   colorsAndType: ColorsAndType;
   /** Component id → its config, by value, one entry per component this
    *  install has and every alias key that component's `default.json`
-   *  declares. `normalizeTheme` fills any gap from the local default on every
-   *  read (Wave 2 of `docs/plans/theme-completeness.md`) and the fill is
-   *  persisted on the next write, so a theme is a whole-look document rather
-   *  than a diff against a moving baseline. `component-configs/<id>/
-   *  default.json` is the derivation product of that component's
-   *  `:global(:root)`, not a resolution layer this map defers to — a config
-   *  for a component this install does not have, or an alias key its current
-   *  default no longer declares, is kept exactly as read (RJC 3) rather than
-   *  dropped. */
+   *  declares. `normalizeTheme` migrates each embedded config to the current
+   *  component schema and then fills any gap from the local default, on every
+   *  read (Waves 1 and 2 of `docs/plans/theme-completeness.md`); both the
+   *  migration and the fill are persisted on the next write, so a theme is a
+   *  whole-look document rather than a diff against a moving baseline.
+   *  `component-configs/<id>/default.json` is the derivation product of that
+   *  component's `:global(:root)`, not a resolution layer this map defers to
+   *  — a config for a component this install does not have, or an alias key
+   *  its current default no longer declares, is kept exactly as read (RJC 3)
+   *  rather than dropped. */
   componentConfigs: Record<string, ComponentConfig>;
   /** Migration stamp for every embedded component config in this theme, one
    *  field for all of them: `CURRENT_COMPONENT_SCHEMA_VERSION` is a single

@@ -7,6 +7,10 @@ import { getActiveColorsAndType } from './colorsAndTypeService';
 import { broadcastAppliedTheme, hydrateAppliedTheme } from './themeDocumentSync';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from './migrations';
 import { THEME_SCHEMA_VERSION } from '../../../../vite-plugin/themes/normalizeTheme';
+import type { NormalizedTheme } from '../../../../vite-plugin/themes/normalizeTheme';
+
+/** What the completeness fill (`normalizeTheme`) had to add to reach a theme. */
+export type ThemeFillReport = NormalizedTheme['filled'];
 
 /**
  * REST client for theme files, the documents of the editor. A theme carries a
@@ -63,6 +67,9 @@ export interface ApplyThemeResult {
   componentConfigs: Record<string, ComponentConfig>;
   /** Components the theme carries data for that this install doesn't have. */
   skippedComponents: string[];
+  /** What the completeness fill (`normalizeTheme`) had to add to reach this
+   *  theme, reported so the panel can name it. */
+  filled: ThemeFillReport;
 }
 
 /**
@@ -208,6 +215,9 @@ export interface ImportThemeResult {
   /** Refs a v1 bundle failed to carry, as `colors-and-type:<name>` /
    *  `<comp>/<name>`. Each fell back to the default. */
   dropped: string[];
+  /** What the completeness fill (`normalizeTheme`) had to add to reach this
+   *  theme, reported so the panel can name it. */
+  filled: ThemeFillReport;
 }
 
 /**

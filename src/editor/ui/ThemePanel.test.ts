@@ -404,6 +404,7 @@ describe('Load preview', () => {
         colorsAndType: COLORS_AND_TYPE,
         componentConfigs: {},
         skippedComponents: [],
+        filled: { components: [], aliases: 0, orphans: 0 },
       });
     };
     await mountPanel();

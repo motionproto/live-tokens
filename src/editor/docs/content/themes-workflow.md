@@ -5,14 +5,14 @@ Save your work, switch between looks, and ship one to production.
 ## The Theme panel
 
 The **Theme** panel at the foot of the editor sidebar holds the whole look:
-colors, type, and a setting for every component you changed, in one file. It
-carries the name the look ships under, whether production is running it, and
-**Adopt**. Two parts sit under it, each a read-out rather than a file to manage.
+colors, type, and a setting for every component, in one file. It carries the
+name the look ships under, whether production is running it, and **Adopt**.
+Two parts sit under it, each a read-out rather than a file to manage.
 
 - **Colors & Type** holds the design tokens. Components read those tokens to
   define their appearance. It names the two faces the page is showing.
-- **Components** counts how many components run something the theme does not
-  carry, and opens the component editors.
+- **Components** counts how many components have an unsaved edit that has not
+  been saved into the theme, and opens the component editors.
 
 A theme holds its own copy of every part, so one theme can never break another.
 
@@ -21,8 +21,7 @@ A theme holds its own copy of every part, so one theme can never break another.
 A theme is a document, and the editor works the way any editor does.
 
 - **A theme** is a named JSON file in `src/live-tokens/data/themes/`. It carries
-  the whole look: the colors and type plus a setting for every component you
-  changed.
+  the whole look: the colors and type plus a setting for every component.
 - **The open theme** is the one the editor is working on, named in
   `themes/_active.json`. One at a time.
 - **Your unsaved edits** are what the page shows right now. The editor keeps
@@ -60,10 +59,9 @@ to it, and the editor never overwrites it, so start your own with **Save As**.
 **Load**—or clicking the active theme's name—opens the Theme Picker. Picking a
 theme shows it on the page as a preview with nothing written to disk, so you can
 try each look and compare. **Save** in that window opens and adopts the previewed
-theme in one step: the active pointer changes, the buffers clear, components it
-does not carry fall through to their defaults, the editor works on it, and
-production ships it. **Cancel** returns you to where you were. Previewing alone
-never changes what your site ships.
+theme in one step: the active pointer changes, the buffers clear, the editor
+works on it, and production ships it. **Cancel** returns you to where you were.
+Previewing alone never changes what your site ships.
 
 **Colors and type only. Keep my shapes.** narrows the load to the palette and
 the fonts: your component settings stay as they are and the theme you have open

@@ -799,7 +799,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   function notAThemeError(fileName: string): string {
     return (
       `"${fileName}" is a colors-and-type file, not a theme. Before 0.48 those lived in ` +
-      `themes/; move it to ${path.basename(COLORS_AND_TYPE_DIR)}/ or delete it.`
+      `themes/; move it to ${path.basename(COLORS_AND_TYPE_DIR)}/ or delete it. To build a ` +
+      `theme, use the theme generator skill "generate-theme".`
     );
   }
 
@@ -1656,9 +1657,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       respondUnreadableTheme(res, fileName, 'Theme not found');
       return;
     }
-    const { theme } = read;
+    const { theme, filled } = read;
     if (!theme.colorsAndType) {
-      jsonResponse(res, 422, { error: 'This theme carries no colors and type' });
+      jsonResponse(res, 422, {
+        error: 'This theme carries no colors and type. Build one with the theme generator skill "generate-theme".',
+      });
       return;
     }
     clearAllWorking();
@@ -1690,6 +1693,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       },
       componentConfigs: resolvedConfigs,
       skippedComponents,
+      filled,
     });
   }
 
@@ -1807,7 +1811,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       listComponentNames,
       normalizeColorsAndType: (colorsAndType) => normalizeColorsAndType(colorsAndType as any),
     };
-    const { theme, dropped } = normalizeTheme(bundle.manifest, bundleResolvers);
+    const { theme, dropped, filled } = normalizeTheme(bundle.manifest, bundleResolvers);
     // Foreign data door: an embedded copy arrives unreconciled, which is what
     // normalizeColorsAndType's `_imported` palette path exists for.
     if (theme.colorsAndType) theme.colorsAndType = normalizeColorsAndType(theme.colorsAndType as any);
@@ -1833,6 +1837,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       theme: finalName,
       renames,
       dropped,
+      filled,
     });
   }
 

@@ -27,8 +27,8 @@ src/system/styles/
 ```
 
 A saved theme carries the whole look by value: the colors and type plus a
-setting for every component you changed. It depends on no other file, so
-deleting anything else never breaks it.
+setting for every component. It depends on no other file, so deleting
+anything else never breaks it.
 
 ## What writes when
 

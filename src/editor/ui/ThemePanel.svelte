@@ -21,6 +21,7 @@
     saveActiveTheme,
     exportTheme,
     importTheme,
+    type ThemeFillReport,
   } from '../core/themes/themeService';
   import {
     THEME_APPLIED_EVENT,
@@ -447,6 +448,13 @@
     await commitWholeLook();
   }
 
+  function filledNote(filled: ThemeFillReport): string | null {
+    const n = filled.components.length;
+    if (n === 0) return null;
+    return `${n} component${n === 1 ? '' : 's'} arrived with gaps. `
+      + `The editor filled them from the current defaults.`;
+  }
+
   async function commitWholeLook() {
     const row = previewRow;
     if (!row) return;
@@ -462,11 +470,17 @@
     let result: Awaited<ReturnType<typeof applyTheme>>;
     try {
       result = await applyTheme(row.slug);
+      const notes: string[] = [];
       if (result.skippedComponents.length > 0) {
-        window.alert(
-          `Loaded "${row.name}". These components are not installed here, so their `
-            + `saved settings were skipped:\n\n${result.skippedComponents.join(', ')}`,
+        notes.push(
+          `These components are not installed here, so their saved settings were `
+            + `skipped:\n${result.skippedComponents.join(', ')}`,
         );
+      }
+      const filled = filledNote(result.filled);
+      if (filled) notes.push(filled);
+      if (notes.length > 0) {
+        window.alert(`Loaded "${row.name}".\n\n${notes.join('\n\n')}`);
       }
       currentDisplayName = result.theme.name;
       showFileList = false;
@@ -593,6 +607,8 @@
           `The file was missing this data, which fell back to the default:\n${result.dropped.join('\n')}`,
         );
       }
+      const filled = filledNote(result.filled);
+      if (filled) notes.push(filled);
       if (notes.length > 0) {
         window.alert(`Imported as "${result.theme}".\n\n${notes.join('\n\n')}`);
       }
@@ -664,7 +680,7 @@
     <span class="mfm-header-label">Theme</span>
     <UIInfoPopover title="Theme" ariaLabel="About the theme">
       <p>
-        A <strong>theme</strong> is a whole look in one file: the colors and type plus a setting for every component you changed.
+        A <strong>theme</strong> is a whole look in one file: the colors and type plus a setting for every component.
       </p>
       <p>
         It holds its own copy of that data, so the theme you open is the whole look, and one theme can never break another.
@@ -673,13 +689,13 @@
         <strong>Load</strong> opens the list. Picking a theme shows it on the page as a preview, so you can try each look with nothing written to disk. Pick another to compare, or <strong>Cancel</strong> to go back to where you were.
       </p>
       <p>
-        <strong>Save</strong> opens and adopts the previewed theme: the editor works on it from then on and production ships it immediately. Components it does not carry go back to their defaults. Previewing and cancelling never change what your site ships.
+        <strong>Save</strong> opens and adopts the previewed theme: the editor works on it from then on and production ships it immediately. Previewing and cancelling never change what your site ships.
       </p>
       <p>
         <strong>Colors and type only</strong> in that window takes the palette and the fonts and leaves your shapes and component settings alone.
       </p>
       <p>
-        The <strong>active</strong> theme is the one the editor has open. <strong>Adopt</strong> saves it and ships it to production, colors and type plus every component you changed. The line under the name says whether production is running this theme.
+        The <strong>active</strong> theme is the one the editor has open. <strong>Adopt</strong> saves it and ships it to production, colors and type plus every component. The line under the name says whether production is running this theme.
       </p>
       <p>
         If components have unsaved edits, Save and Adopt offer to save all of them before continuing. You can cancel to review or save components individually.

@@ -260,4 +260,12 @@ notices when the shipped themes and the ops table disagree.
    2px toggle track inset is plausibly correct. Worth a deliberate pass once
    these values are authored rather than derived.
    
-   ANSWER:MotionProto was the archetypal example so they should be correct. 
+   ANSWER:MotionProto was the archetypal example so they should be correct.
+
+## Status
+
+Executed. `docs/plans/theme-completeness.md` reviewed this proposal, corrected
+five things Part 0 lists, and carried it through six waves: themes are now
+complete documents, filled and migrated at the normalize boundary, and the
+shipped presets are frozen files a check guards rather than a generator that
+re-derives them.
