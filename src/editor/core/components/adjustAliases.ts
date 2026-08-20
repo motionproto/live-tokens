@@ -66,6 +66,12 @@ const SPACE_RUNGS = SPACE_SETTABLE;
     rungs stay pickable by hand and settable by name. */
 const INSET_RUNGS = SPACE_SETTABLE.slice(SPACE_SETTABLE.indexOf('--space-4'));
 
+/** Padding that wraps a line of type stops a rung higher. Those components
+    double it horizontally (`themed-padding($h: 2)`), so `--space-4` is 4px
+    over an 18px line and 8px inside a pill's own corner: squeezed rather than
+    compact. No shipped default puts text below `--space-6`. */
+const TEXT_INSET_RUNGS = SPACE_SETTABLE.slice(SPACE_SETTABLE.indexOf('--space-6'));
+
 const SPACE_FAMILY = [...SPACE_SETTABLE, '--space-40', '--space-64', '--space-96', '--space-128'];
 
 const BORDER_WIDTH_RUNGS = [
@@ -95,11 +101,16 @@ const TOKEN_NAME = /^--[a-z0-9-]+$/;
 type Outcome = { from: string; to: string } | { skip: SkipReason };
 
 /** `-margin` shares the padding kind, so the inset floor keys off the variable
-    rather than the kind. */
-function rungsFor(op: AdjustOp, variable: string): string[] {
+    rather than the kind. Which floor depends on what the padding surrounds,
+    and the config says so itself: a variant that also declares a
+    `-text-font-size` is holding type. */
+function rungsFor(op: AdjustOp, variable: string, aliases: ComponentConfig['aliases']): string[] {
   if (op.kind === 'radius') return op.full ? [...RADIUS_RUNGS, RADIUS_FULL] : RADIUS_RUNGS;
-  if (op.kind === 'padding' && stripSide(variable).endsWith('-padding')) return INSET_RUNGS;
-  return LADDERS[op.kind].rungs;
+  if (op.kind !== 'padding') return LADDERS[op.kind].rungs;
+  const base = stripSide(variable);
+  if (!base.endsWith('-padding')) return LADDERS.padding.rungs;
+  const variant = base.slice(0, -'-padding'.length);
+  return `${variant}-text-font-size` in aliases ? TEXT_INSET_RUNGS : INSET_RUNGS;
 }
 
 function spaceStep(token: string): number {
@@ -119,12 +130,17 @@ function snapRung(token: string, rungs: string[], direction: number): number {
   return -1;
 }
 
-function resolve(op: AdjustOp, variable: string, value: AliasDiskValue): Outcome {
+function resolve(
+  op: AdjustOp,
+  variable: string,
+  value: AliasDiskValue,
+  aliases: ComponentConfig['aliases'],
+): Outcome {
   if (typeof value !== 'string' || !TOKEN_NAME.test(value)) return { skip: 'raw-value' };
   if (!LADDERS[op.kind].family.includes(value)) return { skip: 'off-ladder' };
   if (op.set !== undefined) return { from: value, to: op.set };
 
-  const rungs = rungsFor(op, variable);
+  const rungs = rungsFor(op, variable, aliases);
   let index = rungs.indexOf(value);
   let shift = op.shift!;
   if (index < 0) {
@@ -188,7 +204,7 @@ export function adjustAliases(
 
       for (const [variable, value] of Object.entries(config.aliases)) {
         if (!matchesKind(variable, op.kind)) continue;
-        const outcome = resolve(op, variable, value);
+        const outcome = resolve(op, variable, value, config.aliases);
         if ('skip' in outcome) {
           reportFor(component).skips.push({ variable, value, reason: outcome.skip });
           continue;

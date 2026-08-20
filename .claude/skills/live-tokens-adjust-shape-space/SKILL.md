@@ -11,7 +11,7 @@ You translate the request into a small ops file; the CLI resolves each matching 
 
 1. Write the ops file to a temp path (not the project tree), e.g. `/tmp/adjust-ops.json`.
 2. Run `npx live-tokens adjust /tmp/adjust-ops.json`. It writes `component-configs/<id>/_working.json` for every component the ops change, which is the buffer the page already runs. `--dry-run` prints the report without writing.
-3. Read the report card: every changed alias old → new, plus skips (raw value, off the ladder, already at the ladder end, pill preserved). Exit 1 means the run was rejected; the message names the offending op or the missing input, so fix it and re-run.
+3. Read the report card: every changed alias old → new, plus skips (raw value, off the ladder, already at the ladder end, pill preserved). Exit 1 means the run was rejected; the message names the offending op or the missing input, so fix it and re-run. Read where the controls landed, not only that the run succeeded: a button, badge, input, or tab padding sitting at `--space-6` is on its floor, and one that also carries `--radius-full` wants a targeted lift.
 4. Tell the user to reload the app and look. Offer the inverse op as the undo, and say the edit is unsaved until they save the open theme.
 
 Each run reads the LIVE config (buffer, else the open theme, else the shipped default), so "a bit more" and "back one" compound naturally.
@@ -40,7 +40,7 @@ Targeted, absolute:
 
 | Request | Ops |
 |---|---|
-| pill, capsule | radius `set: "--radius-full"` |
+| pill, capsule | radius `set: "--radius-full"`, plus the padding the pill needs (see below) |
 | sharp, square corners | radius `set: "--radius-none"`, or `--radius-sm` for "mostly sharp" |
 | rounded (a named component) | radius `shift: 2` |
 | softer, rounder (global) | radius `shift: 1` to `2`, no `full` |
@@ -52,11 +52,29 @@ Targeted, absolute:
 
 Magnitude words: "slightly" or "a bit" is 1 step, unqualified is 1 to 2, "much", "way", or "really" is 2 to 3. Mood words often mean both axes: "softer" is rounder plus airier, "compact" is tighter padding plus smaller gaps.
 
+## Controls squeeze before containers
+
+A global op spends the same number of steps everywhere, but a step costs a control far more than a container. `padding shift: -2` takes a card from a 16px inset to 10px and it is still a card. It takes a button from 8 to 4, doubled to 8px at each end, around an 18px line. The button stops reading as a button.
+
+So a global compaction is `shift: -1`. When the brief wants more, spend the extra steps on the containers by name (`card`, `dialog`, `panel`, `sidenavigation`, `table`, `codesnippet`) and leave the controls alone. Loosening is not symmetric: airier is safe globally, because nothing breaks by growing.
+
+A pill needs the room most. `--radius-full` bends the corner in over the first and last glyph, so a capsule wants more horizontal inset than a square-cornered control, never less. `--space-8` is the floor for a large-text pill, which is where compact Midnight Study sits; the roomier pill presets (Ocean, Sunset, Royal Velvet) run `--space-10` to `--space-12`. Pair the radius op with a padding `set` on the same target, placed after any global compaction so it wins outright:
+
+```json
+{ "ops": [
+  { "kind": "padding", "shift": -1 },
+  { "target": "button", "kind": "radius", "set": "--radius-full" },
+  { "target": "button", "kind": "padding", "set": "--space-10" }
+] }
+```
+
 ## Ladders
 
 Radius runs `none, sm, md, lg, xl, 2xl, 3xl, 4xl`, with `full` as the gated ninth rung. Space (padding and gap) is the editor picker's subset: `0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 48`, so every written value stays re-editable by hand. Border width is the full `--border-width-*` scale. `set` values must be on the ladder (`--space-64` is rejected).
 
 Content insets stop at `--space-4`. Below it the text sits against its own edge, so `--space-0` and `--space-2` are destinations a person picks on purpose, not ones a relative "tighter" hands you. Both stay available through the editor picker and through `set`. An alias already below the floor still moves up, and a shift that would push one under `--space-4` reports as clamped and writes nothing.
+
+Padding that wraps a line of type stops a rung higher, at `--space-6`. The engine spots it in the config itself: a variant that also declares a `-text-font-size` is holding text, and the components that hold text double their padding horizontally, so `--space-4` there is 4px over an 18px line and 8px at each end. No shipped default puts text below `--space-6`.
 
 The floor guards `-padding` only. Outer space is exempt, because a 2px gap between an icon and its label, or a 2px margin under a bar, is ordinary design rather than a mistake. Note that `-margin` rides the `padding` kind, so a padding op moves margins too; it just does not floor them.
 
@@ -70,5 +88,6 @@ Every value written is an existing token; nothing new is minted. `tokens.css`, s
 
 - The CLI exits 0 and the report card lists the changes you expected, with no surprising skips.
 - The app (dev server running) shows the new shape on each changed component after a reload.
+- Buttons still read as buttons: the label has room at both ends, and a pill has more of it than a square-cornered control had.
 - `component-configs/<id>/_working.json` exists for every component the report listed. That buffer is the whole change: it stays until the open theme is saved or another theme is loaded.
 - To revert, run the inverse ops, or load a theme in the Theme panel to discard every unsaved edit.

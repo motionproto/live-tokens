@@ -62,6 +62,7 @@ const PRESETS = [
       { target: 'dialog', kind: 'radius', set: '--radius-none' },
       { target: 'card', kind: 'radius', set: '--radius-sm' },
       { target: 'button', kind: 'radius', set: '--radius-full' },
+      { target: 'button', kind: 'padding', set: '--space-8' },
     ],
   },
   {

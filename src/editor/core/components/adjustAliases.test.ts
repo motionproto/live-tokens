@@ -16,7 +16,9 @@ function fixture(): Record<string, ComponentConfig> {
       '--button-primary-padding': '--space-8',
       '--button-primary-border-width': '--border-width-1',
       '--button-primary-text': '--text-primary',
+      '--button-primary-text-font-size': '--font-size-lg',
       '--button-pill-radius': '--radius-full',
+      '--button-tray-padding': '--space-8',
     }),
     card: config('card', {
       '--card-default-radius': '--radius-4xl',
@@ -116,6 +118,33 @@ describe('adjustAliases', () => {
     expect(configs.card.aliases['--card-default-header-padding']).toBe('--space-4');
     expect(configs.card.aliases['--card-tight-padding']).toBe('--space-2');
     expect(skipReason(report, 'card', '--card-tight-padding')).toBe('clamped');
+  });
+
+  it('never shifts a padding that holds text below --space-6', () => {
+    const { configs, report } = adjustAliases(fixture(), [{ kind: 'padding', shift: -4 }], NOW);
+
+    expect(configs.button.aliases['--button-primary-padding']).toBe('--space-6');
+    expect(configs.button.aliases['--button-tray-padding']).toBe('--space-4');
+    expect(skipReason(report, 'button', '--button-primary-padding')).toBeUndefined();
+  });
+
+  it('reports a text padding already at its floor as clamped', () => {
+    const tightened = adjustAliases(fixture(), [{ kind: 'padding', shift: -1 }], NOW).configs;
+    const { configs, report } = adjustAliases(tightened, [{ kind: 'padding', shift: -1 }], NOW);
+
+    expect(configs.button.aliases['--button-primary-padding']).toBe('--space-6');
+    expect(skipReason(report, 'button', '--button-primary-padding')).toBe('clamped');
+  });
+
+  it('lifts a text padding sitting under its floor one visible step', () => {
+    const squeezed = adjustAliases(
+      fixture(),
+      [{ target: 'button', kind: 'padding', set: '--space-2' }],
+      NOW,
+    ).configs;
+    const { configs } = adjustAliases(squeezed, [{ kind: 'padding', shift: 1 }], NOW);
+
+    expect(configs.button.aliases['--button-primary-padding']).toBe('--space-6');
   });
 
   it('leaves gaps free to go tighter than the inset floor', () => {

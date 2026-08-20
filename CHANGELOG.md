@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Fixed
+
+- **Padding that holds text stops at `--space-6`.** One floor for every inset
+  treated a card and a button alike, but the components that hold text double
+  their padding horizontally, so `--space-4` on a button is 4px over an 18px
+  line and 8px at each end. `adjust` now reads which floor applies off the
+  config itself: a variant that also declares a `-text-font-size` is holding
+  type. Containers keep the `--space-4` floor, `-margin` and `-gap` stay
+  exempt, and both rungs stay reachable by `set` and by the editor picker.
+  Midnight Study shipped with every text inset on the old floor, its pill
+  buttons worst of all; its controls move up, and the six full-size button
+  variants to `--space-8` so the capsule has room for its label.
+
 ### Changed
 
 - **Shadow weight follows the canvas.** The `--shadow-*` scale was one fixed
