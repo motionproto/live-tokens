@@ -4,8 +4,12 @@ Companion to `docs/theme-completeness-audit.md`. That doc asks whether a theme
 file is a complete description of a look. This doc reviews the answer, corrects
 five things, and lays out six waves.
 
-Status: not started. Every decision below is settled with the user; the
-Reserved judgment calls section records which were confirmed explicitly.
+Status: EXECUTED 2026-08-20 on branch `theme-completeness`, six commits
+(`15a6cba`, `80318bc`, `92c3556`, `76bde9a`, `df1e497`, `75aa165`), branched
+from `main` at `ce2df7b`. Not merged, not pushed, not released. Every wave
+passed its review gate; all six end-state verification items pass. Every
+decision below was settled with the user before execution; the Reserved
+judgment calls section records which were confirmed explicitly.
 
 ## Starting state
 
