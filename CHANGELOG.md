@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.53.0 — Themes are complete documents
 
 ### Changed
 
@@ -46,6 +46,12 @@
   carried its own copy of the gradient renderer, which ignored the centre and
   both aspect factors and wrote `circle … at center` for every radial. Both
   sides now share one renderer.
+- **The shipped `panel` aliases sit in derivation order.** `Panel.svelte`
+  declares `--panel-stage-surface` before the stage spacing, but every
+  committed copy carried it last. On a fresh checkout, where the component
+  source is newer than the data tree, boot re-derived `default.json` into
+  source order while the seven presets kept the old one, and the preset gate
+  read two different key orders. The committed data now matches the source.
 
 ## 0.52.1 — Notification header actions are previewable
 

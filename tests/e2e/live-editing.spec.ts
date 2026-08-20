@@ -160,7 +160,10 @@ test('component controls repaint the host without save, adopt, or reload', async
   expect(afterSvg.height).not.toBe(beforeSvg.height);
   expect(afterSvg.textBoxHeight).not.toBe(beforeSvg.textBoxHeight);
 
-  await selectOption('--sectiondivider-md-title-font-weight', 'Black');
+  // Spring Meadow's display face is Comfortaa, which ships 300..700, so the
+  // weight selector disables Black. Semibold is a real face and differs from
+  // the theme's own Bold, which is what this assertion needs.
+  await selectOption('--sectiondivider-md-title-font-weight', 'Semibold');
   await selectOption('--sectiondivider-md-title-outline-width', '12px');
 
   await expect.poll(() => page.evaluate(() => {
@@ -173,7 +176,7 @@ test('component controls repaint the host without save, adopt, or reload', async
     };
   })).toEqual({
     color: 'var(--color-black)',
-    weight: 'var(--font-weight-black)',
+    weight: 'var(--font-weight-semibold)',
     size: 'var(--font-size-6xl)',
     outline: 'var(--border-width-12)',
   });
@@ -192,7 +195,7 @@ test('component controls repaint the host without save, adopt, or reload', async
   expect(rendered).toEqual({
     color: expected.titleColor,
     fill: expected.titleColor,
-    fontWeight: '900',
+    fontWeight: '600',
     fontSize: expected.fontSize,
     outlineRadius: expected.outlineRadius,
   });
