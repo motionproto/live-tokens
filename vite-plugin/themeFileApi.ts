@@ -375,10 +375,15 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       }
     }
 
-    // Section 2: component-alias overrides — every config the production theme
-    // carries that differs from the component's default. A component the theme
-    // does not carry is on its default, so the source `.svelte` is
-    // authoritative and nothing is emitted for it.
+    // Section 2: component-alias overrides. Every config the production theme
+    // carries that differs from the component's default. The per-alias diff
+    // exists to keep tokens.generated.css small: a value equal to its default
+    // needs no override, since the component's own `:global(:root)` already
+    // supplies it and stays the authority for it. A complete theme carries
+    // every component (normalizeTheme fills any gap from the local default),
+    // so the `!prodCfg` check below is not the old per-component skip; it
+    // guards only a component whose default.json cannot be resolved at all,
+    // leaving nothing to diff against.
     let componentOverrideCount = 0;
     if (fs.existsSync(COMPONENT_CONFIGS_DIR)) {
       const blocks: string[][] = [];

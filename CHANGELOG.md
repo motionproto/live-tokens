@@ -20,6 +20,23 @@
   This retires the report card's `!` marker, which existed only to flag that
   backwards case.
 
+- **Themes are complete documents.** A theme now stores every component and
+  every alias, by value, at `schemaVersion` 4. Boot migrates and fills a
+  local theme once; an incomplete imported theme still loads with whatever
+  components it carries, filled from the current defaults, and the fill is
+  reported in the Theme panel. The preset generator that re-derived the
+  seven shipped presets on every run is gone. `seed-preset-theme.mjs <slug>`
+  seeds a new preset once and `check:preset-themes` guards the shipped seven
+  against drift.
+
+### Fixed
+
+- **`generate-theme` no longer inherits gaps from an incomplete open theme.**
+  The live resolution path gained the missing default layer, so a theme
+  missing a component no longer leaves the generator working from a hole.
+- **A pre-rename alias key in an old theme is migrated before the bake**,
+  instead of being emitted verbatim into `tokens.generated.css`.
+
 ## 0.52.1 — Notification header actions are previewable
 
 ### Fixed

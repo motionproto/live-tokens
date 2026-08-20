@@ -4,7 +4,8 @@ An audit of what a theme file actually stores, why Midnight Study shipped
 badges at `--space-2`, and what it would take for a theme to be a complete
 description of a look.
 
-Status: analysis and proposal. Nothing here is implemented.
+Status: executed via `docs/plans/theme-completeness.md`. See the closing
+Status section below.
 
 ## The question
 
@@ -193,6 +194,10 @@ Added tokens keep working exactly as they do now. They start unset and resolve
 through `:global(:root)` until a migration seeds them, which is already the
 convention.
 
+**Executed as:** a per-alias fill at the normalize boundary, with a
+`THEME_SCHEMA_VERSION` bump. No dated migration. See
+`docs/plans/theme-completeness.md`, Part 0.
+
 ### 2. Padding stops being a modifier
 
 Remove `{ kind: 'padding', shift: n }` from the preset ops table. Give each
@@ -209,11 +214,19 @@ on button padding produced by the shifts.
 Radius, gap, and border width can keep their relative ops. A relative move is a
 reasonable way to say "rounder" and none of them produced the failure.
 
+**Executed as:** superseded by execution-plan RJC 7. Padding stayed a relative
+op, used as seeding input rather than authored directly. See
+`docs/plans/theme-completeness.md`, Part 0.
+
 ### 3. Gate the generator
 
 Add a `--check` mode to `generate-preset-themes.mjs` that regenerates into
 memory and fails on any difference, then run it in `verify.yml`. Today nothing
 notices when the shipped themes and the ops table disagree.
+
+**Executed as:** `check-preset-themes.mjs`. It asserts invariants on the
+committed files and never re-derives them. See
+`docs/plans/theme-completeness.md`, Part 0.
 
 ## What this costs
 
