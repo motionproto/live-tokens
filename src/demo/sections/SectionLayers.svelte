@@ -4,6 +4,7 @@
 </script>
 
 <Section
+  class="layers"
   title="Two composable layers."
   eyebrow="Under the hood"
   description="The same two layers you just saw move — now with the wiring that connects them."

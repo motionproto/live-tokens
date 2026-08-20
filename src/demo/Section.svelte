@@ -11,6 +11,7 @@
     eyebrow?: string;
     variant?: 'lg' | 'md' | 'sm';
     gap?: string;
+    class?: string;
     children: Snippet;
   }
 
@@ -20,11 +21,12 @@
     eyebrow,
     variant = 'md',
     gap = 'var(--space-24)',
+    class: className,
     children,
   }: Props = $props();
 </script>
 
-<section class="demo-section" style:gap>
+<section class={['demo-section', className]} style:gap>
   <SectionDivider {title} {description} {eyebrow} {variant} />
   {@render children()}
 </section>

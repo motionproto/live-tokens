@@ -97,6 +97,7 @@
     font-weight: var(--font-weight-normal);
     font-size: var(--font-size-3xl);
     font-variation-settings: 'opsz' 144, 'SOFT' 100;
+    letter-spacing: 0.01em;
     color: var(--text-primary);
     text-align: right;
     padding-right: 0.4em;

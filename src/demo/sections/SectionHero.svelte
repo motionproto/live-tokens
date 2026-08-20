@@ -5,6 +5,7 @@
   import { setEditorView } from '../../editor/core/store/editorViewStore';
   import { overlayOpen } from '../../editor/overlay/overlayState';
   import ThemeSelect from '../../app/ThemeSelect.svelte';
+  import SourceLinks from '../SourceLinks.svelte';
 
   const isDev = import.meta.env.DEV;
 
@@ -31,23 +32,24 @@
       Design system authoring for Svelte.<br />
       Edit tokens and components directly in the browser.<br />Ship plain CSS.
     </p>
+  </div>
 
-    <div class="hero-actions">
-      {#if isDev}
-        <Button onclick={() => openOverlay('tokens')} icon="fas fa-sliders" iconPosition="left">
-          Open Token Editor
-        </Button>
-        <Button variant="secondary" onclick={() => openOverlay('components')} icon="fas fa-puzzle-piece" iconPosition="left">
-          Browse Components
-        </Button>
-      {:else}
-        <Button variant="outline" disabled>Editor &nbsp;·&nbsp; dev only</Button>
-      {/if}
-    </div>
-
+  <div class="hero-actions">
     {#if isDev}
       <ThemeSelect />
+      <Button variant="secondary" onclick={() => openOverlay('components')} icon="fas fa-puzzle-piece" iconPosition="left">
+        Browse Components
+      </Button>
+      <Button onclick={() => openOverlay('tokens')} icon="fas fa-sliders" iconPosition="left">
+        Open Token Editor
+      </Button>
+    {:else}
+      <Button variant="outline" disabled>Editor &nbsp;·&nbsp; dev only</Button>
     {/if}
+  </div>
+
+  <div class="hero-footer">
+    <SourceLinks compact />
 
     <p class="hero-byline">
       by <a href="mailto:hello@motionproto.com">Mark</a> at
@@ -64,12 +66,17 @@
     display: grid;
     grid-template-columns: repeat(var(--columns-count), 1fr);
     column-gap: var(--columns-gutter);
+    isolation: isolate;
+    /* .hero is a grid item in Demo.svelte's .kit grid, so it always paints
+       as if positioned. Without an explicit z-index it ties with later grid
+       items (SectionKit etc.) at z-index:auto and loses on DOM order, which
+       buries the theme-select dropdown under the next section's content. */
+    z-index: 2;
   }
 
   .hero-text {
     grid-column: 2 / span 5;
     grid-row: 1;
-    align-self: stretch;
     display: flex;
     flex-direction: column;
     gap: var(--space-16);
@@ -114,15 +121,26 @@
   }
 
   .hero-actions {
+    grid-column: 2 / -2;
+    grid-row: 2;
     display: flex;
+    align-items: center;
     gap: var(--space-12);
     flex-wrap: wrap;
-    margin-top: auto;
-    padding-top: var(--space-24);
+    margin-top: var(--space-48);
   }
 
-  .hero-text :global(.theme-select) {
-    margin-top: var(--space-12);
+  .hero-actions > :global(.theme-select) {
+    margin-right: var(--space-20);
+  }
+
+  .hero-footer {
+    grid-column: 2 / span 5;
+    grid-row: 3;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    margin-top: var(--space-16);
   }
 
   .hero-byline {
@@ -152,12 +170,16 @@
     .hero-text {
       grid-column: 1 / -1;
       grid-row: 2;
-      align-self: center;
       padding: 0;
     }
     .hero-actions {
+      grid-column: 1 / -1;
+      grid-row: 3;
       margin-top: var(--space-12);
-      padding-top: 0;
+    }
+    .hero-footer {
+      grid-column: 1 / -1;
+      grid-row: 4;
     }
   }
 

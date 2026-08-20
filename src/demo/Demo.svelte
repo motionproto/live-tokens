@@ -35,6 +35,13 @@
     margin-bottom: 0;
   }
 
+  /* Equal lead-in above these three sections: row-gap (64) + 48 = 112px. */
+  .kit > :global(.kit-section),
+  .kit > :global(.layers),
+  .kit > :global(.claude) {
+    margin-top: var(--space-32);
+  }
+
   /* Overlap the offering image up into Layers (top) and butt Get Started
      against its bottom. -space-64 cancels the grid row-gap; the extra
      -space-64 on top is the actual overlap — tune that second term to taste. */

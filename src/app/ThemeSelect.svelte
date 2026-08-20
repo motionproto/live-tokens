@@ -1,32 +1,78 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import Button from '../system/components/Button.svelte';
+  import MenuSelect from '../system/components/MenuSelect.svelte';
   import { listThemes, applyTheme } from '../editor/core/themes/themeService';
   import { openThemeSlug } from '../editor/core/store/editorConfigStore';
 
-  let themes = $state<{ fileName: string; name: string }[]>([]);
+  let themes = $state<{ value: string; label: string }[]>([]);
   let busy = $state(false);
   let error = $state('');
-  let selectEl: HTMLSelectElement;
+  let open = $state(false);
+  let wrapperEl: HTMLDivElement | undefined = $state();
+  let panelEl: HTMLDivElement | undefined = $state();
+  let buttonRef: HTMLButtonElement | undefined = $state();
+
+  const placeholder = 'Theme';
+  const selectedLabel = $derived(
+    themes.find((theme) => theme.value === $openThemeSlug)?.label ?? placeholder,
+  );
 
   onMount(async () => {
     const files = await listThemes();
     themes = files
-      .map(({ fileName, name }) => ({ fileName, name: name || fileName }))
+      .map(({ fileName, name }) => ({ value: fileName, label: name || fileName }))
       .sort((a, b) =>
-        a.fileName === 'default' ? -1
-          : b.fileName === 'default' ? 1
-          : a.name.localeCompare(b.name),
+        a.value === 'default' ? -1
+          : b.value === 'default' ? 1
+          : a.label.localeCompare(b.label),
       );
   });
 
+  // Button.svelte has no aria-* passthrough, so the popover semantics are
+  // set imperatively on its underlying <button> via the bindable ref.
+  $effect(() => {
+    buttonRef?.setAttribute('aria-haspopup', 'listbox');
+    buttonRef?.setAttribute('aria-expanded', String(open));
+  });
+
+  $effect(() => {
+    if (!open || !panelEl) return;
+    const target =
+      panelEl.querySelector<HTMLButtonElement>('.menuselect-item.selected') ??
+      panelEl.querySelector<HTMLButtonElement>('.menuselect-item');
+    target?.focus();
+  });
+
+  $effect(() => {
+    if (!open) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (wrapperEl && event.target instanceof Node && !wrapperEl.contains(event.target)) {
+        open = false;
+      }
+    };
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        open = false;
+        buttonRef?.focus();
+      }
+    };
+    window.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('keydown', handleKeydown);
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('keydown', handleKeydown);
+    };
+  });
+
   async function changeTheme(fileName: string) {
-    if (busy || fileName === $openThemeSlug) return;
+    open = false;
+    if (!fileName || fileName === $openThemeSlug || busy) return;
     busy = true;
     error = '';
     try {
       await applyTheme(fileName);
     } catch (reason) {
-      selectEl.value = $openThemeSlug;
       error = reason instanceof Error ? reason.message : 'Could not change theme';
     } finally {
       busy = false;
@@ -36,90 +82,77 @@
 
 <!-- The open theme drives the selection, so applies from the Themes panel or
      another tab show up here too. -->
-<div class="theme-select">
-  <label for="app-theme">Theme</label>
-  <div class="select-wrap">
-    <select
-      id="app-theme"
-      bind:this={selectEl}
-      value={$openThemeSlug}
+<div class="theme-select" bind:this={wrapperEl}>
+  <div class="theme-select-trigger">
+    <Button
+      bind:buttonRef
+      class="theme-select-button"
+      fullWidth
+      variant="secondary"
       disabled={busy || themes.length === 0}
-      aria-describedby={error ? 'app-theme-error' : undefined}
-      onchange={(event) => changeTheme(event.currentTarget.value)}
+      icon={open ? 'fas fa-chevron-up' : 'fas fa-chevron-down'}
+      iconPosition="right"
+      onclick={() => (open = !open)}
     >
-      {#each themes as theme (theme.fileName)}
-        <option value={theme.fileName}>{theme.name}</option>
-      {/each}
-    </select>
-    <i class="fas fa-chevron-down" aria-hidden="true"></i>
+      {selectedLabel}
+    </Button>
+
+    <!-- Ghost copies size the trigger to its widest label so the row never
+         reflows on theme change. Real Buttons, so the metrics stay exact. -->
+    {#each [placeholder, ...themes.map((theme) => theme.label)] as label (label)}
+      <div class="theme-select-ghost" aria-hidden="true" inert>
+        <Button class="theme-select-button" variant="secondary" icon="fas fa-chevron-down" iconPosition="right">
+          {label}
+        </Button>
+      </div>
+    {/each}
+
+    {#if open}
+      <div class="theme-select-panel" bind:this={panelEl}>
+        <MenuSelect items={themes} value={$openThemeSlug} minWidth="12rem" onchange={changeTheme} />
+      </div>
+    {/if}
   </div>
+
   {#if error}
-    <span id="app-theme-error" class="error" aria-live="polite">{error}</span>
+    <span class="error" aria-live="polite">{error}</span>
   {/if}
 </div>
 
 <style>
   .theme-select {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-6);
   }
 
-  label {
-    color: var(--text-secondary);
-    font-family: var(--font-sans);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-    letter-spacing: var(--letter-spacing-wide);
-    line-height: var(--line-height-tighter);
-    text-transform: uppercase;
-  }
-
-  .select-wrap {
+  .theme-select-trigger {
     position: relative;
-    width: min(100%, 20rem);
+    display: grid;
+    grid-template-areas: 'trigger';
   }
 
-  select {
-    box-sizing: border-box;
-    width: 100%;
-    appearance: none;
-    padding: var(--space-10) calc(var(--space-40) + var(--space-4)) var(--space-10) var(--space-12);
-    color: var(--text-primary);
-    background: color-mix(in srgb, var(--surface-neutral-lower) 88%, transparent);
-    border: var(--border-width-1) solid var(--border-neutral-medium);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    font-family: var(--font-sans);
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-medium);
-    line-height: var(--line-height-normal);
-    cursor: pointer;
+  .theme-select-trigger > :global(*) {
+    grid-area: trigger;
   }
 
-  select:hover:not(:disabled) {
-    border-color: var(--border-neutral-strong);
+  .theme-select-trigger :global(.theme-select-button) {
+    justify-content: space-between;
   }
 
-  select:focus-visible {
-    outline: var(--border-width-2) solid var(--border-brand);
-    outline-offset: var(--border-width-2);
-  }
-
-  select:disabled {
-    cursor: wait;
-    opacity: 0.65;
-  }
-
-  .select-wrap i {
-    position: absolute;
-    top: 50%;
-    right: var(--space-12);
-    color: var(--text-secondary);
-    font-size: var(--icon-size-sm);
+  .theme-select-ghost {
+    height: 0;
+    visibility: hidden;
     pointer-events: none;
-    transform: translateY(-50%);
+  }
+
+  .theme-select-panel {
+    position: absolute;
+    top: calc(100% + var(--space-8));
+    left: 0;
+    z-index: 20;
   }
 
   .error {

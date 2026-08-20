@@ -104,6 +104,7 @@
 </script>
 
 <Section
+  class="kit-section"
   title="The Kit"
   eyebrow="What's inside"
   description="A basic set of design system components connected to a token library."
@@ -321,6 +322,8 @@
     font-family: var(--font-sans);
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-medium);
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
     color: var(--text-secondary);
   }
 

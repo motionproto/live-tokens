@@ -48,7 +48,8 @@ function luminance({ r, g, b }: Rgb): number {
 
 /**
  * Pick the invariant black/white token with the stronger minimum contrast
- * against every explicit colour in a solid or gradient page background.
+ * against every explicit colour in a solid or gradient page background —
+ * the rule FloatingTokenTags uses for its kite strings.
  */
 export function contrastTokenForBackground(background: string): ContrastColorToken {
   const colors = colorsIn(background);
