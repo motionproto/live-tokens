@@ -3441,9 +3441,6 @@
         "--panel-frame-border": "--border-neutral",
         "--panel-frame-border-width": "--border-width-1",
         "--panel-frame-radius": "--radius-2xl",
-        "--panel-stage-padding": "--space-10",
-        "--panel-stage-inline-padding": "--space-10",
-        "--panel-stage-gap": "--space-12",
         "--panel-stage-surface": {
           "kind": "gradient",
           "value": {
@@ -3462,7 +3459,10 @@
               }
             ]
           }
-        }
+        },
+        "--panel-stage-padding": "--space-10",
+        "--panel-stage-inline-padding": "--space-10",
+        "--panel-stage-gap": "--space-12"
       }
     },
     "progressbar": {
