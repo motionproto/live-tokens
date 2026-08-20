@@ -239,8 +239,9 @@ async function probeCurrentView(
   frame: Frame,
   componentAliases: string[],
   forcedVariables: string[] = [],
+  provenVariables: string[] = [],
 ): Promise<ProbeResult> {
-  return frame.evaluate(async ({ allAliases, forced }) => {
+  return frame.evaluate(async ({ allAliases, forced, proven }) => {
     const group = Array.from(document.querySelectorAll<HTMLElement>('.variant-group'))
       .find((element) => element.offsetParent !== null);
     const preview = group?.querySelector<HTMLElement>('.tabs-preview');
@@ -276,6 +277,13 @@ async function probeCurrentView(
         if (allAliases.includes(sideVariable)) visibleVariables.add(sideVariable);
       }
     }
+
+    // A property already observed repainting cannot become less reactive in a
+    // later view, and it is already recorded as both seen and covered. Probing
+    // it again in every remaining view is the traversal's dominant cost: a
+    // component with 47 views pays for its whole alias set 47 times over.
+    for (const variable of proven) visibleVariables.delete(variable);
+    if (visibleVariables.size === 0) return { covered: [], unchanged: [] };
     const properties = [
       'display', 'visibility', 'opacity', 'position', 'zIndex',
       'color', 'background', 'backgroundColor', 'backgroundImage', 'backgroundSize', 'backgroundPosition',
@@ -442,7 +450,7 @@ async function probeCurrentView(
 
     freeze.remove();
     return { covered, unchanged };
-  }, { allAliases: componentAliases, forced: forcedVariables });
+  }, { allAliases: componentAliases, forced: forcedVariables, proven: provenVariables });
 }
 
 async function selectComponent(frame: Frame, component: string): Promise<void> {
@@ -493,7 +501,7 @@ for (const [component, aliases] of aliasesByComponent) {
       await exerciseVisibleCompositeControls(frame, componentAliases, controlExercised);
       await exerciseVisibleSplitPaddingControls(frame, componentAliases, controlExercised);
       await exerciseVisibleGradientControls(frame, componentAliases, controlExercised);
-      const result = await probeCurrentView(frame, componentAliases, remaining);
+      const result = await probeCurrentView(frame, componentAliases, remaining, [...covered]);
       result.covered.forEach((variable) => covered.add(variable));
       result.covered.forEach((variable) => seen.add(variable));
       result.unchanged.forEach((variable) => {

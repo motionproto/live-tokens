@@ -38,8 +38,14 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
+      # Each worker wants ~1.5 cores for its browser, and the dev server wants
+      # more. Four of them on a 4-vCPU runner oversubscribe by 1.5x, and these
+      # specs are gated on animation frames, so the frame rate collapses and
+      # the suite runs several times slower than it does with half the workers.
       - name: Test live editing in Chromium
         run: npm run test:e2e
+        env:
+          PLAYWRIGHT_WORKERS: 2
 
       - name: Build library
         run: npm run build:lib

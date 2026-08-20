@@ -7,6 +7,9 @@ const baseURL = `http://${host}:${port}`;
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: false,
+  // One worker is the safe default: the stateful specs share a dev server and
+  // a data directory. Only the contract specs opt out, via the worker count
+  // their npm script passes.
   workers: 1,
   timeout: 30_000,
   expect: { timeout: 5_000 },
@@ -20,7 +23,11 @@ export default defineConfig({
     baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    // `retain-on-failure` still records every passing test and throws the file
+    // away, which costs ~28% CPU. That is free on a workstation with spare
+    // cores and not free on a saturated CI runner, where these specs are
+    // already frame-rate bound. Match the trace policy instead.
+    video: 'on-first-retry',
   },
   projects: [
     {

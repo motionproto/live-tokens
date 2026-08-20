@@ -63,8 +63,12 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
+      # See verify.yml: four workers oversubscribe a 4-vCPU runner and these
+      # frame-gated specs slow down instead of speeding up.
       - name: Test live editing in Chromium
         run: npm run test:e2e
+        env:
+          PLAYWRIGHT_WORKERS: 2
 
       - name: Dry-run packaging (catches missing files, bad exports, etc.)
         run: npm pack --dry-run

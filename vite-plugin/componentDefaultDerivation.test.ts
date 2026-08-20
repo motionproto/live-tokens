@@ -57,9 +57,17 @@ describe('first generation with no prior default.json', () => {
   });
 
   it.each(committedComponents)('derives %s exactly as committed', (comp) => {
-    expect(aliasesOf(path.join(derivedDir, comp, 'default.json'))).toEqual(
-      aliasesOf(path.join(COMMITTED_CONFIGS_DIR, comp, 'default.json')),
-    );
+    const derived = aliasesOf(path.join(derivedDir, comp, 'default.json'));
+    const committed = aliasesOf(path.join(COMMITTED_CONFIGS_DIR, comp, 'default.json'));
+
+    expect(derived).toEqual(committed);
+    // Key order counts. The boot guard re-derives only when the component
+    // source is newer than its `default.json`, which is true on a fresh
+    // checkout and false on a working tree, and the unchanged check compares
+    // serialized JSON. Order-only drift therefore rewrites the file on CI
+    // alone, where it silently moves the baseline every shipped theme is
+    // gated against. This is the only assertion that sees it locally.
+    expect(Object.keys(derived)).toEqual(Object.keys(committed));
   });
 
   it('carries the Panel gradient as a structured alias, not a dropped literal', () => {
