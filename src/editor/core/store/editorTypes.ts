@@ -1,4 +1,5 @@
 import type { PaletteConfig, FontSource, FontStack } from '../themes/themeTypes';
+import type { GradientStop, GradientValue } from '../themes/parsers/gradient';
 import type { HarmonyAxis } from '../palettes/colorHarmony';
 
 export interface ShadowGlobals {
@@ -46,20 +47,9 @@ export interface ColumnsState {
  *    round-trip when the user toggles back to a real gradient. */
 export type GradientType = 'linear' | 'radial' | 'solid' | 'none';
 
-export interface GradientTokenStop {
-  /** 0–100 percentage along the gradient axis. */
-  position: number;
-  /** CSS variable name the stop resolves through (e.g. '--color-brand-500'). */
-  color: string;
-  /** When `false`, this stop is an explicit off-palette override: the stop
-   *  picker opens to any color (not family-filtered), and the stop is skipped
-   *  by family-swap rewrites so its color survives a variant family change.
-   *  Defaults to true (follow family) on read; absence is the same as `true`.
-   *  Only meaningful for gradients rendered inside a family-aware context. */
-  monochrome?: boolean;
-  /** 0–100 alpha applied to the stop's color. Defaults to 100 (fully opaque). */
-  opacity?: number;
-}
+/** One stop of a gradient. Defined by `themes/parsers/gradient`, which owns
+ *  the shape so the CSS form and the persisted form cannot drift apart. */
+export type GradientTokenStop = GradientStop;
 
 export interface GradientToken {
   /** Output CSS variable, e.g. '--gradient-1'. */
@@ -83,22 +73,11 @@ export interface GradientToken {
 }
 
 /** Structured gradient payload carried inline on a component alias.
- *  Mirrors GradientToken minus `variable` (the alias key itself is the
- *  binding). Used when a component owns a per-instance gradient that
- *  doesn't share the theme-level `--gradient-N` library. */
-export interface GradientAliasValue {
-  type: GradientType;
-  angle: number;
-  /** See GradientToken.radius. */
-  radius?: number;
-  /** See GradientToken.centerX. */
-  centerX?: number;
-  /** See GradientToken.aspectX. */
-  aspectX?: number;
-  /** See GradientToken.aspectY. */
-  aspectY?: number;
-  stops: GradientTokenStop[];
-}
+ *  `GradientToken` minus `variable` (the alias key itself is the binding).
+ *  Used when a component owns a per-instance gradient that doesn't share the
+ *  theme-level `--gradient-N` library. Defined by `themes/parsers/gradient`,
+ *  the module that serializes and parses this shape. */
+export type GradientAliasValue = GradientValue;
 
 export type CssVarRef =
   /** An alias to a design token. `opacity` is an optional integer percent set

@@ -42,6 +42,13 @@ export interface GradientStop {
   color: string;
   /** 0–100 alpha. Absent means 100. */
   opacity?: number;
+  /** `false` marks the stop an explicit off-palette override: the stop picker
+   *  opens to any colour rather than the current family, and a family-swap
+   *  rewrite skips the stop so its colour survives. Absent means `true`.
+   *  It has no CSS form, so `parseGradientValue` never produces it and
+   *  `formatGradientValue` ignores it. It lives on the shared stop because
+   *  the persisted stop carries it. */
+  monochrome?: boolean;
 }
 
 export interface GradientValue {

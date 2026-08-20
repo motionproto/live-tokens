@@ -1,4 +1,5 @@
 import type { CurveAnchor } from '../../ui/curveEngine';
+import type { GradientValue } from './parsers/gradient';
 import type { Oklch } from '../palettes/oklch';
 import type { HarmonyAxis } from '../palettes/colorHarmony';
 // `normalizeTheme.ts` is the single source of truth for the theme schema
@@ -191,7 +192,7 @@ export interface ColorsAndTypeMeta {
  *  gradients that can't compress to a single string. */
 export type AliasDiskValue =
   | string
-  | { kind: 'gradient'; value: { type: 'linear' | 'radial' | 'solid' | 'none'; angle: number; radius?: number; centerX?: number; aspectX?: number; aspectY?: number; stops: { position: number; color: string; opacity?: number }[] } };
+  | { kind: 'gradient'; value: GradientValue };
 
 export interface ComponentConfig {
   name: string;

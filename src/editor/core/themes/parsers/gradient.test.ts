@@ -175,6 +175,21 @@ describe('formatGradientValue', () => {
     expect(formatGradientValue({ type: 'none', angle: 90, stops: [] })).toBe('transparent');
   });
 
+  it('ignores monochrome, which the CSS form cannot carry', () => {
+    const stops: GradientValue['stops'] = [
+      { position: 0, color: '--color-brand-500' },
+      { position: 100, color: '--color-accent-500' },
+    ];
+    const css = formatGradientValue({ type: 'linear', angle: 90, stops });
+    const flagged = formatGradientValue({
+      type: 'linear',
+      angle: 90,
+      stops: [{ ...stops[0], monochrome: false }, stops[1]],
+    });
+    expect(flagged).toBe(css);
+    expect(parseGradientValue(flagged)!.stops[0]).not.toHaveProperty('monochrome');
+  });
+
   it('scales both semi-axes independently, so equal aspects grow the circle', () => {
     const css = formatGradientValue({
       type: 'radial',
