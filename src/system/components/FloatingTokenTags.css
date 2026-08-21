@@ -9,6 +9,7 @@
 
 .ftt-stage {
   --ftt-contrast-color: var(--color-white);
+  --ftt-string-opacity: 0.5;
   position: relative;
   width: 100%;
   height: 100%;
@@ -79,7 +80,7 @@
   stroke-width: 2;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
-  opacity: 0.5;
+  opacity: var(--ftt-string-opacity);
   transition: opacity 150ms ease, stroke 150ms ease;
 }
 
@@ -178,16 +179,18 @@
   align-items: center;
   gap: 0.25rem;
   padding: 0.375rem 0.75rem;
-  /* Darkest stop stays ≥ #8f9090 so black text keeps ~6:1 AA contrast. */
+  /* Polished chrome, not brushed steel: the bands keep their spacing but sit
+     high in the scale, so the pill stays bright against a cream page. Keep
+     the darkest stop ≥ #8f9090 or the black label loses AA. */
   background: linear-gradient(
     135deg,
-    #e4e5e5 0%,
-    #a2a3a3 38%,
-    #cdcece 62%,
-    #8f9090 100%
+    #fbfbfb 0%,
+    #c9cbcb 38%,
+    #eff0f0 62%,
+    #b6b8b8 100%
   );
   color: #000;
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(86, 96, 104, 0.45);
   border-radius: 9999px;
   box-shadow: var(--shadow-md);
   font-family: Manrope, system-ui, -apple-system, sans-serif;

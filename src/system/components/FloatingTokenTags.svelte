@@ -200,6 +200,9 @@
     lastPageBackground = pageBackground;
     const token = contrastTokenForBackground(pageBackground);
     stageEl.style.setProperty('--ftt-contrast-color', `var(${token})`);
+    // Dark strokes on a light page read far heavier than white ones on a dark
+    // page at the same alpha, so the light theme gets a thinner string.
+    stageEl.style.setProperty('--ftt-string-opacity', token === '--color-black' ? '0.3' : '0.5');
   }
 
   function syncBoxLabelContrast() {
