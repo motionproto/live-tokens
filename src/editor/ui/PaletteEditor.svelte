@@ -548,6 +548,18 @@
     onStartEdit={startBaseEdit}
     onCopyBaseHex={copyHex}
   >
+    {#snippet setting()}
+      <!-- The family's own swatch and name sit alongside, so the label drops
+           its subject; the title carries the full sentence. -->
+      <span class="base-anchor-toggle" title="Base color must appear in palette">
+        <Toggle
+          checked={anchorToBase}
+          onchange={(v) => setAnchorToBase(v ?? !anchorToBase)}
+          label="Must appear in palette"
+        />
+      </span>
+    {/snippet}
+
     {#snippet actions()}
       <PaletteJumpButton family={label} {displayLabel} target="wheel" />
       <UIPillButton size="compact" variant="outline" onclick={clearPaletteOverrides}>Clear Overrides</UIPillButton>
@@ -575,18 +587,7 @@
           onCancel={cancelEdit}
           onRemoveOverride={() => {}}
           onSliderStart={() => beginSliderGesture(`edit ${label} base`)}
-        >
-          {#snippet actions()}
-            <div class="base-anchor-toggle">
-              <Toggle
-                checked={anchorToBase}
-                onchange={(v) => setAnchorToBase(v ?? !anchorToBase)}
-                label="Base color must appear in palette"
-                labelFirst
-              />
-            </div>
-          {/snippet}
-        </ColorEditPanel>
+        />
       </div>
     </div>
   </UIReveal>
@@ -1000,8 +1001,10 @@
     min-width: 0;
   }
 
+  /* A box of its own so the title has something to hover; placement in the
+     band belongs to PaletteBase. */
   .base-anchor-toggle {
-    margin-left: auto;
+    display: flex;
   }
 
   .curve-grid-span {

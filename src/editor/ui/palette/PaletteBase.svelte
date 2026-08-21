@@ -18,6 +18,9 @@
     onStartEdit: () => void;
     onCopyBaseHex: (key: string, hex: string, event?: MouseEvent) => void;
     actions?: Snippet;
+    /** A family-level setting, shown beside the name while this family's
+     *  editor is open. Collapsed families keep the band to identity + actions. */
+    setting?: Snippet;
   }
 
   let {
@@ -29,7 +32,8 @@
     copiedKey,
     onStartEdit,
     onCopyBaseHex,
-    actions
+    actions,
+    setting
   }: Props = $props();
 
   let baseHex = $derived(oklchToHexClamped(baseColor.l, baseColor.c, baseColor.h));
@@ -67,6 +71,12 @@
     </div>
   </div>
 
+  <!-- `pinnedOpen || isEditingBase` is exactly when the base panel shows:
+       editing the base implies both a panel and a colour to put in it. -->
+  {#if setting && (pinnedOpen || isEditingBase)}
+    <div class="header-setting">{@render setting()}</div>
+  {/if}
+
   {#if actions}
     <div class="header-actions">{@render actions()}</div>
   {/if}
@@ -101,6 +111,15 @@
     display: flex;
     align-items: center;
     gap: var(--ui-space-8);
+  }
+
+  /* Reads with the identity rather than the buttons: this states what the
+     family is, it does not do anything. The auto margin keeps it beside the
+     name while the actions still hold the right edge. */
+  .header-setting {
+    display: flex;
+    align-items: center;
+    margin-right: auto;
   }
 
   .header-swatch {

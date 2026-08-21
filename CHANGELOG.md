@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.54.3 — A focused palette is open on arrival
+## 0.54.3 — A focused palette arrives ready
 
 ### Changed
 
@@ -11,6 +11,17 @@
   on the first frame; the scroll that brings it into view jumps rather than
   gliding, since nothing expanded for the motion to match. A jump from the
   Colors view, where the editor is already mounted, keeps its reveal.
+
+- **"Base color must appear in palette" moved to the family band.** The toggle
+  sets `anchorToBase`, which is family-level config persisted in the theme,
+  but it sat in the base-colour panel among the controls that edit the colour's
+  *value* — and it only occupied a row of its own because it wrapped out of that
+  panel's title row. It now sits beside the family's name as
+  "Must appear in palette", the swatch alongside supplying the subject the label
+  drops; the full sentence stays as its title. The colour panel closes back up
+  to a title row and its sliders. Collapsed families are untouched: the setting
+  shows only while that family's editor is open, so a page of ten collapsed
+  palettes does not repeat it ten times.
 
 ## 0.54.2 — Palette focus is public API
 
