@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.54.3 — A focused palette arrives ready
+## 0.55.0 — A focused palette arrives ready
 
 ### Changed
 
