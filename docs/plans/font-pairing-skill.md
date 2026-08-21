@@ -129,7 +129,7 @@ Move the stamp out of `scripts/` so a shipped CLI can reach it.
 - **The knowledge**, drawn from Appendix A and structured the way that appendix is: the anchor-first process (A.1), the font matrix as the actual decision rule (A.2), the screen gate every candidate must pass (A.3), and the shortcuts with their caveat attached (A.4). Write it as instruction, not as a reading list; the appendix carries the sources so the skill does not have to.
 - **State the reasoning in the output.** The skill names each face's form model and gives the matrix verdict when it proposes a pairing, so the user can disagree with the argument rather than just the result. This is the type-side equivalent of `generate-theme` printing a contrast report.
 - **Distinctness rule**, ported from `check-preset-themes.mjs:120-125`: when pairing across a set of themes, no two share a display or a body face.
-- Add a cross-reference line to `live-tokens-generate-theme` pointing here for type, and check `live-tokens-adjust-shape-space` for a sibling list that needs the same entry.
+- Add a cross-reference line to `live-tokens-generate-theme` pointing here for type, and check `live-tokens-adjust-geometry` for a sibling list that needs the same entry.
 
 **Verification.** `npx live-tokens setup-claude --force` into a scratch consumer copies the new skill and prints its sample prompt. **Manual:** the user asks for a pairing in prose and confirms the skill triggers and the theme retypes.
 

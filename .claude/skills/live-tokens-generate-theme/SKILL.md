@@ -1,22 +1,22 @@
 ---
 name: live-tokens-generate-theme
-description: Generate a complete live-tokens theme (color, type, and shape) from a natural-language mood brief. Chooses 10 OKLCH seeds and runs the packaged generator, which enforces AA contrast, then carries the same brief into a font pairing and a shape personality through the sibling skills. Use whenever the user asks for a theme, a look, a vibe, a brand feel, a color scheme, or a palette, by mood, season, holiday, or hue, even if they only mention color: make me a bright and cheerful theme, a dark moody night theme, a St. Patrick's Day theme in green and gold, a Christmas look, something red-based, warmer, more contrast, calmer. Not for a single token (use the editor), for type alone (live-tokens-pair-fonts), or for shape alone (live-tokens-adjust-shape-space).
+description: Generate a complete live-tokens theme (color, type, and geometry) from a natural-language mood brief. Chooses 10 OKLCH seeds and runs the packaged generator, which enforces AA contrast, then carries the same brief into a font pairing and a geometry through the sibling skills. Use whenever the user asks for a theme, a look, a vibe, a brand feel, a color scheme, or a palette, by mood, season, holiday, or hue, even if they only mention color: make me a bright and cheerful theme, a dark moody night theme, a St. Patrick's Day theme in green and gold, a Christmas look, something red-based, warmer, more contrast, calmer. Not for a single token (use the editor), for type alone (live-tokens-pair-fonts), or for geometry alone (live-tokens-adjust-geometry).
 ---
 
 # Generating a theme from a mood brief
 
-A theme is three decisions made from one brief: color, type, and shape. This skill owns the color decision directly and delegates the other two, so the whole look comes from the same reading of the brief. Never hand-author theme JSON and never edit the data tree directly.
+A theme is three decisions made from one brief: color, type, and geometry. This skill owns the color decision directly and delegates the other two, so the whole look comes from the same reading of the brief. Never hand-author theme JSON and never edit the data tree directly.
 
 ## Workflow
 
-1. Read the brief once and name its voice in a sentence: the mood, the hue family, the scheme, and the type and shape that mood implies. Everything below keys off that sentence.
+1. Read the brief once and name its voice in a sentence: the mood, the hue family, the scheme, and the type and geometry that mood implies. Everything below keys off that sentence.
 2. Translate the brief into a seed file using the framework below. Write it to `scratch/theme-brief.json`.
 3. Run `npx live-tokens generate-theme scratch/theme-brief.json`. It writes `themes/<slug>.json`, opens that theme, and prints a contrast report. Auto-corrections are fine. Unmet floors (exit 1) mean the seeds themselves are unworkable; each failure line names the seed to change, usually by raising its lightness or cutting its chroma. Fix the brief and re-run; the same name overwrites. Regeneration replaces that theme's whole color state, including palette edits made in the editor since the last run, so say so once when iterating.
 4. Invoke **live-tokens-pair-fonts** with the same voice. Skip only when the user asked for colors specifically and said to leave the type alone.
-5. Invoke **live-tokens-adjust-shape-space** with the shape the voice implies (table below). Skip when the voice implies nothing about shape.
-6. Tell the user to look at the running app, and that type and shape sit in the unsaved buffer until they save the open theme. Offer refinements as edits to the same brief.
+5. Invoke **live-tokens-adjust-geometry** with the geometry the voice implies (table below). Skip when the voice implies nothing about geometry.
+6. Tell the user to look at the running app, and that type and geometry sit in the unsaved buffer until they save the open theme. Offer refinements as edits to the same brief.
 
-Order matters only for safety, and the order above is safe: the color generator carries the live buffers forward into the new theme file, so a color re-roll after fonts and shape keeps both.
+Order matters only for safety, and the order above is safe: the color generator carries the live buffers forward into the new theme file, so a color re-roll after fonts and geometry keeps both.
 
 Flags: `--dry-run` prints the report without writing; `--no-activate` writes without opening. Opening a theme never changes what the site ships. Only Adopt, in the editor, does that.
 
@@ -126,20 +126,20 @@ Shadow opacity derives from Canvas lightness and re-derives on every run, so the
 
 A holiday or season brief is a statement brief: commitment level 2 or 3, with the named color on the ground rather than only on the buttons. Read `references/named-themes.md` for the OKLCH anchors of Christmas, Halloween, St. Patrick's, Ocean, Sunset, Autumn, and Spring before seeding one.
 
-## Shape from the voice
+## Geometry from the voice
 
-The shape personality lives in radius, padding, gap, and border width, and `live-tokens-adjust-shape-space` knows the mechanics. Hand it the intent:
+The geometry lives in radius, padding, gap, and border width, and `live-tokens-adjust-geometry` knows the mechanics. Hand it the intent:
 
-| Voice | Shape |
+| Voice | Geometry |
 |---|---|
 | playful, friendly, soft | rounder, a step airier; pill buttons when the brief is warm |
 | luxurious, elegant, editorial | sharper corners, airier padding, thin borders |
 | technical, dense, systematic | tighter spacing, small radius, square corners on containers |
-| calm, minimal | leave shape alone unless the brief says otherwise |
+| calm, minimal | leave geometry alone unless the brief says otherwise |
 
 ## What each step writes
 
-Color writes `themes/<slug>.json` and opens it. Type and shape write the unsaved buffers, which the page already runs. One Save in the editor keeps all three; Adopt ships them. Component aliases and gradients carry forward from the live look into a generated theme; user-tuned gradients survive, stock ones rebuild from the new families.
+Color writes `themes/<slug>.json` and opens it. Type and geometry write the unsaved buffers, which the page already runs. One Save in the editor keeps all three; Adopt ships them. Component aliases and gradients carry forward from the live look into a generated theme; user-tuned gradients survive, stock ones rebuild from the new families.
 
 ## Verify
 

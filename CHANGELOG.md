@@ -21,9 +21,33 @@
   family, an enumeration for a static one, a bare URL for a single-weight
   display face. It also reports the weights your typography tokens ask for and
   the family does not have.
-- **`generate-theme` hands off to type.** The color generator now says when the
-  fonts under a new palette still belong to the previous look, and invokes the
-  pairing skill for briefs that carry a voice.
+- **`generate-theme` owns the whole look.** A theme is three decisions made
+  from one brief: color, type, and geometry. The skill reads the brief once,
+  names its voice, seeds the color, then invokes `live-tokens-pair-fonts` and
+  `live-tokens-adjust-geometry` with the same voice, so a moody night theme
+  arrives with type and corners to match rather than with the previous look's.
+  The three CLIs stay separate, so any one decision retunes without re-rolling
+  the others.
+
+### Changed
+
+- **`live-tokens-adjust-shape-space` is now `live-tokens-adjust-geometry`.**
+  Same skill, same `adjust` verb; the name now matches the heading the token
+  suffix vocabulary already uses for radius, padding, gap, and border width.
+  Re-run `npx live-tokens setup-claude --force` to pick it up, and delete the
+  old directory from `.claude/skills/`.
+- **Skills are leaner and read the package instead of copying it.** The
+  create-component skill no longer inlines the shipped `Toggle` (the copy had
+  drifted 174 lines from its source); it points at the files in
+  `node_modules` and moves the linked-siblings, intrinsics, and fixed-overlay
+  material into reference files read on demand. The theme skill moved its
+  holiday anchors the same way. Every skill body is now under 250 lines.
+- **The picker catalogue lists `Panel` and `InlineEditActions`.** Both shipped
+  without an entry, so the picker could never recommend them.
+- **`npm run check:skills` gates the bundle.** It asserts the catalogue names
+  every shipped component, every reference file is pointed at and present,
+  every CLI verb a skill mentions exists, every skill has a sample prompt, and
+  no skill pastes a long file inline.
 
 ### Fixed
 

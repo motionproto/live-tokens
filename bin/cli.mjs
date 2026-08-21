@@ -49,7 +49,7 @@ Commands:
   adjust <ops.json> [--dry-run]
                               Move radius, padding, gap, and border-width
                               aliases along their token scales (see the
-                              live-tokens-adjust-shape-space skill). Reads each
+                              live-tokens-adjust-geometry skill). Reads each
                               component's live config and writes the result to
                               that component's unsaved buffer, so save the open
                               theme in the editor to keep it. --dry-run prints
@@ -267,7 +267,7 @@ const SAMPLE_PROMPTS = {
   'live-tokens-pick-component': "what's the difference between TabBar and SegmentedControl?",
   'live-tokens-create-component': 'author a new Toggle component for my live-tokens project',
   'live-tokens-generate-theme': 'make me a bright and cheerful theme',
-  'live-tokens-adjust-shape-space': 'make the buttons pill shaped',
+  'live-tokens-adjust-geometry': 'make the buttons pill shaped',
   'live-tokens-pair-fonts': 'pair some fonts for this theme',
 };
 

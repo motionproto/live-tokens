@@ -274,7 +274,7 @@ Once installed in a project, the same commands are available as `npx live-tokens
 
 ## Claude Code skills
 
-The package bundles six Claude Code skills. They encode the conventions this README cannot carry in full: which component fits a need, how a page is wired, what a valid theme looks like in OKLCH, how two typefaces sit together, and how shape and space move along the token scales. Each triggers from an ordinary request, so there are no slash commands to learn.
+The package bundles six Claude Code skills. They encode the conventions this README cannot carry in full: which component fits a need, how a page is wired, what a valid theme looks like in OKLCH, how two typefaces sit together, and how geometry moves along the token scales. Each triggers from an ordinary request, so there are no slash commands to learn.
 
 ### Install
 
@@ -304,7 +304,7 @@ The skill composes the page from shipped components, styles every value with `va
 
 Ask for a look: "a dark, moody night theme", "a St Patrick's Day theme in green and gold", "warmer", "more contrast", "calmer".
 
-A theme is three decisions made from one brief: color, type, and shape. The skill owns color and delegates the other two to `live-tokens-pair-fonts` and `live-tokens-adjust-shape-space`, so the whole look comes from the same reading of the brief.
+A theme is three decisions made from one brief: color, type, and geometry. The skill owns color and delegates the other two to `live-tokens-pair-fonts` and `live-tokens-adjust-geometry`, so the whole look comes from the same reading of the brief.
 
 For color it translates the brief into ten OKLCH seeds (Brand, Accent, Special, Canvas, Neutral, Alternate, Info, Success, Warning, Danger) plus a light or dark scheme, then runs `npx live-tokens generate-theme <brief.json>`. The CLI assembles the curves, enforces AA contrast on derived text tokens and auto-corrects where it can, writes `themes/<slug>.json`, opens it, and prints a contrast report. Exit 1 means the seeds themselves are unworkable, and each failure line names the seed to change.
 
@@ -322,7 +322,7 @@ The judgment is the skill's half. It anchors on the body face, because that is m
 
 Scope: type only, and never color. Edits land in the colors-and-type `_working.json` buffer, so save the open theme to keep them. `--dry-run` reports without writing.
 
-### `live-tokens-adjust-shape-space`
+### `live-tokens-adjust-geometry`
 
 Ask for shape or space: "make the buttons pill shaped", "sharper corners on the cards", "space it out", "tighter", "thinner borders".
 

@@ -8,7 +8,7 @@
     { icon: 'fas fa-table-columns', name: 'build-page' },
     { icon: 'fas fa-cube', name: 'create-component' },
     { icon: 'fas fa-palette', name: 'generate-theme' },
-    { icon: 'fas fa-ruler-combined', name: 'adjust-shape-space' }
+    { icon: 'fas fa-ruler-combined', name: 'adjust-geometry' }
   ];
 </script>
 
