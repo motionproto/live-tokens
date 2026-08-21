@@ -13,6 +13,10 @@
   let panelEl: HTMLDivElement | undefined = $state();
   let buttonRef: HTMLButtonElement | undefined = $state();
 
+  const uid = $props.id();
+  const labelId = `${uid}-label`;
+  const buttonId = `${uid}-button`;
+
   const placeholder = 'Theme';
   const selectedLabel = $derived(
     themes.find((theme) => theme.value === $openThemeSlug)?.label ?? placeholder,
@@ -34,6 +38,8 @@
   $effect(() => {
     buttonRef?.setAttribute('aria-haspopup', 'listbox');
     buttonRef?.setAttribute('aria-expanded', String(open));
+    buttonRef?.setAttribute('id', buttonId);
+    buttonRef?.setAttribute('aria-labelledby', `${labelId} ${buttonId}`);
   });
 
   $effect(() => {
@@ -83,6 +89,8 @@
 <!-- The open theme drives the selection, so applies from the Themes panel or
      another tab show up here too. -->
 <div class="theme-select" bind:this={wrapperEl}>
+  <span class="theme-select-label" id={labelId}>Theme</span>
+
   <div class="theme-select-trigger">
     <Button
       bind:buttonRef
@@ -125,7 +133,15 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--space-6);
+    gap: var(--space-4);
+  }
+
+  .theme-select-label {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-normal);
+    color: var(--text-secondary);
   }
 
   .theme-select-trigger {

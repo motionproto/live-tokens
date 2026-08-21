@@ -124,10 +124,12 @@
     grid-column: 2 / -2;
     grid-row: 2;
     display: flex;
-    align-items: center;
+    /* The theme select carries a label above its trigger; bottom alignment
+       keeps every control in the row sitting on one line. */
+    align-items: flex-end;
     gap: var(--space-12);
     flex-wrap: wrap;
-    margin-top: var(--space-48);
+    margin-top: var(--space-16);
   }
 
   .hero-actions > :global(.theme-select) {
@@ -139,8 +141,8 @@
     grid-row: 3;
     display: flex;
     flex-direction: column;
-    gap: var(--space-16);
-    margin-top: var(--space-16);
+    gap: var(--space-12);
+    margin-top: var(--space-40);
   }
 
   .hero-byline {
@@ -149,7 +151,7 @@
     font-weight: var(--font-weight-normal);
     line-height: var(--line-height-normal);
     color: var(--text-secondary);
-    margin: var(--space-12) 0 0;
+    margin: 0;
   }
 
   .hero-byline a {
