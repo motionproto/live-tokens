@@ -545,7 +545,7 @@
     {/snippet}
   </PaletteBase>
 
-  {#if paletteEditorOpen || (isEditingBase && panelOpen && editingColor)}
+  <UIReveal open={paletteEditorOpen || (isEditingBase && panelOpen && !!editingColor)}>
     <div class="swatch-grid" style="--swatch-cols: {paletteStepLightness.length + 2}">
       <div class="base-panel" style="grid-column: 2 / {paletteStepLightness.length + 2}">
         <ColorEditPanel
@@ -577,7 +577,7 @@
         </ColorEditPanel>
       </div>
     </div>
-  {/if}
+  </UIReveal>
 
   <!-- Palette + Text row -->
   <div class="scales-row">
