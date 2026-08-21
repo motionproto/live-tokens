@@ -9,6 +9,9 @@ export type { BootLiveTokensOptions } from './bootstrap';
 export { columnsVisible, toggleColumns, init as initColumnsOverlay } from './overlay/columnsOverlay';
 export { configureEditor, storageKey } from './core/store/editorConfig';
 export { openThemeSlug } from './core/store/editorConfigStore';
+// Hand a palette family to a view. Deep links into the editor need these:
+// the one-shot focus store they drive stays internal.
+export { openPaletteInTokens, openPaletteInWheel, selectedPalette } from './core/store/paletteFocus';
 export { init as initRouter, route, navigate, setScrollReset } from './core/routing/router';
 export { init as initCssVarSync } from './core/cssVarSync';
 export {

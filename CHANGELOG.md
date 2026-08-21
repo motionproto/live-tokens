@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.54.2 — Palette focus is public API
+
+### Added
+
+- **`openPaletteInTokens` and `openPaletteInWheel` are exported.** Both hand a
+  palette family to a view, and both were already what the palette jump buttons
+  call; only the package's own code could reach them. A consumer building a deep
+  link into the editor — "open the app with Brand's palette editor showing" —
+  now has the same entry point the UI uses. `selectedPalette` comes with them,
+  so a consumer can read which family is current. The one-shot
+  `pendingPaletteFocus` store they drive stays internal.
+
 ## 0.54.1 — Palette editing opens on a curve
 
 ### Changed
