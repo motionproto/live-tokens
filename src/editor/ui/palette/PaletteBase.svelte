@@ -37,6 +37,10 @@
   }: Props = $props();
 
   let baseHex = $derived(oklchToHexClamped(baseColor.l, baseColor.c, baseColor.h));
+
+  // `pinnedOpen || isEditingBase` is exactly when the base panel shows: editing
+  // the base implies both a panel and a colour to put in it.
+  let showSetting = $derived(!!setting && (pinnedOpen || isEditingBase));
 </script>
 
 <div class="editor-top">
@@ -71,14 +75,16 @@
     </div>
   </div>
 
-  <!-- `pinnedOpen || isEditingBase` is exactly when the base panel shows:
-       editing the base implies both a panel and a colour to put in it. -->
-  {#if setting && (pinnedOpen || isEditingBase)}
-    <div class="header-setting">{@render setting()}</div>
-  {/if}
+  {#if showSetting || actions}
+    <div class="editor-trailing" class:actions-only={!showSetting}>
+      {#if showSetting}
+        <div class="header-setting">{@render setting?.()}</div>
+      {/if}
 
-  {#if actions}
-    <div class="header-actions">{@render actions()}</div>
+      {#if actions}
+        <div class="header-actions">{@render actions()}</div>
+      {/if}
+    </div>
   {/if}
 </div>
 
@@ -113,13 +119,32 @@
     gap: var(--ui-space-8);
   }
 
+  /* Setting and buttons share one zone so a band too narrow to hold both wraps
+     the buttons under the switch. As siblings of the identity they wrapped to
+     the band's left edge instead, back under the swatch, opening a gap the row
+     had no reason to leave. `space-between` seats the setting at the zone's
+     start and the buttons at its end, and a wrapped line holds the start too. */
+  .editor-trailing {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-8) var(--ui-space-16);
+  }
+
+  /* Collapsed families carry no setting, so there is nothing for the buttons to
+     be spaced away from; they keep the right edge on their own. */
+  .editor-trailing.actions-only {
+    justify-content: flex-end;
+  }
+
   /* Reads with the identity rather than the buttons: this states what the
-     family is, it does not do anything. The auto margin keeps it beside the
-     name while the actions still hold the right edge. */
+     family is, it does not do anything. */
   .header-setting {
     display: flex;
     align-items: center;
-    margin-right: auto;
   }
 
   .header-swatch {

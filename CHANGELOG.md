@@ -23,6 +23,14 @@
   shows only while that family's editor is open, so a page of ten collapsed
   palettes does not repeat it ten times.
 
+- **A narrow palette band wraps its buttons under the switch.** The setting and
+  the buttons were siblings of the family's identity, so a band too narrow to
+  hold the row wrapped the buttons to the band's left edge, back under the
+  swatch, opening a gap the row had no reason to leave. They share one trailing
+  zone now: the setting seats at its start and the buttons at its end, and a
+  wrapped line keeps that start, so the buttons land under the switch they
+  followed.
+
 ## 0.54.2 — Palette focus is public API
 
 ### Added
