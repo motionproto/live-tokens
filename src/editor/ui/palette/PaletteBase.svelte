@@ -72,19 +72,15 @@
           aria-hidden="true"
         ></i>
       </button>
-    </div>
-  </div>
 
-  {#if showSetting || actions}
-    <div class="editor-trailing" class:actions-only={!showSetting}>
       {#if showSetting}
         <div class="header-setting">{@render setting?.()}</div>
       {/if}
-
-      {#if actions}
-        <div class="header-actions">{@render actions()}</div>
-      {/if}
     </div>
+  </div>
+
+  {#if actions}
+    <div class="header-actions">{@render actions()}</div>
   {/if}
 </div>
 
@@ -116,40 +112,28 @@
   .header-actions {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: var(--ui-space-8);
   }
 
-  /* Setting and buttons share one zone so a band too narrow to hold both wraps
-     the buttons under the switch. As siblings of the identity they wrapped to
-     the band's left edge instead, back under the swatch, opening a gap the row
-     had no reason to leave. `space-between` seats the setting at the zone's
-     start and the buttons at its end, and a wrapped line holds the start too. */
-  .editor-trailing {
-    display: flex;
-    flex: 1;
-    min-width: 0;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--ui-space-8) var(--ui-space-16);
-  }
-
-  /* Collapsed families carry no setting, so there is nothing for the buttons to
-     be spaced away from; they keep the right edge on their own. */
-  .editor-trailing.actions-only {
-    justify-content: flex-end;
-  }
-
-  /* Reads with the identity rather than the buttons: this states what the
-     family is, it does not do anything. */
+  /* Third line of the identity, under the hex: name, value, constraint all
+     describe the family and share its left rail. Keeping it out of the band's
+     row is what leaves the buttons a column of their own at every width. */
   .header-setting {
     display: flex;
     align-items: center;
+    margin-top: var(--ui-space-4);
   }
 
+  /* The setting makes the identity column taller than the swatch, and the row
+     stretches its items; left alone the chip would grow into a rectangle. It is
+     a colour sample, so it stays square and hangs from the top of the column. */
   .header-swatch {
     width: 4.5rem;
     min-height: 4.5rem;
+    aspect-ratio: 1;
+    align-self: flex-start;
     border-radius: var(--ui-radius-md);
     border: 2px solid var(--ui-border);
     flex-shrink: 0;

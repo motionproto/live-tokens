@@ -23,13 +23,14 @@
   shows only while that family's editor is open, so a page of ten collapsed
   palettes does not repeat it ten times.
 
-- **A narrow palette band wraps its buttons under the switch.** The setting and
-  the buttons were siblings of the family's identity, so a band too narrow to
-  hold the row wrapped the buttons to the band's left edge, back under the
-  swatch, opening a gap the row had no reason to leave. They share one trailing
-  zone now: the setting seats at its start and the buttons at its end, and a
-  wrapped line keeps that start, so the buttons land under the switch they
-  followed.
+- **The palette band holds two columns at every width.** With the setting on
+  the band's row, a band too narrow for it wrapped the buttons to the left edge,
+  under the swatch. The setting sits in the identity column instead, a third
+  line under the hex — name, value and constraint all describe the family and
+  share its left rail — which leaves the buttons a column of their own that no
+  width takes away. They wrap among themselves against the right edge before the
+  cluster ever drops a line. The swatch keeps its square: the taller column
+  would otherwise stretch the chip into a rectangle.
 
 ## 0.54.2 — Palette focus is public API
 
