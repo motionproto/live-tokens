@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.54.3 — A focused palette is open on arrival
+
+### Changed
+
+- **A palette focused before mount opens without the reveal.** `paletteEditorOpen`
+  started false and flipped in an effect, so a deep link that set the focus
+  ahead of mount landed the visitor mid-animation, reading as a page still
+  loading. The editor now reads the pending focus when it constructs and opens
+  on the first frame; the scroll that brings it into view jumps rather than
+  gliding, since nothing expanded for the motion to match. A jump from the
+  Colors view, where the editor is already mounted, keeps its reveal.
+
 ## 0.54.2 — Palette focus is public API
 
 ### Added

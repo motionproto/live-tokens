@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy, tick } from 'svelte';
+  import { get } from 'svelte/store';
   import { oklchToHexClamped, type Oklch } from '../core/palettes/oklch';
   import { type CurveAnchor, lightnessCurveConfig, saturationCurveConfig, hueCurveConfig } from './curveEngine';
   import ColorEditPanel from './ColorEditPanel.svelte';
@@ -114,7 +115,14 @@
   }
 
   let showDerived = $state(false);
-  let paletteEditorOpen = $state(false);
+  // A deep link sets the focus before this mounts, so the controls are open on
+  // the first frame: UIReveal's `{#if}` never toggles and there is no reveal to
+  // sit through. Landing mid-animation reads as a page still loading.
+  // svelte-ignore state_referenced_locally
+  // The mount-time value is the whole point: a family's label is fixed for the
+  // life of the instance (PALETTE_SPECS keys the `{#each}` by it).
+  const focusedOnMount = get(pendingPaletteFocus) === label;
+  let paletteEditorOpen = $state(focusedOnMount);
   let rootEl: HTMLElement | undefined = $state();
 
   // Arriving from the Colors view's Edit button: open this family's controls and
@@ -123,7 +131,11 @@
     if ($pendingPaletteFocus !== label) return;
     pendingPaletteFocus.set(null);
     paletteEditorOpen = true;
-    tick().then(() => rootEl?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    // Nothing expanded when we opened on mount, so there is no motion for a
+    // smooth scroll to match — jump, and the first frame is the final state.
+    tick().then(() =>
+      rootEl?.scrollIntoView({ behavior: focusedOnMount ? 'auto' : 'smooth', block: 'start' }),
+    );
   });
 
   function setLightnessCurve(a: CurveAnchor[]) { edit('lightnessCurve', a); }
