@@ -8,6 +8,9 @@
   
   interface Props {
     title?: string | null;
+    /** Ties the panel to the swatch it was opened from, when it renders docked
+     *  beneath that swatch's row. */
+    highlighted?: boolean;
     showRemoveOverride?: boolean;
     /** Hide the confirm/cancel actions for live-apply consumers (Colors view
      *  readout) where edits commit through the store as they happen. */
@@ -37,6 +40,7 @@
 
   let {
     title = null,
+    highlighted = false,
     showRemoveOverride = false,
     hideActions = false,
     hidePreview = false,
@@ -133,7 +137,7 @@
   }
 </script>
 
-<div class="hsl-panel">
+<div class="hsl-panel" class:highlighted>
   <div class="hsl-panel-header">
     {#if !hidePreview}
       <div class="hsl-preview" style="background: {previewHex}"></div>
@@ -248,6 +252,17 @@
     background: var(--ui-surface-lowest);
     border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-md);
+  }
+
+  /* Docked to a swatch: the border thickens to the weight of that swatch's
+     selection ring, so the pair reads as one object. */
+  .hsl-panel.highlighted {
+    border-width: 2px;
+    border-color: var(--ui-border-higher);
+  }
+
+  .hsl-panel.highlighted .hsl-panel-title {
+    color: var(--ui-text-primary);
   }
 
   .hsl-panel-header {

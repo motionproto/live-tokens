@@ -207,8 +207,19 @@
     openSession();
   }
 
-  function handlePaletteClick(ps: { label: string; lightness: number; index: number }) {
+  function handlePaletteClick(ps: { label: string; index: number; anchored: boolean }) {
     const k = paletteStepKey(ps.label);
+    // The anchored step is not a copy of the base color, it IS the base color:
+    // the anchor pins the curves through it. So editing it edits the base, and
+    // the header swatch and the whole ramp follow. An override here would fork
+    // the two apart and quietly break the guarantee the anchor makes.
+    if (ps.anchored) {
+      if (isEditingBase) { confirmEdit(); return; }
+      startBaseEdit();
+      // After openSession, so cancel and undo both put it back.
+      if (k in overrides) removeOverride(k);
+      return;
+    }
     if (editingKey === k) {
       confirmEdit();
       return;
@@ -505,6 +516,10 @@
   let overridesHex = $derived(Object.fromEntries(Object.entries(overrides).map(([k, v]) => [k, toHex(v)])));
 
   let isEditingBase = $derived(isBaseEdit(editing));
+  // Naming the step the base sits on is what says the header swatch and that
+  // ramp swatch are one value, not two that happen to match.
+  let anchoredStep = $derived(paletteComputed.find(ps => ps.anchored) ?? null);
+  let basePanelTitle = $derived(anchoredStep ? `Base Color \u203A ${anchoredStep.label}` : 'Base Color');
   let editingColor = $derived(isEditingBase ? baseColor : editingDraft);
   let editingStepInfo = $derived((() => {
     if (!editingKey || isEditingBase) return null;
@@ -520,11 +535,28 @@
     return null;
   })());
   let panelOpen = $derived(editingKey !== null && (isEditingBase || (editingDraft !== null && editingStepInfo !== null)));
-  let editPanelTitle = $derived(isEditingBase
-    ? 'Base Color'
-    : editingStepInfo
-      ? `${editingStepInfo.scale} \u203A ${editingStepInfo.step}`
-      : null);
+  // The panel docks under the row that owns the step being edited, so these
+  // place it: a column for the palette caret, a row slot for the derived scales.
+  let editingPaletteIndex = $derived.by(() => {
+    if (!panelOpen || isEditingBase) return null;
+    const i = paletteComputed.findIndex(ps => ps.key === editingKey);
+    return i === -1 ? null : i;
+  });
+  let editingDerivedRow = $derived.by(() => {
+    if (!panelOpen || isEditingBase || editingPaletteIndex !== null) return null;
+    const scale = scales.find(s => s.title === editingStepInfo?.scale);
+    if (!scale) return null;
+    return scale.isText ? 'text' : 'solid';
+  });
+  let editPanelTitle = $derived(editingStepInfo ? `${editingStepInfo.scale} \u203A ${editingStepInfo.step}` : null);
+  // The reveal's outro needs something to render: closing the panel resets
+  // `editing` to idle, and every value below it goes null in the same tick, so a
+  // live read would slide an empty box shut. Held until the next edit replaces it.
+  let dock: { title: string | null; color: Oklch; paletteIndex: number | null } | null = $state(null);
+  $effect(() => {
+    if (!panelOpen || isEditingBase || !editingColor) return;
+    dock = { title: editPanelTitle, color: editingColor, paletteIndex: editingPaletteIndex };
+  });
   $effect(() => {
     // Touch each input so the effect tracks them (resnapScales reads indirectly).
     void baseColor;
@@ -537,6 +569,24 @@
   });
 </script>
 
+{#snippet stepEditPanel()}
+  {#if dock}
+    <ColorEditPanel
+      title={dock.title}
+      highlighted
+      showRemoveOverride
+      hue={dock.color.h}
+      chroma={dock.color.c}
+      lightness={dock.color.l * 100}
+      onHueChromaChange={(h, c, l) => handleColorChange({ l: l / 100, c, h })}
+      onConfirm={confirmEdit}
+      onCancel={cancelEdit}
+      onRemoveOverride={() => editingKey && removeOverride(editingKey)}
+      onSliderStart={() => beginSliderGesture(`edit ${label} ${editingKey ?? 'color'}`)}
+    />
+  {/if}
+{/snippet}
+
 <div class="palette-editor" bind:this={rootEl} style="--editor-base: {toHex(baseColor)}">
   <PaletteBase
     {label}
@@ -544,6 +594,7 @@
     {baseColor}
     {isEditingBase}
     pinnedOpen={paletteEditorOpen}
+    selected={isEditingBase}
     {copiedKey}
     onStartEdit={startBaseEdit}
     onCopyBaseHex={copyHex}
@@ -573,7 +624,7 @@
     <div class="swatch-grid" style="--swatch-cols: {paletteStepLightness.length + 2}">
       <div class="base-panel" style="grid-column: 2 / {paletteStepLightness.length + 2}">
         <ColorEditPanel
-          title={isEditingBase ? editPanelTitle : 'Base Color'}
+          title={basePanelTitle}
           showRemoveOverride={false}
           hideActions={!isEditingBase}
           hidePreview
@@ -617,21 +668,21 @@
         </div>
         {#each paletteComputed as ps}
           <div class="step-column">
-            <button class="step-label copyable-label" class:copied={copiedLabelKey === ps.key} type="button" onclick={(e) => copyVarName(ps.key, `--color-${cssNamespace}-${ps.label}`, e)}>
+            <button class="step-label copyable-label" class:copied={copiedLabelKey === ps.key} class:selected={editingKey === ps.key || (isEditingBase && ps.anchored)} type="button" onclick={(e) => copyVarName(ps.key, `--color-${cssNamespace}-${ps.label}`, e)}>
               {copiedLabelKey === ps.key ? 'copied!' : ps.label}
             </button>
             <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
             <div
               class="swatch gray-swatch"
-              class:active={editingKey === ps.key}
+              class:active={editingKey === ps.key || (isEditingBase && ps.anchored)}
               class:overridden={ps.key in overrides}
               class:anchored={ps.anchored}
               title={ps.anchored ? 'Base color' : undefined}
               style="background: {ps.effective}"
-              onclick={() => handlePaletteClick({ label: ps.label, lightness: ps.lightness, index: ps.index })}
+              onclick={() => handlePaletteClick(ps)}
               role="button"
               tabindex="0"
-              onkeydown={(e) => e.key === 'Enter' && handlePaletteClick({ label: ps.label, lightness: ps.lightness, index: ps.index })}
+              onkeydown={(e) => e.key === 'Enter' && handlePaletteClick(ps)}
             >
               {#if ps.key in overrides}
                 <span class="override-lock" title="Palette override: this step is set by hand, not derived from the curve">
@@ -653,6 +704,17 @@
           </button>
           <div class="swatch gray-swatch bookend" style="background: #000000"></div>
         </div>
+
+        <UIReveal open={editingPaletteIndex !== null} style="grid-column: 2 / {paletteStepLightness.length + 2}">
+          <!-- The reveal has to own the grid slot, so the dock rebuilds the
+               ramp's tracks inside it: the caret is then placed on the step's
+               own column and points at it at any width, no arithmetic. -->
+          <div class="dock" style="--dock-cols: {paletteStepLightness.length}">
+            <div class="edit-caret" style="grid-column: {(dock?.paletteIndex ?? 0) + 1}"></div>
+            <div class="docked-panel">{@render stepEditPanel()}</div>
+          </div>
+        </UIReveal>
+
       <UIReveal open={paletteEditorOpen} style="grid-column: 2 / {paletteStepLightness.length + 2}">
         <div class="curve-grid-span">
           {#if anchorUnlockPrompt && anchorToBase}
@@ -787,29 +849,19 @@
           {@render overridesPanel(scale, true, derivedHexForBase)}
         {/each}
       </div>
+      <UIReveal open={editingDerivedRow === 'text'}>
+        <div class="docked-panel">{@render stepEditPanel()}</div>
+      </UIReveal>
       <div class="scales-row">
         {#each scales.filter(s => !s.isText) as scale}
           {@render overridesPanel(scale, true, derivedHexForBase)}
         {/each}
       </div>
+      <UIReveal open={editingDerivedRow === 'solid'}>
+        <div class="docked-panel">{@render stepEditPanel()}</div>
+      </UIReveal>
     </div>
   </UIReveal>
-
-  <!-- Color Edit Panel (non-base edits) -->
-  {#if !isEditingBase && panelOpen && editingColor}
-    <ColorEditPanel
-      title={editPanelTitle}
-      showRemoveOverride={!!editingKey}
-      hue={editingColor.h}
-      chroma={editingColor.c}
-      lightness={editingColor.l * 100}
-      onHueChromaChange={(h, c, l) => handleColorChange({ l: l / 100, c, h })}
-      onConfirm={confirmEdit}
-      onCancel={cancelEdit}
-      onRemoveOverride={() => editingKey && removeOverride(editingKey)}
-      onSliderStart={() => beginSliderGesture(`edit ${label} ${editingKey ?? 'color'}`)}
-    />
-  {/if}
 </div>
 
 <style>
@@ -937,6 +989,12 @@
     color: var(--ui-text-accent, var(--ui-text-primary));
   }
 
+  /* The name the docked panel's title repeats back. */
+  .step-label.copyable-label.selected {
+    color: var(--ui-text-primary);
+    font-weight: var(--ui-font-weight-semibold);
+  }
+
   /* Swatches */
 
   .swatch {
@@ -1013,6 +1071,34 @@
     gap: var(--ui-space-8);
   }
 
+  /* Same tracks and gutter as the ramp above, so a column here lands under the
+     swatch of the same index. */
+  .dock {
+    display: grid;
+    grid-template-columns: repeat(var(--dock-cols), minmax(0, 1fr));
+    gap: var(--ui-space-4) var(--swatch-gap, var(--ui-space-4));
+  }
+
+  /* Docked under the row it edits, pointed at the swatch it edits. */
+  .docked-panel {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  .edit-caret {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    height: var(--ui-space-6);
+  }
+
+  .edit-caret::after {
+    content: '';
+    border-left: var(--ui-space-6) solid transparent;
+    border-right: var(--ui-space-6) solid transparent;
+    border-bottom: var(--ui-space-6) solid var(--ui-border-higher);
+  }
+
   .anchor-unlock-notice {
     display: flex;
     align-items: center;
@@ -1057,10 +1143,17 @@
     border-color: var(--ui-border-high);
   }
 
-  .swatch.gray-swatch.active {
-    border-color: var(--ui-border-higher);
-    outline: 2px solid var(--ui-border-high);
-    outline-offset: 1px;
+  /* A ring drawn inside the swatch, weight only: the editor stays greyscale, so
+     selection has to out-weigh the anchored step's emphasized border rather
+     than out-colour it. Insets, because a 3px outline would eat the column gap
+     and a 3px border would resize the swatch mid-grid. The dark keylines either
+     side of the white band keep it legible at both ends of the ramp. */
+  .swatch.gray-swatch.active,
+  .swatch.gray-swatch.anchored.active {
+    border-color: var(--ui-surface-lowest);
+    box-shadow:
+      inset 0 0 0 3px var(--ui-text-primary),
+      inset 0 0 0 4px var(--ui-surface-lowest);
   }
 
   /* The step the base color is placed at: taller, with an emphasized border. It

@@ -14,6 +14,9 @@
     isEditingBase: boolean;
     /** Keep the swatch reading as active while the curve editors are visible. */
     pinnedOpen?: boolean;
+    /** The same ring the ramp's anchored step wears, so the two swatches read
+     *  as the one value they are. */
+    selected?: boolean;
     copiedKey: string | null;
     onStartEdit: () => void;
     onCopyBaseHex: (key: string, hex: string, event?: MouseEvent) => void;
@@ -29,6 +32,7 @@
     baseColor,
     isEditingBase,
     pinnedOpen = false,
+    selected = false,
     copiedKey,
     onStartEdit,
     onCopyBaseHex,
@@ -49,6 +53,7 @@
     <div
       class="header-swatch"
       class:active={isEditingBase || pinnedOpen}
+      class:selected
       style="background: {baseHex}"
       onclick={onStartEdit}
       role="button"
@@ -148,6 +153,14 @@
     border-color: var(--ui-border-higher);
     outline: 2px solid var(--ui-border-high);
     outline-offset: 1px;
+  }
+
+  .header-swatch.selected {
+    border-color: var(--ui-surface-lowest);
+    outline: none;
+    box-shadow:
+      inset 0 0 0 3px var(--ui-text-primary),
+      inset 0 0 0 4px var(--ui-surface-lowest);
   }
 
   .editor-label {

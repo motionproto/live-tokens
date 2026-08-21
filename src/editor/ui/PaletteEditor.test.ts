@@ -16,7 +16,7 @@ import {
 import type { PaletteConfig } from '../core/themes/themeTypes';
 import { hexToOklch as c } from '../core/palettes/oklch';
 import { mount, unmount, flushSync } from "svelte";
-import { defaultPaletteConfig, DEFAULT_PALETTE_HUE, computePaletteOklch } from './palette/paletteMath';
+import { defaultPaletteConfig, DEFAULT_PALETTE_HUE, computePaletteOklch, paletteStepKey, paletteStepLightness } from './palette/paletteMath';
 import { hueCurveConfig } from './curveEngine';
 
 function makePaletteConfig(baseColor: string): PaletteConfig {
@@ -218,6 +218,66 @@ describe('PaletteEditor — hue curve section', () => {
     mountEditor('Canvas');
 
     expect(get(editorState).palettes.Canvas.hueCurve).toBeUndefined();
+
+    cleanup();
+  });
+});
+
+describe('PaletteEditor — the anchored step is the base color', () => {
+  let target: HTMLDivElement;
+  let component: ReturnType<typeof mount> | null = null;
+
+  beforeEach(() => {
+    target = document.createElement('div');
+    document.body.appendChild(target);
+    setPaletteConfig('Canvas', defaultPaletteConfig({ baseColor: c('#8d7f74'), neutral: false }));
+    component = mount(PaletteEditor, { target, props: { label: 'Canvas', initialColor: c('#8d7f74') } });
+    flushSync();
+  });
+
+  function cleanup() {
+    if (component) { unmount(component); component = null; }
+  }
+
+  const swatch = (selector: string) => target.querySelector<HTMLElement>(selector)!;
+  const panelTitle = () => target.querySelector('.hsl-panel-title')?.textContent ?? null;
+
+  it('clicking it opens the base color, never an override', () => {
+    swatch('.swatch.gray-swatch.anchored').click();
+    flushSync();
+
+    expect(get(editorState).palettes.Canvas.overrides).toEqual({});
+    expect(panelTitle()).toMatch(/^Base Color/);
+
+    cleanup();
+  });
+
+  it('clearing a stale override there restores the anchor, and cancel puts it back', () => {
+    const step = get(editorState).palettes.Canvas.anchorPlacement!.step;
+    const key = paletteStepKey(paletteStepLightness[step].label);
+    mutate('seed stale override', (s) => { s.palettes.Canvas.overrides = { [key]: c('#ff0000') }; });
+    flushSync();
+
+    swatch('.swatch.gray-swatch.anchored').click();
+    flushSync();
+    expect(get(editorState).palettes.Canvas.overrides).toEqual({});
+
+    target.querySelector<HTMLButtonElement>('[title="Discard changes"]')!.click();
+    flushSync();
+    expect(get(editorState).palettes.Canvas.overrides).toEqual({ [key]: c('#ff0000') });
+
+    cleanup();
+  });
+
+  it('every other step still edits its own override, docked under the ramp', () => {
+    const plain = Array.from(target.querySelectorAll<HTMLElement>('.swatch.gray-swatch'))
+      .find((el) => !el.classList.contains('anchored') && !el.classList.contains('bookend'))!;
+    plain.click();
+    flushSync();
+
+    expect(panelTitle()).toMatch(/^Palette/);
+    expect(target.querySelector('.edit-caret')).not.toBeNull();
+    expect(target.querySelector('.docked-panel .hsl-panel')).not.toBeNull();
 
     cleanup();
   });

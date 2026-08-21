@@ -424,9 +424,12 @@
     border-color: var(--ui-border-high);
   }
 
+  /* Same weight-only selection language as the palette ramp, at the smaller
+     swatch's scale. */
   .override-slot.active {
-    border-color: var(--ui-border-higher);
-    outline: 1px solid var(--ui-border-high);
+    border-style: solid;
+    border-color: var(--ui-surface-lowest);
+    outline: 2px solid var(--ui-text-primary);
     outline-offset: 1px;
   }
 
