@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.55.1 — The anchored step is the base color
+
+### Fixed
+
+- **Editing the anchored palette step edits the base color.** The anchor pins
+  the lightness, saturation and hue curves through one step, so that swatch was
+  already rendering the base color. Clicking it opened a per-step override,
+  which forked the two apart: the ramp moved, the family's base swatch and hex
+  did not, and the palette stopped passing through the base color the anchor
+  guarantees it passes through. That step now opens the base color itself. The
+  whole ramp re-derives, a bound harmony axis follows the hue, and the header
+  swatch moves with it. Both swatches carry the selection ring together and the
+  panel titles itself "Base Color > 500", so the pairing is stated rather than
+  inferred. An override left on the anchored step by an earlier build is cleared
+  when the step is opened, inside the edit session, so Cancel and undo both put
+  it back. Every other step keeps its own override, unchanged.
+
+### Changed
+
+- **The color editor docks under the row it edits.** It rendered at the bottom
+  of the family block, past the curve editors and the Text, Surfaces and Borders
+  section, far enough from the swatch that opened it to read as unrelated
+  chrome. It now opens directly beneath the ramp for a palette step, or beneath
+  the derived row that owns the step, with a caret on the step's own column. The
+  caret is placed on the grid rather than positioned, so it stays under its
+  swatch at any width. Showing and hiding use the disclosure motion the
+  expandable sections already use.
+
+- **Selection reads by weight.** The editor's chrome is greyscale by design, so
+  a selected swatch is marked by a heavy ring drawn inside it: a white band
+  between two dark keylines, which survives both ends of a ramp running white to
+  black where a single-tone ring disappears at one end. The ring is inset rather
+  than an outline, which would close the gutter between neighbouring swatches,
+  or a thicker border, which would resize the swatch inside its own grid.
+
 ## 0.55.0 — A focused palette arrives ready
 
 ### Changed
