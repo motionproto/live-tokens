@@ -1,22 +1,24 @@
 ---
 name: live-tokens-generate-theme
-description: Generate a complete live-tokens color theme from a natural-language mood brief by choosing 10 OKLCH seeds and running the packaged generator, which enforces AA contrast automatically. Use when the user asks for a color theme, color scheme, or palette by mood, vibe, season, holiday, or hue — make me a bright and cheerful theme, give me a dark and moody night theme, a St. Patrick's Day theme with green and gold, a Christmas theme, a red-based theme, make it warmer, more contrast, a calmer palette. Changes color assignments only, never fonts. Not for editing a single token (use the editor) or building pages (see live-tokens-build-page).
+description: Generate a complete live-tokens theme (color, type, and shape) from a natural-language mood brief. Chooses 10 OKLCH seeds and runs the packaged generator, which enforces AA contrast, then carries the same brief into a font pairing and a shape personality through the sibling skills. Use whenever the user asks for a theme, a look, a vibe, a brand feel, a color scheme, or a palette, by mood, season, holiday, or hue, even if they only mention color: make me a bright and cheerful theme, a dark moody night theme, a St. Patrick's Day theme in green and gold, a Christmas look, something red-based, warmer, more contrast, calmer. Not for a single token (use the editor), for type alone (live-tokens-pair-fonts), or for shape alone (live-tokens-adjust-shape-space).
 ---
 
 # Generating a theme from a mood brief
 
-You translate the brief into 10 OKLCH seed colors plus a scheme; the CLI does everything else (curve assembly, AA contrast enforcement with auto-correction, writing the theme, opening it). Never hand-author theme JSON and never edit the data tree directly. Seeds in, valid theme out.
+A theme is three decisions made from one brief: color, type, and shape. This skill owns the color decision directly and delegates the other two, so the whole look comes from the same reading of the brief. Never hand-author theme JSON and never edit the data tree directly.
 
 ## Workflow
 
-1. Translate the brief into a seed file using the framework below. Write it to a temp path (not the project tree), e.g. `/tmp/theme-brief.json`.
-2. Run `npx live-tokens generate-theme /tmp/theme-brief.json`. It writes `themes/<slug>.json`, opens that theme, and prints a contrast report card. Exit 1 means unmet floors.
-3. Read the report. Auto-corrections are fine (the engine adjusted text curves to hit the floors). Unmet floors mean the seeds themselves are unworkable; each failure line says which seed to adjust (usually raise the seed's lightness or cut chroma). Fix the brief and re-run — same name, same file, it overwrites.
-4. Tell the user to look at the running app. Offer refinements ("warmer", "more contrast", "less saturated") as seed adjustments to the same brief, re-run.
+1. Read the brief once and name its voice in a sentence: the mood, the hue family, the scheme, and the type and shape that mood implies. Everything below keys off that sentence.
+2. Translate the brief into a seed file using the framework below. Write it to `scratch/theme-brief.json`.
+3. Run `npx live-tokens generate-theme scratch/theme-brief.json`. It writes `themes/<slug>.json`, opens that theme, and prints a contrast report. Auto-corrections are fine. Unmet floors (exit 1) mean the seeds themselves are unworkable; each failure line names the seed to change, usually by raising its lightness or cutting its chroma. Fix the brief and re-run; the same name overwrites. Regeneration replaces that theme's whole color state, including palette edits made in the editor since the last run, so say so once when iterating.
+4. Invoke **live-tokens-pair-fonts** with the same voice. Skip only when the user asked for colors specifically and said to leave the type alone.
+5. Invoke **live-tokens-adjust-shape-space** with the shape the voice implies (table below). Skip when the voice implies nothing about shape.
+6. Tell the user to look at the running app, and that type and shape sit in the unsaved buffer until they save the open theme. Offer refinements as edits to the same brief.
 
-Flags: `--dry-run` prints the report without writing; `--no-activate` writes the theme without opening it. Opening a theme never changes what the site ships: only Adopt, in the editor, does that.
+Order matters only for safety, and the order above is safe: the color generator carries the live buffers forward into the new theme file, so a color re-roll after fonts and shape keeps both.
 
-Warn once per session when iterating: regeneration replaces the whole color state of that theme, including any manual palette tweaks made in the editor after the last generation.
+Flags: `--dry-run` prints the report without writing; `--no-activate` writes without opening. Opening a theme never changes what the site ships. Only Adopt, in the editor, does that.
 
 ## The brief
 
@@ -28,140 +30,119 @@ Warn once per session when iterating: regeneration replaces the whole color stat
     "Brand":     { "l": 0.62, "c": 0.17, "h": 145 },
     "Accent":    { "l": 0.80, "c": 0.15, "h": 95 },
     "Special":   { "l": 0.60, "c": 0.19, "h": 300 },
-    "Canvas":    { "l": 0.97, "c": 0.01, "h": 120 },
+    "Canvas":    { "l": 0.93, "c": 0.04, "h": 120 },
     "Neutral":   { "l": 0.55, "c": 0.012, "h": 140 },
     "Alternate": { "l": 0.58, "c": 0.009, "h": 60 },
     "Info":      { "l": 0.60, "c": 0.15, "h": 255 },
     "Success":   { "l": 0.60, "c": 0.16, "h": 150 },
     "Warning":   { "l": 0.75, "c": 0.15, "h": 85 },
     "Danger":    { "l": 0.58, "c": 0.20, "h": 25 }
-  },
-  "harmony": { "mode": "analogous" }
+  }
 }
 ```
 
-All 10 seeds are required. A seed may also be a `"#rrggbb"` hex string (converted for you). OKLCH: `l` 0–1 perceptual lightness, `c` chroma (0 grey, ~0.37 max), `h` hue degrees. `name` becomes the theme file slug, tidied to lowercase with hyphens and stripped of any leading underscore (those names are reserved); `"default"` is refused (protected package theme). `harmony` is an optional record of your reasoning; the seeds are ground truth. `canvasGradient` is an optional boolean — see "The canvas sky" below before setting it.
+All 10 seeds are required; a seed may also be a `"#rrggbb"` string. OKLCH: `l` is 0 to 1 lightness, `c` is chroma (0 grey, about 0.37 max), `h` is hue in degrees. `name` becomes the file slug; `"default"` is refused. `canvasGradient` is an optional boolean, see below.
 
-Roles: **Brand** is the dominant chromatic identity; **Accent** the supporting color; **Special** the rare expressive tertiary; **Canvas** is the page background verbatim; **Neutral** drives all neutral surfaces and body text; **Alternate** is the second near-grey family; the four status colors are conventional signals.
+Roles: **Brand** is the dominant chromatic identity; **Accent** the supporting color; **Special** the rare expressive tertiary; **Canvas** is the page background verbatim; **Neutral** drives neutral surfaces and body text; **Alternate** is the second near-grey family; the four statuses are conventional signals.
 
 ## Chroma budget: color is inversely proportional to area
 
 | Tier | Palettes | Chroma |
 |---|---|---|
-| Ground (~60% of every screen) | Canvas, Neutral, Alternate | C 0.005–0.03 |
-| Dominant chromatic (~30%) | Brand | C 0.10–0.20 |
-| Garnish (~10%) | Accent, Special | may exceed Brand; at most one at full saturation |
-| Conditional | Info, Success, Warning, Danger | C 0.12–0.19 |
+| Ground (about 60% of every screen) | Canvas, Neutral, Alternate | C 0.005 to 0.03 |
+| Dominant chromatic (about 30%) | Brand | C 0.10 to 0.20 |
+| Garnish (about 10%) | Accent, Special | may exceed Brand; at most one at full saturation |
+| Conditional | Info, Success, Warning, Danger | C 0.12 to 0.19 |
 
-A good theme reads as 3–4 hue families on screen, never 10. Neutral and Alternate stay near-grey, tinted toward the theme (Neutral near Brand's hue; Alternate offset +15–60° or as a warm/cool counterpoint), never pure C = 0.
+A good theme reads as 3 or 4 hue families on screen, never 10. Neutral and Alternate stay near-grey but tinted toward the theme (Neutral near Brand's hue; Alternate offset 15 to 60 degrees, or a warm/cool counterpoint), never pure C = 0.
 
 ## Per-role bands
 
 | Seed | Light scheme | Dark scheme | Hue |
 |---|---|---|---|
-| Canvas | L 0.92–0.98, C 0.02–0.06 (see below) | L 0.15–0.28, C 0.01–0.05 | brand hue or its harmony slot |
-| Neutral / Alternate | L ≈ 0.55, C 0.008–0.02 | same | see chroma budget |
-| Brand | L 0.45–0.62, C 0.12–0.20 | L 0.70–0.83, C cut by ~⅓ | the brief's identity hue |
-| Accent | harmony slot, or ΔL ≥ 0.25 from Brand when the mode collapses hue distance | lighten/desaturate like Brand | harmony slot |
-| Special | most expressive; default = Brand hue +60° at ~65% of Brand's C | same transform | harmony slot |
-| Info | shared status L (0.55–0.65 light) | lighten like Brand | H 230–260 |
-| Success | shared status L | same | H 140–155 |
-| Warning | L ≥ 0.75 (vivid yellow must be light) | same | H 70–90 |
-| Danger | shared status L, C 0.15–0.20 | same | H 20–30 |
+| Canvas | L 0.92 to 0.98, C 0.02 to 0.06 | L 0.15 to 0.28, C 0.01 to 0.05 | Brand's hue or its harmony slot |
+| Neutral, Alternate | L about 0.55, C 0.008 to 0.02 | same | per the chroma budget |
+| Brand | L 0.45 to 0.62, C 0.12 to 0.20 | L 0.70 to 0.83, C cut by a third | the brief's identity hue |
+| Accent | harmony slot, or at least 0.25 L from Brand when the mode collapses hue distance | lighten and desaturate like Brand | harmony slot |
+| Special | most expressive; default Brand hue +60 at about 65% of Brand's C | same transform | harmony slot |
+| Info | shared status L (0.55 to 0.65 light) | lighten like Brand | H 230 to 260 |
+| Success | shared status L | same | H 140 to 155 |
+| Warning | L 0.75 or higher (vivid yellow must be light) | same | H 70 to 90 |
+| Danger | shared status L, C 0.15 to 0.20 | same | H 20 to 30 |
 
-- **The canvas carries the theme's identity — commit to it.** The page background is the largest area on screen and the strongest differentiator between themes; a timid canvas makes every theme look the same. Below C ≈ 0.015 at L ≥ 0.95 a tint is imperceptible: that near-white is a deliberate choice for clean/minimal briefs, never the default. Three escalating levels of commitment, matched to the brief:
-  1. *Tinted paper* (most UI briefs): a tint you can actually see — C 0.02–0.06, dropping L to 0.92–0.95 where the hue needs room.
-  2. *Colored ground* (expressive briefs): L 0.85–0.92 at C 0.05–0.10 — the page is unmistakably mint, parchment, sky.
-  3. *Full-color ground* (holiday and statement briefs): the canvas IS the theme color — a red Christmas page (0.40–0.48, C 0.12–0.16, H 25) with green and gold on it, an orange Halloween page. Keep canvas L ≤ ~0.48 or ≥ ~0.85 so text has somewhere to go; the contrast gate enforces legibility either way. A saturated background is a legitimate choice, not something to correct.
-- **Gamut note for light canvases**: blue tints cap very low at high L (H 264 at L 0.95 barely reaches C 0.03) — for a blue-leaning canvas, lower L instead of fighting the ceiling; yellow/green/cream hues tint generously at high L.
-- **When generating a set of themes, make the canvases pairwise distinct.** Any two Canvas seeds should differ noticeably in hue (at visible chroma) or in L. Two light themes both near (0.97, 0.01, anything) read as the same theme with different buttons. Dark canvases differentiate the same way: deep indigo, plum, and near-black violet are three different nights.
-- **Dark scheme is a transform, not just a dark Canvas**: every chromatic seed lightens to L ≈ 0.75–0.85 and drops about a third of its chroma. Saturated color vibrates on dark grounds.
-- **Equal lightness = equal weight**: give the four statuses one shared L; do the same for Brand vs Accent when they should balance.
-- Status hues never rotate with the harmony; only their L/C adapt to the mood.
+**The canvas carries the theme's identity, so commit to it.** The page background is the largest area on screen and the strongest difference between themes; a timid canvas makes every theme look the same. Below C 0.015 at L 0.95 a tint is imperceptible, which makes near-white a deliberate choice for clean or minimal briefs and never the default. Three levels of commitment:
+
+1. *Tinted paper* (most UI briefs): C 0.02 to 0.06, with L down to 0.92 where the hue needs room.
+2. *Colored ground* (expressive briefs): L 0.85 to 0.92 at C 0.05 to 0.10. The page is unmistakably mint, parchment, sky.
+3. *Full-color ground* (holiday and statement briefs): the canvas is the theme color, like a red Christmas page with green and gold on it. Keep canvas L at or below 0.48 or at or above 0.85 so text has somewhere to go; the contrast gate enforces legibility either way.
+
+Also:
+
+- Blue tints cap very low at high L (H 264 at L 0.95 barely reaches C 0.03): lower L for a blue canvas rather than fighting the ceiling. Yellow, green, and cream tint generously at high L.
+- When generating a set of themes, make the canvases pairwise distinct in hue or in L. Two light themes both near (0.97, 0.01) read as one theme with different buttons.
+- A dark scheme is a transform, not just a dark canvas: every chromatic seed lightens to L 0.75 to 0.85 and drops about a third of its chroma, because saturated color vibrates on dark grounds.
+- Equal lightness reads as equal weight: give the four statuses one shared L, and do the same for Brand and Accent when they should balance.
+- Status hues never rotate with the harmony; only their L and C adapt to the mood.
 
 ## Mood dials
 
-Empirically: pleasantness rises with lightness (strongly) and saturation (weakly); energy/arousal rises with saturation; drama/dominance rises with dark + saturated.
+Pleasantness rises with lightness (strongly) and saturation (weakly); energy rises with saturation; drama rises with dark plus saturated.
 
 | Brief says | Dials |
 |---|---|
-| cheerful, bright, playful | light scheme; Brand/Accent L 0.7–0.9, C 0.15–0.22; warm hues 40–140 (yellow is the strongest joy hue) |
-| calm, serene, soft | light scheme; C 0.03–0.08 on everything chromatic; cool hues 140–260 |
-| energetic, bold | C ≥ 0.18 at L 0.55–0.65; red/orange/magenta |
-| dark, moody, dramatic, luxurious | dark scheme; Canvas L 0.15–0.25; purple, deep blue, crimson; keep working accents light per the dark transform, reserve dark-saturated color for one or two moments |
-| professional, trustworthy | blue 230–265, C 0.08–0.15; everything else muted |
-| warm / cool | hues 20–110 (plus pink 290–360) / hues 140–290 |
+| cheerful, bright, playful | light; Brand and Accent L 0.7 to 0.9, C 0.15 to 0.22; warm hues 40 to 140 (yellow is the strongest joy hue) |
+| calm, serene, soft | light; C 0.03 to 0.08 on everything chromatic; cool hues 140 to 260 |
+| energetic, bold | C 0.18 or more at L 0.55 to 0.65; red, orange, magenta |
+| dark, moody, dramatic, luxurious | dark; Canvas L 0.15 to 0.25; purple, deep blue, crimson; working accents stay light per the dark transform, with dark saturated color saved for one or two moments |
+| professional, trustworthy | blue 230 to 265, C 0.08 to 0.15; everything else muted |
+| warm / cool | hues 20 to 110 plus pink 290 to 360 / hues 140 to 290 |
 
-Avoid mid-lightness yellow-green (H 100–120 at L 0.5–0.7, C ≈ 0.1) unless the brief asks for olive/toxic.
+Avoid mid-lightness yellow-green (H 100 to 120 at L 0.5 to 0.7, C about 0.1) unless the brief asks for olive or toxic.
 
-## Gamut guardrails (don't request impossible seeds)
+## Gamut guardrails
 
-- Dark saturated yellow does not exist: H 90 at L 0.4 caps at C ≈ 0.08 and reads olive. Vivid yellow needs L ≥ 0.8. Brown = dark low-chroma orange.
-- Vivid light blue does not exist: H 264 at L 0.9 caps at C ≈ 0.05. Rich blue lives at L 0.40–0.55.
-- Teal/sky cap at C ≈ 0.15; a "vivid teal" is C 0.13–0.15.
-- Peak chroma anchors: red H20 C 0.25 @ L 0.63; orange H60 C 0.18 @ L 0.76; yellow H90 C 0.18 @ L 0.86; green H140 C 0.28 @ L 0.88; blue H264 C 0.28 @ L 0.50; magenta H320 C 0.31 @ L 0.65.
+The engine clamps to gamut regardless; these keep your intent achievable rather than silently muted.
 
-The engine gamut-clamps regardless; these rules keep your *intent* achievable rather than silently muted.
+- Dark saturated yellow does not exist: H 90 at L 0.4 caps at C 0.08 and reads olive. Vivid yellow needs L 0.8 or more. Brown is dark low-chroma orange.
+- Vivid light blue does not exist: H 264 at L 0.9 caps at C 0.05. Rich blue lives at L 0.40 to 0.55.
+- Teal and sky cap at C 0.15.
+- Peak chroma anchors: red H20 C 0.25 at L 0.63; orange H60 C 0.18 at L 0.76; yellow H90 C 0.18 at L 0.86; green H140 C 0.28 at L 0.88; blue H264 C 0.28 at L 0.50; magenta H320 C 0.31 at L 0.65.
 
-## Choosing the harmony mode
+## Harmony
 
-Modes and hue offsets from Brand: complementary +180; split-complementary +150/+210; triadic +120/+240; tetradic +60/+180/+240; square +90 steps; compound +30/+180/+210; analogous ±30; monochromatic same hue.
+Hue offsets from Brand: complementary +180; split-complementary +150/+210; triadic +120/+240; tetradic +60/+180/+240; square +90 steps; compound +30/+180/+210; analogous plus or minus 30; monochromatic same hue.
 
-- Vague or single-adjective brief → monochromatic or analogous; differentiate Accent from Brand by L/C, not hue. Polished-UI default: Accent = Brand's hue at ~45% chroma, Special = +60° at ~65% chroma.
-- Brief names two colors → measure their hue gap and pick the matching mode (green + gold ≈ 60–90° → analogous/compound).
-- Drama or maximum contrast → complementary/triadic/tetradic; then never pair max-chroma text with a near-black ground; tone one side down.
+- A vague or single-adjective brief takes monochromatic or analogous, with Accent separated from Brand by L and C rather than hue. The polished-UI default: Accent at Brand's hue and about 45% of its chroma, Special at +60 and about 65%.
+- A brief naming two colors: measure their hue gap and pick the matching mode (green plus gold is 60 to 90 degrees, so analogous or compound).
+- Drama or maximum contrast: complementary, triadic, or tetradic, and then tone one side down, since max-chroma text on a near-black ground vibrates.
 
-## The canvas sky (optional page-background gradient)
+## Canvas sky and shadows
 
-The brief may set `"canvasGradient": true` to render the page background as a
-vertical gradient built from the Canvas ramp. The engine picks the stops itself
-(two ramp steps from the Canvas anchor on the scheme's safe side), so the
-choice you make is only *whether*, never *how*.
+`"canvasGradient": true` renders the page background as a vertical gradient from the Canvas ramp. Default off. Turn it on only when the brief evokes atmosphere (sky, night, dusk, glow, underwater) or asks for a gradient outright; keep it off for crisp, flat, minimal, or corporate briefs and whenever in doubt, because a sky on every theme stops meaning anything. It needs a committed canvas (level 2 or 3); at the ramp edge the engine skips it and says so. Say why you enabled it in one line.
 
-Default **off**. Turn it on only when the brief evokes atmosphere: sky, night,
-dusk, dawn, sunset, glow, candlelight, underwater, depth — or when the user
-asks for a gradient outright. Keep it off for crisp, clean, flat, minimal, or
-corporate briefs, and whenever in doubt. Most themes should not have one; a sky
-that appears on every generated theme stops meaning anything. When you enable
-it, say why in one sentence when reporting back ("night brief → canvas sky").
+Shadow opacity derives from Canvas lightness and re-derives on every run, so there is nothing to choose. When shadows read heavy or muddy, raise the Canvas seed's L.
 
-A sky needs a committed canvas: when the Canvas seed anchors at the ramp edge
-(near-white light canvas, near-black dark one) there is no room on the safe
-side and the engine skips the sky, saying so in the report. An atmospheric
-brief that wants one should already be at canvas commitment level 2–3.
+## Named themes
 
-## Shadow weight follows the canvas
+A holiday or season brief is a statement brief: commitment level 2 or 3, with the named color on the ground rather than only on the buttons. Read `references/named-themes.md` for the OKLCH anchors of Christmas, Halloween, St. Patrick's, Ocean, Sunset, Autumn, and Spring before seeding one.
 
-The engine sets the opacity of the `--shadow-*` scale from the Canvas seed's
-lightness and carries each shadow's geometry and color through untouched. A
-near-black shadow at 0.9 opacity is what a dark ground needs to show any
-shadow at all, and it punches a hole in paper, so opacity holds at 0.9 up to
-canvas L 0.5 and eases to 0.2 by L 0.9. There is nothing to choose: the report
-prints the derived value, and every regeneration re-derives it, so a brief
-iterated from a light canvas to a dark one gets its weight back.
+## Shape from the voice
 
-When the user says the shadows read heavy, muddy, or dirty, the canvas is the
-lever. Raise the Canvas seed's lightness and the shadows lighten with it. A
-one-off override lives in the editor's Shadows tab and survives regeneration
-in everything except opacity.
+The shape personality lives in radius, padding, gap, and border width, and `live-tokens-adjust-shape-space` knows the mechanics. Hand it the intent:
 
-## Named themes (canonical OKLCH anchors)
+| Voice | Shape |
+|---|---|
+| playful, friendly, soft | rounder, a step airier; pill buttons when the brief is warm |
+| luxurious, elegant, editorial | sharper corners, airier padding, thin borders |
+| technical, dense, systematic | tighter spacing, small radius, square corners on containers |
+| calm, minimal | leave shape alone unless the brief says otherwise |
 
-Holiday briefs are statement briefs — default to commitment level 2–3 above, not cream. The named colors go on the *ground*, not just the buttons.
+## What each step writes
 
-- **Christmas**: red (0.53, 0.21, 22) + green (0.46, 0.11, 155) + gold (0.77, 0.14, 91). Strongest form: a full red canvas (0.42, 0.14, 25) with green Brand and gold Accent on it (dark scheme). Softer form: evergreen canvas (0.35, 0.07, 160) or deep cream (0.95, 0.04, 85). Never a 50/50 red-green split — one owns the ground, the other highlights.
-- **Halloween**: pumpkin (0.70, 0.20, 46) + purple (0.51, 0.21, 313) + poison green (0.73, 0.20, 137). Strongest form: an orange canvas (0.45, 0.13, 55) with violet and poison-green accents; alternative: near-black violet canvas with pumpkin Brand. Dark scheme either way.
-- **St. Patrick's**: green (0.51, 0.13, 152) Brand, gold Accent, white/beige neutrals.
-- **Ocean**: deep blue (0.35, 0.08, 237) vs aqua (0.78, 0.12, 214); H 180–240.
-- **Sunset**: hues 90 → 320 through red, L falling 0.85 → 0.40.
-- **Autumn / Fall**: leaves and dry grass — canvas warm tan/parchment (0.87, 0.06, 80), rust Brand (0.55, 0.15, 40), golden Accent (0.75, 0.15, 85), moss/olive Special (0.55, 0.10, 120), warm brown neutrals H 50–70. Deep red H 25 welcome. **Spring**: pastels L 0.85–0.95, C 0.04–0.10, greens 130–150 / pinks 0–20, mint canvas.
-
-## Scope
-
-Fonts are never touched (they carry forward from the live look, as do component aliases and shadow geometry; shadow opacity is derived, see above). Swatch gradients (`--gradient-1..4`) carry forward when user-tuned; if they are absent or still stock, the engine rebuilds them from the new theme's families — you never author them. Radius is out of scope for generation. Shipping the theme stays a human action: Adopt, in the editor.
+Color writes `themes/<slug>.json` and opens it. Type and shape write the unsaved buffers, which the page already runs. One Save in the editor keeps all three; Adopt ships them. Component aliases and gradients carry forward from the live look into a generated theme; user-tuned gradients survive, stock ones rebuild from the new families.
 
 ## Verify
 
-- The CLI exits 0 and the report card shows every check ✓ (auto-corrected is fine).
-- The app (dev server running) shows the new theme after a reload; the editor's Theme panel names it.
-- If the user wants the previous look back, the CLI output names the theme that was open; load it from the Theme panel.
+- The color CLI exits 0 with every check passing (auto-corrected is fine), and the two sibling skills report what they changed.
+- The app (dev server running) shows the whole look after a reload, and the editor's Theme panel names the theme.
+- To return to the previous look, load the theme the CLI output named from the Theme panel; that discards the buffers too.

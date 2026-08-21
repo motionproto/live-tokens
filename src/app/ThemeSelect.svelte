@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import Button from '../system/components/Button.svelte';
   import MenuSelect from '../system/components/MenuSelect.svelte';
+  import { portal } from '../system/internal/portal';
   import { listThemes, applyTheme } from '../editor/core/themes/themeService';
   import { openThemeSlug } from '../editor/core/store/editorConfigStore';
 
@@ -42,20 +43,64 @@
     buttonRef?.setAttribute('aria-labelledby', `${labelId} ${buttonId}`);
   });
 
+  /* Anchored below the trigger, left edges aligned; flips above when the space
+     below runs out, and clamps to the viewport on both axes. Placed rather than
+     laid out because the panel is portaled: it has no ancestor left to position
+     against. Visibility is inline rather than a state flag so the focus below
+     lands on an already-visible item (hidden elements refuse focus). */
+  function position(): void {
+    const btn = buttonRef;
+    const panel = panelEl;
+    if (!btn || !panel) return;
+    const margin = 8;
+    const br = btn.getBoundingClientRect();
+    const pr = panel.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    let left = br.left;
+    if (left + pr.width > vw - margin) left = vw - margin - pr.width;
+    if (left < margin) left = margin;
+
+    let top = br.bottom + margin;
+    if (top + pr.height > vh - margin) {
+      top = br.top - margin - pr.height;
+      if (top < margin) top = margin;
+    }
+
+    panel.style.left = `${left}px`;
+    panel.style.top = `${top}px`;
+    panel.style.visibility = 'visible';
+  }
+
   $effect(() => {
     if (!open || !panelEl) return;
+    position();
     const target =
       panelEl.querySelector<HTMLButtonElement>('.menuselect-item.selected') ??
       panelEl.querySelector<HTMLButtonElement>('.menuselect-item');
     target?.focus();
+    // Fixed to the viewport, so the panel has to be re-placed against a trigger
+    // that scrolls. Capture, to catch scrolls in any pane between here and the
+    // window.
+    window.addEventListener('scroll', position, true);
+    window.addEventListener('resize', position);
+    return () => {
+      window.removeEventListener('scroll', position, true);
+      window.removeEventListener('resize', position);
+    };
   });
 
   $effect(() => {
     if (!open) return;
     const handlePointerDown = (event: PointerEvent) => {
-      if (wrapperEl && event.target instanceof Node && !wrapperEl.contains(event.target)) {
-        open = false;
-      }
+      // The panel is portaled out, so it is no longer inside the wrapper and
+      // has to be tested on its own — otherwise picking a theme dismisses the
+      // list before the click reaches it.
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (wrapperEl?.contains(target) || panelEl?.contains(target)) return;
+      open = false;
     };
     const handleKeydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -114,13 +159,13 @@
         </Button>
       </div>
     {/each}
-
-    {#if open}
-      <div class="theme-select-panel" bind:this={panelEl}>
-        <MenuSelect items={themes} value={$openThemeSlug} minWidth="12rem" onchange={changeTheme} />
-      </div>
-    {/if}
   </div>
+
+  {#if open}
+    <div class="theme-select-panel" bind:this={panelEl} use:portal>
+      <MenuSelect items={themes} value={$openThemeSlug} minWidth="12rem" onchange={changeTheme} />
+    </div>
+  {/if}
 
   {#if error}
     <span class="error" aria-live="polite">{error}</span>
@@ -164,11 +209,16 @@
     pointer-events: none;
   }
 
+  /* Fixed and portaled to <body>: absolute positioning is clipped by any
+     ancestor overflow (the Home card) and trapped by any stacking context (the
+     demo hero), and the overflow it caused made that ancestor scrollable, so
+     moving focus into the list scrolled the page out from under it. */
   .theme-select-panel {
-    position: absolute;
-    top: calc(100% + var(--space-8));
+    position: fixed;
+    top: 0;
     left: 0;
-    z-index: 20;
+    z-index: 1000;
+    visibility: hidden;
   }
 
   .error {

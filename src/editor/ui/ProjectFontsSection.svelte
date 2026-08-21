@@ -8,6 +8,7 @@
     parseFontFaceText,
     type ParsedFamily,
   } from '../core/fonts/fontParse';
+  import { resolveGoogleFont, type ResolvedGoogleFont } from '../core/fonts/googleFontsUrl';
   import UIPillButton from './UIPillButton.svelte';
   import UISegmentedControl from './UISegmentedControl.svelte';
   import UIInfoPopover from './UIInfoPopover.svelte';
@@ -19,7 +20,7 @@
   let nameInput = $state('');
   let nameError = $state('');
   let nameDiscovering = $state(false);
-  let nameParsed: ParsedFamily[] | null = $state(null);
+  let nameResolved: ResolvedGoogleFont | null = $state(null);
 
   // Unified paste — accepts a bare URL, `<link>` tag, `@import url(...)`,
   // or one or more `@font-face { ... }` rules. We sniff which on Detect.
@@ -37,7 +38,7 @@
     nameInput = '';
     nameError = '';
     nameDiscovering = false;
-    nameParsed = null;
+    nameResolved = null;
     pasteInput = '';
     pasteError = '';
     pasteDiscovering = false;
@@ -110,46 +111,34 @@
     pasteDiscovering = false;
   }
 
-  /** Build a Google Fonts CSS2 URL for a family name, requesting a wide
-   *  weight range with italics. Works for variable fonts and most static
-   *  multi-weight families. Single-weight static fonts (e.g. GFS Didot) will
-   *  reject the range axis with 400 Bad Request — Chrome then CORBs the
-   *  response. Such fonts must be persisted as `?family=Name&display=swap`. */
-  function googleUrlForName(name: string): string {
-    const family = name.trim().replace(/\s+/g, '+');
-    return `https://fonts.googleapis.com/css2?family=${family}:ital,wght@0,100..900;1,100..900&display=swap`;
-  }
-
   async function discoverByName() {
     nameError = '';
-    nameParsed = null;
+    nameResolved = null;
     if (!nameInput.trim()) {
       nameError = 'Enter a family name';
       return;
     }
     nameDiscovering = true;
     try {
-      const found = await discoverFamiliesFromUrl(googleUrlForName(nameInput));
-      if (found && found.length > 0) {
-        nameParsed = found;
-      } else {
-        nameError = `Couldn't find "${nameInput.trim()}" on Google Fonts`;
-      }
-    } catch {
-      nameError = `Couldn't reach Google Fonts for "${nameInput.trim()}"`;
+      nameResolved = await resolveGoogleFont(nameInput, (url) => fetch(url));
+    } catch (e) {
+      nameError = e instanceof Error ? e.message : `Couldn't reach Google Fonts for "${nameInput.trim()}"`;
     }
     nameDiscovering = false;
   }
 
   function addNameSource() {
-    if (!nameParsed || nameParsed.length === 0) return;
-    if (nameDuplicate) return;
+    if (!nameResolved || nameDuplicate) return;
     // $state.snapshot() unwraps the reactive proxy. Without it the FontSource
     // we hand to the store carries proxy arrays (weights, etc.) and the next
     // `mutate()` call fails with DataCloneError inside structuredClone.
-    const families = $state.snapshot(nameParsed) as ParsedFamily[];
-    const source = buildSourceFromUrl(googleUrlForName(nameInput), families);
-    commitSources([...fontSourcesList, source]);
+    const resolved = $state.snapshot(nameResolved) as ResolvedGoogleFont;
+    const family: ParsedFamily = {
+      name: resolved.name,
+      ...(resolved.weights.length > 0 ? { weights: resolved.weights } : {}),
+      ...(resolved.italics ? { italics: true } : {}),
+    };
+    commitSources([...fontSourcesList, buildSourceFromUrl(resolved.url, [family])]);
     reset();
   }
 
@@ -166,10 +155,9 @@
     return null;
   }
 
-  let nameDuplicate = $derived.by(() => {
-    if (!nameParsed || nameParsed.length === 0) return null;
-    return findExistingFamilyByName(nameParsed[0].name);
-  });
+  let nameDuplicate = $derived.by(() =>
+    nameResolved ? findExistingFamilyByName(nameResolved.name) : null,
+  );
 
   function addUrlSource() {
     const url = extractFontsUrl(pasteInput);
@@ -339,9 +327,9 @@
             class="ui-form-input pf-name-input"
             placeholder="e.g. Inter, Fraunces, Space Mono"
             bind:value={nameInput}
-            onkeydown={(e) => { if (e.key === 'Enter' && !nameParsed) discoverByName(); }}
+            onkeydown={(e) => { if (e.key === 'Enter' && !nameResolved) discoverByName(); }}
           />
-          {#if nameParsed}
+          {#if nameResolved}
             <UIPillButton variant="primary" onclick={addNameSource} disabled={!!nameDuplicate}>Add</UIPillButton>
           {:else}
             <UIPillButton variant="secondary" onclick={discoverByName} disabled={!nameInput.trim() || nameDiscovering}>
@@ -350,16 +338,16 @@
           {/if}
         </div>
         {#if nameError}<div class="pf-error">{nameError}</div>{/if}
-        {#if nameParsed}
+        {#if nameResolved}
           {#if nameDuplicate}
             <div class="pf-notice">
               <strong>{nameDuplicate}</strong> is already in your project fonts.
             </div>
           {:else}
             <div class="pf-detected">
-              Found <strong>{nameParsed[0].name}</strong>
-              {#if nameParsed[0].weights && nameParsed[0].weights.length > 0}
-                <span class="pf-check-meta">({nameParsed[0].weights.length} weights)</span>
+              Found <strong>{nameResolved.name}</strong>
+              {#if nameResolved.weights.length > 0}
+                <span class="pf-check-meta">({nameResolved.weights.length} weights)</span>
               {/if}
             </div>
           {/if}

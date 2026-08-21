@@ -35,6 +35,45 @@ A theme is a document, and the editor works the way any editor does.
 Absence is the answer for anything untouched: a buffer exists only where the
 live look diverges from the active theme, so a newly opened theme has none.
 
+## Fonts
+
+Type is part of the look, so it saves, loads and ships with the theme rather
+than on its own. Four named stacks carry it:
+
+| Stack | Used by |
+|---|---|
+| `--font-display` | headings |
+| `--font-sans` | body text and most UI |
+| `--font-serif` | anywhere you ask for it |
+| `--font-mono` | code |
+
+Each stack is a family followed by its fallbacks, so a page still reads while a
+web font loads, and still reads if it never does. **Project fonts**, in the
+Colors and type editor, is where families come from: type a Google Fonts family
+name and the editor checks it, or paste a fonts URL, an embed tag, or your own
+`@font-face` rules. Removing a family puts the stack back on its fallbacks.
+
+You can also set both faces at once from the command line:
+
+```bash
+npx live-tokens set-fonts fonts.json
+```
+
+with a brief naming the families:
+
+```json
+{ "display": "Fraunces", "body": "Nunito Sans" }
+```
+
+It checks each family against Google Fonts, works out the weights that family
+actually has, and binds it to its stack. Like every other edit, the result lands
+in the buffer, so **Save** keeps it. In Claude Code, asking for a font pairing in
+plain English runs the same command.
+
+A font is only requested by the browser once something on the page uses it, so
+carrying a family you no longer reference costs nothing at load. Adopting is
+what writes the font imports your site ships, into `fonts.css`.
+
 ## Saving
 
 In the Theme panel:

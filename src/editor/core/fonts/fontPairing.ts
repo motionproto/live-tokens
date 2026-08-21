@@ -8,7 +8,17 @@ import type { FontFamily, FontSource, FontStack, FontStackVariable } from '../th
 
 const PAIRING: FontStackVariable[] = ['--font-display', '--font-sans'];
 
-function slotLabel(
+export function familyIndex(sources: FontSource[]): Map<string, FontFamily> {
+  const familyById = new Map<string, FontFamily>();
+  for (const source of sources) {
+    for (const family of source.families) familyById.set(family.id, family);
+  }
+  return familyById;
+}
+
+/** The face the page actually shows for one stack: the first slot that
+ *  resolves, named as the user named it. */
+export function resolvedFaceName(
   stack: FontStack | undefined,
   familyById: Map<string, FontFamily>,
 ): string | null {
@@ -25,11 +35,8 @@ function slotLabel(
 }
 
 export function fontPairingLabel(stacks: FontStack[], sources: FontSource[]): string {
-  const familyById = new Map<string, FontFamily>();
-  for (const source of sources) {
-    for (const family of source.families) familyById.set(family.id, family);
-  }
-  return PAIRING.map((variable) => slotLabel(stacks.find((s) => s.variable === variable), familyById))
+  const familyById = familyIndex(sources);
+  return PAIRING.map((variable) => resolvedFaceName(stacks.find((s) => s.variable === variable), familyById))
     .filter((label): label is string => label !== null)
     .join(' / ');
 }

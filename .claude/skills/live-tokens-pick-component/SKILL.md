@@ -11,7 +11,7 @@ For composing a page once you've picked components, see [[live-tokens-build-page
 
 ## Catalogue
 
-Action: `Button`, `IconButton`. Input: `Input`. Selection: `SegmentedControl`, `TabBar`, `RadioButton`, `MenuSelect`, `Toggle`. Containers: `Card`, `CollapsibleSection`, `Dialog`. Messaging: `Callout`, `Notification`, `Tooltip`, `Badge`, `CornerBadge`. Display: `Table`, `Image`, `ImageLightbox`, `ProgressBar`, `SectionDivider`, `SideNavigation`, `CodeSnippet`.
+Action: `Button`, `IconButton`, `InlineEditActions`. Input: `Input`. Selection: `SegmentedControl`, `TabBar`, `RadioButton`, `MenuSelect`, `Toggle`. Containers: `Card`, `CollapsibleSection`, `Dialog`, `Panel`. Messaging: `Callout`, `Notification`, `Tooltip`, `Badge`, `CornerBadge`. Display: `Table`, `Image`, `ImageLightbox`, `ProgressBar`, `SectionDivider`, `SideNavigation`, `CodeSnippet`.
 
 `CodeSnippet` is for a single-line command or value the user is meant to copy and paste back into a terminal (install commands, generated keys, ids). Click-to-copy with a brief "Copied" popover. Use it whenever your page asks the reader to *run* something, rather than just *read* it.
 
@@ -22,6 +22,7 @@ Both trigger an action and share the same six variants (primary, secondary, outl
 - `Button` carries a text label, optionally with a leading or trailing icon. Use it whenever the action needs a word to be unambiguous.
 - `IconButton` is icon-only and square. Use it for compact, space-constrained actions whose meaning is obvious from the glyph alone (toolbar controls, close/edit/delete affordances, card overflow menus). It has no text slot, so an `ariaLabel` is required for accessibility.
 - **Don't reach for `IconButton` when the icon's meaning isn't self-evident.** A labelled `Button` (or a `Button` with an icon) avoids the guessing game.
+- `InlineEditActions` is the confirm-and-cancel pair that follows an inline edit (rename a row, edit a value in place). Use it rather than two loose `IconButton`s so every inline edit on the page resolves the same way.
 
 ## Single-selection family: SegmentedControl vs TabBar vs RadioButton vs MenuSelect
 
@@ -46,9 +47,11 @@ All four pick one option from a set. The right one depends on **option count**, 
 | `Card`                | Inline, always open | Default container for grouped content                       |
 | `CollapsibleSection`  | Inline, toggleable  | Progressive disclosure inside a longer page                 |
 | `Dialog`              | Modal, blocks page  | Confirmations, focused tasks the page can't continue around |
+| `Panel`               | Inline, fixed stage | A demo or preview surface whose height must not reflow     |
 
 - Default to `Card`. It's the workhorse.
 - Reach for `CollapsibleSection` only when the content is *legitimately secondary* (advanced users open it; most skip). Don't use collapse as a styling choice when the content matters.
+- `Panel` is a stage, not a content container. It pins its own height so what it shows can resize without moving the page, which is what a component preview or a live example needs and what article content does not. Content goes in `Card`.
 - **Don't use `Dialog` for routine forms.** Reach for it only when the page cannot meaningfully continue until the user decides (destructive confirmations, payment, sign-in). Routine forms go inline in a `Card`.
 
 ## Messaging family: Callout vs Notification vs Tooltip vs Badge

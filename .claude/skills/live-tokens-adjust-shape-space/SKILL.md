@@ -1,6 +1,6 @@
 ---
 name: live-tokens-adjust-shape-space
-description: Adjust corner radius, padding, gap, and border width across live-tokens components by moving each token alias along the shipped scales. Use when the user asks for pill or capsule buttons, rounded, rounder, sharp, sharper, square corners, softer, harder, a bigger or smaller corner radius, thicker or thinner borders, or talks about spacing and padding. Make the buttons pill shaped, give the cards sharp corners, make the windows sharper, make the UI softer, space it out, tighter, denser, more compact, airier, more breathing room. Changes shape and space aliases per component, never color, fonts, or tokens.css. Not for editing a single token (use the editor) or for color (see live-tokens-generate-theme).
+description: Adjust corner radius, padding, gap, and border width across live-tokens components by moving each token alias along the shipped scales. Use when the user asks for pill or capsule buttons, rounded, rounder, sharp, sharper, square corners, softer, harder, a bigger or smaller corner radius, thicker or thinner borders, or talks about spacing and padding. Make the buttons pill shaped, give the cards sharp corners, make the windows sharper, make the UI softer, space it out, tighter, denser, more compact, airier, more breathing room. Also invoked by live-tokens-generate-theme for the shape half of a whole look. Changes shape and space aliases per component, never color, fonts, or tokens.css. Not for editing a single token (use the editor) or for color (see live-tokens-generate-theme).
 ---
 
 # Adjusting shape and space
@@ -9,8 +9,8 @@ You translate the request into a small ops file; the CLI resolves each matching 
 
 ## Workflow
 
-1. Write the ops file to a temp path (not the project tree), e.g. `/tmp/adjust-ops.json`.
-2. Run `npx live-tokens adjust /tmp/adjust-ops.json`. It writes `component-configs/<id>/_working.json` for every component the ops change, which is the buffer the page already runs. `--dry-run` prints the report without writing.
+1. Write the ops file to `scratch/adjust-ops.json`.
+2. Run `npx live-tokens adjust scratch/adjust-ops.json`. It writes `component-configs/<id>/_working.json` for every component the ops change, which is the buffer the page already runs. `--dry-run` prints the report without writing.
 3. Read the report card: every changed alias old → new, plus skips (raw value, off the ladder, already at the ladder end, pill preserved). Exit 1 means the run was rejected; the message names the offending op or the missing input, so fix it and re-run. Read where the controls landed, not only that the run succeeded: a button, badge, input, or tab padding sitting at `--space-6` is on its floor, and one that also carries `--radius-full` wants a targeted lift.
 4. Tell the user to reload the app and look. Offer the inverse op as the undo, and say the edit is unsaved until they save the open theme.
 

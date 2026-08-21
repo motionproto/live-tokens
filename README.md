@@ -17,7 +17,7 @@ The editor is dev-only. Production builds get plain CSS variables and the compon
 - **Themes.** A theme is a whole look in one file: colors and type plus a config for every component, stored by value. Loading one changes a single pointer file, and nothing your site ships changes until you Adopt. Export a theme and import it into another project to restore the look in one step.
 - **Seven example looks.** Autumn, Halloween, Midnight Study, Ocean, Royal Velvet, Spring Meadow, and Sunset each ship as a full theme: colors, a Google Fonts pairing, and a shape personality of radius, padding, gap, and border-width aliases. They ship inside the package, so trying one needs no local files. Load Motion Proto to return to the default. Saving over a preset writes a local copy that shadows the shipped one; delete the copy and the shipped version returns.
 - **Vite plugin.** Hosts the `/api/live-tokens/{colors-and-type,component-configs,themes}/*` routes the editor reads and writes through. The single namespace keeps these routes clear of anything your app serves under `/api`.
-- **Claude Code skills.** Five bundled skills that drive the package from plain English. See [Claude Code skills](#claude-code-skills).
+- **Claude Code skills.** Six bundled skills that drive the package from plain English. See [Claude Code skills](#claude-code-skills).
 
 ## Install
 
@@ -267,13 +267,14 @@ npx @motion-proto/live-tokens <command>
 | `check-component <id>` | Validate a component's runtime, editor, and registration against the authoring contract. |
 | `generate-theme <brief.json> [--no-activate] [--dry-run] [--carry-from <name>]` | Build a full theme from a 10-seed OKLCH brief, enforce AA contrast, write `themes/<slug>.json`, and open it. |
 | `adjust <ops.json> [--dry-run]` | Move radius, padding, gap, and border-width aliases along their token scales. |
+| `set-fonts <brief.json> [--dry-run] [--no-verify]` | Bind Google Fonts families to the theme's font stacks, verified against the API. |
 | `migrate [--check] [--write] [--tokens <path>]` | Reconcile the project with the installed package: additive `tokens.css` migrations, the pre-0.48 data-tree move, and a report on source references to the routes that moved in 0.35.0. |
 
 Once installed in a project, the same commands are available as `npx live-tokens <command>`.
 
 ## Claude Code skills
 
-The package bundles five Claude Code skills. They encode the conventions this README cannot carry in full: which component fits a need, how a page is wired, what a valid theme looks like in OKLCH, and how shape and space move along the token scales. Each triggers from an ordinary request, so there are no slash commands to learn.
+The package bundles six Claude Code skills. They encode the conventions this README cannot carry in full: which component fits a need, how a page is wired, what a valid theme looks like in OKLCH, how two typefaces sit together, and how shape and space move along the token scales. Each triggers from an ordinary request, so there are no slash commands to learn.
 
 ### Install
 
@@ -303,11 +304,23 @@ The skill composes the page from shipped components, styles every value with `va
 
 Ask for a look: "a dark, moody night theme", "a St Patrick's Day theme in green and gold", "warmer", "more contrast", "calmer".
 
-The skill translates the brief into ten OKLCH seeds (Brand, Accent, Special, Canvas, Neutral, Alternate, Info, Success, Warning, Danger) plus a light or dark scheme, then runs `npx live-tokens generate-theme <brief.json>`. The CLI assembles the curves, enforces AA contrast on derived text tokens and auto-corrects where it can, writes `themes/<slug>.json`, opens it, and prints a contrast report. Exit 1 means the seeds themselves are unworkable, and each failure line names the seed to change.
+A theme is three decisions made from one brief: color, type, and shape. The skill owns color and delegates the other two to `live-tokens-pair-fonts` and `live-tokens-adjust-shape-space`, so the whole look comes from the same reading of the brief.
 
-Most of the skill is the judgment the generator cannot supply: a chroma budget scaled to how much screen area each palette covers, per-role lightness and hue bands for each scheme, gamut guardrails against impossible seeds, harmony modes, the optional canvas gradient, shadow weight for the canvas, and OKLCH anchors for named colors.
+For color it translates the brief into ten OKLCH seeds (Brand, Accent, Special, Canvas, Neutral, Alternate, Info, Success, Warning, Danger) plus a light or dark scheme, then runs `npx live-tokens generate-theme <brief.json>`. The CLI assembles the curves, enforces AA contrast on derived text tokens and auto-corrects where it can, writes `themes/<slug>.json`, opens it, and prints a contrast report. Exit 1 means the seeds themselves are unworkable, and each failure line names the seed to change.
 
-Scope: colors only. Fonts, gradients, and component aliases carry forward from the open theme, or from `--carry-from <name>`. `--dry-run` prints the report without writing; `--no-activate` writes without opening. Opening a theme never changes what your site ships; Adopt does. Regenerating replaces that theme's whole color state, including palette edits made in the editor since the last run.
+Most of the skill is the judgment the generator cannot supply: a chroma budget scaled to how much screen area each palette covers, per-role lightness and hue bands for each scheme, gamut guardrails against impossible seeds, harmony modes, the optional canvas gradient, and a voice-to-shape table for the shape step. OKLCH anchors for named holidays and seasons live in a reference file the skill reads on demand.
+
+Color lands in the theme file; type and shape land in the unsaved buffers, and one Save keeps all three. `--dry-run` prints the report without writing; `--no-activate` writes without opening. Opening a theme never changes what your site ships; Adopt does. Regenerating replaces that theme's whole color state, including palette edits made in the editor since the last run, and carries the live buffers forward, so re-rolling color after setting fonts and shape keeps both.
+
+### `live-tokens-pair-fonts`
+
+Ask for type: "pair some fonts for this theme", "what font should the headings use?", "make the type more editorial", "something friendlier", "a serif for headings".
+
+The skill chooses the families and runs `npx live-tokens set-fonts <brief.json>`, which binds each one to `--font-display`, `--font-sans`, `--font-serif`, or `--font-mono`. Every family is checked against the Google Fonts API before it is written, and the URL is built from the weights that family actually has: a range for a variable font, an enumeration for a static one, a bare URL for a single-weight display face. The report names the weights your typography tokens ask for and the family does not carry.
+
+The judgment is the skill's half. It anchors on the body face, because that is most of the words on the page and text faces survive small sizes where display faces do not. It classifies both candidates by form model (dynamic, rational, geometric) and applies the font matrix: two faces sharing a skeleton under different surfaces pair reliably, two faces sharing a surface over different skeletons fight, and two faces far apart on both read as a decision. It also carries the screen test a body face has to pass, a voice table from brief to type, and the Google Fonts superfamilies for when the type should stay quiet.
+
+Scope: type only, and never color. Edits land in the colors-and-type `_working.json` buffer, so save the open theme to keep them. `--dry-run` reports without writing.
 
 ### `live-tokens-adjust-shape-space`
 
@@ -323,7 +336,7 @@ Edits land in each affected component's `_working.json` buffer, which is what th
 
 Ask for something the catalogue lacks: "author a Rating component", "make my Chip component editable in the editor".
 
-The skill covers the four-step recipe: the runtime `.svelte` file with its `:global(:root)` token block, the editor `.svelte` file exporting `allTokens` and its variant groups, the `registerComponent()` call, and the catalogue entry that keeps `live-tokens-pick-component` current. It carries the naming scheme, the token suffix vocabulary, the state model (component states such as selected and disabled are separate from interaction states such as hover), linked siblings, the public-imports rule, and the shipped `Toggle` as a worked example from runtime file to registration.
+The skill covers the recipe: the runtime `.svelte` file with its `:global(:root)` token block, the editor `.svelte` file exporting `allTokens` and its variant groups, the `registerComponent()` call, and the catalogue entry that keeps `live-tokens-pick-component` current. It carries the naming scheme, the token suffix vocabulary, the state model (component states such as selected and disabled are separate from interaction states such as hover), and the public-imports rule, and points at the shipped `Toggle` in `node_modules` as the worked example. Linked siblings, intrinsics, and the fixed-overlay portal rule sit in reference files the skill reads only when a component needs them.
 
 Verify the result:
 

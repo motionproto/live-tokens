@@ -66,12 +66,6 @@
     display: grid;
     grid-template-columns: repeat(var(--columns-count), 1fr);
     column-gap: var(--columns-gutter);
-    isolation: isolate;
-    /* .hero is a grid item in Demo.svelte's .kit grid, so it always paints
-       as if positioned. Without an explicit z-index it ties with later grid
-       items (SectionKit etc.) at z-index:auto and loses on DOM order, which
-       buries the theme-select dropdown under the next section's content. */
-    z-index: 2;
   }
 
   .hero-text {

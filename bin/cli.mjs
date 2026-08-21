@@ -6,6 +6,7 @@
 //   check-component <id>     Validate a component against the add-component skill contract.
 //   generate-theme <brief>   Build a theme from a 10-seed OKLCH brief and open it.
 //   adjust <ops.json>        Apply radius/padding/gap/border-width ops to the open buffer.
+//   set-fonts <brief.json>   Bind Google Fonts families to the theme's font stacks.
 //   migrate [...]            Reconcile tokens.css, the data tree, and route references.
 
 import { cpSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
@@ -23,6 +24,7 @@ import { runMigrateRoutes, formatRouteResult } from './migrate-routes.mjs';
 import { runCreate, formatCreateResult } from './create.mjs';
 import { runGenerateTheme, formatGenerateThemeResult } from './generate-theme.mjs';
 import { runAdjust, formatAdjustResult } from './adjust.mjs';
+import { runSetFonts, formatSetFontsResult } from './set-fonts.mjs';
 
 const USAGE = `Usage: npx @motion-proto/live-tokens <command> [options]
 
@@ -52,6 +54,17 @@ Commands:
                               that component's unsaved buffer, so save the open
                               theme in the editor to keep it. --dry-run prints
                               the report without writing.
+  set-fonts <brief.json> [--dry-run] [--no-verify]
+                              Bind Google Fonts families to --font-display,
+                              --font-sans, --font-serif and --font-mono (see
+                              the live-tokens-pair-fonts skill). Each family is
+                              verified against the Google Fonts API and the URL
+                              is negotiated from the weights it actually has.
+                              Writes the result to the unsaved colors-and-type
+                              buffer, so save the open theme in the editor to
+                              keep it. --dry-run prints the report without
+                              writing; --no-verify skips the network and
+                              requires an explicit URL per family.
   migrate [--check] [--write] [--tokens <path>]
                               Reconcile your project with the installed package:
                               applies additive tokens.css migrations, moves a
@@ -148,6 +161,30 @@ if (command === 'adjust') {
   }
 }
 
+if (command === 'set-fonts') {
+  const briefPath = rest.find((a) => !a.startsWith('-'));
+  if (!briefPath) {
+    fail(`Usage: npx @motion-proto/live-tokens set-fonts <brief.json> [--dry-run] [--no-verify]`);
+  }
+  if (rest.includes('--no-activate')) {
+    fail(
+      `set-fonts has no --no-activate: it edits the open buffer, which is what the page already runs. ` +
+        `Drop the flag and re-run.`,
+    );
+  }
+  try {
+    const result = await runSetFonts({
+      briefPath,
+      dryRun: rest.includes('--dry-run'),
+      verify: !rest.includes('--no-verify'),
+    });
+    console.log(formatSetFontsResult(result));
+    process.exit(0);
+  } catch (err) {
+    fail(`set-fonts failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
+
 if (command === 'migrate') {
   const check = rest.includes('--check');
   const write = rest.includes('--write');
@@ -229,8 +266,9 @@ const SAMPLE_PROMPTS = {
   'live-tokens-build-page': 'build a pricing page using live-tokens components',
   'live-tokens-pick-component': "what's the difference between TabBar and SegmentedControl?",
   'live-tokens-create-component': 'author a new Toggle component for my live-tokens project',
-  'live-tokens-generate-theme': 'make me a bright and cheerful color theme',
+  'live-tokens-generate-theme': 'make me a bright and cheerful theme',
   'live-tokens-adjust-shape-space': 'make the buttons pill shaped',
+  'live-tokens-pair-fonts': 'pair some fonts for this theme',
 };
 
 const installedSamples = skills

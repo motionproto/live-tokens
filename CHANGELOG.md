@@ -1,5 +1,39 @@
 # Changelog
 
+## Unreleased — Type is a first-class half of a theme
+
+### Added
+
+- **`live-tokens set-fonts` and the `live-tokens-pair-fonts` skill.** A theme's
+  type can now be chosen the way its color already could: describe the voice you
+  want and get a verified Google Fonts pairing bound to `--font-display`,
+  `--font-sans`, `--font-serif` and `--font-mono`. The skill carries the
+  reasoning (anchor on the body face, classify both candidates by form model,
+  apply the font matrix, gate every candidate on screen legibility); the CLI
+  does the verifying and the writing. Like `adjust`, it edits the unsaved
+  colors-and-type buffer, so a retype is an edit you keep by saving the open
+  theme. Color, component aliases, `tokens.css` and `fonts.css` are untouched.
+- **URLs are negotiated from the family's real weights, not guessed.** A 200
+  from the Google Fonts API never proved weight coverage: the API silently drops
+  enumerated weights a family lacks and only rejects a *range* its axis cannot
+  serve. `set-fonts` now takes a census from the returned CSS and builds the
+  narrowest URL that delivers everything the family has: a range for a variable
+  family, an enumeration for a static one, a bare URL for a single-weight
+  display face. It also reports the weights your typography tokens ask for and
+  the family does not have.
+- **`generate-theme` hands off to type.** The color generator now says when the
+  fonts under a new palette still belong to the previous look, and invokes the
+  pairing skill for briefs that carry a voice.
+
+### Fixed
+
+- **Adding a Google font by name in the editor no longer persists a dead URL.**
+  The by-name field built a `wght@100..900` range URL and never checked it, so
+  any family without that exact variable axis (every static family, every
+  single-weight display face) was saved with a URL the API answers 400 to. It
+  now runs the same negotiation `set-fonts` does, reports the family's real
+  weights, and fails loudly for a family that is not on Google Fonts.
+
 ## 0.55.1 — The anchored step is the base color
 
 ### Fixed
