@@ -14,11 +14,16 @@ import { fileURLToPath } from 'node:url';
 
 const STAMP_PREFIX = 'src_preset_';
 
+// Loaded only by `stampPresetFonts`: the table above is imported by a vitest
+// suite and by `check:preset-themes`, both of which run before the plugin is
+// built in CI.
 const ENGINE = resolve(dirname(fileURLToPath(import.meta.url)), '../../dist-plugin/fontPairing/index.js');
-if (!existsSync(ENGINE)) {
-  throw new Error(`font pairing engine not found at ${ENGINE}. Build the plugin first (npm run build:plugin).`);
+async function loadEngine() {
+  if (!existsSync(ENGINE)) {
+    throw new Error(`font pairing engine not found at ${ENGINE}. Build the plugin first (npm run build:plugin).`);
+  }
+  return import(ENGINE);
 }
-const { applyFontPairing } = await import(ENGINE);
 
 export const PRESET_FONTS = {
   autumn: {
@@ -55,10 +60,11 @@ export const PRESET_FONTS = {
  * Stamp the preset's pairing into `colorsAndType` in place. Returns whether
  * anything moved, so the caller can skip the write and the `updatedAt` bump.
  */
-export function stampPresetFonts(colorsAndType, slug) {
+export async function stampPresetFonts(colorsAndType, slug) {
   const pairing = PRESET_FONTS[slug];
   if (!pairing) throw new Error(`no font pairing for preset "${slug}"`);
 
+  const { applyFontPairing } = await loadEngine();
   const { colorsAndType: next, report } = applyFontPairing(colorsAndType, pairing, {
     idPrefix: STAMP_PREFIX,
   });

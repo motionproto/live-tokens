@@ -157,7 +157,7 @@ const defaults = readDefaultConfigs();
 const now = new Date().toISOString();
 
 const colorsAndType = readJson(colorsAndTypePath);
-if (stampPresetFonts(colorsAndType, slug)) {
+if (await stampPresetFonts(colorsAndType, slug)) {
   colorsAndType.updatedAt = now;
   writeFileSync(colorsAndTypePath, `${JSON.stringify(colorsAndType, null, 2)}\n`);
   console.log(`✓ ${slug}  fonts stamped into ${relative(ROOT, colorsAndTypePath)}`);

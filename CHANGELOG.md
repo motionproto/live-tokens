@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.56.1 — Release fix
+
+### Fixed
+
+- **The 0.56.0 publish failed in CI and never reached npm.** `scripts/lib/presetFonts.mjs`
+  loaded the compiled font-pairing engine at import time, and a vitest suite
+  imports that module for its `PRESET_FONTS` table; CI runs the tests before
+  it builds the plugin. The engine now loads inside `stampPresetFonts`, the
+  one caller that needs it. Everything listed under 0.56.0 ships here.
+
 ## 0.56.0 — Type is a first-class half of a theme
 
 ### Added
