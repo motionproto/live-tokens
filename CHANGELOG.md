@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.54.1 — Palette editing opens on a curve
+
+### Changed
+
+- **The base-color panel opens with the rest of the palette editor.** The panel
+  above the swatch grid appeared and vanished in one frame while the swatch
+  grid and the derived row animated, so opening a base color read as a jump. It
+  now reveals on the same height transition as its neighbours.
+
+- **The floating token pills read as polished chrome.** The gradient was tuned
+  against a dark ground and sat too low in the scale for a light page, where it
+  looked tarnished. The bands keep their spacing and move up the scale, the
+  border becomes a dark hairline, and the strings drop to 0.3 opacity on light
+  pages, where a black stroke at 0.5 reads far heavier than the white stroke it
+  mirrors. The darkest stop stays at `#8f9090`, so the black label keeps AA.
+
+- **The demo hero labels its theme picker.** The trigger showed the open
+  theme's name with nothing saying what it picked. A "Theme" label sits above
+  it, and the actions row bottom-aligns so the picker and the buttons sit on
+  one line.
+
 ## 0.54.0 — Shadow weight and text insets follow their context
 
 ### Fixed
