@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — Type is a first-class half of a theme
+## 0.56.0 — Type is a first-class half of a theme
 
 ### Added
 
@@ -29,13 +29,18 @@
   The three CLIs stay separate, so any one decision retunes without re-rolling
   the others.
 
-### Changed
+### Changed (breaking)
 
 - **`live-tokens-adjust-shape-space` is now `live-tokens-adjust-geometry`.**
   Same skill, same `adjust` verb; the name now matches the heading the token
   suffix vocabulary already uses for radius, padding, gap, and border width.
-  Re-run `npx live-tokens setup-claude --force` to pick it up, and delete the
-  old directory from `.claude/skills/`.
+  Re-run `npx live-tokens setup-claude --force` to pick it up, then delete
+  `.claude/skills/live-tokens-adjust-shape-space/` by hand: `setup-claude`
+  never removes a directory, and the stale copy would keep triggering under
+  the old name.
+
+### Changed
+
 - **Skills are leaner and read the package instead of copying it.** The
   create-component skill no longer inlines the shipped `Toggle` (the copy had
   drifted 174 lines from its source); it points at the files in
