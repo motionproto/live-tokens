@@ -16,3 +16,7 @@ git status --short src/live-tokens/data   # then delete untracked theme files th
 ```
 
 `node scripts/check-production-is-default.mjs` verifies the tree afterward.
+
+# CI runs tests before the plugin is built
+
+`dist-plugin/` does not exist when `npm test` runs in CI. A `.mjs` module that a test imports must load the compiled engine lazily, inside the function that needs it, never at module top. `bin/engineLoadsLazily.test.ts` enforces it. To reproduce CI locally, move `dist-plugin/` aside and run the suite.

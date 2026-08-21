@@ -238,6 +238,15 @@ The most common cause is a new export that the `files:` list doesn't cover,
 or a `.svelte` file whose `<style>` block grew an `@import`. Open the failed
 run in the Actions tab; each check is targeted enough to point at the file.
 
+**CI fails `npm test` with "engine not found at dist-plugin/...".**
+CI runs the test suite before `build:plugin`, so `dist-plugin/` does not exist
+while tests run. A `.mjs` module that a test imports (anything under `bin/`
+or `scripts/lib/`) must load the compiled engine inside the function that
+needs it, never with a top-level `await import(...)`. The `bin/*.mjs`
+workers' `loadEngine()` is the pattern. `bin/engineLoadsLazily.test.ts`
+fails on any offender, so the suite catches it locally before the tag.
+This took down the 0.56.0 publish.
+
 **Published a broken version.**
 `npm deprecate @motion-proto/live-tokens@X.Y.Z "Broken; use X.Y.Z+1"` with
 a clear pointer to the fix. Don't `npm unpublish` after the 72-hour
