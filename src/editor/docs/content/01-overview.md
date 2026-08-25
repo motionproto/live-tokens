@@ -1,6 +1,6 @@
 # Overview
 
-Live Tokens is a design system for building Svelte microsites quickly. You
+LiveTokens is a design system for building Svelte microsites quickly. You
 style your site by editing tokens and components in a live editor. When it looks right, you save the theme and ship it.
 
 ## How it works

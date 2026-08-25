@@ -6,6 +6,7 @@
   import ColorsTab from '../ui/colors/ColorsTab.svelte';
   import EditorViewSwitcher from '../ui/EditorViewSwitcher.svelte';
   import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
+  import SketchTab from '../ui/sketch/SketchTab.svelte';
   import ThemePanel from '../ui/ThemePanel.svelte';
   import { scrollSectionIntoView } from '../ui/scrollSection';
   import { editorView, sidebarCondensed, selectedComponent } from '../core/store/editorViewStore';
@@ -29,6 +30,13 @@
   const colorsNavItems = [
     { id: 'colors-wheel', label: 'Wheel', icon: 'fas fa-palette' },
     { id: 'colors-story', label: 'Story', icon: 'fas fa-layer-group' }
+  ];
+
+  const sketchNavItems = [
+    { id: 'sketch-line', label: 'Line', icon: 'fas fa-pen-nib' },
+    { id: 'sketch-fill', label: 'Fill', icon: 'fas fa-fill-drip' },
+    { id: 'sketch-noise', label: 'Noise', icon: 'fas fa-wave-square' },
+    { id: 'sketch-preview', label: 'Preview', icon: 'fas fa-eye' }
   ];
 
   const allComponentNavItems = getComponentRegistryEntries().map(({ id, label, icon, origin }) => ({ id, label, icon, origin }));
@@ -129,6 +137,26 @@
           <ThemePanel />
         </div>
       {/if}
+    {:else if $editorView === 'sketch'}
+      <div class="nav-items">
+        {#each sketchNavItems as item (item.id)}
+          <button
+            class="nav-item"
+            class:active={selectedTokenSection === item.id}
+            onmouseenter={(e) => showHint(item.label, e.currentTarget)}
+            onmouseleave={hideHint}
+            onclick={() => scrollToSection(item.id)}
+          >
+            <i class={item.icon}></i>
+            <span class="nav-label">{item.label}</span>
+          </button>
+        {/each}
+      </div>
+      {#if !condensed}
+        <div class="sidebar-footer">
+          <ThemePanel />
+        </div>
+      {/if}
     {:else if $editorView === 'colors'}
       <div class="nav-items">
         {#each colorsNavItems as item (item.id)}
@@ -202,6 +230,8 @@
       <VariablesTab />
     {:else if $editorView === 'colors'}
       <ColorsTab />
+    {:else if $editorView === 'sketch'}
+      <SketchTab />
     {:else}
       <ComponentsTab selectedComponent={$selectedComponent} />
     {/if}

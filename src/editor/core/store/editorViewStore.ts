@@ -1,13 +1,13 @@
 import { writable } from 'svelte/store';
 
-export type EditorView = 'tokens' | 'components' | 'colors';
+export type EditorView = 'tokens' | 'components' | 'colors' | 'sketch';
 export type SidebarCondensed = boolean | 'auto';
 
 const VIEW_KEY = 'lt.editorView';
 const CONDENSED_KEY = 'lt.sidebarCondensed';
 
 function isEditorView(v: unknown): v is EditorView {
-  return v === 'tokens' || v === 'components' || v === 'colors';
+  return v === 'tokens' || v === 'components' || v === 'colors' || v === 'sketch';
 }
 
 // Session-scoped, not persistent: opening the editor fresh always starts on

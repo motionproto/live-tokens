@@ -18,19 +18,21 @@
   let componentsDisabled = $derived($parentRoute === DEFAULT_COMPONENTS_PATH);
   let colorsDisabled = $derived($parentRoute === DEFAULT_COLORS_PATH);
 
-  // Editing flow order: Tokens → Colors → Components. The condensed rail cycles
+  // Editing flow order: Tokens → Colors → Components → Sketch. The condensed rail cycles
   // through these; a view is skipped while it's disabled (already on that
   // page) so the cycle never lands on a dead view.
-  const CYCLE: readonly EditorView[] = ['tokens', 'colors', 'components'];
+  const CYCLE: readonly EditorView[] = ['tokens', 'colors', 'components', 'sketch'];
   const ICONS: Record<EditorView, string> = {
     tokens: 'fa-sliders',
     colors: 'fa-palette',
     components: 'fa-cubes',
+    sketch: 'fa-pen-nib',
   };
   const LABELS: Record<EditorView, string> = {
     tokens: 'Tokens',
     colors: 'Colors',
     components: 'Components',
+    sketch: 'Sketch',
   };
 
   function set(v: EditorView) {
@@ -102,6 +104,17 @@
       >
         <span class="radio" aria-hidden="true"></span>
         <span>Components</span>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="seg-btn"
+        class:active={$editorView === 'sketch'}
+        aria-selected={$editorView === 'sketch'}
+        onclick={() => set('sketch')}
+      >
+        <span class="radio" aria-hidden="true"></span>
+        <span>Sketch</span>
       </button>
     </div>
   </div>

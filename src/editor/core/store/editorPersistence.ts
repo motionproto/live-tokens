@@ -26,6 +26,10 @@ import {
   renameBackgroundHarmonyFamily,
 } from '../themes/migrations/2026-07-29-background-palette-to-canvas';
 import { placeUnplacedBaseAnchors } from '../themes/migrations/2026-07-29-place-base-anchors';
+import {
+  migratePaletteColorsToOklch,
+  type PreOklchPaletteConfig,
+} from '../themes/migrations/2026-07-21-palette-oklch-basis';
 
 // Resolve the persist key lazily (per-call) so library consumers that invoke
 // `configureEditor({storagePrefix})` before the first store write get the
@@ -113,6 +117,16 @@ export function normalizeBaseAnchors(state: EditorState): EditorState {
   return { ...state, palettes: placeUnplacedBaseAnchors(state.palettes) };
 }
 
+// A session persisted before the numeric OKLCH basis holds hex strings where
+// every palette color is now `{ l, c, h }`. `loadFromFile` migrates those on the
+// way in; hydrate did not, so such a session reached the renderer with an
+// undefined hue and threw on the first serialization. Idempotent, so a
+// current-shape session passes straight through.
+export function normalizePaletteBasis(state: EditorState): EditorState {
+  const raw = state.palettes as unknown as Record<string, PreOklchPaletteConfig>;
+  return { ...state, palettes: migratePaletteColorsToOklch(raw) };
+}
+
 export function hydrate(): void {
   // Corrupt state, missing key, or unavailable storage all return null;
   // the editor falls through to the empty default in that case.
@@ -121,7 +135,13 @@ export function hydrate(): void {
     // Shallow-merge onto default shape so older persisted state missing
     // newly-added domain fields still loads.
     const merged = { ...emptyStateFactory(), ...(parsed as object) } as EditorState;
-    store.set(normalizeHarmonyAxes(normalizeBaseAnchors(normalizePaletteLabels(normalizeComponents(migrateGradients(merged))))));
+    store.set(
+      normalizeHarmonyAxes(
+        normalizeBaseAnchors(
+          normalizePaletteBasis(normalizePaletteLabels(normalizeComponents(migrateGradients(merged)))),
+        ),
+      ),
+    );
   }
   // m13 fix: seed shadows from the DOM at hydrate time so the editor
   // captures the tokens.css baseline regardless of whether the user opens

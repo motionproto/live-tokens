@@ -115,7 +115,7 @@ all theme actions originated inside the iframe—the direction that already
 worked.
 
 Recommendation: broadcast the complete resolved apply payload between
-same-origin Live Tokens documents. Every receiver must hydrate colors/type,
+same-origin LiveTokens documents. Every receiver must hydrate colors/type,
 component configs, active-theme identity, and local Theme Panel summary state
 through its own store renderer. Cover host-to-editor and editor-to-host theme
 application separately, then mutate a component after the host-side switch to

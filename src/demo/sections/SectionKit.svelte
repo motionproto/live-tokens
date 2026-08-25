@@ -111,11 +111,12 @@
   gap="var(--space-8)"
 >
   <div class="kit-grid">
-    <div class="kit-item kit-lead">
+    <div class="kit-item kit-lead sketch-surface">
       <div class="kit-head">
         <i class="fas fa-pen-ruler kit-icon"></i>
         <span class="kit-title">Live editor</span>
       </div>
+      <span class="kit-rule sketch-rule" aria-hidden="true"></span>
       <div class="kit-body" class:prose>
         <p>
           Edit tokens and components on top of the page and watch every change cascade immediately.
@@ -128,6 +129,7 @@
         <i class="fas fa-palette kit-icon"></i>
         <span class="kit-title">Design tokens</span>
       </div>
+      <span class="kit-rule sketch-rule" aria-hidden="true"></span>
       <div class="kit-body" class:prose><p>A complete set of atomic CSS variables for styling.</p></div>
     </div>
 
@@ -136,6 +138,7 @@
         <i class="fas fa-puzzle-piece kit-icon"></i>
         <span class="kit-title">Component library</span>
       </div>
+      <span class="kit-rule sketch-rule" aria-hidden="true"></span>
       <div class="kit-body" class:prose><p>A customizable set of components linked to the tokens.</p></div>
     </div>
 
@@ -144,6 +147,7 @@
         <i class="fas fa-cube kit-icon"></i>
         <span class="kit-title">Ships as CSS</span>
       </div>
+      <span class="kit-rule sketch-rule" aria-hidden="true"></span>
       <div class="kit-body" class:prose><p>Standard output. The editor stays in development.</p></div>
     </div>
   </div>
@@ -224,9 +228,17 @@
   }
 
   /* The pink hairline is the section's whole structural device: a horizontal
-     rule under each item's title, and a vertical rule splitting the lead. */
-  .kit-item:not(.kit-lead) .kit-head {
-    border-bottom: var(--border-width-2) solid var(--border-brand);
+     rule under each item's title, and a vertical rule splitting the lead.
+     It is an element rather than a border on .kit-head so that Sketch mode can
+     redraw it — the effect displaces boxes, and a border is not one. */
+  .kit-rule {
+    height: var(--border-width-2);
+    background: var(--border-brand);
+    --sketch-fill: var(--border-brand);
+  }
+
+  .kit-lead .kit-rule {
+    display: none;
   }
 
   /* Lead spans the full row; icon + title sit in the first column track, copy
@@ -242,12 +254,17 @@
     border-radius: var(--radius-lg);
     /* Light brand wash strongest behind the "Live editor" head, dissolving
        across the full block to nothing at the right edge — head and copy both
-       sit inside the fade. */
-    background: linear-gradient(
+       sit inside the fade. Declared once and handed to the sketch layer too:
+       the effect blanks the real background, so a wash named only here would
+       vanish when Sketch mode is on. */
+    --kit-lead-wash: linear-gradient(
       90deg,
       color-mix(in srgb, var(--color-brand-500) 21%, transparent),
       transparent
     );
+    background: var(--kit-lead-wash);
+    --sketch-fill: var(--kit-lead-wash);
+    --sketch-stroke: transparent;
   }
 
   .kit-lead .kit-head {
@@ -360,6 +377,7 @@
       flex-direction: column;
       align-items: stretch;
       background: none;
+      --sketch-fill: none;
     }
     /* Stacked: the head gets its own tinted bar instead of the fade. */
     .kit-lead .kit-head {

@@ -24,7 +24,7 @@
 
   <div class="hero-text">
     <h1 class="hero-title">
-      Live Tokens<br />
+      LiveTokens<br />
       <span class="hero-italic">The design system with an editor.</span>
     </h1>
 

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { EditorState } from './editorTypes';
-import { normalizeComponents } from './editorPersistence';
+import { normalizeComponents, normalizePaletteBasis } from './editorPersistence';
+import { palettesToVars } from '../palettes/paletteDerivation';
 
 function stateWith(components: unknown): EditorState {
   return { components } as unknown as EditorState;
@@ -34,5 +35,35 @@ describe('normalizeComponents', () => {
 
   it('replaces a missing components bag with an empty map', () => {
     expect(normalizeComponents(stateWith(undefined)).components).toEqual({});
+  });
+});
+
+describe('normalizePaletteBasis', () => {
+  const hexSession = () =>
+    ({
+      palettes: {
+        Neutral: { baseColor: '#70787e', overrides: { 'Palette-500': '#abcdef' } },
+      },
+    }) as unknown as EditorState;
+
+  it('converts a session persisted before the numeric OKLCH basis', () => {
+    const { Neutral } = normalizePaletteBasis(hexSession()).palettes;
+
+    expect(typeof Neutral.baseColor).toBe('object');
+    expect(Neutral.baseColor.h).toBeTypeOf('number');
+    expect(Neutral.overrides['Palette-500'].h).toBeTypeOf('number');
+  });
+
+  it('lets such a session reach the renderer instead of throwing on an undefined hue', () => {
+    expect(() => palettesToVars(hexSession().palettes)).toThrow();
+    expect(() => palettesToVars(normalizePaletteBasis(hexSession()).palettes)).not.toThrow();
+  });
+
+  it('passes a current-shape session through unchanged', () => {
+    const current = {
+      palettes: { Neutral: { baseColor: { l: 0.5, c: 0.02, h: 240 }, overrides: {} } },
+    } as unknown as EditorState;
+
+    expect(normalizePaletteBasis(current).palettes.Neutral.baseColor).toEqual({ l: 0.5, c: 0.02, h: 240 });
   });
 });

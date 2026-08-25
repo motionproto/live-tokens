@@ -472,6 +472,14 @@
       border-radius var(--bar-open-dur) var(--bar-open-ease) var(--bar-open-delay);
   }
 
+  /* tokens.css sets the theme font on :where(*), and a matching rule beats
+     inheritance, so the panel's own font-family never reaches its children.
+     Restore inheritance for the chrome, as .editor-page does. The preview
+     lives in an iframe, so no themed surface is caught by this. */
+  .lt-overlay :global(*:not([class*='fa-'])) {
+    font-family: inherit;
+  }
+
   .lt-overlay.docked {
     border-right: none;
     border-radius: 0;

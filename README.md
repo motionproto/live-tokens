@@ -1,4 +1,4 @@
-# Live Tokens
+# LiveTokens
 
 A design system for styling and building Svelte + Vite microsites. Edit tokens and components in a dev-only editor and watch the running site repaint on every input. Save the result as a theme file and carry it between projects.
 

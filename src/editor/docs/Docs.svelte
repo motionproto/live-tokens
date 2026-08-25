@@ -254,7 +254,7 @@
     <SideNavigation
       class="docs-sidebar"
       sections={navSections}
-      titleLabel="Live Tokens"
+      titleLabel="LiveTokens"
       titleHref="#01-overview"
       currentPath={parsedHash.chapter}
       open={sidebarOpen}
@@ -283,11 +283,11 @@
     <div class="docs-main" bind:this={scrollPane}>
     <header class="docs-page-header">
       <div class="title-block">
-        <p class="eyebrow">Live Tokens</p>
+        <p class="eyebrow">LiveTokens</p>
         <h1>Documentation</h1>
         <p class="lede">
           Set up a project, edit your tokens live, and ship a theme. A short
-          guide to styling and building with Live Tokens.
+          guide to styling and building with LiveTokens.
         </p>
       </div>
     </header>

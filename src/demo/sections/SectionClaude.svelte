@@ -8,6 +8,7 @@
     { icon: 'fas fa-table-columns', name: 'build-page' },
     { icon: 'fas fa-cube', name: 'create-component' },
     { icon: 'fas fa-palette', name: 'generate-theme' },
+    { icon: 'fas fa-font', name: 'pair-fonts' },
     { icon: 'fas fa-ruler-combined', name: 'adjust-geometry' }
   ];
 </script>
@@ -33,11 +34,12 @@
 
   <div class="copy">
     <p class="intro">
-      After installing the package, run this once to copy the skills into your project.
+      LiveTokens includes six skills to build new components, themes, and pages.
     </p>
 
     <div class="install">
       <CodeSnippet code="npx @motion-proto/live-tokens setup-claude" />
+      <p class="install-caption">Run this once to copy them into your project.</p>
     </div>
   </div>
 </section>
@@ -57,8 +59,8 @@
     grid-column: 2 / -2;
   }
 
-  /* Panel sits on page columns 2, 3, 4; copy takes columns 6–10. Column 5 is
-     left empty as a one-column gap between them; column 11 stays empty. */
+  /* Panel sits on page columns 2, 3, 4; the copy starts on column 5, hard
+     against the panel's right edge. */
   .panel-col {
     grid-column: 2 / 5;
     grid-row: 2;
@@ -67,7 +69,7 @@
   }
 
   .copy {
-    grid-column: 6 / 11;
+    grid-column: 5 / 11;
     grid-row: 2;
     align-self: start;
     display: flex;
