@@ -7,6 +7,7 @@
   import SketchPreview from './SketchPreview.svelte';
   import { onMount } from 'svelte';
   import UIPillButton from '../UIPillButton.svelte';
+  import UIReveal from '../UIReveal.svelte';
   import { SKETCH_PRESETS } from '../../core/sketch/sketchPresets';
   import {
     sketchEnabled,
@@ -22,7 +23,45 @@
     USER_PRESET_PREFIX,
   } from '../../core/sketch/sketchStore';
 
+  interface Props {
+    /** The rail's last jump. A fresh object per click, not a bare id, so
+        jumping to a section the user has since closed reopens it — with an id
+        alone the second click would compare equal and do nothing. */
+    sectionJump?: { id: string } | null;
+  }
+
+  let { sectionJump = null }: Props = $props();
+
   let s = $derived($sketchSettings);
+
+  type SectionKey = 'line' | 'fill' | 'icons' | 'noise';
+
+  /** Closed by default. Twenty-odd dials in one scroll is a wall; the summary
+      on each trigger row is meant to answer most questions without opening. */
+  let open = $state({ line: false, fill: false, icons: false, noise: false });
+
+  function toggle(key: SectionKey) {
+    open = { ...open, [key]: !open[key] };
+  }
+
+  $effect(() => {
+    const key = sectionJump?.id.replace('sketch-', '');
+    if (key && key in open) open = { ...open, [key as SectionKey]: true };
+  });
+
+  const passLabel = (double: boolean) => (double ? 'double' : 'single');
+
+  /** Trigger-row summaries: the settings you would open the section to check. */
+  let summary = $derived({
+    line: `${s.strokeWidth}px · ${s.strokeStyle} · ${passLabel(s.doubleStroke)}`,
+    fill: s.fillStyle === 'none'
+      ? 'none'
+      : `${s.fillStyle} · ${s.fillDx === 0 && s.fillDy === 0 ? 'aligned' : `offset ${s.fillDx}, ${s.fillDy}`}`,
+    icons: s.iconScale === 0 && !s.iconMaskOn
+      ? 'off'
+      : `${s.iconScale === 0 ? 'no travel' : `${s.iconScale.toFixed(1)}px`} · ${s.iconMaskOn ? 'masked' : 'clean'}`,
+    noise: `${s.frequency.toFixed(3)} · ${s.octaves} oct · ${s.maskOn ? `mask ${s.maskScale}px` : 'no mask'}`,
+  });
 
   let naming = $state(false);
   let draftName = $state('');
@@ -237,7 +276,20 @@
   <div class="body">
     <div class="controls">
       <section class="section" id="sketch-line">
-        <h3 class="group-title">Line</h3>
+        <button
+          type="button"
+          class="sec-head"
+          class:expanded={open.line}
+          aria-expanded={open.line}
+          aria-controls="sketch-line-body"
+          onclick={() => toggle('line')}
+        >
+          <i class="fas fa-chevron-right chevron"></i>
+          <h3 class="group-title">Line</h3>
+          <span class="sec-summary">{summary.line}</span>
+        </button>
+        <UIReveal open={open.line}>
+        <div id="sketch-line-body" class="sec-body">
         <p class="group-note">
           The outline traced on top of each component, displaced around the noise field.
         </p>
@@ -291,7 +343,7 @@
               onchange={(v) => updateSketchSettings({ strokeStyle: v })}
             />
           </div>
-          <div class="seg-row" data-hint="Double draws a second outline on a third seed, so the pair wanders apart.">
+          <div class="seg-row" data-hint="Double retraces the outline just inside itself, on the same seed, the way a second pass by hand follows the first.">
             <span class="seg-label">Passes</span>
             <UISegmentedControl
               value={s.doubleStroke ? 'double' : 'single'}
@@ -301,10 +353,25 @@
             />
           </div>
         </div>
+        </div>
+        </UIReveal>
       </section>
 
       <section class="section" id="sketch-fill">
-        <h3 class="group-title">Fill</h3>
+        <button
+          type="button"
+          class="sec-head"
+          class:expanded={open.fill}
+          aria-expanded={open.fill}
+          aria-controls="sketch-fill-body"
+          onclick={() => toggle('fill')}
+        >
+          <i class="fas fa-chevron-right chevron"></i>
+          <h3 class="group-title">Fill</h3>
+          <span class="sec-summary">{summary.fill}</span>
+        </button>
+        <UIReveal open={open.fill}>
+        <div id="sketch-fill-body" class="sec-body">
         <p class="group-note">
           The surface behind each component's content, displaced on its own seed. It disagrees with
           the outline at the edges, and that disagreement is the whole effect.
@@ -378,10 +445,25 @@
             onchange={(v) => updateSketchSettings({ jitterScale: v })}
           />
         </div>
+        </div>
+        </UIReveal>
       </section>
 
       <section class="section" id="sketch-icons">
-        <h3 class="group-title">Icons and SVG</h3>
+        <button
+          type="button"
+          class="sec-head"
+          class:expanded={open.icons}
+          aria-expanded={open.icons}
+          aria-controls="sketch-icons-body"
+          onclick={() => toggle('icons')}
+        >
+          <i class="fas fa-chevron-right chevron"></i>
+          <h3 class="group-title">Icons and SVG</h3>
+          <span class="sec-summary">{summary.icons}</span>
+        </button>
+        <UIReveal open={open.icons}>
+        <div id="sketch-icons-body" class="sec-body">
         <p class="group-note">
           An icon has no box to redraw, so it takes the displacement and the ink mask on itself,
           the way the whole page does in global mode. Body type is never filtered: a glyph is a
@@ -423,10 +505,25 @@
             onchange={(v) => updateSketchSettings({ iconMaskTile: v })}
           />
         </div>
+        </div>
+        </UIReveal>
       </section>
 
       <section class="section" id="sketch-noise">
-        <h3 class="group-title">Noise</h3>
+        <button
+          type="button"
+          class="sec-head"
+          class:expanded={open.noise}
+          aria-expanded={open.noise}
+          aria-controls="sketch-noise-body"
+          onclick={() => toggle('noise')}
+        >
+          <i class="fas fa-chevron-right chevron"></i>
+          <h3 class="group-title">Noise</h3>
+          <span class="sec-summary">{summary.noise}</span>
+        </button>
+        <UIReveal open={open.noise}>
+        <div id="sketch-noise-body" class="sec-body">
         <p class="group-note">
           Two independent noise sources. The displacement field moves both layers. The fill mask
           erases the fill in patches, and never touches the outline.
@@ -529,6 +626,8 @@
             onchange={(v) => updateSketchSettings({ maskScale: v })}
           />
         </div>
+        </div>
+        </UIReveal>
       </section>
     </div>
 
@@ -756,6 +855,52 @@
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-16);
+  }
+
+  /* Trigger row: chevron, title, and the summary that answers most questions
+     without opening the section. */
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--ui-space-8);
+    width: 100%;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .sec-head .chevron {
+    align-self: center;
+    width: 0.75rem;
+    font-size: 0.625rem;
+    color: var(--ui-text-tertiary);
+    transition: transform var(--ui-transition-fast);
+  }
+
+  .sec-head.expanded .chevron {
+    transform: rotate(90deg);
+  }
+
+  .sec-head:hover .chevron,
+  .sec-head:hover .sec-summary {
+    color: var(--ui-text-primary);
+  }
+
+  .sec-summary {
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-tertiary);
+    transition: color var(--ui-transition-fast);
+  }
+
+  .sec-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-16);
+    padding-top: var(--ui-space-8);
   }
 
   .group-title {

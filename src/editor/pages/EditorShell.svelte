@@ -45,6 +45,8 @@
   const customNavItems = allComponentNavItems.filter((i) => i.origin === 'custom');
 
   let selectedTokenSection: string | null = $state(null);
+  /** Rebuilt per click so a panel can react to the same target twice. */
+  let sectionJump: { id: string } | null = $state(null);
 
   // 'auto' = open by default. Auto-condensing on shellWidth caused a bounce
   // as the overlay panel grew past the threshold mid-animation.
@@ -79,6 +81,7 @@
 
   function scrollToSection(sectionId: string) {
     selectedTokenSection = sectionId;
+    sectionJump = { id: sectionId };
     const el = document.getElementById(sectionId);
     if (el) scrollSectionIntoView(el);
   }
@@ -232,7 +235,7 @@
     {:else if $editorView === 'colors'}
       <ColorsTab />
     {:else if $editorView === 'sketch'}
-      <SketchTab />
+      <SketchTab {sectionJump} />
     {:else}
       <ComponentsTab selectedComponent={$selectedComponent} />
     {/if}
