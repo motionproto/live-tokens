@@ -13,7 +13,7 @@
  * derives the same CSS vars from the persisted config.
  */
 
-import { cssColorToOklch, oklchToCssClamped, gamutClamp, type Oklch } from './oklch';
+import { cssColorToOklch, oklchToCss, gamutClamp, type Oklch } from './oklch';
 import { type CurveAnchor, sampleCurve, makeAnchor, tangentAnchor, resmoothAutoCurve } from '../../ui/curveEngine';
 import type { PaletteConfig } from '../themes/themeTypes';
 
@@ -204,7 +204,14 @@ export type DerivedValue =
  *  then serialized as `oklch()`. Idempotent on the already-in-gamut per-step
  *  derivation output. `raw` passes through untouched. */
 export function serializeDerivedValue(value: DerivedValue): string {
-  return value.kind === 'raw' ? value.css : oklchToCssClamped(value.l, value.c, value.h);
+  // Emitted unclamped: the stored basis is OKLCH, and clamping into sRGB threw
+  // away chroma a wide-gamut display can actually show. Values already inside
+  // sRGB serialize identically (`gamutClamp` returns them untouched), so this
+  // moves nothing in an existing theme; only intent authored beyond sRGB — a
+  // Tailwind v4 ramp, say — now survives to the browser, which does its own
+  // gamut mapping at paint. `oklchToCssClamped` still backs the hex readouts,
+  // where a clamped projection is the whole point.
+  return value.kind === 'raw' ? value.css : oklchToCss(value.l, value.c, value.h);
 }
 
 export function computePaletteOklch(

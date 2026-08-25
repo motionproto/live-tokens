@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as core from './paletteDerivation';
+import { oklchToCss, oklchToCssClamped } from './oklch';
 import * as ui from '../../ui/palette/paletteMath';
 import {
   reconcilePalettesFromCssVars,
@@ -454,5 +455,26 @@ describe('hue curve derivation: chroma consequence', () => {
     expect(unrotated.c).toBeCloseTo(base.c, 10); // already in gamut at the base hue
     expect(rotated.c).toBeLessThan(unrotated.c);
     expect(rotated).toEqual(gamutClamp(0.5, 0.15, 234));
+  });
+});
+
+
+describe('wide-gamut intent survives serialization', () => {
+  it('leaves an in-gamut value identical to its clamped projection', () => {
+    // The regression guard for unclamping `serializeDerivedValue`: every colour
+    // an existing theme holds came from hex, so it is in gamut and must not move.
+    for (const hex of ['#fb923c', '#00c9c2', '#6d737d', '#17171a', '#ffffff', '#000000']) {
+      const o = hexToOklch(hex);
+      expect(oklchToCss(o.l, o.c, o.h), hex).toBe(oklchToCssClamped(o.l, o.c, o.h));
+    }
+  });
+
+  it('keeps chroma the sRGB projection would have discarded', () => {
+    // Tailwind v4 orange-400, whose chroma exceeds sRGB at that lightness.
+    // Hue trims to the serializer's 2dp; chroma is what must survive intact.
+    expect(oklchToCss(0.75, 0.183, 55.934)).toBe('oklch(0.75 0.183 55.93)');
+    const clamped = oklchToCssClamped(0.75, 0.183, 55.934);
+    expect(clamped).not.toBe('oklch(0.75 0.183 55.93)');
+    expect(Number(clamped.split(' ')[1])).toBeLessThan(0.183);
   });
 });
