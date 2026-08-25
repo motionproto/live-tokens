@@ -6,6 +6,7 @@
   import { tick, onMount } from 'svelte';
   import { get } from 'svelte/store';
   import type { GradientType, GradientTokenStop } from '../core/store/editorTypes';
+  import { LINEAR_DIRECTIONS, type LinearDirection } from '../core/themes/parsers/gradient';
   import {
     colorsAndTypeGradientSource,
     snapshotGradient,
@@ -85,6 +86,11 @@
 
   function onAngleChange(detail: { value: number }) {
     gradientSource.setAngle(detail.value);
+  }
+
+  function onDirectionChange(e: Event) {
+    const v = (e.currentTarget as HTMLSelectElement).value;
+    gradientSource.setDirection(v === '' ? undefined : (v as LinearDirection));
   }
 
   function onAspectChange(detail: { x: number; y: number }) {
@@ -375,7 +381,26 @@
       </div>
     {:else if gradient.type === 'linear'}
       <div class="ribbon-pad ribbon-pad-linear">
-        <AngleDial value={gradient.angle} size={64} orientation="vertical" label="" onchange={onAngleChange} />
+        <!-- A direction keyword overrides the dial: CSS angles it off the box's
+             own diagonal, so the dial has no single value to show. -->
+        <AngleDial
+          value={gradient.angle}
+          size={64}
+          orientation="vertical"
+          label=""
+          onchange={onAngleChange}
+        />
+        <select
+          class="direction-select"
+          aria-label="Gradient direction"
+          value={gradient.direction ?? ''}
+          onchange={onDirectionChange}
+        >
+          <option value="">{gradient.angle}deg</option>
+          {#each LINEAR_DIRECTIONS as d (d)}
+            <option value={d}>{d}</option>
+          {/each}
+        </select>
       </div>
     {/if}
 
@@ -440,6 +465,18 @@
 {/if}
 
 <style>
+  .direction-select {
+    margin-top: var(--ui-space-2, 8px);
+    max-width: 8.5rem;
+    font: inherit;
+    font-size: 0.75rem;
+    color: var(--ui-gray-1000, #eee);
+    background: var(--ui-gray-300, #212121);
+    border: 1px solid var(--ui-gray-450, #3a3a3a);
+    border-radius: 4px;
+    padding: 2px 4px;
+  }
+
   /* Header labels share grid tracks with the ribbon + pad below them. */
   .gradient-editor {
     display: grid;

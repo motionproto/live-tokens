@@ -18,7 +18,7 @@ import type { EditorState } from './editorTypes';
 import { storageKey } from './editorConfig';
 import { store } from './editorCore';
 import { quietGet, quietSet } from '../storage/storage';
-import { makeDefaultGradients } from '../themes/slices/gradients';
+import { isGradientSlot, makeDefaultGradients } from '../themes/slices/gradients';
 import { seedShadowsFromDom } from '../themes/slices/shadows';
 import { sanitizeHarmonyAxes } from '../palettes/colorHarmony';
 import {
@@ -62,16 +62,12 @@ export function persistNow(): void {
 }
 
 function migrateGradients(state: EditorState): EditorState {
-  // Gradients are a fixed-slot scale (--gradient-1 … --gradient-4). If the
-  // persisted state predates the migration to fixed slots (e.g. it still has
-  // a token named --gradient-progress, or the count doesn't match), replace
-  // the gradients block with defaults rather than carrying stale entries.
-  const expected = makeDefaultGradients().map((g) => g.variable).sort();
-  const have = (state.gradients?.tokens ?? []).map((g) => g.variable).sort();
-  const matches =
-    have.length === expected.length &&
-    expected.every((v, i) => v === have[i]);
-  if (matches) return state;
+  // The library is an open `--gradient-N` set, so any number of numbered slots
+  // carries forward. Persisted state that predates the numbering (e.g. a token
+  // named --gradient-progress) is stale-shaped and falls back to defaults
+  // rather than carrying entries no slot name can address.
+  const tokens = state.gradients?.tokens ?? [];
+  if (tokens.length > 0 && tokens.every((g) => isGradientSlot(g.variable))) return state;
   return { ...state, gradients: { tokens: makeDefaultGradients() } };
 }
 

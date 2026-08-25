@@ -1,5 +1,5 @@
 /**
- * Gradients slice — fixed four-slot scale (--gradient-1 … --gradient-4),
+ * Gradients slice — an open `--gradient-N` library seeded with four slots,
  * each rendering to a single CSS var. Stops carry token-name references
  * (`--color-brand-500`); the renderer wraps them in `var(...)` so palette
  * edits flow through.
@@ -8,8 +8,26 @@ import type { EditorState, GradientToken, GradientTokenStop, GradientType } from
 import type { GradientDiskToken } from '../themeTypes';
 import { mutate } from '../../store/editorCore';
 import { formatGradientValue, formatGradientStops as formatStopList } from '../parsers/gradient';
+import type { LinearDirection } from '../parsers/gradient';
 
 export { formatGradientValue };
+
+/** A well-formed library slot: `--gradient-` followed by a number. Anything
+ *  else is pre-numbering data the loader and the persistence guard reject. */
+export const GRADIENT_SLOT_RE = /^--gradient-\d+$/;
+
+export function isGradientSlot(variable: string): boolean {
+  return GRADIENT_SLOT_RE.test(variable);
+}
+
+/** The next free slot name, so callers never collide with an existing one. */
+export function nextGradientSlot(tokens: readonly GradientToken[]): string {
+  const used = new Set(tokens.map((t) => t.variable));
+  for (let n = 1; ; n++) {
+    const name = `--gradient-${n}`;
+    if (!used.has(name)) return name;
+  }
+}
 
 export function makeDefaultGradients(): GradientToken[] {
   return [
@@ -57,20 +75,23 @@ export function makeDefaultGradients(): GradientToken[] {
  * field and scrub the rendered `--gradient-N` strings from the vars bag — they
  * are a projection kept for production CSS, never a basis. Files without the
  * field (saved before gradients round-tripped) keep the seeded defaults, which
- * match what those files rendered. A file whose slots don't match the fixed
- * four is stale-shaped and also keeps defaults, mirroring the persistence
- * layer's `migrateGradients` guard.
+ * match what those files rendered.
+ *
+ * The library is open-ended: any number of `--gradient-N` slots loads, so a
+ * project can carry as many as its design needs. What still fails the guard is
+ * a stale *shape* — a token named `--gradient-progress`, from before the slots
+ * were numbered — which keeps defaults, mirroring `migrateGradients`.
  */
 export function loadGradientsFromFile(
   next: EditorState,
   gradients: GradientDiskToken[] | undefined,
   rawVars: Record<string, string>,
 ): void {
-  const expected = makeDefaultGradients().map((g) => g.variable).sort();
-  for (const name of expected) delete rawVars[name];
-  const have = (gradients ?? []).map((g) => g.variable).sort();
-  const matches = have.length === expected.length && expected.every((v, i) => v === have[i]);
-  if (matches) next.gradients.tokens = structuredClone(gradients) as GradientToken[];
+  for (const name of makeDefaultGradients().map((g) => g.variable)) delete rawVars[name];
+  for (const t of gradients ?? []) delete rawVars[t.variable];
+  if (gradients?.length && gradients.every((g) => isGradientSlot(g.variable))) {
+    next.gradients.tokens = structuredClone(gradients) as GradientToken[];
+  }
 }
 
 /** Stops portion only — used by the palette selector to materialize a
@@ -84,6 +105,7 @@ function formatGradient(t: GradientToken): string {
   return formatGradientValue({
     type: t.type,
     angle: t.angle,
+    direction: t.direction,
     centerX: t.centerX,
     aspectX: t.aspectX,
     aspectY: t.aspectY,
@@ -105,13 +127,14 @@ function findGradient(s: EditorState, variable: string): GradientToken | undefin
  *  Used by the editor to restore a pre-edit snapshot on Cancel. */
 export function setGradient(
   variable: string,
-  next: { type: GradientType; angle: number; centerX?: number; aspectX?: number; aspectY?: number; stops: GradientTokenStop[] },
+  next: { type: GradientType; angle: number; direction?: LinearDirection; centerX?: number; aspectX?: number; aspectY?: number; stops: GradientTokenStop[] },
 ): void {
   mutate(`replace gradient ${variable}`, (s) => {
     const t = findGradient(s, variable);
     if (!t) return;
     t.type = next.type;
     t.angle = next.angle;
+    t.direction = next.direction;
     t.centerX = next.centerX;
     t.aspectX = next.aspectX;
     t.aspectY = next.aspectY;
@@ -126,10 +149,23 @@ export function setGradientType(variable: string, type: GradientType): void {
   });
 }
 
+/** Setting degrees clears any direction keyword: the two are alternative
+ *  headings for the same gradient, and the one you just set is the one you
+ *  meant. The angle underneath a direction is preserved until then. */
 export function setGradientAngle(variable: string, angle: number): void {
   mutate(`set gradient angle ${variable}`, (s) => {
     const t = findGradient(s, variable);
-    if (t) t.angle = angle;
+    if (!t) return;
+    t.angle = angle;
+    t.direction = undefined;
+  });
+}
+
+/** `undefined` drops back to the stored `angle`. */
+export function setGradientDirection(variable: string, direction: LinearDirection | undefined): void {
+  mutate(`set gradient direction ${variable}`, (s) => {
+    const t = findGradient(s, variable);
+    if (t) t.direction = direction;
   });
 }
 

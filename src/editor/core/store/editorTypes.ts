@@ -1,5 +1,5 @@
 import type { PaletteConfig, FontSource, FontStack } from '../themes/themeTypes';
-import type { GradientStop, GradientValue } from '../themes/parsers/gradient';
+import type { GradientStop, GradientValue, LinearDirection } from '../themes/parsers/gradient';
 import type { HarmonyAxis } from '../palettes/colorHarmony';
 
 export interface ShadowGlobals {
@@ -57,6 +57,9 @@ export interface GradientToken {
   type: GradientType;
   /** Degrees, applies to linear only. */
   angle: number;
+  /** `to <side-or-corner>`, emitted instead of `angle` on a linear gradient.
+   *  Tracks the box's aspect the way a fixed angle cannot. */
+  direction?: LinearDirection;
   /** Pixel radius for radial gradients. When absent or zero, the renderer
    *  emits CSS's default ellipse/farthest-corner shape. */
   radius?: number;

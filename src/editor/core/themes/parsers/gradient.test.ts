@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  LINEAR_DIRECTIONS,
   RADIAL_BASE_PX,
   formatGradientValue,
   parseGradientValue,
@@ -18,6 +19,15 @@ const EMITTED: [name: string, value: GradientValue][] = [
         { position: 0.5, color: '--surface-neutral-low', opacity: 40 },
         { position: 100, color: '--surface-neutral-lowest', opacity: 75 },
       ],
+    },
+  ],
+  [
+    'linear, direction keyword instead of degrees',
+    {
+      type: 'linear',
+      angle: 0,
+      direction: 'to bottom right',
+      stops: [{ position: 0, color: '--color-warning-300' }, { position: 100, color: '--color-warning-500' }],
     },
   ],
   [
@@ -199,5 +209,52 @@ describe('formatGradientValue', () => {
       stops: [{ position: 0, color: '--a' }, { position: 100, color: '--b' }],
     });
     expect(css).toContain('ellipse 800.00px 800.00px');
+  });
+});
+
+
+describe('linear direction keywords', () => {
+  it('emits the keyword in place of degrees', () => {
+    expect(
+      formatGradientValue({
+        type: 'linear',
+        angle: 95,
+        direction: 'to bottom right',
+        stops: [{ position: 0, color: '--color-warning-300' }, { position: 100, color: '--color-warning-500' }],
+      }),
+    ).toBe('linear-gradient(to bottom right, var(--color-warning-300) 0%, var(--color-warning-500) 100%)');
+  });
+
+  it('falls back to degrees when no direction is set', () => {
+    expect(
+      formatGradientValue({
+        type: 'linear',
+        angle: 95,
+        stops: [{ position: 0, color: '--color-warning-300' }, { position: 100, color: '--color-warning-500' }],
+      }),
+    ).toBe('linear-gradient(95deg, var(--color-warning-300) 0%, var(--color-warning-500) 100%)');
+  });
+
+  it('round-trips every keyword', () => {
+    for (const direction of LINEAR_DIRECTIONS) {
+      const css = `linear-gradient(${direction}, var(--color-brand-500) 0%, var(--color-accent-500) 100%)`;
+      const parsed = parseGradientValue(css);
+      expect(parsed?.direction, direction).toBe(direction);
+      expect(formatGradientValue(parsed!)).toBe(css);
+    }
+  });
+
+  it('parses a keyword to angle 0, so clearing it lands somewhere valid', () => {
+    expect(parseGradientValue('linear-gradient(to left, var(--a) 0%, var(--b) 100%)')).toEqual({
+      type: 'linear',
+      angle: 0,
+      direction: 'to left',
+      stops: [{ position: 0, color: '--a' }, { position: 100, color: '--b' }],
+    });
+  });
+
+  it('rejects a heading that is neither degrees nor a known keyword', () => {
+    expect(parseGradientValue('linear-gradient(to sideways, var(--a) 0%, var(--b) 100%)')).toBeNull();
+    expect(parseGradientValue('linear-gradient(in oklab, var(--a) 0%, var(--b) 100%)')).toBeNull();
   });
 });

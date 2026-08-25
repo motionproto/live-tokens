@@ -9,6 +9,12 @@
    */
   import { editorState } from '../../core/store/editorStore';
   import GradientEditor from '../GradientEditor.svelte';
+  import UIPillButton from '../UIPillButton.svelte';
+  import {
+    addGradientToken,
+    removeGradientToken,
+    nextGradientSlot,
+  } from '../../core/themes/slices/gradients';
 
   interface Props {
     copiedVar?: string | null;
@@ -20,11 +26,37 @@
   function copy(v: string) { oncopy?.(v); }
 
   let editingGradient: string | null = $state(null);
+
+  /** A new slot seeds from the library's last entry, so it lands as a visible
+   *  gradient the user edits rather than an invisible transparent one. */
+  function addGradient() {
+    const tokens = $editorState.gradients.tokens;
+    const seed = tokens[tokens.length - 1];
+    const variable = nextGradientSlot(tokens);
+    addGradientToken({
+      variable,
+      type: 'linear',
+      angle: seed?.angle ?? 90,
+      ...(seed?.direction ? { direction: seed.direction } : {}),
+      stops: seed
+        ? seed.stops.map((st) => ({ ...st }))
+        : [
+            { position: 0, color: '--color-brand-500' },
+            { position: 100, color: '--color-accent-500' },
+          ],
+    });
+    editingGradient = variable;
+  }
+
+  function removeGradient(variable: string) {
+    if (editingGradient === variable) editingGradient = null;
+    removeGradientToken(variable);
+  }
 </script>
 
 <section class="section" id="gradients">
   <h2 class="section-title">Gradients</h2>
-  <p class="editor-intro">Each stop references a color token, so palette edits flow through. Add or remove stops; switch between linear and radial.</p>
+  <p class="editor-intro">Each stop references a color token, so palette edits flow through. Add or remove stops; switch between linear and radial; point a gradient at an angle or at a corner.</p>
   <div class="gradients-grid">
     {#each $editorState.gradients.tokens as token (token.variable)}
       {@const isEditing = editingGradient === token.variable}
@@ -36,6 +68,13 @@
           <button class="token-variable copyable" class:copied={copiedVar === token.variable} onclick={() => copy(token.variable)}>{copiedVar === token.variable ? 'copied!' : token.variable}</button>
           {#if !isEditing}
             <button class="gradient-edit-btn" onclick={() => editingGradient = token.variable}>Edit</button>
+            {#if $editorState.gradients.tokens.length > 1}
+              <button
+                class="gradient-edit-btn"
+                aria-label={`Remove ${token.variable}`}
+                onclick={() => removeGradient(token.variable)}
+              >Remove</button>
+            {/if}
           {/if}
         </div>
         {#if isEditing}
@@ -50,9 +89,16 @@
       </div>
     {/each}
   </div>
+  <div class="gradients-actions">
+    <UIPillButton onclick={addGradient}>Add gradient</UIPillButton>
+  </div>
 </section>
 
 <style>
+  .gradients-actions {
+    display: flex;
+  }
+
   .section {
     display: flex;
     flex-direction: column;

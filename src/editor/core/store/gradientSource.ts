@@ -24,13 +24,17 @@ import {
   setGradientStop,
   addGradientStop,
   removeGradientStop,
+  setGradientDirection,
 } from '../themes/slices/gradients';
+import type { LinearDirection } from '../themes/parsers/gradient';
 import { setComponentAlias } from '../themes/slices/components';
 import { mutate } from './editorCore';
 
 export interface GradientSourceSnapshot {
   type: GradientType;
   angle: number;
+  /** `to <side-or-corner>` heading; overrides `angle` when set. */
+  direction?: LinearDirection;
   /** Horizontal center for radial gradients, 0–100. */
   centerX?: number;
   /** Per-axis stretch factors for the radial ellipse (1 = unscaled). */
@@ -48,6 +52,7 @@ export interface GradientSource {
   setAll(next: GradientSourceSnapshot): void;
   setType(type: GradientType): void;
   setAngle(angle: number): void;
+  setDirection(direction: LinearDirection | undefined): void;
   setCenterX(centerX: number): void;
   setAspect(aspect: { x: number; y: number }): void;
   setStop(index: number, partial: Partial<GradientTokenStop>): void;
@@ -63,6 +68,7 @@ export function colorsAndTypeGradientSource(variable: string): GradientSource {
     return {
       type: t.type,
       angle: t.angle,
+      direction: t.direction,
       centerX: t.centerX,
       aspectX: t.aspectX,
       aspectY: t.aspectY,
@@ -78,6 +84,7 @@ export function colorsAndTypeGradientSource(variable: string): GradientSource {
     setCenterX: (x) => setGradientCenterX(variable, x),
     setAspect: (a) => setGradientAspect(variable, a),
     setStop: (i, p) => setGradientStop(variable, i, p),
+    setDirection: (d) => setGradientDirection(variable, d),
     addStop: (s) => addGradientStop(variable, s),
     removeStop: (i) => removeGradientStop(variable, i),
   };
@@ -130,6 +137,7 @@ export function componentGradientSource(component: string, varName: string): Gra
     return {
       type: value.type,
       angle: value.angle,
+      direction: value.direction,
       centerX: value.centerX,
       aspectX: value.aspectX,
       aspectY: value.aspectY,
@@ -151,6 +159,7 @@ export function componentGradientSource(component: string, varName: string): Gra
           ? {
               type: ref.value.type,
               angle: ref.value.angle,
+              ...(ref.value.direction !== undefined ? { direction: ref.value.direction } : {}),
               ...(ref.value.centerX !== undefined ? { centerX: ref.value.centerX } : {}),
               ...(ref.value.aspectX !== undefined ? { aspectX: ref.value.aspectX } : {}),
               ...(ref.value.aspectY !== undefined ? { aspectY: ref.value.aspectY } : {}),
@@ -167,6 +176,7 @@ export function componentGradientSource(component: string, varName: string): Gra
     setAll: (next) => writeComponentGradient(component, varName, {
       type: next.type,
       angle: next.angle,
+      ...(next.direction !== undefined ? { direction: next.direction } : {}),
       ...(next.centerX !== undefined ? { centerX: next.centerX } : {}),
       ...(next.aspectX !== undefined ? { aspectX: next.aspectX } : {}),
       ...(next.aspectY !== undefined ? { aspectY: next.aspectY } : {}),
@@ -181,7 +191,11 @@ export function componentGradientSource(component: string, varName: string): Gra
       }
       g.type = t;
     }),
-    setAngle: (a) => update(`set gradient angle ${varName}`, (g) => { g.angle = a; }),
+    setAngle: (a) => update(`set gradient angle ${varName}`, (g) => {
+      g.angle = a;
+      g.direction = undefined;
+    }),
+    setDirection: (d) => update(`set gradient direction ${varName}`, (g) => { g.direction = d; }),
     setCenterX: (x) => update(`set gradient center ${varName}`, (g) => { g.centerX = x; }),
     setAspect: (a) => update(`set gradient aspect ${varName}`, (g) => {
       // Drop axes that equal 1 so persisted JSON stays minimal and pre-aspect

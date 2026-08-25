@@ -3,6 +3,7 @@
  * A component alias that owns a gradient serializes to one of two shapes:
  *
  *   linear-gradient(<angle>deg, <stop>, <stop>, …)
+ *   linear-gradient(<to side-or-corner>, <stop>, <stop>, …)
  *   radial-gradient(<shape> at <cx>% 50%, <stop>, <stop>, …)
  *
  * `solid` and `none` are NOT represented here. `solid` renders as its first
@@ -35,6 +36,31 @@
  */
 import { parseColorOpacity, formatColorOpacity } from './colorOpacity';
 
+/** The `to <side-or-corner>` keywords CSS accepts in place of an angle. A
+ *  keyword angles the gradient line off the box's own diagonal, so it tracks
+ *  the element's aspect ratio where a fixed angle cannot: `to bottom right`
+ *  reads as ~95deg across a wide heading and ~111deg once that heading wraps.
+ *  That is the whole reason to carry them — a degree cannot express it. */
+export const LINEAR_DIRECTIONS = [
+  'to top',
+  'to top right',
+  'to right',
+  'to bottom right',
+  'to bottom',
+  'to bottom left',
+  'to left',
+  'to top left',
+] as const;
+
+export type LinearDirection = (typeof LINEAR_DIRECTIONS)[number];
+
+function parseDirection(raw: string): LinearDirection | null {
+  const norm = raw.trim().toLowerCase().replace(/\s+/g, ' ');
+  return (LINEAR_DIRECTIONS as readonly string[]).includes(norm)
+    ? (norm as LinearDirection)
+    : null;
+}
+
 export interface GradientStop {
   /** 0–100 percentage along the gradient axis. */
   position: number;
@@ -54,6 +80,10 @@ export interface GradientStop {
 export interface GradientValue {
   type: 'linear' | 'radial' | 'solid' | 'none';
   angle: number;
+  /** Emitted in place of `angle` on a `linear` gradient. `angle` is retained
+   *  underneath so clearing the direction restores the user's degrees, the
+   *  same way a radial keeps its angle. */
+  direction?: LinearDirection;
   radius?: number;
   centerX?: number;
   aspectX?: number;
@@ -101,7 +131,8 @@ function formatRadialShape(v: GradientValue): string {
  *  into a CSS background declaration.
  *  - `none`   → `transparent` (no background paint).
  *  - `solid`  → the first stop's colour (no gradient function).
- *  - `linear` → `linear-gradient(<angle>deg, <stops>)`.
+ *  - `linear` → `linear-gradient(<angle>deg, <stops>)`, or
+ *    `linear-gradient(<direction>, <stops>)` when `direction` is set.
  *  - `radial` → `radial-gradient(<shape> at <centerX>% 50%, <stops>)`, where
  *    shape is `circle [radius]` at aspect 1 and `ellipse rx ry` otherwise.
  *    Aspects are independent stretch factors, not an area-preserving ratio:
@@ -113,12 +144,16 @@ export function formatGradientValue(v: GradientValue): string {
     return first ? formatStopColor(first) : 'transparent';
   }
   const stops = formatGradientStops(v.stops);
-  if (v.type === 'linear') return `linear-gradient(${v.angle}deg, ${stops})`;
+  if (v.type === 'linear') {
+    return `linear-gradient(${v.direction ?? `${v.angle}deg`}, ${stops})`;
+  }
   return `radial-gradient(${formatRadialShape(v)} at ${v.centerX ?? 50}% 50%, ${stops})`;
 }
 
 const NUM = String.raw`-?\d+(?:\.\d+)?`;
-const LINEAR_RE = new RegExp(String.raw`^linear-gradient\(\s*(${NUM})deg\s*,\s*(.+)\)$`, 'i');
+const HEADING = String.raw`${NUM}deg|to\s+\w+(?:\s+\w+)?`;
+const LINEAR_RE = new RegExp(String.raw`^linear-gradient\(\s*(${HEADING})\s*,\s*(.+)\)$`, 'i');
+const DEG_RE = new RegExp(String.raw`^(${NUM})deg$`, 'i');
 const RADIAL_RE = new RegExp(
   String.raw`^radial-gradient\(\s*(circle|circle\s+${NUM}px|ellipse\s+${NUM}px\s+${NUM}px)\s+at\s+(${NUM})%\s+50%\s*,\s*(.+)\)$`,
   'i',
@@ -192,8 +227,15 @@ export function parseGradientValue(value: string): GradientValue | null {
   const css = value.trim();
   const linear = css.match(LINEAR_RE);
   if (linear) {
+    const deg = linear[1].match(DEG_RE);
+    const direction = deg ? null : parseDirection(linear[1]);
+    // A heading that is neither degrees nor a keyword we know is not our form.
+    if (!deg && !direction) return null;
     const stops = parseStops(linear[2]);
-    return stops && { type: 'linear', angle: parseFloat(linear[1]), stops };
+    if (!stops) return null;
+    return deg
+      ? { type: 'linear', angle: parseFloat(deg[1]), stops }
+      : { type: 'linear', angle: 0, direction: direction!, stops };
   }
   const radial = css.match(RADIAL_RE);
   if (!radial) return null;
