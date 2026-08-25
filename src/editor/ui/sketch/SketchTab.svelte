@@ -72,6 +72,11 @@
     { value: 'dashed', label: 'Dashed' },
   ] as const;
 
+  const MASK_ON = [
+    { value: 'on', label: 'On' },
+    { value: 'off', label: 'Off' },
+  ] as const;
+
   const PASSES = [
     { value: 'single', label: 'Single' },
     { value: 'double', label: 'Double' },
@@ -371,6 +376,51 @@
             readout={`±${(s.jitterScale * 100).toFixed(1)}%`}
             hint="Range of size variation drawn per component."
             onchange={(v) => updateSketchSettings({ jitterScale: v })}
+          />
+        </div>
+      </section>
+
+      <section class="section" id="sketch-icons">
+        <h3 class="group-title">Icons and SVG</h3>
+        <p class="group-note">
+          An icon has no box to redraw, so it takes the displacement and the ink mask on itself,
+          the way the whole page does in global mode. Body type is never filtered: a glyph is a
+          shape and survives a wobble, a paragraph is not. Both dials are independent of the
+          Line and Noise settings, because a glyph needs more travel than a card's long straight
+          edge before the wobble reads at all.
+        </p>
+
+        <div class="phase">
+          <h4>Displacement</h4>
+          <SketchDial
+            label="Amount" value={s.iconScale} min={0} max={8} step={0.5}
+            readout={s.iconScale === 0 ? 'off' : `${s.iconScale.toFixed(1)}px`}
+            hint="How far the glyph outline is pushed around the noise field. Zero leaves icons crisp."
+            onchange={(v) => updateSketchSettings({ iconScale: v })}
+          />
+          <SketchDial
+            label="Detail" value={s.iconFrequency} min={0.4} max={4} step={0.1}
+            readout={`${s.iconFrequency.toFixed(1)}x`}
+            hint="Multiplies the Noise frequency for icons alone. Below 1 bends the whole glyph, above 2 ripples its outline."
+            onchange={(v) => updateSketchSettings({ iconFrequency: v })}
+          />
+        </div>
+
+        <div class="phase">
+          <h4>Ink coverage</h4>
+          <div class="seg-row" data-hint="Erases the icon in patches, the same ink model the fill mask uses. Independent of the fill's own mask switch.">
+            <span class="seg-label">Mask</span>
+            <UISegmentedControl
+              options={MASK_ON}
+              value={s.iconMaskOn ? 'on' : 'off'}
+              onchange={(v) => updateSketchSettings({ iconMaskOn: v === 'on' })}
+            />
+          </div>
+          <SketchDial
+            label="Blotch size" value={s.iconMaskTile} min={20} max={400} step={10}
+            readout={`${s.iconMaskTile}px`}
+            hint="One mask tile, in px. Near icon size puts several blotches across one glyph. Much larger and a whole icon samples a single patch, so it either survives intact or disappears."
+            onchange={(v) => updateSketchSettings({ iconMaskTile: v })}
           />
         </div>
       </section>

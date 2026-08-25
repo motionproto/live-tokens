@@ -472,6 +472,13 @@
       border-radius var(--bar-open-dur) var(--bar-open-ease) var(--bar-open-delay);
   }
 
+  /* Sketch mode scopes itself to the host document root, and this bar lives
+     there too. The effect is for the page being designed, not for the tool
+     looking at it. */
+  .lt-overlay {
+    --sketch-icon-off: none;
+  }
+
   /* tokens.css sets the theme font on :where(*), and a matching rule beats
      inheritance, so the panel's own font-family never reaches its children.
      Restore inheritance for the chrome, as .editor-page does. The preview

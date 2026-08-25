@@ -125,3 +125,38 @@ describe('part coverage', () => {
     expect(css).not.toMatch(/data-sketch-passes='double'\] :is\([^{]*\)::before\{outline:/);
   });
 });
+
+describe('icons', () => {
+  it('filters icon glyphs but never body type', () => {
+    const css = buildStylesheet(marker);
+    expect(css).toMatch(/:is\(\[class\*="fa-"\], svg:not\(\[data-sketch-defs\]\)\)\{filter:/);
+    // The injected filter bank is itself an svg in the body.
+    expect(css).toContain('svg:not([data-sketch-defs])');
+    // A paragraph has no shape to lose; only the icon convention is targeted.
+    expect(css).not.toMatch(/\{filter:[^}]*\}[^{]*\b(p|body|span)\s*\{/);
+  });
+
+  it('emits nothing for icons when both dials are off', () => {
+    const off = buildStylesheet({ ...marker, iconScale: 0, iconMaskOn: false });
+    expect(off).not.toContain('[class*="fa-"]');
+  });
+
+  // The two are independent: ink coverage with no displacement is a look.
+  it('still masks icons when displacement is zero', () => {
+    const css = buildStylesheet({ ...marker, iconScale: 0, iconMaskOn: true });
+    expect(css).toContain('[class*="fa-"]');
+    expect(css).not.toMatch(/:is\(\[class\*="fa-"[^{]*\)\{filter:/);
+  });
+
+  it('masks icons on a tile near glyph size, not the component tile', () => {
+    const css = buildStylesheet(marker);
+    expect(css).toContain(`--sketch-icon-mask-size:${marker.iconMaskTile}px ${marker.iconMaskTile}px;`);
+    expect(marker.iconMaskTile).toBeLessThan(marker.maskScale);
+    expect(css).toContain('mask-size:var(--sketch-icon-mask-size);');
+  });
+
+  // The overlay bar lives in the host document, which is the scope root.
+  it('leaves an inheriting opt-out for chrome in the host document', () => {
+    expect(buildStylesheet(marker)).toContain('var(--sketch-icon-off,');
+  });
+});

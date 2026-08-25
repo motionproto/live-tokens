@@ -35,6 +35,7 @@
   const sketchNavItems = [
     { id: 'sketch-line', label: 'Line', icon: 'fas fa-pen-nib' },
     { id: 'sketch-fill', label: 'Fill', icon: 'fas fa-fill-drip' },
+    { id: 'sketch-icons', label: 'Icons', icon: 'fas fa-shapes' },
     { id: 'sketch-noise', label: 'Noise', icon: 'fas fa-wave-square' },
     { id: 'sketch-preview', label: 'Preview', icon: 'fas fa-eye' }
   ];

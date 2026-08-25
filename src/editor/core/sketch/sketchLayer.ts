@@ -58,13 +58,9 @@ const FILLED_BUTTON_VARIANTS = ['primary', 'secondary', 'danger', 'success', 'wa
 const STATUS_VARIANTS = ['info', 'success', 'warning', 'danger'];
 
 /**
- * Every component the effect knows how to redraw.
- *
- * Interaction states are deliberately absent. The host's real background is
- * forced transparent, so a hover fill would have to be re-declared here per
- * state, per variant, for every component — and a draft look that flickers
- * between two noise fields on hover reads worse than one that holds still.
- * `.toggle.on` is the exception: its two states are the whole control.
+ * Every component the effect knows how to redraw. Interaction states are not
+ * listed here — a state does not add a layer, it only repaints one, so they
+ * live in STATE_COLOURS below.
  */
 const PART_SPECS: readonly PartSpec[] = [
   // Buttons
@@ -114,6 +110,11 @@ const PART_SPECS: readonly PartSpec[] = [
     fill: 'var(--segmentedcontrol-bar-surface)',
     stroke: 'var(--segmentedcontrol-bar-border)',
   },
+  // A segment carries the layer at all times and starts invisible, so that
+  // selecting or hovering one repaints it rather than materialising a
+  // pseudo-element that was not there a moment ago. STATE_COLOURS supplies
+  // the two lit states.
+  { sel: '.segment', fill: 'transparent', stroke: 'transparent' },
   {
     sel: '.progress-track',
     fill: 'var(--progressbar-track-surface)',
@@ -132,6 +133,66 @@ const PART_SPECS: readonly PartSpec[] = [
   // carries this class; the layer then treats it like any other part.
   { sel: '.sketch-surface' },
   { sel: '.sketch-rule', strokeless: true },
+];
+
+/**
+ * Colours for the interaction states, applied on top of a part's base rule.
+ *
+ * The host's real background is forced transparent, so without these a hover
+ * simply does not read. Only the two colour properties change: the noise seed
+ * is keyed to nth-child, so the wobble holds still while the fill repaints,
+ * which is what makes this safe to do on hover at all.
+ *
+ * `stroke` is omitted where the component ships no hover border token; the
+ * base stroke then stays, rather than falling through to a neutral that has
+ * nothing to do with the component.
+ *
+ * `.force-hover` is the editor's own preview of the hover state.
+ */
+interface StateSpec {
+  sel: string;
+  fill: string;
+  stroke?: string;
+}
+
+/** `{stem}-hover-{surface,border}` is the shipped naming for a hover state. */
+function hoverPair(sel: string, stem: string, withBorder = true): StateSpec {
+  return {
+    sel: `${sel}:hover, ${sel}.force-hover`,
+    fill: `var(--${stem}-hover-surface)`,
+    ...(withBorder ? { stroke: `var(--${stem}-hover-border)` } : {}),
+  };
+}
+
+const STATE_COLOURS: readonly StateSpec[] = [
+  ...FILLED_BUTTON_VARIANTS.map((v) => hoverPair(`.button.${v}`, `button-${v}`)),
+  hoverPair('.button.outline', 'button-outline'),
+  ...FILLED_BUTTON_VARIANTS.map((v) => hoverPair(`.icon-button.${v}`, `iconbutton-${v}`)),
+  hoverPair('.icon-button.outline', 'iconbutton-outline'),
+  hoverPair('.tab', 'tabbar'),
+  hoverPair('.menuselect', 'menuselect', false),
+  hoverPair('.es-root.variant-container', 'collapsiblesection-container', false),
+
+  // Segments: the two lit states over the transparent base.
+  {
+    sel: '.segment.selected',
+    fill: 'var(--segmentedcontrol-selected-surface)',
+    stroke: 'var(--segmentedcontrol-selected-border)',
+  },
+  {
+    sel: '.segment:hover, .segment.force-hover',
+    fill: 'var(--segmentedcontrol-option-hover-surface)',
+  },
+
+  // Toggle puts the state before the part rather than after it.
+  {
+    sel: '.toggle:hover .track, .toggle.force-hover .track',
+    fill: 'var(--toggle-hover-track-surface)',
+  },
+  {
+    sel: '.toggle.on:hover .track, .toggle.on.force-hover .track',
+    fill: 'var(--toggle-on-hover-track-surface)',
+  },
 ];
 
 /** Exported so a test can check that every selected part is also painted. */
@@ -211,7 +272,11 @@ export function buildDefsMarkup(s: SketchSettings): string {
     displace(`${ID}-stroke-${seed}`, s.frequency, seed + 17, s.strokeScale, 15) +
     // Small components take a reduced, higher-frequency displacement.
     displace(`${ID}-fill-sm-${seed}`, s.frequency * 2.2, seed, s.fillScale * 0.35, 25) +
-    displace(`${ID}-stroke-sm-${seed}`, s.frequency * 2.2, seed + 17, s.strokeScale * 0.35, 25),
+    displace(`${ID}-stroke-sm-${seed}`, s.frequency * 2.2, seed + 17, s.strokeScale * 0.35, 25) +
+    // Icons are glyphs a few tens of pixels across, read at a glance, with no
+    // redundancy to lose. A high-frequency field at a small amplitude wobbles
+    // the outline without pulling a stroke off the shape it belongs to.
+    displace(`${ID}-icon-${seed}`, s.frequency * s.iconFrequency, seed + 63, s.iconScale, 40),
   ).join('');
 
   // Ink pooling. Blur spreads the stroke, then a steep alpha curve re-sharpens
@@ -278,6 +343,8 @@ export function buildStylesheet(s: SketchSettings): string {
       `--sketch-stroke-filter:url(#${ID}-stroke-0);` +
       `--sketch-mask-image:${s.maskOn ? buildMaskUri(s) : 'none'};` +
       `--sketch-mask-size:${s.maskScale}px ${s.maskScale}px;` +
+      `--sketch-icon-mask:${s.iconMaskOn ? buildMaskUri(s) : 'none'};` +
+      `--sketch-icon-mask-size:${s.iconMaskTile}px ${s.iconMaskTile}px;` +
       `--sketch-jit-x-base:${s.jitterX}px;` +
       `--sketch-jit-y-base:${s.jitterY}px;` +
       `--sketch-jit-rot-base:${s.jitterRot}deg;` +
@@ -290,6 +357,37 @@ export function buildStylesheet(s: SketchSettings): string {
     `}`;
 
   const globalMode = `[data-sketch='global']{filter:var(--sketch-fill-filter);}`;
+
+  // Icons. A glyph has no box to redraw, so it takes the filter directly, the
+  // way global mode filters the whole root. Body type is deliberately left
+  // alone: an icon is a shape and survives a wobble, a paragraph is not.
+  //
+  // `--sketch-icon-off` is the opt-out. It inherits, so any chrome that lives
+  // in the host document (the overlay bar) sets it once on its own root and
+  // every icon under it resolves to `none` regardless of specificity.
+  // `svg` covers inline artwork the same way. The injected filter bank is
+  // itself an svg in the body, so it has to be excluded or it filters itself.
+  const iconSel = `[class*="fa-"], svg:not([${DEFS_ATTR}])`;
+  const iconsOn = s.iconScale > 0 || s.iconMaskOn;
+  const icons = iconsOn
+    ? `${layered} :is(${iconSel}){` +
+        (s.iconScale > 0
+          ? `filter:var(--sketch-icon-off, var(--sketch-icon-filter, url(#${ID}-icon-0)));`
+          : '') +
+        // The ink mask reads as coverage on a glyph the way it does on a fill,
+        // but the component tile is hundreds of px across: a whole icon would
+        // sample one patch of it and either survive intact or disappear. A
+        // tile near icon size puts several blotches across each glyph.
+        `mask-image:var(--sketch-icon-mask, none);` +
+        `mask-size:var(--sketch-icon-mask-size);` +
+        `mask-mode:luminance;mask-repeat:repeat;` +
+        `mask-position:var(--sketch-icon-mask-pos, 0 0);` +
+      `}` +
+      SEEDS.map((seed, i) =>
+        `${layered} :is(${iconSel}):nth-child(5n + ${i + 1})` +
+          `{--sketch-icon-filter:url(#${ID}-icon-${seed});--sketch-icon-mask-pos:${MASK_POS[i]};}`,
+      ).join('')
+    : '';
 
   const host =
     `${el}{` +
@@ -410,9 +508,15 @@ export function buildStylesheet(s: SketchSettings): string {
     return `${on} ${p.sel}{${f ? `--sketch-fill:${f};` : ''}${st ? `--sketch-stroke:${st};` : ''}}`;
   }).join('');
 
+  // After `colours`, so a state wins over its part's base rule at equal weight.
+  const states = STATE_COLOURS.map((st) => {
+    const sel = st.sel.split(',').map((s) => `${on} ${s.trim()}`).join(',');
+    return `${sel}{--sketch-fill:${st.fill};${st.stroke ? `--sketch-stroke:${st.stroke};` : ''}}`;
+  }).join('');
+
   return [
-    vars, globalMode, host, fill, fillStyles, doublePass, stroke,
-    seedRotation, jitter, perPart, colours,
+    vars, globalMode, icons, host, fill, fillStyles, doublePass, stroke,
+    seedRotation, jitter, perPart, colours, states,
   ].join('\n');
 }
 
