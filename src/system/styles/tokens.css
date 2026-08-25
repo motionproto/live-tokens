@@ -508,10 +508,14 @@
 
   /* Gradients — fallbacks until the editor hydrates. Match
      makeDefaultGradients(). */
-  --gradient-1: linear-gradient(90deg, var(--color-brand-500) 0%, var(--color-accent-500) 100%);
+  --gradient-1: linear-gradient(to right, var(--color-brand-500) 0%, var(--color-accent-500) 100%);
+  --gradient-1-stops: var(--color-brand-500) 0%, var(--color-accent-500) 100%;
   --gradient-2: linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-special-500) 100%);
-  --gradient-3: linear-gradient(90deg, var(--color-success-500) 0%, var(--color-info-500) 100%);
+  --gradient-2-stops: var(--color-brand-500) 0%, var(--color-special-500) 100%;
+  --gradient-3: linear-gradient(to right, var(--color-success-500) 0%, var(--color-info-500) 100%);
+  --gradient-3-stops: var(--color-success-500) 0%, var(--color-info-500) 100%;
   --gradient-4: linear-gradient(45deg, var(--color-danger-500) 0%, var(--color-warning-500) 100%);
+  --gradient-4-stops: var(--color-danger-500) 0%, var(--color-warning-500) 100%;
 
   /* Gradient angle + stop primitives — aliasable like any other token. */
   --gradient-angle-horizontal: 90deg;

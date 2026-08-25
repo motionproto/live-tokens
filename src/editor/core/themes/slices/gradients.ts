@@ -8,7 +8,7 @@ import type { EditorState, GradientToken, GradientTokenStop, GradientType } from
 import type { GradientDiskToken } from '../themeTypes';
 import { mutate } from '../../store/editorCore';
 import { formatGradientValue, formatGradientStops as formatStopList } from '../parsers/gradient';
-import type { LinearDirection } from '../parsers/gradient';
+import { DIRECTION_ANGLES, type LinearDirection } from '../parsers/gradient';
 
 export { formatGradientValue };
 
@@ -34,7 +34,8 @@ export function makeDefaultGradients(): GradientToken[] {
     {
       variable: '--gradient-1',
       type: 'linear',
-      angle: 90,
+      angle: DIRECTION_ANGLES['to right'],
+      direction: 'to right',
       stops: [
         { position: 0, color: '--color-brand-500' },
         { position: 100, color: '--color-accent-500' },
@@ -52,7 +53,8 @@ export function makeDefaultGradients(): GradientToken[] {
     {
       variable: '--gradient-3',
       type: 'linear',
-      angle: 90,
+      angle: DIRECTION_ANGLES['to right'],
+      direction: 'to right',
       stops: [
         { position: 0, color: '--color-success-500' },
         { position: 100, color: '--color-info-500' },
@@ -87,8 +89,14 @@ export function loadGradientsFromFile(
   gradients: GradientDiskToken[] | undefined,
   rawVars: Record<string, string>,
 ): void {
-  for (const name of makeDefaultGradients().map((g) => g.variable)) delete rawVars[name];
-  for (const t of gradients ?? []) delete rawVars[t.variable];
+  for (const g of makeDefaultGradients()) {
+    delete rawVars[g.variable];
+    delete rawVars[stopsVariable(g.variable)];
+  }
+  for (const t of gradients ?? []) {
+    delete rawVars[t.variable];
+    delete rawVars[stopsVariable(t.variable)];
+  }
   if (gradients?.length && gradients.every((g) => isGradientSlot(g.variable))) {
     next.gradients.tokens = structuredClone(gradients) as GradientToken[];
   }
@@ -113,9 +121,22 @@ function formatGradient(t: GradientToken): string {
   });
 }
 
+/** The suffix carrying a token's stop list on its own, so a consumer can keep
+ *  the theme's colours while supplying its own geometry:
+ *  `linear-gradient(to top, var(--gradient-5-stops))`. The same stops then
+ *  serve every direction a design needs without duplicating a token per angle. */
+export const STOPS_VAR_SUFFIX = '-stops';
+
+export function stopsVariable(variable: string): string {
+  return `${variable}${STOPS_VAR_SUFFIX}`;
+}
+
 export function gradientsToVars(g: EditorState['gradients']): Record<string, string> {
   const out: Record<string, string> = {};
-  for (const t of g.tokens) out[t.variable] = formatGradient(t);
+  for (const t of g.tokens) {
+    out[t.variable] = formatGradient(t);
+    out[stopsVariable(t.variable)] = formatStopList(t.stops);
+  }
   return out;
 }
 
@@ -161,11 +182,15 @@ export function setGradientAngle(variable: string, angle: number): void {
   });
 }
 
-/** `undefined` drops back to the stored `angle`. */
+/** `undefined` drops back to the stored `angle`. Setting a keyword also moves
+ *  `angle` to that keyword's square-box equivalent, so the dial reflects the
+ *  gradient and clearing the keyword keeps roughly the same direction. */
 export function setGradientDirection(variable: string, direction: LinearDirection | undefined): void {
   mutate(`set gradient direction ${variable}`, (s) => {
     const t = findGradient(s, variable);
-    if (t) t.direction = direction;
+    if (!t) return;
+    t.direction = direction;
+    if (direction) t.angle = DIRECTION_ANGLES[direction];
   });
 }
 

@@ -54,6 +54,22 @@ export const LINEAR_DIRECTIONS = [
 
 export type LinearDirection = (typeof LINEAR_DIRECTIONS)[number];
 
+/** The angle each keyword equals on a square box. Sides are exact at any
+ *  aspect (`to right` is 90deg, always); corners hold only at 1:1, which is
+ *  the point of the keyword. Stored alongside a direction so the dial shows
+ *  something honest and clearing the keyword lands on the nearest angle
+ *  rather than snapping to 0deg (bottom-to-top). */
+export const DIRECTION_ANGLES: Record<LinearDirection, number> = {
+  'to top': 0,
+  'to top right': 45,
+  'to right': 90,
+  'to bottom right': 135,
+  'to bottom': 180,
+  'to bottom left': 225,
+  'to left': 270,
+  'to top left': 315,
+};
+
 function parseDirection(raw: string): LinearDirection | null {
   const norm = raw.trim().toLowerCase().replace(/\s+/g, ' ');
   return (LINEAR_DIRECTIONS as readonly string[]).includes(norm)

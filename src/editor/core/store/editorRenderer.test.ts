@@ -58,7 +58,10 @@ describe('editor renderer reactive projection', () => {
         angle: 117,
         distance: 2,
       }];
+      // A raw angle, so clear the slot's direction keyword — a direction is
+      // emitted in preference to `angle` and slot 1 ships with `to right`.
       state.gradients.tokens[0].angle = 22;
+      state.gradients.tokens[0].direction = undefined;
       state.components.sectiondivider = {
         aliases: {
           '--sectiondivider-lg-title-font-size': { kind: 'token', name: '--font-size-5xl' },

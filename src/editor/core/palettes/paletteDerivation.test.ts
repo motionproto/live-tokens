@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import * as core from './paletteDerivation';
 import { oklchToCss, oklchToCssClamped } from './oklch';
+import { gradientsToVars, makeDefaultGradients, stopsVariable } from '../themes/slices/gradients';
+import { DIRECTION_ANGLES } from '../themes/parsers/gradient';
 import * as ui from '../../ui/palette/paletteMath';
 import {
   reconcilePalettesFromCssVars,
@@ -476,5 +478,34 @@ describe('wide-gamut intent survives serialization', () => {
     const clamped = oklchToCssClamped(0.75, 0.183, 55.934);
     expect(clamped).not.toBe('oklch(0.75 0.183 55.93)');
     expect(Number(clamped.split(' ')[1])).toBeLessThan(0.183);
+  });
+});
+
+
+describe('gradient tokens expose their stops for reuse', () => {
+  it('emits a stops-only companion beside every slot', () => {
+    const vars = gradientsToVars({ tokens: makeDefaultGradients() });
+    for (const t of makeDefaultGradients()) {
+      const stops = vars[stopsVariable(t.variable)];
+      expect(stops, t.variable).toBeDefined();
+      // The companion is the stop list alone — no gradient function around it,
+      // so a consumer can wrap it in whatever geometry it needs.
+      expect(stops).not.toMatch(/gradient\(/);
+      expect(vars[t.variable]).toContain(stops);
+    }
+  });
+
+  it('lets a consumer re-aim the same stops', () => {
+    const vars = gradientsToVars({ tokens: makeDefaultGradients() });
+    const stops = vars[stopsVariable('--gradient-1')];
+    expect(`linear-gradient(to top, ${stops})`).toBe(
+      vars['--gradient-1'].replace('to right', 'to top'),
+    );
+  });
+
+  it('keeps a direction and its stored angle consistent', () => {
+    for (const t of makeDefaultGradients()) {
+      if (t.direction) expect(t.angle, t.variable).toBe(DIRECTION_ANGLES[t.direction]);
+    }
   });
 });
