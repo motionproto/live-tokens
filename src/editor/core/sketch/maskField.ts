@@ -155,13 +155,12 @@ function normalise(f: Float32Array): Float32Array {
 
 /* ------------------------------------------------------------- levelling --- */
 
-/** Output levels. The field's darkest point lands at Min and its brightest at
-    Max, so nothing is barer than the low handle or denser than the high one.
-    Input levels cut the field instead, and since the field is stretched to run
-    from black, any low handle above zero punched a hole through the fill. */
+/** Output levels, as a floor and a ceiling rather than a remap. Anything below
+    Min is lifted to Min and anything above Max is pulled down to Max; the field
+    between the handles keeps the values it already had. Stretching the whole
+    ramp into the gap instead squeezed the contrast out of every setting. */
 function applyOutput(f: Float32Array, min: number, max: number): Float32Array {
-  const span = max - min;
-  for (let i = 0; i < f.length; i++) f[i] = min + f[i] * span;
+  for (let i = 0; i < f.length; i++) f[i] = Math.min(max, Math.max(min, f[i]));
   return f;
 }
 
@@ -239,8 +238,8 @@ export function buildMaskField(
   const raw = cachedRaw(s, seed);
   if (through === 'noise') return { field: raw, raster: RASTER };
 
-  const levelled = posterise(
-    applyOutput(Float32Array.from(raw), s.maskOutputMin, s.maskOutputMax), s.maskPosterize,
+  const levelled = applyOutput(
+    posterise(Float32Array.from(raw), s.maskPosterize), s.maskOutputMin, s.maskOutputMax,
   );
   if (through === 'output') return { field: levelled, raster: RASTER };
 

@@ -39,6 +39,29 @@ describe('mask field', () => {
     expect(field.some((v) => v < 0.01)).toBe(false);
   });
 
+  // Remapping the ramp into the gap took the contrast out of every setting: the
+  // handles are a floor and a ceiling, and the field between them is untouched.
+  it('leaves the levels between the handles where they were', () => {
+    const settings = { ...flat, maskOutputMin: 0.2, maskOutputMax: 0.8 };
+    const { field: raw } = buildMaskField(settings, 9, 'noise');
+    const { field } = buildMaskField(settings, 9, 'output');
+    let inside = 0;
+    for (let i = 0; i < raw.length; i++) {
+      if (raw[i] <= 0.2 || raw[i] >= 0.8) continue;
+      inside++;
+      expect(field[i]).toBeCloseTo(raw[i], 6);
+    }
+    expect(inside).toBeGreaterThan(raw.length * 0.2);
+  });
+
+  // Posterising ran after the levels and quantised the floor back down to
+  // black, so a fill with a floor well clear of bare still came out in holes.
+  it('holds the floor through the posterising', () => {
+    const { field } = buildMaskField(
+      { ...flat, maskOutputMin: 0.3, maskOutputMax: 1, maskPosterize: 3 }, 9, 'output');
+    expect(Math.min(...field)).toBeCloseTo(0.3, 6);
+  });
+
   it('flattens to a wash as the levels close up', () => {
     const { field } = buildMaskField({ ...flat, maskOutputMin: 0.6, maskOutputMax: 0.6 }, 9, 'output');
     expect(field.every((v) => Math.abs(v - 0.6) < 1e-6)).toBe(true);
@@ -89,4 +112,24 @@ describe('mask field', () => {
     expect(png[24]).toBe(8); // bit depth
     expect(png[25]).toBe(0); // greyscale, which is what mask-mode:luminance reads
   });
+});
+
+// Only Dry marker is allowed to tear through: everywhere else the fill is a
+// texture over an unbroken surface, and a bare patch reads as a hole in the
+// component rather than as ink.
+describe('preset coverage', () => {
+  for (const [name, preset] of Object.entries(SKETCH_PRESETS)) {
+    if (!preset.maskOn) continue;
+    it(`${name} keeps the fill${name === 'dry' ? ' except where it tears' : ''}`, () => {
+      const { field } = buildMaskField(preset, 9);
+      const bare = field.reduce((n, v) => n + (v < 0.05 ? 1 : 0), 0) / field.length;
+      if (name === 'dry') {
+        expect(bare).toBeGreaterThan(0.05);
+        expect(bare).toBeLessThan(0.3);
+      } else {
+        expect(bare).toBe(0);
+        expect(Math.min(...field)).toBeGreaterThan(0.3);
+      }
+    });
+  }
 });

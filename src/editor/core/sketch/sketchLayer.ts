@@ -26,6 +26,12 @@ const ID = 'lt-sketch';
     identical twins, which is the single biggest tell that it is not hand drawn. */
 const SEEDS = [0, 1, 2, 3, 4];
 
+/** The soft glyph bank, as a share of the icon travel. Travel is stated in px
+    against a glyph whose size the layer cannot know, so the dial that suits a
+    card's worth of artwork tears a 16px icon apart. An element that cannot take
+    the full amount names this bank instead of going crisp. */
+const ICON_SOFT = 0.35;
+
 const HATCH_ANGLE = 45;
 /** The second set of stripes leans and spaces itself a little off the first.
     Half a pixel of pitch against 7 puts the beat about 90px apart, and the two
@@ -438,7 +444,8 @@ export function buildDefsMarkup(s: SketchSettings): string {
     // Icons are glyphs a few tens of pixels across, read at a glance, with no
     // redundancy to lose. A high-frequency field at a small amplitude wobbles
     // the outline without pulling a stroke off the shape it belongs to.
-    displace(`${ID}-icon-${seed}`, base / s.iconWavelength, seed + 63, s.iconTravel, 40, 0, 0),
+    displace(`${ID}-icon-${seed}`, base / s.iconWavelength, seed + 63, s.iconTravel, 40, 0, 0) +
+    displace(`${ID}-icon-soft-${seed}`, base / s.iconWavelength, seed + 63, s.iconTravel * ICON_SOFT, 40, 0, 0),
   ).join('');
 
   // Ink pooling. Blur spreads the stroke, then a steep alpha ramp re-sharpens
@@ -651,6 +658,10 @@ export function buildStylesheet(s: SketchSettings): string {
       `--sketch-stroke-filter:url(#${ID}-stroke-0);` +
       `--sketch-mask:${s.maskOn || s.iconMaskOn ? buildMaskUri(s) : 'none'};` +
       `--sketch-mask-tile:${MASK_TILE}px;` +
+      `--sketch-icon-mask-tile:${Math.round(s.iconMaskScale * 100)}%;` +
+      // Named here rather than on the icons themselves, so an ancestor asking
+      // for the soft bank resolves it against a value it can actually see.
+      `--sketch-icon-soft:url(#${ID}-icon-soft-0);` +
       `--sketch-jit-x-base:${s.jitterX}px;` +
       `--sketch-jit-y-base:${s.jitterY}px;` +
       `--sketch-jit-rot-base:${s.jitterRot}deg;` +
@@ -674,9 +685,9 @@ export function buildStylesheet(s: SketchSettings): string {
    * tile runs on over the shadow and thins it where the ink beside it is thin,
    * which is what ink that is not there would do.
    */
-  const coverage = (tile: string, pos: string) =>
+  const coverage = (size: string, pos: string) =>
     `mask-image:var(--sketch-mask, none);` +
-    `mask-size:${tile} ${tile};` +
+    `mask-size:${size};` +
     `mask-mode:luminance;mask-repeat:repeat;mask-clip:no-clip;` +
     `mask-position:var(${pos}, 0 0);`;
 
@@ -684,11 +695,13 @@ export function buildStylesheet(s: SketchSettings): string {
   // than through a redrawn ::before. Body type is deliberately left alone: an
   // icon is a shape and survives a wobble, a paragraph is not.
   //
-  // `--sketch-icon-off` is the opt-out. It inherits, so any chrome that lives
-  // in the host document (the overlay bar) sets it once on its own root and
-  // every icon under it resolves to `none` regardless of specificity.
-  // `svg` covers inline artwork the same way. The injected filter bank is
-  // itself an svg in the body, so it has to be excluded or it filters itself.
+  // `--sketch-icon-off` names what to draw a subtree's glyphs with instead:
+  // `none` keeps them crisp, `var(--sketch-icon-soft)` draws them at a fraction
+  // of the travel. It inherits, so any chrome that lives in the host document
+  // (the overlay bar) sets it once on its own root and every icon under it
+  // follows regardless of specificity. `svg` covers inline artwork the same
+  // way. The injected filter bank is itself an svg in the body, so it has to be
+  // excluded or it filters itself.
   const iconSel = `[class*="fa-"], svg:not([${DEFS_ATTR}])`;
   const iconsOn = s.iconTravel > 0 || s.iconMaskOn;
   const icons = iconsOn
@@ -697,14 +710,24 @@ export function buildStylesheet(s: SketchSettings): string {
           ? `filter:var(--sketch-icon-off, var(--sketch-icon-filter, url(#${ID}-icon-0)));`
           : '') +
         // The ink mask reads as coverage on a glyph the way it does on a fill,
-        // but the component tile is hundreds of px across: a whole icon would
-        // sample one patch of it and either survive intact or disappear. A
-        // tile near icon size puts several blotches across each glyph.
-        (s.iconMaskOn ? coverage(`${s.iconMaskTile}px`, '--sketch-icon-mask-pos') : '') +
+        // but the fill states its tile in px and a glyph has no fixed size to
+        // state one against: the component tile is hundreds of px across, so a
+        // whole icon sampled one flat patch of it and came out either untouched
+        // or gone.
+        //
+        // The glyph is the unit instead. A percentage resolves against the
+        // element the mask is laid on, so the tile scales with whatever it
+        // covers and the dial reads the same on a 16px icon as on a page-wide
+        // drawing. `auto` on the other axis keeps the tile square.
+        (s.iconMaskOn
+          ? coverage('auto var(--sketch-icon-mask-tile)', '--sketch-icon-mask-pos')
+          : '') +
       `}` +
       SEEDS.map((seed, i) =>
         `${on} :is(${iconSel}):nth-child(5n + ${i + 1})` +
-          `{--sketch-icon-filter:url(#${ID}-icon-${seed});--sketch-icon-mask-pos:${MASK_POS[i]};}`,
+          `{--sketch-icon-filter:url(#${ID}-icon-${seed});` +
+          `--sketch-icon-soft:url(#${ID}-icon-soft-${seed});` +
+          `--sketch-icon-mask-pos:${MASK_POS[i]};}`,
       ).join('')
     : '';
 
@@ -759,7 +782,7 @@ export function buildStylesheet(s: SketchSettings): string {
       `background:var(--sketch-fill, var(--surface-neutral-lower));` +
       `box-shadow:var(--sketch-shadow, none);` +
       `filter:var(--sketch-fill-filter);` +
-      (s.maskOn ? coverage('var(--sketch-mask-tile)', '--sketch-mask-pos') : '') +
+      (s.maskOn ? coverage('var(--sketch-mask-tile) var(--sketch-mask-tile)', '--sketch-mask-pos') : '') +
       `transform:translate(` +
         `calc(var(--sketch-jx, 0) * var(--sketch-jit-x, 0px)),` +
         `calc(var(--sketch-jy, 0) * var(--sketch-jit-y, 0px))` +

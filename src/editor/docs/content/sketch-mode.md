@@ -84,6 +84,24 @@ whose fill matters under Sketch mode should name it here as well as paint it.
 
 Icons and inline SVG take the wobble directly, since a glyph has no box to
 redraw. Body type is left alone: an icon is a shape and survives a wobble, a
-paragraph is not. To keep the icons in a subtree crisp, set
-`--sketch-icon-off: none` on its root. It inherits, so one declaration covers
-everything under it.
+paragraph is not.
+
+`--sketch-icon-off` names what a subtree's glyphs are drawn with instead. It
+inherits, so one declaration covers everything under it:
+
+```css
+/* Crisp. Chrome, a logo, anything that has to stay exact. */
+.app-bar { --sketch-icon-off: none; }
+
+/* Drawn back rather than off, at a third of the travel. Small artwork, and
+   type set as an SVG, which the layer reads as one large glyph. */
+.wordmark { --sketch-icon-off: var(--sketch-icon-soft); }
+```
+
+The **Blotch size** dial under Icons and SVG is a share of the glyph rather than
+a px size, because no px size is right for both a 16px icon and a page-wide
+drawing. At 100% every glyph gets one period of the field across it whatever its
+size. Below that the field repeats inside the glyph and the blotches get finer.
+Above it a glyph reads part of one blotch, so the mask thins the whole glyph
+unevenly instead of breaking it up. The fill's blotches stay in px, since a
+component does have a size to state one against.

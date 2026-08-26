@@ -674,7 +674,8 @@
         <p class="group-note">
           Icons take the displacement and the mask directly, having no box to redraw. Both dials
           are separate from Border and Noise, because a glyph needs more travel before the wobble
-          reads. Body text is never filtered.
+          reads. Body text is never filtered. A single element can go crisp or take a softened
+          pass of its own; see the Sketch mode chapter in Docs.
         </p>
 
         <div class="phase">
@@ -704,10 +705,10 @@
             />
           </div>
           <SketchDial
-            label="Blotch size" value={s.iconMaskTile} min={20} max={400} step={10}
-            readout={`${s.iconMaskTile}px`}
-            hint="Mask tile size. Near icon size puts several blotches across a glyph; much larger and a whole icon samples one patch."
-            onchange={(v) => updateSketchSettings({ iconMaskTile: v })}
+            label="Blotch size" value={s.iconMaskScale} min={0.5} max={5} step={0.1}
+            readout={`${Math.round(s.iconMaskScale * 100)}% of glyph`}
+            hint="Mask tile size, as a share of the glyph rather than a px size. At 100% every glyph gets one period of the field whatever its size. Below that the field repeats inside the glyph and the blotches get finer; above it a glyph reads part of one blotch, which thins the whole glyph unevenly."
+            onchange={(v) => updateSketchSettings({ iconMaskScale: v })}
           />
         </div>
         </div>

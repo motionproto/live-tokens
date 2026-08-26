@@ -259,15 +259,39 @@ describe('icons', () => {
     expect(css).not.toMatch(/:is\(\[class\*="fa-"[^{]*\)\{filter:/);
   });
 
-  it('masks icons on a tile near glyph size, not the component tile', () => {
+  // A px tile is a size the glyph has no say in: anything smaller than the tile
+  // sampled one flat patch of the field and came out either untouched or gone.
+  it('sizes the icon mask against the glyph, not in px', () => {
     const css = buildStylesheet(marker);
-    expect(css).toContain(`mask-size:${marker.iconMaskTile}px ${marker.iconMaskTile}px;`);
-    expect(marker.iconMaskTile).toBeLessThan(MASK_TILE);
+    expect(css).toContain('--sketch-icon-mask-tile:100%;');
+    expect(css).toContain('mask-size:auto var(--sketch-icon-mask-tile);');
+    // The fill keeps its px tile: a component does have a size to state one in.
+    expect(css).toContain(`--sketch-mask-tile:${MASK_TILE}px;`);
+  });
+
+  it('moves the icon tile the whole way the dial does', () => {
+    expect(buildStylesheet({ ...marker, iconMaskScale: 0.3 }))
+      .toContain('--sketch-icon-mask-tile:30%;');
   });
 
   // The overlay bar lives in the host document, which is the scope root.
   it('leaves an inheriting opt-out for chrome in the host document', () => {
     expect(buildStylesheet(marker)).toContain('var(--sketch-icon-off,');
+  });
+
+  it('offers a soft bank an element can name instead of going crisp', () => {
+    const css = buildStylesheet(marker);
+    expect(css).toContain('--sketch-icon-soft:url(#lt-sketch-icon-soft-0);');
+    expect(css).toContain('--sketch-icon-soft:url(#lt-sketch-icon-soft-4);');
+    expect(buildDefsMarkup(marker)).toContain('<filter id="lt-sketch-icon-soft-0"');
+  });
+
+  it('draws the soft bank at a fraction of the travel', () => {
+    const defs = buildDefsMarkup(marker);
+    const scale = (id: string) =>
+      Number(defs.split(`<filter id="${id}"`)[1].split('</filter>')[0]
+        .match(/<feDisplacementMap[^>]*scale="([\d.]+)"/)![1]);
+    expect(scale('lt-sketch-icon-soft-0')).toBeLessThan(scale('lt-sketch-icon-0'));
   });
 });
 
