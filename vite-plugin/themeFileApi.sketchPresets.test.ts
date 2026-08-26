@@ -53,7 +53,7 @@ async function request(method: string, url: string, body?: unknown) {
   return { status: res.statusCode, json: res.payload ? JSON.parse(res.payload) : null };
 }
 
-const SETTINGS = { mode: 'layered', strokeWidth: 2.25, fillDx: 4, label: 'Blueprint' };
+const SETTINGS = { mode: 'layered', strokeWidth: 2.25, jitterX: 4, label: 'Blueprint' };
 
 beforeEach(() => {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ltsk-'));

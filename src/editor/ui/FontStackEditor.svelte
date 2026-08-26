@@ -25,6 +25,7 @@
     '--font-sans',
     '--font-serif',
     '--font-mono',
+    '--font-editorial',
   ];
 
   // Each stack's terminal fallback (bottom slot). It's locked to system or
@@ -35,6 +36,7 @@
     '--font-sans': 'sans-serif',
     '--font-serif': 'serif',
     '--font-mono': 'monospace',
+    '--font-editorial': 'sans-serif',
   };
 
   // The single matching System UI preset paired with each stack — the only two
@@ -44,6 +46,7 @@
     '--font-sans': 'system-ui-sans',
     '--font-serif': 'system-ui-serif',
     '--font-mono': 'system-ui-mono',
+    '--font-editorial': 'system-ui-sans',
   };
 
   let fontSourcesList = $derived($editorState.fonts.sources);

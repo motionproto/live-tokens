@@ -33,8 +33,9 @@
   ];
 
   const sketchNavItems = [
-    { id: 'sketch-line', label: 'Line', icon: 'fas fa-pen-nib' },
+    { id: 'sketch-border', label: 'Border', icon: 'fas fa-pen-nib' },
     { id: 'sketch-fill', label: 'Fill', icon: 'fas fa-fill-drip' },
+    { id: 'sketch-shape', label: 'Shape', icon: 'fas fa-draw-polygon' },
     { id: 'sketch-icons', label: 'Icons', icon: 'fas fa-shapes' },
     { id: 'sketch-noise', label: 'Noise', icon: 'fas fa-wave-square' },
     { id: 'sketch-preview', label: 'Preview', icon: 'fas fa-eye' }
@@ -84,6 +85,14 @@
     sectionJump = { id: sectionId };
     const el = document.getElementById(sectionId);
     if (el) scrollSectionIntoView(el);
+  }
+
+  /** The Sketch panel is an accordion, so it opens the target and scrolls once
+      the reveal has settled. Scrolling from here would read offsetTop before
+      the other sections have collapsed. */
+  function jumpToSketchSection(sectionId: string) {
+    selectedTokenSection = sectionId;
+    sectionJump = { id: sectionId };
   }
 
   function selectComponent(id: string) {
@@ -149,7 +158,7 @@
             class:active={selectedTokenSection === item.id}
             onmouseenter={(e) => showHint(item.label, e.currentTarget)}
             onmouseleave={hideHint}
-            onclick={() => scrollToSection(item.id)}
+            onclick={() => jumpToSketchSection(item.id)}
           >
             <i class={item.icon}></i>
             <span class="nav-label">{item.label}</span>

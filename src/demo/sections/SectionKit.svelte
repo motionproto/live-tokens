@@ -265,6 +265,9 @@
     background: var(--kit-lead-wash);
     --sketch-fill: var(--kit-lead-wash);
     --sketch-stroke: transparent;
+    /* The block draws no outline, and hatching takes its ink from the outline
+       unless a part names its own. */
+    --sketch-hatch-color: var(--color-brand-500);
   }
 
   .kit-lead .kit-head {

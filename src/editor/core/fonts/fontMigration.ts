@@ -115,7 +115,35 @@ export function defaultFontStacks(sources: FontSource[]): FontStack[] {
         { kind: 'generic', value: 'monospace' },
       ],
     },
+    {
+      variable: '--font-editorial',
+      slots: [
+        ...pick('Manrope'),
+        { kind: 'system', preset: 'system-ui-sans' },
+        { kind: 'generic', value: 'sans-serif' },
+      ],
+    },
   ];
+}
+
+/**
+ * Seed `--font-editorial` from `--font-sans` on files written before the
+ * editorial role existed. The role ships as "the body face until a consumer
+ * repoints it", so cloning the body stack is the migration: a theme that never
+ * touches editorial keeps rendering exactly as it did.
+ *
+ * Presence-based like the rest of this module, so re-running is a no-op and no
+ * schemaVersion step is needed.
+ */
+function ensureEditorialStack(stacks: FontStack[]): boolean {
+  if (stacks.some((s) => s.variable === '--font-editorial')) return false;
+  const sans = stacks.find((s) => s.variable === '--font-sans');
+  if (!sans) return false;
+  stacks.push({
+    variable: '--font-editorial',
+    slots: sans.slots.map((slot) => ({ ...slot })),
+  });
+  return true;
 }
 
 // Older themes have `kind: 'font-face'` sources with embedded cssText that
@@ -161,9 +189,11 @@ export function migrateColorsAndTypeFonts(colorsAndType: ColorsAndType): { migra
   if (!colorsAndType.fontStacks || colorsAndType.fontStacks.length === 0) {
     colorsAndType.fontStacks = defaultFontStacks(colorsAndType.fontSources);
     migrated = true;
+  } else if (ensureEditorialStack(colorsAndType.fontStacks)) {
+    migrated = true;
   }
   if (colorsAndType.cssVariables) {
-    for (const key of ['--font-display', '--font-sans', '--font-serif', '--font-mono']) {
+    for (const key of ['--font-display', '--font-sans', '--font-serif', '--font-mono', '--font-editorial']) {
       if (key in colorsAndType.cssVariables) {
         delete colorsAndType.cssVariables[key];
         migrated = true;

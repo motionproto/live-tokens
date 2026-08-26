@@ -111,7 +111,12 @@ export interface FontSource {
 
 export type SystemCascadePreset = 'system-ui-sans' | 'system-ui-serif' | 'system-ui-mono';
 export type GenericFamily = 'sans-serif' | 'serif' | 'monospace' | 'cursive' | 'fantasy';
-export type FontStackVariable = '--font-display' | '--font-sans' | '--font-serif' | '--font-mono';
+export type FontStackVariable =
+  | '--font-display'
+  | '--font-sans'
+  | '--font-serif'
+  | '--font-mono'
+  | '--font-editorial';
 
 export type FontStackSlot =
   | { kind: 'project'; familyId: string }

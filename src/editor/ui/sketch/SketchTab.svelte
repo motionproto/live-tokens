@@ -3,15 +3,18 @@
   import UIInfoPopover from '../UIInfoPopover.svelte';
   import UISegmentedControl from '../UISegmentedControl.svelte';
   import SketchDial from './SketchDial.svelte';
-  import { buildMaskUri } from '../../core/sketch/sketchLayer';
+  import SketchRange from './SketchRange.svelte';
+  import { buildMaskUri, MASK_TILE } from '../../core/sketch/maskField';
   import SketchPreview from './SketchPreview.svelte';
   import { onMount } from 'svelte';
   import UIPillButton from '../UIPillButton.svelte';
-  import UIReveal from '../UIReveal.svelte';
+  import UIReveal, { REVEAL_MS } from '../UIReveal.svelte';
+  import { scrollSectionIntoView } from '../scrollSection';
   import { SKETCH_PRESETS } from '../../core/sketch/sketchPresets';
   import {
     sketchEnabled,
     sketchPreset,
+    sketchDirty,
     sketchSettings,
     selectSketchPreset,
     updateSketchSettings,
@@ -34,34 +37,90 @@
 
   let s = $derived($sketchSettings);
 
-  type SectionKey = 'line' | 'fill' | 'icons' | 'noise';
+  type SectionKey = 'border' | 'fill' | 'shape' | 'icons' | 'noise';
 
-  /** Closed by default. Twenty-odd dials in one scroll is a wall; the summary
-      on each trigger row is meant to answer most questions without opening. */
-  let open = $state({ line: false, fill: false, icons: false, noise: false });
+  const SECTION_KEYS: SectionKey[] = ['border', 'fill', 'shape', 'icons', 'noise'];
+  const SHUT = { border: false, fill: false, shape: false, icons: false, noise: false };
+
+  /** All closed to start: twenty-odd dials in one scroll is a wall, and the
+      summary on each trigger row answers most questions without opening
+      anything. Each section then stands alone, because shaping a look means
+      reaching between them — the border's detail against the noise it
+      multiplies, the fill's travel against the border's.
+
+      Mutated, never reassigned, so the jump effect below can write into it
+      without subscribing to it. */
+  let open = $state({ ...SHUT });
 
   function toggle(key: SectionKey) {
-    open = { ...open, [key]: !open[key] };
+    open[key] = !open[key];
   }
 
   $effect(() => {
-    const key = sectionJump?.id.replace('sketch-', '');
-    if (key && key in open) open = { ...open, [key as SectionKey]: true };
+    const id = sectionJump?.id;
+    const key = id?.replace('sketch-', '');
+    if (!key) return;
+    // Tested against the key list, never against `open`: an effect that reads
+    // the state it writes re-runs itself until Svelte kills it.
+    if (SECTION_KEYS.includes(key as SectionKey)) open[key as SectionKey] = true;
+    // Opening the target grows it, so its offsetTop is only right once the
+    // reveal has run. One frame past the transition, not during it.
+    const settle = setTimeout(() => {
+      const el = document.getElementById(id!);
+      if (el) scrollSectionIntoView(el);
+    }, REVEAL_MS + 20);
+    return () => clearTimeout(settle);
   });
 
   const passLabel = (double: boolean) => (double ? 'double' : 'single');
 
+  /** Every travel dial is peak pixels. Trailing zeros off, so a quarter-step
+      dial reads 1.25px and a whole one reads 3px. */
+  const px = (v: number) => `${Number(v.toFixed(2))}px`;
+
+  const ROUGHNESS = ['smooth', 'grainy', 'rough'] as const;
+
+  /** A layer's own wavelength: the multiple, and the length it resolves to
+      against the shared wave. The ratio is what a preset carries; the pixels
+      are what you can picture. */
+  const against = (multiple: number) => `${Math.round(s.wobble * multiple)}px`;
+
+  /** The wave's shape, named rather than numbered: 1 is the field as the filter
+      makes it, 4 is clipped at both ends. */
+  const waveformLabel = (v: number) =>
+    v < 1.5 ? 'soft' : v < 2.5 ? 'firm' : v < 3.5 ? 'hard' : 'square';
+
+  const layers = (n: number) => (n === 1 ? '1 layer' : `${n} layers`);
+
   /** Trigger-row summaries: the settings you would open the section to check. */
   let summary = $derived({
-    line: `${s.strokeWidth}px · ${s.strokeStyle} · ${passLabel(s.doubleStroke)}`,
-    fill: s.fillStyle === 'none'
-      ? 'none'
-      : `${s.fillStyle} · ${s.fillDx === 0 && s.fillDy === 0 ? 'aligned' : `offset ${s.fillDx}, ${s.fillDy}`}`,
-    icons: s.iconScale === 0 && !s.iconMaskOn
+    border: `${s.strokeWidth}px · ${s.strokeStyle} · ${passLabel(s.doubleStroke)}`
+      + (s.doubleStroke ? ` ${s.retracePass}` : '')
+      + (s.borderWavelength === 1 ? '' : ` · ${against(s.borderWavelength)} wave`)
+      + (s.strokeInk < 1 ? ` · ${Math.round(s.strokeInk * 100)}% ink` : ''),
+    fill: `${s.fillStyle} · ${s.jitterX === 0 && s.jitterY === 0 && s.jitterRot === 0 ? 'aligned' : `±${s.jitterX}, ${s.jitterY}px`}`
+      + (s.maskOn ? ` · ${s.maskBlob}px · ${layers(s.maskOctaves)}` : ' · no mask'),
+    shape: s.cornerSpread === 0 && s.cornerTravel === 0
+      ? 'true to the theme'
+      : `±${s.cornerSpread}px corners · ${px(s.cornerTravel)} travel`,
+    icons: s.iconTravel === 0 && !s.iconMaskOn
       ? 'off'
-      : `${s.iconScale === 0 ? 'no travel' : `${s.iconScale.toFixed(1)}px`} · ${s.iconMaskOn ? 'masked' : 'clean'}`,
-    noise: `${s.frequency.toFixed(3)} · ${s.octaves} oct · ${s.maskOn ? `mask ${s.maskScale}px` : 'no mask'}`,
+      : `${s.iconTravel === 0 ? 'no travel' : px(s.iconTravel)} · ${s.iconMaskOn ? 'masked' : 'clean'}`,
+    noise: `${s.wobble}px · ${ROUGHNESS[s.roughness - 1]}`
+      + (s.waveform > 1 ? ` · ${waveformLabel(s.waveform)}` : ''),
   });
+
+  /** Shipped and saved presets are one choice, so they share one radio group:
+      picking a saved one clears the shipped selection natively. */
+  const PRESET_RADIO_GROUP = 'sketch-preset';
+
+  /** What the readout under the grid says. The selection survives a dial move,
+      so the base keeps its name here and the blurb reports the drift instead. */
+  let active = $derived(
+    $sketchDirty
+      ? { name: s.label, blurb: `Modified from ${s.label}. Save it to keep it.` }
+      : { name: s.label, blurb: s.blurb || 'Your saved preset.' },
+  );
 
   let naming = $state(false);
   let draftName = $state('');
@@ -102,8 +161,7 @@
 
   const FILL_STYLES = [
     { value: 'solid', label: 'Solid' },
-    { value: 'hachure', label: 'Hachure' },
-    { value: 'none', label: 'None' },
+    { value: 'hatched', label: 'Hatched' },
   ] as const;
 
   const STROKE_STYLES = [
@@ -111,67 +169,70 @@
     { value: 'dashed', label: 'Dashed' },
   ] as const;
 
-  const MASK_ON = [
-    { value: 'on', label: 'On' },
-    { value: 'off', label: 'Off' },
-  ] as const;
-
   const PASSES = [
     { value: 'single', label: 'Single' },
     { value: 'double', label: 'Double' },
   ] as const;
 
-  const BLOTCHES = [
-    { value: '1', label: 'Smooth' },
-    { value: '2', label: '2' },
-    { value: '3', label: '3' },
-    { value: '4', label: '4' },
-    { value: '6', label: '6' },
+  const RETRACE_PASSES = [
+    { value: 'copy', label: 'Copy' },
+    { value: 'reseeded', label: 'Reseeded' },
   ] as const;
 
-  // Drag on the mask preview: horizontal is blob size, vertical is edge hardness.
-  const FREQ = { min: 0.002, max: 0.06 };
-  const CONTRAST = { min: 0.5, max: 5 };
+  const GRAINS = [
+    { value: 'fractal', label: 'Cloudy' },
+    { value: 'turbulence', label: 'Veined' },
+  ] as const;
 
+  // The mask's dials are the stages the field is built in, in the order they
+  // run: make the noise, level it, soften it.
+  /** Blobs much bigger than a component stop reading as coverage: one patch
+      spans a whole button, so it is either untouched or gone entirely. The
+      ceiling is a few blobs across a card, which is where it still reads as
+      uneven ink. */
+  const SIZE = { min: 20, max: 250 };
+  const BLUR_MAX = 8;
+
+  /** Tones the field is flattened into, in the order the dial walks them:
+      smooth, then coarsening all the way down to two. The stored value is the
+      tone count, with 1 for no quantising at all, so the dial carries a position
+      into this list rather than the count itself. Ordered by count it ran
+      backwards, straight from smooth to the hardest cut and then easing off. */
+  const STEP_TONES = [1, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2];
+
+  /** Closest the two level handles may sit, in dial percent. At nothing between
+      them the field would be two tones with no edge at all, which no amount of
+      Blur reads as ink. */
+  const LEVEL_GAP = 4;
+
+  // Log: the small end of Scale is where a step is legible, and a linear walk
+  // would spend most of the dial past the point anything more is visible.
   const logPos = (v: number, r: { min: number; max: number }) =>
-    (Math.log(v / r.min) / Math.log(r.max / r.min)) * 100;
+    Math.min(100, Math.max(0, Math.round((Math.log(v / r.min) / Math.log(r.max / r.min)) * 100)));
   const logVal = (t: number, r: { min: number; max: number }) =>
     r.min * Math.pow(r.max / r.min, Math.min(1, Math.max(0, t)));
 
-  let dotX = $derived(logPos(s.maskFrequency, FREQ));
-  let dotY = $derived(100 - ((s.maskContrast - CONTRAST.min) / (CONTRAST.max - CONTRAST.min)) * 100);
+  let scalePos = $derived(logPos(s.maskBlob, SIZE));
+  const setScale = (v: number) =>
+    updateSketchSettings({ maskBlob: Math.round(logVal(v / 100, SIZE) / 5) * 5 });
+  let levelMin = $derived(Math.round(s.maskLevelMin * 100));
+  let levelMax = $derived(Math.round(s.maskLevelMax * 100));
+  let stepPos = $derived(Math.max(0, STEP_TONES.indexOf(s.maskPosterize)));
+  const setLevels = (min: number, max: number) =>
+    updateSketchSettings({ maskLevelMin: min / 100, maskLevelMax: max / 100 });
 
-  let dragging = $state(false);
-
-  function drag(e: PointerEvent) {
-    const box = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const tx = (e.clientX - box.left) / box.width;
-    const ty = (e.clientY - box.top) / box.height;
-    updateSketchSettings({
-      maskFrequency: Number(logVal(tx, FREQ).toFixed(4)),
-      maskContrast: Number(
-        (CONTRAST.min + (1 - Math.min(1, Math.max(0, ty))) * (CONTRAST.max - CONTRAST.min)).toFixed(2),
-      ),
-    });
-  }
-
-  function padDown(e: PointerEvent) {
-    dragging = true;
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    drag(e);
-  }
-
-  function padMove(e: PointerEvent) {
-    if (dragging) drag(e);
-  }
-
-  // Built from the same function the fill layer uses, and painted at true tile
-  // size, so blob scale here is blob scale on the components. A "cover"-scaled
-  // preview would lie about what the scale dial does.
+  // The same stages the fill filter runs, painted at true pixel size over a
+  // sample card, so blob size here is blob size on the components and the
+  // card's shadow is always on show: coverage that ate it would be a bug you
+  // saw at once.
   let maskPreview = $derived(buildMaskUri(s));
+  // The field itself after each stage, white for ink.
+  let stageTiles = $derived(
+    (['noise', 'levels', 'blur'] as const).map((stage) => ({ stage, uri: buildMaskUri(s, 9, stage) })),
+  );
 </script>
 
-<div class="sketch-tab" class:inactive={!$sketchEnabled}>
+<div class="sketch-tab">
   <header class="head">
     <div class="head-row">
       <h2 class="section-title">Sketch</h2>
@@ -184,89 +245,93 @@
         />
         <UIInfoPopover title="Sketch mode">
           <p>
-            An effect layer over whatever theme is active. It never reads or writes theme values:
-            each component's fill and outline are redrawn on pseudo-elements from the tokens that
-            component already owns, then pushed around a shared noise field.
+            An effect layer over the active theme. It reads no theme values and writes none:
+            each component's fill and outline are redrawn from the tokens that component
+            already owns, then pushed around a shared noise field.
           </p>
           <p>
             While it is on, the effect applies to the page behind this editor as well as to the
-            preview here. Turning it off removes every trace of it.
+            preview. Turning it off removes every trace of it.
           </p>
         </UIInfoPopover>
       </div>
     </div>
 
-    <div class="presets">
-      {#each Object.entries(SKETCH_PRESETS) as [name, preset] (name)}
-        <button
-          type="button"
-          class="preset"
-          class:on={$sketchPreset === name}
-          onclick={() => selectSketchPreset(name)}
-        >{preset.label}</button>
-      {/each}
-    </div>
-
-    <div class="saved">
-      <div class="saved-head">
-        <span class="saved-label">Saved</span>
-        <UIPillButton size="compact" icon="fa-floppy-disk" onclick={startNaming}>
-          Save current
-        </UIPillButton>
+    <div class="picker">
+      <div class="readout" aria-live="polite">
+        <span class="readout-name">{active.name}</span>
+        <p class="readout-blurb">{active.blurb}</p>
       </div>
 
-      {#if naming}
-        <form class="save-row" onsubmit={commitSave}>
-          <!-- svelte-ignore a11y_autofocus -->
-          <input
-            class="save-name"
-            bind:value={draftName}
-            placeholder="Preset name"
-            aria-label="Preset name"
-            autofocus
-          />
-          <UIPillButton size="compact" variant="primary" type="submit">Save</UIPillButton>
-          <UIPillButton size="compact" onclick={() => (naming = false)}>Cancel</UIPillButton>
-        </form>
-      {/if}
+      <div class="presets">
+        {#each Object.entries(SKETCH_PRESETS) as [name, preset] (name)}
+          <label class="preset">
+            <input
+              type="radio"
+              name={PRESET_RADIO_GROUP}
+              value={name}
+              checked={$sketchPreset === name}
+              onchange={() => selectSketchPreset(name)}
+            />
+            <span class="preset-name">{preset.label}</span>
+          </label>
+        {/each}
+      </div>
 
-      {#if $userSketchPresets.length > 0}
-        <div class="presets">
-          {#each $userSketchPresets as saved (saved.fileName)}
-            <div class="saved-item" class:on={$sketchPreset === USER_PRESET_PREFIX + saved.fileName}>
-              <button
-                type="button"
-                class="preset"
-                onclick={() => runPresetAction(selectUserSketchPreset(saved.fileName))}
-              >{saved.name}</button>
-              <button
-                type="button"
-                class="saved-delete"
-                title="Delete {saved.name}"
-                aria-label="Delete {saved.name}"
-                onclick={() => runPresetAction(deleteUserSketchPreset(saved.fileName))}
-              ><i class="fas fa-xmark"></i></button>
-            </div>
-          {/each}
+      <div class="saved">
+        <div class="saved-head">
+          <span class="band-label">Saved</span>
+          <UIPillButton size="compact" icon="fa-floppy-disk" onclick={startNaming}>
+            Save current
+          </UIPillButton>
         </div>
-      {:else if !naming}
-        <p class="saved-empty">Set the dials, then save them here to reuse later.</p>
-      {/if}
 
-      {#if presetError}
-        <p class="saved-error">{presetError}</p>
-      {/if}
+        {#if naming}
+          <form class="save-row" onsubmit={commitSave}>
+            <!-- svelte-ignore a11y_autofocus -->
+            <input
+              class="save-name"
+              bind:value={draftName}
+              placeholder="Preset name"
+              aria-label="Preset name"
+              autofocus
+            />
+            <UIPillButton size="compact" variant="primary" type="submit">Save</UIPillButton>
+            <UIPillButton size="compact" onclick={() => (naming = false)}>Cancel</UIPillButton>
+          </form>
+        {/if}
+
+        {#if $userSketchPresets.length > 0}
+          <div class="presets">
+            {#each $userSketchPresets as saved (saved.fileName)}
+              <div class="saved-item">
+                <label class="preset">
+                  <input
+                    type="radio"
+                    name={PRESET_RADIO_GROUP}
+                    value={USER_PRESET_PREFIX + saved.fileName}
+                    checked={$sketchPreset === USER_PRESET_PREFIX + saved.fileName}
+                    onchange={() => runPresetAction(selectUserSketchPreset(saved.fileName))}
+                  />
+                  <span class="preset-name">{saved.name}</span>
+                </label>
+                <button
+                  type="button"
+                  class="saved-delete"
+                  title="Delete {saved.name}"
+                  aria-label="Delete {saved.name}"
+                  onclick={() => runPresetAction(deleteUserSketchPreset(saved.fileName))}
+                ><i class="fas fa-xmark"></i></button>
+              </div>
+            {/each}
+          </div>
+        {/if}
+
+        {#if presetError}
+          <p class="saved-error">{presetError}</p>
+        {/if}
+      </div>
     </div>
-
-    <p class="blurb">
-      {#if $sketchPreset === ''}
-        Adjusted from a preset.
-      {:else if $sketchPreset.startsWith(USER_PRESET_PREFIX)}
-        {s.blurb || 'Your saved preset.'}
-      {:else}
-        {s.blurb}
-      {/if}
-    </p>
 
     {#if !$sketchEnabled}
       <p class="dormant">Turn Sketch mode on to see these dials take effect.</p>
@@ -275,32 +340,39 @@
 
   <div class="body">
     <div class="controls">
-      <section class="section" id="sketch-line">
+      <section class="section" id="sketch-border">
         <button
           type="button"
           class="sec-head"
-          class:expanded={open.line}
-          aria-expanded={open.line}
-          aria-controls="sketch-line-body"
-          onclick={() => toggle('line')}
+          class:expanded={open.border}
+          aria-expanded={open.border}
+          aria-controls="sketch-border-body"
+          onclick={() => toggle('border')}
         >
           <i class="fas fa-chevron-right chevron"></i>
-          <h3 class="group-title">Line</h3>
-          <span class="sec-summary">{summary.line}</span>
+          <h3 class="group-title">Border</h3>
+          <span class="sec-summary">{summary.border}</span>
         </button>
-        <UIReveal open={open.line}>
-        <div id="sketch-line-body" class="sec-body">
+        <UIReveal open={open.border}>
+        <div id="sketch-border-body" class="sec-body">
         <p class="group-note">
-          The outline traced on top of each component, displaced around the noise field.
+          Redraws the component's border along the noise field. Width, style and colour
+          still come from the theme.
         </p>
 
         <div class="phase">
           <h4>Shape</h4>
           <SketchDial
-            label="Displacement" value={s.strokeScale} min={0} max={14} step={0.5}
-            readout={s.strokeScale.toFixed(1)}
-            hint="How far the outline is pushed around the noise field. Zero traces the component exactly."
-            onchange={(v) => updateSketchSettings({ strokeScale: v })}
+            label="Magnitude" value={s.strokeTravel} min={0} max={7} step={0.25}
+            readout={px(s.strokeTravel)}
+            hint="Furthest the outline moves. Zero traces the component exactly."
+            onchange={(v) => updateSketchSettings({ strokeTravel: v })}
+          />
+          <SketchDial
+            label="Wavelength" value={s.borderWavelength} min={0.25} max={2.5} step={0.05}
+            readout={against(s.borderWavelength)}
+            hint="The outline's wavelength, as a multiple of the shared one under Noise. Below 1 it chatters over the fill; above 1 it draws longer curves."
+            onchange={(v) => updateSketchSettings({ borderWavelength: v })}
           />
         </div>
 
@@ -309,19 +381,25 @@
           <SketchDial
             label="Width" value={s.strokeWidth} min={0} max={6} step={0.25}
             readout={`${s.strokeWidth}px`}
-            hint="Thickness of the outline before any variation."
+            hint="Outline thickness, before per-component variation."
             onchange={(v) => updateSketchSettings({ strokeWidth: v })}
+          />
+          <SketchDial
+            label="Ink" value={s.strokeInk} min={0.2} max={1} step={0.02}
+            readout={`${Math.round(s.strokeInk * 100)}%`}
+            hint="Stroke opacity. Below full, the second pass shows through the first and the overlap darkens."
+            onchange={(v) => updateSketchSettings({ strokeInk: v })}
           />
           <SketchDial
             label="Pressure" value={s.pressure} min={0} max={0.7} step={0.05}
             readout={`±${Math.round(s.pressure * 100)}%`}
-            hint="Weight variation between components. Each one draws its own thickness off the jitter cycle."
+            hint="Range of stroke weight variation between components."
             onchange={(v) => updateSketchSettings({ pressure: v })}
           />
           <SketchDial
             label="Along stroke" value={s.pressureMod} min={0} max={1} step={0.05}
             readout={s.pressureMod.toFixed(2)}
-            hint="Thins the line in patches along its length. Zero holds one even weight, high values break it up."
+            hint="Thins the line in patches along its length. Zero holds an even weight; high values break it up."
             onchange={(v) => updateSketchSettings({ pressureMod: v })}
           />
         </div>
@@ -331,7 +409,7 @@
           <SketchDial
             label="Ink pooling" value={s.pooling} min={0} max={6} step={0.1}
             readout={s.pooling.toFixed(1)}
-            hint="Blurs the stroke then re-sharpens its alpha. Runs of border that sit close together merge and bulge, which is what a corner is."
+            hint="Merges runs of outline that sit close together, so corners thicken where the line meets itself."
             onchange={(v) => updateSketchSettings({ pooling: v })}
           />
           <div class="seg-row" data-hint="Solid draws a continuous outline. Dashed breaks it into strokes.">
@@ -343,7 +421,7 @@
               onchange={(v) => updateSketchSettings({ strokeStyle: v })}
             />
           </div>
-          <div class="seg-row" data-hint="Double retraces the outline just inside itself, on the same seed, the way a second pass by hand follows the first.">
+          <div class="seg-row" data-hint="Double draws the outline twice.">
             <span class="seg-label">Passes</span>
             <UISegmentedControl
               value={s.doubleStroke ? 'double' : 'single'}
@@ -352,6 +430,23 @@
               onchange={(v) => updateSketchSettings({ doubleStroke: v === 'double' })}
             />
           </div>
+          {#if s.doubleStroke}
+            <div class="seg-row" data-hint="Copy repeats the line already drawn, offset. Reseeded draws it again on a new seed, so the two part along their length.">
+              <span class="seg-label">Second pass</span>
+              <UISegmentedControl
+                value={s.retracePass}
+                options={RETRACE_PASSES}
+                ariaLabel="Second pass"
+                onchange={(v) => updateSketchSettings({ retracePass: v })}
+              />
+            </div>
+            <SketchDial
+              label="Pass offset" value={s.retraceOffset} min={0} max={8} step={0.1}
+              readout={`±${px(s.retraceOffset)}`}
+              hint="How far the second pass lands from the first. Each component takes its own distance inside the range; at zero the passes overlap and only darken the line."
+              onchange={(v) => updateSketchSettings({ retraceOffset: v })}
+            />
+          {/if}
         </div>
         </div>
         </UIReveal>
@@ -373,13 +468,17 @@
         <UIReveal open={open.fill}>
         <div id="sketch-fill-body" class="sec-body">
         <p class="group-note">
-          The surface behind each component's content, displaced on its own seed. It disagrees with
-          the outline at the edges, and that disagreement is the whole effect.
+          Redraws the surface behind the content on its own seed, so its edges part from
+          the outline.
+        </p>
+        <p class="group-note">
+          Rules and dividers follow these dials, not the Line ones. They are short boxes,
+          so the effect draws them as fills.
         </p>
 
         <div class="phase">
           <h4>Surface</h4>
-          <div class="seg-row" data-hint="Solid paints the component's own theme colour, hachure lays angled shading over it, none leaves it empty.">
+          <div class="seg-row" data-hint="Solid paints the theme colour. Hatched lays angled shading over it.">
             <span class="seg-label">Style</span>
             <UISegmentedControl
               value={s.fillStyle}
@@ -388,61 +487,174 @@
               onchange={(v) => updateSketchSettings({ fillStyle: v })}
             />
           </div>
+          {#if s.fillStyle === 'hatched'}
+            <SketchDial
+              label="Hatch opacity" value={s.hatchInk} min={0.1} max={1} step={0.05}
+              readout={`${Math.round(s.hatchInk * 100)}%`}
+              hint="Opacity of the hatch lines. Low reads as pencil shading; full draws them in the outline colour."
+              onchange={(v) => updateSketchSettings({ hatchInk: v })}
+            />
+          {/if}
           <SketchDial
-            label="Displacement" value={s.fillScale} min={0} max={14} step={0.5}
-            readout={s.fillScale.toFixed(1)}
-            hint="How far the fill is pushed around the noise field, on a different seed than the outline."
-            onchange={(v) => updateSketchSettings({ fillScale: v })}
-          />
-          <SketchDial
-            label="Grow" value={s.fillGrow} min={0} max={0.1} step={0.005}
-            readout={`${(s.fillGrow * 100).toFixed(1)}%`}
-            hint="Oversizes the fill so rotation does not expose bare corners."
-            onchange={(v) => updateSketchSettings({ fillGrow: v })}
-          />
-        </div>
-
-        <div class="phase">
-          <h4>Offset, every instance alike</h4>
-          <SketchDial
-            label="Offset X" value={s.fillDx} min={-10} max={10} step={1}
-            readout={`${s.fillDx}px`}
-            hint="Shifts every fill sideways by the same distance. Reads as print misregistration."
-            onchange={(v) => updateSketchSettings({ fillDx: v })}
-          />
-          <SketchDial
-            label="Offset Y" value={s.fillDy} min={-10} max={10} step={1}
-            readout={`${s.fillDy}px`}
-            hint="Shifts every fill vertically by the same distance."
-            onchange={(v) => updateSketchSettings({ fillDy: v })}
+            label="Magnitude" value={s.fillTravel} min={0} max={7} step={0.25}
+            readout={px(s.fillTravel)}
+            hint="Furthest the fill moves. Runs on a different seed from the outline."
+            onchange={(v) => updateSketchSettings({ fillTravel: v })}
           />
         </div>
 
         <div class="phase">
-          <h4>Offset, random per instance</h4>
+          <h4>Offset per instance</h4>
           <SketchDial
             label="Offset X" value={s.jitterX} min={0} max={12} step={0.5}
             readout={`±${s.jitterX}px`}
-            hint="Range of sideways offset drawn per component. Values cycle on periods of 7, 11 and 13, so 1001 pass before anything repeats."
+            hint="Range of sideways offset per component."
             onchange={(v) => updateSketchSettings({ jitterX: v })}
           />
           <SketchDial
             label="Offset Y" value={s.jitterY} min={0} max={12} step={0.5}
             readout={`±${s.jitterY}px`}
-            hint="Range of vertical offset drawn per component."
+            hint="Range of vertical offset per component."
             onchange={(v) => updateSketchSettings({ jitterY: v })}
           />
           <SketchDial
             label="Rotation" value={s.jitterRot} min={0} max={4} step={0.1}
             readout={`±${s.jitterRot.toFixed(1)}°`}
-            hint="Range of tilt drawn per component. A fraction of a degree is enough to break the grid."
+            hint="Range of tilt per component. A fraction of a degree is enough to break the grid."
             onchange={(v) => updateSketchSettings({ jitterRot: v })}
           />
           <SketchDial
             label="Scale" value={s.jitterScale} min={0} max={0.12} step={0.005}
-            readout={`±${(s.jitterScale * 100).toFixed(1)}%`}
-            hint="Range of size variation drawn per component."
+            readout={`+${(s.jitterScale * 100).toFixed(1)}%`}
+            hint="Oversize per component. Every fill grows a little, so a tilted one never exposes a bare corner."
             onchange={(v) => updateSketchSettings({ jitterScale: v })}
+          />
+        </div>
+
+        <div class="phase">
+          <div class="phase-head">
+            <h4>Ink coverage</h4>
+            <Toggle
+              label="On"
+              labelFirst
+              checked={s.maskOn}
+              onchange={(v) => updateSketchSettings({ maskOn: v })}
+            />
+          </div>
+
+          <figure class="scope" class:muted={!s.maskOn}>
+            <div class="sample">
+              <div
+                class="ink"
+                style:mask-image={maskPreview}
+                style:mask-size="{MASK_TILE}px {MASK_TILE}px"
+              ></div>
+            </div>
+            <div class="stages">
+              {#each stageTiles as { stage, uri } (stage)}
+                <figure>
+                  <div class="tile" style:mask-image={uri} style:mask-size="{MASK_TILE}px {MASK_TILE}px"></div>
+                  <figcaption>{stage}</figcaption>
+                </figure>
+              {/each}
+            </div>
+          </figure>
+
+          <h5>Noise</h5>
+          <div class="seg-row" data-hint="Cloudy is soft blotches. Veined is marbled.">
+            <span class="seg-label">Type</span>
+            <UISegmentedControl
+              value={s.maskGrain}
+              options={GRAINS}
+              ariaLabel="Noise type"
+              onchange={(v) => updateSketchSettings({ maskGrain: v as 'fractal' | 'turbulence' })}
+            />
+          </div>
+          <SketchDial
+            label="Scale" value={scalePos} min={0} max={100} step={1}
+            readout={`${s.maskBlob}px`}
+            ends={['speckle', 'patches']}
+            hint="Blob size on the page. Small reads as speckle, large as patches."
+            onchange={setScale}
+          />
+          <SketchDial
+            label="Detail" value={s.maskOctaves} min={1} max={4} step={1}
+            readout={layers(s.maskOctaves)}
+            ends={['one wave', 'grain']}
+            hint="Finer layers over the first, each half the size. One gives smooth blobs; four goes cloudy."
+            onchange={(v) => updateSketchSettings({ maskOctaves: v })}
+          />
+
+          <h5>Levels</h5>
+          <p class="group-note">
+            The field's black and white points. Below the low handle the fill is bare,
+            above the high one it is whole, and the span between them is the blotch edge.
+          </p>
+          <SketchRange
+            label="Range" low={levelMin} high={levelMax} min={0} max={100} step={1}
+            gap={LEVEL_GAP}
+            readout={`${levelMin}–${levelMax}%`}
+            hint="Where the field turns into ink. Close the handles for a hard cut, open them for a wash. Move the pair to ink more or less of the fill."
+            onchange={setLevels}
+          />
+          <SketchDial
+            label="Steps" value={stepPos} min={0} max={STEP_TONES.length - 1} step={1}
+            readout={s.maskPosterize > 1 ? `${s.maskPosterize} tones` : 'smooth'}
+            ends={['smooth', 'two tones']}
+            hint="Flattens the field into this many tones. Fewer tones give harder ink, down to a two-tone cut."
+            onchange={(v) => updateSketchSettings({ maskPosterize: STEP_TONES[v] })}
+          />
+
+          <h5>Blur</h5>
+          <SketchDial
+            label="Blur" value={s.maskSoftness} min={0} max={BLUR_MAX} step={0.25}
+            readout={px(s.maskSoftness)}
+            hint="Softens the blotch edges. Close levels with a little blur give a hard blotch with a soft rim."
+            onchange={(v) => updateSketchSettings({ maskSoftness: v })}
+          />
+        </div>
+        </div>
+        </UIReveal>
+      </section>
+
+      <section class="section" id="sketch-shape">
+        <button
+          type="button"
+          class="sec-head"
+          class:expanded={open.shape}
+          aria-expanded={open.shape}
+          aria-controls="sketch-shape-body"
+          onclick={() => toggle('shape')}
+        >
+          <i class="fas fa-chevron-right chevron"></i>
+          <h3 class="group-title">Shape</h3>
+          <span class="sec-summary">{summary.shape}</span>
+        </button>
+        <UIReveal open={open.shape}>
+        <div id="sketch-shape-body" class="sec-body">
+        <p class="group-note">
+          The box both layers are drawn around. Displacement wobbles the edges but leaves four
+          matching corners; these two dials change the shape itself. Fill and outline take the
+          same one.
+        </p>
+
+        <div class="phase">
+          <h4>Corners</h4>
+          <SketchDial
+            label="Spread" value={s.cornerSpread} min={0} max={32} step={1}
+            readout={`±${s.cornerSpread}px`}
+            hint="Rounding added to each corner on top of the theme's radius. Each corner takes between half the dial and all of it, so the four differ."
+            onchange={(v) => updateSketchSettings({ cornerSpread: v })}
+          />
+        </div>
+
+        <div class="phase">
+          <h4>Quadrangle</h4>
+          <SketchDial
+            label="Corner travel" value={s.cornerTravel} min={0} max={22} step={0.5}
+            readout={px(s.cornerTravel)}
+            hint="Pushes each corner a different way, so no two sides stay parallel. Every component moves the same number of pixels."
+            onchange={(v) => updateSketchSettings({ cornerTravel: v })}
           />
         </div>
         </div>
@@ -465,43 +677,41 @@
         <UIReveal open={open.icons}>
         <div id="sketch-icons-body" class="sec-body">
         <p class="group-note">
-          An icon has no box to redraw, so it takes the displacement and the ink mask on itself,
-          the way the whole page does in global mode. Body type is never filtered: a glyph is a
-          shape and survives a wobble, a paragraph is not. Both dials are independent of the
-          Line and Noise settings, because a glyph needs more travel than a card's long straight
-          edge before the wobble reads at all.
+          Icons take the displacement and the mask directly, having no box to redraw. Both dials
+          are separate from Border and Noise, because a glyph needs more travel before the wobble
+          reads. Body text is never filtered.
         </p>
 
         <div class="phase">
           <h4>Displacement</h4>
           <SketchDial
-            label="Amount" value={s.iconScale} min={0} max={8} step={0.5}
-            readout={s.iconScale === 0 ? 'off' : `${s.iconScale.toFixed(1)}px`}
-            hint="How far the glyph outline is pushed around the noise field. Zero leaves icons crisp."
-            onchange={(v) => updateSketchSettings({ iconScale: v })}
+            label="Magnitude" value={s.iconTravel} min={0} max={4} step={0.25}
+            readout={s.iconTravel === 0 ? 'off' : px(s.iconTravel)}
+            hint="Furthest the glyph outline moves. Zero leaves icons crisp."
+            onchange={(v) => updateSketchSettings({ iconTravel: v })}
           />
           <SketchDial
-            label="Detail" value={s.iconFrequency} min={0.4} max={4} step={0.1}
-            readout={`${s.iconFrequency.toFixed(1)}x`}
-            hint="Multiplies the Noise frequency for icons alone. Below 1 bends the whole glyph, above 2 ripples its outline."
-            onchange={(v) => updateSketchSettings({ iconFrequency: v })}
+            label="Wavelength" value={s.iconWavelength} min={0.25} max={2.5} step={0.05}
+            readout={against(s.iconWavelength)}
+            hint="The icon field's wavelength, as a multiple of the shared one under Noise. Above 1 bends the whole glyph; below half it ripples the outline."
+            onchange={(v) => updateSketchSettings({ iconWavelength: v })}
           />
         </div>
 
         <div class="phase">
           <h4>Ink coverage</h4>
-          <div class="seg-row" data-hint="Erases the icon in patches, the same ink model the fill mask uses. Independent of the fill's own mask switch.">
-            <span class="seg-label">Mask</span>
-            <UISegmentedControl
-              options={MASK_ON}
-              value={s.iconMaskOn ? 'on' : 'off'}
-              onchange={(v) => updateSketchSettings({ iconMaskOn: v === 'on' })}
+          <div class="seg-row switch" data-hint="Erases the glyph in patches, using the same field as the fill. Switched separately from the fill's.">
+            <Toggle
+              label="Mask"
+              labelFirst
+              checked={s.iconMaskOn}
+              onchange={(v) => updateSketchSettings({ iconMaskOn: v })}
             />
           </div>
           <SketchDial
             label="Blotch size" value={s.iconMaskTile} min={20} max={400} step={10}
             readout={`${s.iconMaskTile}px`}
-            hint="One mask tile, in px. Near icon size puts several blotches across one glyph. Much larger and a whole icon samples a single patch, so it either survives intact or disappears."
+            hint="Mask tile size. Near icon size puts several blotches across a glyph; much larger and a whole icon samples one patch."
             onchange={(v) => updateSketchSettings({ iconMaskTile: v })}
           />
         </div>
@@ -525,105 +735,30 @@
         <UIReveal open={open.noise}>
         <div id="sketch-noise-body" class="sec-body">
         <p class="group-note">
-          Two independent noise sources. The displacement field moves both layers. The fill mask
-          erases the fill in patches, and never touches the outline.
+          The wave every layer is pushed around. Length and shape are set here and shared;
+          magnitude belongs to each layer, under Border, Fill and Icons. Fill and outline read it
+          on separate seeds. It moves edges only: ink coverage is separate noise, under Fill.
         </p>
 
         <div class="phase">
           <h4>Displacement field</h4>
           <SketchDial
-            label="Frequency" value={s.frequency} min={0.004} max={0.08} step={0.002}
-            readout={s.frequency.toFixed(3)}
-            hint="Wavelength of the wobble. Low gives long lazy curves, high gives tight chatter."
-            onchange={(v) => updateSketchSettings({ frequency: v })}
+            label="Wavelength" value={s.wobble} min={10} max={240} step={2}
+            readout={`${s.wobble}px`}
+            hint="Length of one wobble. At 20 a button's side carries two full waves; at 200 a card leans on one curve."
+            onchange={(v) => updateSketchSettings({ wobble: v })}
           />
           <SketchDial
-            label="Octaves" value={s.octaves} min={1} max={5} step={1}
-            readout={`${s.octaves} oct`}
-            hint="Layers of finer detail stacked on the base noise. More octaves adds grain to the long curves."
-            onchange={(v) => updateSketchSettings({ octaves: v })}
-          />
-        </div>
-
-        <div class="phase">
-          <div class="phase-head">
-            <h4>Fill mask</h4>
-            <Toggle
-              label="On"
-              labelFirst
-              checked={s.maskOn}
-              onchange={(v) => updateSketchSettings({ maskOn: v })}
-            />
-          </div>
-
-          <figure class="scope" class:muted={!s.maskOn}>
-            <div
-              class="pad"
-              style:background-image={maskPreview}
-              style:background-size="{s.maskScale}px {s.maskScale}px"
-              onpointerdown={padDown}
-              onpointermove={padMove}
-              onpointerup={() => (dragging = false)}
-              onpointercancel={() => (dragging = false)}
-              role="slider"
-              tabindex="0"
-              aria-label="Blob size and edge hardness"
-              aria-valuenow={s.maskFrequency}
-            >
-              <span class="cross v" style:left="{dotX}%"></span>
-              <span class="cross h" style:top="{dotY}%"></span>
-              <span class="dot" style:left="{dotX}%" style:top="{dotY}%"></span>
-            </div>
-            <figcaption>
-              <span>&larr; blob size &rarr;</span>
-              <span>&uarr; hardness &darr;</span>
-            </figcaption>
-          </figure>
-
-          <SketchDial
-            label="Blob size" value={s.maskFrequency} min={0.002} max={0.06} step={0.001}
-            readout={s.maskFrequency.toFixed(3)}
-            hint="Wavelength of the mask noise. Low gives broad patches, high gives speckle that reads as dirt."
-            onchange={(v) => updateSketchSettings({ maskFrequency: v })}
+            label="Roughness" value={s.roughness} min={1} max={3} step={1}
+            readout={ROUGHNESS[s.roughness - 1]}
+            hint="Finer waves over the main one, each at half the length and magnitude. One is a clean undulation; three reads as paper grain."
+            onchange={(v) => updateSketchSettings({ roughness: v })}
           />
           <SketchDial
-            label="Detail" value={s.maskOctaves} min={1} max={5} step={1}
-            readout={`${s.maskOctaves} oct`}
-            hint="Layers of finer detail in the mask. One or two gives broad blobs, four or more goes cloudy and stops reading as blotches."
-            onchange={(v) => updateSketchSettings({ maskOctaves: v })}
-          />
-          <div class="seg-row" data-hint="Quantises the mask into discrete levels. Smooth is a gradient, higher counts give hard two-tone blotches.">
-            <span class="seg-label">Blotches</span>
-            <UISegmentedControl
-              value={String(s.maskPosterize)}
-              options={BLOTCHES}
-              ariaLabel="Mask levels"
-              onchange={(v) => updateSketchSettings({ maskPosterize: Number(v) })}
-            />
-          </div>
-          <SketchDial
-            label="Edge hardness" value={s.maskContrast} min={0.5} max={5} step={0.1}
-            readout={s.maskContrast.toFixed(1)}
-            hint="Alpha slope. Higher draws a harder edge between covered and bare."
-            onchange={(v) => updateSketchSettings({ maskContrast: v })}
-          />
-          <SketchDial
-            label="Softness" value={s.maskSoftness} min={0} max={6} step={0.5}
-            readout={s.maskSoftness.toFixed(1)}
-            hint="Feathers the blotch edges."
-            onchange={(v) => updateSketchSettings({ maskSoftness: v })}
-          />
-          <SketchDial
-            label="Coverage" value={s.maskFloor} min={0} max={1} step={0.05}
-            readout={`${Math.round(s.maskFloor * 100)}%`}
-            hint="Alpha floor. 100% keeps the fill everywhere, 0% lets the mask erase it completely."
-            onchange={(v) => updateSketchSettings({ maskFloor: v })}
-          />
-          <SketchDial
-            label="Pattern scale" value={s.maskScale} min={150} max={2400} step={50}
-            readout={`${s.maskScale}px`}
-            hint="Size of one mask tile on the page. Large gives broad patches, small gives speckle."
-            onchange={(v) => updateSketchSettings({ maskScale: v })}
+            label="Waveform" value={s.waveform} min={1} max={4} step={0.1}
+            readout={waveformLabel(s.waveform)}
+            hint="How much of an edge reaches full magnitude. Soft moves the edge only where the wave peaks; square moves nearly all of it."
+            onchange={(v) => updateSketchSettings({ waveform: v })}
           />
         </div>
         </div>
@@ -672,6 +807,20 @@
     gap: var(--ui-space-8);
   }
 
+
+  /* Grid, saved band and readout are one control: which preset is on, and what
+     that preset is. Splitting them left the description reading as a stray
+     caption under the tab. */
+  .picker {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-10);
+    background: var(--ui-surface-lower);
+    border: 1px solid var(--ui-border-low);
+    border-radius: var(--ui-radius-lg);
+  }
+
   .presets {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
@@ -679,6 +828,10 @@
   }
 
   .preset {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-8);
     padding: var(--ui-space-6) var(--ui-space-10);
     background: var(--ui-surface-low);
     border: 1px solid var(--ui-border-low);
@@ -688,7 +841,34 @@
     font-size: var(--ui-font-size-md);
     text-align: left;
     cursor: pointer;
-    transition: color var(--ui-transition-fast), background var(--ui-transition-fast);
+    user-select: none;
+    transition: color var(--ui-transition-fast), background var(--ui-transition-fast),
+      border-color var(--ui-transition-fast);
+  }
+
+  .preset input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .preset::before {
+    content: '';
+    flex: none;
+    width: 0.75rem;
+    height: 0.75rem;
+    border: 1px solid var(--ui-border-high);
+    border-radius: var(--ui-radius-full);
+    transition: border-color var(--ui-transition-fast), background var(--ui-transition-fast);
+  }
+
+  .preset-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .preset:hover {
@@ -696,10 +876,24 @@
     background: var(--ui-hover);
   }
 
-  .preset.on {
+  .preset:hover::before {
+    border-color: var(--ui-text-primary);
+  }
+
+  .preset:has(input:checked) {
     background: var(--ui-surface-highest);
     border-color: var(--ui-border-higher);
     color: var(--ui-text-primary);
+  }
+
+  .preset:has(input:checked)::before {
+    border-color: var(--ui-text-primary);
+    background: radial-gradient(circle, var(--ui-text-primary) 0 45%, transparent 46%);
+  }
+
+  /* Inset, not an outline: the saved row clips its children to its radius. */
+  .preset:has(input:focus-visible) {
+    box-shadow: inset 0 0 0 2px var(--ui-border-higher);
   }
 
   .saved {
@@ -715,10 +909,12 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--ui-space-8);
+    min-height: 1.75rem;
   }
 
-  .saved-label {
-    font-size: var(--ui-font-size-md);
+  .band-label {
+    font-size: var(--ui-font-size-xs);
+    font-weight: var(--ui-font-weight-semibold);
     color: var(--ui-text-tertiary);
   }
 
@@ -746,7 +942,7 @@
   }
 
   /* The row is one control with a delete affordance, so the border lives here
-     and the inner .preset button drops its own. */
+     and the inner .preset label drops its own. */
   .saved-item {
     display: flex;
     align-items: stretch;
@@ -762,18 +958,11 @@
     background: none;
     border: none;
     border-radius: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
-  .saved-item.on {
+  .saved-item:has(input:checked) {
     background: var(--ui-surface-highest);
     border-color: var(--ui-border-higher);
-  }
-
-  .saved-item.on .preset {
-    color: var(--ui-text-primary);
   }
 
   .saved-delete {
@@ -791,27 +980,33 @@
     color: var(--ui-text-primary);
   }
 
-  .saved-empty,
   .saved-error {
     margin: 0;
     font-size: var(--ui-font-size-sm);
-    color: var(--ui-text-muted);
+    color: var(--ui-text-secondary);
   }
 
-  .blurb {
-    margin: 0;
+  /* The selection names itself at the head of the card, so the grid below reads
+     as the choices for it rather than as eight loose buttons. */
+  .readout-name {
+    display: block;
+    font-size: var(--ui-font-size-lg);
+    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-text-primary);
+  }
+
+  .readout-blurb {
+    margin: var(--ui-space-2) 0 0;
     min-height: 2.6em;
-    padding-left: var(--ui-space-10);
-    border-left: 1px solid var(--ui-border-low);
-    font-size: var(--ui-font-size-sm);
+    font-size: var(--ui-font-size-md);
     line-height: var(--ui-line-height-relaxed);
-    color: var(--ui-text-muted);
+    color: var(--ui-text-secondary);
   }
 
   .dormant {
     margin: 0;
     font-size: var(--ui-font-size-sm);
-    color: var(--ui-text-muted);
+    color: var(--ui-text-secondary);
   }
 
   /* Controls scroll, preview stays put. Fine-tuning a dial is worthless if the
@@ -833,11 +1028,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-32);
-    transition: opacity var(--ui-transition-base);
-  }
-
-  .sketch-tab.inactive .controls {
-    opacity: 0.55;
   }
 
   .preview-col {
@@ -877,7 +1067,7 @@
     align-self: center;
     width: 0.75rem;
     font-size: 0.625rem;
-    color: var(--ui-text-tertiary);
+    color: var(--ui-text-secondary);
     transition: transform var(--ui-transition-fast);
   }
 
@@ -892,7 +1082,7 @@
 
   .sec-summary {
     font-size: var(--ui-font-size-sm);
-    color: var(--ui-text-tertiary);
+    color: var(--ui-text-secondary);
     transition: color var(--ui-transition-fast);
   }
 
@@ -914,7 +1104,7 @@
     margin: calc(var(--ui-space-12) * -1) 0 0;
     font-size: var(--ui-font-size-sm);
     line-height: var(--ui-line-height-relaxed);
-    color: var(--ui-text-muted);
+    color: var(--ui-text-secondary);
   }
 
   /* Pipeline order within a group: shape it, weight it, render it. The dials
@@ -936,14 +1126,23 @@
     margin: 0;
     font-size: var(--ui-font-size-md);
     font-weight: var(--ui-font-weight-medium);
-    color: var(--ui-text-secondary);
+    color: var(--ui-text-primary);
   }
 
   .phase h4::after {
     content: '';
     flex: 1;
     height: 1px;
-    background: var(--ui-border-low);
+    background: var(--ui-border-high);
+  }
+
+  .phase h5 {
+    margin: var(--ui-space-8) 0 0;
+    font-size: var(--ui-font-size-xs);
+    font-weight: var(--ui-font-weight-medium);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ui-text-tertiary);
   }
 
   .phase-head {
@@ -967,7 +1166,20 @@
 
   .seg-label {
     font-size: var(--ui-font-size-md);
-    color: var(--ui-text-tertiary);
+    color: var(--ui-text-primary);
+  }
+
+  /* An on/off row is one switch, and the switch sits where a segmented control
+     would: hard against the right edge, with its label reading as a row label
+     rather than as the switch's own caption. */
+  .seg-row.switch :global(.toggle) {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .seg-row.switch :global(.toggle-label) {
+    color: var(--ui-text-primary);
   }
 
   .seg-row:hover::after {
@@ -1000,54 +1212,57 @@
     opacity: 0.4;
   }
 
-  .pad {
-    position: relative;
-    height: 7rem;
+  /* The shadow sits on the card and the mask on the fill inside it: the same
+     split the fill layer makes, so what this shows is what the page does. */
+  .sample {
+    height: 6rem;
+    padding: var(--ui-space-16) var(--ui-space-24);
     border: 1px solid var(--ui-border-low);
     border-radius: var(--ui-radius-sm);
-    background-repeat: repeat;
-    cursor: crosshair;
-    touch-action: none;
+    background: var(--ui-surface-lowest);
+    overflow: hidden;
   }
 
-  .pad:focus-visible {
-    outline: 1px solid var(--ui-text-primary);
-    outline-offset: 2px;
+  .ink {
+    box-shadow: var(--ui-shadow-md);
   }
 
-  .cross {
-    position: absolute;
+  .stages {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--ui-space-8);
+  }
+
+  .stages figure {
+    margin: 0;
+  }
+
+  .tile {
+    height: var(--ui-space-48);
+    border-radius: var(--ui-radius-sm);
     background: var(--ui-text-primary);
-    opacity: 0.5;
-    pointer-events: none;
+    mask-mode: luminance;
+    mask-repeat: repeat;
   }
 
-  .cross.v {
-    top: 0;
-    bottom: 0;
-    width: 1px;
-  }
-
-  .cross.h {
-    left: 0;
-    right: 0;
-    height: 1px;
-  }
-
-  .dot {
-    position: absolute;
-    width: 7px;
-    height: 7px;
-    border-radius: var(--ui-radius-full);
-    background: var(--ui-text-primary);
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-  }
-
-  figcaption {
-    display: flex;
-    justify-content: space-between;
+  .stages figcaption {
+    margin-top: var(--ui-space-2);
     font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-muted);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ui-text-tertiary);
   }
+
+  .ink {
+    height: 100%;
+    border-radius: var(--ui-radius-md);
+    /* An ink colour, not a surface one: the point of the swatch is the
+       blotches, and the surface rungs sit within a shade or two of the ground
+       under them, which showed the finished field as a flat dark rectangle. */
+    background: var(--ui-text-muted);
+    mask-mode: luminance;
+    mask-repeat: repeat;
+  }
+
 </style>

@@ -18,6 +18,7 @@ import {
 const ENABLED_KEY = 'lt.sketchEnabled';
 const SETTINGS_KEY = 'lt.sketchSettings';
 const PRESET_KEY = 'lt.sketchPreset';
+const BASELINE_KEY = 'lt.sketchBaseline';
 
 function readEnabled(): boolean {
   try {
@@ -35,6 +36,16 @@ function readSettings(): SketchSettings {
     // fall through to the default preset
   }
   return { ...SKETCH_PRESETS[DEFAULT_SKETCH_PRESET] };
+}
+
+function readBaseline(): SketchSettings | null {
+  try {
+    const raw = localStorage.getItem(BASELINE_KEY);
+    if (raw) return hydrateSketchSettings(JSON.parse(raw));
+  } catch {
+    // fall through
+  }
+  return null;
 }
 
 /** Marks a saved preset in `sketchPreset`, so a user file named `pencil` and
@@ -57,8 +68,29 @@ function readPresetName(): string {
     inherits without asking for it. */
 export const sketchEnabled = writable<boolean>(readEnabled());
 export const sketchSettings = writable<SketchSettings>(readSettings());
-/** Empty once a dial has moved the settings away from any shipped preset. */
+/** The preset the dials started from. It survives dial moves, so the grid keeps
+    showing what the current look is closest to; empty only when nothing was
+    picked, or the picked file was deleted. */
 export const sketchPreset = writable<string>(readPresetName());
+
+/** The settings as the selected preset defined them. Kept beside the live
+    settings so "modified" is derived by comparison rather than tracked as a
+    flag: dial a value back to where it started and the tab stops claiming a
+    change, with no bookkeeping to get wrong. */
+export const sketchBaseline = writable<SketchSettings | null>(readBaseline());
+
+/** Dial-set fields only. `label` and `blurb` name the preset rather than
+    describe the look, and no dial writes them. */
+function sameLook(a: SketchSettings, b: SketchSettings): boolean {
+  return (Object.keys(a) as (keyof SketchSettings)[])
+    .filter((k) => k !== 'label' && k !== 'blurb')
+    .every((k) => a[k] === b[k]);
+}
+
+export const sketchDirty = derived(
+  [sketchSettings, sketchBaseline],
+  ([settings, baseline]) => baseline !== null && !sameLook(settings, baseline),
+);
 
 export const sketchBlurb = derived(sketchSettings, (s) => s.blurb);
 
@@ -66,6 +98,7 @@ export function selectSketchPreset(name: string): void {
   const preset = SKETCH_PRESETS[name];
   if (!preset) return;
   sketchPreset.set(name);
+  sketchBaseline.set({ ...preset });
   sketchSettings.set({ ...preset });
 }
 
@@ -80,6 +113,7 @@ export async function refreshUserPresets(): Promise<void> {
 export async function selectUserSketchPreset(fileName: string): Promise<void> {
   const file = await loadSketchPreset(fileName);
   sketchPreset.set(USER_PRESET_PREFIX + fileName);
+  sketchBaseline.set({ ...file.settings });
   sketchSettings.set(file.settings);
 }
 
@@ -95,6 +129,7 @@ export async function saveCurrentAsSketchPreset(name: string): Promise<string> {
   await saveSketchPreset(fileName, trimmed, settings);
   await refreshUserPresets();
   sketchSettings.set(settings);
+  sketchBaseline.set({ ...settings });
   sketchPreset.set(USER_PRESET_PREFIX + fileName);
   return fileName;
 }
@@ -103,14 +138,17 @@ export async function deleteUserSketchPreset(fileName: string): Promise<void> {
   await deleteSketchPreset(fileName);
   await refreshUserPresets();
   // The dials keep their values; only the label stops naming a file that exists.
-  if (get(sketchPreset) === USER_PRESET_PREFIX + fileName) sketchPreset.set('');
+  if (get(sketchPreset) === USER_PRESET_PREFIX + fileName) {
+    sketchPreset.set('');
+    sketchBaseline.set(null);
+  }
 }
 
-/** Every dial goes through here so one write both stores the value and drops
-    the preset label, which no longer describes what is on screen. */
+/** Every dial goes through here. The selection deliberately survives: the grid
+    keeps naming the preset this look came from, and `sketchDirty` reports the
+    drift. Save writes a new preset rather than overwriting the base. */
 export function updateSketchSettings(patch: Partial<SketchSettings>): void {
   sketchSettings.update((s) => ({ ...s, ...patch }));
-  if (get(sketchPreset) !== '') sketchPreset.set('');
 }
 
 function persist(key: string, value: string): void {
@@ -148,4 +186,5 @@ if (typeof document !== 'undefined') {
   });
 
   sketchPreset.subscribe((name) => persist(PRESET_KEY, name));
+  sketchBaseline.subscribe((b) => persist(BASELINE_KEY, b ? JSON.stringify(b) : ''));
 }

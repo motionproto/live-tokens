@@ -2450,6 +2450,23 @@
           "value": "monospace"
         }
       ]
+    },
+    {
+      "variable": "--font-editorial",
+      "slots": [
+        {
+          "kind": "project",
+          "familyId": "src_preset_montserrat:montserrat"
+        },
+        {
+          "kind": "system",
+          "preset": "system-ui-sans"
+        },
+        {
+          "kind": "generic",
+          "value": "sans-serif"
+        }
+      ]
     }
   ],
   "harmonyAxes": [

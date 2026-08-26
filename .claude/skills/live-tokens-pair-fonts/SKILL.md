@@ -1,6 +1,6 @@
 ---
 name: live-tokens-pair-fonts
-description: Choose and apply a Google Fonts pairing for a live-tokens theme by binding families to the --font-display, --font-sans, --font-serif and --font-mono stacks. Use whenever the user asks to pair fonts, pick a typeface, change or set the fonts, or describes type by voice: give me a font pairing, what font should the headings use, make the type more editorial, friendlier, more technical, more elegant, a serif for headings, a display font for this theme, less generic type, match the fonts to the theme. Also invoked by live-tokens-generate-theme for the type half of a whole look. Changes type only, never color. Not for a single token (use the editor) or for color (see live-tokens-generate-theme).
+description: Choose and apply a Google Fonts pairing for a live-tokens theme by binding families to the --font-display, --font-sans, --font-serif, --font-mono and --font-editorial stacks. Use whenever the user asks to pair fonts, pick a typeface, change or set the fonts, or describes type by voice: give me a font pairing, what font should the headings use, make the type more editorial, friendlier, more technical, more elegant, a serif for headings, a display font for this theme, less generic type, match the fonts to the theme. Also invoked by live-tokens-generate-theme for the type half of a whole look. Changes type only, never color. Not for a single token (use the editor) or for color (see live-tokens-generate-theme).
 ---
 
 # Pairing fonts for a theme
@@ -24,7 +24,7 @@ Flags: `--dry-run` reports without writing. `--no-verify` skips the network and 
 { "display": "Fraunces", "body": "Nunito Sans" }
 ```
 
-Every slot is optional and an omitted slot is left exactly as it is. `display` is `--font-display`, `body` is `--font-sans`; `serif` and `mono` exist when a theme needs them. A slot may be `{ "name": "...", "url": "..." }` to pin an exact URL. Spell families as Google does; the CLI reports the canonical spelling back.
+Every slot is optional and an omitted slot is left exactly as it is. `display` is `--font-display`, `body` is `--font-sans`; `serif`, `mono` and `editorial` exist when a theme needs them. `editorial` is `--font-editorial`, the long-reading face behind the `--editorial-*` text style: it tracks the body face until a theme repoints it, so set it only when essays and articles should not carry the body face. A slot may be `{ "name": "...", "url": "..." }` to pin an exact URL. Spell families as Google does; the CLI reports the canonical spelling back.
 
 ## Choose the body face first
 

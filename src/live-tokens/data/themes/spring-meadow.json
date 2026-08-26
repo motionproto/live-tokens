@@ -2395,6 +2395,23 @@
             "value": "monospace"
           }
         ]
+      },
+      {
+        "variable": "--font-editorial",
+        "slots": [
+          {
+            "kind": "project",
+            "familyId": "src_preset_figtree:figtree"
+          },
+          {
+            "kind": "system",
+            "preset": "system-ui-sans"
+          },
+          {
+            "kind": "generic",
+            "value": "sans-serif"
+          }
+        ]
       }
     ],
     "harmonyAxes": [

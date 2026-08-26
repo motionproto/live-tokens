@@ -7,14 +7,15 @@
  *
  * Nothing here reads or writes theme values. The effect is a layer over
  * whatever theme is active: it paints ::before/::after pseudo-elements from the
- * component's own --<component>-<variant>-{surface,border} tokens and hides the
- * component's real background and border behind them.
+ * component's own --<component>-<variant>-{surface,border,radius} tokens and
+ * hides the component's real background and border behind them.
  *
  * Scope is an attribute, not a class, so a caller can switch it on for a whole
  * document root or for a single preview container:
- *   data-sketch="layered" | "global"   absent = off
+ *   data-sketch   present = on, absent = off
  */
 import { getSyncedDocuments } from '../cssVarSync';
+import { buildMaskUri, MASK_TILE } from './maskField';
 import type { SketchSettings } from './sketchPresets';
 
 const DEFS_ATTR = 'data-sketch-defs';
@@ -25,7 +26,7 @@ const ID = 'lt-sketch';
     identical twins, which is the single biggest tell that it is not hand drawn. */
 const SEEDS = [0, 1, 2, 3, 4];
 
-const HACHURE_ANGLE = 45;
+const HATCH_ANGLE = 45;
 
 /**
  * One drawable part. `stem` is the token stem: the fill reads
@@ -45,6 +46,33 @@ interface PartSpec {
   stem?: string;
   fill?: string;
   stroke?: string;
+  /** Hatch ink, where the stroke is transparent. A header or a content strip
+      draws no outline of its own but still carries a surface, and the hatch
+      falls back to the stroke, so binding the two left it striped in nothing.
+      These name the ink their PARENT is outlined in, so the whole component
+      reads as one drawing rather than as a box with a shaded panel dropped in.
+      A part with a visible stroke needs no entry; a part with no fill wants
+      none, because there is no surface there to shade. */
+  hatch?: string;
+  /** Overrides `--{stem}-radius` where a component names its corners something
+      else, and supplies the value for a part that has no stem. `--sketch-radius`
+      inherits, so every part states one: left unset, a square header inside a
+      rounded card would pick up the card's corners. */
+  radius?: string;
+  /** Same contract for `--{stem}-shadow`. The shadow moves onto the drawn box,
+      because the one the component casts belongs to a rectangle the sketch is
+      no longer drawing. */
+  shadow?: string;
+  /** Keeps its own `overflow`, against the default. Every part gives its clip
+      up under the layer, because a clip is a flat rectangle and a flat
+      rectangle is exactly what slices the drawn box off. Most of them clip only
+      to round off what sits inside, which the drawn box now does itself.
+
+      Set this where the clip carries something real: a scroller, a fill bar
+      held to its track, a picture held to its frame. Those keep it and take the
+      drawn corner radii on the host instead, so the clip at least turns the
+      same way the ink does. */
+  clips?: boolean;
   positioned?: boolean;
   strokeless?: boolean;
 }
@@ -65,64 +93,124 @@ const STATUS_VARIANTS = ['info', 'success', 'warning', 'danger'];
 const PART_SPECS: readonly PartSpec[] = [
   // Buttons
   ...FILLED_BUTTON_VARIANTS.map((v) => ({ sel: `.button.${v}`, stem: `button-${v}` })),
-  { sel: '.button.outline', fill: 'transparent', stroke: 'var(--button-outline-border)' },
+  {
+    sel: '.button.outline', fill: 'transparent', stroke: 'var(--button-outline-border)',
+    radius: 'var(--button-outline-radius, 0px)',
+  },
   ...FILLED_BUTTON_VARIANTS.map((v) => ({ sel: `.icon-button.${v}`, stem: `iconbutton-${v}` })),
-  { sel: '.icon-button.outline', fill: 'transparent', stroke: 'var(--iconbutton-outline-border)' },
+  {
+    sel: '.icon-button.outline', fill: 'transparent', stroke: 'var(--iconbutton-outline-border)',
+    radius: 'var(--iconbutton-outline-radius, 0px)',
+  },
 
   // Chips
   ...BADGE_VARIANTS.map((v) => ({ sel: `.badge-${v}`, stem: `badge-${v}` })),
-  ...BADGE_VARIANTS.map((v) => ({
-    sel: `.corner-badge-${v}`, stem: `corner-badge-${v}`, positioned: true,
-  })),
+  // CornerBadge's own element only anchors and rebinds: the colour it names is
+  // handed down to the Badge inside it, and `.badge-*` above draws it there.
+  // Drawing it here as well stacks a second box behind the first.
 
   // Containers
   { sel: '.card', stem: 'card-default' },
-  { sel: '.card-header', fill: 'var(--card-default-header-surface)', stroke: 'transparent' },
-  { sel: '.panel', fill: 'var(--panel-stage-surface)', stroke: 'var(--panel-frame-border)' },
-  { sel: '.codesnippet', stem: 'codesnippet' },
-  { sel: '.table-wrapper', stem: 'table-default' },
-  { sel: '.dialog', stem: 'dialog' },
-  { sel: '.dialog-header', fill: 'var(--dialog-header-surface)', stroke: 'transparent' },
   {
-    sel: '.es-root.variant-container',
-    fill: 'var(--collapsiblesection-container-default-surface)',
+    sel: '.card-header', fill: 'var(--card-default-header-surface)', stroke: 'transparent',
+    hatch: 'var(--card-default-border)',
+  },
+  {
+    sel: '.panel', fill: 'var(--panel-stage-surface)', stroke: 'var(--panel-frame-border)',
+    radius: 'var(--panel-frame-radius, 0px)',
+  },
+  // Scrolls sideways.
+  { sel: '.codesnippet', stem: 'codesnippet', clips: true },
+  // Scrolls sideways.
+  { sel: '.table-wrapper', stem: 'table-default', clips: true },
+  { sel: '.dialog', stem: 'dialog' },
+  {
+    sel: '.dialog-header', fill: 'var(--dialog-header-surface)', stroke: 'transparent',
+    hatch: 'var(--dialog-border)',
+  },
+  // The container variant is a frame around two painted children, and holds no
+  // colour of its own. Filling it with the header's surface floods the whole
+  // section with it, and repaints all of it on a hover only the header answers.
+  {
+    sel: '.es-root.variant-container', fill: 'transparent',
     stroke: 'var(--collapsiblesection-container-frame-border)',
+    radius: 'var(--collapsiblesection-container-frame-radius, 0px)',
+  },
+  {
+    sel: '.es-root.variant-container > .section-header',
+    fill: 'var(--collapsiblesection-container-default-surface)', stroke: 'transparent',
+    hatch: 'var(--collapsiblesection-container-frame-border)',
+  },
+  {
+    sel: '.es-root.variant-container > .section-content',
+    fill: 'var(--collapsiblesection-container-expanded-surface)', stroke: 'transparent',
+    hatch: 'var(--collapsiblesection-container-frame-border)',
   },
   {
     sel: '.sidenavigation',
     fill: 'var(--sidenavigation-panel-surface)',
     stroke: 'var(--sidenavigation-panel-border)',
+    // Its close animation is a width transition whose overflow the clip hides.
+    clips: true,
   },
   // The arrow is the tooltip's own ::after, so the box takes the fill only.
   { sel: '.tooltip', stem: 'tooltip', positioned: true, strokeless: true },
 
   // Status blocks
   ...STATUS_VARIANTS.map((v) => ({ sel: `.callout-${v}`, stem: `callout-${v}` })),
-  ...STATUS_VARIANTS.map((v) => ({ sel: `.notification.${v}`, stem: `notification-${v}` })),
+  // Same shape as the container section above: the notification's colour is on
+  // its header strip, and the body below it is left to the page.
+  ...STATUS_VARIANTS.map((v) => ({
+    sel: `.notification.${v}`, fill: 'transparent',
+    stroke: `var(--notification-${v}-border)`,
+    radius: `var(--notification-${v}-radius, 0px)`,
+  })),
+  ...STATUS_VARIANTS.map((v) => ({
+    sel: `.notification.${v} .notification-header`,
+    fill: `var(--notification-${v}-surface)`, stroke: 'transparent',
+    hatch: `var(--notification-${v}-border)`,
+  })),
 
   // Controls
-  { sel: '.input-control', stem: 'input-default' },
-  { sel: '.menuselect', fill: 'var(--menuselect-default-surface)', stroke: 'transparent' },
-  { sel: '.tab', stem: 'tabbar-default' },
-  { sel: '.tab.active', stem: 'tabbar-active' },
+  { sel: '.input-control', stem: 'input-default', radius: 'var(--input-radius, 0px)' },
+  {
+    sel: '.menuselect', fill: 'var(--menuselect-menu-surface)',
+    stroke: 'var(--menuselect-menu-border)',
+    radius: 'var(--menuselect-menu-radius, 0px)',
+    shadow: 'var(--menuselect-menu-shadow, none)',
+  },
+  { sel: '.tab', stem: 'tabbar-default', radius: 'var(--tabbar-default-tab-top-radius, 0px)' },
+  { sel: '.tab.active', stem: 'tabbar-active', radius: 'var(--tabbar-active-tab-top-radius, 0px)' },
   {
     sel: '.segmented-control',
     fill: 'var(--segmentedcontrol-bar-surface)',
     stroke: 'var(--segmentedcontrol-bar-border)',
+    radius: 'var(--segmentedcontrol-bar-radius, 0px)',
   },
   // A segment carries the layer at all times and starts invisible, so that
   // selecting or hovering one repaints it rather than materialising a
   // pseudo-element that was not there a moment ago. STATE_COLOURS supplies
   // the two lit states.
-  { sel: '.segment', fill: 'transparent', stroke: 'transparent' },
+  {
+    sel: '.segment', fill: 'transparent', stroke: 'transparent',
+    radius: 'var(--segmentedcontrol-selected-radius, 0px)',
+  },
   {
     sel: '.progress-track',
     fill: 'var(--progressbar-track-surface)',
     stroke: 'var(--progressbar-track-border)',
+    radius: 'var(--progressbar-radius, 0px)',
+    // Holds the fill bar to the track, which is the whole component.
+    clips: true,
   },
-  { sel: '.image', fill: 'transparent', stroke: 'var(--image-default-border)' },
+  {
+    sel: '.image', fill: 'transparent', stroke: 'var(--image-default-border)',
+    radius: 'var(--image-default-radius, 0px)',
+    // Holds the picture inside the frame; without it a zoom spills out square.
+    clips: true,
+  },
   { sel: '.toggle .track', stem: 'toggle-track' },
-  { sel: '.toggle.on .track', stem: 'toggle-on-track' },
+  { sel: '.toggle.on .track', stem: 'toggle-on-track', radius: 'var(--toggle-track-radius, 0px)' },
 
   // Rules. A hairline is a thin filled box, so it needs the fill layer and no
   // outline: a line does not get drawn around.
@@ -170,8 +258,13 @@ const STATE_COLOURS: readonly StateSpec[] = [
   ...FILLED_BUTTON_VARIANTS.map((v) => hoverPair(`.icon-button.${v}`, `iconbutton-${v}`)),
   hoverPair('.icon-button.outline', 'iconbutton-outline'),
   hoverPair('.tab', 'tabbar'),
-  hoverPair('.menuselect', 'menuselect', false),
-  hoverPair('.es-root.variant-container', 'collapsiblesection-container', false),
+  // A menu's hover belongs to the item under the pointer. The item is not a
+  // drawn part, so it keeps its own background and lights up on its own.
+  {
+    sel: '.es-root.variant-container > .section-header:hover,'
+      + ' .es-root.variant-container.force-hover > .section-header',
+    fill: 'var(--collapsiblesection-container-hover-surface)',
+  },
 
   // Segments: the two lit states over the transparent base.
   {
@@ -201,93 +294,198 @@ export const PART_SELECTORS: readonly string[] = PART_SPECS.map((p) => p.sel);
 const PARTS = PART_SELECTORS.join(', ');
 const FLOW_PARTS = PART_SPECS.filter((p) => !p.positioned).map((p) => p.sel).join(', ');
 const STROKE_PARTS = PART_SPECS.filter((p) => !p.strokeless).map((p) => p.sel).join(', ');
-
-function levels(n: number): string {
-  return Array.from({ length: n }, (_, i) => (i / (n - 1)).toFixed(3)).join(' ');
-}
-
-function rgbTransfer(type: string, attrs: string): string {
-  return ['R', 'G', 'B'].map((c) => `<feFunc${c} type="${type}" ${attrs}/>`).join('');
-}
-
-/**
- * Greyscale luminance mask over the fill: white keeps the fill, black erases
- * it, so the noise decides where ink landed and where it ran out.
- *
- * The `#` in the filter reference must stay raw. Pre-encoding it as %23 makes
- * encodeURIComponent escape the % into %25, the reference dies, and the mask
- * silently becomes a no-op.
- */
-export function buildMaskUri(s: SketchSettings): string {
-  const lvl = s.maskPosterize > 1 ? levels(s.maskPosterize) : '';
-  const shift = (s.maskFloor - 0.5).toFixed(3);
-  const svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600">` +
-      `<filter id="m" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">` +
-        `<feTurbulence type="fractalNoise" baseFrequency="${s.maskFrequency}" numOctaves="${s.maskOctaves}" seed="9"/>` +
-        `<feColorMatrix type="saturate" values="0"/>` +
-        `<feComponentTransfer>` +
-          rgbTransfer('linear', `slope="${s.maskContrast}" intercept="${shift}"`) +
-          `<feFuncA type="linear" slope="0" intercept="1"/>` +
-        `</feComponentTransfer>` +
-        (lvl ? `<feComponentTransfer>${rgbTransfer('discrete', `tableValues="${lvl}"`)}</feComponentTransfer>` : '') +
-        (s.maskSoftness > 0 ? `<feGaussianBlur stdDeviation="${s.maskSoftness}"/>` : '') +
-      `</filter>` +
-      // The rect overhangs the viewport so the blur bleeds outside the visible
-      // tile instead of drawing a dark rim that shows up as a seam when it repeats.
-      `<rect x="-100" y="-100" width="800" height="800" filter="url(#m)"/>` +
-    `</svg>`;
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-}
-
-/** Along-stroke pressure. Low frequency and a high floor, so the line mostly
-    holds and only thins in patches. Same luminance contract as the fill mask. */
-function pressureUri(s: SketchSettings): string {
-  const svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400">` +
-      `<filter id="q" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">` +
-        `<feTurbulence type="fractalNoise" baseFrequency="0.014" numOctaves="2" seed="31"/>` +
-        `<feColorMatrix type="saturate" values="0"/>` +
-        `<feComponentTransfer>` +
-          rgbTransfer('linear', `slope="${1 + s.pressureMod * 2.5}" intercept="${0.5 - s.pressureMod * 0.9}"`) +
-          `<feFuncA type="linear" slope="0" intercept="1"/>` +
-        `</feComponentTransfer>` +
-      `</filter>` +
-      `<rect x="-60" y="-60" width="520" height="520" filter="url(#q)"/>` +
-    `</svg>`;
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-}
+const UNCLIPPED = PART_SPECS.filter((p) => !p.clips).map((p) => p.sel).join(', ');
+const CLIPPED = PART_SPECS.filter((p) => p.clips).map((p) => p.sel).join(', ');
 
 export function buildDefsMarkup(s: SketchSettings): string {
-  const displace = (id: string, freq: number, seed: number, scale: number, pad: number) =>
-    `<filter id="${id}" x="-${pad}%" y="-${pad}%" width="${100 + pad * 2}%" height="${100 + pad * 2}%" color-interpolation-filters="sRGB">` +
-      `<feTurbulence type="fractalNoise" baseFrequency="${freq}" numOctaves="${s.octaves}" seed="${seed}" result="n"/>` +
-      `<feDisplacementMap in="SourceGraphic" in2="n" scale="${scale}" xChannelSelector="R" yChannelSelector="G"/>` +
-    `</filter>`;
+  /**
+   * `warp` is the shape stage: one wave of noise whose wavelength spans a whole
+   * component, so the four corners sample different parts of the field and the
+   * box comes out a quadrangle with gently bowed sides. The fine stage that
+   * follows is the pen wobble.
+   *
+   * It has to be a displacement rather than a transform. Any transform that
+   * moves a corner does it in proportion to the box, so one setting wrecks a
+   * card and does nothing to a button; a displacement moves every corner the
+   * same number of pixels whatever it is drawing.
+   *
+   * Fill and stroke are handed the same warp seed and scale, so they distort
+   * together and only the fine stage disagrees.
+   *
+   * `pressure` is the along-stroke thinning, and it goes FIRST, before the
+   * shape stage moves anything. It used to be a CSS mask on the stroke layer,
+   * which meant it sat still in the element's own coordinates while the warp
+   * carried the line out from under it: past a certain travel the line no
+   * longer met the patches the mask had been cut for, and whole edges were
+   * erased instead of stretches of them. Thinning the ink here, ahead of the
+   * warp, means the thin patches ride along with the line they belong to and
+   * the shape dial has no ceiling.
+   */
+  const displace = (
+    id: string, freq: number, seed: number, scale: number, pad: number,
+    warp: number, warpSeed: number,
+    opts: { pressure?: number; retrace?: readonly [number, number] } = {},
+  ) => {
+    const { pressure = 0, retrace } = opts;
 
-  const banks = SEEDS.map((seed) =>
-    displace(`${ID}-fill-${seed}`, s.frequency, seed, s.fillScale, 15) +
+    // One pass of the pen. `tag` suffixes every result name, so a second pass
+    // can be laid into the same filter without its stages shadowing the
+    // first's.
+    const pass = (tag: string, passSeed: number, stages: string[]): string => {
+      let src = 'SourceGraphic';
+
+      if (pressure > 0) {
+        stages.push(
+          `<feTurbulence type="fractalNoise" baseFrequency="${PRESSURE_FREQUENCY}" numOctaves="2" seed="${passSeed + 31}" result="pn${tag}"/>`,
+          // Turbulence carries its own alpha. Flatten it first, or the luminance
+          // read below is of a field that is already partly see-through.
+          `<feComponentTransfer in="pn${tag}" result="pf${tag}"><feFuncA type="linear" slope="0" intercept="1"/></feComponentTransfer>`,
+          `<feColorMatrix in="pf${tag}" type="luminanceToAlpha" result="pl${tag}"/>`,
+          `<feComponentTransfer in="pl${tag}" result="pm${tag}">` +
+            `<feFuncA type="linear" slope="${(1 + pressure * 2.5).toFixed(3)}" intercept="${(0.5 - pressure * 0.9).toFixed(3)}"/>` +
+          `</feComponentTransfer>`,
+          `<feComposite in="${src}" in2="pm${tag}" operator="in" result="inked${tag}"/>`,
+        );
+        src = `inked${tag}`;
+      }
+
+      // The shape stage keeps the filter's own warp seed on both passes. It is
+      // the box, not the pen: reseed it and the second pass leans a different
+      // quadrilateral, which reads as two boxes rather than as one gone round
+      // twice.
+      if (warp > 0) {
+        stages.push(
+          `<feTurbulence type="fractalNoise" baseFrequency="${(freq * WARP_FREQUENCY).toFixed(5)}" numOctaves="1" seed="${warpSeed}" result="w${tag}"/>`,
+          squareOff(s, `w${tag}`, `wb${tag}`),
+          `<feDisplacementMap in="${src}" in2="${squaredResult(s, `w${tag}`, `wb${tag}`)}" scale="${swing(warp)}" xChannelSelector="R" yChannelSelector="G" result="box${tag}"/>`,
+        );
+        src = `box${tag}`;
+      }
+
+      stages.push(
+        `<feTurbulence type="fractalNoise" baseFrequency="${freq.toFixed(5)}" numOctaves="${s.roughness}" seed="${passSeed}" result="n${tag}"/>`,
+        squareOff(s, `n${tag}`, `nb${tag}`),
+        `<feDisplacementMap in="${src}" in2="${squaredResult(s, `n${tag}`, `nb${tag}`)}" scale="${swing(scale)}" xChannelSelector="R" yChannelSelector="G" result="drawn${tag}"/>`,
+      );
+
+      return `drawn${tag}`;
+    };
+
+    const stages: string[] = [];
+    const first = pass('', seed, stages);
+    if (retrace) {
+      // A second pen stroke rather than a copy of the first: its own wobble
+      // seed and its own thinning, so the two runs part company along their
+      // length instead of tracking each other a couple of px apart. They are
+      // merged, not composited, so a translucent nib doubles where they cross
+      // and stays pale where only one landed.
+      const second = pass('r', seed + RETRACE_SEED, stages);
+      stages.push(
+        `<feOffset in="${second}" dx="${retrace[0].toFixed(2)}" dy="${retrace[1].toFixed(2)}" result="shifted"/>`,
+        `<feMerge><feMergeNode in="${first}"/><feMergeNode in="shifted"/></feMerge>`,
+      );
+    }
+
+    return `<filter id="${id}" x="-${pad}%" y="-${pad}%" width="${100 + pad * 2}%" height="${100 + pad * 2}%" color-interpolation-filters="sRGB">` +
+      stages.join('') +
+    `</filter>`;
+  };
+
+  // Room for both stages to push the edge outward, for the retrace, and for the
+  // shadow the fill layer casts. Too tight and the filter region itself becomes
+  // a flat rectangle that cuts the drawn box off — the same failure as an
+  // overflow clip, one layer further down.
+  //
+  // A filter region can only be a percentage of the box it is filtering, so a
+  // short component gets fewer pixels of headroom than a tall one out of the
+  // same number. The small bank is padded far harder for that reason: it draws
+  // the badges and rules, where the travel is a large share of the height.
+  const pad = 30 + s.cornerTravel * 3.2;
+  const warp = s.cornerTravel;
+  // The dials speak in wavelengths, the filter wants cycles per px.
+  const base = 1 / s.wobble;
+
+  // A reseeded second pass is built into the stroke bank itself, because a CSS
+  // filter chain can only ever duplicate what the stage before it produced: to
+  // send the line through a different wobble the two passes have to live in
+  // one filter. Each bank lands its pass a different distance and a different
+  // way, so neighbours do not retrace alike.
+  const reseeded = s.doubleStroke && s.retracePass === 'reseeded';
+  const shift = (i: number): { retrace?: readonly [number, number] } =>
+    (reseeded
+      ? { retrace: [RETRACE_SHIFT[i][0] * s.retraceOffset, RETRACE_SHIFT[i][1] * s.retraceOffset] }
+      : {});
+
+  const banks = SEEDS.map((seed, i) =>
+    // The warp seed is the instance's own, NOT the offset one: fill and stroke
+    // share the box and disagree only about the pen.
+    displace(`${ID}-fill-${seed}`, base, seed, s.fillTravel, pad, warp, seed + 41) +
     // Offset seeds so the outline never tracks the fill exactly. That
     // disagreement at the edges is the whole effect.
-    displace(`${ID}-stroke-${seed}`, s.frequency, seed + 17, s.strokeScale, 15) +
+    displace(`${ID}-stroke-${seed}`, base / s.borderWavelength, seed + 17, s.strokeTravel, pad, warp, seed + 41,
+      { pressure: s.pressureMod, ...shift(i) }) +
     // Small components take a reduced, higher-frequency displacement.
-    displace(`${ID}-fill-sm-${seed}`, s.frequency * 2.2, seed, s.fillScale * 0.35, 25) +
-    displace(`${ID}-stroke-sm-${seed}`, s.frequency * 2.2, seed + 17, s.strokeScale * 0.35, 25) +
+    displace(`${ID}-fill-sm-${seed}`, base * 2.2, seed, s.fillTravel * 0.35, pad + 40, warp * 0.35, seed + 41) +
+    displace(`${ID}-stroke-sm-${seed}`, base * 2.2 / s.borderWavelength, seed + 17, s.strokeTravel * 0.35, pad + 40, warp * 0.35, seed + 41,
+      { pressure: s.pressureMod, ...shift(i) }) +
     // Icons are glyphs a few tens of pixels across, read at a glance, with no
     // redundancy to lose. A high-frequency field at a small amplitude wobbles
     // the outline without pulling a stroke off the shape it belongs to.
-    displace(`${ID}-icon-${seed}`, s.frequency * s.iconFrequency, seed + 63, s.iconScale, 40),
+    displace(`${ID}-icon-${seed}`, base / s.iconWavelength, seed + 63, s.iconTravel, 40, 0, 0),
   ).join('');
 
-  // Ink pooling. Blur spreads the stroke, then a steep alpha curve re-sharpens
+  // Ink pooling. Blur spreads the stroke, then a steep alpha ramp re-sharpens
   // it. Where two runs of the border sit within blur distance of each other,
-  // which is exactly what happens at a corner, the fields sum past the
-  // threshold and bulge.
-  const pool =
-    `<filter id="${ID}-pool" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">` +
+  // which is what happens at a corner and wherever the second pass crosses the
+  // first, the fields sum past the top of the ramp and fill in.
+  //
+  // The ramp is placed against the line each instance actually draws. A blurred
+  // run of width w peaks at erf(w / 2√2σ) of its own ink, and that peak falls
+  // as the radius grows, so a fixed threshold meant a different thing on every
+  // line: a 1.25px pencil stroke dropped under it past a radius of about 1.3
+  // and pooled to nothing, which is why the dial did nothing on a pencil.
+  //
+  // Anchoring it to the settings alone is not enough either. Pen weight is a
+  // per-instance cycle, so two cards side by side draw different widths at
+  // different ink, and one ramp cut for the nominal line put one of them near
+  // its floor and the other in the middle of it: the same dials read as a wet
+  // blur on the first card and as two clean passes on the second. One bank per
+  // step of that cycle puts every instance at the same place on its own ramp,
+  // and the only spread left is the honest one, where a harder press lays down
+  // a wetter line.
+  //
+  // The crisp source is merged back on top, so pooling only ever ADDS.
+  const poolFilter = (i: number, jw: number) => {
+    const width = s.strokeWidth * (1 + jw * s.pressure);
+    // At full ink the colour passes through untouched, so the cycle moves the
+    // weight of the line but not its density.
+    const ink = s.strokeInk < 1 ? Math.min(1, s.strokeInk + (jw * INK_VARY) / 100) : 1;
+    // The floor only keeps the gain finite where the width dial is at zero and
+    // there is no line to pool. Anything above it is anchored honestly, however
+    // faint: a thin pale run wants a steep ramp, not a clamped one.
+    const peak = Math.max(1e-4, ink * erf(width / (Math.max(s.pooling, 0.05) * 2 * Math.SQRT2)));
+    const gain = 1 / ((POOL_TOP - POOL_FOOT) * peak);
+    const thresholded = ink < 1 ? 'hard' : 'pooled';
+    return `<filter id="${ID}-pool-${i}" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">` +
       `<feGaussianBlur stdDeviation="${s.pooling}" result="b"/>` +
-      `<feColorMatrix in="b" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7"/>` +
+      // The ramp drives alpha to 1, which flattened a translucent nib back to
+      // a solid one and left the ink dial doing nothing under any preset that
+      // pooled. Scaling the pooled alpha back down to this instance's ink keeps
+      // the bulge and keeps the line see-through, so the crisp pass merged on
+      // top still reads as a second coat.
+      `<feColorMatrix in="b" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 ${gain.toFixed(3)} ${(-POOL_FOOT * peak * gain).toFixed(3)}" result="${thresholded}"/>` +
+      (ink < 1
+        ? `<feComponentTransfer in="${thresholded}" result="pooled">` +
+            `<feFuncA type="linear" slope="${ink.toFixed(3)}"/>` +
+          `</feComponentTransfer>`
+        : '') +
+      `<feMerge><feMergeNode in="pooled"/><feMergeNode in="SourceGraphic"/></feMerge>` +
     `</filter>`;
+  };
+
+  const pool = s.pooling > 0
+    ? JITTER_Y_WEIGHT.map(([, jw], i) => poolFilter(i, jw)).join('')
+    : '';
 
   return `<defs>${banks}${pool}</defs>`;
 }
@@ -303,64 +501,181 @@ const JITTER_X_SCALE = [
   '--sketch-jx: -0.6; --sketch-js: 0.95;',
   '--sketch-jx: 0.3; --sketch-js: -0.55;',
 ];
-const JITTER_Y_WEIGHT = [
-  '--sketch-jy: 0.45; --sketch-jw: -0.6;',
-  '--sketch-jy: -0.8; --sketch-jw: 0.85;',
-  '--sketch-jy: 0.9; --sketch-jw: -0.25;',
-  '--sketch-jy: -0.2; --sketch-jw: 0.5;',
-  '--sketch-jy: 0.6; --sketch-jw: -0.95;',
-  '--sketch-jy: -0.95; --sketch-jw: 0.3;',
-  '--sketch-jy: 0.1; --sketch-jw: 0.7;',
-  '--sketch-jy: -0.5; --sketch-jw: -0.45;',
-  '--sketch-jy: 0.75; --sketch-jw: 0.15;',
-  '--sketch-jy: -0.3; --sketch-jw: -0.8;',
-  '--sketch-jy: 0.25; --sketch-jw: 0.6;',
+/** Offset and pen weight, as numbers rather than as the declarations they
+    become: the weight decides how wide and how wet each instance draws, so the
+    pooling bank has to be built from the same eleven values. */
+const JITTER_Y_WEIGHT: readonly (readonly [number, number])[] = [
+  [0.45, -0.6], [-0.8, 0.85], [0.9, -0.25], [-0.2, 0.5], [0.6, -0.95], [-0.95, 0.3],
+  [0.1, 0.7], [-0.5, -0.45], [0.75, 0.15], [-0.3, -0.8], [0.25, 0.6],
 ];
 const JITTER_ROT = [
   -0.7, 0.35, 0.85, -0.15, 0.5, -0.9, 0.2, 0.65, -0.4, 0.95, -0.25, 0.75, -0.6,
 ];
 
-/** The mask tiles from each element's own origin, so identical elements would
+/** The field tiles from each element's own origin, so identical parts would
     otherwise get identical blotches. Shift the sampling window per instance. */
 const MASK_POS = ['0 0', '-137px -211px', '-311px -97px', '-73px -389px', '-419px -263px'];
+
+/**
+ * Per-instance corner shape. Four coefficients in [0, 1], one per corner in
+ * `border-radius` order, scaled by the cornerSpread dial and added on top of
+ * the part's own radius. At a 32px dial a row reads as roughly 32, 27, 8, 4.
+ *
+ * Every corner is independent, but they run in a band from half the spread to
+ * all of it, never down to nothing. Letting a coefficient reach zero put a
+ * square corner next to one carrying the whole dial, and on anything as short
+ * as a button that is a scallop: a half-round end with a sharp point beside it.
+ * A hand holds a rough size and misses it by a bit each time, so half to full
+ * is the shape of the error. The four land in a different order row to row.
+ *
+ * Added, never subtracted, because a hand-drawn look tends to sit on a theme
+ * whose corners are already tight: a coefficient set that swung both ways
+ * spent half its range clamped at zero.
+ */
+const CORNER_ROUNDING = [
+  [1, 0.62, 0.85, 0.5],
+  [0.55, 1, 0.68, 0.9],
+  [0.8, 0.5, 0.95, 0.65],
+  [0.95, 0.72, 0.52, 1],
+  [0.6, 0.88, 0.75, 0.52],
+  [1, 0.55, 0.7, 0.82],
+  [0.7, 0.95, 0.5, 0.75],
+  [0.85, 0.58, 1, 0.68],
+  [0.52, 0.78, 0.62, 0.98],
+];
+
+/** `scale` on a displacement map is the full swing: a point travels half of it
+    either side of where it started, and only where the field peaks. Every dial
+    the tab shows is stated as that peak travel in px, so the doubling happens
+    here, in the one place the maps are written. */
+const swing = (travel: number) => String(Number((travel * 2).toFixed(4)));
+
+/** Squares the displacement wave off around 0.5, its zero, so full amplitude is
+    spent along the whole edge rather than only where the wave peaks. Both
+    channels take it: the map reads x from R and y from G. */
+function squareOff(s: SketchSettings, from: string, to: string): string {
+  if (s.waveform <= 1) return '';
+  const slope = s.waveform.toFixed(2);
+  const intercept = ((1 - s.waveform) / 2).toFixed(3);
+  return `<feComponentTransfer in="${from}" result="${to}">` +
+    `<feFuncR type="linear" slope="${slope}" intercept="${intercept}"/>` +
+    `<feFuncG type="linear" slope="${slope}" intercept="${intercept}"/>` +
+  `</feComponentTransfer>`;
+}
+
+const squaredResult = (s: SketchSettings, from: string, to: string) =>
+  (s.waveform > 1 ? to : from);
+
+/** Along-stroke pressure wavelength. Low, with a high floor in the transfer
+    above, so the line mostly holds and only thins in patches. */
+const PRESSURE_FREQUENCY = 0.0165;
+
+/** Per-instance swing on the ink density, in percentage points, off the same
+    cycle that carries stroke weight. */
+const INK_VARY = 14;
+
+/** Where the pooling ramp sits against a straight run's own blurred peak: the
+    foot just under it, so the line keeps a faint wet edge and nothing more, and
+    the top above it, so only somewhere two runs sum comes out solid. Anchoring
+    both to the peak is what makes one radius mean the same thing on a hairline
+    and on a 6px nib.
+
+    The foot used to sit at 0.45, which put a straight run at 58% alpha along
+    its whole length. Both ends of the ramp are fixed by construction, so with
+    the sides that wet the corners had nowhere left to go: they saturated at
+    every dial value, and the only thing the dial still moved was how far the
+    edge spread. That is a blur radius, not pooling. */
+const POOL_FOOT = 0.85;
+const POOL_TOP = 1.6;
+
+/** Winitzki's approximation, inside 0.2% across the range, which is finer than
+    a dial step. Used for the alpha a box of ink keeps at its centre once a
+    gaussian of a given radius has spread it. */
+function erf(x: number): number {
+  const t = x * x;
+  const a = 0.147;
+  return Math.sqrt(1 - Math.exp((-t * (4 / Math.PI + a * t)) / (1 + a * t)));
+}
+
+/** Where a reseeded second pass lands, per seed bank, as a share of the offset
+    range on each axis. Distances differ as well as directions: two passes that
+    always part by the same amount read as a printing offset, not as a hand.
+    Copy mode takes its share off the per-instance jitter cycles instead, which
+    are longer, so it varies over 77 components rather than 5. */
+const RETRACE_SHIFT: readonly (readonly [number, number])[] = [
+  [0.9, -0.35], [-0.2, 0.35], [0.4, 0.95], [-0.7, -0.15], [0.1, -0.75],
+];
+
+/** Seed distance between the two passes. Far enough that the second wobble
+    shares nothing with the first. */
+const RETRACE_SEED = 53;
+
+/** The shape stage's wavelength, as a fraction of the pen-wobble frequency.
+    Long: a wave that spans several components leaves each one sitting on a
+    smooth slope of the field, so its four corners disagree while its edges
+    travel together and stay straight. Shorten it and the field turns over
+    inside a single box, which ripples the edges and tears a thin stroke apart
+    rather than leaning the shape. */
+const WARP_FREQUENCY = 0.08;
 
 
 export function buildStylesheet(s: SketchSettings): string {
   const on = '[data-sketch]';
-  const layered = "[data-sketch='layered']";
   const parts = `:is(${PARTS})`;
-  const el = `${layered} ${parts}`;
-  const strokeEl = `${layered} :is(${STROKE_PARTS})`;
+  const el = `${on} ${parts}`;
+  const strokeEl = `${on} :is(${STROKE_PARTS})`;
+
+  // `--radius-none` is a bare `0`, so a part the theme leaves square hands the
+  // corner maths a number where it needs a length: `calc(0 + 0.95 * 16px)` is
+  // invalid, and an invalid calc takes the whole border-radius down to its
+  // initial value. Registering the property makes the browser reject the
+  // unitless value on the way in and substitute 0px, so one square component
+  // can no longer flatten the corners of every other one.
+  const registrations = `@property --sketch-radius{syntax:"<length>";inherits:true;initial-value:0px;}`;
 
   const vars =
     `${on}{` +
       `--sketch-stroke-width:${s.strokeWidth}px;` +
+      `--sketch-ink:${s.strokeInk};` +
       `--sketch-stroke-style:${s.strokeStyle};` +
-      `--sketch-fill-dx:${s.fillDx}px;` +
-      `--sketch-fill-dy:${s.fillDy}px;` +
-      `--sketch-hachure-angle:${HACHURE_ANGLE}deg;` +
+      `--sketch-hatch-angle:${HATCH_ANGLE}deg;` +
+      `--sketch-hatch-ink:${Math.round(s.hatchInk * 100)}%;` +
       `--sketch-fill-filter:url(#${ID}-fill-0);` +
       `--sketch-stroke-filter:url(#${ID}-stroke-0);` +
-      `--sketch-mask-image:${s.maskOn ? buildMaskUri(s) : 'none'};` +
-      `--sketch-mask-size:${s.maskScale}px ${s.maskScale}px;` +
-      `--sketch-icon-mask:${s.iconMaskOn ? buildMaskUri(s) : 'none'};` +
-      `--sketch-icon-mask-size:${s.iconMaskTile}px ${s.iconMaskTile}px;` +
+      `--sketch-mask:${s.maskOn || s.iconMaskOn ? buildMaskUri(s) : 'none'};` +
+      `--sketch-mask-tile:${MASK_TILE}px;` +
       `--sketch-jit-x-base:${s.jitterX}px;` +
       `--sketch-jit-y-base:${s.jitterY}px;` +
       `--sketch-jit-rot-base:${s.jitterRot}deg;` +
       `--sketch-jit-scale-base:${s.jitterScale};` +
-      `--sketch-grow:${s.fillGrow};` +
+      `--sketch-corner-spread-base:${s.cornerSpread}px;` +
       `--sketch-pressure:${s.pressure};` +
-      `--sketch-press-image:${s.pressureMod > 0 ? pressureUri(s) : 'none'};` +
       // opacity(1) is the no-op that lets pooling be switched out of the chain.
-      `--sketch-pool:${s.pooling > 0 ? `url(#${ID}-pool)` : 'opacity(1)'};` +
+      // The weight cycle below hands each instance the bank cut for the line it
+      // draws; this one only decides whether pooling is in the chain at all.
+      `--sketch-pool:${s.pooling > 0 ? `url(#${ID}-pool-0)` : 'opacity(1)'};` +
     `}`;
 
-  const globalMode = `[data-sketch='global']{filter:var(--sketch-fill-filter);}`;
+  /**
+   * Ink coverage: the field laid over a layer as a luminance mask, tiled from
+   * that element's own origin and sampled at a different offset per instance,
+   * so two parts the same size are not blotched alike.
+   *
+   * `mask-clip: no-clip` is load-bearing on the fill. A mask clips what it masks
+   * to the border box by default, and the shadow the fill casts lies outside
+   * that box, so switching coverage on took every shadow with it. Unclipped, the
+   * tile runs on over the shadow and thins it where the ink beside it is thin,
+   * which is what ink that is not there would do.
+   */
+  const coverage = (tile: string, pos: string) =>
+    `mask-image:var(--sketch-mask, none);` +
+    `mask-size:${tile} ${tile};` +
+    `mask-mode:luminance;mask-repeat:repeat;mask-clip:no-clip;` +
+    `mask-position:var(${pos}, 0 0);`;
 
-  // Icons. A glyph has no box to redraw, so it takes the filter directly, the
-  // way global mode filters the whole root. Body type is deliberately left
-  // alone: an icon is a shape and survives a wobble, a paragraph is not.
+  // Icons. A glyph has no box to redraw, so it takes the filter directly rather
+  // than through a redrawn ::before. Body type is deliberately left alone: an
+  // icon is a shape and survives a wobble, a paragraph is not.
   //
   // `--sketch-icon-off` is the opt-out. It inherits, so any chrome that lives
   // in the host document (the overlay bar) sets it once on its own root and
@@ -368,26 +683,37 @@ export function buildStylesheet(s: SketchSettings): string {
   // `svg` covers inline artwork the same way. The injected filter bank is
   // itself an svg in the body, so it has to be excluded or it filters itself.
   const iconSel = `[class*="fa-"], svg:not([${DEFS_ATTR}])`;
-  const iconsOn = s.iconScale > 0 || s.iconMaskOn;
+  const iconsOn = s.iconTravel > 0 || s.iconMaskOn;
   const icons = iconsOn
-    ? `${layered} :is(${iconSel}){` +
-        (s.iconScale > 0
+    ? `${on} :is(${iconSel}){` +
+        (s.iconTravel > 0
           ? `filter:var(--sketch-icon-off, var(--sketch-icon-filter, url(#${ID}-icon-0)));`
           : '') +
         // The ink mask reads as coverage on a glyph the way it does on a fill,
         // but the component tile is hundreds of px across: a whole icon would
         // sample one patch of it and either survive intact or disappear. A
         // tile near icon size puts several blotches across each glyph.
-        `mask-image:var(--sketch-icon-mask, none);` +
-        `mask-size:var(--sketch-icon-mask-size);` +
-        `mask-mode:luminance;mask-repeat:repeat;` +
-        `mask-position:var(--sketch-icon-mask-pos, 0 0);` +
+        (s.iconMaskOn ? coverage(`${s.iconMaskTile}px`, '--sketch-icon-mask-pos') : '') +
       `}` +
       SEEDS.map((seed, i) =>
-        `${layered} :is(${iconSel}):nth-child(5n + ${i + 1})` +
+        `${on} :is(${iconSel}):nth-child(5n + ${i + 1})` +
           `{--sketch-icon-filter:url(#${ID}-icon-${seed});--sketch-icon-mask-pos:${MASK_POS[i]};}`,
       ).join('')
     : '';
+
+  // The drawn box, shared by both layers so fill and outline describe the same
+  // shape and only the displacement seeds disagree.
+  //
+  // Corners are read from the part's own radius token rather than inherited,
+  // because `border-radius: inherit` is all-or-nothing: there is no way to add
+  // to a value CSS never hands over. At the dial's zero the inherit stays, so
+  // the shape is untouched until the user asks for it, and a part whose radius
+  // token is missing keeps its real corners.
+  const cornerRadius = (i: number) =>
+    `max(0px, calc(var(--sketch-radius, 0px) + var(--sketch-c${i}, 0) * var(--sketch-corner-spread, 0px)))`;
+  const corners = s.cornerSpread > 0
+    ? `border-radius:${[1, 2, 3, 4].map(cornerRadius).join(' ')};`
+    : 'border-radius:inherit;';
 
   const host =
     `${el}{` +
@@ -395,64 +721,125 @@ export function buildStylesheet(s: SketchSettings): string {
       `--sketch-jit-y:var(--sketch-jit-y-base);` +
       `--sketch-jit-rot:var(--sketch-jit-rot-base);` +
       `--sketch-jit-scale:var(--sketch-jit-scale-base);` +
+      `--sketch-corner-spread:var(--sketch-corner-spread-base);` +
       `z-index:0;` +
+      // The shadow is re-cast on the fill layer, where it follows the shape
+      // that is actually drawn.
       `background:transparent !important;border-color:transparent !important;` +
+      `box-shadow:none !important;` +
     `}` +
+    `${on} :is(${UNCLIPPED}){overflow:visible !important;}` +
+    // The five that keep their clip take the drawn radii on the host, so what
+    // the clip cuts turns the same way the ink does at the corners. It cannot
+    // follow the displacement, which is a filter and has no geometry to clip to.
+    `${el}:is(${CLIPPED}){${corners}}` +
     // Only parts that sit in flow. Forcing this onto an absolutely-positioned
     // part would drop it back to its flow position.
-    `${layered} :is(${FLOW_PARTS}){position:relative;}`;
+    `${on} :is(${FLOW_PARTS}){position:relative;}`;
 
   // Fill layer. Own seed, own offset, sits behind the content.
+  //
+  // `inset` and `transition` are !important because the layer CLAIMS this
+  // pseudo-element from whatever the component was using it for. Button drives
+  // a hover shimmer off ::before — parked at left:-100%, sliding to left:100%
+  // over 0.5s — and its hover rule outweighs this one on specificity. Left
+  // alone, the fill wipes across the button on hover, and again the moment the
+  // effect is switched on, because `left` animates from -100% to 0.
   const fill =
     `${el}::before{` +
-      `content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;` +
+      `content:'';position:absolute;inset:0 !important;transition:none !important;` +
+      `z-index:-1;${corners}` +
       `background:var(--sketch-fill, var(--surface-neutral-lower));` +
+      `box-shadow:var(--sketch-shadow, none);` +
       `filter:var(--sketch-fill-filter);` +
+      (s.maskOn ? coverage('var(--sketch-mask-tile)', '--sketch-mask-pos') : '') +
       `transform:translate(` +
-        `calc(var(--sketch-fill-dx) + var(--sketch-jx, 0) * var(--sketch-jit-x, 0px)),` +
-        `calc(var(--sketch-fill-dy) + var(--sketch-jy, 0) * var(--sketch-jit-y, 0px))` +
+        `calc(var(--sketch-jx, 0) * var(--sketch-jit-x, 0px)),` +
+        `calc(var(--sketch-jy, 0) * var(--sketch-jit-y, 0px))` +
       `) rotate(calc(var(--sketch-jr, 0) * var(--sketch-jit-rot, 0deg)))` +
-      ` scale(calc(1 + var(--sketch-grow, 0) + var(--sketch-js, 0) * var(--sketch-jit-scale, 0)));` +
+      ` scale(calc(1 + (var(--sketch-js, 0) + 1) / 2 * var(--sketch-jit-scale, 0)));` +
       `pointer-events:none;` +
-      `mask-image:var(--sketch-mask-image, none);` +
-      `mask-size:var(--sketch-mask-size, 900px 900px);` +
-      `mask-mode:luminance;mask-repeat:repeat;` +
-      `mask-position:var(--sketch-mask-pos, 0 0);` +
     `}`;
 
+  // The hatch is laid over the fill as a second background LAYER rather than
+  // as `background-image` beside a `background-color`, because a part is free
+  // to name a gradient as its fill: the Kit's lead block hands the layer the
+  // same wash it paints itself with. A gradient is not a `<color>`, so it took
+  // `background-color` down as invalid at computed-value time and the surface
+  // went transparent under the hatch. The shorthand's last layer accepts either
+  // a colour or an image, so both kinds of fill survive here.
+  //
+  // Hatch ink falls back to the outline colour but is its own property, so a
+  // part that deliberately draws no outline can still be hatched. Half the
+  // parts that carry a surface set `--sketch-stroke: transparent` (headers,
+  // segments, notifications), and binding the stripes to it left every one of
+  // them hatched in an invisible colour.
   const fillStyles =
-    `[data-sketch][data-sketch-fill='none'] ${parts}::before{background:none;}` +
-    `[data-sketch][data-sketch-fill='hachure'] ${parts}::before{` +
-      `background-color:var(--sketch-fill, var(--surface-neutral-lower));` +
-      `background-image:repeating-linear-gradient(var(--sketch-hachure-angle),` +
-        `color-mix(in srgb, var(--sketch-stroke, currentColor) 40%, transparent) 0 1.5px,` +
-        `transparent 1.5px 7px);` +
+    `[data-sketch][data-sketch-fill='hatched'] ${parts}::before{` +
+      `background:repeating-linear-gradient(var(--sketch-hatch-angle),` +
+        `color-mix(in srgb, var(--sketch-hatch-color, var(--sketch-stroke, currentColor))` +
+          ` var(--sketch-hatch-ink), transparent) 0 1.5px,` +
+        `transparent 1.5px 7px),` +
+      `var(--sketch-fill, var(--surface-neutral-lower));` +
     `}`;
 
-  // Second stroke pass. It rides the STROKE layer, not the fill: the fill
-  // carries the misregistration offset and the corner-guard oversize, both of
-  // which are fill-only by intent, and a second outline that inherited them
-  // read as one ring systematically larger and shifted rather than as a line
-  // drawn twice. Sharing ::after means sharing its displacement seed, which is
-  // what retracing a line by hand actually looks like.
-  const doublePass =
-    `[data-sketch][data-sketch-passes='double'] :is(${STROKE_PARTS})::after{` +
-      `outline:var(--sketch-stroke-width) var(--sketch-stroke-style) var(--sketch-stroke, currentColor);` +
-      `outline-offset:calc(-1 * var(--sketch-stroke-width) - 1px);` +
-    `}`;
+  // A translucent nib. The retrace pass below overlaps this one, so where both
+  // landed the colour doubles and where only one did it stays pale: a line
+  // whose density varies across its own weight, which is the difference
+  // between a marker and a pen. At full ink the colour is passed through
+  // untouched, so a preset that wants a hard line still gets one.
+  //
+  // The density is varied per instance off the same cycle that varies the
+  // stroke weight, which is the honest pairing: the harder the nib is pressed
+  // the wider AND the wetter the line, so a heavy stroke reads dark and a light
+  // one reads thin and pale rather than every stroke being equally grey.
+  const ink = (fallback: string) =>
+    (s.strokeInk < 1
+      ? `color-mix(in srgb, var(--sketch-stroke, ${fallback})` +
+        ` calc(var(--sketch-ink, 1) * 100% + var(--sketch-jw, 0) * ${INK_VARY}%), transparent)`
+      : `var(--sketch-stroke, ${fallback})`);
+
+  // Second stroke pass, copied rather than redrawn: `drop-shadow` duplicates
+  // the alpha silhouette it is handed, and what it is handed here is the
+  // already-displaced ring, so the copy carries the same wobble and lands a few
+  // px off it. Offset rather than concentric, because an `outline` can only sit
+  // parallel and reads as a double rule. The other mode sends the line through
+  // its own seed instead, which only a second pass inside the filter can do.
+  //
+  // The dial is the range, not the distance: `--sketch-jx`/`--sketch-jy` are the
+  // per-instance cycles, so each component parts its passes by its own share of
+  // it on each axis, and 77 go by before a pairing repeats.
+  //
+  // The two paths stack because both are translucent. Where they cross, two
+  // coats of 35% ink make 58%; where only one landed it stays at 35%. That
+  // difference across the weight of the line is the marker.
+  //
+  // It sits ahead of pooling in the chain so the two runs merge where they
+  // touch rather than being goo'd apart, and the direction comes off the same
+  // per-instance cycle as the fill offset, so no two components retrace alike.
+  const retraceStep = s.retraceOffset.toFixed(2);
+  const retrace = s.retracePass === 'copy'
+    ? `[data-sketch][data-sketch-passes='double'] :is(${STROKE_PARTS})::after{` +
+        `--sketch-retrace:drop-shadow(` +
+          `calc(var(--sketch-jx, 0.6) * ${retraceStep}px)` +
+          ` calc(var(--sketch-jy, -0.4) * ${retraceStep}px)` +
+          ` 0 ${ink('currentColor')});` +
+      `}`
+    // A reseeded pass is drawn inside the stroke bank, where it can take its own
+    // seed, so there is nothing to lay into the chain here.
+    : '';
 
   // Outline layer. Own seed, above the content.
   const stroke =
     `${strokeEl}::after{` +
-      `content:'';position:absolute;inset:0;z-index:1;border-radius:inherit;` +
+      `content:'';position:absolute;inset:0 !important;transition:none !important;` +
+      `z-index:1;${corners}` +
       `border-style:var(--sketch-stroke-style);` +
-      `border-color:var(--sketch-stroke, var(--border-neutral));` +
+      `border-color:${ink('var(--border-neutral)')};` +
       // Pen pressure: each instance carries its own weight off the nth-child cycle.
       `border-width:calc(var(--sketch-stroke-width) * (1 + var(--sketch-jw, 0) * var(--sketch-pressure, 0)));` +
-      `filter:var(--sketch-stroke-filter) var(--sketch-pool, opacity(1));` +
-      `mask-image:var(--sketch-press-image, none);` +
-      `mask-size:340px 340px;mask-mode:luminance;mask-repeat:repeat;` +
-      `mask-position:var(--sketch-mask-pos, 0 0);` +
+      `filter:var(--sketch-stroke-filter) var(--sketch-retrace, opacity(1))` +
+      ` var(--sketch-pool, opacity(1));` +
       `pointer-events:none;` +
     `}`;
 
@@ -464,37 +851,58 @@ export function buildStylesheet(s: SketchSettings): string {
     `}`,
   ).join('');
 
+  const shape = s.cornerSpread > 0
+    ? CORNER_ROUNDING.map((row, i) =>
+        `${el}:nth-child(9n + ${i + 1}){` +
+          row.map((c, k) => `--sketch-c${k + 1}:${c};`).join('') +
+        `}`,
+      ).join('')
+    : '';
+
   const jitter =
     JITTER_X_SCALE.map((v, i) => `${el}:nth-child(7n + ${i + 1}){${v}}`).join('') +
-    JITTER_Y_WEIGHT.map((v, i) => `${el}:nth-child(11n + ${i + 1}){${v}}`).join('') +
+    JITTER_Y_WEIGHT.map(([jy, jw], i) =>
+      `${el}:nth-child(11n + ${i + 1}){--sketch-jy: ${jy}; --sketch-jw: ${jw};` +
+        // The pen weight this instance draws at is what decides where its line
+        // lands on the pooling ramp, so it takes the bank cut for that weight.
+        (s.pooling > 0 ? `--sketch-pool:url(#${ID}-pool-${i});` : '') +
+      `}`).join('') +
     JITTER_ROT.map((v, i) => `${el}:nth-child(13n + ${i + 1}){--sketch-jr:${v};}`).join('');
 
   // Large panels tilt less than the type inside them can tolerate; small chips
   // can take more rotation but less travel.
   const perPart =
-    `${layered} :is(.card, .card-header, .panel, .dialog, .table-wrapper, .sidenavigation)` +
+    `${el}:is(.card, .card-header, .panel, .dialog, .table-wrapper, .sidenavigation)` +
       `{--sketch-jit-rot:calc(var(--sketch-jit-rot-base) * 0.3);}` +
     // A rule is one or two pixels tall. The full-size displacement tears it into
     // dashes and a translate that large lifts it clean off its own row, so it
     // takes the small filter bank and a fraction of the travel.
-    `${layered} :is(.sd-hairline, .sketch-rule){` +
+    `${el}:is(.sd-hairline, .sketch-rule){` +
       `--sketch-fill-filter:url(#${ID}-fill-sm-1);` +
       `--sketch-jit-x:calc(var(--sketch-jit-x-base) * 0.3);` +
       `--sketch-jit-y:calc(var(--sketch-jit-y-base) * 0.15);` +
-      `--sketch-jit-rot:0deg;--sketch-grow:0;` +
+      `--sketch-jit-rot:0deg;--sketch-jit-scale:0;` +
+      // A rule is a line, not a box. Rounding its ends reads as a mistake
+      // rather than as a hand.
+      `--sketch-corner-spread:0px;` +
     `}` +
-    `${layered} :is(.badge, .toggle .track){` +
+    `${el}:is(.badge, .toggle .track){` +
+      // A chip is smaller than one blob at the tile the cards read it at, so it
+      // lands wholly inside a patch and comes out either untouched or gone.
+      // Shrinking the tile puts several blotches across it, which is the same
+      // move the icon mask makes for a glyph.
+      `--sketch-mask-tile:${Math.round(MASK_TILE * 0.3)}px;` +
       `--sketch-jit-rot:calc(var(--sketch-jit-rot-base) * 1.6);` +
       `--sketch-jit-x:calc(var(--sketch-jit-x-base) * 0.5);` +
       `--sketch-jit-y:calc(var(--sketch-jit-y-base) * 0.5);` +
     `}` +
     SEEDS.map((seed, i) =>
-      `${layered} .badge:nth-child(5n + ${i + 1}){` +
+      `${on} .badge:nth-child(5n + ${i + 1}){` +
         `--sketch-fill-filter:url(#${ID}-fill-sm-${seed});` +
         `--sketch-stroke-filter:url(#${ID}-stroke-sm-${seed});` +
       `}`,
     ).join('') +
-    `${layered} .toggle .track{` +
+    `${on} .toggle .track{` +
       `--sketch-fill-filter:url(#${ID}-fill-sm-2);` +
       `--sketch-stroke-filter:url(#${ID}-stroke-sm-2);` +
     `}`;
@@ -505,7 +913,16 @@ export function buildStylesheet(s: SketchSettings): string {
     const f = p.fill ?? (p.stem ? `var(--${p.stem}-surface)` : null);
     const st = p.stroke ?? (p.stem ? `var(--${p.stem}-border)` : null);
     if (!f && !st) return '';
-    return `${on} ${p.sel}{${f ? `--sketch-fill:${f};` : ''}${st ? `--sketch-stroke:${st};` : ''}}`;
+    const r = p.radius ?? (p.stem ? `var(--${p.stem}-radius, 0px)` : '0px');
+    const sh = p.shadow ?? (p.stem ? `var(--${p.stem}-shadow, none)` : 'none');
+    // Every part states a hatch ink for the same reason it states a radius:
+    // custom properties inherit, so a badge sitting in a hatched card header
+    // would otherwise stripe itself in the CARD's ink. Where a part has no ink
+    // of its own the value is the indirection, not the colour, so it resolves
+    // against this element's own stroke and keeps following it into hover.
+    return `${on} ${p.sel}{${f ? `--sketch-fill:${f};` : ''}${st ? `--sketch-stroke:${st};` : ''}` +
+      `--sketch-hatch-color:${p.hatch ?? 'var(--sketch-stroke)'};` +
+      `--sketch-radius:${r};--sketch-shadow:${sh};}`;
   }).join('');
 
   // After `colours`, so a state wins over its part's base rule at equal weight.
@@ -515,8 +932,8 @@ export function buildStylesheet(s: SketchSettings): string {
   }).join('');
 
   return [
-    vars, globalMode, icons, host, fill, fillStyles, doublePass, stroke,
-    seedRotation, jitter, perPart, colours, states,
+    registrations, vars, icons, host, fill, fillStyles, retrace, stroke,
+    seedRotation, shape, jitter, perPart, colours, states,
   ].join('\n');
 }
 
@@ -580,7 +997,7 @@ export function setSketchScope(el: HTMLElement | null, settings: SketchSettings 
     el.removeAttribute('data-sketch-passes');
     return;
   }
-  el.setAttribute('data-sketch', settings.mode);
+  el.setAttribute('data-sketch', '');
   el.setAttribute('data-sketch-fill', settings.fillStyle);
   el.setAttribute('data-sketch-passes', settings.doubleStroke ? 'double' : 'single');
 }

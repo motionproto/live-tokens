@@ -15,6 +15,51 @@ const LEGACY_TOKENS_CSS = `:root {
 }
 `;
 
+describe('editorial type role', () => {
+  // The role is two inserts in one migration: the stack among the font
+  // families, the bundle among the text styles.
+  const BEFORE = `:root {
+  --font-sans: "Manrope", sans-serif;
+  --font-mono: "fira-code", monospace;
+  --font-size-md: 1rem;
+  --font-weight-normal: 400;
+  --line-height-normal: 1.5;
+  --letter-spacing-normal: 0;
+  --code-font-family: var(--font-mono);
+}
+`;
+
+  it('adds the stack and the bundle to a tokens.css that predates the role', () => {
+    const { css, applied } = runTokensCssMigrations(BEFORE);
+    expect(applied).toContain('2026-08-25-editorial-type-role');
+    expect(css).toContain('--font-editorial: var(--font-sans);');
+    expect(css).toContain('--editorial-font-family: var(--font-editorial);');
+    expect(css).toContain('--editorial-line-height: var(--line-height-normal);');
+  });
+
+  it('defaults to the body face, so a consumer who ignores it renders unchanged', () => {
+    const { css } = runTokensCssMigrations(BEFORE);
+    const stack = css.match(/--font-editorial:\s*([^;]+);/)?.[1];
+    expect(stack).toBe('var(--font-sans)');
+  });
+
+  it('leaves a consumer who already repointed the stack alone', () => {
+    const repointed = BEFORE.replace(
+      '--font-mono: "fira-code", monospace;',
+      '--font-mono: "fira-code", monospace;\n  --font-editorial: "Charter", serif;',
+    );
+    const { css } = runTokensCssMigrations(repointed);
+    expect(css).toContain('--font-editorial: "Charter", serif;');
+    expect(css).not.toContain('--font-editorial: var(--font-sans);');
+  });
+
+  it('is idempotent', () => {
+    const once = runTokensCssMigrations(BEFORE).css;
+    const twice = runTokensCssMigrations(once).css;
+    expect(twice).toBe(once);
+  });
+});
+
 describe('runTokensCssMigrations', () => {
   it('adds the letter-spacing and easing scales an old tokens.css lacks', () => {
     const { css, applied, changed } = runTokensCssMigrations(LEGACY_TOKENS_CSS);

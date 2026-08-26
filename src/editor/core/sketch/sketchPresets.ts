@@ -1,53 +1,111 @@
 export interface SketchSettings {
   label: string;
   blurb: string;
-  mode: 'layered' | 'global';
-  fillScale: number;
-  strokeScale: number;
-  frequency: number;
-  octaves: number;
+  /** How far the fill's edge travels at its furthest, in px. Every dial that
+      feeds a displacement map is stated this way: the map's own `scale` is the
+      full swing, twice what anything moves, and the field spends most of its
+      length well short of the peak. */
+  fillTravel: number;
+  strokeTravel: number;
+  /** The border's own wavelength, as a multiple of the shared one. Above 1 the
+      outline draws long lazy curves across a fill finer than it; below 1 it
+      chatters over one that stays broad. The pen and the paper are different
+      things. */
+  borderWavelength: number;
+  /** Shape of the displacement wave, from smooth at 1 to square at 4. The raw
+      field crowds its values around its own centre, which is no movement at
+      all, so an edge only travels the stated amplitude where the wave happens
+      to peak. Squaring it clips both rails, and nearly every point then sits at
+      full amplitude. This is what makes the effect stronger rather than
+      bigger: amplitude sets the distance, waveform sets how much of the edge
+      actually goes it. */
+  waveform: number;
+  /** Detail layers stacked on the wave. One is a single smooth undulation;
+      three lays two finer waves over it at half and quarter magnitude. The
+      format halves the magnitude every layer and offers no way to change that,
+      so a fourth would move an edge by a tenth of a pixel and the stack is
+      spent at three. */
+  roughness: number;
+  /** Wavelength of the pen wobble, in page px: how far along an edge the field
+      takes to turn over. Short gives tight chatter, long gives lazy curves.
+      Stated the way the mask states its blobs, because a number of pixels is a
+      thing you can picture and a number of cycles per pixel is not. */
+  wobble: number;
   strokeWidth: number;
-  fillDx: number;
-  fillDy: number;
   doubleStroke: boolean;
+  /** How far the second pass can land from the first, in px on each axis. Every
+      component draws its own distance and direction inside that range, so no
+      two part company by the same amount: one distance for every component
+      reads as a printing offset rather than as a hand. */
+  retraceOffset: number;
+  /** How the second pass is drawn. `copy` duplicates the line already
+      displaced, so both runs carry the same wobble a few px apart. `reseeded`
+      sends the line through the pen again on its own noise seed, so the two
+      disagree along their length the way a hand coming back round does. */
+  retracePass: 'copy' | 'reseeded';
   /** Per-instance stroke weight variation, as a fraction. 0.3 = +/-30%. */
   pressure: number;
   /** Depth of the along-stroke thinning mask. 0 = even line, 1 = breaks up. */
   pressureMod: number;
   /** Goo radius. Blur then re-sharpen alpha, so nearby stroke runs merge and bulge. */
   pooling: number;
-  fillStyle: 'solid' | 'hachure' | 'none';
+  /** Ink density of the stroke, 0 to 1. Below 1 the line is translucent, so the
+      retrace pass reads through the first one: where they overlap the colour
+      doubles and where only one landed it stays pale. That gradient across the
+      weight of the line is what a marker looks like and what a pen does not. */
+  strokeInk: number;
+  fillStyle: 'solid' | 'hatched';
+  /** Density of the hatch lines against the fill, 0 to 1. */
+  hatchInk: number;
   strokeStyle: 'solid' | 'dashed';
   maskOn: boolean;
-  /** Mask tile size in px. Large values give broad patches, small values give speckle. */
-  maskScale: number;
-  maskFrequency: number;
-  /** Alpha slope. Higher = harder edges between covered and bare. */
-  maskContrast: number;
-  /** Alpha floor. 1 = fully opaque everywhere, 0 = mask can erase completely. */
-  maskFloor: number;
+  /** Wavelength of the coverage noise, in page px. Small gives speckle, large gives broad patches. */
+  maskBlob: number;
+  /** Input levels on the coverage field, 0 to 1. At or below Min the fill goes
+      bare, at or above Max it is fully inked, and the gap between the two is the
+      gradient across a blotch edge: close together cuts the field out, far apart
+      leaves a wash. The field is stretched onto its own measured range before
+      they apply, so both mean the same thing at every grain and octave count. */
+  maskLevelMin: number;
+  maskLevelMax: number;
   /** Detail layers. 1-2 gives broad blobs, 4+ goes cloudy and stops reading as blotches. */
   maskOctaves: number;
+  /** Character of the noise. Fractal is cloudy; turbulence is veined, like marbled ink. */
+  maskGrain: 'fractal' | 'turbulence';
   /** Quantise the mask into N discrete levels. 1 = smooth gradient, 2 = hard two-tone blotches. */
   maskPosterize: number;
-  /** Feather on the blotch edges, in tile units. */
+  /** Feather on the blotch edges, in page px. */
   maskSoftness: number;
-  /** Per-instance offset range in px, added to the uniform fillDx/fillDy. */
+  /** Per-instance offset range in px. */
   jitterX: number;
   jitterY: number;
   /** Per-instance rotation range in degrees. */
   jitterRot: number;
-  /** Per-instance scale range, as a fraction. 0.03 = +/-3%. */
+  /** Per-instance oversize, as a fraction. One-sided: every fill grows by
+      some share of it, so a rotated fill never exposes a bare corner. */
   jitterScale: number;
-  /** Baseline oversize so rotation does not expose bare corners. */
-  fillGrow: number;
-  /** Glyph displacement for icons and inline SVG, in px. 0 leaves them crisp.
+  /** Rounding added on top of the part's own radius, in px. Each corner takes
+      its own share, between half the dial and all of it: at 12 a box comes out
+      with corners near 12, 7, 10 and 6. The floor at half is what keeps it a
+      shape rather than a scallop, which is what a square corner sitting beside
+      one carrying the whole dial looks like on anything as short as a button.
+      A pill is unmoved. */
+  cornerSpread: number;
+  /** How far the corners of the drawn box travel at their furthest, in px. One wave of noise long
+      enough to span several components, so each corner is pushed a different
+      way and the box comes out a leaning quadrilateral with no two sides
+      parallel. This is the dial that stops a component reading as a div; the
+      corner radii only decide how the turns are cut. Every component moves the
+      same number of pixels whatever its size. */
+  cornerTravel: number;
+  /** Glyph travel for icons and inline SVG, in px. 0 leaves them crisp.
       A glyph is all curves already, so it needs MORE travel than a card's long
       straight edge before the wobble reads at all. */
-  iconScale: number;
-  /** Multiplier on `frequency` for the icon bank. Below 1 bends the whole
-      glyph, above 2 ripples its outline. */
-  iconFrequency: number;
+  iconTravel: number;
+  /** The same for icons. Above 1 bends the whole glyph, below 0.5 ripples its
+      outline. Glyphs sit well under the shared wavelength by default: a wave
+      long enough to lean a card leaves a 20px icon riding one flat stretch. */
+  iconWavelength: number;
   /** Ink coverage over icons. Independent of `maskOn`, which governs fills. */
   iconMaskOn: boolean;
   /** Icon mask tile, in px. Near glyph size puts several blotches across one
@@ -57,86 +115,190 @@ export interface SketchSettings {
 }
 
 const base: SketchSettings = {
-  label: '', blurb: '', mode: 'layered',
-  fillScale: 3, strokeScale: 3, frequency: 0.022, octaves: 3,
-  strokeWidth: 1.5, fillDx: 0, fillDy: 0, doubleStroke: false,
-  fillStyle: 'solid', strokeStyle: 'solid',
-  pressure: 0.25, pressureMod: 0.35, pooling: 1.2,
-  maskOn: true, maskScale: 900, maskFrequency: 0.012, maskContrast: 1.6, maskFloor: 0.45,
-  maskOctaves: 2, maskPosterize: 1, maskSoftness: 1,
-  jitterX: 2.5, jitterY: 2.5, jitterRot: 0.6, jitterScale: 0.02, fillGrow: 0.015,
-  iconScale: 2.5, iconFrequency: 1.6, iconMaskOn: true, iconMaskTile: 90,
+  label: '', blurb: '',
+  fillTravel: 1.5, strokeTravel: 1.5, wobble: 45, roughness: 3,
+  borderWavelength: 1, waveform: 1,
+  strokeWidth: 1.5, doubleStroke: false, retraceOffset: 1.2, retracePass: 'copy',
+  fillStyle: 'solid', hatchInk: 0.4, strokeStyle: 'solid',
+  pressure: 0.25, pressureMod: 0.35, pooling: 1.2, strokeInk: 1,
+  maskOn: true, maskBlob: 100, maskLevelMin: 0.16, maskLevelMax: 0.5,
+  maskOctaves: 2, maskGrain: 'fractal', maskPosterize: 1, maskSoftness: 1.5,
+  jitterX: 2.5, jitterY: 2.5, jitterRot: 0.6, jitterScale: 0.035,
+  cornerSpread: 10, cornerTravel: 8,
+  iconTravel: 1.25, iconWavelength: 0.625, iconMaskOn: true, iconMaskTile: 90,
 };
 
 export const SKETCH_PRESETS: Record<string, SketchSettings> = {
   pencil: {
     ...base, label: 'Pencil', blurb: 'Thin double-pass outline, fill left alone. Closest to a neat hand sketch.',
-    fillScale: 1.5, strokeScale: 2.5, frequency: 0.03, strokeWidth: 1.25, doubleStroke: true,
-    maskScale: 700, maskFrequency: 0.02, maskContrast: 1.2, maskFloor: 0.7, maskOctaves: 3, maskPosterize: 1, maskSoftness: 0.5,
-    jitterX: 1.5, jitterY: 1.5, jitterRot: 0.35, jitterScale: 0.012, fillGrow: 0.01,
-    pressure: 0, pressureMod: 0, pooling: 0, iconScale: 1.5,
+    fillTravel: 0.75, strokeTravel: 1.25, wobble: 33, strokeWidth: 1.25, doubleStroke: true,
+    maskBlob: 55, maskLevelMin: 0.1, maskLevelMax: 0.45, maskOctaves: 3, maskPosterize: 1, maskSoftness: 0.6,
+    jitterX: 1.5, jitterY: 1.5, jitterRot: 0.35, jitterScale: 0.022,
+    cornerSpread: 6, cornerTravel: 4.5,
+    pressure: 0, pressureMod: 0, pooling: 0, iconTravel: 0.75,
   },
 
   marker: {
-    ...base, label: 'Marker', blurb: 'Fill misregistered from the outline. The strongest early-draft cue.',
-    fillScale: 4, strokeScale: 3, frequency: 0.018, strokeWidth: 2, fillDx: 3, fillDy: -2,
-    maskScale: 1100, maskFrequency: 0.009, maskContrast: 2.2, maskFloor: 0.35, maskOctaves: 2, maskPosterize: 4, maskSoftness: 1.5,
-    jitterX: 3, jitterY: 3, jitterRot: 0.8, jitterScale: 0.025, fillGrow: 0.02,
-    pressure: 0.2, pressureMod: 0.25, pooling: 2, iconScale: 2.5,
+    ...base, label: 'Marker',
+    blurb: 'Broad translucent nib gone round twice, so the overlap darkens.',
+    fillTravel: 2, strokeTravel: 1.5, wobble: 56, strokeWidth: 4,
+    doubleStroke: true, strokeInk: 0.52, retraceOffset: 2.2,
+    maskBlob: 95, maskLevelMin: 0.18, maskLevelMax: 0.5, maskOctaves: 2, maskPosterize: 4, maskSoftness: 2.8,
+    jitterX: 3, jitterY: 3, jitterRot: 0.8, jitterScale: 0.045,
+    cornerSpread: 10, cornerTravel: 8,
+    pressure: 0.2, pressureMod: 0.25, pooling: 2, iconTravel: 1.25,
   },
 
   whiteboard: {
-    ...base, label: 'Whiteboard', blurb: 'Fat stroke, loose fill. Reads as a marker on glass.',
-    fillScale: 5, strokeScale: 5, frequency: 0.014, octaves: 2, strokeWidth: 3.5, fillDx: 2, fillDy: 2,
-    maskScale: 1400, maskFrequency: 0.007, maskContrast: 2.8, maskFloor: 0.2, maskOctaves: 1, maskPosterize: 3, maskSoftness: 2,
-    jitterX: 4.5, jitterY: 4.5, jitterRot: 1.2, jitterScale: 0.04, fillGrow: 0.03,
-    pressure: 0.15, pressureMod: 0.15, pooling: 3.5, iconScale: 3.5,
+    ...base, label: 'Whiteboard', blurb: 'The fattest nib, barely retraced. Reads as a marker on glass.',
+    fillTravel: 2.5, strokeTravel: 2.5, wobble: 71, roughness: 2, strokeWidth: 5.5,
+    doubleStroke: true, strokeInk: 0.66, retraceOffset: 3,
+    maskBlob: 140, maskLevelMin: 0.26, maskLevelMax: 0.5, maskOctaves: 1, maskPosterize: 3, maskSoftness: 4.7,
+    jitterX: 4.5, jitterY: 4.5, jitterRot: 1.2, jitterScale: 0.07,
+    cornerSpread: 14, cornerTravel: 11,
+    pressure: 0.15, pressureMod: 0.15, pooling: 3.5, iconTravel: 1.75,
   },
 
-  hachure: {
-    ...base, label: 'Hachure', blurb: 'Fill replaced by angled pencil shading. Very rough.js.',
-    fillScale: 3, strokeScale: 3, frequency: 0.025, strokeWidth: 1.5, fillStyle: 'hachure', doubleStroke: true,
-    pressure: 0.3, pressureMod: 0.45, pooling: 0.8, iconScale: 2.5,
+  hatched: {
+    ...base, label: 'Hatched', blurb: 'Fill replaced by angled pencil shading. Very rough.js.',
+    fillTravel: 1.5, strokeTravel: 1.5, wobble: 40, strokeWidth: 1.5, fillStyle: 'hatched', doubleStroke: true,
+    cornerSpread: 11, cornerTravel: 8,
+    pressure: 0.3, pressureMod: 0.45, pooling: 0.8, iconTravel: 1.25,
   },
 
-  wireframe: {
-    ...base, label: 'Wireframe', blurb: 'No fill, dashed displaced outline. Pure structural draft.', maskOn: false,
-    jitterX: 0, jitterY: 0, jitterRot: 0, jitterScale: 0, fillGrow: 0,
-    fillStyle: 'none', strokeStyle: 'dashed', strokeScale: 3.5, strokeWidth: 1.5, frequency: 0.028,
-    pressure: 0.1, pressureMod: 0.1, pooling: 0, iconScale: 2,
+  dashed: {
+    ...base, label: 'Dashed', blurb: 'The outline broken into strokes, jitter off, so it stays a clean draft.', maskOn: false,
+    jitterX: 0, jitterY: 0, jitterRot: 0, jitterScale: 0,
+    cornerSpread: 8, cornerTravel: 6.5,
+    strokeStyle: 'dashed', strokeTravel: 1.75, strokeWidth: 1.5, wobble: 36,
+    pressure: 0.1, pressureMod: 0.1, pooling: 0, iconTravel: 1,
   },
 
   napkin: {
     ...base, label: 'Napkin', blurb: 'Everything loose at once. Maximum "do not ship this".',
-    fillScale: 6, strokeScale: 4.5, frequency: 0.02, strokeWidth: 2.25, fillDx: 4, fillDy: -3,
-    doubleStroke: true,
-    maskScale: 1600, maskFrequency: 0.006, maskContrast: 3.2, maskFloor: 0.15, maskOctaves: 2, maskPosterize: 2, maskSoftness: 2.5,
-    jitterX: 6, jitterY: 6, jitterRot: 1.8, jitterScale: 0.055, fillGrow: 0.045,
-    pressure: 0.45, pressureMod: 0.6, pooling: 2.5, iconScale: 4.5,
-  },
-
-  global: {
-    ...base, label: 'Global wash', blurb: 'One root filter. Text wobbles too. One line to ship, costs text quality.',
-    mode: 'global', fillScale: 2, strokeScale: 2, frequency: 0.012, strokeWidth: 0, maskOn: false,
-    iconScale: 0,
-    jitterX: 0, jitterY: 0, jitterRot: 0, jitterScale: 0, fillGrow: 0,
-    pressure: 0, pressureMod: 0, pooling: 0,
+    fillTravel: 3, strokeTravel: 2.25, wobble: 50, strokeWidth: 2.25,
+    doubleStroke: true, retraceOffset: 1.25,
+    maskBlob: 150, maskLevelMin: 0.3, maskLevelMax: 0.5, maskOctaves: 2, maskPosterize: 2, maskSoftness: 6.7,
+    jitterX: 6, jitterY: 6, jitterRot: 1.8, jitterScale: 0.1,
+    cornerSpread: 20, cornerTravel: 17,
+    pressure: 0.45, pressureMod: 0.6, pooling: 2.5, iconTravel: 2.25,
   },
 
   dry: {
     ...base, label: 'Dry marker', blurb: 'Broad low-frequency mask eats the fill unevenly. Ink that ran out.',
-    fillScale: 4.5, strokeScale: 3.5, frequency: 0.02, strokeWidth: 2, fillDx: 2, fillDy: -2,
-    maskScale: 1800, maskFrequency: 0.005, maskContrast: 3.5, maskFloor: 0.1, doubleStroke: true,
-    maskOctaves: 1, maskPosterize: 2, maskSoftness: 3,
-    jitterX: 5, jitterY: 5, jitterRot: 1.4, jitterScale: 0.045, fillGrow: 0.035,
-    pressure: 0.4, pressureMod: 0.7, pooling: 1.5, iconScale: 3.5,
+    fillTravel: 2.25, strokeTravel: 1.75, wobble: 50, strokeWidth: 3.5,
+    strokeInk: 0.4,
+    maskBlob: 150, maskLevelMin: 0.3, maskLevelMax: 0.58, doubleStroke: true, retraceOffset: 1.9,
+    maskOctaves: 1, maskPosterize: 2, maskSoftness: 9,
+    jitterX: 5, jitterY: 5, jitterRot: 1.4, jitterScale: 0.08,
+    cornerSpread: 16, cornerTravel: 13,
+    pressure: 0.4, pressureMod: 0.7, pooling: 1.5, iconTravel: 1.75,
   },
 };
 
 export const DEFAULT_SKETCH_PRESET = 'marker';
 
-/** Merged over a full preset, so a value stored before a control existed still
-    loads and picks up the default for whatever it is missing. */
+/** Reconciled against a full preset in both directions: a value stored before a
+    control existed picks up the default, and a value stored for a control since
+    retired is dropped. Without the drop, a stale key survives every spread and
+    makes the settings compare unequal to any baseline forever. */
 export function hydrateSketchSettings(raw: unknown): SketchSettings {
-  return { ...SKETCH_PRESETS[DEFAULT_SKETCH_PRESET], ...(raw as Partial<SketchSettings>) };
+  const base = SKETCH_PRESETS[DEFAULT_SKETCH_PRESET];
+  const stored = (raw ?? {}) as Partial<SketchSettings>;
+  const out = { ...base };
+  for (const key of Object.keys(base) as (keyof SketchSettings)[]) {
+    if (stored[key] !== undefined) (out[key] as unknown) = stored[key];
+  }
+  // A retired option: the fill's presence belongs to the theme, not the effect.
+  if ((out.fillStyle as string) === 'none') out.fillStyle = base.fillStyle;
+  convertTiledMask(stored as Record<string, unknown>, out);
+  convertCutToLevels(stored as Record<string, unknown>, out);
+  halveSwingDials(stored as Record<string, unknown>, out);
+  convertCyclesToWavelength(stored as Record<string, unknown>, out);
+  restoreDerivedRetrace(stored as Record<string, unknown>, out);
+  return out;
 }
+
+/** The second pass used to sit at a distance derived from the stroke width,
+    with no dial of its own. A look stored before the dial comes back at that
+    distance rather than at whatever the fallback preset happens to carry. */
+function restoreDerivedRetrace(stored: Record<string, unknown>, out: SketchSettings): void {
+  if (stored.retraceOffset === undefined) {
+    out.retraceOffset = Number(Math.max(1.2, out.strokeWidth * 0.55).toFixed(2));
+  }
+}
+
+/** The four displacement dials used to be stated as the map's own `scale`,
+    which is the full swing: the number on the dial was twice the furthest
+    anything actually moved. They are peak travel in px now, so a look stored
+    under the old names comes back halved and renders identically. */
+const SWING_DIALS = {
+  fillScale: 'fillTravel',
+  strokeScale: 'strokeTravel',
+  iconScale: 'iconTravel',
+  cornerShift: 'cornerTravel',
+} as const;
+
+/** The pen wobble used to be stated as `frequency`, in cycles per px, which is
+    the number the filter wants and not one anybody can picture. It is a
+    wavelength in px now, the way the mask states its blobs. */
+function convertCyclesToWavelength(stored: Record<string, unknown>, out: SketchSettings): void {
+  const cycles = stored.frequency;
+  if (typeof cycles === 'number' && cycles > 0) out.wobble = Math.round(1 / cycles);
+  // The layer count was `octaves`, and its dial ran to 5. The top two moved
+  // nothing, so a look stored there comes back at the roughest that reads.
+  // Both were multipliers on the frequency, so they ran the other way.
+  for (const [legacy, key] of [
+    ['borderFrequency', 'borderWavelength'], ['iconFrequency', 'iconWavelength'],
+  ] as const) {
+    const multiple = stored[legacy];
+    if (typeof multiple === 'number' && multiple > 0) {
+      out[key] = Number((1 / multiple).toFixed(3));
+    }
+  }
+  const layers = stored.octaves;
+  if (typeof layers === 'number') out.roughness = Math.min(3, Math.max(1, layers));
+}
+
+function halveSwingDials(stored: Record<string, unknown>, out: SketchSettings): void {
+  for (const [legacy, key] of Object.entries(SWING_DIALS)) {
+    const value = stored[legacy];
+    if (typeof value === 'number') out[key as 'fillTravel'] = value / 2;
+  }
+}
+
+/** The mask used to be a 600-unit tile painted at `maskScale` px, with the
+    coverage point buried in the hardness slope. Recover page-px blobs and
+    softness, and the levels the old slope and floor put the edge at. */
+function convertTiledMask(stored: Record<string, unknown>, out: SketchSettings): void {
+  const scale = stored.maskScale;
+  if (typeof scale !== 'number') return;
+  const freq = stored.maskFrequency;
+  if (typeof freq === 'number') out.maskBlob = Math.round(scale / (freq * LEGACY_TILE));
+  const soft = stored.maskSoftness;
+  if (typeof soft === 'number') out.maskSoftness = Number(((soft * scale) / LEGACY_TILE).toFixed(1));
+}
+
+/**
+ * Coverage and contrast were a cut point and a slope through `feTurbulence`'s
+ * own output, which runs about 0.24 to 0.77 rather than 0 to 1. Recover the two
+ * levels the pair put the edge between, and rescale them onto the field as it
+ * is now: stretched onto its full range before the levels see it.
+ */
+function convertCutToLevels(stored: Record<string, unknown>, out: SketchSettings): void {
+  const contrast = stored.maskContrast;
+  const coverage = stored.maskCoverage;
+  if (typeof contrast !== 'number' || typeof coverage !== 'number') return;
+  const veined = out.maskGrain === 'turbulence';
+  const [lo, hi] = veined ? LEGACY_RANGE.turbulence : LEGACY_RANGE.fractal;
+  const pivot = veined ? 0.55 - 0.5 * coverage : 0.8 - 0.6 * coverage;
+  const level = (raw: number) => Math.min(1, Math.max(0, (raw - lo) / (hi - lo)));
+  out.maskLevelMin = Number(level(pivot - 0.5 / contrast).toFixed(2));
+  out.maskLevelMax = Number(Math.max(out.maskLevelMin + 0.02, level(pivot + 0.5 / contrast)).toFixed(2));
+}
+
+/** Where `feTurbulence` actually put its output, measured across seeds, blob
+    sizes and octave counts. The old dials worked in these numbers. */
+const LEGACY_RANGE = { fractal: [0.24, 0.77], turbulence: [0.02, 0.6] } as const;
+
+const LEGACY_TILE = 600;

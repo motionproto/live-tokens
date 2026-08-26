@@ -65,7 +65,7 @@
     align-items: center;
     gap: var(--ui-space-6, 6px);
     padding: var(--ui-space-4, 4px) var(--ui-space-12, 12px);
-    color: var(--ui-text-secondary, rgba(255, 255, 255, 0.65));
+    color: var(--ui-text-primary, #fff);
     font-family: inherit;
     font-size: var(--ui-font-size-sm, 14px);
     font-weight: var(--ui-font-weight-medium, 500);
@@ -92,12 +92,12 @@
 
   .ui-seg-item:hover:not(.active) {
     background: rgba(255, 255, 255, 0.06);
-    color: var(--ui-text-primary, #fff);
   }
 
+  /* Every label sits at full brightness, so the pill fill is the only thing
+     carrying selection. It has to stay clearly lighter than a hover. */
   .ui-seg-item.active {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.25) 100%);
-    color: var(--ui-text-primary, #fff);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.3) 100%);
   }
 
   .ui-seg-item:has(input:focus-visible) {
@@ -106,9 +106,5 @@
 
   .ui-seg-item i {
     font-size: var(--ui-font-size-xs, 12px);
-    color: rgba(255, 255, 255, 0.65);
-  }
-  .ui-seg-item.active i {
-    color: rgba(255, 255, 255, 0.85);
   }
 </style>

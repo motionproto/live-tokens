@@ -2409,6 +2409,23 @@
             "value": "monospace"
           }
         ]
+      },
+      {
+        "variable": "--font-editorial",
+        "slots": [
+          {
+            "kind": "project",
+            "familyId": "src_preset_nunito-sans:nunito-sans"
+          },
+          {
+            "kind": "system",
+            "preset": "system-ui-sans"
+          },
+          {
+            "kind": "generic",
+            "value": "sans-serif"
+          }
+        ]
       }
     ],
     "harmonyAxes": [

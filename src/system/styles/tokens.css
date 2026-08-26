@@ -469,6 +469,9 @@
   --font-sans: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, sans-serif;
   --font-serif: "GFS Didot", serif;
   --font-mono: "fira-code", ui-monospace, "SF Mono", Menlo, Consolas, monospace, monospace;
+  /* The long-reading face. Tracks the body face until a theme or a consumer
+     repoints it, so essays stay legible under an expressive display face. */
+  --font-editorial: var(--font-sans);
 
   /* Font Sizes */
   --font-size-xs: 0.75rem;   /* 12px */
@@ -657,6 +660,12 @@
   --code-font-weight: var(--font-weight-normal);
   --code-line-height: var(--line-height-normal);
   --code-letter-spacing: var(--letter-spacing-normal);
+
+  --editorial-font-family: var(--font-editorial);
+  --editorial-font-size: var(--font-size-md);
+  --editorial-font-weight: var(--font-weight-normal);
+  --editorial-line-height: var(--line-height-normal);
+  --editorial-letter-spacing: var(--letter-spacing-normal);
 
   /* Eyebrow — values track the existing .eyebrow class in src/app/Home.svelte. */
   --eyebrow-font-family: var(--font-sans);

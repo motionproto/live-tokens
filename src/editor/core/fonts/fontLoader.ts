@@ -20,6 +20,7 @@ const FONT_STACK_VARIABLES: FontStackVariable[] = [
   '--font-sans',
   '--font-serif',
   '--font-mono',
+  '--font-editorial',
 ];
 
 const LINK_ATTR = 'data-font-source-id';

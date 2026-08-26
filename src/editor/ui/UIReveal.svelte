@@ -1,3 +1,9 @@
+<script module lang="ts">
+  /** Shared so a caller that must wait for the pane to settle — scrolling to a
+      section it just opened, say — does not hard-code the number. */
+  export const REVEAL_MS = 260;
+</script>
+
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { slide } from 'svelte/transition';
@@ -22,7 +28,7 @@
     children: Snippet;
   }
 
-  let { open, style = undefined, duration = 260, children }: Props = $props();
+  let { open, style = undefined, duration = REVEAL_MS, children }: Props = $props();
 
   const reduceMotion = typeof window !== 'undefined'
     && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;

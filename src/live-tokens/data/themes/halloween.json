@@ -2448,6 +2448,23 @@
             "value": "monospace"
           }
         ]
+      },
+      {
+        "variable": "--font-editorial",
+        "slots": [
+          {
+            "kind": "project",
+            "familyId": "src_preset_karla:karla"
+          },
+          {
+            "kind": "system",
+            "preset": "system-ui-sans"
+          },
+          {
+            "kind": "generic",
+            "value": "sans-serif"
+          }
+        ]
       }
     ],
     "harmonyAxes": [

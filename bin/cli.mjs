@@ -56,7 +56,8 @@ Commands:
                               the report without writing.
   set-fonts <brief.json> [--dry-run] [--no-verify]
                               Bind Google Fonts families to --font-display,
-                              --font-sans, --font-serif and --font-mono (see
+                              --font-sans, --font-serif, --font-mono and
+                              --font-editorial (see
                               the live-tokens-pair-fonts skill). Each family is
                               verified against the Google Fonts API and the URL
                               is negotiated from the weights it actually has.

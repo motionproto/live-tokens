@@ -8,7 +8,7 @@ import type {
 import { parseGoogleFontsUrl } from './fontParse';
 import { familyIndex, resolvedFaceName } from './fontPairing';
 
-export type PairingSlot = 'display' | 'body' | 'serif' | 'mono';
+export type PairingSlot = 'display' | 'body' | 'serif' | 'mono' | 'editorial';
 
 export interface PairingFace {
   name: string;
@@ -44,13 +44,14 @@ export interface FontPairingResult {
 
 /** Slot order is also the order stamped sources land in `fontSources`;
  *  `check:preset-themes` reads the preset pair back out positionally. */
-export const SLOT_ORDER: PairingSlot[] = ['display', 'body', 'serif', 'mono'];
+export const SLOT_ORDER: PairingSlot[] = ['display', 'body', 'serif', 'mono', 'editorial'];
 
 export const SLOT_VARIABLES: Record<PairingSlot, FontStackVariable> = {
   display: '--font-display',
   body: '--font-sans',
   serif: '--font-serif',
   mono: '--font-mono',
+  editorial: '--font-editorial',
 };
 
 export function slugifyFamily(name: string): string {
