@@ -200,11 +200,6 @@
       backwards, straight from smooth to the hardest cut and then easing off. */
   const STEP_TONES = [1, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2];
 
-  /** Closest the two level handles may sit, in dial percent. At nothing between
-      them the field would be two tones with no edge at all, which no amount of
-      Blur reads as ink. */
-  const LEVEL_GAP = 4;
-
   // Log: the small end of Scale is where a step is legible, and a linear walk
   // would spend most of the dial past the point anything more is visible.
   const logPos = (v: number, r: { min: number; max: number }) =>
@@ -215,11 +210,11 @@
   let scalePos = $derived(logPos(s.maskBlob, SIZE));
   const setScale = (v: number) =>
     updateSketchSettings({ maskBlob: Math.round(logVal(v / 100, SIZE) / 5) * 5 });
-  let levelMin = $derived(Math.round(s.maskLevelMin * 100));
-  let levelMax = $derived(Math.round(s.maskLevelMax * 100));
+  let outputMin = $derived(Math.round(s.maskOutputMin * 100));
+  let outputMax = $derived(Math.round(s.maskOutputMax * 100));
   let stepPos = $derived(Math.max(0, STEP_TONES.indexOf(s.maskPosterize)));
-  const setLevels = (min: number, max: number) =>
-    updateSketchSettings({ maskLevelMin: min / 100, maskLevelMax: max / 100 });
+  const setOutput = (min: number, max: number) =>
+    updateSketchSettings({ maskOutputMin: min / 100, maskOutputMax: max / 100 });
 
   // The same stages the fill filter runs, painted at true pixel size over a
   // sample card, so blob size here is blob size on the components and the
@@ -228,7 +223,7 @@
   let maskPreview = $derived(buildMaskUri(s));
   // The field itself after each stage, white for ink.
   let stageTiles = $derived(
-    (['noise', 'levels', 'blur'] as const).map((stage) => ({ stage, uri: buildMaskUri(s, 9, stage) })),
+    (['noise', 'output', 'blur'] as const).map((stage) => ({ stage, uri: buildMaskUri(s, 9, stage) })),
   );
 </script>
 
@@ -585,17 +580,17 @@
             onchange={(v) => updateSketchSettings({ maskOctaves: v })}
           />
 
-          <h5>Levels</h5>
+          <h5>Output</h5>
           <p class="group-note">
-            The field's black and white points. Below the low handle the fill is bare,
-            above the high one it is whole, and the span between them is the blotch edge.
+            How much ink the field lays down. The low handle is the palest the fill
+            gets and the high handle the densest: 0 is bare, 100 is whole.
           </p>
           <SketchRange
-            label="Range" low={levelMin} high={levelMax} min={0} max={100} step={1}
-            gap={LEVEL_GAP}
-            readout={`${levelMin}–${levelMax}%`}
-            hint="Where the field turns into ink. Close the handles for a hard cut, open them for a wash. Move the pair to ink more or less of the fill."
-            onchange={setLevels}
+            label="Output" low={outputMin} high={outputMax} min={0} max={100} step={1}
+            gap={0}
+            readout={`${outputMin}–${outputMax}%`}
+            hint="Bring the handles together for a flat wash, open them for strong blotches. Move the pair to ink more or less of the fill."
+            onchange={setOutput}
           />
           <SketchDial
             label="Steps" value={stepPos} min={0} max={STEP_TONES.length - 1} step={1}
@@ -609,7 +604,7 @@
           <SketchDial
             label="Blur" value={s.maskSoftness} min={0} max={BLUR_MAX} step={0.25}
             readout={px(s.maskSoftness)}
-            hint="Softens the blotch edges. Close levels with a little blur give a hard blotch with a soft rim."
+            hint="Softens the blotch edges. Few tones with a little blur give a hard blotch with a soft rim."
             onchange={(v) => updateSketchSettings({ maskSoftness: v })}
           />
         </div>

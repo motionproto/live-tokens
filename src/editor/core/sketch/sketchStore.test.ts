@@ -110,10 +110,17 @@ describe('hydrateSketchSettings', () => {
   // the same look comes back rather than the fallback preset's.
   it('converts a coverage cut into the two levels it sat between', () => {
     const out = hydrateSketchSettings({ maskCoverage: 0.5, maskContrast: 2 });
-    expect(out.maskLevelMin).toBeCloseTo(0.02, 2);
-    expect(out.maskLevelMax).toBeCloseTo(0.96, 2);
+    expect(out.maskOutputMin).toBeCloseTo(0.02, 2);
+    expect(out.maskOutputMax).toBeCloseTo(0.96, 2);
 
     const hard = hydrateSketchSettings({ maskCoverage: 0.84, maskContrast: 4 });
-    expect(hard.maskLevelMax - hard.maskLevelMin).toBeLessThan(out.maskLevelMax - out.maskLevelMin);
+    expect(hard.maskOutputMax - hard.maskOutputMin).toBeLessThan(out.maskOutputMax - out.maskOutputMin);
+  });
+
+  it('carries input levels across as output levels', () => {
+    const out = hydrateSketchSettings({ maskLevelMin: 0.2, maskLevelMax: 0.5 });
+    expect(out.maskOutputMin).toBe(0.2);
+    expect(out.maskOutputMax).toBe(0.5);
+    expect('maskLevelMin' in out).toBe(false);
   });
 });

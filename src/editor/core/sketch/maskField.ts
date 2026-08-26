@@ -29,7 +29,7 @@ const SAMPLE_PX = 2;
 const RASTER = MASK_TILE / SAMPLE_PX;
 
 /** The stage previews, in the order the field is built. */
-export type MaskStage = 'noise' | 'levels' | 'blur';
+export type MaskStage = 'noise' | 'output' | 'blur';
 
 /* ---------------------------------------------------------------- noise --- */
 
@@ -155,14 +155,13 @@ function normalise(f: Float32Array): Float32Array {
 
 /* ------------------------------------------------------------- levelling --- */
 
-/** Input levels. Everything at or below Min goes bare, everything at or above
-    Max goes fully inked, and the gap between them is the gradient. The midpoint
-    is wherever the two leave it. */
-function applyLevels(f: Float32Array, min: number, max: number): Float32Array {
-  const span = Math.max(0.01, max - min);
-  for (let i = 0; i < f.length; i++) {
-    f[i] = Math.min(1, Math.max(0, (f[i] - min) / span));
-  }
+/** Output levels. The field's darkest point lands at Min and its brightest at
+    Max, so nothing is barer than the low handle or denser than the high one.
+    Input levels cut the field instead, and since the field is stretched to run
+    from black, any low handle above zero punched a hole through the fill. */
+function applyOutput(f: Float32Array, min: number, max: number): Float32Array {
+  const span = max - min;
+  for (let i = 0; i < f.length; i++) f[i] = min + f[i] * span;
   return f;
 }
 
@@ -241,9 +240,9 @@ export function buildMaskField(
   if (through === 'noise') return { field: raw, raster: RASTER };
 
   const levelled = posterise(
-    applyLevels(Float32Array.from(raw), s.maskLevelMin, s.maskLevelMax), s.maskPosterize,
+    applyOutput(Float32Array.from(raw), s.maskOutputMin, s.maskOutputMax), s.maskPosterize,
   );
-  if (through === 'levels') return { field: levelled, raster: RASTER };
+  if (through === 'output') return { field: levelled, raster: RASTER };
 
   return { field: blur(levelled, RASTER, s.maskSoftness / SAMPLE_PX), raster: RASTER };
 }
@@ -359,7 +358,7 @@ export function fieldToPng(field: Float32Array, raster: number): string {
     never triggers another. The tab holds four of them at once, the field at
     three stages beside the finished one, with headroom over that. */
 const KEYS = [
-  'maskBlob', 'maskOctaves', 'maskGrain', 'maskLevelMin', 'maskLevelMax',
+  'maskBlob', 'maskOctaves', 'maskGrain', 'maskOutputMin', 'maskOutputMax',
   'maskPosterize', 'maskSoftness',
 ] as const;
 

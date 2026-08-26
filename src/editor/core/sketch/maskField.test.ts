@@ -3,7 +3,7 @@ import { buildMaskField, buildMaskUri, MASK_TILE } from './maskField';
 import { SKETCH_PRESETS } from './sketchPresets';
 
 const marker = SKETCH_PRESETS.marker;
-const flat = { ...marker, maskLevelMin: 0, maskLevelMax: 1, maskPosterize: 1, maskSoftness: 0 };
+const flat = { ...marker, maskOutputMin: 0, maskOutputMax: 1, maskPosterize: 1, maskSoftness: 0 };
 
 /** Share of the field in each fifth, blackest first. */
 function bands(field: Float32Array): number[] {
@@ -28,27 +28,20 @@ describe('mask field', () => {
     }
   });
 
-  it('erases more as the lower level rises and inks more as the upper falls', () => {
-    const bare = (s: Partial<typeof flat>) => {
-      const { field } = buildMaskField({ ...flat, ...s }, 9, 'levels');
-      return field.reduce((n, v) => n + (v < 0.01 ? 1 : 0), 0) / field.length;
-    };
-    expect(bare({ maskLevelMin: 0.5 })).toBeGreaterThan(bare({ maskLevelMin: 0.2 }));
-
-    const solid = (s: Partial<typeof flat>) => {
-      const { field } = buildMaskField({ ...flat, ...s }, 9, 'levels');
-      return field.reduce((n, v) => n + (v > 0.99 ? 1 : 0), 0) / field.length;
-    };
-    expect(solid({ maskLevelMax: 0.4 })).toBeGreaterThan(solid({ maskLevelMax: 0.8 }));
+  // Input levels cut the field, and since it is stretched to run from black,
+  // any low handle above zero punched a hole through the fill.
+  it('lands the field between the two output levels and nowhere outside them', () => {
+    const { field } = buildMaskField({ ...flat, maskOutputMin: 0.4, maskOutputMax: 0.9 }, 9, 'output');
+    let lo = 1, hi = 0;
+    for (const v of field) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    expect(lo).toBeCloseTo(0.4, 2);
+    expect(hi).toBeCloseTo(0.9, 2);
+    expect(field.some((v) => v < 0.01)).toBe(false);
   });
 
-  it('cuts the field to two tones as the levels close up', () => {
-    const mid = (min: number, max: number) => {
-      const { field } = buildMaskField({ ...flat, maskLevelMin: min, maskLevelMax: max }, 9, 'levels');
-      return field.reduce((n, v) => n + (v > 0.1 && v < 0.9 ? 1 : 0), 0) / field.length;
-    };
-    expect(mid(0.48, 0.52)).toBeLessThan(0.1);
-    expect(mid(0.2, 0.8)).toBeGreaterThan(0.6);
+  it('flattens to a wash as the levels close up', () => {
+    const { field } = buildMaskField({ ...flat, maskOutputMin: 0.6, maskOutputMax: 0.6 }, 9, 'output');
+    expect(field.every((v) => Math.abs(v - 0.6) < 1e-6)).toBe(true);
   });
 
   // A tile that does not meet itself draws a line across the page everywhere it
@@ -81,7 +74,7 @@ describe('mask field', () => {
   });
 
   it('flattens the field into as many tones as the steps ask for', () => {
-    const { field } = buildMaskField({ ...flat, maskPosterize: 3 }, 9, 'levels');
+    const { field } = buildMaskField({ ...flat, maskPosterize: 3 }, 9, 'output');
     expect(new Set(field).size).toBe(3);
   });
 

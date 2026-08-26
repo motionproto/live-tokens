@@ -27,6 +27,11 @@ const ID = 'lt-sketch';
 const SEEDS = [0, 1, 2, 3, 4];
 
 const HATCH_ANGLE = 45;
+/** The second set of stripes leans and spaces itself a little off the first.
+    Half a pixel of pitch against 7 puts the beat about 90px apart, and the two
+    degrees of lean turn that beat so it is never a clean band. */
+const HATCH_BEAT_ANGLE = 2;
+const HATCH_BEAT_PITCH = 6.5;
 
 /**
  * One drawable part. `stem` is the token stem: the fill reads
@@ -324,9 +329,11 @@ export function buildDefsMarkup(s: SketchSettings): string {
   const displace = (
     id: string, freq: number, seed: number, scale: number, pad: number,
     warp: number, warpSeed: number,
-    opts: { pressure?: number; retrace?: readonly [number, number] } = {},
+    opts: { pressure?: number; retrace?: readonly [number, number]; warpFreq?: number } = {},
   ) => {
-    const { pressure = 0, retrace } = opts;
+    // The box is shared with the fill, so its wave runs at the fill's
+    // frequency even when the pen has a wavelength of its own.
+    const { pressure = 0, retrace, warpFreq = freq } = opts;
 
     // One pass of the pen. `tag` suffixes every result name, so a second pass
     // can be laid into the same filter without its stages shadowing the
@@ -355,7 +362,7 @@ export function buildDefsMarkup(s: SketchSettings): string {
       // twice.
       if (warp > 0) {
         stages.push(
-          `<feTurbulence type="fractalNoise" baseFrequency="${(freq * WARP_FREQUENCY).toFixed(5)}" numOctaves="1" seed="${warpSeed}" result="w${tag}"/>`,
+          `<feTurbulence type="fractalNoise" baseFrequency="${(warpFreq * WARP_FREQUENCY).toFixed(5)}" numOctaves="1" seed="${warpSeed}" result="w${tag}"/>`,
           squareOff(s, `w${tag}`, `wb${tag}`),
           `<feDisplacementMap in="${src}" in2="${squaredResult(s, `w${tag}`, `wb${tag}`)}" scale="${swing(warp)}" xChannelSelector="R" yChannelSelector="G" result="box${tag}"/>`,
         );
@@ -423,11 +430,11 @@ export function buildDefsMarkup(s: SketchSettings): string {
     // Offset seeds so the outline never tracks the fill exactly. That
     // disagreement at the edges is the whole effect.
     displace(`${ID}-stroke-${seed}`, base / s.borderWavelength, seed + 17, s.strokeTravel, pad, warp, seed + 41,
-      { pressure: s.pressureMod, ...shift(i) }) +
+      { pressure: s.pressureMod, warpFreq: base, ...shift(i) }) +
     // Small components take a reduced, higher-frequency displacement.
     displace(`${ID}-fill-sm-${seed}`, base * 2.2, seed, s.fillTravel * 0.35, pad + 40, warp * 0.35, seed + 41) +
     displace(`${ID}-stroke-sm-${seed}`, base * 2.2 / s.borderWavelength, seed + 17, s.strokeTravel * 0.35, pad + 40, warp * 0.35, seed + 41,
-      { pressure: s.pressureMod, ...shift(i) }) +
+      { pressure: s.pressureMod, warpFreq: base * 2.2, ...shift(i) }) +
     // Icons are glyphs a few tens of pixels across, read at a glance, with no
     // redundancy to lose. A high-frequency field at a small amplitude wobbles
     // the outline without pulling a stroke off the shape it belongs to.
@@ -774,11 +781,22 @@ export function buildStylesheet(s: SketchSettings): string {
   // parts that carry a surface set `--sketch-stroke: transparent` (headers,
   // segments, notifications), and binding the stripes to it left every one of
   // them hatched in an invisible colour.
+  //
+  // Two sets of stripes, nearly parallel and nearly the same pitch. Where they
+  // fall in step the shading doubles up and where they fall out of it they
+  // thin, and the beat between the two pitches is long enough to cross a
+  // component once or twice, so a hatched card is dense in one corner and
+  // pale in another the way a hand shades an area. A single set is a ruled
+  // pattern whatever the pen does to its edges.
+  const hatchInk = (share: string) =>
+    `color-mix(in srgb, var(--sketch-hatch-color, var(--sketch-stroke, currentColor))` +
+      ` calc(var(--sketch-hatch-ink) * ${share}), transparent)`;
   const fillStyles =
     `[data-sketch][data-sketch-fill='hatched'] ${parts}::before{` +
-      `background:repeating-linear-gradient(var(--sketch-hatch-angle),` +
-        `color-mix(in srgb, var(--sketch-hatch-color, var(--sketch-stroke, currentColor))` +
-          ` var(--sketch-hatch-ink), transparent) 0 1.5px,` +
+      `background:repeating-linear-gradient(calc(var(--sketch-hatch-angle) + ${HATCH_BEAT_ANGLE}deg),` +
+        `${hatchInk('0.55')} 0 1px,transparent 1px ${HATCH_BEAT_PITCH}px),` +
+      `repeating-linear-gradient(var(--sketch-hatch-angle),` +
+        `${hatchInk('1')} 0 1.5px,` +
         `transparent 1.5px 7px),` +
       `var(--sketch-fill, var(--surface-neutral-lower));` +
     `}`;

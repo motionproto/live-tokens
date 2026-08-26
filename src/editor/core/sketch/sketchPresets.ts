@@ -61,13 +61,14 @@ export interface SketchSettings {
   maskOn: boolean;
   /** Wavelength of the coverage noise, in page px. Small gives speckle, large gives broad patches. */
   maskBlob: number;
-  /** Input levels on the coverage field, 0 to 1. At or below Min the fill goes
-      bare, at or above Max it is fully inked, and the gap between the two is the
-      gradient across a blotch edge: close together cuts the field out, far apart
-      leaves a wash. The field is stretched onto its own measured range before
-      they apply, so both mean the same thing at every grain and octave count. */
-  maskLevelMin: number;
-  maskLevelMax: number;
+  /** Output levels on the coverage field, 0 to 1: the palest the fill gets and
+      the densest. 0 is bare and 1 is whole, so 0.4 to 1 is a fill that is never
+      thinner than 40% ink, and 0 to 0.8 one that never quite fills in. Close
+      together is a flat wash, far apart a strong blotch. The field is stretched
+      onto its own measured range before they apply, so both mean the same thing
+      at every grain and octave count. */
+  maskOutputMin: number;
+  maskOutputMax: number;
   /** Detail layers. 1-2 gives broad blobs, 4+ goes cloudy and stops reading as blotches. */
   maskOctaves: number;
   /** Character of the noise. Fractal is cloudy; turbulence is veined, like marbled ink. */
@@ -121,7 +122,7 @@ const base: SketchSettings = {
   strokeWidth: 1.5, doubleStroke: false, retraceOffset: 1.2, retracePass: 'copy',
   fillStyle: 'solid', hatchInk: 0.4, strokeStyle: 'solid',
   pressure: 0.25, pressureMod: 0.35, pooling: 1.2, strokeInk: 1,
-  maskOn: true, maskBlob: 100, maskLevelMin: 0.16, maskLevelMax: 0.5,
+  maskOn: true, maskBlob: 100, maskOutputMin: 0.35, maskOutputMax: 1,
   maskOctaves: 2, maskGrain: 'fractal', maskPosterize: 1, maskSoftness: 1.5,
   jitterX: 2.5, jitterY: 2.5, jitterRot: 0.6, jitterScale: 0.035,
   cornerSpread: 10, cornerTravel: 8,
@@ -130,69 +131,82 @@ const base: SketchSettings = {
 
 export const SKETCH_PRESETS: Record<string, SketchSettings> = {
   pencil: {
-    ...base, label: 'Pencil', blurb: 'Thin double-pass outline, fill left alone. Closest to a neat hand sketch.',
-    fillTravel: 0.75, strokeTravel: 1.25, wobble: 33, strokeWidth: 1.25, doubleStroke: true,
-    maskBlob: 55, maskLevelMin: 0.1, maskLevelMax: 0.45, maskOctaves: 3, maskPosterize: 1, maskSoftness: 0.6,
+    ...base, label: 'Pencil',
+    blurb: 'Two graphite passes on their own seeds, so the outline disagrees with itself the way a hand coming back round does. Tight grain, little else.',
+    fillTravel: 0.75, strokeTravel: 1.25, wobble: 30, roughness: 3, waveform: 1,
+    strokeWidth: 1.25, doubleStroke: true, retracePass: 'reseeded', retraceOffset: 1.5, strokeInk: 0.85,
+    maskBlob: 40, maskOutputMin: 0.55, maskOutputMax: 1, maskOctaves: 3, maskPosterize: 1, maskSoftness: 0.6,
     jitterX: 1.5, jitterY: 1.5, jitterRot: 0.35, jitterScale: 0.022,
     cornerSpread: 6, cornerTravel: 4.5,
-    pressure: 0, pressureMod: 0, pooling: 0, iconTravel: 0.75,
+    pressure: 0.15, pressureMod: 0.3, pooling: 0, iconTravel: 0.75,
   },
 
   marker: {
     ...base, label: 'Marker',
-    blurb: 'Broad translucent nib gone round twice, so the overlap darkens.',
-    fillTravel: 2, strokeTravel: 1.5, wobble: 56, strokeWidth: 4,
-    doubleStroke: true, strokeInk: 0.52, retraceOffset: 2.2,
-    maskBlob: 95, maskLevelMin: 0.18, maskLevelMax: 0.5, maskOctaves: 2, maskPosterize: 4, maskSoftness: 2.8,
+    blurb: 'Broad translucent nib gone round twice on the same line, so the overlap darkens and the ink pools where it slows.',
+    fillTravel: 2, strokeTravel: 1.5, wobble: 56, waveform: 1.4, borderWavelength: 1.3,
+    strokeWidth: 4, doubleStroke: true, retracePass: 'copy', strokeInk: 0.52, retraceOffset: 2.2,
+    maskBlob: 95, maskOutputMin: 0.4, maskOutputMax: 1, maskOctaves: 2, maskPosterize: 4, maskSoftness: 2.8,
     jitterX: 3, jitterY: 3, jitterRot: 0.8, jitterScale: 0.045,
     cornerSpread: 10, cornerTravel: 8,
     pressure: 0.2, pressureMod: 0.25, pooling: 2, iconTravel: 1.25,
   },
 
   whiteboard: {
-    ...base, label: 'Whiteboard', blurb: 'The fattest nib, barely retraced. Reads as a marker on glass.',
-    fillTravel: 2.5, strokeTravel: 2.5, wobble: 71, roughness: 2, strokeWidth: 5.5,
-    doubleStroke: true, strokeInk: 0.66, retraceOffset: 3,
-    maskBlob: 140, maskLevelMin: 0.26, maskLevelMax: 0.5, maskOctaves: 1, maskPosterize: 3, maskSoftness: 4.7,
+    ...base, label: 'Whiteboard',
+    blurb: 'The fattest nib on glass. One long smooth undulation, and a veined mask that streaks the fill like a half-wiped board.',
+    fillTravel: 2.5, strokeTravel: 2.5, wobble: 90, roughness: 1, waveform: 1, borderWavelength: 1.5,
+    strokeWidth: 5.5, doubleStroke: true, retracePass: 'copy', strokeInk: 0.66, retraceOffset: 3,
+    maskGrain: 'turbulence', maskBlob: 180, maskOutputMin: 0.3, maskOutputMax: 1,
+    maskOctaves: 1, maskPosterize: 3, maskSoftness: 5,
     jitterX: 4.5, jitterY: 4.5, jitterRot: 1.2, jitterScale: 0.07,
     cornerSpread: 14, cornerTravel: 11,
-    pressure: 0.15, pressureMod: 0.15, pooling: 3.5, iconTravel: 1.75,
+    pressure: 0.15, pressureMod: 0.15, pooling: 3.5, iconTravel: 1.75, iconMaskTile: 140,
   },
 
   hatched: {
-    ...base, label: 'Hatched', blurb: 'Fill replaced by angled pencil shading. Very rough.js.',
-    fillTravel: 1.5, strokeTravel: 1.5, wobble: 40, strokeWidth: 1.5, fillStyle: 'hatched', doubleStroke: true,
-    cornerSpread: 11, cornerTravel: 8,
-    pressure: 0.3, pressureMod: 0.45, pooling: 0.8, iconTravel: 1.25,
+    ...base, label: 'Hatched',
+    blurb: 'An etching. The fill is angled shading, the outline a single hard-edged scratch that chatters along its length. No mask: the hatch is the texture.',
+    fillTravel: 1.25, strokeTravel: 1.5, wobble: 24, roughness: 3, waveform: 3,
+    strokeWidth: 1.5, fillStyle: 'hatched', hatchInk: 0.5, doubleStroke: false,
+    maskOn: false, iconMaskOn: false,
+    jitterX: 1.5, jitterY: 1.5, jitterRot: 0.4, jitterScale: 0.03,
+    cornerSpread: 6, cornerTravel: 6,
+    pressure: 0.3, pressureMod: 0.45, pooling: 0.8, iconTravel: 1.25, iconWavelength: 0.5,
   },
 
   dashed: {
-    ...base, label: 'Dashed', blurb: 'The outline broken into strokes, jitter off, so it stays a clean draft.', maskOn: false,
+    ...base, label: 'Dashed',
+    blurb: 'A drafting outline. One slow drift along the ruler, broken into strokes, with jitter, mask and pressure all off. The clean pole.',
+    strokeStyle: 'dashed', strokeTravel: 1, fillTravel: 0.5, wobble: 120, roughness: 1, waveform: 1,
+    strokeWidth: 1.5, doubleStroke: false,
+    maskOn: false, iconMaskOn: false,
     jitterX: 0, jitterY: 0, jitterRot: 0, jitterScale: 0,
-    cornerSpread: 8, cornerTravel: 6.5,
-    strokeStyle: 'dashed', strokeTravel: 1.75, strokeWidth: 1.5, wobble: 36,
-    pressure: 0.1, pressureMod: 0.1, pooling: 0, iconTravel: 1,
+    cornerSpread: 4, cornerTravel: 3,
+    pressure: 0, pressureMod: 0, pooling: 0, iconTravel: 0,
   },
 
   napkin: {
-    ...base, label: 'Napkin', blurb: 'Everything loose at once. Maximum "do not ship this".',
-    fillTravel: 3, strokeTravel: 2.25, wobble: 50, strokeWidth: 2.25,
-    doubleStroke: true, retraceOffset: 1.25,
-    maskBlob: 150, maskLevelMin: 0.3, maskLevelMax: 0.5, maskOctaves: 2, maskPosterize: 2, maskSoftness: 6.7,
+    ...base, label: 'Napkin',
+    blurb: 'Ballpoint in a hurry. Everything loose at once: a square wave sends every edge to full travel, and the second pass lands wherever it lands.',
+    fillTravel: 3, strokeTravel: 2.25, wobble: 50, roughness: 3, waveform: 2.5,
+    strokeWidth: 2.25, doubleStroke: true, retracePass: 'reseeded', retraceOffset: 4, strokeInk: 1,
+    maskBlob: 150, maskOutputMin: 0.25, maskOutputMax: 1, maskOctaves: 2, maskPosterize: 2, maskSoftness: 6.7,
     jitterX: 6, jitterY: 6, jitterRot: 1.8, jitterScale: 0.1,
     cornerSpread: 20, cornerTravel: 17,
     pressure: 0.45, pressureMod: 0.6, pooling: 2.5, iconTravel: 2.25,
   },
 
   dry: {
-    ...base, label: 'Dry marker', blurb: 'Broad low-frequency mask eats the fill unevenly. Ink that ran out.',
-    fillTravel: 2.25, strokeTravel: 1.75, wobble: 50, strokeWidth: 3.5,
-    strokeInk: 0.4,
-    maskBlob: 150, maskLevelMin: 0.3, maskLevelMax: 0.58, doubleStroke: true, retraceOffset: 1.9,
-    maskOctaves: 1, maskPosterize: 2, maskSoftness: 9,
+    ...base, label: 'Dry marker',
+    blurb: 'Ink that ran out. One scratchy pass that breaks up along its length, over a fill the veined mask has mostly eaten.',
+    fillTravel: 2.25, strokeTravel: 1.75, wobble: 50, waveform: 2, borderWavelength: 0.5,
+    strokeWidth: 3.5, doubleStroke: false, strokeInk: 0.4,
+    maskGrain: 'turbulence', maskBlob: 120, maskOutputMin: 0, maskOutputMax: 0.85,
+    maskOctaves: 2, maskPosterize: 1, maskSoftness: 3,
     jitterX: 5, jitterY: 5, jitterRot: 1.4, jitterScale: 0.08,
     cornerSpread: 16, cornerTravel: 13,
-    pressure: 0.4, pressureMod: 0.7, pooling: 1.5, iconTravel: 1.75,
+    pressure: 0.4, pressureMod: 0.8, pooling: 1.5, iconTravel: 1.75, iconMaskTile: 60,
   },
 };
 
@@ -213,6 +227,7 @@ export function hydrateSketchSettings(raw: unknown): SketchSettings {
   if ((out.fillStyle as string) === 'none') out.fillStyle = base.fillStyle;
   convertTiledMask(stored as Record<string, unknown>, out);
   convertCutToLevels(stored as Record<string, unknown>, out);
+  carryLevelsToOutput(stored as Record<string, unknown>, out);
   halveSwingDials(stored as Record<string, unknown>, out);
   convertCyclesToWavelength(stored as Record<string, unknown>, out);
   restoreDerivedRetrace(stored as Record<string, unknown>, out);
@@ -293,8 +308,17 @@ function convertCutToLevels(stored: Record<string, unknown>, out: SketchSettings
   const [lo, hi] = veined ? LEGACY_RANGE.turbulence : LEGACY_RANGE.fractal;
   const pivot = veined ? 0.55 - 0.5 * coverage : 0.8 - 0.6 * coverage;
   const level = (raw: number) => Math.min(1, Math.max(0, (raw - lo) / (hi - lo)));
-  out.maskLevelMin = Number(level(pivot - 0.5 / contrast).toFixed(2));
-  out.maskLevelMax = Number(Math.max(out.maskLevelMin + 0.02, level(pivot + 0.5 / contrast)).toFixed(2));
+  out.maskOutputMin = Number(level(pivot - 0.5 / contrast).toFixed(2));
+  out.maskOutputMax = Number(Math.max(out.maskOutputMin + 0.02, level(pivot + 0.5 / contrast)).toFixed(2));
+}
+
+/** The pair were input levels, a cut through the field, and are output levels
+    now, the palest and densest the fill gets. The same two numbers carry over:
+    a look cut between 20% and 50% comes back as a wash between 20% and 50% ink,
+    which keeps its spread and loses only the hole. */
+function carryLevelsToOutput(stored: Record<string, unknown>, out: SketchSettings): void {
+  if (typeof stored.maskLevelMin === 'number') out.maskOutputMin = stored.maskLevelMin;
+  if (typeof stored.maskLevelMax === 'number') out.maskOutputMax = stored.maskLevelMax;
 }
 
 /** Where `feTurbulence` actually put its output, measured across seeds, blob

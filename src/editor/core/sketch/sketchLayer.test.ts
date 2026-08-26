@@ -129,7 +129,7 @@ describe('sketch layer', () => {
 
   it('carries the fill style and pass count onto the scope element', () => {
     const stage = document.createElement('div');
-    setSketchScope(stage, SKETCH_PRESETS.hatched);
+    setSketchScope(stage, { ...SKETCH_PRESETS.hatched, doubleStroke: true });
 
     expect(stage.getAttribute('data-sketch')).toBe('');
     expect(stage.getAttribute('data-sketch-fill')).toBe('hatched');
@@ -348,10 +348,19 @@ describe('the drawn box', () => {
     // Minus the `in=`, which names whatever stage ran before it and differs by
     // design: the stroke thins its ink first, the fill has nothing to thin.
     const warp = (id: string) =>
-      defs.match(new RegExp(`<filter id="${id}"[\\s\\S]*?(<feTurbulence[^>]*result="w"/><feDisplacementMap[^>]*result="box"/>)`))![1]
-        .replace(/ in="[^"]*"/, '');
+      defs.match(new RegExp(`<filter id="${id}"[\\s\\S]*?(<feTurbulence[^>]*result="w"/>[\\s\\S]*?<feDisplacementMap[^>]*result="box"/>)`))![1]
+        .replace(/ in="[^"]*"/g, '');
     expect(warp('lt-sketch-fill-0')).toEqual(warp('lt-sketch-stroke-0'));
     expect(warp('lt-sketch-fill-0')).not.toEqual(warp('lt-sketch-fill-1'));
+  });
+
+  it('keeps the outline on the same box when the pen has its own wavelength', () => {
+    const defs = buildDefsMarkup({ ...marker, borderWavelength: 0.5 });
+    const warp = (id: string) =>
+      defs.match(new RegExp(`<filter id="${id}"[\\s\\S]*?(<feTurbulence[^>]*result="w"/>[\\s\\S]*?<feDisplacementMap[^>]*result="box"/>)`))![1]
+        .replace(/ in="[^"]*"/g, '');
+    expect(warp('lt-sketch-fill-0')).toEqual(warp('lt-sketch-stroke-0'));
+    expect(warp('lt-sketch-fill-sm-0')).toEqual(warp('lt-sketch-stroke-sm-0'));
   });
 
   // A transform moves a corner in proportion to the box, so one setting wrecks
@@ -379,6 +388,16 @@ describe('the drawn box', () => {
     const css = buildStylesheet(marker);
     expect(css).toContain('transparent 1.5px 7px),var(--sketch-fill, var(--surface-neutral-lower));');
     expect(css).not.toContain('background-color:var(--sketch-fill');
+  });
+
+  it('shades the hatch with a second set of stripes off the first in lean and pitch', () => {
+    const css = buildStylesheet(marker);
+    const rule = css.match(/\[data-sketch-fill='hatched'\][^{]*\{([^}]*)\}/)![1];
+    const stripes = rule.match(/repeating-linear-gradient\(([^,]*),/g)!;
+    expect(stripes).toHaveLength(2);
+    expect(stripes[0]).toContain('calc(var(--sketch-hatch-angle) + 2deg)');
+    expect(rule).toContain('calc(var(--sketch-hatch-ink) * 0.55)');
+    expect(rule).toContain('transparent 1px 6.5px)');
   });
 
   // Hatch ink and outline ink were one variable, so the parts that carry a
