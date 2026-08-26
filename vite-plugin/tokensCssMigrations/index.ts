@@ -21,6 +21,7 @@ import { tokensCssMigration_2026_07_20_lineHeightRename } from './migrations/202
 import { tokensCssMigration_2026_07_20_semanticTextStyles } from './migrations/2026-07-20-semantic-text-styles';
 import { tokensCssMigration_2026_08_19_oklchColorValues } from './migrations/2026-08-19-oklch-color-values';
 import { tokensCssMigration_2026_08_25_editorialTypeRole } from './migrations/2026-08-25-editorial-type-role';
+import { tokensCssMigration_2026_08_26_gradientStops } from './migrations/2026-08-26-gradient-stops';
 
 export type { TokensCssMigration } from './types';
 export {
@@ -49,6 +50,7 @@ export const TOKENS_CSS_MIGRATIONS: TokensCssMigration[] = [
   tokensCssMigration_2026_07_20_semanticTextStyles,
   tokensCssMigration_2026_08_19_oklchColorValues,
   tokensCssMigration_2026_08_25_editorialTypeRole,
+  tokensCssMigration_2026_08_26_gradientStops,
 ];
 
 export interface RunResult {

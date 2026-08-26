@@ -1,5 +1,5 @@
 /**
- * Gates the seven shipped preset themes (`npm run seed:preset-theme`) against
+ * Gates the eight shipped preset themes against
  * the contract a consumer relies on: read doors serve them untouched, each is
  * a complete document (every component, every alias key), and the tarball
  * ships each one by name. Distinctness across presets, and the other
@@ -23,9 +23,15 @@ const PRESETS = [
   'midnight-study',
   'ocean',
   'royal-velvet',
+  'sketches',
   'spring-meadow',
   'sunset',
 ];
+
+/** The presets `seed-preset-theme.mjs` built, which is every one but Sketches.
+ *  Sketches was authored in the editor and checked in as it stood, so the
+ *  invariants below that describe what the seeder *does* apply only here. */
+const SEEDED_PRESETS = PRESETS.filter((slug) => slug !== 'sketches');
 
 const readJson = (p: string) => JSON.parse(fs.readFileSync(p, 'utf-8'));
 const themeOf = (slug: string) => readJson(path.join(DATA, 'themes', `${slug}.json`));
@@ -38,14 +44,23 @@ const defaultConfigOf = (comp: string) =>
  *  `docs/plans/theme-completeness.md`) sees the same universe a boot would. */
 const KNOWN_COMPONENTS = fs.readdirSync(path.join(DATA, 'component-configs')).sort();
 
-/** Prefix `stampPresetFonts` writes; everything else in a preset's
-    fontSources came from the default colors and type it branched off. */
-const STAMPED = 'src_preset_';
-
 const stackOf = (colorsAndType: any, variable: string) =>
   colorsAndType.fontStacks.find((s: any) => s.variable === variable);
-const stampedSourcesOf = (colorsAndType: any) =>
-  colorsAndType.fontSources.filter((s: any) => s.id.startsWith(STAMPED));
+
+const projectSlotOf = (colorsAndType: any, variable: string) =>
+  stackOf(colorsAndType, variable).slots.find((s: any) => s.kind === 'project');
+
+/** The source and family a stack renders. Resolved through the stack, not
+ *  through a `src_preset_` source id: that prefix records which tool wrote the
+ *  source, and a preset authored in the editor carries no stamp while still
+ *  owing the same pairing. */
+const faceOf = (colorsAndType: any, variable: string) => {
+  const slot = projectSlotOf(colorsAndType, variable);
+  const source = colorsAndType.fontSources.find((src: any) =>
+    src.families.some((f: any) => f.id === slot.familyId),
+  );
+  return { source, family: source?.families.find((f: any) => f.id === slot.familyId) };
+};
 
 /** A shipped theme always embeds `colorsAndType` and every componentConfigs
  *  entry it carries by value, so the only lookup `normalizeTheme` should ever
@@ -110,38 +125,20 @@ describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
     }
   });
 
-  it('carries the pairing as two google sources the display and body stacks use', () => {
+  it('renders its pairing from google sources the display and body stacks name', () => {
     const colorsAndType = themeOf(slug).colorsAndType;
     const pairing = PRESET_FONTS[slug];
-    const stamped = stampedSourcesOf(colorsAndType);
 
-    expect(stamped.map((s: any) => s.families[0].name)).toEqual([
-      pairing.display.name,
-      pairing.body.name,
-    ]);
-    for (const source of stamped) {
+    for (const [variable, expected] of [
+      ['--font-display', pairing.display.name],
+      ['--font-sans', pairing.body.name],
+    ]) {
+      const { source, family } = faceOf(colorsAndType, variable);
+      expect(family?.name).toBe(expected);
       expect(source.kind).toBe('google');
-      const [family] = source.families;
-      const [parsed] = parseGoogleFontsUrl(source.url)!;
-      expect(parsed.name).toBe(family.name);
-      expect(family.weights).toEqual(parsed.weights);
-    }
-    expect(stackOf(colorsAndType, '--font-display').slots[0].familyId).toBe(stamped[0].families[0].id);
-    expect(stackOf(colorsAndType, '--font-sans').slots[0].familyId).toBe(stamped[1].families[0].id);
-  });
-
-  it('rewrites only the project slot, leaving serif and mono at the default', () => {
-    const colorsAndType = themeOf(slug).colorsAndType;
-    const base = readJson(path.join(DATA, 'colors-and-type', 'default.json'));
-    const fallbacks = (t: any, v: string) =>
-      stackOf(t, v).slots.filter((s: any) => s.kind !== 'project');
-
-    for (const variable of ['--font-display', '--font-sans']) {
-      expect(fallbacks(colorsAndType, variable)).toEqual(fallbacks(base, variable));
-      expect(stackOf(colorsAndType, variable).slots.filter((s: any) => s.kind === 'project')).toHaveLength(1);
-    }
-    for (const variable of ['--font-serif', '--font-mono']) {
-      expect(stackOf(colorsAndType, variable)).toEqual(stackOf(base, variable));
+      const parsed = parseGoogleFontsUrl(source.url)!.find((p) => p.name === family.name);
+      expect(parsed).toBeDefined();
+      expect(family.weights).toEqual(parsed!.weights);
     }
   });
 
@@ -155,6 +152,28 @@ describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
   it('ships its colors-and-type file as its own entry in package.json files', () => {
     const { files } = readJson(path.join(REPO_ROOT, 'package.json'));
     expect(files).toContain(`src/live-tokens/data/colors-and-type/${slug}.json`);
+  });
+});
+
+/* What `stampPresetFonts` guarantees about a seeded preset: it rewrites the
+   display and body project slots and nothing else, so the fallbacks under them
+   and the serif and mono stacks still read as the default's. Sketches is
+   excluded because it was authored in the editor, where choosing a mono face is
+   an ordinary thing to do, and it chose IBM Plex Mono. */
+describe.each(SEEDED_PRESETS)('seeded preset theme "%s"', (slug) => {
+  it('rewrites only the project slot, leaving serif and mono at the default', () => {
+    const colorsAndType = themeOf(slug).colorsAndType;
+    const base = readJson(path.join(DATA, 'colors-and-type', 'default.json'));
+    const fallbacks = (t: any, v: string) =>
+      stackOf(t, v).slots.filter((s: any) => s.kind !== 'project');
+
+    for (const variable of ['--font-display', '--font-sans']) {
+      expect(fallbacks(colorsAndType, variable)).toEqual(fallbacks(base, variable));
+      expect(stackOf(colorsAndType, variable).slots.filter((s: any) => s.kind === 'project')).toHaveLength(1);
+    }
+    for (const variable of ['--font-serif', '--font-mono']) {
+      expect(stackOf(colorsAndType, variable)).toEqual(stackOf(base, variable));
+    }
   });
 });
 

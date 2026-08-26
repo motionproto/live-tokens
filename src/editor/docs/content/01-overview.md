@@ -27,6 +27,7 @@ style your site by editing tokens and components in a live editor. When it looks
 - **[Getting started](getting-started.md)**: scaffold a project and make your
   first edit.
 - **[Editing tokens](editing-tokens.md)**: a tour of the editor.
+- **[Sketch mode](sketch-mode.md)**: redraw the page by hand.
 - **[Themes](themes-workflow.md)**: save, switch, and ship.
 - **[Creating components](creating-components.md)**: make your own components
   editable.

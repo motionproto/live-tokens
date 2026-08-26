@@ -60,6 +60,43 @@ describe('editorial type role', () => {
   });
 });
 
+describe('gradient stop companions', () => {
+  const BEFORE = `:root {
+  --gradient-1: linear-gradient(to right, var(--color-brand-500) 0%, var(--color-accent-500) 100%);
+  --gradient-2: radial-gradient(circle at 50% 50%, var(--color-brand-500) 0%, transparent 100%);
+  --gradient-angle-horizontal: 90deg;
+}
+`;
+
+  it('adds a -stops companion per gradient slot', () => {
+    const { css, applied } = runTokensCssMigrations(BEFORE);
+    expect(applied).toContain('2026-08-26-gradient-stops');
+    expect(css).toContain('--gradient-1-stops: var(--color-brand-500) 0%, var(--color-accent-500) 100%;');
+    expect(css).toContain('--gradient-2-stops: var(--color-brand-500) 0%, transparent 100%;');
+  });
+
+  it('reads each companion out of the slot it belongs to, not a shipped default', () => {
+    const retuned = BEFORE.replace(
+      'var(--color-brand-500) 0%, var(--color-accent-500) 100%',
+      'red 0%, blue 100%',
+    );
+    const { css } = runTokensCssMigrations(retuned);
+    expect(css).toContain('--gradient-1-stops: red 0%, blue 100%;');
+  });
+
+  it('skips a slot whose value it cannot read', () => {
+    const aliased = ':root {\n  --gradient-1: var(--brand-sweep);\n}\n';
+    const { css } = runTokensCssMigrations(aliased);
+    expect(css).not.toContain('--gradient-1-stops');
+  });
+
+  it('is idempotent', () => {
+    const once = runTokensCssMigrations(BEFORE).css;
+    const twice = runTokensCssMigrations(once).css;
+    expect(twice).toBe(once);
+  });
+});
+
 describe('runTokensCssMigrations', () => {
   it('adds the letter-spacing and easing scales an old tokens.css lacks', () => {
     const { css, applied, changed } = runTokensCssMigrations(LEGACY_TOKENS_CSS);

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Publish/CI gate: assert the seven shipped preset themes on disk are
+// Publish/CI gate: assert the eight shipped preset themes on disk are
 // complete, current, and distinct. Reads the COMMITTED files only and never
 // re-derives them — a check that recomputes from the baseline is coupled to
 // the baseline by construction and cannot guard against the baseline moving
@@ -38,8 +38,10 @@ const { CURRENT_COMPONENT_SCHEMA_VERSION } = await import(ENGINE);
 // shipped file against it, so a drift there is still caught.
 const THEME_SCHEMA_VERSION = 4;
 
-const PRESETS = ['autumn', 'halloween', 'midnight-study', 'ocean', 'royal-velvet', 'spring-meadow', 'sunset'];
-const STAMPED_PREFIX = 'src_preset_';
+const PRESETS = [
+  'autumn', 'halloween', 'midnight-study', 'ocean', 'royal-velvet',
+  'sketches', 'spring-meadow', 'sunset',
+];
 
 const readJson = (p) => JSON.parse(readFileSync(p, 'utf8'));
 const KNOWN_COMPONENTS = readdirSync(CONFIGS, { withFileTypes: true })
@@ -50,6 +52,21 @@ const defaultConfigOf = (comp) => readJson(join(CONFIGS, comp, 'default.json'));
 
 const errors = [];
 const themes = {};
+
+/** The face a stack renders: its project slot resolved through the font
+ *  sources. Read off the stack rather than off a `src_preset_` source id,
+ *  because that prefix records who wrote the source, not what the theme uses.
+ *  A hand-authored preset carries no stamp and is pinned here just the same. */
+function faceOf(colorsAndType, variable) {
+  const stack = (colorsAndType?.fontStacks ?? []).find((s) => s.variable === variable);
+  const slot = (stack?.slots ?? []).find((s) => s.kind === 'project');
+  if (!slot) return null;
+  for (const source of colorsAndType?.fontSources ?? []) {
+    const family = (source.families ?? []).find((f) => f.id === slot.familyId);
+    if (family) return family.name;
+  }
+  return null;
+}
 
 for (const slug of PRESETS) {
   const themePath = join(THEMES, `${slug}.json`);
@@ -87,13 +104,10 @@ for (const slug of PRESETS) {
   }
 
   const pairing = PRESET_FONTS[slug];
-  const stamped = (theme.colorsAndType?.fontSources ?? []).filter((s) => s.id?.startsWith(STAMPED_PREFIX));
-  const [display, body] = stamped;
-  if (display?.families?.[0]?.name !== pairing.display.name || body?.families?.[0]?.name !== pairing.body.name) {
-    errors.push(
-      `${slug}: stamped fonts are [${display?.families?.[0]?.name}, ${body?.families?.[0]?.name}], ` +
-        `expected [${pairing.display.name}, ${pairing.body.name}]`,
-    );
+  const faces = [faceOf(theme.colorsAndType, '--font-display'), faceOf(theme.colorsAndType, '--font-sans')];
+  const expected = [pairing.display.name, pairing.body.name];
+  if (faces[0] !== expected[0] || faces[1] !== expected[1]) {
+    errors.push(`${slug}: display and body faces are [${faces}], expected [${expected}]`);
   }
 }
 
@@ -132,5 +146,5 @@ if (errors.length) {
 
 console.log(
   `check:preset-themes OK — ${PRESETS.length} preset(s), each complete with all ${KNOWN_COMPONENTS.length} components, ` +
-    'current schema, stamped fonts, and a distinct look.',
+    'current schema, the pairing its stacks name, and a distinct look.',
 );

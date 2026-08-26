@@ -126,8 +126,8 @@ What should be in the tarball:
 - `.claude/skills/**` (the Claude skills: build-page, create-component,
   pick-component, generate-theme, pair-fonts, adjust-geometry)
 - These files only, out of `src/live-tokens/data/`: `tokens.generated.css`,
-  `colors-and-type/default.json` plus the seven preset colors-and-type files,
-  and the seven preset themes (each an entry-by-entry `files` listing, never a
+  `colors-and-type/default.json` plus the eight preset colors-and-type files,
+  and the eight preset themes (each an entry-by-entry `files` listing, never a
   directory). Everything else under that path is consumer data and must stay out.
   See "Why the shipped data files ship" below before removing them.
 - `package.json`, `README.md`, `LICENSE*`, `CHANGELOG.md`
@@ -150,14 +150,17 @@ They look like consumer data sitting in the tarball, so this gets questioned
 periodically. They are load-bearing, and shipping them is what keeps a
 consumer's install clean.
 
-The preset themes are seeded, not generated (`docs/plans/theme-completeness.md`
-Wave 5): `npm run seed:preset-theme <slug>` builds one new preset from the
-derived component defaults, the preset's shape ops, and its colors-and-type
-file, and refuses to touch a preset that already exists unless passed
-`--force`. There is no sweep-all mode. Once shipped, a preset's file is the
+Seven of the eight preset themes are seeded, not generated
+(`docs/plans/theme-completeness.md` Wave 5): `npm run seed:preset-theme <slug>`
+builds one new preset from the derived component defaults, the preset's shape
+ops, and its colors-and-type file, and refuses to touch a preset that already
+exists unless passed `--force`. There is no sweep-all mode. Sketches is the
+exception: it was authored in the editor and checked in as it stood, so the
+seeder has no slug for it and cannot rebuild it. `check:preset-themes` holds it
+to the same invariants as the rest. Once shipped, a preset's file is the
 whole record of that look and a component-default change or colors-and-type
 migration never moves it; `npm run check:preset-themes` gates the shipped
-files' invariants (complete, current schema, distinct, fonts stamped) instead
+files' invariants (complete, current schema, distinct, fonts paired) instead
 of re-deriving them.
 
 The plugin used to run *seed writers* that wrote a default colors-and-type file

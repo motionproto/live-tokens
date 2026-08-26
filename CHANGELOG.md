@@ -1,5 +1,129 @@
 # Changelog
 
+## 0.57.0 — A theme can be drawn by hand
+
+### Added
+
+- **Sketch mode: a fourth editor view, beside Tokens, Colors and Components.**
+  It is an effect layer over the active theme, not a set of theme values. It
+  reads nothing from the theme and writes nothing back. Each component's fill
+  and outline are repainted onto `::before`/`::after` from the tokens that
+  component already owns (`--<component>-<variant>-surface`, `-border`,
+  `-radius`), the real background and border are hidden behind them, and both
+  are pushed around one shared noise field. Turning it off removes every trace.
+  While it is on it applies to the page behind the editor as well as to the
+  preview, because the layer is injected into every document `cssVarSync`
+  tracks. Scope is the `data-sketch` attribute, so it switches on for a whole
+  document root or for one preview container.
+- **Seven shipped looks, and every dial behind them.** Pencil, Marker,
+  Whiteboard, Hatched, Dashed, Napkin and Dry marker, each a complete set of
+  settings with a blurb naming what it is. The dials sit under five headings:
+  **Border** (travel, wavelength, width, ink, pressure, pooling, dashes, a
+  second pass that either copies the first line or runs it through the pen again
+  on its own seed), **Fill** (solid or hatched, travel, per-instance offset,
+  rotation and scale), **Shape** (corner spread, and a corner travel that leans
+  the drawn box into a quadrilateral with no two sides parallel), **Icons and
+  SVG** (glyph travel and wavelength on their own scale, because a glyph is all
+  curves and needs more travel than a card's long straight edge), and **Noise**
+  (the shared displacement field's wavelength, roughness and waveform).
+- **Ink coverage as a generated field.** The mask that thins a fill is a tiling
+  Perlin field rasterised to a greyscale PNG and applied with `mask-mode:
+  luminance`, rather than an `feTurbulence` primitive. Turbulence lands in a
+  narrow band around its own midpoint, so a dial walking a cut across 0 to 1
+  spends most of its travel outside the field and the rest reads as flat grey.
+  Generated, the tile is stretched onto its own measured range first, so Min and
+  Max always mean levels at every grain and octave count. The panel previews the
+  field at each stage: noise, output, blur.
+- **Saved sketch presets.** Any set of dials saves under a name and reloads
+  later, as files under `<dataDir>/sketch-presets/` served by a new
+  `/api/sketch-presets` route on the dev plugin. A sketch look is a draft
+  effect, never part of a theme: it has no active/production pointer, it is not
+  adopted, and it never reaches `tokens.generated.css`. The shipped seven stay
+  in code, so the directory holds nothing but your own files.
+- **A page can hand the layer its own elements.** The effect displaces boxes, so
+  a rule drawn as a `border` is not one of them. `--sketch-fill`,
+  `--sketch-stroke`, `--sketch-hatch-color` and `--sketch-radius` name what an
+  element should be drawn with, and `--sketch-icon-off: none` opts a subtree
+  out. The demo app's kit section draws its rules this way; the editor's own
+  overlay bar opts out, because the effect is for the page being designed and
+  not for the tool looking at it.
+- **A Sketch mode chapter in the user guide.** It sits after Editing tokens and
+  covers the presets, the dials, and the `--sketch-*` properties a page uses to
+  hand the layer its own elements. Editing tokens itself now names all four
+  views; it had been describing two since the Colors view landed.
+- **Sketches ships as an eighth preset theme.** A whole look built on the
+  effect: Cabin Sketch over Shantell Sans, square corners, and component
+  aliases tuned for a page that is drawn rather than rendered. Load it from the
+  Theme panel like any other preset. It stands on its own with Sketch mode off,
+  and the effect is what it was designed under.
+- **The gradient library is open-ended.** `--gradient-N` was a fixed four-slot
+  scale; the Gradients section now has Add and Remove, and any number of
+  numbered slots loads from a theme file. A new slot seeds from the last one, so
+  it lands as a gradient you edit rather than an invisible transparent one.
+- **A gradient can point at a corner.** Alongside degrees, a linear gradient
+  takes CSS's `to top right` and its seven neighbours. A keyword angles the
+  gradient line off the box's own diagonal, so it tracks the element's aspect
+  where a fixed angle cannot: `to bottom right` reads as about 95deg across a
+  wide heading and about 111deg once that heading wraps. The degrees underneath
+  are kept, so clearing the keyword lands on the nearest angle rather than
+  snapping to 0deg.
+- **`--gradient-N-stops`.** Each slot now also emits its stop list on its own,
+  so a consumer can keep the theme's colours and supply their own geometry:
+  `linear-gradient(to top, var(--gradient-5-stops))`. One set of stops then
+  serves every direction a design needs, instead of a token per angle.
+- **The editorial type role.** A fifth font stack (`--font-editorial`) and a
+  ninth text-style bundle (`--editorial-*`), for the long-reading surfaces that
+  should not carry the body face under an expressive display face. Both default
+  to indirections rather than literals: the stack resolves to `var(--font-sans)`
+  and the bundle mirrors `--body-md-*`, so a project that never mentions
+  editorial renders byte-identically. `live-tokens set-fonts` gained a matching
+  `editorial` slot, and the stack is editable in the editor beside the other
+  four.
+
+### Changed
+
+- **Derived palette values serialize unclamped.** A palette's basis is OKLCH,
+  and clamping every derived step into sRGB on the way out threw away chroma a
+  wide-gamut display can show. Values already inside sRGB serialize identically,
+  so nothing moves in an existing theme; intent authored beyond sRGB now
+  survives to the browser, which does its own gamut mapping at paint. The hex
+  readouts still show the clamped projection, which is what a hex readout is
+  for.
+- **The product is spelled LiveTokens.** One word, in the README, the docs and
+  the demo app. The package name is unchanged.
+- **A test fails on any engine load at module top.** `bin/engineLoadsLazily.test.ts`
+  follows every `.mjs` module a test suite can reach, transitively, and rejects
+  a top-level import of the compiled engine. CI runs the suite before it builds
+  the plugin, so such a load is a publish failure rather than a test failure.
+  This is the bug that took down 0.56.0.
+
+### Fixed
+
+- **A session persisted before the OKLCH palette basis no longer throws on
+  hydrate.** Such a session holds hex strings where every palette color is now
+  `{ l, c, h }`. `loadFromFile` migrated those on the way in and `hydrate` did
+  not, so the session reached the renderer with an undefined hue and threw on
+  the first serialization.
+- **The overlay panel's chrome keeps its own font.** `tokens.css` sets the theme
+  font on `:where(*)`, and a matching rule beats inheritance, so the panel's
+  font-family never reached its children. The editor page already restored
+  inheritance for its chrome; the overlay now does the same.
+
+### Migration
+
+- Two **tokens.css migrations** ship here, both additive: `--font-editorial`
+  with the `--editorial-*` bundle, and a `--gradient-N-stops` companion per
+  gradient slot. Each companion is read out of the slot it belongs to rather
+  than hardcoded, so a retuned gradient does not get a stop list contradicting
+  it. Run `npx live-tokens migrate` to apply them to a vendored `tokens.css`, or
+  set the plugin's `autoMigrate` option and let it apply additive migrations on
+  boot. Until then the dev plugin warns on the gap and the new names simply
+  resolve to nothing.
+- The **editorial font stack** is added to a theme file on load, cloned from
+  that theme's `--font-sans`. It is presence-based and idempotent, so there is
+  no schema step and a theme that never touches editorial keeps rendering as it
+  did.
+
 ## 0.56.1 — Release fix
 
 ### Fixed

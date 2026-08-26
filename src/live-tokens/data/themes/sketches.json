@@ -2525,7 +2525,7 @@
   },
   "componentConfigs": {
     "badge": {
-      "name": "default",
+      "name": "sketches",
       "component": "badge",
       "createdAt": "2026-05-01T08:28:00.345Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -2663,7 +2663,7 @@
       }
     },
     "button": {
-      "name": "default",
+      "name": "sketches",
       "component": "button",
       "createdAt": "2026-05-10T19:28:06.893Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -2779,7 +2779,7 @@
       }
     },
     "callout": {
-      "name": "default",
+      "name": "sketches",
       "component": "callout",
       "createdAt": "2026-05-12T00:00:00.000Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -2851,7 +2851,7 @@
       }
     },
     "card": {
-      "name": "default",
+      "name": "sketches",
       "component": "card",
       "createdAt": "2026-05-10T19:26:31.704Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -2892,7 +2892,7 @@
       }
     },
     "codesnippet": {
-      "name": "default",
+      "name": "sketches",
       "component": "codesnippet",
       "createdAt": "2026-05-27T13:22:54.228Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -2916,7 +2916,7 @@
       }
     },
     "collapsiblesection": {
-      "name": "default",
+      "name": "sketches",
       "component": "collapsiblesection",
       "createdAt": "2026-05-10T20:40:17.048Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -2989,7 +2989,7 @@
       }
     },
     "cornerbadge": {
-      "name": "default",
+      "name": "sketches",
       "component": "cornerbadge",
       "createdAt": "2026-05-12T15:31:06.313Z",
       "updatedAt": "2026-08-25T01:12:06.370Z",
@@ -3037,7 +3037,7 @@
       }
     },
     "dialog": {
-      "name": "default",
+      "name": "sketches",
       "component": "dialog",
       "createdAt": "2026-05-10T20:05:24.719Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3072,7 +3072,7 @@
       }
     },
     "iconbutton": {
-      "name": "default",
+      "name": "sketches",
       "component": "iconbutton",
       "createdAt": "2026-06-14T00:00:00.000Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3161,7 +3161,7 @@
       }
     },
     "image": {
-      "name": "default",
+      "name": "sketches",
       "component": "image",
       "createdAt": "2026-04-26T00:00:00.000Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3174,7 +3174,7 @@
       }
     },
     "imagelightbox": {
-      "name": "default",
+      "name": "sketches",
       "component": "imagelightbox",
       "createdAt": "2026-05-26T02:03:38.863Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3193,7 +3193,7 @@
       }
     },
     "inlineeditactions": {
-      "name": "default",
+      "name": "sketches",
       "component": "inlineeditactions",
       "createdAt": "2026-05-01T08:34:39.325Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3229,7 +3229,7 @@
       }
     },
     "input": {
-      "name": "default",
+      "name": "sketches",
       "component": "input",
       "createdAt": "2026-05-24T14:28:03.860Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3287,7 +3287,7 @@
       }
     },
     "menuselect": {
-      "name": "default",
+      "name": "sketches",
       "component": "menuselect",
       "createdAt": "2026-05-16T00:00:00.000Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3337,7 +3337,7 @@
       }
     },
     "notification": {
-      "name": "default",
+      "name": "sketches",
       "component": "notification",
       "createdAt": "2026-04-18T02:43:11.330Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3417,7 +3417,7 @@
       }
     },
     "panel": {
-      "name": "default",
+      "name": "sketches",
       "component": "panel",
       "createdAt": "2026-06-01T09:34:52.417Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3425,9 +3425,6 @@
         "--panel-frame-border": "--border-neutral",
         "--panel-frame-border-width": "--border-width-1",
         "--panel-frame-radius": "--radius-none",
-        "--panel-stage-padding": "--space-20",
-        "--panel-stage-inline-padding": "--space-20",
-        "--panel-stage-gap": "--space-24",
         "--panel-stage-surface": {
           "kind": "gradient",
           "value": {
@@ -3446,11 +3443,14 @@
               }
             ]
           }
-        }
+        },
+        "--panel-stage-padding": "--space-20",
+        "--panel-stage-inline-padding": "--space-20",
+        "--panel-stage-gap": "--space-24"
       }
     },
     "progressbar": {
-      "name": "default",
+      "name": "sketches",
       "component": "progressbar",
       "createdAt": "2026-05-10T20:42:26.726Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3475,7 +3475,7 @@
       }
     },
     "radiobutton": {
-      "name": "default",
+      "name": "sketches",
       "component": "radiobutton",
       "createdAt": "2026-05-10T20:44:44.372Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3510,7 +3510,7 @@
       }
     },
     "sectiondivider": {
-      "name": "default",
+      "name": "sketches",
       "component": "sectiondivider",
       "createdAt": "2026-05-10T22:09:00.336Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3605,7 +3605,7 @@
       }
     },
     "segmentedcontrol": {
-      "name": "default",
+      "name": "sketches",
       "component": "segmentedcontrol",
       "createdAt": "2026-04-28T21:13:17.669Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3665,7 +3665,7 @@
       }
     },
     "sidenavigation": {
-      "name": "default",
+      "name": "sketches",
       "component": "sidenavigation",
       "createdAt": "2026-05-25T19:34:09.771Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3825,7 +3825,7 @@
       }
     },
     "tabbar": {
-      "name": "default",
+      "name": "sketches",
       "component": "tabbar",
       "createdAt": "2026-05-12T01:57:26.390Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3895,7 +3895,7 @@
       }
     },
     "table": {
-      "name": "default",
+      "name": "sketches",
       "component": "table",
       "createdAt": "2026-05-12T00:00:00.000Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3929,7 +3929,7 @@
       }
     },
     "toggle": {
-      "name": "default",
+      "name": "sketches",
       "component": "toggle",
       "createdAt": "2026-04-18T02:43:11.333Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3961,7 +3961,7 @@
       }
     },
     "tooltip": {
-      "name": "default",
+      "name": "sketches",
       "component": "tooltip",
       "createdAt": "2026-04-18T02:43:11.333Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",

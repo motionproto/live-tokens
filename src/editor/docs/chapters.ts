@@ -13,6 +13,7 @@ export const chapters: Chapter[] = [
   { id: '01-overview',         title: 'Overview' },
   { id: 'getting-started',     title: 'Getting started' },
   { id: 'editing-tokens',      title: 'Editing tokens' },
+  { id: 'sketch-mode',         title: 'Sketch mode' },
   { id: 'themes-workflow',     title: 'Themes' },
   { id: 'where-themes-live',   title: 'Where themes live' },
   { id: 'creating-components', title: 'Creating components' },
