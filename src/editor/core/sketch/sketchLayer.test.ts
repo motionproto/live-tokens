@@ -362,7 +362,11 @@ describe('the drawn box', () => {
   // must not also disagree about what shape they are drawing around.
   it('draws fill and outline around the same box', () => {
     const layers = [...buildStylesheet(marker).matchAll(/\{([^{}]*content:''[^{}]*)\}/g)].map((m) => m[1]);
-    const radii = layers.map((d) => d.match(/border-radius:[^;]*/)![0]);
+    // The fill is drawn on a box grown by the bleed and takes that back off at
+    // its content box, so it states each corner as the outline's plus the same
+    // number of px. Strip the growth and the two must read alike.
+    const radii = layers.map((d) => d.match(/border-radius:[^;]*/)![0]
+      .replace(/calc\((.*?) \+ \d+px\)/g, '$1'));
     expect(new Set(radii).size).toBe(1);
 
     // Same warp stage verbatim, seed included: a different seed there would
@@ -444,10 +448,37 @@ describe('the drawn box', () => {
   // The component's own shadow belongs to a rectangle the sketch is no longer
   // drawing, so it is moved onto the layer that draws the real one.
   it('re-casts the shadow on the drawn box', () => {
-    const css = buildStylesheet(marker);
+    const css = buildStylesheet({ ...marker, maskOn: false });
     expect(css).toContain('box-shadow:none !important;');
     expect(css).toContain('box-shadow:var(--sketch-shadow, none);');
     expect(css).toContain('--sketch-shadow:var(--card-default-shadow, none);');
+  });
+
+  // A mask's painting area stops at the border box however `mask-clip` is set,
+  // so a fill drawn at inset 0 came back cut to a straight-edged rectangle
+  // wherever the displacement had carried it out. The box has to be bigger than
+  // anything the filter can move, and the paint held to the middle of it.
+  it('draws the fill on a box the displacement cannot reach past', () => {
+    const css = buildStylesheet(marker);
+    const bleed = Number(css.match(/inset:-(\d+)px !important/)![1]);
+    expect(bleed).toBeGreaterThan(marker.cornerTravel + marker.fillTravel);
+    expect(css).toContain(`padding:${bleed}px;box-sizing:content-box;`);
+    expect(css).toContain('background-clip:content-box;');
+    // Padding takes the growth back off, so the paint turns where it always did.
+    expect(css).toContain(`--sketch-corner-spread, 0px))) + ${bleed}px)`);
+  });
+
+  it('leaves the fill on its own box when there is no coverage to clip it', () => {
+    const css = buildStylesheet({ ...marker, maskOn: false });
+    expect(css).toContain('inset:0 !important');
+    expect(css).not.toContain('background-clip:content-box;');
+  });
+
+  // A shadow is cast from the border box, and under coverage that box is the
+  // bleed, which is not where the drawing is. Wearing it would put a halo the
+  // width of the bleed around every card.
+  it('drops the fill shadow while the coverage mask is on', () => {
+    expect(buildStylesheet(marker)).not.toContain('box-shadow:var(--sketch-shadow, none);');
   });
 
   // Any clip is a flat rectangle, and a flat rectangle slicing the drawn box is
@@ -603,7 +634,9 @@ describe('claiming the pseudo-elements', () => {
     const layers = [...css.matchAll(/\{([^{}]*content:''[^{}]*)\}/g)].map((m) => m[1]);
     expect(layers.length).toBeGreaterThanOrEqual(2);
     for (const decl of layers) {
-      expect(decl).toContain('inset:0 !important');
+      // The fill sits on a box the bleed grows, so the inset it states is its
+      // own; what matters is that it beats whatever the component set.
+      expect(decl).toMatch(/inset:[^;]* !important/);
       expect(decl).toContain('transition:none !important');
     }
   });

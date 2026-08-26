@@ -679,11 +679,10 @@ export function buildStylesheet(s: SketchSettings): string {
    * that element's own origin and sampled at a different offset per instance,
    * so two parts the same size are not blotched alike.
    *
-   * `mask-clip: no-clip` is load-bearing on the fill. A mask clips what it masks
-   * to the border box by default, and the shadow the fill casts lies outside
-   * that box, so switching coverage on took every shadow with it. Unclipped, the
-   * tile runs on over the shadow and thins it where the ink beside it is thin,
-   * which is what ink that is not there would do.
+   * `mask-clip: no-clip` asks for the painting area not to be restricted, which
+   * is what a layer the filter has already carried outside its own box needs.
+   * Chrome does not honour it — see `bleed` below, which is what actually keeps
+   * the drawn edge off the border box.
    */
   const coverage = (size: string, pos: string) =>
     `mask-image:var(--sketch-mask, none);` +
@@ -745,6 +744,46 @@ export function buildStylesheet(s: SketchSettings): string {
     ? `border-radius:${[1, 2, 3, 4].map(cornerRadius).join(' ')};`
     : 'border-radius:inherit;';
 
+  /**
+   * How far past its own box the fill layer is drawn on.
+   *
+   * A mask is applied AFTER the filter, and its painting area stops at the
+   * border box whatever `mask-clip` says: Chrome accepts `no-clip`, computes it
+   * back, and clips anyway. Every pixel the displacement pushed outside the box
+   * was erased along a straight rectangle, and because `jitterScale` grows each
+   * fill one-sidedly the drawn shape always covered its own box — so what
+   * survived was the box itself, ruler-straight with perfectly circular
+   * corners, under a stroke that wobbled freely because it carries no mask.
+   *
+   * The fill is drawn on a box this much larger instead, with the paint held to
+   * the middle of it, so the mask's painting area covers everything the pen laid
+   * down. Only what the FILTER moves has to fit: the jitter transform runs after
+   * the mask and carries the finished layer whole.
+   */
+  const bleed = s.maskOn ? Math.ceil(s.cornerTravel + s.fillTravel) + 4 : 0;
+
+  /** Padding subtracts from a corner, so the bleed added here comes back off at
+      the content box and the paint turns exactly where it did before. The
+      inherit is spent at this point: a bleeding fill has to state its corners,
+      and `--sketch-radius` is what it states them from. */
+  const fillCorners = bleed === 0
+    ? corners
+    : `border-radius:${s.cornerSpread > 0
+      ? [1, 2, 3, 4].map((i) => `calc(${cornerRadius(i)} + ${bleed}px)`).join(' ')
+      : `calc(var(--sketch-radius, 0px) + ${bleed}px)`};`;
+
+  /** Grow the box, hold the paint to the middle of it. `content-box` sizing
+      keeps the content area at the element's own size, which a rule two pixels
+      tall cannot do under `border-box`; the two `auto`s are for Button, whose
+      shimmer ::before states `width: 100%` and would otherwise pin the grown box
+      back to the element. `background` is a shorthand and resets both box
+      properties, so `bleedPaint` follows every declaration of it. */
+  const bleedBox = bleed === 0
+    ? 'inset:0 !important;'
+    : `inset:-${bleed}px !important;padding:${bleed}px;box-sizing:content-box;` +
+      `width:auto !important;height:auto !important;`;
+  const bleedPaint = bleed === 0 ? '' : 'background-origin:content-box;background-clip:content-box;';
+
   const host =
     `${el}{` +
       `--sketch-jit-x:var(--sketch-jit-x-base);` +
@@ -777,10 +816,15 @@ export function buildStylesheet(s: SketchSettings): string {
   // effect is switched on, because `left` animates from -100% to 0.
   const fill =
     `${el}::before{` +
-      `content:'';position:absolute;inset:0 !important;transition:none !important;` +
-      `z-index:-1;${corners}` +
+      `content:'';position:absolute;${bleedBox}transition:none !important;` +
+      `z-index:-1;${fillCorners}` +
       `background:var(--sketch-fill, var(--surface-neutral-lower));` +
-      `box-shadow:var(--sketch-shadow, none);` +
+      bleedPaint +
+      // A shadow is cast from the border box, and the bleed is not where the
+      // drawing is. The five parts that name one (card, dialog, menu, table,
+      // tooltip) go without while coverage is on rather than wear a halo the
+      // width of the bleed; every other part's token is --shadow-none anyway.
+      (bleed === 0 ? 'box-shadow:var(--sketch-shadow, none);' : '') +
       `filter:var(--sketch-fill-filter);` +
       (s.maskOn ? coverage('var(--sketch-mask-tile) var(--sketch-mask-tile)', '--sketch-mask-pos') : '') +
       `transform:translate(` +
@@ -822,6 +866,7 @@ export function buildStylesheet(s: SketchSettings): string {
         `${hatchInk('1')} 0 1.5px,` +
         `transparent 1.5px 7px),` +
       `var(--sketch-fill, var(--surface-neutral-lower));` +
+      bleedPaint +
     `}`;
 
   // A translucent nib. The retrace pass below overlaps this one, so where both
