@@ -1,9 +1,13 @@
+// @vitest-environment happy-dom
+
 import { get } from 'svelte/store';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_SKETCH_PRESET, hydrateSketchSettings, SKETCH_PRESETS } from './sketchPresets';
 import {
   selectSketchPreset,
+  setSketchPageRoot,
   sketchDirty,
+  sketchEnabled,
   sketchPreset,
   sketchSettings,
   updateSketchSettings,
@@ -130,5 +134,33 @@ describe('hydrateSketchSettings', () => {
     expect(out.maskOutputMin).toBe(0.2);
     expect(out.maskOutputMax).toBe(0.5);
     expect('maskLevelMin' in out).toBe(false);
+  });
+});
+
+describe('page root', () => {
+  beforeEach(() => {
+    setSketchPageRoot(null);
+    sketchEnabled.set(false);
+  });
+
+  it('paints the registered page root while the effect is on', () => {
+    setSketchPageRoot(document.documentElement);
+    sketchEnabled.set(true);
+
+    expect(document.documentElement.hasAttribute('data-sketch')).toBe(true);
+  });
+
+  it('leaves the document alone until a page root is registered', () => {
+    sketchEnabled.set(true);
+
+    expect(document.documentElement.hasAttribute('data-sketch')).toBe(false);
+  });
+
+  it('drops the scope when the router hands back an editor route', () => {
+    setSketchPageRoot(document.documentElement);
+    sketchEnabled.set(true);
+    setSketchPageRoot(null);
+
+    expect(document.documentElement.hasAttribute('data-sketch')).toBe(false);
   });
 });

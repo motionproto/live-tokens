@@ -58,6 +58,31 @@ beforeEach(() => {
 });
 
 describe('sketch layer', () => {
+  // Every apply used to rewrite both nodes whether or not the markup had moved,
+  // which tore down the filters the page was mid-paint against and dropped the
+  // mask image to be decoded again: a flash of the raw component. Two of them
+  // per settings change, since the overlay's copy of the store renders into
+  // this page as well as its own.
+  it('leaves the injected nodes alone when nothing about the look has moved', () => {
+    applySketchLayer(marker);
+    const filter = document.querySelector('filter')!;
+    const style = document.head.querySelector('style[data-sketch-style]')!;
+
+    applySketchLayer(marker);
+
+    expect(document.querySelector('filter')).toBe(filter);
+    expect(document.head.querySelector('style[data-sketch-style]')).toBe(style);
+  });
+
+  it('rewrites them as soon as it does', () => {
+    applySketchLayer(marker);
+    const filter = document.querySelector('filter')!;
+
+    applySketchLayer({ ...marker, strokeWidth: marker.strokeWidth + 1 });
+
+    expect(document.querySelector('filter')).not.toBe(filter);
+  });
+
   it('defines every filter the stylesheet references', () => {
     for (const preset of Object.values(SKETCH_PRESETS)) {
       const defined = new Set(

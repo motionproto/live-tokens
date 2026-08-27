@@ -210,9 +210,13 @@
   let scalePos = $derived(logPos(s.maskBlob, SIZE));
   const setScale = (v: number) =>
     updateSketchSettings({ maskBlob: Math.round(logVal(v / 100, SIZE) / 5) * 5 });
+  let inputMin = $derived(Math.round(s.maskInputMin * 100));
+  let inputMax = $derived(Math.round(s.maskInputMax * 100));
   let outputMin = $derived(Math.round(s.maskOutputMin * 100));
   let outputMax = $derived(Math.round(s.maskOutputMax * 100));
   let stepPos = $derived(Math.max(0, STEP_TONES.indexOf(s.maskPosterize)));
+  const setInput = (min: number, max: number) =>
+    updateSketchSettings({ maskInputMin: min / 100, maskInputMax: max / 100 });
   const setOutput = (min: number, max: number) =>
     updateSketchSettings({ maskOutputMin: min / 100, maskOutputMax: max / 100 });
 
@@ -223,7 +227,7 @@
   let maskPreview = $derived(buildMaskUri(s));
   // The field itself after each stage, white for ink.
   let stageTiles = $derived(
-    (['noise', 'output', 'blur'] as const).map((stage) => ({ stage, uri: buildMaskUri(s, 9, stage) })),
+    (['noise', 'levels', 'blur'] as const).map((stage) => ({ stage, uri: buildMaskUri(s, 9, stage) })),
   );
 </script>
 
@@ -580,17 +584,19 @@
             onchange={(v) => updateSketchSettings({ maskOctaves: v })}
           />
 
-          <h5>Output</h5>
+          <h5>Levels</h5>
           <p class="group-note">
-            How much ink the field lays down. The low handle is the palest the fill
-            gets and the high handle the densest: 0 is bare, 100 is whole.
+            The field runs black to white before these apply. Input cuts a black
+            and a white point into it, and reads as shares of the field: 30 wears
+            the darkest thirty per cent of it away. Output states the range of
+            ink the mask paints between: 0 is bare, 100 is whole.
           </p>
           <SketchRange
-            label="Output" low={outputMin} high={outputMax} min={0} max={100} step={1}
+            label="Input" low={inputMin} high={inputMax} min={0} max={100} step={1}
             gap={0}
-            readout={`${outputMin}–${outputMax}%`}
-            hint="Bring the handles together for a flat wash, open them for strong blotches. Move the pair to ink more or less of the fill."
-            onchange={setOutput}
+            readout={`${inputMin}–${inputMax}%`}
+            hint="Contrast. Bring the handles in for hard blotches with bare patches between, open them out for a soft even field."
+            onchange={setInput}
           />
           <SketchDial
             label="Steps" value={stepPos} min={0} max={STEP_TONES.length - 1} step={1}
@@ -598,6 +604,13 @@
             ends={['smooth', 'two tones']}
             hint="Flattens the field into this many tones. Fewer tones give harder ink, down to a two-tone cut."
             onchange={(v) => updateSketchSettings({ maskPosterize: STEP_TONES[v] })}
+          />
+          <SketchRange
+            label="Output" low={outputMin} high={outputMax} min={0} max={100} step={1}
+            gap={0}
+            readout={`${outputMin}–${outputMax}%`}
+            hint="Bring the handles together for a flat wash, open them for strong blotches. Move the pair to ink more or less of the fill."
+            onchange={setOutput}
           />
 
           <h5>Blur</h5>

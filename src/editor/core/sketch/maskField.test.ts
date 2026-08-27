@@ -20,18 +20,51 @@ describe('mask field', () => {
     for (const maskGrain of ['fractal', 'turbulence'] as const) {
       for (const maskOctaves of [1, 2, 3, 4]) {
         const { field } = buildMaskField({ ...flat, maskGrain, maskOctaves }, 9, 'noise');
-        const share = bands(field);
         expect(Math.min(...field)).toBeLessThan(0.02);
         expect(Math.max(...field)).toBeGreaterThan(0.98);
-        expect(Math.min(...share)).toBeGreaterThan(0.02);
       }
     }
   });
 
-  // Input levels cut the field, and since it is stretched to run from black,
-  // any low handle above zero punched a hole through the fill.
+  // Reaching black and white is not enough on its own: a veined tile stretched
+  // by its extremes still had half its pixels under 0.29, so Steps cut it into
+  // thirds that were not thirds and the fill came out flat at the Output floor.
+  // Equalised, a handle at 30 means the darkest 30% of the tile, whatever the
+  // noise underneath.
+  it('spreads tone evenly, so every handle reads as a share of the field', () => {
+    for (const maskGrain of ['fractal', 'turbulence'] as const) {
+      for (const maskOctaves of [1, 2, 3, 4]) {
+        const { field } = buildMaskField({ ...flat, maskGrain, maskOctaves }, 9, 'noise');
+        for (const share of bands(field)) expect(share).toBeCloseTo(0.2, 2);
+      }
+    }
+  });
+
+  it('cuts the input handles into the field and stretches what is left', () => {
+    const settings = { ...flat, maskInputMin: 0.3, maskInputMax: 0.7 };
+    const { field: raw } = buildMaskField(settings, 9, 'noise');
+    const { field } = buildMaskField(settings, 9, 'levels');
+    let bare = 0, whole = 0;
+    for (let i = 0; i < raw.length; i++) {
+      expect(field[i]).toBeCloseTo(Math.min(1, Math.max(0, (raw[i] - 0.3) / 0.4)), 5);
+      if (field[i] === 0) bare++;
+      if (field[i] === 1) whole++;
+    }
+    expect(bare / field.length).toBeCloseTo(0.3, 2);
+    expect(whole / field.length).toBeCloseTo(0.3, 2);
+  });
+
+  it('cuts a threshold as the input handles meet', () => {
+    const { field } = buildMaskField(
+      { ...flat, maskInputMin: 0.5, maskInputMax: 0.5 }, 9, 'levels');
+    expect(new Set(field)).toEqual(new Set([0, 1]));
+    expect([...field].filter((v) => v === 1).length / field.length).toBeCloseTo(0.5, 2);
+  });
+
+  // The output pair is the density range, not a cut: a low handle above zero
+  // is the palest the fill gets, and must never punch a hole through it.
   it('lands the field between the two output levels and nowhere outside them', () => {
-    const { field } = buildMaskField({ ...flat, maskOutputMin: 0.4, maskOutputMax: 0.9 }, 9, 'output');
+    const { field } = buildMaskField({ ...flat, maskOutputMin: 0.4, maskOutputMax: 0.9 }, 9, 'levels');
     let lo = 1, hi = 0;
     for (const v of field) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
     expect(lo).toBeCloseTo(0.4, 2);
@@ -46,7 +79,7 @@ describe('mask field', () => {
   it('stretches the field into the handles rather than cutting it off there', () => {
     const settings = { ...flat, maskOutputMin: 0.2, maskOutputMax: 0.8 };
     const { field: raw } = buildMaskField(settings, 9, 'noise');
-    const { field } = buildMaskField(settings, 9, 'output');
+    const { field } = buildMaskField(settings, 9, 'levels');
     for (let i = 0; i < raw.length; i++) expect(field[i]).toBeCloseTo(0.2 + raw[i] * 0.6, 6);
     // The median of a centred field lands mid-range, not on the floor.
     const sorted = Float32Array.from(field).sort();
@@ -57,12 +90,12 @@ describe('mask field', () => {
   // black, so a fill with a floor well clear of bare still came out in holes.
   it('holds the floor through the posterising', () => {
     const { field } = buildMaskField(
-      { ...flat, maskOutputMin: 0.3, maskOutputMax: 1, maskPosterize: 3 }, 9, 'output');
+      { ...flat, maskOutputMin: 0.3, maskOutputMax: 1, maskPosterize: 3 }, 9, 'levels');
     expect(Math.min(...field)).toBeCloseTo(0.3, 6);
   });
 
   it('flattens to a wash as the levels close up', () => {
-    const { field } = buildMaskField({ ...flat, maskOutputMin: 0.6, maskOutputMax: 0.6 }, 9, 'output');
+    const { field } = buildMaskField({ ...flat, maskOutputMin: 0.6, maskOutputMax: 0.6 }, 9, 'levels');
     expect(field.every((v) => Math.abs(v - 0.6) < 1e-6)).toBe(true);
   });
 
@@ -96,7 +129,7 @@ describe('mask field', () => {
   });
 
   it('flattens the field into as many tones as the steps ask for', () => {
-    const { field } = buildMaskField({ ...flat, maskPosterize: 3 }, 9, 'output');
+    const { field } = buildMaskField({ ...flat, maskPosterize: 3 }, 9, 'levels');
     expect(new Set(field).size).toBe(3);
   });
 

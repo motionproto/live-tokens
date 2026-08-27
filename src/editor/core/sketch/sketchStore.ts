@@ -159,22 +159,40 @@ function persist(key: string, value: string): void {
   }
 }
 
+/** The root the effect paints in this document, or null while this document is
+    showing an editor surface. Registered by LiveTokensRouter: a consumer can
+    relocate the editor routes, so the router is the only thing that knows
+    whether what is on screen is a page or the editor's own chrome. Null until
+    it says so, which is what keeps the editor from flashing the effect over
+    itself between import and first render. */
+let pageRoot: HTMLElement | null = null;
+
+let installed = false;
+
+function render(enabled: boolean, settings: SketchSettings): void {
+  if (typeof document === 'undefined') return;
+  if (!enabled) {
+    if (installed) removeSketchLayer();
+    installed = false;
+    return;
+  }
+  applySketchLayer(settings);
+  installed = true;
+  // The editor's own chrome must never pick the effect up. Two roots qualify:
+  // the host page behind the overlay iframe, and this document while it is
+  // showing a page. The preview container scopes itself.
+  setSketchScope(hostRoot(), settings);
+  setSketchScope(pageRoot, settings);
+}
+
+export function setSketchPageRoot(el: HTMLElement | null): void {
+  if (el === pageRoot) return;
+  setSketchScope(pageRoot, null);
+  pageRoot = el;
+  render(get(sketchEnabled), get(sketchSettings));
+}
+
 if (typeof document !== 'undefined') {
-  let installed = false;
-
-  const render = (enabled: boolean, settings: SketchSettings) => {
-    if (!enabled) {
-      if (installed) removeSketchLayer();
-      installed = false;
-      return;
-    }
-    applySketchLayer(settings);
-    installed = true;
-    // The editor's own chrome must never pick the effect up, so only the host
-    // page's root becomes a scope here. The preview container scopes itself.
-    setSketchScope(hostRoot(), settings);
-  };
-
   sketchEnabled.subscribe((enabled) => {
     persist(ENABLED_KEY, String(enabled));
     render(enabled, get(sketchSettings));
@@ -187,4 +205,27 @@ if (typeof document !== 'undefined') {
 
   sketchPreset.subscribe((name) => persist(PRESET_KEY, name));
   sketchBaseline.subscribe((b) => persist(BASELINE_KEY, b ? JSON.stringify(b) : ''));
+
+  /* The overlay editor runs in an iframe, so the Sketch tab and a control on
+     the page are separate instances of this module. localStorage is the ground
+     they share: each adopts a value only when it differs from what it holds, so
+     an exchange settles instead of trading identical writes back and forth. */
+  window.addEventListener('storage', (event) => {
+    if (event.storageArea !== localStorage) return;
+    if (event.key === ENABLED_KEY) {
+      const next = event.newValue === 'true';
+      if (next !== get(sketchEnabled)) sketchEnabled.set(next);
+    } else if (event.key === SETTINGS_KEY) {
+      if (event.newValue && event.newValue !== JSON.stringify(get(sketchSettings))) {
+        sketchSettings.set(readSettings());
+      }
+    } else if (event.key === PRESET_KEY) {
+      if (readPresetName() !== get(sketchPreset)) sketchPreset.set(readPresetName());
+    } else if (event.key === BASELINE_KEY) {
+      const current = get(sketchBaseline);
+      if ((event.newValue || '') !== (current ? JSON.stringify(current) : '')) {
+        sketchBaseline.set(readBaseline());
+      }
+    }
+  });
 }

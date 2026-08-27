@@ -71,6 +71,7 @@
   import ColumnsOverlay from './ColumnsOverlay.svelte';
   import { route, navigate } from '../core/routing/router';
   import { DEFAULT_EDITOR_PATH, DEFAULT_COMPONENTS_PATH, DEFAULT_COLORS_PATH, DEFAULT_DOCS_PATH } from '../core/routing/ownedRoutes';
+  import { setSketchPageRoot } from '../core/sketch/sketchStore';
 
   interface Props {
     pages: Record<string, RouteEntry>;
@@ -100,6 +101,13 @@
   let isComponentEditor = $derived(isDev && componentsEnabled && $route === componentsPath);
   let isColors = $derived(isDev && colorsEnabled && $route === colorsPath);
   let isDocs = $derived(isDev && docsEnabled && $route === docsPath);
+
+  // A sketch style paints the page and never the editor's own chrome. Which
+  // routes are chrome is this component's knowledge alone, since a consumer can
+  // relocate them, so it hands the sketch layer the root to paint.
+  $effect(() => {
+    setSketchPageRoot(isEditor || isComponentEditor || isColors || isDocs ? null : document.documentElement);
+  });
 
   // The single entry that renders the current route. Owned routes are handled
   // by the isEditor/isComponentEditor/isColors/isDocs branches, so they resolve

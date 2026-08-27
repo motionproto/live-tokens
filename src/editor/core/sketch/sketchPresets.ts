@@ -61,12 +61,17 @@ export interface SketchSettings {
   maskOn: boolean;
   /** Wavelength of the coverage noise, in page px. Small gives speckle, large gives broad patches. */
   maskBlob: number;
+  /** Input levels on the coverage field, 0 to 1: the black and the white point.
+      The field is equalised before they apply, so the pair reads as shares of
+      the tile. 0 to 1 leaves the field as it is; 0.3 to 0.7 wears the darkest
+      thirty per cent through and fills the palest thirty per cent in solid,
+      which is the contrast control. */
+  maskInputMin: number;
+  maskInputMax: number;
   /** Output levels on the coverage field, 0 to 1: the palest the fill gets and
       the densest. 0 is bare and 1 is whole, so 0.4 to 1 is a fill that is never
       thinner than 40% ink, and 0 to 0.8 one that never quite fills in. Close
-      together is a flat wash, far apart a strong blotch. The field is stretched
-      onto its own measured range before they apply, so both mean the same thing
-      at every grain and octave count. */
+      together is a flat wash, far apart a strong blotch. */
   maskOutputMin: number;
   maskOutputMax: number;
   /** Detail layers. 1-2 gives broad blobs, 4+ goes cloudy and stops reading as blotches. */
@@ -127,7 +132,8 @@ const base: SketchSettings = {
   strokeWidth: 1.5, doubleStroke: false, retraceOffset: 1.2, retracePass: 'copy',
   fillStyle: 'solid', hatchInk: 0.4, strokeStyle: 'solid',
   pressure: 0.25, pressureMod: 0.35, pooling: 1.2, strokeInk: 1,
-  maskOn: true, maskBlob: 100, maskOutputMin: 0.45, maskOutputMax: 1,
+  maskOn: true, maskBlob: 100, maskInputMin: 0, maskInputMax: 1,
+  maskOutputMin: 0.45, maskOutputMax: 1,
   maskOctaves: 2, maskGrain: 'fractal', maskPosterize: 1, maskSoftness: 1.5,
   jitterX: 2.5, jitterY: 2.5, jitterRot: 0.6, jitterScale: 0.035,
   cornerSpread: 10, cornerTravel: 8,

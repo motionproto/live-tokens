@@ -10,6 +10,7 @@
   import { DEFAULT_COMPONENTS_PATH, DEFAULT_COLORS_PATH } from '../editor/core/routing/ownedRoutes';
   import { overlayOpen } from '../editor/overlay/overlayState';
   import ThemeSelect from './ThemeSelect.svelte';
+  import SketchSelect from './SketchSelect.svelte';
 
   const isDev = import.meta.env.DEV;
 </script>
@@ -35,7 +36,10 @@
             on:click={() => window.dispatchEvent(new CustomEvent('lt-overlay-toggle'))}
           >{$overlayOpen ? 'Close Token Editor' : 'Open Token Editor'}</Button>
         </div>
-        <ThemeSelect />
+        <div class="selectors">
+          <ThemeSelect />
+          <SketchSelect />
+        </div>
       {/if}
     </Card>
   </section>
@@ -99,7 +103,10 @@
     margin-left: auto;
   }
 
-  .stub :global(.theme-select) {
+  .selectors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-20);
     margin-top: var(--space-24);
   }
 </style>

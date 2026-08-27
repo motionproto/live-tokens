@@ -19,6 +19,12 @@
       icon: 'fa-box-open',
       source: 'src/demo/Demo.svelte',
     },
+    '/skills': {
+      lazy: () => import('./skill-atlas/SkillAtlas.svelte'),
+      label: 'Skills',
+      icon: 'fa-diagram-project',
+      source: 'src/app/skill-atlas/SkillAtlas.svelte',
+    },
     '/playground/floating-tags': {
       lazy: () => import('../demo/FloatingTagsPlayground.svelte'),
       source: 'src/demo/FloatingTagsPlayground.svelte',

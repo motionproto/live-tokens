@@ -1075,8 +1075,17 @@ export function applySketchLayer(settings: SketchSettings): void {
   const defs = buildDefsMarkup(settings);
   const css = buildStylesheet(settings);
   for (const doc of getSyncedDocuments()) {
+    const style = styleNode(doc);
+    // Writing markup a document already has is a visible flash, not a no-op:
+    // rewriting defs destroys every filter the page is mid-paint against, and
+    // rewriting the sheet drops the mask image to be decoded again. Both are
+    // built from the same settings, so the sheet answers for the pair. The
+    // comparison is against the DOM rather than a variable because with the
+    // overlay open two instances of this module render into this page, and the
+    // document is the only ground they share.
+    if (style.textContent === css) continue;
     defsNode(doc).innerHTML = defs;
-    styleNode(doc).textContent = css;
+    style.textContent = css;
   }
 }
 

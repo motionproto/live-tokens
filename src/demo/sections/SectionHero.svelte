@@ -126,7 +126,7 @@
     margin-top: var(--space-16);
   }
 
-  .hero-actions > :global(.theme-select) {
+  .hero-actions > :global(.labeled-select) {
     margin-right: var(--space-20);
   }
 

@@ -8,9 +8,12 @@
  * narrow band around its own midpoint (about 0.24 to 0.77 for fractal noise,
  * whatever the octaves), so a dial that walks a cut across 0 to 1 spends most
  * of its travel outside the field entirely and the little that lands inside
- * comes out as one flat mid-grey. Generated here, the tile is stretched onto
- * its own measured range before any dial sees it, so Min and Max always have
- * the whole field to work with and always read as levels.
+ * comes out as one flat mid-grey.
+ *
+ * Generated here, the tile is auto-levelled before any dial sees it, and the
+ * dials that follow are a levels control: Input cuts a black and a white point
+ * into the field, Steps quantises it, Output states the density range the mask
+ * paints between.
  *
  * Everything is integer maths on a Float32Array with no DOM, so what a test
  * asserts is what the browser paints.
@@ -29,7 +32,7 @@ const SAMPLE_PX = 2;
 const RASTER = MASK_TILE / SAMPLE_PX;
 
 /** The stage previews, in the order the field is built. */
-export type MaskStage = 'noise' | 'output' | 'blur';
+export type MaskStage = 'noise' | 'levels' | 'blur';
 
 /* ---------------------------------------------------------------- noise --- */
 
@@ -128,41 +131,75 @@ function rawField(s: SketchSettings, seed: number, raster: number, cells: number
       out[y * raster + x] = sum / weightSum;
     }
   }
-  return normalise(out);
+  return equalise(out);
 }
 
+const BINS = 4096;
+
 /**
- * Stretch the field onto 0..1 by its own 0.5th and 99.5th percentiles.
+ * Auto levels: map the field through its own cumulative distribution, so tone
+ * is spread evenly from black to white whatever the noise underneath.
  *
- * This is the difference between levels that work and a grey wash. Noise of any
- * kind piles up around its middle, and how far it reaches depends on the grain
- * and the octave count, so a fixed range would be wrong for every setting but
- * one. Measured per tile, Min and Max always address a field that runs black to
- * white, and the two dials mean the same thing at every other setting.
+ * A black-and-white-point stretch is not enough on its own. Noise piles up
+ * around its middle and the veined fold piles it up at the bottom — half a
+ * one-layer veined tile sits under 0.29 — so a tile stretched by its extremes
+ * still reads as one dark wash, and every dial downstream cuts the range at
+ * points most of the field is nowhere near. Equalised, the median lands at 0.5
+ * and each fifth of the range holds a fifth of the tile, so a handle at 30
+ * addresses the darkest 30% of the field at every grain and octave count.
  *
- * The percentiles rather than the extremes, so one freak pixel cannot flatten
- * the rest of the tile.
+ * Piecewise-linear through a histogram rather than by rank, so the mapping
+ * stays smooth and cannot band a gradient it is meant to spread.
  */
-function normalise(f: Float32Array): Float32Array {
-  const sorted = Float32Array.from(f).sort();
-  const lo = sorted[Math.floor(0.005 * (sorted.length - 1))];
-  const hi = sorted[Math.ceil(0.995 * (sorted.length - 1))];
+function equalise(f: Float32Array): Float32Array {
+  let lo = Infinity, hi = -Infinity;
+  for (const v of f) { if (v < lo) lo = v; if (v > hi) hi = v; }
   const span = hi - lo;
   if (span <= 1e-6) return f.fill(0.5);
-  for (let i = 0; i < f.length; i++) f[i] = Math.min(1, Math.max(0, (f[i] - lo) / span));
+
+  const count = new Float64Array(BINS);
+  for (const v of f) count[Math.min(BINS - 1, Math.floor(((v - lo) / span) * BINS))]++;
+  const below = new Float64Array(BINS + 1);
+  for (let b = 0; b < BINS; b++) below[b + 1] = below[b] + count[b];
+
+  for (let i = 0; i < f.length; i++) {
+    const t = ((f[i] - lo) / span) * BINS;
+    const b = Math.min(BINS - 1, Math.floor(t));
+    f[i] = (below[b] + (t - b) * count[b]) / f.length;
+  }
   return f;
 }
 
 /* ------------------------------------------------------------- levelling --- */
 
+/** Input levels. The black and white points cut into the field and stretch
+    what is left back over the whole range, the way Photoshop's input handles
+    do. The field is equalised, so the pair reads as shares of the tile: 30 to
+    70 wears the darkest thirty per cent through to bare, fills the palest
+    thirty per cent in solid, and spreads the middle across everything between.
+
+    Handles together are the limit of that stretch, a threshold: half the tile
+    bare and half whole, with no ramp. */
+function applyInput(f: Float32Array, min: number, max: number): Float32Array {
+  const span = max - min;
+  if (span <= 1e-6) {
+    for (let i = 0; i < f.length; i++) f[i] = f[i] >= min ? 1 : 0;
+    return f;
+  }
+  for (let i = 0; i < f.length; i++) {
+    f[i] = Math.min(1, Math.max(0, (f[i] - min) / span));
+  }
+  return f;
+}
+
 /** Output levels. The field is stretched into the gap between the handles, so
     the pair states the range the mask paints: nothing is barer than Min or
     denser than Max, and the field keeps its own shape in between.
 
-    Clamping instead makes Min the value most of the field sits AT rather than
-    its rare floor, because the field arrives centred on its own middle: half of
-    it is below 0.5, so a floor of 0.6 piles that half onto 0.6 and the fill
-    comes out a flat wash at the floor with a thin bright tail above it. */
+    Cutting here instead of stretching is what Input is for. Cut twice and the
+    second cut has nothing left to take: the low handle would become the value
+    most of the field sits AT rather than its floor, and the fill would come
+    out a flat wash at the floor with a thin bright tail above it. */
 function applyOutput(f: Float32Array, min: number, max: number): Float32Array {
   const span = max - min;
   for (let i = 0; i < f.length; i++) f[i] = min + f[i] * span;
@@ -244,9 +281,12 @@ export function buildMaskField(
   if (through === 'noise') return { field: raw, raster: RASTER };
 
   const levelled = applyOutput(
-    posterise(Float32Array.from(raw), s.maskPosterize), s.maskOutputMin, s.maskOutputMax,
+    posterise(
+      applyInput(Float32Array.from(raw), s.maskInputMin, s.maskInputMax), s.maskPosterize,
+    ),
+    s.maskOutputMin, s.maskOutputMax,
   );
-  if (through === 'output') return { field: levelled, raster: RASTER };
+  if (through === 'levels') return { field: levelled, raster: RASTER };
 
   return { field: blur(levelled, RASTER, s.maskSoftness / SAMPLE_PX), raster: RASTER };
 }
@@ -362,8 +402,8 @@ export function fieldToPng(field: Float32Array, raster: number): string {
     never triggers another. The tab holds four of them at once, the field at
     three stages beside the finished one, with headroom over that. */
 const KEYS = [
-  'maskBlob', 'maskOctaves', 'maskGrain', 'maskOutputMin', 'maskOutputMax',
-  'maskPosterize', 'maskSoftness',
+  'maskBlob', 'maskOctaves', 'maskGrain', 'maskInputMin', 'maskInputMax',
+  'maskOutputMin', 'maskOutputMax', 'maskPosterize', 'maskSoftness',
 ] as const;
 
 const CACHE_MAX = 6;
