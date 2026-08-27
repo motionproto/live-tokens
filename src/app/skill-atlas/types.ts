@@ -5,12 +5,22 @@ export type NodeKind =
 /** Inclusive 1-based line range into the skill's SKILL.md. */
 export type LineRange = [number, number];
 
-export interface Chip {
+/**
+ * Opening text of the range's first and last lines, written and verified by
+ * `scripts/sync-skill-atlas.mjs`. The line numbers are derived from these, so
+ * editing a skill costs a sync rather than a hand audit of every range.
+ */
+export interface Anchored {
+  anchor?: string;
+  anchorEnd?: string;
+}
+
+export interface Chip extends Anchored {
   label: string;
   lines: LineRange;
 }
 
-export interface TreeNode {
+export interface TreeNode extends Anchored {
   id: string;
   row: number;
   kind: NodeKind;
