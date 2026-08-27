@@ -20,6 +20,28 @@ const SETTINGS_KEY = 'lt.sketchSettings';
 const PRESET_KEY = 'lt.sketchPreset';
 const BASELINE_KEY = 'lt.sketchBaseline';
 
+/** Whether this browser had recorded a sketch decision before this module's
+    own bookkeeping ran. Snapshotted here, at the top of the file, because the
+    `subscribe` calls below write every key straight back to localStorage on
+    their first tick (mirroring whatever `readEnabled`/`readSettings` resolved
+    to); a check made after that point would read those keys and answer "yes"
+    on every boot, seeded or not. */
+const persistedSketchStateOnLoad = (() => {
+  try {
+    return localStorage.getItem(ENABLED_KEY) !== null || localStorage.getItem(SETTINGS_KEY) !== null;
+  } catch {
+    return false;
+  }
+})();
+
+/** True once anything about the sketch has ever been recorded in this
+    browser, so boot (`themeInit.ts`) can tell "never touched" from
+    "explicitly off" and only seed the live buffer from the theme in the
+    first case. */
+export function hasPersistedSketchState(): boolean {
+  return persistedSketchStateOnLoad;
+}
+
 function readEnabled(): boolean {
   try {
     return localStorage.getItem(ENABLED_KEY) === 'true';
@@ -93,6 +115,36 @@ export const sketchDirty = derived(
 );
 
 export const sketchBlurb = derived(sketchSettings, (s) => s.blurb);
+
+/** The live look as a theme would carry it: the dials when the effect is
+    on, nothing when it is off (RJC 1). */
+export function liveSketch(): SketchSettings | undefined {
+  return get(sketchEnabled) ? get(sketchSettings) : undefined;
+}
+
+/** What the open theme holds, so "unsaved" is a comparison rather than a
+    flag (RJC 5). Set by every path that opens or saves a theme. */
+export const themeSketch = writable<SketchSettings | undefined>(undefined);
+
+/** Open a theme's sketch layer: the dials, the on/off state, and the preset
+    label recovered by comparison (RJC 3). Overwrites the live buffer, which
+    is what opening a theme means everywhere else (RJC 6). Never writes a
+    `user:` name here: a saved preset is a file this look may not have come
+    from, and the only thing that can name one is picking it. */
+export function openThemeSketch(sketch: SketchSettings | undefined): void {
+  themeSketch.set(sketch);
+  if (!sketch) {
+    sketchEnabled.set(false);
+    sketchBaseline.set(null);
+    sketchPreset.set('');
+    return;
+  }
+  const matched = (Object.keys(SKETCH_PRESETS) as string[]).find((name) => sameLook(SKETCH_PRESETS[name], sketch));
+  sketchSettings.set({ ...sketch });
+  sketchBaseline.set({ ...sketch });
+  sketchPreset.set(matched ?? '');
+  sketchEnabled.set(true);
+}
 
 export function selectSketchPreset(name: string): void {
   const preset = SKETCH_PRESETS[name];

@@ -2,6 +2,7 @@ import { liveMovedSinceBake } from '../productionPulse';
 import { openThemeSlug } from '../store/editorConfigStore';
 import { loadThemeFromApi } from '../store/editorStore';
 import { migrateColorsAndTypeFonts } from '../fonts/fontMigration';
+import { openThemeSketch } from '../sketch/sketchStore';
 import type { ApplyThemeResult } from './themeService';
 
 const CHANNEL_NAME = 'live-tokens:active-theme:v1';
@@ -42,6 +43,7 @@ export function hydrateAppliedTheme(fileName: string, result: ApplyThemeResult):
   migrateColorsAndTypeFonts(colorsAndType);
   loadThemeFromApi(colorsAndType, structuredClone(result.componentConfigs));
   openThemeSlug.set(fileName);
+  openThemeSketch(result.theme?.sketch);
   liveMovedSinceBake.set(false);
   if (typeof document !== 'undefined') {
     document.dispatchEvent(new CustomEvent<AppliedThemeDetail>(THEME_APPLIED_EVENT, {

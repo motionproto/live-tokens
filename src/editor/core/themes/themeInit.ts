@@ -1,10 +1,11 @@
-import type { AliasDiskValue, ColorsAndType } from './themeTypes';
+import type { AliasDiskValue, ColorsAndType, Theme } from './themeTypes';
 import { openThemeSlug } from '../store/editorConfigStore';
 import { migrateColorsAndTypeFonts } from '../fonts/fontMigration';
 import { loadFromFile, seedComponentsFromApi } from '../store/editorStore';
 import { getActiveComponentConfig, type ComponentSummary } from '../components/componentConfigService';
 import { safeFetch } from '../storage/storage';
 import { API_BASE } from '../storage/apiBase';
+import { hasPersistedSketchState, openThemeSketch, themeSketch } from '../sketch/sketchStore';
 
 interface ListComponentsDto {
   components: ComponentSummary[];
@@ -60,5 +61,17 @@ export async function initializeTheme(): Promise<void> {
     // replacing the visible design system with a mixture of active configs
     // and CSS defaults because one request happened to fail during boot.
     if (!componentReadFailed) seedComponentsFromApi(configs);
+  }
+
+  const active = await safeFetch<Theme>(`${API_BASE}/themes/active`);
+  if (hasPersistedSketchState()) {
+    // The buffer already painted on the first frame; boot only learns what
+    // the theme holds so unsaved dial work reads as unsaved rather than
+    // getting silently overwritten (that overwrite is what Apply is for).
+    themeSketch.set(active?.sketch);
+  } else {
+    // Nothing was ever recorded in this browser: the theme's value becomes
+    // the live value, the same reconciliation opening a theme performs.
+    openThemeSketch(active?.sketch);
   }
 }

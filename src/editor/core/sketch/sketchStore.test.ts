@@ -2,14 +2,17 @@
 
 import { get } from 'svelte/store';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { DEFAULT_SKETCH_PRESET, hydrateSketchSettings, SKETCH_PRESETS } from './sketchPresets';
+import { DEFAULT_SKETCH_PRESET, hydrateSketchSettings, SKETCH_PRESETS, type SketchSettings } from './sketchPresets';
 import {
+  liveSketch,
+  openThemeSketch,
   selectSketchPreset,
   setSketchPageRoot,
   sketchDirty,
   sketchEnabled,
   sketchPreset,
   sketchSettings,
+  themeSketch,
   updateSketchSettings,
 } from './sketchStore';
 
@@ -45,6 +48,54 @@ describe('sketch preset selection', () => {
 
     expect(get(sketchPreset)).toBe('napkin');
     expect(get(sketchDirty)).toBe(false);
+  });
+});
+
+describe('openThemeSketch', () => {
+  beforeEach(() => {
+    selectSketchPreset('pencil');
+  });
+
+  it('turns the effect off and empties the preset selection when the theme carries none', () => {
+    openThemeSketch(undefined);
+
+    expect(get(sketchEnabled)).toBe(false);
+    expect(get(sketchPreset)).toBe('');
+    expect(get(themeSketch)).toBeUndefined();
+  });
+
+  it('turns the effect on and selects the matching shipped preset by comparison', () => {
+    openThemeSketch(SKETCH_PRESETS.napkin);
+
+    expect(get(sketchEnabled)).toBe(true);
+    expect(get(sketchPreset)).toBe('napkin');
+    expect(get(sketchSettings)).toEqual(SKETCH_PRESETS.napkin);
+    expect(get(sketchDirty)).toBe(false);
+  });
+
+  it('selects no preset when the theme dials match none of the shipped set, and still reads clean', () => {
+    const custom: SketchSettings = { ...SKETCH_PRESETS.napkin, fillTravel: 9.5 };
+
+    openThemeSketch(custom);
+
+    expect(get(sketchPreset)).toBe('');
+    expect(get(sketchDirty)).toBe(false);
+  });
+});
+
+describe('liveSketch', () => {
+  it('is undefined while the effect is off', () => {
+    selectSketchPreset('pencil');
+    sketchEnabled.set(false);
+
+    expect(liveSketch()).toBeUndefined();
+  });
+
+  it('is the live dials while the effect is on', () => {
+    selectSketchPreset('napkin');
+    sketchEnabled.set(true);
+
+    expect(liveSketch()).toEqual(SKETCH_PRESETS.napkin);
   });
 });
 
