@@ -38,6 +38,13 @@ All four pick one option from a set. The right one depends on **option count**, 
 - Use `MenuSelect` when options would overflow horizontally or there are too many to display at once.
 - **Don't pick `SegmentedControl` when option labels are long enough to wrap.** It loses its compactness; use `RadioButton` rows instead.
 
+## Text entry: Input vs the selection family
+
+- `Input` takes an answer the page cannot enumerate: a name, an email, a search string, an amount. It ships the label, the hint line, and the error state as parts (`--input-label-*`, `--input-hint-*`, `--input-error-*`), so style those rather than stacking your own text under a bare field.
+- The boundary is whether you can list the answers. A short fixed set is the single-selection family above; a long fixed set is `MenuSelect`; anything you cannot write down is `Input`.
+- **Don't use it for on/off.** That is `Toggle`, and a one-field form asking for yes or no is the usual way this goes wrong.
+- Its four variants are `default`, `focused`, `disabled`, and `error`. A validation message belongs in the `error` variant, not in a `Callout` next to the field.
+
 ## Container family: Card vs CollapsibleSection vs Dialog
 
 | Component             | Modality            | Use for                                                     |

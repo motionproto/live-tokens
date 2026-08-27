@@ -1341,6 +1341,20 @@ export const skillTrees: Record<string, SkillTree> = {
         "anchorEnd": "- **Don't pick `SegmentedControl` when option labels are lon"
       },
       {
+        "id": "pk-text",
+        "row": 3,
+        "kind": "ask",
+        "tag": "text entry",
+        "title": "Enumerable answers, or free text",
+        "desc": "If you can list the answers it is the selection family: a short set inline, a long one MenuSelect. Anything you cannot write down is Input, which ships its own label, hint, and error parts rather than needing text stacked under a bare field. Yes or no is Toggle.",
+        "lines": [
+          41,
+          46
+        ],
+        "anchor": "## Text entry: Input vs the selection family",
+        "anchorEnd": "- Its four variants are `default`, `focused`, `disabled`, an"
+      },
+      {
         "id": "pk-con",
         "row": 3,
         "kind": "ask",
@@ -1348,8 +1362,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "What is the modality?",
         "desc": "Default to Card, the workhorse. CollapsibleSection only when the content is legitimately secondary. Panel is a stage, not a content container. Dialog only when the page cannot meaningfully continue.",
         "lines": [
-          41,
-          53
+          48,
+          60
         ],
         "anchor": "## Container family: Card vs CollapsibleSection vs Dialog",
         "anchorEnd": "- **Don't use `Dialog` for routine forms.** Reach for it onl"
@@ -1362,8 +1376,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Content, feedback, or hint?",
         "desc": "Callout is content, written into the markup. Notification is feedback, appearing then dismissing. Tooltip is what an element means, and never the primary location of important content. Badge and CornerBadge differ only in positioning.",
         "lines": [
-          55,
-          68
+          62,
+          75
         ],
         "anchor": "## Messaging family: Callout vs Notification vs Tooltip vs B",
         "anchorEnd": "- `Badge` and `CornerBadge` differ only in positioning. `Cor"
@@ -1376,11 +1390,25 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "A setting, or two named alternatives?",
         "desc": "If the off and on states share a name, it is a Toggle. If the two states have names you want compared, SegmentedControl. Toggle flips immediately; a RadioButton pair belongs to a larger submission.",
         "lines": [
-          79,
-          91
+          86,
+          98
         ],
         "anchor": "## Toggle vs SegmentedControl vs RadioButton (for on/off)",
         "anchorEnd": "- `Toggle` flips immediately; `RadioButton` pair is for form"
+      },
+      {
+        "id": "pk-disp",
+        "row": 3,
+        "kind": "ask",
+        "tag": "display",
+        "title": "Shown rather than asked",
+        "desc": "Image for a picture in the flow, ImageLightbox when the detail is the point, Table for records, ProgressBar as a read-out and never a control, CodeSnippet for something the reader runs. SideNavigation changes the URL; switching panels inside one page is TabBar.",
+        "lines": [
+          77,
+          84
+        ],
+        "anchor": "## Display family: what the page shows rather than what it a",
+        "anchorEnd": "- `SectionDivider` separates sections of one page. `SideNavi"
       },
       {
         "id": "pk-fits",
@@ -1389,8 +1417,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Does anything in the catalogue fit?",
         "desc": "A custom component is a maintenance commitment. Do not reach for one before checking.",
         "lines": [
-          93,
-          95
+          100,
+          102
         ],
         "anchor": "---",
         "anchorEnd": "If nothing in the catalogue fits (a `Slider`, a `DatePicker`"
@@ -1414,8 +1442,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Author it: create-component",
         "desc": "A Slider, a DatePicker, a Stepper, a custom widget.",
         "lines": [
-          95,
-          95
+          102,
+          102
         ],
         "anchor": "If nothing in the catalogue fits (a `Slider`, a `DatePicker`"
       }
@@ -1476,6 +1504,22 @@ export const skillTrees: Record<string, SkillTree> = {
       [
         "pk-fits",
         "pk-make"
+      ],
+      [
+        "pk-fam",
+        "pk-text"
+      ],
+      [
+        "pk-text",
+        "pk-fits"
+      ],
+      [
+        "pk-fam",
+        "pk-disp"
+      ],
+      [
+        "pk-disp",
+        "pk-fits"
       ]
     ]
   },
